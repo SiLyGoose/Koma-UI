@@ -1,7 +1,22 @@
 /* The mine, laid out like Stake's Mines: the panel on the left (under the board on a phone), the board on the right. */
 
+/* In the frame (frame.css), filling the window, with the game in the middle below the title bar. */
 .mx {
-  max-width: 900px;
+  --mx-width: 900px;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding-bottom: 16px;
+}
+
+.mx > .top {
+  margin-bottom: 16px;
+}
+
+.mx > .mx-game,
+.mx > .hint {
+  width: min(var(--mx-width), 100% - 32px);
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .mx-game {
@@ -322,8 +337,11 @@
  */
 @media (min-width: 900px) {
   .mx {
-    max-width: 1280px;
-    padding: 20px 24px;
+    --mx-width: 1232px;
+  }
+
+  .mx > .top {
+    margin-bottom: 20px;
   }
 
   .mx-game {

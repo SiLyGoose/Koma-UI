@@ -1,0 +1,49 @@
+/*
+ * The frame every game sits in (frame.ts): a blue border round the window and a title bar across
+ * the top, with the way back to the games, the game's name, the sound button and the connection.
+ * A game's page puts it on its <main class="frame"> and lays out what's below the bar itself.
+ */
+
+.frame {
+  --frame-bar: #2b3f9e;
+  max-width: none;
+  padding: 0;
+  border: 2px solid var(--frame-bar);
+}
+
+.frame > .top {
+  margin: 0;
+  padding: 5px 10px;
+  padding-top: max(5px, env(safe-area-inset-top));
+  background: var(--frame-bar);
+}
+
+.frame .top h1 {
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.frame .top .back {
+  color: #fff;
+  font-size: 16px;
+}
+
+.frame .top .conn {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.frame-mute {
+  margin-right: 8px;
+  padding: 2px 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.frame-mute:hover {
+  background: rgba(0, 0, 0, 0.25);
+}

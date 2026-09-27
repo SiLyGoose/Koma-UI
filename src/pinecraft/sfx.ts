@@ -3,7 +3,7 @@ import type { PinecraftOre } from './protocol';
 /*
  * Pinecraft's sounds, from public/pinecraft/sfx. Played through Web Audio so they start at once
  * and can overlap (footsteps, hits). A browser keeps sound off until the player first touches or
- * presses something, so the first input wakes it. Muting is remembered.
+ * presses something, so the first input wakes it. The frame's sound button mutes it (setMuted).
  */
 
 /** Each sound and its takes (one is picked at random each time). */
@@ -28,13 +28,7 @@ export function materialOf(ground: 'dirt' | 'stone' | 'grass', ore: PinecraftOre
   return ground === 'stone' ? 'stone' : 'dirt';
 }
 
-const MUTE_KEY = 'pinecraft-muted';
 let muted = false;
-try {
-  muted = localStorage.getItem(MUTE_KEY) === '1';
-} catch {
-  // No storage (a private window): sound starts on.
-}
 
 const Ctx = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
 const audio = Ctx ? new Ctx() : null;
@@ -82,13 +76,6 @@ export function play(sound: Sound, volume = 0.2): void {
   source.start();
 }
 
-export const isMuted = (): boolean => muted;
-
 export function setMuted(on: boolean): void {
   muted = on;
-  try {
-    localStorage.setItem(MUTE_KEY, on ? '1' : '0');
-  } catch {
-    // Not remembered, but still muted for now.
-  }
 }

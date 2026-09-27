@@ -1,8 +1,9 @@
 import '../style.css';
+import { setConn, soundButton } from '../frame';
 import './pinecraft.css';
 import { burst, cellAt, drawMap, drawScene, isBedrock, isOpenCell, ORE_OF, stepParticles, type Scene } from './draw';
 import type { ClientMessage, Direction, ErrorCode, PinecraftOre, ServerMessage, WorldEvent, WorldMap, WorldState } from './protocol';
-import { isMuted, loadSounds, materialOf, play, setMuted, type Material } from './sfx';
+import { loadSounds, materialOf, play, setMuted, type Material } from './sfx';
 import { drawGem, loadTextures, ORE_COLOR, ORES } from './textures';
 
 /*
@@ -21,8 +22,6 @@ const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) 
 const canvas = $<HTMLCanvasElement>('board');
 const g = canvas.getContext('2d') as CanvasRenderingContext2D;
 const ui = {
-  mute: $<HTMLButtonElement>('mute'),
-  conn: $('conn'),
   energy: $('energy'),
   energyFill: $('energy-fill'),
   energyNext: $('energy-next'),
@@ -269,11 +268,6 @@ const ERRORS: Record<ErrorCode, [string, string]> = {
 
 function send(message: ClientMessage): void {
   if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify(message));
-}
-
-function setConn(text: string, kind: '' | 'ok' | 'bad'): void {
-  ui.conn.textContent = text;
-  ui.conn.className = `conn ${kind}`;
 }
 
 function receive(message: ServerMessage): void {
@@ -649,18 +643,7 @@ function frame(now: number): void {
   requestAnimationFrame(frame);
 }
 
-// Sound on or off, in the title bar.
-function renderMute(): void {
-  const off = isMuted();
-  ui.mute.textContent = off ? '🔇' : '🔊';
-  ui.mute.setAttribute('aria-pressed', String(off));
-  ui.mute.setAttribute('aria-label', off ? 'Turn sound on' : 'Turn sound off');
-}
-ui.mute.addEventListener('click', () => {
-  setMuted(!isMuted());
-  renderMute();
-});
-renderMute();
+soundButton('pinecraft-muted', setMuted);
 
 // ---------------------------------------------------------------------------
 // Start

@@ -1,4 +1,5 @@
 import './style.css';
+import { setConn, soundButton } from './frame';
 import './mines.css';
 import type { ClientMessage, ErrorCode, Lobby, RunEvent, RunState, ServerMessage, StartRefusal } from './protocol';
 
@@ -13,7 +14,6 @@ import type { ClientMessage, ErrorCode, Lobby, RunEvent, RunState, ServerMessage
 
 const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T;
 const ui = {
-  conn: $('conn'),
   panel: $<HTMLFormElement>('panel'),
   balance: $('balance'),
   bet: $<HTMLInputElement>('bet'),
@@ -267,11 +267,6 @@ function send(message: ClientMessage): boolean {
   return true;
 }
 
-function setConn(text: string, kind: '' | 'ok' | 'bad'): void {
-  ui.conn.textContent = text;
-  ui.conn.className = `conn ${kind}`;
-}
-
 function startRound(): void {
   if (!lobby || playing() || pending) return;
   const bet = Math.floor(Number(ui.bet.value));
@@ -308,7 +303,12 @@ const SOUNDS = {
 };
 for (const sound of Object.values(SOUNDS)) sound.preload = 'auto';
 
+/** Sound off (the frame's sound button). */
+let muted = false;
+soundButton('mines-muted', (on) => (muted = on));
+
 function playSound(sound: HTMLAudioElement): void {
+  if (muted) return;
   const copy = sound.cloneNode() as HTMLAudioElement;
   copy.play().catch(() => {
     // Sound blocked or missing: play on without it.
