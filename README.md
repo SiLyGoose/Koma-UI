@@ -1,51 +1,65 @@
 # Koma-UI
 
-The web page [Koma](../Koma)'s mine is played on: a 5x5 field you walk around with WASD or the
-arrow keys (or the pad and swipes on a phone), digging for ore and hoping not to hit dynamite.
+The web site [Koma](../Koma)'s games are played on:
 
-The page holds no game logic that matters. The bot keeps the field and decides every dig; the page
-connects to the bot's WebSocket, sends moves, and draws what it is told. It is only ever told what
-has been dug, so nothing in the page or its dev tools gives away where the dynamite is.
+- **The front page** (`/`): log in with Discord, pick a server you play Koma in, pick a game.
+- **Pinecraft** (`/games/pinecraft/`): a side-on mine of your own. Dig with WASD or the arrow keys;
+  every block takes one energy (which comes back over time), and the ores you dig pay points
+  straight away. Deeper ores are rarer and pay more. No bet. Your tunnels stay dug between visits.
+- **The mine** (`/games/mines/`): a 5x5 field you walk around, digging for ore and hoping not to hit
+  dynamite, with a bet.
 
-## How a player gets here
+The pages hold no game logic that matters. The bot keeps the worlds and decides every dig; a page
+connects to the bot's WebSocket, sends moves, and draws what it is told. It is only told what the
+player can see, so nothing in the page or its dev tools gives away where the dynamite or the ores are.
 
-1. In Discord, `k!mine` (or `k!mine 100` to start a run straight away) posts a message with an
-   **Open the mine** button.
-2. Pressing it (only that member can) replies privately with a link like
-   `https://<this site>/games/mines/#t=<token>&s=wss://<bot>/mine`. The token is signed, good for 2 hours, and
-   lets that member play with their points; it and the bot's address ride after the `#`, which
-   browsers never send to Vercel.
-3. The page connects to `s` and says `hello` with `t`. If a run is going it picks it up; otherwise it
-   shows the lobby: the balance and a bet box. Runs are started, played and cashed out on the page,
-   as many as the player likes. A run left 60 seconds without a move cashes out by itself.
+## How a player gets to a game
+
+Either way, the game page is opened with a link like
+`https://<this site>/games/<game>/#t=<token>&s=wss://<bot>/<game>`. The token is signed, good for 2
+hours, and lets that member play in that server; it and the bot's address ride after the `#`,
+which browsers never send to Vercel.
+
+- **From the front page:** log in with Discord (the bot does the login, at `VITE_API_URL`), pick a
+  server and press Play. The login is kept in the browser for a week.
+- **From Discord:** `k!pinecraft`, or `k!mine` (`k!mine 100` starts a run straight away), posts a
+  message with an Open button. Pressing it (only that member can) replies privately with the link.
 
 ## Develop
 
 ```bash
 yarn
-yarn dev           # http://localhost:5173/games/mines/
+VITE_API_URL=http://localhost:8787 yarn dev     # http://localhost:5173/
 ```
 
 To play against a local bot, set these in the bot's `.env` and start it:
 
 ```
-MINE_WEB_URL=http://localhost:5173/games/mines
-MINE_WS_URL=ws://localhost:8787/mine
+WEB_URL=http://localhost:5173
+WEB_API_URL=http://localhost:8787
+DS_CLIENT_SECRET=...   # only for logging in on the front page
 ```
 
-then start a run in Discord and press **Open the mine**.
+and add `http://localhost:5173/` under Redirects in the Developer Portal (OAuth2).
 
 ## Deploy (Vercel)
 
-Import this repo in Vercel. It is detected as Vite: build `yarn build`, output `dist`. No
-environment variables are needed. The mine is at `/games/mines`: put that address (like
-`https://koma-ui.vercel.app/games/mines`) in the bot's `MINE_WEB_URL`. The bot only accepts
-connections from that site.
+Import this repo in Vercel. It is detected as Vite: build `yarn build`, output `dist`. Set one
+environment variable, `VITE_API_URL`: the bot's public address, like `https://koma.duckdns.org`.
+
+## Block pictures
+
+`public/blocks/` holds the blocks' pictures: `dirt.png` and `stone.png`. Pinecraft draws a stand-in
+for each ore (stone with coloured gems) until there is a picture for it: drop `coal.png`,
+`iron.png`, `gold.png`, `diamond.png`, `ruby.png` or `emerald.png` in there and it is used instead.
+Any square size works.
 
 ## Files
 
-- `games/mines/index.html`: the mine's page, served at `/games/mines/` (see `vite.config.ts`).
-- `src/protocol.ts`: the messages between the page and the bot. A copy of the bot's
-  `src/web/mine-protocol.ts`; change both together.
-- `src/main.ts`: the connection, input, and what is on screen.
-- `src/draw.ts`: drawing the field on the canvas.
+- `index.html`, `src/hub/`: the front page.
+- `games/pinecraft/index.html`, `src/pinecraft/`: Pinecraft. `protocol.ts` is a copy of the bot's
+  `src/web/pinecraft-protocol.ts` (change both together), `draw.ts` draws the world, `textures.ts`
+  the blocks.
+- `games/mines/index.html`, `src/main.ts`, `src/draw.ts`, `src/protocol.ts`: the mine.
+  `src/protocol.ts` is a copy of the bot's `src/web/mine-protocol.ts`.
+- `src/style.css`: styles shared by every page.

@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="robots" content="noindex" />
+    <title>Koma Games</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>" />
+  </head>
+  <body>
+    <main class="hub">
+      <header class="hub-top">
+        <h1>Koma Games</h1>
+        <div id="me" class="me" hidden>
+          <img id="me-avatar" class="avatar" alt="" />
+          <span id="me-name"></span>
+          <button type="button" id="logout" class="link-button">Log out</button>
+        </div>
+      </header>
+
+      <section id="login" class="card login" hidden>
+        <h2>Play Koma's games in your browser</h2>
+        <p>Log in with Discord, pick a server you play Koma in, and your points come with you.</p>
+        <button type="button" id="login-button" class="discord">Log in with Discord</button>
+      </section>
+
+      <p id="status" class="status" hidden></p>
+
+      <section id="play" hidden>
+        <h2 class="section-title">Server</h2>
+        <div id="servers" class="servers"></div>
+        <p id="no-servers" class="muted" hidden>None of your servers have Koma in them yet.</p>
+
+        <h2 class="section-title">Games</h2>
+        <div class="games">
+          <article class="game" data-game="pinecraft">
+            <div class="game-art pinecraft-art" aria-hidden="true">🌲⛏️</div>
+            <div class="game-body">
+              <h3>Pinecraft</h3>
+              <p>Dig down through your own mine. Every block takes energy, which comes back over time, and ores pay out as you find them. No bet.</p>
+              <button type="button" class="play" data-play="pinecraft">Play</button>
+            </div>
+          </article>
+          <article class="game" data-game="mines">
+            <div class="game-art mines-art" aria-hidden="true">💎🧨</div>
+            <div class="game-body">
+              <h3>Mine</h3>
+              <p>Bet points on a field of hidden tiles. Every ore raises your multiplier, dynamite ends the run. Cash out whenever you like.</p>
+              <button type="button" class="play" data-play="mines">Play</button>
+            </div>
+          </article>
+        </div>
+      </section>
+    </main>
+    <script type="module" src="/src/hub/main.ts"></script>
+  </body>
+</html>

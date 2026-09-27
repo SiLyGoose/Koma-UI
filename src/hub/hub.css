@@ -1,0 +1,233 @@
+/* The front page, on top of the shared styles (../style.css). */
+
+.hub {
+  max-width: 720px;
+}
+
+.hub-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 8px 0 20px;
+}
+
+.hub-top h1 {
+  font-size: 24px;
+}
+
+.me {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-weight: 600;
+}
+
+.me span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  flex: none;
+}
+
+.link-button {
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 6px;
+}
+
+.link-button:hover {
+  color: var(--text);
+  background: var(--panel);
+}
+
+.card {
+  background: var(--panel);
+  border-radius: var(--radius);
+  padding: 28px 24px;
+  text-align: center;
+}
+
+.login h2 {
+  margin: 0 0 8px;
+  font-size: 22px;
+}
+
+.login p {
+  margin: 0 0 20px;
+  color: var(--muted);
+}
+
+.discord {
+  border: 0;
+  border-radius: 10px;
+  padding: 12px 22px;
+  background: #5865f2;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.discord:hover {
+  background: #4752c4;
+}
+
+.status {
+  text-align: center;
+  color: var(--muted);
+}
+
+.status.bad {
+  color: var(--red);
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.section-title {
+  font-size: 12px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 22px 0 10px;
+}
+
+.servers {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 8px;
+}
+
+.server {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 10px;
+  align-items: center;
+  text-align: left;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.server:hover {
+  background: var(--panel-2);
+}
+
+.server.picked {
+  border-color: var(--gold);
+  background: var(--panel-2);
+}
+
+.server-icon {
+  grid-row: span 2;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #5865f2;
+  font-weight: 800;
+}
+
+.server-name {
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.server-balance {
+  font-size: 13px;
+  color: #7fe6a0;
+}
+
+.games {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.game {
+  background: var(--panel);
+  border-radius: var(--radius);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.game-art {
+  height: 110px;
+  display: grid;
+  place-items: center;
+  font-size: 44px;
+  letter-spacing: 6px;
+}
+
+.pinecraft-art {
+  background: linear-gradient(180deg, #7cc3ee 0%, #bfe3f7 45%, #4e9a3a 45%, #4e9a3a 52%, #6b4f35 52%, #6b4f35 72%, #77787b 72%);
+}
+
+.mines-art {
+  background: radial-gradient(circle at 50% 40%, #685c50, #2b2622);
+}
+
+.game-body {
+  padding: 14px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.game-body h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.game-body p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  flex: 1;
+}
+
+.play {
+  align-self: flex-start;
+  border: 0;
+  border-radius: 10px;
+  padding: 10px 22px;
+  background: var(--green);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.play:hover:not(:disabled) {
+  background: var(--green-hover);
+}
+
+.play:disabled {
+  opacity: 0.5;
+  cursor: default;
+}

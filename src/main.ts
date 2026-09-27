@@ -349,7 +349,7 @@ let finished = false;
 let retries = 0;
 
 const ERRORS: Record<ErrorCode, [string, string]> = {
-  bad_token: ['This link has run out', 'Press Open the mine in Discord again for a new one.'],
+  bad_token: ['This link has run out', 'Open the mine again from the games page or from Discord for a new one.'],
   replaced: ['Opened somewhere else', 'The mine is open in another tab or window. Only one can play at a time.'],
   bad_message: ['Disconnected', 'The bot could not understand this page. Try reloading.'],
 };
@@ -552,7 +552,7 @@ function frame(now: number): void {
 
 if (!token || !server) {
   setConn('No link', 'bad');
-  showMessage('Open this from Discord', 'Use the mine command there, then press Open the mine for your link.');
+  showMessage('Open this from the games page', 'Log in on the games page and pick the Mine, or use the mine command in Discord.');
 } else {
   connect();
   requestAnimationFrame(frame);
