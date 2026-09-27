@@ -218,6 +218,17 @@ function apply(state: WorldState, event: WorldEvent | undefined, moveMiner: bool
     scene = { state, known: new Map(), cam: { x: 0, y: 0 }, miner: { x: state.x, y: state.y }, facing: 1, swing: null, digging: null, particles: [] };
     renderLegend(state);
   }
+  // A new week: a fresh mine. Forget the old one's blocks, and start from the room.
+  if (!first && state.week && scene.state.week && state.week !== scene.state.week) {
+    scene.known.clear();
+    scene.particles = [];
+    scene.digging = null;
+    scene.swing = null;
+    scene.miner = { x: state.x, y: state.y };
+    worldMap = null;
+    moveMiner = true;
+    ui.log.textContent = '🔄 New week, new mine! Your energy and earnings are kept.';
+  }
   // An answer behind the page's own walks: the page's idea of where the miner is stands.
   if (!moveMiner) {
     state.x = scene.state.x;
@@ -632,6 +643,14 @@ function renderMap(): void {
   drawMap(mg, worldMap, rect.width, rect.height, scene.state, scene.state.spawn);
 }
 
+/** "in 3d 4h", "in 5h 20m", "in 12m". */
+function untilText(ms: number): string {
+  const minutes = Math.max(0, Math.ceil(ms / 60_000));
+  const days = Math.floor(minutes / 1440);
+  const hours = Math.floor((minutes % 1440) / 60);
+  return days > 0 ? `in ${days}d ${hours}h` : hours > 0 ? `in ${hours}h ${minutes % 60}m` : `in ${minutes}m`;
+}
+
 function openMap(): void {
   if (!scene?.state.spawn || mapOpen) return;
   mapOpen = true;
@@ -639,7 +658,8 @@ function openMap(): void {
   setStick(null);
   stopBreaking();
   const at = coords();
-  ui.mapWhere.textContent = at ? `You are at ${at.x},${at.y}` : '';
+  const resets = scene.state.resetsAt ? ` · new mine ${untilText(scene.state.resetsAt - Date.now())}` : '';
+  ui.mapWhere.textContent = (at ? `You are at ${at.x},${at.y}` : '') + resets;
   ui.map.hidden = false;
   renderMap();
   send({ t: 'map' });
