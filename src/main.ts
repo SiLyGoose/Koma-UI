@@ -73,6 +73,15 @@ document.body.insertAdjacentHTML(
 const MINE_SVG =
   '<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="30" cy="36" r="22" fill="#e9113c"/><circle cx="23" cy="29" r="6" fill="#ff8aa0" opacity=".7"/><path d="M44 18l6-6" stroke="#b30b2b" stroke-width="5" stroke-linecap="round"/><path d="M50 12l4-2M52 16l5 1M48 8l1-5" stroke="#ffd166" stroke-width="3" stroke-linecap="round"/></svg>';
 
+/** The bot's currency, :zeiucoin:, to go after an amount. */
+function coin(): HTMLImageElement {
+  const img = document.createElement('img');
+  img.src = `${import.meta.env.BASE_URL}shared/zeiucoin.png`;
+  img.alt = 'zeiucoin';
+  img.className = 'coin';
+  return img;
+}
+
 // ---------------------------------------------------------------------------
 // The link
 
@@ -156,8 +165,9 @@ function renderBoard(): void {
     ui.result.classList.toggle('lost', lost);
     ui.resultMult.textContent = lost ? '💣 Boom' : times(run.multiplier);
     const why = run.status === 'idle' ? ' (left alone)' : run.status === 'done' ? (run.multiplier >= run.maxMultiplier ? ' (max win)' : ' (board cleared)') : '';
-    ui.resultText.textContent =
-      run.status === 'failed' && run.payout === null ? 'Cashed out at the multiplier reached' : lost ? `−${points(run.bet)}` : `+${points(run.payout ?? 0)}${why}`;
+    if (run.status === 'failed' && run.payout === null) ui.resultText.textContent = 'Cashed out at the multiplier reached';
+    else if (lost) ui.resultText.textContent = `−${points(run.bet)}`;
+    else ui.resultText.replaceChildren(`+${points(run.payout ?? 0)} `, coin(), why);
     ui.result.hidden = false;
   } else {
     ui.result.hidden = true;
