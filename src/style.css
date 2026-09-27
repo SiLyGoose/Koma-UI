@@ -33,8 +33,16 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: 'gg sans', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-family: Poppins, 'Segoe UI', system-ui, -apple-system, sans-serif;
   -webkit-tap-highlight-color: transparent;
+}
+
+/* Buttons and fields in the page's font too (they have their own otherwise). */
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
 }
 
 main {

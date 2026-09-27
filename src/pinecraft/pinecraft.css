@@ -351,7 +351,9 @@ body {
   border-radius: 8px;
   background: rgba(23, 22, 27, 0.85);
   color: var(--text);
-  font: 700 13px ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
   cursor: pointer;
 }
 
@@ -387,7 +389,9 @@ body {
 }
 
 .pc-map-where {
-  font: 700 13px ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
   opacity: 0.9;
 }
 
@@ -428,7 +432,9 @@ body {
   border-radius: 8px;
   background: rgba(23, 22, 27, 0.85);
   color: var(--gold);
-  font: 700 13px ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
   pointer-events: none;
 }
 

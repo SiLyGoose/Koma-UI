@@ -20,7 +20,6 @@
   background-color: var(--panel);
   border-bottom: 1px solid var(--line);
   box-shadow: 0 5px 10px rgb(0 0 0 / 30%);
-  font-family: Poppins, 'gg sans', 'Segoe UI', system-ui, sans-serif;
 }
 
 .site-logo {
