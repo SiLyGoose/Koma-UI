@@ -1,6 +1,6 @@
 import '../style.css';
 import { barSlot, setConn, soundButton } from '../frame';
-import { apiFromSocket, showWatchers, showWatching, startLive } from '../live';
+import { apiFromSocket, showWatchers, showWatching, startLive, watchAway, watchBack } from '../live';
 import './pinecraft.css';
 import { burst, cellAt, drawMap, drawScene, isBedrock, isOpenCell, ORE_OF, stepParticles, type Scene } from './draw';
 import type { ClientMessage, Direction, ErrorCode, PinecraftOre, ServerMessage, WorldEvent, WorldMap, WorldState } from './protocol';
@@ -298,7 +298,14 @@ function receive(message: ServerMessage): void {
     ui.log.textContent = `Watching ${watched} dig`;
     return;
   }
-  if (message.t === 'away') return showWatching(watched, true);
+  if (message.t === 'away') {
+    showWatching(watched, true);
+    // A moment later (not for a reload), tell them, with the way home.
+    return watchAway(
+      () => showMessage(`${watched} left the game`, `${watched} isn't playing Pinecraft any more. Head back home to see who's online and watch someone else.`),
+      () => (ui.message.hidden = true),
+    );
+  }
   if (message.t === 'breaking') return watchBreaking(message.dir);
   if (watching) return watchState(message.state, message.event);
   const answersDig = pendingDig !== null && message.seq === pendingDig.seq;
@@ -348,7 +355,10 @@ function watchBreaking(dir: Direction): void {
 
 /** Watching: the bot's word on the player's world. The miner goes where it says, and a dig is where they now stand. */
 function watchState(state: WorldState, event: WorldEvent | undefined): void {
-  if (watched) showWatching(watched);
+  if (watched) {
+    showWatching(watched);
+    watchBack();
+  }
   if (scene && state.x !== scene.state.x) scene.facing = state.x < scene.state.x ? -1 : 1;
   if (scene) {
     scene.digging = null;

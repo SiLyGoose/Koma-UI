@@ -185,3 +185,29 @@ export function showWatching(name: string, away = false): void {
   banner.textContent = away ? `👁 ${name} left the game` : `👁 Watching ${name}`;
   banner.classList.toggle('away', away);
 }
+
+/**
+ * Watching, the player's page went away: after AWAY_GRACE_MS (long enough for a reload or a blip)
+ * `show` tells the watcher they left, with the way home. If their game comes back before (or after),
+ * `watchBack` puts things as they were.
+ */
+const AWAY_GRACE_MS = 4000;
+let awayTimer: ReturnType<typeof setTimeout> | null = null;
+let awayHide: (() => void) | null = null;
+
+export function watchAway(show: () => void, hide: () => void): void {
+  if (awayTimer) clearTimeout(awayTimer);
+  awayTimer = setTimeout(() => {
+    awayTimer = null;
+    show();
+    awayHide = hide;
+  }, AWAY_GRACE_MS);
+}
+
+/** Watching: the player's game is back (a message about it came). */
+export function watchBack(): void {
+  if (awayTimer) clearTimeout(awayTimer);
+  awayTimer = null;
+  awayHide?.();
+  awayHide = null;
+}

@@ -1,6 +1,6 @@
 import './style.css';
 import { barSlot, setConn, soundButton } from './frame';
-import { apiFromSocket, showWatchers, showWatching, startLive } from './live';
+import { apiFromSocket, showWatchers, showWatching, startLive, watchAway, watchBack } from './live';
 import './mines.css';
 import type { ClientMessage, ErrorCode, Lobby, RunEvent, RunState, ServerMessage, StartRefusal } from './protocol';
 
@@ -371,11 +371,19 @@ function receive(message: ServerMessage): void {
       return;
     case 'away':
       showWatching(watched, true);
+      // A moment later (not for a reload), tell them, with the way home.
+      watchAway(
+        () => showMessage(`${watched} left the game`, `${watched} isn't playing Mines any more. Head back home to see who's online and watch someone else.`),
+        () => (ui.message.hidden = true),
+      );
       return;
     case 'state': {
       // Watching, every pick is theirs: its sound plays too. And they're back if they were away.
       const picked = watching ? message.event !== undefined : message.seq !== 0 && pending?.seq === message.seq;
-      if (watching && watched) showWatching(watched);
+      if (watching && watched) {
+        showWatching(watched);
+        watchBack();
+      }
       if (message.seq === 0 || pending?.seq === message.seq) pending = null;
       run = message.state;
       setBalance(message.state.balance);
