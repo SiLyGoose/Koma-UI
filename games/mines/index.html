@@ -5,64 +5,55 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
     <meta name="referrer" content="no-referrer" />
     <meta name="robots" content="noindex" />
-    <title>Koma Mine</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛏️</text></svg>" />
+    <title>Koma Mines</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💎</text></svg>" />
   </head>
   <body>
-    <main id="app">
+    <main id="app" class="mx">
       <header class="top">
         <a class="back" href="/" aria-label="Back to the games">←</a>
-        <h1>⛏️ Koma Mine</h1>
+        <h1>💎 Mines</h1>
         <span id="conn" class="conn">Connecting…</span>
       </header>
 
-      <section class="hud" aria-live="polite">
-        <div class="stat stat-main"><span class="label">Multiplier</span><span id="mult" class="value">–</span></div>
-        <div class="stat"><span class="label">Cash out</span><span id="cash" class="value">–</span></div>
-        <div class="stat stat-balance"><span class="label">Balance</span><span id="balance" class="value">–</span></div>
-        <div class="stat"><span class="label">Field</span><span id="field" class="value">–</span></div>
-        <div class="stat"><span class="label">Ores left</span><span id="ores" class="value">–</span></div>
-        <div class="stat"><span class="label">Dynamite</span><span id="dyn" class="value">–</span></div>
-      </section>
+      <div class="mx-game">
+        <form id="panel" class="mx-panel" autocomplete="off">
+          <div class="mx-balance"><span>Balance</span><b id="balance">–</b></div>
 
-      <div class="board-wrap" id="board-wrap">
-        <canvas id="board" aria-label="The mine field"></canvas>
-        <div id="floaters" class="floaters"></div>
-        <div id="overlay" class="overlay" hidden>
-          <div class="overlay-card">
-            <div id="overlay-title" class="overlay-title"></div>
-            <div id="overlay-text" class="overlay-text"></div>
-            <form id="lobby" class="lobby" hidden>
-              <label class="bet-label" for="bet">Bet <span id="bet-range" class="bet-range"></span></label>
-              <div class="bet-row">
-                <input id="bet" class="bet" type="number" inputmode="numeric" min="1" step="1" autocomplete="off" />
-                <button type="button" class="chip" data-bet="half">½</button>
-                <button type="button" class="chip" data-bet="double">2×</button>
-                <button type="button" class="chip" data-bet="max">Max</button>
-              </div>
-              <button type="submit" id="start" class="start">⛏️ Dig <span class="key">R</span></button>
-              <div id="lobby-error" class="lobby-error" hidden></div>
-              <div id="lobby-info" class="lobby-info"></div>
-            </form>
+          <label class="mx-label" for="bet">Bet amount <span id="bet-range" class="mx-range"></span></label>
+          <div class="mx-bet-row">
+            <input id="bet" class="mx-input" type="number" inputmode="numeric" min="1" step="1" />
+            <button type="button" class="mx-chip" data-bet="half">½</button>
+            <button type="button" class="mx-chip" data-bet="double">2×</button>
+            <button type="button" class="mx-chip" data-bet="max">Max</button>
+          </div>
+
+          <label class="mx-label" for="mines">Mines</label>
+          <select id="mines" class="mx-input mx-select"></select>
+
+          <button type="submit" id="action" class="mx-action" disabled>Bet</button>
+          <button type="button" id="random" class="mx-random" hidden>Pick a random tile</button>
+
+          <div class="mx-odds">
+            <div><span>Multiplier</span><b id="mult">1.00x</b></div>
+            <div><span id="next-label">First gem</span><b id="next">–</b></div>
+            <div><span>Gems</span><b id="gems">–</b></div>
+            <div><span>Max payout</span><b id="max-payout">–</b></div>
+          </div>
+          <p id="error" class="mx-error" hidden></p>
+          <p id="idle" class="mx-idle" hidden></p>
+        </form>
+
+        <div class="mx-board-wrap">
+          <div id="board" class="mx-board" role="grid" aria-label="The board"></div>
+          <div id="result" class="mx-result" hidden>
+            <b id="result-mult"></b>
+            <span id="result-text"></span>
           </div>
         </div>
       </div>
 
-      <p id="log" class="log">Move with WASD or the arrow keys. Stepping onto a hidden tile digs it.</p>
-      <p id="idle" class="idle" hidden></p>
-
-      <div class="controls">
-        <div class="dpad" aria-label="Move">
-          <button type="button" data-dir="up" class="up" aria-label="Up">▲</button>
-          <button type="button" data-dir="left" class="left" aria-label="Left">◀</button>
-          <button type="button" data-dir="down" class="down" aria-label="Down">▼</button>
-          <button type="button" data-dir="right" class="right" aria-label="Right">▶</button>
-        </div>
-        <button type="button" id="cashout" class="cashout" disabled>💰 Cash out</button>
-      </div>
-
-      <p class="hint">WASD / arrow keys to move · Enter to cash out · R to dig again</p>
-      <footer id="legend" class="legend"></footer>
+      <p class="hint">Click tiles to turn them over · Enter to bet or cash out · R for a random tile</p>
     </main>
 
     <div id="message" class="message" hidden>

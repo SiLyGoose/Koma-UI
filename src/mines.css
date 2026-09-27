@@ -1,0 +1,295 @@
+/* The mine, laid out like Stake's Mines: the panel on the left (under the board on a phone), the board on the right. */
+
+.mx {
+  max-width: 900px;
+}
+
+.mx-game {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.mx-panel {
+  flex: 0 0 270px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border-radius: var(--radius);
+  background: #213743;
+}
+
+.mx-balance {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-bottom: 6px;
+  margin-bottom: 2px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.mx-balance b {
+  color: #7fe6a0;
+  font-size: 16px;
+}
+
+.mx-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #b1bad3;
+}
+
+.mx-range {
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+.mx-bet-row {
+  display: flex;
+  gap: 4px;
+}
+
+.mx-input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 2px solid #2f4553;
+  border-radius: 8px;
+  background: #0f212e;
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.mx-input:focus {
+  outline: none;
+  border-color: #557086;
+}
+
+.mx-select {
+  cursor: pointer;
+}
+
+.mx-chip {
+  padding: 0 12px;
+  border: 0;
+  border-radius: 8px;
+  background: #2f4553;
+  color: var(--text);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mx-chip:hover:not(:disabled) {
+  background: #3d5a6c;
+}
+
+.mx-panel :disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.mx-action {
+  margin-top: 6px;
+  padding: 14px;
+  border: 0;
+  border-radius: 8px;
+  background: #00e701;
+  color: #05230a;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.mx-action:hover:not(:disabled) {
+  background: #1fff20;
+}
+
+.mx-action.cash {
+  background: #00e701;
+}
+
+.mx-random {
+  padding: 10px;
+  border: 0;
+  border-radius: 8px;
+  background: #2f4553;
+  color: var(--text);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mx-random:hover:not(:disabled) {
+  background: #3d5a6c;
+}
+
+.mx-odds {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+  font-size: 13px;
+  color: #b1bad3;
+}
+
+.mx-odds div {
+  display: flex;
+  justify-content: space-between;
+}
+
+.mx-odds b {
+  color: var(--text);
+}
+
+.mx-error {
+  margin: 0;
+  color: var(--red);
+  font-size: 13px;
+}
+
+.mx-idle {
+  margin: 0;
+  color: var(--gold);
+  font-size: 13px;
+}
+
+/* The board. */
+.mx-board-wrap {
+  position: relative;
+  flex: 1;
+  max-width: 560px;
+  padding: 14px;
+  border-radius: var(--radius);
+  background: #0f212e;
+}
+
+.mx-board {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+}
+
+.mx-tile {
+  position: relative;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: #2f4553;
+  box-shadow: 0 5px 0 #213743;
+  cursor: pointer;
+  transition:
+    transform 0.1s,
+    background 0.1s;
+}
+
+.mx-tile:not(:disabled):hover {
+  background: #557086;
+  transform: translateY(-2px);
+}
+
+.mx-tile:disabled {
+  cursor: default;
+}
+
+.mx-tile.open {
+  background: #071824;
+  box-shadow: none;
+  transform: none;
+}
+
+.mx-tile.open svg {
+  animation: mx-pop 0.25s ease-out;
+}
+
+.mx-tile.dim svg {
+  opacity: 0.35;
+  transform: scale(0.8);
+}
+
+.mx-tile.pending {
+  animation: mx-wobble 0.35s infinite;
+}
+
+.mx-tile svg {
+  width: 62%;
+  height: 62%;
+}
+
+.mx-tile.boom {
+  background: #3a0c12;
+}
+
+@keyframes mx-pop {
+  from {
+    transform: scale(0.3);
+  }
+}
+
+@keyframes mx-wobble {
+  50% {
+    transform: translateY(-3px) rotate(2deg);
+  }
+}
+
+/* How the round ended, over the middle of the board. */
+.mx-result {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 16px 26px;
+  border: 3px solid #00e701;
+  border-radius: 10px;
+  background: #1a2c38;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+  animation: mx-pop 0.25s ease-out;
+  pointer-events: none;
+}
+
+.mx-result b {
+  color: #00e701;
+  font-size: 26px;
+}
+
+.mx-result span {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.mx-result.lost {
+  border-color: var(--red);
+}
+
+.mx-result.lost b {
+  color: var(--red);
+}
+
+@media (max-width: 720px) {
+  .mx-game {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .mx-panel {
+    flex: none;
+  }
+
+  .mx-board-wrap {
+    max-width: none;
+    padding: 10px;
+  }
+
+  .mx-board {
+    gap: 7px;
+  }
+}

@@ -137,7 +137,8 @@ h1 {
   touch-action: none;
 }
 
-.board-wrap.shake {
+.board-wrap.shake,
+.mx-board-wrap.shake {
   animation: shake 0.45s;
 }
 

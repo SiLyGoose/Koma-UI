@@ -7,12 +7,13 @@ The web site [Koma](../Koma)'s games are played on:
   with dirt all around; hold WASD or the arrow keys against a block to break it (harder blocks take
   longer). Every block takes one energy (which comes back over time), and the ores you find pay
   points straight away; rarer ores pay more. No bet. Your tunnels stay dug between visits.
-- **The mine** (`/games/mines/`): a 5x5 field you walk around, digging for ore and hoping not to hit
-  dynamite, with a bet.
+- **Mines** (`/games/mines/`): like Stake's Mines. Bet, pick how many mines (1 to 24) hide on a 5x5
+  board, then turn over tiles: every gem raises the multiplier, a mine loses the bet. Cash out
+  whenever you like.
 
 The pages hold no game logic that matters. The bot keeps the worlds and decides every dig; a page
 connects to the bot's WebSocket, sends moves, and draws what it is told. It is only told what the
-player can see, so nothing in the page or its dev tools gives away where the dynamite or the ores are.
+player can see, so nothing in the page or its dev tools gives away where the mines or the ores are.
 
 ## How a player gets to a game
 
@@ -23,7 +24,7 @@ which browsers never send to Vercel.
 
 - **From the front page:** log in with Discord (the bot does the login, at `VITE_API_URL`), pick a
   server and press Play. The login is kept in the browser for a week.
-- **From Discord:** `k!pinecraft`, or `k!mine` (`k!mine 100` starts a run straight away), posts a
+- **From Discord:** `k!pinecraft`, or `k!mine` (`k!mine 100 3` starts a round with 3 mines straight away), posts a
   message with an Open button. Pressing it (only that member can) replies privately with the link.
 
 ## Develop
@@ -61,6 +62,6 @@ Any square size works.
 - `games/pinecraft/index.html`, `src/pinecraft/`: Pinecraft. `protocol.ts` is a copy of the bot's
   `src/web/pinecraft-protocol.ts` (change both together), `draw.ts` draws the world, `textures.ts`
   the blocks.
-- `games/mines/index.html`, `src/main.ts`, `src/draw.ts`, `src/protocol.ts`: the mine.
+- `games/mines/index.html`, `src/main.ts`, `src/mines.css`, `src/protocol.ts`: Mines.
   `src/protocol.ts` is a copy of the bot's `src/web/mine-protocol.ts`.
 - `src/style.css`: styles shared by every page.

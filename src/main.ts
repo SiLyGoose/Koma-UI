@@ -1,57 +1,50 @@
 import './style.css';
-import { boardSize, drawScene, tileOrigin, TILE, type Scene } from './draw';
-import type { ClientMessage, Direction, ErrorCode, Lobby, MineOre, RunEvent, RunState, ServerMessage, StartRefusal } from './protocol';
+import './mines.css';
+import type { ClientMessage, ErrorCode, Lobby, RunEvent, RunState, ServerMessage, StartRefusal } from './protocol';
 
 /*
- * The mine, played in the browser. The link from Discord carries, after the #, the player's token
- * (t) and the bot's WebSocket address (s). The bot holds the field and decides every dig; this page
- * sends the moves and draws what it is told.
+ * The mine, played in the browser like Stake's Mines. The link from Discord (or the front page)
+ * carries, after the #, the player's token (t) and the bot's WebSocket address (s). The bot holds the
+ * board and decides every pick; this page sends the bets, picks and cash outs, and shows what it is told.
  *
- * Between runs the page shows the lobby: the balance and a bet box to start the next run. A link
- * opened while a run is going (started in Discord, or in another tab) picks that run up.
- *
- * Walking over tiles already dug can't change anything, so the page moves the miner at once and
- * tells the bot afterwards. A dig waits for the bot's answer (the tile shakes until it comes), and
- * no other move is taken until then.
+ * Between rounds the panel takes a bet and a number of mines; during a round the tiles can be turned
+ * over one at a time (the next only once the bot has answered), and the button cashes out.
  */
 
 const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T;
-const canvas = $<HTMLCanvasElement>('board');
-const g = canvas.getContext('2d') as CanvasRenderingContext2D;
 const ui = {
   conn: $('conn'),
-  mult: $('mult'),
-  cash: $('cash'),
+  panel: $<HTMLFormElement>('panel'),
   balance: $('balance'),
-  field: $('field'),
-  ores: $('ores'),
-  dyn: $('dyn'),
-  log: $('log'),
-  idle: $('idle'),
-  cashout: $<HTMLButtonElement>('cashout'),
-  wrap: $('board-wrap'),
-  floaters: $('floaters'),
-  overlay: $('overlay'),
-  overlayTitle: $('overlay-title'),
-  overlayText: $('overlay-text'),
-  lobby: $<HTMLFormElement>('lobby'),
   bet: $<HTMLInputElement>('bet'),
   betRange: $('bet-range'),
-  start: $<HTMLButtonElement>('start'),
-  lobbyError: $('lobby-error'),
-  lobbyInfo: $('lobby-info'),
-  legend: $('legend'),
+  mines: $<HTMLSelectElement>('mines'),
+  action: $<HTMLButtonElement>('action'),
+  random: $<HTMLButtonElement>('random'),
+  mult: $('mult'),
+  nextLabel: $('next-label'),
+  next: $('next'),
+  gems: $('gems'),
+  maxPayout: $('max-payout'),
+  error: $('error'),
+  idle: $('idle'),
+  board: $('board'),
+  result: $('result'),
+  resultMult: $('result-mult'),
+  resultText: $('result-text'),
   message: $('message'),
   messageTitle: $('message-title'),
   messageText: $('message-text'),
 };
 
-const ORE_NAME: Record<MineOre, string> = { coal: 'Coal', iron: 'Iron', gold: 'Gold', diamond: 'Diamond' };
-const ORE_EMOJI: Record<MineOre, string> = { coal: '⚫', iron: '⛓️', gold: '🟡', diamond: '💎' };
-const ORE_TEXT: Record<MineOre, string> = { coal: '#cfd2d8', iron: '#ecd6c4', gold: '#f5c542', diamond: '#7fe6fb' };
-
+const TILES = 25;
 const points = (n: number): string => n.toLocaleString('en-US');
-const times = (n: number): string => `${Number(n.toFixed(2))}x`;
+const times = (n: number): string => `${n.toFixed(2)}x`;
+
+const GEM_SVG =
+  '<svg viewBox="0 0 64 64" aria-hidden="true"><path fill="#00e701" d="M16 8h32l12 16-28 34L4 24z"/><path fill="#6bff6b" d="M16 8h32l-8 16H24z"/><path fill="#00a800" d="M4 24h20l8 34zM60 24H40l-8 34z"/><path fill="#b8ffb8" d="M24 24h16l-8 34z" opacity=".35"/></svg>';
+const MINE_SVG =
+  '<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="30" cy="36" r="22" fill="#e9113c"/><circle cx="23" cy="29" r="6" fill="#ff8aa0" opacity=".7"/><path d="M44 18l6-6" stroke="#b30b2b" stroke-width="5" stroke-linecap="round"/><path d="M50 12l4-2M52 16l5 1M48 8l1-5" stroke="#ffd166" stroke-width="3" stroke-linecap="round"/></svg>';
 
 // ---------------------------------------------------------------------------
 // The link
@@ -69,222 +62,135 @@ function showMessage(title: string, text: string): void {
 // ---------------------------------------------------------------------------
 // What is on screen
 
-/** The run on the board: being played, or the last one played (shown under the lobby). */
-let state: RunState | null = null;
 let lobby: Lobby | null = null;
-const scene: Scene = { state: null as unknown as RunState, miner: { col: 0, row: 0 }, digging: null, blastAt: null };
-/** Where the miner is headed, in tiles (it slides there). */
-let target = { col: 0, row: 0 };
+/** The round on the board: being played, or the last one played (shown until the next bet). */
+let run: RunState | null = null;
+/** The message waiting for the bot's answer: a start, a pick (of `index`), or a cash out. */
+let pending: { seq: number; index?: number | 'random' } | null = null;
 let lastActivity = performance.now();
-let canvasSize = 0;
 
-const playing = (): boolean => state?.status === 'digging';
+const playing = (): boolean => run?.status === 'playing';
 
-function resizeCanvas(size: number): void {
-  if (size === canvasSize) return;
-  canvasSize = size;
-  const css = boardSize(size);
-  const ratio = window.devicePixelRatio || 1;
-  canvas.width = Math.round(css * ratio);
-  canvas.height = Math.round(css * ratio);
-  g.setTransform(canvas.width / css, 0, 0, canvas.height / css, 0, 0);
+/** The multiplier after `gems` gems with `mines` mines, worked out the way the bot does (for showing what a round can pay). */
+function multiplierFor(l: Lobby, mines: number, gems: number): number {
+  if (gems <= 0) return 1;
+  const span = l.maxMines - l.minMines;
+  const edge = l.edgeFewest + (l.edgeMost - l.edgeFewest) * (span > 0 ? (mines - l.minMines) / span : 1);
+  let odds = 1;
+  for (let i = 0; i < gems; i++) odds *= (TILES - i) / (TILES - mines - i);
+  return Math.min(l.maxMultiplier, Math.floor((1 - edge) * odds * 100 + 1e-9) / 100);
 }
 
-function place(pos: number, size: number, snap: boolean): void {
-  target = { col: pos % size, row: Math.floor(pos / size) };
-  if (snap) scene.miner = { ...target };
+/** The most a round with `mines` mines can pay, as a multiplier: every gem found, or the cap, whichever comes first. */
+const bestMultiplier = (l: Lobby, mines: number): number => multiplierFor(l, mines, TILES - mines);
+
+/** The most a bet of `bet` can win with `mines` mines, shown as "12,400". */
+function maxPayoutText(bet: number, mines: number): string {
+  if (!lobby || !(bet > 0)) return '–';
+  return `${points(Math.round(bet * bestMultiplier(lobby, mines)))} (${times(bestMultiplier(lobby, mines))})`;
 }
 
-function bump(el: HTMLElement): void {
-  el.classList.remove('bump');
-  void el.offsetWidth;
-  el.classList.add('bump');
-}
+const tiles: HTMLButtonElement[] = Array.from({ length: TILES }, (_, i) => {
+  const tile = document.createElement('button');
+  tile.type = 'button';
+  tile.className = 'mx-tile';
+  tile.setAttribute('aria-label', `Tile ${i + 1}`);
+  tile.disabled = true;
+  tile.addEventListener('click', () => pick(i));
+  ui.board.append(tile);
+  return tile;
+});
 
-function effect(el: HTMLElement, name: 'shake' | 'flash'): void {
-  el.classList.remove(name);
-  void el.offsetWidth;
-  el.classList.add(name);
-}
-
-/** Text floating up from tile `pos`. */
-function floatText(pos: number, text: string, color: string): void {
-  if (!state) return;
-  const full = boardSize(state.size);
-  const { x, y } = tileOrigin(pos, state.size);
-  const el = document.createElement('div');
-  el.className = 'floater';
-  el.textContent = text;
-  el.style.color = color;
-  el.style.left = `${((x + TILE / 2) / full) * 100}%`;
-  el.style.top = `${((y + TILE / 2) / full) * 100}%`;
-  ui.floaters.append(el);
-  setTimeout(() => el.remove(), 1000);
-}
-
-function setBalance(balance: number | null): void {
-  if (balance === null) return;
-  const before = ui.balance.textContent;
+function setBalance(balance: number | null | undefined): void {
+  if (balance === null || balance === undefined) return;
   ui.balance.textContent = points(balance);
-  if (before !== '–' && before !== ui.balance.textContent) bump(ui.balance);
 }
 
-function renderHud(): void {
-  if (!state) return;
-  const before = ui.mult.textContent;
-  ui.mult.textContent = times(state.multiplier);
-  if (playing() && before !== ui.mult.textContent) bump(ui.mult);
-  ui.cash.textContent = playing() ? points(state.cashOut) : '–';
-  ui.field.textContent = `#${state.field}`;
-  ui.ores.textContent = String(state.oresLeft);
-  ui.dyn.textContent = `🧨 ${state.dynamite}`;
-  setBalance(state.balance);
-  ui.cashout.disabled = !playing();
-  ui.cashout.textContent = playing() ? `💰 Cash out ${points(state.cashOut)}` : '💰 Cash out';
-}
-
-function renderLegend(values: Record<MineOre, number>, fieldBonus: number): void {
-  const ores = (Object.keys(ORE_NAME) as MineOre[]).map((ore) => `${ORE_EMOJI[ore]} ${ORE_NAME[ore]} +${times(values[ore])}`);
-  ui.legend.textContent = '';
-  for (const text of [...ores, `✨ Clear a field +${times(fieldBonus)}`]) {
-    const span = document.createElement('span');
-    span.textContent = text;
-    ui.legend.append(span);
-  }
-}
-
-/** The overlay's heading and text: how the last run went, or a welcome when there wasn't one. */
-function renderOverlay(): void {
-  // (The empty board behind the first lobby has no bet: nothing was played on it.)
-  if (state && state.status !== 'digging' && state.bet > 0) {
-    const titles: Record<Exclude<RunState['status'], 'digging'>, string> = {
-      boom: '🧨 BOOM!',
-      cashed: `💰 Cashed out at ${times(state.multiplier)}`,
-      idle: `💤 Cashed out at ${times(state.multiplier)}`,
-      failed: '⚠️ Something went wrong',
-    };
-    ui.overlayTitle.textContent = titles[state.status];
-    ui.overlayText.textContent =
-      state.status === 'boom'
-        ? `You lost your bet of ${points(state.bet)}.`
-        : state.payout === null
-          ? 'The run was cashed out at the multiplier it had reached.'
-          : `You got ${points(state.payout)} for your bet of ${points(state.bet)}.`;
-  } else {
-    ui.overlayTitle.textContent = `⛏️ Ready to dig${lobby ? `, ${lobby.player}` : ''}?`;
-    ui.overlayText.textContent = 'Every ore raises your multiplier. Dynamite ends the run. Cash out whenever you like.';
-  }
-  ui.overlay.hidden = false;
-  ui.idle.hidden = true;
-}
-
-/** An empty field for the board behind the first lobby, before any run has been played here. */
-function blankState(l: Lobby): RunState {
-  const size = 5;
-  const middle = (size * size - 1) / 2;
-  return {
-    player: l.player,
-    size,
-    tiles: Array.from({ length: size * size }, (_, i) => (i === middle ? 'rock' : null)),
-    dug: Array.from({ length: size * size }, (_, i) => i === middle),
-    pos: middle,
-    field: 1,
-    oresLeft: l.ores,
-    dynamite: l.dynamite,
-    bet: 0,
-    balance: l.balance,
-    multiplier: 1,
-    cashOut: 0,
-    status: 'cashed',
-    payout: null,
-    idleMs: 0,
-    values: l.values,
-    fieldBonus: l.fieldBonus,
-  };
-}
-
-function describe(event: RunEvent): string {
-  switch (event.kind) {
-    case 'walk':
-      return 'You walk over dug ground.';
-    case 'edge':
-      return "That's the edge of the field.";
-    case 'rock':
-      return '🪨 Just rock.';
-    case 'ore':
-      return `${ORE_EMOJI[event.ore]} ${ORE_NAME[event.ore]}! +${times(event.gained)}`;
-    case 'cleared':
-      return `✨ Field cleared! +${times(event.bonus)} bonus. Here's field ${state?.field ?? ''}, with more dynamite.`;
-    case 'boom':
-      return '🧨 BOOM!';
-    case 'cashout':
-      return '💰 Cashed out.';
-    case 'idle':
-      return '💤 Left alone for too long, so the run was cashed out.';
-    case 'failed':
-      return '⚠️ Something went wrong, so the run was cashed out.';
-  }
-}
-
-/** The bot's word on the run: as it is now, and what the last move did. */
-function apply(next: RunState, event: RunEvent | undefined, digAt: number | null): void {
-  // A run that wasn't on the board before (just started, or picked up after connecting).
-  const fresh = state === null || (next.status === 'digging' && !playing());
-  const newField = !fresh && state !== null && next.field !== state.field;
-  state = next;
-  scene.state = next;
-  resizeCanvas(next.size);
-  if (fresh) {
-    scene.blastAt = null;
-    scene.digging = null;
-    ui.floaters.textContent = '';
-    renderLegend(next.values, next.fieldBonus);
-    ui.log.textContent = 'Move with WASD or the arrow keys. Stepping onto a hidden tile digs it.';
-  }
-  place(next.pos, next.size, fresh || newField || next.status !== 'digging');
-
-  if (event) {
-    ui.log.textContent = describe(event);
-    if ((event.kind === 'ore' || event.kind === 'cleared') && digAt !== null) floatText(digAt, `+${times(event.gained)}`, ORE_TEXT[event.ore]);
-    if (event.kind === 'cleared') effect(ui.wrap, 'flash');
-    if (event.kind === 'boom') {
-      scene.blastAt = performance.now();
-      effect(ui.wrap, 'shake');
+function renderBoard(): void {
+  const over = run !== null && run.status !== 'playing';
+  tiles.forEach((tile, i) => {
+    const seen = run?.tiles[i] ?? null;
+    const shown = seen !== null;
+    const turned = run?.revealed[i] ?? false;
+    tile.classList.toggle('open', shown);
+    tile.classList.toggle('dim', shown && over && !turned);
+    tile.classList.toggle('boom', seen === 'mine' && turned);
+    tile.classList.toggle('pending', pending?.index === i);
+    if (tile.dataset.shows !== (seen ?? '')) {
+      tile.innerHTML = seen === 'gem' ? GEM_SVG : seen === 'mine' ? MINE_SVG : '';
+      tile.dataset.shows = seen ?? '';
     }
-  }
-  renderHud();
-  if (playing()) {
-    ui.overlay.hidden = true;
+    tile.disabled = !playing() || shown || pending !== null;
+  });
+
+  // How the round ended.
+  if (run && over && run.bet > 0) {
+    const lost = run.status === 'boom' || run.payout === 0;
+    ui.result.classList.toggle('lost', lost);
+    ui.resultMult.textContent = lost ? '💣 Boom' : times(run.multiplier);
+    const why = run.status === 'idle' ? ' (left alone)' : run.status === 'done' ? (run.multiplier >= run.maxMultiplier ? ' (max win)' : ' (board cleared)') : '';
+    ui.resultText.textContent =
+      run.status === 'failed' && run.payout === null ? 'Cashed out at the multiplier reached' : lost ? `−${points(run.bet)}` : `+${points(run.payout ?? 0)}${why}`;
+    ui.result.hidden = false;
   } else {
-    // Over: say how it went; the lobby follows from the bot in a moment.
-    ui.lobby.hidden = true;
-    renderOverlay();
+    ui.result.hidden = true;
   }
+}
+
+function renderPanel(): void {
+  const live = playing();
+  const busy = pending !== null;
+  const inputs = [ui.bet, ui.mines, ...document.querySelectorAll<HTMLButtonElement>('[data-bet]')];
+  for (const el of inputs) el.disabled = live || busy || !lobby;
+  ui.random.hidden = !live;
+  ui.random.disabled = busy;
+  if (live && run) {
+    ui.action.textContent = run.gems === 0 ? 'Cash out' : `Cash out ${points(run.cashOut)}`;
+    ui.action.disabled = busy || run.gems === 0;
+    ui.mult.textContent = times(run.multiplier);
+    ui.nextLabel.textContent = 'Next gem';
+    ui.next.textContent = run.next === null ? '–' : times(run.next);
+    ui.gems.textContent = `${run.gems} / ${TILES - run.mines}`;
+    ui.maxPayout.textContent = maxPayoutText(run.bet, run.mines);
+  } else {
+    ui.action.textContent = 'Bet';
+    ui.action.disabled = busy || !lobby;
+    ui.mult.textContent = times(1);
+    ui.nextLabel.textContent = 'First gem';
+    ui.next.textContent = lobby ? times(multiplierFor(lobby, Number(ui.mines.value), 1)) : '–';
+    ui.gems.textContent = lobby ? `0 / ${TILES - Number(ui.mines.value)}` : '–';
+    ui.maxPayout.textContent = maxPayoutText(Math.floor(Number(ui.bet.value)), Number(ui.mines.value));
+    ui.idle.hidden = true;
+  }
+}
+
+function render(): void {
+  renderBoard();
+  renderPanel();
+}
+
+function showError(text: string | null): void {
+  ui.error.hidden = text === null;
+  ui.error.textContent = text ?? '';
 }
 
 // ---------------------------------------------------------------------------
 // The lobby
 
-let starting: number | null = null;
-
 function showLobby(next: Lobby): void {
+  const first = lobby === null;
   lobby = next;
-  starting = null;
-  if (!state) {
-    apply(blankState(next), undefined, null);
-    renderLegend(next.values, next.fieldBonus);
-  }
   setBalance(next.balance);
-  renderOverlay();
   ui.betRange.textContent = `(${points(next.minBet)} to ${points(next.maxBet)})`;
   ui.bet.min = String(next.minBet);
   ui.bet.max = String(next.maxBet);
-  const wanted = next.lastBet ?? next.minBet;
-  ui.bet.value = String(Math.max(next.minBet, Math.min(wanted, next.maxBet)));
-  ui.lobbyInfo.textContent = `A new run: ${next.ores} ores and ${next.dynamite} dynamite on the first field.`;
-  ui.lobbyError.hidden = true;
-  ui.start.disabled = false;
-  ui.lobby.hidden = false;
+  if (first || !ui.bet.value) ui.bet.value = String(Math.max(next.minBet, Math.min(next.lastBet ?? next.minBet, next.maxBet)));
+  if (first) {
+    ui.mines.textContent = '';
+    for (let m = next.minMines; m <= next.maxMines; m++) ui.mines.append(new Option(String(m), String(m)));
+    ui.mines.value = String(next.lastMines ?? 3);
+  }
+  render();
 }
 
 function refusalText(r: StartRefusal): string {
@@ -296,44 +202,21 @@ function refusalText(r: StartRefusal): string {
     case 'too_poor':
       return `You only have ${points(r.balance)}.`;
     case 'busy':
-      return 'You already have a run going. Finish it first (in Discord or another tab).';
+      return 'You already have a round going. Finish it first (in Discord or another tab).';
   }
 }
 
-/** The bet in the box, kept to the allowed range. */
-function betFromBox(): number | null {
-  const bet = Math.floor(Number(ui.bet.value));
-  return Number.isFinite(bet) && bet > 0 ? bet : null;
-}
-
-function startRun(): void {
-  if (!lobby || ui.lobby.hidden || starting !== null || playing()) return;
-  const bet = betFromBox();
-  if (bet === null) {
-    ui.lobbyError.textContent = 'Type how much to bet.';
-    ui.lobbyError.hidden = false;
-    return;
-  }
-  seq += 1;
-  starting = seq;
-  ui.start.disabled = true;
-  ui.lobbyError.hidden = true;
-  lastActivity = performance.now();
-  send({ t: 'start', bet, seq });
-}
-
-ui.lobby.addEventListener('submit', (e) => {
-  e.preventDefault();
-  startRun();
-});
+ui.mines.addEventListener('change', render);
+ui.bet.addEventListener('input', renderPanel);
 
 for (const chip of document.querySelectorAll<HTMLButtonElement>('[data-bet]')) {
   chip.addEventListener('click', () => {
     if (!lobby) return;
-    const now = betFromBox() ?? lobby.minBet;
+    const now = Math.floor(Number(ui.bet.value)) || lobby.minBet;
     const most = Math.min(lobby.maxBet, Math.max(lobby.minBet, lobby.balance));
     const next = chip.dataset.bet === 'half' ? Math.floor(now / 2) : chip.dataset.bet === 'double' ? now * 2 : most;
     ui.bet.value = String(Math.max(lobby.minBet, Math.min(next, lobby.maxBet)));
+    renderPanel();
   });
 }
 
@@ -342,9 +225,6 @@ for (const chip of document.querySelectorAll<HTMLButtonElement>('[data-bet]')) {
 
 let socket: WebSocket | null = null;
 let seq = 0;
-/** The move waiting for the bot's answer to a dig (or a cash out): its seq, and the tile. */
-let pendingDig: { seq: number; at: number } | null = null;
-/** Set once the bot has said no: nothing to reconnect for. */
 let finished = false;
 let retries = 0;
 
@@ -354,13 +234,52 @@ const ERRORS: Record<ErrorCode, [string, string]> = {
   bad_message: ['Disconnected', 'The bot could not understand this page. Try reloading.'],
 };
 
-function send(message: ClientMessage): void {
-  if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify(message));
+function send(message: ClientMessage): boolean {
+  if (socket?.readyState !== WebSocket.OPEN) return false;
+  socket.send(JSON.stringify(message));
+  return true;
 }
 
 function setConn(text: string, kind: '' | 'ok' | 'bad'): void {
   ui.conn.textContent = text;
   ui.conn.className = `conn ${kind}`;
+}
+
+function startRound(): void {
+  if (!lobby || playing() || pending) return;
+  const bet = Math.floor(Number(ui.bet.value));
+  if (!Number.isFinite(bet) || bet < 1) return showError('Type how much to bet.');
+  seq += 1;
+  if (!send({ t: 'start', bet, mines: Number(ui.mines.value), seq })) return;
+  pending = { seq };
+  showError(null);
+  lastActivity = performance.now();
+  render();
+}
+
+function pick(index: number | 'random'): void {
+  if (!playing() || pending) return;
+  seq += 1;
+  if (!send({ t: 'pick', index, seq })) return;
+  pending = { seq, index };
+  lastActivity = performance.now();
+  render();
+}
+
+function cashOut(): void {
+  if (!playing() || pending || !run || run.gems === 0) return;
+  seq += 1;
+  if (!send({ t: 'cashout', seq })) return;
+  pending = { seq };
+  render();
+}
+
+function applyEvent(event: RunEvent | undefined): void {
+  if (event?.kind !== 'boom') return;
+  const wrap = ui.board.parentElement as HTMLElement;
+  wrap.classList.remove('shake');
+  void wrap.offsetWidth;
+  wrap.classList.add('shake');
 }
 
 function receive(message: ServerMessage): void {
@@ -376,27 +295,17 @@ function receive(message: ServerMessage): void {
       showLobby(message.lobby);
       return;
     case 'refused':
-      if (message.seq === starting) starting = null;
-      ui.lobbyError.textContent = refusalText(message);
-      ui.lobbyError.hidden = false;
-      ui.start.disabled = false;
+      if (pending?.seq === message.seq) pending = null;
+      showError(refusalText(message));
+      render();
       return;
-    case 'state': {
-      const over = message.state.status !== 'digging';
-      const answersStart = starting !== null && message.seq === starting;
-      const answersDig = pendingDig !== null && message.seq === pendingDig.seq;
-      // Answers to walks the page already made are old news, except the one to its latest message
-      // (or to none: a run picked up after connecting), a new run, and anything that ends the run.
-      if (!over && !answersDig && !answersStart && message.seq !== 0 && message.seq < seq) return;
-      const digAt = answersDig ? (pendingDig?.at ?? null) : null;
-      if (answersDig || answersStart || message.seq === 0) {
-        pendingDig = null;
-        scene.digging = null;
-      }
-      if (answersStart) starting = null;
+    case 'state':
+      if (message.seq === 0 || pending?.seq === message.seq) pending = null;
+      run = message.state;
+      setBalance(message.state.balance);
       lastActivity = performance.now();
-      apply(message.state, message.event, digAt);
-    }
+      applyEvent(message.event);
+      render();
   }
 }
 
@@ -405,13 +314,11 @@ function connect(): void {
   setConn(retries === 0 ? 'Connecting…' : 'Reconnecting…', '');
   const ws = new WebSocket(server);
   socket = ws;
-
   ws.addEventListener('open', () => {
     retries = 0;
     setConn('Connected', 'ok');
     send({ t: 'hello', token });
   });
-
   ws.addEventListener('message', (e) => {
     try {
       receive(JSON.parse(String(e.data)) as ServerMessage);
@@ -419,17 +326,15 @@ function connect(): void {
       console.error('Could not read a message from the bot:', err);
     }
   });
-
   ws.addEventListener('close', () => {
     if (socket === ws) socket = null;
     if (finished) return;
     // Dropped (a phone asleep, a network blip): try again a few times, waiting longer each time.
-    pendingDig = null;
-    starting = null;
-    scene.digging = null;
+    pending = null;
+    render();
     if (retries >= 6) {
       setConn('Disconnected', 'bad');
-      showMessage('Lost the connection', 'Reload this page, or press Open the mine in Discord for a new link.');
+      showMessage('Lost the connection', 'Reload this page, or open the mine again for a new link.');
       return;
     }
     const wait = Math.min(8000, 500 * 2 ** retries++);
@@ -441,119 +346,36 @@ function connect(): void {
 // ---------------------------------------------------------------------------
 // Input
 
-const STEP: Record<Direction, [number, number]> = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
-
-function move(dir: Direction): void {
-  if (!state || !playing() || pendingDig !== null || socket?.readyState !== WebSocket.OPEN) return;
-  const size = state.size;
-  const col = (state.pos % size) + STEP[dir][0];
-  const row = Math.floor(state.pos / size) + STEP[dir][1];
-  if (col < 0 || row < 0 || col >= size || row >= size) return;
-  const next = row * size + col;
-  seq += 1;
-  lastActivity = performance.now();
-  if (state.dug[next]) {
-    // Walking over dug ground: move now, tell the bot after.
-    state.pos = next;
-    place(next, size, false);
-    ui.log.textContent = 'You walk over dug ground.';
-  } else {
-    pendingDig = { seq, at: next };
-    scene.digging = next;
-  }
-  send({ t: 'move', dir, seq });
-}
-
-function cashOut(): void {
-  if (!state || !playing() || pendingDig !== null) return;
-  seq += 1;
-  pendingDig = { seq, at: state.pos };
-  send({ t: 'cashout', seq });
-}
-
-const KEYS: Record<string, Direction> = {
-  ArrowUp: 'up',
-  ArrowDown: 'down',
-  ArrowLeft: 'left',
-  ArrowRight: 'right',
-  KeyW: 'up',
-  KeyS: 'down',
-  KeyA: 'left',
-  KeyD: 'right',
-};
+ui.panel.addEventListener('submit', (e) => {
+  e.preventDefault();
+  if (playing()) cashOut();
+  else startRound();
+});
+ui.random.addEventListener('click', () => pick('random'));
 
 window.addEventListener('keydown', (e) => {
-  if (e.ctrlKey || e.metaKey || e.altKey) return;
-  // Typing a bet: leave the keys to the box (Enter starts, through the form).
-  if (document.activeElement === ui.bet) return;
-  const dir = KEYS[e.code];
-  if (dir) {
+  if (e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
+  if (e.code === 'KeyR' && playing() && document.activeElement !== ui.bet) {
     e.preventDefault();
-    if (!e.repeat) move(dir);
-    return;
-  }
-  if (e.repeat) return;
-  if ((e.code === 'Enter' || e.code === 'NumpadEnter') && playing()) {
-    e.preventDefault();
-    cashOut();
-  } else if (e.code === 'KeyR' && !playing()) {
-    e.preventDefault();
-    startRun();
+    pick('random');
   }
 });
 
-for (const button of document.querySelectorAll<HTMLButtonElement>('[data-dir]')) {
-  button.addEventListener('pointerdown', (e) => {
-    e.preventDefault();
-    move(button.dataset.dir as Direction);
-  });
-}
-ui.cashout.addEventListener('click', cashOut);
-
-// Swipes on the board, for phones (not on the lobby over it).
-let swipeFrom: { x: number; y: number } | null = null;
-ui.wrap.addEventListener('pointerdown', (e) => {
-  swipeFrom = playing() ? { x: e.clientX, y: e.clientY } : null;
-});
-ui.wrap.addEventListener('pointerup', (e) => {
-  if (!swipeFrom) return;
-  const dx = e.clientX - swipeFrom.x;
-  const dy = e.clientY - swipeFrom.y;
-  swipeFrom = null;
-  if (Math.max(Math.abs(dx), Math.abs(dy)) < 24) return;
-  move(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : dy > 0 ? 'down' : 'up');
-});
-
-// ---------------------------------------------------------------------------
-// Drawing
-
-let lastFrame = performance.now();
-function frame(now: number): void {
-  const dt = Math.min(64, now - lastFrame);
-  lastFrame = now;
-  if (state) {
-    // Slide towards the tile the miner is headed for (about 80 ms a tile).
-    const k = Math.min(1, dt / 45);
-    scene.miner.col += (target.col - scene.miner.col) * k;
-    scene.miner.row += (target.row - scene.miner.row) * k;
-    drawScene(g, scene, now);
-
-    if (playing()) {
-      const left = Math.ceil((state.idleMs - (now - lastActivity)) / 1000);
-      ui.idle.hidden = left > 15;
-      if (!ui.idle.hidden) ui.idle.textContent = `💤 Cashing out by itself in ${Math.max(0, left)}s unless you move.`;
-    }
-  }
-  requestAnimationFrame(frame);
-}
+// A round left alone cashes out by itself: say so when it's getting close.
+setInterval(() => {
+  if (!playing() || !run) return;
+  const left = Math.ceil((run.idleMs - (performance.now() - lastActivity)) / 1000);
+  ui.idle.hidden = left > 15;
+  if (!ui.idle.hidden) ui.idle.textContent = `💤 Cashing out by itself in ${Math.max(0, left)}s unless you pick a tile.`;
+}, 250);
 
 // ---------------------------------------------------------------------------
 // Start
 
+render();
 if (!token || !server) {
   setConn('No link', 'bad');
-  showMessage('Open this from the games page', 'Log in on the games page and pick the Mine, or use the mine command in Discord.');
+  showMessage('Open this from the games page', 'Log in on the games page and pick Mines, or use the mine command in Discord.');
 } else {
   connect();
-  requestAnimationFrame(frame);
 }
