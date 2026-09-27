@@ -471,3 +471,22 @@ body {
 .pc-map-close:hover {
   background: #2c2c2c;
 }
+
+/* With a Dynamite Stick: how many blocks until the next blast, under the map badge. */
+.pc-blast {
+  position: absolute;
+  top: 44px;
+  left: 8px;
+  z-index: 2;
+  padding: 4px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  background: rgba(17, 18, 21, 0.82);
+  color: #ffb057;
+  font: 700 13px ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  pointer-events: none;
+}
+
+.pc-blast.soon {
+  color: #ff5a3c;
+}

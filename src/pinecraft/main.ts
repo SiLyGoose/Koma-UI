@@ -39,6 +39,8 @@ const ui = {
   messageTitle: $('message-title'),
   messageText: $('message-text'),
   mapButton: $<HTMLButtonElement>('map-button'),
+  blast: $('blast'),
+  blastLeft: $('blast-left'),
   coords: $('coords'),
   map: $('map'),
   mapCanvas: $<HTMLCanvasElement>('map-canvas'),
@@ -102,7 +104,7 @@ function bump(el: HTMLElement): void {
   el.classList.add('bump');
 }
 
-function effect(el: HTMLElement, name: 'shake'): void {
+function effect(el: HTMLElement, name: 'shake' | 'flash'): void {
   el.classList.remove(name);
   void el.offsetWidth;
   el.classList.add(name);
@@ -143,6 +145,12 @@ function renderHud(state: WorldState): void {
   setText(ui.balance, state.balance === null ? '–' : points(state.balance), true);
   setText(ui.earned, points(state.earned), true);
   setText(ui.depth, points(state.dug));
+  // With a Dynamite Stick: the blocks until the next blast.
+  ui.blast.hidden = !state.blast;
+  if (state.blast) {
+    setText(ui.blastLeft, state.blast.left === 1 ? 'next block' : `in ${state.blast.left} blocks`);
+    ui.blast.classList.toggle('soon', state.blast.left === 1);
+  }
 }
 
 function renderLegend(state: WorldState): void {
@@ -213,7 +221,15 @@ function apply(state: WorldState, event: WorldEvent | undefined, moveMiner: bool
   if (event) {
     if (event.kind === 'dig' && dug) {
       burst(scene, dug.x, dug.y, event.ground, event.ore, now);
-      if (event.ore) floatText(dug.x, dug.y, `+${points(event.points)}`, '#ffd84a');
+      if (event.ore) floatText(dug.x, dug.y, `+${points(event.points)}${event.lucky ? ' ×2' : ''}`, event.lucky ? '#7dffb0' : '#ffd84a');
+      // A blast: every block around goes at once.
+      if (event.blast) {
+        for (const b of event.blast) {
+          burst(scene, b.x, b.y, b.ground, b.ore, now);
+          if (b.ore) floatText(b.x, b.y, `+${points(b.points)}${b.lucky ? ' ×2' : ''}`, b.lucky ? '#7dffb0' : '#ffb057');
+        }
+        effect(ui.wrap, 'shake');
+      }
     }
     if (event.kind === 'tired') effect(ui.energy.parentElement as HTMLElement, 'shake');
   }
@@ -372,7 +388,8 @@ function move(dir: Direction): void {
   if (x < 0 || y < 0 || x >= state.size || y >= state.size) return;
   const c = cellAt(scene, x, y);
   if (isBedrock(c)) return;
-  if (!isOpenCell(c) && energy.count < 1) {
+  // An ore can take more than one energy (a Golden Pickaxe).
+  if (!isOpenCell(c) && energy.count < (ORE_OF[c] ? (state.oreEnergy ?? 1) : 1)) {
     effect(ui.energy.parentElement as HTMLElement, 'shake');
     return;
   }

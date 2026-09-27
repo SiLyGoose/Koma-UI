@@ -53,12 +53,25 @@ export interface WorldState {
   values: Record<PinecraftOre, number>;
   /** How long each block takes to break, in ms. */
   breakMs: Record<'dirt' | 'stone' | PinecraftOre, number>;
+  /** Energy an ore takes to dig (dirt and stone take 1). */
+  oreEnergy: number;
+  /** With a Dynamite Stick: a blast every `every` blocks dug, the next in `left`. */
+  blast: { every: number; left: number } | null;
 }
 
 /** What the page's last move did. */
 export type WorldEvent =
   | { kind: 'walk' | 'edge' | 'bedrock' | 'tired' }
-  | { kind: 'dig'; ground: 'dirt' | 'stone'; ore: PinecraftOre | null; points: number };
+  | {
+      kind: 'dig';
+      ground: 'dirt' | 'stone';
+      ore: PinecraftOre | null;
+      points: number;
+      /** The ore paid double. */
+      lucky: boolean;
+      /** What a blast broke around the block, if it set one off. */
+      blast: { x: number; y: number; ground: 'dirt' | 'stone'; ore: PinecraftOre | null; points: number; lucky: boolean }[] | null;
+    };
 
 export type ErrorCode =
   /** The link's token is wrong or too old (or the bot restarted since). */
