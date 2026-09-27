@@ -21,6 +21,8 @@ const API = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/+$/
 const SESSION_KEY = 'koma.session';
 const SERVER_KEY = 'koma.server';
 const STATE_KEY = 'koma.loginState';
+/** A game to open once logged in: from a link like /?play=mines&guild=123 (the bot's buttons in Discord). */
+const PLAY_KEY = 'koma.playNext';
 
 const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T;
 const ui = {
@@ -152,6 +154,7 @@ async function finishLogin(code: string, state: string): Promise<void> {
   me = res.data.me;
   status(null);
   render();
+  playPending();
 }
 
 async function loadMe(): Promise<void> {
@@ -168,6 +171,21 @@ async function loadMe(): Promise<void> {
   me = res.data;
   status(null);
   render();
+  playPending();
+}
+
+/** Opens the game a link asked for (kept through the login), in the server it came from if the member is in it. */
+function playPending(): void {
+  const wanted = store.get(sessionStorage, PLAY_KEY);
+  store.set(sessionStorage, PLAY_KEY, null);
+  if (!wanted || !me) return;
+  const { game, guild } = JSON.parse(wanted) as { game: string; guild: string | null };
+  if (guild && me.servers.some((s) => s.id === guild)) {
+    server = guild;
+    store.set(localStorage, SERVER_KEY, guild);
+    render();
+  }
+  document.querySelector<HTMLButtonElement>(`[data-play="${CSS.escape(game)}"]`)?.click();
 }
 
 ui.loginButton.addEventListener('click', () => {
@@ -203,6 +221,12 @@ if (!API) {
   status('This site is not set up yet: VITE_API_URL (the bot’s address) is missing.', true);
 } else {
   const query = new URLSearchParams(location.search);
+  // A link to a game (from Discord): remember it through the login, and tidy the address.
+  const play = query.get('play');
+  if (play === 'mines' || play === 'pinecraft') {
+    store.set(sessionStorage, PLAY_KEY, JSON.stringify({ game: play, guild: query.get('guild') }));
+    history.replaceState(null, '', location.pathname);
+  }
   const code = query.get('code');
   const state = query.get('state');
   if (query.get('error')) {
