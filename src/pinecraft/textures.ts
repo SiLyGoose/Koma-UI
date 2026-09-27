@@ -13,7 +13,7 @@ export type BlockTexture = 'dirt' | 'stone' | 'bedrock' | PinecraftOre;
 
 export const ORES: readonly PinecraftOre[] = ['coal', 'iron', 'gold', 'diamond', 'emerald', 'ruby'];
 
-/** Each ore's colours: the gem, its outline, and its shine. Also used for the legend, the sparks and the "+points". */
+/** Each ore's colours: the gem, its outline, and its shine. Also used for the ore tooltip, the sparks and the "+points". */
 export const ORE_COLOR: Readonly<Record<PinecraftOre, { gem: string; edge: string; shine: string }>> = {
   coal: { gem: '#2b2b30', edge: '#151518', shine: '#6d6d78' },
   iron: { gem: '#d9ab8a', edge: '#8c6248', shine: '#f5e1d2' },

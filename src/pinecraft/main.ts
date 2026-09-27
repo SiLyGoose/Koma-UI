@@ -33,7 +33,6 @@ const ui = {
   log: $('log'),
   wrap: $('board-wrap'),
   floaters: $('floaters'),
-  legend: $('legend'),
   message: $('message'),
   stage: $('stage'),
   stick: $('stick'),
@@ -160,25 +159,6 @@ function renderHud(state: WorldState): void {
   }
 }
 
-function renderLegend(state: WorldState): void {
-  ui.legend.textContent = '';
-  for (const ore of ORES) {
-    const item = document.createElement('span');
-    item.className = 'legend-ore';
-    const icon = document.createElement('canvas');
-    icon.width = 32;
-    icon.height = 32;
-    icon.className = 'legend-gem';
-    drawGem(icon.getContext('2d') as CanvasRenderingContext2D, ore, 16, 16, 11);
-    const text = document.createElement('span');
-    text.innerHTML = `${ORE_NAME[ore]} <b></b>`;
-    (text.querySelector('b') as HTMLElement).textContent = `+${points(state.values[ore] ?? 0)}`;
-    item.append(icon, text);
-    ui.legend.append(item);
-  }
-  renderOreTip(state);
-}
-
 /** What each ore pays, in the tooltip over "Earned from ores". */
 function renderOreTip(state: WorldState): void {
   ui.oreTip.textContent = '';
@@ -216,7 +196,7 @@ function apply(state: WorldState, event: WorldEvent | undefined, moveMiner: bool
   const first = scene === null;
   if (!scene) {
     scene = { state, known: new Map(), cam: { x: 0, y: 0 }, miner: { x: state.x, y: state.y }, facing: 1, swing: null, digging: null, particles: [] };
-    renderLegend(state);
+    renderOreTip(state);
   }
   // A new week: a fresh mine. Forget the old one's blocks, and start from the room.
   if (!first && state.week && scene.state.week && state.week !== scene.state.week) {

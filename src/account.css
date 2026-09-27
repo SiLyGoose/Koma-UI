@@ -12,10 +12,10 @@
   display: flex;
   align-items: center;
   padding: 4px;
-  border: 1px solid #473c54;
+  border: 1px solid var(--line);
   border-radius: 30px;
   background: transparent;
-  color: #e0dde4;
+  color: var(--text);
   font: inherit;
   cursor: pointer;
   transition: background-color 0.2s ease;
@@ -23,11 +23,11 @@
 
 .account-user:hover,
 .account-user[aria-expanded='true'] {
-  background-color: #1e1b21;
+  background-color: var(--panel-2);
 }
 
 .account-user:focus-visible {
-  outline: 2px solid #8d819c;
+  outline: 2px solid var(--muted);
   outline-offset: 2px;
 }
 
@@ -60,7 +60,7 @@
   width: 6px;
   height: 6px;
   margin: 0 8px 0 12px;
-  border: solid #8d819c;
+  border: solid var(--muted);
   border-width: 0 2px 2px 0;
   transform: translateY(-2px) rotate(45deg);
   transition: transform 0.2s ease;
@@ -81,10 +81,10 @@
   padding: 8px 0;
   overflow: hidden;
   list-style: none;
-  border: 2px solid #473c54;
+  border: 2px solid var(--line);
   border-radius: 16px;
-  background-color: #1e1b21;
-  color: #ada5b6;
+  background-color: var(--panel-2);
+  color: var(--muted);
   text-align: left;
   text-transform: none;
   letter-spacing: normal;
@@ -95,7 +95,7 @@
   align-items: center;
   width: 100%;
   padding: 8px 16px;
-  color: #ada5b6;
+  color: var(--muted);
   font-size: 15px;
   font-weight: 400;
   text-decoration: none;
@@ -104,7 +104,7 @@
 
 .account-item:hover,
 .account-item:focus-visible {
-  color: #fff;
+  color: var(--text);
   outline: none;
 }
 

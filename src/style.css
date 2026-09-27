@@ -1,13 +1,25 @@
 :root {
-  --bg: #1e1f22;
-  --panel: #2b2d31;
-  --panel-2: #313338;
-  --text: #f2f3f5;
-  --muted: #b5bac1;
-  --gold: #f5c542;
-  --green: #23a55a;
-  --green-hover: #1a8a4a;
-  --red: #ed4245;
+  /*
+   * The palette, from a banner of white spider lilies at night: near-black, charcoal and dusk-violet
+   * greys, lavender and petal-white for text, and one warm red (the horns) for what to press. Wins,
+   * energy and errors keep their meaning in a softer green, gold and red that sit with it. (The
+   * games' blue frame is its own, in frame.css; the games' pictures keep their colours.)
+   */
+  --bg: #08080a;
+  --panel: #17161b;
+  --panel-2: #222126;
+  --panel-3: #2e2c34;
+  --line: #3f3d48;
+  --dusk: #615e6d;
+  --muted: #9a9ba9;
+  --petal: #b5b7bb;
+  --text: #e8e8ef;
+  --accent: #b94a4c;
+  --accent-hover: #c95a5c;
+  --accent-text: #fff;
+  --gold: #d8bf7a;
+  --green: #8fc9a3;
+  --red: #d8686a;
   --radius: 12px;
   color-scheme: dark;
 }
@@ -86,7 +98,7 @@ h1 {
 }
 
 .stat-balance .value {
-  color: #7fe6a0;
+  color: var(--green);
 }
 
 .stat {
@@ -146,7 +158,7 @@ h1 {
   content: '';
   position: absolute;
   inset: 0;
-  background: rgba(245, 197, 66, 0.35);
+  background: rgba(216, 191, 122, 0.35);
   animation: fade 0.6s forwards;
   pointer-events: none;
 }
@@ -315,15 +327,15 @@ canvas {
   height: 100px;
   border: 0;
   border-radius: var(--radius);
-  background: var(--green);
-  color: #fff;
+  background: var(--accent);
+  color: var(--accent-text);
   font-size: 18px;
   font-weight: 700;
   cursor: pointer;
 }
 
 .cashout:hover:not(:disabled) {
-  background: var(--green-hover);
+  background: var(--accent-hover);
 }
 
 .cashout:disabled {
@@ -336,15 +348,6 @@ canvas {
   color: var(--muted);
   font-size: 12px;
   margin: 14px 0 6px;
-}
-
-.legend {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 6px 14px;
-  color: var(--muted);
-  font-size: 12px;
 }
 
 .message {
@@ -385,7 +388,7 @@ canvas {
   min-width: 0;
   padding: 10px 12px;
   border-radius: 10px;
-  border: 1px solid #4e5058;
+  border: 1px solid var(--line);
   background: var(--bg);
   color: var(--text);
   font-size: 18px;
@@ -393,7 +396,7 @@ canvas {
 }
 
 .bet:focus {
-  outline: 2px solid var(--gold);
+  outline: 2px solid var(--petal);
   outline-offset: -1px;
 }
 
@@ -408,15 +411,15 @@ canvas {
 }
 
 .chip:hover {
-  background: #3f4147;
+  background: var(--panel-3);
 }
 
 .start {
   border: 0;
   border-radius: 10px;
   padding: 12px;
-  background: var(--gold);
-  color: #1e1f22;
+  background: var(--accent);
+  color: var(--accent-text);
   font-size: 18px;
   font-weight: 800;
   cursor: pointer;
@@ -465,8 +468,8 @@ canvas {
   margin-top: 14px;
   padding: 8px 14px;
   border-radius: 10px;
-  background: #5865f2;
-  color: #fff;
+  background: var(--accent);
+  color: var(--accent-text);
   font-weight: 700;
   text-decoration: none;
 }

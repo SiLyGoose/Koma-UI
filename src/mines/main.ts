@@ -47,7 +47,7 @@ const times = (n: number): string => `${n.toFixed(2)}x`;
  * pastel iridescent gradient (in the page once, see GEM_GRADIENTS). It shimmers too (mines.css).
  */
 const GEM_SVG =
-  '<svg class="mx-gem" viewBox="0 0 64 64" aria-hidden="true"><g stroke="#071824" stroke-width="2.6" stroke-linejoin="round">' +
+  '<svg class="mx-gem" viewBox="0 0 64 64" aria-hidden="true"><g style="stroke:var(--bg)" stroke-width="2.6" stroke-linejoin="round">' +
   '<path fill="url(#mx-ir-1)" d="M4 24 14 10l9 14z"/><path fill="url(#mx-ir-2)" d="M14 10h18l-9 14z"/><path fill="url(#mx-ir-3)" d="M23 24l9-14 9 14z"/>' +
   '<path fill="url(#mx-ir-4)" d="M32 10h18l-9 14z"/><path fill="url(#mx-ir-5)" d="M41 24l9-14 10 14z"/>' +
   '<path fill="url(#mx-ir-6)" d="M4 24h19l9 34z"/><path fill="url(#mx-ir-7)" d="M23 24h18l-9 34z"/><path fill="url(#mx-ir-8)" d="M41 24h19L32 58z"/></g></svg>';

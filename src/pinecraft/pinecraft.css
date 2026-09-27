@@ -14,7 +14,7 @@ body {
 .pinecraft {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  grid-template-rows: auto minmax(0, 1fr) auto;
   height: 100vh;
   height: 100dvh;
 }
@@ -31,7 +31,7 @@ body {
   place-items: center;
   margin: 6px 6px 0;
   border-radius: var(--radius);
-  background: #000;
+  background: var(--bg);
   overflow: hidden;
   container-type: size;
 }
@@ -76,7 +76,7 @@ body {
   flex-wrap: wrap;
   justify-content: center;
   gap: 6px;
-  margin: 8px 8px 6px;
+  margin: 8px;
 }
 
 .pinecraft .stat {
@@ -84,7 +84,7 @@ body {
   align-items: center;
   gap: 8px;
   padding: 4px 12px;
-  border: 1px solid rgba(255, 255, 255, 0.28);
+  border: 1px solid var(--line);
   border-radius: 6px;
   background: transparent;
 }
@@ -94,11 +94,11 @@ body {
 }
 
 .stat-energy .value {
-  color: #ffd84a;
+  color: var(--gold);
 }
 
 .pc-earned .value {
-  color: #7fe6a0;
+  color: var(--green);
 }
 
 .stat.shake {
@@ -122,34 +122,11 @@ body {
 .energy-fill {
   height: 100%;
   width: 0;
-  background: linear-gradient(90deg, #f5c542, #ffe680);
+  background: linear-gradient(90deg, #c9ad62, #e6d49c);
 }
 
 .energy-fill.low {
   background: var(--red);
-}
-
-/* What each ore pays, in a line under the bar. */
-.pinecraft > .pc-legend {
-  grid-row: 4;
-  gap: 8px 14px;
-  margin: 0 8px 8px;
-  font-size: 12px;
-}
-
-.legend-ore {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.legend-ore b {
-  color: var(--text);
-}
-
-.legend-gem {
-  width: 16px;
-  height: 16px;
 }
 
 /* "Earned from ores": hover it (or tap it) for what each ore pays. */
@@ -160,7 +137,7 @@ body {
 }
 
 .pc-earned:focus-visible {
-  outline: 2px solid #5865f2;
+  outline: 2px solid var(--petal);
   outline-offset: 2px;
 }
 
@@ -184,9 +161,9 @@ body {
   z-index: 10;
   min-width: 210px;
   padding: 12px 16px 14px;
-  border: 1px solid rgba(255, 255, 255, 0.28);
+  border: 1px solid var(--line);
   border-radius: 12px;
-  background: #16171a;
+  background: var(--panel);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
   color: var(--text);
   text-transform: none;
@@ -208,9 +185,9 @@ body {
   width: 12px;
   height: 12px;
   margin: -6px 0 0 -6px;
-  border: solid rgba(255, 255, 255, 0.28);
+  border: solid var(--line);
   border-width: 0 1px 1px 0;
-  background: #16171a;
+  background: var(--panel);
   transform: rotate(45deg);
 }
 
@@ -260,7 +237,7 @@ body {
 .pc-tip-value {
   font-size: 13px;
   font-weight: 700;
-  color: #ffd84a;
+  color: var(--gold);
   text-align: center;
 }
 
@@ -351,11 +328,6 @@ body {
   .energy-bar {
     width: 56px;
   }
-
-  /* The "Earned from ores" tooltip has these. */
-  .pinecraft > .pc-legend {
-    display: none;
-  }
 }
 
 /* A phone on its side: wider than tall, so more blocks across. */
@@ -375,16 +347,16 @@ body {
   align-items: center;
   gap: 6px;
   padding: 5px 10px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid var(--line);
   border-radius: 8px;
-  background: rgba(17, 18, 21, 0.82);
+  background: rgba(23, 22, 27, 0.85);
   color: var(--text);
   font: 700 13px ui-monospace, 'Cascadia Mono', Consolas, monospace;
   cursor: pointer;
 }
 
 .pc-map-button:hover {
-  background: rgba(40, 42, 48, 0.9);
+  background: rgba(46, 44, 52, 0.92);
 }
 
 .pc-map {
@@ -393,7 +365,7 @@ body {
   z-index: 20;
   display: flex;
   flex-direction: column;
-  background: #1f1f1f;
+  background: var(--bg);
 }
 
 .pc-map-bar {
@@ -431,10 +403,10 @@ body {
   left: 12px;
   bottom: calc(12px + env(safe-area-inset-bottom));
   padding: 6px 14px;
-  border: 1px solid rgba(255, 255, 255, 0.6);
+  border: 1px solid var(--line);
   border-radius: 999px;
-  background: #1f1f1f;
-  color: #fff;
+  background: var(--panel);
+  color: var(--text);
   font-size: 12px;
   font-weight: 800;
   text-transform: uppercase;
@@ -442,7 +414,7 @@ body {
 }
 
 .pc-map-close:hover {
-  background: #2c2c2c;
+  background: var(--panel-3);
 }
 
 /* With a Dynamite Stick: how many blocks until the next blast, under the map badge. */
@@ -452,14 +424,14 @@ body {
   left: 8px;
   z-index: 2;
   padding: 4px 10px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid var(--line);
   border-radius: 8px;
-  background: rgba(17, 18, 21, 0.82);
-  color: #ffb057;
+  background: rgba(23, 22, 27, 0.85);
+  color: var(--gold);
   font: 700 13px ui-monospace, 'Cascadia Mono', Consolas, monospace;
   pointer-events: none;
 }
 
 .pc-blast.soon {
-  color: #ff5a3c;
+  color: var(--red);
 }

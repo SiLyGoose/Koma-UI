@@ -241,8 +241,8 @@ const MAP_COLOR: Readonly<Record<string, string>> = {
  * is a red square.
  */
 export function drawMap(g: CanvasRenderingContext2D, map: WorldMap, w: number, h: number, you: { x: number; y: number }, spawn: { x: number; y: number }): void {
-  g.fillStyle = '#1f1f1f';
-  g.fillRect(0, 0, w, h);
+  // Clear: the map's page colour (pinecraft.css) shows round it.
+  g.clearRect(0, 0, w, h);
   const cols = map.rows[0]?.length ?? 0;
   const rows = map.rows.length;
   if (cols === 0 || rows === 0) return;

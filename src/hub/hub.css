@@ -17,9 +17,9 @@
   align-items: center;
   min-height: 56px;
   padding: 0 16px;
-  background-color: #2c2a31;
-  border-bottom: 1px solid #3b3842;
-  box-shadow: 0 5px 10px rgb(0 0 0 / 6%);
+  background-color: var(--panel);
+  border-bottom: 1px solid var(--line);
+  box-shadow: 0 5px 10px rgb(0 0 0 / 30%);
   font-family: Poppins, 'gg sans', 'Segoe UI', system-ui, sans-serif;
 }
 
@@ -27,7 +27,7 @@
   display: flex;
   flex-shrink: 0;
   align-items: center;
-  color: #fff;
+  color: var(--text);
   text-decoration: none;
 }
 
@@ -72,14 +72,14 @@
 .site-nav-link {
   display: flex;
   align-items: center;
-  color: #ada5b6;
+  color: var(--muted);
   font-size: 14px;
   text-decoration: none;
   transition: color 0.3s ease;
 }
 
 .site-nav-link:hover {
-  color: #fff;
+  color: var(--text);
 }
 
 /* Smaller screens: the links go in a "Menu" drop-down (made by main.ts). */
@@ -93,7 +93,7 @@
   padding: 0;
   border: 0;
   background: transparent;
-  color: #e0dde4;
+  color: var(--text);
   font: inherit;
   font-size: 15px;
   cursor: pointer;
@@ -101,11 +101,11 @@
 
 .site-menu-button:hover,
 .site-menu-button[aria-expanded='true'] {
-  color: #fff;
+  color: var(--text);
 }
 
 .site-menu-button .account-arrow {
-  border-color: #fff;
+  border-color: var(--text);
 }
 
 @media (max-width: 1023px) {
@@ -131,10 +131,10 @@
 .site-login {
   margin-left: 16px;
   padding: 8px 24px;
-  border: 2px solid #fff;
+  border: 2px solid var(--text);
   border-radius: 31px;
   background: transparent;
-  color: #fff;
+  color: var(--text);
   font: inherit;
   font-size: 14px;
   font-weight: 500;
@@ -144,8 +144,8 @@
 }
 
 .site-login:hover {
-  background-color: #fff;
-  color: #2c2a31;
+  background-color: var(--text);
+  color: var(--bg);
 }
 
 @media (min-width: 768px) {
@@ -199,15 +199,15 @@
   border: 0;
   border-radius: 10px;
   padding: 12px 22px;
-  background: #5865f2;
-  color: #fff;
+  background: var(--accent);
+  color: var(--accent-text);
   font-size: 16px;
   font-weight: 700;
   cursor: pointer;
 }
 
 .discord:hover {
-  background: #4752c4;
+  background: var(--accent-hover);
 }
 
 .status {
@@ -259,7 +259,7 @@
 }
 
 .server.picked {
-  border-color: var(--gold);
+  border-color: var(--accent);
   background: var(--panel-2);
 }
 
@@ -270,7 +270,7 @@
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: #5865f2;
+  background: var(--dusk);
   font-weight: 800;
 }
 
@@ -283,7 +283,7 @@
 
 .server-balance {
   font-size: 13px;
-  color: #7fe6a0;
+  color: var(--green);
 }
 
 .games {
@@ -341,15 +341,15 @@
   border: 0;
   border-radius: 10px;
   padding: 10px 22px;
-  background: var(--green);
-  color: #fff;
+  background: var(--accent);
+  color: var(--accent-text);
   font-size: 15px;
   font-weight: 700;
   cursor: pointer;
 }
 
 .play:hover:not(:disabled) {
-  background: var(--green-hover);
+  background: var(--accent-hover);
 }
 
 .play:disabled {
