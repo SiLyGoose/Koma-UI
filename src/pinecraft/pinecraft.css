@@ -1,22 +1,142 @@
 /* Pinecraft's page, on top of the mine's styles (../style.css). */
 
+/*
+ * The game fills the window: a title bar on top, the mine in the middle on black, and the stats in
+ * a bar of chips along the bottom. On a computer the mine is 15 blocks across and as big as fits;
+ * on a phone it fills the black, 8 across, with the joystick over its bottom left (see the end).
+ */
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+}
+
 .pinecraft {
-  max-width: 560px;
+  --pc-bar: #2b3f9e;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  max-width: none;
+  height: 100vh;
+  height: 100dvh;
+  padding: 0;
+  border: 2px solid var(--pc-bar);
+}
+
+/* The title bar. */
+.pinecraft > .top {
+  grid-row: 1;
+  margin: 0;
+  padding: 5px 10px;
+  background: var(--pc-bar);
+}
+
+.pinecraft .top h1 {
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.pinecraft .top .back {
+  color: #fff;
+  font-size: 16px;
+}
+
+.pinecraft .top .conn {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+/* The mine, on black. */
+.pc-stage {
+  grid-row: 2;
+  position: relative;
+  display: grid;
+  place-items: center;
+  margin: 6px 6px 0;
+  border-radius: var(--radius);
+  background: #000;
+  overflow: hidden;
+  container-type: size;
+}
+
+.pc-view {
+  /* Blocks across the view (main.ts reads it). */
+  --cols: 15;
+  aspect-ratio: 15 / 11;
+  /* As big as fits in the black, leaving a margin around it (the log sits in the one below). */
+  width: min(100cqw - 48px, 80cqh * 15 / 11);
+  border-radius: 4px;
+  background: #1a1411;
+  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.35);
+}
+
+/* What just happened, over the bottom of the mine. */
+.pc-stage .log {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
+  max-width: calc(100% - 32px);
+  margin: 0;
+  padding: 4px 14px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.7);
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
+
+.pc-stage .log:empty {
+  display: none;
+}
+
+/* The bottom bar: outlined chips, wrapping onto more rows when there isn't room. */
+.pinecraft > .hud {
+  grid-row: 3;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin: 8px 8px 6px;
+}
+
+.pinecraft .stat {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 6px;
+  background: transparent;
+}
+
+.pinecraft .stat .value {
+  font-size: 14px;
 }
 
 .stat-energy .value {
   color: #ffd84a;
 }
 
+.pc-earned .value {
+  color: #7fe6a0;
+}
+
+.stat.shake {
+  animation: shake 0.45s;
+}
+
 .energy-next {
+  margin-left: 4px;
   text-transform: none;
   letter-spacing: 0;
-  float: right;
 }
 
 .energy-bar {
+  width: 90px;
   height: 6px;
-  margin: 5px 0 3px;
   border-radius: 999px;
   background: var(--bg);
   overflow: hidden;
@@ -32,32 +152,12 @@
   background: var(--red);
 }
 
-.stat.shake {
-  animation: shake 0.45s;
-}
-
-.pc-view {
-  /* Tall, like a phone: 8 blocks across (VIEW_COLS in main.ts), up to 11 down. */
-  aspect-ratio: 8 / 11;
-  max-height: 72vh;
-  background: #1a1411;
-  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.35);
-}
-
-.pc-controls .pc-earned {
-  flex: 1;
-  align-self: stretch;
-  justify-content: center;
-  align-items: center;
-}
-
-.pc-earned .value {
-  font-size: 22px;
-  color: #7fe6a0;
-}
-
-.pc-legend {
+/* What each ore pays, in a line under the bar. */
+.pinecraft > .pc-legend {
+  grid-row: 4;
   gap: 8px 14px;
+  margin: 0 8px 8px;
+  font-size: 12px;
 }
 
 .legend-ore {
@@ -70,75 +170,304 @@
   color: var(--text);
 }
 
-.legend-ore small {
-  opacity: 0.7;
-}
-
 .legend-gem {
   width: 16px;
   height: 16px;
 }
 
-/* Phones: a joystick bottom left, over the page. */
-.pc-touch {
-  display: none;
+/* "Earned from ores": hover it (or tap it) for what each ore pays. */
+.pc-earned {
+  position: relative;
+  cursor: help;
+  overflow: visible;
 }
 
-@media (pointer: coarse) {
-  .pinecraft {
-    padding: 10px 8px 170px;
-  }
-
-  /* Leave the header, the stats and the joystick room on screen. */
-  .pc-view {
-    max-height: calc(100svh - 300px);
-  }
-
-  .pc-controls .dpad {
-    display: none;
-  }
-
-  .pc-touch {
-    display: flex;
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    justify-content: space-between;
-    align-items: flex-end;
-    padding: 0 20px calc(20px + env(safe-area-inset-bottom));
-    pointer-events: none;
-    z-index: 5;
-  }
+.pc-earned:focus-visible {
+  outline: 2px solid #5865f2;
+  outline-offset: 2px;
 }
 
-.pc-stick {
-  pointer-events: auto;
+.pc-help {
+  display: inline-grid;
+  place-items: center;
+  width: 14px;
+  height: 14px;
+  margin-left: 2px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font-size: 9px;
+  line-height: 1;
+  vertical-align: 1px;
+}
+
+.pc-tip {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 12px);
+  z-index: 10;
+  min-width: 210px;
+  padding: 12px 16px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 12px;
+  background: #16171a;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+  color: var(--text);
+  text-transform: none;
+  letter-spacing: 0;
+  cursor: default;
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(-50%, 4px);
+  transition: opacity 0.12s, transform 0.12s, visibility 0.12s;
+  pointer-events: none;
+}
+
+/* The arrow, pointing down at the stat. */
+.pc-tip::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
+  border: solid rgba(255, 255, 255, 0.28);
+  border-width: 0 1px 1px 0;
+  background: #16171a;
+  transform: rotate(45deg);
+}
+
+.pc-earned:hover .pc-tip,
+.pc-earned:focus-within .pc-tip {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, 0);
+}
+
+.pc-tip-head,
+.pc-tip-rows {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 20px;
+  align-items: center;
+}
+
+.pc-tip-head {
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  text-align: center;
+}
+
+.pc-tip-rows {
+  row-gap: 8px;
+}
+
+.pc-tip-ore {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.pc-tip-gem {
+  width: 20px;
+  height: 20px;
+}
+
+.pc-tip-value {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffd84a;
+  text-align: center;
+}
+
+/* The joystick: only on touch screens, over the bottom left of the mine. */
+.pc-stage {
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
 }
 
+/* Shows up under the finger (main.ts moves it there with a transform); 110px across. */
 .pc-stick {
-  position: relative;
-  width: 130px;
-  height: 130px;
+  display: none;
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 6;
+  width: 110px;
+  height: 110px;
+  border: 2px solid rgba(255, 255, 255, 0.6);
   border-radius: 50%;
-  background: rgba(43, 45, 49, 0.75);
-  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(4px);
+  background: rgba(255, 255, 255, 0.1);
+  pointer-events: none;
+}
+
+.pc-stick.on {
+  display: block;
 }
 
 .pc-stick-knob {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 56px;
-  height: 56px;
-  margin: -28px 0 0 -28px;
+  width: 50px;
+  height: 50px;
+  margin: -25px 0 0 -25px;
   border-radius: 50%;
-  background: rgba(242, 243, 245, 0.85);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
-  pointer-events: none;
+  background: rgba(255, 255, 255, 0.35);
+}
+
+/*
+ * Phones (and small windows): the mine fills the black, 8 blocks across, with a small margin; the
+ * log sits over its top, and the chips get smaller.
+ */
+@media (pointer: coarse), (max-width: 759px), (max-height: 519px) {
+  .pinecraft > .top {
+    padding-top: max(5px, env(safe-area-inset-top));
+  }
+
+  .pc-stage {
+    margin: 4px 4px 0;
+    padding: 4px;
+    background: transparent;
+  }
+
+  .pc-view {
+    --cols: 8;
+    aspect-ratio: auto;
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+  }
+
+  .pc-stage .log {
+    top: 12px;
+    bottom: auto;
+    max-width: calc(100% - 28px);
+    font-size: 12px;
+    white-space: normal;
+    text-align: center;
+  }
+
+  .pinecraft > .hud {
+    gap: 5px;
+    margin: 6px 6px max(6px, env(safe-area-inset-bottom));
+  }
+
+  .pinecraft .stat {
+    gap: 6px;
+    padding: 4px 9px;
+  }
+
+  .pinecraft .stat .label {
+    font-size: 10px;
+  }
+
+  .pinecraft .stat .value {
+    font-size: 13px;
+  }
+
+  .energy-bar {
+    width: 56px;
+  }
+
+  /* The "Earned from ores" tooltip has these. */
+  .pinecraft > .pc-legend {
+    display: none;
+  }
+}
+
+/* A phone on its side: wider than tall, so more blocks across. */
+@media (pointer: coarse) and (orientation: landscape) {
+  .pc-view {
+    --cols: 14;
+  }
+}
+
+/* The map: a badge with the miner's position over the mine, and the map itself over the page. */
+.pc-map-button {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  background: rgba(17, 18, 21, 0.82);
+  color: var(--text);
+  font: 700 13px ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  cursor: pointer;
+}
+
+.pc-map-button:hover {
+  background: rgba(40, 42, 48, 0.9);
+}
+
+.pc-map {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  background: #1f1f1f;
+}
+
+.pc-map-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  background: #2a4a9a;
+  color: #fff;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.pc-map-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-transform: uppercase;
+}
+
+.pc-map-where {
+  font: 700 13px ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  opacity: 0.9;
+}
+
+.pc-map-canvas {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  height: auto;
+}
+
+.pc-map-close {
+  position: absolute;
+  left: 12px;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  padding: 6px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 999px;
+  background: #1f1f1f;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.pc-map-close:hover {
+  background: #2c2c2c;
 }

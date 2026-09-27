@@ -1,7 +1,7 @@
 import '../style.css';
 import './pinecraft.css';
-import { burst, cellAt, drawScene, isBedrock, isOpenCell, ORE_OF, stepParticles, type Scene } from './draw';
-import type { ClientMessage, Direction, ErrorCode, PinecraftOre, ServerMessage, WorldEvent, WorldState } from './protocol';
+import { burst, cellAt, drawMap, drawScene, isBedrock, isOpenCell, ORE_OF, stepParticles, type Scene } from './draw';
+import type { ClientMessage, Direction, ErrorCode, PinecraftOre, ServerMessage, WorldEvent, WorldMap, WorldState } from './protocol';
 import { drawGem, loadTextures, ORE_COLOR, ORES } from './textures';
 
 /*
@@ -11,7 +11,7 @@ import { drawGem, loadTextures, ORE_COLOR, ORES } from './textures';
  *
  * Walking through open ground can't change anything, so the page moves the miner at once and tells
  * the bot afterwards. A block is broken like in Minecraft: hold the direction against it (the keys,
- * the pad, or the joystick on a phone) and it cracks, taking longer the harder it is (the bot's
+ * or the joystick on a phone) and it cracks, taking longer the harder it is (the bot's
  * breakMs), and letting go starts it over. The page tells the bot when it starts (`mine`) and when it is done (`move`), then waits for the bot's
  * answer before any other move. Holding a direction keeps going.
  */
@@ -27,20 +27,28 @@ const ui = {
   balance: $('balance'),
   depth: $('depth'),
   earned: $('earned'),
+  oreTip: $('ore-tip-rows'),
   log: $('log'),
   wrap: $('board-wrap'),
   floaters: $('floaters'),
   legend: $('legend'),
   message: $('message'),
+  stage: $('stage'),
   stick: $('stick'),
   stickKnob: $('stick-knob'),
   messageTitle: $('message-title'),
   messageText: $('message-text'),
+  mapButton: $<HTMLButtonElement>('map-button'),
+  coords: $('coords'),
+  map: $('map'),
+  mapCanvas: $<HTMLCanvasElement>('map-canvas'),
+  mapWhere: $('map-where'),
+  mapClose: $<HTMLButtonElement>('map-close'),
 };
 
 const ORE_NAME: Record<PinecraftOre, string> = { coal: 'Coal', iron: 'Iron', gold: 'Gold', diamond: 'Diamond', emerald: 'Emerald', ruby: 'Ruby' };
 
-/** Blocks across the view. */
+/** Blocks across the view, when the page's styles don't say (--cols on the view). */
 const VIEW_COLS = 8;
 /** A step every this many ms while a direction is held. */
 const STEP_MS = 140;
@@ -80,7 +88,8 @@ function resize(): void {
   const rect = ui.wrap.getBoundingClientRect();
   if (rect.width === 0) return;
   const ratio = window.devicePixelRatio || 1;
-  size = { w: rect.width, h: rect.height, block: rect.width / VIEW_COLS };
+  const cols = parseFloat(getComputedStyle(ui.wrap).getPropertyValue('--cols')) || VIEW_COLS;
+  size = { w: rect.width, h: rect.height, block: rect.width / cols };
   canvas.width = Math.round(rect.width * ratio);
   canvas.height = Math.round(rect.height * ratio);
   g.setTransform(canvas.width / rect.width, 0, 0, canvas.height / rect.height, 0, 0);
@@ -93,7 +102,7 @@ function bump(el: HTMLElement): void {
   el.classList.add('bump');
 }
 
-function effect(el: HTMLElement, name: 'shake' | 'flash'): void {
+function effect(el: HTMLElement, name: 'shake'): void {
   el.classList.remove(name);
   void el.offsetWidth;
   el.classList.add(name);
@@ -152,20 +161,26 @@ function renderLegend(state: WorldState): void {
     item.append(icon, text);
     ui.legend.append(item);
   }
+  renderOreTip(state);
 }
 
-function describe(event: WorldEvent, state: WorldState): string | null {
-  switch (event.kind) {
-    case 'walk':
-      return null;
-    case 'edge':
-      return "That's as far as the mine goes.";
-    case 'bedrock':
-      return 'Bedrock: nothing gets through that.';
-    case 'tired':
-      return `⚡ Out of energy. One comes back every ${Math.round(state.energyMs / 60_000)} minutes.`;
-    case 'dig':
-      return event.ore ? `${ORE_NAME[event.ore]}! +${points(event.points)}` : null;
+/** What each ore pays, in the tooltip over "Earned from ores". */
+function renderOreTip(state: WorldState): void {
+  ui.oreTip.textContent = '';
+  for (const ore of ORES) {
+    const name = document.createElement('span');
+    name.className = 'pc-tip-ore';
+    name.textContent = ORE_NAME[ore];
+    const icon = document.createElement('canvas');
+    icon.width = 40;
+    icon.height = 40;
+    icon.className = 'pc-tip-gem';
+    drawGem(icon.getContext('2d') as CanvasRenderingContext2D, ore, 20, 20, 14);
+    name.append(icon);
+    const value = document.createElement('span');
+    value.className = 'pc-tip-value';
+    value.textContent = `+${points(state.values[ore] ?? 0)}`;
+    ui.oreTip.append(name, value);
   }
 }
 
@@ -196,14 +211,9 @@ function apply(state: WorldState, event: WorldEvent | undefined, moveMiner: bool
   renderEnergy(now);
 
   if (event) {
-    const text = describe(event, state);
-    if (text) ui.log.textContent = text;
     if (event.kind === 'dig' && dug) {
       burst(scene, dug.x, dug.y, event.ground, event.ore, now);
-      if (event.ore) {
-        floatText(dug.x, dug.y, `+${points(event.points)}`, '#ffd84a');
-        if (event.points >= 35) effect(ui.wrap, 'flash');
-      }
+      if (event.ore) floatText(dug.x, dug.y, `+${points(event.points)}`, '#ffd84a');
     }
     if (event.kind === 'tired') effect(ui.energy.parentElement as HTMLElement, 'shake');
   }
@@ -241,6 +251,11 @@ function receive(message: ServerMessage): void {
     const [title, text] = ERRORS[message.code] ?? ERRORS.bad_message;
     showMessage(title, text);
     setConn('Disconnected', 'bad');
+    return;
+  }
+  if (message.t === 'map') {
+    worldMap = message.map;
+    if (mapOpen) renderMap();
     return;
   }
   const answersDig = pendingDig !== null && message.seq === pendingDig.seq;
@@ -339,8 +354,13 @@ function finishBreaking(): void {
 }
 
 /** One step `dir`: through open ground, or starting to break the block there. */
+/** How to play, shown over the mine until the first move. */
+let startTip: string | null = null;
+
 function move(dir: Direction): void {
   if (!scene || pendingDig !== null || socket?.readyState !== WebSocket.OPEN) return;
+  if (startTip !== null && ui.log.textContent === startTip) ui.log.textContent = '';
+  startTip = null;
   const { state } = scene;
   const now = performance.now();
   lastStep = now;
@@ -351,12 +371,8 @@ function move(dir: Direction): void {
   stopBreaking();
   if (x < 0 || y < 0 || x >= state.size || y >= state.size) return;
   const c = cellAt(scene, x, y);
-  if (isBedrock(c)) {
-    ui.log.textContent = 'Bedrock: nothing gets through that.';
-    return;
-  }
+  if (isBedrock(c)) return;
   if (!isOpenCell(c) && energy.count < 1) {
-    ui.log.textContent = `⚡ Out of energy. ${energy.nextAt === null ? '' : `One more in ${clock(energy.nextAt - now)}.`}`;
     effect(ui.energy.parentElement as HTMLElement, 'shake');
     return;
   }
@@ -373,7 +389,6 @@ function move(dir: Direction): void {
   breaking = { dir, x, y, since: now, takes };
   scene.digging = { x, y, since: now, takes };
   scene.swing = { since: now, dir };
-  if (ORE_OF[c]) ui.log.textContent = `Breaking ${ORE_NAME[ORE_OF[c] as PinecraftOre].toLowerCase()}…`;
   send({ t: 'mine', dir });
 }
 
@@ -401,6 +416,16 @@ const release = (dir: Direction): void => {
 
 window.addEventListener('keydown', (e) => {
   if (e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.code === 'KeyM' && !e.repeat) {
+    e.preventDefault();
+    if (mapOpen) closeMap();
+    else openMap();
+    return;
+  }
+  if (mapOpen) {
+    if (e.code === 'Escape') closeMap();
+    return;
+  }
   const dir = KEYS[e.code];
   if (!dir) return;
   e.preventDefault();
@@ -412,18 +437,15 @@ window.addEventListener('keyup', (e) => {
 });
 window.addEventListener('blur', () => (held.length = 0));
 
-for (const button of document.querySelectorAll<HTMLButtonElement>('[data-dir]')) {
-  const dir = button.dataset.dir as Direction;
-  button.addEventListener('pointerdown', (e) => {
-    e.preventDefault();
-    button.setPointerCapture(e.pointerId);
-    press(dir);
-  });
-  for (const end of ['pointerup', 'pointercancel', 'lostpointercapture'] as const) button.addEventListener(end, () => release(dir));
-}
-
-// Phones: a joystick bottom left to walk, and to break a block by pushing against it.
-let stickId: number | null = null;
+// Phones: touch anywhere on the mine and a joystick shows up under the finger, and stays there
+// until it lifts. Drag to walk, and hold against a block to break it.
+/** How far the knob goes from the joystick's middle, in px, and how far before it counts. */
+const STICK_REACH = 36;
+const STICK_DEAD = 12;
+/** Half the ring's size (.pc-stick in the styles). */
+const STICK_HALF = 55;
+/** The finger on the joystick, and the joystick's middle, in px from the stage's top left. */
+let stick: { id: number; x: number; y: number } | null = null;
 let stickDir: Direction | null = null;
 function setStick(dir: Direction | null): void {
   if (dir === stickDir) return;
@@ -432,40 +454,99 @@ function setStick(dir: Direction | null): void {
   if (dir) press(dir);
 }
 function steer(e: PointerEvent): void {
-  const rect = ui.stick.getBoundingClientRect();
-  const radius = rect.width / 2;
-  let dx = e.clientX - (rect.left + radius);
-  let dy = e.clientY - (rect.top + radius);
+  if (!stick) return;
+  const rect = ui.stage.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+  let dx = x - stick.x;
+  let dy = y - stick.y;
   const d = Math.hypot(dx, dy);
-  const reach = radius * 0.55;
-  if (d > reach) {
-    dx *= reach / d;
-    dy *= reach / d;
+  setStick(d < STICK_DEAD ? null : Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : dy > 0 ? 'down' : 'up');
+  // Past the edge the knob stops there; the joystick itself stays put.
+  if (d > STICK_REACH) {
+    dx *= STICK_REACH / d;
+    dy *= STICK_REACH / d;
   }
+  ui.stick.style.transform = `translate(${stick.x - STICK_HALF}px, ${stick.y - STICK_HALF}px)`;
   ui.stickKnob.style.transform = `translate(${dx}px, ${dy}px)`;
-  setStick(d < radius * 0.3 ? null : Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : dy > 0 ? 'down' : 'up');
 }
-ui.stick.addEventListener('pointerdown', (e) => {
+ui.stage.addEventListener('pointerdown', (e) => {
+  if (e.pointerType === 'mouse' || stick) return;
   e.preventDefault();
-  ui.stick.setPointerCapture(e.pointerId);
-  stickId = e.pointerId;
+  // Close the ore tooltip if it was tapped open.
+  if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+  ui.stage.setPointerCapture(e.pointerId);
+  const rect = ui.stage.getBoundingClientRect();
+  stick = { id: e.pointerId, x: e.clientX - rect.left, y: e.clientY - rect.top };
+  ui.stick.classList.add('on');
   steer(e);
 });
-ui.stick.addEventListener('pointermove', (e) => {
-  if (e.pointerId === stickId) steer(e);
+ui.stage.addEventListener('pointermove', (e) => {
+  if (e.pointerId === stick?.id) steer(e);
 });
 for (const end of ['pointerup', 'pointercancel', 'lostpointercapture'] as const) {
-  ui.stick.addEventListener(end, (e) => {
-    if (e.pointerId !== stickId) return;
-    stickId = null;
+  ui.stage.addEventListener(end, (e) => {
+    if (e.pointerId !== stick?.id) return;
+    stick = null;
+    ui.stick.classList.remove('on');
     ui.stickKnob.style.transform = '';
     setStick(null);
   });
 }
 
 if (matchMedia('(pointer: coarse)').matches) {
-  ui.log.textContent = 'Walk with the joystick · hold it against a block to break it. Every block takes one ⚡; harder ones take longer.';
+  ui.log.textContent = 'Touch and drag anywhere on the mine to walk · hold against a block to break it. Every block takes one ⚡; harder ones take longer.';
 }
+startTip = ui.log.textContent;
+
+// ---------------------------------------------------------------------------
+// The map
+
+/** Where the miner is, counted from where they started: right and up are positive. */
+function coords(): { x: number; y: number } | null {
+  if (!scene?.state.spawn) return null;
+  const { state } = scene;
+  return { x: state.x - state.spawn.x, y: state.spawn.y - state.y };
+}
+
+let mapOpen = false;
+/** The map the bot sent last (asked for each time the map is opened). */
+let worldMap: WorldMap | null = null;
+
+function renderMap(): void {
+  if (!scene || !worldMap) return;
+  const rect = ui.mapCanvas.getBoundingClientRect();
+  if (rect.width === 0) return;
+  const ratio = window.devicePixelRatio || 1;
+  ui.mapCanvas.width = Math.round(rect.width * ratio);
+  ui.mapCanvas.height = Math.round(rect.height * ratio);
+  const mg = ui.mapCanvas.getContext('2d') as CanvasRenderingContext2D;
+  mg.setTransform(ratio, 0, 0, ratio, 0, 0);
+  drawMap(mg, worldMap, rect.width, rect.height, scene.state, scene.state.spawn);
+}
+
+function openMap(): void {
+  if (!scene?.state.spawn || mapOpen) return;
+  mapOpen = true;
+  held.length = 0;
+  setStick(null);
+  stopBreaking();
+  const at = coords();
+  ui.mapWhere.textContent = at ? `You are at ${at.x},${at.y}` : '';
+  ui.map.hidden = false;
+  renderMap();
+  send({ t: 'map' });
+}
+
+function closeMap(): void {
+  mapOpen = false;
+  ui.map.hidden = true;
+}
+
+ui.mapButton.addEventListener('pointerdown', (e) => e.stopPropagation());
+ui.mapButton.addEventListener('click', openMap);
+ui.mapClose.addEventListener('click', closeMap);
+new ResizeObserver(() => mapOpen && renderMap()).observe(ui.mapCanvas);
 
 // ---------------------------------------------------------------------------
 // Drawing
@@ -505,6 +586,8 @@ function frame(now: number): void {
     stepParticles(scene, dt, now);
     drawScene(g, scene, size.w, size.h, size.block, now);
     renderEnergy(now);
+    const at = coords();
+    if (at) setText(ui.coords, `${at.x},${at.y}`);
   }
   requestAnimationFrame(frame);
 }

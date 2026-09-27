@@ -24,31 +24,39 @@
         </div>
         <div class="stat stat-balance"><span class="label">Balance</span><span id="balance" class="value">–</span></div>
         <div class="stat"><span class="label">Blocks dug</span><span id="depth" class="value">–</span></div>
+        <div class="stat pc-earned" tabindex="0" aria-describedby="ore-tip">
+          <span class="label">Earned from ores <span class="pc-help" aria-hidden="true">?</span></span>
+          <span id="earned" class="value">–</span>
+          <div id="ore-tip" class="pc-tip" role="tooltip">
+            <div class="pc-tip-head"><span>Ore</span><span>Points</span></div>
+            <div id="ore-tip-rows" class="pc-tip-rows"></div>
+          </div>
+        </div>
       </section>
 
-      <div class="board-wrap pc-view" id="board-wrap">
-        <canvas id="board" aria-label="Your mine"></canvas>
-        <div id="floaters" class="floaters"></div>
-      </div>
-
-      <p id="log" class="log">Hold WASD or the arrow keys against a block to break it. Every block takes one ⚡; harder ones take longer.</p>
-
-      <div class="controls pc-controls">
-        <div class="dpad" aria-label="Move">
-          <button type="button" data-dir="up" class="up" aria-label="Up">▲</button>
-          <button type="button" data-dir="left" class="left" aria-label="Left">◀</button>
-          <button type="button" data-dir="down" class="down" aria-label="Down">▼</button>
-          <button type="button" data-dir="right" class="right" aria-label="Right">▶</button>
+      <div class="pc-stage" id="stage">
+        <div class="board-wrap pc-view" id="board-wrap">
+          <canvas id="board" aria-label="Your mine"></canvas>
+          <div id="floaters" class="floaters"></div>
+          <button type="button" id="map-button" class="pc-map-button" aria-label="Open the map (M)" title="Map (M)">
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M3 6.5 9 4l6 2.5L21 4v13.5L15 20l-6-2.5L3 20z M9 4v13.5 M15 6.5V20"/></svg><span id="coords">0,0</span>
+          </button>
         </div>
-        <div class="stat pc-earned"><span class="label">Earned from ores</span><span id="earned" class="value">–</span></div>
+
+        <p id="log" class="log">Hold WASD or the arrow keys against a block to break it. Every block takes one ⚡; harder ones take longer.</p>
+        <div id="stick" class="pc-stick" aria-hidden="true"><div id="stick-knob" class="pc-stick-knob"></div></div>
       </div>
 
-      <p class="hint">Hold a direction to break a block · dirt breaks fastest, ruby slowest · rarer ores pay more</p>
       <footer id="legend" class="legend pc-legend"></footer>
     </main>
 
-    <div class="pc-touch">
-      <div id="stick" class="pc-stick" aria-label="Walk"><div id="stick-knob" class="pc-stick-knob"></div></div>
+    <div id="map" class="pc-map" hidden role="dialog" aria-label="Map">
+      <div class="pc-map-bar">
+        <span class="pc-map-title"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M3 6.5 9 4l6 2.5L21 4v13.5L15 20l-6-2.5L3 20z M9 4v13.5 M15 6.5V20"/></svg> Map</span>
+        <span id="map-where" class="pc-map-where"></span>
+      </div>
+      <canvas id="map-canvas" class="pc-map-canvas"></canvas>
+      <button type="button" id="map-close" class="pc-map-close">Close map</button>
     </div>
 
     <div id="message" class="message" hidden>
