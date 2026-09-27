@@ -1,3 +1,4 @@
+import { loadUser, profileMenu, setSession } from './account';
 import './frame.css';
 
 /*
@@ -13,7 +14,8 @@ import './frame.css';
  *     </header>
  *     …the game…
  *
- * This works its sound button and connection pill.
+ * This works its sound button and connection pill, and puts the member logged in on this browser
+ * (if any) at the far right.
  */
 
 /** Shows how the connection to the bot is doing, in the title bar. */
@@ -63,3 +65,26 @@ export function barSlot(): HTMLElement {
   else document.querySelector('.frame > .top')?.append(slot);
   return slot;
 }
+
+/** The member logged in on this browser, at the far right of the title bar (nothing if no one is). */
+async function showProfile(): Promise<void> {
+  const bar = document.querySelector('.frame > .top');
+  if (!bar) return;
+  const user = await loadUser();
+  if (!user) return;
+  const profile = profileMenu(user, [
+    { label: 'Games', icon: 'games', href: '/' },
+    {
+      label: 'Log out',
+      icon: 'logout',
+      onSelect: () => {
+        setSession(null);
+        profile.remove();
+      },
+    },
+  ]);
+  profile.classList.add('frame-profile');
+  bar.append(profile);
+}
+
+void showProfile();

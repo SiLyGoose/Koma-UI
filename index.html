@@ -7,17 +7,28 @@
     <meta name="robots" content="noindex" />
     <title>Koma Games</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500&display=swap" />
   </head>
   <body>
+    <header class="site-header">
+      <a class="site-logo" href="/">
+        <span class="site-logo-title"><span class="site-logo-long">Koma Games</span><span class="site-logo-short" aria-hidden="true">KG</span></span>
+      </a>
+      <div class="site-nav-wrapper">
+        <nav id="site-nav" class="site-nav" hidden>
+          <ul class="site-nav-list">
+            <li><a class="site-nav-link" href="#play">Servers</a></li>
+            <li><a class="site-nav-link" href="#games">Games</a></li>
+          </ul>
+        </nav>
+        <div id="me" class="site-user" hidden></div>
+        <button type="button" id="header-login" class="site-login" hidden>Login</button>
+      </div>
+    </header>
+
     <main class="hub">
-      <header class="hub-top">
-        <h1>Koma Games</h1>
-        <div id="me" class="me" hidden>
-          <img id="me-avatar" class="avatar" alt="" />
-          <span id="me-name"></span>
-          <button type="button" id="logout" class="link-button">Log out</button>
-        </div>
-      </header>
 
       <section id="login" class="card login" hidden>
         <h2>Play Koma's games in your browser</h2>
@@ -32,7 +43,7 @@
         <div id="servers" class="servers"></div>
         <p id="no-servers" class="muted" hidden>None of your servers have Koma in them yet.</p>
 
-        <h2 class="section-title">Games</h2>
+        <h2 id="games" class="section-title">Games</h2>
         <div class="games">
           <article class="game" data-game="pinecraft">
             <div class="game-art pinecraft-art" aria-hidden="true">🌲⛏️</div>

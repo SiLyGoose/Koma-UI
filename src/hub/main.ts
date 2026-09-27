@@ -1,4 +1,5 @@
 import '../style.css';
+import { API, arrow, dropdown, getSession, profileMenu, setSession, store } from '../account';
 import './hub.css';
 import { startLive } from '../live';
 
@@ -17,8 +18,6 @@ interface Me {
   games: Game[];
 }
 
-const API = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/+$/, '');
-const SESSION_KEY = 'koma.session';
 const SERVER_KEY = 'koma.server';
 const STATE_KEY = 'koma.loginState';
 /** A game to open once logged in: from a link like /?play=mines&guild=123 (the bot's buttons in Discord). */
@@ -27,9 +26,8 @@ const PLAY_KEY = 'koma.playNext';
 const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T;
 const ui = {
   me: $('me'),
-  meAvatar: $<HTMLImageElement>('me-avatar'),
-  meName: $('me-name'),
-  logout: $<HTMLButtonElement>('logout'),
+  nav: $('site-nav'),
+  headerLogin: $<HTMLButtonElement>('header-login'),
   login: $('login'),
   loginButton: $<HTMLButtonElement>('login-button'),
   status: $('status'),
@@ -38,26 +36,7 @@ const ui = {
   noServers: $('no-servers'),
 };
 
-// Browser storage can be off (a private window, blocked site data): the page still works, it just forgets.
-const store = {
-  get: (s: Storage, key: string): string | null => {
-    try {
-      return s.getItem(key);
-    } catch {
-      return null;
-    }
-  },
-  set: (s: Storage, key: string, value: string | null): void => {
-    try {
-      if (value === null) s.removeItem(key);
-      else s.setItem(key, value);
-    } catch {
-      // Not kept.
-    }
-  },
-};
-
-let session = store.get(localStorage, SESSION_KEY);
+let session = getSession();
 let me: Me | null = null;
 let server = store.get(localStorage, SERVER_KEY);
 
@@ -80,10 +59,17 @@ async function api<T>(path: string, init: RequestInit = {}): Promise<{ ok: true;
   }
 }
 
+/** The profile button in the header (account.ts), once logged in. */
+let profile: HTMLElement | null = null;
+
 function showLogin(): void {
   ui.login.hidden = false;
   ui.play.hidden = true;
   ui.me.hidden = true;
+  ui.nav.hidden = true;
+  ui.headerLogin.hidden = false;
+  profile?.remove();
+  profile = null;
 }
 
 const points = (n: number): string => n.toLocaleString('en-US');
@@ -92,8 +78,14 @@ function render(): void {
   if (!me) return showLogin();
   ui.login.hidden = true;
   ui.me.hidden = false;
-  ui.meAvatar.src = me.user.avatar;
-  ui.meName.textContent = me.user.name;
+  ui.nav.hidden = false;
+  ui.headerLogin.hidden = true;
+  profile?.remove();
+  profile = profileMenu(me.user, [
+    { label: 'My Servers', icon: 'servers', href: '#play' },
+    { label: 'Logout', icon: 'logout', onSelect: logOut },
+  ]);
+  ui.me.append(profile);
   ui.play.hidden = false;
 
   if (!me.servers.some((s) => s.id === server)) server = me.servers[0]?.id ?? null;
@@ -129,7 +121,7 @@ function render(): void {
 function logOut(): void {
   session = null;
   me = null;
-  store.set(localStorage, SESSION_KEY, null);
+  setSession(null);
   status(null);
   showLogin();
 }
@@ -150,7 +142,7 @@ async function finishLogin(code: string, state: string): Promise<void> {
     return showLogin();
   }
   session = res.data.session;
-  store.set(localStorage, SESSION_KEY, session);
+  setSession(session);
   me = res.data.me;
   status(null);
   render();
@@ -188,13 +180,28 @@ function playPending(): void {
   document.querySelector<HTMLButtonElement>(`[data-play="${CSS.escape(game)}"]`)?.click();
 }
 
-ui.loginButton.addEventListener('click', () => {
+function logIn(): void {
   const bytes = crypto.getRandomValues(new Uint8Array(16));
   const state = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
   store.set(sessionStorage, STATE_KEY, state);
   location.href = `${API}/api/login?state=${state}`;
-});
-ui.logout.addEventListener('click', logOut);
+}
+ui.loginButton.addEventListener('click', logIn);
+ui.headerLogin.addEventListener('click', logIn);
+
+// On smaller screens the header's links go in a "Menu" drop-down.
+{
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'site-menu-button';
+  button.append('Menu', arrow());
+  const menu = dropdown(button, [
+    { label: 'Servers', href: '#play' },
+    { label: 'Games', href: '#games' },
+  ]);
+  menu.classList.add('site-menu');
+  ui.nav.append(menu);
+}
 
 for (const button of document.querySelectorAll<HTMLButtonElement>('[data-play]')) {
   button.addEventListener('click', async () => {

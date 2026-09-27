@@ -4,53 +4,178 @@
   max-width: 720px;
 }
 
-.hub-top {
+/*
+ * The header, after JavNext's: a dark bar across the top that stays put, the name on the left, and on
+ * the right the page's links (a "Menu" drop-down on smaller screens), who's online and the profile
+ * button (account.css), or a round Login button.
+ */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin: 8px 0 20px;
+  min-height: 56px;
+  padding: 0 16px;
+  background-color: #2c2a31;
+  border-bottom: 1px solid #3b3842;
+  box-shadow: 0 5px 10px rgb(0 0 0 / 6%);
+  font-family: Poppins, 'gg sans', 'Segoe UI', system-ui, sans-serif;
 }
 
-.hub-top h1 {
-  font-size: 24px;
+.site-logo {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  color: #fff;
+  text-decoration: none;
 }
 
-.me {
+.site-logo-title {
+  margin-left: 5px;
+  font-size: 1.6rem;
+  font-weight: 300;
+  line-height: 1.5;
+}
+
+.site-logo-short {
+  display: none;
+}
+
+.site-nav-wrapper {
   display: flex;
   align-items: center;
-  gap: 8px;
-  min-width: 0;
-  font-weight: 600;
+  height: 100%;
+  margin-left: auto;
 }
 
-.me span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.site-nav {
+  display: flex;
+  align-items: center;
+  height: 100%;
 }
 
-.avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  flex: none;
+.site-nav-list {
+  display: flex;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.link-button {
+.site-nav-list li {
+  display: flex;
+  margin: 0 16px;
+  padding: 0 8px;
+}
+
+.site-nav-link {
+  display: flex;
+  align-items: center;
+  color: #ada5b6;
+  font-size: 14px;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.site-nav-link:hover {
+  color: #fff;
+}
+
+/* Smaller screens: the links go in a "Menu" drop-down (made by main.ts). */
+.site-menu {
+  display: none;
+}
+
+.site-menu-button {
+  display: flex;
+  align-items: center;
+  padding: 0;
   border: 0;
-  background: none;
-  color: var(--muted);
+  background: transparent;
+  color: #e0dde4;
   font: inherit;
-  font-size: 13px;
+  font-size: 15px;
   cursor: pointer;
-  padding: 4px 6px;
-  border-radius: 6px;
 }
 
-.link-button:hover {
-  color: var(--text);
-  background: var(--panel);
+.site-menu-button:hover,
+.site-menu-button[aria-expanded='true'] {
+  color: #fff;
+}
+
+.site-menu-button .account-arrow {
+  border-color: #fff;
+}
+
+@media (max-width: 1023px) {
+  .site-nav-list {
+    display: none;
+  }
+
+  .site-menu {
+    display: block;
+  }
+}
+
+.site-user {
+  display: flex;
+  align-items: center;
+  margin-left: 16px;
+}
+
+.site-user .live {
+  margin-right: 12px;
+}
+
+.site-login {
+  margin-left: 16px;
+  padding: 8px 24px;
+  border: 2px solid #fff;
+  border-radius: 31px;
+  background: transparent;
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.site-login:hover {
+  background-color: #fff;
+  color: #2c2a31;
+}
+
+@media (min-width: 768px) {
+  .site-header {
+    height: 72px;
+    padding: 0 40px;
+  }
+
+  .site-logo-title {
+    font-size: 2rem;
+  }
+
+  .site-login {
+    padding: 12px 30px;
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 424px) {
+  .site-logo-long {
+    display: none;
+  }
+
+  .site-logo-short {
+    display: inline;
+  }
+
+  .site-nav-list li {
+    margin: 0 8px;
+  }
 }
 
 .card {
