@@ -2,6 +2,7 @@ import '../style.css';
 import './pinecraft.css';
 import { burst, cellAt, drawMap, drawScene, isBedrock, isOpenCell, ORE_OF, stepParticles, type Scene } from './draw';
 import type { ClientMessage, Direction, ErrorCode, PinecraftOre, ServerMessage, WorldEvent, WorldMap, WorldState } from './protocol';
+import { isMuted, loadSounds, materialOf, play, setMuted, type Material } from './sfx';
 import { drawGem, loadTextures, ORE_COLOR, ORES } from './textures';
 
 /*
@@ -20,6 +21,7 @@ const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) 
 const canvas = $<HTMLCanvasElement>('board');
 const g = canvas.getContext('2d') as CanvasRenderingContext2D;
 const ui = {
+  mute: $<HTMLButtonElement>('mute'),
   conn: $('conn'),
   energy: $('energy'),
   energyFill: $('energy-fill'),
@@ -192,6 +194,17 @@ function renderOreTip(state: WorldState): void {
   }
 }
 
+/** The sounds of blocks breaking: each kind once (a blast breaks many), then a chime for any gem. */
+function breakSounds(blocks: { ground: 'dirt' | 'stone'; ore: PinecraftOre | null }[]): void {
+  const kinds = new Set(blocks.map((b) => materialOf(b.ground, b.ore)));
+  if (kinds.has('dirt')) play('breakDirt');
+  if (kinds.has('stone')) play('breakStone');
+  if (kinds.has('gem')) {
+    play('breakGem');
+    setTimeout(() => play('collectGem', 0.4), 120);
+  }
+}
+
 /** The bot's word on the world, and what the last move did (`dug`: the block the page was digging). */
 function apply(state: WorldState, event: WorldEvent | undefined, moveMiner: boolean, dug: { x: number; y: number } | null): void {
   const now = performance.now();
@@ -220,6 +233,7 @@ function apply(state: WorldState, event: WorldEvent | undefined, moveMiner: bool
 
   if (event) {
     if (event.kind === 'dig' && dug) {
+      breakSounds([event, ...(event.blast ?? [])]);
       burst(scene, dug.x, dug.y, event.ground, event.ore, now);
       if (event.ore) floatText(dug.x, dug.y, `+${points(event.points)}${event.lucky ? ' ×2' : ''}`, event.lucky ? '#7dffb0' : '#ffd84a');
       // A blast: every block around goes at once.
@@ -232,6 +246,7 @@ function apply(state: WorldState, event: WorldEvent | undefined, moveMiner: bool
       }
     }
     if (event.kind === 'tired') effect(ui.energy.parentElement as HTMLElement, 'shake');
+    if (event.kind === 'tired' || event.kind === 'bedrock') play('cancel');
   }
 }
 
@@ -339,8 +354,14 @@ const STEP: Record<Direction, [number, number]> = { up: [0, -1], down: [0, 1], l
 let target = { x: 0, y: 0 };
 let lastStep = 0;
 
-/** The block being broken: which way, where, since when, and how long it takes. */
-let breaking: { dir: Direction; x: number; y: number; since: number; takes: number } | null = null;
+/**
+ * The block being broken: which way, where, since when, and how long it takes; what it sounds like,
+ * and when the pickaxe next hits it.
+ */
+let breaking: { dir: Direction; x: number; y: number; since: number; takes: number; material: Material; nextHit: number } | null = null;
+/** A pickaxe swing (as drawn), and how far into one it strikes. */
+const SWING_MS = 260;
+const STRIKE_MS = 130;
 
 /** How long the block with letter `c` takes to break. */
 function breakTime(c: string): number {
@@ -370,6 +391,16 @@ function finishBreaking(): void {
 }
 
 /** One step `dir`: through open ground, or starting to break the block there. */
+/** The block last refused (bedrock, or no energy for it): holding against it says so only once. */
+let refused: string | null = null;
+
+/** Can't break block (x, y): the cancel sound, once until the direction is let go. */
+function refuse(x: number, y: number): void {
+  const key = `${x},${y}`;
+  if (refused !== key) play('cancel');
+  refused = key;
+}
+
 /** How to play, shown over the mine until the first move. */
 let startTip: string | null = null;
 
@@ -387,14 +418,16 @@ function move(dir: Direction): void {
   stopBreaking();
   if (x < 0 || y < 0 || x >= state.size || y >= state.size) return;
   const c = cellAt(scene, x, y);
-  if (isBedrock(c)) return;
+  if (isBedrock(c)) return refuse(x, y);
   // An ore can take more than one energy (a Golden Pickaxe).
   if (!isOpenCell(c) && energy.count < (ORE_OF[c] ? (state.oreEnergy ?? 1) : 1)) {
     effect(ui.energy.parentElement as HTMLElement, 'shake');
-    return;
+    return refuse(x, y);
   }
+  refused = null;
   if (isOpenCell(c)) {
     // Open ground: go now, tell the bot after.
+    play('footstep', 0.1);
     seq += 1;
     state.x = x;
     state.y = y;
@@ -403,7 +436,8 @@ function move(dir: Direction): void {
     return;
   }
   const takes = breakTime(c);
-  breaking = { dir, x, y, since: now, takes };
+  const ore = ORE_OF[c] ?? null;
+  breaking = { dir, x, y, since: now, takes, material: materialOf(c === 's' ? 'stone' : 'dirt', ore), nextHit: now + STRIKE_MS };
   scene.digging = { x, y, since: now, takes };
   scene.swing = { since: now, dir };
   send({ t: 'mine', dir });
@@ -429,6 +463,7 @@ const press = (dir: Direction): void => {
 const release = (dir: Direction): void => {
   const k = held.indexOf(dir);
   if (k >= 0) held.splice(k, 1);
+  refused = null;
 };
 
 window.addEventListener('keydown', (e) => {
@@ -592,6 +627,11 @@ function frame(now: number): void {
     if (breaking) {
       if (dir !== breaking.dir) stopBreaking();
       else if (now - breaking.since >= breaking.takes) finishBreaking();
+      else if (now >= breaking.nextHit) {
+        // The pickaxe strikes: stone rings and gems chink (dirt makes no sound until it breaks).
+        if (breaking.material !== 'dirt') play(breaking.material === 'gem' ? 'hitGem' : 'hitStone');
+        breaking.nextHit += SWING_MS;
+      }
     }
     // Keep going while a direction is held.
     if (dir && pendingDig === null && !breaking && now - lastStep >= STEP_MS) move(dir);
@@ -609,6 +649,19 @@ function frame(now: number): void {
   requestAnimationFrame(frame);
 }
 
+// Sound on or off, in the title bar.
+function renderMute(): void {
+  const off = isMuted();
+  ui.mute.textContent = off ? '🔇' : '🔊';
+  ui.mute.setAttribute('aria-pressed', String(off));
+  ui.mute.setAttribute('aria-label', off ? 'Turn sound on' : 'Turn sound off');
+}
+ui.mute.addEventListener('click', () => {
+  setMuted(!isMuted());
+  renderMute();
+});
+renderMute();
+
 // ---------------------------------------------------------------------------
 // Start
 
@@ -618,6 +671,7 @@ if (!token || !server) {
   showMessage('Open this from the games page', 'Log in on the games page and pick Pinecraft, or use the pinecraft command in Discord.');
 } else {
   void loadTextures();
+  loadSounds();
   connect();
   requestAnimationFrame(frame);
 }

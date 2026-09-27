@@ -4,7 +4,8 @@ import type { PinecraftOre } from './protocol';
  * The pictures of Pinecraft's blocks. Dirt and stone are drawings in public/blocks. An ore uses
  * public/blocks/<ore>.png when there is one (coal.png, iron.png, gold.png, diamond.png, ruby.png,
  * emerald.png), and until then a stand-in drawn here: stone with gems of the ore's colour in it.
- * Bedrock is made from the stone.
+ * Bedrock is made from the stone. A block being broken has public/cracks/crack_01.png to crack_04.png
+ * over it, more cracked the closer it is to breaking.
  */
 
 export type BlockTexture = 'dirt' | 'stone' | 'bedrock' | PinecraftOre;
@@ -30,6 +31,14 @@ const textures = new Map<BlockTexture, CanvasImageSource>();
 
 /** The picture of a block, once loaded (the stand-in colours until then). */
 export const texture = (name: BlockTexture): CanvasImageSource | undefined => textures.get(name);
+
+const crackImages: (HTMLImageElement | null)[] = [];
+
+/** The cracks over a block `progress` of the way (0 to 1) to breaking, once loaded. */
+export function crack(progress: number): HTMLImageElement | null | undefined {
+  if (progress <= 0) return null;
+  return crackImages[progress < 0.2 ? 0 : progress < 0.5 ? 1 : progress < 0.8 ? 2 : 3];
+}
 
 function canvas(): [HTMLCanvasElement, CanvasRenderingContext2D] {
   const c = document.createElement('canvas');
@@ -109,7 +118,9 @@ function oreStandIn(stone: CanvasImageSource, ore: PinecraftOre): HTMLCanvasElem
 export async function loadTextures(): Promise<void> {
   textures.set('dirt', flat(FLAT.dirt));
   textures.set('stone', flat(FLAT.stone));
+  const cracks = Promise.all([1, 2, 3, 4].map((k) => load(`cracks/crack_0${k}.png`)));
   const [dirt, stone, ...ores] = await Promise.all([load('blocks/dirt.png'), load('blocks/stone.png'), ...ORES.map((ore) => load(`blocks/${ore}.png`))]);
+  crackImages.push(...(await cracks));
   const dirtImg = dirt ?? (textures.get('dirt') as CanvasImageSource);
   const stoneImg = stone ?? (textures.get('stone') as CanvasImageSource);
   textures.set('dirt', dirtImg);

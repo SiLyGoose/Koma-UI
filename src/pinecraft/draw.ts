@@ -1,5 +1,5 @@
 import type { Direction, PinecraftOre, WorldMap, WorldState } from './protocol';
-import { ORE_COLOR, texture, type BlockTexture } from './textures';
+import { crack, ORE_COLOR, texture, type BlockTexture } from './textures';
 
 /*
  * Draws Pinecraft: the underground around the miner, in blocks. Ground dug out is a warm earth
@@ -32,7 +32,7 @@ export interface Scene {
   facing: 1 | -1;
   /** The pickaxe swinging, since when (performance.now()), and which way. */
   swing: { since: number; dir: Direction } | null;
-  /** A block being broken (it takes `takes` ms from `since`): it shakes and cracks, more and more. */
+  /** A block being broken (it takes `takes` ms from `since`): it cracks, more and more. */
   digging: { x: number; y: number; since: number; takes: number } | null;
   particles: Particle[];
 }
@@ -136,45 +136,6 @@ function miner(g: CanvasRenderingContext2D, px: number, py: number, s: number, f
   g.restore();
 }
 
-/** The same cracks on every block, in the order they appear: each a line out from the middle, then a bend. */
-const CRACKS = Array.from({ length: 9 }, (_, k) => {
-  const angle = k * 2.39996 + 0.5;
-  const reach = 0.3 + ((k * 7) % 5) * 0.035;
-  return { angle, reach, bend: angle + (k % 2 ? 0.5 : -0.5) };
-});
-
-/**
- * Cracks over the block at (px, py), `s` wide, `progress` of the way (0 to 1) to breaking, like
- * Minecraft's: more of them, and longer, as the pickaxe works, and the block darkens.
- */
-function cracks(g: CanvasRenderingContext2D, px: number, py: number, s: number, progress: number): void {
-  g.fillStyle = `rgba(0, 0, 0, ${0.3 * progress})`;
-  g.fillRect(px, py, s + 0.5, s + 0.5);
-  g.save();
-  g.beginPath();
-  g.rect(px, py, s, s);
-  g.clip();
-  g.strokeStyle = 'rgba(15, 10, 8, 0.85)';
-  g.lineWidth = Math.max(1.5, s * 0.045);
-  g.lineCap = 'round';
-  g.lineJoin = 'round';
-  const cx = px + s / 2;
-  const cy = py + s / 2;
-  const shown = progress * CRACKS.length;
-  CRACKS.forEach(({ angle, reach, bend }, k) => {
-    const grow = Math.max(0, Math.min(1, shown - k));
-    if (grow <= 0) return;
-    const mx = cx + Math.cos(angle) * s * reach * 0.55 * grow;
-    const my = cy + Math.sin(angle) * s * reach * 0.55 * grow;
-    g.beginPath();
-    g.moveTo(cx, cy);
-    g.lineTo(mx, my);
-    g.lineTo(mx + Math.cos(bend) * s * reach * 0.5 * grow, my + Math.sin(bend) * s * reach * 0.5 * grow);
-    g.stroke();
-  });
-  g.restore();
-}
-
 /** Draws the scene on `g`, which is `w` by `h` CSS pixels, with blocks `s` pixels wide. */
 export function drawScene(g: CanvasRenderingContext2D, scene: Scene, w: number, h: number, s: number, now: number): void {
   const { cam } = scene;
@@ -191,8 +152,8 @@ export function drawScene(g: CanvasRenderingContext2D, scene: Scene, w: number, 
   for (let y = y0; y < y0 + rows; y++) {
     for (let x = x0; x < x0 + cols; x++) {
       const c = cellAt(scene, x, y);
-      let px = (x - cam.x) * s;
-      let py = (y - cam.y) * s;
+      const px = (x - cam.x) * s;
+      const py = (y - cam.y) * s;
       if (c === '?') {
         // Not seen yet: a mystery block, the dirt's picture made nearly black.
         if (floor) g.drawImage(floor, px, py, s + 0.5, s + 0.5);
@@ -211,14 +172,13 @@ export function drawScene(g: CanvasRenderingContext2D, scene: Scene, w: number, 
         }
         continue;
       }
-      const dug = scene.digging;
-      if (dug && dug.x === x && dug.y === y) {
-        px += Math.sin(now / 22) * s * 0.03;
-        py += Math.cos(now / 29) * s * 0.02;
-      }
       const tex = texture(textureOf(c));
       if (tex) g.drawImage(tex, px, py, s + 0.5, s + 0.5);
-      if (dug && dug.x === x && dug.y === y) cracks(g, px, py, s, Math.min(1, (now - dug.since) / dug.takes));
+      const dug = scene.digging;
+      if (dug && dug.x === x && dug.y === y) {
+        const cracks = crack((now - dug.since) / dug.takes);
+        if (cracks) g.drawImage(cracks, px, py, s + 0.5, s + 0.5);
+      }
     }
   }
 
