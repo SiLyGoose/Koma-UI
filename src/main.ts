@@ -274,7 +274,23 @@ function cashOut(): void {
   render();
 }
 
-function applyEvent(event: RunEvent | undefined): void {
+/** The sounds of turning over a tile (public/mines/sfx), each played over the last if they come fast. */
+const SOUNDS = {
+  gem: new Audio(`${import.meta.env.BASE_URL}mines/sfx/gem-select.mp3`),
+  boom: new Audio(`${import.meta.env.BASE_URL}mines/sfx/mine-select.mp3`),
+};
+for (const sound of Object.values(SOUNDS)) sound.preload = 'auto';
+
+function playSound(sound: HTMLAudioElement): void {
+  const copy = sound.cloneNode() as HTMLAudioElement;
+  copy.play().catch(() => {
+    // Sound blocked or missing: play on without it.
+  });
+}
+
+/** What a pick turned over (`picked`: an answer to the page's own pick, not a reconnect). */
+function applyEvent(event: RunEvent | undefined, picked: boolean): void {
+  if (picked && (event?.kind === 'gem' || event?.kind === 'boom')) playSound(SOUNDS[event.kind]);
   if (event?.kind !== 'boom') return;
   const wrap = ui.board.parentElement as HTMLElement;
   wrap.classList.remove('shake');
@@ -299,13 +315,15 @@ function receive(message: ServerMessage): void {
       showError(refusalText(message));
       render();
       return;
-    case 'state':
+    case 'state': {
+      const picked = message.seq !== 0 && pending?.seq === message.seq;
       if (message.seq === 0 || pending?.seq === message.seq) pending = null;
       run = message.state;
       setBalance(message.state.balance);
       lastActivity = performance.now();
-      applyEvent(message.event);
+      applyEvent(message.event, picked);
       render();
+    }
   }
 }
 
