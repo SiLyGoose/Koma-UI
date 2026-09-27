@@ -207,6 +207,28 @@
   animation: mx-pop 0.25s ease-out;
 }
 
+/* The gem shimmers, its colours drifting like a soap bubble's. */
+.mx-tile.open .mx-gem {
+  animation:
+    mx-pop 0.25s ease-out,
+    mx-iridesce 3.2s ease-in-out infinite alternate;
+}
+
+@keyframes mx-iridesce {
+  from {
+    filter: hue-rotate(-22deg) brightness(1);
+  }
+  to {
+    filter: hue-rotate(22deg) brightness(1.12);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mx-tile.open .mx-gem {
+    animation: mx-pop 0.25s ease-out;
+  }
+}
+
 .mx-tile.dim svg {
   opacity: 0.35;
   transform: scale(0.8);
@@ -291,5 +313,98 @@
 
   .mx-board {
     gap: 7px;
+  }
+}
+
+/*
+ * Computers: bigger, like Stake's. The panel and the board share one box; the board is as big as
+ * the window's height allows (up to 700px square), and the panel grows with the window.
+ */
+@media (min-width: 900px) {
+  .mx {
+    max-width: 1280px;
+    padding: 20px 24px;
+  }
+
+  .mx-game {
+    gap: 0;
+    align-items: stretch;
+    border-radius: var(--radius);
+    background: #0f212e;
+    overflow: hidden;
+  }
+
+  .mx-panel {
+    flex: 0 0 clamp(290px, 24vw, 350px);
+    /* Its width, not the bet box's natural one. */
+    min-width: 0;
+    gap: 10px;
+    padding: 18px;
+    border-radius: 0;
+  }
+
+  .mx-balance {
+    font-size: 14px;
+  }
+
+  .mx-balance b {
+    font-size: 18px;
+  }
+
+  .mx-label {
+    font-size: 13px;
+  }
+
+  .mx-input {
+    padding: 12px 14px;
+    font-size: 17px;
+  }
+
+  /* The panel is as tall as the board: the list keeps its own height. */
+  .mx-select {
+    flex: none;
+  }
+
+  .mx-chip {
+    padding: 0 14px;
+    font-size: 15px;
+  }
+
+  .mx-action {
+    padding: 17px;
+    font-size: 18px;
+  }
+
+  .mx-random {
+    padding: 13px;
+    font-size: 15px;
+  }
+
+  .mx-odds {
+    gap: 6px;
+    font-size: 14px;
+  }
+
+  .mx-board-wrap {
+    display: grid;
+    place-items: center;
+    max-width: none;
+    padding: clamp(18px, 2.4vw, 36px);
+    border-radius: 0;
+  }
+
+  /* Square (five by five tiles), fitting under the title and above the hint. */
+  .mx-board {
+    width: min(100%, calc(100vh - 190px), 700px);
+    gap: clamp(10px, 1.1vw, 16px);
+  }
+
+  .mx-tile {
+    border-radius: 10px;
+    box-shadow: 0 6px 0 #213743;
+  }
+
+  .mx-result b {
+    font-size: 32px;
   }
 }
