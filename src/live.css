@@ -1,6 +1,6 @@
 /* Who's online (live.ts): the button, its drop-down list, the watcher count and the watching banner. */
 
-.live {
+.live, .live-watching {
   position: relative;
   margin-right: 8px;
 }

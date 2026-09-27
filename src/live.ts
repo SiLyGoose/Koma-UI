@@ -59,7 +59,7 @@ export function startLive(options: LiveOptions): void {
   button.setAttribute('aria-haspopup', 'true');
   button.setAttribute('aria-expanded', 'false');
   button.hidden = true;
-  const panel = el('div', 'live-panel');
+  const panel = el('div', 'live-panel no-scrollbar');
   panel.hidden = true;
   wrap.append(button, panel);
   options.mount.prepend(wrap);

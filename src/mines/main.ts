@@ -1,5 +1,6 @@
 import '../style.css';
 import { barSlot, setConn, soundButton } from '../frame';
+import { dropdown } from '../dropdown';
 import { apiFromSocket, showWatchers, showWatching, startLive, watchAway, watchBack } from '../live';
 import './mines.css';
 import type { ClientMessage, ErrorCode, Lobby, RunEvent, RunState, ServerMessage, StartRefusal } from './protocol';
@@ -211,6 +212,7 @@ function renderPanel(): void {
 function render(): void {
   renderBoard();
   renderPanel();
+  minesDropdown.refresh();
 }
 
 function showError(text: string | null): void {
@@ -221,6 +223,27 @@ function showError(text: string | null): void {
 // ---------------------------------------------------------------------------
 // The lobby
 
+/** The bet and mines picked last, kept in the browser so a reload (or a code change in dev) doesn't lose them. */
+const BET_KEY = 'mines.bet';
+const MINES_KEY = 'mines.count';
+function remembered(key: string): string | null {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+function remember(key: string, value: string): void {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // No storage (a private window): not kept, and that's fine.
+  }
+}
+
+/** The mines picker, in the site's style (the <select> stays underneath, keeping the value). */
+const minesDropdown = dropdown(ui.mines);
+
 function showLobby(next: Lobby): void {
   const first = lobby === null;
   lobby = next;
@@ -228,11 +251,15 @@ function showLobby(next: Lobby): void {
   ui.betRange.textContent = `(${points(next.minBet)} to ${points(next.maxBet)})`;
   ui.bet.min = String(next.minBet);
   ui.bet.max = String(next.maxBet);
-  if (first || !ui.bet.value) ui.bet.value = String(Math.max(next.minBet, Math.min(next.lastBet ?? next.minBet, next.maxBet)));
+  // The bet and mines typed last on this page (kept through reloads), else the last round's.
+  const keptBet = Number(remembered(BET_KEY));
+  const keptMines = Number(remembered(MINES_KEY));
+  if (first || !ui.bet.value) ui.bet.value = String(Math.max(next.minBet, Math.min(keptBet || next.lastBet || next.minBet, next.maxBet)));
   if (first) {
     ui.mines.textContent = '';
     for (let m = next.minMines; m <= next.maxMines; m++) ui.mines.append(new Option(String(m), String(m)));
-    ui.mines.value = String(next.lastMines ?? 3);
+    const mines = keptMines >= next.minMines && keptMines <= next.maxMines ? keptMines : (next.lastMines ?? 3);
+    ui.mines.value = String(mines);
   }
   render();
 }
@@ -250,8 +277,14 @@ function refusalText(r: StartRefusal): string {
   }
 }
 
-ui.mines.addEventListener('change', render);
-ui.bet.addEventListener('input', renderPanel);
+ui.mines.addEventListener('change', () => {
+  remember(MINES_KEY, ui.mines.value);
+  render();
+});
+ui.bet.addEventListener('input', () => {
+  remember(BET_KEY, ui.bet.value);
+  renderPanel();
+});
 
 for (const chip of document.querySelectorAll<HTMLButtonElement>('[data-bet]')) {
   chip.addEventListener('click', () => {
@@ -260,6 +293,7 @@ for (const chip of document.querySelectorAll<HTMLButtonElement>('[data-bet]')) {
     const most = Math.min(lobby.maxBet, Math.max(lobby.minBet, lobby.balance));
     const next = chip.dataset.bet === 'half' ? Math.floor(now / 2) : chip.dataset.bet === 'double' ? now * 2 : most;
     ui.bet.value = String(Math.max(lobby.minBet, Math.min(next, lobby.maxBet)));
+    remember(BET_KEY, ui.bet.value);
     renderPanel();
   });
 }

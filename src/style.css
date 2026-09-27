@@ -481,3 +481,13 @@ canvas {
   font-weight: 700;
   text-decoration: none;
 }
+
+/* Scrolls as usual (wheel, drag, touch, keys), with the scrollbar hidden. */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
