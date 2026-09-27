@@ -1,9 +1,9 @@
 import type { PinecraftOre } from './protocol';
 
 /*
- * Pinecraft's sounds, from public/sfx. Played through Web Audio so they start at once and can
- * overlap (footsteps, hits). A browser keeps sound off until the player first touches or presses
- * something, so the first input wakes it. Muting is remembered.
+ * Pinecraft's sounds, from public/pinecraft/sfx. Played through Web Audio so they start at once
+ * and can overlap (footsteps, hits). A browser keeps sound off until the player first touches or
+ * presses something, so the first input wakes it. Muting is remembered.
  */
 
 /** Each sound and its takes (one is picked at random each time). */
@@ -45,7 +45,7 @@ const lastTake = new Map<Sound, number>();
 async function loadOne(name: string): Promise<void> {
   if (!audio) return;
   try {
-    const res = await fetch(`${import.meta.env.BASE_URL}sfx/${name}.mp3`);
+    const res = await fetch(`${import.meta.env.BASE_URL}pinecraft/sfx/${name}.mp3`);
     if (!res.ok) return;
     buffers.set(name, await audio.decodeAudioData(await res.arrayBuffer()));
   } catch {

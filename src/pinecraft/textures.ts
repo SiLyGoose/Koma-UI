@@ -1,11 +1,12 @@
 import type { PinecraftOre } from './protocol';
 
 /*
- * The pictures of Pinecraft's blocks. Dirt and stone are drawings in public/blocks. An ore uses
- * public/blocks/<ore>.png when there is one (coal.png, iron.png, gold.png, diamond.png, ruby.png,
- * emerald.png), and until then a stand-in drawn here: stone with gems of the ore's colour in it.
- * Bedrock is made from the stone. A block being broken has public/cracks/crack_01.png to crack_04.png
- * over it, more cracked the closer it is to breaking.
+ * The pictures of Pinecraft's blocks. Dirt and stone are drawings in public/pinecraft/blocks. An
+ * ore uses public/pinecraft/blocks/<ore>.png when there is one (coal.png, iron.png, gold.png,
+ * diamond.png, ruby.png, emerald.png), and until then a stand-in drawn here: stone with gems of the
+ * ore's colour in it. Bedrock is made from the stone. A block being broken has
+ * public/pinecraft/cracks/crack_01.png to crack_04.png over it, more cracked the closer it is to
+ * breaking.
  */
 
 export type BlockTexture = 'dirt' | 'stone' | 'bedrock' | PinecraftOre;
@@ -118,8 +119,8 @@ function oreStandIn(stone: CanvasImageSource, ore: PinecraftOre): HTMLCanvasElem
 export async function loadTextures(): Promise<void> {
   textures.set('dirt', flat(FLAT.dirt));
   textures.set('stone', flat(FLAT.stone));
-  const cracks = Promise.all([1, 2, 3, 4].map((k) => load(`cracks/crack_0${k}.png`)));
-  const [dirt, stone, ...ores] = await Promise.all([load('blocks/dirt.png'), load('blocks/stone.png'), ...ORES.map((ore) => load(`blocks/${ore}.png`))]);
+  const cracks = Promise.all([1, 2, 3, 4].map((k) => load(`pinecraft/cracks/crack_0${k}.png`)));
+  const [dirt, stone, ...ores] = await Promise.all([load('pinecraft/blocks/dirt.png'), load('pinecraft/blocks/stone.png'), ...ORES.map((ore) => load(`pinecraft/blocks/${ore}.png`))]);
   crackImages.push(...(await cracks));
   const dirtImg = dirt ?? (textures.get('dirt') as CanvasImageSource);
   const stoneImg = stone ?? (textures.get('stone') as CanvasImageSource);
