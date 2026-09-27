@@ -23,7 +23,7 @@
           <span id="energy" class="value">–</span>
         </div>
         <div class="stat stat-balance"><span class="label">Balance</span><span id="balance" class="value">–</span></div>
-        <div class="stat"><span class="label">Depth</span><span id="depth" class="value">–</span></div>
+        <div class="stat"><span class="label">Blocks dug</span><span id="depth" class="value">–</span></div>
       </section>
 
       <div class="board-wrap pc-view" id="board-wrap">
@@ -31,7 +31,7 @@
         <div id="floaters" class="floaters"></div>
       </div>
 
-      <p id="log" class="log">Dig with WASD or the arrow keys. Every block takes one ⚡; ores pay out as you dig them.</p>
+      <p id="log" class="log">Hold WASD or the arrow keys against a block to break it. Every block takes one ⚡; harder ones take longer.</p>
 
       <div class="controls pc-controls">
         <div class="dpad" aria-label="Move">
@@ -43,9 +43,13 @@
         <div class="stat pc-earned"><span class="label">Earned from ores</span><span id="earned" class="value">–</span></div>
       </div>
 
-      <p class="hint">WASD / arrow keys to move and dig · hold to keep going · deeper ores are rarer and richer</p>
+      <p class="hint">Hold a direction to break a block · dirt breaks fastest, ruby slowest · rarer ores pay more</p>
       <footer id="legend" class="legend pc-legend"></footer>
     </main>
+
+    <div class="pc-touch">
+      <div id="stick" class="pc-stick" aria-label="Walk"><div id="stick-knob" class="pc-stick-knob"></div></div>
+    </div>
 
     <div id="message" class="message" hidden>
       <div class="message-card">

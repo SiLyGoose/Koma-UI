@@ -3,9 +3,10 @@
 The web site [Koma](../Koma)'s games are played on:
 
 - **The front page** (`/`): log in with Discord, pick a server you play Koma in, pick a game.
-- **Pinecraft** (`/games/pinecraft/`): a side-on mine of your own. Dig with WASD or the arrow keys;
-  every block takes one energy (which comes back over time), and the ores you dig pay points
-  straight away. Deeper ores are rarer and pay more. No bet. Your tunnels stay dug between visits.
+- **Pinecraft** (`/games/pinecraft/`): a mine of your own, all underground. You start in a small room
+  with dirt all around; hold WASD or the arrow keys against a block to break it (harder blocks take
+  longer). Every block takes one energy (which comes back over time), and the ores you find pay
+  points straight away; rarer ores pay more. No bet. Your tunnels stay dug between visits.
 - **The mine** (`/games/mines/`): a 5x5 field you walk around, digging for ore and hoping not to hit
   dynamite, with a bet.
 

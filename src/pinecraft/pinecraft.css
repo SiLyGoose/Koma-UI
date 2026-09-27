@@ -37,7 +37,9 @@
 }
 
 .pc-view {
-  aspect-ratio: 11 / 10;
+  /* Tall, like a phone: 8 blocks across (VIEW_COLS in main.ts), up to 11 down. */
+  aspect-ratio: 8 / 11;
+  max-height: 72vh;
   background: #1a1411;
   box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.35);
 }
@@ -75,4 +77,68 @@
 .legend-gem {
   width: 16px;
   height: 16px;
+}
+
+/* Phones: a joystick bottom left, over the page. */
+.pc-touch {
+  display: none;
+}
+
+@media (pointer: coarse) {
+  .pinecraft {
+    padding: 10px 8px 170px;
+  }
+
+  /* Leave the header, the stats and the joystick room on screen. */
+  .pc-view {
+    max-height: calc(100svh - 300px);
+  }
+
+  .pc-controls .dpad {
+    display: none;
+  }
+
+  .pc-touch {
+    display: flex;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 0 20px calc(20px + env(safe-area-inset-bottom));
+    pointer-events: none;
+    z-index: 5;
+  }
+}
+
+.pc-stick {
+  pointer-events: auto;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.pc-stick {
+  position: relative;
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  background: rgba(43, 45, 49, 0.75);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(4px);
+}
+
+.pc-stick-knob {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 56px;
+  height: 56px;
+  margin: -28px 0 0 -28px;
+  border-radius: 50%;
+  background: rgba(242, 243, 245, 0.85);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
 }

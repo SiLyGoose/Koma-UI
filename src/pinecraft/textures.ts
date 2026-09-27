@@ -4,12 +4,12 @@ import type { PinecraftOre } from './protocol';
  * The pictures of Pinecraft's blocks. Dirt and stone are drawings in public/blocks. An ore uses
  * public/blocks/<ore>.png when there is one (coal.png, iron.png, gold.png, diamond.png, ruby.png,
  * emerald.png), and until then a stand-in drawn here: stone with gems of the ore's colour in it.
- * Grass and bedrock are made from the dirt and stone.
+ * Bedrock is made from the stone.
  */
 
-export type BlockTexture = 'dirt' | 'stone' | 'grass' | 'bedrock' | PinecraftOre;
+export type BlockTexture = 'dirt' | 'stone' | 'bedrock' | PinecraftOre;
 
-export const ORES: readonly PinecraftOre[] = ['coal', 'iron', 'gold', 'diamond', 'ruby', 'emerald'];
+export const ORES: readonly PinecraftOre[] = ['coal', 'iron', 'gold', 'diamond', 'emerald', 'ruby'];
 
 /** Each ore's colours: the gem, its outline, and its shine. Also used for the legend, the sparks and the "+points". */
 export const ORE_COLOR: Readonly<Record<PinecraftOre, { gem: string; edge: string; shine: string }>> = {
@@ -55,29 +55,11 @@ function load(path: string): Promise<HTMLImageElement | null> {
   });
 }
 
-/** Dirt with a band of grass across the top. */
-function grass(dirt: CanvasImageSource): HTMLCanvasElement {
-  const [c, g] = canvas();
-  g.drawImage(dirt, 0, 0, SIZE, SIZE);
-  g.fillStyle = '#4e9a3a';
-  g.beginPath();
-  g.moveTo(0, 0);
-  g.lineTo(SIZE, 0);
-  g.lineTo(SIZE, 30);
-  // A wavy lower edge, with drips of grass down the dirt.
-  for (let x = SIZE; x >= 0; x -= 16) g.quadraticCurveTo(x - 8, (x / 16) % 2 === 0 ? 44 : 30, x - 16, 30);
-  g.closePath();
-  g.fill();
-  g.fillStyle = '#6cc04a';
-  g.fillRect(0, 0, SIZE, 12);
-  return c;
-}
-
-/** Stone, much darker, with a few cracks: the bottom of the world. */
+/** Stone, darker and bluish, with a few cracks: it can't be broken. */
 function bedrock(stone: CanvasImageSource): HTMLCanvasElement {
   const [c, g] = canvas();
   g.drawImage(stone, 0, 0, SIZE, SIZE);
-  g.fillStyle = 'rgba(10, 10, 14, 0.7)';
+  g.fillStyle = 'rgba(22, 30, 40, 0.5)';
   g.fillRect(0, 0, SIZE, SIZE);
   g.strokeStyle = 'rgba(0, 0, 0, 0.6)';
   g.lineWidth = 5;
@@ -132,7 +114,6 @@ export async function loadTextures(): Promise<void> {
   const stoneImg = stone ?? (textures.get('stone') as CanvasImageSource);
   textures.set('dirt', dirtImg);
   textures.set('stone', stoneImg);
-  textures.set('grass', grass(dirtImg));
   textures.set('bedrock', bedrock(stoneImg));
   ORES.forEach((ore, k) => textures.set(ore, ores[k] ?? oreStandIn(stoneImg, ore)));
 }

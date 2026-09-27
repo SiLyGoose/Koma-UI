@@ -2,9 +2,9 @@ import type { Direction, PinecraftOre, WorldState } from './protocol';
 import { ORE_COLOR, texture, type BlockTexture } from './textures';
 
 /*
- * Draws Pinecraft: a side-on slice of the world around the miner. Sky with pine trees on top, then
- * the ground in blocks; open ground underground is dark cave wall. Blocks the miner hasn't seen yet
- * are dimmed, and the deeper the miner goes, the darker it gets beyond their helmet lamp.
+ * Draws Pinecraft: the underground around the miner, in blocks. Ground dug out is a warm earth
+ * floor; only the blocks next to it (the ones the miner can get at) are drawn as what they are, and
+ * the rest are mystery blocks: the dirt's picture, nearly black.
  */
 
 export const ORE_OF: Readonly<Record<string, PinecraftOre>> = { c: 'coal', i: 'iron', o: 'gold', x: 'diamond', r: 'ruby', e: 'emerald' };
@@ -23,7 +23,7 @@ export interface Particle {
 
 export interface Scene {
   state: WorldState;
-  /** Every row seen, by row: the page keeps them, so ground scrolled past stays drawn. */
+  /** Every block seen, by index (y * size + x): the page keeps them, so ground scrolled past stays drawn. */
   known: Map<number, string>;
   /** The top left of the view, in blocks. */
   cam: { x: number; y: number };
@@ -32,65 +32,33 @@ export interface Scene {
   facing: 1 | -1;
   /** The pickaxe swinging, since when (performance.now()), and which way. */
   swing: { since: number; dir: Direction } | null;
-  /** A block being dug, waiting for the bot: it shakes and cracks. */
-  digging: { x: number; y: number; since: number } | null;
+  /** A block being broken (it takes `takes` ms from `since`): it shakes and cracks, more and more. */
+  digging: { x: number; y: number; since: number; takes: number } | null;
   particles: Particle[];
 }
 
-/** What block (x, y) is, as the page knows it (a letter, see protocol.ts). */
+/** What block (x, y) is, as the page knows it (a letter, see protocol.ts): '?' if not seen, '#' past the edge. */
 export function cellAt(scene: Pick<Scene, 'state' | 'known'>, x: number, y: number): string {
-  const { state } = scene;
-  if (y < state.sky) return '.';
-  if (x < 0 || x >= state.width || y >= state.depth) return 'B';
-  const known = scene.known.get(y)?.[x];
-  if (known) return known;
-  if (y === state.sky) return 'g';
-  if (y === state.depth - 1) return 'B';
-  return y - state.sky <= 8 ? 'D' : 'S';
+  const { size } = scene.state;
+  if (x < 0 || y < 0 || x >= size || y >= size) return '#';
+  return scene.known.get(y * size + x) ?? '?';
 }
 
 /** Letters of blocks that can be walked through, and of ones that can't be dug. */
 export const isOpenCell = (c: string): boolean => c === '.';
-export const isBedrock = (c: string): boolean => c === 'b' || c === 'B';
+export const isBedrock = (c: string): boolean => c === 'b' || c === '#';
 
 function textureOf(c: string): BlockTexture {
   const ore = ORE_OF[c];
   if (ore) return ore;
-  switch (c.toLowerCase()) {
-    case 'g':
-      return 'grass';
+  switch (c) {
     case 'd':
       return 'dirt';
     case 'b':
+    case '#':
       return 'bedrock';
     default:
       return 'stone';
-  }
-}
-
-/** A number from 0 to 1 that is always the same for the same inputs. */
-function hash(x: number, y: number, seed: number): number {
-  let h = (Math.imul(x, 374761393) + Math.imul(y, 668265263) + Math.imul(seed, 2246822519)) >>> 0;
-  h = Math.imul(h ^ (h >>> 13), 1274126177) >>> 0;
-  return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
-}
-
-/** A pine tree standing on the grass, `x` blocks across (its trunk's middle), `ground` its foot, `s` a block's size. */
-function pine(g: CanvasRenderingContext2D, x: number, ground: number, s: number, tall: number): void {
-  g.fillStyle = '#5a3d25';
-  g.fillRect(x - s * 0.1, ground - s * 0.55, s * 0.2, s * 0.55);
-  const tiers = 3;
-  for (let k = 0; k < tiers; k++) {
-    const w = s * (0.95 - k * 0.22) * tall;
-    const base = ground - s * 0.4 - k * s * 0.42 * tall;
-    const top = base - s * 0.75 * tall;
-    g.beginPath();
-    g.moveTo(x - w / 2, base);
-    g.lineTo(x + w / 2, base);
-    g.lineTo(x, top);
-    g.closePath();
-    g.fillStyle = k % 2 === 0 ? '#2f7a45' : '#3a8f52';
-    g.fill();
   }
 }
 
@@ -168,45 +136,77 @@ function miner(g: CanvasRenderingContext2D, px: number, py: number, s: number, f
   g.restore();
 }
 
+/** The same cracks on every block, in the order they appear: each a line out from the middle, then a bend. */
+const CRACKS = Array.from({ length: 9 }, (_, k) => {
+  const angle = k * 2.39996 + 0.5;
+  const reach = 0.3 + ((k * 7) % 5) * 0.035;
+  return { angle, reach, bend: angle + (k % 2 ? 0.5 : -0.5) };
+});
+
+/**
+ * Cracks over the block at (px, py), `s` wide, `progress` of the way (0 to 1) to breaking, like
+ * Minecraft's: more of them, and longer, as the pickaxe works, and the block darkens.
+ */
+function cracks(g: CanvasRenderingContext2D, px: number, py: number, s: number, progress: number): void {
+  g.fillStyle = `rgba(0, 0, 0, ${0.3 * progress})`;
+  g.fillRect(px, py, s + 0.5, s + 0.5);
+  g.save();
+  g.beginPath();
+  g.rect(px, py, s, s);
+  g.clip();
+  g.strokeStyle = 'rgba(15, 10, 8, 0.85)';
+  g.lineWidth = Math.max(1.5, s * 0.045);
+  g.lineCap = 'round';
+  g.lineJoin = 'round';
+  const cx = px + s / 2;
+  const cy = py + s / 2;
+  const shown = progress * CRACKS.length;
+  CRACKS.forEach(({ angle, reach, bend }, k) => {
+    const grow = Math.max(0, Math.min(1, shown - k));
+    if (grow <= 0) return;
+    const mx = cx + Math.cos(angle) * s * reach * 0.55 * grow;
+    const my = cy + Math.sin(angle) * s * reach * 0.55 * grow;
+    g.beginPath();
+    g.moveTo(cx, cy);
+    g.lineTo(mx, my);
+    g.lineTo(mx + Math.cos(bend) * s * reach * 0.5 * grow, my + Math.sin(bend) * s * reach * 0.5 * grow);
+    g.stroke();
+  });
+  g.restore();
+}
+
 /** Draws the scene on `g`, which is `w` by `h` CSS pixels, with blocks `s` pixels wide. */
 export function drawScene(g: CanvasRenderingContext2D, scene: Scene, w: number, h: number, s: number, now: number): void {
-  const { state, cam } = scene;
-  const surface = (state.sky - cam.y) * s;
-
-  // The sky, down to the grass.
-  const sky = g.createLinearGradient(0, surface - 6 * s, 0, surface);
-  sky.addColorStop(0, '#6fb6ea');
-  sky.addColorStop(1, '#bfe3f7');
-  g.fillStyle = sky;
-  g.fillRect(0, 0, w, Math.max(0, surface));
-  g.fillStyle = '#1a1411';
-  g.fillRect(0, Math.max(0, surface), w, h);
+  const { cam } = scene;
+  g.fillStyle = '#0d0e11';
+  g.fillRect(0, 0, w, h);
 
   const x0 = Math.floor(cam.x);
   const y0 = Math.floor(cam.y);
   const cols = Math.ceil(w / s) + 1;
   const rows = Math.ceil(h / s) + 1;
-
-  // Pine trees along the surface, behind everything.
-  if (surface > 0) {
-    for (let x = x0 - 1; x < x0 + cols + 1; x++) {
-      if (x < 0 || x >= state.width || hash(x, 0, 7) > 0.4) continue;
-      pine(g, (x + 0.5 - cam.x) * s + (hash(x, 1, 7) - 0.5) * s * 0.4, surface, s, 0.8 + hash(x, 2, 7) * 0.5);
-    }
-  }
+  // The dirt's picture: faintly in the floor, and darkened for blocks not seen yet.
+  const floor = texture('dirt');
 
   for (let y = y0; y < y0 + rows; y++) {
     for (let x = x0; x < x0 + cols; x++) {
       const c = cellAt(scene, x, y);
       let px = (x - cam.x) * s;
       let py = (y - cam.y) * s;
+      if (c === '?') {
+        // Not seen yet: a mystery block, the dirt's picture made nearly black.
+        if (floor) g.drawImage(floor, px, py, s + 0.5, s + 0.5);
+        g.fillStyle = 'rgba(12, 12, 15, 0.84)';
+        g.fillRect(px, py, s + 0.5, s + 0.5);
+        continue;
+      }
       if (isOpenCell(c)) {
-        if (y < state.sky) continue;
-        // Cave wall: the ground's picture, far darker.
-        const wall = texture(y - state.sky <= 8 ? 'dirt' : 'stone');
-        if (wall) {
-          g.globalAlpha = 0.28;
-          g.drawImage(wall, px, py, s + 0.5, s + 0.5);
+        // Dug out: warm earth, with a hint of the dirt's grain.
+        g.fillStyle = '#b3682f';
+        g.fillRect(px, py, s + 0.5, s + 0.5);
+        if (floor) {
+          g.globalAlpha = 0.1;
+          g.drawImage(floor, px, py, s + 0.5, s + 0.5);
           g.globalAlpha = 1;
         }
         continue;
@@ -218,27 +218,7 @@ export function drawScene(g: CanvasRenderingContext2D, scene: Scene, w: number, 
       }
       const tex = texture(textureOf(c));
       if (tex) g.drawImage(tex, px, py, s + 0.5, s + 0.5);
-      // Not seen yet: dimmed.
-      if (c !== c.toLowerCase()) {
-        g.fillStyle = 'rgba(8, 6, 5, 0.38)';
-        g.fillRect(px, py, s + 0.5, s + 0.5);
-      }
-      if (dug && dug.x === x && dug.y === y) {
-        // Cracks, growing as the pickaxe works.
-        const k = Math.min(1, (now - dug.since) / 250);
-        g.strokeStyle = 'rgba(20, 14, 10, 0.75)';
-        g.lineWidth = Math.max(1.5, s * 0.04);
-        g.lineCap = 'round';
-        g.beginPath();
-        const cx = px + s / 2;
-        const cy = py + s / 2;
-        for (let a = 0; a < 5; a++) {
-          const angle = a * 1.3 + 0.4;
-          g.moveTo(cx, cy);
-          g.lineTo(cx + Math.cos(angle) * s * 0.42 * k, cy + Math.sin(angle) * s * 0.42 * k);
-        }
-        g.stroke();
-      }
+      if (dug && dug.x === x && dug.y === y) cracks(g, px, py, s, Math.min(1, (now - dug.since) / dug.takes));
     }
   }
 
@@ -256,29 +236,15 @@ export function drawScene(g: CanvasRenderingContext2D, scene: Scene, w: number, 
   const swingT = scene.swing ? (now - scene.swing.since) / 260 : null;
   const phase = swingT === null ? null : scene.digging ? swingT % 1 : swingT < 1 ? swingT : null;
   miner(g, (scene.miner.x - cam.x) * s, (scene.miner.y - cam.y) * s, s, scene.facing, phase, scene.swing?.dir ?? null, now);
-
-  // Underground it gets darker the deeper the miner is, except around their lamp.
-  const depth = scene.miner.y - state.sky;
-  const dark = Math.max(0, Math.min(0.82, (depth - 1) / 14));
-  if (dark > 0) {
-    const lx = (scene.miner.x + 0.5 - cam.x) * s;
-    const ly = (scene.miner.y + 0.2 - cam.y) * s;
-    const light = g.createRadialGradient(lx, ly, s * 1.2, lx, ly, s * 4.2);
-    light.addColorStop(0, 'rgba(8, 6, 4, 0)');
-    light.addColorStop(1, `rgba(8, 6, 4, ${dark})`);
-    g.fillStyle = light;
-    g.fillRect(0, Math.max(0, surface), w, h);
-  }
 }
 
 /** Adds the chips a dug block throws off (and sparks, for an ore). */
-export function burst(scene: Scene, x: number, y: number, ground: 'grass' | 'dirt' | 'stone', ore: PinecraftOre | null, now: number): void {
+export function burst(scene: Scene, x: number, y: number, ground: 'dirt' | 'stone', ore: PinecraftOre | null, now: number): void {
   const chip = ground === 'stone' ? ['#77787b', '#5a5b5f', '#8d8e91'] : ['#6b4f35', '#533c28', '#7d5d40'];
-  if (ground === 'grass') chip.push('#6cc04a');
   const add = (color: string, speed: number, size: number, life: number): void => {
     const angle = Math.random() * Math.PI * 2;
     const v = speed * (0.5 + Math.random());
-    scene.particles.push({ x: x + 0.5, y: y + 0.5, vx: Math.cos(angle) * v, vy: Math.sin(angle) * v - 2, size, color, born: now, life });
+    scene.particles.push({ x: x + 0.5, y: y + 0.5, vx: Math.cos(angle) * v, vy: Math.sin(angle) * v, size, color, born: now, life });
   };
   for (let k = 0; k < 12; k++) add(chip[k % chip.length] as string, 3, 0.09 + Math.random() * 0.06, 500 + Math.random() * 250);
   if (ore) {
@@ -287,12 +253,14 @@ export function burst(scene: Scene, x: number, y: number, ground: 'grass' | 'dir
   }
 }
 
-/** Moves the particles on by `dt` ms, and forgets the ones that are gone. */
+/** Moves the particles on by `dt` ms (they spread out and slow down), and forgets the ones that are gone. */
 export function stepParticles(scene: Scene, dt: number, now: number): void {
   const t = dt / 1000;
+  const drag = Math.exp(-4 * t);
   scene.particles = scene.particles.filter((p) => now - p.born < p.life);
   for (const p of scene.particles) {
-    p.vy += 14 * t;
+    p.vx *= drag;
+    p.vy *= drag;
     p.x += p.vx * t;
     p.y += p.vy * t;
   }

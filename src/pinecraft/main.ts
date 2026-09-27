@@ -10,8 +10,10 @@ import { drawGem, loadTextures, ORE_COLOR, ORES } from './textures';
  * moves and draws what it is told.
  *
  * Walking through open ground can't change anything, so the page moves the miner at once and tells
- * the bot afterwards. A dig waits for the bot's answer (the pickaxe swings until it comes), and no
- * other move is taken until then. Holding a direction keeps going.
+ * the bot afterwards. A block is broken like in Minecraft: hold the direction against it (the keys,
+ * the pad, or the joystick on a phone) and it cracks, taking longer the harder it is (the bot's
+ * breakMs), and letting go starts it over. The page tells the bot when it starts (`mine`) and when it is done (`move`), then waits for the bot's
+ * answer before any other move. Holding a direction keeps going.
  */
 
 const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T;
@@ -30,18 +32,22 @@ const ui = {
   floaters: $('floaters'),
   legend: $('legend'),
   message: $('message'),
+  stick: $('stick'),
+  stickKnob: $('stick-knob'),
   messageTitle: $('message-title'),
   messageText: $('message-text'),
 };
 
-const ORE_NAME: Record<PinecraftOre, string> = { coal: 'Coal', iron: 'Iron', gold: 'Gold', diamond: 'Diamond', ruby: 'Ruby', emerald: 'Emerald' };
+const ORE_NAME: Record<PinecraftOre, string> = { coal: 'Coal', iron: 'Iron', gold: 'Gold', diamond: 'Diamond', emerald: 'Emerald', ruby: 'Ruby' };
 
 /** Blocks across the view. */
-const VIEW_COLS = 11;
+const VIEW_COLS = 8;
 /** A step every this many ms while a direction is held. */
 const STEP_MS = 140;
 /** A dig shows at least this much swing, however fast the bot answers. */
 const MIN_DIG_MS = 200;
+/** How long a block takes to break when the bot doesn't say (an older bot). */
+const DEFAULT_BREAK_MS = 400;
 
 const points = (n: number): string => n.toLocaleString('en-US');
 const clock = (ms: number): string => {
@@ -127,6 +133,7 @@ function renderEnergy(now: number): void {
 function renderHud(state: WorldState): void {
   setText(ui.balance, state.balance === null ? '–' : points(state.balance), true);
   setText(ui.earned, points(state.earned), true);
+  setText(ui.depth, points(state.dug));
 }
 
 function renderLegend(state: WorldState): void {
@@ -140,9 +147,8 @@ function renderLegend(state: WorldState): void {
     icon.className = 'legend-gem';
     drawGem(icon.getContext('2d') as CanvasRenderingContext2D, ore, 16, 16, 11);
     const text = document.createElement('span');
-    text.innerHTML = `${ORE_NAME[ore]} <b></b> <small></small>`;
+    text.innerHTML = `${ORE_NAME[ore]} <b></b>`;
     (text.querySelector('b') as HTMLElement).textContent = `+${points(state.values[ore] ?? 0)}`;
-    (text.querySelector('small') as HTMLElement).textContent = state.from[ore] ? `from ${state.from[ore]}m` : '';
     item.append(icon, text);
     ui.legend.append(item);
   }
@@ -177,7 +183,11 @@ function apply(state: WorldState, event: WorldEvent | undefined, moveMiner: bool
     state.y = scene.state.y;
   }
   scene.state = state;
-  state.rows.forEach((row, k) => scene?.known.set(state.top + k, row));
+  const known = scene.known;
+  state.rows.forEach((row, k) => {
+    const y = state.top + k;
+    for (let i = 0; i < row.length; i++) known.set(y * state.size + state.left + i, row[i] as string);
+  });
   if (moveMiner) target = { x: state.x, y: state.y };
   if (first) centerCamera(true);
 
@@ -238,6 +248,7 @@ function receive(message: ServerMessage): void {
   const moveMiner = message.seq === 0 || message.seq === seq;
   if (message.seq === 0) {
     pendingDig = null;
+    breaking = null;
     if (scene) scene.digging = null;
   }
   if (!answersDig) {
@@ -276,6 +287,7 @@ function connect(): void {
     if (socket === ws) socket = null;
     if (finished) return;
     pendingDig = null;
+    breaking = null;
     if (scene) scene.digging = null;
     if (retries >= 6) {
       setConn('Disconnected', 'bad');
@@ -296,6 +308,37 @@ const STEP: Record<Direction, [number, number]> = { up: [0, -1], down: [0, 1], l
 let target = { x: 0, y: 0 };
 let lastStep = 0;
 
+/** The block being broken: which way, where, since when, and how long it takes. */
+let breaking: { dir: Direction; x: number; y: number; since: number; takes: number } | null = null;
+
+/** How long the block with letter `c` takes to break. */
+function breakTime(c: string): number {
+  const times = scene?.state.breakMs;
+  if (!times) return DEFAULT_BREAK_MS;
+  const ore = ORE_OF[c];
+  return ore ? times[ore] : c === 's' ? times.stone : times.dirt;
+}
+
+function stopBreaking(): void {
+  if (!breaking) return;
+  breaking = null;
+  if (scene && pendingDig === null) {
+    scene.digging = null;
+    scene.swing = null;
+  }
+}
+
+/** The block is broken: tell the bot, and wait for its answer. */
+function finishBreaking(): void {
+  const done = breaking;
+  if (!done) return;
+  breaking = null;
+  seq += 1;
+  pendingDig = { seq, x: done.x, y: done.y, since: done.since };
+  send({ t: 'move', dir: done.dir, seq });
+}
+
+/** One step `dir`: through open ground, or starting to break the block there. */
 function move(dir: Direction): void {
   if (!scene || pendingDig !== null || socket?.readyState !== WebSocket.OPEN) return;
   const { state } = scene;
@@ -304,7 +347,9 @@ function move(dir: Direction): void {
   if (dir === 'left' || dir === 'right') scene.facing = dir === 'left' ? -1 : 1;
   const x = state.x + STEP[dir][0];
   const y = state.y + STEP[dir][1];
-  if (x < 0 || y < 0 || x >= state.width || y >= state.depth) return;
+  if (breaking && breaking.x === x && breaking.y === y) return;
+  stopBreaking();
+  if (x < 0 || y < 0 || x >= state.size || y >= state.size) return;
   const c = cellAt(scene, x, y);
   if (isBedrock(c)) {
     ui.log.textContent = 'Bedrock: nothing gets through that.';
@@ -315,19 +360,21 @@ function move(dir: Direction): void {
     effect(ui.energy.parentElement as HTMLElement, 'shake');
     return;
   }
-  seq += 1;
   if (isOpenCell(c)) {
     // Open ground: go now, tell the bot after.
+    seq += 1;
     state.x = x;
     state.y = y;
     target = { x, y };
-  } else {
-    pendingDig = { seq, x, y, since: now };
-    scene.digging = { x, y, since: now };
-    scene.swing = { since: now, dir };
-    if (ORE_OF[c]) ui.log.textContent = `Digging out ${ORE_NAME[ORE_OF[c] as PinecraftOre].toLowerCase()}…`;
+    send({ t: 'move', dir, seq });
+    return;
   }
-  send({ t: 'move', dir, seq });
+  const takes = breakTime(c);
+  breaking = { dir, x, y, since: now, takes };
+  scene.digging = { x, y, since: now, takes };
+  scene.swing = { since: now, dir };
+  if (ORE_OF[c]) ui.log.textContent = `Breaking ${ORE_NAME[ORE_OF[c] as PinecraftOre].toLowerCase()}…`;
+  send({ t: 'mine', dir });
 }
 
 const KEYS: Record<string, Direction> = {
@@ -375,17 +422,50 @@ for (const button of document.querySelectorAll<HTMLButtonElement>('[data-dir]'))
   for (const end of ['pointerup', 'pointercancel', 'lostpointercapture'] as const) button.addEventListener(end, () => release(dir));
 }
 
-// Swipes on the view, for phones: one step each.
-let swipeFrom: { x: number; y: number } | null = null;
-ui.wrap.addEventListener('pointerdown', (e) => (swipeFrom = { x: e.clientX, y: e.clientY }));
-ui.wrap.addEventListener('pointerup', (e) => {
-  if (!swipeFrom) return;
-  const dx = e.clientX - swipeFrom.x;
-  const dy = e.clientY - swipeFrom.y;
-  swipeFrom = null;
-  if (Math.max(Math.abs(dx), Math.abs(dy)) < 24) return;
-  move(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : dy > 0 ? 'down' : 'up');
+// Phones: a joystick bottom left to walk, and to break a block by pushing against it.
+let stickId: number | null = null;
+let stickDir: Direction | null = null;
+function setStick(dir: Direction | null): void {
+  if (dir === stickDir) return;
+  if (stickDir) release(stickDir);
+  stickDir = dir;
+  if (dir) press(dir);
+}
+function steer(e: PointerEvent): void {
+  const rect = ui.stick.getBoundingClientRect();
+  const radius = rect.width / 2;
+  let dx = e.clientX - (rect.left + radius);
+  let dy = e.clientY - (rect.top + radius);
+  const d = Math.hypot(dx, dy);
+  const reach = radius * 0.55;
+  if (d > reach) {
+    dx *= reach / d;
+    dy *= reach / d;
+  }
+  ui.stickKnob.style.transform = `translate(${dx}px, ${dy}px)`;
+  setStick(d < radius * 0.3 ? null : Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : dy > 0 ? 'down' : 'up');
+}
+ui.stick.addEventListener('pointerdown', (e) => {
+  e.preventDefault();
+  ui.stick.setPointerCapture(e.pointerId);
+  stickId = e.pointerId;
+  steer(e);
 });
+ui.stick.addEventListener('pointermove', (e) => {
+  if (e.pointerId === stickId) steer(e);
+});
+for (const end of ['pointerup', 'pointercancel', 'lostpointercapture'] as const) {
+  ui.stick.addEventListener(end, (e) => {
+    if (e.pointerId !== stickId) return;
+    stickId = null;
+    ui.stickKnob.style.transform = '';
+    setStick(null);
+  });
+}
+
+if (matchMedia('(pointer: coarse)').matches) {
+  ui.log.textContent = 'Walk with the joystick · hold it against a block to break it. Every block takes one ⚡; harder ones take longer.';
+}
 
 // ---------------------------------------------------------------------------
 // Drawing
@@ -396,8 +476,8 @@ function centerCamera(snap: boolean): void {
   const rows = size.h / size.block;
   const { state } = scene;
   const want = {
-    x: Math.max(0, Math.min(state.width - cols, scene.miner.x + 0.5 - cols / 2)),
-    y: Math.max(-1, Math.min(state.depth - rows, scene.miner.y + 0.5 - rows * 0.45)),
+    x: Math.max(-1, Math.min(state.size + 1 - cols, scene.miner.x + 0.5 - cols / 2)),
+    y: Math.max(-1, Math.min(state.size + 1 - rows, scene.miner.y + 0.5 - rows / 2)),
   };
   const k = snap ? 1 : 0.12;
   scene.cam.x += (want.x - scene.cam.x) * k;
@@ -409,9 +489,14 @@ function frame(now: number): void {
   const dt = Math.min(64, now - lastFrame);
   lastFrame = now;
   if (scene && size.block > 0) {
-    // Keep going while a direction is held.
+    // Breaking a block: let go (or turn) and it starts over; hold on long enough and it breaks.
     const dir = held[held.length - 1];
-    if (dir && pendingDig === null && now - lastStep >= STEP_MS) move(dir);
+    if (breaking) {
+      if (dir !== breaking.dir) stopBreaking();
+      else if (now - breaking.since >= breaking.takes) finishBreaking();
+    }
+    // Keep going while a direction is held.
+    if (dir && pendingDig === null && !breaking && now - lastStep >= STEP_MS) move(dir);
 
     const k = Math.min(1, dt / 45);
     scene.miner.x += (target.x - scene.miner.x) * k;
@@ -420,7 +505,6 @@ function frame(now: number): void {
     stepParticles(scene, dt, now);
     drawScene(g, scene, size.w, size.h, size.block, now);
     renderEnergy(now);
-    setText(ui.depth, `${Math.max(0, Math.round(scene.miner.y - scene.state.sky))}m`);
   }
   requestAnimationFrame(frame);
 }
