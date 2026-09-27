@@ -1,6 +1,6 @@
-import './style.css';
-import { barSlot, setConn, soundButton } from './frame';
-import { apiFromSocket, showWatchers, showWatching, startLive, watchAway, watchBack } from './live';
+import '../style.css';
+import { barSlot, setConn, soundButton } from '../frame';
+import { apiFromSocket, showWatchers, showWatching, startLive, watchAway, watchBack } from '../live';
 import './mines.css';
 import type { ClientMessage, ErrorCode, Lobby, RunEvent, RunState, ServerMessage, StartRefusal } from './protocol';
 

@@ -17,15 +17,15 @@ player can see, so nothing in the page or its dev tools gives away where the min
 
 ## How a player gets to a game
 
-Either way, the game page is opened with a link like
-`https://<this site>/games/<game>/#t=<token>&s=wss://<bot>/<game>`. The token is signed, good for 2
-hours, and lets that member play in that server; it and the bot's address ride after the `#`,
-which browsers never send to Vercel.
+Log in with Discord on the front page (the bot does the login, at `VITE_API_URL`), pick a server
+and press Play. The login is kept in the browser for a week. `k!mines` and `k!pinecraft` in
+Discord post a button to the front page that anyone can press, like `/?play=mines&guild=<server>`:
+the front page logs them in if need be and opens that game in that server.
 
-- **From the front page:** log in with Discord (the bot does the login, at `VITE_API_URL`), pick a
-  server and press Play. The login is kept in the browser for a week.
-- **From Discord:** `k!pinecraft`, or `k!mine` (`k!mine 100 3` starts a round with 3 mines straight away), posts a
-  message with an Open button. Pressing it (only that member can) replies privately with the link.
+Play opens the game page with a link like `https://<this site>/games/<game>/#t=<token>&s=wss://<bot>/<game>`.
+The token is signed, good for 2 hours, and lets that member play in that server; it and the bot's
+address ride after the `#`, which browsers never send to Vercel. A link with `#w=` instead is a
+watch link: it opens someone else's game, watch-only (the online list's Watch button).
 
 ## Develop
 
@@ -62,6 +62,7 @@ Any square size works.
 - `games/pinecraft/index.html`, `src/pinecraft/`: Pinecraft. `protocol.ts` is a copy of the bot's
   `src/web/pinecraft-protocol.ts` (change both together), `draw.ts` draws the world, `textures.ts`
   the blocks.
-- `games/mines/index.html`, `src/main.ts`, `src/mines.css`, `src/protocol.ts`: Mines.
-  `src/protocol.ts` is a copy of the bot's `src/web/mine-protocol.ts`.
+- `games/mines/index.html`, `src/mines/`: Mines. `protocol.ts` is a copy of the bot's
+  `src/web/mines-protocol.ts` (change both together).
+- `src/frame.ts`: the blue frame round a game. `src/live.ts`: who's online, and watching.
 - `src/style.css`: styles shared by every page.
