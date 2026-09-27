@@ -1,5 +1,6 @@
 import '../style.css';
 import './hub.css';
+import { startLive } from '../live';
 
 /*
  * The front page: log in with Discord, pick a server, pick a game. The bot does the logging in
@@ -211,4 +212,11 @@ if (!API) {
   } else if (code && state) void finishLogin(code, state);
   else if (session) void loadMe();
   else showLogin();
+  // Who's on the site in the server picked, by the profile (once logged in). Asking counts as being here.
+  startLive({
+    mount: ui.me,
+    api: API,
+    auth: () => (session && server ? `Bearer ${session}` : null),
+    query: () => (server ? `?guild=${encodeURIComponent(server)}` : ''),
+  });
 }

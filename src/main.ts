@@ -1,5 +1,6 @@
 import './style.css';
-import { setConn, soundButton } from './frame';
+import { barSlot, setConn, soundButton } from './frame';
+import { apiFromSocket, showWatchers, showWatching, startLive } from './live';
 import './mines.css';
 import type { ClientMessage, ErrorCode, Lobby, RunEvent, RunState, ServerMessage, StartRefusal } from './protocol';
 
@@ -86,8 +87,13 @@ function coin(): HTMLImageElement {
 // The link
 
 const params = new URLSearchParams(location.hash.slice(1));
-const token = params.get('t');
+/** A link to play has t=, a link to watch someone play has w= (watch-only: nothing here can be pressed). */
+const watchToken = params.get('w');
+const watching = watchToken !== null;
+const token = params.get('t') ?? watchToken;
 const server = params.get('s');
+/** Whose game this page watches, once the bot has said. */
+let watched = '';
 
 function showMessage(title: string, text: string): void {
   ui.messageTitle.textContent = title;
@@ -156,7 +162,7 @@ function renderBoard(): void {
       tile.innerHTML = seen === 'gem' ? GEM_SVG : seen === 'mine' ? MINE_SVG : '';
       tile.dataset.shows = seen ?? '';
     }
-    tile.disabled = !playing() || shown || pending !== null;
+    tile.disabled = watching || !playing() || shown || pending !== null;
   });
 
   // How the round ended.
@@ -176,10 +182,10 @@ function renderBoard(): void {
 
 function renderPanel(): void {
   const live = playing();
-  const busy = pending !== null;
+  const busy = pending !== null || watching;
   const inputs = [ui.bet, ui.mines, ...document.querySelectorAll<HTMLButtonElement>('[data-bet]')];
   for (const el of inputs) el.disabled = live || busy || !lobby;
-  ui.random.hidden = !live;
+  ui.random.hidden = !live || watching;
   ui.random.disabled = busy;
   if (live && run) {
     ui.action.textContent = run.gems === 0 ? 'Cash out' : `Cash out ${points(run.cashOut)}`;
@@ -199,6 +205,7 @@ function renderPanel(): void {
     ui.maxPayout.textContent = maxPayoutText(Math.floor(Number(ui.bet.value)), Number(ui.mines.value));
     ui.idle.hidden = true;
   }
+  if (watching) ui.action.textContent = watched ? `Watching ${watched}` : 'Watching';
 }
 
 function render(): void {
@@ -269,6 +276,8 @@ const ERRORS: Record<ErrorCode, [string, string]> = {
   bad_token: ['This link has run out', 'Open the mine again from the games page or from Discord for a new one.'],
   replaced: ['Opened somewhere else', 'The mine is open in another tab or window. Only one can play at a time.'],
   bad_message: ['Disconnected', 'The bot could not understand this page. Try reloading.'],
+  not_playing: ['Nobody to watch', "They aren't playing Mines right now. Pick someone else from the online list."],
+  full: ['Too many watching', 'As many people as can are already watching them. Try again in a bit.'],
 };
 
 function send(message: ClientMessage): boolean {
@@ -278,7 +287,7 @@ function send(message: ClientMessage): boolean {
 }
 
 function startRound(): void {
-  if (!lobby || playing() || pending) return;
+  if (watching || !lobby || playing() || pending) return;
   const bet = Math.floor(Number(ui.bet.value));
   if (!Number.isFinite(bet) || bet < 1) return showError('Type how much to bet.');
   seq += 1;
@@ -290,7 +299,7 @@ function startRound(): void {
 }
 
 function pick(index: number | 'random'): void {
-  if (!playing() || pending) return;
+  if (watching || !playing() || pending) return;
   seq += 1;
   if (!send({ t: 'pick', index, seq })) return;
   pending = { seq, index };
@@ -299,7 +308,7 @@ function pick(index: number | 'random'): void {
 }
 
 function cashOut(): void {
-  if (!playing() || pending || !run || run.gems === 0) return;
+  if (watching || !playing() || pending || !run || run.gems === 0) return;
   seq += 1;
   if (!send({ t: 'cashout', seq })) return;
   pending = { seq };
@@ -352,8 +361,21 @@ function receive(message: ServerMessage): void {
       showError(refusalText(message));
       render();
       return;
+    case 'watching':
+      watched = message.player;
+      showWatching(watched);
+      render();
+      return;
+    case 'watchers':
+      showWatchers(message.count);
+      return;
+    case 'away':
+      showWatching(watched, true);
+      return;
     case 'state': {
-      const picked = message.seq !== 0 && pending?.seq === message.seq;
+      // Watching, every pick is theirs: its sound plays too. And they're back if they were away.
+      const picked = watching ? message.event !== undefined : message.seq !== 0 && pending?.seq === message.seq;
+      if (watching && watched) showWatching(watched);
       if (message.seq === 0 || pending?.seq === message.seq) pending = null;
       run = message.state;
       setBalance(message.state.balance);
@@ -372,7 +394,7 @@ function connect(): void {
   ws.addEventListener('open', () => {
     retries = 0;
     setConn('Connected', 'ok');
-    send({ t: 'hello', token });
+    send(watching ? { t: 'watch', token } : { t: 'hello', token });
   });
   ws.addEventListener('message', (e) => {
     try {
@@ -418,7 +440,7 @@ window.addEventListener('keydown', (e) => {
 
 // A round left alone cashes out by itself: say so when it's getting close.
 setInterval(() => {
-  if (!playing() || !run) return;
+  if (watching || !playing() || !run) return;
   const left = Math.ceil((run.idleMs - (performance.now() - lastActivity)) / 1000);
   ui.idle.hidden = left > 15;
   if (!ui.idle.hidden) ui.idle.textContent = `💤 Cashing out by itself in ${Math.max(0, left)}s unless you pick a tile.`;
@@ -433,4 +455,6 @@ if (!token || !server) {
   showMessage('Open this from the games page', 'Log in on the games page and pick Mines, or use the mine command in Discord.');
 } else {
   connect();
+  // Who else is on the site, and a way to watch them (asked with this page's own link).
+  startLive({ mount: barSlot(), api: apiFromSocket(server), auth: () => `Game ${token}`, newTab: !watching });
 }

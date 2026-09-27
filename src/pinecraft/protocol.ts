@@ -20,12 +20,23 @@
  *   bot -> page   state    the world around the miner, after the page's move `seq` (0: not after one)
  *                 map      the map asked for
  *                 error    and the bot closes the connection
+ *
+ * Watching: a watch-only page says `watch` with the token from its watch link instead of `hello`,
+ * and is then sent everything the player's page is sent about the game (not their errors), starting
+ * with `watching` (whose game it is) and the world as it is. `away` says the player's page went away
+ * (it may come back); `breaking` says they started on a block. A watcher can ask for the player's
+ * `map` too. The player is sent `watchers` whenever how many are watching changes.
  */
 
 export type Direction = 'up' | 'down' | 'left' | 'right';
 export type PinecraftOre = 'coal' | 'iron' | 'gold' | 'diamond' | 'emerald' | 'ruby';
 
-export type ClientMessage = { t: 'hello'; token: string } | { t: 'mine'; dir: Direction } | { t: 'map' } | { t: 'move'; dir: Direction; seq: number };
+export type ClientMessage =
+  | { t: 'hello'; token: string }
+  | { t: 'watch'; token: string }
+  | { t: 'mine'; dir: Direction }
+  | { t: 'map' }
+  | { t: 'move'; dir: Direction; seq: number };
 
 export interface WorldState {
   /** The player's name. */
@@ -81,7 +92,10 @@ export type ErrorCode =
   /** A message that isn't one of the above, or too many of them. */
   | 'bad_message'
   /** The world couldn't be loaded or saved. */
-  | 'failed';
+  | 'failed'
+  /** Watching: the player isn't playing (any more), or has as many watching as can. */
+  | 'not_playing'
+  | 'full';
 
 /** Everything the miner has uncovered: the blocks from (left, top), one string per row, with the same letters as the state's rows. */
 export interface WorldMap {
@@ -93,4 +107,8 @@ export interface WorldMap {
 export type ServerMessage =
   | { t: 'state'; seq: number; state: WorldState; event?: WorldEvent }
   | { t: 'map'; map: WorldMap }
-  | { t: 'error'; code: ErrorCode };
+  | { t: 'error'; code: ErrorCode }
+  | { t: 'watching'; player: string }
+  | { t: 'watchers'; count: number }
+  | { t: 'away' }
+  | { t: 'breaking'; dir: Direction };

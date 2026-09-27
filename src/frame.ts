@@ -53,3 +53,13 @@ export function soundButton(key: string, onChange: (muted: boolean) => void): vo
   render();
   onChange(muted);
 }
+
+/** A place in the title bar, before the sound button, for something more (the online button, live.ts). */
+export function barSlot(): HTMLElement {
+  const slot = document.createElement('span');
+  slot.className = 'frame-slot';
+  const mute = document.getElementById('mute');
+  if (mute) mute.before(slot);
+  else document.querySelector('.frame > .top')?.append(slot);
+  return slot;
+}

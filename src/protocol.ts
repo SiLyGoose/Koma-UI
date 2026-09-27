@@ -17,10 +17,16 @@
  *                 state    the round as it is now, after the page's message `seq` (0: not after one)
  *                 refused  a start that couldn't happen, and why (nothing was taken)
  *                 error    and the bot closes the connection
+ *
+ * Watching (live.ts): a watch-only page says `watch` with the token from its watch link instead of
+ * `hello`, and is then sent everything the player's page is sent about the game (not their errors),
+ * starting with `watching` (whose game it is) and the game as it is. `away` says the player's page
+ * went away (it may come back). The player is sent `watchers` whenever how many are watching changes.
  */
 
 export type ClientMessage =
   | { t: 'hello'; token: string }
+  | { t: 'watch'; token: string }
   | { t: 'start'; bet: number | 'all'; mines: number; seq: number }
   | { t: 'pick'; index: number | 'random'; seq: number }
   | { t: 'cashout'; seq: number };
@@ -80,7 +86,10 @@ export type ErrorCode =
   /** The page was opened somewhere else (another tab): only one plays at a time. */
   | 'replaced'
   /** A message that isn't one of the above, or too many of them. */
-  | 'bad_message';
+  | 'bad_message'
+  /** Watching: the player isn't playing (any more), or has as many watching as can. */
+  | 'not_playing'
+  | 'full';
 
 /** No round going: what the lobby needs to start one. */
 export interface Lobby {
@@ -112,4 +121,7 @@ export type ServerMessage =
   | { t: 'lobby'; lobby: Lobby }
   | { t: 'state'; seq: number; state: RunState; event?: RunEvent }
   | ({ t: 'refused'; seq: number } & StartRefusal)
-  | { t: 'error'; code: ErrorCode };
+  | { t: 'error'; code: ErrorCode }
+  | { t: 'watching'; player: string }
+  | { t: 'watchers'; count: number }
+  | { t: 'away' };

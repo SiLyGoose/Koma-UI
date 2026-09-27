@@ -1,5 +1,6 @@
 import '../style.css';
-import { setConn, soundButton } from '../frame';
+import { barSlot, setConn, soundButton } from '../frame';
+import { apiFromSocket, showWatchers, showWatching, startLive } from '../live';
 import './pinecraft.css';
 import { burst, cellAt, drawMap, drawScene, isBedrock, isOpenCell, ORE_OF, stepParticles, type Scene } from './draw';
 import type { ClientMessage, Direction, ErrorCode, PinecraftOre, ServerMessage, WorldEvent, WorldMap, WorldState } from './protocol';
@@ -70,8 +71,13 @@ const clock = (ms: number): string => {
 // The link
 
 const params = new URLSearchParams(location.hash.slice(1));
-const token = params.get('t');
+/** A link to play has t=, a link to watch someone play has w= (watch-only: the keys and joystick do nothing). */
+const watchToken = params.get('w');
+const watching = watchToken !== null;
+const token = params.get('t') ?? watchToken;
 const server = params.get('s');
+/** Whose world this page watches, once the bot has said. */
+let watched = '';
 
 function showMessage(title: string, text: string): void {
   ui.messageTitle.textContent = title;
@@ -264,6 +270,8 @@ const ERRORS: Record<ErrorCode, [string, string]> = {
   replaced: ['Opened somewhere else', 'Pinecraft is open in another tab or window. Only one can play at a time.'],
   bad_message: ['Disconnected', 'The bot could not understand this page. Try reloading.'],
   failed: ['Something went wrong', 'Your mine could not be loaded or saved. Try again in a moment.'],
+  not_playing: ['Nobody to watch', "They aren't playing Pinecraft right now. Pick someone else from the online list."],
+  full: ['Too many watching', 'As many people as can are already watching them. Try again in a bit.'],
 };
 
 function send(message: ClientMessage): void {
@@ -283,6 +291,16 @@ function receive(message: ServerMessage): void {
     if (mapOpen) renderMap();
     return;
   }
+  if (message.t === 'watchers') return showWatchers(message.count);
+  if (message.t === 'watching') {
+    watched = message.player;
+    showWatching(watched);
+    ui.log.textContent = `Watching ${watched} dig`;
+    return;
+  }
+  if (message.t === 'away') return showWatching(watched, true);
+  if (message.t === 'breaking') return watchBreaking(message.dir);
+  if (watching) return watchState(message.state, message.event);
   const answersDig = pendingDig !== null && message.seq === pendingDig.seq;
   // Answers to walks the page already made are behind it; only the latest (or a fresh start) moves the miner.
   const moveMiner = message.seq === 0 || message.seq === seq;
@@ -306,6 +324,39 @@ function receive(message: ServerMessage): void {
   }, wait);
 }
 
+/** Watching: the player started on a block. Its cracks grow as theirs do (until the bot says how it went). */
+let watchBreak: ReturnType<typeof setTimeout> | null = null;
+function watchBreaking(dir: Direction): void {
+  if (!scene) return;
+  const { state } = scene;
+  const x = state.x + STEP[dir][0];
+  const y = state.y + STEP[dir][1];
+  const now = performance.now();
+  const takes = breakTime(cellAt(scene, x, y));
+  if (dir === 'left' || dir === 'right') scene.facing = dir === 'left' ? -1 : 1;
+  scene.digging = { x, y, since: now, takes };
+  scene.swing = { since: now, dir };
+  // They let go before it broke: the cracks go a moment after it would have.
+  if (watchBreak) clearTimeout(watchBreak);
+  watchBreak = setTimeout(() => {
+    if (scene?.digging?.x === x && scene.digging.y === y) {
+      scene.digging = null;
+      scene.swing = null;
+    }
+  }, takes + 1500);
+}
+
+/** Watching: the bot's word on the player's world. The miner goes where it says, and a dig is where they now stand. */
+function watchState(state: WorldState, event: WorldEvent | undefined): void {
+  if (watched) showWatching(watched);
+  if (scene && state.x !== scene.state.x) scene.facing = state.x < scene.state.x ? -1 : 1;
+  if (scene) {
+    scene.digging = null;
+    scene.swing = null;
+  }
+  apply(state, event, true, event?.kind === 'dig' ? { x: state.x, y: state.y } : null);
+}
+
 function connect(): void {
   if (!token || !server) return;
   setConn(retries === 0 ? 'Connecting…' : 'Reconnecting…', '');
@@ -314,7 +365,7 @@ function connect(): void {
   ws.addEventListener('open', () => {
     retries = 0;
     setConn('Connected', 'ok');
-    send({ t: 'hello', token });
+    send(watching ? { t: 'watch', token } : { t: 'hello', token });
   });
   ws.addEventListener('message', (e) => {
     try {
@@ -399,7 +450,7 @@ function refuse(x: number, y: number): void {
 let startTip: string | null = null;
 
 function move(dir: Direction): void {
-  if (!scene || pendingDig !== null || socket?.readyState !== WebSocket.OPEN) return;
+  if (watching || !scene || pendingDig !== null || socket?.readyState !== WebSocket.OPEN) return;
   if (startTip !== null && ui.log.textContent === startTip) ui.log.textContent = '';
   startTip = null;
   const { state } = scene;
@@ -657,4 +708,6 @@ if (!token || !server) {
   loadSounds();
   connect();
   requestAnimationFrame(frame);
+  // Who else is on the site, and a way to watch them (asked with this page's own link).
+  startLive({ mount: barSlot(), api: apiFromSocket(server), auth: () => `Game ${token}`, newTab: !watching });
 }
