@@ -4,9 +4,9 @@ import type { PinecraftOre } from './protocol';
  * The pictures of Pinecraft's blocks. Dirt and stone are drawings in public/pinecraft/blocks. An
  * ore uses public/pinecraft/blocks/<ore>.png when there is one (coal.png, iron.png, gold.png,
  * diamond.png, ruby.png, emerald.png), and until then a stand-in drawn here: stone with gems of the
- * ore's colour in it. Bedrock is made from the stone. A block being broken has
- * public/pinecraft/cracks/crack_01.png to crack_04.png over it, more cracked the closer it is to
- * breaking.
+ * ore's colour in it. Bedrock is public/pinecraft/blocks/bedrock.png (made from the stone if it's
+ * missing). A block being broken has public/pinecraft/cracks/crack_01.png to crack_04.png over it,
+ * more cracked the closer it is to breaking.
  */
 
 export type BlockTexture = 'dirt' | 'stone' | 'bedrock' | PinecraftOre;
@@ -65,7 +65,7 @@ function load(path: string): Promise<HTMLImageElement | null> {
   });
 }
 
-/** Stone, darker and bluish, with a few cracks: it can't be broken. */
+/** A stand-in for bedrock.png: stone, darker and bluish, with a few cracks (it can't be broken). */
 function bedrock(stone: CanvasImageSource): HTMLCanvasElement {
   const [c, g] = canvas();
   g.drawImage(stone, 0, 0, SIZE, SIZE);
@@ -120,12 +120,17 @@ export async function loadTextures(): Promise<void> {
   textures.set('dirt', flat(FLAT.dirt));
   textures.set('stone', flat(FLAT.stone));
   const cracks = Promise.all([1, 2, 3, 4].map((k) => load(`pinecraft/cracks/crack_0${k}.png`)));
-  const [dirt, stone, ...ores] = await Promise.all([load('pinecraft/blocks/dirt.png'), load('pinecraft/blocks/stone.png'), ...ORES.map((ore) => load(`pinecraft/blocks/${ore}.png`))]);
+  const [dirt, stone, bedrockImg, ...ores] = await Promise.all([
+    load('pinecraft/blocks/dirt.png'),
+    load('pinecraft/blocks/stone.png'),
+    load('pinecraft/blocks/bedrock.png'),
+    ...ORES.map((ore) => load(`pinecraft/blocks/${ore}.png`)),
+  ]);
   crackImages.push(...(await cracks));
   const dirtImg = dirt ?? (textures.get('dirt') as CanvasImageSource);
   const stoneImg = stone ?? (textures.get('stone') as CanvasImageSource);
   textures.set('dirt', dirtImg);
   textures.set('stone', stoneImg);
-  textures.set('bedrock', bedrock(stoneImg));
+  textures.set('bedrock', bedrockImg ?? bedrock(stoneImg));
   ORES.forEach((ore, k) => textures.set(ore, ores[k] ?? oreStandIn(stoneImg, ore)));
 }

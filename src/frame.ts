@@ -85,6 +85,36 @@ async function showProfile(): Promise<void> {
   ]);
   profile.classList.add('frame-profile');
   bar.append(profile);
+  onPhonesInProfile(profile);
+}
+
+/**
+ * On a phone the bar is short of room: the connection and the online button move to the top of
+ * the profile's drop-down, and back to the bar on a wider screen.
+ */
+function onPhonesInProfile(profile: HTMLElement): void {
+  const list = profile.querySelector('.account-menu');
+  const conn = document.getElementById('conn');
+  if (!list || !conn) return;
+  const extra = document.createElement('li');
+  extra.className = 'frame-extra';
+  list.prepend(extra);
+  const phone = matchMedia('(max-width: 640px)');
+  const place = (): void => {
+    // The online button (live.ts, in barSlot) may not be there yet, or at all.
+    const live = document.querySelector('.frame-slot');
+    extra.hidden = !phone.matches;
+    profile.classList.toggle('frame-profile-extra', phone.matches);
+    if (phone.matches) {
+      extra.append(conn);
+      if (live) extra.append(live);
+    } else {
+      profile.before(conn);
+      if (live) document.getElementById('mute')?.before(live);
+    }
+  };
+  place();
+  phone.addEventListener('change', place);
 }
 
 void showProfile();

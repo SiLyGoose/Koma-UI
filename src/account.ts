@@ -106,6 +106,8 @@ export function dropdown(button: HTMLButtonElement, items: MenuItem[]): HTMLElem
     button.setAttribute('aria-expanded', 'true');
     openMenus.add(close);
   });
+  // A click inside the list isn't one "anywhere else" (its items close it themselves).
+  list.addEventListener('click', (e) => e.stopPropagation());
   for (const item of items) {
     const li = el('li', '');
     const link = el('a', 'account-item');

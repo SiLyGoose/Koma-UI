@@ -75,3 +75,44 @@
   margin: 0 8px 0 10px;
   border-color: rgba(255, 255, 255, 0.75);
 }
+
+/* On a phone: the connection and the online button at the top of the profile's drop-down (frame.ts). */
+.frame-profile-extra .account-menu {
+  width: min(320px, calc(100vw - 16px));
+}
+
+.frame-extra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  padding: 4px 16px 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.frame-extra .conn,
+.frame-extra .live-button {
+  background: var(--panel-3);
+}
+
+.frame-extra .live {
+  margin-right: 0;
+}
+
+/* Its list opens inside the drop-down, under the button, rather than floating. */
+.frame-extra .frame-slot,
+.frame-extra .live {
+  display: contents;
+}
+
+.frame-extra .live-panel {
+  position: static;
+  flex: 1 1 100%;
+  width: auto;
+  max-height: 45vh;
+  padding: 4px 0 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}

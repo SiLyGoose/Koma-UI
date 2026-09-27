@@ -271,6 +271,8 @@ let socket: WebSocket | null = null;
 let seq = 0;
 let finished = false;
 let retries = 0;
+/** The longest wait between tries to reconnect. */
+const RETRY_MAX_MS = 5000;
 
 const ERRORS: Record<ErrorCode, [string, string]> = {
   bad_token: ['This link has run out', 'Open the mine again from the games page or from Discord for a new one.'],
@@ -414,15 +416,12 @@ function connect(): void {
   ws.addEventListener('close', () => {
     if (socket === ws) socket = null;
     if (finished) return;
-    // Dropped (a phone asleep, a network blip): try again a few times, waiting longer each time.
+    // Dropped (a phone asleep, a network blip, the bot restarting).
     pending = null;
     render();
-    if (retries >= 6) {
-      setConn('Disconnected', 'bad');
-      showMessage('Lost the connection', 'Reload this page, or open the mine again for a new link.');
-      return;
-    }
-    const wait = Math.min(8000, 500 * 2 ** retries++);
+    // Keep trying for as long as the page is open (the bot may be restarting, which takes a moment),
+    // waiting longer each time, up to RETRY_MAX_MS between tries.
+    const wait = Math.min(RETRY_MAX_MS, 500 * 2 ** retries++);
     setConn('Reconnecting…', 'bad');
     setTimeout(connect, wait);
   });
