@@ -1,11 +1,13 @@
 import { sleep, sound, startTable } from '../table/table';
 import './baccarat.css';
 import type { BaccaratExtras, BaccaratRoundView, Card, RoundView, Spot } from './protocol';
+import { drawRoads } from './scoreboard';
 
 /*
  * Baccarat in the browser, at a shared table (../table/table.ts does the table: the chips, the
  * players, the countdown and the bot). This is the felt: the two hands, dealt out card by card when
- * the round is dealt, and the five spots the chips go on.
+ * the round is dealt, and the five spots the chips go on. Under it, the table's scoreboard
+ * (scoreboard.ts).
  */
 
 const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T;
@@ -52,6 +54,8 @@ function cardEl(card: Card, third: boolean): HTMLElement {
   return el;
 }
 
+drawRoads();
+
 startTable<Spot, BaccaratRoundView, BaccaratExtras>({
   name: 'baccarat',
   title: 'Baccarat',
@@ -85,10 +89,13 @@ startTable<Spot, BaccaratRoundView, BaccaratExtras>({
       });
       ui.totals[side].textContent = String(handTotal(round[side]));
     }
+    drawRoads(round.history);
   },
 
   /** Deals the round out on the table, card by card. */
   async animate(round: RoundView, current: () => boolean) {
+    // The scoreboard gets this hand once it's been dealt out (in reveal). (No history: a bot from before the scoreboard.)
+    drawRoads((round.history ?? []).slice(0, -1));
     const dealt = { player: [] as Card[], banker: [] as Card[] };
     for (const [i, side] of round.order.entries()) {
       // Two cards each first; then a pause, so the third card (if the rules call for one) comes on its own.
@@ -106,6 +113,7 @@ startTable<Spot, BaccaratRoundView, BaccaratExtras>({
   },
 
   reveal(round: RoundView) {
+    drawRoads(round.history, true);
     const { winner } = round;
     if (winner !== 'tie') ui.hands[winner].classList.add('winner');
     ui.verdict.textContent = winner === 'tie' ? 'TIE' : `${SPOT_NAME[winner].toUpperCase()} WINS`;

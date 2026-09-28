@@ -22,6 +22,8 @@ export interface BaccaratRoundView {
   bankerTotal: number;
   winner: 'player' | 'banker' | 'tie';
   natural: boolean;
+  /** The table's last hands, oldest first and this one last, as short codes like "B7pn" (see roads.ts's parseHand). */
+  history: string[];
 }
 
 export interface BaccaratExtras {

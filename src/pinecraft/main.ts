@@ -176,7 +176,7 @@ function renderHud(state: WorldState): void {
   }
 }
 
-/** What each block pays, in the tooltip over "Earned": dirt and stone (their block pictures), then the ores. */
+/** What each block pays, in the tooltip over "Earned": dirt and stone (their block pictures), then the ores, cheapest first. */
 function renderOreTip(state: WorldState): void {
   ui.oreTip.textContent = '';
   for (const block of ['dirt', 'stone'] as const) {
@@ -193,7 +193,9 @@ function renderOreTip(state: WorldState): void {
     value.textContent = `+${points(state.values[block] ?? 0)}`;
     ui.oreTip.append(name, value);
   }
-  for (const ore of ORES) {
+  // Cheapest first, by what each pays now (the values are settings, so the order can change); ties keep ORES' order.
+  const byValue = [...ORES].sort((a, b) => (state.values[a] ?? 0) - (state.values[b] ?? 0));
+  for (const ore of byValue) {
     const name = document.createElement('span');
     name.className = 'pc-tip-ore';
     name.textContent = ORE_NAME[ore];
