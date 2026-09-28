@@ -1,6 +1,6 @@
 /*
  * What a shared-table game's page (baccarat, roulette) and the bot say to each other over the
- * WebSocket. A copy of the bot's src/web/table-protocol.ts (the Koma repo): change both together.
+ * WebSocket. A copy of the bot's src/web/table/protocol.ts (the Koma repo): change both together.
  * See there for how it goes. Each game fills in its spots (`S`), its round (`R`) and anything else it
  * puts on the table (`X`).
  */

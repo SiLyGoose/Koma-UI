@@ -1,7 +1,7 @@
 /*
  * What this page and the bot say to each other over the WebSocket: the shared tables' messages
  * (../table/protocol.ts), with baccarat's spots, round and payouts. A copy of the bot's
- * src/web/baccarat-protocol.ts (the Koma repo): change both together.
+ * src/web/baccarat/protocol.ts (the Koma repo): change both together.
  */
 
 import type * as table from '../table/protocol';

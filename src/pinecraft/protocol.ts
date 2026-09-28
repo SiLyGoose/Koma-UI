@@ -1,7 +1,7 @@
 
 /*
  * What this page and the Koma bot say to each other over Pinecraft's WebSocket. A copy of the bot's
- * src/web/pinecraft-protocol.ts (in the Koma repo): change both together.
+ * src/web/pinecraft/protocol.ts (in the Koma repo): change both together.
  *
  * The bot holds the world. The page is sent the blocks around the miner, one string per row and a
  * letter per block:

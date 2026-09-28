@@ -1,7 +1,7 @@
 /*
  * What this page and the bot say to each other over the WebSocket: the shared tables' messages
  * (../table/protocol.ts), with roulette's spots and round. A copy of the bot's
- * src/web/roulette-protocol.ts (the Koma repo): change both together.
+ * src/web/roulette/protocol.ts (the Koma repo): change both together.
  *
  * A spot is an outside bet ('red', 'black', 'odd', 'even', 'low', 'high', 'dozen1'-'dozen3',
  * 'column1'-'column3'), or the numbers an inside bet covers, smallest first, joined with "-"
