@@ -10,7 +10,7 @@ import { startLive } from '../live';
  * browser. Picking a game asks the bot for a link to it, like the ones handed out in Discord.
  */
 
-type Game = 'mines' | 'pinecraft' | 'baccarat';
+type Game = 'mines' | 'pinecraft' | 'baccarat' | 'roulette';
 
 interface Me {
   user: { id: string; name: string; avatar: string };
@@ -218,7 +218,7 @@ if (!API) {
   const query = new URLSearchParams(location.search);
   // A link to a game (from Discord): remember it through the login, and tidy the address.
   const play = query.get('play');
-  if (play === 'mines' || play === 'pinecraft' || play === 'baccarat') {
+  if (play === 'mines' || play === 'pinecraft' || play === 'baccarat' || play === 'roulette') {
     store.set(sessionStorage, PLAY_KEY, JSON.stringify({ game: play, guild: query.get('guild') }));
     history.replaceState(null, '', location.pathname);
   }

@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="robots" content="noindex" />
+    <title>Koma Roulette</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎡</text></svg>" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" />
+  </head>
+  <body>
+    <main id="app" class="frame tb rl">
+      <header class="top">
+        <a class="back" href="/" aria-label="Back to the games">←</a>
+        <h1>🎡 Roulette <span id="table-no" class="tb-table-no"></span></h1>
+        <button type="button" id="mute" class="frame-mute" aria-label="Turn sound off" aria-pressed="false">🔊</button>
+        <span id="conn" class="conn">Connecting…</span>
+      </header>
+
+      <div class="tb-layout">
+        <div class="tb-game">
+          <section class="tb-felt rl-felt" id="felt">
+            <!-- The wheel (src/roulette/main.ts draws it), how the round went, and the last numbers. -->
+            <div class="rl-top">
+              <div class="rl-wheel" id="wheel"><span id="wheel-number" class="rl-wheel-number"></span></div>
+              <div class="rl-mid">
+                <div id="result" class="tb-result" hidden>
+                  <b id="result-title"></b>
+                  <span id="result-text"></span>
+                </div>
+                <div class="rl-recent" id="recent" aria-label="The last numbers"></div>
+              </div>
+            </div>
+
+            <!-- The board: chips are dragged (or tapped) onto its numbers, the lines between them, and the outside bets. -->
+            <div class="rl-board" id="board"></div>
+          </section>
+
+          <!-- The rack of chips, and what to do with them (../../src/table/table.ts fills it in). -->
+          <section class="tb-panel" data-table-panel></section>
+        </div>
+
+        <!-- Everyone at the table. -->
+        <aside class="tb-players" data-table-players></aside>
+      </div>
+
+      <p class="hint">Drag chips onto a number, the line between two, a corner of four, or the outside bets · Right-click a spot to take your chips back · The wheel is spun when the timer runs out, or once everyone presses Spin</p>
+    </main>
+
+    <div id="message" class="message" hidden>
+      <div class="message-card">
+        <div class="message-title" id="message-title"></div>
+        <div class="message-text" id="message-text"></div>
+        <a class="message-link" href="/">Go to the games</a>
+      </div>
+    </div>
+
+    <script type="module" src="/src/roulette/main.ts"></script>
+  </body>
+</html>

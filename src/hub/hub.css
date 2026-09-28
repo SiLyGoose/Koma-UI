@@ -333,6 +333,28 @@
   color: #d0343a;
 }
 
+/* Roulette: a wheel on green felt (no picture needed): 38 pockets round a wooden hub. */
+.roulette-art {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: radial-gradient(ellipse at 50% 40%, #2f8552, #1b5234 70%, #123c26);
+}
+
+.roulette-art-wheel {
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, #e9c25c 0 9%, #6b4423 10% 38%, transparent 39%),
+    conic-gradient(#2f9e58 0 9.47deg, transparent 9.47deg 180deg, #2f9e58 180deg 189.47deg, transparent 189.47deg),
+    repeating-conic-gradient(from 9.47deg, #d0343a 0 9.47deg, #1d1d22 9.47deg 18.95deg);
+  box-shadow:
+    0 0 0 6px #4a2e17,
+    0 8px 18px rgba(0, 0, 0, 0.5);
+  transform: rotate(-4.74deg);
+}
+
 .game-body {
   padding: 14px 16px 16px;
   display: flex;

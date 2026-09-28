@@ -12,6 +12,7 @@ export default defineConfig({
         mines: resolve(import.meta.dirname, 'games/mines/index.html'),
         pinecraft: resolve(import.meta.dirname, 'games/pinecraft/index.html'),
         baccarat: resolve(import.meta.dirname, 'games/baccarat/index.html'),
+        roulette: resolve(import.meta.dirname, 'games/roulette/index.html'),
       },
     },
   },
