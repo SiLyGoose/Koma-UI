@@ -12,19 +12,28 @@ export interface Card {
   suit: Suit;
 }
 
-export type ClientMessage = { t: 'hello'; token: string } | { t: 'watch'; token: string } | { t: 'deal'; bets: Bets; seq: number };
+export type ClientMessage = { t: 'hello'; token: string } | { t: 'watch'; token: string } | { t: 'bets'; bets: Bets; seq: number };
 
-export interface Table {
-  player: string;
+export interface SettledView {
+  spot: Spot;
+  amount: number;
+  outcome: 'win' | 'push' | 'lose';
+  returned: number;
+}
+
+export interface SeatView {
+  userId: string;
+  name: string;
+  avatar: string;
   balance: number;
-  minBet: number;
-  maxBet: number;
-  chips: number[];
-  payouts: Record<Spot, number>;
+  bets: Bets;
+  result: { bets: SettledView[]; bet: number; payout: number; net: number } | null;
+  refused: boolean;
   lastBets: Bets | null;
 }
 
 export interface RoundView {
+  no: number;
   player: Card[];
   banker: Card[];
   order: ('player' | 'banker')[];
@@ -32,21 +41,29 @@ export interface RoundView {
   bankerTotal: number;
   winner: 'player' | 'banker' | 'tie';
   natural: boolean;
-  bets: { spot: Spot; amount: number; outcome: 'win' | 'push' | 'lose'; returned: number }[];
-  bet: number;
-  payout: number;
-  net: number;
-  balance: number;
+}
+
+export interface TableState {
+  table: number;
+  you: string;
+  seats: SeatView[];
+  phase: 'betting' | 'dealing';
+  msLeft: number;
+  round: RoundView | null;
+  minBet: number;
+  maxBet: number;
+  maxSeats: number;
+  chips: number[];
+  payouts: Record<Spot, number>;
 }
 
 export type ErrorCode = 'bad_token' | 'replaced' | 'bad_message' | 'not_playing' | 'full';
 
-export type DealRefusal = { reason: 'too_small' | 'too_big'; limit: number } | { reason: 'too_poor'; balance: number } | { reason: 'busy' };
+export type BetRefusal = { reason: 'too_big'; limit: number } | { reason: 'too_poor'; balance: number } | { reason: 'closed' };
 
 export type ServerMessage =
-  | { t: 'table'; table: Table }
-  | { t: 'round'; seq: number; round: RoundView }
-  | ({ t: 'refused'; seq: number } & DealRefusal)
+  | { t: 'table'; state: TableState }
+  | ({ t: 'refused'; seq: number } & BetRefusal)
   | { t: 'error'; code: ErrorCode }
   | { t: 'watching'; player: string }
   | { t: 'watchers'; count: number }

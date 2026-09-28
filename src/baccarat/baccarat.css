@@ -9,6 +9,9 @@
   --banker: #d8474a;
   --tie: #3fae6a;
   --card-w: 64px;
+  /* The title bar at the top; the game (and the hint under it) in the middle of what's left. */
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
   min-height: 100dvh;
   padding-bottom: 16px;
@@ -16,11 +19,19 @@
   -webkit-user-select: none;
 }
 
+.bc > .bc-layout {
+  margin-top: auto;
+}
+
+.bc > .hint {
+  margin-bottom: auto;
+}
+
 .bc > .top {
   margin-bottom: 16px;
 }
 
-.bc > .bc-game,
+.bc > .bc-layout,
 .bc > .hint {
   width: min(var(--bc-width), 100% - 32px);
   margin-left: auto;
@@ -33,6 +44,24 @@
   border-radius: var(--radius);
   overflow: hidden;
   background: var(--panel);
+}
+
+/* The table, with everyone at it in a list on its right (under it on narrower screens). */
+.bc-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.bc-layout > .bc-game {
+  flex: 1;
+  min-width: 0;
+}
+
+.bc-table-no {
+  color: var(--muted);
+  font-size: 15px;
+  font-weight: 600;
 }
 
 /* ------------------------------------------------------------------ The felt */
@@ -842,9 +871,11 @@
     margin: 6px 6px 0;
   }
 
+  /* The game sits in the middle of the space under the title bar (auto margins above it and below the hint). */
   .bc > .hint {
     margin-top: 6px;
-    margin-bottom: 6px;
+    margin-bottom: auto;
+    padding-bottom: 6px;
   }
 
   .bc-felt {
@@ -950,5 +981,404 @@
 
   .bc-figures b {
     font-size: 20px;
+  }
+}
+
+/* ------------------------------------------------------------------ Shared tables */
+
+/* The last round's cards stay out, faded, while the next one takes bets. */
+.bc-felt.last-round .bc-cards,
+.bc-felt.last-round .bc-total {
+  opacity: 0.45;
+}
+
+.bc-felt.last-round .bc-hand.winner {
+  box-shadow: none;
+  background: transparent;
+}
+
+/* Everyone else's chips on a spot: their picture and how much, in a row above this page's stack. */
+.bc-others {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 4px;
+  max-width: 100%;
+}
+
+.bc-other {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 9px 2px 2px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.5);
+  font-size: 13px;
+  animation: bc-pop-plain 0.2s ease-out;
+}
+
+.bc-other b {
+  font-weight: 800;
+}
+
+.bc-other-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--panel-3);
+}
+
+.bc-other.win {
+  background: rgba(242, 210, 122, 0.85);
+  color: #2a1d06;
+}
+
+.bc-other.lose,
+.bc-other.refused {
+  opacity: 0.4;
+}
+
+.bc-other.push {
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.6);
+}
+
+/* The countdown: a bar that empties as the betting time runs out. */
+.bc-timer {
+  position: relative;
+  overflow: hidden;
+  height: 30px;
+  border-radius: 8px;
+  background: var(--panel);
+  display: grid;
+  place-items: center;
+}
+
+.bc-timer-bar {
+  position: absolute;
+  inset: 0;
+  transform-origin: left;
+  background: linear-gradient(90deg, rgba(63, 174, 106, 0.55), rgba(63, 174, 106, 0.3));
+  transition: transform 0.2s linear;
+}
+
+.bc-timer.soon .bc-timer-bar {
+  background: linear-gradient(90deg, rgba(216, 104, 106, 0.6), rgba(216, 104, 106, 0.3));
+}
+
+.bc-timer-text {
+  position: relative;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.bc-timer.dealing .bc-timer-text {
+  color: var(--gold);
+}
+
+/* Everyone at the table. */
+.bc-players {
+  padding: 14px;
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+
+.bc-players-title {
+  display: flex;
+  justify-content: space-between;
+  margin: 0 0 10px;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.bc-players-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bc-seat {
+  display: grid;
+  grid-template-columns: 40px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--panel-2);
+}
+
+.bc-seat.you {
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+.bc-seat.empty {
+  display: block;
+  padding: 16px 10px;
+  border: 1px dashed var(--line);
+  background: transparent;
+  color: var(--dusk);
+  font-size: 13px;
+  text-align: center;
+}
+
+.bc-seat-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--panel-3);
+}
+
+.bc-seat-text {
+  min-width: 0;
+}
+
+.bc-seat-name {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.bc-seat-name span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bc-you {
+  flex: none;
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 4px;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-size: 10px;
+  vertical-align: 1px;
+}
+
+.bc-seat-balance {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.bc-seat-balance .coin {
+  width: 14px;
+  height: 14px;
+}
+
+.bc-seat-status {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--muted);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.bc-seat-status.down {
+  color: var(--gold);
+}
+
+.bc-seat-status.won {
+  color: var(--green);
+}
+
+.bc-seat-status.lost {
+  color: var(--red);
+}
+
+/* Everyone's chips as stacks: only on a computer (a phone shows its own stack and the others' pictures). */
+.bc-piles {
+  display: none;
+}
+
+.bc-pile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  transition:
+    opacity 0.2s,
+    filter 0.2s;
+}
+
+.bc-pile-chips {
+  --chip-size: 38px;
+  position: relative;
+  width: var(--chip-size);
+  height: calc(var(--chip-size) + (var(--n) - 1) * 7px);
+}
+
+.bc-pile-chips .bc-chip {
+  --size: var(--chip-size);
+  position: absolute;
+  left: 0;
+  bottom: calc(var(--i) * 7px);
+  font-size: 11px;
+}
+
+.bc-pile-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 9px 2px 2px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.55);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.bc-pile-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--panel-3);
+}
+
+/* A spot with more than 4 players' chips: smaller stacks and tags. */
+.bc-piles.crowded {
+  gap: 8px 8px;
+}
+
+.bc-piles.crowded .bc-pile-chips {
+  --chip-size: 30px;
+}
+
+.bc-piles.crowded .bc-pile-chips .bc-chip {
+  font-size: 9px;
+}
+
+.bc-piles.crowded .bc-pile-tag {
+  gap: 3px;
+  padding: 1px 6px 1px 1px;
+  font-size: 11px;
+}
+
+.bc-piles.crowded .bc-pile-avatar {
+  width: 18px;
+  height: 18px;
+}
+
+.bc-pile.mine .bc-pile-tag {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.bc-pile.win .bc-pile-tag {
+  background: rgba(242, 210, 122, 0.9);
+  color: #2a1d06;
+}
+
+.bc-pile.win .bc-pile-chips {
+  filter: drop-shadow(0 0 8px rgba(242, 210, 122, 0.8));
+}
+
+.bc-pile.lose,
+.bc-pile.refused {
+  opacity: 0.38;
+  filter: grayscale(0.6);
+}
+
+.bc-pile.push .bc-pile-tag {
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.7);
+}
+
+/* Computers: a big table, with the list to its right, the two centred together. */
+@media (min-width: 900px) {
+  .bc {
+    --bc-width: 1600px;
+    --card-w: 92px;
+  }
+
+  .bc-layout {
+    flex-direction: row;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 18px;
+  }
+
+  .bc-layout > .bc-game {
+    flex: 0 1 1260px;
+  }
+
+  .bc-players {
+    flex: 0 0 290px;
+    position: sticky;
+    top: 16px;
+  }
+
+  .bc-felt {
+    padding: 34px 40px 38px;
+    gap: 28px;
+  }
+
+  .bc-hands {
+    justify-items: center;
+  }
+
+  .bc-cards {
+    justify-content: center;
+  }
+
+  .bc-spots {
+    gap: 14px;
+  }
+
+  .bc-spot {
+    min-height: 190px;
+    padding: 14px 10px 14px;
+    justify-content: flex-start;
+  }
+
+  .bc-spot.bc-main {
+    min-height: 220px;
+  }
+
+  .bc-spot-name {
+    font-size: 17px;
+  }
+
+  .bc-main .bc-spot-name {
+    font-size: 24px;
+  }
+
+  .bc-spot-odds {
+    font-size: 13px;
+  }
+
+  /* Everyone's stacks along the bottom of the spot, in place of this page's stack and the pictures. */
+  .bc-stack,
+  .bc-others {
+    display: none;
+  }
+
+  .bc-piles {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px 14px;
+    margin-top: auto;
+    padding-top: 10px;
+  }
+
+  .bc-panel {
+    padding: 18px 26px 20px;
+  }
+
+  .bc-rack .bc-chip {
+    --size: 58px;
+  }
+
+  .bc-result b {
+    font-size: 26px;
   }
 }

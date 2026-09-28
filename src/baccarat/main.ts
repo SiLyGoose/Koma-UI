@@ -2,14 +2,19 @@ import '../style.css';
 import { barSlot, setConn, soundButton } from '../frame';
 import { apiFromSocket, showWatchers, showWatching, startLive, watchAway, watchBack } from '../live';
 import './baccarat.css';
-import type { Bets, Card, ClientMessage, DealRefusal, ErrorCode, RoundView, ServerMessage, Spot, Table } from './protocol';
+import type { BetRefusal, Bets, Card, ClientMessage, ErrorCode, RoundView, SeatView, ServerMessage, Spot, TableState } from './protocol';
 
 /*
- * Baccarat in the browser. The link from Discord (or the front page) carries, after the #, the
- * player's token (t) and the bot's WebSocket address (s). Chips are dragged from the rack onto the
- * spots (or a chip is picked and the spots tapped); Deal sends them to the bot, which takes them,
- * deals the round and pays at once. This page then deals the cards out one by one and shows how
- * each bet did. The chips stay on the table for the next round until they're changed.
+ * Baccarat in the browser, at a shared table. The link from Discord (or the front page) carries,
+ * after the #, the player's token (t) and the bot's WebSocket address (s); the bot seats them at a
+ * table with up to four others.
+ *
+ * Each round has a betting time (the bar under the table counts it down). Chips are dragged from
+ * the rack onto the spots (or a chip is picked and the spots tapped), and every change is sent to
+ * the bot, which shows it to the whole table: the other players' chips are on the spots by their
+ * profile pictures, and the list on the right says who is at the table, their balance, and what
+ * they have down. When the time is up the bot deals one round for everyone; this page deals the
+ * cards out one by one and shows how each player did. Then the next round's betting starts.
  */
 
 const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T;
@@ -22,12 +27,17 @@ const ui = {
   clear: $<HTMLButtonElement>('clear'),
   rebet: $<HTMLButtonElement>('rebet'),
   double: $<HTMLButtonElement>('double'),
-  deal: $<HTMLButtonElement>('deal'),
   error: $('error'),
   verdict: $('verdict'),
   result: $('result'),
   resultTitle: $('result-title'),
   resultText: $('result-text'),
+  timer: $('timer'),
+  timerBar: $('timer-bar'),
+  timerText: $('timer-text'),
+  tableNo: $('table-no'),
+  players: $('players'),
+  seatCount: $('seat-count'),
   message: $('message'),
   messageTitle: $('message-title'),
   messageText: $('message-text'),
@@ -47,7 +57,9 @@ const CARD_MS = 520;
 const RESULT_MS = 450;
 
 const points = (n: number): string => n.toLocaleString('en-US');
+const signedPoints = (n: number): string => (n > 0 ? `+${points(n)}` : n < 0 ? `−${points(-n)}` : '±0');
 const chipLabel = (n: number): string => (n >= 1000 ? `${n / 1000}K` : String(n));
+const sumBets = (b: Bets): number => SPOTS.reduce((sum, spot) => sum + (b[spot] ?? 0), 0);
 
 /** The bot's currency, :zeiucoin:, to go after an amount. */
 function coin(): HTMLImageElement {
@@ -55,6 +67,17 @@ function coin(): HTMLImageElement {
   img.src = `${import.meta.env.BASE_URL}shared/zeiucoin.png`;
   img.alt = 'zeiucoin';
   img.className = 'coin';
+  return img;
+}
+
+function avatarImg(seat: SeatView, className: string): HTMLImageElement {
+  const img = document.createElement('img');
+  img.className = className;
+  img.src = seat.avatar;
+  img.alt = '';
+  img.title = seat.name;
+  img.referrerPolicy = 'no-referrer';
+  img.draggable = false;
   return img;
 }
 
@@ -127,20 +150,19 @@ function tone(kind: 'chip' | 'place' | 'move' | 'card' | 'win' | 'lose'): void {
 // ---------------------------------------------------------------------------
 // What is on the table
 
-let table: Table | null = null;
-/** The chips on each spot, and the order they went down (for Undo). */
+/** The table as the bot last said. */
+let state: TableState | null = null;
+/** This page's chips: what the bot last confirmed, changed straight away as chips go down (and sent). */
 let bets: Bets = {};
 let history: { spot: Spot; amount: number }[] = [];
-/** The chips of the round dealt last, for Rebet after a Clear. */
-let lastBets: Bets | null = null;
 /** The chip picked in the rack (tapping a spot puts one of these on it). */
 let selected = 0;
-/** A deal sent and not answered, or a round being dealt out. */
-let pending: number | null = null;
+/** When the phase ends, on this page's clock. */
+let deadline = 0;
+/** The round whose cards are on the table (its number), and whether they are still being dealt out. */
+let shownRound = 0;
 let dealingOut = false;
-/** The round on the table (its cards stay until the next deal). */
-let shown: RoundView | null = null;
-let balance: number | null = null;
+let rackBuilt = false;
 
 const SELECTED_KEY = 'baccarat.chip';
 function remembered(key: string): string | null {
@@ -158,8 +180,11 @@ function remember(key: string, value: string): void {
   }
 }
 
-const onTable = (b: Bets = bets): number => SPOTS.reduce((sum, spot) => sum + (b[spot] ?? 0), 0);
-const busy = (): boolean => watching || pending !== null || dealingOut || !table;
+const mySeat = (): SeatView | undefined => state?.seats.find((s) => s.userId === state?.you);
+const onTable = (b: Bets = bets): number => sumBets(b);
+const balance = (): number | null => mySeat()?.balance ?? null;
+/** Chips can't be touched: watching, not seated yet, or the round isn't taking bets. */
+const busy = (): boolean => watching || !state || !mySeat() || state.phase !== 'betting';
 
 function showError(text: string | null): void {
   ui.error.hidden = text === null;
@@ -177,7 +202,7 @@ function chipEl(value: number): HTMLElement {
 
 /** `amount` as a stack of chips: as few as make it up (the biggest first), at most 6 drawn. */
 function stackChips(amount: number): number[] {
-  const chips = [...(table?.chips ?? [1])].sort((a, b) => b - a);
+  const chips = [...(state?.chips ?? [1])].sort((a, b) => b - a);
   const out: number[] = [];
   let left = amount;
   for (const chip of chips) {
@@ -189,8 +214,18 @@ function stackChips(amount: number): number[] {
   return out.reverse().slice(-6);
 }
 
-function renderStacks(outcomes?: RoundView['bets']): void {
+/** How each of this page's bets did in the round shown (once its cards are all out). */
+function myOutcomes(): Map<Spot, 'win' | 'push' | 'lose'> {
+  const result = !dealingOut && state?.phase === 'dealing' ? mySeat()?.result : null;
+  return new Map((result?.bets ?? []).map((b) => [b.spot, b.outcome]));
+}
+
+function renderSpots(): void {
+  const outcomes = myOutcomes();
+  const others = state?.seats.filter((s) => s.userId !== state?.you) ?? [];
+  const showingResults = !dealingOut && state?.phase === 'dealing';
   for (const [spot, el] of spotEls) {
+    // This page's chips: a stack, with the amount beside it.
     const amount = bets[spot] ?? 0;
     const stack = el.querySelector('.bc-stack') as HTMLElement;
     stack.textContent = '';
@@ -205,7 +240,54 @@ function renderStacks(outcomes?: RoundView['bets']): void {
       label.textContent = points(amount);
       stack.append(label);
     }
-    const outcome = outcomes?.find((b) => b.spot === spot)?.outcome;
+    // Everyone else's: their picture and how much.
+    const row = el.querySelector('.bc-others') as HTMLElement;
+    row.textContent = '';
+    for (const seat of others) {
+      const theirs = seat.bets[spot] ?? 0;
+      if (theirs <= 0) continue;
+      const pill = document.createElement('span');
+      pill.className = 'bc-other';
+      const outcome = showingResults ? seat.result?.bets.find((b) => b.spot === spot)?.outcome : undefined;
+      if (outcome) pill.classList.add(outcome);
+      if (seat.refused) pill.classList.add('refused');
+      pill.append(avatarImg(seat, 'bc-other-avatar'), chipLabelText(theirs));
+      pill.title = `${seat.name}: ${points(theirs)}`;
+      row.append(pill);
+    }
+    // On a computer, everyone's chips as stacks instead, side by side in seat order (so a player's
+    // pile is in the same place on every spot), each with its owner's picture and amount under it.
+    const piles = el.querySelector('.bc-piles') as HTMLElement;
+    piles.textContent = '';
+    for (const seat of state?.seats ?? []) {
+      const mine = seat.userId === state?.you;
+      const theirs = mine ? amount : (seat.bets[spot] ?? 0);
+      if (theirs <= 0) continue;
+      const pile = document.createElement('span');
+      pile.className = 'bc-pile';
+      if (mine) pile.classList.add('mine');
+      const outcome = showingResults ? seat.result?.bets.find((b) => b.spot === spot)?.outcome : undefined;
+      if (outcome) pile.classList.add(outcome);
+      if (showingResults && seat.refused) pile.classList.add('refused');
+      pile.title = `${mine ? 'You' : seat.name}: ${points(theirs)}`;
+      const chips = document.createElement('span');
+      chips.className = 'bc-pile-chips';
+      const values = stackChips(theirs);
+      values.forEach((value, i) => {
+        const chip = chipEl(value);
+        chip.style.setProperty('--i', String(i));
+        chips.append(chip);
+      });
+      chips.style.setProperty('--n', String(values.length));
+      const tag = document.createElement('span');
+      tag.className = 'bc-pile-tag';
+      tag.append(avatarImg(seat, 'bc-pile-avatar'), chipLabelText(theirs));
+      pile.append(chips, tag);
+      piles.append(pile);
+    }
+    // A busy spot (up to 8 players at a table) gets smaller piles, so they still fit side by side.
+    piles.classList.toggle('crowded', piles.childElementCount > 4);
+    const outcome = outcomes.get(spot);
     el.classList.toggle('won', outcome === 'win');
     el.classList.toggle('lost', outcome === 'lose');
     el.classList.toggle('push', outcome === 'push');
@@ -213,16 +295,76 @@ function renderStacks(outcomes?: RoundView['bets']): void {
   }
 }
 
+function chipLabelText(amount: number): HTMLElement {
+  const b = document.createElement('b');
+  b.textContent = amount >= 10_000 ? chipLabel(amount) : points(amount);
+  return b;
+}
+
+function renderPlayers(): void {
+  ui.players.textContent = '';
+  if (!state) return;
+  ui.tableNo.textContent = `· Table ${state.table}`;
+  ui.seatCount.textContent = `${state.seats.length}/${state.maxSeats}`;
+  const showingResults = !dealingOut && state.phase === 'dealing';
+  for (const seat of state.seats) {
+    const li = document.createElement('li');
+    li.className = 'bc-seat';
+    if (seat.userId === state.you) li.classList.add('you');
+    // The name is cut short if it's long, but the "you" tag after it always shows.
+    const name = document.createElement('div');
+    name.className = 'bc-seat-name';
+    const nameText = document.createElement('span');
+    nameText.textContent = seat.name;
+    name.append(nameText);
+    if (seat.userId === state.you) {
+      const tag = document.createElement('span');
+      tag.className = 'bc-you';
+      tag.textContent = watching ? 'watching' : 'you';
+      name.append(tag);
+    }
+    const money = document.createElement('div');
+    money.className = 'bc-seat-balance';
+    money.append(points(seat.balance), coin());
+    const status = document.createElement('div');
+    status.className = 'bc-seat-status';
+    const down = sumBets(seat.userId === state.you ? bets : seat.bets);
+    if (showingResults && seat.result) {
+      status.textContent = signedPoints(seat.result.net);
+      status.classList.add(seat.result.net > 0 ? 'won' : seat.result.net < 0 ? 'lost' : 'even');
+    } else if (showingResults && seat.refused) {
+      status.textContent = 'Couldn’t cover the bet';
+      status.classList.add('lost');
+    } else if (down > 0) {
+      status.textContent = `${points(down)} down`;
+      status.classList.add('down');
+    } else {
+      status.textContent = state.phase === 'betting' ? 'Placing chips…' : 'Sat out';
+    }
+    const text = document.createElement('div');
+    text.className = 'bc-seat-text';
+    text.append(name, money);
+    li.append(avatarImg(seat, 'bc-seat-avatar'), text, status);
+    ui.players.append(li);
+  }
+  for (let i = state.seats.length; i < state.maxSeats; i++) {
+    const li = document.createElement('li');
+    li.className = 'bc-seat empty';
+    li.textContent = 'Empty seat';
+    ui.players.append(li);
+  }
+}
+
 function renderBar(): void {
-  ui.balance.textContent = balance === null ? '–' : points(balance);
+  const have = balance();
+  ui.balance.textContent = have === null ? '–' : points(have);
   ui.bet.textContent = points(onTable());
   const idle = busy();
+  const last = mySeat()?.lastBets ?? null;
   ui.undo.disabled = idle || history.length === 0;
   ui.clear.disabled = idle || onTable() === 0;
-  ui.rebet.disabled = idle || !lastBets || onTable() > 0;
+  ui.rebet.disabled = idle || !last || onTable() > 0 || !fits(sumBets(last));
   ui.double.disabled = idle || onTable() === 0 || !fits(onTable() * 2);
-  ui.deal.disabled = idle || onTable() === 0;
-  ui.deal.textContent = watching ? (watched ? `Watching ${watched}` : 'Watching') : pending !== null || dealingOut ? 'Dealing…' : 'Deal';
   for (const chip of ui.rack.querySelectorAll<HTMLElement>('.bc-chip')) {
     chip.classList.toggle('picked', Number(chip.dataset.value) === selected);
     chip.classList.toggle('off', idle || !fits(onTable() + Number(chip.dataset.value)));
@@ -230,42 +372,69 @@ function renderBar(): void {
   for (const [spot, el] of spotEls) {
     el.disabled = watching;
     const odds = el.querySelector<HTMLElement>(`[data-odds="${spot}"]`);
-    if (odds && table) odds.textContent = `${table.payouts[spot]}:1`;
+    if (odds && state) odds.textContent = `${state.payouts[spot]}:1`;
   }
 }
 
-/** Whether a round of `total` could be dealt: within the table's limit and what they have. */
+function render(): void {
+  renderSpots();
+  renderPlayers();
+  renderBar();
+  renderTimer();
+}
+
+/** The countdown under the table: how long the betting has left, or that the round is being dealt. */
+function renderTimer(): void {
+  if (!state) return;
+  const left = Math.max(0, deadline - performance.now());
+  const betting = state.phase === 'betting';
+  const whole = betting ? bettingWhole : 1;
+  ui.timer.classList.toggle('dealing', !betting);
+  ui.timer.classList.toggle('soon', betting && left < 10_000);
+  ui.timerBar.style.transform = `scaleX(${betting ? Math.min(1, left / whole) : 0})`;
+  const seconds = Math.ceil(left / 1000);
+  ui.timerText.textContent = betting
+    ? seconds > 0
+      ? `Place your bets · dealing in ${seconds}s`
+      : 'Dealing…'
+    : dealingOut
+      ? 'Dealing…'
+      : `Next round in ${seconds}s`;
+}
+
+/** The betting time as a whole, for the bar: the most time left seen in this betting phase. */
+let bettingWhole = 60_000;
+
+/** Whether this page's chips could come to `total`: within the table's limit and their balance. */
 function fits(total: number): boolean {
-  if (!table) return false;
-  return total <= table.maxBet && (balance === null || total <= balance);
+  if (!state) return false;
+  const have = balance();
+  return total <= state.maxBet && (have === null || total <= have);
 }
 
 /** Why a chip can't go down, or null if it can. */
 function whyNot(total: number): string | null {
-  if (!table) return 'Connecting…';
-  if (total > table.maxBet) return `The most on the table is ${points(table.maxBet)} a round.`;
-  if (balance !== null && total > balance) return `You only have ${points(balance)}.`;
+  if (!state) return 'Connecting…';
+  if (state.phase !== 'betting') return 'Wait for the next round to bet.';
+  if (total > state.maxBet) return `The most on the table is ${points(state.maxBet)} a round.`;
+  const have = balance();
+  if (have !== null && total > have) return `You only have ${points(have)}.`;
   return null;
 }
 
-/** Starts a new round of betting when the last one's cards are still out. */
-function clearRound(): void {
-  if (!shown) return;
-  shown = null;
-  for (const side of ['player', 'banker'] as const) {
-    ui.cards[side].textContent = '';
-    ui.totals[side].textContent = '';
-    ui.hands[side].classList.remove('winner');
-  }
-  ui.verdict.textContent = '';
-  ui.verdict.className = 'bc-vs';
-  ui.result.hidden = true;
-  renderStacks();
+/** Sends this page's chips to the bot (which shows them to the table). */
+let seq = 0;
+function sendBets(): void {
+  seq += 1;
+  send({ t: 'bets', bets, seq });
 }
 
 function place(spot: Spot, amount: number): void {
-  if (busy() || amount <= 0) return;
-  clearRound();
+  if (amount <= 0) return;
+  if (busy()) {
+    if (!watching && state?.phase === 'dealing') showError('Wait for the next round to bet.');
+    return;
+  }
   const problem = whyNot(onTable() + amount);
   if (problem) {
     showError(problem);
@@ -276,23 +445,22 @@ function place(spot: Spot, amount: number): void {
   bets = { ...bets, [spot]: (bets[spot] ?? 0) + amount };
   history.push({ spot, amount });
   tone('place');
-  renderStacks();
-  renderBar();
+  sendBets();
+  render();
   const stack = spotEls.get(spot)?.querySelector('.bc-stack');
   stack?.lastElementChild?.previousElementSibling?.classList.add('drop');
 }
 
-/** Takes every chip off `spot` (back to the rack). */
+/** Takes every chip of this page's off `spot` (back to the rack). */
 function takeBack(spot: Spot, sound = true): void {
   if (busy() || !(bets[spot] ?? 0)) return;
-  clearRound();
   const { [spot]: _, ...rest } = bets;
   bets = rest;
   history = history.filter((h) => h.spot !== spot);
   if (sound) tone('move');
   showError(null);
-  renderStacks();
-  renderBar();
+  sendBets();
+  render();
 }
 
 function shake(el: HTMLElement | null | undefined): void {
@@ -307,7 +475,7 @@ function shake(el: HTMLElement | null | undefined): void {
 
 function buildRack(): void {
   ui.rack.textContent = '';
-  for (const value of table?.chips ?? []) {
+  for (const value of state?.chips ?? []) {
     const chip = chipEl(value);
     chip.tabIndex = 0;
     chip.setAttribute('role', 'button');
@@ -322,7 +490,7 @@ function buildRack(): void {
     ui.rack.append(chip);
   }
   const kept = Number(remembered(SELECTED_KEY));
-  pick(table?.chips.includes(kept) ? kept : (table?.chips[2] ?? table?.chips[0] ?? 0), false);
+  pick(state?.chips.includes(kept) ? kept : (state?.chips[2] ?? state?.chips[0] ?? 0), false);
 }
 
 function pick(value: number, sound = true): void {
@@ -336,11 +504,11 @@ type DragFrom = { from: 'rack'; value: number } | { from: 'spot'; spot: Spot };
 
 /**
  * A chip picked up: a copy follows the pointer, and where it's let go decides what happens. From the
- * rack: onto a spot puts it there. From a spot (its whole stack): onto another spot moves it, off the
- * table takes it back. A press that hardly moves is a tap: it picks the chip (or bets the picked one).
+ * rack: onto a spot puts it there. From a spot (this page's whole stack): onto another spot moves it,
+ * off the table takes it back. A press that hardly moves is a tap: it picks the chip (or bets the picked one).
  */
 function startDrag(e: PointerEvent, from: DragFrom): void {
-  if (busy() || e.button !== 0) return;
+  if (watching || e.button !== 0) return;
   const startX = e.clientX;
   const startY = e.clientY;
   let ghost: HTMLElement | null = null;
@@ -354,6 +522,7 @@ function startDrag(e: PointerEvent, from: DragFrom): void {
   };
 
   const move = (ev: PointerEvent): void => {
+    if (busy()) return;
     if (!ghost && Math.hypot(ev.clientX - startX, ev.clientY - startY) < 6) return;
     if (!ghost) {
       const value = from.from === 'rack' ? from.value : (bets[from.spot] ?? 0);
@@ -407,11 +576,11 @@ function startDrag(e: PointerEvent, from: DragFrom): void {
 
 for (const [spot, el] of spotEls) {
   el.addEventListener('pointerdown', (e) => {
-    // Dragging a stack off a spot; a tap bets the picked chip (see startDrag).
+    // Dragging this page's stack off a spot; a tap bets the picked chip (see startDrag).
     if (bets[spot]) startDrag(e, { from: 'spot', spot });
   });
   el.addEventListener('click', (e) => {
-    // Taps on an empty spot (a spot with chips handles its own, in startDrag), and keyboard presses.
+    // Taps on a spot without this page's chips (one with them handles its own, in startDrag), and keyboard presses.
     if (bets[spot] && e.detail !== 0) return;
     place(spot, selected);
   });
@@ -422,32 +591,32 @@ for (const [spot, el] of spotEls) {
 }
 
 ui.undo.addEventListener('click', () => {
+  if (busy()) return;
   const last = history.pop();
-  if (!last || busy()) return;
-  clearRound();
+  if (!last) return;
   const left = (bets[last.spot] ?? 0) - last.amount;
   bets = { ...bets, [last.spot]: left };
   if (left <= 0) delete bets[last.spot];
   tone('move');
   showError(null);
-  renderStacks();
-  renderBar();
+  sendBets();
+  render();
 });
 
 ui.clear.addEventListener('click', () => {
-  if (busy()) return;
-  clearRound();
-  if (onTable() > 0) tone('move');
+  if (busy() || onTable() === 0) return;
+  tone('move');
   bets = {};
   history = [];
   showError(null);
-  renderStacks();
-  renderBar();
+  sendBets();
+  render();
 });
 
 ui.rebet.addEventListener('click', () => {
-  if (busy() || !lastBets) return;
-  for (const spot of SPOTS) if (lastBets[spot]) place(spot, lastBets[spot] as number);
+  const last = mySeat()?.lastBets;
+  if (busy() || !last) return;
+  for (const spot of SPOTS) if (last[spot]) place(spot, last[spot] as number);
 });
 
 ui.double.addEventListener('click', () => {
@@ -487,31 +656,7 @@ function cardEl(card: Card, third: boolean): HTMLElement {
 
 const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
 
-/** Deals `round` out on the table, card by card, then shows how it went. */
-async function dealOut(round: RoundView): Promise<void> {
-  dealingOut = true;
-  shown = null;
-  clearRoundCards();
-  renderBar();
-  const dealt = { player: [] as Card[], banker: [] as Card[] };
-  for (const side of round.order) {
-    await sleep(CARD_MS);
-    const card = round[side][dealt[side].length] as Card;
-    dealt[side].push(card);
-    const el = cardEl(card, dealt[side].length === 3);
-    ui.cards[side].append(el);
-    requestAnimationFrame(() => el.classList.add('flip'));
-    tone('card');
-    if (dealt[side].length >= 2 || dealt[side].length === 1) ui.totals[side].textContent = String(handTotal(dealt[side]));
-  }
-  await sleep(RESULT_MS);
-  shown = round;
-  showOutcome(round);
-  dealingOut = false;
-  renderBar();
-}
-
-function clearRoundCards(): void {
+function clearCards(): void {
   for (const side of ['player', 'banker'] as const) {
     ui.cards[side].textContent = '';
     ui.totals[side].textContent = '';
@@ -520,7 +665,56 @@ function clearRoundCards(): void {
   ui.verdict.textContent = '';
   ui.verdict.className = 'bc-vs';
   ui.result.hidden = true;
-  renderStacks();
+  ui.felt.classList.remove('last-round');
+}
+
+/**
+ * Counts up to cancel a round being dealt out: a page in a background tab has its timers slowed,
+ * so the next round's betting can start before the cards are all out.
+ */
+let dealing = 0;
+
+/** Shows a round's cards at once, faded (the last round, while the next one takes bets). */
+function showCards(round: RoundView): void {
+  dealing += 1;
+  dealingOut = false;
+  clearCards();
+  for (const side of ['player', 'banker'] as const) {
+    round[side].forEach((card, i) => {
+      const el = cardEl(card, i === 2);
+      el.classList.add('flip');
+      ui.cards[side].append(el);
+    });
+    ui.totals[side].textContent = String(handTotal(round[side]));
+  }
+  if (round.winner !== 'tie') ui.hands[round.winner].classList.add('winner');
+  ui.felt.classList.add('last-round');
+}
+
+/** Deals `round` out on the table, card by card, then shows how it went. */
+async function dealOut(round: RoundView): Promise<void> {
+  const mine = ++dealing;
+  dealingOut = true;
+  shownRound = round.no;
+  clearCards();
+  render();
+  const dealt = { player: [] as Card[], banker: [] as Card[] };
+  for (const side of round.order) {
+    await sleep(CARD_MS);
+    if (mine !== dealing) return;
+    const card = round[side][dealt[side].length] as Card;
+    dealt[side].push(card);
+    const el = cardEl(card, dealt[side].length === 3);
+    ui.cards[side].append(el);
+    requestAnimationFrame(() => el.classList.add('flip'));
+    tone('card');
+    ui.totals[side].textContent = String(handTotal(dealt[side]));
+  }
+  await sleep(RESULT_MS);
+  if (mine !== dealing) return;
+  dealingOut = false;
+  showOutcome(round);
+  render();
 }
 
 function showOutcome(round: RoundView): void {
@@ -528,28 +722,36 @@ function showOutcome(round: RoundView): void {
   if (winner !== 'tie') ui.hands[winner].classList.add('winner');
   ui.verdict.textContent = winner === 'tie' ? 'TIE' : `${SPOT_NAME[winner].toUpperCase()} WINS`;
   ui.verdict.className = `bc-vs show ${winner}`;
-  renderStacks(round.bets);
 
   const notes: string[] = [];
   if (round.natural) notes.push(`Natural ${Math.max(round.playerTotal, round.bankerTotal)}`);
-  if (round.bets.some((b) => b.spot === 'kirin' && b.outcome === 'win') || (winner === 'player' && round.player.length === 3 && round.playerTotal === 8)) notes.push('🦄 Kirin');
-  if (round.bets.some((b) => b.spot === 'phoenix' && b.outcome === 'win') || (winner === 'banker' && round.banker.length === 3 && round.bankerTotal === 7)) notes.push('🐦‍🔥 Phoenix');
+  if (winner === 'player' && round.player.length === 3 && round.playerTotal === 8) notes.push('🦄 Kirin');
+  if (winner === 'banker' && round.banker.length === 3 && round.bankerTotal === 7) notes.push('🐦‍🔥 Phoenix');
+  const text = [`${round.playerTotal} to ${round.bankerTotal}`, ...notes].join(' · ');
 
-  ui.result.classList.toggle('lost', round.net < 0);
-  ui.result.classList.toggle('even', round.net === 0);
-  ui.resultTitle.textContent = round.net > 0 ? `+${points(round.net)}` : round.net < 0 ? `−${points(-round.net)}` : '±0';
-  ui.resultTitle.append(' ', coin());
-  ui.resultText.textContent = [`${round.playerTotal} to ${round.bankerTotal}`, ...notes].join(' · ');
+  const me = mySeat();
+  const net = me?.result?.net ?? null;
+  if (net === null) {
+    // No chips down (or refused): just how the round went.
+    ui.result.classList.remove('lost', 'even');
+    ui.result.classList.add('even');
+    ui.resultTitle.textContent = me?.refused ? 'Bet refused' : 'Sat out';
+    ui.resultText.textContent = text;
+  } else {
+    ui.result.classList.toggle('lost', net < 0);
+    ui.result.classList.toggle('even', net === 0);
+    ui.resultTitle.textContent = signedPoints(net);
+    ui.resultTitle.append(' ', coin());
+    ui.resultText.textContent = text;
+    tone(net > 0 ? 'win' : net < 0 ? 'lose' : 'chip');
+  }
   ui.result.hidden = false;
-  balance = round.balance;
-  tone(round.net > 0 ? 'win' : round.net < 0 ? 'lose' : 'chip');
 }
 
 // ---------------------------------------------------------------------------
 // Talking to the bot
 
 let socket: WebSocket | null = null;
-let seq = 0;
 let finished = false;
 let retries = 0;
 const RETRY_MAX_MS = 5000;
@@ -568,29 +770,61 @@ function send(message: ClientMessage): boolean {
   return true;
 }
 
-function deal(): void {
-  if (busy() || onTable() === 0) return;
-  const problem = whyNot(onTable());
-  if (problem) return showError(problem);
-  seq += 1;
-  if (!send({ t: 'deal', bets, seq })) return;
-  pending = seq;
-  showError(null);
-  renderBar();
-}
-
-function refusalText(r: DealRefusal): string {
+function refusalText(r: BetRefusal): string {
   switch (r.reason) {
-    case 'too_small':
-      return `The least on the table is ${points(r.limit)}.`;
     case 'too_big':
       return `The most on the table is ${points(r.limit)} a round.`;
     case 'too_poor':
       return `You only have ${points(r.balance)}.`;
-    case 'busy':
-      return 'Hold on, the last round is still being dealt.';
+    case 'closed':
+      return 'Too late: the round is being dealt.';
   }
 }
+
+/** The table as the bot says it is now. */
+function showState(next: TableState): void {
+  const before = state;
+  state = next;
+  deadline = performance.now() + next.msLeft;
+  if (next.phase === 'betting' && (before?.phase !== 'betting' || next.msLeft > bettingWhole)) bettingWhole = Math.max(next.msLeft, 1);
+  if (!rackBuilt) {
+    buildRack();
+    rackBuilt = true;
+  }
+
+  // While betting, this page's chips are what the player put down (the bot is sent each change); the
+  // bot's word on them is taken when a change was refused, when watching, and outside the betting.
+  const me = mySeat();
+  if (me && (watching || next.phase !== 'betting' || before?.phase !== 'betting' || adoptBets)) bets = { ...me.bets };
+  adoptBets = false;
+  if (next.phase === 'betting' && before?.phase !== 'betting') {
+    history = [];
+    showError(null);
+  }
+
+  // A new round dealt: deal it out. Joining (or back) mid-round, or betting after one: its cards, faded.
+  if (next.phase === 'dealing' && next.round && next.round.no !== shownRound) {
+    if (before === null || before.phase === 'dealing') {
+      shownRound = next.round.no;
+      showCards(next.round);
+      showOutcome(next.round);
+      render();
+    } else {
+      void dealOut(next.round);
+    }
+    return;
+  }
+  if (next.phase === 'betting' && next.round && shownRound !== next.round.no) {
+    shownRound = next.round.no;
+    showCards(next.round);
+  } else if (next.phase === 'betting' && before?.phase === 'dealing' && next.round) {
+    showCards(next.round);
+  }
+  render();
+}
+
+/** A change of chips was refused: the table that follows has the chips that are really down. */
+let adoptBets = false;
 
 function receive(message: ServerMessage): void {
   switch (message.t) {
@@ -601,28 +835,18 @@ function receive(message: ServerMessage): void {
       setConn('Disconnected', 'bad');
       return;
     }
-    case 'table': {
-      const first = table === null;
-      table = message.table;
-      balance = message.table.balance;
-      if (first) {
-        buildRack();
-        lastBets = message.table.lastBets;
-      }
-      renderStacks();
-      renderBar();
-      return;
-    }
+    case 'table':
+      showState(message.state);
+      break;
     case 'refused':
-      if (pending === message.seq) pending = null;
-      if (message.reason === 'too_poor') balance = message.balance;
       showError(refusalText(message));
-      renderBar();
+      adoptBets = true;
+      history = [];
       return;
     case 'watching':
       watched = message.player;
       showWatching(watched);
-      renderBar();
+      render();
       return;
     case 'watchers':
       showWatchers(message.count);
@@ -630,26 +854,14 @@ function receive(message: ServerMessage): void {
     case 'away':
       showWatching(watched, true);
       watchAway(
-        () => showMessage(`${watched} left the game`, `${watched} isn't playing baccarat any more. Head back home to see who's online and watch someone else.`),
+        () => showMessage(`${watched} left the table`, `${watched} isn't playing baccarat any more. Head back home to see who's online and watch someone else.`),
         () => (ui.message.hidden = true),
       );
       return;
-    case 'round': {
-      if (watching) {
-        if (watched) {
-          showWatching(watched);
-          watchBack();
-        }
-        // Their chips, as they bet them.
-        bets = Object.fromEntries(message.round.bets.map((b) => [b.spot, b.amount]));
-        if (!table) table = { player: watched, balance: 0, minBet: 1, maxBet: 0, chips: [1, 5, 25, 100, 500, 1000, 5000], payouts: { player: 1, banker: 0.95, tie: 8, kirin: 25, phoenix: 40 }, lastBets: null };
-      } else if (pending !== message.seq) {
-        return;
-      }
-      pending = null;
-      lastBets = { ...bets };
-      void dealOut(message.round);
-    }
+  }
+  if (watching && watched) {
+    showWatching(watched);
+    watchBack();
   }
 }
 
@@ -660,6 +872,8 @@ function connect(): void {
   socket = ws;
   ws.addEventListener('open', () => {
     retries = 0;
+    seq = 0;
+    adoptBets = true;
     setConn('Connected', 'ok');
     send(watching ? { t: 'watch', token } : { t: 'hello', token });
   });
@@ -674,8 +888,6 @@ function connect(): void {
     if (socket === ws) socket = null;
     if (finished) return;
     // Dropped (a network blip, the bot restarting): keep trying, waiting longer each time.
-    pending = null;
-    renderBar();
     const wait = Math.min(RETRY_MAX_MS, 500 * 2 ** retries++);
     setConn('Reconnecting…', 'bad');
     setTimeout(connect, wait);
@@ -683,23 +895,10 @@ function connect(): void {
 }
 
 // ---------------------------------------------------------------------------
-// Input
-
-ui.deal.addEventListener('click', deal);
-window.addEventListener('keydown', (e) => {
-  if (e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
-  const onButton = document.activeElement instanceof HTMLButtonElement || document.activeElement?.getAttribute('role') === 'button';
-  if ((e.key === 'Enter' || e.key === ' ') && !onButton) {
-    e.preventDefault();
-    deal();
-  }
-});
-
-// ---------------------------------------------------------------------------
 // Start
 
-renderStacks();
-renderBar();
+setInterval(renderTimer, 200);
+render();
 if (!token || !server) {
   setConn('No link', 'bad');
   showMessage('Open this from the games page', 'Log in on the games page and pick Baccarat, or use the baccarat command in Discord.');
