@@ -294,6 +294,41 @@
   background: var(--panel) url('/mines/cover.png') center / cover no-repeat;
 }
 
+/* Baccarat: two cards on green felt (no picture needed). */
+.baccarat-art {
+  gap: 10px;
+  letter-spacing: 0;
+  background: radial-gradient(ellipse at 50% 40%, #2f8552, #1b5234 70%, #123c26);
+}
+
+.baccarat-art-card {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 76px;
+  border-radius: 7px;
+  background: linear-gradient(#fff, #e6e9f0);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.45);
+  color: #22252b;
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1;
+  transform: rotate(-8deg);
+}
+
+.baccarat-art-card + .baccarat-art-card {
+  transform: rotate(7deg) translateY(4px);
+}
+
+.baccarat-art-card i {
+  font-style: normal;
+  font-size: 26px;
+}
+
+.baccarat-art-card.red {
+  color: #d0343a;
+}
+
 .game-body {
   padding: 14px 16px 16px;
   display: flex;

@@ -9,7 +9,7 @@ import './live.css';
  * by the member's profile and asks with their login.
  */
 
-type Activity = 'hub' | 'mines' | 'pinecraft';
+type Activity = 'hub' | 'mines' | 'pinecraft' | 'baccarat';
 
 interface Live {
   you: string;
@@ -29,7 +29,7 @@ export interface LiveOptions {
   newTab?: boolean;
 }
 
-const ACTIVITY: Record<Activity, string> = { hub: '🏠 Home', mines: '💎 Mines', pinecraft: '🌲 Pinecraft' };
+const ACTIVITY: Record<Activity, string> = { hub: '🏠 Home', mines: '💎 Mines', pinecraft: '🌲 Pinecraft', baccarat: '🃏 Baccarat' };
 const POLL_MS = 10_000;
 const POLL_OPEN_MS = 4_000;
 

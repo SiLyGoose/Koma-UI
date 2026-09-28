@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="robots" content="noindex" />
+    <title>Koma Baccarat</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🃏</text></svg>" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" />
+  </head>
+  <body>
+    <main id="app" class="frame bc">
+      <header class="top">
+        <a class="back" href="/" aria-label="Back to the games">←</a>
+        <h1>🃏 Baccarat</h1>
+        <button type="button" id="mute" class="frame-mute" aria-label="Turn sound off" aria-pressed="false">🔊</button>
+        <span id="conn" class="conn">Connecting…</span>
+      </header>
+
+      <div class="bc-game">
+        <section class="bc-felt" id="felt">
+          <!-- The two hands. -->
+          <div class="bc-hands">
+            <div class="bc-hand" id="hand-player" data-side="player">
+              <div class="bc-hand-head"><span class="bc-hand-name">Player</span><b class="bc-total" id="total-player"></b></div>
+              <div class="bc-cards" id="cards-player"></div>
+            </div>
+            <div class="bc-mid">
+              <div class="bc-vs" id="verdict"></div>
+              <div id="result" class="bc-result" hidden>
+                <b id="result-title"></b>
+                <span id="result-text"></span>
+              </div>
+            </div>
+            <div class="bc-hand" id="hand-banker" data-side="banker">
+              <div class="bc-hand-head"><span class="bc-hand-name">Banker</span><b class="bc-total" id="total-banker"></b></div>
+              <div class="bc-cards" id="cards-banker"></div>
+            </div>
+          </div>
+
+          <!-- The betting spots: chips are dragged (or tapped) onto these. -->
+          <div class="bc-spots">
+            <button type="button" class="bc-spot bc-side" data-spot="kirin">
+              <span class="bc-spot-name">🦄 Kirin</span><span class="bc-spot-odds" data-odds="kirin"></span>
+              <span class="bc-spot-help">Player wins with 3 cards worth 8</span>
+              <span class="bc-stack"></span>
+            </button>
+            <button type="button" class="bc-spot bc-tie" data-spot="tie">
+              <span class="bc-spot-name">Tie</span><span class="bc-spot-odds" data-odds="tie"></span>
+              <span class="bc-stack"></span>
+            </button>
+            <button type="button" class="bc-spot bc-side" data-spot="phoenix">
+              <span class="bc-spot-name">🐦‍🔥 Phoenix</span><span class="bc-spot-odds" data-odds="phoenix"></span>
+              <span class="bc-spot-help">Banker wins with 3 cards worth 7</span>
+              <span class="bc-stack"></span>
+            </button>
+            <button type="button" class="bc-spot bc-main bc-player" data-spot="player">
+              <span class="bc-spot-name">Player</span><span class="bc-spot-odds" data-odds="player"></span>
+              <span class="bc-stack"></span>
+            </button>
+            <button type="button" class="bc-spot bc-main bc-banker" data-spot="banker">
+              <span class="bc-spot-name">Banker</span><span class="bc-spot-odds" data-odds="banker"></span>
+              <span class="bc-stack"></span>
+            </button>
+          </div>
+
+        </section>
+
+        <!-- The rack of chips, and what to do with them. -->
+        <section class="bc-panel">
+          <div class="bc-rack" id="rack" aria-label="Chips: drag one onto a spot, or pick one and tap a spot"></div>
+          <div class="bc-bar">
+            <div class="bc-figures">
+              <div><span>Balance</span><b id="balance">–</b></div>
+              <div><span>On the table</span><b id="bet">0</b></div>
+            </div>
+            <div class="bc-buttons">
+              <button type="button" id="undo" class="bc-button">Undo</button>
+              <button type="button" id="clear" class="bc-button">Clear</button>
+              <button type="button" id="rebet" class="bc-button">Rebet</button>
+              <button type="button" id="double" class="bc-button">2×</button>
+              <button type="button" id="deal" class="bc-deal" disabled>Deal</button>
+            </div>
+          </div>
+          <p id="error" class="bc-error" hidden></p>
+        </section>
+      </div>
+
+      <p class="hint">Drag chips onto the table, or pick a chip and tap a spot · Right-click a spot to take its chips back · Enter or Space to deal</p>
+    </main>
+
+    <div id="message" class="message" hidden>
+      <div class="message-card">
+        <div class="message-title" id="message-title"></div>
+        <div class="message-text" id="message-text"></div>
+        <a class="message-link" href="/">Go to the games</a>
+      </div>
+    </div>
+
+    <script type="module" src="/src/baccarat/main.ts"></script>
+  </body>
+</html>
