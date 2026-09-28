@@ -1,5 +1,6 @@
 import '../style.css';
 import { barSlot, setConn, soundButton } from '../frame';
+import { startLeaderboard } from './leaderboard';
 import { apiFromSocket, showWatchers, showWatching, startLive, watchAway, watchBack } from '../live';
 import './pinecraft.css';
 import { burst, cellAt, drawMap, drawScene, isBedrock, isOpenCell, ORE_OF, stepParticles, type Scene } from './draw';
@@ -77,6 +78,19 @@ const token = params.get('t') ?? watchToken;
 const server = params.get('s');
 /** Whose world this page watches, once the bot has said. */
 let watched = '';
+/** Who this page's link is for (from its token), to mark them on the leaderboard. */
+const linkUser = ((): string | null => {
+  try {
+    const body = (token ?? '').split('.')[0] ?? '';
+    const json = atob(body.replace(/-/g, '+').replace(/_/g, '/'));
+    const u = (JSON.parse(json) as { u?: unknown }).u;
+    return typeof u === 'string' ? u : null;
+  } catch {
+    return null;
+  }
+})();
+/** The 🏆 leaderboard (once the page has a link). */
+let leaderboard: ReturnType<typeof startLeaderboard> | null = null;
 
 function showMessage(title: string, text: string): void {
   ui.messageTitle.textContent = title;
@@ -513,6 +527,8 @@ const release = (dir: Direction): void => {
 
 window.addEventListener('keydown', (e) => {
   if (e.ctrlKey || e.metaKey || e.altKey) return;
+  // The leaderboard is open: the keys are its (Escape closes it).
+  if (leaderboard?.isOpen()) return;
   if (e.code === 'KeyM' && !e.repeat) {
     e.preventDefault();
     if (mapOpen) closeMap();
@@ -719,4 +735,5 @@ if (!token || !server) {
   requestAnimationFrame(frame);
   // Who else is on the site, and a way to watch them (asked with this page's own link).
   startLive({ mount: barSlot(), api: apiFromSocket(server), auth: () => `Game ${token}`, newTab: !watching });
+  leaderboard = startLeaderboard({ mount: document.querySelector('.pinecraft > .hud') as HTMLElement, api: apiFromSocket(server), auth: () => `Game ${token}`, you: () => linkUser });
 }

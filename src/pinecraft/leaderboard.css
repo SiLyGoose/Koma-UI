@@ -1,0 +1,233 @@
+/* Pinecraft's leaderboard (leaderboard.ts): the 🏆 button in the title bar, and its popup. */
+
+/* The 🏆 chip, at the end of the stats bar: a stat chip (pinecraft.css) that's a button. */
+.lb-button {
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.pinecraft .lb-button:hover,
+.pinecraft .lb-button:focus-visible {
+  background: var(--panel-2);
+  outline: none;
+}
+
+.lb-button-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+/* Phones: just the 🏆, so the chips still fit two rows. */
+@media (pointer: coarse), (max-width: 759px) {
+  .lb-button-label {
+    display: none;
+  }
+}
+
+.lb-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.6);
+  animation: lb-fade 0.15s ease-out;
+}
+
+@keyframes lb-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+.lb-card {
+  display: flex;
+  flex-direction: column;
+  width: min(440px, 100%);
+  max-height: min(620px, calc(100dvh - 32px));
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.6);
+}
+
+.lb-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.lb-title {
+  margin: 0;
+  font-size: 18px;
+}
+
+.lb-close {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.lb-close:hover {
+  background: var(--panel-2);
+  color: var(--text);
+}
+
+/* The header to pick what's ranked: two halves of one pill. */
+.lb-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  margin-bottom: 12px;
+  padding: 4px;
+  border-radius: 10px;
+  background: var(--bg);
+}
+
+.lb-tab {
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.lb-tab:hover:not(.on) {
+  color: var(--text);
+}
+
+.lb-tab.on {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+.lb-list {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.lb-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+}
+
+.lb-row + .lb-row {
+  margin-top: 2px;
+}
+
+.lb-row.top1 {
+  background: rgba(216, 191, 122, 0.12);
+}
+
+.lb-row.top2,
+.lb-row.top3 {
+  background: var(--panel-2);
+}
+
+.lb-row.mine {
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+.lb-rank {
+  flex: none;
+  width: 30px;
+  text-align: center;
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.lb-row.top1 .lb-rank,
+.lb-row.top2 .lb-rank,
+.lb-row.top3 .lb-rank {
+  font-size: 20px;
+}
+
+.lb-avatar {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--panel-3);
+}
+
+.lb-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 700;
+}
+
+.lb-tag {
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 4px;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-size: 10px;
+  vertical-align: 1px;
+}
+
+.lb-value {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--gold);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.lb-unit {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.lb-coin {
+  width: 16px;
+  height: 16px;
+}
+
+.lb-empty {
+  padding: 24px 8px;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* Where the one asking stands, when they're not in the top. */
+.lb-you {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+
+.lb-note {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+}
