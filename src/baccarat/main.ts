@@ -53,7 +53,9 @@ const spotEls = new Map<Spot, HTMLButtonElement>(
 );
 
 /** How long between cards as a round is dealt out, and before the result shows. */
-const CARD_MS = 520;
+const CARD_MS = 850;
+/** The pause before a third card, once both hands have two (a hand that stands has no third card). */
+const THIRD_CARD_PAUSE_MS = 1600;
 const RESULT_MS = 450;
 
 const points = (n: number): string => n.toLocaleString('en-US');
@@ -100,7 +102,8 @@ function showMessage(title: string, text: string): void {
 
 // ---------------------------------------------------------------------------
 // Sounds: a card placed, a chip put on a spot, and chips slid off a spot (taken back or cleared)
-// (public/baccarat/sfx), and, made here, a chip's click (picking one) and a chime for a win.
+// or picked from the rack (public/baccarat/sfx), and, made here, a click for an even round and a
+// chime for a win.
 
 let muted = false;
 soundButton('baccarat-muted', (on) => (muted = on));
@@ -496,7 +499,7 @@ function buildRack(): void {
 function pick(value: number, sound = true): void {
   selected = value;
   remember(SELECTED_KEY, String(value));
-  if (sound) tone('chip');
+  if (sound) tone('move');
   renderBar();
 }
 
@@ -699,8 +702,9 @@ async function dealOut(round: RoundView): Promise<void> {
   clearCards();
   render();
   const dealt = { player: [] as Card[], banker: [] as Card[] };
-  for (const side of round.order) {
-    await sleep(CARD_MS);
+  for (const [i, side] of round.order.entries()) {
+    // Two cards each first; then a pause, so the third card (if the rules call for one) comes on its own.
+    await sleep(i === 4 ? THIRD_CARD_PAUSE_MS : CARD_MS);
     if (mine !== dealing) return;
     const card = round[side][dealt[side].length] as Card;
     dealt[side].push(card);
