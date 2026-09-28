@@ -23,6 +23,39 @@
       <div class="tb-layout">
         <div class="tb-game">
           <section class="tb-felt bc-felt" id="felt">
+            <!-- The scoreboard, above the hands: the table's last hands, drawn as a casino's roads (../../src/baccarat/scoreboard.ts). -->
+            <section class="bc-board" aria-label="Scoreboard">
+              <div class="bc-roads">
+                <div class="bc-road-area bc-road-bead" title="Bead plate: every hand, in order">
+                  <div class="bc-road" id="road-bead"></div>
+                  <span class="bc-road-tag">Bead plate</span>
+                </div>
+                <div class="bc-road-area bc-road-big" title="Big road: a column for each streak of Banker or Player wins">
+                  <div class="bc-road" id="road-big"></div>
+                  <span class="bc-road-tag">Big road</span>
+                </div>
+                <div class="bc-road-area bc-road-eye" title="Big eye boy: red when the big road repeats itself one column back, blue when it breaks">
+                  <div class="bc-road" id="road-bigEye"></div>
+                  <span class="bc-road-tag">Big eye boy</span>
+                </div>
+                <div class="bc-road-area bc-road-small" title="Small road: the same, two columns back">
+                  <div class="bc-road" id="road-small"></div>
+                  <span class="bc-road-tag">Small road</span>
+                </div>
+                <div class="bc-road-area bc-road-roach" title="Cockroach pig: the same, three columns back">
+                  <div class="bc-road" id="road-cockroach"></div>
+                  <span class="bc-road-tag">Cockroach pig</span>
+                </div>
+              </div>
+              <div class="bc-board-foot">
+                <div class="bc-tally" id="tally"></div>
+                <div class="bc-ask" title="What the big eye boy, small road and cockroach pig would each get if that side won the next hand">
+                  <span class="bc-ask-btn banker">B<span class="bc-ask-marks" id="ask-banker"></span></span>
+                  <span class="bc-ask-btn player">P<span class="bc-ask-marks" id="ask-player"></span></span>
+                </div>
+              </div>
+            </section>
+
             <!-- The two hands. -->
             <div class="bc-hands">
               <div class="bc-hand" id="hand-player" data-side="player">
@@ -81,24 +114,6 @@
 
           <!-- The rack of chips, and what to do with them (../../src/table/table.ts fills it in). -->
           <section class="tb-panel" data-table-panel></section>
-
-          <!-- The scoreboard: the table's last hands, drawn as a casino's roads (../../src/baccarat/scoreboard.ts). -->
-          <section class="bc-board" aria-label="Scoreboard">
-            <div class="bc-roads">
-              <div class="bc-road bc-road-bead" id="road-bead" title="Bead plate: every hand, in order"></div>
-              <div class="bc-road bc-road-big" id="road-big" title="Big road: a column for each streak"></div>
-              <div class="bc-road bc-road-eye" id="road-bigEye" title="Big eye boy"></div>
-              <div class="bc-road bc-road-small" id="road-small" title="Small road"></div>
-              <div class="bc-road bc-road-roach" id="road-cockroach" title="Cockroach pig"></div>
-            </div>
-            <div class="bc-board-foot">
-              <div class="bc-tally" id="tally"></div>
-              <div class="bc-ask" title="What the big eye boy, small road and cockroach pig would each get if that side won the next hand">
-                <span class="bc-ask-btn banker">B<span class="bc-ask-marks" id="ask-banker"></span></span>
-                <span class="bc-ask-btn player">P<span class="bc-ask-marks" id="ask-player"></span></span>
-              </div>
-            </div>
-          </section>
         </div>
 
         <!-- Everyone at the table. -->

@@ -329,7 +329,8 @@
  * The table's roads (drawn by scoreboard.ts), laid out like a casino's screen: one light board, the
  * bead plate down the left, and on the right the big road over the big eye boy, over the small road
  * and the cockroach pig side by side. --c is a big road cell; the bead plate's cells are twice that
- * and the derived roads' half, so every road has 6 rows and they all line up.
+ * and the derived roads' half, so every road has 6 rows and they all line up. It sits on the felt,
+ * above the hands.
  */
 .bc-board {
   --c: 16px;
@@ -338,9 +339,7 @@
   --board-edge: #b9b1a1;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 12px 14px 14px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  gap: 6px;
 }
 
 .bc-roads {
@@ -360,7 +359,38 @@
   background: var(--board-edge);
 }
 
+/* Each road, with its name in its top-left corner when the board is hovered (over its oldest hands: the newest are at the right). */
+.bc-road-area {
+  position: relative;
+  min-width: 0;
+}
+
+.bc-road-tag {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: rgba(246, 243, 236, 0.9);
+  color: #6f6758;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.3;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+/* The names show while the pointer is over the board (a tap, on a phone), and stay off the hands otherwise. */
+.bc-roads:hover .bc-road-tag {
+  opacity: 1;
+}
+
 .bc-road {
+  height: 100%;
   /* A long road scrolls instead of making the page wider. */
   contain: inline-size;
   overflow-x: auto;
@@ -442,7 +472,7 @@
   gap: 4px 12px;
   font-size: 12px;
   font-weight: 700;
-  color: var(--muted);
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .bc-tally-item b {
@@ -505,7 +535,6 @@
 @media (max-width: 640px) {
   .bc-board {
     --c: 13px;
-    padding: 10px;
   }
 }
 
@@ -612,6 +641,7 @@
   }
 
   /* The table itself stays a sensible width on a wide screen, centered on the felt. */
+  .bc-board,
   .bc-hands,
   .bc-spots {
     width: min(100%, 1400px);
