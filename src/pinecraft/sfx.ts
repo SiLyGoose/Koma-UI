@@ -1,9 +1,9 @@
+import { sound } from '../sfx';
 import type { PinecraftOre } from './protocol';
 
 /*
- * Pinecraft's sounds, from public/pinecraft/sfx. Played through Web Audio so they start at once
- * and can overlap (footsteps, hits). A browser keeps sound off until the player first touches or
- * presses something, so the first input wakes it. The frame's sound button mutes it (setMuted).
+ * Pinecraft's sounds, from public/pinecraft/sfx, played through the shared ../sfx.ts (which also
+ * wakes sound up on the first input and mutes it).
  */
 
 /** Each sound and its takes (one is picked at random each time). */
@@ -28,54 +28,22 @@ export function materialOf(ground: 'dirt' | 'stone' | 'grass', ore: PinecraftOre
   return ground === 'stone' ? 'stone' : 'dirt';
 }
 
-let muted = false;
-
-const Ctx = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-const audio = Ctx ? new Ctx() : null;
-const buffers = new Map<string, AudioBuffer>();
+/** Each take ready to play, once loadSounds has run. */
+const players = new Map<string, (volume?: number) => void>();
 /** The take each sound played last, so the same one doesn't play twice running. */
 const lastTake = new Map<Sound, number>();
 
-async function loadOne(name: string): Promise<void> {
-  if (!audio) return;
-  try {
-    const res = await fetch(`${import.meta.env.BASE_URL}pinecraft/sfx/${name}.mp3`);
-    if (!res.ok) return;
-    buffers.set(name, await audio.decodeAudioData(await res.arrayBuffer()));
-  } catch {
-    // A sound that won't load just doesn't play.
-  }
-}
-
-/** Loads every sound, and wakes sound up on the first touch or key. */
+/** Loads every sound. */
 export function loadSounds(): void {
-  if (!audio) return;
-  for (const takes of Object.values(FILES)) for (const name of takes) void loadOne(name);
-  const wake = (): void => {
-    void audio.resume().then(() => {
-      if (audio.state === 'running') for (const type of ['pointerdown', 'keydown'] as const) window.removeEventListener(type, wake, true);
-    });
-  };
-  for (const type of ['pointerdown', 'keydown'] as const) window.addEventListener(type, wake, true);
+  for (const takes of Object.values(FILES)) for (const name of takes) players.set(name, sound(`${import.meta.env.BASE_URL}pinecraft/sfx/${name}.mp3`));
 }
 
+/** Plays one of a sound's takes, at a fifth of the master volume unless told otherwise. */
 export function play(sound: Sound, volume = 0.2): void {
-  if (!audio || muted || audio.state !== 'running') return;
   const takes = FILES[sound];
   let k = Math.floor(Math.random() * takes.length);
   if (takes.length > 1 && k === lastTake.get(sound)) k = (k + 1) % takes.length;
   lastTake.set(sound, k);
   const name = takes[k];
-  const buffer = name === undefined ? undefined : buffers.get(name);
-  if (!buffer) return;
-  const source = audio.createBufferSource();
-  source.buffer = buffer;
-  const gain = audio.createGain();
-  gain.gain.value = volume;
-  source.connect(gain).connect(audio.destination);
-  source.start();
-}
-
-export function setMuted(on: boolean): void {
-  muted = on;
+  if (name !== undefined) players.get(name)?.(volume);
 }

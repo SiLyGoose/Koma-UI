@@ -1,7 +1,8 @@
-import { sleep, sound, startTable } from '../table/table';
+import { sleep, startTable } from '../table/table';
 import './baccarat.css';
 import type { BaccaratExtras, BaccaratRoundView, Card, RoundView, Spot } from './protocol';
 import { drawRoads } from './scoreboard';
+import { play } from './sfx';
 
 /*
  * Baccarat in the browser, at a shared table (../table/table.ts does the table: the chips, the
@@ -26,8 +27,6 @@ const CARD_MS = 850;
 /** The pause before a third card, once both hands have two (a hand that stands has no third card). */
 const THIRD_CARD_PAUSE_MS = 1600;
 const RESULT_MS = 450;
-
-const cardSound = sound(`${import.meta.env.BASE_URL}baccarat/sfx/place-card.mp3`);
 
 const SUIT: Record<Card['suit'], string> = { spades: '♠', hearts: '♥', diamonds: '♦', clubs: '♣' };
 const rankLabel = (rank: number): string => (rank === 1 ? 'A' : rank === 11 ? 'J' : rank === 12 ? 'Q' : rank === 13 ? 'K' : String(rank));
@@ -106,7 +105,7 @@ startTable<Spot, BaccaratRoundView, BaccaratExtras>({
       const el = cardEl(card, dealt[side].length === 3);
       ui.cards[side].append(el);
       requestAnimationFrame(() => el.classList.add('flip'));
-      cardSound();
+      play('card');
       ui.totals[side].textContent = String(handTotal(dealt[side]));
     }
     await sleep(RESULT_MS);

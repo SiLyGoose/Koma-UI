@@ -1,8 +1,10 @@
 import '../style.css';
 import { barSlot, setConn, soundButton } from '../frame';
 import { dropdown } from '../dropdown';
+import { setMuted } from '../sfx';
 import { apiFromSocket, showWatchers, showWatching, startLive, watchAway, watchBack } from '../live';
 import './mines.css';
+import { play } from './sfx';
 import type { ClientMessage, ErrorCode, Lobby, RunEvent, RunState, ServerMessage, StartRefusal } from './protocol';
 
 /*
@@ -351,28 +353,11 @@ function cashOut(): void {
   render();
 }
 
-/** The sounds of turning over a tile (public/mines/sfx), each played over the last if they come fast. */
-const SOUNDS = {
-  gem: new Audio(`${import.meta.env.BASE_URL}mines/sfx/gem-select.mp3`),
-  boom: new Audio(`${import.meta.env.BASE_URL}mines/sfx/mine-select.mp3`),
-};
-for (const sound of Object.values(SOUNDS)) sound.preload = 'auto';
-
-/** Sound off (the frame's sound button). */
-let muted = false;
-soundButton('mines-muted', (on) => (muted = on));
-
-function playSound(sound: HTMLAudioElement): void {
-  if (muted) return;
-  const copy = sound.cloneNode() as HTMLAudioElement;
-  copy.play().catch(() => {
-    // Sound blocked or missing: play on without it.
-  });
-}
+soundButton('mines-muted', setMuted);
 
 /** What a pick turned over (`picked`: an answer to the page's own pick, not a reconnect). */
 function applyEvent(event: RunEvent | undefined, picked: boolean): void {
-  if (picked && (event?.kind === 'gem' || event?.kind === 'boom')) playSound(SOUNDS[event.kind]);
+  if (picked && (event?.kind === 'gem' || event?.kind === 'boom')) play(event.kind);
   if (event?.kind !== 'boom') return;
   const wrap = ui.board.parentElement as HTMLElement;
   wrap.classList.remove('shake');

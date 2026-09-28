@@ -5,7 +5,8 @@ import { apiFromSocket, showWatchers, showWatching, startLive, watchAway, watchB
 import './pinecraft.css';
 import { burst, cellAt, drawMap, drawScene, isBedrock, isOpenCell, ORE_OF, stepParticles, type Scene } from './draw';
 import type { ClientMessage, Direction, ErrorCode, PinecraftOre, ServerMessage, WorldEvent, WorldMap, WorldState } from './protocol';
-import { loadSounds, materialOf, play, setMuted, type Material } from './sfx';
+import { setMuted } from '../sfx';
+import { loadSounds, materialOf, play, type Material } from './sfx';
 import { drawGem, loadKeysPicture, loadTextures, ORE_COLOR, ORES } from './textures';
 
 /*

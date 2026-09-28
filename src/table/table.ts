@@ -1,7 +1,9 @@
 import '../style.css';
 import './table.css';
 import { barSlot, setConn, soundButton } from '../frame';
+import { setMuted } from '../sfx';
 import { apiFromSocket, showWatchers, showWatching, startLive, watchAway, watchBack } from '../live';
+import { play } from './sfx';
 import type { BetRefusal, Bets, ClientMessage, ErrorCode, Outcome, RoundOf, SeatView, ServerMessage, TableState } from './protocol';
 
 /*
@@ -179,59 +181,6 @@ export function renderPiles(el: HTMLElement, piles: Pile[], chips: readonly numb
   heaps.classList.toggle('crowded', heaps.childElementCount > 4);
 }
 
-// ---------------------------------------------------------------------------
-// Sounds: a chip put on a spot, and chips slid off a spot (taken back or cleared) or picked from the
-// rack (public/shared/sfx), a game's own (like a card placed), and, made here, a click for an even
-// round and a chime for a win.
-
-let muted = false;
-let audio: AudioContext | null = null;
-
-/** A recorded sound: returns a function that plays it (unless the sound is off). */
-export function sound(url: string): () => void {
-  const sample = new Audio(url);
-  sample.preload = 'auto';
-  return () => {
-    if (muted) return;
-    // A copy each time, so sounds close together don't cut each other off.
-    const copy = sample.cloneNode() as HTMLAudioElement;
-    copy.play().catch(() => {
-      // Sound blocked or missing: play on without it.
-    });
-  };
-}
-
-const placeSound = sound(`${import.meta.env.BASE_URL}shared/sfx/place-poker-chip.mp3`);
-const moveSound = sound(`${import.meta.env.BASE_URL}shared/sfx/move-poker-chip.mp3`);
-
-function tone(kind: 'chip' | 'place' | 'move' | 'win' | 'lose'): void {
-  if (kind === 'place') return placeSound();
-  if (kind === 'move') return moveSound();
-  if (muted) return;
-  try {
-    audio ??= new AudioContext();
-    const now = audio.currentTime;
-    const gain = audio.createGain();
-    gain.connect(audio.destination);
-    const notes = kind === 'chip' ? [2600] : kind === 'win' ? [660, 880, 1320] : [300, 220];
-    notes.forEach((freq, i) => {
-      const osc = audio!.createOscillator();
-      const g = audio!.createGain();
-      osc.type = kind === 'chip' ? 'triangle' : 'sine';
-      osc.frequency.value = freq;
-      const start = now + i * (kind === 'chip' ? 0 : 0.09);
-      const length = kind === 'chip' ? 0.05 : 0.18;
-      g.gain.setValueAtTime(kind === 'chip' ? 0.18 : 0.12, start);
-      g.gain.exponentialRampToValueAtTime(0.001, start + length);
-      osc.connect(g).connect(gain);
-      osc.start(start);
-      osc.stop(start + length);
-    });
-  } catch {
-    // No sound here: play on without it.
-  }
-}
-
 function remembered(key: string): string | null {
   try {
     return localStorage.getItem(key);
@@ -320,7 +269,7 @@ export function startTable<S extends string, R, X = unknown>(game: TableGame<S, 
     ui.message.hidden = false;
   }
 
-  soundButton(`${game.key}-muted`, (on) => (muted = on));
+  soundButton(`${game.key}-muted`, setMuted);
 
   // -------------------------------------------------------------------------
   // What is on the table
@@ -532,7 +481,7 @@ export function startTable<S extends string, R, X = unknown>(game: TableGame<S, 
     showError(null);
     bets = { ...bets, [spot]: (bets[spot] ?? 0) + amount };
     history.push({ spot, amount });
-    tone('place');
+    play('place');
     sendBets();
     render();
     const stack = game.spots.get(spot)?.querySelector('.tb-stack');
@@ -546,7 +495,7 @@ export function startTable<S extends string, R, X = unknown>(game: TableGame<S, 
     delete rest[spot];
     bets = rest;
     history = history.filter((h) => h.spot !== spot);
-    if (withSound) tone('move');
+    if (withSound) play('move');
     showError(null);
     sendBets();
     render();
@@ -585,7 +534,7 @@ export function startTable<S extends string, R, X = unknown>(game: TableGame<S, 
   function pick(value: number, withSound = true): void {
     selected = value;
     remember(SELECTED_KEY, String(value));
-    if (withSound) tone('move');
+    if (withSound) play('move');
     renderBar();
   }
 
@@ -688,7 +637,7 @@ export function startTable<S extends string, R, X = unknown>(game: TableGame<S, 
     const left = (bets[last.spot] ?? 0) - last.amount;
     bets = { ...bets, [last.spot]: left };
     if (left <= 0) delete bets[last.spot];
-    tone('move');
+    play('move');
     showError(null);
     sendBets();
     render();
@@ -696,7 +645,7 @@ export function startTable<S extends string, R, X = unknown>(game: TableGame<S, 
 
   ui.clear.addEventListener('click', () => {
     if (busy() || onTable() === 0) return;
-    tone('move');
+    play('move');
     bets = {};
     history = [];
     showError(null);
@@ -785,7 +734,7 @@ export function startTable<S extends string, R, X = unknown>(game: TableGame<S, 
       ui.result.classList.toggle('even', net === 0);
       ui.resultTitle.textContent = signedPoints(net);
       ui.resultTitle.append(' ', coin());
-      tone(net > 0 ? 'win' : net < 0 ? 'lose' : 'chip');
+      play(net > 0 ? 'win' : net < 0 ? 'lose' : 'even');
     }
     ui.resultText.textContent = text;
     ui.result.hidden = false;
