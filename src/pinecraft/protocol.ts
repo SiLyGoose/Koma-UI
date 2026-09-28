@@ -7,7 +7,7 @@
  * letter per block:
  *   .  open (the starting room, or dug)
  *   d s b   dirt, stone, bedrock
- *   c i o x e r   coal, iron, gold, diamond, emerald, ruby
+ *   c i o x e a r   coal, iron, gold, diamond, emerald, amethyst, ruby
  *   ?  not seen yet
  * A block is only sent once the miner can see it (next to open ground they can walk to).
  *
@@ -29,7 +29,7 @@
  */
 
 export type Direction = 'up' | 'down' | 'left' | 'right';
-export type PinecraftOre = 'coal' | 'iron' | 'gold' | 'diamond' | 'emerald' | 'ruby';
+export type PinecraftOre = 'coal' | 'iron' | 'gold' | 'diamond' | 'emerald' | 'amethyst' | 'ruby';
 
 export type ClientMessage =
   | { t: 'hello'; token: string }
@@ -65,14 +65,19 @@ export interface WorldState {
   earned: number;
   dug: number;
   /** What each ore pays. */
-  values: Record<PinecraftOre, number>;
+  values: Record<'dirt' | 'stone' | PinecraftOre, number>;
   /** How long each block takes to break, in ms. */
   breakMs: Record<'dirt' | 'stone' | PinecraftOre, number>;
   /** Energy an ore takes to dig (dirt and stone take 1). */
   oreEnergy: number;
   /** With a Dynamite Stick: a blast every `every` blocks dug, the next in `left`. */
   blast: { every: number; left: number } | null;
+  /** The pickaxe the miner swings: their equipped one, or the plain wooden one. */
+  pickaxe: PinecraftPickaxe;
 }
+
+/** The pickaxes the miner can be drawn with (public/pinecraft/pickaxes/pickaxe_<name>.png on the page). */
+export type PinecraftPickaxe = 'wood' | 'gold' | 'diamond' | 'ruby' | 'amethyst';
 
 /** What the page's last move did. */
 export type WorldEvent =
@@ -84,6 +89,8 @@ export type WorldEvent =
       points: number;
       /** The ore paid double. */
       lucky: boolean;
+      /** The dig took no energy (an Amethyst Pickaxe). */
+      free: boolean;
       /** What a blast broke around the block, if it set one off. */
       blast: { x: number; y: number; ground: 'dirt' | 'stone'; ore: PinecraftOre | null; points: number; lucky: boolean }[] | null;
     };

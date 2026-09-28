@@ -1,5 +1,5 @@
-import type { Direction, PinecraftOre, WorldMap, WorldState } from './protocol';
-import { crack, ORE_COLOR, texture, type BlockTexture } from './textures';
+import type { Direction, PinecraftOre, PinecraftPickaxe, WorldMap, WorldState } from './protocol';
+import { crack, keysPicture, ORE_COLOR, pickaxeImage, texture, type BlockTexture } from './textures';
 
 /*
  * Draws Pinecraft: the underground around the miner, in blocks. Ground dug out is a warm earth
@@ -7,7 +7,7 @@ import { crack, ORE_COLOR, texture, type BlockTexture } from './textures';
  * the rest are mystery blocks: the dirt's picture, nearly black.
  */
 
-export const ORE_OF: Readonly<Record<string, PinecraftOre>> = { c: 'coal', i: 'iron', o: 'gold', x: 'diamond', r: 'ruby', e: 'emerald' };
+export const ORE_OF: Readonly<Record<string, PinecraftOre>> = { c: 'coal', i: 'iron', o: 'gold', x: 'diamond', r: 'ruby', e: 'emerald', a: 'amethyst' };
 
 /** A spark or chip of rock flying off a block being dug. Positions in blocks, speeds in blocks a second. */
 export interface Particle {
@@ -35,6 +35,10 @@ export interface Scene {
   /** A block being broken (it takes `takes` ms from `since`): it cracks, more and more. */
   digging: { x: number; y: number; since: number; takes: number } | null;
   particles: Particle[];
+  /** How far under the starting room to draw how to play (the keys), in blocks. */
+  keysGap: number;
+  /** When how to play starts fading away (performance.now()), once the miner has moved; null before. */
+  keysGoneAt: number | null;
 }
 
 /** What block (x, y) is, as the page knows it (a letter, see protocol.ts): '?' if not seen, '#' past the edge. */
@@ -62,8 +66,25 @@ function textureOf(c: string): BlockTexture {
   }
 }
 
-/** The miner, standing in the block whose top left is (px, py), `s` wide. `swing` is how far through a swing of the pickaxe (null when still). */
-function miner(g: CanvasRenderingContext2D, px: number, py: number, s: number, facing: 1 | -1, swing: number | null, dir: Direction | null, now: number): void {
+/** How long the pickaxe's picture is drawn, in the miner's units (100 a block), and how far of it sits behind the hand. */
+const PICKAXE_LENGTH = 58;
+const PICKAXE_BEHIND = 18;
+
+/**
+ * The miner, standing in the block whose top left is (px, py), `s` wide, with `pickaxe`. `swing`
+ * is how far through a swing of the pickaxe (null when still).
+ */
+function miner(
+  g: CanvasRenderingContext2D,
+  px: number,
+  py: number,
+  s: number,
+  facing: 1 | -1,
+  swing: number | null,
+  dir: Direction | null,
+  now: number,
+  pickaxe: PinecraftPickaxe,
+): void {
   g.save();
   g.translate(px + s / 2, py + s);
   g.scale(facing * (s / 100), s / 100);
@@ -115,6 +136,25 @@ function miner(g: CanvasRenderingContext2D, px: number, py: number, s: number, f
   g.save();
   g.translate(8, -52 + bob);
   g.rotate(angle);
+  const img = pickaxeImage(pickaxe);
+  if (img) {
+    // The picture is upright; turned a quarter, its handle runs out from the shoulder with the head at the end.
+    g.rotate(Math.PI / 2);
+    g.drawImage(img, -PICKAXE_LENGTH / 2, -PICKAXE_LENGTH + PICKAXE_BEHIND, PICKAXE_LENGTH, PICKAXE_LENGTH);
+  } else {
+    drawnPickaxe(g);
+  }
+  g.restore();
+  // The hand on the handle.
+  g.fillStyle = '#f0c29a';
+  g.beginPath();
+  g.arc(8 + Math.cos(angle) * 12, -52 + bob + Math.sin(angle) * 12, 6, 0, Math.PI * 2);
+  g.fill();
+  g.restore();
+}
+
+/** A plain pickaxe drawn along +x from the shoulder, while the pictures load. */
+function drawnPickaxe(g: CanvasRenderingContext2D): void {
   g.fillStyle = '#7a5230';
   g.fillRect(-3, -3, 46, 6);
   g.fillStyle = '#9aa3ad';
@@ -127,14 +167,10 @@ function miner(g: CanvasRenderingContext2D, px: number, py: number, s: number, f
   g.closePath();
   g.fill();
   g.stroke();
-  g.restore();
-  // The hand on the handle.
-  g.fillStyle = '#f0c29a';
-  g.beginPath();
-  g.arc(8 + Math.cos(angle) * 12, -52 + bob + Math.sin(angle) * 12, 6, 0, Math.PI * 2);
-  g.fill();
-  g.restore();
 }
+
+/** How long how to play takes to fade away. */
+const KEYS_FADE_MS = 600;
 
 /** Draws the scene on `g`, which is `w` by `h` CSS pixels, with blocks `s` pixels wide. */
 export function drawScene(g: CanvasRenderingContext2D, scene: Scene, w: number, h: number, s: number, now: number): void {
@@ -182,6 +218,18 @@ export function drawScene(g: CanvasRenderingContext2D, scene: Scene, w: number, 
     }
   }
 
+  // How to play, in the ground under where the miner starts: `keysGap` blocks below the row 2 under
+  // the spawn.
+  const keys = keysPicture();
+  const shown = scene.keysGoneAt === null ? 1 : 1 - (now - scene.keysGoneAt) / KEYS_FADE_MS;
+  if (keys && scene.state.spawn && shown > 0) {
+    const kw = 3 * s;
+    const kh = (kw * keys.height) / keys.width;
+    g.globalAlpha = 0.92 * Math.min(1, shown);
+    g.drawImage(keys, (scene.state.spawn.x + 0.5 - cam.x) * s - kw / 2, (scene.state.spawn.y + 2 + scene.keysGap - cam.y) * s, kw, kh);
+    g.globalAlpha = 1;
+  }
+
   // Chips of rock and sparks.
   for (const p of scene.particles) {
     const age = (now - p.born) / p.life;
@@ -195,7 +243,7 @@ export function drawScene(g: CanvasRenderingContext2D, scene: Scene, w: number, 
   // A swing takes 260 ms; while waiting for the bot to answer a dig, it keeps swinging.
   const swingT = scene.swing ? (now - scene.swing.since) / 260 : null;
   const phase = swingT === null ? null : scene.digging ? swingT % 1 : swingT < 1 ? swingT : null;
-  miner(g, (scene.miner.x - cam.x) * s, (scene.miner.y - cam.y) * s, s, scene.facing, phase, scene.swing?.dir ?? null, now);
+  miner(g, (scene.miner.x - cam.x) * s, (scene.miner.y - cam.y) * s, s, scene.facing, phase, scene.swing?.dir ?? null, now, scene.state.pickaxe ?? 'wood');
 }
 
 /** Adds the chips a dug block throws off (and sparks, for an ore). */

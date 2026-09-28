@@ -129,7 +129,7 @@ body {
   background: var(--red);
 }
 
-/* "Earned from ores": hover it (or tap it) for what each ore pays. */
+/* "Earned": hover it (or tap it) for what each block pays. */
 .pc-earned {
   position: relative;
   cursor: help;
@@ -230,8 +230,17 @@ body {
 }
 
 .pc-tip-gem {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+/* Dirt and stone show their whole block, a little smaller than a gem so the rows line up. */
+.pc-tip-block {
+  width: 18px;
+  height: 18px;
+  margin: 3px;
+  border-radius: 3px;
 }
 
 .pc-tip-value {

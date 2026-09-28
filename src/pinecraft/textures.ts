@@ -1,17 +1,18 @@
-import type { PinecraftOre } from './protocol';
+import type { PinecraftOre, PinecraftPickaxe } from './protocol';
 
 /*
- * The pictures of Pinecraft's blocks. Dirt and stone are drawings in public/pinecraft/blocks. An
- * ore uses public/pinecraft/blocks/<ore>.png when there is one (coal.png, iron.png, gold.png,
- * diamond.png, ruby.png, emerald.png), and until then a stand-in drawn here: stone with gems of the
- * ore's colour in it. Bedrock is public/pinecraft/blocks/bedrock.png (made from the stone if it's
- * missing). A block being broken has public/pinecraft/cracks/crack_01.png to crack_04.png over it,
- * more cracked the closer it is to breaking.
+ * The pictures of Pinecraft's blocks, in public/pinecraft/blocks as block_<name>.png: dirt, stone,
+ * bedrock and each ore (block_coal.png, block_iron.png and so on). An ore without one has a stand-in
+ * drawn here (stone with gems of the ore's colour in it), and bedrock without one is made from the
+ * stone. A block being broken has public/pinecraft/cracks/crack_01.png to crack_04.png over it, more
+ * cracked the closer it is to breaking. The miner's pickaxe is
+ * public/pinecraft/pickaxes/pickaxe_<name>.png (pickaxe_wood.png, pickaxe_gold.png,
+ * pickaxe_diamond.png, pickaxe_ruby.png, pickaxe_amethyst.png), drawn upright: head at the top, handle down the middle.
  */
 
 export type BlockTexture = 'dirt' | 'stone' | 'bedrock' | PinecraftOre;
 
-export const ORES: readonly PinecraftOre[] = ['coal', 'iron', 'gold', 'diamond', 'emerald', 'ruby'];
+export const ORES: readonly PinecraftOre[] = ['coal', 'iron', 'gold', 'diamond', 'emerald', 'amethyst', 'ruby'];
 
 /** Each ore's colours: the gem, its outline, and its shine. Also used for the ore tooltip, the sparks and the "+points". */
 export const ORE_COLOR: Readonly<Record<PinecraftOre, { gem: string; edge: string; shine: string }>> = {
@@ -20,6 +21,7 @@ export const ORE_COLOR: Readonly<Record<PinecraftOre, { gem: string; edge: strin
   gold: { gem: '#f5c542', edge: '#a87a12', shine: '#fff1b0' },
   diamond: { gem: '#5fe0f2', edge: '#1f8ea3', shine: '#e6fcff' },
   ruby: { gem: '#e33a5a', edge: '#8c1530', shine: '#ffc2cf' },
+  amethyst: { gem: '#a66bf0', edge: '#5b2d9c', shine: '#ead9ff' },
   emerald: { gem: '#2fd07a', edge: '#127a41', shine: '#c6ffdf' },
 };
 
@@ -115,16 +117,64 @@ function oreStandIn(stone: CanvasImageSource, ore: PinecraftOre): HTMLCanvasElem
   return c;
 }
 
+const PICKAXES: readonly PinecraftPickaxe[] = ['wood', 'gold', 'diamond', 'ruby', 'amethyst'];
+
+const pickaxeImages = new Map<PinecraftPickaxe, HTMLImageElement>();
+
+/** The picture of a pickaxe, once loaded (the wooden one while it isn't; undefined when neither is). */
+export const pickaxeImage = (name: PinecraftPickaxe): HTMLImageElement | undefined => pickaxeImages.get(name) ?? pickaxeImages.get('wood');
+
+let keys: HTMLCanvasElement | null = null;
+
+/** How to play (public/pinecraft/keys.png: WASD / arrows, "MOVE & MINE"), trimmed to what's drawn, once loaded. */
+export const keysPicture = (): HTMLCanvasElement | null => keys;
+
+/** Loads the how-to-play picture, cut down to its drawing (the file has a wide empty margin). */
+export async function loadKeysPicture(): Promise<void> {
+  const img = await load('pinecraft/keys.png');
+  if (!img) return;
+  const full = document.createElement('canvas');
+  full.width = img.naturalWidth;
+  full.height = img.naturalHeight;
+  const fg = full.getContext('2d', { willReadFrequently: true }) as CanvasRenderingContext2D;
+  fg.drawImage(img, 0, 0);
+  const { data, width, height } = fg.getImageData(0, 0, full.width, full.height);
+  let left = width;
+  let right = -1;
+  let top = height;
+  let bottom = -1;
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      if ((data[(y * width + x) * 4 + 3] ?? 0) < 16) continue;
+      if (x < left) left = x;
+      if (x > right) right = x;
+      if (y < top) top = y;
+      if (y > bottom) bottom = y;
+    }
+  }
+  if (right < left) return;
+  const cut = document.createElement('canvas');
+  cut.width = right - left + 1;
+  cut.height = bottom - top + 1;
+  (cut.getContext('2d') as CanvasRenderingContext2D).drawImage(full, left, top, cut.width, cut.height, 0, 0, cut.width, cut.height);
+  keys = cut;
+}
+
 /** Loads every block's picture. Resolves once they are all in (the stand-ins are there straight away). */
 export async function loadTextures(): Promise<void> {
   textures.set('dirt', flat(FLAT.dirt));
   textures.set('stone', flat(FLAT.stone));
   const cracks = Promise.all([1, 2, 3, 4].map((k) => load(`pinecraft/cracks/crack_0${k}.png`)));
+  for (const name of PICKAXES) {
+    void load(`pinecraft/pickaxes/pickaxe_${name}.png`).then((img) => {
+      if (img) pickaxeImages.set(name, img);
+    });
+  }
   const [dirt, stone, bedrockImg, ...ores] = await Promise.all([
-    load('pinecraft/blocks/dirt.png'),
-    load('pinecraft/blocks/stone.png'),
-    load('pinecraft/blocks/bedrock.png'),
-    ...ORES.map((ore) => load(`pinecraft/blocks/${ore}.png`)),
+    load('pinecraft/blocks/block_dirt.png'),
+    load('pinecraft/blocks/block_stone.png'),
+    load('pinecraft/blocks/block_bedrock.png'),
+    ...ORES.map((ore) => load(`pinecraft/blocks/block_${ore}.png`)),
   ]);
   crackImages.push(...(await cracks));
   const dirtImg = dirt ?? (textures.get('dirt') as CanvasImageSource);

@@ -6,7 +6,7 @@ import './pinecraft.css';
 import { burst, cellAt, drawMap, drawScene, isBedrock, isOpenCell, ORE_OF, stepParticles, type Scene } from './draw';
 import type { ClientMessage, Direction, ErrorCode, PinecraftOre, ServerMessage, WorldEvent, WorldMap, WorldState } from './protocol';
 import { loadSounds, materialOf, play, setMuted, type Material } from './sfx';
-import { drawGem, loadTextures, ORE_COLOR, ORES } from './textures';
+import { drawGem, loadKeysPicture, loadTextures, ORE_COLOR, ORES } from './textures';
 
 /*
  * Pinecraft, played in the browser. The link carries, after the #, the player's token (t) and the
@@ -50,7 +50,10 @@ const ui = {
   mapClose: $<HTMLButtonElement>('map-close'),
 };
 
-const ORE_NAME: Record<PinecraftOre, string> = { coal: 'Coal', iron: 'Iron', gold: 'Gold', diamond: 'Diamond', emerald: 'Emerald', ruby: 'Ruby' };
+/** A phone or tablet (touch, not a mouse and keys). */
+const touchScreen = matchMedia('(pointer: coarse)').matches;
+
+const ORE_NAME: Record<PinecraftOre, string> = { coal: 'Coal', iron: 'Iron', gold: 'Gold', diamond: 'Diamond', emerald: 'Emerald', amethyst: 'Amethyst', ruby: 'Ruby' };
 
 /** Blocks across the view, when the page's styles don't say (--cols on the view). */
 const VIEW_COLS = 8;
@@ -173,18 +176,40 @@ function renderHud(state: WorldState): void {
   }
 }
 
-/** What each ore pays, in the tooltip over "Earned from ores". */
+/** What each block pays, in the tooltip over "Earned": dirt and stone (their block pictures), then the ores. */
 function renderOreTip(state: WorldState): void {
   ui.oreTip.textContent = '';
+  for (const block of ['dirt', 'stone'] as const) {
+    const name = document.createElement('span');
+    name.className = 'pc-tip-ore';
+    name.textContent = block === 'dirt' ? 'Dirt' : 'Stone';
+    const icon = document.createElement('img');
+    icon.className = 'pc-tip-gem pc-tip-block';
+    icon.src = `${import.meta.env.BASE_URL}pinecraft/blocks/block_${block}.png`;
+    icon.alt = '';
+    name.append(icon);
+    const value = document.createElement('span');
+    value.className = 'pc-tip-value';
+    value.textContent = `+${points(state.values[block] ?? 0)}`;
+    ui.oreTip.append(name, value);
+  }
   for (const ore of ORES) {
     const name = document.createElement('span');
     name.className = 'pc-tip-ore';
     name.textContent = ORE_NAME[ore];
-    const icon = document.createElement('canvas');
-    icon.width = 40;
-    icon.height = 40;
+    // The ore's sprite (public/pinecraft/ores/ore_<ore>.png), or a gem drawn in its colour if that won't load.
+    const icon = document.createElement('img');
     icon.className = 'pc-tip-gem';
-    drawGem(icon.getContext('2d') as CanvasRenderingContext2D, ore, 20, 20, 14);
+    icon.src = `${import.meta.env.BASE_URL}pinecraft/ores/ore_${ore}.png`;
+    icon.alt = '';
+    icon.addEventListener('error', () => {
+      const gem = document.createElement('canvas');
+      gem.width = 40;
+      gem.height = 40;
+      gem.className = 'pc-tip-gem';
+      drawGem(gem.getContext('2d') as CanvasRenderingContext2D, ore, 20, 20, 14);
+      icon.replaceWith(gem);
+    });
     name.append(icon);
     const value = document.createElement('span');
     value.className = 'pc-tip-value';
@@ -209,7 +234,8 @@ function apply(state: WorldState, event: WorldEvent | undefined, moveMiner: bool
   const now = performance.now();
   const first = scene === null;
   if (!scene) {
-    scene = { state, known: new Map(), cam: { x: 0, y: 0 }, miner: { x: state.x, y: state.y }, facing: 1, swing: null, digging: null, particles: [] };
+    scene = { state, known: new Map(), cam: { x: 0, y: 0 }, miner: { x: state.x, y: state.y }, facing: 1, swing: null, digging: null, particles: [], keysGap: keysGap(), keysGoneAt: null };
+    keysFrom = { x: state.x, y: state.y };
     renderOreTip(state);
   }
   // A new week: a fresh mine. Forget the old one's blocks, and start from the room.
@@ -246,6 +272,9 @@ function apply(state: WorldState, event: WorldEvent | undefined, moveMiner: bool
       breakSounds([event, ...(event.blast ?? [])]);
       burst(scene, dug.x, dug.y, event.ground, event.ore, now);
       if (event.ore) floatText(dug.x, dug.y, `+${points(event.points)}${event.lucky ? ' ×2' : ''}`, event.lucky ? '#7dffb0' : '#ffd84a');
+      else if (event.points > 0) floatText(dug.x, dug.y, `+${points(event.points)}`, '#d8cbb8');
+      // An Amethyst Pickaxe's free dig: above the points, when there are some.
+      if (event.free) floatText(dug.x, event.points > 0 ? dug.y - 0.4 : dug.y, 'Free ⚡', '#c9a2ff');
       // A blast: every block around goes at once.
       if (event.blast) {
         for (const b of event.blast) {
@@ -607,10 +636,23 @@ for (const end of ['pointerup', 'pointercancel', 'lostpointercapture'] as const)
   });
 }
 
-if (matchMedia('(pointer: coarse)').matches) {
-  ui.log.textContent = 'Touch and drag anywhere on the mine to walk · hold against a block to break it. Every block takes one ⚡; harder ones take longer.';
+// How to play: the keys drawn in the ground under the start (draw.ts), 2 blocks further down on a
+// computer and 3 in the phone layout (as pinecraft.css has it); on a touch screen,
+// where the keys don't apply, in words over the mine too, until the first move.
+const phoneLayout = matchMedia('(pointer: coarse), (max-width: 759px), (max-height: 519px)');
+/** Where the miner was when the page opened: how to play goes 5 seconds after they first leave it. */
+let keysFrom = { x: 0, y: 0 };
+const KEYS_STAY_MS = 5000;
+function keysGap(): number {
+  return phoneLayout.matches ? 3 : 2;
 }
-startTip = ui.log.textContent;
+phoneLayout.addEventListener('change', () => {
+  if (scene) scene.keysGap = keysGap();
+});
+if (touchScreen) {
+  ui.log.textContent = 'Touch and drag anywhere on the mine to walk · hold against a block to break it. Every block takes one ⚡; harder ones take longer.';
+  startTip = ui.log.textContent;
+}
 
 // ---------------------------------------------------------------------------
 // The map
@@ -692,6 +734,7 @@ function frame(now: number): void {
   const dt = Math.min(64, now - lastFrame);
   lastFrame = now;
   if (scene && size.block > 0) {
+    if (scene.keysGoneAt === null && (scene.state.x !== keysFrom.x || scene.state.y !== keysFrom.y)) scene.keysGoneAt = now + KEYS_STAY_MS;
     // Breaking a block: let go (or turn) and it starts over; hold on long enough and it breaks.
     const dir = held[held.length - 1];
     if (breaking) {
@@ -730,6 +773,7 @@ if (!token || !server) {
   showMessage('Open this from the games page', 'Log in on the games page and pick Pinecraft, or use the pinecraft command in Discord.');
 } else {
   void loadTextures();
+  void loadKeysPicture();
   loadSounds();
   connect();
   requestAnimationFrame(frame);

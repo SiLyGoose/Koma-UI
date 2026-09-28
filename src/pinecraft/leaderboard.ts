@@ -3,7 +3,7 @@ import './leaderboard.css';
 /*
  * Pinecraft's leaderboard: a 🏆 chip in the stats bar that opens a popup of the server's best
  * miners (the bot's /api/pinecraft/leaderboard), with a header to switch between blocks mined and
- * coins earned from ores, both all told. The one asking is marked, and shown at the bottom when
+ * coins earned, both all told. The one asking is marked, and shown at the bottom when
  * they aren't in the top 10.
  */
 
