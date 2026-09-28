@@ -56,6 +56,8 @@ export interface MenuItem {
   /** Where it goes, or what it does. */
   href?: string;
   onSelect?: () => void;
+  /** A class for its row (to show it only on some screens, say). */
+  className?: string;
 }
 
 const ICONS = {
@@ -109,7 +111,7 @@ export function dropdown(button: HTMLButtonElement, items: MenuItem[]): HTMLElem
   // A click inside the list isn't one "anywhere else" (its items close it themselves).
   list.addEventListener('click', (e) => e.stopPropagation());
   for (const item of items) {
-    const li = el('li', '');
+    const li = el('li', item.className ?? '');
     const link = el('a', 'account-item');
     link.href = item.href ?? '#';
     if (item.icon) {

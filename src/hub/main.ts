@@ -1,5 +1,5 @@
 import '../style.css';
-import { API, arrow, dropdown, getSession, profileMenu, setSession, store } from '../account';
+import { API, getSession, profileMenu, setSession, store } from '../account';
 import './hub.css';
 import { startLive } from '../live';
 
@@ -82,6 +82,8 @@ function render(): void {
   ui.headerLogin.hidden = true;
   profile?.remove();
   profile = profileMenu(me.user, [
+    // On smaller screens the header's links are here instead (My Servers is the other one).
+    { label: 'Games', icon: 'games', href: '#games', className: 'site-nav-item' },
     { label: 'My Servers', icon: 'servers', href: '#play' },
     { label: 'Logout', icon: 'logout', onSelect: logOut },
   ]);
@@ -188,20 +190,6 @@ function logIn(): void {
 }
 ui.loginButton.addEventListener('click', logIn);
 ui.headerLogin.addEventListener('click', logIn);
-
-// On smaller screens the header's links go in a "Menu" drop-down.
-{
-  const button = document.createElement('button');
-  button.type = 'button';
-  button.className = 'site-menu-button';
-  button.append('Menu', arrow());
-  const menu = dropdown(button, [
-    { label: 'Servers', href: '#play' },
-    { label: 'Games', href: '#games' },
-  ]);
-  menu.classList.add('site-menu');
-  ui.nav.append(menu);
-}
 
 for (const button of document.querySelectorAll<HTMLButtonElement>('[data-play]')) {
   button.addEventListener('click', async () => {

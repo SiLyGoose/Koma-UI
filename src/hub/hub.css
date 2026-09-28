@@ -6,8 +6,8 @@
 
 /*
  * The header, after JavNext's: a dark bar across the top that stays put, the name on the left, and on
- * the right the page's links (a "Menu" drop-down on smaller screens), who's online and the profile
- * button (account.css), or a round Login button.
+ * the right the page's links (in the profile's drop-down on smaller screens), who's online and the
+ * profile button (account.css), or a round Login button.
  */
 .site-header {
   position: sticky;
@@ -81,39 +81,16 @@
   color: var(--text);
 }
 
-/* Smaller screens: the links go in a "Menu" drop-down (made by main.ts). */
-.site-menu {
-  display: none;
-}
-
-.site-menu-button {
-  display: flex;
-  align-items: center;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--text);
-  font: inherit;
-  font-size: 15px;
-  cursor: pointer;
-}
-
-.site-menu-button:hover,
-.site-menu-button[aria-expanded='true'] {
-  color: var(--text);
-}
-
-.site-menu-button .account-arrow {
-  border-color: var(--text);
-}
-
+/* Smaller screens: the links go in the profile's drop-down instead (main.ts). */
 @media (max-width: 1023px) {
   .site-nav-list {
     display: none;
   }
+}
 
-  .site-menu {
-    display: block;
+@media (min-width: 1024px) {
+  .account-menu .site-nav-item {
+    display: none;
   }
 }
 
