@@ -285,11 +285,13 @@
 }
 
 .pinecraft-art {
-  background: linear-gradient(180deg, #7cc3ee 0%, #bfe3f7 45%, #4e9a3a 45%, #4e9a3a 52%, #6b4f35 52%, #6b4f35 72%, #77787b 72%);
+  /* A picture of the game (../../public/pinecraft/cover.png), on the miner in the middle. */
+  background: #1a1411 url('/pinecraft/cover.png') center / cover no-repeat;
 }
 
 .mines-art {
-  background: radial-gradient(circle at 50% 40%, #685c50, #2b2622);
+  /* A picture of the game (../../public/mines/cover.png), on the gem in the middle. */
+  background: var(--panel) url('/mines/cover.png') center / cover no-repeat;
 }
 
 .game-body {
