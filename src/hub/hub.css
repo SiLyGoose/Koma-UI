@@ -294,8 +294,12 @@
   background: var(--panel) url('/mines/cover.png') center / cover no-repeat;
 }
 
-/* Baccarat: two cards on green felt (no picture needed). */
+/* Baccarat: two cards side by side on green felt (no picture needed). */
 .baccarat-art {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
   gap: 10px;
   letter-spacing: 0;
   background: radial-gradient(ellipse at 50% 40%, #2f8552, #1b5234 70%, #123c26);
