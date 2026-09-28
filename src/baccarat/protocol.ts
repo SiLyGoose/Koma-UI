@@ -12,7 +12,11 @@ export interface Card {
   suit: Suit;
 }
 
-export type ClientMessage = { t: 'hello'; token: string } | { t: 'watch'; token: string } | { t: 'bets'; bets: Bets; seq: number };
+export type ClientMessage =
+  | { t: 'hello'; token: string }
+  | { t: 'watch'; token: string }
+  | { t: 'bets'; bets: Bets; seq: number }
+  | { t: 'deal'; ready: boolean };
 
 export interface SettledView {
   spot: Spot;
@@ -30,6 +34,7 @@ export interface SeatView {
   result: { bets: SettledView[]; bet: number; payout: number; net: number } | null;
   refused: boolean;
   lastBets: Bets | null;
+  ready: boolean;
 }
 
 export interface RoundView {

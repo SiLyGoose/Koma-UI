@@ -27,6 +27,7 @@ const ui = {
   clear: $<HTMLButtonElement>('clear'),
   rebet: $<HTMLButtonElement>('rebet'),
   double: $<HTMLButtonElement>('double'),
+  dealVote: $<HTMLButtonElement>('deal-vote'),
   error: $('error'),
   verdict: $('verdict'),
   result: $('result'),
@@ -320,6 +321,13 @@ function renderPlayers(): void {
     const nameText = document.createElement('span');
     nameText.textContent = seat.name;
     name.append(nameText);
+    if (state.phase === 'betting' && seat.ready && state.seats.length > 1) {
+      const ready = document.createElement('span');
+      ready.className = 'bc-ready';
+      ready.textContent = '✓';
+      ready.title = 'Voted to deal now';
+      name.append(ready);
+    }
     if (seat.userId === state.you) {
       const tag = document.createElement('span');
       tag.className = 'bc-you';
@@ -368,6 +376,15 @@ function renderBar(): void {
   ui.clear.disabled = idle || onTable() === 0;
   ui.rebet.disabled = idle || !last || onTable() > 0 || !fits(sumBets(last));
   ui.double.disabled = idle || onTable() === 0 || !fits(onTable() * 2);
+  // Deal now: alone it deals straight away; with others it's a vote, dealt once everyone has voted.
+  const seats = state?.seats ?? [];
+  const voted = mySeat()?.ready ?? false;
+  const chipsDown = seats.some((s) => sumBets(s.userId === state?.you ? bets : s.bets) > 0);
+  ui.dealVote.disabled = idle || (!chipsDown && !voted);
+  ui.dealVote.classList.toggle('voted', voted);
+  ui.dealVote.setAttribute('aria-pressed', String(voted));
+  ui.dealVote.textContent = seats.length <= 1 ? 'Deal' : `${voted ? 'Voted' : 'Deal'} · ${seats.filter((s) => s.ready).length}/${seats.length}`;
+  ui.dealVote.title = seats.length <= 1 ? 'Deal the cards now' : voted ? 'Take back your vote to deal now' : 'Vote to deal now: the cards are dealt once everyone has voted';
   for (const chip of ui.rack.querySelectorAll<HTMLElement>('.bc-chip')) {
     chip.classList.toggle('picked', Number(chip.dataset.value) === selected);
     chip.classList.toggle('off', idle || !fits(onTable() + Number(chip.dataset.value)));
@@ -620,6 +637,11 @@ ui.rebet.addEventListener('click', () => {
   const last = mySeat()?.lastBets;
   if (busy() || !last) return;
   for (const spot of SPOTS) if (last[spot]) place(spot, last[spot] as number);
+});
+
+ui.dealVote.addEventListener('click', () => {
+  if (busy()) return;
+  send({ t: 'deal', ready: !(mySeat()?.ready ?? false) });
 });
 
 ui.double.addEventListener('click', () => {

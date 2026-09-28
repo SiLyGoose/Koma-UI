@@ -611,6 +611,17 @@
   background: var(--accent-hover);
 }
 
+/* Voted: pressed in, and pressing again takes the vote back. */
+.bc-deal.voted {
+  background: var(--panel-3);
+  box-shadow: inset 0 0 0 2px var(--green);
+  color: var(--green);
+}
+
+.bc-deal.voted:hover:not(:disabled) {
+  background: var(--line);
+}
+
 .bc-panel :disabled {
   opacity: 0.45;
   cursor: default;
@@ -1149,6 +1160,14 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* Voted to deal now. */
+.bc-ready {
+  flex: none;
+  margin-left: 6px;
+  color: var(--green);
+  font-size: 13px;
 }
 
 .bc-you {

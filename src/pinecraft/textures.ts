@@ -124,6 +124,11 @@ const pickaxeImages = new Map<PinecraftPickaxe, HTMLImageElement>();
 /** The picture of a pickaxe, once loaded (the wooden one while it isn't; undefined when neither is). */
 export const pickaxeImage = (name: PinecraftPickaxe): HTMLImageElement | undefined => pickaxeImages.get(name) ?? pickaxeImages.get('wood');
 
+let minerImg: HTMLImageElement | null = null;
+
+/** The miner's picture (public/pinecraft/miner.png, pixel art 22 by 44), once loaded. */
+export const minerImage = (): HTMLImageElement | null => minerImg;
+
 let keys: HTMLCanvasElement | null = null;
 
 /** How to play (public/pinecraft/keys.png: WASD / arrows, "MOVE & MINE"), trimmed to what's drawn, once loaded. */
@@ -170,6 +175,9 @@ export async function loadTextures(): Promise<void> {
       if (img) pickaxeImages.set(name, img);
     });
   }
+  void load('pinecraft/miner.png').then((img) => {
+    minerImg = img;
+  });
   const [dirt, stone, bedrockImg, ...ores] = await Promise.all([
     load('pinecraft/blocks/block_dirt.png'),
     load('pinecraft/blocks/block_stone.png'),

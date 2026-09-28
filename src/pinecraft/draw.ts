@@ -1,5 +1,5 @@
 import type { Direction, PinecraftOre, PinecraftPickaxe, WorldMap, WorldState } from './protocol';
-import { crack, keysPicture, ORE_COLOR, pickaxeImage, texture, type BlockTexture } from './textures';
+import { crack, keysPicture, minerImage, ORE_COLOR, pickaxeImage, texture, type BlockTexture } from './textures';
 
 /*
  * Draws Pinecraft: the underground around the miner, in blocks. Ground dug out is a warm earth
@@ -70,6 +70,11 @@ function textureOf(c: string): BlockTexture {
 const PICKAXE_LENGTH = 58;
 const PICKAXE_BEHIND = 18;
 
+/** How tall the miner's picture is drawn, in the miner's units (a pixel of it is 1/44 of this). */
+const MINER_HEIGHT = 96;
+/** Where the picture's front hand is, in the miner's units: the pickaxe is held there. */
+const MINER_HAND = { x: 20, y: -19 };
+
 /**
  * The miner, standing in the block whose top left is (px, py), `s` wide, with `pickaxe`. `swing`
  * is how far through a swing of the pickaxe (null when still).
@@ -90,6 +95,55 @@ function miner(
   g.scale(facing * (s / 100), s / 100);
   // From here on: 100 units a block, x 0 in the middle, y 0 at the feet, facing right.
   const bob = swing === null ? Math.sin(now / 400) * 1 : 0;
+  const sprite = minerImage();
+
+  // The pickaxe: raised while still (behind the shape miner; held up in front of the picture, where
+  // it would be hidden behind them), brought down in front in a swing. Digging up or down swings it
+  // that way instead.
+  const rest = sprite ? -1.3 : -2.2;
+  const strike = dir === 'up' ? (sprite ? -1.9 : -1.2) : dir === 'down' ? 0.9 : 0.25;
+  const t = swing === null ? 0 : Math.sin(Math.min(1, swing) * Math.PI);
+  const angle = rest + (strike - rest) * t;
+
+  if (sprite) {
+    // Held in the picture's hand: behind the picture while still, in front during a swing.
+    const hand = { x: MINER_HAND.x, y: MINER_HAND.y + Math.round(bob) };
+    if (swing === null) heldPickaxe(g, hand, angle, pickaxe);
+    const h = MINER_HEIGHT;
+    const w = (h * sprite.naturalWidth) / sprite.naturalHeight;
+    g.imageSmoothingEnabled = false;
+    g.drawImage(sprite, -w / 2, -h + Math.round(bob), w, h);
+    if (swing !== null) heldPickaxe(g, hand, angle, pickaxe);
+  } else {
+    // Held at the shoulder, with a hand on the handle.
+    drawnMiner(g, bob);
+    heldPickaxe(g, { x: 8, y: -52 + bob }, angle, pickaxe);
+    g.fillStyle = '#f0c29a';
+    g.beginPath();
+    g.arc(8 + Math.cos(angle) * 12, -52 + bob + Math.sin(angle) * 12, 6, 0, Math.PI * 2);
+    g.fill();
+  }
+  g.restore();
+}
+
+/** The pickaxe, turned `angle` about `grip` (0 points it forward). */
+function heldPickaxe(g: CanvasRenderingContext2D, grip: { x: number; y: number }, angle: number, pickaxe: PinecraftPickaxe): void {
+  g.save();
+  g.translate(grip.x, grip.y);
+  g.rotate(angle);
+  const img = pickaxeImage(pickaxe);
+  if (img) {
+    // The picture is upright; turned a quarter, its handle runs out from the hand with the head at the end.
+    g.rotate(Math.PI / 2);
+    g.drawImage(img, -PICKAXE_LENGTH / 2, -PICKAXE_LENGTH + PICKAXE_BEHIND, PICKAXE_LENGTH, PICKAXE_LENGTH);
+  } else {
+    drawnPickaxe(g);
+  }
+  g.restore();
+}
+
+/** The miner drawn in shapes, while their picture loads (same units as in miner()). */
+function drawnMiner(g: CanvasRenderingContext2D, bob: number): void {
   // Boots and legs.
   g.fillStyle = '#3b2a1c';
   g.fillRect(-18, -8, 15, 8);
@@ -126,31 +180,6 @@ function miner(
   g.beginPath();
   g.arc(13, -88 + bob, 5, 0, Math.PI * 2);
   g.fill();
-
-  // The pickaxe, held at the shoulder: raised behind while still, brought down in front in a swing.
-  // Digging up or down swings it that way instead.
-  const rest = -2.2;
-  const strike = dir === 'up' ? -1.2 : dir === 'down' ? 0.9 : 0.25;
-  const t = swing === null ? 0 : Math.sin(Math.min(1, swing) * Math.PI);
-  const angle = rest + (strike - rest) * t;
-  g.save();
-  g.translate(8, -52 + bob);
-  g.rotate(angle);
-  const img = pickaxeImage(pickaxe);
-  if (img) {
-    // The picture is upright; turned a quarter, its handle runs out from the shoulder with the head at the end.
-    g.rotate(Math.PI / 2);
-    g.drawImage(img, -PICKAXE_LENGTH / 2, -PICKAXE_LENGTH + PICKAXE_BEHIND, PICKAXE_LENGTH, PICKAXE_LENGTH);
-  } else {
-    drawnPickaxe(g);
-  }
-  g.restore();
-  // The hand on the handle.
-  g.fillStyle = '#f0c29a';
-  g.beginPath();
-  g.arc(8 + Math.cos(angle) * 12, -52 + bob + Math.sin(angle) * 12, 6, 0, Math.PI * 2);
-  g.fill();
-  g.restore();
 }
 
 /** A plain pickaxe drawn along +x from the shoulder, while the pictures load. */
