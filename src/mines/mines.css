@@ -3,6 +3,8 @@
 /* In the frame (frame.css), filling the window, with the game in the middle below the title bar. */
 .mx {
   --mx-width: 900px;
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
   min-height: 100dvh;
   padding-bottom: 16px;
@@ -10,6 +12,15 @@
 
 .mx > .top {
   margin-bottom: 16px;
+}
+
+/* The game and the hint under it, as one, with as much room above them as below. */
+.mx > .mx-game {
+  margin-top: auto;
+}
+
+.mx > .hint {
+  margin-bottom: auto;
 }
 
 .mx > .mx-game,
