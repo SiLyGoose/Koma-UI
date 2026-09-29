@@ -102,7 +102,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     // Fresh each time: the points shown here change as they play.
     const res = await loadMe(true);
     if (!res.ok) {
-      status(res.status === 401 ? null : res.status === 0 ? 'Koma is not answering right now. Try again in a moment.' : 'Could not load your servers.', res.status !== 401);
+      status(res.status === 401 ? null : 'Could not load your servers.', res.status !== 401);
       return showLogin();
     }
     status(null);

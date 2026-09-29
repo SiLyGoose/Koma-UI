@@ -314,7 +314,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     if (!API) return status('This site is not set up yet: VITE_API_URL (the bot’s address) is missing.', true);
     status('Loading…');
     const [res] = await Promise.all([api<Databank>('/api/databank'), loadMember()]);
-    if (!res.ok) return status(res.status === 0 ? 'Koma is not answering right now. Try again in a moment.' : 'Could not load the databank.', true);
+    if (!res.ok) return status('Could not load the databank.', true);
     databank = res.data;
     level = databank.maxLevel;
     // A link to one item (/databank/#piplup) opens it; otherwise the panel starts on the first.

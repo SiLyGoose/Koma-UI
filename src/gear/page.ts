@@ -320,10 +320,10 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
 
   function failed(res: { status: number; error: string }, what: string): void {
     if (res.status === 401) return logOut();
+    // No answer to a change ("Reconnecting…" waited for the bot to be back): it may have gone through, so load what's there.
+    if (res.status === 0) return void loadGear();
     status(
-      res.status === 0
-        ? 'Koma is not answering right now. Try again in a moment.'
-        : res.error === 'not_member'
+      res.error === 'not_member'
           ? "You don't seem to be in that server any more. Log out and in again to refresh it."
           : res.error === 'busy'
             ? 'Your gear was changing somewhere else. Try again.'

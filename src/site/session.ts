@@ -1,4 +1,5 @@
 import { API, getSession, profileMenu, setSession, store } from '../shared/account';
+import { reconnecting } from '../shared/reconnect';
 import { startLive } from '../shared/live';
 import { go } from './nav';
 
@@ -30,8 +31,42 @@ let server = store.get(localStorage, SERVER_KEY);
 export const hasSession = (): boolean => session !== null;
 export const currentMe = (): Me | null => me;
 
-/** Asks the bot, as the member logged in (if any). Errors are { status, error } (status 0: no answer). */
+/** How long to wait between tries while the bot isn't answering. */
+const RETRY_MS = 2500;
+
+const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * Asks the bot, as the member logged in (if any). Errors are { status, error }. While the bot doesn't
+ * answer, "Reconnecting…" covers the site (../shared/reconnect.ts): a GET is tried again until it
+ * answers; a change (a POST) is never sent twice, since it may have gone through before the answer was
+ * lost, so it waits for the bot to answer anything again, then comes back as { status: 0 } (no
+ * answer) for the page to load what's there afresh.
+ */
 export async function api<T>(path: string, init: RequestInit = {}): Promise<ApiResult<T>> {
+  const first = await ask<T>(path, init);
+  if (first.ok || first.status !== 0) return first;
+  const done = reconnecting();
+  try {
+    if ((init.method ?? 'GET') === 'GET') {
+      for (;;) {
+        await sleep(RETRY_MS);
+        const res = await ask<T>(path, init);
+        if (res.ok || res.status !== 0) return res;
+      }
+    }
+    for (;;) {
+      await sleep(RETRY_MS);
+      const res = await ask('/api/me');
+      if (res.ok || res.status !== 0) return first;
+    }
+  } finally {
+    done();
+  }
+}
+
+/** One try at asking the bot (status 0: no answer). */
+async function ask<T>(path: string, init: RequestInit = {}): Promise<ApiResult<T>> {
   try {
     const res = await fetch(`${API}${path}`, {
       ...init,
