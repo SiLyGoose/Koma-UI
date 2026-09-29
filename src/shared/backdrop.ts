@@ -3,11 +3,11 @@ import './backdrop.css';
 /*
  * The site's backdrop: an astrologer's star chart in gold on the night behind every page (put in once
  * by ../site/main.ts, so it stays as the pages change under it). An astrolabe
- * ring of sigils round the main centre, great arcs sweeping in from off the edge, lines crossing the
- * page, chains of dots, notes in runes, moons in their phases travelling slowly along the arcs, and a
- * few spider lily petals drifting down. Laid out on a 1600×900 board scaled to cover the window
- * (cropped at the sides on a narrow screen, so what matters sits near the middle); the moons, the
- * runes, the stars and the petals fall differently every time the page is shown.
+ * ring spelling KOMAVERSE round the main centre, great arcs sweeping in from off the edge, lines crossing the
+ * page, chains of dots, three notes of the name, and moons in their phases travelling
+ * slowly along the arcs. Laid out on a 1600×900 board scaled to cover the window
+ * (cropped at the sides on a narrow screen, so what matters sits near the middle); the moons and the
+ * stars fall differently every time the page is shown.
  */
 
 const NS = 'http://www.w3.org/2000/svg';
@@ -40,34 +40,15 @@ function at(o: Orbit, deg: number): [number, number] {
 /** Whether a point is on the board (with some room past the edges). */
 const onBoard = ([x, y]: [number, number], pad = 0): boolean => x > -pad && x < W + pad && y > -pad && y < H + pad;
 
-/**
- * A made-up rune, as a path `size` tall (half as wide) with its top left at x, y: a stave, sometimes
- * two, with a branch or two off it, like the old carved alphabets.
- */
-function rune(x: number, y: number, size: number): string {
-  const u = size / 2;
-  const seg = (x1: number, y1: number, x2: number, y2: number): string =>
-    `M${(x + x1 * u).toFixed(1)},${(y + y1 * u).toFixed(1)}L${(x + x2 * u).toFixed(1)},${(y + y2 * u).toFixed(1)}`;
-  const branches: readonly [number, number, number, number][] = [
-    [0, 0, 1, 0.6], [0, 0.6, 1, 0], [0, 1, 1, 0.4], [0, 1, 1, 1.6], [0, 1.4, 1, 2], [0, 2, 1, 1.4],
-    [1, 0, 0, 1], [0, 1, 1, 1], [0, 0.5, 1, 1.5], [1, 0.5, 0, 1.5], [0, 0, 1, 0],
-  ];
-  let d = Math.random() < 0.85 ? seg(0, 0, 0, 2) : seg(0.5, 0, 0.5, 2);
-  if (Math.random() < 0.2) d += seg(1, 0, 1, 2);
-  for (let i = Math.random() < 0.5 ? 1 : 2; i > 0; i--) d += seg(...pick(branches));
-  return d;
-}
+/** What the chart's notes say. */
+const NAME = 'KOMAVERSE';
 
-/** Where the notes are (x, y, width, height), for the scattered ones to keep clear of. */
-type Box = [number, number, number, number];
-
-/** A line of `count` runes `size` tall, starting at x, y: a note on the chart, with a rule under it. */
-function runeNote(parent: Element, x: number, y: number, count: number, size: number, taken: Box[]): void {
-  taken.push([x, y, count * size * 0.95, size + 8]);
-  let d = '';
-  for (let i = 0; i < count; i++) d += rune(x + i * size * 0.95, y, size);
-  el('path', { d, class: 'backdrop-rune' }, parent);
-  const w = count * size * 0.95 - size * 0.45;
+/** The name in letters `size` tall, its top left at x, y: a note on the chart, with a rule under it. */
+function note(parent: Element, x: number, y: number, size: number): void {
+  const w = NAME.length * size * 1.1;
+  // Stretched to its width by its spacing, so the rule under it fits it whatever the font.
+  const text = el('text', { x, y: y + size, 'font-size': size.toFixed(1), textLength: w.toFixed(1), lengthAdjust: 'spacing', class: 'backdrop-text' }, parent);
+  text.textContent = NAME;
   el('line', { x1: x, y1: y + size + 6, x2: x + w * rand(0.25, 0.45), y2: y + size + 6 }, parent);
 }
 
@@ -79,9 +60,6 @@ function moonLight(x: number, y: number, r: number, phase: number): string {
   const sweep = phase > 0.5 ? 1 : 0;
   return `M${x},${y - r}A${r},${r} 0 0 1 ${x},${y + r}A${rx.toFixed(2)},${r} 0 0 ${sweep} ${x},${y - r}Z`;
 }
-
-/** A spider lily petal: long, narrow and curling back at the tip, pointing up from 0, 0. */
-const PETAL = 'M0,0C5,-8 6,-22 2,-34C0,-40 -5,-42 -8,-38C-3,-38 -1,-33 -2,-26C-3,-16 -3,-7 0,0Z';
 
 /** The backdrop, to put first in the page: fixed behind everything, not to be clicked or read. */
 export function backdrop(): HTMLElement {
@@ -101,15 +79,14 @@ export function backdrop(): HTMLElement {
   const faint = el('g', { class: 'backdrop-faint' }, svg);
   const lines = el('g', { class: 'backdrop-lines' }, svg);
   const moons = el('g', { class: 'backdrop-moons' }, svg);
-  const petals = el('g', { class: 'backdrop-petals' }, svg);
 
   // Stars: specks all over, a few of them twinkling.
   for (let i = 0; i < 110; i++) {
     const star = el('circle', { cx: rand(0, W), cy: rand(0, H), r: rand(0.4, 1.4).toFixed(2), opacity: rand(0.15, 0.7).toFixed(2) }, stars);
     if (Math.random() < 0.25) {
       star.classList.add('twinkle');
-      star.style.animationDelay = `${rand(-6, 0).toFixed(2)}s`;
-      star.style.animationDuration = `${rand(3, 7).toFixed(2)}s`;
+      star.style.animationDelay = `${rand(-12, 0).toFixed(2)}s`;
+      star.style.animationDuration = `${rand(6, 14).toFixed(2)}s`;
     }
   }
 
@@ -133,7 +110,7 @@ export function backdrop(): HTMLElement {
   el('circle', { cx: main.cx, cy: main.cy, r: 175, 'stroke-dasharray': '2 9' }, lines);
   el('circle', { cx: main.cx, cy: main.cy, r: 290 }, faint);
 
-  // The astrolabe ring, turning slowly: twelve houses, each with its sigil, and degrees marked inside.
+  // The astrolabe ring, turning slowly: nine houses, a letter of the name in each, and degrees marked inside.
   const band = el('g', { class: 'backdrop-turn' }, lines);
   band.style.transformOrigin = `${main.cx}px ${main.cy}px`;
   const inner = 196;
@@ -143,16 +120,18 @@ export function backdrop(): HTMLElement {
   let ticks = '';
   for (let deg = 0; deg < 360; deg += 5) {
     const [x1, y1] = at({ ...main, r: inner }, deg);
-    const [x2, y2] = at({ ...main, r: inner + (deg % 30 === 0 ? outer - inner : deg % 15 === 0 ? 8 : 4) }, deg);
+    const [x2, y2] = at({ ...main, r: inner + (deg % 40 === 0 ? outer - inner : deg % 20 === 0 ? 8 : 4) }, deg);
     ticks += `M${x1.toFixed(1)},${y1.toFixed(1)}L${x2.toFixed(1)},${y2.toFixed(1)}`;
   }
   el('path', { d: ticks }, band);
-  for (let house = 0; house < 12; house++) {
-    const deg = house * 30 + 15;
-    const [x, y] = at({ ...main, r: (inner + outer) / 2 + 2 }, deg);
+  // The houses spell the name round the ring, clockwise.
+  for (let house = 0; house < NAME.length; house++) {
+    const deg = house * 40 + 20;
+    const [x, y] = at({ ...main, r: (inner + outer) / 2 }, deg);
     // Upright to the ring, its foot towards the centre.
-    const sigil = el('path', { d: rune(x - 3.5, y - 7, 14), class: 'backdrop-rune' }, band);
-    sigil.setAttribute('transform', `rotate(${deg + 90} ${x.toFixed(1)} ${y.toFixed(1)})`);
+    const letter = el('text', { x: x.toFixed(1), y: y.toFixed(1), 'font-size': 14, 'text-anchor': 'middle', 'dominant-baseline': 'central', class: 'backdrop-text' }, band);
+    letter.textContent = NAME[house] as string;
+    letter.setAttribute('transform', `rotate(${deg + 90} ${x.toFixed(1)} ${y.toFixed(1)})`);
   }
 
   // Rings round the side system, with a compass star in them.
@@ -203,23 +182,10 @@ export function backdrop(): HTMLElement {
     el('circle', { cx: x, cy: y, r: 3, class: 'backdrop-dot' }, lines);
   }
 
-  // Notes in runes: a title across the top, a few by the rings, and some scattered, faint.
-  const taken: Box[] = [];
-  runeNote(lines, main.cx - rand(200, 260), rand(40, 60), Math.round(rand(9, 13)), 16, taken);
-  runeNote(lines, main.cx + 300, main.cy + rand(20, 60), Math.round(rand(4, 6)), 10, taken);
-  runeNote(lines, side.cx - 60, side.cy + 140, Math.round(rand(5, 7)), 10, taken);
-  runeNote(lines, main.cx - rand(300, 360), main.cy + rand(260, 300), Math.round(rand(7, 10)), 13, taken);
-  // The scattered ones out of the astrolabe and off the other notes (with room around them).
-  for (let placed = 0, tries = 0; placed < 5 && tries < 200; tries++) {
-    const count = Math.round(rand(3, 8));
-    const size = rand(9, 14);
-    const box: Box = [rand(60, W - 260), rand(80, H - 60), count * size * 0.95, size + 8];
-    const [x, y, w, h] = box;
-    if (Math.hypot(x + w / 2 - main.cx, y + h / 2 - main.cy) < 240 + w / 2) continue;
-    if (taken.some(([tx, ty, tw, th]) => x < tx + tw + 30 && tx < x + w + 30 && y < ty + th + 30 && ty < y + h + 30)) continue;
-    runeNote(faint, x, y, count, size, taken);
-    placed++;
-  }
+  // Notes: three, by the rings (right of the astrolabe, under the compass, and below between them).
+  note(lines, main.cx + 300, main.cy + rand(20, 60), 10);
+  note(lines, side.cx - 60, side.cy + 140, 10);
+  note(lines, main.cx - rand(300, 360), main.cy + rand(260, 300), 13);
 
   // The moons: on the arcs and rings, in their phases, each going round its circle at its own slow pace.
   const orbits: Orbit[] = [...arcs, { ...main, r: 290 }, { ...side, r: 120 }, { ...main, r: 175 }];
@@ -234,7 +200,7 @@ export function backdrop(): HTMLElement {
     const orbit = el('g', { class: 'backdrop-orbit' }, moons);
     orbit.style.transformOrigin = `${o.cx}px ${o.cy}px`;
     // Big circles turn slower, so everything drifts at about the same speed; either way round.
-    orbit.style.animationDuration = `${(o.r * rand(0.9, 1.6)).toFixed(0)}s`;
+    orbit.style.animationDuration = `${(o.r * rand(1.8, 3.2)).toFixed(0)}s`;
     orbit.style.animationDirection = Math.random() < 0.5 ? 'normal' : 'reverse';
     el('circle', { cx: x, cy: y, r: size * 3, fill: 'url(#backdrop-moon-glow)', class: 'backdrop-glow' }, orbit);
     el('circle', { cx: x, cy: y, r: size, class: 'backdrop-moon-rim' }, orbit);
@@ -243,18 +209,6 @@ export function backdrop(): HTMLElement {
     const phase = pick([0.15, 0.3, 0.5, 0.5, 0.7, 0.85, 1]);
     const lit = el('path', { d: moonLight(x, y, size * 0.7, phase), class: 'backdrop-moon-lit' }, orbit);
     lit.setAttribute('transform', `rotate(${rand(0, 360).toFixed(0)} ${x} ${y})`);
-  }
-
-  // Petals of the spider lilies, drifting down across the chart, turning as they go.
-  for (let i = 0; i < 7; i++) {
-    const fall = el('g', { class: 'backdrop-fall' }, petals);
-    const petal = el('path', { d: PETAL, class: 'backdrop-petal' }, fall);
-    petal.setAttribute('transform', `translate(${rand(-100, W - 200).toFixed(0)} -60) scale(${rand(0.6, 1.1).toFixed(2)})`);
-    fall.style.setProperty('--dx', `${rand(150, 450).toFixed(0)}px`);
-    fall.style.setProperty('--spin', `${((Math.random() < 0.5 ? -1 : 1) * rand(200, 540)).toFixed(0)}deg`);
-    const duration = rand(28, 48);
-    fall.style.animationDuration = `${duration.toFixed(1)}s`;
-    fall.style.animationDelay = `${(-rand(0, duration)).toFixed(1)}s`;
   }
 
   return host;

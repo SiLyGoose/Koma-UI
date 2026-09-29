@@ -57,24 +57,16 @@ body:has(> .backdrop) {
 .backdrop-turn,
 .backdrop-orbit {
   transform-box: view-box;
-  animation: backdrop-turn 240s linear infinite;
+  animation: backdrop-turn 1500s linear infinite;
 }
 
-.backdrop-rune {
-  stroke-linecap: round;
-  stroke-width: 1.3;
-}
-
-/* A petal falling: down the page and off to the side, turning round its own middle. */
-.backdrop-fall {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: backdrop-fall linear infinite;
-}
-
-.backdrop-petal {
-  fill: var(--petal);
-  opacity: 0.3;
+/* The name, in the notes and round the astrolabe: gold letters, not outlines. */
+.backdrop-text {
+  fill: var(--gold);
+  stroke: none;
+  font-family: Poppins, 'Segoe UI', system-ui, sans-serif;
+  font-weight: 500;
+  letter-spacing: 0.1em;
 }
 
 .backdrop-moon-rim {
@@ -98,18 +90,6 @@ body:has(> .backdrop) {
   }
 }
 
-@keyframes backdrop-fall {
-  from {
-    transform: translate(0, 0) rotate(0deg);
-  }
-  50% {
-    transform: translate(calc(var(--dx) * 0.35 + 40px), 520px) rotate(calc(var(--spin) * 0.5));
-  }
-  to {
-    transform: translate(var(--dx), 1060px) rotate(var(--spin));
-  }
-}
-
 @keyframes backdrop-twinkle {
   from {
     opacity: 0.1;
@@ -124,10 +104,5 @@ body:has(> .backdrop) {
   .backdrop-turn,
   .backdrop-orbit {
     animation: none;
-  }
-
-  /* Petals that don't fall would hang above the page, out of sight: left out. */
-  .backdrop-petals {
-    display: none;
   }
 }
