@@ -558,7 +558,7 @@
 }
 
 .detail-desc {
-  margin: 12px 0;
+  margin: 12px 0 20px;
   color: var(--petal);
   font-size: 13px;
   font-style: italic;

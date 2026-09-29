@@ -77,4 +77,46 @@
       </div>
     </div>
   </section>
+
+  <!-- Refining the picked copy: what it does now and after, and what it uses up, to confirm (filled in by src/gear/page.ts). -->
+  <dialog id="refine-confirm" class="confirm" aria-labelledby="refine-title">
+    <form method="dialog" class="confirm-box">
+      <h2 id="refine-title" class="confirm-title"></h2>
+      <div class="refine-compare">
+        <section class="refine-side">
+          <h3 id="refine-from"></h3>
+          <ul id="refine-before" class="detail-effects"></ul>
+        </section>
+        <span class="refine-arrow" aria-hidden="true">➜</span>
+        <section class="refine-side after">
+          <h3 id="refine-to"></h3>
+          <ul id="refine-after" class="detail-effects"></ul>
+        </section>
+      </div>
+      <dl class="refine-costs">
+        <div><dt>Uses up</dt><dd id="refine-spare"></dd></div>
+        <div><dt>Costs</dt><dd id="refine-cost"></dd></div>
+        <div><dt>You have</dt><dd id="refine-balance"></dd></div>
+      </dl>
+      <div class="confirm-foot">
+        <button type="submit" value="cancel" class="detail-action secondary">Cancel</button>
+        <button type="submit" value="refine" id="refine-go" class="detail-action">Refine</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- A spare copy's Refine: a refine raises the item's main copy, so this offers that one instead (src/gear/page.ts). -->
+  <dialog id="refine-other" class="confirm" aria-labelledby="refine-other-title">
+    <form method="dialog" class="confirm-box">
+      <h2 id="refine-other-title" class="confirm-title"></h2>
+      <div class="refine-other">
+        <span id="refine-other-card"></span>
+        <p id="refine-other-text"></p>
+      </div>
+      <div class="confirm-foot">
+        <button type="submit" value="cancel" class="detail-action secondary">Cancel</button>
+        <button type="submit" value="switch" id="refine-other-go" class="detail-action"></button>
+      </div>
+    </form>
+  </dialog>
 </main>

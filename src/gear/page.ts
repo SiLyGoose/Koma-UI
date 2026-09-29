@@ -28,7 +28,24 @@ interface GearCopy {
   masterwork: boolean;
   effects: string[];
   borrowed: number | null;
+  /** Refining it, for the confirmation (absent from a bot from before refining on the site). */
+  refine?: GearRefine;
 }
+
+/** Refining a copy (the bot's web/gear.ts GearRefine). */
+interface GearRefine {
+  /** Why it can't be done now (null when it can). */
+  blocked: RefineBlock | null;
+  /** What the next level costs in points. */
+  cost: number | null;
+  /** The level of the spare copy it uses up. */
+  spare: number | null;
+  /** What it would do at the next level. */
+  after: string[] | null;
+}
+
+/** Why a copy can't be refined (the bot's web/gear.ts RefineBlock): also the error a refine is refused with. */
+type RefineBlock = 'maxed' | 'no_duplicate' | 'other_copy' | 'too_poor';
 
 /** One of the member's loadouts (the bot's web/gear.ts GearLoadout). */
 interface GearLoadout {
@@ -50,6 +67,8 @@ interface GearView {
   totals: string[];
   loadouts: GearLoadout[];
   stats: StatSection[];
+  /** Their points in the server (null when not known). */
+  balance?: number | null;
 }
 
 const SLOTS: Slot[] = ['weapon', 'armor', 'treasure'];
@@ -59,6 +78,8 @@ const GRID_CELLS = 12;
 
 /** The Common tab's first group, about the hero rather than their gear. No classes yet, so it's a question mark. */
 const HERO_INFO: StatSection = { title: 'Hero', rows: [{ label: 'Class', value: '?', base: null }] };
+
+const points = (n: number): string => n.toLocaleString('en-US');
 
 export const gearPage: Page = { path: '/gear', title: 'Gear · Komaverse', icon: '⚔️', markup, needsLogin: true, mount };
 
@@ -74,6 +95,21 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     armoryTitle: $('armory-title'),
     grid: $('armory-grid'),
     detail: $('detail'),
+    confirm: $<HTMLDialogElement>('refine-confirm'),
+    confirmTitle: $('refine-title'),
+    confirmFrom: $('refine-from'),
+    confirmTo: $('refine-to'),
+    confirmBefore: $('refine-before'),
+    confirmAfter: $('refine-after'),
+    confirmSpare: $('refine-spare'),
+    confirmCost: $('refine-cost'),
+    confirmBalance: $('refine-balance'),
+    confirmGo: $<HTMLButtonElement>('refine-go'),
+    other: $<HTMLDialogElement>('refine-other'),
+    otherTitle: $('refine-other-title'),
+    otherCard: $('refine-other-card'),
+    otherText: $('refine-other-text'),
+    otherGo: $<HTMLButtonElement>('refine-other-go'),
     loadoutButton: $<HTMLButtonElement>('loadout-button'),
     loadoutMenu: $('loadout-menu'),
     unequipAll: $<HTMLButtonElement>('unequip-all'),
@@ -165,19 +201,25 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     ui.detail.dataset.stars = String(copy.stars);
     ui.detail.setAttribute('aria-label', copy.name);
 
-    const head = el('div', 'detail-head');
-    const title = el('div', 'detail-title');
-    const name = el('h3', '', copy.name);
-    if (copy.masterwork) name.append(el('span', 'detail-mw', '✨ Masterwork'));
-    title.append(name);
-    const meta = el('p', 'detail-meta');
-    meta.append(stars(copy.stars), ` ${SLOT_NAME[copy.slot]} · R${copy.level}/${copy.maxLevel}`);
-    title.append(meta);
+    // Its name across the top, with the close button at the end.
+    const bar = el('div', 'detail-bar');
     const close = el('button', 'detail-close', '✕');
     close.type = 'button';
     close.setAttribute('aria-label', 'Close');
     close.addEventListener('click', unpick);
-    head.append(art(copy.itemId, copy.slot), title, close);
+    bar.append(el('h3', '', copy.name), close);
+
+    // Its card, big, beside its slot and rank.
+    const top = el('div', 'detail-top');
+    const card = bigCard(copy);
+    const info = el('div', 'detail-info');
+    const kind = el('p', 'detail-kind', SLOT_NAME[copy.slot]);
+    if (copy.level >= copy.maxLevel) kind.append(el('span', 'detail-max', 'MAX'));
+    const rank = el('p', 'detail-rank', `R${copy.level}`);
+    rank.append(el('span', 'detail-rank-of', ` / ${copy.maxLevel}`));
+    info.append(kind, rank);
+    if (copy.masterwork) info.append(el('span', 'detail-mw', '✨ Masterwork'));
+    top.append(card, info);
 
     const effects = el('ul', 'detail-effects');
     for (const line of copy.effects) effects.appendChild(el('li')).append(rich(line));
@@ -191,15 +233,139 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     action.classList.toggle('secondary', worn);
     action.addEventListener('click', () => void (worn ? unequip(copy.slot) : equip(copy.id)));
 
-    ui.detail.append(head, el('p', 'detail-desc', copy.description), effects);
+    // Refine: asks first (what it does after, what it uses up), when the bot says it can be. Short of
+    // points it still opens, to show the price. On a spare copy it offers the item's main copy instead
+    // (the one a refine raises), so it goes by whether that one can be. (A bot from before refining on
+    // the site sends nothing: the button stays off.)
+    const main = mainCopyOf(copy);
+    const target = main ?? copy;
+    const blocked = target.refine ? target.refine.blocked : 'maxed';
+    const refineButton = el('button', 'detail-action secondary', 'Refine');
+    refineButton.type = 'button';
+    refineButton.disabled = busy || (blocked !== null && blocked !== 'too_poor');
+    refineButton.addEventListener('click', () => (main ? offerMain(copy, main) : askRefine(copy)));
+
+    // What it does, scrolling between the top and the buttons when it runs long.
+    const body = el('div', 'detail-body');
+    body.append(el('p', 'detail-desc', copy.description), effects);
     if (copy.borrowed !== null) {
-      ui.detail.append(el('p', 'detail-note', `This one is made for someone else: you get ${Math.round(copy.borrowed * 100)}% of its effects.`));
+      body.append(el('p', 'detail-note', `This one is made for someone else: you get ${Math.round(copy.borrowed * 100)}% of its effects.`));
     }
+    if (current) body.append(el('p', 'detail-replaces', `Replaces ${current.name} (R${current.level})`));
+
+    // What can be done with it, under a line along the bottom.
     const foot = el('div', 'detail-foot');
-    foot.append(action);
-    if (current) foot.append(el('span', 'muted', `Replaces ${current.name} (R${current.level})`));
-    ui.detail.append(foot);
+    foot.append(refineButton, action);
+    ui.detail.append(bar, top, body, foot);
   }
+
+  /** A copy's card, big (the detail panel's, and the spare copy's offer). */
+  function bigCard(copy: GearCopy): HTMLElement {
+    const card = el('span', 'item detail-card');
+    card.dataset.stars = String(copy.stars);
+    card.classList.toggle('masterwork', copy.masterwork);
+    card.append(el('span', 'item-level', `R${copy.level}`), art(copy.itemId, copy.slot), stars(copy.stars), el('span', 'item-curl'));
+    return card;
+  }
+
+  /** For a spare copy: the copy of its item a refine raises instead (worn, saved in a loadout, or the best). */
+  function mainCopyOf(copy: GearCopy): GearCopy | undefined {
+    if (copy.refine?.blocked !== 'other_copy') return undefined;
+    return gear?.copies.find((c) => c.itemId === copy.itemId && c.refine?.blocked !== 'other_copy');
+  }
+
+  /** Picks `copy` (as a click on its card does), keeping the armory and the panel in step. */
+  function pick(copy: GearCopy): void {
+    picked = copy.id;
+    renderGrid();
+    renderDetail();
+  }
+
+  /** The main copy the spare-copy offer is about, while it's open. */
+  let offering: string | null = null;
+
+  /**
+   * Refine on a spare copy: a refine raises the item's main copy, so offer that one. At R1 every copy
+   * is the same, so there's nothing to choose: that one is picked quietly and asked about at once.
+   */
+  function offerMain(spare: GearCopy, main: GearCopy): void {
+    if (main.level <= 1) {
+      pick(main);
+      askRefine(main);
+      return;
+    }
+    offering = main.id;
+    ui.otherTitle.textContent = `Refine your R${main.level} copy instead?`;
+    ui.otherCard.replaceChildren(bigCard(main));
+    ui.otherText.textContent =
+      `This is a spare ${spare.name}. Refining raises your ${isWorn(main) ? 'equipped' : 'main'} copy (R${main.level}), ` +
+      'and uses up a spare like this one.';
+    ui.otherGo.textContent = `Refine R${main.level} copy`;
+    ui.other.showModal();
+    (ui.other.querySelector('button[value="cancel"]') as HTMLButtonElement).focus();
+  }
+
+  ui.other.addEventListener('close', () => {
+    const main = copyById(offering);
+    offering = null;
+    const yes = ui.other.returnValue === 'switch';
+    ui.other.returnValue = '';
+    if (!yes || !main) return;
+    pick(main);
+    askRefine(main);
+  });
+  ui.other.addEventListener('click', (event) => {
+    if (event.target === ui.other) ui.other.close('cancel');
+  });
+
+  /** The copy the confirmation is asking about, while it's open. */
+  let confirming: string | null = null;
+
+  /** Opens the confirmation for refining `copy`: what it does now and at the next level, and what it uses up. */
+  function askRefine(copy: GearCopy): void {
+    const refine = copy.refine;
+    if (!refine || refine.after === null || refine.cost === null) return;
+    confirming = copy.id;
+    const to = copy.level + 1;
+    ui.confirmTitle.textContent = `Refine ${copy.name}?`;
+    ui.confirmFrom.textContent = `Now · R${copy.level}`;
+    ui.confirmTo.textContent = `After · R${to}${to >= copy.maxLevel ? ' (MAX)' : ''}`;
+    const list = (into: HTMLElement, lines: string[], compare?: string[]): void => {
+      into.textContent = '';
+      for (const [i, line] of lines.entries()) {
+        const li = into.appendChild(el('li'));
+        li.append(rich(line));
+        // A line that's different after the refine stands out.
+        if (compare && compare[i] !== line) li.classList.add('changed');
+      }
+      if (lines.length === 0) into.append(el('li', 'muted', 'No effects.'));
+    };
+    list(ui.confirmBefore, copy.effects);
+    list(ui.confirmAfter, refine.after, copy.effects);
+
+    ui.confirmSpare.textContent = refine.spare === null ? 'A spare copy' : `A spare copy (R${refine.spare})`;
+    ui.confirmCost.textContent = `${points(refine.cost)} points`;
+    const balance = gear?.balance ?? currentMe()?.servers.find((s) => s.id === currentServer())?.balance ?? null;
+    const short = balance !== null && balance < refine.cost;
+    ui.confirmBalance.textContent =
+      balance === null ? '?' : short ? `${points(balance)} points: not enough` : `${points(balance)} → ${points(balance - refine.cost)} points`;
+    ui.confirmBalance.classList.toggle('bad', short);
+    ui.confirmGo.disabled = busy || short;
+    ui.confirm.showModal();
+    // Cancel first, so Enter doesn't refine by accident.
+    (ui.confirm.querySelector('button[value="cancel"]') as HTMLButtonElement).focus();
+  }
+
+  ui.confirm.addEventListener('close', () => {
+    const copy = confirming;
+    confirming = null;
+    if (ui.confirm.returnValue === 'refine' && copy) void refine(copy);
+    ui.confirm.returnValue = '';
+  });
+  // A click on the dim backdrop (outside the box) cancels.
+  ui.confirm.addEventListener('click', (event) => {
+    if (event.target === ui.confirm) ui.confirm.close('cancel');
+  });
 
   /** The loadout chip (the one being worn) and its menu of all of them, and Unequip all. */
   function renderFoot(): void {
@@ -315,8 +481,12 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
         : res.error === 'not_member'
           ? "You don't seem to be in that server any more. Log out and in again to refresh it."
           : res.error === 'busy'
-            ? 'Your loadouts were changing somewhere else. Try again.'
-            : what,
+            ? 'Your gear was changing somewhere else. Try again.'
+            : res.error === 'too_poor'
+              ? "You don't have enough points for that."
+              : res.error === 'no_duplicate' || res.error === 'other_copy' || res.error === 'maxed'
+                ? 'That changed in the meantime: it can’t be refined right now.'
+                : what,
       true,
     );
   }
@@ -354,6 +524,11 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
   const unequip = (slot: Slot): Promise<void> => change('/api/gear/unequip', { slot }, 'Could not unequip that. Try again.');
   const unequipEverything = (): Promise<void> => change('/api/gear/unequip-all', {}, 'Could not unequip everything. Try again.');
   const switchTo = (loadout: number): Promise<void> => change('/api/gear/loadout', { loadout }, 'Could not switch loadouts. Try again.');
+  const refine = async (copy: string): Promise<void> => {
+    await change('/api/gear/refine', { copy }, 'Could not refine that. Try again.');
+    // It cost points (or whatever the refusal was, the balance may be old): the front page's balances follow.
+    void loadMe(true);
+  };
 
   function renderServers(): void {
     const me = currentMe();
@@ -421,7 +596,8 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     if (!ui.loadoutMenu.hidden && !ui.loadoutMenu.contains(event.target as Node)) showMenu(false);
   };
   const onKey = (event: KeyboardEvent): void => {
-    if (event.key !== 'Escape') return;
+    // The confirmation closes itself on Escape: the picked copy stays.
+    if (event.key !== 'Escape' || ui.confirm.open || ui.other.open) return;
     if (!ui.loadoutMenu.hidden) {
       showMenu(false);
       ui.loadoutButton.focus();
@@ -446,6 +622,8 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
       document.removeEventListener('click', onClick);
       document.removeEventListener('keydown', onKey);
       serverPicker.destroy();
+      if (ui.confirm.open) ui.confirm.close();
+      if (ui.other.open) ui.other.close();
     },
   };
 }

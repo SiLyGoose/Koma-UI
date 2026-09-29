@@ -52,8 +52,10 @@
     visibility: hidden;
   }
 
+  /* Never taller than the armory: a long list scrolls inside it, the buttons staying at the bottom. */
   .gear > .detail {
     align-self: stretch;
+    contain: size;
     animation: detail-in 0.18s ease-out;
   }
 }
@@ -623,22 +625,153 @@
 
 /* ------------------------------------------------------------------ detail */
 
+/*
+ * A picked copy, laid out like a game's item window: its name in a bar across the top, its card big
+ * beside its slot and rank, what it does (scrolling when it runs long), and its buttons along the
+ * bottom under a line.
+ */
+.gear > .detail {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+}
+
+.detail-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px 10px 16px;
+  background: var(--panel-2);
+  border-bottom: 1px solid var(--line);
+}
+
+.detail-bar h3 {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  color: var(--tier, var(--text));
+  font-size: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.detail-bar .detail-close {
+  align-self: center;
+}
+
+.detail-top {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 0 16px;
+  padding: 16px 0 14px;
+  border-bottom: 2px solid var(--line);
+}
+
+/* The copy's card, as in the armory but big and not a button. */
+.item.detail-card {
+  flex-shrink: 0;
+  width: 104px;
+  cursor: default;
+}
+
+.item.detail-card:hover {
+  transform: none;
+}
+
+.item.detail-card .art {
+  width: 64%;
+  height: 64%;
+}
+
+.item.detail-card .item-level {
+  font-size: 13px;
+}
+
+.item.detail-card .star {
+  font-size: 15px;
+}
+
+.detail-info {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+  min-width: 0;
+}
+
+.detail-kind {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.detail-max {
+  color: var(--green);
+  font-weight: 800;
+}
+
+.detail-rank {
+  margin: 0;
+  color: var(--text);
+  font-size: 40px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.detail-rank-of {
+  color: var(--muted);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.detail-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 0 16px 16px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* Last in the body, at its bottom when there's room: the copy equipping it would take off. */
+.detail-replaces {
+  margin: auto 0 0;
+  padding-top: 14px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* Its buttons, pinned to the bottom under a line, right-aligned (room for more beside Equip). */
 .detail-foot {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: 12px;
-  margin-top: 14px;
+  align-items: stretch;
+  justify-content: flex-end;
+  gap: 10px 12px;
+  margin: 0 16px;
+  padding: 12px 0 14px;
+  border-top: 2px solid var(--line);
   font-size: 13px;
 }
 
 .detail-action {
-  padding: 9px 26px;
-  border: 0;
-  border-radius: 10px;
+  min-width: 128px;
+  min-height: 40px;
+  padding: 8px 22px;
+  border: 1px solid transparent;
+  border-radius: 8px;
   background: var(--accent);
   color: var(--accent-text);
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
   cursor: pointer;
 }
@@ -647,16 +780,200 @@
   background: var(--accent-hover);
 }
 
+/* Refine and Unequip: the armory's dark button. */
 .detail-action.secondary {
-  background: var(--panel-3);
-  color: var(--text);
+  border-color: #5a5262;
+  background: linear-gradient(180deg, #2d2a33, #1a191e);
+  box-shadow: inset 0 0 0 1px rgb(216 191 122 / 30%);
+  color: #efe3bf;
 }
 
 .detail-action.secondary:hover:not(:disabled) {
-  background: var(--line);
+  border-color: rgb(216 191 122 / 60%);
+  background: linear-gradient(180deg, #2d2a33, #1a191e);
 }
 
 .detail-action:disabled {
-  opacity: 0.6;
-  cursor: wait;
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* Narrow screens: the sheet from the bottom (items.css), with its buttons kept in reach. */
+@media (max-width: 899px) {
+  .item.detail-card {
+    width: 84px;
+  }
+
+  .detail-rank {
+    font-size: 32px;
+  }
+
+  .detail-foot {
+    padding-bottom: max(14px, env(safe-area-inset-bottom));
+  }
+
+  .detail-action {
+    flex: 1 1 128px;
+  }
+}
+
+/* ------------------------------------------------------------------ refine confirmation */
+
+/* Over everything, the page dimmed behind it. */
+.confirm {
+  width: min(560px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  padding: 0;
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--gold);
+  border-radius: var(--radius);
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: 0 20px 50px rgb(0 0 0 / 60%);
+}
+
+.confirm::backdrop {
+  background: rgb(0 0 0 / 60%);
+}
+
+.confirm[open] {
+  animation: confirm-in 0.16s ease-out;
+}
+
+@keyframes confirm-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .confirm[open] {
+    animation: none;
+  }
+}
+
+.confirm-box {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+}
+
+.confirm-title {
+  margin: 0;
+  font-size: 18px;
+}
+
+/* Now ➜ After, side by side (one over the other on narrow screens). */
+.refine-compare {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: start;
+  gap: 12px;
+}
+
+.refine-side {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel-2);
+}
+
+.refine-side h3 {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.refine-side.after {
+  border-color: rgb(216 191 122 / 45%);
+}
+
+.refine-side.after h3 {
+  color: var(--gold);
+}
+
+.refine-side .detail-effects {
+  font-size: 13px;
+}
+
+/* What gets stronger. */
+.refine-side .detail-effects li.changed {
+  color: var(--green);
+}
+
+.refine-arrow {
+  align-self: center;
+  color: var(--gold);
+  font-size: 20px;
+}
+
+@media (max-width: 520px) {
+  .refine-compare {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .refine-arrow {
+    justify-self: center;
+    transform: rotate(90deg);
+  }
+}
+
+.refine-costs {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  font-size: 14px;
+}
+
+.refine-costs > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.refine-costs dt {
+  color: var(--muted);
+}
+
+.refine-costs dd {
+  margin: 0;
+  font-weight: 600;
+  text-align: right;
+}
+
+.refine-costs dd.bad {
+  color: var(--red);
+}
+
+.confirm-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 14px;
+  border-top: 2px solid var(--line);
+}
+
+@media (max-width: 520px) {
+  .confirm-foot .detail-action {
+    flex: 1;
+  }
+}
+
+/* A spare copy's offer: the main copy's card beside why. */
+.refine-other {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.refine-other p {
+  margin: 0;
+  color: var(--petal);
+  font-size: 14px;
+  line-height: 1.45;
 }
