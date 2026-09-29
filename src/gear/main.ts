@@ -1,9 +1,10 @@
-import '../style.css';
-import '../hub/hub.css';
-import { API, getSession, profileMenu, setSession, store } from '../account';
-import './items.css';
+import '../shared/style.css';
+import '../shared/header.css';
+import { API, getSession, profileMenu, setSession, store } from '../shared/account';
+import { dropdown } from '../shared/dropdown';
+import '../shared/items/items.css';
 import './gear.css';
-import { art, el, rich, SLOT_NAME, stars, type Slot } from './items';
+import { art, el, rich, SLOT_NAME, stars, type Slot } from '../shared/items/items';
 
 /*
  * The gear page: the member's miner with their three slots around them (weapon and armor on the
@@ -383,6 +384,9 @@ function renderServers(): void {
     ui.server.append(option);
   }
 }
+
+// The server picker in the site's dropdown, not the browser's (it follows the select, options and all).
+dropdown(ui.server);
 
 ui.server.addEventListener('change', () => {
   server = ui.server.value;

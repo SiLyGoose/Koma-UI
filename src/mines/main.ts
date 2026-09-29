@@ -1,8 +1,8 @@
-import '../style.css';
-import { barSlot, setConn, soundButton } from '../frame';
-import { dropdown } from '../dropdown';
-import { setMuted } from '../sfx';
-import { apiFromSocket, showWatchers, showWatching, startLive, watchAway, watchBack } from '../live';
+import '../shared/style.css';
+import { barSlot, setConn, soundButton } from '../shared/frame';
+import { dropdown } from '../shared/dropdown';
+import { setMuted } from '../shared/sfx';
+import { apiFromSocket, showWatchers, showWatching, startLive, watchAway, watchBack } from '../shared/live';
 import './mines.css';
 import { play } from './sfx';
 import type { ClientMessage, ErrorCode, Lobby, RunEvent, RunState, ServerMessage, StartRefusal } from './protocol';

@@ -1,8 +1,8 @@
-import { notes, sound } from '../sfx';
+import { notes, sound } from '../shared/sfx';
 
 /*
  * The table's sounds, for every table game (baccarat, roulette), played through the shared
- * ../sfx.ts: a chip put on a spot, and chips slid off a spot (taken back or cleared) or picked from
+ * ../shared/sfx.ts: a chip put on a spot, and chips slid off a spot (taken back or cleared) or picked from
  * the rack (public/shared/sfx), and, made here, a click for an even round, a chime for a win and a
  * low pair of notes for a loss. A game's own sounds (like a card placed) are in its own sfx.ts.
  */

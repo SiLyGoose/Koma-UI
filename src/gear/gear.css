@@ -1,5 +1,5 @@
 /*
- * The gear page, on top of the shared item template (items.css): the miner on a dark stage with
+ * The gear page, on top of the shared item template (../shared/items/items.css): the miner on a dark stage with
  * their slots either side, and the armory beside it, a dark frame holding a parchment sheet of item
  * cards (or, on the Common tab, their stats). A picked card's details cover the miner (a sheet from
  * the bottom on narrow screens, items.css).
@@ -526,48 +526,45 @@
   line-height: 16px;
 }
 
+/* The loadout list, styled like the profile menu's drop-down (../shared/account.css): muted rows that light up on hover. */
 .loadout-menu {
   position: absolute;
-  top: calc(100% + 6px);
+  top: calc(100% + 4px);
   left: 0;
-  z-index: 5;
+  z-index: 50;
   display: grid;
-  gap: 4px;
   width: 280px;
   max-width: calc(100vw - 32px);
-  padding: 6px;
-  border-radius: 10px;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  box-shadow: 0 10px 30px rgb(0 0 0 / 55%);
+  padding: 8px 0;
+  overflow: hidden;
+  border: 2px solid var(--line);
+  border-radius: 16px;
+  background-color: var(--panel-2);
 }
 
 .loadout-row {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 10px;
+  padding: 8px 16px;
   border: 0;
-  border-radius: 8px;
   background: none;
-  color: var(--text);
-  font-size: 14px;
+  color: var(--muted);
+  font-size: 15px;
   text-align: left;
   cursor: pointer;
+  transition: color 0.2s ease;
 }
 
 .loadout-row:hover:not(:disabled),
 .loadout-row:focus-visible {
-  background: var(--panel-2);
+  color: var(--text);
+  outline: none;
 }
 
-/* The one being worn: a gold bar down its left edge and a tinted row, no extra words. */
-.loadout-row {
-  position: relative;
-}
-
+/* The one being worn: a gold bar down its left edge and its name in gold, no extra words. */
 .loadout-row.active {
-  background: rgb(216 191 122 / 10%);
   cursor: default;
 }
 

@@ -1,7 +1,7 @@
-import { sound } from '../sfx';
+import { sound } from '../shared/sfx';
 
 /*
- * Baccarat's own sound, from public/baccarat/sfx, played through the shared ../sfx.ts: a card
+ * Baccarat's own sound, from public/baccarat/sfx, played through the shared ../shared/sfx.ts: a card
  * placed as a round is dealt out. The chip sounds are the table's (../table/sfx.ts).
  */
 

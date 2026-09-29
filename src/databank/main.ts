@@ -1,9 +1,10 @@
-import '../style.css';
-import '../hub/hub.css';
-import { API, getSession, profileMenu, setSession, store } from '../account';
-import '../gear/items.css';
+import '../shared/style.css';
+import '../shared/header.css';
+import { API, getSession, profileMenu, setSession, store } from '../shared/account';
+import { dropdown } from '../shared/dropdown';
+import '../shared/items/items.css';
 import './databank.css';
-import { art, el, rich, SLOT_NAME, stars, type Slot } from '../gear/items';
+import { art, el, rich, SLOT_NAME, stars, type Slot } from '../shared/items/items';
 
 /*
  * The databank page: every item in the game (the bot's /api/databank, which needs no login), by star
@@ -304,6 +305,9 @@ ui.search.addEventListener('input', () => {
   query = ui.search.value.trim().toLowerCase();
   renderList();
 });
+
+// The server picker in the site's dropdown, not the browser's (it follows the select, options and all).
+dropdown(ui.server);
 
 ui.server.addEventListener('change', () => {
   server = ui.server.value;

@@ -6,7 +6,8 @@ import './dropdown.css';
  * it's disabled; this shows a button with the chosen option, and a list under it (or over it, when
  * there's more room there), a set height for the screen, that scrolls without a scrollbar showing.
  * Choosing sets the select's value and fires its `change`, so code that listens to the select works
- * as before.
+ * as before. Hiding the select (`hidden`) hides the dropdown too. It looks like the profile menu's
+ * drop-down (../account.css): the same list, items and turning arrow.
  *
  * Keyboard: Enter, Space or the arrow keys open it; the arrows (and Home, End, Page Up/Down) move;
  * Enter or Space chooses; Escape or Tab closes. Typing picks the option starting with what was typed
@@ -82,6 +83,7 @@ export function dropdown(select: HTMLSelectElement): Dropdown {
     }
     label.textContent = select.selectedOptions[0]?.textContent ?? '';
     button.disabled = select.disabled;
+    wrap.hidden = select.hidden;
     if (select.disabled) close();
   }
 
@@ -199,8 +201,8 @@ export function dropdown(select: HTMLSelectElement): Dropdown {
     if (!wrap.contains(e.relatedTarget as Node | null)) close();
   });
 
-  // Options added or the select switched off in code show straight away; a value set in code needs refresh().
-  new MutationObserver(refresh).observe(select, { childList: true, attributes: true, attributeFilter: ['disabled'] });
+  // Options added or the select switched off or hidden in code show straight away; a value set in code needs refresh().
+  new MutationObserver(refresh).observe(select, { childList: true, subtree: true, attributes: true, attributeFilter: ['disabled', 'hidden', 'selected'] });
   refresh();
   return { refresh };
 }

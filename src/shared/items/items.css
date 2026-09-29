@@ -1,9 +1,9 @@
 /*
- * The item template the gear and databank pages share, on top of ../style.css and the front page's
- * header (../hub/hub.css): the colours (star tiers, parchment, ink), the armory's dark frame with its
+ * The item template the gear and databank pages share, on top of ../style.css and the site
+ * header (../header.css): the colours (star tiers, parchment, ink), the armory's dark frame with its
  * name board, filter tabs and parchment sheet (scrolling inside it), the parchment item cards, the
  * item art and stars, and the item detail panel (a sheet from the bottom on narrow screens). Each
- * page adds its own layout on top: gear.css, ../databank/databank.css. Pairs with items.ts, which
+ * page adds its own layout on top: ../../gear/gear.css, ../../databank/databank.css. Pairs with items.ts, which
  * builds the art, stars and effect lines these style.
  */
 
@@ -38,19 +38,37 @@
   }
 }
 
-.server-pick {
+/* The server picker (the site's dropdown, ../dropdown.ts): a pill like the profile button. */
+.dd:has(> .server-pick) {
   max-width: 50%;
-  padding: 6px 10px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--panel-2);
-  color: var(--text);
-  font-size: 13px;
 }
 
-/* The header's link to the page it's on. */
-.site-nav-link.active {
+/* Its list hangs from its right edge, as the profile menu's does, wide enough for long names. */
+.dd:has(> .server-pick) .dd-list {
+  left: auto;
+  width: max-content;
+  min-width: max(100%, 170px);
+  max-width: min(280px, calc(100vw - 32px));
+}
+
+.server-pick {
+  padding: 7px 14px;
+  border: 1px solid var(--line);
+  border-radius: 30px;
+  background: transparent;
   color: var(--text);
+  font-size: 13px;
+  transition: background-color 0.2s ease;
+}
+
+.server-pick:hover,
+.server-pick[aria-expanded='true'] {
+  background-color: var(--panel-2);
+}
+
+.server-pick:focus-visible {
+  outline: 2px solid var(--muted);
+  outline-offset: 2px;
 }
 
 /* ------------------------------------------------------------------ art */

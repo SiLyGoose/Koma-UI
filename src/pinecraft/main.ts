@@ -1,11 +1,11 @@
-import '../style.css';
-import { barSlot, setConn, soundButton } from '../frame';
+import '../shared/style.css';
+import { barSlot, setConn, soundButton } from '../shared/frame';
 import { startLeaderboard } from './leaderboard';
-import { apiFromSocket, showWatchers, showWatching, startLive, watchAway, watchBack } from '../live';
+import { apiFromSocket, showWatchers, showWatching, startLive, watchAway, watchBack } from '../shared/live';
 import './pinecraft.css';
 import { burst, cellAt, drawMap, drawScene, isBedrock, isOpenCell, ORE_OF, stepParticles, type Scene } from './draw';
 import type { ClientMessage, Direction, ErrorCode, PinecraftOre, ServerMessage, WorldEvent, WorldMap, WorldState } from './protocol';
-import { setMuted } from '../sfx';
+import { setMuted } from '../shared/sfx';
 import { loadSounds, materialOf, play, type Material } from './sfx';
 import { drawGem, loadKeysPicture, loadTextures, ORE_COLOR, ORES } from './textures';
 

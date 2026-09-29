@@ -1,5 +1,5 @@
 /*
- * The databank page, on top of the shared item template (../gear/items.css): the same armory frame
+ * The databank page, on top of the shared item template (../shared/items/items.css): the same armory frame
  * and parchment cards, with every item in the game by star tier, each card named, and the picked item's
  * panel beside it (a sheet from the bottom on narrow screens, as on the gear page).
  */

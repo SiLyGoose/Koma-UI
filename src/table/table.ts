@@ -1,8 +1,8 @@
-import '../style.css';
+import '../shared/style.css';
 import './table.css';
-import { barSlot, setConn, soundButton } from '../frame';
-import { setMuted } from '../sfx';
-import { apiFromSocket, showWatchers, showWatching, startLive, watchAway, watchBack } from '../live';
+import { barSlot, setConn, soundButton } from '../shared/frame';
+import { setMuted } from '../shared/sfx';
+import { apiFromSocket, showWatchers, showWatching, startLive, watchAway, watchBack } from '../shared/live';
 import { play } from './sfx';
 import type { BetRefusal, Bets, ClientMessage, ErrorCode, Outcome, RoundOf, SeatView, ServerMessage, TableState } from './protocol';
 

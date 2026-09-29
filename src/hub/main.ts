@@ -1,7 +1,8 @@
-import '../style.css';
-import { API, getSession, profileMenu, setSession, store } from '../account';
+import '../shared/style.css';
+import { API, getSession, profileMenu, setSession, store } from '../shared/account';
+import '../shared/header.css';
 import './hub.css';
-import { startLive } from '../live';
+import { startLive } from '../shared/live';
 
 /*
  * The front page: log in with Discord, pick a server, pick a game. The bot does the logging in

@@ -491,3 +491,17 @@ canvas {
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+/* A page's loading or error line (the site pages'), and quieter text. */
+.status {
+  text-align: center;
+  color: var(--muted);
+}
+
+.status.bad {
+  color: var(--red);
+}
+
+.muted {
+  color: var(--muted);
+}

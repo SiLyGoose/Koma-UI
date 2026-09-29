@@ -1,0 +1,155 @@
+/*
+ * The site header, on every site page (the games have their frame instead, frame.css), after
+ * JavNext's: a dark bar across the top that stays put, the name on the left, and on the right the
+ * page's links (in the profile's drop-down on smaller screens), who's online and the profile
+ * button (account.css), or a round Login button.
+ */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  min-height: 56px;
+  padding: 0 16px;
+  background-color: var(--panel);
+  border-bottom: 1px solid var(--line);
+  box-shadow: 0 5px 10px rgb(0 0 0 / 30%);
+}
+
+.site-logo {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.site-logo-title {
+  margin-left: 5px;
+  font-size: 1.6rem;
+  font-weight: 300;
+  line-height: 1.5;
+}
+
+.site-logo-short {
+  display: none;
+}
+
+.site-nav-wrapper {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  margin-left: auto;
+}
+
+.site-nav {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.site-nav-list {
+  display: flex;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.site-nav-list li {
+  display: flex;
+  margin: 0 16px;
+  padding: 0 8px;
+}
+
+.site-nav-link {
+  display: flex;
+  align-items: center;
+  color: var(--muted);
+  font-size: 14px;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.site-nav-link:hover {
+  color: var(--text);
+}
+
+/* The link to the page it's on. */
+.site-nav-link.active {
+  color: var(--text);
+}
+
+/* Smaller screens: the links go in the profile's drop-down instead (main.ts). */
+@media (max-width: 1023px) {
+  .site-nav-list {
+    display: none;
+  }
+}
+
+@media (min-width: 1024px) {
+  .account-menu .site-nav-item {
+    display: none;
+  }
+}
+
+.site-user {
+  display: flex;
+  align-items: center;
+  margin-left: 16px;
+}
+
+.site-user .live {
+  margin-right: 12px;
+}
+
+.site-login {
+  margin-left: 16px;
+  padding: 8px 24px;
+  border: 2px solid var(--text);
+  border-radius: 31px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.site-login:hover {
+  background-color: var(--text);
+  color: var(--bg);
+}
+
+@media (min-width: 768px) {
+  .site-header {
+    height: 72px;
+    padding: 0 40px;
+  }
+
+  .site-logo-title {
+    font-size: 2rem;
+  }
+
+  .site-login {
+    padding: 12px 30px;
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 424px) {
+  .site-logo-long {
+    display: none;
+  }
+
+  .site-logo-short {
+    display: inline;
+  }
+
+  .site-nav-list li {
+    margin: 0 8px;
+  }
+}

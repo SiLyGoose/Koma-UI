@@ -1,8 +1,8 @@
-import { sound } from '../sfx';
+import { sound } from '../shared/sfx';
 import type { PinecraftOre } from './protocol';
 
 /*
- * Pinecraft's sounds, from public/pinecraft/sfx, played through the shared ../sfx.ts (which also
+ * Pinecraft's sounds, from public/pinecraft/sfx, played through the shared ../shared/sfx.ts (which also
  * wakes sound up on the first input and mutes it).
  */
 

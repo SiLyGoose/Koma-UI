@@ -64,5 +64,10 @@ Any square size works.
   the blocks.
 - `games/mines/index.html`, `src/mines/`: Mines. `protocol.ts` is a copy of the bot's
   `src/web/mines-protocol.ts` (change both together).
-- `src/frame.ts`: the blue frame round a game. `src/live.ts`: who's online, and watching.
-- `src/style.css`: styles shared by every page.
+- `gear/index.html`, `src/gear/`: the gear page. `databank/index.html`, `src/databank/`: the databank.
+- `src/shared/`: what more than one page uses.
+  - `style.css`: styles shared by every page. `header.css`: the site header (front page, gear, databank).
+  - `account.ts`: the login session and the profile button. `dropdown.ts`: the site's dropdown.
+  - `frame.ts`: the blue frame round a game. `live.ts`: who's online, and watching. `sfx.ts`: sound.
+  - `items/`: the item cards, stars, art and detail panel shared by the gear page and the databank.
+- `src/table/`: the card table shared by Baccarat and Roulette.
