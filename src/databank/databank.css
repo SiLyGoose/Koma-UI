@@ -1,6 +1,6 @@
 /*
- * The databank page, on top of the gear page's styles (../gear/gear.css): the same armory frame and
- * parchment cards, with every item in the game by star tier, each card named, and the picked item's
+ * The databank page, on top of the shared item template (../gear/items.css): the same armory frame
+ * and parchment cards, with every item in the game by star tier, each card named, and the picked item's
  * panel beside it (a sheet from the bottom on narrow screens, as on the gear page).
  */
 
@@ -171,6 +171,17 @@
   cursor: pointer;
 }
 
+/* The chips' stars are the cards' stars (items.css), a little smaller to fit. */
+.db-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.db-chip .star {
+  font-size: 14px;
+}
+
 .db-chip:hover {
   border-color: var(--dusk);
 }
@@ -205,13 +216,14 @@
 }
 
 .db-tier-head .star {
-  font-size: 15px;
+  font-size: 19px;
 }
 
 /* A databank card: stars on top, the picture, and the name along the bottom. */
 .db-item {
   grid-template-rows: 1fr auto;
-  padding: 18px 6px 8px;
+  /* Room at the top for the stars. */
+  padding: 26px 6px 8px;
   gap: 4px;
 }
 

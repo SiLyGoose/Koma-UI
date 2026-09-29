@@ -1,6 +1,7 @@
 import '../style.css';
 import '../hub/hub.css';
 import { API, getSession, profileMenu, setSession, store } from '../account';
+import './items.css';
 import './gear.css';
 import { art, el, rich, SLOT_NAME, stars, type Slot } from './items';
 
