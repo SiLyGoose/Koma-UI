@@ -573,3 +573,80 @@
   color: var(--gold);
   font-size: 13px;
 }
+
+/* ------------------------------------------------------------------ full pictures */
+
+/*
+ * An item with a full picture (items.ts art(): public/gear/items) covers the whole card or frame it's
+ * in, inside its border, smoothly scaled (they're paintings, not pixel art), with a dark fade at the top
+ * and bottom so what's drawn over it (level, stars, name, tags) stays readable in white. Each box it
+ * can fill is listed here (the gear page's and the databank's too), so this beats their sizing.
+ */
+.art.full img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: auto;
+  filter: none;
+}
+
+.item > .art.full,
+.slot-frame > .art.full,
+.loadout-icon > .art.full {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: auto;
+  height: auto;
+  aspect-ratio: auto;
+  border-radius: inherit;
+  overflow: hidden;
+}
+
+.item > .art.full::after,
+.slot-frame > .art.full::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgb(0 0 0 / 35%), transparent 32%, transparent 58%, rgb(0 0 0 / 60%));
+  pointer-events: none;
+}
+
+/* Everything else in the box sits over the picture. */
+.item:has(> .art.full) > :not(.art),
+.slot-frame:has(> .art.full) > :not(.art) {
+  z-index: 1;
+}
+
+.item:has(> .art.full) .item-level,
+.slot-frame:has(> .art.full) .slot-level {
+  color: #fff;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 80%);
+}
+
+.item:has(> .art.full) .stars,
+.slot-frame:has(> .art.full) .stars {
+  filter: drop-shadow(0 1px 1px rgb(0 0 0 / 60%));
+}
+
+/* The old-print curl would only muddy the picture. */
+.item:has(> .art.full) .item-curl {
+  display: none;
+}
+
+/* Picked: the gold glow over the picture's edges. */
+.item.picked:has(> .art.full)::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px var(--picked), inset 0 0 8px 2px var(--picked-glow);
+  pointer-events: none;
+}
+
+/* The picture in a detail panel's head: it fills its own little square. */
+.detail-head .art.full {
+  padding: 0;
+  overflow: hidden;
+}

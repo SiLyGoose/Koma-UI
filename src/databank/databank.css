@@ -309,3 +309,20 @@
   color: #6b6272;
   font-size: 13px;
 }
+
+/* A card with a full picture: its name in white over the picture's dark bottom (the picture is out of the grid, so it keeps its row). */
+.db-item:has(> .art.full) .db-name {
+  grid-row: 2;
+  color: #fff;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 85%);
+}
+
+/* Items they don't own: the picture faded, as the icons are. */
+.db-item.unowned .art.full {
+  opacity: 1;
+}
+
+.db-item.unowned .art.full img {
+  opacity: 0.5;
+  filter: grayscale(0.7);
+}

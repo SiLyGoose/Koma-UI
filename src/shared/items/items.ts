@@ -33,9 +33,15 @@ const slotIcon = (slot: Slot): string => `/gear/slots/${slot}.png`;
 /** Items whose public/gear/items picture isn't there, so the page doesn't keep asking. */
 const noArt = new Set<string>();
 
+/**
+ * An item's picture. One of public/gear/items is a full picture (`full`): it fills the whole card or
+ * frame it's in, with the rest drawn over it. The sprites in ART, and the slot icon standing in for
+ * a missing picture (`glyph`), stay small in the middle.
+ */
 export function art(itemId: string | null, slot: Slot): HTMLElement {
   const box = el('span', 'art');
   const glyph = (): void => {
+    box.classList.remove('full');
     box.classList.add('glyph');
     const icon = el('img');
     icon.alt = '';
@@ -50,7 +56,9 @@ export function art(itemId: string | null, slot: Slot): HTMLElement {
   const img = el('img');
   img.alt = '';
   img.draggable = false;
-  img.src = ART[itemId] ?? `/gear/items/${itemId}.png`;
+  const sprite = ART[itemId];
+  img.src = sprite ?? `/gear/items/${itemId}.png`;
+  if (!sprite) box.classList.add('full');
   img.addEventListener('error', () => {
     noArt.add(itemId);
     img.remove();
