@@ -32,7 +32,7 @@
       <p id="status" class="status" hidden></p>
 
       <section id="gear" class="gear" hidden>
-        <!-- The hero: the miner with their three slots around them (weapon and armor on the left, the treasure on the right). -->
+        <!-- The hero: their character with their three slots around them (weapon and armor on the left, the treasure on the right). -->
         <div class="hero">
           <div class="hero-top">
             <select id="server" class="server-pick" aria-label="Server" hidden></select>
@@ -55,7 +55,7 @@
               <button type="button" class="slot" data-slot="armor"></button>
             </div>
             <div class="stage-figure">
-              <img class="stage-sprite" src="/pinecraft/miner.png" alt="" width="22" height="44" />
+              <img id="stage-sprite" class="stage-sprite" src="/characters/tsuri/sprite.png" alt="" width="22" height="44" />
               <div class="stage-floor" aria-hidden="true"></div>
               <h1 id="hero-name" class="hero-name"></h1>
             </div>
@@ -67,7 +67,7 @@
             <h2>Active Effects</h2>
             <ul id="totals" class="detail-effects"></ul>
           </div>
-          <!-- What the panel beside the miner shows: their stats, or their gear. -->
+          <!-- What the panel beside the character shows: their stats, or their gear. -->
           <div class="hero-tabs" role="tablist" aria-label="Show">
             <button type="button" role="tab" data-view="common" aria-selected="false" aria-controls="stats">Common</button>
             <button type="button" role="tab" data-view="gear" aria-selected="true" aria-controls="armory">Gear</button>

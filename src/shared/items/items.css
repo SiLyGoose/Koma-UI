@@ -304,7 +304,7 @@
 
 /*
  * Wide screens: the sheet counts as half the screen when sizing the row, and fills whatever the
- * frame has left, so a taller miner panel stretches it instead of leaving a gap under it.
+ * frame has left, so a taller hero panel stretches it instead of leaving a gap under it.
  */
 @media (min-width: 900px) {
   .armory {

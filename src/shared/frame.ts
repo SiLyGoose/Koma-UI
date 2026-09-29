@@ -1,5 +1,6 @@
 import { loadUser, profileMenu, setSession } from './account';
 import './frame.css';
+import { holdReveal } from './transition';
 
 /*
  * The frame every game sits in: a blue border round the window and a title bar across the top. Its
@@ -18,11 +19,17 @@ import './frame.css';
  * (if any) at the far right.
  */
 
+/** A game stays under the loading screen until it has connected, or found it can't. */
+const revealed = holdReveal();
+
 /** Shows how the connection to the bot is doing, in the title bar. */
 export function setConn(text: string, kind: '' | 'ok' | 'bad'): void {
   const conn = document.getElementById('conn') as HTMLElement;
   conn.textContent = text;
   conn.className = `conn ${kind}`;
+  // Connected: the game's first state follows straight after, so give it a moment to draw.
+  if (kind === 'ok') setTimeout(revealed, 150);
+  else if (kind === 'bad') revealed();
 }
 
 /**

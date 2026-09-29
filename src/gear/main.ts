@@ -1,16 +1,18 @@
 import '../shared/style.css';
+import { holdReveal } from '../shared/transition';
 import '../shared/header.css';
 import { API, getSession, profileMenu, setSession, store } from '../shared/account';
+import { currentCharacter } from '../shared/characters';
 import { dropdown } from '../shared/dropdown';
 import '../shared/items/items.css';
 import './gear.css';
 import { art, el, rich, SLOT_NAME, stars, type Slot } from '../shared/items/items';
 
 /*
- * The gear page: the member's miner with their three slots around them (weapon and armor on the
+ * The gear page: the member's character (Tsuri, for now) with their three slots around them (weapon and armor on the
  * left, the treasure on the right), and their armory beside it: every copy they own, on parchment.
- * Picking a copy shows what it does over the miner and equips it; picking a slot shows what fits in
- * it. Under the miner: switching loadouts (and outfits, one day); under the armory, taking everything off. The tabs under the miner
+ * Picking a copy shows what it does over the character and equips it; picking a slot shows what fits in
+ * it. Under the character: switching loadouts (and outfits, one day); under the armory, taking everything off. The tabs under the character
  * swap the armory for their stats (Common), worked out by the bot. It needs
  * the front page's login (the bot's /api/gear answers logged-in members only), in the server picked
  * there.
@@ -71,6 +73,7 @@ const ui = {
   status: $('status'),
   gear: $('gear'),
   heroName: $('hero-name'),
+  sprite: $<HTMLImageElement>('stage-sprite'),
   server: $<HTMLSelectElement>('server'),
   totals: $('totals'),
   armoryTitle: $('armory-title'),
@@ -93,9 +96,9 @@ let me: Me | null = null;
 let server = store.get(localStorage, SERVER_KEY);
 let gear: GearView | null = null;
 let filter: Slot | 'all' = 'all';
-/** What the panel beside the miner shows. */
+/** What the panel beside the character shows. */
 let view: 'common' | 'gear' = 'gear';
-/** The copy shown over the miner, if any. */
+/** The copy shown over the character, if any. */
 let picked: string | null = null;
 /** An equip, unequip or loadout switch on its way: the page waits for it before taking another. */
 let busy = false;
@@ -307,6 +310,10 @@ function render(): void {
   if (!me || !gear) return;
   ui.gear.hidden = false;
   ui.heroName.textContent = me.user.name;
+  const character = currentCharacter();
+  if (ui.sprite.getAttribute('src') !== character.sprite) ui.sprite.src = character.sprite;
+  ui.sprite.width = character.width;
+  ui.sprite.height = character.height;
   ui.armoryTitle.textContent = `${me.user.name}'s Armory`;
   ui.statsTitle.textContent = `${me.user.name}'s Stats`;
   for (const tab of ui.tabs) tab.setAttribute('aria-selected', String(tab.dataset.filter === filter));
@@ -472,4 +479,6 @@ async function start(): Promise<void> {
   await loadGear();
 }
 
-void start();
+// Under the loading screen until it has drawn (or said why it can't).
+const revealed = holdReveal();
+void start().finally(revealed);

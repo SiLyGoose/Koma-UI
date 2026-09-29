@@ -1,3 +1,4 @@
+import { currentCharacter } from '../shared/characters';
 import type { PinecraftOre, PinecraftPickaxe } from './protocol';
 
 /*
@@ -5,7 +6,7 @@ import type { PinecraftOre, PinecraftPickaxe } from './protocol';
  * bedrock and each ore (block_coal.png, block_iron.png and so on). An ore without one has a stand-in
  * drawn here (stone with gems of the ore's colour in it), and bedrock without one is made from the
  * stone. A block being broken has public/pinecraft/cracks/crack_01.png to crack_04.png over it, more
- * cracked the closer it is to breaking. The miner's pickaxe is
+ * cracked the closer it is to breaking. The character's pickaxe is
  * public/pinecraft/pickaxes/pickaxe_<name>.png (pickaxe_wood.png, pickaxe_gold.png,
  * pickaxe_diamond.png, pickaxe_ruby.png, pickaxe_amethyst.png), drawn upright: head at the top, handle down the middle.
  */
@@ -124,10 +125,10 @@ const pickaxeImages = new Map<PinecraftPickaxe, HTMLImageElement>();
 /** The picture of a pickaxe, once loaded (the wooden one while it isn't; undefined when neither is). */
 export const pickaxeImage = (name: PinecraftPickaxe): HTMLImageElement | undefined => pickaxeImages.get(name) ?? pickaxeImages.get('wood');
 
-let minerImg: HTMLImageElement | null = null;
+let characterImg: HTMLImageElement | null = null;
 
-/** The miner's picture (public/pinecraft/miner.png, pixel art 22 by 44), once loaded. */
-export const minerImage = (): HTMLImageElement | null => minerImg;
+/** The member's character's picture (public/characters/<id>/sprite.png, ../shared/characters.ts), once loaded. */
+export const characterImage = (): HTMLImageElement | null => characterImg;
 
 let keys: HTMLCanvasElement | null = null;
 
@@ -175,8 +176,8 @@ export async function loadTextures(): Promise<void> {
       if (img) pickaxeImages.set(name, img);
     });
   }
-  void load('pinecraft/miner.png').then((img) => {
-    minerImg = img;
+  void load(currentCharacter().sprite.replace(/^\//, '')).then((img) => {
+    characterImg = img;
   });
   const [dirt, stone, bedrockImg, ...ores] = await Promise.all([
     load('pinecraft/blocks/block_dirt.png'),

@@ -1,7 +1,7 @@
 /*
- * The gear page, on top of the shared item template (../shared/items/items.css): the miner on a dark stage with
+ * The gear page, on top of the shared item template (../shared/items/items.css): their character on a dark stage with
  * their slots either side, and the armory beside it, a dark frame holding a parchment sheet of item
- * cards (or, on the Common tab, their stats). A picked card's details cover the miner (a sheet from
+ * cards (or, on the Common tab, their stats). A picked card's details cover the character (a sheet from
  * the bottom on narrow screens, items.css).
  */
 
@@ -38,7 +38,7 @@
     display: none;
   }
 
-  /* The picked copy takes the miner's place, as tall as the armory beside it. */
+  /* The picked copy takes the character's place, as tall as the armory beside it. */
   .hero,
   .detail {
     grid-area: 1 / 1;
@@ -85,7 +85,7 @@
   display: none;
 }
 
-/* The name on the stage's floor, under the miner, like a nameplate. */
+/* The name on the stage's floor, under the character, like a nameplate. */
 .hero-name {
   position: relative;
   z-index: 1;
@@ -310,7 +310,7 @@
   text-transform: uppercase;
 }
 
-/* Common | Gear: what the panel beside the miner shows. */
+/* Common | Gear: what the panel beside the character shows. */
 .hero-tabs {
   display: grid;
   grid-template-columns: 1fr 1fr;

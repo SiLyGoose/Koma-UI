@@ -346,7 +346,7 @@ body {
   }
 }
 
-/* The map: a badge with the miner's position over the mine, and the map itself over the page. */
+/* The map: a badge with the character's position over the mine, and the map itself over the page. */
 .pc-map-button {
   position: absolute;
   top: 8px;

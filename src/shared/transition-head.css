@@ -1,0 +1,193 @@
+/*
+ * Page transitions (transition.ts), put inline at the end of every page's <head> by vite.config.ts
+ * so they apply before the page's own styles load. Colours are written out: the site's variables
+ * (style.css) aren't there yet.
+ *
+ * A dark panel with streaked edges wipes across the window, left to right (`data-tx-dir="back"`: right
+ * to left), and stays while the next page loads, with a glowing sprite bouncing over "Loading…";
+ * then it carries on across and off, its trailing edge streaked the same way. `data-tx` is where it
+ * is: `in` (wiping on), `cover` (loading), `out` (wiping off).
+ */
+
+html {
+  /* How far the streaks of the edge reach. */
+  --tx-jag: 40vw;
+  /* From just off one side of the window to just off the other: its width and both edges. */
+  --tx-away: calc(100vw + var(--tx-jag) * 2);
+}
+
+/* The panel. Wider than the window by an edge each side, which are off screen while it covers it. */
+html[data-tx]::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--tx-jag) * -1);
+  z-index: 10000;
+  width: var(--tx-away);
+  /* The armory frame's dark (a shade up from the page's, so the edge shows against it), lit a little in the middle, with the sprite's shadow. */
+  background:
+    radial-gradient(28px 6px at 50% calc(50% + 18px), rgb(0 0 0 / 65%), transparent),
+    radial-gradient(ellipse 60% 50% at 50% 50%, rgb(216 191 122 / 9%), transparent 70%),
+    linear-gradient(180deg, #1d1c23, #121116);
+  /*
+   * The edges: streaks, like the panel is smeared across as it moves. Thin bands of dark, each
+   * reaching its own length out of the panel and fading away (the same bands down both sides, the left
+   * edge the right one mirrored, so the edge that wipes on and the one that wipes off look alike).
+   * Made by scripts/streaks.py.
+   */
+  mask:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 540' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='g36' x1='1' x2='0'%3E%3Cstop offset='0.611'/%3E%3Cstop offset='1' stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient id='g40' x1='1' x2='0'%3E%3Cstop offset='0.55'/%3E%3Cstop offset='1' stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient id='g44' x1='1' x2='0'%3E%3Cstop offset='0.5'/%3E%3Cstop offset='1' stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient id='g48' x1='1' x2='0'%3E%3Cstop offset='0.458'/%3E%3Cstop offset='1' stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient id='g52' x1='1' x2='0'%3E%3Cstop offset='0.423'/%3E%3Cstop offset='1' stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient id='g56' x1='1' x2='0'%3E%3Cstop offset='0.393'/%3E%3Cstop offset='1' stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient id='g60' x1='1' x2='0'%3E%3Cstop offset='0.367'/%3E%3Cstop offset='1' stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient id='g64' x1='1' x2='0'%3E%3Cstop offset='0.344'/%3E%3Cstop offset='1' stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient id='g68' x1='1' x2='0'%3E%3Cstop offset='0.324'/%3E%3Cstop offset='1' stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient id='g72' x1='1' x2='0'%3E%3Cstop offset='0.306'/%3E%3Cstop offset='1' stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient id='g76' x1='1' x2='0'%3E%3Cstop offset='0.289'/%3E%3Cstop offset='1' stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient id='g80' x1='1' x2='0'%3E%3Cstop offset='0.275'/%3E%3Cstop offset='1' stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient id='g84' x1='1' x2='0'%3E%3Cstop offset='0.262'/%3E%3Cstop offset='1' stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient id='g88' x1='1' x2='0'%3E%3Cstop offset='0.25'/%3E%3Cstop offset='1' stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient id='g92' x1='1' x2='0'%3E%3Cstop offset='0.239'/%3E%3Cstop offset='1' stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient id='g96' x1='1' x2='0'%3E%3Cstop offset='0.229'/%3E%3Cstop offset='1' stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient id='g100' x1='1' x2='0'%3E%3Cstop offset='0.22'/%3E%3Cstop offset='1' stop-opacity='0'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='56' y='0' width='44' height='8.6' fill='url(%23g44)'/%3E%3Crect x='60' y='8' width='40' height='4.6' fill='url(%23g40)'/%3E%3Crect x='60' y='12' width='40' height='4.6' fill='url(%23g40)'/%3E%3Crect x='60' y='16' width='40' height='5.6' fill='url(%23g40)'/%3E%3Crect x='4' y='21' width='96' height='3.6' fill='url(%23g96)'/%3E%3Crect x='4' y='24' width='96' height='4.6' fill='url(%23g96)'/%3E%3Crect x='20' y='28' width='80' height='4.6' fill='url(%23g80)'/%3E%3Crect x='16' y='32' width='84' height='4.6' fill='url(%23g84)'/%3E%3Crect x='20' y='36' width='80' height='14.6' fill='url(%23g80)'/%3E%3Crect x='28' y='50' width='72' height='12.6' fill='url(%23g72)'/%3E%3Crect x='48' y='62' width='52' height='5.6' fill='url(%23g52)'/%3E%3Crect x='36' y='67' width='64' height='8.6' fill='url(%23g64)'/%3E%3Crect x='36' y='75' width='64' height='4.6' fill='url(%23g64)'/%3E%3Crect x='60' y='79' width='40' height='12.6' fill='url(%23g40)'/%3E%3Crect x='64' y='91' width='36' height='8.6' fill='url(%23g36)'/%3E%3Crect x='12' y='99' width='88' height='12.6' fill='url(%23g88)'/%3E%3Crect x='32' y='111' width='68' height='4.6' fill='url(%23g68)'/%3E%3Crect x='40' y='115' width='60' height='12.6' fill='url(%23g60)'/%3E%3Crect x='20' y='127' width='80' height='3.6' fill='url(%23g80)'/%3E%3Crect x='40' y='130' width='60' height='12.6' fill='url(%23g60)'/%3E%3Crect x='44' y='142' width='56' height='5.6' fill='url(%23g56)'/%3E%3Crect x='48' y='147' width='52' height='4.6' fill='url(%23g52)'/%3E%3Crect x='32' y='151' width='68' height='10.6' fill='url(%23g68)'/%3E%3Crect x='24' y='161' width='76' height='8.6' fill='url(%23g76)'/%3E%3Crect x='40' y='169' width='60' height='4.6' fill='url(%23g60)'/%3E%3Crect x='24' y='173' width='76' height='12.6' fill='url(%23g76)'/%3E%3Crect x='28' y='185' width='72' height='4.6' fill='url(%23g72)'/%3E%3Crect x='20' y='189' width='80' height='4.6' fill='url(%23g80)'/%3E%3Crect x='20' y='193' width='80' height='3.6' fill='url(%23g80)'/%3E%3Crect x='24' y='196' width='76' height='14.6' fill='url(%23g76)'/%3E%3Crect x='12' y='210' width='88' height='10.6' fill='url(%23g88)'/%3E%3Crect x='8' y='220' width='92' height='8.6' fill='url(%23g92)'/%3E%3Crect x='12' y='228' width='88' height='8.6' fill='url(%23g88)'/%3E%3Crect x='0' y='236' width='100' height='6.6' fill='url(%23g100)'/%3E%3Crect x='0' y='242' width='100' height='4.6' fill='url(%23g100)'/%3E%3Crect x='8' y='246' width='92' height='12.6' fill='url(%23g92)'/%3E%3Crect x='8' y='258' width='92' height='6.6' fill='url(%23g92)'/%3E%3Crect x='0' y='264' width='100' height='5.6' fill='url(%23g100)'/%3E%3Crect x='0' y='269' width='100' height='14.6' fill='url(%23g100)'/%3E%3Crect x='0' y='283' width='100' height='4.6' fill='url(%23g100)'/%3E%3Crect x='8' y='287' width='92' height='4.6' fill='url(%23g92)'/%3E%3Crect x='16' y='291' width='84' height='14.6' fill='url(%23g84)'/%3E%3Crect x='4' y='305' width='96' height='5.6' fill='url(%23g96)'/%3E%3Crect x='16' y='310' width='84' height='5.6' fill='url(%23g84)'/%3E%3Crect x='4' y='315' width='96' height='3.6' fill='url(%23g96)'/%3E%3Crect x='8' y='318' width='92' height='8.6' fill='url(%23g92)'/%3E%3Crect x='8' y='326' width='92' height='8.6' fill='url(%23g92)'/%3E%3Crect x='4' y='334' width='96' height='12.6' fill='url(%23g96)'/%3E%3Crect x='0' y='346' width='100' height='12.6' fill='url(%23g100)'/%3E%3Crect x='0' y='358' width='100' height='4.6' fill='url(%23g100)'/%3E%3Crect x='0' y='362' width='100' height='12.6' fill='url(%23g100)'/%3E%3Crect x='0' y='374' width='100' height='4.6' fill='url(%23g100)'/%3E%3Crect x='12' y='378' width='88' height='10.6' fill='url(%23g88)'/%3E%3Crect x='28' y='388' width='72' height='3.6' fill='url(%23g72)'/%3E%3Crect x='24' y='391' width='76' height='4.6' fill='url(%23g76)'/%3E%3Crect x='56' y='395' width='44' height='8.6' fill='url(%23g44)'/%3E%3Crect x='56' y='403' width='44' height='4.6' fill='url(%23g44)'/%3E%3Crect x='40' y='407' width='60' height='5.6' fill='url(%23g60)'/%3E%3Crect x='40' y='412' width='60' height='6.6' fill='url(%23g60)'/%3E%3Crect x='44' y='418' width='56' height='14.6' fill='url(%23g56)'/%3E%3Crect x='28' y='432' width='72' height='8.6' fill='url(%23g72)'/%3E%3Crect x='32' y='440' width='68' height='14.6' fill='url(%23g68)'/%3E%3Crect x='48' y='454' width='52' height='14.6' fill='url(%23g52)'/%3E%3Crect x='44' y='468' width='56' height='4.6' fill='url(%23g56)'/%3E%3Crect x='44' y='472' width='56' height='4.6' fill='url(%23g56)'/%3E%3Crect x='36' y='476' width='64' height='8.6' fill='url(%23g64)'/%3E%3Crect x='64' y='484' width='36' height='4.6' fill='url(%23g36)'/%3E%3Crect x='60' y='488' width='40' height='12.6' fill='url(%23g40)'/%3E%3Crect x='64' y='500' width='36' height='12.6' fill='url(%23g36)'/%3E%3Crect x='56' y='512' width='44' height='5.6' fill='url(%23g44)'/%3E%3Crect x='56' y='517' width='44' height='12.6' fill='url(%23g44)'/%3E%3Crect x='36' y='529' width='64' height='6.6' fill='url(%23g64)'/%3E%3Crect x='52' y='535' width='48' height='5.6' fill='url(%23g48)'/%3E%3C/svg%3E") left top / var(--tx-jag) 540px repeat-y,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 540' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='g36'%3E%3Cstop offset='0.611'/%3E%3Cstop offset='1' stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient id='g40'%3E%3Cstop offset='0.55'/%3E%3Cstop offset='1' stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient id='g44'%3E%3Cstop offset='0.5'/%3E%3Cstop offset='1' stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient id='g48'%3E%3Cstop offset='0.458'/%3E%3Cstop offset='1' stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient id='g52'%3E%3Cstop offset='0.423'/%3E%3Cstop offset='1' stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient id='g56'%3E%3Cstop offset='0.393'/%3E%3Cstop offset='1' stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient id='g60'%3E%3Cstop offset='0.367'/%3E%3Cstop offset='1' stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient id='g64'%3E%3Cstop offset='0.344'/%3E%3Cstop offset='1' stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient id='g68'%3E%3Cstop offset='0.324'/%3E%3Cstop offset='1' stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient id='g72'%3E%3Cstop offset='0.306'/%3E%3Cstop offset='1' stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient id='g76'%3E%3Cstop offset='0.289'/%3E%3Cstop offset='1' stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient id='g80'%3E%3Cstop offset='0.275'/%3E%3Cstop offset='1' stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient id='g84'%3E%3Cstop offset='0.262'/%3E%3Cstop offset='1' stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient id='g88'%3E%3Cstop offset='0.25'/%3E%3Cstop offset='1' stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient id='g92'%3E%3Cstop offset='0.239'/%3E%3Cstop offset='1' stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient id='g96'%3E%3Cstop offset='0.229'/%3E%3Cstop offset='1' stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient id='g100'%3E%3Cstop offset='0.22'/%3E%3Cstop offset='1' stop-opacity='0'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='0' y='0' width='44' height='8.6' fill='url(%23g44)'/%3E%3Crect x='0' y='8' width='40' height='4.6' fill='url(%23g40)'/%3E%3Crect x='0' y='12' width='40' height='4.6' fill='url(%23g40)'/%3E%3Crect x='0' y='16' width='40' height='5.6' fill='url(%23g40)'/%3E%3Crect x='0' y='21' width='96' height='3.6' fill='url(%23g96)'/%3E%3Crect x='0' y='24' width='96' height='4.6' fill='url(%23g96)'/%3E%3Crect x='0' y='28' width='80' height='4.6' fill='url(%23g80)'/%3E%3Crect x='0' y='32' width='84' height='4.6' fill='url(%23g84)'/%3E%3Crect x='0' y='36' width='80' height='14.6' fill='url(%23g80)'/%3E%3Crect x='0' y='50' width='72' height='12.6' fill='url(%23g72)'/%3E%3Crect x='0' y='62' width='52' height='5.6' fill='url(%23g52)'/%3E%3Crect x='0' y='67' width='64' height='8.6' fill='url(%23g64)'/%3E%3Crect x='0' y='75' width='64' height='4.6' fill='url(%23g64)'/%3E%3Crect x='0' y='79' width='40' height='12.6' fill='url(%23g40)'/%3E%3Crect x='0' y='91' width='36' height='8.6' fill='url(%23g36)'/%3E%3Crect x='0' y='99' width='88' height='12.6' fill='url(%23g88)'/%3E%3Crect x='0' y='111' width='68' height='4.6' fill='url(%23g68)'/%3E%3Crect x='0' y='115' width='60' height='12.6' fill='url(%23g60)'/%3E%3Crect x='0' y='127' width='80' height='3.6' fill='url(%23g80)'/%3E%3Crect x='0' y='130' width='60' height='12.6' fill='url(%23g60)'/%3E%3Crect x='0' y='142' width='56' height='5.6' fill='url(%23g56)'/%3E%3Crect x='0' y='147' width='52' height='4.6' fill='url(%23g52)'/%3E%3Crect x='0' y='151' width='68' height='10.6' fill='url(%23g68)'/%3E%3Crect x='0' y='161' width='76' height='8.6' fill='url(%23g76)'/%3E%3Crect x='0' y='169' width='60' height='4.6' fill='url(%23g60)'/%3E%3Crect x='0' y='173' width='76' height='12.6' fill='url(%23g76)'/%3E%3Crect x='0' y='185' width='72' height='4.6' fill='url(%23g72)'/%3E%3Crect x='0' y='189' width='80' height='4.6' fill='url(%23g80)'/%3E%3Crect x='0' y='193' width='80' height='3.6' fill='url(%23g80)'/%3E%3Crect x='0' y='196' width='76' height='14.6' fill='url(%23g76)'/%3E%3Crect x='0' y='210' width='88' height='10.6' fill='url(%23g88)'/%3E%3Crect x='0' y='220' width='92' height='8.6' fill='url(%23g92)'/%3E%3Crect x='0' y='228' width='88' height='8.6' fill='url(%23g88)'/%3E%3Crect x='0' y='236' width='100' height='6.6' fill='url(%23g100)'/%3E%3Crect x='0' y='242' width='100' height='4.6' fill='url(%23g100)'/%3E%3Crect x='0' y='246' width='92' height='12.6' fill='url(%23g92)'/%3E%3Crect x='0' y='258' width='92' height='6.6' fill='url(%23g92)'/%3E%3Crect x='0' y='264' width='100' height='5.6' fill='url(%23g100)'/%3E%3Crect x='0' y='269' width='100' height='14.6' fill='url(%23g100)'/%3E%3Crect x='0' y='283' width='100' height='4.6' fill='url(%23g100)'/%3E%3Crect x='0' y='287' width='92' height='4.6' fill='url(%23g92)'/%3E%3Crect x='0' y='291' width='84' height='14.6' fill='url(%23g84)'/%3E%3Crect x='0' y='305' width='96' height='5.6' fill='url(%23g96)'/%3E%3Crect x='0' y='310' width='84' height='5.6' fill='url(%23g84)'/%3E%3Crect x='0' y='315' width='96' height='3.6' fill='url(%23g96)'/%3E%3Crect x='0' y='318' width='92' height='8.6' fill='url(%23g92)'/%3E%3Crect x='0' y='326' width='92' height='8.6' fill='url(%23g92)'/%3E%3Crect x='0' y='334' width='96' height='12.6' fill='url(%23g96)'/%3E%3Crect x='0' y='346' width='100' height='12.6' fill='url(%23g100)'/%3E%3Crect x='0' y='358' width='100' height='4.6' fill='url(%23g100)'/%3E%3Crect x='0' y='362' width='100' height='12.6' fill='url(%23g100)'/%3E%3Crect x='0' y='374' width='100' height='4.6' fill='url(%23g100)'/%3E%3Crect x='0' y='378' width='88' height='10.6' fill='url(%23g88)'/%3E%3Crect x='0' y='388' width='72' height='3.6' fill='url(%23g72)'/%3E%3Crect x='0' y='391' width='76' height='4.6' fill='url(%23g76)'/%3E%3Crect x='0' y='395' width='44' height='8.6' fill='url(%23g44)'/%3E%3Crect x='0' y='403' width='44' height='4.6' fill='url(%23g44)'/%3E%3Crect x='0' y='407' width='60' height='5.6' fill='url(%23g60)'/%3E%3Crect x='0' y='412' width='60' height='6.6' fill='url(%23g60)'/%3E%3Crect x='0' y='418' width='56' height='14.6' fill='url(%23g56)'/%3E%3Crect x='0' y='432' width='72' height='8.6' fill='url(%23g72)'/%3E%3Crect x='0' y='440' width='68' height='14.6' fill='url(%23g68)'/%3E%3Crect x='0' y='454' width='52' height='14.6' fill='url(%23g52)'/%3E%3Crect x='0' y='468' width='56' height='4.6' fill='url(%23g56)'/%3E%3Crect x='0' y='472' width='56' height='4.6' fill='url(%23g56)'/%3E%3Crect x='0' y='476' width='64' height='8.6' fill='url(%23g64)'/%3E%3Crect x='0' y='484' width='36' height='4.6' fill='url(%23g36)'/%3E%3Crect x='0' y='488' width='40' height='12.6' fill='url(%23g40)'/%3E%3Crect x='0' y='500' width='36' height='12.6' fill='url(%23g36)'/%3E%3Crect x='0' y='512' width='44' height='5.6' fill='url(%23g44)'/%3E%3Crect x='0' y='517' width='44' height='12.6' fill='url(%23g44)'/%3E%3Crect x='0' y='529' width='64' height='6.6' fill='url(%23g64)'/%3E%3Crect x='0' y='535' width='48' height='5.6' fill='url(%23g48)'/%3E%3C/svg%3E") right top / var(--tx-jag) 540px repeat-y,
+    linear-gradient(#000, #000) center / calc(100% - var(--tx-jag) * 2 + 2px) 100% no-repeat;
+}
+
+/*
+ * The wipe on rushes in and settles into place (an exponential ease-out); the wipe off lingers a
+ * beat, then whips away (an exponential ease-in).
+ */
+html[data-tx='in']::after {
+  animation: tx-wipe-on 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+html[data-tx='out']::after {
+  animation: tx-wipe-off 0.6s cubic-bezier(0.7, 0, 0.84, 0) both;
+}
+
+html[data-tx='in'][data-tx-dir='back']::after {
+  animation-name: tx-wipe-on-back;
+}
+
+html[data-tx='out'][data-tx-dir='back']::after {
+  animation-name: tx-wipe-off-back;
+}
+
+/* Left to right: on from off the left, off to the right. Back: on from the right, off to the left. */
+@keyframes tx-wipe-on {
+  from {
+    transform: translateX(calc(var(--tx-away) * -1));
+  }
+}
+
+@keyframes tx-wipe-off {
+  to {
+    transform: translateX(var(--tx-away));
+  }
+}
+
+@keyframes tx-wipe-on-back {
+  from {
+    transform: translateX(var(--tx-away));
+  }
+}
+
+@keyframes tx-wipe-off-back {
+  to {
+    transform: translateX(calc(var(--tx-away) * -1));
+  }
+}
+
+/*
+ * The loading screen. "Loading…" and the sprite's shadow are on the panel (so they ride in and out
+ * with it); the sprite bounces over them on its own, moved by `transform` so the browser keeps it going
+ * even while a page is busy starting up. The bounce keeps time with the clock (`--tx-phase`, set by
+ * transition-head.js and transition.ts), so the next page takes it up at the same height.
+ */
+html[data-tx]::after {
+  content: 'Loading…';
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding-top: 112px;
+  color: #efe3bf;
+  font-family: Poppins, 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-size: 16px;
+  font-style: italic;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-shadow: 0 0 10px rgb(216 160 64 / 60%);
+}
+
+html[data-tx]::before {
+  content: '';
+  position: fixed;
+  /* Its feet a little under the middle, over its shadow. */
+  top: calc(50% + 18px);
+  left: 50%;
+  z-index: 10001;
+  width: 72px;
+  height: 116px;
+  background: var(--tx-sprite) center bottom / contain no-repeat;
+  translate: -50% -100%;
+  animation: tx-bounce 0.5s cubic-bezier(0.33, 0, 0.4, 1) var(--tx-phase, 0s) infinite alternate;
+}
+
+/* It rides in and out with the panel, the same way and at the same pace, bouncing all the while. */
+html[data-tx='in']::before {
+  animation:
+    tx-bounce 0.5s cubic-bezier(0.33, 0, 0.4, 1) var(--tx-phase, 0s) infinite alternate,
+    tx-ride-on 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+html[data-tx='out']::before {
+  animation:
+    tx-bounce 0.5s cubic-bezier(0.33, 0, 0.4, 1) var(--tx-phase, 0s) infinite alternate,
+    tx-ride-off 0.6s cubic-bezier(0.7, 0, 0.84, 0) both;
+}
+
+html[data-tx='in'][data-tx-dir='back']::before {
+  animation-name: tx-bounce, tx-ride-on-back;
+}
+
+html[data-tx='out'][data-tx-dir='back']::before {
+  animation-name: tx-bounce, tx-ride-off-back;
+}
+
+/* Up and down on the spot. */
+@keyframes tx-bounce {
+  to {
+    transform: translateY(-14px);
+  }
+}
+
+@keyframes tx-ride-on {
+  from {
+    translate: calc(-50% - var(--tx-away)) -100%;
+  }
+}
+
+@keyframes tx-ride-off {
+  to {
+    translate: calc(-50% + var(--tx-away)) -100%;
+  }
+}
+
+@keyframes tx-ride-on-back {
+  from {
+    translate: calc(-50% + var(--tx-away)) -100%;
+  }
+}
+
+@keyframes tx-ride-off-back {
+  to {
+    translate: calc(-50% - var(--tx-away)) -100%;
+  }
+}
+
+/* If the page's script never runs, it doesn't stay covered (transition.ts sets data-tx-live once it does). */
+html[data-tx]:not([data-tx-live])::after {
+  animation: tx-failsafe 0s 4s forwards;
+}
+
+html[data-tx]:not([data-tx-live])::before {
+  animation:
+    tx-bounce 0.5s cubic-bezier(0.33, 0, 0.4, 1) var(--tx-phase, 0s) infinite alternate,
+    tx-failsafe 0s 4s forwards;
+}
+
+@keyframes tx-failsafe {
+  to {
+    visibility: hidden;
+  }
+}

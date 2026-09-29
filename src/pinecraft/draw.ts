@@ -1,9 +1,10 @@
 import type { Direction, PinecraftOre, PinecraftPickaxe, WorldMap, WorldState } from './protocol';
-import { crack, keysPicture, minerImage, ORE_COLOR, pickaxeImage, texture, type BlockTexture } from './textures';
+import { currentCharacter } from '../shared/characters';
+import { characterImage, crack, keysPicture, ORE_COLOR, pickaxeImage, texture, type BlockTexture } from './textures';
 
 /*
- * Draws Pinecraft: the underground around the miner, in blocks. Ground dug out is a warm earth
- * floor; only the blocks next to it (the ones the miner can get at) are drawn as what they are, and
+ * Draws Pinecraft: the underground around the character, in blocks. Ground dug out is a warm earth
+ * floor; only the blocks next to it (the ones the character can get at) are drawn as what they are, and
  * the rest are mystery blocks: the dirt's picture, nearly black.
  */
 
@@ -27,8 +28,8 @@ export interface Scene {
   known: Map<number, string>;
   /** The top left of the view, in blocks. */
   cam: { x: number; y: number };
-  /** Where the miner is drawn, in blocks (fractions while moving), and which way they face. */
-  miner: { x: number; y: number };
+  /** Where the character is drawn, in blocks (fractions while moving), and which way they face. */
+  character: { x: number; y: number };
   facing: 1 | -1;
   /** The pickaxe swinging, since when (performance.now()), and which way. */
   swing: { since: number; dir: Direction } | null;
@@ -37,7 +38,7 @@ export interface Scene {
   particles: Particle[];
   /** How far under the starting room to draw how to play (the keys), in blocks. */
   keysGap: number;
-  /** When how to play starts fading away (performance.now()), once the miner has moved; null before. */
+  /** When how to play starts fading away (performance.now()), once the character has moved; null before. */
   keysGoneAt: number | null;
 }
 
@@ -66,20 +67,18 @@ function textureOf(c: string): BlockTexture {
   }
 }
 
-/** How long the pickaxe's picture is drawn, in the miner's units (100 a block), and how far of it sits behind the hand. */
+/** How long the pickaxe's picture is drawn, in the character's units (100 a block), and how far of it sits behind the hand. */
 const PICKAXE_LENGTH = 58;
 const PICKAXE_BEHIND = 18;
 
-/** How tall the miner's picture is drawn, in the miner's units (a pixel of it is 1/44 of this). */
-const MINER_HEIGHT = 96;
-/** Where the picture's front hand is, in the miner's units: the pickaxe is held there. */
-const MINER_HAND = { x: 20, y: -19 };
+/** How tall the character's picture is drawn, in the character's units (Character.hand is in these too). */
+const CHARACTER_HEIGHT = 96;
 
 /**
- * The miner, standing in the block whose top left is (px, py), `s` wide, with `pickaxe`. `swing`
+ * The character, standing in the block whose top left is (px, py), `s` wide, with `pickaxe`. `swing`
  * is how far through a swing of the pickaxe (null when still).
  */
-function miner(
+function character(
   g: CanvasRenderingContext2D,
   px: number,
   py: number,
@@ -95,9 +94,9 @@ function miner(
   g.scale(facing * (s / 100), s / 100);
   // From here on: 100 units a block, x 0 in the middle, y 0 at the feet, facing right.
   const bob = swing === null ? Math.sin(now / 400) * 1 : 0;
-  const sprite = minerImage();
+  const sprite = characterImage();
 
-  // The pickaxe: raised while still (behind the shape miner; held up in front of the picture, where
+  // The pickaxe: raised while still (behind the shape character; held up in front of the picture, where
   // it would be hidden behind them), brought down in front in a swing. Digging up or down swings it
   // that way instead.
   const rest = sprite ? -1.3 : -2.2;
@@ -107,16 +106,18 @@ function miner(
 
   if (sprite) {
     // Held in the picture's hand: behind the picture while still, in front during a swing.
-    const hand = { x: MINER_HAND.x, y: MINER_HAND.y + Math.round(bob) };
+    // Where the picture's front hand is: each character's own (../shared/characters.ts).
+    const { hand: grip } = currentCharacter();
+    const hand = { x: grip.x, y: grip.y + Math.round(bob) };
     if (swing === null) heldPickaxe(g, hand, angle, pickaxe);
-    const h = MINER_HEIGHT;
+    const h = CHARACTER_HEIGHT;
     const w = (h * sprite.naturalWidth) / sprite.naturalHeight;
     g.imageSmoothingEnabled = false;
     g.drawImage(sprite, -w / 2, -h + Math.round(bob), w, h);
     if (swing !== null) heldPickaxe(g, hand, angle, pickaxe);
   } else {
     // Held at the shoulder, with a hand on the handle.
-    drawnMiner(g, bob);
+    drawnCharacter(g, bob);
     heldPickaxe(g, { x: 8, y: -52 + bob }, angle, pickaxe);
     g.fillStyle = '#f0c29a';
     g.beginPath();
@@ -142,8 +143,8 @@ function heldPickaxe(g: CanvasRenderingContext2D, grip: { x: number; y: number }
   g.restore();
 }
 
-/** The miner drawn in shapes, while their picture loads (same units as in miner()). */
-function drawnMiner(g: CanvasRenderingContext2D, bob: number): void {
+/** The character drawn in shapes, while their picture loads (same units as in character()). */
+function drawnCharacter(g: CanvasRenderingContext2D, bob: number): void {
   // Boots and legs.
   g.fillStyle = '#3b2a1c';
   g.fillRect(-18, -8, 15, 8);
@@ -247,7 +248,7 @@ export function drawScene(g: CanvasRenderingContext2D, scene: Scene, w: number, 
     }
   }
 
-  // How to play, in the ground under where the miner starts: `keysGap` blocks below the row 2 under
+  // How to play, in the ground under where the character starts: `keysGap` blocks below the row 2 under
   // the spawn.
   const keys = keysPicture();
   const shown = scene.keysGoneAt === null ? 1 : 1 - (now - scene.keysGoneAt) / KEYS_FADE_MS;
@@ -272,7 +273,7 @@ export function drawScene(g: CanvasRenderingContext2D, scene: Scene, w: number, 
   // A swing takes 260 ms; while waiting for the bot to answer a dig, it keeps swinging.
   const swingT = scene.swing ? (now - scene.swing.since) / 260 : null;
   const phase = swingT === null ? null : scene.digging ? swingT % 1 : swingT < 1 ? swingT : null;
-  miner(g, (scene.miner.x - cam.x) * s, (scene.miner.y - cam.y) * s, s, scene.facing, phase, scene.swing?.dir ?? null, now, scene.state.pickaxe ?? 'wood');
+  character(g, (scene.character.x - cam.x) * s, (scene.character.y - cam.y) * s, s, scene.facing, phase, scene.swing?.dir ?? null, now, scene.state.pickaxe ?? 'wood');
 }
 
 /** Adds the chips a dug block throws off (and sparks, for an ore). */
@@ -314,7 +315,7 @@ const MAP_COLOR: Readonly<Record<string, string>> = {
 
 /**
  * Draws the map on `g` (`w` by `h` CSS pixels): everything uncovered, a square a block, as big as
- * fits (up to 16 px a block), in the middle. The start (0,0) is outlined, and the miner, at `you`,
+ * fits (up to 16 px a block), in the middle. The start (0,0) is outlined, and the character, at `you`,
  * is a red square.
  */
 export function drawMap(g: CanvasRenderingContext2D, map: WorldMap, w: number, h: number, you: { x: number; y: number }, spawn: { x: number; y: number }): void {

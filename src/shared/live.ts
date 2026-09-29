@@ -1,4 +1,5 @@
 import './live.css';
+import { navigate } from './transition';
 
 /*
  * Who's on the site right now (the bot's /api/live): a "🟢 3 online" button that drops down a list
@@ -129,7 +130,7 @@ export function startLive(options: LiveOptions): void {
       if (!res.ok) throw new Error(String(res.status));
       const { url: link } = (await res.json()) as { url: string };
       if (tab) tab.location.href = link;
-      else location.href = link;
+      else navigate(link);
       close();
     } catch {
       tab?.close();

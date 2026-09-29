@@ -1,4 +1,5 @@
 import '../shared/style.css';
+import { holdReveal, navigate } from '../shared/transition';
 import { API, getSession, profileMenu, setSession, store } from '../shared/account';
 import '../shared/header.css';
 import './hub.css';
@@ -202,7 +203,7 @@ for (const button of document.querySelectorAll<HTMLButtonElement>('[data-play]')
     button.textContent = 'Opening…';
     const res = await api<{ url: string }>('/api/play', { method: 'POST', body: JSON.stringify({ guild: server, game: button.dataset.play }) });
     if (res.ok) {
-      location.href = res.data.url;
+      navigate(res.data.url);
       return;
     }
     button.disabled = false;
@@ -232,7 +233,8 @@ if (!API) {
     status('The login was cancelled.');
     showLogin();
   } else if (code && state) void finishLogin(code, state);
-  else if (session) void loadMe();
+  // Under the loading screen until it knows who's here and has drawn their servers.
+  else if (session) void loadMe().finally(holdReveal());
   else showLogin();
   // Who's on the site in the server picked, by the profile (once logged in). Asking counts as being here.
   startLive({

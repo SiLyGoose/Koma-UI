@@ -1,10 +1,28 @@
+import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
+
+/**
+ * The page transitions' first half (src/shared/transition-head.*), inline at the end of every page's
+ * <head>, so a page that was arrived at through a transition starts covered before anything else
+ * loads. Read on every page, so editing them shows straight away in dev.
+ */
+function transitionHead(): Plugin {
+  const read = (file: string): string => readFileSync(resolve(import.meta.dirname, 'src/shared', file), 'utf8');
+  return {
+    name: 'transition-head',
+    transformIndexHtml: () => [
+      { tag: 'style', children: read('transition-head.css'), injectTo: 'head' },
+      { tag: 'script', children: read('transition-head.js'), injectTo: 'head' },
+    ],
+  };
+}
 
 // The front page (log in, pick a server and a game) is index.html. Each game is served at
 // /games/<name>/: its page lives at games/<name>/index.html, and the build keeps that path
 // (dist/games/<name>/index.html), with the shared assets under /assets. The gear page is /gear/ and the databank /databank/.
 export default defineConfig({
+  plugins: [transitionHead()],
   build: {
     rolldownOptions: {
       input: {

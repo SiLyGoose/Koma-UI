@@ -1,4 +1,5 @@
 import '../shared/style.css';
+import { holdReveal } from '../shared/transition';
 import '../shared/header.css';
 import { API, getSession, profileMenu, setSession, store } from '../shared/account';
 import { dropdown } from '../shared/dropdown';
@@ -358,4 +359,6 @@ async function start(): Promise<void> {
   render();
 }
 
-void start();
+// Under the loading screen until it has drawn (or said why it can't).
+const revealed = holdReveal();
+void start().finally(revealed);

@@ -14,7 +14,7 @@ import { drawGem, loadKeysPicture, loadTextures, ORE_COLOR, ORES } from './textu
  * bot's WebSocket address (s). The bot holds the world and decides every dig; this page sends the
  * moves and draws what it is told.
  *
- * Walking through open ground can't change anything, so the page moves the miner at once and tells
+ * Walking through open ground can't change anything, so the page moves the character at once and tells
  * the bot afterwards. A block is broken like in Minecraft: hold the direction against it (the keys,
  * or the joystick on a phone) and it cracks, taking longer the harder it is (the bot's
  * breakMs), and letting go starts it over. The page tells the bot when it starts (`mine`) and when it is done (`move`), then waits for the bot's
@@ -233,11 +233,11 @@ function breakSounds(blocks: { ground: 'dirt' | 'stone'; ore: PinecraftOre | nul
 }
 
 /** The bot's word on the world, and what the last move did (`dug`: the block the page was digging). */
-function apply(state: WorldState, event: WorldEvent | undefined, moveMiner: boolean, dug: { x: number; y: number } | null): void {
+function apply(state: WorldState, event: WorldEvent | undefined, moveCharacter: boolean, dug: { x: number; y: number } | null): void {
   const now = performance.now();
   const first = scene === null;
   if (!scene) {
-    scene = { state, known: new Map(), cam: { x: 0, y: 0 }, miner: { x: state.x, y: state.y }, facing: 1, swing: null, digging: null, particles: [], keysGap: keysGap(), keysGoneAt: null };
+    scene = { state, known: new Map(), cam: { x: 0, y: 0 }, character: { x: state.x, y: state.y }, facing: 1, swing: null, digging: null, particles: [], keysGap: keysGap(), keysGoneAt: null };
     keysFrom = { x: state.x, y: state.y };
     renderOreTip(state);
   }
@@ -247,13 +247,13 @@ function apply(state: WorldState, event: WorldEvent | undefined, moveMiner: bool
     scene.particles = [];
     scene.digging = null;
     scene.swing = null;
-    scene.miner = { x: state.x, y: state.y };
+    scene.character = { x: state.x, y: state.y };
     worldMap = null;
-    moveMiner = true;
+    moveCharacter = true;
     ui.log.textContent = '🔄 New week, new mine! Your energy and earnings are kept.';
   }
-  // An answer behind the page's own walks: the page's idea of where the miner is stands.
-  if (!moveMiner) {
+  // An answer behind the page's own walks: the page's idea of where the character is stands.
+  if (!moveCharacter) {
     state.x = scene.state.x;
     state.y = scene.state.y;
   }
@@ -263,7 +263,7 @@ function apply(state: WorldState, event: WorldEvent | undefined, moveMiner: bool
     const y = state.top + k;
     for (let i = 0; i < row.length; i++) known.set(y * state.size + state.left + i, row[i] as string);
   });
-  if (moveMiner) target = { x: state.x, y: state.y };
+  if (moveCharacter) target = { x: state.x, y: state.y };
   if (first) centerCamera(true);
 
   energy = { count: state.energy, max: state.maxEnergy, nextAt: state.nextEnergyMs === null ? null : now + state.nextEnergyMs, every: state.energyMs };
@@ -348,15 +348,15 @@ function receive(message: ServerMessage): void {
   if (message.t === 'breaking') return watchBreaking(message.dir);
   if (watching) return watchState(message.state, message.event);
   const answersDig = pendingDig !== null && message.seq === pendingDig.seq;
-  // Answers to walks the page already made are behind it; only the latest (or a fresh start) moves the miner.
-  const moveMiner = message.seq === 0 || message.seq === seq;
+  // Answers to walks the page already made are behind it; only the latest (or a fresh start) moves the character.
+  const moveCharacter = message.seq === 0 || message.seq === seq;
   if (message.seq === 0) {
     pendingDig = null;
     breaking = null;
     if (scene) scene.digging = null;
   }
   if (!answersDig) {
-    apply(message.state, message.event, moveMiner, null);
+    apply(message.state, message.event, moveCharacter, null);
     return;
   }
   // A dig: let the pickaxe swing a little before the block breaks.
@@ -366,7 +366,7 @@ function receive(message: ServerMessage): void {
     if (pendingDig !== dig) return;
     pendingDig = null;
     if (scene) scene.digging = null;
-    apply(message.state, message.event, moveMiner, { x: dig.x, y: dig.y });
+    apply(message.state, message.event, moveCharacter, { x: dig.x, y: dig.y });
   }, wait);
 }
 
@@ -392,7 +392,7 @@ function watchBreaking(dir: Direction): void {
   }, takes + 1500);
 }
 
-/** Watching: the bot's word on the player's world. The miner goes where it says, and a dig is where they now stand. */
+/** Watching: the bot's word on the player's world. The character goes where it says, and a dig is where they now stand. */
 function watchState(state: WorldState, event: WorldEvent | undefined): void {
   if (watched) {
     showWatching(watched);
@@ -441,7 +441,7 @@ function connect(): void {
 // Input
 
 const STEP: Record<Direction, [number, number]> = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
-/** Where the miner is headed, in blocks (they slide there). */
+/** Where the character is headed, in blocks (they slide there). */
 let target = { x: 0, y: 0 };
 let lastStep = 0;
 
@@ -643,7 +643,7 @@ for (const end of ['pointerup', 'pointercancel', 'lostpointercapture'] as const)
 // computer and 3 in the phone layout (as pinecraft.css has it); on a touch screen,
 // where the keys don't apply, in words over the mine too, until the first move.
 const phoneLayout = matchMedia('(pointer: coarse), (max-width: 759px), (max-height: 519px)');
-/** Where the miner was when the page opened: how to play goes 5 seconds after they first leave it. */
+/** Where the character was when the page opened: how to play goes 5 seconds after they first leave it. */
 let keysFrom = { x: 0, y: 0 };
 const KEYS_STAY_MS = 5000;
 function keysGap(): number {
@@ -660,7 +660,7 @@ if (touchScreen) {
 // ---------------------------------------------------------------------------
 // The map
 
-/** Where the miner is, counted from where they started: right and up are positive. */
+/** Where the character is, counted from where they started: right and up are positive. */
 function coords(): { x: number; y: number } | null {
   if (!scene?.state.spawn) return null;
   const { state } = scene;
@@ -724,8 +724,8 @@ function centerCamera(snap: boolean): void {
   const rows = size.h / size.block;
   const { state } = scene;
   const want = {
-    x: Math.max(-1, Math.min(state.size + 1 - cols, scene.miner.x + 0.5 - cols / 2)),
-    y: Math.max(-1, Math.min(state.size + 1 - rows, scene.miner.y + 0.5 - rows / 2)),
+    x: Math.max(-1, Math.min(state.size + 1 - cols, scene.character.x + 0.5 - cols / 2)),
+    y: Math.max(-1, Math.min(state.size + 1 - rows, scene.character.y + 0.5 - rows / 2)),
   };
   const k = snap ? 1 : 0.12;
   scene.cam.x += (want.x - scene.cam.x) * k;
@@ -753,8 +753,8 @@ function frame(now: number): void {
     if (dir && pendingDig === null && !breaking && now - lastStep >= STEP_MS) move(dir);
 
     const k = Math.min(1, dt / 45);
-    scene.miner.x += (target.x - scene.miner.x) * k;
-    scene.miner.y += (target.y - scene.miner.y) * k;
+    scene.character.x += (target.x - scene.character.x) * k;
+    scene.character.y += (target.y - scene.character.y) * k;
     centerCamera(false);
     stepParticles(scene, dt, now);
     drawScene(g, scene, size.w, size.h, size.block, now);
