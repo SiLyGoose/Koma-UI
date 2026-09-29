@@ -16,7 +16,7 @@ export const el = <K extends keyof HTMLElementTagNameMap>(tag: K, className = ''
 // ---------------------------------------------------------------------------
 // Pictures
 
-/** Items that already have a picture on the site. Any other item's is public/gear/items/<id>.png, once it's there. */
+/** Items that already have a picture on the site. Any other item's is public/gear/items/<slot folder>/<id>.png, once it's there. */
 const ART: Record<string, string> = {
   'golden-pickaxe': '/pinecraft/pickaxes/pickaxe_gold.png',
   'diamond-pickaxe': '/pinecraft/pickaxes/pickaxe_diamond.png',
@@ -29,6 +29,9 @@ const ART: Record<string, string> = {
  * Discord (public/gear/slots/<slot>.png).
  */
 const slotIcon = (slot: Slot): string => `/gear/slots/${slot}.png`;
+
+/** The folder of public/gear/items each slot's pictures are in. */
+const ITEM_DIR: Record<Slot, string> = { weapon: 'weapons', armor: 'armor', treasure: 'treasures' };
 
 /** Items whose public/gear/items picture isn't there, so the page doesn't keep asking. */
 const noArt = new Set<string>();
@@ -57,7 +60,7 @@ export function art(itemId: string | null, slot: Slot): HTMLElement {
   img.alt = '';
   img.draggable = false;
   const sprite = ART[itemId];
-  img.src = sprite ?? `/gear/items/${itemId}.png`;
+  img.src = sprite ?? `/gear/items/${ITEM_DIR[slot]}/${itemId}.png`;
   if (!sprite) box.classList.add('full');
   img.addEventListener('error', () => {
     noArt.add(itemId);
