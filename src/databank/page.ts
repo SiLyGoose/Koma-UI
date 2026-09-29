@@ -162,9 +162,8 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     const name = el('h3', '', item.name);
     const bonusOn = masterwork && level === maxLevel && item.masterwork !== null;
     if (bonusOn) name.append(el('span', 'detail-mw', '✨ Masterwork'));
-    const meta = el('p', 'detail-meta');
-    meta.append(stars(item.stars), ` ${SLOT_NAME[item.slot]}`);
-    title.append(name, meta);
+    // Under the name, its category, then its stars (as the gear page's item panel).
+    title.append(name, el('p', 'detail-meta db-kind', SLOT_NAME[item.slot]), stars(item.stars));
     const close = el('button', 'detail-close', '✕');
     close.type = 'button';
     close.setAttribute('aria-label', 'Close');

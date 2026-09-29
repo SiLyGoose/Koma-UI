@@ -128,8 +128,45 @@
   color: #8a6414;
 }
 
+/* Its picture, big (the gear page's item panel's size), beside its name, category and stars. */
+.db-sheet .detail-head {
+  gap: 16px;
+}
+
 .db-sheet .detail-head .art {
+  width: 104px;
+  height: 104px;
+  padding: 10px;
   border: 2px solid var(--tier, var(--parchment-edge));
+  border-radius: 10px;
+}
+
+.db-sheet .detail-head .art.full {
+  padding: 0;
+}
+
+.db-sheet .detail-title {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+}
+
+.db-sheet .detail-title h3 {
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.db-kind {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.db-sheet .detail-title .star {
+  font-size: 18px;
 }
 
 .db-sheet .detail-close {
@@ -404,5 +441,26 @@
     min-width: 36px;
     padding: 4px 7px;
     font-size: 12px;
+  }
+
+  .db-sheet .detail-head .art {
+    width: 88px;
+    height: 88px;
+  }
+
+  .db-sheet .detail-title h3 {
+    font-size: 22px;
+  }
+}
+
+/* Narrow screens: the sheet from the bottom is short, so the picture a size down again. */
+@media (max-width: 899px) {
+  .db-sheet .detail-head .art {
+    width: 84px;
+    height: 84px;
+  }
+
+  .db-sheet .detail-title h3 {
+    font-size: 22px;
   }
 }
