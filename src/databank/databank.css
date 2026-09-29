@@ -77,14 +77,22 @@
   }
 }
 
-/* Narrow screens: the list just runs down the page, and the item panel is a sheet from the bottom. */
+/*
+ * Narrow screens: the list is a fixed height (the same whatever the filters leave in it), scrolling
+ * inside it, and the item panel is a sheet from the bottom.
+ */
 @media (max-width: 899px) {
-  .databank-page .armory-sheet {
+  .databank > .armory > .armory-sheet {
+    height: 60vh;
+    height: 60dvh;
+    min-height: 0;
     max-height: none;
   }
 
-  .databank .armory .sheet-scroll {
-    overflow: visible;
+  /* The item panel's parchment fills its sheet (items.css sets the sheet's height). */
+  .databank .detail > .db-sheet {
+    flex: 1 1 auto;
+    min-height: 0;
   }
 
   .databank .detail {
@@ -302,9 +310,22 @@
   color: var(--accent-text);
 }
 
-.db-owned-line {
-  margin: 14px 0 0;
+/* The panel's parchment: what the item does scrolls, and whether they own it stays under a line at the bottom. */
+.db-sheet > .sheet-scroll {
+  display: flex;
+  flex-direction: column;
+}
+
+/* "Made for certain members": the last thing in the scroll, pushed to its bottom when there's room. */
+.db-made-for {
+  margin-top: auto;
   padding-top: 12px;
+}
+
+.db-owned-line {
+  flex-shrink: 0;
+  margin: 0 12px;
+  padding: 12px 0 14px;
   border-top: 1px solid #cbbd97;
   color: #6b6272;
   font-size: 13px;

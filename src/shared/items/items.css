@@ -473,7 +473,10 @@
   border-top: 3px solid var(--tier, var(--line));
 }
 
-/* Narrow screens: a sheet up from the bottom, over the armory. */
+/*
+ * Narrow screens: a sheet up from the bottom, over the armory, the same height for every item (the gear
+ * page's and the databank's), what's in it scrolling inside.
+ */
 @media (max-width: 899px) {
   .detail {
     position: fixed;
@@ -481,7 +484,9 @@
     bottom: 0;
     left: 0;
     z-index: 50;
-    max-height: 75vh;
+    height: 40vh;
+    height: 40dvh;
+    overflow: hidden;
     border-radius: 14px 14px 0 0;
     box-shadow: 0 -10px 30px rgb(0 0 0 / 55%);
     animation: sheet-in 0.2s ease-out;
@@ -591,6 +596,7 @@
 }
 
 .item > .art.full,
+.item.detail-card > .art.full,
 .slot-frame > .art.full,
 .loadout-icon > .art.full {
   position: absolute;

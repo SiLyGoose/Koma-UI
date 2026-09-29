@@ -245,7 +245,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     refineButton.disabled = busy || (blocked !== null && blocked !== 'too_poor');
     refineButton.addEventListener('click', () => (main ? offerMain(copy, main) : askRefine(copy)));
 
-    // What it does, scrolling between the top and the buttons when it runs long.
+    // What it does.
     const body = el('div', 'detail-body');
     body.append(el('p', 'detail-desc', copy.description), effects);
     if (copy.borrowed !== null) {
@@ -256,7 +256,10 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     // What can be done with it, under a line along the bottom.
     const foot = el('div', 'detail-foot');
     foot.append(refineButton, action);
-    ui.detail.append(bar, top, body, foot);
+    // All but the buttons scrolls, when it runs longer than the panel.
+    const scroll = el('div', 'detail-scroll');
+    scroll.append(bar, top, body);
+    ui.detail.append(scroll, foot);
   }
 
   /** A copy's card, big (the detail panel's, and the spare copy's offer). */

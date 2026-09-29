@@ -50,6 +50,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     databank: $('databank'),
     detail: $('detail'),
     detailBody: $('detail-body'),
+    detailOwned: $('detail-owned'),
     search: $<HTMLInputElement>('search'),
     server: $<HTMLSelectElement>('server'),
     list: $('db-list'),
@@ -149,6 +150,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
   function renderDetail(): void {
     const item = itemById(picked);
     ui.detailBody.textContent = '';
+    ui.detailOwned.hidden = true;
     ui.detail.hidden = !item || (narrow.matches && !sheetOpen);
     if (!item || !databank) return;
     const { maxLevel } = databank;
@@ -204,12 +206,16 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     if (item.masterwork !== null && level < maxLevel) {
       ui.detailBody.append(el('p', 'detail-note', `Has a masterwork bonus at R${maxLevel}: press ✨ to see it.`));
     }
+    // Last of what scrolls: at the bottom, just over the line, when there's room.
     if (item.borrowed !== null) {
-      ui.detailBody.append(el('p', 'detail-note', `Made for certain members. Anyone else can wear it for ${Math.round(item.borrowed * 100)}% of its effects.`));
+      ui.detailBody.append(
+        el('p', 'detail-note db-made-for', `Made for certain members. Anyone else can wear it for ${Math.round(item.borrowed * 100)}% of its effects.`),
+      );
     }
     const mine = owned?.get(item.id);
     if (owned) {
-      ui.detailBody.append(el('p', 'db-owned-line', mine ? `You own ${mine.count} ${mine.count === 1 ? 'copy' : 'copies'}, the best at R${mine.best}.` : "You don't own this one yet."));
+      ui.detailOwned.hidden = false;
+      ui.detailOwned.textContent = mine ? `You own ${mine.count} ${mine.count === 1 ? 'copy' : 'copies'}, the best at R${mine.best}.` : "You don't own this one yet.";
     }
   }
 

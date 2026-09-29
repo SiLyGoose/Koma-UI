@@ -628,8 +628,8 @@
 
 /*
  * A picked copy, laid out like a game's item window: its name in a bar across the top, its card big
- * beside its slot and rank, what it does (scrolling when it runs long), and its buttons along the
- * bottom under a line.
+ * beside its slot and rank, what it does, and its buttons along the bottom under a line. All but the
+ * buttons scrolls when it runs longer than the panel.
  */
 .gear > .detail {
   display: flex;
@@ -733,14 +733,21 @@
   font-weight: 600;
 }
 
-.detail-body {
+.detail-scroll {
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
   min-height: 0;
-  padding: 0 16px 16px;
   overflow-y: auto;
   overscroll-behavior: contain;
+}
+
+/* Grows to fill what's left above the buttons, so its last line (Replaces …) can sit at the bottom. */
+.detail-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1 0 auto;
+  padding: 0 16px 16px;
 }
 
 /* Last in the body, at its bottom when there's room: the copy equipping it would take off. */
