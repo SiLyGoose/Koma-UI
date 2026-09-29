@@ -22,6 +22,8 @@ export interface GearCopy {
   refine?: GearRefine;
   /** Forging it into a masterwork: null when its item has no bonus (absent from a bot from before forging on the site). */
   forge?: GearForge | null;
+  /** What selling it pays in zeiucoins: null when it's worn or saved in a loadout, so never sold (absent from a bot from before selling on the site). */
+  sell?: number | null;
 }
 
 /** Refining a copy (the bot's web/gear.ts GearRefine). */
@@ -86,6 +88,8 @@ export interface GearView {
    * it was). Absent means it worked (a bot from before refines could fail always sends none).
    */
   outcome?: 'success' | 'fail';
+  /** What a sale just sold, in the answer to one. */
+  sold?: { count: number; earned: number };
 }
 
 /**

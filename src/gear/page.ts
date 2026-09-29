@@ -13,7 +13,7 @@ import { api, currentMe, currentServer, loadMe, logOut, setServer } from '../sit
  * armor on the left, the treasure on the right), and their armory beside it: every copy they own, on
  * parchment. Picking a copy shows what it does over the character and equips it; picking a slot shows
  * what fits in it. Under the character: switching loadouts (and outfits, one day); under the armory,
- * taking everything off. The tabs under the character swap the armory for their stats (Common), worked
+ * selling copies (pick them, then confirm) and taking everything off. The tabs under the character swap the armory for their stats (Common), worked
  * out by the bot. Logged-in members only (the bot's /api/gear answers them only), in the server picked.
  * Down the left, everyone in the server with gear, them first: picking someone else shows their gear,
  * loadouts and stats the same way, to look at only (nothing to equip, upgrade or take off).
@@ -29,6 +29,16 @@ const HERO_INFO: StatSection = { title: 'Hero', rows: [{ label: 'Class', value: 
 
 /** A Discord picture big enough to fill a roster portrait (the bot asks Discord for small ones). */
 const bigAvatar = (url: string): string => (url.startsWith('https://cdn.discordapp.com/') ? url.replace(/([?&]size=)\d+/, '$1256') : url);
+
+const points = (n: number): string => n.toLocaleString('en-US');
+
+/** The bot's currency, :zeiucoin:, to go after an amount. */
+function coin(): HTMLImageElement {
+  const img = el('img', 'coin');
+  img.src = `${import.meta.env.BASE_URL}shared/zeiucoin.png`;
+  img.alt = 'zeiucoins';
+  return img;
+}
 
 /** Someone in the roster (the bot's GET /api/gear/members). */
 interface Member {
@@ -56,6 +66,9 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     loadoutButton: $<HTMLButtonElement>('loadout-button'),
     loadoutMenu: $('loadout-menu'),
     unequipAll: $<HTMLButtonElement>('unequip-all'),
+    sell: $<HTMLButtonElement>('sell'),
+    sellCancel: $<HTMLButtonElement>('sell-cancel'),
+    sellConfirm: $<HTMLDialogElement>('sell-confirm'),
     armory: $('armory'),
     stats: $('stats'),
     statsTitle: $('stats-title'),
@@ -81,6 +94,8 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
   let viewing: Member | null = null;
   /** Counts gear loads, so only the latest one asked for is drawn. */
   let loads = 0;
+  /** Picking copies to sell: the ones picked (null when not selling). The cards then toggle, rather than show what they do. */
+  let selling: Set<string> | null = null;
 
   function status(text: string | null, bad = false): void {
     ui.status.hidden = text === null;
@@ -128,16 +143,42 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     const scrolled = sheet.scrollTop;
     ui.grid.textContent = '';
     const shown = armoryOrder(gear.copies).filter((c) => filter === 'all' || c.slot === filter);
+    ui.grid.classList.toggle('selling', selling !== null);
     for (const copy of shown) {
       const card = el('button', 'item');
       card.type = 'button';
       card.dataset.stars = String(copy.stars);
-      card.classList.toggle('picked', copy.id === picked);
+      // While picking what to sell, the one shown is marked only by the sale's red ring.
+      card.classList.toggle('picked', !selling && copy.id === picked);
       card.classList.toggle('masterwork', copy.masterwork);
       card.setAttribute('aria-label', `${copy.name}, ${copy.stars} star${copy.stars === 1 ? '' : 's'}, R${copy.level}${isWorn(copy) ? ', equipped' : ''}`);
       if (isWorn(copy)) card.append(el('span', 'item-tag', 'Equipped'));
+      else if (selling && copy.sell === null) card.append(el('span', 'item-tag', 'In loadout'));
       card.append(el('span', 'item-level', `R${copy.level}`), art(copy.itemId, copy.slot), stars(copy.stars), el('span', 'item-curl'));
+      if (selling) {
+        // Worn or saved in a loadout: never sold, so not to be picked.
+        const sellable = typeof copy.sell === 'number';
+        const on = selling.has(copy.id);
+        card.disabled = !sellable || busy;
+        card.classList.toggle('unsellable', !sellable);
+        card.classList.toggle('to-sell', on);
+        card.setAttribute('aria-pressed', String(on));
+        if (on) card.append(el('span', 'item-check', '✓'));
+      }
       card.addEventListener('click', () => {
+        // Picking what to sell: the one picked last is shown over the character (unpicking it shows the one before).
+        if (selling) {
+          if (selling.delete(copy.id)) {
+            if (picked === copy.id) picked = [...selling].at(-1) ?? null;
+          } else {
+            selling.add(copy.id);
+            picked = copy.id;
+          }
+          renderGrid();
+          renderDetail();
+          renderFoot();
+          return;
+        }
         picked = picked === copy.id ? null : copy.id;
         renderGrid();
         renderDetail();
@@ -189,7 +230,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     if (copy.effects.length === 0) effects.append(el('li', 'muted', 'No effects.'));
 
     const worn = isWorn(copy);
-    const current = worn || viewing ? undefined : copyById(gear.equipped[copy.slot]);
+    const current = worn || viewing || selling ? undefined : copyById(gear.equipped[copy.slot]);
     const action = el('button', 'detail-action', worn ? 'Unequip' : 'Equip');
     action.type = 'button';
     action.disabled = busy;
@@ -225,8 +266,16 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     const scroll = el('div', 'detail-scroll');
     scroll.append(bar, top, body);
     ui.detail.append(scroll);
+    // Being sold: no buttons (the armory's Sell does it), just what it sells for.
+    if (selling) {
+      if (typeof copy.sell === 'number') {
+        const price = el('span', 'detail-mw detail-sells', `Sells for ${points(copy.sell)} `);
+        price.append(coin());
+        info.append(price);
+      }
+    }
     // Someone else's: nothing to do with it, so no buttons, just whether they wear it.
-    if (!viewing) ui.detail.append(foot);
+    else if (!viewing) ui.detail.append(foot);
     else if (worn) info.append(el('span', 'detail-mw detail-worn', 'Equipped'));
   }
 
@@ -239,7 +288,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     return card;
   }
 
-  /** The loadout chip (the one being worn) and its menu of all of them, and Unequip all. */
+  /** The loadout chip (the one being worn) and its menu of all of them, Sell, and Unequip all. */
   function renderFoot(): void {
     if (!gear) return;
     const active = gear.loadouts.find((l) => l.active);
@@ -251,7 +300,17 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     ui.loadoutButton.title = active ? `Loadout: ${active.name}` : 'Loadout';
     ui.loadoutButton.disabled = busy || gear.loadouts.length < 2;
     ui.unequipAll.disabled = busy || SLOTS.every((slot) => !gear?.equipped[slot]);
-    ui.unequipAll.hidden = viewing !== null;
+    ui.unequipAll.hidden = viewing !== null || selling !== null;
+    // Sell: to start picking, then (with some picked) to confirm. A bot from before selling on the site prices nothing.
+    const { count, total } = sale();
+    ui.sell.hidden = viewing !== null || gear.copies.some((c) => c.sell === undefined);
+    ui.sell.textContent = '';
+    if (selling && count > 0) ui.sell.append(`Sell ${count} · ${points(total)}`, coin());
+    else ui.sell.append(selling ? 'Select items' : 'Sell');
+    ui.sell.disabled = busy || (selling ? count === 0 : !gear.copies.some((c) => typeof c.sell === 'number'));
+    ui.sell.classList.toggle('on', selling !== null);
+    ui.sellCancel.hidden = selling === null;
+    ui.sellCancel.disabled = busy;
 
     ui.loadoutMenu.textContent = '';
     for (const loadout of gear.loadouts) {
@@ -283,6 +342,39 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
   function showMenu(open: boolean): void {
     ui.loadoutMenu.hidden = !open;
     ui.loadoutButton.setAttribute('aria-expanded', String(open));
+  }
+
+  /** How many copies are picked to sell, and what they sell for together. */
+  function sale(): { count: number; total: number } {
+    let count = 0;
+    let total = 0;
+    for (const id of selling ?? []) {
+      const price = copyById(id)?.sell;
+      if (typeof price !== 'number') continue;
+      count++;
+      total += price;
+    }
+    return { count, total };
+  }
+
+  /** Starts or stops picking copies to sell. */
+  function pickToSell(on: boolean): void {
+    selling = on ? new Set() : null;
+    picked = null;
+    if (on) view = 'gear';
+    render();
+  }
+
+  /** Asks to confirm selling what's picked. */
+  function confirmSale(): void {
+    const { count, total } = sale();
+    if (count === 0) return;
+    const title = ui.sellConfirm.querySelector('h3') as HTMLElement;
+    title.textContent = `Sell ${count} item${count === 1 ? '' : 's'}?`;
+    const amount = ui.sellConfirm.querySelector('.sell-confirm-total') as HTMLElement;
+    amount.textContent = '';
+    amount.append(`+${points(total)} `, coin());
+    ui.sellConfirm.showModal();
   }
 
   function unpick(): void {
@@ -349,6 +441,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
         if (shown) return;
         viewing = member.you ? null : member;
         picked = null;
+        selling = null;
         filter = 'all';
         showMenu(false);
         renderRoster();
@@ -364,6 +457,9 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     ui.gear.hidden = false;
     const name = viewing?.name ?? me.user.name;
     ui.gear.classList.toggle('peeking', viewing !== null);
+    // Someone else's gear isn't theirs to sell; and copies sold, or put on, meanwhile aren't picked any more.
+    if (viewing) selling = null;
+    for (const id of selling ?? []) if (typeof copyById(id)?.sell !== 'number') selling?.delete(id);
     ui.heroName.textContent = name;
     const character = currentCharacter();
     if (ui.sprite.getAttribute('src') !== character.sprite) ui.sprite.src = character.sprite;
@@ -394,7 +490,9 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
           ? "You don't seem to be in that server any more. Log out and in again to refresh it."
           : res.error === 'busy'
             ? 'Your gear was changing somewhere else. Try again.'
-            : what,
+            : res.error === 'nothing_to_sell'
+              ? 'None of those can be sold any more. Take another look and try again.'
+              : what,
       true,
     );
   }
@@ -424,28 +522,48 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     render();
   }
 
-  async function change(path: string, body: Record<string, unknown>, what: string): Promise<void> {
+  async function change(path: string, body: Record<string, unknown>, what: string): Promise<GearView | null> {
     const server = currentServer();
-    if (busy || !server) return;
+    if (busy || !server) return null;
     busy = true;
+    renderGrid();
     renderDetail();
     renderFoot();
     const res = await api<GearView>(path, { method: 'POST', body: JSON.stringify({ guild: server, ...body }) });
     busy = false;
     if (!res.ok) {
+      renderGrid();
       renderDetail();
       renderFoot();
-      return failed(res, what);
+      failed(res, what);
+      return null;
     }
     gear = res.data;
     status(null);
     render();
+    return res.data;
   }
 
-  const equip = (copy: string): Promise<void> => change('/api/gear/equip', { copy }, 'Could not equip that. Try again.');
-  const unequip = (slot: Slot): Promise<void> => change('/api/gear/unequip', { slot }, 'Could not unequip that. Try again.');
-  const unequipEverything = (): Promise<void> => change('/api/gear/unequip-all', {}, 'Could not unequip everything. Try again.');
-  const switchTo = (loadout: number): Promise<void> => change('/api/gear/loadout', { loadout }, 'Could not switch loadouts. Try again.');
+  const equip = (copy: string): Promise<unknown> => change('/api/gear/equip', { copy }, 'Could not equip that. Try again.');
+  const unequip = (slot: Slot): Promise<unknown> => change('/api/gear/unequip', { slot }, 'Could not unequip that. Try again.');
+  const unequipEverything = (): Promise<unknown> => change('/api/gear/unequip-all', {}, 'Could not unequip everything. Try again.');
+  const switchTo = (loadout: number): Promise<unknown> => change('/api/gear/loadout', { loadout }, 'Could not switch loadouts. Try again.');
+
+  /** Sells what's picked, and says what it came to. */
+  async function sell(): Promise<void> {
+    const copies = [...(selling ?? [])].filter((id) => typeof copyById(id)?.sell === 'number');
+    if (copies.length === 0) return;
+    const view = await change('/api/gear/sell', { copies }, 'Could not sell those. Try again.');
+    // It paid zeiucoins (or whatever the refusal was, the balance may be old): the header's balance follows.
+    void loadMe(true);
+    if (!view) return;
+    selling = null;
+    render();
+    if (view.sold) {
+      ui.status.hidden = false;
+      ui.status.append(`Sold ${view.sold.count} item${view.sold.count === 1 ? '' : 's'} for ${points(view.sold.earned)} `, coin());
+    }
+  }
 
   /** The roster. A bot from before it has none to give: the page is then just their own gear, as before. */
   async function loadMembers(): Promise<void> {
@@ -477,6 +595,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
   ui.server.addEventListener('change', () => {
     setServer(ui.server.value);
     picked = null;
+    selling = null;
     viewing = null;
     members = [];
     void loadGear();
@@ -493,7 +612,10 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
   for (const tab of ui.views) {
     tab.addEventListener('click', () => {
       view = tab.dataset.view as typeof view;
-      if (view === 'common') picked = null;
+      if (view === 'common') {
+        picked = null;
+        selling = null;
+      }
       render();
     });
   }
@@ -502,6 +624,11 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
   for (const button of ui.slots) {
     button.addEventListener('click', () => {
       const slot = button.dataset.slot as Slot;
+      // While picking copies to sell, a slot only shows what fits in it.
+      if (selling) {
+        filter = filter === slot ? 'all' : slot;
+        return render();
+      }
       // From the Common tab, a slot always opens the gear on it.
       const fromStats = view === 'common';
       view = 'gear';
@@ -517,20 +644,31 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
   }
 
   ui.unequipAll.addEventListener('click', () => void unequipEverything());
+  ui.sell.addEventListener('click', () => (selling ? confirmSale() : pickToSell(true)));
+  ui.sellCancel.addEventListener('click', () => pickToSell(false));
+  ui.sellConfirm.addEventListener('click', (event) => {
+    const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-sell]');
+    // A click on the backdrop (the dialog itself, outside its box) cancels too.
+    if (!button && event.target !== ui.sellConfirm) return;
+    ui.sellConfirm.close();
+    if (button?.dataset.sell === 'confirm') void sell();
+  });
   ui.loadoutButton.addEventListener('click', (event) => {
     event.stopPropagation();
     showMenu(ui.loadoutMenu.hidden);
   });
-  // A click anywhere else closes the menu; Escape closes the menu, else the picked copy.
+  // A click anywhere else closes the menu; Escape closes the menu, else the picked copy, else stops picking copies to
+  // sell (the sale's confirmation closes itself).
   const onClick = (event: MouseEvent): void => {
     if (!ui.loadoutMenu.hidden && !ui.loadoutMenu.contains(event.target as Node)) showMenu(false);
   };
   const onKey = (event: KeyboardEvent): void => {
-    if (event.key !== 'Escape') return;
+    if (event.key !== 'Escape' || ui.sellConfirm.open) return;
     if (!ui.loadoutMenu.hidden) {
       showMenu(false);
       ui.loadoutButton.focus();
     } else if (picked) unpick();
+    else if (selling) pickToSell(false);
   };
   // A resize that changes how many cards fit across refills the blanks.
   const onResize = (): void => {
@@ -557,6 +695,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
       document.removeEventListener('click', onClick);
       document.removeEventListener('keydown', onKey);
       window.removeEventListener('resize', onResize);
+      if (ui.sellConfirm.open) ui.sellConfirm.close();
       serverPicker.destroy();
     },
   };

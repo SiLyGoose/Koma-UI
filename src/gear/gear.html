@@ -68,10 +68,24 @@
           <div id="armory-grid" class="armory-grid"></div>
         </div>
       </div>
+      <!-- Sell picks copies to sell (the cards then toggle), and again asks to confirm; Cancel stops picking. -->
       <div class="armory-foot">
+        <button type="button" id="sell" class="armory-action sell">Sell</button>
+        <button type="button" id="sell-cancel" class="armory-action" hidden>Cancel</button>
         <button type="button" id="unequip-all" class="armory-action danger">Unequip all</button>
       </div>
     </div>
+
+    <!-- Selling what's picked: how many, for how much. -->
+    <dialog id="sell-confirm" class="sell-confirm" aria-labelledby="sell-confirm-title">
+      <h3 id="sell-confirm-title"></h3>
+      <p class="sell-confirm-total"></p>
+      <p class="sell-confirm-note">Sold items are gone for good.</p>
+      <div class="sell-confirm-foot">
+        <button type="button" class="detail-action secondary" data-sell="cancel">Cancel</button>
+        <button type="button" class="detail-action" data-sell="confirm">Sell</button>
+      </div>
+    </dialog>
 
     <!-- Common: every number their gear can change, with and without it, raid stats last. -->
     <div id="stats" class="armory stats off" role="tabpanel">
