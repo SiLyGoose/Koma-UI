@@ -253,11 +253,17 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
 
     // What it does.
     const body = el('div', 'detail-body');
-    body.append(el('p', 'detail-desc', copy.description), effects);
+    body.append(el('p', 'detail-desc', copy.description), el('p', 'detail-label', 'Effects'), effects);
     if (copy.borrowed !== null) {
       body.append(el('p', 'detail-note', `This one is made for someone else: you get ${Math.round(copy.borrowed * 100)}% of its effects.`));
     }
-    if (current) body.append(el('p', 'detail-replaces', `Replaces ${current.name} (R${current.level})`));
+    // The copy equipping it would take off, and what it does, set apart from this one's effects.
+    if (current) {
+      const replaced = el('ul', 'detail-effects detail-replaced');
+      for (const line of current.effects) replaced.appendChild(el('li')).append(rich(line));
+      if (current.effects.length === 0) replaced.append(el('li', 'muted', 'No effects.'));
+      body.append(el('p', 'detail-replaces', `Replaces ${current.name} (R${current.level})`), replaced);
+    }
 
     // What can be done with it, under a line along the bottom.
     const foot = el('div', 'detail-foot');

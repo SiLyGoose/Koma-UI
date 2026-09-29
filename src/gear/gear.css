@@ -746,7 +746,7 @@
   overscroll-behavior: contain;
 }
 
-/* Grows to fill what's left above the buttons, so its last line (Replaces …) can sit at the bottom. */
+/* Grows to fill what's left above the buttons. */
 .detail-body {
   display: flex;
   flex-direction: column;
@@ -754,10 +754,25 @@
   padding: 0 16px 16px;
 }
 
-/* Last in the body, at its bottom when there's room: the copy equipping it would take off. */
+/* Heads the effects list. */
+.detail-label {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Under the effects, spaced off from them: the copy equipping it would take off. */
 .detail-replaces {
-  margin: auto 0 0;
-  padding-top: 14px;
+  margin: 28px 0 8px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* That copy's effects, quieter than this one's. */
+.detail-replaced {
   color: var(--muted);
   font-size: 13px;
 }
