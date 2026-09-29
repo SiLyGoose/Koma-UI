@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="robots" content="noindex" />
+    <title>Koma Databank</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📖</text></svg>" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="site-logo" href="/">
+        <span class="site-logo-title"><span class="site-logo-long">Koma Games</span><span class="site-logo-short" aria-hidden="true">KG</span></span>
+      </a>
+      <div class="site-nav-wrapper">
+        <nav class="site-nav">
+          <ul class="site-nav-list">
+            <li><a class="site-nav-link" href="/#games">Games</a></li>
+            <li><a class="site-nav-link" href="/gear/">Gear</a></li>
+            <li><a class="site-nav-link active" href="/databank/" aria-current="page">Databank</a></li>
+          </ul>
+        </nav>
+        <div id="me" class="site-user" hidden></div>
+        <a id="header-login" class="site-login" href="/" hidden>Login</a>
+      </div>
+    </header>
+
+    <main class="gear-page databank-page">
+      <p id="status" class="status" hidden></p>
+
+      <section id="databank" class="databank" hidden>
+        <!-- The item picked: what it does at each level. Beside the list on wide screens, a sheet from the bottom on narrow ones. -->
+        <aside id="detail" class="detail" aria-label="Item" hidden>
+          <div class="armory-plaque"><span>Item Info</span></div>
+          <div class="armory-sheet db-sheet">
+            <div id="detail-body" class="sheet-scroll"></div>
+          </div>
+        </aside>
+
+        <!-- Every item in the game, by star tier, on parchment. -->
+        <div class="armory">
+          <div class="armory-plaque"><span>Databank</span></div>
+          <div class="db-controls">
+            <input id="search" class="db-search" type="search" placeholder="Search items" aria-label="Search items" autocomplete="off" />
+            <select id="server" class="server-pick" aria-label="Server" hidden></select>
+          </div>
+          <div class="armory-tabs" role="tablist" aria-label="Category">
+            <button type="button" role="tab" data-filter="all" aria-selected="true">All</button>
+            <button type="button" role="tab" data-filter="weapon" aria-selected="false">Weapons</button>
+            <button type="button" role="tab" data-filter="armor" aria-selected="false">Armor</button>
+            <button type="button" role="tab" data-filter="treasure" aria-selected="false">Treasures</button>
+          </div>
+          <div class="db-chips" aria-label="Stars">
+            <button type="button" class="db-chip" data-stars-filter="all" aria-pressed="true">Any ★</button>
+            <button type="button" class="db-chip" data-stars-filter="4" data-stars="4" aria-pressed="false">★★★★</button>
+            <button type="button" class="db-chip" data-stars-filter="3" data-stars="3" aria-pressed="false">★★★</button>
+            <button type="button" class="db-chip" data-stars-filter="2" data-stars="2" aria-pressed="false">★★</button>
+            <button type="button" class="db-chip" data-stars-filter="1" data-stars="1" aria-pressed="false">★</button>
+            <button type="button" id="owned-only" class="db-chip db-owned" aria-pressed="false" hidden>Owned only</button>
+          </div>
+          <div class="armory-sheet">
+            <div class="sheet-scroll">
+              <div id="db-list" class="db-list"></div>
+            </div>
+          </div>
+          <p id="db-count" class="db-count"></p>
+        </div>
+      </section>
+    </main>
+    <script type="module" src="/src/databank/main.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,299 @@
+/*
+ * The databank page, on top of the gear page's styles (../gear/gear.css): the same armory frame and
+ * parchment cards, with every item in the game by star tier, each card named, and the picked item's
+ * panel beside it (a sheet from the bottom on narrow screens, as on the gear page).
+ */
+
+.databank {
+  display: grid;
+  gap: 20px;
+  align-items: start;
+}
+
+/* The item panel: the armory's frame and parchment, as on the gear page. */
+.databank .detail {
+  display: flex;
+  flex-direction: column;
+  padding: 14px;
+  border: 2px solid #4a4452;
+  border-radius: 14px;
+  background:
+    radial-gradient(ellipse at 20% 0%, rgb(216 191 122 / 8%), transparent 60%),
+    linear-gradient(180deg, #1b1a20, #111014);
+  box-shadow:
+    inset 0 0 0 4px #141318,
+    inset 0 0 0 5px rgb(216 191 122 / 35%),
+    0 12px 30px rgb(0 0 0 / 45%);
+}
+
+/* Its parchment, with the item's tier colour along the top. */
+.db-sheet {
+  min-height: 0;
+  max-height: none;
+  color: var(--ink);
+  border-top: 3px solid var(--tier, #cbbd97);
+}
+
+.databank .detail .armory-plaque {
+  display: none;
+}
+
+/*
+ * Wide screens: the two frames side by side, the same height, filling the screen under the header
+ * (the page centres them, as on the gear page); each sheet scrolls inside its frame.
+ */
+@media (min-width: 900px) {
+  .databank {
+    grid-template-columns: minmax(0, 4fr) minmax(0, 7fr);
+    align-items: stretch;
+    height: calc(100dvh - 72px - 48px - 20px);
+    min-height: 560px;
+    max-height: 900px;
+  }
+
+  .databank .detail {
+    position: relative;
+    min-height: 0;
+    padding: 30px 14px 14px;
+    overflow: visible;
+    animation: none;
+  }
+
+  .databank .detail .armory-plaque {
+    display: block;
+  }
+
+  .databank .detail-close {
+    display: none;
+  }
+
+  .databank .armory {
+    min-height: 0;
+  }
+
+  .databank-page .armory-sheet {
+    flex: 1 1 0;
+    min-height: 0;
+  }
+}
+
+/* Narrow screens: the list just runs down the page, and the item panel is a sheet from the bottom. */
+@media (max-width: 899px) {
+  .databank-page .armory-sheet {
+    max-height: none;
+  }
+
+  .databank .armory .sheet-scroll {
+    overflow: visible;
+  }
+
+  .databank .detail {
+    border-radius: 14px 14px 0 0;
+    border-bottom: 0;
+  }
+}
+
+/* The item panel's text, in ink on the parchment. */
+.db-sheet .detail-title h3 {
+  color: var(--ink);
+}
+
+.db-sheet .detail-meta,
+.db-sheet .muted {
+  color: #6b6272;
+}
+
+.db-sheet .detail-desc {
+  color: #5a5262;
+}
+
+.db-sheet .detail-note {
+  color: #8a6414;
+}
+
+.db-sheet .detail-mw {
+  background: rgb(138 100 20 / 14%);
+  color: #8a6414;
+}
+
+.db-sheet .detail-head .art {
+  border: 2px solid var(--parchment-edge);
+  box-shadow: inset 0 0 0 2px #fffaf0, inset 0 0 0 3px var(--tier, transparent);
+}
+
+.db-sheet .detail-close {
+  border-color: var(--parchment-edge);
+  background: #fffaf0;
+  color: var(--ink);
+}
+
+.db-sheet .detail-effects code {
+  background: rgb(59 52 68 / 12%);
+}
+
+.db-controls {
+  display: flex;
+  gap: 8px;
+  margin: 4px 0 10px;
+}
+
+.db-search {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-2);
+  color: var(--text);
+  font-size: 14px;
+}
+
+.db-search:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.db-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: -4px 0 12px;
+}
+
+.db-chip {
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--tier, var(--muted));
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.db-chip:hover {
+  border-color: var(--dusk);
+}
+
+.db-chip[aria-pressed='true'] {
+  border-color: var(--tier, var(--text));
+  background: color-mix(in srgb, var(--tier, var(--text)) 16%, transparent);
+  color: var(--tier, var(--text));
+}
+
+.db-owned {
+  margin-left: auto;
+}
+
+/* A tier: its stars and count, then its cards. */
+.db-tier + .db-tier {
+  margin-top: 18px;
+}
+
+.db-tier-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #cbbd97;
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.db-tier-head .star {
+  font-size: 15px;
+}
+
+/* A databank card: stars on top, the picture, and the name along the bottom. */
+.db-item {
+  grid-template-rows: 1fr auto;
+  padding: 18px 6px 8px;
+  gap: 4px;
+}
+
+.db-item .stars {
+  top: 6px;
+  bottom: auto;
+}
+
+.db-item .art {
+  width: 52%;
+  height: auto;
+  aspect-ratio: 1;
+}
+
+.db-name {
+  position: relative;
+  z-index: 1;
+  max-width: 100%;
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* Logged in: what they don't own yet is faded, like a gap in a collection. */
+.db-item.unowned .art {
+  opacity: 0.45;
+  filter: grayscale(0.6);
+}
+
+.db-empty {
+  margin: 40px 0;
+  color: var(--ink);
+  font-weight: 500;
+  text-align: center;
+}
+
+.db-count {
+  margin: 10px 2px 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* The panel's level picker: R1 to the top level, then ✨ for a masterwork. */
+.db-levels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0 0 12px;
+}
+
+.db-level {
+  min-width: 40px;
+  padding: 5px 8px;
+  border: 1px solid var(--parchment-edge);
+  border-radius: 8px;
+  background: #fffaf0;
+  color: #6b6272;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.db-level:hover {
+  color: var(--ink);
+}
+
+.db-level[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+.db-owned-line {
+  margin: 14px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid #cbbd97;
+  color: #6b6272;
+  font-size: 13px;
+}

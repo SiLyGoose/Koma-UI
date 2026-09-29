@@ -85,6 +85,7 @@ function render(): void {
     // On smaller screens the header's links are here instead (My Servers is the other one).
     { label: 'Games', icon: 'games', href: '#games', className: 'site-nav-item' },
     { label: 'Gear', icon: 'gear', href: '/gear/', className: 'site-nav-item' },
+    { label: 'Databank', icon: 'databank', href: '/databank/', className: 'site-nav-item' },
     { label: 'My Servers', icon: 'servers', href: '#play' },
     { label: 'Logout', icon: 'logout', onSelect: logOut },
   ]);
