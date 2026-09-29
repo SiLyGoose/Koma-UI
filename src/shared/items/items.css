@@ -356,8 +356,9 @@
   pointer-events: none;
 }
 
-/* A card: parchment framed in its tier's colour. */
+/* A card: parchment framed in its tier's colour, on a lip (dark under a full picture: see below). */
 .item {
+  --item-lip: #b3a47f;
   position: relative;
   display: grid;
   place-items: center;
@@ -366,7 +367,7 @@
   border: 2px solid var(--tier, var(--parchment-edge));
   border-radius: 6px;
   background: linear-gradient(170deg, #fffaf0, #efe4c7);
-  box-shadow: 0 2px 0 #b3a47f;
+  box-shadow: 0 2px 0 var(--item-lip);
   overflow: hidden;
   cursor: pointer;
   transition: transform 0.12s ease, box-shadow 0.12s ease;
@@ -379,7 +380,7 @@
 
 .item.picked {
   border-color: var(--picked);
-  box-shadow: inset 0 0 0 1px var(--picked), inset 0 0 14px 5px var(--picked-glow), 0 2px 0 #b3a47f;
+  box-shadow: inset 0 0 0 1px var(--picked), inset 0 0 14px 5px var(--picked-glow), 0 2px 0 var(--item-lip);
 }
 
 .item .art {
@@ -612,8 +613,25 @@
   width: auto;
   height: auto;
   aspect-ratio: auto;
-  border-radius: inherit;
+  /* Rounded to the inside of the box's border (its radius less its border's width), so no corner is left uncovered. */
+  border-radius: 4px;
   overflow: hidden;
+}
+
+.slot-frame > .art.full {
+  border-radius: 8px;
+}
+
+/* Whatever the picture's edge doesn't quite cover shows dark, not the parchment. */
+.item:has(> .art.full),
+.slot-frame:has(> .art.full),
+.loadout-icon:has(> .art.full) {
+  background: #141318;
+}
+
+/* Its lip dark too, not a parchment edge under the picture. */
+.item:has(> .art.full) {
+  --item-lip: #0c0b0f;
 }
 
 .item > .art.full::after,
