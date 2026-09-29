@@ -173,11 +173,11 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     action.classList.toggle('secondary', worn);
     action.addEventListener('click', () => void (worn ? unequip(copy.slot) : equip(copy.id)));
 
-    // Upgrade: to the forge, with this copy on the anvil (the forge swaps a spare for the copy a refine
-    // raises). Off when there's nothing left to do: fully refined, and a masterwork or with no bonus.
+    // Upgrade: to the forge, with this copy on the anvil. Off when there's nothing left to do: fully
+    // refined, and a masterwork or with no bonus.
     const upgrade = el('button', 'detail-action secondary', 'Upgrade');
     upgrade.type = 'button';
-    upgrade.disabled = busy || (copy.refine?.blocked !== 'other_copy' && forgePlan(copy).kind === 'done');
+    upgrade.disabled = busy || forgePlan(copy).kind === 'done';
     upgrade.addEventListener('click', () => go(`/forge/?copy=${encodeURIComponent(copy.id)}`));
 
     // What it does.

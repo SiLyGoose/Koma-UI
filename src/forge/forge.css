@@ -122,11 +122,31 @@
   border-color: transparent;
   background: none;
   box-shadow: none;
+  cursor: pointer;
+}
+
+/* The Materials slot waiting for a spare to be picked from the armory: its edge glows in and out. */
+.anvil-frame.waiting {
+  border-style: dashed;
+  border-color: #f0a13a;
+  animation: waiting 1.6s ease-in-out infinite;
+}
+
+@keyframes waiting {
+  50% {
+    border-color: rgb(240 161 58 / 35%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anvil-frame.waiting {
+    animation: none;
+  }
 }
 
 .anvil-frame .item {
   width: 100%;
-  cursor: default;
+  cursor: inherit;
 }
 
 .anvil-frame .item:hover {
@@ -446,7 +466,18 @@
 
 /* ------------------------------------------------------------------ armory */
 
-/* The spare a refine would use up: ringed in the fire's orange. */
+/* Picking a refine's material: what can't be used up is greyed out, and can't be picked. */
+.forge .item.unusable {
+  filter: grayscale(1) brightness(0.7);
+  opacity: 0.55;
+  cursor: default;
+}
+
+.forge .item.unusable:hover {
+  transform: none;
+}
+
+/* The spare picked to be used up: ringed in the fire's orange. */
 .forge .item.material {
   border-color: #f0a13a;
   box-shadow: inset 0 0 0 1px #f0a13a, inset 0 0 12px 3px rgb(240 161 58 / 45%), 0 2px 0 #b3a47f;

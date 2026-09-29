@@ -8,10 +8,11 @@ import { api, currentMe, currentServer, loadMe, logOut, setServer } from '../sit
 
 /*
  * The forge: the member's armory on the right, the anvil on the left. Picking a copy puts it on the
- * anvil as the target, with the spare copy of it a refine uses up as the material, the odds, what it
- * does now against what it will do (each number that changes as old » new), and the price in the
- * corner beside the button. Refining raises the copy the bot picks (the one worn, else one saved in a
- * loadout, else their best), so picking a spare puts that one on the anvil instead. A fully refined
+ * anvil as the target, and the armory greys out everything that can't be its material; for a refine,
+ * the member picks the spare copy to use up from what's left. Under them: the odds, what it does now
+ * against what it will do (each number that changes as old » new), and the price in the corner beside
+ * the button. Every copy is its own: the one on the anvil is the one refined or forged, whatever level
+ * its item's other copies are at. Clicking a slot on the anvil empties it. A fully refined
  * copy with a masterwork bonus waiting is forged instead, for komaGems, when the bot takes that on the
  * site (else it points to `forge` in Discord). The gear page's Upgrade comes here with ?copy=<id>, which
  * starts with that copy on the anvil. Logged-in members only, in the server picked.
@@ -96,8 +97,8 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
   let filter: Slot | 'all' = 'all';
   /** The copy on the anvil, if any. */
   let picked: string | null = null;
-  /** The spare that was clicked when the copy a refine raises went on the anvil in its place. */
-  let swappedFrom: string | null = null;
+  /** The spare picked to be used up by a refine of the copy on the anvil. */
+  let material: string | null = null;
   /** What the last refine or forge did, shown in the hint until the next pick. */
   let done: string | null = null;
   /** A refine or forge on its way: the page waits for it before taking another. */
@@ -113,24 +114,27 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
   const isWorn = (copy: GearCopy): boolean => gear?.equipped[copy.slot] === copy.id;
   const balance = (): number | null => gear?.balance ?? currentMe()?.servers.find((s) => s.id === currentServer())?.balance ?? null;
 
-  /** For a spare copy: the copy of its item a refine (or forge) raises instead. */
-  function mainCopyOf(copy: GearCopy): GearCopy | undefined {
-    if (copy.refine?.blocked !== 'other_copy') return undefined;
-    return gear?.copies.find((c) => c.itemId === copy.itemId && c.refine?.blocked !== 'other_copy');
-  }
-
   /**
-   * The spare a refine of `copy` uses up, as the bot picks it: their lowest-level other copy of the
-   * item that isn't worn, saved in a loadout, or a masterwork.
+   * The spares a refine of `copy` can use up: their other copies of the item that aren't worn, saved in
+   * a loadout, or a masterwork (as the bot's refinePlan allows).
    */
-  function materialFor(copy: GearCopy): GearCopy | undefined {
-    if (!gear) return undefined;
+  function materialsFor(copy: GearCopy): GearCopy[] {
+    if (!gear) return [];
     const kept = new Set<string>();
     for (const id of Object.values(gear.equipped)) if (id) kept.add(id);
     for (const loadout of gear.loadouts) for (const id of Object.values(loadout.equipped)) if (id) kept.add(id);
-    return gear.copies
-      .filter((c) => c.itemId === copy.itemId && c.id !== copy.id && !kept.has(c.id) && !c.masterwork)
-      .sort((a, b) => a.level - b.level)[0];
+    return gear.copies.filter((c) => c.itemId === copy.itemId && c.id !== copy.id && !kept.has(c.id) && !c.masterwork);
+  }
+
+  /**
+   * With a copy on the anvil, the ids that can be its material (empty when none can: no spare to use
+   * up, or it's forged rather than refined); null with the anvil empty. Everything else is greyed out.
+   */
+  function choosing(): Set<string> | null {
+    const target = copyById(picked);
+    if (!target) return null;
+    if (forgePlan(target).kind !== 'refine') return new Set();
+    return new Set(materialsFor(target).map((c) => c.id));
   }
 
   // ---------------------------------------------------------------------------
@@ -141,7 +145,6 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     const box = el('span', 'item');
     box.dataset.stars = String(copy.stars);
     box.classList.toggle('masterwork', copy.masterwork);
-    box.title = `${copy.name} (R${copy.level})`;
     box.append(el('span', 'item-level', `R${copy.level}`), art(copy.itemId, copy.slot), stars(copy.stars), el('span', 'item-curl'));
     return box;
   }
@@ -158,21 +161,26 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     const sheet = ui.grid.parentElement as HTMLElement;
     const scrolled = sheet.scrollTop;
     ui.grid.textContent = '';
-    const target = copyById(picked);
-    const material = target && forgePlan(target).kind === 'refine' ? materialFor(target) : undefined;
+    // Picking material: everything that can't be used up is greyed out and can't be picked.
+    const usable = choosing();
     const shown = gear.copies.filter((c) => filter === 'all' || c.slot === filter);
     for (const copy of shown) {
       const button = el('button', 'item');
       button.type = 'button';
       button.dataset.stars = String(copy.stars);
-      button.classList.toggle('picked', copy.id === picked);
-      button.classList.toggle('material', copy.id === material?.id);
+      const isTarget = copy.id === picked;
+      const isMaterial = copy.id === material;
+      const unusable = usable !== null && !isTarget && !usable.has(copy.id);
+      button.classList.toggle('picked', isTarget);
+      button.classList.toggle('material', isMaterial);
+      button.classList.toggle('unusable', unusable);
       button.classList.toggle('masterwork', copy.masterwork);
-      button.setAttribute('aria-label', `${copy.name}, ${copy.stars} star${copy.stars === 1 ? '' : 's'}, R${copy.level}${isWorn(copy) ? ', equipped' : ''}`);
-      if (copy.id === material?.id) button.append(el('span', 'item-tag', 'Material'));
+      button.disabled = unusable;
+      button.setAttribute('aria-label', `${copy.name}, ${copy.stars} star${copy.stars === 1 ? '' : 's'}, R${copy.level}${isWorn(copy) ? ', equipped' : ''}${isMaterial ? ', material' : ''}`);
+      if (isMaterial) button.append(el('span', 'item-tag', 'Material'));
       else if (isWorn(copy)) button.append(el('span', 'item-tag', 'Equipped'));
       button.append(el('span', 'item-level', `R${copy.level}`), art(copy.itemId, copy.slot), stars(copy.stars), el('span', 'item-curl'));
-      button.addEventListener('click', () => pick(copy));
+      button.addEventListener('click', () => (usable?.has(copy.id) ? pickMaterial(copy) : pick(copy)));
       ui.grid.append(button);
     }
     const row = (n: number): number => Math.ceil(n / gridColumns) * gridColumns;
@@ -213,10 +221,6 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
   function hintFor(copy: GearCopy | undefined, plan: Plan | null): { text: string; tone?: 'good' | 'bad' } {
     if (done) return { text: done, tone: 'good' };
     if (!copy || !plan) return { text: 'Pick a piece of gear from your armory to put on the anvil.' };
-    const swapped = copyById(swappedFrom);
-    if (swapped && plan.kind === 'refine') {
-      return { text: `Refining raises your ${isWorn(copy) ? 'equipped' : 'main'} ${copy.name}, so it's on the anvil instead of the spare.` };
-    }
     switch (plan.kind) {
       case 'unavailable':
         return { text: 'Refining on the site isn’t available yet: use `refine` in Discord.' };
@@ -229,11 +233,14 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
       }
       case 'refine': {
         const { refine } = plan;
-        if (refine.blocked === 'no_duplicate') return { text: `You need a spare ${copy.name} to use up as material.`, tone: 'bad' };
+        if (refine.blocked === 'no_duplicate' || choosing()?.size === 0) return { text: `You need another ${copy.name} to use up as material.`, tone: 'bad' };
         const have = balance();
         if (refine.blocked === 'too_poor' || (have !== null && refine.cost !== null && have < refine.cost)) {
           return { text: `You need ${points((refine.cost ?? 0) - (have ?? 0))} more zeiucoins to refine it.`, tone: 'bad' };
         }
+        const spare = copyById(material);
+        if (!spare) return { text: `Pick a spare ${copy.name} from your armory to use up as material.` };
+        if (spare.level > 1) return { text: `This spare is R${spare.level}: its refinement is lost when it's used up.`, tone: 'bad' };
         return { text: 'The same gear as the target is used up as material.' };
       }
     }
@@ -280,15 +287,18 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
 
     ui.target.replaceChildren(copy ? card(copy) : el('span', 'anvil-empty'));
     ui.target.classList.toggle('filled', !!copy);
-    // What it uses up: a spare copy for a refine, gems for a forge.
-    const material = copy && plan?.kind === 'refine' ? materialFor(copy) : undefined;
-    if (material) ui.material.replaceChildren(card(material));
+    ui.target.title = copy ? 'Take it off the anvil' : '';
+    // What it uses up: the spare picked for a refine (the slot waiting for one until then), gems for a forge.
+    const spare = plan?.kind === 'refine' ? copyById(material) : undefined;
+    if (spare) ui.material.replaceChildren(card(spare));
     else if (plan?.kind === 'forge') {
       const gem = el('span', 'anvil-gem');
       gem.append(rich(GEM_EMOJI));
       ui.material.replaceChildren(gem);
     } else ui.material.replaceChildren(el('span', 'anvil-empty'));
-    ui.material.classList.toggle('filled', !!material || plan?.kind === 'forge');
+    ui.material.classList.toggle('filled', !!spare || plan?.kind === 'forge');
+    ui.material.classList.toggle('waiting', !spare && !!choosing()?.size);
+    ui.material.title = spare ? 'Take it off the anvil' : '';
 
     ui.rate.textContent = `${SUCCESS_RATE}%`;
     ui.bonus.textContent = `+${FAILURE_BONUS}%`;
@@ -301,7 +311,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
       busy ||
       !plan ||
       (plan.kind === 'refine'
-        ? plan.refine.blocked !== null || plan.refine.cost === null || (have !== null && have < plan.refine.cost)
+        ? plan.refine.blocked !== null || plan.refine.cost === null || (have !== null && have < plan.refine.cost) || !spare
         : plan.kind === 'forge'
           ? !plan.forge || plan.forge.blocked !== null
           : true);
@@ -317,21 +327,28 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     renderAnvil();
   }
 
-  /** Puts `copy` on the anvil (the copy a refine would raise, for a spare), or takes it off again. */
+  /** Puts `copy` on the anvil, or takes it off again. */
   function pick(copy: GearCopy): void {
-    const main = mainCopyOf(copy);
-    const target = main ?? copy;
     done = null;
-    if (picked === target.id && !main) {
-      picked = null;
-      swappedFrom = null;
-    } else {
-      picked = target.id;
-      swappedFrom = main ? copy.id : null;
-    }
+    material = null;
+    picked = picked === copy.id ? null : copy.id;
     render();
     // One over the other on narrow screens: back up to the anvil to see it.
     if (picked && matchMedia('(max-width: 899px)').matches) ui.anvil.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  /** Puts `copy` in the Materials slot, or takes it out again. */
+  function pickMaterial(copy: GearCopy): void {
+    done = null;
+    material = material === copy.id ? null : copy.id;
+    render();
+  }
+
+  /** Empties the anvil. */
+  function clear(): void {
+    picked = null;
+    material = null;
+    done = null;
   }
 
   /** The target's frame flares after a refine or forge goes through. */
@@ -355,7 +372,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
             ? 'Your gear was changing somewhere else. Try again.'
             : res.error === 'too_poor'
               ? "You can't afford that."
-              : ['no_duplicate', 'other_copy', 'maxed', 'too_low', 'already', 'no_bonus'].includes(res.error)
+              : ['no_duplicate', 'maxed', 'bad_material', 'too_low', 'forged'].includes(res.error)
                 ? 'That changed in the meantime. Take another look and try again.'
                 : what,
       true,
@@ -369,11 +386,12 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     if (!res.ok) return failed(res, 'Could not load your gear.');
     gear = res.data;
     if (!copyById(picked)) picked = null;
+    if (!picked || !choosing()?.has(material ?? '')) material = null;
     status(null);
     render();
   }
 
-  /** Refines or forges the copy on the anvil. */
+  /** Refines or forges the copy on the anvil, using up the material picked for a refine. */
   async function strikeAnvil(): Promise<void> {
     const server = currentServer();
     const copy = copyById(picked);
@@ -384,7 +402,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     renderAnvil();
     const res = await api<GearView>(forging ? '/api/gear/forge' : '/api/gear/refine', {
       method: 'POST',
-      body: JSON.stringify({ guild: server, copy: copy.id }),
+      body: JSON.stringify({ guild: server, copy: copy.id, ...(forging ? {} : { material }) }),
     });
     busy = false;
     // It cost zeiucoins or gems (or whatever the refusal was, the balance may be old): the header's balances follow.
@@ -394,7 +412,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
       return failed(res, forging ? 'Could not forge that. Try again.' : 'Could not refine that. Try again.');
     }
     gear = res.data;
-    swappedFrom = null;
+    material = null;
     const after = copyById(copy.id);
     done = forging ? `${copy.name} is now a masterwork. ✨` : `${copy.name} is now R${after?.level ?? copy.level + 1}.`;
     status(null);
@@ -421,9 +439,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
 
   ui.server.addEventListener('change', () => {
     setServer(ui.server.value);
-    picked = null;
-    swappedFrom = null;
-    done = null;
+    clear();
     void loadGear();
   });
 
@@ -436,12 +452,22 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
 
   ui.go.addEventListener('click', () => void strikeAnvil());
 
+  // A slot on the anvil empties when clicked: the target takes its material with it.
+  ui.target.addEventListener('click', () => {
+    if (!picked || busy) return;
+    clear();
+    render();
+  });
+  ui.material.addEventListener('click', () => {
+    if (!material || busy) return;
+    material = null;
+    render();
+  });
+
   // Escape takes the copy off the anvil.
   const onKey = (event: KeyboardEvent): void => {
     if (event.key !== 'Escape' || !picked) return;
-    picked = null;
-    swappedFrom = null;
-    done = null;
+    clear();
     render();
   };
   // A resize that changes how many cards fit across refills the blanks.
