@@ -275,7 +275,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
   /** Effect lines without the one for a masterwork bonus still waiting to be forged. */
   const withoutDormant = (lines: readonly string[]): string[] => lines.filter((line) => !line.startsWith(DORMANT));
 
-  /** Puts effect rows in `into`: each line, and the numbers in it that change as old » new (or New, or Gone). */
+  /** Puts effect rows in `into`: each line, and the numbers in it that change as old » new (or New, or Removed). */
   function fillEffects(into: HTMLElement, rows: readonly EffectRow[]): void {
     into.textContent = '';
     for (const row of rows) {
@@ -292,7 +292,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
         }
         li.append(change);
       } else if (row.state === 'new') li.append(el('span', 'forge-change forge-to', 'New'));
-      else if (row.state === 'gone') li.append(el('span', 'forge-change forge-from', 'Gone'));
+      else if (row.state === 'gone') li.append(el('span', 'forge-change forge-from', 'Removed'));
       into.append(li);
     }
     if (rows.length === 0) into.append(el('li', 'forge-row muted', 'No effects.'));
