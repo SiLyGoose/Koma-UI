@@ -88,6 +88,23 @@ export interface GearView {
   outcome?: 'success' | 'fail';
 }
 
+/**
+ * The copies in the order the armories show them: by star tier (4 stars first), then by name, A to Z
+ * (so an item's copies sit together), then each item's copies from the most refined down (a
+ * masterwork first at the same level).
+ */
+export function armoryOrder(copies: readonly GearCopy[]): GearCopy[] {
+  return [...copies].sort(
+    (a, b) =>
+      b.stars - a.stars ||
+      a.name.localeCompare(b.name) ||
+      a.itemId.localeCompare(b.itemId) ||
+      b.level - a.level ||
+      Number(b.masterwork) - Number(a.masterwork) ||
+      a.id.localeCompare(b.id),
+  );
+}
+
 /** How the bot starts the line for a masterwork bonus still waiting to be forged (its TEXT.gear.bonusDormant). */
 export const DORMANT = '🔒 Masterwork';
 

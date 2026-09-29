@@ -2,7 +2,7 @@ import markup from './forge.html?raw';
 import { API } from '../shared/account';
 import { dropdown } from '../shared/dropdown';
 import { curtain } from '../shared/transition';
-import { DORMANT, forgePlan, type GearCopy, type GearView, type Plan } from '../shared/items/gear';
+import { armoryOrder, DORMANT, forgePlan, type GearCopy, type GearView, type Plan } from '../shared/items/gear';
 import { art, el, rich, SLOT_NAME, stars, type Slot } from '../shared/items/items';
 import type { Page } from '../site/page';
 import { api, currentMe, currentServer, loadMe, logOut, setServer } from '../site/session';
@@ -174,30 +174,34 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     ui.grid.textContent = '';
     // Picking material: everything that can't be used up is greyed out and can't be picked.
     const usable = choosing();
-    const inTab = gear.copies.filter((c) => filter === 'all' || c.slot === filter);
-    // The copy on the anvil is off the list while it's there (clicking its slot on the anvil puts it back).
-    const shown = inTab.filter((c) => c.id !== picked);
+    const shown = armoryOrder(gear.copies).filter((c) => filter === 'all' || c.slot === filter);
+    const target = copyById(picked);
+    const plan = target ? forgePlan(target).kind : null;
     for (const copy of shown) {
       const button = el('button', 'item');
       button.type = 'button';
       button.dataset.stars = String(copy.stars);
+      const isTarget = copy.id === picked;
       const isMaterial = copy.id === material;
-      const unusable = usable !== null && !usable.has(copy.id);
+      const unusable = usable !== null && !isTarget && !usable.has(copy.id);
+      // The copy on the anvil stays in its place, darkened and named for what's being done to it.
+      button.classList.toggle('selected', isTarget);
       button.classList.toggle('material', isMaterial);
       button.classList.toggle('unusable', unusable);
       button.classList.toggle('masterwork', copy.masterwork);
       button.disabled = unusable;
-      button.setAttribute('aria-label', `${copy.name}, ${copy.stars} star${copy.stars === 1 ? '' : 's'}, R${copy.level}${isWorn(copy) ? ', equipped' : ''}${isMaterial ? ', material' : ''}`);
+      button.setAttribute('aria-label', `${copy.name}, ${copy.stars} star${copy.stars === 1 ? '' : 's'}, R${copy.level}${isWorn(copy) ? ', equipped' : ''}${isTarget ? ', on the anvil' : isMaterial ? ', material' : ''}`);
       if (isMaterial) button.append(el('span', 'item-tag', 'Material'));
       else if (isWorn(copy)) button.append(el('span', 'item-tag', 'Equipped'));
       button.append(el('span', 'item-level', `R${copy.level}`), art(copy.itemId, copy.slot), stars(copy.stars), el('span', 'item-curl'));
+      if (isTarget) button.append(el('span', 'item-selected', plan === 'refine' ? 'Refining' : plan === 'forge' ? 'Forging' : 'Selected'));
       button.addEventListener('click', () => (usable?.has(copy.id) ? pickMaterial(copy) : pick(copy)));
       ui.grid.append(button);
     }
     const row = (n: number): number => Math.ceil(n / gridColumns) * gridColumns;
     const cells = Math.max(row(GRID_CELLS), row(shown.length));
     for (let i = shown.length; i < cells; i++) ui.grid.append(el('span', 'item blank'));
-    if (inTab.length === 0) {
+    if (shown.length === 0) {
       const note = el('p', 'armory-empty', filter === 'all' ? "You don't own any gear yet. Pull some with Koma's gacha in Discord." : `No ${SLOT_NAME[filter].toLowerCase()} yet.`);
       ui.grid.append(note);
     }

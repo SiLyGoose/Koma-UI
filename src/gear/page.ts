@@ -2,7 +2,7 @@ import markup from './gear.html?raw';
 import { API } from '../shared/account';
 import { currentCharacter } from '../shared/characters';
 import { dropdown } from '../shared/dropdown';
-import { forgePlan, type GearCopy, type GearView, type StatSection } from '../shared/items/gear';
+import { armoryOrder, forgePlan, type GearCopy, type GearView, type StatSection } from '../shared/items/gear';
 import { art, el, rich, SLOT_NAME, stars, type Slot } from '../shared/items/items';
 import { go } from '../site/nav';
 import type { Page } from '../site/page';
@@ -105,7 +105,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     const sheet = ui.grid.parentElement as HTMLElement;
     const scrolled = sheet.scrollTop;
     ui.grid.textContent = '';
-    const shown = gear.copies.filter((c) => filter === 'all' || c.slot === filter);
+    const shown = armoryOrder(gear.copies).filter((c) => filter === 'all' || c.slot === filter);
     for (const copy of shown) {
       const card = el('button', 'item');
       card.type = 'button';
