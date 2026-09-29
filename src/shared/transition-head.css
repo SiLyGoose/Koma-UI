@@ -175,6 +175,21 @@ html[data-tx='out'][data-tx-dir='back']::before {
   }
 }
 
+/* A quick cover (transition.ts curtain()): the wipes at twice the speed, and its own words for "Loading…". */
+html[data-tx-fast][data-tx='in']::after,
+html[data-tx-fast][data-tx='out']::after {
+  animation-duration: 0.3s;
+}
+
+html[data-tx-fast][data-tx='in']::before,
+html[data-tx-fast][data-tx='out']::before {
+  animation-duration: 0.5s, 0.3s;
+}
+
+html[data-tx-text]::after {
+  content: attr(data-tx-text);
+}
+
 /* If the page's script never runs, it doesn't stay covered (transition.ts sets data-tx-live once it does). */
 html[data-tx]:not([data-tx-live])::after {
   animation: tx-failsafe 0s 4s forwards;

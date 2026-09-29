@@ -32,6 +32,8 @@ const MAX_FETCH_MS = 2000;
 const MAX_HOLD_MS = 3000;
 /** Swapping a site page, the loading screen shows at least this long, so it doesn't just flicker. */
 const MIN_SWAP_MS = 300;
+/** The quick cover's wipe on or off (curtain(): transition-head.css's at twice the speed). */
+const FAST_WIPE_MS = 400;
 
 export type Direction = 'forward' | 'back';
 
@@ -286,6 +288,31 @@ export async function swap(dir: Direction, change: () => void | Promise<void>): 
   }
 }
 
+/**
+ * A quick cover over this page while `work` runs (a refine at the forge, say): the loading screen wipes
+ * on at twice the page transition's speed, says `text` in place of "Loading…" for as long as `work`
+ * takes, then wipes off the same way, uncovering whatever `work` put up under it. Without the motion
+ * (or while a page is being swapped), just `work`.
+ */
+export async function curtain<T>(work: () => Promise<T>, text = 'Loading…'): Promise<T> {
+  if (lessMotion() || swapping) return work();
+  root.style.setProperty('--tx-phase', `${-(Date.now() % 1000)}ms`);
+  root.setAttribute('data-tx-live', '');
+  root.setAttribute('data-tx-fast', '');
+  root.setAttribute('data-tx-text', text);
+  root.setAttribute('data-tx-dir', 'forward');
+  root.setAttribute('data-tx', 'in');
+  await wait(FAST_WIPE_MS);
+  root.setAttribute('data-tx', 'cover');
+  try {
+    return await work();
+  } finally {
+    root.setAttribute('data-tx', 'out');
+    await wait(FAST_WIPE_MS);
+    clear();
+  }
+}
+
 async function wipeOff(): Promise<void> {
   root.setAttribute('data-tx', 'out');
   await wait(WIPE_MS);
@@ -293,7 +320,7 @@ async function wipeOff(): Promise<void> {
 }
 
 function clear(): void {
-  for (const name of ['data-tx', 'data-tx-dir', 'data-tx-live']) root.removeAttribute(name);
+  for (const name of ['data-tx', 'data-tx-dir', 'data-tx-live', 'data-tx-fast', 'data-tx-text']) root.removeAttribute(name);
 }
 
 // Back (or forward) to a page the browser kept whole: it would still be under the loading screen as it

@@ -1,6 +1,7 @@
 import markup from './forge.html?raw';
 import { API } from '../shared/account';
 import { dropdown } from '../shared/dropdown';
+import { curtain } from '../shared/transition';
 import { DORMANT, forgePlan, type GearCopy, type GearView, type Plan } from '../shared/items/gear';
 import { art, el, rich, SLOT_NAME, stars, type Slot } from '../shared/items/items';
 import type { Page } from '../site/page';
@@ -12,7 +13,9 @@ import { api, currentMe, currentServer, loadMe, logOut, setServer } from '../sit
  * the member picks the spare copy to use up from what's left. Under them: the odds, what it does now
  * against what it will do (each number that changes as old » new), and the price in the corner beside
  * the button. Every copy is its own: the one on the anvil is the one refined or forged, whatever level
- * its item's other copies are at. Clicking a slot on the anvil empties it. A fully refined
+ * its item's other copies are at. Clicking a slot on the anvil empties it. Refining (or forging) wipes a
+ * quick cover over the page while the bot does it, which comes off on the result: what it's become and
+ * each number that went up, over the page blurred, until a click. A fully refined
  * copy with a masterwork bonus waiting is forged instead, for komaGems, when the bot takes that on the
  * site (else it points to `forge` in Discord). The gear page's Upgrade comes here with ?copy=<id>, which
  * starts with that copy on the anvil. Logged-in members only, in the server picked.
@@ -29,6 +32,11 @@ const GRID_CELLS = 12;
 const GEM_EMOJI = '<:komagem:1551635240210927736>';
 
 const points = (n: number): string => n.toLocaleString('en-US');
+
+/** How long the heat behind the target builds before the cover wipes over (its brightest: forge.css's heat). */
+const HEAT_MS = 420;
+
+const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
 
 // ---------------------------------------------------------------------------
 // Now against after
@@ -91,6 +99,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     armoryTitle: $('armory-title'),
     grid: $('armory-grid'),
     tabs: [...root.querySelectorAll<HTMLButtonElement>('[data-filter]')],
+    result: $('result'),
   };
 
   let gear: GearView | null = null;
@@ -101,6 +110,8 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
   let material: string | null = null;
   /** What the last refine or forge did, shown in the hint until the next pick. */
   let done: string | null = null;
+  /** Whether the last refine or forge took (its line in the hint is green) or not. */
+  let doneWell = true;
   /** A refine or forge on its way: the page waits for it before taking another. */
   let busy = false;
 
@@ -163,15 +174,15 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     ui.grid.textContent = '';
     // Picking material: everything that can't be used up is greyed out and can't be picked.
     const usable = choosing();
-    const shown = gear.copies.filter((c) => filter === 'all' || c.slot === filter);
+    const inTab = gear.copies.filter((c) => filter === 'all' || c.slot === filter);
+    // The copy on the anvil is off the list while it's there (clicking its slot on the anvil puts it back).
+    const shown = inTab.filter((c) => c.id !== picked);
     for (const copy of shown) {
       const button = el('button', 'item');
       button.type = 'button';
       button.dataset.stars = String(copy.stars);
-      const isTarget = copy.id === picked;
       const isMaterial = copy.id === material;
-      const unusable = usable !== null && !isTarget && !usable.has(copy.id);
-      button.classList.toggle('picked', isTarget);
+      const unusable = usable !== null && !usable.has(copy.id);
       button.classList.toggle('material', isMaterial);
       button.classList.toggle('unusable', unusable);
       button.classList.toggle('masterwork', copy.masterwork);
@@ -186,7 +197,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     const row = (n: number): number => Math.ceil(n / gridColumns) * gridColumns;
     const cells = Math.max(row(GRID_CELLS), row(shown.length));
     for (let i = shown.length; i < cells; i++) ui.grid.append(el('span', 'item blank'));
-    if (shown.length === 0) {
+    if (inTab.length === 0) {
       const note = el('p', 'armory-empty', filter === 'all' ? "You don't own any gear yet. Pull some with Koma's gacha in Discord." : `No ${SLOT_NAME[filter].toLowerCase()} yet.`);
       ui.grid.append(note);
     }
@@ -219,7 +230,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
 
   /** The line over the slots: how the anvil works, what's in the way, or what was just done. */
   function hintFor(copy: GearCopy | undefined, plan: Plan | null): { text: string; tone?: 'good' | 'bad' } {
-    if (done) return { text: done, tone: 'good' };
+    if (done) return { text: done, tone: doneWell ? 'good' : 'bad' };
     if (!copy || !plan) return { text: 'Pick a piece of gear from your armory to put on the anvil.' };
     switch (plan.kind) {
       case 'unavailable':
@@ -252,8 +263,17 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     let rows: EffectRow[];
     if (plan.kind === 'refine' && plan.refine.after) rows = compare(copy.effects, plan.refine.after);
     // The waiting bonus's line gives way to what it does once forged.
-    else if (plan.kind === 'forge' && plan.forge?.after) rows = compare(copy.effects.filter((line) => !line.startsWith(DORMANT)), plan.forge.after);
+    else if (plan.kind === 'forge' && plan.forge?.after) rows = compare(withoutDormant(copy.effects), plan.forge.after);
     else rows = copy.effects.map((line) => ({ line, changes: [], state: 'same' }));
+    fillEffects(ui.effects, rows);
+  }
+
+  /** Effect lines without the one for a masterwork bonus still waiting to be forged. */
+  const withoutDormant = (lines: readonly string[]): string[] => lines.filter((line) => !line.startsWith(DORMANT));
+
+  /** Puts effect rows in `into`: each line, and the numbers in it that change as old » new (or New, or Gone). */
+  function fillEffects(into: HTMLElement, rows: readonly EffectRow[]): void {
+    into.textContent = '';
     for (const row of rows) {
       const li = el('li', `forge-row ${row.state}`);
       const text = el('span', 'forge-line');
@@ -269,9 +289,51 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
         li.append(change);
       } else if (row.state === 'new') li.append(el('span', 'forge-change forge-to', 'New'));
       else if (row.state === 'gone') li.append(el('span', 'forge-change forge-from', 'Gone'));
-      ui.effects.append(li);
+      into.append(li);
     }
-    if (rows.length === 0) ui.effects.append(el('li', 'forge-row muted', 'No effects.'));
+    if (rows.length === 0) into.append(el('li', 'forge-row muted', 'No effects.'));
+  }
+
+  // ---------------------------------------------------------------------------
+  // The result
+
+  /**
+   * Shows what a refine or forge did, over the page blurred. When it worked: SUCCESS, the copy as it is
+   * now in a burst of light, and what it did before against now. When it didn't take: FAIL in cold
+   * silver, and the copy as it still is, with a shudder and no light. Built afresh each time, so its
+   * entrance plays again.
+   */
+  function showResult(before: GearCopy, after: GearCopy, forging: boolean, success: boolean): void {
+    const box = el('div', 'forge-result-box');
+    const title = el('h2', 'forge-result-title', success ? 'SUCCESS' : 'FAIL');
+    title.id = 'result-title';
+    ui.result.classList.toggle('fail', !success);
+    if (success) {
+      const sub = el('p', 'forge-result-sub', forging ? `${after.name} awakened into a masterwork ✨` : `${after.name} · R${before.level} » R${after.level}`);
+      const burst = el('div', 'forge-result-burst');
+      burst.append(el('span', 'forge-result-rays'), el('span', 'forge-result-rays back'), el('span', 'forge-result-core'), card(after));
+      const list = el('ul', 'forge-effects');
+      fillEffects(list, compare(forging ? withoutDormant(before.effects) : before.effects, after.effects));
+      const panel = el('div', 'forge-result-panel');
+      panel.append(list);
+      box.append(title, sub, burst, panel);
+    } else {
+      const sub = el('p', 'forge-result-sub', forging ? `${after.name} didn't awaken.` : `${after.name} is still R${after.level}.`);
+      const still = el('div', 'forge-result-still');
+      still.append(card(after));
+      box.append(title, sub, still);
+    }
+    box.append(el('p', 'forge-result-tap', 'Click anywhere to continue.'));
+    ui.result.replaceChildren(box);
+    ui.result.classList.add('on');
+    ui.result.focus();
+  }
+
+  const resultOpen = (): boolean => ui.result.classList.contains('on');
+
+  function closeResult(): void {
+    ui.result.classList.remove('on');
+    ui.go.focus();
   }
 
   function renderAnvil(): void {
@@ -327,21 +389,23 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     renderAnvil();
   }
 
-  /** Puts `copy` on the anvil, or takes it off again. */
+  /** Puts `copy` on the anvil (its slot takes it with a pop), or takes it off again. */
   function pick(copy: GearCopy): void {
     done = null;
     material = null;
     picked = picked === copy.id ? null : copy.id;
     render();
+    if (picked) play(ui.target, 'placed', 'placed');
     // One over the other on narrow screens: back up to the anvil to see it.
     if (picked && matchMedia('(max-width: 899px)').matches) ui.anvil.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  /** Puts `copy` in the Materials slot, or takes it out again. */
+  /** Puts `copy` in the Materials slot (which takes it with a pop), or takes it out again. */
   function pickMaterial(copy: GearCopy): void {
     done = null;
     material = material === copy.id ? null : copy.id;
     render();
+    if (material) play(ui.material, 'placed', 'placed');
   }
 
   /** Empties the anvil. */
@@ -351,11 +415,20 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     done = null;
   }
 
-  /** The target's frame flares after a refine or forge goes through. */
-  function strike(): void {
-    ui.target.classList.remove('struck');
-    void ui.target.offsetWidth;
-    ui.target.classList.add('struck');
+  /**
+   * Plays an animation on `box` (`className` starts it, from the top even when it's already going),
+   * and takes the class off once `animation` ends, so drawing the slot again doesn't play it again.
+   */
+  function play(box: HTMLElement, className: string, animation: string): void {
+    box.classList.remove(className);
+    void box.offsetWidth;
+    box.classList.add(className);
+    const end = (event: AnimationEvent): void => {
+      if (event.animationName !== animation) return;
+      box.classList.remove(className);
+      box.removeEventListener('animationend', end);
+    };
+    box.addEventListener('animationend', end);
   }
 
   // ---------------------------------------------------------------------------
@@ -400,24 +473,41 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     const forging = plan.kind === 'forge';
     busy = true;
     renderAnvil();
-    const res = await api<GearView>(forging ? '/api/gear/forge' : '/api/gear/refine', {
+    // The heat builds up bright behind the target, then the cover wipes over while the bot does it, and
+    // comes off on the result.
+    play(ui.target, 'heat', 'heat');
+    const request = api<GearView>(forging ? '/api/gear/forge' : '/api/gear/refine', {
       method: 'POST',
       body: JSON.stringify({ guild: server, copy: copy.id, ...(forging ? {} : { material }) }),
     });
-    busy = false;
-    // It cost zeiucoins or gems (or whatever the refusal was, the balance may be old): the header's balances follow.
-    void loadMe(true);
+    await sleep(HEAT_MS);
+    const res = await curtain(async () => {
+      const res = await request;
+      busy = false;
+      // It cost zeiucoins or gems (or whatever the refusal was, the balance may be old): the header's balances follow.
+      void loadMe(true);
+      if (!res.ok) return res;
+      gear = res.data;
+      material = null;
+      const after = copyById(copy.id);
+      const success = res.data.outcome !== 'fail';
+      doneWell = success;
+      done = !success
+        ? forging
+          ? `The forge didn't take: ${copy.name} isn't a masterwork yet.`
+          : `The refine didn't take: ${copy.name} is still R${after?.level ?? copy.level}.`
+        : forging
+          ? `${copy.name} is now a masterwork. ✨`
+          : `${copy.name} is now R${after?.level ?? copy.level + 1}.`;
+      status(null);
+      render();
+      if (after) showResult(copy, after, forging, success);
+      return res;
+    }, forging ? 'Forging…' : 'Refining…');
     if (!res.ok) {
       renderAnvil();
-      return failed(res, forging ? 'Could not forge that. Try again.' : 'Could not refine that. Try again.');
+      failed(res, forging ? 'Could not forge that. Try again.' : 'Could not refine that. Try again.');
     }
-    gear = res.data;
-    material = null;
-    const after = copyById(copy.id);
-    done = forging ? `${copy.name} is now a masterwork. ✨` : `${copy.name} is now R${after?.level ?? copy.level + 1}.`;
-    status(null);
-    render();
-    strike();
   }
 
   function renderServers(): void {
@@ -464,8 +554,18 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     render();
   });
 
-  // Escape takes the copy off the anvil.
+  // The result closes on a click anywhere.
+  ui.result.addEventListener('click', closeResult);
+
+  // Escape, Enter or Space close the result; else Escape takes the copy off the anvil.
   const onKey = (event: KeyboardEvent): void => {
+    if (resultOpen()) {
+      if (event.key === 'Escape' || event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        closeResult();
+      }
+      return;
+    }
     if (event.key !== 'Escape' || !picked) return;
     clear();
     render();

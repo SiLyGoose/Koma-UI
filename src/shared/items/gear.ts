@@ -81,6 +81,11 @@ export interface GearView {
   balance?: number | null;
   /** Their komaGems in the server (null when not known; absent from a bot from before forging on the site). */
   gems?: number | null;
+  /**
+   * How a refine or forge just went, in the answer to one: 'fail' when it didn't take (the copy stays as
+   * it was). Absent means it worked (a bot from before refines could fail always sends none).
+   */
+  outcome?: 'success' | 'fail';
 }
 
 /** How the bot starts the line for a masterwork bonus still waiting to be forged (its TEXT.gear.bonusDormant). */
