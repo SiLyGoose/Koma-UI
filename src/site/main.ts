@@ -4,6 +4,7 @@ import '../shared/items/items.css';
 import '../hub/hub.css';
 import '../gear/gear.css';
 import '../databank/databank.css';
+import { backdrop } from '../shared/backdrop';
 import { databankPage } from '../databank/page';
 import { gearPage } from '../gear/page';
 import { hubPage } from '../hub/page';
@@ -26,6 +27,9 @@ import { hasSession } from './session';
 const PAGES: readonly Page[] = [hubPage, gearPage, databankPage];
 
 const view = document.getElementById('view') as HTMLElement;
+
+// The star chart behind every page: put in once, so it carries on as the pages change.
+document.body.prepend(backdrop());
 const icon = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
 
 /** A path without its trailing slash (/gear/ and /gear are the same page). */
