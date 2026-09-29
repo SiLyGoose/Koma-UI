@@ -20,7 +20,9 @@ function transitionHead(): Plugin {
 
 // The front page (log in, pick a server and a game) is index.html. Each game is served at
 // /games/<name>/: its page lives at games/<name>/index.html, and the build keeps that path
-// (dist/games/<name>/index.html), with the shared assets under /assets. The gear page is /gear/ and the databank /databank/.
+// (dist/games/<name>/index.html), with the shared assets under /assets. The site's own pages (the front page,
+// /gear/ and /databank/) are all index.html, which swaps between them (src/site/main.ts; vercel.json sends
+// /gear/ and /databank/ there).
 export default defineConfig({
   plugins: [transitionHead()],
   build: {
@@ -31,8 +33,6 @@ export default defineConfig({
         pinecraft: resolve(import.meta.dirname, 'games/pinecraft/index.html'),
         baccarat: resolve(import.meta.dirname, 'games/baccarat/index.html'),
         roulette: resolve(import.meta.dirname, 'games/roulette/index.html'),
-        gear: resolve(import.meta.dirname, 'gear/index.html'),
-        databank: resolve(import.meta.dirname, 'databank/index.html'),
       },
     },
   },

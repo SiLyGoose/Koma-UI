@@ -58,13 +58,17 @@ Any square size works.
 
 ## Files
 
-- `index.html`, `src/hub/`: the front page.
+- `index.html`, `src/site/`: the site's own pages (the front page, `/gear/`, `/databank/`) as one
+  document. Each page is its own `.html` (imported `?raw`) and a `page.ts` that sets it up; `src/site/main.ts`
+  swaps between them (and back and forward) through the page transition, `src/site/session.ts` keeps
+  the login, the server picked and the header. `vercel.json` sends `/gear/` and `/databank/` to it.
+- `src/hub/`: the front page.
 - `games/pinecraft/index.html`, `src/pinecraft/`: Pinecraft. `protocol.ts` is a copy of the bot's
   `src/web/pinecraft-protocol.ts` (change both together), `draw.ts` draws the world, `textures.ts`
   the blocks.
 - `games/mines/index.html`, `src/mines/`: Mines. `protocol.ts` is a copy of the bot's
   `src/web/mines-protocol.ts` (change both together).
-- `gear/index.html`, `src/gear/`: the gear page. `databank/index.html`, `src/databank/`: the databank.
+- `src/gear/`: the gear page. `src/databank/`: the databank.
 - `src/shared/`: what more than one page uses.
   - `style.css`: styles shared by every page. `header.css`: the site header (front page, gear, databank).
   - `account.ts`: the login session and the profile button. `dropdown.ts`: the site's dropdown.

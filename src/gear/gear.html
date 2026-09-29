@@ -1,0 +1,80 @@
+<!-- The gear page (src/gear/page.ts): their character and slots, and their armory. Swapped into #view by src/site/main.ts. -->
+<main class="gear-page">
+  <p id="status" class="status" hidden></p>
+
+  <section id="gear" class="gear" hidden>
+    <!-- The hero: their character with their three slots around them (weapon and armor on the left, the treasure on the right). -->
+    <div class="hero">
+      <div class="hero-top">
+        <select id="server" class="server-pick" aria-label="Server" hidden></select>
+      </div>
+      <div class="stage">
+        <!-- Hung from the stage's top-left corner: their class's badge (no classes yet, so a question mark). -->
+        <div class="hero-ribbon" title="Class: ?"><span class="hero-ribbon-icon" aria-label="Class: unknown">?</span></div>
+        <!-- Under the ribbon: Outfit (not there yet) and the loadout picker. -->
+        <div class="hero-chips">
+          <button type="button" class="hero-chip" disabled aria-label="Outfit (coming soon)" title="Outfits are coming soon">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3 3 6l2 5 2-1v11h10V10l2 1 2-5-5-3c-.5 1.5-2 2.5-4 2.5S8.5 4.5 8 3Z" /></svg>
+          </button>
+          <div class="loadout-pick">
+            <button type="button" id="loadout-button" class="hero-chip" aria-haspopup="true" aria-expanded="false"></button>
+            <div id="loadout-menu" class="loadout-menu" hidden></div>
+          </div>
+        </div>
+        <div class="slot-col">
+          <button type="button" class="slot" data-slot="weapon"></button>
+          <button type="button" class="slot" data-slot="armor"></button>
+        </div>
+        <div class="stage-figure">
+          <img id="stage-sprite" class="stage-sprite" src="/characters/tsuri/sprite.png" alt="" width="22" height="44" />
+          <div class="stage-floor" aria-hidden="true"></div>
+          <h1 id="hero-name" class="hero-name"></h1>
+        </div>
+        <div class="slot-col">
+          <button type="button" class="slot" data-slot="treasure"></button>
+        </div>
+      </div>
+      <div class="totals">
+        <h2>Active Effects</h2>
+        <ul id="totals" class="detail-effects"></ul>
+      </div>
+      <!-- What the panel beside the character shows: their stats, or their gear. -->
+      <div class="hero-tabs" role="tablist" aria-label="Show">
+        <button type="button" role="tab" data-view="common" aria-selected="false" aria-controls="stats">Common</button>
+        <button type="button" role="tab" data-view="gear" aria-selected="true" aria-controls="armory">Gear</button>
+      </div>
+    </div>
+
+    <!-- A picked copy: what it does, over the hero (a sheet from the bottom on narrow screens). -->
+    <div id="detail" class="detail" role="dialog" aria-label="Item" hidden></div>
+
+    <!-- The armory: every copy they own, on parchment. -->
+    <div id="armory" class="armory" role="tabpanel">
+      <div class="armory-plaque"><span id="armory-title">Armory</span></div>
+      <div class="armory-tabs" role="tablist" aria-label="Show">
+        <button type="button" role="tab" data-filter="all" aria-selected="true">All</button>
+        <button type="button" role="tab" data-filter="weapon" aria-selected="false">Weapons</button>
+        <button type="button" role="tab" data-filter="armor" aria-selected="false">Armor</button>
+        <button type="button" role="tab" data-filter="treasure" aria-selected="false">Treasures</button>
+      </div>
+      <div class="armory-sheet">
+        <div class="sheet-scroll">
+          <div id="armory-grid" class="armory-grid"></div>
+        </div>
+      </div>
+      <div class="armory-foot">
+        <button type="button" id="unequip-all" class="armory-action danger">Unequip all</button>
+      </div>
+    </div>
+
+    <!-- Common: every number their gear can change, with and without it, raid stats last. -->
+    <div id="stats" class="armory stats off" role="tabpanel">
+      <div class="armory-plaque"><span id="stats-title">Stats</span></div>
+      <div class="armory-sheet">
+        <div class="sheet-scroll">
+          <div id="stats-list" class="stats-list"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>

@@ -1,0 +1,43 @@
+<!-- The databank (src/databank/page.ts): every item in the game. Swapped into #view by src/site/main.ts. -->
+<main class="gear-page databank-page">
+  <p id="status" class="status" hidden></p>
+
+  <section id="databank" class="databank" hidden>
+    <!-- The item picked: what it does at each level. Beside the list on wide screens, a sheet from the bottom on narrow ones. -->
+    <aside id="detail" class="detail" aria-label="Item" hidden>
+      <div class="armory-plaque"><span>Item Info</span></div>
+      <div class="armory-sheet db-sheet">
+        <div id="detail-body" class="sheet-scroll"></div>
+      </div>
+    </aside>
+
+    <!-- Every item in the game, by star tier, on parchment. -->
+    <div class="armory">
+      <div class="armory-plaque"><span>Databank</span></div>
+      <div class="db-controls">
+        <input id="search" class="db-search" type="search" placeholder="Search items" aria-label="Search items" autocomplete="off" />
+        <select id="server" class="server-pick" aria-label="Server" hidden></select>
+      </div>
+      <div class="armory-tabs" role="tablist" aria-label="Category">
+        <button type="button" role="tab" data-filter="all" aria-selected="true">All</button>
+        <button type="button" role="tab" data-filter="weapon" aria-selected="false">Weapons</button>
+        <button type="button" role="tab" data-filter="armor" aria-selected="false">Armor</button>
+        <button type="button" role="tab" data-filter="treasure" aria-selected="false">Treasures</button>
+      </div>
+      <div class="db-chips" aria-label="Stars">
+        <button type="button" class="db-chip" data-stars-filter="all" aria-pressed="true" aria-label="Any stars">Any <span class="stars"><span class="star">★</span></span></button>
+        <button type="button" class="db-chip" data-stars-filter="4" data-stars="4" aria-pressed="false" aria-label="4 stars"><span class="stars"><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span></span></button>
+        <button type="button" class="db-chip" data-stars-filter="3" data-stars="3" aria-pressed="false" aria-label="3 stars"><span class="stars"><span class="star">★</span><span class="star">★</span><span class="star">★</span></span></button>
+        <button type="button" class="db-chip" data-stars-filter="2" data-stars="2" aria-pressed="false" aria-label="2 stars"><span class="stars"><span class="star">★</span><span class="star">★</span></span></button>
+        <button type="button" class="db-chip" data-stars-filter="1" data-stars="1" aria-pressed="false" aria-label="1 star"><span class="stars"><span class="star">★</span></span></button>
+        <button type="button" id="owned-only" class="db-chip db-owned" aria-pressed="false" hidden>Owned only</button>
+      </div>
+      <div class="armory-sheet">
+        <div class="sheet-scroll">
+          <div id="db-list" class="db-list"></div>
+        </div>
+      </div>
+      <p id="db-count" class="db-count"></p>
+    </div>
+  </section>
+</main>

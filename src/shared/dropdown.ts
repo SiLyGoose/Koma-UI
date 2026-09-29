@@ -17,6 +17,8 @@ import './dropdown.css';
 export interface Dropdown {
   /** Shows the select as it is now (after its value or options were changed in code). */
   refresh(): void;
+  /** Stops listening to the page and the select (a page going away). */
+  destroy(): void;
 }
 
 let count = 0;
@@ -194,15 +196,23 @@ export function dropdown(select: HTMLSelectElement): Dropdown {
       }
     }
   });
-  document.addEventListener('pointerdown', (e) => {
+  const outside = (e: PointerEvent): void => {
     if (!wrap.contains(e.target as Node)) close();
-  });
+  };
+  document.addEventListener('pointerdown', outside);
   list.addEventListener('focusout', (e) => {
     if (!wrap.contains(e.relatedTarget as Node | null)) close();
   });
 
   // Options added or the select switched off or hidden in code show straight away; a value set in code needs refresh().
-  new MutationObserver(refresh).observe(select, { childList: true, subtree: true, attributes: true, attributeFilter: ['disabled', 'hidden', 'selected'] });
+  const observer = new MutationObserver(refresh);
+  observer.observe(select, { childList: true, subtree: true, attributes: true, attributeFilter: ['disabled', 'hidden', 'selected'] });
   refresh();
-  return { refresh };
+  return {
+    refresh,
+    destroy() {
+      document.removeEventListener('pointerdown', outside);
+      observer.disconnect();
+    },
+  };
 }

@@ -2,8 +2,8 @@
  * Page transitions, in the site's RPG style: a dark panel with a streaked edge wipes across the window
  * left to right, a loading screen shows (a glowing sprite bouncing over "Loading…") while the next
  * page loads, then the panel carries on across and off it, its trailing edge streaked the same way.
- * Going back (the browser's back button, or a game's ← link) runs it right to left. The look is all in
- * transition-head.css; this moves it along.
+ * Going back (the browser's back button, or a game's ← link) runs it right to left; catchBack() gives
+ * the browser's back button the wipe in a game. The look is all in transition-head.css; this moves it along.
  *
  * Each page is its own document, so a transition is two halves: this page wipes itself over, fetches
  * the next one while its loading screen shows (for at least LOAD_MS, so that page is ready and doesn't
@@ -15,6 +15,10 @@
  * A page that draws itself once its data is in (from the bot) calls holdReveal() as it starts, and
  * the release it gets back once it has drawn, so the wipe uncovers it with its content rather than
  * empty (the loading screen stays up meanwhile). Never longer than MAX_HOLD_MS.
+ *
+ * The site's own pages are one document (src/site/main.ts): moving between them, back and forward
+ * included, the router swaps the page under the same wipe (swap()), and claims their links
+ * (onSiteLink()) before the whole-page transition above sees them.
  */
 
 const KEY = 'koma.transition';
@@ -26,8 +30,11 @@ const LOAD_MS = 1000;
 const MAX_FETCH_MS = 2000;
 /** The longest the reveal waits for a page to draw itself (holdReveal). */
 const MAX_HOLD_MS = 3000;
+/** Swapping a site page, the loading screen shows at least this long, so it doesn't just flicker. */
+const MIN_SWAP_MS = 300;
 
-type Direction = 'forward' | 'back';
+export type Direction = 'forward' | 'back';
+
 
 interface Pending {
   /** The page it's going to (its path, without a trailing slash). */
@@ -102,6 +109,72 @@ export function navigate(href: string, options: { back?: boolean } = {}): void {
   void leave(url, options.back ? 'back' : 'forward');
 }
 
+/**
+ * The browser's back button, run through the wipe (right to left) as the page's own ← is, for a page
+ * that is its own document (a game). Going back to another document happens at once, before any script
+ * gets a say, so this puts a second history entry for this same page on top of the one it arrived at:
+ * back then only steps down to that one (a popstate, here), and the wipe covers the page before going
+ * back for real. With nothing to go back to (a game opened in a new tab), it goes to `fallback`.
+ *
+ * The entry is added on the member's first click or key press: browsers skip over entries a page adds
+ * before anyone has touched it, which would send back past this page with no wipe (as it was before).
+ */
+export function catchBack(fallback: string): void {
+  const TRAP = 'koma.backTrap';
+  const trapped = (state: unknown): boolean => (state as Record<string, unknown> | null)?.[TRAP] === true;
+
+  const arm = (): void => {
+    removeEventListener('click', arm, true);
+    removeEventListener('keydown', arm, true);
+    if (!trapped(history.state)) history.pushState({ ...history.state, [TRAP]: true }, '');
+  };
+  const armOnTouch = (): void => {
+    // Arrived back on the entry on top (forward, or back from a page gone to with ←): it's in place already.
+    if (trapped(history.state)) return;
+    addEventListener('click', arm, true);
+    addEventListener('keydown', arm, true);
+  };
+  armOnTouch();
+  // Shown again from the browser's cache (forward, onto the entry it arrived at): again.
+  addEventListener('pageshow', (e) => {
+    if (e.persisted) armOnTouch();
+  });
+
+  let fallbackTimer = 0;
+  // Gone (back for real): don't fall back when this page is shown again from the browser's cache.
+  addEventListener('pagehide', () => clearTimeout(fallbackTimer));
+
+  const goBack = (): void => {
+    history.back();
+    // Still here after a moment: there was nothing before this page.
+    fallbackTimer = window.setTimeout(() => location.replace(new URL(fallback, location.href).href), 400);
+  };
+
+  addEventListener('popstate', async (e) => {
+    // Forward onto the entry on top again: nothing to do.
+    if (trapped(e.state) || leaving) return;
+    leaving = true;
+    if (lessMotion()) return goBack();
+    root.style.setProperty('--tx-phase', `${-(Date.now() % 1000)}ms`);
+    root.setAttribute('data-tx-live', '');
+    root.setAttribute('data-tx-dir', 'back');
+    root.setAttribute('data-tx', 'in');
+    await wait(WIPE_MS);
+    root.setAttribute('data-tx', 'cover');
+    // The page gone back to starts under the loading screen and wipes it off right to left
+    // (transition-head.js for a page loaded afresh, the pageshow listener below for one the browser kept).
+    goBack();
+  });
+}
+
+/** Claims a link to one of this document's own pages (the router); true when it did. */
+let siteLink: ((url: URL, link: HTMLAnchorElement) => boolean) | null = null;
+
+/** The router takes the links to its pages: `handler` goes there itself and says true, or says false. */
+export function onSiteLink(handler: (url: URL, link: HTMLAnchorElement) => boolean): void {
+  siteLink = handler;
+}
+
 // Same-site links: a plain left click (not one for a new tab or a download). A game's ← goes back.
 document.addEventListener(
   'click',
@@ -112,6 +185,10 @@ document.addEventListener(
     const href = link.getAttribute('href') ?? '';
     if (href === '' || href.startsWith('#')) return;
     const url = new URL(link.href);
+    if (siteLink?.(url, link)) {
+      e.preventDefault();
+      return;
+    }
     if (!goesThrough(url) || lessMotion()) return;
     e.preventDefault();
     if (!leaving) void leave(url, link.classList.contains('back') ? 'back' : 'forward');
@@ -124,9 +201,14 @@ document.addEventListener(
 // Arriving
 
 let holds = 0;
-let drawn: () => void = () => {};
-/** Done once every hold on the reveal is released. */
-const allDrawn = new Promise<void>((resolve) => (drawn = resolve));
+/** Waiting for every hold to be released. */
+let waiting: (() => void)[] = [];
+
+/** Done once nothing holds the reveal (at once when nothing does). */
+function drawn(): Promise<void> {
+  if (holds === 0) return Promise.resolve();
+  return new Promise((resolve) => waiting.push(resolve));
+}
 
 /**
  * Keeps this page under the loading screen until it has drawn itself: call it as the page starts,
@@ -138,7 +220,9 @@ export function holdReveal(): () => void {
   return () => {
     if (released) return;
     released = true;
-    if (--holds === 0) drawn();
+    if (--holds > 0) return;
+    for (const resolve of waiting) resolve();
+    waiting = [];
   };
 }
 
@@ -156,8 +240,50 @@ async function reveal(): Promise<void> {
   // The page's own script runs after this one's (it imports it): give it the chance to hold the
   // reveal, then wait for what it holds.
   await wait(0);
-  await Promise.race([holds > 0 ? allDrawn : Promise.resolve(), wait(MAX_HOLD_MS)]);
+  await Promise.race([drawn(), wait(MAX_HOLD_MS)]);
   await wipeOff();
+}
+
+// ---------------------------------------------------------------------------
+// Swapping a site page in place (src/site/main.ts)
+
+let swapping = false;
+/** The swap asked for while one was running: only the latest is kept, and runs once that one is done. */
+let queued: { dir: Direction; change: () => void | Promise<void> } | null = null;
+
+/**
+ * Wipes the loading screen on, runs `change` under it (the router swapping the page), waits for the new
+ * page to draw itself (holdReveal), and wipes it off. `back` runs it right to left. Without the motion,
+ * just `change`.
+ */
+export async function swap(dir: Direction, change: () => void | Promise<void>): Promise<void> {
+  if (lessMotion()) return change();
+  if (swapping) {
+    queued = { dir, change };
+    return;
+  }
+  swapping = true;
+  root.style.setProperty('--tx-phase', `${-(Date.now() % 1000)}ms`);
+  root.setAttribute('data-tx-live', '');
+  root.setAttribute('data-tx-dir', dir);
+  root.setAttribute('data-tx', 'in');
+  await wait(WIPE_MS);
+  root.setAttribute('data-tx', 'cover');
+  try {
+    await change();
+  } finally {
+    await Promise.all([wait(MIN_SWAP_MS), Promise.race([drawn(), wait(MAX_HOLD_MS)])]);
+    // Another page asked for meanwhile: swap again under the same cover.
+    while (queued) {
+      const next = queued;
+      queued = null;
+      root.setAttribute('data-tx-dir', next.dir);
+      await next.change();
+      await Promise.race([drawn(), wait(MAX_HOLD_MS)]);
+    }
+    await wipeOff();
+    swapping = false;
+  }
 }
 
 async function wipeOff(): Promise<void> {

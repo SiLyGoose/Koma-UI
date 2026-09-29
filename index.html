@@ -12,17 +12,17 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" />
   </head>
   <body>
+    <!-- The site's header, on every page (src/site/session.ts fills in who's logged in, src/site/main.ts marks the page it's on). -->
     <header class="site-header">
       <a class="site-logo" href="/">
         <span class="site-logo-title"><span class="site-logo-long">Komaverse</span><span class="site-logo-short" aria-hidden="true">KV</span></span>
       </a>
       <div class="site-nav-wrapper">
-        <nav id="site-nav" class="site-nav" hidden>
+        <nav class="site-nav">
           <ul class="site-nav-list">
-            <li><a class="site-nav-link" href="#play">Servers</a></li>
-            <li><a class="site-nav-link" href="#games">Games</a></li>
-            <li><a class="site-nav-link" href="/gear/">Gear</a></li>
-            <li><a class="site-nav-link" href="/databank/">Databank</a></li>
+            <li><a class="site-nav-link" href="/#games" data-route="/">Games</a></li>
+            <li><a class="site-nav-link" href="/gear/" data-route="/gear">Gear</a></li>
+            <li><a class="site-nav-link" href="/databank/" data-route="/databank">Databank</a></li>
           </ul>
         </nav>
         <div id="me" class="site-user" hidden></div>
@@ -30,58 +30,9 @@
       </div>
     </header>
 
-    <main class="hub">
+    <!-- The page shown: one of the site's pages (src/hub/hub.html, src/gear/gear.html, src/databank/databank.html), swapped in by src/site/main.ts. -->
+    <div id="view"></div>
 
-      <section id="login" class="card login" hidden>
-        <h2>Play Koma's games in your browser</h2>
-        <p>Log in with Discord, pick a server you play Koma in, and your points come with you.</p>
-        <button type="button" id="login-button" class="discord">Log in with Discord</button>
-      </section>
-
-      <p id="status" class="status" hidden></p>
-
-      <section id="play" hidden>
-        <h2 class="section-title">Server</h2>
-        <div id="servers" class="servers"></div>
-        <p id="no-servers" class="muted" hidden>None of your servers have Koma in them yet.</p>
-
-        <h2 id="games" class="section-title">Games</h2>
-        <div class="games">
-          <article class="game" data-game="pinecraft">
-            <div class="game-art pinecraft-art" aria-hidden="true"></div>
-            <div class="game-body">
-              <h3>Pinecraft</h3>
-              <p>Dig down through your own mine. Every block takes energy, which comes back over time, and ores pay out as you find them. No bet.</p>
-              <button type="button" class="play" data-play="pinecraft">Play</button>
-            </div>
-          </article>
-          <article class="game" data-game="baccarat">
-            <div class="game-art baccarat-art" aria-hidden="true"><span class="baccarat-art-card">A<i>♠</i></span><span class="baccarat-art-card red">9<i>♥</i></span></div>
-            <div class="game-body">
-              <h3>Baccarat</h3>
-              <p>Sit at a table with up to 8 players and drag chips onto Player, Banker or Tie, or the Kirin and Phoenix side bets. Every minute the hands are dealt for everyone. Closest to 9 wins.</p>
-              <button type="button" class="play" data-play="baccarat">Play</button>
-            </div>
-          </article>
-          <article class="game" data-game="roulette">
-            <div class="game-art roulette-art" aria-hidden="true"><span class="roulette-art-wheel"></span></div>
-            <div class="game-body">
-              <h3>Roulette</h3>
-              <p>Sit at a table with up to 8 players and drag chips onto numbers, splits, corners, colours or dozens. The wheel (with 0 and 00) is spun for everyone when the timer runs out. A single number pays 35 to 1.</p>
-              <button type="button" class="play" data-play="roulette">Play</button>
-            </div>
-          </article>
-          <article class="game" data-game="mines">
-            <div class="game-art mines-art" aria-hidden="true"></div>
-            <div class="game-body">
-              <h3>Mine</h3>
-              <p>Bet points on a field of hidden tiles. Every ore raises your multiplier, dynamite ends the run. Cash out whenever you like.</p>
-              <button type="button" class="play" data-play="mines">Play</button>
-            </div>
-          </article>
-        </div>
-      </section>
-    </main>
-    <script type="module" src="/src/hub/main.ts"></script>
+    <script type="module" src="/src/site/main.ts"></script>
   </body>
 </html>

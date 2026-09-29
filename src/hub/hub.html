@@ -1,0 +1,53 @@
+<!-- The front page (src/hub/page.ts): log in, pick a server and a game. Swapped into #view by src/site/main.ts. -->
+<main class="hub">
+
+  <section id="login" class="card login" hidden>
+    <h2>Play Koma's games in your browser</h2>
+    <p>Log in with Discord, pick a server you play Koma in, and your points come with you.</p>
+    <button type="button" id="login-button" class="discord">Log in with Discord</button>
+  </section>
+
+  <p id="status" class="status" hidden></p>
+
+  <section id="play" hidden>
+    <h2 class="section-title">Server</h2>
+    <div id="servers" class="servers"></div>
+    <p id="no-servers" class="muted" hidden>None of your servers have Koma in them yet.</p>
+
+    <h2 id="games" class="section-title">Games</h2>
+    <div class="games">
+      <article class="game" data-game="pinecraft">
+        <div class="game-art pinecraft-art" aria-hidden="true"></div>
+        <div class="game-body">
+          <h3>Pinecraft</h3>
+          <p>Dig down through your own mine. Every block takes energy, which comes back over time, and ores pay out as you find them. No bet.</p>
+          <button type="button" class="play" data-play="pinecraft">Play</button>
+        </div>
+      </article>
+      <article class="game" data-game="baccarat">
+        <div class="game-art baccarat-art" aria-hidden="true"><span class="baccarat-art-card">A<i>♠</i></span><span class="baccarat-art-card red">9<i>♥</i></span></div>
+        <div class="game-body">
+          <h3>Baccarat</h3>
+          <p>Sit at a table with up to 8 players and drag chips onto Player, Banker or Tie, or the Kirin and Phoenix side bets. Every minute the hands are dealt for everyone. Closest to 9 wins.</p>
+          <button type="button" class="play" data-play="baccarat">Play</button>
+        </div>
+      </article>
+      <article class="game" data-game="roulette">
+        <div class="game-art roulette-art" aria-hidden="true"><span class="roulette-art-wheel"></span></div>
+        <div class="game-body">
+          <h3>Roulette</h3>
+          <p>Sit at a table with up to 8 players and drag chips onto numbers, splits, corners, colours or dozens. The wheel (with 0 and 00) is spun for everyone when the timer runs out. A single number pays 35 to 1.</p>
+          <button type="button" class="play" data-play="roulette">Play</button>
+        </div>
+      </article>
+      <article class="game" data-game="mines">
+        <div class="game-art mines-art" aria-hidden="true"></div>
+        <div class="game-body">
+          <h3>Mine</h3>
+          <p>Bet points on a field of hidden tiles. Every ore raises your multiplier, dynamite ends the run. Cash out whenever you like.</p>
+          <button type="button" class="play" data-play="mines">Play</button>
+        </div>
+      </article>
+    </div>
+  </section>
+</main>

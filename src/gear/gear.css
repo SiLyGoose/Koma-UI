@@ -39,12 +39,12 @@
   }
 
   /* The picked copy takes the character's place, as tall as the armory beside it. */
-  .hero,
-  .detail {
+  .gear > .hero,
+  .gear > .detail {
     grid-area: 1 / 1;
   }
 
-  .armory {
+  .gear > .armory {
     grid-area: 1 / 2;
   }
 
@@ -52,7 +52,7 @@
     visibility: hidden;
   }
 
-  .detail {
+  .gear > .detail {
     align-self: stretch;
     animation: detail-in 0.18s ease-out;
   }

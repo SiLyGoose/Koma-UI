@@ -1,6 +1,6 @@
 import { loadUser, profileMenu, setSession } from './account';
 import './frame.css';
-import { holdReveal } from './transition';
+import { catchBack, holdReveal } from './transition';
 
 /*
  * The frame every game sits in: a blue border round the window and a title bar across the top. Its
@@ -21,6 +21,9 @@ import { holdReveal } from './transition';
 
 /** A game stays under the loading screen until it has connected, or found it can't. */
 const revealed = holdReveal();
+
+// The browser's back button wipes the game away right to left, as its ← does.
+catchBack('/');
 
 /** Shows how the connection to the bot is doing, in the title bar. */
 export function setConn(text: string, kind: '' | 'ok' | 'bad'): void {
