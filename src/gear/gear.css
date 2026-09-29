@@ -743,7 +743,6 @@
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
-  overscroll-behavior: contain;
 }
 
 /* Grows to fill what's left above the buttons. */
@@ -807,7 +806,7 @@
   background: var(--accent-hover);
 }
 
-/* Refine and Unequip: the armory's dark button. */
+/* Upgrade and Unequip: the armory's dark button. */
 .detail-action.secondary {
   border-color: #5a5262;
   background: linear-gradient(180deg, #2d2a33, #1a191e);
@@ -839,170 +838,14 @@
     padding-bottom: max(14px, env(safe-area-inset-bottom));
   }
 
+  /* The sheet from the bottom is over the page: scrolling past its end doesn't scroll the page behind it. */
+  .detail-scroll {
+    overscroll-behavior: contain;
+  }
+
   .detail-action {
     flex: 1 1 128px;
   }
-}
-
-/* ------------------------------------------------------------------ refine confirmation */
-
-/* Over everything, the page dimmed behind it. */
-.confirm {
-  width: min(560px, calc(100vw - 32px));
-  max-height: calc(100dvh - 32px);
-  padding: 0;
-  border: 1px solid var(--line);
-  border-top: 3px solid var(--gold);
-  border-radius: var(--radius);
-  background: var(--panel);
-  color: var(--text);
-  box-shadow: 0 20px 50px rgb(0 0 0 / 60%);
-}
-
-.confirm::backdrop {
-  background: rgb(0 0 0 / 60%);
-}
-
-.confirm[open] {
-  animation: confirm-in 0.16s ease-out;
-}
-
-@keyframes confirm-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px) scale(0.98);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .confirm[open] {
-    animation: none;
-  }
-}
-
-.confirm-box {
-  display: grid;
-  gap: 16px;
-  padding: 18px;
-}
-
-.confirm-title {
-  margin: 0;
-  font-size: 18px;
-}
-
-/* Now ➜ After, side by side (one over the other on narrow screens). */
-.refine-compare {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-  align-items: start;
-  gap: 12px;
-}
-
-.refine-side {
-  min-width: 0;
-  padding: 12px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: var(--panel-2);
-}
-
-.refine-side h3 {
-  margin: 0 0 8px;
-  color: var(--muted);
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.refine-side.after {
-  border-color: rgb(216 191 122 / 45%);
-}
-
-.refine-side.after h3 {
-  color: var(--gold);
-}
-
-.refine-side .detail-effects {
-  font-size: 13px;
-}
-
-/* What gets stronger. */
-.refine-side .detail-effects li.changed {
-  color: var(--green);
-}
-
-.refine-arrow {
-  align-self: center;
-  color: var(--gold);
-  font-size: 20px;
-}
-
-@media (max-width: 520px) {
-  .refine-compare {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .refine-arrow {
-    justify-self: center;
-    transform: rotate(90deg);
-  }
-}
-
-.refine-costs {
-  display: grid;
-  gap: 6px;
-  margin: 0;
-  font-size: 14px;
-}
-
-.refine-costs > div {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.refine-costs dt {
-  color: var(--muted);
-}
-
-.refine-costs dd {
-  margin: 0;
-  font-weight: 600;
-  text-align: right;
-}
-
-.refine-costs dd.bad {
-  color: var(--red);
-}
-
-.confirm-foot {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  padding-top: 14px;
-  border-top: 2px solid var(--line);
-}
-
-@media (max-width: 520px) {
-  .confirm-foot .detail-action {
-    flex: 1;
-  }
-}
-
-/* A spare copy's offer: the main copy's card beside why. */
-.refine-other {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.refine-other p {
-  margin: 0;
-  color: var(--petal);
-  font-size: 14px;
-  line-height: 1.45;
 }
 
 /* A loadout's tiny icons: a full picture fills the square (items.css). */

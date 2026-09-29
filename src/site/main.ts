@@ -4,8 +4,10 @@ import '../shared/items/items.css';
 import '../hub/hub.css';
 import '../gear/gear.css';
 import '../databank/databank.css';
+import '../forge/forge.css';
 import { backdrop } from '../shared/backdrop';
 import { databankPage } from '../databank/page';
+import { forgePage } from '../forge/page';
 import { gearPage } from '../gear/page';
 import { hubPage } from '../hub/page';
 import { holdReveal, onSiteLink, swap, type Direction } from '../shared/transition';
@@ -14,7 +16,7 @@ import type { Page } from './page';
 import { hasSession } from './session';
 
 /*
- * The site's pages (the front page, gear, the databank) as one document: moving between them swaps the
+ * The site's pages (the front page, gear, the forge, the databank) as one document: moving between them swaps the
  * page under the header, through the transition's wipe (../shared/transition.ts), instead of loading a
  * new document, so the header, the login and the rest stay (./session.ts), and back and forward get the
  * wipe too (right to left going back). The games are pages of their own.
@@ -24,7 +26,7 @@ import { hasSession } from './session';
  * forward.
  */
 
-const PAGES: readonly Page[] = [hubPage, gearPage, databankPage];
+const PAGES: readonly Page[] = [hubPage, gearPage, forgePage, databankPage];
 
 const view = document.getElementById('view') as HTMLElement;
 

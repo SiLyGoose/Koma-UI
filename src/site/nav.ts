@@ -16,7 +16,7 @@ let impl: (href: string, options: GoOptions) => void = (href) => {
   location.href = href;
 };
 
-/** Goes to a site page (`/`, `/gear/`, `/databank/`, with a #hash if wanted), through the transition. */
+/** Goes to a site page (`/`, `/gear/`, `/forge/`, `/databank/`, with a #hash if wanted), through the transition. */
 export const go = (href: string, options: GoOptions = {}): void => impl(href, options);
 
 export function setGo(fn: (href: string, options: GoOptions) => void): void {

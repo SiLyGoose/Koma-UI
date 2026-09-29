@@ -270,7 +270,6 @@
   /* Keeps the scrollbar off the sheet's right edge. */
   margin-right: 3px;
   overflow-y: auto;
-  overscroll-behavior: contain;
 }
 
 /*
@@ -473,7 +472,6 @@
   min-width: 0;
   padding: 16px;
   overflow-y: auto;
-  overscroll-behavior: contain;
   border-radius: var(--radius);
   background: var(--panel);
   border: 1px solid var(--line);
@@ -494,6 +492,8 @@
     height: 40vh;
     height: 40dvh;
     overflow: hidden;
+    /* Over the page: scrolling past its end doesn't scroll the page behind it. */
+    overscroll-behavior: contain;
     border-radius: 14px 14px 0 0;
     box-shadow: 0 -10px 30px rgb(0 0 0 / 55%);
     animation: sheet-in 0.2s ease-out;

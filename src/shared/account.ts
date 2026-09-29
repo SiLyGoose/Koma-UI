@@ -67,6 +67,8 @@ const ICONS = {
     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h10a5 5 0 0 1 4.9 6l-.8 4a2.6 2.6 0 0 1-4.4 1.3L14.5 16h-5l-2.2 2.3A2.6 2.6 0 0 1 2.9 17l-.8-4A5 5 0 0 1 7 7zm0 3v1.5H5.5v2H7V15h2v-1.5h1.5v-2H9V10zm8.5 1a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4zm2.5-1.8a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4z"/></svg>',
   gear:
     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5 2.5 21.5 4.5 11 15l-1.3-.2-.5-.5L9 13z"/><path d="M5.2 13.4 10.6 18.8 9.2 20.2 7.8 18.8 5.3 21.3a1.4 1.4 0 0 1-2-2l2.5-2.5-1.4-1.4z"/></svg>',
+  forge:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 7h15c0 2.8 1.9 4.3 5 4.6V14c-2.4 0-4 .9-5 2.6V18h2v3H6v-3h2v-1.4C5.3 15.5 3.3 13 2 10z"/></svg>',
   databank:
     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5A2.5 2.5 0 0 1 7.5 1H20v17H7.5a1 1 0 0 0 0 2H20v3H7.5A4.5 4.5 0 0 1 3 18.5V5.5z"/><path d="M9 5.5h7v2H9z" fill="rgb(0 0 0 / 35%)"/></svg>',
   logout:

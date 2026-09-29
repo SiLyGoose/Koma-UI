@@ -1,0 +1,53 @@
+<!-- The forge (src/forge/page.ts): refining their gear, and forging it into a masterwork. Swapped into #view by src/site/main.ts. -->
+<main class="gear-page forge-page">
+  <p id="status" class="status" hidden></p>
+
+  <section id="forge" class="forge" hidden>
+    <!-- The anvil: the copy picked and what it uses up, the odds, what it does now and after, and the price. -->
+    <div class="anvil">
+      <div class="anvil-stage">
+        <div class="anvil-top">
+          <p id="hint" class="anvil-hint" aria-live="polite"></p>
+          <select id="server" class="server-pick" aria-label="Server" hidden></select>
+        </div>
+        <div class="anvil-slots">
+          <div class="anvil-slot">
+            <span class="anvil-label">Target</span>
+            <div id="target" class="anvil-frame"></div>
+          </div>
+          <div class="anvil-slot">
+            <span class="anvil-label">Materials</span>
+            <div id="material" class="anvil-frame"></div>
+          </div>
+        </div>
+        <div class="anvil-odds">
+          <p class="anvil-rate"><span>Success Rate</span><strong id="rate"></strong></p>
+          <p class="anvil-bonus"><span>Failure Bonus</span><span id="bonus"></span></p>
+        </div>
+      </div>
+      <div class="anvil-effects">
+        <ul id="effects" class="forge-effects" aria-label="Effects"></ul>
+      </div>
+      <div class="anvil-foot">
+        <p id="cost" class="anvil-cost" aria-label="Cost"></p>
+        <button type="button" id="go" class="anvil-go">Refine Gear</button>
+      </div>
+    </div>
+
+    <!-- Their armory (as the gear page's): pick a copy to put on the anvil. -->
+    <div class="armory">
+      <div class="armory-plaque"><span id="armory-title">Armory</span></div>
+      <div class="armory-tabs" role="tablist" aria-label="Show">
+        <button type="button" role="tab" data-filter="all" aria-selected="true">All</button>
+        <button type="button" role="tab" data-filter="weapon" aria-selected="false">Weapons</button>
+        <button type="button" role="tab" data-filter="armor" aria-selected="false">Armor</button>
+        <button type="button" role="tab" data-filter="treasure" aria-selected="false">Treasures</button>
+      </div>
+      <div class="armory-sheet">
+        <div class="sheet-scroll">
+          <div id="armory-grid" class="armory-grid"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>

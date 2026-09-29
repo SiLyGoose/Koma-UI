@@ -1,0 +1,505 @@
+/*
+ * The forge, on top of the shared item template (../shared/items/items.css): the anvil on the left (the
+ * target and its material over a forge's glow, the odds, what it does now against after, the price and
+ * the button along the bottom), and the armory on the right, as the gear page's. One over the other on
+ * narrow screens.
+ */
+
+.forge {
+  display: grid;
+  gap: 20px;
+  align-items: start;
+}
+
+@media (min-width: 900px) {
+  /* As tall as the gear page's and the databank's panels (items.css), so the pages line up. */
+  .forge {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    align-items: stretch;
+    height: var(--panels-h);
+    min-height: var(--panels-min);
+    max-height: 900px;
+  }
+}
+
+/* ------------------------------------------------------------------ anvil */
+
+.anvil {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--tier, var(--line));
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+
+/* The forge's glow behind the slots, hottest behind the target, embers along the bottom. */
+.anvil-stage {
+  position: relative;
+  flex-shrink: 0;
+  padding: 14px 18px 16px;
+  /* The glow fades out into the panel over its bottom third, so it runs smoothly into the effects under it. */
+  background:
+    linear-gradient(180deg, transparent 55%, var(--panel) 96%),
+    radial-gradient(ellipse 40% 55% at 30% 55%, rgb(255 170 70 / 38%), transparent 70%),
+    radial-gradient(ellipse 90% 45% at 40% 92%, rgb(185 74 76 / 26%), transparent 70%),
+    linear-gradient(180deg, #241b18, var(--panel));
+  /* Shaded along the top only: at the sides or bottom it would draw an edge the fade is there to hide. */
+  box-shadow: inset 0 30px 40px -20px rgb(0 0 0 / 55%);
+}
+
+.anvil-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.anvil-hint {
+  flex: 1;
+  min-width: 0;
+  min-height: 2.9em;
+  margin: 0;
+  color: #f3e6c4;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.45;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 80%);
+}
+
+.anvil-hint.good {
+  color: var(--green);
+}
+
+.anvil-hint.bad {
+  color: #f0a0a0;
+}
+
+.anvil-hint code {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgb(0 0 0 / 35%);
+  font-size: 0.9em;
+}
+
+.anvil-slots {
+  display: flex;
+  justify-content: center;
+  gap: clamp(28px, 8vw, 72px);
+  margin: 10px 0 40px;
+}
+
+.anvil-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.anvil-label {
+  color: #efd48a;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-shadow: 0 2px 0 #3a2410, 0 0 10px rgb(0 0 0 / 70%);
+}
+
+/* A slot on the anvil: a dark, sunken square until a card fills it. */
+.anvil-frame {
+  display: grid;
+  place-items: center;
+  width: 104px;
+  aspect-ratio: 1;
+  border: 2px solid #5a5262;
+  border-radius: 8px;
+  background: rgb(18 16 22 / 78%);
+  box-shadow: inset 0 0 0 3px #111014, inset 0 0 18px rgb(0 0 0 / 70%);
+}
+
+.anvil-frame.filled {
+  border-color: transparent;
+  background: none;
+  box-shadow: none;
+}
+
+.anvil-frame .item {
+  width: 100%;
+  cursor: default;
+}
+
+.anvil-frame .item:hover {
+  transform: none;
+}
+
+.anvil-frame .art {
+  width: 64%;
+  height: 64%;
+}
+
+.anvil-frame .item-level {
+  font-size: 13px;
+}
+
+.anvil-frame .star {
+  font-size: 15px;
+}
+
+/* The target glows in the fire. */
+#target.filled .item {
+  box-shadow: 0 0 22px 2px rgb(255 180 80 / 50%), 0 2px 0 #b3a47f;
+}
+
+/* A refine or forge just went through: a flash of heat. */
+#target.struck .item {
+  animation: struck 0.9s ease-out;
+}
+
+@keyframes struck {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgb(255 220 140 / 0%);
+  }
+  18% {
+    transform: scale(1.08);
+    box-shadow: 0 0 40px 12px rgb(255 210 120 / 85%);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #target.struck .item {
+    animation: none;
+  }
+}
+
+/* A forge's material: its komaGems. */
+.anvil-gem {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  border: 2px solid #5a5262;
+  border-radius: 8px;
+  background: rgb(18 16 22 / 78%);
+}
+
+.anvil-gem .emoji {
+  width: 52%;
+  height: auto;
+  filter: drop-shadow(0 0 10px rgb(120 200 255 / 45%));
+}
+
+/* Success Rate, big and hot, over a streak of fire; Failure Bonus under it. */
+.anvil-odds {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+}
+
+.anvil-rate {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  margin: 0;
+  padding: 0 4px 4px 40px;
+}
+
+.anvil-rate::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, #f0a13a 55%, #ffd66e);
+  box-shadow: 0 0 10px rgb(240 161 58 / 70%);
+}
+
+.anvil-rate span {
+  color: #f3e6c4;
+  font-size: 18px;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 80%);
+}
+
+.anvil-rate strong {
+  color: #fff;
+  font-size: 44px;
+  font-weight: 800;
+  line-height: 1;
+  text-shadow: 0 0 14px rgb(255 120 40 / 90%), 0 2px 0 #b8412a;
+}
+
+.anvil-bonus {
+  display: flex;
+  gap: 24px;
+  margin: 0;
+  padding-right: 4px;
+  color: var(--petal);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* What it does, now against after, between two lines; scrolls when it runs long. */
+.anvil-effects {
+  flex: 1 1 auto;
+  min-height: 120px;
+  margin: 0 16px;
+  padding: 14px 4px;
+  overflow-y: auto;
+  border-top: 2px solid var(--line);
+  border-bottom: 2px solid var(--line);
+}
+
+@media (min-width: 900px) {
+  .anvil-effects {
+    min-height: 0;
+  }
+}
+
+.forge-effects {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.forge-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 16px;
+  padding-left: 16px;
+}
+
+/* A little ember for a bullet. */
+.forge-row::before {
+  content: '';
+  position: absolute;
+  top: 0.55em;
+  left: 3px;
+  width: 6px;
+  height: 6px;
+  background: #e8603c;
+  transform: rotate(45deg);
+}
+
+.forge-row.muted {
+  color: var(--muted);
+}
+
+.forge-row.muted::before {
+  display: none;
+}
+
+.forge-line code {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--panel-3);
+  font-size: 0.9em;
+}
+
+.forge-row.gone .forge-line {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+.forge-change {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 4px 14px;
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.forge-pair {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.forge-from {
+  color: var(--petal);
+}
+
+.forge-arrow {
+  color: #f0a13a;
+  font-size: 17px;
+}
+
+.forge-to {
+  color: var(--green);
+}
+
+/* The price and the button, along the bottom. */
+.anvil-foot {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+  padding: 14px 16px;
+}
+
+.anvil-cost {
+  display: flex;
+  flex: 0 1 44%;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  margin: 0;
+  padding: 6px 16px 6px 10px;
+  border: 1px solid #5a5262;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #2d2a33, #1a191e);
+  box-shadow: inset 0 0 0 1px rgb(216 191 122 / 30%);
+}
+
+.anvil-cost-icon {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+}
+
+.anvil-cost-icon .emoji {
+  width: 100%;
+  height: 100%;
+  vertical-align: 0;
+}
+
+.anvil-cost-amount {
+  margin-left: auto;
+  overflow: hidden;
+  color: #efe3bf;
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.anvil-cost.bad .anvil-cost-amount {
+  color: var(--red);
+}
+
+.anvil-go {
+  flex: 1 1 0;
+  min-height: 48px;
+  padding: 8px 22px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+}
+
+.anvil-go:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.anvil-go:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+@media (max-width: 899px) {
+  .anvil-slots {
+    margin-bottom: 28px;
+  }
+
+  .anvil-foot {
+    padding-bottom: max(14px, env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-width: 480px) {
+  .anvil-slots {
+    margin-bottom: 20px;
+  }
+
+  .anvil-frame {
+    width: 84px;
+  }
+
+  .anvil-rate strong {
+    font-size: 36px;
+  }
+
+  .anvil-rate span {
+    font-size: 16px;
+  }
+}
+
+/* ------------------------------------------------------------------ armory */
+
+/* The spare a refine would use up: ringed in the fire's orange. */
+.forge .item.material {
+  border-color: #f0a13a;
+  box-shadow: inset 0 0 0 1px #f0a13a, inset 0 0 12px 3px rgb(240 161 58 / 45%), 0 2px 0 #b3a47f;
+}
+
+/* Smaller computer screens (../shared/items/items.css): the anvil a size down too. */
+@media (min-width: 900px) and (max-width: 1279px), (min-width: 900px) and (max-height: 820px) {
+  .forge {
+    gap: 16px;
+  }
+
+  .anvil-stage {
+    padding: 12px 14px 12px;
+  }
+
+  .anvil-hint {
+    font-size: 13px;
+  }
+
+  .anvil-slots {
+    margin-bottom: 30px;
+  }
+
+  .anvil-frame {
+    width: 88px;
+  }
+
+  .anvil-label {
+    font-size: 14px;
+  }
+
+  .anvil-rate strong {
+    font-size: 36px;
+  }
+
+  .anvil-rate span {
+    font-size: 16px;
+  }
+
+  .forge-effects {
+    font-size: 13px;
+  }
+
+  .forge-change {
+    font-size: 14px;
+  }
+
+  .anvil-go {
+    min-height: 42px;
+    font-size: 15px;
+  }
+
+  .anvil-cost-amount {
+    font-size: 16px;
+  }
+}

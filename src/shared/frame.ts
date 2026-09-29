@@ -82,10 +82,11 @@ async function showProfile(): Promise<void> {
   if (!bar) return;
   const user = await loadUser();
   if (!user) return;
-  // Gear and Databank on wider screens only (frame.css): a phone's drop-down is full already.
+  // Gear, Forge and Databank on wider screens only (frame.css): a phone's drop-down is full already.
   const profile = profileMenu(user, [
     { label: 'Games', icon: 'games', href: '/' },
     { label: 'Gear', icon: 'gear', href: '/gear/', className: 'frame-wide-only' },
+    { label: 'Forge', icon: 'forge', href: '/forge/', className: 'frame-wide-only' },
     { label: 'Databank', icon: 'databank', href: '/databank/', className: 'frame-wide-only' },
     {
       label: 'Log out',
