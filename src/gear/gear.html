@@ -1,8 +1,14 @@
-<!-- The gear page (src/gear/page.ts): their character and slots, and their armory. Swapped into #view by src/site/main.ts. -->
+<!-- The gear page (src/gear/page.ts): who's in the server, their character and slots, and their armory. Swapped into #view by src/site/main.ts. -->
 <main class="gear-page">
   <p id="status" class="status" hidden></p>
 
   <section id="gear" class="gear" hidden>
+    <!-- Everyone in the server with gear, them first: picking someone shows their gear, to look at. -->
+    <nav id="roster" class="roster" aria-label="Members" hidden>
+      <h2 class="roster-title">Members</h2>
+      <div id="roster-list" class="roster-list"></div>
+    </nav>
+
     <!-- The hero: their character with their three slots around them (weapon and armor on the left, the treasure on the right). -->
     <div class="hero">
       <div class="hero-top">

@@ -1,5 +1,6 @@
 /*
- * The gear page, on top of the shared item template (../shared/items/items.css): their character on a dark stage with
+ * The gear page, on top of the shared item template (../shared/items/items.css): the roster of members down the left
+ * (a strip across the top on narrow screens), their character on a dark stage with
  * their slots either side, and the armory beside it, a dark frame holding a parchment sheet of item
  * cards (or, on the Common tab, their stats). A picked card's details cover the character (a sheet from
  * the bottom on narrow screens, items.css).
@@ -15,6 +16,7 @@
   /* As tall as the databank's panels (../shared/items/items.css), so the two pages line up. */
   .gear {
     grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    grid-template-areas: 'hero armory';
     align-items: stretch;
     height: var(--panels-h);
     min-height: var(--panels-min);
@@ -42,14 +44,28 @@
     display: none;
   }
 
+  /* With the roster, a narrow column of it first, and the page a little wider to make room. */
+  .gear:has(> .roster:not([hidden])) {
+    grid-template-columns: 148px minmax(0, 5fr) minmax(0, 6fr);
+    grid-template-areas: 'roster hero armory';
+  }
+
+  main.gear-page:has(.roster:not([hidden])) {
+    max-width: 1320px;
+  }
+
+  .gear > .roster {
+    grid-area: roster;
+  }
+
   /* The picked copy takes the character's place, as tall as the armory beside it. */
   .gear > .hero,
   .gear > .detail {
-    grid-area: 1 / 1;
+    grid-area: hero;
   }
 
   .gear > .armory {
-    grid-area: 1 / 2;
+    grid-area: armory;
   }
 
   .gear.picking .hero {
@@ -68,6 +84,189 @@
   from {
     opacity: 0;
     transform: translateX(-12px);
+  }
+}
+
+/* ------------------------------------------------------------------ roster */
+
+/* Everyone in the server with gear: a dark panel of portraits, the one shown framed in gold, like a picked slot. */
+.roster {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  padding: 10px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.roster[hidden] {
+  display: none;
+}
+
+.roster-title {
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.roster-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.roster-list::-webkit-scrollbar {
+  display: none;
+}
+
+/* A portrait: their picture filling the square, the item count in the top right, the name along the bottom. */
+.roster-tile {
+  /* The class badge and the item count in its top corners: squares the same size, the same way in. */
+  --corner: 26px;
+  --corner-in: 5px;
+  position: relative;
+  flex: none;
+  width: 100%;
+  aspect-ratio: 1;
+  padding: 0;
+  overflow: hidden;
+  border: 2px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel-2);
+  box-shadow: inset 0 0 0 2px #111014, 0 4px 10px rgb(0 0 0 / 45%);
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.roster-tile:hover,
+.roster-tile:focus-visible {
+  border-color: var(--dusk);
+  transform: translateY(-2px);
+}
+
+.roster-tile[aria-current='true'] {
+  border-color: var(--picked);
+  box-shadow: inset 0 0 0 1px var(--picked), inset 0 0 16px 4px var(--picked-glow), 0 4px 10px rgb(0 0 0 / 45%);
+  cursor: default;
+  transform: none;
+}
+
+/* Them, set apart from everyone after them. */
+.roster-tile.you {
+  margin-bottom: 4px;
+}
+
+.roster-avatar {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* The picked glow over the picture, not under it. */
+.roster-tile[aria-current='true']::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px var(--picked), inset 0 0 14px 3px var(--picked-glow);
+  pointer-events: none;
+}
+
+/* Their class's badge: the stage ribbon's ring, small (no classes yet, so a question mark). */
+.roster-class {
+  position: absolute;
+  top: var(--corner-in);
+  left: var(--corner-in);
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: var(--corner);
+  height: var(--corner);
+  box-sizing: border-box;
+  border: 2px solid var(--gold);
+  border-radius: 50%;
+  background: #141318;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 70%);
+  color: #efe3bf;
+  font-size: calc(var(--corner) * 0.55);
+  font-weight: 800;
+  line-height: 1;
+}
+
+/* How many items they own: big, gold and outlined in dark brown, like a hero's level. */
+.roster-count {
+  position: absolute;
+  top: var(--corner-in);
+  right: var(--corner-in);
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  min-width: var(--corner);
+  height: var(--corner);
+  color: #f7dc7c;
+  font-size: calc(var(--corner) * 0.85);
+  font-weight: 800;
+  line-height: 1;
+  text-shadow: 0 0 2px #2a1c08, 0 1px 0 #2a1c08, 1px 0 0 #2a1c08, -1px 0 0 #2a1c08, 0 -1px 0 #2a1c08, 0 2px 0 #2a1c08, 0 0 8px rgb(0 0 0 / 70%);
+}
+
+.roster-name {
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 1;
+  padding: 16px 6px 5px;
+  overflow: hidden;
+  background: linear-gradient(transparent, rgb(0 0 0 / 80%));
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 2px #000;
+  white-space: nowrap;
+}
+
+/* Narrow screens: a strip of smaller portraits across the top, scrolling sideways. */
+@media (max-width: 899px) {
+  .roster-title {
+    margin-bottom: 8px;
+    text-align: left;
+  }
+
+  .roster-list {
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .roster-tile {
+    --corner: 18px;
+    --corner-in: 3px;
+    width: 76px;
+  }
+
+  .roster-tile.you {
+    margin: 0 4px 0 0;
+  }
+
+  .roster-class {
+    border-width: 1.5px;
+  }
+
+  .roster-name {
+    padding: 12px 4px 3px;
+    font-size: 11px;
   }
 }
 
@@ -709,6 +908,12 @@
   text-transform: uppercase;
 }
 
+/* On someone else's copy, in place of the buttons: whether they wear it. */
+.detail-worn {
+  background: rgb(143 201 163 / 15%);
+  color: var(--green);
+}
+
 .detail-max {
   color: var(--green);
   font-weight: 800;
@@ -921,5 +1126,30 @@
 
   .armory-foot {
     margin-top: 10px;
+  }
+}
+
+/* Smaller computer screens: smaller portraits, the name on hover, leaving the stage its room. */
+@media (min-width: 900px) and (max-width: 1279px) {
+  .gear:has(> .roster:not([hidden])) {
+    grid-template-columns: 92px minmax(0, 5fr) minmax(0, 6fr);
+  }
+
+  .roster {
+    padding: 8px;
+  }
+
+  .roster-title {
+    font-size: 10px;
+    letter-spacing: 0.02em;
+  }
+
+  .roster-tile {
+    --corner: 20px;
+    --corner-in: 3px;
+  }
+
+  .roster-name {
+    display: none;
   }
 }

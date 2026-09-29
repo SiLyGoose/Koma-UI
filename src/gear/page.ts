@@ -15,6 +15,8 @@ import { api, currentMe, currentServer, loadMe, logOut, setServer } from '../sit
  * what fits in it. Under the character: switching loadouts (and outfits, one day); under the armory,
  * taking everything off. The tabs under the character swap the armory for their stats (Common), worked
  * out by the bot. Logged-in members only (the bot's /api/gear answers them only), in the server picked.
+ * Down the left, everyone in the server with gear, them first: picking someone else shows their gear,
+ * loadouts and stats the same way, to look at only (nothing to equip, upgrade or take off).
  */
 
 const SLOTS: Slot[] = ['weapon', 'armor', 'treasure'];
@@ -24,6 +26,18 @@ const GRID_CELLS = 12;
 
 /** The Common tab's first group, about the hero rather than their gear. No classes yet, so it's a question mark. */
 const HERO_INFO: StatSection = { title: 'Hero', rows: [{ label: 'Class', value: '?', base: null }] };
+
+/** A Discord picture big enough to fill a roster portrait (the bot asks Discord for small ones). */
+const bigAvatar = (url: string): string => (url.startsWith('https://cdn.discordapp.com/') ? url.replace(/([?&]size=)\d+/, '$1256') : url);
+
+/** Someone in the roster (the bot's GET /api/gear/members). */
+interface Member {
+  userId: string;
+  name: string;
+  avatar: string;
+  copies: number;
+  you: boolean;
+}
 
 export const gearPage: Page = { path: '/gear', title: 'Gear · Komaverse', icon: '⚔️', markup, needsLogin: true, mount };
 
@@ -46,6 +60,8 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     stats: $('stats'),
     statsTitle: $('stats-title'),
     statsList: $('stats-list'),
+    roster: $('roster'),
+    rosterList: $('roster-list'),
     views: [...root.querySelectorAll<HTMLButtonElement>('[data-view]')],
     slots: [...root.querySelectorAll<HTMLButtonElement>('.slot')],
     tabs: [...root.querySelectorAll<HTMLButtonElement>('[data-filter]')],
@@ -59,6 +75,12 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
   let picked: string | null = null;
   /** An equip, unequip or loadout switch on its way: the page waits for it before taking another. */
   let busy = false;
+  /** Everyone in the roster (empty until it's loaded, or with a bot from before it). */
+  let members: Member[] = [];
+  /** Whose gear is shown: someone else's (to look at only), or null for their own. */
+  let viewing: Member | null = null;
+  /** Counts gear loads, so only the latest one asked for is drawn. */
+  let loads = 0;
 
   function status(text: string | null, bad = false): void {
     ui.status.hidden = text === null;
@@ -126,7 +148,8 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     const cells = Math.max(row(GRID_CELLS), row(shown.length));
     for (let i = shown.length; i < cells; i++) ui.grid.append(el('span', 'item blank'));
     if (shown.length === 0) {
-      const note = el('p', 'armory-empty', filter === 'all' ? "You don't own any gear yet. Pull some with Koma's gacha in Discord." : `No ${SLOT_NAME[filter].toLowerCase()} yet.`);
+      const none = viewing ? `${viewing.name} doesn't own any gear yet.` : "You don't own any gear yet. Pull some with Koma's gacha in Discord.";
+      const note = el('p', 'armory-empty', filter === 'all' ? none : `No ${SLOT_NAME[filter].toLowerCase()} yet.`);
       ui.grid.append(note);
     }
     sheet.scrollTop = scrolled;
@@ -166,7 +189,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     if (copy.effects.length === 0) effects.append(el('li', 'muted', 'No effects.'));
 
     const worn = isWorn(copy);
-    const current = worn ? undefined : copyById(gear.equipped[copy.slot]);
+    const current = worn || viewing ? undefined : copyById(gear.equipped[copy.slot]);
     const action = el('button', 'detail-action', worn ? 'Unequip' : 'Equip');
     action.type = 'button';
     action.disabled = busy;
@@ -184,7 +207,8 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     const body = el('div', 'detail-body');
     body.append(el('p', 'detail-desc', copy.description), el('p', 'detail-label', 'Effects'), effects);
     if (copy.borrowed !== null) {
-      body.append(el('p', 'detail-note', `This one is made for someone else: you get ${Math.round(copy.borrowed * 100)}% of its effects.`));
+      const who = viewing ? `${viewing.name} gets` : 'you get';
+      body.append(el('p', 'detail-note', `This one is made for someone else: ${who} ${Math.round(copy.borrowed * 100)}% of its effects.`));
     }
     // The copy equipping it would take off, and what it does, set apart from this one's effects.
     if (current) {
@@ -200,7 +224,10 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     // All but the buttons scrolls, when it runs longer than the panel.
     const scroll = el('div', 'detail-scroll');
     scroll.append(bar, top, body);
-    ui.detail.append(scroll, foot);
+    ui.detail.append(scroll);
+    // Someone else's: nothing to do with it, so no buttons, just whether they wear it.
+    if (!viewing) ui.detail.append(foot);
+    else if (worn) info.append(el('span', 'detail-mw detail-worn', 'Equipped'));
   }
 
   /** A copy's card, big (the detail panel's). */
@@ -224,12 +251,14 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     ui.loadoutButton.title = active ? `Loadout: ${active.name}` : 'Loadout';
     ui.loadoutButton.disabled = busy || gear.loadouts.length < 2;
     ui.unequipAll.disabled = busy || SLOTS.every((slot) => !gear?.equipped[slot]);
+    ui.unequipAll.hidden = viewing !== null;
 
     ui.loadoutMenu.textContent = '';
     for (const loadout of gear.loadouts) {
       const row = el('button', 'loadout-row');
       row.type = 'button';
-      row.disabled = busy;
+      // Someone else's loadouts are there to look at, not to switch.
+      row.disabled = busy || (viewing !== null && !loadout.active);
       row.classList.toggle('active', loadout.active);
       row.setAttribute('aria-current', String(loadout.active));
       const icons = el('span', 'loadout-icons');
@@ -245,7 +274,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
       if (loadout.active) row.setAttribute('aria-label', `${loadout.name} (wearing)`);
       row.addEventListener('click', () => {
         showMenu(false);
-        if (!loadout.active) void switchTo(loadout.number);
+        if (!loadout.active && !viewing) void switchTo(loadout.number);
       });
       ui.loadoutMenu.append(row);
     }
@@ -294,17 +323,54 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     if (!gear?.totals.length) ui.totals.append(el('li', 'muted', 'Nothing equipped yet.'));
   }
 
+  function renderRoster(): void {
+    ui.roster.hidden = members.length === 0;
+    ui.rosterList.textContent = '';
+    for (const member of members) {
+      const shown = member.you ? viewing === null : viewing?.userId === member.userId;
+      // A portrait: their picture filling the square, their class's badge in its top left corner (no classes yet, so a
+      // question mark, as on the stage's ribbon), how many items they own in its top right, their name along the bottom.
+      const tile = el('button', 'roster-tile');
+      tile.type = 'button';
+      tile.classList.toggle('you', member.you);
+      tile.setAttribute('aria-current', String(shown));
+      const count = `${member.copies} item${member.copies === 1 ? '' : 's'}`;
+      tile.setAttribute('aria-label', member.you ? `You (${member.name}), ${count}` : `${member.name}, ${count}`);
+      tile.title = `${member.name} · ${count}`;
+      const avatar = el('img', 'roster-avatar');
+      avatar.src = bigAvatar(member.avatar);
+      avatar.alt = '';
+      avatar.loading = 'lazy';
+      const badge = el('span', 'roster-class', '?');
+      badge.title = 'Class: ?';
+      badge.setAttribute('aria-hidden', 'true');
+      tile.append(avatar, badge, el('span', 'roster-count', String(member.copies)), el('span', 'roster-name', member.you ? 'You' : member.name));
+      tile.addEventListener('click', () => {
+        if (shown) return;
+        viewing = member.you ? null : member;
+        picked = null;
+        filter = 'all';
+        showMenu(false);
+        renderRoster();
+        void loadGear();
+      });
+      ui.rosterList.append(tile);
+    }
+  }
+
   function render(): void {
     const me = currentMe();
     if (!me || !gear) return;
     ui.gear.hidden = false;
-    ui.heroName.textContent = me.user.name;
+    const name = viewing?.name ?? me.user.name;
+    ui.gear.classList.toggle('peeking', viewing !== null);
+    ui.heroName.textContent = name;
     const character = currentCharacter();
     if (ui.sprite.getAttribute('src') !== character.sprite) ui.sprite.src = character.sprite;
     ui.sprite.width = character.width;
     ui.sprite.height = character.height;
-    ui.armoryTitle.textContent = `${me.user.name}'s Armory`;
-    ui.statsTitle.textContent = `${me.user.name}'s Stats`;
+    ui.armoryTitle.textContent = `${name}'s Armory`;
+    ui.statsTitle.textContent = `${name}'s Stats`;
     for (const tab of ui.tabs) tab.setAttribute('aria-selected', String(tab.dataset.filter === filter));
     renderSlots();
     renderGrid();
@@ -313,6 +379,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     renderTotals();
     renderStats();
     renderView();
+    renderRoster();
   }
 
   // ---------------------------------------------------------------------------
@@ -335,8 +402,22 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
   async function loadGear(): Promise<void> {
     const server = currentServer();
     if (!server) return;
-    const res = await api<GearView>(`/api/gear?guild=${encodeURIComponent(server)}`);
-    if (!res.ok) return failed(res, 'Could not load your gear.');
+    const load = ++loads;
+    const whose = viewing;
+    const user = whose ? `&user=${encodeURIComponent(whose.userId)}` : '';
+    const res = await api<GearView>(`/api/gear?guild=${encodeURIComponent(server)}${user}`);
+    // Someone else was picked meanwhile.
+    if (load !== loads) return;
+    if (!res.ok) {
+      // They left the server: off the roster, and back to their own gear.
+      if (whose && res.status === 404) {
+        members = members.filter((m) => m.userId !== whose.userId);
+        viewing = null;
+        await loadGear();
+        return status(`${whose.name} isn't in this server any more.`, true);
+      }
+      return failed(res, whose ? `Could not load ${whose.name}'s gear.` : 'Could not load your gear.');
+    }
     gear = res.data;
     if (!copyById(picked)) picked = null;
     status(null);
@@ -366,6 +447,16 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
   const unequipEverything = (): Promise<void> => change('/api/gear/unequip-all', {}, 'Could not unequip everything. Try again.');
   const switchTo = (loadout: number): Promise<void> => change('/api/gear/loadout', { loadout }, 'Could not switch loadouts. Try again.');
 
+  /** The roster. A bot from before it has none to give: the page is then just their own gear, as before. */
+  async function loadMembers(): Promise<void> {
+    const server = currentServer();
+    if (!server) return;
+    const res = await api<{ members: Member[] }>(`/api/gear/members?guild=${encodeURIComponent(server)}`);
+    if (server !== currentServer()) return;
+    members = res.ok ? res.data.members : [];
+    renderRoster();
+  }
+
   function renderServers(): void {
     const me = currentMe();
     if (!me) return;
@@ -386,7 +477,10 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
   ui.server.addEventListener('change', () => {
     setServer(ui.server.value);
     picked = null;
+    viewing = null;
+    members = [];
     void loadGear();
+    void loadMembers();
   });
 
   for (const tab of ui.tabs) {
@@ -453,6 +547,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     if (!res.ok) return failed(res, 'Could not load your servers.');
     if (!currentServer()) return status('None of your servers have Koma in them yet.');
     renderServers();
+    void loadMembers();
     await loadGear();
   }
 
