@@ -8,10 +8,14 @@
  */
 
 .gear-page {
-  --star-1: #9a9ba9;
-  --star-2: #8fc9a3;
-  --star-3: #86a9e6;
-  --star-4: #d8bf7a;
+  /* The star tiers' colours, as the bot's (its constants/items/gacha.ts STAR_COLORS). */
+  --star-1: #3fe04a;
+  --star-2: #4aa8ff;
+  --star-3: #b36bff;
+  --star-4: #ff4a5a;
+  /* What's picked (a card, a slot): its border turns gold, with a pale gold glow in towards the middle. */
+  --picked: #d4a94f;
+  --picked-glow: rgb(255 222 140 / 75%);
   --parchment: #f3ecd8;
   --parchment-2: #e6dabb;
   --parchment-edge: #b9ab88;
@@ -346,17 +350,17 @@
   pointer-events: none;
 }
 
-/* A card: parchment in a worn frame, the tier's colour as its inner line. */
+/* A card: parchment framed in its tier's colour. */
 .item {
   position: relative;
   display: grid;
   place-items: center;
   aspect-ratio: 1;
   padding: 0;
-  border: 2px solid var(--parchment-edge);
+  border: 2px solid var(--tier, var(--parchment-edge));
   border-radius: 6px;
   background: linear-gradient(170deg, #fffaf0, #efe4c7);
-  box-shadow: inset 0 0 0 3px #fffaf0, inset 0 0 0 5px var(--tier, transparent), 0 2px 0 #b3a47f;
+  box-shadow: 0 2px 0 #b3a47f;
   overflow: hidden;
   cursor: pointer;
   transition: transform 0.12s ease, box-shadow 0.12s ease;
@@ -368,8 +372,8 @@
 }
 
 .item.picked {
-  outline: 3px solid var(--accent);
-  outline-offset: 2px;
+  border-color: var(--picked);
+  box-shadow: inset 0 0 0 1px var(--picked), inset 0 0 14px 5px var(--picked-glow), 0 2px 0 #b3a47f;
 }
 
 .item .art {

@@ -250,7 +250,8 @@
 }
 
 .slot.filtered .slot-frame {
-  box-shadow: inset 0 0 0 3px #111014, 0 0 0 3px var(--accent), 0 4px 10px rgb(0 0 0 / 45%);
+  border-color: var(--picked);
+  box-shadow: inset 0 0 0 1px var(--picked), inset 0 0 16px 4px var(--picked-glow), 0 4px 10px rgb(0 0 0 / 45%);
 }
 
 .slot-frame .art {
