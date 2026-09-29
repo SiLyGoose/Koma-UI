@@ -610,46 +610,19 @@
 
 /* ------------------------------------------------------------------ Computers */
 
-/*
- * Tall enough computers: like Pinecraft, the game fills the window: the title bar on top, the felt
- * growing into the space under it, and the rack along the bottom. Too short a window keeps the plain
- * layout, which scrolls.
- */
-@media (min-width: 900px) and (min-height: 640px) {
+/* A big table, with everyone's stacks along the bottom of each spot. */
+@media (min-width: 900px) {
   .bc {
-    height: 100vh;
-    height: 100dvh;
-    padding-bottom: 0;
-    overflow: hidden;
-  }
-
-  .bc > .top {
-    margin-bottom: 0;
-  }
-
-  /* The game sits in the middle of the space under the title bar (auto margins above it and below the hint). */
-  .bc > .hint {
-    margin-top: 6px;
-    margin-bottom: auto;
-    padding-bottom: 6px;
-  }
-
-  .bc-felt {
-    flex: 1;
-    min-height: 0;
-    justify-content: space-evenly;
-  }
-
-  /* The table itself stays a sensible width on a wide screen, centered on the felt. */
-  .bc-board,
-  .bc-hands,
-  .bc-spots {
-    width: min(100%, 1400px);
-    align-self: center;
+    --card-w: 92px;
   }
 
   .bc-hands {
     gap: 24px;
+    justify-items: center;
+  }
+
+  .bc-cards {
+    justify-content: center;
   }
 
   .bc-hand-name {
@@ -663,32 +636,6 @@
   .bc-vs {
     min-width: 120px;
     font-size: 15px;
-  }
-
-  /* The spots take what's left of the felt's height (up to a point), Player and Banker the most. */
-  .bc-spots {
-    flex: 1;
-    max-height: 440px;
-    grid-template-rows: 1fr 1.3fr;
-  }
-
-  .bc-spot-help {
-    font-size: 12px;
-  }
-}
-
-/* A big table, with everyone's stacks along the bottom of each spot. */
-@media (min-width: 900px) {
-  .bc {
-    --card-w: 92px;
-  }
-
-  .bc-hands {
-    justify-items: center;
-  }
-
-  .bc-cards {
-    justify-content: center;
   }
 
   .bc-spots {
@@ -715,5 +662,134 @@
 
   .bc-spot-odds {
     font-size: 13px;
+  }
+
+  .bc-spot-help {
+    font-size: 12px;
+  }
+}
+
+/*
+ * Filling the window (../table/table.css): the scoreboard, the cards and the spots are sized to the
+ * window's height, the spots taking what's left of the felt (up to a point), Player and Banker the most.
+ */
+@media (min-width: 900px) and (min-height: 540px) {
+  .bc {
+    --card-w: clamp(44px, 7.6vh, 92px);
+  }
+
+  .bc-board {
+    --c: clamp(8px, 1.45vh, 18px);
+  }
+
+  .bc-felt {
+    justify-content: space-evenly;
+  }
+
+  /* The table itself stays a sensible width on a wide screen, centered on the felt. */
+  .bc-board,
+  .bc-hands,
+  .bc-spots {
+    flex: none;
+    width: min(100%, 1400px);
+    align-self: center;
+  }
+
+  .bc-hand {
+    gap: clamp(4px, 0.8vh, 8px);
+    padding: clamp(3px, 0.8vh, 8px) 10px clamp(4px, 1.2vh, 12px);
+  }
+
+  .bc-hands {
+    min-height: calc(var(--card-w) * 1.45 + clamp(32px, 4.4vh, 44px));
+  }
+
+  .bc-spots {
+    flex: 1 1 auto;
+    min-height: 120px;
+    max-height: 440px;
+    grid-template-rows: 1fr 1.3fr;
+    gap: clamp(8px, 1.4vh, 14px);
+  }
+
+  .bc-spot,
+  .bc-spot.bc-main {
+    min-height: 0;
+    padding: clamp(6px, 1.4vh, 14px) 10px;
+  }
+}
+
+/*
+ * Most windows: the spots are wide but not tall, so each has its name and odds on one line, on the
+ * left, and everyone's stacks beside them, and the rows are the same height. A side bet's rule goes
+ * under its name when the spot has the room for it.
+ */
+@media (min-width: 900px) and (min-height: 540px) and (max-height: 1040px) {
+  .bc-spots {
+    grid-template-rows: 1fr 1fr;
+  }
+
+  .bc-spot {
+    container-type: size;
+    display: grid;
+    grid-template-columns: auto auto auto;
+    /* The name in the middle of the spot, where a growing stack beside it can't move it. */
+    grid-template-rows: minmax(0, 1fr) auto auto minmax(0, 1fr);
+    grid-template-areas:
+      '. . piles'
+      'name odds piles'
+      'help help piles'
+      '. . piles';
+    align-items: baseline;
+    justify-content: center;
+    column-gap: 8px;
+  }
+
+  /* Together in the middle of their columns, which the rule under them can make wider. */
+  .bc-spot-name {
+    grid-area: name;
+    justify-self: end;
+  }
+
+  .bc-spot-odds {
+    grid-area: odds;
+    justify-self: start;
+  }
+
+  .bc-spot-help {
+    grid-area: help;
+    max-width: 16em;
+  }
+
+  .bc-spot .tb-piles {
+    grid-area: piles;
+    align-self: center;
+    gap: 6px 8px;
+    margin-top: 0;
+    margin-left: 6px;
+    padding-top: 0;
+  }
+
+  .bc-spot .tb-piles:empty {
+    display: none;
+  }
+
+  /* A side bet's rule until someone bets on it: then its room goes to their stacks. */
+  .bc-spot:has(.tb-pile) .bc-spot-help {
+    display: none;
+  }
+}
+
+/* Shorter still: each stack with its owner beside it rather than under it. */
+@media (min-width: 900px) and (min-height: 540px) and (max-height: 820px) {
+  .bc-spot .tb-pile {
+    flex-direction: row;
+    align-items: flex-end;
+  }
+}
+
+@container (max-height: 56px) or (max-width: 200px) {
+  .bc-spot-help {
+    display: none;
   }
 }

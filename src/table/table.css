@@ -853,3 +853,169 @@
     font-size: 15px;
   }
 }
+
+/*
+ * Computers tall enough to play on: the game fills the window, like Pinecraft: the title bar on top,
+ * the felt growing into the space under it, and the rack along the bottom, always in view. The table
+ * is sized to the window's height (each game's stylesheet does its felt), so a shorter screen gets a
+ * smaller table rather than a page to scroll or zoom out of. If the felt still doesn't fit, it scrolls
+ * on its own, under a rack that stays put. Too short a window keeps the plain layout, which scrolls.
+ */
+@media (min-width: 900px) and (min-height: 540px) {
+  .tb {
+    height: 100vh;
+    height: 100dvh;
+    padding-bottom: 0;
+    overflow: hidden;
+  }
+
+  .tb > .top {
+    margin-bottom: 0;
+  }
+
+  .tb > .tb-layout {
+    flex: 1;
+    min-height: 0;
+    margin-top: clamp(6px, 1.6vh, 16px);
+    align-items: stretch;
+  }
+
+  .tb > .hint {
+    margin-top: clamp(4px, 1vh, 10px);
+    margin-bottom: clamp(4px, 1vh, 10px);
+  }
+
+  .tb-layout > .tb-game {
+    min-height: 0;
+  }
+
+  .tb-players {
+    align-self: flex-start;
+    max-height: 100%;
+    overflow-y: auto;
+  }
+
+  .tb-felt {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    padding: clamp(12px, 2.6vh, 34px) clamp(20px, 3vw, 40px);
+    gap: clamp(8px, 1.8vh, 28px);
+  }
+
+  .tb-panel {
+    flex: none;
+    gap: clamp(8px, 1.2vh, 12px);
+    padding: clamp(8px, 1.7vh, 18px) 26px clamp(10px, 1.9vh, 20px);
+  }
+
+  .tb-timer {
+    height: clamp(22px, 3vh, 30px);
+  }
+
+  .tb-rack .tb-chip,
+  .tb-ghost {
+    --size: clamp(40px, 6vh, 58px);
+  }
+
+  .tb-button {
+    padding: clamp(7px, 1vh, 10px) 14px;
+  }
+
+  .tb-deal {
+    padding: clamp(8px, 1.1vh, 11px) 26px;
+  }
+
+  .tb-pile-chips {
+    --chip-size: clamp(28px, 3.8vh, 38px);
+  }
+}
+
+/* Wide enough: the rack between the figures and the buttons, on one row, leaving the felt more of the height. */
+@media (min-width: 1020px) and (min-height: 540px) {
+  .tb-panel {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas:
+      'timer timer timer'
+      'figures rack buttons'
+      'error error error';
+    align-items: center;
+    column-gap: 20px;
+  }
+
+  .tb-timer {
+    grid-area: timer;
+  }
+
+  .tb-bar {
+    display: contents;
+  }
+
+  .tb-figures {
+    grid-area: figures;
+  }
+
+  .tb-rack {
+    grid-area: rack;
+    gap: 8px;
+  }
+
+  .tb-buttons {
+    grid-area: buttons;
+    flex-wrap: nowrap;
+  }
+
+  .tb-button {
+    padding-left: 11px;
+    padding-right: 11px;
+  }
+
+  .tb-deal {
+    min-width: 100px;
+  }
+
+  .tb-error {
+    grid-area: error;
+  }
+}
+
+@media (min-width: 1280px) and (max-width: 1499px) and (min-height: 540px) {
+  .tb-players {
+    flex-basis: 250px;
+  }
+}
+
+/*
+ * Not wide enough for the list beside the table: the table has the whole width and fills the window
+ * under the title bar, and everyone at it is listed under it, a scroll away.
+ */
+@media (min-width: 900px) and (max-width: 1279px) and (min-height: 540px) {
+  .tb {
+    height: auto;
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow: visible;
+  }
+
+  .tb > .tb-layout {
+    flex: none;
+    flex-direction: column;
+  }
+
+  .tb-layout > .tb-game {
+    flex: none;
+    height: calc(100vh - var(--tb-under-bar));
+    height: calc(100dvh - var(--tb-under-bar));
+    /* The title bar, the gap under it and the gap under the table. */
+    --tb-under-bar: calc(36px + clamp(6px, 1.6vh, 16px) + 12px);
+  }
+
+  .tb-players {
+    flex: none;
+    align-self: stretch;
+    max-height: none;
+    overflow: visible;
+  }
+}

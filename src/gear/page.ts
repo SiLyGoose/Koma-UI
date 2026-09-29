@@ -73,7 +73,7 @@ interface GearView {
 
 const SLOTS: Slot[] = ['weapon', 'armor', 'treasure'];
 
-/** The armory always shows at least this many cells, and fills out its last row (12 fits 3 or 4 across). */
+/** The armory always shows at least this many cells (rounded up to a full row), and fills out its last row. */
 const GRID_CELLS = 12;
 
 /** The Common tab's first group, about the hero rather than their gear. No classes yet, so it's a question mark. */
@@ -164,9 +164,14 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     }
   }
 
+  /** How many cards across the armory is (3 to 5, by the screen: ../shared/items/items.css), so its blanks fill out the last row. */
+  let gridColumns = 0;
+  const columns = (): number => getComputedStyle(ui.grid).gridTemplateColumns.split(' ').length || 4;
+
   function renderGrid(): void {
     if (!gear) return;
     ui.grid.textContent = '';
+    gridColumns = columns();
     const shown = gear.copies.filter((c) => filter === 'all' || c.slot === filter);
     for (const copy of shown) {
       const card = el('button', 'item');
@@ -184,7 +189,8 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
       });
       ui.grid.append(card);
     }
-    const cells = Math.max(GRID_CELLS, Math.ceil(shown.length / GRID_CELLS) * GRID_CELLS);
+    const row = (n: number): number => Math.ceil(n / gridColumns) * gridColumns;
+    const cells = Math.max(row(GRID_CELLS), row(shown.length));
     for (let i = shown.length; i < cells; i++) ui.grid.append(el('span', 'item blank'));
     if (shown.length === 0) {
       const note = el('p', 'armory-empty', filter === 'all' ? "You don't own any gear yet. Pull some with Koma's gacha in Discord." : `No ${SLOT_NAME[filter].toLowerCase()} yet.`);
@@ -606,8 +612,13 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
       ui.loadoutButton.focus();
     } else if (picked) unpick();
   };
+  // A resize that changes how many cards fit across refills the blanks.
+  const onResize = (): void => {
+    if (gridColumns && columns() !== gridColumns) renderGrid();
+  };
   document.addEventListener('click', onClick);
   document.addEventListener('keydown', onKey);
+  window.addEventListener('resize', onResize);
 
   async function start(): Promise<void> {
     if (!API) return status('This site is not set up yet: VITE_API_URL (the bot’s address) is missing.', true);
@@ -624,6 +635,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     unmount() {
       document.removeEventListener('click', onClick);
       document.removeEventListener('keydown', onKey);
+      window.removeEventListener('resize', onResize);
       serverPicker.destroy();
       if (ui.confirm.open) ui.confirm.close();
       if (ui.other.open) ui.other.close();

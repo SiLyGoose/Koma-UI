@@ -32,6 +32,13 @@
 /* Wide screens: the page's panels in the middle of the screen under the header. */
 @media (min-width: 900px) {
   .gear-page {
+    /*
+     * How tall the page's two panels are (the gear page's and the databank's, so they line up going from
+     * one to the other): the screen under the header, less the page's padding and room for the name
+     * boards hung over the frames' top edges.
+     */
+    --panels-h: calc(100dvh - 72px - 48px - 20px);
+    --panels-min: 560px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -655,4 +662,52 @@
 .detail-head .art.full {
   padding: 0;
   overflow: hidden;
+}
+
+/*
+ * Smaller computer screens (narrower than 1280px, or shorter than 820px): everything a size down, and
+ * five cards across, so the page isn't all big cards and buttons.
+ */
+@media (min-width: 900px) and (max-width: 1279px), (min-width: 900px) and (max-height: 820px) {
+  .gear-page {
+    --panels-h: calc(100dvh - 72px - 32px - 20px);
+    --panels-min: 480px;
+    padding-block: 16px;
+  }
+
+  .armory {
+    padding: 26px 12px 12px;
+  }
+
+  .armory-plaque {
+    padding: 5px 18px;
+    font-size: 14px;
+  }
+
+  .armory-tabs {
+    margin-bottom: 10px;
+  }
+
+  .armory-tabs button {
+    padding: 5px 10px;
+    font-size: 12.5px;
+  }
+
+  .armory-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .item .star {
+    font-size: 13px;
+  }
+
+  .item-level {
+    font-size: 10px;
+  }
+
+  .item-tag {
+    padding: 1px 4px;
+    font-size: 8px;
+  }
 }

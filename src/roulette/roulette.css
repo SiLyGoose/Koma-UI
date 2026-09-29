@@ -494,3 +494,25 @@
     font-size: 20px;
   }
 }
+
+/* Filling the window (../table/table.css): the wheel and the board sized to the window's height. */
+@media (min-width: 900px) and (min-height: 540px) {
+  .rl {
+    --wheel: clamp(130px, 25vh, 250px);
+    --cell-h: clamp(40px, 6.6vh, 66px);
+    --out-h: clamp(32px, 5.2vh, 52px);
+  }
+
+  .rl-felt {
+    justify-content: space-evenly;
+  }
+
+  .rl-top,
+  .rl-board {
+    flex: none;
+  }
+
+  .rl-number {
+    font-size: clamp(15px, 2vh, 20px);
+  }
+}
