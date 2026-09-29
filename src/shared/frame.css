@@ -76,6 +76,13 @@
   border-color: rgba(255, 255, 255, 0.75);
 }
 
+/* The drop-down's Gear and Databank (frame.ts): not on a phone, where it holds the bar's things too. */
+@media (max-width: 640px) {
+  .account-menu .frame-wide-only {
+    display: none;
+  }
+}
+
 /* On a phone: the connection and the online button at the top of the profile's drop-down (frame.ts). */
 .frame-profile-extra .account-menu {
   width: min(320px, calc(100vw - 16px));
