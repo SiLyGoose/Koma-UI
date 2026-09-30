@@ -682,8 +682,8 @@
   left: 50%;
   bottom: -9px;
   transform: translateX(-50%);
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 400;
   white-space: nowrap;
   text-shadow: 0 1px 2px #000, 0 0 3px #000, 0 0 6px #000;
 }
@@ -706,7 +706,7 @@
 
 .rd-action.main .rd-action-name {
   bottom: -11px;
-  font-size: 15px;
+  font-size: 17px;
 }
 
 /* The others, three quarters of Attack's size: above it, and above to its left and right. */
@@ -716,7 +716,7 @@
 }
 
 .rd-action.small .rd-action-name {
-  font-size: 14px;
+  font-size: 16px;
 }
 
 .rd-action.guard {
