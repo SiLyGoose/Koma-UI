@@ -14,7 +14,7 @@ import { api, currentMe, currentServer, hasSession, loadMe, loggedIn, logIn, log
 
 /** A game to open once logged in: from a link like /?play=mines&guild=123 (the bot's buttons in Discord). */
 const PLAY_KEY = 'koma.playNext';
-const GAMES: readonly Game[] = ['mines', 'pinecraft', 'baccarat', 'roulette'];
+const GAMES: readonly Game[] = ['mines', 'pinecraft', 'baccarat', 'roulette', 'raid'];
 
 const points = (n: number): string => n.toLocaleString('en-US');
 

@@ -128,6 +128,12 @@
   background: #1a1411 url('/pinecraft/cover.png') center / cover no-repeat;
 }
 
+.raid-art {
+  /* This week's boss: the Ember Wyrm (../../public/raid/cover.png). */
+  background: #0f1830 url('/raid/cover.png') center / cover no-repeat;
+  image-rendering: pixelated;
+}
+
 .mines-art {
   /* A picture of the game (../../public/mines/cover.png), on the gem in the middle. */
   background: var(--panel) url('/mines/cover.png') center / cover no-repeat;

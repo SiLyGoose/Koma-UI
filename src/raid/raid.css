@@ -1,0 +1,525 @@
+/*
+ * The raid's page (main.ts): the boss on the left (its picture, HP and next move), and on the right
+ * whatever there is to do (start, the lobby, the fight's actions, how it ended), the party and the
+ * action log. One over the other on a phone.
+ */
+
+.rd {
+  --rd-hi: #6fcf8a;
+  --rd-mid: #e6c350;
+  --rd-lo: #e0595b;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.rd-title-boss {
+  color: rgba(255, 255, 255, 0.75);
+  font-weight: 500;
+  text-transform: none;
+}
+
+.rd-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 14px 16px 24px;
+  box-sizing: border-box;
+}
+
+@media (min-width: 900px) {
+  .rd-layout {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    align-items: start;
+    padding-top: 20px;
+  }
+
+  /* The boss stays in view while the party and the log scroll past. */
+  .rd-stage {
+    position: sticky;
+    top: 16px;
+  }
+}
+
+/* ------------------------------------------------------------------ the boss */
+
+.rd-stage {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.rd-picture {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #000;
+  aspect-ratio: 16 / 9;
+}
+
+.rd-picture img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  /* Whole, never cropped: the pictures aren't all the same shape. */
+  object-fit: contain;
+  image-rendering: pixelated;
+  user-select: none;
+}
+
+.rd-tags {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.rd-tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.55);
+  color: var(--text);
+  font-size: 11.5px;
+  font-weight: 600;
+  vertical-align: middle;
+}
+
+.rd-tags .rd-tag {
+  margin: 0;
+  backdrop-filter: blur(3px);
+}
+
+.rd-tag.hot {
+  background: rgba(190, 50, 30, 0.8);
+}
+
+.rd-tag.cold {
+  background: rgba(40, 110, 200, 0.8);
+}
+
+.rd-tag.gold {
+  background: rgba(170, 130, 40, 0.85);
+}
+
+.rd-bossbar,
+.rd-intent,
+.rd-panel {
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+
+.rd-bossbar-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+
+.rd-bossbar-head span {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.rd-bar {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--panel-3);
+}
+
+.rd-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--rd-hi);
+  transition: width 0.4s ease;
+}
+
+.rd-bar > span.mid {
+  background: var(--rd-mid);
+}
+
+.rd-bar > span.lo {
+  background: var(--rd-lo);
+}
+
+.rd-bar.big {
+  height: 14px;
+}
+
+.rd-bar.big > span {
+  background: linear-gradient(90deg, #a3262a, #e0595b);
+}
+
+.rd-bar.timer {
+  height: 5px;
+  margin: 6px 0 12px;
+}
+
+.rd-bar.timer > span {
+  background: var(--gold);
+  transition: width 0.25s linear;
+}
+
+.rd-label {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.rd-intent p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ------------------------------------------------------------------ the side */
+
+.rd-side {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+
+.rd-panel h2,
+.rd-panel h3 {
+  margin: 0 0 8px;
+}
+
+.rd-panel h2 {
+  font-size: 18px;
+}
+
+.rd-panel h3 {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.rd-muted {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.rd-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.rd-button {
+  padding: 9px 18px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel-2);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.rd-button:hover:not(:disabled) {
+  background: var(--panel-3);
+}
+
+.rd-button.primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+.rd-button.primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.rd-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.rd-list {
+  display: grid;
+  gap: 4px;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+}
+
+.rd-list li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: var(--panel-2);
+  font-size: 14px;
+}
+
+.rd-list li.you {
+  box-shadow: inset 3px 0 0 var(--gold);
+}
+
+.rd-list.ranked {
+  counter-reset: rank;
+}
+
+.rd-list.ranked li::before {
+  counter-increment: rank;
+  content: counter(rank) '.';
+  min-width: 18px;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.rd-dmg {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The fight: the round and its time, the four actions, and Heal's "who?". */
+.rd-turn {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.rd-turn h2 {
+  margin: 0;
+}
+
+.rd-turn .rd-muted {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.rd-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.rd-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 8px;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  color: #fff;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.08s ease, filter 0.12s ease;
+}
+
+.rd-action span {
+  font-size: 18px;
+}
+
+.rd-action.attack {
+  background: #a8373a;
+}
+
+.rd-action.guard {
+  background: #3b5fb0;
+}
+
+.rd-action.heal {
+  background: #2f8a55;
+}
+
+.rd-action.support {
+  background: #5b5470;
+}
+
+.rd-action:hover:not(:disabled) {
+  filter: brightness(1.12);
+}
+
+.rd-action:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.rd-action:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.rd-action.picked {
+  border-color: var(--gold);
+  opacity: 1;
+  box-shadow: 0 0 0 3px rgba(216, 191, 122, 0.25);
+}
+
+.rd-note {
+  min-height: 1.4em;
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 13.5px;
+}
+
+.rd-heal {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.rd-heal-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.rd-heal-option {
+  padding: 7px 12px;
+  border: 1px solid #2f8a55;
+  border-radius: 999px;
+  background: rgba(47, 138, 85, 0.15);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.rd-heal-option:hover {
+  background: rgba(47, 138, 85, 0.35);
+}
+
+.rd-heal-option.auto {
+  font-weight: 600;
+}
+
+.rd-heal-option.down {
+  border-color: var(--rd-lo);
+  background: rgba(224, 89, 91, 0.15);
+}
+
+/* The party: each raider's HP and what they picked. */
+.rd-party {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rd-party li {
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--panel-2);
+}
+
+.rd-party li.you {
+  box-shadow: inset 3px 0 0 var(--gold);
+}
+
+.rd-party li.down {
+  opacity: 0.55;
+}
+
+.rd-party-head,
+.rd-party-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+}
+
+.rd-party-head {
+  margin-bottom: 5px;
+}
+
+.rd-party-name {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rd-party-status {
+  flex-shrink: 0;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+.rd-party-foot {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The action log, newest at the bottom. */
+.rd-log {
+  display: grid;
+  gap: 4px;
+  max-height: 320px;
+  margin: 0;
+  padding: 0 4px 0 0;
+  overflow-y: auto;
+  list-style: none;
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+
+.rd-log li {
+  padding: 3px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.md-mention {
+  padding: 0 3px;
+  border-radius: 4px;
+  background: rgba(88, 101, 242, 0.25);
+  color: #c9cdfb;
+  font-weight: 500;
+}
+
+.md-emoji {
+  width: 1.3em;
+  height: 1.3em;
+  vertical-align: -0.3em;
+  object-fit: contain;
+}
+
+/* What a press came to, when it didn't go through. */
+.rd-toast {
+  position: fixed;
+  left: 50%;
+  bottom: max(18px, env(safe-area-inset-bottom));
+  z-index: 20;
+  max-width: min(460px, calc(100vw - 32px));
+  padding: 10px 16px;
+  transform: translateX(-50%);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel-2);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  font-size: 14px;
+  text-align: center;
+}
