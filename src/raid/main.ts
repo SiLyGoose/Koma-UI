@@ -3,7 +3,7 @@ import { barSlot, setConn, soundButton } from '../shared/frame';
 import { apiFromSocket, startLive } from '../shared/live';
 import { setMuted } from '../shared/sfx';
 import { markdown } from './markdown';
-import type { ActProblem, AnswerCode, ClientMessage, ErrorCode, RaidAction, RaidView, ServerMessage } from './protocol';
+import type { ActProblem, AnswerCode, ClientMessage, ErrorCode, RaidAction, RaidFightView, RaidView, ServerMessage } from './protocol';
 import './raid.css';
 
 /*
@@ -166,6 +166,29 @@ function hpBar(hp: number, max: number, className = ''): HTMLElement {
   return bar;
 }
 
+/**
+ * The buffs on a raider, as little squares under their HP (public/raid/buff_<name>.png), each with a
+ * blue up arrow for a buff: Attack while Support's rally lasts (everyone standing, with its turns
+ * left), and Guard once they've picked it this turn (their guard is up for the boss's next move).
+ */
+function buffRow(p: RaidFightView['players'][number], f: RaidFightView): HTMLElement {
+  const row = el('div', 'rd-buffs');
+  const buff = (name: 'attack' | 'guard', title: string, count?: number): void => {
+    const square = el('span', 'rd-buff');
+    square.title = title;
+    const icon = el('img');
+    icon.src = `/raid/buff_${name}.png`;
+    icon.alt = '';
+    icon.draggable = false;
+    square.append(icon, el('span', 'rd-buff-up'));
+    if (count !== undefined) square.append(el('span', 'rd-buff-count', String(count)));
+    row.append(square);
+  };
+  if (p.hp > 0 && f.rallied > 0) buff('attack', `Rallied: attacks ×${f.rallyMultiplier} for ${plural(f.rallied, 'more turn', 'more turns')}`, f.rallied);
+  if (p.hp > 0 && p.picked === 'guard') buff('guard', 'Guarding this turn');
+  return row;
+}
+
 /** A player's profile picture, or the first letter of their name when the bot doesn't know it. */
 function avatar(userId: string, v: RaidView): HTMLElement {
   const url = v.avatars[userId];
@@ -281,7 +304,7 @@ function renderFight(v: RaidView): void {
     // Under the portrait, as in a game's party bar: their name on the left and their HP on the right, over the bar.
     const stats = el('div', 'rd-member-stats');
     stats.append(el('span', 'rd-member-name', v.names[p.userId] ?? 'Someone'), el('span', 'rd-member-hp', fmt(Math.max(0, p.hp))));
-    li.append(portrait, stats, hpBar(p.hp, p.maxHp, 'rd-member-bar'));
+    li.append(portrait, stats, hpBar(p.hp, p.maxHp, 'rd-member-bar'), buffRow(p, f));
     ui.party.append(li);
   }
 
