@@ -205,10 +205,14 @@
   display: grid;
   grid-template-columns: minmax(0, 5fr) minmax(0, 8fr);
   gap: 18px;
-  /* The screen (under the title bar and the frame's border) less a margin, unzoomed: a percentage of .rd-prep wouldn't resolve. */
+  /*
+   * The screen (under the title bar and the frame's border) less a margin, unzoomed: a percentage of
+   * .rd-prep wouldn't resolve. The party's side sets the height (its cards, as big as fit), up to that.
+   */
+  --rd-room: min(900px, calc((100vh - 69px) / var(--rd-zoom)));
+  --rd-room: min(900px, calc((100dvh - 69px) / var(--rd-zoom)));
   width: min(1680px, calc((100vw - 32px) / var(--rd-zoom)));
-  height: min(900px, calc((100vh - 69px) / var(--rd-zoom)));
-  height: min(900px, calc((100dvh - 69px) / var(--rd-zoom)));
+  max-height: var(--rd-room);
   min-height: 420px;
   zoom: var(--rd-zoom);
 }
@@ -235,6 +239,12 @@
   font-weight: 700;
   letter-spacing: 0.02em;
   text-align: center;
+}
+
+/* The boss's side takes the party's height, whatever it has to say (it scrolls). */
+.rd-prep-boss {
+  height: 0;
+  min-height: 100%;
 }
 
 /* The boss: its picture, then what it does (scrolling when it runs long). */
@@ -300,10 +310,13 @@
  * with room above and below them.
  */
 .rd-slots-wrap {
-  flex: 1;
-  min-height: 0;
-  container-type: size;
-  padding: 44px 24px 28px;
+  /* The room above and below the cards, and what else is in the panel (its header, the buff effects, the buttons). */
+  --rd-slots-top: 40px;
+  --rd-slots-bottom: 32px;
+  --rd-party-rest: 212px;
+  flex: none;
+  container-type: inline-size;
+  padding: var(--rd-slots-top) 24px var(--rd-slots-bottom);
 }
 
 .rd-prep-party .rd-slots {
@@ -311,7 +324,6 @@
   display: flex;
   justify-content: safe center;
   gap: var(--rd-gap);
-  height: 100%;
   overflow-x: auto;
   overflow-y: hidden;
   overscroll-behavior-x: contain;
@@ -325,8 +337,9 @@
   flex: none;
   display: grid;
   place-items: center;
-  /* Four to a row, or as tall as the row (less room for its scrollbar), whichever is smaller. */
-  width: min((100cqw - 3 * var(--rd-gap)) / 4, (100cqh - 10px) * 5 / 9);
+  /* Four to a row, or as tall as the screen has room for (less the rest of the panel, and the row's scrollbar), whichever is smaller. */
+  width: min((100cqw - 3 * var(--rd-gap)) / 4, (var(--rd-room) - var(--rd-party-rest) - var(--rd-slots-top) - var(--rd-slots-bottom) - 10px) * 5 / 9);
+  margin-bottom: 8px;
   aspect-ratio: 5 / 9;
   align-self: center;
   scroll-snap-align: start;
@@ -1923,7 +1936,8 @@ button.rd-slot {
   }
 
   .rd-slots-wrap {
-    padding: 14px 20px 12px;
+    --rd-slots-top: 14px;
+    --rd-slots-bottom: 4px;
   }
 
   body.rd-fighting .frame > .top {
