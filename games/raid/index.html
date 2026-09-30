@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="robots" content="noindex" />
+    <title>Koma Raid</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚔️</text></svg>" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" />
+  </head>
+  <body>
+    <main id="app" class="frame rd">
+      <header class="top">
+        <a class="back" href="/" aria-label="Back to the games">←</a>
+        <h1>⚔️ Raid <span id="boss-title" class="rd-title-boss"></span></h1>
+        <button type="button" id="mute" class="frame-mute" aria-label="Turn sound off" aria-pressed="false">🔊</button>
+        <span id="conn" class="conn">Connecting…</span>
+      </header>
+
+      <!-- Before and after the fight: the boss's picture, and what there is to do (start the week's raid, the lobby, how it ended). -->
+      <div id="layout" class="rd-layout">
+        <section class="rd-stage">
+          <div class="rd-picture">
+            <img id="boss-picture" alt="" draggable="false" />
+          </div>
+        </section>
+
+        <section class="rd-side">
+          <div id="idle" class="rd-panel" hidden>
+            <h2 id="idle-title"></h2>
+            <p id="idle-text" class="rd-muted"></p>
+            <button type="button" id="start" class="rd-button primary" hidden>Start the raid</button>
+          </div>
+
+          <div id="lobby" class="rd-panel" hidden>
+            <h2>Lobby</h2>
+            <p class="rd-muted">The fight starts in <b id="lobby-timer"></b>, or when the host starts it. Boss HP: <b id="lobby-hp"></b> (grows with every raider).</p>
+            <ul id="lobby-players" class="rd-list"></ul>
+            <div class="rd-row">
+              <button type="button" id="join" class="rd-button primary">Join</button>
+              <button type="button" id="leave" class="rd-button">Leave</button>
+              <button type="button" id="begin" class="rd-button" hidden>Start now</button>
+            </div>
+          </div>
+
+          <div id="over" class="rd-panel" hidden>
+            <h2 id="over-title"></h2>
+            <p id="over-text" class="rd-muted"></p>
+            <ol id="over-ranking" class="rd-list ranked"></ol>
+          </div>
+        </section>
+      </div>
+
+      <!--
+        The fight, as a battle screen: the boss filling the scene, its name and HP across the top in the
+        middle with its next move under them, the round and the turn's time in the corner, the action
+        log down the side, and the party along the bottom with the actions.
+      -->
+      <section id="battle" class="rd-battle" hidden>
+        <img id="battle-backdrop" class="rd-battle-bg" alt="" draggable="false" aria-hidden="true" />
+        <img id="battle-picture" class="rd-battle-boss" alt="" draggable="false" />
+        <div class="rd-battle-shade" aria-hidden="true"></div>
+
+        <div class="rd-battle-top">
+          <div class="rd-boss">
+            <div class="rd-boss-name" id="boss-name"></div>
+            <div class="rd-boss-bar"><span id="boss-fill"></span><b id="boss-pct"></b></div>
+            <div class="rd-boss-sub"><span id="boss-tags" class="rd-tags"></span></div>
+          </div>
+          <div class="rd-round">
+            <b id="round"></b>
+            <span id="turn-text"></span>
+            <div class="rd-timer"><span id="turn-fill"></span></div>
+          </div>
+        </div>
+
+        <div class="rd-intent">
+          <span class="rd-intent-label">Next move</span>
+          <p id="intent-text"></p>
+        </div>
+
+        <details id="log-panel" class="rd-log-panel" open>
+          <summary>Action log</summary>
+          <ol id="log" class="rd-log"></ol>
+        </details>
+
+        <div class="rd-battle-bottom">
+          <ul id="party" class="rd-party" aria-label="Party"></ul>
+          <div class="rd-command">
+            <div id="heal-pick" class="rd-heal" hidden>
+              <span class="rd-intent-label">Heal who? <i class="rd-heal-hint">or pick them in the party</i></span>
+              <div id="heal-options" class="rd-heal-options"></div>
+            </div>
+            <p id="act-note" class="rd-note"></p>
+            <!-- Attack, the big circle, with the other moves in smaller circles round it (each class's own moves, one day). -->
+            <div id="actions" class="rd-actions">
+              <button type="button" class="rd-action main attack" data-action="attack"><span class="rd-orb"><img class="rd-icon" src="/raid/actions/action_attack.png" alt="" draggable="false" /><span class="rd-action-name">Attack</span></span></button>
+              <button type="button" class="rd-action small guard" data-action="guard"><span class="rd-orb"><img class="rd-icon" src="/raid/actions/action_guard.png" alt="" draggable="false" /><span class="rd-action-name">Guard</span></span></button>
+              <button type="button" class="rd-action small heal" data-action="heal"><span class="rd-orb"><img class="rd-icon" src="/raid/actions/action_heal.png" alt="" draggable="false" /><span class="rd-action-name">Heal</span></span></button>
+              <button type="button" class="rd-action small support" data-action="support"><span class="rd-orb"><img class="rd-icon" src="/raid/actions/action_support.png" alt="" draggable="false" /><span class="rd-action-name">Support</span></span></button>
+            </div>
+          </div>
+        </div>
+        <!--
+          How the fight ended (won, the party fell, or the boss got away): over the battle's own scene, a dark
+          blur, VICTORY or DEFEAT across it, and what each raider did in a band under it.
+        -->
+        <section id="result" class="rd-result" hidden>
+          <div class="rd-result-shade" aria-hidden="true"></div>
+          <div class="rd-result-body">
+            <h2 id="result-title" class="rd-result-title"></h2>
+            <p id="result-text" class="rd-result-text"></p>
+            <div class="rd-result-band">
+              <table class="rd-result-table">
+                <thead>
+                  <tr><th>Raider</th><th>Damage dealt</th><th>Healed</th><th>Mitigated</th></tr>
+                </thead>
+                <tbody id="result-rows"></tbody>
+              </table>
+            </div>
+            <a class="rd-button rd-result-back back" href="/">← Back to the games</a>
+          </div>
+        </section>
+      </section>
+
+
+      <div id="toast" class="rd-toast" role="status" hidden></div>
+    </main>
+
+    <!-- A phone held upright: the raid is played sideways, like a game (raid.css shows this only then). -->
+    <div id="rotate" class="rd-rotate" role="alert">
+      <div class="rd-rotate-card">
+        <div class="rd-rotate-phone" aria-hidden="true"></div>
+        <b>Turn your phone sideways</b>
+        <span>The raid is played in landscape.</span>
+        <button type="button" id="rotate-go" class="rd-button primary" hidden>Play in landscape</button>
+        <a class="rd-button rd-rotate-back back" href="/">← Back to the games</a>
+      </div>
+    </div>
+
+    <div id="message" class="message" hidden>
+      <div class="message-card">
+        <div class="message-title" id="message-title"></div>
+        <div class="message-text" id="message-text"></div>
+        <a class="message-link" href="/">Go to the games</a>
+      </div>
+    </div>
+
+    <script type="module" src="/src/raid/main.ts"></script>
+  </body>
+</html>
