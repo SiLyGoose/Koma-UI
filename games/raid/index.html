@@ -20,24 +20,14 @@
         <span id="conn" class="conn">Connecting…</span>
       </header>
 
-      <div class="rd-layout">
-        <!-- The boss: its picture (angrier as it loses HP), its HP, and what it does next. -->
+      <!-- Before and after the fight: the boss's picture, and what there is to do (start the week's raid, the lobby, how it ended). -->
+      <div id="layout" class="rd-layout">
         <section class="rd-stage">
           <div class="rd-picture">
             <img id="boss-picture" alt="" draggable="false" />
-            <div id="boss-tags" class="rd-tags"></div>
-          </div>
-          <div id="boss-bar" class="rd-bossbar" hidden>
-            <div class="rd-bossbar-head"><b id="boss-name"></b><span id="boss-hp"></span></div>
-            <div class="rd-bar big"><span id="boss-fill"></span></div>
-          </div>
-          <div id="intent" class="rd-intent" hidden>
-            <span class="rd-label">Next move</span>
-            <p id="intent-text"></p>
           </div>
         </section>
 
-        <!-- What there is to do: start the week's raid, the lobby, the fight's actions, or how it ended. -->
         <section class="rd-side">
           <div id="idle" class="rd-panel" hidden>
             <h2 id="idle-title"></h2>
@@ -56,43 +46,64 @@
             </div>
           </div>
 
-          <div id="fight" class="rd-panel" hidden>
-            <div class="rd-turn">
-              <h2 id="round"></h2>
-              <span id="turn-text" class="rd-muted"></span>
+          <div id="over" class="rd-panel" hidden>
+            <h2 id="over-title"></h2>
+            <p id="over-text" class="rd-muted"></p>
+            <ol id="over-ranking" class="rd-list ranked"></ol>
+          </div>
+        </section>
+      </div>
+
+      <!--
+        The fight, as a battle screen: the boss filling the scene, its name and HP across the top in the
+        middle with its next move under them, the round and the turn's time in the corner, the action
+        log down the side, and the party along the bottom with the actions.
+      -->
+      <section id="battle" class="rd-battle" hidden>
+        <img id="battle-backdrop" class="rd-battle-bg" alt="" draggable="false" aria-hidden="true" />
+        <img id="battle-picture" class="rd-battle-boss" alt="" draggable="false" />
+        <div class="rd-battle-shade" aria-hidden="true"></div>
+
+        <div class="rd-battle-top">
+          <div class="rd-boss">
+            <div class="rd-boss-name" id="boss-name"></div>
+            <div class="rd-boss-bar"><span id="boss-fill"></span><b id="boss-pct"></b></div>
+            <div class="rd-boss-sub"><span id="boss-hp"></span><span id="boss-tags" class="rd-tags"></span></div>
+          </div>
+          <div class="rd-round">
+            <b id="round"></b>
+            <span id="turn-text"></span>
+            <div class="rd-timer"><span id="turn-fill"></span></div>
+          </div>
+        </div>
+
+        <div class="rd-intent">
+          <span class="rd-intent-label">Next move</span>
+          <p id="intent-text"></p>
+        </div>
+
+        <details id="log-panel" class="rd-log-panel" open>
+          <summary>Action log</summary>
+          <ol id="log" class="rd-log"></ol>
+        </details>
+
+        <div class="rd-battle-bottom">
+          <ul id="party" class="rd-party" aria-label="Party"></ul>
+          <div class="rd-command">
+            <div id="heal-pick" class="rd-heal" hidden>
+              <span class="rd-intent-label">Heal who?</span>
+              <div id="heal-options" class="rd-heal-options"></div>
             </div>
-            <div class="rd-bar timer"><span id="turn-fill"></span></div>
+            <p id="act-note" class="rd-note"></p>
             <div id="actions" class="rd-actions">
               <button type="button" class="rd-action attack" data-action="attack"><span>⚔️</span>Attack</button>
               <button type="button" class="rd-action guard" data-action="guard"><span>🛡️</span>Guard</button>
               <button type="button" class="rd-action heal" data-action="heal"><span>💚</span>Heal</button>
               <button type="button" class="rd-action support" data-action="support"><span>✨</span>Support</button>
             </div>
-            <p id="act-note" class="rd-note"></p>
-            <!-- Heal: who to heal, when anyone is hurt. -->
-            <div id="heal-pick" class="rd-heal" hidden>
-              <span class="rd-label">Heal who?</span>
-              <div id="heal-options" class="rd-heal-options"></div>
-            </div>
           </div>
-
-          <div id="over" class="rd-panel" hidden>
-            <h2 id="over-title"></h2>
-            <p id="over-text" class="rd-muted"></p>
-            <ol id="over-ranking" class="rd-list ranked"></ol>
-          </div>
-
-          <div id="party-panel" class="rd-panel" hidden>
-            <h3>Party</h3>
-            <ul id="party" class="rd-party"></ul>
-          </div>
-
-          <div id="log-panel" class="rd-panel" hidden>
-            <h3>Action log</h3>
-            <ol id="log" class="rd-log"></ol>
-          </div>
-        </section>
-      </div>
+        </div>
+      </section>
 
       <div id="toast" class="rd-toast" role="status" hidden></div>
     </main>

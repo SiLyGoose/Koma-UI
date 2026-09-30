@@ -18,13 +18,16 @@ import './raid.css';
 const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T;
 const ui = {
   bossTitle: $('boss-title'),
+  layout: $('layout'),
   picture: $<HTMLImageElement>('boss-picture'),
+  battle: $('battle'),
+  battlePicture: $<HTMLImageElement>('battle-picture'),
+  battleBackdrop: $<HTMLImageElement>('battle-backdrop'),
   tags: $('boss-tags'),
-  bossBar: $('boss-bar'),
   bossName: $('boss-name'),
   bossHp: $('boss-hp'),
+  bossPct: $('boss-pct'),
   bossFill: $('boss-fill'),
-  intent: $('intent'),
   intentText: $('intent-text'),
   idle: $('idle'),
   idleTitle: $('idle-title'),
@@ -37,7 +40,6 @@ const ui = {
   join: $<HTMLButtonElement>('join'),
   leave: $<HTMLButtonElement>('leave'),
   begin: $<HTMLButtonElement>('begin'),
-  fight: $('fight'),
   round: $('round'),
   turnText: $('turn-text'),
   turnFill: $('turn-fill'),
@@ -49,9 +51,8 @@ const ui = {
   overTitle: $('over-title'),
   overText: $('over-text'),
   overRanking: $('over-ranking'),
-  partyPanel: $('party-panel'),
   party: $('party'),
-  logPanel: $('log-panel'),
+  logPanel: $<HTMLDetailsElement>('log-panel'),
   log: $('log'),
   toast: $('toast'),
   message: $('message'),
@@ -167,24 +168,40 @@ function hpBar(hp: number, max: number, className = ''): HTMLElement {
   return bar;
 }
 
+/** A player's profile picture, or the first letter of their name when the bot doesn't know it. */
+function avatar(userId: string, v: RaidView): HTMLElement {
+  const url = v.avatars[userId];
+  const letter = (): HTMLElement => el('span', 'rd-initial', (v.names[userId] ?? '?').trim().charAt(0).toUpperCase() || '?');
+  if (!url) return letter();
+  const img = el('img');
+  img.src = url;
+  img.alt = '';
+  img.draggable = false;
+  img.referrerPolicy = 'no-referrer';
+  img.addEventListener('error', () => img.replaceWith(letter()), { once: true });
+  return img;
+}
+
 function render(next: RaidView): void {
   view = next;
   const picture = api + next.picture;
   if (picture !== pictureShown) {
     ui.picture.src = picture;
+    ui.battlePicture.src = picture;
+    ui.battleBackdrop.src = picture;
     pictureShown = picture;
   }
   ui.picture.alt = next.boss.name;
+  ui.battlePicture.alt = next.boss.name;
   ui.bossTitle.textContent = `· ${next.boss.emoji} ${next.boss.name}`;
 
+  const fighting = next.phase === 'fight';
+  ui.layout.hidden = fighting;
+  ui.battle.hidden = !fighting;
+  document.body.classList.toggle('rd-fighting', fighting);
   ui.idle.hidden = next.phase !== 'idle';
   ui.lobby.hidden = next.phase !== 'lobby';
-  ui.fight.hidden = next.phase !== 'fight';
   ui.over.hidden = next.phase !== 'over';
-  ui.partyPanel.hidden = next.phase !== 'fight';
-  ui.logPanel.hidden = next.phase !== 'fight';
-  ui.bossBar.hidden = next.phase !== 'fight';
-  ui.intent.hidden = next.phase !== 'fight';
   ui.tags.textContent = '';
 
   if (next.phase === 'idle' && next.idle) renderIdle(next);
@@ -229,9 +246,11 @@ function renderFight(v: RaidView): void {
   const f = v.fight!;
   const me = f.players.find((p) => p.userId === v.you);
 
+  const bossShare = f.bossMaxHp > 0 ? Math.max(0, f.bossHp) / f.bossMaxHp : 0;
   ui.bossName.textContent = `${v.boss.emoji} ${v.boss.name}`;
-  ui.bossHp.textContent = `${fmt(f.bossHp)} / ${fmt(f.bossMaxHp)}`;
-  ui.bossFill.style.width = `${f.bossMaxHp > 0 ? (Math.max(0, f.bossHp) / f.bossMaxHp) * 100 : 0}%`;
+  ui.bossHp.textContent = `${fmt(f.bossHp)} / ${fmt(f.bossMaxHp)} HP`;
+  ui.bossPct.textContent = `${Math.ceil(bossShare * 100)}%`;
+  ui.bossFill.style.width = `${bossShare * 100}%`;
   if (f.enrage > 0) ui.tags.append(el('span', 'rd-tag hot', f.enrage >= 2 ? '🔥 Furious' : '😠 Enraged'));
   if (f.shielded) ui.tags.append(el('span', 'rd-tag cold', '🔷 Shielded'));
   if (f.rallied > 0) ui.tags.append(el('span', 'rd-tag gold', `✨ Rallied ×${f.rallyMultiplier} · ${plural(f.rallied, 'turn', 'turns')}`));
@@ -259,15 +278,15 @@ function renderFight(v: RaidView): void {
 
   ui.party.textContent = '';
   for (const p of f.players) {
-    const li = el('li', `${p.userId === v.you ? 'you ' : ''}${p.hp <= 0 ? 'down' : ''}`);
-    const head = el('div', 'rd-party-head');
-    head.append(el('span', 'rd-party-name', nameOf(p.userId)));
-    const status = p.hp <= 0 ? '💀 Down' : !p.canAct ? '💫 Stunned' : p.picked ? `${ACTION_ICON[p.picked]} ${ACTION_NAME[p.picked]}` : f.open ? '… Choosing' : '';
-    head.append(el('span', 'rd-party-status', status));
-    li.append(head, hpBar(p.hp, p.maxHp));
-    const foot = el('div', 'rd-party-foot', `${fmt(Math.max(0, p.hp))} / ${fmt(p.maxHp)} HP`);
-    if (p.cc) foot.append(el('span', 'rd-tag', `${CC_NAME[p.cc.effect]} · ${plural(p.cc.turns, 'turn', 'turns')}`));
-    li.append(foot);
+    const li = el('li', `rd-member${p.userId === v.you ? ' you' : ''}${p.hp <= 0 ? ' down' : ''}${p.picked ? ' ready' : ''}`);
+    li.title = nameOf(p.userId);
+    const portrait = el('div', 'rd-portrait');
+    portrait.append(avatar(p.userId, v));
+    // What they picked this turn (or that they're down, or held by crowd control), on the portrait's corner.
+    const badge = p.hp <= 0 ? '💀' : !p.canAct ? '💫' : p.picked ? ACTION_ICON[p.picked] : f.open ? '…' : '';
+    if (badge) portrait.append(el('span', 'rd-badge', badge));
+    if (p.cc && p.hp > 0) portrait.append(el('span', 'rd-cc', `${CC_NAME[p.cc.effect].split(' ')[0]}${p.cc.turns}`));
+    li.append(portrait, el('span', 'rd-member-name', v.names[p.userId] ?? 'Someone'), hpBar(p.hp, p.maxHp), el('span', 'rd-member-hp', fmt(Math.max(0, p.hp))));
     ui.party.append(li);
   }
 
@@ -450,6 +469,8 @@ function connect(): void {
 }
 
 soundButton('raid-muted', setMuted);
+// On a phone the log starts folded away, leaving the boss and the party in view.
+if (window.matchMedia('(max-width: 700px)').matches) ui.logPanel.open = false;
 
 if (!token || !server) {
   setConn('No link', 'bad');

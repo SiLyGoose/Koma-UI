@@ -1,7 +1,9 @@
 /*
- * The raid's page (main.ts): the boss on the left (its picture, HP and next move), and on the right
- * whatever there is to do (start, the lobby, the fight's actions, how it ended), the party and the
- * action log. One over the other on a phone.
+ * The raid's page (main.ts). Before and after the fight: the boss's picture beside what there is to do
+ * (start, the lobby, how it ended), one over the other on a phone. The fight is a battle screen filling
+ * the window under the title bar: the boss across the scene, its name and HP in the middle of the top
+ * with its next move under them, the round and the turn's time in the corner, the action log down the
+ * side, and the party's portraits and HP along the bottom beside the actions.
  */
 
 .rd {
@@ -20,6 +22,8 @@
   text-transform: none;
 }
 
+/* ------------------------------------------------------------------ before and after the fight */
+
 .rd-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -37,24 +41,16 @@
     align-items: start;
     padding-top: 20px;
   }
-
-  /* The boss stays in view while the party and the log scroll past. */
-  .rd-stage {
-    position: sticky;
-    top: 16px;
-  }
 }
 
-/* ------------------------------------------------------------------ the boss */
-
-.rd-stage {
+.rd-stage,
+.rd-side {
   display: grid;
-  gap: 10px;
+  gap: 14px;
   min-width: 0;
 }
 
 .rd-picture {
-  position: relative;
   overflow: hidden;
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -72,46 +68,6 @@
   user-select: none;
 }
 
-.rd-tags {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.rd-tag {
-  display: inline-block;
-  margin-left: 6px;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.55);
-  color: var(--text);
-  font-size: 11.5px;
-  font-weight: 600;
-  vertical-align: middle;
-}
-
-.rd-tags .rd-tag {
-  margin: 0;
-  backdrop-filter: blur(3px);
-}
-
-.rd-tag.hot {
-  background: rgba(190, 50, 30, 0.8);
-}
-
-.rd-tag.cold {
-  background: rgba(40, 110, 200, 0.8);
-}
-
-.rd-tag.gold {
-  background: rgba(170, 130, 40, 0.85);
-}
-
-.rd-bossbar,
-.rd-intent,
 .rd-panel {
   padding: 12px 14px;
   border: 1px solid var(--line);
@@ -119,98 +75,9 @@
   background: var(--panel);
 }
 
-.rd-bossbar-head {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 6px;
-  font-size: 14px;
-}
-
-.rd-bossbar-head span {
-  color: var(--muted);
-  font-variant-numeric: tabular-nums;
-}
-
-.rd-bar {
-  height: 8px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: var(--panel-3);
-}
-
-.rd-bar > span {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: var(--rd-hi);
-  transition: width 0.4s ease;
-}
-
-.rd-bar > span.mid {
-  background: var(--rd-mid);
-}
-
-.rd-bar > span.lo {
-  background: var(--rd-lo);
-}
-
-.rd-bar.big {
-  height: 14px;
-}
-
-.rd-bar.big > span {
-  background: linear-gradient(90deg, #a3262a, #e0595b);
-}
-
-.rd-bar.timer {
-  height: 5px;
-  margin: 6px 0 12px;
-}
-
-.rd-bar.timer > span {
-  background: var(--gold);
-  transition: width 0.25s linear;
-}
-
-.rd-label {
-  display: block;
-  margin-bottom: 4px;
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.rd-intent p {
-  margin: 0;
-  line-height: 1.5;
-}
-
-/* ------------------------------------------------------------------ the side */
-
-.rd-side {
-  display: grid;
-  gap: 14px;
-  min-width: 0;
-}
-
-.rd-panel h2,
-.rd-panel h3 {
-  margin: 0 0 8px;
-}
-
 .rd-panel h2 {
+  margin: 0 0 8px;
   font-size: 18px;
-}
-
-.rd-panel h3 {
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
 }
 
 .rd-muted {
@@ -297,47 +164,446 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* The fight: the round and its time, the four actions, and Heal's "who?". */
-.rd-turn {
+.rd-tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.55);
+  color: var(--text);
+  font-size: 11.5px;
+  font-weight: 600;
+  vertical-align: middle;
+}
+
+/* ------------------------------------------------------------------ the battle screen */
+
+.rd-battle {
+  position: relative;
+  flex: 1;
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 560px;
+  overflow: hidden;
+  background: #05070d;
+  isolation: isolate;
+}
+
+/*
+ * The boss: whole in the middle of the scene (never cropped, whatever the screen's shape), over a
+ * blurred, darkened copy of the same picture filling the rest.
+ */
+.rd-battle-bg,
+.rd-battle-boss {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  user-select: none;
+  pointer-events: none;
+}
+
+.rd-battle-bg {
+  z-index: -3;
+  object-fit: cover;
+  filter: blur(24px) brightness(0.45) saturate(1.2);
+  transform: scale(1.15);
+}
+
+.rd-battle-boss {
+  z-index: -2;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+/* Darker along the top and bottom, where the bars and the party sit over the picture. */
+.rd-battle-shade {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(180deg, rgba(4, 6, 12, 0.85) 0%, rgba(4, 6, 12, 0.25) 22%, transparent 40%),
+    linear-gradient(0deg, rgba(4, 6, 12, 0.95) 0%, rgba(4, 6, 12, 0.6) 22%, transparent 45%);
+  pointer-events: none;
+}
+
+/* Across the top: the boss's name and HP in the middle, the round and the turn's time in the corner. */
+.rd-battle-top {
+  display: grid;
+  grid-template-columns: 1fr minmax(0, 560px) 1fr;
+  align-items: start;
+  gap: 12px;
+  padding: 14px 16px 0;
+}
+
+.rd-boss {
+  grid-column: 2;
+  text-align: center;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+}
+
+.rd-boss-name {
+  margin-bottom: 6px;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.rd-boss-bar {
+  position: relative;
+  height: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.6);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+}
+
+.rd-boss-bar > span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(180deg, #f2f2f2 0 45%, #d63a3d 45% 100%);
+  transition: width 0.5s ease;
+}
+
+.rd-boss-bar > b {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  text-shadow: 0 0 3px #000, 0 0 2px #000;
+}
+
+.rd-boss-sub {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.rd-turn h2 {
-  margin: 0;
-}
-
-.rd-turn .rd-muted {
-  margin: 0;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 12.5px;
   font-variant-numeric: tabular-nums;
+}
+
+.rd-tags {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.rd-tags .rd-tag {
+  margin: 0;
+  text-shadow: none;
+}
+
+.rd-tag.hot {
+  background: rgba(190, 50, 30, 0.85);
+}
+
+.rd-tag.cold {
+  background: rgba(40, 110, 200, 0.85);
+}
+
+.rd-tag.gold {
+  background: rgba(170, 130, 40, 0.9);
+}
+
+.rd-round {
+  grid-column: 3;
+  justify-self: end;
+  display: grid;
+  justify-items: end;
+  gap: 4px;
+  min-width: 120px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.5);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.rd-round span {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 12px;
+}
+
+.rd-timer {
+  width: 100%;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.rd-timer > span {
+  display: block;
+  height: 100%;
+  background: var(--gold);
+  transition: width 0.25s linear;
+}
+
+/* The boss's next move, under its bar, like the game's move banner. */
+.rd-intent {
+  justify-self: center;
+  max-width: min(620px, calc(100% - 32px));
+  margin-top: 12px;
+  padding: 8px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: rgba(8, 10, 18, 0.72);
+  text-align: center;
+  backdrop-filter: blur(4px);
+}
+
+.rd-intent-label {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--muted);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.rd-intent p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+/* The action log: down the left side on a computer, folded under the top on a phone. */
+.rd-log-panel {
+  position: absolute;
+  top: 120px;
+  left: 16px;
+  z-index: 1;
+  width: min(300px, 30vw);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  background: rgba(8, 10, 18, 0.72);
+  backdrop-filter: blur(4px);
+}
+
+.rd-log-panel summary {
+  padding: 8px 12px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  user-select: none;
+}
+
+.rd-log {
+  display: grid;
+  gap: 2px;
+  max-height: min(300px, 38vh);
+  margin: 0;
+  padding: 0 12px 10px;
+  overflow-y: auto;
+  list-style: none;
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+
+.rd-log li {
+  padding: 3px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.rd-log .rd-muted {
+  margin: 0;
+  font-size: 12.5px;
+}
+
+/* Along the bottom: the party (left), and what to do this turn (right). */
+.rd-battle-bottom {
+  grid-row: 4;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 16px 16px;
+}
+
+.rd-party {
+  display: flex;
+  gap: 10px;
+  min-width: 0;
+  margin: 0;
+  padding: 4px 2px;
+  overflow-x: auto;
+  list-style: none;
+  scrollbar-width: none;
+}
+
+.rd-party::-webkit-scrollbar {
+  display: none;
+}
+
+.rd-member {
+  flex: 0 0 auto;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  width: 84px;
+}
+
+.rd-portrait {
+  position: relative;
+  width: 64px;
+  height: 64px;
+}
+
+.rd-portrait > img,
+.rd-initial {
+  width: 100%;
+  height: 100%;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-radius: 50%;
+  box-sizing: border-box;
+  object-fit: cover;
+  background: var(--panel-3);
+}
+
+.rd-initial {
+  display: grid;
+  place-items: center;
+  color: var(--text);
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.rd-member.you .rd-portrait > img,
+.rd-member.you .rd-initial {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 2px rgba(216, 191, 122, 0.35), 0 0 16px rgba(216, 191, 122, 0.35);
+}
+
+.rd-member.ready .rd-portrait > img,
+.rd-member.ready .rd-initial {
+  border-color: #8fd6a6;
+}
+
+.rd-member.down .rd-portrait > img,
+.rd-member.down .rd-initial {
+  filter: grayscale(1) brightness(0.6);
+}
+
+/* What they picked, on the portrait's corner. */
+.rd-badge {
+  position: absolute;
+  right: -4px;
+  bottom: -2px;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 50%;
+  background: #12151f;
+  font-size: 13px;
+  line-height: 1;
+}
+
+.rd-cc {
+  position: absolute;
+  top: -4px;
+  left: -6px;
+  padding: 1px 5px;
+  border-radius: 999px;
+  background: rgba(110, 60, 180, 0.95);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.rd-member-name {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-shadow: 0 1px 2px #000;
+}
+
+.rd-member .rd-bar {
+  width: 100%;
+}
+
+.rd-member-hp {
+  margin-top: -2px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 2px #000;
+}
+
+.rd-bar {
+  height: 6px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.6);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.rd-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--rd-hi);
+  transition: width 0.4s ease;
+}
+
+.rd-bar > span.mid {
+  background: var(--rd-mid);
+}
+
+.rd-bar > span.lo {
+  background: var(--rd-lo);
+}
+
+/* The four actions, and what they picked (or why they can't). */
+.rd-command {
+  flex: 0 0 auto;
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+  width: min(380px, 100%);
 }
 
 .rd-actions {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
+  width: 100%;
 }
 
 .rd-action {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 12px 8px;
-  border: 2px solid transparent;
-  border-radius: 10px;
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  padding: 10px 4px 8px;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
   color: #fff;
   font: inherit;
-  font-size: 15px;
+  font-size: 12.5px;
   font-weight: 700;
   cursor: pointer;
   transition: transform 0.08s ease, filter 0.12s ease;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
 }
 
 .rd-action span {
-  font-size: 18px;
+  font-size: 20px;
+  line-height: 1.1;
 }
 
 .rd-action.attack {
@@ -372,20 +638,25 @@
 .rd-action.picked {
   border-color: var(--gold);
   opacity: 1;
-  box-shadow: 0 0 0 3px rgba(216, 191, 122, 0.25);
+  box-shadow: 0 0 0 3px rgba(216, 191, 122, 0.3), 0 4px 14px rgba(0, 0, 0, 0.5);
 }
 
 .rd-note {
-  min-height: 1.4em;
-  margin: 10px 0 0;
-  color: var(--muted);
-  font-size: 13.5px;
+  min-height: 1.3em;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 12.5px;
+  text-align: right;
+  text-shadow: 0 1px 2px #000;
 }
 
 .rd-heal {
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px solid var(--line);
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid rgba(47, 138, 85, 0.6);
+  border-radius: 10px;
+  background: rgba(8, 18, 12, 0.85);
+  box-sizing: border-box;
 }
 
 .rd-heal-options {
@@ -395,18 +666,18 @@
 }
 
 .rd-heal-option {
-  padding: 7px 12px;
+  padding: 6px 11px;
   border: 1px solid #2f8a55;
   border-radius: 999px;
-  background: rgba(47, 138, 85, 0.15);
+  background: rgba(47, 138, 85, 0.18);
   color: var(--text);
   font: inherit;
-  font-size: 13px;
+  font-size: 12.5px;
   cursor: pointer;
 }
 
 .rd-heal-option:hover {
-  background: rgba(47, 138, 85, 0.35);
+  background: rgba(47, 138, 85, 0.4);
 }
 
 .rd-heal-option.auto {
@@ -415,88 +686,87 @@
 
 .rd-heal-option.down {
   border-color: var(--rd-lo);
-  background: rgba(224, 89, 91, 0.15);
+  background: rgba(224, 89, 91, 0.18);
 }
 
-/* The party: each raider's HP and what they picked. */
-.rd-party {
-  display: grid;
-  gap: 8px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
+/* A phone: the party across the bottom, the actions under it, the log folded under the top. */
+@media (max-width: 700px) {
+  .rd-battle {
+    min-height: calc(100dvh - 44px);
+  }
+
+  .rd-battle-top {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 10px 12px 0;
+  }
+
+  .rd-boss,
+  .rd-round {
+    grid-column: 1;
+  }
+
+  .rd-round {
+    grid-template-columns: auto auto 1fr;
+    align-items: center;
+    justify-self: stretch;
+    gap: 8px;
+    padding: 6px 10px;
+  }
+
+  .rd-intent {
+    margin-top: 8px;
+    padding: 6px 12px;
+  }
+
+  .rd-intent p {
+    font-size: 13px;
+  }
+
+  .rd-log-panel {
+    position: static;
+    grid-row: 3;
+    align-self: start;
+    width: auto;
+    margin: 8px 12px 0;
+  }
+
+  .rd-battle-bottom {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 0 12px 12px;
+  }
+
+  .rd-party {
+    justify-content: flex-start;
+  }
+
+  .rd-member {
+    width: 70px;
+  }
+
+  .rd-portrait {
+    width: 52px;
+    height: 52px;
+  }
+
+  .rd-command {
+    justify-items: stretch;
+    width: 100%;
+  }
+
+  .rd-note {
+    text-align: center;
+  }
 }
 
-.rd-party li {
-  padding: 8px 10px;
-  border-radius: 8px;
-  background: var(--panel-2);
-}
-
-.rd-party li.you {
-  box-shadow: inset 3px 0 0 var(--gold);
-}
-
-.rd-party li.down {
-  opacity: 0.55;
-}
-
-.rd-party-head,
-.rd-party-foot {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-  font-size: 13.5px;
-}
-
-.rd-party-head {
-  margin-bottom: 5px;
-}
-
-.rd-party-name {
-  overflow: hidden;
-  font-weight: 600;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.rd-party-status {
-  flex-shrink: 0;
-  color: var(--muted);
-  font-size: 12.5px;
-}
-
-.rd-party-foot {
-  margin-top: 4px;
-  color: var(--muted);
-  font-size: 12px;
-  font-variant-numeric: tabular-nums;
-}
-
-/* The action log, newest at the bottom. */
-.rd-log {
-  display: grid;
-  gap: 4px;
-  max-height: 320px;
-  margin: 0;
-  padding: 0 4px 0 0;
-  overflow-y: auto;
-  list-style: none;
-  font-size: 13.5px;
-  line-height: 1.45;
-}
-
-.rd-log li {
-  padding: 3px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-}
+/* ------------------------------------------------------------------ the raid's markdown, and toasts */
 
 .md-mention {
   padding: 0 3px;
   border-radius: 4px;
-  background: rgba(88, 101, 242, 0.25);
-  color: #c9cdfb;
+  background: rgba(88, 101, 242, 0.3);
+  color: #d3d6fc;
   font-weight: 500;
 }
 
@@ -507,7 +777,6 @@
   object-fit: contain;
 }
 
-/* What a press came to, when it didn't go through. */
 .rd-toast {
   position: fixed;
   left: 50%;
@@ -522,4 +791,9 @@
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
   font-size: 14px;
   text-align: center;
+}
+
+/* In the fight the toast sits above the actions. */
+.rd-fighting .rd-toast {
+  bottom: 150px;
 }
