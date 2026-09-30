@@ -730,7 +730,7 @@
   transition: transform 0.1s ease, box-shadow 0.15s ease, filter 0.15s ease;
 }
 
-/* The icon (public/raid/action_<name>.png, white on clear), in the middle, a little above centre to leave room for the name. */
+/* The icon (public/raid/actions/action_<name>.png, white on clear), in the middle, a little above centre to leave room for the name. */
 .rd-icon {
   width: 70%;
   height: 70%;

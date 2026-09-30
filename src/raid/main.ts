@@ -167,7 +167,7 @@ function hpBar(hp: number, max: number, className = ''): HTMLElement {
 }
 
 /**
- * The buffs on a raider, as little squares under their HP (public/raid/buff_<name>.png), each with a
+ * The buffs on a raider, as little squares under their HP (public/raid/buff/buff_<name>.png), each with a
  * blue up arrow for a buff: Attack while Support's rally lasts (everyone standing, with its turns
  * left), and Guard once they've picked it this turn (their guard is up for the boss's next move).
  */
@@ -177,7 +177,7 @@ function buffRow(p: RaidFightView['players'][number], f: RaidFightView): HTMLEle
     const square = el('span', 'rd-buff');
     square.title = title;
     const icon = el('img');
-    icon.src = `/raid/buff_${name}.png`;
+    icon.src = `/raid/buff/buff_${name}.png`;
     icon.alt = '';
     icon.draggable = false;
     square.append(icon, el('span', 'rd-buff-up'));
