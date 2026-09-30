@@ -7,8 +7,8 @@ import { notes, sound } from '../shared/sfx';
  * low pair of notes for a loss. A game's own sounds (like a card placed) are in its own sfx.ts.
  */
 
-const placeSound = sound(`${import.meta.env.BASE_URL}shared/sfx/place-poker-chip.mp3`);
-const moveSound = sound(`${import.meta.env.BASE_URL}shared/sfx/move-poker-chip.mp3`);
+const placeSound = sound(`${import.meta.env.BASE_URL}shared/sfx/table/place-poker-chip.mp3`);
+const moveSound = sound(`${import.meta.env.BASE_URL}shared/sfx/table/move-poker-chip.mp3`);
 
 export type Sound = 'place' | 'move' | 'even' | 'win' | 'lose';
 

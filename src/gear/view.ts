@@ -2,6 +2,7 @@ import { currentCharacter } from '../shared/characters';
 import { dropdown } from '../shared/dropdown';
 import { armoryOrder, equippedIds, forgePlan, type GearCopy, type GearView, type StatSection } from '../shared/items/gear';
 import { art, el, lockBadge, rich, SLOT_NAME, stars, type Slot } from '../shared/items/items';
+import { hoverSound, itemPicked } from '../shared/items/sfx';
 
 /*
  * The gear view (the gear page's, and the raid's party's gear): the member's character (Tsuri, for now) with their three slots around them (weapon and
@@ -192,7 +193,11 @@ export function mountGear(root: HTMLElement, host: GearHost): { drawn: Promise<v
         card.setAttribute('aria-pressed', String(on));
         if (on) card.append(el('span', 'item-check', '✓'));
       }
+      hoverSound(card, copy.id, () => !card.disabled);
       card.addEventListener('click', () => {
+        // Its sound, and the details' when they show it (opened, or switched to it).
+        const before = picked;
+        const sound = (): void => itemPicked(picked !== null && picked !== before);
         // Picking what to sell: the one picked last is shown over the character (unpicking it shows the one before).
         if (selling) {
           if (selling.delete(copy.id)) {
@@ -204,11 +209,13 @@ export function mountGear(root: HTMLElement, host: GearHost): { drawn: Promise<v
           renderGrid();
           renderDetail();
           renderFoot();
+          sound();
           return;
         }
         picked = picked === copy.id ? null : copy.id;
         renderGrid();
         renderDetail();
+        sound();
       });
       ui.grid.append(card);
     }
@@ -689,6 +696,14 @@ export function mountGear(root: HTMLElement, host: GearHost): { drawn: Promise<v
 
   // A slot shows what fits in it, with what's in it picked (again: back to everything).
   for (const button of ui.slots) {
+    // A slot with something in it is an item too: its sounds, as the armory's cards have.
+    hoverSound(button, `slot:${button.dataset.slot}`, () => !button.classList.contains('empty'));
+    button.addEventListener('click', () => {
+      if (button.classList.contains('empty')) return;
+      const before = picked;
+      // Once the slot's own click (below) has picked what's in it.
+      setTimeout(() => itemPicked(picked !== null && picked !== before), 0);
+    });
     button.addEventListener('click', () => {
       const slot = button.dataset.slot as Slot;
       // While picking copies to sell, a slot only shows what fits in it.

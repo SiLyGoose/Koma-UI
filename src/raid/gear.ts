@@ -7,6 +7,7 @@ import { backdrop } from '../shared/backdrop';
 import { installCursor } from '../shared/cursor';
 import { keepHoloInStep } from '../shared/items/items';
 import { apiFromSocket } from '../shared/live';
+import { setMuted } from '../shared/sfx';
 import { mountGear, type ApiResult, type Member } from '../gear/view';
 
 /*
@@ -56,6 +57,19 @@ async function api<T>(path: string, init: RequestInit = {}): Promise<ApiResult<T
 }
 
 document.body.prepend(backdrop());
+// Sound (the items' hover and click) as the raid has it: its sound button's setting, kept in storage, followed as it changes.
+const RAID_MUTED = 'raid-muted';
+const readMuted = (): boolean => {
+  try {
+    return localStorage.getItem(RAID_MUTED) === '1';
+  } catch {
+    return false;
+  }
+};
+setMuted(readMuted());
+addEventListener('storage', (event) => {
+  if (event.key === RAID_MUTED) setMuted(readMuted());
+});
 // The games' hand in place of the mouse pointer here too (the raid page's stops at the frame's edge).
 installCursor({ reticle: false });
 keepHoloInStep();
