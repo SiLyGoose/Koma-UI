@@ -6,13 +6,7 @@
  * the bottom on narrow screens, items.css).
  */
 
-.gear {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 20px;
-  align-items: start;
-}
-
+/* The section's layout and height are the shared .panels' (../shared/items/items.css). */
 @media (min-width: 900px) {
   .gear {
     grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
