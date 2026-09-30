@@ -4,6 +4,7 @@ import '../shared/dropdown.css';
 import { barSlot, setConn, soundButton } from '../shared/frame';
 import { apiFromSocket, startLive } from '../shared/live';
 import { setMuted } from '../shared/sfx';
+import { holdReveal } from '../shared/transition';
 import { markdown } from './markdown';
 import type { ActProblem, AnswerCode, ClientMessage, ErrorCode, RaidAction, RaidFightView, RaidView, ServerMessage } from './protocol';
 import './raid.css';
@@ -20,8 +21,6 @@ import './raid.css';
 const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T;
 const ui = {
   bossTitle: $('boss-title'),
-  layout: $('layout'),
-  picture: $<HTMLImageElement>('boss-picture'),
   battle: $('battle'),
   battlePicture: $<HTMLImageElement>('battle-picture'),
   battleBackdrop: $<HTMLImageElement>('battle-backdrop'),
@@ -62,10 +61,6 @@ const ui = {
   actNote: $('act-note'),
   healPick: $('heal-pick'),
   healOptions: $('heal-options'),
-  over: $('over'),
-  overTitle: $('over-title'),
-  overText: $('over-text'),
-  overRanking: $('over-ranking'),
   party: $('party'),
   logPanel: $<HTMLDetailsElement>('log-panel'),
   log: $('log'),
@@ -87,7 +82,15 @@ const token = params.get('t');
 const server = params.get('s');
 const api = server ? apiFromSocket(server) : '';
 
+/**
+ * The loading screen stays over the page until its first screen is drawn, the boss's picture in it (the
+ * frame's own hold lets go as soon as it connects, before the raid has been sent). Anything that stops
+ * it drawing (no link, an error, the connection lost) lets go too; the transition gives up by itself after a while.
+ */
+const firstPaint = holdReveal();
+
 function showMessage(title: string, text: string): void {
+  firstPaint();
   ui.messageTitle.textContent = title;
   ui.messageText.textContent = text;
   ui.message.hidden = false;
@@ -174,7 +177,7 @@ async function showPicture(url: string): Promise<void> {
   next.src = url;
   await next.decode().catch(() => {});
   if (url !== pictureShown) return;
-  for (const img of [ui.picture, ui.battlePicture, ui.battleBackdrop, ui.prepPicture, ui.prepBackdrop]) img.src = url;
+  for (const img of [ui.battlePicture, ui.battleBackdrop, ui.prepPicture, ui.prepBackdrop]) img.src = url;
 }
 /** Heal's "who?" is open (for this round). */
 let healOpenRound: number | null = null;
@@ -317,14 +320,15 @@ function render(next: RaidView): void {
   const picture = api + next.picture;
   if (picture !== pictureShown) {
     pictureShown = picture;
-    void showPicture(picture);
+    const shown = showPicture(picture);
+    // The first screen: uncovered once it's drawn, the picture in it.
+    if (before === null) void shown.then(() => requestAnimationFrame(() => requestAnimationFrame(firstPaint)));
   }
-  ui.picture.alt = next.boss.name;
   ui.battlePicture.alt = next.boss.name;
   ui.bossTitle.textContent = `· ${next.boss.emoji} ${next.boss.name}`;
 
   const fighting = next.phase === 'fight';
-  // A fight fought out ends on its own screen, VICTORY or DEFEAT (one that never started keeps the plain one).
+  // A fight fought out ends on its own screen, VICTORY or DEFEAT (one that never started shows the party screen).
   const ended = next.phase === 'over' && next.over !== null && ['won', 'wiped', 'fled'].includes(next.over.end);
   // The fight just ended here: the battle stays up a moment (its last blow, the boss's new look), then the end fades in.
   if (!ended) {
@@ -347,13 +351,11 @@ function render(next: RaidView): void {
   // Before the fight (not fought yet this week, the lobby open, or a lobby that never came to a fight): the party screen.
   const preparing = next.phase === 'lobby' || (next.phase === 'idle' && next.idle !== null) || (next.phase === 'over' && next.over !== null && !ended);
   ui.prep.hidden = !preparing;
-  ui.layout.hidden = fighting || ended || preparing;
   ui.battle.hidden = !(fighting || ended);
   ui.battle.classList.toggle('ending', holding);
   ui.battle.classList.toggle('concluded', ended && resultShown);
   ui.result.hidden = !(ended && resultShown);
   document.body.classList.toggle('rd-fighting', fighting || ended);
-  ui.over.hidden = next.phase !== 'over';
   ui.tags.textContent = '';
 
   if (preparing) renderPrep(next);
@@ -362,7 +364,6 @@ function render(next: RaidView): void {
   if (!ended) closeStats();
   else if (!ui.statsPop.hidden) renderStats(next);
   if (next.phase === 'fight' && next.fight) renderFight(next);
-  if (next.phase === 'over' && next.over) renderOver(next);
   if (ended) renderResult(next);
   tick();
 }
@@ -666,29 +667,6 @@ function renderHealPick(v: RaidView): void {
   const share = (p: { hp: number; maxHp: number }): number => p.hp / p.maxHp;
   for (const p of f.players.filter((q) => q.hp < q.maxHp).sort((a, b) => share(a) - share(b))) {
     option(avatar(p.userId, v), p.userId === v.you ? 'You' : (v.names[p.userId] ?? 'Someone'), p.userId, p, p.hp <= 0 ? 'down' : '');
-  }
-}
-
-function renderOver(v: RaidView): void {
-  const o = v.over!;
-  const b = v.boss.name;
-  const titles = { won: `🏆 ${b} defeated!`, wiped: `💀 The party fell`, fled: `💨 ${b} got away`, no_players: `${b} went back to sleep`, called_off: 'The raid was called off' };
-  ui.overTitle.textContent = titles[o.end];
-  const reward = o.reward ? ` Everyone who fought gets ${fmt(o.reward.points)} points${o.reward.tokens ? `, ${plural(o.reward.tokens, 'token', 'tokens')}` : ''}${o.reward.gems ? ` and ${plural(o.reward.gems, 'komaGem', 'komaGems')}` : ''}` : '';
-  ui.overText.textContent =
-    o.end === 'won'
-      ? `Beaten in ${plural(o.rounds, 'round', 'rounds')}${o.lastHit ? `, the final blow by ${nameOf(o.lastHit)}` : ''}.${reward}`
-      : o.end === 'wiped' || o.end === 'fled'
-        ? `After ${plural(o.rounds, 'round', 'rounds')}${hpLeft(o)}.`
-        : o.end === 'no_players'
-          ? 'Nobody joined the raid in time.'
-          : 'Something went wrong, so the raid was called off and the week freed up. Points spent or stolen were given back.';
-  ui.overRanking.textContent = '';
-  const total = o.ranking.reduce((sum, r) => sum + r.damage, 0);
-  for (const r of o.ranking) {
-    const li = el('li', r.userId === v.you ? 'you' : '', nameOf(r.userId));
-    li.append(el('span', 'rd-dmg', `${fmt(r.damage)} dmg · ${total > 0 ? Math.round((r.damage / total) * 100) : 0}%`));
-    ui.overRanking.append(li);
   }
 }
 
@@ -1015,6 +993,7 @@ function connect(): void {
     // Keep trying for as long as the page is open (the bot may be restarting), waiting longer each time.
     const wait = Math.min(RETRY_MAX_MS, 500 * 2 ** retries++);
     setConn('Reconnecting…', 'bad');
+    firstPaint();
     setTimeout(connect, wait);
   });
 }
