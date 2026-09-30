@@ -268,9 +268,7 @@ function renderFight(v: RaidView): void {
     ? `You picked ${ACTION_ICON[picked]} ${ACTION_NAME[picked]}. Waiting for the others…`
     : problems.length > 0 && blocking
       ? problemText(blocking, me?.cc?.turns ?? 1)
-      : f.open
-        ? 'Pick what to do this turn.'
-        : '';
+      : '';
   if (!f.open || picked !== null || healOpenRound !== f.round) healOpenRound = null;
   renderHealPick(v);
 

@@ -439,7 +439,8 @@
   display: flex;
   gap: 10px;
   min-width: 0;
-  margin: 0;
+  /* A way in from the corner, as a game places its party. */
+  margin: 0 0 36px 64px;
   padding: 4px 2px;
   overflow-x: auto;
   list-style: none;
@@ -615,6 +616,8 @@
   justify-items: end;
   gap: 8px;
   width: min(380px, 100%);
+  /* A way in from the corner, as a game places its skill buttons. */
+  margin: 0 64px 12px 0;
 }
 
 /*
@@ -623,12 +626,16 @@
  */
 .rd-actions {
   position: relative;
-  width: 250px;
-  height: 214px;
+  width: 300px;
+  height: 256px;
 }
 
+/* Each circle is placed by its centre (--x, --y within the cluster). */
 .rd-action {
   position: absolute;
+  left: var(--x);
+  top: var(--y);
+  transform: translate(-50%, -50%);
   display: grid;
   justify-items: center;
   gap: 4px;
@@ -679,15 +686,15 @@
   text-shadow: 0 1px 2px #000, 0 0 3px #000, 0 0 6px #000;
 }
 
-/* Attack: the big circle, in the corner. */
+/* Attack: the big circle, low in the middle of the cluster. */
 .rd-action.main {
-  right: 4px;
-  bottom: 12px;
+  --x: 150px;
+  --y: 176px;
 }
 
 .rd-action.main .rd-orb {
-  width: 112px;
-  height: 112px;
+  width: 128px;
+  height: 128px;
 }
 
 .rd-action.main .rd-icon {
@@ -696,29 +703,33 @@
 }
 
 .rd-action.main .rd-action-name {
-  bottom: -10px;
-  font-size: 14px;
+  bottom: -11px;
+  font-size: 15px;
 }
 
-/* The others: smaller, in an arc from above Attack round to its left. */
+/* The others, smaller (Attack's size scaled as before, 64 to 112): above it, and above to its left and right. */
 .rd-action.small .rd-orb {
-  width: 64px;
-  height: 64px;
+  width: 72px;
+  height: 72px;
+}
+
+.rd-action.small .rd-action-name {
+  font-size: 13px;
 }
 
 .rd-action.guard {
-  right: 28px;
-  top: 0;
+  --x: 150px;
+  --y: 52px;
 }
 
 .rd-action.heal {
-  right: 118px;
-  top: 30px;
+  --x: 45px;
+  --y: 110px;
 }
 
 .rd-action.support {
-  right: 148px;
-  bottom: 20px;
+  --x: 255px;
+  --y: 110px;
 }
 
 .rd-action:hover:not(:disabled) .rd-orb {
@@ -855,6 +866,7 @@
   .rd-party {
     justify-content: flex-start;
     gap: 16px;
+    margin: 0;
   }
 
   .rd-member {
@@ -877,6 +889,7 @@
   .rd-command {
     justify-items: stretch;
     width: 100%;
+    margin: 0;
   }
 
   .rd-actions {
