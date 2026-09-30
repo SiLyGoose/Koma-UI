@@ -4,7 +4,12 @@
  * panel beside it (a sheet from the bottom on narrow screens, as on the gear page).
  */
 
-/* The section's layout and height are the shared .panels' (../shared/items/items.css). */
+.databank {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
 
 /* The item panel: the armory's frame (items.css) and parchment, as on the gear page. */
 .databank .detail {
