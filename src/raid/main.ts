@@ -24,8 +24,6 @@ const ui = {
   battlePicture: $<HTMLImageElement>('battle-picture'),
   battleBackdrop: $<HTMLImageElement>('battle-backdrop'),
   result: $('result'),
-  resultPicture: $<HTMLImageElement>('result-picture'),
-  resultBackdrop: $<HTMLImageElement>('result-backdrop'),
   resultTitle: $('result-title'),
   resultText: $('result-text'),
   resultRows: $('result-rows'),
@@ -149,6 +147,19 @@ function toast(text: string): void {
 
 let view: RaidView | null = null;
 let pictureShown = '';
+
+/**
+ * Puts the boss's picture up once it's loaded and decoded, so the old one stays until the new one is
+ * ready (swapping the src straight away blanks it for a moment: a flash as the fight ends and the boss
+ * changes its look). A newer picture asked for meanwhile wins.
+ */
+async function showPicture(url: string): Promise<void> {
+  const next = new Image();
+  next.src = url;
+  await next.decode().catch(() => {});
+  if (url !== pictureShown) return;
+  for (const img of [ui.picture, ui.battlePicture, ui.battleBackdrop]) img.src = url;
+}
 /** Heal's "who?" is open (for this round). */
 let healOpenRound: number | null = null;
 /** How many raiders the party row shows at once; with more, a button swaps between them (in the order they joined). */
@@ -212,8 +223,8 @@ function avatar(userId: string, v: RaidView): HTMLElement {
   return img;
 }
 
-/** How long the battle stays up once the fight ends, before the end screen fades in. */
-const END_PAUSE_MS = 2500;
+/** How long the battle stays up once the fight ends, before the end screen fades in over it. */
+const END_PAUSE_MS = 500;
 /** The end screen is showing (after its pause). */
 let resultShown = false;
 /** The pause before it, while it runs. */
@@ -224,12 +235,8 @@ function render(next: RaidView): void {
   view = next;
   const picture = api + next.picture;
   if (picture !== pictureShown) {
-    ui.picture.src = picture;
-    ui.battlePicture.src = picture;
-    ui.battleBackdrop.src = picture;
-    ui.resultPicture.src = picture;
-    ui.resultBackdrop.src = picture;
     pictureShown = picture;
+    void showPicture(picture);
   }
   ui.picture.alt = next.boss.name;
   ui.battlePicture.alt = next.boss.name;
@@ -255,9 +262,11 @@ function render(next: RaidView): void {
     }
   }
   const holding = ended && !resultShown;
+  // The end screen goes over the battle's scene (the boss stays put under it) as the battle's own parts fade out.
   ui.layout.hidden = fighting || ended;
-  ui.battle.hidden = !(fighting || holding);
+  ui.battle.hidden = !(fighting || ended);
   ui.battle.classList.toggle('ending', holding);
+  ui.battle.classList.toggle('concluded', ended && resultShown);
   ui.result.hidden = !(ended && resultShown);
   document.body.classList.toggle('rd-fighting', fighting || ended);
   ui.idle.hidden = next.phase !== 'idle';
