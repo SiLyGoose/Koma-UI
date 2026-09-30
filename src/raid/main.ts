@@ -78,7 +78,6 @@ function showMessage(title: string, text: string): void {
 
 const fmt = (n: number): string => Math.round(n).toLocaleString('en-US');
 const plural = (n: number, one: string, many: string): string => `${n} ${n === 1 ? one : many}`;
-const ACTION_NAME: Record<RaidAction, string> = { attack: 'Attack', guard: 'Guard', heal: 'Heal', support: 'Support' };
 const ACTION_ICON: Record<RaidAction, string> = { attack: '⚔️', guard: '🛡️', heal: '💚', support: '✨' };
 const CC_NAME = { stunned: '💫 Stunned', disarmed: '🗡️ Disarmed', taunted: '😤 Taunted' } as const;
 
@@ -264,11 +263,8 @@ function renderFight(v: RaidView): void {
   // Why they can't act, or what they picked.
   const problems = Object.values(f.problems).filter((p): p is ActProblem => p !== null);
   const blocking = f.problems.attack && f.problems.guard ? f.problems.attack : f.problems.attack ?? f.problems.guard ?? f.problems.heal;
-  ui.actNote.textContent = picked
-    ? `You picked ${ACTION_ICON[picked]} ${ACTION_NAME[picked]}. Waiting for the others…`
-    : problems.length > 0 && blocking
-      ? problemText(blocking, me?.cc?.turns ?? 1)
-      : '';
+  // Only why they can't act (their pick shows on its circle, lit gold).
+  ui.actNote.textContent = !picked && problems.length > 0 && blocking ? problemText(blocking, me?.cc?.turns ?? 1) : '';
   if (!f.open || picked !== null || healOpenRound !== f.round) healOpenRound = null;
   renderHealPick(v);
 
