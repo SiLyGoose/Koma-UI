@@ -21,6 +21,8 @@
  * (onSiteLink()) before the whole-page transition above sees them.
  */
 
+import { handOnly } from './cursor';
+
 const KEY = 'koma.transition';
 /** The wipe on or off (transition-head.css's animations are this long). */
 const WIPE_MS = 800;
@@ -77,6 +79,8 @@ async function leave(url: URL, dir: Direction): Promise<void> {
   leaving = true;
   const pending: Pending = { to: pagePath(url.pathname), dir, at: Date.now() };
   remember(pending);
+  // A game has the hand alone for a cursor: the dot and brackets go as this page does.
+  if (pending.to.startsWith('/games/')) handOnly();
   // The bounce keeps time with the clock (a bounce up and down a second), as the next page's does.
   root.style.setProperty('--tx-phase', `${-(Date.now() % 1000)}ms`);
   root.setAttribute('data-tx-live', '');

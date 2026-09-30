@@ -50,7 +50,22 @@ const HAND_TIP_Y = 2;
 const TEXT_FIELD =
   'textarea, [contenteditable]:not([contenteditable="false"]), input:is(:not([type]), [type="text"], [type="number"], [type="search"], [type="email"], [type="password"], [type="url"], [type="tel"])';
 
+/** Where the mouse was as the last page went (sessionStorage), for the next to put the hand there straight away. */
+const PLACE = 'koma.cursor';
+/** How long after the last page went that's still taken as where the mouse is (ms). */
+const PLACE_FOR = 10_000;
+
 let installed = false;
+/** Set once installed: fades the dot and brackets away, leaving the hand (see `handOnly`). */
+let toHandOnly: (() => void) | null = null;
+
+/**
+ * Leaving for a game, which has the hand alone: the dot and brackets fade as the page wipes away,
+ * so the game doesn't take them away all at once as it comes in.
+ */
+export function handOnly(): void {
+  toHandOnly?.();
+}
 
 /**
  * Puts the hand in, once per document (a second call does nothing), with a mouse only, and the dot and
@@ -97,6 +112,17 @@ export function installCursor({ reticle = true }: { reticle?: boolean } = {}): v
   /** The element under the mouse last looked at, and what's boxed (if anything). */
   let under: Element | null = null;
   let boxed: Element | null = null;
+  /** What's under the mouse, still to be looked at for what to box: done once a frame, however many elements it crossed. */
+  let pending: Element | null | undefined;
+  /**
+   * What's pressable at each element looked at: working it out makes the browser go over the whole
+   * page's styles, so it's done once and kept, until something changes whether it would be (a class
+   * or a button turned on or off, a press).
+   */
+  let known = new WeakMap<Element, Element | null>();
+  new MutationObserver(() => {
+    known = new WeakMap();
+  }).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['class', 'disabled'] });
 
   /** The brackets' box as drawn: its centre, size, turn and corners, eased towards where it's going. */
   let cx = mx;
@@ -126,28 +152,48 @@ export function installCursor({ reticle = true }: { reticle?: boolean } = {}): v
    */
   function pressable(target: Element | null): Element | null {
     if (!target || !target.isConnected) return null;
-    html.classList.remove('reticle-on');
-    try {
-      if (getComputedStyle(target).cursor !== 'pointer') return null;
-      let el = target;
-      while (!el.matches(CONTROL) && el.parentElement && getComputedStyle(el.parentElement).cursor === 'pointer') el = el.parentElement;
-      const rect = el.getBoundingClientRect();
-      if (rect.width === 0 || rect.height === 0) return null;
-      if (rect.width > innerWidth * MAX_W && rect.height > innerHeight * MAX_H) return null;
-      return el;
-    } finally {
-      html.classList.add('reticle-on');
+    let el = known.get(target);
+    if (el === undefined) {
+      html.classList.remove('reticle-on');
+      try {
+        el = null;
+        if (getComputedStyle(target).cursor === 'pointer') {
+          el = target;
+          while (!el.matches(CONTROL) && el.parentElement && getComputedStyle(el.parentElement).cursor === 'pointer') el = el.parentElement;
+        }
+      } finally {
+        html.classList.add('reticle-on');
+      }
+      known.set(target, el);
     }
+    if (!el) return null;
+    const rect = el.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return null;
+    if (rect.width > innerWidth * MAX_W && rect.height > innerHeight * MAX_H) return null;
+    return el;
   }
 
-  /** Looks again at what's under the mouse: whether it's a field, and what to box. */
+  /**
+   * The reticle's state, as data- attributes rather than classes: the holo foil (./items/items.ts)
+   * lines its animations up again on every class change on the page, and the reticle's change often.
+   */
+  const set = (name: string, on: boolean): void => {
+    host.toggleAttribute(`data-${name}`, on);
+  };
+
+  /** Looks again at what's under the mouse: whether it's a field now, and what to box at the next frame. */
   function look(target: Element | null): void {
     under = target;
-    host.classList.toggle('over-text', !!target?.closest(TEXT_FIELD));
-    boxed = reticle ? pressable(target) : null;
-    host.classList.toggle('locked', boxed !== null);
+    set('over-text', !!target?.closest(TEXT_FIELD));
+    if (reticle) pending = target;
+  }
+
+  /** Works out what to box from what's under the mouse. */
+  function box(target: Element | null): void {
+    boxed = pressable(target);
+    set('locked', boxed !== null);
     const keepHand = !!boxed?.matches(KEEP_HAND);
-    host.classList.toggle('keep-hand', keepHand);
+    set('keep-hand', keepHand);
     handless = boxed !== null && !keepHand;
   }
 
@@ -161,17 +207,32 @@ export function installCursor({ reticle = true }: { reticle?: boolean } = {}): v
       movedAt = performance.now();
       // The hand straight away, not waiting for the next frame: it's the mouse.
       hand.style.transform = `translate(${mx}px, ${my}px)`;
-      if (!inside) {
-        inside = true;
-        // Arriving: the dot and brackets start where the mouse is, not flying in from where it left.
-        cx = dx = mx;
-        cy = dy = my;
-        host.classList.add('shown');
-        look(document.elementFromPoint(mx, my));
-      }
+      if (!inside) arrive();
     },
     { capture: true, passive: true },
   );
+
+  /** The mouse coming into the window at mx, my: the dot and brackets start there, not flying in from where it left. */
+  function arrive(): void {
+    inside = true;
+    hand.style.transform = `translate(${mx}px, ${my}px)`;
+    cx = dx = mx;
+    cy = dy = my;
+    set('shown', true);
+    look(document.elementFromPoint(mx, my));
+    run();
+  }
+
+  // Where the mouse is as this page goes, for the next to put the hand there from the start (read back
+  // at the end), not gone until the mouse moves.
+  addEventListener('pagehide', () => {
+    if (!inside) return;
+    try {
+      sessionStorage.setItem(PLACE, JSON.stringify({ x: mx, y: my, at: Date.now() }));
+    } catch {
+      // No storage: the next page shows the hand once the mouse moves.
+    }
+  });
   document.addEventListener('pointerover', (e) => {
     if (e.pointerType === 'mouse' && e.target instanceof Element) look(e.target);
   });
@@ -192,7 +253,10 @@ export function installCursor({ reticle = true }: { reticle?: boolean } = {}): v
       pressed = false;
       hand.src = HAND;
       // A press often changes what's there (a button turned off, a menu opened): look again once it has.
-      setTimeout(() => look(document.elementFromPoint(mx, my)), 120);
+      setTimeout(() => {
+        known = new WeakMap();
+        look(document.elementFromPoint(mx, my));
+      }, 120);
     },
     { capture: true },
   );
@@ -200,7 +264,7 @@ export function installCursor({ reticle = true }: { reticle?: boolean } = {}): v
   document.addEventListener('pointerout', (e) => {
     if (e.pointerType === 'mouse' && !e.relatedTarget) {
       inside = false;
-      host.classList.remove('shown');
+      set('shown', false);
     }
   });
   // What's under a mouse held still can change (a page swapped in, a chip dragged over a spot): a look now and then.
@@ -210,8 +274,27 @@ export function installCursor({ reticle = true }: { reticle?: boolean } = {}): v
     if (target !== under || (boxed && !boxed.isConnected)) look(target);
   }, 200);
 
+  /** Whether the frames are running: only while the mouse is in the window, and a moment after (to fade). */
+  let running = false;
+  let leftAt = 0;
+  const run = (): void => {
+    if (!reticle || running) return;
+    running = true;
+    last = performance.now();
+    requestAnimationFrame(step);
+  };
+
   let last = performance.now();
   const step = (now: number): void => {
+    if (inside) leftAt = now;
+    else if (now - leftAt > 600) {
+      running = false;
+      return;
+    }
+    if (pending !== undefined) {
+      box(pending);
+      pending = undefined;
+    }
     const dt = Math.min((now - last) / 1000, 0.1);
     last = now;
     /** How far along to where it's going to move this frame, at `rate`: the same feel at any frame rate. */
@@ -271,5 +354,20 @@ export function installCursor({ reticle = true }: { reticle?: boolean } = {}): v
     frame.style.transform = `translate(${cx - w / 2}px, ${cy - h / 2}px) rotate(${angle}deg)`;
     requestAnimationFrame(step);
   };
-  if (reticle) requestAnimationFrame(step);
+
+  // Last, once everything it starts is set up: the hand where the mouse was as the last page went.
+  try {
+    const place = JSON.parse(sessionStorage.getItem(PLACE) ?? 'null') as { x: number; y: number; at: number } | null;
+    sessionStorage.removeItem(PLACE);
+    if (place && Date.now() - place.at < PLACE_FOR) {
+      mx = place.x;
+      my = place.y;
+      arrive();
+    }
+  } catch {
+    // No storage, or nothing there.
+  }
+  toHandOnly = () => set('leaving', true);
+  // Come back to (the browser kept this page as it was): the dot and brackets again.
+  addEventListener('pageshow', () => set('leaving', false));
 }

@@ -6,8 +6,12 @@
 
 /* The browser's own pointer hidden everywhere, but in fields typed in, which keep their I-beam. */
 html.reticle-on,
-html.reticle-on *:not(textarea, [contenteditable], input:is(:not([type]), [type='text'], [type='number'], [type='search'], [type='email'], [type='password'], [type='url'], [type='tel'])) {
+html.reticle-on * {
   cursor: none !important;
+}
+
+html.reticle-on :is(textarea, [contenteditable], input:is(:not([type]), [type='text'], [type='number'], [type='search'], [type='email'], [type='password'], [type='url'], [type='tel'])) {
+  cursor: text !important;
 }
 
 .reticle {
@@ -35,11 +39,11 @@ html.reticle-on *:not(textarea, [contenteditable], input:is(:not([type]), [type=
   transition: opacity 0.35s ease;
 }
 
-.reticle.shown:not(.over-text) :is(.reticle-dot, .reticle-frame, .reticle-hand) {
+.reticle[data-shown]:not([data-over-text]) :is(.reticle-dot, .reticle-frame, .reticle-hand) {
   opacity: 1;
 }
 
-.reticle.locked {
+.reticle[data-locked] {
   --reticle-ink: var(--gold, #d8bf7a);
   --reticle-glow: rgb(216 191 122 / 55%);
 }
@@ -74,17 +78,26 @@ html.reticle-on *:not(textarea, [contenteditable], input:is(:not([type]), [type=
 }
 
 /* Boxing something in: the hand goes, leaving the dot and the brackets. */
-.reticle.shown.locked .reticle-hand {
+.reticle[data-shown][data-locked] .reticle-hand {
   opacity: 0;
 }
 
 /* Boxing an item: the other way round, the hand staying and the dot going, so the dot isn't lost on the item. */
-.reticle.shown.locked.keep-hand .reticle-hand {
+.reticle[data-shown][data-locked][data-keep-hand] .reticle-hand {
   opacity: 1;
 }
 
-.reticle.shown.locked.keep-hand .reticle-dot {
+.reticle[data-shown][data-locked][data-keep-hand] .reticle-dot {
   opacity: 0;
+}
+
+/* Leaving for a game (which has the hand alone): the hand, whatever's boxed, and the dot and brackets fading away. */
+.reticle[data-shown][data-leaving] .reticle-hand {
+  opacity: 1 !important;
+}
+
+.reticle[data-leaving] :is(.reticle-dot, .reticle-frame) {
+  opacity: 0 !important;
 }
 
 /* The brackets' box: placed, sized and turned by cursor.ts every frame. */
@@ -155,7 +168,7 @@ html.reticle-on *:not(textarea, [contenteditable], input:is(:not([type]), [type=
   transform: translateX(6px);
 }
 
-.reticle.locked .reticle-arrow {
+.reticle[data-locked] .reticle-arrow {
   opacity: 1;
   transform: none;
 }
