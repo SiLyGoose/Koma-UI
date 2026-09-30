@@ -8,6 +8,8 @@
 
 .gear {
   display: grid;
+  /* One column no wider than the page: an implicit (auto) one grows to fit its widest content, like a long server name. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 20px;
   align-items: start;
 }
