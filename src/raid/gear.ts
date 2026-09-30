@@ -14,7 +14,8 @@ import { mountGear, type ApiResult, type Member } from '../gear/view';
  * side). The gear page's view (../gear/view.ts), with the party for its roster, to look at only.
  *
  * Its link's #hash: the raid's token (t) and socket (s), the party (p: JSON [{ id, name, avatar }], in
- * the order they joined, the one looking marked `you`), and whose gear to show first (w). Escape, with
+ * the order they joined, the one looking marked `you`), whose gear to show first (w), and g=raid for
+ * their gear as they fought the raid (the end screen: the bot's snapshot) rather than now. Escape, with
  * nothing open in the view to close, asks the raid page to close the popup.
  */
 
@@ -35,12 +36,16 @@ try {
   party = [];
 }
 const base = socket ? apiFromSocket(socket) : '';
+/** Their gear as they fought (GET /api/raid/gear), not as it is now. */
+const fought = params.get('g') === 'raid';
 
 /** Discord's default picture, for someone whose own the bot doesn't know. */
 const DEFAULT_AVATAR = 'https://cdn.discordapp.com/embed/avatars/0.png';
 
 async function api<T>(path: string, init: RequestInit = {}): Promise<ApiResult<T>> {
   try {
+    // As they fought: the raid's snapshot, asked for the same way.
+    if (fought) path = path.replace(/^\/api\/gear\?/, '/api/raid/gear?');
     const res = await fetch(`${base}${path}`, { ...init, headers: { Authorization: `Game ${token}`, ...init.headers } });
     const body = (await res.json().catch(() => ({}))) as { error?: string };
     return res.ok ? { ok: true, data: body as T } : { ok: false, status: res.status, error: body.error ?? 'failed' };

@@ -1,4 +1,6 @@
 import '../shared/style.css';
+// The dropdown's chevron (.dd-arrow), on the end screen's sorted column.
+import '../shared/dropdown.css';
 import { barSlot, setConn, soundButton } from '../shared/frame';
 import { apiFromSocket, startLive } from '../shared/live';
 import { setMuted } from '../shared/sfx';
@@ -26,6 +28,14 @@ const ui = {
   result: $('result'),
   resultTitle: $('result-title'),
   resultText: $('result-text'),
+  resultSorts: [...document.querySelectorAll<HTMLButtonElement>('.rd-sort')],
+  moreStats: $<HTMLButtonElement>('more-stats'),
+  statsPop: $('stats-pop'),
+  statsPick: $('stats-pick'),
+  statsTitle: $('stats-title'),
+  statsRows: $('stats-rows'),
+  statsAxis: $('stats-axis'),
+  statsClose: $<HTMLButtonElement>('stats-close'),
   resultRows: $('result-rows'),
   tags: $('boss-tags'),
   bossName: $('boss-name'),
@@ -347,8 +357,10 @@ function render(next: RaidView): void {
   ui.tags.textContent = '';
 
   if (preparing) renderPrep(next);
-  // The fight starting (or the lobby going) takes the gear's popup down with the party screen.
-  else closeGear();
+  // The fight starting (or the lobby going, or the end screen) takes the gear's popup down with the screen it was opened from.
+  else if (before !== next.phase) closeGear();
+  if (!ended) closeStats();
+  else if (!ui.statsPop.hidden) renderStats(next);
   if (next.phase === 'fight' && next.fight) renderFight(next);
   if (next.phase === 'over' && next.over) renderOver(next);
   if (ended) renderResult(next);
@@ -518,10 +530,14 @@ const GEAR_LAYOUT_WIDTH = 1100;
 const GEAR_LAYOUT_HEIGHT = 640;
 
 /** Shows `userId`'s gear, with the party (`players`, in the order they joined) to go between. */
-function openGear(v: RaidView, players: string[], userId: string): void {
+/**
+ * Shows `userId`'s gear, with the party (`players`, in their order) to go between. `fought`: their gear
+ * as they fought the raid (the end screen), rather than as it is now.
+ */
+function openGear(v: RaidView, players: string[], userId: string, fought = false): void {
   if (!token || !server) return;
   const party = players.map((id) => ({ id, name: v.names[id] ?? 'Someone', avatar: v.avatars[id], you: id === v.you || undefined }));
-  const hash = new URLSearchParams({ t: token, s: server, p: JSON.stringify(party), w: userId });
+  const hash = new URLSearchParams({ t: token, s: server, p: JSON.stringify(party), w: userId, ...(fought ? { g: 'raid' } : {}) });
   ui.gearFrame.src = `${import.meta.env.BASE_URL}games/raid/gear/#${hash}`;
   ui.gearPop.hidden = false;
   fitGear();
@@ -686,19 +702,50 @@ function renderResult(v: RaidView): void {
   const won = o.end === 'won';
   ui.result.classList.toggle('won', won);
   ui.resultTitle.textContent = won ? 'Victory' : 'Defeat';
-  const reward = o.reward
-    ? ` Everyone who fought gets ${fmt(o.reward.points)} points${o.reward.tokens ? `, ${plural(o.reward.tokens, 'token', 'tokens')}` : ''}${o.reward.gems ? ` and ${plural(o.reward.gems, 'komaGem', 'komaGems')}` : ''}.`
-    : '';
-  ui.resultText.textContent = won
-    ? `${v.boss.name} beaten in ${plural(o.rounds, 'round', 'rounds')}${o.lastHit ? `, the final blow by ${nameOf(o.lastHit)}` : ''}.${reward}`
-    : o.end === 'fled'
-      ? `${v.boss.name} got away after ${plural(o.rounds, 'round', 'rounds')}${hpLeft(o)}.`
-      : `The party fell after ${plural(o.rounds, 'round', 'rounds')}${hpLeft(o)}.`;
+  // What the winners got, with the currencies' emojis (a bot from before sends only the numbers: in words then).
+  const reward: (Node | string)[] = o.rewardText
+    ? [' Everyone who fought gets ', ...markdown(o.rewardText, v.names), '.']
+    : o.reward
+      ? [` Everyone who fought gets ${fmt(o.reward.points)} points${o.reward.tokens ? `, ${plural(o.reward.tokens, 'token', 'tokens')}` : ''}${o.reward.gems ? ` and ${plural(o.reward.gems, 'komaGem', 'komaGems')}` : ''}.`]
+      : [];
+  ui.resultText.replaceChildren(
+    ...(won
+      ? [`${v.boss.name} beaten in ${plural(o.rounds, 'round', 'rounds')}${o.lastHit ? `, the final blow by ${nameOf(o.lastHit)}` : ''}.`, ...reward]
+      : [o.end === 'fled' ? `${v.boss.name} got away after ${plural(o.rounds, 'round', 'rounds')}${hpLeft(o)}.` : `The party fell after ${plural(o.rounds, 'round', 'rounds')}${hpLeft(o)}.`]),
+  );
+
+  // The columns' headers: which one it's sorted by, and which way.
+  for (const button of ui.resultSorts) {
+    const on = button.dataset.sort === resultSort.key;
+    const th = button.parentElement as HTMLElement;
+    th.setAttribute('aria-sort', on ? (resultSort.dir === 'asc' ? 'ascending' : 'descending') : 'none');
+    button.classList.toggle('on', on);
+    button.dataset.dir = on ? resultSort.dir : '';
+  }
 
   ui.resultRows.textContent = '';
-  const rows = [...o.players].sort((a, b) => b.damage - a.damage);
+  const nameFor = (id: string): string => v.names[id] ?? 'Someone';
+  const { key, dir } = resultSort;
+  const rows = [...o.players].sort((a, b) => {
+    const by = key === 'name' ? nameFor(a.userId).localeCompare(nameFor(b.userId), undefined, { sensitivity: 'base' }) : a[key] - b[key];
+    return dir === 'asc' ? by : -by;
+  });
+  const party = o.players.map((p) => p.userId);
   for (const p of rows) {
     const tr = el('tr', p.userId === v.you ? 'you' : '');
+    // A row shows their gear as they fought (when the bot kept it).
+    if (o.gear) {
+      tr.classList.add('open');
+      tr.tabIndex = 0;
+      tr.title = `${nameFor(p.userId)}: see their gear as they fought`;
+      tr.addEventListener('click', () => openGear(v, party, p.userId, true));
+      tr.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          openGear(v, party, p.userId, true);
+        }
+      });
+    }
     // Their picture and name together in the first cell (in a box of their own, so the cell stays a table cell).
     const who = el('div', 'rd-result-who');
     const face = el('span', 'rd-result-face');
@@ -710,6 +757,129 @@ function renderResult(v: RaidView): void {
     tr.append(whoCell, el('td', 'num dmg', fmt(p.damage)), el('td', 'num heal', fmt(p.healed)), el('td', 'num guard', fmt(p.mitigated)));
     ui.resultRows.append(tr);
   }
+}
+
+// ---------------------------------------------------------------------------
+// More stats
+
+/** What one raider did, as the end screen gets it. */
+type RaiderStats = NonNullable<RaidView['over']>['players'][number];
+
+/** The stats More stats can draw, in groups down its left (more to come). */
+const MORE_STATS: { group: string; key: Exclude<keyof RaiderStats, 'userId'>; label: string }[] = [
+  { group: 'Healing', key: 'healedSelf', label: 'Healing Done' },
+  { group: 'Healing', key: 'healedAllies', label: 'Ally Healing' },
+  { group: 'Defense', key: 'mitigated', label: 'Damage Mitigated' },
+  { group: 'Defense', key: 'damageTaken', label: 'Damage Taken' },
+];
+let moreStat: (typeof MORE_STATS)[number]['key'] = 'healedSelf';
+
+/** A round top for the scale over `max`, and the step between its lines (1, 2 or 5 times a power of ten, about five of them). */
+function niceScale(max: number): { top: number; step: number } {
+  if (max <= 0) return { top: 10, step: 2 };
+  const rough = max / 5;
+  const power = 10 ** Math.floor(Math.log10(rough));
+  const f = rough / power;
+  const step = (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * power;
+  return { top: Math.ceil(max / step) * step, step };
+}
+
+function renderStats(v: RaidView): void {
+  const o = v.over;
+  if (!o) return;
+  // The choices, once: a radio for each stat, under its group's heading.
+  if (!ui.statsPick.childElementCount) {
+    let group = '';
+    for (const stat of MORE_STATS) {
+      if (stat.group !== group) {
+        group = stat.group;
+        ui.statsPick.append(el('p', 'rd-stats-group', group));
+      }
+      const label = el('label', 'rd-stats-option');
+      const input = el('input');
+      input.type = 'radio';
+      input.name = 'more-stat';
+      input.value = stat.key;
+      input.addEventListener('change', () => {
+        moreStat = stat.key;
+        if (view) renderStats(view);
+      });
+      label.append(input, el('span', 'rd-stats-radio'), el('span', '', stat.label));
+      ui.statsPick.append(label);
+    }
+  }
+  for (const input of ui.statsPick.querySelectorAll<HTMLInputElement>('input')) input.checked = input.value === moreStat;
+  const stat = MORE_STATS.find((s) => s.key === moreStat) ?? MORE_STATS[0]!;
+  ui.statsTitle.textContent = stat.label;
+
+  // Every raider in the order they joined, a bar each against the scale.
+  const values = o.players.map((p) => ({ userId: p.userId, value: p[stat.key] ?? 0 }));
+  const { top, step } = niceScale(Math.max(0, ...values.map((r) => r.value)));
+  const ticks = Array.from({ length: Math.round(top / step) + 1 }, (_, i) => i * step);
+  const grid = el('div', 'rd-stats-grid');
+  grid.setAttribute('aria-hidden', 'true');
+  for (const tick of ticks) {
+    const line = el('span');
+    line.style.left = `${(tick / top) * 100}%`;
+    grid.append(line);
+  }
+  ui.statsRows.replaceChildren(
+    grid,
+    ...values.map(({ userId, value }) => {
+      const row = el('div', `rd-stats-row${userId === v.you ? ' you' : ''}`);
+      row.title = `${nameOf(userId)}: ${fmt(value)}`;
+      const face = el('span', 'rd-stats-face');
+      face.append(avatar(userId, v));
+      const track = el('span', 'rd-stats-track');
+      const bar = el('span', 'rd-stats-bar');
+      bar.style.width = `${(value / top) * 100}%`;
+      track.append(bar, el('b', 'rd-stats-value', fmt(value)));
+      row.append(face, track);
+      return row;
+    }),
+  );
+  ui.statsAxis.replaceChildren(
+    ...ticks.map((tick) => {
+      const label = el('span', '', fmt(tick));
+      label.style.left = `${(tick / top) * 100}%`;
+      return label;
+    }),
+  );
+}
+
+function openStats(): void {
+  if (!view?.over) return;
+  ui.statsPop.hidden = false;
+  renderStats(view);
+  ui.statsClose.focus();
+}
+
+function closeStats(): void {
+  if (ui.statsPop.hidden) return;
+  ui.statsPop.hidden = true;
+  ui.moreStats.focus({ preventScroll: true });
+}
+
+ui.moreStats.addEventListener('click', openStats);
+ui.statsClose.addEventListener('click', closeStats);
+ui.statsPop.addEventListener('click', (event) => {
+  if (event.target === ui.statsPop) closeStats();
+});
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && ui.gearPop.hidden) closeStats();
+});
+
+/** How the end screen's table is sorted: by one column, either way (most damage first, to start with). */
+type ResultSortKey = 'name' | 'damage' | 'healed' | 'mitigated';
+let resultSort: { key: ResultSortKey; dir: 'asc' | 'desc' } = { key: 'damage', dir: 'desc' };
+
+for (const button of ui.resultSorts) {
+  button.addEventListener('click', () => {
+    const key = button.dataset.sort as ResultSortKey;
+    // The same column again: the other way round. Another: most first (names from A).
+    resultSort = key === resultSort.key ? { key, dir: resultSort.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: key === 'name' ? 'asc' : 'desc' };
+    if (view?.over) renderResult(view);
+  });
 }
 
 /** The countdowns: the lobby closing, and the turn's time running out. */
