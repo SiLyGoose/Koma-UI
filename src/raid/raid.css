@@ -608,7 +608,7 @@
   background: var(--rd-lo);
 }
 
-/* The four actions, and what they picked (or why they can't). */
+/* What to do this turn: the actions, and what they picked (or why they can't). */
 .rd-command {
   flex: 0 0 auto;
   display: grid;
@@ -617,67 +617,132 @@
   width: min(380px, 100%);
 }
 
+/*
+ * The actions as circles in the bottom corner, like a game's skill buttons: Attack the big one, and
+ * the other moves smaller round it, up and to its left. Each is named under its circle.
+ */
 .rd-actions {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
-  width: 100%;
+  position: relative;
+  width: 250px;
+  height: 214px;
 }
 
 .rd-action {
+  position: absolute;
   display: grid;
   justify-items: center;
-  gap: 2px;
-  padding: 10px 4px 8px;
-  border: 2px solid rgba(255, 255, 255, 0.15);
-  border-radius: 12px;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
   color: #fff;
   font: inherit;
-  font-size: 12.5px;
-  font-weight: 700;
   cursor: pointer;
-  transition: transform 0.08s ease, filter 0.12s ease;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
 }
 
-.rd-action span {
-  font-size: 20px;
-  line-height: 1.1;
+.rd-orb {
+  --ring: rgba(255, 255, 255, 0.55);
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--ring);
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 35%, rgba(70, 76, 100, 0.92), rgba(14, 16, 26, 0.94) 70%);
+  box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.35), 0 6px 18px rgba(0, 0, 0, 0.55), inset 0 0 18px rgba(255, 255, 255, 0.08);
+  line-height: 1;
+  transition: transform 0.1s ease, box-shadow 0.15s ease, filter 0.15s ease;
 }
 
-.rd-action.attack {
-  background: #a8373a;
+.rd-action-name {
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  text-shadow: 0 1px 2px #000, 0 0 4px #000;
+}
+
+/* Attack: the big circle, in the corner. */
+.rd-action.main {
+  right: 4px;
+  bottom: 0;
+}
+
+.rd-action.main .rd-orb {
+  --ring: rgba(255, 214, 150, 0.85);
+  width: 108px;
+  height: 108px;
+  font-size: 44px;
+  background: radial-gradient(circle at 50% 35%, rgba(170, 60, 60, 0.95), rgba(40, 10, 14, 0.95) 72%);
+}
+
+.rd-action.main .rd-action-name {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* The others: smaller, in an arc from above Attack round to its left. */
+.rd-action.small .rd-orb {
+  width: 58px;
+  height: 58px;
+  font-size: 24px;
 }
 
 .rd-action.guard {
-  background: #3b5fb0;
+  right: 30px;
+  top: 0;
 }
 
 .rd-action.heal {
-  background: #2f8a55;
+  right: 120px;
+  top: 28px;
 }
 
 .rd-action.support {
-  background: #5b5470;
+  right: 150px;
+  bottom: 22px;
 }
 
-.rd-action:hover:not(:disabled) {
-  filter: brightness(1.12);
+.rd-action.guard .rd-orb {
+  --ring: rgba(140, 180, 255, 0.8);
 }
 
-.rd-action:active:not(:disabled) {
-  transform: translateY(1px);
+.rd-action.heal .rd-orb {
+  --ring: rgba(130, 220, 160, 0.8);
+}
+
+.rd-action.support .rd-orb {
+  --ring: rgba(210, 180, 255, 0.8);
+}
+
+.rd-action:hover:not(:disabled) .rd-orb {
+  filter: brightness(1.2);
+  transform: scale(1.05);
+}
+
+.rd-action:active:not(:disabled) .rd-orb {
+  transform: scale(0.96);
 }
 
 .rd-action:disabled {
-  opacity: 0.4;
   cursor: default;
 }
 
-.rd-action.picked {
-  border-color: var(--gold);
+.rd-action:disabled .rd-orb {
+  filter: grayscale(0.8) brightness(0.6);
+}
+
+.rd-action:disabled .rd-action-name {
+  opacity: 0.55;
+}
+
+/* What they picked this turn: its circle glows gold. */
+.rd-action.picked .rd-orb {
+  --ring: var(--gold);
+  filter: none;
+  box-shadow: 0 0 0 4px rgba(216, 191, 122, 0.35), 0 0 22px rgba(216, 191, 122, 0.55), 0 6px 18px rgba(0, 0, 0, 0.55);
+}
+
+.rd-action.picked .rd-action-name {
   opacity: 1;
-  box-shadow: 0 0 0 3px rgba(216, 191, 122, 0.3), 0 4px 14px rgba(0, 0, 0, 0.5);
+  color: var(--gold);
 }
 
 .rd-note {
@@ -803,6 +868,10 @@
     width: 100%;
   }
 
+  .rd-actions {
+    justify-self: center;
+  }
+
   .rd-note {
     text-align: center;
   }
@@ -841,7 +910,8 @@
   text-align: center;
 }
 
-/* In the fight the toast sits above the actions. */
+/* In the fight the toast sits under the boss's next move, clear of the party and the actions. */
 .rd-fighting .rd-toast {
-  bottom: 150px;
+  top: 190px;
+  bottom: auto;
 }

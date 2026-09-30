@@ -25,7 +25,6 @@ const ui = {
   battleBackdrop: $<HTMLImageElement>('battle-backdrop'),
   tags: $('boss-tags'),
   bossName: $('boss-name'),
-  bossHp: $('boss-hp'),
   bossPct: $('boss-pct'),
   bossFill: $('boss-fill'),
   intentText: $('intent-text'),
@@ -248,7 +247,6 @@ function renderFight(v: RaidView): void {
 
   const bossShare = f.bossMaxHp > 0 ? Math.max(0, f.bossHp) / f.bossMaxHp : 0;
   ui.bossName.textContent = `${v.boss.emoji} ${v.boss.name}`;
-  ui.bossHp.textContent = `${fmt(f.bossHp)} / ${fmt(f.bossMaxHp)} HP`;
   ui.bossPct.textContent = `${Math.ceil(bossShare * 100)}%`;
   ui.bossFill.style.width = `${bossShare * 100}%`;
   if (f.enrage > 0) ui.tags.append(el('span', 'rd-tag hot', f.enrage >= 2 ? '🔥 Furious' : '😠 Enraged'));

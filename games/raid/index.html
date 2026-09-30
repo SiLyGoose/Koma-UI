@@ -68,7 +68,7 @@
           <div class="rd-boss">
             <div class="rd-boss-name" id="boss-name"></div>
             <div class="rd-boss-bar"><span id="boss-fill"></span><b id="boss-pct"></b></div>
-            <div class="rd-boss-sub"><span id="boss-hp"></span><span id="boss-tags" class="rd-tags"></span></div>
+            <div class="rd-boss-sub"><span id="boss-tags" class="rd-tags"></span></div>
           </div>
           <div class="rd-round">
             <b id="round"></b>
@@ -95,11 +95,12 @@
               <div id="heal-options" class="rd-heal-options"></div>
             </div>
             <p id="act-note" class="rd-note"></p>
+            <!-- Attack, the big circle, with the other moves in smaller circles round it (each class's own moves, one day). -->
             <div id="actions" class="rd-actions">
-              <button type="button" class="rd-action attack" data-action="attack"><span>⚔️</span>Attack</button>
-              <button type="button" class="rd-action guard" data-action="guard"><span>🛡️</span>Guard</button>
-              <button type="button" class="rd-action heal" data-action="heal"><span>💚</span>Heal</button>
-              <button type="button" class="rd-action support" data-action="support"><span>✨</span>Support</button>
+              <button type="button" class="rd-action main attack" data-action="attack"><span class="rd-orb">⚔️</span><span class="rd-action-name">Attack</span></button>
+              <button type="button" class="rd-action small guard" data-action="guard"><span class="rd-orb">🛡️</span><span class="rd-action-name">Guard</span></button>
+              <button type="button" class="rd-action small heal" data-action="heal"><span class="rd-orb">💚</span><span class="rd-action-name">Heal</span></button>
+              <button type="button" class="rd-action small support" data-action="support"><span class="rd-orb">✨</span><span class="rd-action-name">Support</span></button>
             </div>
           </div>
         </div>
