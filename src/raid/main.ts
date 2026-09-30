@@ -386,9 +386,8 @@ function renderPrep(v: RaidView): void {
     };
     list(ui.prepMoves, brief.moves);
     list(ui.prepPhases, brief.phases);
-    ui.prepRewards.replaceChildren(...markdown(brief.rewards, v.names));
-    ui.prepRewards.hidden = brief.rewards.trim() === '';
-    (ui.prepRewards.previousElementSibling as HTMLElement).hidden = ui.prepRewards.hidden;
+    // The rewards in rows too, a line each.
+    list(ui.prepRewards, brief.rewards.split('\n'));
   }
 
   const lobby = v.lobby;
