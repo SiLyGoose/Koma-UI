@@ -32,14 +32,16 @@ const ui = {
   bossPct: $('boss-pct'),
   bossFill: $('boss-fill'),
   intentText: $('intent-text'),
-  idle: $('idle'),
-  idleTitle: $('idle-title'),
-  idleText: $('idle-text'),
+  prep: $('prep'),
+  prepBackdrop: $<HTMLImageElement>('prep-backdrop'),
+  prepPicture: $<HTMLImageElement>('prep-picture'),
+  prepBossName: $('prep-boss-name'),
+  prepMoves: $('prep-moves'),
+  prepPhases: $('prep-phases'),
+  prepRewards: $('prep-rewards'),
+  prepSlots: $('prep-slots'),
+  prepStatus: $('prep-status'),
   start: $<HTMLButtonElement>('start'),
-  lobby: $('lobby'),
-  lobbyTimer: $('lobby-timer'),
-  lobbyHp: $('lobby-hp'),
-  lobbyPlayers: $('lobby-players'),
   join: $<HTMLButtonElement>('join'),
   leave: $<HTMLButtonElement>('leave'),
   begin: $<HTMLButtonElement>('begin'),
@@ -158,7 +160,7 @@ async function showPicture(url: string): Promise<void> {
   next.src = url;
   await next.decode().catch(() => {});
   if (url !== pictureShown) return;
-  for (const img of [ui.picture, ui.battlePicture, ui.battleBackdrop]) img.src = url;
+  for (const img of [ui.picture, ui.battlePicture, ui.battleBackdrop, ui.prepPicture, ui.prepBackdrop]) img.src = url;
 }
 /** Heal's "who?" is open (for this round). */
 let healOpenRound: number | null = null;
@@ -328,54 +330,104 @@ function render(next: RaidView): void {
   }
   const holding = ended && !resultShown;
   // The end screen goes over the battle's scene (the boss stays put under it) as the battle's own parts fade out.
-  ui.layout.hidden = fighting || ended;
+  // Before the fight (not fought yet this week, or the lobby open): the party screen.
+  const preparing = next.phase === 'lobby' || (next.phase === 'idle' && next.idle !== null);
+  ui.prep.hidden = !preparing;
+  ui.layout.hidden = fighting || ended || preparing;
   ui.battle.hidden = !(fighting || ended);
   ui.battle.classList.toggle('ending', holding);
   ui.battle.classList.toggle('concluded', ended && resultShown);
   ui.result.hidden = !(ended && resultShown);
   document.body.classList.toggle('rd-fighting', fighting || ended);
-  ui.idle.hidden = next.phase !== 'idle';
-  ui.lobby.hidden = next.phase !== 'lobby';
   ui.over.hidden = next.phase !== 'over';
   ui.tags.textContent = '';
 
-  if (next.phase === 'idle' && next.idle) renderIdle(next);
-  if (next.phase === 'lobby' && next.lobby) renderLobby(next);
+  if (preparing) renderPrep(next);
   if (next.phase === 'fight' && next.fight) renderFight(next);
   if (next.phase === 'over' && next.over) renderOver(next);
   if (ended) renderResult(next);
   tick();
 }
 
-function renderIdle(v: RaidView): void {
-  const idle = v.idle!;
-  const reset = new Date(v.resetsAt).toLocaleString(undefined, { weekday: 'long', hour: 'numeric', minute: '2-digit' });
-  const titles = { open: `${v.boss.name} awaits`, won: `${v.boss.name} was defeated`, wiped: `${v.boss.name} won this week`, fled: `${v.boss.name} got away`, busy: 'The raid is being set up' };
-  ui.idleTitle.textContent = titles[idle.week];
-  ui.idleText.textContent =
-    idle.week === 'open'
-      ? idle.canStart
-        ? `This week's boss hasn't been fought yet. Start the raid and everyone in the server can join, here or in Discord. The week resets ${reset}.`
-        : `This week's boss hasn't been fought yet. This server has no bot channel, so start the raid in Discord with the raid command, then join it here. The week resets ${reset}.`
-      : idle.week === 'busy'
-        ? 'A raid is starting in Discord. It will show up here in a moment.'
-        : `The next raid can be started after the week resets, ${reset}.`;
-  ui.start.hidden = !idle.canStart;
-}
+/** The lobby's countdown, in the party screen's status line (tick() keeps it going). */
+let lobbyTimer: HTMLElement | null = null;
+/** The last boss the party screen was drawn for (its moves only change with it). */
+let prepBoss = '';
 
-function renderLobby(v: RaidView): void {
-  const lobby = v.lobby!;
-  const inIt = lobby.players.includes(v.you);
-  ui.lobbyHp.textContent = fmt(lobby.bossHp);
-  ui.lobbyPlayers.textContent = '';
-  for (const userId of lobby.players) {
-    const li = el('li', userId === v.you ? 'you' : '', nameOf(userId));
-    if (userId === lobby.players[0]) li.append(el('span', 'rd-tag', 'host'));
-    ui.lobbyPlayers.append(li);
+/** The raiders' character (everyone's the same one for now). */
+const SPRITE = '/characters/tsuri/sprite.png';
+
+/**
+ * The party screen, before the fight: the boss and what it does on the left, the party so far on the
+ * right (a card for each raider, the empty seats face down), and what there is to do: start the week's
+ * raid, or join, leave and (the host) start it now.
+ */
+function renderPrep(v: RaidView): void {
+  if (prepBoss !== v.boss.id) {
+    prepBoss = v.boss.id;
+    ui.prepBossName.textContent = `${v.boss.emoji} ${v.boss.name}`;
+    const list = (ul: HTMLElement, lines: string[]): void => {
+      ul.replaceChildren(...lines.filter((line) => line.trim() !== '').map((line) => {
+        const li = el('li');
+        li.append(...markdown(line, v.names));
+        return li;
+      }));
+    };
+    list(ui.prepMoves, v.brief.moves);
+    list(ui.prepPhases, v.brief.phases);
+    ui.prepRewards.replaceChildren(...markdown(v.brief.rewards, v.names));
   }
-  ui.join.hidden = inIt;
-  ui.leave.hidden = !inIt;
-  ui.begin.hidden = lobby.players[0] !== v.you;
+
+  const lobby = v.lobby;
+  const players = lobby?.players ?? [];
+  const host = players[0] ?? null;
+  // Four seats at least, and a row more of them for every four raiders past that.
+  const seats = Math.max(4, Math.ceil(players.length / 4) * 4);
+  ui.prepSlots.replaceChildren(
+    ...Array.from({ length: seats }, (_, i) => {
+      const userId = players[i];
+      if (userId === undefined) {
+        const empty = el('div', 'rd-slot empty');
+        empty.append(el('span', 'rd-slot-back'));
+        return empty;
+      }
+      const card = el('div', `rd-slot${userId === v.you ? ' you' : ''}`);
+      card.title = nameOf(userId);
+      // Their class, in the top left corner: not there yet, so a question mark.
+      const badge = el('span', 'rd-slot-class', '?');
+      badge.title = 'Class: ?';
+      const sprite = el('img', 'rd-slot-sprite');
+      sprite.src = SPRITE;
+      sprite.alt = '';
+      sprite.draggable = false;
+      card.append(badge, el('span', 'rd-slot-glow'), sprite, el('span', 'rd-slot-name', v.names[userId] ?? 'Someone'));
+      if (userId === host) card.append(el('span', 'rd-slot-host', 'Host'));
+      return card;
+    }),
+  );
+
+  // What's going on, and what there is to do.
+  const reset = new Date(v.resetsAt).toLocaleString(undefined, { weekday: 'long', hour: 'numeric', minute: '2-digit' });
+  const inIt = players.includes(v.you);
+  ui.start.hidden = true;
+  ui.join.hidden = true;
+  ui.leave.hidden = true;
+  ui.begin.hidden = true;
+  lobbyTimer = null;
+  if (lobby) {
+    lobbyTimer = el('b');
+    ui.prepStatus.replaceChildren('The fight starts in ', lobbyTimer, ', or when the host starts it. ', el('span', 'rd-muted-inline', `Boss HP ${fmt(lobby.bossHp)}, growing with every raider.`));
+    ui.join.hidden = inIt;
+    ui.leave.hidden = !inIt;
+    ui.begin.hidden = host !== v.you;
+  } else if (v.idle?.week === 'busy') {
+    ui.prepStatus.textContent = 'A raid is starting in Discord. It will show up here in a moment.';
+  } else if (v.idle?.canStart) {
+    ui.prepStatus.textContent = `This week's boss hasn't been fought yet. Start the raid and everyone in the server can join, here or in Discord. The week resets ${reset}.`;
+    ui.start.hidden = false;
+  } else {
+    ui.prepStatus.textContent = `This week's boss hasn't been fought yet. This server has no bot channel, so start the raid in Discord with the raid command, then join it here. The week resets ${reset}.`;
+  }
 }
 
 function renderFight(v: RaidView): void {
@@ -482,7 +534,7 @@ function renderOver(v: RaidView): void {
     o.end === 'won'
       ? `Beaten in ${plural(o.rounds, 'round', 'rounds')}${o.lastHit ? `, the final blow by ${nameOf(o.lastHit)}` : ''}.${reward}`
       : o.end === 'wiped' || o.end === 'fled'
-        ? `After ${plural(o.rounds, 'round', 'rounds')}, with ${fmt(o.bossHp)} / ${fmt(o.bossMaxHp)} HP left.`
+        ? `After ${plural(o.rounds, 'round', 'rounds')}${hpLeft(o)}.`
         : o.end === 'no_players'
           ? 'Nobody joined the raid in time.'
           : 'Something went wrong, so the raid was called off and the week freed up. Points spent or stolen were given back.';
@@ -494,6 +546,10 @@ function renderOver(v: RaidView): void {
     ui.overRanking.append(li);
   }
 }
+
+/** ", with 800 / 2,211 HP left", when the boss's HP at the end is known (not for a raid read back from the database). */
+const hpLeft = (o: { bossHp: number | null; bossMaxHp: number | null }): string =>
+  o.bossHp === null || o.bossMaxHp === null ? '' : `, with ${fmt(o.bossHp)} / ${fmt(o.bossMaxHp)} HP left`;
 
 /** The end of a fight fought out: VICTORY or DEFEAT, and what each raider did, the most damage first. */
 function renderResult(v: RaidView): void {
@@ -507,8 +563,8 @@ function renderResult(v: RaidView): void {
   ui.resultText.textContent = won
     ? `${v.boss.name} beaten in ${plural(o.rounds, 'round', 'rounds')}${o.lastHit ? `, the final blow by ${nameOf(o.lastHit)}` : ''}.${reward}`
     : o.end === 'fled'
-      ? `${v.boss.name} got away after ${plural(o.rounds, 'round', 'rounds')}, with ${fmt(o.bossHp)} / ${fmt(o.bossMaxHp)} HP left.`
-      : `The party fell after ${plural(o.rounds, 'round', 'rounds')}, with ${v.boss.name} on ${fmt(o.bossHp)} / ${fmt(o.bossMaxHp)} HP.`;
+      ? `${v.boss.name} got away after ${plural(o.rounds, 'round', 'rounds')}${hpLeft(o)}.`
+      : `The party fell after ${plural(o.rounds, 'round', 'rounds')}${hpLeft(o)}.`;
 
   ui.resultRows.textContent = '';
   const rows = [...o.players].sort((a, b) => b.damage - a.damage);
@@ -530,9 +586,9 @@ function renderResult(v: RaidView): void {
 /** The countdowns: the lobby closing, and the turn's time running out. */
 function tick(): void {
   const now = Date.now();
-  if (view?.phase === 'lobby' && view.lobby) {
+  if (view?.phase === 'lobby' && view.lobby && lobbyTimer) {
     const s = Math.max(0, Math.ceil((view.lobby.closesAt - now) / 1000));
-    ui.lobbyTimer.textContent = s >= 60 ? `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}` : `${s}s`;
+    lobbyTimer.textContent = s >= 60 ? `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}` : `${s}s`;
   }
   if (view?.phase === 'fight' && view.fight) {
     const f = view.fight;
