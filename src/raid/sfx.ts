@@ -8,17 +8,19 @@ import { sound } from '../shared/sfx';
 
 const SFX = (file: string): string => `${import.meta.env.BASE_URL}raid/sfx/${file}.mp3`;
 
-const SOUNDS = {
-  attack: sound(SFX('hit_enemy')),
-  guard: sound(SFX('guard_player')),
-  support: sound(SFX('support_player')),
-  heal: sound(SFX('heal_player')),
-  hover: sound(SFX('select_player')),
-  actionHover: sound(SFX('action_hover_player')),
+export type Sound = 'attack' | 'guard' | 'support' | 'heal' | 'hover' | 'actionHover';
+
+/** Each sound, and how loud it plays (a share of the shared volume; 1 when not given). */
+const SOUNDS: Record<Sound, [(volume?: number) => void, number?]> = {
+  attack: [sound(SFX('hit_enemy')), 0.7],
+  guard: [sound(SFX('guard_player'))],
+  support: [sound(SFX('support_player'))],
+  heal: [sound(SFX('heal_player'))],
+  hover: [sound(SFX('select_player')), 0.6],
+  actionHover: [sound(SFX('action_hover_player'))],
 };
 
-export type Sound = keyof typeof SOUNDS;
-
 export function play(sound: Sound): void {
-  SOUNDS[sound]();
+  const [playIt, volume] = SOUNDS[sound];
+  playIt(volume);
 }
