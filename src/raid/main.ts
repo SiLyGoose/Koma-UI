@@ -78,7 +78,6 @@ function showMessage(title: string, text: string): void {
 
 const fmt = (n: number): string => Math.round(n).toLocaleString('en-US');
 const plural = (n: number, one: string, many: string): string => `${n} ${n === 1 ? one : many}`;
-const ACTION_ICON: Record<RaidAction, string> = { attack: '⚔️', guard: '🛡️', heal: '💚', support: '✨' };
 const CC_NAME = { stunned: '💫 Stunned', disarmed: '🗡️ Disarmed', taunted: '😤 Taunted' } as const;
 
 /** Why they can't take an action this turn, in words. */
@@ -298,8 +297,19 @@ function renderFight(v: RaidView): void {
     const portrait = el('div', 'rd-portrait');
     portrait.append(avatar(p.userId, v));
     // What they picked this turn (or that they're down, or held by crowd control), on the portrait's corner.
-    const badge = p.hp <= 0 ? '💀' : !p.canAct ? '💫' : p.picked ? ACTION_ICON[p.picked] : f.open ? '…' : '';
-    if (badge) portrait.append(el('span', 'rd-badge', badge));
+    // Their pick shows as its action's picture (public/raid/actions); down, stunned and still choosing as signs.
+    if (p.hp > 0 && p.canAct && p.picked) {
+      const badge = el('span', 'rd-badge picked');
+      const icon = el('img');
+      icon.src = `/raid/actions/action_${p.picked}.png`;
+      icon.alt = p.picked;
+      icon.draggable = false;
+      badge.append(icon);
+      portrait.append(badge);
+    } else {
+      const sign = p.hp <= 0 ? '💀' : !p.canAct ? '💫' : f.open ? '…' : '';
+      if (sign) portrait.append(el('span', 'rd-badge', sign));
+    }
     if (p.cc && p.hp > 0) portrait.append(el('span', 'rd-cc', `${CC_NAME[p.cc.effect].split(' ')[0]}${p.cc.turns}`));
     // Under the portrait, as in a game's party bar: their name on the left and their HP on the right, over the bar.
     const stats = el('div', 'rd-member-stats');

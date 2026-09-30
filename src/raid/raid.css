@@ -505,17 +505,28 @@
 /* What they picked, on the portrait's corner. */
 .rd-badge {
   position: absolute;
-  right: -4px;
-  bottom: -2px;
+  right: -6px;
+  bottom: -4px;
   display: grid;
   place-items: center;
-  width: 24px;
-  height: 24px;
+  width: 30px;
+  height: 30px;
   border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 50%;
+  box-sizing: border-box;
   background: #12151f;
-  font-size: 13px;
+  font-size: 16px;
   line-height: 1;
+}
+
+/* Their pick: its action's picture, filling the bubble. */
+.rd-badge.picked > img {
+  width: 100%;
+  height: 100%;
+  padding: 2px;
+  box-sizing: border-box;
+  object-fit: contain;
+  user-select: none;
 }
 
 .rd-cc {
