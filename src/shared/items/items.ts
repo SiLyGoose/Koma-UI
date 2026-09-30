@@ -13,6 +13,27 @@ export const el = <K extends keyof HTMLElementTagNameMap>(tag: K, className = ''
   return e;
 };
 
+/** The masterwork foil's animations (items.css). */
+const HOLO = new Set(['holo', 'holo-hue']);
+
+/**
+ * Keeps every masterwork's foil in step with the page's clock rather than its card's: a card drawn
+ * again (on a click, after an update) would otherwise start its bands over, so they'd jump. Each new
+ * foil animation is set to have started when the page did, so it carries on where the old one was
+ * (and every card's bands move together). It's done as the cards go in, before they're painted.
+ */
+export const keepHoloInStep = (): void => {
+  const align = (): void => {
+    for (const animation of document.getAnimations()) {
+      if (animation instanceof CSSAnimation && HOLO.has(animation.animationName) && animation.startTime !== 0) {
+        animation.startTime = 0;
+      }
+    }
+  };
+  new MutationObserver(align).observe(document.body, { subtree: true, childList: true, attributeFilter: ['class'] });
+  align();
+};
+
 // ---------------------------------------------------------------------------
 // Pictures
 

@@ -10,6 +10,7 @@ import { databankPage } from '../databank/page';
 import { forgePage } from '../forge/page';
 import { gearPage } from '../gear/page';
 import { hubPage } from '../hub/page';
+import { keepHoloInStep } from '../shared/items/items';
 import { holdReveal, onSiteLink, swap, type Direction } from '../shared/transition';
 import { setGo, type GoOptions } from './nav';
 import type { Page } from './page';
@@ -32,6 +33,8 @@ const view = document.getElementById('view') as HTMLElement;
 
 // The star chart behind every page: put in once, so it carries on as the pages change.
 document.body.prepend(backdrop());
+// The masterworks' foil carries on as their cards are drawn again.
+keepHoloInStep();
 const icon = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
 
 /** A path without its trailing slash (/gear/ and /gear are the same page). */
