@@ -155,7 +155,10 @@
                 <tbody id="result-rows"></tbody>
               </table>
             </div>
-            <a class="rd-button rd-result-back back" href="/">← Back to the games</a>
+            <div class="rd-result-actions">
+              <a class="rd-button rd-result-back back" href="/">← Back to the games</a>
+              <button type="button" id="more-stats" class="rd-button">More stats</button>
+            </div>
           </div>
         </section>
       </section>
@@ -169,6 +172,26 @@
         <div class="rd-gear-box">
           <div class="rd-gear-fit"><iframe id="gear-frame" class="rd-gear-frame" title="Gear"></iframe></div>
           <button type="button" id="gear-close" class="rd-gear-close" aria-label="Close">✕</button>
+        </div>
+      </div>
+
+      <!--
+        More stats (the end screen's button): pick a stat on the left, and every raider's is drawn on the
+        right as a bar from their picture, against a scale along the bottom.
+      -->
+      <div id="stats-pop" class="rd-stats" role="dialog" aria-modal="true" aria-labelledby="stats-title" hidden>
+        <div class="rd-stats-box">
+          <div class="rd-stats-body">
+            <div id="stats-pick" class="rd-stats-pick" role="radiogroup" aria-label="Stat"></div>
+            <div class="rd-stats-chart">
+              <h3 id="stats-title" class="rd-stats-title"></h3>
+              <div class="rd-stats-scroll">
+                <div id="stats-rows" class="rd-stats-rows"></div>
+              </div>
+              <div id="stats-axis" class="rd-stats-axis" aria-hidden="true"></div>
+            </div>
+          </div>
+          <button type="button" id="stats-close" class="rd-gear-close" aria-label="Close">✕</button>
         </div>
       </div>
 

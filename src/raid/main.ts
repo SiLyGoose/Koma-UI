@@ -29,6 +29,13 @@ const ui = {
   resultTitle: $('result-title'),
   resultText: $('result-text'),
   resultSorts: [...document.querySelectorAll<HTMLButtonElement>('.rd-sort')],
+  moreStats: $<HTMLButtonElement>('more-stats'),
+  statsPop: $('stats-pop'),
+  statsPick: $('stats-pick'),
+  statsTitle: $('stats-title'),
+  statsRows: $('stats-rows'),
+  statsAxis: $('stats-axis'),
+  statsClose: $<HTMLButtonElement>('stats-close'),
   resultRows: $('result-rows'),
   tags: $('boss-tags'),
   bossName: $('boss-name'),
@@ -352,6 +359,8 @@ function render(next: RaidView): void {
   if (preparing) renderPrep(next);
   // The fight starting (or the lobby going, or the end screen) takes the gear's popup down with the screen it was opened from.
   else if (before !== next.phase) closeGear();
+  if (!ended) closeStats();
+  else if (!ui.statsPop.hidden) renderStats(next);
   if (next.phase === 'fight' && next.fight) renderFight(next);
   if (next.phase === 'over' && next.over) renderOver(next);
   if (ended) renderResult(next);
@@ -749,6 +758,115 @@ function renderResult(v: RaidView): void {
     ui.resultRows.append(tr);
   }
 }
+
+// ---------------------------------------------------------------------------
+// More stats
+
+/** What one raider did, as the end screen gets it. */
+type RaiderStats = NonNullable<RaidView['over']>['players'][number];
+
+/** The stats More stats can draw, in groups down its left (more to come). */
+const MORE_STATS: { group: string; key: Exclude<keyof RaiderStats, 'userId'>; label: string }[] = [
+  { group: 'Healing', key: 'healedSelf', label: 'Healing done (self)' },
+  { group: 'Healing', key: 'healedAllies', label: 'Healing done to allies' },
+  { group: 'Support', key: 'supportDamage', label: 'Damage dealt from support' },
+];
+let moreStat: (typeof MORE_STATS)[number]['key'] = 'healedSelf';
+
+/** A round top for the scale over `max`, and the step between its lines (1, 2 or 5 times a power of ten, about five of them). */
+function niceScale(max: number): { top: number; step: number } {
+  if (max <= 0) return { top: 10, step: 2 };
+  const rough = max / 5;
+  const power = 10 ** Math.floor(Math.log10(rough));
+  const f = rough / power;
+  const step = (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * power;
+  return { top: Math.ceil(max / step) * step, step };
+}
+
+function renderStats(v: RaidView): void {
+  const o = v.over;
+  if (!o) return;
+  // The choices, once: a radio for each stat, under its group's heading.
+  if (!ui.statsPick.childElementCount) {
+    let group = '';
+    for (const stat of MORE_STATS) {
+      if (stat.group !== group) {
+        group = stat.group;
+        ui.statsPick.append(el('p', 'rd-stats-group', group));
+      }
+      const label = el('label', 'rd-stats-option');
+      const input = el('input');
+      input.type = 'radio';
+      input.name = 'more-stat';
+      input.value = stat.key;
+      input.addEventListener('change', () => {
+        moreStat = stat.key;
+        if (view) renderStats(view);
+      });
+      label.append(input, el('span', 'rd-stats-radio'), el('span', '', stat.label));
+      ui.statsPick.append(label);
+    }
+  }
+  for (const input of ui.statsPick.querySelectorAll<HTMLInputElement>('input')) input.checked = input.value === moreStat;
+  const stat = MORE_STATS.find((s) => s.key === moreStat) ?? MORE_STATS[0]!;
+  ui.statsTitle.textContent = stat.label;
+
+  // Every raider in the order they joined, a bar each against the scale.
+  const values = o.players.map((p) => ({ userId: p.userId, value: p[stat.key] ?? 0 }));
+  const { top, step } = niceScale(Math.max(0, ...values.map((r) => r.value)));
+  const ticks = Array.from({ length: Math.round(top / step) + 1 }, (_, i) => i * step);
+  const grid = el('div', 'rd-stats-grid');
+  grid.setAttribute('aria-hidden', 'true');
+  for (const tick of ticks) {
+    const line = el('span');
+    line.style.left = `${(tick / top) * 100}%`;
+    grid.append(line);
+  }
+  ui.statsRows.replaceChildren(
+    grid,
+    ...values.map(({ userId, value }) => {
+      const row = el('div', `rd-stats-row${userId === v.you ? ' you' : ''}`);
+      row.title = `${nameOf(userId)}: ${fmt(value)}`;
+      const face = el('span', 'rd-stats-face');
+      face.append(avatar(userId, v));
+      const track = el('span', 'rd-stats-track');
+      const bar = el('span', 'rd-stats-bar');
+      bar.style.width = `${(value / top) * 100}%`;
+      track.append(bar, el('b', 'rd-stats-value', fmt(value)));
+      row.append(face, track);
+      return row;
+    }),
+  );
+  ui.statsAxis.replaceChildren(
+    ...ticks.map((tick) => {
+      const label = el('span', '', fmt(tick));
+      label.style.left = `${(tick / top) * 100}%`;
+      return label;
+    }),
+  );
+}
+
+function openStats(): void {
+  if (!view?.over) return;
+  ui.statsPop.hidden = false;
+  renderStats(view);
+  ui.statsClose.focus();
+}
+
+function closeStats(): void {
+  if (ui.statsPop.hidden) return;
+  ui.statsPop.hidden = true;
+  ui.moreStats.focus({ preventScroll: true });
+}
+
+ui.moreStats.addEventListener('click', openStats);
+ui.statsClose.addEventListener('click', closeStats);
+ui.statsPop.addEventListener('click', (event) => {
+  if (event.target === ui.statsPop) closeStats();
+});
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && ui.gearPop.hidden) closeStats();
+});
 
 /** How the end screen's table is sorted: by one column, either way (most damage first, to start with). */
 type ResultSortKey = 'name' | 'damage' | 'healed' | 'mitigated';
