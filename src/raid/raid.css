@@ -176,6 +176,535 @@
   vertical-align: middle;
 }
 
+/* ------------------------------------------------------------------ before the fight: the party screen */
+
+.rd-prep {
+  position: relative;
+  flex: 1;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: #05070d;
+  isolation: isolate;
+}
+
+.rd-prep[hidden] {
+  display: none;
+}
+
+.rd-prep-shade {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: rgba(3, 6, 14, 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.rd-prep-body {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 8fr);
+  gap: 18px;
+  /*
+   * The screen (under the title bar and the frame's border) less a margin, unzoomed: a percentage of
+   * .rd-prep wouldn't resolve. The party's side sets the height (its cards, as big as fit), up to that.
+   */
+  --rd-room: min(900px, calc((100vh - 69px) / var(--rd-zoom)));
+  --rd-room: min(900px, calc((100dvh - 69px) / var(--rd-zoom)));
+  width: min(1680px, calc((100vw - 32px) / var(--rd-zoom)));
+  max-height: var(--rd-room);
+  min-height: 420px;
+  zoom: var(--rd-zoom);
+}
+
+/* A panel: deep blue, in a gold-toned frame, with a pale header bar. */
+.rd-prep-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  border: 2px solid #b9a877;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #1c3a5c 0%, #102741 55%, #0b1c30 100%);
+  box-shadow: inset 0 0 0 3px rgba(0, 0, 0, 0.35), inset 0 0 0 4px rgba(233, 219, 170, 0.25), 0 14px 40px rgba(0, 0, 0, 0.6);
+}
+
+.rd-prep-head {
+  flex-shrink: 0;
+  padding: 12px 16px;
+  border-bottom: 2px solid #b9a877;
+  background: linear-gradient(180deg, #f3ecdc, #dfd3b8);
+  color: #34506f;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-align: center;
+}
+
+/* The boss's side takes the party's height, whatever it has to say (it scrolls). */
+.rd-prep-boss {
+  height: 0;
+  min-height: 100%;
+}
+
+/* The boss: its picture, then what it does (scrolling when it runs long). */
+.rd-prep-picture {
+  flex-shrink: 0;
+  aspect-ratio: 16 / 9;
+  max-height: 34%;
+  border-bottom: 1px solid rgba(233, 219, 170, 0.25);
+  background: #05070d;
+}
+
+.rd-prep-picture img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: pixelated;
+}
+
+.rd-prep-scroll {
+  flex: 1;
+  min-height: 0;
+  padding: 10px 16px 14px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(233, 219, 170, 0.35) transparent;
+}
+
+.rd-prep-scroll h3 {
+  margin: 10px 0 6px;
+  color: #e9dbaa;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.rd-prep-list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+
+.rd-prep-list li {
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.rd-prep-rewards {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+
+/*
+ * The party: a card for each raider, the empty seats face down, four across; past four, the row
+ * scrolls. The cards take most of the panel, as tall as it lets them (a card is 5 wide by 9 high),
+ * with room above and below them.
+ */
+.rd-slots-wrap {
+  /* The room above and below the cards, and what else is in the panel (its header, the buff effects, the buttons). */
+  --rd-slots-top: 40px;
+  --rd-slots-bottom: 32px;
+  --rd-party-rest: 212px;
+  flex: none;
+  container-type: inline-size;
+  padding: var(--rd-slots-top) 24px var(--rd-slots-bottom);
+}
+
+.rd-prep-party .rd-slots {
+  --rd-gap: 16px;
+  display: flex;
+  justify-content: safe center;
+  gap: var(--rd-gap);
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(233, 219, 170, 0.45) transparent;
+}
+
+.rd-slot {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  /* Four to a row, or as tall as the screen has room for (less the rest of the panel, and the row's scrollbar), whichever is smaller. */
+  width: min((100cqw - 3 * var(--rd-gap)) / 4, (var(--rd-room) - var(--rd-party-rest) - var(--rd-slots-top) - var(--rd-slots-bottom) - 10px) * 5 / 9);
+  margin-bottom: 8px;
+  aspect-ratio: 5 / 9;
+  align-self: center;
+  scroll-snap-align: start;
+  border: 3px solid #d8c48c;
+  border-radius: 10px;
+  background:
+    radial-gradient(ellipse at 50% 38%, rgba(120, 170, 230, 0.35), transparent 65%),
+    linear-gradient(180deg, #2c4f78, #13263f);
+  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.45), inset 0 0 0 3px rgba(255, 244, 205, 0.4), 0 6px 16px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+}
+
+.rd-slot.you {
+  border-color: var(--gold);
+  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.45), inset 0 0 0 3px rgba(255, 244, 205, 0.5), 0 0 18px rgba(216, 191, 122, 0.55);
+}
+
+/* A soft light behind the character. */
+.rd-slot-glow {
+  position: absolute;
+  inset: 18% 20% 30%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.18), transparent 70%);
+}
+
+/* The character: pixel art, scaled up crisp. */
+.rd-slot-sprite {
+  position: relative;
+  height: 50%;
+  max-width: 76%;
+  margin-bottom: 8%;
+  object-fit: contain;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.5));
+  user-select: none;
+}
+
+/* Their class, in the top left corner (a question mark until classes are in). */
+.rd-slot-class {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 2px solid #d8c48c;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 40%, #6b3a1c, #3a1a0c);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+  color: #f3e4b6;
+  font-size: 17px;
+  font-weight: 700;
+  z-index: 1;
+}
+
+.rd-slot-name {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  padding: 4px 6px;
+  overflow: hidden;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.5);
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rd-slot-host {
+  position: absolute;
+  top: 10px;
+  right: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(216, 191, 122, 0.9);
+  color: #2a2110;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* An empty seat: the card face down, a dark back with a gold diamond on it. */
+.rd-slot.empty {
+  border-color: #6d5a33;
+  background: linear-gradient(180deg, #2a2413, #16120a);
+  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.5), inset 0 0 0 3px rgba(216, 191, 122, 0.18);
+}
+
+/* One they can take: it lights up, with Join on it. */
+button.rd-slot {
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.rd-slot.open {
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+
+.rd-slot.open:hover,
+.rd-slot.open:focus-visible {
+  outline: none;
+  border-color: #e9d18f;
+  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.5), inset 0 0 0 3px rgba(216, 191, 122, 0.35), 0 0 18px rgba(216, 191, 122, 0.4);
+  transform: translateY(-2px);
+}
+
+.rd-slot-join {
+  position: absolute;
+  left: 50%;
+  bottom: 12%;
+  padding: 4px 14px;
+  border: 1px solid rgba(216, 191, 122, 0.5);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.45);
+  color: #e9dbaa;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.55;
+  transform: translateX(-50%);
+  transition: opacity 0.15s;
+}
+
+.rd-slot.open:hover .rd-slot-join,
+.rd-slot.open:focus-visible .rd-slot-join {
+  opacity: 1;
+}
+
+.rd-slot-back {
+  width: 52%;
+  aspect-ratio: 1;
+  border: 2px solid rgba(216, 191, 122, 0.3);
+  transform: rotate(45deg);
+  box-shadow: inset 0 0 0 8px rgba(0, 0, 0, 0.25), inset 0 0 0 10px rgba(216, 191, 122, 0.15);
+}
+
+.rd-slot-back::after {
+  content: '';
+  display: block;
+  width: 36%;
+  height: 36%;
+  margin: 32%;
+  border: 2px solid rgba(216, 191, 122, 0.3);
+  border-radius: 50%;
+}
+
+/* What's going on, and what there is to do. */
+.rd-prep-info {
+  flex-shrink: 0;
+  margin: 12px 16px 0;
+  padding: 12px 16px;
+  border: 1px solid rgba(233, 219, 170, 0.3);
+  border-radius: 8px;
+  background: rgba(40, 30, 12, 0.55);
+}
+
+.rd-prep-info p {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.rd-muted-inline {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.rd-prep-actions {
+  flex-shrink: 0;
+  display: flex;
+  gap: 10px;
+  padding: 16px 24px 20px;
+}
+
+/* The party's buff effects, from their items, all together: a tile, and what they do (none yet). */
+.rd-prep-effects {
+  flex-shrink: 0;
+  display: flex;
+  gap: 12px;
+  margin: 0 24px;
+}
+
+.rd-prep-effects-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border: 2px solid #b9a877;
+  border-radius: 6px;
+  background: radial-gradient(circle at 50% 40%, #2b2b2b, #0c0c0c);
+  color: #d0584f;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.rd-prep-effects-text {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 8px 16px;
+  border: 1px solid rgba(233, 219, 170, 0.3);
+  border-radius: 6px;
+  background: rgba(40, 30, 12, 0.55);
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 15px;
+  text-align: center;
+}
+
+/* The big button, like a game's Start Battle. */
+.rd-prep-button {
+  flex: 1;
+  padding: 14px 18px;
+  border: 2px solid #d8c48c;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #3fa3ef 0%, #1f73c9 55%, #155aa3 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 4px 14px rgba(0, 0, 0, 0.5);
+  color: #fff;
+  font: inherit;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-shadow: 0 2px 3px rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+  transition: filter 0.12s ease, transform 0.08s ease;
+}
+
+.rd-prep-button:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+.rd-prep-button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.rd-prep-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.rd-prep-button.quiet {
+  flex: 0 0 auto;
+  background: linear-gradient(180deg, #4b4f5e, #2d303b);
+  font-size: 16px;
+}
+
+.rd-prep-button[hidden] {
+  display: none;
+}
+
+/* A raider's card is a button: it shows their gear. */
+button.rd-slot:not(.empty) {
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+button.rd-slot:not(.empty):hover,
+button.rd-slot:not(.empty):focus-visible {
+  outline: none;
+  transform: translateY(-3px);
+  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.45), inset 0 0 0 3px rgba(255, 244, 205, 0.55), 0 0 20px rgba(160, 200, 255, 0.45);
+}
+
+/* ------------------------------------------------------------------ a raider's gear, in a popup */
+
+.rd-gear {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(3, 4, 8, 0.72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  animation: rd-gear-in 0.18s ease-out;
+}
+
+.rd-gear[hidden] {
+  display: none;
+}
+
+.rd-gear-box {
+  position: relative;
+  width: min(1400px, 100%);
+  height: min(900px, 100%);
+  border: 2px solid #b9a877;
+  border-radius: 14px;
+  background: var(--bg);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+  overflow: hidden;
+}
+
+/* The frame is laid out at a computer's width and scaled down to this box (main.ts's fitGear). */
+.rd-gear-fit {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.rd-gear-frame {
+  display: block;
+  border: 0;
+  transform-origin: 0 0;
+  background: var(--bg);
+}
+
+.rd-gear-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid rgba(233, 219, 170, 0.5);
+  border-radius: 50%;
+  background: rgba(10, 10, 14, 0.8);
+  color: #f3ecdc;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.rd-gear-close:hover,
+.rd-gear-close:focus-visible {
+  outline: none;
+  border-color: #e9d18f;
+  background: rgba(40, 34, 20, 0.9);
+}
+
+@keyframes rd-gear-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* A phone on its side: the popup nearly to the edges. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .rd-gear {
+    padding: 8px;
+  }
+
+  .rd-gear-close {
+    top: 6px;
+    right: 6px;
+    width: 30px;
+    height: 30px;
+  }
+}
+
 /* ------------------------------------------------------------------ the battle screen */
 
 .rd-battle {
@@ -1469,7 +1998,8 @@
  * shape: 1 on a big screen, smaller on a laptop, smaller again on a phone turned sideways.
  */
 .rd-battle,
-.rd-result {
+.rd-result,
+.rd-prep {
   --rd-zoom: 1;
 }
 
@@ -1483,7 +2013,8 @@
 /* A laptop-sized screen (1024 by 768, say): a size down, and the party and the actions closer to the corners. */
 @media (max-width: 1180px), (max-height: 820px) {
   .rd-battle,
-  .rd-result {
+  .rd-result,
+  .rd-prep {
     --rd-zoom: 0.8;
   }
 
@@ -1503,9 +2034,15 @@
 /* A phone on its side: the fight fills the screen (no title bar), a size down again, right to the edges. */
 @media (orientation: landscape) and (max-height: 520px) {
   .rd-battle,
-  .rd-result {
+  .rd-result,
+  .rd-prep {
     --rd-zoom: 0.6;
     min-height: 0;
+  }
+
+  .rd-slots-wrap {
+    --rd-slots-top: 14px;
+    --rd-slots-bottom: 4px;
   }
 
   body.rd-fighting .frame > .top {

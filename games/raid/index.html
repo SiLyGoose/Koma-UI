@@ -29,23 +29,6 @@
         </section>
 
         <section class="rd-side">
-          <div id="idle" class="rd-panel" hidden>
-            <h2 id="idle-title"></h2>
-            <p id="idle-text" class="rd-muted"></p>
-            <button type="button" id="start" class="rd-button primary" hidden>Start the raid</button>
-          </div>
-
-          <div id="lobby" class="rd-panel" hidden>
-            <h2>Lobby</h2>
-            <p class="rd-muted">The fight starts in <b id="lobby-timer"></b>, or when the host starts it. Boss HP: <b id="lobby-hp"></b> (grows with every raider).</p>
-            <ul id="lobby-players" class="rd-list"></ul>
-            <div class="rd-row">
-              <button type="button" id="join" class="rd-button primary">Join</button>
-              <button type="button" id="leave" class="rd-button">Leave</button>
-              <button type="button" id="begin" class="rd-button" hidden>Start now</button>
-            </div>
-          </div>
-
           <div id="over" class="rd-panel" hidden>
             <h2 id="over-title"></h2>
             <p id="over-text" class="rd-muted"></p>
@@ -53,6 +36,48 @@
           </div>
         </section>
       </div>
+
+      <!--
+        Before the fight (the week's raid not fought yet, or its lobby open): the boss and what it does on
+        the left (how the week stands above them), and on the right the party so far, a card for each
+        raider (their character, and their class in the corner: not there yet, so a question mark) in a row
+        that scrolls past four, the party's buff effects, and what there is to do.
+      -->
+      <section id="prep" class="rd-prep" hidden>
+        <img id="prep-backdrop" class="rd-battle-bg" alt="" draggable="false" aria-hidden="true" />
+        <div class="rd-prep-shade" aria-hidden="true"></div>
+        <div class="rd-prep-body">
+          <div class="rd-prep-panel rd-prep-boss">
+            <div class="rd-prep-head" id="prep-boss-name"></div>
+            <div class="rd-prep-picture"><img id="prep-picture" alt="" draggable="false" /></div>
+            <div class="rd-prep-info"><p id="prep-status"></p></div>
+            <div class="rd-prep-scroll">
+              <h3>Moves</h3>
+              <ul id="prep-moves" class="rd-prep-list"></ul>
+              <h3>Phases</h3>
+              <ul id="prep-phases" class="rd-prep-list"></ul>
+              <h3>Rewards</h3>
+              <p id="prep-rewards" class="rd-prep-rewards"></p>
+            </div>
+          </div>
+
+          <div class="rd-prep-panel rd-prep-party">
+            <div class="rd-prep-head">Current Party</div>
+            <div class="rd-slots-wrap"><div id="prep-slots" class="rd-slots"></div></div>
+            <!-- What the party's items add to the fight, all together (none of them do yet). -->
+            <div class="rd-prep-effects">
+              <div class="rd-prep-effects-icon" aria-hidden="true">None</div>
+              <p id="prep-effects" class="rd-prep-effects-text">No party buff effects</p>
+            </div>
+            <div class="rd-prep-actions">
+              <button type="button" id="start" class="rd-prep-button" hidden>Join</button>
+              <button type="button" id="join" class="rd-prep-button" hidden>Join</button>
+              <button type="button" id="begin" class="rd-prep-button" hidden>Start now</button>
+              <button type="button" id="leave" class="rd-prep-button quiet" hidden>Leave</button>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <!--
         The fight, as a battle screen: the boss filling the scene, its name and HP across the top in the
@@ -126,6 +151,17 @@
         </section>
       </section>
 
+
+      <!--
+        A raider's gear (a card in the party clicked): the gear page's view, with the party for its roster,
+        to look at only (src/raid/gear.ts, in a frame of its own: laid out as on a computer, scaled to fit).
+      -->
+      <div id="gear-pop" class="rd-gear" role="dialog" aria-modal="true" aria-label="Gear" hidden>
+        <div class="rd-gear-box">
+          <div class="rd-gear-fit"><iframe id="gear-frame" class="rd-gear-frame" title="Gear"></iframe></div>
+          <button type="button" id="gear-close" class="rd-gear-close" aria-label="Close">✕</button>
+        </div>
+      </div>
 
       <div id="toast" class="rd-toast" role="status" hidden></div>
     </main>

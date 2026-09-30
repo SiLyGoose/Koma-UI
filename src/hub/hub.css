@@ -4,6 +4,43 @@
   max-width: 720px;
 }
 
+/*
+ * Bigger computer screens: the page takes more of the width (the gear page's on a laptop, most of it on
+ * a big screen), always three games to a row, so each card grows wider (and its picture a little
+ * taller) instead of more of them squeezing in.
+ */
+@media (min-width: 1280px) {
+  .hub {
+    max-width: 1120px;
+  }
+
+  /* (.hub .games: the page's grid of games, later in this file, would win over plain .games) */
+  .hub .games {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1600px) {
+  .hub {
+    max-width: min(1480px, 80vw);
+  }
+
+  .games .game-art {
+    height: 160px;
+  }
+
+  /* Servers get wider cards too, so their names fit. */
+  .hub .servers {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  }
+}
+
+/* Logging in stays a small card in the middle, however wide the page is. */
+.hub .login {
+  max-width: 460px;
+  margin-inline: auto;
+}
+
 
 .card {
   background: var(--panel);

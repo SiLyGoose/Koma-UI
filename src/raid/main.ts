@@ -32,14 +32,16 @@ const ui = {
   bossPct: $('boss-pct'),
   bossFill: $('boss-fill'),
   intentText: $('intent-text'),
-  idle: $('idle'),
-  idleTitle: $('idle-title'),
-  idleText: $('idle-text'),
+  prep: $('prep'),
+  prepBackdrop: $<HTMLImageElement>('prep-backdrop'),
+  prepPicture: $<HTMLImageElement>('prep-picture'),
+  prepBossName: $('prep-boss-name'),
+  prepMoves: $('prep-moves'),
+  prepPhases: $('prep-phases'),
+  prepRewards: $('prep-rewards'),
+  prepSlots: $('prep-slots'),
+  prepStatus: $('prep-status'),
   start: $<HTMLButtonElement>('start'),
-  lobby: $('lobby'),
-  lobbyTimer: $('lobby-timer'),
-  lobbyHp: $('lobby-hp'),
-  lobbyPlayers: $('lobby-players'),
   join: $<HTMLButtonElement>('join'),
   leave: $<HTMLButtonElement>('leave'),
   begin: $<HTMLButtonElement>('begin'),
@@ -59,6 +61,10 @@ const ui = {
   log: $('log'),
   toast: $('toast'),
   message: $('message'),
+  gearPop: $('gear-pop'),
+  gearFit: $('gear-pop').querySelector('.rd-gear-fit') as HTMLElement,
+  gearFrame: $<HTMLIFrameElement>('gear-frame'),
+  gearClose: $<HTMLButtonElement>('gear-close'),
   messageTitle: $('message-title'),
   messageText: $('message-text'),
 };
@@ -158,7 +164,7 @@ async function showPicture(url: string): Promise<void> {
   next.src = url;
   await next.decode().catch(() => {});
   if (url !== pictureShown) return;
-  for (const img of [ui.picture, ui.battlePicture, ui.battleBackdrop]) img.src = url;
+  for (const img of [ui.picture, ui.battlePicture, ui.battleBackdrop, ui.prepPicture, ui.prepBackdrop]) img.src = url;
 }
 /** Heal's "who?" is open (for this round). */
 let healOpenRound: number | null = null;
@@ -328,55 +334,179 @@ function render(next: RaidView): void {
   }
   const holding = ended && !resultShown;
   // The end screen goes over the battle's scene (the boss stays put under it) as the battle's own parts fade out.
-  ui.layout.hidden = fighting || ended;
+  // Before the fight (not fought yet this week, or the lobby open): the party screen.
+  const preparing = next.phase === 'lobby' || (next.phase === 'idle' && next.idle !== null);
+  ui.prep.hidden = !preparing;
+  ui.layout.hidden = fighting || ended || preparing;
   ui.battle.hidden = !(fighting || ended);
   ui.battle.classList.toggle('ending', holding);
   ui.battle.classList.toggle('concluded', ended && resultShown);
   ui.result.hidden = !(ended && resultShown);
   document.body.classList.toggle('rd-fighting', fighting || ended);
-  ui.idle.hidden = next.phase !== 'idle';
-  ui.lobby.hidden = next.phase !== 'lobby';
   ui.over.hidden = next.phase !== 'over';
   ui.tags.textContent = '';
 
-  if (next.phase === 'idle' && next.idle) renderIdle(next);
-  if (next.phase === 'lobby' && next.lobby) renderLobby(next);
+  if (preparing) renderPrep(next);
+  // The fight starting (or the lobby going) takes the gear's popup down with the party screen.
+  else closeGear();
   if (next.phase === 'fight' && next.fight) renderFight(next);
   if (next.phase === 'over' && next.over) renderOver(next);
   if (ended) renderResult(next);
   tick();
 }
 
-function renderIdle(v: RaidView): void {
-  const idle = v.idle!;
+/** The lobby's countdown, in the party screen's status line (tick() keeps it going). */
+let lobbyTimer: HTMLElement | null = null;
+/** The last boss the party screen was drawn for (its moves only change with it). */
+let prepBoss = '';
+
+/** The raiders' character (everyone's the same one for now). */
+const SPRITE = '/characters/tsuri/sprite.png';
+
+/**
+ * The party screen, before the fight: the boss and what it does on the left, the party so far on the
+ * right (a card for each raider, the empty seats face down), and what there is to do: start the week's
+ * raid, or join, leave and (the host) start it now.
+ */
+function renderPrep(v: RaidView): void {
+  if (prepBoss !== v.boss.id) {
+    prepBoss = v.boss.id;
+    ui.prepBossName.textContent = v.boss.name;
+    // A bot older than the page doesn't send what the boss does: the sections are left out.
+    const brief = v.brief ?? { phases: [], moves: [], rewards: '' };
+    const list = (ul: HTMLElement, lines: string[]): void => {
+      const shown = lines.filter((line) => line.trim() !== '');
+      ul.replaceChildren(...shown.map((line) => {
+        const li = el('li');
+        li.append(...markdown(line, v.names));
+        return li;
+      }));
+      ul.hidden = shown.length === 0;
+      (ul.previousElementSibling as HTMLElement).hidden = shown.length === 0;
+    };
+    list(ui.prepMoves, brief.moves);
+    list(ui.prepPhases, brief.phases);
+    ui.prepRewards.replaceChildren(...markdown(brief.rewards, v.names));
+    ui.prepRewards.hidden = brief.rewards.trim() === '';
+    (ui.prepRewards.previousElementSibling as HTMLElement).hidden = ui.prepRewards.hidden;
+  }
+
+  const lobby = v.lobby;
+  const players = lobby?.players ?? [];
+  const host = players[0] ?? null;
+  // Four seats at least (the empty ones face down); past four, the row scrolls. An empty seat takes
+  // them in: joining the lobby, or, with no raid up yet, starting it with them in it.
+  const seats = Math.max(4, players.length);
+  const takeSeat = lobby ? (players.includes(v.you) ? null : () => send({ t: 'join' })) : v.idle?.canStart ? startRaid : null;
+  ui.prepSlots.replaceChildren(
+    ...Array.from({ length: seats }, (_, i) => {
+      const userId = players[i];
+      if (userId === undefined) {
+        if (takeSeat) {
+          const seat = el('button', 'rd-slot empty open');
+          seat.type = 'button';
+          seat.setAttribute('aria-label', 'Join the raid');
+          seat.append(el('span', 'rd-slot-back'), el('span', 'rd-slot-join', 'Join'));
+          seat.addEventListener('click', takeSeat);
+          return seat;
+        }
+        const empty = el('div', 'rd-slot empty');
+        empty.append(el('span', 'rd-slot-back'));
+        return empty;
+      }
+      // A raider's card shows their gear.
+      const card = el('button', `rd-slot${userId === v.you ? ' you' : ''}`);
+      card.type = 'button';
+      card.title = `${nameOf(userId)}: see their gear`;
+      card.addEventListener('click', () => openGear(v, players, userId));
+      // Their class, in the top left corner: not there yet, so a question mark.
+      const badge = el('span', 'rd-slot-class', '?');
+      badge.title = 'Class: ?';
+      const sprite = el('img', 'rd-slot-sprite');
+      sprite.src = SPRITE;
+      sprite.alt = '';
+      sprite.draggable = false;
+      card.append(badge, el('span', 'rd-slot-glow'), sprite, el('span', 'rd-slot-name', v.names[userId] ?? 'Someone'));
+      if (userId === host) card.append(el('span', 'rd-slot-host', 'Host'));
+      return card;
+    }),
+  );
+
+  // What's going on, and what there is to do.
   const reset = new Date(v.resetsAt).toLocaleString(undefined, { weekday: 'long', hour: 'numeric', minute: '2-digit' });
-  const titles = { open: `${v.boss.name} awaits`, won: `${v.boss.name} was defeated`, wiped: `${v.boss.name} won this week`, fled: `${v.boss.name} got away`, busy: 'The raid is being set up' };
-  ui.idleTitle.textContent = titles[idle.week];
-  ui.idleText.textContent =
-    idle.week === 'open'
-      ? idle.canStart
-        ? `This week's boss hasn't been fought yet. Start the raid and everyone in the server can join, here or in Discord. The week resets ${reset}.`
-        : `This week's boss hasn't been fought yet. This server has no bot channel, so start the raid in Discord with the raid command, then join it here. The week resets ${reset}.`
-      : idle.week === 'busy'
-        ? 'A raid is starting in Discord. It will show up here in a moment.'
-        : `The next raid can be started after the week resets, ${reset}.`;
-  ui.start.hidden = !idle.canStart;
+  const inIt = players.includes(v.you);
+  ui.start.hidden = true;
+  ui.join.hidden = true;
+  ui.leave.hidden = true;
+  ui.begin.hidden = true;
+  lobbyTimer = null;
+  if (lobby) {
+    lobbyTimer = el('b');
+    ui.prepStatus.replaceChildren('The fight starts in ', lobbyTimer, ', or when the host starts it. ', el('span', 'rd-muted-inline', `Boss HP ${fmt(lobby.bossHp)}, growing with every raider.`));
+    ui.join.hidden = inIt;
+    ui.leave.hidden = !inIt;
+    ui.begin.hidden = host !== v.you;
+  } else if (v.idle?.week === 'busy') {
+    ui.prepStatus.textContent = 'A raid is starting in Discord. It will show up here in a moment.';
+  } else if (v.idle?.canStart) {
+    ui.prepStatus.textContent = `This week's boss hasn't been fought yet. Join to start the raid: its lobby goes up in the server, and everyone can join, here or in Discord. The week resets ${reset}.`;
+    ui.start.hidden = false;
+  } else {
+    ui.prepStatus.textContent = `This week's boss hasn't been fought yet. This server has no bot channel, so start the raid in Discord with the raid command, then join it here. The week resets ${reset}.`;
+  }
 }
 
-function renderLobby(v: RaidView): void {
-  const lobby = v.lobby!;
-  const inIt = lobby.players.includes(v.you);
-  ui.lobbyHp.textContent = fmt(lobby.bossHp);
-  ui.lobbyPlayers.textContent = '';
-  for (const userId of lobby.players) {
-    const li = el('li', userId === v.you ? 'you' : '', nameOf(userId));
-    if (userId === lobby.players[0]) li.append(el('span', 'rd-tag', 'host'));
-    ui.lobbyPlayers.append(li);
-  }
-  ui.join.hidden = inIt;
-  ui.leave.hidden = !inIt;
-  ui.begin.hidden = lobby.players[0] !== v.you;
+// ---------------------------------------------------------------------------
+// A raider's gear
+
+/**
+ * How big the gear's frame is laid out, at least: the gear page's computer layout (roster, character,
+ * armory side by side) needs about this much. Smaller popups (a phone on its side) show it scaled down.
+ */
+const GEAR_LAYOUT_WIDTH = 1100;
+const GEAR_LAYOUT_HEIGHT = 640;
+
+/** Shows `userId`'s gear, with the party (`players`, in the order they joined) to go between. */
+function openGear(v: RaidView, players: string[], userId: string): void {
+  if (!token || !server) return;
+  const party = players.map((id) => ({ id, name: v.names[id] ?? 'Someone', avatar: v.avatars[id], you: id === v.you || undefined }));
+  const hash = new URLSearchParams({ t: token, s: server, p: JSON.stringify(party), w: userId });
+  ui.gearFrame.src = `${import.meta.env.BASE_URL}games/raid/gear/#${hash}`;
+  ui.gearPop.hidden = false;
+  fitGear();
+  ui.gearClose.focus();
 }
+
+function closeGear(): void {
+  if (ui.gearPop.hidden) return;
+  ui.gearPop.hidden = true;
+  ui.gearFrame.src = 'about:blank';
+}
+
+/** Lays the frame out at least GEAR_LAYOUT_WIDTH by GEAR_LAYOUT_HEIGHT, scaled to the popup's size. */
+function fitGear(): void {
+  if (ui.gearPop.hidden) return;
+  const { width, height } = ui.gearFit.getBoundingClientRect();
+  if (width === 0 || height === 0) return;
+  const scale = Math.min(1, width / GEAR_LAYOUT_WIDTH, height / GEAR_LAYOUT_HEIGHT);
+  ui.gearFrame.style.width = `${width / scale}px`;
+  ui.gearFrame.style.height = `${height / scale}px`;
+  ui.gearFrame.style.transform = scale < 1 ? `scale(${scale})` : '';
+}
+
+ui.gearClose.addEventListener('click', closeGear);
+// A click on the dark around the popup closes it too.
+ui.gearPop.addEventListener('click', (event) => {
+  if (event.target === ui.gearPop) closeGear();
+});
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') closeGear();
+});
+// Escape inside the frame, with nothing open there (./gear.ts).
+window.addEventListener('message', (event) => {
+  if (event.origin === location.origin && (event.data as { t?: string } | null)?.t === 'close-gear') closeGear();
+});
+window.addEventListener('resize', fitGear);
 
 function renderFight(v: RaidView): void {
   const f = v.fight!;
@@ -482,7 +612,7 @@ function renderOver(v: RaidView): void {
     o.end === 'won'
       ? `Beaten in ${plural(o.rounds, 'round', 'rounds')}${o.lastHit ? `, the final blow by ${nameOf(o.lastHit)}` : ''}.${reward}`
       : o.end === 'wiped' || o.end === 'fled'
-        ? `After ${plural(o.rounds, 'round', 'rounds')}, with ${fmt(o.bossHp)} / ${fmt(o.bossMaxHp)} HP left.`
+        ? `After ${plural(o.rounds, 'round', 'rounds')}${hpLeft(o)}.`
         : o.end === 'no_players'
           ? 'Nobody joined the raid in time.'
           : 'Something went wrong, so the raid was called off and the week freed up. Points spent or stolen were given back.';
@@ -494,6 +624,10 @@ function renderOver(v: RaidView): void {
     ui.overRanking.append(li);
   }
 }
+
+/** ", with 800 / 2,211 HP left", when the boss's HP at the end is known (not for a raid read back from the database). */
+const hpLeft = (o: { bossHp: number | null; bossMaxHp: number | null }): string =>
+  o.bossHp === null || o.bossMaxHp === null ? '' : `, with ${fmt(o.bossHp)} / ${fmt(o.bossMaxHp)} HP left`;
 
 /** The end of a fight fought out: VICTORY or DEFEAT, and what each raider did, the most damage first. */
 function renderResult(v: RaidView): void {
@@ -507,8 +641,8 @@ function renderResult(v: RaidView): void {
   ui.resultText.textContent = won
     ? `${v.boss.name} beaten in ${plural(o.rounds, 'round', 'rounds')}${o.lastHit ? `, the final blow by ${nameOf(o.lastHit)}` : ''}.${reward}`
     : o.end === 'fled'
-      ? `${v.boss.name} got away after ${plural(o.rounds, 'round', 'rounds')}, with ${fmt(o.bossHp)} / ${fmt(o.bossMaxHp)} HP left.`
-      : `The party fell after ${plural(o.rounds, 'round', 'rounds')}, with ${v.boss.name} on ${fmt(o.bossHp)} / ${fmt(o.bossMaxHp)} HP.`;
+      ? `${v.boss.name} got away after ${plural(o.rounds, 'round', 'rounds')}${hpLeft(o)}.`
+      : `The party fell after ${plural(o.rounds, 'round', 'rounds')}${hpLeft(o)}.`;
 
   ui.resultRows.textContent = '';
   const rows = [...o.players].sort((a, b) => b.damage - a.damage);
@@ -530,9 +664,9 @@ function renderResult(v: RaidView): void {
 /** The countdowns: the lobby closing, and the turn's time running out. */
 function tick(): void {
   const now = Date.now();
-  if (view?.phase === 'lobby' && view.lobby) {
+  if (view?.phase === 'lobby' && view.lobby && lobbyTimer) {
     const s = Math.max(0, Math.ceil((view.lobby.closesAt - now) / 1000));
-    ui.lobbyTimer.textContent = s >= 60 ? `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}` : `${s}s`;
+    lobbyTimer.textContent = s >= 60 ? `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}` : `${s}s`;
   }
   if (view?.phase === 'fight' && view.fight) {
     const f = view.fight;
@@ -562,10 +696,25 @@ function turnLength(endsAt: number): number {
 // ---------------------------------------------------------------------------
 // Pressing things
 
-ui.start.addEventListener('click', () => {
+// The party's row scrolls sideways past four raiders: a mouse's wheel scrolls it too.
+ui.prepSlots.addEventListener(
+  'wheel',
+  (event) => {
+    const row = ui.prepSlots;
+    if (row.scrollWidth <= row.clientWidth || Math.abs(event.deltaX) > Math.abs(event.deltaY)) return;
+    event.preventDefault();
+    row.scrollBy({ left: event.deltaY, behavior: 'smooth' });
+  },
+  { passive: false },
+);
+
+function startRaid(): void {
+  if (ui.start.disabled) return;
   ui.start.disabled = true;
   send({ t: 'start' });
-});
+}
+
+ui.start.addEventListener('click', startRaid);
 ui.join.addEventListener('click', () => send({ t: 'join' }));
 ui.leave.addEventListener('click', () => send({ t: 'leave' }));
 ui.begin.addEventListener('click', () => send({ t: 'begin' }));
