@@ -260,9 +260,9 @@ export function installCursor({ reticle = true }: { reticle?: boolean } = {}): v
     },
     { capture: true },
   );
-  // Out of the window: the reticle goes.
+  // Out of the window, or into a frame (which has its own: this page hears nothing of the mouse there): the reticle goes.
   document.addEventListener('pointerout', (e) => {
-    if (e.pointerType === 'mouse' && !e.relatedTarget) {
+    if (e.pointerType === 'mouse' && (!e.relatedTarget || e.relatedTarget instanceof HTMLIFrameElement)) {
       inside = false;
       set('shown', false);
     }
