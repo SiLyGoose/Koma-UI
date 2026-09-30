@@ -22,75 +22,13 @@
   text-transform: none;
 }
 
-/* ------------------------------------------------------------------ before and after the fight */
-
-.rd-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 14px;
-  width: 100%;
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: 14px 16px 24px;
-  box-sizing: border-box;
-}
-
-@media (min-width: 900px) {
-  .rd-layout {
-    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
-    align-items: start;
-    padding-top: 20px;
-  }
-}
-
-.rd-stage,
-.rd-side {
-  display: grid;
-  gap: 14px;
-  min-width: 0;
-}
-
-.rd-picture {
-  overflow: hidden;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: #000;
-  aspect-ratio: 16 / 9;
-}
-
-.rd-picture img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  /* Whole, never cropped: the pictures aren't all the same shape. */
-  object-fit: contain;
-  image-rendering: pixelated;
-  user-select: none;
-}
-
-.rd-panel {
-  padding: 12px 14px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--panel);
-}
-
-.rd-panel h2 {
-  margin: 0 0 8px;
-  font-size: 18px;
-}
+/* ------------------------------------------------------------------ shared bits */
 
 .rd-muted {
   margin: 0 0 12px;
   color: var(--muted);
   font-size: 14px;
   line-height: 1.5;
-}
-
-.rd-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
 }
 
 .rd-button {
@@ -121,47 +59,6 @@
 .rd-button:disabled {
   opacity: 0.5;
   cursor: default;
-}
-
-.rd-list {
-  display: grid;
-  gap: 4px;
-  margin: 0 0 12px;
-  padding: 0;
-  list-style: none;
-}
-
-.rd-list li {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
-  border-radius: 8px;
-  background: var(--panel-2);
-  font-size: 14px;
-}
-
-.rd-list li.you {
-  box-shadow: inset 3px 0 0 var(--gold);
-}
-
-.rd-list.ranked {
-  counter-reset: rank;
-}
-
-.rd-list.ranked li::before {
-  counter-increment: rank;
-  content: counter(rank) '.';
-  min-width: 18px;
-  color: var(--muted);
-  font-weight: 700;
-}
-
-.rd-dmg {
-  margin-left: auto;
-  color: var(--muted);
-  font-size: 12.5px;
-  font-variant-numeric: tabular-nums;
 }
 
 .rd-tag {
