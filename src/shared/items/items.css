@@ -20,6 +20,15 @@
   --parchment-2: #e6dabb;
   --parchment-edge: #b9ab88;
   --ink: #3b3444;
+  /* The armory's dark frame (.armory; the databank's item panel wears it too). */
+  --frame-border: 2px solid #4a4452;
+  --frame-bg:
+    radial-gradient(ellipse at 20% 0%, rgb(216 191 122 / 8%), transparent 60%),
+    linear-gradient(180deg, #1b1a20, #111014);
+  --frame-shadow:
+    inset 0 0 0 4px #141318,
+    inset 0 0 0 5px rgb(216 191 122 / 35%),
+    0 12px 30px rgb(0 0 0 / 45%);
   max-width: 1120px;
   padding: 20px 16px 40px;
 }
@@ -46,6 +55,28 @@
     min-height: calc(100dvh - 72px);
     padding-block: 24px;
     box-sizing: border-box;
+  }
+}
+
+/*
+ * The page's panels (.panels: the gear page's, the databank's and the forge's section). Narrow screens:
+ * one over the other, in one column no wider than the page (an implicit auto column would grow to fit
+ * its widest content, like a long server name). Wide screens: side by side, as tall as each other and
+ * the same height on every page, so they line up going from one to the next; each page sets its columns.
+ */
+.panels {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+@media (min-width: 900px) {
+  .panels {
+    align-items: stretch;
+    height: var(--panels-h);
+    min-height: var(--panels-min);
+    max-height: 900px;
   }
 }
 
@@ -185,14 +216,9 @@
   position: relative;
   padding: 30px 14px 14px;
   border-radius: 14px;
-  background:
-    radial-gradient(ellipse at 20% 0%, rgb(216 191 122 / 8%), transparent 60%),
-    linear-gradient(180deg, #1b1a20, #111014);
-  border: 2px solid #4a4452;
-  box-shadow:
-    inset 0 0 0 4px #141318,
-    inset 0 0 0 5px rgb(216 191 122 / 35%),
-    0 12px 30px rgb(0 0 0 / 45%);
+  background: var(--frame-bg);
+  border: var(--frame-border);
+  box-shadow: var(--frame-shadow);
 }
 
 /* The name board, hung over the frame's top edge. */
