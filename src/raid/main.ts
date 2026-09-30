@@ -767,9 +767,10 @@ type RaiderStats = NonNullable<RaidView['over']>['players'][number];
 
 /** The stats More stats can draw, in groups down its left (more to come). */
 const MORE_STATS: { group: string; key: Exclude<keyof RaiderStats, 'userId'>; label: string }[] = [
-  { group: 'Healing', key: 'healedSelf', label: 'Healing done (self)' },
-  { group: 'Healing', key: 'healedAllies', label: 'Healing done to allies' },
-  { group: 'Support', key: 'supportDamage', label: 'Damage dealt from support' },
+  { group: 'Healing', key: 'healedSelf', label: 'Healing Done' },
+  { group: 'Healing', key: 'healedAllies', label: 'Ally Healing' },
+  { group: 'Defense', key: 'mitigated', label: 'Damage Mitigated' },
+  { group: 'Defense', key: 'damageTaken', label: 'Damage Taken' },
 ];
 let moreStat: (typeof MORE_STATS)[number]['key'] = 'healedSelf';
 
