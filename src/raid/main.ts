@@ -316,12 +316,27 @@ let resultShown = false;
 /** The pause before it, while it runs. */
 let endTimer: ReturnType<typeof setTimeout> | null = null;
 
+/**
+ * What they picked this turn, to play as it lands. Kept from their click (once the bot takes it) as
+ * well as from the raid: with everyone in, the turn closes at once, in the same raid it's sent next.
+ */
+let lastPick: RaidAction | null = null;
+/** The pick on its way to the bot. */
+let pendingPick: RaidAction | null = null;
+
 function render(next: RaidView): void {
   const before = view?.phase ?? null;
   // A heal (or a revive) landing on them as the round resolved: their HP went up (nothing else raises it).
   const hpBefore = view?.fight?.players.find((p) => p.userId === next.you)?.hp;
   const hpNow = next.fight?.players.find((p) => p.userId === next.you)?.hp;
   if (hpBefore !== undefined && hpNow !== undefined && hpNow > hpBefore) play('heal');
+  // Their attack, guard or support landing as the round resolved: the turn closed (no more picks), or the fight ended on it.
+  const wasOpen = view?.fight?.open === true;
+  const mine = next.fight?.players.find((p) => p.userId === next.you);
+  if (next.fight?.open && mine?.picked) lastPick = mine.picked;
+  const resolved = wasOpen && (next.fight ? !next.fight.open : next.phase === 'over');
+  if (resolved && lastPick && lastPick !== 'heal') play(lastPick);
+  if (resolved || !next.fight) lastPick = null;
   view = next;
   const picture = api + next.picture;
   if (picture !== pictureShown) {
@@ -647,6 +662,7 @@ function healAt(target: string | undefined): void {
   healOpenRound = null;
   // Healing someone else (or whoever needs it most): the heal's sound now. Healing themselves, it plays as it lands.
   if (target !== view?.you) play('heal');
+  pendingPick = 'heal';
   send(target === undefined ? { t: 'act', action: 'heal' } : { t: 'act', action: 'heal', target });
   if (view) render(view);
 }
@@ -943,6 +959,7 @@ for (const button of ui.actions) {
     }
     // Heal's own sound plays with who it's for (healAt), and as it lands on them.
     if (action !== 'heal') play(action);
+    pendingPick = action;
     send({ t: 'act', action });
   });
 }
@@ -976,6 +993,10 @@ function receive(message: ServerMessage): void {
   }
   if (message.t === 'answer') {
     if (message.to === 'start') ui.start.disabled = false;
+    if (message.to === 'act') {
+      if (message.code === 'ok' && pendingPick) lastPick = pendingPick;
+      pendingPick = null;
+    }
     const text = answerText(message.code);
     if (text) toast(text);
     else if (message.to === 'start') toast("The raid's lobby is up! Join in.");
