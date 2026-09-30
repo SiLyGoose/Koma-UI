@@ -506,8 +506,40 @@ function connect(): void {
 }
 
 soundButton('raid-muted', setMuted);
-// On a phone the log starts folded away, leaving the boss and the party in view.
-if (window.matchMedia('(max-width: 700px)').matches) ui.logPanel.open = false;
+// On a phone (or a short screen) the log starts folded away, leaving the boss and the party in view.
+if (window.matchMedia('(max-width: 700px), (max-height: 520px)').matches) ui.logPanel.open = false;
+
+/*
+ * Phones play the raid sideways, filling the screen like a game. Held upright, a cover asks them to
+ * turn it (raid.css); where the browser allows it (Android), its button goes full screen and locks the
+ * screen to landscape, which turns it for them. Held sideways, the first tap goes full screen.
+ */
+const touch = window.matchMedia('(pointer: coarse)').matches;
+const root = document.documentElement;
+const canFullscreen = typeof root.requestFullscreen === 'function';
+const orientation = screen.orientation as (ScreenOrientation & { lock?: (o: string) => Promise<void> }) | undefined;
+
+async function playLandscape(): Promise<void> {
+  try {
+    if (!document.fullscreenElement) await root.requestFullscreen({ navigationUI: 'hide' });
+    await orientation?.lock?.('landscape');
+  } catch {
+    // Not allowed here (or turned down): turning the phone by hand still works.
+  }
+}
+
+if (touch && canFullscreen) {
+  const go = $<HTMLButtonElement>('rotate-go');
+  go.hidden = typeof orientation?.lock !== 'function';
+  go.addEventListener('click', () => void playLandscape());
+  document.addEventListener(
+    'pointerdown',
+    () => {
+      if (window.matchMedia('(orientation: landscape)').matches && !document.fullscreenElement) void playLandscape();
+    },
+    { once: true },
+  );
+}
 
 if (!token || !server) {
   setConn('No link', 'bad');

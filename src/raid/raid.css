@@ -1063,3 +1063,148 @@
   top: 190px;
   bottom: auto;
 }
+
+/* ------------------------------------------------------------------ smaller screens, and phones */
+
+/*
+ * The battle screen is sized by one factor (--rd-zoom) for the whole of it, so everything (the boss's
+ * bar, the next move, the log, the party and its HP bars, the actions) shrinks together and keeps its
+ * shape: 1 on a big screen, smaller on a laptop, smaller again on a phone turned sideways.
+ */
+.rd-battle {
+  --rd-zoom: 1;
+}
+
+.rd-battle-top,
+.rd-intent,
+.rd-log-panel,
+.rd-battle-bottom {
+  zoom: var(--rd-zoom);
+}
+
+/* A laptop-sized screen (1024 by 768, say): a size down, and the party and the actions closer to the corners. */
+@media (max-width: 1180px), (max-height: 820px) {
+  .rd-battle {
+    --rd-zoom: 0.8;
+  }
+
+  .rd-battle-bottom {
+    padding: 0 12px 10px;
+  }
+
+  .rd-party {
+    margin: 0 0 8px 16px;
+  }
+
+  .rd-command {
+    margin: 0 16px 0 0;
+  }
+}
+
+/* A phone on its side: the fight fills the screen (no title bar), a size down again, right to the edges. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .rd-battle {
+    --rd-zoom: 0.6;
+    min-height: 0;
+  }
+
+  body.rd-fighting .frame > .top {
+    display: none;
+  }
+
+  body.rd-fighting .frame {
+    border: 0;
+  }
+
+  .rd-battle-top {
+    padding-top: 8px;
+  }
+
+  .rd-log-panel {
+    top: 96px;
+  }
+
+  .rd-battle-bottom {
+    padding: 0 10px 6px;
+  }
+
+  .rd-party {
+    margin: 0 0 4px 8px;
+  }
+
+  .rd-command {
+    margin: 0 8px 0 0;
+  }
+}
+
+/* A phone held upright: covered, asking to turn it sideways. */
+.rd-rotate {
+  display: none;
+}
+
+@media (orientation: portrait) and (pointer: coarse) and (max-width: 600px) {
+  .rd-rotate {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: radial-gradient(circle at 50% 40%, #1a2038, #05070d 70%);
+    text-align: center;
+  }
+}
+
+.rd-rotate-card {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  max-width: 280px;
+}
+
+.rd-rotate-card b {
+  font-size: 20px;
+}
+
+.rd-rotate-card span {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.rd-rotate-card .rd-button {
+  margin-top: 8px;
+}
+
+/* A phone outline, turning from upright to sideways and back. */
+.rd-rotate-phone {
+  width: 44px;
+  height: 76px;
+  margin-bottom: 10px;
+  border: 3px solid var(--text);
+  border-radius: 9px;
+  box-shadow: inset 0 -8px 0 -5px var(--text);
+  animation: rd-turn 2.4s ease-in-out infinite;
+}
+
+@keyframes rd-turn {
+  0%,
+  25% {
+    transform: rotate(0);
+  }
+
+  50%,
+  80% {
+    transform: rotate(-90deg);
+  }
+
+  100% {
+    transform: rotate(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rd-rotate-phone {
+    animation: none;
+    transform: rotate(-90deg);
+  }
+}

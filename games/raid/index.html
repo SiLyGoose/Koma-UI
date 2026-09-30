@@ -109,6 +109,16 @@
       <div id="toast" class="rd-toast" role="status" hidden></div>
     </main>
 
+    <!-- A phone held upright: the raid is played sideways, like a game (raid.css shows this only then). -->
+    <div id="rotate" class="rd-rotate" role="alert">
+      <div class="rd-rotate-card">
+        <div class="rd-rotate-phone" aria-hidden="true"></div>
+        <b>Turn your phone sideways</b>
+        <span>The raid is played in landscape.</span>
+        <button type="button" id="rotate-go" class="rd-button primary" hidden>Play in landscape</button>
+      </div>
+    </div>
+
     <div id="message" class="message" hidden>
       <div class="message-card">
         <div class="message-title" id="message-title"></div>
