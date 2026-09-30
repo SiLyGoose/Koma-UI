@@ -531,6 +531,11 @@ const GEAR_LAYOUT_WIDTH = 1100;
 const GEAR_LAYOUT_HEIGHT = 640;
 
 /** Shows `userId`'s gear, with the party (`players`, in the order they joined) to go between. */
+/** Whether a popup (a raider's gear, More stats) is up: the raid behind it stops blurring meanwhile (raid.css). */
+function popupShown(): void {
+  document.body.classList.toggle('rd-popup-open', !ui.gearPop.hidden || !ui.statsPop.hidden);
+}
+
 /**
  * Shows `userId`'s gear, with the party (`players`, in their order) to go between. `fought`: their gear
  * as they fought the raid (the end screen), rather than as it is now.
@@ -541,6 +546,7 @@ function openGear(v: RaidView, players: string[], userId: string, fought = false
   const hash = new URLSearchParams({ t: token, s: server, p: JSON.stringify(party), w: userId, ...(fought ? { g: 'raid' } : {}) });
   ui.gearFrame.src = `${import.meta.env.BASE_URL}games/raid/gear/#${hash}`;
   ui.gearPop.hidden = false;
+  popupShown();
   fitGear();
   ui.gearClose.focus();
 }
@@ -548,6 +554,7 @@ function openGear(v: RaidView, players: string[], userId: string, fought = false
 function closeGear(): void {
   if (ui.gearPop.hidden) return;
   ui.gearPop.hidden = true;
+  popupShown();
   ui.gearFrame.src = 'about:blank';
 }
 
@@ -828,6 +835,7 @@ function renderStats(v: RaidView): void {
 function openStats(): void {
   if (!view?.over) return;
   ui.statsPop.hidden = false;
+  popupShown();
   renderStats(view);
   ui.statsClose.focus();
 }
@@ -835,6 +843,7 @@ function openStats(): void {
 function closeStats(): void {
   if (ui.statsPop.hidden) return;
   ui.statsPop.hidden = true;
+  popupShown();
   ui.moreStats.focus({ preventScroll: true });
 }
 

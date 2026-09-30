@@ -17,3 +17,9 @@ body.gear-embed {
   margin: 0 auto;
   padding: 28px 24px;
 }
+
+/* The stars behind hold still in here: their slow turn and twinkle, redrawn every frame, made the popup lag. */
+.gear-embed .backdrop,
+.gear-embed .backdrop * {
+  animation: none !important;
+}
