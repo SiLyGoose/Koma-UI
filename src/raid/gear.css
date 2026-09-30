@@ -1,0 +1,19 @@
+/*
+ * The raid party's gear in the raid page's popup (./gear.ts): the gear page, filling its frame (no site
+ * header over it), always laid out as on a computer (the popup scales it to fit).
+ */
+
+body.gear-embed {
+  overflow: hidden;
+}
+
+.gear-embed main.gear-page {
+  --panels-h: calc(100vh - 56px);
+  --panels-h: calc(100dvh - 56px);
+  --panels-min: 360px;
+  max-width: 1320px;
+  min-height: 100vh;
+  min-height: 100dvh;
+  margin: 0 auto;
+  padding: 28px 24px;
+}

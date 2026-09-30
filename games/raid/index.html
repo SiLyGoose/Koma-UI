@@ -152,6 +152,17 @@
       </section>
 
 
+      <!--
+        A raider's gear (a card in the party clicked): the gear page's view, with the party for its roster,
+        to look at only (src/raid/gear.ts, in a frame of its own: laid out as on a computer, scaled to fit).
+      -->
+      <div id="gear-pop" class="rd-gear" role="dialog" aria-modal="true" aria-label="Gear" hidden>
+        <div class="rd-gear-box">
+          <div class="rd-gear-fit"><iframe id="gear-frame" class="rd-gear-frame" title="Gear"></iframe></div>
+          <button type="button" id="gear-close" class="rd-gear-close" aria-label="Close">✕</button>
+        </div>
+      </div>
+
       <div id="toast" class="rd-toast" role="status" hidden></div>
     </main>
 

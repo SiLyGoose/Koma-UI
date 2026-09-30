@@ -61,6 +61,10 @@ const ui = {
   log: $('log'),
   toast: $('toast'),
   message: $('message'),
+  gearPop: $('gear-pop'),
+  gearFit: $('gear-pop').querySelector('.rd-gear-fit') as HTMLElement,
+  gearFrame: $<HTMLIFrameElement>('gear-frame'),
+  gearClose: $<HTMLButtonElement>('gear-close'),
   messageTitle: $('message-title'),
   messageText: $('message-text'),
 };
@@ -343,6 +347,8 @@ function render(next: RaidView): void {
   ui.tags.textContent = '';
 
   if (preparing) renderPrep(next);
+  // The fight starting (or the lobby going) takes the gear's popup down with the party screen.
+  else closeGear();
   if (next.phase === 'fight' && next.fight) renderFight(next);
   if (next.phase === 'over' && next.over) renderOver(next);
   if (ended) renderResult(next);
@@ -408,8 +414,11 @@ function renderPrep(v: RaidView): void {
         empty.append(el('span', 'rd-slot-back'));
         return empty;
       }
-      const card = el('div', `rd-slot${userId === v.you ? ' you' : ''}`);
-      card.title = nameOf(userId);
+      // A raider's card shows their gear.
+      const card = el('button', `rd-slot${userId === v.you ? ' you' : ''}`);
+      card.type = 'button';
+      card.title = `${nameOf(userId)}: see their gear`;
+      card.addEventListener('click', () => openGear(v, players, userId));
       // Their class, in the top left corner: not there yet, so a question mark.
       const badge = el('span', 'rd-slot-class', '?');
       badge.title = 'Class: ?';
@@ -446,6 +455,58 @@ function renderPrep(v: RaidView): void {
     ui.prepStatus.textContent = `This week's boss hasn't been fought yet. This server has no bot channel, so start the raid in Discord with the raid command, then join it here. The week resets ${reset}.`;
   }
 }
+
+// ---------------------------------------------------------------------------
+// A raider's gear
+
+/**
+ * How big the gear's frame is laid out, at least: the gear page's computer layout (roster, character,
+ * armory side by side) needs about this much. Smaller popups (a phone on its side) show it scaled down.
+ */
+const GEAR_LAYOUT_WIDTH = 1100;
+const GEAR_LAYOUT_HEIGHT = 640;
+
+/** Shows `userId`'s gear, with the party (`players`, in the order they joined) to go between. */
+function openGear(v: RaidView, players: string[], userId: string): void {
+  if (!token || !server) return;
+  const party = players.map((id) => ({ id, name: v.names[id] ?? 'Someone', avatar: v.avatars[id], you: id === v.you || undefined }));
+  const hash = new URLSearchParams({ t: token, s: server, p: JSON.stringify(party), w: userId });
+  ui.gearFrame.src = `${import.meta.env.BASE_URL}games/raid/gear/#${hash}`;
+  ui.gearPop.hidden = false;
+  fitGear();
+  ui.gearClose.focus();
+}
+
+function closeGear(): void {
+  if (ui.gearPop.hidden) return;
+  ui.gearPop.hidden = true;
+  ui.gearFrame.src = 'about:blank';
+}
+
+/** Lays the frame out at least GEAR_LAYOUT_WIDTH by GEAR_LAYOUT_HEIGHT, scaled to the popup's size. */
+function fitGear(): void {
+  if (ui.gearPop.hidden) return;
+  const { width, height } = ui.gearFit.getBoundingClientRect();
+  if (width === 0 || height === 0) return;
+  const scale = Math.min(1, width / GEAR_LAYOUT_WIDTH, height / GEAR_LAYOUT_HEIGHT);
+  ui.gearFrame.style.width = `${width / scale}px`;
+  ui.gearFrame.style.height = `${height / scale}px`;
+  ui.gearFrame.style.transform = scale < 1 ? `scale(${scale})` : '';
+}
+
+ui.gearClose.addEventListener('click', closeGear);
+// A click on the dark around the popup closes it too.
+ui.gearPop.addEventListener('click', (event) => {
+  if (event.target === ui.gearPop) closeGear();
+});
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') closeGear();
+});
+// Escape inside the frame, with nothing open there (./gear.ts).
+window.addEventListener('message', (event) => {
+  if (event.origin === location.origin && (event.data as { t?: string } | null)?.t === 'close-gear') closeGear();
+});
+window.addEventListener('resize', fitGear);
 
 function renderFight(v: RaidView): void {
   const f = v.fight!;
