@@ -450,9 +450,11 @@
 .rd-member {
   flex: 0 0 auto;
   display: grid;
+  /* No wider than the card: a long name is cut short with …, instead of widening it. */
+  grid-template-columns: minmax(0, 1fr);
   justify-items: center;
-  gap: 4px;
-  width: 84px;
+  gap: 3px;
+  width: 132px;
 }
 
 .rd-portrait {
@@ -523,17 +525,59 @@
   font-weight: 700;
 }
 
+/* Their name on the left and their HP on the right, just over the bar. */
+.rd-member-stats {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
+  width: 100%;
+  margin-top: 4px;
+  padding: 0 2px;
+  box-sizing: border-box;
+  text-shadow: 0 1px 2px #000, 0 0 3px #000;
+}
+
 .rd-member-name {
-  max-width: 100%;
+  min-width: 0;
   overflow: hidden;
   font-size: 12px;
   font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
-  text-shadow: 0 1px 2px #000;
 }
 
-.rd-member .rd-bar {
+.rd-member-hp {
+  flex-shrink: 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* A thin cyan bar with a dark rim, like the game's; yellow from half HP, red from a quarter. */
+.rd-member-bar.rd-bar {
+  width: 100%;
+  height: 7px;
+  border: 1px solid rgba(0, 0, 0, 0.75);
+  border-radius: 2px;
+  background: rgba(10, 14, 22, 0.8);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
+.rd-member-bar.rd-bar > span {
+  border-radius: 0;
+  background: linear-gradient(180deg, #b9f6ff, #5fd5e8);
+}
+
+.rd-member-bar.rd-bar > span.mid {
+  background: linear-gradient(180deg, #fff0b0, #e6c350);
+}
+
+.rd-member-bar.rd-bar > span.lo {
+  background: linear-gradient(180deg, #ffb3b3, #e0595b);
+}
+
+.rd-bar {
   width: 100%;
 }
 
@@ -739,10 +783,11 @@
 
   .rd-party {
     justify-content: flex-start;
+    gap: 16px;
   }
 
   .rd-member {
-    width: 70px;
+    width: 92px;
   }
 
   .rd-portrait {

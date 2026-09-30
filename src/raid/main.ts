@@ -286,7 +286,10 @@ function renderFight(v: RaidView): void {
     const badge = p.hp <= 0 ? '💀' : !p.canAct ? '💫' : p.picked ? ACTION_ICON[p.picked] : f.open ? '…' : '';
     if (badge) portrait.append(el('span', 'rd-badge', badge));
     if (p.cc && p.hp > 0) portrait.append(el('span', 'rd-cc', `${CC_NAME[p.cc.effect].split(' ')[0]}${p.cc.turns}`));
-    li.append(portrait, el('span', 'rd-member-name', v.names[p.userId] ?? 'Someone'), hpBar(p.hp, p.maxHp), el('span', 'rd-member-hp', fmt(Math.max(0, p.hp))));
+    // Under the portrait, as in a game's party bar: their name on the left and their HP on the right, over the bar.
+    const stats = el('div', 'rd-member-stats');
+    stats.append(el('span', 'rd-member-name', v.names[p.userId] ?? 'Someone'), el('span', 'rd-member-hp', fmt(Math.max(0, p.hp))));
+    li.append(portrait, stats, hpBar(p.hp, p.maxHp, 'rd-member-bar'));
     ui.party.append(li);
   }
 
