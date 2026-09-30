@@ -334,8 +334,8 @@ function render(next: RaidView): void {
   }
   const holding = ended && !resultShown;
   // The end screen goes over the battle's scene (the boss stays put under it) as the battle's own parts fade out.
-  // Before the fight (not fought yet this week, or the lobby open): the party screen.
-  const preparing = next.phase === 'lobby' || (next.phase === 'idle' && next.idle !== null);
+  // Before the fight (not fought yet this week, the lobby open, or a lobby that never came to a fight): the party screen.
+  const preparing = next.phase === 'lobby' || (next.phase === 'idle' && next.idle !== null) || (next.phase === 'over' && next.over !== null && !ended);
   ui.prep.hidden = !preparing;
   ui.layout.hidden = fighting || ended || preparing;
   ui.battle.hidden = !(fighting || ended);
@@ -363,6 +363,53 @@ let prepBoss = '';
 /** The raiders' character (everyone's the same one for now). */
 const SPRITE = '/characters/tsuri/sprite.png';
 
+/** How a lobby that never came to a fight went. */
+const LAST_LOBBY: Record<'no_players' | 'called_off', string> = {
+  no_players: 'Nobody joined the last lobby in time.',
+  called_off: 'The last raid was called off (something went wrong), and anything spent was given back.',
+};
+
+/**
+ * An empty seat's card back, in gold line art on the dark card (5 wide by 9 high, like the card): a tall
+ * diamond from edge to edge with a finer one inside it, a sun in the middle (long rays up and down,
+ * shorter across and between, round a ringed disc with swirls in it), and a curl in every corner.
+ */
+const CARD_BACK = (() => {
+  const gold = '#c9a867';
+  const ray = (points: string, angle = 0): string => `<polygon points="${points}" transform="rotate(${angle} 50 90)" />`;
+  const corner = (transform: string): string =>
+    `<g transform="${transform}"><path d="M5 26 Q5 5 26 5" /><path d="M9 9 q8 1 7 9 q-1 5 -6 3.5" /><path d="M9 9 q1 8 9 7 q5 -1 3.5 -6" /><circle cx="9" cy="9" r="1.4" fill="${gold}" stroke="none" /></g>`;
+  return `<svg viewBox="0 0 100 180" preserveAspectRatio="none" aria-hidden="true">
+    <defs><radialGradient id="rd-back-fill" cx="50%" cy="50%" r="60%"><stop offset="0" stop-color="#3b2b13" /><stop offset="1" stop-color="#171208" /></radialGradient></defs>
+    <g fill="none" stroke="${gold}" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="50,4 96,90 50,176 4,90" fill="url(#rd-back-fill)" stroke-opacity="0.6" stroke-width="1.1" />
+      <polygon points="50,13 88.5,90 50,167 11.5,90" stroke-opacity="0.28" stroke-width="0.6" />
+      <g fill="${gold}" fill-opacity="0.5" stroke="none">
+        ${ray('50,30 52.8,70 50,76 47.2,70')}${ray('50,30 52.8,70 50,76 47.2,70', 180)}
+        ${ray('50,58 52.4,72 50,76 47.6,72', 90)}${ray('50,58 52.4,72 50,76 47.6,72', 270)}
+        ${[45, 135, 225, 315].map((a) => ray('50,64 51.8,74 50,76 48.2,74', a)).join('')}
+      </g>
+      <circle cx="50" cy="90" r="17" fill="#140e06" stroke-opacity="0.65" stroke-width="1.2" />
+      <circle cx="50" cy="90" r="13.5" stroke-opacity="0.3" stroke-width="0.5" />
+      <g stroke-opacity="0.5" stroke-width="0.7">
+        <path d="M50 90 c0 -2.4 3 -2.4 3 0 c0 4 -6 4 -6 0 c0 -6 9 -6 9 0 c0 8 -12 8 -12 0" />
+        <path d="M40.5 83 q4 -3.5 7 0.5" /><path d="M59.5 97 q-4 3.5 -7 -0.5" />
+        <path d="M41 98 q-1.5 -4.5 2.5 -6.5" /><path d="M59 82 q1.5 4.5 -2.5 6.5" />
+      </g>
+      <g stroke-opacity="0.55" stroke-width="1.1">
+        ${corner('')}${corner('translate(100 0) scale(-1 1)')}${corner('translate(0 180) scale(1 -1)')}${corner('translate(100 180) scale(-1 -1)')}
+      </g>
+    </g>
+  </svg>`;
+})();
+
+/** An empty seat's card back (CARD_BACK). */
+function cardBack(): HTMLElement {
+  const back = el('span', 'rd-slot-back');
+  back.innerHTML = CARD_BACK;
+  return back;
+}
+
 /**
  * The party screen, before the fight: the boss and what it does on the left, the party so far on the
  * right (a card for each raider, the empty seats face down), and what there is to do: start the week's
@@ -386,9 +433,8 @@ function renderPrep(v: RaidView): void {
     };
     list(ui.prepMoves, brief.moves);
     list(ui.prepPhases, brief.phases);
-    ui.prepRewards.replaceChildren(...markdown(brief.rewards, v.names));
-    ui.prepRewards.hidden = brief.rewards.trim() === '';
-    (ui.prepRewards.previousElementSibling as HTMLElement).hidden = ui.prepRewards.hidden;
+    // The rewards in rows too, a line each.
+    list(ui.prepRewards, brief.rewards.split('\n'));
   }
 
   const lobby = v.lobby;
@@ -406,12 +452,12 @@ function renderPrep(v: RaidView): void {
           const seat = el('button', 'rd-slot empty open');
           seat.type = 'button';
           seat.setAttribute('aria-label', 'Join the raid');
-          seat.append(el('span', 'rd-slot-back'), el('span', 'rd-slot-join', 'Join'));
+          seat.append(cardBack(), el('span', 'rd-slot-join', 'Join'));
           seat.addEventListener('click', takeSeat);
           return seat;
         }
         const empty = el('div', 'rd-slot empty');
-        empty.append(el('span', 'rd-slot-back'));
+        empty.append(cardBack());
         return empty;
       }
       // A raider's card shows their gear.
@@ -435,6 +481,8 @@ function renderPrep(v: RaidView): void {
   // What's going on, and what there is to do.
   const reset = new Date(v.resetsAt).toLocaleString(undefined, { weekday: 'long', hour: 'numeric', minute: '2-digit' });
   const inIt = players.includes(v.you);
+  // How the last lobby went, when it never came to a fight.
+  const last = v.idle?.last ? `${LAST_LOBBY[v.idle.last]} ` : '';
   ui.start.hidden = true;
   ui.join.hidden = true;
   ui.leave.hidden = true;
@@ -446,13 +494,16 @@ function renderPrep(v: RaidView): void {
     ui.join.hidden = inIt;
     ui.leave.hidden = !inIt;
     ui.begin.hidden = host !== v.you;
+  } else if (v.phase === 'over') {
+    // A bot from before `idle.last` says a lobby that never came to a fight is over, and nothing more.
+    ui.prepStatus.textContent = `${LAST_LOBBY[v.over?.end === 'called_off' ? 'called_off' : 'no_players']} Start it again in Discord with the raid command, or come back in a little while.`;
   } else if (v.idle?.week === 'busy') {
     ui.prepStatus.textContent = 'A raid is starting in Discord. It will show up here in a moment.';
   } else if (v.idle?.canStart) {
-    ui.prepStatus.textContent = `This week's boss hasn't been fought yet. Join to start the raid: its lobby goes up in the server, and everyone can join, here or in Discord. The week resets ${reset}.`;
+    ui.prepStatus.textContent = `${last}This week's boss hasn't been fought yet. Join to start the raid: its lobby goes up in the server, and everyone can join, here or in Discord. The week resets ${reset}.`;
     ui.start.hidden = false;
   } else {
-    ui.prepStatus.textContent = `This week's boss hasn't been fought yet. This server has no bot channel, so start the raid in Discord with the raid command, then join it here. The week resets ${reset}.`;
+    ui.prepStatus.textContent = `${last}This week's boss hasn't been fought yet. This server has no bot channel, so start the raid in Discord with the raid command, then join it here. The week resets ${reset}.`;
   }
 }
 
