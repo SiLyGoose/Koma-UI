@@ -3,7 +3,7 @@ import { API } from '../shared/account';
 import { dropdown } from '../shared/dropdown';
 import { curtain } from '../shared/transition';
 import { armoryOrder, DORMANT, forgePlan, type GearCopy, type GearView, type Plan } from '../shared/items/gear';
-import { art, el, rich, SLOT_NAME, stars, type Slot } from '../shared/items/items';
+import { art, el, lockBadge, rich, SLOT_NAME, stars, type Slot } from '../shared/items/items';
 import type { Page } from '../site/page';
 import { api, currentMe, currentServer, loadMe, logOut, setServer } from '../site/session';
 
@@ -127,14 +127,14 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
 
   /**
    * The spares a refine of `copy` can use up: their other copies of the item that aren't worn, saved in
-   * a loadout, or a masterwork (as the bot's refinePlan allows).
+   * a loadout, a masterwork or locked (as the bot's refinePlan allows).
    */
   function materialsFor(copy: GearCopy): GearCopy[] {
     if (!gear) return [];
     const kept = new Set<string>();
     for (const id of Object.values(gear.equipped)) if (id) kept.add(id);
     for (const loadout of gear.loadouts) for (const id of Object.values(loadout.equipped)) if (id) kept.add(id);
-    return gear.copies.filter((c) => c.itemId === copy.itemId && c.id !== copy.id && !kept.has(c.id) && !c.masterwork);
+    return gear.copies.filter((c) => c.itemId === copy.itemId && c.id !== copy.id && !kept.has(c.id) && !c.masterwork && !c.locked);
   }
 
   /**
@@ -157,6 +157,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     box.dataset.stars = String(copy.stars);
     box.classList.toggle('masterwork', copy.masterwork);
     box.append(el('span', 'item-level', `R${copy.level}`), art(copy.itemId, copy.slot), stars(copy.stars), el('span', 'item-curl'));
+    if (copy.locked) box.append(lockBadge());
     return box;
   }
 
@@ -190,10 +191,11 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
       button.classList.toggle('unusable', unusable);
       button.classList.toggle('masterwork', copy.masterwork);
       button.disabled = unusable;
-      button.setAttribute('aria-label', `${copy.name}, ${copy.stars} star${copy.stars === 1 ? '' : 's'}, R${copy.level}${isWorn(copy) ? ', equipped' : ''}${isTarget ? ', on the anvil' : isMaterial ? ', material' : ''}`);
+      button.setAttribute('aria-label', `${copy.name}, ${copy.stars} star${copy.stars === 1 ? '' : 's'}, R${copy.level}${isWorn(copy) ? ', equipped' : ''}${copy.locked ? ', locked' : ''}${isTarget ? ', on the anvil' : isMaterial ? ', material' : ''}`);
       if (isMaterial) button.append(el('span', 'item-tag', 'Material'));
       else if (isWorn(copy)) button.append(el('span', 'item-tag', 'Equipped'));
       button.append(el('span', 'item-level', `R${copy.level}`), art(copy.itemId, copy.slot), stars(copy.stars), el('span', 'item-curl'));
+      if (copy.locked) button.append(lockBadge());
       if (isTarget) button.append(el('span', 'item-selected', plan === 'refine' ? 'Refining' : plan === 'forge' ? 'Forging' : 'Selected'));
       button.addEventListener('click', () => (usable?.has(copy.id) ? pickMaterial(copy) : pick(copy)));
       ui.grid.append(button);

@@ -3,7 +3,7 @@ import { API } from '../shared/account';
 import { currentCharacter } from '../shared/characters';
 import { dropdown } from '../shared/dropdown';
 import { armoryOrder, forgePlan, type GearCopy, type GearView, type StatSection } from '../shared/items/gear';
-import { art, el, rich, SLOT_NAME, stars, type Slot } from '../shared/items/items';
+import { art, el, lockBadge, rich, SLOT_NAME, stars, type Slot } from '../shared/items/items';
 import { go } from '../site/nav';
 import type { Page } from '../site/page';
 import { api, currentMe, currentServer, loadMe, logOut, setServer } from '../site/session';
@@ -104,7 +104,6 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
   }
 
 
-
   // ---------------------------------------------------------------------------
   // Drawing
 
@@ -151,12 +150,13 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
       // While picking what to sell, the one shown is marked only by the sale's red ring.
       card.classList.toggle('picked', !selling && copy.id === picked);
       card.classList.toggle('masterwork', copy.masterwork);
-      card.setAttribute('aria-label', `${copy.name}, ${copy.stars} star${copy.stars === 1 ? '' : 's'}, R${copy.level}${isWorn(copy) ? ', equipped' : ''}`);
+      card.setAttribute('aria-label', `${copy.name}, ${copy.stars} star${copy.stars === 1 ? '' : 's'}, R${copy.level}${isWorn(copy) ? ', equipped' : ''}${copy.locked ? ', locked' : ''}`);
       if (isWorn(copy)) card.append(el('span', 'item-tag', 'Equipped'));
-      else if (selling && copy.sell === null) card.append(el('span', 'item-tag', 'In loadout'));
+      else if (selling && copy.sell === null && !copy.locked) card.append(el('span', 'item-tag', 'In loadout'));
       card.append(el('span', 'item-level', `R${copy.level}`), art(copy.itemId, copy.slot), stars(copy.stars), el('span', 'item-curl'));
+      if (copy.locked) card.append(lockBadge());
       if (selling) {
-        // Worn or saved in a loadout: never sold, so not to be picked.
+        // Worn, saved in a loadout or locked: never sold, so not to be picked.
         const sellable = typeof copy.sell === 'number';
         const on = selling.has(copy.id);
         card.disabled = !sellable || busy;
@@ -244,6 +244,29 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     upgrade.disabled = busy || forgePlan(copy).kind === 'done';
     upgrade.addEventListener('click', () => go(`/forge/?copy=${encodeURIComponent(copy.id)}`));
 
+    // Lock: a padlock in the top corner, shut when it's kept from being sold or used up by a refine.
+    // Only yours to toggle (not while picking what to sell); on anyone else's, just shown when shut. A bot
+    // from before locking has nothing to show.
+    if (copy.locked !== undefined) {
+      if (!viewing && !selling) {
+        const lock = el('button', 'detail-lock');
+        lock.type = 'button';
+        lock.disabled = busy;
+        lock.classList.toggle('on', copy.locked);
+        lock.setAttribute('aria-pressed', String(copy.locked));
+        lock.setAttribute('aria-label', 'Locked');
+        lock.title = copy.locked ? 'Locked: unlock to let it be sold or used up by a refine again' : 'Lock to keep it from being sold or used up by a refine';
+        lock.append(padlock(copy.locked));
+        lock.addEventListener('click', () => void setLocked(copy.id, !copy.locked));
+        top.append(lock);
+      } else if (copy.locked) {
+        const lock = el('span', 'detail-lock on');
+        lock.title = 'Locked';
+        lock.append(padlock(true));
+        top.append(lock);
+      }
+    }
+
     // What it does.
     const body = el('div', 'detail-body');
     body.append(el('p', 'detail-desc', copy.description), el('p', 'detail-label', 'Effects'), effects);
@@ -277,6 +300,19 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     // Someone else's: nothing to do with it, so no buttons, just whether they wear it.
     else if (!viewing) ui.detail.append(foot);
     else if (worn) info.append(el('span', 'detail-mw detail-worn', 'Equipped'));
+  }
+
+  /** A padlock icon with a keyhole, shut or open (a locked copy's badge, and the lock button's). */
+  function padlock(shut: boolean): SVGSVGElement {
+    const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    icon.setAttribute('viewBox', '0 0 24 24');
+    icon.setAttribute('aria-hidden', 'true');
+    icon.setAttribute('class', 'padlock');
+    const shackle = shut ? 'M8 10V7a4 4 0 0 1 8 0v3' : 'M8 10V7a4 4 0 0 1 7.9-1';
+    icon.innerHTML =
+      `<path d="${shackle}" fill="none" stroke="currentColor" stroke-width="2.4" />` +
+      '<path fill="currentColor" fill-rule="evenodd" d="M7 10h10a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2Zm5 3.2a1.6 1.6 0 0 0-.8 3v2.3h1.6v-2.3a1.6 1.6 0 0 0-.8-3Z" />';
+    return icon;
   }
 
   /** A copy's card, big (the detail panel's). */
@@ -548,6 +584,8 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
   const unequip = (slot: Slot): Promise<unknown> => change('/api/gear/unequip', { slot }, 'Could not unequip that. Try again.');
   const unequipEverything = (): Promise<unknown> => change('/api/gear/unequip-all', {}, 'Could not unequip everything. Try again.');
   const switchTo = (loadout: number): Promise<unknown> => change('/api/gear/loadout', { loadout }, 'Could not switch loadouts. Try again.');
+  const setLocked = (copy: string, locked: boolean): Promise<unknown> =>
+    change('/api/gear/lock', { copy, locked }, locked ? 'Could not lock that. Try again.' : 'Could not unlock that. Try again.');
 
   /** Sells what's picked, and says what it came to. */
   async function sell(): Promise<void> {

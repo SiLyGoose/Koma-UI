@@ -22,7 +22,9 @@ export interface GearCopy {
   refine?: GearRefine;
   /** Forging it into a masterwork: null when its item has no bonus (absent from a bot from before forging on the site). */
   forge?: GearForge | null;
-  /** What selling it pays in zeiucoins: null when it's worn or saved in a loadout, so never sold (absent from a bot from before selling on the site). */
+  /** Locked by the member: never sold or used up by a refine (absent from a bot from before locking). */
+  locked?: boolean;
+  /** What selling it pays in zeiucoins: null when it's worn, saved in a loadout or locked, so never sold (absent from a bot from before selling on the site). */
   sell?: number | null;
 }
 

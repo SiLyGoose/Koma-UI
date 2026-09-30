@@ -433,6 +433,34 @@
 }
 
 /*
+ * A locked copy: a dark tab set into its card's right edge halfway down, flaring out along the edge above
+ * and below like a bracket, with a white padlock in it.
+ */
+.item-lock {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 30%;
+  height: 40%;
+  padding-inline: 3%;
+  padding-block: 0;
+  background: linear-gradient(90deg, #2a2830, #0e0d11);
+  clip-path: polygon(100% 0, 100% 100%, 0 95%, 0 5%);
+  transform: translateY(-50%);
+  pointer-events: none;
+  opacity: 0.85;
+}
+
+.item-lock svg {
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 1px 1px rgb(0 0 0 / 60%));
+}
+
+/*
  * A masterwork (R5, forged) is holographic foil: a rainbow checked with squares, printed on the card and
  * showing only where bands of light pass over it, the bands drifting slowly and steadily across it
  * from right to left (and a little upwards), about two on the card at a time, the colours shifting all the

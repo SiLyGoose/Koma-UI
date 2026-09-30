@@ -99,3 +99,21 @@ export function rich(line: string): DocumentFragment {
   }
   return out;
 }
+
+/**
+ * A locked copy's mark on its card: a dark tab set into the card's right edge, holding a white padlock
+ * outlined in black with a black keyhole.
+ */
+export function lockBadge(): HTMLElement {
+  const badge = el('span', 'item-lock');
+  const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  icon.setAttribute('viewBox', '0 0 24 24');
+  icon.setAttribute('aria-hidden', 'true');
+  icon.innerHTML =
+    '<path d="M7.5 11V7.5a4.5 4.5 0 0 1 9 0V11" fill="none" stroke="#000" stroke-width="5" />' +
+    '<path d="M7.5 11V7.5a4.5 4.5 0 0 1 9 0V11" fill="none" stroke="#fff" stroke-width="2.4" />' +
+    '<rect x="4.2" y="10" width="15.6" height="12.3" rx="2" fill="#fff" stroke="#000" stroke-width="1.4" />' +
+    '<circle cx="12" cy="14.6" r="1.9" fill="#000" /><rect x="11.1" y="15.2" width="1.8" height="4.3" rx="0.6" fill="#000" />';
+  badge.append(icon);
+  return badge;
+}
