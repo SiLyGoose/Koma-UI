@@ -649,7 +649,8 @@
 }
 
 /*
- * More raiders than fit: four in front, and the next four behind them, up and to the left and faded.
+ * More raiders than fit: four in front, and the next four behind them, up and to the left and faded
+ * (just their pictures: their names, HP and buffs show once they come to the front).
  * The swap button glides them round: the back row comes forward and the front one steps back. The
  * offset is in the party row's own size, so it shrinks with it on smaller screens.
  */
@@ -675,24 +676,37 @@
 .rd-party-layer.back {
   z-index: 0;
   opacity: 0.25;
-  transform: translate(-16px, -16px);
+  transform: translate(-32px, -20px);
   pointer-events: none;
 }
 
 .rd-party-layer.off {
   opacity: 0;
   visibility: hidden;
-  transform: translate(-32px, -32px);
+  transform: translate(-64px, -40px);
   pointer-events: none;
+}
+
+/* Behind, only their pictures: the name, HP, bar and buffs fade in as they come to the front. */
+.rd-party-layer .rd-member-stats,
+.rd-party-layer .rd-member-bar,
+.rd-party-layer .rd-buffs {
+  transition: opacity 0.5s ease;
+}
+
+.rd-party-layer:not(.front) .rd-member-stats,
+.rd-party-layer:not(.front) .rd-member-bar,
+.rd-party-layer:not(.front) .rd-buffs {
+  opacity: 0;
 }
 
 /* Room above and to the left for the row behind. */
 .rd-party.stacked {
-  padding-top: 20px;
+  padding-top: 24px;
 }
 
 .rd-party.stacked .rd-party-stack {
-  margin-left: 16px;
+  margin-left: 32px;
 }
 
 .rd-swap-slot[hidden] {
