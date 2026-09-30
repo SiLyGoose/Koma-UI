@@ -620,6 +620,52 @@
   background: var(--rd-lo);
 }
 
+/* With more raiders than fit: the button swapping between them, on the left of the party, like the actions. */
+.rd-swap-slot {
+  flex: 0 0 auto;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 4px;
+  margin-right: 6px;
+}
+
+.rd-swap {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  padding: 0;
+  border: 2px solid rgba(226, 228, 236, 0.3);
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 42%, rgba(52, 56, 72, 0.6), rgba(12, 14, 22, 0.6) 72%);
+  box-shadow: inset 0 0 0 3px rgba(0, 0, 0, 0.45), inset 0 0 0 4px rgba(255, 255, 255, 0.12), 0 6px 16px rgba(0, 0, 0, 0.55);
+  color: #eef0f6;
+  cursor: pointer;
+  transition: transform 0.1s ease, border-color 0.15s ease;
+}
+
+.rd-swap:hover {
+  border-color: rgba(255, 255, 255, 0.55);
+  transform: scale(1.05);
+}
+
+.rd-swap:active {
+  transform: scale(0.95);
+}
+
+.rd-swap-icon {
+  width: 78%;
+  height: 78%;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.6));
+}
+
+/* Which page of raiders is showing, like 1/2. */
+.rd-swap-page {
+  font-size: 13px;
+  text-shadow: 0 1px 2px #000;
+}
+
 /* A raider's buffs, under their HP: little dark squares, each with its icon and a blue up arrow. */
 .rd-buffs {
   display: flex;

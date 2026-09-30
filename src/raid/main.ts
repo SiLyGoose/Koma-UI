@@ -145,6 +145,10 @@ let view: RaidView | null = null;
 let pictureShown = '';
 /** Heal's "who?" is open (for this round). */
 let healOpenRound: number | null = null;
+/** How many raiders the party row shows at once; with more, a button swaps between them (in the order they joined). */
+const PARTY_PAGE = 4;
+/** Which of those pages the party row shows. */
+let partyPage = 0;
 
 const nameOf = (userId: string): string => (view?.names[userId] ?? 'Someone') + (userId === view?.you ? ' (you)' : '');
 
@@ -291,7 +295,25 @@ function renderFight(v: RaidView): void {
   renderHealPick(v);
 
   ui.party.textContent = '';
-  for (const p of f.players) {
+  // More raiders than fit: a button on the left swaps between the first four to join and the rest.
+  const pages = Math.ceil(f.players.length / PARTY_PAGE);
+  partyPage = pages > 1 ? partyPage % pages : 0;
+  if (pages > 1) {
+    const li = el('li', 'rd-swap-slot');
+    const swap = el('button', 'rd-swap');
+    swap.type = 'button';
+    swap.title = 'Show the other raiders';
+    swap.setAttribute('aria-label', `Show the other raiders (${partyPage + 1} of ${pages})`);
+    // A camera with three arrows round it (drawn here, like a game's switch-view button).
+    swap.innerHTML = '<svg class="rd-swap-icon" viewBox="0 0 64 64" aria-hidden="true" fill="currentColor"><path d="M40.6 8.5A25 25 0 0 1 56.6 36.3" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/><path d="M55.8 41.3L54.7 31.2L60.2 32.1Z"/><path d="M48.1 51.2A25 25 0 0 1 15.9 51.2" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/><path d="M12.1 47.9L21.3 52.1L17.8 56.3Z"/><path d="M7.4 36.3A25 25 0 0 1 23.4 8.5" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/><path d="M28.1 6.8L19.9 12.7L18.0 7.6Z"/><path d="M21 25h5l2.5-3.5h7L38 25h5a2.5 2.5 0 0 1 2.5 2.5v11A2.5 2.5 0 0 1 43 41H21a2.5 2.5 0 0 1-2.5-2.5v-11A2.5 2.5 0 0 1 21 25Z"/><circle cx="32" cy="33" r="5.2" fill="#151823"/><circle cx="32" cy="33" r="3" /></svg>';
+    swap.addEventListener('click', () => {
+      partyPage = (partyPage + 1) % pages;
+      if (view) render(view);
+    });
+    li.append(swap, el('span', 'rd-swap-page', `${partyPage + 1}/${pages}`));
+    ui.party.append(li);
+  }
+  for (const p of f.players.slice(partyPage * PARTY_PAGE, (partyPage + 1) * PARTY_PAGE)) {
     const li = el('li', `rd-member${p.userId === v.you ? ' you' : ''}${p.hp <= 0 ? ' down' : ''}${p.picked ? ' ready' : ''}`);
     li.title = nameOf(p.userId);
     const portrait = el('div', 'rd-portrait');
