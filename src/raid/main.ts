@@ -314,7 +314,6 @@ function renderFight(v: RaidView): void {
   ui.bossFill.style.width = `${bossShare * 100}%`;
   if (f.enrage > 0) ui.tags.append(el('span', 'rd-tag hot', f.enrage >= 2 ? '🔥 Furious' : '😠 Enraged'));
   if (f.shielded) ui.tags.append(el('span', 'rd-tag cold', '🔷 Shielded'));
-  if (f.rallied > 0) ui.tags.append(el('span', 'rd-tag gold', `✨ Rallied ×${f.rallyMultiplier} · ${plural(f.rallied, 'turn', 'turns')}`));
   ui.intentText.replaceChildren(...markdown(f.intent, v.names));
 
   ui.round.textContent = `Round ${f.round} of ${f.maxRounds}`;

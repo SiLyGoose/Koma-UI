@@ -312,10 +312,6 @@
   background: rgba(40, 110, 200, 0.85);
 }
 
-.rd-tag.gold {
-  background: rgba(170, 130, 40, 0.9);
-}
-
 .rd-round {
   grid-column: 3;
   justify-self: end;
