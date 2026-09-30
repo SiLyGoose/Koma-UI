@@ -648,6 +648,57 @@
   text-transform: none;
 }
 
+/*
+ * More raiders than fit: four in front, and the next four behind them, up and to the left and faded.
+ * The swap button glides them round: the back row comes forward and the front one steps back. The
+ * offset is in the party row's own size, so it shrinks with it on smaller screens.
+ */
+.rd-party-stack {
+  display: grid;
+  flex: 0 0 auto;
+}
+
+.rd-party-layer {
+  grid-area: 1 / 1;
+  display: flex;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.5s ease;
+}
+
+.rd-party-layer.front {
+  z-index: 1;
+}
+
+.rd-party-layer.back {
+  z-index: 0;
+  opacity: 0.25;
+  transform: translate(-16px, -16px);
+  pointer-events: none;
+}
+
+.rd-party-layer.off {
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(-32px, -32px);
+  pointer-events: none;
+}
+
+/* Room above and to the left for the row behind. */
+.rd-party.stacked {
+  padding-top: 20px;
+}
+
+.rd-party.stacked .rd-party-stack {
+  margin-left: 16px;
+}
+
+.rd-swap-slot[hidden] {
+  display: none;
+}
+
 /* With more raiders than fit: the button swapping between them, on the left of the party, like the actions. */
 .rd-swap-slot {
   flex: 0 0 auto;
@@ -1065,6 +1116,10 @@
     justify-content: flex-start;
     gap: 16px;
     margin: 0;
+  }
+
+  .rd-party-layer {
+    gap: 16px;
   }
 
   .rd-member {
