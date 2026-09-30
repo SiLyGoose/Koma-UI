@@ -601,9 +601,8 @@ button.rd-slot:not(.empty):focus-visible {
   display: grid;
   place-items: center;
   padding: 24px;
-  background: rgba(3, 4, 8, 0.72);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  /* Dark, not blurred: blurring the whole raid behind it every frame (on top of its own blurs) made the popup lag. */
+  background: rgba(3, 4, 8, 0.85);
   animation: rd-gear-in 0.18s ease-out;
 }
 
@@ -679,6 +678,17 @@ button.rd-slot:not(.empty):focus-visible {
     width: 30px;
     height: 30px;
   }
+}
+
+/* While a popup is up, the raid behind it (mostly covered) stops blurring: redrawn every frame under the popup, the blurs made it lag. */
+body.rd-popup-open .rd-prep-shade,
+body.rd-popup-open .rd-result-shade {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+body.rd-popup-open .rd-battle-bg {
+  filter: brightness(0.45);
 }
 
 /* ------------------------------------------------------------------ the battle screen */
@@ -1997,9 +2007,8 @@ button.rd-slot:not(.empty):focus-visible {
   display: grid;
   place-items: center;
   padding: 24px;
-  background: rgba(3, 4, 8, 0.72);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  /* Dark, not blurred: blurring the whole raid behind it every frame (on top of its own blurs) made the popup lag. */
+  background: rgba(3, 4, 8, 0.85);
   animation: rd-gear-in 0.18s ease-out;
 }
 
