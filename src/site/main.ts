@@ -6,6 +6,7 @@ import '../gear/gear.css';
 import '../databank/databank.css';
 import '../forge/forge.css';
 import { backdrop } from '../shared/backdrop';
+import { installCursor } from '../shared/cursor';
 import { databankPage } from '../databank/page';
 import { forgePage } from '../forge/page';
 import { gearPage } from '../gear/page';
@@ -33,6 +34,8 @@ const view = document.getElementById('view') as HTMLElement;
 
 // The star chart behind every page: put in once, so it carries on as the pages change.
 document.body.prepend(backdrop());
+// The reticle in place of the mouse pointer.
+installCursor();
 // The masterworks' foil carries on as their cards are drawn again.
 keepHoloInStep();
 const icon = document.querySelector<HTMLLinkElement>('link[rel="icon"]');

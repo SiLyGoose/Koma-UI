@@ -1,4 +1,5 @@
 import { loadUser, profileMenu, setSession } from './account';
+import { installCursor } from './cursor';
 import './frame.css';
 import { catchBack, holdReveal } from './transition';
 
@@ -21,6 +22,9 @@ import { catchBack, holdReveal } from './transition';
 
 /** A game stays under the loading screen until it has connected, or found it can't. */
 const revealed = holdReveal();
+
+// The hand in place of the mouse pointer: no reticle trailing it over the game.
+installCursor({ reticle: false });
 
 // The browser's back button wipes the game away right to left, as its ← does.
 catchBack('/');
