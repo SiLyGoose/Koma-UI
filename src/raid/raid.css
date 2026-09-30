@@ -440,7 +440,7 @@
   gap: 10px;
   min-width: 0;
   /* A way in from the corner, as a game places its party. */
-  margin: 0 0 36px 64px;
+  margin: 0 0 24px 48px;
   padding: 4px 2px;
   overflow-x: auto;
   list-style: none;
