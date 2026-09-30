@@ -144,7 +144,13 @@
             <div class="rd-result-band">
               <table class="rd-result-table">
                 <thead>
-                  <tr><th>Raider</th><th>Damage dealt</th><th>Healed</th><th>Mitigated</th></tr>
+                  <!-- A column's header sorts by it (again: the other way round), one column at a time. -->
+                  <tr>
+                    <th aria-sort="none"><button type="button" class="rd-sort" data-sort="name">Raider<span class="dd-arrow" aria-hidden="true"></span></button></th>
+                    <th aria-sort="descending"><button type="button" class="rd-sort" data-sort="damage">Damage dealt<span class="dd-arrow" aria-hidden="true"></span></button></th>
+                    <th aria-sort="none"><button type="button" class="rd-sort" data-sort="healed">Healed<span class="dd-arrow" aria-hidden="true"></span></button></th>
+                    <th aria-sort="none"><button type="button" class="rd-sort" data-sort="mitigated">Mitigated<span class="dd-arrow" aria-hidden="true"></span></button></th>
+                  </tr>
                 </thead>
                 <tbody id="result-rows"></tbody>
               </table>

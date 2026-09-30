@@ -1,4 +1,6 @@
 import '../shared/style.css';
+// The dropdown's chevron (.dd-arrow), on the end screen's sorted column.
+import '../shared/dropdown.css';
 import { barSlot, setConn, soundButton } from '../shared/frame';
 import { apiFromSocket, startLive } from '../shared/live';
 import { setMuted } from '../shared/sfx';
@@ -26,6 +28,7 @@ const ui = {
   result: $('result'),
   resultTitle: $('result-title'),
   resultText: $('result-text'),
+  resultSorts: [...document.querySelectorAll<HTMLButtonElement>('.rd-sort')],
   resultRows: $('result-rows'),
   tags: $('boss-tags'),
   bossName: $('boss-name'),
@@ -347,8 +350,8 @@ function render(next: RaidView): void {
   ui.tags.textContent = '';
 
   if (preparing) renderPrep(next);
-  // The fight starting (or the lobby going) takes the gear's popup down with the party screen.
-  else closeGear();
+  // The fight starting (or the lobby going, or the end screen) takes the gear's popup down with the screen it was opened from.
+  else if (before !== next.phase) closeGear();
   if (next.phase === 'fight' && next.fight) renderFight(next);
   if (next.phase === 'over' && next.over) renderOver(next);
   if (ended) renderResult(next);
@@ -518,10 +521,14 @@ const GEAR_LAYOUT_WIDTH = 1100;
 const GEAR_LAYOUT_HEIGHT = 640;
 
 /** Shows `userId`'s gear, with the party (`players`, in the order they joined) to go between. */
-function openGear(v: RaidView, players: string[], userId: string): void {
+/**
+ * Shows `userId`'s gear, with the party (`players`, in their order) to go between. `fought`: their gear
+ * as they fought the raid (the end screen), rather than as it is now.
+ */
+function openGear(v: RaidView, players: string[], userId: string, fought = false): void {
   if (!token || !server) return;
   const party = players.map((id) => ({ id, name: v.names[id] ?? 'Someone', avatar: v.avatars[id], you: id === v.you || undefined }));
-  const hash = new URLSearchParams({ t: token, s: server, p: JSON.stringify(party), w: userId });
+  const hash = new URLSearchParams({ t: token, s: server, p: JSON.stringify(party), w: userId, ...(fought ? { g: 'raid' } : {}) });
   ui.gearFrame.src = `${import.meta.env.BASE_URL}games/raid/gear/#${hash}`;
   ui.gearPop.hidden = false;
   fitGear();
@@ -686,19 +693,50 @@ function renderResult(v: RaidView): void {
   const won = o.end === 'won';
   ui.result.classList.toggle('won', won);
   ui.resultTitle.textContent = won ? 'Victory' : 'Defeat';
-  const reward = o.reward
-    ? ` Everyone who fought gets ${fmt(o.reward.points)} points${o.reward.tokens ? `, ${plural(o.reward.tokens, 'token', 'tokens')}` : ''}${o.reward.gems ? ` and ${plural(o.reward.gems, 'komaGem', 'komaGems')}` : ''}.`
-    : '';
-  ui.resultText.textContent = won
-    ? `${v.boss.name} beaten in ${plural(o.rounds, 'round', 'rounds')}${o.lastHit ? `, the final blow by ${nameOf(o.lastHit)}` : ''}.${reward}`
-    : o.end === 'fled'
-      ? `${v.boss.name} got away after ${plural(o.rounds, 'round', 'rounds')}${hpLeft(o)}.`
-      : `The party fell after ${plural(o.rounds, 'round', 'rounds')}${hpLeft(o)}.`;
+  // What the winners got, with the currencies' emojis (a bot from before sends only the numbers: in words then).
+  const reward: (Node | string)[] = o.rewardText
+    ? [' Everyone who fought gets ', ...markdown(o.rewardText, v.names), '.']
+    : o.reward
+      ? [` Everyone who fought gets ${fmt(o.reward.points)} points${o.reward.tokens ? `, ${plural(o.reward.tokens, 'token', 'tokens')}` : ''}${o.reward.gems ? ` and ${plural(o.reward.gems, 'komaGem', 'komaGems')}` : ''}.`]
+      : [];
+  ui.resultText.replaceChildren(
+    ...(won
+      ? [`${v.boss.name} beaten in ${plural(o.rounds, 'round', 'rounds')}${o.lastHit ? `, the final blow by ${nameOf(o.lastHit)}` : ''}.`, ...reward]
+      : [o.end === 'fled' ? `${v.boss.name} got away after ${plural(o.rounds, 'round', 'rounds')}${hpLeft(o)}.` : `The party fell after ${plural(o.rounds, 'round', 'rounds')}${hpLeft(o)}.`]),
+  );
+
+  // The columns' headers: which one it's sorted by, and which way.
+  for (const button of ui.resultSorts) {
+    const on = button.dataset.sort === resultSort.key;
+    const th = button.parentElement as HTMLElement;
+    th.setAttribute('aria-sort', on ? (resultSort.dir === 'asc' ? 'ascending' : 'descending') : 'none');
+    button.classList.toggle('on', on);
+    button.dataset.dir = on ? resultSort.dir : '';
+  }
 
   ui.resultRows.textContent = '';
-  const rows = [...o.players].sort((a, b) => b.damage - a.damage);
+  const nameFor = (id: string): string => v.names[id] ?? 'Someone';
+  const { key, dir } = resultSort;
+  const rows = [...o.players].sort((a, b) => {
+    const by = key === 'name' ? nameFor(a.userId).localeCompare(nameFor(b.userId), undefined, { sensitivity: 'base' }) : a[key] - b[key];
+    return dir === 'asc' ? by : -by;
+  });
+  const party = o.players.map((p) => p.userId);
   for (const p of rows) {
     const tr = el('tr', p.userId === v.you ? 'you' : '');
+    // A row shows their gear as they fought (when the bot kept it).
+    if (o.gear) {
+      tr.classList.add('open');
+      tr.tabIndex = 0;
+      tr.title = `${nameFor(p.userId)}: see their gear as they fought`;
+      tr.addEventListener('click', () => openGear(v, party, p.userId, true));
+      tr.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          openGear(v, party, p.userId, true);
+        }
+      });
+    }
     // Their picture and name together in the first cell (in a box of their own, so the cell stays a table cell).
     const who = el('div', 'rd-result-who');
     const face = el('span', 'rd-result-face');
@@ -710,6 +748,19 @@ function renderResult(v: RaidView): void {
     tr.append(whoCell, el('td', 'num dmg', fmt(p.damage)), el('td', 'num heal', fmt(p.healed)), el('td', 'num guard', fmt(p.mitigated)));
     ui.resultRows.append(tr);
   }
+}
+
+/** How the end screen's table is sorted: by one column, either way (most damage first, to start with). */
+type ResultSortKey = 'name' | 'damage' | 'healed' | 'mitigated';
+let resultSort: { key: ResultSortKey; dir: 'asc' | 'desc' } = { key: 'damage', dir: 'desc' };
+
+for (const button of ui.resultSorts) {
+  button.addEventListener('click', () => {
+    const key = button.dataset.sort as ResultSortKey;
+    // The same column again: the other way round. Another: most first (names from A).
+    resultSort = key === resultSort.key ? { key, dir: resultSort.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: key === 'name' ? 'asc' : 'desc' };
+    if (view?.over) renderResult(view);
+  });
 }
 
 /** The countdowns: the lobby closing, and the turn's time running out. */

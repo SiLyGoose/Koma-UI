@@ -1954,6 +1954,56 @@ button.rd-slot:not(.empty):focus-visible {
   text-align: left;
 }
 
+/* A column's header sorts by it: the dropdown's chevron beside the one it's sorted by, down for most first, turned up for least. */
+.rd-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+}
+
+.rd-sort:hover,
+.rd-sort:focus-visible,
+.rd-sort.on {
+  outline: none;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.rd-sort .dd-arrow {
+  margin: 0;
+  border-color: currentColor;
+  visibility: hidden;
+}
+
+.rd-sort.on .dd-arrow {
+  visibility: visible;
+}
+
+.rd-sort[data-dir='asc'] .dd-arrow {
+  transform: translateY(2px) rotate(-135deg);
+}
+
+/* A row shows that raider's gear as they fought. */
+.rd-result-table tr.open {
+  cursor: pointer;
+}
+
+.rd-result-table tr.open:hover td,
+.rd-result-table tr.open:focus-visible td {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.rd-result-table tr.open:focus-visible {
+  outline: none;
+}
+
 .rd-result-table td {
   padding: 7px 10px;
   border-top: 1px solid rgba(255, 255, 255, 0.07);
