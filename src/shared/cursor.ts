@@ -38,10 +38,14 @@ const MAX_H = 0.6;
 /** Fields typed in: they keep the browser's I-beam, and the reticle hides over them. */
 /** What's pressable in its own right: the mouse over something in one of these boxes it, not a bigger thing it's in. */
 const CONTROL = 'button, a[href], select, summary, label, input, [role="button"], [role="option"], [role="menuitem"], [role="tab"]';
+/** Boxed things the hand stays over, in place of the dot, to see them by: the armory's and databank's items. */
+const KEEP_HAND = '.item';
 /** The hand (in public/), and where its fingertip is in it: that's where the mouse is. */
 const HAND = `${import.meta.env.BASE_URL}shared/cursor.png`;
+/** The hand pressing, while a mouse button is held: the same size, drawn at the same place. */
+const HAND_PRESSED = `${import.meta.env.BASE_URL}shared/cursor-press.png`;
 const HAND_TIP_X = 10;
-const HAND_TIP_Y = 1;
+const HAND_TIP_Y = 2;
 
 const TEXT_FIELD =
   'textarea, [contenteditable]:not([contenteditable="false"]), input:is(:not([type]), [type="text"], [type="number"], [type="search"], [type="email"], [type="password"], [type="url"], [type="tel"])';
@@ -74,6 +78,8 @@ export function installCursor({ reticle = true }: { reticle?: boolean } = {}): v
   const hand = document.createElement('img');
   hand.className = 'reticle-hand';
   hand.src = HAND;
+  // Loaded now, so the first press shows it straight away.
+  new Image().src = HAND_PRESSED;
   hand.alt = '';
   hand.style.margin = `${-HAND_TIP_Y}px 0 0 ${-HAND_TIP_X}px`;
   if (reticle) host.append(frame, dot);
@@ -105,6 +111,12 @@ export function installCursor({ reticle = true }: { reticle?: boolean } = {}): v
   let squeeze = 0;
   /** How much the box leans after the mouse: 1 while it moves, easing to 0 once it's still. */
   let leaning = 0;
+  /**
+   * Whether the hand is hidden (boxing something that isn't an item), and how far the dot has gone over
+   * to tracking the mouse in its place: 0 trailing it, 1 right on it.
+   */
+  let handless = false;
+  let tracking = 0;
 
   /**
    * What's pressable at `target`: the outermost element up from it with a hand pointer, if any (the
@@ -134,6 +146,9 @@ export function installCursor({ reticle = true }: { reticle?: boolean } = {}): v
     host.classList.toggle('over-text', !!target?.closest(TEXT_FIELD));
     boxed = reticle ? pressable(target) : null;
     host.classList.toggle('locked', boxed !== null);
+    const keepHand = !!boxed?.matches(KEEP_HAND);
+    host.classList.toggle('keep-hand', keepHand);
+    handless = boxed !== null && !keepHand;
   }
 
   // The mouse only: a pen or a finger leaves the page as it is.
@@ -160,15 +175,27 @@ export function installCursor({ reticle = true }: { reticle?: boolean } = {}): v
   document.addEventListener('pointerover', (e) => {
     if (e.pointerType === 'mouse' && e.target instanceof Element) look(e.target);
   });
-  document.addEventListener('pointerdown', (e) => {
-    if (e.pointerType === 'mouse') pressed = true;
-  });
-  window.addEventListener('pointerup', (e) => {
-    if (e.pointerType !== 'mouse') return;
-    pressed = false;
-    // A press often changes what's there (a button turned off, a menu opened): look again once it has.
-    setTimeout(() => look(document.elementFromPoint(mx, my)), 120);
-  });
+  // Pressing and letting go caught on the way down, before anything on the page can stop them.
+  window.addEventListener(
+    'pointerdown',
+    (e) => {
+      if (e.pointerType !== 'mouse') return;
+      pressed = true;
+      hand.src = HAND_PRESSED;
+    },
+    { capture: true },
+  );
+  window.addEventListener(
+    'pointerup',
+    (e) => {
+      if (e.pointerType !== 'mouse') return;
+      pressed = false;
+      hand.src = HAND;
+      // A press often changes what's there (a button turned off, a menu opened): look again once it has.
+      setTimeout(() => look(document.elementFromPoint(mx, my)), 120);
+    },
+    { capture: true },
+  );
   // Out of the window: the reticle goes.
   document.addEventListener('pointerout', (e) => {
     if (e.pointerType === 'mouse' && !e.relatedTarget) {
@@ -190,9 +217,12 @@ export function installCursor({ reticle = true }: { reticle?: boolean } = {}): v
     /** How far along to where it's going to move this frame, at `rate`: the same feel at any frame rate. */
     const ease = (rate: number): number => 1 - Math.exp(-rate * dt);
 
+    // With the hand hidden, the dot is the mouse: it goes over to being right on it, not trailing, and back after.
+    tracking += ((handless ? 1 : 0) - tracking) * ease(15);
     const follow = ease(FOLLOW);
-    dx += (mx - dx) * follow;
-    dy += (my - dy) * follow;
+    const pull = follow + (1 - follow) * tracking;
+    dx += (mx - dx) * pull;
+    dy += (my - dy) * pull;
     dot.style.transform = `translate(${dx}px, ${dy}px)`;
     squeeze += ((pressed ? 1 : 0) - squeeze) * ease(25);
     leaning += ((now - movedAt < LEAN_HOLD ? 1 : 0) - leaning) * ease(8);

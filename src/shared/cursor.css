@@ -78,6 +78,15 @@ html.reticle-on *:not(textarea, [contenteditable], input:is(:not([type]), [type=
   opacity: 0;
 }
 
+/* Boxing an item: the other way round, the hand staying and the dot going, so the dot isn't lost on the item. */
+.reticle.shown.locked.keep-hand .reticle-hand {
+  opacity: 1;
+}
+
+.reticle.shown.locked.keep-hand .reticle-dot {
+  opacity: 0;
+}
+
 /* The brackets' box: placed, sized and turned by cursor.ts every frame. */
 .reticle-frame {
   position: absolute;
