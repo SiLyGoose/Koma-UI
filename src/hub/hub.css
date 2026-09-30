@@ -4,6 +4,29 @@
   max-width: 720px;
 }
 
+/* Bigger computer screens: the page takes more of the width (the gear page's on a laptop, most of it on a big screen), three and then four games to a row. */
+@media (min-width: 1280px) {
+  .hub {
+    max-width: 1120px;
+  }
+}
+
+@media (min-width: 1600px) {
+  .hub {
+    max-width: min(1480px, 80vw);
+  }
+
+  .games .game-art {
+    height: 140px;
+  }
+}
+
+/* Logging in stays a small card in the middle, however wide the page is. */
+.hub .login {
+  max-width: 460px;
+  margin-inline: auto;
+}
+
 
 .card {
   background: var(--panel);
