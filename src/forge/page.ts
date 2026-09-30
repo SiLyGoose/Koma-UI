@@ -2,7 +2,7 @@ import markup from './forge.html?raw';
 import { API } from '../shared/account';
 import { dropdown } from '../shared/dropdown';
 import { curtain } from '../shared/transition';
-import { armoryOrder, DORMANT, forgePlan, type GearCopy, type GearView, type Plan } from '../shared/items/gear';
+import { armoryOrder, DORMANT, equippedIds, forgePlan, type GearCopy, type GearView, type Plan } from '../shared/items/gear';
 import { art, el, lockBadge, rich, SLOT_NAME, stars, type Slot } from '../shared/items/items';
 import type { Page } from '../site/page';
 import { api, currentMe, currentServer, loadMe, logOut, setServer } from '../site/session';
@@ -122,7 +122,6 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
   }
 
   const copyById = (id: string | null): GearCopy | undefined => (id ? gear?.copies.find((c) => c.id === id) : undefined);
-  const isWorn = (copy: GearCopy): boolean => gear?.equipped[copy.slot] === copy.id;
   const balance = (): number | null => gear?.balance ?? currentMe()?.servers.find((s) => s.id === currentServer())?.balance ?? null;
 
   /**
@@ -131,9 +130,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
    */
   function materialsFor(copy: GearCopy): GearCopy[] {
     if (!gear) return [];
-    const kept = new Set<string>();
-    for (const id of Object.values(gear.equipped)) if (id) kept.add(id);
-    for (const loadout of gear.loadouts) for (const id of Object.values(loadout.equipped)) if (id) kept.add(id);
+    const kept = equippedIds(gear);
     return gear.copies.filter((c) => c.itemId === copy.itemId && c.id !== copy.id && !kept.has(c.id) && !c.masterwork && !c.locked);
   }
 
@@ -178,6 +175,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     const shown = armoryOrder(gear.copies).filter((c) => filter === 'all' || c.slot === filter);
     const target = copyById(picked);
     const plan = target ? forgePlan(target).kind : null;
+    const equipped = equippedIds(gear);
     for (const copy of shown) {
       const button = el('button', 'item');
       button.type = 'button';
@@ -191,9 +189,10 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
       button.classList.toggle('unusable', unusable);
       button.classList.toggle('masterwork', copy.masterwork);
       button.disabled = unusable;
-      button.setAttribute('aria-label', `${copy.name}, ${copy.stars} star${copy.stars === 1 ? '' : 's'}, R${copy.level}${isWorn(copy) ? ', equipped' : ''}${copy.locked ? ', locked' : ''}${isTarget ? ', on the anvil' : isMaterial ? ', material' : ''}`);
+      button.setAttribute('aria-label', `${copy.name}, ${copy.stars} star${copy.stars === 1 ? '' : 's'}, R${copy.level}${equipped.has(copy.id) ? ', equipped' : ''}${copy.locked ? ', locked' : ''}${isTarget ? ', on the anvil' : isMaterial ? ', material' : ''}`);
       if (isMaterial) button.append(el('span', 'item-tag', 'Material'));
-      else if (isWorn(copy)) button.append(el('span', 'item-tag', 'Equipped'));
+      // Worn, or saved in any of their loadouts.
+      else if (equipped.has(copy.id)) button.append(el('span', 'item-tag', 'Equipped'));
       button.append(el('span', 'item-level', `R${copy.level}`), art(copy.itemId, copy.slot), stars(copy.stars), el('span', 'item-curl'));
       if (copy.locked) button.append(lockBadge());
       if (isTarget) button.append(el('span', 'item-selected', plan === 'refine' ? 'Refining' : plan === 'forge' ? 'Forging' : 'Selected'));

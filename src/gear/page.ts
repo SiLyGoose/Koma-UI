@@ -2,7 +2,7 @@ import markup from './gear.html?raw';
 import { API } from '../shared/account';
 import { currentCharacter } from '../shared/characters';
 import { dropdown } from '../shared/dropdown';
-import { armoryOrder, forgePlan, type GearCopy, type GearView, type StatSection } from '../shared/items/gear';
+import { armoryOrder, equippedIds, forgePlan, type GearCopy, type GearView, type StatSection } from '../shared/items/gear';
 import { art, el, lockBadge, rich, SLOT_NAME, stars, type Slot } from '../shared/items/items';
 import { go } from '../site/nav';
 import type { Page } from '../site/page';
@@ -143,6 +143,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     ui.grid.textContent = '';
     const shown = armoryOrder(gear.copies).filter((c) => filter === 'all' || c.slot === filter);
     ui.grid.classList.toggle('selling', selling !== null);
+    const equipped = equippedIds(gear);
     for (const copy of shown) {
       const card = el('button', 'item');
       card.type = 'button';
@@ -150,8 +151,9 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
       // While picking what to sell, the one shown is marked only by the sale's red ring.
       card.classList.toggle('picked', !selling && copy.id === picked);
       card.classList.toggle('masterwork', copy.masterwork);
-      card.setAttribute('aria-label', `${copy.name}, ${copy.stars} star${copy.stars === 1 ? '' : 's'}, R${copy.level}${isWorn(copy) ? ', equipped' : ''}${copy.locked ? ', locked' : ''}`);
-      if (isWorn(copy)) card.append(el('span', 'item-tag', 'Equipped'));
+      card.setAttribute('aria-label', `${copy.name}, ${copy.stars} star${copy.stars === 1 ? '' : 's'}, R${copy.level}${equipped.has(copy.id) ? ', equipped' : ''}${copy.locked ? ', locked' : ''}`);
+      // Worn, or saved in any of their loadouts.
+      if (equipped.has(copy.id)) card.append(el('span', 'item-tag', 'Equipped'));
       else if (selling && copy.sell === null && !copy.locked) card.append(el('span', 'item-tag', 'In loadout'));
       card.append(el('span', 'item-level', `R${copy.level}`), art(copy.itemId, copy.slot), stars(copy.stars), el('span', 'item-curl'));
       if (copy.locked) card.append(lockBadge());
