@@ -6,6 +6,7 @@ import { apiFromSocket, startLive } from '../shared/live';
 import { setMuted } from '../shared/sfx';
 import { holdReveal } from '../shared/transition';
 import { markdown } from './markdown';
+import { play } from './sfx';
 import type { ActProblem, AnswerCode, ClientMessage, ErrorCode, RaidAction, RaidFightView, RaidView, ServerMessage } from './protocol';
 import './raid.css';
 
@@ -257,6 +258,7 @@ function memberItem(p: RaidFightView['players'][number], f: RaidFightView, v: Ra
       li.setAttribute('aria-label', `Heal ${nameOf(p.userId)}`);
       li.title = `Heal ${nameOf(p.userId)}`;
       li.addEventListener('click', () => healAt(p.userId));
+      li.addEventListener('pointerenter', () => play('hover'));
       li.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
@@ -316,6 +318,10 @@ let endTimer: ReturnType<typeof setTimeout> | null = null;
 
 function render(next: RaidView): void {
   const before = view?.phase ?? null;
+  // A heal (or a revive) landing on them as the round resolved: their HP went up (nothing else raises it).
+  const hpBefore = view?.fight?.players.find((p) => p.userId === next.you)?.hp;
+  const hpNow = next.fight?.players.find((p) => p.userId === next.you)?.hp;
+  if (hpBefore !== undefined && hpNow !== undefined && hpNow > hpBefore) play('heal');
   view = next;
   const picture = api + next.picture;
   if (picture !== pictureShown) {
@@ -639,6 +645,8 @@ function renderFight(v: RaidView): void {
 /** Heals `target` (undefined: whoever needs it most, the bot's pick), and closes the picker. */
 function healAt(target: string | undefined): void {
   healOpenRound = null;
+  // Healing someone else (or whoever needs it most): the heal's sound now. Healing themselves, it plays as it lands.
+  if (target !== view?.you) play('heal');
   send(target === undefined ? { t: 'act', action: 'heal' } : { t: 'act', action: 'heal', target });
   if (view) render(view);
 }
@@ -660,6 +668,7 @@ function renderHealPick(v: RaidView): void {
     if (name) button.append(el('span', 'rd-heal-name', name));
     if (hp) button.append(hpBar(hp.hp, hp.maxHp, 'rd-heal-bar'));
     button.addEventListener('click', () => healAt(target));
+    button.addEventListener('pointerenter', () => play('hover'));
     ui.healOptions.append(button);
   };
   // First, let the bot choose; then everyone hurt, the worst first.
@@ -918,6 +927,10 @@ ui.join.addEventListener('click', () => send({ t: 'join' }));
 ui.leave.addEventListener('click', () => send({ t: 'leave' }));
 ui.begin.addEventListener('click', () => send({ t: 'begin' }));
 for (const button of ui.actions) {
+  // Over an action that can be picked now.
+  button.addEventListener('pointerenter', () => {
+    if (!button.disabled) play('actionHover');
+  });
   button.addEventListener('click', () => {
     const action = button.dataset.action as RaidAction;
     const f = view?.fight;
@@ -928,6 +941,8 @@ for (const button of ui.actions) {
       if (view) render(view);
       return;
     }
+    // Heal's own sound plays with who it's for (healAt), and as it lands on them.
+    if (action !== 'heal') play(action);
     send({ t: 'act', action });
   });
 }
