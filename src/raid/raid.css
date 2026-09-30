@@ -1892,7 +1892,7 @@ button.rd-slot:not(.empty):focus-visible {
 }
 
 .rd-result-text {
-  max-width: 640px;
+  /* max-width: 640px; */
   margin: 0 0 6px;
   color: rgba(255, 255, 255, 0.85);
   font-size: 15px;

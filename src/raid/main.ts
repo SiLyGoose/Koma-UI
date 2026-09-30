@@ -674,7 +674,7 @@ function renderOver(v: RaidView): void {
   const b = v.boss.name;
   const titles = { won: `🏆 ${b} defeated!`, wiped: `💀 The party fell`, fled: `💨 ${b} got away`, no_players: `${b} went back to sleep`, called_off: 'The raid was called off' };
   ui.overTitle.textContent = titles[o.end];
-  const reward = o.reward ? ` Everyone who fought gets ${fmt(o.reward.points)} points${o.reward.tokens ? `, ${plural(o.reward.tokens, 'token', 'tokens')}` : ''}${o.reward.gems ? ` and ${plural(o.reward.gems, 'komaGem', 'komaGems')}` : ''}.` : '';
+  const reward = o.reward ? ` Everyone who fought gets ${fmt(o.reward.points)} points${o.reward.tokens ? `, ${plural(o.reward.tokens, 'token', 'tokens')}` : ''}${o.reward.gems ? ` and ${plural(o.reward.gems, 'komaGem', 'komaGems')}` : ''}` : '';
   ui.overText.textContent =
     o.end === 'won'
       ? `Beaten in ${plural(o.rounds, 'round', 'rounds')}${o.lastHit ? `, the final blow by ${nameOf(o.lastHit)}` : ''}.${reward}`
@@ -704,9 +704,9 @@ function renderResult(v: RaidView): void {
   ui.resultTitle.textContent = won ? 'Victory' : 'Defeat';
   // What the winners got, with the currencies' emojis (a bot from before sends only the numbers: in words then).
   const reward: (Node | string)[] = o.rewardText
-    ? [' Everyone who fought gets ', ...markdown(o.rewardText, v.names), '.']
+    ? [' Everyone who fought gets ', ...markdown(o.rewardText, v.names)]
     : o.reward
-      ? [` Everyone who fought gets ${fmt(o.reward.points)} points${o.reward.tokens ? `, ${plural(o.reward.tokens, 'token', 'tokens')}` : ''}${o.reward.gems ? ` and ${plural(o.reward.gems, 'komaGem', 'komaGems')}` : ''}.`]
+      ? [` Everyone who fought gets ${fmt(o.reward.points)} points${o.reward.tokens ? `, ${plural(o.reward.tokens, 'token', 'tokens')}` : ''}${o.reward.gems ? ` and ${plural(o.reward.gems, 'komaGem', 'komaGems')}` : ''}`]
       : [];
   ui.resultText.replaceChildren(
     ...(won
