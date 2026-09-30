@@ -5,20 +5,10 @@
  * narrow screens.
  */
 
-.forge {
-  display: grid;
-  gap: 20px;
-  align-items: start;
-}
-
+/* The section's layout and height are the shared .panels' (../shared/items/items.css). */
 @media (min-width: 900px) {
-  /* As tall as the gear page's and the databank's panels (items.css), so the pages line up. */
   .forge {
     grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
-    align-items: stretch;
-    height: var(--panels-h);
-    min-height: var(--panels-min);
-    max-height: 900px;
   }
 }
 

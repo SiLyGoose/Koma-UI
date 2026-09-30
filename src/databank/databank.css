@@ -11,20 +11,15 @@
   align-items: start;
 }
 
-/* The item panel: the armory's frame and parchment, as on the gear page. */
+/* The item panel: the armory's frame (items.css) and parchment, as on the gear page. */
 .databank .detail {
   display: flex;
   flex-direction: column;
   padding: 14px;
-  border: 2px solid #4a4452;
+  border: var(--frame-border);
   border-radius: 14px;
-  background:
-    radial-gradient(ellipse at 20% 0%, rgb(216 191 122 / 8%), transparent 60%),
-    linear-gradient(180deg, #1b1a20, #111014);
-  box-shadow:
-    inset 0 0 0 4px #141318,
-    inset 0 0 0 5px rgb(216 191 122 / 35%),
-    0 12px 30px rgb(0 0 0 / 45%);
+  background: var(--frame-bg);
+  box-shadow: var(--frame-shadow);
 }
 
 /* Its parchment, with the item's tier colour along the top. */
@@ -48,10 +43,6 @@
     /* The list's count line under its sheet: its margin and its line. */
     --db-count-h: 28px;
     grid-template-columns: minmax(0, 4fr) minmax(0, 7fr);
-    align-items: stretch;
-    height: var(--panels-h);
-    min-height: var(--panels-min);
-    max-height: 900px;
   }
 
   /* The item panel's sheet ends where the list's does, above its count line (.db-count). */

@@ -14,14 +14,9 @@
 }
 
 @media (min-width: 900px) {
-  /* As tall as the databank's panels (../shared/items/items.css), so the two pages line up. */
   .gear {
     grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
     grid-template-areas: 'hero armory';
-    align-items: stretch;
-    height: var(--panels-h);
-    min-height: var(--panels-min);
-    max-height: 900px;
   }
 
   /*
