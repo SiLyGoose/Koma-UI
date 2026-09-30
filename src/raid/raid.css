@@ -252,7 +252,8 @@
 
 .rd-boss-bar {
   position: relative;
-  height: 14px;
+  /* Tall enough for its percentage to sit inside it. */
+  height: 22px;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.35);
   border-radius: 3px;
@@ -263,7 +264,9 @@
 .rd-boss-bar > span {
   display: block;
   height: 100%;
-  background: linear-gradient(180deg, #f2f2f2 0 45%, #d63a3d 45% 100%);
+  /* The white strip along the top, off for now:
+  background: linear-gradient(180deg, #f2f2f2 0 45%, #d63a3d 45% 100%); */
+  background: linear-gradient(180deg, #e2474a, #b92a2e);
   transition: width 0.5s ease;
 }
 
@@ -272,7 +275,7 @@
   inset: 0;
   display: grid;
   place-items: center;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   line-height: 1;
   text-shadow: 0 0 3px #000, 0 0 2px #000;
@@ -453,8 +456,8 @@
   /* No wider than the card: a long name is cut short with …, instead of widening it. */
   grid-template-columns: minmax(0, 1fr);
   justify-items: center;
-  gap: 3px;
-  width: 132px;
+  gap: 4px;
+  width: 150px;
 }
 
 .rd-portrait {
@@ -541,7 +544,7 @@
 .rd-member-name {
   min-width: 0;
   overflow: hidden;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -549,7 +552,7 @@
 
 .rd-member-hp {
   flex-shrink: 0;
-  font-size: 12.5px;
+  font-size: 15px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
@@ -557,7 +560,7 @@
 /* A thin cyan bar with a dark rim, like the game's; yellow from half HP, red from a quarter. */
 .rd-member-bar.rd-bar {
   width: 100%;
-  height: 7px;
+  height: 11px;
   border: 1px solid rgba(0, 0, 0, 0.75);
   border-radius: 2px;
   background: rgba(10, 14, 22, 0.8);
@@ -579,14 +582,6 @@
 
 .rd-bar {
   width: 100%;
-}
-
-.rd-member-hp {
-  margin-top: -2px;
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 11px;
-  font-variant-numeric: tabular-nums;
-  text-shadow: 0 1px 2px #000;
 }
 
 .rd-bar {
@@ -787,7 +782,15 @@
   }
 
   .rd-member {
-    width: 92px;
+    width: 104px;
+  }
+
+  .rd-member-name {
+    font-size: 13px;
+  }
+
+  .rd-member-hp {
+    font-size: 14px;
   }
 
   .rd-portrait {
