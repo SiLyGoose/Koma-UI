@@ -626,8 +626,8 @@
  */
 .rd-actions {
   position: relative;
-  width: 300px;
-  height: 256px;
+  width: 350px;
+  height: 288px;
 }
 
 /* Each circle is placed by its centre (--x, --y within the cluster). */
@@ -690,8 +690,8 @@
 
 /* Attack: the big circle, low in the middle of the cluster. */
 .rd-action.main {
-  --x: 150px;
-  --y: 176px;
+  --x: 175px;
+  --y: 206px;
 }
 
 .rd-action.main .rd-orb {
@@ -709,29 +709,29 @@
   font-size: 15px;
 }
 
-/* The others, smaller (Attack's size scaled as before, 64 to 112): above it, and above to its left and right. */
+/* The others, three quarters of Attack's size: above it, and above to its left and right. */
 .rd-action.small .rd-orb {
-  width: 72px;
-  height: 72px;
+  width: 96px;
+  height: 96px;
 }
 
 .rd-action.small .rd-action-name {
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .rd-action.guard {
-  --x: 150px;
-  --y: 52px;
+  --x: 175px;
+  --y: 54px;
 }
 
 .rd-action.heal {
-  --x: 45px;
-  --y: 110px;
+  --x: 50px;
+  --y: 119px;
 }
 
 .rd-action.support {
-  --x: 255px;
-  --y: 110px;
+  --x: 300px;
+  --y: 119px;
 }
 
 .rd-action:hover:not(:disabled) .rd-orb {
