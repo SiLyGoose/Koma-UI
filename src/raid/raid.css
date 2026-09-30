@@ -666,12 +666,13 @@
   transition: transform 0.1s ease, box-shadow 0.15s ease, filter 0.15s ease;
 }
 
-/* The icon (a white drawing), in the middle, a little above centre to leave room for the name. */
+/* The icon (public/raid/action_<name>.png, white on clear), in the middle, a little above centre to leave room for the name. */
 .rd-icon {
-  width: 66%;
-  height: 66%;
+  width: 70%;
+  height: 70%;
   margin-bottom: 6%;
-  fill: currentColor;
+  object-fit: contain;
+  user-select: none;
   filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.6));
 }
 
@@ -699,8 +700,8 @@
 }
 
 .rd-action.main .rd-icon {
-  width: 58%;
-  height: 58%;
+  width: 64%;
+  height: 64%;
 }
 
 .rd-action.main .rd-action-name {
