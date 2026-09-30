@@ -111,6 +111,14 @@ export function armoryOrder(copies: readonly GearCopy[]): GearCopy[] {
   );
 }
 
+/** The copies worn or saved in any of the member's loadouts: the ones the armories tag Equipped. */
+export function equippedIds(gear: GearView): Set<string> {
+  const ids = new Set<string>();
+  for (const id of Object.values(gear.equipped)) if (id) ids.add(id);
+  for (const loadout of gear.loadouts) for (const id of Object.values(loadout.equipped)) if (id) ids.add(id);
+  return ids;
+}
+
 /** How the bot starts the line for a masterwork bonus still waiting to be forged (its TEXT.gear.bonusDormant). */
 export const DORMANT = '🔒 Masterwork';
 
