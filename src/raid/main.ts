@@ -334,8 +334,8 @@ function render(next: RaidView): void {
   }
   const holding = ended && !resultShown;
   // The end screen goes over the battle's scene (the boss stays put under it) as the battle's own parts fade out.
-  // Before the fight (not fought yet this week, or the lobby open): the party screen.
-  const preparing = next.phase === 'lobby' || (next.phase === 'idle' && next.idle !== null);
+  // Before the fight (not fought yet this week, the lobby open, or a lobby that never came to a fight): the party screen.
+  const preparing = next.phase === 'lobby' || (next.phase === 'idle' && next.idle !== null) || (next.phase === 'over' && next.over !== null && !ended);
   ui.prep.hidden = !preparing;
   ui.layout.hidden = fighting || ended || preparing;
   ui.battle.hidden = !(fighting || ended);
@@ -362,6 +362,12 @@ let prepBoss = '';
 
 /** The raiders' character (everyone's the same one for now). */
 const SPRITE = '/characters/tsuri/sprite.png';
+
+/** How a lobby that never came to a fight went. */
+const LAST_LOBBY: Record<'no_players' | 'called_off', string> = {
+  no_players: 'Nobody joined the last lobby in time.',
+  called_off: 'The last raid was called off (something went wrong), and anything spent was given back.',
+};
 
 /**
  * An empty seat's card back, in gold line art on the dark card (5 wide by 9 high, like the card): a tall
@@ -476,6 +482,8 @@ function renderPrep(v: RaidView): void {
   // What's going on, and what there is to do.
   const reset = new Date(v.resetsAt).toLocaleString(undefined, { weekday: 'long', hour: 'numeric', minute: '2-digit' });
   const inIt = players.includes(v.you);
+  // How the last lobby went, when it never came to a fight.
+  const last = v.idle?.last ? `${LAST_LOBBY[v.idle.last]} ` : '';
   ui.start.hidden = true;
   ui.join.hidden = true;
   ui.leave.hidden = true;
@@ -487,13 +495,16 @@ function renderPrep(v: RaidView): void {
     ui.join.hidden = inIt;
     ui.leave.hidden = !inIt;
     ui.begin.hidden = host !== v.you;
+  } else if (v.phase === 'over') {
+    // A bot from before `idle.last` says a lobby that never came to a fight is over, and nothing more.
+    ui.prepStatus.textContent = `${LAST_LOBBY[v.over?.end === 'called_off' ? 'called_off' : 'no_players']} Start it again in Discord with the raid command, or come back in a little while.`;
   } else if (v.idle?.week === 'busy') {
     ui.prepStatus.textContent = 'A raid is starting in Discord. It will show up here in a moment.';
   } else if (v.idle?.canStart) {
-    ui.prepStatus.textContent = `This week's boss hasn't been fought yet. Join to start the raid: its lobby goes up in the server, and everyone can join, here or in Discord. The week resets ${reset}.`;
+    ui.prepStatus.textContent = `${last}This week's boss hasn't been fought yet. Join to start the raid: its lobby goes up in the server, and everyone can join, here or in Discord. The week resets ${reset}.`;
     ui.start.hidden = false;
   } else {
-    ui.prepStatus.textContent = `This week's boss hasn't been fought yet. This server has no bot channel, so start the raid in Discord with the raid command, then join it here. The week resets ${reset}.`;
+    ui.prepStatus.textContent = `${last}This week's boss hasn't been fought yet. This server has no bot channel, so start the raid in Discord with the raid command, then join it here. The week resets ${reset}.`;
   }
 }
 
