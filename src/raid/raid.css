@@ -616,6 +616,38 @@
   background: var(--rd-lo);
 }
 
+/* Picking who to heal: the hurt raiders in the party can be picked, ringed in green; the rest fade back. */
+.rd-member.heal-target {
+  cursor: pointer;
+  border-radius: 10px;
+  outline: none;
+}
+
+.rd-member.heal-target .rd-portrait > img,
+.rd-member.heal-target .rd-portrait > .rd-initial {
+  border-color: #8fd6a6;
+  box-shadow: 0 0 0 3px rgba(143, 214, 166, 0.35), 0 0 14px rgba(143, 214, 166, 0.45);
+  transition: transform 0.1s ease, box-shadow 0.15s ease;
+}
+
+.rd-member.heal-target:hover .rd-portrait > *:first-child,
+.rd-member.heal-target:focus-visible .rd-portrait > *:first-child {
+  transform: scale(1.07);
+  box-shadow: 0 0 0 3px rgba(143, 214, 166, 0.6), 0 0 20px rgba(143, 214, 166, 0.7);
+}
+
+.rd-member.heal-off {
+  opacity: 0.45;
+}
+
+.rd-heal-hint {
+  margin-left: 4px;
+  color: rgba(255, 255, 255, 0.45);
+  font-style: normal;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
 /* With more raiders than fit: the button swapping between them, on the left of the party, like the actions. */
 .rd-swap-slot {
   flex: 0 0 auto;

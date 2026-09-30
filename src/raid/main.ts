@@ -374,6 +374,25 @@ function renderFight(v: RaidView): void {
     const stats = el('div', 'rd-member-stats');
     stats.append(el('span', 'rd-member-name', v.names[p.userId] ?? 'Someone'), el('span', 'rd-member-hp', fmt(Math.max(0, p.hp))));
     li.append(portrait, stats, hpBar(p.hp, p.maxHp, 'rd-member-bar'), buffRow(p, f));
+    // Picking who to heal: a hurt raider here can be picked too (the swap button still shows the others).
+    if (healOpenRound === f.round) {
+      if (p.hp < p.maxHp) {
+        li.classList.add('heal-target');
+        li.tabIndex = 0;
+        li.setAttribute('role', 'button');
+        li.setAttribute('aria-label', `Heal ${nameOf(p.userId)}`);
+        li.title = `Heal ${nameOf(p.userId)}`;
+        li.addEventListener('click', () => healAt(p.userId));
+        li.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            healAt(p.userId);
+          }
+        });
+      } else {
+        li.classList.add('heal-off');
+      }
+    }
     ui.party.append(li);
   }
 
@@ -386,6 +405,13 @@ function renderFight(v: RaidView): void {
   }
   if (f.log.length === 0) ui.log.append(el('li', 'rd-muted', 'Nothing yet. Pick your moves!'));
   if (atBottom) ui.log.scrollTop = ui.log.scrollHeight;
+}
+
+/** Heals `target` (undefined: whoever needs it most, the bot's pick), and closes the picker. */
+function healAt(target: string | undefined): void {
+  healOpenRound = null;
+  send(target === undefined ? { t: 'act', action: 'heal' } : { t: 'act', action: 'heal', target });
+  if (view) render(view);
 }
 
 function renderHealPick(v: RaidView): void {
@@ -404,11 +430,7 @@ function renderHealPick(v: RaidView): void {
     button.append(circle);
     if (name) button.append(el('span', 'rd-heal-name', name));
     if (hp) button.append(hpBar(hp.hp, hp.maxHp, 'rd-heal-bar'));
-    button.addEventListener('click', () => {
-      healOpenRound = null;
-      send(target === undefined ? { t: 'act', action: 'heal' } : { t: 'act', action: 'heal', target });
-      if (view) render(view);
-    });
+    button.addEventListener('click', () => healAt(target));
     ui.healOptions.append(button);
   };
   // First, let the bot choose; then everyone hurt, the worst first.
