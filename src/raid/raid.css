@@ -1175,6 +1175,13 @@
   margin-top: 8px;
 }
 
+/* The way out, for anyone who'd rather not play now: like the title bar's ←, back to the games. */
+.rd-rotate-card .rd-rotate-back {
+  margin-top: 4px;
+  color: var(--text);
+  text-decoration: none;
+}
+
 /* A phone outline, turning from upright to sideways and back. */
 .rd-rotate-phone {
   width: 44px;
