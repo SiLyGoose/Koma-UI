@@ -301,9 +301,17 @@ function renderHealPick(v: RaidView): void {
   ui.healPick.hidden = healOpenRound !== f.round;
   if (ui.healPick.hidden) return;
   ui.healOptions.textContent = '';
-  const option = (label: string, target: string | undefined, className = ''): void => {
-    const button = el('button', `rd-heal-option ${className}`, label);
+  /** One choice: a circle (their picture, or the word Auto), their name under it, and their HP. */
+  const option = (face: HTMLElement, name: string, target: string | undefined, hp: { hp: number; maxHp: number } | null, className = ''): void => {
+    const button = el('button', `rd-heal-option ${className}`);
     button.type = 'button';
+    button.title = hp ? `Heal ${name} (${hp.hp <= 0 ? 'down' : `${fmt(hp.hp)}/${fmt(hp.maxHp)} HP`})` : 'Heal whoever needs it most';
+    const circle = el('span', 'rd-heal-face');
+    circle.append(face);
+    if (hp && hp.hp <= 0) circle.append(el('span', 'rd-badge', '💀'));
+    button.append(circle);
+    if (name) button.append(el('span', 'rd-heal-name', name));
+    if (hp) button.append(hpBar(hp.hp, hp.maxHp, 'rd-heal-bar'));
     button.addEventListener('click', () => {
       healOpenRound = null;
       send(target === undefined ? { t: 'act', action: 'heal' } : { t: 'act', action: 'heal', target });
@@ -311,10 +319,11 @@ function renderHealPick(v: RaidView): void {
     });
     ui.healOptions.append(button);
   };
-  option('Whoever needs it most', undefined, 'auto');
+  // First, let the bot choose; then everyone hurt, the worst first.
+  option(el('span', 'rd-heal-auto', 'Auto'), '', undefined, null, 'auto');
   const share = (p: { hp: number; maxHp: number }): number => p.hp / p.maxHp;
   for (const p of f.players.filter((q) => q.hp < q.maxHp).sort((a, b) => share(a) - share(b))) {
-    option(`${nameOf(p.userId)} · ${p.hp <= 0 ? 'down' : `${fmt(p.hp)}/${fmt(p.maxHp)}`}`, p.userId, p.hp <= 0 ? 'down' : '');
+    option(avatar(p.userId, v), p.userId === v.you ? 'You' : (v.names[p.userId] ?? 'Someone'), p.userId, p, p.hp <= 0 ? 'down' : '');
   }
 }
 
