@@ -32,6 +32,15 @@ const LOAD_MS = 1000;
 const MAX_FETCH_MS = 2000;
 /** The longest the reveal waits for a page to draw itself (holdReveal). */
 const MAX_HOLD_MS = 3000;
+/**
+ * A page just loaded goes on working for a moment after it has drawn itself (the browser putting the
+ * whole of it on screen for the first time: the star chart, the pictures), stalling frames as it does.
+ * The wipe waits for that to be over, so it doesn't stutter: for this many frames in a row coming at
+ * least this often, and no longer than the last.
+ */
+const SETTLE_FRAMES = 5;
+const SETTLE_FRAME_MS = 25;
+const MAX_SETTLE_MS = 1000;
 /** Swapping a site page, the loading screen shows at least this long, so it doesn't just flicker. */
 const MIN_SWAP_MS = 300;
 /** The quick cover's wipe on or off (curtain(): transition-head.css's at twice the speed). */
@@ -247,7 +256,24 @@ async function reveal(): Promise<void> {
   // reveal, then wait for what it holds.
   await wait(0);
   await Promise.race([drawn(), wait(MAX_HOLD_MS)]);
+  await Promise.race([settled(), wait(MAX_SETTLE_MS)]);
   await wipeOff();
+}
+
+/** Done once frames come smoothly (SETTLE_FRAMES in a row, each within SETTLE_FRAME_MS of the last). */
+function settled(): Promise<void> {
+  return new Promise((resolve) => {
+    let last = performance.now();
+    const until = last + MAX_SETTLE_MS;
+    let smooth = 0;
+    const frame = (now: number): void => {
+      smooth = now - last <= SETTLE_FRAME_MS ? smooth + 1 : 0;
+      last = now;
+      if (smooth >= SETTLE_FRAMES || now > until) resolve();
+      else requestAnimationFrame(frame);
+    };
+    requestAnimationFrame(frame);
+  });
 }
 
 // ---------------------------------------------------------------------------
