@@ -10,6 +10,9 @@ body:has(> .backdrop) {
   inset: 0;
   z-index: -1;
   pointer-events: none;
+  /* Its letters and stars not picked up by selecting across the page. */
+  user-select: none;
+  -webkit-user-select: none;
   overflow: hidden;
   background:
     radial-gradient(ellipse 55% 45% at 58% 36%, rgba(216, 191, 122, 0.07), transparent 70%),

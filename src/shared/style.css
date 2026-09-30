@@ -37,6 +37,14 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Pictures neither selected (highlighted) nor dragged off the page. */
+img,
+svg {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+}
+
 /* Buttons and fields in the page's font too (they have their own otherwise). */
 button,
 input,
