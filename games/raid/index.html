@@ -106,6 +106,29 @@
         </div>
       </section>
 
+      <!--
+        How the fight ended (won, the party fell, or the boss got away): the boss filling the scene behind
+        a dark blur, VICTORY or DEFEAT across it, and what each raider did in a band under it.
+      -->
+      <section id="result" class="rd-result" hidden>
+        <img id="result-backdrop" class="rd-battle-bg" alt="" draggable="false" aria-hidden="true" />
+        <img id="result-picture" class="rd-battle-boss" alt="" draggable="false" />
+        <div class="rd-result-shade" aria-hidden="true"></div>
+        <div class="rd-result-body">
+          <h2 id="result-title" class="rd-result-title"></h2>
+          <p id="result-text" class="rd-result-text"></p>
+          <div class="rd-result-band">
+            <table class="rd-result-table">
+              <thead>
+                <tr><th>Raider</th><th>Damage dealt</th><th>Healed</th><th>Mitigated</th></tr>
+              </thead>
+              <tbody id="result-rows"></tbody>
+            </table>
+          </div>
+          <a class="rd-button rd-result-back back" href="/">← Back to the games</a>
+        </div>
+      </section>
+
       <div id="toast" class="rd-toast" role="status" hidden></div>
     </main>
 

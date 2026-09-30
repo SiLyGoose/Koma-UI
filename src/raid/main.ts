@@ -23,6 +23,12 @@ const ui = {
   battle: $('battle'),
   battlePicture: $<HTMLImageElement>('battle-picture'),
   battleBackdrop: $<HTMLImageElement>('battle-backdrop'),
+  result: $('result'),
+  resultPicture: $<HTMLImageElement>('result-picture'),
+  resultBackdrop: $<HTMLImageElement>('result-backdrop'),
+  resultTitle: $('result-title'),
+  resultText: $('result-text'),
+  resultRows: $('result-rows'),
   tags: $('boss-tags'),
   bossName: $('boss-name'),
   bossPct: $('boss-pct'),
@@ -213,6 +219,8 @@ function render(next: RaidView): void {
     ui.picture.src = picture;
     ui.battlePicture.src = picture;
     ui.battleBackdrop.src = picture;
+    ui.resultPicture.src = picture;
+    ui.resultBackdrop.src = picture;
     pictureShown = picture;
   }
   ui.picture.alt = next.boss.name;
@@ -220,9 +228,12 @@ function render(next: RaidView): void {
   ui.bossTitle.textContent = `· ${next.boss.emoji} ${next.boss.name}`;
 
   const fighting = next.phase === 'fight';
-  ui.layout.hidden = fighting;
+  // A fight fought out ends on its own screen, VICTORY or DEFEAT (one that never started keeps the plain one).
+  const ended = next.phase === 'over' && next.over !== null && ['won', 'wiped', 'fled'].includes(next.over.end);
+  ui.layout.hidden = fighting || ended;
   ui.battle.hidden = !fighting;
-  document.body.classList.toggle('rd-fighting', fighting);
+  ui.result.hidden = !ended;
+  document.body.classList.toggle('rd-fighting', fighting || ended);
   ui.idle.hidden = next.phase !== 'idle';
   ui.lobby.hidden = next.phase !== 'lobby';
   ui.over.hidden = next.phase !== 'over';
@@ -232,6 +243,7 @@ function render(next: RaidView): void {
   if (next.phase === 'lobby' && next.lobby) renderLobby(next);
   if (next.phase === 'fight' && next.fight) renderFight(next);
   if (next.phase === 'over' && next.over) renderOver(next);
+  if (ended) renderResult(next);
   tick();
 }
 
@@ -402,6 +414,38 @@ function renderOver(v: RaidView): void {
     const li = el('li', r.userId === v.you ? 'you' : '', nameOf(r.userId));
     li.append(el('span', 'rd-dmg', `${fmt(r.damage)} dmg · ${total > 0 ? Math.round((r.damage / total) * 100) : 0}%`));
     ui.overRanking.append(li);
+  }
+}
+
+/** The end of a fight fought out: VICTORY or DEFEAT, and what each raider did, the most damage first. */
+function renderResult(v: RaidView): void {
+  const o = v.over!;
+  const won = o.end === 'won';
+  ui.result.classList.toggle('won', won);
+  ui.resultTitle.textContent = won ? 'Victory' : 'Defeat';
+  const reward = o.reward
+    ? ` Everyone who fought gets ${fmt(o.reward.points)} points${o.reward.tokens ? `, ${plural(o.reward.tokens, 'token', 'tokens')}` : ''}${o.reward.gems ? ` and ${plural(o.reward.gems, 'komaGem', 'komaGems')}` : ''}.`
+    : '';
+  ui.resultText.textContent = won
+    ? `${v.boss.name} beaten in ${plural(o.rounds, 'round', 'rounds')}${o.lastHit ? `, the final blow by ${nameOf(o.lastHit)}` : ''}.${reward}`
+    : o.end === 'fled'
+      ? `${v.boss.name} got away after ${plural(o.rounds, 'round', 'rounds')}, with ${fmt(o.bossHp)} / ${fmt(o.bossMaxHp)} HP left.`
+      : `The party fell after ${plural(o.rounds, 'round', 'rounds')}, with ${v.boss.name} on ${fmt(o.bossHp)} / ${fmt(o.bossMaxHp)} HP.`;
+
+  ui.resultRows.textContent = '';
+  const rows = [...o.players].sort((a, b) => b.damage - a.damage);
+  for (const p of rows) {
+    const tr = el('tr', p.userId === v.you ? 'you' : '');
+    // Their picture and name together in the first cell (in a box of their own, so the cell stays a table cell).
+    const who = el('div', 'rd-result-who');
+    const face = el('span', 'rd-result-face');
+    face.append(avatar(p.userId, v));
+    who.append(face, el('span', 'rd-result-name', v.names[p.userId] ?? 'Someone'));
+    if (p.userId === o.lastHit) who.append(el('span', 'rd-result-star', '⭐'));
+    const whoCell = el('td');
+    whoCell.append(who);
+    tr.append(whoCell, el('td', 'num dmg', fmt(p.damage)), el('td', 'num heal', fmt(p.healed)), el('td', 'num guard', fmt(p.mitigated)));
+    ui.resultRows.append(tr);
   }
 }
 
