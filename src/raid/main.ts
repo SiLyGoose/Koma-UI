@@ -212,7 +212,15 @@ function avatar(userId: string, v: RaidView): HTMLElement {
   return img;
 }
 
+/** How long the battle stays up once the fight ends, before the end screen fades in. */
+const END_PAUSE_MS = 2500;
+/** The end screen is showing (after its pause). */
+let resultShown = false;
+/** The pause before it, while it runs. */
+let endTimer: ReturnType<typeof setTimeout> | null = null;
+
 function render(next: RaidView): void {
+  const before = view?.phase ?? null;
   view = next;
   const picture = api + next.picture;
   if (picture !== pictureShown) {
@@ -230,9 +238,27 @@ function render(next: RaidView): void {
   const fighting = next.phase === 'fight';
   // A fight fought out ends on its own screen, VICTORY or DEFEAT (one that never started keeps the plain one).
   const ended = next.phase === 'over' && next.over !== null && ['won', 'wiped', 'fled'].includes(next.over.end);
+  // The fight just ended here: the battle stays up a moment (its last blow, the boss's new look), then the end fades in.
+  if (!ended) {
+    resultShown = false;
+    if (endTimer) clearTimeout(endTimer);
+    endTimer = null;
+  } else if (!resultShown && !endTimer) {
+    if (before === 'fight') {
+      endTimer = setTimeout(() => {
+        endTimer = null;
+        resultShown = true;
+        if (view) render(view);
+      }, END_PAUSE_MS);
+    } else {
+      resultShown = true;
+    }
+  }
+  const holding = ended && !resultShown;
   ui.layout.hidden = fighting || ended;
-  ui.battle.hidden = !fighting;
-  ui.result.hidden = !ended;
+  ui.battle.hidden = !(fighting || holding);
+  ui.battle.classList.toggle('ending', holding);
+  ui.result.hidden = !(ended && resultShown);
   document.body.classList.toggle('rd-fighting', fighting || ended);
   ui.idle.hidden = next.phase !== 'idle';
   ui.lobby.hidden = next.phase !== 'lobby';
