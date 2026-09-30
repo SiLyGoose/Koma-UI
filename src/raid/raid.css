@@ -641,79 +641,89 @@
 }
 
 .rd-orb {
-  --ring: rgba(255, 255, 255, 0.55);
+  --ring: rgba(226, 228, 236, 0.8);
+  position: relative;
   display: grid;
   place-items: center;
   border: 2px solid var(--ring);
   border-radius: 50%;
-  background: radial-gradient(circle at 50% 35%, rgba(70, 76, 100, 0.92), rgba(14, 16, 26, 0.94) 70%);
-  box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.35), 0 6px 18px rgba(0, 0, 0, 0.55), inset 0 0 18px rgba(255, 255, 255, 0.08);
-  line-height: 1;
+  /* Nearly opaque dark, lighter towards the middle, with a faint second ring just inside the border. */
+  background: radial-gradient(circle at 50% 42%, rgba(52, 56, 72, 0.92), rgba(12, 14, 22, 0.94) 72%);
+  box-shadow:
+    inset 0 0 0 3px rgba(0, 0, 0, 0.45),
+    inset 0 0 0 4px rgba(255, 255, 255, 0.12),
+    0 0 0 1px rgba(0, 0, 0, 0.5),
+    0 6px 16px rgba(0, 0, 0, 0.55);
+  color: #eef0f6;
   transition: transform 0.1s ease, box-shadow 0.15s ease, filter 0.15s ease;
 }
 
+/* The icon (a white drawing), in the middle, a little above centre to leave room for the name. */
+.rd-icon {
+  width: 66%;
+  height: 66%;
+  margin-bottom: 6%;
+  fill: currentColor;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.6));
+}
+
+/* Its name, sitting on the circle's bottom edge. */
 .rd-action-name {
-  font-size: 12.5px;
-  font-weight: 600;
+  position: absolute;
+  left: 50%;
+  bottom: -9px;
+  transform: translateX(-50%);
+  font-size: 12px;
+  font-weight: 700;
   white-space: nowrap;
-  text-shadow: 0 1px 2px #000, 0 0 4px #000;
+  text-shadow: 0 1px 2px #000, 0 0 3px #000, 0 0 6px #000;
 }
 
 /* Attack: the big circle, in the corner. */
 .rd-action.main {
   right: 4px;
-  bottom: 0;
+  bottom: 12px;
 }
 
 .rd-action.main .rd-orb {
-  --ring: rgba(255, 214, 150, 0.85);
-  width: 108px;
-  height: 108px;
-  font-size: 44px;
-  background: radial-gradient(circle at 50% 35%, rgba(170, 60, 60, 0.95), rgba(40, 10, 14, 0.95) 72%);
+  width: 112px;
+  height: 112px;
+}
+
+.rd-action.main .rd-icon {
+  width: 58%;
+  height: 58%;
 }
 
 .rd-action.main .rd-action-name {
-  font-size: 15px;
-  font-weight: 700;
+  bottom: -10px;
+  font-size: 14px;
 }
 
 /* The others: smaller, in an arc from above Attack round to its left. */
 .rd-action.small .rd-orb {
-  width: 58px;
-  height: 58px;
-  font-size: 24px;
+  width: 64px;
+  height: 64px;
 }
 
 .rd-action.guard {
-  right: 30px;
+  right: 28px;
   top: 0;
 }
 
 .rd-action.heal {
-  right: 120px;
-  top: 28px;
+  right: 118px;
+  top: 30px;
 }
 
 .rd-action.support {
-  right: 150px;
-  bottom: 22px;
-}
-
-.rd-action.guard .rd-orb {
-  --ring: rgba(140, 180, 255, 0.8);
-}
-
-.rd-action.heal .rd-orb {
-  --ring: rgba(130, 220, 160, 0.8);
-}
-
-.rd-action.support .rd-orb {
-  --ring: rgba(210, 180, 255, 0.8);
+  right: 148px;
+  bottom: 20px;
 }
 
 .rd-action:hover:not(:disabled) .rd-orb {
-  filter: brightness(1.2);
+  --ring: #fff;
+  filter: brightness(1.15);
   transform: scale(1.05);
 }
 
@@ -726,22 +736,23 @@
 }
 
 .rd-action:disabled .rd-orb {
-  filter: grayscale(0.8) brightness(0.6);
+  filter: brightness(0.55);
 }
 
-.rd-action:disabled .rd-action-name {
-  opacity: 0.55;
-}
-
-/* What they picked this turn: its circle glows gold. */
+/* What they picked this turn: its circle rimmed and lit in gold. */
 .rd-action.picked .rd-orb {
   --ring: var(--gold);
   filter: none;
-  box-shadow: 0 0 0 4px rgba(216, 191, 122, 0.35), 0 0 22px rgba(216, 191, 122, 0.55), 0 6px 18px rgba(0, 0, 0, 0.55);
+  color: #fff6dc;
+  box-shadow:
+    inset 0 0 0 3px rgba(0, 0, 0, 0.45),
+    inset 0 0 0 4px rgba(216, 191, 122, 0.35),
+    0 0 0 3px rgba(216, 191, 122, 0.3),
+    0 0 20px rgba(216, 191, 122, 0.5),
+    0 6px 16px rgba(0, 0, 0, 0.55);
 }
 
 .rd-action.picked .rd-action-name {
-  opacity: 1;
   color: var(--gold);
 }
 
