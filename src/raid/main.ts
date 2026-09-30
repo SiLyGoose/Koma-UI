@@ -365,7 +365,7 @@ const SPRITE = '/characters/tsuri/sprite.png';
 function renderPrep(v: RaidView): void {
   if (prepBoss !== v.boss.id) {
     prepBoss = v.boss.id;
-    ui.prepBossName.textContent = `${v.boss.emoji} ${v.boss.name}`;
+    ui.prepBossName.textContent = v.boss.name;
     const list = (ul: HTMLElement, lines: string[]): void => {
       ul.replaceChildren(...lines.filter((line) => line.trim() !== '').map((line) => {
         const li = el('li');
@@ -381,8 +381,8 @@ function renderPrep(v: RaidView): void {
   const lobby = v.lobby;
   const players = lobby?.players ?? [];
   const host = players[0] ?? null;
-  // Four seats at least, and a row more of them for every four raiders past that.
-  const seats = Math.max(4, Math.ceil(players.length / 4) * 4);
+  // Four seats at least (the empty ones face down); past four, the row scrolls.
+  const seats = Math.max(4, players.length);
   ui.prepSlots.replaceChildren(
     ...Array.from({ length: seats }, (_, i) => {
       const userId = players[i];
@@ -617,6 +617,18 @@ function turnLength(endsAt: number): number {
 
 // ---------------------------------------------------------------------------
 // Pressing things
+
+// The party's row scrolls sideways past four raiders: a mouse's wheel scrolls it too.
+ui.prepSlots.addEventListener(
+  'wheel',
+  (event) => {
+    const row = ui.prepSlots;
+    if (row.scrollWidth <= row.clientWidth || Math.abs(event.deltaX) > Math.abs(event.deltaY)) return;
+    event.preventDefault();
+    row.scrollBy({ left: event.deltaY, behavior: 'smooth' });
+  },
+  { passive: false },
+);
 
 ui.start.addEventListener('click', () => {
   ui.start.disabled = true;

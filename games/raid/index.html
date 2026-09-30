@@ -39,8 +39,9 @@
 
       <!--
         Before the fight (the week's raid not fought yet, or its lobby open): the boss and what it does on
-        the left, and on the right the party so far, a card for each raider (their character, and their
-        class in the corner: not there yet, so a question mark), with what there is to do under it.
+        the left (how the week stands above them), and on the right the party so far, a card for each
+        raider (their character, and their class in the corner: not there yet, so a question mark) in a row
+        that scrolls past four, the party's buff effects, and what there is to do.
       -->
       <section id="prep" class="rd-prep" hidden>
         <img id="prep-backdrop" class="rd-battle-bg" alt="" draggable="false" aria-hidden="true" />
@@ -49,6 +50,7 @@
           <div class="rd-prep-panel rd-prep-boss">
             <div class="rd-prep-head" id="prep-boss-name"></div>
             <div class="rd-prep-picture"><img id="prep-picture" alt="" draggable="false" /></div>
+            <div class="rd-prep-info"><p id="prep-status"></p></div>
             <div class="rd-prep-scroll">
               <h3>Moves</h3>
               <ul id="prep-moves" class="rd-prep-list"></ul>
@@ -62,7 +64,11 @@
           <div class="rd-prep-panel rd-prep-party">
             <div class="rd-prep-head">Current Party</div>
             <div id="prep-slots" class="rd-slots"></div>
-            <div class="rd-prep-info"><p id="prep-status"></p></div>
+            <!-- What the party's items add to the fight, all together (none of them do yet). -->
+            <div class="rd-prep-effects">
+              <h3>Party Buff Effects</h3>
+              <p id="prep-effects" class="rd-prep-none">No party buff effects</p>
+            </div>
             <div class="rd-prep-actions">
               <button type="button" id="start" class="rd-prep-button" hidden>Start the raid</button>
               <button type="button" id="join" class="rd-prep-button" hidden>Join</button>
