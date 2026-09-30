@@ -648,14 +648,15 @@
 }
 
 .rd-orb {
-  --ring: rgba(226, 228, 236, 0.8);
+  /* The border at 30%, the circle itself at 60%. */
+  --ring: rgba(226, 228, 236, 0.3);
   position: relative;
   display: grid;
   place-items: center;
   border: 2px solid var(--ring);
   border-radius: 50%;
   /* Nearly opaque dark, lighter towards the middle, with a faint second ring just inside the border. */
-  background: radial-gradient(circle at 50% 42%, rgba(52, 56, 72, 0.92), rgba(12, 14, 22, 0.94) 72%);
+  background: radial-gradient(circle at 50% 42%, rgba(52, 56, 72, 0.6), rgba(12, 14, 22, 0.6) 72%);
   box-shadow:
     inset 0 0 0 3px rgba(0, 0, 0, 0.45),
     inset 0 0 0 4px rgba(255, 255, 255, 0.12),
@@ -733,7 +734,7 @@
 }
 
 .rd-action:hover:not(:disabled) .rd-orb {
-  --ring: #fff;
+  --ring: rgba(255, 255, 255, 0.55);
   filter: brightness(1.15);
   transform: scale(1.05);
 }
