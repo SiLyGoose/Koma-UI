@@ -63,14 +63,14 @@
 
           <div class="rd-prep-panel rd-prep-party">
             <div class="rd-prep-head">Current Party</div>
-            <div id="prep-slots" class="rd-slots"></div>
+            <div class="rd-slots-wrap"><div id="prep-slots" class="rd-slots"></div></div>
             <!-- What the party's items add to the fight, all together (none of them do yet). -->
             <div class="rd-prep-effects">
-              <h3>Party Buff Effects</h3>
-              <p id="prep-effects" class="rd-prep-none">No party buff effects</p>
+              <div class="rd-prep-effects-icon" aria-hidden="true">None</div>
+              <p id="prep-effects" class="rd-prep-effects-text">No party buff effects</p>
             </div>
             <div class="rd-prep-actions">
-              <button type="button" id="start" class="rd-prep-button" hidden>Start the raid</button>
+              <button type="button" id="start" class="rd-prep-button" hidden>Join</button>
               <button type="button" id="join" class="rd-prep-button" hidden>Join</button>
               <button type="button" id="begin" class="rd-prep-button" hidden>Start now</button>
               <button type="button" id="leave" class="rd-prep-button quiet" hidden>Leave</button>

@@ -366,27 +366,44 @@ function renderPrep(v: RaidView): void {
   if (prepBoss !== v.boss.id) {
     prepBoss = v.boss.id;
     ui.prepBossName.textContent = v.boss.name;
+    // A bot older than the page doesn't send what the boss does: the sections are left out.
+    const brief = v.brief ?? { phases: [], moves: [], rewards: '' };
     const list = (ul: HTMLElement, lines: string[]): void => {
-      ul.replaceChildren(...lines.filter((line) => line.trim() !== '').map((line) => {
+      const shown = lines.filter((line) => line.trim() !== '');
+      ul.replaceChildren(...shown.map((line) => {
         const li = el('li');
         li.append(...markdown(line, v.names));
         return li;
       }));
+      ul.hidden = shown.length === 0;
+      (ul.previousElementSibling as HTMLElement).hidden = shown.length === 0;
     };
-    list(ui.prepMoves, v.brief.moves);
-    list(ui.prepPhases, v.brief.phases);
-    ui.prepRewards.replaceChildren(...markdown(v.brief.rewards, v.names));
+    list(ui.prepMoves, brief.moves);
+    list(ui.prepPhases, brief.phases);
+    ui.prepRewards.replaceChildren(...markdown(brief.rewards, v.names));
+    ui.prepRewards.hidden = brief.rewards.trim() === '';
+    (ui.prepRewards.previousElementSibling as HTMLElement).hidden = ui.prepRewards.hidden;
   }
 
   const lobby = v.lobby;
   const players = lobby?.players ?? [];
   const host = players[0] ?? null;
-  // Four seats at least (the empty ones face down); past four, the row scrolls.
+  // Four seats at least (the empty ones face down); past four, the row scrolls. An empty seat takes
+  // them in: joining the lobby, or, with no raid up yet, starting it with them in it.
   const seats = Math.max(4, players.length);
+  const takeSeat = lobby ? (players.includes(v.you) ? null : () => send({ t: 'join' })) : v.idle?.canStart ? startRaid : null;
   ui.prepSlots.replaceChildren(
     ...Array.from({ length: seats }, (_, i) => {
       const userId = players[i];
       if (userId === undefined) {
+        if (takeSeat) {
+          const seat = el('button', 'rd-slot empty open');
+          seat.type = 'button';
+          seat.setAttribute('aria-label', 'Join the raid');
+          seat.append(el('span', 'rd-slot-back'), el('span', 'rd-slot-join', 'Join'));
+          seat.addEventListener('click', takeSeat);
+          return seat;
+        }
         const empty = el('div', 'rd-slot empty');
         empty.append(el('span', 'rd-slot-back'));
         return empty;
@@ -423,7 +440,7 @@ function renderPrep(v: RaidView): void {
   } else if (v.idle?.week === 'busy') {
     ui.prepStatus.textContent = 'A raid is starting in Discord. It will show up here in a moment.';
   } else if (v.idle?.canStart) {
-    ui.prepStatus.textContent = `This week's boss hasn't been fought yet. Start the raid and everyone in the server can join, here or in Discord. The week resets ${reset}.`;
+    ui.prepStatus.textContent = `This week's boss hasn't been fought yet. Join to start the raid: its lobby goes up in the server, and everyone can join, here or in Discord. The week resets ${reset}.`;
     ui.start.hidden = false;
   } else {
     ui.prepStatus.textContent = `This week's boss hasn't been fought yet. This server has no bot channel, so start the raid in Discord with the raid command, then join it here. The week resets ${reset}.`;
@@ -630,10 +647,13 @@ ui.prepSlots.addEventListener(
   { passive: false },
 );
 
-ui.start.addEventListener('click', () => {
+function startRaid(): void {
+  if (ui.start.disabled) return;
   ui.start.disabled = true;
   send({ t: 'start' });
-});
+}
+
+ui.start.addEventListener('click', startRaid);
 ui.join.addEventListener('click', () => send({ t: 'join' }));
 ui.leave.addEventListener('click', () => send({ t: 'leave' }));
 ui.begin.addEventListener('click', () => send({ t: 'begin' }));

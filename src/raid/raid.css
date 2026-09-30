@@ -203,12 +203,12 @@
 
 .rd-prep-body {
   display: grid;
-  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  grid-template-columns: minmax(0, 5fr) minmax(0, 8fr);
   gap: 18px;
-  width: min(1240px, calc(100% - 32px));
-  /* The screen under the title bar (and the frame's border), less a margin, unzoomed: a percentage of .rd-prep wouldn't resolve. */
-  height: min(680px, calc((100vh - 69px) / var(--rd-zoom)));
-  height: min(680px, calc((100dvh - 69px) / var(--rd-zoom)));
+  /* The screen (under the title bar and the frame's border) less a margin, unzoomed: a percentage of .rd-prep wouldn't resolve. */
+  width: min(1680px, calc((100vw - 32px) / var(--rd-zoom)));
+  height: min(900px, calc((100vh - 69px) / var(--rd-zoom)));
+  height: min(900px, calc((100dvh - 69px) / var(--rd-zoom)));
   min-height: 420px;
   zoom: var(--rd-zoom);
 }
@@ -294,15 +294,24 @@
   line-height: 1.45;
 }
 
-/* The party: a card for each raider, the empty seats face down, four across; past four, the row scrolls. */
+/*
+ * The party: a card for each raider, the empty seats face down, four across; past four, the row
+ * scrolls. The cards take most of the panel, as tall as it lets them (a card is 5 wide by 9 high),
+ * with room above and below them.
+ */
+.rd-slots-wrap {
+  flex: 1;
+  min-height: 0;
+  container-type: size;
+  padding: 44px 24px 28px;
+}
+
 .rd-prep-party .rd-slots {
-  flex-shrink: 0;
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: calc((100% - 3 * 14px) / 4);
-  gap: 14px;
-  margin: 20px 20px 0;
-  padding-bottom: 8px;
+  --rd-gap: 16px;
+  display: flex;
+  justify-content: safe center;
+  gap: var(--rd-gap);
+  height: 100%;
   overflow-x: auto;
   overflow-y: hidden;
   overscroll-behavior-x: contain;
@@ -313,9 +322,13 @@
 
 .rd-slot {
   position: relative;
+  flex: none;
   display: grid;
   place-items: center;
-  aspect-ratio: 2 / 3;
+  /* Four to a row, or as tall as the row (less room for its scrollbar), whichever is smaller. */
+  width: min((100cqw - 3 * var(--rd-gap)) / 4, (100cqh - 10px) * 5 / 9);
+  aspect-ratio: 5 / 9;
+  align-self: center;
   scroll-snap-align: start;
   border: 3px solid #d8c48c;
   border-radius: 10px;
@@ -342,8 +355,10 @@
 /* The character: pixel art, scaled up crisp. */
 .rd-slot-sprite {
   position: relative;
-  height: 58%;
-  max-height: 150px;
+  height: 50%;
+  max-width: 76%;
+  margin-bottom: 8%;
+  object-fit: contain;
   image-rendering: pixelated;
   filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.5));
   user-select: none;
@@ -365,6 +380,7 @@
   color: #f3e4b6;
   font-size: 17px;
   font-weight: 700;
+  z-index: 1;
 }
 
 .rd-slot-name {
@@ -402,6 +418,49 @@
   border-color: #6d5a33;
   background: linear-gradient(180deg, #2a2413, #16120a);
   box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.5), inset 0 0 0 3px rgba(216, 191, 122, 0.18);
+}
+
+/* One they can take: it lights up, with Join on it. */
+button.rd-slot {
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.rd-slot.open {
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+
+.rd-slot.open:hover,
+.rd-slot.open:focus-visible {
+  outline: none;
+  border-color: #e9d18f;
+  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.5), inset 0 0 0 3px rgba(216, 191, 122, 0.35), 0 0 18px rgba(216, 191, 122, 0.4);
+  transform: translateY(-2px);
+}
+
+.rd-slot-join {
+  position: absolute;
+  left: 50%;
+  bottom: 12%;
+  padding: 4px 14px;
+  border: 1px solid rgba(216, 191, 122, 0.5);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.45);
+  color: #e9dbaa;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.55;
+  transform: translateX(-50%);
+  transition: opacity 0.15s;
+}
+
+.rd-slot.open:hover .rd-slot-join,
+.rd-slot.open:focus-visible .rd-slot-join {
+  opacity: 1;
 }
 
 .rd-slot-back {
@@ -447,35 +506,44 @@
   flex-shrink: 0;
   display: flex;
   gap: 10px;
-  padding: 14px 20px 18px;
+  padding: 16px 24px 20px;
 }
 
-/* The party's buff effects, from their items, all together (none yet). */
+/* The party's buff effects, from their items, all together: a tile, and what they do (none yet). */
 .rd-prep-effects {
-  flex: 1;
-  min-height: 0;
-  margin: 12px 20px 0;
-  padding: 10px 16px;
-  overflow-y: auto;
-  border: 1px solid rgba(233, 219, 170, 0.3);
-  border-radius: 8px;
-  background: rgba(0, 0, 0, 0.25);
+  flex-shrink: 0;
+  display: flex;
+  gap: 12px;
+  margin: 0 24px;
 }
 
-.rd-prep-effects h3 {
-  margin: 0 0 8px;
-  color: #e9dbaa;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.rd-prep-none {
-  margin: 0;
-  color: rgba(255, 255, 255, 0.55);
+.rd-prep-effects-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border: 2px solid #b9a877;
+  border-radius: 6px;
+  background: radial-gradient(circle at 50% 40%, #2b2b2b, #0c0c0c);
+  color: #d0584f;
   font-size: 14px;
-  font-style: italic;
+  font-weight: 700;
+}
+
+.rd-prep-effects-text {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 8px 16px;
+  border: 1px solid rgba(233, 219, 170, 0.3);
+  border-radius: 6px;
+  background: rgba(40, 30, 12, 0.55);
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 15px;
+  text-align: center;
 }
 
 /* The big button, like a game's Start Battle. */
@@ -1852,6 +1920,10 @@
   .rd-prep {
     --rd-zoom: 0.6;
     min-height: 0;
+  }
+
+  .rd-slots-wrap {
+    padding: 14px 20px 12px;
   }
 
   body.rd-fighting .frame > .top {
