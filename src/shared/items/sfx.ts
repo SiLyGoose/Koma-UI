@@ -47,6 +47,6 @@ export function hoverSound(element: HTMLElement, id: string, active: () => boole
  */
 export function itemPicked(before: string | null, shown: string | null): void {
   select();
-  if (shown !== null && shown !== before) setTimeout(popup, POPUP_AFTER_MS);
-  else if (shown === null && before !== null) setTimeout(popupClose, POPUP_AFTER_MS);
+  if (shown !== null && shown !== before) setTimeout(() => popup(0.5), POPUP_AFTER_MS);
+  else if (shown === null && before !== null) setTimeout(() => popupClose(1), POPUP_AFTER_MS);
 }

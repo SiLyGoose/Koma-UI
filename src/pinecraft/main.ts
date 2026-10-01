@@ -228,7 +228,7 @@ function breakSounds(blocks: { ground: 'dirt' | 'stone'; ore: PinecraftOre | nul
   if (kinds.has('stone')) play('breakStone');
   if (kinds.has('gem')) {
     play('breakGem');
-    setTimeout(() => play('collectGem', 0.4), 120);
+    setTimeout(() => play('collectGem', 0.2), 120);
   }
 }
 

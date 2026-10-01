@@ -13,8 +13,8 @@ const moveSound = sound(`${import.meta.env.BASE_URL}shared/sfx/table/move-poker-
 export type Sound = 'place' | 'move' | 'even' | 'win' | 'lose';
 
 export function play(sound: Sound): void {
-  if (sound === 'place') return placeSound();
-  if (sound === 'move') return moveSound();
+  if (sound === 'place') return placeSound(0.3);
+  if (sound === 'move') return moveSound(0.3);
   if (sound === 'even') return notes([2600], { type: 'triangle', volume: 0.18, length: 0.05 });
   notes(sound === 'win' ? [660, 880, 1320] : [300, 220], { type: 'sine', volume: 0.12, length: 0.18, spacing: 0.09 });
 }
