@@ -6,7 +6,7 @@
  */
 
 /** How loud every sound is, 0 to 1 (1: the files as recorded). A sound's own volume is a share of this. */
-export const VOLUME = 0.3;
+export const VOLUME = 0.5;
 
 let muted = false;
 

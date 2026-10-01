@@ -12,5 +12,5 @@ const SOUNDS = {
 export type Sound = keyof typeof SOUNDS;
 
 export function play(sound: Sound): void {
-  SOUNDS[sound]();
+  SOUNDS[sound](0.3);
 }

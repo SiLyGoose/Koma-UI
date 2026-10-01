@@ -306,6 +306,14 @@
   overflow-y: hidden;
   overscroll-behavior-x: contain;
   scroll-snap-type: x mandatory;
+  /*
+   * A row that scrolls clips whatever sticks out of it: room round the cards (taken back from around
+   * the row) so a card's glow and its lift on hover aren't cut off.
+   */
+  --rd-bleed: 24px;
+  margin: calc(-1 * var(--rd-bleed));
+  padding: var(--rd-bleed);
+  scroll-padding-inline: var(--rd-bleed);
 }
 
 .rd-slot {
@@ -593,9 +601,8 @@ button.rd-slot:not(.empty):focus-visible {
   display: grid;
   place-items: center;
   padding: 24px;
-  background: rgba(3, 4, 8, 0.72);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  /* Dark, not blurred: blurring the whole raid behind it every frame (on top of its own blurs) made the popup lag. */
+  background: rgba(3, 4, 8, 0.85);
   animation: rd-gear-in 0.18s ease-out;
 }
 
@@ -671,6 +678,17 @@ button.rd-slot:not(.empty):focus-visible {
     width: 30px;
     height: 30px;
   }
+}
+
+/* While a popup is up, the raid behind it (mostly covered) stops blurring: redrawn every frame under the popup, the blurs made it lag. */
+body.rd-popup-open .rd-prep-shade,
+body.rd-popup-open .rd-result-shade {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+body.rd-popup-open .rd-battle-bg {
+  filter: brightness(0.45);
 }
 
 /* ------------------------------------------------------------------ the battle screen */
@@ -929,12 +947,15 @@ button.rd-slot:not(.empty):focus-visible {
 }
 
 .rd-party {
+  /* Room round the portraits for their glow (a row that scrolls clips what sticks out), taken back from its margins. */
+  --rd-bleed: 20px;
   display: flex;
   gap: 10px;
   min-width: 0;
   /* A way in from the corner, as a game places its party. */
-  margin: 0 0 24px 48px;
-  padding: 4px 2px;
+  /* (Where it sat with 4px above and 2px either side of the portraits, the same.) */
+  margin: calc(4px - var(--rd-bleed)) calc(2px - var(--rd-bleed)) calc(28px - var(--rd-bleed)) calc(50px - var(--rd-bleed));
+  padding: var(--rd-bleed);
   overflow-x: auto;
   list-style: none;
   scrollbar-width: none;
@@ -1199,7 +1220,7 @@ button.rd-slot:not(.empty):focus-visible {
 
 /* Room above and to the left for the row behind. */
 .rd-party.stacked {
-  padding-top: 24px;
+  padding-top: calc(20px + var(--rd-bleed));
 }
 
 .rd-party.stacked .rd-party-stack {
@@ -1626,7 +1647,7 @@ button.rd-slot:not(.empty):focus-visible {
   .rd-party {
     justify-content: flex-start;
     gap: 16px;
-    margin: 0;
+    margin: calc(4px - var(--rd-bleed)) calc(2px - var(--rd-bleed));
   }
 
   .rd-party-layer {
@@ -1986,9 +2007,8 @@ button.rd-slot:not(.empty):focus-visible {
   display: grid;
   place-items: center;
   padding: 24px;
-  background: rgba(3, 4, 8, 0.72);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  /* Dark, not blurred: blurring the whole raid behind it every frame (on top of its own blurs) made the popup lag. */
+  background: rgba(3, 4, 8, 0.85);
   animation: rd-gear-in 0.18s ease-out;
 }
 
@@ -2330,7 +2350,7 @@ button.rd-slot:not(.empty):focus-visible {
   }
 
   .rd-party {
-    margin: 0 0 8px 16px;
+    margin: calc(4px - var(--rd-bleed)) calc(2px - var(--rd-bleed)) calc(12px - var(--rd-bleed)) calc(18px - var(--rd-bleed));
   }
 
   .rd-command {
@@ -2373,7 +2393,7 @@ button.rd-slot:not(.empty):focus-visible {
   }
 
   .rd-party {
-    margin: 0 0 4px 8px;
+    margin: calc(4px - var(--rd-bleed)) calc(2px - var(--rd-bleed)) calc(8px - var(--rd-bleed)) calc(10px - var(--rd-bleed));
   }
 
   .rd-command {

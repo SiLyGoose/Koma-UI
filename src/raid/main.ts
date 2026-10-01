@@ -6,6 +6,8 @@ import { apiFromSocket, startLive } from '../shared/live';
 import { setMuted } from '../shared/sfx';
 import { holdReveal } from '../shared/transition';
 import { markdown } from './markdown';
+import { popupClosed } from '../shared/items/sfx';
+import { play } from './sfx';
 import type { ActProblem, AnswerCode, ClientMessage, ErrorCode, RaidAction, RaidFightView, RaidView, ServerMessage } from './protocol';
 import './raid.css';
 
@@ -256,7 +258,9 @@ function memberItem(p: RaidFightView['players'][number], f: RaidFightView, v: Ra
       li.setAttribute('role', 'button');
       li.setAttribute('aria-label', `Heal ${nameOf(p.userId)}`);
       li.title = `Heal ${nameOf(p.userId)}`;
+      li.dataset.sfx = 'own';
       li.addEventListener('click', () => healAt(p.userId));
+      li.addEventListener('pointerenter', () => play('hover'));
       li.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
@@ -314,8 +318,27 @@ let resultShown = false;
 /** The pause before it, while it runs. */
 let endTimer: ReturnType<typeof setTimeout> | null = null;
 
+/**
+ * What they picked this turn, to play as it lands. Kept from their click (once the bot takes it) as
+ * well as from the raid: with everyone in, the turn closes at once, in the same raid it's sent next.
+ */
+let lastPick: RaidAction | null = null;
+/** The pick on its way to the bot. */
+let pendingPick: RaidAction | null = null;
+
 function render(next: RaidView): void {
   const before = view?.phase ?? null;
+  // A heal (or a revive) landing on them as the round resolved: their HP went up (nothing else raises it).
+  const hpBefore = view?.fight?.players.find((p) => p.userId === next.you)?.hp;
+  const hpNow = next.fight?.players.find((p) => p.userId === next.you)?.hp;
+  if (hpBefore !== undefined && hpNow !== undefined && hpNow > hpBefore) play('heal');
+  // Their attack, guard or support landing as the round resolved: the turn closed (no more picks), or the fight ended on it.
+  const wasOpen = view?.fight?.open === true;
+  const mine = next.fight?.players.find((p) => p.userId === next.you);
+  if (next.fight?.open && mine?.picked) lastPick = mine.picked;
+  const resolved = wasOpen && (next.fight ? !next.fight.open : next.phase === 'over');
+  if (resolved && lastPick && lastPick !== 'heal') play(lastPick);
+  if (resolved || !next.fight) lastPick = null;
   view = next;
   const picture = api + next.picture;
   if (picture !== pictureShown) {
@@ -360,8 +383,8 @@ function render(next: RaidView): void {
 
   if (preparing) renderPrep(next);
   // The fight starting (or the lobby going, or the end screen) takes the gear's popup down with the screen it was opened from.
-  else if (before !== next.phase) closeGear();
-  if (!ended) closeStats();
+  else if (before !== next.phase) closeGear(true);
+  if (!ended) closeStats(true);
   else if (!ui.statsPop.hidden) renderStats(next);
   if (next.phase === 'fight' && next.fight) renderFight(next);
   if (ended) renderResult(next);
@@ -531,6 +554,11 @@ const GEAR_LAYOUT_WIDTH = 1100;
 const GEAR_LAYOUT_HEIGHT = 640;
 
 /** Shows `userId`'s gear, with the party (`players`, in the order they joined) to go between. */
+/** Whether a popup (a raider's gear, More stats) is up: the raid behind it stops blurring meanwhile (raid.css). */
+function popupShown(): void {
+  document.body.classList.toggle('rd-popup-open', !ui.gearPop.hidden || !ui.statsPop.hidden);
+}
+
 /**
  * Shows `userId`'s gear, with the party (`players`, in their order) to go between. `fought`: their gear
  * as they fought the raid (the end screen), rather than as it is now.
@@ -541,13 +569,17 @@ function openGear(v: RaidView, players: string[], userId: string, fought = false
   const hash = new URLSearchParams({ t: token, s: server, p: JSON.stringify(party), w: userId, ...(fought ? { g: 'raid' } : {}) });
   ui.gearFrame.src = `${import.meta.env.BASE_URL}games/raid/gear/#${hash}`;
   ui.gearPop.hidden = false;
+  popupShown();
   fitGear();
   ui.gearClose.focus();
 }
 
-function closeGear(): void {
+/** Closes the gear popup, with the popup's closing sound unless `quiet` (the raid moving on took it down). */
+function closeGear(quiet = false): void {
   if (ui.gearPop.hidden) return;
+  if (!quiet) popupClosed();
   ui.gearPop.hidden = true;
+  popupShown();
   ui.gearFrame.src = 'about:blank';
 }
 
@@ -562,7 +594,8 @@ function fitGear(): void {
   ui.gearFrame.style.transform = scale < 1 ? `scale(${scale})` : '';
 }
 
-ui.gearClose.addEventListener('click', closeGear);
+ui.gearClose.dataset.sfx = 'own';
+ui.gearClose.addEventListener('click', () => closeGear());
 // A click on the dark around the popup closes it too.
 ui.gearPop.addEventListener('click', (event) => {
   if (event.target === ui.gearPop) closeGear();
@@ -639,6 +672,9 @@ function renderFight(v: RaidView): void {
 /** Heals `target` (undefined: whoever needs it most, the bot's pick), and closes the picker. */
 function healAt(target: string | undefined): void {
   healOpenRound = null;
+  // Healing someone else (or whoever needs it most): the heal's sound now. Healing themselves, it plays as it lands.
+  if (target !== view?.you) play('heal');
+  pendingPick = 'heal';
   send(target === undefined ? { t: 'act', action: 'heal' } : { t: 'act', action: 'heal', target });
   if (view) render(view);
 }
@@ -659,7 +695,9 @@ function renderHealPick(v: RaidView): void {
     button.append(circle);
     if (name) button.append(el('span', 'rd-heal-name', name));
     if (hp) button.append(hpBar(hp.hp, hp.maxHp, 'rd-heal-bar'));
+    button.dataset.sfx = 'own';
     button.addEventListener('click', () => healAt(target));
+    button.addEventListener('pointerenter', () => play('hover'));
     ui.healOptions.append(button);
   };
   // First, let the bot choose; then everyone hurt, the worst first.
@@ -828,18 +866,23 @@ function renderStats(v: RaidView): void {
 function openStats(): void {
   if (!view?.over) return;
   ui.statsPop.hidden = false;
+  popupShown();
   renderStats(view);
   ui.statsClose.focus();
 }
 
-function closeStats(): void {
+/** Closes More stats, with the popup's closing sound unless `quiet` (the end screen going took it down). */
+function closeStats(quiet = false): void {
   if (ui.statsPop.hidden) return;
+  if (!quiet) popupClosed();
   ui.statsPop.hidden = true;
+  popupShown();
   ui.moreStats.focus({ preventScroll: true });
 }
 
 ui.moreStats.addEventListener('click', openStats);
-ui.statsClose.addEventListener('click', closeStats);
+ui.statsClose.dataset.sfx = 'own';
+ui.statsClose.addEventListener('click', () => closeStats());
 ui.statsPop.addEventListener('click', (event) => {
   if (event.target === ui.statsPop) closeStats();
 });
@@ -918,6 +961,12 @@ ui.join.addEventListener('click', () => send({ t: 'join' }));
 ui.leave.addEventListener('click', () => send({ t: 'leave' }));
 ui.begin.addEventListener('click', () => send({ t: 'begin' }));
 for (const button of ui.actions) {
+  // Picking an action has its own sound (./sfx.ts), not the plain click's.
+  button.dataset.sfx = 'own';
+  // Over an action that can be picked now.
+  button.addEventListener('pointerenter', () => {
+    if (!button.disabled) play('actionHover');
+  });
   button.addEventListener('click', () => {
     const action = button.dataset.action as RaidAction;
     const f = view?.fight;
@@ -928,6 +977,9 @@ for (const button of ui.actions) {
       if (view) render(view);
       return;
     }
+    // Heal's own sound plays with who it's for (healAt), and as it lands on them.
+    if (action !== 'heal') play(action);
+    pendingPick = action;
     send({ t: 'act', action });
   });
 }
@@ -961,6 +1013,10 @@ function receive(message: ServerMessage): void {
   }
   if (message.t === 'answer') {
     if (message.to === 'start') ui.start.disabled = false;
+    if (message.to === 'act') {
+      if (message.code === 'ok' && pendingPick) lastPick = pendingPick;
+      pendingPick = null;
+    }
     const text = answerText(message.code);
     if (text) toast(text);
     else if (message.to === 'start') toast("The raid's lobby is up! Join in.");

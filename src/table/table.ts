@@ -614,6 +614,8 @@ export function startTable<S extends string, R, X = unknown>(game: TableGame<S, 
     target.addEventListener('pointercancel', up);
   }
 
+  // A bet placed, taken back, undone or cleared has the chips' own sound, not the plain click's.
+  for (const el of [...game.spots.values(), ui.undo, ui.clear]) el.dataset.sfx = 'own';
   for (const [spot, el] of game.spots) {
     el.addEventListener('pointerdown', (e) => {
       // Dragging this page's stack off a spot; a tap bets the picked chip (see startDrag).

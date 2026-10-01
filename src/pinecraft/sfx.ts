@@ -39,7 +39,7 @@ export function loadSounds(): void {
 }
 
 /** Plays one of a sound's takes, at a fifth of the master volume unless told otherwise. */
-export function play(sound: Sound, volume = 0.2): void {
+export function play(sound: Sound, volume = 0.1): void {
   const takes = FILES[sound];
   let k = Math.floor(Math.random() * takes.length);
   if (takes.length > 1 && k === lastTake.get(sound)) k = (k + 1) % takes.length;

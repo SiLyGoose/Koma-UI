@@ -21,6 +21,7 @@
  * (onSiteLink()) before the whole-page transition above sees them.
  */
 
+import { playLoaded } from './ui-sfx';
 import { handOnly } from './cursor';
 
 const KEY = 'koma.transition';
@@ -257,6 +258,8 @@ async function reveal(): Promise<void> {
   await wait(0);
   await Promise.race([drawn(), wait(MAX_HOLD_MS)]);
   await Promise.race([settled(), wait(MAX_SETTLE_MS)]);
+  // The page is ready: its sound as the loading screen starts wiping off it.
+  playLoaded();
   await wipeOff();
 }
 
@@ -313,6 +316,7 @@ export async function swap(dir: Direction, change: () => void | Promise<void>): 
       await next.change();
       await Promise.race([drawn(), wait(MAX_HOLD_MS)]);
     }
+    playLoaded();
     await wipeOff();
     swapping = false;
   }
