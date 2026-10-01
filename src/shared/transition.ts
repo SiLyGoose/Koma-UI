@@ -258,9 +258,9 @@ async function reveal(): Promise<void> {
   await wait(0);
   await Promise.race([drawn(), wait(MAX_HOLD_MS)]);
   await Promise.race([settled(), wait(MAX_SETTLE_MS)]);
-  await wipeOff();
-  // The page's content is showing: its sound.
+  // The page is ready: its sound as the loading screen starts wiping off it.
   playLoaded();
+  await wipeOff();
 }
 
 /** Done once frames come smoothly (SETTLE_FRAMES in a row, each within SETTLE_FRAME_MS of the last). */
@@ -316,9 +316,9 @@ export async function swap(dir: Direction, change: () => void | Promise<void>): 
       await next.change();
       await Promise.race([drawn(), wait(MAX_HOLD_MS)]);
     }
+    playLoaded();
     await wipeOff();
     swapping = false;
-    playLoaded();
   }
 }
 
