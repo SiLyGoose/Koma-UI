@@ -6,9 +6,10 @@ import { sound } from '../sfx';
  */
 
 const SFX = (file: string): string => `${import.meta.env.BASE_URL}shared/sfx/items/${file}.mp3`;
-const hover = sound(SFX('generic_hover'));
-const select = sound(SFX('generic_select'));
-const popup = sound(SFX('generic_popup'));
+const hover = sound(SFX('item_hover'));
+const select = sound(SFX('item_select'));
+const popup = sound(SFX('item_modal_popup'));
+const popupClose = sound(SFX('item_modal_popup_close'));
 
 /** How long after the click's sound the details' comes, so they play one after the other. */
 const POPUP_AFTER_MS = 90;
