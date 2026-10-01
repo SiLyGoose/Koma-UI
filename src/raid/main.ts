@@ -6,6 +6,7 @@ import { apiFromSocket, startLive } from '../shared/live';
 import { setMuted } from '../shared/sfx';
 import { holdReveal } from '../shared/transition';
 import { markdown } from './markdown';
+import { popupClosed } from '../shared/items/sfx';
 import { play } from './sfx';
 import type { ActProblem, AnswerCode, ClientMessage, ErrorCode, RaidAction, RaidFightView, RaidView, ServerMessage } from './protocol';
 import './raid.css';
@@ -257,6 +258,7 @@ function memberItem(p: RaidFightView['players'][number], f: RaidFightView, v: Ra
       li.setAttribute('role', 'button');
       li.setAttribute('aria-label', `Heal ${nameOf(p.userId)}`);
       li.title = `Heal ${nameOf(p.userId)}`;
+      li.dataset.sfx = 'own';
       li.addEventListener('click', () => healAt(p.userId));
       li.addEventListener('pointerenter', () => play('hover'));
       li.addEventListener('keydown', (e) => {
@@ -381,8 +383,8 @@ function render(next: RaidView): void {
 
   if (preparing) renderPrep(next);
   // The fight starting (or the lobby going, or the end screen) takes the gear's popup down with the screen it was opened from.
-  else if (before !== next.phase) closeGear();
-  if (!ended) closeStats();
+  else if (before !== next.phase) closeGear(true);
+  if (!ended) closeStats(true);
   else if (!ui.statsPop.hidden) renderStats(next);
   if (next.phase === 'fight' && next.fight) renderFight(next);
   if (ended) renderResult(next);
@@ -572,8 +574,10 @@ function openGear(v: RaidView, players: string[], userId: string, fought = false
   ui.gearClose.focus();
 }
 
-function closeGear(): void {
+/** Closes the gear popup, with the popup's closing sound unless `quiet` (the raid moving on took it down). */
+function closeGear(quiet = false): void {
   if (ui.gearPop.hidden) return;
+  if (!quiet) popupClosed();
   ui.gearPop.hidden = true;
   popupShown();
   ui.gearFrame.src = 'about:blank';
@@ -590,7 +594,8 @@ function fitGear(): void {
   ui.gearFrame.style.transform = scale < 1 ? `scale(${scale})` : '';
 }
 
-ui.gearClose.addEventListener('click', closeGear);
+ui.gearClose.dataset.sfx = 'own';
+ui.gearClose.addEventListener('click', () => closeGear());
 // A click on the dark around the popup closes it too.
 ui.gearPop.addEventListener('click', (event) => {
   if (event.target === ui.gearPop) closeGear();
@@ -690,6 +695,7 @@ function renderHealPick(v: RaidView): void {
     button.append(circle);
     if (name) button.append(el('span', 'rd-heal-name', name));
     if (hp) button.append(hpBar(hp.hp, hp.maxHp, 'rd-heal-bar'));
+    button.dataset.sfx = 'own';
     button.addEventListener('click', () => healAt(target));
     button.addEventListener('pointerenter', () => play('hover'));
     ui.healOptions.append(button);
@@ -865,15 +871,18 @@ function openStats(): void {
   ui.statsClose.focus();
 }
 
-function closeStats(): void {
+/** Closes More stats, with the popup's closing sound unless `quiet` (the end screen going took it down). */
+function closeStats(quiet = false): void {
   if (ui.statsPop.hidden) return;
+  if (!quiet) popupClosed();
   ui.statsPop.hidden = true;
   popupShown();
   ui.moreStats.focus({ preventScroll: true });
 }
 
 ui.moreStats.addEventListener('click', openStats);
-ui.statsClose.addEventListener('click', closeStats);
+ui.statsClose.dataset.sfx = 'own';
+ui.statsClose.addEventListener('click', () => closeStats());
 ui.statsPop.addEventListener('click', (event) => {
   if (event.target === ui.statsPop) closeStats();
 });
@@ -952,6 +961,8 @@ ui.join.addEventListener('click', () => send({ t: 'join' }));
 ui.leave.addEventListener('click', () => send({ t: 'leave' }));
 ui.begin.addEventListener('click', () => send({ t: 'begin' }));
 for (const button of ui.actions) {
+  // Picking an action has its own sound (./sfx.ts), not the plain click's.
+  button.dataset.sfx = 'own';
   // Over an action that can be picked now.
   button.addEventListener('pointerenter', () => {
     if (!button.disabled) play('actionHover');

@@ -21,6 +21,7 @@
  * (onSiteLink()) before the whole-page transition above sees them.
  */
 
+import { playLoaded } from './ui-sfx';
 import { handOnly } from './cursor';
 
 const KEY = 'koma.transition';
@@ -258,6 +259,8 @@ async function reveal(): Promise<void> {
   await Promise.race([drawn(), wait(MAX_HOLD_MS)]);
   await Promise.race([settled(), wait(MAX_SETTLE_MS)]);
   await wipeOff();
+  // The page's content is showing: its sound.
+  playLoaded();
 }
 
 /** Done once frames come smoothly (SETTLE_FRAMES in a row, each within SETTLE_FRAME_MS of the last). */
@@ -315,6 +318,7 @@ export async function swap(dir: Direction, change: () => void | Promise<void>): 
     }
     await wipeOff();
     swapping = false;
+    playLoaded();
   }
 }
 

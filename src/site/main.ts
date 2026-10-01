@@ -7,6 +7,7 @@ import '../databank/databank.css';
 import '../forge/forge.css';
 import { backdrop } from '../shared/backdrop';
 import { installCursor } from '../shared/cursor';
+import { installClickSounds } from '../shared/ui-sfx';
 import { databankPage } from '../databank/page';
 import { forgePage } from '../forge/page';
 import { gearPage } from '../gear/page';
@@ -36,6 +37,8 @@ const view = document.getElementById('view') as HTMLElement;
 document.body.prepend(backdrop());
 // The reticle in place of the mouse pointer.
 installCursor();
+// A click on anything pressable has its sound.
+installClickSounds();
 // The masterworks' foil carries on as their cards are drawn again.
 keepHoloInStep();
 const icon = document.querySelector<HTMLLinkElement>('link[rel="icon"]');

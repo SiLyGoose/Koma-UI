@@ -141,6 +141,8 @@ const tiles: HTMLButtonElement[] = Array.from({ length: TILES }, (_, i) => {
   tile.className = 'mx-tile';
   tile.setAttribute('aria-label', `Tile ${i + 1}`);
   tile.disabled = true;
+  // Turning a tile over has its own sound (a gem or a mine), not the plain click's.
+  tile.dataset.sfx = 'own';
   tile.addEventListener('click', () => pick(i));
   ui.board.append(tile);
   return tile;

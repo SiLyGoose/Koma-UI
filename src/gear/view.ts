@@ -2,7 +2,7 @@ import { currentCharacter } from '../shared/characters';
 import { dropdown } from '../shared/dropdown';
 import { armoryOrder, equippedIds, forgePlan, type GearCopy, type GearView, type StatSection } from '../shared/items/gear';
 import { art, el, lockBadge, rich, SLOT_NAME, stars, type Slot } from '../shared/items/items';
-import { hoverSound, itemPicked } from '../shared/items/sfx';
+import { hoverSound, itemDetailsClosed, itemPicked } from '../shared/items/sfx';
 
 /*
  * The gear view (the gear page's, and the raid's party's gear): the member's character (Tsuri, for now) with their three slots around them (weapon and
@@ -143,6 +143,9 @@ export function mountGear(root: HTMLElement, host: GearHost): { drawn: Promise<v
       button.textContent = '';
       button.dataset.stars = copy ? String(copy.stars) : '';
       button.classList.toggle('empty', !copy);
+      // A filled slot is an item: its click has the item's sound (an empty one, the plain click).
+      if (copy) button.dataset.sfx = 'own';
+      else delete button.dataset.sfx;
       button.classList.toggle('masterwork', copy?.masterwork === true);
       button.classList.toggle('filtered', filter === slot);
       button.setAttribute('aria-label', copy ? `${SLOT_NAME[slot]}: ${copy.name}` : `${SLOT_NAME[slot]}: empty`);
@@ -193,11 +196,12 @@ export function mountGear(root: HTMLElement, host: GearHost): { drawn: Promise<v
         card.setAttribute('aria-pressed', String(on));
         if (on) card.append(el('span', 'item-check', '✓'));
       }
+      card.dataset.sfx = 'own';
       hoverSound(card, copy.id, () => !card.disabled);
       card.addEventListener('click', () => {
         // Its sound, and the details' when they show it (opened, or switched to it).
         const before = picked;
-        const sound = (): void => itemPicked(picked !== null && picked !== before);
+        const sound = (): void => itemPicked(before, picked);
         // Picking what to sell: the one picked last is shown over the character (unpicking it shows the one before).
         if (selling) {
           if (selling.delete(copy.id)) {
@@ -244,6 +248,7 @@ export function mountGear(root: HTMLElement, host: GearHost): { drawn: Promise<v
     const close = el('button', 'detail-close', '✕');
     close.type = 'button';
     close.setAttribute('aria-label', 'Close');
+    close.dataset.sfx = 'own';
     close.addEventListener('click', unpick);
     bar.append(el('h3', '', copy.name), close);
 
@@ -447,7 +452,9 @@ export function mountGear(root: HTMLElement, host: GearHost): { drawn: Promise<v
     ui.sellConfirm.showModal();
   }
 
+  /** Closes the details (the ✕, Escape), with their sound. */
   function unpick(): void {
+    if (picked !== null) itemDetailsClosed();
     picked = null;
     renderGrid();
     renderDetail();
@@ -702,7 +709,7 @@ export function mountGear(root: HTMLElement, host: GearHost): { drawn: Promise<v
       if (button.classList.contains('empty')) return;
       const before = picked;
       // Once the slot's own click (below) has picked what's in it.
-      setTimeout(() => itemPicked(picked !== null && picked !== before), 0);
+      setTimeout(() => itemPicked(before, picked), 0);
     });
     button.addEventListener('click', () => {
       const slot = button.dataset.slot as Slot;

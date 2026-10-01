@@ -2,7 +2,7 @@ import markup from './databank.html?raw';
 import { API } from '../shared/account';
 import { dropdown } from '../shared/dropdown';
 import { art, el, rich, SLOT_NAME, stars, type Slot } from '../shared/items/items';
-import { hoverSound, itemPicked } from '../shared/items/sfx';
+import { hoverSound, itemDetailsClosed, itemPicked } from '../shared/items/sfx';
 import type { Page } from '../site/page';
 import { api, currentMe, currentServer, hasSession, loadMe, setServer } from '../site/session';
 
@@ -108,6 +108,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     button.setAttribute('aria-label', `${item.name}, ${item.stars} star${item.stars === 1 ? '' : 's'}, ${SLOT_NAME[item.slot]}${mine ? `, you own ${mine.count}` : ''}`);
     if (mine) button.append(el('span', 'item-level', `×${mine.count}`));
     button.append(stars(item.stars), art(item.id, item.slot), el('span', 'db-name', item.name), el('span', 'item-curl'));
+    button.dataset.sfx = 'own';
     hoverSound(button, item.id);
     button.addEventListener('click', () => {
       // Its sound, and the details' as they show it (opened, or switched to it).
@@ -116,7 +117,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
       sheetOpen = true;
       renderList();
       renderDetail();
-      itemPicked(opened);
+      itemPicked(opened ? null : item.id, item.id);
     });
     return button;
   }
@@ -172,7 +173,9 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     const close = el('button', 'detail-close', '✕');
     close.type = 'button';
     close.setAttribute('aria-label', 'Close');
+    close.dataset.sfx = 'own';
     close.addEventListener('click', () => {
+      itemDetailsClosed();
       sheetOpen = false;
       renderDetail();
     });

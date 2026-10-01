@@ -1,5 +1,6 @@
 import { loadUser, profileMenu, setSession } from './account';
 import { installCursor } from './cursor';
+import { installClickSounds } from './ui-sfx';
 import './frame.css';
 import { catchBack, holdReveal } from './transition';
 
@@ -25,6 +26,8 @@ const revealed = holdReveal();
 
 // The hand in place of the mouse pointer: no reticle trailing it over the game.
 installCursor({ reticle: false });
+// A click on anything pressable has its sound (./ui-sfx.ts).
+installClickSounds();
 
 // The browser's back button wipes the game away right to left, as its ← does.
 catchBack('/');
