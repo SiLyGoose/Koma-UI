@@ -38,7 +38,7 @@ export interface GearContext {
   ui: GearUi;
   gear: GearView | null;
   filter: Slot | 'all';
-  /** What the armory's search asks for (trimmed and lowercased): every word in a card's name or description. */
+  /** What the armory's search asks for (trimmed and lowercased): every word in a card's name or description (../../shared/items/search.ts). */
   query: string;
   /** What the panel beside the character shows. */
   view: 'common' | 'gear';

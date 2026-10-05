@@ -1,5 +1,6 @@
 import { armoryOrder, equippedIds } from '../../shared/items/gear';
-import { el, itemFace, lockBadge, matchesSearch, SLOT_NAME } from '../../shared/items/items';
+import { el, itemFace, lockBadge, SLOT_NAME } from '../../shared/items/items';
+import { matchesSearch } from '../../shared/items/search';
 import { hoverSound, itemPicked } from '../../shared/items/sfx';
 import { mine, type GearContext } from './context';
 import { renderDetail } from './detail';
@@ -22,7 +23,7 @@ export function renderGrid(ctx: GearContext): void {
   const scrolled = sheet.scrollTop;
   ui.grid.textContent = '';
   const ofSlot = armoryOrder(gear.copies).filter((c) => filter === 'all' || c.slot === filter);
-  const shown = ofSlot.filter((c) => matchesSearch(query, c.name, c.itemId, c.description));
+  const shown = ofSlot.filter((c) => matchesSearch(query, { name: c.name, id: c.itemId, description: c.description }));
   ui.grid.classList.toggle('selling', selling !== null);
   const equipped = equippedIds(gear);
   for (const copy of shown) {

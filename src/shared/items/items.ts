@@ -13,13 +13,6 @@ export const el = <K extends keyof HTMLElementTagNameMap>(tag: K, className = ''
   return e;
 };
 
-/** Whether every word of a search (already trimmed and lowercased; empty matches all) is somewhere in an item's `fields`. */
-export function matchesSearch(query: string, ...fields: string[]): boolean {
-  if (query === '') return true;
-  const text = fields.join(' ').toLowerCase();
-  return query.split(/\s+/).every((word) => text.includes(word));
-}
-
 /** The masterwork foil's animations (items.css). */
 const HOLO = new Set(['holo', 'holo-hue']);
 
