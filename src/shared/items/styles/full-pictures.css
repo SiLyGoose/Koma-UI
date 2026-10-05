@@ -122,6 +122,11 @@
     font-size: 12.5px;
   }
 
+  .armory-search {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+
   .armory-grid {
     grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 8px;

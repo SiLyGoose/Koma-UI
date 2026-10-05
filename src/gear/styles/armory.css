@@ -15,6 +15,11 @@
   }
 }
 
+/* The search, over the tabs. */
+.armory > .armory-search {
+  margin: 4px 0 8px;
+}
+
 /* Common: the stats on parchment, a heading per group, the base under anything gear changed. */
 .stats .armory-sheet {
   margin-top: 4px;

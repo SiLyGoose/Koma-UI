@@ -34,6 +34,20 @@ export function wireControls(ctx: GearContext): () => void {
     });
   }
 
+  ui.search.addEventListener('input', () => {
+    ctx.query = ui.search.value.trim().toLowerCase();
+    renderGrid(ctx);
+  });
+  // Escape in the search empties it (every browser, not just those that do it themselves), and does nothing else.
+  ui.search.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape' || ui.search.value === '') return;
+    event.preventDefault();
+    event.stopPropagation();
+    ui.search.value = '';
+    ctx.query = '';
+    renderGrid(ctx);
+  });
+
   for (const tab of ui.views) {
     tab.addEventListener('click', () => {
       ctx.view = tab.dataset.view as GearContext['view'];

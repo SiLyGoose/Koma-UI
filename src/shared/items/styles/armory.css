@@ -60,6 +60,24 @@
   color: var(--accent-text);
 }
 
+/* Searching the cards by name or description (each page places it). */
+.armory-search {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-2);
+  color: var(--text);
+  font-size: 14px;
+}
+
+.armory-search:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
 /*
  * The sheet grows with its cards up to half the screen's height; the rest scrolls inside it. The
  * parchment is on the sheet and the scrolling on the box in it, so the scrollbar sits on the

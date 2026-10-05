@@ -172,20 +172,8 @@
   margin: 4px 0 10px;
 }
 
-.db-search {
+.db-controls .armory-search {
   flex: 1;
-  min-width: 0;
-  padding: 8px 12px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--panel-2);
-  color: var(--text);
-  font-size: 14px;
-}
-
-.db-search:focus {
-  outline: 2px solid var(--accent);
-  outline-offset: 1px;
 }
 
 .db-chips {
@@ -384,11 +372,6 @@
 
   .databank .detail {
     padding: 26px 12px calc(12px + var(--db-count-h));
-  }
-
-  .db-search {
-    padding: 6px 10px;
-    font-size: 13px;
   }
 
   .db-controls {

@@ -1,5 +1,5 @@
 import { armoryOrder, equippedIds } from '../../shared/items/gear';
-import { el, itemFace, lockBadge, SLOT_NAME } from '../../shared/items/items';
+import { el, itemFace, lockBadge, matchesSearch, SLOT_NAME } from '../../shared/items/items';
 import { hoverSound, itemPicked } from '../../shared/items/sfx';
 import { mine, type GearContext } from './context';
 import { renderDetail } from './detail';
@@ -11,9 +11,9 @@ const GRID_CELLS = 12;
 /** How many cards across the armory is now. */
 export const columns = (ctx: GearContext): number => getComputedStyle(ctx.ui.grid).gridTemplateColumns.split(' ').length || 4;
 
-/** The armory: every copy shown (by the filter), then blanks to fill out the last row. */
+/** The armory: every copy shown (by the filter and the search), then blanks to fill out the last row. */
 export function renderGrid(ctx: GearContext): void {
-  const { gear, ui, selling, filter, viewing } = ctx;
+  const { gear, ui, selling, filter, query, viewing } = ctx;
   if (!gear) return;
   // Measured before emptying the grid, and the sheet's scroll put back after: a layout of the empty
   // grid would scroll the sheet back to the top on every pick.
@@ -21,7 +21,8 @@ export function renderGrid(ctx: GearContext): void {
   const sheet = ui.grid.parentElement as HTMLElement;
   const scrolled = sheet.scrollTop;
   ui.grid.textContent = '';
-  const shown = armoryOrder(gear.copies).filter((c) => filter === 'all' || c.slot === filter);
+  const ofSlot = armoryOrder(gear.copies).filter((c) => filter === 'all' || c.slot === filter);
+  const shown = ofSlot.filter((c) => matchesSearch(query, c.name, c.itemId, c.description));
   ui.grid.classList.toggle('selling', selling !== null);
   const equipped = equippedIds(gear);
   for (const copy of shown) {
@@ -57,7 +58,7 @@ export function renderGrid(ctx: GearContext): void {
   for (let i = shown.length; i < cells; i++) ui.grid.append(el('span', 'item blank'));
   if (shown.length === 0) {
     const none = viewing && !mine(ctx) ? `${viewing.name} doesn't own any gear yet.` : "You don't own any gear yet. Pull some with Koma's gacha in Discord.";
-    const note = el('p', 'armory-empty', filter === 'all' ? none : `No ${SLOT_NAME[filter].toLowerCase()} yet.`);
+    const note = el('p', 'armory-empty', ofSlot.length > 0 ? 'No items match that.' : filter === 'all' ? none : `No ${SLOT_NAME[filter].toLowerCase()} yet.`);
     ui.grid.append(note);
   }
   sheet.scrollTop = scrolled;

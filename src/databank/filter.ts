@@ -1,3 +1,4 @@
+import { matchesSearch } from '../shared/items/items';
 import type { DatabankContext } from './context';
 import type { DatabankItem } from './types';
 
@@ -7,7 +8,5 @@ export function matches(ctx: DatabankContext, item: DatabankItem): boolean {
   if (slotFilter !== 'all' && item.slot !== slotFilter) return false;
   if (starFilter !== 'all' && item.stars !== starFilter) return false;
   if (onlyOwned && !owned?.has(item.id)) return false;
-  if (query === '') return true;
-  const text = `${item.name} ${item.id} ${item.description}`.toLowerCase();
-  return query.split(/\s+/).every((word) => text.includes(word));
+  return matchesSearch(query, item.name, item.id, item.description);
 }

@@ -11,6 +11,7 @@ export interface GearUi {
   server: HTMLSelectElement;
   totals: HTMLElement;
   armoryTitle: HTMLElement;
+  search: HTMLInputElement;
   grid: HTMLElement;
   detail: HTMLElement;
   loadoutButton: HTMLButtonElement;
@@ -37,6 +38,8 @@ export interface GearContext {
   ui: GearUi;
   gear: GearView | null;
   filter: Slot | 'all';
+  /** What the armory's search asks for (trimmed and lowercased): every word in a card's name or description. */
+  query: string;
   /** What the panel beside the character shows. */
   view: 'common' | 'gear';
   /** The copy shown over the character, if any. */
@@ -70,6 +73,7 @@ export function createContext(root: HTMLElement, host: GearHost): GearContext {
       server: $<HTMLSelectElement>('server'),
       totals: $('totals'),
       armoryTitle: $('armory-title'),
+      search: $<HTMLInputElement>('armory-search'),
       grid: $('armory-grid'),
       detail: $('detail'),
       loadoutButton: $<HTMLButtonElement>('loadout-button'),
@@ -90,6 +94,7 @@ export function createContext(root: HTMLElement, host: GearHost): GearContext {
     },
     gear: null,
     filter: 'all',
+    query: '',
     view: 'gear',
     picked: null,
     busy: false,
