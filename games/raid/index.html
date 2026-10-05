@@ -6,6 +6,35 @@
     <meta name="referrer" content="no-referrer" />
     <meta name="robots" content="noindex" />
     <title>Koma Raid</title>
+    <script>
+      // The phone layouts' classes on <html> (see the top of src/raid/raid.css), set before the page
+      // shows and kept up as the screen turns. main.ts fires 'rd-screen' when it turns the page sideways.
+      (function () {
+        var root = document.documentElement;
+        var side = matchMedia('(orientation: landscape) and (max-height: 520px)');
+        var up = matchMedia('(max-width: 700px)');
+        var tall = matchMedia('(max-width: 700px) and (orientation: portrait)');
+        var portrait = matchMedia('(orientation: portrait)');
+        function update() {
+          var turned = root.classList.contains('rd-sideways') && portrait.matches;
+          root.classList.toggle('rd-side', side.matches || turned);
+          root.classList.toggle('rd-up', up.matches && !turned);
+          root.classList.toggle('rd-tall', tall.matches && !turned);
+        }
+        update();
+        [side, up, tall, portrait].forEach(function (query) {
+          // Safari before 14 only has addListener.
+          if (query.addEventListener) query.addEventListener('change', update);
+          else query.addListener(update);
+        });
+        // iOS can report the turn before the media queries catch up: check again once it settles.
+        addEventListener('resize', update);
+        addEventListener('orientationchange', function () {
+          setTimeout(update, 300);
+        });
+        addEventListener('rd-screen', update);
+      })();
+    </script>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚔️</text></svg>" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -187,6 +216,7 @@
         <div class="rd-rotate-phone" aria-hidden="true"></div>
         <b>Turn your phone sideways</b>
         <span>The raid is played in landscape.</span>
+        <span id="rotate-hint" class="rd-rotate-hint" hidden>Screen won't turn? Your phone's rotation lock may be on (on an iPhone, it's in Control Center).</span>
         <button type="button" id="rotate-go" class="rd-button primary" hidden>Play in landscape</button>
         <a class="rd-button rd-rotate-back back" href="/">← Back to the games</a>
       </div>

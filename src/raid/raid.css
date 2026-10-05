@@ -6,14 +6,71 @@
  * side, and the party's portraits and HP along the bottom beside the actions.
  */
 
+/*
+ * The screen's layouts. A phone's are picked by classes on <html>, which games/raid/index.html sets
+ * from the screen's shape before the page shows: .rd-side for a phone on its side (landscape, at most
+ * 520px tall), .rd-up for a phone-width screen (at most 700px wide) and .rd-tall for one held upright.
+ * Classes rather than media queries so that a page turned sideways by hand (.rd-sideways, below) is
+ * laid out as the landscape it looks like, not the portrait the browser thinks it is. The sizes of the
+ * screen are --rd-vw and --rd-vh for the same reason: in place of 100vw and 100dvh, swapped when turned.
+ */
+:root {
+  --rd-vw: 100vw;
+  --rd-vh: 100vh;
+}
+
+@supports (height: 100dvh) {
+  :root {
+    --rd-vh: 100dvh;
+  }
+}
+
+/* Taps on the actions aren't held up waiting for a double tap, and never zoom (iOS ignores maximum-scale). */
+html {
+  touch-action: manipulation;
+}
+
+/*
+ * The page turned sideways by hand, for a phone that can't turn the screen itself (an iPhone with its
+ * rotation lock on: no browser there can lock the screen to landscape). The page is laid out as wide
+ * as the screen is tall, and turned a quarter clockwise to fill it: read with the phone turned
+ * counterclockwise, as the cover's picture shows. Only while the browser is upright: turned for real,
+ * the page is just landscape.
+ */
+@media (orientation: portrait) {
+  html.rd-sideways {
+    --rd-vw: 100vh;
+    --rd-vh: 100vw;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  @supports (height: 100dvh) {
+    html.rd-sideways {
+      --rd-vw: 100dvh;
+    }
+  }
+
+  html.rd-sideways body {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: var(--rd-vw);
+    height: var(--rd-vh);
+    overflow: auto;
+    overscroll-behavior: none;
+    transform-origin: 0 0;
+    transform: translateX(100vw) rotate(90deg);
+  }
+}
+
 .rd {
   --rd-hi: #6fcf8a;
   --rd-mid: #e6c350;
   --rd-lo: #e0595b;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  min-height: 100dvh;
+  min-height: var(--rd-vh);
 }
 
 .rd-title-boss {
@@ -106,9 +163,8 @@
    * The screen (under the title bar and the frame's border) less a margin, unzoomed: a percentage of
    * .rd-prep wouldn't resolve. The party's side sets the height (its cards, as big as fit), up to that.
    */
-  --rd-room: min(900px, calc((100vh - 69px) / var(--rd-zoom)));
-  --rd-room: min(900px, calc((100dvh - 69px) / var(--rd-zoom)));
-  width: min(1680px, calc((100vw - 32px) / var(--rd-zoom)));
+  --rd-room: min(900px, calc((var(--rd-vh) - 69px) / var(--rd-zoom)));
+  width: min(1680px, calc((var(--rd-vw) - 32px) / var(--rd-zoom)));
   max-height: var(--rd-room);
   min-height: 420px;
   zoom: var(--rd-zoom);
@@ -667,17 +723,15 @@ button.rd-slot:not(.empty):focus-visible {
 }
 
 /* A phone on its side: the popup nearly to the edges. */
-@media (orientation: landscape) and (max-height: 520px) {
-  .rd-gear {
-    padding: 8px;
-  }
+:where(.rd-side) .rd-gear {
+  padding: 8px;
+}
 
-  .rd-gear-close {
-    top: 6px;
-    right: 6px;
-    width: 30px;
-    height: 30px;
-  }
+:where(.rd-side) .rd-gear-close {
+  top: 6px;
+  right: 6px;
+  width: 30px;
+  height: 30px;
 }
 
 /* While a popup is up, the raid behind it (mostly covered) stops blurring: redrawn every frame under the popup, the blurs made it lag. */
@@ -896,7 +950,7 @@ body.rd-popup-open .rd-battle-bg {
   top: 120px;
   left: 16px;
   z-index: 1;
-  width: min(300px, 30vw);
+  width: min(300px, calc(var(--rd-vw) * 0.3));
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 10px;
   background: rgba(8, 10, 18, 0.72);
@@ -917,7 +971,7 @@ body.rd-popup-open .rd-battle-bg {
 .rd-log {
   display: grid;
   gap: 2px;
-  max-height: min(300px, 38vh);
+  max-height: min(300px, calc(var(--rd-vh) * 0.38));
   margin: 0;
   padding: 0 12px 10px;
   overflow-y: auto;
@@ -1597,93 +1651,91 @@ body.rd-popup-open .rd-battle-bg {
 }
 
 /* A phone: the party across the bottom, the actions under it, the log folded under the top. */
-@media (max-width: 700px) {
-  .rd-battle {
-    min-height: calc(100dvh - 44px);
-  }
+:where(.rd-up) .rd-battle {
+  min-height: calc(var(--rd-vh) - 44px);
+}
 
-  .rd-battle-top {
-    grid-template-columns: minmax(0, 1fr);
-    padding: 10px 12px 0;
-  }
+:where(.rd-up) .rd-battle-top {
+  grid-template-columns: minmax(0, 1fr);
+  padding: 10px 12px 0;
+}
 
-  .rd-boss,
-  .rd-round {
-    grid-column: 1;
-  }
+:where(.rd-up) .rd-boss,
+:where(.rd-up) .rd-round {
+  grid-column: 1;
+}
 
-  .rd-round {
-    grid-template-columns: auto auto 1fr;
-    align-items: center;
-    justify-self: stretch;
-    gap: 8px;
-    padding: 6px 10px;
-  }
+:where(.rd-up) .rd-round {
+  grid-template-columns: auto auto 1fr;
+  align-items: center;
+  justify-self: stretch;
+  gap: 8px;
+  padding: 6px 10px;
+}
 
-  .rd-intent {
-    margin-top: 8px;
-    padding: 6px 12px;
-  }
+:where(.rd-up) .rd-intent {
+  margin-top: 8px;
+  padding: 6px 12px;
+}
 
-  .rd-intent p {
-    font-size: 13px;
-  }
+:where(.rd-up) .rd-intent p {
+  font-size: 13px;
+}
 
-  .rd-log-panel {
-    position: static;
-    grid-row: 3;
-    align-self: start;
-    width: auto;
-    margin: 8px 12px 0;
-  }
+:where(.rd-up) .rd-log-panel {
+  position: static;
+  grid-row: 3;
+  align-self: start;
+  width: auto;
+  margin: 8px 12px 0;
+}
 
-  .rd-battle-bottom {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
-    padding: 0 12px 12px;
-  }
+:where(.rd-up) .rd-battle-bottom {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  padding: 0 12px 12px;
+}
 
-  .rd-party {
-    justify-content: flex-start;
-    gap: 16px;
-    margin: calc(4px - var(--rd-bleed)) calc(2px - var(--rd-bleed));
-  }
+:where(.rd-up) .rd-party {
+  justify-content: flex-start;
+  gap: 16px;
+  margin: calc(4px - var(--rd-bleed)) calc(2px - var(--rd-bleed));
+}
 
-  .rd-party-layer {
-    gap: 16px;
-  }
+:where(.rd-up) .rd-party-layer {
+  gap: 16px;
+}
 
-  .rd-member {
-    width: 104px;
-  }
+:where(.rd-up) .rd-member {
+  width: 104px;
+}
 
-  .rd-member-name {
-    font-size: 13px;
-  }
+:where(.rd-up) .rd-member-name {
+  font-size: 13px;
+}
 
-  .rd-member-hp {
-    font-size: 16px;
-  }
+:where(.rd-up) .rd-member-hp {
+  font-size: 16px;
+}
 
-  .rd-portrait {
-    width: 52px;
-    height: 52px;
-  }
+:where(.rd-up) .rd-portrait {
+  width: 52px;
+  height: 52px;
+}
 
-  .rd-command {
-    justify-items: stretch;
-    width: 100%;
-    margin: 0;
-  }
+:where(.rd-up) .rd-command {
+  justify-items: stretch;
+  width: 100%;
+  margin: 0;
+}
 
-  .rd-actions {
-    justify-self: center;
-  }
+:where(.rd-up) .rd-actions {
+  justify-self: center;
+}
 
-  .rd-note {
-    text-align: center;
-  }
+:where(.rd-up) .rd-note {
+  text-align: center;
 }
 
 /* ------------------------------------------------------------------ the end: VICTORY or DEFEAT */
@@ -2254,28 +2306,24 @@ body.rd-popup-open .rd-battle-bg {
 }
 
 /* A phone on its side: the modal nearly to the edges, a size down. */
-@media (orientation: landscape) and (max-height: 520px) {
-  .rd-stats {
-    padding: 8px;
-  }
-
-  .rd-stats-box {
-    zoom: 0.72;
-    width: min(1040px, calc((100vw - 16px) / 0.72));
-    max-height: calc((100dvh - 16px) / 0.72);
-  }
+:where(.rd-side) .rd-stats {
+  padding: 8px;
 }
 
-@media (max-width: 700px) and (orientation: portrait) {
-  .rd-stats-body {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto minmax(0, 1fr);
-  }
+:where(.rd-side) .rd-stats-box {
+  zoom: 0.72;
+  width: min(1040px, calc((var(--rd-vw) - 16px) / 0.72));
+  max-height: calc((var(--rd-vh) - 16px) / 0.72);
+}
 
-  .rd-stats-pick {
-    border-right: 0;
-    border-bottom: 2px solid rgba(185, 168, 119, 0.45);
-  }
+:where(.rd-tall) .rd-stats-body {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+:where(.rd-tall) .rd-stats-pick {
+  border-right: 0;
+  border-bottom: 2px solid rgba(185, 168, 119, 0.45);
 }
 
 /* ------------------------------------------------------------------ the raid's markdown, and toasts */
@@ -2300,7 +2348,7 @@ body.rd-popup-open .rd-battle-bg {
   left: 50%;
   bottom: max(18px, env(safe-area-inset-bottom));
   z-index: 20;
-  max-width: min(460px, calc(100vw - 32px));
+  max-width: min(460px, calc(var(--rd-vw) - 32px));
   padding: 10px 16px;
   transform: translateX(-50%);
   border: 1px solid var(--line);
@@ -2359,55 +2407,53 @@ body.rd-popup-open .rd-battle-bg {
 }
 
 /* A phone on its side: the fight fills the screen (no title bar), a size down again, right to the edges. */
-@media (orientation: landscape) and (max-height: 520px) {
-  .rd-battle,
-  .rd-result,
-  .rd-prep {
-    --rd-zoom: 0.6;
-    min-height: 0;
-  }
-
-  .rd-slots-wrap {
-    --rd-slots-top: 14px;
-    --rd-slots-bottom: 4px;
-  }
-
-  body.rd-fighting .frame > .top {
-    display: none;
-  }
-
-  body.rd-fighting .frame {
-    border: 0;
-  }
-
-  .rd-battle-top {
-    padding-top: 8px;
-  }
-
-  .rd-log-panel {
-    top: 96px;
-  }
-
-  .rd-battle-bottom {
-    padding: 0 10px 6px;
-  }
-
-  .rd-party {
-    margin: calc(4px - var(--rd-bleed)) calc(2px - var(--rd-bleed)) calc(8px - var(--rd-bleed)) calc(10px - var(--rd-bleed));
-  }
-
-  .rd-command {
-    margin: 0 8px 0 0;
-  }
+:where(.rd-side) .rd-battle,
+:where(.rd-side) .rd-result,
+:where(.rd-side) .rd-prep {
+  --rd-zoom: 0.6;
+  min-height: 0;
 }
 
-/* A phone held upright: covered, asking to turn it sideways. */
+:where(.rd-side) .rd-slots-wrap {
+  --rd-slots-top: 14px;
+  --rd-slots-bottom: 4px;
+}
+
+:where(.rd-side) body.rd-fighting .frame > .top {
+  display: none;
+}
+
+:where(.rd-side) body.rd-fighting .frame {
+  border: 0;
+}
+
+:where(.rd-side) .rd-battle-top {
+  padding-top: 8px;
+}
+
+:where(.rd-side) .rd-log-panel {
+  top: 96px;
+}
+
+:where(.rd-side) .rd-battle-bottom {
+  padding: 0 10px 6px;
+}
+
+:where(.rd-side) .rd-party {
+  margin: calc(4px - var(--rd-bleed)) calc(2px - var(--rd-bleed)) calc(8px - var(--rd-bleed)) calc(10px - var(--rd-bleed));
+}
+
+:where(.rd-side) .rd-command {
+  margin: 0 8px 0 0;
+}
+
+/* A phone held upright: covered, asking to turn it sideways (unless the page was turned for them, below). */
 .rd-rotate {
   display: none;
 }
 
 @media (orientation: portrait) and (pointer: coarse) and (max-width: 600px) {
-  .rd-rotate {
+  :where(html:not(.rd-sideways)) .rd-rotate {
     position: fixed;
     inset: 0;
     z-index: 100;
@@ -2433,6 +2479,10 @@ body.rd-popup-open .rd-battle-bg {
 .rd-rotate-card span {
   color: var(--muted);
   font-size: 14px;
+}
+
+.rd-rotate-card .rd-rotate-hint {
+  font-size: 12px;
 }
 
 .rd-rotate-card .rd-button {

@@ -586,7 +586,9 @@ function closeGear(quiet = false): void {
 /** Lays the frame out at least GEAR_LAYOUT_WIDTH by GEAR_LAYOUT_HEIGHT, scaled to the popup's size. */
 function fitGear(): void {
   if (ui.gearPop.hidden) return;
-  const { width, height } = ui.gearFit.getBoundingClientRect();
+  // Its laid-out size (a bounding box would come out the wrong way round on a page turned sideways).
+  const width = ui.gearFit.clientWidth;
+  const height = ui.gearFit.clientHeight;
   if (width === 0 || height === 0) return;
   const scale = Math.min(1, width / GEAR_LAYOUT_WIDTH, height / GEAR_LAYOUT_HEIGHT);
   ui.gearFrame.style.width = `${width / scale}px`;
@@ -1060,34 +1062,55 @@ if (window.matchMedia('(max-width: 700px), (max-height: 520px)').matches) ui.log
 
 /*
  * Phones play the raid sideways, filling the screen like a game. Held upright, a cover asks them to
- * turn it (raid.css); where the browser allows it (Android), its button goes full screen and locks the
- * screen to landscape, which turns it for them. Held sideways, the first tap goes full screen.
+ * turn it (raid.css). Where the browser allows it (Android), its button goes full screen and locks the
+ * screen to landscape, which turns it for them; held sideways, the first tap goes full screen. Where
+ * it doesn't (every browser on an iPhone: no full screen for the page, no orientation lock), turning
+ * the phone by hand works unless its rotation lock is on, so the button turns the page itself instead
+ * (.rd-sideways in raid.css): laid out in landscape and drawn a quarter turn round.
  */
 const touch = window.matchMedia('(pointer: coarse)').matches;
 const root = document.documentElement;
-const canFullscreen = typeof root.requestFullscreen === 'function';
 const orientation = screen.orientation as (ScreenOrientation & { lock?: (o: string) => Promise<void> }) | undefined;
+// iOS 16.4+ has screen.orientation.lock, but it always turns the request down: full screen tells them apart.
+const canLock = document.fullscreenEnabled === true && typeof root.requestFullscreen === 'function' && typeof orientation?.lock === 'function';
 
-async function playLandscape(): Promise<void> {
+/** Full screen and locked to landscape. False when the browser turned it down. */
+async function playLandscape(): Promise<boolean> {
   try {
     if (!document.fullscreenElement) await root.requestFullscreen({ navigationUI: 'hide' });
     await orientation?.lock?.('landscape');
+    return true;
   } catch {
-    // Not allowed here (or turned down): turning the phone by hand still works.
+    return false;
   }
 }
 
-if (touch && canFullscreen) {
+/** Turns the page itself sideways (see .rd-sideways). */
+function turnSideways(): void {
+  root.classList.add('rd-sideways');
+  window.dispatchEvent(new Event('rd-screen'));
+  ui.logPanel.open = false;
+}
+
+if (touch) {
   const go = $<HTMLButtonElement>('rotate-go');
-  go.hidden = typeof orientation?.lock !== 'function';
-  go.addEventListener('click', () => void playLandscape());
-  document.addEventListener(
-    'pointerdown',
-    () => {
-      if (window.matchMedia('(orientation: landscape)').matches && !document.fullscreenElement) void playLandscape();
-    },
-    { once: true },
-  );
+  go.hidden = false;
+  go.textContent = canLock ? 'Play in landscape' : 'Play sideways';
+  $('rotate-hint').hidden = canLock;
+  go.addEventListener('click', () => {
+    void (async () => {
+      if (!canLock || !(await playLandscape())) turnSideways();
+    })();
+  });
+  if (canLock) {
+    document.addEventListener(
+      'pointerdown',
+      () => {
+        if (window.matchMedia('(orientation: landscape)').matches && !document.fullscreenElement) void playLandscape();
+      },
+      { once: true },
+    );
+  }
 }
 
 if (!token || !server) {

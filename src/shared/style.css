@@ -35,6 +35,9 @@ body {
   color: var(--text);
   font-family: Poppins, 'Segoe UI', system-ui, -apple-system, sans-serif;
   -webkit-tap-highlight-color: transparent;
+  /* iOS otherwise blows the text up when the phone is turned sideways. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 /* Pictures neither selected (highlighted) nor dragged off the page. */
