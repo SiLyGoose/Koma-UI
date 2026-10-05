@@ -1,7 +1,7 @@
-// Put at the end of every page's <head> by vite.config.ts, before the page is drawn (transition.ts
+// Put at the end of every page's <head> by vite.config.ts, before the page is drawn (transition/
 // does the rest). The page starts under the loading screen, as the page before ended, when it was
 // arrived at through a transition, or by going back or forward (the wipe then runs the other way),
-// until transition.ts wipes it away. It also picks the loading screen's sprite. Nothing for anyone
+// until transition/ wipes it away. It also picks the loading screen's sprite. Nothing for anyone
 // who asked for less motion.
 try {
   (function () {

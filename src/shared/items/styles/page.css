@@ -1,0 +1,105 @@
+.gear-page {
+  /* The star tiers' colours, as the bot's (its constants/items/gacha.ts STAR_COLORS). */
+  --star-1: #3fe04a;
+  --star-2: #4aa8ff;
+  --star-3: #b36bff;
+  --star-4: #ff4a5a;
+  /* What's picked (a card, a slot): its border turns gold, with a pale gold glow in towards the middle. */
+  --picked: #d4a94f;
+  --picked-glow: rgb(255 222 140 / 75%);
+  --parchment: #f3ecd8;
+  --parchment-2: #e6dabb;
+  --parchment-edge: #b9ab88;
+  --ink: #3b3444;
+  /* The armory's dark frame (.armory; the databank's item panel wears it too). */
+  --frame-border: 2px solid #4a4452;
+  --frame-bg:
+    radial-gradient(ellipse at 20% 0%, rgb(216 191 122 / 8%), transparent 60%),
+    linear-gradient(180deg, #1b1a20, #111014);
+  --frame-shadow:
+    inset 0 0 0 4px #141318,
+    inset 0 0 0 5px rgb(216 191 122 / 35%),
+    0 12px 30px rgb(0 0 0 / 45%);
+  max-width: 1120px;
+  padding: 20px 16px 40px;
+}
+
+[data-stars='1'] { --tier: var(--star-1); }
+[data-stars='2'] { --tier: var(--star-2); }
+[data-stars='3'] { --tier: var(--star-3); }
+[data-stars='4'] { --tier: var(--star-4); }
+
+/* Wide screens: the page's panels in the middle of the screen under the header. */
+@media (min-width: 900px) {
+  .gear-page {
+    /*
+     * How tall the page's two panels are (the gear page's and the databank's, so they line up going from
+     * one to the other): the screen under the header, less the page's padding and room for the name
+     * boards hung over the frames' top edges.
+     */
+    --panels-h: calc(100dvh - 72px - 48px - 20px);
+    --panels-min: 560px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: calc(100vh - 72px);
+    min-height: calc(100dvh - 72px);
+    padding-block: 24px;
+    box-sizing: border-box;
+  }
+}
+
+/*
+ * The page's panels (.panels: the gear page's, the databank's and the forge's section). Narrow screens:
+ * one over the other, in one column no wider than the page (an implicit auto column would grow to fit
+ * its widest content, like a long server name). Wide screens: side by side, as tall as each other and
+ * the same height on every page, so they line up going from one to the next; each page sets its columns.
+ */
+.panels {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+@media (min-width: 900px) {
+  .panels {
+    align-items: stretch;
+    height: var(--panels-h);
+    min-height: var(--panels-min);
+    max-height: 900px;
+  }
+}
+
+/* The server picker (the site's dropdown, ../../dropdown.ts): a pill like the profile button. */
+.dd:has(> .server-pick) {
+  max-width: 50%;
+}
+
+/* Its list hangs from its right edge, as the profile menu's does, wide enough for long names. */
+.dd:has(> .server-pick) .dd-list {
+  left: auto;
+  width: max-content;
+  min-width: max(100%, 170px);
+  max-width: min(280px, calc(100vw - 32px));
+}
+
+.server-pick {
+  padding: 7px 14px;
+  border: 1px solid var(--line);
+  border-radius: 30px;
+  background: transparent;
+  color: var(--text);
+  font-size: 13px;
+  transition: background-color 0.2s ease;
+}
+
+.server-pick:hover,
+.server-pick[aria-expanded='true'] {
+  background-color: var(--panel-2);
+}
+
+.server-pick:focus-visible {
+  outline: 2px solid var(--muted);
+  outline-offset: 2px;
+}

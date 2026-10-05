@@ -1,0 +1,70 @@
+/* The section's layout and height are the shared .panels' (../../shared/items/items.css). */
+@media (min-width: 900px) {
+  .gear {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    grid-template-areas: 'hero armory';
+  }
+
+  /*
+   * The stage stays its own size; whatever height the armory makes spare goes to the equipped
+   * totals (scrolling if they run long), with Common | Gear kept at the bottom.
+   */
+  .hero {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Still scrolls (wheel, touch, keys), just without a scrollbar. */
+  .totals {
+    flex: 1 1 0;
+    min-height: 96px;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+
+  .totals::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* With the roster, a narrow column of it first, and the page a little wider to make room. */
+  .gear:has(> .roster:not([hidden])) {
+    grid-template-columns: 148px minmax(0, 5fr) minmax(0, 6fr);
+    grid-template-areas: 'roster hero armory';
+  }
+
+  main.gear-page:has(.roster:not([hidden])) {
+    max-width: 1320px;
+  }
+
+  .gear > .roster {
+    grid-area: roster;
+  }
+
+  /* The picked copy takes the character's place, as tall as the armory beside it. */
+  .gear > .hero,
+  .gear > .detail {
+    grid-area: hero;
+  }
+
+  .gear > .armory {
+    grid-area: armory;
+  }
+
+  .gear.picking .hero {
+    visibility: hidden;
+  }
+
+  /* Never taller than the armory: a long list scrolls inside it, the buttons staying at the bottom. */
+  .gear > .detail {
+    align-self: stretch;
+    contain: size;
+    animation: detail-in 0.18s ease-out;
+  }
+}
+
+@keyframes detail-in {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+}

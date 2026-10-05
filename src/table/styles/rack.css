@@ -1,0 +1,178 @@
+/* ------------------------------------------------------------------ The rack and buttons */
+
+.tb-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 18px;
+  background: var(--panel-2);
+}
+
+.tb-rack {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.tb-rack .tb-chip {
+  cursor: grab;
+  touch-action: none;
+  transition:
+    transform 0.12s,
+    opacity 0.15s,
+    box-shadow 0.15s;
+}
+
+.tb-rack .tb-chip:hover {
+  transform: translateY(-3px);
+}
+
+.tb-rack .tb-chip.picked {
+  transform: translateY(-6px);
+  box-shadow:
+    inset 0 0 0 3px var(--edge),
+    0 0 0 3px var(--bg),
+    0 0 0 5px #f2d27a,
+    0 8px 14px rgba(0, 0, 0, 0.45);
+}
+
+.tb-rack .tb-chip.off {
+  opacity: 0.35;
+}
+
+.tb-rack .tb-chip:focus-visible {
+  outline: 2px solid #f2d27a;
+  outline-offset: 3px;
+}
+
+.tb-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.tb-figures {
+  display: flex;
+  gap: 18px;
+}
+
+.tb-figures div {
+  display: flex;
+  flex-direction: column;
+}
+
+.tb-figures span {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tb-figures b {
+  font-size: 18px;
+}
+
+.tb-balance {
+  color: var(--green);
+}
+
+.tb-bet {
+  color: var(--gold);
+}
+
+.tb-buttons {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.tb-button,
+.tb-deal {
+  border: 0;
+  border-radius: 8px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tb-button {
+  padding: 10px 14px;
+  background: var(--panel-3);
+  color: var(--text);
+}
+
+.tb-button:hover:not(:disabled) {
+  background: var(--line);
+}
+
+.tb-deal {
+  min-width: 120px;
+  padding: 11px 26px;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.tb-deal:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+/* Voted: pressed in, and pressing again takes the vote back. */
+.tb-deal.voted {
+  background: var(--panel-3);
+  box-shadow: inset 0 0 0 2px var(--green);
+  color: var(--green);
+}
+
+.tb-deal.voted:hover:not(:disabled) {
+  background: var(--line);
+}
+
+.tb-panel :disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.tb-error {
+  margin: 0;
+  color: var(--red);
+  font-size: 13px;
+  text-align: center;
+}
+
+/* The countdown: a bar that empties as the betting time runs out. */
+.tb-timer {
+  position: relative;
+  overflow: hidden;
+  height: 30px;
+  border-radius: 8px;
+  background: var(--panel);
+  display: grid;
+  place-items: center;
+}
+
+.tb-timer-bar {
+  position: absolute;
+  inset: 0;
+  transform-origin: left;
+  background: linear-gradient(90deg, rgba(63, 174, 106, 0.55), rgba(63, 174, 106, 0.3));
+  transition: transform 0.2s linear;
+}
+
+.tb-timer.soon .tb-timer-bar {
+  background: linear-gradient(90deg, rgba(216, 104, 106, 0.6), rgba(216, 104, 106, 0.3));
+}
+
+.tb-timer-text {
+  position: relative;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.tb-timer.dealing .tb-timer-text {
+  color: var(--gold);
+}

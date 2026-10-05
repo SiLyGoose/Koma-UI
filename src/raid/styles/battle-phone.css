@@ -1,0 +1,87 @@
+/* A phone: the party across the bottom, the actions under it, the log folded under the top. */
+:where(.rd-up) .rd-battle {
+  min-height: calc(var(--rd-vh) - 44px);
+}
+
+:where(.rd-up) .rd-battle-top {
+  grid-template-columns: minmax(0, 1fr);
+  padding: 10px 12px 0;
+}
+
+:where(.rd-up) .rd-boss,
+:where(.rd-up) .rd-round {
+  grid-column: 1;
+}
+
+:where(.rd-up) .rd-round {
+  grid-template-columns: auto auto 1fr;
+  align-items: center;
+  justify-self: stretch;
+  gap: 8px;
+  padding: 6px 10px;
+}
+
+:where(.rd-up) .rd-intent {
+  margin-top: 8px;
+  padding: 6px 12px;
+}
+
+:where(.rd-up) .rd-intent p {
+  font-size: 13px;
+}
+
+:where(.rd-up) .rd-log-panel {
+  position: static;
+  grid-row: 3;
+  align-self: start;
+  width: auto;
+  margin: 8px 12px 0;
+}
+
+:where(.rd-up) .rd-battle-bottom {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  padding: 0 12px 12px;
+}
+
+:where(.rd-up) .rd-party {
+  justify-content: flex-start;
+  gap: 16px;
+  margin: calc(4px - var(--rd-bleed)) calc(2px - var(--rd-bleed));
+}
+
+:where(.rd-up) .rd-party-layer {
+  gap: 16px;
+}
+
+:where(.rd-up) .rd-member {
+  width: 104px;
+}
+
+:where(.rd-up) .rd-member-name {
+  font-size: 13px;
+}
+
+:where(.rd-up) .rd-member-hp {
+  font-size: 16px;
+}
+
+:where(.rd-up) .rd-portrait {
+  width: 52px;
+  height: 52px;
+}
+
+:where(.rd-up) .rd-command {
+  justify-items: stretch;
+  width: 100%;
+  margin: 0;
+}
+
+:where(.rd-up) .rd-actions {
+  justify-self: center;
+}
+
+:where(.rd-up) .rd-note {
+  text-align: center;
+}

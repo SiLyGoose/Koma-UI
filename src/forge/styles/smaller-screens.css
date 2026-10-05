@@ -1,0 +1,51 @@
+/* Smaller computer screens (../../shared/items/items.css): the anvil a size down too. */
+@media (min-width: 900px) and (max-width: 1279px), (min-width: 900px) and (max-height: 820px) {
+  .forge {
+    gap: 16px;
+  }
+
+  .anvil-stage {
+    padding: 12px 14px 12px;
+  }
+
+  .anvil-hint {
+    font-size: 13px;
+  }
+
+  .anvil-slots {
+    margin-bottom: 30px;
+  }
+
+  .anvil-frame {
+    width: 88px;
+  }
+
+  .anvil-label {
+    font-size: 14px;
+  }
+
+  .anvil-rate strong {
+    font-size: 36px;
+  }
+
+  .anvil-rate span {
+    font-size: 16px;
+  }
+
+  .forge-effects {
+    font-size: 13px;
+  }
+
+  .forge-change {
+    font-size: 14px;
+  }
+
+  .anvil-go {
+    min-height: 42px;
+    font-size: 15px;
+  }
+
+  .anvil-cost-amount {
+    font-size: 16px;
+  }
+}

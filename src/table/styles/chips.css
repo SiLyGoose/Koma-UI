@@ -1,0 +1,72 @@
+/* ------------------------------------------------------------------ Chips */
+
+.tb-chip {
+  --size: 52px;
+  --chip: #e8e8ef;
+  --edge: #b9bbc6;
+  --ink: #22252b;
+  display: inline-grid;
+  place-items: center;
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, var(--chip) 0 54%, transparent 55%),
+    repeating-conic-gradient(var(--chip) 0 22.5deg, #fff 22.5deg 30deg, var(--chip) 30deg 45deg),
+    var(--chip);
+  box-shadow:
+    inset 0 0 0 3px var(--edge),
+    inset 0 0 0 calc(var(--size) * 0.18) rgba(0, 0, 0, 0.08),
+    0 3px 0 rgba(0, 0, 0, 0.35),
+    0 5px 10px rgba(0, 0, 0, 0.35);
+  color: var(--ink);
+  font-size: calc(var(--size) * 0.28);
+  font-weight: 800;
+  line-height: 1;
+}
+
+.tb-chip-1 {
+  --chip: #eceef3;
+  --edge: #aab0bf;
+}
+.tb-chip-5 {
+  --chip: #d83b3f;
+  --edge: #8f1d20;
+  --ink: #fff;
+}
+.tb-chip-25 {
+  --chip: #2f9e58;
+  --edge: #17602f;
+  --ink: #fff;
+}
+.tb-chip-100 {
+  --chip: #26272d;
+  --edge: #0b0b0e;
+  --ink: #fff;
+}
+.tb-chip-500 {
+  --chip: #7b4fd1;
+  --edge: #40248a;
+  --ink: #fff;
+}
+.tb-chip-1000 {
+  --chip: #e9c25c;
+  --edge: #9b7418;
+  --ink: #2a1d06;
+}
+.tb-chip-5000 {
+  --chip: #e5813a;
+  --edge: #93461a;
+  --ink: #fff;
+}
+
+/* The chip being dragged: follows the pointer, over everything. */
+.tb-ghost {
+  position: fixed;
+  z-index: 100;
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(1.1);
+  box-shadow:
+    inset 0 0 0 3px var(--edge),
+    0 12px 22px rgba(0, 0, 0, 0.55);
+}

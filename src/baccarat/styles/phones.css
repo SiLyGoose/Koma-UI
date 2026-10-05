@@ -1,0 +1,51 @@
+/* ------------------------------------------------------------------ Phones */
+
+@media (max-width: 640px) {
+  .bc {
+    --card-w: 40px;
+  }
+
+  /* The hands side by side (each needs room for a sideways third card), the result under them. */
+  .bc-hands {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  .bc-mid {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    flex-direction: row;
+    justify-content: center;
+    min-height: 34px;
+  }
+
+  .bc-vs:empty {
+    display: none;
+  }
+
+  .bc-hand {
+    padding: 6px 4px 8px;
+  }
+
+  .bc-cards {
+    gap: 4px;
+  }
+
+  .bc-vs {
+    min-width: 44px;
+    font-size: 11px;
+  }
+
+  .bc-spot {
+    min-height: 84px;
+    padding: 8px 4px 40px;
+  }
+
+  .bc-spot-help {
+    display: none;
+  }
+
+  .bc-main .bc-spot-name {
+    font-size: 16px;
+  }
+}

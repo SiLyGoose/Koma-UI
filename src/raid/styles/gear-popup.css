@@ -1,0 +1,96 @@
+/* ------------------------------------------------------------------ a raider's gear, in a popup */
+
+.rd-gear {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  /* Dark, not blurred: blurring the whole raid behind it every frame (on top of its own blurs) made the popup lag. */
+  background: rgba(3, 4, 8, 0.85);
+  animation: rd-gear-in 0.18s ease-out;
+}
+
+.rd-gear[hidden] {
+  display: none;
+}
+
+.rd-gear-box {
+  position: relative;
+  width: min(1400px, 100%);
+  height: min(900px, 100%);
+  border: 2px solid #b9a877;
+  border-radius: 14px;
+  background: var(--bg);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+  overflow: hidden;
+}
+
+/* The frame is laid out at a computer's width and scaled down to this box (../gear-popup.ts's fitGear). */
+.rd-gear-fit {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.rd-gear-frame {
+  display: block;
+  border: 0;
+  transform-origin: 0 0;
+  background: var(--bg);
+}
+
+.rd-gear-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid rgba(233, 219, 170, 0.5);
+  border-radius: 50%;
+  background: rgba(10, 10, 14, 0.8);
+  color: #f3ecdc;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.rd-gear-close:hover,
+.rd-gear-close:focus-visible {
+  outline: none;
+  border-color: #e9d18f;
+  background: rgba(40, 34, 20, 0.9);
+}
+
+@keyframes rd-gear-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* A phone on its side: the popup nearly to the edges. */
+:where(.rd-side) .rd-gear {
+  padding: 8px;
+}
+
+:where(.rd-side) .rd-gear-close {
+  top: 6px;
+  right: 6px;
+  width: 30px;
+  height: 30px;
+}
+
+/* While a popup is up, the raid behind it (mostly covered) stops blurring: redrawn every frame under the popup, the blurs made it lag. */
+body.rd-popup-open .rd-prep-shade,
+body.rd-popup-open .rd-result-shade {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+body.rd-popup-open .rd-battle-bg {
+  filter: brightness(0.45);
+}

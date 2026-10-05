@@ -1,0 +1,174 @@
+/* ------------------------------------------------------------------ armory */
+
+.armory {
+  position: relative;
+  padding: 30px 14px 14px;
+  border-radius: 14px;
+  background: var(--frame-bg);
+  border: var(--frame-border);
+  box-shadow: var(--frame-shadow);
+}
+
+/* The name board, hung over the frame's top edge. */
+.armory-plaque {
+  position: absolute;
+  top: -16px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: calc(100% - 40px);
+  padding: 6px 22px;
+  border-radius: 6px;
+  background: linear-gradient(180deg, #2d2a33, #1a191e);
+  border: 2px solid #5a5262;
+  box-shadow: inset 0 0 0 2px #141318, inset 0 0 0 3px rgb(216 191 122 / 45%), 0 4px 10px rgb(0 0 0 / 50%);
+  color: #efe3bf;
+  font-size: 15px;
+  font-style: italic;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.armory-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 4px 0 12px;
+}
+
+.armory-tabs button {
+  flex: 1 1 auto;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel-2);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.armory-tabs button:hover {
+  color: var(--text);
+}
+
+.armory-tabs button[aria-selected='true'] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+
+/*
+ * The sheet grows with its cards up to half the screen's height; the rest scrolls inside it. The
+ * parchment is on the sheet and the scrolling on the box in it, so the scrollbar sits on the
+ * parchment (its shading and edge line go right under it) instead of in a strip of its own.
+ */
+.armory-sheet {
+  display: flex;
+  flex-direction: column;
+  min-height: 240px;
+  max-height: 50vh;
+  max-height: 50dvh;
+  overflow: hidden;
+  border-radius: 6px;
+  background:
+    radial-gradient(ellipse at 50% 0%, #fbf6e7, transparent 70%),
+    linear-gradient(180deg, var(--parchment), var(--parchment-2));
+  box-shadow: inset 0 0 0 1px #cbbd97, inset 0 0 24px rgb(120 96 50 / 30%);
+}
+
+.sheet-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 12px;
+  padding-right: 9px;
+  /* Keeps the scrollbar off the sheet's right edge. */
+  margin-right: 3px;
+  overflow-y: auto;
+}
+
+/*
+ * The sheet's scrollbar: a rounded pill in the parchment's edge colour, clear of the corners, no track, no arrows.
+ * Chrome and Safari draw it from the ::-webkit-scrollbar parts; they would ignore those if the
+ * standard properties were set too, so those are only for Firefox, which has no such parts.
+ */
+.sheet-scroll::-webkit-scrollbar {
+  width: 14px;
+}
+
+.sheet-scroll::-webkit-scrollbar-track,
+.sheet-scroll::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+.sheet-scroll::-webkit-scrollbar-track {
+  margin-block: 10px;
+}
+
+.sheet-scroll::-webkit-scrollbar-button {
+  display: none;
+}
+
+.sheet-scroll::-webkit-scrollbar-thumb {
+  min-height: 48px;
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: var(--parchment-edge) padding-box;
+}
+
+.sheet-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: #9c8c66;
+}
+
+@supports not selector(::-webkit-scrollbar) {
+  .sheet-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: var(--parchment-edge) transparent;
+  }
+}
+
+/*
+ * Wide screens: the sheet counts as half the screen when sizing the row, and fills whatever the
+ * frame has left, so a taller hero panel stretches it instead of leaving a gap under it.
+ */
+@media (min-width: 900px) {
+  .armory {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .armory-sheet {
+    flex: 1 1 0;
+    min-height: 50vh;
+    min-height: 50dvh;
+    max-height: none;
+  }
+}
+
+.armory-grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+@media (min-width: 520px) {
+  .armory-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.armory-empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  padding: 20px;
+  color: var(--ink);
+  font-weight: 500;
+  text-align: center;
+  pointer-events: none;
+}

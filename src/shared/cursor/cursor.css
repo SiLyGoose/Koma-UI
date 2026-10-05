@@ -1,0 +1,174 @@
+/*
+ * The reticle (index.ts) in place of the mouse pointer: a pointing hand where the mouse is, and a dot
+ * and four corner brackets trailing it that close in on whatever can be pressed (in the games, the hand
+ * alone). Only with a mouse: a touch screen keeps no pointer at all.
+ */
+
+/* The browser's own pointer hidden everywhere, but in fields typed in, which keep their I-beam. */
+html.reticle-on,
+html.reticle-on * {
+  cursor: none !important;
+}
+
+html.reticle-on :is(textarea, [contenteditable], input:is(:not([type]), [type='text'], [type='number'], [type='search'], [type='email'], [type='password'], [type='url'], [type='tel'])) {
+  cursor: text !important;
+}
+
+.reticle {
+  --reticle-ink: #f3f1ea;
+  --reticle-glow: rgb(255 255 255 / 55%);
+  position: fixed;
+  inset: 0;
+  /* Over everything, the page transition's panel included. */
+  z-index: 2147483647;
+  pointer-events: none;
+}
+
+/*
+ * Shown once the mouse is in the window, and not over a field being typed in (the I-beam alone there).
+ * The hand, being the mouse, comes and goes about at once; the dot and brackets trailing it fade.
+ */
+.reticle-dot,
+.reticle-frame,
+.reticle-hand {
+  opacity: 0;
+}
+
+.reticle-dot,
+.reticle-frame {
+  transition: opacity 0.35s ease;
+}
+
+.reticle[data-shown]:not([data-over-text]) :is(.reticle-dot, .reticle-frame, .reticle-hand) {
+  opacity: 1;
+}
+
+.reticle[data-locked] {
+  --reticle-ink: var(--gold, #d8bf7a);
+  --reticle-glow: rgb(216 191 122 / 55%);
+}
+
+/* A glowing dot, trailing the mouse with the brackets. */
+.reticle-dot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow:
+    0 0 4px 1px rgb(255 255 255 / 80%),
+    0 0 10px 3px var(--reticle-glow);
+  will-change: transform;
+}
+
+/* The mouse: a pointing hand, its fingertip where the mouse is (margins set by parts.ts). Over the brackets. */
+.reticle-hand {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 32px;
+  height: 24px;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 60%));
+  transition: opacity 0.12s;
+  will-change: transform;
+}
+
+/* Boxing something in: the hand goes, leaving the dot and the brackets. */
+.reticle[data-shown][data-locked] .reticle-hand {
+  opacity: 0;
+}
+
+/* Boxing an item: the other way round, the hand staying and the dot going, so the dot isn't lost on the item. */
+.reticle[data-shown][data-locked][data-keep-hand] .reticle-hand {
+  opacity: 1;
+}
+
+.reticle[data-shown][data-locked][data-keep-hand] .reticle-dot {
+  opacity: 0;
+}
+
+/* Leaving for a game (which has the hand alone): the hand, whatever's boxed, and the dot and brackets fading away. */
+.reticle[data-shown][data-leaving] .reticle-hand {
+  opacity: 1 !important;
+}
+
+.reticle[data-leaving] :is(.reticle-dot, .reticle-frame) {
+  opacity: 0 !important;
+}
+
+/* The brackets' box: placed, sized and turned by index.ts every frame. */
+.reticle-frame {
+  position: absolute;
+  top: 0;
+  left: 0;
+  will-change: transform, width, height;
+}
+
+.reticle-corner {
+  position: absolute;
+  width: var(--arm, 7px);
+  height: var(--arm, 7px);
+  border: 0 solid var(--reticle-ink);
+  filter: drop-shadow(0 0 2px var(--reticle-glow));
+  transition: border-color 0.2s;
+}
+
+.reticle-corner.tl {
+  top: 0;
+  left: 0;
+  border-width: 2px 0 0 2px;
+}
+
+.reticle-corner.tr {
+  top: 0;
+  right: 0;
+  border-width: 2px 2px 0 0;
+}
+
+.reticle-corner.bl {
+  bottom: 0;
+  left: 0;
+  border-width: 0 0 2px 2px;
+}
+
+.reticle-corner.br {
+  right: 0;
+  bottom: 0;
+  border-width: 0 2px 2px 0;
+}
+
+/* The arrows either side, pointing in at what's boxed: only once it's boxed. */
+.reticle-arrow {
+  position: absolute;
+  top: 50%;
+  width: 6px;
+  height: 9px;
+  margin-top: -4.5px;
+  background: var(--reticle-ink);
+  filter: drop-shadow(0 0 2px var(--reticle-glow));
+  opacity: 0;
+  transition:
+    opacity 0.15s,
+    transform 0.2s;
+}
+
+.reticle-arrow.left {
+  left: -12px;
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
+  transform: translateX(-6px);
+}
+
+.reticle-arrow.right {
+  right: -12px;
+  clip-path: polygon(100% 0, 0 50%, 100% 100%);
+  transform: translateX(6px);
+}
+
+.reticle[data-locked] .reticle-arrow {
+  opacity: 1;
+  transform: none;
+}

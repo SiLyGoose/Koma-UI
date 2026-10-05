@@ -1,0 +1,50 @@
+/* ------------------------------------------------------------------ shared bits */
+
+.rd-muted {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.rd-button {
+  padding: 9px 18px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel-2);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.rd-button:hover:not(:disabled) {
+  background: var(--panel-3);
+}
+
+.rd-button.primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+.rd-button.primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.rd-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.rd-tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.55);
+  color: var(--text);
+  font-size: 11.5px;
+  font-weight: 600;
+  vertical-align: middle;
+}

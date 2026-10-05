@@ -1,0 +1,75 @@
+/*
+ * A masterwork (R5, forged) is holographic foil: a rainbow checked with squares, printed on the card and
+ * showing only where bands of light pass over it, the bands drifting slowly and steadily across it
+ * from right to left (and a little upwards), about two on the card at a time, the colours shifting all the
+ * while. The squares stay put: the bands reveal them as they go.
+ *
+ * The foil (squares and rainbow) sits still over the card; only its mask moves. The mask is a tile
+ * twice the card's size with bands leaning a little off upright (about 0.9 of the card's width apart),
+ * repeated. It slides left by one card's width (mask-position 0% to 100%), which moves the bands exactly
+ * one along, then starts again: they look the same there, so the loop never shows. It's
+ * laid over the card as light (hard-light), so it tints the picture rather than hiding it. The gear
+ * page's slots wear it too.
+ */
+.item.masterwork::after,
+.slot.masterwork .slot-frame::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    /* The squares: a checkerboard, a little brighter than the rainbow. */
+    repeating-conic-gradient(rgb(255 255 255 / 45%) 0 25%, rgb(0 0 0 / 8%) 0 50%) 0 0 / 16px 16px,
+    /* The rainbow, across the card. */
+    linear-gradient(45deg, #ff4d6d, #ffb347, #fff275, #7cff6b, #4dd9ff, #6b7bff, #d46bff);
+  /*
+   * The bands: soft-edged, leaning about 27° off upright. At this angle (a slope of 2 to 1) they line up
+   * again across the tile's edges when three fit along its gradient, which keeps the tiling seamless.
+   */
+  mask: repeating-linear-gradient(116.565deg, transparent 0 7.8%, #000 13%, #000 22%, transparent 27.2% 33.333%) 0 0 / 200% 200%;
+  -webkit-mask: repeating-linear-gradient(116.565deg, transparent 0 7.8%, #000 13%, #000 22%, transparent 27.2% 33.333%) 0 0 / 200% 200%;
+  mix-blend-mode: hard-light;
+  opacity: 0.7;
+  animation:
+    holo 6s linear infinite,
+    holo-hue 6s linear infinite;
+  pointer-events: none;
+}
+
+/* A slot's frame clips its foil, as a card does. */
+.slot.masterwork .slot-frame {
+  overflow: hidden;
+}
+
+@keyframes holo {
+  to {
+    mask-position: 100% 0;
+    -webkit-mask-position: 100% 0;
+  }
+}
+
+/* The colours shift all the way round the rainbow as the bands drift. */
+@keyframes holo-hue {
+  to {
+    filter: hue-rotate(1turn);
+  }
+}
+
+.item.blank {
+  background: linear-gradient(170deg, #b3ae9f, #9f9a8b);
+  border-color: #8e897b;
+  box-shadow: inset 0 0 0 3px #aaa596, 0 2px 0 #857f70;
+  cursor: default;
+}
+
+.item.blank:hover {
+  transform: none;
+}
+
+/* Without the motion, the bands stay still. */
+@media (prefers-reduced-motion: reduce) {
+  .item.masterwork::after,
+  .slot.masterwork .slot-frame::after {
+    animation: none;
+  }
+}

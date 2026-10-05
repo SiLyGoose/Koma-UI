@@ -1,0 +1,137 @@
+/* Under the armory: Unequip all. */
+.armory-foot {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.loadout-pick {
+  position: relative;
+}
+
+.armory-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 14px;
+  border: 1px solid #5a5262;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #2d2a33, #1a191e);
+  box-shadow: inset 0 0 0 1px rgb(216 191 122 / 30%);
+  color: #efe3bf;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.armory-action:hover:not(:disabled) {
+  border-color: rgb(216 191 122 / 60%);
+}
+
+.armory-action:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.armory-action.danger {
+  flex: 1;
+  color: var(--red);
+}
+
+/* Sell beside Unequip all (or, while picking what to sell, Cancel): even halves, on one line. */
+.armory-foot .armory-action {
+  flex: 1 1 0;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+/* Picking what to sell: Sell in the gold of a picked card. */
+
+.armory-action.sell.on {
+  border-color: var(--gold);
+  box-shadow: inset 0 0 0 1px rgb(216 191 122 / 55%);
+  color: var(--gold);
+}
+
+.armory-action .coin,
+.gear-page .status .coin,
+.sell-confirm .coin {
+  width: 18px;
+  height: 18px;
+  vertical-align: -3px;
+}
+
+/* Picking what to sell: what can't be sold (worn, or saved in a loadout) fades back, and what's picked is ringed in red and ticked. */
+.armory-grid.selling .item.unsellable {
+  opacity: 0.4;
+  filter: grayscale(0.7);
+  cursor: default;
+  transform: none;
+}
+
+.armory-grid .item.to-sell {
+  border-color: var(--red);
+  box-shadow: inset 0 0 0 1px var(--red), inset 0 0 14px 5px rgb(216 104 106 / 35%), 0 2px 0 var(--item-lip);
+}
+
+.item-check {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--red);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+/* Selling what's picked: how many, for how much, then Cancel or Sell. */
+.sell-confirm {
+  width: min(340px, calc(100vw - 32px));
+  padding: 20px 20px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  color: var(--text);
+  text-align: center;
+}
+
+.sell-confirm::backdrop {
+  background: rgb(0 0 0 / 60%);
+}
+
+.sell-confirm h3 {
+  margin: 0 0 10px;
+  font-size: 18px;
+}
+
+.sell-confirm-total {
+  margin: 0;
+  color: var(--gold);
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.sell-confirm-note {
+  margin: 8px 0 18px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.sell-confirm-foot {
+  display: flex;
+  gap: 10px;
+}
+
+.sell-confirm-foot .detail-action {
+  flex: 1;
+  min-width: 0;
+}

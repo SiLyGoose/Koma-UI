@@ -1,0 +1,135 @@
+/* ------------------------------------------------------------------ The board */
+
+.rl-board {
+  display: grid;
+  grid-template-columns: 1.15fr repeat(12, 1fr) 1.15fr;
+  /* The numbers' three rows in halves (0 and 00 take a row and a half each), then the dozens and the even-money bets. */
+  grid-template-rows: repeat(6, calc(var(--cell-h) / 2)) var(--out-h) var(--out-h);
+  width: min(100%, 1180px);
+  align-self: center;
+  border: 2px solid var(--felt-line);
+  border-radius: 10px;
+  overflow: visible;
+}
+
+.rl-spot {
+  position: relative;
+  grid-column: var(--hc);
+  grid-row: var(--hr);
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--felt-line);
+  background: transparent;
+  color: #fff;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  touch-action: none;
+  transition:
+    background 0.15s,
+    box-shadow 0.2s,
+    filter 0.15s;
+}
+
+.rl-spot:disabled {
+  cursor: default;
+}
+
+.rl-number {
+  font-size: 17px;
+}
+
+.rl-number.red {
+  background: color-mix(in srgb, var(--red) 88%, transparent);
+}
+
+.rl-number.black {
+  background: color-mix(in srgb, var(--black) 88%, transparent);
+}
+
+.rl-number.green {
+  background: color-mix(in srgb, var(--zero) 88%, transparent);
+}
+
+.rl-spot[data-spot='00'] {
+  border-top-left-radius: 8px;
+}
+
+.rl-spot[data-spot='0'] {
+  border-bottom-left-radius: 8px;
+}
+
+.rl-outside {
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.rl-column {
+  font-size: 13px;
+  color: rgba(255, 236, 190, 0.9);
+}
+
+.rl-diamond {
+  width: 30px;
+  height: 18px;
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+}
+
+.rl-red .rl-diamond {
+  background: var(--red);
+}
+
+.rl-black .rl-diamond {
+  background: #000;
+  box-shadow: inset 0 0 0 1px #fff;
+}
+
+.rl-spot:not(.rl-zone):hover:not(:disabled),
+.rl-spot.over,
+.rl-number.lit {
+  filter: brightness(1.25);
+  box-shadow: inset 0 0 0 2px rgba(255, 226, 150, 0.85);
+}
+
+.rl-outside:hover:not(:disabled),
+.rl-outside.over {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Where the ball landed: that number and the outside bets it wins. */
+.rl-spot.hit {
+  z-index: 1;
+  box-shadow:
+    inset 0 0 0 3px #f2d27a,
+    0 0 22px rgba(242, 210, 122, 0.65);
+  animation: tb-glow 1.2s ease-in-out 2;
+}
+
+/* The inside bets: a layer over the numbers, with a small spot on each line and corner between them. */
+.rl-inside {
+  position: relative;
+  grid-column: 2 / 14;
+  grid-row: 1 / 7;
+  pointer-events: none;
+}
+
+.rl-zone {
+  position: absolute;
+  left: calc(var(--x) * 100% / 12);
+  top: calc(var(--y) * 100% / 3);
+  z-index: 2;
+  width: var(--zone);
+  height: var(--zone);
+  border: 0;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: auto;
+}
+
+.rl-zone:hover:not(:disabled),
+.rl-zone.over {
+  background: rgba(255, 226, 150, 0.45);
+  box-shadow: 0 0 0 2px rgba(255, 226, 150, 0.8);
+}

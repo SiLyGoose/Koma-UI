@@ -1,0 +1,36 @@
+/* ------------------------------------------------------------------ Motion */
+
+.shake {
+  animation: tb-shake 0.35s;
+}
+
+@keyframes tb-pop {
+  from {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+}
+
+@keyframes tb-drop {
+  from {
+    transform: translateY(-14px);
+    opacity: 0.4;
+  }
+}
+
+@keyframes tb-glow {
+  50% {
+    box-shadow: 0 0 40px rgba(242, 210, 122, 0.75);
+  }
+}
+
+@keyframes tb-shake {
+  20%,
+  60% {
+    transform: translateX(-5px);
+  }
+  40%,
+  80% {
+    transform: translateX(5px);
+  }
+}

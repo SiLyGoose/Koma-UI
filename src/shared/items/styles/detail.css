@@ -1,0 +1,120 @@
+/* ------------------------------------------------------------------ detail */
+
+.detail {
+  z-index: 1;
+  min-width: 0;
+  padding: 16px;
+  overflow-y: auto;
+  border-radius: var(--radius);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--tier, var(--line));
+}
+
+/*
+ * Narrow screens: a sheet up from the bottom, over the armory, the same height for every item (the gear
+ * page's and the databank's), what's in it scrolling inside.
+ */
+@media (max-width: 899px) {
+  .detail {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 50;
+    height: 40vh;
+    height: 40dvh;
+    overflow: hidden;
+    /* Over the page: scrolling past its end doesn't scroll the page behind it. */
+    overscroll-behavior: contain;
+    border-radius: 14px 14px 0 0;
+    box-shadow: 0 -10px 30px rgb(0 0 0 / 55%);
+    animation: sheet-in 0.2s ease-out;
+  }
+}
+
+@keyframes sheet-in {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .detail {
+    animation: none;
+  }
+}
+
+.detail-close {
+  flex-shrink: 0;
+  align-self: flex-start;
+  width: 32px;
+  height: 32px;
+  margin-left: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-2);
+  color: var(--muted);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.detail-close:hover {
+  color: var(--text);
+}
+
+.detail-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.detail-head .art {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  padding: 6px;
+  border-radius: 8px;
+  background: linear-gradient(170deg, #fffaf0, #efe4c7);
+  color: var(--ink);
+}
+
+.detail-title h3 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 17px;
+}
+
+.detail-mw {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: rgb(216 191 122 / 15%);
+  color: var(--gold);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.detail-meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.detail-desc {
+  margin: 12px 0 20px;
+  color: var(--petal);
+  font-size: 13px;
+  font-style: italic;
+}
+
+.detail-note {
+  margin: 10px 0 0;
+  color: var(--gold);
+  font-size: 13px;
+}

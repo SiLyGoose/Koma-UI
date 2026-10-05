@@ -1,0 +1,96 @@
+/* ------------------------------------------------------------------ art */
+
+.art {
+  display: grid;
+  place-items: center;
+}
+
+.art img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 2px 0 rgb(0 0 0 / 25%));
+}
+
+/* A slot's icon standing in for an item's picture: smooth, not pixel art, a little smaller. */
+.art.glyph img {
+  width: 78%;
+  height: 78%;
+  image-rendering: auto;
+}
+
+/* On parchment the icons' white parts need an outline to show. */
+.item .art.glyph img,
+.detail-head .art.glyph img {
+  filter: drop-shadow(1px 0 0 var(--ink)) drop-shadow(-1px 0 0 var(--ink)) drop-shadow(0 1px 0 var(--ink)) drop-shadow(0 -1px 0 var(--ink));
+}
+
+.stars {
+  display: inline-flex;
+  gap: 1px;
+  line-height: 1;
+  /* Pictures, not text: not highlighted by selecting across them. */
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/*
+ * A star: a drawn one (gold, with a crisp dark edge), not the ★ character, so it looks the same on
+ * the dark stage and on parchment. The ★ stays in the markup for copying and old browsers, hidden.
+ * Its size is the font size.
+ */
+.star {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  overflow: hidden;
+  color: transparent;
+  font-size: 17px;
+  line-height: 1;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23ffd66e'/%3E%3Cstop offset='1' stop-color='%23f0a13a'/%3E%3C/linearGradient%3E%3Cpath d='M12 2.2l2.95 6.2 6.75.85-4.95 4.7 1.25 6.75L12 17.4l-6 3.3 1.25-6.75-4.95-4.7 6.75-.85z' fill='url(%23g)' stroke='%237a3d06' stroke-width='1.7' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+.emoji {
+  height: 1.15em;
+  width: auto;
+  vertical-align: -0.22em;
+}
+
+.detail-effects {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.detail-effects li {
+  padding-left: 14px;
+  position: relative;
+}
+
+.detail-effects li::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 0.6em;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.detail-effects li.muted::before {
+  display: none;
+}
+
+/* A command named in an effect line, like `forge`. */
+.detail-effects code {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--panel-3);
+  font-size: 0.9em;
+}

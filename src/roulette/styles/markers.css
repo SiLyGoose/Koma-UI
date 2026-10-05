@@ -1,0 +1,73 @@
+/* The chips on a spot: one chip (this page's, or everyone's together), and who else has chips there. */
+.rl-marker {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.rl-marker:empty {
+  display: none;
+}
+
+.rl-marker .tb-chip {
+  --size: var(--marker-chip);
+  flex: none;
+  font-size: calc(var(--marker-chip) * 0.32);
+  animation: tb-drop 0.2s ease-out;
+}
+
+/* Only others' chips here: a plain chip, their pictures say whose. */
+.rl-marker .tb-chip.theirs {
+  --chip: #cfd3dc;
+  --edge: #8a8f9c;
+  --ink: #22252b;
+}
+
+.rl-marker-avatar {
+  width: 18px;
+  height: 18px;
+  margin-left: -6px;
+  border: 1.5px solid #fff;
+  border-radius: 50%;
+  background: var(--panel-3);
+}
+
+.rl-marker-more {
+  margin-left: 2px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.7);
+  font-size: 10px;
+}
+
+.rl-marker.win .tb-chip {
+  box-shadow:
+    inset 0 0 0 3px var(--edge),
+    0 0 0 2px #f2d27a,
+    0 0 14px rgba(242, 210, 122, 0.9);
+}
+
+.rl-marker.lose,
+.rl-marker.refused {
+  opacity: 0.4;
+  filter: grayscale(0.6);
+}
+
+.rl-spot.lifting .rl-marker {
+  opacity: 0.3;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rl-rotor,
+  .rl-ball-track {
+    transition: none !important;
+  }
+  .rl-spot.hit {
+    animation: none;
+  }
+}

@@ -99,6 +99,11 @@ export function stars(n: number): HTMLElement {
   return row;
 }
 
+/** What's on a copy's card, whatever the card is (an armory button, the anvil's, the details'): its rank, picture, stars and the parchment's curl. */
+export function itemFace(copy: { level: number; itemId: string; slot: Slot; stars: number }): HTMLElement[] {
+  return [el('span', 'item-level', `R${copy.level}`), art(copy.itemId, copy.slot), stars(copy.stars), el('span', 'item-curl')];
+}
+
 /**
  * An effect line as Discord shows it: custom emoji (<:name:id>) become their pictures, **bold**,
  * *italics* and `commands` are kept, everything else is plain text.

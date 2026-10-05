@@ -1,0 +1,72 @@
+/*
+ * The screen's layouts. A phone's are picked by classes on <html>, which games/raid/index.html sets
+ * from the screen's shape before the page shows: .rd-side for a phone on its side (landscape, at most
+ * 520px tall), .rd-up for a phone-width screen (at most 700px wide) and .rd-tall for one held upright.
+ * Classes rather than media queries so that a page turned sideways by hand (.rd-sideways, below) is
+ * laid out as the landscape it looks like, not the portrait the browser thinks it is. The sizes of the
+ * screen are --rd-vw and --rd-vh for the same reason: in place of 100vw and 100dvh, swapped when turned.
+ */
+:root {
+  --rd-vw: 100vw;
+  --rd-vh: 100vh;
+}
+
+@supports (height: 100dvh) {
+  :root {
+    --rd-vh: 100dvh;
+  }
+}
+
+/* Taps on the actions aren't held up waiting for a double tap, and never zoom (iOS ignores maximum-scale). */
+html {
+  touch-action: manipulation;
+}
+
+/*
+ * The page turned sideways by hand, for a phone that can't turn the screen itself (an iPhone with its
+ * rotation lock on: no browser there can lock the screen to landscape). The page is laid out as wide
+ * as the screen is tall, and turned a quarter clockwise to fill it: read with the phone turned
+ * counterclockwise, as the cover's picture shows. Only while the browser is upright: turned for real,
+ * the page is just landscape.
+ */
+@media (orientation: portrait) {
+  html.rd-sideways {
+    --rd-vw: 100vh;
+    --rd-vh: 100vw;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  @supports (height: 100dvh) {
+    html.rd-sideways {
+      --rd-vw: 100dvh;
+    }
+  }
+
+  html.rd-sideways body {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: var(--rd-vw);
+    height: var(--rd-vh);
+    overflow: auto;
+    overscroll-behavior: none;
+    transform-origin: 0 0;
+    transform: translateX(100vw) rotate(90deg);
+  }
+}
+
+.rd {
+  --rd-hi: #6fcf8a;
+  --rd-mid: #e6c350;
+  --rd-lo: #e0595b;
+  display: flex;
+  flex-direction: column;
+  min-height: var(--rd-vh);
+}
+
+.rd-title-boss {
+  color: rgba(255, 255, 255, 0.75);
+  font-weight: 500;
+  text-transform: none;
+}

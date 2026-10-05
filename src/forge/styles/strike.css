@@ -1,0 +1,99 @@
+/* The price and the button, along the bottom. */
+.anvil-foot {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+  padding: 14px 16px;
+}
+
+.anvil-cost {
+  display: flex;
+  flex: 0 1 44%;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  margin: 0;
+  padding: 6px 16px 6px 10px;
+  border: 1px solid #5a5262;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #2d2a33, #1a191e);
+  box-shadow: inset 0 0 0 1px rgb(216 191 122 / 30%);
+}
+
+.anvil-cost-icon {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+}
+
+.anvil-cost-icon .emoji {
+  width: 100%;
+  height: 100%;
+  vertical-align: 0;
+}
+
+.anvil-cost-amount {
+  margin-left: auto;
+  overflow: hidden;
+  color: #efe3bf;
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.anvil-cost.bad .anvil-cost-amount {
+  color: var(--red);
+}
+
+.anvil-go {
+  flex: 1 1 0;
+  min-height: 48px;
+  padding: 8px 22px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+}
+
+.anvil-go:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.anvil-go:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+@media (max-width: 899px) {
+  .anvil-slots {
+    margin-bottom: 28px;
+  }
+
+  .anvil-foot {
+    padding-bottom: max(14px, env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-width: 480px) {
+  .anvil-slots {
+    margin-bottom: 20px;
+  }
+
+  .anvil-frame {
+    width: 84px;
+  }
+
+  .anvil-rate strong {
+    font-size: 36px;
+  }
+
+  .anvil-rate span {
+    font-size: 16px;
+  }
+}

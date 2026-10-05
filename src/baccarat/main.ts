@@ -1,4 +1,5 @@
-import { sleep, startTable } from '../table/table';
+import { sleep } from '../shared/sleep';
+import { startTable } from '../table/table';
 import './baccarat.css';
 import type { BaccaratExtras, BaccaratRoundView, Card, RoundView, Spot } from './protocol';
 import { drawRoads } from './scoreboard';

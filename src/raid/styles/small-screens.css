@@ -1,0 +1,164 @@
+/* ------------------------------------------------------------------ smaller screens, and phones */
+
+/*
+ * The battle screen is sized by one factor (--rd-zoom) for the whole of it, so everything (the boss's
+ * bar, the next move, the log, the party and its HP bars, the actions) shrinks together and keeps its
+ * shape: 1 on a big screen, smaller on a laptop, smaller again on a phone turned sideways.
+ */
+.rd-battle,
+.rd-result,
+.rd-prep {
+  --rd-zoom: 1;
+}
+
+.rd-battle-top,
+.rd-intent,
+.rd-log-panel,
+.rd-battle-bottom {
+  zoom: var(--rd-zoom);
+}
+
+/* A laptop-sized screen (1024 by 768, say): a size down, and the party and the actions closer to the corners. */
+@media (max-width: 1180px), (max-height: 820px) {
+  .rd-battle,
+  .rd-result,
+  .rd-prep {
+    --rd-zoom: 0.8;
+  }
+
+  .rd-battle-bottom {
+    padding: 0 12px 10px;
+  }
+
+  .rd-party {
+    margin: calc(4px - var(--rd-bleed)) calc(2px - var(--rd-bleed)) calc(12px - var(--rd-bleed)) calc(18px - var(--rd-bleed));
+  }
+
+  .rd-command {
+    margin: 0 16px 0 0;
+  }
+}
+
+/* A phone on its side: the fight fills the screen (no title bar), a size down again, right to the edges. */
+:where(.rd-side) .rd-battle,
+:where(.rd-side) .rd-result,
+:where(.rd-side) .rd-prep {
+  --rd-zoom: 0.6;
+  min-height: 0;
+}
+
+:where(.rd-side) .rd-slots-wrap {
+  --rd-slots-top: 14px;
+  --rd-slots-bottom: 4px;
+}
+
+:where(.rd-side) body.rd-fighting .frame > .top {
+  display: none;
+}
+
+:where(.rd-side) body.rd-fighting .frame {
+  border: 0;
+}
+
+:where(.rd-side) .rd-battle-top {
+  padding-top: 8px;
+}
+
+:where(.rd-side) .rd-log-panel {
+  top: 96px;
+}
+
+:where(.rd-side) .rd-battle-bottom {
+  padding: 0 10px 6px;
+}
+
+:where(.rd-side) .rd-party {
+  margin: calc(4px - var(--rd-bleed)) calc(2px - var(--rd-bleed)) calc(8px - var(--rd-bleed)) calc(10px - var(--rd-bleed));
+}
+
+:where(.rd-side) .rd-command {
+  margin: 0 8px 0 0;
+}
+
+/* A phone held upright: covered, asking to turn it sideways (unless the page was turned for them, below). */
+.rd-rotate {
+  display: none;
+}
+
+@media (orientation: portrait) and (pointer: coarse) and (max-width: 600px) {
+  :where(html:not(.rd-sideways)) .rd-rotate {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: radial-gradient(circle at 50% 40%, #1a2038, #05070d 70%);
+    text-align: center;
+  }
+}
+
+.rd-rotate-card {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  max-width: 280px;
+}
+
+.rd-rotate-card b {
+  font-size: 20px;
+}
+
+.rd-rotate-card span {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.rd-rotate-card .rd-rotate-hint {
+  font-size: 12px;
+}
+
+.rd-rotate-card .rd-button {
+  margin-top: 8px;
+}
+
+/* The way out, for anyone who'd rather not play now: like the title bar's ←, back to the games. */
+.rd-rotate-card .rd-rotate-back {
+  margin-top: 4px;
+  color: var(--text);
+  text-decoration: none;
+}
+
+/* A phone outline, turning from upright to sideways and back. */
+.rd-rotate-phone {
+  width: 44px;
+  height: 76px;
+  margin-bottom: 10px;
+  border: 3px solid var(--text);
+  border-radius: 9px;
+  box-shadow: inset 0 -8px 0 -5px var(--text);
+  animation: rd-turn 2.4s ease-in-out infinite;
+}
+
+@keyframes rd-turn {
+  0%,
+  25% {
+    transform: rotate(0);
+  }
+
+  50%,
+  80% {
+    transform: rotate(-90deg);
+  }
+
+  100% {
+    transform: rotate(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rd-rotate-phone {
+    animation: none;
+    transform: rotate(-90deg);
+  }
+}

@@ -1,0 +1,182 @@
+/* ------------------------------------------------------------------ roster */
+
+/* Everyone in the server with gear: a dark panel of portraits, the one shown framed in gold, like a picked slot. */
+.roster {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  padding: 10px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.roster[hidden] {
+  display: none;
+}
+
+.roster-title {
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.roster-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.roster-list::-webkit-scrollbar {
+  display: none;
+}
+
+/* A portrait: their picture filling the square, the item count in the top right, the name along the bottom. */
+.roster-tile {
+  /* The class badge and the item count in its top corners: squares the same size, the same way in. */
+  --corner: 26px;
+  --corner-in: 5px;
+  position: relative;
+  flex: none;
+  width: 100%;
+  aspect-ratio: 1;
+  padding: 0;
+  overflow: hidden;
+  border: 2px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel-2);
+  box-shadow: inset 0 0 0 2px #111014, 0 4px 10px rgb(0 0 0 / 45%);
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.roster-tile:hover,
+.roster-tile:focus-visible {
+  border-color: var(--dusk);
+  transform: translateY(-2px);
+}
+
+.roster-tile[aria-current='true'] {
+  border-color: var(--picked);
+  box-shadow: inset 0 0 0 1px var(--picked), inset 0 0 16px 4px var(--picked-glow), 0 4px 10px rgb(0 0 0 / 45%);
+  cursor: default;
+  transform: none;
+}
+
+/* Them, set apart from everyone after them. */
+.roster-tile.you {
+  margin-bottom: 4px;
+}
+
+.roster-avatar {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* The picked glow over the picture, not under it. */
+.roster-tile[aria-current='true']::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px var(--picked), inset 0 0 14px 3px var(--picked-glow);
+  pointer-events: none;
+}
+
+/* Their class's badge: the stage ribbon's ring, small (no classes yet, so a question mark). */
+.roster-class {
+  position: absolute;
+  top: var(--corner-in);
+  left: var(--corner-in);
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: var(--corner);
+  height: var(--corner);
+  box-sizing: border-box;
+  border: 2px solid var(--gold);
+  border-radius: 50%;
+  background: #141318;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 70%);
+  color: #efe3bf;
+  font-size: calc(var(--corner) * 0.55);
+  font-weight: 800;
+  line-height: 1;
+}
+
+/* How many items they own: big, gold and outlined in dark brown, like a hero's level. */
+.roster-count {
+  position: absolute;
+  top: var(--corner-in);
+  right: var(--corner-in);
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  min-width: var(--corner);
+  height: var(--corner);
+  color: #f7dc7c;
+  font-size: calc(var(--corner) * 0.85);
+  font-weight: 800;
+  line-height: 1;
+  text-shadow: 0 0 2px #2a1c08, 0 1px 0 #2a1c08, 1px 0 0 #2a1c08, -1px 0 0 #2a1c08, 0 -1px 0 #2a1c08, 0 2px 0 #2a1c08, 0 0 8px rgb(0 0 0 / 70%);
+}
+
+.roster-name {
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 1;
+  padding: 16px 6px 5px;
+  overflow: hidden;
+  background: linear-gradient(transparent, rgb(0 0 0 / 80%));
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 2px #000;
+  white-space: nowrap;
+}
+
+/* Narrow screens: a strip of smaller portraits across the top, scrolling sideways. */
+@media (max-width: 899px) {
+  .roster-title {
+    margin-bottom: 8px;
+    text-align: left;
+  }
+
+  .roster-list {
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .roster-tile {
+    --corner: 18px;
+    --corner-in: 3px;
+    width: 76px;
+  }
+
+  .roster-tile.you {
+    margin: 0 4px 0 0;
+  }
+
+  .roster-class {
+    border-width: 1.5px;
+  }
+
+  .roster-name {
+    padding: 12px 4px 3px;
+    font-size: 11px;
+  }
+}

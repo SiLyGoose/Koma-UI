@@ -1,0 +1,275 @@
+/* ------------------------------------------------------------------ more stats (the end screen's) */
+
+.rd-stats {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  /* Dark, not blurred: blurring the whole raid behind it every frame (on top of its own blurs) made the popup lag. */
+  background: rgba(3, 4, 8, 0.85);
+  animation: rd-gear-in 0.18s ease-out;
+}
+
+.rd-stats[hidden] {
+  display: none;
+}
+
+.rd-stats-box {
+  --rd-zoom: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(1040px, 100%);
+  /* As tall as the chart, within the screen: the same for every stat with the same party. */
+  min-height: min(400px, 100%);
+  max-height: min(680px, 100%);
+  border: 2px solid #b9a877;
+  border-radius: 14px;
+  background:
+    radial-gradient(ellipse at 70% 30%, rgba(40, 120, 150, 0.18), transparent 60%),
+    linear-gradient(180deg, #0b1a26, #07111a);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+  overflow: hidden;
+}
+
+.rd-stats-body {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+}
+
+/* The stats to pick from, grouped, down the left. */
+.rd-stats-pick {
+  padding: 22px 12px 22px 20px;
+  border-right: 2px solid rgba(185, 168, 119, 0.45);
+  overflow-y: auto;
+}
+
+.rd-stats-group {
+  margin: 14px 0 6px;
+  color: #e9dbaa;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.rd-stats-group:first-child {
+  margin-top: 0;
+}
+
+.rd-stats-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.rd-stats-option:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+
+.rd-stats-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* A round radio in the frame's gold, filled when it's the one shown. */
+.rd-stats-radio {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(233, 219, 170, 0.6);
+  border-radius: 50%;
+}
+
+.rd-stats-radio::after {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #e9d18f;
+  transform: scale(0);
+  transition: transform 0.15s;
+}
+
+.rd-stats-option:has(input:checked) {
+  color: #fff;
+}
+
+.rd-stats-option input:checked + .rd-stats-radio::after {
+  transform: scale(1);
+}
+
+.rd-stats-option input:focus-visible + .rd-stats-radio {
+  outline: 2px solid #e9d18f;
+  outline-offset: 2px;
+}
+
+/* The chart: a row per raider, their picture then their bar, against the scale's lines. */
+.rd-stats-chart {
+  --rd-face: 44px;
+  --rd-value-room: 72px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 18px 28px 16px 22px;
+}
+
+.rd-stats-title {
+  flex: none;
+  margin: 0 0 12px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.rd-stats-scroll {
+  /* As tall as its rows (the scale right under them), scrolling past the chart's room. */
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.rd-stats-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.rd-stats-rows {
+  position: relative;
+  display: grid;
+  gap: 14px;
+  padding: 6px 0;
+}
+
+/* The scale's lines, down the bars' side (from the left of the bars to where the value labels start). */
+.rd-stats-grid {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--rd-face) + 12px);
+  right: var(--rd-value-room);
+  pointer-events: none;
+}
+
+.rd-stats-grid span {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: rgba(95, 213, 232, 0.14);
+}
+
+.rd-stats-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--rd-face) minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+}
+
+.rd-stats-face {
+  width: var(--rd-face);
+  height: var(--rd-face);
+}
+
+.rd-stats-face > img,
+.rd-stats-face > .rd-initial {
+  width: 100%;
+  height: 100%;
+  border: 2px solid rgba(95, 213, 232, 0.55);
+  border-radius: 50%;
+  box-sizing: border-box;
+  object-fit: cover;
+}
+
+.rd-stats-face > .rd-initial {
+  font-size: 18px;
+}
+
+.rd-stats-row.you .rd-stats-face > img,
+.rd-stats-row.you .rd-stats-face > .rd-initial {
+  border-color: #e9d18f;
+}
+
+.rd-stats-track {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-right: var(--rd-value-room);
+  /* Room past the bar's end for its value, even at the top of the scale. */
+  overflow: visible;
+}
+
+.rd-stats-bar {
+  flex: none;
+  height: 30px;
+  background: linear-gradient(180deg, #25c1d6, #1a9bb0);
+  box-shadow: 0 0 10px rgba(37, 193, 214, 0.25);
+  transition: width 0.35s ease;
+}
+
+.rd-stats-row.you .rd-stats-bar {
+  background: linear-gradient(180deg, #f0cf78, #c9a24a);
+  box-shadow: 0 0 10px rgba(240, 207, 120, 0.25);
+}
+
+.rd-stats-value {
+  flex: none;
+  margin-right: calc(-1 * var(--rd-value-room));
+  color: #fff;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The scale's numbers along the bottom, under its lines. */
+.rd-stats-axis {
+  position: relative;
+  flex: none;
+  height: 22px;
+  margin: 6px var(--rd-value-room) 0 calc(var(--rd-face) + 12px);
+  border-top: 1px solid rgba(95, 213, 232, 0.3);
+}
+
+.rd-stats-axis span {
+  position: absolute;
+  top: 5px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  transform: translateX(-50%);
+}
+
+/* A phone on its side: the modal nearly to the edges, a size down. */
+:where(.rd-side) .rd-stats {
+  padding: 8px;
+}
+
+:where(.rd-side) .rd-stats-box {
+  zoom: 0.72;
+  width: min(1040px, calc((var(--rd-vw) - 16px) / 0.72));
+  max-height: calc((var(--rd-vh) - 16px) / 0.72);
+}
+
+:where(.rd-tall) .rd-stats-body {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+:where(.rd-tall) .rd-stats-pick {
+  border-right: 0;
+  border-bottom: 2px solid rgba(185, 168, 119, 0.45);
+}

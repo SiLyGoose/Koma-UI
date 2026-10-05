@@ -1,0 +1,54 @@
+/* ------------------------------------------------------------------ How the round went */
+
+.tb-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 16px;
+  border: 2px solid var(--green);
+  border-radius: 12px;
+  background: rgba(23, 22, 27, 0.94);
+  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.6);
+  animation: tb-pop 0.3s ease-out;
+  white-space: nowrap;
+}
+
+.tb-result[hidden] {
+  display: none;
+}
+
+.tb-result b {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--green);
+  font-size: 22px;
+}
+
+.tb-result .coin {
+  width: 0.9em;
+  height: 0.9em;
+}
+
+.tb-result span {
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.tb-result.lost {
+  border-color: var(--red);
+}
+
+.tb-result.lost b {
+  color: var(--red);
+}
+
+.tb-result.even {
+  border-color: var(--muted);
+}
+
+.tb-result.even b {
+  color: var(--text);
+}

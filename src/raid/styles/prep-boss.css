@@ -1,0 +1,207 @@
+/* ------------------------------------------------------------------ before the fight: the party screen */
+
+.rd-prep {
+  position: relative;
+  flex: 1;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: #05070d;
+  isolation: isolate;
+}
+
+.rd-prep[hidden] {
+  display: none;
+}
+
+.rd-prep-shade {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: rgba(3, 6, 14, 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.rd-prep-body {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 8fr);
+  gap: 18px;
+  /*
+   * The screen (under the title bar and the frame's border) less a margin, unzoomed: a percentage of
+   * .rd-prep wouldn't resolve. The party's side sets the height (its cards, as big as fit), up to that.
+   */
+  --rd-room: min(900px, calc((var(--rd-vh) - 69px) / var(--rd-zoom)));
+  width: min(1680px, calc((var(--rd-vw) - 32px) / var(--rd-zoom)));
+  max-height: var(--rd-room);
+  min-height: 420px;
+  zoom: var(--rd-zoom);
+}
+
+/* A panel: deep blue, in a gold-toned frame, with a pale header bar. */
+.rd-prep-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  border: 2px solid #b9a877;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #1c3a5c 0%, #102741 55%, #0b1c30 100%);
+  box-shadow: inset 0 0 0 3px rgba(0, 0, 0, 0.35), inset 0 0 0 4px rgba(233, 219, 170, 0.25), 0 14px 40px rgba(0, 0, 0, 0.6);
+}
+
+.rd-prep-head {
+  flex-shrink: 0;
+  padding: 12px 16px;
+  border-bottom: 2px solid #b9a877;
+  background: linear-gradient(180deg, #f3ecdc, #dfd3b8);
+  color: #34506f;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-align: center;
+}
+
+/* The boss's side takes the party's height, whatever it has to say (it scrolls). */
+.rd-prep-boss {
+  height: 0;
+  min-height: 100%;
+}
+
+/* The boss: its picture, then what it does (scrolling when it runs long). */
+.rd-prep-picture {
+  flex-shrink: 0;
+  aspect-ratio: 16 / 9;
+  max-height: 34%;
+  border-bottom: 1px solid rgba(233, 219, 170, 0.25);
+  background: #05070d;
+}
+
+.rd-prep-picture img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: pixelated;
+}
+
+.rd-prep-sheet {
+  --rd-parchment-edge: #b9ab88;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  margin: 12px 16px 16px;
+  border: 1px solid var(--rd-parchment-edge);
+  border-radius: 6px;
+  background: linear-gradient(180deg, #f3ecd8, #e6dabb);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35), inset 0 0 18px rgba(120, 95, 50, 0.25);
+  color: #3b3444;
+}
+
+.rd-prep-scroll {
+  flex: 1;
+  min-height: 0;
+  padding: 2px 6px 14px 15px;
+  /* Keeps the scrollbar off the sheet's right edge. */
+  margin-right: 3px;
+  overflow-y: auto;
+}
+
+.rd-prep-scroll h3 {
+  margin: 14px 0 6px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--rd-parchment-edge);
+  color: #6b5a3a;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.rd-prep-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+
+.rd-prep-list[hidden] {
+  display: none;
+}
+
+.rd-prep-list li {
+  padding: 6px 8px;
+  border-radius: 4px;
+}
+
+.rd-prep-list li:nth-child(odd) {
+  background: rgb(255 250 240 / 55%);
+}
+
+.rd-prep-list strong {
+  color: #4a3219;
+}
+
+/*
+ * Scrollbars as on the gear page's armory: a rounded pill, no track, no arrows (Chrome and Safari draw
+ * them from the ::-webkit-scrollbar parts, and would ignore those with the standard properties set, so
+ * those are only for Firefox): on the boss's sheet in its parchment's edge colour, under the party's
+ * cards in gold.
+ */
+.rd-prep-scroll::-webkit-scrollbar {
+  width: 14px;
+}
+
+.rd-prep-party .rd-slots::-webkit-scrollbar {
+  height: 14px;
+}
+
+.rd-prep-scroll::-webkit-scrollbar-track,
+.rd-prep-scroll::-webkit-scrollbar-corner,
+.rd-prep-party .rd-slots::-webkit-scrollbar-track,
+.rd-prep-party .rd-slots::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+.rd-prep-scroll::-webkit-scrollbar-track {
+  margin-block: 10px;
+}
+
+.rd-prep-scroll::-webkit-scrollbar-button,
+.rd-prep-party .rd-slots::-webkit-scrollbar-button {
+  display: none;
+}
+
+.rd-prep-scroll::-webkit-scrollbar-thumb,
+.rd-prep-party .rd-slots::-webkit-scrollbar-thumb {
+  min-height: 48px;
+  min-width: 48px;
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: var(--rd-parchment-edge, #b9ab88) padding-box;
+}
+
+.rd-prep-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: #9c8c66;
+}
+
+.rd-prep-party .rd-slots::-webkit-scrollbar-thumb {
+  background-color: rgba(233, 219, 170, 0.45);
+}
+
+.rd-prep-party .rd-slots::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(233, 219, 170, 0.7);
+}
+
+@supports not selector(::-webkit-scrollbar) {
+  .rd-prep-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: #b9ab88 transparent;
+  }
+
+  .rd-prep-party .rd-slots {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(233, 219, 170, 0.45) transparent;
+  }
+}

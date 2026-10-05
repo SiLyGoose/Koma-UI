@@ -1,0 +1,158 @@
+/* Before against now, on a dark band between gold lines. */
+.forge-result-panel {
+  width: 100%;
+  padding: 16px 24px;
+  border-top: 2px solid rgb(216 191 122 / 55%);
+  border-bottom: 2px solid rgb(216 191 122 / 55%);
+  border-radius: 4px;
+  background: linear-gradient(180deg, rgb(22 20 26 / 88%), rgb(12 11 15 / 88%));
+  box-shadow: 0 10px 30px rgb(0 0 0 / 45%);
+  animation: result-rise 0.45s ease-out 0.4s both;
+}
+
+.forge-result-panel .forge-effects {
+  font-size: 15px;
+}
+
+@keyframes result-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+.forge-result-tap {
+  margin: 26px 0 0;
+  color: var(--petal);
+  font-size: 15px;
+  animation:
+    result-fade 0.4s ease-out 0.8s both,
+    result-pulse 1.8s ease-in-out 1.2s infinite;
+}
+
+@keyframes result-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes result-pulse {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/*
+ * It didn't take: FAIL in cold silver, landing with a thud, and the copy as it still is, no light,
+ * giving a shudder.
+ */
+.forge-result.fail .forge-result-title {
+  background: linear-gradient(180deg, #ffffff 0%, #e4e6ec 42%, #8e94a4 60%, #eef0f5 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  filter: drop-shadow(0 3px 0 #1c1d24) drop-shadow(0 0 14px rgb(180 190 215 / 35%));
+  animation: result-thud 0.5s cubic-bezier(0.3, 0, 0.3, 1) 0.1s both;
+}
+
+@keyframes result-thud {
+  0% {
+    opacity: 0;
+    transform: translateY(-28px);
+  }
+  55% {
+    opacity: 1;
+    transform: translateY(4px);
+  }
+  75% {
+    transform: translateY(-2px);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+.forge-result-still {
+  width: 140px;
+  margin: 34px 0 38px;
+}
+
+.forge-result-still .item {
+  width: 100%;
+  cursor: inherit;
+  box-shadow: 0 10px 28px rgb(0 0 0 / 60%), 0 2px 0 var(--item-lip);
+  animation:
+    result-card 0.4s ease-out 0.15s both,
+    result-shudder 0.45s ease-in-out 0.6s both;
+}
+
+.forge-result-still .item:hover {
+  transform: none;
+}
+
+.forge-result-still .art {
+  width: 64%;
+  height: 64%;
+}
+
+.forge-result-still .item-level {
+  font-size: 15px;
+}
+
+.forge-result-still .star {
+  font-size: 19px;
+}
+
+@keyframes result-shudder {
+  20% {
+    transform: translateX(-6px) rotate(-2deg);
+  }
+  40% {
+    transform: translateX(5px) rotate(1.5deg);
+  }
+  60% {
+    transform: translateX(-3px) rotate(-1deg);
+  }
+  80% {
+    transform: translateX(2px);
+  }
+}
+
+@media (max-width: 480px) {
+  .forge-result-burst {
+    width: 112px;
+    margin: 26px 0 30px;
+  }
+
+  .forge-result-panel {
+    padding: 12px 14px;
+  }
+
+  .forge-result-still {
+    width: 112px;
+    margin: 26px 0 30px;
+  }
+
+  .forge-result-panel .forge-effects {
+    font-size: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .forge-result,
+  .forge-result.on {
+    transition: none;
+  }
+
+  .forge-result-title,
+  .forge-result-sub,
+  .forge-result-burst::before,
+  .forge-result-core,
+  .forge-result-rays,
+  .forge-result-burst .item,
+  .forge-result.fail .forge-result-title,
+  .forge-result-still .item,
+  .forge-result-panel,
+  .forge-result-tap {
+    animation: none;
+  }
+}

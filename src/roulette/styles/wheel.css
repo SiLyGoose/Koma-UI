@@ -1,0 +1,193 @@
+.rl {
+  --red: #c0312f;
+  --black: #1d1d22;
+  --zero: #2f9e58;
+  --wheel: 210px;
+  --cell-h: 58px;
+  --out-h: 46px;
+  --zone: 22px;
+  --marker-chip: 28px;
+}
+
+/* ------------------------------------------------------------------ The wheel */
+
+.rl-top {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+}
+
+.rl-wheel {
+  position: relative;
+  flex: none;
+  width: var(--wheel);
+  height: var(--wheel);
+  filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.5));
+}
+
+.rl-wheel-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.rl-rotor,
+.rl-ball-track {
+  transform-box: view-box;
+  transform-origin: 0 0;
+}
+
+.rl-rim {
+  fill: #4a2e17;
+  stroke: #2b1a0c;
+  stroke-width: 2;
+}
+
+.rl-pocket {
+  stroke: rgba(233, 194, 92, 0.65);
+  stroke-width: 0.6;
+}
+
+.rl-pocket.red {
+  fill: var(--red);
+}
+
+.rl-pocket.black {
+  fill: var(--black);
+}
+
+.rl-pocket.green {
+  fill: var(--zero);
+}
+
+.rl-pocket-no {
+  fill: #fff;
+  font-size: 8px;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.rl-cone {
+  fill: #6b4423;
+  stroke: #e9c25c;
+  stroke-width: 1.5;
+}
+
+.rl-hub {
+  fill: #e9c25c;
+}
+
+.rl-spoke {
+  stroke: #e9c25c;
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.rl-ball {
+  fill: #fff;
+  stroke: rgba(0, 0, 0, 0.35);
+  stroke-width: 0.8;
+}
+
+.rl-pointer {
+  fill: #e9c25c;
+}
+
+/* Where the ball landed, big, in the middle of the wheel. */
+.rl-wheel-number {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: grid;
+  place-items: center;
+  width: 34%;
+  height: 34%;
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0.4);
+  opacity: 0;
+  color: #fff;
+  font-size: calc(var(--wheel) * 0.15);
+  font-weight: 800;
+  box-shadow:
+    0 0 0 3px #e9c25c,
+    0 6px 16px rgba(0, 0, 0, 0.5);
+  transition:
+    transform 0.3s cubic-bezier(0.2, 1.4, 0.4, 1),
+    opacity 0.2s;
+  pointer-events: none;
+}
+
+.rl-wheel-number.show {
+  transform: translate(-50%, -50%);
+  opacity: 1;
+}
+
+.rl-wheel-number.red {
+  background: var(--red);
+}
+
+.rl-wheel-number.black {
+  background: var(--black);
+}
+
+.rl-wheel-number.green {
+  background: var(--zero);
+}
+
+/* Beside the wheel: how the round went, and the last numbers. */
+.rl-mid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.rl-recent {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 5px;
+  max-width: 330px;
+  min-height: 28px;
+}
+
+.rl-recent:empty::before {
+  content: 'No spins yet';
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.rl-recent-no {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 800;
+  animation: tb-pop 0.25s ease-out;
+}
+
+.rl-recent-no:first-child {
+  box-shadow: 0 0 0 2px #e9c25c;
+}
+
+.rl-recent-no.red {
+  background: var(--red);
+}
+
+.rl-recent-no.black {
+  background: var(--black);
+}
+
+.rl-recent-no.green {
+  background: var(--zero);
+}
+
+/* The last round's number stays on the wheel, faded, while the next one takes bets. */
+.tb-felt.last-round .rl-wheel-number {
+  opacity: 0.45;
+}

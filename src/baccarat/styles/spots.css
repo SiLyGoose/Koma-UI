@@ -1,0 +1,120 @@
+/* ------------------------------------------------------------------ The spots */
+
+.bc-spots {
+  display: grid;
+  /* The side bets and Tie across the top, Player and Banker (the big ones) across the bottom. */
+  grid-template-columns: repeat(6, 1fr);
+  grid-template-areas:
+    'kirin kirin tie tie phoenix phoenix'
+    'player player player banker banker banker';
+  gap: 10px;
+}
+
+.bc-spot[data-spot='kirin'] {
+  grid-area: kirin;
+}
+
+.bc-spot[data-spot='tie'] {
+  grid-area: tie;
+}
+
+.bc-spot[data-spot='phoenix'] {
+  grid-area: phoenix;
+}
+
+.bc-spot[data-spot='player'] {
+  grid-area: player;
+}
+
+.bc-spot[data-spot='banker'] {
+  grid-area: banker;
+}
+
+.bc-spot {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 2px;
+  min-height: 92px;
+  padding: 10px 8px 42px;
+  border: 2px solid var(--felt-line);
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.12);
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+  touch-action: none;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    box-shadow 0.2s,
+    transform 0.1s;
+}
+
+.bc-spot.bc-main {
+  min-height: 118px;
+}
+
+.bc-spot:hover:not(:disabled),
+.bc-spot.over {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 226, 150, 0.8);
+}
+
+.bc-spot.over {
+  transform: scale(1.02);
+  box-shadow: 0 0 24px rgba(255, 214, 110, 0.35);
+}
+
+.bc-spot:disabled {
+  cursor: default;
+}
+
+.bc-spot-name {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.bc-main .bc-spot-name {
+  font-size: 20px;
+  letter-spacing: 0.14em;
+}
+
+.bc-player .bc-spot-name {
+  color: #9cc3ff;
+}
+
+.bc-banker .bc-spot-name {
+  color: #ffa2a3;
+}
+
+.bc-tie .bc-spot-name {
+  color: #9fe6b9;
+}
+
+.bc-spot-odds {
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(255, 236, 190, 0.85);
+}
+
+.bc-spot-help {
+  font-size: 10.5px;
+  color: rgba(255, 255, 255, 0.55);
+  line-height: 1.25;
+}
+
+.bc-spot.won {
+  border-color: #f2d27a;
+  background: rgba(242, 210, 122, 0.16);
+  box-shadow: 0 0 26px rgba(242, 210, 122, 0.45);
+  animation: tb-glow 1.2s ease-in-out 2;
+}
+
+.bc-spot.push {
+  border-color: rgba(255, 255, 255, 0.6);
+}

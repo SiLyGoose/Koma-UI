@@ -1,0 +1,297 @@
+/* ------------------------------------------------------------------ detail */
+
+/*
+ * A picked copy, laid out like a game's item window: its name in a bar across the top, its card big
+ * beside its slot and rank, what it does, and its buttons along the bottom under a line. All but the
+ * buttons scrolls when it runs longer than the panel.
+ */
+.gear > .detail {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+}
+
+.detail-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px 10px 16px;
+  background: var(--panel-2);
+  border-bottom: 1px solid var(--line);
+}
+
+.detail-bar h3 {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  color: var(--tier, var(--text));
+  font-size: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.detail-bar .detail-close {
+  align-self: center;
+}
+
+.detail-top {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 0 16px;
+  padding: 16px 0 14px;
+  border-bottom: 2px solid var(--line);
+}
+
+/* The copy's card, as in the armory but big and not a button. */
+.item.detail-card {
+  flex-shrink: 0;
+  width: 104px;
+  cursor: default;
+}
+
+.item.detail-card:hover {
+  transform: none;
+}
+
+.item.detail-card .art {
+  width: 64%;
+  height: 64%;
+}
+
+.item.detail-card .item-level {
+  font-size: 13px;
+}
+
+.item.detail-card .star {
+  font-size: 15px;
+}
+
+.detail-info {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+  min-width: 0;
+}
+
+.detail-kind {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* On someone else's copy, in place of the buttons: whether they wear it. */
+.detail-worn {
+  background: rgb(143 201 163 / 15%);
+  color: var(--green);
+}
+
+/* Picking what to sell: what the one shown sells for, its coin sized to the pill. */
+.detail-sells {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.detail-sells .coin {
+  width: 14px;
+  height: 14px;
+}
+
+/*
+ * The big card's lock, in the top corner beside it: the armory's dark button, a padlock open or shut
+ * (shut, it's lit gold). On someone else's copy, the same square with nothing to press.
+ */
+.detail-lock {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  align-self: flex-start;
+  width: 40px;
+  height: 40px;
+  margin-left: auto;
+  border: 1px solid #5a5262;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #2d2a33, #1a191e);
+  box-shadow: inset 0 0 0 1px rgb(216 191 122 / 30%);
+  color: var(--muted);
+}
+
+button.detail-lock {
+  cursor: pointer;
+}
+
+button.detail-lock:hover:not(:disabled) {
+  border-color: rgb(216 191 122 / 60%);
+  color: #efe3bf;
+}
+
+button.detail-lock:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.detail-lock.on {
+  border-color: rgb(216 191 122 / 60%);
+  color: var(--gold);
+}
+
+.detail-lock .padlock {
+  width: 22px;
+  height: 22px;
+}
+
+.detail-max {
+  color: var(--green);
+  font-weight: 800;
+}
+
+.detail-rank {
+  margin: 0;
+  color: var(--text);
+  font-size: 40px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.detail-rank-of {
+  color: var(--muted);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.detail-scroll {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* Grows to fill what's left above the buttons. */
+.detail-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1 0 auto;
+  padding: 0 16px 16px;
+}
+
+/* Heads the effects list. */
+.detail-label {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Under the effects, spaced off from them: the copy equipping it would take off. */
+.detail-replaces {
+  margin: 28px 0 8px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* That copy's effects, quieter than this one's. */
+.detail-replaced {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* Its buttons, pinned to the bottom under a line, right-aligned (room for more beside Equip). */
+.detail-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  justify-content: flex-end;
+  gap: 10px 12px;
+  margin: 0 16px;
+  padding: 12px 0 14px;
+  border-top: 2px solid var(--line);
+  font-size: 13px;
+}
+
+.detail-action {
+  min-width: 128px;
+  min-height: 40px;
+  padding: 8px 22px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.detail-action:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+/* Upgrade and Unequip: the armory's dark button. */
+.detail-action.secondary {
+  border-color: #5a5262;
+  background: linear-gradient(180deg, #2d2a33, #1a191e);
+  box-shadow: inset 0 0 0 1px rgb(216 191 122 / 30%);
+  color: #efe3bf;
+}
+
+.detail-action.secondary:hover:not(:disabled) {
+  border-color: rgb(216 191 122 / 60%);
+  background: linear-gradient(180deg, #2d2a33, #1a191e);
+}
+
+.detail-action:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* Narrow screens: the sheet from the bottom (items.css), with its buttons kept in reach. */
+@media (max-width: 899px) {
+  .item.detail-card {
+    width: 84px;
+  }
+
+  .detail-rank {
+    font-size: 32px;
+  }
+
+  .detail-foot {
+    padding-bottom: max(14px, env(safe-area-inset-bottom));
+  }
+
+  /* The sheet from the bottom is over the page: scrolling past its end doesn't scroll the page behind it. */
+  .detail-scroll {
+    overscroll-behavior: contain;
+  }
+
+  .detail-action {
+    flex: 1 1 128px;
+  }
+}
+
+/* A loadout's tiny icons: a full picture fills the square (items.css). */
+.loadout-icon {
+  position: relative;
+  overflow: hidden;
+}
+
+/* The slot being filtered, with a full picture: the gold glow over the picture's edges, as on a picked card. */
+.slot.filtered .slot-frame:has(> .art.full)::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px var(--picked), inset 0 0 8px 2px var(--picked-glow);
+  pointer-events: none;
+}

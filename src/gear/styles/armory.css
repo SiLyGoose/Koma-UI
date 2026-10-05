@@ -1,0 +1,84 @@
+/* ------------------------------------------------------------------ armory */
+
+/*
+ * The panel not shown: gone on narrow screens; on wide ones it shares the armory's place and only
+ * turns invisible, so the row keeps the same height whichever tab is picked.
+ */
+.armory.off {
+  display: none;
+}
+
+@media (min-width: 900px) {
+  .armory.off {
+    display: flex;
+    visibility: hidden;
+  }
+}
+
+/* Common: the stats on parchment, a heading per group, the base under anything gear changed. */
+.stats .armory-sheet {
+  margin-top: 4px;
+  color: var(--ink);
+}
+
+.stats .sheet-scroll {
+  padding: 4px 6px 14px 15px;
+}
+
+.stats-section h3 {
+  margin: 14px 0 6px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--parchment-edge);
+  color: #6b5a3a;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.stats-section dl {
+  margin: 0;
+}
+
+.stats-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.stats-row:nth-child(odd) {
+  background: rgb(255 250 240 / 55%);
+}
+
+.stats-row dt {
+  color: #5b5163;
+}
+
+.stats-row dd {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin: 0;
+  font-weight: 600;
+  text-align: right;
+}
+
+/* Changed by gear, for better or worse (some perks cost something), so gold rather than green. */
+.stats-row.changed dd {
+  color: #8a5a00;
+}
+
+.stats-base {
+  color: #8a7f6c;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.stats-empty {
+  margin: 20px 0;
+  text-align: center;
+}

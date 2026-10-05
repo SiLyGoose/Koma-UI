@@ -20,7 +20,7 @@ import { hasSession } from './session';
 
 /*
  * The site's pages (the front page, gear, the forge, the databank) as one document: moving between them swaps the
- * page under the header, through the transition's wipe (../shared/transition.ts), instead of loading a
+ * page under the header, through the transition's wipe (../shared/transition/), instead of loading a
  * new document, so the header, the login and the rest stay (./session.ts), and back and forward get the
  * wipe too (right to left going back). The games are pages of their own.
  *

@@ -1,0 +1,52 @@
+/* Success Rate, big and hot, over a streak of fire; Failure Bonus under it. */
+.anvil-odds {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+}
+
+.anvil-rate {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  margin: 0;
+  padding: 0 4px 4px 40px;
+}
+
+.anvil-rate::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, #f0a13a 55%, #ffd66e);
+  box-shadow: 0 0 10px rgb(240 161 58 / 70%);
+}
+
+.anvil-rate span {
+  color: #f3e6c4;
+  font-size: 18px;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 80%);
+}
+
+.anvil-rate strong {
+  color: #fff;
+  font-size: 44px;
+  font-weight: 800;
+  line-height: 1;
+  text-shadow: 0 0 14px rgb(255 120 40 / 90%), 0 2px 0 #b8412a;
+}
+
+.anvil-bonus {
+  display: flex;
+  gap: 24px;
+  margin: 0;
+  padding-right: 4px;
+  color: var(--petal);
+  font-size: 14px;
+  font-weight: 600;
+}

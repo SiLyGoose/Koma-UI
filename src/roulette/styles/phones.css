@@ -1,0 +1,71 @@
+/* ------------------------------------------------------------------ Phones: the board goes down */
+
+@media (max-width: 640px) {
+  .rl {
+    --wheel: 150px;
+    --cell-h: 34px;
+    --zone: 16px;
+    --marker-chip: 24px;
+  }
+
+  .rl-top {
+    gap: 12px;
+  }
+
+  .rl-recent {
+    max-width: 170px;
+  }
+
+  .rl-recent-no {
+    width: 22px;
+    height: 22px;
+    font-size: 10px;
+  }
+
+  /* The even-money bets and dozens down the left, the numbers in three columns, 0 at the top and the 2 to 1s at the bottom. */
+  .rl-board {
+    grid-template-columns: 0.85fr 0.85fr repeat(6, 0.5fr);
+    grid-template-rows: repeat(14, var(--cell-h));
+  }
+
+  .rl-spot {
+    grid-column: var(--vc);
+    grid-row: var(--vr);
+  }
+
+  .rl-number {
+    font-size: 15px;
+  }
+
+  .rl-spot[data-spot='0'] {
+    border-radius: 8px 0 0 0;
+  }
+
+  .rl-spot[data-spot='00'] {
+    border-radius: 0 8px 0 0;
+  }
+
+  .rl-outside {
+    font-size: 11px;
+    writing-mode: vertical-rl;
+  }
+
+  .rl-column {
+    writing-mode: horizontal-tb;
+  }
+
+  .rl-diamond {
+    width: 16px;
+    height: 28px;
+  }
+
+  .rl-inside {
+    grid-column: 3 / 9;
+    grid-row: 2 / 14;
+  }
+
+  .rl-zone {
+    left: calc((3 - var(--y)) * 100% / 3);
+    top: calc(var(--x) * 100% / 12);
+  }
+}

@@ -1,0 +1,311 @@
+/* ------------------------------------------------------------------ the end: VICTORY or DEFEAT */
+
+/* Over the battle's scene (the boss stays where it is under it), filling it. */
+.rd-result {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  overflow: auto;
+  isolation: isolate;
+}
+
+.rd-result[hidden] {
+  display: none;
+}
+
+/* Under it, the battle's bars, log, party and actions fade out; only the boss stays. */
+.rd-battle .rd-battle-top,
+.rd-battle .rd-intent,
+.rd-battle .rd-log-panel,
+.rd-battle .rd-battle-bottom {
+  transition: opacity 0.8s ease;
+}
+
+.rd-battle.concluded .rd-battle-top,
+.rd-battle.concluded .rd-intent,
+.rd-battle.concluded .rd-log-panel,
+.rd-battle.concluded .rd-battle-bottom {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* The fight just ended: the battle holds a moment, nothing on it to press, before the end fades in. */
+.rd-battle.ending .rd-command,
+.rd-battle.ending .rd-swap {
+  opacity: 0.4;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
+/* The end fading in, all of it together: the dark blur, the title settling into place, the line, the band and the way back. */
+.rd-result:not([hidden]) .rd-result-shade {
+  animation: rd-fade 0.9s ease both;
+}
+
+.rd-result:not([hidden]) .rd-result-title {
+  animation: rd-title-in 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.rd-result:not([hidden]) .rd-result-text,
+.rd-result:not([hidden]) .rd-result-band,
+.rd-result:not([hidden]) .rd-result-actions {
+  animation: rd-rise 0.9s ease both;
+}
+
+@keyframes rd-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes rd-title-in {
+  from {
+    opacity: 0;
+    transform: scale(1.18);
+  }
+}
+
+@keyframes rd-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rd-result:not([hidden]) *,
+  .rd-result:not([hidden]) .rd-result-shade {
+    animation: none;
+  }
+}
+
+/* Half black over the boss, blurring it, so the result stands out. */
+.rd-result-shade {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.rd-result-body {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  width: min(920px, calc(100% - 32px));
+  padding: 24px 0;
+  zoom: var(--rd-zoom);
+  text-align: center;
+}
+
+/* VICTORY in gold, DEFEAT in red: big, glowing, like a game's result. */
+.rd-result-title {
+  margin: 0;
+  background: linear-gradient(180deg, #ffe1e1 0%, #ff8a8a 38%, #c8262d 72%, #7d1016 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-size: 92px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+  filter: drop-shadow(0 0 18px rgba(220, 40, 50, 0.55)) drop-shadow(0 3px 2px rgba(0, 0, 0, 0.8));
+}
+
+.rd-result.won .rd-result-title {
+  background-image: linear-gradient(180deg, #fffbe8 0%, #ffe7a0 35%, #f2b53a 70%, #a8670f 100%);
+  filter: drop-shadow(0 0 20px rgba(255, 196, 70, 0.6)) drop-shadow(0 3px 2px rgba(0, 0, 0, 0.8));
+}
+
+.rd-result-text {
+  /* max-width: 640px; */
+  margin: 0 0 6px;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 15px;
+  line-height: 1.5;
+  text-shadow: 0 1px 3px #000;
+}
+
+/*
+ * What each raider did, in a dark band like a game's result bar: thin light lines along its top and
+ * bottom, and fading out at both ends.
+ */
+.rd-result-band {
+  position: relative;
+  width: 100%;
+  padding: 14px 7%;
+  box-sizing: border-box;
+  background: linear-gradient(180deg, rgba(8, 12, 24, 0.82), rgba(14, 20, 36, 0.88));
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 9%, #000 91%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 9%, #000 91%, transparent);
+}
+
+.rd-result-band::before,
+.rd-result-band::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(225, 230, 245, 0.85) 20%, rgba(225, 230, 245, 0.85) 80%, transparent);
+}
+
+.rd-result-band::before {
+  top: 0;
+}
+
+.rd-result-band::after {
+  bottom: 0;
+}
+
+.rd-result-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+.rd-result-table th {
+  padding: 4px 10px 8px;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-align: right;
+  text-transform: uppercase;
+}
+
+.rd-result-table th:first-child,
+.rd-result-table td:first-child {
+  text-align: left;
+}
+
+/* A column's header sorts by it: the dropdown's chevron beside the one it's sorted by, down for most first, turned up for least. */
+.rd-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+}
+
+.rd-sort:hover,
+.rd-sort:focus-visible,
+.rd-sort.on {
+  outline: none;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.rd-sort .dd-arrow {
+  margin: 0;
+  border-color: currentColor;
+  visibility: hidden;
+}
+
+.rd-sort.on .dd-arrow {
+  visibility: visible;
+}
+
+.rd-sort[data-dir='asc'] .dd-arrow {
+  transform: translateY(2px) rotate(-135deg);
+}
+
+/* A row shows that raider's gear as they fought. */
+.rd-result-table tr.open {
+  cursor: pointer;
+}
+
+.rd-result-table tr.open:hover td,
+.rd-result-table tr.open:focus-visible td {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.rd-result-table tr.open:focus-visible {
+  outline: none;
+}
+
+.rd-result-table td {
+  padding: 7px 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.rd-result-table td.num {
+  text-align: right;
+}
+
+.rd-result-table td.dmg {
+  color: #ffb3a8;
+}
+
+.rd-result-table td.heal {
+  color: #9be8b4;
+}
+
+/* Mitigated in the band's cyan, like the new value in a game's result. */
+.rd-result-table td.guard {
+  color: #5fd5e8;
+}
+
+.rd-result-table tr.you td {
+  background: rgba(216, 191, 122, 0.08);
+}
+
+.rd-result-who {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rd-result-face {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+}
+
+.rd-result-face > img,
+.rd-result-face > .rd-initial {
+  width: 100%;
+  height: 100%;
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  border-radius: 50%;
+  box-sizing: border-box;
+  object-fit: cover;
+}
+
+.rd-result-face > .rd-initial {
+  font-size: 14px;
+}
+
+.rd-result-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rd-result-star {
+  font-size: 13px;
+}
+
+/* Back to the games, and More stats beside it. */
+.rd-result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.rd-result-back {
+  color: var(--text);
+  text-decoration: none;
+}

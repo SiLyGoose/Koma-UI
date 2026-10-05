@@ -1,5 +1,5 @@
 /*
- * Page transitions (transition.ts), put inline at the end of every page's <head> by vite.config.ts
+ * Page transitions (transition/), put inline at the end of every page's <head> by vite.config.ts
  * so they apply before the page's own styles load. Colours are written out: the site's variables
  * (style.css) aren't there yet.
  *
@@ -91,7 +91,7 @@ html[data-tx='out'][data-tx-dir='back']::after {
  * The loading screen. "Loading…" and the sprite's shadow are on the panel (so they ride in and out
  * with it); the sprite bounces over them on its own, moved by `transform` so the browser keeps it going
  * even while a page is busy starting up. The bounce keeps time with the clock (`--tx-phase`, set by
- * transition-head.js and transition.ts), so the next page takes it up at the same height.
+ * transition-head.js and transition/), so the next page takes it up at the same height.
  */
 html[data-tx]::after {
   content: 'Loading…';
@@ -175,7 +175,7 @@ html[data-tx='out'][data-tx-dir='back']::before {
   }
 }
 
-/* A quick cover (transition.ts curtain()): the wipes at twice the speed, and its own words for "Loading…". */
+/* A quick cover (transition/swap.ts curtain()): the wipes at twice the speed, and its own words for "Loading…". */
 html[data-tx-fast][data-tx='in']::after,
 html[data-tx-fast][data-tx='out']::after {
   animation-duration: 0.3s;
@@ -190,7 +190,7 @@ html[data-tx-text]::after {
   content: attr(data-tx-text);
 }
 
-/* If the page's script never runs, it doesn't stay covered (transition.ts sets data-tx-live once it does). */
+/* If the page's script never runs, it doesn't stay covered (transition/arriving.ts sets data-tx-live once it does). */
 html[data-tx]:not([data-tx-live])::after {
   animation: tx-failsafe 0s 4s forwards;
 }

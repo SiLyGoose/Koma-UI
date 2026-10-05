@@ -14,7 +14,7 @@ import { mountGear, type ApiResult, type Member } from '../gear/view';
 /*
  * The raid party's gear, in the raid page's popup (an iframe: its own screen, so the gear page's layout,
  * which goes by the screen's width, is laid out as on a computer and scaled down to fit a phone on its
- * side). The gear page's view (../gear/view.ts), with the party for its roster: the one looking can change
+ * side). The gear page's view (../gear/view/), with the party for its roster: the one looking can change
  * what they wear (equip, unequip, switch loadouts) before the fight, as on the gear page; everyone else's,
  * and anyone's as they fought, is to look at only.
  *

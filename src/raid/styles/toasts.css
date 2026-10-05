@@ -1,0 +1,38 @@
+/* ------------------------------------------------------------------ the raid's markdown, and toasts */
+
+.md-mention {
+  padding: 0 3px;
+  border-radius: 4px;
+  background: rgba(88, 101, 242, 0.3);
+  color: #d3d6fc;
+  font-weight: 500;
+}
+
+.md-emoji {
+  width: 1.3em;
+  height: 1.3em;
+  vertical-align: -0.3em;
+  object-fit: contain;
+}
+
+.rd-toast {
+  position: fixed;
+  left: 50%;
+  bottom: max(18px, env(safe-area-inset-bottom));
+  z-index: 20;
+  max-width: min(460px, calc(var(--rd-vw) - 32px));
+  padding: 10px 16px;
+  transform: translateX(-50%);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel-2);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  font-size: 14px;
+  text-align: center;
+}
+
+/* In the fight the toast sits under the boss's next move, clear of the party and the actions. */
+.rd-fighting .rd-toast {
+  top: 190px;
+  bottom: auto;
+}

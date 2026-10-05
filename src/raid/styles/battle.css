@@ -1,0 +1,198 @@
+/* ------------------------------------------------------------------ the battle screen */
+
+.rd-battle {
+  position: relative;
+  flex: 1;
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 560px;
+  overflow: hidden;
+  background: #05070d;
+  isolation: isolate;
+}
+
+/*
+ * The boss: whole in the middle of the scene (never cropped, whatever the screen's shape), over a
+ * blurred, darkened copy of the same picture filling the rest.
+ */
+.rd-battle-bg,
+.rd-battle-boss {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  user-select: none;
+  pointer-events: none;
+}
+
+.rd-battle-bg {
+  z-index: -3;
+  object-fit: cover;
+  filter: blur(24px) brightness(0.45) saturate(1.2);
+  transform: scale(1.15);
+}
+
+.rd-battle-boss {
+  z-index: -2;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+/* Darker along the top and bottom, where the bars and the party sit over the picture. */
+.rd-battle-shade {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(180deg, rgba(4, 6, 12, 0.85) 0%, rgba(4, 6, 12, 0.25) 22%, transparent 40%),
+    linear-gradient(0deg, rgba(4, 6, 12, 0.95) 0%, rgba(4, 6, 12, 0.6) 22%, transparent 45%);
+  pointer-events: none;
+}
+
+/* Across the top: the boss's name and HP in the middle, the round and the turn's time in the corner. */
+.rd-battle-top {
+  display: grid;
+  grid-template-columns: 1fr minmax(0, 560px) 1fr;
+  align-items: start;
+  gap: 12px;
+  padding: 14px 16px 0;
+}
+
+.rd-boss {
+  grid-column: 2;
+  text-align: center;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+}
+
+.rd-boss-name {
+  margin-bottom: 6px;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.rd-boss-bar {
+  position: relative;
+  /* Tall enough for its percentage to sit inside it. */
+  height: 22px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.6);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+}
+
+.rd-boss-bar > span {
+  display: block;
+  height: 100%;
+  /* The white strip along the top, off for now:
+  background: linear-gradient(180deg, #f2f2f2 0 45%, #d63a3d 45% 100%); */
+  background: linear-gradient(180deg, #e2474a, #b92a2e);
+  transition: width 0.5s ease;
+}
+
+.rd-boss-bar > b {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1;
+  text-shadow: 0 0 3px #000, 0 0 2px #000;
+}
+
+.rd-boss-sub {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.rd-tags {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.rd-tags .rd-tag {
+  margin: 0;
+  text-shadow: none;
+}
+
+.rd-tag.hot {
+  background: rgba(190, 50, 30, 0.85);
+}
+
+.rd-tag.cold {
+  background: rgba(40, 110, 200, 0.85);
+}
+
+.rd-round {
+  grid-column: 3;
+  justify-self: end;
+  display: grid;
+  justify-items: end;
+  gap: 4px;
+  min-width: 120px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.5);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.rd-round span {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 12px;
+}
+
+.rd-timer {
+  width: 100%;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.rd-timer > span {
+  display: block;
+  height: 100%;
+  background: var(--gold);
+  transition: width 0.25s linear;
+}
+
+/* The boss's next move, under its bar, like the game's move banner. */
+.rd-intent {
+  justify-self: center;
+  max-width: min(620px, calc(100% - 32px));
+  margin-top: 12px;
+  padding: 8px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: rgba(8, 10, 18, 0.72);
+  text-align: center;
+  backdrop-filter: blur(4px);
+}
+
+.rd-intent-label {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--muted);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.rd-intent p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+}

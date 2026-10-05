@@ -1,0 +1,243 @@
+/* The section's layout and height are the shared .panels' (../../shared/items/items.css). */
+@media (min-width: 900px) {
+  .forge {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  }
+}
+
+/* ------------------------------------------------------------------ anvil */
+
+.anvil {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--tier, var(--line));
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+
+/* The forge's glow behind the slots, hottest behind the target, embers along the bottom. */
+.anvil-stage {
+  position: relative;
+  flex-shrink: 0;
+  padding: 14px 18px 16px;
+  /* The glow fades out into the panel over its bottom third, so it runs smoothly into the effects under it. */
+  background:
+    linear-gradient(180deg, transparent 55%, var(--panel) 96%),
+    radial-gradient(ellipse 40% 55% at 30% 55%, rgb(255 170 70 / 38%), transparent 70%),
+    radial-gradient(ellipse 90% 45% at 40% 92%, rgb(185 74 76 / 26%), transparent 70%),
+    linear-gradient(180deg, #241b18, var(--panel));
+  /* Shaded along the top only: at the sides or bottom it would draw an edge the fade is there to hide. */
+  box-shadow: inset 0 30px 40px -20px rgb(0 0 0 / 55%);
+}
+
+.anvil-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.anvil-hint {
+  flex: 1;
+  min-width: 0;
+  min-height: 2.9em;
+  margin: 0;
+  color: #f3e6c4;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.45;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 80%);
+}
+
+.anvil-hint.good {
+  color: var(--green);
+}
+
+.anvil-hint.bad {
+  color: #f0a0a0;
+}
+
+.anvil-hint code {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgb(0 0 0 / 35%);
+  font-size: 0.9em;
+}
+
+.anvil-slots {
+  display: flex;
+  justify-content: center;
+  gap: clamp(28px, 8vw, 72px);
+  margin: 10px 0 40px;
+}
+
+.anvil-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.anvil-label {
+  color: #efd48a;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-shadow: 0 2px 0 #3a2410, 0 0 10px rgb(0 0 0 / 70%);
+}
+
+/* A slot on the anvil: a dark, sunken square until a card fills it. */
+.anvil-frame {
+  position: relative;
+  /* Its glow (::before) stays behind its card, over the stage. */
+  isolation: isolate;
+  display: grid;
+  place-items: center;
+  width: 104px;
+  aspect-ratio: 1;
+  border: 2px solid #5a5262;
+  border-radius: 8px;
+  background: rgb(18 16 22 / 78%);
+  box-shadow: inset 0 0 0 3px #111014, inset 0 0 18px rgb(0 0 0 / 70%);
+}
+
+.anvil-frame.filled {
+  border-color: transparent;
+  background: none;
+  box-shadow: none;
+  cursor: pointer;
+}
+
+/* The Materials slot waiting for a spare to be picked from the armory: its edge glows in and out. */
+.anvil-frame.waiting {
+  border-style: dashed;
+  border-color: #f0a13a;
+  animation: waiting 1.6s ease-in-out infinite;
+}
+
+@keyframes waiting {
+  50% {
+    border-color: rgb(240 161 58 / 35%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anvil-frame.waiting {
+    animation: none;
+  }
+}
+
+.anvil-frame .item {
+  width: 100%;
+  cursor: inherit;
+}
+
+.anvil-frame .item:hover {
+  transform: none;
+}
+
+.anvil-frame .art {
+  width: 64%;
+  height: 64%;
+}
+
+.anvil-frame .item-level {
+  font-size: 13px;
+}
+
+.anvil-frame .star {
+  font-size: 15px;
+}
+
+/* The target glows in the fire. */
+#target.filled .item {
+  box-shadow: 0 0 22px 2px rgb(255 180 80 / 50%), 0 2px 0 var(--item-lip);
+}
+
+/* Refine Gear pressed: the heat behind the target builds up bright, then dissipates. */
+#target::before {
+  content: '';
+  position: absolute;
+  inset: -70px;
+  z-index: -1;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(255 226 150 / 95%), rgb(255 150 60 / 55%) 45%, transparent);
+  opacity: 0;
+  pointer-events: none;
+}
+
+#target.heat::before {
+  animation: heat 1.2s ease-out;
+}
+
+#target.heat {
+  animation: heat-frame 1.2s ease-out;
+}
+
+@keyframes heat {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  35% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+}
+
+@keyframes heat-frame {
+  35% {
+    box-shadow: 0 0 36px 14px rgb(255 214 130 / 80%);
+  }
+}
+
+/* A target or material picked: its slot takes it with a little pop and an orange flash. */
+.anvil-frame.placed {
+  animation: placed 0.4s ease-out;
+}
+
+@keyframes placed {
+  0% {
+    transform: scale(0.86);
+    box-shadow: 0 0 0 0 rgb(240 161 58 / 0%);
+  }
+  55% {
+    transform: scale(1.06);
+    box-shadow: 0 0 22px 6px rgb(240 161 58 / 65%);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #target.heat,
+  #target.heat::before,
+  .anvil-frame.placed {
+    animation: none;
+  }
+}
+
+/* A forge's material: its komaGems. */
+.anvil-gem {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  border: 2px solid #5a5262;
+  border-radius: 8px;
+  background: rgb(18 16 22 / 78%);
+}
+
+.anvil-gem .emoji {
+  width: 52%;
+  height: auto;
+  filter: drop-shadow(0 0 10px rgb(120 200 255 / 45%));
+}

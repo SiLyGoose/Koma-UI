@@ -37,7 +37,7 @@ body {
 }
 
 .pc-view {
-  /* Blocks across the view (main.ts reads it). */
+  /* Blocks across the view (camera.ts reads it). */
   --cols: 15;
   aspect-ratio: 15 / 11;
   /* As big as fits in the black, leaving a margin around it (the log sits in the one below). */
@@ -258,7 +258,7 @@ body {
   -webkit-touch-callout: none;
 }
 
-/* Shows up under the finger (main.ts moves it there with a transform); 110px across. */
+/* Shows up under the finger (input/joystick.ts moves it there with a transform); 110px across. */
 .pc-stick {
   display: none;
   position: absolute;

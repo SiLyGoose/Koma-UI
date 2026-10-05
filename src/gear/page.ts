@@ -5,7 +5,7 @@ import type { Page } from '../site/page';
 import { api, currentMe, currentServer, loadMe, logOut, setServer } from '../site/session';
 import { mountGear } from './view';
 
-/* The site's gear page: the gear view (./view.ts), for the member logged in, in the server they pick. */
+/* The site's gear page: the gear view (./view/), for the member logged in, in the server they pick. */
 
 export const gearPage: Page = {
   path: '/gear',
