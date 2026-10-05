@@ -14,31 +14,26 @@ function levelButton(label: string, pressed: boolean, disabled: boolean, onClick
   return button;
 }
 
+/** Each place an item comes from: its box's words. */
+const SOURCES: Record<ItemSource, string> = {
+  gacha: 'Gacha - Discord',
+  raid: 'Raid Drops',
+};
+
 /**
- * A box for one place an item comes from: its icon, its name, and a word on it. The raid's opens the raid (through
- * the front page, as Discord's links do: it logs them in first if need be); the gacha's is in Discord, so it only
- * clicks.
+ * A box for one place an item comes from. The raid's opens the raid (through the front page, as Discord's links
+ * do: it logs them in first if need be); the gacha's is in Discord, so it only clicks.
  */
-function sourceBox(source: ItemSource, dropChance: number | undefined): HTMLButtonElement {
+function sourceBox(source: ItemSource): HTMLButtonElement {
   const box = el('button', 'db-source');
   box.type = 'button';
-  box.dataset.source = source;
-  const text = el('span', 'db-source-text');
-  if (source === 'gacha') {
-    box.title = "Pulled with Koma's gacha in Discord";
-    text.append(el('span', 'db-source-name', 'Gacha'), el('span', 'db-source-hint', 'Pull it in Discord'));
-    box.append(el('span', 'db-source-icon', '🎰'), text);
-    return box;
+  box.append(el('span', 'db-source-name', SOURCES[source]));
+  if (source === 'raid') {
+    box.addEventListener('click', () => {
+      const server = currentServer();
+      go(`/?play=raid${server ? `&guild=${encodeURIComponent(server)}` : ''}`);
+    });
   }
-  const odds =
-    dropChance === undefined ? 'Raid bosses drop it' : dropChance > 0 ? `${Math.round(dropChance * 1000) / 10}% drop chance per win` : 'Drops are off right now';
-  box.title = 'Play the raid';
-  text.append(el('span', 'db-source-name', 'Raid'), el('span', 'db-source-hint', odds));
-  box.append(el('span', 'db-source-icon', '⚔️'), text, el('span', 'db-source-go', '→'));
-  box.addEventListener('click', () => {
-    const server = currentServer();
-    go(`/?play=raid${server ? `&guild=${encodeURIComponent(server)}` : ''}`);
-  });
   return box;
 }
 
@@ -109,7 +104,7 @@ export function renderDetail(ctx: DatabankContext): void {
   if (sources.length > 0) {
     const section = el('div', 'db-sources');
     const boxes = el('div', 'db-source-boxes');
-    for (const source of sources) boxes.append(sourceBox(source, databank.raidDropChance));
+    for (const source of sources) boxes.append(sourceBox(source));
     section.append(el('p', 'db-sources-label', 'Obtainable from'), boxes);
     ui.detailBody.append(section);
   }
