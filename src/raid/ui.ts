@@ -32,6 +32,8 @@ export const ui = {
   prepPhases: $('prep-phases'),
   prepRewards: $('prep-rewards'),
   prepSlots: $('prep-slots'),
+  prepEffects: $('prep-effects'),
+  prepEffectsIcon: $('prep-effects-icon'),
   prepStatus: $('prep-status'),
   start: $<HTMLButtonElement>('start'),
   join: $<HTMLButtonElement>('join'),

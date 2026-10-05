@@ -236,6 +236,16 @@ button.rd-slot {
   font-weight: 700;
 }
 
+.rd-prep-effects-icon.on {
+  font-size: 28px;
+}
+
+.rd-prep-effects-list {
+  margin: 0;
+  padding-left: 18px;
+  text-align: left;
+}
+
 .rd-prep-effects-text {
   flex: 1;
   display: flex;

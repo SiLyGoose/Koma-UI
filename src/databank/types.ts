@@ -21,8 +21,12 @@ export type ItemSource = 'gacha' | 'raid';
 
 export interface Databank {
   maxLevel: number;
-  /** The chance (0 to 1) each raider who beats a raid boss finds a raid drop; 0 when drops are off (absent from a bot from before raid drops). */
+  /**
+   * The chance (0 to 1) a party that beats a raid boss gets raid drops, each raider finding one, before
+   * what each raider adds (raidDropChancePerRaider). 0 when drops are off (absent from a bot from before raid drops).
+   */
   raidDropChance?: number;
+  raidDropChancePerRaider?: number;
   items: DatabankItem[];
 }
 

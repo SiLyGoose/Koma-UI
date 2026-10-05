@@ -28,7 +28,28 @@ const LAST_LOBBY: Record<'no_players' | 'called_off', string> = {
 export function renderPrep(v: RaidView): void {
   if (prepBoss !== v.boss.id) renderBrief(v);
   renderSeats(v);
+  renderEffects(v);
   renderStatus(v);
+}
+
+/** A share (0 to 1) as a percentage, like "30%". */
+const percent = (share: number): string => `${Math.round(share * 1000) / 10}%`;
+
+/** What the party adds, all together: the raid drop chance its raiders add (the total is capped at 100%). */
+function renderEffects(v: RaidView): void {
+  const raiders = v.lobby?.players.length ?? 0;
+  const drops = v.drops;
+  const added = drops ? Math.max(0, Math.min(drops.perRaider * raiders, 1 - drops.chance)) : 0;
+  const effects = added > 0 ? [`+${percent(added)} raid item drop chance (${raiders} ${raiders === 1 ? 'raider' : 'raiders'})`] : [];
+  ui.prepEffectsIcon.textContent = effects.length === 0 ? 'None' : '🎁';
+  ui.prepEffectsIcon.classList.toggle('on', effects.length > 0);
+  if (effects.length === 0) {
+    ui.prepEffects.textContent = 'No party buff effects';
+    return;
+  }
+  const list = el('ul', 'rd-prep-effects-list');
+  list.append(...effects.map((effect) => el('li', '', effect)));
+  ui.prepEffects.replaceChildren(list);
 }
 
 /** What the boss does: its moves, phases and rewards. */
