@@ -1,7 +1,8 @@
 import { art, el, rich, SLOT_NAME, stars } from '../shared/items/items';
 import { itemDetailsClosed } from '../shared/items/sfx';
+import { navigateAfter } from '../shared/transition';
 import { go } from '../site/nav';
-import { currentServer } from '../site/session';
+import { api, currentServer, hasSession } from '../site/session';
 import { itemById, narrow, type DatabankContext } from './context';
 import type { ItemSource } from './types';
 
@@ -21,19 +22,27 @@ const SOURCES: Record<ItemSource, string> = {
 };
 
 /**
- * A box for one place an item comes from. The raid's opens the raid (through the front page, as Discord's links
- * do: it logs them in first if need be); the gacha's is in Discord, so it only clicks.
+ * Into the raid, under one loading screen: the bot's link to it is asked for while the screen shows, then straight
+ * there. Logged out, or the bot saying no, it's through the front page instead (as Discord's links are), which logs
+ * them in first or says why.
  */
+async function openRaid(): Promise<void> {
+  const server = currentServer();
+  const viaFront = `/?play=raid${server ? `&guild=${encodeURIComponent(server)}` : ''}`;
+  if (!hasSession() || !server) return go(viaFront);
+  const went = await navigateAfter(async () => {
+    const res = await api<{ url: string }>('/api/play', { method: 'POST', body: JSON.stringify({ guild: server, game: 'raid' }) });
+    return res.ok ? res.data.url : null;
+  });
+  if (!went) go(viaFront);
+}
+
+/** A box for one place an item comes from. The raid's opens the raid (openRaid); the gacha's is in Discord, so it only clicks. */
 function sourceBox(source: ItemSource): HTMLButtonElement {
   const box = el('button', 'db-source');
   box.type = 'button';
   box.append(el('span', 'db-source-name', SOURCES[source]));
-  if (source === 'raid') {
-    box.addEventListener('click', () => {
-      const server = currentServer();
-      go(`/?play=raid${server ? `&guild=${encodeURIComponent(server)}` : ''}`);
-    });
-  }
+  if (source === 'raid') box.addEventListener('click', () => void openRaid());
   return box;
 }
 

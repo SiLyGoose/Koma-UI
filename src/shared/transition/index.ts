@@ -9,7 +9,8 @@
  * the next one while its loading screen shows (for at least LOAD_MS, so that page is ready and doesn't
  * flash in), and says where it's going (sessionStorage); the next page starts under the same loading
  * screen (transition-head.js, before anything is drawn) and this script, loading there, wipes it off.
- * Same-site links go through it on their own; code that sends the browser somewhere calls navigate().
+ * Same-site links go through it on their own; code that sends the browser somewhere calls navigate(), or
+ * navigateAfter() when it has to ask where first (the loading screen stays up while it does).
  * Anyone who asked for less motion just gets the page.
  *
  * A page that draws itself once its data is in (from the bot) calls holdReveal() as it starts, and
@@ -31,7 +32,7 @@ import { clear, lessMotion, root, wipeOff } from './wipe';
 
 export { holdReveal } from './arriving';
 export { catchBack } from './back';
-export { navigate, onSiteLink } from './leaving';
+export { navigate, navigateAfter, onSiteLink } from './leaving';
 export { curtain, swap } from './swap';
 export type { Direction } from './wipe';
 

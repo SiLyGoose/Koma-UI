@@ -1,6 +1,6 @@
 import { handOnly } from '../cursor';
 import { KEY, LOAD_MS, MAX_FETCH_MS, WIPE_MS } from './timing';
-import { lessMotion, root, wait, wipeOn, type Direction } from './wipe';
+import { lessMotion, root, wait, wipeOff, wipeOn, type Direction } from './wipe';
 
 interface Pending {
   /** The page it's going to (its path, without a trailing slash). */
@@ -30,14 +30,32 @@ function remember(pending: Pending): void {
   }
 }
 
-/** Wipes the loading screen over this page, fetches `url` meanwhile, then goes there. */
-async function leave(url: URL, dir: Direction): Promise<void> {
+/**
+ * Wipes the loading screen over this page, fetches where it's going meanwhile, then goes there. `to` can take a
+ * while to say where (navigateAfter()): the loading screen stays up as it does. Nowhere (null) wipes it off again
+ * and stays on this page: false.
+ */
+async function leave(to: URL | Promise<URL | null>, dir: Direction): Promise<boolean> {
   page.leaving = true;
+  wipeOn(dir);
+  const coverAt = Date.now() + WIPE_MS;
+  const covered = wait(WIPE_MS).then(() => root.setAttribute('data-tx', 'cover'));
+  const url = await to;
+  if (!url) {
+    await covered;
+    await wipeOff();
+    page.leaving = false;
+    return false;
+  }
+  // Somewhere with no transition of its own: straight there, from under the loading screen.
+  if (!goesThrough(url)) {
+    location.href = url.href;
+    return true;
+  }
   const pending: Pending = { to: pagePath(url.pathname), dir, at: Date.now() };
   remember(pending);
   // A game has the hand alone for a cursor: the dot and brackets go as this page does.
   if (pending.to.startsWith('/games/')) handOnly();
-  wipeOn(dir);
   // Fetched now, so it comes from the cache once the browser goes there. Only this site's pages.
   const fetched =
     url.origin === location.origin
@@ -46,11 +64,12 @@ async function leave(url: URL, dir: Direction): Promise<void> {
           () => undefined,
         )
       : Promise.resolve();
-  await wait(WIPE_MS);
-  root.setAttribute('data-tx', 'cover');
-  await Promise.all([wait(LOAD_MS), Promise.race([fetched, wait(MAX_FETCH_MS)])]);
+  await covered;
+  // The loading screen shows at least LOAD_MS, counted from when it covered the page (so not again after a wait for `to`).
+  await Promise.all([wait(coverAt + LOAD_MS - Date.now()), Promise.race([fetched, wait(MAX_FETCH_MS)])]);
   remember({ ...pending, at: Date.now() });
   location.href = url.href;
+  return true;
 }
 
 /**
@@ -65,6 +84,26 @@ export function navigate(href: string, options: { back?: boolean } = {}): void {
     return;
   }
   void leave(url, options.back ? 'back' : 'forward');
+}
+
+/**
+ * navigate(), for somewhere only known once `where` is done (asking the bot for a game's link, say): the loading
+ * screen wipes on at once and stays up while it works, then goes on to the page as navigate()'s does, so it's one
+ * transition straight there. False when `where` comes back with nowhere (null, or fails): the loading screen wipes
+ * off again and this page carries on, for the caller to say why. (On its way somewhere already: true, and nothing.)
+ */
+export async function navigateAfter(where: () => Promise<string | null>, options: { back?: boolean } = {}): Promise<boolean> {
+  if (page.leaving) return true;
+  const to = where().then(
+    (href) => (href === null ? null : new URL(href, location.href)),
+    () => null,
+  );
+  if (lessMotion()) {
+    const url = await to;
+    if (url) location.href = url.href;
+    return url !== null;
+  }
+  return leave(to, options.back ? 'back' : 'forward');
 }
 
 /** Claims a link to one of this document's own pages (the router); true when it did. */
