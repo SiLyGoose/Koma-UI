@@ -14,7 +14,9 @@ import { mountGear, type ApiResult, type Member } from '../gear/view';
 /*
  * The raid party's gear, in the raid page's popup (an iframe: its own screen, so the gear page's layout,
  * which goes by the screen's width, is laid out as on a computer and scaled down to fit a phone on its
- * side). The gear page's view (../gear/view.ts), with the party for its roster, to look at only.
+ * side). The gear page's view (../gear/view.ts), with the party for its roster: the one looking can change
+ * what they wear (equip, unequip, switch loadouts) before the fight, as on the gear page; everyone else's,
+ * and anyone's as they fought, is to look at only.
  *
  * Its link's #hash: the raid's token (t) and socket (s), the party (p: JSON [{ id, name, avatar }], in
  * the order they joined, the one looking marked `you`), whose gear to show first (w), and g=raid for
@@ -49,7 +51,7 @@ async function api<T>(path: string, init: RequestInit = {}): Promise<ApiResult<T
   try {
     // As they fought: the raid's snapshot, asked for the same way.
     if (fought) path = path.replace(/^\/api\/gear\?/, '/api/raid/gear?');
-    const res = await fetch(`${base}${path}`, { ...init, headers: { Authorization: `Game ${token}`, ...init.headers } });
+    const res = await fetch(`${base}${path}`, { ...init, headers: { 'Content-Type': 'application/json', Authorization: `Game ${token}`, ...init.headers } });
     const body = (await res.json().catch(() => ({}))) as { error?: string };
     return res.ok ? { ok: true, data: body as T } : { ok: false, status: res.status, error: body.error ?? 'failed' };
   } catch {
@@ -100,5 +102,5 @@ mountGear(root, {
   setServer: () => undefined,
   logOut: () => undefined,
   go: () => undefined,
-  party: { members, first: params.get('w') ?? members[0]?.userId ?? '' },
+  party: { members, first: params.get('w') ?? members[0]?.userId ?? '', edit: !fought },
 });
