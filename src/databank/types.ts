@@ -13,10 +13,16 @@ export interface DatabankItem {
   effects: string[][];
   masterwork: string[] | null;
   borrowed: number | null;
+  /** Where it comes from: pulled from the gacha, or only dropped by raid bosses (absent from a bot from before raid drops). */
+  source?: ItemSource;
 }
+
+export type ItemSource = 'gacha' | 'raid';
 
 export interface Databank {
   maxLevel: number;
+  /** The chance (0 to 1) each raider who beats a raid boss finds a raid drop; 0 when drops are off (absent from a bot from before raid drops). */
+  raidDropChance?: number;
   items: DatabankItem[];
 }
 

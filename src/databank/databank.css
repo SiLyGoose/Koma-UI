@@ -332,6 +332,112 @@
   flex-direction: column;
 }
 
+/* Where the item comes from, under its effects: a box for each place, lifting under the mouse. The raid's opens the raid. */
+.db-sources {
+  margin: 14px 0 0;
+}
+
+.db-sources-label {
+  margin: 0 0 6px;
+  color: #6b5a3a;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.db-source-boxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.db-source {
+  display: flex;
+  flex: 1 1 150px;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 8px 12px;
+  border: 1px solid var(--parchment-edge);
+  border-radius: 10px;
+  background: #fffaf0;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform 120ms ease,
+    border-color 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.db-source:hover {
+  border-color: #9c8c66;
+  box-shadow: 0 3px 8px rgb(120 96 50 / 25%);
+  transform: translateY(-1px);
+}
+
+.db-source:active {
+  box-shadow: none;
+  transform: none;
+}
+
+.db-source:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.db-source-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.db-source-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.db-source-name {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.db-source-hint {
+  color: #6b6272;
+  font-size: 11.5px;
+}
+
+.db-source-go {
+  margin-left: auto;
+  font-weight: 700;
+}
+
+/* The raid's in gold, as raid drops are: they can't be pulled. */
+.db-source[data-source='raid'] {
+  border-color: #c9a24a;
+  background: #fff6df;
+}
+
+.db-source[data-source='raid']:hover {
+  border-color: #8a6414;
+}
+
+.db-source[data-source='raid'] :is(.db-source-name, .db-source-go) {
+  color: #8a6414;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .db-source {
+    transition: none;
+  }
+
+  .db-source:hover {
+    transform: none;
+  }
+}
+
 /* "Made for certain members": the last thing in the scroll, pushed to its bottom when there's room. */
 .db-made-for {
   margin-top: auto;
