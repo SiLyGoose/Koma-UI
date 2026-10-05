@@ -402,8 +402,7 @@ export function startTable<S extends string, R, X = unknown>(game: TableGame<S, 
     // Deal now: alone it deals straight away; with others it's a vote, dealt once everyone has voted.
     const seats = state?.seats ?? [];
     const voted = mySeat()?.ready ?? false;
-    const chipsDown = seats.some((s) => sumBets(s.userId === state?.you ? bets : s.bets) > 0);
-    ui.dealVote.disabled = idle || (!chipsDown && !voted);
+    ui.dealVote.disabled = idle;
     ui.dealVote.classList.toggle('voted', voted);
     ui.dealVote.setAttribute('aria-pressed', String(voted));
     ui.dealVote.textContent = seats.length <= 1 ? words.button : `${voted ? 'Voted' : words.button} · ${seats.filter((s) => s.ready).length}/${seats.length}`;
