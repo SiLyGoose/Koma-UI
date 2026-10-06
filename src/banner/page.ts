@@ -19,7 +19,7 @@ import { render } from './render';
  * the best item, ./sky.ts) and shows what came out. Logged-in members only, in the server picked.
  */
 
-export const bannerPage: Page = { path: '/banner', title: 'Banner · Komaverse', icon: '🌠', markup, needsLogin: true, mount };
+export const bannerPage: Page = { path: '/banner', title: 'Wish · Komaverse', icon: '🌠', markup, needsLogin: true, mount };
 
 function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void } {
   const ctx = createContext(root);
