@@ -1,5 +1,6 @@
 import type { GearCopy, GearView } from '../../shared/items/gear';
 import type { Slot } from '../../shared/items/items';
+import type { StarChoice } from '../../shared/items/star-filter';
 import type { GearHost, Member } from './types';
 
 /** The view's elements, found once in its root. */
@@ -12,6 +13,7 @@ export interface GearUi {
   totals: HTMLElement;
   armoryTitle: HTMLElement;
   search: HTMLInputElement;
+  stars: HTMLElement;
   grid: HTMLElement;
   detail: HTMLElement;
   loadoutButton: HTMLButtonElement;
@@ -38,6 +40,8 @@ export interface GearContext {
   ui: GearUi;
   gear: GearView | null;
   filter: Slot | 'all';
+  /** The star tier the armory shows (its star chips: ../../shared/items/star-filter.ts). */
+  stars: StarChoice;
   /** What the armory's search asks for (trimmed and lowercased): every word in a card's name or description (../../shared/items/search.ts). */
   query: string;
   /** What the panel beside the character shows. */
@@ -74,6 +78,7 @@ export function createContext(root: HTMLElement, host: GearHost): GearContext {
       totals: $('totals'),
       armoryTitle: $('armory-title'),
       search: $<HTMLInputElement>('armory-search'),
+      stars: $('armory-stars'),
       grid: $('armory-grid'),
       detail: $('detail'),
       loadoutButton: $<HTMLButtonElement>('loadout-button'),
@@ -94,6 +99,7 @@ export function createContext(root: HTMLElement, host: GearHost): GearContext {
     },
     gear: null,
     filter: 'all',
+    stars: 'all',
     query: '',
     view: 'gear',
     picked: null,

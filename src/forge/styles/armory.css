@@ -1,5 +1,10 @@
 /* ------------------------------------------------------------------ armory */
 
+/* The search, over the tabs (as the gear page's). */
+.armory > .armory-search {
+  margin: 4px 0 8px;
+}
+
 /* The copy on the anvil: darkened where it sits, with what's being done to it across it in bold yellow. */
 .forge .item.selected::before {
   content: '';

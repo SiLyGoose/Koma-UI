@@ -176,45 +176,7 @@
   flex: 1;
 }
 
-.db-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin: -4px 0 12px;
-}
-
-.db-chip {
-  padding: 4px 10px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: transparent;
-  color: var(--tier, var(--muted));
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-/* The chips' stars are the cards' stars (items.css), a little smaller to fit. */
-.db-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.db-chip .star {
-  font-size: 14px;
-}
-
-.db-chip:hover {
-  border-color: var(--dusk);
-}
-
-.db-chip[aria-pressed='true'] {
-  border-color: var(--tier, var(--text));
-  background: color-mix(in srgb, var(--tier, var(--text)) 16%, transparent);
-  color: var(--tier, var(--text));
-}
-
+/* Owned only, after the star filter's chips (../shared/items/styles/star-chips.css), at the row's far end. */
 .db-owned {
   margin-left: auto;
 }
@@ -449,19 +411,6 @@
 
   .db-controls {
     margin-bottom: 8px;
-  }
-
-  .db-chips {
-    margin-bottom: 10px;
-  }
-
-  .db-chip {
-    padding: 3px 8px;
-    font-size: 11.5px;
-  }
-
-  .db-chip .star {
-    font-size: 12px;
   }
 
   .db-tier-head .star {

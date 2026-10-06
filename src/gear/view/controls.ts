@@ -1,6 +1,7 @@
 import { dropdown } from '../../shared/dropdown';
 import type { Slot } from '../../shared/items/items';
 import { hoverSound, itemPicked } from '../../shared/items/sfx';
+import { starFilter } from '../../shared/items/star-filter';
 import { loadGear, unequipEverything } from './api';
 import type { GearContext } from './context';
 import { unpick } from './detail';
@@ -33,6 +34,11 @@ export function wireControls(ctx: GearContext): () => void {
       render(ctx);
     });
   }
+
+  starFilter(ui.stars, (choice) => {
+    ctx.stars = choice;
+    renderGrid(ctx);
+  });
 
   ui.search.addEventListener('input', () => {
     ctx.query = ui.search.value.trim().toLowerCase();

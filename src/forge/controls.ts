@@ -1,5 +1,6 @@
 import { dropdown } from '../shared/dropdown';
 import type { Slot } from '../shared/items/items';
+import { starFilter } from '../shared/items/star-filter';
 import { setServer } from '../site/session';
 import { loadGear, strikeAnvil } from './api';
 import type { ForgeContext } from './context';
@@ -27,6 +28,25 @@ export function wireControls(ctx: ForgeContext): () => void {
       render(ctx);
     });
   }
+
+  starFilter(ui.stars, (choice) => {
+    ctx.stars = choice;
+    renderGrid(ctx);
+  });
+
+  ui.search.addEventListener('input', () => {
+    ctx.query = ui.search.value.trim().toLowerCase();
+    renderGrid(ctx);
+  });
+  // Escape in the search empties it (every browser, not just those that do it themselves), and does nothing else.
+  ui.search.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape' || ui.search.value === '') return;
+    event.preventDefault();
+    event.stopPropagation();
+    ui.search.value = '';
+    ctx.query = '';
+    renderGrid(ctx);
+  });
 
   ui.go.addEventListener('click', () => void strikeAnvil(ctx));
 

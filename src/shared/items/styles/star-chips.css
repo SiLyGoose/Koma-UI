@@ -1,0 +1,62 @@
+/* ------------------------------------------------------------------ star chips */
+
+/*
+ * The star filter (../star-filter.ts) under an armory's tabs: small pills, each in its tier's colour,
+ * the one pressed filled with a wash of it. The gear page's, the forge's and the databank's.
+ */
+.star-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: -4px 0 12px;
+}
+
+/* Its stars are the cards' stars (art.css), a little smaller to fit. */
+.star-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--tier, var(--muted));
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.star-chip .star {
+  font-size: 14px;
+}
+
+.star-chip:hover {
+  border-color: var(--dusk);
+}
+
+.star-chip:focus-visible {
+  outline: 2px solid var(--muted);
+  outline-offset: 2px;
+}
+
+.star-chip[aria-pressed='true'] {
+  border-color: var(--tier, var(--text));
+  background: color-mix(in srgb, var(--tier, var(--text)) 16%, transparent);
+  color: var(--tier, var(--text));
+}
+
+/* Smaller computer screens (as the rest of the armory: page.css): a size down. */
+@media (min-width: 900px) and (max-width: 1279px), (min-width: 900px) and (max-height: 820px) {
+  .star-chips {
+    margin-bottom: 10px;
+  }
+
+  .star-chip {
+    padding: 3px 8px;
+    font-size: 11.5px;
+  }
+
+  .star-chip .star {
+    font-size: 12px;
+  }
+}

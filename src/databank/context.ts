@@ -1,5 +1,6 @@
 import type { Slot } from '../shared/items/items';
-import type { Databank, DatabankItem, Owned, Stars } from './types';
+import type { StarChoice } from '../shared/items/star-filter';
+import type { Databank, DatabankItem, Owned } from './types';
 
 /** Narrow screens show the item picked in a sheet over the list, only once one is picked. */
 export const narrow = window.matchMedia('(max-width: 899px)');
@@ -19,8 +20,8 @@ function findUi(root: HTMLElement) {
     list: $('db-list'),
     count: $('db-count'),
     ownedOnly: $<HTMLButtonElement>('owned-only'),
+    stars: $('stars'),
     tabs: [...root.querySelectorAll<HTMLButtonElement>('[data-filter]')],
-    chips: [...root.querySelectorAll<HTMLButtonElement>('[data-stars-filter]')],
   };
 }
 
@@ -31,7 +32,7 @@ export interface DatabankContext {
   /** By item id; null when not logged in (nothing to mark). */
   owned: Map<string, Owned> | null;
   slotFilter: Slot | 'all';
-  starFilter: Stars | 'all';
+  starFilter: StarChoice;
   onlyOwned: boolean;
   query: string;
   /** The item shown in the panel. On narrow screens it's only open once one is picked. */

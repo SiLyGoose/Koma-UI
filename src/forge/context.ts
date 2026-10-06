@@ -1,5 +1,6 @@
 import { equippedIds, forgePlan, type GearCopy, type GearView } from '../shared/items/gear';
 import type { Slot } from '../shared/items/items';
+import type { StarChoice } from '../shared/items/star-filter';
 import { currentMe, currentServer } from '../site/session';
 
 /** The forge's elements, found once in its root. */
@@ -18,6 +19,8 @@ export interface ForgeUi {
   go: HTMLButtonElement;
   armoryTitle: HTMLElement;
   grid: HTMLElement;
+  search: HTMLInputElement;
+  stars: HTMLElement;
   tabs: HTMLButtonElement[];
   result: HTMLElement;
 }
@@ -27,6 +30,10 @@ export interface ForgeContext {
   ui: ForgeUi;
   gear: GearView | null;
   filter: Slot | 'all';
+  /** The star tier the armory shows (its star chips: ../shared/items/star-filter.ts). */
+  stars: StarChoice;
+  /** What the armory's search asks for (trimmed and lowercased): every word in a card's name or description (../shared/items/search.ts). */
+  query: string;
   /** The copy on the anvil, if any. */
   picked: string | null;
   /** The spare picked to be used up by a refine of the copy on the anvil. */
@@ -59,11 +66,15 @@ export function createContext(root: HTMLElement): ForgeContext {
       go: $<HTMLButtonElement>('go'),
       armoryTitle: $('armory-title'),
       grid: $('armory-grid'),
+      search: $<HTMLInputElement>('armory-search'),
+      stars: $('armory-stars'),
       tabs: [...root.querySelectorAll<HTMLButtonElement>('[data-filter]')],
       result: $('result'),
     },
     gear: null,
     filter: 'all',
+    stars: 'all',
+    query: '',
     picked: null,
     material: null,
     done: null,

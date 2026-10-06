@@ -1,4 +1,5 @@
 import { matchesSearch } from '../shared/items/search';
+import { matchesStars } from '../shared/items/star-filter';
 import type { DatabankContext } from './context';
 import type { DatabankItem } from './types';
 
@@ -6,7 +7,7 @@ import type { DatabankItem } from './types';
 export function matches(ctx: DatabankContext, item: DatabankItem): boolean {
   const { slotFilter, starFilter, onlyOwned, owned, query } = ctx;
   if (slotFilter !== 'all' && item.slot !== slotFilter) return false;
-  if (starFilter !== 'all' && item.stars !== starFilter) return false;
+  if (!matchesStars(starFilter, item.stars)) return false;
   if (onlyOwned && !owned?.has(item.id)) return false;
   return matchesSearch(query, item);
 }

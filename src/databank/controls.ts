@@ -1,12 +1,12 @@
 import { dropdown } from '../shared/dropdown';
 import type { Slot } from '../shared/items/items';
+import { starFilter } from '../shared/items/star-filter';
 import { setServer } from '../site/session';
 import { narrow, type DatabankContext } from './context';
 import { renderDetail } from './detail';
 import { renderList } from './list';
 import { loadOwned } from './owned';
 import { render } from './render';
-import type { Stars } from './types';
 
 /** The search, the filters and the server picker. Returns what undoes it (the listeners outside the page's root). */
 export function wireControls(ctx: DatabankContext): () => void {
@@ -32,13 +32,10 @@ export function wireControls(ctx: DatabankContext): () => void {
     });
   }
 
-  for (const chip of ui.chips) {
-    chip.addEventListener('click', () => {
-      const value = chip.dataset.starsFilter;
-      ctx.starFilter = value === 'all' ? 'all' : (Number(value) as Stars);
-      render(ctx);
-    });
-  }
+  starFilter(ui.stars, (choice) => {
+    ctx.starFilter = choice;
+    render(ctx);
+  });
 
   ui.ownedOnly.addEventListener('click', () => {
     ctx.onlyOwned = !ctx.onlyOwned;

@@ -1,6 +1,7 @@
 import { armoryOrder, equippedIds } from '../../shared/items/gear';
 import { el, itemFace, lockBadge, SLOT_NAME } from '../../shared/items/items';
 import { matchesSearch } from '../../shared/items/search';
+import { matchesStars } from '../../shared/items/star-filter';
 import { hoverSound, itemPicked } from '../../shared/items/sfx';
 import { mine, type GearContext } from './context';
 import { renderDetail } from './detail';
@@ -12,9 +13,9 @@ const GRID_CELLS = 12;
 /** How many cards across the armory is now. */
 export const columns = (ctx: GearContext): number => getComputedStyle(ctx.ui.grid).gridTemplateColumns.split(' ').length || 4;
 
-/** The armory: every copy shown (by the filter and the search), then blanks to fill out the last row. */
+/** The armory: every copy shown (by the filter, the stars and the search), then blanks to fill out the last row. */
 export function renderGrid(ctx: GearContext): void {
-  const { gear, ui, selling, filter, query, viewing } = ctx;
+  const { gear, ui, selling, filter, stars, query, viewing } = ctx;
   if (!gear) return;
   // Measured before emptying the grid, and the sheet's scroll put back after: a layout of the empty
   // grid would scroll the sheet back to the top on every pick.
@@ -23,7 +24,7 @@ export function renderGrid(ctx: GearContext): void {
   const scrolled = sheet.scrollTop;
   ui.grid.textContent = '';
   const ofSlot = armoryOrder(gear.copies).filter((c) => filter === 'all' || c.slot === filter);
-  const shown = ofSlot.filter((c) => matchesSearch(query, { name: c.name, id: c.itemId, description: c.description }));
+  const shown = ofSlot.filter((c) => matchesStars(stars, c.stars) && matchesSearch(query, { name: c.name, id: c.itemId, description: c.description }));
   ui.grid.classList.toggle('selling', selling !== null);
   const equipped = equippedIds(gear);
   for (const copy of shown) {

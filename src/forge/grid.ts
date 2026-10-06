@@ -1,5 +1,7 @@
 import { armoryOrder, equippedIds, forgePlan } from '../shared/items/gear';
 import { el, itemFace, lockBadge, SLOT_NAME } from '../shared/items/items';
+import { matchesSearch } from '../shared/items/search';
+import { matchesStars } from '../shared/items/star-filter';
 import { choosing, copyById, type ForgeContext } from './context';
 import { pick, pickMaterial } from './picking';
 
@@ -9,9 +11,9 @@ const GRID_CELLS = 12;
 /** How many cards across the armory is now. */
 export const columns = (ctx: ForgeContext): number => getComputedStyle(ctx.ui.grid).gridTemplateColumns.split(' ').length || 4;
 
-/** The armory: every copy shown (by the filter), greyed out when it can't go on the anvil now, then blanks to fill out the last row. */
+/** The armory: every copy shown (by the filter, the stars and the search), greyed out when it can't go on the anvil now, then blanks to fill out the last row. */
 export function renderGrid(ctx: ForgeContext): void {
-  const { gear, ui, filter, picked, material } = ctx;
+  const { gear, ui, filter, stars, query, picked, material } = ctx;
   if (!gear) return;
   // Measured before emptying the grid, and the sheet's scroll put back after: a layout of the empty
   // grid would scroll the sheet back to the top on every pick.
@@ -21,7 +23,8 @@ export function renderGrid(ctx: ForgeContext): void {
   ui.grid.textContent = '';
   // Picking material: everything that can't be used up is greyed out and can't be picked.
   const usable = choosing(ctx);
-  const shown = armoryOrder(gear.copies).filter((c) => filter === 'all' || c.slot === filter);
+  const ofSlot = armoryOrder(gear.copies).filter((c) => filter === 'all' || c.slot === filter);
+  const shown = ofSlot.filter((c) => matchesStars(stars, c.stars) && matchesSearch(query, { name: c.name, id: c.itemId, description: c.description }));
   const target = copyById(ctx, picked);
   const plan = target ? forgePlan(target).kind : null;
   const equipped = equippedIds(gear);
@@ -52,7 +55,11 @@ export function renderGrid(ctx: ForgeContext): void {
   const cells = Math.max(row(GRID_CELLS), row(shown.length));
   for (let i = shown.length; i < cells; i++) ui.grid.append(el('span', 'item blank'));
   if (shown.length === 0) {
-    const note = el('p', 'armory-empty', filter === 'all' ? "You don't own any gear yet. Pull some with Koma's gacha in Discord." : `No ${SLOT_NAME[filter].toLowerCase()} yet.`);
+    const note = el(
+      'p',
+      'armory-empty',
+      ofSlot.length > 0 ? 'No items match that.' : filter === 'all' ? "You don't own any gear yet. Pull some with Koma's gacha in Discord." : `No ${SLOT_NAME[filter].toLowerCase()} yet.`,
+    );
     ui.grid.append(note);
   }
   sheet.scrollTop = scrolled;
