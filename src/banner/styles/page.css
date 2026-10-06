@@ -67,6 +67,15 @@
   justify-self: start;
 }
 
+/*
+ * Here the picker sits at the bar's left, so its list hangs from its left edge (from its right edge, as
+ * elsewhere, it would run off the screen under a short server name).
+ */
+.banner-bar .dd:has(> .server-pick) .dd-list {
+  left: 0;
+  right: auto;
+}
+
 .banner-bar .server-pick {
   border-color: rgb(255 255 255 / 40%);
   background: rgb(20 32 64 / 40%);
