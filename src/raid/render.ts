@@ -1,11 +1,10 @@
 import { renderFight } from './fight/fight';
-import { closeGear } from './gear-popup';
+import { closeGear } from './gear/gear-popup';
 import { api } from './link';
-import { showPicture } from './picture';
+import { showPicture } from './widgets';
 import { renderPrep } from './prep/prep';
 import type { RaidView } from './protocol';
-import { renderResult } from './result/result';
-import { closeStats, renderStats } from './result/stats';
+import { closeStats, renderResult, renderStats } from './result';
 import { play } from './sfx';
 import { state } from './state';
 import { tick } from './timers';

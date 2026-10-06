@@ -1,5 +1,4 @@
-import type { Slot } from '../shared/items/items';
-import type { StarChoice } from '../shared/items/star-filter';
+import type { Slot, StarChoice } from '../shared/items';
 import type { Databank, DatabankItem, Owned } from './types';
 
 /** Narrow screens show the item picked in a sheet over the list, only once one is picked. */

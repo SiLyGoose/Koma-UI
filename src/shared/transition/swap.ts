@@ -1,4 +1,4 @@
-import { playLoaded } from '../ui-sfx';
+import { playLoaded } from '../audio';
 import { drawn } from './arriving';
 import { FAST_WIPE_MS, MAX_HOLD_MS, MIN_SWAP_MS, WIPE_MS } from './timing';
 import { clear, lessMotion, root, wait, wipeOff, wipeOn, type Direction } from './wipe';

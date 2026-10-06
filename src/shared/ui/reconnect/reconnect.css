@@ -1,0 +1,79 @@
+/*
+ * "Reconnecting…" (reconnect.ts): over everything, the page heavily blurred and dimmed under it, the
+ * loading screen's glowing sprite (transition/head.css's --tx-sprite) bouncing over the words. Fades in
+ * and out.
+ */
+
+.reconnect {
+  position: fixed;
+  inset: 0;
+  /* Over the page transition's cover too, so it shows even while a page waits to be uncovered. */
+  z-index: 10002;
+  display: grid;
+  place-items: center;
+  background: rgb(8 8 10 / 45%);
+  backdrop-filter: blur(18px) saturate(0.8);
+  -webkit-backdrop-filter: blur(18px) saturate(0.8);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.35s ease,
+    visibility 0s linear 0.35s;
+}
+
+.reconnect.on {
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity 0.35s ease,
+    visibility 0s;
+}
+
+.reconnect-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.reconnect-sprite {
+  width: 72px;
+  height: 116px;
+  background: var(--tx-sprite, url('/characters/tsuri/silhouette.png')) center bottom / contain no-repeat;
+  animation: reconnect-bounce 0.5s cubic-bezier(0.33, 0, 0.4, 1) infinite alternate;
+}
+
+/* Its shadow on the floor, as on the loading screen. */
+.reconnect-shadow {
+  width: 56px;
+  height: 12px;
+  margin-top: -6px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(0 0 0 / 65%), transparent);
+}
+
+.reconnect-text {
+  margin: 14px 0 0;
+  color: #efe3bf;
+  font-size: 16px;
+  font-style: italic;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-shadow: 0 0 10px rgb(216 160 64 / 60%);
+}
+
+@keyframes reconnect-bounce {
+  to {
+    transform: translateY(-14px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reconnect,
+  .reconnect.on {
+    transition: none;
+  }
+
+  .reconnect-sprite {
+    animation: none;
+  }
+}

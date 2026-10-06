@@ -1,5 +1,5 @@
 import type { WorldMap } from '../protocol';
-import { ORE_COLOR } from '../textures';
+import { ORE_COLOR } from './textures';
 import { ORE_OF } from './scene';
 
 /** The map's colour for each letter (see ../protocol.ts); blocks not seen yet aren't drawn. */

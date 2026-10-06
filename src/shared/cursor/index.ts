@@ -6,7 +6,7 @@ import { FOLLOW, FOLLOW_BOXED, IDLE_ARM, IDLE_SIZE, KEEP_HAND, LEAN, LEAN_HOLD, 
 
 /*
  * The reticle in place of the mouse pointer (put in once by ../../site/main.ts and by every game's frame,
- * ../frame.ts): a pixel pointing hand exactly where the mouse is, and a glowing dot with four corner
+ * ../ui/frame/frame.ts): a pixel pointing hand exactly where the mouse is, and a glowing dot with four corner
  * brackets turning slowly round it, trailing after the mouse. Over something that can be pressed, the brackets stop turning and spread out to box it in, arrows
  * either side pointing at it, while the hand (and after it the dot) carries on following the mouse inside.
  * In the games, the hand alone: nothing trailing it or boxing things in over the board.

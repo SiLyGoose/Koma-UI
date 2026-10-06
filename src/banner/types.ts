@@ -1,4 +1,4 @@
-import type { Slot } from '../shared/items/items';
+import type { Slot } from '../shared/items';
 
 export type Stars = 1 | 2 | 3 | 4;
 

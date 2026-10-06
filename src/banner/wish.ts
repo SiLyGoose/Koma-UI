@@ -1,5 +1,5 @@
-import { art, el, SLOT_NAME, stars } from '../shared/items/items';
-import { sleep } from '../shared/sleep';
+import { art, el, SLOT_NAME, stars } from '../shared/items';
+import { sleep } from '../shared/util';
 import type { ApiResult } from '../site/session';
 import type { BannerContext } from './context';
 import { revealed, wishClosed } from './sfx';

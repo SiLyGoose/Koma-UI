@@ -1,5 +1,5 @@
-import { watching } from '../shared/game/link';
-import { replay } from '../shared/replay';
+import { watching } from '../shared/game';
+import { replay } from '../shared/util';
 import { send } from './connection';
 import { showError } from './panel';
 import type { RunEvent } from './protocol';

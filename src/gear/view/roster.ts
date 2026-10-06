@@ -1,4 +1,4 @@
-import { el } from '../../shared/items/items';
+import { el } from '../../shared/items';
 import { loadGear } from './api';
 import type { GearContext } from './context';
 import { showMenu } from './foot';

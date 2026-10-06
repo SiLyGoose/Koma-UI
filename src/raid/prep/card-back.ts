@@ -1,4 +1,4 @@
-import { el } from '../dom';
+import { el } from '../widgets';
 
 /**
  * An empty seat's card back, in gold line art on the dark card (5 wide by 9 high, like the card): a tall

@@ -1,8 +1,4 @@
-import { armoryOrder, equippedIds } from '../../shared/items/gear';
-import { el, itemFace, lockBadge, SLOT_NAME } from '../../shared/items/items';
-import { matchesSearch } from '../../shared/items/search';
-import { matchesStars } from '../../shared/items/star-filter';
-import { hoverSound, itemPicked } from '../../shared/items/sfx';
+import { armoryOrder, el, equippedIds, hoverSound, itemFace, itemPicked, lockBadge, matchesSearch, matchesStars, SLOT_NAME } from '../../shared/items';
 import { mine, type GearContext } from './context';
 import { renderDetail } from './detail';
 import { renderFoot } from './foot';

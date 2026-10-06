@@ -1,6 +1,5 @@
-import { coin } from '../shared/coin';
-import { points } from '../shared/format';
-import { watching } from '../shared/game/link';
+import { coin, points } from '../shared/util';
+import { watching } from '../shared/game';
 import { times, TILES } from './multiplier';
 import { pick } from './round';
 import { playing, state } from './state';

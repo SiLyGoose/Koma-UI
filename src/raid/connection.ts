@@ -1,10 +1,10 @@
-import { setConn } from '../shared/frame';
-import { gameSocket, type GameSocket } from '../shared/game/socket';
+import { setConn } from '../shared/ui/frame/frame';
+import { gameSocket, type GameSocket } from '../shared/game';
 import { firstPaint, showMessage } from './message';
 import type { ClientMessage, ErrorCode, ServerMessage } from './protocol';
 import { render } from './render';
 import { state } from './state';
-import { toast } from './toast';
+import { toast } from './widgets';
 import { ui } from './ui';
 import { answerText } from './words';
 

@@ -1,5 +1,5 @@
-import { points } from '../shared/format';
-import { watching } from '../shared/game/link';
+import { points } from '../shared/util';
+import { watching } from '../shared/game';
 import { maxPayoutText, multiplierFor, times, TILES } from './multiplier';
 import { playing, state } from './state';
 import { ui } from './ui';

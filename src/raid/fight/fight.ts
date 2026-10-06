@@ -1,5 +1,4 @@
-import { el } from '../dom';
-import { markdown } from '../markdown';
+import { el, markdown } from '../widgets';
 import type { ActProblem, RaidAction, RaidView } from '../protocol';
 import { state } from '../state';
 import { ui } from '../ui';

@@ -1,10 +1,9 @@
 import '../shared/style.css';
 import './table.css';
-import { barSlot, setConn, soundButton } from '../shared/frame';
-import { server, token, watching } from '../shared/game/link';
-import { showMessage } from '../shared/game/message';
-import { apiFromSocket, startLive } from '../shared/live';
-import { setMuted } from '../shared/sfx';
+import { barSlot, setConn, soundButton } from '../shared/ui/frame/frame';
+import { server, showMessage, token, watching } from '../shared/game';
+import { apiFromSocket, startLive } from '../shared/ui';
+import { setMuted } from '../shared/audio';
 import { connect } from './connection';
 import type { TableContext } from './context';
 import { wireControls } from './controls';
@@ -29,13 +28,13 @@ export type { Pile, TableGame } from './types';
  *
  * A game's page has, in its HTML: `#felt` with its spots (elements with `data-spot`) and `#result`
  * (with `#result-title` and `#result-text`) on it, an empty `[data-table-panel]` and
- * `[data-table-players]` (filled in here, ./panel.ts), `#table-no` in its title and the `#message` box. The rest
- * is its TableGame (./types.ts).
+ * `[data-table-players]` (filled in here, ./panel.ts), and the frame's data-title on its <main> (the
+ * table's number goes after it). The rest is its TableGame (./types.ts).
  *
- * The table's parts share one TableContext (./context.ts): render/ draws it; betting.ts puts chips
- * down and takes them back, from the rack (rack.ts), dragging (drag.ts) and the buttons (controls.ts);
+ * The table's parts share one TableContext (./context.ts): render/ draws it; chips/betting.ts puts chips
+ * down and takes them back, from the rack (chips/rack.ts), dragging (chips/drag.ts) and the buttons (controls.ts);
  * round.ts shows a round on the felt; connection.ts talks to the bot. A game draws its chips with
- * piles.ts and chips.ts.
+ * chips/piles.ts and chips/chips.ts.
  */
 
 /** Plays `game` on this page. */

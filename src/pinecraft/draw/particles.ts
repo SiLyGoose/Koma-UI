@@ -1,5 +1,5 @@
 import type { PinecraftOre } from '../protocol';
-import { ORE_COLOR } from '../textures';
+import { ORE_COLOR } from './textures';
 import type { Scene } from './scene';
 
 /** Adds the chips a dug block throws off (and sparks, for an ore). */

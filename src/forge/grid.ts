@@ -1,7 +1,4 @@
-import { armoryOrder, equippedIds, forgePlan } from '../shared/items/gear';
-import { el, itemFace, lockBadge, SLOT_NAME } from '../shared/items/items';
-import { matchesSearch } from '../shared/items/search';
-import { matchesStars } from '../shared/items/star-filter';
+import { armoryOrder, el, equippedIds, forgePlan, itemFace, lockBadge, matchesSearch, matchesStars, SLOT_NAME } from '../shared/items';
 import { choosing, copyById, type ForgeContext } from './context';
 import { pick, pickMaterial } from './picking';
 

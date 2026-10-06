@@ -1,4 +1,4 @@
-import { art, el, SLOT_NAME, stars, type Slot } from '../../shared/items/items';
+import { art, el, type Slot, SLOT_NAME, stars } from '../../shared/items';
 import { copyById, type GearContext } from './context';
 
 /** The three slots round the character: what's in each (or that it's empty). */

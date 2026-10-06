@@ -1,7 +1,7 @@
-import { sound } from '../shared/sfx';
+import { sound } from '../shared/audio';
 
 /*
- * The wish's sounds, from the items' (public/shared/sfx/items), through the shared ../shared/sfx.ts:
+ * The wish's sounds, from the items' (public/shared/sfx/items), through the shared ../shared/audio/sfx.ts:
  * each item as it's shown, and the wish closing.
  */
 

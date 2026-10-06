@@ -71,7 +71,7 @@
   }
 }
 
-/* The server picker (the site's dropdown, ../../dropdown.ts): a pill like the profile button. */
+/* The server picker (the site's dropdown, ../../ui/dropdown/dropdown.ts): a pill like the profile button. */
 .dd:has(> .server-pick) {
   max-width: 50%;
 }

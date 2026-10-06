@@ -8,7 +8,7 @@
     <title>Koma Raid</title>
     <script>
       // The phone layouts' classes on <html> (see the top of src/raid/raid.css), set before the page
-      // shows and kept up as the screen turns. src/raid/landscape.ts fires 'rd-screen' when it turns the page sideways.
+      // shows and kept up as the screen turns. src/raid/widgets/landscape.ts fires 'rd-screen' when it turns the page sideways.
       (function () {
         var root = document.documentElement;
         var side = matchMedia('(orientation: landscape) and (max-height: 520px)');
@@ -41,14 +41,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" />
   </head>
   <body>
-    <main id="app" class="frame rd">
-      <header class="top">
-        <a class="back" href="/" aria-label="Back to the games">←</a>
-        <h1>⚔️ Raid <span id="boss-title" class="rd-title-boss"></span></h1>
-        <button type="button" id="mute" class="frame-mute" aria-label="Turn sound off" aria-pressed="false">🔊</button>
-        <span id="conn" class="conn">Connecting…</span>
-      </header>
-
+    <main id="app" class="frame rd" data-title="⚔️ Raid">
       <!--
         Before the fight (the week's raid not fought yet, or its lobby open): how the week stands across the
         top, the boss and what it does on the left under it, and on the right the party so far, a card for each
@@ -175,10 +168,9 @@
         </section>
       </section>
 
-
       <!--
         A raider's gear (a card in the party clicked): the gear page's view, with the party for its roster,
-        to look at only (src/raid/gear.ts, in a frame of its own: laid out as on a computer, scaled to fit).
+        to look at only (src/raid/gear/gear.ts, in a frame of its own: laid out as on a computer, scaled to fit).
       -->
       <div id="gear-pop" class="rd-gear" role="dialog" aria-modal="true" aria-label="Gear" hidden>
         <div class="rd-gear-box">
@@ -219,14 +211,6 @@
         <span id="rotate-hint" class="rd-rotate-hint" hidden>Screen won't turn? Your phone's rotation lock may be on (on an iPhone, it's in Control Center).</span>
         <button type="button" id="rotate-go" class="rd-button primary" hidden>Play in landscape</button>
         <a class="rd-button rd-rotate-back back" href="/">← Back to the games</a>
-      </div>
-    </div>
-
-    <div id="message" class="message" hidden>
-      <div class="message-card">
-        <div class="message-title" id="message-title"></div>
-        <div class="message-text" id="message-text"></div>
-        <a class="message-link" href="/">Go to the games</a>
       </div>
     </div>
 

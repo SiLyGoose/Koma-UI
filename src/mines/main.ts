@@ -1,9 +1,8 @@
 import '../shared/style.css';
-import { barSlot, setConn, soundButton } from '../shared/frame';
-import { server, token, watching } from '../shared/game/link';
-import { showMessage } from '../shared/game/message';
-import { setMuted } from '../shared/sfx';
-import { apiFromSocket, startLive } from '../shared/live';
+import { barSlot, setConn, soundButton } from '../shared/ui/frame/frame';
+import { server, showMessage, token, watching } from '../shared/game';
+import { setMuted } from '../shared/audio';
+import { apiFromSocket, startLive } from '../shared/ui';
 import './mines.css';
 import { buildBoard } from './board';
 import { connect } from './connection';

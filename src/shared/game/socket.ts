@@ -1,4 +1,4 @@
-import { setConn } from '../frame';
+import { setConn } from '../ui/frame/frame';
 
 /** The longest wait between tries to reconnect. */
 const RETRY_MAX_MS = 5000;

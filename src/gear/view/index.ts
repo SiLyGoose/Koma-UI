@@ -1,4 +1,4 @@
-import { fillServers } from '../../shared/server-options';
+import { fillServers } from '../../shared/ui';
 import { failed, loadGear } from './api';
 import { createContext, status, type GearContext } from './context';
 import { wireControls } from './controls';
@@ -18,7 +18,7 @@ export type { ApiResult, GearHost, Member } from './types';
  * loadouts and stats the same way, to look at only (nothing to equip, upgrade or take off).
  *
  * Where it gets all that is its host's (GearHost): the site's gear page (../page.ts) asks the bot as the
- * member logged in; the raid (src/raid/gear.ts) as the raid's link, with the party for the roster: before
+ * member logged in; the raid (src/raid/gear/gear.ts) as the raid's link, with the party for the roster: before
  * the fight they can change what they wear there too (not sell, upgrade or lock, which stay on the gear page).
  *
  * The view's parts, each in its own file here, share one GearContext (./context.ts): what it's showing.

@@ -1,8 +1,5 @@
-import { coin } from '../../shared/coin';
-import { points } from '../../shared/format';
-import { forgePlan, type GearCopy } from '../../shared/items/gear';
-import { el, itemFace, rich, SLOT_NAME } from '../../shared/items/items';
-import { itemDetailsClosed } from '../../shared/items/sfx';
+import { coin, points } from '../../shared/util';
+import { el, forgePlan, type GearCopy, itemDetailsClosed, itemFace, rich, SLOT_NAME } from '../../shared/items';
 import { equip, setLocked, unequip } from './api';
 import { copyById, isWorn, mine, wearOnly, type GearContext } from './context';
 import { renderGrid } from './grid';

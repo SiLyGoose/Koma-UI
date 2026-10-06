@@ -1,4 +1,4 @@
-import { points } from '../shared/format';
+import { points } from '../shared/util';
 import { avatarImg } from '../table/avatar';
 import { chipEl, stackChips } from '../table/chips';
 import { chipLabel } from '../table/format';

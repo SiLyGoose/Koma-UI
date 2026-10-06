@@ -1,6 +1,5 @@
-import { avatar, el } from '../dom';
-import { openGear } from '../gear-popup';
-import { markdown } from '../markdown';
+import { avatar, el, markdown } from '../widgets';
+import { openGear } from '../gear/gear-popup';
 import type { RaidView } from '../protocol';
 import { nameOf, state } from '../state';
 import { ui } from '../ui';

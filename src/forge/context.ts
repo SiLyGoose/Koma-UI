@@ -1,6 +1,4 @@
-import { equippedIds, forgePlan, type GearCopy, type GearView } from '../shared/items/gear';
-import type { Slot } from '../shared/items/items';
-import type { StarChoice } from '../shared/items/star-filter';
+import { equippedIds, forgePlan, type GearCopy, type GearView, type Slot, type StarChoice } from '../shared/items';
 import { currentMe, currentServer } from '../site/session';
 
 /** The forge's elements, found once in its root. */

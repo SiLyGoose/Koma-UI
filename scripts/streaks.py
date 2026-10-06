@@ -1,5 +1,5 @@
 """
-Makes the streaked edges of the page transition's panel (src/shared/transition-head.css): thin bands
+Makes the streaked edges of the page transition's panel (src/shared/transition/head.css): thin bands
 of dark, each reaching its own length out of the panel and fading away, like the panel is smeared
 across as it moves. Prints the two mask pictures (the right edge, then the left, its mirror) as data
 URLs, to paste into the `mask` there. The same seed gives the same streaks.

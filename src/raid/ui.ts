@@ -1,9 +1,11 @@
+import { titleExtra } from '../shared/ui/frame/frame';
+
 /** The raid page's elements (games/raid/index.html), found once. */
 
 export const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T;
 
 export const ui = {
-  bossTitle: $('boss-title'),
+  bossTitle: titleExtra('rd-title-boss'),
   battle: $('battle'),
   battlePicture: $<HTMLImageElement>('battle-picture'),
   battleBackdrop: $<HTMLImageElement>('battle-backdrop'),

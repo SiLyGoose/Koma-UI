@@ -1,4 +1,4 @@
-import { replay } from '../shared/replay';
+import { replay } from '../shared/util';
 
 /**
  * Plays an animation on `box` (`className` starts it, from the top even when it's already going),

@@ -12,7 +12,7 @@ interface Pending {
 /** This page is on its way out (wiped over, or going back): nothing else starts another. */
 export const page = { leaving: false };
 
-/** A page's path without its trailing slash (/gear/ and /gear are the same page), as transition-head.js compares them. */
+/** A page's path without its trailing slash (/gear/ and /gear are the same page), as transition/head.js compares them. */
 const pagePath = (path: string): string => path.replace(/\/+$/, '');
 
 /** Whether going to `url` gets a transition: another page (a game on another site too, from a game link). */

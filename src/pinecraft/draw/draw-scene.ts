@@ -1,4 +1,4 @@
-import { crack, keysPicture, texture, type BlockTexture } from '../textures';
+import { crack, keysPicture, texture, type BlockTexture } from './textures';
 import { character } from './character';
 import { cellAt, isOpenCell, ORE_OF, type Scene } from './scene';
 

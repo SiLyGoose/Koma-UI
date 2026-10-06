@@ -1,5 +1,4 @@
-import { coin } from '../../shared/coin';
-import { points } from '../../shared/format';
+import { coin, points } from '../../shared/util';
 import { change } from './api';
 import { copyById, type GearContext } from './context';
 import { render } from './render';

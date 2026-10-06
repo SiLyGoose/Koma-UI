@@ -1,7 +1,7 @@
 /* Pinecraft's page, on top of the mine's styles (../shared/style.css). */
 
 /*
- * The game fills the window: the frame's title bar on top (../shared/frame.css), the mine in the middle on
+ * The game fills the window: the frame's title bar on top (../shared/ui/frame/frame.css), the mine in the middle on
  * black, and the stats in a bar of chips along the bottom. On a computer the mine is 15 blocks across and as big as fits;
  * on a phone it fills the black, 8 across, with the joystick over its bottom left (see the end).
  */

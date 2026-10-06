@@ -1,5 +1,5 @@
 import markup from './databank.html?raw';
-import { API } from '../shared/account';
+import { API } from '../shared/ui';
 import type { Page } from '../site/page';
 import { api } from '../site/session';
 import { createContext, itemById, status, type DatabankContext } from './context';

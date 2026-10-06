@@ -1,4 +1,4 @@
-import { el } from '../dom';
+import { el } from '../widgets';
 import type { RaidFightView } from '../protocol';
 import { plural } from '../words';
 

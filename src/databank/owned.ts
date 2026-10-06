@@ -1,4 +1,4 @@
-import { fillServers } from '../shared/server-options';
+import { fillServers } from '../shared/ui';
 import { api, currentMe, currentServer, hasSession, loadMe } from '../site/session';
 import type { DatabankContext } from './context';
 

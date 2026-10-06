@@ -21,7 +21,8 @@
   margin-bottom: auto;
 }
 
-.tb > .top {
+.tb > .top,
+.tb::before {
   margin-bottom: 16px;
 }
 

@@ -1,5 +1,5 @@
 import { send } from '../connection';
-import { avatar, el, hpBar } from '../dom';
+import { avatar, el, hpBar } from '../widgets';
 import type { RaidView } from '../protocol';
 import { redraw } from '../render';
 import { play } from '../sfx';

@@ -1,4 +1,4 @@
-import { apiFromSocket } from '../shared/live';
+import { apiFromSocket } from '../shared/ui';
 
 /* The raid's link: after the #, the player's token (t) and the bot's web socket (s), like every game's. */
 

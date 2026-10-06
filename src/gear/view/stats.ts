@@ -1,5 +1,4 @@
-import type { StatSection } from '../../shared/items/gear';
-import { el } from '../../shared/items/items';
+import { el, type StatSection } from '../../shared/items';
 import type { GearContext } from './context';
 
 /** The Common tab's first group, about the hero rather than their gear. No classes yet, so it's a question mark. */

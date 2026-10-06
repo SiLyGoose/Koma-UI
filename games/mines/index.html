@@ -12,14 +12,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" />
   </head>
   <body>
-    <main id="app" class="frame mx">
-      <header class="top">
-        <a class="back" href="/" aria-label="Back to the games">←</a>
-        <h1>💎 Mines</h1>
-        <button type="button" id="mute" class="frame-mute" aria-label="Turn sound off" aria-pressed="false">🔊</button>
-        <span id="conn" class="conn">Connecting…</span>
-      </header>
-
+    <main id="app" class="frame mx" data-title="💎 Mines">
       <div class="mx-game">
         <form id="panel" class="mx-panel" autocomplete="off">
           <div class="mx-balance"><span>Balance</span><b id="balance">–</b></div>
@@ -59,14 +52,6 @@
 
       <p class="hint">Click tiles to turn them over · Enter to bet or cash out · R for a random tile</p>
     </main>
-
-    <div id="message" class="message" hidden>
-      <div class="message-card">
-        <div class="message-title" id="message-title"></div>
-        <div class="message-text" id="message-text"></div>
-        <a class="message-link" href="/">Go to the games</a>
-      </div>
-    </div>
 
     <script type="module" src="/src/mines/main.ts"></script>
   </body>

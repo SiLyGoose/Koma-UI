@@ -1,5 +1,5 @@
 import { currentCharacter } from '../../shared/characters';
-import { el, rich } from '../../shared/items/items';
+import { el, rich } from '../../shared/items';
 import { copyById, mine, wearOnly, type GearContext } from './context';
 import { renderDetail } from './detail';
 import { renderFoot } from './foot';

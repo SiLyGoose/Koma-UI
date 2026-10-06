@@ -27,7 +27,7 @@
   overflow: hidden;
 }
 
-/* The frame is laid out at a computer's width and scaled down to this box (../gear-popup.ts's fitGear). */
+/* The frame is laid out at a computer's width and scaled down to this box (../gear/gear-popup.ts's fitGear). */
 .rd-gear-fit {
   position: absolute;
   inset: 0;

@@ -1,6 +1,5 @@
-import { dropdown } from '../shared/dropdown';
-import type { Slot } from '../shared/items/items';
-import { starFilter } from '../shared/items/star-filter';
+import { dropdown } from '../shared/ui';
+import { type Slot, starFilter } from '../shared/items';
 import { setServer } from '../site/session';
 import { loadGear, strikeAnvil } from './api';
 import type { ForgeContext } from './context';

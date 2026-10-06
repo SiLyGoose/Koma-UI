@@ -54,7 +54,7 @@
   line-height: 16px;
 }
 
-/* The loadout list, styled like the profile menu's drop-down (../../shared/account.css): muted rows that light up on hover. */
+/* The loadout list, styled like the profile menu's drop-down (../../shared/ui/account/account.css): muted rows that light up on hover. */
 .loadout-menu {
   position: absolute;
   top: calc(100% + 4px);

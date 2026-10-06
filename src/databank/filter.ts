@@ -1,5 +1,4 @@
-import { matchesSearch } from '../shared/items/search';
-import { matchesStars } from '../shared/items/star-filter';
+import { matchesSearch, matchesStars } from '../shared/items';
 import type { DatabankContext } from './context';
 import type { DatabankItem } from './types';
 

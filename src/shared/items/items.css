@@ -1,6 +1,6 @@
 /*
  * The item template the gear and databank pages share, on top of ../style.css and the site
- * header (../header.css): the colours (star tiers, parchment, ink), the armory's dark frame with its
+ * header (../ui/header/header.css): the colours (star tiers, parchment, ink), the armory's dark frame with its
  * name board, filter tabs and parchment sheet (scrolling inside it), the parchment item cards, the
  * item art and stars, the star filter's chips, and the item detail panel (a sheet from the bottom on narrow screens). Each
  * page adds its own layout on top: ../../gear/gear.css, ../../databank/databank.css. Pairs with items.ts, which

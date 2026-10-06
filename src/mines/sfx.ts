@@ -1,7 +1,7 @@
-import { sound } from '../shared/sfx';
+import { sound } from '../shared/audio';
 
 /*
- * Mines' sounds, from public/mines/sfx, played through the shared ../shared/sfx.ts: a tile turned over,
+ * Mines' sounds, from public/mines/sfx, played through the shared ../shared/audio/sfx.ts: a tile turned over,
  * a gem or a mine. Each plays over the last if they come fast.
  */
 

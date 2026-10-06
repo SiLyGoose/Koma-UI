@@ -1,6 +1,5 @@
-import { dropdown } from '../shared/dropdown';
-import type { Slot } from '../shared/items/items';
-import { starFilter } from '../shared/items/star-filter';
+import { dropdown } from '../shared/ui';
+import { type Slot, starFilter } from '../shared/items';
 import { setServer } from '../site/session';
 import { narrow, type DatabankContext } from './context';
 import { renderDetail } from './detail';

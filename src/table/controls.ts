@@ -1,7 +1,6 @@
-import { place, sendBets, spotsIn, takeBack, whyNot } from './betting';
+import { place, sendBets, spotsIn, startDrag, takeBack, whyNot } from './chips';
 import { send } from './connection';
 import { busy, mySeat, onTable, showError, type TableContext } from './context';
-import { startDrag } from './drag';
 import { render } from './render';
 import { play } from './sfx';
 

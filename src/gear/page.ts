@@ -1,5 +1,5 @@
 import markup from './gear.html?raw';
-import { API } from '../shared/account';
+import { API } from '../shared/ui';
 import { go } from '../site/nav';
 import type { Page } from '../site/page';
 import { api, currentMe, currentServer, loadMe, logOut, setServer } from '../site/session';

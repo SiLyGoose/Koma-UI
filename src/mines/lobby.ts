@@ -1,5 +1,4 @@
-import { points } from '../shared/format';
-import { remember, remembered } from '../shared/storage';
+import { points, remember, remembered } from '../shared/util';
 import { renderPanel, setBalance } from './panel';
 import type { Lobby, StartRefusal } from './protocol';
 import { render } from './render';

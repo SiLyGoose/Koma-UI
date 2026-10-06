@@ -1,0 +1,110 @@
+/*
+ * The site's dropdown (dropdown.ts): a button showing the choice, and a list that scrolls without a
+ * scrollbar. Styled like the profile menu's drop-down (../account/account.css): a dark rounded list of muted
+ * items that light up on hover, and an arrow that turns while it's open.
+ */
+
+/* The real <select>, kept for its value but out of sight. */
+.dd-native {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: -1px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  white-space: nowrap !important;
+}
+
+.dd {
+  position: relative;
+  display: flex;
+}
+
+/* Takes the select's own classes (its look), plus these. */
+.dd-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.dd-button:disabled {
+  cursor: default;
+}
+
+.dd-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The profile menu's arrow: points down, and turns to point up while the list is open. */
+.dd-arrow {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  margin: 0 4px 0 0;
+  border: solid var(--muted);
+  border-width: 0 2px 2px 0;
+  transform: translateY(-2px) rotate(45deg);
+  transition: transform 0.2s ease;
+}
+
+.dd-button[aria-expanded='true'] .dd-arrow {
+  transform: translateY(2px) rotate(-135deg);
+}
+
+.dd-list {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 50;
+  /* A set height for the screen: 40% of it, 200px to 420px (a shorter list is just as long as it is). */
+  max-height: clamp(200px, 40vh, 420px);
+  margin: 0;
+  padding: 8px 0;
+  list-style: none;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 2px solid var(--line);
+  border-radius: 16px;
+  background-color: var(--panel-2);
+  outline: none;
+}
+
+.dd.up .dd-list {
+  top: auto;
+  bottom: calc(100% + 4px);
+}
+
+/* Scrolls as usual, with the scrollbar hidden (.no-scrollbar, in ../../style.css). */
+
+/* The profile menu's items: muted, lighting up under the pointer or the keys; the chosen one stays lit, in bold. */
+.dd-option {
+  padding: 8px 16px;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 15px;
+  font-weight: 400;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+  scroll-margin: 8px;
+  transition: color 0.2s ease;
+}
+
+.dd-option.active,
+.dd-option.chosen {
+  color: var(--text);
+}
+
+.dd-option.chosen {
+  font-weight: 600;
+}

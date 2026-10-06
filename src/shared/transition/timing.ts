@@ -1,6 +1,6 @@
 /** Where the page being left says where it's going, for the next one (sessionStorage). */
 export const KEY = 'koma.transition';
-/** The wipe on or off (transition-head.css's animations are this long). */
+/** The wipe on or off (transition/head.css's animations are this long). */
 export const WIPE_MS = 800;
 /** The loading screen shows at least this long before going, while the next page is fetched. */
 export const LOAD_MS = 1000;
@@ -19,5 +19,5 @@ export const SETTLE_FRAME_MS = 25;
 export const MAX_SETTLE_MS = 1000;
 /** Swapping a site page, the loading screen shows at least this long, so it doesn't just flicker. */
 export const MIN_SWAP_MS = 300;
-/** The quick cover's wipe on or off (curtain(): transition-head.css's at twice the speed). */
+/** The quick cover's wipe on or off (curtain(): transition/head.css's at twice the speed). */
 export const FAST_WIPE_MS = 400;

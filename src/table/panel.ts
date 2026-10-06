@@ -1,3 +1,5 @@
+import { titleExtra } from '../shared/ui/frame/frame';
+
 /*
  * The table's own parts of a game's page: the panel under the felt (the timer, the rack of chips, the
  * balance and the buttons) and the list of who's at the table, put into the game's empty
@@ -51,7 +53,7 @@ export function buildPanel() {
     result: $('result'),
     resultTitle: $('result-title'),
     resultText: $('result-text'),
-    tableNo: $('table-no'),
+    tableNo: titleExtra('tb-table-no'),
     players: players.querySelector('.tb-players-list') as HTMLElement,
     seatCount: players.querySelector('.tb-players-title span') as HTMLElement,
   };

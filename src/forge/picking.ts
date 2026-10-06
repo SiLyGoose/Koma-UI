@@ -1,4 +1,4 @@
-import type { GearCopy } from '../shared/items/gear';
+import type { GearCopy } from '../shared/items';
 import type { ForgeContext } from './context';
 import { playAnimation } from './play-animation';
 import { render } from './render';

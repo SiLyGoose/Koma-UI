@@ -1,5 +1,4 @@
-import type { GearView } from '../../shared/items/gear';
-import type { Slot } from '../../shared/items/items';
+import type { GearView, Slot } from '../../shared/items';
 import { copyById, status, type GearContext } from './context';
 import { renderDetail } from './detail';
 import { renderFoot } from './foot';

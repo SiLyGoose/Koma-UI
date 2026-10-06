@@ -1,18 +1,17 @@
 import '../shared/style.css';
 // The dropdown's chevron (.dd-arrow), on the end screen's sorted column.
-import '../shared/dropdown.css';
-import { barSlot, setConn, soundButton } from '../shared/frame';
-import { startLive } from '../shared/live';
-import { setMuted } from '../shared/sfx';
+import '../shared/ui/dropdown/dropdown.css';
+import { barSlot, setConn, soundButton } from '../shared/ui/frame/frame';
+import { startLive } from '../shared/ui';
+import { setMuted } from '../shared/audio';
 import { connect } from './connection';
-import { wireActions } from './fight/actions';
-import { wireGearPopup } from './gear-popup';
-import { setUpLandscape } from './landscape';
+import { wireActions } from './fight';
+import { wireGearPopup } from './gear/gear-popup';
+import { setUpLandscape } from './widgets';
 import { api, server, token } from './link';
 import { showMessage } from './message';
-import { wirePrep } from './prep/prep';
-import { wireResultSort } from './result/result';
-import { wireStats } from './result/stats';
+import { wirePrep } from './prep';
+import { wireResultSort, wireStats } from './result';
 import { tick } from './timers';
 import { ui } from './ui';
 import './raid.css';
@@ -27,7 +26,7 @@ import './raid.css';
  *
  * Its parts: render.ts draws whatever the bot sends, through prep/ (the party screen before the
  * fight), fight/ (the fight: the party row, healing, the action buttons) and result/ (the end screen
- * and its More stats); gear-popup.ts shows a raider's gear; connection.ts talks to the bot; state.ts
+ * and its More stats); gear/gear-popup.ts shows a raider's gear; connection.ts talks to the bot; state.ts
  * holds what more than one of them needs.
  */
 

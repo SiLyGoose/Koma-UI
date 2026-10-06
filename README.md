@@ -64,16 +64,33 @@ Any square size works.
   the login, the server picked and the header. `vercel.json` sends `/gear/` and `/databank/` to it.
 - `src/hub/`: the front page.
 - `games/pinecraft/index.html`, `src/pinecraft/`: Pinecraft. `protocol.ts` is a copy of the bot's
-  `src/web/pinecraft-protocol.ts` (change both together), `draw.ts` draws the world, `textures.ts`
-  the blocks.
+  `src/web/pinecraft-protocol.ts` (change both together), `draw/` draws the world (`draw/textures.ts`
+  the blocks), `net/` talks to the bot, `hud/` is what's drawn over the mine (with the leaderboard, `hud/leaderboard/`),
+  `input/` the keys and the joystick.
 - `games/mines/index.html`, `src/mines/`: Mines. `protocol.ts` is a copy of the bot's
   `src/web/mines-protocol.ts` (change both together).
 - `src/gear/`: the gear page. `src/databank/`: the databank. `src/banner/`: the banner, where members
   pull from the gacha (the bot's `/api/gacha`), with its wish: a star falling in the colour of the best
   item pulled (`sky.ts`), then each item revealed (`wish.ts`).
+How the code is laid out: a component with its own styles is a folder of its own, its `.ts` and
+`.css` side by side (`src/shared/ui/account/account.ts` and `account.css`), and builds its own markup
+rather than having it copied into each page's HTML. A folder of related modules has an `index.ts` that
+exports what the rest of the code uses, and the rest imports from the folder (`'../shared/ui'`); the
+modules inside it import each other directly. A few imports go to the module itself instead, where going
+through the `index.ts` would make an import cycle, and `ui/frame/` is imported directly because importing
+it sets up a game's page. A page's own styles, split by area and by screen size, stay in its `styles/`.
+
 - `src/shared/`: what more than one page uses.
-  - `style.css`: styles shared by every page. `header.css`: the site header (front page, gear, databank).
-  - `account.ts`: the login session and the profile button. `dropdown.ts`: the site's dropdown.
-  - `frame.ts`: the blue frame round a game. `live.ts`: who's online, and watching. `sfx.ts`: sound.
+  - `style.css`: styles shared by every page.
+  - `ui/`: the parts every page shows, each in its own folder with its styles (`ui/account/account.ts`
+    and `account.css`), all exported from `ui/index.ts`. `account/`: the login session and the profile
+    button. `dropdown/`: the site's dropdown. `live/`: who's online, and watching. `header/`: the site
+    header. `frame/`: the blue frame round a game and its title bar, from the game's
+    `<main class="frame" data-title="…">` (not in `index.ts`: importing it sets up a game's page, so
+    games import `ui/frame/frame` themselves).
+  - `audio/`: sound (`sfx.ts`). `util/`: small helpers (formatting numbers, waiting, storage).
+  - `game/`: what every game shares: its link, the connection to the bot, and the box saying why it
+    can't go on.
+  - `transition/`: the page transition (`head.css` and `head.js` go inline in every page's `<head>`).
   - `items/`: the item cards, stars, art and detail panel shared by the gear page and the databank.
 - `src/table/`: the card table shared by Baccarat and Roulette.

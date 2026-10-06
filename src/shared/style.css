@@ -3,7 +3,7 @@
    * The palette, from a banner of white spider lilies at night: near-black, charcoal and dusk-violet
    * greys, lavender and petal-white for text, and one warm red (the horns) for what to press. Wins,
    * energy and errors keep their meaning in a softer green, gold and red that sit with it. (The
-   * games' blue frame is its own, in frame.css; the games' pictures keep their colours.)
+   * games' blue frame is its own, in ui/frame/frame.css; the games' pictures keep their colours.)
    */
   --bg: #08080a;
   --panel: #17161b;

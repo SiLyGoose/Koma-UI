@@ -1,6 +1,6 @@
 import type { Direction, PinecraftPickaxe } from '../protocol';
 import { currentCharacter } from '../../shared/characters';
-import { characterImage, pickaxeImage } from '../textures';
+import { characterImage, pickaxeImage } from './textures';
 
 /** How long the pickaxe's picture is drawn, in the character's units (100 a block), and how far of it sits behind the hand. */
 const PICKAXE_LENGTH = 58;

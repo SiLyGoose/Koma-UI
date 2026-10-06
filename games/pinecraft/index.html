@@ -12,14 +12,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" />
   </head>
   <body>
-    <main id="app" class="frame pinecraft">
-      <header class="top">
-        <a class="back" href="/" aria-label="Back to the games">←</a>
-        <h1>🌲 Pinecraft</h1>
-        <button type="button" id="mute" class="frame-mute" aria-label="Turn sound off" aria-pressed="false">🔊</button>
-        <span id="conn" class="conn">Connecting…</span>
-      </header>
-
+    <main id="app" class="frame pinecraft" data-title="🌲 Pinecraft">
       <section class="hud" aria-live="polite">
         <div class="stat stat-energy">
           <span class="label">Energy <span id="energy-next" class="energy-next"></span></span>
@@ -61,14 +54,6 @@
       </div>
       <canvas id="map-canvas" class="pc-map-canvas"></canvas>
       <button type="button" id="map-close" class="pc-map-close">Close map</button>
-    </div>
-
-    <div id="message" class="message" hidden>
-      <div class="message-card">
-        <div class="message-title" id="message-title"></div>
-        <div class="message-text" id="message-text"></div>
-        <a class="message-link" href="/">Go to the games</a>
-      </div>
     </div>
 
     <script type="module" src="/src/pinecraft/main.ts"></script>

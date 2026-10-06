@@ -1,22 +1,18 @@
 import '../shared/style.css';
-import { barSlot, setConn, soundButton } from '../shared/frame';
-import { server, token, watching } from '../shared/game/link';
-import { showMessage } from '../shared/game/message';
-import { apiFromSocket, startLive } from '../shared/live';
-import { setMuted } from '../shared/sfx';
+import { barSlot, setConn, soundButton } from '../shared/ui/frame/frame';
+import { server, showMessage, token, watching } from '../shared/game';
+import { apiFromSocket, startLive } from '../shared/ui';
+import { setMuted } from '../shared/audio';
 import { resize } from './camera';
-import { connect } from './connection';
-import { setUpHowToPlay } from './how-to-play';
-import { wireJoystick } from './input/joystick';
-import { wireKeyboard } from './input/keyboard';
-import { startLeaderboard } from './leaderboard';
-import { linkUser } from './link-user';
+import { connect, linkUser } from './net';
+import { setUpHowToPlay, startLeaderboard } from './hud';
+import { wireJoystick, wireKeyboard } from './input';
 import { frame } from './loop';
 import { wireMap } from './map';
 import './pinecraft.css';
 import { loadSounds } from './sfx';
 import { state } from './state';
-import { loadKeysPicture, loadTextures } from './textures';
+import { loadKeysPicture, loadTextures } from './draw/textures';
 import { ui } from './ui';
 
 /*
@@ -30,9 +26,9 @@ import { ui } from './ui';
  * breakMs), and letting go starts it over. The page tells the bot when it starts (`mine`) and when it is done (`move`), then waits for the bot's
  * answer before any other move. Holding a direction keeps going.
  *
- * Its parts: connection.ts talks to the bot, and apply.ts takes in what it says (watch.ts when
+ * Its parts: net/connection.ts talks to the bot, and net/apply.ts takes in what it says (net/watch.ts when
  * watching); digging.ts makes the moves, from input/ (the keys and the joystick); loop.ts draws every
- * frame (with draw/), and hud.ts, ore-tip.ts and map.ts the rest; state.ts holds what more than one
+ * frame (with draw/), and hud/hud.ts, hud/ore-tip.ts and map.ts the rest; state.ts holds what more than one
  * of them needs.
  */
 

@@ -1,5 +1,4 @@
-import { art, el, SLOT_NAME, stars } from '../shared/items/items';
-import { hoverSound, itemPicked } from '../shared/items/sfx';
+import { art, el, hoverSound, itemPicked, SLOT_NAME, stars } from '../shared/items';
 import type { DatabankContext } from './context';
 import { renderDetail } from './detail';
 import { matches } from './filter';

@@ -1,4 +1,4 @@
-import { avatar, el, hpBar } from '../dom';
+import { avatar, el, hpBar } from '../widgets';
 import type { RaidFightView, RaidView } from '../protocol';
 import { play } from '../sfx';
 import { nameOf, state } from '../state';

@@ -1,5 +1,5 @@
 import markup from './hub.html?raw';
-import { API, store } from '../shared/account';
+import { API, store } from '../shared/ui';
 import { navigate } from '../shared/transition';
 import type { Page } from '../site/page';
 import { api, currentMe, currentServer, hasSession, loadMe, loggedIn, logIn, logOut, setServer, takeLoginState, type Game, type Me } from '../site/session';

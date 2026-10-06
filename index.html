@@ -12,27 +12,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" />
   </head>
   <body>
-    <!-- The site's header, on every page (src/site/session.ts fills in who's logged in, src/site/main.ts marks the page it's on). -->
-    <header class="site-header">
-      <a class="site-logo" href="/">
-        <span class="site-logo-title"><span class="site-logo-long">Komaverse</span><span class="site-logo-short" aria-hidden="true">KV</span></span>
-      </a>
-      <div class="site-nav-wrapper">
-        <nav class="site-nav">
-          <ul class="site-nav-list">
-            <li><a class="site-nav-link" href="/#games" data-route="/">Games</a></li>
-            <li><a class="site-nav-link" href="/gear/" data-route="/gear">Gear</a></li>
-            <li><a class="site-nav-link" href="/forge/" data-route="/forge">Forge</a></li>
-            <li><a class="site-nav-link" href="/banner/" data-route="/banner">Wish</a></li>
-            <li><a class="site-nav-link" href="/databank/" data-route="/databank">Databank</a></li>
-          </ul>
-        </nav>
-        <div id="me" class="site-user" hidden></div>
-        <button type="button" id="header-login" class="site-login" hidden>Login</button>
-      </div>
-    </header>
-
-    <!-- The page shown: one of the site's pages (src/hub/hub.html, src/gear/gear.html, src/forge/forge.html, src/banner/banner.html, src/databank/databank.html), swapped in by src/site/main.ts. -->
+    <!-- The site's header goes in above this (src/shared/ui/header/header.ts). The page shown: one of the site's pages (src/hub/hub.html, src/gear/gear.html, src/forge/forge.html, src/banner/banner.html, src/databank/databank.html), swapped in by src/site/main.ts. -->
     <div id="view"></div>
 
     <script type="module" src="/src/site/main.ts"></script>

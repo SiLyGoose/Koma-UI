@@ -1,4 +1,4 @@
-import type { Slot } from '../shared/items/items';
+import type { Slot } from '../shared/items';
 import type { Stars } from './types';
 
 /*

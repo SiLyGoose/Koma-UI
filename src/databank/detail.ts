@@ -1,5 +1,4 @@
-import { art, el, rich, SLOT_NAME, stars } from '../shared/items/items';
-import { itemDetailsClosed } from '../shared/items/sfx';
+import { art, el, itemDetailsClosed, rich, SLOT_NAME, stars } from '../shared/items';
 import { navigateAfter } from '../shared/transition';
 import { go } from '../site/nav';
 import { api, currentServer, hasSession } from '../site/session';

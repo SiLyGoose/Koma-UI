@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 import { defineConfig, type Plugin } from 'vite';
 
 /**
- * The page transitions' first half (src/shared/transition-head.*), inline at the end of every page's
+ * The page transitions' first half (src/shared/transition/head.*), inline at the end of every page's
  * <head>, so a page that was arrived at through a transition starts covered before anything else
  * loads. Read on every page, so editing them shows straight away in dev.
  */
@@ -12,8 +12,8 @@ function transitionHead(): Plugin {
   return {
     name: 'transition-head',
     transformIndexHtml: () => [
-      { tag: 'style', children: read('transition-head.css'), injectTo: 'head' },
-      { tag: 'script', children: read('transition-head.js'), injectTo: 'head' },
+      { tag: 'style', children: read('transition/head.css'), injectTo: 'head' },
+      { tag: 'script', children: read('transition/head.js'), injectTo: 'head' },
     ],
   };
 }

@@ -1,8 +1,8 @@
-import { sound } from '../sfx';
+import { sound } from '../audio';
 
 /*
  * The items' sounds (the gear page's armory and slots, the databank), from public/shared/sfx/items,
- * through the shared ../sfx.ts: an item hovered, an item clicked, its details popping up after, and
+ * through the shared ../audio/sfx.ts: an item hovered, an item clicked, its details popping up after, and
  * closing.
  */
 

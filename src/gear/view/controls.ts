@@ -1,7 +1,5 @@
-import { dropdown } from '../../shared/dropdown';
-import type { Slot } from '../../shared/items/items';
-import { hoverSound, itemPicked } from '../../shared/items/sfx';
-import { starFilter } from '../../shared/items/star-filter';
+import { dropdown } from '../../shared/ui';
+import { hoverSound, itemPicked, type Slot, starFilter } from '../../shared/items';
 import { loadGear, unequipEverything } from './api';
 import type { GearContext } from './context';
 import { unpick } from './detail';

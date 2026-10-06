@@ -10,7 +10,8 @@
   padding-bottom: 16px;
 }
 
-.mx > .top {
+.mx > .top,
+.mx::before {
   margin-bottom: 16px;
 }
 
@@ -357,7 +358,8 @@
     --mx-width: 1232px;
   }
 
-  .mx > .top {
+  .mx > .top,
+  .mx::before {
     margin-bottom: 20px;
   }
 

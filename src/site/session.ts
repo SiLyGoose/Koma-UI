@@ -1,6 +1,4 @@
-import { API, getSession, profileMenu, setSession, store } from '../shared/account';
-import { reconnecting } from '../shared/reconnect';
-import { startLive } from '../shared/live';
+import { API, getSession, profileMenu, reconnecting, setSession, siteHeader, startLive, store } from '../shared/ui';
 import { go } from './nav';
 
 /*
@@ -38,7 +36,7 @@ const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout
 
 /**
  * Asks the bot, as the member logged in (if any). Errors are { status, error }. While the bot doesn't
- * answer, "Reconnecting…" covers the site (../shared/reconnect.ts): a GET is tried again until it
+ * answer, "Reconnecting…" covers the site (../shared/ui/reconnect/reconnect.ts): a GET is tried again until it
  * answers; a change (a POST) is never sent twice, since it may have gone through before the answer was
  * lost, so it waits for the bot to answer anything again, then comes back as { status: 0 } (no
  * answer) for the page to load what's there afresh.
@@ -156,10 +154,7 @@ function pickServer(): void {
 // ---------------------------------------------------------------------------
 // The header
 
-const ui = {
-  me: document.getElementById('me') as HTMLElement,
-  login: document.getElementById('header-login') as HTMLButtonElement,
-};
+const ui = siteHeader();
 let profile: HTMLElement | null = null;
 
 /** The header's right side: the profile button (with who's online), or Login. */

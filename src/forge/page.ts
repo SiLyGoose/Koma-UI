@@ -1,6 +1,5 @@
 import markup from './forge.html?raw';
-import { API } from '../shared/account';
-import { fillServers } from '../shared/server-options';
+import { API, fillServers } from '../shared/ui';
 import type { Page } from '../site/page';
 import { currentMe, currentServer, loadMe } from '../site/session';
 import { failed, loadGear } from './api';
@@ -21,8 +20,8 @@ import { pick } from './picking';
  * site (else it points to `forge` in Discord). The gear page's Upgrade comes here with ?copy=<id>, which
  * starts with that copy on the anvil. Logged-in members only, in the server picked.
  *
- * Its parts share one ForgeContext (./context.ts): render.ts draws grid.ts (the armory) and anvil.ts
- * (with hint.ts, cost.ts and effects.ts, the numbers paired up by compare.ts); picking.ts puts copies on
+ * Its parts share one ForgeContext (./context.ts): render.ts draws grid.ts (the armory) and anvil/anvil.ts
+ * (with anvil/hint.ts, anvil/cost.ts and anvil/effects.ts, the numbers paired up by anvil/compare.ts); picking.ts puts copies on
  * the anvil; api.ts asks the bot, and result.ts shows what a refine or forge did; controls.ts hooks up
  * everything that can be pressed.
  */

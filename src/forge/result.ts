@@ -1,9 +1,6 @@
-import type { GearCopy } from '../shared/items/gear';
-import { el } from '../shared/items/items';
-import { card } from './card';
-import { compare, withoutDormant } from './compare';
+import { el, type GearCopy } from '../shared/items';
+import { card, compare, fillEffects, withoutDormant } from './anvil';
 import type { ForgeContext } from './context';
-import { fillEffects } from './effects';
 
 /**
  * Shows what a refine or forge did, over the page blurred. When it worked: SUCCESS, the copy as it is

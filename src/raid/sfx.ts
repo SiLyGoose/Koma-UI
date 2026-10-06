@@ -1,7 +1,7 @@
-import { sound } from '../shared/sfx';
+import { sound } from '../shared/audio';
 
 /*
- * The raid's sounds, from public/raid/sfx, played through the shared ../shared/sfx.ts (its volume,
+ * The raid's sounds, from public/raid/sfx, played through the shared ../shared/audio/sfx.ts (its volume,
  * and the frame's sound button): an action button hovered, an action picked (attack, guard, support,
  * again as it lands when the round resolves), a raider hovered in the heal picker, and a heal (the healer's, as they pick someone else; the one healed, as it lands).
  */

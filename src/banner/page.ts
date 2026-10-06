@@ -1,7 +1,5 @@
 import markup from './banner.html?raw';
-import { API } from '../shared/account';
-import { dropdown } from '../shared/dropdown';
-import { fillServers } from '../shared/server-options';
+import { API, dropdown, fillServers } from '../shared/ui';
 import type { Page } from '../site/page';
 import { currentMe, currentServer, loadMe, setServer } from '../site/session';
 import { failed, loadBanner, pull } from './api';

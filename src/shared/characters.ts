@@ -1,6 +1,6 @@
 /*
  * The characters a member can play as: the sprite on the gear page's stage and in Pinecraft, and the
- * glowing silhouette on the loading screen (transition-head.css). Each has its own folder,
+ * glowing silhouette on the loading screen (transition/head.css). Each has its own folder,
  * public/characters/<id>/: sprite.png (pixel art, standing, facing right) and silhouette.png (made
  * from it by scripts/silhouette.py). Only Tsuri for now, so everyone is Tsuri; picking one comes later.
  */

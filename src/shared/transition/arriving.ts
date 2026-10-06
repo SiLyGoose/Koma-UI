@@ -1,4 +1,4 @@
-import { playLoaded } from '../ui-sfx';
+import { playLoaded } from '../audio';
 import { KEY, MAX_HOLD_MS, MAX_SETTLE_MS, SETTLE_FRAME_MS, SETTLE_FRAMES } from './timing';
 import { clear, root, wait, wipeOff } from './wipe';
 
@@ -28,7 +28,7 @@ export function holdReveal(): () => void {
   };
 }
 
-/** Wipes the loading screen off this page, if it started under it (transition-head.js). */
+/** Wipes the loading screen off this page, if it started under it (transition/head.js). */
 export async function reveal(): Promise<void> {
   try {
     sessionStorage.removeItem(KEY);

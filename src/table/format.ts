@@ -1,4 +1,4 @@
-import { points } from '../shared/format';
+import { points } from '../shared/util';
 import type { Bets } from './protocol';
 
 export const signedPoints = (n: number): string => (n > 0 ? `+${points(n)}` : n < 0 ? `−${points(-n)}` : '±0');

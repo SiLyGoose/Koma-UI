@@ -1,4 +1,4 @@
-import { points } from '../shared/format';
+import { points } from '../shared/util';
 import type { Lobby } from './protocol';
 
 export const TILES = 25;

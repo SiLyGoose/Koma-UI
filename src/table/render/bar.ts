@@ -1,5 +1,5 @@
-import { points } from '../../shared/format';
-import { fits } from '../betting';
+import { points } from '../../shared/util';
+import { fits } from '../chips/betting';
 import { balance, busy, mySeat, onTable, type TableContext } from '../context';
 import { sumBets } from '../format';
 

@@ -1,5 +1,5 @@
 import { mySeat, showingResults, type TableContext } from '../context';
-import { renderPiles } from '../piles';
+import { renderPiles } from '../chips/piles';
 import type { Pile } from '../types';
 
 /** Everyone's chips on every spot, and (once the round is out) how this page's came out. */

@@ -1,4 +1,4 @@
-import { sleep } from '../shared/sleep';
+import { sleep } from '../shared/util';
 import { startTable } from '../table/table';
 import { buildBoard, hit, spots } from './board';
 import { COLOR_NAME } from './colors';

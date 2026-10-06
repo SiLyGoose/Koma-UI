@@ -1,4 +1,4 @@
-import { dropdown } from '../shared/dropdown';
+import { dropdown } from '../shared/ui';
 import { renderBoard } from './board';
 import { renderPanel } from './panel';
 import { ui } from './ui';

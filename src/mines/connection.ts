@@ -1,8 +1,6 @@
-import { setConn } from '../shared/frame';
-import { watching } from '../shared/game/link';
-import { hideMessage, showMessage } from '../shared/game/message';
-import { gameSocket, type GameSocket } from '../shared/game/socket';
-import { showWatchers, showWatching, watchAway, watchBack } from '../shared/live';
+import { setConn } from '../shared/ui/frame/frame';
+import { gameSocket, type GameSocket, hideMessage, showMessage, watching } from '../shared/game';
+import { showWatchers, showWatching, watchAway, watchBack } from '../shared/ui';
 import { refusalText, showLobby } from './lobby';
 import { setBalance, showError } from './panel';
 import type { ClientMessage, ErrorCode, ServerMessage } from './protocol';

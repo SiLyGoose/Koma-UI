@@ -1,6 +1,4 @@
-import type { GearCopy, GearView } from '../../shared/items/gear';
-import type { Slot } from '../../shared/items/items';
-import type { StarChoice } from '../../shared/items/star-filter';
+import type { GearCopy, GearView, Slot, StarChoice } from '../../shared/items';
 import type { GearHost, Member } from './types';
 
 /** The view's elements, found once in its root. */

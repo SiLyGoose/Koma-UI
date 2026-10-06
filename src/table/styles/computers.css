@@ -85,7 +85,8 @@
     overflow: hidden;
   }
 
-  .tb > .top {
+  .tb > .top,
+  .tb::before {
     margin-bottom: 0;
   }
 

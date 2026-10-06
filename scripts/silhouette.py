@@ -1,11 +1,11 @@
 """
-Makes the loading screen's sprites (src/shared/transition-head.css): each character's sprite as a glowing
+Makes the loading screen's sprites (src/shared/transition/head.css): each character's sprite as a glowing
 gold silhouette, like a hero running in the dark. Pixel art is scaled up without smoothing first,
 so the silhouette keeps its pixels; the glow is soft round it.
 
     python scripts/silhouette.py public/characters/tsuri/sprite.png public/characters/tsuri/silhouette.png
 
-Needs Pillow (pip install pillow). A new character's goes in SPRITES in src/shared/transition-head.js
+Needs Pillow (pip install pillow). A new character's goes in SPRITES in src/shared/transition/head.js
 (and the character in src/shared/characters.ts).
 """
 import sys

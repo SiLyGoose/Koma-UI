@@ -1,4 +1,4 @@
-import type { startLeaderboard } from './leaderboard';
+import type { startLeaderboard } from './hud';
 import type { Scene } from './draw';
 import type { Direction, WorldMap } from './protocol';
 import type { Material } from './sfx';

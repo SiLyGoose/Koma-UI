@@ -3,12 +3,12 @@
  * left to right, a loading screen shows (a glowing sprite bouncing over "Loading…") while the next
  * page loads, then the panel carries on across and off it, its trailing edge streaked the same way.
  * Going back (the browser's back button, or a game's ← link) runs it right to left; catchBack() gives
- * the browser's back button the wipe in a game. The look is all in transition-head.css; this moves it along.
+ * the browser's back button the wipe in a game. The look is all in transition/head.css; this moves it along.
  *
  * Each page is its own document, so a transition is two halves: this page wipes itself over, fetches
  * the next one while its loading screen shows (for at least LOAD_MS, so that page is ready and doesn't
  * flash in), and says where it's going (sessionStorage); the next page starts under the same loading
- * screen (transition-head.js, before anything is drawn) and this script, loading there, wipes it off.
+ * screen (transition/head.js, before anything is drawn) and this script, loading there, wipes it off.
  * Same-site links go through it on their own; code that sends the browser somewhere calls navigate(), or
  * navigateAfter() when it has to ask where first (the loading screen stays up while it does).
  * Anyone who asked for less motion just gets the page.

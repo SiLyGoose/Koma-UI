@@ -1,4 +1,4 @@
-import { el } from '../dom';
+import { el } from '../widgets';
 import type { RaidView } from '../protocol';
 import { redraw } from '../render';
 import { ui } from '../ui';

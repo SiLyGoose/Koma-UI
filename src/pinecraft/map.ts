@@ -1,4 +1,4 @@
-import { send } from './connection';
+import { send } from './net/connection';
 import { stopBreaking } from './digging';
 import { drawMap } from './draw';
 import { setStick } from './input/joystick';

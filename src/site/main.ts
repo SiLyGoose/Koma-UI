@@ -1,20 +1,21 @@
 import '../shared/style.css';
-import '../shared/header.css';
+// Before the pages' styles, which go on top of it (header.ts imports it too).
+import '../shared/ui/header/header.css';
 import '../shared/items/items.css';
 import '../hub/hub.css';
 import '../gear/gear.css';
 import '../databank/databank.css';
 import '../forge/forge.css';
 import '../banner/banner.css';
-import { backdrop } from '../shared/backdrop';
+import { backdrop, siteHeader } from '../shared/ui';
 import { installCursor } from '../shared/cursor';
-import { installClickSounds } from '../shared/ui-sfx';
+import { installClickSounds } from '../shared/audio';
 import { bannerPage } from '../banner/page';
 import { databankPage } from '../databank/page';
 import { forgePage } from '../forge/page';
 import { gearPage } from '../gear/page';
 import { hubPage } from '../hub/page';
-import { keepHoloInStep } from '../shared/items/items';
+import { keepHoloInStep } from '../shared/items';
 import { holdReveal, onSiteLink, swap, type Direction } from '../shared/transition';
 import { setGo, type GoOptions } from './nav';
 import type { Page } from './page';
@@ -71,7 +72,7 @@ function show(url: URL): void {
 
   document.title = page.title;
   if (icon) icon.href = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>${page.icon}</text></svg>`;
-  for (const link of document.querySelectorAll<HTMLAnchorElement>('.site-nav-link[data-route]')) {
+  for (const link of siteHeader().links) {
     const here = link.dataset.route === (page.path || '/') && page !== hubPage;
     link.classList.toggle('active', here);
     if (here) link.setAttribute('aria-current', 'page');
@@ -126,5 +127,5 @@ window.addEventListener('popstate', (e) => {
   void swap(dir, () => show(new URL(location.href)));
 });
 
-// The first page, under the loading screen when it was arrived at through a transition (transition-head.js).
+// The first page, under the loading screen when it was arrived at through a transition (transition/head.js).
 show(new URL(location.href));

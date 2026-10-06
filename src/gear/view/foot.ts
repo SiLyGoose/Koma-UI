@@ -1,6 +1,5 @@
-import { coin } from '../../shared/coin';
-import { points } from '../../shared/format';
-import { art, el, SLOT_NAME, type Slot } from '../../shared/items/items';
+import { coin, points } from '../../shared/util';
+import { art, el, type Slot, SLOT_NAME } from '../../shared/items';
 import { switchTo } from './api';
 import { copyById, mine, wearOnly, type GearContext } from './context';
 import { sale } from './selling';

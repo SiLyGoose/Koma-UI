@@ -1,0 +1,147 @@
+/*
+ * The frame every game sits in (frame.ts): a blue border round the window and a title bar across
+ * the top, with the way back to the games, the game's name, the sound button and the connection.
+ * A game's page puts it on its <main class="frame"> and lays out what's below the bar itself.
+ */
+
+.frame {
+  --frame-bar: #2b3f9e;
+  max-width: none;
+  padding: 0;
+  border: 2px solid var(--frame-bar);
+}
+
+.frame > .top {
+  margin: 0;
+  padding: 5px 10px;
+  padding-top: max(5px, env(safe-area-inset-top));
+  background: var(--frame-bar);
+}
+
+/* The bar's room, until frame.ts puts the bar in (the page shows before its scripts run): as tall as
+   the bar (its padding round the ← back link), in its blue, so the game doesn't move down when it comes. */
+.frame:not(:has(> .top))::before {
+  content: '';
+  display: block;
+  height: calc(max(5px, env(safe-area-inset-top)) + 28px + 5px);
+  background: var(--frame-bar);
+}
+
+/* What's on the bar fades in over its blue. */
+.frame > .top > * {
+  animation: frame-bar-in 0.15s ease-out;
+}
+
+@keyframes frame-bar-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .frame > .top > * {
+    animation: none;
+  }
+}
+
+.frame .top h1 {
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.frame .top .back {
+  color: #fff;
+  font-size: 16px;
+}
+
+.frame .top .conn {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.frame-mute {
+  margin-right: 8px;
+  padding: 2px 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.frame-mute:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+/* The member logged in (../account/account.css), smaller to fit the bar, and lighter on the blue. */
+.frame-profile {
+  margin-left: 8px;
+}
+
+.frame-profile .account-user {
+  padding: 2px;
+  border-color: rgba(255, 255, 255, 0.35);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.frame-profile .account-user:hover,
+.frame-profile .account-user[aria-expanded='true'] {
+  background-color: rgba(0, 0, 0, 0.25);
+}
+
+.frame-profile .account-avatar {
+  width: 24px;
+  height: 24px;
+}
+
+.frame-profile .account-arrow {
+  margin: 0 8px 0 10px;
+  border-color: rgba(255, 255, 255, 0.75);
+}
+
+/* On a phone: the connection and the online button at the top of the profile's drop-down (frame.ts).
+   With the pages under them it can run long, so it scrolls rather than running off the screen. */
+.frame-profile-extra .account-menu {
+  width: min(320px, calc(100vw - 16px));
+  max-height: calc(100dvh - 64px);
+  overflow-y: auto;
+}
+
+.frame-extra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  padding: 4px 16px 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.frame-extra .conn,
+.frame-extra .live-button {
+  background: var(--panel-3);
+}
+
+.frame-extra .live {
+  margin-right: 0;
+}
+
+/* Its list opens inside the drop-down, under the button, rather than floating. */
+.frame-extra .frame-slot,
+.frame-extra .live {
+  display: contents;
+}
+
+.frame-extra .live-panel {
+  position: static;
+  flex: 1 1 100%;
+  width: auto;
+  max-height: 45vh;
+  padding: 4px 0 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}

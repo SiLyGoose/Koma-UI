@@ -1,4 +1,4 @@
-import { showMessage as show } from '../shared/game/message';
+import { showMessage as show } from '../shared/game';
 import { holdReveal } from '../shared/transition';
 
 /**

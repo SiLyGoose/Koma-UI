@@ -1,6 +1,6 @@
 import { WIPE_MS } from './timing';
 
-/* The wipe itself: the attributes on <html> that transition-head.css animates. */
+/* The wipe itself: the attributes on <html> that transition/head.css animates. */
 
 export type Direction = 'forward' | 'back';
 

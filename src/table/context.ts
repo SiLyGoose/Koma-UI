@@ -1,4 +1,4 @@
-import type { GameSocket } from '../shared/game/socket';
+import type { GameSocket } from '../shared/game';
 import { sumBets } from './format';
 import type { TableUi } from './panel';
 import type { Bets, ClientMessage, SeatView, TableState } from './protocol';

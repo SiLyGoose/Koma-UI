@@ -1,5 +1,4 @@
-import { coin } from '../../shared/coin';
-import { points } from '../../shared/format';
+import { coin, points } from '../../shared/util';
 import { avatarImg } from '../avatar';
 import { showingResults, type TableContext } from '../context';
 import { signedPoints, sumBets } from '../format';

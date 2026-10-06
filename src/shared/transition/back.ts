@@ -52,7 +52,7 @@ export function catchBack(fallback: string): void {
     await wait(WIPE_MS);
     root.setAttribute('data-tx', 'cover');
     // The page gone back to starts under the loading screen and wipes it off right to left
-    // (transition-head.js for a page loaded afresh, the pageshow listener in ./index.ts for one the browser kept).
+    // (transition/head.js for a page loaded afresh, the pageshow listener in ./index.ts for one the browser kept).
     goBack();
   });
 }

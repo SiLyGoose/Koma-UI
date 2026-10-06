@@ -1,7 +1,7 @@
 /*
  * What every shared-table game's page (baccarat, roulette) looks like around its felt: the page, the
  * chips and their rack, the buttons, the countdown, everyone at the table, and the chips on a spot
- * (piles.ts draws them). Each game's own stylesheet does its felt and spots.
+ * (chips/piles.ts draws them). Each game's own stylesheet does its felt and spots.
  */
 
 @import './styles/page.css';

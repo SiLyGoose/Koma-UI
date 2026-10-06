@@ -1,6 +1,5 @@
-import { popupClosed } from '../../shared/items/sfx';
-import { avatar, el } from '../dom';
-import { popupShown } from '../popup';
+import { popupClosed } from '../../shared/items';
+import { avatar, el, popupShown } from '../widgets';
 import type { RaidView } from '../protocol';
 import { nameOf, state } from '../state';
 import { ui } from '../ui';
