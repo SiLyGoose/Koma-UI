@@ -1,0 +1,82 @@
+<!-- The banner (src/banner/page.ts): pulling from the gacha, one at a time or a multi pull. Swapped into #view by src/site/main.ts. -->
+<main class="gear-page banner-page">
+  <!-- The sky everything sits on, as Genshin's wish screen. -->
+  <div class="banner-stage">
+    <div class="banner-bar">
+      <select id="server" class="server-pick" aria-label="Server" hidden></select>
+      <!-- A tab for each banner (src/banner/banners.ts). -->
+      <div id="tabs" class="banner-tabs" role="tablist" aria-label="Banners"></div>
+      <p class="banner-wallet">
+        <span id="tokens" class="banner-purse" title="komaTokens: one free pull each"></span>
+        <span id="balance" class="banner-purse" title="zeiucoins"></span>
+      </p>
+    </div>
+
+    <p id="status" class="status banner-status" hidden></p>
+
+    <section id="banner" class="banner-card" data-stars="4" hidden>
+      <!-- The parchment: its kind, its name, what pity promises, their own treasure's guarantee, and how long it's on. -->
+      <div class="banner-sheet">
+        <p id="kind" class="banner-kind"></p>
+        <h2 class="banner-name"><span id="name-1" class="banner-name-1"></span><span id="name-2" class="banner-name-2"></span></h2>
+        <div class="banner-copy">
+          <h3 class="banner-copy-head">Guaranteed treasure!</h3>
+          <p id="promise" class="banner-promise"></p>
+          <p id="blurb" class="banner-blurb"></p>
+        </div>
+        <div class="banner-lower">
+          <!-- Their own treasure, and whether the next unique treasure is guaranteed to be it: 1/1 or 0/1 (hidden when none is theirs). -->
+          <div id="path" class="banner-path" hidden>
+            <div id="path-ring" class="banner-path-ring"><span id="path-art" class="banner-path-art"></span></div>
+            <p id="path-count" class="banner-path-count"></p>
+          </div>
+          <div class="banner-time">
+            <p class="banner-time-head">Time Remaining</p>
+            <p id="time" class="banner-time-left"></p>
+          </div>
+        </div>
+      </div>
+      <!-- The featured items, the first breaking out over the sheet's edge, the second on the red panel. -->
+      <div class="banner-feature">
+        <span class="banner-emblem" aria-hidden="true"></span>
+        <figure id="feature-1" class="banner-featured big"></figure>
+        <figure id="feature-2" class="banner-featured small"></figure>
+      </div>
+    </section>
+
+    <div class="banner-foot">
+      <div class="banner-links">
+        <button type="button" id="details-open" class="banner-link">Details</button>
+      </div>
+      <div class="banner-buttons">
+        <button type="button" id="pull-one" class="banner-pull">
+          <span class="banner-pull-label">Pull ×1</span>
+          <span id="pull-one-cost" class="banner-pull-cost"></span>
+        </button>
+        <button type="button" id="pull-ten" class="banner-pull">
+          <span id="pull-ten-label" class="banner-pull-label">Pull ×10</span>
+          <span id="pull-ten-cost" class="banner-pull-cost"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Details: each tier's odds and how pity works. -->
+  <div id="details" class="banner-details" role="dialog" aria-modal="true" aria-labelledby="details-title" tabindex="-1" hidden>
+    <div class="banner-details-box">
+      <h2 id="details-title">Details</h2>
+      <ul id="rates" class="banner-rates" aria-label="Odds"></ul>
+      <p id="details-pity" class="banner-details-text"></p>
+      <p id="guarantee" class="banner-details-text" hidden></p>
+      <button type="button" id="details-close" class="banner-link">Close</button>
+    </div>
+  </div>
+
+  <!-- The wish, over everything: a star falls, flashes the colour of the best item pulled, then each item is shown. Run by src/banner/wish.ts. -->
+  <div id="wish" class="wish" role="dialog" aria-modal="true" aria-label="Pull" tabindex="-1">
+    <canvas id="wish-sky" class="wish-sky" aria-hidden="true"></canvas>
+    <div id="wish-flash" class="wish-flash" aria-hidden="true"></div>
+    <div id="wish-stage" class="wish-stage" aria-live="polite"></div>
+    <button type="button" id="wish-skip" class="wish-skip">Skip</button>
+  </div>
+</main>

@@ -93,6 +93,7 @@ async function showProfile(): Promise<void> {
     { label: 'Games', icon: 'games', href: '/' },
     { label: 'Gear', icon: 'gear', href: '/gear/' },
     { label: 'Forge', icon: 'forge', href: '/forge/' },
+    { label: 'Banner', icon: 'banner', href: '/banner/' },
     { label: 'Databank', icon: 'databank', href: '/databank/' },
     {
       label: 'Log out',

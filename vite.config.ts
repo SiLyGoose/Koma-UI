@@ -21,8 +21,8 @@ function transitionHead(): Plugin {
 // The front page (log in, pick a server and a game) is index.html. Each game is served at
 // /games/<name>/: its page lives at games/<name>/index.html, and the build keeps that path
 // (dist/games/<name>/index.html), with the shared assets under /assets. The site's own pages (the front page,
-// /gear/, /forge/ and /databank/) are all index.html, which swaps between them (src/site/main.ts; vercel.json sends
-// /gear/, /forge/ and /databank/ there).
+// /gear/, /forge/, /banner/ and /databank/) are all index.html, which swaps between them (src/site/main.ts; vercel.json sends
+// /gear/, /forge/, /banner/ and /databank/ there).
 export default defineConfig({
   plugins: [transitionHead()],
   build: {

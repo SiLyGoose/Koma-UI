@@ -1,0 +1,548 @@
+/* ------------------------------------------------------------------ the wish */
+
+/*
+ * The wish (../wish.ts), over everything: a night sky (its stars and the falling star drawn on the
+ * canvas, ../sky.ts) fading in; the flash of the best item's colour where the star lands, filling the
+ * screen; then each item in a burst of its tier's colour (--tier: red for a unique treasure) over a dark
+ * stage lit in that colour, and a multi pull's all together. Skip in the top right corner.
+ */
+.wish {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  overflow: hidden;
+  background: radial-gradient(ellipse 120% 70% at 50% 110%, #1d1636 0%, transparent 60%), linear-gradient(180deg, #03040b 0%, #0a0d24 60%, #151033 100%);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.4s ease,
+    visibility 0s linear 0.4s;
+}
+
+.wish.on {
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity 0.4s ease,
+    visibility 0s;
+}
+
+.wish:focus {
+  outline: none;
+}
+
+.wish-sky {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Revealing: the sky gives way to a dark stage lit from below in the item's colour. */
+.wish::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 55%, color-mix(in srgb, var(--wish-tier, #fff) 22%, transparent), transparent 70%),
+    linear-gradient(180deg, #07070c, #0f0d18);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.wish.revealing::before {
+  opacity: 1;
+}
+
+.wish:has(.wish-reveal[data-stars='1']) { --wish-tier: var(--star-1); }
+.wish:has(.wish-reveal[data-stars='2']) { --wish-tier: var(--star-2); }
+.wish:has(.wish-reveal[data-stars='3']) { --wish-tier: var(--star-3); }
+.wish:has(.wish-reveal[data-stars='4']) { --wish-tier: var(--star-4); }
+
+/*
+ * The flash where the star lands: white at its heart, the best item's colour round it, filling the
+ * screen. It clears from the middle out, where the item waits under it (a hole opening in it, --hole,
+ * the white thinning as it goes), so the item comes out of the light rather than the light just fading.
+ */
+@property --hole {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 150%;
+}
+
+.wish-flash {
+  --hole: 150%;
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: radial-gradient(circle at 66% 55%, #fff 0%, color-mix(in srgb, var(--tier) 35%, #fff) 35%, color-mix(in srgb, var(--tier) 80%, #fff) 100%);
+  mask: radial-gradient(circle at 50% 42%, transparent var(--hole), #000 calc(var(--hole) + 30%));
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    --hole 1s cubic-bezier(0.3, 0, 0.2, 1),
+    opacity 0.6s ease-in 0.45s;
+}
+
+.wish-flash.on {
+  --hole: -30%;
+  opacity: 1;
+  transition: opacity 0.16s ease-in;
+}
+
+/* Put in under the flash, waiting for it to clear: every animation held at its start (the item dark, nothing else showing). */
+.wish-stage .held,
+.wish-stage .held *,
+.wish-stage .held *::before,
+.wish-stage .held *::after {
+  animation-play-state: paused !important;
+}
+
+/* What's shown, filling the screen so a click anywhere goes on. */
+.wish-stage {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  padding: 56px 16px 24px;
+  /* The light round an item reaches well past it: clipped at the screen's edges, not scrolled to. */
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.wish-skip {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  z-index: 3;
+  padding: 7px 18px;
+  border: 1px solid rgb(255 255 255 / 30%);
+  border-radius: 30px;
+  background: rgb(0 0 0 / 35%);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.wish-skip:hover {
+  background: rgb(0 0 0 / 55%);
+}
+
+.wish-skip:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+.wish-skip[hidden] {
+  display: none;
+}
+
+/* ------------------------------------------------------------------ one item */
+
+.wish-reveal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: min(560px, 100%);
+}
+
+/*
+ * The item in a burst of its tier's colour: a white-hot core, a wide bloom, and soft beams turning
+ * slowly behind it (as the forge's result, ../../forge/styles/result.css, in the tier's colour).
+ */
+.wish-burst {
+  position: relative;
+  isolation: isolate;
+  width: clamp(130px, 34vw, 180px);
+  margin: 40px 0 44px;
+}
+
+.wish-burst::before {
+  content: '';
+  position: absolute;
+  inset: -160px;
+  z-index: -1;
+  border-radius: 50%;
+  background: radial-gradient(
+    closest-side,
+    rgb(255 255 255 / 100%) 22%,
+    color-mix(in srgb, var(--tier) 30%, #fff) 34%,
+    color-mix(in srgb, var(--tier) 62%, transparent) 54%,
+    color-mix(in srgb, var(--tier) 22%, transparent) 76%,
+    transparent
+  );
+  filter: blur(4px);
+  pointer-events: none;
+  animation: wish-burst 0.9s ease-out 0.45s both;
+}
+
+.wish-core {
+  position: absolute;
+  inset: -34px;
+  z-index: -1;
+  border-radius: 24%;
+  background: radial-gradient(closest-side, rgb(255 255 255 / 95%) 55%, color-mix(in srgb, var(--tier) 40%, #fff) 80%, transparent);
+  filter: blur(8px);
+  pointer-events: none;
+  animation:
+    wish-fade 0.6s ease-out 0.45s both,
+    wish-breathe 2.6s ease-in-out 1.05s infinite;
+}
+
+.wish-rays {
+  --ray: color-mix(in srgb, var(--tier) 55%, #fff);
+  position: absolute;
+  inset: -240px;
+  z-index: -2;
+  border-radius: 50%;
+  background: conic-gradient(
+    transparent 0deg,
+    var(--ray) 8deg,
+    transparent 20deg 34deg,
+    color-mix(in srgb, var(--ray) 60%, transparent) 40deg,
+    transparent 47deg 62deg,
+    var(--ray) 75deg,
+    transparent 90deg 108deg,
+    color-mix(in srgb, var(--ray) 55%, transparent) 113deg,
+    transparent 119deg 138deg,
+    color-mix(in srgb, var(--ray) 85%, transparent) 150deg,
+    transparent 163deg 185deg,
+    color-mix(in srgb, var(--ray) 70%, transparent) 194deg,
+    transparent 203deg 222deg,
+    var(--ray) 236deg,
+    transparent 250deg 268deg,
+    color-mix(in srgb, var(--ray) 55%, transparent) 274deg,
+    transparent 281deg 300deg,
+    color-mix(in srgb, var(--ray) 85%, transparent) 312deg,
+    transparent 326deg 340deg,
+    color-mix(in srgb, var(--ray) 60%, transparent) 348deg,
+    transparent 356deg
+  );
+  mask: radial-gradient(closest-side, #000 20%, rgb(0 0 0 / 60%) 50%, transparent 92%);
+  filter: blur(6px);
+  mix-blend-mode: screen;
+  pointer-events: none;
+  animation:
+    wish-fade 0.8s ease-out 0.55s both,
+    wish-spin 40s linear infinite;
+}
+
+.wish-rays.back {
+  inset: -190px;
+  opacity: 0.7;
+  rotate: 17deg;
+  filter: blur(9px);
+  animation:
+    wish-fade 0.8s ease-out 0.65s both,
+    wish-spin-back 55s linear infinite;
+}
+
+/* The lower tiers' light is quieter: no beams for 1 and 2 stars, softer ones for 3. */
+.wish-reveal[data-stars='1'] .wish-rays,
+.wish-reveal[data-stars='2'] .wish-rays {
+  display: none;
+}
+
+.wish-reveal[data-stars='3'] .wish-rays {
+  opacity: 0.55;
+}
+
+.wish-reveal[data-stars='1'] .wish-burst::before,
+.wish-reveal[data-stars='2'] .wish-burst::before {
+  inset: -90px;
+  opacity: 0.7;
+}
+
+.wish-card.item {
+  width: 100%;
+  cursor: inherit;
+}
+
+.wish-burst .wish-card {
+  box-shadow:
+    0 0 14px 6px rgb(255 255 255 / 85%),
+    0 0 44px 16px color-mix(in srgb, var(--tier) 70%, transparent),
+    0 2px 0 var(--item-lip);
+  animation: wish-silhouette 1.1s cubic-bezier(0.25, 0.6, 0.3, 1) both;
+}
+
+.wish-card.item:hover {
+  transform: none;
+}
+
+.wish-burst .art {
+  width: 64%;
+  height: 64%;
+}
+
+.wish-card .stars {
+  font-size: 13px;
+}
+
+.wish-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.wish-slot {
+  margin: 0;
+  color: color-mix(in srgb, var(--tier) 60%, #fff);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  animation: wish-rise 0.4s ease-out 0.9s both;
+}
+
+.wish-name {
+  margin: 0;
+  color: #fff;
+  font-size: clamp(26px, 6vw, 40px);
+  font-weight: 800;
+  line-height: 1.1;
+  text-shadow: 0 2px 0 rgb(0 0 0 / 50%), 0 0 22px color-mix(in srgb, var(--tier) 70%, transparent);
+  animation: wish-rise 0.45s ease-out 0.98s both;
+}
+
+/* Its stars, popping in one after another. */
+.wish-text > .stars {
+  margin-top: 4px;
+  font-size: 26px;
+}
+
+.wish-text > .stars .star {
+  animation: wish-star 0.35s cubic-bezier(0.2, 1.6, 0.4, 1) calc(1.15s + var(--i, 0) * 0.14s) both;
+}
+
+.wish-new,
+.wish-owned,
+.wish-note {
+  margin: 6px 0 0;
+  font-size: 13px;
+  animation: wish-rise 0.4s ease-out 1.6s both;
+}
+
+.wish-new {
+  padding: 2px 12px;
+  border-radius: 20px;
+  background: var(--tier);
+  color: #fff;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 1px rgb(0 0 0 / 40%);
+}
+
+.wish-owned,
+.wish-note {
+  color: var(--petal);
+}
+
+.wish-tap {
+  margin: 26px 0 0;
+  color: rgb(255 255 255 / 55%);
+  font-size: 12px;
+  animation: wish-fade 0.5s ease-out 1.8s both;
+}
+
+/* ------------------------------------------------------------------ a multi pull's all */
+
+.wish-summary {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: min(760px, 100%);
+}
+
+.wish-summary-title {
+  margin: 0 0 22px;
+  color: #fff;
+  font-size: clamp(22px, 5vw, 32px);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  animation: wish-rise 0.4s ease-out both;
+}
+
+.wish-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: clamp(8px, 2vw, 16px);
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.wish-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  animation: wish-tile 0.45s cubic-bezier(0.2, 1.3, 0.4, 1) calc(var(--i, 0) * 0.08s) both;
+}
+
+.wish-tile .wish-card {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--tier) 60%, transparent),
+    0 0 18px 2px color-mix(in srgb, var(--tier) 55%, transparent),
+    0 2px 0 var(--item-lip);
+}
+
+/* The best tier's tiles glow brighter, and keep glowing. */
+.wish-tile[data-stars='4'] .wish-card {
+  animation: wish-tile-glow 1.8s ease-in-out infinite;
+}
+
+.wish-tile .stars {
+  font-size: clamp(8px, 1.6vw, 12px);
+}
+
+.wish-tile-name {
+  max-width: 100%;
+  overflow: hidden;
+  color: #fff;
+  font-size: clamp(10px, 1.8vw, 13px);
+  font-weight: 600;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wish-tile-new {
+  position: absolute;
+  top: -6px;
+  left: -4px;
+  z-index: 2;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--tier);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  rotate: -6deg;
+}
+
+@media (max-width: 480px) {
+  .wish-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* A phone on its side: all of them in one row, so they fit its height. */
+@media (max-height: 520px) and (min-width: 600px) {
+  .wish-grid {
+    grid-template-columns: repeat(10, minmax(0, 1fr));
+  }
+
+  .wish-summary {
+    width: 100%;
+  }
+}
+
+/* ------------------------------------------------------------------ motion */
+
+@keyframes wish-burst {
+  from {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+
+@keyframes wish-breathe {
+  50% {
+    opacity: 0.6;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes wish-spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+@keyframes wish-spin-back {
+  to {
+    transform: rotate(-1turn);
+  }
+}
+
+@keyframes wish-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Black against the clearing white, sliding in a little, then its colour coming up through it. */
+@keyframes wish-silhouette {
+  0% {
+    filter: brightness(0);
+    transform: translateX(28px) scale(1.04);
+  }
+  40% {
+    filter: brightness(0);
+  }
+  100% {
+    filter: brightness(1);
+    transform: none;
+  }
+}
+
+@keyframes wish-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+@keyframes wish-star {
+  from {
+    opacity: 0;
+    transform: scale(2.4);
+  }
+}
+
+@keyframes wish-tile {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.9);
+  }
+}
+
+@keyframes wish-tile-glow {
+  50% {
+    box-shadow:
+      0 0 0 1px var(--tier),
+      0 0 30px 6px color-mix(in srgb, var(--tier) 80%, transparent),
+      0 2px 0 var(--item-lip);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wish-rays,
+  .wish-core,
+  .wish-tile[data-stars='4'] .wish-card {
+    animation: none;
+  }
+
+  .wish-burst .wish-card,
+  .wish-text > .stars .star,
+  .wish-tile {
+    animation-name: wish-fade;
+  }
+}

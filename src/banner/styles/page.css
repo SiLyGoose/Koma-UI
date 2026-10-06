@@ -1,0 +1,781 @@
+/* ------------------------------------------------------------------ the page */
+
+/*
+ * Laid out as Genshin's wish screen: a bright sky under everything, the banners' tabs and the member's
+ * wallet along the top, the banner's card in the middle (parchment on the left, its featured items
+ * breaking out over a red panel on the right), and Details and the two pull buttons along the bottom.
+ * The red is the top tier's (--tier, from data-stars='4'), where Genshin's is orange.
+ */
+.banner-page.gear-page {
+  --ink-soft: #6a6270;
+  --cream: #f7f2e4;
+  --cream-2: #ebe3cd;
+  max-width: none;
+  padding: 0;
+}
+
+.banner-stage {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: calc(100dvh - 56px);
+  padding: 14px clamp(16px, 4vw, 48px) 22px;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 55% 35% at 12% 18%, rgb(255 255 255 / 75%), transparent 70%),
+    radial-gradient(ellipse 45% 30% at 88% 26%, rgb(255 255 255 / 60%), transparent 70%),
+    radial-gradient(ellipse 80% 40% at 50% 104%, rgb(255 255 255 / 85%), transparent 70%),
+    radial-gradient(ellipse 35% 22% at 28% 88%, rgb(236 242 255 / 70%), transparent 70%),
+    radial-gradient(ellipse 30% 50% at 22% 0%, rgb(40 70 130 / 45%), transparent 70%),
+    linear-gradient(180deg, #5b7fbd 0%, #8eb0de 38%, #c6d8f1 72%, #e8eef9 100%);
+}
+
+/* Soft clouds drifting across, behind everything. */
+.banner-stage::before {
+  content: '';
+  position: absolute;
+  inset: -10%;
+  z-index: -1;
+  background:
+    radial-gradient(closest-side, rgb(255 255 255 / 55%), transparent) 8% 62% / 38% 22% no-repeat,
+    radial-gradient(closest-side, rgb(255 255 255 / 50%), transparent) 70% 12% / 30% 16% no-repeat,
+    radial-gradient(closest-side, rgb(255 255 255 / 45%), transparent) 92% 70% / 34% 24% no-repeat,
+    radial-gradient(closest-side, rgb(255 255 255 / 40%), transparent) 40% 40% / 26% 12% no-repeat;
+  filter: blur(18px);
+  animation: banner-clouds 60s ease-in-out infinite alternate;
+}
+
+@keyframes banner-clouds {
+  to {
+    translate: 4% 1%;
+  }
+}
+
+/* ------------------------------------------------------------------ the top */
+
+.banner-bar {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 12px;
+  align-items: center;
+}
+
+.banner-bar .dd:has(> .server-pick),
+.banner-bar > .server-pick {
+  justify-self: start;
+}
+
+.banner-bar .server-pick {
+  border-color: rgb(255 255 255 / 40%);
+  background: rgb(20 32 64 / 40%);
+  color: #fff;
+}
+
+.banner-tabs {
+  grid-column: 2;
+  display: flex;
+  gap: 10px;
+}
+
+/*
+ * A banner's tab, as Genshin's: a small dark-blue plaque in a fine double frame with a diamond at each top
+ * corner, its name on the left and its first featured item's picture fading in from the right. The one
+ * showing turns pale gold in a gold frame, a little bigger and hanging lower than the rest.
+ */
+.banner-tab {
+  --tab-line: rgb(214 226 255 / 45%);
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: clamp(116px, 12vw, 168px);
+  height: clamp(44px, 4.6vw, 58px);
+  padding: 0 0 0 14px;
+  overflow: hidden;
+  border: 1px solid rgb(10 20 50 / 60%);
+  border-radius: 7px;
+  background: linear-gradient(180deg, #33477a, #1f2b52);
+  box-shadow:
+    inset 0 0 0 2px #26355f,
+    inset 0 0 0 3px var(--tab-line),
+    0 3px 8px rgb(10 20 50 / 30%);
+  color: #e9eefc;
+  cursor: pointer;
+  opacity: 0.85;
+  transition: opacity 0.2s ease, transform 0.2s ease, background 0.2s ease;
+}
+
+/* The diamonds on its frame's top corners. */
+.banner-tab::before,
+.banner-tab::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  z-index: 2;
+  width: 6px;
+  height: 6px;
+  background: var(--tab-line);
+  rotate: 45deg;
+}
+
+.banner-tab::before {
+  left: 2px;
+}
+
+.banner-tab::after {
+  right: 2px;
+}
+
+.banner-tab:hover {
+  opacity: 1;
+}
+
+.banner-tab[aria-selected='true'] {
+  --tab-line: rgb(176 136 60 / 75%);
+  border-color: #b8924a;
+  background: linear-gradient(180deg, #fbf3dc, #ecdcae);
+  box-shadow:
+    inset 0 0 0 2px #f6ead0,
+    inset 0 0 0 3px var(--tab-line),
+    0 0 0 2px rgb(255 236 186 / 55%),
+    0 6px 16px rgb(10 20 50 / 30%);
+  color: #5a4a2c;
+  opacity: 1;
+  transform: translateY(4px) scale(1.06);
+}
+
+.banner-tab:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+
+/* Its picture down the right side, fading out towards its name. */
+.banner-tab > .art {
+  position: absolute;
+  inset: 3px 3px 3px 38%;
+  display: block;
+  width: auto;
+  height: auto;
+  overflow: hidden;
+  border-radius: 0 4px 4px 0;
+  mask: linear-gradient(90deg, transparent, #000 55%);
+}
+
+.banner-tab > .art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.banner-tab-label {
+  position: relative;
+  z-index: 1;
+  font-size: clamp(13px, 1.2vw, 15px);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 45%);
+}
+
+.banner-tab[aria-selected='true'] .banner-tab-label {
+  text-shadow: 0 1px 0 rgb(255 255 255 / 60%);
+}
+
+.banner-path-art .art {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.banner-path-art .art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.banner-wallet {
+  grid-column: 3;
+  justify-self: end;
+  display: flex;
+  gap: 10px;
+  margin: 0;
+}
+
+.banner-purse {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  padding: 4px 14px 4px 6px;
+  border-radius: 30px;
+  background: rgb(20 32 64 / 45%);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.banner-coin,
+.banner-purse .emoji,
+.banner-pull-cost .emoji {
+  width: 20px;
+  height: 20px;
+  vertical-align: middle;
+}
+
+.banner-status {
+  margin: 0;
+  padding: 8px 16px;
+  align-self: center;
+  border-radius: 20px;
+  background: rgb(20 32 64 / 55%);
+  color: #fff;
+}
+
+/* ------------------------------------------------------------------ the card */
+
+.banner-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  width: min(1180px, 100%);
+  min-height: clamp(380px, 44vw, 560px);
+  margin: auto;
+  border-radius: 6px;
+  background: linear-gradient(170deg, #fbf8ef, var(--cream) 50%, #efe7d2);
+  box-shadow: 0 18px 50px rgb(30 50 90 / 35%), 0 0 0 1px rgb(255 255 255 / 60%);
+  color: var(--ink);
+}
+
+.banner-card[hidden] {
+  display: none;
+}
+
+/* The parchment: its kind on a red tag over its corner, its name, what pity promises, their own treasure's guarantee and the time. */
+.banner-sheet {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: clamp(28px, 3.4vw, 46px) clamp(20px, 3vw, 44px) clamp(20px, 2.4vw, 32px);
+}
+
+.banner-kind {
+  position: absolute;
+  top: -14px;
+  left: -6px;
+  margin: 0;
+  padding: 4px 18px;
+  border-radius: 14px 14px 14px 4px;
+  background: var(--tier);
+  color: #fff;
+  font-size: clamp(13px, 1.3vw, 17px);
+  font-weight: 700;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 20%);
+}
+
+.banner-name {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding-bottom: 14px;
+  border-bottom: 2px dotted rgb(59 52 68 / 25%);
+  font-size: clamp(34px, 4.4vw, 62px);
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: 0.01em;
+  text-wrap: balance;
+}
+
+.banner-name-1 {
+  color: color-mix(in srgb, var(--tier) 88%, #000);
+}
+
+.banner-name-2 {
+  color: #4a4350;
+}
+
+.banner-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 18px;
+  padding-left: 14px;
+  border-left: 4px solid #5a5560;
+}
+
+.banner-copy-head {
+  margin: 0;
+  color: #4a4350;
+  font-size: clamp(17px, 1.7vw, 22px);
+  font-weight: 700;
+}
+
+.banner-promise {
+  position: relative;
+  margin: 0;
+  padding: 8px 14px 8px 32px;
+  background: var(--tier);
+  color: #fff;
+  font-size: clamp(13px, 1.3vw, 16px);
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.banner-promise::before {
+  content: '✦';
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  translate: 0 -50%;
+}
+
+.banner-blurb {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.banner-lower {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 26px;
+  align-items: flex-end;
+  margin-top: auto;
+  padding-top: 20px;
+}
+
+/*
+ * Their own treasure, as Genshin's Epitomized Path: its picture in a ring that fills red when their
+ * next unique treasure is guaranteed to be it, and 0/1 or 1/1 on a pill under it.
+ */
+.banner-path {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.banner-path[hidden] {
+  display: none;
+}
+
+.banner-path-ring {
+  --fill: 0;
+  width: clamp(84px, 8vw, 108px);
+  aspect-ratio: 1;
+  padding: 5px;
+  border-radius: 50%;
+  background: conic-gradient(var(--tier) calc(var(--fill) * 1turn), rgb(59 52 68 / 14%) 0);
+  box-shadow: 0 0 0 1px rgb(59 52 68 / 12%);
+}
+
+/* Guaranteed: the ring glows. */
+.banner-path.on .banner-path-ring {
+  animation: banner-ring 1.6s ease-in-out infinite;
+}
+
+@keyframes banner-ring {
+  50% {
+    box-shadow: 0 0 0 1px rgb(59 52 68 / 12%), 0 0 18px 2px color-mix(in srgb, var(--tier) 70%, transparent);
+  }
+}
+
+.banner-path-art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border: 3px solid var(--cream);
+  border-radius: 50%;
+  background: #24304f;
+}
+
+.banner-path-count {
+  margin: -12px 0 0;
+  padding: 2px 16px;
+  border: 1px solid rgb(185 171 136 / 70%);
+  border-radius: 20px;
+  background: var(--cream);
+  color: #4a4350;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 15%);
+}
+
+.banner-path-count strong {
+  color: color-mix(in srgb, var(--tier) 88%, #000);
+}
+
+.banner-time p {
+  margin: 0;
+}
+
+.banner-time-head {
+  color: var(--ink-soft);
+  font-size: 14px;
+}
+
+.banner-time-left {
+  color: #4a4350;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* ------------------------------------------------------------------ the featured items */
+
+.banner-feature {
+  position: relative;
+  min-width: 0;
+}
+
+/* The red panel down the right of the card, with a fine weave. */
+.banner-feature::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 0 44%;
+  border-radius: 0 6px 6px 0;
+  background:
+    repeating-linear-gradient(45deg, rgb(255 255 255 / 5%) 0 2px, transparent 2px 7px),
+    linear-gradient(160deg, color-mix(in srgb, var(--tier) 72%, #ffb48a), color-mix(in srgb, var(--tier) 80%, #6a1424));
+}
+
+/* A great faint ring behind the first item, as Genshin's emblem. */
+.banner-emblem {
+  position: absolute;
+  top: 50%;
+  left: 30%;
+  width: 70%;
+  aspect-ratio: 1;
+  border: 2px solid rgb(59 52 68 / 8%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgb(255 255 255 / 55%) 0 52%, transparent 53%);
+  box-shadow: inset 0 0 0 16px rgb(255 255 255 / 30%), inset 0 0 0 18px rgb(59 52 68 / 6%);
+  translate: -50% -50%;
+}
+
+.banner-featured {
+  position: absolute;
+  margin: 0;
+}
+
+/* The first: big, tilted, its top breaking out of the card. */
+.banner-featured.big {
+  top: -7%;
+  left: 4%;
+  z-index: 2;
+  width: 52%;
+  rotate: -5deg;
+}
+
+/* The second: smaller, low on the red panel, clear of the first's name plate. */
+.banner-featured.small {
+  top: 38%;
+  right: 5%;
+  z-index: 1;
+  width: 38%;
+  rotate: 6deg;
+}
+
+.banner-featured-card.item {
+  width: 100%;
+  border-width: 3px;
+  cursor: default;
+  box-shadow: 0 14px 30px rgb(20 20 40 / 35%), 0 0 0 4px rgb(255 255 255 / 55%);
+}
+
+.banner-featured-card.item:hover {
+  transform: none;
+}
+
+/* Its name plate: dark, the name big and white, its stars under it, and UP! over its corner. */
+.banner-plate {
+  position: absolute;
+  bottom: -14%;
+  left: -8%;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 120%;
+  padding: 10px 16px;
+  background: rgb(36 32 42 / 88%);
+  color: #fff;
+  rotate: 5deg;
+}
+
+.banner-featured.small .banner-plate {
+  left: -14%;
+  bottom: -18%;
+  rotate: -6deg;
+}
+
+.banner-plate-name {
+  font-size: clamp(18px, 2.4vw, 34px);
+  font-weight: 800;
+  line-height: 1.05;
+  text-shadow: 0 2px 0 rgb(0 0 0 / 40%);
+}
+
+.banner-featured.small .banner-plate-name {
+  font-size: clamp(15px, 1.8vw, 26px);
+}
+
+.banner-plate-name small {
+  font-size: 0.6em;
+  font-weight: 600;
+}
+
+.banner-plate .stars {
+  font-size: clamp(14px, 1.5vw, 20px);
+}
+
+.banner-up {
+  position: absolute;
+  top: -18px;
+  right: -6px;
+  color: #ffd84a;
+  font-size: 15px;
+  font-style: italic;
+  font-weight: 800;
+  text-shadow: 0 1px 0 #8a5a00, 0 0 6px rgb(0 0 0 / 35%);
+}
+
+/* ------------------------------------------------------------------ the bottom */
+
+.banner-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.banner-links {
+  display: flex;
+  gap: 10px;
+}
+
+.banner-link {
+  padding: 9px 34px;
+  border: 0;
+  border-radius: 30px;
+  background: rgb(240 234 218 / 94%);
+  color: #4a4350;
+  font-size: 15px;
+  font-weight: 700;
+  box-shadow: 0 2px 6px rgb(20 30 60 / 20%);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.banner-link:hover {
+  background: #fff;
+}
+
+.banner-link:focus-visible,
+.banner-pull:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+
+.banner-buttons {
+  display: flex;
+  gap: clamp(10px, 2vw, 28px);
+}
+
+/* A pull button: a cream pill with a fine line inside its edge, the price under the words. */
+.banner-pull {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: clamp(150px, 22vw, 320px);
+  padding: 9px 24px 8px;
+  border: 0;
+  border-radius: 40px;
+  background: linear-gradient(180deg, #fdfaf1, var(--cream-2));
+  color: #7a7068;
+  box-shadow:
+    inset 0 0 0 4px #fdfaf1,
+    inset 0 0 0 5px rgb(185 171 136 / 55%),
+    0 4px 12px rgb(20 30 60 / 25%);
+  cursor: pointer;
+  transition: transform 0.12s ease, filter 0.2s ease;
+}
+
+.banner-pull:hover:not(:disabled) {
+  filter: brightness(1.04);
+  transform: translateY(-1px);
+}
+
+.banner-pull:disabled {
+  cursor: not-allowed;
+  opacity: 0.75;
+}
+
+.banner-pull-label {
+  color: #6b625a;
+  font-size: clamp(16px, 1.6vw, 20px);
+  font-weight: 700;
+}
+
+.banner-pull-cost {
+  display: inline-flex;
+  gap: 12px;
+  color: #4a4350;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.banner-cost-part {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+
+/* As Genshin's: the price in red when it's more than they have. */
+.banner-pull-cost.short {
+  color: #e0453a;
+}
+
+/* ------------------------------------------------------------------ details */
+
+.banner-details {
+  position: fixed;
+  inset: 0;
+  z-index: 8000;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgb(8 8 10 / 55%);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.banner-details[hidden] {
+  display: none;
+}
+
+.banner-details:focus {
+  outline: none;
+}
+
+.banner-details-box {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: min(420px, 100%);
+  padding: 22px 24px;
+  border-radius: 10px;
+  background: var(--cream);
+  color: var(--ink);
+  box-shadow: 0 18px 50px rgb(0 0 0 / 45%);
+}
+
+.banner-details-box h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.banner-details-box .banner-link {
+  align-self: flex-end;
+}
+
+.banner-rates {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.banner-rate {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 6px;
+  border-bottom: 1px dotted rgb(59 52 68 / 20%);
+}
+
+.banner-rate strong {
+  color: color-mix(in srgb, var(--tier) 70%, #000);
+  font-variant-numeric: tabular-nums;
+}
+
+.banner-details-text {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ------------------------------------------------------------------ smaller screens */
+
+/* A phone: the featured items over the parchment, the buttons across the bottom. */
+@media (max-width: 760px) {
+  .banner-stage {
+    gap: 14px;
+    padding-top: 10px;
+  }
+
+  .banner-bar {
+    grid-template-columns: 1fr auto;
+  }
+
+  .banner-tabs {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-content: center;
+  }
+
+  .banner-wallet {
+    grid-column: 2;
+  }
+
+  .banner-card {
+    grid-template-columns: minmax(0, 1fr);
+    margin: 18px 0 0;
+  }
+
+  .banner-feature {
+    order: -1;
+    height: clamp(230px, 64vw, 320px);
+  }
+
+  .banner-feature::before {
+    inset: 0 0 0 46%;
+    border-radius: 0 6px 0 0;
+  }
+
+  .banner-featured.big {
+    top: -8%;
+    width: 46%;
+  }
+
+  .banner-featured.small {
+    top: 30%;
+    width: 34%;
+  }
+
+  .banner-plate {
+    bottom: -12%;
+    padding: 6px 10px;
+  }
+
+  .banner-foot {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .banner-buttons > .banner-pull {
+    flex: 1;
+    min-width: 0;
+    padding-inline: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .banner-stage::before,
+  .banner-path.on .banner-path-ring {
+    animation: none;
+  }
+}

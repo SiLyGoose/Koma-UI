@@ -68,7 +68,9 @@ Any square size works.
   the blocks.
 - `games/mines/index.html`, `src/mines/`: Mines. `protocol.ts` is a copy of the bot's
   `src/web/mines-protocol.ts` (change both together).
-- `src/gear/`: the gear page. `src/databank/`: the databank.
+- `src/gear/`: the gear page. `src/databank/`: the databank. `src/banner/`: the banner, where members
+  pull from the gacha (the bot's `/api/gacha`), with its wish: a star falling in the colour of the best
+  item pulled (`sky.ts`), then each item revealed (`wish.ts`).
 - `src/shared/`: what more than one page uses.
   - `style.css`: styles shared by every page. `header.css`: the site header (front page, gear, databank).
   - `account.ts`: the login session and the profile button. `dropdown.ts`: the site's dropdown.

@@ -38,6 +38,14 @@
       "destination": "/index.html"
     },
     {
+      "source": "/banner",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/banner/",
+      "destination": "/index.html"
+    },
+    {
       "source": "/databank",
       "destination": "/index.html"
     },

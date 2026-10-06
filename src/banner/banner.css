@@ -1,0 +1,8 @@
+/*
+ * The banner, on top of the shared item template (../shared/items/items.css, for the tiers' colours and
+ * the item cards): the banner's art across the top, the member's pity and the odds under it, their
+ * wallet and the two pull buttons along the bottom; and the wish over everything when they pull.
+ */
+
+@import './styles/page.css';
+@import './styles/wish.css';
