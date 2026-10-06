@@ -1,12 +1,11 @@
 /*
  * The wish's night sky, drawn on a canvas: stars twinkling, and the falling star, as Genshin's. It comes
- * in from past the left edge, far off, small and silver-white, and arcs over the sky and down to the
- * right of the middle (about 4.6s), speeding up as it falls. It swells gradually as it nears, to about
- * 3.5 times its size, at its biggest half a second before it catches the colour, then eases back a
- * little as it falls away, with a tapering tail, a glint across its head and sparks shed behind it. Part way down it
+ * in from past the left edge a quarter of the way down, far off, small and silver-white, and crosses
+ * the sky nearly flat, dipping gently to land right of the middle (about 4.6s), speeding up as it goes. It grows slowly as it nears while it's
+ * silver, then swells to its full size (GROWTH times) as it catches the colour, and stays that big, with a tapering tail, a glint across its head and sparks shed behind it. Part way down it
  * catches the colour of the best item pulled (as the bot's shooting star does in Discord: its
- * constants/items/gacha.ts GACHA_ANIMATION), and where it lands a bloom of that colour spreads over the
- * sky, for the flash (wish.css) to take over. A multi pull sends a few small silver stars along with it.
+ * constants/items/gacha.ts GACHA_ANIMATION). Where it lands the flash (wish.css) takes over, the one
+ * flash, as the item comes. A multi pull sends a few small silver stars along with it.
  */
 
 type Rgb = readonly [number, number, number];
@@ -23,12 +22,10 @@ const IGNITE_SPAN = 0.14;
 /** How long the falls take, in ms. */
 const FALL_MS = 4600;
 const COMPANION_MS = 3800;
-/** How long before it catches the colour the star is at its biggest, in ms. */
-const PEAK_LEAD_MS = 500;
-/** How many times its size as it comes in the star swells to at its biggest. */
+/** How many times its size as it comes in the star swells to at its biggest (as it catches the colour). */
 const GROWTH = 7;
-/** How long the bloom where it lands takes to cover the sky, in ms. */
-const BLOOM_MS = 800;
+/** How much of that growth (0 to 1) it does slowly while it's silver, before it catches the colour. */
+const SLOW_GROWTH = 0.25;
 /** How much of its path the tail covers, and how many pieces it's drawn in. */
 const TAIL = 0.26;
 const TAIL_PIECES = 34;
@@ -73,18 +70,23 @@ const css = (c: Rgb, alpha: number): string => `rgb(${c[0] | 0} ${c[1] | 0} ${c[
 const clamp01 = (t: number): number => Math.max(0, Math.min(1, t));
 /** Falling: steady while it's far off, then faster and faster. */
 const fall = (t: number): number => 0.45 * t + 0.55 * t * t;
-/** When (as a share of its fall's time) it catches the colour: where fall() reaches IGNITE_AT. */
-const IGNITE_T = (-0.45 + Math.sqrt(0.45 ** 2 + 4 * 0.55 * IGNITE_AT)) / (2 * 0.55);
-/** When it's at its biggest: PEAK_LEAD_MS before that. */
-const PEAK_T = IGNITE_T - PEAK_LEAD_MS / FALL_MS;
-/** Smoothly from 0 to 1 as `k` goes from 0 to 1. */
-const smooth = (k: number): number => k * k * (3 - 2 * k);
+/** When (as a share of its fall's time) it is `p` of the way along its path: fall() turned round. */
+const timeAt = (p: number): number => (-0.45 + Math.sqrt(0.45 ** 2 + 4 * 0.55 * p)) / (2 * 0.55);
+/** When it starts catching the colour, and when it has it all. */
+const IGNITE_T = timeAt(IGNITE_AT);
+const LIT_T = timeAt(IGNITE_AT + IGNITE_SPAN);
 /**
- * How many times its size as it comes in the star is, `t` of the way through its fall's time: swelling
- * gradually from far off to GROWTH at PEAK_T, then easing back a little as it falls away to the ground.
+ * How many times its size as it comes in the star is, `t` of the way through its fall's time: growing
+ * slowly and steadily while it's silver (SLOW_GROWTH of the way), then swelling to GROWTH as it catches
+ * the colour, and staying that big till it lands.
  */
-const growth = (t: number): number =>
-  t <= PEAK_T ? 1 + (GROWTH - 1) * smooth(t / PEAK_T) : GROWTH - 0.5 * ((t - PEAK_T) / (1 - PEAK_T)) ** 2;
+function growth(t: number): number {
+  const slow = 1 + (GROWTH - 1) * SLOW_GROWTH;
+  if (t <= IGNITE_T) return 1 + (slow - 1) * (t / IGNITE_T);
+  if (t >= LIT_T) return GROWTH;
+  const k = (t - IGNITE_T) / (LIT_T - IGNITE_T);
+  return slow + (GROWTH - slow) * (1 - (1 - k) ** 3);
+}
 
 const along = (m: Meteor, p: number, w: number, h: number): Point => {
   const q = 1 - p;
@@ -99,7 +101,7 @@ const colorAt = (m: Meteor, p: number): Rgb => (m.color ? mix(SILVER, m.color, c
 
 export interface Sky {
   /**
-   * Sends the star down: done as it lands, when its bloom starts spreading. `color` is the best item's
+   * Sends the star down: done as it lands, for the flash to take over. `color` is the best item's
    * tier colour; `companions` how many small silver stars come along.
    */
   fall(color: string, companions: number): Promise<void>;
@@ -132,7 +134,6 @@ export function startSky(canvas: HTMLCanvasElement): Sky {
   }));
   const meteors: Meteor[] = [];
   const sparks: Spark[] = [];
-  let bloom: { at: Point; start: number; color: Rgb } | null = null;
   let last = performance.now();
   let frame = 0;
 
@@ -241,10 +242,7 @@ export function startSky(canvas: HTMLCanvasElement): Sky {
     }
 
     if (t >= 1) {
-      if (!m.companion) {
-        bloom = { at: head, start: now, color: m.color ?? SILVER };
-        m.landed?.();
-      }
+      if (!m.companion) m.landed?.();
       return false;
     }
     return true;
@@ -279,31 +277,19 @@ export function startSky(canvas: HTMLCanvasElement): Sky {
     }
 
     for (let i = meteors.length - 1; i >= 0; i--) if (!drawMeteor(meteors[i] as Meteor, now, dt)) meteors.splice(i, 1);
-
-    if (bloom) {
-      const k = clamp01((now - bloom.start) / BLOOM_MS);
-      const r = Math.hypot(w, h) * 1.2 * (1 - (1 - k) ** 3);
-      const glow = g.createRadialGradient(bloom.at.x, bloom.at.y, 0, bloom.at.x, bloom.at.y, Math.max(1, r));
-      glow.addColorStop(0, css([255, 255, 255], 1));
-      glow.addColorStop(0.25, css(mix(bloom.color, [255, 255, 255], 0.35), 0.9));
-      glow.addColorStop(1, css(bloom.color, 0));
-      g.fillStyle = glow;
-      g.fillRect(0, 0, w, h);
-    }
   };
   frame = requestAnimationFrame(draw);
 
   return {
     fall(color, companions) {
       const now = performance.now();
-      bloom = null;
       return new Promise<void>((resolve) => {
         meteors.push({
           start: now,
           duration: FALL_MS,
-          from: { x: -0.08, y: 0.2 },
-          bend: { x: 0.4, y: 0.04 },
-          to: { x: 0.66, y: 0.55 },
+          from: { x: -0.08, y: 0.25 },
+          bend: { x: 0.3, y: 0.3 },
+          to: { x: 0.66, y: 0.47 },
           color: rgb(color),
           size: 2,
           companion: false,
@@ -315,9 +301,9 @@ export function startSky(canvas: HTMLCanvasElement): Sky {
           meteors.push({
             start: now + 140 + 170 * i,
             duration: COMPANION_MS,
-            from: { x: -0.1 + dx * 0.5, y: 0.2 + dy },
-            bend: { x: 0.36 + dx, y: 0.06 + dy },
-            to: { x: 0.6 + dx, y: 0.5 + dy },
+            from: { x: -0.1 + dx * 0.5, y: 0.25 + dy },
+            bend: { x: 0.28 + dx, y: 0.28 + dy },
+            to: { x: 0.6 + dx, y: 0.42 + dy },
             color: null,
             size: 0.9,
             companion: true,
@@ -330,7 +316,6 @@ export function startSky(canvas: HTMLCanvasElement): Sky {
       window.removeEventListener('resize', resize);
       meteors.length = 0;
       sparks.length = 0;
-      bloom = null;
       g?.clearRect(0, 0, canvas.width, canvas.height);
     },
   };

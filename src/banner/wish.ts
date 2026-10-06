@@ -22,7 +22,7 @@ import type { BannerPull, BannerResult, Stars } from './types';
 const SKY_MS = 450;
 /** How long the flash takes to fill the screen, and how long it holds there. */
 const FLASH_IN_MS = 160;
-const FLASH_HOLD_MS = 480;
+const FLASH_HOLD_MS = 120;
 /** How many small stars come along on a multi pull. */
 const COMPANIONS = 3;
 /** The top tier, whose items flash again before they're shown (as the bot's PITY_STARS). */
@@ -124,7 +124,7 @@ export async function playWish(ctx: BannerContext, request: Promise<ApiResult<Ba
   if (signal.aborted) return res;
   sky.stop();
   ui.wish.classList.add('revealing');
-  const first = shown[0] ? reveal(shown[0], 0, shown.length) : summary(pulls);
+  const first = shown[0] ? reveal(shown[0]) : summary(pulls);
   first.classList.add('held');
   ui.stage.replaceChildren(first);
   if (!skipped) await sleep(FLASH_HOLD_MS);
@@ -144,7 +144,7 @@ export async function playWish(ctx: BannerContext, request: Promise<ApiResult<Ba
         if (signal.aborted) break;
         ui.flash.classList.remove('on');
       }
-      ui.stage.replaceChildren(reveal(pull, i, shown.length));
+      ui.stage.replaceChildren(reveal(pull));
     }
     revealed(pull.stars);
     if ((await next()) === 'skip') break;
@@ -162,7 +162,7 @@ export async function playWish(ctx: BannerContext, request: Promise<ApiResult<Ba
 }
 
 /** One item, out of the flash: its picture in a burst of its tier's colour, then its name and stars. */
-function reveal(pull: BannerPull, index: number, of: number): HTMLElement {
+function reveal(pull: BannerPull): HTMLElement {
   const box = el('div', 'wish-reveal');
   box.dataset.stars = String(pull.stars);
 
@@ -176,7 +176,7 @@ function reveal(pull: BannerPull, index: number, of: number): HTMLElement {
   text.append(pull.isNew ? el('p', 'wish-new', 'New!') : el('p', 'wish-owned', `You have ${pull.count}`));
   if (pull.borrowed !== null) text.append(el('p', 'wish-note', `Made for someone else: it works at ${Math.round(pull.borrowed * 100)}% for you.`));
 
-  box.append(burst, text, el('p', 'wish-tap', of > 1 ? `${index + 1} / ${of} · Click to continue` : 'Click to continue'));
+  box.append(burst, text, el('p', 'wish-tap', 'Click to continue'));
   return box;
 }
 

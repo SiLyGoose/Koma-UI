@@ -60,8 +60,8 @@
 .wish:has(.wish-reveal[data-stars='4']) { --wish-tier: var(--star-4); }
 
 /*
- * The flash where the star lands: white at its heart, the best item's colour round it, filling the
- * screen. It clears from the middle out, where the item waits under it (a hole opening in it, --hole,
+ * The flash where the star lands, the only one: white, a breath of the best item's colour at its edges,
+ * filling the screen as the item comes (its own light is the colour). It clears from the middle out, where the item waits under it (a hole opening in it, --hole,
  * the white thinning as it goes), so the item comes out of the light rather than the light just fading.
  */
 @property --hole {
@@ -75,7 +75,7 @@
   position: absolute;
   inset: 0;
   z-index: 2;
-  background: radial-gradient(circle at 66% 55%, #fff 0%, color-mix(in srgb, var(--tier) 35%, #fff) 35%, color-mix(in srgb, var(--tier) 80%, #fff) 100%);
+  background: radial-gradient(circle at 66% 47%, #fff 0%, #fff 45%, color-mix(in srgb, var(--tier) 14%, #fff) 100%);
   mask: radial-gradient(circle at 50% 42%, transparent var(--hole), #000 calc(var(--hole) + 30%));
   opacity: 0;
   pointer-events: none;
@@ -177,7 +177,8 @@
   );
   filter: blur(4px);
   pointer-events: none;
-  animation: wish-burst 0.9s ease-out 0.45s both;
+  /* Already there under the flash: what's left of its light as it clears, settling round the item (not a second flash). */
+  animation: wish-settle 1.2s cubic-bezier(0.3, 0, 0.2, 1) both;
 }
 
 .wish-core {
@@ -188,9 +189,7 @@
   background: radial-gradient(closest-side, rgb(255 255 255 / 95%) 55%, color-mix(in srgb, var(--tier) 40%, #fff) 80%, transparent);
   filter: blur(8px);
   pointer-events: none;
-  animation:
-    wish-fade 0.6s ease-out 0.45s both,
-    wish-breathe 2.6s ease-in-out 1.05s infinite;
+  animation: wish-breathe 2.6s ease-in-out 1.2s infinite;
 }
 
 .wish-rays {
@@ -452,14 +451,9 @@
 
 /* ------------------------------------------------------------------ motion */
 
-@keyframes wish-burst {
+@keyframes wish-settle {
   from {
-    opacity: 0;
-    transform: scale(0.3);
-  }
-  40% {
-    opacity: 1;
-    transform: scale(1.15);
+    transform: scale(1.6);
   }
 }
 
