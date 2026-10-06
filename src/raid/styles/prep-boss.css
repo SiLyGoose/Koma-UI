@@ -26,6 +26,8 @@
 .rd-prep-body {
   display: grid;
   grid-template-columns: minmax(0, 5fr) minmax(0, 8fr);
+  /* How the week stands across the top, then the two panels under it. */
+  grid-template-rows: auto minmax(0, 1fr);
   gap: 18px;
   /*
    * The screen (under the title bar and the frame's border) less a margin, unzoomed: a percentage of
@@ -68,9 +70,13 @@
   min-height: 100%;
 }
 
-/* The boss: its picture, then what it does (scrolling when it runs long). */
+/*
+ * The boss: its picture, then what it does (scrolling when it runs long). The picture spans the panel
+ * even when its height is capped (on a short screen): left to aspect-ratio, the cap would narrow it too.
+ */
 .rd-prep-picture {
   flex-shrink: 0;
+  width: 100%;
   aspect-ratio: 16 / 9;
   max-height: 34%;
   border-bottom: 1px solid rgba(233, 219, 170, 0.25);

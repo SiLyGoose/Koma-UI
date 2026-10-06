@@ -50,8 +50,8 @@
       </header>
 
       <!--
-        Before the fight (the week's raid not fought yet, or its lobby open): the boss and what it does on
-        the left (how the week stands above them), and on the right the party so far, a card for each
+        Before the fight (the week's raid not fought yet, or its lobby open): how the week stands across the
+        top, the boss and what it does on the left under it, and on the right the party so far, a card for each
         raider (their character, and their class in the corner: not there yet, so a question mark) in a row
         that scrolls past four, the party's buff effects, and what there is to do.
       -->
@@ -59,10 +59,10 @@
         <img id="prep-backdrop" class="rd-battle-bg" alt="" draggable="false" aria-hidden="true" />
         <div class="rd-prep-shade" aria-hidden="true"></div>
         <div class="rd-prep-body">
+          <div class="rd-prep-info"><p id="prep-status"></p></div>
           <div class="rd-prep-panel rd-prep-boss">
             <div class="rd-prep-head" id="prep-boss-name"></div>
             <div class="rd-prep-picture"><img id="prep-picture" alt="" draggable="false" /></div>
-            <div class="rd-prep-info"><p id="prep-status"></p></div>
             <!-- What the boss does, on parchment like the gear page's stats: a heading per group, a row per line. -->
             <div class="rd-prep-sheet">
               <div class="rd-prep-scroll">
