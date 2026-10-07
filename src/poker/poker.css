@@ -1,0 +1,784 @@
+/*
+ * Poker's page: an oval felt with a wooden rail, the eight seats round it (placed by seats.ts), the
+ * board and the pot in the middle, and the panel under it (sitting down, the moves, the figures).
+ * On a phone the table stands taller, so the seats down its sides have room.
+ */
+
+.pk {
+  --pk-width: 1000px;
+  --felt: #1d6a42;
+  --felt-dark: #0f3e25;
+  --rail: #4a2e17;
+  --card-w: 54px;
+  --hole-w: 42px;
+  --seat-w: 150px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding-bottom: 16px;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.pk > .top,
+.pk::before {
+  margin-bottom: 16px;
+}
+
+.pk > .pk-layout,
+.pk > .hint {
+  width: min(var(--pk-width), 100% - 32px);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.pk > .pk-layout {
+  margin-top: auto;
+}
+
+.pk > .hint {
+  margin-bottom: auto;
+}
+
+.pk-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.pk-table-no {
+  color: var(--muted);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* ------------------------------------------------------------------ The table */
+
+.pk-table {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  min-height: 420px;
+}
+
+.pk-felt {
+  position: absolute;
+  inset: 12% 9%;
+  border-radius: 50% / 50%;
+  background:
+    radial-gradient(ellipse 80% 70% at 50% 30%, rgba(255, 255, 255, 0.07), transparent 70%),
+    radial-gradient(ellipse at 50% 45%, var(--felt), var(--felt-dark) 85%);
+  box-shadow:
+    0 0 0 14px var(--rail),
+    0 0 0 16px rgba(0, 0, 0, 0.45),
+    0 18px 40px rgba(0, 0, 0, 0.55),
+    inset 0 0 0 2px rgba(255, 226, 150, 0.25),
+    inset 0 0 70px rgba(0, 0, 0, 0.5);
+}
+
+.pk-center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 70%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.pk-pot {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 4px 14px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.pk-pot span {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.pk-pot b {
+  color: var(--gold);
+  font-size: 17px;
+}
+
+.pk-board {
+  display: flex;
+  gap: 6px;
+  min-height: calc(var(--card-w) * 1.4);
+  perspective: 700px;
+}
+
+.pk-status {
+  min-height: 20px;
+  max-width: 100%;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.pk-status.result {
+  color: #ffe6a6;
+  font-size: 14px;
+}
+
+/* ------------------------------------------------------------------ Cards */
+
+.pk-card {
+  position: relative;
+  flex: none;
+  width: var(--card-w);
+  height: calc(var(--card-w) * 1.4);
+  border-radius: 6px;
+  background: linear-gradient(#fff, #e9ecf2);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.45);
+  color: #22252b;
+  transition:
+    opacity 0.25s,
+    box-shadow 0.25s,
+    transform 0.25s;
+}
+
+.pk-card.red {
+  color: #d0343a;
+}
+
+.pk-card-corner {
+  position: absolute;
+  top: 4px;
+  left: 6px;
+  font-size: calc(var(--card-w) * 0.34);
+  font-weight: 800;
+  line-height: 1;
+}
+
+.pk-card-suit {
+  position: absolute;
+  right: 6px;
+  bottom: 3px;
+  font-size: calc(var(--card-w) * 0.5);
+  line-height: 1;
+}
+
+.pk-card.back {
+  background:
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.12) 0 4px, transparent 4px 8px),
+    linear-gradient(#a8393c, #6d2023);
+  box-shadow:
+    0 3px 8px rgba(0, 0, 0, 0.45),
+    inset 0 0 0 3px #f3eee3;
+}
+
+/* A card that has just come: dealt in with a turn. */
+.pk-card.flip {
+  animation: pk-deal 0.38s ease-out backwards;
+}
+
+@keyframes pk-deal {
+  from {
+    opacity: 0;
+    transform: translateY(-14px) rotateY(90deg);
+  }
+}
+
+/* The cards that made the winning hand light up; the rest of the board fades. */
+.pk-card.best {
+  box-shadow:
+    0 0 0 2px #f0c75e,
+    0 0 16px rgba(240, 199, 94, 0.7);
+  transform: translateY(-4px);
+}
+
+.pk-card.dim {
+  opacity: 0.45;
+}
+
+/* ------------------------------------------------------------------ The seats */
+
+.pk-seats {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.pk-seat,
+.pk-bet,
+.pk-dealer {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  pointer-events: auto;
+}
+
+.pk-seat {
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: var(--seat-w);
+  transition: opacity 0.25s;
+}
+
+.pk-seat-cards {
+  display: flex;
+  justify-content: center;
+  height: calc(var(--hole-w) * 0.9);
+  margin-bottom: -6px;
+}
+
+.pk-seat-cards .pk-card {
+  --card-w: var(--hole-w);
+}
+
+.pk-seat-cards .pk-card + .pk-card {
+  margin-left: calc(var(--hole-w) * -0.35);
+  transform: rotate(6deg);
+}
+
+.pk-seat-cards .pk-card:first-child {
+  transform: rotate(-5deg);
+}
+
+.pk-seat-cards .pk-card.best {
+  transform: translateY(-6px);
+}
+
+.pk-seat-box {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 10px 9px 7px;
+  border-radius: 12px;
+  background: rgba(23, 22, 27, 0.94);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+}
+
+.pk-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--panel-3);
+  object-fit: cover;
+}
+
+.pk-avatar.bot {
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+}
+
+.pk-seat-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.pk-seat-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.pk-seat-chips {
+  color: var(--gold);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* What they did last (or won, or why they're out): a tag on the box's corner. */
+.pk-seat-tag {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  max-width: 60%;
+  overflow: hidden;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--panel-3);
+  color: var(--petal);
+  font-size: 10px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pk-seat-tag.fold {
+  color: var(--muted);
+}
+
+.pk-seat-tag.raise,
+.pk-seat-tag.bet,
+.pk-seat-tag.allIn {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+.pk-seat-tag.call,
+.pk-seat-tag.check {
+  background: #2c4a3a;
+  color: var(--green);
+}
+
+.pk-seat-tag.won {
+  background: #e9c25c;
+  color: #2a1d06;
+}
+
+/* The turn's clock, along the bottom of the box. */
+.pk-seat-timer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+}
+
+.pk-seat-timer i {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--gold);
+  transition: width 0.2s linear;
+}
+
+.pk-seat-timer i.low {
+  background: var(--red);
+}
+
+.pk-seat.you .pk-seat-box {
+  box-shadow:
+    inset 0 0 0 2px var(--accent),
+    0 6px 16px rgba(0, 0, 0, 0.45);
+}
+
+.pk-seat.turn .pk-seat-box {
+  box-shadow:
+    inset 0 0 0 2px var(--gold),
+    0 0 22px rgba(240, 199, 94, 0.45);
+}
+
+.pk-seat.out {
+  opacity: 0.55;
+}
+
+.pk-seat.away .pk-avatar {
+  filter: grayscale(1);
+}
+
+.pk-seat.winner .pk-seat-box {
+  box-shadow:
+    inset 0 0 0 2px #e9c25c,
+    0 0 26px rgba(233, 194, 92, 0.55);
+  animation: tb-pop 0.3s ease-out;
+}
+
+@keyframes tb-pop {
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* An empty seat: sit in it (while not sitting). */
+.pk-seat.empty {
+  width: auto;
+}
+
+.pk-seat-open {
+  width: 74px;
+  height: 74px;
+  border: 2px dashed rgba(255, 255, 255, 0.25);
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.25);
+  color: rgba(255, 255, 255, 0.7);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pk-seat-open:hover:not(:disabled) {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.pk-seat-open:disabled {
+  cursor: default;
+  color: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Take a bot away. */
+.pk-seat-kick {
+  position: absolute;
+  z-index: 2;
+  right: -6px;
+  bottom: 30px;
+  width: 22px;
+  height: 22px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--panel-3);
+  color: var(--muted);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.pk-seat-kick:hover {
+  background: var(--red);
+  color: #fff;
+}
+
+/* A seat's bet, in front of it on the felt. */
+.pk-bet {
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 9px 2px 3px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.pk-bet::before {
+  content: '';
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, #b94a4c 0 40%, transparent 41%),
+    repeating-conic-gradient(#f3f0e8 0 30deg, #b94a4c 30deg 60deg);
+}
+
+.pk-dealer {
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #f6f3ea;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+  color: #22252b;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.pk-bet[hidden],
+.pk-dealer[hidden] {
+  display: none;
+}
+
+/* ------------------------------------------------------------------ The panel */
+
+.pk-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 18px;
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+
+.pk-panel [hidden] {
+  display: none !important;
+}
+
+.pk-sit,
+.pk-moves {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pk-sit-head,
+.pk-sit-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.pk-sit-head span,
+.pk-muted {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.pk-muted b {
+  color: var(--green);
+}
+
+.pk-amount {
+  display: grid;
+  grid-template-columns: 1fr 120px;
+  align-items: center;
+  gap: 12px;
+}
+
+.pk-amount input[type='range'] {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+.pk-amount input[type='number'] {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-2);
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 700;
+  text-align: right;
+}
+
+.pk-raise.off {
+  opacity: 0.4;
+}
+
+.pk-presets {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.pk-chip-button {
+  flex: 1;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--panel-3);
+  color: var(--petal);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pk-chip-button:hover:not(:disabled) {
+  background: var(--line);
+}
+
+.pk-actions {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.pk-button {
+  padding: 11px 14px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--panel-3);
+  color: var(--text);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pk-button:hover:not(:disabled) {
+  background: var(--line);
+}
+
+.pk-button.primary,
+.pk-button.raise {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+.pk-button.primary:hover:not(:disabled),
+.pk-button.raise:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.pk-button.call {
+  background: #2c4a3a;
+  color: var(--green);
+}
+
+.pk-button.call:hover:not(:disabled) {
+  background: #36594a;
+}
+
+.pk-button.allin {
+  background: transparent;
+  box-shadow: inset 0 0 0 2px var(--gold);
+  color: var(--gold);
+}
+
+.pk-button.allin:hover:not(:disabled) {
+  background: rgba(216, 191, 122, 0.12);
+}
+
+.pk-button kbd {
+  margin-left: 6px;
+  padding: 0 5px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.25);
+  font: inherit;
+  font-size: 10px;
+  opacity: 0.7;
+}
+
+.pk-panel :disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* It's this player's turn: the moves stand out. */
+.pk-moves.mine .pk-actions {
+  animation: tb-pop 0.3s ease-out;
+}
+
+.pk-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--panel-3);
+}
+
+.pk-figures {
+  display: flex;
+  gap: 18px;
+}
+
+.pk-figures div {
+  display: flex;
+  flex-direction: column;
+}
+
+.pk-figures span {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.pk-figures b {
+  font-size: 17px;
+}
+
+#my-chips {
+  color: var(--gold);
+}
+
+#balance {
+  color: var(--green);
+}
+
+.pk-bar-buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.pk-error {
+  margin: 0;
+  color: var(--red);
+  font-size: 13px;
+  text-align: center;
+}
+
+/* ------------------------------------------------------------------ Phones */
+
+@media (max-width: 720px) {
+  .pk {
+    --card-w: 38px;
+    --hole-w: 30px;
+    --seat-w: 96px;
+  }
+
+  .pk-table {
+    aspect-ratio: 3 / 4;
+    min-height: 0;
+  }
+
+  .pk-felt {
+    inset: 13% 12%;
+  }
+
+  .pk-center {
+    width: 80%;
+    gap: 6px;
+  }
+
+  .pk-board {
+    gap: 3px;
+  }
+
+  .pk-seat-box {
+    grid-template-columns: 1fr;
+    gap: 2px;
+    padding: 5px 6px 7px;
+    text-align: center;
+  }
+
+  .pk-avatar {
+    display: none;
+  }
+
+  .pk-seat-name,
+  .pk-seat-chips {
+    font-size: 11px;
+  }
+
+  .pk-seat-tag {
+    position: static;
+    max-width: 100%;
+    justify-self: center;
+    font-size: 9px;
+  }
+
+  .pk-seat-open {
+    width: 56px;
+    height: 56px;
+    font-size: 10px;
+  }
+
+  .pk-bet {
+    font-size: 11px;
+  }
+
+  .pk-actions {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .pk-amount {
+    grid-template-columns: 1fr 96px;
+  }
+
+  .pk-button kbd {
+    display: none;
+  }
+
+  .pk-figures {
+    gap: 12px;
+  }
+
+  .pk-figures b {
+    font-size: 15px;
+  }
+}

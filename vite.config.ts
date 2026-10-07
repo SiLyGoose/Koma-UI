@@ -33,6 +33,7 @@ export default defineConfig({
         pinecraft: resolve(import.meta.dirname, 'games/pinecraft/index.html'),
         baccarat: resolve(import.meta.dirname, 'games/baccarat/index.html'),
         roulette: resolve(import.meta.dirname, 'games/roulette/index.html'),
+        poker: resolve(import.meta.dirname, 'games/poker/index.html'),
         raid: resolve(import.meta.dirname, 'games/raid/index.html'),
         // The raid party's gear, in the raid page's popup.
         raidGear: resolve(import.meta.dirname, 'games/raid/gear/index.html'),

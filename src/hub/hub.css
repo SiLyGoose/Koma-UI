@@ -215,6 +215,59 @@
   color: #d0343a;
 }
 
+/* Poker: two hole cards and a chip on green felt (no picture needed). */
+.poker-art {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  gap: 6px;
+  letter-spacing: 0;
+  background: radial-gradient(ellipse at 50% 40%, #2f8552, #1b5234 70%, #123c26);
+}
+
+.poker-art-card {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 76px;
+  border-radius: 7px;
+  background: linear-gradient(#fff, #e6e9f0);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.45);
+  color: #22252b;
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1;
+  transform: rotate(-10deg) translateX(6px);
+}
+
+.poker-art-card + .poker-art-card {
+  transform: rotate(9deg) translate(-6px, 3px);
+}
+
+.poker-art-card i {
+  font-style: normal;
+  font-size: 26px;
+}
+
+.poker-art-card.red {
+  color: #d0343a;
+}
+
+.poker-art-chip {
+  position: absolute;
+  right: calc(50% - 74px);
+  bottom: 14px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, #b94a4c 0 42%, transparent 43%),
+    repeating-conic-gradient(#f3f0e8 0 18deg, #b94a4c 18deg 36deg);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.45), inset 0 0 0 3px rgba(0, 0, 0, 0.15);
+}
+
 /* Roulette: a wheel on green felt (no picture needed): 38 pockets round a wooden hub. */
 .roulette-art {
   display: grid;

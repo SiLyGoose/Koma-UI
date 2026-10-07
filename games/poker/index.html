@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="robots" content="noindex" />
+    <title>Koma Poker</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♠️</text></svg>" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" />
+  </head>
+  <body>
+    <main id="app" class="frame pk" data-title="♠️ Poker">
+      <div class="pk-layout">
+        <!-- The table: the felt with the board and the pot in the middle, and the eight seats round it (../../src/poker/seats.ts). -->
+        <section class="pk-table" id="table" aria-label="The table">
+          <div class="pk-felt">
+            <div class="pk-center">
+              <div class="pk-pot" id="pot" hidden><span>Pot</span><b id="pot-amount">0</b></div>
+              <div class="pk-board" id="board"></div>
+              <div class="pk-status" id="status"></div>
+            </div>
+          </div>
+          <div class="pk-seats" id="seats"></div>
+        </section>
+
+        <!-- What this player can do: sit down, or (seated) their moves on their turn (../../src/poker/controls.ts). -->
+        <section class="pk-panel" id="panel">
+          <div class="pk-sit" id="sit" hidden>
+            <div class="pk-sit-head">
+              <b>Take a seat</b>
+              <span id="sit-range"></span>
+            </div>
+            <div class="pk-amount">
+              <input type="range" id="sit-slider" min="0" max="0" step="1" aria-label="Chips to sit down with" />
+              <input type="number" id="sit-input" inputmode="numeric" min="0" aria-label="Chips to sit down with" />
+            </div>
+            <div class="pk-sit-foot">
+              <span class="pk-muted">Balance <b id="sit-balance">–</b></span>
+              <button type="button" class="pk-button primary" id="sit-button">Sit down</button>
+            </div>
+          </div>
+
+          <div class="pk-moves" id="moves" hidden>
+            <div class="pk-raise" id="raise-box">
+              <div class="pk-presets">
+                <button type="button" class="pk-chip-button" data-preset="min">Min</button>
+                <button type="button" class="pk-chip-button" data-preset="half">½ Pot</button>
+                <button type="button" class="pk-chip-button" data-preset="threeQuarter">¾ Pot</button>
+                <button type="button" class="pk-chip-button" data-preset="pot">Pot</button>
+              </div>
+              <div class="pk-amount">
+                <input type="range" id="raise-slider" min="0" max="0" step="1" aria-label="Raise to" />
+                <input type="number" id="raise-input" inputmode="numeric" min="0" aria-label="Raise to" />
+              </div>
+            </div>
+            <div class="pk-actions">
+              <button type="button" class="pk-button fold" data-move="fold">Fold <kbd>F</kbd></button>
+              <button type="button" class="pk-button call" data-move="call" id="call-button">Call <kbd>C</kbd></button>
+              <button type="button" class="pk-button raise" data-move="raise" id="raise-button">Raise <kbd>R</kbd></button>
+              <button type="button" class="pk-button allin" data-move="allIn" id="allin-button">All in</button>
+            </div>
+          </div>
+
+          <div class="pk-bar">
+            <div class="pk-figures">
+              <div><span>Blinds</span><b id="blinds">–</b></div>
+              <div><span>Your chips</span><b id="my-chips">–</b></div>
+              <div><span>Balance</span><b id="balance">–</b></div>
+            </div>
+            <div class="pk-bar-buttons">
+              <button type="button" class="pk-button" id="bot-button" hidden>🤖 Add bot</button>
+              <button type="button" class="pk-button" id="stand-button" hidden>Stand up</button>
+            </div>
+          </div>
+          <p class="pk-error" id="error" hidden></p>
+        </section>
+      </div>
+
+      <p class="hint">Sit down with chips from your balance · Blinds go round the table · Add bots to fill empty seats · Stand up to take your chips back to your balance</p>
+    </main>
+
+    <script type="module" src="/src/poker/main.ts"></script>
+  </body>
+</html>

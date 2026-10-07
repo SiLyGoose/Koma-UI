@@ -10,7 +10,7 @@ import { navigate } from '../../transition';
  * by the member's profile and asks with their login.
  */
 
-type Activity = 'hub' | 'mines' | 'pinecraft' | 'baccarat' | 'roulette' | 'raid';
+type Activity = 'hub' | 'mines' | 'pinecraft' | 'baccarat' | 'roulette' | 'poker' | 'raid';
 
 interface Live {
   you: string;
@@ -30,7 +30,7 @@ export interface LiveOptions {
   newTab?: boolean;
 }
 
-const ACTIVITY: Record<Activity, string> = { hub: '🏠 Home', mines: '💎 Mines', pinecraft: '🌲 Pinecraft', baccarat: '🃏 Baccarat', roulette: '🎡 Roulette', raid: '⚔️ Raid' };
+const ACTIVITY: Record<Activity, string> = { hub: '🏠 Home', mines: '💎 Mines', pinecraft: '🌲 Pinecraft', baccarat: '🃏 Baccarat', roulette: '🎡 Roulette', poker: '♠️ Poker', raid: '⚔️ Raid' };
 const POLL_MS = 10_000;
 const POLL_OPEN_MS = 4_000;
 
