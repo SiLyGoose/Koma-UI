@@ -42,7 +42,7 @@ export function installCursor({ reticle = true }: { reticle?: boolean } = {}): v
   const still = matchMedia('(prefers-reduced-motion: reduce)');
 
   const html = document.documentElement;
-  const { host, frame, dot, hand } = buildParts(reticle);
+  const { host, frame, turn, dot, hand } = buildParts(reticle);
   document.body.append(host);
   html.classList.add('reticle-on');
 
@@ -80,6 +80,30 @@ export function installCursor({ reticle = true }: { reticle?: boolean } = {}): v
    */
   let handless = false;
   let tracking = 0;
+
+  /** One turn of the spin, in ms. */
+  const TURN_MS = 360_000 / SPIN;
+  /**
+   * The brackets' spin, not over anything: an animation the graphics card runs by itself, rather than a
+   * turn written here every frame (which had the browser working out the page's layers again every
+   * frame, all the while the mouse was in the window). Paused while something's boxed, or with motion
+   * turned down, for the brackets to be turned from here (`angle`, written into it only as it changes).
+   */
+  const spin = turn.animate([{ transform: 'rotate(0deg)' }, { transform: 'rotate(360deg)' }], { duration: TURN_MS, iterations: Infinity });
+  spin.pause();
+  let turned = angle;
+  /** Stops the spin where it's got to (if it's going), for the brackets to be turned from there. */
+  const stopSpin = (): void => {
+    if (spin.playState !== 'running') return;
+    angle = ((Number(spin.currentTime ?? 0) % TURN_MS) / TURN_MS) * 360;
+    turned = angle;
+    spin.pause();
+  };
+  /**
+   * A length, in whole hundredths of a pixel: once the reticle has settled, what's written is the same
+   * every frame, so nothing changes for the browser to draw again.
+   */
+  const px = (n: number): string => `${Math.round(n * 100) / 100}px`;
 
   /**
    * The reticle's state, as data- attributes rather than classes: the holo foil (../items/items.ts)
@@ -189,6 +213,8 @@ export function installCursor({ reticle = true }: { reticle?: boolean } = {}): v
     if (inside) leftAt = now;
     else if (now - leftAt > 600) {
       running = false;
+      // Gone: the spin too, going on from there when the mouse comes back.
+      stopSpin();
       return;
     }
     if (pending !== undefined) {
@@ -208,7 +234,7 @@ export function installCursor({ reticle = true }: { reticle?: boolean } = {}): v
     const pull = follow + (1 - follow) * tracking;
     dx += (mx - dx) * pull;
     dy += (my - dy) * pull;
-    dot.style.transform = `translate(${dx}px, ${dy}px)`;
+    dot.style.transform = `translate(${px(dx)}, ${px(dy)})`;
     squeeze += ((pressed ? 1 : 0) - squeeze) * ease(25);
     leaning += ((now - movedAt < LEAN_HOLD ? 1 : 0) - leaning) * ease(8);
 
@@ -217,10 +243,8 @@ export function installCursor({ reticle = true }: { reticle?: boolean } = {}): v
     let tw: number;
     let th: number;
     let tarm: number;
-    let tangle: number;
     if (rect) {
-      // Boxing it in: square to it. The nearest half turn, not quarter: a quarter turn would stand the box on
-      // its side, a wide button getting a tall box.
+      // Boxing it in.
       const pad = LOCK_PAD - squeeze * 3;
       const mid = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
       const lean = (d: number): number => Math.max(-MAX_LEAN, Math.min(MAX_LEAN, d * LEAN)) * leaning;
@@ -229,7 +253,6 @@ export function installCursor({ reticle = true }: { reticle?: boolean } = {}): v
       tw = rect.width + pad * 2;
       th = rect.height + pad * 2;
       tarm = Math.min(LOCK_ARM, tw / 3, th / 3);
-      tangle = Math.round(angle / 180) * 180;
     } else {
       const size = IDLE_SIZE * (1 - squeeze * 0.2);
       tx = mx;
@@ -237,8 +260,6 @@ export function installCursor({ reticle = true }: { reticle?: boolean } = {}): v
       tw = size;
       th = size;
       tarm = IDLE_ARM;
-      if (!still.matches) angle += SPIN * dt;
-      tangle = angle;
     }
     const k = ease(rect ? FOLLOW_BOXED : FOLLOW);
     cx += (tx - cx) * k;
@@ -246,13 +267,31 @@ export function installCursor({ reticle = true }: { reticle?: boolean } = {}): v
     w += (tw - w) * k;
     h += (th - h) * k;
     arm += (tarm - arm) * k;
-    angle += (tangle - angle) * ease(14);
-    angle %= 360;
 
-    frame.style.width = `${w}px`;
-    frame.style.height = `${h}px`;
-    frame.style.setProperty('--arm', `${arm}px`);
-    frame.style.transform = `translate(${cx - w / 2}px, ${cy - h / 2}px) rotate(${angle}deg)`;
+    if (!rect && !still.matches) {
+      // Not over anything: the spin turns them, going on from wherever they were.
+      if (spin.playState !== 'running') {
+        spin.currentTime = (angle / 360) * TURN_MS;
+        spin.play();
+      }
+    } else {
+      // Boxing something, square to it from wherever the spin left them: the nearest half turn, not quarter
+      // (a quarter turn would stand the box on its side, a wide button getting a tall box). With motion
+      // turned down, they stay as they are.
+      stopSpin();
+      const tangle = rect ? Math.round(angle / 180) * 180 : angle;
+      angle += (tangle - angle) * ease(14);
+      if (Math.abs(tangle - angle) < 0.01) angle = tangle % 360;
+      if (angle !== turned) {
+        spin.currentTime = (angle / 360) * TURN_MS;
+        turned = angle;
+      }
+    }
+
+    frame.style.width = px(w);
+    frame.style.height = px(h);
+    frame.style.setProperty('--arm', px(arm));
+    frame.style.transform = `translate(${px(cx - w / 2)}, ${px(cy - h / 2)})`;
     requestAnimationFrame(step);
   };
 

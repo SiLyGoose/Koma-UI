@@ -111,12 +111,22 @@ html.reticle-on :is(textarea, [contenteditable], input:is(:not([type]), [type='t
   opacity: 0 !important;
 }
 
-/* The brackets' box: placed, sized and turned by index.ts every frame. */
+/* The brackets' box: placed and sized by index.ts every frame. */
 .reticle-frame {
   position: absolute;
   top: 0;
   left: 0;
   will-change: transform, width, height;
+}
+
+/*
+ * The brackets, turned within their box round its middle: spinning, by an animation the graphics card
+ * runs on its own (index.ts), and squared up to what's boxed from wherever that left them.
+ */
+.reticle-turn {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
 }
 
 .reticle-corner {
