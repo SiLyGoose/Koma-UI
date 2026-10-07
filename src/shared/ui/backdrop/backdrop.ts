@@ -40,6 +40,27 @@ function at(o: Orbit, deg: number): [number, number] {
 /** Whether a point is on the board (with some room past the edges). */
 const onBoard = ([x, y]: [number, number], pad = 0): boolean => x > -pad && x < W + pad && y > -pad && y < H + pad;
 
+/**
+ * How many times a second what moves on the chart moves on. The browser draws what moves inside an SVG
+ * itself rather than leaving it to the graphics card, and the whole chart again with it: moving every
+ * frame, that took a few ms of every frame, on every page. So it all moves in steps, on the same ticks
+ * (each animation a whole number of them long, after a whole number of them), and the chart is drawn
+ * again only then. It drifts slowly enough to look as smooth at this pace.
+ */
+const TICKS = 8;
+
+/**
+ * Sets `node`'s animation going (its name is backdrop.css's), over about `seconds`, after `delay`
+ * (negative: started that long ago), moving on only at the ticks. Its keyframes split it into
+ * `stretches`, each stepped on its own, so each is made a whole number of ticks long.
+ */
+function stepped(node: SVGElement, seconds: number, { delay = 0, stretches = 1 } = {}): void {
+  const steps = Math.max(1, Math.round((seconds * TICKS) / stretches));
+  node.style.animationDuration = `${(steps * stretches) / TICKS}s`;
+  node.style.animationDelay = `${Math.round(delay * TICKS) / TICKS}s`;
+  node.style.animationTimingFunction = `steps(${steps})`;
+}
+
 /** What the chart's notes say. */
 const NAME = 'KOMAVERSE';
 
@@ -85,8 +106,8 @@ export function backdrop(): HTMLElement {
     const star = el('circle', { cx: rand(0, W), cy: rand(0, H), r: rand(0.4, 1.4).toFixed(2), opacity: rand(0.15, 0.7).toFixed(2) }, stars);
     if (Math.random() < 0.25) {
       star.classList.add('twinkle');
-      star.style.animationDelay = `${rand(-12, 0).toFixed(2)}s`;
-      star.style.animationDuration = `${rand(6, 14).toFixed(2)}s`;
+      // Its keyframes ease in and out in four stretches (backdrop.css).
+      stepped(star, rand(6, 14), { delay: rand(-12, 0), stretches: 4 });
     }
   }
 
@@ -113,6 +134,7 @@ export function backdrop(): HTMLElement {
   // The astrolabe ring, turning slowly: nine houses, a letter of the name in each, and degrees marked inside.
   const band = el('g', { class: 'backdrop-turn' }, lines);
   band.style.transformOrigin = `${main.cx}px ${main.cy}px`;
+  stepped(band, 1500);
   const inner = 196;
   const outer = 228;
   el('circle', { cx: main.cx, cy: main.cy, r: inner }, band);
@@ -200,7 +222,7 @@ export function backdrop(): HTMLElement {
     const orbit = el('g', { class: 'backdrop-orbit' }, moons);
     orbit.style.transformOrigin = `${o.cx}px ${o.cy}px`;
     // Big circles turn slower, so everything drifts at about the same speed; either way round.
-    orbit.style.animationDuration = `${(o.r * rand(1.8, 3.2)).toFixed(0)}s`;
+    stepped(orbit, o.r * rand(1.8, 3.2));
     orbit.style.animationDirection = Math.random() < 0.5 ? 'normal' : 'reverse';
     el('circle', { cx: x, cy: y, r: size * 3, fill: 'url(#backdrop-moon-glow)', class: 'backdrop-glow' }, orbit);
     el('circle', { cx: x, cy: y, r: size, class: 'backdrop-moon-rim' }, orbit);

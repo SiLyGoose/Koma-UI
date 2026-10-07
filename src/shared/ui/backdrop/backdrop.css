@@ -53,14 +53,18 @@ body:has(> .backdrop) {
   fill: var(--petal);
 }
 
+/* How long each goes, after what delay, and its steps are backdrop.ts's (`stepped`). */
 .backdrop-stars .twinkle {
-  animation: backdrop-twinkle ease-in-out infinite alternate;
+  animation-name: backdrop-twinkle;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
 }
 
 .backdrop-turn,
 .backdrop-orbit {
   transform-box: view-box;
-  animation: backdrop-turn 1500s linear infinite;
+  animation-name: backdrop-turn;
+  animation-iteration-count: infinite;
 }
 
 /* The name, in the notes and round the astrolabe: gold letters, not outlines. */
@@ -93,11 +97,24 @@ body:has(> .backdrop) {
   }
 }
 
+/*
+ * Easing in and out, in four stretches: it moves in steps (backdrop.ts), and one stretch stepped from
+ * 0.1 to 0.9 would go at the same pace all the way.
+ */
 @keyframes backdrop-twinkle {
-  from {
+  0% {
     opacity: 0.1;
   }
-  to {
+  25% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  75% {
+    opacity: 0.8;
+  }
+  100% {
     opacity: 0.9;
   }
 }
