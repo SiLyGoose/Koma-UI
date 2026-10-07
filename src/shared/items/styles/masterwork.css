@@ -30,9 +30,15 @@
   -webkit-mask: repeating-linear-gradient(116.565deg, transparent 0 7.8%, #000 13%, #000 22%, transparent 27.2% 33.333%) 0 0 / 200% 200%;
   mix-blend-mode: hard-light;
   opacity: 0.7;
+  /*
+   * In steps, 16 a second, not every frame: a mask can only be moved by the page drawing the foil again,
+   * which took its share of every frame. A step moves the bands about a pixel, too little to see on their
+   * soft edges; and every foil on the page starts at the same moment (items.ts, keepHoloInStep), so they
+   * all step together and are drawn again at once.
+   */
   animation:
-    holo 6s linear infinite,
-    holo-hue 6s linear infinite;
+    holo 6s steps(96) infinite,
+    holo-hue 6s steps(96) infinite;
   pointer-events: none;
 }
 
