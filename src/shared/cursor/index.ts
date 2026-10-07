@@ -58,7 +58,8 @@ export function installCursor({ reticle = true }: { reticle?: boolean } = {}): v
   let boxed: Element | null = null;
   /** What's under the mouse, still to be looked at for what to box: done once a frame, however many elements it crossed. */
   let pending: Element | null | undefined;
-  const { pressable, forget } = pressableFinder();
+  /** What can be pressed under the mouse: only looked for with the reticle to box it (not in the games). */
+  const pressable = reticle ? pressableFinder().pressable : (): null => null;
 
   /** The brackets' box as drawn: its centre, size, turn and corners, eased towards where it's going. */
   let cx = mx;
@@ -155,10 +156,7 @@ export function installCursor({ reticle = true }: { reticle?: boolean } = {}): v
       pressed = false;
       hand.src = HAND;
       // A press often changes what's there (a button turned off, a menu opened): look again once it has.
-      setTimeout(() => {
-        forget();
-        look(document.elementFromPoint(mx, my));
-      }, 120);
+      setTimeout(() => look(document.elementFromPoint(mx, my)), 120);
     },
     { capture: true },
   );
@@ -197,6 +195,8 @@ export function installCursor({ reticle = true }: { reticle?: boolean } = {}): v
       box(pending);
       pending = undefined;
     }
+    // Where what's boxed is, read before anything is written this frame, so the browser needn't work styles out again for it.
+    const rect = boxed?.isConnected ? boxed.getBoundingClientRect() : null;
     const dt = Math.min((now - last) / 1000, 0.1);
     last = now;
     /** How far along to where it's going to move this frame, at `rate`: the same feel at any frame rate. */
@@ -218,7 +218,6 @@ export function installCursor({ reticle = true }: { reticle?: boolean } = {}): v
     let th: number;
     let tarm: number;
     let tangle: number;
-    const rect = boxed?.isConnected ? boxed.getBoundingClientRect() : null;
     if (rect) {
       // Boxing it in: square to it. The nearest half turn, not quarter: a quarter turn would stand the box on
       // its side, a wide button getting a tall box.

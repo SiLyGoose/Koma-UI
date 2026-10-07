@@ -14,6 +14,17 @@ html.reticle-on :is(textarea, [contenteditable], input:is(:not([type]), [type='t
   cursor: text !important;
 }
 
+/*
+ * The hand pointer the browser gives links itself, which isn't in the page's stylesheets that
+ * pressable.ts copies the page's pointers from: in a layer, so any pointer the page sets wins over it,
+ * as it does over the browser's.
+ */
+@layer reticle-defaults {
+  :any-link {
+    --page-cursor: pointer;
+  }
+}
+
 .reticle {
   --reticle-ink: #f3f1ea;
   --reticle-glow: rgb(255 255 255 / 55%);
