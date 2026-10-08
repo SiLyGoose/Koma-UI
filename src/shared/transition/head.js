@@ -8,7 +8,7 @@ try {
     var root = document.documentElement;
     // The loading screen's sprites: the characters' glowing silhouettes (public/characters/<id>/,
     // made by scripts/silhouette.py; the characters are in ../characters.ts), one at random.
-    var SPRITES = ['/characters/tsuri/silhouette.png'];
+    var SPRITES = ['/characters/tsuri/silhouette.png', '/characters/yae-pixo/silhouette.png', '/characters/speve/silhouette.png'];
     root.style.setProperty('--tx-sprite', 'url(' + SPRITES[Math.floor(Math.random() * SPRITES.length)] + ')');
     // The bounce keeps time with the clock (a bounce up and down a second), so this page's loading
     // screen takes it up at the height the page before left it.
