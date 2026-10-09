@@ -21,6 +21,26 @@
   --green: #8fc9a3;
   --red: #d8686a;
   --radius: 12px;
+  /*
+   * The site pages' surfaces, here once so every page takes them instead of copying them (the buttons in
+   * ui/button/button.css, the name board below, a page's own tabs):
+   * - the plaque: the armory's dark board, its edge, the fine gold line inside it, and its cream words;
+   * - sky: the main buttons' blue (what does something), deepest at the top, in a pale silver edge;
+   * - tint: what's showing or open (a tab, a view, a level, a menu): the plaque washed in sky blue.
+   */
+  --plaque: linear-gradient(180deg, #2d2a33, #1a191e);
+  --plaque-edge: #5a5262;
+  --plaque-line: rgb(216 191 122 / 30%);
+  --plaque-text: #efe3bf;
+  --sky: #00adf4;
+  --sky-fill: linear-gradient(180deg, #1a7fb2 0%, #0a95d4 35%, #00adf4 70%, #00c6fd 100%);
+  --sky-edge: #d9d5c2;
+  --tint: linear-gradient(rgb(0 174 244 / 16%), rgb(0 174 244 / 16%)), var(--plaque);
+  --tint-edge: rgb(0 174 244 / 75%);
+  --tint-line: rgb(0 174 244 / 25%);
+  --tint-text: #8fdcff;
+  /* The tint as one colour, where a gradient won't do (the shop's notch). */
+  --tint-flat: #1e3849;
   color-scheme: dark;
 }
 
@@ -491,6 +511,26 @@ canvas {
   color: var(--accent-text);
   font-weight: 700;
   text-decoration: none;
+}
+
+/*
+ * The site pages' name board (an armory's, the Outfits tab's): the plaque in a fine double frame, its words in
+ * cream italics. Each page places it.
+ */
+.plaque {
+  padding: 6px 22px;
+  border: 2px solid var(--plaque-edge);
+  border-radius: 6px;
+  background: var(--plaque);
+  box-shadow:
+    inset 0 0 0 2px #141318,
+    inset 0 0 0 3px rgb(216 191 122 / 45%),
+    0 4px 10px rgb(0 0 0 / 50%);
+  color: var(--plaque-text);
+  font-size: 15px;
+  font-style: italic;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 /* Scrolls as usual (wheel, drag, touch, keys), with the scrollbar hidden. */

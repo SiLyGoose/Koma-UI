@@ -6,7 +6,7 @@ import { itemById, narrow, type DatabankContext } from './context';
 import type { ItemSource } from './types';
 
 function levelButton(label: string, pressed: boolean, disabled: boolean, onClick: () => void): HTMLButtonElement {
-  const button = el('button', 'db-level', label);
+  const button = el('button', 'action choice db-level', label);
   button.type = 'button';
   button.setAttribute('aria-pressed', String(pressed));
   button.disabled = disabled;

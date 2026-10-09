@@ -1,4 +1,4 @@
-/* Under the armory: Unequip all. */
+/* Under the armory: Sell (or, picking what to sell, Cancel beside it) and Unequip all, the site's dark buttons (../../shared/ui/button/). */
 .armory-foot {
   display: flex;
   gap: 10px;
@@ -9,48 +9,15 @@
   position: relative;
 }
 
-.armory-action {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  min-height: 40px;
-  padding: 8px 14px;
-  border: 1px solid #5a5262;
-  border-radius: 8px;
-  background: linear-gradient(180deg, #2d2a33, #1a191e);
-  box-shadow: inset 0 0 0 1px rgb(216 191 122 / 30%);
-  color: #efe3bf;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.armory-action:hover:not(:disabled) {
-  border-color: rgb(216 191 122 / 60%);
-}
-
-.armory-action:disabled {
-  opacity: 0.55;
-  cursor: default;
-}
-
-.armory-action.danger {
-  flex: 1;
-  color: var(--red);
-}
-
-/* Sell beside Unequip all (or, while picking what to sell, Cancel): even halves, on one line. */
+/* Even halves, on one line. */
 .armory-foot .armory-action {
   flex: 1 1 0;
   min-width: 0;
-  white-space: nowrap;
+  padding: 0 14px;
 }
 
 /* Picking what to sell: Sell in the gold of a picked card. */
-
-.armory-action.sell.on {
+.armory-action.sell.on:not(:disabled, [aria-disabled='true']) {
   border-color: var(--gold);
   box-shadow: inset 0 0 0 1px rgb(216 191 122 / 55%);
   color: var(--gold);
@@ -64,14 +31,10 @@
   vertical-align: -3px;
 }
 
-/* Picking what to sell: what can't be sold (worn, or saved in a loadout) fades back, and what's picked is ringed in red and ticked. */
-.armory-grid.selling .item.unsellable {
-  opacity: 0.4;
-  filter: grayscale(0.7);
-  cursor: default;
-  transform: none;
-}
-
+/*
+ * Picking what to sell: what can't be sold (worn, or saved in a loadout) is disabled, so greyed out as any card
+ * that can't be picked (cards.css), and what's picked is ringed in red, for sold, and ticked.
+ */
 .armory-grid .item.to-sell {
   border-color: var(--red);
   box-shadow: inset 0 0 0 1px var(--red), inset 0 0 14px 5px rgb(216 104 106 / 35%), 0 2px 0 var(--item-lip);
@@ -131,7 +94,7 @@
   gap: 10px;
 }
 
-.sell-confirm-foot .detail-action {
+.sell-confirm-foot .action {
   flex: 1;
   min-width: 0;
 }

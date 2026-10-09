@@ -1,3 +1,4 @@
+import { busyWith } from '../shared/ui';
 import { api, currentServer, loadMe, logOut } from '../site/session';
 import { status, type BannerContext } from './context';
 import { render } from './render';
@@ -36,12 +37,12 @@ export async function loadBanner(ctx: BannerContext): Promise<void> {
 export async function pull(ctx: BannerContext, multi: boolean): Promise<void> {
   const server = currentServer();
   if (ctx.busy || !server || !ctx.view) return;
-  ctx.busy = true;
+  ctx.busy = busyWith(multi ? 'ten' : 'one');
   status(ctx, null);
   render(ctx);
   const request = api<BannerResult>('/api/gacha/pull', { method: 'POST', body: JSON.stringify({ guild: server, multi }) });
   const res = await playWish(ctx, request);
-  ctx.busy = false;
+  ctx.busy = null;
   // It cost zeiucoins (or the balance shown was old): the header's balances follow.
   void loadMe(true);
   if (!res.ok) {

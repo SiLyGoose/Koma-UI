@@ -107,46 +107,13 @@
 }
 
 /*
- * The big card's lock, in the top corner beside it: the armory's dark button, a padlock open or shut
- * (shut, it's lit gold). On someone else's copy, the same square with nothing to press.
+ * The big card's lock, in the top corner beside it: the site's icon button (../../shared/ui/button/), a
+ * padlock open or shut (shut, it's lit gold). On someone else's copy, the same square disabled.
  */
 .detail-lock {
-  display: grid;
   flex-shrink: 0;
-  place-items: center;
   align-self: flex-start;
-  width: 40px;
-  height: 40px;
   margin-left: auto;
-  border: 1px solid #5a5262;
-  border-radius: 8px;
-  background: linear-gradient(180deg, #2d2a33, #1a191e);
-  box-shadow: inset 0 0 0 1px rgb(216 191 122 / 30%);
-  color: var(--muted);
-}
-
-button.detail-lock {
-  cursor: pointer;
-}
-
-button.detail-lock:hover:not(:disabled) {
-  border-color: rgb(216 191 122 / 60%);
-  color: #efe3bf;
-}
-
-button.detail-lock:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-
-.detail-lock.on {
-  border-color: rgb(216 191 122 / 60%);
-  color: var(--gold);
-}
-
-.detail-lock .padlock {
-  width: 22px;
-  height: 22px;
 }
 
 .detail-max {
@@ -220,39 +187,12 @@ button.detail-lock:disabled {
   font-size: 13px;
 }
 
+/*
+ * Equip (the site's main button: ../../shared/ui/button/), or Unequip and Upgrade beside it (its dark ones).
+ * Fully upgraded, "✓ Max" (its doneMark) takes Upgrade's place, stretched to the buttons' height.
+ */
 .detail-action {
   min-width: 128px;
-  min-height: 40px;
-  padding: 8px 22px;
-  border: 1px solid transparent;
-  border-radius: 8px;
-  background: var(--accent);
-  color: var(--accent-text);
-  font-size: 15px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.detail-action:hover:not(:disabled) {
-  background: var(--accent-hover);
-}
-
-/* Upgrade and Unequip: the armory's dark button. */
-.detail-action.secondary {
-  border-color: #5a5262;
-  background: linear-gradient(180deg, #2d2a33, #1a191e);
-  box-shadow: inset 0 0 0 1px rgb(216 191 122 / 30%);
-  color: #efe3bf;
-}
-
-.detail-action.secondary:hover:not(:disabled) {
-  border-color: rgb(216 191 122 / 60%);
-  background: linear-gradient(180deg, #2d2a33, #1a191e);
-}
-
-.detail-action:disabled {
-  opacity: 0.5;
-  cursor: default;
 }
 
 /* Narrow screens: the sheet from the bottom (items.css), with its buttons kept in reach. */

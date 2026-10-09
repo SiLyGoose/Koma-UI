@@ -1,5 +1,5 @@
 import markup from './outfits.html?raw';
-import { API, dropdown, fillServers } from '../shared/ui';
+import { API, busyWith, dropdown, fillServers } from '../shared/ui';
 import type { ShopTab } from '../shop/tab';
 import type { Outfit, OutfitsView } from '../shared/outfits';
 import { api, currentMe, currentServer, loadMe, logOut, setServer } from '../site/session';
@@ -108,11 +108,11 @@ async function load(ctx: OutfitsContext): Promise<void> {
 async function buy(ctx: OutfitsContext, outfit: Outfit): Promise<void> {
   const server = currentServer();
   if (ctx.busy || !server) return;
-  ctx.busy = true;
+  ctx.busy = busyWith('buy');
   status(ctx, null);
   render(ctx);
   const res = await api<OutfitsView>('/api/outfits/buy', { method: 'POST', body: JSON.stringify({ guild: server, outfit: outfit.id }) });
-  ctx.busy = false;
+  ctx.busy = null;
   // It cost zeiucoins (or the balance shown was old): the header's balances follow.
   void loadMe(true);
   if (!res.ok) {

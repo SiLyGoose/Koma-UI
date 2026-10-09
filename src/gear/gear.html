@@ -19,11 +19,11 @@
         <div class="hero-ribbon" title="Class: ?"><span class="hero-ribbon-icon" aria-label="Class: unknown">?</span></div>
         <!-- Under the ribbon: the dressing room (to change outfits) and the loadout picker. -->
         <div class="hero-chips">
-          <a id="outfit-link" class="hero-chip" href="/dressing-room/" aria-label="Dressing Room" title="Dressing Room">
+          <a id="outfit-link" class="hero-chip action secondary icon" href="/dressing-room/" aria-label="Dressing Room" title="Dressing Room">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3 3 6l2 5 2-1v11h10V10l2 1 2-5-5-3c-.5 1.5-2 2.5-4 2.5S8.5 4.5 8 3Z" /></svg>
           </a>
           <div class="loadout-pick">
-            <button type="button" id="loadout-button" class="hero-chip" aria-haspopup="true" aria-expanded="false"></button>
+            <button type="button" id="loadout-button" class="hero-chip action secondary icon" aria-haspopup="true" aria-expanded="false"></button>
             <div id="loadout-menu" class="loadout-menu" hidden></div>
           </div>
         </div>
@@ -46,8 +46,8 @@
       </div>
       <!-- What the panel beside the character shows: their stats, or their gear. -->
       <div class="hero-tabs" role="tablist" aria-label="Show">
-        <button type="button" role="tab" data-view="common" aria-selected="false" aria-controls="stats">Common</button>
-        <button type="button" role="tab" data-view="gear" aria-selected="true" aria-controls="armory">Gear</button>
+        <button type="button" class="action choice" role="tab" data-view="common" aria-selected="false" aria-controls="stats">Common</button>
+        <button type="button" class="action choice" role="tab" data-view="gear" aria-selected="true" aria-controls="armory">Gear</button>
       </div>
     </div>
 
@@ -56,15 +56,12 @@
 
     <!-- The armory: every copy they own, on parchment. -->
     <div id="armory" class="armory" role="tabpanel">
-      <div class="armory-plaque"><span id="armory-title">Armory</span></div>
-      <input id="armory-search" class="armory-search" type="search" placeholder="Search items" aria-label="Search items" autocomplete="off" />
-      <div class="armory-tabs" role="tablist" aria-label="Show">
-        <button type="button" role="tab" data-filter="all" aria-selected="true">All</button>
-        <button type="button" role="tab" data-filter="weapon" aria-selected="false">Weapons</button>
-        <button type="button" role="tab" data-filter="armor" aria-selected="false">Armor</button>
-        <button type="button" role="tab" data-filter="treasure" aria-selected="false">Treasures</button>
+      <div class="armory-plaque plaque"><span id="armory-title">Armory</span></div>
+      <!-- The search, and the Filter beside it (src/shared/items/armory-filter/ fills it in). -->
+      <div class="armory-tools">
+        <input id="armory-search" class="armory-search" type="search" placeholder="Search items" aria-label="Search items" autocomplete="off" />
+        <div id="armory-filter" class="armory-filter"></div>
       </div>
-      <div id="armory-stars" class="star-chips" aria-label="Stars"></div>
       <div class="armory-sheet">
         <div class="sheet-scroll">
           <div id="armory-grid" class="armory-grid"></div>
@@ -72,9 +69,9 @@
       </div>
       <!-- Sell picks copies to sell (the cards then toggle), and again asks to confirm; Cancel stops picking. -->
       <div class="armory-foot">
-        <button type="button" id="sell" class="armory-action sell">Sell</button>
-        <button type="button" id="sell-cancel" class="armory-action" hidden>Cancel</button>
-        <button type="button" id="unequip-all" class="armory-action danger">Unequip all</button>
+        <button type="button" id="sell" class="armory-action action secondary sell">Sell</button>
+        <button type="button" id="sell-cancel" class="armory-action action secondary" hidden>Cancel</button>
+        <button type="button" id="unequip-all" class="armory-action action secondary danger">Unequip all</button>
       </div>
     </div>
 
@@ -84,14 +81,14 @@
       <p class="sell-confirm-total"></p>
       <p class="sell-confirm-note">Sold items are gone for good.</p>
       <div class="sell-confirm-foot">
-        <button type="button" class="detail-action secondary" data-sell="cancel">Cancel</button>
-        <button type="button" class="detail-action" data-sell="confirm">Sell</button>
+        <button type="button" class="action secondary" data-sell="cancel">Cancel</button>
+        <button type="button" class="action main" data-sell="confirm">Sell</button>
       </div>
     </dialog>
 
     <!-- Common: every number their gear can change, with and without it, raid stats last. -->
     <div id="stats" class="armory stats off" role="tabpanel">
-      <div class="armory-plaque"><span id="stats-title">Stats</span></div>
+      <div class="armory-plaque plaque"><span id="stats-title">Stats</span></div>
       <div class="armory-sheet">
         <div class="sheet-scroll">
           <div id="stats-list" class="stats-list"></div>

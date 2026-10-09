@@ -10,7 +10,7 @@ export function render(ctx: ForgeContext): void {
   const { ui } = ctx;
   ui.forge.hidden = false;
   ui.armoryTitle.textContent = `${me.user.name}'s Armory`;
-  for (const tab of ui.tabs) tab.setAttribute('aria-selected', String(tab.dataset.filter === ctx.filter));
+  ui.filter.show({ slot: ctx.filter, stars: ctx.stars, owned: null });
   renderGrid(ctx);
   renderAnvil(ctx);
 }

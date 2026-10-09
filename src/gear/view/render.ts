@@ -26,7 +26,7 @@ export function render(ctx: GearContext): void {
   ui.sprite.height = character.height;
   ui.armoryTitle.textContent = `${name}'s Armory`;
   ui.statsTitle.textContent = `${name}'s Stats`;
-  for (const tab of ui.tabs) tab.setAttribute('aria-selected', String(tab.dataset.filter === ctx.filter));
+  ui.filter.show({ slot: ctx.filter, stars: ctx.stars, owned: null });
   renderSlots(ctx);
   renderGrid(ctx);
   renderDetail(ctx);

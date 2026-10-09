@@ -1,0 +1,183 @@
+/*
+ * The armories' filter (armory-filter.ts): the Filter button, one of the site's dark buttons
+ * (../../ui/button/: tinted while open), with a blue count of the filters on, and its panel under it, the site's drop-down
+ * (as the profile menu's and the server picker's: ../../ui/dropdown/), its choices in groups. A choice is
+ * marked in blue, the site's colour for what's on.
+ */
+
+.armory-filter {
+  position: relative;
+  display: flex;
+  flex: none;
+}
+
+.armory-filter .armory-filter-button {
+  gap: 8px;
+  padding: 0 14px;
+}
+
+.armory-filter-button svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+.armory-filter-count {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--sky);
+  color: #04253f;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 18px;
+  text-shadow: none;
+}
+
+.armory-filter-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 50;
+  display: grid;
+  gap: 14px;
+  width: 290px;
+  max-width: calc(100vw - 32px);
+  padding: 14px 14px 16px;
+  border: 2px solid var(--line);
+  border-radius: 16px;
+  background-color: var(--panel-2);
+  box-shadow: 0 12px 30px rgb(0 0 0 / 50%);
+}
+
+.armory-filter-panel[hidden] {
+  display: none;
+}
+
+/* Focused itself only to keep the focus in it (a click on its words): no ring. */
+.armory-filter-panel:focus {
+  outline: none;
+}
+
+.armory-filter-group {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.armory-filter-group[hidden] {
+  display: none;
+}
+
+.armory-filter-group legend {
+  margin: 0 0 6px;
+  padding: 0 6px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.armory-filter-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2px 6px;
+}
+
+/* A choice: its mark and its words, lighting up under the mouse, as the drop-downs' rows do. */
+.armory-filter-option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 34px;
+  padding: 0 8px;
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.armory-filter-option.wide {
+  grid-column: 1 / -1;
+}
+
+.armory-filter-option:hover,
+.armory-filter-option:has(input:checked) {
+  color: var(--text);
+}
+
+.armory-filter-option:hover {
+  background-color: var(--panel-3);
+}
+
+/* The real radio or checkbox: out of sight, but still what the keyboard moves through. */
+.armory-filter-option input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.armory-filter-option:has(input:focus-visible) {
+  outline: 2px solid var(--gold);
+  outline-offset: -2px;
+}
+
+/* A round mark for one of a group, a square for on or off; filled in blue when chosen. */
+.armory-filter-mark {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--dusk);
+  border-radius: 50%;
+}
+
+input[type='checkbox'] + .armory-filter-mark {
+  border-radius: 4px;
+}
+
+input:checked + .armory-filter-mark {
+  border-color: var(--sky);
+  background: radial-gradient(circle, var(--sky) 0 3.5px, transparent 4px);
+}
+
+input[type='checkbox']:checked + .armory-filter-mark {
+  background: var(--sky);
+}
+
+input[type='checkbox']:checked + .armory-filter-mark::after {
+  content: '';
+  width: 4px;
+  height: 8px;
+  margin-top: -2px;
+  border: solid #04253f;
+  border-width: 0 2px 2px 0;
+  rotate: 45deg;
+}
+
+.armory-filter-option .star {
+  font-size: 14px;
+}
+
+.armory-filter .armory-filter-clear {
+  min-height: 34px;
+  font-size: 13px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .armory-filter-option {
+    transition: none;
+  }
+}

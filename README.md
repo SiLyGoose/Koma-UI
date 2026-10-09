@@ -89,10 +89,15 @@ through the `index.ts` would make an import cycle, and `ui/frame/` is imported d
 it sets up a game's page. A page's own styles, split by area and by screen size, stay in its `styles/`.
 
 - `src/shared/`: what more than one page uses.
-  - `style.css`: styles shared by every page.
+  - `style.css`: styles shared by every page, with the site pages' surfaces (`--plaque`, `--sky`, `--tint`:
+    what the buttons, tabs and name boards are drawn in, so no page copies them) and the name board (`.plaque`).
   - `ui/`: the parts every page shows, each in its own folder with its styles (`ui/account/account.ts`
     and `account.css`), all exported from `ui/index.ts`. `account/`: the login session and the profile
-    button. `dropdown/`: the site's dropdown. `live/`: who's online, and watching. `header/`: the site
+    button. `button/`: the site pages' buttons (`.action` with `.main` for what does something,
+    `.secondary`, `.danger`, `.icon`, `.choice` for tabs and views, tinted blue when showing, `.large`), one
+    rule per state for all of them, `working()` for a
+    button waiting on the bot (disabled at once, a spinner in its words' place after 3 seconds) and
+    `doneMark()` for "✓ Equipped" in place of a button. `dropdown/`: the site's dropdown. `live/`: who's online, and watching. `header/`: the site
     header. `frame/`: the blue frame round a game and its title bar, from the game's
     `<main class="frame" data-title="…">` (not in `index.ts`: importing it sets up a game's page, so
     games import `ui/frame/frame` themselves).
@@ -100,5 +105,6 @@ it sets up a game's page. A page's own styles, split by area and by screen size,
   - `game/`: what every game shares: its link, the connection to the bot, and the box saying why it
     can't go on.
   - `transition/`: the page transition (`head.css` and `head.js` go inline in every page's `<head>`).
-  - `items/`: the item cards, stars, art and detail panel shared by the gear page and the databank.
+  - `items/`: the item cards, stars, art and detail panel shared by the gear page and the databank, and
+    the armories' Filter (`items/armory-filter/`: type, stars, Owned only, in a panel under its button).
 - `src/table/`: the card table shared by Baccarat and Roulette.

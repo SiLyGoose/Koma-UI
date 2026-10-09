@@ -1,4 +1,5 @@
 import { forgePlan, type GearView } from '../shared/items';
+import { busyWith } from '../shared/ui';
 import { sleep } from '../shared/util';
 import { curtain } from '../shared/transition';
 import { api, currentServer, loadMe, logOut } from '../site/session';
@@ -50,7 +51,7 @@ export async function strikeAnvil(ctx: ForgeContext): Promise<void> {
   const plan = copy ? forgePlan(copy) : null;
   if (ctx.busy || !server || !copy || !plan || (plan.kind !== 'refine' && plan.kind !== 'forge')) return;
   const forging = plan.kind === 'forge';
-  ctx.busy = true;
+  ctx.busy = busyWith('strike');
   renderAnvil(ctx);
   // The heat builds up bright behind the target, then the cover wipes over while the bot does it, and
   // comes off on the result.
@@ -62,7 +63,7 @@ export async function strikeAnvil(ctx: ForgeContext): Promise<void> {
   await sleep(HEAT_MS);
   const res = await curtain(async () => {
     const res = await request;
-    ctx.busy = false;
+    ctx.busy = null;
     // It cost zeiucoins or gems (or whatever the refusal was, the balance may be old): the header's balances follow.
     void loadMe(true);
     if (!res.ok) return res;

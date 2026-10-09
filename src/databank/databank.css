@@ -166,20 +166,6 @@
   background: rgb(59 52 68 / 12%);
 }
 
-.db-controls {
-  display: flex;
-  gap: 8px;
-  margin: 4px 0 10px;
-}
-
-.db-controls .armory-search {
-  flex: 1;
-}
-
-/* Owned only, after the star filter's chips (../shared/items/styles/star-chips.css), at the row's far end. */
-.db-owned {
-  margin-left: auto;
-}
 
 /* A tier: its stars and count, then its cards. */
 .db-tier + .db-tier {
@@ -266,26 +252,12 @@
   margin: 0 0 12px;
 }
 
+/* R1 to the top, and ✨: the site's buttons for a choice (../shared/ui/button/), small, the level shown in blue. */
 .db-level {
   min-width: 40px;
-  padding: 5px 8px;
-  border: 1px solid var(--parchment-edge);
-  border-radius: 8px;
-  background: #fffaf0;
-  color: #6b6272;
+  min-height: 32px;
+  padding: 0 8px;
   font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.db-level:hover {
-  color: var(--ink);
-}
-
-.db-level[aria-pressed='true'] {
-  border-color: var(--accent);
-  background: var(--accent);
-  color: var(--accent-text);
 }
 
 /* The panel's parchment: what the item does scrolls, and whether they own it stays under a line at the bottom. */
@@ -345,8 +317,8 @@
 }
 
 .db-source:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 1px;
+  outline: 2px solid var(--focus, var(--gold));
+  outline-offset: 2px;
 }
 
 .db-source-name {
@@ -409,7 +381,7 @@
     padding: 26px 12px calc(12px + var(--db-count-h));
   }
 
-  .db-controls {
+  .databank .armory-tools {
     margin-bottom: 8px;
   }
 

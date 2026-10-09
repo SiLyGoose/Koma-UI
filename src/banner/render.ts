@@ -1,5 +1,6 @@
 import { coin, points } from '../shared/util';
 import { art, el, rich, stars } from '../shared/items';
+import { working } from '../shared/ui';
 import { BANNERS, timeLeft, type Featured } from './banners';
 import { canAfford, price, type BannerContext } from './context';
 import type { Stars } from './types';
@@ -116,12 +117,13 @@ export function render(ctx: BannerContext): void {
   ui.tenLabel.textContent = `Pull ×${view.multi}`;
   costLine(ui.oneCost, price(view, 1));
   costLine(ui.tenCost, price(view, view.multi));
-  for (const [button, cost, pulls] of [
-    [ui.one, ui.oneCost, 1],
-    [ui.ten, ui.tenCost, view.multi],
+  for (const [button, cost, pulls, action] of [
+    [ui.one, ui.oneCost, 1, 'one'],
+    [ui.ten, ui.tenCost, view.multi, 'ten'],
   ] as const) {
     const ok = canAfford(view, pulls);
-    button.disabled = ctx.busy || !ok;
+    button.disabled = !ok;
+    working(button, ctx.busy, action);
     button.title = ok ? '' : "You can't afford that.";
     // As Genshin's: the price in red when it's more than they have.
     cost.classList.toggle('short', !ok);

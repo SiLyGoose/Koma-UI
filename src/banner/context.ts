@@ -1,3 +1,4 @@
+import type { Busy } from '../shared/ui';
 import { BANNERS, type Banner } from './banners';
 import type { BannerView } from './types';
 
@@ -45,8 +46,8 @@ export interface BannerContext {
   /** The banner showing (its tab picked). */
   banner: Banner;
   view: BannerView | null;
-  /** A pull on its way, or its wish still playing: the buttons wait for it. */
-  busy: boolean;
+  /** A pull on its way (its button: 'one' or 'ten'), or its wish still playing: the buttons wait for it. */
+  busy: Busy | null;
   /** Ends the wish playing (if any) at once: the page is going. */
   endWish: (() => void) | null;
 }
@@ -92,7 +93,7 @@ export function createContext(root: HTMLElement): BannerContext {
     },
     banner: BANNERS[0] as Banner,
     view: null,
-    busy: false,
+    busy: null,
     endWish: null,
   };
 }

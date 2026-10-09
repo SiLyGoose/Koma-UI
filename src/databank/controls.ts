@@ -1,5 +1,4 @@
 import { dropdown } from '../shared/ui';
-import { type Slot, starFilter } from '../shared/items';
 import { setServer } from '../site/session';
 import { narrow, type DatabankContext } from './context';
 import { renderDetail } from './detail';
@@ -24,20 +23,10 @@ export function wireControls(ctx: DatabankContext): () => void {
     void loadOwned(ctx).then(() => render(ctx));
   });
 
-  for (const tab of ui.tabs) {
-    tab.addEventListener('click', () => {
-      ctx.slotFilter = tab.dataset.filter as Slot | 'all';
-      render(ctx);
-    });
-  }
-
-  starFilter(ui.stars, (choice) => {
-    ctx.starFilter = choice;
-    render(ctx);
-  });
-
-  ui.ownedOnly.addEventListener('click', () => {
-    ctx.onlyOwned = !ctx.onlyOwned;
+  ui.filter.onChange((choice) => {
+    ctx.slotFilter = choice.slot;
+    ctx.starFilter = choice.stars;
+    ctx.onlyOwned = choice.owned === true;
     render(ctx);
   });
 
@@ -55,5 +44,6 @@ export function wireControls(ctx: DatabankContext): () => void {
     document.removeEventListener('keydown', onKey);
     narrow.removeEventListener('change', onNarrow);
     serverPicker.destroy();
+    ui.filter.destroy();
   };
 }

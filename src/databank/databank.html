@@ -5,7 +5,7 @@
   <section id="databank" class="databank panels" hidden>
     <!-- The item picked: what it does at each level. Beside the list on wide screens, a sheet from the bottom on narrow ones. -->
     <aside id="detail" class="detail" aria-label="Item" hidden>
-      <div class="armory-plaque"><span>Item Info</span></div>
+      <div class="armory-plaque plaque"><span>Item Info</span></div>
       <div class="armory-sheet db-sheet">
         <div id="detail-body" class="sheet-scroll"></div>
         <!-- Whether they own it: under a line, fixed at the bottom while the rest scrolls. -->
@@ -15,20 +15,12 @@
 
     <!-- Every item in the game, by star tier, on parchment. -->
     <div class="armory">
-      <div class="armory-plaque"><span>Databank</span></div>
-      <div class="db-controls">
+      <div class="armory-plaque plaque"><span>Databank</span></div>
+      <!-- The search, the server picker, and the Filter (src/shared/items/armory-filter/ fills it in). -->
+      <div class="armory-tools">
         <input id="search" class="armory-search" type="search" placeholder="Search items" aria-label="Search items" autocomplete="off" />
         <select id="server" class="server-pick" aria-label="Server" hidden></select>
-      </div>
-      <div class="armory-tabs" role="tablist" aria-label="Category">
-        <button type="button" role="tab" data-filter="all" aria-selected="true">All</button>
-        <button type="button" role="tab" data-filter="weapon" aria-selected="false">Weapons</button>
-        <button type="button" role="tab" data-filter="armor" aria-selected="false">Armor</button>
-        <button type="button" role="tab" data-filter="treasure" aria-selected="false">Treasures</button>
-      </div>
-      <!-- The star filter's chips go in first (src/shared/items/star-filter.ts), Owned only after them. -->
-      <div id="stars" class="star-chips" aria-label="Stars">
-        <button type="button" id="owned-only" class="star-chip db-owned" aria-pressed="false" hidden>Owned only</button>
+        <div id="filter" class="armory-filter"></div>
       </div>
       <div class="armory-sheet">
         <div class="sheet-scroll">

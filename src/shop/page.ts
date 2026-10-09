@@ -26,7 +26,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void; 
   const buttons = TABS.map((tab) => {
     const button = document.createElement('button');
     button.type = 'button';
-    button.className = 'shop-tab';
+    button.className = 'shop-tab action choice';
     button.setAttribute('role', 'tab');
     button.dataset.tab = tab.id;
     button.innerHTML = `<span class="shop-tab-icon" aria-hidden="true">${tab.icon}</span><span class="shop-tab-label"></span>`;

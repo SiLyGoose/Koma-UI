@@ -1,10 +1,5 @@
 /* ------------------------------------------------------------------ armory */
 
-/* The search, over the tabs (as the gear page's). */
-.armory > .armory-search {
-  margin: 4px 0 8px;
-}
-
 /* The copy on the anvil: darkened where it sits, with what's being done to it across it in bold yellow. */
 .forge .item.selected::before {
   content: '';
@@ -37,19 +32,11 @@
   pointer-events: none;
 }
 
-/* Picking a refine's material: what can't be used up is greyed out, and can't be picked. */
-.forge .item.unusable {
-  filter: grayscale(1) brightness(0.7);
-  opacity: 0.55;
-  cursor: default;
-}
-
-.forge .item.unusable:hover {
-  transform: none;
-}
-
-/* The spare picked to be used up: ringed in the fire's orange. */
+/*
+ * Picking a refine's material: what can't be used up is disabled, so greyed out as any card that can't be
+ * picked (../../shared/items/styles/cards.css), and the spare picked is ringed in gold, as any card picked.
+ */
 .forge .item.material {
-  border-color: #f0a13a;
-  box-shadow: inset 0 0 0 1px #f0a13a, inset 0 0 12px 3px rgb(240 161 58 / 45%), 0 2px 0 var(--item-lip);
+  border-color: var(--picked);
+  box-shadow: inset 0 0 0 1px var(--picked), inset 0 0 14px 5px var(--picked-glow), 0 2px 0 var(--item-lip);
 }

@@ -1,4 +1,5 @@
 import { el, forgePlan, type GearCopy, type Plan, rich } from '../../shared/items';
+import { working } from '../../shared/ui';
 import { card } from './card';
 import { compare, withoutDormant, type EffectRow } from './compare';
 import { balance, choosing, copyById, type ForgeContext } from '../context';
@@ -46,8 +47,8 @@ export function renderAnvil(ctx: ForgeContext): void {
 
   ui.go.textContent = plan?.kind === 'forge' ? 'Forge Masterwork' : 'Refine Gear';
   const have = balance(ctx);
+  working(ui.go, ctx.busy, 'strike');
   ui.go.disabled =
-    ctx.busy ||
     !plan ||
     (plan.kind === 'refine'
       ? plan.refine.blocked !== null || plan.refine.cost === null || (have !== null && have < plan.refine.cost) || !spare

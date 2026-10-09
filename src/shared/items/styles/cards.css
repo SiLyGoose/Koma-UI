@@ -15,9 +15,22 @@
   transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
 
-.item:hover,
+.item:hover:not(:disabled),
 .item:focus-visible {
   transform: translateY(-2px);
+}
+
+/* The keyboard's focus: a ring in the colour of what it's on (--focus: ink on the armory's parchment). */
+.item:focus-visible {
+  outline: 2px solid var(--focus, var(--gold));
+  outline-offset: 2px;
+}
+
+/* One that can't be picked (can't be sold, can't be used up): greyed out, and still. */
+.item:disabled {
+  filter: grayscale(1);
+  opacity: 0.45;
+  cursor: default;
 }
 
 .item.picked {

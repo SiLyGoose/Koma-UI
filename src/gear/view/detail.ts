@@ -1,5 +1,6 @@
 import { coin, points } from '../../shared/util';
 import { el, forgePlan, type GearCopy, itemDetailsClosed, itemFace, rich, SLOT_NAME } from '../../shared/items';
+import { doneMark, working } from '../../shared/ui';
 import { equip, setLocked, unequip } from './api';
 import { copyById, isWorn, mine, wearOnly, type GearContext } from './context';
 import { renderGrid } from './grid';
@@ -41,18 +42,23 @@ export function renderDetail(ctx: GearContext): void {
 
   const worn = isWorn(ctx, copy);
   const current = worn || !mine(ctx) || selling ? undefined : copyById(ctx, gear.equipped[copy.slot]);
-  const action = el('button', 'detail-action', worn ? 'Unequip' : 'Equip');
+  // Equip, the panel's main button; worn, Unequip, a secondary one (taking it off isn't going anywhere).
+  const action = el('button', `detail-action action ${worn ? 'secondary' : 'main'}`, worn ? 'Unequip' : 'Equip');
   action.type = 'button';
-  action.disabled = ctx.busy;
-  action.classList.toggle('secondary', worn);
+  working(action, ctx.busy, worn ? `unequip:${copy.slot}` : `equip:${copy.id}`);
   action.addEventListener('click', () => void (worn ? unequip(ctx, copy.slot) : equip(ctx, copy.id)));
 
-  // Upgrade: to the forge, with this copy on the anvil. Off when there's nothing left to do: fully
-  // refined, and a masterwork or with no bonus.
-  const upgrade = el('button', 'detail-action secondary', 'Upgrade');
-  upgrade.type = 'button';
-  upgrade.disabled = ctx.busy || forgePlan(copy).kind === 'done';
-  upgrade.addEventListener('click', () => ctx.host.go(`/forge/?copy=${encodeURIComponent(copy.id)}`));
+  // Upgrade: to the forge, with this copy on the anvil (not while a change is on its way). With nothing left to
+  // do (fully refined, and a masterwork or with no bonus), "✓ Max" in its place.
+  let upgrade: HTMLElement = doneMark('Max');
+  if (forgePlan(copy).kind !== 'done') {
+    const button = el('button', 'detail-action action secondary', 'Upgrade');
+    button.type = 'button';
+    button.addEventListener('click', () => {
+      if (!ctx.busy) ctx.host.go(`/forge/?copy=${encodeURIComponent(copy.id)}`);
+    });
+    upgrade = button;
+  }
 
   const lock = lockFor(ctx, copy);
   if (lock) top.append(lock);
@@ -105,9 +111,9 @@ function effectList(copy: GearCopy, className: string): HTMLElement {
 function lockFor(ctx: GearContext, copy: GearCopy): HTMLElement | null {
   if (copy.locked === undefined) return null;
   if (mine(ctx) && !wearOnly(ctx) && !ctx.selling) {
-    const lock = el('button', 'detail-lock');
+    const lock = el('button', 'detail-lock action secondary icon');
     lock.type = 'button';
-    lock.disabled = ctx.busy;
+    working(lock, ctx.busy, `lock:${copy.id}`);
     lock.classList.toggle('on', copy.locked);
     lock.setAttribute('aria-pressed', String(copy.locked));
     lock.setAttribute('aria-label', 'Locked');
@@ -117,7 +123,11 @@ function lockFor(ctx: GearContext, copy: GearCopy): HTMLElement | null {
     return lock;
   }
   if (!copy.locked) return null;
-  const lock = el('span', 'detail-lock on');
+  const lock = el('button', 'detail-lock action secondary icon on');
+  lock.type = 'button';
+  lock.disabled = true;
+  lock.setAttribute('aria-pressed', 'true');
+  lock.setAttribute('aria-label', 'Locked');
   lock.title = 'Locked';
   lock.append(padlock(true));
   return lock;

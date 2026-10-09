@@ -1,5 +1,5 @@
 import markup from './dressing.html?raw';
-import { API, dropdown, fillServers } from '../shared/ui';
+import { API, busyWith, dropdown, fillServers } from '../shared/ui';
 import type { OutfitsView } from '../shared/outfits';
 import type { Page } from '../site/page';
 import { api, currentMe, currentServer, loadMe, logOut, setServer } from '../site/session';
@@ -83,11 +83,11 @@ async function load(ctx: DressingContext): Promise<void> {
 async function wear(ctx: DressingContext): Promise<void> {
   const server = currentServer();
   if (ctx.busy || !server || !ctx.picked) return;
-  ctx.busy = true;
+  ctx.busy = busyWith(`wear:${ctx.picked}`);
   status(ctx, null);
   render(ctx);
   const res = await api<OutfitsView>('/api/outfits/wear', { method: 'POST', body: JSON.stringify({ guild: server, outfit: ctx.picked }) });
-  ctx.busy = false;
+  ctx.busy = null;
   if (!res.ok) {
     render(ctx);
     return failed(ctx, res, 'Could not put that on. Try again.');

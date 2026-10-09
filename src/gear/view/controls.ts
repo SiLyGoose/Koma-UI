@@ -1,5 +1,5 @@
 import { dropdown } from '../../shared/ui';
-import { hoverSound, itemPicked, type Slot, starFilter } from '../../shared/items';
+import { hoverSound, itemPicked, type Slot } from '../../shared/items';
 import { loadGear, unequipEverything } from './api';
 import type { GearContext } from './context';
 import { unpick } from './detail';
@@ -26,16 +26,10 @@ export function wireControls(ctx: GearContext): () => void {
     void loadMembers(ctx);
   });
 
-  for (const tab of ui.tabs) {
-    tab.addEventListener('click', () => {
-      ctx.filter = tab.dataset.filter as Slot | 'all';
-      render(ctx);
-    });
-  }
-
-  starFilter(ui.stars, (choice) => {
-    ctx.stars = choice;
-    renderGrid(ctx);
+  ui.filter.onChange((choice) => {
+    ctx.filter = choice.slot;
+    ctx.stars = choice.stars;
+    render(ctx);
   });
 
   ui.search.addEventListener('input', () => {
@@ -106,6 +100,7 @@ export function wireControls(ctx: GearContext): () => void {
     window.removeEventListener('resize', onResize);
     if (ui.sellConfirm.open) ui.sellConfirm.close();
     serverPicker.destroy();
+    ui.filter.destroy();
   };
 }
 

@@ -40,8 +40,7 @@ export function renderGrid(ctx: GearContext): void {
       // Worn, saved in a loadout or locked: never sold, so not to be picked.
       const sellable = typeof copy.sell === 'number';
       const on = selling.has(copy.id);
-      card.disabled = !sellable || ctx.busy;
-      card.classList.toggle('unsellable', !sellable);
+      card.disabled = !sellable;
       card.classList.toggle('to-sell', on);
       card.setAttribute('aria-pressed', String(on));
       if (on) card.append(el('span', 'item-check', '✓'));

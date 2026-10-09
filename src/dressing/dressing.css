@@ -28,30 +28,8 @@
   align-items: center;
 }
 
-.dressing-back.back {
-  display: grid;
-  place-items: center;
-  width: 42px;
-  height: 42px;
-  padding: 0;
-  border: 1px solid #5a5262;
-  border-radius: 10px;
-  background: linear-gradient(180deg, #2d2a33, #1a191e);
-  box-shadow:
-    inset 0 0 0 1px rgb(216 191 122 / 30%),
-    0 3px 8px rgb(0 0 0 / 40%);
-  color: #efe3bf;
-}
-
-.dressing-back.back:hover {
-  border-color: rgb(216 191 122 / 70%);
-  background: linear-gradient(180deg, #2d2a33, #1a191e);
-  color: #fff;
-}
-
+/* Back to gear: the site's icon button (../shared/ui/button/). */
 .dressing-back svg {
-  width: 22px;
-  height: 22px;
   fill: currentColor;
 }
 
@@ -377,63 +355,10 @@
   font-size: 15px;
 }
 
+/* Wear, or Get in Shop: the site's big buttons (../shared/ui/button/), main and secondary. */
 .dressing-action {
   flex: none;
   min-width: 150px;
-  padding: 12px 26px;
-  border: 1px solid #c9a35a;
-  border-radius: 10px;
-  background: linear-gradient(180deg, #c4585a, #8e3335);
-  box-shadow:
-    inset 0 0 0 2px #7a2a2c,
-    inset 0 0 0 3px rgb(255 226 160 / 45%),
-    0 6px 14px rgb(0 0 0 / 40%);
-  color: #fff;
-  font: inherit;
-  font-size: 17px;
-  font-weight: 700;
-  text-align: center;
-  text-decoration: none;
-  text-shadow: 0 1px 2px rgb(0 0 0 / 40%);
-  cursor: pointer;
-}
-
-.dressing-action:hover:not(:disabled) {
-  background: linear-gradient(180deg, #d0686a, #9c3a3c);
-}
-
-.dressing-action:focus-visible {
-  outline: 2px solid var(--gold);
-  outline-offset: 3px;
-}
-
-/* Worn already: nothing to press. */
-.dressing-action:disabled {
-  border-color: #5a5262;
-  background: linear-gradient(180deg, #2d2a33, #1a191e);
-  box-shadow: inset 0 0 0 1px rgb(216 191 122 / 25%);
-  color: #9fe3b4;
-  text-shadow: none;
-  cursor: default;
-}
-
-/* Not theirs yet: to the shop, in gold. */
-.dressing-action.get {
-  background: linear-gradient(180deg, #e7c77e, #b8924a);
-  box-shadow:
-    inset 0 0 0 2px #8f6d2c,
-    inset 0 0 0 3px rgb(255 246 220 / 60%),
-    0 6px 14px rgb(0 0 0 / 40%);
-  color: #2a1f0e;
-  text-shadow: none;
-}
-
-.dressing-action.get:hover {
-  background: linear-gradient(180deg, #f0d593, #c7a158);
-}
-
-.dressing-action[hidden] {
-  display: none;
 }
 
 /* ------------------------------------------------------------------ phones */
@@ -467,9 +392,11 @@
     font-size: 19px;
   }
 
-  .dressing-action {
+  /* A size down, to the site's regular buttons. */
+  .dressing-foot .dressing-action {
     min-width: 0;
-    padding: 10px 18px;
+    min-height: 40px;
+    padding: 0 18px;
     font-size: 15px;
   }
 

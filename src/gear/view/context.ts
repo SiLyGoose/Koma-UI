@@ -1,4 +1,5 @@
-import type { GearCopy, GearView, Slot, StarChoice } from '../../shared/items';
+import { armoryFilter, type ArmoryFilter, type GearCopy, type GearView, type Slot, type StarChoice } from '../../shared/items';
+import type { Busy } from '../../shared/ui';
 import type { GearHost, Member } from './types';
 
 /** The view's elements, found once in its root. */
@@ -11,7 +12,8 @@ export interface GearUi {
   totals: HTMLElement;
   armoryTitle: HTMLElement;
   search: HTMLInputElement;
-  stars: HTMLElement;
+  /** The armory's Filter: its type and stars. */
+  filter: ArmoryFilter;
   grid: HTMLElement;
   detail: HTMLElement;
   loadoutButton: HTMLButtonElement;
@@ -28,7 +30,6 @@ export interface GearUi {
   rosterList: HTMLElement;
   views: HTMLButtonElement[];
   slots: HTMLButtonElement[];
-  tabs: HTMLButtonElement[];
 }
 
 /** Everything one mounted gear view knows: its host, its elements, and what it's showing. */
@@ -38,7 +39,7 @@ export interface GearContext {
   ui: GearUi;
   gear: GearView | null;
   filter: Slot | 'all';
-  /** The star tier the armory shows (its star chips: ../../shared/items/star-filter.ts). */
+  /** The star tier the armory shows (its Filter: ../../shared/items/armory-filter/). */
   stars: StarChoice;
   /** What the armory's search asks for (trimmed and lowercased): every word in a card's name or description (../../shared/items/search.ts). */
   query: string;
@@ -46,8 +47,8 @@ export interface GearContext {
   view: 'common' | 'gear';
   /** The copy shown over the character, if any. */
   picked: string | null;
-  /** An equip, unequip or loadout switch on its way: the page waits for it before taking another. */
-  busy: boolean;
+  /** A change on its way (an equip, unequip, lock, loadout switch or sale) and its button: the page waits for it before taking another. */
+  busy: Busy | null;
   /** Everyone in the roster (empty until it's loaded, or with a bot from before it). */
   members: Member[];
   /** Whose gear is shown: someone else's (to look at only), or null for their own. With a party, always someone (to look at only, them too). */
@@ -76,7 +77,7 @@ export function createContext(root: HTMLElement, host: GearHost): GearContext {
       totals: $('totals'),
       armoryTitle: $('armory-title'),
       search: $<HTMLInputElement>('armory-search'),
-      stars: $('armory-stars'),
+      filter: armoryFilter($('armory-filter')),
       grid: $('armory-grid'),
       detail: $('detail'),
       loadoutButton: $<HTMLButtonElement>('loadout-button'),
@@ -93,7 +94,6 @@ export function createContext(root: HTMLElement, host: GearHost): GearContext {
       rosterList: $('roster-list'),
       views: [...root.querySelectorAll<HTMLButtonElement>('[data-view]')],
       slots: [...root.querySelectorAll<HTMLButtonElement>('.slot')],
-      tabs: [...root.querySelectorAll<HTMLButtonElement>('[data-filter]')],
     },
     gear: null,
     filter: 'all',
@@ -101,7 +101,7 @@ export function createContext(root: HTMLElement, host: GearHost): GearContext {
     query: '',
     view: 'gear',
     picked: null,
-    busy: false,
+    busy: null,
     members,
     viewing: party ? (members.find((m) => m.userId === party.first) ?? members[0] ?? null) : null,
     loads: 0,

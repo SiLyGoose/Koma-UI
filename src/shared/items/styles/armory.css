@@ -9,58 +9,30 @@
   box-shadow: var(--frame-shadow);
 }
 
-/* The name board, hung over the frame's top edge. */
+/* The name board (the site's: ../../style.css's .plaque), hung over the frame's top edge. */
 .armory-plaque {
   position: absolute;
   top: -16px;
   left: 50%;
   transform: translateX(-50%);
   max-width: calc(100% - 40px);
-  padding: 6px 22px;
-  border-radius: 6px;
-  background: linear-gradient(180deg, #2d2a33, #1a191e);
-  border: 2px solid #5a5262;
-  box-shadow: inset 0 0 0 2px #141318, inset 0 0 0 3px rgb(216 191 122 / 45%), 0 4px 10px rgb(0 0 0 / 50%);
-  color: #efe3bf;
-  font-size: 15px;
-  font-style: italic;
-  font-weight: 600;
-  letter-spacing: 0.02em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.armory-tabs {
+/* Over the sheet: the search, and the Filter beside it (../armory-filter/), as tall as each other. */
+.armory-tools {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
   margin: 4px 0 12px;
 }
 
-.armory-tabs button {
-  flex: 1 1 auto;
-  padding: 6px 10px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: var(--panel-2);
-  color: var(--muted);
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
+.armory-tools .armory-search {
+  flex: 1;
 }
 
-.armory-tabs button:hover {
-  color: var(--text);
-}
-
-.armory-tabs button[aria-selected='true'] {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--accent-text);
-}
-
-/* Searching the cards by name or description (each page places it). */
+/* Searching the cards by name or description. */
 .armory-search {
   display: block;
   width: 100%;
@@ -74,7 +46,7 @@
 }
 
 .armory-search:focus {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--gold);
   outline-offset: 1px;
 }
 
@@ -84,6 +56,8 @@
  * parchment (its shading and edge line go right under it) instead of in a strip of its own.
  */
 .armory-sheet {
+  /* The keyboard's focus ring (the site's buttons', the cards'): ink, since gold barely shows on parchment. */
+  --focus: var(--ink);
   display: flex;
   flex-direction: column;
   min-height: 240px;

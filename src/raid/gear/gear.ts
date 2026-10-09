@@ -1,4 +1,5 @@
 import '../../shared/style.css';
+import '../../shared/ui/button/button.css';
 import '../../shared/items/items.css';
 import '../../gear/gear.css';
 import './gear.css';

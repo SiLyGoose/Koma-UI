@@ -1,5 +1,6 @@
 import { characterOf } from '../shared/characters';
 import { el } from '../shared/items';
+import { working } from '../shared/ui';
 import { coin, points } from '../shared/util';
 import type { Outfit } from '../shared/outfits';
 import type { OutfitsContext } from './context';
@@ -22,7 +23,6 @@ function card(ctx: OutfitsContext, outfit: Outfit): HTMLButtonElement {
   button.type = 'button';
   button.dataset.outfit = outfit.id;
   button.dataset.state = state;
-  button.disabled = ctx.busy && state !== 'owned';
   if (state === 'owned') button.setAttribute('aria-disabled', 'true');
 
   const sprite = el('img', 'outfit-sprite');
@@ -62,5 +62,6 @@ export function renderBuy(ctx: OutfitsContext): void {
   ui.buyPrice.replaceChildren(...price(buying.price));
   ui.buyNote.hidden = left >= 0;
   ui.buyNote.textContent = left >= 0 ? '' : `You have ${points(view.balance)}: ${points(-left)} short.`;
-  ui.buyConfirm.disabled = ctx.busy || left < 0;
+  ui.buyConfirm.disabled = left < 0;
+  working(ui.buyConfirm, ctx.busy, 'buy');
 }

@@ -1,4 +1,4 @@
-import type { Slot, StarChoice } from '../shared/items';
+import { armoryFilter, type Slot, type StarChoice } from '../shared/items';
 import type { Databank, DatabankItem, Owned } from './types';
 
 /** Narrow screens show the item picked in a sheet over the list, only once one is picked. */
@@ -18,9 +18,8 @@ function findUi(root: HTMLElement) {
     server: $<HTMLSelectElement>('server'),
     list: $('db-list'),
     count: $('db-count'),
-    ownedOnly: $<HTMLButtonElement>('owned-only'),
-    stars: $('stars'),
-    tabs: [...root.querySelectorAll<HTMLButtonElement>('[data-filter]')],
+    /** The Filter: the type, the stars, and Owned only (when logged in). */
+    filter: armoryFilter($('filter')),
   };
 }
 

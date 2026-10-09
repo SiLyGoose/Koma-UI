@@ -52,7 +52,7 @@
   content: '';
   position: absolute;
   inset: 0 2px 3px;
-  background: linear-gradient(180deg, #2d2a33, #1a191e);
+  background: var(--plaque);
   clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%);
 }
 
@@ -66,7 +66,7 @@
   border: 2px solid var(--gold);
   border-radius: 50%;
   background: #141318;
-  color: #efe3bf;
+  color: var(--plaque-text);
   font-size: 15px;
   font-weight: 800;
   line-height: 1;

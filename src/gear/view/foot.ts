@@ -1,5 +1,6 @@
 import { coin, points } from '../../shared/util';
 import { art, el, type Slot, SLOT_NAME } from '../../shared/items';
+import { working } from '../../shared/ui';
 import { switchTo } from './api';
 import { copyById, mine, wearOnly, type GearContext } from './context';
 import { sale } from './selling';
@@ -17,8 +18,10 @@ export function renderFoot(ctx: GearContext): void {
   if (active) ui.loadoutButton.append(el('span', 'hero-chip-badge', String(active.number)));
   ui.loadoutButton.setAttribute('aria-label', `Loadout: ${active?.name ?? 'none'}`);
   ui.loadoutButton.title = active ? `Loadout: ${active.name}` : 'Loadout';
-  ui.loadoutButton.disabled = busy || gear.loadouts.length < 2;
-  ui.unequipAll.disabled = busy || SLOTS.every((slot) => !gear.equipped[slot]);
+  ui.loadoutButton.disabled = gear.loadouts.length < 2;
+  working(ui.loadoutButton, busy, 'loadout');
+  ui.unequipAll.disabled = SLOTS.every((slot) => !gear.equipped[slot]);
+  working(ui.unequipAll, busy, 'unequip-all');
   ui.unequipAll.hidden = !mine(ctx) || selling !== null;
   // Sell: to start picking, then (with some picked) to confirm. A bot from before selling on the site prices nothing.
   const { count, total } = sale(ctx);
@@ -26,17 +29,17 @@ export function renderFoot(ctx: GearContext): void {
   ui.sell.textContent = '';
   if (selling && count > 0) ui.sell.append(`Sell ${count} · ${points(total)}`, coin('coin', 'zeiucoins'));
   else ui.sell.append(selling ? 'Select items' : 'Sell');
-  ui.sell.disabled = busy || (selling ? count === 0 : !gear.copies.some((c) => typeof c.sell === 'number'));
+  ui.sell.disabled = selling ? count === 0 : !gear.copies.some((c) => typeof c.sell === 'number');
+  working(ui.sell, busy, 'sell');
   ui.sell.classList.toggle('on', selling !== null);
   ui.sellCancel.hidden = selling === null;
-  ui.sellCancel.disabled = busy;
 
   ui.loadoutMenu.textContent = '';
   for (const loadout of gear.loadouts) {
     const row = el('button', 'loadout-row');
     row.type = 'button';
     // Someone else's loadouts are there to look at, not to switch.
-    row.disabled = busy || (!mine(ctx) && !loadout.active);
+    row.disabled = !mine(ctx) && !loadout.active;
     row.classList.toggle('active', loadout.active);
     row.setAttribute('aria-current', String(loadout.active));
     const icons = el('span', 'loadout-icons');

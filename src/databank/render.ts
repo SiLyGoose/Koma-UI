@@ -6,9 +6,7 @@ import { renderList } from './list';
 export function render(ctx: DatabankContext): void {
   const { ui } = ctx;
   ui.databank.hidden = false;
-  for (const tab of ui.tabs) tab.setAttribute('aria-selected', String(tab.dataset.filter === ctx.slotFilter));
-  ui.ownedOnly.hidden = ctx.owned === null;
-  ui.ownedOnly.setAttribute('aria-pressed', String(ctx.onlyOwned));
+  ui.filter.show({ slot: ctx.slotFilter, stars: ctx.starFilter, owned: ctx.owned === null ? null : ctx.onlyOwned });
   renderList(ctx);
   renderDetail(ctx);
 }

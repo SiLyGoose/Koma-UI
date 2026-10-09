@@ -1,4 +1,5 @@
 import type { Outfit, OutfitsView } from '../shared/outfits';
+import type { Busy } from '../shared/ui';
 
 /** The Outfits tab's elements, found once in its root. */
 export interface OutfitsUi {
@@ -20,8 +21,8 @@ export interface OutfitsContext {
   view: OutfitsView | null;
   /** The outfit the buy box is asking about. */
   buying: Outfit | null;
-  /** A buy on its way: the cards wait for it. */
-  busy: boolean;
+  /** A buy on its way (its button: 'buy'): the cards wait for it. */
+  busy: Busy | null;
 }
 
 export function createContext(root: HTMLElement): OutfitsContext {
@@ -41,7 +42,7 @@ export function createContext(root: HTMLElement): OutfitsContext {
     },
     view: null,
     buying: null,
-    busy: false,
+    busy: null,
   };
 }
 

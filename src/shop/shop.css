@@ -1,7 +1,8 @@
 /*
- * The shop (page.ts), as King's Raid's: its tabs stacked down a dark rail on the left, each a plaque with
- * its picture in a gold ring and its name, the one picked in red; the tab picked fills the rest of the
- * screen under the header. Phones: the tabs side by side across the top.
+ * The shop (page.ts), as King's Raid's: its tabs stacked down a dark rail on the left, each one of the site's
+ * buttons for a choice (../shared/ui/button/: the plaque, the one picked in the blue tint) with its picture in
+ * a ring and its name; the tab picked fills the rest of the screen under the header. Phones: the tabs side by
+ * side across the top.
  */
 .shop-page {
   /* The site header's height (../shared/ui/header/header.css), so the shop fills the screen under it exactly. */
@@ -38,41 +39,17 @@ body:has(.shop-page) {
   box-shadow: inset -1px 0 0 rgb(216 191 122 / 16%);
 }
 
+/* Its look and states are the site's (../shared/ui/button/); here, a tall tile down the rail. */
 .shop-tab {
-  position: relative;
-  display: flex;
-  align-items: center;
+  justify-content: flex-start;
   gap: 12px;
   width: 100%;
   min-height: 66px;
   padding: 10px 14px 10px 10px;
-  border: 1px solid #3a3842;
   border-radius: 10px;
-  background: linear-gradient(180deg, #27252d, #1b1a20);
-  box-shadow:
-    inset 0 0 0 2px #15141a,
-    inset 0 0 0 3px rgb(216 191 122 / 12%),
-    0 4px 10px rgb(0 0 0 / 35%);
-  color: var(--petal);
   font-size: 16px;
-  font-weight: 700;
   letter-spacing: 0.02em;
   text-align: left;
-  cursor: pointer;
-  transition:
-    color 0.15s ease,
-    border-color 0.15s ease,
-    transform 0.15s ease;
-}
-
-.shop-tab:hover {
-  border-color: #57535f;
-  color: var(--text);
-}
-
-.shop-tab:focus-visible {
-  outline: 2px solid var(--gold);
-  outline-offset: 2px;
 }
 
 /* Its picture, in a gold ring. */
@@ -95,26 +72,16 @@ body:has(.shop-page) {
   height: 22px;
 }
 
-/* The tab picked: red, framed in gold, with a notch pointing at what it shows. */
+/* The tab picked: the tint (the site's), nudged towards what it shows, its picture's ring and a notch pointing at it in the tint's blue. */
 .shop-tab[aria-selected='true'] {
-  border-color: #c9a35a;
-  background: linear-gradient(180deg, #c4585a, #8e3335);
-  box-shadow:
-    inset 0 0 0 2px #7a2a2c,
-    inset 0 0 0 3px rgb(255 226 160 / 55%),
-    0 0 0 1px rgb(216 191 122 / 30%),
-    0 6px 16px rgb(185 74 76 / 30%);
-  color: #fff;
-  text-shadow: 0 1px 2px rgb(0 0 0 / 40%);
   transform: translateX(4px);
 }
 
 .shop-tab[aria-selected='true'] .shop-tab-icon {
-  background: radial-gradient(circle at 35% 30%, #fff3d6, #e3c27c);
   box-shadow:
-    inset 0 0 0 2px #fff6df,
-    0 2px 6px rgb(0 0 0 / 35%);
-  color: #8e3335;
+    inset 0 0 0 2px var(--tint-edge),
+    0 2px 6px rgb(0 0 0 / 45%);
+  color: var(--tint-text);
 }
 
 .shop-tab[aria-selected='true']::after {
@@ -124,9 +91,9 @@ body:has(.shop-page) {
   right: -7px;
   width: 12px;
   height: 12px;
-  border-top: 1px solid #c9a35a;
-  border-right: 1px solid #c9a35a;
-  background: #a9454a;
+  border-top: 1px solid var(--tint-edge);
+  border-right: 1px solid var(--tint-edge);
+  background: var(--tint-flat);
   translate: 0 -50%;
   rotate: 45deg;
 }

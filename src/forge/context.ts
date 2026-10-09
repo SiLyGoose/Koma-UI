@@ -1,4 +1,5 @@
-import { equippedIds, forgePlan, type GearCopy, type GearView, type Slot, type StarChoice } from '../shared/items';
+import { armoryFilter, type ArmoryFilter, equippedIds, forgePlan, type GearCopy, type GearView, type Slot, type StarChoice } from '../shared/items';
+import type { Busy } from '../shared/ui';
 import { currentMe, currentServer } from '../site/session';
 
 /** The forge's elements, found once in its root. */
@@ -18,8 +19,8 @@ export interface ForgeUi {
   armoryTitle: HTMLElement;
   grid: HTMLElement;
   search: HTMLInputElement;
-  stars: HTMLElement;
-  tabs: HTMLButtonElement[];
+  /** The armory's Filter: its type and stars. */
+  filter: ArmoryFilter;
   result: HTMLElement;
 }
 
@@ -28,7 +29,7 @@ export interface ForgeContext {
   ui: ForgeUi;
   gear: GearView | null;
   filter: Slot | 'all';
-  /** The star tier the armory shows (its star chips: ../shared/items/star-filter.ts). */
+  /** The star tier the armory shows (its Filter: ../shared/items/armory-filter/). */
   stars: StarChoice;
   /** What the armory's search asks for (trimmed and lowercased): every word in a card's name or description (../shared/items/search.ts). */
   query: string;
@@ -40,8 +41,8 @@ export interface ForgeContext {
   done: string | null;
   /** Whether the last refine or forge took (its line in the hint is green) or not. */
   doneWell: boolean;
-  /** A refine or forge on its way: the page waits for it before taking another. */
-  busy: boolean;
+  /** A refine or forge on its way (its button: 'strike'): the page waits for it before taking another. */
+  busy: Busy | null;
   /** How many cards across the armory is (3 to 5, by the screen: ../shared/items/items.css), so its blanks fill out the last row. */
   gridColumns: number;
 }
@@ -65,8 +66,7 @@ export function createContext(root: HTMLElement): ForgeContext {
       armoryTitle: $('armory-title'),
       grid: $('armory-grid'),
       search: $<HTMLInputElement>('armory-search'),
-      stars: $('armory-stars'),
-      tabs: [...root.querySelectorAll<HTMLButtonElement>('[data-filter]')],
+      filter: armoryFilter($('armory-filter')),
       result: $('result'),
     },
     gear: null,
@@ -77,7 +77,7 @@ export function createContext(root: HTMLElement): ForgeContext {
     material: null,
     done: null,
     doneWell: true,
-    busy: false,
+    busy: null,
     gridColumns: 0,
   };
 }

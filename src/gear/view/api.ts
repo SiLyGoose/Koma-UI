@@ -1,4 +1,5 @@
 import type { GearView, Slot } from '../../shared/items';
+import { busyWith } from '../../shared/ui';
 import { copyById, status, type GearContext } from './context';
 import { renderDetail } from './detail';
 import { renderFoot } from './foot';
@@ -50,17 +51,20 @@ export async function loadGear(ctx: GearContext): Promise<void> {
   render(ctx);
 }
 
-/** Asks the bot to change their gear (one at a time), and draws what it comes back as. */
-export async function change(ctx: GearContext, path: string, body: Record<string, unknown>, what: string): Promise<GearView | null> {
+/**
+ * Asks the bot to change their gear (one at a time), and draws what it comes back as. `action` names the
+ * button that asked, and what it's on (`equip:<copy>`), so only that button shows it's working.
+ */
+export async function change(ctx: GearContext, action: string, path: string, body: Record<string, unknown>, what: string): Promise<GearView | null> {
   // A party's link says its server itself.
   const server = ctx.host.server();
   if (ctx.busy || (!server && !ctx.party)) return null;
-  ctx.busy = true;
+  ctx.busy = busyWith(action);
   renderGrid(ctx);
   renderDetail(ctx);
   renderFoot(ctx);
   const res = await ctx.host.api<GearView>(path, { method: 'POST', body: JSON.stringify({ guild: server ?? undefined, ...body }) });
-  ctx.busy = false;
+  ctx.busy = null;
   if (!res.ok) {
     renderGrid(ctx);
     renderDetail(ctx);
@@ -74,9 +78,13 @@ export async function change(ctx: GearContext, path: string, body: Record<string
   return res.data;
 }
 
-export const equip = (ctx: GearContext, copy: string): Promise<unknown> => change(ctx, '/api/gear/equip', { copy }, 'Could not equip that. Try again.');
-export const unequip = (ctx: GearContext, slot: Slot): Promise<unknown> => change(ctx, '/api/gear/unequip', { slot }, 'Could not unequip that. Try again.');
-export const unequipEverything = (ctx: GearContext): Promise<unknown> => change(ctx, '/api/gear/unequip-all', {}, 'Could not unequip everything. Try again.');
-export const switchTo = (ctx: GearContext, loadout: number): Promise<unknown> => change(ctx, '/api/gear/loadout', { loadout }, 'Could not switch loadouts. Try again.');
+export const equip = (ctx: GearContext, copy: string): Promise<unknown> =>
+  change(ctx, `equip:${copy}`, '/api/gear/equip', { copy }, 'Could not equip that. Try again.');
+export const unequip = (ctx: GearContext, slot: Slot): Promise<unknown> =>
+  change(ctx, `unequip:${slot}`, '/api/gear/unequip', { slot }, 'Could not unequip that. Try again.');
+export const unequipEverything = (ctx: GearContext): Promise<unknown> =>
+  change(ctx, 'unequip-all', '/api/gear/unequip-all', {}, 'Could not unequip everything. Try again.');
+export const switchTo = (ctx: GearContext, loadout: number): Promise<unknown> =>
+  change(ctx, 'loadout', '/api/gear/loadout', { loadout }, 'Could not switch loadouts. Try again.');
 export const setLocked = (ctx: GearContext, copy: string, locked: boolean): Promise<unknown> =>
-  change(ctx, '/api/gear/lock', { copy, locked }, locked ? 'Could not lock that. Try again.' : 'Could not unlock that. Try again.');
+  change(ctx, `lock:${copy}`, '/api/gear/lock', { copy, locked }, locked ? 'Could not lock that. Try again.' : 'Could not unlock that. Try again.');

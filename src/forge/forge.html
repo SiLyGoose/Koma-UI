@@ -30,21 +30,18 @@
       </div>
       <div class="anvil-foot">
         <p id="cost" class="anvil-cost" aria-label="Cost"></p>
-        <button type="button" id="go" class="anvil-go">Refine Gear</button>
+        <button type="button" id="go" class="anvil-go action main large">Refine Gear</button>
       </div>
     </div>
 
     <!-- Their armory (as the gear page's): pick a copy to put on the anvil. -->
     <div class="armory">
-      <div class="armory-plaque"><span id="armory-title">Armory</span></div>
-      <input id="armory-search" class="armory-search" type="search" placeholder="Search items" aria-label="Search items" autocomplete="off" />
-      <div class="armory-tabs" role="tablist" aria-label="Show">
-        <button type="button" role="tab" data-filter="all" aria-selected="true">All</button>
-        <button type="button" role="tab" data-filter="weapon" aria-selected="false">Weapons</button>
-        <button type="button" role="tab" data-filter="armor" aria-selected="false">Armor</button>
-        <button type="button" role="tab" data-filter="treasure" aria-selected="false">Treasures</button>
+      <div class="armory-plaque plaque"><span id="armory-title">Armory</span></div>
+      <!-- The search, and the Filter beside it (src/shared/items/armory-filter/ fills it in). -->
+      <div class="armory-tools">
+        <input id="armory-search" class="armory-search" type="search" placeholder="Search items" aria-label="Search items" autocomplete="off" />
+        <div id="armory-filter" class="armory-filter"></div>
       </div>
-      <div id="armory-stars" class="star-chips" aria-label="Stars"></div>
       <div class="armory-sheet">
         <div class="sheet-scroll">
           <div id="armory-grid" class="armory-grid"></div>

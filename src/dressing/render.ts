@@ -1,5 +1,6 @@
 import { characterOf } from '../shared/characters';
 import { el } from '../shared/items';
+import { working } from '../shared/ui';
 import type { Outfit } from '../shared/outfits';
 import { coin, points } from '../shared/util';
 import type { DressingContext } from './context';
@@ -72,8 +73,9 @@ export function render(ctx: DressingContext): void {
   ui.model.alt = picked.name;
   ui.name.textContent = picked.name;
   stateLine(ui.state, picked, state);
-  ui.wear.hidden = state === 'locked';
-  ui.wear.disabled = ctx.busy || state === 'worn';
-  ui.wear.textContent = state === 'worn' ? 'Equipped' : 'Wear';
+  // Theirs: Wear. Worn already: "✓ Equipped" in its place. Not theirs: to the shop.
+  ui.wear.hidden = state !== 'owned';
+  working(ui.wear, ctx.busy, `wear:${picked.id}`);
+  ui.worn.hidden = state !== 'worn';
   ui.get.hidden = state !== 'locked';
 }

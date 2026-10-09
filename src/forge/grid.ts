@@ -35,7 +35,6 @@ export function renderGrid(ctx: ForgeContext): void {
     // The copy on the anvil stays in its place, darkened and named for what's being done to it.
     button.classList.toggle('selected', isTarget);
     button.classList.toggle('material', isMaterial);
-    button.classList.toggle('unusable', unusable);
     button.classList.toggle('masterwork', copy.masterwork);
     button.disabled = unusable;
     button.setAttribute('aria-label', `${copy.name}, ${copy.stars} star${copy.stars === 1 ? '' : 's'}, R${copy.level}${equipped.has(copy.id) ? ', equipped' : ''}${copy.locked ? ', locked' : ''}${isTarget ? ', on the anvil' : isMaterial ? ', material' : ''}`);

@@ -1,5 +1,4 @@
 import { dropdown } from '../shared/ui';
-import { type Slot, starFilter } from '../shared/items';
 import { setServer } from '../site/session';
 import { loadGear, strikeAnvil } from './api';
 import type { ForgeContext } from './context';
@@ -21,16 +20,10 @@ export function wireControls(ctx: ForgeContext): () => void {
     void loadGear(ctx);
   });
 
-  for (const tab of ui.tabs) {
-    tab.addEventListener('click', () => {
-      ctx.filter = tab.dataset.filter as Slot | 'all';
-      render(ctx);
-    });
-  }
-
-  starFilter(ui.stars, (choice) => {
-    ctx.stars = choice;
-    renderGrid(ctx);
+  ui.filter.onChange((choice) => {
+    ctx.filter = choice.slot;
+    ctx.stars = choice.stars;
+    render(ctx);
   });
 
   ui.search.addEventListener('input', () => {
@@ -88,5 +81,6 @@ export function wireControls(ctx: ForgeContext): () => void {
     document.removeEventListener('keydown', onKey);
     window.removeEventListener('resize', onResize);
     serverPicker.destroy();
+    ui.filter.destroy();
   };
 }

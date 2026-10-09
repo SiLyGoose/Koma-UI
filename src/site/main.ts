@@ -1,6 +1,7 @@
 import '../shared/style.css';
-// Before the pages' styles, which go on top of it (header.ts imports it too).
+// Before the pages' styles, which go on top of them (header.ts and button.ts import them too).
 import '../shared/ui/header/header.css';
+import '../shared/ui/button/button.css';
 import '../shared/items/items.css';
 import '../hub/hub.css';
 import '../gear/gear.css';
