@@ -51,8 +51,10 @@
 
 .slot-frame .stars {
   position: absolute;
-  left: 4px;
+  right: 0;
   bottom: 3px;
+  left: 0;
+  justify-content: center;
 }
 
 .slot-level {

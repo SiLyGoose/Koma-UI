@@ -31,10 +31,13 @@
   color: var(--ink);
 }
 
+/* Across the bottom, in the middle. */
 .item .stars {
   position: absolute;
-  left: 6px;
+  right: 0;
   bottom: 5px;
+  left: 0;
+  justify-content: center;
 }
 
 /* A wave curling in the bottom corner, like an old print. */
