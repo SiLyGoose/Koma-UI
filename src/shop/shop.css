@@ -1,14 +1,20 @@
 /*
- * The shop (page.ts), as King's Raid's: its tabs stacked down a dark rail on the left, each one of the site's
- * buttons for a choice (../shared/ui/button/: the plaque, the one picked in the blue tint) with its picture in
- * a ring and its name; the tab picked fills the rest of the screen under the header. Phones: the tabs side by
- * side across the top.
+ * The shop (page.ts), as King's Raid's: its tabs stacked down the left, each one of the site's buttons for a
+ * choice (../shared/ui/button/: the plaque, the one picked in the blue tint) with its picture in a ring and its
+ * name, over the tab picked, which fills the whole screen under the header: what it draws behind itself (the
+ * Wish's sky) carries on under the tabs, and what's on it starts beside them. Phones: the tabs side by side
+ * across the top.
+ *
+ * So the tab picked keeps clear of the tabs, the panel says how far in it starts: --shop-inset-left (the rail's
+ * width) and --shop-inset-top (on phones, its height), which each tab adds to its own padding.
  */
 .shop-page {
   /* The site header's height (../shared/ui/header/header.css), so the shop fills the screen under it exactly. */
   --header-h: 56px;
+  --rail-w: clamp(156px, 15vw, 212px);
   display: grid;
-  grid-template-columns: clamp(156px, 15vw, 212px) minmax(0, 1fr);
+  grid-template-columns: var(--rail-w) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
   max-width: none;
   height: calc(100dvh - var(--header-h));
   padding: 0;
@@ -26,17 +32,18 @@ body:has(.shop-page) {
   overflow: hidden;
 }
 
+/* The tabs, over the tab picked, on the faintest wash of white: no wall between them and it. */
 .shop-rail {
+  position: relative;
+  z-index: 2;
+  grid-column: 1;
+  grid-row: 1;
   display: flex;
   flex-direction: column;
   gap: 10px;
   padding: 18px 12px;
   overflow-y: auto;
-  border-right: 1px solid #2c2a32;
-  background:
-    radial-gradient(ellipse at 0% 0%, rgb(216 191 122 / 7%), transparent 60%),
-    linear-gradient(180deg, #19181e, #0f0e12);
-  box-shadow: inset -1px 0 0 rgb(216 191 122 / 16%);
+  background: rgb(255 255 255 / 4%);
 }
 
 /* Its look and states are the site's (../shared/ui/button/); here, a tall tile down the rail. */
@@ -98,8 +105,13 @@ body:has(.shop-page) {
   rotate: 45deg;
 }
 
+/* The whole shop, under the rail. */
 .shop-panel {
+  --shop-inset-left: var(--rail-w);
+  --shop-inset-top: 0px;
   position: relative;
+  grid-column: 1 / -1;
+  grid-row: 1;
   min-width: 0;
   min-height: 0;
   overflow: hidden;
@@ -108,8 +120,16 @@ body:has(.shop-page) {
 /* Phones: the tabs across the top, side by side, the tab picked under them. */
 @media (max-width: 760px) {
   .shop-page {
+    /* The rail across the top: its padding and a tab's height. */
+    --rail-h: 60px;
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-rows: var(--rail-h) minmax(0, 1fr);
+  }
+
+  .shop-panel {
+    --shop-inset-left: 0px;
+    --shop-inset-top: var(--rail-h);
+    grid-row: 1 / -1;
   }
 
   .shop-rail {
@@ -117,9 +137,6 @@ body:has(.shop-page) {
     gap: 8px;
     padding: 8px 12px;
     overflow: visible;
-    border-right: 0;
-    border-bottom: 1px solid #2c2a32;
-    box-shadow: inset 0 -1px 0 rgb(216 191 122 / 16%);
   }
 
   .shop-tab {

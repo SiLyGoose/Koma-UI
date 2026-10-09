@@ -9,7 +9,9 @@
   flex-direction: column;
   gap: 16px;
   height: 100%;
-  padding: clamp(14px, 2.4dvh, 26px) clamp(16px, 3vw, 40px) 24px;
+  /* Clear of the shop's tabs (../shop/shop.css). */
+  padding: calc(var(--shop-inset-top, 0px) + clamp(14px, 2.4dvh, 26px)) clamp(16px, 3vw, 40px) 24px
+    calc(var(--shop-inset-left, 0px) + clamp(16px, 3vw, 40px));
   overflow-y: auto;
 }
 
@@ -335,7 +337,7 @@
 @media (max-width: 760px) {
   .outfits-page {
     gap: 12px;
-    padding: 12px 12px 20px;
+    padding: calc(var(--shop-inset-top, 0px) + 12px) 12px 20px;
   }
 
   .outfits-bar {

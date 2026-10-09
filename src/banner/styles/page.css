@@ -24,7 +24,9 @@
   flex-direction: column;
   gap: clamp(10px, 2.6dvh, 24px);
   height: 100%;
-  padding: clamp(8px, 1.6dvh, 14px) clamp(16px, 4vw, 48px) clamp(10px, 2.4dvh, 22px);
+  /* Clear of the shop's tabs, which its sky carries on under (../../shop/shop.css). */
+  padding: calc(var(--shop-inset-top, 0px) + clamp(8px, 1.6dvh, 14px)) clamp(16px, 4vw, 48px) clamp(10px, 2.4dvh, 22px)
+    calc(var(--shop-inset-left, 0px) + clamp(16px, 4vw, 48px));
   overflow: hidden;
   background:
     radial-gradient(ellipse 55% 35% at 12% 18%, rgb(255 255 255 / 75%), transparent 70%),
@@ -757,7 +759,7 @@
 @media (max-width: 760px) {
   .banner-stage {
     gap: 14px;
-    padding-top: 10px;
+    padding-top: calc(var(--shop-inset-top, 0px) + 10px);
   }
 
   .banner-bar {
