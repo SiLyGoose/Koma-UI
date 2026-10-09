@@ -1,4 +1,4 @@
-/* A card: parchment framed in its tier's colour, on a lip (dark under a full picture: see below). */
+/* A card: parchment framed in its tier's colour, glowing in from its edges, on a lip (dark under a full picture: see below). */
 .item {
   --item-lip: #b3a47f;
   position: relative;
@@ -9,7 +9,7 @@
   border: 2px solid var(--tier, var(--parchment-edge));
   border-radius: 6px;
   background: linear-gradient(170deg, #fffaf0, #efe4c7);
-  box-shadow: 0 2px 0 var(--item-lip);
+  box-shadow: inset 0 0 14px 5px var(--tier-glow, transparent), 0 2px 0 var(--item-lip);
   overflow: hidden;
   cursor: pointer;
   transition: transform 0.12s ease, box-shadow 0.12s ease;

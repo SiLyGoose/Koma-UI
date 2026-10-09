@@ -29,6 +29,9 @@
 [data-stars='3'] { --tier: var(--star-3); }
 [data-stars='4'] { --tier: var(--star-4); }
 
+/* Its glow: an item's edges glow in towards the middle in its tier's colour, as they do in gold when it's picked. */
+[data-stars] { --tier-glow: color-mix(in srgb, var(--tier) 45%, transparent); }
+
 /* Wide screens: the page's panels in the middle of the screen under the header. */
 @media (min-width: 900px) {
   .gear-page {
