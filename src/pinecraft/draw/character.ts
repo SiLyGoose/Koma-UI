@@ -32,25 +32,23 @@ export function character(
   const bob = swing === null ? Math.sin(now / 400) * 1 : 0;
   const sprite = characterImage(outfit);
 
-  // The pickaxe: raised while still (behind the shape character; held up in front of the picture, where
-  // it would be hidden behind them), brought down in front in a swing. Digging up or down swings it
-  // that way instead.
+  // The pickaxe: raised while still (behind the shape character; held up in front of the picture),
+  // brought down in front in a swing. Digging up or down swings it that way instead.
   const rest = sprite ? -1.3 : -2.2;
   const strike = dir === 'up' ? (sprite ? -1.9 : -1.2) : dir === 'down' ? 0.9 : 0.25;
   const t = swing === null ? 0 : Math.sin(Math.min(1, swing) * Math.PI);
   const angle = rest + (strike - rest) * t;
 
   if (sprite) {
-    // Held in the picture's hand: behind the picture while still, in front during a swing.
+    // Held in the picture's hand, in front of the picture.
     // Where the picture's front hand is: each character's own (../../shared/characters.ts).
     const { hand: grip } = characterOf(outfit);
     const hand = { x: grip.x, y: grip.y + Math.round(bob) };
-    if (swing === null) heldPickaxe(g, hand, angle, pickaxe);
     const h = CHARACTER_HEIGHT;
     const w = (h * sprite.naturalWidth) / sprite.naturalHeight;
     g.imageSmoothingEnabled = false;
     g.drawImage(sprite, -w / 2, -h + Math.round(bob), w, h);
-    if (swing !== null) heldPickaxe(g, hand, angle, pickaxe);
+    heldPickaxe(g, hand, angle, pickaxe);
   } else {
     // Held at the shoulder, with a hand on the handle.
     drawnCharacter(g, bob);
