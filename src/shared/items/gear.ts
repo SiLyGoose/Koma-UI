@@ -85,6 +85,8 @@ export interface GearView {
   balance?: number | null;
   /** Their komaGems in the server (null when not known; absent from a bot from before forging on the site). */
   gems?: number | null;
+  /** The outfit they wear: the character they're drawn as (../characters.ts; absent from a bot from before outfits). */
+  outfit?: string;
   /**
    * How a refine or forge just went, in the answer to one: 'fail' when it didn't take (the copy stays as
    * it was). Absent means it worked (a bot from before refines could fail always sends none).

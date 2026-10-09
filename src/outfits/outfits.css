@@ -1,0 +1,433 @@
+/*
+ * The shop's Outfits tab (page.ts), as King's Raid's costume shop: tall cards side by side, each a
+ * character standing in a gold frame on a night-blue ground, its name across the lower part and, in a dark
+ * band at the bottom, its price (in red when it's more than they have) or that it's theirs. Over the site's
+ * star chart, with the server picker, a plaque and their zeiucoins on top.
+ */
+.outfits-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: 100%;
+  padding: clamp(14px, 2.4dvh, 26px) clamp(16px, 3vw, 40px) 24px;
+  overflow-y: auto;
+}
+
+.outfits-bar {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 12px;
+  align-items: center;
+}
+
+.outfits-bar .dd:has(> .server-pick),
+.outfits-bar > .server-pick {
+  justify-self: start;
+}
+
+/* At the bar's left its list hangs from its left edge (from its right, it would run off the screen). */
+.outfits-bar .dd:has(> .server-pick) .dd-list {
+  left: 0;
+  right: auto;
+}
+
+/* Its name on a plaque, as the armory's. */
+.outfits-title {
+  grid-column: 2;
+  margin: 0;
+  padding: 6px 26px;
+  border: 2px solid #5a5262;
+  border-radius: 6px;
+  background: linear-gradient(180deg, #2d2a33, #1a191e);
+  box-shadow:
+    inset 0 0 0 2px #141318,
+    inset 0 0 0 3px rgb(216 191 122 / 45%),
+    0 4px 10px rgb(0 0 0 / 50%);
+  color: #efe3bf;
+  font-size: 17px;
+  font-style: italic;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.outfits-wallet {
+  grid-column: 3;
+  justify-self: end;
+  margin: 0;
+}
+
+.outfits-purse {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  padding: 4px 14px 4px 6px;
+  border: 1px solid var(--line);
+  border-radius: 30px;
+  background: rgb(23 22 27 / 85%);
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.outfits-purse[hidden] {
+  display: none;
+}
+
+.outfit-coin {
+  width: 20px;
+  height: 20px;
+}
+
+.outfits-status {
+  margin: 0;
+}
+
+.outfits-status a {
+  color: var(--gold);
+  font-weight: 600;
+}
+
+/* The cards, in the middle of what's left of the panel. */
+.outfits-row {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: clamp(14px, 2vw, 28px);
+  align-content: center;
+  justify-content: center;
+}
+
+.outfits-row[hidden] {
+  display: none;
+}
+
+.outfit-card {
+  --frame: #b8924a;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  /* As big as the screen's width and height leave room for (the header, the bar, the margins). */
+  width: clamp(168px, min(17vw, (100dvh - 250px) * 0.5625), 260px);
+  aspect-ratio: 9 / 16;
+  padding: 0;
+  overflow: hidden;
+  border: 2px solid var(--frame);
+  border-radius: 12px;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 46%, rgb(126 150 230 / 34%), transparent 70%),
+    repeating-linear-gradient(45deg, rgb(255 255 255 / 3%) 0 2px, transparent 2px 11px),
+    linear-gradient(180deg, #2b3566 0%, #1b2146 55%, #10132b 100%);
+  box-shadow:
+    inset 0 0 0 3px #161a38,
+    inset 0 0 0 4px rgb(255 226 160 / 40%),
+    0 10px 24px rgb(0 0 0 / 50%);
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    filter 0.18s ease;
+}
+
+/* The diamonds on its frame's top corners. */
+.outfit-card::before,
+.outfit-card::after {
+  content: '';
+  position: absolute;
+  top: 7px;
+  z-index: 1;
+  width: 7px;
+  height: 7px;
+  background: rgb(255 226 160 / 70%);
+  rotate: 45deg;
+}
+
+.outfit-card::before {
+  left: 7px;
+}
+
+.outfit-card::after {
+  right: 7px;
+}
+
+.outfit-card:hover:not(:disabled, [data-state='owned']) {
+  --frame: #e2c07a;
+  box-shadow:
+    inset 0 0 0 3px #161a38,
+    inset 0 0 0 4px rgb(255 226 160 / 65%),
+    0 0 0 2px rgb(255 226 160 / 25%),
+    0 14px 28px rgb(0 0 0 / 55%);
+  transform: translateY(-4px);
+}
+
+.outfit-card:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+
+.outfit-card:disabled {
+  cursor: default;
+  filter: saturate(0.7) brightness(0.85);
+}
+
+/* One of theirs: nothing to press. */
+.outfit-card[data-state='owned'] {
+  cursor: default;
+}
+
+/* The character, standing on a shadow, its pixels kept sharp. */
+.outfit-art {
+  position: relative;
+  display: flex;
+  flex: 1;
+  align-items: flex-end;
+  justify-content: center;
+  min-height: 0;
+  padding-bottom: 8%;
+}
+
+.outfit-sprite {
+  position: relative;
+  width: auto;
+  max-width: 84%;
+  height: 64%;
+  object-fit: contain;
+  object-position: center bottom;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 0 1px rgb(0 0 0 / 70%)) drop-shadow(0 8px 10px rgb(0 0 0 / 35%));
+  transition: transform 0.18s ease;
+}
+
+.outfit-card:hover:not(:disabled, [data-state='owned']) .outfit-sprite {
+  transform: translateY(-3px);
+}
+
+.outfit-floor {
+  position: absolute;
+  bottom: calc(8% - 7px);
+  left: 50%;
+  width: 62%;
+  height: 16px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(0 0 0 / 65%), transparent);
+  translate: -50% 0;
+}
+
+.outfit-name {
+  padding: 8px 10px;
+  background: linear-gradient(90deg, transparent, rgb(16 22 58 / 85%) 18% 82%, transparent);
+  font-size: clamp(16px, 1.35vw, 20px);
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  text-shadow:
+    0 0 10px rgb(120 160 255 / 75%),
+    0 2px 2px rgb(0 0 0 / 60%);
+}
+
+.outfit-foot {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  padding: 8px 10px;
+  border-top: 1px solid rgb(255 226 160 / 35%);
+  background: linear-gradient(180deg, #0e1024, #080915);
+  color: #fff4d6;
+  font-size: 16px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.outfit-card[data-state='short'] .outfit-foot {
+  color: var(--red);
+}
+
+.outfit-card[data-state='owned'] .outfit-foot {
+  color: var(--green);
+}
+
+.outfit-check {
+  font-size: 15px;
+}
+
+/* ------------------------------------------------------------------ buying one */
+
+/* Over the shop and the header, under the reticle (../shared/cursor/cursor.css), as the wish's Details are. */
+.outfits-buy {
+  position: fixed;
+  inset: 0;
+  z-index: 8000;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgb(0 0 0 / 60%);
+}
+
+.outfits-buy[hidden] {
+  display: none;
+}
+
+.outfits-buy:focus {
+  outline: none;
+}
+
+.outfits-buy-box {
+  width: min(340px, 100%);
+  padding: 22px 22px 18px;
+  border: 2px solid #4a4452;
+  border-radius: 16px;
+  background:
+    radial-gradient(ellipse at 20% 0%, rgb(216 191 122 / 8%), transparent 60%),
+    linear-gradient(180deg, #1b1a20, #111014);
+  box-shadow:
+    inset 0 0 0 4px #141318,
+    inset 0 0 0 5px rgb(216 191 122 / 35%),
+    0 20px 40px rgb(0 0 0 / 55%);
+  color: var(--text);
+  text-align: center;
+}
+
+.outfits-buy-figure {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 150px;
+  height: 160px;
+  margin: 0 auto 12px;
+  padding-bottom: 14px;
+  border: 2px solid #b8924a;
+  border-radius: 12px;
+  background:
+    radial-gradient(ellipse 80% 55% at 50% 50%, rgb(126 150 230 / 34%), transparent 70%),
+    linear-gradient(180deg, #2b3566, #10132b);
+}
+
+.outfits-buy-sprite {
+  width: auto;
+  max-width: 120px;
+  height: 110px;
+  object-fit: contain;
+  object-position: center bottom;
+  image-rendering: pixelated;
+}
+
+.outfits-buy h3 {
+  margin: 0 0 6px;
+  font-size: 19px;
+}
+
+.outfits-buy-price {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  color: var(--gold);
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* How much they're short (only shown when they are). */
+.outfits-buy-note {
+  margin: 8px 0 0;
+  color: var(--red);
+  font-size: 14px;
+}
+
+.outfits-buy-foot {
+  display: grid;
+  margin-top: 18px;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.outfits-action {
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.outfits-action:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.outfits-action:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.outfits-action.secondary {
+  background: var(--panel-3);
+  color: var(--text);
+}
+
+.outfits-action.secondary:hover {
+  background: var(--line);
+}
+
+/* ------------------------------------------------------------------ phones */
+
+/* Three across, a size down, the server picker and their zeiucoins on the top line, the plaque under them. */
+@media (max-width: 760px) {
+  .outfits-page {
+    gap: 12px;
+    padding: 12px 12px 20px;
+  }
+
+  .outfits-bar {
+    grid-template-columns: 1fr auto;
+  }
+
+  .outfits-title {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-self: center;
+    padding: 5px 20px;
+    font-size: 15px;
+  }
+
+  .outfits-wallet {
+    grid-column: 2;
+  }
+
+  .outfits-row {
+    gap: 10px;
+    align-content: start;
+  }
+
+  .outfit-card {
+    width: min(180px, calc((100% - 20px) / 3));
+  }
+
+  .outfit-name {
+    padding: 6px 4px;
+    font-size: 14px;
+  }
+
+  .outfit-foot {
+    gap: 4px;
+    min-height: 36px;
+    padding: 6px 4px;
+    font-size: 13px;
+  }
+
+  .outfit-coin {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .outfit-card,
+  .outfit-sprite {
+    transition: none;
+  }
+}

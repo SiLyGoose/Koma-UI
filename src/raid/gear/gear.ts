@@ -89,6 +89,8 @@ const root = view.firstElementChild as HTMLElement;
 const title = root.querySelector('.roster-title');
 if (title) title.textContent = 'Party';
 root.querySelector('#roster')?.setAttribute('aria-label', 'Party');
+// The dressing room is the site's: no way there from in here.
+root.querySelector('#outfit-link')?.remove();
 
 const members: Member[] = party.map((m) => ({ userId: m.id, name: m.name, avatar: m.avatar || DEFAULT_AVATAR, you: m.you === true }));
 mountGear(root, {

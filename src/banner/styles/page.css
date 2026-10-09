@@ -10,31 +10,20 @@
   --ink-soft: #6a6270;
   --cream: #f7f2e4;
   --cream-2: #ebe3cd;
-  /* The site header's height (../../shared/ui/header/header.css), so the stage fills the screen under it exactly. */
-  --header-h: 56px;
   max-width: none;
+  height: 100%;
+  min-height: 0;
   padding: 0;
 }
 
-@media (min-width: 768px) {
-  .banner-page.gear-page {
-    --header-h: 72px;
-  }
-}
-
-/* Everything fits on the one screen: the page never scrolls. */
-html:has(.banner-page),
-body:has(.banner-page) {
-  overflow: hidden;
-}
-
+/* Everything fits in the shop's panel (../../shop/shop.css), which fits the screen: nothing scrolls. */
 .banner-stage {
   position: relative;
   isolation: isolate;
   display: flex;
   flex-direction: column;
   gap: clamp(10px, 2.6dvh, 24px);
-  height: calc(100dvh - var(--header-h));
+  height: 100%;
   padding: clamp(8px, 1.6dvh, 14px) clamp(16px, 4vw, 48px) clamp(10px, 2.4dvh, 22px);
   overflow: hidden;
   background:

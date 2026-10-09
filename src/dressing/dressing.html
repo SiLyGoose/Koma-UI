@@ -1,0 +1,36 @@
+<!-- The dressing room (src/dressing/page.ts): every outfit down the left, the one picked standing on the right, to put on. Swapped into #view by src/site/main.ts. -->
+<main class="dressing-page">
+  <div class="dressing-bar">
+    <a class="back dressing-back" href="/gear/" aria-label="Back to gear">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 5 3.5 12l7 7v-4.5H20v-5h-9.5z" /></svg>
+    </a>
+    <h1 class="dressing-title">Dressing Room</h1>
+    <select id="server" class="server-pick" aria-label="Server" hidden></select>
+  </div>
+
+  <p id="status" class="status dressing-status" hidden></p>
+
+  <div id="room" class="dressing-room" hidden>
+    <!-- Every outfit (render.ts): a close-up of its character (head and shoulders), its name, and whether it's worn, theirs, or its price. -->
+    <section class="dressing-list-panel" aria-labelledby="list-title">
+      <h2 id="list-title" class="dressing-list-title">Outfit List</h2>
+      <div id="list" class="dressing-list" role="listbox" aria-labelledby="list-title"></div>
+    </section>
+
+    <!-- The one picked, standing full height: its name, and Wear (or that it's worn, or the shop to get it). -->
+    <section class="dressing-stage" aria-live="polite">
+      <div class="dressing-figure">
+        <img id="model" class="dressing-model" alt="" />
+        <div class="dressing-floor" aria-hidden="true"></div>
+      </div>
+      <div class="dressing-foot">
+        <div class="dressing-info">
+          <h2 id="model-name" class="dressing-name"></h2>
+          <p id="model-state" class="dressing-state"></p>
+        </div>
+        <button type="button" id="wear" class="dressing-action">Wear</button>
+        <a id="get" class="dressing-action get" href="/shop/outfits/" hidden>Get in Shop</a>
+      </div>
+    </section>
+  </div>
+</main>

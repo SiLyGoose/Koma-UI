@@ -1,4 +1,4 @@
-import { currentCharacter } from '../../shared/characters';
+import { CHARACTERS, characterOf } from '../../shared/characters';
 import type { PinecraftOre, PinecraftPickaxe } from '../protocol';
 
 /*
@@ -125,10 +125,10 @@ const pickaxeImages = new Map<PinecraftPickaxe, HTMLImageElement>();
 /** The picture of a pickaxe, once loaded (the wooden one while it isn't; undefined when neither is). */
 export const pickaxeImage = (name: PinecraftPickaxe): HTMLImageElement | undefined => pickaxeImages.get(name) ?? pickaxeImages.get('wood');
 
-let characterImg: HTMLImageElement | null = null;
+const characterImages = new Map<string, HTMLImageElement>();
 
-/** The member's character's picture (public/characters/<id>/sprite.png, ../../shared/characters.ts), once loaded. */
-export const characterImage = (): HTMLImageElement | null => characterImg;
+/** The picture of the character for `outfit` (public/characters/<id>/sprite.png, ../../shared/characters.ts), once loaded. */
+export const characterImage = (outfit: string | undefined): HTMLImageElement | null => characterImages.get(characterOf(outfit).id) ?? null;
 
 let keys: HTMLCanvasElement | null = null;
 
@@ -176,9 +176,12 @@ export async function loadTextures(): Promise<void> {
       if (img) pickaxeImages.set(name, img);
     });
   }
-  void load(currentCharacter().sprite.replace(/^\//, '')).then((img) => {
-    characterImg = img;
-  });
+  // Every character's, so a change of outfit while playing shows at once.
+  for (const { id, sprite } of Object.values(CHARACTERS)) {
+    void load(sprite.replace(/^\//, '')).then((img) => {
+      if (img) characterImages.set(id, img);
+    });
+  }
   const [dirt, stone, bedrockImg, ...ores] = await Promise.all([
     load('pinecraft/blocks/block_dirt.png'),
     load('pinecraft/blocks/block_stone.png'),

@@ -5,16 +5,20 @@ import '../shared/items/items.css';
 import '../hub/hub.css';
 import '../gear/gear.css';
 import '../databank/databank.css';
+import '../dressing/dressing.css';
 import '../forge/forge.css';
 import '../banner/banner.css';
+import '../outfits/outfits.css';
+import '../shop/shop.css';
 import { backdrop, siteHeader } from '../shared/ui';
 import { installCursor } from '../shared/cursor';
 import { installClickSounds } from '../shared/audio';
-import { bannerPage } from '../banner/page';
 import { databankPage } from '../databank/page';
+import { dressingPage } from '../dressing/page';
 import { forgePage } from '../forge/page';
 import { gearPage } from '../gear/page';
 import { hubPage } from '../hub/page';
+import { shopPage } from '../shop/page';
 import { keepHoloInStep } from '../shared/items';
 import { holdReveal, onSiteLink, swap, type Direction } from '../shared/transition';
 import { setGo, type GoOptions } from './nav';
@@ -22,17 +26,17 @@ import type { Page } from './page';
 import { hasSession } from './session';
 
 /*
- * The site's pages (the front page, gear, the forge, the banner, the databank) as one document: moving between them swaps the
+ * The site's pages (the front page, gear, the forge, the shop, the dressing room, the databank) as one document: moving between them swaps the
  * page under the header, through the transition's wipe (../shared/transition/), instead of loading a
  * new document, so the header, the login and the rest stay (./session.ts), and back and forward get the
  * wipe too (right to left going back). The games are pages of their own.
  *
  * Every page is its markup (an .html file beside it, a copy put in #view) and a module that sets it up
  * (./page.ts). A history entry's state holds its place in the history (`idx`), which tells back from
- * forward.
+ * forward. A page with subpaths (the shop, a path for each tab) shows another of its own in place.
  */
 
-const PAGES: readonly Page[] = [hubPage, gearPage, forgePage, bannerPage, databankPage];
+const PAGES: readonly Page[] = [hubPage, gearPage, forgePage, shopPage, dressingPage, databankPage];
 
 const view = document.getElementById('view') as HTMLElement;
 
@@ -48,9 +52,10 @@ const icon = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
 
 /** A path without its trailing slash (/gear/ and /gear are the same page). */
 const pagePath = (path: string): string => path.replace(/\/+$/, '');
-const pageAt = (path: string): Page | undefined => PAGES.find((page) => page.path === pagePath(path));
+const pageAt = (path: string): Page | undefined =>
+  PAGES.find((page) => page.path === pagePath(path) || (page.subpaths && pagePath(path).startsWith(`${page.path}/`)));
 
-let current: { page: Page; unmount: () => void } | null = null;
+let current: { page: Page; unmount: () => void; navigate?: (url: URL) => void } | null = null;
 /** This entry's place in the history (history.state.idx): higher is further forward. */
 let index = typeof history.state?.idx === 'number' ? (history.state.idx as number) : 0;
 history.replaceState({ ...history.state, idx: index }, '');
@@ -80,8 +85,8 @@ function show(url: URL): void {
   }
 
   const release = holdReveal();
-  const { drawn, unmount } = page.mount(root);
-  current = { page, unmount };
+  const { drawn, unmount, navigate } = page.mount(root);
+  current = { page, unmount, navigate };
   window.scrollTo(0, 0);
   void drawn
     .catch(() => undefined)
@@ -98,7 +103,9 @@ function go(href: string, options: GoOptions = {}): void {
   const samePage = current !== null && pageAt(url.pathname) === current.page;
   if (samePage && !options.reload) {
     // Only somewhere else on this page (or nowhere): no swap.
+    const moved = pagePath(url.pathname) !== pagePath(location.pathname);
     history.pushState({ idx: ++index }, '', url);
+    if (moved) current?.navigate?.(url);
     if (url.hash) document.getElementById(decodeURIComponent(url.hash.slice(1)))?.scrollIntoView({ behavior: 'smooth' });
     return;
   }
@@ -122,8 +129,8 @@ window.addEventListener('popstate', (e) => {
   const to = typeof state?.idx === 'number' ? state.idx : index;
   const dir: Direction = to < index ? 'back' : 'forward';
   index = to;
-  // Another place on the same page (a #link): the browser scrolls there itself.
-  if (current && pageAt(location.pathname) === current.page) return;
+  // Another place on the same page (a #link): the browser scrolls there itself. Another of its paths: it shows that.
+  if (current && pageAt(location.pathname) === current.page) return current.navigate?.(new URL(location.href));
   void swap(dir, () => show(new URL(location.href)));
 });
 

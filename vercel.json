@@ -20,6 +20,16 @@
       ]
     }
   ],
+  "redirects": [
+    {
+      "source": "/banner",
+      "destination": "/shop/wish/"
+    },
+    {
+      "source": "/banner/",
+      "destination": "/shop/wish/"
+    }
+  ],
   "rewrites": [
     {
       "source": "/gear",
@@ -38,11 +48,27 @@
       "destination": "/index.html"
     },
     {
-      "source": "/banner",
+      "source": "/shop",
       "destination": "/index.html"
     },
     {
-      "source": "/banner/",
+      "source": "/shop/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/shop/:tab",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/shop/:tab/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/dressing-room",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/dressing-room/",
       "destination": "/index.html"
     },
     {

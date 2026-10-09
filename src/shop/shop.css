@@ -1,0 +1,190 @@
+/*
+ * The shop (page.ts), as King's Raid's: its tabs stacked down a dark rail on the left, each a plaque with
+ * its picture in a gold ring and its name, the one picked in red; the tab picked fills the rest of the
+ * screen under the header. Phones: the tabs side by side across the top.
+ */
+.shop-page {
+  /* The site header's height (../shared/ui/header/header.css), so the shop fills the screen under it exactly. */
+  --header-h: 56px;
+  display: grid;
+  grid-template-columns: clamp(156px, 15vw, 212px) minmax(0, 1fr);
+  max-width: none;
+  height: calc(100dvh - var(--header-h));
+  padding: 0;
+}
+
+@media (min-width: 768px) {
+  .shop-page {
+    --header-h: 72px;
+  }
+}
+
+/* The page never scrolls: a tab that's longer than the screen scrolls in its panel. */
+html:has(.shop-page),
+body:has(.shop-page) {
+  overflow: hidden;
+}
+
+.shop-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px 12px;
+  overflow-y: auto;
+  border-right: 1px solid #2c2a32;
+  background:
+    radial-gradient(ellipse at 0% 0%, rgb(216 191 122 / 7%), transparent 60%),
+    linear-gradient(180deg, #19181e, #0f0e12);
+  box-shadow: inset -1px 0 0 rgb(216 191 122 / 16%);
+}
+
+.shop-tab {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 66px;
+  padding: 10px 14px 10px 10px;
+  border: 1px solid #3a3842;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #27252d, #1b1a20);
+  box-shadow:
+    inset 0 0 0 2px #15141a,
+    inset 0 0 0 3px rgb(216 191 122 / 12%),
+    0 4px 10px rgb(0 0 0 / 35%);
+  color: var(--petal);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.15s ease;
+}
+
+.shop-tab:hover {
+  border-color: #57535f;
+  color: var(--text);
+}
+
+.shop-tab:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+/* Its picture, in a gold ring. */
+.shop-tab-icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #3a3742, #1c1b21);
+  box-shadow:
+    inset 0 0 0 2px rgb(216 191 122 / 45%),
+    0 2px 6px rgb(0 0 0 / 45%);
+  color: var(--gold);
+}
+
+.shop-tab-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+/* The tab picked: red, framed in gold, with a notch pointing at what it shows. */
+.shop-tab[aria-selected='true'] {
+  border-color: #c9a35a;
+  background: linear-gradient(180deg, #c4585a, #8e3335);
+  box-shadow:
+    inset 0 0 0 2px #7a2a2c,
+    inset 0 0 0 3px rgb(255 226 160 / 55%),
+    0 0 0 1px rgb(216 191 122 / 30%),
+    0 6px 16px rgb(185 74 76 / 30%);
+  color: #fff;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 40%);
+  transform: translateX(4px);
+}
+
+.shop-tab[aria-selected='true'] .shop-tab-icon {
+  background: radial-gradient(circle at 35% 30%, #fff3d6, #e3c27c);
+  box-shadow:
+    inset 0 0 0 2px #fff6df,
+    0 2px 6px rgb(0 0 0 / 35%);
+  color: #8e3335;
+}
+
+.shop-tab[aria-selected='true']::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -7px;
+  width: 12px;
+  height: 12px;
+  border-top: 1px solid #c9a35a;
+  border-right: 1px solid #c9a35a;
+  background: #a9454a;
+  translate: 0 -50%;
+  rotate: 45deg;
+}
+
+.shop-panel {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Phones: the tabs across the top, side by side, the tab picked under them. */
+@media (max-width: 760px) {
+  .shop-page {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .shop-rail {
+    flex-direction: row;
+    gap: 8px;
+    padding: 8px 12px;
+    overflow: visible;
+    border-right: 0;
+    border-bottom: 1px solid #2c2a32;
+    box-shadow: inset 0 -1px 0 rgb(216 191 122 / 16%);
+  }
+
+  .shop-tab {
+    flex: 1;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 6px 10px;
+    font-size: 14px;
+  }
+
+  .shop-tab-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .shop-tab-icon svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .shop-tab[aria-selected='true'] {
+    transform: none;
+  }
+
+  .shop-tab[aria-selected='true']::after {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shop-tab {
+    transition: none;
+  }
+}

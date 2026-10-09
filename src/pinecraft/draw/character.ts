@@ -1,5 +1,5 @@
 import type { Direction, PinecraftPickaxe } from '../protocol';
-import { currentCharacter } from '../../shared/characters';
+import { characterOf } from '../../shared/characters';
 import { characterImage, pickaxeImage } from './textures';
 
 /** How long the pickaxe's picture is drawn, in the character's units (100 a block), and how far of it sits behind the hand. */
@@ -10,8 +10,8 @@ const PICKAXE_BEHIND = 18;
 const CHARACTER_HEIGHT = 96;
 
 /**
- * The character, standing in the block whose top left is (px, py), `s` wide, with `pickaxe`. `swing`
- * is how far through a swing of the pickaxe (null when still).
+ * The character, standing in the block whose top left is (px, py), `s` wide, with `pickaxe`, in
+ * `outfit`. `swing` is how far through a swing of the pickaxe (null when still).
  */
 export function character(
   g: CanvasRenderingContext2D,
@@ -23,13 +23,14 @@ export function character(
   dir: Direction | null,
   now: number,
   pickaxe: PinecraftPickaxe,
+  outfit: string | undefined,
 ): void {
   g.save();
   g.translate(px + s / 2, py + s);
   g.scale(facing * (s / 100), s / 100);
   // From here on: 100 units a block, x 0 in the middle, y 0 at the feet, facing right.
   const bob = swing === null ? Math.sin(now / 400) * 1 : 0;
-  const sprite = characterImage();
+  const sprite = characterImage(outfit);
 
   // The pickaxe: raised while still (behind the shape character; held up in front of the picture, where
   // it would be hidden behind them), brought down in front in a swing. Digging up or down swings it
@@ -42,7 +43,7 @@ export function character(
   if (sprite) {
     // Held in the picture's hand: behind the picture while still, in front during a swing.
     // Where the picture's front hand is: each character's own (../../shared/characters.ts).
-    const { hand: grip } = currentCharacter();
+    const { hand: grip } = characterOf(outfit);
     const hand = { x: grip.x, y: grip.y + Math.round(bob) };
     if (swing === null) heldPickaxe(g, hand, angle, pickaxe);
     const h = CHARACTER_HEIGHT;

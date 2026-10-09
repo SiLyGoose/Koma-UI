@@ -1,6 +1,6 @@
 import markup from './banner.html?raw';
 import { API, dropdown, fillServers } from '../shared/ui';
-import type { Page } from '../site/page';
+import type { ShopTab } from '../shop/tab';
 import { currentMe, currentServer, loadMe, setServer } from '../site/session';
 import { failed, loadBanner, pull } from './api';
 import { BANNERS } from './banners';
@@ -14,10 +14,15 @@ import { render } from './render';
  * banner's card (its parchment with its name, what pity promises, their own treasure's guarantee as
  * 0/1 or 1/1 and how long it's on, and its featured items breaking out over a red panel); Details (each tier's odds) and the two pull
  * buttons with their prices along the bottom. A pull plays the wish (./wish.ts: a star falling in the colour of
- * the best item, ./sky.ts) and shows what came out. Logged-in members only, in the server picked.
+ * the best item, ./sky.ts) and shows what came out. Logged-in members only, in the server picked. The
+ * shop's Wish tab (../shop/page.ts).
  */
 
-export const bannerPage: Page = { path: '/banner', title: 'Wish · Komaverse', icon: '🌠', markup, needsLogin: true, mount };
+/** The falling star, on the shop's rail. */
+const ICON =
+  '<svg viewBox="0 0 24 24"><path d="M17 2.5l1.3 3.2 3.2 1.3-3.2 1.3L17 11.5l-1.3-3.2L12.5 7l3.2-1.3z" fill="currentColor"/><path d="M13.6 10.4 3.5 20.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity=".55"/><path d="M11.8 12.2 6 18" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/></svg>';
+
+export const wishTab: ShopTab = { id: 'wish', label: 'Wish', title: 'Wish · Komaverse', icon: ICON, markup, mount };
 
 function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void } {
   const ctx = createContext(root);

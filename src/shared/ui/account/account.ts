@@ -69,8 +69,8 @@ const ICONS = {
     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5 2.5 21.5 4.5 11 15l-1.3-.2-.5-.5L9 13z"/><path d="M5.2 13.4 10.6 18.8 9.2 20.2 7.8 18.8 5.3 21.3a1.4 1.4 0 0 1-2-2l2.5-2.5-1.4-1.4z"/></svg>',
   forge:
     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 7h15c0 2.8 1.9 4.3 5 4.6V14c-2.4 0-4 .9-5 2.6V18h2v3H6v-3h2v-1.4C5.3 15.5 3.3 13 2 10z"/></svg>',
-  banner:
-    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 2.5l1.3 3.2 3.2 1.3-3.2 1.3L17 11.5l-1.3-3.2L12.5 7l3.2-1.3z"/><path d="M13.6 10.4 3.5 20.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity=".55"/><path d="M11.8 12.2 6 18" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/></svg>',
+  shop:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-1.2 12.1a1 1 0 0 1-1 .9H7.2a1 1 0 0 1-1-.9z"/><path d="M8.5 10V7a3.5 3.5 0 0 1 7 0v3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
   databank:
     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5A2.5 2.5 0 0 1 7.5 1H20v17H7.5a1 1 0 0 0 0 2H20v3H7.5A4.5 4.5 0 0 1 3 18.5V5.5z"/><path d="M9 5.5h7v2H9z" fill="rgb(0 0 0 / 35%)"/></svg>',
   logout:

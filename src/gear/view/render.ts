@@ -1,4 +1,4 @@
-import { currentCharacter } from '../../shared/characters';
+import { characterOf } from '../../shared/characters';
 import { el, rich } from '../../shared/items';
 import { copyById, mine, wearOnly, type GearContext } from './context';
 import { renderDetail } from './detail';
@@ -20,7 +20,7 @@ export function render(ctx: GearContext): void {
   if (!mine(ctx) || wearOnly(ctx)) ctx.selling = null;
   for (const id of ctx.selling ?? []) if (typeof copyById(ctx, id)?.sell !== 'number') ctx.selling?.delete(id);
   ui.heroName.textContent = name;
-  const character = currentCharacter();
+  const character = characterOf(ctx.gear.outfit);
   if (ui.sprite.getAttribute('src') !== character.sprite) ui.sprite.src = character.sprite;
   ui.sprite.width = character.width;
   ui.sprite.height = character.height;

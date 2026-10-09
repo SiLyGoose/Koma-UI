@@ -58,10 +58,11 @@ Any square size works.
 
 ## Files
 
-- `index.html`, `src/site/`: the site's own pages (the front page, `/gear/`, `/databank/`) as one
+- `index.html`, `src/site/`: the site's own pages (the front page, `/gear/`, `/forge/`, `/shop/`, `/dressing-room/`, `/databank/`) as one
   document. Each page is its own `.html` (imported `?raw`) and a `page.ts` that sets it up; `src/site/main.ts`
   swaps between them (and back and forward) through the page transition, `src/site/session.ts` keeps
-  the login, the server picked and the header. `vercel.json` sends `/gear/` and `/databank/` to it.
+  the login, the server picked and the header. `vercel.json` sends `/gear/`, `/forge/`, `/shop/` (and its
+  tabs' paths), `/dressing-room/` and `/databank/` to it, and the old `/banner/` to `/shop/wish/`.
 - `src/hub/`: the front page.
 - `games/pinecraft/index.html`, `src/pinecraft/`: Pinecraft. `protocol.ts` is a copy of the bot's
   `src/web/pinecraft-protocol.ts` (change both together), `draw/` draws the world (`draw/textures.ts`
@@ -69,9 +70,16 @@ Any square size works.
   `input/` the keys and the joystick.
 - `games/mines/index.html`, `src/mines/`: Mines. `protocol.ts` is a copy of the bot's
   `src/web/mines-protocol.ts` (change both together).
-- `src/gear/`: the gear page. `src/databank/`: the databank. `src/banner/`: the banner, where members
-  pull from the gacha (the bot's `/api/gacha`), with its wish: a star falling in the colour of the best
-  item pulled (`sky.ts`), then each item revealed (`wish.ts`).
+- `src/gear/`: the gear page. `src/databank/`: the databank.
+- `src/shop/`: the shop, its tabs down the left, each with its own path (`/shop/wish/`, `/shop/outfits/`).
+  `src/banner/` is its Wish tab, where members pull from the gacha (the bot's `/api/gacha`), with its
+  wish: a star falling in the colour of the best item pulled (`sky.ts`), then each item revealed
+  (`wish.ts`). `src/outfits/` is its Outfits tab, where they buy outfits (the bot's `/api/outfits`): the
+  characters they're drawn as on the gear page and in Pinecraft (`src/shared/characters.ts`,
+  `public/characters/`).
+- `src/dressing/`: the dressing room (`/dressing-room/`), where they put on the outfits they have, each in
+  the list as a close-up of its character, the one picked standing full height beside it. The gear
+  page's shirt button opens it.
 How the code is laid out: a component with its own styles is a folder of its own, its `.ts` and
 `.css` side by side (`src/shared/ui/account/account.ts` and `account.css`), and builds its own markup
 rather than having it copied into each page's HTML. A folder of related modules has an `index.ts` that

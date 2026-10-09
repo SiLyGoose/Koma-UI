@@ -1,0 +1,506 @@
+/*
+ * The dressing room (page.ts), as King's Raid's: a back arrow and its name along the top; down the left, in
+ * the armory's dark frame under a red "Outfit List" banner, a red row for each outfit (a close-up of its
+ * character on the left, its name and state on the right, the one picked framed in gold); on the right, a
+ * stage between dark red curtains, under a spotlight, with the outfit picked standing on it full height, its
+ * name, and Wear. Phones: the stage on top, the list under it.
+ */
+.dressing-page {
+  /* The site header's height (../shared/ui/header/header.css), so the room fills the screen under it exactly. */
+  --header-h: 56px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 1240px;
+  height: calc(100dvh - var(--header-h));
+  padding: 16px clamp(16px, 3vw, 40px) 22px;
+}
+
+@media (min-width: 768px) {
+  .dressing-page {
+    --header-h: 72px;
+  }
+}
+
+.dressing-bar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.dressing-back.back {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border: 1px solid #5a5262;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #2d2a33, #1a191e);
+  box-shadow:
+    inset 0 0 0 1px rgb(216 191 122 / 30%),
+    0 3px 8px rgb(0 0 0 / 40%);
+  color: #efe3bf;
+}
+
+.dressing-back.back:hover {
+  border-color: rgb(216 191 122 / 70%);
+  background: linear-gradient(180deg, #2d2a33, #1a191e);
+  color: #fff;
+}
+
+.dressing-back svg {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
+}
+
+.dressing-title {
+  flex: 1;
+  margin: 0;
+  color: #efe3bf;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  text-shadow: 0 2px 6px rgb(0 0 0 / 50%);
+}
+
+.dressing-status {
+  margin: 0;
+}
+
+.dressing-room {
+  display: grid;
+  flex: 1;
+  grid-template-columns: minmax(300px, 400px) minmax(0, 1fr);
+  gap: clamp(16px, 2vw, 28px);
+  min-height: 0;
+}
+
+.dressing-room[hidden] {
+  display: none;
+}
+
+/* ------------------------------------------------------------------ the list */
+
+.dressing-list-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 16px 14px 14px;
+  border: 2px solid #4a4452;
+  border-radius: 14px;
+  background:
+    radial-gradient(ellipse at 20% 0%, rgb(216 191 122 / 8%), transparent 60%),
+    linear-gradient(180deg, #1b1a20, #111014);
+  box-shadow:
+    inset 0 0 0 4px #141318,
+    inset 0 0 0 5px rgb(216 191 122 / 35%),
+    0 12px 30px rgb(0 0 0 / 45%);
+}
+
+/* A red banner in a gold frame, a diamond at each end. */
+.dressing-list-title {
+  position: relative;
+  margin: 0 6px 14px;
+  padding: 8px 28px;
+  border: 1px solid #c9a35a;
+  border-radius: 6px;
+  background: linear-gradient(180deg, #c4585a, #8e3335);
+  box-shadow:
+    inset 0 0 0 2px #7a2a2c,
+    inset 0 0 0 3px rgb(255 226 160 / 50%),
+    0 4px 10px rgb(0 0 0 / 40%);
+  color: #fff3d6;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-align: center;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 45%);
+}
+
+.dressing-list-title::before,
+.dressing-list-title::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 9px;
+  height: 9px;
+  background: #f2d58c;
+  translate: 0 -50%;
+  rotate: 45deg;
+}
+
+.dressing-list-title::before {
+  left: 10px;
+}
+
+.dressing-list-title::after {
+  right: 10px;
+}
+
+.dressing-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  padding: 4px;
+  overflow-y: auto;
+}
+
+/* A row: its character's close-up on the left over red velvet, its name and state on the right. */
+.dressing-row {
+  position: relative;
+  display: grid;
+  flex: none;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  padding: 0;
+  overflow: hidden;
+  border: 2px solid #8e3335;
+  border-radius: 10px;
+  background:
+    radial-gradient(ellipse 45% 90% at 18% 55%, rgb(255 190 170 / 16%), transparent 70%),
+    repeating-linear-gradient(-45deg, rgb(255 255 255 / 3%) 0 2px, transparent 2px 12px),
+    linear-gradient(135deg, #8a2f33, #4b1a1e);
+  box-shadow:
+    inset 0 0 0 2px #3a1215,
+    inset 0 0 0 3px rgb(255 226 160 / 22%),
+    0 6px 14px rgb(0 0 0 / 40%);
+  color: #fff;
+  font: inherit;
+  text-align: right;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.dressing-row:hover {
+  border-color: #c9686b;
+}
+
+.dressing-row:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.dressing-row[aria-selected='true'] {
+  border-color: #f2d58c;
+  box-shadow:
+    inset 0 0 0 2px #3a1215,
+    inset 0 0 0 3px rgb(255 236 186 / 70%),
+    0 0 0 2px rgb(255 226 160 / 30%),
+    0 0 20px rgb(255 214 120 / 30%);
+}
+
+/*
+ * The close-up: the sprite scaled so its portrait square (--x, --y, --size, in its pixels; --w its width)
+ * fills the box, and moved so that square is what shows. Its lower edge fades into the row.
+ */
+.dressing-portrait {
+  position: relative;
+  width: 104px;
+  height: 104px;
+  overflow: hidden;
+  mask: linear-gradient(180deg, #000 78%, transparent);
+}
+
+.dressing-portrait img {
+  position: absolute;
+  top: calc(var(--y) / var(--size) * -100%);
+  left: calc(var(--x) / var(--size) * -100%);
+  width: calc(var(--w) / var(--size) * 100%);
+  max-width: none;
+  height: auto;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 0 1px rgb(0 0 0 / 50%));
+}
+
+.dressing-row-text {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-end;
+  padding: 10px 16px;
+}
+
+.dressing-row-name {
+  font-size: 18px;
+  font-weight: 800;
+  text-shadow: 0 2px 3px rgb(0 0 0 / 50%);
+}
+
+.dressing-row-state,
+.dressing-state {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  color: #fff4d6;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.dressing-row-state {
+  font-size: 15px;
+}
+
+.dressing-row-state[data-state='worn'],
+.dressing-state[data-state='worn'] {
+  color: #9fe3b4;
+}
+
+.dressing-row-state[data-state='owned'],
+.dressing-state[data-state='owned'] {
+  color: #ffe2a0;
+}
+
+.dressing-coin {
+  width: 18px;
+  height: 18px;
+}
+
+/* ------------------------------------------------------------------ the stage */
+
+.dressing-stage {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  border: 2px solid #4a4452;
+  border-radius: 14px;
+  background:
+    radial-gradient(ellipse 34% 75% at 50% -6%, rgb(255 238 200 / 20%), transparent 72%),
+    radial-gradient(ellipse 55% 22% at 50% 84%, rgb(216 191 122 / 12%), transparent 70%),
+    linear-gradient(180deg, #23171d 0%, #17121a 55%, #0f0d12 100%);
+  box-shadow:
+    inset 0 0 0 4px #141318,
+    inset 0 0 0 5px rgb(216 191 122 / 30%),
+    0 12px 30px rgb(0 0 0 / 45%);
+}
+
+/* The curtains, gathered either side: dark red folds, deepening towards the edges. */
+.dressing-stage::before,
+.dressing-stage::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: -1;
+  width: 15%;
+  background:
+    linear-gradient(90deg, rgb(0 0 0 / 55%), transparent),
+    repeating-linear-gradient(90deg, #5a1a22 0 10px, #74232c 16px, #5a1a22 26px);
+  opacity: 0.85;
+}
+
+.dressing-stage::before {
+  left: 0;
+  mask: linear-gradient(90deg, #000 40%, transparent);
+}
+
+.dressing-stage::after {
+  right: 0;
+  scale: -1 1;
+  mask: linear-gradient(90deg, #000 40%, transparent);
+}
+
+.dressing-figure {
+  position: relative;
+  display: flex;
+  flex: 1;
+  align-items: flex-end;
+  justify-content: center;
+  min-height: 0;
+  padding: 24px 0 4%;
+}
+
+.dressing-model {
+  position: relative;
+  z-index: 1;
+  width: auto;
+  max-width: 70%;
+  height: min(100%, 440px);
+  object-fit: contain;
+  object-position: center bottom;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 0 1px rgb(0 0 0 / 70%)) drop-shadow(0 12px 16px rgb(0 0 0 / 45%));
+  animation: dressing-idle 2.4s ease-in-out infinite;
+}
+
+/* What it stands on: a round gold-edged rug, and its shadow. */
+.dressing-floor {
+  position: absolute;
+  bottom: calc(4% - 16px);
+  left: 50%;
+  width: min(46%, 300px);
+  height: 40px;
+  border-radius: 50%;
+  background:
+    radial-gradient(closest-side, rgb(0 0 0 / 70%), rgb(0 0 0 / 35%) 70%, transparent),
+    radial-gradient(closest-side, transparent 88%, rgb(216 191 122 / 45%) 92%, transparent);
+  translate: -50% 0;
+}
+
+@keyframes dressing-idle {
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.dressing-foot {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 22px 18px;
+  border-top: 1px solid rgb(216 191 122 / 25%);
+  background: linear-gradient(180deg, rgb(0 0 0 / 25%), rgb(0 0 0 / 50%));
+}
+
+.dressing-info {
+  min-width: 0;
+}
+
+.dressing-name {
+  margin: 0 0 4px;
+  color: #fff4d6;
+  font-size: 24px;
+  font-weight: 800;
+  text-shadow: 0 2px 4px rgb(0 0 0 / 50%);
+}
+
+.dressing-state {
+  margin: 0;
+  font-size: 15px;
+}
+
+.dressing-action {
+  flex: none;
+  min-width: 150px;
+  padding: 12px 26px;
+  border: 1px solid #c9a35a;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #c4585a, #8e3335);
+  box-shadow:
+    inset 0 0 0 2px #7a2a2c,
+    inset 0 0 0 3px rgb(255 226 160 / 45%),
+    0 6px 14px rgb(0 0 0 / 40%);
+  color: #fff;
+  font: inherit;
+  font-size: 17px;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 40%);
+  cursor: pointer;
+}
+
+.dressing-action:hover:not(:disabled) {
+  background: linear-gradient(180deg, #d0686a, #9c3a3c);
+}
+
+.dressing-action:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+
+/* Worn already: nothing to press. */
+.dressing-action:disabled {
+  border-color: #5a5262;
+  background: linear-gradient(180deg, #2d2a33, #1a191e);
+  box-shadow: inset 0 0 0 1px rgb(216 191 122 / 25%);
+  color: #9fe3b4;
+  text-shadow: none;
+  cursor: default;
+}
+
+/* Not theirs yet: to the shop, in gold. */
+.dressing-action.get {
+  background: linear-gradient(180deg, #e7c77e, #b8924a);
+  box-shadow:
+    inset 0 0 0 2px #8f6d2c,
+    inset 0 0 0 3px rgb(255 246 220 / 60%),
+    0 6px 14px rgb(0 0 0 / 40%);
+  color: #2a1f0e;
+  text-shadow: none;
+}
+
+.dressing-action.get:hover {
+  background: linear-gradient(180deg, #f0d593, #c7a158);
+}
+
+.dressing-action[hidden] {
+  display: none;
+}
+
+/* ------------------------------------------------------------------ phones */
+
+/* The stage on top, a size down, the list under it; the page scrolls. */
+@media (max-width: 760px) {
+  .dressing-page {
+    height: auto;
+    padding: 12px 12px 24px;
+  }
+
+  .dressing-title {
+    font-size: 20px;
+  }
+
+  .dressing-room {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dressing-stage {
+    order: -1;
+    height: 52dvh;
+    min-height: 340px;
+  }
+
+  .dressing-foot {
+    padding: 12px 14px 14px;
+  }
+
+  .dressing-name {
+    font-size: 19px;
+  }
+
+  .dressing-action {
+    min-width: 0;
+    padding: 10px 18px;
+    font-size: 15px;
+  }
+
+  .dressing-list {
+    overflow: visible;
+  }
+
+  .dressing-portrait {
+    width: 84px;
+    height: 84px;
+  }
+
+  .dressing-row-name {
+    font-size: 16px;
+  }
+}
+
+/* Wide screens: everything fits on the one screen, the list scrolling in its panel. */
+@media (min-width: 761px) {
+  html:has(.dressing-page),
+  body:has(.dressing-page) {
+    overflow: hidden;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dressing-model {
+    animation: none;
+  }
+
+  .dressing-row {
+    transition: none;
+  }
+}

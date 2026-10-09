@@ -90,5 +90,5 @@ export function drawScene(g: CanvasRenderingContext2D, scene: Scene, w: number, 
   // A swing takes 260 ms; while waiting for the bot to answer a dig, it keeps swinging.
   const swingT = scene.swing ? (now - scene.swing.since) / 260 : null;
   const phase = swingT === null ? null : scene.digging ? swingT % 1 : swingT < 1 ? swingT : null;
-  character(g, (scene.character.x - cam.x) * s, (scene.character.y - cam.y) * s, s, scene.facing, phase, scene.swing?.dir ?? null, now, scene.state.pickaxe ?? 'wood');
+  character(g, (scene.character.x - cam.x) * s, (scene.character.y - cam.y) * s, s, scene.facing, phase, scene.swing?.dir ?? null, now, scene.state.pickaxe ?? 'wood', scene.state.outfit);
 }

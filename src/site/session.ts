@@ -169,7 +169,7 @@ function renderHeader(): void {
     { label: 'Games', icon: 'games', href: '/#games', className: 'site-nav-item' },
     { label: 'Gear', icon: 'gear', href: '/gear/', className: 'site-nav-item' },
     { label: 'Forge', icon: 'forge', href: '/forge/', className: 'site-nav-item' },
-    { label: 'Wish', icon: 'banner', href: '/banner/', className: 'site-nav-item' },
+    { label: 'Shop', icon: 'shop', href: '/shop/', className: 'site-nav-item' },
     { label: 'Databank', icon: 'databank', href: '/databank/', className: 'site-nav-item' },
     { label: 'My Servers', icon: 'servers', href: '/#play' },
     { label: 'Logout', icon: 'logout', onSelect: logOut },

@@ -30,6 +30,7 @@
 }
 
 .hero-chip:hover:not(:disabled),
+.hero-chip:focus-visible,
 .hero-chip[aria-expanded='true'] {
   border-color: rgb(216 191 122 / 70%);
 }

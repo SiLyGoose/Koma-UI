@@ -1,0 +1,30 @@
+<!-- The outfits (src/outfits/page.ts): a card for each, with its character and its price, to buy or put on. The shop's Outfits tab, swapped into its panel by src/shop/page.ts. -->
+<section class="outfits-page">
+  <div class="outfits-bar">
+    <select id="server" class="server-pick" aria-label="Server" hidden></select>
+    <h2 class="outfits-title">Outfits</h2>
+    <p class="outfits-wallet"><span id="balance" class="outfits-purse" title="zeiucoins" hidden></span></p>
+  </div>
+
+  <p id="status" class="status outfits-status" hidden></p>
+
+  <!-- A card for each outfit (render.ts): its character, its name, and at the bottom its price, or that it's theirs. -->
+  <div id="outfits" class="outfits-row"></div>
+
+  <!--
+    Buying one: what it costs (and how much they're short, when they are). Not a <dialog>: a modal one sits
+    in the browser's top layer, over the reticle (../shared/cursor/), whatever its z-index.
+  -->
+  <div id="buy" class="outfits-buy" role="dialog" aria-modal="true" aria-labelledby="buy-title" tabindex="-1" hidden>
+    <div class="outfits-buy-box">
+      <div class="outfits-buy-figure"><img id="buy-sprite" class="outfits-buy-sprite" alt="" /></div>
+      <h3 id="buy-title"></h3>
+      <p id="buy-price" class="outfits-buy-price"></p>
+      <p id="buy-note" class="outfits-buy-note" hidden></p>
+      <div class="outfits-buy-foot">
+        <button type="button" class="outfits-action secondary" data-buy="cancel">Cancel</button>
+        <button type="button" class="outfits-action" data-buy="confirm">Buy</button>
+      </div>
+    </div>
+  </div>
+</section>

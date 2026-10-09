@@ -17,11 +17,11 @@
       <div class="stage">
         <!-- Hung from the stage's top-left corner: their class's badge (no classes yet, so a question mark). -->
         <div class="hero-ribbon" title="Class: ?"><span class="hero-ribbon-icon" aria-label="Class: unknown">?</span></div>
-        <!-- Under the ribbon: Outfit (not there yet) and the loadout picker. -->
+        <!-- Under the ribbon: the dressing room (to change outfits) and the loadout picker. -->
         <div class="hero-chips">
-          <button type="button" class="hero-chip" disabled aria-label="Outfit (coming soon)" title="Outfits are coming soon">
+          <a id="outfit-link" class="hero-chip" href="/dressing-room/" aria-label="Dressing Room" title="Dressing Room">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3 3 6l2 5 2-1v11h10V10l2 1 2-5-5-3c-.5 1.5-2 2.5-4 2.5S8.5 4.5 8 3Z" /></svg>
-          </button>
+          </a>
           <div class="loadout-pick">
             <button type="button" id="loadout-button" class="hero-chip" aria-haspopup="true" aria-expanded="false"></button>
             <div id="loadout-menu" class="loadout-menu" hidden></div>
