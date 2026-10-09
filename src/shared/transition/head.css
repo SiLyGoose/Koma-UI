@@ -118,7 +118,8 @@ html[data-tx]::before {
   z-index: 10001;
   width: 72px;
   height: 116px;
-  background: var(--tx-sprite) center bottom / contain no-repeat;
+  /* This page's own (transition/head.js), or the page before's while it's wiping off this one. */
+  background: var(--tx-sprite-before, var(--tx-sprite)) center bottom / contain no-repeat;
   translate: -50% -100%;
   animation: tx-bounce 0.5s cubic-bezier(0.33, 0, 0.4, 1) var(--tx-phase, 0s) infinite alternate;
 }

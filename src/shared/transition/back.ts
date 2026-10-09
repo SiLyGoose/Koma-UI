@@ -1,6 +1,6 @@
-import { page } from './leaving';
+import { page, remember } from './leaving';
 import { WIPE_MS } from './timing';
-import { lessMotion, root, wait, wipeOn } from './wipe';
+import { lessMotion, root, shownSprite, wait, wipeOn } from './wipe';
 
 /**
  * The browser's back button, run through the wipe (right to left) as the page's own ← is, for a page
@@ -51,8 +51,9 @@ export function catchBack(fallback: string): void {
     wipeOn('back');
     await wait(WIPE_MS);
     root.setAttribute('data-tx', 'cover');
-    // The page gone back to starts under the loading screen and wipes it off right to left
+    // The page gone back to starts under the loading screen (with this sprite on it) and wipes it off right to left
     // (transition/head.js for a page loaded afresh, the pageshow listener in ./index.ts for one the browser kept).
+    remember({ dir: 'back', at: Date.now(), sprite: shownSprite() });
     goBack();
   });
 }

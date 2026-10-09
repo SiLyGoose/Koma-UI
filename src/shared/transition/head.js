@@ -14,15 +14,20 @@ try {
     // screen takes it up at the height the page before left it.
     root.style.setProperty('--tx-phase', -(Date.now() % 1000) + 'ms');
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    // What the page before said as it went (transition/leaving.ts, transition/back.ts), when it was just now.
     var t = JSON.parse(sessionStorage.getItem('koma.transition') || 'null');
+    if (t && !(Date.now() - t.at < 5000)) t = null;
     var nav = performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
-    if (t && t.to === location.pathname.replace(/\/+$/, '') && Date.now() - t.at < 5000) {
+    if (t && t.to === location.pathname.replace(/\/+$/, '')) {
       root.setAttribute('data-tx', 'cover');
       root.setAttribute('data-tx-dir', t.dir);
     } else if (nav && nav.type === 'back_forward') {
       root.setAttribute('data-tx', 'cover');
       root.setAttribute('data-tx-dir', 'back');
-    }
+    } else return;
+    // The page before's sprite stays on the loading screen until it's wiped off this page, rather than
+    // turning into this page's own halfway through.
+    if (t && t.sprite) root.style.setProperty('--tx-sprite-before', t.sprite);
   })();
 } catch (e) {
   // No storage: no transition.

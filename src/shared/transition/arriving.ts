@@ -1,4 +1,5 @@
 import { playLoaded } from '../audio';
+import type { Pending } from './leaving';
 import { KEY, MAX_HOLD_MS, MAX_SETTLE_MS, SETTLE_FRAME_MS, SETTLE_FRAMES } from './timing';
 import { clear, root, wait, wipeOff } from './wipe';
 
@@ -47,6 +48,20 @@ export async function reveal(): Promise<void> {
   // The page is ready: its sound as the loading screen starts wiping off it.
   playLoaded();
   await wipeOff();
+}
+
+/**
+ * A page the browser kept, shown again (gone back to): the page before's sprite stays on its loading screen until it's
+ * wiped off, as transition/head.js has it for a page loaded afresh. What that page said is gone once read.
+ */
+export function keepSprite(): void {
+  try {
+    const before = JSON.parse(sessionStorage.getItem(KEY) ?? 'null') as Pending | null;
+    sessionStorage.removeItem(KEY);
+    if (before?.sprite) root.style.setProperty('--tx-sprite-before', before.sprite);
+  } catch {
+    // Nothing kept: this page's own sprite.
+  }
 }
 
 /** Done once frames come smoothly (SETTLE_FRAMES in a row, each within SETTLE_FRAME_MS of the last). */

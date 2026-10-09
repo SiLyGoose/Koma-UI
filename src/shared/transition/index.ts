@@ -26,7 +26,7 @@
  * cover), all moving wipe.ts's panel, timed by timing.ts.
  */
 
-import { reveal } from './arriving';
+import { keepSprite, reveal } from './arriving';
 import { catchLinks, page } from './leaving';
 import { clear, lessMotion, root, wipeOff } from './wipe';
 
@@ -44,6 +44,7 @@ window.addEventListener('pageshow', (e) => {
   if (!e.persisted) return;
   page.leaving = false;
   if (lessMotion()) return clear();
+  keepSprite();
   root.setAttribute('data-tx-live', '');
   root.setAttribute('data-tx-dir', 'back');
   root.setAttribute('data-tx', 'cover');

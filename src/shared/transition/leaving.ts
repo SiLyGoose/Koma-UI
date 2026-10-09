@@ -1,12 +1,15 @@
 import { handOnly } from '../cursor';
 import { KEY, LOAD_MS, MAX_FETCH_MS, WIPE_MS } from './timing';
-import { lessMotion, root, wait, wipeOff, wipeOn, type Direction } from './wipe';
+import { lessMotion, root, shownSprite, wait, wipeOff, wipeOn, type Direction } from './wipe';
 
-interface Pending {
-  /** The page it's going to (its path, without a trailing slash). */
-  to: string;
+/** What a page says as it goes, for the next one (transition/head.js). */
+export interface Pending {
+  /** The page it's going to (its path, without a trailing slash). None going back (back.ts): wherever that is. */
+  to?: string;
   dir: Direction;
   at: number;
+  /** The loading screen's sprite, so the next page's shows the same one until it's wiped off. */
+  sprite: string;
 }
 
 /** This page is on its way out (wiped over, or going back): nothing else starts another. */
@@ -22,7 +25,7 @@ function goesThrough(url: URL): boolean {
   return /^\/games\/[^/]+$/.test(to);
 }
 
-function remember(pending: Pending): void {
+export function remember(pending: Pending): void {
   try {
     sessionStorage.setItem(KEY, JSON.stringify(pending));
   } catch {
@@ -52,7 +55,7 @@ async function leave(to: URL | Promise<URL | null>, dir: Direction): Promise<boo
     location.href = url.href;
     return true;
   }
-  const pending: Pending = { to: pagePath(url.pathname), dir, at: Date.now() };
+  const pending = { to: pagePath(url.pathname), dir, at: Date.now(), sprite: shownSprite() } satisfies Pending;
   remember(pending);
   // A game has the hand alone for a cursor: the dot and brackets go as this page does.
   if (pending.to.startsWith('/games/')) handOnly();

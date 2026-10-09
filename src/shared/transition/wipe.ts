@@ -22,6 +22,11 @@ export async function wipeOff(): Promise<void> {
   clear();
 }
 
+/** The sprite on the loading screen: this page's own, or the page before's while it's wiping off this one (transition/head.js). */
+export const shownSprite = (): string => root.style.getPropertyValue('--tx-sprite-before') || root.style.getPropertyValue('--tx-sprite');
+
 export function clear(): void {
   for (const name of ['data-tx', 'data-tx-dir', 'data-tx-live', 'data-tx-fast', 'data-tx-text']) root.removeAttribute(name);
+  // Off this page: its own sprite from now on.
+  root.style.removeProperty('--tx-sprite-before');
 }
