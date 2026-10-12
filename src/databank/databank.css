@@ -270,7 +270,7 @@
   flex-direction: column;
 }
 
-/* Where the item comes from, under its effects: a box for each place, all alike, lifting under the mouse. The raid's opens the raid. */
+/* Where the item comes from, under its effects: a box for each place, all alike, lifting under the mouse. The raid's opens the raid bosses. */
 .db-sources {
   margin: 14px 0 0;
 }
