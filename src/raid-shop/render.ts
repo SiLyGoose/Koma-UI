@@ -5,8 +5,8 @@ import { points } from '../shared/util';
 import type { RaidShopContext } from './context';
 import type { RaidShopItem } from './types';
 
-/** An amount of komaGems: the gem, then the number. */
-const price = (amount: number): (Node | string)[] => [rich(GEM_EMOJI), el('span', '', points(amount))];
+/** An amount of komaGems: the gem, then the number (`short`: in red, a price that's more than they have: ../outfits/outfits.css). */
+const price = (amount: number, short = false): (Node | string)[] => [rich(GEM_EMOJI), el('span', short ? 'price-short' : '', points(amount))];
 
 /** How long until `at` (ms), as numbers and their units: 3 d 4 h, 5 h 12 m, or 8 m. */
 function until(at: number, now = Date.now()): [number, string][] {
@@ -28,7 +28,7 @@ function face(item: RaidShopItem, tag: 'button' | 'span'): HTMLElement {
 
 /**
  * One item's tile: its card, its name, how many they have, and a button with its price (one of the site's,
- * flat when they can't pay). Pressing the card or the button asks to buy it (page.ts).
+ * flat and its number in red when they can't pay). Pressing the card or the button asks to buy it (page.ts).
  */
 function tile(ctx: RaidShopContext, item: RaidShopItem): HTMLElement {
   const box = el('div', 'raid-ware');
@@ -38,9 +38,10 @@ function tile(ctx: RaidShopContext, item: RaidShopItem): HTMLElement {
   card.setAttribute('aria-label', `${item.name}, ${item.stars} stars: what it does`);
   const buy = el('button', 'action main raid-ware-buy');
   buy.type = 'button';
-  buy.append(...price(item.price));
+  const short = item.price > (ctx.view?.gems ?? 0);
+  buy.append(...price(item.price, short));
   buy.setAttribute('aria-label', `Buy ${item.name} for ${points(item.price)} komaGems`);
-  if (item.price > (ctx.view?.gems ?? 0)) buy.setAttribute('aria-disabled', 'true');
+  if (short) buy.setAttribute('aria-disabled', 'true');
 
   const name = el('span', 'raid-ware-name', item.name);
   name.title = item.name;
@@ -71,7 +72,7 @@ export function render(ctx: RaidShopContext): void {
   ui.refreshLeft.replaceChildren(el('span', 'raidshop-wide', 'Refreshes left: '), el('b', '', String(left)), el('span', 'raidshop-narrow', ' left'));
   ui.refresh.hidden = next === null;
   if (next !== null) {
-    ui.refresh.replaceChildren(...price(next));
+    ui.refresh.replaceChildren(...price(next, next > view.gems));
     ui.refresh.toggleAttribute('aria-disabled', false);
     if (next > view.gems) ui.refresh.setAttribute('aria-disabled', 'true');
     ui.refresh.setAttribute('aria-label', `Refresh the shelf for ${points(next)} komaGems`);
@@ -82,7 +83,7 @@ export function render(ctx: RaidShopContext): void {
   if (ctx.asking) renderAsk(ctx);
 }
 
-/** The box, for `ctx.asking`: what it is, and how much they're short when they can't pay. */
+/** The box, for `ctx.asking`: what it is and what it costs, in red when that's more than they have (and then nothing to press). */
 export function renderAsk(ctx: RaidShopContext): void {
   const { ui, view, asking } = ctx;
   if (!view || !asking) return;
@@ -105,10 +106,10 @@ export function renderAsk(ctx: RaidShopContext): void {
     );
   } else {
     ui.askTitle.replaceChildren('Refresh the shelf?');
-    ui.askAbout.replaceChildren('Everything on it is swapped for new gear, for you alone, until the week turns. It costs ', ...price(cost), '.');
+    ui.askAbout.textContent = 'Everything on it is swapped for new gear, for you alone, until the week turns.';
   }
-  ui.askNote.hidden = short <= 0;
-  ui.askNote.textContent = short > 0 ? `You have ${points(view.gems)} komaGems: ${points(short)} short.` : '';
+  ui.askPrice.replaceChildren(...price(cost, short > 0));
+  ui.askPrice.title = `${points(cost)} komaGems (you have ${points(view.gems)})`;
   ui.askConfirm.textContent = item ? 'Buy' : 'Refresh';
   ui.askConfirm.disabled = short > 0;
   working(ui.askConfirm, ctx.busy, 'confirm');

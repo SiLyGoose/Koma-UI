@@ -17,7 +17,7 @@ export interface RaidShopUi {
   askTitle: HTMLElement;
   askAbout: HTMLElement;
   askEffects: HTMLElement;
-  askNote: HTMLElement;
+  askPrice: HTMLElement;
   askConfirm: HTMLButtonElement;
 }
 
@@ -51,7 +51,7 @@ export function createContext(root: HTMLElement): RaidShopContext {
       askTitle: $('#ask-title'),
       askAbout: $('#ask-about'),
       askEffects: $('#ask-effects'),
-      askNote: $('#ask-note'),
+      askPrice: $('#ask-price'),
       askConfirm: $<HTMLButtonElement>('[data-ask="confirm"]'),
     },
     view: null,

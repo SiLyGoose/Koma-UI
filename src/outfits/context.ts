@@ -11,7 +11,6 @@ export interface OutfitsUi {
   buySprite: HTMLImageElement;
   buyTitle: HTMLElement;
   buyPrice: HTMLElement;
-  buyNote: HTMLElement;
   buyConfirm: HTMLButtonElement;
 }
 
@@ -37,7 +36,6 @@ export function createContext(root: HTMLElement): OutfitsContext {
       buySprite: $<HTMLImageElement>('#buy-sprite'),
       buyTitle: $('#buy-title'),
       buyPrice: $('#buy-price'),
-      buyNote: $('#buy-note'),
       buyConfirm: $<HTMLButtonElement>('[data-buy="confirm"]'),
     },
     view: null,

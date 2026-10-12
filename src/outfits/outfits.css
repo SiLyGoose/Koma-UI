@@ -316,11 +316,12 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* How much they're short (only shown when they are). */
-.outfits-buy-note {
-  margin: 8px 0 0;
+/*
+ * A price that's more than they have: its number in red, wherever it's shown (the box here, and the Raid
+ * Gear tab's buttons and box), as the banner's pulls and the forge's cost are.
+ */
+.price-short {
   color: var(--red);
-  font-size: 14px;
 }
 
 .outfits-buy-foot {

@@ -13,8 +13,8 @@ function stateOf(ctx: OutfitsContext, outfit: Outfit): CardState {
   return outfit.price <= (ctx.view?.balance ?? 0) ? 'buy' : 'short';
 }
 
-/** An amount of zeiucoins: the coin, then the number. */
-const price = (amount: number): HTMLElement[] => [coin('outfit-coin', 'zeiucoins'), el('span', '', points(amount))];
+/** An amount of zeiucoins: the coin, then the number (`short`: in red, a price that's more than they have). */
+const price = (amount: number, short = false): HTMLElement[] => [coin('outfit-coin', 'zeiucoins'), el('span', short ? 'price-short' : '', points(amount))];
 
 /** One outfit's card: its character standing on its floor, its name, and at the bottom its price or that it's theirs. */
 function card(ctx: OutfitsContext, outfit: Outfit): HTMLButtonElement {
@@ -52,16 +52,15 @@ export function render(ctx: OutfitsContext): void {
   if (ctx.buying) renderBuy(ctx);
 }
 
-/** The buy box, for `ctx.buying`: what it costs, and how much they're short when they are. */
+/** The buy box, for `ctx.buying`: what it costs, in red when that's more than they have (and then nothing to press). */
 export function renderBuy(ctx: OutfitsContext): void {
   const { ui, view, buying } = ctx;
   if (!view || !buying) return;
   const left = view.balance - buying.price;
   ui.buySprite.src = characterOf(buying.id).sprite;
   ui.buyTitle.textContent = `Buy ${buying.name}?`;
-  ui.buyPrice.replaceChildren(...price(buying.price));
-  ui.buyNote.hidden = left >= 0;
-  ui.buyNote.textContent = left >= 0 ? '' : `You have ${points(view.balance)}: ${points(-left)} short.`;
+  ui.buyPrice.replaceChildren(...price(buying.price, left < 0));
+  ui.buyPrice.title = `${points(buying.price)} zeiucoins (you have ${points(view.balance)})`;
   ui.buyConfirm.disabled = left < 0;
   working(ui.buyConfirm, ctx.busy, 'buy');
 }

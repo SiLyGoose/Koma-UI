@@ -3,7 +3,7 @@
  * the shelf changes, with paying for a new one now at its right end; and under it the shelf, small tall
  * tiles side by side on the site's dark board, each with the item's card as the armories draw it (parchment
  * framed in its tier's colour: ../shared/items), its name, how many they have, and one of the site's main
- * buttons (../shared/ui/button/) with its price in komaGems, flat when it's more than they have. Its box
+ * buttons (../shared/ui/button/) with its price in komaGems, flat and in red when it's more than they have. Its box
  * (asking before gems are spent) is the Outfits tab's (../outfits/outfits.css).
  */
 .raidshop-page {
@@ -219,8 +219,7 @@
 }
 
 .raidshop-ask-art[hidden],
-.raidshop-ask-effects[hidden],
-.raidshop-ask-note[hidden] {
+.raidshop-ask-effects[hidden] {
   display: none;
 }
 
@@ -253,11 +252,9 @@
   vertical-align: -0.22em;
 }
 
-/* How much they're short (only shown when they are). */
-.raidshop-ask-note {
-  margin: 10px 0 0;
-  color: var(--red);
-  font-size: 14px;
+/* What it costs, as the Outfits tab's box says it (../outfits/outfits.css): under what it is, over the buttons. */
+.raidshop-ask-price {
+  margin-top: 12px;
 }
 
 /* ------------------------------------------------------------------ narrower screens */

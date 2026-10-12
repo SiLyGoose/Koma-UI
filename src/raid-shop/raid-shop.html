@@ -21,8 +21,8 @@
   <div id="shelf" class="raidshop-shelf"></div>
 
   <!--
-    Asking before komaGems are spent: buying an item (what it does) or refreshing the shelf, and how much
-    they're short when they are. The Outfits tab's buy box (not a <dialog>, as it isn't).
+    Asking before komaGems are spent: buying an item (what it does) or refreshing the shelf, and what it
+    costs (in red when it's more than they have). The Outfits tab's buy box (not a <dialog>, as it isn't).
   -->
   <div id="ask" class="outfits-buy" role="dialog" aria-modal="true" aria-labelledby="ask-title" tabindex="-1" hidden>
     <div class="outfits-buy-box raidshop-ask-box">
@@ -30,7 +30,7 @@
       <h3 id="ask-title"></h3>
       <p id="ask-about" class="raidshop-ask-about"></p>
       <ul id="ask-effects" class="detail-effects raidshop-ask-effects"></ul>
-      <p id="ask-note" class="raidshop-ask-note" hidden></p>
+      <p id="ask-price" class="outfits-buy-price raidshop-ask-price"></p>
       <div class="outfits-buy-foot">
         <button type="button" class="action secondary" data-ask="cancel">Cancel</button>
         <button type="button" class="action main" data-ask="confirm"></button>
