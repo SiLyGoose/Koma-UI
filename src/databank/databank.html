@@ -14,7 +14,8 @@
 
   <!--
     The way in (/databank/): what there is to look up, each a mark on a star chart (src/databank/hub.ts fills
-    them in, with how many there are). The chart's lines are only for show.
+    them in, with how many there are). The chart's lines are only for show; its dots go round the rings
+    they sit on (src/databank/styles/hub.css), as the backdrop's moons do.
   -->
   <section id="db-hub" class="db-hub" aria-label="Databank" hidden>
     <svg class="db-chart" viewBox="0 0 1000 560" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
@@ -23,11 +24,17 @@
       <circle class="db-chart-line faint" cx="500" cy="280" r="430" />
       <circle class="db-chart-line faint" cx="500" cy="280" r="92" />
       <path class="db-chart-line faint" d="M-20 470 1020 110M180 -20 420 580M620 -20 860 580" />
-      <circle class="db-chart-dot" cx="500" cy="280" r="3.5" />
-      <circle class="db-chart-dot" cx="114" cy="204" r="4" />
-      <circle class="db-chart-dot" cx="546" cy="456" r="4" />
-      <circle class="db-chart-dot" cx="872" cy="176" r="4" />
-      <circle class="db-chart-dot" cx="560" cy="92" r="3" />
+      <g class="db-chart-orbit left">
+        <circle class="db-chart-dot" cx="114" cy="204" r="4" />
+        <circle class="db-chart-dot" cx="546" cy="456" r="4" />
+      </g>
+      <g class="db-chart-orbit right">
+        <circle class="db-chart-dot" cx="872" cy="176" r="4" />
+        <circle class="db-chart-dot" cx="560" cy="92" r="3" />
+      </g>
+      <g class="db-chart-orbit middle">
+        <circle class="db-chart-dot" cx="414" cy="248" r="3.5" />
+      </g>
     </svg>
     <h2 class="db-hub-title plaque">Databank</h2>
     <nav id="db-nodes" class="db-nodes" aria-label="Databank sections"></nav>

@@ -24,9 +24,12 @@ const dropsText = (level: RaidLevel): string => level.drops.map((drop) => `${dro
 
 /** The boss's HP against a party of `raiders` at a level (the bot's lib/events/raid.ts bossHpFor). */
 function hpFor(boss: DatabankBoss, raiders: number, level: RaidLevel): number {
-  const counted = Math.max(raiders, boss.hp.minRaiders) - boss.hp.overhead;
-  return Math.max(1, Math.round(boss.hp.perRaider * counted * level.hp));
+  const counted = Math.max(raiders, boss.hp.minRaiders);
+  return Math.max(1, Math.round(boss.hp.perRaider * (counted - boss.hp.overhead) * level.hp + gearHp(boss, level) * counted));
 }
+
+/** The HP the boss has on top for every raider at a level that needs raid gear (0 at the others). */
+const gearHp = (boss: DatabankBoss, level: RaidLevel): number => (level.gear ? (boss.hp.gear ?? 0) : 0);
 
 /** The server picked, by name (logged in). */
 const serverName = (): string => currentMe()?.servers.find((server) => server.id === currentServer())?.name ?? 'your server';
@@ -149,7 +152,7 @@ function renderBoss(ctx: DatabankContext): void {
       if (unlocked !== null && l.level > unlocked) {
         button.classList.add('locked');
         button.title = 'Not unlocked in your server yet';
-      }
+      } else if (l.gear) button.title = 'Needs raid gear';
       button.addEventListener('click', () => {
         ctx.bossLevel = l.level;
         renderBoss(ctx);
@@ -157,7 +160,8 @@ function renderBoss(ctx: DatabankContext): void {
       levels.append(button);
     }
     const numbers = el('div', 'db-stats');
-    numbers.append(stat('Boss HP', times(level.hp)), stat('Boss damage', times(level.damage)), stat('Drops, each raider', dropsText(level)));
+    const wall = gearHp(boss, level);
+    numbers.append(stat('Boss HP', wall > 0 ? `${times(level.hp)} +${points(wall)} a raider` : times(level.hp)), stat('Boss damage', times(level.damage)), stat('Drops, each raider', dropsText(level)));
     // Its HP grows with the party: a few sizes, from the smallest it counts.
     const sizes = [...new Set([boss.hp.minRaiders, 6, 8, 10])].filter((n) => n >= boss.hp.minRaiders);
     const hp = el('div', 'db-stats');
@@ -172,6 +176,7 @@ function renderBoss(ctx: DatabankContext): void {
       label('Difficulty'),
       levels,
       numbers,
+      ...(wall > 0 ? [el('p', 'detail-note', `🛡️ Lv ${level.level} needs raid gear: on top of its level, the boss has ${points(wall)} more HP for every raider, more than a party without gear can deal before it gets away.`)] : []),
       label(`Boss HP by party at Lv ${level.level}`),
       hp,
       el('p', 'detail-note', `Its HP grows with every raider (a party of fewer than ${boss.hp.minRaiders} fights it as ${boss.hp.minRaiders}). It gets away, and the raid is lost, if it is still standing after ${raid.maxRounds} rounds.`),

@@ -10,6 +10,7 @@ import { popupShown } from '../widgets';
  * the boss, the level between two arrows (down to 1, up as far as the server has unlocked: one past the
  * hardest it has beaten), and Enter Raid, which puts the lobby up at that level. The lobby's countdown
  * only starts then. What each level does to the boss and drops isn't said here: that's the databank's.
+ * Only that a level needs raid gear is, as a party without any can't clear it.
  */
 
 /** The level picked (null until the popup first comes up: it starts at the hardest the server has unlocked). */
@@ -22,6 +23,8 @@ function draw(pick: RaidPickView, v: RaidView): void {
   ui.levelNumber.textContent = String(picked);
   ui.levelDown.disabled = picked <= 1;
   ui.levelUp.disabled = picked >= unlocked;
+  const level = picked;
+  ui.levelGear.hidden = pick.levels.find((l) => l.level === level)?.gear !== true;
 }
 
 /** Brings the popup up, for the raid as the bot last sent it (the week's not started, and the page can start it). */

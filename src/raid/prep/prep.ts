@@ -61,7 +61,10 @@ function renderDifficulty(v: RaidView): void {
   ui.difficultyUp.hidden = !host;
   ui.difficultyDown.disabled = picked <= 1;
   ui.difficultyUp.disabled = picked >= unlocked;
-  ui.difficultyText.textContent = host ? '' : 'The host picks it.';
+  // A level a party can't clear without raid gear: the boss has that much more HP for every raider.
+  const gear = levels.find((level) => level.level === picked)?.gear === true;
+  const needs = gear ? `🛡️ Raid gear needed${lobby.gearHp ? ` (+${fmt(lobby.gearHp)} boss HP for every raider)` : ''}.` : '';
+  ui.difficultyText.textContent = [needs, host ? '' : 'The host picks it.'].filter(Boolean).join(' ');
 }
 
 /** A share (0 to 1) as a percentage, like "30%". */

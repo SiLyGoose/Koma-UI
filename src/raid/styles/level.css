@@ -145,6 +145,20 @@
   font-weight: 600;
 }
 
+/* A level that needs raid gear says so, under the level. */
+.rd-level-gear {
+  flex-shrink: 0;
+  margin: 14px 20px 0;
+  color: #f0c36a;
+  font-size: 13px;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.rd-level-gear[hidden] {
+  display: none;
+}
+
 .rd-level-actions {
   flex-shrink: 0;
   display: flex;

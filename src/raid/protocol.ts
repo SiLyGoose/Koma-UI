@@ -86,11 +86,16 @@ export interface RaidLootItem {
   isNew?: boolean;
 }
 
-/** One difficulty level: what it multiplies the boss's HP and damage by, and what a win at it drops for each raider (best tier first). */
+/**
+ * One difficulty level: what it multiplies the boss's HP and damage by, and what a win at it drops for each
+ * raider (best tier first). `gear` levels need raid gear: the boss has more HP for every raider besides
+ * (`gearHp` in the pick and lobby views). A bot from before those levels sends neither.
+ */
 export interface RaidLevel {
   level: number;
   hp: number;
   damage: number;
+  gear?: boolean;
   drops: { stars: number; count: number }[];
 }
 
@@ -101,6 +106,8 @@ export interface RaidPickView {
   topDifficulty: number;
   /** Every level, from 1 to `topDifficulty`. */
   levels: RaidLevel[];
+  /** The HP this boss has on top for every raider at the levels that need gear (RaidLevel.gear). */
+  gearHp?: number;
 }
 
 /** The lobby. The host picks its difficulty, up to the hardest the server has unlocked (a bot from before difficulties sends none of that). */
@@ -117,6 +124,8 @@ export interface RaidLobbyView {
   topDifficulty?: number;
   /** Every level, from 1 to `topDifficulty`. */
   levels?: RaidLevel[];
+  /** The HP this boss has on top for every raider at the levels that need gear (RaidLevel.gear); `bossHp` has it in. */
+  gearHp?: number;
 }
 
 export interface RaidOverView {

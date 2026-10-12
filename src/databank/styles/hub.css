@@ -61,6 +61,40 @@
   opacity: 0.75;
 }
 
+/*
+ * The dots on a ring, going round it as the backdrop's moons go round theirs
+ * (../../shared/ui/backdrop/): about as fast across the screen whatever the ring's size, so a bigger
+ * ring takes longer, and in steps, 8 a second, as there (what moves in an SVG is drawn again each time
+ * it moves). Each ring's centre, how long round it, and that many steps.
+ */
+.db-chart-orbit {
+  transform-box: view-box;
+  animation: db-turn 1000s steps(8000) infinite;
+}
+
+.db-chart-orbit.left {
+  transform-origin: 330px 330px;
+}
+
+.db-chart-orbit.right {
+  transform-origin: 690px 230px;
+  animation-duration: 760s;
+  animation-timing-function: steps(6080);
+  animation-direction: reverse;
+}
+
+.db-chart-orbit.middle {
+  transform-origin: 500px 280px;
+  animation-duration: 368s;
+  animation-timing-function: steps(2944);
+}
+
+@keyframes db-turn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .db-nodes {
   position: relative;
   display: flex;
@@ -110,6 +144,21 @@
   height: 100%;
 }
 
+/*
+ * The ring of ticks round an emblem, turning: its ticks slide along it (the ring is counted as 336
+ * long, 56 ticks of 6: ../emblems.ts), so its gold stays lightest at the top. As fast across the screen
+ * as the chart's dots, and in the same steps.
+ */
+.db-emblem-ticks {
+  animation: db-ticks 240s steps(1920) infinite;
+}
+
+@keyframes db-ticks {
+  to {
+    stroke-dashoffset: -336;
+  }
+}
+
 .db-node:hover .db-emblem,
 .db-node:focus-visible .db-emblem {
   filter: drop-shadow(0 0 16px rgb(255 222 140 / 55%));
@@ -147,6 +196,11 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .db-chart-orbit,
+  .db-emblem-ticks {
+    animation: none;
+  }
+
   .db-emblem {
     transition: none;
   }

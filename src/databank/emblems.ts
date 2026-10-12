@@ -7,10 +7,13 @@
 const gold = (id: string): string =>
   `<defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f8e9b4"/><stop offset="0.55" stop-color="#d8bf7a"/><stop offset="1" stop-color="#a3853f"/></linearGradient></defs>`;
 
-/** The disc every mark sits on: a fine ring, a ring of ticks, and the dark inside them. */
+/**
+ * The disc every mark sits on: a fine ring, a ring of ticks, and the dark inside them. The ticks' ring is
+ * counted as 336 long, so 56 of them fit it exactly and it can turn with no seam (./styles/hub.css).
+ */
 const disc = (id: string): string =>
   `<circle cx="60" cy="60" r="57" fill="none" stroke="url(#${id})" stroke-width="0.8" opacity="0.6"/>` +
-  `<circle cx="60" cy="60" r="52.5" fill="none" stroke="url(#${id})" stroke-width="2.4" stroke-dasharray="0.8 5.07" opacity="0.7"/>` +
+  `<circle class="db-emblem-ticks" cx="60" cy="60" r="52.5" fill="none" stroke="url(#${id})" stroke-width="2.4" pathLength="336" stroke-dasharray="0.8 5.2" opacity="0.7"/>` +
   `<circle cx="60" cy="60" r="48" fill="#0c0b0f" fill-opacity="0.82" stroke="url(#${id})" stroke-width="1.4"/>`;
 
 const DARK = '#15110a';
