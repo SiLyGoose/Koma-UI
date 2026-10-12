@@ -10,7 +10,7 @@ export function render(ctx: ForgeContext): void {
   const { ui } = ctx;
   ui.forge.hidden = false;
   ui.armoryTitle.textContent = `${me.user.name}'s Armory`;
-  ui.filter.show({ slot: ctx.filter, stars: ctx.stars, owned: null });
+  ui.filter.show({ slot: ctx.filter, stars: ctx.stars, owned: null, refineable: ctx.refineable });
   renderGrid(ctx);
   renderAnvil(ctx);
 }

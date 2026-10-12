@@ -23,6 +23,7 @@ export function wireControls(ctx: ForgeContext): () => void {
   ui.filter.onChange((choice) => {
     ctx.filter = choice.slot;
     ctx.stars = choice.stars;
+    ctx.refineable = choice.refineable === true;
     render(ctx);
   });
 

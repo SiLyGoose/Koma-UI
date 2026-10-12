@@ -19,7 +19,7 @@ export interface ForgeUi {
   armoryTitle: HTMLElement;
   grid: HTMLElement;
   search: HTMLInputElement;
-  /** The armory's Filter: its type and stars. */
+  /** The armory's Filter: its type, its stars, and Refineable. */
   filter: ArmoryFilter;
   result: HTMLElement;
 }
@@ -31,6 +31,8 @@ export interface ForgeContext {
   filter: Slot | 'all';
   /** The star tier the armory shows (its Filter: ../shared/items/armory-filter/). */
   stars: StarChoice;
+  /** Whether the armory shows only what can be refined (its Filter's Refineable). */
+  refineable: boolean;
   /** What the armory's search asks for (trimmed and lowercased): every word in a card's name or description (../shared/items/search.ts). */
   query: string;
   /** The copy on the anvil, if any. */
@@ -72,6 +74,7 @@ export function createContext(root: HTMLElement): ForgeContext {
     gear: null,
     filter: 'all',
     stars: 'all',
+    refineable: false,
     query: '',
     picked: null,
     material: null,
@@ -102,6 +105,27 @@ function materialsFor(ctx: ForgeContext, copy: GearCopy): GearCopy[] {
   if (!gear) return [];
   const kept = equippedIds(gear);
   return gear.copies.filter((c) => c.itemId === copy.itemId && c.id !== copy.id && !kept.has(c.id) && !c.masterwork && !c.locked);
+}
+
+/**
+ * The copies that can be refined: below their top level, with a spare to use up (as materialsFor counts
+ * them). Whether they can pay for it isn't counted: that goes by their zeiucoins, not by the copy.
+ */
+export function refineableIds(ctx: ForgeContext): Set<string> {
+  const { gear } = ctx;
+  if (!gear) return new Set();
+  const kept = equippedIds(gear);
+  const spare = (c: GearCopy): boolean => !kept.has(c.id) && !c.masterwork && !c.locked;
+  // How many spares there are of each item.
+  const spares = new Map<string, number>();
+  for (const c of gear.copies) if (spare(c)) spares.set(c.itemId, (spares.get(c.itemId) ?? 0) + 1);
+  const ids = new Set<string>();
+  for (const c of gear.copies) {
+    const plan = forgePlan(c);
+    // A spare other than itself.
+    if (plan.kind === 'refine' && plan.refine.blocked !== 'no_duplicate' && (spares.get(c.itemId) ?? 0) > Number(spare(c))) ids.add(c.id);
+  }
+  return ids;
 }
 
 /**

@@ -4,8 +4,8 @@ import { el, type Slot, stars } from '../items';
 /*
  * The armories' filter (the gear page's, the forge's, the databank's): a Filter button beside the search,
  * with how many filters are on, and its panel under it: the type (All, Weapons, Armor, Treasures), the
- * stars (Any, then 4 to 1) and, where the page offers it, Owned only, with room for more (a sort) as they
- * come. A choice applies at once and the panel stays open for the next; a click outside it, Escape or
+ * stars (Any, then 4 to 1) and, where the page offers them, Owned only (the databank's) and Refineable
+ * (the forge's), with room for more (a sort) as they come. A choice applies at once and the panel stays open for the next; a click outside it, Escape or
  * tabbing away closes it. Its markup is a box in the page (`<div id="armory-filter" class="armory-filter">`),
  * which this fills.
  */
@@ -21,6 +21,8 @@ export interface ArmoryChoice {
   stars: StarChoice;
   /** Only what they own; null where it isn't offered (the gear page and forge, or the databank logged out). */
   owned: boolean | null;
+  /** Only what can be refined; null where it isn't offered (anywhere but the forge). */
+  refineable: boolean | null;
 }
 
 export interface ArmoryFilter {
@@ -44,7 +46,7 @@ let count = 0;
 
 export function armoryFilter(box: HTMLElement): ArmoryFilter {
   const id = `armory-filter-${++count}`;
-  let current: ArmoryChoice = { slot: 'all', stars: 'all', owned: null };
+  let current: ArmoryChoice = { slot: 'all', stars: 'all', owned: null, refineable: null };
   let listener: ((choice: ArmoryChoice) => void) | null = null;
 
   // The button: a funnel, Filter, and how many are on.
@@ -85,24 +87,29 @@ export function armoryFilter(box: HTMLElement): ArmoryFilter {
   const types = group('Type', ...TYPES.map(([slot, name]) => option('radio', 'slot', slot, name)));
   // Any across the top, then the tiers in pairs.
   const tiers = group('Stars', ...TIERS.map((n) => (n === 'all' ? option('radio', 'stars', 'all', 'Any', true) : option('radio', 'stars', String(n), stars(n)))));
-  const owned = group('Show', option('checkbox', 'owned', 'owned', 'Owned only', true));
+  const owned = option('checkbox', 'owned', 'owned', 'Owned only', true);
+  const refineable = option('checkbox', 'refineable', 'refineable', 'Refineable', true);
+  const only = group('Show', owned, refineable);
   const clear = el('button', 'armory-filter-clear action secondary', 'Clear filters');
   clear.type = 'button';
-  panel.append(types, tiers, owned, clear);
+  panel.append(types, tiers, only, clear);
   box.append(button, panel);
 
   const input = (name: string, value: string): HTMLInputElement | null =>
     panel.querySelector<HTMLInputElement>(`input[name="${id}-${name}"][value="${value}"]`);
 
-  /** Draws `current`: the choices checked, Owned only if offered, and how many are on. */
+  /** Draws `current`: the choices checked, Owned only and Refineable if offered, and how many are on. */
   function draw(): void {
     const slot = input('slot', current.slot);
     const tier = input('stars', String(current.stars));
     if (slot) slot.checked = true;
     if (tier) tier.checked = true;
     owned.hidden = current.owned === null;
+    refineable.hidden = current.refineable === null;
+    only.hidden = owned.hidden && refineable.hidden;
     (input('owned', 'owned') as HTMLInputElement).checked = current.owned === true;
-    const on = Number(current.slot !== 'all') + Number(current.stars !== 'all') + Number(current.owned === true);
+    (input('refineable', 'refineable') as HTMLInputElement).checked = current.refineable === true;
+    const on = Number(current.slot !== 'all') + Number(current.stars !== 'all') + Number(current.owned === true) + Number(current.refineable === true);
     badge.textContent = String(on);
     badge.hidden = on === 0;
     clear.hidden = on === 0;
@@ -122,10 +129,11 @@ export function armoryFilter(box: HTMLElement): ArmoryFilter {
       slot: (picked('slot') ?? 'all') as Slot | 'all',
       stars: tier === 'all' ? 'all' : (Number(tier) as StarChoice),
       owned: current.owned === null ? null : picked('owned') !== undefined,
+      refineable: current.refineable === null ? null : picked('refineable') !== undefined,
     });
   });
   clear.addEventListener('click', () => {
-    choose({ slot: 'all', stars: 'all', owned: current.owned === null ? null : false });
+    choose({ slot: 'all', stars: 'all', owned: current.owned === null ? null : false, refineable: current.refineable === null ? null : false });
     // The button it was goes away with nothing left to clear: the focus goes to the first choice.
     panel.querySelector<HTMLInputElement>('input:checked')?.focus();
   });

@@ -109,5 +109,6 @@ it sets up a game's page. A page's own styles, split by area and by screen size,
     can't go on.
   - `transition/`: the page transition (`head.css` and `head.js` go inline in every page's `<head>`).
   - `items/`: the item cards, stars, art and detail panel shared by the gear page and the databank, and
-    the armories' Filter (`items/armory-filter/`: type, stars, Owned only, in a panel under its button).
+    the armories' Filter (`items/armory-filter/`: type, stars, the databank's Owned only and the forge's
+    Refineable, in a panel under its button).
 - `src/table/`: the card table shared by Baccarat and Roulette.

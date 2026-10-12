@@ -26,7 +26,7 @@ export function render(ctx: DatabankContext): void {
   ui.bar.classList.toggle('empty', ui.close.hidden && ui.server.hidden);
   if (view === 'hub') return renderHub(ctx);
   if (view === 'bosses') return renderBosses(ctx);
-  ui.filter.show({ slot: ctx.slotFilter, stars: ctx.starFilter, owned: ctx.owned === null ? null : ctx.onlyOwned });
+  ui.filter.show({ slot: ctx.slotFilter, stars: ctx.starFilter, owned: ctx.owned === null ? null : ctx.onlyOwned, refineable: null });
   renderList(ctx);
   renderDetail(ctx);
 }

@@ -1,5 +1,5 @@
 import { armoryOrder, el, equippedIds, forgePlan, itemFace, lockBadge, matchesSearch, matchesStars, SLOT_NAME } from '../shared/items';
-import { choosing, copyById, type ForgeContext } from './context';
+import { choosing, copyById, type ForgeContext, refineableIds } from './context';
 import { pick, pickMaterial } from './picking';
 
 /** The armory always shows at least this many cells (rounded up to a full row), and fills out its last row. */
@@ -8,7 +8,11 @@ const GRID_CELLS = 12;
 /** How many cards across the armory is now. */
 export const columns = (ctx: ForgeContext): number => getComputedStyle(ctx.ui.grid).gridTemplateColumns.split(' ').length || 4;
 
-/** The armory: every copy shown (by the filter, the stars and the search), greyed out when it can't go on the anvil now, then blanks to fill out the last row. */
+/**
+ * The armory: every copy shown (by the filter, the stars and the search), greyed out when it can't go on
+ * the anvil now, then blanks to fill out the last row. Under Refineable, only what can be refined, and
+ * with one of those on the anvil, it and the spares it can use up (which may not be refineable themselves).
+ */
 export function renderGrid(ctx: ForgeContext): void {
   const { gear, ui, filter, stars, query, picked, material } = ctx;
   if (!gear) return;
@@ -21,7 +25,13 @@ export function renderGrid(ctx: ForgeContext): void {
   // Picking material: everything that can't be used up is greyed out and can't be picked.
   const usable = choosing(ctx);
   const ofSlot = armoryOrder(gear.copies).filter((c) => filter === 'all' || c.slot === filter);
-  const shown = ofSlot.filter((c) => matchesStars(stars, c.stars) && matchesSearch(query, { name: c.name, id: c.itemId, description: c.description }));
+  const refineable = ctx.refineable ? refineableIds(ctx) : null;
+  const shown = ofSlot.filter(
+    (c) =>
+      (!refineable || refineable.has(c.id) || c.id === picked || usable?.has(c.id)) &&
+      matchesStars(stars, c.stars) &&
+      matchesSearch(query, { name: c.name, id: c.itemId, description: c.description }),
+  );
   const target = copyById(ctx, picked);
   const plan = target ? forgePlan(target).kind : null;
   const equipped = equippedIds(gear);
@@ -54,7 +64,13 @@ export function renderGrid(ctx: ForgeContext): void {
     const note = el(
       'p',
       'armory-empty',
-      ofSlot.length > 0 ? 'No items match that.' : filter === 'all' ? "You don't own any gear yet. Pull some with Koma's gacha in Discord." : `No ${SLOT_NAME[filter].toLowerCase()} yet.`,
+      refineable?.size === 0 && gear.copies.length > 0
+        ? 'Nothing can be refined yet: a refine uses up a spare copy of the same gear.'
+        : ofSlot.length > 0
+          ? 'No items match that.'
+          : filter === 'all'
+            ? "You don't own any gear yet. Pull some with Koma's gacha in Discord."
+            : `No ${SLOT_NAME[filter].toLowerCase()} yet.`,
     );
     ui.grid.append(note);
   }
