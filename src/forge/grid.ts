@@ -1,4 +1,4 @@
-import { armoryOrder, el, equippedIds, forgePlan, itemFace, lockBadge, matchesSearch, matchesStars, SLOT_NAME } from '../shared/items';
+import { armoryOrder, el, equippedIds, forgePlan, hoverSound, itemFace, lockBadge, matchesSearch, matchesStars, SLOT_NAME } from '../shared/items';
 import { choosing, copyById, type ForgeContext, refineableIds } from './context';
 import { pick, pickMaterial } from './picking';
 
@@ -54,6 +54,8 @@ export function renderGrid(ctx: ForgeContext): void {
     button.append(...itemFace(copy));
     if (copy.locked) button.append(lockBadge());
     if (isTarget) button.append(el('span', 'item-selected', plan === 'refine' ? 'Refining' : plan === 'forge' ? 'Forging' : 'Selected'));
+    // The items' hover sound, as the gear page's armory has (not over one greyed out).
+    hoverSound(button, copy.id, () => !button.disabled);
     button.addEventListener('click', () => (usable?.has(copy.id) ? pickMaterial(ctx, copy) : pick(ctx, copy)));
     ui.grid.append(button);
   }
