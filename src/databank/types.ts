@@ -19,6 +19,47 @@ export interface DatabankItem {
 
 export type ItemSource = 'gacha' | 'raid';
 
+/** One difficulty level of the raid: what it multiplies the boss's HP and damage by, and what a win at it drops for each raider (best tier first). */
+export interface RaidLevel {
+  level: number;
+  hp: number;
+  damage: number;
+  drops: { stars: number; count: number }[];
+}
+
+/** One raid boss (the bot's web/models/databank.ts DatabankBoss). Its lines are Discord markdown. */
+export interface DatabankBoss {
+  id: string;
+  name: string;
+  emoji: string;
+  /** Its picture (calm): its path under the bot's /api (GET). */
+  picture: string;
+  /** Its HP at difficulty 1: `perRaider` for every raider past the first `overhead`, a party of fewer than `minRaiders` counted as that many. */
+  hp: { perRaider: number; overhead: number; minRaiders: number };
+  phases: string[];
+  moves: string[];
+  /** What everyone who fought gets for beating it, whatever the difficulty (the raid items it can drop besides go by level). */
+  rewards: string;
+}
+
+/** What goes for every raid boss. */
+export interface DatabankRaid {
+  /** The boss gets away (and the raid is lost) if it is still standing after this many rounds. */
+  maxRounds: number;
+  /** Every difficulty level, from 1. */
+  levels: RaidLevel[];
+}
+
+/** How a server's raid stands (the bot's /api/raid/week, for a member of it). */
+export interface RaidWeek {
+  /** This week's boss there. */
+  boss: string;
+  /** The hardest difficulty the server can pick (one past the hardest it has beaten). */
+  maxDifficulty: number;
+  /** When the week's raid resets (ms). */
+  resetsAt: number;
+}
+
 export interface Databank {
   maxLevel: number;
   /**
@@ -28,6 +69,9 @@ export interface Databank {
   raidDropChance?: number;
   raidDropChancePerRaider?: number;
   items: DatabankItem[];
+  /** Every raid boss, and what goes for them all (absent from a bot from before the databank had them). */
+  bosses?: DatabankBoss[];
+  raid?: DatabankRaid;
 }
 
 /** What the member owns of one item: how many copies, and the best one's level. */

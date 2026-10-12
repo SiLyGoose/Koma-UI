@@ -1,8 +1,12 @@
 /*
- * The databank page, on top of the shared item template (../shared/items/items.css): the same armory frame
- * and parchment cards, with every item in the game by star tier, each card named, and the picked item's
- * panel beside it (a sheet from the bottom on narrow screens, as on the gear page).
+ * The databank page, on top of the shared item template (../shared/items/items.css). Its way in is
+ * ./styles/hub.css and its raid bosses ./styles/bosses.css; the rest here is the items: the same armory
+ * frame and parchment cards, with every item in the game by star tier, each card named, and the picked
+ * item's panel beside it (a sheet from the bottom on narrow screens, as on the gear page).
  */
+
+@import './styles/hub.css';
+@import './styles/bosses.css';
 
 /* The section's layout and height are the shared .panels' (../shared/items/items.css). */
 

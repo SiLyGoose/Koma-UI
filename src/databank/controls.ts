@@ -3,7 +3,7 @@ import { setServer } from '../site/session';
 import { narrow, type DatabankContext } from './context';
 import { renderDetail } from './detail';
 import { renderList } from './list';
-import { loadOwned } from './owned';
+import { loadServer } from './owned';
 import { render } from './render';
 
 /** The search, the filters and the server picker. Returns what undoes it (the listeners outside the page's root). */
@@ -20,7 +20,7 @@ export function wireControls(ctx: DatabankContext): () => void {
 
   ui.server.addEventListener('change', () => {
     setServer(ui.server.value);
-    void loadOwned(ctx).then(() => render(ctx));
+    void loadServer(ctx).then(() => render(ctx));
   });
 
   ui.filter.onChange((choice) => {

@@ -34,7 +34,7 @@ import { hasSession } from './session';
  *
  * Every page is its markup (an .html file beside it, a copy put in #view) and a module that sets it up
  * (./page.ts). A history entry's state holds its place in the history (`idx`), which tells back from
- * forward. A page with subpaths (the shop, a path for each tab) shows another of its own in place.
+ * forward. A page with subpaths (the shop, a path for each tab; the databank, one for each section) shows another of its own in place.
  */
 
 const PAGES: readonly Page[] = [hubPage, gearPage, forgePage, shopPage, dressingPage, databankPage];

@@ -78,6 +78,14 @@
     {
       "source": "/databank/",
       "destination": "/index.html"
+    },
+    {
+      "source": "/databank/:section",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/databank/:section/",
+      "destination": "/index.html"
     }
   ]
 }

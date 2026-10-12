@@ -1,8 +1,11 @@
 import { armoryFilter, type Slot, type StarChoice } from '../shared/items';
-import type { Databank, DatabankItem, Owned } from './types';
+import type { Databank, DatabankBoss, DatabankItem, Owned, RaidWeek } from './types';
 
 /** Narrow screens show the item picked in a sheet over the list, only once one is picked. */
 export const narrow = window.matchMedia('(max-width: 899px)');
+
+/** What the page shows: the way in (what there is to look up), every item, or the raid bosses. Each has its path (./page.ts). */
+export type View = 'hub' | 'items' | 'bosses';
 
 export type DatabankUi = ReturnType<typeof findUi>;
 
@@ -10,6 +13,8 @@ function findUi(root: HTMLElement) {
   const $ = <T extends HTMLElement>(id: string): T => root.querySelector(`#${id}`) as T;
   return {
     status: $('status'),
+    hub: $('db-hub'),
+    nodes: $('db-nodes'),
     databank: $('databank'),
     detail: $('detail'),
     detailBody: $('detail-body'),
@@ -20,12 +25,21 @@ function findUi(root: HTMLElement) {
     count: $('db-count'),
     /** The Filter: the type, the stars, and Owned only (when logged in). */
     filter: armoryFilter($('filter')),
+    /** Where the server picker sits in each view's tools (it moves to the one showing). */
+    itemsServer: $('items-server'),
+    bossesServer: $('bosses-server'),
+    bosses: $('db-bosses'),
+    bossList: $('boss-list'),
+    bossCount: $('boss-count'),
+    bossInfo: $('boss-info'),
+    bossBody: $('boss-body'),
   };
 }
 
-/** Everything the mounted databank knows: its elements, the items, what they own, and what's picked. */
+/** Everything the mounted databank knows: its elements, the items and bosses, what they own, and what's picked. */
 export interface DatabankContext {
   ui: DatabankUi;
+  view: View;
   databank: Databank | null;
   /** By item id; null when not logged in (nothing to mark). */
   owned: Map<string, Owned> | null;
@@ -39,11 +53,17 @@ export interface DatabankContext {
   /** The level the panel shows (1 to maxLevel), and whether the masterwork bonus is on (at the top level only). */
   level: number;
   masterwork: boolean;
+  /** The boss shown, and the difficulty level its numbers are for. */
+  boss: string | null;
+  bossLevel: number;
+  /** How the raid stands in the server picked: null when not logged in (or the bot doesn't say). */
+  week: RaidWeek | null;
 }
 
 export function createContext(root: HTMLElement): DatabankContext {
   return {
     ui: findUi(root),
+    view: 'hub',
     databank: null,
     owned: null,
     slotFilter: 'all',
@@ -54,6 +74,9 @@ export function createContext(root: HTMLElement): DatabankContext {
     sheetOpen: false,
     level: 5,
     masterwork: false,
+    boss: null,
+    bossLevel: 1,
+    week: null,
   };
 }
 
@@ -64,3 +87,5 @@ export function status(ctx: DatabankContext, text: string | null, bad = false): 
 }
 
 export const itemById = (ctx: DatabankContext, id: string | null): DatabankItem | undefined => (id ? ctx.databank?.items.find((item) => item.id === id) : undefined);
+
+export const bossById = (ctx: DatabankContext, id: string | null): DatabankBoss | undefined => (id ? ctx.databank?.bosses?.find((boss) => boss.id === id) : undefined);

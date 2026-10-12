@@ -62,7 +62,7 @@ Any square size works.
   document. Each page is its own `.html` (imported `?raw`) and a `page.ts` that sets it up; `src/site/main.ts`
   swaps between them (and back and forward) through the page transition, `src/site/session.ts` keeps
   the login, the server picked and the header. `vercel.json` sends `/gear/`, `/forge/`, `/shop/` (and its
-  tabs' paths), `/dressing-room/` and `/databank/` to it, and the old `/banner/` to `/shop/wish/`.
+  tabs' paths), `/dressing-room/` and `/databank/` (and its sections' paths) to it, and the old `/banner/` to `/shop/wish/`.
 - `src/hub/`: the front page.
 - `games/pinecraft/index.html`, `src/pinecraft/`: Pinecraft. `protocol.ts` is a copy of the bot's
   `src/web/pinecraft-protocol.ts` (change both together), `draw/` draws the world (`draw/textures.ts`
@@ -70,7 +70,8 @@ Any square size works.
   `input/` the keys and the joystick.
 - `games/mines/index.html`, `src/mines/`: Mines. `protocol.ts` is a copy of the bot's
   `src/web/mines-protocol.ts` (change both together).
-- `src/gear/`: the gear page. `src/databank/`: the databank.
+- `src/gear/`: the gear page. `src/databank/`: the databank: its way in (`/databank/`), the items (`/databank/items/`)
+  and the raid bosses (`/databank/bosses/`).
 - `src/shop/`: the shop, its tabs down the left, each with its own path (`/shop/wish/`, `/shop/outfits/`).
   `src/banner/` is its Wish tab, where members pull from the gacha (the bot's `/api/gacha`), with its
   wish: a star falling in the colour of the best item pulled (`sky.ts`), then each item revealed
