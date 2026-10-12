@@ -128,29 +128,89 @@
 }
 
 .db-emblem {
+  position: relative;
   display: block;
   width: clamp(150px, 19vw, 210px);
   aspect-ratio: 1;
   margin-bottom: 8px;
   filter: drop-shadow(0 0 10px rgb(216 191 122 / 22%));
-  transition:
-    transform 0.2s ease,
-    filter 0.2s ease;
-}
-
-.db-emblem svg {
-  display: block;
-  width: 100%;
-  height: 100%;
+  transition: transform 0.2s ease;
 }
 
 /*
- * The ring of ticks round an emblem, turning: its ticks slide along it (the ring is counted as 336
- * long, 56 ticks of 6: ../emblems.ts), so its gold stays lightest at the top. As fast across the screen
- * as the chart's dots, and in the same steps.
+ * A warm haze behind an emblem, up and to the left of it, there only under the mouse (or the keyboard's
+ * focus): wide, with no edge to it, and so faint (a few parts in a hundred at its middle) it is barely seen.
+ */
+.db-emblem::before {
+  content: '';
+  position: absolute;
+  inset: -50%;
+  z-index: -1;
+  border-radius: 50%;
+  background: radial-gradient(
+    closest-side,
+    rgb(255 208 130 / 8%),
+    rgb(255 208 130 / 6.5%) 22%,
+    rgb(255 208 130 / 4%) 45%,
+    rgb(255 208 130 / 1.6%) 70%,
+    rgb(255 208 130 / 0.4%) 88%,
+    transparent
+  );
+  transform: translate(-9%, -9%);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+}
+
+/*
+ * The rings behind an emblem (../emblems.ts): pale, and faint enough to see the chart through. Under the
+ * mouse they turn the emblem's gold, and show up.
+ */
+.db-emblem-rings {
+  display: block;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: var(--text);
+  transition: stroke 0.35s ease;
+}
+
+.db-emblem-ring {
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.2;
+  transition: opacity 0.35s ease;
+}
+
+/*
+ * The ring of dots between them, turning: the dots slide along it (the ring is counted as 336 long, 56
+ * dots 6 apart: ../emblems.ts). As fast across the screen as the chart's dots, and in the same steps.
  */
 .db-emblem-ticks {
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  opacity: 0.22;
+  transition: opacity 0.35s ease;
   animation: db-ticks 240s steps(1920) infinite;
+}
+
+/*
+ * An emblem's own picture, over its rings and about as wide as the inner one: a shape
+ * (public/shared/emblems/, white on nothing) filled with gold, lightest at the top left.
+ */
+.db-emblem-art {
+  position: absolute;
+  inset: 3%;
+  background: linear-gradient(150deg, #f6edc2, #dcc78a 45%, #a9824a 80%, transparent);
+  mask: center / contain no-repeat;
+}
+
+.db-node-items .db-emblem-art {
+  mask-image: url('/shared/emblems/items.png');
+}
+
+.db-node-bosses .db-emblem-art {
+  mask-image: url('/shared/emblems/bosses.png');
 }
 
 @keyframes db-ticks {
@@ -161,8 +221,27 @@
 
 .db-node:hover .db-emblem,
 .db-node:focus-visible .db-emblem {
-  filter: drop-shadow(0 0 16px rgb(255 222 140 / 55%));
   transform: scale(1.06);
+}
+
+.db-node:hover .db-emblem::before,
+.db-node:focus-visible .db-emblem::before {
+  opacity: 0.3;
+}
+
+.db-node:hover .db-emblem-rings,
+.db-node:focus-visible .db-emblem-rings {
+  stroke: #dcc78a;
+}
+
+.db-node:hover .db-emblem-ring,
+.db-node:focus-visible .db-emblem-ring {
+  opacity: 0.75;
+}
+
+.db-node:hover .db-emblem-ticks,
+.db-node:focus-visible .db-emblem-ticks {
+  opacity: 0.85;
 }
 
 .db-node:focus-visible {
@@ -183,16 +262,6 @@
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   text-shadow: 0 2px 6px rgb(0 0 0 / 70%);
-}
-
-/* A fine line under the count, fading at both ends. */
-.db-node-count::after {
-  content: '';
-  display: block;
-  width: 64px;
-  height: 1px;
-  margin: 6px auto 0;
-  background: linear-gradient(90deg, transparent, rgb(216 191 122 / 70%), transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {
