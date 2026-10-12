@@ -28,8 +28,8 @@ function hpFor(boss: DatabankBoss, raiders: number, level: RaidLevel): number {
   return Math.max(1, Math.round(boss.hp.perRaider * (counted - boss.hp.overhead) * level.hp + gearHp(boss, level) * counted));
 }
 
-/** The HP the boss has on top for every raider at a level that needs raid gear (0 at the others). */
-const gearHp = (boss: DatabankBoss, level: RaidLevel): number => (level.gear ? (boss.hp.gear ?? 0) : 0);
+/** The HP the boss has on top for every raider at a level: its share of the boss's gear HP (none at level 1, all of it from the levels that need raid gear). */
+const gearHp = (boss: DatabankBoss, level: RaidLevel): number => Math.round((boss.hp.gear ?? 0) * (level.wall ?? (level.gear ? 1 : 0)));
 
 /** The server picked, by name (logged in). */
 const serverName = (): string => currentMe()?.servers.find((server) => server.id === currentServer())?.name ?? 'your server';
@@ -176,7 +176,7 @@ function renderBoss(ctx: DatabankContext): void {
       label('Difficulty'),
       levels,
       numbers,
-      ...(wall > 0 ? [el('p', 'detail-note', `🛡️ Lv ${level.level} needs raid gear: on top of its level, the boss has ${points(wall)} more HP for every raider, more than a party without gear can deal before it gets away.`)] : []),
+      ...(wall > 0 && level.gear ? [el('p', 'detail-note', `🛡️ Lv ${level.level} needs raid gear: the HP it gains for every raider has climbed to ${points(wall)}, and from here the boss is built for parties in raid gear.`)] : []),
       label(`Boss HP by party at Lv ${level.level}`),
       hp,
       el('p', 'detail-note', `Its HP grows with every raider (a party of fewer than ${boss.hp.minRaiders} fights it as ${boss.hp.minRaiders}). It gets away, and the raid is lost, if it is still standing after ${raid.maxRounds} rounds.`),

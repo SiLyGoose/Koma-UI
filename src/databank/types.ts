@@ -21,14 +21,16 @@ export type ItemSource = 'gacha' | 'raid';
 
 /**
  * One difficulty level of the raid: what it multiplies the boss's HP and damage by, and what a win at it drops
- * for each raider (best tier first). `gear` levels need raid gear: the boss has DatabankBoss.hp.gear more HP for
- * every raider besides. A bot from before those levels sends neither.
+ * for each raider (best tier first). The boss has more HP for every raider besides: `wall` (0 to 1) of its
+ * DatabankBoss.hp.gear, none at level 1 and all of it from the first `gear` level, the ones built for parties
+ * in raid gear. A bot from before those levels sends neither.
  */
 export interface RaidLevel {
   level: number;
   hp: number;
   damage: number;
   gear?: boolean;
+  wall?: number;
   drops: { stars: number; count: number }[];
 }
 
@@ -46,7 +48,7 @@ export interface DatabankBoss {
   hp: { perRaider: number; overhead: number; minRaiders: number; gear?: number };
   phases: string[];
   moves: string[];
-  /** What everyone who fought gets for beating it, whatever the difficulty (the raid items it can drop besides go by level). */
+  /** What everyone who fought gets for beating it at difficulty 1, and how the harder levels pay more (the raid items it can drop besides go by level). */
   rewards: string;
 }
 

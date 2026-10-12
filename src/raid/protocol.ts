@@ -88,14 +88,16 @@ export interface RaidLootItem {
 
 /**
  * One difficulty level: what it multiplies the boss's HP and damage by, and what a win at it drops for each
- * raider (best tier first). `gear` levels need raid gear: the boss has more HP for every raider besides
- * (`gearHp` in the pick and lobby views). A bot from before those levels sends neither.
+ * raider (best tier first). The boss has more HP for every raider besides: `wall` (0 to 1) of its own amount
+ * (`gearHp` in the pick and lobby views), none at level 1 and all of it from the first `gear` level, the ones
+ * built for parties in raid gear. A bot from before those levels sends neither.
  */
 export interface RaidLevel {
   level: number;
   hp: number;
   damage: number;
   gear?: boolean;
+  wall?: number;
   drops: { stars: number; count: number }[];
 }
 
