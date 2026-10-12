@@ -1,0 +1,152 @@
+/*
+ * The databank's raid classes (../classes.ts): a card for each down the side, in the raid bosses' frames
+ * (./bosses.css lays the section out, as theirs), and the one picked beside them on parchment.
+ */
+
+.db-classes[hidden] {
+  display: none;
+}
+
+/* A class's card: its badge, then its name. */
+.db-class-card {
+  /* Its own size whatever room the list has (the list scrolls). */
+  flex: none;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  width: 100%;
+  padding: 10px 16px 10px 12px;
+  border: 2px solid var(--plaque-edge);
+  border-radius: 10px;
+  background: var(--plaque);
+  color: var(--plaque-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform 0.12s ease,
+    border-color 0.12s ease,
+    box-shadow 0.12s ease;
+}
+
+.db-class-card-badge {
+  display: block;
+  flex: none;
+  width: 52px;
+  height: auto;
+}
+
+.db-class-card-name {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 17px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.db-class-card:hover {
+  border-color: #8a8296;
+  transform: translateY(-2px);
+}
+
+.db-class-card:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.db-class-card.picked {
+  border-color: var(--picked);
+  box-shadow:
+    0 0 0 1px var(--picked),
+    0 0 16px rgb(255 222 140 / 35%);
+}
+
+/* The class picked: its badge beside its name. */
+.db-class-head {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.db-class-picture {
+  display: block;
+  flex: none;
+  width: 80px;
+  height: auto;
+  filter: drop-shadow(0 2px 4px rgb(0 0 0 / 35%));
+}
+
+/* A class item: its card (the items' own, small), and beside it its name and what it does. */
+.db-class-item {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+  margin-top: 10px;
+}
+
+.db-class-item-about {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  color: var(--ink);
+}
+
+.db-class-item-about strong {
+  font-size: 16px;
+}
+
+.db-class-item-about small {
+  margin-bottom: 4px;
+  color: #6b5a3a;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Narrow screens: the cards in the row that scrolls sideways, each as wide as its name. */
+@media (max-width: 899px) {
+  .db-class-card {
+    width: auto;
+    scroll-snap-align: start;
+  }
+}
+
+/* Smaller computer screens: a size down, as the bosses' cards are. */
+@media (min-width: 900px) and (max-width: 1279px), (min-width: 900px) and (max-height: 820px) {
+  .db-class-list {
+    gap: 8px;
+  }
+
+  .db-class-card {
+    padding: 6px 14px 6px 10px;
+  }
+
+  .db-class-card-badge {
+    width: 42px;
+  }
+
+  .db-class-card-name {
+    font-size: 15px;
+  }
+}
+
+/* ------------------------------------------------------------------ the way in */
+
+/* Its mark on the way in (./hub.css), the third: low on the chart, as the first is, and the three a little closer. */
+.db-node-classes .db-emblem-art {
+  mask-image: url('/shared/emblems/classes.png');
+}
+
+.db-nodes:has(.db-node-classes) {
+  column-gap: clamp(24px, 6vw, 110px);
+}
+
+@media (min-width: 900px) {
+  .db-node-classes {
+    transform: translateY(44px);
+  }
+}

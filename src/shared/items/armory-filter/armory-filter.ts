@@ -4,8 +4,8 @@ import { el, type Slot, stars } from '../items';
 /*
  * The armories' filter (the gear page's, the forge's, the databank's): a Filter button beside the search,
  * with how many filters are on, and its panel under it: the type (All, Weapons, Armor, Treasures), the
- * stars (Any, then 4 to 1) and, where the page offers them, Owned only (the databank's) and Refineable
- * (the forge's), with room for more (a sort) as they come. A choice applies at once and the panel stays open for the next; a click outside it, Escape or
+ * stars (Any, then 4 to 1) and, where the page offers them, the class (the databank's: a raid class's own items),
+ * Owned only (the databank's) and Refineable (the forge's), with room for more (a sort) as they come. A choice applies at once and the panel stays open for the next; a click outside it, Escape or
  * tabbing away closes it. Its markup is a box in the page (`<div id="armory-filter" class="armory-filter">`),
  * which this fills.
  */
@@ -23,6 +23,14 @@ export interface ArmoryChoice {
   owned: boolean | null;
   /** Only what can be refined; null where it isn't offered (anywhere but the forge). */
   refineable: boolean | null;
+  /** Only one raid class's items (its id), or 'all'; null where it isn't offered (anywhere but the databank). */
+  cls: string | 'all' | null;
+}
+
+/** A raid class the filter offers: its picture is public/gear/classes/<id>.png. */
+export interface ClassChoice {
+  id: string;
+  name: string;
 }
 
 export interface ArmoryFilter {
@@ -30,6 +38,8 @@ export interface ArmoryFilter {
   show(choice: ArmoryChoice): void;
   /** Hears each choice made in the panel. */
   onChange(listener: (choice: ArmoryChoice) => void): void;
+  /** The classes its Class group offers (a page that has them, once it knows them). */
+  setClasses(classes: readonly ClassChoice[]): void;
   /** Stops listening to the page (a page going away). */
   destroy(): void;
 }
@@ -46,7 +56,7 @@ let count = 0;
 
 export function armoryFilter(box: HTMLElement): ArmoryFilter {
   const id = `armory-filter-${++count}`;
-  let current: ArmoryChoice = { slot: 'all', stars: 'all', owned: null, refineable: null };
+  let current: ArmoryChoice = { slot: 'all', stars: 'all', owned: null, refineable: null, cls: null };
   let listener: ((choice: ArmoryChoice) => void) | null = null;
 
   // The button: a funnel, Filter, and how many are on.
@@ -90,9 +100,13 @@ export function armoryFilter(box: HTMLElement): ArmoryFilter {
   const owned = option('checkbox', 'owned', 'owned', 'Owned only', true);
   const refineable = option('checkbox', 'refineable', 'refineable', 'Refineable', true);
   const only = group('Show', owned, refineable);
+  // The classes come from the page (setClasses): Any across the top, then each with its badge.
+  const classes = group('Class');
+  const classOptions = classes.querySelector('.armory-filter-options') as HTMLElement;
+  let offered = 0;
   const clear = el('button', 'armory-filter-clear action secondary', 'Clear filters');
   clear.type = 'button';
-  panel.append(types, tiers, only, clear);
+  panel.append(types, tiers, classes, only, clear);
   box.append(button, panel);
 
   const input = (name: string, value: string): HTMLInputElement | null =>
@@ -104,12 +118,16 @@ export function armoryFilter(box: HTMLElement): ArmoryFilter {
     const tier = input('stars', String(current.stars));
     if (slot) slot.checked = true;
     if (tier) tier.checked = true;
+    classes.hidden = current.cls === null || offered === 0;
+    const cls = current.cls === null ? null : input('class', current.cls);
+    if (cls) cls.checked = true;
     owned.hidden = current.owned === null;
     refineable.hidden = current.refineable === null;
     only.hidden = owned.hidden && refineable.hidden;
     (input('owned', 'owned') as HTMLInputElement).checked = current.owned === true;
     (input('refineable', 'refineable') as HTMLInputElement).checked = current.refineable === true;
-    const on = Number(current.slot !== 'all') + Number(current.stars !== 'all') + Number(current.owned === true) + Number(current.refineable === true);
+    const on =
+      Number(current.slot !== 'all') + Number(current.stars !== 'all') + Number(current.owned === true) + Number(current.refineable === true) + Number(current.cls !== null && current.cls !== 'all');
     badge.textContent = String(on);
     badge.hidden = on === 0;
     clear.hidden = on === 0;
@@ -130,10 +148,11 @@ export function armoryFilter(box: HTMLElement): ArmoryFilter {
       stars: tier === 'all' ? 'all' : (Number(tier) as StarChoice),
       owned: current.owned === null ? null : picked('owned') !== undefined,
       refineable: current.refineable === null ? null : picked('refineable') !== undefined,
+      cls: current.cls === null ? null : (picked('class') ?? 'all'),
     });
   });
   clear.addEventListener('click', () => {
-    choose({ slot: 'all', stars: 'all', owned: current.owned === null ? null : false, refineable: current.refineable === null ? null : false });
+    choose({ slot: 'all', stars: 'all', owned: current.owned === null ? null : false, refineable: current.refineable === null ? null : false, cls: current.cls === null ? null : 'all' });
     // The button it was goes away with nothing left to clear: the focus goes to the first choice.
     panel.querySelector<HTMLInputElement>('input:checked')?.focus();
   });
@@ -172,6 +191,22 @@ export function armoryFilter(box: HTMLElement): ArmoryFilter {
     },
     onChange(next) {
       listener = next;
+    },
+    setClasses(list) {
+      offered = list.length;
+      classOptions.replaceChildren(
+        option('radio', 'class', 'all', 'Any', true),
+        ...list.map(({ id: cls, name }) => {
+          const label = el('span', 'armory-filter-class');
+          const badge = el('img');
+          badge.src = `/gear/classes/${cls}.png`;
+          badge.alt = '';
+          badge.draggable = false;
+          label.append(badge, name);
+          return option('radio', 'class', cls, label);
+        }),
+      );
+      draw();
     },
     destroy() {
       document.removeEventListener('pointerdown', outside);

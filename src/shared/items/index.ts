@@ -9,4 +9,4 @@ export { art, el, itemFace, keepHoloInStep, lockBadge, rich, type Slot, SLOT_NAM
 export { armoryOrder, DORMANT, equippedIds, forgePlan, type GearCopy, type GearView, type Plan, type StatSection } from './gear';
 export { matchesSearch } from './search';
 export { hoverSound, itemDetailsClosed, itemPicked, popupClosed } from './sfx';
-export { armoryFilter, matchesStars, type ArmoryChoice, type ArmoryFilter, type StarChoice } from './armory-filter/armory-filter';
+export { armoryFilter, matchesStars, type ArmoryChoice, type ArmoryFilter, type ClassChoice, type StarChoice } from './armory-filter/armory-filter';

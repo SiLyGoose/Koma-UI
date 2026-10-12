@@ -42,8 +42,8 @@ const picture = (boss: DatabankBoss, className: string): HTMLImageElement => {
   return img;
 };
 
-/** A heading over one part of the boss's sheet. */
-const label = (text: string): HTMLElement => el('p', 'db-label', text);
+/** A heading over one part of a sheet (the boss's, and a class's: ./classes.ts). */
+export const label = (text: string): HTMLElement => el('p', 'db-label', text);
 
 /** A number with what it is over it. */
 function stat(name: string, value: string): HTMLElement {
@@ -53,7 +53,7 @@ function stat(name: string, value: string): HTMLElement {
 }
 
 /** Lines of the bot's markdown, a row each. A blank line ends the rows: what follows is a note under them. */
-function lines(list: readonly string[]): HTMLElement[] {
+export function lines(list: readonly string[]): HTMLElement[] {
   const gap = list.indexOf('');
   const rows = el('ul', 'detail-effects');
   for (const line of gap === -1 ? list : list.slice(0, gap)) rows.appendChild(el('li')).append(rich(line));
@@ -106,8 +106,8 @@ function renderBossList(ctx: DatabankContext): void {
   ui.bossCount.textContent = `${bosses.length} raid ${bosses.length === 1 ? 'boss' : 'bosses'}${thisWeek ? ` · this week in ${serverName()}: ${thisWeek.name}` : ''}`;
 }
 
-/** A raid item's card, as the items' list has them: it opens the item there. */
-function dropCard(item: DatabankItem): HTMLButtonElement {
+/** An item's card, as the items' list has them: it opens the item there (a raid item a boss drops, a class's item). */
+export function itemCard(item: DatabankItem): HTMLButtonElement {
   const card = el('button', 'item db-item');
   card.type = 'button';
   card.dataset.stars = String(item.stars);
@@ -198,7 +198,7 @@ function renderBoss(ctx: DatabankContext): void {
     drops.append(rich(`The party also has a **${percent(chance)}** chance (+${percent(perRaider)} for each raider) that everyone finds **${dropsText(level)}** raid items at Lv ${level.level}, which can't be pulled from the gacha:`));
     const tiers = new Set(level.drops.map((drop) => drop.stars));
     const grid = el('div', 'db-drops');
-    grid.append(...databank.items.filter((item) => item.source === 'raid' && tiers.has(item.stars)).map(dropCard));
+    grid.append(...databank.items.filter((item) => item.source === 'raid' && tiers.has(item.stars)).map(itemCard));
     ui.bossBody.append(drops, grid);
   }
 }

@@ -17,6 +17,16 @@ export interface DatabankItem {
   source?: ItemSource;
   /** Every place it comes from, `source` first: a raid item the raid shop sells has that too (absent from a bot from before the raid shop). */
   sources?: ItemSource[];
+  /** A class item: the raid class (Databank.classes) its effects only work for. Null, or absent from a bot from before classes, for everyone's. */
+  class?: string | null;
+}
+
+/** A raid class: what a class item's tag says, what the filter offers, and what the Classes show. Its picture is public/gear/classes/<id>.png. */
+export interface RaidClass {
+  id: string;
+  name: string;
+  /** What it does in a raid, a line of Discord markdown each: only what isn't as for a raider without a class (absent from a bot from before it said). */
+  traits?: string[];
 }
 
 export type ItemSource = 'gacha' | 'raid' | 'raidShop';
@@ -81,6 +91,8 @@ export interface Databank {
   raidDropChance?: number;
   raidDropChancePerRaider?: number;
   items: DatabankItem[];
+  /** The raid classes, in their order (absent from a bot from before classes). */
+  classes?: RaidClass[];
   /** Every raid boss, and what goes for them all (absent from a bot from before the databank had them). */
   bosses?: DatabankBoss[];
   raid?: DatabankRaid;

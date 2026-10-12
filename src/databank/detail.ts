@@ -1,6 +1,7 @@
 import { art, el, itemDetailsClosed, rich, SLOT_NAME, stars } from '../shared/items';
 import { go } from '../site/nav';
-import { itemById, narrow, type DatabankContext } from './context';
+import { classTag } from './class-tag';
+import { className, itemById, narrow, type DatabankContext } from './context';
 import type { ItemSource } from './types';
 
 function levelButton(label: string, pressed: boolean, disabled: boolean, onClick: () => void): HTMLButtonElement {
@@ -54,6 +55,8 @@ export function renderDetail(ctx: DatabankContext): void {
   if (bonusOn) name.append(el('span', 'detail-mw', '✨ Masterwork'));
   // Under the name, its category, then its stars (as the gear page's item panel).
   title.append(name, el('p', 'detail-meta db-kind', SLOT_NAME[item.slot]), stars(item.stars));
+  // A class item says whose it is.
+  if (item.class) title.append(classTag(item.class, className(ctx, item.class)));
   const close = el('button', 'detail-close', '✕');
   close.type = 'button';
   close.setAttribute('aria-label', 'Close');

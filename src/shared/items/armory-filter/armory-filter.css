@@ -181,3 +181,17 @@ input[type='checkbox']:checked + .armory-filter-mark::after {
     transition: none;
   }
 }
+
+/* A raid class in the Class group: its badge, then its name. */
+.armory-filter-class {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  min-width: 0;
+}
+
+.armory-filter-class img {
+  flex: none;
+  width: 22px;
+  height: auto;
+}

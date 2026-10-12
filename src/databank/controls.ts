@@ -28,6 +28,7 @@ export function wireControls(ctx: DatabankContext): () => void {
   ui.filter.onChange((choice) => {
     ctx.slotFilter = choice.slot;
     ctx.starFilter = choice.stars;
+    ctx.classFilter = choice.cls ?? 'all';
     ctx.onlyOwned = choice.owned === true;
     render(ctx);
   });

@@ -1,5 +1,6 @@
 import { art, el, hoverSound, itemPicked, SLOT_NAME, stars } from '../shared/items';
-import type { DatabankContext } from './context';
+import { classBadge } from './class-tag';
+import { className, type DatabankContext } from './context';
 import { renderDetail } from './detail';
 import { matches } from './filter';
 import type { DatabankItem, Stars } from './types';
@@ -39,8 +40,11 @@ function card(ctx: DatabankContext, item: DatabankItem): HTMLButtonElement {
   button.dataset.stars = String(item.stars);
   button.classList.toggle('picked', item.id === ctx.picked);
   button.classList.toggle('unowned', owned !== null && !mine);
-  button.setAttribute('aria-label', `${item.name}, ${item.stars} star${item.stars === 1 ? '' : 's'}, ${SLOT_NAME[item.slot]}${mine ? `, you own ${mine.count}` : ''}`);
+  const cls = item.class ? className(ctx, item.class) : null;
+  button.setAttribute('aria-label', `${item.name}, ${item.stars} star${item.stars === 1 ? '' : 's'}, ${SLOT_NAME[item.slot]}${cls ? `, ${cls} class item` : ''}${mine ? `, you own ${mine.count}` : ''}`);
   if (mine) button.append(el('span', 'item-level', `×${mine.count}`));
+  // A class item wears its class's badge in the corner.
+  if (item.class && cls) button.append(classBadge(item.class, cls));
   button.append(stars(item.stars), art(item.id, item.slot), el('span', 'db-name', item.name), el('span', 'item-curl'));
   button.dataset.sfx = 'own';
   hoverSound(button, item.id);

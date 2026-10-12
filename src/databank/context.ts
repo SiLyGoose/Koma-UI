@@ -1,11 +1,11 @@
 import { armoryFilter, type Slot, type StarChoice } from '../shared/items';
-import type { Databank, DatabankBoss, DatabankItem, Owned, RaidWeek } from './types';
+import type { Databank, DatabankBoss, DatabankItem, Owned, RaidClass, RaidWeek } from './types';
 
 /** Narrow screens show the item picked in a sheet over the list, only once one is picked. */
 export const narrow = window.matchMedia('(max-width: 899px)');
 
-/** What the page shows: the way in (what there is to look up), every item, or the raid bosses. Each has its path (./page.ts). */
-export type View = 'hub' | 'items' | 'bosses';
+/** What the page shows: the way in (what there is to look up), every item, the raid bosses, or the raid classes. Each has its path (./page.ts). */
+export type View = 'hub' | 'items' | 'bosses' | 'classes';
 
 export type DatabankUi = ReturnType<typeof findUi>;
 
@@ -26,13 +26,18 @@ function findUi(root: HTMLElement) {
     server: $<HTMLSelectElement>('server'),
     list: $('db-list'),
     count: $('db-count'),
-    /** The Filter: the type, the stars, and Owned only (when logged in). */
+    /** The Filter: the type, the stars, the class, and Owned only (when logged in). */
     filter: armoryFilter($('filter')),
     bosses: $('db-bosses'),
     bossList: $('boss-list'),
     bossCount: $('boss-count'),
     bossInfo: $('boss-info'),
     bossBody: $('boss-body'),
+    classes: $('db-classes'),
+    classList: $('class-list'),
+    classCount: $('class-count'),
+    classInfo: $('class-info'),
+    classBody: $('class-body'),
   };
 }
 
@@ -45,6 +50,8 @@ export interface DatabankContext {
   owned: Map<string, Owned> | null;
   slotFilter: Slot | 'all';
   starFilter: StarChoice;
+  /** Only one raid class's own items (its id), or every item. */
+  classFilter: string | 'all';
   onlyOwned: boolean;
   query: string;
   /** The item shown in the panel. On narrow screens it's only open once one is picked. */
@@ -56,6 +63,8 @@ export interface DatabankContext {
   /** The boss shown, and the difficulty level its numbers are for. */
   boss: string | null;
   bossLevel: number;
+  /** The raid class shown. */
+  cls: string | null;
   /** How the raid stands in the server picked: null when not logged in (or the bot doesn't say). */
   week: RaidWeek | null;
 }
@@ -68,6 +77,7 @@ export function createContext(root: HTMLElement): DatabankContext {
     owned: null,
     slotFilter: 'all',
     starFilter: 'all',
+    classFilter: 'all',
     onlyOwned: false,
     query: '',
     picked: null,
@@ -76,6 +86,7 @@ export function createContext(root: HTMLElement): DatabankContext {
     masterwork: false,
     boss: null,
     bossLevel: 1,
+    cls: null,
     week: null,
   };
 }
@@ -87,5 +98,10 @@ export function status(ctx: DatabankContext, text: string | null, bad = false): 
 }
 
 export const itemById = (ctx: DatabankContext, id: string | null): DatabankItem | undefined => (id ? ctx.databank?.items.find((item) => item.id === id) : undefined);
+
+/** A raid class's name (its id, from a bot that doesn't say). */
+export const className = (ctx: DatabankContext, id: string): string => ctx.databank?.classes?.find((cls) => cls.id === id)?.name ?? id;
+
+export const classById = (ctx: DatabankContext, id: string | null): RaidClass | undefined => (id ? ctx.databank?.classes?.find((cls) => cls.id === id) : undefined);
 
 export const bossById = (ctx: DatabankContext, id: string | null): DatabankBoss | undefined => (id ? ctx.databank?.bosses?.find((boss) => boss.id === id) : undefined);

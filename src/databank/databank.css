@@ -1,6 +1,6 @@
 /*
  * The databank page, on top of the shared item template (../shared/items/items.css). The bar across its
- * top is ./styles/bar.css, its way in ./styles/hub.css and its raid bosses ./styles/bosses.css; the rest here is the items: the same armory
+ * top is ./styles/bar.css, its way in ./styles/hub.css, its raid bosses ./styles/bosses.css and its classes ./styles/classes.css; the rest here is the items: the same armory
  * frame and parchment cards, with every item in the game by star tier, each card named, and the picked
  * item's panel beside it (a sheet from the bottom on narrow screens, as on the gear page).
  */
@@ -8,6 +8,7 @@
 @import './styles/bar.css';
 @import './styles/hub.css';
 @import './styles/bosses.css';
+@import './styles/classes.css';
 
 /* The section's layout and height are the shared .panels' (../shared/items/items.css). */
 
@@ -430,4 +431,45 @@
   .db-sheet .detail-title h3 {
     font-size: 22px;
   }
+}
+
+/* ------------------------------------------------------------------ class items */
+
+/* A class item's badge (class-tag.ts), in its card's top left corner (the top right is how many they own). */
+.db-class-badge {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  z-index: 2;
+  display: block;
+  width: 22px;
+  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 45%));
+}
+
+.db-class-badge img,
+.db-class-tag img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* In the details, under the name: the badge and "<Class> item" on the site's plaque. */
+.db-class-tag {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  justify-self: start;
+  width: fit-content;
+  margin-top: 6px;
+  padding: 2px 10px 2px 4px;
+  border: 1px solid var(--plaque-edge);
+  border-radius: 999px;
+  background: var(--plaque);
+  color: var(--plaque-text);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.db-class-tag img {
+  width: 22px;
 }

@@ -1,4 +1,4 @@
-<!-- The databank (src/databank/page.ts): every item in the game, and the raid bosses. Swapped into #view by src/site/main.ts. -->
+<!-- The databank (src/databank/page.ts): every item in the game, the raid bosses, and the raid classes. Swapped into #view by src/site/main.ts. -->
 <main class="gear-page databank-page">
   <p id="status" class="status" hidden></p>
 
@@ -82,6 +82,23 @@
       <div class="armory-plaque plaque"><span>Boss Info</span></div>
       <div class="armory-sheet db-sheet">
         <div id="boss-body" class="sheet-scroll"></div>
+      </div>
+    </article>
+  </section>
+
+  <!-- The raid classes (/databank/classes/; src/databank/classes.ts): a card for each, and the one picked beside them, in the bosses' frames. -->
+  <section id="db-classes" class="db-bosses db-classes panels" hidden>
+    <div class="armory db-boss-pick">
+      <div class="armory-plaque plaque"><span>Classes</span></div>
+      <div id="class-list" class="db-boss-list db-class-list no-scrollbar"></div>
+      <p id="class-count" class="db-count"></p>
+    </div>
+
+    <!-- The class picked: what it does in a raid, and its class items. -->
+    <article id="class-info" class="armory db-boss-info" aria-label="Class" hidden>
+      <div class="armory-plaque plaque"><span>Class Info</span></div>
+      <div class="armory-sheet db-sheet">
+        <div id="class-body" class="sheet-scroll"></div>
       </div>
     </article>
   </section>
