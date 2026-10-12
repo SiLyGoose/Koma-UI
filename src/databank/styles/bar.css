@@ -1,0 +1,55 @@
+/*
+ * Across the top of the databank, at the right: the server picker (logged in, in more than one server),
+ * and beside it the X out of a section, back to the way in (which has none itself).
+ */
+
+.databank-page {
+  /* The bar's height, and the room under it for the name boards hung over the frames' top edges. */
+  --db-bar: 40px;
+  --db-bar-gap: 20px;
+}
+
+.db-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-height: var(--db-bar);
+  margin-bottom: var(--db-bar-gap);
+}
+
+.db-bar .dd:has(> .server-pick) {
+  max-width: min(70%, 300px);
+}
+
+/* The X (the site's: ../../shared/ui/close/), as tall as the bar. */
+.db-bar .close-x {
+  --close-size: var(--db-bar);
+}
+
+/* Narrow screens: with nothing in it (the way in, for someone with no server to pick), it takes no room. */
+@media (max-width: 899px) {
+  .db-bar.empty {
+    display: none;
+  }
+}
+
+/*
+ * Wide screens: the panels give the bar its room, so the page still fits the screen under the header
+ * (../../shared/items/styles/page.css sets their height, and full-pictures.css a smaller screen's).
+ */
+@media (min-width: 900px) {
+  .databank-page {
+    --panels-h: calc(100dvh - 72px - 48px - 20px - var(--db-bar) - var(--db-bar-gap));
+    --panels-min: 500px;
+  }
+}
+
+@media (min-width: 900px) and (max-width: 1279px), (min-width: 900px) and (max-height: 820px) {
+  .databank-page {
+    --db-bar: 36px;
+    --db-bar-gap: 18px;
+    --panels-h: calc(100dvh - 72px - 32px - 20px - var(--db-bar) - var(--db-bar-gap));
+    --panels-min: 430px;
+  }
+}

@@ -3,6 +3,16 @@
   <p id="status" class="status" hidden></p>
 
   <!--
+    Across the top, at the right: the server picker (logged in, in more than one server), and the X out of a
+    section, back to the way in (which has none itself).
+  -->
+  <div id="db-bar" class="db-bar" hidden>
+    <select id="server" class="server-pick" aria-label="Server" hidden></select>
+    <!-- The site's X (src/shared/ui/close/ draws it; a .back link, so the page wipes the way going back does). -->
+    <a id="db-close" class="back" href="/databank/" aria-label="Back to the Databank" hidden></a>
+  </div>
+
+  <!--
     The way in (/databank/): what there is to look up, each a mark on a star chart (src/databank/hub.ts fills
     them in, with how many there are). The chart's lines are only for show.
   -->
@@ -38,13 +48,9 @@
     <!-- Every item in the game, by star tier, on parchment. -->
     <div class="armory">
       <div class="armory-plaque plaque"><span>Items</span></div>
-      <!-- Back to the way in, the search, the server picker, and the Filter (src/shared/items/armory-filter/ fills it in). -->
+      <!-- The search, and the Filter (src/shared/items/armory-filter/ fills it in). -->
       <div class="armory-tools">
-        <a class="action icon secondary db-back back" href="/databank/" aria-label="Back to the Databank">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12H5M11 5l-7 7 7 7" /></svg>
-        </a>
         <input id="search" class="armory-search" type="search" placeholder="Search items" aria-label="Search items" autocomplete="off" />
-        <span id="items-server" class="db-server"><select id="server" class="server-pick" aria-label="Server" hidden></select></span>
         <div id="filter" class="armory-filter"></div>
       </div>
       <div class="armory-sheet">
@@ -60,13 +66,6 @@
   <section id="db-bosses" class="db-bosses panels" hidden>
     <div class="armory db-boss-pick">
       <div class="armory-plaque plaque"><span>Raid Bosses</span></div>
-      <!-- Back to the way in, and the server picker (here while this is showing). -->
-      <div class="armory-tools">
-        <a class="action icon secondary db-back back" href="/databank/" aria-label="Back to the Databank">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12H5M11 5l-7 7 7 7" /></svg>
-        </a>
-        <span id="bosses-server" class="db-server"></span>
-      </div>
       <div id="boss-list" class="db-boss-list no-scrollbar"></div>
       <p id="boss-count" class="db-count"></p>
     </div>

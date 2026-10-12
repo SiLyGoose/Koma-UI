@@ -3,34 +3,6 @@
  * one picked beside them on the item panel's parchment.
  */
 
-/* Back to the databank's way in: first in a view's tools, as tall as the search beside it. */
-.db-back {
-  flex: none;
-  color: var(--plaque-text);
-}
-
-.db-back svg {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2.4;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-/* Where the server picker sits in a view's tools: not a box of its own. */
-.db-server {
-  display: contents;
-}
-
-/* The bosses' tools: back at one end, the server picker at the other. */
-.db-boss-pick .armory-tools {
-  justify-content: space-between;
-}
-
-.db-boss-pick .dd:has(> .server-pick) {
-  max-width: 75%;
-}
-
 .db-boss-list {
   display: flex;
   flex-direction: column;

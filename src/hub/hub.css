@@ -166,7 +166,7 @@
 }
 
 .raid-art {
-  /* This week's boss: the Ember Wyrm (../../public/raid/cover.png). */
+  /* This week's boss: the Wyvern (../../public/raid/cover.png). */
   background: #0f1830 url('/raid/cover.png') center / cover no-repeat;
   image-rendering: pixelated;
 }

@@ -20,7 +20,8 @@ import type { Databank } from './types';
  *
  * Its parts share one DatabankContext (./context.ts): render.ts draws the one showing; for the items,
  * list.ts (as filter.ts picks them) and detail.ts (the panel); owned.ts loads what goes by the server
- * picked; controls.ts hooks up the search, the filters and the server picker.
+ * picked; controls.ts hooks up the search, the filters and the server picker. Across the top, at the right, are
+ * the server picker and the X out of a section, back to the way in.
  */
 
 export const databankPage: Page = { path: '/databank', subpaths: true, title: 'Databank · Komaverse', icon: '📖', markup, mount };

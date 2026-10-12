@@ -13,6 +13,9 @@ function findUi(root: HTMLElement) {
   const $ = <T extends HTMLElement>(id: string): T => root.querySelector(`#${id}`) as T;
   return {
     status: $('status'),
+    /** Across the top: the server picker, and the X out of a section. */
+    bar: $('db-bar'),
+    close: $('db-close'),
     hub: $('db-hub'),
     nodes: $('db-nodes'),
     databank: $('databank'),
@@ -25,9 +28,6 @@ function findUi(root: HTMLElement) {
     count: $('db-count'),
     /** The Filter: the type, the stars, and Owned only (when logged in). */
     filter: armoryFilter($('filter')),
-    /** Where the server picker sits in each view's tools (it moves to the one showing). */
-    itemsServer: $('items-server'),
-    bossesServer: $('bosses-server'),
     bosses: $('db-bosses'),
     bossList: $('boss-list'),
     bossCount: $('boss-count'),

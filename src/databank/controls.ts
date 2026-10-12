@@ -1,4 +1,4 @@
-import { dropdown } from '../shared/ui';
+import { closeMark, dropdown } from '../shared/ui';
 import { setServer } from '../site/session';
 import { narrow, type DatabankContext } from './context';
 import { renderDetail } from './detail';
@@ -6,7 +6,7 @@ import { renderList } from './list';
 import { loadServer } from './owned';
 import { render } from './render';
 
-/** The search, the filters and the server picker. Returns what undoes it (the listeners outside the page's root). */
+/** The search, the filters, the server picker and the X. Returns what undoes it (the listeners outside the page's root). */
 export function wireControls(ctx: DatabankContext): () => void {
   const { ui } = ctx;
 
@@ -14,6 +14,8 @@ export function wireControls(ctx: DatabankContext): () => void {
     ctx.query = ui.search.value.trim().toLowerCase();
     renderList(ctx);
   });
+
+  closeMark(ui.close);
 
   // The server picker in the site's dropdown, not the browser's (it follows the select, options and all).
   const serverPicker = dropdown(ui.server);
