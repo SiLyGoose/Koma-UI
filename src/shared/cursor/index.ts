@@ -3,13 +3,13 @@ import { nativeHand } from './native';
 import { buildParts } from './parts';
 import { takePlace } from './place';
 import { pressableFinder } from './pressable';
-import { FOLLOW, FOLLOW_BOXED, IDLE_ARM, IDLE_SIZE, LEAN, LEAN_HOLD, LOCK_ARM, LOCK_PAD, MAX_LEAN, SPIN, TEXT_FIELD } from './tuning';
+import { BOXED, FOLLOW, FOLLOW_BOXED, IDLE_ARM, IDLE_SIZE, LEAN, LEAN_HOLD, LOCK_ARM, LOCK_PAD, MAX_LEAN, SPIN, STICK, TEXT_FIELD } from './tuning';
 
 /*
  * The reticle in place of the mouse pointer (put in once by ../../site/main.ts and by every game's frame,
  * ../ui/frame/frame.ts): a pixel pointing hand exactly where the mouse is, and a glowing dot with four corner
  * brackets turning slowly round it, trailing after the mouse. Over something that can be pressed, the brackets stop turning and spread out to box it in, arrows
- * either side pointing at it, while the hand carries on following the mouse inside (the dot goes meanwhile).
+ * either side pointing at it, and the hand goes, the dot following the mouse inside in its place.
  * The hand is the browser's own pointer with the hand's picture (native.ts), so it's never behind the mouse or
  * held up by the page; only the dot and brackets are drawn here. In the games, the hand alone: nothing
  * trailing it or boxing things in over the board.
@@ -72,6 +72,9 @@ export function installCursor({ reticle = true }: { reticle?: boolean } = {}): v
   /** The element under the mouse last looked at, and what's boxed (if anything). */
   let under: Element | null = null;
   let boxed: Element | null = null;
+  /** What the hand is gone over (see `handOff`), and whether the dot and brackets are fading away for a game (`handOnly`). */
+  let handless: Element | null = null;
+  let leaving = false;
   /** What's under the mouse, still to be looked at for what to box: done once a frame, however many elements it crossed. */
   let pending: Element | null | undefined;
   /** What can be pressed under the mouse. */
@@ -82,6 +85,8 @@ export function installCursor({ reticle = true }: { reticle?: boolean } = {}): v
   /** The dot as drawn, eased after the mouse at the brackets' pace. */
   let dx = mx;
   let dy = my;
+  /** How far the dot is from trailing the mouse (0) to right on it (1), as it is over what's boxed, in the hand's place. */
+  let stuck = 0;
   let cy = my;
   let w = IDLE_SIZE;
   let h = IDLE_SIZE;
@@ -130,10 +135,24 @@ export function installCursor({ reticle = true }: { reticle?: boolean } = {}): v
     pending = target;
   }
 
+  /**
+   * The hand goes over `el` (nothing: it's back everywhere), the dot there in its place. Marked on what's
+   * boxed itself (cursor.css), not on the page: only its own styles are worked out again, not the whole
+   * page's on every button the mouse crosses, and the hand is back the moment the mouse is off it.
+   */
+  function handOff(el: Element | null): void {
+    if (el === handless) return;
+    handless?.removeAttribute(BOXED);
+    el?.setAttribute(BOXED, '');
+    handless = el;
+  }
+
   /** Works out what to box from what's under the mouse. */
   function box(target: Element | null): void {
     boxed = pressable(target);
     set('locked', boxed !== null);
+    // Only while the dot is there to take the hand's place.
+    handOff(inside && !leaving ? boxed : null);
   }
 
   // The mouse only: a pen or a finger leaves the page as it is.
@@ -190,6 +209,7 @@ export function installCursor({ reticle = true }: { reticle?: boolean } = {}): v
       inside = false;
       placed = false;
       set('shown', false);
+      handOff(null);
     }
   });
   // What's under a mouse held still can change (a page swapped in, a chip dragged over a spot): a look now and then.
@@ -232,7 +252,10 @@ export function installCursor({ reticle = true }: { reticle?: boolean } = {}): v
     const follow = ease(FOLLOW);
     dx += (mx - dx) * follow;
     dy += (my - dy) * follow;
-    dot.style.transform = `translate(${px(dx)}, ${px(dy)})`;
+    // Over what's boxed the dot is the pointer: on the mouse itself, not trailing it.
+    stuck += ((rect ? 1 : 0) - stuck) * ease(STICK);
+    if (Math.abs((rect ? 1 : 0) - stuck) < 0.001) stuck = rect ? 1 : 0;
+    dot.style.transform = `translate(${px(dx + (mx - dx) * stuck)}, ${px(dy + (my - dy) * stuck)})`;
     squeeze += ((pressed ? 1 : 0) - squeeze) * ease(25);
     leaning += ((now - movedAt < LEAN_HOLD ? 1 : 0) - leaning) * ease(8);
 
@@ -307,6 +330,7 @@ export function installCursor({ reticle = true }: { reticle?: boolean } = {}): v
     waiting = true;
     inside = false;
     set('shown', false);
+    handOff(null);
   };
   /** The loading screen is off: the dot and brackets again, where the mouse is (if that's known). */
   const uncover = (): void => {
@@ -320,7 +344,15 @@ export function installCursor({ reticle = true }: { reticle?: boolean } = {}): v
     if (tx === 'cover') cover();
     else if (tx === null) uncover();
   }).observe(html, { attributes: true, attributeFilter: ['data-tx'] });
-  toHandOnly = () => set('leaving', true);
+  toHandOnly = () => {
+    leaving = true;
+    set('leaving', true);
+    handOff(null);
+  };
   // Come back to (the browser kept this page as it was): the dot and brackets again.
-  addEventListener('pageshow', () => set('leaving', false));
+  addEventListener('pageshow', () => {
+    leaving = false;
+    set('leaving', false);
+    if (inside) look(document.elementFromPoint(mx, my));
+  });
 }

@@ -1,7 +1,7 @@
 /*
  * The reticle (index.ts) in place of the mouse pointer: a pointing hand where the mouse is, and a dot
- * and four corner brackets trailing it that close in on whatever can be pressed (in the games, the hand
- * alone). Only with a mouse: a touch screen keeps no pointer at all.
+ * and four corner brackets trailing it that close in on whatever can be pressed, the dot alone pointing
+ * there (in the games, the hand alone). Only with a mouse: a touch screen keeps no pointer at all.
  */
 
 /*
@@ -17,6 +17,15 @@ html.hand-on * {
 html.hand-on[data-hand-pressed],
 html.hand-on[data-hand-pressed] * {
   cursor: url('/shared/cursor-press.png') 10 2, auto !important;
+}
+
+/*
+ * Over what's boxed (marked by index.ts) the hand goes, the dot there in its place. After the pressing hand,
+ * to win over it; a field typed in keeps its I-beam there too (the rule below outweighs this one).
+ */
+html.hand-on [data-reticle-boxed],
+html.hand-on [data-reticle-boxed] * {
+  cursor: none !important;
 }
 
 html.hand-on :is(textarea, [contenteditable], input:is(:not([type]), [type='text'], [type='number'], [type='search'], [type='email'], [type='password'], [type='url'], [type='tel'])) {
@@ -60,7 +69,7 @@ html.hand-on :is(textarea, [contenteditable], input:is(:not([type]), [type='text
   --reticle-glow: rgb(216 191 122 / 55%);
 }
 
-/* A glowing dot, trailing the mouse with the brackets. */
+/* A glowing dot, trailing the mouse with the brackets, and right on the mouse over what's boxed, where the hand is gone. */
 .reticle-dot {
   position: absolute;
   top: 0;
@@ -74,11 +83,6 @@ html.hand-on :is(textarea, [contenteditable], input:is(:not([type]), [type='text
     0 0 4px 1px rgb(255 255 255 / 80%),
     0 0 10px 3px var(--reticle-glow);
   will-change: transform;
-}
-
-/* Boxing something in: the dot goes, leaving the hand and the brackets, so the dot isn't lost on what's boxed. */
-.reticle[data-shown][data-locked] .reticle-dot {
-  opacity: 0;
 }
 
 /* Leaving for a game (which has the hand alone): the dot and brackets fading away. */
