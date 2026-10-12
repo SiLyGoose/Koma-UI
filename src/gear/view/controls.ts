@@ -1,7 +1,7 @@
 import { dropdown } from '../../shared/ui';
 import { hoverSound, itemPicked, type Slot } from '../../shared/items';
-import { loadGear, unequipEverything } from './api';
-import { classPickKey, fillClassPick, pickClass, renderClass, showClassPick, type HeroClass } from './classes';
+import { change, loadGear, unequipEverything } from './api';
+import { botHasClasses, classPickKey, fillClassPick, pickClass, renderClass, showClassPick, type HeroClass } from './classes';
 import type { GearContext } from './context';
 import { unpick } from './detail';
 import { showMenu } from './foot';
@@ -85,10 +85,14 @@ export function wireControls(ctx: GearContext): () => void {
   ui.classOptions.addEventListener('click', (event) => {
     const option = (event.target as HTMLElement).closest<HTMLElement>('[data-class]');
     if (!option) return;
-    pickClass(option.dataset.class as HeroClass);
+    const heroClass = option.dataset.class as HeroClass;
+    const saved = botHasClasses(ctx);
+    pickClass(heroClass);
     showClassPick(ctx, false);
     renderClass(ctx);
     renderRoster(ctx);
+    // Saved with the bot (when it keeps classes), which answers with their gear as it stands: the ribbon and roster follow.
+    if (saved) void change(ctx, 'class', '/api/gear/class', { class: heroClass }, 'Could not save your class. Try again.').then(() => renderRoster(ctx));
   });
   // A click anywhere else closes the menu; Escape closes the class picker, else the menu, else the picked copy, else
   // stops picking copies to sell (the sale's confirmation closes itself).

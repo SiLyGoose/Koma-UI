@@ -33,6 +33,7 @@ export function renderFight(v: RaidView): void {
   // Only why they can't act (their pick shows on its circle, lit gold).
   ui.actNote.textContent = !picked && problems.length > 0 && blocking ? problemText(blocking, me?.cc?.turns ?? 1) : '';
   if (!f.open || picked !== null || state.healOpenRound !== f.round) state.healOpenRound = null;
+  if (!f.open || picked !== null || state.wardOpenRound !== f.round) state.wardOpenRound = null;
   renderHealPick(v);
   renderParty(v);
   renderLog(v);

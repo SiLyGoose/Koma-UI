@@ -37,7 +37,7 @@ export type ClientMessage =
   | { t: 'begin' }
   | { t: 'disband' }
   | { t: 'difficulty'; level: number }
-  | { t: 'act'; action: RaidAction; target?: string };
+  | { t: 'act'; action: RaidAction; target?: string; skill?: 'ward' };
 
 /** The boss's pictures: calm and angrier as it loses HP, and how the fight ended. */
 export type RaidMood = 'calm' | 'enraged' | 'furious' | 'shielded' | 'defeated' | 'gloating' | 'fled';
@@ -52,6 +52,10 @@ export interface RaidPlayerView {
   picked: RaidAction | null;
   /** They can pick this turn (standing and not stunned). */
   canAct: boolean;
+  /** Their raid class for this fight (its picture is public/gear/classes/<id>.png), or null with none (absent from a bot from before classes). */
+  class?: string | null;
+  /** Their Support can ward an ally instead (an act's `skill`): their class's (absent from a bot from before classes). */
+  wards?: boolean;
 }
 
 export interface RaidFightView {

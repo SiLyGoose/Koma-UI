@@ -5,7 +5,7 @@ import { play } from '../sfx';
 import { state } from '../state';
 import { ui } from '../ui';
 
-/** The action buttons: attack, guard and support go straight off; heal asks who first (when anyone is hurt). */
+/** The action buttons: attack, guard and support go straight off; heal asks who first (when anyone is hurt), and so does Support from a class that can ward. */
 export function wireActions(): void {
   for (const button of ui.actions) {
     // Picking an action has its own sound (../sfx.ts), not the plain click's.
@@ -20,7 +20,15 @@ export function wireActions(): void {
       if (!f) return;
       // Heal: ask who, when anyone is hurt (with nobody hurt there's nothing to pick).
       if (action === 'heal' && f.players.some((p) => p.hp < p.maxHp)) {
+        state.wardOpenRound = null;
         state.healOpenRound = state.healOpenRound === f.round ? null : f.round;
+        redraw();
+        return;
+      }
+      // Support, from a class that can ward: ask whether to support as usual or ward an ally (and whom).
+      if (action === 'support' && f.players.find((p) => p.userId === state.view?.you)?.wards) {
+        state.healOpenRound = null;
+        state.wardOpenRound = state.wardOpenRound === f.round ? null : f.round;
         redraw();
         return;
       }

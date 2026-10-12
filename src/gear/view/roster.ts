@@ -1,6 +1,6 @@
 import { el } from '../../shared/items';
 import { loadGear } from './api';
-import { pickedClass, showClass } from './classes';
+import { classOf, pickedClass, showClass } from './classes';
 import type { GearContext } from './context';
 import { showMenu } from './foot';
 import type { Member } from './types';
@@ -15,8 +15,8 @@ export function renderRoster(ctx: GearContext): void {
   ui.rosterList.textContent = '';
   for (const member of members) {
     const shown = member.you && !party ? ctx.viewing === null : ctx.viewing?.userId === member.userId;
-    // A portrait: their picture filling the square, their class's badge in its top left corner (their own; a question
-    // mark for anyone else, as on the stage's ribbon), how many items they own in its top right, their name along the bottom.
+    // A portrait: their picture filling the square, their class's badge in its top left corner (a question mark with
+    // none, as on the stage's ribbon), how many items they own in its top right, their name along the bottom.
     const tile = el('button', 'roster-tile');
     tile.type = 'button';
     tile.classList.toggle('you', member.you);
@@ -29,7 +29,7 @@ export function renderRoster(ctx: GearContext): void {
     avatar.alt = '';
     avatar.loading = 'lazy';
     const badge = el('span', 'roster-class');
-    showClass(badge, member.you ? pickedClass() : null);
+    showClass(badge, member.you ? pickedClass() : classOf(member.class));
     badge.setAttribute('aria-hidden', 'true');
     tile.append(avatar, badge);
     if (member.copies !== undefined) tile.append(el('span', 'roster-count', String(member.copies)));

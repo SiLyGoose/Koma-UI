@@ -6,6 +6,8 @@ export interface Member {
   /** How many copies they own (left out when it isn't known: the raid's party). */
   copies?: number;
   you: boolean;
+  /** Their raid class, or null with none (left out when it isn't known: the raid's party, or a bot from before classes). */
+  class?: string | null;
 }
 
 export type ApiResult<T> = { ok: true; data: T } | { ok: false; status: number; error: string };

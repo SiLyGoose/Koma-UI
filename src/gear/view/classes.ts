@@ -6,8 +6,9 @@ import { mine, wearOnly, type GearContext } from './context';
  * Their class: its badge on the stage's ribbon, and the picker the ribbon opens (a small box pointing up
  * at it, over a shade on the rest of the page, with a button for each class).
  *
- * Only the page so far: the bot has no classes yet, so the one picked is kept in this browser (nobody
- * else sees it, and everyone else's badge is still a question mark).
+ * The class is the bot's (GearView.class, and each roster member's): picking one saves it there
+ * (POST /api/gear/class, from ./controls.ts), and it counts from their next raid's fight. It is also kept
+ * in this browser, which is all there is against a bot from before classes (nobody else sees it then).
  */
 
 export const CLASSES = ['knight', 'warrior', 'assassin', 'archer', 'mechanic', 'wizard', 'priest'] as const;
@@ -31,6 +32,18 @@ export function pickClass(heroClass: HeroClass): void {
   remember(CLASS_KEY, heroClass);
 }
 
+/** A class as the bot names it: one of the page's, or none (null, or one the page doesn't know). */
+export const classOf = (value: string | null | undefined): HeroClass | null => (isClass(value ?? null) ? (value as HeroClass) : null);
+
+/** Whether the bot keeps classes (its gear view says theirs): then picking one saves it there. */
+export const botHasClasses = (ctx: GearContext): boolean => ctx.gear?.class !== undefined;
+
+/** Takes their own class from the bot, when what's shown is their own gear (a bot from before classes says none: the browser's stays). */
+function sync(ctx: GearContext): void {
+  const own = ctx.viewing === null || ctx.viewing.you;
+  if (own && ctx.gear && ctx.gear.class !== undefined) picked = classOf(ctx.gear.class);
+}
+
 /** A badge (the ribbon's, a roster portrait's) showing `heroClass`: its picture, or a question mark for none. */
 export function showClass(badge: HTMLElement, heroClass: HeroClass | null): void {
   badge.classList.toggle('set', heroClass !== null);
@@ -46,10 +59,11 @@ export function showClass(badge: HTMLElement, heroClass: HeroClass | null): void
 /** Whether the ribbon opens the picker: on the gear page, over their own gear. */
 const canPick = (ctx: GearContext): boolean => mine(ctx) && !wearOnly(ctx);
 
-/** The ribbon: the class of whoever's gear is shown (theirs; anyone else's isn't known), and whether it opens the picker. */
+/** The ribbon: the class of whoever's gear is shown (their own, or the bot's word on anyone else's), and whether it opens the picker. */
 export function renderClass(ctx: GearContext): void {
   const { ui, viewing } = ctx;
-  const heroClass = viewing === null || viewing.you ? picked : null;
+  sync(ctx);
+  const heroClass = viewing === null || viewing.you ? picked : classOf(ctx.gear?.class);
   showClass(ui.classIcon, heroClass);
   const pick = canPick(ctx);
   ui.classButton.disabled = !pick;

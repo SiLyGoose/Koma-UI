@@ -27,6 +27,16 @@ export function memberItem(p: RaidFightView['players'][number], f: RaidFightView
     if (sign) portrait.append(el('span', 'rd-badge', sign));
   }
   if (p.cc && p.hp > 0) portrait.append(el('span', 'rd-cc', `${CC_NAME[p.cc.effect].split(' ')[0]}${p.cc.turns}`));
+  // Their class's badge for this fight, on the portrait's bottom left corner.
+  if (p.class) {
+    const badge = el('img', 'rd-class');
+    badge.src = `/gear/classes/${p.class}.png`;
+    badge.alt = p.class;
+    badge.title = `${p.class[0]?.toUpperCase() ?? ''}${p.class.slice(1)}`;
+    badge.draggable = false;
+    badge.addEventListener('error', () => badge.remove(), { once: true });
+    portrait.append(badge);
+  }
   // Under the portrait, as in a game's party bar: their name on the left and their HP on the right, over the bar.
   const stats = el('div', 'rd-member-stats');
   stats.append(el('span', 'rd-member-name', v.names[p.userId] ?? 'Someone'), el('span', 'rd-member-hp', fmt(Math.max(0, p.hp))));

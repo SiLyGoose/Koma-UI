@@ -68,3 +68,9 @@
   width: 48px;
   height: 5px;
 }
+
+/* The Support picker's ward (a class that can): the same circle, in the ward's blue. */
+.rd-ward-auto {
+  border-color: rgba(120, 190, 255, 0.6);
+  background: radial-gradient(circle at 50% 40%, rgba(47, 110, 170, 0.6), rgba(10, 20, 36, 0.85) 72%);
+}

@@ -5,6 +5,8 @@ export const state = {
   view: null as RaidView | null,
   /** Heal's "who?" is open (for this round). */
   healOpenRound: null as number | null,
+  /** The round the Support picker (a class that can ward: Support as usual, or ward whom) is open for, as healOpenRound. */
+  wardOpenRound: null as number | null,
   /**
    * What they picked this turn, to play as it lands. Kept from their click (once the bot takes it) as
    * well as from the raid: with everyone in, the turn closes at once, in the same raid it's sent next.

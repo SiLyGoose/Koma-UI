@@ -63,6 +63,7 @@ export const ui = {
   actions: [...document.querySelectorAll<HTMLButtonElement>('[data-action]')],
   actNote: $('act-note'),
   healPick: $('heal-pick'),
+  healLabel: $('heal-label'),
   healOptions: $('heal-options'),
   party: $('party'),
   logPanel: $<HTMLDetailsElement>('log-panel'),

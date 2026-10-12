@@ -87,6 +87,8 @@ export interface GearView {
   gems?: number | null;
   /** The outfit they wear: the character they're drawn as (../characters.ts; absent from a bot from before outfits). */
   outfit?: string;
+  /** Their raid class (the bot's RAID_CLASS_IDS), or null with none; absent from a bot from before classes. */
+  class?: string | null;
   /**
    * How a refine or forge just went, in the answer to one: 'fail' when it didn't take (the copy stays as
    * it was). Absent means it worked (a bot from before refines could fail always sends none).
