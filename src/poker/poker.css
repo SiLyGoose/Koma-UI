@@ -238,8 +238,23 @@
   --card-w: var(--hole-w);
 }
 
+/* A seat's box covers the bottom of its cards, so the suit goes up top where it shows. */
+.pk-seat-cards .pk-card-suit {
+  top: 3px;
+  right: calc(var(--hole-w) * 0.1);
+  bottom: auto;
+  font-size: calc(var(--hole-w) * 0.4);
+}
+
+/* Tucked in a little, so a 10 and its suit both fit along the top. */
+.pk-seat-cards .pk-card-corner {
+  left: calc(var(--hole-w) * 0.1);
+  letter-spacing: -0.04em;
+}
+
+/* The second card barely laps the first, so the first one's suit isn't under it. */
 .pk-seat-cards .pk-card + .pk-card {
-  margin-left: calc(var(--hole-w) * -0.35);
+  margin-left: calc(var(--hole-w) * -0.1);
   transform: rotate(6deg);
 }
 

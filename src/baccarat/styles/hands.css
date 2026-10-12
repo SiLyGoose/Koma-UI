@@ -179,6 +179,12 @@
   line-height: 1;
 }
 
+/* The value sits top left, its suit across from it top right. */
+.bc-card-corner.suit {
+  left: auto;
+  right: 7px;
+}
+
 .bc-card-suit {
   position: absolute;
   inset: 0;

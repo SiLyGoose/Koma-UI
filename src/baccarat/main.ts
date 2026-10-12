@@ -42,13 +42,16 @@ function cardEl(card: Card, third: boolean): HTMLElement {
   face.className = 'bc-card-face';
   const corner = document.createElement('span');
   corner.className = 'bc-card-corner';
-  corner.textContent = `${rankLabel(card.rank)}${SUIT[card.suit]}`;
+  corner.textContent = rankLabel(card.rank);
+  const cornerSuit = document.createElement('span');
+  cornerSuit.className = 'bc-card-corner suit';
+  cornerSuit.textContent = SUIT[card.suit];
   const middle = document.createElement('span');
   middle.className = 'bc-card-suit';
   middle.textContent = SUIT[card.suit];
   const back = document.createElement('div');
   back.className = 'bc-card-back';
-  face.append(corner, middle);
+  face.append(corner, cornerSuit, middle);
   el.append(face, back);
   el.setAttribute('aria-label', `${rankLabel(card.rank)} of ${card.suit}`);
   return el;
