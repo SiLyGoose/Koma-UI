@@ -2,6 +2,7 @@ import { renderFight } from './fight/fight';
 import { closeGear } from './gear/gear-popup';
 import { api } from './link';
 import { showPicture } from './widgets';
+import { renderLevel } from './prep';
 import { renderPrep } from './prep/prep';
 import type { RaidView } from './protocol';
 import { closeStats, hideLoot, offerLoot, renderResult, renderStats } from './result';
@@ -58,6 +59,8 @@ export function render(next: RaidView): void {
   document.body.classList.toggle('rd-fighting', fighting || ended);
   ui.tags.textContent = '';
 
+  // The difficulty's popup goes with the week it was up to start.
+  renderLevel(next);
   if (preparing) renderPrep(next);
   // The fight starting (or the lobby going, or the end screen) takes the gear's popup down with the screen it was opened from.
   else if (before !== next.phase) closeGear(true);

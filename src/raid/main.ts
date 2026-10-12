@@ -10,7 +10,7 @@ import { wireGearPopup } from './gear/gear-popup';
 import { setUpLandscape } from './widgets';
 import { api, server, token } from './link';
 import { showMessage } from './message';
-import { wirePrep } from './prep';
+import { wireLevel, wirePrep } from './prep';
 import { wireLoot, wireResultSort, wireStats } from './result';
 import { tick } from './timers';
 import { ui } from './ui';
@@ -37,6 +37,7 @@ wireLoot();
 wireResultSort();
 setInterval(tick, 250);
 wirePrep();
+wireLevel();
 wireActions();
 
 soundButton('raid-muted', setMuted);

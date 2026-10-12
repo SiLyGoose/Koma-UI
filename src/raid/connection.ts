@@ -1,6 +1,7 @@
 import { setConn } from '../shared/ui/frame/frame';
 import { gameSocket, type GameSocket } from '../shared/game';
 import { firstPaint, showMessage } from './message';
+import { startAnswered } from './prep';
 import type { ClientMessage, ErrorCode, ServerMessage } from './protocol';
 import { render } from './render';
 import { state } from './state';
@@ -16,9 +17,11 @@ const ERRORS: Record<ErrorCode, [string, string]> = {
 
 let socket: GameSocket<ClientMessage> | null = null;
 
-/** Tells the bot what was pressed (or says it can't: not connected right now). */
-export function send(message: ClientMessage): void {
-  if (!socket?.send(message)) toast('Not connected to the bot right now.');
+/** Tells the bot what was pressed (or says it can't: not connected right now). Whether it went. */
+export function send(message: ClientMessage): boolean {
+  const went = socket?.send(message) ?? false;
+  if (!went) toast('Not connected to the bot right now.');
+  return went;
 }
 
 /** Connects to the bot as `token`, at `server`. */
@@ -41,7 +44,10 @@ function receive(message: ServerMessage): void {
     return;
   }
   if (message.t === 'answer') {
-    if (message.to === 'start') ui.start.disabled = false;
+    if (message.to === 'start') {
+      ui.start.disabled = false;
+      startAnswered(message.code === 'ok');
+    }
     if (message.to === 'act') {
       if (message.code === 'ok' && state.pendingPick) state.lastPick = state.pendingPick;
       state.pendingPick = null;

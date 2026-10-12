@@ -16,7 +16,7 @@ function turnLength(endsAt: number): number {
 export function tick(): void {
   const { view, lobbyTimer } = state;
   const now = Date.now();
-  if (view?.phase === 'lobby' && view.lobby && lobbyTimer) {
+  if (view?.phase === 'lobby' && view.lobby?.closesAt !== undefined && lobbyTimer) {
     const s = Math.max(0, Math.ceil((view.lobby.closesAt - now) / 1000));
     lobbyTimer.textContent = s >= 60 ? `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}` : `${s}s`;
   }

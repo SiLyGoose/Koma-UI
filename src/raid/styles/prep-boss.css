@@ -34,6 +34,8 @@
    * .rd-prep wouldn't resolve. The party's side sets the height (its cards, as big as fit), up to that.
    */
   --rd-room: min(900px, calc((var(--rd-vh) - 69px) / var(--rd-zoom)));
+  /* What the line across the top takes of it, with the gap under it (a line of text: the cards leave it that much). */
+  --rd-info: 66px;
   width: min(1680px, calc((var(--rd-vw) - 32px) / var(--rd-zoom)));
   max-height: var(--rd-room);
   min-height: 420px;

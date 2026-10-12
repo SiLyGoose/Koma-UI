@@ -7,14 +7,16 @@
  *
  *   page -> bot   hello    first message: the token from the link
  *                 start    starts this week's raid: its lobby goes up in the server's channel, with
- *                          them as the host
+ *                          them as the host, at the difficulty `level` they picked before it (left out: 1;
+ *                          past what the server has unlocked: the hardest it has)
  *                 join     joins the lobby; `leave` leaves it
- *                 begin    the host starts the fight now, without waiting for the lobby to close
+ *                 begin    the host starts the fight (nothing else does: the lobby has no countdown)
+ *                 disband  the host disbands the raid before the fight: the week is freed, to start again
  *                 difficulty  the host picks the raid's difficulty `level` (up to the lobby's `maxDifficulty`)
  *                 act      their action this turn (`target`: who a heal is for, left out to let the
  *                          bot choose)
  *   bot -> page   raid     the raid as it is now: whenever anything about it changes
- *                 answer   how a start, join, leave, begin, difficulty or act went (`code` is 'ok' when it went)
+ *                 answer   how a start, join, leave, begin, disband, difficulty or act went (`code` is 'ok' when it went)
  *                 error    and the bot closes the connection
  *
  * Text from the raid (the boss's next move, the log) is Discord markdown, as the raid message shows
@@ -25,14 +27,15 @@ export type RaidAction = 'attack' | 'guard' | 'heal' | 'support';
 export type RaidBossId = 'wyrm' | 'reaper';
 export type CrowdControl = 'stunned' | 'disarmed' | 'taunted';
 export type ActProblem = 'not_playing' | 'knocked_out' | CrowdControl;
-export type RaidEnd = 'won' | 'wiped' | 'fled' | 'no_players' | 'called_off';
+export type RaidEnd = 'won' | 'wiped' | 'fled' | 'no_players' | 'disbanded' | 'called_off';
 
 export type ClientMessage =
   | { t: 'hello'; token: string }
-  | { t: 'start' }
+  | { t: 'start'; level?: number }
   | { t: 'join' }
   | { t: 'leave' }
   | { t: 'begin' }
+  | { t: 'disband' }
   | { t: 'difficulty'; level: number }
   | { t: 'act'; action: RaidAction; target?: string };
 
@@ -91,11 +94,21 @@ export interface RaidLevel {
   drops: { stars: number; count: number }[];
 }
 
+/** The difficulties whoever starts the week's raid can pick from, before its lobby is up (prep/level.ts). */
+export interface RaidPickView {
+  /** The hardest level the server can pick (one past the hardest it has beaten), and the hardest there is. */
+  maxDifficulty: number;
+  topDifficulty: number;
+  /** Every level, from 1 to `topDifficulty`. */
+  levels: RaidLevel[];
+}
+
 /** The lobby. The host picks its difficulty, up to the hardest the server has unlocked (a bot from before difficulties sends none of that). */
 export interface RaidLobbyView {
   host: string;
   players: string[];
-  closesAt: number;
+  /** When the fight starts by itself (ms): only from a bot from before the host started it, whose lobbies had a countdown. */
+  closesAt?: number;
   /** The boss's HP with the party as it is now, at the difficulty picked. */
   bossHp: number;
   difficulty?: number;
@@ -158,18 +171,19 @@ export interface RaidView {
   resetsAt: number;
   /**
    * `idle`: no raid going on. `week` is how this week's raid went ('open' when it hasn't been fought),
-   * and `canStart` whether the page can start it (a server without a bot channel starts it in Discord).
+   * and `canStart` whether the page can start it (a server without a bot channel starts it in Discord);
+   * `pick`, with it, is the difficulties to start it at (absent from a bot from before they were picked first).
    * `last` says how the last lobby went when it never came to a fight, a little while after (nobody
    * joined in time, or it was called off): the week was freed, so it can be started again.
    */
   phase: 'idle' | 'lobby' | 'fight' | 'over';
-  idle: { week: 'open' | 'won' | 'wiped' | 'fled' | 'busy'; canStart: boolean; last?: 'no_players' | 'called_off' } | null;
+  idle: { week: 'open' | 'won' | 'wiped' | 'fled' | 'busy'; canStart: boolean; last?: 'no_players' | 'disbanded' | 'called_off'; pick?: RaidPickView } | null;
   lobby: RaidLobbyView | null;
   fight: RaidFightView | null;
   over: RaidOverView | null;
 }
 
-/** What went wrong with a start, join, leave, begin or act. */
+/** What went wrong with a start, join, leave, begin, disband, difficulty or act. */
 export type AnswerCode =
   | 'ok'
   | 'already_joined'

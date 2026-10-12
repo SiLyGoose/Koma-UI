@@ -10,6 +10,7 @@
 @import './styles/shared.css';
 @import './styles/prep-boss.css';
 @import './styles/prep-party.css';
+@import './styles/level.css';
 @import './styles/gear-popup.css';
 @import './styles/battle.css';
 @import './styles/log.css';

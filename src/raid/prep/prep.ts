@@ -1,11 +1,12 @@
 import { send } from '../connection';
 import { el, markdown } from '../widgets';
 import { openGear } from '../gear/gear-popup';
-import type { RaidLevel, RaidView } from '../protocol';
+import type { RaidView } from '../protocol';
 import { nameOf, state } from '../state';
 import { ui } from '../ui';
 import { fmt } from '../words';
 import { cardBack } from './card-back';
+import { openLevel } from './level';
 
 /** The last boss and difficulty the party screen was drawn for (what it does and gives only change with them). */
 let prepBoss = '';
@@ -17,8 +18,9 @@ let noticeSeen = false;
 const SPRITE = '/characters/tsuri/sprite.png';
 
 /** How a lobby that never came to a fight went. */
-const LAST_LOBBY: Record<'no_players' | 'called_off', string> = {
-  no_players: 'Nobody joined the last lobby in time.',
+const LAST_LOBBY: Record<'no_players' | 'disbanded' | 'called_off', string> = {
+  no_players: 'Everyone left the last lobby, so it closed.',
+  disbanded: 'The last lobby was disbanded before the fight.',
   called_off: 'The last raid was called off (something went wrong), and anything spent was given back.',
 };
 
@@ -37,15 +39,9 @@ export function renderPrep(v: RaidView): void {
 
 const briefKey = (v: RaidView): string => `${v.boss.id}:${v.difficulty ?? 1}`;
 
-/** A multiplier, like "1.5×". */
-const times = (multiplier: number): string => `${Math.round(multiplier * 100) / 100}×`;
-
-/** What a win at a level drops for each raider, like "1× 4★ + 2× 3★". */
-const dropsText = (level: RaidLevel): string => level.drops.map((drop) => `${drop.count}× ${drop.stars}★`).join(' + ');
-
 /**
- * The lobby's difficulty: the level picked, what it does to the boss and what a win at it drops. The
- * host steps it down and up, as far as the server has unlocked (one past the hardest it has beaten).
+ * The lobby's difficulty: the level it was started at (./level.ts). The host can still step it down and
+ * up, as far as the server has unlocked (one past the hardest it has beaten).
  */
 function renderDifficulty(v: RaidView): void {
   const lobby = v.lobby;
@@ -58,7 +54,6 @@ function renderDifficulty(v: RaidView): void {
   const picked = lobby.difficulty;
   const unlocked = lobby.maxDifficulty ?? 1;
   const top = lobby.topDifficulty ?? levels.length;
-  const level = levels.find((l) => l.level === picked);
   const host = (lobby.players[0] ?? null) === v.you;
   ui.prepDifficulty.hidden = false;
   ui.difficultyLevel.textContent = `${picked} / ${top}`;
@@ -66,13 +61,7 @@ function renderDifficulty(v: RaidView): void {
   ui.difficultyUp.hidden = !host;
   ui.difficultyDown.disabled = picked <= 1;
   ui.difficultyUp.disabled = picked >= unlocked;
-  ui.difficultyUp.title = picked >= unlocked && unlocked < top ? `Beat difficulty ${unlocked} to unlock ${unlocked + 1}` : '';
-  const parts = [
-    ...(level && picked > 1 ? [`Boss HP ${times(level.hp)}`, `damage ${times(level.damage)}`] : level ? ['The boss as it is'] : []),
-    ...(level && level.drops.length > 0 ? [`can drop ${dropsText(level)}`] : []),
-  ];
-  const locked = unlocked < top ? ` Beat difficulty ${unlocked} to unlock ${unlocked + 1}.` : '';
-  ui.difficultyText.textContent = `${parts.join(' · ')}.${host ? locked : ` The host picks it.${locked}`}`;
+  ui.difficultyText.textContent = host ? '' : 'The host picks it.';
 }
 
 /** A share (0 to 1) as a percentage, like "30%". */
@@ -172,14 +161,27 @@ function renderStatus(v: RaidView): void {
   ui.join.hidden = true;
   ui.leave.hidden = true;
   ui.begin.hidden = true;
+  ui.disband.hidden = true;
   state.lobbyTimer = null;
   let unfought = false;
+  if (!lobby) disarmDisband();
   if (lobby) {
-    state.lobbyTimer = el('b');
-    ui.prepStatus.replaceChildren('The fight starts in ', state.lobbyTimer, ', or when the host starts it. ', el('span', 'rd-muted-inline', `Boss HP ${fmt(lobby.bossHp)}, growing with every raider.`));
+    const host = players[0] ?? null;
+    const hp = el('span', 'rd-muted-inline', `Boss HP ${fmt(lobby.bossHp)}, growing with every raider.`);
+    if (lobby.closesAt !== undefined) {
+      // A bot from before the host started it: its lobby counts down.
+      state.lobbyTimer = el('b');
+      ui.prepStatus.replaceChildren('The fight starts in ', state.lobbyTimer, ', or when the host starts it. ', hp);
+    } else if (host === v.you) {
+      ui.prepStatus.replaceChildren("You're the host: start the raid once everyone is in, or disband it. ", hp);
+    } else {
+      ui.prepStatus.replaceChildren(host ? `Waiting for ${nameOf(host)} (the host) to start the raid. ` : 'Waiting for the host to start the raid. ', hp);
+    }
     ui.join.hidden = inIt;
     ui.leave.hidden = !inIt;
-    ui.begin.hidden = (players[0] ?? null) !== v.you;
+    ui.begin.hidden = host !== v.you;
+    // Disbanding came with the host starting it (a bot from before has neither).
+    ui.disband.hidden = host !== v.you || lobby.closesAt !== undefined;
   } else if (v.phase === 'over') {
     // A bot from before `idle.last` says a lobby that never came to a fight is over, and nothing more.
     ui.prepStatus.textContent = `${LAST_LOBBY[v.over?.end === 'called_off' ? 'called_off' : 'no_players']} Start it again in Discord with the raid command, or come back in a little while.`;
@@ -199,11 +201,36 @@ function renderStatus(v: RaidView): void {
   if (unfought) ui.prepNoticeText.textContent = ui.prepStatus.textContent;
 }
 
-/** Starts this week's raid (its lobby goes up in Discord too), with them in it. */
+/** Disband asks once more before it goes: the first press arms it for a moment, the second disbands. */
+const DISBAND_ARMED_MS = 4000;
+let disbandArmed: ReturnType<typeof setTimeout> | null = null;
+
+function disarmDisband(): void {
+  if (disbandArmed) clearTimeout(disbandArmed);
+  disbandArmed = null;
+  ui.disband.textContent = 'Disband';
+  ui.disband.classList.remove('armed');
+}
+
+function pressDisband(): void {
+  if (disbandArmed) {
+    disarmDisband();
+    send({ t: 'disband' });
+    return;
+  }
+  ui.disband.textContent = 'Really disband?';
+  ui.disband.classList.add('armed');
+  disbandArmed = setTimeout(disarmDisband, DISBAND_ARMED_MS);
+}
+
+/**
+ * Starts this week's raid (its lobby goes up in Discord too), with them in it: its difficulty first
+ * (./level.ts), which starts it. A bot from before that was picked first starts it straight away.
+ */
 export function startRaid(): void {
   if (ui.start.disabled) return;
-  ui.start.disabled = true;
-  send({ t: 'start' });
+  if (state.view?.idle?.pick) return openLevel();
+  ui.start.disabled = send({ t: 'start' });
 }
 
 /** The party screen's buttons, and its row of seats scrolling sideways. */
@@ -227,6 +254,7 @@ export function wirePrep(): void {
   ui.join.addEventListener('click', () => send({ t: 'join' }));
   ui.leave.addEventListener('click', () => send({ t: 'leave' }));
   ui.begin.addEventListener('click', () => send({ t: 'begin' }));
+  ui.disband.addEventListener('click', pressDisband);
   const stepDifficulty = (by: 1 | -1): void => {
     const picked = state.view?.lobby?.difficulty;
     if (picked !== undefined) send({ t: 'difficulty', level: picked + by });

@@ -21,5 +21,5 @@ async function load(url: string): Promise<void> {
   next.src = url;
   await next.decode().catch(() => {});
   if (url !== pictureShown) return;
-  for (const img of [ui.battlePicture, ui.battleBackdrop, ui.prepPicture, ui.prepBackdrop]) img.src = url;
+  for (const img of [ui.battlePicture, ui.battleBackdrop, ui.prepPicture, ui.prepBackdrop, ui.levelPicture]) img.src = url;
 }

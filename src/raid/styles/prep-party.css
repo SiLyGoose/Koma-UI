@@ -13,6 +13,11 @@
   padding: var(--rd-slots-top) 24px var(--rd-slots-bottom);
 }
 
+/* With the lobby open, its difficulty's row is in the panel too. */
+.rd-prep-party:has(.rd-prep-difficulty:not([hidden])) .rd-slots-wrap {
+  --rd-party-rest: 264px;
+}
+
 .rd-prep-party .rd-slots {
   --rd-gap: 16px;
   display: flex;
@@ -37,8 +42,8 @@
   flex: none;
   display: grid;
   place-items: center;
-  /* Four to a row, or as tall as the screen has room for (less the rest of the panel, and the row's scrollbar), whichever is smaller. */
-  width: min((100cqw - 3 * var(--rd-gap)) / 4, (var(--rd-room) - var(--rd-party-rest) - var(--rd-slots-top) - var(--rd-slots-bottom) - 10px) * 5 / 9);
+  /* Four to a row, or as tall as the screen has room for (less the line across the top, the rest of the panel, and the row's scrollbar), whichever is smaller. */
+  width: min((100cqw - 3 * var(--rd-gap)) / 4, (var(--rd-room) - var(--rd-info) - var(--rd-party-rest) - var(--rd-slots-top) - var(--rd-slots-bottom) - 10px) * 5 / 9);
   aspect-ratio: 5 / 9;
   align-self: center;
   scroll-snap-align: start;
@@ -219,6 +224,7 @@ button.rd-slot {
 
 :where(.rd-side, .rd-up) .rd-prep.unfought .rd-prep-body {
   grid-template-rows: minmax(0, 1fr);
+  --rd-info: 0px;
 }
 
 :where(.rd-side, .rd-up) .rd-prep.notice-up .rd-prep-body {
@@ -439,6 +445,15 @@ button.rd-slot {
   flex: 0 0 auto;
   background: linear-gradient(180deg, #4b4f5e, #2d303b);
   font-size: 16px;
+}
+
+/* Disbanding the raid: red, and brighter once pressed (it asks once more before it goes). */
+.rd-prep-button.danger {
+  background: linear-gradient(180deg, #8a3a3a, #5a2020);
+}
+
+.rd-prep-button.danger.armed {
+  background: linear-gradient(180deg, #e0574f, #b02a26);
 }
 
 .rd-prep-button[hidden] {
