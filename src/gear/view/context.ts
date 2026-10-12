@@ -47,7 +47,7 @@ export interface GearContext {
   view: 'common' | 'gear';
   /** The copy shown over the character, if any. */
   picked: string | null;
-  /** A change on its way (an equip, unequip, lock, loadout switch or sale) and its button: the page waits for it before taking another. */
+  /** A change on its way (an equip, unequip, lock, loadout switch, a loadout's new name or sale) and its button: the page waits for it before taking another. */
   busy: Busy | null;
   /** Everyone in the roster (empty until it's loaded, or with a bot from before it). */
   members: Member[];
@@ -57,6 +57,8 @@ export interface GearContext {
   loads: number;
   /** Picking copies to sell: the ones picked (null when not selling). The cards then toggle, rather than show what they do. */
   selling: Set<string> | null;
+  /** The loadout being named in the menu (null when none is): its number, what's typed so far, and why the bot wouldn't have it. */
+  renaming: { number: number; value: string; error: string | null } | null;
   /** How many cards across the armory is (3 to 5, by the screen: ../../shared/items/items.css), so its blanks fill out the last row. */
   gridColumns: number;
 }
@@ -106,6 +108,7 @@ export function createContext(root: HTMLElement, host: GearHost): GearContext {
     viewing: party ? (members.find((m) => m.userId === party.first) ?? members[0] ?? null) : null,
     loads: 0,
     selling: null,
+    renaming: null,
     gridColumns: 0,
   };
 }
@@ -115,6 +118,9 @@ export const mine = (ctx: GearContext): boolean => ctx.viewing === null || (ctx.
 
 /** Their own gear, in the raid's party: what they wear can change, nothing else (selling, upgrading and locking stay on the gear page). */
 export const wearOnly = (ctx: GearContext): boolean => ctx.party !== null && mine(ctx);
+
+/** Whether their loadouts are theirs to name: on the gear page, their own. */
+export const canRename = (ctx: GearContext): boolean => mine(ctx) && !wearOnly(ctx);
 
 export const copyById = (ctx: GearContext, id: string | null): GearCopy | undefined => (id ? ctx.gear?.copies.find((c) => c.id === id) : undefined);
 

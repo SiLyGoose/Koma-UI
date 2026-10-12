@@ -75,8 +75,9 @@ export function wireControls(ctx: GearContext): () => void {
   });
   // A click anywhere else closes the menu; Escape closes the menu, else the picked copy, else stops picking copies to
   // sell (the sale's confirmation closes itself).
+  // (By the click's path: what was clicked in the menu may be gone by now, the menu drawn again for it.)
   const onClick = (event: MouseEvent): void => {
-    if (!ui.loadoutMenu.hidden && !ui.loadoutMenu.contains(event.target as Node)) showMenu(ctx, false);
+    if (!ui.loadoutMenu.hidden && !event.composedPath().includes(ui.loadoutMenu)) showMenu(ctx, false);
   };
   const onKey = (event: KeyboardEvent): void => {
     if (event.key !== 'Escape' || ui.sellConfirm.open) return;

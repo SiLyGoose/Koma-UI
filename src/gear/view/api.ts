@@ -2,7 +2,7 @@ import type { GearView, Slot } from '../../shared/items';
 import { busyWith } from '../../shared/ui';
 import { copyById, status, type GearContext } from './context';
 import { renderDetail } from './detail';
-import { renderFoot } from './foot';
+import { renderFoot, renderMenu } from './foot';
 import { renderGrid } from './grid';
 import { render } from './render';
 
@@ -86,5 +86,51 @@ export const unequipEverything = (ctx: GearContext): Promise<unknown> =>
   change(ctx, 'unequip-all', '/api/gear/unequip-all', {}, 'Could not unequip everything. Try again.');
 export const switchTo = (ctx: GearContext, loadout: number): Promise<unknown> =>
   change(ctx, 'loadout', '/api/gear/loadout', { loadout }, 'Could not switch loadouts. Try again.');
+/** The longest name a loadout takes (the bot's LOADOUTS.maxNameLength). */
+export const LOADOUT_NAME_MAX = 24;
+
+/** Why the bot wouldn't have a loadout's name (its checkLoadoutName), as the menu says it under the name. */
+const NAME_REFUSED: Record<string, (name: string) => string> = {
+  name_too_long: () => `Keep it to ${LOADOUT_NAME_MAX} characters.`,
+  name_bad_characters: () => "Only letters, numbers, spaces and . ! ? ' & + -",
+  name_no_letters: () => 'It needs at least one letter.',
+  name_reserved: (name) => `"${name}" is a word Koma's loadout command uses. Pick another.`,
+  name_taken: () => 'Another of your loadouts has that name.',
+};
+
+/**
+ * Names the loadout being named in the menu (ctx.renaming) what's typed there; nothing typed puts back
+ * its own name ("Loadout 2"). A name the bot won't have is said under it, the menu left as it is.
+ */
+export async function renameLoadout(ctx: GearContext): Promise<void> {
+  const { renaming, gear } = ctx;
+  const server = ctx.host.server();
+  if (!renaming || !gear || ctx.busy || !server) return;
+  const { number } = renaming;
+  const name = renaming.value.trim().replace(/\s+/g, ' ');
+  const back = (): void => ctx.ui.loadoutMenu.querySelector<HTMLElement>(`[data-rename="${number}"]`)?.focus();
+  // The name it has: nothing to ask.
+  if (name === gear.loadouts.find((l) => l.number === number)?.name) {
+    ctx.renaming = null;
+    renderMenu(ctx);
+    return back();
+  }
+  ctx.busy = busyWith(`rename:${number}`);
+  renderMenu(ctx);
+  const res = await ctx.host.api<GearView>('/api/gear/loadout/rename', { method: 'POST', body: JSON.stringify({ guild: server, loadout: number, name }) });
+  ctx.busy = null;
+  if (res.ok) {
+    if (ctx.renaming === renaming) ctx.renaming = null;
+    ctx.gear = res.data;
+    status(ctx, null);
+    render(ctx);
+    return back();
+  }
+  const refused = NAME_REFUSED[res.error];
+  if (refused && ctx.renaming === renaming) renaming.error = refused(name);
+  renderMenu(ctx);
+  if (!refused) failed(ctx, res, 'Could not rename that loadout. Try again.');
+}
+
 export const setLocked = (ctx: GearContext, copy: string, locked: boolean): Promise<unknown> =>
   change(ctx, `lock:${copy}`, '/api/gear/lock', { copy, locked }, locked ? 'Could not lock that. Try again.' : 'Could not unlock that. Try again.');
