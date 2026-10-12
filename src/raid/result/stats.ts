@@ -109,6 +109,6 @@ export function wireStats(): void {
     if (event.target === ui.statsPop) closeStats();
   });
   document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && ui.gearPop.hidden) closeStats();
+    if (event.key === 'Escape' && ui.gearPop.hidden && ui.lootPop.hidden) closeStats();
   });
 }

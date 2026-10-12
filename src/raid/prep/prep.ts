@@ -1,13 +1,13 @@
 import { send } from '../connection';
 import { el, markdown } from '../widgets';
 import { openGear } from '../gear/gear-popup';
-import type { RaidView } from '../protocol';
+import type { RaidLevel, RaidView } from '../protocol';
 import { nameOf, state } from '../state';
 import { ui } from '../ui';
 import { fmt } from '../words';
 import { cardBack } from './card-back';
 
-/** The last boss the party screen was drawn for (its moves only change with it). */
+/** The last boss and difficulty the party screen was drawn for (what it does and gives only change with them). */
 let prepBoss = '';
 
 /** The phone's notice that the week's boss hasn't been fought yet was tapped away (it comes up once a visit). */
@@ -28,10 +28,51 @@ const LAST_LOBBY: Record<'no_players' | 'called_off', string> = {
  * raid, or join, leave and (the host) start it now.
  */
 export function renderPrep(v: RaidView): void {
-  if (prepBoss !== v.boss.id) renderBrief(v);
+  if (prepBoss !== briefKey(v)) renderBrief(v);
   renderSeats(v);
+  renderDifficulty(v);
   renderEffects(v);
   renderStatus(v);
+}
+
+const briefKey = (v: RaidView): string => `${v.boss.id}:${v.difficulty ?? 1}`;
+
+/** A multiplier, like "1.5×". */
+const times = (multiplier: number): string => `${Math.round(multiplier * 100) / 100}×`;
+
+/** What a win at a level drops for each raider, like "1× 4★ + 2× 3★". */
+const dropsText = (level: RaidLevel): string => level.drops.map((drop) => `${drop.count}× ${drop.stars}★`).join(' + ');
+
+/**
+ * The lobby's difficulty: the level picked, what it does to the boss and what a win at it drops. The
+ * host steps it down and up, as far as the server has unlocked (one past the hardest it has beaten).
+ */
+function renderDifficulty(v: RaidView): void {
+  const lobby = v.lobby;
+  const levels = lobby?.levels;
+  // No lobby, or a bot from before difficulties.
+  if (!lobby || !levels || lobby.difficulty === undefined) {
+    ui.prepDifficulty.hidden = true;
+    return;
+  }
+  const picked = lobby.difficulty;
+  const unlocked = lobby.maxDifficulty ?? 1;
+  const top = lobby.topDifficulty ?? levels.length;
+  const level = levels.find((l) => l.level === picked);
+  const host = (lobby.players[0] ?? null) === v.you;
+  ui.prepDifficulty.hidden = false;
+  ui.difficultyLevel.textContent = `${picked} / ${top}`;
+  ui.difficultyDown.hidden = !host;
+  ui.difficultyUp.hidden = !host;
+  ui.difficultyDown.disabled = picked <= 1;
+  ui.difficultyUp.disabled = picked >= unlocked;
+  ui.difficultyUp.title = picked >= unlocked && unlocked < top ? `Beat difficulty ${unlocked} to unlock ${unlocked + 1}` : '';
+  const parts = [
+    ...(level && picked > 1 ? [`Boss HP ${times(level.hp)}`, `damage ${times(level.damage)}`] : level ? ['The boss as it is'] : []),
+    ...(level && level.drops.length > 0 ? [`can drop ${dropsText(level)}`] : []),
+  ];
+  const locked = unlocked < top ? ` Beat difficulty ${unlocked} to unlock ${unlocked + 1}.` : '';
+  ui.difficultyText.textContent = `${parts.join(' · ')}.${host ? locked : ` The host picks it.${locked}`}`;
 }
 
 /** A share (0 to 1) as a percentage, like "30%". */
@@ -56,7 +97,7 @@ function renderEffects(v: RaidView): void {
 
 /** What the boss does: its moves, phases and rewards. */
 function renderBrief(v: RaidView): void {
-  prepBoss = v.boss.id;
+  prepBoss = briefKey(v);
   ui.prepBossName.textContent = v.boss.name;
   // A bot older than the page doesn't send what the boss does: the sections are left out.
   const brief = v.brief ?? { phases: [], moves: [], rewards: '' };
@@ -186,4 +227,10 @@ export function wirePrep(): void {
   ui.join.addEventListener('click', () => send({ t: 'join' }));
   ui.leave.addEventListener('click', () => send({ t: 'leave' }));
   ui.begin.addEventListener('click', () => send({ t: 'begin' }));
+  const stepDifficulty = (by: 1 | -1): void => {
+    const picked = state.view?.lobby?.difficulty;
+    if (picked !== undefined) send({ t: 'difficulty', level: picked + by });
+  };
+  ui.difficultyDown.addEventListener('click', () => stepDifficulty(-1));
+  ui.difficultyUp.addEventListener('click', () => stepDifficulty(1));
 }

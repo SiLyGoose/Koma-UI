@@ -4,7 +4,7 @@ import { api } from './link';
 import { showPicture } from './widgets';
 import { renderPrep } from './prep/prep';
 import type { RaidView } from './protocol';
-import { closeStats, renderResult, renderStats } from './result';
+import { closeStats, hideLoot, offerLoot, renderResult, renderStats } from './result';
 import { play } from './sfx';
 import { state } from './state';
 import { tick } from './timers';
@@ -65,6 +65,9 @@ export function render(next: RaidView): void {
   else if (!ui.statsPop.hidden) renderStats(next);
   if (next.phase === 'fight' && next.fight) renderFight(next);
   if (ended) renderResult(next);
+  // Their loot comes up over the end screen once it's showing, and goes with it.
+  if (ended && resultShown) offerLoot(next);
+  else hideLoot();
   tick();
 }
 

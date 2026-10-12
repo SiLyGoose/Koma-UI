@@ -1,0 +1,536 @@
+/* ------------------------------------------------------------------ their loot (over the end screen) */
+
+/*
+ * The raid items a win gave them (../result/loot.ts), over everything: as the banner's wish ends
+ * (../../banner/styles/wish.css), a dark stage with all of them together, each card in its tier's colour
+ * (--tier: purple for 3 stars, red for 4), and one by itself in a burst of that colour when its card is
+ * clicked. The item cards are the armories' (../../shared/items), whose colours are set here for this page.
+ */
+@import '../../shared/items/styles/art.css';
+@import '../../shared/items/styles/cards.css';
+@import '../../shared/items/styles/full-pictures.css';
+
+.rd-loot {
+  --star-1: #3fe04a;
+  --star-2: #4aa8ff;
+  --star-3: #b36bff;
+  --star-4: #ff4a5a;
+  --parchment-edge: #b9ab88;
+  --ink: #3b3444;
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 55%, color-mix(in srgb, var(--loot-tier, #b9a877) 20%, transparent), transparent 70%),
+    linear-gradient(180deg, #07070c, #0f0d18);
+  animation: rd-gear-in 0.3s ease-out;
+}
+
+.rd-loot[hidden] {
+  display: none;
+}
+
+.rd-loot:focus {
+  outline: none;
+}
+
+.rd-loot [data-stars='1'] { --tier: var(--star-1); }
+.rd-loot [data-stars='2'] { --tier: var(--star-2); }
+.rd-loot [data-stars='3'] { --tier: var(--star-3); }
+.rd-loot [data-stars='4'] { --tier: var(--star-4); }
+.rd-loot [data-stars] { --tier-glow: color-mix(in srgb, var(--tier) 45%, transparent); }
+
+/* The stage lit in the colour of the item looked at. */
+.rd-loot:has(.rd-loot-one[data-stars='1']) { --loot-tier: var(--star-1); }
+.rd-loot:has(.rd-loot-one[data-stars='2']) { --loot-tier: var(--star-2); }
+.rd-loot:has(.rd-loot-one[data-stars='3']) { --loot-tier: var(--star-3); }
+.rd-loot:has(.rd-loot-one[data-stars='4']) { --loot-tier: var(--star-4); }
+
+.rd-loot-stage {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 56px 16px 24px;
+  /* The light round an item reaches well past it: clipped at the screen's edges, not scrolled to. */
+  overflow: hidden auto;
+}
+
+.rd-loot-card.item {
+  width: 100%;
+  cursor: inherit;
+}
+
+.rd-loot-card.item:hover {
+  transform: none;
+}
+
+/* ------------------------------------------------------------------ all of them */
+
+.rd-loot-all {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: min(760px, 100%);
+}
+
+.rd-loot-title {
+  margin: 0 0 22px;
+  color: #fff;
+  font-size: clamp(22px, 5vw, 32px);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  animation: rd-loot-rise 0.4s ease-out both;
+}
+
+.rd-loot-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 5), minmax(0, 132px));
+  justify-content: center;
+  gap: clamp(8px, 2vw, 16px);
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rd-loot-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  animation: rd-loot-tile 0.45s cubic-bezier(0.2, 1.3, 0.4, 1) calc(var(--i, 0) * 0.08s) both;
+  transition: transform 0.12s ease;
+}
+
+.rd-loot-tile:hover,
+.rd-loot-tile:focus-visible {
+  outline: none;
+  transform: translateY(-4px);
+}
+
+.rd-loot-tile:focus-visible .rd-loot-card {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+.rd-loot-tile .rd-loot-card {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--tier) 60%, transparent),
+    0 0 18px 2px color-mix(in srgb, var(--tier) 55%, transparent),
+    0 2px 0 var(--item-lip);
+}
+
+/* The best tier's tiles glow brighter, and keep glowing. */
+.rd-loot-tile[data-stars='4'] .rd-loot-card {
+  animation: rd-loot-tile-glow 1.8s ease-in-out infinite;
+}
+
+.rd-loot-tile .stars {
+  font-size: clamp(8px, 1.6vw, 12px);
+}
+
+.rd-loot-tile .star {
+  font-size: inherit;
+}
+
+.rd-loot-tile-name {
+  max-width: 100%;
+  overflow: hidden;
+  color: #fff;
+  font-size: clamp(10px, 1.8vw, 13px);
+  font-weight: 600;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rd-loot-tile-new {
+  position: absolute;
+  top: -6px;
+  left: -4px;
+  z-index: 2;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--tier);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  rotate: -6deg;
+}
+
+.rd-loot-tap {
+  margin: 22px 0 14px;
+  color: rgb(255 255 255 / 55%);
+  font-size: 12px;
+  animation: rd-loot-fade 0.5s ease-out 0.6s both;
+}
+
+.rd-loot-done {
+  min-width: 140px;
+}
+
+/* ------------------------------------------------------------------ one by itself */
+
+.rd-loot-one {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: min(560px, 100%);
+  cursor: pointer;
+}
+
+/* The item in a burst of its tier's colour: a white-hot core, a wide bloom, and soft beams turning slowly behind it. */
+.rd-loot-burst {
+  position: relative;
+  isolation: isolate;
+  width: clamp(120px, 30vw, 170px);
+  margin: 30px 0 40px;
+}
+
+.rd-loot-burst::before {
+  content: '';
+  position: absolute;
+  inset: -150px;
+  z-index: -1;
+  border-radius: 50%;
+  background: radial-gradient(
+    closest-side,
+    rgb(255 255 255 / 100%) 22%,
+    color-mix(in srgb, var(--tier) 30%, #fff) 34%,
+    color-mix(in srgb, var(--tier) 62%, transparent) 54%,
+    color-mix(in srgb, var(--tier) 22%, transparent) 76%,
+    transparent
+  );
+  filter: blur(4px);
+  pointer-events: none;
+  animation: rd-loot-settle 0.7s cubic-bezier(0.3, 0, 0.2, 1) both;
+}
+
+.rd-loot-core {
+  position: absolute;
+  inset: -34px;
+  z-index: -1;
+  border-radius: 24%;
+  background: radial-gradient(closest-side, rgb(255 255 255 / 95%) 55%, color-mix(in srgb, var(--tier) 40%, #fff) 80%, transparent);
+  filter: blur(8px);
+  pointer-events: none;
+  animation: rd-loot-breathe 2.6s ease-in-out 0.7s infinite;
+}
+
+.rd-loot-rays {
+  --ray: color-mix(in srgb, var(--tier) 55%, #fff);
+  position: absolute;
+  inset: -230px;
+  z-index: -2;
+  border-radius: 50%;
+  background: conic-gradient(
+    transparent 0deg,
+    var(--ray) 8deg,
+    transparent 20deg 34deg,
+    color-mix(in srgb, var(--ray) 60%, transparent) 40deg,
+    transparent 47deg 62deg,
+    var(--ray) 75deg,
+    transparent 90deg 108deg,
+    color-mix(in srgb, var(--ray) 55%, transparent) 113deg,
+    transparent 119deg 138deg,
+    color-mix(in srgb, var(--ray) 85%, transparent) 150deg,
+    transparent 163deg 185deg,
+    color-mix(in srgb, var(--ray) 70%, transparent) 194deg,
+    transparent 203deg 222deg,
+    var(--ray) 236deg,
+    transparent 250deg 268deg,
+    color-mix(in srgb, var(--ray) 55%, transparent) 274deg,
+    transparent 281deg 300deg,
+    color-mix(in srgb, var(--ray) 85%, transparent) 312deg,
+    transparent 326deg 340deg,
+    color-mix(in srgb, var(--ray) 60%, transparent) 348deg,
+    transparent 356deg
+  );
+  mask: radial-gradient(closest-side, #000 20%, rgb(0 0 0 / 60%) 50%, transparent 92%);
+  filter: blur(6px);
+  mix-blend-mode: screen;
+  pointer-events: none;
+  animation:
+    rd-loot-fade 0.6s ease-out 0.2s both,
+    rd-loot-spin 40s linear infinite;
+}
+
+.rd-loot-rays.back {
+  inset: -180px;
+  opacity: 0.7;
+  rotate: 17deg;
+  filter: blur(9px);
+  animation:
+    rd-loot-fade 0.6s ease-out 0.3s both,
+    rd-loot-spin-back 55s linear infinite;
+}
+
+/* The 3-star light is quieter than the 4-star's. */
+.rd-loot-one[data-stars='3'] .rd-loot-rays {
+  opacity: 0.55;
+}
+
+.rd-loot-burst .rd-loot-card {
+  box-shadow:
+    0 0 14px 6px rgb(255 255 255 / 85%),
+    0 0 44px 16px color-mix(in srgb, var(--tier) 70%, transparent),
+    0 2px 0 var(--item-lip);
+  animation: rd-loot-pop 0.45s cubic-bezier(0.2, 1.3, 0.4, 1) both;
+}
+
+.rd-loot-burst .art {
+  width: 64%;
+  height: 64%;
+}
+
+.rd-loot-card .stars {
+  font-size: 13px;
+}
+
+.rd-loot-card .star {
+  font-size: inherit;
+}
+
+.rd-loot-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.rd-loot-slot {
+  margin: 0;
+  color: color-mix(in srgb, var(--tier) 60%, #fff);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  animation: rd-loot-rise 0.4s ease-out 0.25s both;
+}
+
+.rd-loot-name {
+  margin: 0;
+  color: #fff;
+  font-size: clamp(24px, 5.5vw, 38px);
+  font-weight: 800;
+  line-height: 1.1;
+  text-shadow: 0 2px 0 rgb(0 0 0 / 50%), 0 0 22px color-mix(in srgb, var(--tier) 70%, transparent);
+  animation: rd-loot-rise 0.45s ease-out 0.32s both;
+}
+
+/* Its stars, popping in one after another. */
+.rd-loot-text > .stars {
+  margin-top: 4px;
+  font-size: 26px;
+}
+
+.rd-loot-text > .stars .star {
+  font-size: inherit;
+  animation: rd-loot-star 0.35s cubic-bezier(0.2, 1.6, 0.4, 1) calc(0.45s + var(--i, 0) * 0.12s) both;
+}
+
+.rd-loot-new {
+  margin: 6px 0 0;
+  padding: 2px 12px;
+  border-radius: 20px;
+  background: var(--tier);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 1px rgb(0 0 0 / 40%);
+  animation: rd-loot-rise 0.4s ease-out 0.9s both;
+}
+
+.rd-loot-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 26px;
+  cursor: default;
+}
+
+.rd-loot-count {
+  min-width: 54px;
+  color: rgb(255 255 255 / 70%);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.rd-loot-arrow {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0 0 3px;
+  border: 1px solid rgb(255 255 255 / 30%);
+  border-radius: 50%;
+  background: rgb(0 0 0 / 35%);
+  color: #fff;
+  font: inherit;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.rd-loot-arrow:hover,
+.rd-loot-arrow:focus-visible {
+  outline: none;
+  border-color: #fff;
+  background: rgb(0 0 0 / 60%);
+}
+
+.rd-loot-back {
+  margin-left: 6px;
+}
+
+/* A phone, upright or narrow: four across. */
+@media (max-width: 480px) {
+  .rd-loot-grid {
+    grid-template-columns: repeat(min(var(--cols, 4), 4), minmax(0, 1fr));
+  }
+}
+
+/* A phone on its side: all of them in one row, and one by itself beside its name, so they fit its height. */
+@media (max-height: 520px) and (min-width: 600px) {
+  .rd-loot-stage {
+    padding: 44px 16px 12px;
+  }
+
+  .rd-loot-all {
+    width: 100%;
+  }
+
+  .rd-loot-title {
+    margin-bottom: 12px;
+  }
+
+  .rd-loot-grid {
+    grid-template-columns: repeat(10, minmax(0, 96px));
+  }
+
+  .rd-loot-tap {
+    margin: 12px 0 8px;
+  }
+
+  .rd-loot-one {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    column-gap: 60px;
+    width: min(680px, 100%);
+  }
+
+  .rd-loot-burst {
+    grid-row: span 2;
+    width: 110px;
+    margin: 0 30px;
+  }
+
+  .rd-loot-nav {
+    margin-top: 12px;
+  }
+}
+
+/* ------------------------------------------------------------------ motion */
+
+@keyframes rd-loot-settle {
+  from {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+@keyframes rd-loot-breathe {
+  50% {
+    opacity: 0.6;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes rd-loot-spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+@keyframes rd-loot-spin-back {
+  to {
+    transform: rotate(-1turn);
+  }
+}
+
+@keyframes rd-loot-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes rd-loot-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
+@keyframes rd-loot-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+@keyframes rd-loot-star {
+  from {
+    opacity: 0;
+    transform: scale(2.4);
+  }
+}
+
+@keyframes rd-loot-tile {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.9);
+  }
+}
+
+@keyframes rd-loot-tile-glow {
+  50% {
+    box-shadow:
+      0 0 0 1px var(--tier),
+      0 0 30px 6px color-mix(in srgb, var(--tier) 80%, transparent),
+      0 2px 0 var(--item-lip);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rd-loot-rays,
+  .rd-loot-core,
+  .rd-loot-tile[data-stars='4'] .rd-loot-card {
+    animation: none;
+  }
+
+  .rd-loot-burst .rd-loot-card,
+  .rd-loot-text > .stars .star,
+  .rd-loot-tile {
+    animation-name: rd-loot-fade;
+  }
+}

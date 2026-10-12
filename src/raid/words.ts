@@ -30,7 +30,9 @@ export function answerText(code: AnswerCode): string | null {
     case 'not_joined':
       return "You haven't joined.";
     case 'only_host':
-      return 'Only the host (first on the list) can start early.';
+      return 'Only the host (first on the list) can do that.';
+    case 'locked':
+      return "This server hasn't unlocked that difficulty yet. Beat the one before it first.";
     case 'closed':
       return 'The fight has already started.';
     case 'late':

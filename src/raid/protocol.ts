@@ -10,10 +10,11 @@
  *                          them as the host
  *                 join     joins the lobby; `leave` leaves it
  *                 begin    the host starts the fight now, without waiting for the lobby to close
+ *                 difficulty  the host picks the raid's difficulty `level` (up to the lobby's `maxDifficulty`)
  *                 act      their action this turn (`target`: who a heal is for, left out to let the
  *                          bot choose)
  *   bot -> page   raid     the raid as it is now: whenever anything about it changes
- *                 answer   how a start, join, leave, begin or act went (`code` is 'ok' when it went)
+ *                 answer   how a start, join, leave, begin, difficulty or act went (`code` is 'ok' when it went)
  *                 error    and the bot closes the connection
  *
  * Text from the raid (the boss's next move, the log) is Discord markdown, as the raid message shows
@@ -32,6 +33,7 @@ export type ClientMessage =
   | { t: 'join' }
   | { t: 'leave' }
   | { t: 'begin' }
+  | { t: 'difficulty'; level: number }
   | { t: 'act'; action: RaidAction; target?: string };
 
 /** The boss's pictures: calm and angrier as it loses HP, and how the fight ended. */
@@ -72,6 +74,38 @@ export interface RaidFightView {
   problems: Record<RaidAction, ActProblem | null>;
 }
 
+/** A raid item the one looking found for winning the raid. `isNew`: their first copy (left out when that isn't known). */
+export interface RaidLootItem {
+  itemId: string;
+  name: string;
+  stars: number;
+  slot: 'weapon' | 'armor' | 'treasure';
+  isNew?: boolean;
+}
+
+/** One difficulty level: what it multiplies the boss's HP and damage by, and what a win at it drops for each raider (best tier first). */
+export interface RaidLevel {
+  level: number;
+  hp: number;
+  damage: number;
+  drops: { stars: number; count: number }[];
+}
+
+/** The lobby. The host picks its difficulty, up to the hardest the server has unlocked (a bot from before difficulties sends none of that). */
+export interface RaidLobbyView {
+  host: string;
+  players: string[];
+  closesAt: number;
+  /** The boss's HP with the party as it is now, at the difficulty picked. */
+  bossHp: number;
+  difficulty?: number;
+  /** The hardest level the server can pick (one past the hardest it has beaten), and the hardest there is. */
+  maxDifficulty?: number;
+  topDifficulty?: number;
+  /** Every level, from 1 to `topDifficulty`. */
+  levels?: RaidLevel[];
+}
+
 export interface RaidOverView {
   end: RaidEnd;
   rounds: number;
@@ -93,6 +127,11 @@ export interface RaidOverView {
   rewardText?: string | null;
   /** Each raider's gear as they fought can be looked at (GET /api/raid/gear?user=…): raids from before it was kept can't. */
   gear?: boolean;
+  /**
+   * The raid items the one looking found (best first), when they found any: shown once, over the end
+   * screen, until they close it (result/loot.ts). `key` names this win's, so it isn't shown again.
+   */
+  loot?: { key: string; items: RaidLootItem[] } | null;
 }
 
 export interface RaidView {
@@ -110,6 +149,8 @@ export interface RaidView {
    * (capped at 1). Null when they're off; absent from a bot from before party-wide drops.
    */
   drops?: { chance: number; perRaider: number } | null;
+  /** The raid's difficulty level (1 with no raid going on and none fought this week; absent from a bot from before difficulties). */
+  difficulty?: number;
   /** The boss's picture now: its path under the bot's /api (GET). */
   picture: string;
   mood: RaidMood;
@@ -123,7 +164,7 @@ export interface RaidView {
    */
   phase: 'idle' | 'lobby' | 'fight' | 'over';
   idle: { week: 'open' | 'won' | 'wiped' | 'fled' | 'busy'; canStart: boolean; last?: 'no_players' | 'called_off' } | null;
-  lobby: { host: string; players: string[]; closesAt: number; bossHp: number } | null;
+  lobby: RaidLobbyView | null;
   fight: RaidFightView | null;
   over: RaidOverView | null;
 }
@@ -134,6 +175,7 @@ export type AnswerCode =
   | 'already_joined'
   | 'not_joined'
   | 'only_host'
+  | 'locked'
   | 'closed'
   | ActProblem
   | 'late'

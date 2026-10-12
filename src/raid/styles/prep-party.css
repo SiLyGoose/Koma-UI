@@ -269,6 +269,87 @@ button.rd-slot {
   color: rgba(255, 255, 255, 0.6);
 }
 
+/* The raid's difficulty, while its lobby is open: the level between its two steps (the host's), and what it does. */
+.rd-prep-difficulty {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 12px 24px 0;
+}
+
+.rd-prep-difficulty[hidden] {
+  display: none;
+}
+
+.rd-prep-difficulty-pick {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rd-prep-difficulty-level {
+  display: grid;
+  justify-items: center;
+  min-width: 76px;
+  color: #f1e3b4;
+  line-height: 1.15;
+}
+
+.rd-prep-difficulty-level small {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.rd-prep-difficulty-level b {
+  font-size: 20px;
+}
+
+.rd-prep-step {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid rgba(233, 219, 170, 0.5);
+  border-radius: 50%;
+  background: rgba(10, 10, 14, 0.8);
+  color: #f1e3b4;
+  font: inherit;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.rd-prep-step[hidden] {
+  display: none;
+}
+
+.rd-prep-step:hover:not(:disabled),
+.rd-prep-step:focus-visible {
+  outline: none;
+  border-color: #e9d18f;
+  background: rgba(40, 34, 20, 0.9);
+}
+
+.rd-prep-step:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.rd-prep-difficulty-text {
+  flex: 1;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
 .rd-prep-actions {
   flex-shrink: 0;
   display: flex;

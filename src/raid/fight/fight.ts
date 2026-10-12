@@ -15,6 +15,7 @@ export function renderFight(v: RaidView): void {
   ui.bossName.textContent = `${v.boss.emoji} ${v.boss.name}`;
   ui.bossPct.textContent = `${Math.ceil(bossShare * 100)}%`;
   ui.bossFill.style.width = `${bossShare * 100}%`;
+  if ((v.difficulty ?? 1) > 1) ui.tags.append(el('span', 'rd-tag', `⚔️ Difficulty ${v.difficulty}`));
   if (f.enrage > 0) ui.tags.append(el('span', 'rd-tag hot', f.enrage >= 2 ? '🔥 Furious' : '😠 Enraged'));
   if (f.shielded) ui.tags.append(el('span', 'rd-tag cold', '🔷 Shielded'));
   ui.intentText.replaceChildren(...markdown(f.intent, v.names));

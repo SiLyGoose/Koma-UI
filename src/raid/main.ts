@@ -11,7 +11,7 @@ import { setUpLandscape } from './widgets';
 import { api, server, token } from './link';
 import { showMessage } from './message';
 import { wirePrep } from './prep';
-import { wireResultSort, wireStats } from './result';
+import { wireLoot, wireResultSort, wireStats } from './result';
 import { tick } from './timers';
 import { ui } from './ui';
 import './raid.css';
@@ -25,14 +25,15 @@ import './raid.css';
  * server's channel in Discord too, and anyone there or here can join.
  *
  * Its parts: render.ts draws whatever the bot sends, through prep/ (the party screen before the
- * fight), fight/ (the fight: the party row, healing, the action buttons) and result/ (the end screen
- * and its More stats); gear/gear-popup.ts shows a raider's gear; connection.ts talks to the bot; state.ts
+ * fight), fight/ (the fight: the party row, healing, the action buttons) and result/ (the end screen,
+ * its More stats and the loot a win gave); gear/gear-popup.ts shows a raider's gear; connection.ts talks to the bot; state.ts
  * holds what more than one of them needs.
  */
 
 // The gear popup's Escape goes first: More stats only closes on one with no gear open over it.
 wireGearPopup();
 wireStats();
+wireLoot();
 wireResultSort();
 setInterval(tick, 250);
 wirePrep();

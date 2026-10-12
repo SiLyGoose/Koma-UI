@@ -84,6 +84,15 @@
               <div id="prep-effects-icon" class="rd-prep-effects-icon" aria-hidden="true">None</div>
               <div id="prep-effects" class="rd-prep-effects-text">No party buff effects</div>
             </div>
+            <!-- The raid's difficulty, while its lobby is open: the host steps it up or down, as far as the server has unlocked. -->
+            <div id="prep-difficulty" class="rd-prep-difficulty" hidden>
+              <div class="rd-prep-difficulty-pick">
+                <button type="button" id="difficulty-down" class="rd-prep-step" aria-label="Easier">−</button>
+                <div class="rd-prep-difficulty-level"><small>Difficulty</small><b id="difficulty-level"></b></div>
+                <button type="button" id="difficulty-up" class="rd-prep-step" aria-label="Harder">+</button>
+              </div>
+              <p id="difficulty-text" class="rd-prep-difficulty-text"></p>
+            </div>
             <div class="rd-prep-actions">
               <button type="button" id="start" class="rd-prep-button" hidden>Join</button>
               <button type="button" id="join" class="rd-prep-button" hidden>Join</button>
@@ -170,6 +179,7 @@
             <div class="rd-result-actions">
               <a class="rd-button rd-result-back back" href="/">← Back to the games</a>
               <button type="button" id="more-stats" class="rd-button">More stats</button>
+              <button type="button" id="loot-again" class="rd-button" hidden>🎁 Your loot</button>
             </div>
           </div>
         </section>
@@ -204,6 +214,15 @@
           </div>
           <button type="button" id="stats-close" class="rd-gear-close" aria-label="Close">✕</button>
         </div>
+      </div>
+
+      <!--
+        The raid items a win gave them (src/raid/result/loot.ts), over the end screen: all of them together,
+        and each one by itself when its card is clicked, until they close it.
+      -->
+      <div id="loot-pop" class="rd-loot" role="dialog" aria-modal="true" aria-label="Raid loot" tabindex="-1" hidden>
+        <div id="loot-stage" class="rd-loot-stage"></div>
+        <button type="button" id="loot-close" class="rd-gear-close" aria-label="Close">✕</button>
       </div>
 
       <div id="toast" class="rd-toast" role="status" hidden></div>
