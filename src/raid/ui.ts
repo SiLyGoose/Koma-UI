@@ -37,6 +37,8 @@ export const ui = {
   prepEffects: $('prep-effects'),
   prepEffectsIcon: $('prep-effects-icon'),
   prepStatus: $('prep-status'),
+  prepNotice: $<HTMLButtonElement>('prep-notice'),
+  prepNoticeText: $('prep-notice-text'),
   start: $<HTMLButtonElement>('start'),
   join: $<HTMLButtonElement>('join'),
   leave: $<HTMLButtonElement>('leave'),

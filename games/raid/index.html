@@ -51,6 +51,13 @@
       <section id="prep" class="rd-prep" hidden>
         <img id="prep-backdrop" class="rd-battle-bg" alt="" draggable="false" aria-hidden="true" />
         <div class="rd-prep-shade" aria-hidden="true"></div>
+        <!-- On a phone, with the week's boss not fought yet: how the week stands comes up first, over the party screen blurred, until it's tapped away. -->
+        <button type="button" id="prep-notice" class="rd-prep-notice">
+          <span class="rd-prep-notice-card">
+            <span id="prep-notice-text"></span>
+            <small>Tap anywhere to continue</small>
+          </span>
+        </button>
         <div class="rd-prep-body">
           <div class="rd-prep-info"><p id="prep-status"></p></div>
           <div class="rd-prep-panel rd-prep-boss">

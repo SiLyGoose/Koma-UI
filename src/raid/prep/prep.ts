@@ -10,6 +10,9 @@ import { cardBack } from './card-back';
 /** The last boss the party screen was drawn for (its moves only change with it). */
 let prepBoss = '';
 
+/** The phone's notice that the week's boss hasn't been fought yet was tapped away (it comes up once a visit). */
+let noticeSeen = false;
+
 /** The raiders' character (everyone's the same one for now). */
 const SPRITE = '/characters/tsuri/sprite.png';
 
@@ -129,6 +132,7 @@ function renderStatus(v: RaidView): void {
   ui.leave.hidden = true;
   ui.begin.hidden = true;
   state.lobbyTimer = null;
+  let unfought = false;
   if (lobby) {
     state.lobbyTimer = el('b');
     ui.prepStatus.replaceChildren('The fight starts in ', state.lobbyTimer, ', or when the host starts it. ', el('span', 'rd-muted-inline', `Boss HP ${fmt(lobby.bossHp)}, growing with every raider.`));
@@ -143,9 +147,15 @@ function renderStatus(v: RaidView): void {
   } else if (v.idle?.canStart) {
     ui.prepStatus.textContent = `${last}This week's boss hasn't been fought yet. Join to start the raid: its lobby goes up in the server, and everyone can join, here or in Discord. The week resets ${reset}.`;
     ui.start.hidden = false;
+    unfought = true;
   } else {
     ui.prepStatus.textContent = `${last}This week's boss hasn't been fought yet. This server has no bot channel, so start the raid in Discord with the raid command, then join it here. The week resets ${reset}.`;
+    unfought = true;
   }
+  // On a phone, that line isn't across the top: it comes up first, over the party screen (../styles/prep-party.css).
+  ui.prep.classList.toggle('unfought', unfought);
+  ui.prep.classList.toggle('notice-up', unfought && !noticeSeen);
+  if (unfought) ui.prepNoticeText.textContent = ui.prepStatus.textContent;
 }
 
 /** Starts this week's raid (its lobby goes up in Discord too), with them in it. */
@@ -168,6 +178,10 @@ export function wirePrep(): void {
     },
     { passive: false },
   );
+  ui.prepNotice.addEventListener('click', () => {
+    noticeSeen = true;
+    ui.prep.classList.remove('notice-up');
+  });
   ui.start.addEventListener('click', startRaid);
   ui.join.addEventListener('click', () => send({ t: 'join' }));
   ui.leave.addEventListener('click', () => send({ t: 'leave' }));
