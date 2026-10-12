@@ -94,7 +94,7 @@
   pointer-events: none;
 }
 
-/* Their class's badge: the stage ribbon's ring, small (no classes yet, so a question mark). */
+/* Their class's badge: the stage ribbon's ring, small (a question mark with no class: everyone's but their own, for now). */
 .roster-class {
   position: absolute;
   top: var(--corner-in);
@@ -113,6 +113,11 @@
   font-size: calc(var(--corner) * 0.55);
   font-weight: 800;
   line-height: 1;
+}
+
+.roster-class.set {
+  border: 0;
+  background: none;
 }
 
 /* How many items they own: big, gold and outlined in dark brown, like a hero's level. */

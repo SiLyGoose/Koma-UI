@@ -7,6 +7,12 @@ export interface GearUi {
   status: HTMLElement;
   gear: HTMLElement;
   heroName: HTMLElement;
+  /** The class ribbon, its badge, and the picker it opens (./classes.ts): the shade, the box, and the box's buttons. */
+  classButton: HTMLButtonElement;
+  classIcon: HTMLElement;
+  classShade: HTMLElement;
+  classPick: HTMLElement;
+  classOptions: HTMLElement;
   sprite: HTMLImageElement;
   server: HTMLSelectElement;
   totals: HTMLElement;
@@ -74,6 +80,11 @@ export function createContext(root: HTMLElement, host: GearHost): GearContext {
       status: $('status'),
       gear: $('gear'),
       heroName: $('hero-name'),
+      classButton: $<HTMLButtonElement>('class-button'),
+      classIcon: $('class-icon'),
+      classShade: $('class-shade'),
+      classPick: $('class-pick'),
+      classOptions: $('class-options'),
       sprite: $<HTMLImageElement>('stage-sprite'),
       server: $<HTMLSelectElement>('server'),
       totals: $('totals'),

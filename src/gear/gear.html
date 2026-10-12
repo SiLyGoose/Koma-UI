@@ -15,8 +15,16 @@
         <select id="server" class="server-pick" aria-label="Server" hidden></select>
       </div>
       <div class="stage">
-        <!-- Hung from the stage's top-left corner: their class's badge (no classes yet, so a question mark). -->
-        <div class="hero-ribbon" title="Class: ?"><span class="hero-ribbon-icon" aria-label="Class: unknown">?</span></div>
+        <!-- Hung from the stage's top-left corner: their class's badge (a question mark until they've picked one). Their own, on the gear page, opens the picker. -->
+        <button type="button" id="class-button" class="hero-ribbon" aria-haspopup="dialog" aria-expanded="false" aria-controls="class-pick" disabled>
+          <span id="class-icon" class="hero-ribbon-icon">?</span>
+        </button>
+        <!-- Picking their class (view/classes.ts): a shade over the rest of the page, and a small box under the ribbon, pointing up at it, with a button for each. -->
+        <div id="class-shade" class="class-shade" hidden></div>
+        <div id="class-pick" class="class-pick" role="dialog" aria-modal="true" aria-labelledby="class-pick-title" hidden>
+          <h3 id="class-pick-title">Choose your class</h3>
+          <div id="class-options" class="class-options"></div>
+        </div>
         <!-- Under the ribbon: the dressing room (to change outfits) and the loadout picker. -->
         <div class="hero-chips">
           <a id="outfit-link" class="hero-chip action secondary icon" href="/dressing-room/" aria-label="Dressing Room" title="Dressing Room">

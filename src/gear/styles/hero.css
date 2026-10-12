@@ -35,17 +35,38 @@
   white-space: nowrap;
 }
 
-/* The class ribbon, hung from the stage's top edge: gold-edged, notched at the bottom, the badge in a ring. */
+/*
+ * The class ribbon, hung from the stage's top edge: gold-edged, notched at the bottom, the badge in a ring.
+ * A button: their own, on the gear page, opens the class picker (./classes.css); anyone else's does nothing.
+ */
 .hero-ribbon {
   position: absolute;
   top: -1px;
   left: 12px;
   z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   width: 42px;
   height: 56px;
   padding: 0 2px 2px;
+  border: 0;
   background: var(--gold);
   clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.hero-ribbon:disabled {
+  cursor: default;
+}
+
+/* Under the mouse or the keyboard (an outline would be cut off with the ribbon's shape): its gold edge brighter. */
+.hero-ribbon:not(:disabled):hover,
+.hero-ribbon:focus-visible,
+.hero-ribbon[aria-expanded='true'] {
+  background: #f6e3a6;
+  outline: none;
 }
 
 .hero-ribbon::before {
@@ -70,6 +91,22 @@
   font-size: 15px;
   font-weight: 800;
   line-height: 1;
+}
+
+/* With a class picked: its badge (which has a gold ring of its own) in place of the ring. */
+.hero-ribbon-icon.set {
+  width: 34px;
+  height: 34px;
+  margin-top: 3px;
+  border: 0;
+  background: none;
+}
+
+.hero-ribbon-icon img,
+.roster-class img {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .stage {

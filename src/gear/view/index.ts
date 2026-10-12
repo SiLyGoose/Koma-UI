@@ -11,7 +11,8 @@ export type { ApiResult, GearHost, Member } from './types';
  * The gear view (the gear page's, and the raid's party's gear): the member's character (Tsuri, for now) with their three slots around them (weapon and
  * armor on the left, the treasure on the right), and their armory beside it: every copy they own, on
  * parchment. Picking a copy shows what it does over the character and equips it; picking a slot shows
- * what fits in it. Under the character: switching loadouts and naming them (and outfits, one day); under the armory,
+ * what fits in it. The ribbon over the character is their class, and picks it (classes.ts: only in this browser, for
+ * now). Under the character: switching loadouts and naming them (and outfits, one day); under the armory,
  * selling copies (pick them, then confirm) and taking everything off. The tabs under the character swap the armory for their stats (Common), worked
  * out by the bot. Logged-in members only (the bot's /api/gear answers them only), in the server picked.
  * Down the left, everyone in the server with gear, them first: picking someone else shows their gear,

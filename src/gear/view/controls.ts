@@ -1,12 +1,13 @@
 import { dropdown } from '../../shared/ui';
 import { hoverSound, itemPicked, type Slot } from '../../shared/items';
 import { loadGear, unequipEverything } from './api';
+import { classPickKey, fillClassPick, pickClass, renderClass, showClassPick, type HeroClass } from './classes';
 import type { GearContext } from './context';
 import { unpick } from './detail';
 import { showMenu } from './foot';
 import { columns, renderGrid } from './grid';
 import { render } from './render';
-import { loadMembers } from './roster';
+import { loadMembers, renderRoster } from './roster';
 import { confirmSale, pickToSell, sell } from './selling';
 
 /** Hooks up everything that can be pressed. Returns what undoes it (the listeners outside the view's root). */
@@ -73,15 +74,34 @@ export function wireControls(ctx: GearContext): () => void {
     event.stopPropagation();
     showMenu(ctx, ui.loadoutMenu.hidden);
   });
-  // A click anywhere else closes the menu; Escape closes the menu, else the picked copy, else stops picking copies to
-  // sell (the sale's confirmation closes itself).
+  // The class ribbon opens its picker (and closes it again, as a click on the shade does); a class picked closes it.
+  fillClassPick(ctx);
+  ui.classButton.addEventListener('click', () => {
+    showMenu(ctx, false);
+    showClassPick(ctx, ui.classPick.hidden);
+  });
+  ui.classShade.addEventListener('click', () => showClassPick(ctx, false));
+  ui.classPick.addEventListener('keydown', (event) => classPickKey(ctx, event));
+  ui.classOptions.addEventListener('click', (event) => {
+    const option = (event.target as HTMLElement).closest<HTMLElement>('[data-class]');
+    if (!option) return;
+    pickClass(option.dataset.class as HeroClass);
+    showClassPick(ctx, false);
+    renderClass(ctx);
+    renderRoster(ctx);
+  });
+  // A click anywhere else closes the menu; Escape closes the class picker, else the menu, else the picked copy, else
+  // stops picking copies to sell (the sale's confirmation closes itself).
   // (By the click's path: what was clicked in the menu may be gone by now, the menu drawn again for it.)
   const onClick = (event: MouseEvent): void => {
     if (!ui.loadoutMenu.hidden && !event.composedPath().includes(ui.loadoutMenu)) showMenu(ctx, false);
   };
   const onKey = (event: KeyboardEvent): void => {
     if (event.key !== 'Escape' || ui.sellConfirm.open) return;
-    if (!ui.loadoutMenu.hidden) {
+    if (!ui.classPick.hidden) {
+      showClassPick(ctx, false);
+      ui.classButton.focus();
+    } else if (!ui.loadoutMenu.hidden) {
       showMenu(ctx, false);
       ui.loadoutButton.focus();
     } else if (ctx.picked) unpick(ctx);

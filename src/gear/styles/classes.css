@@ -1,0 +1,146 @@
+/*
+ * Picking their class (../view/classes.ts): the ribbon pressed, a shade goes over the rest of the page
+ * (the header too, under the reticle: ../../shared/cursor/cursor.css) and a small box opens under the
+ * ribbon, pointing up at it, with a button for each class. The ribbon stays lit over the shade.
+ */
+.class-shade {
+  position: fixed;
+  inset: 0;
+  z-index: 8000;
+  background: rgb(0 0 0 / 65%);
+  animation: class-shade-in 0.15s ease-out;
+}
+
+.hero-ribbon[aria-expanded='true'] {
+  z-index: 8001;
+}
+
+.class-pick {
+  position: absolute;
+  top: 68px;
+  left: 6px;
+  z-index: 8001;
+  box-sizing: border-box;
+  max-width: calc(100% - 12px);
+  padding: 12px 10px 10px;
+  border: 2px solid var(--plaque-edge);
+  border-radius: 14px;
+  background: var(--panel-2);
+  box-shadow: 0 16px 34px rgb(0 0 0 / 60%);
+  animation: class-pick-in 0.15s ease-out;
+}
+
+.class-shade[hidden],
+.class-pick[hidden] {
+  display: none;
+}
+
+/* The arrow: a corner of the box's own colour and edge, turned up under the middle of the ribbon. */
+.class-pick::before {
+  content: '';
+  position: absolute;
+  top: -9px;
+  left: 18px;
+  width: 14px;
+  height: 14px;
+  border-top: 2px solid var(--plaque-edge);
+  border-left: 2px solid var(--plaque-edge);
+  border-top-left-radius: 3px;
+  background: var(--panel-2);
+  transform: rotate(45deg);
+}
+
+.class-pick h3 {
+  position: relative;
+  margin: 0 0 8px;
+  color: var(--plaque-text);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+/* Four across, the last row in the middle. */
+.class-options {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+  width: 268px;
+  max-width: 100%;
+}
+
+.class-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  width: 64px;
+  padding: 8px 2px 6px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: none;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.class-option-icon {
+  width: 36px;
+  height: 36px;
+  transition: transform 0.15s ease;
+}
+
+.class-option:hover,
+.class-option:focus-visible {
+  background: rgb(255 255 255 / 6%);
+  color: var(--text);
+  outline: none;
+}
+
+.class-option:focus-visible {
+  border-color: var(--dusk);
+}
+
+.class-option:hover .class-option-icon,
+.class-option:focus-visible .class-option-icon {
+  transform: scale(1.1);
+}
+
+/* The one they have: edged in gold, its name in gold. */
+.class-option[aria-pressed='true'] {
+  border-color: var(--gold);
+  background: rgb(216 191 122 / 10%);
+  color: var(--gold);
+}
+
+@keyframes class-shade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes class-pick-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .class-shade,
+  .class-pick {
+    animation: none;
+  }
+
+  .class-option:hover .class-option-icon,
+  .class-option:focus-visible .class-option-icon {
+    transform: none;
+  }
+}
