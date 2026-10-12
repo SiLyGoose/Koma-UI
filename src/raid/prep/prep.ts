@@ -17,10 +17,9 @@ let noticeSeen = false;
 /** The raiders' character (everyone's the same one for now). */
 const SPRITE = '/characters/tsuri/sprite.png';
 
-/** How a lobby that never came to a fight went. */
-const LAST_LOBBY: Record<'no_players' | 'disbanded' | 'called_off', string> = {
+/** How a lobby that never came to a fight went (one its host disbanded: nothing to say). */
+const LAST_LOBBY: Record<'no_players' | 'called_off', string> = {
   no_players: 'Everyone left the last lobby, so it closed.',
-  disbanded: 'The last lobby was disbanded before the fight.',
   called_off: 'The last raid was called off (something went wrong), and anything spent was given back.',
 };
 
@@ -156,7 +155,7 @@ function renderStatus(v: RaidView): void {
   const reset = new Date(v.resetsAt).toLocaleString(undefined, { weekday: 'long', hour: 'numeric', minute: '2-digit' });
   const inIt = players.includes(v.you);
   // How the last lobby went, when it never came to a fight.
-  const last = v.idle?.last ? `${LAST_LOBBY[v.idle.last]} ` : '';
+  const last = v.idle?.last && v.idle.last !== 'disbanded' ? `${LAST_LOBBY[v.idle.last]} ` : '';
   ui.start.hidden = true;
   ui.join.hidden = true;
   ui.leave.hidden = true;
