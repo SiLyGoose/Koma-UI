@@ -1,0 +1,333 @@
+/*
+ * The shop's Raid Gear tab (page.ts), in the site's own looks: their komaGems on top; a strip saying when
+ * the shelf changes, with paying for a new one now at its right end; and under it the shelf, small tall
+ * tiles side by side on the site's dark board, each with the item's card as the armories draw it (parchment
+ * framed in its tier's colour: ../shared/items), its name, how many they have, and one of the site's main
+ * buttons (../shared/ui/button/) with its price in komaGems, flat when it's more than they have. Its box
+ * (asking before gems are spent) is the Outfits tab's (../outfits/outfits.css).
+ */
+.raidshop-page {
+  /* The item cards' colours, as the gear page's (../shared/items/styles/page.css). */
+  --star-3: #b36bff;
+  --star-4: #ff4a5a;
+  --parchment-edge: #b9ab88;
+  --ink: #3b3444;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 100%;
+  /* Clear of the shop's tabs (../shop/shop.css). */
+  padding: calc(var(--shop-inset-top, 0px) + clamp(14px, 2.4dvh, 26px)) clamp(16px, 3vw, 40px) 24px
+    calc(var(--shop-inset-left, 0px) + clamp(16px, 3vw, 40px));
+  overflow-y: auto;
+}
+
+/* The gem beside an amount of komaGems. */
+.raidshop-page .emoji {
+  width: 20px;
+  height: 20px;
+  vertical-align: middle;
+}
+
+/* Never squeezed by the page's height: with a long shelf, the page scrolls. */
+.raidshop-top,
+.raidshop-strip,
+.raidshop-shelf {
+  flex: none;
+}
+
+/* The server picker at the left, their komaGems at the right. */
+.raidshop-top {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 34px;
+}
+
+/* At the bar's left its list hangs from its left edge (from its right, it would run off the screen). */
+.raidshop-top .dd:has(> .server-pick) .dd-list {
+  left: 0;
+  right: auto;
+}
+
+.raidshop-purse {
+  margin-left: auto;
+  padding-left: 10px;
+}
+
+/* ------------------------------------------------------------------ the strip */
+
+/* One line at any width: what it says gets shorter on a phone rather than wrapping. */
+.raidshop-strip {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 56px;
+  padding: 8px 8px 8px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgb(23 22 27 / 85%);
+}
+
+.raidshop-strip[hidden],
+.raidshop-refresh[hidden] {
+  display: none;
+}
+
+.raidshop-timer,
+.raidshop-refresh {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin: 0;
+  color: var(--muted);
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+/* The time left: its numbers large, their units small beside them. */
+.raidshop-time {
+  display: inline-flex;
+  gap: 3px;
+  align-items: baseline;
+  font-size: 13px;
+}
+
+.raidshop-time b {
+  margin-left: 4px;
+  color: var(--text);
+  font-size: 22px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.raidshop-refresh-left b {
+  color: var(--text);
+  font-size: 17px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+/* "Refreshes left: 5" on wide screens, "5 left" on a phone. */
+.raidshop-narrow {
+  display: none;
+}
+
+.raidshop-refresh-button {
+  gap: 6px;
+  min-width: 96px;
+  font-variant-numeric: tabular-nums;
+}
+
+.raidshop-refresh-button[hidden] {
+  display: none;
+}
+
+/* ------------------------------------------------------------------ the shelf */
+
+/* Six across, from the left, as many rows as it takes. */
+.raidshop-shelf {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: clamp(8px, 1vw, 14px);
+  align-content: start;
+}
+
+.raidshop-shelf[hidden] {
+  display: none;
+}
+
+.raidshop-empty {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* A tile: the site's dark board in its fine double frame (the armory's, the buy box's). */
+.raid-ware {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+  padding: clamp(12px, 1.4vw, 18px) 8px 8px;
+  border: 2px solid #4a4452;
+  border-radius: 12px;
+  background:
+    radial-gradient(ellipse at 20% 0%, rgb(216 191 122 / 8%), transparent 60%),
+    linear-gradient(180deg, #1b1a20, #111014);
+  box-shadow:
+    inset 0 0 0 3px #141318,
+    inset 0 0 0 4px rgb(216 191 122 / 28%),
+    0 8px 18px rgb(0 0 0 / 40%);
+  text-align: center;
+}
+
+/* Its card, the armories' (../shared/items/styles/cards.css), at the size of the tile's picture. */
+.raid-ware > .item {
+  flex: none;
+  width: 62%;
+  --focus: var(--gold);
+}
+
+/* One line, cut short with an ellipsis (its whole name is its tooltip, and the box's title). */
+.raid-ware-name {
+  width: 100%;
+  margin-top: 12px;
+  overflow: hidden;
+  color: var(--text);
+  font-size: clamp(14px, 1.2vw, 17px);
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.raid-ware-owned {
+  margin: 2px 0 10px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* Its price, on one of the site's main buttons across the tile's foot. */
+.raid-ware-buy {
+  gap: 6px;
+  width: 100%;
+  padding: 0 8px;
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ------------------------------------------------------------------ asking */
+
+.raidshop-ask-box {
+  width: min(380px, 100%);
+}
+
+/* The item's card, as on its tile: here it's only a picture, not to be pressed. */
+.raidshop-ask-art {
+  width: 96px;
+  margin: 0 auto 12px;
+}
+
+.raidshop-ask-art .item,
+.raidshop-ask-art .item:hover {
+  cursor: default;
+  transform: none;
+}
+
+.raidshop-ask-art[hidden],
+.raidshop-ask-effects[hidden],
+.raidshop-ask-note[hidden] {
+  display: none;
+}
+
+.raidshop-ask-box h3 {
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+}
+
+.raidshop-ask-about {
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-size: 13px;
+  font-style: italic;
+}
+
+.raidshop-ask-about .emoji {
+  width: 16px;
+  height: 16px;
+}
+
+.raidshop-ask-effects {
+  margin: 0;
+  text-align: left;
+}
+
+.raidshop-ask-effects .emoji {
+  width: auto;
+  height: 1.15em;
+  vertical-align: -0.22em;
+}
+
+/* How much they're short (only shown when they are). */
+.raidshop-ask-note {
+  margin: 10px 0 0;
+  color: var(--red);
+  font-size: 14px;
+}
+
+/* ------------------------------------------------------------------ narrower screens */
+
+@media (max-width: 1280px) {
+  .raidshop-shelf {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* Phones: three across, a size down, and the strip's words shorter so it stays on one line. */
+@media (max-width: 760px) {
+  .raidshop-page {
+    gap: 10px;
+    padding: calc(var(--shop-inset-top, 0px) + 12px) 12px 20px;
+  }
+
+  .raidshop-strip {
+    gap: 8px;
+    min-height: 52px;
+    padding: 6px 6px 6px 12px;
+  }
+
+  .raidshop-timer,
+  .raidshop-refresh {
+    gap: 6px;
+    font-size: 13px;
+  }
+
+  .raidshop-time b {
+    margin-left: 2px;
+    font-size: 18px;
+  }
+
+  .raidshop-wide {
+    display: none;
+  }
+
+  .raidshop-narrow {
+    display: inline;
+  }
+
+  .raidshop-refresh-button {
+    min-width: 72px;
+    padding: 0 12px;
+  }
+
+  .raidshop-shelf {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .raid-ware {
+    padding: 10px 6px 6px;
+  }
+
+  .raid-ware > .item {
+    width: 70%;
+  }
+
+  .raid-ware-name {
+    margin-top: 8px;
+  }
+
+  .raid-ware-owned {
+    margin-bottom: 8px;
+    font-size: 12px;
+  }
+
+  .raid-ware-buy {
+    min-height: 36px;
+    font-size: 15px;
+  }
+}

@@ -286,14 +286,12 @@
 }
 
 .db-source-boxes {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
   gap: 8px;
 }
 
 .db-source {
   display: flex;
-  flex: 1 1 150px;
   align-items: center;
   min-width: 0;
   padding: 8px 12px;

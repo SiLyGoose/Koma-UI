@@ -1,0 +1,40 @@
+<!-- The raid gear (src/raid-shop/page.ts): this week's raid items, a card each, to buy with komaGems. The shop's Raid Gear tab, swapped into its panel by src/shop/page.ts. -->
+<section class="raidshop-page">
+  <div class="raidshop-top">
+    <select id="server" class="server-pick" aria-label="Server" hidden></select>
+    <!-- Their komaGems, in the Outfits tab's purse (../outfits/outfits.css). -->
+    <span id="gems" class="outfits-purse raidshop-purse" title="komaGems" hidden></span>
+  </div>
+
+  <!-- Over the shelf: when it changes on the left; on the right, paying for a new one now (render.ts). -->
+  <div id="strip" class="raidshop-strip" hidden>
+    <p class="raidshop-timer"><span>New gear in</span><span id="timer" class="raidshop-time"></span></p>
+    <p id="refresh-box" class="raidshop-refresh">
+      <span id="refresh-left" class="raidshop-refresh-left"></span>
+      <button type="button" id="refresh" class="action main raidshop-refresh-button"></button>
+    </p>
+  </div>
+
+  <p id="status" class="status outfits-status" hidden></p>
+
+  <!-- A tile for each item on the shelf (render.ts), best tier first: its card (the armories'), its name, and a button with its price. -->
+  <div id="shelf" class="raidshop-shelf"></div>
+
+  <!--
+    Asking before komaGems are spent: buying an item (what it does) or refreshing the shelf, and how much
+    they're short when they are. The Outfits tab's buy box (not a <dialog>, as it isn't).
+  -->
+  <div id="ask" class="outfits-buy" role="dialog" aria-modal="true" aria-labelledby="ask-title" tabindex="-1" hidden>
+    <div class="outfits-buy-box raidshop-ask-box">
+      <div id="ask-art" class="raidshop-ask-art"></div>
+      <h3 id="ask-title"></h3>
+      <p id="ask-about" class="raidshop-ask-about"></p>
+      <ul id="ask-effects" class="detail-effects raidshop-ask-effects"></ul>
+      <p id="ask-note" class="raidshop-ask-note" hidden></p>
+      <div class="outfits-buy-foot">
+        <button type="button" class="action secondary" data-ask="cancel">Cancel</button>
+        <button type="button" class="action main" data-ask="confirm"></button>
+      </div>
+    </div>
+  </div>
+</section>

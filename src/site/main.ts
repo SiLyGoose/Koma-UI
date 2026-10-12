@@ -11,6 +11,7 @@ import '../dressing/dressing.css';
 import '../forge/forge.css';
 import '../banner/banner.css';
 import '../outfits/outfits.css';
+import '../raid-shop/raid-shop.css';
 import '../shop/shop.css';
 import { backdrop, siteHeader } from '../shared/ui';
 import { installCursor } from '../shared/cursor';

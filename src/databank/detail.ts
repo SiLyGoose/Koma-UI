@@ -16,14 +16,22 @@ function levelButton(label: string, pressed: boolean, disabled: boolean, onClick
 const SOURCES: Record<ItemSource, string> = {
   gacha: 'Gacha - Discord',
   raid: 'Raid Drops',
+  raidShop: 'Raid Shop',
 };
 
-/** A box for one place an item comes from. The raid's opens the databank's raid bosses (./bosses.ts), which say what they drop; the gacha's is in Discord, so it only clicks. */
+/** Where each place's box goes: the databank's raid bosses (./bosses.ts), which say what they drop, and the shop's Raid Gear tab (../raid-shop/). The gacha's is in Discord, so it only clicks. */
+const SOURCE_PAGE: Partial<Record<ItemSource, string>> = {
+  raid: '/databank/bosses/',
+  raidShop: '/shop/raid/',
+};
+
+/** A box for one place an item comes from. */
 function sourceBox(source: ItemSource): HTMLButtonElement {
   const box = el('button', 'db-source');
   box.type = 'button';
-  box.append(el('span', 'db-source-name', SOURCES[source]));
-  if (source === 'raid') box.addEventListener('click', () => go('/databank/bosses/'));
+  box.append(el('span', 'db-source-name', SOURCES[source] ?? source));
+  const page = SOURCE_PAGE[source];
+  if (page) box.addEventListener('click', () => go(page));
   return box;
 }
 
@@ -90,7 +98,7 @@ export function renderDetail(ctx: DatabankContext): void {
     ui.detailBody.append(el('p', 'detail-note', `Has a masterwork bonus at R${maxLevel}: press ✨ to see it.`));
   }
   // Where it comes from, a box for each place (nothing from a bot that doesn't say).
-  const sources = item.source ? [item.source] : [];
+  const sources = item.sources ?? (item.source ? [item.source] : []);
   if (sources.length > 0) {
     const section = el('div', 'db-sources');
     const boxes = el('div', 'db-source-boxes');

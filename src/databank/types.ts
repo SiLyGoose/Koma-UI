@@ -13,11 +13,13 @@ export interface DatabankItem {
   effects: string[][];
   masterwork: string[] | null;
   borrowed: number | null;
-  /** Where it comes from: pulled from the gacha, or only dropped by raid bosses (absent from a bot from before raid drops). */
+  /** Where it first comes from: pulled from the gacha, or dropped by raid bosses (absent from a bot from before raid drops). */
   source?: ItemSource;
+  /** Every place it comes from, `source` first: a raid item the raid shop sells has that too (absent from a bot from before the raid shop). */
+  sources?: ItemSource[];
 }
 
-export type ItemSource = 'gacha' | 'raid';
+export type ItemSource = 'gacha' | 'raid' | 'raidShop';
 
 /**
  * One difficulty level of the raid: what it multiplies the boss's HP and damage by, and what a win at it drops

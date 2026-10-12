@@ -32,7 +32,7 @@ body:has(.shop-page) {
   overflow: hidden;
 }
 
-/* The tabs, over the tab picked, on the faintest wash of white: no wall between them and it. */
+/* The tabs, over the tab picked, on the faintest wash of white: no wall between them and it. It never scrolls. */
 .shop-rail {
   position: relative;
   z-index: 2;
@@ -42,21 +42,27 @@ body:has(.shop-page) {
   flex-direction: column;
   gap: 10px;
   padding: 18px 12px;
-  overflow-y: auto;
   background: rgb(255 255 255 / 4%);
 }
 
 /* Its look and states are the site's (../shared/ui/button/); here, a tall tile down the rail. */
 .shop-tab {
   justify-content: flex-start;
-  gap: 12px;
+  gap: 10px;
   width: 100%;
   min-height: 66px;
-  padding: 10px 14px 10px 10px;
+  padding: 10px 8px 10px 10px;
   border-radius: 10px;
   font-size: 16px;
   letter-spacing: 0.02em;
   text-align: left;
+}
+
+/* Its name: on a narrow rail it goes onto a second line, and whatever still doesn't fit is cut off, not shown. */
+.shop-tab-label {
+  min-width: 0;
+  overflow: hidden;
+  white-space: normal;
 }
 
 /* Its picture, in a gold ring. */
