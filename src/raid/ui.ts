@@ -50,7 +50,6 @@ export const ui = {
   levelDown: $<HTMLButtonElement>('level-down'),
   levelUp: $<HTMLButtonElement>('level-up'),
   levelNumber: $('level-number'),
-  levelGear: $('level-gear'),
   levelEnter: $<HTMLButtonElement>('level-enter'),
   levelClose: $<HTMLButtonElement>('level-close'),
   start: $<HTMLButtonElement>('start'),

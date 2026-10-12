@@ -152,7 +152,7 @@ function renderBoss(ctx: DatabankContext): void {
       if (unlocked !== null && l.level > unlocked) {
         button.classList.add('locked');
         button.title = 'Not unlocked in your server yet';
-      } else if (l.gear) button.title = 'Needs raid gear';
+      }
       button.addEventListener('click', () => {
         ctx.bossLevel = l.level;
         renderBoss(ctx);
@@ -176,7 +176,6 @@ function renderBoss(ctx: DatabankContext): void {
       label('Difficulty'),
       levels,
       numbers,
-      ...(wall > 0 && level.gear ? [el('p', 'detail-note', `🛡️ Lv ${level.level} needs raid gear: the HP it gains for every raider has climbed to ${points(wall)}, and from here the boss is built for parties in raid gear.`)] : []),
       label(`Boss HP by party at Lv ${level.level}`),
       hp,
       el('p', 'detail-note', `Its HP grows with every raider (a party of fewer than ${boss.hp.minRaiders} fights it as ${boss.hp.minRaiders}). It gets away, and the raid is lost, if it is still standing after ${raid.maxRounds} rounds.`),
