@@ -207,3 +207,13 @@ html[data-tx]:not([data-tx-live])::before {
     visibility: hidden;
   }
 }
+
+/*
+ * The mouse while a page loads. The pointing hand is the browser's own pointer with the hand's picture, put on
+ * by the page's script (../cursor/: .hand-on, with a mouse). Until that has run, under the loading screen, it's
+ * the same hand from here (its fingertip at 10, 2 in the picture), not the browser's arrow for a moment.
+ */
+html[data-tx]:not(.hand-on),
+html[data-tx]:not(.hand-on) * {
+  cursor: url('/shared/cursor.png') 10 2, auto !important;
+}

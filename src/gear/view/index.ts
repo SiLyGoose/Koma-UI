@@ -48,6 +48,6 @@ async function start(ctx: GearContext): Promise<void> {
   if (!host.server()) return status(ctx, 'None of your servers have Koma in them yet.');
   const me = host.me();
   if (me) fillServers(ctx.ui.server, me.servers, host.server());
-  void loadMembers(ctx);
-  await loadGear(ctx);
+  // The roster with the gear, so it's there (its portraits too) as the page is uncovered, not put in after.
+  await Promise.all([loadMembers(ctx), loadGear(ctx)]);
 }

@@ -4,13 +4,22 @@
  * alone). Only with a mouse: a touch screen keeps no pointer at all.
  */
 
-/* The browser's own pointer hidden everywhere, but in fields typed in, which keep their I-beam. */
-html.reticle-on,
-html.reticle-on * {
-  cursor: none !important;
+/*
+ * The hand (native.ts): the browser's own pointer, with the hand's picture and its fingertip (10, 2 in it)
+ * where the mouse is, so it never waits on the page. Pressing, while a button is held; and fields typed in
+ * keep their I-beam.
+ */
+html.hand-on,
+html.hand-on * {
+  cursor: url('/shared/cursor.png') 10 2, auto !important;
 }
 
-html.reticle-on :is(textarea, [contenteditable], input:is(:not([type]), [type='text'], [type='number'], [type='search'], [type='email'], [type='password'], [type='url'], [type='tel'])) {
+html.hand-on[data-hand-pressed],
+html.hand-on[data-hand-pressed] * {
+  cursor: url('/shared/cursor-press.png') 10 2, auto !important;
+}
+
+html.hand-on :is(textarea, [contenteditable], input:is(:not([type]), [type='text'], [type='number'], [type='search'], [type='email'], [type='password'], [type='url'], [type='tel'])) {
   cursor: text !important;
 }
 
@@ -35,22 +44,14 @@ html.reticle-on :is(textarea, [contenteditable], input:is(:not([type]), [type='t
   pointer-events: none;
 }
 
-/*
- * Shown once the mouse is in the window, and not over a field being typed in (the I-beam alone there).
- * The hand, being the mouse, comes and goes about at once; the dot and brackets trailing it fade.
- */
-.reticle-dot,
-.reticle-frame,
-.reticle-hand {
-  opacity: 0;
-}
-
+/* Shown once the mouse is in the window, and not over a field being typed in (the I-beam alone there): fading in and out. */
 .reticle-dot,
 .reticle-frame {
+  opacity: 0;
   transition: opacity 0.35s ease;
 }
 
-.reticle[data-shown]:not([data-over-text]) :is(.reticle-dot, .reticle-frame, .reticle-hand) {
+.reticle[data-shown]:not([data-over-text]) :is(.reticle-dot, .reticle-frame) {
   opacity: 1;
 }
 
@@ -75,38 +76,12 @@ html.reticle-on :is(textarea, [contenteditable], input:is(:not([type]), [type='t
   will-change: transform;
 }
 
-/* The mouse: a pointing hand, its fingertip where the mouse is (margins set by parts.ts). Over the brackets. */
-.reticle-hand {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 32px;
-  height: 24px;
-  image-rendering: pixelated;
-  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 60%));
-  transition: opacity 0.12s;
-  will-change: transform;
-}
-
-/* Boxing something in: the hand goes, leaving the dot and the brackets. */
-.reticle[data-shown][data-locked] .reticle-hand {
+/* Boxing something in: the dot goes, leaving the hand and the brackets, so the dot isn't lost on what's boxed. */
+.reticle[data-shown][data-locked] .reticle-dot {
   opacity: 0;
 }
 
-/* Boxing an item: the other way round, the hand staying and the dot going, so the dot isn't lost on the item. */
-.reticle[data-shown][data-locked][data-keep-hand] .reticle-hand {
-  opacity: 1;
-}
-
-.reticle[data-shown][data-locked][data-keep-hand] .reticle-dot {
-  opacity: 0;
-}
-
-/* Leaving for a game (which has the hand alone): the hand, whatever's boxed, and the dot and brackets fading away. */
-.reticle[data-shown][data-leaving] .reticle-hand {
-  opacity: 1 !important;
-}
-
+/* Leaving for a game (which has the hand alone): the dot and brackets fading away. */
 .reticle[data-leaving] :is(.reticle-dot, .reticle-frame) {
   opacity: 0 !important;
 }

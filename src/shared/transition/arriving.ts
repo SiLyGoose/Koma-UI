@@ -1,6 +1,6 @@
 import { playLoaded } from '../audio';
 import type { Pending } from './leaving';
-import { KEY, MAX_HOLD_MS, MAX_SETTLE_MS, SETTLE_FRAME_MS, SETTLE_FRAMES } from './timing';
+import { KEY, MAX_HOLD_MS, MAX_PICTURES_MS, MAX_SETTLE_MS, SETTLE_FRAME_MS, SETTLE_FRAMES } from './timing';
 import { clear, root, wait, wipeOff } from './wipe';
 
 let holds = 0;
@@ -29,6 +29,31 @@ export function holdReveal(): () => void {
   };
 }
 
+/**
+ * Done once the page under the loading screen is ready to be uncovered: it has drawn itself (nothing holds the
+ * reveal), its pictures are in, and frames come smoothly again. All of that under the loading screen, rather than
+ * the page still fetching pictures and drawing them as it's uncovered, which made it (and the mouse over it)
+ * stutter the first time a page was shown. None of them waited for longer than its own limit (timing.ts).
+ */
+export async function ready(): Promise<void> {
+  await Promise.race([drawn(), wait(MAX_HOLD_MS)]);
+  await Promise.race([pictures(), wait(MAX_PICTURES_MS)]);
+  await Promise.race([settled(), wait(MAX_SETTLE_MS)]);
+}
+
+/**
+ * Done once the page's pictures are loaded and ready to draw (or can't be). A picture that waits to be scrolled
+ * to (loading="lazy") only counts when it's on screen now: the rest aren't fetched yet.
+ */
+function pictures(): Promise<void> {
+  const onScreen = (img: HTMLImageElement): boolean => {
+    const box = img.getBoundingClientRect();
+    return box.width > 0 && box.height > 0 && box.bottom > 0 && box.right > 0 && box.top < innerHeight && box.left < innerWidth;
+  };
+  const wanted = Array.from(document.images).filter((img) => img.getAttribute('src') && (img.loading !== 'lazy' || onScreen(img)));
+  return Promise.all(wanted.map((img) => img.decode().catch(() => undefined))).then(() => undefined);
+}
+
 /** Wipes the loading screen off this page, if it started under it (transition/head.js). */
 export async function reveal(): Promise<void> {
   try {
@@ -43,8 +68,7 @@ export async function reveal(): Promise<void> {
   // The page's own script runs after this one's (it imports it): give it the chance to hold the
   // reveal, then wait for what it holds.
   await wait(0);
-  await Promise.race([drawn(), wait(MAX_HOLD_MS)]);
-  await Promise.race([settled(), wait(MAX_SETTLE_MS)]);
+  await ready();
   // The page is ready: its sound as the loading screen starts wiping off it.
   playLoaded();
   await wipeOff();

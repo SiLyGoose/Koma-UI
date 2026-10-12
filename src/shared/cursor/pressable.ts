@@ -3,10 +3,10 @@ import { CONTROL, MAX_H, MAX_W } from './tuning';
 /**
  * The page's own pointer, copied beside every `cursor` in its stylesheets (and over links, in
  * cursor.css, where it's the browser's own). A custom property goes through the cascade and inherits
- * just as `cursor` does, but the reticle's `cursor: none !important` doesn't cover it, so it can be read
- * as the page has it with nothing on the page changed to read it. (Lifting the reticle's hiding to read
- * `cursor` itself made the browser go over the whole page's styles twice, on every new thing the mouse
- * went over.)
+ * just as `cursor` does, but the hand's own `cursor` (cursor.css: on everything, !important) doesn't cover
+ * it, so it can be read as the page has it with nothing on the page changed to read it. (Lifting the hand's
+ * `cursor` to read the page's made the browser go over the whole page's styles twice, on every new thing the
+ * mouse went over.)
  */
 const PAGE_CURSOR = '--page-cursor';
 
@@ -15,8 +15,8 @@ function mirror(rules: CSSRuleList): void {
   for (const rule of Array.from(rules)) {
     if (rule instanceof CSSStyleRule) {
       const value = rule.style.getPropertyValue('cursor');
-      // The reticle's own hiding of the pointer isn't the page's.
-      if (value && !rule.selectorText.includes('reticle-on')) rule.style.setProperty(PAGE_CURSOR, value, rule.style.getPropertyPriority('cursor'));
+      // The hand's own pointer (cursor.css, ../transition/head.css) isn't the page's.
+      if (value && !rule.selectorText.includes('hand-on')) rule.style.setProperty(PAGE_CURSOR, value, rule.style.getPropertyPriority('cursor'));
     }
     if ('cssRules' in rule) mirror((rule as CSSGroupingRule).cssRules);
   }

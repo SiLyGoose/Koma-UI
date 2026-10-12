@@ -1,6 +1,6 @@
 import { playLoaded } from '../audio';
-import { drawn } from './arriving';
-import { FAST_WIPE_MS, MAX_HOLD_MS, MIN_SWAP_MS, WIPE_MS } from './timing';
+import { ready } from './arriving';
+import { FAST_WIPE_MS, MIN_SWAP_MS, WIPE_MS } from './timing';
 import { clear, lessMotion, root, wait, wipeOff, wipeOn, type Direction } from './wipe';
 
 /* Swapping a site page in place (src/site/main.ts), and the quick cover over a page while it works. */
@@ -11,7 +11,7 @@ let queued: { dir: Direction; change: () => void | Promise<void> } | null = null
 
 /**
  * Wipes the loading screen on, runs `change` under it (the router swapping the page), waits for the new
- * page to draw itself (holdReveal), and wipes it off. `back` runs it right to left. Without the motion,
+ * page to be ready (drawn, its pictures in, frames smooth again: ready()), and wipes it off. `back` runs it right to left. Without the motion,
  * just `change`.
  */
 export async function swap(dir: Direction, change: () => void | Promise<void>): Promise<void> {
@@ -27,14 +27,14 @@ export async function swap(dir: Direction, change: () => void | Promise<void>): 
   try {
     await change();
   } finally {
-    await Promise.all([wait(MIN_SWAP_MS), Promise.race([drawn(), wait(MAX_HOLD_MS)])]);
+    await Promise.all([wait(MIN_SWAP_MS), ready()]);
     // Another page asked for meanwhile: swap again under the same cover.
     while (queued) {
       const next = queued;
       queued = null;
       root.setAttribute('data-tx-dir', next.dir);
       await next.change();
-      await Promise.race([drawn(), wait(MAX_HOLD_MS)]);
+      await ready();
     }
     playLoaded();
     await wipeOff();

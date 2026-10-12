@@ -23,8 +23,6 @@ export const MAX_H = 0.6;
 
 /** What's pressable in its own right: the mouse over something in one of these boxes it, not a bigger thing it's in. */
 export const CONTROL = 'button, a[href], select, summary, label, input, [role="button"], [role="option"], [role="menuitem"], [role="tab"]';
-/** Boxed things the hand stays over, in place of the dot, to see them by: the armory's and databank's items. */
-export const KEEP_HAND = '.item';
 /** Fields typed in: they keep the browser's I-beam, and the reticle hides over them. */
 export const TEXT_FIELD =
   'textarea, [contenteditable]:not([contenteditable="false"]), input:is(:not([type]), [type="text"], [type="number"], [type="search"], [type="email"], [type="password"], [type="url"], [type="tel"])';

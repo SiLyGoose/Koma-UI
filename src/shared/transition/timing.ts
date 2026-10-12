@@ -8,6 +8,8 @@ export const LOAD_MS = 1000;
 export const MAX_FETCH_MS = 2000;
 /** The longest the reveal waits for a page to draw itself (holdReveal). */
 export const MAX_HOLD_MS = 3000;
+/** The longest the reveal waits for a page's pictures to load (pictures()). */
+export const MAX_PICTURES_MS = 1500;
 /**
  * A page just loaded goes on working for a moment after it has drawn itself (the browser putting the
  * whole of it on screen for the first time: the star chart, the pictures), stalling frames as it does.
