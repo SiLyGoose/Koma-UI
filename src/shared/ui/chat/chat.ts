@@ -15,8 +15,8 @@ import './chat.css';
  *   bot -> page   chats    the last lines said, on joining
  *                 chat     a line just said (this page's own too)
  *
- * A picture can be said too: pasted into the box (or dropped on the chat, or picked with the button
- * by the box), it waits above the box until the line is sent, made small enough for the bot to take.
+ * A picture can be said too: pasted into the box (or dropped on the chat), it waits above the box
+ * until the line is sent, made small enough for the bot to take.
  * And a link in a line's words is one that can be pressed; a link to a picture or a GIF (its own
  * address, or its page on giphy.com or tenor.com) is shown as that picture under the words.
  *
@@ -65,7 +65,6 @@ const GIPHY_PAGE = /^\/(?:gifs|stickers)\/(?:.*-)?([A-Za-z0-9]+)\/?$/;
 const SAID_IMAGE = /^(?:data:image\/(?:png|jpeg|webp|gif);base64,[A-Za-z0-9+/]+={0,2}|https:\/\/[^\s<>"']+)$/;
 
 const BUBBLE = `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 3h16a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H9.5L5 21.5V18H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm3 5v2h10V8H7Zm0 4v2h7v-2H7Z"/></svg>`;
-const PICTURE = `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M5 4h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Zm0 2v9.6l3.8-3.8 3.2 3.2 2.5-2.5L19 17V6H5Zm10.5 4.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Z"/></svg>`;
 
 /** The picture a link is to, if it is to one: the address itself, or a giphy.com page's GIF. Only ever https. */
 function pictureOf(link: string): string | null {
@@ -158,15 +157,12 @@ export function chatBox({ mount, send, you, colour, canSay = true }: ChatOptions
       <button type="button" class="chat-attached-drop" aria-label="Take the picture off">✕</button>
     </div>
     <form class="chat-form" autocomplete="off">
-      <button type="button" class="chat-attach" aria-label="Add a picture" title="Add a picture (or paste one)">${PICTURE}</button>
-      <input class="chat-file" type="file" accept="image/*" hidden />
       <input class="chat-input" type="text" maxlength="${MAX_LENGTH}" placeholder="Say something…" aria-label="Say something to the table" enterkeyhint="send" />
       <button type="submit" class="chat-send">Send</button>
     </form>`;
   const list = root.querySelector('.chat-lines') as HTMLElement;
   const form = root.querySelector('.chat-form') as HTMLFormElement;
   const input = root.querySelector('.chat-input') as HTMLInputElement;
-  const file = root.querySelector('.chat-file') as HTMLInputElement;
   const attached = root.querySelector('.chat-attached') as HTMLElement;
   const attachedImage = root.querySelector('.chat-attached-image') as HTMLImageElement;
   const attachedNote = root.querySelector('.chat-attached-note') as HTMLElement;
@@ -251,7 +247,7 @@ export function chatBox({ mount, send, you, colour, canSay = true }: ChatOptions
     else showAttached(null, 'That picture can’t be sent.');
   }
 
-  /** The first picture among `files` (pasted, dropped or picked), if there is one. */
+  /** The first picture among `files` (pasted or dropped), if there is one. */
   const pictureIn = (files: FileList | null | undefined): File | undefined => [...(files ?? [])].find((f) => f.type.startsWith('image/'));
 
   /** A link that opens in a tab of its own, telling where it goes nothing of this page. */
@@ -335,7 +331,7 @@ export function chatBox({ mount, send, you, colour, canSay = true }: ChatOptions
     input.value = '';
     showAttached(null);
   });
-  // A picture: pasted into the box, dropped on the chat, or picked with the button by the box.
+  // A picture: pasted into the box, or dropped on the chat.
   input.addEventListener('paste', (e) => {
     const pasted = pictureIn(e.clipboardData?.files);
     if (!pasted) return;
@@ -350,12 +346,6 @@ export function chatBox({ mount, send, you, colour, canSay = true }: ChatOptions
     if (!dropped) return;
     e.preventDefault();
     void attach(dropped);
-  });
-  (root.querySelector('.chat-attach') as HTMLElement).addEventListener('click', () => file.click());
-  file.addEventListener('change', () => {
-    const picked = pictureIn(file.files);
-    file.value = '';
-    if (picked) void attach(picked);
   });
   (root.querySelector('.chat-attached-drop') as HTMLElement).addEventListener('click', () => {
     attaching++;

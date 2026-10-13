@@ -190,30 +190,6 @@
   gap: 6px;
 }
 
-/* Picks a picture to say. */
-.chat-attach {
-  display: grid;
-  flex: none;
-  place-items: center;
-  width: 36px;
-  padding: 0;
-  border: 0;
-  border-radius: 8px;
-  background: var(--panel-3);
-  color: var(--muted);
-  cursor: pointer;
-}
-
-.chat-attach:hover {
-  background: var(--line);
-  color: var(--text);
-}
-
-.chat-attach svg {
-  width: 18px;
-  height: 18px;
-}
-
 .chat-input {
   flex: 1;
   min-width: 0;
