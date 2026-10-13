@@ -29,7 +29,7 @@ export interface RaidClass {
   traits?: string[];
 }
 
-export type ItemSource = 'gacha' | 'raid' | 'raidShop';
+export type ItemSource = 'gacha' | 'raid' | 'raidShop' | 'limited';
 
 /**
  * One difficulty level of the raid: what it multiplies the boss's HP and damage by, and what a win at it drops

@@ -112,8 +112,8 @@ export async function playWish(ctx: BannerContext, request: Promise<ApiResult<Ba
     return res;
   }
 
-  // Best first, as Genshin lines them up (in the order pulled within a tier).
-  const pulls = [...res.data.pulls].sort((a, b) => b.stars - a.stars);
+  // Best first, as Genshin lines them up (in the order pulled within a tier), what the pulls gave on top (Pot of Greed) among them.
+  const pulls = [...res.data.pulls, ...(res.data.extras ?? [])].sort((a, b) => b.stars - a.stars);
   const best = pulls[0]?.stars ?? 1;
   ui.wish.dataset.stars = String(best);
 

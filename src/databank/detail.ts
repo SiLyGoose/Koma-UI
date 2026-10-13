@@ -18,6 +18,7 @@ const SOURCES: Record<ItemSource, string> = {
   gacha: 'Gacha - Discord',
   raid: 'Raid Drops',
   raidShop: 'Raid Shop',
+  limited: 'Limited Banner',
 };
 
 /** Where each place's box goes: the databank's raid bosses (./bosses.ts), which say what they drop, and the shop's Raid Gear tab (../raid-shop/). The gacha's is in Discord, so it only clicks. */

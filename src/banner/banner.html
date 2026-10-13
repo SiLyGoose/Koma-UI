@@ -25,11 +25,11 @@
           <p id="blurb" class="banner-blurb"></p>
         </div>
         <div class="banner-lower">
-          <!-- Their own treasure, and whether the next unique treasure is guaranteed to be it: 1/1 or 0/1 (hidden when none is theirs). -->
-          <div id="path" class="banner-path" hidden>
-            <div id="path-ring" class="banner-path-ring"><span id="path-art" class="banner-path-art"></span></div>
-            <p id="path-count" class="banner-path-count"></p>
-          </div>
+          <!-- Their own treasure, and whether the next unique treasure is guaranteed to be it: 1/1 or 0/1 (hidden when none is theirs). Clicked, it opens the pick below. -->
+          <button type="button" id="path" class="banner-path" aria-haspopup="dialog" hidden>
+            <span id="path-ring" class="banner-path-ring"><span id="path-art" class="banner-path-art"></span></span>
+            <span id="path-count" class="banner-path-count"></span>
+          </button>
           <div class="banner-time">
             <p class="banner-time-head">Time Remaining</p>
             <p id="time" class="banner-time-left"></p>
@@ -69,6 +69,16 @@
       <p id="details-pity" class="banner-details-text"></p>
       <p id="guarantee" class="banner-details-text" hidden></p>
       <button type="button" id="details-close" class="banner-link">Close</button>
+    </div>
+  </div>
+
+  <!-- The guarantee: what it promises, and the items it can give, to pick the one it does. -->
+  <div id="pick" class="banner-details" role="dialog" aria-modal="true" aria-labelledby="pick-title" tabindex="-1" hidden>
+    <div class="banner-details-box">
+      <h2 id="pick-title">Guaranteed item</h2>
+      <p id="pick-text" class="banner-details-text"></p>
+      <div id="pick-list" class="banner-picks" role="radiogroup" aria-labelledby="pick-title"></div>
+      <button type="button" id="pick-close" class="banner-link">Close</button>
     </div>
   </div>
 

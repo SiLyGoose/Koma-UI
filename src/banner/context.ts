@@ -1,5 +1,5 @@
 import type { Busy } from '../shared/ui';
-import { BANNERS, type Banner } from './banners';
+import { STANDARD, type Banner } from './banners';
 import type { BannerView } from './types';
 
 /** The banner page's elements, found once in its root. */
@@ -15,7 +15,7 @@ export interface BannerUi {
   name2: HTMLElement;
   promise: HTMLElement;
   blurb: HTMLElement;
-  path: HTMLElement;
+  path: HTMLButtonElement;
   pathRing: HTMLElement;
   pathArt: HTMLElement;
   pathCount: HTMLElement;
@@ -28,6 +28,10 @@ export interface BannerUi {
   rates: HTMLElement;
   detailsPity: HTMLElement;
   guarantee: HTMLElement;
+  pick: HTMLElement;
+  pickText: HTMLElement;
+  pickList: HTMLElement;
+  pickClose: HTMLButtonElement;
   one: HTMLButtonElement;
   oneCost: HTMLElement;
   ten: HTMLButtonElement;
@@ -43,10 +47,14 @@ export interface BannerUi {
 /** Everything the mounted banner page knows. */
 export interface BannerContext {
   ui: BannerUi;
-  /** The banner showing (its tab picked). */
+  /** The banners offered (./banners.ts bannersFor): the standard one, and the limited one while it is open. */
+  banners: Banner[];
+  /** The banner showing (its tab picked): `view` is that banner's. */
   banner: Banner;
   view: BannerView | null;
-  /** A pull on its way (its button: 'one' or 'ten'), or its wish still playing: the buttons wait for it. */
+  /** Each banner's view as the bot last gave it, so picking another tab shows it at once without asking again. */
+  views: Partial<Record<Banner['id'], BannerView>>;
+  /** A pull on its way (its button: 'one' or 'ten'), or its wish still playing, or a pick of the guaranteed item ('pick'): the buttons wait for it. */
   busy: Busy | null;
   /** Ends the wish playing (if any) at once: the page is going. */
   endWish: (() => void) | null;
@@ -67,7 +75,7 @@ export function createContext(root: HTMLElement): BannerContext {
       name2: $('name-2'),
       promise: $('promise'),
       blurb: $('blurb'),
-      path: $('path'),
+      path: $<HTMLButtonElement>('path'),
       pathRing: $('path-ring'),
       pathArt: $('path-art'),
       pathCount: $('path-count'),
@@ -80,6 +88,10 @@ export function createContext(root: HTMLElement): BannerContext {
       rates: $('rates'),
       detailsPity: $('details-pity'),
       guarantee: $('guarantee'),
+      pick: $('pick'),
+      pickText: $('pick-text'),
+      pickList: $('pick-list'),
+      pickClose: $<HTMLButtonElement>('pick-close'),
       one: $<HTMLButtonElement>('pull-one'),
       oneCost: $('pull-one-cost'),
       ten: $<HTMLButtonElement>('pull-ten'),
@@ -91,8 +103,10 @@ export function createContext(root: HTMLElement): BannerContext {
       stage: $('wish-stage'),
       skip: $<HTMLButtonElement>('wish-skip'),
     },
-    banner: BANNERS[0] as Banner,
+    banners: [STANDARD],
+    banner: STANDARD,
     view: null,
+    views: {},
     busy: null,
     endWish: null,
   };

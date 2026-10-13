@@ -96,7 +96,7 @@
 /*
  * A banner's tab, as Genshin's: a small dark-blue plaque in a fine double frame with a diamond at each top
  * corner, its name on the left and its first featured item's picture fading in from the right. The one
- * showing turns pale gold in a gold frame, a little bigger and hanging lower than the rest.
+ * showing turns pale gold in a gold frame, the same size and in line with the rest.
  */
 .banner-tab {
   --tab-line: rgb(214 226 255 / 45%);
@@ -117,7 +117,7 @@
   color: #e9eefc;
   cursor: pointer;
   opacity: 0.85;
-  transition: opacity 0.2s ease, transform 0.2s ease, background 0.2s ease;
+  transition: opacity 0.2s ease, background 0.2s ease;
 }
 
 /* The diamonds on its frame's top corners. */
@@ -156,7 +156,6 @@
     0 6px 16px rgb(10 20 50 / 30%);
   color: #5a4a2c;
   opacity: 1;
-  transform: translateY(4px) scale(1.06);
 }
 
 .banner-tab:focus-visible {
@@ -365,12 +364,29 @@
 
 /*
  * Their own treasure, as Genshin's Epitomized Path: its picture in a ring that fills red when their
- * next unique treasure is guaranteed to be it, and 0/1 or 1/1 on a pill under it.
+ * next unique treasure is guaranteed to be it, and 0/1 or 1/1 on a pill under it. A button: it opens
+ * the pick of the item the guarantee gives.
  */
 .banner-path {
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.banner-path:hover .banner-path-ring {
+  filter: brightness(1.08);
+}
+
+.banner-path:focus-visible {
+  border-radius: 12px;
+  outline: 2px solid color-mix(in srgb, var(--tier) 70%, #000);
+  outline-offset: 4px;
 }
 
 .banner-path[hidden] {
@@ -751,6 +767,65 @@
   color: var(--ink-soft);
   font-size: 14px;
   line-height: 1.5;
+}
+
+/* The guarantee's pick: a row for each item it can give (its picture, name and stars), the one picked framed in its tier's colour and ticked. */
+.banner-picks {
+  display: grid;
+  gap: 8px;
+}
+
+.banner-pick {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 8px 12px;
+  border: 1px solid rgb(185 171 136 / 70%);
+  border-radius: 10px;
+  background: #fdfaf1;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.banner-pick[aria-checked='true'] {
+  border-color: color-mix(in srgb, var(--tier) 80%, #000);
+  background: color-mix(in srgb, var(--tier) 9%, #fdfaf1);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tier) 80%, #000);
+  cursor: default;
+}
+
+.banner-pick[aria-checked='true']::after {
+  content: '✓';
+  color: color-mix(in srgb, var(--tier) 80%, #000);
+  font-weight: 700;
+}
+
+.banner-pick:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.banner-pick:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.banner-pick-art {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-width: 2px;
+  color: #e9eefc;
+  font-weight: 700;
+}
+
+.banner-pick-name {
+  flex: 1;
+  font-weight: 600;
 }
 
 /* ------------------------------------------------------------------ smaller screens */

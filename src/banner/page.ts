@@ -2,17 +2,16 @@ import markup from './banner.html?raw';
 import { API, dropdown, fillServers } from '../shared/ui';
 import type { ShopTab } from '../shop/tab';
 import { currentMe, currentServer, loadMe, setServer } from '../site/session';
-import { failed, loadBanner, pull } from './api';
-import { BANNERS } from './banners';
+import { failed, loadBanner, pickBanner, pickGuaranteed, pull } from './api';
 import { createContext, status, type BannerContext } from './context';
 import { render } from './render';
 
 /*
  * The banner, laid out as Genshin's wish screen: pulling from the gacha on the site, as `gacha` and
  * `gacha multi` do in Discord (the bot pulls, with the same price, komaTokens, pity and guarantee: its
- * web/gacha.ts). Over a sky: a tab for each banner (./banners.ts) and their wallet along the top; the
+ * web/models/gacha.ts), on the standard banner or, while it is open, the limited one. Over a sky: a tab for each banner (./banners.ts) and their wallet along the top; the
  * banner's card (its parchment with its name, what pity promises, their own treasure's guarantee as
- * 0/1 or 1/1 and how long it's on, and its featured items breaking out over a red panel); Details (each tier's odds) and the two pull
+ * 0/1 or 1/1 (a button: it opens the pick of the item the guarantee gives) and how long it's on, and its featured items breaking out over a red panel); Details (each tier's odds) and the two pull
  * buttons with their prices along the bottom. A pull plays the wish (./wish.ts: a star falling in the colour of
  * the best item, ./sky.ts) and shows what came out. Logged-in members only, in the server picked. The
  * shop's Wish tab (../shop/page.ts).
@@ -37,10 +36,10 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
 
   ui.tabs.addEventListener('click', (e) => {
     const id = (e.target as HTMLElement).closest<HTMLElement>('[data-banner]')?.dataset.banner;
-    const banner = BANNERS.find((b) => b.id === id);
+    const banner = ctx.banners.find((b) => b.id === id);
     if (!banner || banner === ctx.banner || ctx.busy) return;
-    ctx.banner = banner;
-    render(ctx);
+    // Each banner has its own pity and guarantee: its own view, kept from when the page loaded.
+    pickBanner(ctx, banner);
   });
 
   // Details: open from its button, closed by Close, a click outside its box, or Escape.
@@ -58,6 +57,30 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
   });
   ui.details.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeDetails();
+  });
+
+  // The guarantee's pick: open from the ring, closed as Details is. An option picks the item the guarantee gives.
+  const closePick = (): void => {
+    ui.pick.hidden = true;
+    ui.path.focus();
+  };
+  ui.path.addEventListener('click', () => {
+    ui.pick.hidden = false;
+    ui.pick.focus();
+  });
+  ui.pickClose.addEventListener('click', closePick);
+  ui.pick.addEventListener('click', (e) => {
+    if (e.target === ui.pick) closePick();
+  });
+  ui.pick.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closePick();
+  });
+  ui.pickList.addEventListener('click', async (e) => {
+    const option = (e.target as HTMLElement).closest<HTMLElement>('[data-item]');
+    if (!option || option.getAttribute('aria-checked') === 'true') return;
+    await pickGuaranteed(ctx, option.dataset.item || null);
+    // Its options were drawn again: back to the one picked, so the keyboard is still in the box.
+    if (!ui.pick.hidden) (ui.pickList.querySelector<HTMLElement>('[aria-checked="true"]') ?? ui.pick).focus();
   });
 
   return {
