@@ -36,6 +36,7 @@ export default defineConfig({
         roulette: resolve(import.meta.dirname, 'games/roulette/index.html'),
         poker: resolve(import.meta.dirname, 'games/poker/index.html'),
         raid: resolve(import.meta.dirname, 'games/raid/index.html'),
+        minesweeper: resolve(import.meta.dirname, 'games/minesweeper/index.html'),
         // The raid party's gear, in the raid page's popup.
         raidGear: resolve(import.meta.dirname, 'games/raid/gear/index.html'),
       },

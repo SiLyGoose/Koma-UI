@@ -15,6 +15,11 @@ The pages hold no game logic that matters. The bot keeps the worlds and decides 
 connects to the bot's WebSocket, sends moves, and draws what it is told. It is only told what the
 player can see, so nothing in the page or its dev tools gives away where the mines or the ores are.
 
+- **Minesweeper** (`/games/minesweeper/`): the classic game, played together. Everyone who opens it in a
+  server plays the same board (Beginner to start, or Intermediate or Expert), sees the others' cursors over it, and one mine
+  ends it for all, against the clock. The players are listed beside it, each with the boards they have helped
+  clear and the mines they have opened. No bet.
+
 ## How a player gets to a game
 
 Log in with Discord on the front page (the bot does the login, at `VITE_API_URL`), pick a server
@@ -70,6 +75,9 @@ Any square size works.
   `input/` the keys and the joystick.
 - `games/mines/index.html`, `src/mines/`: Mines. `protocol.ts` is a copy of the bot's
   `src/web/mines-protocol.ts` (change both together).
+- `games/minesweeper/index.html`, `src/minesweeper/`: Minesweeper. `protocol.ts` is a copy of the bot's
+  `src/web/games/minesweeper/protocol.ts` (change both together); `cursors.ts` draws the other players'
+  cursors over the board (the site's hand, a name beside it, a colour each) and tells them this page's.
 - `src/gear/`: the gear page. `src/databank/`: the databank: its way in (`/databank/`), the items (`/databank/items/`)
   and the raid bosses (`/databank/bosses/`).
 - `src/shop/`: the shop, its tabs down the left, each with its own path (`/shop/wish/`, `/shop/outfits/`).

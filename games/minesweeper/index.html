@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="robots" content="noindex" />
+    <title>Koma Minesweeper</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚩</text></svg>" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" />
+  </head>
+  <body>
+    <main id="app" class="frame ms" data-title="🚩 Minesweeper">
+      <div class="ms-game">
+        <div class="ms-stack">
+          <!-- The levels: picking one starts a new board of its size for everyone (../../src/minesweeper/head.ts). -->
+          <div class="ms-tabs" id="levels">
+            <button type="button" class="ms-tab" data-level="easy" disabled>Beginner</button>
+            <button type="button" class="ms-tab" data-level="medium" disabled>Intermediate</button>
+            <button type="button" class="ms-tab" data-level="hard" disabled>Expert</button>
+          </div>
+
+          <!--
+            The board everyone in the server plays (../../src/minesweeper/board.ts), the others' cursors over it
+            (cursors.ts), in a box that stays the same size whatever the level. Above it, placed as in the classic
+            game: the mines left, the face that starts a new board, and the time.
+          -->
+          <div class="ms-frame">
+            <div class="ms-head">
+              <b id="mines-left" class="ms-count" role="status" aria-label="Mines left" title="Mines left">–</b>
+              <button type="button" id="new" class="ms-face" aria-label="New board" title="New board" disabled>🙂</button>
+              <b id="time" class="ms-count" role="timer" aria-label="Time used" title="Time used">0:00</b>
+            </div>
+            <div class="ms-scroll">
+              <div id="field" class="ms-field" hidden>
+                <div id="board" class="ms-board" role="grid" aria-label="The board"></div>
+                <div id="cursors" class="ms-cursors" aria-hidden="true"></div>
+              </div>
+            </div>
+            <!-- How the board ended (cleared, or who hit a mine): over the middle of it, until it's closed or a new board starts. -->
+            <button type="button" id="ended" class="ms-ended" hidden>
+              <b id="ended-title"></b>
+              <span id="ended-text"></span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Who's here, with the boards each has helped clear and the mines each has opened (../../src/minesweeper/players.ts). -->
+        <aside class="ms-players">
+          <h2 class="ms-players-title">Players <span id="player-count"></span></h2>
+          <ul id="players" class="ms-players-list"></ul>
+        </aside>
+      </div>
+
+      <p class="hint">Click a tile to open it · Right-click (or press and hold) to flag · Click a number with all its flags placed to open the rest round it · The face starts a new board</p>
+    </main>
+
+    <script type="module" src="/src/minesweeper/main.ts"></script>
+  </body>
+</html>

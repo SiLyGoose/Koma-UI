@@ -8,7 +8,7 @@ import { go } from './nav';
  * fresh /api/me (the points shown there change as they play).
  */
 
-export type Game = 'mines' | 'pinecraft' | 'baccarat' | 'roulette' | 'poker' | 'raid';
+export type Game = 'mines' | 'pinecraft' | 'baccarat' | 'roulette' | 'poker' | 'raid' | 'minesweeper';
 
 export interface Me {
   user: { id: string; name: string; avatar: string };
