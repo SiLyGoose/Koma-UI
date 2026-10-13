@@ -1,7 +1,8 @@
 /*
  * The chat beside a game played together (chat.ts): its lines, newest last, and the box to say
  * something in. It goes under a game's list of players, a line between them; a game that has it in a
- * box of its own takes that line off (.chat.alone).
+ * box of its own takes that line off (.chat.alone). A line can have a picture under its words, and
+ * one waiting to be said sits above the box.
  *
  * Its lines are in a box of a set height that scrolls, so the chat never grows as more is said. A
  * game that has a column as tall as its table gives the chat what's left of it (its own stylesheet:
@@ -89,6 +90,27 @@
   color: var(--text);
 }
 
+/* A link in what's said. */
+.chat-line a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--dusk);
+  text-underline-offset: 2px;
+}
+
+.chat-line a:hover {
+  text-decoration-color: currentColor;
+}
+
+/* A line's picture (pasted, or what a link in it is to), under its words. */
+.chat-image {
+  display: block;
+  max-width: 100%;
+  max-height: 180px;
+  margin: 4px 0 2px;
+  border-radius: 8px;
+}
+
 /* Nothing said yet. */
 .chat-lines:empty::before {
   content: 'Nothing said yet.';
@@ -96,9 +118,64 @@
   color: var(--dusk);
 }
 
+/* The picture waiting to be said with the next line (or why there isn't one), above the box. */
+.chat-attached {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.chat-attached-image {
+  max-width: 96px;
+  max-height: 56px;
+  border-radius: 6px;
+}
+
+.chat-attached-note {
+  flex: 1;
+}
+
+.chat-attached-drop {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: var(--panel-3);
+  color: var(--text);
+  font-size: 11px;
+  cursor: pointer;
+}
+
 .chat-form {
   display: flex;
   gap: 6px;
+}
+
+/* Picks a picture to say. */
+.chat-attach {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: var(--panel-3);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.chat-attach:hover {
+  background: var(--line);
+  color: var(--text);
+}
+
+.chat-attach svg {
+  width: 18px;
+  height: 18px;
 }
 
 .chat-input {
