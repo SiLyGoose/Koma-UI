@@ -36,8 +36,20 @@ function ready(): AudioContext | null {
   return audio;
 }
 
+/** Stops a sound that's playing, fading out over `fade` seconds (0: at once). */
+export type Stop = (fade?: number) => void;
+
 /** A recorded sound: loads it, and returns a function that plays it (unless the sound is off). */
 export function sound(url: string): (volume?: number) => void {
+  const play = track(url);
+  return (volume) => void play(volume);
+}
+
+/**
+ * A long recorded sound, as sound(), played from `from` seconds into its file: playing it gives back
+ * what stops it early.
+ */
+export function track(url: string, from = 0): (volume?: number) => Stop {
   let buffer: AudioBuffer | null = null;
   if (audio) {
     void fetch(url)
@@ -50,13 +62,19 @@ export function sound(url: string): (volume?: number) => void {
   }
   return (volume = 1) => {
     const ctx = ready();
-    if (!ctx || !master || !buffer) return;
+    if (!ctx || !master || !buffer) return () => {};
     const source = ctx.createBufferSource();
     source.buffer = buffer;
     const gain = ctx.createGain();
     gain.gain.value = volume;
     source.connect(gain).connect(master);
-    source.start();
+    source.start(0, from);
+    return (fade = 0) => {
+      const now = ctx.currentTime;
+      gain.gain.setValueAtTime(gain.gain.value, now);
+      gain.gain.linearRampToValueAtTime(0, now + fade);
+      source.stop(now + fade);
+    };
   };
 }
 

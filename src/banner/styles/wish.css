@@ -451,6 +451,13 @@
 
 /* ------------------------------------------------------------------ motion */
 
+/* Clicked past: it fades off before the next comes (wish.ts's NEXT_MS). */
+.wish-stage > .leaving {
+  opacity: 0;
+  transition: opacity 0.2s ease-in;
+  pointer-events: none;
+}
+
 @keyframes wish-settle {
   from {
     transform: scale(1.6);

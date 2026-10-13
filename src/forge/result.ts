@@ -1,12 +1,16 @@
+import { sound } from '../shared/audio';
 import { el, type GearCopy } from '../shared/items';
 import { card, compare, fillEffects, withoutDormant } from './anvil';
 import type { ForgeContext } from './context';
 
+/** A refine or forge that worked (public/forge/sfx), through the shared ../shared/audio/sfx.ts. */
+const succeeded = sound(`${import.meta.env.BASE_URL}forge/sfx/forge_item_success.mp3`);
+
 /**
  * Shows what a refine or forge did, over the page blurred. When it worked: SUCCESS, the copy as it is
  * now in a burst of light, and what it did before against now. When it didn't take: FAIL in cold
- * silver, and the copy as it still is, with a shudder and no light. Built afresh each time, so its
- * entrance plays again.
+ * silver, and the copy as it still is, with a shudder and no light (and no sound). Built afresh each
+ * time, so its entrance plays again.
  */
 export function showResult(ctx: ForgeContext, before: GearCopy, after: GearCopy, forging: boolean, success: boolean): void {
   const { ui } = ctx;
@@ -31,6 +35,7 @@ export function showResult(ctx: ForgeContext, before: GearCopy, after: GearCopy,
   }
   box.append(el('p', 'forge-result-tap', 'Click anywhere to continue.'));
   ui.result.replaceChildren(box);
+  if (success) succeeded();
   ui.result.classList.add('on');
   ui.result.focus();
 }

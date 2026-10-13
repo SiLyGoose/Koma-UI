@@ -2,7 +2,7 @@ import { art, el, SLOT_NAME, stars } from '../shared/items';
 import { sleep } from '../shared/util';
 import type { ApiResult } from '../site/session';
 import type { BannerContext } from './context';
-import { revealed, wishClosed } from './sfx';
+import { falling, revealed, wishClosed } from './sfx';
 import { startSky } from './sky';
 import type { BannerPull, BannerResult, Stars } from './types';
 
@@ -14,8 +14,9 @@ import type { BannerPull, BannerResult, Stars } from './types';
  * the light as a silhouette that fills with colour as its tier's light blooms behind it, then its
  * name and its stars one by one, and whether it's new. Each item after it does the same (a top-tier
  * one flashes again first), best first. A click (or
- * Enter, or Space) goes on to the next; a multi pull ends on all of them together. Skip (or Escape)
- * goes straight to that (a single pull's one item is still shown).
+ * Enter, or Space) goes on to the next, after a beat (the one shown fades off first); a multi pull ends on all of them together. Skip (or Escape)
+ * goes straight to that (a single pull's one item is still shown). The fall has its sound (./sfx.ts),
+ * from the star coming onto the screen till the item is out (or it's skipped, or closed), and so has each thing shown.
  */
 
 /** How long the sky shows before the star falls, at the least (the pull is asked for meanwhile). */
@@ -23,6 +24,13 @@ const SKY_MS = 450;
 /** How long the flash takes to fill the screen, and how long it holds there. */
 const FLASH_IN_MS = 160;
 const FLASH_HOLD_MS = 120;
+/** The beat between a click and the next thing shown: what was there fades off, and the stage stands empty a moment. */
+const NEXT_MS = 450;
+/**
+ * How long after it sets off the star's sound starts: as it comes onto the screen (it starts past the
+ * left edge: ./sky.ts), which also puts the sound's swell at its landing.
+ */
+const STAR_SOUND_MS = 750;
 /** How many small stars come along on a multi pull. */
 const COMPANIONS = 3;
 /** The top tier, whose items flash again before they're shown (as the bot's PITY_STARS). */
@@ -46,6 +54,8 @@ export async function playWish(ctx: BannerContext, request: Promise<ApiResult<Ba
   const ended = new AbortController();
   const { signal } = ended;
   const sky = startSky(ui.sky);
+  // Stops the fall's sound (or keeps it from starting): nothing to stop until the star sets off.
+  let hush = (): void => {};
 
   // What the member does, for whatever's waiting on them. Until the items show, only Skip counts.
   let waiting: ((step: Step) => void) | null = null;
@@ -82,6 +92,7 @@ export async function playWish(ctx: BannerContext, request: Promise<ApiResult<Ba
     ended.abort();
     step('skip');
     sky.stop();
+    hush();
     ctx.endWish = null;
     ui.wish.classList.remove('on', 'revealing');
     ui.flash.classList.remove('on');
@@ -109,11 +120,14 @@ export async function playWish(ctx: BannerContext, request: Promise<ApiResult<Ba
   ui.skip.hidden = false;
   let skipped = false;
   if (!reducedMotion()) {
-    const falling = sky.fall(tierColor(ui.wish, best), pulls.length > 1 ? COMPANIONS : 0);
-    skipped = (await Promise.race([falling.then(() => 'next' as const), next()])) === 'skip';
+    const due = window.setTimeout(() => (hush = falling()), STAR_SOUND_MS);
+    hush = () => clearTimeout(due);
+    const landing = sky.fall(tierColor(ui.wish, best), pulls.length > 1 ? COMPANIONS : 0);
+    skipped = (await Promise.race([landing.then(() => 'next' as const), next()])) === 'skip';
     waiting = null;
   }
   if (signal.aborted) return res;
+  if (skipped) hush();
 
   // The flash fills the screen. Under it the sky goes, the stage the items stand on comes, and the
   // first item is put in, held still (its silhouette, nothing else showing yet) until the white clears.
@@ -134,9 +148,21 @@ export async function playWish(ctx: BannerContext, request: Promise<ApiResult<Ba
   ui.flash.classList.remove('on');
   first.classList.remove('held');
   showing = true;
+  hush();
+
+  // The beat before the next thing: what's shown fades off. Clicks wait for it; Skip still counts (false: skipped, or closed).
+  const beat = async (): Promise<boolean> => {
+    ui.stage.firstElementChild?.classList.add('leaving');
+    showing = false;
+    const skippedIt = (await Promise.race([sleep(NEXT_MS).then(() => 'next' as const), next()])) === 'skip';
+    waiting = null;
+    showing = true;
+    return !skippedIt && !signal.aborted;
+  };
 
   for (const [i, pull] of shown.entries()) {
     if (i > 0) {
+      if (!(await beat())) break;
       // A top-tier item flashes again before it comes, as a 5-star does in Genshin.
       if (pull.stars === TOP_TIER) {
         ui.flash.classList.add('on');
@@ -146,15 +172,21 @@ export async function playWish(ctx: BannerContext, request: Promise<ApiResult<Ba
       }
       ui.stage.replaceChildren(reveal(pull));
     }
-    revealed(pull.stars);
+    revealed(pull.stars, i === 0);
     if ((await next()) === 'skip') break;
   }
   if (pulls.length > 1 && !signal.aborted) {
     ui.skip.hidden = true;
-    // Straight here from skipping the star, the summary is already up.
-    if (shown.length > 0) ui.stage.replaceChildren(summary(pulls));
-    revealed(best);
-    await next();
+    // Straight here from skipping the star, the summary is already up. (From the last item or from
+    // skipping the rest, the one shown fades off first.)
+    if (shown.length > 0) {
+      await beat();
+      if (!signal.aborted) ui.stage.replaceChildren(summary(pulls));
+    }
+    if (!signal.aborted) {
+      revealed(best, shown.length === 0);
+      await next();
+    }
   }
   if (!signal.aborted) wishClosed();
   close();
