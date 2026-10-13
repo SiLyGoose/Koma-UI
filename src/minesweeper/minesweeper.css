@@ -324,6 +324,12 @@
   font-weight: 400;
 }
 
+/* A flag another player put down, outlined in their colour. */
+.ms-tile.theirs {
+  outline: 2px solid var(--who);
+  outline-offset: -2px;
+}
+
 /* The mine that was opened. */
 .ms-tile[data-seen='!'] {
   background: #6d1d20;
@@ -419,7 +425,7 @@
 
 .ms-player {
   display: grid;
-  grid-template-columns: 36px 1fr auto auto;
+  grid-template-columns: 36px 1fr auto auto auto;
   align-items: center;
   gap: 10px;
   padding: 8px 10px;
@@ -483,6 +489,10 @@
 
 .ms-stat.hit b {
   color: var(--red);
+}
+
+.ms-stat.troll b {
+  color: var(--gold);
 }
 
 @media (prefers-reduced-motion: reduce) {

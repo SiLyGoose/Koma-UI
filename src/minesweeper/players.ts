@@ -3,7 +3,7 @@ import { state } from './state';
 import { ui } from './ui';
 
 /** A number of a player's record, over what it counts. */
-function stat(kind: 'won' | 'hit', n: number, label: string, title: string): HTMLElement {
+function stat(kind: 'won' | 'hit' | 'troll', n: number, label: string, title: string): HTMLElement {
   const cell = document.createElement('div');
   cell.className = `ms-stat ${kind}`;
   cell.title = title;
@@ -13,7 +13,7 @@ function stat(kind: 'won' | 'hit', n: number, label: string, title: string): HTM
   return cell;
 }
 
-/** The list beside the board: who's here, in their cursor's colour, with the boards they've helped clear and the mines they've opened. */
+/** The list beside the board: who's here, in their cursor's colour, with the boards they've helped clear, the mines they've opened and their trolls. */
 export function renderPlayers(): void {
   const { room } = state;
   ui.playerCount.textContent = room ? String(room.players.length) : '';
@@ -40,7 +40,13 @@ export function renderPlayers(): void {
         tag.textContent = 'you';
         name.append(tag);
       }
-      li.append(avatar, name, stat('won', player.wins, 'won', 'Boards they helped clear'), stat('hit', player.bombs, 'mines', 'Mines they opened'));
+      li.append(
+        avatar,
+        name,
+        stat('won', player.wins, 'won', 'Boards they helped clear'),
+        stat('hit', player.bombs, 'mines', 'Mines they opened'),
+        stat('troll', player.trolls, 'trolls', "Times their wrong flag sent someone else's chord into a mine"),
+      );
       return li;
     }),
   );

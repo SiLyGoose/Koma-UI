@@ -1,3 +1,4 @@
+import { colourOf } from './cursors';
 import { send, state } from './state';
 import { ui } from './ui';
 
@@ -38,8 +39,16 @@ export function renderBoard(): void {
   if (!game) return;
   build(game.cols, game.rows);
   ui.board.classList.toggle('over', game.status === 'won' || game.status === 'lost');
+  const others = new Map(state.room?.players.filter((p) => p.id !== state.room?.you).map((p) => [p.id, colourOf(p)]));
   tiles.forEach((tile, i) => {
     const seen = game.tiles[i] ?? '#';
+    // Another player's flag is outlined in their colour.
+    const who = (seen === 'F' || seen === 'X' ? others.get(game.flaggers[i] ?? '') : undefined) ?? '';
+    if (tile.dataset.who !== who) {
+      tile.dataset.who = who;
+      tile.classList.toggle('theirs', who !== '');
+      tile.style.setProperty('--who', who || null);
+    }
     if (tile.dataset.seen === seen) return;
     tile.dataset.seen = seen;
     const open = seen >= '0' && seen <= '8';

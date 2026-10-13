@@ -13,10 +13,13 @@
  *                 chord    on an open tile with as many flags round it as its number: opens the rest round it
  *                 cursor   where this page's mouse is over the board, in tiles from its top left
  *                          (2.5 across is the middle of the third column), or null once it's off it
+ *                 chat     says something to the room (../shared/ui/chat/chat.ts, with what the bot sends back)
  *   bot -> page   room     the room as it is now: whenever anything about it changes
  *                 cursor   where another player's mouse is (never this page's own), or null
  *                 error    and the bot closes the connection
  */
+
+import type { ChatClientMessage, ChatServerMessage } from '../shared/ui';
 
 export type MinesweeperLevel = 'easy' | 'medium' | 'hard';
 
@@ -24,7 +27,8 @@ export type ClientMessage =
   | { t: 'hello'; token: string }
   | { t: 'new'; level: MinesweeperLevel }
   | { t: 'open' | 'flag' | 'chord'; index: number }
-  | { t: 'cursor'; at: [x: number, y: number] | null };
+  | { t: 'cursor'; at: [x: number, y: number] | null }
+  | ChatClientMessage;
 
 /** Someone with the page open. */
 export interface PlayerView {
@@ -35,9 +39,14 @@ export interface PlayerView {
   avatar: string;
   /** Which colour they are (their cursor and name), from 0. */
   colour: number;
-  /** Their record in this server, all told: mines they opened, and boards they helped clear. */
+  /**
+   * Their record in this server, all told: mines they opened (but for those someone else's wrong flag
+   * sent their chord into), boards they helped clear, and times a wrong flag of theirs did that to
+   * someone else.
+   */
   bombs: number;
   wins: number;
+  trolls: number;
 }
 
 export interface GameView {
@@ -54,6 +63,8 @@ export interface GameView {
   tiles: string;
   /** Flags on the board. */
   flags: number;
+  /** Who put down each flag on the board (a member's id), by its tile. */
+  flaggers: Record<number, string>;
   /** 'ready': nobody has opened a tile yet (the clock hasn't started). */
   status: 'ready' | 'playing' | 'won' | 'lost';
   /** Time used: from the first tile opened to now, or to when it was won or lost. */
@@ -89,4 +100,5 @@ export type ErrorCode =
 export type ServerMessage =
   | { t: 'room'; state: RoomState }
   | { t: 'cursor'; id: string; at: [x: number, y: number] | null }
-  | { t: 'error'; code: ErrorCode };
+  | { t: 'error'; code: ErrorCode }
+  | ChatServerMessage;
