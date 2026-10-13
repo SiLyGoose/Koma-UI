@@ -88,13 +88,23 @@ export function wireControls(ctx: GearContext): () => void {
     if (!option) return;
     const heroClass = option.dataset.class as HeroClass;
     const saved = botHasClasses(ctx);
+    const before = ctx.gear?.class;
     pickClass(heroClass);
+    // Shown at once, on the ribbon and their roster portrait: the bot's word on their class (which the ribbon follows) is the old one until it answers.
+    if (saved && ctx.gear) ctx.gear.class = heroClass;
     showClassPick(ctx, false);
     renderClass(ctx);
     renderRoster(ctx);
     renderStats(ctx);
     // Saved with the bot (when it keeps classes), which answers with their gear as it stands, its stats worked out for the new class: the ribbon, roster and Common tab follow.
-    if (saved) void change(ctx, 'class', '/api/gear/class', { class: heroClass }, 'Could not save your class. Try again.').then(() => renderRoster(ctx));
+    if (saved) {
+      void change(ctx, 'class', '/api/gear/class', { class: heroClass }, 'Could not save your class. Try again.').then((gear) => {
+        // Not saved: back to the class they had.
+        if (!gear && ctx.gear?.class === heroClass) ctx.gear.class = before;
+        renderClass(ctx);
+        renderRoster(ctx);
+      });
+    }
   });
   // A click anywhere else closes the menu; Escape closes the class picker, else the menu, else the picked copy, else
   // stops picking copies to sell (the sale's confirmation closes itself).
@@ -117,13 +127,19 @@ export function wireControls(ctx: GearContext): () => void {
   const onResize = (): void => {
     if (ctx.gridColumns && columns(ctx) !== ctx.gridColumns) renderGrid(ctx);
   };
+  // Come back to (another tab, another window): the roster as it is now.
+  const onVisible = (): void => {
+    if (document.visibilityState === 'visible' && !ctx.party) void loadMembers(ctx, true);
+  };
   document.addEventListener('click', onClick);
   document.addEventListener('keydown', onKey);
+  document.addEventListener('visibilitychange', onVisible);
   window.addEventListener('resize', onResize);
 
   return () => {
     document.removeEventListener('click', onClick);
     document.removeEventListener('keydown', onKey);
+    document.removeEventListener('visibilitychange', onVisible);
     window.removeEventListener('resize', onResize);
     if (ui.sellConfirm.open) ui.sellConfirm.close();
     serverPicker.destroy();

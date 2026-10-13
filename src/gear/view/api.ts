@@ -46,6 +46,9 @@ export async function loadGear(ctx: GearContext): Promise<void> {
     return failed(ctx, res, whose ? `Could not load ${whose.name}'s gear.` : 'Could not load your gear.');
   }
   ctx.gear = res.data;
+  // Their class as it is now, on their roster portrait too (the roster's own word on it is from when it was loaded).
+  const shown = ctx.members.find((m) => (whose ? m.userId === whose.userId : m.you));
+  if (shown && res.data.class !== undefined) shown.class = res.data.class;
   if (!copyById(ctx, ctx.picked)) ctx.picked = null;
   status(ctx, null);
   render(ctx);

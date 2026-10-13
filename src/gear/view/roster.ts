@@ -43,17 +43,23 @@ export function renderRoster(ctx: GearContext): void {
       showMenu(ctx, false);
       renderRoster(ctx);
       void loadGear(ctx);
+      // And the roster as it is now: the others' classes and items may have changed since it was loaded.
+      if (!party) void loadMembers(ctx, true);
     });
     ui.rosterList.append(tile);
   }
 }
 
-/** The roster. A bot from before it has none to give: the page is then just their own gear, as before. */
-export async function loadMembers(ctx: GearContext): Promise<void> {
+/**
+ * The roster. A bot from before it has none to give: the page is then just their own gear, as before.
+ * Loaded again (`again`: when someone is picked, or the page is come back to), one that can't be loaded
+ * leaves the one there.
+ */
+export async function loadMembers(ctx: GearContext, again = false): Promise<void> {
   const server = ctx.host.server();
   if (!server) return;
   const res = await ctx.host.api<{ members: Member[] }>(`/api/gear/members?guild=${encodeURIComponent(server)}`);
-  if (server !== ctx.host.server()) return;
+  if (server !== ctx.host.server() || (again && !res.ok)) return;
   ctx.members = res.ok ? res.data.members : [];
   renderRoster(ctx);
 }
