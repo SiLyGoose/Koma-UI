@@ -1,5 +1,5 @@
 import type { GameSocket } from '../shared/game';
-import type { ClientMessage, MinesweeperLevel, RoomState } from './protocol';
+import type { BestView, ClientMessage, MinesweeperLevel, RoomState } from './protocol';
 
 export const LEVEL_NAMES: Record<MinesweeperLevel, string> = { easy: 'Beginner', medium: 'Intermediate', hard: 'Expert' };
 
@@ -8,6 +8,8 @@ export const state = {
   socket: null as GameSocket<ClientMessage> | null,
   /** The room as the bot last said. */
   room: null as RoomState | null,
+  /** The server's fastest clears of each level, as the bot last said. */
+  best: null as BestView | null,
   /** When the board's clock started, on this page's clock (performance.now()), while it's running. */
   clockAt: 0,
   /** The board (its `no`) whose popup saying how it ended has been closed. */
@@ -21,6 +23,12 @@ export const send = (message: ClientMessage): boolean => state.socket?.send(mess
 export function clock(ms: number): string {
   const seconds = Math.floor(ms / 1000);
   return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
+}
+
+/** A time to the hundredth of a second, like "1:05.32": the leaderboard's, where a second is a long time. */
+export function exactClock(ms: number): string {
+  const hundredths = Math.floor(ms / 10);
+  return `${clock(ms)}.${String(hundredths % 100).padStart(2, '0')}`;
 }
 
 /** The time used on the board so far. */

@@ -17,4 +17,9 @@ export const ui = {
   field: $('field'),
   board: $('board'),
   cursors: $('cursors'),
+  bestOpen: $<HTMLButtonElement>('best-open'),
+  best: $('best'),
+  bestClose: $<HTMLButtonElement>('best-close'),
+  bestTabs: [...document.querySelectorAll<HTMLButtonElement>('[data-best]')],
+  bestList: $('best-list'),
 };

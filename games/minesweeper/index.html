@@ -20,6 +20,8 @@
             <button type="button" class="ms-tab" data-level="easy" disabled>Beginner</button>
             <button type="button" class="ms-tab" data-level="medium" disabled>Intermediate</button>
             <button type="button" class="ms-tab" data-level="hard" disabled>Expert</button>
+            <!-- The server's fastest clears of each level, in a popup (../../src/minesweeper/best.ts). -->
+            <button type="button" id="best-open" class="ms-tab ms-best-open" aria-label="Fastest clears" title="Fastest clears" aria-haspopup="dialog" disabled>🏆<span class="ms-best-open-label"> Fastest</span></button>
           </div>
 
           <!--
@@ -58,6 +60,23 @@
 
       <p class="hint">Click a tile to open it · Right-click (or press and hold) to flag · Click a number with all its flags placed to open the rest round it · The face starts a new board</p>
     </main>
+
+    <!-- The server's fastest clears, and who cleared them (../../src/minesweeper/best.ts): a level at a time. -->
+    <div id="best" class="ms-best" hidden>
+      <div class="ms-best-card" role="dialog" aria-label="Fastest clears">
+        <div class="ms-best-head">
+          <h2 class="ms-best-title">🏆 Fastest clears</h2>
+          <button type="button" id="best-close" aria-label="Close"></button>
+        </div>
+        <div class="ms-best-tabs" role="tablist">
+          <button type="button" class="ms-best-tab" role="tab" data-best="easy">Beginner</button>
+          <button type="button" class="ms-best-tab" role="tab" data-best="medium">Intermediate</button>
+          <button type="button" class="ms-best-tab" role="tab" data-best="hard">Expert</button>
+        </div>
+        <ol id="best-list" class="ms-best-list no-scrollbar"></ol>
+        <p class="ms-best-note">The fastest boards cleared in this server, and everyone who opened a tile of each.</p>
+      </div>
+    </div>
 
     <script type="module" src="/src/minesweeper/main.ts"></script>
   </body>

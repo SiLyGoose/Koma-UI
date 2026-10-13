@@ -1,4 +1,4 @@
-/* Minesweeper: the levels, under them the board everyone plays, and the players beside it. */
+/* Minesweeper: the levels (and the 🏆 for the fastest clears), under them the board everyone plays, and the players beside it. */
 
 /* In the frame (frame.css), filling the window, with the game in the middle below the title bar. */
 .ms {
@@ -571,6 +571,185 @@
   color: var(--gold);
 }
 
+/*
+ * The server's fastest clears (best.ts): the 🏆 at the end of the levels' row, and its popup over the
+ * page: a level's clears, fastest first, each with who cleared it, the day, and its time.
+ */
+.ms-best-open {
+  margin-left: auto;
+  color: var(--gold);
+}
+
+.ms-best {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.6);
+  animation: ms-best-fade 0.15s ease-out;
+}
+
+.ms-best[hidden] {
+  display: none;
+}
+
+@keyframes ms-best-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+.ms-best-card {
+  display: flex;
+  flex-direction: column;
+  width: min(460px, 100%);
+  max-height: min(640px, calc(100dvh - 32px));
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.6);
+}
+
+.ms-best-head {
+  --close-size: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.ms-best-title {
+  margin: 0;
+  font-size: 18px;
+}
+
+/* The levels: three parts of one pill. */
+.ms-best-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  margin-bottom: 12px;
+  padding: 4px;
+  border-radius: 10px;
+  background: var(--bg);
+}
+
+.ms-best-tab {
+  padding: 8px 6px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ms-best-tab:hover:not(.on) {
+  color: var(--text);
+}
+
+.ms-best-tab.on {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+.ms-best-list {
+  flex: 1;
+  min-height: 120px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.ms-best-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+}
+
+.ms-best-row + .ms-best-row {
+  margin-top: 2px;
+}
+
+.ms-best-row.top1 {
+  background: rgba(216, 191, 122, 0.12);
+}
+
+.ms-best-row.top2,
+.ms-best-row.top3 {
+  background: var(--panel-2);
+}
+
+/* One this page's player helped clear. */
+.ms-best-row.mine {
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+.ms-best-rank {
+  flex: none;
+  width: 30px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.ms-best-row:is(.top1, .top2, .top3) .ms-best-rank {
+  font-size: 20px;
+}
+
+/* Who cleared it, over the day: as many names as there were players, on as many lines as they take. */
+.ms-best-who {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.ms-best-names {
+  font-size: 14px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.ms-best-name.you {
+  color: var(--tint-text);
+}
+
+.ms-best-day {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.ms-best-time {
+  flex: none;
+  color: var(--gold);
+  font-size: 16px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.ms-best-empty {
+  padding: 24px 8px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.ms-best-note {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .ms-cursor {
     transition: none;
@@ -619,6 +798,11 @@
   .ms-tab {
     padding: 5px 7px;
     font-size: 14px;
+  }
+
+  /* Just the 🏆, so the levels still fit beside it. */
+  .ms-best-open-label {
+    display: none;
   }
 
   .ms-frame {

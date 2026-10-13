@@ -15,6 +15,7 @@
  *                          (2.5 across is the middle of the third column), or null once it's off it
  *                 chat     says something to the room (../shared/ui/chat/chat.ts, with what the bot sends back)
  *   bot -> page   room     the room as it is now: whenever anything about it changes
+ *                 best     the server's fastest clears of each level: on joining, and whenever a clear makes them
  *                 cursor   where another player's mouse is (never this page's own), or null
  *                 error    and the bot closes the connection
  */
@@ -78,6 +79,8 @@ export interface GameView {
   blamed: string[];
   /** On a board cleared: what it paid, and to whom. Null otherwise. */
   paid: PaidView | null;
+  /** On a board cleared fast enough for its level's leaderboard: where it came on it, from 1. Null otherwise. */
+  rank: number | null;
 }
 
 /** What a board cleared paid. */
@@ -89,6 +92,16 @@ export interface PaidView {
   /** Everyone who opened a tile of it (still in the room or not), whoever was paid most first: the tiles they opened and the points that paid them. */
   shares: { id: string; name: string; tiles: number; points: number }[];
 }
+
+/** A board cleared: how long it took, when (ms since 1970), and everyone who opened a tile of it, whoever opened most first. */
+export interface ClearView {
+  ms: number;
+  at: number;
+  players: { id: string; name: string; tiles: number }[];
+}
+
+/** A server's fastest clears of each level, fastest first (of two as fast, the earlier). */
+export type BestView = Record<MinesweeperLevel, ClearView[]>;
 
 /** What a board cleared pays: each level's pool and par time (seconds), and the most the pool is multiplied by for speed (at half of par). */
 export interface MinesweeperRewards {
@@ -119,6 +132,7 @@ export type ErrorCode =
 
 export type ServerMessage =
   | { t: 'room'; state: RoomState }
+  | { t: 'best'; best: BestView }
   | { t: 'cursor'; id: string; at: [x: number, y: number] | null }
   | { t: 'error'; code: ErrorCode }
   | ChatServerMessage;

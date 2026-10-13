@@ -4,6 +4,7 @@ import { barSlot, setConn, soundButton } from '../shared/ui/frame/frame';
 import { gameSocket, server, showMessage, token, watching } from '../shared/game';
 import { apiFromSocket, chatBox, startLive } from '../shared/ui';
 import { setMuted } from '../shared/audio';
+import { renderBest, wireBest } from './best';
 import { renderBoard, wireBoard } from './board';
 import { clearCursors, colourOf, moveCursor, syncCursors, wireCursor } from './cursors';
 import { renderHead, renderTime, wireHead } from './head';
@@ -21,7 +22,8 @@ import { ui } from './ui';
  *
  * Its parts: board.ts (the tiles and their clicks), cursors.ts (the other players' cursors over the
  * board, and telling them this page's), head.ts (the levels, and the mines left, the face and the
- * time above the board), players.ts (who's here, and their records, with the room's chat under them); state.ts holds what more than
+ * time above the board), players.ts (who's here, and their records, with the room's chat under them),
+ * best.ts (the server's fastest clears of each level, in a popup); state.ts holds what more than
  * one of them needs.
  */
 
@@ -47,6 +49,7 @@ function render(): void {
   renderBoard();
   renderHead();
   renderPlayers();
+  renderBest();
   syncCursors();
 }
 
@@ -75,6 +78,10 @@ function receive(message: ServerMessage): void {
     case 'room':
       showRoom(message.state);
       return;
+    case 'best':
+      state.best = message.best;
+      renderBest();
+      return;
     case 'cursor':
       moveCursor(message.id, message.at);
       return;
@@ -89,6 +96,7 @@ soundButton('minesweeper-muted', setMuted);
 wireBoard();
 wireCursor();
 wireHead();
+wireBest();
 setInterval(renderTime, 250);
 render();
 

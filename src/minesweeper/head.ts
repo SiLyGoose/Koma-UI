@@ -27,6 +27,9 @@ function ending(game: GameView): string {
   return game.no % 2 === 0 ? `💥 ${who} hit a mine because ${liars} flagged wrong!` : `💥 ${liars} lied about a mine so ${who} paid the price`;
 }
 
+/** Where a board cleared came among its level's fastest in the server, for under how it ended: nothing when it isn't one of them. */
+const placed = (rank: number | null): string => (rank === null ? '' : rank === 1 ? ' · 🏆 Fastest in the server' : ` · 🏆 #${rank} fastest in the server`);
+
 /** What clearing a board of `level` pays, for the level's tab: its pool, and what being quick makes of it. */
 function pays(rewards: MinesweeperRewards, level: MinesweeperLevel): string {
   const pool = rewards.pool[level];
@@ -88,7 +91,7 @@ export function renderHead(): void {
   if (over) {
     ui.ended.classList.toggle('lost', game.status === 'lost');
     ui.endedTitle.textContent = ending(game);
-    ui.endedText.textContent = `${LEVEL_NAMES[game.level]}${game.status === 'lost' ? ` · ${clock(game.elapsedMs)}` : ''} · Click to close`;
+    ui.endedText.textContent = `${LEVEL_NAMES[game.level]}${game.status === 'lost' ? ` · ${clock(game.elapsedMs)}` : placed(game.rank)} · Click to close`;
   }
   // What it paid (nothing, when its level's pool is set to 0).
   const paid = over && game.paid && game.paid.total > 0 ? game.paid : null;
