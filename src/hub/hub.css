@@ -215,39 +215,9 @@
   color: #d0343a;
 }
 
-/* Minesweeper: a few tiles of a board, some open (no picture needed). */
 .minesweeper-art {
-  grid-template-columns: repeat(3, 40px);
-  place-content: center;
-  gap: 3px;
-  letter-spacing: 0;
-  background: var(--panel);
-  font-size: 20px;
-  font-weight: 800;
-}
-
-.minesweeper-art span {
-  display: grid;
-  place-items: center;
-  height: 40px;
-  border-radius: 5px;
-  background: var(--bg);
-  color: #6aa9ff;
-}
-
-.minesweeper-art span:nth-child(4) {
-  color: #6fcf7f;
-}
-
-.minesweeper-art span:is(:nth-child(2), :nth-child(3)) {
-  background: var(--panel-3);
-  box-shadow:
-    inset 0 2px 0 rgba(255, 255, 255, 0.09),
-    inset 0 -3px 0 rgba(0, 0, 0, 0.3);
-}
-
-.minesweeper-art span:nth-child(5) {
-  background: #6d1d20;
+  /* A picture of the game (../../public/minesweeper/cover.png): an Expert board part cleared, on its middle. */
+  background: var(--panel) url('/minesweeper/cover.png') center / cover no-repeat;
 }
 
 /* Poker: two hole cards and a chip on green felt (no picture needed). */
