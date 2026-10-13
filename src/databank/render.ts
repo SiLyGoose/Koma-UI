@@ -26,7 +26,7 @@ export function render(ctx: DatabankContext): void {
   document.title = TITLES[view];
   ui.bar.hidden = false;
   ui.close.hidden = view === 'hub';
-  ui.bar.classList.toggle('empty', ui.close.hidden && ui.server.hidden);
+  ui.title.hidden = view !== 'hub';
   if (view === 'hub') return renderHub(ctx);
   if (view === 'bosses') return renderBosses(ctx);
   if (view === 'classes') return renderClasses(ctx);

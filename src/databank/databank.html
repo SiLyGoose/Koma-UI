@@ -3,11 +3,13 @@
   <p id="status" class="status" hidden></p>
 
   <!--
-    Across the top, at the right: the server picker (logged in, in more than one server), and the X out of a
-    section, back to the way in (which has none itself).
+    Across the top, as the shop's Outfits has it: the server picker at the left (logged in, in more than one
+    server), the page's name board in the middle (on the way in: a section's frames have their own), and at
+    the right the X out of a section, back to the way in (which has none itself).
   -->
   <div id="db-bar" class="db-bar" hidden>
     <select id="server" class="server-pick" aria-label="Server" hidden></select>
+    <h2 id="db-title" class="db-bar-title plaque" hidden>Databank</h2>
     <!-- The site's X (src/shared/ui/close/ draws it; a .back link, so the page wipes the way going back does). -->
     <a id="db-close" class="back" href="/databank/" aria-label="Back to the Databank" hidden></a>
   </div>
@@ -36,7 +38,6 @@
         <circle class="db-chart-dot" cx="414" cy="248" r="3.5" />
       </g>
     </svg>
-    <h2 class="db-hub-title plaque">Databank</h2>
     <nav id="db-nodes" class="db-nodes" aria-label="Databank sections"></nav>
   </section>
 

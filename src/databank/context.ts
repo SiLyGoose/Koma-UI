@@ -13,8 +13,9 @@ function findUi(root: HTMLElement) {
   const $ = <T extends HTMLElement>(id: string): T => root.querySelector(`#${id}`) as T;
   return {
     status: $('status'),
-    /** Across the top: the server picker, and the X out of a section. */
+    /** Across the top: the server picker, the page's name board (on the way in), and the X out of a section. */
     bar: $('db-bar'),
+    title: $('db-title'),
     close: $('db-close'),
     hub: $('db-hub'),
     nodes: $('db-nodes'),

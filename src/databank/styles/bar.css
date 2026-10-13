@@ -1,6 +1,7 @@
 /*
- * Across the top of the databank, at the right: the server picker (logged in, in more than one server),
- * and beside it the X out of a section, back to the way in (which has none itself).
+ * Across the top of the databank, laid out as the shop's Outfits bar is (../../outfits/outfits.css): the
+ * server picker at the left (logged in, in more than one server), the page's name board in the middle (on
+ * the way in only), and at the right the X out of a section, back to the way in (which has none itself).
  */
 
 .databank-page {
@@ -9,29 +10,48 @@
   --db-bar-gap: 20px;
 }
 
+/* The sides as wide as each other, so the name board is in the middle whatever is either side of it. */
 .db-bar {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 12px;
   align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
   min-height: var(--db-bar);
   margin-bottom: var(--db-bar-gap);
 }
 
+/* As wide as its server's name, up to its side of the bar (a longer name is cut short). */
 .db-bar .dd:has(> .server-pick) {
-  max-width: min(70%, 300px);
+  grid-column: 1;
+  justify-self: start;
+  min-width: 0;
+  max-width: min(100%, 300px);
+}
+
+/* At the bar's left its list hangs from its left edge (from its right, it would run off the screen). */
+.db-bar .dd:has(> .server-pick) .dd-list {
+  right: auto;
+  left: 0;
+}
+
+/* The page's name board (../../shared/style.css's .plaque). */
+.db-bar-title {
+  grid-column: 2;
+  margin: 0;
+}
+
+.db-bar-title[hidden] {
+  display: none;
+}
+
+.db-bar .back {
+  grid-column: 3;
+  justify-self: end;
 }
 
 /* The X (the site's: ../../shared/ui/close/), as tall as the bar. */
 .db-bar .close-x {
   --close-size: var(--db-bar);
-}
-
-/* Narrow screens: with nothing in it (the way in, for someone with no server to pick), it takes no room. */
-@media (max-width: 899px) {
-  .db-bar.empty {
-    display: none;
-  }
 }
 
 /*

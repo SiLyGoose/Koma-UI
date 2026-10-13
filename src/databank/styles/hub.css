@@ -1,6 +1,7 @@
 /*
  * The databank's way in (../hub.ts): what there is to look up, each a gold mark on a star chart, its
  * name and how many there are under it. As tall as the other pages' panels, the marks about its middle.
+ * (The page's name board is over it, in the bar: ./bar.css.)
  */
 
 .db-hub {
@@ -8,8 +9,7 @@
   display: grid;
   place-items: center;
   min-height: 460px;
-  /* Room at the top for the name board. */
-  padding: 64px 0 24px;
+  padding: 24px 0;
 }
 
 .db-hub[hidden] {
@@ -22,16 +22,6 @@
     min-height: var(--panels-min);
     max-height: 900px;
   }
-}
-
-/* The page's name board, at the top of the chart. */
-.db-hub-title {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  z-index: 1;
-  margin: 0;
-  transform: translateX(-50%);
 }
 
 /* The chart: rings and lines crossing behind the marks, in the backdrop's gold but nearer. Only for show. */

@@ -15,16 +15,20 @@
   overflow-y: auto;
 }
 
+/* One line: the server picker at the left, the plaque in the middle, their zeiucoins at the right (the sides as wide as each other, so the plaque is in the middle). */
 .outfits-bar {
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   gap: 12px;
   align-items: center;
 }
 
+/* As wide as its server's name, up to its side of the bar (a longer name is cut short). */
 .outfits-bar .dd:has(> .server-pick),
 .outfits-bar > .server-pick {
   justify-self: start;
+  min-width: 0;
+  max-width: 100%;
 }
 
 /* At the bar's left its list hangs from its left edge (from its right, it would run off the screen). */
@@ -334,7 +338,7 @@
 
 /* ------------------------------------------------------------------ phones */
 
-/* Three across, a size down, the server picker and their zeiucoins on the top line, the plaque under them. */
+/* Three across, a size down, the bar still on one line (the plaque and what's either side of it smaller). */
 @media (max-width: 760px) {
   .outfits-page {
     gap: 12px;
@@ -342,19 +346,22 @@
   }
 
   .outfits-bar {
-    grid-template-columns: 1fr auto;
+    gap: 8px;
   }
 
   .outfits-title {
-    grid-column: 1 / -1;
-    grid-row: 2;
-    justify-self: center;
-    padding: 5px 20px;
+    padding: 5px 14px;
     font-size: 15px;
   }
 
-  .outfits-wallet {
-    grid-column: 2;
+  .outfits-bar .server-pick {
+    padding-right: 8px;
+    padding-left: 12px;
+  }
+
+  .outfits-purse {
+    padding: 4px 10px 4px 5px;
+    font-size: 14px;
   }
 
   .outfits-row {
