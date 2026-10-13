@@ -755,6 +755,68 @@
 
 /* ------------------------------------------------------------------ smaller screens */
 
+/*
+ * A tablet (and a narrow window): the card still has its two sides, but in less width. It's kept no taller
+ * than suits that width (so its featured items aren't lost in a tall, narrow panel), the first of them
+ * stays under the banners' tabs instead of breaking out over them, and the least needed words go.
+ */
+@media (min-width: 761px) and (max-width: 1100px) {
+  .banner-card {
+    max-height: min(600px, 56vw);
+  }
+
+  .banner-featured.big {
+    top: 3cqh;
+    left: 2%;
+    width: min(54cqw, 70cqh);
+  }
+
+  .banner-featured.small {
+    top: 50%;
+    right: 4%;
+    width: min(42cqw, 44cqh);
+  }
+
+  .banner-featured.small .banner-plate {
+    left: -10%;
+  }
+
+  .banner-lower {
+    gap: 10px 18px;
+  }
+}
+
+@media (min-width: 761px) and (max-width: 900px) {
+  .banner-blurb {
+    display: none;
+  }
+
+  .banner-sheet {
+    padding-inline: 20px 14px;
+  }
+
+  .banner-plate {
+    padding: 6px 10px;
+  }
+
+  .banner-plate-name {
+    font-size: 15px;
+  }
+
+  .banner-featured.small .banner-plate-name {
+    font-size: 12px;
+  }
+
+  .banner-plate .stars {
+    font-size: 11px;
+  }
+
+  .banner-up {
+    top: -15px;
+    font-size: 13px;
+  }
+}
+
 /* A phone: the featured items over the parchment, the buttons across the bottom. */
 @media (max-width: 760px) {
   .banner-stage {
@@ -780,40 +842,155 @@
     height: 40px;
   }
 
-  /* The featured items take what room the parchment leaves them. */
+  /*
+   * The card: the featured items across its top, in what room the parchment (kept short) leaves them,
+   * and never less than fits them. On a tall phone the card stops where the featured items are as tall
+   * as suits its width, and sits in the middle of what's left.
+   */
   .banner-card {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: minmax(0, 1fr) auto;
-    max-height: none;
-    margin: 12px 0 0;
+    grid-template-rows: minmax(100px, 1fr) auto;
+    max-height: calc(66vw + 180px);
+    margin: auto 0;
   }
 
+  /* The featured items stay inside their part of the card (and the ring behind them is cut off at its edges). */
   .banner-feature {
     order: -1;
+    overflow: hidden;
+    border-radius: 6px 6px 0 0;
+  }
+
+  .banner-feature::before {
+    inset: 0 0 0 46%;
+    border-radius: 0;
+  }
+
+  /* Sized by the room's height as much as its width, so each keeps its name plate in view under it. */
+  .banner-featured.big {
+    top: max(11cqh, 24px);
+    left: 6%;
+    width: min(44cqw, 58cqh);
+  }
+
+  .banner-featured.small {
+    top: 30cqh;
+    right: 7%;
+    width: min(33cqw, 44cqh);
+  }
+
+  .banner-plate {
+    bottom: -12%;
+    padding: 5px 10px;
+  }
+
+  .banner-featured.small .banner-plate {
+    bottom: -16%;
+    left: -10%;
+  }
+
+  .banner-plate-name {
+    font-size: clamp(13px, 7cqh, 20px);
+  }
+
+  .banner-featured.small .banner-plate-name {
+    font-size: clamp(11px, 5.5cqh, 15px);
+  }
+
+  .banner-plate .stars {
+    font-size: clamp(10px, 5cqh, 14px);
+  }
+
+  .banner-up {
+    top: -15px;
+    font-size: 13px;
+  }
+
+  /*
+   * The parchment, short: its name on one line, what pity promises with their own treasure's ring beside
+   * it, and the time in a line under that. Its kind's tag is on the card's top corner, over the featured items.
+   */
+  .banner-sheet {
+    position: static;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px 14px;
+    align-items: center;
+    padding: 12px 16px 14px;
+  }
+
+  .banner-kind {
+    z-index: 3;
+    top: -12px;
+    padding: 3px 14px;
+    font-size: 13px;
+  }
+
+  .banner-name {
+    grid-column: 1 / -1;
+    flex-flow: row wrap;
+    gap: 0 0.3em;
+    padding-bottom: 8px;
+    font-size: clamp(19px, 7vw, 30px);
+  }
+
+  .banner-copy {
+    grid-column: 1;
+    gap: 6px;
+    margin-top: 0;
+    padding-left: 10px;
+    border-left-width: 3px;
+  }
+
+  .banner-copy-head {
+    font-size: 14px;
+  }
+
+  .banner-promise {
+    padding: 6px 10px 6px 28px;
+    font-size: 12px;
+  }
+
+  .banner-promise::before {
+    left: 10px;
   }
 
   .banner-blurb {
     display: none;
   }
 
-  .banner-feature::before {
-    inset: 0 0 0 46%;
-    border-radius: 0 6px 0 0;
+  /* Its two parts are the parchment's own: the ring beside the promise, the time under it. */
+  .banner-lower {
+    display: contents;
   }
 
-  .banner-featured.big {
-    top: -6cqh;
-    width: min(46cqw, 84cqh);
+  .banner-path {
+    grid-column: 2;
+    grid-row: 2 / span 2;
   }
 
-  .banner-featured.small {
-    top: 30%;
-    width: min(34cqw, 60cqh);
+  .banner-path-ring {
+    width: 60px;
+    padding: 4px;
   }
 
-  .banner-plate {
-    bottom: -12%;
-    padding: 6px 10px;
+  .banner-path-count {
+    margin-top: -10px;
+    padding: 1px 12px;
+    font-size: 13px;
+  }
+
+  .banner-time {
+    grid-column: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 8px;
+    align-items: baseline;
+  }
+
+  .banner-time-head,
+  .banner-time-left {
+    font-size: 13px;
   }
 
   /* Details and the two buttons in one row. */
@@ -842,6 +1019,13 @@
   .banner-pull-cost {
     gap: 8px;
     font-size: 13px;
+  }
+}
+
+/* A short phone: the parchment's heading goes, for the featured items' sake. */
+@media (max-width: 760px) and (max-height: 620px) {
+  .banner-copy-head {
+    display: none;
   }
 }
 
