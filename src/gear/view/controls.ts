@@ -9,6 +9,7 @@ import { columns, renderGrid } from './grid';
 import { render } from './render';
 import { loadMembers, renderRoster } from './roster';
 import { confirmSale, pickToSell, sell } from './selling';
+import { renderStats } from './stats';
 
 /** Hooks up everything that can be pressed. Returns what undoes it (the listeners outside the view's root). */
 export function wireControls(ctx: GearContext): () => void {
@@ -91,7 +92,8 @@ export function wireControls(ctx: GearContext): () => void {
     showClassPick(ctx, false);
     renderClass(ctx);
     renderRoster(ctx);
-    // Saved with the bot (when it keeps classes), which answers with their gear as it stands: the ribbon and roster follow.
+    renderStats(ctx);
+    // Saved with the bot (when it keeps classes), which answers with their gear as it stands, its stats worked out for the new class: the ribbon, roster and Common tab follow.
     if (saved) void change(ctx, 'class', '/api/gear/class', { class: heroClass }, 'Could not save your class. Try again.').then(() => renderRoster(ctx));
   });
   // A click anywhere else closes the menu; Escape closes the class picker, else the menu, else the picked copy, else

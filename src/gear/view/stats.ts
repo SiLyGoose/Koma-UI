@@ -1,14 +1,17 @@
 import { el, type StatSection } from '../../shared/items';
+import { classLabel, shownClass } from './classes';
 import type { GearContext } from './context';
 
-/** The Common tab's first group, about the hero rather than their gear. No classes yet, so it's a question mark. */
-const HERO_INFO: StatSection = { title: 'Hero', rows: [{ label: 'Class', value: '?', base: null }] };
-
-/** The Common tab: the hero's stats, worked out by the bot (each one their gear changes, with what it is without). */
+/**
+ * The Common tab: the hero's stats, worked out by the bot (each one their gear changes, with what it is
+ * without), the raid's for their class: picking another class brings the bot's numbers for that one. Its
+ * first group is about the hero rather than their gear: their class (a question mark with none).
+ */
 export function renderStats(ctx: GearContext): void {
   const { ui, gear } = ctx;
   ui.statsList.textContent = '';
-  for (const section of [HERO_INFO, ...(gear?.stats ?? [])]) {
+  const hero: StatSection = { title: 'Hero', rows: [{ label: 'Class', value: classLabel(shownClass(ctx)), base: null }] };
+  for (const section of [hero, ...(gear?.stats ?? [])]) {
     const block = el('section', 'stats-section');
     block.append(el('h3', '', section.title));
     const list = el('dl');

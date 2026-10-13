@@ -32,6 +32,9 @@ export function pickClass(heroClass: HeroClass): void {
   remember(CLASS_KEY, heroClass);
 }
 
+/** A class's name, as the Common tab says it (a question mark for none). */
+export const classLabel = (heroClass: HeroClass | null): string => (heroClass ? CLASS_NAME[heroClass] : '?');
+
 /** A class as the bot names it: one of the page's, or none (null, or one the page doesn't know). */
 export const classOf = (value: string | null | undefined): HeroClass | null => (isClass(value ?? null) ? (value as HeroClass) : null);
 
@@ -59,11 +62,16 @@ export function showClass(badge: HTMLElement, heroClass: HeroClass | null): void
 /** Whether the ribbon opens the picker: on the gear page, over their own gear. */
 const canPick = (ctx: GearContext): boolean => mine(ctx) && !wearOnly(ctx);
 
-/** The ribbon: the class of whoever's gear is shown (their own, or the bot's word on anyone else's), and whether it opens the picker. */
-export function renderClass(ctx: GearContext): void {
-  const { ui, viewing } = ctx;
+/** The class of whoever's gear is shown: their own, or the bot's word on anyone else's. */
+export function shownClass(ctx: GearContext): HeroClass | null {
   sync(ctx);
-  const heroClass = viewing === null || viewing.you ? picked : classOf(ctx.gear?.class);
+  return ctx.viewing === null || ctx.viewing.you ? picked : classOf(ctx.gear?.class);
+}
+
+/** The ribbon: the class of whoever's gear is shown, and whether it opens the picker. */
+export function renderClass(ctx: GearContext): void {
+  const { ui } = ctx;
+  const heroClass = shownClass(ctx);
   showClass(ui.classIcon, heroClass);
   const pick = canPick(ctx);
   ui.classButton.disabled = !pick;
