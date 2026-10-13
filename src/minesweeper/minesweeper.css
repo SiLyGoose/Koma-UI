@@ -134,6 +134,61 @@
   border-color: var(--red);
 }
 
+/* What a board cleared paid: all told, then each player's share (their tiles, and what those paid). */
+.ms-paid {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 100%;
+  min-width: 220px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+}
+
+.ms-paid[hidden] {
+  display: none;
+}
+
+.ms-paid-total {
+  margin-bottom: 3px;
+  text-align: center;
+}
+
+.ms-paid-share {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ms-paid-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text);
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ms-paid-share.mine .ms-paid-name {
+  font-weight: 700;
+}
+
+.ms-paid-amount {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--gold);
+  font-weight: 700;
+}
+
+.ms-coin {
+  width: 14px;
+  height: 14px;
+}
+
 .ms-ended.lost b {
   color: var(--red);
 }

@@ -68,6 +68,42 @@
   -webkit-user-select: text;
 }
 
+/*
+ * The lines' scrollbar, like the armory sheet's (../../items/styles/armory.css): a rounded pill, no
+ * track, no arrows. Chrome and Safari draw it from the ::-webkit-scrollbar parts; they would ignore
+ * those if the standard properties were set too, so those are only for Firefox, which has no such parts.
+ */
+.chat-lines::-webkit-scrollbar {
+  width: 14px;
+}
+
+.chat-lines::-webkit-scrollbar-track,
+.chat-lines::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+.chat-lines::-webkit-scrollbar-button {
+  display: none;
+}
+
+.chat-lines::-webkit-scrollbar-thumb {
+  min-height: 48px;
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: var(--line) padding-box;
+}
+
+.chat-lines::-webkit-scrollbar-thumb:hover {
+  background-color: var(--dusk);
+}
+
+@supports not selector(::-webkit-scrollbar) {
+  .chat-lines {
+    scrollbar-width: thin;
+    scrollbar-color: var(--line) transparent;
+  }
+}
+
 /* The first lines sit at the bottom of the box, by where the next is typed. */
 .chat-lines > :first-child {
   margin-top: auto;

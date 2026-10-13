@@ -18,7 +18,8 @@ player can see, so nothing in the page or its dev tools gives away where the min
 - **Minesweeper** (`/games/minesweeper/`): the classic game, played together. Everyone who opens it in a
   server plays the same board (Beginner to start, or Intermediate or Expert), sees the others' cursors over it, and one mine
   ends it for all, against the clock. The players are listed beside it, each with the boards they have helped
-  clear and the mines they have opened. No bet.
+  clear and the mines they have opened. No bet: a board cleared pays out between everyone who opened its tiles, by how many
+  each opened, and more the faster it's cleared.
 
 ## How a player gets to a game
 

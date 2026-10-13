@@ -1,4 +1,5 @@
-import type { GameView, MinesweeperLevel } from './protocol';
+import { coin, points } from '../shared/util';
+import type { GameView, MinesweeperLevel, MinesweeperRewards, PaidView } from './protocol';
 import { clock, elapsed, LEVEL_NAMES, send, state } from './state';
 import { ui } from './ui';
 
@@ -26,6 +27,45 @@ function ending(game: GameView): string {
   return game.no % 2 === 0 ? `💥 ${who} hit a mine because ${liars} flagged wrong!` : `💥 ${liars} lied about a mine so ${who} paid the price`;
 }
 
+/** What clearing a board of `level` pays, for the level's tab: its pool, and what being quick makes of it. */
+function pays(rewards: MinesweeperRewards, level: MinesweeperLevel): string {
+  const pool = rewards.pool[level];
+  if (pool === 0) return '';
+  const most = Math.round(pool * rewards.speedBonus);
+  return most > pool ? ` · pays ${points(pool)}, up to ${points(most)} cleared in ${clock((rewards.parSeconds[level] * 1000) / 2)}` : ` · pays ${points(pool)}`;
+}
+
+/** An amount of the bot's currency. */
+function amount(n: number, className: string): HTMLElement {
+  const el = document.createElement('span');
+  el.className = className;
+  el.append(points(n), coin('ms-coin', 'zeiucoins'));
+  return el;
+}
+
+/** What a board cleared paid: all told (and what speed made of it), then each player's share, this page's own marked. */
+function renderPaid(paid: PaidView, you: string): void {
+  const total = document.createElement('span');
+  total.className = 'ms-paid-total';
+  total.append(amount(paid.total, 'ms-paid-amount'), paid.bonus > 1 ? ` paid out · ×${paid.bonus} for speed` : ' paid out');
+  ui.endedPaid.replaceChildren(
+    total,
+    ...paid.shares.map((share) => {
+      const row = document.createElement('span');
+      row.className = 'ms-paid-share';
+      row.classList.toggle('mine', share.id === you);
+      const name = document.createElement('span');
+      name.className = 'ms-paid-name';
+      name.textContent = share.name;
+      const tiles = document.createElement('span');
+      tiles.className = 'ms-paid-tiles';
+      tiles.textContent = `${share.tiles} ${share.tiles === 1 ? 'tile' : 'tiles'}`;
+      row.append(name, tiles, amount(share.points, 'ms-paid-amount'));
+      return row;
+    }),
+  );
+}
+
 /** The levels, the counters and the face above the board, and (in a popup over the board) how it ended. */
 export function renderHead(): void {
   const { room } = state;
@@ -35,7 +75,7 @@ export function renderHead(): void {
     tab.classList.toggle('picked', tab.dataset.level === game?.level);
     tab.disabled = room === null;
     const size = room?.levels[tab.dataset.level as MinesweeperLevel];
-    tab.title = size ? `${size.cols}×${size.rows}, ${size.mines} mines` : '';
+    tab.title = size ? `${size.cols}×${size.rows}, ${size.mines} mines${pays(room.rewards, tab.dataset.level as MinesweeperLevel)}` : '';
   }
   ui.newGame.disabled = room === null;
   ui.newGame.textContent = FACES[game?.status ?? 'ready'];
@@ -50,6 +90,10 @@ export function renderHead(): void {
     ui.endedTitle.textContent = ending(game);
     ui.endedText.textContent = `${LEVEL_NAMES[game.level]}${game.status === 'lost' ? ` · ${clock(game.elapsedMs)}` : ''} · Click to close`;
   }
+  // What it paid (nothing, when its level's pool is set to 0).
+  const paid = over && game.paid && game.paid.total > 0 ? game.paid : null;
+  ui.endedPaid.hidden = paid === null;
+  if (paid && room) renderPaid(paid, room.you);
 }
 
 /**

@@ -13,6 +13,7 @@ export const ui = {
   ended: $<HTMLButtonElement>('ended'),
   endedTitle: $('ended-title'),
   endedText: $('ended-text'),
+  endedPaid: $('ended-paid'),
   field: $('field'),
   board: $('board'),
   cursors: $('cursors'),
