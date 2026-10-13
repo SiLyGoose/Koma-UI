@@ -797,3 +797,23 @@
     font-size: 15px;
   }
 }
+
+/* ------------------------------------------------------------------ The table's chat */
+
+.pk-chat {
+  padding: 16px 18px;
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+
+/* Nothing above it in its box to be told apart from. */
+.pk-chat .chat {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+/* On a phone the chat is behind its button (../shared/ui/chat/chat.css): nothing left in the box. */
+.pk-chat:empty {
+  display: none;
+}

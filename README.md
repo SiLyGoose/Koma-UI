@@ -108,7 +108,7 @@ it sets up a game's page. A page's own styles, split by area and by screen size,
     button waiting on the bot (disabled at once, a spinner in its words' place after 3 seconds) and
     `doneMark()` for "✓ Equipped" in place of a button. `close/`: the X that closes a popup or leaves a
     section (`closeMark()` draws it on a button or link in the page, `closeButton()` makes one; its size and
-    colours are `--close-size`, `--close-ink` and `--close-lit`). `dropdown/`: the site's dropdown. `live/`: who's online, and watching. `header/`: the site
+    colours are `--close-size`, `--close-ink` and `--close-lit`). `dropdown/`: the site's dropdown. `chat/`: the chat beside a game played together (the table games, poker, Minesweeper). `live/`: who's online, and watching. `header/`: the site
     header. `frame/`: the blue frame round a game and its title bar, from the game's
     `<main class="frame" data-title="…">` (not in `index.ts`: importing it sets up a game's page, so
     games import `ui/frame/frame` themselves).

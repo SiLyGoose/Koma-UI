@@ -2,15 +2,16 @@ import '../shared/style.css';
 import './minesweeper.css';
 import { barSlot, setConn, soundButton } from '../shared/ui/frame/frame';
 import { gameSocket, server, showMessage, token, watching } from '../shared/game';
-import { apiFromSocket, startLive } from '../shared/ui';
+import { apiFromSocket, chatBox, startLive } from '../shared/ui';
 import { setMuted } from '../shared/audio';
 import { renderBoard, wireBoard } from './board';
-import { clearCursors, moveCursor, syncCursors, wireCursor } from './cursors';
+import { clearCursors, colourOf, moveCursor, syncCursors, wireCursor } from './cursors';
 import { renderHead, renderTime, wireHead } from './head';
 import { renderPlayers } from './players';
 import type { ClientMessage, ErrorCode, RoomState, ServerMessage } from './protocol';
 import { play } from './sfx';
-import { state } from './state';
+import { send, state } from './state';
+import { ui } from './ui';
 
 /*
  * Minesweeper, played together. The link from Discord (or the front page) carries, after the #, the
@@ -20,7 +21,7 @@ import { state } from './state';
  *
  * Its parts: board.ts (the tiles and their clicks), cursors.ts (the other players' cursors over the
  * board, and telling them this page's), head.ts (the levels, and the mines left, the face and the
- * time above the board), players.ts (who's here, and their records); state.ts holds what more than
+ * time above the board), players.ts (who's here, and their records, with the room's chat under them); state.ts holds what more than
  * one of them needs.
  */
 
@@ -30,6 +31,17 @@ const ERRORS: Record<ErrorCode, [string, string]> = {
   bad_message: ['Disconnected', 'The bot could not understand this page. Try reloading.'],
   full: ['The room is full', 'As many people as can are already playing in this server. Try again in a bit.'],
 };
+
+// The room's chat, under the list of who's here: each name in its player's colour (their cursor's).
+const chat = chatBox({
+  mount: ui.side,
+  send,
+  you: () => state.room?.you ?? null,
+  colour: (id) => {
+    const player = state.room?.players.find((p) => p.id === id);
+    return player ? colourOf(player) : null;
+  },
+});
 
 function render(): void {
   renderBoard();
@@ -65,6 +77,10 @@ function receive(message: ServerMessage): void {
       return;
     case 'cursor':
       moveCursor(message.id, message.at);
+      return;
+    case 'chat':
+    case 'chats':
+      chat.receive(message);
       return;
   }
 }

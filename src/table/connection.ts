@@ -92,6 +92,10 @@ function receive<S extends string, R, X>(ctx: TableContext<S, R, X>, message: Se
     case 'table':
       showState(ctx, message.state);
       break;
+    case 'chat':
+    case 'chats':
+      ctx.chat.receive(message);
+      return;
     case 'refused':
       showError(ctx, refusalText(message));
       ctx.adoptBets = true;

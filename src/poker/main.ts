@@ -2,11 +2,11 @@ import '../shared/style.css';
 import './poker.css';
 import { barSlot, setConn, soundButton, titleExtra } from '../shared/ui/frame/frame';
 import { gameSocket, server, showMessage, token, watching } from '../shared/game';
-import { apiFromSocket, startLive } from '../shared/ui';
+import { apiFromSocket, chatBox, startLive } from '../shared/ui';
 import { setMuted } from '../shared/audio';
 import { points } from '../shared/util';
 import { renderCenter, renderStatus } from './center';
-import { mySeat, newContext, showError, type PokerContext } from './context';
+import { mySeat, newContext, send, showError, type PokerContext } from './context';
 import { renderControls, wireControls } from './controls';
 import type { ClientMessage, ErrorCode, PokerState, Refusal, ServerMessage } from './protocol';
 import { renderSeats, renderSeatTimer } from './seats';
@@ -16,12 +16,14 @@ import { play } from './sfx';
  * Texas hold'em in the browser. The link from Discord (or the front page) carries, after the #, the
  * player's token (t) and the bot's WebSocket address (s); the bot puts them at a table, which this
  * page shows: the eight seats round the felt (seats.ts), the board and the pot (center.ts), and what
- * they can do (controls.ts). The bot runs the game; this page only draws what it's told and sends
+ * they can do (controls.ts), with the table's chat under it. The bot runs the game; this page only draws what it's told and sends
  * the player's moves. It is only ever told this player's cards (and anyone's that are face up), so
  * nothing here gives anyone else's away. That's also why poker can't be watched.
  */
 
 const ctx: PokerContext = newContext();
+// The table's chat, in a box of its own under the panel.
+const chat = chatBox({ mount: document.getElementById('chat') as HTMLElement, send: (message) => send(ctx, message), you: () => ctx.state?.you ?? null });
 const tableNo = titleExtra('pk-table-no');
 
 const ERRORS: Record<ErrorCode, [string, string]> = {
@@ -92,6 +94,10 @@ function receive(message: ServerMessage): void {
       return;
     case 'refused':
       showError(refusalText(message));
+      return;
+    case 'chat':
+    case 'chats':
+      chat.receive(message);
       return;
   }
 }

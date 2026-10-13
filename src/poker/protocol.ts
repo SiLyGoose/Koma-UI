@@ -4,6 +4,8 @@
  * page its own player's cards (and anyone's once they're face up).
  */
 
+import type { ChatClientMessage, ChatServerMessage } from '../shared/ui';
+
 export type Suit = 'spades' | 'hearts' | 'diamonds' | 'clubs';
 /** `rank` is 1 for the ace, 2 to 10, then 11 (jack), 12 (queen) and 13 (king). */
 export interface Card {
@@ -26,6 +28,7 @@ export type PlayerMove =
 export type PokerMove = 'fold' | 'check' | 'call' | 'raise' | 'allIn';
 
 export type ClientMessage =
+  | ChatClientMessage
   | { t: 'hello'; token: string }
   | { t: 'sit'; chips: number; seat?: number }
   | { t: 'stand' }
@@ -108,4 +111,4 @@ export type Refusal =
   | { reason: 'not_now' }
   | { reason: 'failed' };
 
-export type ServerMessage = { t: 'poker'; state: PokerState } | ({ t: 'refused' } & Refusal) | { t: 'error'; code: ErrorCode };
+export type ServerMessage = { t: 'poker'; state: PokerState } | ({ t: 'refused' } & Refusal) | { t: 'error'; code: ErrorCode } | ChatServerMessage;

@@ -1,4 +1,5 @@
 import type { GameSocket } from '../shared/game';
+import type { ChatBox } from '../shared/ui';
 import { sumBets } from './format';
 import type { TableUi } from './panel';
 import type { Bets, ClientMessage, SeatView, TableState } from './protocol';
@@ -8,6 +9,8 @@ import type { TableGame } from './types';
 export interface TableContext<S extends string, R, X> {
   game: TableGame<S, R, X>;
   ui: TableUi;
+  /** The table's chat, under the list of who's at it. */
+  chat: ChatBox;
   /** Watching someone play (nothing here can be pressed). */
   watching: boolean;
   /** Whose table this page watches, once the bot has said. */

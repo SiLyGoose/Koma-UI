@@ -7,6 +7,7 @@ export const ui = {
   newGame: $<HTMLButtonElement>('new'),
   time: $('time'),
   minesLeft: $('mines-left'),
+  side: document.querySelector('.ms-players') as HTMLElement,
   players: $('players'),
   playerCount: $('player-count'),
   ended: $<HTMLButtonElement>('ended'),

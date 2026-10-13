@@ -54,6 +54,7 @@ export function buildPanel() {
     resultTitle: $('result-title'),
     resultText: $('result-text'),
     tableNo: titleExtra('tb-table-no'),
+    playersBox: players,
     players: players.querySelector('.tb-players-list') as HTMLElement,
     seatCount: players.querySelector('.tb-players-title span') as HTMLElement,
   };

@@ -106,10 +106,29 @@
     min-height: 0;
   }
 
+  /* As tall as the table: the players at the top (their list scrolls, when they'd take more than half), the chat in the rest. */
   .tb-players {
-    align-self: flex-start;
-    max-height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-self: stretch;
+    overflow: hidden;
+  }
+
+  .tb-players-list {
+    flex: 0 1 auto;
+    min-height: 56px;
+    max-height: 55%;
     overflow-y: auto;
+  }
+
+  .tb-players .chat {
+    flex: 1;
+  }
+
+  .tb-players .chat-lines {
+    flex: 1;
+    height: auto;
+    min-height: 0;
   }
 
   .tb-felt {
@@ -229,10 +248,20 @@
     --tb-under-bar: calc(36px + clamp(6px, 1.6vh, 16px) + 12px);
   }
 
+  /* Under the table, as tall as what's in it: the chat's lines at their set height. */
   .tb-players {
+    display: block;
     flex: none;
     align-self: stretch;
+    overflow: visible;
+  }
+
+  .tb-players-list {
     max-height: none;
     overflow: visible;
+  }
+
+  .tb-players .chat-lines {
+    height: 220px;
   }
 }

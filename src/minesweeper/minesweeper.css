@@ -38,7 +38,7 @@
  */
 .ms-game {
   /* The players' list, and the gap between it and the board's side. */
-  --side: 300px;
+  --side: 340px;
   --between: 16px;
   container-type: inline-size;
   display: flex;
@@ -397,11 +397,27 @@
  */
 .ms-players {
   flex: 0 0 var(--side);
-  /* Level with the board's box, under the levels. */
+  /* Level with the board's box, under the levels, and as tall as it whatever is in it: what's in it doesn't count towards its size. */
+  align-self: stretch;
+  contain: size;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   margin-top: 42px;
   padding: 14px;
   border-radius: var(--radius);
   background: var(--panel);
+}
+
+/* The room's chat (../shared/ui/chat/chat.css) has what the players leave of the column, its lines scrolling. */
+.ms-players .chat {
+  flex: 1;
+}
+
+.ms-players .chat-lines {
+  flex: 1;
+  height: auto;
+  min-height: 0;
 }
 
 .ms-players-title {
@@ -414,12 +430,17 @@
   color: var(--muted);
 }
 
+/* The players, at the top of the column: their list scrolls when they'd take more than half of it. */
 .ms-players-list {
   display: flex;
   flex-direction: column;
+  flex: 0 1 auto;
   gap: 8px;
+  min-height: 56px;
+  max-height: 55%;
   margin: 0;
   padding: 0;
+  overflow-y: auto;
   list-style: none;
 }
 
@@ -518,16 +539,24 @@
     max-width: 100%;
   }
 
-  /* As wide as the board's box above it. */
+  /* As wide as the board's box above it, and as tall as what's in it: the chat's lines at their set height. */
   .ms-players {
+    display: block;
     flex: none;
-    align-self: stretch;
+    contain: none;
+    overflow: visible;
     margin-top: 0;
   }
 
   .ms-players-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    max-height: none;
+    overflow: visible;
+  }
+
+  .ms-players .chat-lines {
+    height: 220px;
   }
 }
 

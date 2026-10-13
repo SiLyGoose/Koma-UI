@@ -5,6 +5,8 @@
  * puts on the table (`X`).
  */
 
+import type { ChatClientMessage, ChatServerMessage } from '../shared/ui';
+
 export type Bets<S extends string = string> = Partial<Record<S, number>>;
 export type Outcome = 'win' | 'push' | 'lose';
 
@@ -12,7 +14,8 @@ export type ClientMessage<S extends string = string> =
   | { t: 'hello'; token: string }
   | { t: 'watch'; token: string }
   | { t: 'bets'; bets: Bets<S>; seq: number }
-  | { t: 'deal'; ready: boolean };
+  | { t: 'deal'; ready: boolean }
+  | ChatClientMessage;
 
 export interface SettledView<S extends string = string> {
   spot: S;
@@ -58,4 +61,5 @@ export type ServerMessage<S extends string = string, R = unknown, X = unknown> =
   | { t: 'error'; code: ErrorCode }
   | { t: 'watching'; player: string }
   | { t: 'watchers'; count: number }
-  | { t: 'away' };
+  | { t: 'away' }
+  | ChatServerMessage;

@@ -2,9 +2,9 @@ import '../shared/style.css';
 import './table.css';
 import { barSlot, setConn, soundButton } from '../shared/ui/frame/frame';
 import { server, showMessage, token, watching } from '../shared/game';
-import { apiFromSocket, startLive } from '../shared/ui';
+import { apiFromSocket, chatBox, startLive } from '../shared/ui';
 import { setMuted } from '../shared/audio';
-import { connect } from './connection';
+import { connect, send } from './connection';
 import type { TableContext } from './context';
 import { wireControls } from './controls';
 import { buildPanel } from './panel';
@@ -22,7 +22,7 @@ export type { Pile, TableGame } from './types';
  * the rack onto the spots (or a chip is picked and the spots tapped), and every change is sent to
  * the bot, which shows it to the whole table: the other players' chips are on the spots by their
  * profile pictures, and the list beside the table says who is at it, their balance, and what they
- * have down. When the time is up the bot deals one round for everyone; the game shows it (dealing
+ * have down, with the table's chat under it. When the time is up the bot deals one round for everyone; the game shows it (dealing
  * the cards out, spinning the wheel) and then how each player did. Then the next round's betting
  * starts.
  *
@@ -39,9 +39,12 @@ export type { Pile, TableGame } from './types';
 
 /** Plays `game` on this page. */
 export function startTable<S extends string, R, X = unknown>(game: TableGame<S, R, X>): void {
+  const ui = buildPanel();
   const ctx: TableContext<S, R, X> = {
     game,
-    ui: buildPanel(),
+    ui,
+    // Someone watching sees what's said, and says nothing.
+    chat: chatBox({ mount: ui.playersBox, send: (message) => send(ctx, message), you: () => ctx.state?.you ?? null, canSay: !watching }),
     watching,
     watched: '',
     socket: null,
