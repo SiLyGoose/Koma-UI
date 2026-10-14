@@ -402,9 +402,9 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     hurt(target, amount, blockable = true) {
       if (target.hp <= 0 || away(target.statuses) || result) return 0;
       const type = foe.def.stats.deals;
-      // Harder or softer for what is on the boss, and harder again once the raid's time is up; then dodged, or what the hero's defence against that kind of damage
+      // Harder or softer for what is on the boss, and harder again once the raid's time is up; then dodged, or what the hero's defense against that kind of damage
       // (more for every Hope support on the field), and a block, take off.
-      const guarded = 1 + HOPE.defence * wearing('hope', 'support').length;
+      const guarded = 1 + HOPE.defense * wearing('hope', 'support').length;
       const stands = { ...target.stats, physical: target.stats.physical * guarded, magical: target.stats.magical * guarded };
       const { taken, blocked, dodged } = strike(amount * dealing(foe.statuses) * rage(clock - RAID_TIME), type, blockable ? stands : { ...stands, block: NONE, dodge: NONE }, 0, roll);
       if (dodged) {

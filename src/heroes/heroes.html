@@ -45,10 +45,11 @@
         <h2>Active Effects</h2>
         <ul id="totals" class="detail-effects"></ul>
       </div>
-      <!-- What the panel beside the hero shows: its stats in the raid, or the gear it can wear. -->
+      <!-- What the panel beside the hero shows: its stats in the raid, the gear it can wear, or its skills. -->
       <div class="hero-tabs" role="tablist" aria-label="Show">
         <button type="button" class="action choice" role="tab" data-view="stats" aria-selected="false" aria-controls="stats">Stats</button>
         <button type="button" class="action choice" role="tab" data-view="gear" aria-selected="true" aria-controls="armory">Gear</button>
+        <button type="button" class="action choice" role="tab" data-view="skills" aria-selected="false" aria-controls="skills">Skills</button>
       </div>
     </div>
 
@@ -78,6 +79,16 @@
       <div class="armory-sheet">
         <div class="sheet-scroll">
           <div id="stats-list" class="stats-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Skills: the hero's three skills and its passive, in King's Raid's own words (src/heroes/skills.ts). -->
+    <div id="skills" class="armory stats skills off" role="tabpanel">
+      <div class="armory-plaque plaque"><span id="skills-title">Skills</span></div>
+      <div class="armory-sheet">
+        <div class="sheet-scroll">
+          <ol id="skills-list" class="skills-list"></ol>
         </div>
       </div>
     </div>

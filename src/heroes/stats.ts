@@ -43,10 +43,10 @@ export function heroStats(hero: Hero): StatSection[] {
       ],
     },
     {
-      title: 'Defence',
+      title: 'Defense',
       rows: [
-        row('Physical defence', base.physical, gear.physical, whole),
-        row('Magical defence', base.magical, gear.magical, whole),
+        row('Physical defense', base.physical, gear.physical, whole),
+        row('Magical defense', base.magical, gear.magical, whole),
         row('Physical block', base.block.physical, gear.block.physical, pct),
         row('Magical block', base.block.magical, gear.block.magical, pct),
         row('Physical dodge', base.dodge.physical, gear.dodge.physical, pct),

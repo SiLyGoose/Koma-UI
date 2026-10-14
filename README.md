@@ -89,7 +89,7 @@ Any square size works.
   together). Each player has a card for each of their own heroes. Heroes that fall stay down. A win gives each player
   TechnoMagic gear, while they have runs left that day that give it. Opened with no link (`yarn dev`), it is a field for
   trying things out, with nothing kept: every skin's card, heroes on and off the field, and buttons that set the boss
-  attacking. Every blow is physical or magical, by who deals it, and is worn down by its target's defence against that
+  attacking. Every blow is physical or magical, by who deals it, and is worn down by its target's defense against that
   kind and by a block. Its folders:
   - `sim/` is the fight itself, with nothing drawn: worked out a step at a time (thirty a second) from a seed, with no
     `Math.random`, `pow`, `exp`, `sin` or `cos` in it, so the same seed and inputs make the same fight in any browser
@@ -104,14 +104,14 @@ Any square size works.
   - `engine/` is three.js and nothing of this fight: `models.ts` loads the models, `rig.ts` poses their bones in code
     (the game's models come with no animation), `track.ts` is a movement written as poses at times, `retarget.ts` plays
     one skeleton's animations on another, `stage.ts` is the field and its camera.
-  - `heroes/` has a folder for each hero (`index.ts`: its health, the kind of damage it deals, its defences, its skills
+  - `heroes/` has a folder for each hero (`index.ts`: its health, the kind of damage it deals, its defenses, its skills
     and what comes of each, in the sim; `fx.ts`: what is drawn for them; `moves.ts`: what its body does for them),
     `body/` (a hero on the field: stood up from the game's files or from a skin rigged by Mixamo, and moved by poses
     written in code or by animations, as the sim says), `moves/` (the moves every hero has, and the stances they are
     written with) and `load.ts`, which reads every skin.
   - `bosses/` has a folder for each boss (`bosses/galgoria/`: what it is, how its attacks go (`attacks.ts`), what its
     skills do (`skills.ts`) and what is drawn for them (`fx.ts`), its model, its venom); `models.ts` names each one's body.
-  - `combat/` is how a blow is worked out (`damage.ts`: physical and magical damage, defence against each, block;
+  - `combat/` is how a blow is worked out (`damage.ts`: physical and magical damage, defense against each, block;
     `status.ts`: what a skill leaves on a fighter for a while); `fight/` draws the sim's fight (`view.ts`) and what is
     drawn for the moves every hero has (`fx.ts`).
   - `fx/` is what is drawn for a hit and a skill, `hud/` what is shown over the field (the cards, the boss's health and

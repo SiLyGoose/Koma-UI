@@ -131,7 +131,7 @@ export function rage(over: number): number {
   return power >= MOST_RAGE_POWER ? MOST_RAGE : exp2(power);
 }
 
-/** What a blow of a hero's attack takes of the boss, before the boss's defence; and how much harder a critical blow is (before its gear's crit damage). */
+/** What a blow of a hero's attack takes of the boss, before the boss's defense; and how much harder a critical blow is (before its gear's crit damage). */
 export const BLOW = 1100;
 export const CRIT = 2;
 

@@ -24,7 +24,7 @@ export type Pose = {
 
 export const STILL: Pose = { ahead: 0, up: 0, inward: 0, nod: 0, jaw: 0, lean: 0, shake: 0 };
 
-/** An attack: its track, when in it its venom sprays and lands (`hit`), and what that takes of whoever it lands on, least to most, before their defence. */
+/** An attack: its track, when in it its venom sprays and lands (`hit`), and what that takes of whoever it lands on, least to most, before their defense. */
 export const TRACKS: Record<Attack, { keys: Key<Pose>[]; hit: number | null; spray?: readonly [number, number]; hurts?: readonly [number, number] }> = {
   // Back and up a little, then a short way out toward the heroes with its jaw wide, its venom spraying from it while
   // it holds there, and back. It doesn't go far: its necks are made to be seen from where they stand.

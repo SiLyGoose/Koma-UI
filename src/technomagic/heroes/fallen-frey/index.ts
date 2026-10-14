@@ -15,7 +15,7 @@ import { STAND } from './moves';
  *   boss.
  * - Blessing of Doom: a shield for the four allies with the lowest health, for a while, and their attacks
  *   quickened while it lasts.
- * - Heaven's Vengeance: twenty blows of light on the boss, through some of its defence, each leaving it
+ * - Heaven's Vengeance: twenty blows of light on the boss, through some of its defense, each leaving it
  *   easier to hurt (up to five times over).
  * Her passive, Tainted Angel: she takes more from the boss, but her mana fills far faster; and while it is
  * full she gains Darkened Power every second (two at most). A skill used with some spends one: Heaven's
@@ -118,7 +118,7 @@ export const FALLEN_FREY: HeroDef = {
             put(ally.statuses, { name: BLESSED.name, left: BLESSING.lasts, pace: 1 + share(BLESSING.speed), shown: BLESSED });
           }
         },
-        // A blow of light down on the boss, through some of its defence; each leaves it easier to hurt (and, with Darkened Power, stuns it).
+        // A blow of light down on the boss, through some of its defense; each leaves it easier to hurt (and, with Darkened Power, stuns it).
         vengeance(part) {
           if (part === 0) empowered = spend();
           fight.hit(self, VENGEANCE.blow, true, VENGEANCE.pierce);

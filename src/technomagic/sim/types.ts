@@ -16,7 +16,7 @@ import type { SetRole, TmSet } from './sets';
 /**
  * What a hero's gear gives it, as the bot counts it: points added to a chance or share (crit, attack speed,
  * penetration, block, dodge, CC resist: 1000 is 100%), and a share more of its own for the rest (ATK, HP,
- * crit damage, defence, heals and shields, stun duration, mana per attack, mana recovery: 0.25 is 25% more).
+ * crit damage, defense, heals and shields, stun duration, mana per attack, mana recovery: 0.25 is 25% more).
  */
 export type GearStat = 'atk' | 'hp' | 'crit' | 'critDamage' | 'speed' | 'pen' | 'defense' | 'block' | 'dodge' | 'resist' | 'heal' | 'control' | 'manaAttack' | 'manaRegen';
 export type GearBonus = Partial<Record<GearStat, number>>;
@@ -109,7 +109,7 @@ export interface Fight {
   roll(): number;
   /**
    * A hero's blow lands on the boss: `amount` at an ATK of 1000, before the hero's own attack, its passive
-   * and the boss's defence against the kind of damage it deals (seen past by its penetration, and `pierce`
+   * and the boss's defense against the kind of damage it deals (seen past by its penetration, and `pierce`
    * points more). One that is `counted` is told to every hero's part, and the boss's (not what comes of a status already on the boss).
    */
   hit(by: Fighter, amount: number, counted?: boolean, pierce?: number): void;
@@ -123,7 +123,7 @@ export interface Fight {
   /** The hero the boss is going for (null: there is no one it can). */
   target(): Fighter | null;
   /**
-   * A blow of the boss's lands on a hero: `amount` before what is on the boss, the hero's defence against
+   * A blow of the boss's lands on a hero: `amount` before what is on the boss, the hero's defense against
    * the boss's kind of damage, and a dodge or a block (`blockable`, unless it says not: then it can be neither). Returns what it took.
    */
   hurt(fighter: Fighter, amount: number, blockable?: boolean): number;

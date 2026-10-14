@@ -86,12 +86,12 @@ export const nearer = (a: HeroDef, b: HeroDef): number => LINE_RANK[lineOf(a)] -
  * fight measures them (a skill's numbers are written for an ATK of 1000, ../combat/damage.ts); crit,
  * attack speed, penetration, CC resist, block and dodge are points (1000: 100%). A first guess at each,
  * by what the game says a class is for:
- * - knight: the most health and defence, and blocks the most;
+ * - knight: the most health and defense, and blocks the most;
  * - warrior: as much of everything, standing and hitting, some block and some CC resist;
  * - assassin: bursts of damage, the most crits and the quickest, dodging what it can;
  * - archer: the hardest hitting, and the most penetration;
  * - mechanic: hits again and again from off, a little of everything;
- * - wizard: magic, hitting hard and seeing past defence, and standing magic better than blows;
+ * - wizard: magic, hitting hard and seeing past defense, and standing magic better than blows;
  * - priest: heals and shields (by its attack), standing magic well, quick at what it does.
  */
 export const CLASS_STATS: Record<HeroClass, Omit<HeroStats, 'deals'>> = {

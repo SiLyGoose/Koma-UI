@@ -1,7 +1,7 @@
 /*
  * Damage: every blow is physical or magical, by who deals it, and whoever it lands on (a hero or a boss)
- * stands each kind with a defence of its own, and against each kind may dodge it altogether or block
- * some of it. Whoever deals it may see past some of that defence (its penetration). Nothing here is
+ * stands each kind with a defense of its own, and against each kind may dodge it altogether or block
+ * some of it. Whoever deals it may see past some of that defense (its penetration). Nothing here is
  * drawn: only the sums.
  *
  * Chances and shares are in points, as the game has them: 1000 points is 100% (a crit chance, a block,
@@ -20,7 +20,7 @@ export const POINTS = 1000;
 /** The share of a stat in points (0 to 1). */
 export const share = (points: number): number => Math.min(1, Math.max(0, points / POINTS));
 
-/** How a fighter stands what comes at it: its defence against each kind of damage, and its chance against each to block it, or dodge it. */
+/** How a fighter stands what comes at it: its defense against each kind of damage, and its chance against each to block it, or dodge it. */
 export interface Defenses {
   physical: number;
   magical: number;
@@ -50,21 +50,21 @@ export interface HeroStats extends Stats {
 
 /** The attack a skill's numbers are written for. */
 export const ATK = 1000;
-/** A defence of this much halves what gets through (twice it: a third, and so on). */
+/** A defense of this much halves what gets through (twice it: a third, and so on). */
 const HALVING = 1000;
 /** A blocked blow does this much of what it would have. */
 const BLOCKED = 0.5;
-/** The most of a defence penetration sees past, however much there is (in points). */
+/** The most of a defense penetration sees past, however much there is (in points). */
 const PEN_MOST = 500;
 
 /**
  * A blow of `amount` of a kind lands on `target`, from one with `pen` points of penetration: dodged (it
- * takes nothing), or what it takes once the target's defence against that kind (less what penetration
+ * takes nothing), or what it takes once the target's defense against that kind (less what penetration
  * sees past) has worn it down, and whether it blocked it (then less again). `roll` is the fight's chances (../sim/random.ts).
  */
 export function strike(amount: number, type: DamageType, target: Defenses, pen: number, roll: () => number): { taken: number; blocked: boolean; dodged: boolean } {
   if (roll() < share(target.dodge[type])) return { taken: 0, blocked: false, dodged: true };
   const blocked = roll() < share(target.block[type]);
-  const defence = Math.max(0, target[type]) * (1 - share(Math.min(PEN_MOST, pen)));
-  return { taken: amount * (HALVING / (HALVING + defence)) * (blocked ? BLOCKED : 1), blocked, dodged: false };
+  const defense = Math.max(0, target[type]) * (1 - share(Math.min(PEN_MOST, pen)));
+  return { taken: amount * (HALVING / (HALVING + defense)) * (blocked ? BLOCKED : 1), blocked, dodged: false };
 }

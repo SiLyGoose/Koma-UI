@@ -2,6 +2,7 @@ import { art, el, hoverSound, itemDetailsClosed, itemFace, itemPicked, lockBadge
 import { classBadge, className, FACE, HERO_SLOT_KIND, heroCut, heroPicture, type Hero, type HeroCopy, type HeroSlot } from '../shared/heroes';
 import { working } from '../shared/ui';
 import { copyById, heroShown, mine, slotFor, slotOf, type HeroesContext } from './context';
+import { heroSkills } from './skills';
 import { heroStats } from './stats';
 
 /*
@@ -39,8 +40,10 @@ export function render(ctx: HeroesContext, act: HeroActions): void {
   renderGrid(ctx, act);
   renderDetail(ctx, act);
   renderStats(ctx);
+  renderSkills(ctx);
   ui.armory.classList.toggle('off', ctx.tab !== 'gear');
   ui.stats.classList.toggle('off', ctx.tab !== 'stats');
+  ui.skills.classList.toggle('off', ctx.tab !== 'skills');
   for (const tab of ui.views) tab.setAttribute('aria-selected', String(tab.dataset.view === ctx.tab));
   // Someone else's heroes are only to look at.
   ui.unequipAll.hidden = !mine(ctx);
@@ -136,6 +139,7 @@ function renderStage(ctx: HeroesContext): void {
   ui.buy.href = '/shop/heroes/';
   ui.armoryTitle.textContent = mine(ctx) ? `${hero.name}'s Gear` : `${ctx.viewing?.name}'s Hero Gear`;
   ui.statsTitle.textContent = `${hero.name}'s Stats`;
+  ui.skillsTitle.textContent = `${hero.name}'s Skills`;
 }
 
 /** The five slots round the hero: what's in each (or that it's empty), the one last pressed framed. */
@@ -327,4 +331,47 @@ function renderStats(ctx: HeroesContext): void {
     block.append(list);
     ui.statsList.append(block);
   }
+}
+
+/** A skill's words, as King's Raid marks them: its numbers (20%, 12,000, 0.5) and what's in brackets ([Darkened Power]) each in a colour of their own. */
+function skillText(text: string): (string | HTMLElement)[] {
+  return text
+    .split(/(\[[^\]]+\]|\d+(?:,\d{3})*(?:\.\d+)?%?)/)
+    .filter(Boolean)
+    .map((part) => (part.startsWith('[') ? el('b', 'skill-effect', part) : /^\d/.test(part) ? el('b', 'skill-number', part) : part));
+}
+
+/** The Skills tab: each skill's picture (its number, where there's none), name, cost and cooldown, and what it does; the passive last. */
+function renderSkills(ctx: HeroesContext): void {
+  const { ui } = ctx;
+  const hero = heroShown(ctx);
+  // Only redrawn for another hero (its pictures would load again).
+  if (!hero || ui.skillsList.dataset.hero === hero.id) return;
+  ui.skillsList.dataset.hero = hero.id;
+  const skills = heroSkills(hero.id);
+  ui.skillsList.replaceChildren(
+    ...skills.map((skill, i) => {
+      const passive = skill.cost === null;
+      const item = el('li', 'skill');
+      const icon = el('span', 'skill-icon', passive ? 'P' : String(i + 1));
+      if (skill.picture) {
+        const picture = el('img');
+        picture.alt = '';
+        picture.src = skill.picture;
+        // Not served here (a build leaves the raid's files out): its number stays.
+        picture.addEventListener('error', () => picture.remove());
+        icon.append(picture);
+      }
+      const head = el('div', 'skill-head');
+      head.append(el('h3', 'skill-name', skill.name));
+      head.append(el('span', 'skill-tag', passive ? 'Passive' : `${skill.cost} Mana · ${skill.cooldown}s`));
+      const words = el('div', 'skill-words');
+      const text = el('p', 'skill-text');
+      text.append(...skillText(skill.text));
+      words.append(head, text);
+      item.append(icon, words);
+      return item;
+    }),
+  );
+  if (skills.length === 0) ui.skillsList.append(el('p', 'stats-empty', 'No skills to show for this hero yet.'));
 }

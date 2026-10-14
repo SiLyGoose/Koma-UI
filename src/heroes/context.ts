@@ -28,6 +28,9 @@ export interface HeroesUi {
   stats: HTMLElement;
   statsTitle: HTMLElement;
   statsList: HTMLElement;
+  skills: HTMLElement;
+  skillsTitle: HTMLElement;
+  skillsList: HTMLElement;
 }
 
 /** Everything the mounted page knows. */
@@ -43,7 +46,7 @@ export interface HeroesContext {
   stars: StarChoice;
   query: string;
   /** What the panel beside the hero shows. */
-  tab: 'stats' | 'gear';
+  tab: 'stats' | 'gear' | 'skills';
   /** The copy shown over the hero, if any. */
   picked: string | null;
   /** A change on its way, and its button: the page waits for it before taking another. */
@@ -92,6 +95,9 @@ export function createContext(root: HTMLElement): HeroesContext {
       stats: $('stats'),
       statsTitle: $('stats-title'),
       statsList: $('stats-list'),
+      skills: $('skills'),
+      skillsTitle: $('skills-title'),
+      skillsList: $('skills-list'),
     },
     view: null,
     hero: null,

@@ -16,7 +16,7 @@ export interface BossAttack {
   label: string;
 }
 
-/** One move of a part of the boss (a head's): how long it takes, when in it its blow lands (null: none), and what that takes, least to most, before its target's defence. */
+/** One move of a part of the boss (a head's): how long it takes, when in it its blow lands (null: none), and what that takes, least to most, before its target's defense. */
 export interface BossMove {
   length: number;
   hit: number | null;

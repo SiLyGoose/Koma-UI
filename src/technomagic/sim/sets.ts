@@ -12,9 +12,9 @@ import { SECTION } from './rules';
  * - Perseverance: a damage dealer's ATK +10%, and another +1.5% every 10 seconds, ten times over (+25% after
  *   100 seconds); a priest's heals and shields 25% stronger; a knight's max HP +25%, and each blow it blocks
  *   strikes back at the boss and leaves it hitting softer for a while.
- * - Hope: a support gives every ally +5% ATK and +10% defence, again for each wearing it; a knight takes 10%
+ * - Hope: a support gives every ally +5% ATK and +10% defense, again for each wearing it; a knight takes 10%
  *   less, and takes a share of what the boss deals every other ally on itself.
- * - Authority: a damage dealer sees past 500 more of the boss's defence (its kills, in a fight with only the
+ * - Authority: a damage dealer sees past 500 more of the boss's defense (its kills, in a fight with only the
  *   boss, there are none of); a support starts with 2 more mana sections, and the ally with the highest ATK
  *   can't be knocked down for a while; a knight's CC resist +300, and its skills strip what helps the boss.
  */
@@ -56,7 +56,7 @@ export const PERSEVERANCE = {
 export const HOPE = {
   /** What each support wearing it gives every ally. */
   atk: 0.05,
-  defence: 0.1,
+  defense: 0.1,
   /** A knight: what it takes, and the share of what the boss deals every other ally that it takes instead. */
   taken: 0.9,
   covers: 0.2,
@@ -82,7 +82,7 @@ const ABOUT: Record<TmSet, Partial<Record<SetRole, string>>> = {
     knight: 'Set effect: +25% max HP; each block strikes back, and the boss hits 8% softer for 5 seconds.',
   },
   hope: {
-    support: 'Set effect: every ally +5% ATK and +10% defence.',
+    support: 'Set effect: every ally +5% ATK and +10% defense.',
     knight: 'Set effect: takes 10% less, and takes 20% of what the boss deals every other ally.',
   },
   authority: {

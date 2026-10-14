@@ -14,7 +14,8 @@ import { render, type HeroActions } from './render';
  * left, two armors on the right and its treasure under it. Beside it, the gear a hero can wear (the raid's,
  * and the TechnoMagic Raid's): picking a copy shows what it does on the hero and equips it (into the slot
  * last pressed, or the first free one of its kind; off any other hero it was on), and pressing a slot shows
- * what fits in it. The Stats tab has the hero's stats in the raid, with and without its gear. A copy can be
+ * what fits in it. The Stats tab has the hero's stats in the raid, with and without its gear; the Skills tab
+ * its skills, in King's Raid's own words (./skills.ts). A copy can be
  * on the member and on one of their heroes at once, but on one hero only. Logged-in members only, in the
  * server picked; ?hero= picks the hero shown. On the left over the hero, whose heroes are shown: theirs, or
  * those of someone else in the server who has heroes, to look at (nothing on them can be changed then).
@@ -216,7 +217,7 @@ function wire(ctx: HeroesContext, act: HeroActions): () => void {
   for (const tab of ui.views) {
     tab.addEventListener('click', () => {
       ctx.tab = tab.dataset.view as HeroesContext['tab'];
-      if (ctx.tab === 'stats') ctx.picked = null;
+      if (ctx.tab !== 'gear') ctx.picked = null;
       render(ctx, act);
     });
   }
