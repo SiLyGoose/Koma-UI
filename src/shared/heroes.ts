@@ -57,7 +57,7 @@ export interface Hero {
    * resist), a share more of its own for the rest (atk, hp, critDamage, defense, heal, control).
    */
   bonus: Record<HeroStat, number>;
-  /** The TechnoMagic set its weapons and armors are most of: which, how many pieces, and whether its effect is on (all four). Null with none (absent from a bot from before sets). */
+  /** The TechnoMagic set its weapons and armors are most of: which, how many pieces, and whether its effect is on (three of them). Null with none (absent from a bot from before sets). */
   set?: { id: string; pieces: number; active: boolean } | null;
   /** The additional skills of the TechnoMagic gear it wears that work on it (the sim's ids, one for each piece; absent from a bot from before them). */
   skills?: string[];

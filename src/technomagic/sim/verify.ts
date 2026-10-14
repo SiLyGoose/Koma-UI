@@ -27,7 +27,7 @@ export const MOST_STAGE: number = STAGES;
 
 /**
  * A hero in a raid: its id, the index of its skin, what its gear gives it (the bot's HeroBonus), the TechnoMagic
- * set whose effect it has (all four pieces worn), or none, its own unique weapon's tier (its refinement, 1
+ * set whose effect it has (three pieces worn), or none, its own unique weapon's tier (its refinement, 1
  * to 5), or none, and the additional skill of each piece of TechnoMagic gear it wears (TM_SKILLS' ids).
  */
 export interface RunHero {

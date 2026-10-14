@@ -79,12 +79,12 @@ export function renderDetail(ctx: DatabankContext): void {
   if (bonusOn) name.append(el('span', 'detail-mw', '✨ Masterwork'));
   // Under the name, its category, then its stars (as the gear page's item panel); TechnoMagic gear and a unique weapon, their tiers of their own.
   title.append(name, el('p', 'detail-meta db-kind', SLOT_NAME[item.slot]), item.source === 'technomagic' ? tmTier() : item.source === 'heroBanner' ? uwTier() : stars(item.stars));
-  // A class item says whose it is; TechnoMagic gear, its set (all four pieces on a hero give its effect, for the hero's class).
+  // A class item says whose it is; TechnoMagic gear, its set (three pieces on a hero give its effect, for the hero's class: its effects say it too).
   if (item.class) title.append(classTag(item.class, className(ctx, item.class)));
   if (item.set) {
     const set = el('p', 'detail-meta db-set', `${item.set.name} set · ${item.set.boss[0]?.toUpperCase()}${item.set.boss.slice(1)}`);
     const effect = item.class ? item.set.effects[item.class] : undefined;
-    set.title = `Both weapons and both armors of it on a hero: ${effect ?? 'nothing for its class'}`;
+    set.title = `Three of its weapons and armors on a hero: ${effect ?? 'nothing for its class'}`;
     title.append(set);
   }
   const close = el('button', 'detail-close', '✕');

@@ -3,8 +3,8 @@ import type { HeroClass } from '../heroes/kit';
 import { SECTION } from './rules';
 
 /*
- * The TechnoMagic Raids' gear sets, as the fight has them: a hero wearing a set's four pieces (both weapons and
- * both armors: the bot says which set, if any, as the fight begins) has its effect, which depends on its class:
+ * The TechnoMagic Raids' gear sets, as the fight has them: a hero wearing three of a set's pieces (of its weapons and
+ * armors: the bot says which set, if any, as the fight begins) has its effect, which depends on its class:
  * the frontline's tank (knight), the supports (Hope and Authority count mechanics with the priests; Perseverance
  * its priests and knights), and the damage dealers (everyone else). One boss drops each: Galgoria Perseverance, Siegfried Hope,
  * Ascalon Authority. ./fight.ts applies them.

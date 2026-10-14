@@ -33,7 +33,7 @@ import type { Fight, Fighter, Foe, GearBonus } from './types';
  * the boss beaten is won, and every hero on the field down (or the boss's rage wiping them, RAGE_WIPE after the
  * raid's time is up) is lost. A raid takes nothing but the heroes' skills and Auto; trying things out, heroes
  * come onto the field and leave it as the player likes, and the boss is set attacking by hand. A hero in a
- * TechnoMagic set's four pieces has the set's effect (./sets.ts), one wielding its own unique weapon has
+ * TechnoMagic set's three pieces has the set's effect (./sets.ts), one wielding its own unique weapon has
  * the weapon's (./unique.ts), and each has the additional skills of the TechnoMagic gear it wears (./skills.ts).
  */
 
