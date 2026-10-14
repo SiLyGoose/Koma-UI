@@ -1,4 +1,4 @@
-import { art, el, hoverSound, itemDetailsClosed, itemFace, itemPicked, lockBadge, matchesSearch, matchesStars, rich, SLOT_NAME, stars as starRow, tmMarks } from '../shared/items';
+import { art, el, hoverSound, itemDetailsClosed, itemFace, itemPicked, lockBadge, matchesSearch, matchesStars, rich, SLOT_NAME, stars as starRow, tmMarks, type StatSection } from '../shared/items';
 import { classBadge, className, FACE, HERO_SLOT_KIND, heroCut, heroPicture, type Hero, type HeroCopy, type HeroSlot } from '../shared/heroes';
 import { working } from '../shared/ui';
 import { copyById, heroShown, mine, slotFor, slotOf, type HeroesContext } from './context';
@@ -316,8 +316,12 @@ function renderStats(ctx: HeroesContext): void {
   const { ui } = ctx;
   const hero = heroShown(ctx);
   ui.statsList.textContent = '';
-  if (!hero) return;
-  for (const section of heroStats(hero)) {
+  if (hero) ui.statsList.append(...statBlocks(heroStats(hero)));
+}
+
+/** Stats, a heading over each group and a row for each, the base under any that gear changes (the databank's Heroes too). */
+export function statBlocks(sections: readonly StatSection[]): HTMLElement[] {
+  return sections.map((section) => {
     const block = el('section', 'stats-section');
     block.append(el('h3', '', section.title));
     const list = el('dl');
@@ -329,8 +333,8 @@ function renderStats(ctx: HeroesContext): void {
       list.append(line);
     }
     block.append(list);
-    ui.statsList.append(block);
-  }
+    return block;
+  });
 }
 
 /** A skill's words, as King's Raid marks them: its numbers (20%, 12,000, 0.5) and what's in brackets ([Darkened Power]) each in a colour of their own. */
@@ -348,30 +352,33 @@ function renderSkills(ctx: HeroesContext): void {
   // Only redrawn for another hero (its pictures would load again).
   if (!hero || ui.skillsList.dataset.hero === hero.id) return;
   ui.skillsList.dataset.hero = hero.id;
-  const skills = heroSkills(hero.id);
-  ui.skillsList.replaceChildren(
-    ...skills.map((skill, i) => {
-      const passive = skill.cost === null;
-      const item = el('li', 'skill');
-      const icon = el('span', 'skill-icon', passive ? 'P' : String(i + 1));
-      if (skill.picture) {
-        const picture = el('img');
-        picture.alt = '';
-        picture.src = skill.picture;
-        // Not served here (a build leaves the raid's files out): its number stays.
-        picture.addEventListener('error', () => picture.remove());
-        icon.append(picture);
-      }
-      const head = el('div', 'skill-head');
-      head.append(el('h3', 'skill-name', skill.name));
-      head.append(el('span', 'skill-tag', passive ? 'Passive' : `${skill.cost} Mana · ${skill.cooldown}s`));
-      const words = el('div', 'skill-words');
-      const text = el('p', 'skill-text');
-      text.append(...skillText(skill.text));
-      words.append(head, text);
-      item.append(icon, words);
-      return item;
-    }),
-  );
+  const skills = skillRows(hero.id);
+  ui.skillsList.replaceChildren(...skills);
   if (skills.length === 0) ui.skillsList.append(el('p', 'stats-empty', 'No skills to show for this hero yet.'));
+}
+
+/** A row for each of a hero's skills, for a .skills-list (the databank's Heroes too); none for a hero with no words for them. */
+export function skillRows(id: string): HTMLElement[] {
+  return heroSkills(id).map((skill, i) => {
+    const passive = skill.cost === null;
+    const item = el('li', 'skill');
+    const icon = el('span', 'skill-icon', passive ? 'P' : String(i + 1));
+    if (skill.picture) {
+      const picture = el('img');
+      picture.alt = '';
+      picture.src = skill.picture;
+      // Not served here (a build leaves the raid's files out): its number stays.
+      picture.addEventListener('error', () => picture.remove());
+      icon.append(picture);
+    }
+    const head = el('div', 'skill-head');
+    head.append(el('h3', 'skill-name', skill.name));
+    head.append(el('span', 'skill-tag', passive ? 'Passive' : `${skill.cost} Mana · ${skill.cooldown}s`));
+    const words = el('div', 'skill-words');
+    const text = el('p', 'skill-text');
+    text.append(...skillText(skill.text));
+    words.append(head, text);
+    item.append(icon, words);
+    return item;
+  });
 }

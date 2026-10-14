@@ -22,7 +22,8 @@ function row(label: string, base: number, withGear: number, show: (n: number) =>
   return { label, value: show(withGear), base: changed ? show(base) : null };
 }
 
-export function heroStats(hero: Hero): StatSection[] {
+/** A hero's stats; with no `bonus` (the databank's Heroes), as its class has them, gear or no. */
+export function heroStats(hero: Pick<Hero, 'class'> & Partial<Pick<Hero, 'bonus'>>): StatSection[] {
   // First what it is rather than what its gear does: its class (as the gear page's Stats have it).
   const about: StatSection = { title: 'Hero', rows: [{ label: 'Class', value: className(hero.class), base: null }] };
   const base = CLASS_STATS[hero.class as HeroClass];
