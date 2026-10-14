@@ -73,14 +73,18 @@ export const AUTO_WAIT = 1.1;
 export const HERO_WAIT = 0.45;
 
 /**
- * A hero's mana: the sections of its mana bar and the mana in each (a skill costs whole sections), what
- * it gains a second, and what it gains for every hit it lands or takes.
+ * A hero's mana, as King's Raid has it: the crystals of its mana bar and the mana in each (a skill costs whole
+ * crystals), what it recovers a second, what it gains for every blow of its attack that lands, and what it gains
+ * for its health lost to the boss (so much for the whole of its max HP: a tenth of it lost, a tenth of this).
+ * Its gear can add to what it recovers a second and gains for each blow (a share more: GearBonus's manaRegen
+ * and manaAttack).
  */
 export const SECTIONS = 6;
-export const SECTION = 200;
+export const SECTION = 1000;
 export const MAX_MANA = SECTIONS * SECTION;
-export const MANA_RATE = 50;
-export const MANA_HIT = 25;
+export const MANA_RATE = 100;
+export const MANA_PER_ATTACK = 60;
+export const MANA_PER_HP_LOST = 2500;
 
 /** A raid fought alone: the boss has this share of its health. */
 export const SOLO_BOSS_HP = 0.6;

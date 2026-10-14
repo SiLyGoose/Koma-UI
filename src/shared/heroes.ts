@@ -16,7 +16,7 @@ export const HERO_SLOTS: readonly HeroSlot[] = ['weapon1', 'weapon2', 'armor1', 
 export const HERO_SLOT_KIND: Record<HeroSlot, Slot> = { weapon1: 'weapon', weapon2: 'weapon', armor1: 'armor', armor2: 'armor', treasure: 'treasure' };
 
 /** What gear raises (the bot's lib/game/heroes.ts HeroStat). */
-export type HeroStat = 'atk' | 'hp' | 'crit' | 'critDamage' | 'speed' | 'pen' | 'defense' | 'block' | 'dodge' | 'resist' | 'heal' | 'control';
+export type HeroStat = 'atk' | 'hp' | 'crit' | 'critDamage' | 'speed' | 'pen' | 'defense' | 'block' | 'dodge' | 'resist' | 'heal' | 'control' | 'manaAttack' | 'manaRegen';
 
 /** One copy a hero can wear (the raid's gear, or the TechnoMagic Raid's). */
 export interface HeroCopy {

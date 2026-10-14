@@ -10,7 +10,7 @@ import { geared } from './gear';
 import { motionOf } from './motion';
 import { seeded } from './random';
 import { AUTHORITY, GUARDED, HOPE, PERSEVERANCE, setOf } from './sets';
-import { AUTO_WAIT, BLOW, CRIT, formation, HERO_WAIT, MANA_HIT, MANA_RATE, MAX_MANA, MOST, RAGE_WIPE, RAID_TIME, rage, REFORM, SECTION, SOLO_BOSS_HP, STAGES, TICK } from './rules';
+import { AUTO_WAIT, BLOW, CRIT, formation, HERO_WAIT, MANA_PER_ATTACK, MANA_PER_HP_LOST, MANA_RATE, MAX_MANA, MOST, RAGE_WIPE, RAID_TIME, rage, REFORM, SECTION, SOLO_BOSS_HP, STAGES, TICK } from './rules';
 import type { Fight, Fighter, Foe, GearBonus } from './types';
 
 /*
@@ -131,6 +131,8 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       healTimes: (1 + (gear.heal ?? 0)) * (set?.id === 'perseverance' && set.role === 'priest' ? 1 + PERSEVERANCE.heal : 1),
       set,
       controlTimes: 1 + (gear.control ?? 0),
+      manaPerAttack: MANA_PER_ATTACK * (1 + (gear.manaAttack ?? 0)),
+      manaRegen: MANA_RATE * (1 + (gear.manaRegen ?? 0)),
       motion,
       attack: motion.attack,
       part: { lands: {} },
@@ -171,6 +173,9 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     events.push({ kind: 'enter', who: fighter.index });
     return true;
   }
+
+  /** The hero whose attack's blow is landing right now (null: none: a skill's, or something else's). */
+  let attacking: Fighter | null = null;
 
   /** How long the boss has been still; what each of its parts (heads) is doing, and will do after; whom it goes for, and whether it was busy last step. */
   let idle = 0;
@@ -271,9 +276,12 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
         const last = timeline.fifth && doing.part === timeline.parts.length - 1 && doing.landed === part.lands.length;
         const index = last ? 4 : doing.blows - 1;
         events.push({ kind: 'land', who: fighter.index, move, part: index });
+        // (A blow of its attack gains it mana: hit() is told whose attack is landing.)
+        attacking = move === fighter.attack ? fighter : null;
         const own = fighter.part.lands[move];
         if (own) own(index);
         else common[move]?.(fighter, index);
+        attacking = null;
       }
       // (What landed may have cut it short, or ended the raid.)
       if (fighter.doing !== doing || result) return;
@@ -364,7 +372,8 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       foe.hp -= dealt;
       by.dealt += dealt;
       events.push({ kind: 'number', on: 'boss', amount: dealt, type: blocked ? 'blocked' : critical ? 'crit' : 'hit' });
-      by.mana = Math.min(MAX_MANA, by.mana + MANA_HIT);
+      // A blow of its attack: its mana per attack.
+      if (attacking === by) by.mana = Math.min(MAX_MANA, by.mana + by.manaPerAttack);
       if (counted) {
         for (const fighter of fighters) fighter.part.struck?.();
         foe.part.struck?.(by, dealt);
@@ -413,7 +422,9 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
         const soak = Math.min(cover.shield, covered);
         cover.shield -= soak;
         if (covered > soak) {
-          cover.hp = Math.max(0, cover.hp - (covered - soak));
+          const lost = Math.min(cover.hp, covered - soak);
+          cover.hp -= lost;
+          cover.mana = Math.min(MAX_MANA, cover.mana + (MANA_PER_HP_LOST * lost) / cover.stats.hp);
           events.push({ kind: 'number', on: cover.index, amount: covered - soak, type: 'hit' });
           if (cover.hp <= 0) {
             cover.shield = 0;
@@ -426,8 +437,10 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       const soaked = Math.min(target.shield, dealt);
       target.shield -= soaked;
       if (soaked > 0) events.push({ kind: 'number', on: target.index, amount: soaked, type: 'shield' });
+      // Health lost to the boss gains it mana, by the share of its max HP lost.
+      const lost = Math.min(target.hp, Math.max(0, dealt - soaked));
       if (dealt > soaked) {
-        target.hp = Math.max(0, target.hp - (dealt - soaked));
+        target.hp -= lost;
         events.push({ kind: 'number', on: target.index, amount: dealt - soaked, type: blocked ? 'blocked' : 'hit' });
       }
       if (target.hp <= 0) {
@@ -435,7 +448,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
         target.doing = null;
         target.reserved = null;
       }
-      target.mana = Math.min(MAX_MANA, target.mana + MANA_HIT);
+      target.mana = Math.min(MAX_MANA, target.mana + (MANA_PER_HP_LOST * lost) / target.stats.hp);
       if (blocked) {
         target.part.blocked?.();
         // Perseverance's knight: a block strikes back, and the boss hits softer for a while.
@@ -549,7 +562,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
 
       for (const fighter of fighters) {
         // (Slower while something on it, or on every hero, holds its mana back.)
-        fighter.mana = Math.min(MAX_MANA, fighter.mana + MANA_RATE * dt * filling(fighter.statuses) * filling(party));
+        fighter.mana = Math.min(MAX_MANA, fighter.mana + fighter.manaRegen * dt * filling(fighter.statuses) * filling(party));
         fighter.cooldowns = fighter.cooldowns.map((left) => Math.max(0, left - dt));
         // What another hero gave it runs down: its shield, once its time is up, is gone.
         wear(fighter.statuses, dt);

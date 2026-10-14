@@ -14,7 +14,7 @@ import { MOST, RAGE_WIPE, RAID_TIME, STAGES, TICK } from './rules';
  * timing): a page whose sim isn't the bot's version is told to reload.
  */
 
-export const SIM_VERSION = 3;
+export const SIM_VERSION = 4;
 
 /** Seconds in a step, and the most steps a raid can take (the raid's time, and the boss's rage after it). */
 export const STEP_SECONDS: number = TICK;

@@ -2,7 +2,7 @@ import type { StatSection } from '../shared/items';
 import { className, type Hero, type HeroStat } from '../shared/heroes';
 import { POINTS } from '../technomagic/combat/damage';
 import { geared } from '../technomagic/sim/gear';
-import { CRIT } from '../technomagic/sim/rules';
+import { CRIT, MANA_PER_ATTACK, MANA_RATE } from '../technomagic/sim/rules';
 import { CLASS_STATS, type HeroClass } from '../technomagic/heroes/kit';
 
 /*
@@ -57,6 +57,13 @@ export function heroStats(hero: Hero): StatSection[] {
     {
       title: 'Support',
       rows: [row('Heals and shields', 1, 1 + bonus('heal'), times), row('Stun duration', 1, 1 + bonus('control'), times)],
+    },
+    {
+      title: 'Mana',
+      rows: [
+        row('Mana per attack', MANA_PER_ATTACK, MANA_PER_ATTACK * (1 + bonus('manaAttack')), whole),
+        row('Mana recovery per second', MANA_RATE, MANA_RATE * (1 + bonus('manaRegen')), whole),
+      ],
     },
   ];
 }

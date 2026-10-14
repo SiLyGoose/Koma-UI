@@ -16,9 +16,9 @@ import type { SetRole, TmSet } from './sets';
 /**
  * What a hero's gear gives it, as the bot counts it: points added to a chance or share (crit, attack speed,
  * penetration, block, dodge, CC resist: 1000 is 100%), and a share more of its own for the rest (ATK, HP,
- * crit damage, defence, heals and shields, stun duration: 0.25 is 25% more).
+ * crit damage, defence, heals and shields, stun duration, mana per attack, mana recovery: 0.25 is 25% more).
  */
-export type GearStat = 'atk' | 'hp' | 'crit' | 'critDamage' | 'speed' | 'pen' | 'defense' | 'block' | 'dodge' | 'resist' | 'heal' | 'control';
+export type GearStat = 'atk' | 'hp' | 'crit' | 'critDamage' | 'speed' | 'pen' | 'defense' | 'block' | 'dodge' | 'resist' | 'heal' | 'control' | 'manaAttack' | 'manaRegen';
 export type GearBonus = Partial<Record<GearStat, number>>;
 
 /** What a hero is doing besides standing: running in, a move (`part` of its animations, `t` seconds into it; the blows that have landed), or reeling from being knocked about. */
@@ -43,6 +43,9 @@ export interface Fighter {
   readonly critTimes: number;
   readonly healTimes: number;
   readonly controlTimes: number;
+  /** The mana it gains for each blow of its attack that lands, and recovers a second (../rules.ts's, with what its gear adds). */
+  readonly manaPerAttack: number;
+  readonly manaRegen: number;
   /** The TechnoMagic set whose effect it has, and what its class is to it (./sets.ts); null: none. */
   readonly set: { id: TmSet; role: SetRole } | null;
   /** How long each of its moves takes and when its blows land, by its skin (./motion.ts); and the move it attacks with. */
