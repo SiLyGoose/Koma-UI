@@ -2,10 +2,10 @@ import { classBadge, className, FACE, heroCut } from '../../shared/heroes';
 import { levelPopup } from '../../shared/ui/level/level';
 import { GALGORIA } from '../bosses/galgoria';
 import { HEROES } from '../heroes';
-import { lineOf, type HeroClass } from '../heroes/kit';
+import { nearer } from '../heroes/kit';
 import { el } from '../hud/dom';
 import type { PickView, PlayerView, RoomState } from '../protocol';
-import { SOLO_BOSS_HP, type Line } from '../sim/rules';
+import { SOLO_BOSS_HP } from '../sim/rules';
 
 /*
  * Getting ready for a room's fight, as King's Raid has it: across the top the boss and the stage (the host
@@ -43,18 +43,12 @@ const MIN_FIT = 0.4;
 const byId = (id: string): HTMLElement => document.getElementById(id) as HTMLElement;
 const heroNamed = (id: string) => HEROES.find((hero) => hero.id === id);
 
-/** Where a hero stands, nearest the boss first; and in the same line, by its class, the tank first. */
-const LINE_RANK: Record<Line, number> = { front: 0, middle: 1, back: 2 };
-const CLASS_RANK: Record<HeroClass, number> = { knight: 0, warrior: 1, assassin: 2, mechanic: 3, wizard: 4, archer: 5, priest: 6 };
-/** Which of two heroes is nearer the boss (one this page doesn't know: furthest back). */
-function nearer(a: string, b: string): number {
-  const rank = (id: string): [number, number] => {
-    const def = heroNamed(id);
-    return def ? [LINE_RANK[lineOf(def)], CLASS_RANK[def.class]] : [3, 0];
-  };
-  const [lineA, classA] = rank(a);
-  const [lineB, classB] = rank(b);
-  return lineA - lineB || classA - classB;
+/** Which of two picks is shown nearer the boss (../heroes/kit.ts's nearer; one this page doesn't know: furthest back). */
+function nearerPick(a: PickView, b: PickView): number {
+  const defA = heroNamed(a.hero);
+  const defB = heroNamed(b.hero);
+  if (!defA || !defB) return Number(!defA) - Number(!defB);
+  return nearer(defA, defB);
 }
 
 /** Each hero's face, cut once. */
@@ -229,7 +223,7 @@ export function makePrep(act: PrepActions): Prep {
     lineup.style.setProperty('--slots', String(state.slots));
     // As they stand on the field, facing the boss on the right: the front line rightmost, then the middle,
     // then the back; within a line, by class (the tank rightmost), then the first put in. The empty slots are to the left.
-    const placed = [...state.lineup].sort((a, b) => nearer(a.hero, b.hero));
+    const placed = [...state.lineup].sort(nearerPick);
     const slots = state.slots;
     lineup.replaceChildren(
       ...Array.from({ length: slots }, (_, i) => {

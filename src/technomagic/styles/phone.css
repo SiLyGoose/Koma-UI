@@ -1,0 +1,171 @@
+/*
+ * A phone (or tablet) on its side: everything over the field a size down, so the fight shows between it,
+ * but nothing pressed in a fight smaller than about 32px (a skill) or 10px of words (a card's Auto).
+ */
+@media (pointer: coarse) and (orientation: landscape) {
+  /* The heroes' cards (./card.css): their skills about 36px on a phone (32 to 40), the head over each card lower. */
+  .tm-party {
+    --skill: clamp(32px, min(4.7vw, 8.6dvh), 40px);
+    bottom: 6px;
+  }
+
+  .tm-card {
+    padding-top: var(--skill);
+  }
+
+  .tm-skill {
+    border-width: 2px;
+    border-radius: 6px;
+  }
+
+  .tm-auto {
+    padding: 2px 6px;
+    font-size: max(10px, calc(var(--skill) * 0.22));
+  }
+
+  /* Over each hero on the field. */
+  .tm-overhead-at {
+    --skill: 38px;
+    width: 52px;
+  }
+
+  /* Top left: Auto for every hero, and the meter (./meter.css). */
+  .tm-meter {
+    top: 6px;
+    left: 6px;
+    gap: 3px;
+    width: 128px;
+  }
+
+  .tm-meter-auto {
+    padding: 2px 12px;
+    font-size: 12px;
+  }
+
+  .tm-meter-tab {
+    font-size: 10px;
+  }
+
+  .tm-meter-tab.dps[aria-selected='true'],
+  .tm-meter-tab.hps[aria-selected='true'] {
+    font-size: 12px;
+  }
+
+  .tm-meter-rows {
+    gap: 2px;
+  }
+
+  .tm-meter-row {
+    gap: 4px;
+  }
+
+  .tm-meter-row img {
+    width: 26px;
+    height: 26px;
+  }
+
+  .tm-meter-rate em {
+    font-size: 8px;
+  }
+
+  .tm-meter-rate b {
+    font-size: 11px;
+  }
+
+  .tm-meter-bar {
+    height: 10px;
+  }
+
+  .tm-meter-bar b {
+    font-size: 8px;
+    line-height: 10px;
+    -webkit-text-stroke-width: 2px;
+  }
+
+  /* Top middle: the boss's health and what is the matter with it (./boss.css), between the meter and the timer. */
+  .tm-boss {
+    top: 6px;
+    gap: 3px;
+    padding: 0 150px 0 140px;
+  }
+
+  .tm-boss-bar {
+    width: min(100%, 420px);
+    height: 16px;
+  }
+
+  .tm-boss-bar b {
+    font-size: 10px;
+  }
+
+  .tm-marks {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 3px;
+    min-height: 0;
+  }
+
+  .tm-mark {
+    padding: 0 6px;
+    font-size: 9px;
+  }
+
+  /* Top right: the time left and Leave (./timer.css). */
+  .tm-timer {
+    top: 6px;
+    right: 6px;
+    gap: 5px;
+  }
+
+  .tm-timer-clock {
+    gap: 4px;
+    padding: 2px 8px 2px 4px;
+  }
+
+  .tm-timer-skull {
+    font-size: 14px;
+  }
+
+  .tm-timer-clock b {
+    font-size: 15px;
+  }
+
+  .tm-leave {
+    padding: 3px 8px;
+    font-size: 11px;
+  }
+
+  .tm-leave span:first-child {
+    font-size: 13px;
+  }
+
+  /* The numbers coming off whoever is hit or healed (./numbers.css). */
+  .tm-number {
+    font-size: 14px;
+    -webkit-text-stroke-width: 3px;
+  }
+
+  .tm-number.crit {
+    font-size: 20px;
+  }
+
+  .tm-number-label {
+    font-size: 9px;
+    -webkit-text-stroke-width: 2px;
+  }
+
+  .tm-number.dodged {
+    font-size: 12px;
+  }
+
+  /* Trying things out: the boss's attacks under the field, in one or two short rows. */
+  .tm-actions {
+    gap: 4px;
+  }
+
+  .tm-actions .action {
+    min-height: 30px;
+    padding: 0 10px;
+    font-size: 12px;
+  }
+}

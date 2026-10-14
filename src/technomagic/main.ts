@@ -15,6 +15,7 @@ import { loadEffects } from './fx/effects';
 import { makeMagic } from './fx/magic';
 import { HEROES } from './heroes';
 import { SCALE, type Hero } from './heroes/body/hero';
+import { nearer } from './heroes/kit';
 import { loadHeroes, type Entrant } from './heroes/load';
 import { makeActions } from './hud/actions';
 import { makeBossBar } from './hud/boss-bar';
@@ -175,9 +176,11 @@ async function start(): Promise<void> {
         auto: () => controls.auto(i),
         use: (index) => controls.use(i, index),
       });
-      party.append(card.root);
       return card;
     });
+    // Along the bottom as the lineup had them (../prep/prep.ts): the nearest the boss on the right, so the furthest back first.
+    const shown = sim.fighters.map((fighter, i) => ({ def: fighter.def, card: cards[i] })).sort((a, b) => nearer(a.def, b.def)).reverse();
+    for (const { card } of shown) if (card) party.append(card.root);
     const bars = sim.fighters.map(() => makeOverhead(overheads));
     /** Every hero of this player's on Auto. */
     const allAuto = (): boolean => sim.fighters.every((fighter, i) => !controls.mine(i) || fighter.auto);

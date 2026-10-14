@@ -71,6 +71,15 @@ const CLASS_LINES: Record<HeroClass, Line> = { knight: 'front', warrior: 'front'
 /** Where a hero stands: its own line, if it has one, or its class's. */
 export const lineOf = (def: HeroDef): Line => def.line ?? CLASS_LINES[def.class];
 
+const LINE_RANK: Record<Line, number> = { front: 0, middle: 1, back: 2 };
+const CLASS_RANK: Record<HeroClass, number> = { knight: 0, warrior: 1, assassin: 2, mechanic: 3, wizard: 4, archer: 5, priest: 6 };
+/**
+ * Which of two heroes is shown nearer the boss (on the right), as the lineup and the cards along the bottom
+ * show them: by line, the front first; in the same line, by class, the tank first. (Sorted by it, heroes
+ * level on both keep their order.)
+ */
+export const nearer = (a: HeroDef, b: HeroDef): number => LINE_RANK[lineOf(a)] - LINE_RANK[lineOf(b)] || CLASS_RANK[a.class] - CLASS_RANK[b.class];
+
 /**
  * How each class stands, before what is a hero's own (the kind of damage it deals, and anything else it
  * has otherwise): a hero's stats are its class's, with its own over them. Health and attack are as the
