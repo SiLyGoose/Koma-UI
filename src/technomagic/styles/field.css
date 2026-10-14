@@ -24,6 +24,27 @@
   height: 100%;
 }
 
+/* A phone (or tablet) on its side: the page is the window's height and no more, so nothing scrolls. The
+   field takes what the bar leaves (getting ready scales itself down to it: ../prep/prep.ts), and the hint goes. */
+@media (pointer: coarse) and (orientation: landscape) {
+  .technomagic {
+    height: 100dvh;
+    min-height: 0;
+  }
+
+  .tm-field {
+    min-height: 0;
+  }
+
+  .technomagic .hint {
+    display: none;
+  }
+
+  .tm-actions {
+    padding: 6px 8px;
+  }
+}
+
 /* The health of a hero on the field, over its head (../hud/overhead.ts moves it there), what it has on it over that, and its shield under it. */
 .tm-overhead-at {
   /* Its squares' size, as a card's are sized (./card.css): smaller here. */

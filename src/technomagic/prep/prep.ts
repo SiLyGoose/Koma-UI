@@ -2,9 +2,10 @@ import { classBadge, className, FACE, heroCut } from '../../shared/heroes';
 import { levelPopup } from '../../shared/ui/level/level';
 import { GALGORIA } from '../bosses/galgoria';
 import { HEROES } from '../heroes';
+import { lineOf, type HeroClass } from '../heroes/kit';
 import { el } from '../hud/dom';
 import type { PickView, PlayerView, RoomState } from '../protocol';
-import { SOLO_BOSS_HP } from '../sim/rules';
+import { SOLO_BOSS_HP, type Line } from '../sim/rules';
 
 /*
  * Getting ready for a room's fight, as King's Raid has it: across the top the boss and the stage (the host
@@ -34,8 +35,27 @@ export interface Prep {
 /** How many players a room takes (1P to 4P). */
 const ROOM_PLAYERS = 4;
 
+/** A phone (or tablet) on its side, where the screen is scaled down to fit the field rather than scrolled. */
+const TOUCH_SIDEWAYS = matchMedia('(pointer: coarse) and (orientation: landscape)');
+/** The least it is scaled to; past that it scrolls. */
+const MIN_FIT = 0.4;
+
 const byId = (id: string): HTMLElement => document.getElementById(id) as HTMLElement;
 const heroNamed = (id: string) => HEROES.find((hero) => hero.id === id);
+
+/** Where a hero stands, nearest the boss first; and in the same line, by its class, the tank first. */
+const LINE_RANK: Record<Line, number> = { front: 0, middle: 1, back: 2 };
+const CLASS_RANK: Record<HeroClass, number> = { knight: 0, warrior: 1, assassin: 2, mechanic: 3, wizard: 4, archer: 5, priest: 6 };
+/** Which of two heroes is nearer the boss (one this page doesn't know: furthest back). */
+function nearer(a: string, b: string): number {
+  const rank = (id: string): [number, number] => {
+    const def = heroNamed(id);
+    return def ? [LINE_RANK[lineOf(def)], CLASS_RANK[def.class]] : [3, 0];
+  };
+  const [lineA, classA] = rank(a);
+  const [lineB, classB] = rank(b);
+  return lineA - lineB || classA - classB;
+}
 
 /** Each hero's face, cut once. */
 const faces = new Map<string, Promise<string | null>>();
@@ -69,7 +89,8 @@ export function makePrep(act: PrepActions): Prep {
   const level = byId('prep-level');
   const settings = levelPopup({ id: 'prep-settings-pop', title: 'Raid Settings', label: 'Stage', confirm: 'Confirm', down: 'Lower stage', up: 'Higher stage' });
   settings.picture.hidden = true;
-  root.append(settings.root);
+  // Beside the screen rather than in it: scaled down on a phone (fit()), it would hold the popup in it.
+  root.after(settings.root);
   const rewards = byId('prep-rewards');
   const noteAt = byId('prep-note');
   const ready = byId('prep-ready') as HTMLButtonElement;
@@ -111,6 +132,47 @@ export function makePrep(act: PrepActions): Prep {
     },
     close: closeSettings,
   });
+
+  /**
+   * On a phone on its side: the screen laid out as large as it needs (the field's size over the scale) and
+   * scaled down by as little as lets it fit the field, found by halving the gap a few times.
+   */
+  function fit(): void {
+    const field = root.parentElement;
+    const on = !root.hidden && TOUCH_SIDEWAYS.matches && field !== null;
+    root.classList.toggle('fit', on);
+    root.classList.remove('scaled');
+    if (!on) {
+      root.style.removeProperty('width');
+      root.style.removeProperty('height');
+      root.style.removeProperty('--fit');
+      return;
+    }
+    const { clientWidth: width, clientHeight: height } = field;
+    const fits = (scale: number): boolean => {
+      root.style.width = `${width / scale}px`;
+      root.style.height = `${height / scale}px`;
+      return root.scrollHeight <= root.clientHeight;
+    };
+    let scale = 1;
+    if (!fits(1)) {
+      root.classList.add('scaled');
+      let low = MIN_FIT;
+      let high = 1;
+      for (let i = 0; i < 8; i++) {
+        const mid = (low + high) / 2;
+        if (fits(mid)) low = mid;
+        else high = mid;
+      }
+      scale = low;
+      fits(scale);
+    }
+    root.style.setProperty('--fit', String(scale));
+  }
+  if (root.parentElement) new ResizeObserver(fit).observe(root.parentElement);
+  TOUCH_SIDEWAYS.addEventListener('change', fit);
+  // Again once the font is in, its words a little wider and taller than the fallback's.
+  void document.fonts.ready.then(fit);
 
   // Raid Info closes on a press anywhere else.
   document.addEventListener('pointerdown', (event) => {
@@ -165,7 +227,16 @@ export function makePrep(act: PrepActions): Prep {
     level.textContent = `· Stage ${state.stage}`;
     drawSettings();
     lineup.style.setProperty('--slots', String(state.slots));
-    lineup.replaceChildren(...Array.from({ length: state.slots }, (_, i) => slot(state?.lineup[i], owner(state?.lineup[i]?.owner ?? ''), state?.lineup[i]?.owner === state?.you)));
+    // As they stand on the field, facing the boss on the right: the front line rightmost, then the middle,
+    // then the back; within a line, by class (the tank rightmost), then the first put in. The empty slots are to the left.
+    const placed = [...state.lineup].sort((a, b) => nearer(a.hero, b.hero));
+    const slots = state.slots;
+    lineup.replaceChildren(
+      ...Array.from({ length: slots }, (_, i) => {
+        const pick = placed[slots - 1 - i];
+        return slot(pick, owner(pick?.owner ?? ''), pick?.owner === state?.you);
+      }),
+    );
 
     // Their heroes: pressing one puts it in, or takes it out.
     const limit = me?.limit ?? 0;
@@ -190,7 +261,7 @@ export function makePrep(act: PrepActions): Prep {
           button.disabled = !picked && (mine.length >= limit || !room);
           button.setAttribute('aria-pressed', String(picked));
           button.title = picked ? `Take ${hero.name} out` : `Put ${hero.name} in`;
-          button.append(portrait(hero.id, 'tm-prep-hero-face'), el('span', 'tm-prep-hero-name', hero.name));
+          button.append(portrait(hero.id, 'tm-prep-hero-face'));
           if (picked) button.append(el('span', 'tm-prep-hero-check', '✓'));
           button.addEventListener('click', () => (picked ? act.unpick(hero.id) : act.pick(hero.id)));
           return button;
@@ -240,9 +311,11 @@ export function makePrep(act: PrepActions): Prep {
       state = next;
       root.hidden = false;
       draw();
+      fit();
     },
     note(text) {
       noteAt.textContent = text ?? '';
+      fit();
     },
     hide() {
       closeSettings();
