@@ -20,7 +20,7 @@ export function renderGrid(ctx: GearContext): void {
   const scrolled = sheet.scrollTop;
   ui.grid.textContent = '';
   const ofSlot = armoryOrder(gear.copies).filter((c) => filter === 'all' || c.slot === filter);
-  const shown = ofSlot.filter((c) => matchesStars(stars, c.stars) && matchesSearch(query, { name: c.name, id: c.itemId, description: c.description }));
+  const shown = ofSlot.filter((c) => matchesStars(stars, c.stars, c.heroOnly) && matchesSearch(query, { name: c.name, id: c.itemId, description: c.description }));
   ui.grid.classList.toggle('selling', selling !== null);
   const equipped = equippedIds(gear);
   for (const copy of shown) {

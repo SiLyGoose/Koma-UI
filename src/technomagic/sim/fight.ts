@@ -9,6 +9,7 @@ import type { Input, Logged, Result, SimEvent } from './events';
 import { geared } from './gear';
 import { motionOf } from './motion';
 import { seeded } from './random';
+import { AUTHORITY, GUARDED, HOPE, PERSEVERANCE, setOf } from './sets';
 import { AUTO_WAIT, BLOW, CRIT, formation, HERO_WAIT, MANA_HIT, MANA_RATE, MAX_MANA, MOST, RAGE_WIPE, RAID_TIME, rage, REFORM, SECTION, SOLO_BOSS_HP, STAGES, TICK } from './rules';
 import type { Fight, Fighter, Foe, GearBonus } from './types';
 
@@ -29,14 +30,16 @@ import type { Fight, Fighter, Foe, GearBonus } from './types';
  * As in King's Raid, one try is all there is: a hero down stays down (unless a skill of another's revives it),
  * the boss beaten is won, and every hero on the field down (or the boss's rage wiping them, RAGE_WIPE after the
  * raid's time is up) is lost. A raid takes nothing but the heroes' skills and Auto; trying things out, heroes
- * come onto the field and leave it as the player likes, and the boss is set attacking by hand.
+ * come onto the field and leave it as the player likes, and the boss is set attacking by hand. A hero in a
+ * TechnoMagic set's four pieces has the set's effect (./sets.ts).
  */
 
-/** A hero as it comes into the fight: which, in which of its skins (the first, unless it says), with what its gear gives it. */
+/** A hero as it comes into the fight: which, in which of its skins (the first, unless it says), with what its gear gives it, and the TechnoMagic set whose effect it has (./sets.ts). */
 export interface Entry {
   def: HeroDef;
   skin?: number;
   gear?: GearBonus;
+  set?: string | null;
 }
 
 export interface SimOptions {
@@ -109,8 +112,13 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
   let mendShown = 0;
   const party: Status<Buff>[] = [];
 
-  const fighters: Fighter[] = heroes.map(({ def: hero, skin = 0, gear = {} }, index) => {
+  const fighters: Fighter[] = heroes.map(({ def: hero, skin = 0, gear = {}, set: wearing = null }, index) => {
+    const set = setOf(wearing, hero.class);
     const stats = geared(hero.stats, gear);
+    // A set's effects on its wearer's own stats, from the start.
+    if (set?.id === 'perseverance' && set.role === 'knight') stats.hp *= 1 + PERSEVERANCE.hp;
+    if (set?.id === 'authority' && set.role === 'dps') stats.pen += AUTHORITY.pen;
+    if (set?.id === 'authority' && set.role === 'knight') stats.resist += AUTHORITY.resist;
     const motion = motionOf(hero, skin);
     const name = (hero.assets.skins[skin] ?? hero.assets.skins[0])?.name ?? hero.name;
     return {
@@ -120,7 +128,8 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       def: hero,
       stats,
       critTimes: CRIT + (gear.critDamage ?? 0),
-      healTimes: 1 + (gear.heal ?? 0),
+      healTimes: (1 + (gear.heal ?? 0)) * (set?.id === 'perseverance' && set.role === 'priest' ? 1 + PERSEVERANCE.heal : 1),
+      set,
       controlTimes: 1 + (gear.control ?? 0),
       motion,
       attack: motion.attack,
@@ -129,8 +138,8 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       shield: 0,
       shieldLeft: 0,
       statuses: [],
-      // As it comes into the fight: whole, with half its mana.
-      mana: MAX_MANA / 2,
+      // As it comes into the fight: whole, with half its mana (and more with Authority's support).
+      mana: Math.min(MAX_MANA, MAX_MANA / 2 + (set?.id === 'authority' && set.role === 'support' ? AUTHORITY.mana : 0)),
       auto: false,
       cooldowns: hero.abilities.map(() => 0),
       reserved: null,
@@ -193,8 +202,15 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     return aim;
   };
 
+  /** Heroes on the field, standing and in the fight, with a set's `role` (each support of Hope's gives every ally more). */
+  const wearing = (id: string, role: string): Fighter[] => field.filter((on) => on.hp > 0 && !away(on.statuses) && on.set?.id === id && on.set.role === role);
+  /** How many times as hard a hero hits for its sets (Perseverance's damage dealer, growing as the fight goes on; every Hope support's on the field). */
+  const atkTimes = (by: Fighter): number => {
+    const own = by.set?.id === 'perseverance' && by.set.role === 'dps' ? PERSEVERANCE.atk + PERSEVERANCE.step * Math.min(PERSEVERANCE.most, Math.floor(elapsed / PERSEVERANCE.every)) : 0;
+    return (1 + own) * (1 + HOPE.atk * wearing('hope', 'support').length);
+  };
   /** How many times as much a heal or a shield gives for the hero whose it is (its attack and its gear; one that is no hero's: as much as it says). */
-  const byAttack = (by: Fighter | undefined): number => (by ? (by.stats.atk / ATK) * by.healTimes : 1);
+  const byAttack = (by: Fighter | undefined): number => (by ? (by.stats.atk / ATK) * atkTimes(by) * by.healTimes : 1);
 
   function end(how: Result): void {
     if (result) return;
@@ -219,6 +235,10 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     const ability = fighter.def.abilities[index];
     if (!ability || fighter.doing || !sim.ready(fighter, index)) return false;
     begin(fighter, ability.move, true);
+    // Authority's knight: its skills strip what helps the boss.
+    if (fighter.set?.id === 'authority' && fighter.set.role === 'knight') {
+      for (let i = foe.statuses.length - 1; i >= 0; i--) if (((foe.statuses[i] as Status<unknown>).deals ?? 1) > 1) foe.statuses.splice(i, 1);
+    }
     fighter.cooldowns[index] = ability.cooldown;
     fighter.mana -= ability.cost * SECTION;
     return true;
@@ -333,7 +353,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       const { attack, crit } = by.def.passive ?? NO_PASSIVE;
       const { atk, deals: type, crit: points, pen } = by.stats;
       const critical = roll() < share(points) + crit + critting(by.statuses);
-      const { taken, blocked, dodged } = strike(amount * (atk / ATK) * attack * dealing(by.statuses) * (critical ? by.critTimes : 1), type, foe.def.stats, pen + pierce, roll);
+      const { taken, blocked, dodged } = strike(amount * (atk / ATK) * atkTimes(by) * attack * dealing(by.statuses) * (critical ? by.critTimes : 1), type, foe.def.stats, pen + pierce, roll);
       if (dodged) {
         events.push({ kind: 'number', on: 'boss', amount: 0, type: 'dodged' });
         return;
@@ -373,15 +393,35 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     hurt(target, amount, blockable = true) {
       if (target.hp <= 0 || away(target.statuses) || result) return 0;
       const type = foe.def.stats.deals;
-      // Harder or softer for what is on the boss, and harder again once the raid's time is up; then dodged, or what the hero's defence against that kind of damage, and a block, take off.
-      const { taken, blocked, dodged } = strike(amount * dealing(foe.statuses) * rage(clock - RAID_TIME), type, blockable ? target.stats : { ...target.stats, block: NONE, dodge: NONE }, 0, roll);
+      // Harder or softer for what is on the boss, and harder again once the raid's time is up; then dodged, or what the hero's defence against that kind of damage
+      // (more for every Hope support on the field), and a block, take off.
+      const guarded = 1 + HOPE.defence * wearing('hope', 'support').length;
+      const stands = { ...target.stats, physical: target.stats.physical * guarded, magical: target.stats.magical * guarded };
+      const { taken, blocked, dodged } = strike(amount * dealing(foe.statuses) * rage(clock - RAID_TIME), type, blockable ? stands : { ...stands, block: NONE, dodge: NONE }, 0, roll);
       if (dodged) {
         events.push({ kind: 'number', on: target.index, amount: 0, type: 'dodged' });
         return 0;
       }
       events.push({ kind: 'hurt', who: target.index, blocked });
-      // (Less again while every hero is guarded, or it is; more if its passive leaves it easier to hurt.)
-      const dealt = taken * taking(party, type) * taking(target.statuses, type) * (target.def.passive?.taken ?? 1);
+      // (Less again while every hero is guarded, or it is; more if its passive leaves it easier to hurt; less for Hope's knight.)
+      let dealt = taken * taking(party, type) * taking(target.statuses, type) * (target.def.passive?.taken ?? 1) * (target.set?.id === 'hope' && target.set.role === 'knight' ? HOPE.taken : 1);
+      // Hope's knight takes a share of what any other ally takes on itself.
+      const cover = target.def.class === 'knight' ? undefined : wearing('hope', 'knight').find((knight) => knight !== target);
+      if (cover) {
+        const covered = dealt * HOPE.covers;
+        dealt -= covered;
+        const soak = Math.min(cover.shield, covered);
+        cover.shield -= soak;
+        if (covered > soak) {
+          cover.hp = Math.max(0, cover.hp - (covered - soak));
+          events.push({ kind: 'number', on: cover.index, amount: covered - soak, type: 'hit' });
+          if (cover.hp <= 0) {
+            cover.shield = 0;
+            cover.doing = null;
+            cover.reserved = null;
+          }
+        }
+      }
       // A shield on it takes what it can first; its health, the rest.
       const soaked = Math.min(target.shield, dealt);
       target.shield -= soaked;
@@ -396,7 +436,14 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
         target.reserved = null;
       }
       target.mana = Math.min(MAX_MANA, target.mana + MANA_HIT);
-      if (blocked) target.part.blocked?.();
+      if (blocked) {
+        target.part.blocked?.();
+        // Perseverance's knight: a block strikes back, and the boss hits softer for a while.
+        if (target.set?.id === 'perseverance' && target.set.role === 'knight' && target.hp > 0) {
+          sim.hit(target, PERSEVERANCE.strike, false);
+          put(foe.statuses, { name: 'Perseverance', left: PERSEVERANCE.weakFor, deals: PERSEVERANCE.weak, shown: 'slow' });
+        }
+      }
       return dealt;
     },
     revive(fighter, share, by) {
@@ -410,7 +457,8 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       events.push({ kind: 'number', on: fighter.index, amount: fighter.hp, type: 'heal' });
     },
     knock(fighter, seconds) {
-      if (fighter.hp <= 0 || away(fighter.statuses)) return;
+      // (Not one Authority guards.)
+      if (fighter.hp <= 0 || away(fighter.statuses) || fighter.statuses.some((status) => status.guards)) return;
       stagger(fighter);
       // (The shorter for its CC resist.)
       put(fighter.statuses, { name: KNOCKED.name, left: seconds * (1 - share(fighter.stats.resist)), binds: true, shown: KNOCKED });
@@ -613,6 +661,11 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
   }
 
   foe.part = (def.join?.(sim) as BossPart | undefined) ?? foe.part;
+  // Authority's support: the ally with the highest ATK can't be knocked down for a while.
+  if (fighters.some((fighter) => fighter.set?.id === 'authority' && fighter.set.role === 'support')) {
+    const strongest = fighters.reduce<Fighter | null>((best, fighter) => (!best || fighter.stats.atk > best.stats.atk ? fighter : best), null);
+    if (strongest) put(strongest.statuses, { name: GUARDED.name, left: AUTHORITY.guardFor, guards: true, shown: GUARDED });
+  }
   for (const fighter of fighters) fighter.part = fighter.def.join(sim, fighter);
   // On the field from the start: in a raid, every hero (as many as fit); trying things out, the ones asked for, or the first.
   for (const fighter of raid ? fighters : first.map((index) => fighters[index])) if (fighter && !field.includes(fighter)) stand(fighter);

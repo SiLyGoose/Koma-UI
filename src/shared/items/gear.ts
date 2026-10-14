@@ -28,6 +28,8 @@ export interface GearCopy {
   sell?: number | null;
   /** TechnoMagic gear: only the TechnoMagic Raid's heroes wear it (the heroes page), never the member (absent from a bot from before heroes). */
   heroOnly?: boolean;
+  /** A class item (raid gear, and all TechnoMagic gear): the raid class it works for, or null for any (absent from a bot from before it said). */
+  itemClass?: string | null;
   /** The name of the hero wearing it (the heroes page), or null (absent from a bot from before heroes). */
   hero?: string | null;
 }
@@ -108,9 +110,11 @@ export interface GearView {
  * masterwork first at the same level).
  */
 export function armoryOrder(copies: readonly GearCopy[]): GearCopy[] {
+  // TechnoMagic gear first: a tier of its own, above 4 stars.
+  const tier = (copy: GearCopy): number => (copy.heroOnly ? 5 : copy.stars);
   return [...copies].sort(
     (a, b) =>
-      b.stars - a.stars ||
+      tier(b) - tier(a) ||
       a.name.localeCompare(b.name) ||
       a.itemId.localeCompare(b.itemId) ||
       b.level - a.level ||

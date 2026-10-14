@@ -34,6 +34,8 @@ export interface HeroCopy {
   effects: string[];
   /** A class item: the one class of hero it works on (null: any). */
   class: string | null;
+  /** TechnoMagic gear (which only heroes wear): drawn as the TechnoMagic Raid's (absent from a bot from before it said). */
+  heroOnly?: boolean;
   /** The id of their hero wearing it, or null. */
   hero: string | null;
 }
@@ -51,7 +53,9 @@ export interface Hero {
    * resist), a share more of its own for the rest (atk, hp, critDamage, defense, heal, control).
    */
   bonus: Record<HeroStat, number>;
-  /** The same as lines. */
+  /** The TechnoMagic set its weapons and armors are most of: which, how many pieces, and whether its effect is on (all four). Null with none (absent from a bot from before sets). */
+  set?: { id: string; pieces: number; active: boolean } | null;
+  /** The same as lines (its set's last). */
   totals: string[];
 }
 

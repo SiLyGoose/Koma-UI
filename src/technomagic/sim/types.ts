@@ -6,6 +6,7 @@ import type { Buff } from '../hud/buff';
 import type { HeroDef, HeroPart } from '../heroes/kit';
 import type { HeroMove } from '../heroes/moves';
 import type { Motion } from './motion';
+import type { SetRole, TmSet } from './sets';
 
 /*
  * Who is in the fight, as the sim keeps them (./fight.ts), and what a hero's or a boss's part in it may
@@ -42,6 +43,8 @@ export interface Fighter {
   readonly critTimes: number;
   readonly healTimes: number;
   readonly controlTimes: number;
+  /** The TechnoMagic set whose effect it has, and what its class is to it (./sets.ts); null: none. */
+  readonly set: { id: TmSet; role: SetRole } | null;
   /** How long each of its moves takes and when its blows land, by its skin (./motion.ts); and the move it attacks with. */
   readonly motion: Motion;
   readonly attack: HeroMove;

@@ -1,4 +1,4 @@
-import { art, el, itemDetailsClosed, rich, SLOT_NAME, stars } from '../shared/items';
+import { art, el, itemDetailsClosed, rich, SLOT_NAME, stars, tmTier } from '../shared/items';
 import { go } from '../site/nav';
 import { classTag } from './class-tag';
 import { className, itemById, narrow, type DatabankContext } from './context';
@@ -60,10 +60,16 @@ export function renderDetail(ctx: DatabankContext): void {
   const name = el('h3', '', item.name);
   const bonusOn = ctx.masterwork && level === maxLevel && item.masterwork !== null;
   if (bonusOn) name.append(el('span', 'detail-mw', '✨ Masterwork'));
-  // Under the name, its category, then its stars (as the gear page's item panel).
-  title.append(name, el('p', 'detail-meta db-kind', SLOT_NAME[item.slot]), stars(item.stars));
-  // A class item says whose it is.
+  // Under the name, its category, then its stars (as the gear page's item panel); TechnoMagic gear, its tier of its own.
+  title.append(name, el('p', 'detail-meta db-kind', SLOT_NAME[item.slot]), item.source === 'technomagic' ? tmTier() : stars(item.stars));
+  // A class item says whose it is; TechnoMagic gear, its set (all four pieces on a hero give its effect, for the hero's class).
   if (item.class) title.append(classTag(item.class, className(ctx, item.class)));
+  if (item.set) {
+    const set = el('p', 'detail-meta db-set', `${item.set.name} set · ${item.set.boss[0]?.toUpperCase()}${item.set.boss.slice(1)}`);
+    const effect = item.class ? item.set.effects[item.class] : undefined;
+    set.title = `Both weapons and both armors of it on a hero: ${effect ?? 'nothing for its class'}`;
+    title.append(set);
+  }
   const close = el('button', 'detail-close', '✕');
   close.type = 'button';
   close.setAttribute('aria-label', 'Close');

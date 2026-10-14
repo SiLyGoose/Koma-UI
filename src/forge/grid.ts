@@ -29,7 +29,7 @@ export function renderGrid(ctx: ForgeContext): void {
   const shown = ofSlot.filter(
     (c) =>
       (!refineable || refineable.has(c.id) || c.id === picked || usable?.has(c.id)) &&
-      matchesStars(stars, c.stars) &&
+      matchesStars(stars, c.stars, c.heroOnly) &&
       matchesSearch(query, { name: c.name, id: c.itemId, description: c.description }),
   );
   const target = copyById(ctx, picked);

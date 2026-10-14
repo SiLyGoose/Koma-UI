@@ -1,0 +1,108 @@
+/*
+ * TechnoMagic gear: a card like any other (its parchment, its glow, its curl), its border gold; with a dark "TM"
+ * tab edged in gold over its top left corner and a dark tab with its class's symbol in light blue over its top
+ * right one, each standing a little out past the card (../items.ts tmMarks; the symbols are
+ * public/gear/classes/<id>_glyph.png, the ones on the classes' badges). A card (.item) or a slot's frame
+ * (.slot-frame) with those marks in it is drawn so; what is in the middle (its picture, or its slot's icon)
+ * stays as it is. Its marks' sizes go by the card's width.
+ */
+
+.item:has(> .item-tm),
+.slot-frame:has(> .item-tm) {
+  --tier: #e0a92e;
+  --tier-glow: rgb(224 169 46 / 45%);
+  --tm-gold: linear-gradient(160deg, #fff0bf 0%, #e8c46a 25%, #c0882e 55%, #f2d28a 75%, #b57d26 100%);
+  --tm-navy: linear-gradient(180deg, #1c3048, #0f1c2c);
+  /* The border's width (the card's own), and how far the tabs stand out past it. */
+  --tm-border: 2px;
+  --tm-out: max(2px, 3cqi);
+  container-type: inline-size;
+  /* The tabs stand out past the card. */
+  overflow: visible;
+}
+
+/* No stars (TechnoMagic gear is a tier of its own): its rank in the bottom left, and what the card is (Equipped, On Kirze) across the middle, clear of the tabs. */
+.item:has(> .item-tm) .item-level,
+.slot-frame:has(> .item-tm) .slot-level {
+  top: auto;
+  right: auto;
+  bottom: max(4px, 6cqi);
+  left: max(5px, 8cqi);
+}
+
+.item:has(> .item-tm) .item-tag {
+  top: auto;
+  bottom: 24%;
+  left: 50%;
+  translate: -50% 0;
+  transform: none;
+  white-space: nowrap;
+}
+
+/* "TM": a dark tab edged in gold over the top left corner, standing a little out past the card, its right end rounded off. */
+.item-tm {
+  position: absolute;
+  top: calc(-1 * (var(--tm-border) + var(--tm-out)));
+  left: calc(-1 * (var(--tm-border) + var(--tm-out)));
+  z-index: 2;
+  padding: 0.05em 0.55em 0.1em 0.45em;
+  border: max(1.5px, 1.6cqi) solid transparent;
+  border-radius: 0.2em 0.55em 0.55em 0.2em;
+  background:
+    var(--tm-navy) padding-box,
+    var(--tm-gold) border-box;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 45%);
+  color: #d8ecff;
+  font-size: max(9px, 13cqi);
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  line-height: 1.15;
+  text-shadow: 0 0 0.35em rgb(140 200 255 / 60%);
+  pointer-events: none;
+}
+
+/* Its class: a dark square edged in gold over the top right corner, standing a little out past the card, the class's symbol in light blue. */
+.item-tm-class {
+  position: absolute;
+  top: calc(-1 * (var(--tm-border) + var(--tm-out)));
+  right: calc(-1 * (var(--tm-border) + var(--tm-out)));
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: max(16px, 27cqi);
+  aspect-ratio: 1;
+  border: max(1.5px, 1.6cqi) solid transparent;
+  border-radius: 0.3em 0.3em 0.3em 0.7em;
+  background:
+    var(--tm-navy) padding-box,
+    var(--tm-gold) border-box;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 45%);
+  color: #d4ecff;
+}
+
+.item-tm-glyph {
+  width: 72%;
+  height: 72%;
+  background: currentColor;
+  -webkit-mask: var(--glyph) center / contain no-repeat;
+  mask: var(--glyph) center / contain no-repeat;
+  filter: drop-shadow(0 0 2px rgb(120 190 255 / 90%));
+}
+
+/* TechnoMagic gear's tier, where others show their stars (the filters, the databank's lists and its item panel): "TM", as its tab. */
+.tm-tier {
+  display: inline-block;
+  padding: 0 0.5em;
+  border: 2px solid transparent;
+  border-radius: 0.2em 0.55em 0.55em 0.2em;
+  background:
+    linear-gradient(180deg, #1c3048, #0f1c2c) padding-box,
+    linear-gradient(160deg, #fff0bf, #e8c46a 25%, #c0882e 55%, #f2d28a 75%, #b57d26) border-box;
+  color: #d8ecff;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+  vertical-align: middle;
+}

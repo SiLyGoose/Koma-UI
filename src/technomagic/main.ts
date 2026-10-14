@@ -28,6 +28,7 @@ import { makeTimer } from './hud/timer';
 import { makePrep } from './prep/prep';
 import type { AnswerCode, ClientMessage, ErrorCode, FightStart, OverView, RoomState, ServerMessage, TurnInput } from './protocol';
 import { HERO_TURN, makeSim, SECTION, SECTIONS, SIM_VERSION, STAGES, TICK, type Input, type Sim } from './sim';
+import { setBuff } from './sim/sets';
 import './technomagic.css';
 
 /*
@@ -171,7 +172,9 @@ async function start(): Promise<void> {
     const cards = sim.fighters.map((fighter, i) => {
       if (!controls.mine(i)) return null;
       const { def: hero } = fighter;
-      const card = makeCard(fighter.name, pictures[i] as string, hero.abilities, hero.passive ? [hero.passive.shown] : [], SECTIONS, {
+      // Its passive, and its set's effect (squares on its card).
+      const passives = [...(hero.passive ? [hero.passive.shown] : []), ...(fighter.set ? [setBuff(fighter.set)] : [])];
+      const card = makeCard(fighter.name, pictures[i] as string, hero.abilities, passives, SECTIONS, {
         toggle: () => controls.toggle?.(i),
         auto: () => controls.auto(i),
         use: (index) => controls.use(i, index),
@@ -364,7 +367,7 @@ async function start(): Promise<void> {
       const bodies = await bodiesFor(start.heroes);
       if (lock !== mine) return;
       if (!bodies) return void showMessage('The models are missing', 'A hero in this fight isn’t on this computer.');
-      const sim = makeSim({ boss: def, heroes: start.heroes.map((hero, i) => ({ def: (bodies[i] as Entrant).def, skin: hero.skin, gear: hero.gear })), seed: start.seed, stage: start.stage, raid: true, solo: start.solo });
+      const sim = makeSim({ boss: def, heroes: start.heroes.map((hero, i) => ({ def: (bodies[i] as Entrant).def, skin: hero.skin, gear: hero.gear, set: hero.set })), seed: start.seed, stage: start.stage, raid: true, solo: start.solo });
       const you = state?.you;
       game = play(sim, bodies, {
         mine: (i) => start.heroes[i]?.owner === you,

@@ -1,5 +1,5 @@
 import './armory-filter.css';
-import { el, type Slot, stars } from '../items';
+import { el, type Slot, stars, tmTier } from '../items';
 
 /*
  * The armories' filter (the gear page's, the forge's, the databank's): a Filter button beside the search,
@@ -10,10 +10,10 @@ import { el, type Slot, stars } from '../items';
  * which this fills.
  */
 
-export type StarChoice = 1 | 2 | 3 | 4 | 'all';
+export type StarChoice = 1 | 2 | 3 | 4 | 'tm' | 'all';
 
-/** Whether an item of `n` stars is shown under `choice`. */
-export const matchesStars = (choice: StarChoice, n: number): boolean => choice === 'all' || n === choice;
+/** Whether an item of `n` stars (or TechnoMagic gear, `tm`: a tier of its own) is shown under `choice`. */
+export const matchesStars = (choice: StarChoice, n: number, tm = false): boolean => choice === 'all' || (choice === 'tm' ? tm : !tm && n === choice);
 
 /** What the filter picks. */
 export interface ArmoryChoice {
@@ -50,7 +50,7 @@ const TYPES: readonly [Slot | 'all', string][] = [
   ['armor', 'Armor'],
   ['treasure', 'Treasures'],
 ];
-const TIERS: readonly StarChoice[] = ['all', 4, 3, 2, 1];
+const TIERS: readonly StarChoice[] = ['all', 'tm', 4, 3, 2, 1];
 
 let count = 0;
 
@@ -96,7 +96,7 @@ export function armoryFilter(box: HTMLElement): ArmoryFilter {
   panel.hidden = true;
   const types = group('Type', ...TYPES.map(([slot, name]) => option('radio', 'slot', slot, name)));
   // Any across the top, then the tiers in pairs.
-  const tiers = group('Stars', ...TIERS.map((n) => (n === 'all' ? option('radio', 'stars', 'all', 'Any', true) : option('radio', 'stars', String(n), stars(n)))));
+  const tiers = group('Stars', ...TIERS.map((n) => (n === 'all' ? option('radio', 'stars', 'all', 'Any', true) : option('radio', 'stars', String(n), n === 'tm' ? tmTier() : stars(n)))));
   const owned = option('checkbox', 'owned', 'owned', 'Owned only', true);
   const refineable = option('checkbox', 'refineable', 'refineable', 'Refineable', true);
   const only = group('Show', owned, refineable);
@@ -145,7 +145,7 @@ export function armoryFilter(box: HTMLElement): ArmoryFilter {
     const tier = picked('stars') ?? 'all';
     choose({
       slot: (picked('slot') ?? 'all') as Slot | 'all',
-      stars: tier === 'all' ? 'all' : (Number(tier) as StarChoice),
+      stars: tier === 'all' || tier === 'tm' ? tier : (Number(tier) as StarChoice),
       owned: current.owned === null ? null : picked('owned') !== undefined,
       refineable: current.refineable === null ? null : picked('refineable') !== undefined,
       cls: current.cls === null ? null : (picked('class') ?? 'all'),

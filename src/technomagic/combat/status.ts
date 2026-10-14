@@ -26,6 +26,8 @@ export interface Status<Shown> {
   /** Its bearer can do nothing while it is on (knocked down); and is out of the fight altogether, not to be aimed at (imprisoned). */
   binds?: boolean;
   away?: boolean;
+  /** Its bearer can't be knocked down while it is on. */
+  guards?: boolean;
   /** How many are stacked up in it. */
   count?: number;
   shown: Shown;

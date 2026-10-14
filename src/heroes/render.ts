@@ -1,4 +1,4 @@
-import { art, el, hoverSound, itemDetailsClosed, itemFace, itemPicked, lockBadge, matchesSearch, matchesStars, rich, SLOT_NAME, stars as starRow } from '../shared/items';
+import { art, el, hoverSound, itemDetailsClosed, itemFace, itemPicked, lockBadge, matchesSearch, matchesStars, rich, SLOT_NAME, stars as starRow, tmMarks } from '../shared/items';
 import { classBadge, className, FACE, HERO_SLOT_KIND, heroCut, heroPicture, type Hero, type HeroCopy, type HeroSlot } from '../shared/heroes';
 import { working } from '../shared/ui';
 import { copyById, heroShown, mine, slotFor, slotOf, type HeroesContext } from './context';
@@ -155,7 +155,8 @@ function renderSlots(ctx: HeroesContext): void {
     button.setAttribute('aria-label', copy ? `${slotName(slot)}: ${copy.name}` : `${slotName(slot)}: empty`);
     const frame = el('span', 'slot-frame');
     frame.append(art(copy?.itemId ?? null, kind));
-    if (copy) frame.append(el('span', 'slot-level', `R${copy.level}`), starRow(copy.stars));
+    // (TechnoMagic gear has no stars, but its marks: a tier of its own.)
+    if (copy) frame.append(el('span', 'slot-level', `R${copy.level}`), ...(copy.heroOnly ? tmMarks(copy.class) : [starRow(copy.stars)]));
     button.append(frame, el('span', 'slot-name', slotName(slot)));
   }
 }
@@ -183,7 +184,7 @@ function renderGrid(ctx: HeroesContext, act: HeroActions): void {
   const scrolled = sheet.scrollTop;
   ui.grid.textContent = '';
   const ofSlot = view.copies.filter((copy) => filter === 'all' || copy.slot === filter);
-  const shown = ofSlot.filter((copy) => matchesStars(stars, copy.stars) && matchesSearch(query, { name: copy.name, id: copy.itemId, description: copy.description }));
+  const shown = ofSlot.filter((copy) => matchesStars(stars, copy.stars, copy.heroOnly) && matchesSearch(query, { name: copy.name, id: copy.itemId, description: copy.description }));
   for (const copy of shown) {
     const card = el('button', 'item');
     card.type = 'button';

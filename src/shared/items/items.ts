@@ -92,6 +92,13 @@ export function art(itemId: string | null, slot: Slot): HTMLElement {
   return box;
 }
 
+/** TechnoMagic gear's tier, in place of stars: a tier of its own, above 4 stars. */
+export function tmTier(): HTMLElement {
+  const tier = el('span', 'tm-tier', 'TM');
+  tier.setAttribute('aria-label', 'TechnoMagic');
+  return tier;
+}
+
 export function stars(n: number): HTMLElement {
   const row = el('span', 'stars');
   row.setAttribute('aria-label', `${n} star${n === 1 ? '' : 's'}`);
@@ -99,10 +106,37 @@ export function stars(n: number): HTMLElement {
   return row;
 }
 
-/** What's on a copy's card, whatever the card is (an armory button, the anvil's, the details'): its rank, picture, stars and the parchment's curl. */
-export function itemFace(copy: { level: number; itemId: string; slot: Slot; stars: number }): HTMLElement[] {
+/**
+ * TechnoMagic gear's marks, as King's Raid draws its TM gear: a "TM" tab over its top left corner, and over its
+ * top right one a tab with its class's symbol (none for gear of no class). Its card is otherwise as any other's,
+ * its border gold (styles/tm.css, for a card with these in it).
+ */
+export function tmMarks(itemClass: string | null | undefined): HTMLElement[] {
+  const tag = el('span', 'item-tm', 'TM');
+  tag.setAttribute('aria-label', 'TechnoMagic gear');
+  if (!itemClass) return [tag];
+  const tab = el('span', 'item-tm-class');
+  tab.title = `${itemClass[0]?.toUpperCase()}${itemClass.slice(1)} only`;
+  tab.setAttribute('aria-label', tab.title);
+  // The class's own symbol (public/gear/classes/<id>_glyph.png: the one on its badge, alone), tinted by tm.css.
+  const glyph = el('span', 'item-tm-glyph');
+  glyph.style.setProperty('--glyph', `url("/gear/classes/${itemClass}_glyph.png")`);
+  tab.append(glyph);
+  return [tag, tab];
+}
+
+/**
+ * What's on a copy's card, whatever the card is (an armory button, the anvil's, the details'): its rank, picture, stars and the
+ * parchment's curl. TechnoMagic gear (`heroOnly`) has no stars, being a tier of its own, but its marks (with its class:
+ * `itemClass`, or `class` as the heroes page has it).
+ */
+export function itemFace(copy: { level: number; itemId: string; slot: Slot; stars: number; heroOnly?: boolean; itemClass?: string | null; class?: string | null }): HTMLElement[] {
+  if (copy.heroOnly) return [el('span', 'item-level', `R${copy.level}`), art(copy.itemId, copy.slot), ...tmMarks(copy.itemClass ?? copy.class)];
   return [el('span', 'item-level', `R${copy.level}`), art(copy.itemId, copy.slot), stars(copy.stars), el('span', 'item-curl')];
 }
+
+/** How an item ranks among the tiers, best highest: TechnoMagic gear above 4 stars. */
+export const tierRank = (item: { stars: number; heroOnly?: boolean }): number => (item.heroOnly ? 5 : item.stars);
 
 /**
  * An effect line as Discord shows it: custom emoji (<:name:id>) become their pictures, **bold**,
