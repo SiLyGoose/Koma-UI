@@ -83,6 +83,15 @@
   background: var(--accent);
 }
 
+/* Effects that don't count where the copy is (on a hero of a class it doesn't work on): greyed out, as an effect section that isn't on. */
+.detail-effects.off {
+  color: var(--dusk);
+}
+
+.detail-effects.off li::before {
+  background: var(--dusk);
+}
+
 .detail-effects li.muted::before {
   display: none;
 }

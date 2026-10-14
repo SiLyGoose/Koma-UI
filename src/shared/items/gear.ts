@@ -24,6 +24,8 @@ export interface GearCopy {
   additional?: string | null;
   /** Whether its additional skill is on: a hero of its class wears it (absent from a bot from before it said). */
   additionalActive?: boolean;
+  /** Worn by a hero of a class it doesn't work on: none of it counts there, not even its stats (absent from a bot from before it said). */
+  wrongClass?: boolean;
   borrowed: number | null;
   /** Refining it, for the forge (absent from a bot from before refining on the site). */
   refine?: GearRefine;

@@ -273,10 +273,13 @@ function renderDetail(ctx: HeroesContext, act: HeroActions): void {
   top.append(card, info);
 
   const body = el('div', 'detail-body');
-  // (TechnoMagic gear's set effect and additional effect, each apart under them.)
-  body.append(el('p', 'detail-desc', copy.description), el('p', 'detail-label', 'On a hero'), effectList(copy), ...tmSections(copy));
-  if (copy.class !== null && !worksOn(copy, hero)) {
-    body.append(el('p', 'detail-note warn', `Only works on ${className(copy.class)}s: on ${hero.name} it does nothing.`));
+  // (TechnoMagic gear's set effect and additional effect, each apart under them. On a hero of a class it doesn't
+  // work on, none of it counts, not even its stats: all of it greyed out.)
+  const fits = worksOn(copy, hero);
+  const shown = fits ? copy : { ...copy, setEffect: copy.setEffect && { ...copy.setEffect, active: false }, additionalActive: false };
+  body.append(el('p', 'detail-desc', copy.description), el('p', 'detail-label', 'On a hero'), effectList(copy, fits ? 'detail-effects' : 'detail-effects off'), ...tmSections(shown));
+  if (copy.class !== null && !fits) {
+    body.append(el('p', 'detail-note warn', `Only works on ${className(copy.class)}s: on ${hero.name} it does nothing, not even its stats.`));
   }
   const owner = copy.uniqueWeapon ? view.heroes.find((one) => one.id === copy.uniqueWeapon) : undefined;
   if (copy.uniqueWeapon && !wieldable(copy, hero)) body.append(el('p', 'detail-note warn', `${owner?.name ?? 'Another hero'}’s unique weapon: only they can wield it.`));

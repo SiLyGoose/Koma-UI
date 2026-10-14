@@ -38,7 +38,8 @@ export function renderDetail(ctx: GearContext): void {
   if (copy.masterwork) info.append(el('span', 'detail-mw', '✨ Masterwork'));
   top.append(card, info);
 
-  const effects = effectList(copy, 'detail-effects');
+  // (Greyed out on a hero of a class it doesn't work on: none of it counts there.)
+  const effects = effectList(copy, copy.wrongClass ? 'detail-effects off' : 'detail-effects');
 
   const worn = isWorn(ctx, copy);
   const current = worn || !mine(ctx) || selling || copy.heroOnly ? undefined : copyById(ctx, gear.equipped[copy.slot]);
@@ -85,6 +86,7 @@ export function renderDetail(ctx: GearContext): void {
     body.append(note);
   }
   if (copy.hero) body.append(el('p', 'detail-note', `${copy.hero} wears this in the TechnoMagic Raid.`));
+  if (copy.hero && copy.wrongClass) body.append(el('p', 'detail-note warn', `It isn’t made for ${copy.hero}’s class: none of it works on them, not even its stats.`));
 
   // What can be done with it, under a line along the bottom.
   const foot = el('div', 'detail-foot');
