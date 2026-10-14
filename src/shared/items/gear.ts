@@ -17,6 +17,13 @@ export interface GearCopy {
   maxLevel: number;
   masterwork: boolean;
   effects: string[];
+  /** TechnoMagic gear (not a treasure): its set's effect for its class, once a hero wears `pieces` of it, and whether it is on (`active`: the hero wearing it has its set's effect); null
+   * otherwise (absent from a bot from before it said it apart; `active`, from one before it said that). */
+  setEffect?: { pieces: number; text: string; active?: boolean } | null;
+  /** TechnoMagic gear: the additional skill this copy came with, like "Vigor: Increases DMG…"; null with none (absent from a bot from before it said it apart). */
+  additional?: string | null;
+  /** Whether its additional skill is on: a hero of its class wears it (absent from a bot from before it said). */
+  additionalActive?: boolean;
   borrowed: number | null;
   /** Refining it, for the forge (absent from a bot from before refining on the site). */
   refine?: GearRefine;

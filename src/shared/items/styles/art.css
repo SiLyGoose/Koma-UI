@@ -87,6 +87,27 @@
   display: none;
 }
 
+/* One of TechnoMagic gear's effects set apart under the others (items.ts effectSection): a gap, what it's called, then what it does on the next line. */
+.detail-section {
+  margin-top: 14px;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.detail-section-label {
+  margin: 0 0 2px;
+  font-weight: 700;
+}
+
+/* On for the copy (its hero has the set's effect; a hero of its class wears it): light blue. Not on: greyed out. */
+.detail-section.on {
+  color: var(--effect-on);
+}
+
+.detail-section.off {
+  color: var(--dusk);
+}
+
 /* A command named in an effect line, like `forge`. */
 .detail-effects code {
   padding: 1px 5px;

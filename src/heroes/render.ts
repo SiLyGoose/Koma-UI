@@ -1,4 +1,4 @@
-import { art, el, hoverSound, itemDetailsClosed, itemFace, itemPicked, lockBadge, matchesSearch, matchesStars, rich, tierOf, SLOT_NAME, stars as starRow, tmMarks, uwMarks, type StatSection } from '../shared/items';
+import { art, el, hoverSound, itemDetailsClosed, itemFace, itemPicked, lockBadge, matchesSearch, matchesStars, rich, tierOf, SLOT_NAME, stars as starRow, tmMarks, tmSections, uwMarks, type StatSection } from '../shared/items';
 import { classBadge, className, FACE, HERO_SLOT_KIND, heroCut, heroPicture, type Hero, type HeroCopy, type HeroSlot } from '../shared/heroes';
 import { working } from '../shared/ui';
 import { copyById, heroShown, mine, slotFor, slotOf, type HeroesContext } from './context';
@@ -273,7 +273,8 @@ function renderDetail(ctx: HeroesContext, act: HeroActions): void {
   top.append(card, info);
 
   const body = el('div', 'detail-body');
-  body.append(el('p', 'detail-desc', copy.description), el('p', 'detail-label', 'On a hero'), effectList(copy));
+  // (TechnoMagic gear's set effect and additional effect, each apart under them.)
+  body.append(el('p', 'detail-desc', copy.description), el('p', 'detail-label', 'On a hero'), effectList(copy), ...tmSections(copy));
   if (copy.class !== null && !worksOn(copy, hero)) {
     body.append(el('p', 'detail-note warn', `Only works on ${className(copy.class)}s: on ${hero.name} it does nothing.`));
   }

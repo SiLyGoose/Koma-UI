@@ -21,8 +21,12 @@ export interface DatabankItem {
   class?: string | null;
   /** A unique weapon: the id of the one hero that wields it (null, or absent from a bot from before them: not one). */
   uniqueWeapon?: string | null;
-  /** TechnoMagic gear: the set it belongs to (its name, and its effect for each class), and which raid's boss drops it (absent from a bot from before sets). */
-  set?: { name: string; boss: string; effects: Partial<Record<string, string>> } | null;
+  /**
+   * TechnoMagic gear: the set it belongs to (its name, and its effect for each class), which raid's boss drops it
+   * (absent from a bot from before sets), how many pieces on a hero give its effect, and this piece's own (for its
+   * class; null for a treasure, apart from the set): those two absent from a bot from before it said them.
+   */
+  set?: { name: string; boss: string; effects: Partial<Record<string, string>>; pieces?: number; effect?: string | null } | null;
 }
 
 /** A raid class: what a class item's tag says, what the filter offers, and what the Classes show. Its picture is public/gear/classes/<id>.png. */

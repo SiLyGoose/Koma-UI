@@ -201,6 +201,32 @@ export function rich(line: string): DocumentFragment {
 }
 
 /**
+ * One of TechnoMagic gear's effects, set apart under the item's other effects after a gap: what it is called on
+ * a line of its own ("3-set effect:", "Additional Effect:"), then what it does on the next (a line, or more).
+ * `on` says whether it is on for a copy: light blue when it is, greyed out when it isn't (left out: neither, as
+ * the databank's item, which no one wears).
+ */
+export function effectSection(label: string, body: string | Node, on?: boolean): HTMLElement {
+  const section = el('div', on === undefined ? 'detail-section' : on ? 'detail-section on' : 'detail-section off');
+  const text = el('div', 'detail-section-text');
+  text.append(typeof body === 'string' ? rich(body) : body);
+  section.append(el('p', 'detail-section-label', label), text);
+  return section;
+}
+
+/**
+ * A TechnoMagic copy's set effect and additional effect, each set apart, light blue while it is on and greyed out
+ * while it isn't (none for another copy, or from a bot from before it said them so; neither colour from one before
+ * it said whether they're on).
+ */
+export function tmSections(copy: { setEffect?: { pieces: number; text: string; active?: boolean } | null; additional?: string | null; additionalActive?: boolean }): HTMLElement[] {
+  return [
+    ...(copy.setEffect ? [effectSection(`${copy.setEffect.pieces}-set effect:`, copy.setEffect.text, copy.setEffect.active)] : []),
+    ...(copy.additional ? [effectSection('Additional Effect:', copy.additional, copy.additionalActive)] : []),
+  ];
+}
+
+/**
  * A locked copy's mark on its card: a dark tab set into the card's right edge, holding a white padlock
  * outlined in black with a black keyhole.
  */

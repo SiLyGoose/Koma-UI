@@ -1,4 +1,4 @@
-import { art, el, itemDetailsClosed, rich, SLOT_NAME, stars, tmTier, uwTier } from '../shared/items';
+import { art, effectSection, el, itemDetailsClosed, rich, SLOT_NAME, stars, tmTier, uwTier } from '../shared/items';
 import { go } from '../site/nav';
 import { SKILLS } from '../technomagic/sim/skills';
 import { classTag } from './class-tag';
@@ -130,7 +130,9 @@ export function renderDetail(ctx: DatabankContext): void {
   if (item.masterwork !== null && level < maxLevel) {
     ui.detailBody.append(el('p', 'detail-note', `Has a masterwork bonus at R${maxLevel}: press ✨ to see it.`));
   }
-  if (item.source === 'technomagic') ui.detailBody.append(skillList());
+  // TechnoMagic gear: its set effect, then its additional effect (one of them, at random), each apart under its effects.
+  if (item.set?.pieces && item.set.effect) ui.detailBody.append(effectSection(`${item.set.pieces}-set effect:`, item.set.effect));
+  if (item.source === 'technomagic') ui.detailBody.append(effectSection('Additional Effect:', skillList()));
   // Where it comes from, a box for each place (nothing from a bot that doesn't say).
   const sources = item.sources ?? (item.source ? [item.source] : []);
   if (sources.length > 0) {

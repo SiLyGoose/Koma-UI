@@ -30,8 +30,15 @@ export interface HeroCopy {
   maxLevel: number;
   masterwork: boolean;
   locked: boolean;
-  /** What it does on a hero, a line for each stat it raises (and a TechnoMagic copy's additional skill, last). */
+  /** What it does on a hero, a line for each stat it raises. */
   effects: string[];
+  /** TechnoMagic gear (not a treasure): its set's effect for its class, once a hero wears `pieces` of it, and whether it is on (`active`: the hero wearing it has its set's effect); null
+   * otherwise (absent from a bot from before it said it apart; `active`, from one before it said that). */
+  setEffect?: { pieces: number; text: string; active?: boolean } | null;
+  /** TechnoMagic gear: the additional skill this copy came with, like "Vigor: Increases DMG…"; null with none (absent from a bot from before it said it apart). */
+  additional?: string | null;
+  /** Whether its additional skill is on: a hero of its class wears it (absent from a bot from before it said). */
+  additionalActive?: boolean;
   /** TechnoMagic gear: the additional skill this copy came with (the sim's id: ../technomagic/sim/skills.ts), or null (absent from a bot from before them). */
   skill?: string | null;
   /** A class item: the one class of hero it works on (null: any). */

@@ -1,5 +1,5 @@
 import { coin, points } from '../../shared/util';
-import { el, forgePlan, type GearCopy, itemDetailsClosed, itemFace, rich, SLOT_NAME } from '../../shared/items';
+import { el, forgePlan, type GearCopy, itemDetailsClosed, itemFace, rich, SLOT_NAME, tmSections } from '../../shared/items';
 import { doneMark, working } from '../../shared/ui';
 import { equip, setLocked, unequip } from './api';
 import { copyById, isWorn, mine, wearOnly, type GearContext } from './context';
@@ -65,7 +65,8 @@ export function renderDetail(ctx: GearContext): void {
 
   // What it does.
   const body = el('div', 'detail-body');
-  body.append(el('p', 'detail-desc', copy.description), el('p', 'detail-label', 'Effects'), effects);
+  // (TechnoMagic gear's set effect and additional effect, each apart under them.)
+  body.append(el('p', 'detail-desc', copy.description), el('p', 'detail-label', 'Effects'), effects, ...tmSections(copy));
   if (copy.borrowed !== null) {
     const who = mine(ctx) ? 'you get' : `${ctx.viewing?.name} gets`;
     body.append(el('p', 'detail-note', `This one is made for someone else: ${who} ${Math.round(copy.borrowed * 100)}% of its effects.`));
