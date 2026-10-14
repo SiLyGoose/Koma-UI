@@ -1,4 +1,4 @@
-import { armoryOrder, el, equippedIds, forgePlan, hoverSound, itemFace, lockBadge, matchesSearch, matchesStars, SLOT_NAME } from '../shared/items';
+import { armoryOrder, el, equippedIds, forgePlan, hoverSound, itemFace, lockBadge, matchesSearch, matchesStars, SLOT_NAME, tierOf } from '../shared/items';
 import { choosing, copyById, type ForgeContext, refineableIds } from './context';
 import { pick, pickMaterial } from './picking';
 
@@ -29,7 +29,7 @@ export function renderGrid(ctx: ForgeContext): void {
   const shown = ofSlot.filter(
     (c) =>
       (!refineable || refineable.has(c.id) || c.id === picked || usable?.has(c.id)) &&
-      matchesStars(stars, c.stars, c.heroOnly) &&
+      matchesStars(stars, tierOf(c)) &&
       matchesSearch(query, { name: c.name, id: c.itemId, description: c.description }),
   );
   const target = copyById(ctx, picked);

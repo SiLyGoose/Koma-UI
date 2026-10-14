@@ -3,6 +3,8 @@ import { HEROES } from '../heroes';
 import type { Input } from './events';
 import { makeSim } from './fight';
 import { MOST, RAGE_WIPE, RAID_TIME, STAGES, TICK } from './rules';
+import { MOST_SKILLS, SKILLS } from './skills';
+import { UNIQUE_HEROES, uniqueAbout } from './unique';
 
 /*
  * The fight as the bot runs it: a room's raid (startRaid), stepped by the bot's clock with every player's
@@ -14,7 +16,7 @@ import { MOST, RAGE_WIPE, RAID_TIME, STAGES, TICK } from './rules';
  * timing): a page whose sim isn't the bot's version is told to reload.
  */
 
-export const SIM_VERSION = 4;
+export const SIM_VERSION = 6;
 
 /** Seconds in a step, and the most steps a raid can take (the raid's time, and the boss's rage after it). */
 export const STEP_SECONDS: number = TICK;
@@ -23,13 +25,35 @@ export const MOST_TICKS: number = Math.ceil((RAID_TIME + RAGE_WIPE) / TICK) + 1;
 export const MOST_INPUTS = 20_000;
 export const MOST_STAGE: number = STAGES;
 
-/** A hero in a raid: its id, the index of its skin, what its gear gives it (the bot's HeroBonus), and the TechnoMagic set whose effect it has (all four pieces worn), or none. */
+/**
+ * A hero in a raid: its id, the index of its skin, what its gear gives it (the bot's HeroBonus), the TechnoMagic
+ * set whose effect it has (all four pieces worn), or none, its own unique weapon's tier (its refinement, 1
+ * to 5), or none, and the additional skill of each piece of TechnoMagic gear it wears (TM_SKILLS' ids).
+ */
 export interface RunHero {
   id: string;
   skin: number;
   gear: Readonly<Record<string, number>>;
   set?: string | null;
+  uw?: number | null;
+  skills?: readonly string[] | null;
 }
+
+/** The heroes that have a unique weapon, by id; and what one's does at a tier (1 to 5), as the bot says it: null for a hero with none. */
+export const UNIQUE_WEAPON_HEROES: readonly string[] = UNIQUE_HEROES;
+export const uniqueWeaponText = (hero: string, tier: number): string | null => uniqueAbout(hero, tier);
+
+/** One of TechnoMagic gear's additional skills: its id, its name, its tier on the tier list (S down to F), and what it does. */
+export interface TmSkill {
+  id: string;
+  name: string;
+  tier: string;
+  about: string;
+}
+
+/** Every additional skill a piece of TechnoMagic gear may come with (one, rolled as it drops: each as likely); and the most a hero has. */
+export const TM_SKILLS: readonly TmSkill[] = SKILLS.map(({ id, name, tier, about }) => ({ id, name, tier, about }));
+export const MOST_TM_SKILLS: number = MOST_SKILLS;
 
 /** A raid as the bot gave it to the pages: the boss, the seed, the stage, its heroes in order, and whether it is fought alone (the boss easier). */
 export interface Run {
@@ -120,7 +144,8 @@ export function startRaid(run: Run): LiveRaid | string {
     if (!def || !whole(hero.skin, def.assets.skins.length)) return 'hero';
     const gear: Record<string, number> = {};
     for (const [stat, n] of Object.entries(hero.gear)) if (Number.isFinite(n)) gear[stat] = n;
-    entries.push({ def, skin: hero.skin, gear, set: typeof hero.set === 'string' ? hero.set : null });
+    const skills = Array.isArray(hero.skills) ? hero.skills.filter((id): id is string => typeof id === 'string') : [];
+    entries.push({ def, skin: hero.skin, gear, set: typeof hero.set === 'string' ? hero.set : null, uw: typeof hero.uw === 'number' ? hero.uw : null, skills });
   }
   const sim = makeSim({ boss, heroes: entries, seed: run.seed, stage: run.stage, raid: true, solo: run.solo === true });
   const heroes = entries.length;

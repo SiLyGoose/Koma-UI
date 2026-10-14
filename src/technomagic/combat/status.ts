@@ -23,6 +23,10 @@ export interface Status<Shown> {
   mana?: number;
   /** Added to how likely its bearer's blows are to be critical. */
   crit?: number;
+  /** Added to its bearer's penetration (points). */
+  pen?: number;
+  /** Its bearer's defense is this many times as much. */
+  defends?: number;
   /** Its bearer can do nothing while it is on (knocked down); and is out of the fight altogether, not to be aimed at (imprisoned). */
   binds?: boolean;
   away?: boolean;
@@ -89,6 +93,20 @@ export function critting(on: readonly Status<unknown>[]): number {
   let more = 0;
   for (const { crit } of on) more += crit ?? 0;
   return more;
+}
+
+/** What these add to a bearer's penetration (points). */
+export function piercing(on: readonly Status<unknown>[]): number {
+  let more = 0;
+  for (const { pen } of on) more += pen ?? 0;
+  return more;
+}
+
+/** How many times as much defense a bearer of these has. */
+export function defending(on: readonly Status<unknown>[]): number {
+  let times = 1;
+  for (const { defends } of on) times *= defends ?? 1;
+  return times;
 }
 
 /** A bearer of these can do nothing; is out of the fight altogether. */

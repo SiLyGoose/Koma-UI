@@ -1,4 +1,4 @@
-import type { Slot } from './items';
+import { tierRank, type Slot } from './items';
 
 /*
  * What the bot's /api/gear answers (its web/gear.ts), for the pages that show a member's gear: the gear
@@ -26,8 +26,10 @@ export interface GearCopy {
   locked?: boolean;
   /** What selling it pays in zeiucoins: null when it's worn, saved in a loadout, on a hero or locked, so never sold (absent from a bot from before selling on the site). */
   sell?: number | null;
-  /** TechnoMagic gear: only the TechnoMagic Raid's heroes wear it (the heroes page), never the member (absent from a bot from before heroes). */
+  /** TechnoMagic gear or a unique weapon: only the TechnoMagic Raid's heroes wear it (the heroes page), never the member (absent from a bot from before heroes). */
   heroOnly?: boolean;
+  /** A unique weapon: the id of the one hero that wields it, or null (absent from a bot from before them). */
+  uniqueWeapon?: string | null;
   /** A class item (raid gear, and all TechnoMagic gear): the raid class it works for, or null for any (absent from a bot from before it said). */
   itemClass?: string | null;
   /** The name of the hero wearing it (the heroes page), or null (absent from a bot from before heroes). */
@@ -110,8 +112,8 @@ export interface GearView {
  * masterwork first at the same level).
  */
 export function armoryOrder(copies: readonly GearCopy[]): GearCopy[] {
-  // TechnoMagic gear first: a tier of its own, above 4 stars.
-  const tier = (copy: GearCopy): number => (copy.heroOnly ? 5 : copy.stars);
+  // TechnoMagic gear first: a tier of its own, above 4 stars; then the unique weapons.
+  const tier = tierRank;
   return [...copies].sort(
     (a, b) =>
       tier(b) - tier(a) ||

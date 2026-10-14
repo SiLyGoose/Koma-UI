@@ -54,6 +54,8 @@ function failed(ctx: HeroesContext, act: HeroActions, res: { status: number; err
         ? "That item isn't yours any more."
         : res.error === 'not_found'
           ? "That hero isn't yours yet."
+          : res.error === 'wrong_hero'
+            ? 'That unique weapon is another hero’s: only they can wield it.'
           : res.error === 'busy'
             ? 'Your heroes’ gear changed meanwhile. Try again.'
             : res.status === 404

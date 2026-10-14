@@ -19,6 +19,8 @@ export interface DatabankItem {
   sources?: ItemSource[];
   /** A class item: the raid class (Databank.classes) its effects only work for. Null, or absent from a bot from before classes, for everyone's. */
   class?: string | null;
+  /** A unique weapon: the id of the one hero that wields it (null, or absent from a bot from before them: not one). */
+  uniqueWeapon?: string | null;
   /** TechnoMagic gear: the set it belongs to (its name, and its effect for each class), and which raid's boss drops it (absent from a bot from before sets). */
   set?: { name: string; boss: string; effects: Partial<Record<string, string>> } | null;
 }
@@ -31,7 +33,8 @@ export interface RaidClass {
   traits?: string[];
 }
 
-export type ItemSource = 'gacha' | 'raid' | 'raidShop' | 'limited' | 'technomagic';
+/** Where an item comes from: the gacha, raid bosses (and their shop), the limited banner, the TechnoMagic Raid, or the Hero Item banner (a unique weapon). */
+export type ItemSource = 'gacha' | 'raid' | 'raidShop' | 'limited' | 'technomagic' | 'heroBanner';
 
 /**
  * One difficulty level of the raid: what it multiplies the boss's HP and damage by, and what a win at it drops

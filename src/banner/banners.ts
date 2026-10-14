@@ -1,23 +1,25 @@
 import type { Slot } from '../shared/items';
-import type { BannerView, LimitedBanner, Stars } from './types';
+import type { BannerView, HeroBanner, LimitedBanner, Stars } from './types';
 
 /*
  * The banners the page offers, each its own tab along the top: the standard one (everything the
- * gacha holds: the bot's web/models/gacha.ts), and the limited one while the bot says it is open
- * (its featured items, name and end come from the bot: the view's `limited`).
+ * gacha holds: the bot's web/models/gacha.ts), the limited one while the bot says it is open
+ * (its featured items, name and end come from the bot: the view's `limited`), and the Hero Item one,
+ * whose top tier is the heroes' unique weapons (the view's `hero`).
  */
 
-/** An item a banner shows off on its card (its picture is the item's, ../shared/items). */
+/** An item a banner shows off on its card (its picture is the item's, ../shared/items): a unique weapon says whose. */
 export interface Featured {
   itemId: string;
   name: string;
   stars: Stars;
   slot: Slot;
+  uniqueWeapon?: string | null;
 }
 
 export interface Banner {
   /** What the bot calls it (`banner` on its requests). */
-  id: 'standard' | 'limited';
+  id: 'standard' | 'limited' | 'hero';
   /** Its kind, on the tag over its name ("Standard Wish"). */
   kind: string;
   /** What its tab along the top says ("Standard"). */
@@ -63,15 +65,29 @@ export function limitedBanner(limited: LimitedBanner | undefined): Banner | null
   };
 }
 
-/** The banners to offer, from the latest view, in the tabs' order: the limited one while it is open, then the standard one (always the rightmost). */
+/** The Hero Item banner as the bot has it, or null from a bot from before it (or with no unique weapons). */
+export function heroBanner(hero: HeroBanner | undefined): Banner | null {
+  const [first, second = first] = hero?.featured ?? [];
+  if (!first || !second) return null;
+  return {
+    id: 'hero',
+    kind: 'Hero Item Wish',
+    tab: 'Hero Item',
+    name: ['Hero', 'Item'],
+    blurb: `Every ${first.stars}★ here is a hero's unique weapon (${hero?.featured.map((item) => item.name).join(', ')}), each as likely, and only its own hero wields it.`,
+    featured: [first, second],
+    ends: null,
+  };
+}
+
+/** The banners to offer, from the latest view, in the tabs' order: the limited one while it is open, the Hero Item one, then the standard one (always the rightmost). */
 export function bannersFor(view: BannerView | null): Banner[] {
-  const limited = limitedBanner(view?.limited);
-  return limited ? [limited, STANDARD] : [STANDARD];
+  return [limitedBanner(view?.limited), heroBanner(view?.hero), STANDARD].filter((banner): banner is Banner => banner !== null);
 }
 
 /** What's left of a banner, as Genshin writes it ("20 day(s) 18 hour(s) 5 minute(s)"), or that it's always there. */
 export function timeLeft(banner: Banner, now = Date.now()): string {
-  if (!banner.ends) return banner.id === 'standard' ? 'Always available' : 'No end set';
+  if (!banner.ends) return banner.id === 'limited' ? 'No end set' : 'Always available';
   const minutes = Math.max(0, Math.floor((banner.ends.getTime() - now) / 60_000));
   const days = Math.floor(minutes / 1440);
   const hours = Math.floor((minutes % 1440) / 60);

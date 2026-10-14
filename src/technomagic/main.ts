@@ -29,6 +29,8 @@ import { makePrep } from './prep/prep';
 import type { AnswerCode, ClientMessage, ErrorCode, FightStart, OverView, RoomState, ServerMessage, TurnInput } from './protocol';
 import { HERO_TURN, makeSim, SECTION, SECTIONS, SIM_VERSION, STAGES, TICK, type Input, type Sim } from './sim';
 import { setBuff } from './sim/sets';
+import { skillBuffs } from './sim/skills';
+import { uniqueBuff } from './sim/unique';
 import './technomagic.css';
 
 /*
@@ -172,8 +174,13 @@ async function start(): Promise<void> {
     const cards = sim.fighters.map((fighter, i) => {
       if (!controls.mine(i)) return null;
       const { def: hero } = fighter;
-      // Its passive, and its set's effect (squares on its card).
-      const passives = [...(hero.passive ? [hero.passive.shown] : []), ...(fighter.set ? [setBuff(fighter.set)] : [])];
+      // Its passive, its set's effect, its unique weapon's, and its gear's additional skills (squares on its card).
+      const passives = [
+        ...(hero.passive ? [hero.passive.shown] : []),
+        ...(fighter.set ? [setBuff(fighter.set)] : []),
+        ...(fighter.unique ? [uniqueBuff(fighter.id, fighter.unique.tier)] : []),
+        ...skillBuffs(fighter.skills),
+      ];
       const card = makeCard(fighter.name, pictures[i] as string, hero.abilities, passives, SECTIONS, {
         toggle: () => controls.toggle?.(i),
         auto: () => controls.auto(i),
@@ -229,15 +236,15 @@ async function start(): Promise<void> {
     };
   }
 
-  /** The result of a fight over: won or lost, and what each player found. */
-  function showResult(title: string, text: string, drops: { who: string; name: string; stars: number }[], again: string, onAgain: () => void): void {
+  /** The result of a fight over: won or lost, and what each player found (with the additional skill each copy came with). */
+  function showResult(title: string, text: string, drops: { who: string; name: string; stars: number; skill: string | null }[], again: string, onAgain: () => void): void {
     (result.querySelector('.message-title') as HTMLElement).textContent = title;
     (result.querySelector('.message-text') as HTMLElement).textContent = text;
     (result.querySelector('.tm-drops') as HTMLElement).replaceChildren(
       ...drops.map((drop) => {
         const item = document.createElement('li');
         item.dataset.stars = String(drop.stars);
-        item.textContent = `${drop.who ? `${drop.who}: ` : ''}${'★'.repeat(drop.stars)} ${drop.name}`;
+        item.textContent = `${drop.who ? `${drop.who}: ` : ''}${'★'.repeat(drop.stars)} ${drop.name}${drop.skill ? ` (${drop.skill})` : ''}`;
         return item;
       }),
     );
@@ -367,7 +374,7 @@ async function start(): Promise<void> {
       const bodies = await bodiesFor(start.heroes);
       if (lock !== mine) return;
       if (!bodies) return void showMessage('The models are missing', 'A hero in this fight isn’t on this computer.');
-      const sim = makeSim({ boss: def, heroes: start.heroes.map((hero, i) => ({ def: (bodies[i] as Entrant).def, skin: hero.skin, gear: hero.gear, set: hero.set })), seed: start.seed, stage: start.stage, raid: true, solo: start.solo });
+      const sim = makeSim({ boss: def, heroes: start.heroes.map((hero, i) => ({ def: (bodies[i] as Entrant).def, skin: hero.skin, gear: hero.gear, set: hero.set, uw: hero.uw ?? null, skills: hero.skills ?? [] })), seed: start.seed, stage: start.stage, raid: true, solo: start.solo });
       const you = state?.you;
       game = play(sim, bodies, {
         mine: (i) => start.heroes[i]?.owner === you,
@@ -456,7 +463,7 @@ async function start(): Promise<void> {
       if (shownOver === over) return;
       shownOver = over;
       const you = state?.you ?? '';
-      const drops = Object.entries(over.drops).flatMap(([who, items]) => items.map((item) => ({ who: who === you ? 'You' : name(who), name: item.name, stars: item.stars })));
+      const drops = Object.entries(over.drops).flatMap(([who, items]) => items.map((item) => ({ who: who === you ? 'You' : name(who), name: item.name, stars: item.stars, skill: item.skill ?? null })));
       const rewarded = over.rewarded.includes(you);
       const text =
         over.result === 'won'

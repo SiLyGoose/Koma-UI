@@ -15,12 +15,19 @@ export interface LimitedBanner {
   featuredChance: number;
 }
 
+/** The Hero Item banner (the bot's HeroBanner): always open, its top-tier items the heroes' unique weapons, each as likely, with no guarantee. */
+export interface HeroBanner {
+  featured: { itemId: string; name: string; stars: Stars; slot: Slot; description: string; uniqueWeapon?: string | null }[];
+}
+
 /** GET /api/gacha?banner=… (the bot's web/models/gacha.ts BannerView): what a pull costs the member, and where their pity stands on a banner. */
 export interface BannerView {
   /** The banner this is the view of (absent from a bot from before the limited banner: the standard one). */
-  banner?: 'standard' | 'limited';
+  banner?: 'standard' | 'limited' | 'hero';
   /** The limited banner as it stands (absent from a bot from before it). */
   limited?: LimitedBanner;
+  /** The Hero Item banner (absent from a bot from before it). */
+  hero?: HeroBanner;
   /** One pull in points, after their gear (a pull paid with a komaToken costs none). */
   cost: number;
   /** One pull in points without gear. */
@@ -64,6 +71,8 @@ export interface BannerPull {
   count: number;
   /** Someone else's exclusive item: the share of its effects they get (null when it's theirs to use). */
   borrowed: number | null;
+  /** A unique weapon: the id of the one hero that wields it (null, or absent from a bot from before them: not one). */
+  uniqueWeapon?: string | null;
 }
 
 /** POST /api/gacha/pull (the bot's BannerResult). */

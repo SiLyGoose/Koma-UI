@@ -5,13 +5,13 @@ import { SECTION } from './rules';
 /*
  * The TechnoMagic Raids' gear sets, as the fight has them: a hero wearing a set's four pieces (both weapons and
  * both armors: the bot says which set, if any, as the fight begins) has its effect, which depends on its class:
- * the frontline's tank (knight), the healer (priest), the supports (Hope and Authority count mechanics with the
- * priests), and the damage dealers (everyone else). One boss drops each: Galgoria Perseverance, Siegfried Hope,
+ * the frontline's tank (knight), the supports (Hope and Authority count mechanics with the priests; Perseverance
+ * its priests and knights), and the damage dealers (everyone else). One boss drops each: Galgoria Perseverance, Siegfried Hope,
  * Ascalon Authority. ./fight.ts applies them.
  *
- * - Perseverance: a damage dealer's ATK +10%, and another +1.5% every 10 seconds, ten times over (+25% after
- *   100 seconds); a priest's heals and shields 25% stronger; a knight's max HP +25%, and each blow it blocks
- *   strikes back at the boss and leaves it hitting softer for a while.
+ * - Perseverance: a damage dealer deals 10% more DMG, and another 1.5% more every 10 seconds, ten times over
+ *   (25% more after 100 seconds); a support (its priests and knights) gives every ally +5% ATK and +10% defense,
+ *   again for each wearing it.
  * - Hope: a support gives every ally +5% ATK and +10% defense, again for each wearing it; a knight takes 10%
  *   less, and takes a share of what the boss deals every other ally on itself.
  * - Authority: a damage dealer sees past 500 more of the boss's defense (its kills, in a fight with only the
@@ -20,13 +20,13 @@ import { SECTION } from './rules';
  */
 
 export type TmSet = 'perseverance' | 'hope' | 'authority';
-export type SetRole = 'dps' | 'support' | 'priest' | 'knight';
+export type SetRole = 'dps' | 'support' | 'knight';
 
 export const TM_SETS: readonly TmSet[] = ['perseverance', 'hope', 'authority'];
 
 /** What each class is, for each set (a class the set does nothing for is left out). */
 const ROLES: Record<TmSet, Partial<Record<HeroClass, SetRole>>> = {
-  perseverance: { warrior: 'dps', assassin: 'dps', archer: 'dps', mechanic: 'dps', wizard: 'dps', priest: 'priest', knight: 'knight' },
+  perseverance: { warrior: 'dps', assassin: 'dps', archer: 'dps', mechanic: 'dps', wizard: 'dps', priest: 'support', knight: 'support' },
   hope: { priest: 'support', mechanic: 'support', knight: 'knight' },
   authority: { warrior: 'dps', assassin: 'dps', archer: 'dps', wizard: 'dps', priest: 'support', mechanic: 'support', knight: 'knight' },
 };
@@ -39,18 +39,14 @@ export function setOf(set: string | null | undefined, heroClass: HeroClass): { i
 }
 
 export const PERSEVERANCE = {
-  /** A damage dealer's ATK: so much more at once, and `step` more every `every` seconds, `most` times. */
-  atk: 0.1,
+  /** A damage dealer's DMG: so much more at once, and `step` more every `every` seconds, `most` times. */
+  dmg: 0.1,
   step: 0.015,
   every: 10,
   most: 10,
-  /** A priest's heals and shields; a knight's max HP. */
-  heal: 0.25,
-  hp: 0.25,
-  /** A knight's block: what its blow back takes (at ATK 1000), and the boss's blows the softer for so long. */
-  strike: 1500,
-  weak: 0.92,
-  weakFor: 5,
+  /** What each support wearing it gives every ally. */
+  atk: 0.05,
+  defense: 0.1,
 };
 
 export const HOPE = {
@@ -77,9 +73,8 @@ const ICONS: Record<TmSet, string> = { perseverance: '⚔️', hope: '🛡️', 
 
 const ABOUT: Record<TmSet, Partial<Record<SetRole, string>>> = {
   perseverance: {
-    dps: 'Set effect: +10% ATK, and another +1.5% every 10 seconds (up to +25%).',
-    priest: 'Set effect: heals and shields 25% stronger.',
-    knight: 'Set effect: +25% max HP; each block strikes back, and the boss hits 8% softer for 5 seconds.',
+    dps: 'Set effect: +10% DMG, and another +1.5% every 10 seconds (up to +25% after 100 seconds).',
+    support: 'Set effect: every ally +5% ATK and +10% defense.',
   },
   hope: {
     support: 'Set effect: every ally +5% ATK and +10% defense.',

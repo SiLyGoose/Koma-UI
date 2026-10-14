@@ -7,6 +7,7 @@ import type { HeroDef, HeroPart } from '../heroes/kit';
 import type { HeroMove } from '../heroes/moves';
 import type { Motion } from './motion';
 import type { SetRole, TmSet } from './sets';
+import type { SkillId } from './skills';
 
 /*
  * Who is in the fight, as the sim keeps them (./fight.ts), and what a hero's or a boss's part in it may
@@ -48,6 +49,15 @@ export interface Fighter {
   readonly manaRegen: number;
   /** The TechnoMagic set whose effect it has, and what its class is to it (./sets.ts); null: none. */
   readonly set: { id: TmSet; role: SetRole } | null;
+  /** Its own unique weapon, as far as it is refined (1 to 5: ./unique.ts), and how many skills it has used with it; null: none. */
+  readonly unique: { tier: number; casts: number } | null;
+  /**
+   * The additional skills of the TechnoMagic gear it wears (./skills.ts): how many of each; what its own count
+   * up (Momentum's stacks and Steadfast's); and seconds until each that waits between times may again.
+   */
+  readonly skills: Readonly<Partial<Record<SkillId, number>>>;
+  readonly stacks: { momentum: number; steadfast: number };
+  readonly waits: Partial<Record<SkillId, number>>;
   /** How long each of its moves takes and when its blows land, by its skin (./motion.ts); and the move it attacks with. */
   readonly motion: Motion;
   readonly attack: HeroMove;

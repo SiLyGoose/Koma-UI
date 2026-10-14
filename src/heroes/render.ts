@@ -1,4 +1,4 @@
-import { art, el, hoverSound, itemDetailsClosed, itemFace, itemPicked, lockBadge, matchesSearch, matchesStars, rich, SLOT_NAME, stars as starRow, tmMarks, type StatSection } from '../shared/items';
+import { art, el, hoverSound, itemDetailsClosed, itemFace, itemPicked, lockBadge, matchesSearch, matchesStars, rich, tierOf, SLOT_NAME, stars as starRow, tmMarks, uwMarks, type StatSection } from '../shared/items';
 import { classBadge, className, FACE, HERO_SLOT_KIND, heroCut, heroPicture, type Hero, type HeroCopy, type HeroSlot } from '../shared/heroes';
 import { working } from '../shared/ui';
 import { copyById, heroShown, mine, slotFor, slotOf, type HeroesContext } from './context';
@@ -25,6 +25,9 @@ const slotName = (slot: HeroSlot): string => SLOT_NAME[HERO_SLOT_KIND[slot]];
 
 /** Whether a copy does anything on `hero`: a class item only on its class. */
 const worksOn = (copy: HeroCopy, hero: Hero | undefined): boolean => copy.class === null || copy.class === hero?.class;
+
+/** Whether `hero` may wield a copy at all: anyone, but a unique weapon only its own hero (the bot refuses it on another). */
+const wieldable = (copy: HeroCopy, hero: Hero | undefined): boolean => !copy.uniqueWeapon || copy.uniqueWeapon === hero?.id;
 
 export function render(ctx: HeroesContext, act: HeroActions): void {
   const { ui, view } = ctx;
@@ -160,7 +163,7 @@ function renderSlots(ctx: HeroesContext): void {
     const frame = el('span', 'slot-frame');
     frame.append(art(copy?.itemId ?? null, kind));
     // (TechnoMagic gear has no stars, but its marks: a tier of its own.)
-    if (copy) frame.append(el('span', 'slot-level', `R${copy.level}`), ...(copy.heroOnly ? tmMarks(copy.class) : [starRow(copy.stars)]));
+    if (copy) frame.append(el('span', 'slot-level', `R${copy.level}`), ...(copy.uniqueWeapon ? uwMarks(copy.uniqueWeapon) : copy.heroOnly ? tmMarks(copy.class) : [starRow(copy.stars)]));
     button.append(frame, el('span', 'slot-name', slotName(slot)));
   }
 }
@@ -188,14 +191,14 @@ function renderGrid(ctx: HeroesContext, act: HeroActions): void {
   const scrolled = sheet.scrollTop;
   ui.grid.textContent = '';
   const ofSlot = view.copies.filter((copy) => filter === 'all' || copy.slot === filter);
-  const shown = ofSlot.filter((copy) => matchesStars(stars, copy.stars, copy.heroOnly) && matchesSearch(query, { name: copy.name, id: copy.itemId, description: copy.description }));
+  const shown = ofSlot.filter((copy) => matchesStars(stars, tierOf(copy)) && matchesSearch(query, { name: copy.name, id: copy.itemId, description: copy.description }));
   for (const copy of shown) {
     const card = el('button', 'item');
     card.type = 'button';
     card.dataset.stars = String(copy.stars);
     card.classList.toggle('picked', copy.id === ctx.picked);
     card.classList.toggle('masterwork', copy.masterwork);
-    card.classList.toggle('inert', !worksOn(copy, hero));
+    card.classList.toggle('inert', !worksOn(copy, hero) || !wieldable(copy, hero));
     const onThis = copy.hero !== null && copy.hero === hero?.id;
     const other = copy.hero !== null && !onThis ? view.heroes.find((one) => one.id === copy.hero) : undefined;
     card.setAttribute('aria-label', `${copy.name}, ${copy.stars} stars, R${copy.level}${onThis ? ', equipped' : other ? `, on ${other.name}` : ''}`);
@@ -274,6 +277,8 @@ function renderDetail(ctx: HeroesContext, act: HeroActions): void {
   if (copy.class !== null && !worksOn(copy, hero)) {
     body.append(el('p', 'detail-note warn', `Only works on ${className(copy.class)}s: on ${hero.name} it does nothing.`));
   }
+  const owner = copy.uniqueWeapon ? view.heroes.find((one) => one.id === copy.uniqueWeapon) : undefined;
+  if (copy.uniqueWeapon && !wieldable(copy, hero)) body.append(el('p', 'detail-note warn', `${owner?.name ?? 'Another hero'}’s unique weapon: only they can wield it.`));
 
   const worn = slotOf(hero, copy.id);
   const other = copy.hero !== null && copy.hero !== hero.id ? view.heroes.find((one) => one.id === copy.hero) : undefined;
@@ -295,6 +300,8 @@ function renderDetail(ctx: HeroesContext, act: HeroActions): void {
     body.append(el('p', 'detail-note', notRecruited(ctx, hero.name, 'put gear on them')));
     return;
   }
+  // (Another hero's unique weapon: nothing to equip it with here, unless it's to come off.)
+  if (!worn && !wieldable(copy, hero)) return;
   const foot = el('div', 'detail-foot');
   const action = el('button', `detail-action action ${worn ? 'secondary' : 'main'}`, worn ? 'Unequip' : `Equip as ${slotLabel(into)}`);
   action.type = 'button';

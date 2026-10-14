@@ -1,5 +1,6 @@
-import { art, el, itemDetailsClosed, rich, SLOT_NAME, stars, tmTier } from '../shared/items';
+import { art, el, itemDetailsClosed, rich, SLOT_NAME, stars, tmTier, uwTier } from '../shared/items';
 import { go } from '../site/nav';
+import { SKILLS } from '../technomagic/sim/skills';
 import { classTag } from './class-tag';
 import { className, itemById, narrow, type DatabankContext } from './context';
 import type { ItemSource } from './types';
@@ -20,17 +21,20 @@ const SOURCES: Record<ItemSource, string> = {
   raidShop: 'Raid Shop',
   limited: 'Limited Banner',
   technomagic: 'TechnoMagic Raid',
+  heroBanner: 'Hero Item Banner',
 };
 
 /**
  * Where each place's box goes: the databank's raid bosses (./bosses.ts), which say what they drop, the
- * shop's Raid Gear tab (../raid-shop/), and for TechnoMagic gear (which only heroes wear) the heroes page
- * (../heroes/). The gacha's is in Discord, so it only clicks.
+ * shop's Raid Gear tab (../raid-shop/), for TechnoMagic gear (which only heroes wear) the heroes page
+ * (../heroes/), and for a unique weapon the shop's wish tab, where the Hero Item banner is. The gacha's is in
+ * Discord, so it only clicks.
  */
 const SOURCE_PAGE: Partial<Record<ItemSource, string>> = {
   raid: '/databank/bosses/',
   raidShop: '/shop/raid/',
   technomagic: '/heroes/',
+  heroBanner: '/shop/wish/',
 };
 
 /** A box for one place an item comes from. */
@@ -40,6 +44,19 @@ function sourceBox(source: ItemSource): HTMLButtonElement {
   box.append(el('span', 'db-source-name', SOURCES[source] ?? source));
   const page = SOURCE_PAGE[source];
   if (page) box.addEventListener('click', () => go(page));
+  return box;
+}
+
+/**
+ * TechnoMagic gear's additional skills: each copy comes with one of them, at random as it drops (the same list
+ * whatever its set), folded away under a line that says so. By the tier list's tiers (../technomagic/sim/skills.ts).
+ */
+function skillList(): HTMLElement {
+  const box = el('details', 'detail-note db-skills');
+  box.append(el('summary', '', `Each copy comes with one of ${SKILLS.length} additional skills, at random.`));
+  const list = el('ul', 'detail-effects');
+  for (const skill of SKILLS) list.appendChild(el('li')).append(rich(`**${skill.name}** (${skill.tier}): ${skill.about}`));
+  box.append(list);
   return box;
 }
 
@@ -60,8 +77,8 @@ export function renderDetail(ctx: DatabankContext): void {
   const name = el('h3', '', item.name);
   const bonusOn = ctx.masterwork && level === maxLevel && item.masterwork !== null;
   if (bonusOn) name.append(el('span', 'detail-mw', '✨ Masterwork'));
-  // Under the name, its category, then its stars (as the gear page's item panel); TechnoMagic gear, its tier of its own.
-  title.append(name, el('p', 'detail-meta db-kind', SLOT_NAME[item.slot]), item.source === 'technomagic' ? tmTier() : stars(item.stars));
+  // Under the name, its category, then its stars (as the gear page's item panel); TechnoMagic gear and a unique weapon, their tiers of their own.
+  title.append(name, el('p', 'detail-meta db-kind', SLOT_NAME[item.slot]), item.source === 'technomagic' ? tmTier() : item.source === 'heroBanner' ? uwTier() : stars(item.stars));
   // A class item says whose it is; TechnoMagic gear, its set (all four pieces on a hero give its effect, for the hero's class).
   if (item.class) title.append(classTag(item.class, className(ctx, item.class)));
   if (item.set) {
@@ -113,6 +130,7 @@ export function renderDetail(ctx: DatabankContext): void {
   if (item.masterwork !== null && level < maxLevel) {
     ui.detailBody.append(el('p', 'detail-note', `Has a masterwork bonus at R${maxLevel}: press ✨ to see it.`));
   }
+  if (item.source === 'technomagic') ui.detailBody.append(skillList());
   // Where it comes from, a box for each place (nothing from a bot that doesn't say).
   const sources = item.sources ?? (item.source ? [item.source] : []);
   if (sources.length > 0) {

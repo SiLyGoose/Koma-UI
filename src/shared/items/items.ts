@@ -3,6 +3,8 @@
  * one), its stars, and its effect lines as Discord writes them.
  */
 
+import { FACE, heroCut } from '../heroes';
+
 export type Slot = 'weapon' | 'armor' | 'treasure';
 export const SLOT_NAME: Record<Slot, string> = { weapon: 'Weapon', armor: 'Armor', treasure: 'Treasure' };
 
@@ -125,18 +127,56 @@ export function tmMarks(itemClass: string | null | undefined): HTMLElement[] {
   return [tag, tab];
 }
 
+/** A unique weapon's tier, in place of stars: a tier of its own, between TechnoMagic gear and 4 stars. */
+export function uwTier(): HTMLElement {
+  const tier = el('span', 'uw-tier', 'UW');
+  tier.setAttribute('aria-label', 'Unique weapon');
+  return tier;
+}
+
+/**
+ * A unique weapon's marks, as TechnoMagic gear's (tmMarks) but in crimson: a "UW" tab over its top left corner, and
+ * over its top right one its hero's face (styles/uw.css, for a card with these in it).
+ */
+export function uwMarks(hero: string): HTMLElement[] {
+  const tag = el('span', 'item-uw', 'UW');
+  tag.setAttribute('aria-label', 'Unique weapon');
+  const tab = el('span', 'item-uw-hero');
+  const name = hero
+    .split('-')
+    .map((word) => `${word[0]?.toUpperCase()}${word.slice(1)}`)
+    .join(' ');
+  tab.title = `${name} only`;
+  tab.setAttribute('aria-label', tab.title);
+  const face = el('img');
+  face.alt = '';
+  face.hidden = true;
+  void heroCut(hero, FACE, 96).then((src) => {
+    if (!src) return;
+    face.src = src;
+    face.hidden = false;
+  });
+  tab.append(face);
+  return [tag, tab];
+}
+
+/** An item's tier as the filters and the lists have it: TechnoMagic gear's or a unique weapon's own, or its stars. */
+export const tierOf = (item: { stars: number; heroOnly?: boolean; uniqueWeapon?: string | null }): number | 'tm' | 'uw' =>
+  item.uniqueWeapon ? 'uw' : item.heroOnly ? 'tm' : item.stars;
+
 /**
  * What's on a copy's card, whatever the card is (an armory button, the anvil's, the details'): its rank, picture, stars and the
  * parchment's curl. TechnoMagic gear (`heroOnly`) has no stars, being a tier of its own, but its marks (with its class:
- * `itemClass`, or `class` as the heroes page has it).
+ * `itemClass`, or `class` as the heroes page has it); a unique weapon its own marks, with its hero.
  */
-export function itemFace(copy: { level: number; itemId: string; slot: Slot; stars: number; heroOnly?: boolean; itemClass?: string | null; class?: string | null }): HTMLElement[] {
+export function itemFace(copy: { level: number; itemId: string; slot: Slot; stars: number; heroOnly?: boolean; uniqueWeapon?: string | null; itemClass?: string | null; class?: string | null }): HTMLElement[] {
+  if (copy.uniqueWeapon) return [el('span', 'item-level', `R${copy.level}`), art(copy.itemId, copy.slot), ...uwMarks(copy.uniqueWeapon)];
   if (copy.heroOnly) return [el('span', 'item-level', `R${copy.level}`), art(copy.itemId, copy.slot), ...tmMarks(copy.itemClass ?? copy.class)];
   return [el('span', 'item-level', `R${copy.level}`), art(copy.itemId, copy.slot), stars(copy.stars), el('span', 'item-curl')];
 }
 
-/** How an item ranks among the tiers, best highest: TechnoMagic gear above 4 stars. */
-export const tierRank = (item: { stars: number; heroOnly?: boolean }): number => (item.heroOnly ? 5 : item.stars);
+/** How an item ranks among the tiers, best highest: TechnoMagic gear above 4 stars, and the unique weapons between them. */
+export const tierRank = (item: { stars: number; heroOnly?: boolean; uniqueWeapon?: string | null }): number => (item.uniqueWeapon ? 4.5 : item.heroOnly ? 5 : item.stars);
 
 /**
  * An effect line as Discord shows it: custom emoji (<:name:id>) become their pictures, **bold**,
