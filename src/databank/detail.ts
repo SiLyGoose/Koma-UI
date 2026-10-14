@@ -19,12 +19,18 @@ const SOURCES: Record<ItemSource, string> = {
   raid: 'Raid Drops',
   raidShop: 'Raid Shop',
   limited: 'Limited Banner',
+  technomagic: 'TechnoMagic Raid',
 };
 
-/** Where each place's box goes: the databank's raid bosses (./bosses.ts), which say what they drop, and the shop's Raid Gear tab (../raid-shop/). The gacha's is in Discord, so it only clicks. */
+/**
+ * Where each place's box goes: the databank's raid bosses (./bosses.ts), which say what they drop, the
+ * shop's Raid Gear tab (../raid-shop/), and for TechnoMagic gear (which only heroes wear) the heroes page
+ * (../heroes/). The gacha's is in Discord, so it only clicks.
+ */
 const SOURCE_PAGE: Partial<Record<ItemSource, string>> = {
   raid: '/databank/bosses/',
   raidShop: '/shop/raid/',
+  technomagic: '/heroes/',
 };
 
 /** A box for one place an item comes from. */

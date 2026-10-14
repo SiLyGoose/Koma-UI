@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="robots" content="noindex" />
+    <title>Koma TechnoMagic Raid</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐲</text></svg>" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" />
+  </head>
+  <body>
+    <main id="app" class="frame technomagic" data-title="🐲 TechnoMagic Raid">
+      <!-- The field: the heroes on the left, the boss on the right (../../src/technomagic/engine/stage.ts). Over it: the health of each hero on it, and a card for each hero (../../src/technomagic/hud/). -->
+      <div class="tm-field">
+        <canvas id="stage"></canvas>
+        <!-- The boss's health, and under it what is the matter with it (stunned, slowed, cursed). -->
+        <div id="boss" class="tm-boss" hidden>
+          <div class="tm-boss-bar"><i></i><b></b></div>
+          <div class="tm-marks"></div>
+        </div>
+        <!-- A health bar for each hero, over its head while it is on the field (../../src/technomagic/hud/overhead.ts puts them here). -->
+        <div id="overheads"></div>
+        <!-- What each blow takes and each heal gives, coming off whom it was (../../src/technomagic/hud/numbers.ts puts them here). -->
+        <div id="numbers"></div>
+        <!-- Top left: Auto for every hero, and how much damage (or healing) each has done (../../src/technomagic/hud/meter.ts). -->
+        <div id="meter" class="tm-meter"></div>
+        <!-- Top right: the raid's time left before the boss is enraged, and Leave raid (../../src/technomagic/hud/timer.ts). -->
+        <div id="timer" class="tm-timer"></div>
+        <div id="party" class="tm-party"></div>
+
+        <!-- Getting ready (a room: ../../src/technomagic/prep/prep.ts): the boss and the stage, the lineup (whose each hero is), the heroes this player owns, the room's chat, and who's in with Ready and Start Battle. Over the field until the fight begins. -->
+        <section id="prep" class="tm-prep" aria-labelledby="prep-title" hidden>
+          <div class="tm-prep-top">
+            <h2 id="prep-title" class="tm-prep-title">Get Ready for Battle</h2>
+            <p class="tm-prep-boss"><b id="prep-boss">Galgoria</b> <span id="prep-level"></span></p>
+            <!-- Raid Settings: the raid's stage, a step at a time (only the host changes it). -->
+            <details id="prep-settings" class="tm-prep-settings">
+              <summary class="tm-prep-settings-open">Raid Settings</summary>
+              <div class="tm-prep-settings-box">
+                <h3 class="tm-prep-panel-title">Raid Settings</h3>
+                <div class="tm-prep-stage">
+                  <button type="button" id="prep-stage-down" class="tm-prep-step" aria-label="Lower stage">◀</button>
+                  <div class="tm-prep-stage-level"><small>Stage</small><b id="prep-stage"></b></div>
+                  <button type="button" id="prep-stage-up" class="tm-prep-step" aria-label="Higher stage">▶</button>
+                </div>
+                <p id="prep-stage-text" class="tm-prep-stage-text"></p>
+              </div>
+            </details>
+          </div>
+          <ol id="lineup" class="tm-lineup" aria-label="Lineup"></ol>
+          <div class="tm-prep-bottom">
+            <section class="tm-prep-panel tm-prep-heroes" aria-labelledby="prep-heroes-title">
+              <h3 id="prep-heroes-title" class="tm-prep-panel-title">Heroes List</h3>
+              <div id="prep-heroes" class="tm-prep-hero-list"></div>
+            </section>
+            <div id="prep-chat" class="tm-prep-panel tm-prep-chat"></div>
+            <section class="tm-prep-panel tm-prep-party" aria-label="Players">
+              <ol id="prep-players" class="tm-prep-players"></ol>
+              <p id="prep-note" class="tm-prep-note" role="status"></p>
+              <p id="prep-rewards" class="tm-prep-rewards"></p>
+              <div class="tm-prep-actions">
+                <details class="tm-prep-info">
+                  <summary class="action secondary">Raid Info</summary>
+                  <div id="prep-info" class="tm-prep-info-box"></div>
+                </details>
+                <button type="button" id="prep-ready" class="action secondary" aria-pressed="false">Ready</button>
+                <button type="button" id="prep-start" class="action main large">Start Battle</button>
+              </div>
+            </section>
+          </div>
+        </section>
+      </div>
+
+      <!-- Under the field, trying things out (no room): the raid's stage, the boss's attacks (a button for each is put here: ../../src/technomagic/hud/actions.ts) and Boss auto, which has it attack by itself. -->
+      <div id="actions" class="tm-actions">
+        <!-- The raid's stage: from 4 on, the boss's skills are harder on the heroes. -->
+        <label class="tm-stage">Stage <select id="stage-pick"></select></label>
+        <button type="button" id="auto" class="action choice tm-boss-auto" aria-pressed="false" disabled>Boss auto</button>
+      </div>
+      <p id="hint" class="hint"></p>
+
+      <!-- A phone held upright: the raid is played on its side (./styles/rotate.css shows this then, over everything). -->
+      <div class="tm-rotate" role="alert">
+        <div class="tm-rotate-phone" aria-hidden="true"></div>
+        <p class="tm-rotate-title">Turn your phone sideways</p>
+        <p class="tm-rotate-text">The TechnoMagic Raid is played in landscape.</p>
+      </div>
+
+      <!-- A fight over: won or lost (the bot's word), and what each player found. -->
+      <div id="result" class="message" hidden>
+        <div class="message-card">
+          <div class="message-title"></div>
+          <div class="message-text"></div>
+          <ul class="tm-drops"></ul>
+          <button type="button" class="action main" data-again>Back to the room</button>
+          <a class="action secondary" href="/heroes/">Heroes</a>
+        </div>
+      </div>
+    </main>
+
+    <script type="module" src="/src/technomagic/main.ts"></script>
+  </body>
+</html>

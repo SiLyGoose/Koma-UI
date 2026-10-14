@@ -33,6 +33,7 @@ export function renderGrid(ctx: GearContext): void {
     card.setAttribute('aria-label', `${copy.name}, ${copy.stars} star${copy.stars === 1 ? '' : 's'}, R${copy.level}${equipped.has(copy.id) ? ', equipped' : ''}${copy.locked ? ', locked' : ''}`);
     // Worn, or saved in any of their loadouts.
     if (equipped.has(copy.id)) card.append(el('span', 'item-tag', 'Equipped'));
+    else if (copy.hero) card.append(el('span', 'item-tag', `On ${copy.hero}`));
     else if (selling && copy.sell === null && !copy.locked) card.append(el('span', 'item-tag', 'In loadout'));
     card.append(...itemFace(copy));
     if (copy.locked) card.append(lockBadge());

@@ -1,0 +1,103 @@
+/* The top right of the field: the raid's time left, and Leave raid (../hud/timer.ts). */
+.tm-timer {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tm-timer-clock {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 12px 3px 6px;
+  border-radius: 8px;
+  background: rgb(10 8 16 / 72%);
+  color: #fff;
+  text-shadow: 0 1px 2px #000;
+}
+
+.tm-timer-skull {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.tm-timer-clock b {
+  min-width: 3.2ch;
+  font: 700 22px/1.2 Poppins, sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The last half minute, and then the boss enraged. */
+.tm-timer-clock.soon b {
+  color: #ffb547;
+}
+
+.tm-timer-clock.up b {
+  color: #ff5a3c;
+}
+
+.tm-timer-clock.up .tm-timer-skull {
+  animation: tm-rage 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes tm-rage {
+  to {
+    transform: scale(1.2);
+    filter: drop-shadow(0 0 6px #ff3b1f);
+  }
+}
+
+.tm-leave {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border: 2px solid #8a7a4c;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #4a4256, #2a2433);
+  color: #fff;
+  font: 700 13px/1.4 Poppins, sans-serif;
+  text-shadow: 0 1px 2px #000;
+  cursor: pointer;
+}
+
+.tm-leave:hover {
+  border-color: #f6d26b;
+}
+
+.tm-leave span:first-child {
+  font-size: 17px;
+  line-height: 1;
+}
+
+/* Narrow: smaller, the door alone, and the boss's health moved over to leave it room. */
+@media (max-width: 640px) {
+  .tm-timer {
+    gap: 6px;
+  }
+
+  .tm-timer-clock b {
+    font-size: 16px;
+  }
+
+  .tm-timer-skull {
+    font-size: 15px;
+  }
+
+  .tm-leave-words {
+    display: none;
+  }
+
+  .tm-boss {
+    padding-right: 140px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tm-timer-clock.up .tm-timer-skull {
+    animation: none;
+  }
+}

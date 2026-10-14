@@ -1,0 +1,141 @@
+/*
+ * A card for each hero along the bottom of the field (../hud/card.ts), sized by --skill: an ability's side.
+ * By the window's width and its height both, so on a short screen (a phone on its side) a card (about 2.8
+ * of it tall) still leaves the field most of the room.
+ */
+.tm-party {
+  --skill: clamp(34px, min(7.2vw, 12dvh), 88px);
+  position: absolute;
+  inset: auto 0 12px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 10px calc(var(--skill) * 0.9);
+  padding: 0 10px;
+  pointer-events: none;
+}
+
+.tm-card {
+  display: grid;
+  gap: calc(var(--skill) * 0.08);
+  position: relative;
+  width: calc(var(--skill) * 3.24);
+  /* Room over its rows for the hero's head. */
+  padding-top: calc(var(--skill) * 1.36);
+  pointer-events: auto;
+  filter: brightness(0.55) saturate(0.7);
+}
+
+.tm-card.picked {
+  filter: none;
+}
+
+/* The hero itself, looking out from behind its card: its picture goes down behind the rows, and is cut off at the card's foot. */
+.tm-face {
+  position: absolute;
+  inset: 0 auto 0 calc(var(--skill) * -0.5);
+  width: calc(var(--skill) * 2.1);
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.tm-card.down .tm-face {
+  filter: grayscale(1) brightness(0.6);
+}
+
+.tm-face img {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 2px 3px rgb(0 0 0 / 70%));
+}
+
+.tm-top,
+.tm-skills {
+  position: relative;
+}
+
+.tm-top {
+  display: flex;
+  align-items: flex-end;
+  gap: calc(var(--skill) * 0.08);
+}
+
+.tm-auto {
+  padding: calc(var(--skill) * 0.07) calc(var(--skill) * 0.17);
+  border: 2px solid #8a7a4c;
+  border-radius: 6px;
+  background: linear-gradient(180deg, #4b4a35, #26251b);
+  color: #cfc9a8;
+  font: inherit;
+  font-size: calc(var(--skill) * 0.22);
+  font-weight: 700;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.tm-auto[aria-pressed='true'] {
+  border-color: #b9e86a;
+  background: linear-gradient(180deg, #55742a, #2b3d14);
+  color: #eaffc0;
+}
+
+.tm-bars {
+  flex: 1;
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+/* Over its health: small squares for what it has on it (its passive, what a skill has given it). */
+.tm-buffs {
+  display: flex;
+  flex: none;
+  gap: 3px;
+}
+
+.tm-timed {
+  display: contents;
+}
+
+.tm-buff {
+  position: relative;
+  width: calc(var(--skill) * 0.32);
+  height: calc(var(--skill) * 0.32);
+  border: 1.5px solid #8a7a4c;
+  border-radius: 4px;
+  background: #1d1626;
+  overflow: hidden;
+  font-size: calc(var(--skill) * 0.19);
+  line-height: calc(var(--skill) * 0.3);
+  text-align: center;
+}
+
+/* Something the boss has left on it. */
+.tm-buff.harmful {
+  border-color: #c2414f;
+  background: #2a1218;
+}
+
+.tm-buff img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* The seconds it has left. */
+.tm-buff b {
+  position: absolute;
+  inset: auto 1px 0 auto;
+  color: #fff;
+  font-size: calc(var(--skill) * 0.15);
+  line-height: 1;
+  text-shadow:
+    0 0 2px #000,
+    0 1px 2px #000;
+}

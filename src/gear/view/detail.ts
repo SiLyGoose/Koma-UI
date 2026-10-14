@@ -41,7 +41,7 @@ export function renderDetail(ctx: GearContext): void {
   const effects = effectList(copy, 'detail-effects');
 
   const worn = isWorn(ctx, copy);
-  const current = worn || !mine(ctx) || selling ? undefined : copyById(ctx, gear.equipped[copy.slot]);
+  const current = worn || !mine(ctx) || selling || copy.heroOnly ? undefined : copyById(ctx, gear.equipped[copy.slot]);
   // Equip, the panel's main button; worn, Unequip, a secondary one (taking it off isn't going anywhere).
   const action = el('button', `detail-action action ${worn ? 'secondary' : 'main'}`, worn ? 'Unequip' : 'Equip');
   action.type = 'button';
@@ -75,9 +75,19 @@ export function renderDetail(ctx: GearContext): void {
     body.append(el('p', 'detail-replaces', `Replaces ${current.name} (R${current.level})`), effectList(current, 'detail-effects detail-replaced'));
   }
 
+  // TechnoMagic gear: only heroes wear it, so no Equip, but the way to the heroes page; and what a hero wears says so.
+  if (copy.heroOnly) {
+    const note = el('p', 'detail-note', 'TechnoMagic gear: only heroes wear it. Put it on one on the ');
+    const link = el('a', '', 'Heroes page');
+    link.href = '/heroes/';
+    note.append(link, '.');
+    body.append(note);
+  }
+  if (copy.hero) body.append(el('p', 'detail-note', `${copy.hero} wears this in the TechnoMagic Raid.`));
+
   // What can be done with it, under a line along the bottom.
   const foot = el('div', 'detail-foot');
-  foot.append(...(wearOnly(ctx) ? [] : [upgrade]), action);
+  foot.append(...(wearOnly(ctx) ? [] : [upgrade]), ...(copy.heroOnly && !worn ? [] : [action]));
   // All but the buttons scrolls, when it runs longer than the panel.
   const scroll = el('div', 'detail-scroll');
   scroll.append(bar, top, body);

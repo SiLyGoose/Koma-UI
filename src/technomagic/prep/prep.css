@@ -1,0 +1,585 @@
+/*
+ * Getting ready (./prep.ts), over the field until the fight begins: King's Raid's own screen, a dark red
+ * hall framed in gold, the lineup's cards across its middle and three panels along its bottom.
+ */
+
+.tm-prep {
+  --gold: #d9b56a;
+  --gold-dim: #8a6a33;
+  --velvet: #3b0f12;
+  --velvet-deep: #1c0709;
+  --panel: rgba(16, 12, 18, 0.88);
+  --ink: #f4ead6;
+  --ink-dim: #b8a88c;
+  /* Each player's colour, by their place in the room. */
+  --p1: #f1c75b;
+  --p2: #6fc3ff;
+  --p3: #9be17a;
+  --p4: #f58fb4;
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 16px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  color: var(--ink);
+  background:
+    radial-gradient(ellipse at 50% 38%, rgba(160, 30, 36, 0.55), transparent 62%),
+    linear-gradient(180deg, #24090c, var(--velvet-deep));
+}
+
+.tm-prep[hidden] {
+  display: none;
+}
+
+.tm-prep-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 18px;
+}
+
+.tm-prep-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.tm-prep-boss {
+  flex: 1;
+  margin: 0;
+  padding: 6px 16px;
+  border: 1px solid var(--gold-dim);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.45);
+  text-align: center;
+  font-size: 18px;
+}
+
+.tm-prep-boss b {
+  font-weight: 800;
+}
+
+/* Top right: Raid Settings, a popup with the stage stepped down or up by its arrows. */
+.tm-prep-settings {
+  position: relative;
+  margin-left: auto;
+}
+
+.tm-prep-settings-open {
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #e2b85c, #a87a2c);
+  color: #2a1606;
+  font-weight: 800;
+  list-style: none;
+  cursor: pointer;
+}
+
+.tm-prep-settings-open::-webkit-details-marker {
+  display: none;
+}
+
+.tm-prep-settings-box {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 3;
+  width: min(300px, 80vw);
+  padding: 12px 14px;
+  border: 1px solid var(--gold-dim);
+  border-radius: 10px;
+  background: #140d16;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+}
+
+.tm-prep-stage {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+}
+
+.tm-prep-stage-level {
+  display: grid;
+  justify-items: center;
+  min-width: 76px;
+  line-height: 1.15;
+}
+
+.tm-prep-stage-level small {
+  color: var(--ink-dim);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.tm-prep-stage-level b {
+  font-size: 22px;
+}
+
+.tm-prep-step {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid var(--gold-dim);
+  border-radius: 50%;
+  background: rgba(10, 10, 14, 0.8);
+  color: var(--gold);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.tm-prep-step:hover:not(:disabled) {
+  border-color: var(--gold);
+  background: rgba(40, 34, 20, 0.9);
+}
+
+.tm-prep-step:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.tm-prep-stage-text {
+  margin: 10px 0 0;
+  color: var(--ink-dim);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+/* The lineup: a card for every slot, in a gold-framed row (wrapping on a narrow screen). */
+.tm-lineup {
+  display: grid;
+  grid-template-columns: repeat(var(--slots, 9), minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 12px;
+  list-style: none;
+  border: 2px solid var(--gold-dim);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(110, 20, 24, 0.85), rgba(60, 10, 14, 0.9));
+  box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.6);
+}
+
+/* A slot: whose it is, big, over its card. */
+.tm-slot {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.tm-slot-frame {
+  aspect-ratio: 9 / 16;
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.15));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+.tm-slot-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  overflow: hidden;
+  border: 2px solid var(--gold);
+  border-radius: 8px;
+  background: linear-gradient(180deg, #4a3a5a, #1e1626);
+  color: inherit;
+  font: inherit;
+}
+
+button.tm-slot-card {
+  cursor: pointer;
+}
+
+button.tm-slot-card:hover {
+  filter: brightness(1.12);
+}
+
+.tm-slot[data-player='1'] .tm-slot-card {
+  border-color: var(--p1);
+}
+
+.tm-slot[data-player='2'] .tm-slot-card {
+  border-color: var(--p2);
+}
+
+.tm-slot[data-player='3'] .tm-slot-card {
+  border-color: var(--p3);
+}
+
+.tm-slot[data-player='4'] .tm-slot-card {
+  border-color: var(--p4);
+}
+
+.tm-slot-owner {
+  /* Kept a line high when blank, so every card starts at the same height. */
+  min-height: 1em;
+  font-size: 28px;
+  font-weight: 900;
+  font-style: italic;
+  line-height: 1;
+  text-align: center;
+  text-shadow:
+    0 2px 0 #000,
+    0 0 6px rgba(0, 0, 0, 0.8);
+}
+
+.tm-slot[data-player='1'] .tm-slot-owner {
+  color: var(--p1);
+}
+
+.tm-slot[data-player='2'] .tm-slot-owner {
+  color: var(--p2);
+}
+
+.tm-slot[data-player='3'] .tm-slot-owner {
+  color: var(--p3);
+}
+
+.tm-slot[data-player='4'] .tm-slot-owner {
+  color: var(--p4);
+}
+
+.tm-slot-face,
+.tm-prep-hero-face {
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: #2b2236;
+}
+
+.tm-slot-face {
+  flex: 1;
+}
+
+.tm-slot-face img,
+.tm-prep-hero-face img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tm-face-letter {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--ink-dim);
+}
+
+.tm-slot-class {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: clamp(24px, 36%, 52px);
+  height: auto;
+  aspect-ratio: 1;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.8));
+}
+
+.tm-slot-name {
+  padding: 4px 2px;
+  background: rgba(0, 0, 0, 0.7);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Along the bottom: the heroes, the chat, and who's in. */
+.tm-prep-bottom {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr) minmax(0, 1fr);
+  gap: 12px;
+  flex: 1;
+  min-height: 0;
+}
+
+.tm-prep-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 200px;
+  padding: 10px;
+  border: 1px solid var(--gold-dim);
+  border-radius: 10px;
+  background: var(--panel);
+}
+
+.tm-prep-panel-title {
+  margin: 0 0 8px;
+  font-size: 15px;
+  color: var(--gold);
+}
+
+.tm-prep-hero-list {
+  display: grid;
+  /* Three to a row; on a wide screen, as many more as fit. */
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  align-content: start;
+  overflow-y: auto;
+}
+
+@media (min-width: 1400px) {
+  .tm-prep-hero-list {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  }
+}
+
+.tm-prep-hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+  border: 2px solid var(--gold-dim);
+  border-radius: 8px;
+  background: #1e1626;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.tm-prep-hero:disabled {
+  cursor: not-allowed;
+  filter: grayscale(0.8) brightness(0.6);
+}
+
+.tm-prep-hero.picked {
+  border-color: var(--gold);
+}
+
+.tm-prep-hero-face {
+  aspect-ratio: 1;
+}
+
+.tm-prep-hero-name {
+  padding: 5px 4px;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.tm-prep-hero-check {
+  position: absolute;
+  top: 10%;
+  left: 50%;
+  translate: -50% 0;
+  font-size: 56px;
+  font-weight: 900;
+  color: #ffd25a;
+  text-shadow: 0 2px 4px #000;
+  pointer-events: none;
+}
+
+.tm-prep-empty {
+  margin: 0;
+  color: var(--ink-dim);
+}
+
+.tm-prep-empty a {
+  color: var(--gold);
+}
+
+/* The room's chat fills its panel (../../shared/ui/chat/chat.css draws it). */
+.tm-prep-chat {
+  padding: 0;
+  overflow: hidden;
+}
+
+.tm-prep-chat .chat {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 10px 12px;
+  border: 0;
+}
+
+/* The lines take the panel's height, so the box to say something sits at its bottom. */
+.tm-prep-chat .chat-lines {
+  flex: 1;
+  height: auto;
+}
+
+.tm-prep-players {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0 0 8px;
+  padding: 0;
+  list-style: none;
+}
+
+.tm-prep-player {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, rgba(120, 80, 30, 0.6), rgba(40, 28, 20, 0.6));
+}
+
+/* A place no one has taken yet. */
+.tm-prep-player.open {
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  color: var(--ink-dim);
+}
+
+.tm-prep-player.open .tm-prep-player-no {
+  color: var(--ink-dim);
+}
+
+.tm-prep-player.open .tm-prep-player-name {
+  font-weight: 500;
+  font-style: italic;
+}
+
+.tm-prep-player.you {
+  box-shadow: inset 0 0 0 1px var(--gold);
+}
+
+.tm-prep-player-no {
+  font-size: 18px;
+}
+
+.tm-prep-player[data-player='1'] .tm-prep-player-no {
+  color: var(--p1);
+}
+
+.tm-prep-player[data-player='2'] .tm-prep-player-no {
+  color: var(--p2);
+}
+
+.tm-prep-player[data-player='3'] .tm-prep-player-no {
+  color: var(--p3);
+}
+
+.tm-prep-player[data-player='4'] .tm-prep-player-no {
+  color: var(--p4);
+}
+
+.tm-prep-player-name {
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tm-prep-player-heroes {
+  color: var(--ink-dim);
+  font-size: 13px;
+}
+
+.tm-prep-player-ready {
+  color: var(--ink-dim);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.tm-prep-player-ready.on {
+  color: #8be08b;
+}
+
+.tm-prep-note {
+  margin: 0 0 6px;
+  font-size: 13px;
+}
+
+/* How many runs today still give gear: a notice across the panel, right over the buttons. */
+.tm-prep-rewards {
+  margin: auto 0 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--gold-dim);
+  border-radius: 8px;
+  background: linear-gradient(90deg, rgba(217, 181, 106, 0.08), rgba(217, 181, 106, 0.2), rgba(217, 181, 106, 0.08));
+  color: var(--gold);
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.tm-prep-note:empty {
+  display: none;
+}
+
+.tm-prep-note {
+  color: #ffb4a8;
+}
+
+.tm-prep-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.tm-prep-actions #prep-start {
+  flex: 1;
+}
+
+.tm-prep-info {
+  position: relative;
+}
+
+.tm-prep-info summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.tm-prep-info summary::-webkit-details-marker {
+  display: none;
+}
+
+.tm-prep-info-box {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 0;
+  z-index: 2;
+  width: min(340px, 80vw);
+  padding: 10px 12px;
+  border: 1px solid var(--gold-dim);
+  border-radius: 10px;
+  background: #140d16;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.tm-prep-info-box p {
+  margin: 0 0 6px;
+}
+
+/* A phone: the lineup in two rows, the panels one under another. */
+@media (max-width: 760px) {
+  .tm-prep {
+    padding: 10px 16px;
+  }
+
+  .tm-lineup {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    padding: 8px;
+  }
+
+  .tm-slot-owner {
+    font-size: 20px;
+  }
+
+  .tm-prep-bottom {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

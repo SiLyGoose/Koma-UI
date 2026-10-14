@@ -1,0 +1,72 @@
+import { modelFolder, type RiggedModel, type SkinAssets } from '../assets';
+import { heroLike, riggedHero } from './body/animated';
+import type { Hero, Stood } from './body/hero';
+import { posedHero } from './body/posed';
+import { loadRigged, type Rigged } from './body/rigged';
+import { standHero } from './body/stand';
+import type { HeroDef } from './kit';
+import type { HeroMove } from './moves';
+
+/*
+ * Reads the heroes' skins and stands each up, ready for a fight: one that comes with its animations is
+ * moved by them; one of the game's own files is moved by the animations its skin names (another skin's,
+ * or a rig read only for them), or with none by the poses written in code. A skin that isn't on this
+ * computer is left out, and so is whatever would have moved another.
+ */
+
+/** A skin on the field: whose it is, its body, and the move it attacks with. */
+export interface Entrant {
+  def: HeroDef;
+  skin: SkinAssets;
+  hero: Hero;
+  attack: HeroMove;
+}
+
+/** What was read of a skin: its model stood up (the game's own files) or it with its animations, and the rig read to move it. */
+interface Read {
+  skin: SkinAssets;
+  stood: Stood | null;
+  rigged: Rigged | null;
+  rig: Rigged | null;
+}
+
+/** Null (and a word in the console) when what was being read isn't there. */
+const quietly = <T>(reading: Promise<T>): Promise<T | null> =>
+  reading.catch((error: unknown) => {
+    console.warn(error);
+    return null;
+  });
+
+async function read(def: HeroDef, skin: SkinAssets): Promise<Read> {
+  const animated = (name: string, model: RiggedModel): Promise<Rigged | null> => quietly(loadRigged(name, modelFolder(def.assets, model.folder), model));
+  const { model } = skin;
+  if (model.kind === 'rigged') return { skin, stood: null, rigged: await animated(skin.name, model), rig: null };
+  const [stood, rig] = await Promise.all([quietly(standHero(def.assets, model)), typeof model.movedBy === 'object' ? animated(`${skin.name}'s rig`, model.movedBy) : null]);
+  return { skin, stood, rigged: null, rig };
+}
+
+/** Every skin of `defs` that could be read, in the order of the heroes and of each one's skins. */
+export async function loadHeroes(defs: readonly HeroDef[]): Promise<Entrant[]> {
+  const all = await Promise.all(defs.map((def) => Promise.all(def.assets.skins.map((skin) => read(def, skin)))));
+  const entrants: Entrant[] = [];
+  defs.forEach((def, i) => {
+    const skins = all[i] as Read[];
+    const heroes = new Map<SkinAssets, { hero: Hero; attack: HeroMove }>();
+    // With an attack among the animations that move it, that is how it attacks: not as its hero has it written in code.
+    const attack = (moves: Rigged | null): HeroMove => (moves && moves.animations.attack.length > 0 ? 'attack' : (def.attack ?? 'attack'));
+    // The game's own files first: what moves one is made over for it from a skin still standing as it was bound.
+    for (const { skin, stood, rig } of skins) {
+      if (!stood || skin.model.kind !== 'parts') continue;
+      const { movedBy } = skin.model;
+      const like = typeof movedBy === 'string' ? (skins.find((other) => other.skin.name === movedBy)?.rigged ?? null) : rig;
+      heroes.set(skin, { hero: like ? heroLike(stood, like, def.stands) : posedHero(stood, def.stands), attack: attack(like) });
+    }
+    for (const { skin, rigged } of skins) if (rigged) heroes.set(skin, { hero: riggedHero(rigged), attack: attack(rigged) });
+    for (const { skin } of skins) {
+      const made = heroes.get(skin);
+      if (made) entrants.push({ def, skin, ...made });
+    }
+  });
+  if (entrants.length === 0) throw new Error('None of the heroes could be read');
+  return entrants;
+}

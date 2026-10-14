@@ -1,0 +1,80 @@
+/*
+ * The shop's Heroes tab (page.ts): the Outfits tab's cards and buy box (../outfits/outfits.css), with a
+ * hero's picture in place of a character (its bust, filling the card above its name) and its class's
+ * badge in the top corner.
+ */
+
+.hero-card-art {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.hero-card-picture {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  transition: transform 0.18s ease;
+}
+
+.outfit-card:hover:not(:disabled, [data-state='owned']) .hero-card-picture {
+  transform: scale(1.03);
+}
+
+/* With no picture of it here: its initial, big. */
+.hero-card-initial {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  color: rgb(255 244 214 / 70%);
+  font-size: 64px;
+  font-weight: 800;
+}
+
+.hero-card-class {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  width: 34px;
+  height: 34px;
+  filter: drop-shadow(0 1px 3px rgb(0 0 0 / 70%));
+}
+
+/* Its class under its name, small. */
+.hero-card-kind {
+  display: block;
+  margin-top: 2px;
+  color: rgb(255 244 214 / 75%);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-shadow: none;
+  text-transform: uppercase;
+}
+
+.hero-buy-figure {
+  padding: 0;
+  overflow: hidden;
+}
+
+.hero-buy-picture {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+.hero-shop .outfits-status a {
+  color: var(--gold);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-card-picture {
+    transition: none;
+  }
+}

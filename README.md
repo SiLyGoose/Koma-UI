@@ -64,10 +64,10 @@ Any square size works.
 
 ## Files
 
-- `index.html`, `src/site/`: the site's own pages (the front page, `/gear/`, `/forge/`, `/shop/`, `/dressing-room/`, `/databank/`) as one
+- `index.html`, `src/site/`: the site's own pages (the front page, `/gear/`, `/heroes/`, `/forge/`, `/shop/`, `/dressing-room/`, `/databank/`) as one
   document. Each page is its own `.html` (imported `?raw`) and a `page.ts` that sets it up; `src/site/main.ts`
   swaps between them (and back and forward) through the page transition, `src/site/session.ts` keeps
-  the login, the server picked and the header. `vercel.json` sends `/gear/`, `/forge/`, `/shop/` (and its
+  the login, the server picked and the header. `vercel.json` sends `/gear/`, `/heroes/`, `/forge/`, `/shop/` (and its
   tabs' paths), `/dressing-room/` and `/databank/` (and its sections' paths) to it, and the old `/banner/` to `/shop/wish/`.
 - `src/hub/`: the front page.
 - `games/pinecraft/index.html`, `src/pinecraft/`: Pinecraft. `protocol.ts` is a copy of the bot's
@@ -79,9 +79,61 @@ Any square size works.
 - `games/minesweeper/index.html`, `src/minesweeper/`: Minesweeper. `protocol.ts` is a copy of the bot's
   `src/web/games/minesweeper/protocol.ts` (change both together); `cursors.ts` draws the other players'
   cursors over the board (the site's hand, a name beside it, a colour each) and tells them this page's.
+- `games/technomagic/index.html`, `src/technomagic/`: the TechnoMagic Raid, a boss fight seen from the side, drawn in 3D
+  (three.js), against a boss (Galgoria so far), played as in King's Raid. Opened from the front page or Discord
+  (`k!technomagic`, and the post the bot makes when someone opens a room), it is the server's room: getting ready
+  (`prep/`), everyone puts heroes of their own (bought in the shop, geared on `/heroes/`) into a lineup of 9 (the host
+  up to 4, everyone else up to 2; alone, up to 8 against an easier boss), says they're ready, and the host starts the
+  fight. The bot runs the fight by its own clock with everyone's presses, and every page runs the same one, never past
+  where the bot has got (`protocol.ts` is a copy of the bot's `src/web/games/technomagic/protocol.ts`: change both
+  together). Each player has a card for each of their own heroes. Heroes that fall stay down. A win gives each player
+  TechnoMagic gear, while they have runs left that day that give it. Opened with no link (`yarn dev`), it is a field for
+  trying things out, with nothing kept: every skin's card, heroes on and off the field, and buttons that set the boss
+  attacking. Every blow is physical or magical, by who deals it, and is worn down by its target's defence against that
+  kind and by a block. Its folders:
+  - `sim/` is the fight itself, with nothing drawn: worked out a step at a time (thirty a second) from a seed, with no
+    `Math.random`, `pow`, `exp`, `sin` or `cos` in it, so the same seed and inputs make the same fight in any browser
+    and in Node. The page draws what it says happened (its events); `sim/verify.ts` is what the bot runs a room's
+    fight with. **`yarn build:sim`** builds it into one file in the bot (`../Koma/vendor/technomagic-sim.mjs`, and its
+    types): run it whenever the fight changes, raise `SIM_VERSION` in `sim/verify.ts` with anything that changes how a
+    fight goes (a page whose version isn't the bot's is told to reload), and deploy both. How long each move takes and when
+    its blows land is `sim/motion.ts`, from the skins' data (never from the files read).
+  - `assets/` names every file the page shows and nothing else: a file for each hero (`assets/heroes/`: its skins'
+    models, its skills' pictures, its portraits) and each boss (`assets/bosses/`), the effects they share, and
+    `paths.ts`, where each is kept. Its files name each other with their `.ts`, so Node reads them too.
+  - `engine/` is three.js and nothing of this fight: `models.ts` loads the models, `rig.ts` poses their bones in code
+    (the game's models come with no animation), `track.ts` is a movement written as poses at times, `retarget.ts` plays
+    one skeleton's animations on another, `stage.ts` is the field and its camera.
+  - `heroes/` has a folder for each hero (`index.ts`: its health, the kind of damage it deals, its defences, its skills
+    and what comes of each, in the sim; `fx.ts`: what is drawn for them; `moves.ts`: what its body does for them),
+    `body/` (a hero on the field: stood up from the game's files or from a skin rigged by Mixamo, and moved by poses
+    written in code or by animations, as the sim says), `moves/` (the moves every hero has, and the stances they are
+    written with) and `load.ts`, which reads every skin.
+  - `bosses/` has a folder for each boss (`bosses/galgoria/`: what it is, how its attacks go (`attacks.ts`), what its
+    skills do (`skills.ts`) and what is drawn for them (`fx.ts`), its model, its venom); `models.ts` names each one's body.
+  - `combat/` is how a blow is worked out (`damage.ts`: physical and magical damage, defence against each, block;
+    `status.ts`: what a skill leaves on a fighter for a while); `fight/` draws the sim's fight (`view.ts`) and what is
+    drawn for the moves every hero has (`fx.ts`).
+  - `fx/` is what is drawn for a hit and a skill, `hud/` what is shown over the field (the cards, the boss's health and
+    attacks), `prep/` getting ready in a room (the lineup, the heroes, the chat, who's in), `styles/` its CSS.
+
+  To add a hero: a file in `assets/heroes/`, a folder in `heroes/`, and a line in each one's `index.ts` and in
+  `heroes/fx.ts` (and its moves in `heroes/moves/index.ts`); a boss likewise (and `bosses/models.ts`). The bot knows
+  heroes by the same id (its `data/heroes.ts`). Its models are not in this repo: `node scripts/kr-assets.mjs` copies
+  them into `public/kr/`, which git ignores and a build leaves out, so the page only shows them under `yarn dev` on a
+  machine that has them. They are kept there by whose they are: `heroes/<hero>/models/`, `skills/` and `portraits/`,
+  `bosses/<boss>/models/`, and `effects/`. The skins' pictures that are committed are in `public/technomagic/portraits/`.
 - `src/gear/`: the gear page. `src/databank/`: the databank: its way in (`/databank/`), the items (`/databank/items/`)
   and the raid bosses (`/databank/bosses/`).
-- `src/shop/`: the shop, its tabs down the left, each with its own path (`/shop/wish/`, `/shop/outfits/`).
+- `src/heroes/`: the heroes page (`/heroes/`), laid out as the gear page (its styles are the gear page's, with its own
+  on top): the TechnoMagic Raid's heroes down the left (the bot's `/api/heroes`), the one picked with its five slots
+  (two weapons, two armors, a treasure), and the gear a hero can wear (the raid's, and the TechnoMagic Raid's own,
+  which only heroes wear) or, on its Stats tab, its stats in the raid with and without its gear (`stats.ts`, from the
+  raid's class stats). A copy can be on the member and on one of their heroes at once, but on one hero only.
+  `src/shared/heroes.ts` is what the bot says of them, and their pictures (cut from the raid's portraits).
+- `src/shop/`: the shop, its tabs down the left, each with its own path (`/shop/wish/`, `/shop/outfits/`, `/shop/heroes/`).
+  `src/hero-shop/` is its Heroes tab, where members buy the TechnoMagic Raid's heroes (the bot's `/api/heroes`), laid
+  out as the Outfits tab.
   `src/banner/` is its Wish tab, where members pull from the gacha (the bot's `/api/gacha`), with its
   wish: a star falling in the colour of the best item pulled (`sky.ts`), then each item revealed
   (`wish.ts`). `src/outfits/` is its Outfits tab, where they buy outfits (the bot's `/api/outfits`): the

@@ -24,8 +24,12 @@ export interface GearCopy {
   forge?: GearForge | null;
   /** Locked by the member: never sold or used up by a refine (absent from a bot from before locking). */
   locked?: boolean;
-  /** What selling it pays in zeiucoins: null when it's worn, saved in a loadout or locked, so never sold (absent from a bot from before selling on the site). */
+  /** What selling it pays in zeiucoins: null when it's worn, saved in a loadout, on a hero or locked, so never sold (absent from a bot from before selling on the site). */
   sell?: number | null;
+  /** TechnoMagic gear: only the TechnoMagic Raid's heroes wear it (the heroes page), never the member (absent from a bot from before heroes). */
+  heroOnly?: boolean;
+  /** The name of the hero wearing it (the heroes page), or null (absent from a bot from before heroes). */
+  hero?: string | null;
 }
 
 /** Refining a copy (the bot's web/gear.ts GearRefine). */

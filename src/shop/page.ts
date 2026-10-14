@@ -1,5 +1,6 @@
 import markup from './shop.html?raw';
 import { wishTab } from '../banner/page';
+import { heroShopTab } from '../hero-shop/page';
 import { outfitsTab } from '../outfits/page';
 import { raidShopTab } from '../raid-shop/page';
 import type { Page } from '../site/page';
@@ -8,13 +9,14 @@ import type { ShopTab } from './tab';
 /*
  * The shop, laid out as King's Raid's: a tab for each thing to get down the left (across the top on
  * phones), the one picked filling the rest. Wish (../banner/) pulls from the gacha; Outfits
- * (../outfits/) buys the characters to be drawn as; Raid Gear (../raid-shop/) buys raid items with
- * komaGems. Each tab has its own path (/shop/wish/, /shop/outfits/, /shop/raid/; /shop/ is the first),
+ * (../outfits/) buys the characters to be drawn as; Heroes (../hero-shop/) buys the TechnoMagic Raid's
+ * heroes; Raid Gear (../raid-shop/) buys raid items with komaGems. Each tab has its own path (/shop/wish/,
+ * /shop/outfits/, /shop/heroes/, /shop/raid/; /shop/ is the first),
  * so a link can open one; picking another swaps it in place, and
  * the address follows without a new history entry (back leaves the shop).
  */
 
-const TABS: readonly ShopTab[] = [wishTab, outfitsTab, raidShopTab];
+const TABS: readonly ShopTab[] = [wishTab, outfitsTab, heroShopTab, raidShopTab];
 
 /** The tab for a path under /shop/ (the first for /shop/ itself, or one there isn't). */
 const tabAt = (path: string): ShopTab => TABS.find((tab) => path.replace(/\/+$/, '') === `/shop/${tab.id}`) ?? (TABS[0] as ShopTab);
@@ -53,6 +55,13 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void; 
     document.title = tab.title;
     panel.setAttribute('aria-label', tab.label);
     for (const button of buttons) button.setAttribute('aria-selected', String(button.dataset.tab === tab.id));
+    // On a phone the tabs scroll sideways: the one picked into view (only the rail moves, never the page).
+    const picked = buttons.find((button) => button.dataset.tab === tab.id);
+    if (picked && rail.scrollWidth > rail.clientWidth) {
+      // (The rail is the tabs' offsetParent: this is from its own left edge.)
+      const left = picked.offsetLeft;
+      if (left < rail.scrollLeft || left + picked.offsetWidth > rail.scrollLeft + rail.clientWidth) rail.scrollTo({ left: left - (rail.clientWidth - picked.offsetWidth) / 2, behavior: 'smooth' });
+    }
     return drawn;
   }
 

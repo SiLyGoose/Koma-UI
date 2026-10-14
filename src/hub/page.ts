@@ -14,7 +14,7 @@ import { api, currentMe, currentServer, hasSession, loadMe, loggedIn, logIn, log
 
 /** A game to open once logged in: from a link like /?play=mines&guild=123 (the bot's buttons in Discord). */
 const PLAY_KEY = 'koma.playNext';
-const GAMES: readonly Game[] = ['mines', 'pinecraft', 'baccarat', 'roulette', 'poker', 'raid', 'minesweeper'];
+const GAMES: readonly Game[] = ['mines', 'pinecraft', 'baccarat', 'roulette', 'poker', 'raid', 'minesweeper', 'technomagic'];
 
 const points = (n: number): string => n.toLocaleString('en-US');
 
@@ -125,6 +125,9 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
   }
 
   ui.loginButton.addEventListener('click', logIn);
+
+  // The TechnoMagic Raid is only there under `yarn dev`: its models aren't deployed.
+  if (!import.meta.env.DEV) root.querySelector<HTMLElement>('[data-game="technomagic"]')?.remove();
 
   for (const button of ui.playButtons) {
     button.addEventListener('click', async () => {

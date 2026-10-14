@@ -171,6 +171,12 @@
   image-rendering: pixelated;
 }
 
+/* The TechnoMagic Raid: its field's dusk (no picture: its models stay off the site). */
+.technomagic-art {
+  letter-spacing: 0;
+  background: linear-gradient(180deg, #1b1a2b 0%, #3b2a4a 60%, #6a3f55 100%);
+}
+
 .mines-art {
   /* A picture of the game (../../public/mines/cover.png), on the gem in the middle. */
   background: var(--panel) url('/mines/cover.png') center / cover no-repeat;

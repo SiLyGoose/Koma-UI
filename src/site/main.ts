@@ -11,6 +11,8 @@ import '../dressing/dressing.css';
 import '../forge/forge.css';
 import '../banner/banner.css';
 import '../outfits/outfits.css';
+import '../hero-shop/hero-shop.css';
+import '../heroes/heroes.css';
 import '../raid-shop/raid-shop.css';
 import '../shop/shop.css';
 import { backdrop, siteHeader } from '../shared/ui';
@@ -20,6 +22,7 @@ import { databankPage } from '../databank/page';
 import { dressingPage } from '../dressing/page';
 import { forgePage } from '../forge/page';
 import { gearPage } from '../gear/page';
+import { heroesPage } from '../heroes/page';
 import { hubPage } from '../hub/page';
 import { shopPage } from '../shop/page';
 import { keepHoloInStep } from '../shared/items';
@@ -39,7 +42,7 @@ import { hasSession } from './session';
  * forward. A page with subpaths (the shop, a path for each tab; the databank, one for each section) shows another of its own in place.
  */
 
-const PAGES: readonly Page[] = [hubPage, gearPage, forgePage, shopPage, dressingPage, databankPage];
+const PAGES: readonly Page[] = [hubPage, gearPage, heroesPage, forgePage, shopPage, dressingPage, databankPage];
 
 const view = document.getElementById('view') as HTMLElement;
 

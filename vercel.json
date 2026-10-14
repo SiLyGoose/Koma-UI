@@ -40,6 +40,14 @@
       "destination": "/index.html"
     },
     {
+      "source": "/heroes",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/heroes/",
+      "destination": "/index.html"
+    },
+    {
       "source": "/forge",
       "destination": "/index.html"
     },

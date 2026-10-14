@@ -19,7 +19,7 @@ function badge(cls: RaidClass, className: string): HTMLImageElement {
   return img;
 }
 
-const itemsOf = (ctx: DatabankContext, cls: RaidClass): DatabankItem[] => ctx.databank?.items.filter((item) => item.class === cls.id) ?? [];
+const itemsOf = (ctx: DatabankContext, cls: RaidClass): DatabankItem[] => ctx.databank?.items.filter((item) => item.class === cls.id && item.source !== 'technomagic') ?? [];
 
 export function renderClasses(ctx: DatabankContext): void {
   renderClassList(ctx);

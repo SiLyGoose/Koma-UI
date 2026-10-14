@@ -8,9 +8,12 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "build:sim": "node scripts/build-sim.mjs"
   },
   "devDependencies": {
+    "@types/three": "^0.186.0",
+    "three": "^0.186.1",
     "typescript": "^5.9.3",
     "vite": "^8.3.1"
   },

@@ -104,7 +104,7 @@ async function load(ctx: OutfitsContext): Promise<void> {
   render(ctx);
 }
 
-/** Buys an outfit, draws the tab as it is after, and points them to the dressing room to put it on. */
+/** Buys an outfit, and draws the tab as it is after. */
 async function buy(ctx: OutfitsContext, outfit: Outfit): Promise<void> {
   const server = currentServer();
   if (ctx.busy || !server) return;
@@ -121,9 +121,4 @@ async function buy(ctx: OutfitsContext, outfit: Outfit): Promise<void> {
   }
   ctx.view = res.data;
   render(ctx);
-  status(ctx, `${outfit.name} is yours! Put it on in the `);
-  const room = document.createElement('a');
-  room.href = '/dressing-room/';
-  room.textContent = 'Dressing Room';
-  ctx.ui.status.append(room, '.');
 }

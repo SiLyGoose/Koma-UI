@@ -338,7 +338,7 @@
 
 /* ------------------------------------------------------------------ phones */
 
-/* Three across, a size down, the bar still on one line (the plaque and what's either side of it smaller). */
+/* Two across, a size down, the bar still on one line (the plaque and what's either side of it smaller). */
 @media (max-width: 760px) {
   .outfits-page {
     gap: 12px;
@@ -364,13 +364,20 @@
     font-size: 14px;
   }
 
+  /* Two columns, the pair in the middle: a last card on its own stays in the left one. */
   .outfits-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 200px));
     gap: 10px;
     align-content: start;
   }
 
+  .outfits-row[hidden] {
+    display: none;
+  }
+
   .outfit-card {
-    width: min(180px, calc((100% - 20px) / 3));
+    width: auto;
   }
 
   .outfit-name {
