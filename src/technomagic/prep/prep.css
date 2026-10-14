@@ -64,96 +64,21 @@
   font-weight: 800;
 }
 
-/* Top right: Raid Settings, a popup with the stage stepped down or up by its arrows. */
+/* Top right: Raid Settings, which opens the raid's own popup to step the stage (../../shared/ui/level/). */
 .tm-prep-settings {
-  position: relative;
   margin-left: auto;
-}
-
-.tm-prep-settings-open {
   padding: 8px 14px;
+  border: 0;
   border-radius: 8px;
   background: linear-gradient(180deg, #e2b85c, #a87a2c);
   color: #2a1606;
-  font-weight: 800;
-  list-style: none;
-  cursor: pointer;
-}
-
-.tm-prep-settings-open::-webkit-details-marker {
-  display: none;
-}
-
-.tm-prep-settings-box {
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
-  z-index: 3;
-  width: min(300px, 80vw);
-  padding: 12px 14px;
-  border: 1px solid var(--gold-dim);
-  border-radius: 10px;
-  background: #140d16;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
-}
-
-.tm-prep-stage {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 12px;
-}
-
-.tm-prep-stage-level {
-  display: grid;
-  justify-items: center;
-  min-width: 76px;
-  line-height: 1.15;
-}
-
-.tm-prep-stage-level small {
-  color: var(--ink-dim);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.tm-prep-stage-level b {
-  font-size: 22px;
-}
-
-.tm-prep-step {
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  padding: 0;
-  border: 1px solid var(--gold-dim);
-  border-radius: 50%;
-  background: rgba(10, 10, 14, 0.8);
-  color: var(--gold);
   font: inherit;
-  font-size: 14px;
-  line-height: 1;
+  font-weight: 800;
   cursor: pointer;
 }
 
-.tm-prep-step:hover:not(:disabled) {
-  border-color: var(--gold);
-  background: rgba(40, 34, 20, 0.9);
-}
-
-.tm-prep-step:disabled {
-  opacity: 0.35;
-  cursor: default;
-}
-
-.tm-prep-stage-text {
-  margin: 10px 0 0;
-  color: var(--ink-dim);
-  font-size: 13px;
-  line-height: 1.4;
+.tm-prep-settings:hover {
+  filter: brightness(1.1);
 }
 
 /* The lineup: a card for every slot, in a gold-framed row (wrapping on a narrow screen). */

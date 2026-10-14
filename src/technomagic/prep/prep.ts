@@ -1,4 +1,5 @@
 import { classBadge, className, FACE, heroCut } from '../../shared/heroes';
+import { levelPopup } from '../../shared/ui/level/level';
 import { GALGORIA } from '../bosses/galgoria';
 import { HEROES } from '../heroes';
 import { el } from '../hud/dom';
@@ -66,15 +67,16 @@ export function makePrep(act: PrepActions): Prep {
   const heroes = byId('prep-heroes');
   const players = byId('prep-players');
   const level = byId('prep-level');
-  const stageShown = byId('prep-stage');
-  const stageDown = byId('prep-stage-down') as HTMLButtonElement;
-  const stageUp = byId('prep-stage-up') as HTMLButtonElement;
-  const stageText = byId('prep-stage-text');
+  const settings = levelPopup({ id: 'prep-settings-pop', title: 'Raid Settings', label: 'Stage', confirm: 'Confirm', down: 'Lower stage', up: 'Higher stage' });
+  settings.picture.hidden = true;
+  root.append(settings.root);
   const rewards = byId('prep-rewards');
   const noteAt = byId('prep-note');
   const ready = byId('prep-ready') as HTMLButtonElement;
   const start = byId('prep-start') as HTMLButtonElement;
   let state: RoomState | null = null;
+  /** The stage picked in Raid Settings, until it is confirmed (null: the popup is closed). */
+  let picked: number | null = null;
 
   byId('prep-info').append(
     el('p', '', `${GALGORIA.name}: a chimera of three heads that spits venom. Its blows are magical, and nothing slows it; it heals itself all the while.`),
@@ -85,17 +87,50 @@ export function makePrep(act: PrepActions): Prep {
 
   ready.addEventListener('click', () => act.ready(ready.getAttribute('aria-pressed') !== 'true'));
   start.addEventListener('click', () => act.begin());
-  const step = (by: number): void => {
-    if (state) act.stage(Math.min(state.stages, Math.max(1, state.stage + by)));
+  // Raid Settings: the stage stepped between the arrows, and taken on Confirm (only the host's).
+  const closeSettings = (): void => {
+    settings.root.hidden = true;
+    picked = null;
   };
-  stageDown.addEventListener('click', () => step(-1));
-  stageUp.addEventListener('click', () => step(1));
-  // A popup (Raid Settings, Raid Info) closes on a press anywhere else.
+  byId('prep-settings').addEventListener('click', () => {
+    if (!state) return;
+    picked = state.stage;
+    drawSettings();
+    settings.root.hidden = false;
+    settings.confirm.focus();
+  });
+  settings.bind({
+    step(by) {
+      if (picked === null) return;
+      picked += by;
+      drawSettings();
+    },
+    confirm() {
+      if (picked !== null && picked !== state?.stage) act.stage(picked);
+      closeSettings();
+    },
+    close: closeSettings,
+  });
+
+  // Raid Info closes on a press anywhere else.
   document.addEventListener('pointerdown', (event) => {
     for (const box of root.querySelectorAll<HTMLDetailsElement>('details[open]')) {
       if (!box.contains(event.target as Node)) box.open = false;
     }
   });
+
+  /** Raid Settings, while it is open: the stage picked (anyone but the host only sees the room's), between its arrows. */
+  function drawSettings(): void {
+    if (!state || picked === null) return;
+    const host = state.players.some((player) => player.id === state?.you && player.host);
+    picked = host ? Math.min(Math.max(1, picked), state.stages) : state.stage;
+    settings.bossName.textContent = state.boss.name;
+    settings.number.textContent = String(picked);
+    settings.down.disabled = !host || picked <= 1;
+    settings.up.disabled = !host || picked >= state.stages;
+    settings.confirm.hidden = !host;
+    settings.note.textContent = `${host ? '' : 'Only the host changes the stage. '}From stage 4 on, the boss is harder on the heroes, and a win likelier to give 4-star gear.`;
+  }
 
   /** One slot of the lineup: a hero (whose, which) or empty. */
   function slot(pick: PickView | undefined, owner: PlayerView | undefined, mine: boolean): HTMLElement {
@@ -128,10 +163,7 @@ export function makePrep(act: PrepActions): Prep {
     const owner = (id: string): PlayerView | undefined => state?.players.find((player) => player.id === id);
 
     level.textContent = `· Stage ${state.stage}`;
-    stageShown.textContent = String(state.stage);
-    stageDown.disabled = !host || state.stage <= 1;
-    stageUp.disabled = !host || state.stage >= state.stages;
-    stageText.textContent = `${host ? '' : 'Only the host changes the stage. '}From stage 4 on, the boss is harder on the heroes, and a win likelier to give 4-star gear.`;
+    drawSettings();
     lineup.style.setProperty('--slots', String(state.slots));
     lineup.replaceChildren(...Array.from({ length: state.slots }, (_, i) => slot(state?.lineup[i], owner(state?.lineup[i]?.owner ?? ''), state?.lineup[i]?.owner === state?.you)));
 
@@ -213,6 +245,7 @@ export function makePrep(act: PrepActions): Prep {
       noteAt.textContent = text ?? '';
     },
     hide() {
+      closeSettings();
       root.hidden = true;
     },
   };

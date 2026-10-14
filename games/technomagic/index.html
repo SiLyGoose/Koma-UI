@@ -36,19 +36,8 @@
           <div class="tm-prep-top">
             <h2 id="prep-title" class="tm-prep-title">Get Ready for Battle</h2>
             <p class="tm-prep-boss"><b id="prep-boss">Galgoria</b> <span id="prep-level"></span></p>
-            <!-- Raid Settings: the raid's stage, a step at a time (only the host changes it). -->
-            <details id="prep-settings" class="tm-prep-settings">
-              <summary class="tm-prep-settings-open">Raid Settings</summary>
-              <div class="tm-prep-settings-box">
-                <h3 class="tm-prep-panel-title">Raid Settings</h3>
-                <div class="tm-prep-stage">
-                  <button type="button" id="prep-stage-down" class="tm-prep-step" aria-label="Lower stage">◀</button>
-                  <div class="tm-prep-stage-level"><small>Stage</small><b id="prep-stage"></b></div>
-                  <button type="button" id="prep-stage-up" class="tm-prep-step" aria-label="Higher stage">▶</button>
-                </div>
-                <p id="prep-stage-text" class="tm-prep-stage-text"></p>
-              </div>
-            </details>
+            <!-- Raid Settings: the raid's stage, in the raid's own popup (../../src/shared/ui/level/; only the host changes it). -->
+            <button type="button" id="prep-settings" class="tm-prep-settings">Raid Settings</button>
           </div>
           <ol id="lineup" class="tm-lineup" aria-label="Lineup"></ol>
           <div class="tm-prep-bottom">

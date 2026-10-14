@@ -187,31 +187,6 @@
       </section>
 
       <!--
-        The difficulty to start the week's raid at (src/raid/prep/level.ts), before its lobby is up: the boss,
-        the level between two arrows (as far as the server has unlocked), and Enter Raid, which starts it.
-      -->
-      <div id="level-pop" class="rd-level" role="dialog" aria-modal="true" aria-labelledby="level-title" hidden>
-        <div class="rd-level-box">
-          <div id="level-title" class="rd-prep-head">Select Difficulty</div>
-          <div class="rd-level-boss">
-            <img id="level-picture" alt="" draggable="false" />
-            <b id="level-boss-name"></b>
-          </div>
-          <div class="rd-level-pick">
-            <button type="button" id="level-down" class="rd-level-step" aria-label="Easier">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12H5M11 5l-7 7 7 7" /></svg>
-            </button>
-            <div class="rd-level-plate" aria-live="polite"><small>Lv</small><span id="level-number"></span></div>
-            <button type="button" id="level-up" class="rd-level-step" aria-label="Harder">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15M13 5l7 7-7 7" /></svg>
-            </button>
-          </div>
-          <div class="rd-level-actions"><button type="button" id="level-enter" class="rd-prep-button">Enter Raid</button></div>
-          <button type="button" id="level-close" class="rd-gear-close" aria-label="Close">✕</button>
-        </div>
-      </div>
-
-      <!--
         A raider's gear (a card in the party clicked): the gear page's view, with the party for its roster,
         to look at only (src/raid/gear/gear.ts, in a frame of its own: laid out as on a computer, scaled to fit).
       -->

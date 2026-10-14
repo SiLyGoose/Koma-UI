@@ -2,7 +2,7 @@ import { popupClosed } from '../../shared/items';
 import { send } from '../connection';
 import type { RaidPickView, RaidView } from '../protocol';
 import { state } from '../state';
-import { ui } from '../ui';
+import { level, ui } from '../ui';
 import { popupShown } from '../widgets';
 
 /*
@@ -75,20 +75,6 @@ function enter(): void {
 
 /** The popup's arrows (and the keyboard's), Enter Raid, and its ways out: its ✕, the dark around it, and Escape. */
 export function wireLevel(): void {
-  ui.levelDown.addEventListener('click', () => step(-1));
-  ui.levelUp.addEventListener('click', () => step(1));
-  ui.levelEnter.addEventListener('click', enter);
   ui.levelClose.dataset.sfx = 'own';
-  ui.levelClose.addEventListener('click', () => closeLevel());
-  ui.levelPop.addEventListener('click', (event) => {
-    if (event.target === ui.levelPop) closeLevel();
-  });
-  document.addEventListener('keydown', (event) => {
-    if (ui.levelPop.hidden) return;
-    if (event.key === 'Escape') closeLevel();
-    else if (event.key === 'ArrowLeft' && !ui.levelDown.disabled) step(-1);
-    else if (event.key === 'ArrowRight' && !ui.levelUp.disabled) step(1);
-    else return;
-    event.preventDefault();
-  });
+  level.bind({ step, confirm: enter, close: () => closeLevel() });
 }
