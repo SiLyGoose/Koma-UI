@@ -46,7 +46,8 @@ function card(ctx: DatabankContext, item: DatabankItem): HTMLButtonElement {
   button.classList.toggle('unowned', owned !== null && !mine);
   const cls = item.class ? className(ctx, item.class) : null;
   button.setAttribute('aria-label', `${item.name}, ${item.stars} star${item.stars === 1 ? '' : 's'}, ${SLOT_NAME[item.slot]}${cls ? `, ${cls} class item` : ''}${mine ? `, you own ${mine.count}` : ''}`);
-  if (mine) button.append(el('span', 'item-level', `×${mine.count}`));
+  // How many they own, in the corner (not on TechnoMagic gear: its corners are its tabs').
+  if (mine && item.source !== 'technomagic') button.append(el('span', 'item-level', `×${mine.count}`));
   // TechnoMagic gear is drawn as the raid's own (its class in its corner tab); any other class item wears its class's badge in the corner.
   const tm = item.source === 'technomagic';
   if (item.class && cls && !tm) button.append(classBadge(item.class, cls));
