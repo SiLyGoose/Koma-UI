@@ -90,6 +90,11 @@ export function posedHero({ root, body, middle, models, rig, hips, feet, blade, 
       stopPlaying();
       doing = { name: 'hit', t: 0 };
     },
+    fall() {
+      running = null;
+      stopPlaying();
+      doing = null;
+    },
     update(now, dt) {
       let moved = STILL;
       if (doing) {

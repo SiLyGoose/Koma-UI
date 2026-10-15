@@ -126,6 +126,11 @@ function animatedHero({ root, body, middle, models, rig, hips, feet, blade, shie
       if (!doing || doing.what === 'own') rig.keep(animated);
       doing = { what: 'hit', t: 0 };
     },
+    fall() {
+      // Cut short in a move written in code: back as its animations last had it, for its idle to take on from there.
+      if (doing && doing.what !== 'own' && doing.what !== 'enter') rig.blend(animated, 1);
+      doing = null;
+    },
     update(now, dt) {
       let ahead = 0;
       let jump = 0;

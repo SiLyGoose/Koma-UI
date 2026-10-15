@@ -2,7 +2,7 @@ import { Vector3, type Scene } from 'three';
 import type { Boss } from '../bosses/boss';
 import type { Effects } from '../fx/effects';
 import type { Magic } from '../fx/magic';
-import type { Hero } from '../heroes/body/hero';
+import { FALL, type Hero } from '../heroes/body/hero';
 import { HERO_FX } from '../heroes/fx';
 import type { Popup } from '../hud/numbers';
 import { HERO_TURN, HERO_X, type Sim } from '../sim';
@@ -37,13 +37,19 @@ export function makeFightView({ scene, sim, bodies, boss, bossFx, effects, magic
   const numbers: Popup[] = [];
   const body = (who: number): Hero => bodies[who] as Hero;
   const on = new Set<number>();
+  /**
+   * The heroes that have fallen (or are getting up, revived): how far over each is (0 standing, 1 on its back),
+   * and when it came to lie still (null: it hasn't yet), so it lies as it was then.
+   */
+  const fallen = new Map<number, { over: number; still: number | null }>();
 
   boss.root.position.x = def.stands.x;
   boss.root.rotation.y = def.stands.turn;
   if (!boss.root.parent) scene.add(boss.root);
   for (const hero of bodies) {
     hero.root.position.set(HERO_X, 0, 0);
-    hero.root.rotation.y = HERO_TURN;
+    // Turned to face the boss first, then tipped over (onto its back) in its own way: about its own side.
+    hero.root.rotation.set(0, HERO_TURN, 0, 'YXZ');
     // As it stands, for its picture should the page take one.
     hero.update(0, 0);
   }
@@ -84,10 +90,16 @@ export function makeFightView({ scene, sim, bodies, boss, bossFx, effects, magic
             hero.enter();
             break;
           }
-          case 'leave':
-            scene.remove(body(event.who).root);
+          case 'leave': {
+            const { root } = body(event.who);
+            scene.remove(root);
             on.delete(event.who);
+            // Put on again, it stands.
+            fallen.delete(event.who);
+            root.rotation.x = 0;
+            root.position.y = 0;
             break;
+          }
           case 'start':
             body(event.who).start(event.move);
             // A skill: a ring rises round its feet as it begins.
@@ -136,19 +148,45 @@ export function makeFightView({ scene, sim, bodies, boss, bossFx, effects, magic
 
       boss.update(now, dt);
       // Each hero on the field where the sim has it, moving as fast as it does (its attack speed, and what quickens it).
+      // One fallen goes over onto its back and lies still there; revived, it gets up again.
       for (const who of on) {
         const fighter = sim.fighters[who] as Sim['fighters'][number];
         const hero = body(who);
         hero.root.position.x = fighter.x;
         hero.root.position.z = fighter.z;
-        hero.update(now, sim.result ? 0 : dt * fighter.haste);
+        const down = fighter.hp <= 0;
+        let lying = fallen.get(who);
+        if (down && !lying) {
+          hero.fall();
+          lying = { over: 0, still: null };
+          fallen.set(who, lying);
+        }
+        if (!lying) {
+          hero.update(now, sim.result ? 0 : dt * fighter.haste);
+          continue;
+        }
+        lying.over = Math.min(1, Math.max(0, lying.over + (down ? dt : -dt) / FALL.time));
+        if (down && lying.over >= 1) lying.still ??= now;
+        else lying.still = null;
+        // Going over faster and faster, as a body falls.
+        const k = lying.over * lying.over;
+        hero.root.rotation.x = (-Math.PI / 2) * k;
+        hero.root.position.y = FALL.lift * k;
+        hero.update(lying.still ?? now, lying.still === null ? dt : 0);
+        if (!down && lying.over <= 0) fallen.delete(who);
       }
       effects.update(dt);
       magic.update(dt);
     },
     clear() {
-      for (const who of on) scene.remove(body(who).root);
+      for (const who of on) {
+        const { root } = body(who);
+        scene.remove(root);
+        root.rotation.x = 0;
+        root.position.y = 0;
+      }
       on.clear();
+      fallen.clear();
     },
   };
 }

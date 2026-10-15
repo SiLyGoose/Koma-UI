@@ -31,6 +31,11 @@
   filter: none;
 }
 
+/* Its hero has fallen: the whole card goes grey (after .picked, so it wins over it). */
+.tm-card.down {
+  filter: grayscale(1) brightness(0.55);
+}
+
 /* The hero itself, looking out from behind its card: its picture goes down behind the rows, and is cut off at the card's foot. */
 .tm-face {
   position: absolute;
@@ -41,10 +46,6 @@
   border: 0;
   background: none;
   cursor: pointer;
-}
-
-.tm-card.down .tm-face {
-  filter: grayscale(1) brightness(0.6);
 }
 
 .tm-face img {

@@ -15,6 +15,8 @@ export const SCALE = 1.68;
 export const RED = 0.45;
 /** Running in: how long it takes, and from how far back. */
 export const ENTER = { time: RUNNING_IN, from: -7.5 };
+/** Fallen: how long it takes to go over onto its back (and to get up again, revived), and how far its feet are lifted lying there (so its back is on the floor, not in it). */
+export const FALL = { time: 0.55, lift: 0.22 };
 
 export interface Hero {
   root: Group;
@@ -31,6 +33,8 @@ export interface Hero {
   hit(): void;
   /** Staggered (stunned, thrown back): what it was doing is cut short. */
   stagger(): void;
+  /** Fallen: what it was doing is cut short, and it stands at rest (the page lays it on the floor: ../../fight/view.ts). */
+  fall(): void;
   update(now: number, dt: number): void;
 }
 
