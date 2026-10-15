@@ -38,9 +38,9 @@ export const CLAUSE: HeroDef = {
   // A knight whose blows are physical: as his class stands, otherwise (he blocks a good third of the blows that come at him).
   stats: { ...CLASS_STATS.knight, deals: 'physical' },
   abilities: [
-    { name: 'Cut Ground', icon: '⚔️', image: art(0), move: 'slam', cooldown: 9, cost: 2 },
-    { name: 'Shield Strike', icon: '🛡️', image: art(1), move: 'bash', cooldown: 8, cost: 1 },
-    { name: 'Guardian Shield', icon: '✨', image: art(2), move: 'guard', cooldown: 12, cost: 2 },
+    { name: 'Cut Ground', about: 'A leap and a blow down on the boss that stuns it for 5 seconds.', icon: '⚔️', image: art(0), move: 'slam', cooldown: 9, cost: 2 },
+    { name: 'Shield Strike', about: 'A blow with his shield: for 20 seconds the boss attacks a third slower and takes 30% more.', icon: '🛡️', image: art(1), move: 'bash', cooldown: 8, cost: 1 },
+    { name: 'Guardian Shield', about: 'For 20 seconds every hero takes 25% less from the boss.', icon: '✨', image: art(2), move: 'guard', cooldown: 12, cost: 2 },
   ],
   passive: VOW_OF_KNIGHTS,
   // Without an animation for his attack: his sword from side to side.

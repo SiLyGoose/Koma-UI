@@ -15,9 +15,13 @@
   color: #fff;
   font: inherit;
   cursor: pointer;
+  /* Held down on for what it does (../hud/tip.ts): not a phone's menu, nor its words chosen. */
+  -webkit-touch-callout: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
-.tm-skill:not(:disabled):hover {
+.tm-skill:not(:disabled, [aria-disabled='true']):hover {
   border-color: var(--gold);
 }
 
@@ -26,7 +30,8 @@
   cursor: default;
 }
 
-.tm-skill:disabled {
+.tm-skill:disabled,
+.tm-skill[aria-disabled='true'] {
   cursor: default;
 }
 

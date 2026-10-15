@@ -54,9 +54,9 @@ export const MORRAH: HeroDef = {
   // A knight whose blows are magical: as her class stands, otherwise.
   stats: { ...CLASS_STATS.knight, deals: 'magical' },
   abilities: [
-    { name: 'Burning Power', icon: '🔥', image: art(0), move: 'burning', cooldown: 6, cost: 2 },
-    { name: 'Hellfire', icon: '🌋', image: art(1), move: 'hellfire', cooldown: 12, cost: 3 },
-    { name: 'Lava Eruption', icon: '☄️', image: art(2), move: 'eruption', cooldown: 20, cost: 3 },
+    { name: 'Burning Power', about: 'A blow that knocks the boss down for a second and leaves 3 Flame on it. Then for 15 seconds each blow of her attack deals more and leaves a Flame. Both are 2% harder for each Flame on the boss.', icon: '🔥', image: art(0), move: 'burning', cooldown: 6, cost: 2 },
+    { name: 'Hellfire', about: 'For 20 seconds every ally has 30% more M.DEF and +250 M.Block, and a Flame is left on the boss every second.', icon: '🌋', image: art(1), move: 'hellfire', cooldown: 12, cost: 3 },
+    { name: 'Lava Eruption', about: 'A blow that knocks the boss down for 3 seconds, 2% harder for each Flame on it.', icon: '☄️', image: art(2), move: 'eruption', cooldown: 20, cost: 3 },
   ],
   passive: FIRE_SMASH,
   attack: 'cleave',

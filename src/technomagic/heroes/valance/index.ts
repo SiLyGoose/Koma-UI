@@ -63,9 +63,9 @@ export const VALANCE: HeroDef = {
   // A mechanic whose blows are physical (her lasers'): as her class stands.
   stats: { ...CLASS_STATS.mechanic, deals: 'physical' },
   abilities: [
-    { name: 'Prototype – VA', icon: '💠', image: art(0), move: 'prototype', cooldown: 15, cost: 3 },
-    { name: 'Absolute Protection Field – LA', icon: '🟣', image: art(1), move: 'field', cooldown: 20, cost: 5 },
-    { name: 'Ultimate Laser Cannon – NCE', icon: '🔫', image: art(2), move: 'cannon', cooldown: 20, cost: 4 },
+    { name: 'Prototype – VA', about: 'Clears what the boss has left on the ally with the highest ATK, and gives it a Hologram for 15 seconds: 20% more ATK and crit chance, healed every second, its skills ready 20% sooner, and nothing the boss does holds it.', icon: '💠', image: art(0), move: 'prototype', cooldown: 15, cost: 3 },
+    { name: 'Absolute Protection Field – LA', about: 'A field for 5 seconds that reaches every ally: 15% more defense, can’t be knocked down, and healed and given mana every second.', icon: '🟣', image: art(1), move: 'field', cooldown: 20, cost: 5 },
+    { name: 'Ultimate Laser Cannon – NCE', about: 'A laser that stuns the boss for 3 seconds, then 9 more, each stunning it for 1.5; each leaves it Manipulated for 15 seconds (up to 7 times over): taking 7% more and healed 5% less.', icon: '🔫', image: art(2), move: 'cannon', cooldown: 20, cost: 4 },
   ],
   passive: AWAKENED,
   attack: 'bolt',

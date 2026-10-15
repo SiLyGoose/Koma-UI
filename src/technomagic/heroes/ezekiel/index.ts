@@ -62,9 +62,9 @@ export const EZEKIEL: HeroDef = {
   // An assassin whose blows are magical (his demon arm's): as his class stands, otherwise.
   stats: { ...CLASS_STATS.assassin, deals: 'magical' },
   abilities: [
-    { name: 'Destructive Instinct', icon: '🌀', image: art(0), move: 'instinct', cooldown: 8, cost: 2 },
-    { name: 'Dawning Despair', icon: '💨', image: art(1), move: 'despair', cooldown: 10, cost: 2 },
-    { name: 'Strike of Doom', icon: '💥', image: art(2), move: 'doom', cooldown: 7, cost: 2 },
+    { name: 'Destructive Instinct', about: 'A swipe of his demon arm, then a blow to the ground that knocks the boss down for 3 seconds. In Fury: both 50% harder, for 15% of the health he has.', icon: '🌀', image: art(0), move: 'instinct', cooldown: 8, cost: 2 },
+    { name: 'Dawning Despair', about: 'A dash and a blow: the boss’s attacks 30% slower for 5 seconds. In Fury: it is also stunned for 3 seconds, and his attacks are 30% quicker for 10, for 10% of the health he has.', icon: '💨', image: art(1), move: 'despair', cooldown: 10, cost: 2 },
+    { name: 'Strike of Doom', about: 'A charged blow that stuns the boss for 3 seconds. In Fury: three times as hard, for 20% of the health he has.', icon: '💥', image: art(2), move: 'doom', cooldown: 7, cost: 2 },
   ],
   passive: CURSED_BLOOD,
   attack: 'claw',

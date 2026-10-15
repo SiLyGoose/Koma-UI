@@ -17,6 +17,8 @@ import type { HeroMove } from './moves';
 /** An ability: what the hero does for it, how long before it can be used again (seconds), and the mana it takes. */
 export interface Ability {
   name: string;
+  /** What it does, for whoever holds it down on its card. */
+  about?: string;
   /** What stands for it where it has no picture (or the picture isn't on this computer). */
   icon: string;
   /** Its picture: an address. */

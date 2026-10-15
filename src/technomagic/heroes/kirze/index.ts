@@ -39,9 +39,9 @@ export const KIRZE: HeroDef = {
   // A warrior whose blows are magical: as her class stands, otherwise.
   stats: { ...CLASS_STATS.warrior, deals: 'magical' },
   abilities: [
-    { name: 'Slash, Blade of Judgment!', icon: '🌀', image: art(0), move: 'judgment', cooldown: 9, cost: 2 },
-    { name: 'Disperse, Crystal Haze!', icon: '💠', image: art(1), move: 'haze', cooldown: 17, cost: 3 },
-    { name: 'Bloom, Crimson Flower!', icon: '🌺', image: art(2), move: 'flower', cooldown: 20, cost: 4 },
+    { name: 'Slash, Blade of Judgment!', about: 'Seven cuts as she spins, then a blow that knocks the boss down for 3 seconds.', icon: '🌀', image: art(0), move: 'judgment', cooldown: 9, cost: 2 },
+    { name: 'Disperse, Crystal Haze!', about: 'A burst that stuns the boss for 2 seconds. Then for 15 seconds she is 50% quicker, and a shockwave goes out from her every 2 seconds that stuns it for 1.', icon: '💠', image: art(1), move: 'haze', cooldown: 17, cost: 3 },
+    { name: 'Bloom, Crimson Flower!', about: 'Crystals in a line to the boss, then they burst: its attacks are 50% slower for 5 seconds, and it is cursed for 10. When the curse ends it bursts, the harder for every blow landed on the boss meanwhile.', icon: '🌺', image: art(2), move: 'flower', cooldown: 20, cost: 4 },
   ],
   passive: EVIL_DEEDS,
   join(fight, self) {

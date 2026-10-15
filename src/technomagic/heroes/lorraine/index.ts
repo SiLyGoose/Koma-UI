@@ -46,9 +46,9 @@ export const LORRAINE: HeroDef = {
   // A wizard (her blows magical, as a wizard's are): as her class stands.
   stats: { ...CLASS_STATS.wizard, deals: 'magical' },
   abilities: [
-    { name: 'Thornbush Forest', icon: '🌿', image: art(0), move: 'thornbush', cooldown: 7, cost: 2 },
-    { name: 'Tangled Vine', icon: '🪢', image: art(1), move: 'vine', cooldown: 10, cost: 3 },
-    { name: 'Wrath of the Forest', icon: '🌳', image: art(2), move: 'wrath', cooldown: 23, cost: 3 },
+    { name: 'Thornbush Forest', about: 'Three blows, each leaving a Poison on the boss (up to 5): each eats at it every second and leaves it healed 10% less.', icon: '🌿', image: art(0), move: 'thornbush', cooldown: 7, cost: 2 },
+    { name: 'Tangled Vine', about: 'A blow that leaves 2 Poison and shackles the boss for 4 seconds (it can do nothing); 2 seconds after, a blow the harder for each Poison on it.', icon: '🪢', image: art(1), move: 'vine', cooldown: 10, cost: 3 },
+    { name: 'Wrath of the Forest', about: 'A blow that knocks the boss down for 3 seconds, 20% harder for each Poison on it.', icon: '🌳', image: art(2), move: 'wrath', cooldown: 23, cost: 3 },
   ],
   passive: BLADE_LEAF,
   attack: 'lash',

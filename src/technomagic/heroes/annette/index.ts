@@ -64,9 +64,9 @@ export const ANNETTE: HeroDef = {
   // A mechanic whose blows are magical (Rascal's): as her class stands, otherwise.
   stats: { ...CLASS_STATS.mechanic, deals: 'magical' },
   abilities: [
-    { name: 'Blasting Ray', icon: '🔆', image: art(0), move: 'ray', cooldown: 11, cost: 2 },
-    { name: 'Emergency Treatment', icon: '🩹', image: art(1), move: 'treatment', cooldown: 13, cost: 2 },
-    { name: 'Process of Elimination', icon: '💣', image: art(2), move: 'elimination', cooldown: 25, cost: 3 },
+    { name: 'Blasting Ray', about: 'Rascal fires a ray into the boss: for 10 seconds it hits 15% softer and takes 25% more magical damage. Overcharged: a second ray, and twice that.', icon: '🔆', image: art(0), move: 'ray', cooldown: 11, cost: 2 },
+    { name: 'Emergency Treatment', about: 'Clears what the boss has left on every ally (not what holds one down or shuts one away) and heals them over 10 seconds, and they stand being knocked down better meanwhile. Overcharged: they are also 25% likelier to land a critical blow, deal 10% more, and can’t be knocked down.', icon: '🩹', image: art(1), move: 'treatment', cooldown: 13, cost: 2 },
+    { name: 'Process of Elimination', about: 'A ball of energy that bursts on the boss. Overcharged: it bursts harder, stuns the boss for 5 seconds, and leaves it taking 25% more magical damage for 10.', icon: '💣', image: art(2), move: 'elimination', cooldown: 25, cost: 3 },
   ],
   passive: CHARGING,
   attack: 'zap',

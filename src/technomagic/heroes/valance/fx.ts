@@ -8,6 +8,11 @@ const CYAN = 0x5fe3ff;
 const PALE = 0xe2ccff;
 /** How high over her and how far behind her the laser cannons are (her lasers come from there). */
 const CANNON = { up: 2.6, back: 1.2, spread: 1.4 };
+/**
+ * Her Absolute Protection Field: how long it stands (as long as it lasts, ./index.ts); how far past the furthest ally
+ * in it its edge is, and the least it reaches.
+ */
+const FIELD = { lasts: 5, past: 1.8, least: 5 };
 
 const at = new Vector3();
 const from = new Vector3();
@@ -41,10 +46,18 @@ export const VALANCE_FX: HeroFx = {
         magic.ring(at, PALE, 4, 0.5);
       }
     },
-    // Absolute Protection Field – LA: a wide violet ring spreading from her, and a column on each ally in it.
+    // Absolute Protection Field – LA: a violet field round her, wide enough to take in every ally, standing while it lasts;
+    // a ring spreading out to its edge as it goes up, and a column on each ally in it.
     field({ magic, place }, who, targets) {
-      magic.ring(place(who, at), VIOLET, 18, 0.7);
-      for (const ally of targets) magic.beam(place(ally, at), PALE, 0.6, 0.6);
+      place(who, from);
+      let reach = FIELD.least;
+      for (const ally of targets) {
+        place(ally, at);
+        reach = Math.max(reach, Math.hypot(at.x - from.x, at.z - from.z) + FIELD.past);
+        magic.beam(at, PALE, 0.6, 0.6);
+      }
+      magic.field(from, VIOLET, reach, FIELD.lasts);
+      magic.ring(from, PALE, reach * 2, 0.7);
     },
   },
 };

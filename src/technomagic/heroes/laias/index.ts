@@ -63,9 +63,9 @@ export const LAIAS: HeroDef = {
   // A priestess whose blows are magical, who stands being knocked down far better (her passive): as her class stands, otherwise.
   stats: { ...CLASS_STATS.priest, deals: 'magical', resist: CLASS_STATS.priest.resist + WATER_DRAGON.resist },
   abilities: [
-    { name: 'Healing Droplets', icon: '💧', image: art(0), move: 'droplets', cooldown: 8, cost: 2 },
-    { name: 'Bubble Shield', icon: '🫧', image: art(1), move: 'bubble', cooldown: 15, cost: 3 },
-    { name: 'Festival of the Flow', icon: '🌊', image: art(2), move: 'festival', cooldown: 20, cost: 4 },
+    { name: 'Healing Droplets', about: 'Heals every ally, and for 10 seconds healing reaches them 25% more (half as much more again for one at half its health or less).', icon: '💧', image: art(0), move: 'droplets', cooldown: 8, cost: 2 },
+    { name: 'Bubble Shield', about: 'A shield on the ally with the lowest health: for 15 seconds it takes 30% less from the boss and deals 15% more. While the shield holds it can’t be knocked down, hits 20% harder and is healed every second.', icon: '🫧', image: art(1), move: 'bubble', cooldown: 15, cost: 3 },
+    { name: 'Festival of the Flow', about: 'Knocks the boss down for 3 seconds, heals every ally 15% of its max HP and gives every other ally 2 mana. Then for 12 seconds a whirlpool every 4 seconds strikes the boss and knocks it down for 2.', icon: '🌊', image: art(2), move: 'festival', cooldown: 20, cost: 4 },
   ],
   passive: BLESSING,
   attack: 'splash',

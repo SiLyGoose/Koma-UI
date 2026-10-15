@@ -1,11 +1,11 @@
-import { AdditiveBlending, CanvasTexture, CircleGeometry, ConeGeometry, CylinderGeometry, DoubleSide, Group, Mesh, MeshBasicMaterial, RingGeometry, type Scene, TorusGeometry, Vector3 } from 'three';
+import { AdditiveBlending, type BufferGeometry, CanvasTexture, CircleGeometry, Color, ConeGeometry, CylinderGeometry, DoubleSide, FrontSide, Group, Mesh, MeshBasicMaterial, RingGeometry, type Scene, ShaderMaterial, SphereGeometry, TorusGeometry, Vector3 } from 'three';
 
 /*
  * What a skill draws on the field, made here of plain shapes: rings of light that spread across the
  * floor (a burst, a shockwave), crystals that come up out of the floor in a line and later burst,
  * columns of light that come down from the sky, bolts of light shooting from one place to another, rays of light
- * straight from one to another at once (a laser), pools that lie on the floor a while (a swamp), and cages
- * of light that hold a hero a while.
+ * straight from one to another at once (a laser), pools that lie on the floor a while (a swamp), cages
+ * of light that hold a hero a while, and fields that stand over the floor a while (a force field).
  */
 
 const UP = new Vector3(0, 1, 0);
@@ -18,6 +18,119 @@ interface Pool {
   t: number;
   life: number;
   size: number;
+}
+
+/**
+ * A field: how long it takes to come up, and to fade at the end; how high its dome is (a share of how far it reaches);
+ * how often a pulse spreads across it (seconds), and how long each takes; how fast the circle on the floor turns (radians a second).
+ */
+const FIELD = { rise: 0.45, fade: 0.5, high: 0.4, pulse: 1, pulseLife: 0.9, turn: 0.25 };
+
+interface Field {
+  root: Group;
+  /** Its glow on the floor, the circle drawn on it, its edge, and its dome. */
+  glow: Mesh<BufferGeometry, MeshBasicMaterial>;
+  circle: Mesh<BufferGeometry, MeshBasicMaterial>;
+  edge: Mesh<BufferGeometry, MeshBasicMaterial>;
+  dome: Mesh<SphereGeometry, ShaderMaterial>;
+  colour: number;
+  radius: number;
+  t: number;
+  life: number;
+  /** Toward its next pulse. */
+  pulse: number;
+}
+
+/** A field's circle on the floor: rings, ticks round its rim, and two hexagons crossed at its middle, as a machine's dial is marked. */
+function dial(): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = 512;
+  const g = canvas.getContext('2d') as CanvasRenderingContext2D;
+  g.translate(256, 256);
+  g.strokeStyle = 'white';
+  const circle = (r: number, width: number, from = 0, to = Math.PI * 2): void => {
+    g.lineWidth = width;
+    g.beginPath();
+    g.arc(0, 0, r, from, to);
+    g.stroke();
+  };
+  const hexagon = (r: number, turn: number, width: number): void => {
+    g.lineWidth = width;
+    g.beginPath();
+    for (let i = 0; i <= 6; i++) {
+      const a = turn + (i * Math.PI) / 3;
+      g.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+    }
+    g.stroke();
+  };
+  circle(240, 5);
+  circle(226, 2);
+  // Ticks round the rim, every sixth longer.
+  for (let i = 0; i < 72; i++) {
+    const a = (i / 72) * Math.PI * 2;
+    const from = i % 6 ? 210 : 196;
+    g.lineWidth = i % 6 ? 2 : 4;
+    g.beginPath();
+    g.moveTo(Math.cos(a) * from, Math.sin(a) * from);
+    g.lineTo(Math.cos(a) * 222, Math.sin(a) * 222);
+    g.stroke();
+  }
+  circle(180, 2);
+  // A broken ring inside it: twelve arcs.
+  for (let i = 0; i < 12; i++) {
+    const a = (i / 12) * Math.PI * 2;
+    circle(162, 8, a + 0.06, a + Math.PI / 6 - 0.06);
+  }
+  hexagon(128, 0, 3);
+  hexagon(128, Math.PI / 6, 2);
+  circle(64, 3);
+  circle(40, 2);
+  return new CanvasTexture(canvas);
+}
+
+/** A field's dome: see-through, lit most at its rim, a honeycomb of light over it, and a band of light rising up it again and again. */
+function domeMaterial(colour: number): ShaderMaterial {
+  return new ShaderMaterial({
+    uniforms: { colour: { value: new Color(colour) }, opacity: { value: 0 }, time: { value: 0 } },
+    vertexShader: /* glsl */ `
+      varying vec2 vUv;
+      varying vec3 vNormal;
+      varying vec3 vView;
+      void main() {
+        vec4 seen = modelViewMatrix * vec4(position, 1.0);
+        vUv = uv;
+        vNormal = normalize(normalMatrix * normal);
+        vView = normalize(-seen.xyz);
+        gl_Position = projectionMatrix * seen;
+      }`,
+    fragmentShader: /* glsl */ `
+      uniform vec3 colour;
+      uniform float opacity;
+      uniform float time;
+      varying vec2 vUv;
+      varying vec3 vNormal;
+      varying vec3 vView;
+      void main() {
+        float rim = 1.0 - abs(dot(normalize(vNormal), normalize(vView)));
+        // The honeycomb: how near each point is to the edge of its cell (round the dome, and up it from the floor), thinning out toward the top.
+        vec2 p = vec2(vUv.x * 72.0, (vUv.y - 0.5) * 30.0);
+        vec2 r = vec2(1.0, 1.7320508);
+        vec2 a = mod(p, r) - r * 0.5;
+        vec2 b = mod(p - r * 0.5, r) - r * 0.5;
+        vec2 q = abs(dot(a, a) < dot(b, b) ? a : b);
+        float cell = max(dot(q, normalize(r)), q.x);
+        float comb = smoothstep(0.4, 0.5, cell) * (1.0 - smoothstep(0.75, 0.98, vUv.y));
+        // The band: up from the floor to the top, once a second and a half.
+        float off = (vUv.y - 0.5 - fract(time / 1.5) * 0.5) * 28.0;
+        float band = exp(-off * off);
+        float light = 0.05 + pow(rim, 2.4) * 0.7 + comb * (0.12 + rim * 0.3) + band * 0.22;
+        gl_FragColor = vec4(colour * light * opacity, 1.0);
+      }`,
+    blending: AdditiveBlending,
+    transparent: true,
+    depthWrite: false,
+    side: FrontSide,
+  });
 }
 
 /** A soft round spot, brightest at its rim, for a pool. */
@@ -126,6 +239,11 @@ export interface Magic {
   pool(at: Vector3, colour: number, size: number, life: number): void;
   /** A cage of light round whoever stands where `around` says (it goes where they go), for `life` seconds. */
   cage(around: (into: Vector3) => Vector3, colour: number, life: number): void;
+  /**
+   * A field round a place, reaching `radius` out from it: a dial on the floor and a low dome of light over it, a pulse
+   * spreading across it every second, there `life` seconds from when it comes up before it fades.
+   */
+  field(at: Vector3, colour: number, radius: number, life: number): void;
   update(dt: number): void;
 }
 
@@ -156,8 +274,45 @@ export function makeMagic(scene: Scene): Magic {
   hoop.rotateX(Math.PI / 2);
   const inside = new CylinderGeometry(1, 1, 1, 32, 1, true);
   inside.translate(0, 0.5, 0);
+  // A field's dial, its thin edge, and its dome (a ball, its lower half under the floor and out of sight).
+  const fields = new Set<Field>();
+  const marked = dial();
+  const thin = new RingGeometry(0.975, 1, 96);
+  const ball = new SphereGeometry(1, 64, 32);
+
+  const ring = (at: Vector3, colour: number, size: number, life: number): void => {
+    const mesh = new Mesh(flat, new MeshBasicMaterial({ color: colour, transparent: true, blending: AdditiveBlending, depthWrite: false, side: DoubleSide }));
+    mesh.rotation.x = -Math.PI / 2;
+    mesh.position.set(at.x, 0.06, at.z);
+    mesh.scale.setScalar(0.01);
+    mesh.renderOrder = 8;
+    scene.add(mesh);
+    rings.add({ mesh, t: 0, life, size });
+  };
 
   return {
+    field(at, colour, radius, life) {
+      const root = new Group();
+      root.position.set(at.x, 0, at.z);
+      const lying = (geometry: BufferGeometry, material: MeshBasicMaterial, y: number, order: number): Mesh<BufferGeometry, MeshBasicMaterial> => {
+        const mesh = new Mesh(geometry, material);
+        mesh.rotation.x = -Math.PI / 2;
+        mesh.position.y = y;
+        mesh.renderOrder = order;
+        root.add(mesh);
+        return mesh;
+      };
+      const lit = (map?: CanvasTexture): MeshBasicMaterial => new MeshBasicMaterial({ color: colour, map, transparent: true, opacity: 0, blending: AdditiveBlending, depthWrite: false, side: DoubleSide });
+      // Under the rings and the pools, so they show over it.
+      const glow = lying(disc, lit(spot), 0.03, 6);
+      const circle = lying(disc, lit(marked), 0.035, 6);
+      const edge = lying(thin, lit(), 0.05, 7);
+      const dome = new Mesh(ball, domeMaterial(colour));
+      dome.renderOrder = 9;
+      root.add(dome);
+      scene.add(root);
+      fields.add({ root, glow, circle, edge, dome, colour, radius, t: 0, life, pulse: 0 });
+    },
     cage(around, colour, life) {
       const cage = new Group();
       const bright = new MeshBasicMaterial({ color: colour, transparent: true, blending: AdditiveBlending, depthWrite: false });
@@ -225,15 +380,7 @@ export function makeMagic(scene: Scene): Magic {
       scene.add(ray);
       rays.add({ ray, materials, width, wait, t: 0, life });
     },
-    ring(at, colour, size, life) {
-      const mesh = new Mesh(flat, new MeshBasicMaterial({ color: colour, transparent: true, blending: AdditiveBlending, depthWrite: false, side: DoubleSide }));
-      mesh.rotation.x = -Math.PI / 2;
-      mesh.position.set(at.x, 0.06, at.z);
-      mesh.scale.setScalar(0.01);
-      mesh.renderOrder = 8;
-      scene.add(mesh);
-      rings.add({ mesh, t: 0, life, size });
-    },
+    ring,
     crystals(from, to) {
       const COUNT = 8;
       for (let i = 0; i < COUNT; i++) {
@@ -274,6 +421,37 @@ export function makeMagic(scene: Scene): Magic {
       pools.add({ mesh, t: 0, life, size });
     },
     update(dt) {
+      // A field: its dial spreading over the floor and its dome rising out of it, a pulse across it every second and a slow
+      // turn of its dial while it stands, and faded at the end.
+      for (const field of fields) {
+        field.t += dt;
+        const { glow, circle, edge, dome, radius, t, life } = field;
+        const k = 1 - (1 - Math.min(1, t / FIELD.rise)) ** 3;
+        const shown = Math.min(1, Math.max(0, (life - t) / FIELD.fade)) * Math.min(1, t / FIELD.rise);
+        const breath = 1 + Math.sin(t * 2.4) * 0.08;
+        glow.scale.setScalar(Math.max(0.01, 2 * radius * k));
+        circle.scale.setScalar(Math.max(0.01, 2 * radius * k));
+        circle.rotation.z = t * FIELD.turn;
+        edge.scale.setScalar(Math.max(0.01, radius * k));
+        dome.scale.set(Math.max(0.01, radius * k), Math.max(0.01, radius * FIELD.high * k), Math.max(0.01, radius * k));
+        glow.material.opacity = 0.3 * shown * breath;
+        circle.material.opacity = 0.55 * shown * breath;
+        edge.material.opacity = 0.9 * shown;
+        (dome.material.uniforms.opacity as { value: number }).value = shown;
+        (dome.material.uniforms.time as { value: number }).value = t;
+        if (t >= FIELD.rise && t < life - FIELD.fade) {
+          field.pulse += dt;
+          if (field.pulse >= FIELD.pulse) {
+            field.pulse -= FIELD.pulse;
+            ring(field.root.position, field.colour, radius * 2, FIELD.pulseLife);
+          }
+        }
+        if (t >= life) {
+          scene.remove(field.root);
+          for (const mesh of [glow, circle, edge, dome]) mesh.material.dispose();
+          fields.delete(field);
+        }
+      }
       // A cage: up out of the floor round whoever is in it, a slow turn and a shimmer while it holds them, and faded at the end.
       for (const cage of cages) {
         cage.t += dt;

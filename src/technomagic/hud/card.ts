@@ -1,6 +1,7 @@
 import type { Ability } from '../heroes/kit';
-import { square, type Buff } from './buff';
+import { buffTip, square, type Buff } from './buff';
 import { el } from './dom';
+import { holdTip, pointTips } from './tip';
 
 /*
  * A hero's card, along the bottom of the field: the hero itself looking out from behind it, a health
@@ -73,6 +74,8 @@ export function makeCard(name: string, face: string, abilities: readonly Ability
   const timed = el('span', 'tm-timed');
   buffs.append(...passives.map(square), timed);
   let shown = '';
+  // A square pointed at with a mouse: what it is, over it.
+  const pointed = pointTips(buffs, '.tm-buff', buffTip);
   const bars = el('div', 'tm-bars');
   bars.append(buffs, health, power);
   const top = el('div', 'tm-top');
@@ -88,8 +91,7 @@ export function makeCard(name: string, face: string, abilities: readonly Ability
     const icon = el('span', 'tm-icon');
     /** Shows an ability in it: its name, its picture (or its icon), and what it costs. */
     const show = (shown: Ability): void => {
-      slot.title = `${shown.name}${shown.cost ? ` · ${shown.cost} mana` : ''}`;
-      slot.setAttribute('aria-label', slot.title);
+      slot.setAttribute('aria-label', `${shown.name}${shown.cost ? ` · ${shown.cost} mana` : ''}`);
       pips.replaceChildren(...Array.from({ length: shown.cost }, () => el('i', '')));
       icon.textContent = shown.icon;
       if (!shown.image) return;
@@ -108,7 +110,11 @@ export function makeCard(name: string, face: string, abilities: readonly Ability
     if (ability) {
       show(ability);
       slot.append(icon, wait, el('em', 'tm-reserved', 'Reserved'), pips);
-      slot.addEventListener('click', () => on.use(i));
+      // Not disabled when it can't be used, so it can still be held down on for what it does.
+      slot.addEventListener('click', () => {
+        if (slot.getAttribute('aria-disabled') !== 'true') on.use(i);
+      });
+      holdTip(slot, () => (showing ? abilityTip(showing) : null));
     } else {
       slot.disabled = true;
       slot.classList.add('empty');
@@ -145,6 +151,7 @@ export function makeCard(name: string, face: string, abilities: readonly Ability
       if (showing !== shown) {
         shown = showing;
         timed.replaceChildren(...state.effects.map(square));
+        pointed();
       }
       hp.style.width = `${Math.max(0, (state.hp / state.maxHp) * 100)}%`;
       cells.forEach(({ cell, fill }, i) => {
@@ -166,8 +173,30 @@ export function makeCard(name: string, face: string, abilities: readonly Ability
         slot.classList.toggle('waiting', !sealed && left > 0);
         slot.classList.toggle('reserved', state.reserved === i);
         slot.classList.toggle('short', !sealed && left <= 0 && state.mana < (now ?? ability).cost);
-        slot.disabled = !state.picked || state.hp <= 0;
+        slot.setAttribute('aria-disabled', String(!state.picked || state.hp <= 0));
       });
     },
   };
+}
+
+/** What an ability's popup says (./tip.ts): its picture, by it its name, what it costs and how long before it can be used again; under them, what it does. */
+function abilityTip(ability: Ability): Node[] {
+  const art = el('span', 'tm-tip-art', ability.icon);
+  if (ability.image) {
+    const picture = el('img', '');
+    picture.alt = '';
+    picture.draggable = false;
+    picture.addEventListener('load', () => art.replaceChildren(picture));
+    picture.src = ability.image;
+    if (picture.complete && picture.naturalWidth > 0) art.replaceChildren(picture);
+  }
+  const pips = el('span', 'tm-tip-pips');
+  pips.append(...Array.from({ length: ability.cost }, () => el('i', '')));
+  const cost = el('span', 'tm-tip-cost');
+  cost.append(pips, ability.cost ? `${ability.cost} mana` : 'No mana');
+  const facts = el('div', 'tm-tip-facts');
+  facts.append(el('strong', 'tm-tip-name', ability.name), cost, el('span', 'tm-tip-cooldown', ability.cooldown ? `⏱ ${ability.cooldown}s cooldown` : '⏱ No cooldown'));
+  const head = el('div', 'tm-tip-ability');
+  head.append(art, facts);
+  return ability.about ? [head, el('p', 'tm-tip-about', ability.about)] : [head];
 }
