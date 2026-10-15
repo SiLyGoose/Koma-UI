@@ -27,6 +27,12 @@ export async function standHero(owner: HeroAssets, model: PartsModel): Promise<S
       const hand = part.getObjectByName(`Bip001_${side}_Hand`);
       if (!point) continue;
       if (hand) hand.attach(point);
+      // Held as its skin says, where its file's mark is not in its hand.
+      const grip = model.grips?.[side];
+      if (grip && hand) {
+        point.position.set(...grip.at);
+        point.rotation.set(...grip.turn);
+      }
       point.add(held[i] as Object3D);
       // What is on its left arm is a shield (unless its skin says it is only held): flat, its face along the file's own z.
       if (side === 'L' && model.offHand !== 'held') shield = { mark: point.name, face: new Vector3(0, 0, -1) };
@@ -39,6 +45,12 @@ export async function standHero(owner: HeroAssets, model: PartsModel): Promise<S
       break;
     }
   });
+  // What is in its left hand the sheath of what is in its right: its file has the sword's hilt in it, on a mark of its own (Point_Weapon).
+  const sword = model.right === undefined ? undefined : held[hands.length - 1];
+  const scabbard = model.left === undefined ? undefined : held[0];
+  const hilt = scabbard?.getObjectByName('Point_Weapon');
+  const sheath = sword && scabbard && hilt ? { sword, scabbard, hilt } : undefined;
+
   // What floats beside it: in the group that goes along the field and up with it, not the one that turns head over heels.
   const [floating] = floats;
   let floated: Stood['floating'];
@@ -66,5 +78,5 @@ export async function standHero(owner: HeroAssets, model: PartsModel): Promise<S
   const rig = new Rig(parts);
   // Where its feet are as it stands: they are placed from there.
   const feet = { L: rig.at('Bip001_L_Foot'), R: rig.at('Bip001_R_Foot') };
-  return { root, body, middle, models: parts, rig, hips, feet, blade, shield, materials: materialsOf([...parts, ...held, ...floats]), floating: floated };
+  return { root, body, middle, models: parts, rig, hips, feet, blade, shield, sheath, materials: materialsOf([...parts, ...held, ...floats]), floating: floated };
 }

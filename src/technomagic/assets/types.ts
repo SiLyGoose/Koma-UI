@@ -58,6 +58,12 @@ export interface RiggedModel {
   skills?: Readonly<Record<string, { file: string; lands: readonly number[]; until: number }>>;
 }
 
+/** Where something is held in a hand, in that hand's own axes (its bone's): how far from it, and how it is turned (about x, y and z, in that order, in radians). */
+export interface Grip {
+  at: readonly [number, number, number];
+  turn: readonly [number, number, number];
+}
+
 /**
  * A model of the game's own files: the parts on its skeleton (each a folder among its hero's models,
  * holding one .fbx of its own name and the textures it uses), and what goes in each hand.
@@ -71,6 +77,11 @@ export interface PartsModel {
   offHand?: 'shield' | 'held';
   /** Which of its own axes the weapon in its right hand runs along (x when it doesn't say). */
   blade?: 'x' | 'y';
+  /**
+   * How its hands hold what is in them, where its body's file marks them somewhere else (Seria's: at its feet, where
+   * the game's own animations move them from): by the side (L, R).
+   */
+  grips?: { L?: Grip; R?: Grip };
   /**
    * What floats beside it, in no hand (a body whose file marks no hand to hold it): `at` where, in its model's
    * own lengths from the floor under it (x to its left, y up, z ahead), `size` times as big as it comes. It

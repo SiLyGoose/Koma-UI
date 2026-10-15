@@ -60,6 +60,11 @@ export interface Stood {
   blade: Vector3;
   /** A shield on its left arm, when it has one: the mark it hangs on, and the way its face looks in that mark's own axes. */
   shield?: { mark: string; face: Vector3 };
+  /**
+   * What is in its left hand being the sheath of the sword in its right (Seria's): the sword, the sheath, and the
+   * sheath's mark the sword's hilt in it hangs on (shown while the sword is sheathed: ./sheath.ts).
+   */
+  sheath?: { sword: Object3D; scabbard: Object3D; hilt: Object3D };
   /** What it is drawn with: tinted when it is hit. */
   materials: MeshBasicMaterial[];
   /**

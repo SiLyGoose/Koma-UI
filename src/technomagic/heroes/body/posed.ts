@@ -1,5 +1,6 @@
-import { AnimationClip, AnimationMixer, LoopOnce, type AnimationAction, type Object3D, type Vector3 } from 'three';
+import type { AnimationClip, Object3D, Vector3 } from 'three';
 import type { Rig } from '../../engine/rig';
+import { sampler, type Sampler } from '../../engine/sampler';
 import { lengthOf } from '../../engine/track';
 import { flowing, MOVES, type HeroMove } from '../moves';
 import { ENTER, holdShield, RED, redden, type Hero, type Stood } from './hero';
@@ -15,6 +16,7 @@ import { BIPED } from './skeletons';
  * is played by those instead, one after another, eased in from how it stands and back out to it. Given an idle, it
  * stands in that (looping) rather than at rest, whenever it isn't running in or doing anything: eased out of it as
  * a move begins, and back into it after. Varied, how it stands wanders as it stands there: never quite the same twice.
+ * Whatever it goes on to (a move begun, or one written in code done), it is eased there from how it was: it never jumps.
  */
 
 /** Running in: how many strides a second; and in its run, given one, how many times as fast that is played. */
@@ -29,6 +31,8 @@ const INTO = 0.14;
 const RETURN = 0.45;
 /** One of its animations giving way to the next. */
 const BLEND = 0.18;
+/** Going on to something else (a move begun, or one written in code done): how long it is eased there from how it was. */
+const CARRY = 0.2;
 /**
  * Varied, as it stands: how far its chest turns, leans and tips and its head looks round and nods (radians), and
  * its hips sway (in its model's lengths), each eased to a mark picked at random and held there for `hold` seconds
@@ -83,26 +87,10 @@ function wandering(most: number): (dt: number) => number {
  */
 export function posedHero({ root, body, middle, models, rig, hips, feet, blade, shield, materials, floating }: Stood, rest: Pose = REST, own: Readonly<Record<string, Own>> = {}, posing: Posing = {}): Hero {
   const { seated = false, bends = {}, idle, run, bladeRunning, varied = false } = posing;
-  // Each animation plays on each of its models at once, each with what the animation has for the bones it has.
-  const mixer = new AnimationMixer(root);
-  type Part = Played & { actions: AnimationAction[] };
+  // Each animation is put on each of its models at once, each with what the animation has for the bones it has.
+  type Part = Played & { sample: Sampler };
   const animated: Partial<Record<string, { parts: Part[]; speed: number }>> = Object.fromEntries(
-    Object.entries(own).map(([move, { parts, speed }]) => [
-      move,
-      {
-        speed,
-        parts: parts.map((part) => ({
-          ...part,
-          actions: models.map((model: Object3D) => {
-            const { clip } = part;
-            const action = mixer.clipAction(new AnimationClip(clip.name, clip.duration, clip.tracks.filter((track) => model.getObjectByName(track.name.slice(0, track.name.lastIndexOf('.'))))), model);
-            action.setLoop(LoopOnce, 1);
-            action.clampWhenFinished = true;
-            return action;
-          }),
-        })),
-      },
-    ]),
+    Object.entries(own).map(([move, { parts, speed }]) => [move, { speed, parts: parts.map((part) => ({ ...part, sample: sampler(part.clip, models) })) }]),
   );
   /**
    * A move played by its animations: which, which of them it is in and how far in (in the animation's own time), how
@@ -110,33 +98,25 @@ export function posedHero({ root, body, middle, models, rig, hips, feet, blade, 
    */
   let playing: { own: { parts: Part[]; speed: number }; part: number; t: number; left: number | null; from: { kept: ReturnType<Rig['keep']>; t: number } | null } | null = null;
   const stopPlaying = (): void => {
-    for (const action of playing?.own.parts[playing.part]?.actions ?? []) action.stop();
     playing = null;
+  };
+  /** How it was as it went on to something else, and how long ago (null: it is done being eased from there). */
+  let carry: { kept: ReturnType<Rig['keep']>; t: number } | null = null;
+  const carried = new Map() as ReturnType<Rig['keep']>;
+  /** Going on to something else: eased there from how it is now (as it was last drawn). */
+  const carryOn = (): void => {
+    carry = { kept: rig.keep(carried), t: 0 };
   };
   // Varied: what wanders (how fast its idle is played among it, and from how far into it it starts).
   const wander = varied ? { twist: wandering(VARY.twist), lean: wandering(VARY.lean), tip: wandering(VARY.tip), look: wandering(VARY.look), nod: wandering(VARY.nod), sway: wandering(VARY.sway), rate: wandering((VARY.rate[1] - VARY.rate[0]) / 2) } : null;
   // How the poses written in code have it, this frame: what an animation is eased in from and out to.
   const posed = rig.keep();
-  // Its idle, on a mixer of its own (so a skill's animation is never mixed with it): how far into it, and how much of it shows (0 to 1).
-  const idling = idle && new AnimationMixer(root);
-  const idleActions = idling
-    ? models.map((model: Object3D) => {
-        const action = idling.clipAction(new AnimationClip(idle.name, idle.duration, idle.tracks.filter((track) => model.getObjectByName(track.name.slice(0, track.name.lastIndexOf('.'))))), model);
-        action.play();
-        return action;
-      })
-    : [];
+  // Its idle: how far into it, and how much of it shows (0 to 1).
+  const idling = idle && sampler(idle, models);
   let idleT = wander && idle ? Math.random() * idle.duration : 0;
   let standing = 1;
   // Its run, the same way: how far into it, and how much of it shows (as much as its stride written in code does).
-  const runMixer = run && new AnimationMixer(root);
-  const runActions = runMixer
-    ? models.map((model: Object3D) => {
-        const action = runMixer.clipAction(new AnimationClip(run.name, run.duration, run.tracks.filter((track) => model.getObjectByName(track.name.slice(0, track.name.lastIndexOf('.'))))), model);
-        action.play();
-        return action;
-      })
-    : [];
+  const runAt = run && sampler(run, models);
   let runT = 0;
   let striding = 0;
 
@@ -158,11 +138,11 @@ export function posedHero({ root, body, middle, models, rig, hips, feet, blade, 
     start(move) {
       running = null;
       stopPlaying();
+      carryOn();
       const own = animated[move];
       if (own?.parts[0]) {
         doing = null;
         playing = { own, part: 0, t: 0, left: null, from: null };
-        for (const action of own.parts[0].actions) action.reset().play();
       } else doing = { name: move, t: 0 };
     },
     head: (into) => (models[0] as Object3D).localToWorld(into.copy(rig.at(BIPED.head))),
@@ -176,6 +156,7 @@ export function posedHero({ root, body, middle, models, rig, hips, feet, blade, 
       if (running !== null) return;
       red = RED;
       stopPlaying();
+      carryOn();
       doing = { name: 'hit', t: 0 };
     },
     fall() {
@@ -189,7 +170,11 @@ export function posedHero({ root, body, middle, models, rig, hips, feet, blade, 
         doing.t += dt;
         const move = MOVES[doing.name];
         moved = flowing(move, doing.t);
-        if (doing.t >= lengthOf(move.keys)) doing = null;
+        // Done: eased back to how it stands from where the move left it.
+        if (doing.t >= lengthOf(move.keys)) {
+          doing = null;
+          carryOn();
+        }
       }
 
       // At rest, what it is doing, and being alive: breathing, its weight easing on and off its leg, its loose hand swinging a little.
@@ -260,11 +245,10 @@ export function posedHero({ root, body, middle, models, rig, hips, feet, blade, 
       poseLoose(rig, now, Math.max(-0.6, Math.min(0.6, rush * 0.06)));
 
       // Running in in its run, over its stride written in code (as much of it as that shows), its blade held as it has it.
-      if (runMixer && run && striding > 0) {
+      if (runAt && run && striding > 0) {
         runT = (runT + dt * RUN_RATE) % run.duration;
         rig.keep(posed);
-        for (const action of runActions) action.time = runT;
-        runMixer.update(0);
+        runAt(runT);
         if (bladeRunning) rig.point(BIPED.arms.R[2], blade, bladeRunning);
         rig.blend(posed, 1 - striding);
       }
@@ -277,8 +261,7 @@ export function posedHero({ root, body, middle, models, rig, hips, feet, blade, 
         idleT = (idleT + dt * (wandered ? (VARY.rate[0] + VARY.rate[1]) / 2 + wandered.rate : 1)) % idle.duration;
         if (standing > 0) {
           rig.keep(posed);
-          for (const action of idleActions) action.time = idleT;
-          idling.update(0);
+          idling(idleT);
           rig.blend(posed, 1 - standing * standing * (3 - 2 * standing));
         }
       }
@@ -293,10 +276,7 @@ export function posedHero({ root, body, middle, models, rig, hips, feet, blade, 
       if (playing) {
         let part = playing.own.parts[playing.part] as Part;
         /** It as the animation it is in has it, `t` into it. */
-        const pose = (t: number): void => {
-          for (const action of part.actions) action.time = Math.min(t, part.until);
-          mixer.update(0);
-        };
+        const pose = (t: number): void => part.sample(Math.min(t, part.until));
         if (playing.left === null) {
           playing.t += dt * playing.own.speed;
           const next = playing.own.parts[playing.part + 1];
@@ -306,11 +286,9 @@ export function posedHero({ root, body, middle, models, rig, hips, feet, blade, 
             pose(part.until);
             playing.from = { kept: rig.keep(playing.from?.kept), t: 0 };
             rig.blend(posed, 1);
-            for (const action of part.actions) action.stop();
             playing.part++;
             playing.t = 0;
             part = next;
-            for (const action of part.actions) action.reset().play();
           } else if (playing.t >= part.until) playing.left = 0;
         } else playing.left += dt;
         const shown = playing.left === null ? (playing.part === 0 ? Math.min(1, playing.t / INTO) : 1) : 1 - playing.left / RETURN;
@@ -325,6 +303,13 @@ export function posedHero({ root, body, middle, models, rig, hips, feet, blade, 
           }
           rig.blend(posed, 1 - shown * shown * (3 - 2 * shown));
         }
+      }
+      // Eased from how it was as it went on to this.
+      if (carry) {
+        carry.t += dt;
+        const k = Math.min(1, carry.t / CARRY);
+        rig.blend(carry.kept, 1 - k * k * (3 - 2 * k));
+        if (k >= 1) carry = null;
       }
       holdShield(rig, shield);
 

@@ -1,4 +1,4 @@
-import type { HeroAssets, RiggedModel } from '../types.ts';
+import type { HeroAssets, PartsModel, RiggedModel } from '../types.ts';
 
 /*
  * Seria: her body (her hair is a part of its own, the first of her files'), her sword in her right hand (its blade
@@ -9,6 +9,17 @@ import type { HeroAssets, RiggedModel } from '../types.ts';
  */
 
 const DRIVE = 'https://drive.google.com/uc?export=download&id=';
+
+/**
+ * How her hands hold her sword and sheath (her body's files mark both hands at her feet): her sword by the middle of
+ * its grip, its blade out past her little finger, so it points away from her as she swings it (her slash's animation
+ * holds a sword that way); her sheath in her left hand as Morrah holds her sword, mirrored and turned about, so it runs
+ * back past her little finger and the hilt in it is forward, ready to be drawn.
+ */
+const GRIPS = {
+  R: { at: [0.064, -0.149, 0.002], turn: [Math.PI, 0.436, 0] },
+  L: { at: [0.064, 0.021, 0.002], turn: [Math.PI, -0.436, 0] },
+} as const satisfies PartsModel['grips'];
 
 /** The same for both her skins (one skeleton). */
 const MOVED_BY = {
@@ -36,6 +47,7 @@ export const SERIA_ASSETS: HeroAssets = {
         right: 'Hero_Seria_Vari05_WeaponA',
         offHand: 'held',
         blade: 'y',
+        grips: GRIPS,
         movedBy: MOVED_BY,
       },
     },
@@ -50,6 +62,7 @@ export const SERIA_ASSETS: HeroAssets = {
         right: 'Hero_Seria_Cos19Christmas_Weapon_A',
         offHand: 'held',
         blade: 'y',
+        grips: GRIPS,
         movedBy: MOVED_BY,
       },
     },
