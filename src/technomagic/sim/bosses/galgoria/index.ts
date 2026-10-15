@@ -5,8 +5,9 @@ import { galgoriaPart } from './skills';
 
 /**
  * Galgoria: a chimera of three heads that spits venom. Its blows are magical. It stands physical blows
- * less well than magical ones, and neither blocks nor dodges. (Its defenses are a first guess: the game's are not
- * known here.) How its attacks go is ./attacks.ts, and what its skills do ./skills.ts; what is drawn for them is
+ * less well than magical ones, and neither blocks nor dodges. (Its defenses are a first guess, King's Raid's size of
+ * DEF: the game's are not known here. They take off what they did before the fight had the game's formula, 38% of a
+ * physical blow and 44% of a magical one.) How its attacks go is ./attacks.ts, and what its skills do ./skills.ts; what is drawn for them is
  * ../../../bosses/galgoria/fx.ts, and its body ../../../bosses/galgoria/model.ts.
  *
  * Made to want gear: heroes with none (their class's stats alone) take about a third of its health before
@@ -17,7 +18,7 @@ import { galgoriaPart } from './skills';
 export const GALGORIA: BossDef = {
   id: 'galgoria',
   name: 'Galgoria',
-  stats: { hp: 3_000_000, deals: 'magical', physical: 600, magical: 800, block: NONE, dodge: NONE, crit: 100, resist: 150 },
+  stats: { hp: 58_776_000, deals: 'magical', physical: 12_000, magical: 16_000, block: NONE, dodge: NONE, crit: 100, resist: 150 },
   attacks: ATTACKS,
   plans: PLANS,
   moves: MOVES,

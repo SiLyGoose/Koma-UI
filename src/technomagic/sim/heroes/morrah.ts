@@ -1,5 +1,5 @@
-import { share } from '../combat/damage';
-import { away, put } from '../combat/status';
+import { POINTS, share } from '../combat/damage';
+import { away, bolstering, defending, put } from '../combat/status';
 import { said, t5Light } from '../perks';
 import { BLOW } from '../rules';
 import { pct, seconds, skillArt, type Buff } from '../shown';
@@ -9,9 +9,10 @@ import { CLASS_STATS, type HeroDef, type Passive } from './kit';
 
 /*
  * Morrah's skills, as the game has them (what each costs, how long before it can be used again, how long what it
- * does lasts, and the shares are the game's; how hard each hits, how much more M.DEF Hellfire gives, how long Flame
- * lasts and how hard it burns are not said there). Her Flame is on the boss: up to a hundred stacked, each burning
- * it every second and taking a share off what heals it, all of it begun again with each more.
+ * does lasts, and the shares are the game's; how hard each hits, how long Flame lasts and how hard it burns are not
+ * said there; how much M.DEF Hellfire gives is the King's Raid Index's, kingsraid.netlify.app). Her Flame is on the
+ * boss: up to a hundred stacked, each burning it every second and taking a share off what heals it, all of it begun
+ * again with each more.
  * - Burning Power: a blow that knocks the boss down and leaves 3 Flame on it; then for a while each blow of her
  *   attack deals more and leaves a Flame. Both are harder for each Flame on the boss.
  * - Hellfire: for a while every ally has more M.DEF and is likelier to block magical blows, and a Flame is left on the
@@ -22,14 +23,14 @@ import { CLASS_STATS, type HeroDef, type Passive } from './kit';
  * hitting less hard and taking more magical damage, the more with her Flame stacked full on it.
  * What is drawn for each is ../../heroes/morrah/fx.ts; what her body does for each, and for her attack, ../../heroes/morrah/moves.ts.
  *
- * Her own perks (../perks.ts) are King's Raid's. Hellfire's Dark doesn't say how hard what it deals is: here every
- * second while Hellfire lasts, a blow as hard as 1.5 times her M.DEF. Fire Smash's Dark counts 100 Flame or more.
+ * Her own perks (../perks.ts) are King's Raid's. Hellfire's Dark deals DMG based on her M.DEF: every second while
+ * Hellfire lasts, a blow as hard as her M.DEF is then (Hellfire's own among it), as the game measures a blow by ATK. Fire Smash's Dark counts 100 Flame or more.
  * What Burning Power's Light gives in attack speed is a pace.
  */
 const CLEAVE = { blow: BLOW, burning: 150 };
 const BURNING = { blow: 1500, flames: 3, down: 1, lasts: 15 };
-// (Its 250 M.Block, as the game has it: points.)
-const HELLFIRE = { lasts: 20, defense: 1.3, block: 250, every: 1 };
+// (Its M.DEF, added to each ally's, and its 250 M.Block (points), as the game has them.)
+const HELLFIRE = { lasts: 20, defense: 6953, block: 250, every: 1 };
 const ERUPTION = { blow: 3000, down: 3 };
 const SMASH = { blow: 1500, flames: 3 };
 /** The most Flame on the boss, how long it lasts once the last was left, how hard each burns every second, how much harder it makes her skills, and what each takes off the boss's heals. */
@@ -39,7 +40,7 @@ const FLAME = { most: 100, lasts: 10, each: 4, every: 1, more: 0.02, heals: 0.01
  * share of her M.DEF), Lava Eruption's heal (a share of what it dealt), Fire Smash's M.DEF for each block (most), the boss
  * taking more at full Flame, and Transcend 5's Dark's Flame.
  */
-const PERKS = { quicker: 200, block: 1.2, scorch: 1.5, drain: 0.4, harder: { defense: 0.05, most: 10 }, full: 0.4, flame: { each: 2, most: 120 } };
+const PERKS = { quicker: 200, block: 1.2, scorch: 1, drain: 0.4, harder: { defense: 0.05, most: 10 }, full: 0.4, flame: { each: 2, most: 120 } };
 
 const art = skillArt('morrah');
 
@@ -53,7 +54,7 @@ const FIRE_SMASH: Passive = {
 /** What Burning Power gives her for a while: shown beside her passive, with how long it has left. */
 const BURNING_UP: Buff = { name: 'Burning Power', about: 'Each blow of her attack deals more and leaves a [Flame] on the boss.', icon: '🔥', art: art(0) };
 /** What Hellfire gives every ally for a while: shown on each card, with how long it has left. */
-const HELLFIRE_UP: Buff = { name: 'Hellfire', about: `${pct(HELLFIRE.defense - 1)} more M.DEF, and +${HELLFIRE.block} M.Block.`, icon: '🌋', art: art(1) };
+const HELLFIRE_UP: Buff = { name: 'Hellfire', about: `+${HELLFIRE.defense} M.DEF, and +${HELLFIRE.block} M.Block.`, icon: '🌋', art: art(1) };
 /** What her skills, and her unique weapon, leave on the boss. */
 const FLAMED = 'Flame';
 const SEARED = 'Searing Flame';
@@ -66,7 +67,8 @@ export const MORRAH: HeroDef = {
   name: 'Morrah',
   class: 'knight',
   skins: ['Morrah'],
-  // A knight whose blows are magical: as her class stands, otherwise.
+  // A knight whose blows are magical: as her class stands, otherwise (King's Raid's own; what makes her stand magic best
+  // is Hellfire).
   stats: { ...CLASS_STATS.knight, deals: 'magical' },
   abilities: [
     {
@@ -82,8 +84,8 @@ export const MORRAH: HeroDef = {
     {
       name: 'Hellfire',
       auto: { keeps: HELLFIRE_UP.name },
-      about: `For ${HELLFIRE.lasts} seconds every ally has ${pct(HELLFIRE.defense - 1)} more M.DEF and +${HELLFIRE.block} M.Block, and a [Flame] is left on the boss every ${seconds(HELLFIRE.every)}.`,
-      words: `For ${HELLFIRE.lasts} sec, all allies' M.DEF is increased by ${pct(HELLFIRE.defense - 1)} and M.Block Chance is increased by ${HELLFIRE.block}. Additionally, every ${HELLFIRE.every} sec, inflicts 1 stack of Flame on nearby enemies.`,
+      about: `For ${HELLFIRE.lasts} seconds every ally has +${HELLFIRE.defense} M.DEF and +${HELLFIRE.block} M.Block, and a [Flame] is left on the boss every ${seconds(HELLFIRE.every)}.`,
+      words: `For ${HELLFIRE.lasts} sec, all allies' M.DEF is increased by ${HELLFIRE.defense} and M.Block Chance is increased by ${HELLFIRE.block}. Additionally, every ${HELLFIRE.every} sec, inflicts 1 stack of Flame on nearby enemies.`,
       icon: '🌋',
       art: art(1),
       move: 'hellfire',
@@ -173,7 +175,7 @@ export const MORRAH: HeroDef = {
           const on = allies();
           fight.cue(self, 'hellfire', on);
           for (const ally of on) {
-            put(ally.statuses, { name: HELLFIRE_UP.name, left: HELLFIRE.lasts, defends: { magical: HELLFIRE.defense }, blocks: { magical: HELLFIRE.block * (self.perks.has('s2-light') ? PERKS.block : 1) }, shown: HELLFIRE_UP });
+            put(ally.statuses, { name: HELLFIRE_UP.name, left: HELLFIRE.lasts, bolsters: { magical: HELLFIRE.defense }, blocks: { magical: HELLFIRE.block * (self.perks.has('s2-light') ? PERKS.block : 1) }, shown: HELLFIRE_UP });
           }
           hellfire = HELLFIRE.lasts;
           fanned = 0;
@@ -208,7 +210,11 @@ export const MORRAH: HeroDef = {
             fanned -= HELLFIRE.every;
             burn(1);
             // (Its Dark: a blow by her M.DEF.)
-            if (self.perks.has('s2-dark') && self.hp > 0 && fight.field.includes(self)) fight.hit(self, PERKS.scorch * self.stats.magical, false);
+            if (self.perks.has('s2-dark') && self.hp > 0 && fight.field.includes(self)) {
+              // (A blow is so many thousandths of her ATK: as hard as her M.DEF is that share of it.)
+              const defense = (self.stats.magical + bolstering(self.statuses, 'magical') + bolstering(fight.party, 'magical')) * defending(self.statuses, 'magical') * defending(fight.party, 'magical');
+              fight.hit(self, (POINTS * PERKS.scorch * defense) / self.stats.atk, false);
+            }
           }
         }
         // Her Flame burns the boss every second (the first Morrah's, where there are two: it is the same Flame), each stack of it a blow of its own (counted as one).

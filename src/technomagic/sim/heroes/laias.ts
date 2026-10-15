@@ -1,4 +1,4 @@
-import { share } from '../combat/damage';
+import { ATK, share } from '../combat/damage';
 import { away, put } from '../combat/status';
 import { said, t5Light } from '../perks';
 import { BLOW, MAX_MANA, SECTION } from '../rules';
@@ -31,8 +31,8 @@ import { CLASS_STATS, type HeroDef, type Passive } from './kit';
  */
 const SPLASH = { blow: BLOW * 1.5 };
 // (Its 25% Heal Rate, 1.5 times for an ally at half its health or less, as the game has it.)
-const DROPLETS = { heal: 15_000, lasts: 10, heals: 0.25, low: 0.5, lowTimes: 1.5 };
-const BUBBLE = { shield: 45_000, lasts: 15, taken: 0.7, dmg: 0.15, atk: 0.2, heal: 1_500 };
+const DROPLETS = { heal: 150_000, lasts: 10, heals: 0.25, low: 0.5, lowTimes: 1.5 };
+const BUBBLE = { shield: 450_000, lasts: 15, taken: 0.7, dmg: 0.15, atk: 0.2, heal: 15_000 };
 const FESTIVAL = { blow: 2500, down: 3, heal: 0.15, mana: 2 * SECTION, lasts: 12, every: 4, whirl: 1500, whirlDown: 2 };
 // (Her 500 CC Resist and every ally's 250 M.Crit Resistance, as the game has them: points.)
 const WATER_DRAGON = { resist: 500, defense: 1.1, critResist: 250, taken: 0.75, lasts: 5 };
@@ -254,7 +254,8 @@ export const LAIAS: HeroDef = {
             const ally = weakest();
             if (ally) {
               fight.cue(self, 'eltoirre', [ally]);
-              fight.heal(ally, atTier(ELTOIRRE.mend, tier), self);
+              // (A share of her ATK: a heal's numbers are at ATK.)
+              fight.heal(ally, atTier(ELTOIRRE.mend, tier) * ATK, self);
             }
           }
         }

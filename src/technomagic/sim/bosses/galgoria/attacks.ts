@@ -13,9 +13,9 @@ export type Attack = 'spit' | 'roar' | 'slam';
 /** How long each of its heads' moves takes, when its blow lands, and what that takes of whoever it lands on, least to most, before their defense. */
 export const MOVES: Readonly<Record<Attack, BossMove>> = {
   // Its venom: it takes a moment to get there.
-  spit: { length: 2, hit: 0.88, hurts: [30_000, 45_000] },
+  spit: { length: 2, hit: 0.88, hurts: [300_000, 450_000] },
   // What it calls up lands as it begins to shake.
-  roar: { length: 2.1, hit: 0.5, hurts: [20_000, 30_000] },
+  roar: { length: 2.1, hit: 0.5, hurts: [200_000, 300_000] },
   // Down into the swamp: the ground shakes where it lands.
   slam: { length: 1.9, hit: 0.75 },
 };

@@ -16,10 +16,10 @@ import type { SkillId } from './skills';
 
 /**
  * What a hero's gear gives it, as the bot counts it: points added to a chance or share (crit, attack speed,
- * penetration, block, dodge, CC resist, accuracy, lifesteal, crit resist: 1000 is 100%), ATK added as it is
- * (`atkFlat`: a unique weapon's), and a share more of its own for the rest (ATK, HP, crit damage, defense, heals
- * and shields, stun duration, mana per attack, mana recovery: 0.25 is 25% more). `defense`, `block` and `critResist` are
- * against both kinds of damage; the ones ending in Physical or Magical against that kind only.
+ * penetration, block, block DEF, dodge, Tough, CC resist, accuracy, lifesteal, crit resist: 1000 is 100%), ATK added
+ * as it is (`atkFlat`: a unique weapon's), and a share more of its own for the rest (ATK, HP, crit damage, defense,
+ * heals and shields, stun duration, mana per attack, mana recovery: 0.25 is 25% more). `defense`, `block`, `blockDef`,
+ * `tough` and `critResist` are against both kinds of damage; the ones ending in Physical or Magical against that kind only.
  */
 export type GearStat =
   | 'atk'
@@ -35,7 +35,13 @@ export type GearStat =
   | 'block'
   | 'blockPhysical'
   | 'blockMagical'
+  | 'blockDef'
+  | 'blockDefPhysical'
+  | 'blockDefMagical'
   | 'dodge'
+  | 'tough'
+  | 'toughPhysical'
+  | 'toughMagical'
   | 'resist'
   | 'accuracy'
   | 'lifesteal'
@@ -80,7 +86,7 @@ export interface Fighter {
   readonly moveMarks: Partial<Record<HeroMove, readonly { name: string; takes: number | Partial<PerKind>; lasts: number }[]>>;
   readonly perkDmg: number;
   readonly perkTaken: PerKind;
-  /** ACC (points): what of the boss's dodge and block its blows see past. */
+  /** ACC (points): what of the boss's dodge and block its blows see past (its class's, and its perks'). */
   readonly acc: number;
   /** Seconds until each of its perks that waits between times may again (by its name); the boss's blows it is immune to yet (Deception); Swift and Nimble's stacks. */
   readonly perkWaits: Record<string, number>;
@@ -91,7 +97,7 @@ export interface Fighter {
   readonly critTimes: number;
   readonly healTimes: number;
   readonly controlTimes: number;
-  /** Points, from its gear: what of the boss's CC resist it sees past, the share of what it deals that heals it, and what it takes off the boss's crit chance (against each kind of damage). */
+  /** Points: what of the boss's CC resist it sees past and the share of what it deals that heals it (its gear's), and what it takes off the boss's crit chance against each kind of damage (its gear's). */
   readonly accuracy: number;
   readonly lifesteal: number;
   readonly critResist: PerKind;
@@ -175,7 +181,7 @@ export interface Fight {
   /** The fight's chances: a number from 0 up to 1 (./random.ts). Nothing in it is to use Math.random. */
   roll(): number;
   /**
-   * A hero's blow lands on the boss: `amount` at ATK (./combat/damage.ts: a thousandth of ATK in the game's shares), before the hero's own attack, its passive
+   * A hero's blow lands on the boss: `amount` in thousandths of the hero's ATK, as the game's shares have them (./combat/damage.ts), before the hero's own attack, its passive
    * and the boss's defense against the kind of damage it deals (seen past by its penetration, and `pierce`
    * points more). One that is `counted` is told to every hero's part, and the boss's (not what comes of a status already on the boss).
    * Returns whether it landed, and was critical. One `whole` goes through all the boss's defense.

@@ -1,4 +1,4 @@
-import { share, type HeroStats } from './combat/damage';
+import { POINTS, share, type HeroStats } from './combat/damage';
 import { every, fine, pct, seconds, type Buff } from './shown';
 
 /*
@@ -74,7 +74,7 @@ export const SKILL = {
   vitality: { hp: 0.25 },
   overflow: { cooldown: 0.03, wait: 10 },
   momentum: { atk: 0.02, most: 20 },
-  overdrive: { speed: 1000, atk: 0.4 },
+  overdrive: { speed: 2000, atk: 0.4 },
   regeneration: { heal: 0.01, every: 1 },
   steadfast: { taken: 0.03, most: 8 },
   swiftness: { speed: 250 },
@@ -125,7 +125,7 @@ export const SKILLS: readonly SkillDef[] = [
   { id: 'vitality', name: 'Vitality', tier: 'S', about: `Increases max HP by ${pct(SKILL.vitality.hp)}.` },
   { id: 'overflow', name: 'Overflow', tier: 'A', about: `With mana at 100%, reduces every ally’s cooldowns by ${pct(SKILL.overflow.cooldown)} (once ${every(SKILL.overflow.wait)}).` },
   { id: 'momentum', name: 'Momentum', tier: 'A', about: `Each skill used increases ATK by ${pct(SKILL.momentum.atk)} (up to ${SKILL.momentum.most} times).` },
-  { id: 'overdrive', name: 'Overdrive', tier: 'A', about: `Fixes attack speed at ${pct(share(SKILL.overdrive.speed))} and increases ATK by ${pct(SKILL.overdrive.atk)}.` },
+  { id: 'overdrive', name: 'Overdrive', tier: 'A', about: `Fixes attack speed at ${pct(SKILL.overdrive.speed / POINTS)} and increases ATK by ${pct(SKILL.overdrive.atk)}.` },
   { id: 'regeneration', name: 'Regeneration', tier: 'A', about: `Recovers ${pct(SKILL.regeneration.heal)} of max HP ${every(SKILL.regeneration.every)}.` },
   { id: 'steadfast', name: 'Steadfast', tier: 'A', about: `Each skill used reduces DMG taken by ${pct(SKILL.steadfast.taken)} (up to ${SKILL.steadfast.most} times).` },
   { id: 'swiftness', name: 'Swiftness', tier: 'A', about: `Increases attack speed by ${pct(share(SKILL.swiftness.speed))}.` },

@@ -22,10 +22,12 @@ const pct = (points: number): string => `${Math.round((points / POINTS) * 1000) 
 const whole = (n: number): string => Math.round(n).toLocaleString('en-US');
 const times = (n: number): string => `${Math.round(n * 100)}%`;
 
-/** A row: its value with the gear, and (when the gear changes it) without. */
+/** A row: its value with the gear, and (when the gear changes it) without, and what it adds (or takes). */
 function row(label: string, base: number, withGear: number, show: (n: number) => string): ShownStatSection['rows'][number] {
   const changed = Math.abs(withGear - base) > 1e-9;
-  return { label, value: show(withGear), base: changed ? show(base) : null };
+  if (!changed) return { label, value: show(withGear), base: null };
+  const added = withGear - base;
+  return { label, value: show(withGear), base: show(base), added: `${added < 0 ? '−' : '+'} ${show(Math.abs(added))}` };
 }
 
 /** Where a hero stands, as King's Raid says it. */
@@ -49,7 +51,8 @@ export function heroStats(hero: Pick<HeroView, 'class'> & Partial<Pick<HeroView,
         : []),
     ],
   };
-  const base = CLASS_STATS[hero.class as HeroClass];
+  // (A hero the raid knows stands as its own stats have it, its class's with what is its own over them.)
+  const base = def?.stats ?? CLASS_STATS[hero.class as HeroClass];
   if (!base) return [about];
   // (Its perks, picked as far as it is transcended, add to its stats as its gear does; and what they give every ally, itself
   // among them, as the fight has it: Battle Cry's max HP with its gear's, the rest beside its own.)
@@ -81,9 +84,10 @@ export function heroStats(hero: Pick<HeroView, 'class'> & Partial<Pick<HeroView,
         row('Health', base.hp, gear.hp, whole),
         row('Attack', base.atk, gear.atk * allies.atk, whole),
         row('Critical Chance', base.crit, gear.crit + allies.crit, pct),
-        row('Critical Damage', CRIT, CRIT + bonus('critDamage') + skilledCritDamage(skills) + allies.critDamage, times),
+        row('Critical Damage', CRIT + base.critDamage, CRIT + base.critDamage + bonus('critDamage') + skilledCritDamage(skills) + allies.critDamage, times),
         row('Attack Speed', base.speed, gear.speed + allies.speed, pct),
         row('Penetration', base.pen, gear.pen, pct),
+        row('Hit Accuracy', base.acc, gear.acc + perks.reduce((sum, perk) => sum + (perk.acc ?? 0), 0), pct),
         row('Accuracy', 0, bonus('accuracy') + allies.accuracy, pct),
         row('Lifesteal', 0, bonus('lifesteal'), pct),
       ],
@@ -95,9 +99,13 @@ export function heroStats(hero: Pick<HeroView, 'class'> & Partial<Pick<HeroView,
         row('Magical Defense', base.magical, gear.magical * allies.defense, whole),
         row('Physical Block', base.block.physical, gear.block.physical, pct),
         row('Magical Block', base.block.magical, gear.block.magical, pct),
+        row('Physical Block Defense', base.blockDef?.physical ?? 0, gear.blockDef?.physical ?? 0, times),
+        row('Magical Block Defense', base.blockDef?.magical ?? 0, gear.blockDef?.magical ?? 0, times),
         row('Physical Dodge', base.dodge.physical, gear.dodge.physical, pct),
         row('Magical Dodge', base.dodge.magical, gear.dodge.magical, pct),
         row('Crowd Control Resistance', base.resist, gear.resist + allies.resist, pct),
+        row('Physical Tough', base.tough?.physical ?? 0, gear.tough?.physical ?? 0, pct),
+        row('Magical Tough', base.tough?.magical ?? 0, gear.tough?.magical ?? 0, pct),
         row('Physical Critical Resistance', 0, bonus('critResist'), pct),
         row('Magical Critical Resistance', 0, bonus('critResist'), pct),
       ],

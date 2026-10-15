@@ -50,9 +50,13 @@ export interface HeroesContext {
   hero: string | null;
   /** The slot last pressed: equipping something of its kind puts it there. */
   target: HeroSlot | null;
-  /** What the armory shows: a kind of item (all of them), a star tier, and what the search asks for. */
+  /**
+   * What the armory shows: a kind of item (all of them), a star tier, what works on a class (its own items and those of
+   * no class; picked for the hero shown as it is picked), and what the search asks for.
+   */
   filter: Slot | 'all';
   stars: StarChoice;
+  cls: string | 'all';
   query: string;
   /** What the panel beside the hero shows. */
   tab: 'stats' | 'gear' | 'skills' | 'transcend';
@@ -124,6 +128,7 @@ export function createContext(root: HTMLElement): HeroesContext {
     target: null,
     filter: 'all',
     stars: 'all',
+    cls: 'all',
     query: '',
     tab: 'gear',
     perk: null,

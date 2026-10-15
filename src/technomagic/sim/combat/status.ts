@@ -29,6 +29,8 @@ export interface Status<Shown> {
   pen?: number;
   /** Its bearer's defense is this many times as much: against every kind, or against each kind it names. */
   defends?: number | Partial<Record<DamageType, number>>;
+  /** Added to a hero bearing it's defense against each kind it names (before what makes it so many times as much). */
+  bolsters?: Partial<Record<DamageType, number>>;
   /** Added to its bearer's chance to block each kind it names (points). */
   blocks?: Partial<Record<DamageType, number>>;
   /** Added to its bearer's CC resist (points). */
@@ -136,6 +138,13 @@ export function defending(on: readonly Status<unknown>[], type: DamageType): num
   let times = 1;
   for (const { defends } of on) times *= typeof defends === 'number' ? defends : (defends?.[type] ?? 1);
   return times;
+}
+
+/** What these add to a bearer's defense against a kind of damage. */
+export function bolstering(on: readonly Status<unknown>[], type: DamageType): number {
+  let more = 0;
+  for (const { bolsters } of on) more += bolsters?.[type] ?? 0;
+  return more;
 }
 
 /** What these add to a bearer's chance to block a kind of damage (points). */

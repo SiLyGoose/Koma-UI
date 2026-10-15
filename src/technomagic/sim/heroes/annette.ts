@@ -33,7 +33,7 @@ import { CLASS_STATS, type HeroDef, type Passive } from './kit';
 const ZAP = { blow: BLOW * 1.4 };
 const RAY = { blow: 4000, extra: 3000, weaker: 0.15, takes: 0.25, lasts: 10 };
 // (Its 250 CC Resistance and 250 Crit Chance, as the game has them: points.)
-const TREATMENT = { heal: 40_000, lasts: 10, resist: 250, crit: 250, dmg: 0.1 };
+const TREATMENT = { heal: 400_000, lasts: 10, resist: 250, crit: 250, dmg: 0.1 };
 const ELIMINATION = { blow: 7000, over: 10000, takes: 0.25, lasts: 10, stun: 5 };
 const CHARGE = { every: 0.5, perCrystal: 10, full: 100, lasts: 15, atk: 0.3, cooldown: 0.1 };
 /** Her own perks' numbers: more Charge from a skill, Process of Elimination's mark, Overcharge's more ATK and longer, and Transcend 5's Dark's for every ally (attack speed in points, ATK a share of hers). */

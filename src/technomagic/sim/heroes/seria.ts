@@ -31,7 +31,7 @@ const BLOSSOM = { blow: 2500 };
 const SCATTER = { rush: 2000, cuts: CODED.scatter.lands.length - 1, cut: 1200, through: 800, pierce: 1000, speed: 300, lasts: 3 };
 // (In Moonlight, the boss is healed `heals` as much for `unhealed` seconds.)
 const MOON = { blow: 6000, boss: 3000, ripe: 4000, every: 6, light: 1, unhealed: 10, heals: 0 };
-// (Its ATK as the game has it, at this raid's scale.)
+// (Its ATK as the game has it, added to her class's.)
 const WITCH = { atk: 38_567, critDamage: 0.05, most: 30 };
 /** Her own perks' numbers: Blossom's less healing for the boss, Blood Scattering Blade's mana for each blow, her less taken for each stack of Cold-Blooded Witch, her opening's more DMG, and Transcend 5's Dark's more taken. */
 const PERKS = { unhealed: { heals: 0.5, lasts: 5 }, blossomCost: 1, mana: 0.2 * SECTION, taken: 0.007, opening: { deals: 1.25, lasts: 200 }, reckless: 1.25 };

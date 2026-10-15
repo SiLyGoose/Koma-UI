@@ -58,8 +58,11 @@ export function forgePlan(copy: GearCopy): Plan {
   return copy.effects.some((line) => line.startsWith(DORMANT)) ? { kind: 'forge', forge: null } : { kind: 'done', masterwork: false };
 }
 
-/** A stat row as the site shows it: the bot's, or one the heroes page makes itself, which may show a picture (`icon`) for its value. */
-export type ShownStatRow = StatRow & { icon?: string };
+/**
+ * A stat row as the site shows it: the bot's, or one the heroes page makes itself, which may show a picture (`icon`) for
+ * its value, and with its base what its gear and the rest add to it (`added`: "+ 9.5%", or "− 2%" where it costs some).
+ */
+export type ShownStatRow = StatRow & { icon?: string; added?: string };
 export interface ShownStatSection {
   title: string;
   rows: ShownStatRow[];

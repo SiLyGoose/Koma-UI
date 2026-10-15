@@ -16,6 +16,8 @@ const CLASS_NAME: Record<string, string> = { knight: 'Knight', warrior: 'Warrior
 /** A class's name ("Knight"), and its badge (public/gear/classes/, as the gear page's ribbon has it). */
 export const className = (id: string): string => CLASS_NAME[id] ?? id;
 export const classBadge = (id: string): string => `/gear/classes/${id}_default.png`;
+/** Every class, in the raid's order (what the heroes page's armory filter offers). */
+export const HERO_CLASSES: readonly { id: string; name: string }[] = Object.entries(CLASS_NAME).map(([id, name]) => ({ id, name }));
 
 /** A hero's picture (its default skin's): the whole picture, and the square of it that is its face. Null when the raid has none for it. */
 export function heroPicture(id: string): { src: string; crop: Crop } | null {

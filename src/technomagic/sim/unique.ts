@@ -31,15 +31,14 @@ import { fine, pct, type Buff } from './shown';
  * - Valance, Wonder of Magos Le'Flamme, Corbeau Rose: every ally gains by the TechnoMagic gear it wears, the same at
  *   every tier. (Her part does it: ./heroes/valance.ts.)
  *
- * The game's shares of ATK are as they are for damage (this raid's blows are counted in thousandths of them, at ATK: ./combat/);
- * a heal is the game's share of ATK scaled by its heroes' HP to their ATK (some 86 to 1, where here it is
- * about 1 to 1), so it mends as much of her health as it would there.
+ * The game's shares of ATK are as they are for damage (this raid's blows are counted in thousandths of them: ./combat/),
+ * and for a heal (a share of ATK: its hero's health and attack are the game's own, so it mends as much as there).
  */
 
 /** Each weapon's numbers at tiers 1 to 5 (index 0 is tier 1). */
 export const EXIAN = { name: 'The Guardian, Exian', every: 3, lasts: 15, boost: [0.12, 0.14, 0.17, 0.21, 0.25] };
 export const ELICIPIRA = { name: 'Judgment Edge, Elicipira', chance: 0.04, boss: 2, blow: [6000, 7200, 8600, 10000, 12500] };
-export const ROSMERTA = { name: 'Angel’s Despair, Rosmerta', lasts: 7, heal: [2_000, 2_400, 2_900, 3_500, 4_200], pen: [240, 290, 350, 420, 500] };
+export const ROSMERTA = { name: 'Angel’s Despair, Rosmerta', lasts: 7, heal: [2, 2.4, 2.9, 3.5, 4.2], pen: [240, 290, 350, 420, 500] };
 /** Its attack speed (points), its heal and mana on sleeping (shares of her max HP and max mana, the mana over `over` seconds), and the ATK each Mana Charge adds. */
 export const PIGRITIA = {
   name: 'Gateway to Purgatory, Pigritia',
@@ -55,8 +54,8 @@ export const RASCAL = { name: 'Crystallized Technomagic, Rascal', every: [1.4, 1
 export const CARPRAIN = { name: 'Flame of Victory, Carprain', chance: 0.2, lasts: 10, weaker: [0.12, 0.14, 0.17, 0.21, 0.25], full: 2 };
 /** A critical skill blow's blow more (at ATK), what it takes off the boss's heals for `lasts` seconds, and what each of its stacks (up to `most`, for `healed` seconds) adds to hers. */
 export const ELSION = { name: 'Executioner of Domains, Elsion', blow: [600, 720, 860, 1030, 1250], unhealed: [0.29, 0.35, 0.42, 0.5, 0.6], lasts: 5, heals: [0.05, 0.06, 0.07, 0.09, 0.1], most: 5, healed: 20 };
-/** How much more healing reaches every ally, how often (seconds) the ally with the lowest health is healed, and by how much (as a heal at ATK). */
-export const ELTOIRRE = { name: 'Flowing Circle, Eltoirre', heals: [0.1, 0.12, 0.14, 0.17, 0.2], every: 5, mend: [1_200, 1_400, 1_700, 2_100, 2_500] };
+/** How much more healing reaches every ally, how often (seconds) the ally with the lowest health is healed, and by how much (a share of her ATK). */
+export const ELTOIRRE = { name: 'Flowing Circle, Eltoirre', heals: [0.1, 0.12, 0.14, 0.17, 0.2], every: 5, mend: [1.2, 1.4, 1.7, 2.1, 2.5] };
 /** How many seconds longer his Fury lasts, and what it adds to his crit damage (a share more) and CC resist (points) while it does. */
 export const BARBATOS = { name: 'Jailer of Despair, Barbatos', longer: [3, 4, 5, 6, 7], critDamage: [0.9, 1, 1.1, 1.2, 1.3], resist: [240, 290, 350, 420, 500] };
 /** How often (seconds) it strikes a poisoned boss, how hard (at ATK), and how much more magical damage the boss takes after, for `lasts` seconds. */
@@ -75,7 +74,7 @@ export const atTier = (list: readonly number[], tier: number): number => list[Ma
 const ABOUT: Readonly<Record<string, (tier: number) => string>> = {
   klaus: (tier) => `Every ${EXIAN.every}rd skill he uses, his ATK and defense are ${pct(atTier(EXIAN.boost, tier))} higher for ${EXIAN.lasts} seconds.`,
   kirze: (tier) => `Each of her blows has a ${pct(ELICIPIRA.chance)} chance to deal ${pct(atTier(ELICIPIRA.blow, tier) / 1000)} of her ATK more, doubled against the boss.`,
-  'fallen-frey': (tier) => `Each skill she uses heals her by ${pct(atTier(ROSMERTA.heal, tier) / 1000)} of her ATK, and gives her +${atTier(ROSMERTA.pen, tier)} penetration for ${ROSMERTA.lasts} seconds.`,
+  'fallen-frey': (tier) => `Each skill she uses heals her by ${pct(atTier(ROSMERTA.heal, tier))} of her ATK, and gives her +${atTier(ROSMERTA.pen, tier)} penetration for ${ROSMERTA.lasts} seconds.`,
   gremory: (tier) =>
     `+${atTier(PIGRITIA.speed, tier)} attack speed. Each time she sleeps she is healed by ${pct(atTier(PIGRITIA.heal, tier))} of her max HP and recovers ${pct(atTier(PIGRITIA.mana, tier))} of her mana over ${PIGRITIA.over} seconds, and each Mana Charge gives her ${fine(atTier(PIGRITIA.charge, tier))} more ATK.`,
   annette: (tier) =>
@@ -83,7 +82,7 @@ const ABOUT: Readonly<Record<string, (tier: number) => string>> = {
   morrah: (tier) =>
     `Each blow of her attack has a ${pct(CARPRAIN.chance)} chance to leave the boss hitting ${pct(atTier(CARPRAIN.weaker, tier))} less hard and taking ${pct(atTier(CARPRAIN.weaker, tier))} more magical damage for ${CARPRAIN.lasts} seconds (${pct(atTier(CARPRAIN.weaker, tier) * CARPRAIN.full)} more with 100 Flame on it).`,
   laias: (tier) =>
-    `Healing reaches every ally ${pct(atTier(ELTOIRRE.heals, tier))} more, and every ${ELTOIRRE.every} seconds she heals the ally with the lowest HP by ${pct(atTier(ELTOIRRE.mend, tier) / 1000)} of her ATK.`,
+    `Healing reaches every ally ${pct(atTier(ELTOIRRE.heals, tier))} more, and every ${ELTOIRRE.every} seconds she heals the ally with the lowest HP by ${pct(atTier(ELTOIRRE.mend, tier))} of her ATK.`,
   seria: (tier) =>
     `Each critical blow of her skills deals ${pct(atTier(ELSION.blow, tier) / 1000)} of her ATK more, leaves the boss healed ${pct(atTier(ELSION.unhealed, tier))} less for ${ELSION.lasts} seconds, and heals her ${pct(atTier(ELSION.heals, tier))} more for ${ELSION.healed} seconds (up to ${ELSION.most} times).`,
   ezekiel: (tier) =>

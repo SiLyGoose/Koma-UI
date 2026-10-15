@@ -1,6 +1,6 @@
 import markup from './heroes.html?raw';
 import { itemDetailsClosed } from '../shared/items';
-import { HERO_SLOT_KIND, type HeroCopy, type HeroSlot, type HeroesView } from '../shared/heroes';
+import { HERO_CLASSES, HERO_SLOT_KIND, type HeroCopy, type HeroSlot, type HeroesView } from '../shared/heroes';
 import { API, busyWith, dropdown, fillServers } from '../shared/ui';
 import type { Page } from '../site/page';
 import { api, currentMe, currentServer, loadMe, logOut, setServer } from '../site/session';
@@ -134,7 +134,11 @@ function show(ctx: HeroesContext, act: HeroActions, view: HeroesView): void {
   ctx.view = view;
   const asked = new URLSearchParams(location.search).get('hero');
   const has = (id: string | null): boolean => view.heroes.some((hero) => hero.id === id);
-  if (!has(ctx.hero)) ctx.hero = has(asked) ? asked : (view.heroes.find((hero) => hero.owned) ?? view.heroes[0])?.id ?? null;
+  if (!has(ctx.hero)) {
+    ctx.hero = has(asked) ? asked : (view.heroes.find((hero) => hero.owned) ?? view.heroes[0])?.id ?? null;
+    // The armory shows what works on its class.
+    ctx.cls = heroShown(ctx)?.class ?? 'all';
+  }
   if (ctx.picked && !view.copies.some((copy) => copy.id === ctx.picked)) ctx.picked = null;
   render(ctx, act);
 }
@@ -163,6 +167,8 @@ function actions(ctx: HeroesContext): HeroActions {
     pickHero(id) {
       if (id === ctx.hero) return;
       ctx.hero = id;
+      // The armory shows what works on its class.
+      ctx.cls = heroShown(ctx)?.class ?? 'all';
       ctx.picked = null;
       ctx.target = null;
       ctx.perk = null;
@@ -218,9 +224,11 @@ function wire(ctx: HeroesContext, act: HeroActions): () => void {
     void load(ctx, act);
   });
 
+  ui.filter.setClasses(HERO_CLASSES);
   ui.filter.onChange((choice) => {
     ctx.filter = choice.slot;
     ctx.stars = choice.stars;
+    ctx.cls = choice.cls ?? 'all';
     if (ctx.target && HERO_SLOT_KIND[ctx.target] !== ctx.filter) ctx.target = null;
     render(ctx, act);
   });

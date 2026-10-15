@@ -4,7 +4,8 @@ import { el, type Slot, stars, tmTier, uwTier } from '../items';
 /*
  * The armories' filter (the gear page's, the forge's, the databank's): a Filter button beside the search,
  * with how many filters are on, and its panel under it: the type (All, Weapons, Armor, Treasures), the
- * stars (Any, then 4 to 1) and, where the page offers them, the class (the databank's: a raid class's own items),
+ * stars (Any, then 4 to 1) and, where the page offers them, the class (the databank's: a raid class's own items; the
+ * heroes page's: what works on a class, picked for the hero shown),
  * Owned only (the databank's), Refineable (the forge's) and Hero gear (the gear page's: TechnoMagic gear and unique
  * weapons, which only heroes wear, hidden until it is on), with room for more (a sort) as they come. A choice applies at once and the panel stays open for the next; a click outside it, Escape or
  * tabbing away closes it. Its markup is a box in the page (`<div id="armory-filter" class="armory-filter">`),
@@ -24,7 +25,7 @@ export interface ArmoryChoice {
   owned: boolean | null;
   /** Only what can be refined; null where it isn't offered (anywhere but the forge). */
   refineable: boolean | null;
-  /** Only one raid class's items (its id), or 'all'; null where it isn't offered (anywhere but the databank). */
+  /** Only one raid class's items (its id), or 'all'; null where it isn't offered (anywhere but the databank and the heroes page). */
   cls: string | 'all' | null;
   /** Gear only heroes wear (TechnoMagic gear, unique weapons) shown too; null where it isn't offered (anywhere but the gear page, which shows it always). */
   heroGear: boolean | null;

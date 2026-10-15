@@ -1,4 +1,4 @@
-import { NONE, type HeroStats } from '../combat/damage';
+import { NONE, type HeroStats, type PerKind } from '../combat/damage';
 import type { OwnTiming } from '../motion';
 import type { OwnPerkId, PerkDef } from '../perks';
 import type { Line } from '../rules';
@@ -114,29 +114,65 @@ const CLASS_RANK: Record<HeroClass, number> = { knight: 0, warrior: 1, assassin:
 export const nearer = (a: HeroDef, b: HeroDef): number => LINE_RANK[lineOf(a)] - LINE_RANK[lineOf(b)] || CLASS_RANK[a.class] - CLASS_RANK[b.class];
 
 /**
- * How each class stands, before what is a hero's own (the kind of damage it deals, and anything else it
- * has otherwise): a hero's stats are its class's, with its own over them. Health and attack are as the
- * fight measures them (both the size of King's Raid's: a skill's numbers are written for an ATK of 100,000, ../combat/damage.ts,
- * and what the boss's blows take and the heals and shields that are no share of health are sized to health this big); crit,
- * attack speed, penetration, CC resist, block and dodge are points (1000: 100%). A first guess at each,
- * by what the game says a class is for:
- * - knight: the most health and defense, and blocks the most;
- * - warrior: as much of everything, standing and hitting, some block and some CC resist;
- * - assassin: bursts of damage, the most crits and the quickest, dodging what it can;
- * - archer: the hardest hitting, and the most penetration;
- * - mechanic: hits again and again from off, a little of everything;
- * - wizard: magic, hitting hard and seeing past defense, and standing magic better than blows;
- * - priest: heals and shields (by its attack), standing magic well, quick at what it does.
+ * King's Raid's own stats for each class at level 80. Every hero of a class has its class's (the King's Raid Index,
+ * kingsraid.netlify.app, shows each hero its class's Basic Stats and Additional Options). Its Basic Stats: max HP,
+ * ATK, P.DEF and M.DEF. Its Additional Options, in points as the game has them (1000: 100%), none where it has none:
+ * crit chance, Crit DMG (a share more), penetration, ACC, block and dodge against each kind, Tough against each kind
+ * (a share of every blow taken off: ../combat/damage.ts), CC resist, M.Block DEF (the share more a block takes off: the game shows the priest's 250 points as
+ * 23%), and ATK Spd (1000 for every class: its attack as quick as it comes).
  */
-export const CLASS_STATS: Record<HeroClass, Omit<HeroStats, 'deals'>> = {
-  knight: { hp: 140_000, atk: 75_000, physical: 1000, magical: 700, block: { physical: 350, magical: 250 }, dodge: NONE, crit: 50, speed: 0, pen: 0, resist: 250 },
-  warrior: { hp: 115_000, atk: 100_000, physical: 600, magical: 450, block: { physical: 100, magical: 50 }, dodge: { physical: 50, magical: 50 }, crit: 100, speed: 100, pen: 100, resist: 150 },
-  assassin: { hp: 90_000, atk: 115_000, physical: 300, magical: 250, block: NONE, dodge: { physical: 200, magical: 150 }, crit: 350, speed: 250, pen: 150, resist: 50 },
-  archer: { hp: 85_000, atk: 125_000, physical: 250, magical: 250, block: NONE, dodge: { physical: 100, magical: 50 }, crit: 200, speed: 150, pen: 300, resist: 0 },
-  mechanic: { hp: 90_000, atk: 105_000, physical: 300, magical: 350, block: NONE, dodge: { physical: 50, magical: 50 }, crit: 150, speed: 150, pen: 150, resist: 50 },
-  wizard: { hp: 80_000, atk: 125_000, physical: 200, magical: 450, block: { physical: 0, magical: 50 }, dodge: { physical: 0, magical: 50 }, crit: 150, speed: 50, pen: 200, resist: 0 },
-  priest: { hp: 90_000, atk: 90_000, physical: 300, magical: 500, block: { physical: 0, magical: 100 }, dodge: { physical: 0, magical: 50 }, crit: 50, speed: 100, pen: 0, resist: 100 },
+interface KingsRaidClass {
+  hp: number;
+  atk: number;
+  defense: PerKind;
+  crit: number;
+  critDamage?: number;
+  pen?: number;
+  acc?: number;
+  block?: PerKind;
+  dodge?: PerKind;
+  tough?: PerKind;
+  resist?: number;
+  blockDef?: PerKind;
+  speed: number;
+}
+const KINGS_RAID: Record<HeroClass, KingsRaidClass> = {
+  knight: { hp: 1_354_584, atk: 15_712, defense: { physical: 6984, magical: 5432 }, crit: 50, block: { physical: 100, magical: 100 }, tough: { physical: 250, magical: 250 }, speed: 1000 },
+  warrior: { hp: 1_150_488, atk: 17_848, defense: { physical: 5816, magical: 6984 }, crit: 150, pen: 150, acc: 100, dodge: { physical: 100, magical: 100 }, resist: 150, speed: 1000 },
+  assassin: { hp: 1_099_264, atk: 19_592, defense: { physical: 6208, magical: 5432 }, crit: 200, critDamage: 0.3, acc: 100, dodge: { physical: 200, magical: 200 }, speed: 1000 },
+  archer: { hp: 846_664, atk: 22_112, defense: { physical: 4264, magical: 3488 }, crit: 150, pen: 250, acc: 100, speed: 1000 },
+  mechanic: { hp: 918_448, atk: 20_176, defense: { physical: 4264, magical: 3488 }, crit: 150, critDamage: 0.5, pen: 100, acc: 200, speed: 1000 },
+  wizard: { hp: 782_056, atk: 23_280, defense: { physical: 3104, magical: 4656 }, crit: 100, pen: 150, acc: 100, block: { physical: 0, magical: 250 }, dodge: { physical: 0, magical: 200 }, speed: 1000 },
+  priest: { hp: 876_928, atk: 18_424, defense: { physical: 3880, magical: 4848 }, crit: 100, acc: 100, block: { physical: 0, magical: 500 }, tough: { physical: 0, magical: 150 }, blockDef: { physical: 0, magical: 0.23 }, speed: 1000 },
 };
+const CLASSES = Object.keys(KINGS_RAID) as HeroClass[];
+
+/**
+ * How each class stands, before what is a hero's own (the kind of damage it deals, and anything else it has
+ * otherwise): a hero's stats are its class's (King's Raid's own: KINGS_RAID), with its own over them.
+ */
+export const CLASS_STATS = Object.fromEntries(
+  CLASSES.map((one) => {
+    const { hp, atk, defense, crit, critDamage, pen, acc, block, dodge, tough, resist, blockDef, speed } = KINGS_RAID[one];
+    const stats: Omit<HeroStats, 'deals'> = {
+      hp,
+      atk,
+      physical: defense.physical,
+      magical: defense.magical,
+      crit,
+      critDamage: critDamage ?? 0,
+      speed,
+      pen: pen ?? 0,
+      acc: acc ?? 0,
+      block: block ?? NONE,
+      dodge: dodge ?? NONE,
+      resist: resist ?? 0,
+      tough: tough ?? NONE,
+      ...(blockDef && { blockDef }),
+    };
+    return [one, stats];
+  }),
+) as Record<HeroClass, Omit<HeroStats, 'deals'>>;
 
 export interface HeroDef {
   /** What the bot and the site know it by: its file here (and its folder under ../../heroes/ and assets/heroes/). */

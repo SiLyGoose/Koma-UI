@@ -30,8 +30,8 @@ import { CODED } from './moves';
  * 100 points (1000: 100%).
  */
 const BOLT = { blow: BLOW * 1.4 };
-const HOLOGRAM = { lasts: 15, atk: 0.2, crit: 0.2, heal: 2_000, cooldown: 0.2 };
-const FIELD = { lasts: 5, defense: 1.15, heal: 4_000, mana: 0.3 * SECTION };
+const HOLOGRAM = { lasts: 15, atk: 0.2, crit: 0.2, heal: 20_000, cooldown: 0.2 };
+const FIELD = { lasts: 5, defense: 1.15, heal: 40_000, mana: 0.3 * SECTION };
 // (Its lasers after the first: its move's blows but the first.)
 const CANNON = { blow: 4000, stun: 3, lasers: CODED.cannon.lands.length - 1, laser: 700, laserStun: 1.5, lasts: 15, takes: 0.07, heals: 0.05, most: 7 };
 const AWAKENING = { defense: 1.2, mana: 1.3, atk: 0.1, boss: 0.15 };

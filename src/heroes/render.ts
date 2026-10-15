@@ -42,7 +42,7 @@ export function render(ctx: HeroesContext, act: HeroActions): void {
   ui.page.hidden = false;
   const hero = heroShown(ctx);
   ui.page.classList.toggle('unowned', hero?.owned === false);
-  ui.filter.show({ slot: ctx.filter, stars: ctx.stars, owned: null, refineable: null, cls: null, heroGear: null });
+  ui.filter.show({ slot: ctx.filter, stars: ctx.stars, owned: null, refineable: null, cls: ctx.cls, heroGear: null });
   renderRoster(ctx, act);
   renderStage(ctx);
   renderSlots(ctx);
@@ -206,7 +206,7 @@ const columns = (grid: HTMLElement): number => getComputedStyle(grid).gridTempla
 
 /** The gear a hero can wear: every copy shown (by the filter, the stars and the search), then blanks to fill out the last row. */
 function renderGrid(ctx: HeroesContext, act: HeroActions): void {
-  const { ui, view, filter, stars, query } = ctx;
+  const { ui, view, filter, stars, cls, query } = ctx;
   if (!view) return;
   const hero = heroShown(ctx);
   const across = columns(ui.grid);
@@ -214,7 +214,7 @@ function renderGrid(ctx: HeroesContext, act: HeroActions): void {
   const scrolled = sheet.scrollTop;
   ui.grid.textContent = '';
   const ofSlot = view.copies.filter((copy) => filter === 'all' || copy.slot === filter);
-  const shown = ofSlot.filter((copy) => matchesStars(stars, tierOf(copy)) && matchesSearch(query, { name: copy.name, id: copy.itemId, description: copy.description }));
+  const shown = ofSlot.filter((copy) => (cls === 'all' || copy.class === null || copy.class === cls) && matchesStars(stars, tierOf(copy)) && matchesSearch(query, { name: copy.name, id: copy.itemId, description: copy.description }));
   for (const copy of shown) {
     const card = el('button', 'item');
     card.type = 'button';
@@ -353,15 +353,18 @@ function renderStats(ctx: HeroesContext): void {
   if (hero) ui.statsList.append(...statBlocks(heroStats(hero)));
 }
 
-/** Stats, a heading over each group and a row for each, the base under any that gear changes (the databank's Heroes too). */
+/**
+ * Stats, a heading over each group and a row for each (the databank's Heroes too); one that gear changes as King's Raid
+ * has it, its total blue, then its base and what's added green, in brackets: "9.5% (0% + 9.5%)".
+ */
 export function statBlocks(sections: readonly ShownStatSection[]): HTMLElement[] {
   return sections.map((section) => {
     const block = el('section', 'stats-section');
     block.append(el('h3', '', section.title));
     const list = el('dl');
     for (const row of section.rows) {
-      const line = el('div', `stats-row${row.base === null ? '' : ' changed'}`);
-      const value = el('dd', '', row.icon ? undefined : row.value);
+      const line = el('div', `stats-row${row.added === undefined ? (row.base === null ? '' : ' changed') : ' split'}`);
+      const value = el('dd', '', row.icon || row.added !== undefined ? undefined : row.value);
       if (row.icon) {
         // Its picture before the words.
         const icon = el('img', 'stats-icon');
@@ -371,7 +374,11 @@ export function statBlocks(sections: readonly ShownStatSection[]): HTMLElement[]
         shown.prepend(icon);
         value.append(shown);
       }
-      if (row.base !== null) value.append(el('span', 'stats-base', `base ${row.base}`));
+      if (row.added !== undefined) {
+        const split = el('span', 'stats-split', `(${row.base} `);
+        split.append(el('span', 'stats-added', row.added), ')');
+        value.append(el('span', 'stats-total', row.value), split);
+      } else if (row.base !== null) value.append(el('span', 'stats-base', `base ${row.base}`));
       line.append(el('dt', '', row.label), value);
       list.append(line);
     }

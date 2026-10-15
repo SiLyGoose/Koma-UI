@@ -1,6 +1,6 @@
 import type { BossDef, BossPart } from './bosses/boss';
-import { ATK, NONE, share, strike } from './combat/damage';
-import { away, blocking, bound, critDamaging, critResisting, critting, dealing, defending, filling, healing, pacing, piercing, put, resisting, taking, wear, type Status } from './combat/status';
+import { ATK, NONE, POINTS, share, soft, SOFT, strike } from './combat/damage';
+import { away, blocking, bolstering, bound, critDamaging, critResisting, critting, dealing, defending, filling, healing, pacing, piercing, put, resisting, taking, wear, type Status } from './combat/status';
 import type { Input, Logged, Result, SimEvent } from './events';
 import { geared } from './gear';
 import { lineOf, NO_PASSIVE, type Ability, type HeroDef } from './heroes/kit';
@@ -111,12 +111,15 @@ export interface Sim extends Fight {
   checksum(): number;
 }
 
-/** The boss's defenses as blows with `acc` points of ACC find them: so much less likely dodged or blocked. */
-const seenPast = (stats: BossDef['stats'], acc: number): BossDef['stats'] => ({
-  ...stats,
-  dodge: { physical: Math.max(0, stats.dodge.physical - acc), magical: Math.max(0, stats.dodge.magical - acc) },
-  block: { physical: Math.max(0, stats.block.physical - acc), magical: Math.max(0, stats.block.magical - acc) },
-});
+/** The boss's defenses as blows with `acc` points of ACC find them (soft-capped): so much less likely dodged or blocked. */
+const seenPast = (stats: BossDef['stats'], points: number): BossDef['stats'] => {
+  const acc = soft(points, SOFT.acc);
+  return {
+    ...stats,
+    dodge: { physical: Math.max(0, stats.dodge.physical - acc), magical: Math.max(0, stats.dodge.magical - acc) },
+    block: { physical: Math.max(0, stats.block.physical - acc), magical: Math.max(0, stats.block.magical - acc) },
+  };
+};
 
 /** What knocks a hero down: shown on its card, with how long it has left. */
 const KNOCKED: Buff = { name: 'Knocked down', about: 'Can do nothing until it is up.', icon: '💫', harmful: true };
@@ -184,12 +187,12 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       moveMarks: moveMarks(hero, perks),
       perkDmg: product((perk) => perk.dmg),
       perkTaken: { physical: product((perk) => perk.taken) * product((perk) => perk.takenPhysical), magical: product((perk) => perk.taken) },
-      acc: defs.reduce((sum, perk) => sum + (perk.acc ?? 0), 0),
+      acc: stats.acc + defs.reduce((sum, perk) => sum + (perk.acc ?? 0), 0),
       perkWaits: {},
       immune: 0,
       nimble: 0,
       stats,
-      critTimes: CRIT + (gear.critDamage ?? 0) + skilledCritDamage(skills),
+      critTimes: CRIT + stats.critDamage + (gear.critDamage ?? 0) + skilledCritDamage(skills),
       healTimes: 1 + (gear.heal ?? 0),
       set,
       unique: tier === null ? null : { tier, casts: 0 },
@@ -461,7 +464,8 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       const boost = 1 + atTier(EXIAN.boost, unique.tier);
       put(fighter.statuses, { name: EXIAN_UP.name, left: EXIAN.lasts, deals: boost, defends: boost, shown: EXIAN_UP });
     } else if (fighter.id === 'fallen-frey') {
-      sim.heal(fighter, atTier(ROSMERTA.heal, unique.tier), fighter);
+      // (A share of her ATK: a heal's numbers are at ATK.)
+      sim.heal(fighter, atTier(ROSMERTA.heal, unique.tier) * ATK, fighter);
       put(fighter.statuses, { name: ROSMERTA_UP.name, left: ROSMERTA.lasts, pen: atTier(ROSMERTA.pen, unique.tier), shown: ROSMERTA_UP });
     }
   }
@@ -591,7 +595,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       const seen = by.acc > 0 ? seenPast(foe.def.stats, by.acc) : foe.def.stats;
       const through = whole || (landing?.by === by && by.moveWhole.has(landing.move));
       const against = through ? { ...seen, physical: 0, magical: 0 } : { ...seen, physical: seen.physical * defending(foe.statuses, 'physical'), magical: seen.magical * defending(foe.statuses, 'magical') };
-      const { taken, blocked, dodged } = strike(amount * (atk / ATK) * atkTimes(by) * dmgTimes(by) * attack * dealing(by.statuses) * (critical ? critTimes : 1) * by.perkDmg * skilled * (by.part.deals?.() ?? 1), type, against, pen + pierce + piercing(by.statuses), roll);
+      const { taken, blocked, dodged } = strike(amount * (atk / POINTS) * atkTimes(by) * dmgTimes(by) * attack * dealing(by.statuses) * (critical ? critTimes : 1) * by.perkDmg * skilled * (by.part.deals?.() ?? 1), type, against, pen + pierce + piercing(by.statuses), roll);
       if (dodged) {
         events.push({ kind: 'number', on: 'boss', amount: 0, type: 'dodged' });
         return false;
@@ -608,7 +612,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       for (const { mark } of marking) if (mark) put(foe.statuses, { name: mark.name, left: mark.lasts, ...(mark.takes && { takes: mark.takes }), ...(mark.deals && { deals: mark.deals }), ...(mark.crit && { crit: mark.crit }), shown: 'curse' as const });
       // Lifesteal: a share of what it dealt heals it (less what the boss's skills take off healing).
       if (by.lifesteal > 0 && by.hp > 0) {
-        const stolen = Math.min(dealt * share(by.lifesteal) * healing(by.statuses) * (foe.part.healing?.() ?? 1), by.stats.hp - by.hp);
+        const stolen = Math.min(dealt * share(soft(by.lifesteal, SOFT.lifesteal)) * healing(by.statuses) * (foe.part.healing?.() ?? 1), by.stats.hp - by.hp);
         if (stolen > 0) by.hp += stolen;
       }
       // A blow of its attack: its mana per attack.
@@ -666,8 +670,8 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       const walled = elapsed < SKILL['iron-wall'].lasts ? SKILL['iron-wall'].more * has(target, 'iron-wall') : 0;
       const stands = {
         ...target.stats,
-        physical: target.stats.physical * guarded * defending(target.statuses, 'physical') * defending(party, 'physical'),
-        magical: target.stats.magical * guarded * defending(target.statuses, 'magical') * defending(party, 'magical'),
+        physical: (target.stats.physical + bolstering(target.statuses, 'physical') + bolstering(party, 'physical')) * guarded * defending(target.statuses, 'physical') * defending(party, 'physical'),
+        magical: (target.stats.magical + bolstering(target.statuses, 'magical') + bolstering(party, 'magical')) * guarded * defending(target.statuses, 'magical') * defending(party, 'magical'),
         block: { physical: target.stats.block.physical + walled + blocking(target.statuses, 'physical'), magical: target.stats.block.magical + walled + blocking(target.statuses, 'magical') },
       };
       // (Swift and Nimble: more dodge for every second since it last dodged.)
@@ -757,7 +761,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       stagger(fighter);
       // (The shorter for its CC resist, and what is on it adds to it, and its Tenacity.)
       const shorter = Math.max(0, 1 - SKILL.tenacity.control * has(fighter, 'tenacity'));
-      put(fighter.statuses, { name: KNOCKED.name, left: seconds * (1 - share(fighter.stats.resist + resisting(fighter.statuses) + auras.resist)) * shorter, binds: true, shown: KNOCKED });
+      put(fighter.statuses, { name: KNOCKED.name, left: seconds * (1 - share(soft(fighter.stats.resist + resisting(fighter.statuses) + auras.resist, SOFT.resist))) * shorter, binds: true, shown: KNOCKED });
     },
     stagger,
     mend(amount) {
@@ -768,7 +772,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     },
     stun(seconds, { down = false, by } = {}) {
       // (A hero's: the shorter for the boss's CC resist, less what the hero's accuracy sees past.)
-      const lasts = seconds * (by ? (by.def.passive?.control ?? 1) * by.controlTimes * (1 - share(foe.def.stats.resist - by.accuracy - auras.accuracy)) : 1);
+      const lasts = seconds * (by ? (by.def.passive?.control ?? 1) * by.controlTimes * (1 - share(soft(foe.def.stats.resist, SOFT.resist) - soft(by.accuracy + auras.accuracy, SOFT.acc))) : 1);
       going.clear();
       foe.stunned = Math.max(foe.stunned, lasts);
       events.push({ kind: 'boss-daze', seconds: lasts, down });
@@ -911,7 +915,9 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       // Each hero's move goes on (quickened by its attack speed, its own skills and what is on it), and each over to its spot.
       const reform = Math.min(1, dt * REFORM);
       for (const on of field) {
-        on.haste = (1 + share(on.stats.speed + auras.speed + (on.part.speed?.() ?? 0))) * (on.part.pace?.() ?? 1) * pacing(on.statuses);
+        // (Its attack speed: 1000 points as quick as it comes; what is more, soft-capped.)
+        const quicker = Math.max(0, on.stats.speed + auras.speed + (on.part.speed?.() ?? 0) - POINTS);
+        on.haste = ((POINTS + soft(quicker, SOFT.chance, SOFT.hard)) / POINTS) * (on.part.pace?.() ?? 1) * pacing(on.statuses);
         advance(on, dt * on.haste);
         if (result) return;
         const [x, z] = spots.get(on) as readonly [number, number];
