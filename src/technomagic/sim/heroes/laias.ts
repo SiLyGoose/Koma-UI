@@ -1,4 +1,5 @@
 import { away, put } from '../combat/status';
+import { t5Light } from '../perks';
 import { BLOW, MAX_MANA, SECTION } from '../rules';
 import { skillArt, type Buff } from '../shown';
 import type { Fighter } from '../types';
@@ -22,6 +23,10 @@ import { CLASS_STATS, type HeroDef, type Passive } from './kit';
  * Her unique weapon (../unique.ts) is worked here too: healing reaches every ally the more, and every so
  * often the ally with the lowest health is healed.
  * What is drawn for each is ../../heroes/laias/fx.ts; what her body does for each, and for her attack, ../../heroes/laias/moves.ts.
+ *
+ * Her own perks (../perks.ts) are King's Raid's. Healing Droplets' Light makes its heal 40% more; its Dark's M.Crit
+ * Resistance lasts as its Heal Rate does. Festival of the Flow's Dark heals every ally another 15% of its max HP.
+ * Transcend 5's Dark's mana is the game's 350 of its 1000 to a section.
  */
 const SPLASH = { blow: BLOW * 1.5 };
 // (Its 25% Heal Rate, 1.5 times for an ally at half its health or less, as the game has it.)
@@ -30,6 +35,12 @@ const BUBBLE = { shield: 45_000, lasts: 15, taken: 0.7, dmg: 0.15, atk: 0.2, hea
 const FESTIVAL = { blow: 2500, down: 3, heal: 0.15, mana: 2 * SECTION, lasts: 12, every: 4, whirl: 1500, whirlDown: 2 };
 // (Her 500 CC Resist and every ally's 250 M.Crit Resistance, as the game has them: points.)
 const WATER_DRAGON = { resist: 500, defense: 1.1, critResist: 250, taken: 0.75, lasts: 5 };
+/**
+ * Her own perks' numbers: Healing Droplets' more healing and its M.Crit Resistance (points), the whirlpools' quicker
+ * coming, Festival of the Flow's more heal, her passive's more M.DEF (a share more of it) and M.Crit Resistance, her more
+ * CC Resist, and Transcend 5's Dark's mana for every ally (how often).
+ */
+const PERKS = { heals: 1.4, critResist: 250, whirl: 3, festival: 0.15, defense: 1.2, critResistMore: 150, resist: 400, mana: { each: 0.35 * SECTION, every: 3 } };
 
 const art = skillArt('laias');
 
@@ -66,6 +77,18 @@ export const LAIAS: HeroDef = {
     { name: 'Festival of the Flow', about: 'Knocks the boss down for 3 seconds, heals every ally 15% of its max HP and gives every other ally 2 mana. Then for 12 seconds a whirlpool every 4 seconds strikes the boss and knocks it down for 2.', icon: '🌊', art: art(2), move: 'festival', cooldown: 20, cost: 4 },
   ],
   passive: BLESSING,
+  perks: {
+    's1-light': { words: 'Heal rate is increased by 40%.' },
+    's1-dark': { words: 'Upon healing, M.Crit Resistance rises by 25%.' },
+    's2-light': { words: 'Changes the target to the ally with the highest ATK.' },
+    's2-dark': { words: 'Mana cost is reduced by 1.', skill: { index: 1, cost: -1 } },
+    's3-light': { words: 'DMG effect occurs every 3 sec.' },
+    's3-dark': { words: 'Heals all allies by 15% of their max HP.' },
+    's4-light': { words: 'M.DEF increase rate increases by 20%, and M.Crit Resistance increases by 150.' },
+    's4-dark': { words: 'Increases self CC Resist by 400.', bonus: { resist: 400 } },
+    't5-light': t5Light('ATK, DEF, HP +15% / M.Block +200', { blockMagical: 200 }),
+    't5-dark': { words: 'Recovers 350 Mana of all allies every 3 sec.' },
+  },
   attack: 'splash',
   join(fight, self) {
     /** Whom her Bubble Shield is on, and for how long yet; and toward its next heal (once a second). */
@@ -78,6 +101,11 @@ export const LAIAS: HeroDef = {
     /** Toward her unique weapon's next heal. */
     let mending = 0;
     const tier = self.unique?.tier ?? null;
+    /** Her perks: how often the whirlpools come; her passive's M.DEF and M.Crit Resistance for every ally; and toward Transcend 5's Dark's next mana. */
+    const whirlEvery = self.perks.has('s3-light') ? PERKS.whirl : FESTIVAL.every;
+    const defense = self.perks.has('s4-light') ? 1 + (WATER_DRAGON.defense - 1) * PERKS.defense : WATER_DRAGON.defense;
+    const critResist = WATER_DRAGON.critResist + (self.perks.has('s4-light') ? PERKS.critResistMore : 0);
+    let filling = 0;
 
     /** She is on the field, standing and in the fight. */
     const there = (): boolean => fight.field.includes(self) && self.hp > 0 && !away(self.statuses);
@@ -102,13 +130,16 @@ export const LAIAS: HeroDef = {
           fight.cue(self, 'droplets', on);
           for (const ally of on) {
             const low = ally.hp <= ally.stats.hp * DROPLETS.low;
-            fight.heal(ally, DROPLETS.heal * (low ? DROPLETS.lowTimes : 1), self);
-            put(ally.statuses, { name: DROPLETS_UP.name, left: DROPLETS.lasts, heals: 1 + DROPLETS.heals * (low ? DROPLETS.lowTimes : 1), shown: DROPLETS_UP });
+            fight.heal(ally, DROPLETS.heal * (low ? DROPLETS.lowTimes : 1) * (self.perks.has('s1-light') ? PERKS.heals : 1), self);
+            // (Its Dark: M.Crit Resistance as long.)
+            const resisting = self.perks.has('s1-dark') ? { critResist: { magical: PERKS.critResist } } : {};
+            put(ally.statuses, { name: DROPLETS_UP.name, left: DROPLETS.lasts, heals: 1 + DROPLETS.heals * (low ? DROPLETS.lowTimes : 1), ...resisting, shown: DROPLETS_UP });
           }
         },
         // A shield on the ally with the lowest health; it takes less and deals more for the whole while (more again while the shield holds: tick).
         bubble() {
-          const ally = weakest();
+          // (Its Light: the ally with the highest ATK.)
+          const ally = self.perks.has('s2-light') ? allies().reduce<Fighter | undefined>((best, one) => (!best || one.stats.atk > best.stats.atk ? one : best), undefined) : weakest();
           if (!ally) return;
           fight.cue(self, 'bubble', [ally]);
           if (bubbled && bubbled !== ally) lift(BUBBLE_HOLDS.name, [bubbled]);
@@ -125,7 +156,7 @@ export const LAIAS: HeroDef = {
           fight.hit(self, FESTIVAL.blow);
           fight.stun(FESTIVAL.down, { down: true, by: self });
           for (const ally of on) {
-            fight.heal(ally, ally.stats.hp * FESTIVAL.heal);
+            fight.heal(ally, ally.stats.hp * (FESTIVAL.heal + (self.perks.has('s3-dark') ? PERKS.festival : 0)));
             if (ally !== self) ally.mana = Math.min(MAX_MANA, ally.mana + FESTIVAL.mana);
           }
           flowing = FESTIVAL.lasts;
@@ -163,18 +194,26 @@ export const LAIAS: HeroDef = {
         // Her passive, and her unique weapon's heal rate, on every ally while she is there.
         const on = allies();
         for (const ally of on) {
-          put(ally.statuses, { name: BLESSED.name, left: Infinity, defends: { magical: WATER_DRAGON.defense }, critResist: { magical: WATER_DRAGON.critResist }, shown: BLESSED });
+          put(ally.statuses, { name: BLESSED.name, left: Infinity, defends: { magical: defense }, critResist: { magical: critResist }, shown: BLESSED });
           if (tier !== null) put(ally.statuses, { name: ELTOIRRE_UP.name, left: Infinity, heals: 1 + atTier(ELTOIRRE.heals, tier), shown: ELTOIRRE_UP });
         }
         // Festival of the Flow's whirlpools: each strikes the boss and knocks it down again.
         if (flowing > 0) {
           flowing -= dt;
           whirl += dt;
-          if (whirl >= FESTIVAL.every) {
-            whirl -= FESTIVAL.every;
+          if (whirl >= whirlEvery) {
+            whirl -= whirlEvery;
             fight.cue(self, 'whirlpool');
             fight.hit(self, FESTIVAL.whirl);
             fight.stun(FESTIVAL.whirlDown, { down: true, by: self });
+          }
+        }
+        // Transcend 5's Dark: every ally's mana, every so often.
+        if (self.perks.has('t5-dark')) {
+          filling += dt;
+          if (filling >= PERKS.mana.every) {
+            filling -= PERKS.mana.every;
+            for (const ally of on) ally.mana = Math.min(MAX_MANA, ally.mana + PERKS.mana.each);
           }
         }
         // Her unique weapon: every so often the ally with the lowest health is healed.
