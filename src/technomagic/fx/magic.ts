@@ -1,4 +1,4 @@
-import { AdditiveBlending, type BufferGeometry, CanvasTexture, CircleGeometry, Color, ConeGeometry, CylinderGeometry, DoubleSide, FrontSide, Group, Mesh, MeshBasicMaterial, RingGeometry, type Scene, ShaderMaterial, SphereGeometry, TorusGeometry, Vector3 } from 'three';
+import { AdditiveBlending, type BufferGeometry, CanvasTexture, CircleGeometry, Color, ConeGeometry, CylinderGeometry, DoubleSide, Group, Mesh, MeshBasicMaterial, RingGeometry, type Scene, ShaderMaterial, TorusGeometry, Vector3 } from 'three';
 
 /*
  * What a skill draws on the field, made here of plain shapes: rings of light that spread across the
@@ -21,18 +21,16 @@ interface Pool {
 }
 
 /**
- * A field: how long it takes to come up, and to fade at the end; how high its dome is (a share of how far it reaches);
- * how often a pulse spreads across it (seconds), and how long each takes; how fast the circle on the floor turns (radians a second).
+ * A field: how long it takes to come up, and to fade at the end; how often a pulse spreads across it (seconds), and how long each takes; how fast the circle on the floor turns (radians a second).
  */
-const FIELD = { rise: 0.45, fade: 0.5, high: 0.4, pulse: 1, pulseLife: 0.9, turn: 0.25 };
+const FIELD = { rise: 0.45, fade: 0.5, pulse: 1, pulseLife: 0.9, turn: 0.25 };
 
 interface Field {
   root: Group;
-  /** Its glow on the floor, the circle drawn on it, its edge, and its dome. */
+  /** Its glow on the floor, the circle drawn on it, and its edge. */
   glow: Mesh<BufferGeometry, MeshBasicMaterial>;
   circle: Mesh<BufferGeometry, MeshBasicMaterial>;
   edge: Mesh<BufferGeometry, MeshBasicMaterial>;
-  dome: Mesh<SphereGeometry, ShaderMaterial>;
   colour: number;
   radius: number;
   t: number;
@@ -88,8 +86,8 @@ function dial(): CanvasTexture {
   return new CanvasTexture(canvas);
 }
 
-/** A field's dome: see-through, lit most at its rim, a honeycomb of light over it, and a band of light rising up it again and again. */
-function domeMaterial(colour: number): ShaderMaterial {
+/** A cage's walls: see-through, brightest up by its ring and glowing at its foot, broad soft streaks of light round it (its pillars, hardly there), and ripples rising up it. */
+function wallMaterial(colour: number): ShaderMaterial {
   return new ShaderMaterial({
     uniforms: { colour: { value: new Color(colour) }, opacity: { value: 0 }, time: { value: 0 } },
     vertexShader: /* glsl */ `
@@ -111,26 +109,78 @@ function domeMaterial(colour: number): ShaderMaterial {
       varying vec3 vNormal;
       varying vec3 vView;
       void main() {
+        float up = vUv.y;
         float rim = 1.0 - abs(dot(normalize(vNormal), normalize(vView)));
-        // The honeycomb: how near each point is to the edge of its cell (round the dome, and up it from the floor), thinning out toward the top.
-        vec2 p = vec2(vUv.x * 72.0, (vUv.y - 0.5) * 30.0);
-        vec2 r = vec2(1.0, 1.7320508);
-        vec2 a = mod(p, r) - r * 0.5;
-        vec2 b = mod(p - r * 0.5, r) - r * 0.5;
-        vec2 q = abs(dot(a, a) < dot(b, b) ? a : b);
-        float cell = max(dot(q, normalize(r)), q.x);
-        float comb = smoothstep(0.4, 0.5, cell) * (1.0 - smoothstep(0.75, 0.98, vUv.y));
-        // The band: up from the floor to the top, once a second and a half.
-        float off = (vUv.y - 0.5 - fract(time / 1.5) * 0.5) * 28.0;
-        float band = exp(-off * off);
-        float light = 0.05 + pow(rim, 2.4) * 0.7 + comb * (0.12 + rim * 0.3) + band * 0.22;
-        gl_FragColor = vec4(colour * light * opacity, 1.0);
+        float wall = 0.05 + 0.6 * up * up * up + 0.3 * exp(-up * 10.0);
+        float round = vUv.x * 6.2831853;
+        float streak = 0.5 + 0.5 * sin(round * 9.0 + sin(round * 4.0 + time * 0.7) * 1.2);
+        streak = streak * streak * streak * (0.12 + 0.22 * up);
+        float ripple = 0.05 * sin(up * 18.0 - time * 4.0) * up;
+        float light = (wall + streak + rim * rim * 0.3 + ripple) * (0.9 + 0.1 * sin(time * 5.0));
+        gl_FragColor = vec4(colour * max(light, 0.0) * opacity, 1.0);
       }`,
     blending: AdditiveBlending,
     transparent: true,
     depthWrite: false,
-    side: FrontSide,
+    side: DoubleSide,
   });
+}
+
+/** The band of runes round a cage's ring: a line along each edge, and marks between them, each its own (the same every time). */
+function runes(): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1024;
+  canvas.height = 64;
+  const g = canvas.getContext('2d') as CanvasRenderingContext2D;
+  g.strokeStyle = 'white';
+  g.lineCap = 'round';
+  g.lineWidth = 3;
+  g.beginPath();
+  g.moveTo(0, 6);
+  g.lineTo(1024, 6);
+  g.moveTo(0, 58);
+  g.lineTo(1024, 58);
+  g.stroke();
+  let seed = 7;
+  const next = (): number => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  g.lineWidth = 4;
+  for (let i = 0; i < 28; i++) {
+    const x = 18 + i * (1024 / 28);
+    g.beginPath();
+    // A stroke down it, and two or three of: a bar across, a slant, a hook, a ring.
+    g.moveTo(x, 16);
+    g.lineTo(x, 48);
+    for (let n = 0; n < 2 + Math.floor(next() * 2); n++) {
+      const y = 18 + next() * 26;
+      const kind = Math.floor(next() * 4);
+      g.moveTo(x - 8, y);
+      if (kind === 0) g.lineTo(x + 8, y);
+      else if (kind === 1) g.lineTo(x + 8, y + 10);
+      else if (kind === 2) g.quadraticCurveTo(x + 12, y, x + 8, y + 10);
+      else {
+        g.moveTo(x + 13, y);
+        g.arc(x + 8, y, 5, 0, Math.PI * 2);
+      }
+    }
+    g.stroke();
+  }
+  return new CanvasTexture(canvas);
+}
+
+/** A soft round spot, for how dark the floor in a cage is (white the darkest: what an alpha map reads). */
+function shade(): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = 128;
+  const g = canvas.getContext('2d') as CanvasRenderingContext2D;
+  g.fillStyle = 'black';
+  g.fillRect(0, 0, 128, 128);
+  const dark = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+  dark.addColorStop(0, 'rgb(255,255,255)');
+  dark.addColorStop(0.8, 'rgb(230,230,230)');
+  dark.addColorStop(1, 'rgb(0,0,0)');
+  g.fillStyle = dark;
+  g.fillRect(0, 0, 128, 128);
+  return new CanvasTexture(canvas);
 }
 
 /** A soft round spot, brightest at its rim, for a pool. */
@@ -148,12 +198,19 @@ function puddle(): CanvasTexture {
   return new CanvasTexture(canvas);
 }
 
-/** A cage of light: how tall, how wide, how many bars round it and hoops up it; how long it takes to come up, and to fade at the end. */
-const CAGE = { tall: 3.4, wide: 0.95, bars: 10, hoops: 3, rise: 0.3, fade: 0.4 };
+/**
+ * A cage of light: how tall, how wide; how deep the band of runes under its ring is, and how fast it turns (radians a
+ * second); how dark the floor in it; how long it takes to come up, and to fade at the end.
+ */
+const CAGE = { tall: 2.6, wide: 1, band: 0.3, turn: 0.6, dark: 0.7, rise: 0.3, fade: 0.4 };
 
 interface Cage {
   cage: Group;
-  materials: MeshBasicMaterial[];
+  /** Its walls; the band of runes (it turns); what else of it is lit, each as bright as it is at most; and the dark floor in it. */
+  walls: ShaderMaterial;
+  band: Mesh;
+  lit: { material: MeshBasicMaterial; most: number }[];
+  dark: MeshBasicMaterial;
   /** Where whoever is in it stands, put in what it is given. */
   around: (into: Vector3) => Vector3;
   t: number;
@@ -240,8 +297,8 @@ export interface Magic {
   /** A cage of light round whoever stands where `around` says (it goes where they go), for `life` seconds. */
   cage(around: (into: Vector3) => Vector3, colour: number, life: number): void;
   /**
-   * A field round a place, reaching `radius` out from it: a dial on the floor and a low dome of light over it, a pulse
-   * spreading across it every second, there `life` seconds from when it comes up before it fades.
+   * A field round a place, reaching `radius` out from it: a dial on the floor, a pulse spreading across it every second,
+   * there `life` seconds from when it comes up before it fades.
    */
   field(at: Vector3, colour: number, radius: number, life: number): void;
   update(dt: number): void;
@@ -267,18 +324,19 @@ export function makeMagic(scene: Scene): Magic {
   const bolts = new Set<Bolt>();
   const rod = new CylinderGeometry(0.5, 0.5, 1, 8, 1, true);
   const rays = new Set<Ray>();
-  // A cage's bars (standing on the floor), its hoops (lying flat), and the faint glow filling it.
-  const bar = new CylinderGeometry(0.035, 0.035, 1, 6, 1, true);
-  bar.translate(0, 0.5, 0);
-  const hoop = new TorusGeometry(1, 0.04, 6, 48);
+  // A cage's ring and the thin hoop under its band of runes (lying flat), its walls (standing on the floor), the runes, and the dark under it.
+  const crown = new TorusGeometry(1, 0.07, 8, 64);
+  crown.rotateX(Math.PI / 2);
+  const hoop = new TorusGeometry(1, 0.025, 6, 64);
   hoop.rotateX(Math.PI / 2);
-  const inside = new CylinderGeometry(1, 1, 1, 32, 1, true);
+  const inside = new CylinderGeometry(1, 1, 1, 48, 1, true);
   inside.translate(0, 0.5, 0);
-  // A field's dial, its thin edge, and its dome (a ball, its lower half under the floor and out of sight).
+  const written = runes();
+  const shadow = shade();
+  // A field's dial, and its thin edge.
   const fields = new Set<Field>();
   const marked = dial();
   const thin = new RingGeometry(0.975, 1, 96);
-  const ball = new SphereGeometry(1, 64, 32);
 
   const ring = (at: Vector3, colour: number, size: number, life: number): void => {
     const mesh = new Mesh(flat, new MeshBasicMaterial({ color: colour, transparent: true, blending: AdditiveBlending, depthWrite: false, side: DoubleSide }));
@@ -307,38 +365,42 @@ export function makeMagic(scene: Scene): Magic {
       const glow = lying(disc, lit(spot), 0.03, 6);
       const circle = lying(disc, lit(marked), 0.035, 6);
       const edge = lying(thin, lit(), 0.05, 7);
-      const dome = new Mesh(ball, domeMaterial(colour));
-      dome.renderOrder = 9;
-      root.add(dome);
       scene.add(root);
-      fields.add({ root, glow, circle, edge, dome, colour, radius, t: 0, life, pulse: 0 });
+      fields.add({ root, glow, circle, edge, colour, radius, t: 0, life, pulse: 0 });
     },
     cage(around, colour, life) {
       const cage = new Group();
-      const bright = new MeshBasicMaterial({ color: colour, transparent: true, blending: AdditiveBlending, depthWrite: false });
-      const faint = new MeshBasicMaterial({ color: colour, transparent: true, opacity: 0.12, blending: AdditiveBlending, depthWrite: false, side: DoubleSide });
-      for (let i = 0; i < CAGE.bars; i++) {
-        const turn = (i / CAGE.bars) * Math.PI * 2;
-        const one = new Mesh(bar, bright);
-        one.position.set(Math.cos(turn) * CAGE.wide, 0, Math.sin(turn) * CAGE.wide);
-        one.scale.y = CAGE.tall;
-        cage.add(one);
-      }
-      // Hoops at the floor, the top, and between: the gaps between bars and hoops left wide, as a birdcage's.
-      for (let i = 0; i < CAGE.hoops; i++) {
-        const one = new Mesh(hoop, bright);
-        one.position.y = (i / (CAGE.hoops - 1)) * CAGE.tall;
-        one.scale.setScalar(CAGE.wide);
-        cage.add(one);
-      }
-      const glow = new Mesh(inside, faint);
-      glow.scale.set(CAGE.wide, CAGE.tall, CAGE.wide);
-      cage.add(glow);
+      const lit: Cage['lit'] = [];
+      const glowing = (most: number, map?: CanvasTexture): MeshBasicMaterial => {
+        const material = new MeshBasicMaterial({ color: colour, map, transparent: true, opacity: 0, blending: AdditiveBlending, depthWrite: false, side: DoubleSide });
+        lit.push({ material, most });
+        return material;
+      };
+      const add = <T extends Mesh>(mesh: T, y: number, order: number): T => {
+        mesh.position.y = y;
+        mesh.renderOrder = order;
+        cage.add(mesh);
+        return mesh;
+      };
+      // The floor in it darkened (drawn first, under the rest), and a glow round its foot.
+      const dark = new MeshBasicMaterial({ color: 0x000000, alphaMap: shadow, transparent: true, opacity: 0, depthWrite: false });
+      const under = add(new Mesh(disc, dark), 0.02, 6);
+      under.rotation.x = -Math.PI / 2;
+      under.scale.setScalar(2 * CAGE.wide * 1.1);
+      const foot = add(new Mesh(flat, glowing(0.8)), 0.04, 8);
+      foot.rotation.x = -Math.PI / 2;
+      foot.scale.setScalar(CAGE.wide * 1.12);
+      // Its walls, faint; and up top its ring, bright, with the band of runes under it between it and a thin hoop.
+      const walls = wallMaterial(colour);
+      add(new Mesh(inside, walls), 0, 8).scale.set(CAGE.wide, CAGE.tall, CAGE.wide);
+      add(new Mesh(crown, glowing(1)), CAGE.tall, 9).scale.setScalar(CAGE.wide);
+      add(new Mesh(hoop, glowing(0.7)), CAGE.tall - CAGE.band, 9).scale.setScalar(CAGE.wide);
+      const band = add(new Mesh(inside, glowing(0.9, written)), CAGE.tall - CAGE.band, 9);
+      band.scale.set(CAGE.wide * 1.01, CAGE.band, CAGE.wide * 1.01);
       cage.position.copy(around(where).setY(0));
       cage.scale.set(1, 0.001, 1);
-      cage.renderOrder = 8;
       scene.add(cage);
-      cages.add({ cage, materials: [bright, faint], around, t: 0, life });
+      cages.add({ cage, walls, band, lit, dark, around, t: 0, life });
     },
     beam(at, colour, life, width = 1, wait = 0) {
       const mesh = new Mesh(column, new MeshBasicMaterial({ color: colour, transparent: true, blending: AdditiveBlending, depthWrite: false, side: DoubleSide }));
@@ -421,11 +483,11 @@ export function makeMagic(scene: Scene): Magic {
       pools.add({ mesh, t: 0, life, size });
     },
     update(dt) {
-      // A field: its dial spreading over the floor and its dome rising out of it, a pulse across it every second and a slow
+      // A field: its dial spreading over the floor, a pulse across it every second and a slow
       // turn of its dial while it stands, and faded at the end.
       for (const field of fields) {
         field.t += dt;
-        const { glow, circle, edge, dome, radius, t, life } = field;
+        const { glow, circle, edge, radius, t, life } = field;
         const k = 1 - (1 - Math.min(1, t / FIELD.rise)) ** 3;
         const shown = Math.min(1, Math.max(0, (life - t) / FIELD.fade)) * Math.min(1, t / FIELD.rise);
         const breath = 1 + Math.sin(t * 2.4) * 0.08;
@@ -433,12 +495,9 @@ export function makeMagic(scene: Scene): Magic {
         circle.scale.setScalar(Math.max(0.01, 2 * radius * k));
         circle.rotation.z = t * FIELD.turn;
         edge.scale.setScalar(Math.max(0.01, radius * k));
-        dome.scale.set(Math.max(0.01, radius * k), Math.max(0.01, radius * FIELD.high * k), Math.max(0.01, radius * k));
         glow.material.opacity = 0.3 * shown * breath;
         circle.material.opacity = 0.55 * shown * breath;
         edge.material.opacity = 0.9 * shown;
-        (dome.material.uniforms.opacity as { value: number }).value = shown;
-        (dome.material.uniforms.time as { value: number }).value = t;
         if (t >= FIELD.rise && t < life - FIELD.fade) {
           field.pulse += dt;
           if (field.pulse >= FIELD.pulse) {
@@ -448,24 +507,28 @@ export function makeMagic(scene: Scene): Magic {
         }
         if (t >= life) {
           scene.remove(field.root);
-          for (const mesh of [glow, circle, edge, dome]) mesh.material.dispose();
+          for (const mesh of [glow, circle, edge]) mesh.material.dispose();
           fields.delete(field);
         }
       }
-      // A cage: up out of the floor round whoever is in it, a slow turn and a shimmer while it holds them, and faded at the end.
+      // A cage: up out of the floor round whoever is in it, its runes turning and a shimmer while it holds them, and faded at the end.
       for (const cage of cages) {
         cage.t += dt;
         const k = Math.min(1, cage.t / CAGE.rise);
         cage.cage.scale.set(1, Math.max(0.001, 1 - (1 - k) ** 3), 1);
         cage.cage.position.copy(cage.around(where).setY(0));
-        cage.cage.rotation.y = cage.t * 0.5;
+        cage.band.rotation.y = cage.t * CAGE.turn;
         const fading = Math.min(1, Math.max(0, (cage.life - cage.t) / CAGE.fade));
-        const [bright, faint] = cage.materials as [MeshBasicMaterial, MeshBasicMaterial];
-        bright.opacity = (0.8 + Math.sin(cage.t * 5) * 0.15) * fading;
-        faint.opacity = 0.12 * fading;
+        const shimmer = 0.85 + Math.sin(cage.t * 5) * 0.15;
+        for (const { material, most } of cage.lit) material.opacity = most * shimmer * fading * k;
+        cage.dark.opacity = CAGE.dark * fading * k;
+        (cage.walls.uniforms.opacity as { value: number }).value = fading * k;
+        (cage.walls.uniforms.time as { value: number }).value = cage.t;
         if (cage.t >= cage.life) {
           scene.remove(cage.cage);
-          for (const material of cage.materials) material.dispose();
+          for (const { material } of cage.lit) material.dispose();
+          cage.dark.dispose();
+          cage.walls.dispose();
           cages.delete(cage);
         }
       }

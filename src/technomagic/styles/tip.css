@@ -131,6 +131,17 @@
   border-top: 1px solid rgb(255 226 160 / 18%);
 }
 
+/* In its words: its numbers blue, what's in brackets (an effect's name) yellow-green, as the heroes page's Skills tab has them (lighter, to read on the dark). */
+.tm-tip .skill-number {
+  color: #58b4ff;
+  font-weight: 700;
+}
+
+.tm-tip .skill-effect {
+  color: #a6d84a;
+  font-weight: 700;
+}
+
 /* A square's: its picture, its name, how long it has left or how many; under them what it does. */
 .tm-tip-head {
   display: flex;

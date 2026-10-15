@@ -131,7 +131,7 @@ export const uniqueBuff = (hero: string, tier: number): Buff => ({ name: `${NAME
 /** What Exian gives Clause for a while, what Rosmerta gives Fallen Frey, what Rascal gives every ally while Annette is Overcharged, and what Eltoirre gives every ally while Laias is on the field. */
 export const EXIAN_UP: Buff = { name: 'The Guardian, Exian', about: 'ATK and defense higher.', icon: '🛡️', image: PICTURES.clause };
 export const ROSMERTA_UP: Buff = { name: 'Angel’s Despair, Rosmerta', about: 'Sees past more of the boss’s defense.', icon: '🖤', image: PICTURES['fallen-frey'] };
-export const RASCAL_UP: Buff = { name: 'Crystallized Technomagic, Rascal', about: 'Deals more to the boss and takes less from it while Annette is Overcharged.', icon: '🤖', image: PICTURES.annette };
+export const RASCAL_UP: Buff = { name: 'Crystallized Technomagic, Rascal', about: 'Deals more to the boss and takes less from it while Annette is [Overcharged].', icon: '🤖', image: PICTURES.annette };
 export const ELTOIRRE_UP: Buff = { name: 'Flowing Circle, Eltoirre', about: 'Healing reaches it the more while Laias is on the field.', icon: '☥', image: PICTURES.laias };
 export const ELSION_UP: Buff = { name: 'Executioner of Domains, Elsion', about: 'Healing reaches her the more.', icon: '⚔️', image: PICTURES.seria };
 export const CORBEAU_UP: Buff = { name: 'Wonder of Magos Le’Flamme, Corbeau Rose', about: 'Gains by the TechnoMagic gear it wears while Valance is on the field.', icon: '🌹', image: PICTURES.valance };

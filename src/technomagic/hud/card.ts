@@ -1,5 +1,5 @@
 import type { Ability } from '../heroes/kit';
-import { buffTip, square, type Buff } from './buff';
+import { about, buffTip, square, type Buff } from './buff';
 import { el } from './dom';
 import { holdTip, pointTips } from './tip';
 
@@ -198,5 +198,5 @@ function abilityTip(ability: Ability): Node[] {
   facts.append(el('strong', 'tm-tip-name', ability.name), cost, el('span', 'tm-tip-cooldown', ability.cooldown ? `⏱ ${ability.cooldown}s cooldown` : '⏱ No cooldown'));
   const head = el('div', 'tm-tip-ability');
   head.append(art, facts);
-  return ability.about ? [head, el('p', 'tm-tip-about', ability.about)] : [head];
+  return ability.about ? [head, about(ability.about)] : [head];
 }

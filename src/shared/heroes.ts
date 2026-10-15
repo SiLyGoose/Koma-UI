@@ -1,6 +1,6 @@
 import { HERO_ASSETS, portraitPicture, type Crop } from '../technomagic/assets';
 import type { GearStat } from '../technomagic/sim/types';
-import type { Slot } from './items';
+import { el, type Slot } from './items';
 
 /*
  * The TechnoMagic Raid's heroes, as the bot's GET /api/heroes has them (its web/models/heroes.ts): the
@@ -184,4 +184,12 @@ async function cutPicture(id: string, frame: Frame, width: number): Promise<stri
   const from = { x: middle.x - (size * frame.wide) / 2, y: middle.y - size / 2 - size * frame.above, w: size * frame.wide, h: size * frame.tall };
   pen.drawImage(image, from.x, from.y, from.w, from.h, 0, 0, canvas.width, canvas.height);
   return canvas.toDataURL();
+}
+
+/** A skill's words, as King's Raid marks them: its numbers (20%, 12,000, 0.5) and what's in brackets ([Darkened Power]) each in a colour of their own (the heroes page's Skills tab, the raid's popups). */
+export function skillText(text: string): (string | HTMLElement)[] {
+  return text
+    .split(/(\[[^\]]+\]|\d+(?:,\d{3})*(?:\.\d+)?%?)/)
+    .filter(Boolean)
+    .map((part) => (part.startsWith('[') ? el('b', 'skill-effect', part) : /^\d/.test(part) ? el('b', 'skill-number', part) : part));
 }

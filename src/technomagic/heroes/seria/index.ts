@@ -30,7 +30,7 @@ const WITCH = { atk: 38_567, critDamage: 0.05, most: 30 };
 const art = (index: number): string => skillPicture(SERIA_ASSETS, index);
 
 /** What Falling Petals' slot holds for a while after it is used (its picture is Falling Petals'). */
-const BLOSSOM_SKILL: Ability = { name: 'Mysterious Sword - Blossom', about: 'A cut down on the boss: once, within 5 seconds of Falling Petals.', icon: '🌸', image: art(0), move: 'blossom', cooldown: 0, cost: 1 };
+const BLOSSOM_SKILL: Ability = { name: 'Mysterious Sword - Blossom', about: 'A cut down on the boss: once, within 5 seconds of [Falling Petals].', icon: '🌸', image: art(0), move: 'blossom', cooldown: 0, cost: 1 };
 
 const COLD_BLOODED: Passive = {
   attack: 1,
@@ -41,7 +41,7 @@ const COLD_BLOODED: Passive = {
 /** Her Cold-Blooded Witch's stacks: shown on her card, with how many she has. */
 const WITCHED: Buff = { name: 'Cold-Blooded Witch', about: '5% more crit damage for each.', icon: '🩸', image: art(3) };
 /** Moonlight: shown on her card for the second it lasts. */
-const MOONLIGHT: Buff = { name: 'Moonlight', about: 'Red Moon Blade used now cuts again, and leaves the boss healed not at all for 10 seconds.', icon: '🌕', image: art(2) };
+const MOONLIGHT: Buff = { name: 'Moonlight', about: '[Red Moon Blade] used now cuts again, and leaves the boss healed not at all for 10 seconds.', icon: '🌕', image: art(2) };
 /** What her skills leave on the boss. */
 const SIN = 'Original Sin of Blood';
 const UNHEALED = 'Red Moon';
@@ -54,9 +54,9 @@ export const SERIA: HeroDef = {
   // A warrior whose blows are magical, her ATK higher for her passive: as her class stands, otherwise.
   stats: { ...CLASS_STATS.warrior, atk: CLASS_STATS.warrior.atk + WITCH.atk, deals: 'magical' },
   abilities: [
-    { name: 'Mysterious Sword - Falling Petals', about: 'A cut across the boss. For 5 seconds after, this slot holds Mysterious Sword - Blossom, once.', icon: '🌸', image: art(0), move: 'petals', cooldown: 7, cost: 1 },
-    { name: 'Blood Scattering Blade', about: 'A rush in with a cut that leaves Original Sin of Blood (the boss’s attacks 30% slower for 3 seconds); then two more cuts, each with a blow more through its defense.', icon: '🩸', image: art(1), move: 'scatter', cooldown: 13, cost: 2 },
-    { name: 'Red Moon Blade', about: 'A great cut, harder on a boss. Used in Moonlight (a second of it every 6 seconds): it cuts again, and the boss is healed not at all for 10 seconds.', icon: '🌙', image: art(2), move: 'moon', cooldown: 20, cost: 4 },
+    { name: 'Mysterious Sword - Falling Petals', about: 'A cut across the boss. For 5 seconds after, this slot holds [Mysterious Sword - Blossom], once.', icon: '🌸', image: art(0), move: 'petals', cooldown: 7, cost: 1 },
+    { name: 'Blood Scattering Blade', about: 'A rush in with a cut that leaves [Original Sin of Blood] (the boss’s attacks 30% slower for 3 seconds); then two more cuts, each with a blow more through its defense.', icon: '🩸', image: art(1), move: 'scatter', cooldown: 13, cost: 2 },
+    { name: 'Red Moon Blade', about: 'A great cut, harder on a boss. Used in [Moonlight] (a second of it every 6 seconds): it cuts again, and the boss is healed not at all for 10 seconds.', icon: '🌙', image: art(2), move: 'moon', cooldown: 20, cost: 4 },
   ],
   passive: COLD_BLOODED,
   join(fight, self) {

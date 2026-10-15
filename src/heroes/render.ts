@@ -1,5 +1,5 @@
 import { art, el, hoverSound, itemDetailsClosed, itemFace, itemPicked, lockBadge, matchesSearch, matchesStars, rich, tierOf, SLOT_NAME, stars as starRow, tmMarks, tmSections, uwMarks, type StatSection } from '../shared/items';
-import { classBadge, className, FACE, HERO_SLOT_KIND, heroCut, heroPicture, type Hero, type HeroCopy, type HeroSlot } from '../shared/heroes';
+import { classBadge, className, FACE, HERO_SLOT_KIND, heroCut, heroPicture, skillText, type Hero, type HeroCopy, type HeroSlot } from '../shared/heroes';
 import { working } from '../shared/ui';
 import { copyById, heroShown, mine, slotFor, slotOf, type HeroesContext } from './context';
 import { heroSkills } from './skills';
@@ -346,14 +346,6 @@ export function statBlocks(sections: readonly StatSection[]): HTMLElement[] {
     block.append(list);
     return block;
   });
-}
-
-/** A skill's words, as King's Raid marks them: its numbers (20%, 12,000, 0.5) and what's in brackets ([Darkened Power]) each in a colour of their own. */
-function skillText(text: string): (string | HTMLElement)[] {
-  return text
-    .split(/(\[[^\]]+\]|\d+(?:,\d{3})*(?:\.\d+)?%?)/)
-    .filter(Boolean)
-    .map((part) => (part.startsWith('[') ? el('b', 'skill-effect', part) : /^\d/.test(part) ? el('b', 'skill-number', part) : part));
 }
 
 /** The Skills tab: each skill's picture (its number, where there's none), name, cost and cooldown, and what it does; the passive last. */

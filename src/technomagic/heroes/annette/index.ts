@@ -40,13 +40,13 @@ const CHARGING: Passive = {
   control: 1,
   shown: {
     name: 'Charge',
-    about: 'Passive. A Charge every half second, and 10 for each crystal of mana she spends; at 100 she is Overcharged for 15 seconds (ATK higher, and each attack takes 10% off her skills’ cooldowns).',
+    about: 'Passive. A [Charge] every half second, and 10 for each crystal of mana she spends; at 100 she is [Overcharged] for 15 seconds (ATK higher, and each attack takes 10% off her skills’ cooldowns).',
     icon: '⚡',
     image: art(3),
   },
 };
 /** Her Charge: shown beside her passive, with how many she has. */
-const CHARGED: Buff = { name: 'Charge', about: 'At 100 she is Overcharged.', icon: '⚡' };
+const CHARGED: Buff = { name: 'Charge', about: 'At 100 she is [Overcharged].', icon: '⚡' };
 /** Overcharged: shown on her card, with how long it has left. */
 const OVERCHARGED: Buff = { name: 'Overcharge', about: '30% higher ATK; each attack takes 10% off her skills’ cooldowns; her skills do more.', icon: '🔋', image: art(3) };
 /** What Emergency Treatment gives each ally: shown on its card, with how long it has left. */
@@ -64,9 +64,9 @@ export const ANNETTE: HeroDef = {
   // A mechanic whose blows are magical (Rascal's): as her class stands, otherwise.
   stats: { ...CLASS_STATS.mechanic, deals: 'magical' },
   abilities: [
-    { name: 'Blasting Ray', about: 'Rascal fires a ray into the boss: for 10 seconds it hits 15% softer and takes 25% more magical damage. Overcharged: a second ray, and twice that.', icon: '🔆', image: art(0), move: 'ray', cooldown: 11, cost: 2 },
-    { name: 'Emergency Treatment', about: 'Clears what the boss has left on every ally (not what holds one down or shuts one away) and heals them over 10 seconds, and they stand being knocked down better meanwhile. Overcharged: they are also 25% likelier to land a critical blow, deal 10% more, and can’t be knocked down.', icon: '🩹', image: art(1), move: 'treatment', cooldown: 13, cost: 2 },
-    { name: 'Process of Elimination', about: 'A ball of energy that bursts on the boss. Overcharged: it bursts harder, stuns the boss for 5 seconds, and leaves it taking 25% more magical damage for 10.', icon: '💣', image: art(2), move: 'elimination', cooldown: 25, cost: 3 },
+    { name: 'Blasting Ray', about: 'Rascal fires a ray into the boss: for 10 seconds it hits 15% softer and takes 25% more magical damage. [Overcharged]: a second ray, and twice that.', icon: '🔆', image: art(0), move: 'ray', cooldown: 11, cost: 2 },
+    { name: 'Emergency Treatment', about: 'Clears what the boss has left on every ally (not what holds one down or shuts one away) and heals them over 10 seconds, and they stand being knocked down better meanwhile. [Overcharged]: they are also 25% likelier to land a critical blow, deal 10% more, and can’t be knocked down.', icon: '🩹', image: art(1), move: 'treatment', cooldown: 13, cost: 2 },
+    { name: 'Process of Elimination', about: 'A ball of energy that bursts on the boss. [Overcharged]: it bursts harder, stuns the boss for 5 seconds, and leaves it taking 25% more magical damage for 10.', icon: '💣', image: art(2), move: 'elimination', cooldown: 25, cost: 3 },
   ],
   passive: CHARGING,
   attack: 'zap',

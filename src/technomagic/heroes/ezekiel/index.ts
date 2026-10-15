@@ -40,13 +40,13 @@ const CURSED_BLOOD: Passive = {
   shown: {
     name: 'Cursed Blood',
     about:
-      'Passive. A stack of Cursed Blood for each skill he uses; at the 3rd, his skills are ready again, a burst knocks the boss down, and he is in Fury for 10 seconds: ATK higher, his attack twice as hard, every skill reinforced (each costs a share of his health), fighting by himself.',
+      'Passive. A stack of [Cursed Blood] for each skill he uses; at the 3rd, his skills are ready again, a burst knocks the boss down, and he is in [Fury] for 10 seconds: ATK higher, his attack twice as hard, every skill reinforced (each costs a share of his health), fighting by himself.',
     icon: '🩸',
     image: art(3),
   },
 };
 /** His stacks of Cursed Blood: shown beside his passive, with how many he has. */
-const STACKED: Buff = { name: 'Cursed Blood', about: 'At 3, he is in Fury.', icon: '🩸' };
+const STACKED: Buff = { name: 'Cursed Blood', about: 'At 3, he is in [Fury].', icon: '🩸' };
 /** Fury: shown on his card, with how long it has left. */
 const FURY: Buff = { name: 'Fury', about: 'ATK 30% higher, his attack twice as hard, every skill reinforced (each costs a share of his health); he fights by himself.', icon: '😈', image: art(3) };
 /** What Dawning Despair in Fury gives him for a while. */
@@ -62,9 +62,9 @@ export const EZEKIEL: HeroDef = {
   // An assassin whose blows are magical (his demon arm's): as his class stands, otherwise.
   stats: { ...CLASS_STATS.assassin, deals: 'magical' },
   abilities: [
-    { name: 'Destructive Instinct', about: 'A swipe of his demon arm, then a blow to the ground that knocks the boss down for 3 seconds. In Fury: both 50% harder, for 15% of the health he has.', icon: '🌀', image: art(0), move: 'instinct', cooldown: 8, cost: 2 },
-    { name: 'Dawning Despair', about: 'A dash and a blow: the boss’s attacks 30% slower for 5 seconds. In Fury: it is also stunned for 3 seconds, and his attacks are 30% quicker for 10, for 10% of the health he has.', icon: '💨', image: art(1), move: 'despair', cooldown: 10, cost: 2 },
-    { name: 'Strike of Doom', about: 'A charged blow that stuns the boss for 3 seconds. In Fury: three times as hard, for 20% of the health he has.', icon: '💥', image: art(2), move: 'doom', cooldown: 7, cost: 2 },
+    { name: 'Destructive Instinct', about: 'A swipe of his demon arm, then a blow to the ground that knocks the boss down for 3 seconds. In [Fury]: both 50% harder, for 15% of the health he has.', icon: '🌀', image: art(0), move: 'instinct', cooldown: 8, cost: 2 },
+    { name: 'Dawning Despair', about: 'A dash and a blow: the boss’s attacks 30% slower for 5 seconds. In [Fury]: it is also stunned for 3 seconds, and his attacks are 30% quicker for 10, for 10% of the health he has.', icon: '💨', image: art(1), move: 'despair', cooldown: 10, cost: 2 },
+    { name: 'Strike of Doom', about: 'A charged blow that stuns the boss for 3 seconds. In [Fury]: three times as hard, for 20% of the health he has.', icon: '💥', image: art(2), move: 'doom', cooldown: 7, cost: 2 },
   ],
   passive: CURSED_BLOOD,
   attack: 'claw',

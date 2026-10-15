@@ -40,13 +40,13 @@ const TAINTED_ANGEL: Passive = {
   taken: TAINTED.taken,
   shown: {
     name: 'Tainted Angel',
-    about: 'Passive. She takes 15% more from the boss, but her mana fills far faster; at full mana she gains Darkened Power every second (2 at most).',
+    about: 'Passive. She takes 15% more from the boss, but her mana fills far faster; at full mana she gains [Darkened Power] every second (2 at most).',
     icon: '🌑',
     image: art(3),
   },
 };
 /** What her full mana gives her: shown beside her passive, with how many she has. */
-const DARKENED: Buff = { name: 'Darkened Power', about: 'Her next skill spends one: Heaven’s Vengeance then stuns the boss with every blow.', icon: '🖤' };
+const DARKENED: Buff = { name: 'Darkened Power', about: 'Her next skill spends one: [Heaven’s Vengeance] then stuns the boss with every blow.', icon: '🖤' };
 /** What Blessing of Doom gives each ally it shields: shown on its card, with how long it has left. */
 const BLESSED: Buff = { name: 'Blessing of Doom', about: 'A shield takes the boss’s blows first, and its attacks are quickened.', icon: '🔮', image: art(1) };
 /** What Heaven's Vengeance leaves on the boss. */
@@ -62,7 +62,7 @@ export const FALLEN_FREY: HeroDef = {
   abilities: [
     { name: 'Light of Doom', about: 'Heals the ally with the lowest health and those near it, then the light bursts on the boss.', icon: '✴️', image: art(0), move: 'light', cooldown: 9, cost: 2 },
     { name: 'Blessing of Doom', about: 'A shield on the 4 allies with the lowest health for 10 seconds, their attacks 50% quicker meanwhile.', icon: '🔮', image: art(1), move: 'blessing', cooldown: 17, cost: 3 },
-    { name: 'Heaven’s Vengeance', about: '20 blows of light on the boss, through some of its defense, each leaving it 10% easier to hurt for 20 seconds (up to 5 times over). With Darkened Power, every blow stuns it for half a second.', icon: '☄️', image: art(2), move: 'vengeance', cooldown: 22, cost: 5 },
+    { name: 'Heaven’s Vengeance', about: '20 blows of light on the boss, through some of its defense, each leaving it 10% easier to hurt for 20 seconds (up to 5 times over). With [Darkened Power], every blow stuns it for half a second.', icon: '☄️', image: art(2), move: 'vengeance', cooldown: 22, cost: 5 },
   ],
   passive: TAINTED_ANGEL,
   attack: 'smite',

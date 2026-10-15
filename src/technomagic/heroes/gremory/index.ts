@@ -35,7 +35,7 @@ const CHARGE = { most: 5, atk: 0.1, dmg: 0.02 };
 const art = (index: number): string => skillPicture(GREMORY_ASSETS, index);
 
 /** What all three of her slots turn into once her skills are sealed (its picture is the game's for it, where a passive's would be). */
-const SLEEP_SKILL: Ability = { name: 'Eh, whatever. I’m gonna sleep.', about: 'She sleeps for 3 seconds, taking 40% less and not to be knocked down; then her skills are unsealed, and she gains a Mana Charge (5 at most): +10% ATK and +2% to all she deals for each.', icon: '💤', image: art(3), move: 'sleep', cooldown: 0, cost: 0 };
+const SLEEP_SKILL: Ability = { name: 'Eh, whatever. I’m gonna sleep.', about: 'She sleeps for 3 seconds, taking 40% less and not to be knocked down; then her skills are unsealed, and she gains a [Mana Charge] (5 at most): +10% ATK and +2% to all she deals for each.', icon: '💤', image: art(3), move: 'sleep', cooldown: 0, cost: 0 };
 
 const LAZY: Passive = {
   attack: 1,
@@ -44,7 +44,7 @@ const LAZY: Passive = {
   shown: {
     name: 'Eh, whatever. I’m gonna sleep.',
     about:
-      'Each of her skills is sealed once used; once all three are, each turns into this. She sleeps a while (taking 40% less and not to be knocked down), then wakes with her skills unsealed and a Mana Charge.',
+      'Each of her skills is sealed once used; once all three are, each turns into this. She sleeps a while (taking 40% less and not to be knocked down), then wakes with her skills unsealed and a [Mana Charge].',
     icon: '💤',
     image: art(3),
   },
@@ -52,7 +52,7 @@ const LAZY: Passive = {
 /** Asleep: shown on her card, with how long it has left. */
 const SLEEPING: Buff = { name: 'Asleep', about: 'Takes 40% less from the boss, and can’t be knocked down.', icon: '💤', image: art(3) };
 /** Her Mana Charge: shown on her card, with how many she has. */
-const CHARGED: Buff = { name: 'Mana Charge', about: 'Each: +10% ATK and +2% to all she deals; Pochi, bite them! hits harder for each.', icon: '🔋' };
+const CHARGED: Buff = { name: 'Mana Charge', about: 'Each: +10% ATK and +2% to all she deals; [Pochi, bite them!] hits harder for each.', icon: '🔋' };
 /** What her skills leave on the boss. */
 const POCHI_MARK = 'Pochi’s Mark';
 const PIPPI_MARK = 'Pippi’s Mark';
@@ -72,9 +72,9 @@ export const GREMORY: HeroDef = {
   // An assassin whose blows are magical: as her class stands, otherwise.
   stats: { ...CLASS_STATS.assassin, deals: 'magical' },
   abilities: [
-    { name: 'Pochi, bite them!', about: 'Five bites, each harder for her Mana Charge, each leaving Pochi’s Mark: the boss hits 6% softer for each, for 15 seconds (up to 5). Sealed once used.', icon: '🐶', image: art(0), move: 'pochi', cooldown: 0, cost: 3 },
+    { name: 'Pochi, bite them!', about: 'Five bites, each harder for her [Mana Charge], each leaving [Pochi’s Mark]: the boss hits 6% softer for each, for 15 seconds (up to 5). Sealed once used.', icon: '🐶', image: art(0), move: 'pochi', cooldown: 0, cost: 3 },
     { name: 'Puchi, knock them away!', about: 'A blow from behind that stuns the boss for 5 seconds. Sealed once used.', icon: '💥', image: art(1), move: 'puchi', cooldown: 0, cost: 3 },
-    { name: 'Pippi, wrap them!', about: 'Ten blows, each leaving Pippi’s Mark: the boss takes 5% more magical damage for each, for 12 seconds (up to 10). With all 10 on it, each blow deals more, through its defense. Sealed once used.', icon: '🎀', image: art(2), move: 'pippi', cooldown: 0, cost: 4 },
+    { name: 'Pippi, wrap them!', about: 'Ten blows, each leaving [Pippi’s Mark]: the boss takes 5% more magical damage for each, for 12 seconds (up to 10). With all 10 on it, each blow deals more, through its defense. Sealed once used.', icon: '🎀', image: art(2), move: 'pippi', cooldown: 0, cost: 4 },
   ],
   passive: LAZY,
   attack: 'nudge',
