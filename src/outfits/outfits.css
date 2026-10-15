@@ -5,6 +5,8 @@
  * star chart, with the server picker, a plaque and their zeiucoins on top.
  */
 .outfits-page {
+  /* A card's width: as big as the screen's width and height leave room for (the header, the bar, the margins). */
+  --card-width: clamp(168px, min(17vw, (100dvh - 250px) * 0.5625), 260px);
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -101,8 +103,7 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  /* As big as the screen's width and height leave room for (the header, the bar, the margins). */
-  width: clamp(168px, min(17vw, (100dvh - 250px) * 0.5625), 260px);
+  width: var(--card-width);
   aspect-ratio: 9 / 16;
   padding: 0;
   overflow: hidden;
