@@ -98,6 +98,8 @@ export interface Sim extends Fight {
   step(): void;
   /** A hero could use a skill now, were it free: it is on the field, standing, the skill is ready, and it has the mana. */
   ready(fighter: Fighter, index: number): boolean;
+  /** A hero can be told to use a skill as soon as it can (reserved): it could use it now but for its mana, which it then waits for. */
+  reservable(fighter: Fighter, index: number): boolean;
   /** What one of a hero's skill slots holds for now: its own skill, another its skills have turned into, or null (sealed). */
   slot(fighter: Fighter, index: number): Ability | null;
   /** What is the matter with the boss, for under its health. */
@@ -663,8 +665,10 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       events.push({ kind: 'cue', who: who?.index ?? null, name, targets: targets.map((one) => one.index) });
     },
     ready(fighter, index) {
-      const ability = sim.slot(fighter, index);
-      return ability !== null && field.includes(fighter) && fighter.hp > 0 && !bound(fighter.statuses) && (fighter.cooldowns[index] as number) <= 0 && fighter.mana >= ability.cost * SECTION;
+      return sim.reservable(fighter, index) && fighter.mana >= (sim.slot(fighter, index) as Ability).cost * SECTION;
+    },
+    reservable(fighter, index) {
+      return sim.slot(fighter, index) !== null && field.includes(fighter) && fighter.hp > 0 && !bound(fighter.statuses) && (fighter.cooldowns[index] as number) <= 0;
     },
     slot(fighter, index) {
       if (index < 0 || index >= fighter.def.abilities.length) return null;
@@ -713,6 +717,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
         mix(fighter.statuses.length);
         mix(fighter.stacks.momentum + fighter.stacks.steadfast);
         mix(fighter.doing ? fighter.doing.t : -1);
+        mix(fighter.reserved ?? -1);
         for (const left of fighter.cooldowns) mix(left);
       }
       for (const n of random.state()) mix(n);
@@ -764,12 +769,12 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
         if (on.auto && on.reserved === null) {
           for (let index = on.def.abilities.length - 1; index >= 0 && on.reserved === null; index--) if (sim.ready(on, index)) on.reserved = index;
         }
-        // (A skill pressed while it can do nothing waits for it.)
-        if (on.reserved !== null && !sim.ready(on, on.reserved) && !bound(on.statuses)) on.reserved = null;
+        // (A skill pressed while it can do nothing waits for it; and one pressed short of mana waits for the mana, the hero
+        // attacking meanwhile.)
+        if (on.reserved !== null && !sim.reservable(on, on.reserved) && !bound(on.statuses)) on.reserved = null;
         if (!on.doing && on.hp > 0 && !bound(on.statuses)) {
-          if (on.reserved !== null) {
-            if (use(on, on.reserved)) on.reserved = null;
-          } else if (on.rested >= HERO_WAIT && foe.hp > 0) begin(on, on.attack, false);
+          if (on.reserved !== null && use(on, on.reserved)) on.reserved = null;
+          else if (on.rested >= HERO_WAIT && foe.hp > 0) begin(on, on.attack, false);
         }
       }
 
@@ -804,7 +809,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       case 'skill':
         if (!fighter) return;
         if (fighter.reserved === input.skill) fighter.reserved = null;
-        else if (sim.ready(fighter, input.skill)) fighter.reserved = input.skill;
+        else if (sim.reservable(fighter, input.skill)) fighter.reserved = input.skill;
         return;
       // (Not one in the Sub Team's: it stays on Auto.)
       case 'auto':

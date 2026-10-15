@@ -105,7 +105,7 @@ export interface Fighter {
   auto: boolean;
   /** Seconds until each of its skills can be used again. */
   cooldowns: number[];
-  /** The skill it will use as soon as it is free. */
+  /** The skill it will use as soon as it is free and has the mana for it (one at a time). */
   reserved: number | null;
   /** How long it has been free (on the field). */
   rested: number;

@@ -8,7 +8,7 @@ import type { NumberKind } from './shown';
  */
 
 export type Input =
-  /** A hero's skill is pressed (pressed again while it waits its turn: not after all). */
+  /** A hero's skill is pressed: it waits its turn (and, short of mana, the mana), one at a time; pressed again meanwhile, not after all. */
   | { kind: 'skill'; fighter: number; skill: number }
   /** A hero's Auto is turned on or off; every hero's (on for all, unless all have it on already). */
   | { kind: 'auto'; fighter: number }

@@ -96,7 +96,7 @@
   background: #44505a;
 }
 
-/* A skill it will use as soon as it is free: lit, and saying so. */
+/* A skill it will use as soon as it is free (and, pressed short of mana, has the mana: dimmed till then): lit, and saying so. */
 .tm-reserved {
   position: absolute;
   inset: 3px 0 auto;
