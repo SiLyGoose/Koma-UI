@@ -26,7 +26,7 @@ import type { Buff } from '../hud/buff';
 /** Each weapon's numbers at tiers 1 to 5 (index 0 is tier 1). */
 export const EXIAN = { name: 'The Guardian, Exian', every: 3, lasts: 15, boost: [0.12, 0.14, 0.17, 0.21, 0.25] };
 export const ELICIPIRA = { name: 'Judgment Edge, Elicipira', chance: 0.04, boss: 2, blow: [6000, 7200, 8600, 10000, 12500] };
-export const ROSMERTA = { name: 'Angel’s Despair, Rosmerta', lasts: 7, heal: [20, 24, 29, 35, 42], pen: [240, 290, 350, 420, 500] };
+export const ROSMERTA = { name: 'Angel’s Despair, Rosmerta', lasts: 7, heal: [2_000, 2_400, 2_900, 3_500, 4_200], pen: [240, 290, 350, 420, 500] };
 /** Its attack speed (points), its heal and mana on sleeping (shares of her max HP and max mana, the mana over `over` seconds), and the ATK each Mana Charge adds. */
 export const PIGRITIA = {
   name: 'Gateway to Purgatory, Pigritia',

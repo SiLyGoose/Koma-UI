@@ -40,7 +40,7 @@ export const TRACKS: Record<Attack, { keys: Key<Pose>[]; hit: number | null; spr
     // The venom takes a moment to get there.
     spray: [0.6, 1.2],
     hit: 0.88,
-    hurts: [300, 450],
+    hurts: [30_000, 45_000],
   },
   // Up with its jaw wide, shaking, and back: what it calls up lands as it begins to shake.
   roar: {
@@ -51,7 +51,7 @@ export const TRACKS: Record<Attack, { keys: Key<Pose>[]; hit: number | null; spr
       [2.1, {}, smooth],
     ],
     hit: 0.5,
-    hurts: [200, 300],
+    hurts: [20_000, 30_000],
   },
   // Reared high, then down into the swamp in front of it, and up again: the ground shakes where it lands.
   slam: {

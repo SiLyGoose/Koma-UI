@@ -24,9 +24,9 @@ import { STAND } from './moves';
  * What is drawn for each is ./fx.ts; what her body does for each, and for her attack, ./moves.ts.
  */
 const SMITE = { blow: BLOW * 1.5 };
-const LIGHT = { heal: 250, near: 3.6, blast: 5000 };
+const LIGHT = { heal: 25_000, near: 3.6, blast: 5000 };
 // (Its 500 ATK Spd, as the game has it: points.)
-const BLESSING = { shield: 300, lasts: 10, allies: 4, speed: 500 };
+const BLESSING = { shield: 30_000, lasts: 10, allies: 4, speed: 500 };
 const VENGEANCE = { blow: 1000, pierce: 500, exposed: 0.1, most: 5, lasts: 20, stun: 0.5 };
 // The game's 400 mana a second, of its 1000 to a section.
 const TAINTED = { taken: 1.15, mana: 0.4 * SECTION, every: 1, most: 2 };
