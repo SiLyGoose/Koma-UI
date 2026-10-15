@@ -20,6 +20,8 @@ export interface FxScene {
   head(who: number, into: Vector3): Vector3;
   /** Where a hero's left hand is (what it holds there: a staff, a shield): put in `into`. */
   leftHand(who: number, into: Vector3): Vector3;
+  /** Where what floats beside a hero is (Annette's Rascal; its head, for one with nothing floating): put in `into`. */
+  floater(who: number, into: Vector3): Vector3;
 }
 
 /** What is drawn for a hero's moves as each part lands (`who` is the hero), and for what it cues (`targets`: whom it is on). */

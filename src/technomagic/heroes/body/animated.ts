@@ -45,13 +45,14 @@ export function riggedHero({ stood, animations }: Rigged): Hero {
 /**
  * A hero of the game's own files moved as `like` is: by its animations, made over for the game's skeleton.
  * Both stand as they were bound: before either has been moved. With no idle or run among them (a rig read
- * only for some of its skills) it is posed in code (standing `rest`), but for those skills.
+ * only for some of its skills) it is posed in code (standing `rest`), but for those skills; with an idle and no
+ * run, the same, but standing in its idle.
  */
 export function heroLike(stood: Stood, like: Rigged, rest?: Pose): Hero {
   const mine = retargeter(like.space, stood.models, BIPED_FROM_MIXAMO);
   const { idle, run, attack, skills } = like.animations;
   const made = Object.fromEntries(Object.entries(skills).map(([move, skill]) => [move, { ...skill, clip: mine(skill.clip) }]));
-  if (!idle || !run) return posedHero(stood, rest, made);
+  if (!idle || !run) return posedHero(stood, rest, made, false, {}, idle && mine(idle));
   return animatedHero(stood, BIPED, {
     idle: mine(idle),
     run: mine(run),

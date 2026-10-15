@@ -36,7 +36,7 @@ export function render(ctx: DatabankContext): void {
   if (view === 'heroes') return renderHeroes(ctx);
   // The Class group only with a bot that has classes.
   const classes = ctx.databank.classes ?? [];
-  ui.filter.show({ slot: ctx.slotFilter, stars: ctx.starFilter, owned: ctx.owned === null ? null : ctx.onlyOwned, refineable: null, cls: classes.length > 0 ? ctx.classFilter : null });
+  ui.filter.show({ slot: ctx.slotFilter, stars: ctx.starFilter, owned: ctx.owned === null ? null : ctx.onlyOwned, refineable: null, cls: classes.length > 0 ? ctx.classFilter : null, heroGear: null });
   renderList(ctx);
   renderDetail(ctx);
 }

@@ -29,6 +29,8 @@ export interface Hero {
   place(into: Vector3): Vector3;
   /** Where its left hand is on the field (what it holds there: a staff, a shield): put in `into`. */
   leftHand(into: Vector3): Vector3;
+  /** Where what floats beside it is on the field (its skin's `floating`: Annette's Rascal), put in `into`; missing for one with none. */
+  floater?(into: Vector3): Vector3;
   /** Hit: red for a moment. It goes on with what it was doing. */
   hit(): void;
   /** Staggered (stunned, thrown back): what it was doing is cut short. */
@@ -61,11 +63,12 @@ export interface Stood {
   /** What it is drawn with: tinted when it is hit. */
   materials: MeshBasicMaterial[];
   /**
-   * What floats under it, when it sits on something (its skin's `floating`): its pieces (the bones that move
-   * each, and where each is at rest), the middle of its top layer (in the pieces' own axes: they spread apart from
-   * there, so what is on it stays on it), and the back of its underside, where it tips about (in the body's own lengths).
+   * What floats under it or beside it (its skin's `floating`): the model itself, and where it is at rest (it hovers
+   * up and down about there, when its hero doesn't sit on it); its pieces (the bones that move each, and where
+   * each is at rest), the middle of its top layer (in the pieces' own axes: they spread apart from there, so what
+   * is on it stays on it), and the back of its underside, where it tips about (in the body's own lengths).
    */
-  floating?: { pieces: { bone: Object3D; rest: Vector3 }[]; top: Vector3; pivot: Vector3 };
+  floating?: { model: Object3D; at: Vector3; pieces: { bone: Object3D; rest: Vector3 }[]; top: Vector3; pivot: Vector3 };
 }
 
 /** Where a shield's face is kept turned, in its hero's own axes: ahead, a little out to its left and up. */

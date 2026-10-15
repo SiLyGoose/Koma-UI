@@ -19,7 +19,8 @@ export function renderGrid(ctx: GearContext): void {
   const sheet = ui.grid.parentElement as HTMLElement;
   const scrolled = sheet.scrollTop;
   ui.grid.textContent = '';
-  const ofSlot = armoryOrder(gear.copies).filter((c) => filter === 'all' || c.slot === filter);
+  // (Gear only heroes wear, only with Hero gear on, or its own tier picked.)
+  const ofSlot = armoryOrder(gear.copies).filter((c) => (filter === 'all' || c.slot === filter) && (ctx.heroGear || typeof tierOf(c) === 'number' || stars === tierOf(c)));
   const shown = ofSlot.filter((c) => matchesStars(stars, tierOf(c)) && matchesSearch(query, { name: c.name, id: c.itemId, description: c.description }));
   ui.grid.classList.toggle('selling', selling !== null);
   const equipped = equippedIds(gear);

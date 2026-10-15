@@ -28,7 +28,8 @@ export interface Portrait {
  * A model rigged and animated outside the game's files (by Mixamo): one .fbx for each animation, each
  * holding the whole model, in `folder` among its hero's models. A rig read only for some of its skills
  * (what moves a skin of the game's own files: PartsModel.movedBy) may have no idle or run: its skin then
- * stands, runs in and does everything else by the poses written in code.
+ * stands, runs in and does everything else by the poses written in code. With an idle and no run, it stands
+ * in that idle, and does the rest by the poses written in code.
  */
 export interface RiggedModel {
   kind: 'rigged';

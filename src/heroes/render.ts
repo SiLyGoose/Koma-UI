@@ -35,7 +35,7 @@ export function render(ctx: HeroesContext, act: HeroActions): void {
   ui.page.hidden = false;
   const hero = heroShown(ctx);
   ui.page.classList.toggle('unowned', hero?.owned === false);
-  ui.filter.show({ slot: ctx.filter, stars: ctx.stars, owned: null, refineable: null, cls: null });
+  ui.filter.show({ slot: ctx.filter, stars: ctx.stars, owned: null, refineable: null, cls: null, heroGear: null });
   renderRoster(ctx, act);
   renderStage(ctx);
   renderSlots(ctx);
@@ -279,7 +279,7 @@ function renderDetail(ctx: HeroesContext, act: HeroActions): void {
   const shown = fits ? copy : { ...copy, setEffect: copy.setEffect && { ...copy.setEffect, active: false }, additionalActive: false };
   body.append(el('p', 'detail-desc', copy.description), el('p', 'detail-label', 'On a hero'), effectList(copy, fits ? 'detail-effects' : 'detail-effects off'), ...tmSections(shown));
   if (copy.class !== null && !fits) {
-    body.append(el('p', 'detail-note warn', `Only works on ${className(copy.class)}s: on ${hero.name} it does nothing, not even its stats.`));
+    body.append(el('p', 'detail-note warn', `Only works on ${className(copy.class)}s`));
   }
   const owner = copy.uniqueWeapon ? view.heroes.find((one) => one.id === copy.uniqueWeapon) : undefined;
   if (copy.uniqueWeapon && !wieldable(copy, hero)) body.append(el('p', 'detail-note warn', `${owner?.name ?? 'Another hero'}’s unique weapon: only they can wield it.`));

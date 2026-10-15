@@ -3,7 +3,8 @@ import { AdditiveBlending, CanvasTexture, CircleGeometry, ConeGeometry, Cylinder
 /*
  * What a skill draws on the field, made here of plain shapes: rings of light that spread across the
  * floor (a burst, a shockwave), crystals that come up out of the floor in a line and later burst,
- * columns of light that come down from the sky, bolts of light shooting from one place to another, pools that lie on the floor a while (a swamp), and cages
+ * columns of light that come down from the sky, bolts of light shooting from one place to another, rays of light
+ * straight from one to another at once (a laser), pools that lie on the floor a while (a swamp), and cages
  * of light that hold a hero a while.
  */
 
@@ -63,6 +64,19 @@ interface Bolt {
   life: number;
 }
 
+/** A ray of light: how wide at most (its white core a share of that), and how much of its life it takes to flare to that. */
+const RAY = { wide: 0.22, core: 0.35, flare: 0.15 };
+
+interface Ray {
+  ray: Group;
+  materials: MeshBasicMaterial[];
+  width: number;
+  /** Seconds until it fires. */
+  wait: number;
+  t: number;
+  life: number;
+}
+
 /** How long a crystal takes to come up, and to burst; and how long it stands if nothing bursts it. */
 const RISE = 0.14;
 const BURST = 0.32;
@@ -102,6 +116,8 @@ export interface Magic {
   beam(at: Vector3, colour: number, life: number, width?: number, wait?: number): void;
   /** A bolt of light shooting from one place to another in `life` seconds, its tail trailing after it (`wait` seconds from now). */
   bolt(from: Vector3, to: Vector3, colour: number, life: number, wait?: number): void;
+  /** A ray of light straight from one place to another at once, `width` times as wide as most: it flares and narrows away in `life` seconds (`wait` seconds from now). */
+  ray(from: Vector3, to: Vector3, colour: number, life: number, width?: number, wait?: number): void;
   /** Crystals coming up in a line from a place to another, one after the next. */
   crystals(from: Vector3, to: Vector3): void;
   /** Every crystal standing bursts. */
@@ -132,6 +148,7 @@ export function makeMagic(scene: Scene): Magic {
   // A bolt's rod: up its length, about its middle.
   const bolts = new Set<Bolt>();
   const rod = new CylinderGeometry(0.5, 0.5, 1, 8, 1, true);
+  const rays = new Set<Ray>();
   // A cage's bars (standing on the floor), its hoops (lying flat), and the faint glow filling it.
   const bar = new CylinderGeometry(0.035, 0.035, 1, 6, 1, true);
   bar.translate(0, 0.5, 0);
@@ -190,6 +207,23 @@ export function makeMagic(scene: Scene): Magic {
       bolt.renderOrder = 9;
       scene.add(bolt);
       bolts.add({ bolt, materials, from: from.clone(), to: to.clone(), wait, t: 0, life });
+    },
+    ray(from, to, colour, life, width = 1, wait = 0) {
+      // A white core inside a glow of its colour, its whole length from the first.
+      const ray = new Group();
+      const materials = [colour, 0xffffff].map((tint) => new MeshBasicMaterial({ color: tint, transparent: true, blending: AdditiveBlending, depthWrite: false }));
+      materials.forEach((material, i) => {
+        const part = new Mesh(rod, material);
+        part.scale.set(i ? RAY.core : 1, 1, i ? RAY.core : 1);
+        ray.add(part);
+      });
+      ray.position.lerpVectors(from, to, 0.5);
+      ray.quaternion.setFromUnitVectors(UP, towards.subVectors(to, from).normalize());
+      ray.scale.set(0.001, Math.max(from.distanceTo(to), 0.001), 0.001);
+      ray.visible = wait <= 0;
+      ray.renderOrder = 9;
+      scene.add(ray);
+      rays.add({ ray, materials, width, wait, t: 0, life });
     },
     ring(at, colour, size, life) {
       const mesh = new Mesh(flat, new MeshBasicMaterial({ color: colour, transparent: true, blending: AdditiveBlending, depthWrite: false, side: DoubleSide }));
@@ -295,6 +329,24 @@ export function makeMagic(scene: Scene): Magic {
         bolt.bolt.scale.set(BOLT.wide, Math.max(long, 0.001), BOLT.wide);
         bolt.bolt.visible = long > 0;
         for (const material of bolt.materials) material.opacity = 0.95 * (1 - tail) ** 0.5;
+      }
+      // A ray: there at once, flaring to its width, then narrowing to nothing as it fades.
+      for (const ray of rays) {
+        if (ray.wait > 0) {
+          ray.wait -= dt;
+          ray.ray.visible = ray.wait <= 0;
+          continue;
+        }
+        ray.t += dt;
+        const k = Math.min(1, ray.t / ray.life);
+        const wide = RAY.wide * ray.width * (k < RAY.flare ? k / RAY.flare : 1 - (k - RAY.flare) / (1 - RAY.flare));
+        ray.ray.scale.x = ray.ray.scale.z = Math.max(wide, 0.001);
+        for (const material of ray.materials) material.opacity = 0.95 * (1 - k) ** 0.6;
+        if (k >= 1) {
+          scene.remove(ray.ray);
+          for (const material of ray.materials) material.dispose();
+          rays.delete(ray);
+        }
       }
       // A column of light: down at once, wide, then narrowing as it fades.
       for (const beam of beams) {

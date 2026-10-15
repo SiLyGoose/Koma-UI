@@ -65,7 +65,7 @@ export interface Played {
   until: number;
 }
 
-/** What moves a hero: its idle and its run (none, for a rig read only for its skills), its attack's animations one after another, and an animation for some of its skills (by their move's name). */
+/** What moves a hero: its idle and its run (none, or an idle alone, for a rig read only for some of what it does), its attack's animations one after another, and an animation for some of its skills (by their move's name). */
 export interface Animations {
   idle?: AnimationClip;
   run?: AnimationClip;
@@ -90,17 +90,20 @@ export async function loadRigged(name: string, folder: string, files: RiggedMode
   const loader = new FBXLoader(manager);
   const skills = Object.entries(files.skills ?? {});
   const attacks = files.attack ?? [];
-  // Its idle and run, when it has them; the first file read is the model, whichever it is.
-  const standing = files.idle && files.run ? [files.idle, files.run] : [];
+  // Its idle and run, when it has them (or its idle alone); the first file read is the model, whichever it is.
+  const standing = [files.idle, files.run].filter((file) => file !== undefined);
   const read = await Promise.all([...standing, ...attacks.map((part) => part.file), ...skills.map(([, skill]) => skill.file)].map((file) => loader.loadAsync(fileUrl(folder, file))));
   const [model] = read;
-  const [idling, running] = standing.length > 0 ? read : [];
+  const idling = files.idle ? read[0] : undefined;
+  const running = files.run ? read[standing.length - 1] : undefined;
   const rest = read.slice(standing.length);
   const attacking = rest.slice(0, attacks.length);
   const casting = rest.slice(attacks.length);
   if (!model) throw new Error(`${name} has no files`);
-  const clips = { idle: idling?.animations[0], run: running?.animations[0] };
-  if (standing.length > 0 && (!clips.idle || !clips.run)) throw new Error(`${name} has an animation missing`);
+  // (An idle with no run, standing in for the poses written in code, stays where it stands, its sway kept.)
+  const idleClip = idling?.animations[0];
+  const clips = { idle: idleClip && !files.run ? staying(idleClip) : idleClip, run: running?.animations[0] };
+  if ((files.idle && !clips.idle) || (files.run && !clips.run)) throw new Error(`${name} has an animation missing`);
 
   // Drawn as the other models are: its colours as they are painted, unlit.
   const materials: MeshBasicMaterial[] = [];

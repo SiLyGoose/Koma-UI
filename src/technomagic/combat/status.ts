@@ -27,6 +27,8 @@ export interface Status<Shown> {
   pen?: number;
   /** Its bearer's defense is this many times as much. */
   defends?: number;
+  /** Added to its bearer's CC resist (points). */
+  resist?: number;
   /** Its bearer can do nothing while it is on (knocked down); and is out of the fight altogether, not to be aimed at (imprisoned). */
   binds?: boolean;
   away?: boolean;
@@ -99,6 +101,13 @@ export function critting(on: readonly Status<unknown>[]): number {
 export function piercing(on: readonly Status<unknown>[]): number {
   let more = 0;
   for (const { pen } of on) more += pen ?? 0;
+  return more;
+}
+
+/** What these add to a bearer's CC resist (points). */
+export function resisting(on: readonly Status<unknown>[]): number {
+  let more = 0;
+  for (const { resist } of on) more += resist ?? 0;
   return more;
 }
 

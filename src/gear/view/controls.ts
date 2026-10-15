@@ -31,6 +31,7 @@ export function wireControls(ctx: GearContext): () => void {
   ui.filter.onChange((choice) => {
     ctx.filter = choice.slot;
     ctx.stars = choice.stars;
+    ctx.heroGear = choice.heroGear === true;
     render(ctx);
   });
 

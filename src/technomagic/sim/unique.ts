@@ -14,6 +14,9 @@ import type { Buff } from '../hud/buff';
  *   boss's defense for a while. (The game's heals the two allies with the highest ATK, and raises theirs.)
  * - Gremory, Gateway to Purgatory, Pigritia: she is quicker; each time she sleeps she is healed and her mana
  *   filled a share over 2 seconds, and her Mana Charge raises her ATK more. (Her part does it: ../heroes/gremory/.)
+ * - Annette, Crystallized Technomagic, Rascal: every so often she gains a Charge (even while Overcharged) and a
+ *   little mana; and while she is Overcharged every ally deals more and takes less, twice as much for the ally with
+ *   the highest ATK. (Her part does it: ../heroes/annette/.)
  *
  * The game's shares of ATK are as they are for damage (this raid's blows are counted in thousandths of them, at ATK: ../combat/);
  * a heal is the game's share of ATK scaled by its heroes' HP to their ATK (some 86 to 1, where here it is
@@ -33,6 +36,8 @@ export const PIGRITIA = {
   over: 2,
   charge: [0.048, 0.058, 0.07, 0.084, 0.1],
 };
+/** How often it gives her a Charge and a share of her max mana (seconds), and what every ally deals more and takes less while she is Overcharged (`top` times that for the ally with the highest ATK). */
+export const RASCAL = { name: 'Crystallized Technomagic, Rascal', every: [1.4, 1.3, 1.1, 0.9, 0.7], mana: 0.01, dmg: 0.02, taken: 0.02, top: 2 };
 
 /** The most a weapon is refined. */
 export const TIERS = 5;
@@ -51,14 +56,17 @@ const ABOUT: Readonly<Record<string, (tier: number) => string>> = {
   'fallen-frey': (tier) => `Each skill she uses heals her by ${pct(atTier(ROSMERTA.heal, tier) / 1000)} of her ATK, and gives her +${atTier(ROSMERTA.pen, tier)} penetration for ${ROSMERTA.lasts} seconds.`,
   gremory: (tier) =>
     `+${atTier(PIGRITIA.speed, tier)} attack speed. Each time she sleeps she is healed by ${pct(atTier(PIGRITIA.heal, tier))} of her max HP and recovers ${pct(atTier(PIGRITIA.mana, tier))} of her mana over ${PIGRITIA.over} seconds, and each Mana Charge gives her ${fine(atTier(PIGRITIA.charge, tier))} more ATK.`,
+  annette: (tier) =>
+    `Every ${atTier(RASCAL.every, tier)} seconds she gains a Charge (even while Overcharged) and ${pct(RASCAL.mana)} of her mana. While she is Overcharged, every ally deals ${pct(RASCAL.dmg)} more and takes ${pct(RASCAL.taken)} less (${pct(RASCAL.dmg * RASCAL.top)} for the ally with the highest ATK).`,
 };
-const NAMES: Readonly<Record<string, string>> = { clause: EXIAN.name, kirze: ELICIPIRA.name, 'fallen-frey': ROSMERTA.name, gremory: PIGRITIA.name };
+const NAMES: Readonly<Record<string, string>> = { clause: EXIAN.name, kirze: ELICIPIRA.name, 'fallen-frey': ROSMERTA.name, gremory: PIGRITIA.name, annette: RASCAL.name };
 /** Each weapon's picture: its item's (the bot's catalog id, public/gear/items/weapons/). */
 const PICTURES: Readonly<Record<string, string>> = {
   clause: '/gear/items/weapons/the-guardian-exian.png',
   kirze: '/gear/items/weapons/judgment-edge-elicipira.png',
   'fallen-frey': '/gear/items/weapons/angels-despair-rosmerta.png',
   gremory: '/gear/items/weapons/gateway-to-purgatory-pigritia.png',
+  annette: '/gear/items/weapons/crystallized-technomagic-rascal.png',
 };
 
 /** The heroes that have a unique weapon, by id. */
@@ -76,6 +84,7 @@ export function uniqueOf(hero: string, tier: number | null | undefined): number 
 /** A hero's unique weapon, as a square on its card. */
 export const uniqueBuff = (hero: string, tier: number): Buff => ({ name: `${NAMES[hero] ?? 'Unique weapon'} (★${tier})`, about: uniqueAbout(hero, tier) ?? '', icon: '🗡️', image: PICTURES[hero] });
 
-/** What Exian gives Clause for a while, and what Rosmerta gives Fallen Frey. */
+/** What Exian gives Clause for a while, what Rosmerta gives Fallen Frey, and what Rascal gives every ally while Annette is Overcharged. */
 export const EXIAN_UP: Buff = { name: 'The Guardian, Exian', about: 'ATK and defense higher.', icon: '🛡️', image: PICTURES.clause };
 export const ROSMERTA_UP: Buff = { name: 'Angel’s Despair, Rosmerta', about: 'Sees past more of the boss’s defense.', icon: '🖤', image: PICTURES['fallen-frey'] };
+export const RASCAL_UP: Buff = { name: 'Crystallized Technomagic, Rascal', about: 'Deals more to the boss and takes less from it while Annette is Overcharged.', icon: '🤖', image: PICTURES.annette };

@@ -1,4 +1,5 @@
 import { GALGORIA_ASSETS } from './bosses/galgoria.ts';
+import { ANNETTE_ASSETS } from './heroes/annette.ts';
 import { CLAUSE_ASSETS } from './heroes/clause.ts';
 import { FALLEN_FREY_ASSETS } from './heroes/fallen-frey.ts';
 import { GREMORY_ASSETS } from './heroes/gremory.ts';
@@ -14,10 +15,10 @@ import type { BossAssets, HeroAssets } from './types.ts';
  * them as they are for that script.)
  */
 
-export const HERO_ASSETS: readonly HeroAssets[] = [KIRZE_ASSETS, CLAUSE_ASSETS, FALLEN_FREY_ASSETS, GREMORY_ASSETS];
+export const HERO_ASSETS: readonly HeroAssets[] = [KIRZE_ASSETS, CLAUSE_ASSETS, FALLEN_FREY_ASSETS, GREMORY_ASSETS, ANNETTE_ASSETS];
 export const BOSS_ASSETS: readonly BossAssets[] = [GALGORIA_ASSETS];
 
-export { GALGORIA_ASSETS, CLAUSE_ASSETS, FALLEN_FREY_ASSETS, GREMORY_ASSETS, KIRZE_ASSETS };
+export { GALGORIA_ASSETS, ANNETTE_ASSETS, CLAUSE_ASSETS, FALLEN_FREY_ASSETS, GREMORY_ASSETS, KIRZE_ASSETS };
 export { EFFECTS, type EffectName } from './effects.ts';
 export * from './paths.ts';
 export type * from './types.ts';

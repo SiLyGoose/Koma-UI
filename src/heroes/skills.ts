@@ -112,6 +112,28 @@ const SKILLS: Record<string, { costs: [number, number, number]; cooldowns: [numb
       },
     ],
   },
+  annette: {
+    costs: [2, 2, 3],
+    cooldowns: [11, 13, 25],
+    skills: [
+      {
+        name: 'Blasting Ray',
+        text: 'Attacks enemies in a straight line, dealing M.DMG, reducing their ATK by 15% and hit enemies take 25% increased M.DMG for 10 sec. If the skill is used when in Overcharge state, deals extra M.DMG, additionally reduces their ATK by 15%, and hit enemies take 25% increased M.DMG.',
+      },
+      {
+        name: 'Emergency Treatment',
+        text: "Dispels negative effects of all allies and heals HP for 10 sec while increasing CC Resistance by 250. While Overcharged, all allies' Crit Chance is increased by 250 and DMG dealt to Non-Hero enemies by 10% and gains immunity to CC.",
+      },
+      {
+        name: 'Process of Elimination',
+        text: 'Fires an exploding energy ball to a random target and nearby enemies in range, dealing M.DMG. When in Overcharge state, deals M.DMG, increases M.DMG enemies take by 25% for 10 sec, and inflicts Stun for 5 sec upon explosion.',
+      },
+      {
+        name: 'Charge',
+        text: 'Gains 1 stack of Charge every 0.5 sec, and gains 10 stacks of Charge per every orb of mana used. Upon the 100th Charge stacked, enters Overcharge state. When in Overcharge, ATK is increased by 30% for 15 sec, and each auto attack reduces skill cooldown by 10%. All effects cannot be dispelled, and Charge will not stack during Overcharge state.',
+      },
+    ],
+  },
 };
 
 /** A hero's skills, its passive last; none for a hero this page has no words for. */

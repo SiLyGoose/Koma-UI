@@ -1,4 +1,4 @@
-import { AnimationClip, AnimationMixer, LoopOnce, type AnimationAction, type Object3D } from 'three';
+import { AnimationClip, AnimationMixer, LoopOnce, type AnimationAction, type Object3D, type Vector3 } from 'three';
 import { lengthOf } from '../../engine/track';
 import { SKILL_SPEED } from '../../sim/motion';
 import { flowing, MOVES, type HeroMove } from '../moves';
@@ -12,13 +12,17 @@ import { BIPED } from './skeletons';
  * A hero of the game's own files moved by the poses written in code: it stands at rest and breathes, its
  * hair, tail and ears moving with it; it runs in; and its attack, being hit and its skills are tracks of
  * poses (../moves/). A skill it is given an animation for (made over for its skeleton: ./animated.ts) is
- * played by that instead, eased in from how it stands and back out to it.
+ * played by that instead, eased in from how it stands and back out to it. Given an idle, it stands in that
+ * (looping) rather than at rest, whenever it isn't running in or doing anything: eased out of it as a move
+ * begins, and back into it after.
  */
 
 /** Running in: how many strides a second. */
 const STRIDES = 2.9;
 /** Seated on what floats under it: how far it bobs up and down (as the field measures it), and how fast. */
 const BOB = { high: 0.05, rate: 1.6 };
+/** What floats beside one that doesn't sit on it: how far it hovers up and down (in its model's own lengths), and how fast. */
+const HOVER = { high: 0.05, rate: 2.2 };
 /** How long a skill's animation takes to come in over how it stands, and to give way back to it when it is left. */
 const INTO = 0.14;
 const RETURN = 0.45;
@@ -26,8 +30,9 @@ const RETURN = 0.45;
 /**
  * A hero moved by poses written in code: it stands `rest` (a swordsman's, unless its hero has a stance of its own), and its moves are added to that; but for the skills it has animations for (`skills`, by their move's name).
  * One `seated` on what floats under it glides in on it, bobbing, rather than running. Its knees and elbows bend as `bends` has them (./posing.ts).
+ * With an `idle` (made over for its skeleton), it stands in that.
  */
-export function posedHero({ root, body, middle, models, rig, hips, feet, blade, shield, materials, floating }: Stood, rest: Pose = REST, skills: Readonly<Record<string, Played>> = {}, seated = false, bends: Bends = {}): Hero {
+export function posedHero({ root, body, middle, models, rig, hips, feet, blade, shield, materials, floating }: Stood, rest: Pose = REST, skills: Readonly<Record<string, Played>> = {}, seated = false, bends: Bends = {}, idle?: AnimationClip): Hero {
   // Each skill's animation plays on each of its models at once, each with what the animation has for the bones it has.
   const mixer = new AnimationMixer(root);
   const animated: Partial<Record<string, Played & { actions: AnimationAction[] }>> = Object.fromEntries(
@@ -53,6 +58,17 @@ export function posedHero({ root, body, middle, models, rig, hips, feet, blade, 
   };
   // How the poses written in code have it, this frame: what an animation is eased in from and out to.
   const posed = rig.keep();
+  // Its idle, on a mixer of its own (so a skill's animation is never mixed with it): how far into it, and how much of it shows (0 to 1).
+  const idling = idle && new AnimationMixer(root);
+  const idleActions = idling
+    ? models.map((model: Object3D) => {
+        const action = idling.clipAction(new AnimationClip(idle.name, idle.duration, idle.tracks.filter((track) => model.getObjectByName(track.name.slice(0, track.name.lastIndexOf('.'))))), model);
+        action.play();
+        return action;
+      })
+    : [];
+  let idleT = 0;
+  let standing = 1;
 
   let red = 0;
   let doing: { name: HeroMove | 'hit'; t: number } | null = null;
@@ -80,6 +96,7 @@ export function posedHero({ root, body, middle, models, rig, hips, feet, blade, 
     },
     head: (into) => (models[0] as Object3D).localToWorld(into.copy(rig.at(BIPED.head))),
     leftHand: (into) => (models[0] as Object3D).localToWorld(into.copy(rig.at(BIPED.arms.L[2]))),
+    ...(floating && { floater: (into: Vector3) => floating.model.getWorldPosition(into) }),
     place: (into) => body.getWorldPosition(into),
     hit() {
       red = RED;
@@ -166,6 +183,19 @@ export function posedHero({ root, body, middle, models, rig, hips, feet, blade, 
       was = pose.ahead;
       poseLoose(rig, now, Math.max(-0.6, Math.min(0.6, rush * 0.06)));
 
+      // Standing in its idle while it does nothing else: eased out of it quickly as a move begins, and back into it slowly after.
+      if (idling && idle) {
+        const still = !doing && !playing && running === null;
+        standing = still ? Math.min(1, standing + dt / RETURN) : Math.max(0, standing - dt / INTO);
+        idleT = (idleT + dt) % idle.duration;
+        if (standing > 0) {
+          rig.keep(posed);
+          for (const action of idleActions) action.time = idleT;
+          idling.update(0);
+          rig.blend(posed, 1 - standing * standing * (3 - 2 * standing));
+        }
+      }
+
       // A skill played by its animation, over how it stands: eased in as it starts, held where it is left, and eased out from there.
       if (playing) {
         if (playing.left === null) {
@@ -185,6 +215,8 @@ export function posedHero({ root, body, middle, models, rig, hips, feet, blade, 
 
       body.position.z = pose.ahead;
       body.position.y = Math.max(0, pose.jump) + (seated ? BOB.high * (1 + Math.sin(now * BOB.rate)) : 0);
+      // What floats beside it (not under it), hovering up and down.
+      if (floating && !seated) floating.model.position.set(floating.at.x, floating.at.y + HOVER.high * Math.sin(now * HOVER.rate), floating.at.z);
       // What it sits on: its pieces spread apart (down and out from its top, so it stays on it), and it tipped back, front up, with it on it (about the back of its underside).
       body.rotation.x = 0;
       if (floating) {

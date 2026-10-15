@@ -15,10 +15,11 @@ export const FALLEN_FREY_ASSETS: HeroAssets = {
         // Her weapon, in her left hand: the only hand her file marks.
         left: 'Hero_Frey_Fallen_Vari05_Weapon',
         offHand: 'held',
-        // Fallen Frey as Mixamo rigged her, read for Light of Doom alone: she stands, runs in and does the rest as ../../heroes/fallen-frey/moves.ts has it.
+        // Fallen Frey as Mixamo rigged her, read for her idle and Light of Doom alone: she runs in and does the rest as ../../heroes/fallen-frey/moves.ts has it.
         movedBy: {
           kind: 'rigged',
           folder: 'Fallen_Frey_Mixamo',
+          idle: 'Standing Torch Idle 01.fbx',
           // Her free hand thrust out ahead (fully out 0.95 s in, where the heal comes down), held there, and the light bursting on the boss as she lets it go.
           skills: { light: { file: 'Fallen Frey - Magic Heal.fbx', lands: [0.95, 1.45], until: 2.35 } },
         },

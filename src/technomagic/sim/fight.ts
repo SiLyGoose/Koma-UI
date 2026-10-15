@@ -1,6 +1,6 @@
 import type { BossDef, BossPart } from '../bosses/boss';
 import { ATK, NONE, share, strike } from '../combat/damage';
-import { away, bound, critting, dealing, defending, filling, healing, pacing, piercing, put, taking, wear, type Status } from '../combat/status';
+import { away, bound, critting, dealing, defending, filling, healing, pacing, piercing, put, resisting, taking, wear, type Status } from '../combat/status';
 import type { Mark } from '../hud/boss-bar';
 import type { Buff } from '../hud/buff';
 import { lineOf, NO_PASSIVE, type Ability, type HeroDef } from '../heroes/kit';
@@ -615,7 +615,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       stagger(fighter);
       // (The shorter for its CC resist, and what is on it adds to it, and its Tenacity.)
       const shorter = Math.max(0, 1 - SKILL.tenacity.control * has(fighter, 'tenacity'));
-      put(fighter.statuses, { name: KNOCKED.name, left: seconds * (1 - share(fighter.stats.resist)) * shorter, binds: true, shown: KNOCKED });
+      put(fighter.statuses, { name: KNOCKED.name, left: seconds * (1 - share(fighter.stats.resist + resisting(fighter.statuses))) * shorter, binds: true, shown: KNOCKED });
     },
     stagger,
     mend(amount) {

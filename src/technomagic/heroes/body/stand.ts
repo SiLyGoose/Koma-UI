@@ -60,7 +60,7 @@ export async function standHero(owner: HeroAssets, model: PartsModel): Promise<S
     const highest = Math.max(...high);
     const tops = pieces.filter((_, i) => (high[i] as number) > highest - 0.01);
     const top = tops.reduce((sum, { rest }) => sum.add(rest), new Vector3()).divideScalar(Math.max(1, tops.length));
-    floated = { pieces, top, pivot };
+    floated = { model: floating, at: floating.position.clone(), pieces, top, pivot };
   }
 
   const rig = new Rig(parts);

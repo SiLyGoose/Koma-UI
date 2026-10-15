@@ -38,8 +38,7 @@ export function renderDetail(ctx: GearContext): void {
   if (copy.masterwork) info.append(el('span', 'detail-mw', '✨ Masterwork'));
   top.append(card, info);
 
-  // (Greyed out on a hero of a class it doesn't work on: none of it counts there.)
-  const effects = effectList(copy, copy.wrongClass ? 'detail-effects off' : 'detail-effects');
+  const effects = effectList(copy, 'detail-effects');
 
   const worn = isWorn(ctx, copy);
   const current = worn || !mine(ctx) || selling || copy.heroOnly ? undefined : copyById(ctx, gear.equipped[copy.slot]);
@@ -66,8 +65,11 @@ export function renderDetail(ctx: GearContext): void {
 
   // What it does.
   const body = el('div', 'detail-body');
-  // (TechnoMagic gear's set effect and additional effect, each apart under them.)
-  body.append(el('p', 'detail-desc', copy.description), el('p', 'detail-label', 'Effects'), effects, ...tmSections(copy));
+  // (TechnoMagic gear's set effect and additional effect, each apart under them (its potentials are its effects): not
+  // whether they are on, which goes by the hero wearing it, the heroes page's to say.)
+  const { setEffect } = copy;
+  const sections = tmSections({ ...copy, setEffect: setEffect && { pieces: setEffect.pieces, text: setEffect.text }, additionalActive: undefined });
+  body.append(el('p', 'detail-desc', copy.description), el('p', 'detail-label', 'Effects'), effects, ...sections);
   if (copy.borrowed !== null) {
     const who = mine(ctx) ? 'you get' : `${ctx.viewing?.name} gets`;
     body.append(el('p', 'detail-note', `This one is made for someone else: ${who} ${Math.round(copy.borrowed * 100)}% of its effects.`));
@@ -77,7 +79,7 @@ export function renderDetail(ctx: GearContext): void {
     body.append(el('p', 'detail-replaces', `Replaces ${current.name} (R${current.level})`), effectList(current, 'detail-effects detail-replaced'));
   }
 
-  // TechnoMagic gear: only heroes wear it, so no Equip, but the way to the heroes page; and what a hero wears says so.
+  // TechnoMagic gear: only heroes wear it, so no Equip, but the way to the heroes page.
   if (copy.heroOnly) {
     const note = el('p', 'detail-note', 'TechnoMagic gear: only heroes wear it. Put it on one on the ');
     const link = el('a', '', 'Heroes page');
@@ -85,8 +87,6 @@ export function renderDetail(ctx: GearContext): void {
     note.append(link, '.');
     body.append(note);
   }
-  if (copy.hero) body.append(el('p', 'detail-note', `${copy.hero} wears this in the TechnoMagic Raid.`));
-  if (copy.hero && copy.wrongClass) body.append(el('p', 'detail-note warn', `It isn’t made for ${copy.hero}’s class: none of it works on them, not even its stats.`));
 
   // What can be done with it, under a line along the bottom.
   const foot = el('div', 'detail-foot');
