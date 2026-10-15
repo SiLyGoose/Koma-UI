@@ -15,7 +15,7 @@ import type { Buff } from '../hud/buff';
  * - Gremory, Gateway to Purgatory, Pigritia: she is quicker; each time she sleeps she is healed and her mana
  *   filled a share over 2 seconds, and her Mana Charge raises her ATK more. (Her part does it: ../heroes/gremory/.)
  *
- * The game's shares of ATK are as they are for damage (this raid's blows are counted at ATK 1000, ../combat/);
+ * The game's shares of ATK are as they are for damage (this raid's blows are counted in thousandths of them, at ATK: ../combat/);
  * a heal is the game's share of ATK scaled by its heroes' HP to their ATK (some 86 to 1, where here it is
  * about 1 to 1), so it mends as much of her health as it would there.
  */

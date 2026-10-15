@@ -41,6 +41,8 @@ export function heroStats(hero: Pick<Hero, 'class'> & Partial<Pick<Hero, 'bonus'
         row('Crit damage', CRIT, CRIT + bonus('critDamage'), times),
         row('Attack speed', base.speed, gear.speed, pct),
         row('Penetration', base.pen, gear.pen, pct),
+        row('Accuracy', 0, bonus('accuracy'), pct),
+        row('Lifesteal', 0, bonus('lifesteal'), pct),
       ],
     },
     {
@@ -53,6 +55,7 @@ export function heroStats(hero: Pick<Hero, 'class'> & Partial<Pick<Hero, 'bonus'
         row('Physical dodge', base.dodge.physical, gear.dodge.physical, pct),
         row('Magical dodge', base.dodge.magical, gear.dodge.magical, pct),
         row('CC resist', base.resist, gear.resist, pct),
+        row('Crit resist', 0, bonus('critResist'), pct),
       ],
     },
     {

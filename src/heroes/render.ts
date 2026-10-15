@@ -273,7 +273,7 @@ function renderDetail(ctx: HeroesContext, act: HeroActions): void {
   top.append(card, info);
 
   const body = el('div', 'detail-body');
-  // (TechnoMagic gear's set effect and additional effect, each apart under them. On a hero of a class it doesn't
+  // (TechnoMagic gear's set effect and additional effect, each apart under them: its potentials are its effects. On a hero of a class it doesn't
   // work on, none of it counts, not even its stats: all of it greyed out.)
   const fits = worksOn(copy, hero);
   const shown = fits ? copy : { ...copy, setEffect: copy.setEffect && { ...copy.setEffect, active: false }, additionalActive: false };

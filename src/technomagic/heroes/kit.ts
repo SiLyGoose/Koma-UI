@@ -90,7 +90,7 @@ export const nearer = (a: HeroDef, b: HeroDef): number => LINE_RANK[lineOf(a)] -
 /**
  * How each class stands, before what is a hero's own (the kind of damage it deals, and anything else it
  * has otherwise): a hero's stats are its class's, with its own over them. Health and attack are as the
- * fight measures them (a skill's numbers are written for an ATK of 1000, ../combat/damage.ts); crit,
+ * fight measures them (ATK the size of King's Raid's: a skill's numbers are written for an ATK of 100,000, ../combat/damage.ts); crit,
  * attack speed, penetration, CC resist, block and dodge are points (1000: 100%). A first guess at each,
  * by what the game says a class is for:
  * - knight: the most health and defense, and blocks the most;
@@ -102,13 +102,13 @@ export const nearer = (a: HeroDef, b: HeroDef): number => LINE_RANK[lineOf(a)] -
  * - priest: heals and shields (by its attack), standing magic well, quick at what it does.
  */
 export const CLASS_STATS: Record<HeroClass, Omit<HeroStats, 'deals'>> = {
-  knight: { hp: 1400, atk: 750, physical: 1000, magical: 700, block: { physical: 350, magical: 250 }, dodge: NONE, crit: 50, speed: 0, pen: 0, resist: 250 },
-  warrior: { hp: 1150, atk: 1000, physical: 600, magical: 450, block: { physical: 100, magical: 50 }, dodge: { physical: 50, magical: 50 }, crit: 100, speed: 100, pen: 100, resist: 150 },
-  assassin: { hp: 900, atk: 1150, physical: 300, magical: 250, block: NONE, dodge: { physical: 200, magical: 150 }, crit: 350, speed: 250, pen: 150, resist: 50 },
-  archer: { hp: 850, atk: 1250, physical: 250, magical: 250, block: NONE, dodge: { physical: 100, magical: 50 }, crit: 200, speed: 150, pen: 300, resist: 0 },
-  mechanic: { hp: 900, atk: 1050, physical: 300, magical: 350, block: NONE, dodge: { physical: 50, magical: 50 }, crit: 150, speed: 150, pen: 150, resist: 50 },
-  wizard: { hp: 800, atk: 1250, physical: 200, magical: 450, block: { physical: 0, magical: 50 }, dodge: { physical: 0, magical: 50 }, crit: 150, speed: 50, pen: 200, resist: 0 },
-  priest: { hp: 900, atk: 900, physical: 300, magical: 500, block: { physical: 0, magical: 100 }, dodge: { physical: 0, magical: 50 }, crit: 50, speed: 100, pen: 0, resist: 100 },
+  knight: { hp: 1400, atk: 75_000, physical: 1000, magical: 700, block: { physical: 350, magical: 250 }, dodge: NONE, crit: 50, speed: 0, pen: 0, resist: 250 },
+  warrior: { hp: 1150, atk: 100_000, physical: 600, magical: 450, block: { physical: 100, magical: 50 }, dodge: { physical: 50, magical: 50 }, crit: 100, speed: 100, pen: 100, resist: 150 },
+  assassin: { hp: 900, atk: 115_000, physical: 300, magical: 250, block: NONE, dodge: { physical: 200, magical: 150 }, crit: 350, speed: 250, pen: 150, resist: 50 },
+  archer: { hp: 850, atk: 125_000, physical: 250, magical: 250, block: NONE, dodge: { physical: 100, magical: 50 }, crit: 200, speed: 150, pen: 300, resist: 0 },
+  mechanic: { hp: 900, atk: 105_000, physical: 300, magical: 350, block: NONE, dodge: { physical: 50, magical: 50 }, crit: 150, speed: 150, pen: 150, resist: 50 },
+  wizard: { hp: 800, atk: 125_000, physical: 200, magical: 450, block: { physical: 0, magical: 50 }, dodge: { physical: 0, magical: 50 }, crit: 150, speed: 50, pen: 200, resist: 0 },
+  priest: { hp: 900, atk: 90_000, physical: 300, magical: 500, block: { physical: 0, magical: 100 }, dodge: { physical: 0, magical: 50 }, crit: 50, speed: 100, pen: 0, resist: 100 },
 };
 
 export interface HeroDef {

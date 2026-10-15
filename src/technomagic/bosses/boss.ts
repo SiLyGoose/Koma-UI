@@ -1,6 +1,6 @@
 import type { Group, Vector3 } from 'three';
 import type { BossAssets } from '../assets';
-import type { Stats } from '../combat/damage';
+import type { BossStats } from '../combat/damage';
 import type { Mark } from '../hud/boss-bar';
 import type { Fight, Fighter } from '../sim/types';
 
@@ -71,8 +71,8 @@ export interface BossDef {
   id: string;
   name: string;
   assets: BossAssets;
-  /** Its health, the kind of damage its blows deal, and how it stands the heroes'. */
-  stats: Stats;
+  /** Its health, the kind of damage its blows deal, how it stands the heroes', and its crits and CC resist. */
+  stats: BossStats;
   /** Where it stands along the field, and how far it is turned from side-on toward the camera. */
   stands: { x: number; turn: number };
   /** From where it stands: where a hero's cut reaches it (a little toward the camera), and the floor under it. */

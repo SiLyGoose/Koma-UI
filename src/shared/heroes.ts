@@ -1,4 +1,5 @@
 import { HERO_ASSETS, portraitPicture, type Crop } from '../technomagic/assets';
+import type { GearStat } from '../technomagic/sim/types';
 import type { Slot } from './items';
 
 /*
@@ -15,8 +16,8 @@ export const HERO_SLOTS: readonly HeroSlot[] = ['weapon1', 'weapon2', 'armor1', 
 /** Which kind of item goes in each. */
 export const HERO_SLOT_KIND: Record<HeroSlot, Slot> = { weapon1: 'weapon', weapon2: 'weapon', armor1: 'armor', armor2: 'armor', treasure: 'treasure' };
 
-/** What gear raises (the bot's lib/game/heroes.ts HeroStat). */
-export type HeroStat = 'atk' | 'hp' | 'crit' | 'critDamage' | 'speed' | 'pen' | 'defense' | 'block' | 'dodge' | 'resist' | 'heal' | 'control' | 'manaAttack' | 'manaRegen';
+/** What gear raises (the bot's lib/game/heroes.ts HeroStat: the raid's GearStat). */
+export type HeroStat = GearStat;
 
 /** One copy a hero can wear (the raid's gear, or the TechnoMagic Raid's). */
 export interface HeroCopy {

@@ -237,8 +237,8 @@ async function start(): Promise<void> {
     };
   }
 
-  /** The result of a fight over: won or lost, and what each player found (with the additional skill each copy came with). */
-  function showResult(title: string, text: string, drops: { who: string; name: string; stars: number; skill: string | null }[], again: string, onAgain: () => void): void {
+  /** The result of a fight over: won or lost, and what each player found (with the additional skill and potentials each copy came with). */
+  function showResult(title: string, text: string, drops: { who: string; name: string; stars: number; skill: string | null; potentials: string[] }[], again: string, onAgain: () => void): void {
     (result.querySelector('.message-title') as HTMLElement).textContent = title;
     (result.querySelector('.message-text') as HTMLElement).textContent = text;
     (result.querySelector('.tm-drops') as HTMLElement).replaceChildren(
@@ -246,6 +246,12 @@ async function start(): Promise<void> {
         const item = document.createElement('li');
         item.dataset.stars = String(drop.stars);
         item.textContent = `${drop.who ? `${drop.who}: ` : ''}${'★'.repeat(drop.stars)} ${drop.name}${drop.skill ? ` (${drop.skill})` : ''}`;
+        if (drop.potentials.length > 0) {
+          const potentials = document.createElement('span');
+          potentials.className = 'tm-drop-potentials';
+          potentials.textContent = drop.potentials.join(' · ');
+          item.append(potentials);
+        }
         return item;
       }),
     );
@@ -464,7 +470,7 @@ async function start(): Promise<void> {
       if (shownOver === over) return;
       shownOver = over;
       const you = state?.you ?? '';
-      const drops = Object.entries(over.drops).flatMap(([who, items]) => items.map((item) => ({ who: who === you ? 'You' : name(who), name: item.name, stars: item.stars, skill: item.skill ?? null })));
+      const drops = Object.entries(over.drops).flatMap(([who, items]) => items.map((item) => ({ who: who === you ? 'You' : name(who), name: item.name, stars: item.stars, skill: item.skill ?? null, potentials: item.potentials ?? [] })));
       const rewarded = over.rewarded.includes(you);
       const text =
         over.result === 'won'

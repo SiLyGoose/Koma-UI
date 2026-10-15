@@ -71,8 +71,8 @@ export interface PickView {
 /** What a fight that is over gave each player (by id): the items found, and whether it was one of their runs that give gear. */
 export interface OverView {
   result: 'won' | 'lost';
-  /** Each item found, with the additional skill its copy came with, as it is said (absent from a bot from before them). */
-  drops: Record<string, { itemId: string; name: string; stars: number; skill?: string | null }[]>;
+  /** Each item found, with the additional skill and the potentials its copy came with, as they are said (absent from a bot from before them). */
+  drops: Record<string, { itemId: string; name: string; stars: number; skill?: string | null; potentials?: string[] }[]>;
   rewarded: string[];
 }
 

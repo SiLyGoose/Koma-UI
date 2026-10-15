@@ -35,6 +35,15 @@ export interface Stats extends Defenses {
 }
 
 /**
+ * A boss's, besides: its chance of a critical blow on a hero (less the hero's crit resist), and its CC
+ * resist (a stun on it lasts the shorter by as much, less the stunning hero's accuracy). In points.
+ */
+export interface BossStats extends Stats {
+  crit: number;
+  resist: number;
+}
+
+/**
  * A hero's, besides: its attack (how hard its blows are, and its heals and shields: a skill's numbers are
  * as they are at ATK, and so many times as much for so many times its ATK); its crit chance; its attack
  * speed (everything it does is quicker by as much); its penetration; and its CC resist (what knocks it
@@ -48,8 +57,8 @@ export interface HeroStats extends Stats {
   resist: number;
 }
 
-/** The attack a skill's numbers are written for. */
-export const ATK = 1000;
+/** The attack a skill's numbers are written for: King's Raid's size of ATK, so a unique weapon's flat ATK (the game's own numbers) fits it. */
+export const ATK = 100_000;
 /** A defense of this much halves what gets through (twice it: a third, and so on). */
 const HALVING = 1000;
 /** A blocked blow does this much of what it would have. */

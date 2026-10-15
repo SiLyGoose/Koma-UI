@@ -12,13 +12,14 @@ import { galgoriaPart } from './skills';
  *
  * Made to want gear: heroes with none (their class's stats alone) take about a third of its health before
  * the raid's time is up, and want some two and a half times their damage to beat it in time. Its defenses
- * are high enough that penetration tells.
+ * are high enough that penetration tells. Now and then a blow of its is a crit (crit resist tells), and its CC
+ * resist cuts a stun on it short (accuracy tells): first guesses too.
  */
 export const GALGORIA: BossDef = {
   id: 'galgoria',
   name: 'Galgoria',
   assets: GALGORIA_ASSETS,
-  stats: { hp: 3_000_000, deals: 'magical', physical: 600, magical: 800, block: NONE, dodge: NONE },
+  stats: { hp: 3_000_000, deals: 'magical', physical: 600, magical: 800, block: NONE, dodge: NONE, crit: 100, resist: 150 },
   // Right of the middle, a hero that fights hand to hand not far in front of it, as in the game: the left of the field is for those who fight from further off.
   stands: { x: 7, turn: -1.1 },
   reach: { hit: [-2.2, 3.4, 3], feet: [-1, 0, 0.6] },

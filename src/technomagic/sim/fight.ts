@@ -164,6 +164,9 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       stacks: { momentum: 0, steadfast: 0 },
       waits: Object.fromEntries(EVERY.filter((id) => n(id) > 0).map((id) => [id, (SKILL[id] as { every: number }).every])),
       controlTimes: 1 + (gear.control ?? 0),
+      accuracy: gear.accuracy ?? 0,
+      lifesteal: gear.lifesteal ?? 0,
+      critResist: gear.critResist ?? 0,
       manaPerAttack: MANA_PER_ATTACK * (1 + (gear.manaAttack ?? 0)),
       manaRegen: MANA_RATE * (1 + (gear.manaRegen ?? 0)),
       motion,
@@ -481,6 +484,11 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       foe.hp -= dealt;
       by.dealt += dealt;
       events.push({ kind: 'number', on: 'boss', amount: dealt, type: blocked ? 'blocked' : critical ? 'crit' : 'hit' });
+      // Lifesteal: a share of what it dealt heals it (less what the boss's skills take off healing).
+      if (by.lifesteal > 0 && by.hp > 0) {
+        const stolen = Math.min(dealt * share(by.lifesteal) * healing(by.statuses) * (foe.part.healing?.() ?? 1), by.stats.hp - by.hp);
+        if (stolen > 0) by.hp += stolen;
+      }
       // A blow of its attack: its mana per attack.
       if (attacking === by) by.mana = Math.min(MAX_MANA, by.mana + by.manaPerAttack);
       if (counted) {
@@ -532,7 +540,9 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
         magical: target.stats.magical * guarded,
         block: { physical: target.stats.block.physical + walled, magical: target.stats.block.magical + walled },
       };
-      const { taken, blocked, dodged } = strike(amount * dealing(foe.statuses) * rage(clock - RAID_TIME), type, blockable ? stands : { ...stands, block: NONE, dodge: NONE }, 0, roll);
+      // Now and then a crit, by the boss's crit chance less the hero's crit resist.
+      const critical = roll() < share(foe.def.stats.crit - target.critResist);
+      const { taken, blocked, dodged } = strike(amount * dealing(foe.statuses) * rage(clock - RAID_TIME) * (critical ? CRIT : 1), type, blockable ? stands : { ...stands, block: NONE, dodge: NONE }, 0, roll);
       if (dodged) {
         events.push({ kind: 'number', on: target.index, amount: 0, type: 'dodged' });
         // Mirage: a dodge mends it a little.
@@ -574,7 +584,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       const lost = Math.min(target.hp, Math.max(0, dealt - soaked));
       if (dealt > soaked) {
         target.hp -= lost;
-        events.push({ kind: 'number', on: target.index, amount: dealt - soaked, type: blocked ? 'blocked' : 'hit' });
+        events.push({ kind: 'number', on: target.index, amount: dealt - soaked, type: blocked ? 'blocked' : critical ? 'crit' : 'hit' });
       }
       if (target.hp <= 0) {
         target.shield = 0;
@@ -603,7 +613,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       // (Not one Authority guards.)
       if (fighter.hp <= 0 || away(fighter.statuses) || fighter.statuses.some((status) => status.guards)) return;
       stagger(fighter);
-      // (The shorter for its CC resist, and its Tenacity.)
+      // (The shorter for its CC resist, and what is on it adds to it, and its Tenacity.)
       const shorter = Math.max(0, 1 - SKILL.tenacity.control * has(fighter, 'tenacity'));
       put(fighter.statuses, { name: KNOCKED.name, left: seconds * (1 - share(fighter.stats.resist)) * shorter, binds: true, shown: KNOCKED });
     },
@@ -615,7 +625,8 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       mended += given;
     },
     stun(seconds, { down = false, by } = {}) {
-      const lasts = seconds * (by ? (by.def.passive?.control ?? 1) * by.controlTimes : 1);
+      // (A hero's: the shorter for the boss's CC resist, less what the hero's accuracy sees past.)
+      const lasts = seconds * (by ? (by.def.passive?.control ?? 1) * by.controlTimes * (1 - share(foe.def.stats.resist - by.accuracy)) : 1);
       going.clear();
       foe.stunned = Math.max(foe.stunned, lasts);
       events.push({ kind: 'boss-daze', seconds: lasts, down });

@@ -16,10 +16,34 @@ import type { SkillId } from './skills';
 
 /**
  * What a hero's gear gives it, as the bot counts it: points added to a chance or share (crit, attack speed,
- * penetration, block, dodge, CC resist: 1000 is 100%), and a share more of its own for the rest (ATK, HP,
- * crit damage, defense, heals and shields, stun duration, mana per attack, mana recovery: 0.25 is 25% more).
+ * penetration, block, dodge, CC resist, accuracy, lifesteal, crit resist: 1000 is 100%), ATK added as it is
+ * (`atkFlat`: a unique weapon's), and a share more of its own for the rest (ATK, HP, crit damage, defense, heals
+ * and shields, stun duration, mana per attack, mana recovery: 0.25 is 25% more). `defense` and `block` are
+ * against both kinds of damage; the ones ending in Physical or Magical against that kind only.
  */
-export type GearStat = 'atk' | 'hp' | 'crit' | 'critDamage' | 'speed' | 'pen' | 'defense' | 'block' | 'dodge' | 'resist' | 'heal' | 'control' | 'manaAttack' | 'manaRegen';
+export type GearStat =
+  | 'atk'
+  | 'atkFlat'
+  | 'hp'
+  | 'crit'
+  | 'critDamage'
+  | 'speed'
+  | 'pen'
+  | 'defense'
+  | 'defPhysical'
+  | 'defMagical'
+  | 'block'
+  | 'blockPhysical'
+  | 'blockMagical'
+  | 'dodge'
+  | 'resist'
+  | 'accuracy'
+  | 'lifesteal'
+  | 'critResist'
+  | 'heal'
+  | 'control'
+  | 'manaAttack'
+  | 'manaRegen';
 export type GearBonus = Partial<Record<GearStat, number>>;
 
 /** What a hero is doing besides standing: running in, a move (`part` of its animations, `t` seconds into it; the blows that have landed), or reeling from being knocked about. */
@@ -44,6 +68,10 @@ export interface Fighter {
   readonly critTimes: number;
   readonly healTimes: number;
   readonly controlTimes: number;
+  /** Points, from its gear: what of the boss's CC resist it sees past, the share of what it deals that heals it, and what it takes off the boss's crit chance. */
+  readonly accuracy: number;
+  readonly lifesteal: number;
+  readonly critResist: number;
   /** The mana it gains for each blow of its attack that lands, and recovers a second (../rules.ts's, with what its gear adds). */
   readonly manaPerAttack: number;
   readonly manaRegen: number;
@@ -118,12 +146,12 @@ export interface Fight {
   /** The fight's chances: a number from 0 up to 1 (./random.ts). Nothing in it is to use Math.random. */
   roll(): number;
   /**
-   * A hero's blow lands on the boss: `amount` at an ATK of 1000, before the hero's own attack, its passive
+   * A hero's blow lands on the boss: `amount` at ATK (../combat/damage.ts: a thousandth of ATK in the game's shares), before the hero's own attack, its passive
    * and the boss's defense against the kind of damage it deals (seen past by its penetration, and `pierce`
    * points more). One that is `counted` is told to every hero's part, and the boss's (not what comes of a status already on the boss).
    */
   hit(by: Fighter, amount: number, counted?: boolean, pierce?: number): void;
-  /** A hero is given back `amount` of its health (not while it is down), less what is on it and the boss's skills take off; `by` is the hero whose heal it is (it gives as much more as its attack is over 1000, or less). */
+  /** A hero is given back `amount` of its health (not while it is down), less what is on it and the boss's skills take off; `by` is the hero whose heal it is (it gives as much more as its attack is over ATK, or less). */
   heal(fighter: Fighter, amount: number, by?: Fighter): void;
   /**
    * A hero is given a shield of `amount` (on top of any it has) for so many `seconds` (for good, when it
