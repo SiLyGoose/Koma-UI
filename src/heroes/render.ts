@@ -135,14 +135,13 @@ function renderRoster(ctx: HeroesContext, act: HeroActions): void {
   );
 }
 
-/** The hero on the stage: its whole picture, name and class (and, not theirs yet, the way to the shop). */
+/** The hero on the stage: its whole picture, name and class badge (and, not theirs yet, the way to the shop). */
 function renderStage(ctx: HeroesContext): void {
   const { ui } = ctx;
   const hero = heroShown(ctx);
   if (!hero) return;
   if (ui.bust.dataset.hero !== hero.id) showWhole(ui.bust, hero.id, ui.initial, hero.name.slice(0, 1));
   ui.name.textContent = hero.name;
-  ui.className.textContent = className(hero.class);
   const icon = el('img');
   icon.src = classBadge(hero.class);
   icon.alt = '';

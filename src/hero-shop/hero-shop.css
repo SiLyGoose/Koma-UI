@@ -56,18 +56,6 @@
   filter: drop-shadow(0 1px 3px rgb(0 0 0 / 70%));
 }
 
-/* Its class under its name, small. */
-.hero-card-kind {
-  display: block;
-  margin-top: 2px;
-  color: rgb(255 244 214 / 75%);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-shadow: none;
-  text-transform: uppercase;
-}
-
 .hero-buy-figure {
   padding: 0;
   overflow: hidden;

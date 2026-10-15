@@ -175,7 +175,7 @@ function showBust(img: HTMLImageElement, id: string, fallback?: HTMLElement): vo
   });
 }
 
-/** One hero's card: its picture and class badge, its name and class, and at the bottom its price or that it's theirs. */
+/** One hero's card: its picture and class badge, its name, and at the bottom its price or that it's theirs. */
 function card(ctx: Context, hero: HeroView): HTMLButtonElement {
   const state = hero.owned ? 'owned' : hero.price <= (ctx.view?.balance ?? 0) ? 'buy' : 'short';
   const button = el('button', 'outfit-card hero-card');
@@ -198,7 +198,6 @@ function card(ctx: Context, hero: HeroView): HTMLButtonElement {
   art.append(badge);
 
   const name = el('span', 'outfit-name', hero.name);
-  name.append(el('span', 'hero-card-kind', className(hero.class)));
 
   const foot = el('span', 'outfit-foot');
   if (state === 'owned') foot.append(el('span', 'outfit-check', '✓'), el('span', '', 'Owned'));

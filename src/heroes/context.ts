@@ -14,7 +14,6 @@ export interface HeroesUi {
   bust: HTMLImageElement;
   initial: HTMLElement;
   name: HTMLElement;
-  className: HTMLElement;
   buy: HTMLAnchorElement;
   slots: HTMLButtonElement[];
   totals: HTMLElement;
@@ -93,7 +92,6 @@ export function createContext(root: HTMLElement): HeroesContext {
       bust: $<HTMLImageElement>('hero-bust'),
       initial: $('hero-initial'),
       name: $('hero-name'),
-      className: $('hero-class'),
       buy: $<HTMLAnchorElement>('hero-buy'),
       slots: [...root.querySelectorAll<HTMLButtonElement>('.slot')],
       totals: $('totals'),
