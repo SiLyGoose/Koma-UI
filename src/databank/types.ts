@@ -1,4 +1,5 @@
 import type { Slot } from '../shared/items';
+import type { EssenceId } from '../heroes/transcend';
 
 export type Stars = 1 | 2 | 3 | 4;
 
@@ -69,8 +70,19 @@ export interface DatabankBoss {
   hp: { perRaider: number; overhead: number; minRaiders: number; gear?: number };
   phases: string[];
   moves: string[];
-  /** What everyone who fought gets for beating it at difficulty 1, and how the harder levels pay more (the raid items it can drop besides go by level). */
-  rewards: string;
+  /**
+   * What everyone who fought gets for beating it at each of DatabankRaid.levels, in their order (the raid items it can
+   * drop besides go by level). A bot from before it has a line of markdown: what difficulty 1 pays, and how the harder levels pay more.
+   */
+  rewards: DatabankRewards[] | string;
+}
+
+/** What a win at one difficulty level pays each raider: points, komaTokens, komaGems, and so many of each of the boss's three hero essences. */
+export interface DatabankRewards {
+  points: number;
+  tokens: number;
+  gems: number;
+  essences: Partial<Record<EssenceId, number>>;
 }
 
 /** What goes for every raid boss. */
