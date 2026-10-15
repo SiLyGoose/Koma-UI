@@ -129,6 +129,10 @@ export interface Fighter {
   cooldowns: number[];
   /** The skill it will use as soon as it is free and has the mana for it (one at a time). */
   reserved: number | null;
+  /** The mana it has gained a second lately (counted over AUTO.income seconds): how soon its Auto will have a skill's. */
+  income: number;
+  /** How far into the fight it last used each of its skills (-Infinity: not yet): its Auto goes for the one it has gone longest without. */
+  lastUsed: number[];
   /** How long it has been free (on the field). */
   rested: number;
   /** What its blows have taken of the boss this fight, and what its heals and shields have given the heroes. */

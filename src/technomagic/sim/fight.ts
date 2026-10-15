@@ -7,7 +7,7 @@ import { lineOf, NO_PASSIVE, type Ability, type HeroDef } from './heroes/kit';
 import type { HeroMove } from './heroes/moves';
 import { motionOf } from './motion';
 import { seeded } from './random';
-import { AUTO_WAIT, BLOW, CRIT, formation, HERO_WAIT, MANA_PER_ATTACK, MANA_PER_HP_LOST, MANA_RATE, MAX_MANA, MOST, rage, RAGE_WIPE, RAID_TIME, REFORM, SECTION, SOLO_BOSS_HP, STAGES, TICK } from './rules';
+import { AUTO, AUTO_WAIT, BLOW, CRIT, formation, HERO_WAIT, MANA_PER_ATTACK, MANA_PER_HP_LOST, MANA_RATE, MAX_MANA, MOST, rage, RAGE_WIPE, RAID_TIME, REFORM, SECTION, SOLO_BOSS_HP, STAGES, TICK } from './rules';
 import { AUTHORITY, GUARDED, HOPE, PERSEVERANCE, setOf } from './sets';
 import type { Buff, Mark } from './shown';
 import { CHAMPION_UP, DESPERATION_UP, MENDING_UP, SKILL, skilledCritDamage, skilledStats, skillsOf, SURGE_UP, type SkillId } from './skills';
@@ -128,6 +128,8 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
   const random = seeded(seed);
   const roll = (): number => random.next();
   const events: SimEvent[] = [];
+  /** The mana each hero has spent on skills this step (what it gained is counted past it, for its Auto). */
+  const spent = new Map<Fighter, number>();
   const log: Logged[] = [];
   const sums: number[] = [];
   let pending: Input[] = [];
@@ -213,6 +215,8 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       auto: sub,
       cooldowns: hero.abilities.map(() => 0),
       reserved: null,
+      lastUsed: hero.abilities.map(() => -Infinity),
+      income: MANA_RATE * (1 + (gear.manaRegen ?? 0)),
       rested: 0,
       dealt: 0,
       healed: 0,
@@ -351,10 +355,54 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       for (let i = foe.statuses.length - 1; i >= 0; i--) if (((foe.statuses[i] as Status<unknown>).deals ?? 1) > 1) foe.statuses.splice(i, 1);
     }
     fighter.cooldowns[index] = ability.cooldown;
+    fighter.lastUsed[index] = elapsed;
     fighter.mana -= ability.cost * SECTION;
+    spent.set(fighter, (spent.get(fighter) ?? 0) + ability.cost * SECTION);
     fighter.part.used?.(index, ability);
     uniqueCast(fighter);
     skillCast(fighter);
+    return true;
+  }
+
+  /**
+   * Auto: the skill a hero uses now (null: none yet: it attacks meanwhile). Of the skills it wants (a heal once an ally
+   * is hurt or bears something it can clear, one that keeps a status up once that runs out, any other always), it goes
+   * for the one it has gone longest without whose cooldown is over (the dearer, where alike), or else the one whose
+   * cooldown ends soonest, and saves its mana for it; another it uses meanwhile only if that still has its mana once it
+   * can be used, by what the hero gains a second lately. One whose moment its hero says hasn't come is saved for, not
+   * used. At full mana, rather than waste what it gains, the one it has gone longest without that it can use.
+   */
+  function autoSkill(on: Fighter): number | null {
+    // (Nothing it could use now: nothing to pick yet.)
+    if (!on.abilities.some((_, index) => sim.ready(on, index))) return null;
+    const wait = (index: number): number => on.cooldowns[index] as number;
+    const last = (index: number): number => on.lastUsed[index] ?? -Infinity;
+    // Longest without first, then the dearer, then the later in its slots.
+    const slots = on.abilities
+      .map((_, index) => ({ index, ability: sim.slot(on, index) }))
+      .filter((one): one is { index: number; ability: Ability } => one.ability !== null && wanted(one.ability))
+      .sort((a, b) => (last(a.index) === last(b.index) ? 0 : last(a.index) < last(b.index) ? -1 : 1) || b.ability.cost - a.ability.cost || b.index - a.index);
+    const ripe = (index: number): boolean => on.part.ripe?.(index) ?? true;
+    const usable = ({ index, ability }: { index: number; ability: Ability }): boolean => ripe(index) && sim.reservable(on, index) && on.mana >= ability.cost * SECTION;
+    const target = slots.find((slot) => wait(slot.index) <= 0) ?? slots.reduce<(typeof slots)[number] | undefined>((soonest, slot) => (!soonest || wait(slot.index) < wait(soonest.index) ? slot : soonest), undefined);
+    if (!target) return null;
+    if (usable(target)) return target.index;
+    // Another meanwhile, if what the target would then lack comes in before its cooldown is over.
+    for (const slot of slots) {
+      if (slot === target || !usable(slot)) continue;
+      const lacks = target.ability.cost * SECTION - (on.mana - slot.ability.cost * SECTION);
+      if (lacks <= 0 || lacks <= on.income * wait(target.index)) return slot.index;
+    }
+    if (on.mana < MAX_MANA) return null;
+    return slots.find(usable)?.index ?? null;
+  }
+
+  /** Auto: whether a skill is wanted now (a heal once an ally is hurt or bears something it can clear; one that keeps a status up once it runs out). */
+  function wanted(ability: Ability): boolean {
+    const allies = field.filter((ally) => ally.hp > 0 && !away(ally.statuses));
+    if (ability.auto?.heals && !allies.some((ally) => ally.hp < ally.stats.hp * AUTO.hurt || ally.statuses.some((status) => status.shown.harmful === true && !status.binds && !status.away))) return false;
+    const keeps = ability.auto?.keeps;
+    if (keeps && [party, ...allies.map((ally) => ally.statuses)].some((on) => on.some((status) => status.name === keeps && status.left > AUTO.spare))) return false;
     return true;
   }
 
@@ -805,6 +853,8 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       const dt = TICK;
       elapsed += dt;
       aurasNow();
+      const before = fighters.map((fighter) => fighter.mana);
+      spent.clear();
 
       // Boss auto: once the boss has been still a moment, another attack, picked at random.
       idle = bossBusy() ? 0 : idle + dt;
@@ -841,9 +891,8 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       // Each hero on the field, when it is free: the skill it was told to use (or, on Auto, the dearest it can), or else its attack. (Not one that can do nothing for now.)
       for (const on of field) {
         on.rested = on.doing ? 0 : on.rested + dt;
-        if (on.auto && on.reserved === null) {
-          for (let index = on.abilities.length - 1; index >= 0 && on.reserved === null; index--) if (sim.ready(on, index)) on.reserved = index;
-        }
+        // (On Auto, once it is free: what it uses is picked as it can use it.)
+        if (on.auto && on.reserved === null && !on.doing) on.reserved = autoSkill(on);
         // (A skill pressed while it can do nothing waits for it; and one pressed short of mana waits for the mana, the hero
         // attacking meanwhile.)
         if (on.reserved !== null && !sim.reservable(on, on.reserved) && !bound(on.statuses)) on.reserved = null;
@@ -872,6 +921,13 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
 
       // Every hero on the field down, or wiped by the boss's rage: lost.
       if (!deathless && ((field.length > 0 && field.every((on) => on.hp <= 0)) || clock >= RAID_TIME + RAGE_WIPE)) end('lost');
+      // What each hero gained this step, counted toward what it gains a second (not while its mana is full: it gains nothing then).
+      fighters.forEach((fighter, i) => {
+        const was = before[i] as number;
+        if (was >= MAX_MANA || fighter.mana >= MAX_MANA) return;
+        const gained = Math.max(0, fighter.mana - was + (spent.get(fighter) ?? 0));
+        fighter.income += (gained / dt - fighter.income) * (dt / AUTO.income);
+      });
       tick++;
       if (tick % SECOND === 0) sums.push(sim.checksum());
     },

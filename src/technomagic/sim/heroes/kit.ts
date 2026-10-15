@@ -25,6 +25,11 @@ export interface Ability {
    */
   words?: string;
   tag?: string;
+  /**
+   * What Auto makes of it (none: a blow, used whenever it can be): `heals` (wanted once an ally is hurt or bears
+   * something it can clear), `keeps` (it puts up a status of this name on the heroes: wanted once it runs out).
+   */
+  auto?: { heals?: true; keeps?: string };
   /** What stands for it where it has no picture (or the picture isn't on this computer). */
   icon: string;
   art?: Art;
@@ -82,6 +87,8 @@ export interface HeroPart {
   blow?(skill: boolean): void;
   /** Its card glows. */
   lit?(): boolean;
+  /** Auto: whether this skill's moment has come (false: Auto saves its mana for it, but waits to use it). */
+  ripe?(index: number): boolean;
   /** What its skills have given it for now: squares on its card. */
   buffs?(): Buff[];
   /** What its skills have left on the boss that only it keeps count of: marks under the boss's health. */

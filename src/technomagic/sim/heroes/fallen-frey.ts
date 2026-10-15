@@ -84,6 +84,7 @@ export const FALLEN_FREY: HeroDef = {
   abilities: [
     {
       name: 'Light of Doom',
+      auto: { heals: true },
       about: 'Heals the ally with the lowest health and those near it, then the light bursts on the boss.',
       words:
         'Heals HP of the ally with the lowest HP and nearby allies and increases Heal Rate by 20% for 10 sec. Afterward, explodes the area around the target and deals M.DMG to enemies in range, reducing their Heal Rate by 20% for 10 sec. If this Skill is used with 1 or more stacks of [Darkened Power], consumes 1 stack and dispels positive effects of all enemies within range.',
@@ -227,6 +228,8 @@ export const FALLEN_FREY: HeroDef = {
         } else darkening = 0;
       },
       lit: () => stacks > 0,
+      // Auto saves Heaven's Vengeance for Darkened Power (it comes once her mana is full).
+      ripe: (index) => index !== 2 || stacks > 0,
       buffs: () => (stacks > 0 ? [{ ...DARKENED, count: stacks }] : []),
     };
   },

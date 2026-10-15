@@ -77,6 +77,7 @@ export const CLAUSE: HeroDef = {
     },
     {
       name: 'Guardian Shield',
+      auto: { keeps: GUARDED.name },
       about: `For ${GUARDIAN.lasts} seconds every hero takes ${pct(1 - GUARDIAN.taken)} less from the boss.`,
       words: `All allies' P.DEF is increased for ${GUARDIAN.lasts} sec and P.Crit Resistance is increased by 300, and reduces P.DMG they take by ${pct(1 - GUARDIAN.taken)}..`,
       icon: '✨',

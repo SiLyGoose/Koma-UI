@@ -211,6 +211,8 @@ export const SERIA: HeroDef = {
         }
       },
       lit: () => moonlight > 0,
+      // Auto saves Red Moon Blade for Moonlight.
+      ripe: (index) => index !== 2 || moonlight > 0,
       buffs: () => (moonlight > 0 ? [{ ...MOONLIGHT, left: moonlight }] : []),
     };
   },
