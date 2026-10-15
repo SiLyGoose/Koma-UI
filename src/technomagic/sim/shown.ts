@@ -38,5 +38,10 @@ export interface Mark {
   tone: Tone;
 }
 
+/** A share as a whole percentage (0.25: "25%"). */
+export const pct = (share: number): string => `${Math.round(share * 100)}%`;
+/** To a tenth of a percent (0.048: "4.8%"). */
+export const fine = (share: number): string => `${Math.round(share * 1000) / 10}%`;
+
 /** What a number coming off whoever a blow landed on (or a heal reached) says: a blow, a critical blow, a blow lessened by a block, what a shield took, health given back, or a blow dodged (no number). */
 export type NumberKind = 'hit' | 'crit' | 'blocked' | 'shield' | 'heal' | 'dodged';

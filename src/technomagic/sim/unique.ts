@@ -1,4 +1,4 @@
-import type { Buff } from './shown';
+import { fine, pct, type Buff } from './shown';
 
 /*
  * The heroes' unique weapons, as the fight has them: a hero wearing its own (the bot says how far it is
@@ -70,10 +70,6 @@ export const TIERS = 5;
 
 /** A tier's number from a weapon's list (1 to TIERS; out of range: the nearest). */
 export const atTier = (list: readonly number[], tier: number): number => list[Math.min(list.length, Math.max(1, Math.floor(tier))) - 1] as number;
-
-const pct = (share: number): string => `${Math.round(share * 100)}%`;
-/** To a tenth of a percent (4.8%). */
-const fine = (share: number): string => `${Math.round(share * 1000) / 10}%`;
 
 /** What each hero's weapon does at a tier, as its card and the heroes page say it. */
 const ABOUT: Readonly<Record<string, (tier: number) => string>> = {

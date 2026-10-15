@@ -6,10 +6,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "node scripts/sync.mjs --check && tsc --noEmit && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "build:sim": "node scripts/build-sim.mjs"
+    "sync": "node scripts/sync.mjs"
   },
   "devDependencies": {
     "@types/three": "^0.186.0",

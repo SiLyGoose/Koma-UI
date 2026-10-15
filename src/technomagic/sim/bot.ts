@@ -3,20 +3,21 @@ import type { Input } from './events';
 import { makeSim } from './fight';
 import { HEROES } from './heroes';
 import { MOST, RAGE_WIPE, RAID_TIME, STAGES, TICK } from './rules';
+import { SET_INFO } from './sets';
 import { MOST_SKILLS, SKILLS } from './skills';
 import { UNIQUE_HEROES, uniqueAbout } from './unique';
+import { VERSION } from './version';
 
 /*
- * The fight as the bot runs it: a room's raid (startRaid), stepped by the bot's clock with every player's
- * inputs as it relays them to the pages, so how it ends is the bot's own word; and a raid played over from
- * its inputs (replay). Built into one file for the bot (scripts/build-sim.mjs writes it to the bot's
- * vendor/), so everything it says of itself is here, written out (its types name nothing of the rest of the site).
- *
- * SIM_VERSION is to go up with anything that changes how a fight goes (a rule, a skill, a stat, a move's
- * timing): a page whose sim isn't the bot's version is told to reload.
+ * The fight as the bot has it: a room's raid (startRaid), stepped by the bot's clock with every player's inputs as
+ * it relays them to the pages, so how it ends is the bot's own word; a raid played over from its inputs (replay); and
+ * what the bot says of the fight's heroes, sets, unique weapons and additional skills, as the fight has them. Built
+ * into one file for the bot (scripts/sync.mjs writes it to the bot's vendor/), so everything it says of itself is
+ * here, written out (its types name nothing of the rest of the site).
  */
 
-export const SIM_VERSION = 16;
+/** The sim's version: a hash of it (./version.ts), so any change to it is another (a page whose sim isn't the bot's is told to reload). */
+export const SIM_VERSION: string = VERSION;
 
 /** Seconds in a step, and the most steps a raid can take (the raid's time, and the boss's rage after it). */
 export const STEP_SECONDS: number = TICK;
@@ -81,9 +82,27 @@ export interface Replay {
   dealt: number[];
 }
 
-/** The heroes and bosses there are, by id, and how many skins each hero has. */
-export const HERO_SKINS: Readonly<Record<string, number>> = Object.fromEntries(HEROES.map((hero) => [hero.id, hero.skins.length]));
+/** A hero there is (the bot sells it, and the heroes page gears it): its id, its name, its class, and how many skins it has (its own first). */
+export interface TmHero {
+  id: string;
+  name: string;
+  class: string;
+  skins: number;
+}
+
+/** The heroes there are, in the order of their cards; and the bosses, by id. */
+export const TM_HEROES: readonly TmHero[] = HEROES.map((hero) => ({ id: hero.id, name: hero.name, class: hero.class, skins: hero.skins.length }));
 export const BOSS_IDS: readonly string[] = BOSSES.map((boss) => boss.id);
+
+/** A TechnoMagic set as the fight has it: its id, name and icon, and what it does for a hero of each class wearing three of its pieces (by class; one it does nothing for left out). */
+export interface TmSetInfo {
+  id: string;
+  name: string;
+  icon: string;
+  effects: Readonly<Record<string, string>>;
+}
+
+export const TM_SET_INFO: readonly TmSetInfo[] = SET_INFO;
 
 /** An input of the page's, as a raid takes it: a skill pressed, a hero's Auto, every hero's Auto, or leaving (with the step it came before). */
 export interface RunInput {

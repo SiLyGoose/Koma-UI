@@ -1,6 +1,7 @@
+import { POINTS } from './combat/damage';
 import type { HeroClass } from './heroes/kit';
 import { SECTION } from './rules';
-import type { Buff } from './shown';
+import { fine, pct, type Buff } from './shown';
 
 /*
  * The TechnoMagic Raids' gear sets, as the fight has them: a hero wearing three of a set's pieces (of its weapons and
@@ -71,24 +72,36 @@ export const AUTHORITY = {
 const NAMES: Record<TmSet, string> = { perseverance: 'Perseverance', hope: 'Hope', authority: 'Authority' };
 const ICONS: Record<TmSet, string> = { perseverance: '⚔️', hope: '🛡️', authority: '⚡' };
 
+/** What a support of Perseverance's or Hope's gives every ally. */
+const ALLIES = (set: { atk: number; defense: number }): string => `every ally +${pct(set.atk)} ATK and +${pct(set.defense)} defense (again for every other hero wearing it so)`;
+
+/** What each set does for a hero in each role it has: its card says it, and the bot (its pieces, and the heroes page). */
 const ABOUT: Record<TmSet, Partial<Record<SetRole, string>>> = {
   perseverance: {
-    dps: 'Set effect: +10% DMG, and another +1.5% every 10 seconds (up to +25% after 100 seconds).',
-    support: 'Set effect: every ally +5% ATK and +10% defense.',
+    dps: `+${pct(PERSEVERANCE.dmg)} DMG, and another +${fine(PERSEVERANCE.step)} every ${PERSEVERANCE.every} seconds (up to +${pct(PERSEVERANCE.dmg + PERSEVERANCE.step * PERSEVERANCE.most)} after ${PERSEVERANCE.every * PERSEVERANCE.most} seconds)`,
+    support: ALLIES(PERSEVERANCE),
   },
   hope: {
-    support: 'Set effect: every ally +5% ATK and +10% defense.',
-    knight: 'Set effect: takes 10% less, and takes 20% of what the boss deals every other ally.',
+    support: ALLIES(HOPE),
+    knight: `takes ${pct(1 - HOPE.taken)} less, and takes ${pct(HOPE.covers)} of what the boss deals every other ally`,
   },
   authority: {
-    dps: 'Set effect: +500 penetration.',
-    support: 'Set effect: +2 mana sections at the start; the ally with the highest ATK can’t be knocked down for 15 seconds.',
-    knight: 'Set effect: +30% CC resist; its skills strip what helps the boss.',
+    dps: `+${AUTHORITY.pen} penetration`,
+    support: `+${AUTHORITY.mana / SECTION} mana sections at the start; the ally with the highest ATK can’t be knocked down for ${AUTHORITY.guardFor} seconds`,
+    knight: `+${pct(AUTHORITY.resist / POINTS)} CC resist; its skills strip what helps the boss`,
   },
 };
 
 /** A hero's set, as a square on its card. */
-export const setBuff = ({ id, role }: { id: TmSet; role: SetRole }): Buff => ({ name: `${NAMES[id]} set`, about: ABOUT[id][role], icon: ICONS[id] });
+export const setBuff = ({ id, role }: { id: TmSet; role: SetRole }): Buff => ({ name: `${NAMES[id]} set`, about: `Set effect: ${ABOUT[id][role]}.`, icon: ICONS[id] });
+
+/** Each set as the bot has it: its name and icon, and what it does for a hero of each class wearing three of its pieces (a class it does nothing for left out). */
+export const SET_INFO: readonly { id: TmSet; name: string; icon: string; effects: Partial<Record<HeroClass, string>> }[] = TM_SETS.map((id) => ({
+  id,
+  name: NAMES[id],
+  icon: ICONS[id],
+  effects: Object.fromEntries(Object.entries(ROLES[id]).map(([heroClass, role]) => [heroClass, ABOUT[id][role]])),
+}));
 
 /** What Authority's support puts on the ally with the highest ATK. */
 export const GUARDED: Buff = { name: 'Authority', about: 'Can’t be knocked down.', icon: '⚡' };

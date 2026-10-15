@@ -15,7 +15,7 @@ export const TICK = 1 / 30;
 export const HERO_X = -0.5;
 export const HERO_TURN = 1.15;
 
-/** How many heroes can be on the field at once (a room's lineup: ../../technomagic/protocol.ts). */
+/** How many heroes can be on the field at once (a room's lineup: ../../protocol/technomagic.ts). */
 export const MOST = 9;
 
 /**
