@@ -1,6 +1,8 @@
+import { share } from '../combat/damage';
 import { t5Light } from '../perks';
-import { skillArt, type Buff } from '../shown';
+import { num, pct, skillArt, type Buff } from '../shown';
 import { CLASS_STATS, type HeroDef, type Passive } from './kit';
+import { CODED } from './moves';
 
 /*
  * Kirze's skills, as the game has them (what each costs and how long before it can be used again are
@@ -15,26 +17,32 @@ import { CLASS_STATS, type HeroDef, type Passive } from './kit';
  * Her own perks (../perks.ts) are King's Raid's. Blade of Judgment's Dark has the boss alone always; Crimson Flower's Dark
  * is [Arcane Crystal Energy]'s, which this raid hasn't: it does nothing here.
  */
-const JUDGMENT = { cut: 1500, blow: 6000, down: 3 };
+const JUDGMENT = { cuts: CODED.judgment.lands.length - 1, cut: 1500, blow: 6000, down: 3 };
 const HAZE = { burst: 9000, stun: 2, lasts: 15, quicker: 1.5, every: 2, wave: 2500, waveStun: 1 };
-const FLOWER = { line: 8000, burst: 12000, slow: 0.5, slowed: 5, curse: 10, end: 6000, each: 800 };
-/** Her own perks' numbers: the shockwave's longer stun, Crimson Flower's stronger slow (an ATK Spd reduction of 300 more), her DMG while awakened, her opening's (how long, how much), and Transcend 5's Dark's attack speed for each blow (most). */
-const PERKS = { waveStun: 0.5, slower: 0.3, awakeDmg: 1.2, opening: 20, openingDmg: 1.25, quicker: 5, most: 100 };
+// (Its slow, as the game has it: an ATK Spd reduction, in points.)
+const FLOWER = { line: 8000, burst: 12000, speed: 200, slowed: 5, curse: 10, end: 6000, each: 800 };
+/** Her passive's: her ATK higher, her crit chance (points), and the stuns on a boss longer. */
+const DEEDS = { atk: 0.2, crit: 200, control: 0.3 };
+/** Her own perks' numbers: the shockwave's longer stun, Crimson Flower's stronger slow (points), her DMG while awakened, her opening's (how long, how much), and Transcend 5's Dark's attack speed for each blow (most). */
+const PERKS = { waveStun: 0.5, slower: 300, awakeDmg: 1.2, opening: 20, openingDmg: 1.25, quicker: 5, most: 100 };
 
 const art = skillArt('kirze');
 
-/**
- * Her passive, the game's End to Evil Deeds!: the game says how much longer the stuns last and how much
- * likelier a critical blow is, and leaves how much harder she hits unsaid.
- */
+/** Her passive, the game's End to Evil Deeds!: her ATK higher, more of her blows critical, and the stuns on a boss longer. */
 const EVIL_DEEDS: Passive = {
-  attack: 1.2,
-  crit: 0.2,
-  control: 1.3,
-  shown: { name: 'End to Evil Deeds!', about: 'Passive. Her blows are harder and more often critical, and her stuns on a boss last 30% longer.', icon: '⚜️', art: art(3) },
+  attack: 1 + DEEDS.atk,
+  crit: share(DEEDS.crit),
+  control: 1 + DEEDS.control,
+  shown: {
+    name: 'End to Evil Deeds!',
+    about: `Passive. Her blows are ${pct(DEEDS.atk)} harder and ${pct(share(DEEDS.crit))} more often critical, and her stuns on a boss last ${pct(DEEDS.control)} longer.`,
+    icon: '⚜️',
+    art: art(3),
+  },
+  words: `Increases own ATK by ${pct(DEEDS.atk)} and Crit Chance by ${DEEDS.crit}, while increasing the duration of CCs that all allies inflict to Bosses by ${pct(DEEDS.control)}`,
 };
 /** What Crystal Haze gives her for a while: shown beside her passive, with how long it has left. */
-const AWAKENING: Buff = { name: 'Arcane Crystal Awakening', about: 'Quickened, and a shockwave goes out from her every 2 seconds.', icon: '💠', art: art(1) };
+const AWAKENING: Buff = { name: 'Arcane Crystal Awakening', about: `Quickened, and a shockwave goes out from her every ${HAZE.every} seconds.`, icon: '💠', art: art(1) };
 
 export const KIRZE: HeroDef = {
   id: 'kirze',
@@ -44,9 +52,36 @@ export const KIRZE: HeroDef = {
   // A warrior whose blows are magical: as her class stands, otherwise.
   stats: { ...CLASS_STATS.warrior, deals: 'magical' },
   abilities: [
-    { name: 'Slash, Blade of Judgment!', about: 'Seven cuts as she spins, then a blow that knocks the boss down for 3 seconds.', icon: '🌀', art: art(0), move: 'judgment', cooldown: 9, cost: 2 },
-    { name: 'Disperse, Crystal Haze!', about: 'A burst that stuns the boss for 2 seconds. Then for 15 seconds she is 50% quicker, and a shockwave goes out from her every 2 seconds that stuns it for 1.', icon: '💠', art: art(1), move: 'haze', cooldown: 17, cost: 3 },
-    { name: 'Bloom, Crimson Flower!', about: 'Crystals in a line to the boss, then they burst: its attacks are 50% slower for 5 seconds, and it is cursed for 10. When the curse ends it bursts, the harder for every blow landed on the boss meanwhile.', icon: '🌺', art: art(2), move: 'flower', cooldown: 20, cost: 4 },
+    {
+      name: 'Slash, Blade of Judgment!',
+      about: `${JUDGMENT.cuts} cuts as she spins, then a blow that knocks the boss down for ${JUDGMENT.down} seconds.`,
+      words: `Deals M.DMG over ${JUDGMENT.cuts} attacks to nearby enemies in a circular range of self. Then, attacks frontal enemies in range, dealing M.DMG and knocking them down for ${JUDGMENT.down} sec.`,
+      icon: '🌀',
+      art: art(0),
+      move: 'judgment',
+      cooldown: 9,
+      cost: 2,
+    },
+    {
+      name: 'Disperse, Crystal Haze!',
+      about: `A burst that stuns the boss for ${HAZE.stun} seconds. Then for ${HAZE.lasts} seconds she is ${pct(HAZE.quicker - 1)} quicker, and a shockwave goes out from her every ${HAZE.every} seconds that stuns it for ${HAZE.waveStun}.`,
+      words: `Unleashes the power of Arcane Crystals within to deal M.DMG to all enemies and stun them for ${HAZE.stun} sec. Upon casting, activates [Arcane Crystal Awakening] for ${HAZE.lasts} sec, which increases ATK Spd of all allies by 300 and releases a shockwave every ${HAZE.every} sec to enemies in range of self, dealing M.DMG and stunning them for ${HAZE.waveStun} sec.`,
+      icon: '💠',
+      art: art(1),
+      move: 'haze',
+      cooldown: 17,
+      cost: 3,
+    },
+    {
+      name: 'Bloom, Crimson Flower!',
+      about: `Crystals in a line to the boss, then they burst: its attacks are ${pct(share(FLOWER.speed))} slower for ${FLOWER.slowed} seconds, and it is cursed for ${FLOWER.curse}. When the curse ends it bursts, the harder for every blow landed on the boss meanwhile.`,
+      words: `Summons Arcane Crystals and deals M.DMG to frontal enemies in a straight line. Shortly afterward, causes an explosion that deals ${num(FLOWER.burst)} additional M.DMG and inflicts [Arcane Crystal Curse] upon enemies for ${FLOWER.slowed} sec, reducing their ATK Spd by ${FLOWER.speed}. Attacking enemies under [Arcane Crystal Curse] inflicts a stack of [Arcane Crystal Energy]. [Arcane Crystal Curse] explodes after ${FLOWER.curse} sec, dealing M.DMG equal to ${num(FLOWER.end)} + ${num(FLOWER.each)} per stack of Arcane Crystal Energy.`,
+      icon: '🌺',
+      art: art(2),
+      move: 'flower',
+      cooldown: 20,
+      cost: 4,
+    },
   ],
   passive: EVIL_DEEDS,
   perks: {
@@ -82,7 +117,7 @@ export const KIRZE: HeroDef = {
       lands: {
         // Seven cuts as she spins, then the blow that knocks the boss down.
         judgment(part) {
-          if (part < 7) return fight.hit(self, JUDGMENT.cut);
+          if (part < JUDGMENT.cuts) return fight.hit(self, JUDGMENT.cut);
           fight.hit(self, JUDGMENT.blow);
           fight.stun(JUDGMENT.down, { down: true, by: self });
         },
@@ -98,7 +133,7 @@ export const KIRZE: HeroDef = {
           if (part === 0) return fight.hit(self, FLOWER.line);
           fight.hit(self, FLOWER.burst);
           curse = { left: FLOWER.curse, blows: 0 };
-          fight.slow(FLOWER.slow - (self.perks.has('s3-light') ? PERKS.slower : 0), FLOWER.slowed);
+          fight.slow(FLOWER.speed + (self.perks.has('s3-light') ? PERKS.slower : 0), FLOWER.slowed);
         },
       },
       // A blow on the boss while it is cursed is counted.

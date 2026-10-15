@@ -19,6 +19,12 @@ export interface Ability {
   name: string;
   /** What it does, for whoever holds it down on its card. */
   about?: string;
+  /**
+   * King's Raid's words for it, as kingsraid.shodyra.com has them, with the fight's numbers where it has them (the
+   * heroes page shows them, from the bot); and what its tag there says besides its cost, where not its cooldown.
+   */
+  words?: string;
+  tag?: string;
   /** What stands for it where it has no picture (or the picture isn't on this computer). */
   icon: string;
   art?: Art;
@@ -38,6 +44,9 @@ export interface Passive {
   control: number;
   taken?: number;
   shown: Buff;
+  /** King's Raid's words for it, as an Ability's are; and what its tag says, where not "Passive". */
+  words?: string;
+  tag?: string;
 }
 
 /** A hero with no passive. */

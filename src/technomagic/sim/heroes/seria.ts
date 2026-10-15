@@ -1,9 +1,11 @@
+import { share } from '../combat/damage';
 import { put } from '../combat/status';
 import { t5Light } from '../perks';
 import { MAX_MANA, SECTION } from '../rules';
-import { skillArt, type Buff } from '../shown';
+import { pct, seconds, skillArt, type Buff } from '../shown';
 import { atTier, ELSION, ELSION_UP } from '../unique';
 import { CLASS_STATS, type Ability, type HeroDef, type Passive } from './kit';
+import { CODED } from './moves';
 
 /*
  * Seria's skills, as the game has them (what each costs, how long before it can be used again, how long what it
@@ -25,9 +27,10 @@ import { CLASS_STATS, type Ability, type HeroDef, type Passive } from './kit';
  */
 const PETALS = { blow: 2500, window: 5 };
 const BLOSSOM = { blow: 2500 };
-// (Its ATK Spd down 300, as the game has it: the boss's attacks at 70% of their speed.)
-const SCATTER = { rush: 2000, cut: 1200, through: 800, pierce: 1000, slow: 0.7, lasts: 3 };
-const MOON = { blow: 6000, boss: 3000, ripe: 4000, every: 6, light: 1, unhealed: 10 };
+// (Its slow, as the game has it: an ATK Spd reduction, in points. Its cuts after the rush: its move's blows but the first.)
+const SCATTER = { rush: 2000, cuts: CODED.scatter.lands.length - 1, cut: 1200, through: 800, pierce: 1000, speed: 300, lasts: 3 };
+// (In Moonlight, the boss is healed `heals` as much for `unhealed` seconds.)
+const MOON = { blow: 6000, boss: 3000, ripe: 4000, every: 6, light: 1, unhealed: 10, heals: 0 };
 // (Its ATK as the game has it, at this raid's scale.)
 const WITCH = { atk: 38_567, critDamage: 0.05, most: 30 };
 /** Her own perks' numbers: Blossom's less healing for the boss, Blood Scattering Blade's mana for each blow, her less taken for each stack of Cold-Blooded Witch, her opening's more DMG, and Transcend 5's Dark's more taken. */
@@ -36,24 +39,25 @@ const PERKS = { unhealed: { heals: 0.5, lasts: 5 }, mana: 0.2 * SECTION, taken: 
 const art = skillArt('seria');
 
 /** What Falling Petals' slot holds for a while after it is used (its picture is Falling Petals'). */
-const BLOSSOM_SKILL: Ability = { name: 'Mysterious Sword - Blossom', about: 'A cut down on the boss: once, within 5 seconds of [Falling Petals].', icon: '🌸', art: art(0), move: 'blossom', cooldown: 0, cost: 1 };
+const BLOSSOM_SKILL: Ability = { name: 'Mysterious Sword - Blossom', about: `A cut down on the boss: once, within ${PETALS.window} seconds of [Falling Petals].`, icon: '🌸', art: art(0), move: 'blossom', cooldown: 0, cost: 1 };
 
 const COLD_BLOODED: Passive = {
   attack: 1,
   crit: 0,
   control: 1,
-  shown: { name: 'Cold-Blooded Witch', about: 'Passive. Her ATK is higher, and each critical blow of her skills gives her 5% more crit damage (up to 30 times).', icon: '🩸', art: art(3) },
+  shown: { name: 'Cold-Blooded Witch', about: `Passive. Her ATK is higher, and each critical blow of her skills gives her ${pct(WITCH.critDamage)} more crit damage (up to ${WITCH.most} times).`, icon: '🩸', art: art(3) },
+  words: `ATK is increased by ${WITCH.atk}. Upon a critical skill hit, own Crit DMG is increased by ${pct(WITCH.critDamage)}. This effect can be stacked up to ${WITCH.most} times.`,
 };
 /** Her Cold-Blooded Witch's stacks: shown on her card, with how many she has. */
-const WITCHED: Buff = { name: 'Cold-Blooded Witch', about: '5% more crit damage for each.', icon: '🩸', art: art(3) };
+const WITCHED: Buff = { name: 'Cold-Blooded Witch', about: `${pct(WITCH.critDamage)} more crit damage for each.`, icon: '🩸', art: art(3) };
 /** Moonlight: shown on her card for the second it lasts. */
-const MOONLIGHT: Buff = { name: 'Moonlight', about: '[Red Moon Blade] used now cuts again, and leaves the boss healed not at all for 10 seconds.', icon: '🌕', art: art(2) };
+const MOONLIGHT: Buff = { name: 'Moonlight', about: `[Red Moon Blade] used now cuts again, and leaves the boss healed ${pct(1 - MOON.heals)} less for ${MOON.unhealed} seconds.`, icon: '🌕', art: art(2) };
 /** What her skills leave on the boss. */
 const SIN = 'Original Sin of Blood';
 const WILTED = 'Mysterious Sword - Blossom';
 /** What her perks give her: her opening's more DMG (Cold-Blooded Witch's Dark), and Transcend 5's Dark. */
-const OPENING: Buff = { name: 'Cold-Blooded Witch (opening)', about: 'Deals 25% more to the boss.', icon: '🩸', art: art(3) };
-const RECKLESS: Buff = { name: 'Bloodthirst', about: 'Every blow of hers critical; but she can’t block, and takes 25% more.', icon: '🩸', art: art(3) };
+const OPENING: Buff = { name: 'Cold-Blooded Witch (opening)', about: `Deals ${pct(PERKS.opening.deals - 1)} more to the boss.`, icon: '🩸', art: art(3) };
+const RECKLESS: Buff = { name: 'Bloodthirst', about: `Every blow of hers critical; but she can’t block, and takes ${pct(PERKS.reckless - 1)} more.`, icon: '🩸', art: art(3) };
 const UNHEALED = 'Red Moon';
 
 export const SERIA: HeroDef = {
@@ -64,9 +68,36 @@ export const SERIA: HeroDef = {
   // A warrior whose blows are magical, her ATK higher for her passive: as her class stands, otherwise.
   stats: { ...CLASS_STATS.warrior, atk: CLASS_STATS.warrior.atk + WITCH.atk, deals: 'magical' },
   abilities: [
-    { name: 'Mysterious Sword - Falling Petals', about: 'A cut across the boss. For 5 seconds after, this slot holds [Mysterious Sword - Blossom], once.', icon: '🌸', art: art(0), move: 'petals', cooldown: 7, cost: 1 },
-    { name: 'Blood Scattering Blade', about: 'A rush in with a cut that leaves [Original Sin of Blood] (the boss’s attacks 30% slower for 3 seconds); then two more cuts, each with a blow more through its defense.', icon: '🩸', art: art(1), move: 'scatter', cooldown: 13, cost: 2 },
-    { name: 'Red Moon Blade', about: 'A great cut, harder on a boss. Used in [Moonlight] (a second of it every 6 seconds): it cuts again, and the boss is healed not at all for 10 seconds.', icon: '🌙', art: art(2), move: 'moon', cooldown: 20, cost: 4 },
+    {
+      name: 'Mysterious Sword - Falling Petals',
+      about: `A cut across the boss. For ${PETALS.window} seconds after, this slot holds [Mysterious Sword - Blossom], once.`,
+      words: `Performs a horizontal slash to the front and deals M.DMG to the target and enemies in a narrow range. Can activate [Mysterious Sword - Blossom] (${BLOSSOM_SKILL.cost} Mana: a vertical slash to the front, dealing M.DMG to the target and enemies in a narrow range) once within ${PETALS.window} sec after use.`,
+      icon: '🌸',
+      art: art(0),
+      move: 'petals',
+      cooldown: 7,
+      cost: 1,
+    },
+    {
+      name: 'Blood Scattering Blade',
+      about: `A rush in with a cut that leaves [Original Sin of Blood] (the boss’s attacks ${pct(share(SCATTER.speed))} slower for ${SCATTER.lasts} seconds); then ${SCATTER.cuts} more cuts, each with a blow more through its defense.`,
+      words: `Rapidly charges forward to deal M.DMG and inflicts irremovable Original Sin of Blood on enemies for ${SCATTER.lasts} sec. Enemies under Original Sin of Blood have their ATK Spd reduced by ${SCATTER.speed}. Shortly afterward, attacks enemies under Original Sin of Blood ${SCATTER.cuts} times, and deals additional M.DMG, and if the target is not a hero, deals additional DEF Ignoring M.DMG.`,
+      icon: '🩸',
+      art: art(1),
+      move: 'scatter',
+      cooldown: 13,
+      cost: 2,
+    },
+    {
+      name: 'Red Moon Blade',
+      about: `A great cut, harder on a boss. Used in [Moonlight] (${seconds(MOON.light)} of it every ${MOON.every} seconds): it cuts again, and the boss is healed ${pct(1 - MOON.heals)} less for ${MOON.unhealed} seconds.`,
+      words: `Brandishes a moon-bloodying sword, dealing M.DMG to enemies in a wide range, and additional M.DMG on non-Hero enemies. When the moon is ripe, gains Moonlight for ${MOON.light} sec, and when cast at this state, deals M.DMG to enemies and reduces their Heal Rate by ${pct(1 - MOON.heals)}. If the target is not a hero, deals additional M.DMG.`,
+      icon: '🌙',
+      art: art(2),
+      move: 'moon',
+      cooldown: 20,
+      cost: 4,
+    },
   ],
   passive: COLD_BLOODED,
   perks: {
@@ -137,7 +168,7 @@ export const SERIA: HeroDef = {
           if (part === 0) {
             cut(SCATTER.rush);
             put(fight.foe.statuses, { name: SIN, left: SCATTER.lasts, shown: 'curse' });
-            fight.slow(SCATTER.slow, SCATTER.lasts);
+            fight.slow(SCATTER.speed, SCATTER.lasts);
             return;
           }
           cut(SCATTER.cut);
@@ -148,7 +179,7 @@ export const SERIA: HeroDef = {
           cut(MOON.blow + MOON.boss);
           if (!ripe) return;
           cut(MOON.ripe);
-          put(fight.foe.statuses, { name: UNHEALED, left: MOON.unhealed, heals: 0, shown: 'curse' });
+          put(fight.foe.statuses, { name: UNHEALED, left: MOON.unhealed, heals: MOON.heals, shown: 'curse' });
         },
       },
       // For a while after Falling Petals, its slot holds Blossom.

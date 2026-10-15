@@ -2,7 +2,7 @@ import { share } from '../combat/damage';
 import { put } from '../combat/status';
 import { t5Light } from '../perks';
 import { BLOW } from '../rules';
-import { skillArt, type Buff } from '../shown';
+import { fold, nth, pct, skillArt, times, type Buff } from '../shown';
 import { atTier, BARBATOS } from '../unique';
 import { CLASS_STATS, type HeroDef, type Passive } from './kit';
 
@@ -43,20 +43,20 @@ const CURSED_BLOOD: Passive = {
   control: 1,
   shown: {
     name: 'Cursed Blood',
-    about:
-      'Passive. A stack of [Cursed Blood] for each skill he uses; at the 3rd, his skills are ready again, a burst knocks the boss down, and he is in [Fury] for 10 seconds: ATK higher, his attack twice as hard, every skill reinforced (each costs a share of his health), fighting by himself.',
+    about: `Passive. A stack of [Cursed Blood] for each skill he uses; at the ${nth(CURSED.most)}, his skills are ready again, a burst knocks the boss down, and he is in [Fury] for ${CURSED.lasts} seconds: ATK higher, his attack ${times(CLAW.fury)} as hard, every skill reinforced (each costs a share of his health), fighting by himself.`,
     icon: '🩸',
     art: art(3),
   },
+  words: `Ezekiel gains 1 stack of 'Cursed Blood' at the end of skill. Upon the ${nth(CURSED.most)} stack, consumes Cursed Blood to reset all skill cooldown, dealing M.DMG to nearby enemies and knocking them down for ${CURSED.down} sec, while activating Fury for ${CURSED.lasts} sec, that cannot be dispelled. While in Fury state, goes into an auto-battle mode that cannot be controlled, and ATK is increased by ${pct(CURSED.atk)}, auto attack DMG is ${fold(CLAW.fury)}, and all Skill effect are reinforced. Cannot gain Cursed Blood during Fury state, except for when killing an enemy.`,
 };
 /** His stacks of Cursed Blood: shown beside his passive, with how many he has. */
-const STACKED: Buff = { name: 'Cursed Blood', about: 'At 3, he is in [Fury].', icon: '🩸' };
+const STACKED: Buff = { name: 'Cursed Blood', about: `At ${CURSED.most}, he is in [Fury].`, icon: '🩸' };
 /** Fury: shown on his card, with how long it has left. */
-const FURY: Buff = { name: 'Fury', about: 'ATK 30% higher, his attack twice as hard, every skill reinforced (each costs a share of his health); he fights by himself.', icon: '😈', art: art(3) };
+const FURY: Buff = { name: 'Fury', about: `ATK ${pct(CURSED.atk)} higher, his attack ${times(CLAW.fury)} as hard, every skill reinforced (each costs a share of his health); he fights by himself.`, icon: '😈', art: art(3) };
 /** What Dawning Despair in Fury gives him for a while. */
 const QUICKENED: Buff = { name: 'Dawning Despair', about: 'His attacks quickened.', icon: '💨', art: art(1) };
 /** What Destructive Instinct's Dark gives him after it. */
-const INSTINCT_UP: Buff = { name: 'Destructive Instinct', about: 'ATK 40% higher.', icon: '🌀', art: art(0) };
+const INSTINCT_UP: Buff = { name: 'Destructive Instinct', about: `ATK ${pct(PERKS.atk - 1)} higher.`, icon: '🌀', art: art(0) };
 
 export const EZEKIEL: HeroDef = {
   id: 'ezekiel',
@@ -68,9 +68,36 @@ export const EZEKIEL: HeroDef = {
   // An assassin whose blows are magical (his demon arm's): as his class stands, otherwise.
   stats: { ...CLASS_STATS.assassin, deals: 'magical' },
   abilities: [
-    { name: 'Destructive Instinct', about: 'A swipe of his demon arm, then a blow to the ground that knocks the boss down for 3 seconds. In [Fury]: both 50% harder, for 15% of the health he has.', icon: '🌀', art: art(0), move: 'instinct', cooldown: 8, cost: 2 },
-    { name: 'Dawning Despair', about: 'A dash and a blow: the boss’s attacks 30% slower for 5 seconds. In [Fury]: it is also stunned for 3 seconds, and his attacks are 30% quicker for 10, for 10% of the health he has.', icon: '💨', art: art(1), move: 'despair', cooldown: 10, cost: 2 },
-    { name: 'Strike of Doom', about: 'A charged blow that stuns the boss for 3 seconds. In [Fury]: three times as hard, for 20% of the health he has.', icon: '💥', art: art(2), move: 'doom', cooldown: 7, cost: 2 },
+    {
+      name: 'Destructive Instinct',
+      about: `A swipe of his demon arm, then a blow to the ground that knocks the boss down for ${INSTINCT.down} seconds. In [Fury]: both ${pct(INSTINCT.fury - 1)} harder, for ${pct(INSTINCT.cost)} of the health he has.`,
+      words: `Swipes nearby enemies in a circular range and deals M.DMG. Then strikes the ground, dealing M.DMG and knocking down enemies for ${INSTINCT.down} sec. [Fury] - Consumes ${pct(INSTINCT.cost)} of current HP to activate. Effect range increases and swipe attack draws in enemies.`,
+      icon: '🌀',
+      art: art(0),
+      move: 'instinct',
+      cooldown: 8,
+      cost: 2,
+    },
+    {
+      name: 'Dawning Despair',
+      about: `A dash and a blow: the boss’s attacks ${pct(share(DESPAIR.speed))} slower for ${DESPAIR.slowed} seconds. In [Fury]: it is also stunned for ${DESPAIR.stun} seconds, and his attacks are ${pct(share(DESPAIR.speed))} quicker for ${DESPAIR.lasts}, for ${pct(DESPAIR.cost)} of the health he has.`,
+      words: `Dashes to an enemy with the highest ATK and deals M.DMG to enemies in range, reducing their ATK Spd by ${DESPAIR.speed}. [Fury] - Consumes ${pct(DESPAIR.cost)} of current HP to activate. Effect range increases, Stuns target for ${DESPAIR.stun} sec, and increases own ATK Spd by ${DESPAIR.speed} for ${DESPAIR.lasts} sec.`,
+      icon: '💨',
+      art: art(1),
+      move: 'despair',
+      cooldown: 10,
+      cost: 2,
+    },
+    {
+      name: 'Strike of Doom',
+      about: `A charged blow that stuns the boss for ${DOOM.stun} seconds. In [Fury]: ${times(DOOM.fury)} as hard, for ${pct(DOOM.cost)} of the health he has.`,
+      words: `Charges energy and attacks target enemy, dealing M.DMG and inflicting Stun for ${DOOM.stun} sec. Ignores target's DMG Reduction effects. [Fury] - Consumes ${pct(DOOM.cost)} of current HP to activate. Attacks enemies in range of target and DMG is ${fold(DOOM.fury)}.`,
+      icon: '💥',
+      art: art(2),
+      move: 'doom',
+      cooldown: 7,
+      cost: 2,
+    },
   ],
   passive: CURSED_BLOOD,
   perks: {
@@ -144,7 +171,7 @@ export const EZEKIEL: HeroDef = {
         // A dash and a blow: the boss's attacks slowed (in Fury, it is also stunned, and his own attacks quickened).
         despair() {
           fight.hit(self, DESPAIR.blow, true, 0, furious.despair && self.perks.has('s2-dark'));
-          fight.slow(1 - share(DESPAIR.speed), DESPAIR.slowed);
+          fight.slow(DESPAIR.speed, DESPAIR.slowed);
           if (!furious.despair) return;
           fight.stun(DESPAIR.stun, { by: self });
           put(self.statuses, { name: QUICKENED.name, left: DESPAIR.lasts, pace: 1 + share(DESPAIR.speed), shown: QUICKENED });

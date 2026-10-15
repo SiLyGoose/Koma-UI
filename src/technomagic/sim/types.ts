@@ -201,8 +201,8 @@ export interface Fight {
   mend(amount: number): void;
   /** The boss is stunned (or knocked `down`): for longer when it is `by` a hero's skill and its passive and gear say so. */
   stun(seconds: number, how?: { down?: boolean; by?: Fighter }): void;
-  /** The boss's attacks go at `rate` of their speed for so many seconds. */
-  slow(rate: number, seconds: number): void;
+  /** The boss's ATK Spd is so many points lower (King's Raid's: 300 has it attack at 70% of its speed) for so many seconds. */
+  slow(points: number, seconds: number): void;
   /** Something for the page to draw that the fight's own events don't say: `name` is the hero's (or with `who` null, the boss's) own, and `targets` whom it is on. */
   cue(who: Fighter | null, name: string, targets?: readonly Fighter[]): void;
 }

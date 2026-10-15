@@ -1,7 +1,7 @@
 import { away, put } from '../combat/status';
 import { t5Light } from '../perks';
 import { BLOW, MAX_MANA, SECTION } from '../rules';
-import { skillArt, type Buff } from '../shown';
+import { pct, skillArt, type Buff } from '../shown';
 import type { Fighter } from '../types';
 import { atTier, ELTOIRRE, ELTOIRRE_UP } from '../unique';
 import { CLASS_STATS, type HeroDef, type Passive } from './kit';
@@ -50,18 +50,19 @@ const BLESSING: Passive = {
   control: 1,
   shown: {
     name: 'Blessing of the Water Dragon',
-    about: 'Passive. +500 CC Resist for her; every ally has 10% more M.DEF and 250 M.Crit Resistance, and each skill she uses has every ally take 25% less magical damage for 5 seconds.',
+    about: `Passive. +${WATER_DRAGON.resist} CC Resist for her; every ally has ${pct(WATER_DRAGON.defense - 1)} more M.DEF and ${WATER_DRAGON.critResist} M.Crit Resistance, and each skill she uses has every ally take ${pct(1 - WATER_DRAGON.taken)} less magical damage for ${WATER_DRAGON.lasts} seconds.`,
     icon: '🐉',
     art: art(3),
   },
+  words: `Increases Laias' CC Resist by ${WATER_DRAGON.resist}, and increases all allies' M.DEF by ${pct(WATER_DRAGON.defense - 1)} and M.Crit Resistance by ${WATER_DRAGON.critResist}. Whenever Laias casts an active Skill, reduces M.DMG all allies take by ${pct(1 - WATER_DRAGON.taken)} for ${WATER_DRAGON.lasts} sec.`,
 };
 /** What her passive gives every ally while she is on the field, and each skill she uses for a while. */
 const BLESSED: Buff = { name: 'Blessing of the Water Dragon', about: 'More M.DEF, and the boss’s magic is less likely to land a critical blow.', icon: '🐉', art: art(3) };
-const WARDED: Buff = { name: 'Water Dragon’s Ward', about: 'Takes 25% less magical damage.', icon: '💧', art: art(3) };
+const WARDED: Buff = { name: 'Water Dragon’s Ward', about: `Takes ${pct(1 - WATER_DRAGON.taken)} less magical damage.`, icon: '💧', art: art(3) };
 /** What Healing Droplets gives each ally, shown on its card with how long it has left. */
 const DROPLETS_UP: Buff = { name: 'Healing Droplets', about: 'Healing reaches it the more.', icon: '💧', art: art(0) };
 /** What Bubble Shield gives its ally: for its whole while, and more while the shield holds. */
-const BUBBLED: Buff = { name: 'Bubble Shield', about: 'Takes 30% less from the boss and deals 15% more to it.', icon: '🫧', art: art(1) };
+const BUBBLED: Buff = { name: 'Bubble Shield', about: `Takes ${pct(1 - BUBBLE.taken)} less from the boss and deals ${pct(BUBBLE.dmg)} more to it.`, icon: '🫧', art: art(1) };
 const BUBBLE_HOLDS: Buff = { name: 'Bubble', about: 'While the shield holds: can’t be knocked down, hits harder, and is healed every second.', icon: '🫧', art: art(1) };
 
 export const LAIAS: HeroDef = {
@@ -72,9 +73,36 @@ export const LAIAS: HeroDef = {
   // A priestess whose blows are magical, who stands being knocked down far better (her passive): as her class stands, otherwise.
   stats: { ...CLASS_STATS.priest, deals: 'magical', resist: CLASS_STATS.priest.resist + WATER_DRAGON.resist },
   abilities: [
-    { name: 'Healing Droplets', about: 'Heals every ally, and for 10 seconds healing reaches them 25% more (half as much more again for one at half its health or less).', icon: '💧', art: art(0), move: 'droplets', cooldown: 8, cost: 2 },
-    { name: 'Bubble Shield', about: 'A shield on the ally with the lowest health: for 15 seconds it takes 30% less from the boss and deals 15% more. While the shield holds it can’t be knocked down, hits 20% harder and is healed every second.', icon: '🫧', art: art(1), move: 'bubble', cooldown: 15, cost: 3 },
-    { name: 'Festival of the Flow', about: 'Knocks the boss down for 3 seconds, heals every ally 15% of its max HP and gives every other ally 2 mana. Then for 12 seconds a whirlpool every 4 seconds strikes the boss and knocks it down for 2.', icon: '🌊', art: art(2), move: 'festival', cooldown: 20, cost: 4 },
+    {
+      name: 'Healing Droplets',
+      about: `Heals every ally, and for ${DROPLETS.lasts} seconds healing reaches them ${pct(DROPLETS.heals)} more (${DROPLETS.lowTimes} times that for one at ${pct(DROPLETS.low)} of its health or less).`,
+      words: `Heals HP of all allies and increases Heal Rate by ${pct(DROPLETS.heals)} for ${DROPLETS.lasts} sec. If the target's HP is ${pct(DROPLETS.low)} or below, Heal Rate increases by ${DROPLETS.lowTimes} times.`,
+      icon: '💧',
+      art: art(0),
+      move: 'droplets',
+      cooldown: 8,
+      cost: 2,
+    },
+    {
+      name: 'Bubble Shield',
+      about: `A shield on the ally with the lowest health: for ${BUBBLE.lasts} seconds it takes ${pct(1 - BUBBLE.taken)} less from the boss and deals ${pct(BUBBLE.dmg)} more. While the shield holds it can’t be knocked down, hits ${pct(BUBBLE.atk)} harder and is healed every second.`,
+      words: `For ${BUBBLE.lasts} sec, casts a Shield that blocks DMG on the ally with the lowest HP. While the Shield is active, gains immunity to CC, increases ATK and heals HP every sec. For ${BUBBLE.lasts} sec, the ally takes ${pct(1 - BUBBLE.taken)} reduced DMG from Non-Hero targets and increases DMG dealt to Non-Hero enemies by ${pct(BUBBLE.dmg)}. The DMG Reduction effect from and the DMG Boost effect to Non-Hero enemies is irremovable.`,
+      icon: '🫧',
+      art: art(1),
+      move: 'bubble',
+      cooldown: 15,
+      cost: 3,
+    },
+    {
+      name: 'Festival of the Flow',
+      about: `Knocks the boss down for ${FESTIVAL.down} seconds, heals every ally ${pct(FESTIVAL.heal)} of its max HP and gives every other ally ${FESTIVAL.mana / SECTION} mana. Then for ${FESTIVAL.lasts} seconds a whirlpool every ${FESTIVAL.every} seconds strikes the boss and knocks it down for ${FESTIVAL.whirlDown}.`,
+      words: `Deals M.DMG to nearby enemies and knocks them down for ${FESTIVAL.down} sec. Upon casting, heals HP of all allies by ${pct(FESTIVAL.heal)} of their Max HP and recovers ${FESTIVAL.mana / SECTION} orbs of Mana of allies excluding self. Afterward, for ${FESTIVAL.lasts} sec, creates a whirlpool every ${FESTIVAL.every} sec that deals M.DMG to random enemies and knocks them down for ${FESTIVAL.whirlDown} sec.`,
+      icon: '🌊',
+      art: art(2),
+      move: 'festival',
+      cooldown: 20,
+      cost: 4,
+    },
   ],
   passive: BLESSING,
   perks: {

@@ -90,10 +90,33 @@ export interface TmHero {
   name: string;
   class: string;
   skins: number;
+  /** Its three skills, then its passive: as the heroes page says them (King's Raid's words, with the fight's numbers). */
+  skills: TmHeroSkill[];
+}
+
+/**
+ * A hero's skill as the heroes page says it: its name; its mana cost and cooldown (seconds; a passive has neither);
+ * what its tag says besides its cost, where not its cooldown (or, a passive's, where not "Passive"); and its words.
+ */
+export interface TmHeroSkill {
+  name: string;
+  cost: number | null;
+  cooldown: number | null;
+  tag: string | null;
+  text: string;
 }
 
 /** The heroes there are, in the order of their cards; and the bosses, by id. */
-export const TM_HEROES: readonly TmHero[] = HEROES.map((hero) => ({ id: hero.id, name: hero.name, class: hero.class, skins: hero.skins.length }));
+export const TM_HEROES: readonly TmHero[] = HEROES.map((hero) => ({
+  id: hero.id,
+  name: hero.name,
+  class: hero.class,
+  skins: hero.skins.length,
+  skills: [
+    ...hero.abilities.map(({ name, cost, cooldown, tag, words, about }) => ({ name, cost, cooldown, tag: tag ?? null, text: words ?? about ?? '' })),
+    ...(hero.passive ? [{ name: hero.passive.shown.name, cost: null, cooldown: null, tag: hero.passive.tag ?? null, text: hero.passive.words ?? hero.passive.shown.about ?? '' }] : []),
+  ],
+}));
 export const BOSS_IDS: readonly string[] = BOSSES.map((boss) => boss.id);
 
 /** A TechnoMagic set as the fight has it: its id, name and icon, and what it does for a hero of each class wearing three of its pieces (by class; one it does nothing for left out). */

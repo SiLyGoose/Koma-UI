@@ -1,7 +1,8 @@
+import { share } from '../combat/damage';
 import { put } from '../combat/status';
 import { BLOW, MAX_MANA } from '../rules';
 import { t5Light } from '../perks';
-import { skillArt, type Buff } from '../shown';
+import { pct, skillArt, type Buff } from '../shown';
 import { CLASS_STATS, type HeroDef, type Passive } from './kit';
 
 /*
@@ -20,7 +21,8 @@ import { CLASS_STATS, type HeroDef, type Passive } from './kit';
  * DEF lasts: as long as it waits (10 seconds).
  */
 const CUT_GROUND = { blow: 7000, stun: 5 };
-const SHIELD_STRIKE = { blow: 4000, lasts: 20, slow: 0.67, exposed: 1.3 };
+// (Its slow, as the game has it: an ATK Spd reduction, in points.)
+const SHIELD_STRIKE = { blow: 4000, lasts: 20, speed: 500, exposed: 1.3 };
 const GUARDIAN = { lasts: 20, taken: 0.75 };
 const VOW = { weak: 0.8, lasts: 8, mana: 300 };
 /** His own perks' numbers: Shield Strike's stun, Guardian Shield's more (and its P.DMG taken), Vow of Knights' less ATK, and Transcend 5's Dark's guard for every ally (how long, and how long it waits). */
@@ -32,12 +34,18 @@ const VOW_OF_KNIGHTS: Passive = {
   attack: 1,
   crit: 0,
   control: 1,
-  shown: { name: 'Vow of Knights', about: 'Passive. When he blocks he strikes back: the boss hits 20% less hard for 8 seconds, and he gains 300 mana.', icon: '🛡️', art: art(3) },
+  shown: {
+    name: 'Vow of Knights',
+    about: `Passive. When he blocks he strikes back: the boss hits ${pct(1 - VOW.weak)} less hard for ${VOW.lasts} seconds, and he gains ${VOW.mana} mana.`,
+    icon: '🛡️',
+    art: art(3),
+  },
+  words: `Upon blocking, deals P.DMG to frontal enemies and decreases ATK of affected targets by ${pct(1 - VOW.weak)} for ${VOW.lasts} sec. Recovers ${VOW.mana} MP after hitting the target. When an ally excluding self takes DMG increases all allies' P.DEF by 20% and P.Crit Resistance by 200 for 5 sec. This effect only activates once every 10 sec.`,
 };
 /** What Guardian Shield gives every hero for a while: shown on each card, with how long it has left. */
-const GUARDED: Buff = { name: 'Guardian Shield', about: 'Takes 25% less from the boss.', icon: '✨', art: art(2) };
+const GUARDED: Buff = { name: 'Guardian Shield', about: `Takes ${pct(1 - GUARDIAN.taken)} less from the boss.`, icon: '✨', art: art(2) };
 /** What his Transcend 5's Dark gives every ally when another is hit. */
-const WARDED: Buff = { name: 'Knight’s Guard', about: 'P.DEF +20% and P.Crit Resist +20%.', icon: '🛡️', art: art(3) };
+const WARDED: Buff = { name: 'Knight’s Guard', about: `P.DEF +${pct(PERKS.ward.defends - 1)} and P.Crit Resist +${pct(share(PERKS.ward.critResist))}.`, icon: '🛡️', art: art(3) };
 
 export const CLAUSE: HeroDef = {
   id: 'clause',
@@ -47,9 +55,36 @@ export const CLAUSE: HeroDef = {
   // A knight whose blows are physical: as his class stands, otherwise (he blocks a good third of the blows that come at him).
   stats: { ...CLASS_STATS.knight, deals: 'physical' },
   abilities: [
-    { name: 'Cut Ground', about: 'A leap and a blow down on the boss that stuns it for 5 seconds.', icon: '⚔️', art: art(0), move: 'slam', cooldown: 9, cost: 2 },
-    { name: 'Shield Strike', about: 'A blow with his shield: for 20 seconds the boss attacks a third slower and takes 30% more.', icon: '🛡️', art: art(1), move: 'bash', cooldown: 8, cost: 1 },
-    { name: 'Guardian Shield', about: 'For 20 seconds every hero takes 25% less from the boss.', icon: '✨', art: art(2), move: 'guard', cooldown: 12, cost: 2 },
+    {
+      name: 'Cut Ground',
+      about: `A leap and a blow down on the boss that stuns it for ${CUT_GROUND.stun} seconds.`,
+      words: `Leaps into the air and deals P.DMG to enemies in range, stunning them for ${CUT_GROUND.stun} sec.`,
+      icon: '⚔️',
+      art: art(0),
+      move: 'slam',
+      cooldown: 9,
+      cost: 2,
+    },
+    {
+      name: 'Shield Strike',
+      about: `A blow with his shield: for ${SHIELD_STRIKE.lasts} seconds the boss attacks ${pct(share(SHIELD_STRIKE.speed))} slower and takes ${pct(SHIELD_STRIKE.exposed - 1)} more.`,
+      words: `Deals P.DMG proportional to P.DEF to enemies in range and knocks them back. Hit enemies' All DEF and ATK Spd is reduced by ${pct(SHIELD_STRIKE.exposed - 1)} and ${SHIELD_STRIKE.speed} for ${SHIELD_STRIKE.lasts} sec, respectively. Upon blocking an attack, skill cooldown is reduced by 0.5 sec.`,
+      icon: '🛡️',
+      art: art(1),
+      move: 'bash',
+      cooldown: 8,
+      cost: 1,
+    },
+    {
+      name: 'Guardian Shield',
+      about: `For ${GUARDIAN.lasts} seconds every hero takes ${pct(1 - GUARDIAN.taken)} less from the boss.`,
+      words: `All allies' P.DEF is increased for ${GUARDIAN.lasts} sec and P.Crit Resistance is increased by 300, and reduces P.DMG they take by ${pct(1 - GUARDIAN.taken)}..`,
+      icon: '✨',
+      art: art(2),
+      move: 'guard',
+      cooldown: 12,
+      cost: 2,
+    },
   ],
   passive: VOW_OF_KNIGHTS,
   perks: {
@@ -86,7 +121,7 @@ export const CLAUSE: HeroDef = {
         bash() {
           fight.hit(self, SHIELD_STRIKE.blow);
           put(fight.foe.statuses, { name: 'Exposed', left: SHIELD_STRIKE.lasts, takes: SHIELD_STRIKE.exposed, shown: 'curse' });
-          fight.slow(SHIELD_STRIKE.slow, SHIELD_STRIKE.lasts);
+          fight.slow(SHIELD_STRIKE.speed, SHIELD_STRIKE.lasts);
           if (self.perks.has('s2-dark')) fight.stun(PERKS.bashStun, { by: self });
         },
         // The shield raised: every hero is guarded.

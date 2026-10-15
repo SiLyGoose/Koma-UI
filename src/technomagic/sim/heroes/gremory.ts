@@ -1,10 +1,11 @@
 import { share } from '../combat/damage';
 import { put, type Status } from '../combat/status';
 import { BLOW, MAX_MANA } from '../rules';
-import { skillArt, type Buff, type Tone } from '../shown';
+import { pct, skillArt, type Buff, type Tone } from '../shown';
 import { t5Light } from '../perks';
 import { atTier, PIGRITIA } from '../unique';
 import { CLASS_STATS, type Ability, type HeroDef, type Passive } from './kit';
+import { CODED } from './moves';
 
 /*
  * Gremory's skills, as the game has them (what each costs, how long its marks last and how many stack are the
@@ -41,7 +42,15 @@ export const ASLEEP = 3;
 const art = skillArt('gremory');
 
 /** What all three of her slots turn into once her skills are sealed (its picture is the game's for it, where a passive's would be). */
-const SLEEP_SKILL: Ability = { name: 'Eh, whatever. I’m gonna sleep.', about: 'She sleeps for 3 seconds, taking 40% less and not to be knocked down; then her skills are unsealed, and she gains a [Mana Charge] (5 at most): +10% ATK and +2% to all she deals for each.', icon: '💤', art: art(3), move: 'sleep', cooldown: 0, cost: 0 };
+const SLEEP_SKILL: Ability = {
+  name: 'Eh, whatever. I’m gonna sleep.',
+  about: `She sleeps for ${ASLEEP} seconds, taking ${pct(1 - SLEEP.taken)} less and not to be knocked down; then her skills are unsealed, and she gains a [Mana Charge] (${CHARGE.most} at most): +${pct(CHARGE.atk)} ATK and +${pct(CHARGE.dmg)} to all she deals for each.`,
+  icon: '💤',
+  art: art(3),
+  move: 'sleep',
+  cooldown: 0,
+  cost: 0,
+};
 
 const LAZY: Passive = {
   attack: 1,
@@ -49,16 +58,20 @@ const LAZY: Passive = {
   control: 1,
   shown: {
     name: 'Eh, whatever. I’m gonna sleep.',
-    about:
-      'Each of her skills is sealed once used; once all three are, each turns into this. She sleeps a while (taking 40% less and not to be knocked down), then wakes with her skills unsealed and a [Mana Charge].',
+    about: `Each of her skills is sealed once used; once all three are, each turns into this. She sleeps a while (taking ${pct(1 - SLEEP.taken)} less and not to be knocked down), then wakes with her skills unsealed and a [Mana Charge].`,
     icon: '💤',
     art: art(3),
   },
+  words: `Available once all Skills are sealed. Upon use, dispels CC effects from self. While in use, Gremory gains immunity to CC, takes ${pct(1 - SLEEP.taken)} reduced All DMG, and unlocks all of her sealed Skills. Every time she uses [Eh, whatever. I'm gonna sleep.], she gains a [Mana Charge] stack. Each [Mana Charge] stack increases Gremory's DMG dealt to enemies by ${pct(CHARGE.dmg)} and her ATK by ${pct(CHARGE.atk)}. [Mana Charge] can be stacked up to max ${CHARGE.most} times and is irremovable.`,
+  tag: 'Once all are sealed',
 };
 /** Asleep: shown on her card, with how long it has left. */
-const SLEEPING: Buff = { name: 'Asleep', about: 'Takes 40% less from the boss, and can’t be knocked down.', icon: '💤', art: art(3) };
+const SLEEPING: Buff = { name: 'Asleep', about: `Takes ${pct(1 - SLEEP.taken)} less from the boss, and can’t be knocked down.`, icon: '💤', art: art(3) };
 /** Her Mana Charge: shown on her card, with how many she has. */
-const CHARGED: Buff = { name: 'Mana Charge', about: 'Each: +10% ATK and +2% to all she deals; [Pochi, bite them!] hits harder for each.', icon: '🔋' };
+const CHARGED: Buff = { name: 'Mana Charge', about: `Each: +${pct(CHARGE.atk)} ATK and +${pct(CHARGE.dmg)} to all she deals; [Pochi, bite them!] hits harder for each.`, icon: '🔋' };
+/** How many times each of her skills strikes (its move's blows). */
+const BITES = CODED.pochi.lands.length;
+const WRAPS = CODED.pippi.lands.length;
 /** What her skills leave on the boss. */
 const POCHI_MARK = 'Pochi’s Mark';
 const PIPPI_MARK = 'Pippi’s Mark';
@@ -78,9 +91,39 @@ export const GREMORY: HeroDef = {
   // An assassin whose blows are magical: as her class stands, otherwise.
   stats: { ...CLASS_STATS.assassin, deals: 'magical' },
   abilities: [
-    { name: 'Pochi, bite them!', about: 'Five bites, each harder for her [Mana Charge], each leaving [Pochi’s Mark]: the boss hits 6% softer for each, for 15 seconds (up to 5). Sealed once used.', icon: '🐶', art: art(0), move: 'pochi', cooldown: 0, cost: 3 },
-    { name: 'Puchi, knock them away!', about: 'A blow from behind that stuns the boss for 5 seconds. Sealed once used.', icon: '💥', art: art(1), move: 'puchi', cooldown: 0, cost: 3 },
-    { name: 'Pippi, wrap them!', about: 'Ten blows, each leaving [Pippi’s Mark]: the boss takes 5% more magical damage for each, for 12 seconds (up to 10). With all 10 on it, each blow deals more, through its defense. Sealed once used.', icon: '🎀', art: art(2), move: 'pippi', cooldown: 0, cost: 4 },
+    {
+      name: 'Pochi, bite them!',
+      about: `${BITES} bites, each harder for her [Mana Charge], each leaving [Pochi’s Mark]: the boss hits ${pct(POCHI.weaker)} softer for each, for ${POCHI.lasts} seconds (up to ${POCHI.most}). Sealed once used.`,
+      words: `Attacks an enemy ${BITES} times, dealing M.DMG and inflicting [Pochi's Mark] each hit. The M.DMG of each hit increases by ${pct(POCHI.more)} per every stack of [Mana Charge]. [Pochi's Mark] reduces target's ATK by ${pct(POCHI.weaker)} for ${POCHI.lasts} sec, and it can be stacked up to max ${POCHI.most} times. If the target is a Boss, each hit deals additional M.DMG. The additional M.DMG increases by ${pct(POCHI.bossMore)} per every stack of [Mana Charge]. This skill is sealed after use.`,
+      tag: 'Sealed after use',
+      icon: '🐶',
+      art: art(0),
+      move: 'pochi',
+      cooldown: 0,
+      cost: 3,
+    },
+    {
+      name: 'Puchi, knock them away!',
+      about: `A blow from behind that stuns the boss for ${PUCHI.stun} seconds. Sealed once used.`,
+      words: `Attacks the farthest enemy from behind, dealing M.DMG. Afterward, inflicts Stun for ${PUCHI.stun} sec and [Puchi's Mark] on the target. This skill is sealed after use.`,
+      tag: 'Sealed after use',
+      icon: '💥',
+      art: art(1),
+      move: 'puchi',
+      cooldown: 0,
+      cost: 3,
+    },
+    {
+      name: 'Pippi, wrap them!',
+      about: `${WRAPS} blows, each leaving [Pippi’s Mark]: the boss takes ${pct(PIPPI.takes)} more magical damage for each, for ${PIPPI.lasts} seconds (up to ${PIPPI.most}). With all ${PIPPI.most} on it, each blow deals more, through its defense. Sealed once used.`,
+      words: `Deals a total of M.DMG over ${WRAPS} times to the target and enemies within a large area around the target, inflicting [Pippi's Mark] on hit targets each hit. If this skill deals DMG to a target inflicted with ${PIPPI.most} stacks of [Pippi's Mark], each hit deals additional M.DMG that ignores DEF. [Pippi's Mark] increases M.DMG the target takes by ${pct(PIPPI.takes)} for ${PIPPI.lasts} sec, and it can be stacked up to max ${PIPPI.most} times. This skill is sealed after use.`,
+      tag: 'Sealed after use',
+      icon: '🎀',
+      art: art(2),
+      move: 'pippi',
+      cooldown: 0,
+      cost: 4,
+    },
   ],
   passive: LAZY,
   perks: {

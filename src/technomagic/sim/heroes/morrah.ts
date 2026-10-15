@@ -2,7 +2,7 @@ import { share } from '../combat/damage';
 import { away, put } from '../combat/status';
 import { t5Light } from '../perks';
 import { BLOW } from '../rules';
-import { skillArt, type Buff } from '../shown';
+import { pct, seconds, skillArt, type Buff } from '../shown';
 import type { Fighter } from '../types';
 import { atTier, CARPRAIN } from '../unique';
 import { CLASS_STATS, type HeroDef, type Passive } from './kit';
@@ -47,18 +47,19 @@ const FIRE_SMASH: Passive = {
   attack: 1,
   crit: 0,
   control: 1,
-  shown: { name: 'Fire Smash', about: 'Passive. When she blocks she strikes back, leaving 3 [Flame] on the boss.', icon: '🔥', art: art(3) },
+  shown: { name: 'Fire Smash', about: `Passive. When she blocks she strikes back, leaving ${SMASH.flames} [Flame] on the boss.`, icon: '🔥', art: art(3) },
+  words: `Upon Block, deals M.DMG to enemies in range, and inflicts ${SMASH.flames} stack of Flame.`,
 };
 /** What Burning Power gives her for a while: shown beside her passive, with how long it has left. */
 const BURNING_UP: Buff = { name: 'Burning Power', about: 'Each blow of her attack deals more and leaves a [Flame] on the boss.', icon: '🔥', art: art(0) };
 /** What Hellfire gives every ally for a while: shown on each card, with how long it has left. */
-const HELLFIRE_UP: Buff = { name: 'Hellfire', about: '30% more M.DEF, and +250 M.Block.', icon: '🌋', art: art(1) };
+const HELLFIRE_UP: Buff = { name: 'Hellfire', about: `${pct(HELLFIRE.defense - 1)} more M.DEF, and +${HELLFIRE.block} M.Block.`, icon: '🌋', art: art(1) };
 /** What her skills, and her unique weapon, leave on the boss. */
 const FLAMED = 'Flame';
 const SEARED = 'Searing Flame';
 /** What her perks give her: Burning Power's Light's attack speed, and Fire Smash's Light's M.DEF. */
 const QUICKENED: Buff = { name: 'Burning Power (speed)', about: 'Quicker.', icon: '🔥', art: art(0) };
-const HARDENED: Buff = { name: 'Fire Smash (M.DEF)', about: '5% more M.DEF for each block (10 at most).', icon: '🔥', art: art(3) };
+const HARDENED: Buff = { name: 'Fire Smash (M.DEF)', about: `${pct(PERKS.harder.defense)} more M.DEF for each block (${PERKS.harder.most} at most).`, icon: '🔥', art: art(3) };
 
 export const MORRAH: HeroDef = {
   id: 'morrah',
@@ -68,9 +69,36 @@ export const MORRAH: HeroDef = {
   // A knight whose blows are magical: as her class stands, otherwise.
   stats: { ...CLASS_STATS.knight, deals: 'magical' },
   abilities: [
-    { name: 'Burning Power', about: 'A blow that knocks the boss down for a second and leaves 3 [Flame] on it. Then for 15 seconds each blow of her attack deals more and leaves a [Flame]. Both are 2% harder for each [Flame] on the boss.', icon: '🔥', art: art(0), move: 'burning', cooldown: 6, cost: 2 },
-    { name: 'Hellfire', about: 'For 20 seconds every ally has 30% more M.DEF and +250 M.Block, and a [Flame] is left on the boss every second.', icon: '🌋', art: art(1), move: 'hellfire', cooldown: 12, cost: 3 },
-    { name: 'Lava Eruption', about: 'A blow that knocks the boss down for 3 seconds, 2% harder for each [Flame] on it.', icon: '☄️', art: art(2), move: 'eruption', cooldown: 20, cost: 3 },
+    {
+      name: 'Burning Power',
+      about: `A blow that knocks the boss down for ${seconds(BURNING.down)} and leaves ${BURNING.flames} [Flame] on it. Then for ${BURNING.lasts} seconds each blow of her attack deals more and leaves a [Flame]. Both are ${pct(FLAME.more)} harder for each [Flame] on the boss.`,
+      words: `Deals M.DMG to enemies in range and knocks them down, inflicting ${BURNING.flames} stacks of Flame. Then for ${BURNING.lasts} sec, each auto attack deals M.DMG and inflicts 1 stack of Flame on enemy. Per each stacked Flame, DMG is increased by ${pct(FLAME.more)}. Each Flame stack deals separate M.DMG and reduces Heal rate by ${pct(FLAME.heals)}.`,
+      icon: '🔥',
+      art: art(0),
+      move: 'burning',
+      cooldown: 6,
+      cost: 2,
+    },
+    {
+      name: 'Hellfire',
+      about: `For ${HELLFIRE.lasts} seconds every ally has ${pct(HELLFIRE.defense - 1)} more M.DEF and +${HELLFIRE.block} M.Block, and a [Flame] is left on the boss every ${seconds(HELLFIRE.every)}.`,
+      words: `For ${HELLFIRE.lasts} sec, all allies' M.DEF is increased by ${pct(HELLFIRE.defense - 1)} and M.Block Chance is increased by ${HELLFIRE.block}. Additionally, every ${HELLFIRE.every} sec, inflicts 1 stack of Flame on nearby enemies.`,
+      icon: '🌋',
+      art: art(1),
+      move: 'hellfire',
+      cooldown: 12,
+      cost: 3,
+    },
+    {
+      name: 'Lava Eruption',
+      about: `A blow that knocks the boss down for ${seconds(ERUPTION.down)}, ${pct(FLAME.more)} harder for each [Flame] on it.`,
+      words: `Deals M.DMG to enemies in range and inflict knock down. Per every stacked Flame, DMG is increased by ${pct(FLAME.more)}.`,
+      icon: '☄️',
+      art: art(2),
+      move: 'eruption',
+      cooldown: 20,
+      cost: 3,
+    },
   ],
   passive: FIRE_SMASH,
   perks: {

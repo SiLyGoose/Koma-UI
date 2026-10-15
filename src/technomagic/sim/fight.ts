@@ -725,9 +725,10 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       foe.stunned = Math.max(foe.stunned, lasts);
       events.push({ kind: 'boss-daze', seconds: lasts, down });
     },
-    slow(rate, seconds) {
+    slow(points, seconds) {
       // (A boss nothing slows shrugs it off.)
       if (foe.part.steady) return;
+      const rate = 1 - share(points);
       foe.slowRate = rate;
       foe.slowed = seconds;
       events.push({ kind: 'boss-slow', rate, seconds });

@@ -40,6 +40,16 @@ export interface Mark {
 
 /** A share as a whole percentage (0.25: "25%"). */
 export const pct = (share: number): string => `${Math.round(share * 100)}%`;
+/** How many times as much, as a card says it ("twice", "three times"), and as King's Raid does ("doubled", "tripled"); and a place in a count ("3rd"). */
+export const times = (n: number): string => (n === 2 ? 'twice' : n === 3 ? 'three times' : `${n} times`);
+export const fold = (n: number): string => (n === 2 ? 'doubled' : n === 3 ? 'tripled' : `${n} times as much`);
+export const nth = (n: number): string => `${n}${n % 100 >= 11 && n % 100 <= 13 ? 'th' : (['th', 'st', 'nd', 'rd'][n % 10] ?? 'th')}`;
+/** So many seconds, as a card says it ("1 second", "3 seconds"). */
+export const seconds = (n: number): string => `${n} second${n === 1 ? '' : 's'}`;
+/** Every so many seconds ("every second", "every 3 seconds"). */
+export const every = (n: number): string => (n === 1 ? 'every second' : `every ${n} seconds`);
+/** A number as King's Raid writes it, its thousands set apart (12000: "12,000"). */
+export const num = (n: number): string => n.toLocaleString('en-US');
 /** To a tenth of a percent (0.048: "4.8%"). */
 export const fine = (share: number): string => `${Math.round(share * 1000) / 10}%`;
 

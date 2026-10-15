@@ -3,9 +3,10 @@ import { put } from '../combat/status';
 import { SKILL_SPEED } from '../motion';
 import { t5Light } from '../perks';
 import { BLOW, MAX_MANA, SECTION } from '../rules';
-import { skillArt, type Buff } from '../shown';
+import { pct, skillArt, type Buff } from '../shown';
 import type { Fighter } from '../types';
 import { CLASS_STATS, type HeroDef, type Passive } from './kit';
+import { CODED } from './moves';
 
 /*
  * Fallen Frey's skills, as the game has them (what each costs, how long before it can be used again,
@@ -31,7 +32,7 @@ const SMITE = { blow: BLOW * 1.5 };
 const LIGHT = { heal: 25_000, near: 3.6, blast: 5000 };
 // (Its 500 ATK Spd, as the game has it: points.)
 const BLESSING = { shield: 30_000, lasts: 10, allies: 4, speed: 500 };
-const VENGEANCE = { blow: 1000, pierce: 500, exposed: 0.1, most: 5, lasts: 20, stun: 0.5 };
+const VENGEANCE = { hits: CODED.vengeance.lands.length, blow: 1000, pierce: 500, exposed: 0.1, most: 5, lasts: 20, stun: 0.5 };
 // The game's 400 mana a second, of its 1000 to a section.
 const TAINTED = { taken: 1.15, mana: 0.4 * SECTION, every: 1, most: 2 };
 /**
@@ -55,10 +56,11 @@ const TAINTED_ANGEL: Passive = {
   taken: TAINTED.taken,
   shown: {
     name: 'Tainted Angel',
-    about: 'Passive. She takes 15% more from the boss, but her mana fills far faster; at full mana she gains [Darkened Power] every second (2 at most).',
+    about: `Passive. She takes ${pct(TAINTED.taken - 1)} more from the boss, but her mana fills far faster; at full mana she gains [Darkened Power] every second (${TAINTED.most} at most).`,
     icon: '🌑',
     art: art(3),
   },
+  words: `As Fallen Frey has been corrupted by the darkness, she takes ${pct(TAINTED.taken - 1)} increased DMG, but she recovers ${TAINTED.mana} Mana every sec, and when her Mana is at 100%, she gains [Darkened Power] every sec. [Darkened Power] can be stacked up to max ${TAINTED.most} times and is irremovable.`,
 };
 /** What her full mana gives her: shown beside her passive, with how many she has. */
 const DARKENED: Buff = { name: 'Darkened Power', about: 'Her next skill spends one: [Heaven’s Vengeance] then stuns the boss with every blow.', icon: '🖤' };
@@ -68,9 +70,9 @@ const BLESSED: Buff = { name: 'Blessing of Doom', about: 'A shield takes the bos
 const EXPOSED = 'Heaven’s Vengeance';
 /** What her perks give her allies as the fight begins: Light of Doom's Light's mark on the boss, and the rest each ally's square. */
 const PURIFIED = 'Light of Doom';
-const FALLEN_BLESSING: Buff = { name: 'Blessing of the Fallen Angel', about: 'Takes 10% less, and its DEF is 20% higher.', icon: '🪽', art: art(3) };
-const FALLEN_BOND: Buff = { name: 'Bond of the Fallen Angel', about: 'Quicker, and its ATK higher by 7% of Fallen Frey’s.', icon: '🔗', art: art(3) };
-const FALLEN_FAVOUR: Buff = { name: 'Fallen Angel’s Favour', about: 'Quicker, and deals 15% more to the boss.', icon: '🌒', art: art(3) };
+const FALLEN_BLESSING: Buff = { name: 'Blessing of the Fallen Angel', about: `Takes ${pct(1 - PERKS.blessing.takes)} less, and its DEF is ${pct(PERKS.blessing.defends - 1)} higher.`, icon: '🪽', art: art(3) };
+const FALLEN_BOND: Buff = { name: 'Bond of the Fallen Angel', about: `Quicker, and its ATK higher by ${pct(PERKS.bond.atk)} of Fallen Frey’s.`, icon: '🔗', art: art(3) };
+const FALLEN_FAVOUR: Buff = { name: 'Fallen Angel’s Favour', about: `Quicker, and deals ${pct(PERKS.favour.deals - 1)} more to the boss.`, icon: '🌒', art: art(3) };
 
 export const FALLEN_FREY: HeroDef = {
   id: 'fallen-frey',
@@ -80,9 +82,37 @@ export const FALLEN_FREY: HeroDef = {
   // A priestess whose blows are magical: as her class stands, otherwise (her heals and shields go by her attack).
   stats: { ...CLASS_STATS.priest, deals: 'magical' },
   abilities: [
-    { name: 'Light of Doom', about: 'Heals the ally with the lowest health and those near it, then the light bursts on the boss.', icon: '✴️', art: art(0), move: 'light', cooldown: 9, cost: 2 },
-    { name: 'Blessing of Doom', about: 'A shield on the 4 allies with the lowest health for 10 seconds, their attacks 50% quicker meanwhile.', icon: '🔮', art: art(1), move: 'blessing', cooldown: 17, cost: 3 },
-    { name: 'Heaven’s Vengeance', about: '20 blows of light on the boss, through some of its defense, each leaving it 10% easier to hurt for 20 seconds (up to 5 times over). With [Darkened Power], every blow stuns it for half a second.', icon: '☄️', art: art(2), move: 'vengeance', cooldown: 22, cost: 5 },
+    {
+      name: 'Light of Doom',
+      about: 'Heals the ally with the lowest health and those near it, then the light bursts on the boss.',
+      words:
+        'Heals HP of the ally with the lowest HP and nearby allies and increases Heal Rate by 20% for 10 sec. Afterward, explodes the area around the target and deals M.DMG to enemies in range, reducing their Heal Rate by 20% for 10 sec. If this Skill is used with 1 or more stacks of [Darkened Power], consumes 1 stack and dispels positive effects of all enemies within range.',
+      icon: '✴️',
+      art: art(0),
+      move: 'light',
+      cooldown: 9,
+      cost: 2,
+    },
+    {
+      name: 'Blessing of Doom',
+      about: `A shield on the ${BLESSING.allies} allies with the lowest health for ${BLESSING.lasts} seconds, their attacks ${pct(share(BLESSING.speed))} quicker meanwhile.`,
+      words: `Grants [Blessing of Doom] to ${BLESSING.allies} allies with the lowest HP, absorbing DMG for ${BLESSING.lasts} sec. The shield grants immunity to CC and increases ATK Spd by ${BLESSING.speed} for the duration. If this Skill is used with 1 or more stacks of [Darkened Power], consumes 1 stack to dispel negative effects from self and additionally dispels negative effects from targets.`,
+      icon: '🔮',
+      art: art(1),
+      move: 'blessing',
+      cooldown: 17,
+      cost: 3,
+    },
+    {
+      name: 'Heaven’s Vengeance',
+      about: `${VENGEANCE.hits} blows of light on the boss, through some of its defense, each leaving it ${pct(VENGEANCE.exposed)} easier to hurt for ${VENGEANCE.lasts} seconds (up to ${VENGEANCE.most} times over). With [Darkened Power], every blow stuns it for ${VENGEANCE.stun} seconds.`,
+      words: `Brings Heaven's Vengeance upon a random enemy and nearby enemies over ${VENGEANCE.hits} hits, dealing M.DMG each hit and increasing All DMG the target takes by ${pct(VENGEANCE.exposed)} for ${VENGEANCE.lasts} sec. ${VENGEANCE.pierce} additional DEF Penetration applies to this Skill. If this Skill is used with 1 or more stacks of [Darkened Power], consumes 1 stack and inflicts Stun on the hit enemies for ${VENGEANCE.stun} sec each hit. The DMG Boost effect can be stacked up to max ${VENGEANCE.most} times.`,
+      icon: '☄️',
+      art: art(2),
+      move: 'vengeance',
+      cooldown: 22,
+      cost: 5,
+    },
   ],
   passive: TAINTED_ANGEL,
   perks: {
@@ -109,7 +139,7 @@ export const FALLEN_FREY: HeroDef = {
   timing: {
     skills: {
       light: { lands: [0.95, 1.45], until: 2.35 },
-      vengeance: { lands: Array.from({ length: 20 }, (_, i) => (0.7 + i * 0.12) * SKILL_SPEED), until: 3.85 * SKILL_SPEED },
+      vengeance: { lands: Array.from({ length: VENGEANCE.hits }, (_, i) => (0.7 + i * 0.12) * SKILL_SPEED), until: 3.85 * SKILL_SPEED },
     },
   },
   join(fight, self) {
