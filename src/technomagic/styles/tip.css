@@ -215,3 +215,9 @@
     font-size: 11px;
   }
 }
+
+/* A name's: as wide as the name. */
+.tm-tip-name {
+  width: max-content;
+  max-width: min(240px, 100vw - 16px);
+}

@@ -3,7 +3,7 @@ import type { Ability } from '../sim/heroes/kit';
 import type { Buff } from '../sim/shown';
 import { about, buffTip, square } from './buff';
 import { el } from './dom';
-import { holdTip, pointTips } from './tip';
+import { holdTip, nameTips, pointTips } from './tip';
 
 /*
  * A hero's card, along the bottom of the field: the hero itself looking out from behind it, a health
@@ -48,13 +48,15 @@ export function makeCard(name: string, face: string, abilities: readonly Ability
 
   const portrait = el('button', 'tm-face');
   portrait.type = 'button';
-  portrait.title = name;
+  portrait.dataset.name = name;
   const picture = el('img', '');
   picture.src = face;
   picture.alt = '';
   picture.draggable = false;
   portrait.append(picture);
   portrait.addEventListener('click', on.toggle);
+  // Pointed at with a mouse: whose card it is.
+  nameTips(portrait, '.tm-face');
 
   const auto = el('button', 'tm-auto', 'Auto');
   auto.type = 'button';

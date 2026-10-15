@@ -27,8 +27,8 @@ export const MORRAH_ASSETS: HeroAssets = {
   skins: [
     {
       name: 'Morrah',
-      // Her artwork, her wings spread and Carprain held out: her head and horns in the crop (the meter’s close-up is her face by itself).
-      portrait: { file: 'Morrah.png', crop: { x: 450, y: 62, size: 170 }, head: { x: 472, y: 98, size: 104 } },
+      // Her artwork, leaping, her wings spread and Carprain's fire dragon over her: her head and horns in the crop (the meter’s close-up is her face by itself).
+      portrait: { file: 'Morrah.png', crop: { x: 385, y: 214, size: 100 }, head: { x: 396, y: 236, size: 60 } },
       model: {
         kind: 'parts',
         parts: ['Hero_Morrah_Vari05_Body', 'Hero_Morrah_Vari05_Hair'],

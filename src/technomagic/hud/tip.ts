@@ -125,26 +125,27 @@ export function holdTip(target: HTMLElement, content: () => readonly Node[] | nu
   target.addEventListener('contextmenu', (event) => event.preventDefault());
 }
 
-/** The squares' popup (made once it is first wanted). */
-let pointed: Tip | null = null;
+/** The pointed-at popups, one of each kind (made once it is first wanted). */
+const pointed = new Map<string, Tip>();
 
 /**
  * The squares in `within` (those `selector` finds) show what `content` says of each over it while a mouse points at
  * it. Drawn again (as squares are, when what they say changes), call what this gives back: the popup goes over the
  * square now under the mouse, or away.
  */
-export function pointTips(within: HTMLElement, selector: string, content: (square: Element) => readonly Node[] | null): () => void {
+export function pointTips(within: HTMLElement, selector: string, content: (square: Element) => readonly Node[] | null, kind = 'tm-tip-pointed'): () => void {
   let on: Element | null = null;
   let x = 0;
   let y = 0;
   const point = (square: Element | null): void => {
     on = square;
     const shown = square && content(square);
-    pointed ??= makeTip('tm-tip-pointed');
-    if (shown) pointed.show(square, shown);
+    let tip = pointed.get(kind);
+    if (!tip) pointed.set(kind, (tip = makeTip(kind)));
+    if (shown) tip.show(square, shown);
     else {
       on = null;
-      pointed.hide();
+      tip.hide();
     }
   };
   within.addEventListener('pointermove', (event) => {
@@ -158,8 +159,21 @@ export function pointTips(within: HTMLElement, selector: string, content: (squar
     if (on) point(null);
   });
   return () => {
-    if (!on || on.isConnected) return;
+    // Still there and shown: it stays.
+    if (!on || (on.isConnected && on.getClientRects().length > 0)) return;
     const square = document.elementFromPoint(x, y)?.closest(selector) ?? null;
     point(square && within.contains(square) ? square : null);
   };
+}
+
+/** What a name's popup says: the name, as a square's popup heads itself. */
+export function nameTip(name: string): Node[] {
+  const head = el('div', 'tm-tip-head');
+  head.append(el('strong', '', name));
+  return [head];
+}
+
+/** The things in `within` that `selector` finds show their name (their `data-name`) over them while a mouse points at them; drawn again, call what this gives back. */
+export function nameTips(within: HTMLElement, selector: string): () => void {
+  return pointTips(within, selector, (made) => ((made as HTMLElement).dataset.name ? nameTip((made as HTMLElement).dataset.name as string) : null), 'tm-tip-pointed tm-tip-name');
 }

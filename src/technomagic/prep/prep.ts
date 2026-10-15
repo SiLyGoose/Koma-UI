@@ -4,6 +4,7 @@ import { GALGORIA } from '../sim/bosses/galgoria';
 import { HEROES } from '../sim/heroes';
 import { nearer } from '../sim/heroes/kit';
 import { el } from '../hud/dom';
+import { nameTips } from '../hud/tip';
 import type { PickView, PlayerView, RoomState } from '../../protocol/technomagic';
 import { SOLO_BOSS_HP } from '../sim/rules';
 
@@ -103,6 +104,8 @@ export function makePrep(act: PrepActions): Prep {
   let picked: number | null = null;
   /** Alone: the team whose tab is pressed, which a hero picked goes into. */
   let intoSub = false;
+  // A hero pointed at with a mouse (in the lineup, or the Heroes List): its name, over it.
+  const named = nameTips(root, '[data-name]');
 
   byId('prep-info').append(
     el('p', '', `${GALGORIA.name}: a chimera of three heads that spits venom. Its blows are magical, and nothing slows it; it heals itself all the while.`),
@@ -208,7 +211,7 @@ export function makePrep(act: PrepActions): Prep {
     if (!pick) return item;
     const hero = heroNamed(pick.hero);
     const card = el(mine ? 'button' : 'div', 'tm-slot-card');
-    card.title = hero?.name ?? pick.hero;
+    card.dataset.name = hero?.name ?? pick.hero;
     if (card instanceof HTMLButtonElement) {
       card.type = 'button';
       card.setAttribute('aria-label', `Take ${hero?.name ?? pick.hero} out`);
@@ -311,7 +314,7 @@ export function makePrep(act: PrepActions): Prep {
           button.disabled = elsewhere ? !teamRoom : !picked && (mine.length >= limit || !room || !teamRoom);
           button.setAttribute('aria-pressed', String(picked));
           if (solo && picked) button.dataset.team = pick.sub ? 'sub' : 'main';
-          button.title = hero.name;
+          button.dataset.name = hero.name;
           button.setAttribute('aria-label', elsewhere ? `Move ${hero.name} to the ${teamName}` : picked ? `Take ${hero.name} out` : `Put ${hero.name} in${solo ? ` the ${teamName}` : ''}`);
           button.append(portrait(hero.id, 'tm-prep-hero-face'));
           if (picked) button.append(el('span', 'tm-prep-hero-check', solo ? (pick.sub ? 'S' : 'M') : '✓'));
@@ -355,6 +358,7 @@ export function makePrep(act: PrepActions): Prep {
     const empty = state.players.filter((player) => !state?.lineup.some((pick) => pick.owner === player.id));
     start.disabled = waiting.length > 0 || empty.length > 0;
     start.title = empty.length > 0 ? `${empty.map((player) => player.name).join(', ')}: no hero in yet` : waiting.length > 0 ? `Waiting for ${waiting.map((player) => player.name).join(', ')}` : '';
+    named();
   }
 
   return {
@@ -372,6 +376,7 @@ export function makePrep(act: PrepActions): Prep {
     hide() {
       closeSettings();
       root.hidden = true;
+      named();
     },
   };
 }
