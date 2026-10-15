@@ -15,8 +15,8 @@ export const LORRAINE_ASSETS: HeroAssets = {
   skins: [
     {
       name: 'Lorraine',
-      // Her artwork, sitting on a stump among roots and skulls: her head and ears in the crop (the meter's close-up is her face by itself).
-      portrait: { file: 'Lorraine.png', from: `${DRIVE}1S8I9c9reJmo2t_sm5WgGXuWnE5AQJ09u`, crop: { x: 418, y: 200, size: 160 }, head: { x: 447, y: 240, size: 90 } },
+      // Her newer artwork, sitting on the World Tree's roots under its flowers: her head and ears in the crop (the meter's close-up is her face by itself).
+      portrait: { file: 'Lorraine.png', from: `${DRIVE}1mBAtFWXJu10lnOCXx7rzecxSsDuFvV51`, crop: { x: 450, y: 185, size: 185 }, head: { x: 490, y: 225, size: 115 } },
       model: {
         kind: 'parts',
         parts: ['Hero_Lorraine_Vari05_Body', 'Hero_Lorraine_Hair_01'],

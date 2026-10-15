@@ -1,5 +1,5 @@
 import markup from './hero-shop.html?raw';
-import { BUST, classBadge, className, heroCut, type Hero, type HeroesView } from '../shared/heroes';
+import { classBadge, className, heroCut, SHOP_BUST, type Hero, type HeroesView } from '../shared/heroes';
 import { el } from '../shared/items';
 import { API, busyWith, dropdown, fillServers, working, type Busy } from '../shared/ui';
 import { coin, points } from '../shared/util';
@@ -166,7 +166,7 @@ const price = (amount: number, short = false): HTMLElement[] => [coin('outfit-co
 /** A hero's bust in `img` once it's cut (hidden with none); `fallback` shows its initial instead. */
 function showBust(img: HTMLImageElement, id: string, fallback?: HTMLElement): void {
   img.hidden = true;
-  void heroCut(id, BUST, 360).then((src) => {
+  void heroCut(id, SHOP_BUST, 360).then((src) => {
     if (src) {
       img.src = src;
       img.hidden = false;

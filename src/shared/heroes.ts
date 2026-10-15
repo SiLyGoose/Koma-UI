@@ -107,7 +107,7 @@ interface Fit {
 /**
  * How much of a hero's picture to show round its face, in face sizes: `wide` across and `tall` down,
  * the face's top `above` down from the top, each hero as `fit` has it (by id). A face for a portrait
- * (the heroes page's roster: each face filling about as much of it as Fallen Frey's), a bust for the shop's cards.
+ * (the heroes page's roster: each face filling about as much of it as Fallen Frey's), a bust for the databank's hero and the shop's cards.
  */
 interface Frame {
   wide: number;
@@ -116,8 +116,35 @@ interface Frame {
   fit?: Readonly<Record<string, Fit>>;
 }
 
-export const FACE: Frame = { wide: 1.7, tall: 1.7, above: 0.35, fit: { kirze: { zoom: 1.55, x: 0.08, y: 0.2 }, clause: { zoom: 1.2, x: 0, y: 0.05 } } };
+export const FACE: Frame = { wide: 1.7, tall: 1.7, above: 0.35, fit: {
+    kirze: { zoom: 1.55, x: 0.08, y: 0.2 },
+    clause: { zoom: 1.5, x: -0.105, y: 0.14 },
+    annette: { zoom: 1.25, x: -0.023, y: 0.25 },
+    morrah: { zoom: 1.35, x: -0.1, y: 0.19 },
+    laias: { zoom: 1.4, x: 0, y: 0.33 },
+    ezekiel: { zoom: 1.3, x: -0.07, y: 0.12 },
+    lorraine: { zoom: 1.45, x: 0.02, y: 0.23 },
+    valance: { zoom: 1.8, x: -0.215, y: 0.22 },
+    seria: { zoom: 1.4, x: 0.04, y: 0.23 },
+  },
+};
 export const BUST: Frame = { wide: 3.4, tall: 4.6, above: 0.45 };
+/**
+ * The shop's cards: a bust, each hero's face framed as Gremory's and Fallen Frey's are (their own face squares, as
+ * they are): its eye line a quarter of the card's width down, in the middle across, eye to chin about a tenth of its width.
+ */
+export const SHOP_BUST: Frame = { ...BUST, fit: {
+    kirze: { zoom: 1.24, x: -0.11, y: 0.27 },
+    clause: { zoom: 1, x: -0.01, y: 0.13 },
+    annette: { zoom: 1.15, x: 0.02, y: 0.23 },
+    morrah: { zoom: 1.33, x: -0.09, y: 0.12 },
+    laias: { zoom: 1.64, x: -0.04, y: 0.18 },
+    seria: { zoom: 1.04, x: 0, y: 0.27 },
+    ezekiel: { zoom: 1.14, x: -0.08, y: 0.11 },
+    lorraine: { zoom: 1.03, x: 0.02, y: 0.09 },
+    valance: { zoom: 1.45, x: -0.14, y: 0.21 },
+  },
+};
 
 const cuts = new Map<string, Promise<string | null>>();
 

@@ -3,8 +3,7 @@ import type { HeroAssets } from '../types.ts';
 /*
  * Valance's files have only her fourth look (Hero_Valance_Vari04_…): her body (her face in it; Hero_Valance_Facial_Mesh
  * is only its expressions), and her technomagic crossbow, in her right hand: the only hand her file marks. With no
- * rig of hers, she stands, runs in and does the rest as ../../heroes/valance/moves.ts has it. (No artwork of hers
- * yet: her card pictures her as she stands on the field.)
+ * rig of hers, she stands, runs in and does the rest as ../../heroes/valance/moves.ts has it.
  */
 
 export const VALANCE_ASSETS: HeroAssets = {
@@ -14,6 +13,14 @@ export const VALANCE_ASSETS: HeroAssets = {
   skins: [
     {
       name: 'Valance',
+      // Her artwork (from the wiki, asked for as the PNG it was uploaded as, not the WebP it is served as), her crossbow
+      // flung out: her head and goggles in the crop (the meter's close-up is her face by itself).
+      portrait: {
+        file: 'Valance.png',
+        from: 'https://static.wikia.nocookie.net/charactah-account/images/a/a5/Valance_Render_01.png/revision/latest?cb=20221002060111&format=original',
+        crop: { x: 360, y: 30, size: 125 },
+        head: { x: 385, y: 80, size: 72 },
+      },
       model: {
         kind: 'parts',
         parts: ['Hero_Valance_Vari04_Mesh'],
