@@ -52,6 +52,12 @@ export const LORRAINE_FX: HeroFx = {
       for (let i = 0; i < 3; i++) magic.bolt(from, bossHit, LEAF, 0.3, i * 0.08);
       effects.play('slash', bossHit, 0.8, 0.8);
     },
+    // Her Transcend 5's Dark: Thornbush Forest's fly-traps, all at once.
+    thornbush({ effects, magic, props, bossHit, bossFeet }) {
+      for (const at of TRAPS) snap(props, bossFeet, at);
+      magic.ring(bossFeet, THORN, 10, 0.45);
+      effects.play('impact', bossHit, 0, 0.9);
+    },
     // Tangled Vine's blow after: the poison in the boss bursts.
     vine({ effects, magic, bossHit, bossFeet }) {
       magic.ring(bossFeet, POISON, 12, 0.5);
