@@ -81,7 +81,7 @@ export const GREMORY: HeroDef = {
   // On her cube.
   join(fight, self) {
     /** Which of her skills are sealed; her Mana Charge; and how long her unique weapon is filling her mana for yet. */
-    const sealed = self.def.abilities.map(() => false);
+    const sealed = self.abilities.map(() => false);
     let charges = 0;
     let filling = 0;
     const tier = self.unique?.tier ?? null;
@@ -114,7 +114,7 @@ export const GREMORY: HeroDef = {
       // Once all three are sealed, each slot is her sleep; until then a sealed one can't be used.
       slot(index) {
         if (sealed.every(Boolean)) return SLEEP_SKILL;
-        return sealed[index] ? null : (self.def.abilities[index] ?? null);
+        return sealed[index] ? null : (self.abilities[index] ?? null);
       },
       used(index, ability) {
         if (ability !== SLEEP_SKILL) {

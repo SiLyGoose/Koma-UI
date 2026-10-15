@@ -2,6 +2,7 @@ import type { ShownStatSection } from '../shared/items';
 import { className, type HeroView, type HeroStat } from '../shared/heroes';
 import { POINTS } from '../technomagic/sim/combat/damage';
 import { geared } from '../technomagic/sim/gear';
+import { perkedStats, perksOf, withPerks } from '../technomagic/sim/perks';
 import { CRIT, MANA_PER_ATTACK, MANA_RATE } from '../technomagic/sim/rules';
 import { HEROES } from '../technomagic/sim/heroes';
 import { CLASS_STATS, lineOf, type HeroClass } from '../technomagic/sim/heroes/kit';
@@ -10,9 +11,10 @@ import type { Line } from '../technomagic/sim/rules';
 /*
  * The heroes page's Stats tab: a hero's class, the kind of damage it deals and where it stands in the fight (the raid's
  * ../technomagic/sim/heroes/: its own, or its class's), then its stats in the TechnoMagic Raid, as its class has them (the raid's
- * sim/heroes/kit.ts CLASS_STATS), and with what its gear gives it (the bot's bonus, as the raid's sim/gear.ts
- * counts it: points added to the chances and shares, a share more of the rest). Each row its gear changes
- * says what it is without it.
+ * sim/heroes/kit.ts CLASS_STATS), and with what its gear and its transcendence perks give it (the bot's bonus, and the
+ * raid's sim/perks.ts, as the raid's sim/gear.ts
+ * counts it: points added to the chances and shares, a share more of the rest). Each row they change says what it is
+ * without them.
  */
 
 const pct = (points: number): string => `${Math.round((points / POINTS) * 1000) / 10}%`;
@@ -29,7 +31,7 @@ function row(label: string, base: number, withGear: number, show: (n: number) =>
 const POSITION: Record<Line, string> = { front: 'Front', middle: 'Middle', back: 'Rear' };
 
 /** A hero's stats; with no `bonus` (the databank's Heroes), as its class has them, gear or no. */
-export function heroStats(hero: Pick<HeroView, 'class'> & Partial<Pick<HeroView, 'bonus' | 'id'>>): ShownStatSection[] {
+export function heroStats(hero: Pick<HeroView, 'class'> & Partial<Pick<HeroView, 'bonus' | 'id' | 'perks'>>): ShownStatSection[] {
   // First what it is rather than what its gear does: its class (as the gear page's Stats have it), and, for a hero the
   // raid knows, the kind of damage it deals and where it stands.
   const def = HEROES.find((one) => one.id === hero.id);
@@ -48,8 +50,11 @@ export function heroStats(hero: Pick<HeroView, 'class'> & Partial<Pick<HeroView,
   };
   const base = CLASS_STATS[hero.class as HeroClass];
   if (!base) return [about];
-  const bonus = (stat: HeroStat): number => hero.bonus?.[stat] ?? 0;
-  const gear = geared({ ...base, deals: 'physical' }, hero.bonus ?? {});
+  // (Its perks, picked as far as it is transcended, add to its stats as its gear does.)
+  const perks = def ? [...perksOf(hero.perks, def).values()] : [];
+  const given = withPerks(hero.bonus ?? {}, perks);
+  const bonus = (stat: HeroStat): number => given[stat] ?? 0;
+  const gear = perkedStats(geared({ ...base, deals: 'physical' }, given), perks);
   return [
     about,
     {

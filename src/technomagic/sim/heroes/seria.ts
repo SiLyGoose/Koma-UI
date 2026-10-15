@@ -113,7 +113,7 @@ export const SERIA: HeroDef = {
         },
       },
       // For a while after Falling Petals, its slot holds Blossom.
-      slot: (index) => (index === 0 && blossom > 0 ? BLOSSOM_SKILL : (self.def.abilities[index] ?? null)),
+      slot: (index) => (index === 0 && blossom > 0 ? BLOSSOM_SKILL : (self.abilities[index] ?? null)),
       used(index, ability) {
         if (index === 0 && ability === BLOSSOM_SKILL) {
           // Blossom used: Falling Petals again, with what is left of its cooldown.

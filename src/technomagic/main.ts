@@ -197,7 +197,7 @@ async function start(): Promise<void> {
         ...(fighter.unique ? [uniqueBuff(fighter.id, fighter.unique.tier)] : []),
         ...skillBuffs(fighter.skills),
       ];
-      const card = makeCard(fighter.name, pictures[i] as string, hero.abilities, passives, SECTIONS, {
+      const card = makeCard(fighter.name, pictures[i] as string, fighter.abilities, passives, SECTIONS, {
         toggle: () => controls.toggle?.(i),
         auto: () => controls.auto(i),
         use: (index) => controls.use(i, index),
@@ -444,7 +444,7 @@ async function start(): Promise<void> {
       const bodies = await bodiesFor(start.heroes);
       if (lock !== mine) return;
       if (!bodies) return void showMessage('The models are missing', 'A hero in this fight isn’t on this computer.');
-      const sim = makeSim({ boss: def, heroes: start.heroes.map((hero, i) => ({ def: (bodies[i] as Entrant).def, skin: hero.skin, gear: hero.gear, set: hero.set, uw: hero.uw ?? null, skills: hero.skills ?? [], sub: hero.sub === true })), seed: start.seed, stage: start.stage, raid: true, solo: start.solo });
+      const sim = makeSim({ boss: def, heroes: start.heroes.map((hero, i) => ({ def: (bodies[i] as Entrant).def, skin: hero.skin, gear: hero.gear, set: hero.set, uw: hero.uw ?? null, skills: hero.skills, perks: hero.perks, sub: hero.sub === true })), seed: start.seed, stage: start.stage, raid: true, solo: start.solo });
       const you = state?.you;
       // (Not the Sub Team's: they fight on Auto, with no cards.)
       const ours = (i: number): boolean => start.heroes[i]?.owner === you && start.heroes[i]?.sub !== true;

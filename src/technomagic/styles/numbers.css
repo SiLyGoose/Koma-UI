@@ -48,7 +48,8 @@
   -webkit-text-stroke-color: #062a10;
 }
 
-.tm-number.dodged {
+.tm-number.dodged,
+.tm-number.immune {
   font-size: 16px;
   color: #f2f2f2;
   -webkit-text-stroke-color: #1a1a1a;

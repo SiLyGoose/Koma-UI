@@ -100,7 +100,7 @@ export const ANNETTE: HeroDef = {
         zap() {
           fight.hit(self, ZAP.blow);
           if (over <= 0) return;
-          self.def.abilities.forEach((ability, i) => {
+          self.abilities.forEach((ability, i) => {
             self.cooldowns[i] = Math.max(0, (self.cooldowns[i] as number) - ability.cooldown * CHARGE.cooldown);
           });
         },

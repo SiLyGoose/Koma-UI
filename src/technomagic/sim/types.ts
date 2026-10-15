@@ -1,11 +1,12 @@
 import type { BossDef, BossPart } from './bosses/boss';
 import type { HeroStats, PerKind } from './combat/damage';
 import type { Status } from './combat/status';
-import type { HeroDef, HeroPart } from './heroes/kit';
+import type { Ability, HeroDef, HeroPart } from './heroes/kit';
 import type { HeroMove } from './heroes/moves';
 import type { Motion } from './motion';
 import type { SetRole, TmSet } from './sets';
 import type { Buff, Tone } from './shown';
+import type { PerkDef } from './perks';
 import type { SkillId } from './skills';
 
 /*
@@ -64,6 +65,24 @@ export interface Fighter {
   readonly id: string;
   readonly name: string;
   readonly def: HeroDef;
+  /** Its transcendence perks (./perks.ts): their ids, and what each does. */
+  readonly perks: ReadonlySet<string>;
+  readonly perkDefs: readonly PerkDef[];
+  /** Its skills, as its perks change them (what each costs, and how long before it can be used again). */
+  readonly abilities: readonly Ability[];
+  /**
+   * Its perks' DMG: how many times as hard its skills' blows are (by the move each skill is), how many times as much
+   * every blow of its deals the boss, and what the boss's blows take of it (of each kind).
+   */
+  readonly moveDmg: Partial<Record<HeroMove, number>>;
+  readonly perkDmg: number;
+  readonly perkTaken: PerKind;
+  /** ACC (points): what of the boss's dodge and block its blows see past. */
+  readonly acc: number;
+  /** Seconds until each of its perks that waits between times may again (by its name); the boss's blows it is immune to yet (Deception); Swift and Nimble's stacks. */
+  readonly perkWaits: Record<string, number>;
+  immune: number;
+  nimble: number;
   /** Its stats: its hero's, with what its gear gives it. And how many times as hard a critical blow is, as much its heals and shields give, and as long its stuns last. */
   readonly stats: HeroStats;
   readonly critTimes: number;

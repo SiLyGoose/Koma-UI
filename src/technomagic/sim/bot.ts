@@ -40,6 +40,8 @@ export interface RunHero {
   uw?: number | null;
   skills?: readonly string[] | null;
   sub?: boolean;
+  /** Its transcendence perks (the bot's ids). */
+  perks?: readonly string[] | null;
 }
 
 /** The heroes that have a unique weapon, by id; and what one's does at a tier (1 to 5), as the bot says it: null for a hero with none. */
@@ -166,7 +168,8 @@ export function startRaid(run: Run): LiveRaid | string {
     const gear: Record<string, number> = {};
     for (const [stat, n] of Object.entries(hero.gear)) if (Number.isFinite(n)) gear[stat] = n;
     const skills = Array.isArray(hero.skills) ? hero.skills.filter((id): id is string => typeof id === 'string') : [];
-    entries.push({ def, skin: hero.skin, gear, set: typeof hero.set === 'string' ? hero.set : null, uw: typeof hero.uw === 'number' ? hero.uw : null, skills, sub: run.solo === true && hero.sub === true });
+    const perks = Array.isArray(hero.perks) ? hero.perks.filter((id): id is string => typeof id === 'string') : [];
+    entries.push({ def, skin: hero.skin, gear, set: typeof hero.set === 'string' ? hero.set : null, uw: typeof hero.uw === 'number' ? hero.uw : null, skills, sub: run.solo === true && hero.sub === true, perks });
   }
   const sim = makeSim({ boss, heroes: entries, seed: run.seed, stage: run.stage, raid: true, solo: run.solo === true });
   const heroes = entries.length;

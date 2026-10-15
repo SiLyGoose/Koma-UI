@@ -4,7 +4,7 @@ import { el } from './dom';
 
 /*
  * How each kind of number (../sim/shown.ts) looks: a blow yellow, a critical blow red ("Critical Hit" over it), a blow
- * lessened by a block light blue, what a shield took gray, health given back green, and a blow dodged white (it says so,
+ * lessened by a block light blue, what a shield took gray, health given back green, and a blow dodged (or one it is immune to) white (it says so,
  * with no number).
  */
 
@@ -29,7 +29,7 @@ export function makeNumbers(parent: HTMLElement): Numbers {
   return {
     show(x, y, amount, kind) {
       const shown = Math.max(1, Math.round(amount));
-      const number = el('div', `tm-number ${kind}`, kind === 'dodged' ? 'Dodge' : kind === 'heal' ? `+${shown}` : `${shown}`);
+      const number = el('div', `tm-number ${kind}`, kind === 'dodged' ? 'Dodge' : kind === 'immune' ? 'Immune' : kind === 'heal' ? `+${shown}` : `${shown}`);
       // A critical blow says so, over its number.
       if (kind === 'crit') number.prepend(el('span', 'tm-number-label', 'Critical Hit'));
       number.style.left = `${x + (Math.random() * 2 - 1) * SPREAD}px`;

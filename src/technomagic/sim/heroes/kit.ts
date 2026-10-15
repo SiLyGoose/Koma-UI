@@ -1,5 +1,6 @@
 import { NONE, type HeroStats } from '../combat/damage';
 import type { OwnTiming } from '../motion';
+import type { OwnPerkId, PerkDef } from '../perks';
 import type { Line } from '../rules';
 import type { Art, Buff, Mark } from '../shown';
 import type { Fight, Fighter } from '../types';
@@ -127,6 +128,8 @@ export interface HeroDef {
   passive?: Passive;
   /** The move it attacks with, when it has no animation for its attack and isn't to attack as most do. */
   attack?: HeroMove;
+  /** Its own transcendence perks (Transcend 3's and 5's): King's Raid's words for each, and what each does (./../perks.ts; what more, its part does). */
+  perks?: Partial<Record<OwnPerkId, PerkDef>>;
   /** How its own animations are timed (its skins' that have them are drawn to fit: ../motion.ts); none, its moves are all timed as written in code. */
   timing?: OwnTiming;
   /** Its part in a fight: made once, as the fight begins. */
