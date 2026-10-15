@@ -10,7 +10,7 @@ import { seeded } from './random';
 import { AUTO_WAIT, BLOW, CRIT, formation, HERO_WAIT, MANA_PER_ATTACK, MANA_PER_HP_LOST, MANA_RATE, MAX_MANA, MOST, rage, RAGE_WIPE, RAID_TIME, REFORM, SECTION, SOLO_BOSS_HP, STAGES, TICK } from './rules';
 import { AUTHORITY, GUARDED, HOPE, PERSEVERANCE, setOf } from './sets';
 import type { Buff, Mark } from './shown';
-import { CHAMPION_UP, DESPERATION_UP, MENDING_UP, SKILL, skillsOf, SURGE_UP, type SkillId } from './skills';
+import { CHAMPION_UP, DESPERATION_UP, MENDING_UP, SKILL, skilledCritDamage, skilledStats, skillsOf, SURGE_UP, type SkillId } from './skills';
 import type { Fight, Fighter, Foe, GearBonus } from './types';
 import { atTier, ELICIPIRA, EXIAN, EXIAN_UP, ROSMERTA, ROSMERTA_UP, uniqueOf } from './unique';
 import { auraTotal, moveDmg, moveMarks, moveWhole, perkedStats, perksOf, tweaked, withPerks, type PerkDef } from './perks';
@@ -163,19 +163,8 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     // A set's effects on its wearer's own stats, from the start.
     if (set?.id === 'authority' && set.role === 'dps') stats.pen += AUTHORITY.pen;
     if (set?.id === 'authority' && set.role === 'knight') stats.resist += AUTHORITY.resist;
-    // Its additional skills' on its own stats, from the start (shares of ATK and defense added up, as gear's are).
-    stats.hp *= 1 + SKILL.vitality.hp * n('vitality');
-    stats.atk *= Math.max(0, 1 + SKILL.berserk.atk * n('berserk') + SKILL.fortress.atk * n('fortress') + SKILL.overdrive.atk * n('overdrive') + SKILL['warm-up'].atk * n('warm-up') + SKILL.might.atk * n('might') + SKILL['lone-foe'].atk * n('lone-foe'));
-    const sturdier = Math.max(0, 1 + SKILL.berserk.defense * n('berserk') + SKILL.fortress.defense * n('fortress') + SKILL['lone-guard'].defense * n('lone-guard') + SKILL.armor.defense * n('armor'));
-    stats.physical *= sturdier;
-    stats.magical *= sturdier;
-    stats.crit += SKILL.precision.crit * n('precision');
-    stats.pen += SKILL.piercing.pen * n('piercing');
-    stats.speed = n('overdrive') > 0 ? SKILL.overdrive.speed : stats.speed + SKILL.swiftness.speed * n('swiftness');
-    const block = SKILL.guard.block * n('guard') + SKILL['iron-wall'].block * n('iron-wall');
-    const dodge = SKILL.mirage.dodge * n('mirage');
-    stats.block = { physical: stats.block.physical + block, magical: stats.block.magical + block };
-    stats.dodge = { physical: stats.dodge.physical + dodge, magical: stats.dodge.magical + dodge };
+    // Its additional skills' on its own stats, from the start.
+    skilledStats(stats, skills);
     const motion = motionOf(hero);
     const name = hero.skins[skin] ?? hero.skins[0] ?? hero.name;
     const defs = [...perks.values()];
@@ -198,7 +187,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       immune: 0,
       nimble: 0,
       stats,
-      critTimes: CRIT + (gear.critDamage ?? 0) + SKILL.ruthless.critDamage * n('ruthless'),
+      critTimes: CRIT + (gear.critDamage ?? 0) + skilledCritDamage(skills),
       healTimes: 1 + (gear.heal ?? 0),
       set,
       unique: tier === null ? null : { tier, casts: 0 },

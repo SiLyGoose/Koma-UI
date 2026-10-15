@@ -4,6 +4,7 @@ import { POINTS } from '../technomagic/sim/combat/damage';
 import { geared } from '../technomagic/sim/gear';
 import { perkedStats, perksOf, withPerks } from '../technomagic/sim/perks';
 import { CRIT, MANA_PER_ATTACK, MANA_RATE } from '../technomagic/sim/rules';
+import { SKILL, skilledCritDamage, skilledStats, skillsOf, type SkillId } from '../technomagic/sim/skills';
 import { HEROES } from '../technomagic/sim/heroes';
 import { CLASS_STATS, lineOf, type HeroClass } from '../technomagic/sim/heroes/kit';
 import type { Line } from '../technomagic/sim/rules';
@@ -11,10 +12,10 @@ import type { Line } from '../technomagic/sim/rules';
 /*
  * The heroes page's Stats tab: a hero's class, the kind of damage it deals and where it stands in the fight (the raid's
  * ../technomagic/sim/heroes/: its own, or its class's), then its stats in the TechnoMagic Raid, as its class has them (the raid's
- * sim/heroes/kit.ts CLASS_STATS), and with what its gear and its transcendence perks give it (the bot's bonus, and the
- * raid's sim/perks.ts, as the raid's sim/gear.ts
- * counts it: points added to the chances and shares, a share more of the rest). Each row they change says what it is
- * without them.
+ * sim/heroes/kit.ts CLASS_STATS), and with what its gear, the additional effects of the TechnoMagic gear it wears and its
+ * transcendence perks give it (the bot's bonus and skills, and the raid's sim/skills.ts and sim/perks.ts, as the raid's
+ * sim/gear.ts counts it: points added to the chances and shares, a share more of the rest). Each row they change says
+ * what it is without them.
  */
 
 const pct = (points: number): string => `${Math.round((points / POINTS) * 1000) / 10}%`;
@@ -31,7 +32,7 @@ function row(label: string, base: number, withGear: number, show: (n: number) =>
 const POSITION: Record<Line, string> = { front: 'Front', middle: 'Middle', back: 'Rear' };
 
 /** A hero's stats; with no `bonus` (the databank's Heroes), as its class has them, gear or no. */
-export function heroStats(hero: Pick<HeroView, 'class'> & Partial<Pick<HeroView, 'bonus' | 'id' | 'perks'>>): ShownStatSection[] {
+export function heroStats(hero: Pick<HeroView, 'class'> & Partial<Pick<HeroView, 'bonus' | 'id' | 'perks' | 'skills'>>): ShownStatSection[] {
   // First what it is rather than what its gear does: its class (as the gear page's Stats have it), and, for a hero the
   // raid knows, the kind of damage it deals and where it stands.
   const def = HEROES.find((one) => one.id === hero.id);
@@ -54,16 +55,22 @@ export function heroStats(hero: Pick<HeroView, 'class'> & Partial<Pick<HeroView,
   const perks = def ? [...perksOf(hero.perks, def).values()] : [];
   const given = withPerks(hero.bonus ?? {}, perks);
   const bonus = (stat: HeroStat): number => given[stat] ?? 0;
-  const gear = perkedStats(geared({ ...base, deals: 'physical' }, given), perks);
+  // (Its additional effects: on its own stats, as the fight has them from the start; and what it gives every ally, itself
+  // among them, and Mana Spring's mana, as much a second as it gives every few.)
+  const skills = skillsOf(hero.skills);
+  const n = (id: SkillId): number => skills[id] ?? 0;
+  const gear = skilledStats(perkedStats(geared({ ...base, deals: 'physical' }, given), perks), skills);
+  const allies = { atk: 1 + SKILL['war-cry'].atk * n('war-cry'), critDamage: SKILL.whetstone.critDamage * n('whetstone'), defense: 1 + SKILL.bastion.defense * n('bastion') };
+  const spring = (SKILL['mana-spring'].mana / SKILL['mana-spring'].every) * n('mana-spring');
   return [
     about,
     {
       title: 'Battle',
       rows: [
         row('HP', base.hp, gear.hp, whole),
-        row('ATK', base.atk, gear.atk, whole),
+        row('ATK', base.atk, gear.atk * allies.atk, whole),
         row('Crit chance', base.crit, gear.crit, pct),
-        row('Crit damage', CRIT, CRIT + bonus('critDamage'), times),
+        row('Crit damage', CRIT, CRIT + bonus('critDamage') + skilledCritDamage(skills) + allies.critDamage, times),
         row('Attack speed', base.speed, gear.speed, pct),
         row('Penetration', base.pen, gear.pen, pct),
         row('Accuracy', 0, bonus('accuracy'), pct),
@@ -73,8 +80,8 @@ export function heroStats(hero: Pick<HeroView, 'class'> & Partial<Pick<HeroView,
     {
       title: 'Defense',
       rows: [
-        row('Physical defense', base.physical, gear.physical, whole),
-        row('Magical defense', base.magical, gear.magical, whole),
+        row('Physical defense', base.physical, gear.physical * allies.defense, whole),
+        row('Magical defense', base.magical, gear.magical * allies.defense, whole),
         row('Physical block', base.block.physical, gear.block.physical, pct),
         row('Magical block', base.block.magical, gear.block.magical, pct),
         row('Physical dodge', base.dodge.physical, gear.dodge.physical, pct),
@@ -92,7 +99,7 @@ export function heroStats(hero: Pick<HeroView, 'class'> & Partial<Pick<HeroView,
       title: 'Mana',
       rows: [
         row('Mana per attack', MANA_PER_ATTACK, MANA_PER_ATTACK * (1 + bonus('manaAttack')), whole),
-        row('Mana recovery per second', MANA_RATE, MANA_RATE * (1 + bonus('manaRegen')), whole),
+        row('Mana recovery per second', MANA_RATE, MANA_RATE * (1 + bonus('manaRegen')) + spring, whole),
       ],
     },
   ];

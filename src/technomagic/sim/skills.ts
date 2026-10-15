@@ -1,3 +1,4 @@
+import type { HeroStats } from './combat/damage';
 import type { Buff } from './shown';
 
 /*
@@ -168,6 +169,31 @@ export function skillsOf(list: readonly unknown[] | null | undefined): Partial<R
   for (const id of (list ?? []).slice(0, MOST_SKILLS)) if (typeof id === 'string' && BY_ID.has(id)) counts[id as SkillId] = (counts[id as SkillId] ?? 0) + 1;
   return counts;
 }
+
+/**
+ * What a hero's additional skills (`skills`: how many of each) do to its own stats from the start of a fight, done to
+ * `stats` (shares of ATK and defense added up, as gear's are; Overdrive fixes its attack speed): ./fight.ts fights with
+ * them, and the heroes page shows them. What they do only now and then, or to every ally, ./fight.ts does as it goes.
+ */
+export function skilledStats(stats: HeroStats, skills: Partial<Record<SkillId, number>>): HeroStats {
+  const n = (id: SkillId): number => skills[id] ?? 0;
+  stats.hp *= 1 + SKILL.vitality.hp * n('vitality');
+  stats.atk *= Math.max(0, 1 + SKILL.berserk.atk * n('berserk') + SKILL.fortress.atk * n('fortress') + SKILL.overdrive.atk * n('overdrive') + SKILL['warm-up'].atk * n('warm-up') + SKILL.might.atk * n('might') + SKILL['lone-foe'].atk * n('lone-foe'));
+  const sturdier = Math.max(0, 1 + SKILL.berserk.defense * n('berserk') + SKILL.fortress.defense * n('fortress') + SKILL['lone-guard'].defense * n('lone-guard') + SKILL.armor.defense * n('armor'));
+  stats.physical *= sturdier;
+  stats.magical *= sturdier;
+  stats.crit += SKILL.precision.crit * n('precision');
+  stats.pen += SKILL.piercing.pen * n('piercing');
+  stats.speed = n('overdrive') > 0 ? SKILL.overdrive.speed : stats.speed + SKILL.swiftness.speed * n('swiftness');
+  const block = SKILL.guard.block * n('guard') + SKILL['iron-wall'].block * n('iron-wall');
+  const dodge = SKILL.mirage.dodge * n('mirage');
+  stats.block = { physical: stats.block.physical + block, magical: stats.block.magical + block };
+  stats.dodge = { physical: stats.dodge.physical + dodge, magical: stats.dodge.magical + dodge };
+  return stats;
+}
+
+/** How much harder a hero's critical blows are for its own additional skills (Ruthless). */
+export const skilledCritDamage = (skills: Partial<Record<SkillId, number>>): number => SKILL.ruthless.critDamage * (skills.ruthless ?? 0);
 
 /** A hero's skills, as squares on its card (one for each skill, its count in the corner when it has it more than once). */
 export const skillBuffs = (counts: Partial<Record<SkillId, number>>): Buff[] =>
