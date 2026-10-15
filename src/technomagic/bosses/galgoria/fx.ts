@@ -1,6 +1,6 @@
 import { Vector3 } from 'three';
 import type { BossFx } from '../../fight/fx';
-import { IMPRISONMENT, SWAMP } from './skills';
+import { IMPRISONMENT, SWAMP } from '../../sim/bosses/galgoria/skills';
 
 /* What is drawn for what Galgoria's skills do (./skills.ts), beyond its body's own moves (./model.ts). */
 

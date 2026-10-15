@@ -1,8 +1,7 @@
-import { SERIA_ASSETS, skillPicture } from '../../assets';
-import { put } from '../../combat/status';
-import type { Buff } from '../../hud/buff';
-import { atTier, ELSION, ELSION_UP } from '../../sim/unique';
-import { CLASS_STATS, type Ability, type HeroDef, type Passive } from '../kit';
+import { put } from '../combat/status';
+import { skillArt, type Buff } from '../shown';
+import { atTier, ELSION, ELSION_UP } from '../unique';
+import { CLASS_STATS, type Ability, type HeroDef, type Passive } from './kit';
 
 /*
  * Seria's skills, as the game has them (what each costs, how long before it can be used again, how long what it
@@ -15,9 +14,9 @@ import { CLASS_STATS, type Ability, type HeroDef, type Passive } from '../kit';
  *   second: used then, it cuts again, and leaves the boss healed not at all for a while.
  * Her passive, Cold-Blooded Witch: her ATK higher, and each critical blow of her skills makes her critical blows
  * harder (up to 30 times over, for the rest of the fight).
- * Her unique weapon (../../sim/unique.ts) is worked here too: a critical blow of her skills deals more, leaves the
+ * Her unique weapon (../unique.ts) is worked here too: a critical blow of her skills deals more, leaves the
  * boss healed less for a while, and heals her the more (up to 5 times over).
- * What is drawn for each is ./fx.ts; what her body does for each, ./moves.ts (her attack is her slash's animation: ../../assets/heroes/seria.ts).
+ * What is drawn for each is ../../heroes/seria/fx.ts; what her body does for each, ../../heroes/seria/moves.ts (her attack is her slash's animation: ../../assets/heroes/seria.ts).
  */
 const PETALS = { blow: 2500, window: 5 };
 const BLOSSOM = { blow: 2500 };
@@ -27,21 +26,21 @@ const MOON = { blow: 6000, boss: 3000, ripe: 4000, every: 6, light: 1, unhealed:
 // (Its ATK as the game has it, at this raid's scale.)
 const WITCH = { atk: 38_567, critDamage: 0.05, most: 30 };
 
-const art = (index: number): string => skillPicture(SERIA_ASSETS, index);
+const art = skillArt('seria');
 
 /** What Falling Petals' slot holds for a while after it is used (its picture is Falling Petals'). */
-const BLOSSOM_SKILL: Ability = { name: 'Mysterious Sword - Blossom', about: 'A cut down on the boss: once, within 5 seconds of [Falling Petals].', icon: '🌸', image: art(0), move: 'blossom', cooldown: 0, cost: 1 };
+const BLOSSOM_SKILL: Ability = { name: 'Mysterious Sword - Blossom', about: 'A cut down on the boss: once, within 5 seconds of [Falling Petals].', icon: '🌸', art: art(0), move: 'blossom', cooldown: 0, cost: 1 };
 
 const COLD_BLOODED: Passive = {
   attack: 1,
   crit: 0,
   control: 1,
-  shown: { name: 'Cold-Blooded Witch', about: 'Passive. Her ATK is higher, and each critical blow of her skills gives her 5% more crit damage (up to 30 times).', icon: '🩸', image: art(3) },
+  shown: { name: 'Cold-Blooded Witch', about: 'Passive. Her ATK is higher, and each critical blow of her skills gives her 5% more crit damage (up to 30 times).', icon: '🩸', art: art(3) },
 };
 /** Her Cold-Blooded Witch's stacks: shown on her card, with how many she has. */
-const WITCHED: Buff = { name: 'Cold-Blooded Witch', about: '5% more crit damage for each.', icon: '🩸', image: art(3) };
+const WITCHED: Buff = { name: 'Cold-Blooded Witch', about: '5% more crit damage for each.', icon: '🩸', art: art(3) };
 /** Moonlight: shown on her card for the second it lasts. */
-const MOONLIGHT: Buff = { name: 'Moonlight', about: '[Red Moon Blade] used now cuts again, and leaves the boss healed not at all for 10 seconds.', icon: '🌕', image: art(2) };
+const MOONLIGHT: Buff = { name: 'Moonlight', about: '[Red Moon Blade] used now cuts again, and leaves the boss healed not at all for 10 seconds.', icon: '🌕', art: art(2) };
 /** What her skills leave on the boss. */
 const SIN = 'Original Sin of Blood';
 const UNHEALED = 'Red Moon';
@@ -50,15 +49,17 @@ export const SERIA: HeroDef = {
   id: 'seria',
   name: 'Seria',
   class: 'warrior',
-  assets: SERIA_ASSETS,
+  skins: ['Seria', 'Seria_Christmas'],
   // A warrior whose blows are magical, her ATK higher for her passive: as her class stands, otherwise.
   stats: { ...CLASS_STATS.warrior, atk: CLASS_STATS.warrior.atk + WITCH.atk, deals: 'magical' },
   abilities: [
-    { name: 'Mysterious Sword - Falling Petals', about: 'A cut across the boss. For 5 seconds after, this slot holds [Mysterious Sword - Blossom], once.', icon: '🌸', image: art(0), move: 'petals', cooldown: 7, cost: 1 },
-    { name: 'Blood Scattering Blade', about: 'A rush in with a cut that leaves [Original Sin of Blood] (the boss’s attacks 30% slower for 3 seconds); then two more cuts, each with a blow more through its defense.', icon: '🩸', image: art(1), move: 'scatter', cooldown: 13, cost: 2 },
-    { name: 'Red Moon Blade', about: 'A great cut, harder on a boss. Used in [Moonlight] (a second of it every 6 seconds): it cuts again, and the boss is healed not at all for 10 seconds.', icon: '🌙', image: art(2), move: 'moon', cooldown: 20, cost: 4 },
+    { name: 'Mysterious Sword - Falling Petals', about: 'A cut across the boss. For 5 seconds after, this slot holds [Mysterious Sword - Blossom], once.', icon: '🌸', art: art(0), move: 'petals', cooldown: 7, cost: 1 },
+    { name: 'Blood Scattering Blade', about: 'A rush in with a cut that leaves [Original Sin of Blood] (the boss’s attacks 30% slower for 3 seconds); then two more cuts, each with a blow more through its defense.', icon: '🩸', art: art(1), move: 'scatter', cooldown: 13, cost: 2 },
+    { name: 'Red Moon Blade', about: 'A great cut, harder on a boss. Used in [Moonlight] (a second of it every 6 seconds): it cuts again, and the boss is healed not at all for 10 seconds.', icon: '🌙', art: art(2), move: 'moon', cooldown: 20, cost: 4 },
   ],
   passive: COLD_BLOODED,
+  // Her animations: one slash where she stands.
+  timing: { attack: [{ lands: [0.86], until: 1.1 }] },
   join(fight, self) {
     /** How long Blossom can be used for yet, and Falling Petals' own cooldown meanwhile. */
     let blossom = 0;

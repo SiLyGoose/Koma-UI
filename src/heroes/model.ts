@@ -1,7 +1,8 @@
 import { PerspectiveCamera, Scene, SRGBColorSpace, Vector3, WebGLRenderer } from 'three';
-import { HEROES } from '../technomagic/heroes';
 import type { Hero } from '../technomagic/heroes/body/hero';
 import { loadHeroes } from '../technomagic/heroes/load';
+import { lookOf } from '../technomagic/heroes/looks';
+import { HEROES } from '../technomagic/sim/heroes';
 
 /*
  * The hero on the heroes page's stage as the TechnoMagic Raid has it (../technomagic/heroes/): its model,
@@ -42,10 +43,10 @@ export function makeShowcase(canvas: HTMLCanvasElement): Showcase {
   const load = (id: string): Promise<Hero | null> => {
     let reading = read.get(id);
     if (!reading) {
-      const def = HEROES.find((hero) => hero.assets.folder === `heroes/${id}`);
+      const def = HEROES.find((hero) => hero.id === id);
       reading = def
         ? loadHeroes([def]).then(
-            (entrants) => (entrants.find((entrant) => entrant.skin === def.assets.skins[0]) ?? entrants[0])?.hero ?? null,
+            (entrants) => (entrants.find((entrant) => entrant.skin === lookOf(def.id).assets.skins[0]) ?? entrants[0])?.hero ?? null,
             (error: unknown) => {
               console.warn(error);
               return null;

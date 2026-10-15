@@ -9,7 +9,7 @@ import ts from 'typescript';
 import { build } from 'vite';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const entry = resolve(root, 'src/technomagic/sim/verify.ts');
+const entry = resolve(root, 'src/technomagic/sim/bot.ts');
 const out = resolve(process.argv[2] ?? resolve(root, '../Koma/vendor'));
 const name = 'technomagic-sim';
 

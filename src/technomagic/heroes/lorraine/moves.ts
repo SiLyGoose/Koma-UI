@@ -46,7 +46,6 @@ export const LASH: Move = {
     [0.6, as({ ...LOW, hipY: -0.11, twist: -0.37, lean: 0.14, ...AIM, rhY: 0.31 })],
     [1, {}],
   ],
-  lands: [0.42],
 };
 
 // Thornbush Forest: her staff raised, then thrust at the boss three times (thorns come up round it each time), and back.
@@ -59,7 +58,6 @@ export const THORNBUSH: Move = {
     [0.95, as({ ...LOW, twist: -0.35, lean: 0.17, ...AIM, rhY: 0.33, bUp: 0.25, lhX: 0.24, lhY: 0.1, lhZ: 0.1 })],
     [1.4, {}],
   ],
-  lands: [0.46, 0.71, 0.96],
 };
 
 // Tangled Vine: her staff drawn back to her right, then swept low along the ground at the boss in a lunge (the vine runs out to it), held, and back.
@@ -71,7 +69,6 @@ export const VINE: Move = {
     [0.9, as({ ...LUNGE, hipY: -0.29, ahead: 0.62, lean: 0.32, twist: -0.42, rhX: -0.06, rhY: 0.05, rhZ: 0.48, bTurn: 0, bUp: -0.58, lhX: 0.24, lhY: 0.05, lhZ: -0.1 })],
     [1.3, {}],
   ],
-  lands: [0.56],
 };
 
 // Wrath of the Forest: up tall with both arms raised, her staff high, held, then down low with its foot driven into the ground (the forest bursts up under the boss), and back.
@@ -84,5 +81,4 @@ export const WRATH: Move = {
     [1.3, as({ ...LOW, hipY: -0.21, lean: 0.23, nod: 0.08, rhX: -0.12, rhY: 0.1, rhZ: 0.3, bUp: 1.45, lhX: 0.2, lhY: 0.1, lhZ: 0.25 })],
     [1.8, {}],
   ],
-  lands: [0.96],
 };

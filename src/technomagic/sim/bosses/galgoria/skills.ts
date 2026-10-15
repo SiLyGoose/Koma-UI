@@ -1,7 +1,6 @@
 import { put, type Status } from '../../combat/status';
-import type { Mark } from '../../hud/boss-bar';
-import type { Buff } from '../../hud/buff';
-import type { Fight, Fighter } from '../../sim/types';
+import type { Buff, Mark } from '../../shown';
+import type { Fight, Fighter } from '../../types';
 import type { BossPart } from '../boss';
 
 /*

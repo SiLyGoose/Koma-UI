@@ -21,7 +21,6 @@ export const JUDGMENT: Move = {
     [1.78, at({ ...LUNGE, hipY: -0.3, ahead: 2.7, spin: TURN * 4, lean: 0.46, rhX: -0.05, rhY: 0.02, rhZ: 0.46, bTurn: 6.28, bUp: -0.48, lhX: 0.1, lhY: 0.04, lhZ: 0.38 })],
     [2.4, { spin: TURN * 4 }],
   ],
-  lands: [0.3, 0.44, 0.58, 0.72, 0.86, 1, 1.14, 1.6],
 };
 
 // Gathered in low, then up off the floor with the blade thrust straight overhead, held there as it bursts, and down.
@@ -34,7 +33,6 @@ export const HAZE: Move = {
     [1.25, at({ ...COILED, lean: 0.15 })],
     [1.6, {}],
   ],
-  lands: [0.62],
 };
 
 // The blade drawn back low, driven into the floor ahead of it (crystals come up in a line), held, then wrenched up overhead (they burst).
@@ -48,5 +46,4 @@ export const FLOWER: Move = {
     [1.35, at({ ...TALL, ahead: 0.4, lean: -0.22, twist: -0.32, rhX: -0.16, rhY: 0.73, rhZ: 0, bTurn: 0.4, bUp: 1.85, lhX: 0.3, lhY: 0.3, lhZ: 0.1 })],
     [1.8, {}],
   ],
-  lands: [0.47, 1.1],
 };

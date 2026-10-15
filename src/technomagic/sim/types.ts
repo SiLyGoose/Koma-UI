@@ -1,12 +1,11 @@
-import type { BossDef, BossPart } from '../bosses/boss';
-import type { HeroStats, PerKind } from '../combat/damage';
-import type { Status } from '../combat/status';
-import type { Tone } from '../hud/boss-bar';
-import type { Buff } from '../hud/buff';
-import type { HeroDef, HeroPart } from '../heroes/kit';
-import type { HeroMove } from '../heroes/moves';
+import type { BossDef, BossPart } from './bosses/boss';
+import type { HeroStats, PerKind } from './combat/damage';
+import type { Status } from './combat/status';
+import type { HeroDef, HeroPart } from './heroes/kit';
+import type { HeroMove } from './heroes/moves';
 import type { Motion } from './motion';
 import type { SetRole, TmSet } from './sets';
+import type { Buff, Tone } from './shown';
 import type { SkillId } from './skills';
 
 /*
@@ -57,11 +56,11 @@ export interface Doing {
   blows: number;
 }
 
-/** A hero in the fight: one of a hero's skins. */
+/** A hero in the fight, in one of its skins. */
 export interface Fighter {
   /** Its place among the fighters (what the page's inputs name it by). */
   readonly index: number;
-  /** Its hero's id (../heroes/), and its skin's name: what it is known by on the page. */
+  /** Its hero's id (./heroes/), and its skin's name: what it is known by on the page. */
   readonly id: string;
   readonly name: string;
   readonly def: HeroDef;
@@ -88,7 +87,7 @@ export interface Fighter {
   readonly skills: Readonly<Partial<Record<SkillId, number>>>;
   readonly stacks: { momentum: number; steadfast: number };
   readonly waits: Partial<Record<SkillId, number>>;
-  /** How long each of its moves takes and when its blows land, by its skin (./motion.ts); and the move it attacks with. */
+  /** How long each of its moves takes and when its blows land (./motion.ts); and the move it attacks with. */
   readonly motion: Motion;
   readonly attack: HeroMove;
   /** What comes of what it does, and what it keeps count of (the fight gives it its part as it begins). */
@@ -150,7 +149,7 @@ export interface Fight {
   /** The fight's chances: a number from 0 up to 1 (./random.ts). Nothing in it is to use Math.random. */
   roll(): number;
   /**
-   * A hero's blow lands on the boss: `amount` at ATK (../combat/damage.ts: a thousandth of ATK in the game's shares), before the hero's own attack, its passive
+   * A hero's blow lands on the boss: `amount` at ATK (./combat/damage.ts: a thousandth of ATK in the game's shares), before the hero's own attack, its passive
    * and the boss's defense against the kind of damage it deals (seen past by its penetration, and `pierce`
    * points more). One that is `counted` is told to every hero's part, and the boss's (not what comes of a status already on the boss).
    * Returns whether it landed, and was critical.

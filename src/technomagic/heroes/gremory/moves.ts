@@ -1,3 +1,4 @@
+import { ASLEEP } from '../../sim/heroes/gremory';
 import { at, REST, type Bends, type Pose } from '../body/pose';
 import type { Move } from '../moves/move';
 
@@ -81,7 +82,6 @@ export const NUDGE: Move = {
     [1.17, { ahead: 0.6, jump: 0.12, rock: 0.025, spread: 0.05 }],
     [1.43, {}],
   ],
-  lands: [0.54],
 };
 
 /** Pochi, bite them!: five bites. */
@@ -98,7 +98,6 @@ export const POCHI: Move = {
     [BITE.first + BITES * BITE.every + 0.1, as({ nod: 0.25, ...OUT })],
     [BITE.first + BITES * BITE.every + 0.45, {}],
   ],
-  lands: Array.from({ length: BITES }, (_, i) => BITE.first + i * BITE.every),
 };
 
 // Puchi, knock them away!: her left arm thrown up high over her, then swept down ahead at the boss (Puchi comes down on it from behind), and back.
@@ -110,7 +109,6 @@ export const PUCHI: Move = {
     [0.95, as({ nod: 0.3, lhX: 0.2, lhY: -0.08, lhZ: 0.15 })],
     [1.4, {}],
   ],
-  lands: [0.8],
 };
 
 /** Pippi, wrap them!: ten blows. */
@@ -129,11 +127,7 @@ export const PIPPI: Move = {
     [WRAP.first + WRAPS * WRAP.every, as(RAISED)],
     [WRAP.first + WRAPS * WRAP.every + 0.5, {}],
   ],
-  lands: Array.from({ length: WRAPS }, (_, i) => WRAP.first + i * WRAP.every),
 };
-
-/** Eh, whatever. I'm gonna sleep.: how long she lies asleep (as ./index.ts has her). */
-export const ASLEEP = 3;
 
 // Eh, whatever. I'm gonna sleep.: a stretch, her left arm up over her head; then her head laid down on her right
 // arm (her head end lowered, that arm laid flat on the cube out ahead of her), her left hand back on her leg,
@@ -148,5 +142,4 @@ export const SLEEP: Move = {
     [ASLEEP + 0.3, as({ nod: 0.1 })],
     [ASLEEP + 0.55, {}],
   ],
-  lands: [0.8],
 };

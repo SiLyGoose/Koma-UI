@@ -1,9 +1,9 @@
-import type { HeroMove } from '../heroes/moves';
-import type { NumberKind } from '../hud/numbers';
+import type { HeroMove } from './heroes/moves';
+import type { NumberKind } from './shown';
 
 /*
  * What goes in and out of the sim (./fight.ts). In: what the player does (Input), each kept with the step
- * it was done before (Logged), so the bot can play the fight over the same way (./verify.ts). Out: what
+ * it was done before (Logged), so the bot can play the fight over the same way (./bot.ts). Out: what
  * happened, for the page to draw (SimEvent). Heroes are named by their index among the fighters.
  */
 

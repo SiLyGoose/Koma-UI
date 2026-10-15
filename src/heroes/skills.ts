@@ -5,7 +5,7 @@ import { HERO_ASSETS, skillPicture } from '../technomagic/assets';
  * kingsraid.shodyra.com has them (where the raid's skill pictures come from, ../technomagic/assets/heroes/),
  * with what each costs and how long before it can be used again. Where that site doesn't say a number
  * ("???"), the TechnoMagic Raid's own is put in (its heroes/: Kirze's FLOWER and EVIL_DEEDS; damage as
- * at its base ATK, combat/damage.ts). Changing one of those there means changing it here too.
+ * at its base ATK, technomagic/sim/combat/damage.ts). Changing one of those there means changing it here too.
  */
 
 export interface HeroSkill {

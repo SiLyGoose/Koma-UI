@@ -1,11 +1,10 @@
-import { FALLEN_FREY_ASSETS, skillPicture } from '../../assets';
-import { share } from '../../combat/damage';
-import { put } from '../../combat/status';
-import type { Buff } from '../../hud/buff';
-import { BLOW, MAX_MANA, SECTION } from '../../sim/rules';
-import type { Fighter } from '../../sim/types';
-import { CLASS_STATS, type HeroDef, type Passive } from '../kit';
-import { STAND } from './moves';
+import { share } from '../combat/damage';
+import { put } from '../combat/status';
+import { SKILL_SPEED } from '../motion';
+import { BLOW, MAX_MANA, SECTION } from '../rules';
+import { skillArt, type Buff } from '../shown';
+import type { Fighter } from '../types';
+import { CLASS_STATS, type HeroDef, type Passive } from './kit';
 
 /*
  * Fallen Frey's skills, as the game has them (what each costs, how long before it can be used again,
@@ -21,7 +20,7 @@ import { STAND } from './moves';
  * full she gains Darkened Power every second (two at most). A skill used with some spends one: Heaven's
  * Vengeance then stuns the boss with every blow. (Light of Doom and Blessing of Doom spend it to dispel
  * what is on the boss, or on her allies, and there is nothing in this fight that can be dispelled yet.)
- * What is drawn for each is ./fx.ts; what her body does for each, and for her attack, ./moves.ts.
+ * What is drawn for each is ../../heroes/fallen-frey/fx.ts; what her body does for each, and for her attack, ../../heroes/fallen-frey/moves.ts.
  */
 const SMITE = { blow: BLOW * 1.5 };
 const LIGHT = { heal: 25_000, near: 3.6, blast: 5000 };
@@ -31,7 +30,7 @@ const VENGEANCE = { blow: 1000, pierce: 500, exposed: 0.1, most: 5, lasts: 20, s
 // The game's 400 mana a second, of its 1000 to a section.
 const TAINTED = { taken: 1.15, mana: 0.4 * SECTION, every: 1, most: 2 };
 
-const art = (index: number): string => skillPicture(FALLEN_FREY_ASSETS, index);
+const art = skillArt('fallen-frey');
 
 const TAINTED_ANGEL: Passive = {
   attack: 1,
@@ -42,13 +41,13 @@ const TAINTED_ANGEL: Passive = {
     name: 'Tainted Angel',
     about: 'Passive. She takes 15% more from the boss, but her mana fills far faster; at full mana she gains [Darkened Power] every second (2 at most).',
     icon: '🌑',
-    image: art(3),
+    art: art(3),
   },
 };
 /** What her full mana gives her: shown beside her passive, with how many she has. */
 const DARKENED: Buff = { name: 'Darkened Power', about: 'Her next skill spends one: [Heaven’s Vengeance] then stuns the boss with every blow.', icon: '🖤' };
 /** What Blessing of Doom gives each ally it shields: shown on its card, with how long it has left. */
-const BLESSED: Buff = { name: 'Blessing of Doom', about: 'A shield takes the boss’s blows first, and its attacks are quickened.', icon: '🔮', image: art(1) };
+const BLESSED: Buff = { name: 'Blessing of Doom', about: 'A shield takes the boss’s blows first, and its attacks are quickened.', icon: '🔮', art: art(1) };
 /** What Heaven's Vengeance leaves on the boss. */
 const EXPOSED = 'Heaven’s Vengeance';
 
@@ -56,18 +55,24 @@ export const FALLEN_FREY: HeroDef = {
   id: 'fallen-frey',
   name: 'Fallen Frey',
   class: 'priest',
-  assets: FALLEN_FREY_ASSETS,
+  skins: ['Fallen Frey'],
   // A priestess whose blows are magical: as her class stands, otherwise (her heals and shields go by her attack).
   stats: { ...CLASS_STATS.priest, deals: 'magical' },
   abilities: [
-    { name: 'Light of Doom', about: 'Heals the ally with the lowest health and those near it, then the light bursts on the boss.', icon: '✴️', image: art(0), move: 'light', cooldown: 9, cost: 2 },
-    { name: 'Blessing of Doom', about: 'A shield on the 4 allies with the lowest health for 10 seconds, their attacks 50% quicker meanwhile.', icon: '🔮', image: art(1), move: 'blessing', cooldown: 17, cost: 3 },
-    { name: 'Heaven’s Vengeance', about: '20 blows of light on the boss, through some of its defense, each leaving it 10% easier to hurt for 20 seconds (up to 5 times over). With [Darkened Power], every blow stuns it for half a second.', icon: '☄️', image: art(2), move: 'vengeance', cooldown: 22, cost: 5 },
+    { name: 'Light of Doom', about: 'Heals the ally with the lowest health and those near it, then the light bursts on the boss.', icon: '✴️', art: art(0), move: 'light', cooldown: 9, cost: 2 },
+    { name: 'Blessing of Doom', about: 'A shield on the 4 allies with the lowest health for 10 seconds, their attacks 50% quicker meanwhile.', icon: '🔮', art: art(1), move: 'blessing', cooldown: 17, cost: 3 },
+    { name: 'Heaven’s Vengeance', about: '20 blows of light on the boss, through some of its defense, each leaving it 10% easier to hurt for 20 seconds (up to 5 times over). With [Darkened Power], every blow stuns it for half a second.', icon: '☄️', art: art(2), move: 'vengeance', cooldown: 22, cost: 5 },
   ],
   passive: TAINTED_ANGEL,
   attack: 'smite',
-  stands: STAND,
-  varies: true,
+  // Her animations: Light of Purification; and Vengeance, a span of a cutscene of the game’s drawn out to last as long as
+  // the move written in code does (its blows as they land there, SKILL_SPEED as fast).
+  timing: {
+    skills: {
+      light: { lands: [0.95, 1.45], until: 2.35 },
+      vengeance: { lands: Array.from({ length: 20 }, (_, i) => (0.7 + i * 0.12) * SKILL_SPEED), until: 3.85 * SKILL_SPEED },
+    },
+  },
   join(fight, self) {
     /** Her Darkened Power, and how long her mana has been full toward the next. */
     let stacks = 0;

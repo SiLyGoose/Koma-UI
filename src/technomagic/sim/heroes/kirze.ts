@@ -1,6 +1,5 @@
-import { KIRZE_ASSETS, skillPicture } from '../../assets';
-import type { Buff } from '../../hud/buff';
-import { CLASS_STATS, type HeroDef, type Passive } from '../kit';
+import { skillArt, type Buff } from '../shown';
+import { CLASS_STATS, type HeroDef, type Passive } from './kit';
 
 /*
  * Kirze's skills, as the game has them (what each costs and how long before it can be used again are
@@ -10,13 +9,13 @@ import { CLASS_STATS, type HeroDef, type Passive } from '../kit';
  *   out from it every so often that stuns again.
  * - Bloom, Crimson Flower!: crystals in a line that then burst, and curse the boss: its attacks are slowed,
  *   every blow on it while cursed is counted, and when the curse ends it bursts, the harder for each one.
- * What is drawn for each is ./fx.ts; what her body does, ./moves.ts.
+ * What is drawn for each is ../../heroes/kirze/fx.ts; what her body does, ../../heroes/kirze/moves.ts.
  */
 const JUDGMENT = { cut: 1500, blow: 6000, down: 3 };
 const HAZE = { burst: 9000, stun: 2, lasts: 15, quicker: 1.5, every: 2, wave: 2500, waveStun: 1 };
 const FLOWER = { line: 8000, burst: 12000, slow: 0.5, slowed: 5, curse: 10, end: 6000, each: 800 };
 
-const art = (index: number): string => skillPicture(KIRZE_ASSETS, index);
+const art = skillArt('kirze');
 
 /**
  * Her passive, the game's End to Evil Deeds!: the game says how much longer the stuns last and how much
@@ -26,24 +25,31 @@ const EVIL_DEEDS: Passive = {
   attack: 1.2,
   crit: 0.2,
   control: 1.3,
-  shown: { name: 'End to Evil Deeds!', about: 'Passive. Her blows are harder and more often critical, and her stuns on a boss last 30% longer.', icon: '⚜️', image: art(3) },
+  shown: { name: 'End to Evil Deeds!', about: 'Passive. Her blows are harder and more often critical, and her stuns on a boss last 30% longer.', icon: '⚜️', art: art(3) },
 };
 /** What Crystal Haze gives her for a while: shown beside her passive, with how long it has left. */
-const AWAKENING: Buff = { name: 'Arcane Crystal Awakening', about: 'Quickened, and a shockwave goes out from her every 2 seconds.', icon: '💠', image: art(1) };
+const AWAKENING: Buff = { name: 'Arcane Crystal Awakening', about: 'Quickened, and a shockwave goes out from her every 2 seconds.', icon: '💠', art: art(1) };
 
 export const KIRZE: HeroDef = {
   id: 'kirze',
   name: 'Kirze',
   class: 'warrior',
-  assets: KIRZE_ASSETS,
+  skins: ['Kirze', 'Kirze_Glory'],
   // A warrior whose blows are magical: as her class stands, otherwise.
   stats: { ...CLASS_STATS.warrior, deals: 'magical' },
   abilities: [
-    { name: 'Slash, Blade of Judgment!', about: 'Seven cuts as she spins, then a blow that knocks the boss down for 3 seconds.', icon: '🌀', image: art(0), move: 'judgment', cooldown: 9, cost: 2 },
-    { name: 'Disperse, Crystal Haze!', about: 'A burst that stuns the boss for 2 seconds. Then for 15 seconds she is 50% quicker, and a shockwave goes out from her every 2 seconds that stuns it for 1.', icon: '💠', image: art(1), move: 'haze', cooldown: 17, cost: 3 },
-    { name: 'Bloom, Crimson Flower!', about: 'Crystals in a line to the boss, then they burst: its attacks are 50% slower for 5 seconds, and it is cursed for 10. When the curse ends it bursts, the harder for every blow landed on the boss meanwhile.', icon: '🌺', image: art(2), move: 'flower', cooldown: 20, cost: 4 },
+    { name: 'Slash, Blade of Judgment!', about: 'Seven cuts as she spins, then a blow that knocks the boss down for 3 seconds.', icon: '🌀', art: art(0), move: 'judgment', cooldown: 9, cost: 2 },
+    { name: 'Disperse, Crystal Haze!', about: 'A burst that stuns the boss for 2 seconds. Then for 15 seconds she is 50% quicker, and a shockwave goes out from her every 2 seconds that stuns it for 1.', icon: '💠', art: art(1), move: 'haze', cooldown: 17, cost: 3 },
+    { name: 'Bloom, Crimson Flower!', about: 'Crystals in a line to the boss, then they burst: its attacks are 50% slower for 5 seconds, and it is cursed for 10. When the curse ends it bursts, the harder for every blow landed on the boss meanwhile.', icon: '🌺', art: art(2), move: 'flower', cooldown: 20, cost: 4 },
   ],
   passive: EVIL_DEEDS,
+  // Her Glory League animations (both skins move by them): one cut inward where she stands, then three as she walks forward.
+  timing: {
+    attack: [
+      { lands: [1.29], until: 1.6 },
+      { lands: [0.75, 1.32, 2.55], until: 3 },
+    ],
+  },
   join(fight, self) {
     /** How long she is quickened for yet (Crystal Haze), and until her next shockwave. */
     let awake = 0;

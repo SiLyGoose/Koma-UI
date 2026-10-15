@@ -1,11 +1,9 @@
-import { EZEKIEL_ASSETS, skillPicture } from '../../assets';
-import { share } from '../../combat/damage';
-import { put } from '../../combat/status';
-import type { Buff } from '../../hud/buff';
-import { BLOW } from '../../sim/rules';
-import { atTier, BARBATOS } from '../../sim/unique';
-import { CLASS_STATS, type HeroDef, type Passive } from '../kit';
-import { STAND } from './moves';
+import { share } from '../combat/damage';
+import { put } from '../combat/status';
+import { BLOW } from '../rules';
+import { skillArt, type Buff } from '../shown';
+import { atTier, BARBATOS } from '../unique';
+import { CLASS_STATS, type HeroDef, type Passive } from './kit';
 
 /*
  * Ezekiel's skills, as the game has them (what each costs, how long before it can be used again, how long what
@@ -20,9 +18,9 @@ import { STAND } from './moves';
  * His passive, Cursed Blood: each skill he uses gains him a stack of it (none while he is in Fury); at the third,
  * they are spent: his skills are ready again at once, a burst knocks the boss down, and he is in Fury for a while.
  * In Fury his ATK is higher, his attack twice as hard, and he fights by himself (on Auto, whatever his player says).
- * His unique weapon (../../sim/unique.ts) is worked here too: his Fury lasts longer, and while it does his critical
+ * His unique weapon (../unique.ts) is worked here too: his Fury lasts longer, and while it does his critical
  * blows are harder and he stands being knocked down better.
- * What is drawn for each is ./fx.ts; what his body does for each, and for his attack, ./moves.ts.
+ * What is drawn for each is ../../heroes/ezekiel/fx.ts; what his body does for each, and for his attack, ../../heroes/ezekiel/moves.ts.
  */
 const CLAW = { blow: BLOW * 1.2, fury: 2 };
 const INSTINCT = { swipe: 2000, strike: 2500, down: 3, fury: 1.5, cost: 0.15 };
@@ -31,7 +29,7 @@ const DESPAIR = { blow: 3500, speed: 300, slowed: 5, stun: 3, lasts: 10, cost: 0
 const DOOM = { blow: 4500, stun: 3, fury: 3, cost: 0.2 };
 const CURSED = { most: 3, blow: 5000, down: 3, lasts: 10, atk: 0.3 };
 
-const art = (index: number): string => skillPicture(EZEKIEL_ASSETS, index);
+const art = skillArt('ezekiel');
 
 const CURSED_BLOOD: Passive = {
   attack: 1,
@@ -42,15 +40,15 @@ const CURSED_BLOOD: Passive = {
     about:
       'Passive. A stack of [Cursed Blood] for each skill he uses; at the 3rd, his skills are ready again, a burst knocks the boss down, and he is in [Fury] for 10 seconds: ATK higher, his attack twice as hard, every skill reinforced (each costs a share of his health), fighting by himself.',
     icon: '🩸',
-    image: art(3),
+    art: art(3),
   },
 };
 /** His stacks of Cursed Blood: shown beside his passive, with how many he has. */
 const STACKED: Buff = { name: 'Cursed Blood', about: 'At 3, he is in [Fury].', icon: '🩸' };
 /** Fury: shown on his card, with how long it has left. */
-const FURY: Buff = { name: 'Fury', about: 'ATK 30% higher, his attack twice as hard, every skill reinforced (each costs a share of his health); he fights by himself.', icon: '😈', image: art(3) };
+const FURY: Buff = { name: 'Fury', about: 'ATK 30% higher, his attack twice as hard, every skill reinforced (each costs a share of his health); he fights by himself.', icon: '😈', art: art(3) };
 /** What Dawning Despair in Fury gives him for a while. */
-const QUICKENED: Buff = { name: 'Dawning Despair', about: 'His attacks quickened.', icon: '💨', image: art(1) };
+const QUICKENED: Buff = { name: 'Dawning Despair', about: 'His attacks quickened.', icon: '💨', art: art(1) };
 
 export const EZEKIEL: HeroDef = {
   id: 'ezekiel',
@@ -58,18 +56,18 @@ export const EZEKIEL: HeroDef = {
   class: 'assassin',
   // In the frontline, for all he is an assassin.
   line: 'front',
-  assets: EZEKIEL_ASSETS,
+  skins: ['Ezekiel'],
   // An assassin whose blows are magical (his demon arm's): as his class stands, otherwise.
   stats: { ...CLASS_STATS.assassin, deals: 'magical' },
   abilities: [
-    { name: 'Destructive Instinct', about: 'A swipe of his demon arm, then a blow to the ground that knocks the boss down for 3 seconds. In [Fury]: both 50% harder, for 15% of the health he has.', icon: '🌀', image: art(0), move: 'instinct', cooldown: 8, cost: 2 },
-    { name: 'Dawning Despair', about: 'A dash and a blow: the boss’s attacks 30% slower for 5 seconds. In [Fury]: it is also stunned for 3 seconds, and his attacks are 30% quicker for 10, for 10% of the health he has.', icon: '💨', image: art(1), move: 'despair', cooldown: 10, cost: 2 },
-    { name: 'Strike of Doom', about: 'A charged blow that stuns the boss for 3 seconds. In [Fury]: three times as hard, for 20% of the health he has.', icon: '💥', image: art(2), move: 'doom', cooldown: 7, cost: 2 },
+    { name: 'Destructive Instinct', about: 'A swipe of his demon arm, then a blow to the ground that knocks the boss down for 3 seconds. In [Fury]: both 50% harder, for 15% of the health he has.', icon: '🌀', art: art(0), move: 'instinct', cooldown: 8, cost: 2 },
+    { name: 'Dawning Despair', about: 'A dash and a blow: the boss’s attacks 30% slower for 5 seconds. In [Fury]: it is also stunned for 3 seconds, and his attacks are 30% quicker for 10, for 10% of the health he has.', icon: '💨', art: art(1), move: 'despair', cooldown: 10, cost: 2 },
+    { name: 'Strike of Doom', about: 'A charged blow that stuns the boss for 3 seconds. In [Fury]: three times as hard, for 20% of the health he has.', icon: '💥', art: art(2), move: 'doom', cooldown: 7, cost: 2 },
   ],
   passive: CURSED_BLOOD,
   attack: 'claw',
-  stands: STAND,
-  varies: true,
+  // His animations: four blows, fist and foot.
+  timing: { attack: [{ lands: [0.92, 1.52, 2.78, 3.62], until: 4.3 }] },
   join(fight, self) {
     /** His Cursed Blood; how long his Fury lasts yet; and whether he was on Auto before it (he is put back so after). */
     let stacks = 0;

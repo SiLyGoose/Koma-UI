@@ -46,30 +46,27 @@ export interface RiggedModel {
    */
   bladeRunning?: readonly [number, number, number];
   /**
-   * Its attack, when it has one of its own: animations played one after another. Of each: the moments
-   * (seconds into it) its blows land, and when to leave it for the next, its last swing done.
+   * Its attack, when it has one of its own: animations played one after another, each timed as its hero's attack's
+   * part is in the fight (../sim/heroes/: HeroDef.timing, never read from the file, so the fight goes the same on a
+   * computer without it).
    */
-  attack?: readonly { file: string; lands: readonly number[]; until: number }[];
+  attack?: readonly { file: string }[];
   /**
-   * Animations its skills are played with, by the name of the move each would otherwise be (one with
-   * none here is the move written in code): the moments its blows land, and when to leave it (written down,
-   * not read from the file, so the fight goes the same on a computer without it: ../sim/motion.ts).
+   * Animations its skills are played with, by the name of the move each would otherwise be (one with none here is
+   * the move written in code), each timed as its hero's skill is in the fight (HeroDef.timing).
    */
   skills?: Readonly<Record<string, SkillAnimation>>;
 }
 
 /**
- * An animation a skill is played with: its file, the moments (seconds into it) its blows land, and when to leave it. One
- * may be a file of the game's own (`folder`: one of its hero's models, its whole model on the game's skeleton: a cutscene's),
- * made over from that skeleton, and only a `span` of it played (seconds into the file, from and to), drawn out (or hurried)
- * to last until it is left.
+ * An animation a skill is played with: its file. One may be a file of the game's own (`folder`: one of its hero's models,
+ * its whole model on the game's skeleton: a cutscene's), made over from that skeleton, and only a `span` of it played
+ * (seconds into the file, from and to), drawn out (or hurried) to last as long as the fight has the skill take.
  */
 export interface SkillAnimation {
   file: string;
   folder?: string;
   span?: readonly [number, number];
-  lands: readonly number[];
-  until: number;
 }
 
 /** Where something is held in a hand, in that hand's own axes (its bone's): how far from it, and how it is turned (about x, y and z, in that order, in radians). */

@@ -1,8 +1,12 @@
 import type { Vector3 } from 'three';
+import type { NumberKind } from '../sim/shown';
 import { el } from './dom';
 
-/** What a number says: a blow (yellow), a critical blow (red, "Critical Hit" over it),a blow lessened by a block (light blue), what a shield took (gray), health given back (green), or a blow dodged (white: it says so, with no number). */
-export type NumberKind = 'hit' | 'crit' | 'blocked' | 'shield' | 'heal' | 'dodged';
+/*
+ * How each kind of number (../sim/shown.ts) looks: a blow yellow, a critical blow red ("Critical Hit" over it), a blow
+ * lessened by a block light blue, what a shield took gray, health given back green, and a blow dodged white (it says so,
+ * with no number).
+ */
 
 /** A number to come off whoever a blow landed on (or a heal reached), where it was on the field. */
 export interface Popup {

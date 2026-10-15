@@ -46,7 +46,6 @@ export const SMITE: Move = {
     [0.6, as({ ...LOW, hipY: -0.11, twist: -0.42, lean: 0.16, lhX: 0.08, lhY: 0.31, lhZ: 0.48, rhX: -0.26, rhY: -0.04, rhZ: -0.12 })],
     [1, {}],
   ],
-  lands: [0.4],
 };
 
 // Light of Doom: both hands gathered before her, then raised high (the light comes down on her allies), then thrust out ahead (it bursts).
@@ -61,7 +60,6 @@ export const LIGHT: Move = {
     [1.25, as({ ...LOW, hipY: -0.11, twist: -0.32, lean: 0.23, lhX: 0.06, lhY: 0.25, lhZ: 0.48, rhX: -0.22, rhY: 0.19, rhZ: 0.38, bUp: 0 })],
     [1.7, {}],
   ],
-  lands: [0.55, 1.05],
 };
 
 // Blessing of Doom: bowed, her hands together as if to pray, then up on her toes with her weapon raised high overhead and her free hand flung wide (the shields), held, and down.
@@ -73,14 +71,9 @@ export const BLESSING: Move = {
     [0.95, as({ ...TALL, jump: 0.18, lean: -0.17, nod: -0.27, lhX: 0.24, lhY: 0.88, lhZ: 0.08, rhX: -0.51, rhY: 0.47, rhZ: 0.05, bTurn: -1.4, bUp: 0.55 })],
     [1.45, {}],
   ],
-  lands: [0.6],
 };
 
-/** Heaven's Vengeance: twenty blows, as the light comes down on the boss again and again while she hangs in the air. */
-const BLOWS = 20;
-const FIRST = 0.7;
-const EVERY = 0.12;
-
+// Heaven's Vengeance: twenty blows, as the light comes down on the boss again and again while she hangs in the air.
 // Gathered in, then up off the floor with both hands stretched out ahead at the boss holding her weapon (the bolts go up from it), there while it is struck, and down.
 const STRETCHED = { lhX: 0.05, lhY: 0.34, lhZ: 0.5, rhX: -0.05, rhY: 0.28, rhZ: 0.49, bTurn: 0, bUp: 0.3 };
 export const VENGEANCE: Move = {
@@ -93,5 +86,4 @@ export const VENGEANCE: Move = {
     [3.45, as({ ...COILED, lean: 0.15 })],
     [3.85, {}],
   ],
-  lands: Array.from({ length: BLOWS }, (_, i) => FIRST + i * EVERY),
 };

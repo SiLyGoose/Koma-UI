@@ -1,5 +1,5 @@
 import { Vector3 } from 'three';
-import type { Status } from '../combat/status';
+import type { Status } from '../sim/combat/status';
 import type { EffectName } from '../assets';
 import type { Effects } from './effects';
 

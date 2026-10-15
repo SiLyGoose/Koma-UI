@@ -1,11 +1,9 @@
-import { ANNETTE_ASSETS, skillPicture } from '../../assets';
-import { away, put, type Status } from '../../combat/status';
-import type { Buff } from '../../hud/buff';
-import { BLOW, MAX_MANA } from '../../sim/rules';
-import type { Fighter } from '../../sim/types';
-import { atTier, RASCAL, RASCAL_UP } from '../../sim/unique';
-import { CLASS_STATS, type HeroDef, type Passive } from '../kit';
-import { STAND } from './moves';
+import { away, put, type Status } from '../combat/status';
+import { BLOW, MAX_MANA } from '../rules';
+import { skillArt, type Buff } from '../shown';
+import type { Fighter } from '../types';
+import { atTier, RASCAL, RASCAL_UP } from '../unique';
+import { CLASS_STATS, type HeroDef, type Passive } from './kit';
 
 /*
  * Annette's skills, as the game has them (what each costs, how long before it can be used again, how long what
@@ -21,9 +19,9 @@ import { STAND } from './moves';
  * Her passive, Charge: she gains a Charge every half second, and ten for each crystal of mana she spends; at a
  * hundred she is Overcharged for a while (her ATK higher, and each of her attacks takes a share off her skills'
  * cooldowns), and gains no Charge meanwhile.
- * Her unique weapon (../../sim/unique.ts) is worked here too: every so often a Charge (even while Overcharged)
+ * Her unique weapon (../unique.ts) is worked here too: every so often a Charge (even while Overcharged)
  * and a little mana, and while she is Overcharged every ally deals more and takes less.
- * What is drawn for each is ./fx.ts; what her body does for each, and for her attack, ./moves.ts.
+ * What is drawn for each is ../../heroes/annette/fx.ts; what her body does for each, and for her attack, ../../heroes/annette/moves.ts.
  */
 const ZAP = { blow: BLOW * 1.4 };
 const RAY = { blow: 4000, extra: 3000, weaker: 0.15, takes: 0.25, lasts: 10 };
@@ -32,7 +30,7 @@ const TREATMENT = { heal: 40_000, lasts: 10, resist: 250, crit: 0.25, dmg: 0.1 }
 const ELIMINATION = { blow: 7000, over: 10000, takes: 0.25, lasts: 10, stun: 5 };
 const CHARGE = { every: 0.5, perCrystal: 10, full: 100, lasts: 15, atk: 0.3, cooldown: 0.1 };
 
-const art = (index: number): string => skillPicture(ANNETTE_ASSETS, index);
+const art = skillArt('annette');
 
 const CHARGING: Passive = {
   attack: 1,
@@ -42,16 +40,16 @@ const CHARGING: Passive = {
     name: 'Charge',
     about: 'Passive. A [Charge] every half second, and 10 for each crystal of mana she spends; at 100 she is [Overcharged] for 15 seconds (ATK higher, and each attack takes 10% off her skills’ cooldowns).',
     icon: '⚡',
-    image: art(3),
+    art: art(3),
   },
 };
 /** Her Charge: shown beside her passive, with how many she has. */
 const CHARGED: Buff = { name: 'Charge', about: 'At 100 she is [Overcharged].', icon: '⚡' };
 /** Overcharged: shown on her card, with how long it has left. */
-const OVERCHARGED: Buff = { name: 'Overcharge', about: '30% higher ATK; each attack takes 10% off her skills’ cooldowns; her skills do more.', icon: '🔋', image: art(3) };
+const OVERCHARGED: Buff = { name: 'Overcharge', about: '30% higher ATK; each attack takes 10% off her skills’ cooldowns; her skills do more.', icon: '🔋', art: art(3) };
 /** What Emergency Treatment gives each ally: shown on its card, with how long it has left. */
-const TREATED: Buff = { name: 'Emergency Treatment', about: 'Healed over time, and knocked down for less long.', icon: '🩹', image: art(1) };
-const TREATED_OVER: Buff = { name: 'Emergency Treatment', about: 'Healed over time; more likely to land a critical blow, deals 10% more, and can’t be knocked down.', icon: '🩹', image: art(1) };
+const TREATED: Buff = { name: 'Emergency Treatment', about: 'Healed over time, and knocked down for less long.', icon: '🩹', art: art(1) };
+const TREATED_OVER: Buff = { name: 'Emergency Treatment', about: 'Healed over time; more likely to land a critical blow, deals 10% more, and can’t be knocked down.', icon: '🩹', art: art(1) };
 /** What Blasting Ray and Process of Elimination leave on the boss. */
 const RAYED = 'Blasting Ray';
 const ELIMINATED = 'Process of Elimination';
@@ -60,17 +58,16 @@ export const ANNETTE: HeroDef = {
   id: 'annette',
   name: 'Annette',
   class: 'mechanic',
-  assets: ANNETTE_ASSETS,
+  skins: ['Annette', 'Annette_Halloween'],
   // A mechanic whose blows are magical (Rascal's): as her class stands, otherwise.
   stats: { ...CLASS_STATS.mechanic, deals: 'magical' },
   abilities: [
-    { name: 'Blasting Ray', about: 'Rascal fires a ray into the boss: for 10 seconds it hits 15% softer and takes 25% more magical damage. [Overcharged]: a second ray, and twice that.', icon: '🔆', image: art(0), move: 'ray', cooldown: 11, cost: 2 },
-    { name: 'Emergency Treatment', about: 'Clears what the boss has left on every ally (not what holds one down or shuts one away) and heals them over 10 seconds, and they stand being knocked down better meanwhile. [Overcharged]: they are also 25% likelier to land a critical blow, deal 10% more, and can’t be knocked down.', icon: '🩹', image: art(1), move: 'treatment', cooldown: 13, cost: 2 },
-    { name: 'Process of Elimination', about: 'A ball of energy that bursts on the boss. [Overcharged]: it bursts harder, stuns the boss for 5 seconds, and leaves it taking 25% more magical damage for 10.', icon: '💣', image: art(2), move: 'elimination', cooldown: 25, cost: 3 },
+    { name: 'Blasting Ray', about: 'Rascal fires a ray into the boss: for 10 seconds it hits 15% softer and takes 25% more magical damage. [Overcharged]: a second ray, and twice that.', icon: '🔆', art: art(0), move: 'ray', cooldown: 11, cost: 2 },
+    { name: 'Emergency Treatment', about: 'Clears what the boss has left on every ally (not what holds one down or shuts one away) and heals them over 10 seconds, and they stand being knocked down better meanwhile. [Overcharged]: they are also 25% likelier to land a critical blow, deal 10% more, and can’t be knocked down.', icon: '🩹', art: art(1), move: 'treatment', cooldown: 13, cost: 2 },
+    { name: 'Process of Elimination', about: 'A ball of energy that bursts on the boss. [Overcharged]: it bursts harder, stuns the boss for 5 seconds, and leaves it taking 25% more magical damage for 10.', icon: '💣', art: art(2), move: 'elimination', cooldown: 25, cost: 3 },
   ],
   passive: CHARGING,
   attack: 'zap',
-  stands: STAND,
   join(fight, self) {
     /** Her Charge; how long she is Overcharged for yet; and toward her next Charge, and her unique weapon's. */
     let charge = 0;

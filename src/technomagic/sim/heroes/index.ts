@@ -1,6 +1,6 @@
 import { ANNETTE } from './annette';
-import { EZEKIEL } from './ezekiel';
 import { CLAUSE } from './clause';
+import { EZEKIEL } from './ezekiel';
 import { FALLEN_FREY } from './fallen-frey';
 import { GREMORY } from './gremory';
 import { KIRZE } from './kirze';

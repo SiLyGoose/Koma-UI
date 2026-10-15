@@ -1,8 +1,7 @@
-import { CLAUSE_ASSETS, skillPicture } from '../../assets';
-import { put } from '../../combat/status';
-import type { Buff } from '../../hud/buff';
-import { BLOW, MAX_MANA } from '../../sim/rules';
-import { CLASS_STATS, type HeroDef, type Passive } from '../kit';
+import { put } from '../combat/status';
+import { BLOW, MAX_MANA } from '../rules';
+import { skillArt, type Buff } from '../shown';
+import { CLASS_STATS, type HeroDef, type Passive } from './kit';
 
 /*
  * Clause's skills, as the game has them (what each costs, how long before it can be used again, and how
@@ -12,39 +11,41 @@ import { CLASS_STATS, type HeroDef, type Passive } from '../kit';
  * - Guardian Shield: for a while every hero takes less from the boss.
  * His passive, Vow of Knights: when he blocks he strikes back, the boss hits less hard for a while, and
  * he gains mana. (How often he blocks is not the game's: there it comes of his gear.)
- * What is drawn for each is ./fx.ts; what his body does for each, and for his attack, ./moves.ts.
+ * What is drawn for each is ../../heroes/clause/fx.ts; what his body does for each, and for his attack, ../../heroes/clause/moves.ts.
  */
 const CUT_GROUND = { blow: 7000, stun: 5 };
 const SHIELD_STRIKE = { blow: 4000, lasts: 20, slow: 0.67, exposed: 1.3 };
 const GUARDIAN = { lasts: 20, taken: 0.75 };
 const VOW = { weak: 0.8, lasts: 8, mana: 300 };
 
-const art = (index: number): string => skillPicture(CLAUSE_ASSETS, index);
+const art = skillArt('clause');
 
 const VOW_OF_KNIGHTS: Passive = {
   attack: 1,
   crit: 0,
   control: 1,
-  shown: { name: 'Vow of Knights', about: 'Passive. When he blocks he strikes back: the boss hits 20% less hard for 8 seconds, and he gains 300 mana.', icon: '🛡️', image: art(3) },
+  shown: { name: 'Vow of Knights', about: 'Passive. When he blocks he strikes back: the boss hits 20% less hard for 8 seconds, and he gains 300 mana.', icon: '🛡️', art: art(3) },
 };
 /** What Guardian Shield gives every hero for a while: shown on each card, with how long it has left. */
-const GUARDED: Buff = { name: 'Guardian Shield', about: 'Takes 25% less from the boss.', icon: '✨', image: art(2) };
+const GUARDED: Buff = { name: 'Guardian Shield', about: 'Takes 25% less from the boss.', icon: '✨', art: art(2) };
 
 export const CLAUSE: HeroDef = {
   id: 'clause',
   name: 'Clause',
   class: 'knight',
-  assets: CLAUSE_ASSETS,
+  skins: ['Clause'],
   // A knight whose blows are physical: as his class stands, otherwise (he blocks a good third of the blows that come at him).
   stats: { ...CLASS_STATS.knight, deals: 'physical' },
   abilities: [
-    { name: 'Cut Ground', about: 'A leap and a blow down on the boss that stuns it for 5 seconds.', icon: '⚔️', image: art(0), move: 'slam', cooldown: 9, cost: 2 },
-    { name: 'Shield Strike', about: 'A blow with his shield: for 20 seconds the boss attacks a third slower and takes 30% more.', icon: '🛡️', image: art(1), move: 'bash', cooldown: 8, cost: 1 },
-    { name: 'Guardian Shield', about: 'For 20 seconds every hero takes 25% less from the boss.', icon: '✨', image: art(2), move: 'guard', cooldown: 12, cost: 2 },
+    { name: 'Cut Ground', about: 'A leap and a blow down on the boss that stuns it for 5 seconds.', icon: '⚔️', art: art(0), move: 'slam', cooldown: 9, cost: 2 },
+    { name: 'Shield Strike', about: 'A blow with his shield: for 20 seconds the boss attacks a third slower and takes 30% more.', icon: '🛡️', art: art(1), move: 'bash', cooldown: 8, cost: 1 },
+    { name: 'Guardian Shield', about: 'For 20 seconds every hero takes 25% less from the boss.', icon: '✨', art: art(2), move: 'guard', cooldown: 12, cost: 2 },
   ],
   passive: VOW_OF_KNIGHTS,
   // Without an animation for his attack: his sword from side to side.
   attack: 'swing',
+  // His animations: one slash where he stands; Guardian Shield, his shield brought down to the ground.
+  timing: { attack: [{ lands: [0.68], until: 0.8 }], skills: { guard: { lands: [1.75], until: 2.6 } } },
   join(fight, self) {
     return {
       lands: {

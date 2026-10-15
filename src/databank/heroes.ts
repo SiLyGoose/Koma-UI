@@ -2,8 +2,8 @@ import { el } from '../shared/items';
 import { BUST, classBadge, className, FACE, heroCut } from '../shared/heroes';
 import { skillRows, statBlocks } from '../heroes/render';
 import { heroStats } from '../heroes/stats';
-import { HEROES } from '../technomagic/heroes';
-import type { HeroDef } from '../technomagic/heroes/kit';
+import { HEROES } from '../technomagic/sim/heroes';
+import type { HeroDef } from '../technomagic/sim/heroes/kit';
 import { label } from './bosses';
 import { heroById, type DatabankContext } from './context';
 

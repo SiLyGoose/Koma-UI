@@ -1,9 +1,9 @@
 /*
  * The fight's own numbers: what is the same whoever fights. (A fighter's health, the kind of damage it
- * deals and how it stands others' are its own: ../heroes/, ../bosses/. How damage is worked out is
- * ../combat/damage.ts.)
+ * deals and how it stands others' are its own: ./heroes/, ./bosses/. How damage is worked out is
+ * ./combat/damage.ts.)
  *
- * The fight is worked out the same way wherever it runs (the page, and the bot checking a win: ./verify.ts),
+ * The fight is worked out the same way wherever it runs (the page, and the bot running a room's fight: ./bot.ts),
  * so nothing here leans on what a computer may round its own way: no Math.pow, exp, sin or cos, only
  * + - * / and Math.sqrt, which every computer works out alike.
  */
@@ -20,7 +20,7 @@ export const MOST = 9;
 
 /**
  * Where a hero stands by how it fights: in the frontline, nearest the boss; in the middle; or in the
- * backline, furthest from it. (Which a hero's is, by its class: ../heroes/kit.ts.)
+ * backline, furthest from it. (Which a hero's is, by its class: ./heroes/kit.ts.)
  */
 export type Line = 'front' | 'middle' | 'back';
 const LINES: readonly Line[] = ['front', 'middle', 'back'];

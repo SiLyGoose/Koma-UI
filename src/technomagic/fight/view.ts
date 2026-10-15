@@ -1,5 +1,5 @@
 import { Vector3, type Scene } from 'three';
-import type { Boss } from '../bosses/boss';
+import type { Boss, BossLook } from '../bosses/boss';
 import type { Effects } from '../fx/effects';
 import type { Magic } from '../fx/magic';
 import type { Props } from '../fx/props';
@@ -7,6 +7,7 @@ import { makeSigns } from '../fx/signs';
 import { makeWards, type Emblem } from '../fx/wards';
 import { FALL, type Hero } from '../heroes/body/hero';
 import { HERO_FX } from '../heroes/fx';
+import { lookOf } from '../heroes/looks';
 import type { Popup } from '../hud/numbers';
 import { HERO_TURN, HERO_X, type Sim } from '../sim';
 import { COMMON_FX, type BossFx, type FxScene } from './fx';
@@ -33,11 +34,11 @@ export interface FightView {
 }
 
 /** A fight drawn in `scene`: the sim's, its heroes' `bodies` (by their index among its fighters) and the boss's. */
-export function makeFightView({ scene, sim, bodies, boss, bossFx, effects, magic, props }: { scene: Scene; sim: Sim; bodies: readonly Hero[]; boss: Boss; bossFx: BossFx; effects: Effects; magic: Magic; props: Props }): FightView {
-  const { def } = sim.foe;
+export function makeFightView({ scene, sim, bodies, boss, bossLook, bossFx, effects, magic, props }: { scene: Scene; sim: Sim; bodies: readonly Hero[]; boss: Boss; bossLook: BossLook; bossFx: BossFx; effects: Effects; magic: Magic; props: Props }): FightView {
+  const { stands, reach } = bossLook;
   const at = new Vector3();
-  const bossHit = new Vector3(...def.reach.hit).setX(def.stands.x + def.reach.hit[0]);
-  const bossFeet = new Vector3(...def.reach.feet).setX(def.stands.x + def.reach.feet[0]);
+  const bossHit = new Vector3(...reach.hit).setX(stands.x + reach.hit[0]);
+  const bossFeet = new Vector3(...reach.feet).setX(stands.x + reach.feet[0]);
   const numbers: Popup[] = [];
   const body = (who: number): Hero => bodies[who] as Hero;
   const on = new Set<number>();
@@ -47,8 +48,8 @@ export function makeFightView({ scene, sim, bodies, boss, bossFx, effects, magic
    */
   const fallen = new Map<number, { over: number; still: number | null }>();
 
-  boss.root.position.x = def.stands.x;
-  boss.root.rotation.y = def.stands.turn;
+  boss.root.position.x = stands.x;
+  boss.root.rotation.y = stands.turn;
   if (!boss.root.parent) scene.add(boss.root);
   for (const hero of bodies) {
     hero.root.position.set(HERO_X, 0, 0);
@@ -75,7 +76,7 @@ export function makeFightView({ scene, sim, bodies, boss, bossFx, effects, magic
   /** The skills of the heroes in the fight that guard a hero with a look of their own: by the status's name, its look. */
   const looks = new Map<string, Emblem>();
   for (const fighter of sim.fighters)
-    for (const [status, name] of Object.entries(HERO_FX[fighter.id]?.wards ?? {})) looks.set(status, { hero: fighter.def.assets, name });
+    for (const [status, name] of Object.entries(HERO_FX[fighter.id]?.wards ?? {})) looks.set(status, { hero: lookOf(fighter.id).assets, name });
   const emblems: Emblem[] = [];
   const signs = makeSigns(effects);
   const over = new Vector3();

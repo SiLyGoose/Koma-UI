@@ -1,6 +1,6 @@
-import type { Buff } from '../hud/buff';
-import type { HeroClass } from '../heroes/kit';
+import type { HeroClass } from './heroes/kit';
 import { SECTION } from './rules';
+import type { Buff } from './shown';
 
 /*
  * The TechnoMagic Raids' gear sets, as the fight has them: a hero wearing three of a set's pieces (of its weapons and

@@ -1,4 +1,4 @@
-import type { BossAttack } from '../bosses/boss';
+import type { BossAttack } from '../sim/bosses/boss';
 import { el } from './dom';
 
 /*

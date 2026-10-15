@@ -1,5 +1,7 @@
-import type { Ability } from '../heroes/kit';
-import { about, buffTip, square, type Buff } from './buff';
+import { artPicture } from '../art';
+import type { Ability } from '../sim/heroes/kit';
+import type { Buff } from '../sim/shown';
+import { about, buffTip, square } from './buff';
 import { el } from './dom';
 import { holdTip, pointTips } from './tip';
 
@@ -94,7 +96,8 @@ export function makeCard(name: string, face: string, abilities: readonly Ability
       slot.setAttribute('aria-label', `${shown.name}${shown.cost ? ` · ${shown.cost} mana` : ''}`);
       pips.replaceChildren(...Array.from({ length: shown.cost }, () => el('i', '')));
       icon.textContent = shown.icon;
-      if (!shown.image) return;
+      const image = artPicture(shown.art);
+      if (!image) return;
       const picture = el('img', 'tm-art');
       picture.alt = '';
       picture.draggable = false;
@@ -102,7 +105,7 @@ export function makeCard(name: string, face: string, abilities: readonly Ability
       picture.addEventListener('load', () => {
         if (showing === shown) icon.replaceChildren(picture);
       });
-      picture.src = shown.image;
+      picture.src = image;
       if (picture.complete && picture.naturalWidth > 0) icon.replaceChildren(picture);
     };
     /** The ability it shows: its own, or what that has turned into. */
@@ -182,12 +185,13 @@ export function makeCard(name: string, face: string, abilities: readonly Ability
 /** What an ability's popup says (./tip.ts): its picture, by it its name, what it costs and how long before it can be used again; under them, what it does. */
 function abilityTip(ability: Ability): Node[] {
   const art = el('span', 'tm-tip-art', ability.icon);
-  if (ability.image) {
+  const image = artPicture(ability.art);
+  if (image) {
     const picture = el('img', '');
     picture.alt = '';
     picture.draggable = false;
     picture.addEventListener('load', () => art.replaceChildren(picture));
-    picture.src = ability.image;
+    picture.src = image;
     if (picture.complete && picture.naturalWidth > 0) art.replaceChildren(picture);
   }
   const pips = el('span', 'tm-tip-pips');

@@ -6,18 +6,20 @@ import { gameSocket, server, showMessage, token, watching, type GameSocket } fro
 import { apiFromSocket, chatBox, startLive } from '../shared/ui';
 import { navigate } from '../shared/transition';
 import { Vector3 } from 'three';
+import { artPicture } from './art';
 import { portraitPicture } from './assets';
-import { bossNamed } from './bosses';
+import { bossNamed } from './sim/bosses';
 import { BOSS_VIEWS } from './bosses/models';
 import { makeStage } from './engine/stage';
 import { makeFightView, type FightView } from './fight/view';
 import { loadEffects } from './fx/effects';
 import { makeMagic } from './fx/magic';
 import { loadProps } from './fx/props';
-import { HEROES } from './heroes';
+import { HEROES } from './sim/heroes';
 import { SCALE, type Hero } from './heroes/body/hero';
-import { nearer } from './heroes/kit';
+import { nearer } from './sim/heroes/kit';
 import { loadHeroes, type Entrant } from './heroes/load';
+import { lookOf } from './heroes/looks';
 import { makeActions } from './hud/actions';
 import { makeBossBar } from './hud/boss-bar';
 import { makeCard } from './hud/card';
@@ -138,28 +140,29 @@ async function start(): Promise<void> {
   const stageNumber = Math.min(STAGES, Math.max(1, Math.floor(Number(params.get('stage'))) || 1));
   const stage = makeStage(canvas);
   // Whatever there is to read, at once. A skin that isn't on this computer is left out: the page goes on without it.
-  const [boss, entrants, effects, props] = await Promise.all([bossView.load(stage.scene), loadHeroes(HEROES), loadEffects(stage.scene), loadProps(stage.scene, HEROES.map((hero) => hero.assets))]);
+  const [boss, entrants, effects, props] = await Promise.all([bossView.load(stage.scene), loadHeroes(HEROES), loadEffects(stage.scene), loadProps(stage.scene, HEROES.map((hero) => lookOf(hero.id).assets))]);
   const magic = makeMagic(stage.scene);
   // The skills' pictures, read before the cards are made, so a skill is never drawn without its own (one that isn't on this computer is left out).
   await Promise.all(
     HEROES.flatMap((hero) => hero.abilities).map((ability) => {
-      if (!ability.image) return undefined;
+      const image = artPicture(ability.art);
+      if (!image) return undefined;
       const picture = new Image();
-      picture.src = ability.image;
+      picture.src = image;
       return picture.decode().catch(() => undefined);
     }),
   );
   // The skins' own pictures for their cards (one that can't be read is left out: it is pictured as it stands, once it does).
-  const faces = new Map(await Promise.all(entrants.map(async ({ def: hero, skin }) => [skin, skin.portrait ? await cutFace(portraitPicture(hero.assets, skin.portrait), skin.portrait) : null] as const)));
+  const faces = new Map(await Promise.all(entrants.map(async ({ def: hero, skin }) => [skin, skin.portrait ? await cutFace(portraitPicture(lookOf(hero.id).assets, skin.portrait), skin.portrait) : null] as const)));
   // And for the meter, their faces close up (one with none is the card's picture there too).
-  const heads = new Map(await Promise.all(entrants.map(async ({ def: hero, skin }) => [skin, skin.portrait ? await cutHead(portraitPicture(hero.assets, skin.portrait), skin.portrait) : null] as const)));
+  const heads = new Map(await Promise.all(entrants.map(async ({ def: hero, skin }) => [skin, skin.portrait ? await cutHead(portraitPicture(lookOf(hero.id).assets, skin.portrait), skin.portrait) : null] as const)));
   const at = new Vector3();
   const pictureOf = (entrant: Entrant, view: FightView, who: number): string => {
     const face = faces.get(entrant.skin) ?? stage.portrait(entrant.hero.root, view.head(who, at), HERO_TURN - 0.45);
     faces.set(entrant.skin, face);
     return face;
   };
-  const skinOf = (entrant: Entrant): number => Math.max(0, entrant.def.assets.skins.indexOf(entrant.skin));
+  const skinOf = (entrant: Entrant): number => Math.max(0, lookOf(entrant.def.id).assets.skins.indexOf(entrant.skin));
 
   const bossBar = makeBossBar(document.getElementById('boss') as HTMLElement, def.name, def.stats.deals);
   const numbers = makeNumbers(numbersAt);
@@ -178,7 +181,7 @@ async function start(): Promise<void> {
     meterAt.replaceChildren();
     numbersAt.replaceChildren();
     const bodies: Hero[] = entries.map((entrant) => entrant.hero);
-    const view = makeFightView({ scene: stage.scene, sim, bodies, boss, bossFx: bossView!.fx, effects, magic, props });
+    const view = makeFightView({ scene: stage.scene, sim, bodies, boss, bossLook: bossView!.look, bossFx: bossView!.fx, effects, magic, props });
     // Each hero, for its card and the meter: its own picture, or with none a picture of its head and shoulders as it stands.
     const pictures = entries.map((entrant, i) => pictureOf(entrant, view, i));
     const cards = sim.fighters.map((fighter, i) => {

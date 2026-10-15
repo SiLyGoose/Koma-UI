@@ -1,33 +1,32 @@
-import type { BossDef, BossPart } from '../bosses/boss';
-import { ATK, NONE, share, strike } from '../combat/damage';
-import { away, blocking, bound, critDamaging, critResisting, critting, dealing, defending, filling, healing, pacing, piercing, put, resisting, taking, wear, type Status } from '../combat/status';
-import type { Mark } from '../hud/boss-bar';
-import type { Buff } from '../hud/buff';
-import { lineOf, NO_PASSIVE, type Ability, type HeroDef } from '../heroes/kit';
-import type { HeroMove } from '../heroes/moves';
+import type { BossDef, BossPart } from './bosses/boss';
+import { ATK, NONE, share, strike } from './combat/damage';
+import { away, blocking, bound, critDamaging, critResisting, critting, dealing, defending, filling, healing, pacing, piercing, put, resisting, taking, wear, type Status } from './combat/status';
 import type { Input, Logged, Result, SimEvent } from './events';
 import { geared } from './gear';
+import { lineOf, NO_PASSIVE, type Ability, type HeroDef } from './heroes/kit';
+import type { HeroMove } from './heroes/moves';
 import { motionOf } from './motion';
 import { seeded } from './random';
+import { AUTO_WAIT, BLOW, CRIT, formation, HERO_WAIT, MANA_PER_ATTACK, MANA_PER_HP_LOST, MANA_RATE, MAX_MANA, MOST, rage, RAGE_WIPE, RAID_TIME, REFORM, SECTION, SOLO_BOSS_HP, STAGES, TICK } from './rules';
 import { AUTHORITY, GUARDED, HOPE, PERSEVERANCE, setOf } from './sets';
+import type { Buff, Mark } from './shown';
 import { CHAMPION_UP, DESPERATION_UP, MENDING_UP, SKILL, skillsOf, SURGE_UP, type SkillId } from './skills';
-import { atTier, ELICIPIRA, EXIAN, EXIAN_UP, ROSMERTA, ROSMERTA_UP, uniqueOf } from './unique';
-import { AUTO_WAIT, BLOW, CRIT, formation, HERO_WAIT, MANA_PER_ATTACK, MANA_PER_HP_LOST, MANA_RATE, MAX_MANA, MOST, RAGE_WIPE, RAID_TIME, rage, REFORM, SECTION, SOLO_BOSS_HP, STAGES, TICK } from './rules';
 import type { Fight, Fighter, Foe, GearBonus } from './types';
+import { atTier, ELICIPIRA, EXIAN, EXIAN_UP, ROSMERTA, ROSMERTA_UP, uniqueOf } from './unique';
 
 /*
  * The fight, worked out with nothing drawn: a boss and the heroes, up to MOST of them on the field at once,
  * each where its class stands (the frontline nearest the boss, the backline furthest from it: ./rules.ts).
  * It keeps how everyone stands (health, mana, what is on them for a while), works out what each blow takes
- * (../combat/), and has each hero on the field attack by itself and use its skills. The boss goes for one
+ * (./combat/), and has each hero on the field attack by itself and use its skills. The boss goes for one
  * of them at a time, picked as each of its attacks begins. What each hero's skills do is the hero's own
- * (../heroes/: its part in the fight), and what the boss's do beyond hurting whoever they land on is the
- * boss's (../bosses/).
+ * (./heroes/: its part in the fight), and what the boss's do beyond hurting whoever they land on is the
+ * boss's (./bosses/).
  *
  * It moves on a step (TICK) at a time, and every chance in it comes of its seed (./random.ts), so the same
  * seed and the same inputs, each before the same step, make the same fight wherever it runs: on the page,
- * which draws what it says happened (its events: ../fight/view.ts), and on the bot, which plays a raid won
- * over to be sure of it before it gives anything for it (./verify.ts).
+ * which draws what it says happened (its events: ../fight/view.ts), and on the bot, which runs a room's fight
+ * itself and gives what it is won for (./bot.ts).
  *
  * As in King's Raid, one try is all there is: a hero down stays down (unless a skill of another's revives it),
  * the boss beaten is won, and every hero on the field down (or the boss's rage wiping them, RAGE_WIPE after the
@@ -157,8 +156,8 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     const dodge = SKILL.mirage.dodge * n('mirage');
     stats.block = { physical: stats.block.physical + block, magical: stats.block.magical + block };
     stats.dodge = { physical: stats.dodge.physical + dodge, magical: stats.dodge.magical + dodge };
-    const motion = motionOf(hero, skin);
-    const name = (hero.assets.skins[skin] ?? hero.assets.skins[0])?.name ?? hero.name;
+    const motion = motionOf(hero);
+    const name = hero.skins[skin] ?? hero.skins[0] ?? hero.name;
     return {
       index,
       id: hero.id,

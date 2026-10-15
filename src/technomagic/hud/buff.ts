@@ -1,20 +1,9 @@
 import { skillText } from '../../shared/heroes';
+import { artPicture } from '../art';
+import type { Buff } from '../sim/shown';
 import { el } from './dom';
 
-/** Something a hero has on it, shown as a small square over its health: a passive it always has, or what a skill has given it for a while. */
-export interface Buff {
-  name: string;
-  /** What it does, for whoever points at it. */
-  about?: string;
-  icon: string;
-  image?: string;
-  /** Seconds it has left (a passive has none). */
-  left?: number;
-  /** How many of it are stacked up: shown in place of the seconds it has left. */
-  count?: number;
-  /** Something the boss has left on it, not something good: its square is edged in red. */
-  harmful?: boolean;
-}
+/* A Buff (../sim/shown.ts) as a small square over a hero's health. */
 
 /** What each square drawn is of, for its popup. */
 const OF = new WeakMap<Element, Buff>();
@@ -28,13 +17,14 @@ export function square(buff: Buff): HTMLElement {
   made.textContent = buff.icon;
   // The number in its corner: how many are stacked, or else the seconds it has left.
   const number = buff.count ?? (buff.left === undefined ? undefined : Math.ceil(buff.left));
-  if (buff.image) {
+  const image = artPicture(buff.art);
+  if (image) {
     const picture = el('img', '');
     picture.alt = '';
     picture.draggable = false;
     // Not there: its icon stays.
     picture.addEventListener('load', () => made.replaceChildren(picture, ...(number === undefined ? [] : [el('b', '', String(number))])));
-    picture.src = buff.image;
+    picture.src = image;
     if (picture.complete && picture.naturalWidth > 0) made.replaceChildren(picture);
   }
   if (number !== undefined) made.append(el('b', '', String(number)));
@@ -47,12 +37,13 @@ export function buffTip(made: Element): Node[] | null {
   if (!buff) return null;
   const head = el('div', buff.harmful ? 'tm-tip-head harmful' : 'tm-tip-head');
   const picture = el('span', 'tm-tip-mini', buff.icon);
-  if (buff.image) {
+  const image = artPicture(buff.art);
+  if (image) {
     const art = el('img', '');
     art.alt = '';
     art.draggable = false;
     art.addEventListener('load', () => picture.replaceChildren(art));
-    art.src = buff.image;
+    art.src = image;
     if (art.complete && art.naturalWidth > 0) picture.replaceChildren(art);
   }
   head.append(picture, el('strong', '', buff.name));

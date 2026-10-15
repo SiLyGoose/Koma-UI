@@ -3,14 +3,14 @@ import { STILL, type Pose } from '../body/pose';
 
 /*
  * A move: what a hero's body does for its attack, a skill, or being hit, as a track of poses
- * (../../engine/track.ts). What comes of it (the hits, what they do to the boss, what is drawn) is for
- * whoever is told each part has landed (../kit.ts).
+ * (../../engine/track.ts), written to fit how the fight times it (../../sim/heroes/moves.ts: when each of its
+ * blows lands, and when it is over). What comes of it (the hits, what they do to the boss, what is drawn) is for
+ * whoever is told each part has landed (../../sim/heroes/kit.ts).
  */
 
-/** A track, and the moments in it that something lands. */
+/** A track. */
 export interface Move {
   keys: Key<Pose>[];
-  lands: number[];
 }
 
 /**

@@ -28,7 +28,7 @@ const MOVED_BY = {
   run: 'Seria - Sword And Shield Run.fbx',
   // One slash where she stands, from her right across to her left: her sword hand is moving fastest 0.8 s in, and the blow
   // lands a little after, as the swing comes through. Left as the swing ends, easing back to how she stands.
-  attack: [{ file: 'Seria - Sword And Shield Slash.fbx', lands: [0.86], until: 1.1 }],
+  attack: [{ file: 'Seria - Sword And Shield Slash.fbx' }],
 } as const satisfies RiggedModel;
 
 export const SERIA_ASSETS: HeroAssets = {

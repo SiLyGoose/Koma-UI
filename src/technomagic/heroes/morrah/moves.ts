@@ -45,7 +45,6 @@ export const CLEAVE: Move = {
     [0.74, as({ ...LOW, hipZ: 0.06, twist: -0.6, lean: 0.14, rhX: -0.4, rhY: 0.22, rhZ: 0.18, bTurn: 4.8, bUp: 0.15, lhX: 0.1, lhY: 0.3, lhZ: 0.36 })],
     [1.15, {}],
   ],
-  lands: [0.3, 0.6],
 };
 
 // Burning Power: her sword raised high overhead (its flames gather), held, then a lunge in with it brought down on the ground ahead (the boss knocked down), and back.
@@ -58,7 +57,6 @@ export const BURNING: Move = {
     [1, as({ ...LUNGE, hipY: -0.29, ahead: 1.25, lean: 0.4, twist: -0.32, nod: 0.06, rhX: -0.08, rhY: 0.03, rhZ: 0.48, bTurn: 6.28, bUp: -0.68, lhX: 0.18, lhY: 0.16, lhZ: 0.2 })],
     [1.5, {}],
   ],
-  lands: [0.76],
 };
 
 // Hellfire: her sword drawn up, then driven point down into the ground at her right side as she sinks low, her shield raised and her head thrown back (the fire goes up round her), held, and up again.
@@ -70,7 +68,6 @@ export const HELLFIRE: Move = {
     [1.1, as({ ...LOW, hipY: -0.21, lean: 0.22, twist: -0.12, nod: -0.3, rhX: -0.2, rhY: -0.07, rhZ: 0.3, bTurn: 6.28, bUp: -1.45, lhX: 0.1, lhY: 0.38, lhZ: 0.42 })],
     [1.5, {}],
   ],
-  lands: [0.55],
 };
 
 // Lava Eruption: her sword swung round behind her, a leap with it raised overhead, and down on one knee with it driven into the ground (the lava bursts up under the boss), and up again.
@@ -83,5 +80,4 @@ export const ERUPTION: Move = {
     [1.2, as({ ...KNEELING, hipY: -0.4, ahead: 1.4, lean: 0.46, twist: -0.12, rhX: -0.06, rhY: 0, rhZ: 0.44, bTurn: 6.28, bUp: -1.28, lhX: 0.2, lhY: 0.12, lhZ: 0.3 })],
     [1.75, {}],
   ],
-  lands: [0.84],
 };

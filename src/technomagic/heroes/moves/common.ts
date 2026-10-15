@@ -43,7 +43,6 @@ export const ATTACK: Move = {
     [2.38, at({ ...COILED, hipY: -0.14, ahead: 0.06, flip: TURN, lean: 0.1 })],
     [2.7, { flip: TURN }],
   ],
-  lands: [0.3, 0.51, 0.93, 1.17, 1.77],
 };
 
 // Hit: thrown back off its front foot, head back and arms flung up, a step back, and standing again.
@@ -54,7 +53,6 @@ export const HIT: Move = {
     [0.25, { ahead: -0.55, hipZ: -0.06, hipY: -0.1, lean: -0.2, nod: 0.1, twist: 0.15, lhY: 0.1, rhY: 0.1 }],
     [0.6, {}],
   ],
-  lands: [],
 };
 
 // Its ability: down low with the blade held across it in both hands, up with it raised overhead, held, and brought down ahead of it.
@@ -68,5 +66,4 @@ export const CAST: Move = {
     [1.15, at({ ...LOW, ahead: 0.5, hipY: -0.15, hipZ: 0.1, lean: 0.34, twist: 0.42, lfZ: 0.24, rhX: -0.02, rhY: -0.02, rhZ: 0.46, bTurn: 0.1, bUp: -0.44, lhX: 0.22, lhY: 0.02, lhZ: -0.16 })],
     [1.6, {}],
   ],
-  lands: [1],
 };

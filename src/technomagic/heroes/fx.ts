@@ -11,5 +11,5 @@ import { MORRAH_FX } from './morrah/fx';
 import { SERIA_FX } from './seria/fx';
 import { VALANCE_FX } from './valance/fx';
 
-/** What is drawn for each hero's moves, by its id (./index.ts lists what they do). */
+/** What is drawn for each hero's moves, by its id (../sim/heroes/ lists what they do). */
 export const HERO_FX: Readonly<Record<string, HeroFx>> = { kirze: KIRZE_FX, clause: CLAUSE_FX, 'fallen-frey': FALLEN_FREY_FX, gremory: GREMORY_FX, annette: ANNETTE_FX, morrah: MORRAH_FX, laias: LAIAS_FX, seria: SERIA_FX, ezekiel: EZEKIEL_FX, lorraine: LORRAINE_FX, valance: VALANCE_FX };

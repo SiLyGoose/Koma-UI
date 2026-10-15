@@ -1,5 +1,5 @@
 import { el } from '../shared/items';
-import { HEROES } from '../technomagic/heroes';
+import { HEROES } from '../technomagic/sim/heroes';
 import type { DatabankContext } from './context';
 import { EMBLEM_RINGS } from './emblems';
 

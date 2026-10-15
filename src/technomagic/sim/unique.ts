@@ -1,4 +1,4 @@
-import type { Buff } from '../hud/buff';
+import type { Buff } from './shown';
 
 /*
  * The heroes' unique weapons, as the fight has them: a hero wearing its own (the bot says how far it is
@@ -13,25 +13,25 @@ import type { Buff } from '../hud/buff';
  * - Fallen Frey, Angel's Despair, Rosmerta: each skill she uses heals her, and she sees past more of the
  *   boss's defense for a while. (The game's heals the two allies with the highest ATK, and raises theirs.)
  * - Gremory, Gateway to Purgatory, Pigritia: she is quicker; each time she sleeps she is healed and her mana
- *   filled a share over 2 seconds, and her Mana Charge raises her ATK more. (Her part does it: ../heroes/gremory/.)
+ *   filled a share over 2 seconds, and her Mana Charge raises her ATK more. (Her part does it: ./heroes/gremory.ts.)
  * - Annette, Crystallized Technomagic, Rascal: every so often she gains a Charge (even while Overcharged) and a
  *   little mana; and while she is Overcharged every ally deals more and takes less, twice as much for the ally with
- *   the highest ATK. (Her part does it: ../heroes/annette/.)
+ *   the highest ATK. (Her part does it: ./heroes/annette.ts.)
  * - Laias, Flowing Circle, Eltoirre: healing reaches every ally the more, and every 5 seconds the ally with the
  *   lowest health is healed. (The game's also raises every ally's M.DEF by a share of her ATK. Her part does it:
- *   ../heroes/laias/.)
+ *   ./heroes/laias.ts.)
  * - Seria, Executioner of Domains, Elsion: a critical blow of her skills deals more, leaves the boss healed less for a
- *   while, and her healed more (up to 5 times over). (Her part does it: ../heroes/seria/.)
+ *   while, and her healed more (up to 5 times over). (Her part does it: ./heroes/seria.ts.)
  * - Morrah, Flame of Victory, Carprain: now and then a blow of her attack leaves the boss hitting less hard and
- *   taking more magical damage for a while, twice as much more with her Flame stacked full on it. (Her part does it: ../heroes/morrah/.)
+ *   taking more magical damage for a while, twice as much more with her Flame stacked full on it. (Her part does it: ./heroes/morrah.ts.)
  * - Ezekiel, Jailer of Despair, Barbatos: his Fury lasts longer, and while it does his critical blows are harder and
- *   he stands being knocked down better. (His part does it: ../heroes/ezekiel/.)
+ *   he stands being knocked down better. (His part does it: ./heroes/ezekiel.ts.)
  * - Lorraine, World Tree's Will, Roburu: every 7 seconds, with her Poison on the boss, a blow that leaves it taking more
- *   magical damage for a while. (The game's also lowers its M.DEF: left out. Her part does it: ../heroes/lorraine/.)
+ *   magical damage for a while. (The game's also lowers its M.DEF: left out. Her part does it: ./heroes/lorraine.ts.)
  * - Valance, Wonder of Magos Le'Flamme, Corbeau Rose: every ally gains by the TechnoMagic gear it wears, the same at
- *   every tier. (Her part does it: ../heroes/valance/.)
+ *   every tier. (Her part does it: ./heroes/valance.ts.)
  *
- * The game's shares of ATK are as they are for damage (this raid's blows are counted in thousandths of them, at ATK: ../combat/);
+ * The game's shares of ATK are as they are for damage (this raid's blows are counted in thousandths of them, at ATK: ./combat/);
  * a heal is the game's share of ATK scaled by its heroes' HP to their ATK (some 86 to 1, where here it is
  * about 1 to 1), so it mends as much of her health as it would there.
  */
@@ -98,21 +98,6 @@ const ABOUT: Readonly<Record<string, (tier: number) => string>> = {
     `Every ally gains by the TechnoMagic gear it wears: with 1 piece, +${pct(CORBEAU.atk)} ATK; 2, +${pct(CORBEAU.defense)} defense; 3, +${pct(CORBEAU.hp)} max HP (it takes that much less); 4, +${pct(CORBEAU.dmg)} DMG.`,
 };
 const NAMES: Readonly<Record<string, string>> = { clause: EXIAN.name, kirze: ELICIPIRA.name, 'fallen-frey': ROSMERTA.name, gremory: PIGRITIA.name, annette: RASCAL.name, morrah: CARPRAIN.name, laias: ELTOIRRE.name, seria: ELSION.name, ezekiel: BARBATOS.name, lorraine: ROBURU.name, valance: CORBEAU.name };
-/** Each weapon's picture: its item's (the bot's catalog id, public/gear/items/weapons/). */
-const PICTURES: Readonly<Record<string, string>> = {
-  clause: '/gear/items/weapons/the-guardian-exian.png',
-  kirze: '/gear/items/weapons/judgment-edge-elicipira.png',
-  'fallen-frey': '/gear/items/weapons/angels-despair-rosmerta.png',
-  gremory: '/gear/items/weapons/gateway-to-purgatory-pigritia.png',
-  annette: '/gear/items/weapons/crystallized-technomagic-rascal.png',
-  morrah: '/gear/items/weapons/flame-of-victory-carprain.png',
-  laias: '/gear/items/weapons/flowing-circle-eltoirre.png',
-  seria: '/gear/items/weapons/executioner-of-domains-elsion.png',
-  ezekiel: '/gear/items/weapons/jailer-of-despair-barbatos.png',
-  lorraine: '/gear/items/weapons/world-trees-will-roburu.png',
-  valance: '/gear/items/weapons/wonder-of-magos-le-flamme-corbeau-rose.png',
-};
-
 /** The heroes that have a unique weapon, by id. */
 export const UNIQUE_HEROES: readonly string[] = Object.keys(ABOUT);
 
@@ -126,12 +111,12 @@ export function uniqueOf(hero: string, tier: number | null | undefined): number 
 }
 
 /** A hero's unique weapon, as a square on its card. */
-export const uniqueBuff = (hero: string, tier: number): Buff => ({ name: `${NAMES[hero] ?? 'Unique weapon'} (★${tier})`, about: uniqueAbout(hero, tier) ?? '', icon: '🗡️', image: PICTURES[hero] });
+export const uniqueBuff = (hero: string, tier: number): Buff => ({ name: `${NAMES[hero] ?? 'Unique weapon'} (★${tier})`, about: uniqueAbout(hero, tier) ?? '', icon: '🗡️', art: { uw: hero } });
 
 /** What Exian gives Clause for a while, what Rosmerta gives Fallen Frey, what Rascal gives every ally while Annette is Overcharged, and what Eltoirre gives every ally while Laias is on the field. */
-export const EXIAN_UP: Buff = { name: 'The Guardian, Exian', about: 'ATK and defense higher.', icon: '🛡️', image: PICTURES.clause };
-export const ROSMERTA_UP: Buff = { name: 'Angel’s Despair, Rosmerta', about: 'Sees past more of the boss’s defense.', icon: '🖤', image: PICTURES['fallen-frey'] };
-export const RASCAL_UP: Buff = { name: 'Crystallized Technomagic, Rascal', about: 'Deals more to the boss and takes less from it while Annette is [Overcharged].', icon: '🤖', image: PICTURES.annette };
-export const ELTOIRRE_UP: Buff = { name: 'Flowing Circle, Eltoirre', about: 'Healing reaches it the more while Laias is on the field.', icon: '☥', image: PICTURES.laias };
-export const ELSION_UP: Buff = { name: 'Executioner of Domains, Elsion', about: 'Healing reaches her the more.', icon: '⚔️', image: PICTURES.seria };
-export const CORBEAU_UP: Buff = { name: 'Wonder of Magos Le’Flamme, Corbeau Rose', about: 'Gains by the TechnoMagic gear it wears while Valance is on the field.', icon: '🌹', image: PICTURES.valance };
+export const EXIAN_UP: Buff = { name: 'The Guardian, Exian', about: 'ATK and defense higher.', icon: '🛡️', art: { uw: 'clause' } };
+export const ROSMERTA_UP: Buff = { name: 'Angel’s Despair, Rosmerta', about: 'Sees past more of the boss’s defense.', icon: '🖤', art: { uw: 'fallen-frey' } };
+export const RASCAL_UP: Buff = { name: 'Crystallized Technomagic, Rascal', about: 'Deals more to the boss and takes less from it while Annette is [Overcharged].', icon: '🤖', art: { uw: 'annette' } };
+export const ELTOIRRE_UP: Buff = { name: 'Flowing Circle, Eltoirre', about: 'Healing reaches it the more while Laias is on the field.', icon: '☥', art: { uw: 'laias' } };
+export const ELSION_UP: Buff = { name: 'Executioner of Domains, Elsion', about: 'Healing reaches her the more.', icon: '⚔️', art: { uw: 'seria' } };
+export const CORBEAU_UP: Buff = { name: 'Wonder of Magos Le’Flamme, Corbeau Rose', about: 'Gains by the TechnoMagic gear it wears while Valance is on the field.', icon: '🌹', art: { uw: 'valance' } };

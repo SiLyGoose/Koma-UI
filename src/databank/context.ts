@@ -1,6 +1,6 @@
 import { armoryFilter, type Slot, type StarChoice } from '../shared/items';
-import { HEROES } from '../technomagic/heroes';
-import type { HeroDef } from '../technomagic/heroes/kit';
+import { HEROES } from '../technomagic/sim/heroes';
+import type { HeroDef } from '../technomagic/sim/heroes/kit';
 import type { Databank, DatabankBoss, DatabankItem, Owned, RaidClass, RaidWeek } from './types';
 
 /** Narrow screens show the item picked in a sheet over the list, only once one is picked. */

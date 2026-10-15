@@ -1,17 +1,16 @@
-import type { HeroAssets } from '../assets';
 import { NONE, type HeroStats } from '../combat/damage';
-import type { Line } from '../sim/rules';
-import type { Fight, Fighter } from '../sim/types';
-import type { Mark } from '../hud/boss-bar';
-import type { Buff } from '../hud/buff';
-import type { Bends, Pose } from './body/pose';
+import type { OwnTiming } from '../motion';
+import type { Line } from '../rules';
+import type { Art, Buff, Mark } from '../shown';
+import type { Fight, Fighter } from '../types';
 import type { HeroMove } from './moves';
 
 /*
  * What a hero is in a fight, whatever skin it wears: its class (and so where it stands), how it stands
- * damage and the kind it deals, its skills and passive, and what comes of each of its moves as it lands. Each hero is a folder here
- * (./kirze/, ./clause/); ./index.ts lists them. Its `index.ts` is its part in the fight's sim (../sim/), drawn
- * nothing: what is drawn for it is its `fx.ts`, and what its body does its `moves.ts`.
+ * damage and the kind it deals, its skills and passive, how its moves are timed, and what comes of each of its
+ * moves as it lands. Each hero is a file here (./kirze.ts, ./clause.ts); ./index.ts lists them. Nothing of it is
+ * drawn: what the page draws for a hero is its folder under ../../heroes/ (its `fx.ts`, and what its body does
+ * its `moves.ts`), and how it looks ../../heroes/looks.ts.
  */
 
 /** An ability: what the hero does for it, how long before it can be used again (seconds), and the mana it takes. */
@@ -21,8 +20,7 @@ export interface Ability {
   about?: string;
   /** What stands for it where it has no picture (or the picture isn't on this computer). */
   icon: string;
-  /** Its picture: an address. */
-  image?: string;
+  art?: Art;
   move: HeroMove;
   cooldown: number;
   cost: number;
@@ -115,32 +113,22 @@ export const CLASS_STATS: Record<HeroClass, Omit<HeroStats, 'deals'>> = {
 };
 
 export interface HeroDef {
-  /** What the bot and the site know it by: its folder here (and its files' under assets/heroes/). */
+  /** What the bot and the site know it by: its file here (and its folder under ../../heroes/ and assets/heroes/). */
   id: string;
   name: string;
   class: HeroClass;
   /** Where it stands, when that isn't where its class usually does. */
   line?: Line;
-  /** Its files: its skins (each with a card of its own), its skills' pictures. */
-  assets: HeroAssets;
+  /** Its skins' names, its own first: each looks otherwise (../../assets/), and fights the same. */
+  skins: readonly string[];
   /** Its health and attack, the kind of damage its blows deal, how it stands the boss's, and the rest: its class's (CLASS_STATS), with its own over them. */
   stats: HeroStats;
   abilities: readonly Ability[];
   passive?: Passive;
   /** The move it attacks with, when it has no animation for its attack and isn't to attack as most do. */
   attack?: HeroMove;
-  /** How it stands at rest when it is moved by the poses written in code (a swordsman's, REST, when it doesn't say): its own moves are written from it. */
-  stands?: Pose;
-  /** It sits on what floats under it (its skins' `floating`) rather than standing: it glides in on it, bobbing, rather than running. */
-  seated?: boolean;
-  /** Which ways its knees and elbows bend as it is posed, where they aren't the usual ways (a body that lies rather than stands). */
-  bends?: Bends;
-  /**
-   * How it stands wanders, when it is moved by the poses written in code (in its idle, or at rest): its chest and head
-   * turned and its weight shifted a little, now one way and now another, and its idle played a little slower or faster
-   * (from a moment of its own), so that it never stands quite the same way twice, nor as another in the same idle does.
-   */
-  varies?: boolean;
+  /** How its own animations are timed (its skins' that have them are drawn to fit: ../motion.ts); none, its moves are all timed as written in code. */
+  timing?: OwnTiming;
   /** Its part in a fight: made once, as the fight begins. */
   join(fight: Fight, self: Fighter): HeroPart;
 }

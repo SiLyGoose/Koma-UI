@@ -27,9 +27,9 @@ export const CLAUSE_ASSETS: HeroAssets = {
           run: 'Clause - Sword And Shield Run.fbx',
           // One slash where he stands. His sword hand is moving fastest 0.6 s in: the blow lands a little after, as the swing comes through.
           // Left just after it (before the clip's follow-through brings the sword down across him), easing back to his idle.
-          attack: [{ file: 'Clause - Sword And Shield Slash.fbx', lands: [0.68], until: 0.8 }],
+          attack: [{ file: 'Clause - Sword And Shield Slash.fbx' }],
           // Guardian Shield: his shield arm raised high, then brought down to the ground (1.75 s in, where it lands), and up again.
-          skills: { guard: { file: 'Clause - Sword And Shield Casting.fbx', lands: [1.75], until: 2.6 } },
+          skills: { guard: { file: 'Clause - Sword And Shield Casting.fbx' } },
         },
       },
     },

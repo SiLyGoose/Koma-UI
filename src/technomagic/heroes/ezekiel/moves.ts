@@ -49,7 +49,6 @@ export const CLAW: Move = {
     [0.55, as({ ...LUNGE, ahead: 1.25, hipY: -0.28, twist: 0.5, lean: 0.28, ...SWEPT, rhX: 0.22 })],
     [1, {}],
   ],
-  lands: [0.4],
 };
 
 // Destructive Instinct: a great swipe round in a circle, then up into the air and his claws driven down into the ground (the boss is knocked down), and back.
@@ -64,7 +63,6 @@ export const INSTINCT: Move = {
     [1.4, as({ ...KNEELING, ahead: 2, hipY: -0.4, lean: 0.46, rhX: -0.08, rhY: -0.3, rhZ: 0.4, bTurn: 0, bUp: -1.3 })],
     [1.85, {}],
   ],
-  lands: [0.47, 1.07],
 };
 
 // Dawning Despair: low, then a dash far in at the boss with his claws thrust ahead, a swipe as he arrives, and back.
@@ -77,7 +75,6 @@ export const DESPAIR: Move = {
     [0.75, as({ ...LOW, ahead: 3.5, lean: 0.25, twist: 0.5, ...SWEPT })],
     [1.3, {}],
   ],
-  lands: [0.56],
 };
 
 // Strike of Doom: drawn up tall, his demon arm raised high and held as it charges, then brought down on the boss in a lunge, and back.
@@ -90,5 +87,4 @@ export const DOOM: Move = {
     [1.3, as({ ...LUNGE, ahead: 1.6, hipY: -0.3, lean: 0.45, twist: 0.22, rhX: -0.06, rhY: 0.05, rhZ: 0.48, bTurn: 0, bUp: -0.9 })],
     [1.75, {}],
   ],
-  lands: [1.02],
 };

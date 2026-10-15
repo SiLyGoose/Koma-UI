@@ -1,11 +1,9 @@
-import { skillPicture, VALANCE_ASSETS } from '../../assets';
-import { away, put, type Status } from '../../combat/status';
-import type { Buff } from '../../hud/buff';
-import { BLOW, MAX_MANA, SECTION } from '../../sim/rules';
-import type { Fighter } from '../../sim/types';
-import { CORBEAU, CORBEAU_UP } from '../../sim/unique';
-import { CLASS_STATS, type HeroDef, type Passive } from '../kit';
-import { STAND } from './moves';
+import { away, put, type Status } from '../combat/status';
+import { BLOW, MAX_MANA, SECTION } from '../rules';
+import { skillArt, type Buff } from '../shown';
+import type { Fighter } from '../types';
+import { CORBEAU, CORBEAU_UP } from '../unique';
+import { CLASS_STATS, type HeroDef, type Passive } from './kit';
 
 /*
  * Valance's skills, as the game has them (what each costs, how long before it can be used again, how long what it
@@ -20,8 +18,8 @@ import { STAND } from './moves';
  *   each leaves it Manipulated (up to seven times over): taking more and healed less.
  * Her passive, Technomagic Awakening: her defense higher and her mana filling faster, and every ally's ATK higher;
  * and in the Technomagic Kingdom (this raid's) every ally deals more to the boss.
- * Her unique weapon (../../sim/unique.ts) is worked here too: every ally gains by the TechnoMagic gear it wears.
- * What is drawn for each is ./fx.ts; what her body does for each, and for her attack, ./moves.ts.
+ * Her unique weapon (../unique.ts) is worked here too: every ally gains by the TechnoMagic gear it wears.
+ * What is drawn for each is ../../heroes/valance/fx.ts; what her body does for each, and for her attack, ../../heroes/valance/moves.ts.
  */
 const BOLT = { blow: BLOW * 1.4 };
 const HOLOGRAM = { lasts: 15, atk: 0.2, crit: 0.2, heal: 2_000, cooldown: 0.2 };
@@ -29,7 +27,7 @@ const FIELD = { lasts: 5, defense: 1.15, heal: 4_000, mana: 0.3 * SECTION };
 const CANNON = { blow: 4000, stun: 3, lasers: 9, laser: 700, laserStun: 1.5, lasts: 15, takes: 0.07, heals: 0.05, most: 7 };
 const AWAKENING = { defense: 1.2, mana: 1.3, atk: 0.1, boss: 0.15 };
 
-const art = (index: number): string => skillPicture(VALANCE_ASSETS, index);
+const art = skillArt('valance');
 
 const AWAKENED: Passive = {
   attack: 1,
@@ -39,16 +37,16 @@ const AWAKENED: Passive = {
     name: 'Technomagic Awakening',
     about: 'Passive. Her defense 20% higher and her mana filling 30% faster; every ally’s ATK 10% higher, and (in the Technomagic Kingdom) every ally deals 15% more to the boss.',
     icon: '⚙️',
-    image: art(3),
+    art: art(3),
   },
 };
 /** What her passive gives every ally while she is on the field, and her alone. */
-const AWAKENING_UP: Buff = { name: 'Technomagic Awakening', about: 'ATK 10% higher, and 15% more to the boss.', icon: '⚙️', image: art(3) };
-const AWAKENING_SELF: Buff = { name: 'Technomagic Awakening (Valance)', about: 'Defense 20% higher, and mana filling 30% faster.', icon: '⚙️', image: art(3) };
+const AWAKENING_UP: Buff = { name: 'Technomagic Awakening', about: 'ATK 10% higher, and 15% more to the boss.', icon: '⚙️', art: art(3) };
+const AWAKENING_SELF: Buff = { name: 'Technomagic Awakening (Valance)', about: 'Defense 20% higher, and mana filling 30% faster.', icon: '⚙️', art: art(3) };
 /** Hologram: on its ally's card, with how long it has left. */
-const HOLOGRAPHED: Buff = { name: 'Hologram', about: 'ATK and crit chance higher, healed every second, skills ready sooner; nothing the boss does holds it.', icon: '💠', image: art(0) };
+const HOLOGRAPHED: Buff = { name: 'Hologram', about: 'ATK and crit chance higher, healed every second, skills ready sooner; nothing the boss does holds it.', icon: '💠', art: art(0) };
 /** The Violet Force Field: on every ally's card while it lasts. */
-const FIELDED: Buff = { name: 'Violet Force Field', about: 'Defense 15% higher, can’t be knocked down, healed and given mana every second.', icon: '🟣', image: art(1) };
+const FIELDED: Buff = { name: 'Violet Force Field', about: 'Defense 15% higher, can’t be knocked down, healed and given mana every second.', icon: '🟣', art: art(1) };
 /** What Ultimate Laser Cannon leaves on the boss. */
 const MANIPULATED = 'Manipulated';
 
@@ -59,17 +57,16 @@ export const VALANCE: HeroDef = {
   id: 'valance',
   name: 'Valance',
   class: 'mechanic',
-  assets: VALANCE_ASSETS,
+  skins: ['Valance'],
   // A mechanic whose blows are physical (her lasers'): as her class stands.
   stats: { ...CLASS_STATS.mechanic, deals: 'physical' },
   abilities: [
-    { name: 'Prototype – VA', about: 'Clears what the boss has left on the ally with the highest ATK, and gives it a [Hologram] for 15 seconds: 20% more ATK and crit chance, healed every second, its skills ready 20% sooner, and nothing the boss does holds it.', icon: '💠', image: art(0), move: 'prototype', cooldown: 15, cost: 3 },
-    { name: 'Absolute Protection Field – LA', about: 'A field for 5 seconds that reaches every ally: 15% more defense, can’t be knocked down, and healed and given mana every second.', icon: '🟣', image: art(1), move: 'field', cooldown: 20, cost: 5 },
-    { name: 'Ultimate Laser Cannon – NCE', about: 'A laser that stuns the boss for 3 seconds, then 9 more, each stunning it for 1.5; each leaves it [Manipulated] for 15 seconds (up to 7 times over): taking 7% more and healed 5% less.', icon: '🔫', image: art(2), move: 'cannon', cooldown: 20, cost: 4 },
+    { name: 'Prototype – VA', about: 'Clears what the boss has left on the ally with the highest ATK, and gives it a [Hologram] for 15 seconds: 20% more ATK and crit chance, healed every second, its skills ready 20% sooner, and nothing the boss does holds it.', icon: '💠', art: art(0), move: 'prototype', cooldown: 15, cost: 3 },
+    { name: 'Absolute Protection Field – LA', about: 'A field for 5 seconds that reaches every ally: 15% more defense, can’t be knocked down, and healed and given mana every second.', icon: '🟣', art: art(1), move: 'field', cooldown: 20, cost: 5 },
+    { name: 'Ultimate Laser Cannon – NCE', about: 'A laser that stuns the boss for 3 seconds, then 9 more, each stunning it for 1.5; each leaves it [Manipulated] for 15 seconds (up to 7 times over): taking 7% more and healed 5% less.', icon: '🔫', art: art(2), move: 'cannon', cooldown: 20, cost: 4 },
   ],
   passive: AWAKENED,
   attack: 'bolt',
-  stands: STAND,
   join(fight, self) {
     /** Whom her Hologram is on, and for how long yet; and toward its next heal (once a second). */
     let holo: Fighter | null = null;
@@ -92,7 +89,7 @@ export const VALANCE: HeroDef = {
       const stacks = Math.min(CANNON.most, (fight.foe.statuses.find((status) => status.name === MANIPULATED)?.count ?? 0) + 1);
       put(fight.foe.statuses, { name: MANIPULATED, left: CANNON.lasts, count: stacks, takes: 1 + CANNON.takes * stacks, heals: Math.max(0, 1 - CANNON.heals * stacks), shown: 'curse' });
     };
-    /** How many pieces of TechnoMagic gear an ally wears: each comes with one additional skill (../../sim/skills.ts). */
+    /** How many pieces of TechnoMagic gear an ally wears: each comes with one additional skill (../skills.ts). */
     const tmPieces = (ally: Fighter): number => Object.values(ally.skills).reduce((sum: number, n) => sum + (n ?? 0), 0);
 
     return {

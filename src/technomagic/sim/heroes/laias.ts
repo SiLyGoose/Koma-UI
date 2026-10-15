@@ -1,11 +1,9 @@
-import { LAIAS_ASSETS, skillPicture } from '../../assets';
-import { away, put } from '../../combat/status';
-import type { Buff } from '../../hud/buff';
-import { BLOW, MAX_MANA, SECTION } from '../../sim/rules';
-import type { Fighter } from '../../sim/types';
-import { atTier, ELTOIRRE, ELTOIRRE_UP } from '../../sim/unique';
-import { CLASS_STATS, type HeroDef, type Passive } from '../kit';
-import { STAND } from './moves';
+import { away, put } from '../combat/status';
+import { BLOW, MAX_MANA, SECTION } from '../rules';
+import { skillArt, type Buff } from '../shown';
+import type { Fighter } from '../types';
+import { atTier, ELTOIRRE, ELTOIRRE_UP } from '../unique';
+import { CLASS_STATS, type HeroDef, type Passive } from './kit';
 
 /*
  * Laias's skills, as the game has them (what each costs, how long before it can be used again, how long what it
@@ -21,9 +19,9 @@ import { STAND } from './moves';
  * Her passive, Blessing of the Water Dragon: she stands being knocked down far better; every ally has more M.DEF
  * and the boss's magic is less likely to land a critical blow on them; and each skill she uses has every ally take
  * less magical damage for a while.
- * Her unique weapon (../../sim/unique.ts) is worked here too: healing reaches every ally the more, and every so
+ * Her unique weapon (../unique.ts) is worked here too: healing reaches every ally the more, and every so
  * often the ally with the lowest health is healed.
- * What is drawn for each is ./fx.ts; what her body does for each, and for her attack, ./moves.ts.
+ * What is drawn for each is ../../heroes/laias/fx.ts; what her body does for each, and for her attack, ../../heroes/laias/moves.ts.
  */
 const SPLASH = { blow: BLOW * 1.5 };
 // (Its 25% Heal Rate, 1.5 times for an ally at half its health or less, as the game has it.)
@@ -33,7 +31,7 @@ const FESTIVAL = { blow: 2500, down: 3, heal: 0.15, mana: 2 * SECTION, lasts: 12
 // (Her 500 CC Resist and every ally's 250 M.Crit Resistance, as the game has them: points.)
 const WATER_DRAGON = { resist: 500, defense: 1.1, critResist: 250, taken: 0.75, lasts: 5 };
 
-const art = (index: number): string => skillPicture(LAIAS_ASSETS, index);
+const art = skillArt('laias');
 
 const BLESSING: Passive = {
   attack: 1,
@@ -43,33 +41,32 @@ const BLESSING: Passive = {
     name: 'Blessing of the Water Dragon',
     about: 'Passive. +500 CC Resist for her; every ally has 10% more M.DEF and 250 M.Crit Resistance, and each skill she uses has every ally take 25% less magical damage for 5 seconds.',
     icon: '🐉',
-    image: art(3),
+    art: art(3),
   },
 };
 /** What her passive gives every ally while she is on the field, and each skill she uses for a while. */
-const BLESSED: Buff = { name: 'Blessing of the Water Dragon', about: 'More M.DEF, and the boss’s magic is less likely to land a critical blow.', icon: '🐉', image: art(3) };
-const WARDED: Buff = { name: 'Water Dragon’s Ward', about: 'Takes 25% less magical damage.', icon: '💧', image: art(3) };
+const BLESSED: Buff = { name: 'Blessing of the Water Dragon', about: 'More M.DEF, and the boss’s magic is less likely to land a critical blow.', icon: '🐉', art: art(3) };
+const WARDED: Buff = { name: 'Water Dragon’s Ward', about: 'Takes 25% less magical damage.', icon: '💧', art: art(3) };
 /** What Healing Droplets gives each ally, shown on its card with how long it has left. */
-const DROPLETS_UP: Buff = { name: 'Healing Droplets', about: 'Healing reaches it the more.', icon: '💧', image: art(0) };
+const DROPLETS_UP: Buff = { name: 'Healing Droplets', about: 'Healing reaches it the more.', icon: '💧', art: art(0) };
 /** What Bubble Shield gives its ally: for its whole while, and more while the shield holds. */
-const BUBBLED: Buff = { name: 'Bubble Shield', about: 'Takes 30% less from the boss and deals 15% more to it.', icon: '🫧', image: art(1) };
-const BUBBLE_HOLDS: Buff = { name: 'Bubble', about: 'While the shield holds: can’t be knocked down, hits harder, and is healed every second.', icon: '🫧', image: art(1) };
+const BUBBLED: Buff = { name: 'Bubble Shield', about: 'Takes 30% less from the boss and deals 15% more to it.', icon: '🫧', art: art(1) };
+const BUBBLE_HOLDS: Buff = { name: 'Bubble', about: 'While the shield holds: can’t be knocked down, hits harder, and is healed every second.', icon: '🫧', art: art(1) };
 
 export const LAIAS: HeroDef = {
   id: 'laias',
   name: 'Laias',
   class: 'priest',
-  assets: LAIAS_ASSETS,
+  skins: ['Laias'],
   // A priestess whose blows are magical, who stands being knocked down far better (her passive): as her class stands, otherwise.
   stats: { ...CLASS_STATS.priest, deals: 'magical', resist: CLASS_STATS.priest.resist + WATER_DRAGON.resist },
   abilities: [
-    { name: 'Healing Droplets', about: 'Heals every ally, and for 10 seconds healing reaches them 25% more (half as much more again for one at half its health or less).', icon: '💧', image: art(0), move: 'droplets', cooldown: 8, cost: 2 },
-    { name: 'Bubble Shield', about: 'A shield on the ally with the lowest health: for 15 seconds it takes 30% less from the boss and deals 15% more. While the shield holds it can’t be knocked down, hits 20% harder and is healed every second.', icon: '🫧', image: art(1), move: 'bubble', cooldown: 15, cost: 3 },
-    { name: 'Festival of the Flow', about: 'Knocks the boss down for 3 seconds, heals every ally 15% of its max HP and gives every other ally 2 mana. Then for 12 seconds a whirlpool every 4 seconds strikes the boss and knocks it down for 2.', icon: '🌊', image: art(2), move: 'festival', cooldown: 20, cost: 4 },
+    { name: 'Healing Droplets', about: 'Heals every ally, and for 10 seconds healing reaches them 25% more (half as much more again for one at half its health or less).', icon: '💧', art: art(0), move: 'droplets', cooldown: 8, cost: 2 },
+    { name: 'Bubble Shield', about: 'A shield on the ally with the lowest health: for 15 seconds it takes 30% less from the boss and deals 15% more. While the shield holds it can’t be knocked down, hits 20% harder and is healed every second.', icon: '🫧', art: art(1), move: 'bubble', cooldown: 15, cost: 3 },
+    { name: 'Festival of the Flow', about: 'Knocks the boss down for 3 seconds, heals every ally 15% of its max HP and gives every other ally 2 mana. Then for 12 seconds a whirlpool every 4 seconds strikes the boss and knocks it down for 2.', icon: '🌊', art: art(2), move: 'festival', cooldown: 20, cost: 4 },
   ],
   passive: BLESSING,
   attack: 'splash',
-  stands: STAND,
   join(fight, self) {
     /** Whom her Bubble Shield is on, and for how long yet; and toward its next heal (once a second). */
     let bubbled: Fighter | null = null;

@@ -1,8 +1,8 @@
 import { classBadge, className, FACE, heroCut } from '../../shared/heroes';
 import { levelPopup } from '../../shared/ui/level/level';
-import { GALGORIA } from '../bosses/galgoria';
-import { HEROES } from '../heroes';
-import { nearer } from '../heroes/kit';
+import { GALGORIA } from '../sim/bosses/galgoria';
+import { HEROES } from '../sim/heroes';
+import { nearer } from '../sim/heroes/kit';
 import { el } from '../hud/dom';
 import type { PickView, PlayerView, RoomState } from '../protocol';
 import { SOLO_BOSS_HP } from '../sim/rules';
@@ -52,7 +52,7 @@ const MIN_FIT = 0.4;
 const byId = (id: string): HTMLElement => document.getElementById(id) as HTMLElement;
 const heroNamed = (id: string) => HEROES.find((hero) => hero.id === id);
 
-/** Which of two picks is shown nearer the boss (../heroes/kit.ts's nearer; one this page doesn't know: furthest back). */
+/** Which of two picks is shown nearer the boss (../sim/heroes/kit.ts's nearer; one this page doesn't know: furthest back). */
 function nearerPick(a: PickView, b: PickView): number {
   const defA = heroNamed(a.hero);
   const defB = heroNamed(b.hero);

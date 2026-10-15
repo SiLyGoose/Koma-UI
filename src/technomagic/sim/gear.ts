@@ -1,4 +1,4 @@
-import type { HeroStats } from '../combat/damage';
+import type { HeroStats } from './combat/damage';
 import type { GearBonus } from './types';
 
 /* What a hero's gear gives it in the fight (the bot says what it gives: ./types.ts GearBonus). */

@@ -1,16 +1,16 @@
 import type { StatSection } from '../shared/items';
 import { className, type Hero, type HeroStat } from '../shared/heroes';
-import { POINTS } from '../technomagic/combat/damage';
+import { POINTS } from '../technomagic/sim/combat/damage';
 import { geared } from '../technomagic/sim/gear';
 import { CRIT, MANA_PER_ATTACK, MANA_RATE } from '../technomagic/sim/rules';
-import { HEROES } from '../technomagic/heroes';
-import { CLASS_STATS, lineOf, type HeroClass } from '../technomagic/heroes/kit';
+import { HEROES } from '../technomagic/sim/heroes';
+import { CLASS_STATS, lineOf, type HeroClass } from '../technomagic/sim/heroes/kit';
 import type { Line } from '../technomagic/sim/rules';
 
 /*
  * The heroes page's Stats tab: a hero's class, the kind of damage it deals and where it stands in the fight (the raid's
- * ../technomagic/heroes/: its own, or its class's), then its stats in the TechnoMagic Raid, as its class has them (the raid's
- * heroes/kit.ts CLASS_STATS), and with what its gear gives it (the bot's bonus, as the raid's sim/gear.ts
+ * ../technomagic/sim/heroes/: its own, or its class's), then its stats in the TechnoMagic Raid, as its class has them (the raid's
+ * sim/heroes/kit.ts CLASS_STATS), and with what its gear gives it (the bot's bonus, as the raid's sim/gear.ts
  * counts it: points added to the chances and shares, a share more of the rest). Each row its gear changes
  * says what it is without it.
  */

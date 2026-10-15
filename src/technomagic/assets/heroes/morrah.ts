@@ -16,7 +16,7 @@ const MOVED_BY = {
   folder: 'Morrah_Mixamo',
   idle: 'Morrah - Sword And Shield Idle.fbx',
   run: 'Morrah - Sword And Shield Run.fbx',
-  attack: [{ file: 'Morrah - Sword And Shield Slash.fbx', lands: [0.68], until: 0.8 }],
+  attack: [{ file: 'Morrah - Sword And Shield Slash.fbx' }],
 } as const satisfies RiggedModel;
 export const MORRAH_ASSETS: HeroAssets = {
   name: 'Morrah',

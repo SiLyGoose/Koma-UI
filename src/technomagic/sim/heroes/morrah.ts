@@ -1,11 +1,9 @@
-import { MORRAH_ASSETS, skillPicture } from '../../assets';
-import { away, put } from '../../combat/status';
-import type { Buff } from '../../hud/buff';
-import { BLOW } from '../../sim/rules';
-import type { Fighter } from '../../sim/types';
-import { atTier, CARPRAIN } from '../../sim/unique';
-import { CLASS_STATS, type HeroDef, type Passive } from '../kit';
-import { STAND } from './moves';
+import { away, put } from '../combat/status';
+import { BLOW } from '../rules';
+import { skillArt, type Buff } from '../shown';
+import type { Fighter } from '../types';
+import { atTier, CARPRAIN } from '../unique';
+import { CLASS_STATS, type HeroDef, type Passive } from './kit';
 
 /*
  * Morrah's skills, as the game has them (what each costs, how long before it can be used again, how long what it
@@ -18,9 +16,9 @@ import { STAND } from './moves';
  *   boss every second.
  * - Lava Eruption: a blow that knocks the boss down, harder for each Flame on it.
  * Her passive, Fire Smash: when she blocks, a blow back that leaves 3 Flame on the boss.
- * Her unique weapon (../../sim/unique.ts) is worked here too: now and then a blow of her attack leaves the boss
+ * Her unique weapon (../unique.ts) is worked here too: now and then a blow of her attack leaves the boss
  * hitting less hard and taking more magical damage, the more with her Flame stacked full on it.
- * What is drawn for each is ./fx.ts; what her body does for each, and for her attack, ./moves.ts.
+ * What is drawn for each is ../../heroes/morrah/fx.ts; what her body does for each, and for her attack, ../../heroes/morrah/moves.ts.
  */
 const CLEAVE = { blow: BLOW, burning: 150 };
 const BURNING = { blow: 1500, flames: 3, down: 1, lasts: 15 };
@@ -31,18 +29,18 @@ const SMASH = { blow: 1500, flames: 3 };
 /** The most Flame on the boss, how long it lasts once the last was left, how hard each burns every second, how much harder it makes her skills, and what each takes off the boss's heals. */
 const FLAME = { most: 100, lasts: 10, each: 4, every: 1, more: 0.02, heals: 0.01 };
 
-const art = (index: number): string => skillPicture(MORRAH_ASSETS, index);
+const art = skillArt('morrah');
 
 const FIRE_SMASH: Passive = {
   attack: 1,
   crit: 0,
   control: 1,
-  shown: { name: 'Fire Smash', about: 'Passive. When she blocks she strikes back, leaving 3 [Flame] on the boss.', icon: '🔥', image: art(3) },
+  shown: { name: 'Fire Smash', about: 'Passive. When she blocks she strikes back, leaving 3 [Flame] on the boss.', icon: '🔥', art: art(3) },
 };
 /** What Burning Power gives her for a while: shown beside her passive, with how long it has left. */
-const BURNING_UP: Buff = { name: 'Burning Power', about: 'Each blow of her attack deals more and leaves a [Flame] on the boss.', icon: '🔥', image: art(0) };
+const BURNING_UP: Buff = { name: 'Burning Power', about: 'Each blow of her attack deals more and leaves a [Flame] on the boss.', icon: '🔥', art: art(0) };
 /** What Hellfire gives every ally for a while: shown on each card, with how long it has left. */
-const HELLFIRE_UP: Buff = { name: 'Hellfire', about: '30% more M.DEF, and +250 M.Block.', icon: '🌋', image: art(1) };
+const HELLFIRE_UP: Buff = { name: 'Hellfire', about: '30% more M.DEF, and +250 M.Block.', icon: '🌋', art: art(1) };
 /** What her skills, and her unique weapon, leave on the boss. */
 const FLAMED = 'Flame';
 
@@ -50,17 +48,18 @@ export const MORRAH: HeroDef = {
   id: 'morrah',
   name: 'Morrah',
   class: 'knight',
-  assets: MORRAH_ASSETS,
+  skins: ['Morrah'],
   // A knight whose blows are magical: as her class stands, otherwise.
   stats: { ...CLASS_STATS.knight, deals: 'magical' },
   abilities: [
-    { name: 'Burning Power', about: 'A blow that knocks the boss down for a second and leaves 3 [Flame] on it. Then for 15 seconds each blow of her attack deals more and leaves a [Flame]. Both are 2% harder for each [Flame] on the boss.', icon: '🔥', image: art(0), move: 'burning', cooldown: 6, cost: 2 },
-    { name: 'Hellfire', about: 'For 20 seconds every ally has 30% more M.DEF and +250 M.Block, and a [Flame] is left on the boss every second.', icon: '🌋', image: art(1), move: 'hellfire', cooldown: 12, cost: 3 },
-    { name: 'Lava Eruption', about: 'A blow that knocks the boss down for 3 seconds, 2% harder for each [Flame] on it.', icon: '☄️', image: art(2), move: 'eruption', cooldown: 20, cost: 3 },
+    { name: 'Burning Power', about: 'A blow that knocks the boss down for a second and leaves 3 [Flame] on it. Then for 15 seconds each blow of her attack deals more and leaves a [Flame]. Both are 2% harder for each [Flame] on the boss.', icon: '🔥', art: art(0), move: 'burning', cooldown: 6, cost: 2 },
+    { name: 'Hellfire', about: 'For 20 seconds every ally has 30% more M.DEF and +250 M.Block, and a [Flame] is left on the boss every second.', icon: '🌋', art: art(1), move: 'hellfire', cooldown: 12, cost: 3 },
+    { name: 'Lava Eruption', about: 'A blow that knocks the boss down for 3 seconds, 2% harder for each [Flame] on it.', icon: '☄️', art: art(2), move: 'eruption', cooldown: 20, cost: 3 },
   ],
   passive: FIRE_SMASH,
   attack: 'cleave',
-  stands: STAND,
+  // Clause’s slash (her animations are copies of his), timed as his is.
+  timing: { attack: [{ lands: [0.68], until: 0.8 }] },
   join(fight, self) {
     /** How long Burning Power has her attack burning for yet; how long her Hellfire lasts yet, and toward its next Flame; and toward her Flame's next burn. */
     let burning = 0;

@@ -48,7 +48,6 @@ export const ZAP: Move = {
     [0.6, as({ ...LOW, hipY: -0.11, twist: -0.32, lean: 0.1, ...POINT, rhY: 0.35 })],
     [1, {}],
   ],
-  lands: [0.45],
 };
 
 // Blasting Ray: gathered in, both hands drawn back to her right side; then both thrust out ahead at the boss, held there while Rascal's ray burns into it, and back.
@@ -61,7 +60,6 @@ export const RAY: Move = {
     [1.1, as({ ...LOW, hipY: -0.12, twist: -0.22, lean: 0.16, nod: 0.06, ...AIMED, lhY: 0.33, rhY: 0.35 })],
     [1.5, {}],
   ],
-  lands: [0.75],
 };
 
 // Emergency Treatment: both hands clasped before her chest, then up on her toes with both arms flung up and wide (the treatment goes out to every ally), held, and down.
@@ -73,7 +71,6 @@ export const TREATMENT: Move = {
     [0.95, as({ ...TALL, jump: 0.14, lean: -0.14, nod: -0.22, lhX: 0.43, lhY: 0.74, lhZ: 0.08, rhX: -0.43, rhY: 0.74, rhZ: 0.08, bTurn: -0.6, bUp: 1.25 })],
     [1.4, {}],
   ],
-  lands: [0.6],
 };
 
 // Process of Elimination: her right arm wound up high over her head, a hop up, then brought down to point at the boss as she lands (Rascal throws the ball, and it bursts), and back.
@@ -86,5 +83,4 @@ export const ELIMINATION: Move = {
     [1.35, as({ ...LOW, hipY: -0.12, twist: -0.36, lean: 0.18, nod: 0.06, lhX: 0.24, lhY: 0.1, lhZ: -0.1, ...POINT })],
     [1.8, {}],
   ],
-  lands: [1],
 };

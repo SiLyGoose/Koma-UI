@@ -16,7 +16,7 @@ const MOVED_BY = {
   idle: 'Ezekiel - Ninja Idle.fbx',
   // A motion of Mixamo's alone (no model in it): a jab, a cross, a hook and a kick from his guard, and back to it. Each
   // blow lands a little after the fist (or the foot) is moving fastest, as it reaches out: 0.92, 1.52, 2.78 and 3.62 s in.
-  attack: [{ file: 'Ezekiel - Fist Fight A.fbx', lands: [0.92, 1.52, 2.78, 3.62], until: 4.3 }],
+  attack: [{ file: 'Ezekiel - Fist Fight A.fbx' }],
 } as const satisfies RiggedModel;
 
 export const EZEKIEL_ASSETS: HeroAssets = {

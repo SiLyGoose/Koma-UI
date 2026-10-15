@@ -49,7 +49,6 @@ export const BOLT: Move = {
     [0.6, as({ ...LOW, twist: -0.26, lean: 0.04, ...AIMED })],
     [1, {}],
   ],
-  lands: [0.42],
 };
 
 // Prototype – VA: her free hand raised toward her ally, palm out, as the hologram forms on it, held, and down.
@@ -61,7 +60,6 @@ export const PROTOTYPE: Move = {
     [0.95, as({ ...TALL, lean: -0.07, nod: -0.11, lhX: 0.31, lhY: 0.46, lhZ: 0.3 })],
     [1.3, {}],
   ],
-  lands: [0.62],
 };
 
 // Absolute Protection Field – LA: her crossbow raised high overhead and both arms spread as the field goes up round her, held, and down.
@@ -73,7 +71,6 @@ export const FIELD: Move = {
     [1.05, as({ ...TALL, jump: 0.12, lean: -0.14, nod: -0.22, lhX: 0.46, lhY: 0.57, lhZ: 0.05, rhX: -0.14, rhY: 0.87, rhZ: 0.05, bUp: 1.52 })],
     [1.45, {}],
   ],
-  lands: [0.68],
 };
 
 /** Ultimate Laser Cannon: the first laser, then nine more, one after the next. */
@@ -90,5 +87,4 @@ export const CANNON: Move = {
     [FIRST + LASERS * EVERY, as({ ...LOW, hipY: -0.12, twist: -0.32, lean: 0.1, lhX: 0.28, lhY: 0.26, lhZ: -0.2, ...AIMED })],
     [FIRST + LASERS * EVERY + 0.45, {}],
   ],
-  lands: Array.from({ length: LASERS + 1 }, (_, i) => FIRST + i * EVERY),
 };

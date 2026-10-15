@@ -23,7 +23,6 @@ export const SLAM: Move = {
     [1.05, at({ ...KNEELING, hipY: -0.4, ahead: 2.4, lean: 0.46, rhX: -0.06, rhY: 0.02, rhZ: 0.46, bTurn: 6.28, bUp: -0.86, lhX: 0.2, lhY: 0.1, lhZ: 0.3 })],
     [1.6, at(READY)],
   ],
-  lands: [0.78],
 };
 
 // The shield drawn back across it, then a step in with the shield thrust out ahead, held, and back.
@@ -35,7 +34,6 @@ export const BASH: Move = {
     [0.6, at({ ...LUNGE, hipY: -0.29, ahead: 2.05, lean: 0.3, twist: -0.62, lhX: 0.06, lhY: 0.36, lhZ: 0.54, rhX: -0.3, rhY: 0.05, rhZ: -0.2, bTurn: 3.4, bUp: 0 })],
     [1.1, at(READY)],
   ],
-  lands: [0.4],
 };
 
 // Feet planted wide, the shield brought up square in front of it and the sword raised: held, and down.
@@ -47,7 +45,6 @@ export const GUARD: Move = {
     [1.05, at({ ...LOW, hipY: -0.13, lean: 0.1, twist: -0.3, lhX: 0.06, lhY: 0.39, lhZ: 0.46, rhX: -0.24, rhY: 0.72, rhZ: 0, bTurn: 6.28, bUp: 1.6 })],
     [1.5, at(READY)],
   ],
-  lands: [0.5],
 };
 
 // A knight's attack: the sword swung across from its right to its left, and back from its left to its right, its shield kept before it.
@@ -61,5 +58,4 @@ export const SWING: Move = {
     [0.74, at({ ...LOW, hipZ: 0.06, twist: -0.6, lean: 0.14, rhX: -0.4, rhY: 0.22, rhZ: 0.18, bTurn: 4.8, bUp: 0.15, lhX: 0.1, lhY: 0.3, lhZ: 0.36 })],
     [1.15, at(READY)],
   ],
-  lands: [0.3, 0.6],
 };

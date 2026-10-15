@@ -1,7 +1,7 @@
-import { BOSSES } from '../bosses';
-import { HEROES } from '../heroes';
+import { BOSSES } from './bosses';
 import type { Input } from './events';
 import { makeSim } from './fight';
+import { HEROES } from './heroes';
 import { MOST, RAGE_WIPE, RAID_TIME, STAGES, TICK } from './rules';
 import { MOST_SKILLS, SKILLS } from './skills';
 import { UNIQUE_HEROES, uniqueAbout } from './unique';
@@ -82,7 +82,7 @@ export interface Replay {
 }
 
 /** The heroes and bosses there are, by id, and how many skins each hero has. */
-export const HERO_SKINS: Readonly<Record<string, number>> = Object.fromEntries(HEROES.map((hero) => [hero.id, hero.assets.skins.length]));
+export const HERO_SKINS: Readonly<Record<string, number>> = Object.fromEntries(HEROES.map((hero) => [hero.id, hero.skins.length]));
 export const BOSS_IDS: readonly string[] = BOSSES.map((boss) => boss.id);
 
 /** An input of the page's, as a raid takes it: a skill pressed, a hero's Auto, every hero's Auto, or leaving (with the step it came before). */
@@ -143,7 +143,7 @@ export function startRaid(run: Run): LiveRaid | string {
   const entries = [];
   for (const hero of run.heroes) {
     const def = HEROES.find((one) => one.id === hero.id);
-    if (!def || !whole(hero.skin, def.assets.skins.length)) return 'hero';
+    if (!def || !whole(hero.skin, def.skins.length)) return 'hero';
     const gear: Record<string, number> = {};
     for (const [stat, n] of Object.entries(hero.gear)) if (Number.isFinite(n)) gear[stat] = n;
     const skills = Array.isArray(hero.skills) ? hero.skills.filter((id): id is string => typeof id === 'string') : [];

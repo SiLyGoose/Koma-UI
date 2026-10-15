@@ -1,4 +1,4 @@
-import type { Buff } from '../hud/buff';
+import type { Buff } from './shown';
 
 /*
  * TechnoMagic gear's additional skills, as the fight has them: every piece of TechnoMagic gear comes with one,

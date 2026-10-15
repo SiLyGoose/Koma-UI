@@ -16,7 +16,6 @@ export const PETALS: Move = {
     [0.5, at({ ...LUNGE, hipY: -0.29, ahead: 1.7, lean: 0.26, twist: 0.66, rhX: 0.32, rhY: 0.24, rhZ: 0.2, bTurn: 7.8, bUp: 0.1, lhX: 0.24, lhY: 0.05, lhZ: -0.15 })],
     [0.9, {}],
   ],
-  lands: [0.33],
 };
 
 // Mysterious Sword - Blossom: her sword raised straight up overhead, then brought straight down ahead of her in a lunge, and back.
@@ -28,7 +27,6 @@ export const BLOSSOM: Move = {
     [0.55, at({ ...LUNGE, hipY: -0.3, ahead: 1.55, lean: 0.42, rhX: -0.06, rhY: 0.05, rhZ: 0.46, bTurn: 6.28, bUp: -0.68, lhX: 0.22, lhY: 0.02, lhZ: -0.12 })],
     [0.95, {}],
   ],
-  lands: [0.37],
 };
 
 // Blood Scattering Blade: down low, then a rush far forward with a cut across, a cut back, and a last cut across, and back.
@@ -42,7 +40,6 @@ export const SCATTER: Move = {
     [0.85, at({ ...LUNGE, hipY: -0.29, ahead: 3.4, lean: 0.36, twist: 0.6, rhX: 0.32, rhY: 0.24, rhZ: 0.22, bTurn: 7.8, bUp: 0.1, lhX: 0.24, lhY: 0.05, lhZ: -0.15 })],
     [1.3, {}],
   ],
-  lands: [0.31, 0.49, 0.67],
 };
 
 // Red Moon Blade: drawn up tall with her sword raised to the moon, held, then low and wide with it swung round one way and back the other, and back.
@@ -56,5 +53,4 @@ export const MOON: Move = {
     [1.3, at({ ...WIDE, hipY: -0.32, ahead: 1.1, lean: 0.3, twist: 0.72, rhX: 0.34, rhY: 0.22, rhZ: 0.22, bTurn: 8, bUp: 0.1, lhX: 0.24, lhY: 0.05, lhZ: -0.15 })],
     [1.8, {}],
   ],
-  lands: [1.06],
 };

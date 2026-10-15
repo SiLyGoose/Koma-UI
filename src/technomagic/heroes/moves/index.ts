@@ -1,3 +1,4 @@
+import type { HeroMove } from '../../sim/heroes/moves';
 import { ELIMINATION, RAY, TREATMENT, ZAP } from '../annette/moves';
 import { BASH, GUARD, SLAM, SWING } from '../clause/moves';
 import { CLAW, DESPAIR, DOOM, INSTINCT } from '../ezekiel/moves';
@@ -14,56 +15,10 @@ import type { Move } from './move';
 
 /*
  * Every move a hero's body can make, by name: the ones all have (./common.ts) and each hero's own
- * (../kirze/moves.ts, ../clause/moves.ts, ../fallen-frey/moves.ts, ../gremory/moves.ts, ../annette/moves.ts, ../morrah/moves.ts, ../laias/moves.ts, ../seria/moves.ts, ../ezekiel/moves.ts, ../lorraine/moves.ts, ../valance/moves.ts), written with the stances in ./stances.ts.
+ * (../kirze/moves.ts, ../clause/moves.ts, ../fallen-frey/moves.ts, ../gremory/moves.ts, ../annette/moves.ts, ../morrah/moves.ts, ../laias/moves.ts, ../seria/moves.ts, ../ezekiel/moves.ts, ../lorraine/moves.ts, ../valance/moves.ts), written with the stances in ./stances.ts. Each is
+ * written to fit how the fight times it (../../sim/heroes/moves.ts).
  */
 
-export type HeroMove =
-  | 'attack'
-  | 'cast'
-  | 'judgment'
-  | 'haze'
-  | 'flower'
-  | 'slam'
-  | 'bash'
-  | 'guard'
-  | 'swing'
-  | 'smite'
-  | 'light'
-  | 'blessing'
-  | 'vengeance'
-  | 'nudge'
-  | 'pochi'
-  | 'puchi'
-  | 'pippi'
-  | 'sleep'
-  | 'zap'
-  | 'ray'
-  | 'treatment'
-  | 'elimination'
-  | 'cleave'
-  | 'burning'
-  | 'hellfire'
-  | 'eruption'
-  | 'splash'
-  | 'droplets'
-  | 'bubble'
-  | 'festival'
-  | 'petals'
-  | 'blossom'
-  | 'scatter'
-  | 'moon'
-  | 'claw'
-  | 'instinct'
-  | 'despair'
-  | 'doom'
-  | 'lash'
-  | 'thornbush'
-  | 'vine'
-  | 'wrath'
-  | 'bolt'
-  | 'prototype'
-  | 'field'
-  | 'cannon';
 export const MOVES: Record<HeroMove | 'hit', Move> = {
   attack: ATTACK,
   cast: CAST,
@@ -115,3 +70,4 @@ export const MOVES: Record<HeroMove | 'hit', Move> = {
 };
 
 export { flowing, type Move } from './move';
+export type { HeroMove };

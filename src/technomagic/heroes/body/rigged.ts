@@ -3,6 +3,7 @@ import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
 import { animationFolders, animationsIn, type RiggedModel } from '../../assets';
 import { fileUrl, isMesh } from '../../engine/models';
 import { Rig, toBindPose } from '../../engine/rig';
+import type { OwnTiming } from '../../sim/motion';
 import { hang, type Stood } from './hero';
 import { MIXAMO } from './skeletons';
 
@@ -67,10 +68,9 @@ function cut(clip: AnimationClip, [from, to]: readonly [number, number], length:
   return new AnimationClip(clip.name, length, tracks);
 }
 
-/** An animation of a move: the moments (seconds into it) its blows land, and when to leave it. */
+/** An animation of a move, and when to leave it (as the fight times it). */
 export interface Played {
   clip: AnimationClip;
-  lands: readonly number[];
   until: number;
 }
 
@@ -95,8 +95,12 @@ export interface Rigged {
   others: ReadonlyMap<AnimationClip, Object3D>;
 }
 
-/** Reads a skin's files: `name` is the skin's, `owner` the hero whose models its folder is among (unless it is borrowed whole: RiggedModel.of). */
-export async function loadRigged(name: string, owner: { folder: string }, files: RiggedModel): Promise<Rigged> {
+/**
+ * Reads a skin's files: `name` is the skin's, `owner` the hero whose models its folder is among (unless it is borrowed
+ * whole: RiggedModel.of), and `timing` how the fight times its hero's own animations (one it doesn't time is left out:
+ * its move is drawn as the poses written in code have it).
+ */
+export async function loadRigged(name: string, owner: { folder: string }, files: RiggedModel, timing: OwnTiming = {}): Promise<Rigged> {
   // Its textures are inside its files, and go on being read after a file is: `settled` is when every one has been (or has failed).
   const manager = new LoadingManager();
   const settled = new Promise<void>((done) => {
@@ -165,19 +169,21 @@ export async function loadRigged(name: string, owner: { folder: string }, files:
     others.set(clip, own);
   });
 
-  const attack = attacks.flatMap((part, i) => {
+  const attack = attacks.flatMap((_, i) => {
     const clip = attacking[i]?.animations[0];
-    return clip ? [{ clip: staying(clip), lands: part.lands, until: part.until }] : [];
+    const span = timing.attack?.[i];
+    return clip && span ? [{ clip: staying(clip), until: span.until }] : [];
   });
   const played = Object.fromEntries(
     skills.flatMap(([move, skill], i) => {
       const clip = casting[i]?.animations[0];
-      if (!clip) return [];
+      const span = timing.skills?.[move as keyof typeof timing.skills];
+      if (!clip || !span) return [];
       // (A span of it: made over from the same skeleton.)
-      const made = skill.span ? cut(clip, skill.span, skill.until) : clip;
+      const made = skill.span ? cut(clip, skill.span, span.until) : clip;
       const own = others.get(clip);
       if (own) others.set(made, own);
-      return [[move, { clip: staying(made), lands: skill.lands, until: skill.until }] as const];
+      return [[move, { clip: staying(made), until: span.until }] as const];
     }),
   );
   return { stood: { ...hang([space], hips.y), models: [space], rig, hips, feet, blade, materials }, space, animations: { idle: clips.idle, run: clips.run && inPlace(clips.run), attack, skills: played, ...(files.bladeRunning && { bladeRunning: new Vector3(...files.bladeRunning).normalize() }) }, others };

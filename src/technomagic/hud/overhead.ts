@@ -1,4 +1,5 @@
-import { square, type Buff } from './buff';
+import type { Buff } from '../sim/shown';
+import { square } from './buff';
 import { el } from './dom';
 
 /**

@@ -1,8 +1,5 @@
 import type { HeroAssets } from '../types.ts';
 
-/** How many times as fast a skill's animation is played (../../sim/motion.ts's SKILL_SPEED: written here, as nothing of the fight's is read by this folder). */
-const SKILL_SPEED = 1.2;
-
 export const FALLEN_FREY_ASSETS: HeroAssets = {
   name: 'Fallen Frey',
   folder: 'heroes/fallen-frey',
@@ -30,17 +27,10 @@ export const FALLEN_FREY_ASSETS: HeroAssets = {
           idle: 'Standing Torch Idle 01.fbx',
           skills: {
             // Her free hand thrust out ahead (fully out 0.95 s in, where the heal comes down), held there, and the light bursting on the boss as she lets it go.
-            light: { file: 'Fallen Frey - Magic Heal.fbx', lands: [0.95, 1.45], until: 2.35 },
+            light: { file: 'Fallen Frey - Magic Heal.fbx' },
             // Her weapon raised high overhead in her left hand (the cutscene of her coming to the player, Maps, Items, Other/Other: from
-            // 2.2 s into it, gathering, to 4.4 s, lowering it), held up while the light comes down on the boss. Timed as the move written in
-            // code is (../../heroes/fallen-frey/moves.ts: twenty blows, 0.7 s in and 0.12 s apart, left at 3.85 s), as it is played the faster.
-            vengeance: {
-              file: 'FreyFallen.fbx',
-              folder: 'FreyFallen',
-              span: [2.2, 4.4],
-              lands: Array.from({ length: 20 }, (_, i) => (0.7 + i * 0.12) * SKILL_SPEED),
-              until: 3.85 * SKILL_SPEED,
-            },
+            // 2.2 s into it, gathering, to 4.4 s, lowering it), held up while the light comes down on the boss.
+            vengeance: { file: 'FreyFallen.fbx', folder: 'FreyFallen', span: [2.2, 4.4] },
           },
         },
       },

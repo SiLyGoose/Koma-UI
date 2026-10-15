@@ -1,15 +1,7 @@
+import type { Mark } from '../sim/shown';
 import { el } from './dom';
 
-/* The boss's health across the top of the field, and under it what is the matter with it. */
-
-/** A mark's colour, by what kind of thing it is. */
-export type Tone = 'stun' | 'down' | 'slow' | 'curse' | 'venom' | 'burn' | 'rage';
-
-/** What is the matter with the boss, said under its health, with how long it has left. */
-export interface Mark {
-  text: string;
-  tone: Tone;
-}
+/* The boss's health across the top of the field, and under it what is the matter with it (its marks: ../sim/shown.ts). */
 
 export interface BossBar {
   /** Its health (0 to 1 of it), and the marks under it. */

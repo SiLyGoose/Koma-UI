@@ -46,7 +46,6 @@ export const SPLASH: Move = {
     [0.6, as({ ...LOW, hipY: -0.11, twist: -0.34, lean: 0.12, lhX: 0.24, lhY: -0.04, lhZ: -0.08, ...AIMED, rhY: 0.29 })],
     [1, {}],
   ],
-  lands: [0.42],
 };
 
 // Healing Droplets: her free hand cupped before her chest, then her staff raised high and her free hand opened wide (the droplets fall on every ally), held, and down.
@@ -58,7 +57,6 @@ export const DROPLETS: Move = {
     [0.9, as({ ...TALL, lean: -0.14, nod: -0.24, lhX: 0.46, lhY: 0.52, lhZ: 0.08, rhX: -0.16, rhY: 0.8, rhZ: 0.08, bUp: 1.52 })],
     [1.3, {}],
   ],
-  lands: [0.6],
 };
 
 // Bubble Shield: her free hand held out ahead, palm up, as the bubble forms on it, then pushed out toward her ally, and back.
@@ -70,7 +68,6 @@ export const BUBBLE: Move = {
     [0.9, as({ ...LOW, hipY: -0.11, lean: 0.15, nod: 0.06, twist: -0.12, lhX: 0.18, lhY: 0.33, lhZ: 0.51 })],
     [1.3, {}],
   ],
-  lands: [0.62],
 };
 
 // Festival of the Flow: gathered low, then up on her toes with her staff thrust high and brought down to the floor before her (the water bursts up under the boss), and back.
@@ -83,5 +80,4 @@ export const FESTIVAL: Move = {
     [1.35, as({ ...LOW, hipY: -0.17, lean: 0.24, nod: 0.12, twist: -0.21, lhX: 0.3, lhY: 0.05, lhZ: 0.1, rhX: -0.1, rhY: 0.1, rhZ: 0.45, bUp: -0.9 })],
     [1.8, {}],
   ],
-  lands: [1],
 };

@@ -38,8 +38,8 @@ export const KIRZE_ASSETS: HeroAssets = {
         // One cut inward where it stands, then three as it walks forward. A blow lands a little after its blade is
         // moving fastest (1.17 s into the first; 0.63, 1.2 and 2.43 s into the second): as the swing comes through.
         attack: [
-          { file: 'Kirze_Cos20GloryLeague - Stable Sword Inward Slash.fbx', lands: [1.29], until: 1.6 },
-          { file: 'Kirze_Cos20GloryLeague - Sword And Shield Slash.fbx', lands: [0.75, 1.32, 2.55], until: 3 },
+          { file: 'Kirze_Cos20GloryLeague - Stable Sword Inward Slash.fbx' },
+          { file: 'Kirze_Cos20GloryLeague - Sword And Shield Slash.fbx' },
         ],
       },
     },

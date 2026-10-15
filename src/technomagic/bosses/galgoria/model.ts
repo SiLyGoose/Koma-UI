@@ -2,9 +2,10 @@ import { Group, Vector3, type Object3D, type Scene } from 'three';
 import { GALGORIA_ASSETS, modelFolder } from '../../assets';
 import { loadModels, materialsOf } from '../../engine/models';
 import { Rig } from '../../engine/rig';
-import { lengthOf, poseAt } from '../../engine/track';
-import type { Boss } from '../boss';
-import { HEADS, PLANS, STILL, TRACKS, type Attack, type Head, type Pose } from './attacks';
+import { poseAt } from '../../engine/track';
+import { HEADS, MOVES, PLANS, type Attack, type Head } from '../../sim/bosses/galgoria/attacks';
+import type { Boss, BossLook } from '../boss';
+import { STILL, TRACKS, type Pose } from './tracks';
 import { makeVenom } from './venom';
 
 /*
@@ -12,8 +13,9 @@ import { makeVenom } from './venom';
  * file has no animation, so it is moved here: at rest the heads weave and the tail, curled round to its
  * front, sways; a head's move is a short track of where it is from moment to moment (pulled back, then
  * thrust out at the heroes with its jaw wide, spraying its venom (./venom.ts), and back). Each of its
- * skills is some of its heads' moves, one after another (./attacks.ts). It is only drawn: when it attacks,
- * is stunned or slowed, and what comes of each blow, is the fight's sim's (../../sim/, ./skills.ts).
+ * skills is some of its heads' moves, one after another (../../sim/bosses/galgoria/attacks.ts, as long as that has each
+ * take: ./tracks.ts). It is only drawn: when it attacks, is stunned or slowed, and what comes of each blow, is the fight's
+ * sim's (../../sim/bosses/galgoria/).
  *
  * In the model's own axes z is ahead of it, y up and x to its left (where its L head is).
  */
@@ -39,6 +41,16 @@ const WAIST = 'Bone_Spine02';
 const STAND = { back: -0.14, ahead: 1.5, up: -0.45, nod: 0.46, bow: 0.55 };
 /** The bone above its waist, which shares its lean. */
 const CHEST = 'Bone_Spine03';
+
+/**
+ * Its files, and where it stands: right of the middle, a hero that fights hand to hand not far in front of it, as in
+ * the game (the left of the field is for those who fight from further off).
+ */
+export const GALGORIA_LOOK: BossLook = {
+  assets: GALGORIA_ASSETS,
+  stands: { x: 7, turn: -1.1 },
+  reach: { hit: [-2.2, 3.4, 3], feet: [-1, 0, 0.6] },
+};
 
 export async function loadGalgoria(scene: Scene): Promise<Boss> {
   const models = await loadModels(GALGORIA_ASSETS.models.map((model) => modelFolder(GALGORIA_ASSETS, model)));
@@ -126,17 +138,17 @@ export async function loadGalgoria(scene: Scene): Promise<Boss> {
         const doing = moves?.[0];
         if (moves && doing) {
           doing.t += dt * rate;
-          const track = TRACKS[doing.kind];
-          const at = poseAt(track.keys, Math.max(0, doing.t), STILL);
+          const move = MOVES[doing.kind];
+          const at = poseAt(TRACKS[doing.kind].keys, Math.max(0, doing.t), STILL);
           for (const part of Object.keys(pose) as (keyof Pose)[]) pose[part] += at[part];
           sway += Math.sin(now * 46) * 0.07 * at.shake;
-          if (track.hit !== null && !doing.hit && doing.t >= track.hit) {
+          if (move.hit !== null && !doing.hit && doing.t >= move.hit) {
             // It lands: its venom splashes where its target is (or, come down into the swamp, where its mouth is).
             doing.hit = true;
             if (doing.kind === 'spit') venom.splash(boss.target(aim));
             if (doing.kind === 'slam') venom.splash((models[0] as Object3D).localToWorld(splashed.copy(rig.at(`Bone_${head}_Tongue02`))).setY(0.2));
           }
-          if (doing.t >= lengthOf(track.keys)) {
+          if (doing.t >= move.length) {
             moves.shift();
             if (moves.length === 0) going.delete(head);
           }
