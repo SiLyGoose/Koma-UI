@@ -89,7 +89,7 @@ export function wireControls(ctx: GearContext): () => void {
     if (!option) return;
     const heroClass = option.dataset.class as HeroClass;
     const saved = botHasClasses(ctx);
-    const before = ctx.gear?.class;
+    const before = ctx.gear?.class ?? null;
     pickClass(heroClass);
     // Shown at once, on the ribbon and their roster portrait: the bot's word on their class (which the ribbon follows) is the old one until it answers.
     if (saved && ctx.gear) ctx.gear.class = heroClass;

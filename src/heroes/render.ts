@@ -1,5 +1,5 @@
-import { art, el, hoverSound, itemDetailsClosed, itemFace, itemPicked, lockBadge, matchesSearch, matchesStars, rich, tierOf, SLOT_NAME, stars as starRow, tmMarks, tmSections, uwMarks, type StatSection } from '../shared/items';
-import { classBadge, className, FACE, HERO_SLOT_KIND, heroCut, heroPicture, skillText, type Hero, type HeroCopy, type HeroSlot } from '../shared/heroes';
+import { art, el, hoverSound, itemDetailsClosed, itemFace, itemPicked, lockBadge, matchesSearch, matchesStars, rich, tierOf, SLOT_NAME, stars as starRow, tmMarks, tmSections, uwMarks, type ShownStatSection } from '../shared/items';
+import { classBadge, className, FACE, HERO_SLOT_KIND, heroCut, heroPicture, skillText, type HeroView, type HeroCopy, type HeroSlot } from '../shared/heroes';
 import { working } from '../shared/ui';
 import { copyById, heroShown, mine, slotFor, slotOf, type HeroesContext } from './context';
 import { heroSkills } from './skills';
@@ -30,10 +30,10 @@ const GRID_CELLS = 12;
 const slotName = (slot: HeroSlot): string => SLOT_NAME[HERO_SLOT_KIND[slot]];
 
 /** Whether a copy does anything on `hero`: a class item only on its class. */
-const worksOn = (copy: HeroCopy, hero: Hero | undefined): boolean => copy.class === null || copy.class === hero?.class;
+const worksOn = (copy: HeroCopy, hero: HeroView | undefined): boolean => copy.class === null || copy.class === hero?.class;
 
 /** Whether `hero` may wield a copy at all: anyone, but a unique weapon only its own hero (the bot refuses it on another). */
-const wieldable = (copy: HeroCopy, hero: Hero | undefined): boolean => !copy.uniqueWeapon || copy.uniqueWeapon === hero?.id;
+const wieldable = (copy: HeroCopy, hero: HeroView | undefined): boolean => !copy.uniqueWeapon || copy.uniqueWeapon === hero?.id;
 
 export function render(ctx: HeroesContext, act: HeroActions): void {
   const { ui, view } = ctx;
@@ -350,7 +350,7 @@ function renderStats(ctx: HeroesContext): void {
 }
 
 /** Stats, a heading over each group and a row for each, the base under any that gear changes (the databank's Heroes too). */
-export function statBlocks(sections: readonly StatSection[]): HTMLElement[] {
+export function statBlocks(sections: readonly ShownStatSection[]): HTMLElement[] {
   return sections.map((section) => {
     const block = el('section', 'stats-section');
     block.append(el('h3', '', section.title));

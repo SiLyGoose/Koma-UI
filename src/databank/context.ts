@@ -1,7 +1,7 @@
 import { armoryFilter, type Slot, type StarChoice } from '../shared/items';
 import { HEROES } from '../technomagic/sim/heroes';
 import type { HeroDef } from '../technomagic/sim/heroes/kit';
-import type { Databank, DatabankBoss, DatabankItem, Owned, RaidClass, RaidWeek } from './types';
+import type { Databank, DatabankBoss, DatabankItem, Owned, RaidClass, RaidWeekView } from './types';
 
 /** Narrow screens show the item picked in a sheet over the list, only once one is picked. */
 export const narrow = window.matchMedia('(max-width: 899px)');
@@ -76,7 +76,7 @@ export interface DatabankContext {
   /** The hero shown. */
   hero: string | null;
   /** How the raid stands in the server picked: null when not logged in (or the bot doesn't say). */
-  week: RaidWeek | null;
+  week: RaidWeekView | null;
 }
 
 export function createContext(root: HTMLElement): DatabankContext {

@@ -4,8 +4,11 @@
  */
 
 import { FACE, heroCut } from '../heroes';
+import type { Slot } from '../../protocol/items';
 
-export type Slot = 'weapon' | 'armor' | 'treasure';
+export type { Slot, Stars } from '../../protocol/items';
+
+
 export const SLOT_NAME: Record<Slot, string> = { weapon: 'Weapon', armor: 'Armor', treasure: 'Treasure' };
 
 export const el = <K extends keyof HTMLElementTagNameMap>(tag: K, className = '', text?: string): HTMLElementTagNameMap[K] => {

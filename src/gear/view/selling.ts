@@ -2,6 +2,7 @@ import { coin, points } from '../../shared/util';
 import { change } from './api';
 import { copyById, type GearContext } from './context';
 import { render } from './render';
+import type { GearSold } from '../../protocol/gear';
 
 /** How many copies are picked to sell, and what they sell for together. */
 export function sale(ctx: GearContext): { count: number; total: number } {
@@ -41,7 +42,7 @@ export function confirmSale(ctx: GearContext): void {
 export async function sell(ctx: GearContext): Promise<void> {
   const copies = [...(ctx.selling ?? [])].filter((id) => typeof copyById(ctx, id)?.sell === 'number');
   if (copies.length === 0) return;
-  const view = await change(ctx, 'sell', '/api/gear/sell', { copies }, 'Could not sell those. Try again.');
+  const view = await change<GearSold>(ctx, 'sell', '/api/gear/sell', { copies }, 'Could not sell those. Try again.');
   // It paid zeiucoins (or whatever the refusal was, the balance may be old): the header's balance follows.
   void ctx.host.loadMe(true);
   if (!view) return;

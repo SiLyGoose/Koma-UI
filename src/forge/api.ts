@@ -70,18 +70,12 @@ export async function strikeAnvil(ctx: ForgeContext): Promise<void> {
     ctx.gear = res.data;
     ctx.material = null;
     const after = copyById(ctx, copy.id);
-    const success = res.data.outcome !== 'fail';
-    ctx.doneWell = success;
-    ctx.done = !success
-      ? forging
-        ? `The forge didn't take: ${copy.name} isn't a masterwork yet.`
-        : `The refine didn't take: ${copy.name} is still R${after?.level ?? copy.level}.`
-      : forging
-        ? `${copy.name} is now a masterwork. ✨`
-        : `${copy.name} is now R${after?.level ?? copy.level + 1}.`;
+    ctx.doneWell = true;
+    ctx.done = forging ? `${copy.name} is now a masterwork. ✨` : `${copy.name} is now R${after?.level ?? copy.level + 1}.`;
     status(ctx, null);
     render(ctx);
-    if (after) showResult(ctx, copy, after, forging, success);
+    // (A refine or a forge always takes: the bot has no failed one to say.)
+    if (after) showResult(ctx, copy, after, forging, true);
     return res;
   }, forging ? 'Forging…' : 'Refining…');
   if (!res.ok) {

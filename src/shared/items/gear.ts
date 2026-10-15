@@ -1,120 +1,14 @@
-import { tierRank, type Slot } from './items';
+import { tierRank } from './items';
+import type { GearCopy, GearForge, GearRefine, GearView, StatRow } from '../../protocol/gear';
+
+/** A member's gear as the bot says it (../../protocol/gear.ts). */
+export type { ForgeBlock, GearCopy, GearForge, GearLoadout, GearRefine, GearView, RefineBlock, StatRow, StatSection } from '../../protocol/gear';
+
 
 /*
  * What the bot's /api/gear answers (its web/gear.ts), for the pages that show a member's gear: the gear
  * page and the forge.
  */
-
-/** One copy the member owns (the bot's web/gear.ts GearCopy). */
-export interface GearCopy {
-  id: string;
-  itemId: string;
-  name: string;
-  stars: 1 | 2 | 3 | 4;
-  slot: Slot;
-  description: string;
-  level: number;
-  maxLevel: number;
-  masterwork: boolean;
-  effects: string[];
-  /** TechnoMagic gear (not a treasure): its set's effect for its class, once a hero wears `pieces` of it, and whether it is on (`active`: the hero wearing it has its set's effect); null
-   * otherwise (absent from a bot from before it said it apart; `active`, from one before it said that). */
-  setEffect?: { pieces: number; text: string; active?: boolean } | null;
-  /** TechnoMagic gear: the additional skill this copy came with, like "Vigor: Increases DMG…"; null with none (absent from a bot from before it said it apart). */
-  additional?: string | null;
-  /** Whether its additional skill is on: a hero of its class wears it (absent from a bot from before it said). */
-  additionalActive?: boolean;
-  /** Worn by a hero of a class it doesn't work on: none of it counts there, not even its stats (absent from a bot from before it said). */
-  wrongClass?: boolean;
-  borrowed: number | null;
-  /** Refining it, for the forge (absent from a bot from before refining on the site). */
-  refine?: GearRefine;
-  /** Forging it into a masterwork: null when its item has no bonus (absent from a bot from before forging on the site). */
-  forge?: GearForge | null;
-  /** Locked by the member: never sold or used up by a refine (absent from a bot from before locking). */
-  locked?: boolean;
-  /** What selling it pays in zeiucoins: null when it's worn, saved in a loadout, on a hero or locked, so never sold (absent from a bot from before selling on the site). */
-  sell?: number | null;
-  /** TechnoMagic gear or a unique weapon: only the TechnoMagic Raid's heroes wear it (the heroes page), never the member (absent from a bot from before heroes). */
-  heroOnly?: boolean;
-  /** A unique weapon: the id of the one hero that wields it, or null (absent from a bot from before them). */
-  uniqueWeapon?: string | null;
-  /** A class item (raid gear, and all TechnoMagic gear): the raid class it works for, or null for any (absent from a bot from before it said). */
-  itemClass?: string | null;
-  /** The name of the hero wearing it (the heroes page), or null (absent from a bot from before heroes). */
-  hero?: string | null;
-}
-
-/** Refining a copy (the bot's web/gear.ts GearRefine). */
-export interface GearRefine {
-  /** Why it can't be done now (null when it can). */
-  blocked: RefineBlock | null;
-  /** What the next level costs in points (null at the top level). */
-  cost: number | null;
-  /** The level of the spare copy it would use up when none is picked. */
-  spare: number | null;
-  /** What it would do at the next level. */
-  after: string[] | null;
-}
-
-/**
- * Why a copy can't be refined (the bot's web/gear.ts RefineBlock): also the error a refine is refused
- * with. Every copy is refined as itself, whatever level its item's other copies are at.
- */
-export type RefineBlock = 'maxed' | 'no_duplicate' | 'too_poor';
-
-/** Forging a copy into a masterwork, awakening its bonus (the bot's web/gear.ts GearForge). */
-export interface GearForge {
-  /** Why it can't be done now (null when it can). */
-  blocked: ForgeBlock | null;
-  /** What it costs in komaGems. */
-  cost: number;
-  /** The level it has to be refined to first. */
-  level: number;
-  /** What it would do as a masterwork (null when it's one already). */
-  after: string[] | null;
-}
-
-/** Why a copy can't be forged (the bot's web/gear.ts ForgeBlock): also the error a forge is refused with. */
-export type ForgeBlock = 'forged' | 'too_low' | 'too_poor';
-
-/** One of the member's loadouts (the bot's web/gear.ts GearLoadout). */
-export interface GearLoadout {
-  number: number;
-  name: string;
-  active: boolean;
-  equipped: Record<Slot, string | null>;
-}
-
-/** A group of stats on the Common tab (the bot's web/stats.ts StatSection); `base` is the value without gear, when gear changes it. */
-export interface StatSection {
-  title: string;
-  /** `icon`, a picture before the value (as public/shared/attack/'s): the heroes page's own, never the bot's. */
-  rows: { label: string; value: string; base: string | null; icon?: string }[];
-}
-
-export interface GearView {
-  equipped: Record<Slot, string | null>;
-  copies: GearCopy[];
-  totals: string[];
-  loadouts: GearLoadout[];
-  stats: StatSection[];
-  /** Their points in the server (null when not known). */
-  balance?: number | null;
-  /** Their komaGems in the server (null when not known; absent from a bot from before forging on the site). */
-  gems?: number | null;
-  /** The outfit they wear: the character they're drawn as (../characters.ts; absent from a bot from before outfits). */
-  outfit?: string;
-  /** Their raid class (the bot's RAID_CLASS_IDS), or null with none; absent from a bot from before classes. */
-  class?: string | null;
-  /**
-   * How a refine or forge just went, in the answer to one: 'fail' when it didn't take (the copy stays as
-   * it was). Absent means it worked (a bot from before refines could fail always sends none).
-   */
-  outcome?: 'success' | 'fail';
-  /** What a sale just sold, in the answer to one. */
-  sold?: { count: number; earned: number };
-}
 
 /**
  * The copies in the order the armories show them: by star tier (4 stars first), then by name, A to Z
@@ -162,4 +56,11 @@ export function forgePlan(copy: GearCopy): Plan {
   if (copy.forge === null) return { kind: 'done', masterwork: false };
   if (copy.forge) return copy.forge.blocked === 'forged' ? { kind: 'done', masterwork: true } : { kind: 'forge', forge: copy.forge };
   return copy.effects.some((line) => line.startsWith(DORMANT)) ? { kind: 'forge', forge: null } : { kind: 'done', masterwork: false };
+}
+
+/** A stat row as the site shows it: the bot's, or one the heroes page makes itself, which may show a picture (`icon`) for its value. */
+export type ShownStatRow = StatRow & { icon?: string };
+export interface ShownStatSection {
+  title: string;
+  rows: ShownStatRow[];
 }

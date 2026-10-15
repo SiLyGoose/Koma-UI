@@ -1,5 +1,5 @@
 import { armoryFilter, type ArmoryFilter, type Slot, type StarChoice } from '../shared/items';
-import { HERO_SLOT_KIND, HERO_SLOTS, type Hero, type HeroCopy, type HeroSlot, type HeroesView } from '../shared/heroes';
+import { HERO_SLOT_KIND, HERO_SLOTS, type HeroView, type HeroCopy, type HeroSlot, type HeroesView } from '../shared/heroes';
 import type { Busy } from '../shared/ui';
 
 /** The page's elements, found once in its root. */
@@ -136,12 +136,12 @@ export function createContext(root: HTMLElement): HeroesContext {
 /** Whether the heroes shown are their own (theirs to change), not someone else's to look at. */
 export const mine = (ctx: HeroesContext): boolean => ctx.viewing === null;
 
-export const heroShown = (ctx: HeroesContext): Hero | undefined => ctx.view?.heroes.find((hero) => hero.id === ctx.hero);
+export const heroShown = (ctx: HeroesContext): HeroView | undefined => ctx.view?.heroes.find((hero) => hero.id === ctx.hero);
 
 export const copyById = (ctx: HeroesContext, id: string | null): HeroCopy | undefined => (id ? ctx.view?.copies.find((copy) => copy.id === id) : undefined);
 
 /** The slot of the hero shown that a copy is in, or null. */
-export const slotOf = (hero: Hero | undefined, copyId: string): HeroSlot | null => (hero ? (HERO_SLOTS.find((slot) => hero.equipped[slot] === copyId) ?? null) : null);
+export const slotOf = (hero: HeroView | undefined, copyId: string): HeroSlot | null => (hero ? (HERO_SLOTS.find((slot) => hero.equipped[slot] === copyId) ?? null) : null);
 
 /**
  * Where equipping a copy puts it on the hero shown: the slot last pressed when it's one of the copy's

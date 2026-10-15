@@ -1,5 +1,5 @@
-import type { StatSection } from '../shared/items';
-import { className, type Hero, type HeroStat } from '../shared/heroes';
+import type { ShownStatSection } from '../shared/items';
+import { className, type HeroView, type HeroStat } from '../shared/heroes';
 import { POINTS } from '../technomagic/sim/combat/damage';
 import { geared } from '../technomagic/sim/gear';
 import { CRIT, MANA_PER_ATTACK, MANA_RATE } from '../technomagic/sim/rules';
@@ -20,7 +20,7 @@ const whole = (n: number): string => Math.round(n).toLocaleString('en-US');
 const times = (n: number): string => `${Math.round(n * 100)}%`;
 
 /** A row: its value with the gear, and (when the gear changes it) without. */
-function row(label: string, base: number, withGear: number, show: (n: number) => string): StatSection['rows'][number] {
+function row(label: string, base: number, withGear: number, show: (n: number) => string): ShownStatSection['rows'][number] {
   const changed = Math.abs(withGear - base) > 1e-9;
   return { label, value: show(withGear), base: changed ? show(base) : null };
 }
@@ -29,11 +29,11 @@ function row(label: string, base: number, withGear: number, show: (n: number) =>
 const POSITION: Record<Line, string> = { front: 'Front', middle: 'Middle', back: 'Rear' };
 
 /** A hero's stats; with no `bonus` (the databank's Heroes), as its class has them, gear or no. */
-export function heroStats(hero: Pick<Hero, 'class'> & Partial<Pick<Hero, 'bonus' | 'id'>>): StatSection[] {
+export function heroStats(hero: Pick<HeroView, 'class'> & Partial<Pick<HeroView, 'bonus' | 'id'>>): ShownStatSection[] {
   // First what it is rather than what its gear does: its class (as the gear page's Stats have it), and, for a hero the
   // raid knows, the kind of damage it deals and where it stands.
   const def = HEROES.find((one) => one.id === hero.id);
-  const about: StatSection = {
+  const about: ShownStatSection = {
     title: 'Hero',
     rows: [
       { label: 'Class', value: className(hero.class), base: null },
@@ -75,8 +75,8 @@ export function heroStats(hero: Pick<Hero, 'class'> & Partial<Pick<Hero, 'bonus'
         row('Physical dodge', base.dodge.physical, gear.dodge.physical, pct),
         row('Magical dodge', base.dodge.magical, gear.dodge.magical, pct),
         row('CC resistance', base.resist, gear.resist, pct),
-        row('Physical crit resistance', 0, bonus('critResist') + bonus('critResistPhysical'), pct),
-        row('Magical crit resistance', 0, bonus('critResist') + bonus('critResistMagical'), pct),
+        row('Physical crit resistance', 0, bonus('critResist'), pct),
+        row('Magical crit resistance', 0, bonus('critResist'), pct),
       ],
     },
     {

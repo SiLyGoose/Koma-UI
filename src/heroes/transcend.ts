@@ -1,5 +1,10 @@
 import { KEPT } from '../technomagic/assets';
 import { heroSkills } from './skills';
+import type { TranscendTier } from '../protocol/heroes';
+
+/** How far a hero can be transcended, the TP it has at its most, and the hero essences: the bot's (../protocol/heroes.ts). */
+export { ESSENCE_NAME, TRANSCEND_MAX, TRANSCEND_POINTS, type EssenceId, type TranscendTier } from '../protocol/heroes';
+
 
 /*
  * Transcendence on the heroes page: each hero's transcendence perks (its Transcend tab) in King's Raid's own words,
@@ -10,27 +15,8 @@ import { heroSkills } from './skills';
  * a hero of a class has its class's Transcend 2 perks.
  */
 
-/** The TP a hero has at its most, and how far it can be transcended (the bot's TRANSCEND_POINTS and TRANSCEND_MAX). */
-export const TRANSCEND_POINTS = 80;
-export const TRANSCEND_MAX = 5;
-
-/** The hero essences (the bot's EssenceId). */
-export type EssenceId = 'justice' | 'force' | 'wisdom' | 'strategy' | 'patience' | 'harmony' | 'fortune';
-
-export const ESSENCE_NAME: Readonly<Record<EssenceId, string>> = {
-  justice: 'Justice',
-  force: 'Force',
-  wisdom: 'Wisdom',
-  strategy: 'Strategy',
-  patience: 'Patience',
-  harmony: 'Harmony',
-  fortune: 'Fortune',
-};
-
 /** An essence's picture. */
 export const essencePicture = (id: string): string => `${KEPT}/transcend/essences/${id}.png`;
-
-export type TranscendTier = 1 | 2 | 3 | 5;
 
 export interface Perk {
   /** The bot's id. */

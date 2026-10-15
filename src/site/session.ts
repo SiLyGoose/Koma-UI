@@ -1,5 +1,10 @@
 import { API, getSession, profileMenu, reconnecting, setSession, siteHeader, startLive, store } from '../shared/ui';
 import { go } from './nav';
+import type { Me } from '../protocol/site';
+
+/** Who is logged in, and the games (../protocol/site.ts). */
+export type { Game, Me } from '../protocol/site';
+
 
 /*
  * What every site page shares, kept while the member moves between them: who's logged in (the session
@@ -7,14 +12,6 @@ import { go } from './nav';
  * (their profile button and who's online, or a Login button). Loaded once; the front page asks for a
  * fresh /api/me (the points shown there change as they play).
  */
-
-export type Game = 'mines' | 'pinecraft' | 'baccarat' | 'roulette' | 'poker' | 'raid' | 'minesweeper' | 'technomagic';
-
-export interface Me {
-  user: { id: string; name: string; avatar: string };
-  servers: { id: string; name: string; icon: string | null; balance: number }[];
-  games: Game[];
-}
 
 export type ApiResult<T> = { ok: true; data: T } | { ok: false; status: number; error: string };
 

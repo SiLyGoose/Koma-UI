@@ -2,13 +2,13 @@ import { characterOf } from '../shared/characters';
 import { el } from '../shared/items';
 import { working } from '../shared/ui';
 import { coin, points } from '../shared/util';
-import type { Outfit } from '../shared/outfits';
+import type { OutfitView } from '../shared/outfits';
 import type { OutfitsContext } from './context';
 
 /** What a card shows at the bottom: its price, to buy it (`short` when they can't pay), or that it's theirs (nothing to press). */
 type CardState = 'buy' | 'short' | 'owned';
 
-function stateOf(ctx: OutfitsContext, outfit: Outfit): CardState {
+function stateOf(ctx: OutfitsContext, outfit: OutfitView): CardState {
   if (outfit.owned) return 'owned';
   return outfit.price <= (ctx.view?.balance ?? 0) ? 'buy' : 'short';
 }
@@ -17,7 +17,7 @@ function stateOf(ctx: OutfitsContext, outfit: Outfit): CardState {
 const price = (amount: number, short = false): HTMLElement[] => [coin('outfit-coin', 'zeiucoins'), el('span', short ? 'price-short' : '', points(amount))];
 
 /** One outfit's card: its character standing on its floor, its name, and at the bottom its price or that it's theirs. */
-function card(ctx: OutfitsContext, outfit: Outfit): HTMLButtonElement {
+function card(ctx: OutfitsContext, outfit: OutfitView): HTMLButtonElement {
   const state = stateOf(ctx, outfit);
   const button = el('button', 'outfit-card');
   button.type = 'button';

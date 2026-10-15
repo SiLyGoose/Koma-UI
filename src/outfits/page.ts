@@ -1,7 +1,7 @@
 import markup from './outfits.html?raw';
 import { API, busyWith, dropdown, fillServers } from '../shared/ui';
 import type { ShopTab } from '../shop/tab';
-import type { Outfit, OutfitsView } from '../shared/outfits';
+import type { OutfitView, OutfitsView } from '../shared/outfits';
 import { api, currentMe, currentServer, loadMe, logOut, setServer } from '../site/session';
 import { createContext, status, type OutfitsContext } from './context';
 import { render, renderBuy } from './render';
@@ -105,7 +105,7 @@ async function load(ctx: OutfitsContext): Promise<void> {
 }
 
 /** Buys an outfit, and draws the tab as it is after. */
-async function buy(ctx: OutfitsContext, outfit: Outfit): Promise<void> {
+async function buy(ctx: OutfitsContext, outfit: OutfitView): Promise<void> {
   const server = currentServer();
   if (ctx.busy || !server) return;
   ctx.busy = busyWith('buy');

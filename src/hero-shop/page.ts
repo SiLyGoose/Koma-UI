@@ -1,5 +1,5 @@
 import markup from './hero-shop.html?raw';
-import { classBadge, className, heroCut, SHOP_BUST, type Hero, type HeroesView } from '../shared/heroes';
+import { classBadge, className, heroCut, SHOP_BUST, type HeroView, type HeroesView } from '../shared/heroes';
 import { el } from '../shared/items';
 import { API, busyWith, dropdown, fillServers, working, type Busy } from '../shared/ui';
 import { coin, points } from '../shared/util';
@@ -36,7 +36,7 @@ interface Context {
   ui: Ui;
   view: HeroesView | null;
   /** The hero the buy box is asking about. */
-  buying: Hero | null;
+  buying: HeroView | null;
   /** A buy on its way (its button: 'buy'). */
   busy: Busy | null;
 }
@@ -142,7 +142,7 @@ async function load(ctx: Context): Promise<void> {
 }
 
 /** Buys a hero, and draws the tab as it is after. */
-async function buy(ctx: Context, hero: Hero): Promise<void> {
+async function buy(ctx: Context, hero: HeroView): Promise<void> {
   const server = currentServer();
   if (ctx.busy || !server) return;
   ctx.busy = busyWith('buy');
@@ -176,7 +176,7 @@ function showBust(img: HTMLImageElement, id: string, fallback?: HTMLElement): vo
 }
 
 /** One hero's card: its picture and class badge, its name and class, and at the bottom its price or that it's theirs. */
-function card(ctx: Context, hero: Hero): HTMLButtonElement {
+function card(ctx: Context, hero: HeroView): HTMLButtonElement {
   const state = hero.owned ? 'owned' : hero.price <= (ctx.view?.balance ?? 0) ? 'buy' : 'short';
   const button = el('button', 'outfit-card hero-card');
   button.type = 'button';

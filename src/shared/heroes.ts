@@ -1,96 +1,15 @@
 import { HERO_ASSETS, portraitPicture, type Crop } from '../technomagic/assets';
-import type { GearStat } from '../technomagic/sim/types';
-import { el, type Slot } from './items';
-import type { EssenceId } from '../heroes/transcend';
+import { el } from './items';
+
+/** The heroes as the bot says them (../protocol/heroes.ts). */
+export { HERO_SLOT_KIND, HERO_SLOTS, type HeroCopy, type HeroesView, type HeroSlot, type HeroStat, type HeroView } from '../protocol/heroes';
+
 
 /*
  * The TechnoMagic Raid's heroes, as the bot's GET /api/heroes has them (its web/models/heroes.ts): the
  * shop's Heroes tab buys them (../hero-shop/), the heroes page gears them (../heroes/). The raid itself
  * (../technomagic/) knows each by the same id: its folder there, whose files give its picture here.
  */
-
-/** Where a hero wears gear: two weapons, two armors and a treasure. */
-export type HeroSlot = 'weapon1' | 'weapon2' | 'armor1' | 'armor2' | 'treasure';
-
-export const HERO_SLOTS: readonly HeroSlot[] = ['weapon1', 'weapon2', 'armor1', 'armor2', 'treasure'];
-
-/** Which kind of item goes in each. */
-export const HERO_SLOT_KIND: Record<HeroSlot, Slot> = { weapon1: 'weapon', weapon2: 'weapon', armor1: 'armor', armor2: 'armor', treasure: 'treasure' };
-
-/** What gear raises (the bot's lib/game/heroes.ts HeroStat: the raid's GearStat). */
-export type HeroStat = GearStat;
-
-/** One copy a hero can wear (the raid's gear, or the TechnoMagic Raid's). */
-export interface HeroCopy {
-  id: string;
-  itemId: string;
-  name: string;
-  stars: 1 | 2 | 3 | 4;
-  slot: Slot;
-  description: string;
-  level: number;
-  maxLevel: number;
-  masterwork: boolean;
-  locked: boolean;
-  /** What it does on a hero, a line for each stat it raises. */
-  effects: string[];
-  /** TechnoMagic gear (not a treasure): its set's effect for its class, once a hero wears `pieces` of it, and whether it is on (`active`: the hero wearing it has its set's effect); null
-   * otherwise (absent from a bot from before it said it apart; `active`, from one before it said that). */
-  setEffect?: { pieces: number; text: string; active?: boolean } | null;
-  /** TechnoMagic gear: the additional skill this copy came with, like "Vigor: Increases DMG…"; null with none (absent from a bot from before it said it apart). */
-  additional?: string | null;
-  /** Whether its additional skill is on: a hero of its class wears it (absent from a bot from before it said). */
-  additionalActive?: boolean;
-  /** TechnoMagic gear: the additional skill this copy came with (the sim's id: ../technomagic/sim/skills.ts), or null (absent from a bot from before them). */
-  skill?: string | null;
-  /** A class item: the one class of hero it works on (null: any). */
-  class: string | null;
-  /** TechnoMagic gear or a unique weapon (which only heroes wear): drawn as the TechnoMagic Raid's (absent from a bot from before it said). */
-  heroOnly?: boolean;
-  /** A unique weapon: the id of the one hero that wields it, or null (absent from a bot from before them). */
-  uniqueWeapon?: string | null;
-  /** The id of their hero wearing it, or null. */
-  hero: string | null;
-}
-
-export interface Hero {
-  id: string;
-  name: string;
-  /** Its class (a raid class's id: public/gear/classes/<id>.png). */
-  class: string;
-  price: number;
-  owned: boolean;
-  equipped: Record<HeroSlot, string | null>;
-  /**
-   * What its gear gives it in the raid: points for the chances and shares (crit, speed, pen, block, dodge,
-   * resist), a share more of its own for the rest (atk, hp, critDamage, defense, heal, control).
-   */
-  bonus: Record<HeroStat, number>;
-  /** The TechnoMagic set its weapons and armors are most of: which, how many pieces, and whether its effect is on (three of them). Null with none (absent from a bot from before sets). */
-  set?: { id: string; pieces: number; active: boolean } | null;
-  /** The additional skills of the TechnoMagic gear it wears that work on it (the sim's ids, one for each piece; absent from a bot from before them). */
-  skills?: string[];
-  /** The same as lines (then its set's, and its additional skills', last). */
-  totals: string[];
-  /** The transcendence perks picked for it (the bot's data/transcend.ts ids: ../heroes/transcend.ts; absent from a bot from before them). */
-  perks?: string[];
-  /**
-   * How far it is transcended (0 to 5), the TP it has, and what the next level costs: so many of each of its class's
-   * hero essences, and komaGems (null at the last). Absent from a bot from before it.
-   */
-  transcend?: { level: number; points: number; next: { essences: Partial<Record<EssenceId, number>>; gems: number } | null };
-}
-
-export interface HeroesView {
-  /** In the shop's order. */
-  heroes: Hero[];
-  /** Every copy they own that a hero can wear, best first. */
-  copies: HeroCopy[];
-  balance: number;
-  /** Their komaGems and hero essences, what transcending pays with (0 for someone else's; absent from a bot from before them). */
-  gems?: number;
-  essences?: Partial<Record<EssenceId, number>>;
-}
 
 const CLASS_NAME: Record<string, string> = { knight: 'Knight', warrior: 'Warrior', assassin: 'Assassin', archer: 'Archer', mechanic: 'Mechanic', wizard: 'Wizard', priest: 'Priest' };
 
