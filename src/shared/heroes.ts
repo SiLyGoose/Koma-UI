@@ -1,6 +1,7 @@
 import { HERO_ASSETS, portraitPicture, type Crop } from '../technomagic/assets';
 import type { GearStat } from '../technomagic/sim/types';
 import { el, type Slot } from './items';
+import type { EssenceId } from '../heroes/transcend';
 
 /*
  * The TechnoMagic Raid's heroes, as the bot's GET /api/heroes has them (its web/models/heroes.ts): the
@@ -73,6 +74,11 @@ export interface Hero {
   totals: string[];
   /** The transcendence perks picked for it (the bot's data/transcend.ts ids: ../heroes/transcend.ts; absent from a bot from before them). */
   perks?: string[];
+  /**
+   * How far it is transcended (1 to 5), the TP it has, and what the next level costs: so many of each of its class's
+   * hero essences, and komaGems (null at the last). Absent from a bot from before it.
+   */
+  transcend?: { level: number; points: number; next: { essences: Partial<Record<EssenceId, number>>; gems: number } | null };
 }
 
 export interface HeroesView {
@@ -81,6 +87,9 @@ export interface HeroesView {
   /** Every copy they own that a hero can wear, best first. */
   copies: HeroCopy[];
   balance: number;
+  /** Their komaGems and hero essences, what transcending pays with (0 for someone else's; absent from a bot from before them). */
+  gems?: number;
+  essences?: Partial<Record<EssenceId, number>>;
 }
 
 const CLASS_NAME: Record<string, string> = { knight: 'Knight', warrior: 'Warrior', assassin: 'Assassin', archer: 'Archer', mechanic: 'Mechanic', wizard: 'Wizard', priest: 'Priest' };

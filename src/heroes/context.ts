@@ -28,6 +28,7 @@ export interface HeroesUi {
   stats: HTMLElement;
   statsTitle: HTMLElement;
   statsList: HTMLElement;
+  ascend: HTMLElement;
   skills: HTMLElement;
   skillsTitle: HTMLElement;
   skillsList: HTMLElement;
@@ -103,6 +104,7 @@ export function createContext(root: HTMLElement): HeroesContext {
       stats: $('stats'),
       statsTitle: $('stats-title'),
       statsList: $('stats-list'),
+      ascend: $('ascend'),
       skills: $('skills'),
       skillsTitle: $('skills-title'),
       skillsList: $('skills-list'),

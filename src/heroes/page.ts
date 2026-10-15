@@ -16,7 +16,8 @@ import { render, type HeroActions } from './render';
  * last pressed, or the first free one of its kind; off any other hero it was on), and pressing a slot shows
  * what fits in it. The Stats tab has the hero's stats in the raid, with and without its gear; the Skills tab
  * its skills, in King's Raid's own words (./skills.ts); the Transcend tab its transcendence perks, which are
- * picked there (./transcend.ts: the TP they cost, out of the hero's TRANSCEND_POINTS). A copy can be
+ * picked there (./transcend.ts: the TP they cost, out of what its level gives), and the Stats tab transcends it (T1 to
+ * T5, for its class's hero essences and komaGems). A copy can be
  * on the member and on one of their heroes at once, but on one hero only. Logged-in members only, in the
  * server picked; ?hero= picks the hero shown. On the left over the hero, whose heroes are shown: theirs, or
  * those of someone else in the server who has heroes, to look at (nothing on them can be changed then).
@@ -63,6 +64,12 @@ function failed(ctx: HeroesContext, act: HeroActions, res: { status: number; err
             ? 'Your heroes’ gear changed meanwhile. Try again.'
           : res.error === 'too_many_points'
             ? 'Not enough TP left for that perk.'
+          : res.error === 'perk_locked'
+            ? 'Transcend this hero further to pick that perk.'
+          : res.error === 'too_poor'
+            ? 'Not enough hero essences or komaGems to transcend this hero.'
+          : res.error === 'maxed'
+            ? 'This hero is as transcended as it gets.'
             : res.status === 404
               ? 'Heroes aren’t on the bot yet.'
               : what,
@@ -175,9 +182,13 @@ function actions(ctx: HeroesContext): HeroActions {
       const hero = ctx.hero;
       if (hero) void change(ctx, act, `unequip:${slot}`, '/api/heroes/unequip', { hero, slot }, 'Could not take that off. Try again.');
     },
-    transcend(perks: string[], key: string) {
+    perks(perks: string[], key: string) {
       const hero = ctx.hero;
-      if (hero) void change(ctx, act, key, '/api/heroes/transcend', { hero, perks }, 'Could not change the perks. Try again.');
+      if (hero) void change(ctx, act, key, '/api/heroes/perks', { hero, perks }, 'Could not change the perks. Try again.');
+    },
+    transcend() {
+      const hero = ctx.hero;
+      if (hero) void change(ctx, act, 'transcend', '/api/heroes/transcend', { hero }, 'Could not transcend this hero. Try again.');
     },
   };
   return act;
@@ -253,7 +264,7 @@ function wire(ctx: HeroesContext, act: HeroActions): () => void {
     });
   }
 
-  ui.resetPerks.addEventListener('click', () => act.transcend([], 'reset-perks'));
+  ui.resetPerks.addEventListener('click', () => act.perks([], 'reset-perks'));
 
   ui.unequipAll.addEventListener('click', () => {
     const hero = ctx.hero;

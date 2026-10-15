@@ -74,11 +74,15 @@
       </div>
     </div>
 
-    <!-- Stats: the hero's in the TechnoMagic Raid, with and without its gear. -->
+    <!--
+      Stats: first how far the hero is transcended (T1 to T5), what the next level costs (its class's three hero essences
+      and komaGems) and what transcends it; then its stats in the TechnoMagic Raid, with and without its gear.
+    -->
     <div id="stats" class="armory stats off" role="tabpanel">
       <div class="armory-plaque plaque"><span id="stats-title">Stats</span></div>
       <div class="armory-sheet">
         <div class="sheet-scroll">
+          <section id="ascend" class="ascend" aria-label="Transcendence"></section>
           <div id="stats-list" class="stats-list"></div>
         </div>
       </div>
@@ -95,8 +99,9 @@
     </div>
 
     <!--
-      Transcend: the hero's transcendence perks (src/heroes/transcend.ts), a row for each tier as King's Raid has them, the
-      TP left over them. Picking one says what it does under them, with what learns it (or forgets it); Reset Perks forgets them all.
+      Transcend: the hero's transcendence perks (src/heroes/transcend.ts), a row for each tier as King's Raid has them (a tier
+      past how far it is transcended locked), the TP left over them. Picking one says what it does under them, with what learns
+      it (or forgets it); Reset Perks forgets them all.
     -->
     <div id="transcend" class="armory stats transcend off" role="tabpanel">
       <div class="armory-plaque plaque"><span id="transcend-title">Transcendence Perks</span></div>

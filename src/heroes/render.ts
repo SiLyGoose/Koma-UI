@@ -4,7 +4,8 @@ import { working } from '../shared/ui';
 import { copyById, heroShown, mine, slotFor, slotOf, type HeroesContext } from './context';
 import { heroSkills } from './skills';
 import { heroStats } from './stats';
-import { heroPerks, spent, TRANSCEND_POINTS, type Perk, type TranscendTier } from './transcend';
+import { ESSENCE_NAME, essencePicture, heroPerks, spent, TRANSCEND_MAX, TRANSCEND_POINTS, type EssenceId, type Perk, type TranscendTier } from './transcend';
+import { GEM_EMOJI } from '../forge/anvil/gem';
 
 /*
  * Draws the heroes page from what the bot said (ctx.view): the roster of heroes, the one shown on the stage
@@ -17,7 +18,9 @@ export interface HeroActions {
   equip(copy: HeroCopy, slot: HeroSlot): void;
   unequip(slot: HeroSlot): void;
   /** Picks the hero shown's transcendence perks, all of them at once (none: reset); `key` is the button waiting on it. */
-  transcend(perks: string[], key: string): void;
+  perks(perks: string[], key: string): void;
+  /** Transcends the hero shown a level. */
+  transcend(): void;
 }
 
 /** The armory always shows at least this many cells (rounded up to a full row), and fills out its last row. */
@@ -46,6 +49,7 @@ export function render(ctx: HeroesContext, act: HeroActions): void {
   renderGrid(ctx, act);
   renderDetail(ctx, act);
   renderStats(ctx);
+  renderAscend(ctx, act);
   renderSkills(ctx);
   renderTranscend(ctx, act);
   ui.armory.classList.toggle('off', ctx.tab !== 'gear');
@@ -407,9 +411,11 @@ function renderTranscend(ctx: HeroesContext, act: HeroActions): void {
   if (!hero) return;
   const perks = heroPerks(hero.id, hero.class);
   const learned = hero.perks ?? [];
-  const left = TRANSCEND_POINTS - spent(perks, learned);
-  ui.tpLeft.textContent = `${left}/${TRANSCEND_POINTS}`;
-  ui.tpLeft.parentElement?.setAttribute('aria-label', `${left} of ${TRANSCEND_POINTS} TP left`);
+  const level = hero.transcend?.level ?? TRANSCEND_MAX;
+  const points = hero.transcend?.points ?? TRANSCEND_POINTS;
+  const left = points - spent(perks, learned);
+  ui.tpLeft.textContent = `${left}/${points}`;
+  ui.tpLeft.parentElement?.setAttribute('aria-label', `${left} of ${points} TP left`);
   if (ctx.perk && !perks.some((perk) => perk.id === ctx.perk)) ctx.perk = null;
 
   // The rows drawn again only for another hero (their pictures would load again); what's learned and picked marked on them each time.
@@ -418,6 +424,7 @@ function renderTranscend(ctx: HeroesContext, act: HeroActions): void {
     ui.perkRows.replaceChildren(
       ...TIERS.map((tier) => {
         const row = el('section', `perk-row tier-${tier}`);
+        row.dataset.tier = String(tier);
         const cells = el('div', 'perk-cells');
         for (const perk of perks.filter((one) => one.tier === tier)) {
           const cell = el('button', 'perk');
@@ -438,6 +445,14 @@ function renderTranscend(ctx: HeroesContext, act: HeroActions): void {
         return row;
       }),
     );
+  }
+  // A tier past its level: locked, saying when it opens.
+  for (const row of ui.perkRows.querySelectorAll<HTMLElement>('.perk-row')) {
+    const tier = Number(row.dataset.tier);
+    const locked = tier > level;
+    row.classList.toggle('locked', locked);
+    row.querySelector('.perk-lock')?.remove();
+    if (locked) row.querySelector('.perk-tier')?.append(el('span', 'perk-lock', `🔒 at T${tier}`));
   }
   for (const cell of ui.perkRows.querySelectorAll<HTMLButtonElement>('.perk')) {
     const perk = perks.find((one) => one.id === cell.dataset.perk);
@@ -461,13 +476,14 @@ function renderTranscend(ctx: HeroesContext, act: HeroActions): void {
     text.append(...skillText(perk.text));
     ui.perkInfo.append(head, text);
     if (!hero.owned) ui.perkInfo.append(el('p', 'detail-note', notRecruited(ctx, hero.name, 'transcend them')));
+    else if (perk.tier > level) ui.perkInfo.append(el('p', 'detail-note warn', `Transcend ${hero.name} to T${perk.tier} (on the Stats tab) to pick this perk.`));
     else if (mine(ctx)) {
       const short = !on && perk.cost > left;
       const action = el('button', `perk-action action ${on ? 'secondary' : 'main'}`, on ? 'Remove' : 'Learn');
       action.type = 'button';
       action.disabled = short;
       working(action, ctx.busy, `perk:${perk.id}`);
-      action.addEventListener('click', () => act.transcend(on ? learned.filter((id) => id !== perk.id) : [...learned, perk.id], `perk:${perk.id}`));
+      action.addEventListener('click', () => act.perks(on ? learned.filter((id) => id !== perk.id) : [...learned, perk.id], `perk:${perk.id}`));
       ui.perkInfo.append(action);
       if (short) ui.perkInfo.append(el('p', 'detail-note warn', `Needs ${perk.cost} TP: ${left} left. Remove another perk first.`));
     }
@@ -477,4 +493,65 @@ function renderTranscend(ctx: HeroesContext, act: HeroActions): void {
   ui.resetPerks.hidden = !mine(ctx);
   ui.resetPerks.disabled = !hero.owned || learned.length === 0;
   working(ui.resetPerks, ctx.busy, 'reset-perks');
+}
+
+/**
+ * At the top of the Stats tab: how far the hero is transcended (a star for each level, T1 to T5), and what the next level
+ * costs: each of its class's hero essences, then komaGems, each with how many they have (short in red; for someone else's,
+ * only the cost), and Transcend. At T5, that it is as far as it goes.
+ */
+function renderAscend(ctx: HeroesContext, act: HeroActions): void {
+  const { ui, view } = ctx;
+  const hero = heroShown(ctx);
+  ui.ascend.textContent = '';
+  // (A bot from before transcending: nothing to show.)
+  if (!hero?.transcend || !view) {
+    ui.ascend.hidden = true;
+    return;
+  }
+  ui.ascend.hidden = false;
+  const { level, points, next } = hero.transcend;
+  const head = el('div', 'ascend-head');
+  const stars = el('span', 'ascend-stars');
+  stars.setAttribute('aria-label', `Transcend ${level} of ${TRANSCEND_MAX}`);
+  for (let i = 1; i <= TRANSCEND_MAX; i++) stars.append(el('span', `ascend-star${i <= level ? ' on' : ''}`, '★'));
+  head.append(el('h3', 'ascend-title', `Transcend ${level}`), stars, el('span', 'ascend-tp', `${points} TP`));
+  ui.ascend.append(head);
+  if (!next) {
+    ui.ascend.append(el('p', 'ascend-note', `${hero.name} is fully transcended.`));
+    return;
+  }
+  const yours = mine(ctx) && hero.owned;
+  const costs = el('div', 'ascend-costs');
+  let short = false;
+  const cost = (picture: HTMLElement, name: string, have: number, need: number): void => {
+    const lacking = yours && have < need;
+    short ||= lacking;
+    const item = el('div', `ascend-cost${lacking ? ' short' : ''}`);
+    item.title = name;
+    item.append(picture, el('span', 'ascend-count', yours ? `${have.toLocaleString('en-US')}/${need}` : `×${need}`));
+    costs.append(item);
+  };
+  for (const [id, need] of Object.entries(next.essences) as [EssenceId, number][]) {
+    const picture = el('img', 'ascend-icon');
+    picture.src = essencePicture(id);
+    picture.alt = `${ESSENCE_NAME[id]} essence`;
+    cost(picture, `${ESSENCE_NAME[id]} essence`, view.essences?.[id] ?? 0, need);
+  }
+  const gem = el('span', 'ascend-icon ascend-gem');
+  gem.append(rich(GEM_EMOJI));
+  cost(gem, 'komaGems', view.gems ?? 0, next.gems);
+  ui.ascend.append(el('p', 'ascend-label', `To T${level + 1}`), costs);
+  if (!hero.owned) {
+    ui.ascend.append(el('p', 'ascend-note', notRecruited(ctx, hero.name, 'transcend them')));
+    return;
+  }
+  if (!mine(ctx)) return;
+  const action = el('button', 'ascend-action action main', `Transcend to T${level + 1}`);
+  action.type = 'button';
+  action.disabled = short;
+  working(action, ctx.busy, 'transcend');
+  action.addEventListener('click', () => act.transcend());
+  ui.ascend.append(action);
+  if (short) ui.ascend.append(el('p', 'ascend-note', 'Beating the weekly raid gives hero essences (three kinds, its boss’s) and komaGems.'));
 }

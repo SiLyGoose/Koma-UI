@@ -2,14 +2,33 @@ import { KEPT } from '../technomagic/assets';
 import { heroSkills } from './skills';
 
 /*
- * The heroes page's Transcend tab: each hero's transcendence perks in King's Raid's own words, as
- * kingsraid.shodyra.com has them, with their pictures (public/technomagic/transcend/: each hero's own in its
- * folder, the rest in perks/). Which ones a hero has is the bot's (its data/transcend.ts: the same ids, what
- * each costs, and the TP a hero has); a hero of a class has its class's Transcend 2 perks.
+ * Transcendence on the heroes page: each hero's transcendence perks (its Transcend tab) in King's Raid's own words,
+ * as kingsraid.shodyra.com has them, with their pictures (public/technomagic/transcend/: each hero's own in its
+ * folder, the rest in perks/), and the hero essences transcending a hero pays with (its Stats tab; essences/: the
+ * King's Raid wiki's fragments of each kind). Which perks a hero has, how far it is transcended and what the next
+ * level costs are the bot's (its data/transcend.ts: the same ids, what each costs, the TP each level gives);
+ * a hero of a class has its class's Transcend 2 perks.
  */
 
-/** The TP each hero has to spend (the bot's TRANSCEND_POINTS). */
+/** The TP a hero has at its most, and how far it can be transcended (the bot's TRANSCEND_POINTS and TRANSCEND_MAX). */
 export const TRANSCEND_POINTS = 80;
+export const TRANSCEND_MAX = 5;
+
+/** The hero essences (the bot's EssenceId). */
+export type EssenceId = 'justice' | 'force' | 'wisdom' | 'strategy' | 'patience' | 'harmony' | 'fortune';
+
+export const ESSENCE_NAME: Readonly<Record<EssenceId, string>> = {
+  justice: 'Justice',
+  force: 'Force',
+  wisdom: 'Wisdom',
+  strategy: 'Strategy',
+  patience: 'Patience',
+  harmony: 'Harmony',
+  fortune: 'Fortune',
+};
+
+/** An essence's picture. */
+export const essencePicture = (id: string): string => `${KEPT}/transcend/essences/${id}.png`;
 
 export type TranscendTier = 1 | 2 | 3 | 5;
 
