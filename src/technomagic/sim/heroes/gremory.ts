@@ -2,6 +2,7 @@ import { share } from '../combat/damage';
 import { put, type Status } from '../combat/status';
 import { BLOW, MAX_MANA } from '../rules';
 import { skillArt, type Buff, type Tone } from '../shown';
+import { t5Light } from '../perks';
 import { atTier, PIGRITIA } from '../unique';
 import { CLASS_STATS, type Ability, type HeroDef, type Passive } from './kit';
 
@@ -21,6 +22,9 @@ import { CLASS_STATS, type Ability, type HeroDef, type Passive } from './kit';
  * Her unique weapon (../unique.ts) is worked here too: it quickens her, and her sleep heals her and
  * fills her mana, and makes her Mana Charge give her more ATK.
  * What is drawn for each is ../../heroes/gremory/fx.ts; what her body does for each, and for her attack, ../../heroes/gremory/moves.ts.
+ *
+ * Her own perks (../perks.ts) are King's Raid's. Puchi's two do nothing here: its mark's M.Block (left out, as above),
+ * and knocking the boss away (it can't be: it is stunned, as ever). Her sleep's Light makes its less taken a fifth more.
  */
 const NUDGE = { blow: BLOW * 1.3 };
 const POCHI = { bite: 1800, boss: 1200, more: 0.15, bossMore: 0.3, weaker: 0.06, most: 5, lasts: 15 };
@@ -28,6 +32,8 @@ const PUCHI = { blow: 7000, stun: 5 };
 const PIPPI = { blow: 1500, through: 1000, pierce: 500, takes: 0.05, most: 10, lasts: 12 };
 const SLEEP = { taken: 0.6 };
 const CHARGE = { most: 5, atk: 0.1, dmg: 0.02 };
+/** Her own perks' numbers: Pochi's Mark's less M.DEF for each, and her sleep's more less taken. */
+const PERKS = { softer: 0.06, sleepier: 1.2 };
 
 /** Eh, whatever. I'm gonna sleep.: how long she lies asleep (her move written in code has her wake as it ends). */
 export const ASLEEP = 3;
@@ -77,11 +83,24 @@ export const GREMORY: HeroDef = {
     { name: 'Pippi, wrap them!', about: 'Ten blows, each leaving [Pippi’s Mark]: the boss takes 5% more magical damage for each, for 12 seconds (up to 10). With all 10 on it, each blow deals more, through its defense. Sealed once used.', icon: '🎀', art: art(2), move: 'pippi', cooldown: 0, cost: 4 },
   ],
   passive: LAZY,
+  perks: {
+    's1-light': { words: 'When there is 1 enemy, additional M.DMG dealt to bosses ignores DEF.' },
+    's1-dark': { words: "[Pochi's Mark] additionally reduces M.DEF by 6%." },
+    's2-light': { words: "The M.Block Chance Reduction effect of [Puchi's Mark] will fix the M.Block Chance to 0 instead." },
+    's2-dark': { words: 'Knocks the target away instead of inflicting Stun.' },
+    's3-light': { words: 'Reduces Mana Cost by 1.', skill: { index: 2, cost: -1 } },
+    's3-dark': { words: 'Increases Mana Cost by 1 and DMG by 100%.', skill: { index: 2, cost: 1, dmg: 2 } },
+    's4-light': { words: 'Increases All DMG Reduction effect by 20% while in use.' },
+    's4-dark': { words: "At the beginning of each battle, [Eh, whatever. I'm gonna sleep.] becomes activated." },
+    't5-light': t5Light('ATK, DEF, HP +15% / Crit Chance +100', { crit: 100 }),
+    't5-dark': { words: 'Increases DMG dealt to Non-Hero enemies by 50% when there is 1 enemy.', dmg: 1.5 },
+  },
   attack: 'nudge',
   // On her cube.
   join(fight, self) {
     /** Which of her skills are sealed; her Mana Charge; and how long her unique weapon is filling her mana for yet. */
-    const sealed = self.abilities.map(() => false);
+    // (Her sleep's Dark: it is ready as the fight begins.)
+    const sealed = self.abilities.map(() => self.perks.has('s4-dark'));
     let charges = 0;
     let filling = 0;
     const tier = self.unique?.tier ?? null;
@@ -94,8 +113,16 @@ export const GREMORY: HeroDef = {
         },
         // A bite, harder for her Mana Charge (and more again, as on any boss); the boss hits less hard for each (up to five).
         pochi() {
-          fight.hit(self, POCHI.bite * (1 + POCHI.more * charges) + POCHI.boss * (1 + POCHI.bossMore * charges));
-          mark(fight.foe.statuses, POCHI_MARK, POCHI.most, POCHI.lasts, (count) => ({ deals: 1 - POCHI.weaker * count }));
+          const bite = POCHI.bite * (1 + POCHI.more * charges);
+          const boss = POCHI.boss * (1 + POCHI.bossMore * charges);
+          // (Its Light: what more it deals the boss goes through its defense, a blow of its own.)
+          if (self.perks.has('s1-light')) {
+            fight.hit(self, bite);
+            fight.hit(self, boss, false, 0, true);
+          } else fight.hit(self, bite + boss);
+          // (Its Dark: the boss's M.DEF lower for each too.)
+          const softer = self.perks.has('s1-dark');
+          mark(fight.foe.statuses, POCHI_MARK, POCHI.most, POCHI.lasts, (count) => ({ deals: 1 - POCHI.weaker * count, ...(softer && { defends: { magical: 1 - PERKS.softer * count } }) }));
         },
         // From behind: a blow, and the boss stunned.
         puchi() {
@@ -124,7 +151,7 @@ export const GREMORY: HeroDef = {
         // She sleeps: her skills unsealed, and one more Mana Charge (with her unique weapon, the more ATK for each; and she is healed, and her mana fills).
         sealed.fill(false);
         charges = Math.min(CHARGE.most, charges + 1);
-        put(self.statuses, { name: SLEEPING.name, left: ASLEEP, takes: SLEEP.taken, guards: true, shown: SLEEPING });
+        put(self.statuses, { name: SLEEPING.name, left: ASLEEP, takes: self.perks.has('s4-light') ? 1 - (1 - SLEEP.taken) * PERKS.sleepier : SLEEP.taken, guards: true, shown: SLEEPING });
         const atk = CHARGE.atk + (tier === null ? 0 : atTier(PIGRITIA.charge, tier));
         put(self.statuses, { name: CHARGED.name, left: Infinity, count: charges, deals: (1 + atk * charges) * (1 + CHARGE.dmg * charges), shown: CHARGED });
         if (tier !== null) {
