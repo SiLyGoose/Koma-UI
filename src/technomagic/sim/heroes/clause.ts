@@ -1,5 +1,6 @@
 import { put } from '../combat/status';
 import { BLOW, MAX_MANA } from '../rules';
+import { t5Light } from '../perks';
 import { skillArt, type Buff } from '../shown';
 import { CLASS_STATS, type HeroDef, type Passive } from './kit';
 
@@ -12,11 +13,18 @@ import { CLASS_STATS, type HeroDef, type Passive } from './kit';
  * His passive, Vow of Knights: when he blocks he strikes back, the boss hits less hard for a while, and
  * he gains mana. (How often he blocks is not the game's: there it comes of his gear.)
  * What is drawn for each is ../../heroes/clause/fx.ts; what his body does for each, and for his attack, ../../heroes/clause/moves.ts.
+ *
+ * His own perks (../perks.ts) are King's Raid's. Two do nothing here: Cut Ground's Dark (the boss isn't drawn in, so it
+ * costs no more), and Vow of Knights' Light (its blow back is at once here already). Guardian Shield guards with less
+ * taken rather than more DEF: its Light's 40% more makes that 35% less. Transcend 5's Dark doesn't say how long its
+ * DEF lasts: as long as it waits (10 seconds).
  */
 const CUT_GROUND = { blow: 7000, stun: 5 };
 const SHIELD_STRIKE = { blow: 4000, lasts: 20, slow: 0.67, exposed: 1.3 };
 const GUARDIAN = { lasts: 20, taken: 0.75 };
 const VOW = { weak: 0.8, lasts: 8, mana: 300 };
+/** His own perks' numbers: Shield Strike's stun, Guardian Shield's more (and its P.DMG taken), Vow of Knights' less ATK, and Transcend 5's Dark's guard for every ally (how long, and how long it waits). */
+const PERKS = { bashStun: 1, guardMore: 1.4, guardPhysical: 0.75, weaker: 0.1, ward: { lasts: 10, every: 10, defends: 1.2, critResist: 200 } };
 
 const art = skillArt('clause');
 
@@ -28,6 +36,8 @@ const VOW_OF_KNIGHTS: Passive = {
 };
 /** What Guardian Shield gives every hero for a while: shown on each card, with how long it has left. */
 const GUARDED: Buff = { name: 'Guardian Shield', about: 'Takes 25% less from the boss.', icon: '✨', art: art(2) };
+/** What his Transcend 5's Dark gives every ally when another is hit. */
+const WARDED: Buff = { name: 'Knight’s Guard', about: 'P.DEF +20% and P.Crit Resist +20%.', icon: '🛡️', art: art(3) };
 
 export const CLAUSE: HeroDef = {
   id: 'clause',
@@ -42,11 +52,25 @@ export const CLAUSE: HeroDef = {
     { name: 'Guardian Shield', about: 'For 20 seconds every hero takes 25% less from the boss.', icon: '✨', art: art(2), move: 'guard', cooldown: 12, cost: 2 },
   ],
   passive: VOW_OF_KNIGHTS,
+  perks: {
+    's1-light': { words: 'Cooldown is reduced by 2 sec.', skill: { index: 0, cooldown: -2 } },
+    's1-dark': { words: 'In exchange for 1 additional Mana Cost, the skill has a 100% chance to draw the target in.' },
+    's2-light': { words: 'Target takes 25% increased P.DMG for 10 sec.', skill: { index: 1, mark: { name: 'Physical Weakness', takes: { physical: 1.25 }, lasts: 10 } } },
+    's2-dark': { words: 'Stuns the enemy for 1 sec.' },
+    's3-light': { words: 'DEF boost is increased by 40%.' },
+    's3-dark': { words: 'Receives 25% reduced P.DMG for the duration.' },
+    's4-light': { words: 'Casting time is greatly boosted.' },
+    's4-dark': { words: 'Reduces an additional 10% of ATK.' },
+    't5-light': t5Light('ATK, DEF, HP +15% / P.Block +200', { blockPhysical: 200 }),
+    't5-dark': { words: "When an ally other than this hero is hit by an attack, increases all allies' P.DEF by 20% and P.Crit Resist by 20% (10 sec Cooldown)." },
+  },
   // Without an animation for his attack: his sword from side to side.
   attack: 'swing',
   // His animations: one slash where he stands; Guardian Shield, his shield brought down to the ground.
   timing: { attack: [{ lands: [0.68], until: 0.8 }], skills: { guard: { lands: [1.75], until: 2.6 } } },
   join(fight, self) {
+    /** Until his Transcend 5's Dark may guard every ally again. */
+    let warding = 0;
     return {
       lands: {
         // His attack written in code: a cut across the boss one way, then the other.
@@ -63,18 +87,30 @@ export const CLAUSE: HeroDef = {
           fight.hit(self, SHIELD_STRIKE.blow);
           put(fight.foe.statuses, { name: 'Exposed', left: SHIELD_STRIKE.lasts, takes: SHIELD_STRIKE.exposed, shown: 'curse' });
           fight.slow(SHIELD_STRIKE.slow, SHIELD_STRIKE.lasts);
+          if (self.perks.has('s2-dark')) fight.stun(PERKS.bashStun, { by: self });
         },
         // The shield raised: every hero is guarded.
         guard() {
-          put(fight.party, { name: GUARDED.name, left: GUARDIAN.lasts, takes: GUARDIAN.taken, shown: GUARDED });
+          // (Its Light: more less taken; its Dark: less again of physical blows.)
+          const taken = self.perks.has('s3-light') ? 1 - (1 - GUARDIAN.taken) * PERKS.guardMore : GUARDIAN.taken;
+          put(fight.party, { name: GUARDED.name, left: GUARDIAN.lasts, takes: self.perks.has('s3-dark') ? { physical: taken * PERKS.guardPhysical, magical: taken } : taken, shown: GUARDED });
         },
       },
       // Blocked: a blow back, the boss hits less hard for a while, and mana gained.
       blocked() {
         fight.cue(self, 'vow');
         fight.hit(self, BLOW);
-        put(fight.foe.statuses, { name: 'Weakened', left: VOW.lasts, deals: VOW.weak, shown: 'slow' });
+        put(fight.foe.statuses, { name: 'Weakened', left: VOW.lasts, deals: VOW.weak - (self.perks.has('s4-dark') ? PERKS.weaker : 0), shown: 'slow' });
         self.mana = Math.min(MAX_MANA, self.mana + VOW.mana);
+      },
+      tick(dt) {
+        warding = Math.max(0, warding - dt);
+      },
+      // Another hero hit: every ally guarded better (his Transcend 5's Dark), now and then.
+      hurt(who) {
+        if (!self.perks.has('t5-dark') || who === self || warding > 0 || self.hp <= 0) return;
+        warding = PERKS.ward.every;
+        put(fight.party, { name: WARDED.name, left: PERKS.ward.lasts, defends: { physical: PERKS.ward.defends }, critResist: { physical: PERKS.ward.critResist }, shown: WARDED });
       },
     };
   },
