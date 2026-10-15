@@ -3,10 +3,13 @@ import { className, type Hero, type HeroStat } from '../shared/heroes';
 import { POINTS } from '../technomagic/combat/damage';
 import { geared } from '../technomagic/sim/gear';
 import { CRIT, MANA_PER_ATTACK, MANA_RATE } from '../technomagic/sim/rules';
-import { CLASS_STATS, type HeroClass } from '../technomagic/heroes/kit';
+import { HEROES } from '../technomagic/heroes';
+import { CLASS_STATS, lineOf, type HeroClass } from '../technomagic/heroes/kit';
+import type { Line } from '../technomagic/sim/rules';
 
 /*
- * The heroes page's Stats tab: a hero's class, then its stats in the TechnoMagic Raid, as its class has them (the raid's
+ * The heroes page's Stats tab: a hero's class, the kind of damage it deals and where it stands in the fight (the raid's
+ * ../technomagic/heroes/: its own, or its class's), then its stats in the TechnoMagic Raid, as its class has them (the raid's
  * heroes/kit.ts CLASS_STATS), and with what its gear gives it (the bot's bonus, as the raid's sim/gear.ts
  * counts it: points added to the chances and shares, a share more of the rest). Each row its gear changes
  * says what it is without it.
@@ -22,10 +25,26 @@ function row(label: string, base: number, withGear: number, show: (n: number) =>
   return { label, value: show(withGear), base: changed ? show(base) : null };
 }
 
+/** Where a hero stands, as King's Raid says it. */
+const POSITION: Record<Line, string> = { front: 'Front', middle: 'Middle', back: 'Rear' };
+
 /** A hero's stats; with no `bonus` (the databank's Heroes), as its class has them, gear or no. */
-export function heroStats(hero: Pick<Hero, 'class'> & Partial<Pick<Hero, 'bonus'>>): StatSection[] {
-  // First what it is rather than what its gear does: its class (as the gear page's Stats have it).
-  const about: StatSection = { title: 'Hero', rows: [{ label: 'Class', value: className(hero.class), base: null }] };
+export function heroStats(hero: Pick<Hero, 'class'> & Partial<Pick<Hero, 'bonus' | 'id'>>): StatSection[] {
+  // First what it is rather than what its gear does: its class (as the gear page's Stats have it), and, for a hero the
+  // raid knows, the kind of damage it deals and where it stands.
+  const def = HEROES.find((one) => one.id === hero.id);
+  const about: StatSection = {
+    title: 'Hero',
+    rows: [
+      { label: 'Class', value: className(hero.class), base: null },
+      ...(def
+        ? [
+            { label: 'ATK type', value: def.stats.deals === 'physical' ? 'Physical' : 'Magic', base: null },
+            { label: 'Position', value: POSITION[lineOf(def)], base: null },
+          ]
+        : []),
+    ],
+  };
   const base = CLASS_STATS[hero.class as HeroClass];
   if (!base) return [about];
   const bonus = (stat: HeroStat): number => hero.bonus?.[stat] ?? 0;

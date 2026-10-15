@@ -10,6 +10,7 @@ export interface HeroesUi {
   server: HTMLSelectElement;
   rosterList: HTMLElement;
   classIcon: HTMLElement;
+  stars: HTMLElement;
   bust: HTMLImageElement;
   initial: HTMLElement;
   name: HTMLElement;
@@ -86,6 +87,7 @@ export function createContext(root: HTMLElement): HeroesContext {
       server: $<HTMLSelectElement>('server'),
       rosterList: $('roster-list'),
       classIcon: $('class-icon'),
+      stars: $('hero-stars'),
       bust: $<HTMLImageElement>('hero-bust'),
       initial: $('hero-initial'),
       name: $('hero-name'),

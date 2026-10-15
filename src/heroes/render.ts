@@ -147,6 +147,15 @@ function renderStage(ctx: HeroesContext): void {
   icon.alt = '';
   ui.classIcon.replaceChildren(icon);
   ui.classIcon.title = `Class: ${className(hero.class)}`;
+  // Its transcendence beside the banner: a hero of theirs (or someone else's) only, from a bot that says it.
+  const level = hero.owned ? hero.transcend?.level : undefined;
+  ui.stars.hidden = level === undefined;
+  ui.stars.replaceChildren();
+  if (level !== undefined) {
+    ui.stars.setAttribute('aria-label', `Transcend ${level} of ${TRANSCEND_MAX}`);
+    ui.stars.title = `Transcend ${level}`;
+    for (let i = 1; i <= TRANSCEND_MAX; i++) ui.stars.append(el('span', `hero-star${i <= level ? ' on' : ''}`, '★'));
+  }
   ui.buy.hidden = hero.owned || !mine(ctx);
   ui.buy.href = '/shop/heroes/';
   ui.armoryTitle.textContent = mine(ctx) ? `${hero.name}'s Gear` : `${ctx.viewing?.name}'s Hero Gear`;
@@ -496,62 +505,55 @@ function renderTranscend(ctx: HeroesContext, act: HeroActions): void {
 }
 
 /**
- * At the top of the Stats tab: how far the hero is transcended (a star for each level, T1 to T5), and what the next level
- * costs: each of its class's hero essences, then komaGems, each with how many they have (short in red; for someone else's,
- * only the cost), and Transcend. At T5, that it is as far as it goes.
+ * At the top of the Stats tab: what transcending is for (more Transcendence Points), then what the hero's next level costs (how far it is, the stars beside its class
+ * banner say): each of its class's hero essences, then komaGems, each with how many they have (short in red; for someone
+ * else's, only the cost), the komaGems in a box of their own (as King's Raid sets its Stone of Infinity apart), and Transcend
+ * beside them. Nothing at T5.
  */
 function renderAscend(ctx: HeroesContext, act: HeroActions): void {
   const { ui, view } = ctx;
   const hero = heroShown(ctx);
   ui.ascend.textContent = '';
-  // (A bot from before transcending: nothing to show.)
-  if (!hero?.transcend || !view) {
-    ui.ascend.hidden = true;
-    return;
-  }
-  ui.ascend.hidden = false;
-  const { level, points, next } = hero.transcend;
-  const head = el('div', 'ascend-head');
-  const stars = el('span', 'ascend-stars');
-  stars.setAttribute('aria-label', `Transcend ${level} of ${TRANSCEND_MAX}`);
-  for (let i = 1; i <= TRANSCEND_MAX; i++) stars.append(el('span', `ascend-star${i <= level ? ' on' : ''}`, '★'));
-  head.append(el('h3', 'ascend-title', `Transcend ${level}`), stars, el('span', 'ascend-tp', `${points} TP`));
-  ui.ascend.append(head);
-  if (!next) {
-    ui.ascend.append(el('p', 'ascend-note', `${hero.name} is fully transcended.`));
-    return;
-  }
+  const next = hero?.transcend?.next;
+  // Fully transcended, or a bot from before transcending: nothing to show.
+  ui.ascend.hidden = !hero?.transcend || !next || !view;
+  if (!hero?.transcend || !next || !view) return;
+  const { level } = hero.transcend;
   const yours = mine(ctx) && hero.owned;
   const costs = el('div', 'ascend-costs');
+  const essences = el('div', 'ascend-essences');
+  const gems = el('div', 'ascend-gems');
   let short = false;
-  const cost = (picture: HTMLElement, name: string, have: number, need: number): void => {
+  const cost = (into: HTMLElement, picture: HTMLElement, name: string, have: number, need: number): void => {
     const lacking = yours && have < need;
     short ||= lacking;
     const item = el('div', `ascend-cost${lacking ? ' short' : ''}`);
     item.title = name;
     item.append(picture, el('span', 'ascend-count', yours ? `${have.toLocaleString('en-US')}/${need}` : `×${need}`));
-    costs.append(item);
+    into.append(item);
   };
   for (const [id, need] of Object.entries(next.essences) as [EssenceId, number][]) {
     const picture = el('img', 'ascend-icon');
     picture.src = essencePicture(id);
     picture.alt = `${ESSENCE_NAME[id]} essence`;
-    cost(picture, `${ESSENCE_NAME[id]} essence`, view.essences?.[id] ?? 0, need);
+    cost(essences, picture, `${ESSENCE_NAME[id]} essence`, view.essences?.[id] ?? 0, need);
   }
   const gem = el('span', 'ascend-icon ascend-gem');
   gem.append(rich(GEM_EMOJI));
-  cost(gem, 'komaGems', view.gems ?? 0, next.gems);
-  ui.ascend.append(el('p', 'ascend-label', `To T${level + 1}`), costs);
+  cost(gems, gem, 'komaGems', view.gems ?? 0, next.gems);
+  costs.append(essences, gems);
+  ui.ascend.append(el('p', 'ascend-hint', 'Transcend to unlock more Transcendence Points (TP).'), costs);
   if (!hero.owned) {
     ui.ascend.append(el('p', 'ascend-note', notRecruited(ctx, hero.name, 'transcend them')));
     return;
   }
   if (!mine(ctx)) return;
-  const action = el('button', 'ascend-action action main', `Transcend to T${level + 1}`);
+  const action = el('button', 'ascend-action action main', 'Transcend');
   action.type = 'button';
+  action.title = `Transcend ${hero.name} to T${level + 1}`;
   action.disabled = short;
   working(action, ctx.busy, 'transcend');
   action.addEventListener('click', () => act.transcend());
-  ui.ascend.append(action);
-  if (short) ui.ascend.append(el('p', 'ascend-note', 'Beating the weekly raid gives hero essences (three kinds, its boss’s) and komaGems.'));
+  costs.append(action);
+  if (short) ui.ascend.append(el('p', 'ascend-note', 'Beating the weekly raid gives hero essences and komaGems.'));
 }

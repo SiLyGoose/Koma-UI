@@ -48,6 +48,36 @@
   padding-top: 8px;
 }
 
+/* Right of the class banner, along the stage's top: a gold star for each level it is transcended, the rest dim. */
+.hero-stars {
+  position: absolute;
+  top: 10px;
+  left: 62px;
+  z-index: 2;
+  display: flex;
+  gap: 1px;
+  font-size: 24px;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.hero-stars[hidden] {
+  display: none;
+}
+
+.hero-star {
+  color: rgb(239 227 191 / 22%);
+  text-shadow: 0 1px 2px rgb(0 0 0 / 70%);
+}
+
+.hero-star.on {
+  color: #f6c739;
+  text-shadow:
+    0 0 1px #6b4300,
+    0 1px 0 #8a5a00,
+    0 0 8px rgb(246 199 57 / 45%);
+}
+
 /* Its whole picture, behind the slots and its name, cut off at the stage's edges and fading out at the bottom onto the floor. */
 .hero-portrait {
   position: absolute;
@@ -463,8 +493,9 @@
 }
 
 /*
- * At the top of the Stats tab: how far the hero is transcended (King's Raid's gold stars), then what the next level
- * costs, each material's picture over how many they have of how many it takes (red when short), and Transcend.
+ * At the top of the Stats tab, under a line saying what it's for, in a row: what the next transcendence level costs, each material's picture over how many
+ * they have of how many it takes (red when short), the essences and the komaGems each in an inset box, then Transcend (under them
+ * when there's no room beside them).
  */
 .ascend {
   margin: 6px 0 4px;
@@ -477,56 +508,29 @@
   display: none;
 }
 
-.ascend-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 10px;
-}
-
-.ascend-title {
-  margin: 0;
-  color: #9b3a2c;
-  font-size: 15px;
-  font-weight: 800;
-}
-
-.ascend-stars {
-  display: flex;
-  gap: 1px;
-  font-size: 18px;
-  line-height: 1;
-}
-
-.ascend-star {
-  color: #cdbf9c;
-}
-
-.ascend-star.on {
-  color: #f0b81f;
-  text-shadow: 0 1px 0 #8a5a00;
-}
-
-.ascend-tp {
-  margin-left: auto;
-  color: #1f5a9c;
-  font-size: 13px;
-  font-weight: 800;
-}
-
-.ascend-label {
-  margin: 10px 0 6px;
+.ascend-hint {
+  margin: 0 0 8px;
   color: #6b5a3a;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .ascend-costs {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 64px));
-  gap: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+/* The essences together, and the komaGems apart, each in an inset box of its own. */
+.ascend-essences,
+.ascend-gems {
+  display: flex;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: rgb(120 96 50 / 14%);
+  box-shadow: inset 0 0 0 1px rgb(120 96 50 / 22%);
 }
 
 .ascend-cost {
@@ -534,6 +538,7 @@
   flex-direction: column;
   align-items: center;
   gap: 3px;
+  width: 56px;
 }
 
 .ascend-icon {
@@ -564,8 +569,8 @@
 }
 
 .ascend-action {
-  width: 100%;
-  margin-top: 10px;
+  flex: 1 1 110px;
+  align-self: center;
 }
 
 .ascend-note {
