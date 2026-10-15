@@ -1,5 +1,5 @@
 import { points } from '../../shared/util';
-import type { PinecraftOre, WorldState } from '../protocol';
+import type { PinecraftOre, WorldState } from '../../protocol/pinecraft';
 import { drawGem, ORES } from '../draw/textures';
 import { ui } from '../ui';
 

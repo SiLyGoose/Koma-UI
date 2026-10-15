@@ -2,7 +2,7 @@ import { watching } from '../shared/game';
 import { replay } from '../shared/util';
 import { send } from './connection';
 import { showError } from './panel';
-import type { RunEvent } from './protocol';
+import type { RunEvent } from '../protocol/mines';
 import { render } from './render';
 import { play } from './sfx';
 import { playing, state } from './state';

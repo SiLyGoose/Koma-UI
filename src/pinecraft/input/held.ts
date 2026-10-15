@@ -1,6 +1,6 @@
 import { STEP_MS } from '../constants';
 import { move } from '../digging';
-import type { Direction } from '../protocol';
+import type { Direction } from '../../protocol/pinecraft';
 import { held, state } from '../state';
 
 /** A direction pressed (a key, the joystick): a step that way now, if one is due, and more while it's held. */

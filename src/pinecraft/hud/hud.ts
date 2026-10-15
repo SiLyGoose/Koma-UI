@@ -1,5 +1,5 @@
 import { points, replay } from '../../shared/util';
-import type { WorldState } from '../protocol';
+import type { WorldState } from '../../protocol/pinecraft';
 import { state } from '../state';
 import { ui } from '../ui';
 

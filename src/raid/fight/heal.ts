@@ -1,6 +1,6 @@
 import { send } from '../connection';
 import { avatar, el, hpBar } from '../widgets';
-import type { RaidView } from '../protocol';
+import type { RaidView } from '../../protocol/raid';
 import { redraw } from '../render';
 import { play } from '../sfx';
 import { state } from '../state';

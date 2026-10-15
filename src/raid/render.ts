@@ -4,7 +4,7 @@ import { api } from './link';
 import { showPicture } from './widgets';
 import { renderLevel } from './prep';
 import { renderPrep } from './prep/prep';
-import type { RaidView } from './protocol';
+import type { RaidView } from '../protocol/raid';
 import { closeStats, hideLoot, offerLoot, renderResult, renderStats } from './result';
 import { play } from './sfx';
 import { state } from './state';

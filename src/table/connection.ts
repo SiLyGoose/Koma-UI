@@ -3,7 +3,7 @@ import { points } from '../shared/util';
 import { gameSocket, hideMessage, showMessage } from '../shared/game';
 import { showWatchers, showWatching, watchAway, watchBack } from '../shared/ui';
 import { mySeat, showError, type TableContext } from './context';
-import type { BetRefusal, ClientMessage, ErrorCode, ServerMessage, TableState } from './protocol';
+import type { BetRefusal, ClientMessage, ErrorCode, ServerMessage, TableState } from '../protocol/table';
 import { buildRack } from './chips/rack';
 import { render } from './render';
 import { playOut, showRound } from './round';

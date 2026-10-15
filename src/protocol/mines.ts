@@ -1,11 +1,12 @@
+// Copied from the bot's src/protocol/ by scripts/sync.mjs: change it there, then `yarn sync`.
 /*
- * What this page and the Koma bot say to each other over the mine's WebSocket. A copy of the bot's
- * src/web/mine-protocol.ts (in the Koma repo): change both together.
+ * What the mine's web page (the Koma-UI repo) and the bot say to each other over the WebSocket.
+ * Every message is one JSON object with a `t` saying what it is. The site keeps a copy (its `yarn sync`).
  *
  * The bot holds the board. The page is only ever told what has been turned over, so nothing in the
  * page (or its dev tools) gives away where the mines are; the whole board is shown once the round is over.
  *
- * A link lets one member play (see token.ts): it opens their round if one is going, and the lobby
+ * A link lets one member play (the bot's web/auth/token.ts): it opens their round if one is going, and the lobby
  * otherwise, where they can start a new one.
  *
  *   page -> bot   hello    first message: the token from the link
@@ -18,7 +19,7 @@
  *                 refused  a start that couldn't happen, and why (nothing was taken)
  *                 error    and the bot closes the connection
  *
- * Watching (live.ts): a watch-only page says `watch` with the token from its watch link instead of
+ * Watching (the bot's web/games/live.ts): a watch-only page says `watch` with the token from its watch link instead of
  * `hello`, and is then sent everything the player's page is sent about the game (not their errors),
  * starting with `watching` (whose game it is) and the game as it is. `away` says the player's page
  * went away (it may come back). The player is sent `watchers` whenever how many are watching changes.

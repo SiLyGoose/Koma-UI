@@ -1,6 +1,6 @@
-import type { Direction, PinecraftOre, WorldState } from '../protocol';
+import type { Direction, PinecraftOre, WorldState } from '../../protocol/pinecraft';
 
-/** What each ore's letter is (see ../protocol.ts). */
+/** What each ore's letter is (see ../../protocol/pinecraft.ts). */
 export const ORE_OF: Readonly<Record<string, PinecraftOre>> = { c: 'coal', i: 'iron', o: 'gold', x: 'diamond', r: 'ruby', e: 'emerald', a: 'amethyst' };
 
 /** A spark or chip of rock flying off a block being dug. Positions in blocks, speeds in blocks a second. */
@@ -35,7 +35,7 @@ export interface Scene {
   keysGoneAt: number | null;
 }
 
-/** What block (x, y) is, as the page knows it (a letter, see ../protocol.ts): '?' if not seen, '#' past the edge. */
+/** What block (x, y) is, as the page knows it (a letter, see ../../protocol/pinecraft.ts): '?' if not seen, '#' past the edge. */
 export function cellAt(scene: Pick<Scene, 'state' | 'known'>, x: number, y: number): string {
   const { size } = scene.state;
   if (x < 0 || y < 0 || x >= size || y >= size) return '#';

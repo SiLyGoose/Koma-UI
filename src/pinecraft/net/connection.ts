@@ -4,7 +4,7 @@ import { showWatchers, showWatching, watchAway } from '../../shared/ui';
 import { apply } from './apply';
 import { MIN_DIG_MS } from '../constants';
 import { renderMap } from '../map';
-import type { ClientMessage, ErrorCode, ServerMessage } from '../protocol';
+import type { ClientMessage, ErrorCode, ServerMessage } from '../../protocol/pinecraft';
 import { state } from '../state';
 import { ui } from '../ui';
 import { watchBreaking, watchState } from './watch';

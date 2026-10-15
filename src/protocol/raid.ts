@@ -1,9 +1,10 @@
+// Copied from the bot's src/protocol/ by scripts/sync.mjs: change it there, then `yarn sync`.
 /*
- * What this page and the Koma bot say to each other over the raid's WebSocket. A copy of the bot's
- * src/web/raid/protocol.ts (in the Koma repo): change both together.
+ * What the raid's page (the Koma-UI repo's src/raid) and the bot say to each other over the raid's
+ * WebSocket. Every message is one JSON object with a `t` saying what it is. The site keeps a copy (its `yarn sync`).
  *
- * The raid is the server's weekly raid, the very one on its Discord message: a player on this page is
- * in the same lobby and fight as the ones pressing buttons in Discord.
+ * The raid is the server's weekly raid, the very one on its Discord message (commands/raid.ts): a
+ * player on the page is in the same lobby and fight as the ones pressing buttons in Discord.
  *
  *   page -> bot   hello    first message: the token from the link
  *                 start    starts this week's raid: its lobby goes up in the server's channel, with
@@ -13,7 +14,7 @@
  *                 begin    the host starts the fight (nothing else does: the lobby has no countdown)
  *                 disband  the host disbands the raid before the fight: the week is freed, to start again
  *                 difficulty  the host picks the raid's difficulty `level` (up to the lobby's `maxDifficulty`)
- *                 act      their action this turn (`target`: who a heal is for, left out to let the
+ *                 act      their action this turn (`skill`: a ward in place of a Support, for a class that can; `target`: who a heal or ward is for, left out to let the
  *                          bot choose)
  *   bot -> page   raid     the raid as it is now: whenever anything about it changes
  *                 answer   how a start, join, leave, begin, disband, difficulty or act went (`code` is 'ok' when it went)
@@ -23,10 +24,26 @@
  * it: **bold**, *italics*, <@id> mentions (named in `names`), and <:name:id> custom emojis.
  */
 
+/** The raid bosses (the bot's constants/raid.ts: adding one there reshuffles which one each future week gets). */
+export const RAID_BOSS_IDS = ['wyrm', 'reaper', 'plague'] as const;
+export type RaidBossId = (typeof RAID_BOSS_IDS)[number];
+
+/** What a raider can do on their turn. */
 export type RaidAction = 'attack' | 'guard' | 'heal' | 'support';
-export type RaidBossId = 'wyrm' | 'reaper';
+
+/** Stunned: can't act. Disarmed: can't attack. Taunted: can only attack. */
 export type CrowdControl = 'stunned' | 'disarmed' | 'taunted';
+
+/** Why a player can't act this turn. */
 export type ActProblem = 'not_playing' | 'knocked_out' | CrowdControl;
+
+/** How a press in the lobby went. */
+export type LobbyAnswer = 'joined' | 'already_joined' | 'left' | 'not_joined' | 'started' | 'disbanded' | 'difficulty_set' | 'locked' | 'only_host' | 'closed';
+
+/**
+ * How a raid ended: fought out, its lobby emptied, disbanded before the fight (by its host, or by itself
+ * after sitting idle), or called off part way (an error).
+ */
 export type RaidEnd = 'won' | 'wiped' | 'fled' | 'no_players' | 'disbanded' | 'called_off';
 
 export type ClientMessage =
@@ -47,15 +64,17 @@ export interface RaidPlayerView {
   hp: number;
   maxHp: number;
   /** Their crowd control, while it lasts. */
-  cc: { effect: CrowdControl; turns: number } | null;
+  cc: { effect: 'stunned' | 'disarmed' | 'taunted'; turns: number } | null;
+  /** Their stacks of the Plague Matriarch's Blight (0 with none, and against the other bosses). */
+  blight: number;
   /** What they picked this turn (everyone sees everyone's, as in Discord). */
   picked: RaidAction | null;
   /** They can pick this turn (standing and not stunned). */
   canAct: boolean;
-  /** Their raid class for this fight (its picture is public/gear/classes/<id>.png), or null with none (absent from a bot from before classes). */
-  class?: string | null;
-  /** Their Support can ward an ally instead (an act's `skill`): their class's (absent from a bot from before classes). */
-  wards?: boolean;
+  /** Their raid class for this fight (the bot's constants/raid.ts RAID_CLASS_IDS), or null with none. */
+  class: string | null;
+  /** Their Support can ward an ally instead (the `skill` of an act): their class's. */
+  wards: boolean;
 }
 
 export interface RaidFightView {
@@ -66,6 +85,8 @@ export interface RaidFightView {
   /** 0 calm, 1 enraged, 2 furious. */
   enrage: number;
   shielded: boolean;
+  /** Attacks the shield still deflects before it shatters (the wyrm's); 0 for a shield that is up for the turn. */
+  deflects: number;
   /** Rounds of Support's attack boost left, and how big it is. */
   rallied: number;
   rallyMultiplier: number;
@@ -93,45 +114,43 @@ export interface RaidLootItem {
 /**
  * One difficulty level: what it multiplies the boss's HP and damage by, and what a win at it drops for each
  * raider (best tier first). The boss has more HP for every raider besides: `wall` (0 to 1) of its own amount
- * (`gearHp` in the pick and lobby views), none at level 1 and all of it from the first `gear` level, the ones
- * built for parties in raid gear. A bot from before those levels sends neither.
+ * (`gearHp` in the pick and lobby views, DatabankBoss.hp.gear in the databank), none at level 1 and all of it
+ * from the first `gear` level, the ones built for parties in raid gear.
  */
 export interface RaidLevel {
   level: number;
   hp: number;
   damage: number;
-  gear?: boolean;
-  wall?: number;
+  gear: boolean;
+  wall: number;
   drops: { stars: number; count: number }[];
 }
 
-/** The difficulties whoever starts the week's raid can pick from, before its lobby is up (prep/level.ts). */
+/** The difficulties whoever starts the week's raid can pick from, before its lobby is up. */
 export interface RaidPickView {
   /** The hardest level the server can pick (one past the hardest it has beaten), and the hardest there is. */
   maxDifficulty: number;
   topDifficulty: number;
   /** Every level, from 1 to `topDifficulty`. */
   levels: RaidLevel[];
-  /** The HP this boss has on top for every raider at the levels that need gear (RaidLevel.gear). */
-  gearHp?: number;
+  /** The HP this boss has on top for every raider at the levels that need gear (RaidLevel.gear); RaidLevel.wall of it below them. */
+  gearHp: number;
 }
 
-/** The lobby. The host picks its difficulty, up to the hardest the server has unlocked (a bot from before difficulties sends none of that). */
+/** The lobby's difficulty: the host picks a level, up to the hardest the server has unlocked. */
 export interface RaidLobbyView {
   host: string;
   players: string[];
-  /** When the fight starts by itself (ms): only from a bot from before the host started it, whose lobbies had a countdown. */
-  closesAt?: number;
   /** The boss's HP with the party as it is now, at the difficulty picked. */
   bossHp: number;
-  difficulty?: number;
+  difficulty: number;
   /** The hardest level the server can pick (one past the hardest it has beaten), and the hardest there is. */
-  maxDifficulty?: number;
-  topDifficulty?: number;
+  maxDifficulty: number;
+  topDifficulty: number;
   /** Every level, from 1 to `topDifficulty`. */
-  levels?: RaidLevel[];
-  /** The HP this boss has on top for every raider at the levels that need gear (RaidLevel.gear); `bossHp` has it in. */
-  gearHp?: number;
+  levels: RaidLevel[];
+  /** The HP this boss has on top for every raider at the levels that need gear (RaidLevel.gear), RaidLevel.wall of it below them; `bossHp` has it in. */
+  gearHp: number;
 }
 
 export interface RaidOverView {
@@ -156,8 +175,8 @@ export interface RaidOverView {
   /** Each raider's gear as they fought can be looked at (GET /api/raid/gear?user=…): raids from before it was kept can't. */
   gear?: boolean;
   /**
-   * The raid items the one looking found (best first), when they found any: shown once, over the end
-   * screen, until they close it (result/loot.ts). `key` names this win's, so it isn't shown again.
+   * The raid items the one looking found (best first), when they found any: the page shows them once,
+   * over the end screen, until they close it. `key` names this win's, so it isn't shown again.
    */
   loot?: { key: string; items: RaidLootItem[] } | null;
 }
@@ -174,11 +193,11 @@ export interface RaidView {
   brief: { phases: string[]; moves: string[]; rewards: string };
   /**
    * The raid drops (0 to 1): the party's chance of them when it wins, and how much each raider adds
-   * (capped at 1). Null when they're off; absent from a bot from before party-wide drops.
+   * (capped at 1). Null when they're off.
    */
-  drops?: { chance: number; perRaider: number } | null;
-  /** The raid's difficulty level (1 with no raid going on and none fought this week; absent from a bot from before difficulties). */
-  difficulty?: number;
+  drops: { chance: number; perRaider: number } | null;
+  /** The raid's difficulty level (1 with no raid going on and none fought this week). */
+  difficulty: number;
   /** The boss's picture now: its path under the bot's /api (GET). */
   picture: string;
   mood: RaidMood;
@@ -187,9 +206,9 @@ export interface RaidView {
   /**
    * `idle`: no raid going on. `week` is how this week's raid went ('open' when it hasn't been fought),
    * and `canStart` whether the page can start it (a server without a bot channel starts it in Discord);
-   * `pick`, with it, is the difficulties to start it at (absent from a bot from before they were picked first).
-   * `last` says how the last lobby went when it never came to a fight, a little while after (nobody
-   * joined in time, or it was called off): the week was freed, so it can be started again.
+   * `pick`, with it, is the difficulties to start it at.
+   * `last` says how the last lobby went when it never came to a fight, a little while after (everyone
+   * left it, it was disbanded, or it was called off): the week was freed, so it can be started again.
    */
   phase: 'idle' | 'lobby' | 'fight' | 'over';
   idle: { week: 'open' | 'won' | 'wiped' | 'fled' | 'busy'; canStart: boolean; last?: 'no_players' | 'disbanded' | 'called_off'; pick?: RaidPickView } | null;
@@ -201,11 +220,7 @@ export interface RaidView {
 /** What went wrong with a start, join, leave, begin, disband, difficulty or act. */
 export type AnswerCode =
   | 'ok'
-  | 'already_joined'
-  | 'not_joined'
-  | 'only_host'
-  | 'locked'
-  | 'closed'
+  | Exclude<LobbyAnswer, 'joined' | 'left' | 'started' | 'disbanded' | 'difficulty_set'>
   | ActProblem
   | 'late'
   | 'already'
@@ -216,7 +231,13 @@ export type AnswerCode =
   | 'started'
   | 'failed';
 
-export type ErrorCode = 'bad_token' | 'bad_message' | 'replaced';
+export type ErrorCode =
+  /** The link's token is wrong or too old (or the bot restarted since). */
+  | 'bad_token'
+  /** A message that isn't one of the above, or too many of them. */
+  | 'bad_message'
+  /** The page was opened somewhere else (another tab): only one plays at a time. */
+  | 'replaced';
 
 export type ServerMessage =
   | { t: 'raid'; view: RaidView }

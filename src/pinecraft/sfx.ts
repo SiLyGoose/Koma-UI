@@ -1,5 +1,5 @@
 import { sound } from '../shared/audio';
-import type { PinecraftOre } from './protocol';
+import type { PinecraftOre } from '../protocol/pinecraft';
 
 /*
  * Pinecraft's sounds, from public/pinecraft/sfx, played through the shared ../shared/audio/sfx.ts (which also

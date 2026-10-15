@@ -29,7 +29,7 @@ import { makeOverhead } from './hud/overhead';
 import { cutFace, cutHead } from './hud/portrait';
 import { makeTimer } from './hud/timer';
 import { makePrep } from './prep/prep';
-import type { AnswerCode, ClientMessage, ErrorCode, FightStart, OverView, RoomState, ServerMessage, TurnInput } from './protocol';
+import type { AnswerCode, ClientMessage, ErrorCode, FightStart, OverView, RoomState, ServerMessage, TurnInput } from '../protocol/technomagic';
 import { HERO_TURN, makeSim, SECTION, SECTIONS, SIM_VERSION, STAGES, TICK, type Input, type Sim } from './sim';
 import { setBuff } from './sim/sets';
 import { skillBuffs } from './sim/skills';
@@ -42,7 +42,7 @@ import './technomagic.css';
  * this page draws it (fight/view.ts) and tells it what the players do.
  *
  * Opened from Discord or the front page (the link carries the player's token and the bot's WebSocket, after
- * the #), it is the server's room, played together as in King's Raid (protocol.ts). Getting ready (prep/):
+ * the #), it is the server's room, played together as in King's Raid (../protocol/technomagic.ts). Getting ready (prep/):
  * everyone puts heroes of theirs into the lineup and the host starts the fight. The fight is run by the bot,
  * and this page runs the same one from the same seed with everyone's presses as the bot relays them, never
  * going past the step the bot has reached (a step or two behind it, so it never has to wait). Each player

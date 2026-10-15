@@ -1,14 +1,14 @@
-import type { ChatClientMessage, ChatServerMessage } from '../shared/ui';
+// Copied from the bot's src/protocol/ by scripts/sync.mjs: change it there, then `yarn sync`.
+import type { ChatClientMessage, ChatServerMessage } from './chat';
 
 /*
- * What this page and the Koma bot say to each other over the TechnoMagic Raid's WebSocket. A copy of the
- * bot's src/web/games/technomagic/protocol.ts (in the Koma repo), less its reading of the page's messages:
- * change both together.
+ * What the TechnoMagic Raid's web page (the Koma-UI repo) and the bot say to each other over the WebSocket.
+ * Every message is one JSON object with a `t` saying what it is. The site keeps a copy (its `yarn sync`).
  *
  * A server has one room (the bot's web/games/technomagic/room.ts). Getting ready (`prep`), everyone in it picks heroes of their own into its
  * lineup (the host up to 4, everyone else up to 2, 9 in all; alone, up to 8 against an easier boss: 4 in the Main
  * Team, whose skills are theirs to use, and 4 in the Sub Team, on Auto for the whole fight), says they're ready,
- * and the host starts the fight. The fight is this site's sim (./sim/):
+ * and the host starts the fight. The fight is the site's sim (its src/technomagic/sim/, the bot's vendor/technomagic-sim.mjs):
  * the bot runs it by its own clock with every player's presses, and every page runs the same one from the
  * same seed with the same presses (`fight`, then `turn` after `turn`), never going past the step the bot has
  * reached. So how it ends is the bot's word alone, and what a win gives is rolled by the bot (`over`).
@@ -24,7 +24,7 @@ import type { ChatClientMessage, ChatServerMessage } from '../shared/ui';
  *                 auto      one of their heroes' Auto, on or off; `auto-all`: all of theirs
  *                 give-up   ends the fight, lost (the host)
  *                 back      from a fight over to getting ready again
- *                 chat      says something to the room (../shared/ui/chat/chat.ts)
+ *                 chat      says something to the room (./chat.ts)
  *   bot -> page   room      the room as it is now: whenever anything about it changes
  *                 fight     a fight has begun (or is going on, for a page that just joined): what to run it from
  *                 turn      what everyone pressed, at which step, up to the step the fight has reached
@@ -71,11 +71,19 @@ export interface PickView {
   sub?: boolean;
 }
 
+/** An item found: which, and the additional skill and potentials its copy came with, as they are said (like "Vigor: Increases DMG…"; null: none; and "+5.2% ATK"). */
+export interface DropView {
+  itemId: string;
+  name: string;
+  stars: number;
+  skill: string | null;
+  potentials: string[];
+}
+
 /** What a fight that is over gave each player (by id): the items found, and whether it was one of their runs that give gear. */
 export interface OverView {
   result: 'won' | 'lost';
-  /** Each item found, with the additional skill and the potentials its copy came with, as they are said (absent from a bot from before them). */
-  drops: Record<string, { itemId: string; name: string; stars: number; skill?: string | null; potentials?: string[] }[]>;
+  drops: Record<string, DropView[]>;
   rewarded: string[];
 }
 
@@ -84,7 +92,7 @@ export interface RoomState {
   you: string;
   phase: 'prep' | 'fight' | 'over';
   /** The bot's sim (a page running another is to reload). */
-  version: number;
+  version: string;
   boss: { id: string; name: string };
   stage: number;
   stages: number;
@@ -103,8 +111,8 @@ export interface RoomState {
 /**
  * What a fight is run from: the boss, the seed, the stage, whether it is fought alone, and each hero in it
  * (whose, which, its skin, what its gear gives it, the TechnoMagic set whose effect it has, or null, and its own
- * unique weapon's tier, 1 to 5, or null: absent from a bot from before them; the additional skill of each
- * piece of TechnoMagic gear it wears: absent from a bot from before them; and, alone, whether it is in the Sub Team).
+ * unique weapon's tier, 1 to 5, or null, the additional skill of each piece of TechnoMagic gear it wears, and, alone,
+ * whether it is in the Sub Team).
  */
 export interface FightStart {
   no: number;
@@ -112,7 +120,7 @@ export interface FightStart {
   seed: number;
   stage: number;
   solo: boolean;
-  heroes: { owner: string; id: string; skin: number; gear: Record<string, number>; set: string | null; uw?: number | null; skills?: string[]; sub?: boolean }[];
+  heroes: { owner: string; id: string; skin: number; gear: Record<string, number>; set: string | null; uw: number | null; skills: string[]; sub?: boolean }[];
 }
 
 /** One press, at the step it counts before: a skill (`skill` of hero `fighter`), or a hero's Auto. */

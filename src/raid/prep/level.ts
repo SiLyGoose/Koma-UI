@@ -1,6 +1,6 @@
 import { popupClosed } from '../../shared/items';
 import { send } from '../connection';
-import type { RaidPickView, RaidView } from '../protocol';
+import type { RaidPickView, RaidView } from '../../protocol/raid';
 import { state } from '../state';
 import { level, ui } from '../ui';
 import { popupShown } from '../widgets';

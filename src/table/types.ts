@@ -1,4 +1,4 @@
-import type { Outcome, RoundOf, SeatView, TableState } from './protocol';
+import type { BetOutcome, RoundOf, SeatView, TableState } from '../protocol/table';
 
 /** One player's chips on a spot, as a game draws them. */
 export interface Pile<S extends string = string> {
@@ -7,7 +7,7 @@ export interface Pile<S extends string = string> {
   /** This page's (the one being watched, when watching). */
   mine: boolean;
   /** How it came out, once the round is all shown. */
-  outcome?: Outcome;
+  outcome?: BetOutcome;
   /** Their chips couldn't be taken when the round was dealt. */
   refused: boolean;
 }

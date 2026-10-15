@@ -1,4 +1,4 @@
-import type { PlayerView } from './protocol';
+import type { PlayerView } from '../protocol/minesweeper';
 import { send, state } from './state';
 import { ui } from './ui';
 
@@ -16,7 +16,7 @@ import { ui } from './ui';
 const SEND_MS = 50;
 const HAND = `${import.meta.env.BASE_URL}shared/cursor.png`;
 
-/** The players' colours, by the number the bot gives each (protocol.ts's `colour`). */
+/** The players' colours, by the number the bot gives each (../protocol/minesweeper.ts's `colour`). */
 const COLOURS = ['#ff6b6b', '#4dabf7', '#ffd43b', '#69db7c', '#da77f2', '#ff922b', '#3bc9db', '#f783ac'];
 export const colourOf = (player: PlayerView): string => COLOURS[player.colour % COLOURS.length] as string;
 

@@ -3,7 +3,7 @@ import { startTable } from '../table/table';
 import { buildBoard, hit, spots } from './board';
 import { COLOR_NAME } from './colors';
 import { renderSpot } from './marker';
-import type { RouletteRoundView, RoundView, Spot } from './protocol';
+import type { RouletteRoundView, RoundView, RouletteSpot } from '../protocol/roulette';
 import './roulette.css';
 import { buildWheel, RESULT_MS, showNumber, showRecent, SPIN_MS, turnTo } from './wheel';
 
@@ -16,7 +16,7 @@ import { buildWheel, RESULT_MS, showNumber, showRecent, SPIN_MS, turnTo } from '
 buildBoard();
 buildWheel();
 
-startTable<Spot, RouletteRoundView>({
+startTable<RouletteSpot, RouletteRoundView>({
   name: 'roulette',
   title: 'Roulette',
   key: 'roulette',

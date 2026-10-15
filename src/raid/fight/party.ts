@@ -1,5 +1,5 @@
 import { el } from '../widgets';
-import type { RaidView } from '../protocol';
+import type { RaidView } from '../../protocol/raid';
 import { redraw } from '../render';
 import { ui } from '../ui';
 import { memberItem } from './member';

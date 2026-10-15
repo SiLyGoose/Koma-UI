@@ -1,10 +1,16 @@
+// Copied from the bot's src/protocol/ by scripts/sync.mjs: change it there, then `yarn sync`.
+import type { ChatClientMessage, ChatServerMessage } from './chat';
+
 /*
- * What this page and the Koma bot say to each other over minesweeper's WebSocket. A copy of the bot's
- * src/web/games/minesweeper/protocol.ts (in the Koma repo): change both together.
+ * What minesweeper's web page (the Koma-UI repo) and the bot say to each other over the WebSocket.
+ * Every message is one JSON object with a `t` saying what it is. The site keeps a copy (its `yarn sync`).
  *
- * A server has one room (web/games/minesweeper/room.ts): everyone opening minesweeper there plays the
+ * A server has one room (the bot's web/games/minesweeper/room.ts): everyone opening minesweeper there plays the
  * same board. The bot holds it, and a page is only ever told what has been opened, so nothing in the
- * page (or its dev tools) gives away where the mines are until the board is lost.
+ * page (or its dev tools) gives away where the mines are until the board is lost. A board cleared
+ * pays its level's pool of points (`rewards`), more for being quick, shared between everyone who
+ * opened its tiles by how many each opened (`paid`). The fastest clears of each level in the server
+ * are kept, with who cleared them (`best`).
  *
  *   page -> bot   hello    first message: the token from the link
  *                 new      a new board at `level`, in place of the one there
@@ -13,16 +19,33 @@
  *                 chord    on an open tile with as many flags round it as its number: opens the rest round it
  *                 cursor   where this page's mouse is over the board, in tiles from its top left
  *                          (2.5 across is the middle of the third column), or null once it's off it
- *                 chat     says something to the room (../shared/ui/chat/chat.ts, with what the bot sends back)
+ *                 chat     says something to the room (./chat.ts, with what the bot sends back)
  *   bot -> page   room     the room as it is now: whenever anything about it changes
  *                 best     the server's fastest clears of each level: on joining, and whenever a clear makes them
  *                 cursor   where another player's mouse is (never this page's own), or null
  *                 error    and the bot closes the connection
  */
 
-import type { ChatClientMessage, ChatServerMessage } from '../shared/ui';
+/** The boards, easiest first (the classic three: how big each is, the bot's constants/minesweeper.ts). */
+export const MINESWEEPER_LEVEL_IDS = ['easy', 'medium', 'hard'] as const;
+export type MinesweeperLevel = (typeof MINESWEEPER_LEVEL_IDS)[number];
 
-export type MinesweeperLevel = 'easy' | 'medium' | 'hard';
+/** What a board cleared pays: each level's pool and par time (seconds), and the most the pool is multiplied by for speed (at half of par). */
+export interface MinesweeperRewards {
+  pool: Record<MinesweeperLevel, number>;
+  parSeconds: Record<MinesweeperLevel, number>;
+  speedBonus: number;
+}
+
+/** A board cleared: how long it took, when (ms since 1970), and everyone who opened a tile of it, whoever opened most first. */
+export interface MinesweeperClear {
+  ms: number;
+  at: number;
+  players: { id: string; name: string; tiles: number }[];
+}
+
+/** A server's fastest clears of each level, fastest first (of two as fast, the earlier). */
+export type MinesweeperBest = Record<MinesweeperLevel, MinesweeperClear[]>;
 
 export type ClientMessage =
   | { t: 'hello'; token: string }
@@ -93,28 +116,12 @@ export interface PaidView {
   shares: { id: string; name: string; tiles: number; points: number }[];
 }
 
-/** A board cleared: how long it took, when (ms since 1970), and everyone who opened a tile of it, whoever opened most first. */
-export interface ClearView {
-  ms: number;
-  at: number;
-  players: { id: string; name: string; tiles: number }[];
-}
-
-/** A server's fastest clears of each level, fastest first (of two as fast, the earlier). */
-export type BestView = Record<MinesweeperLevel, ClearView[]>;
-
-/** What a board cleared pays: each level's pool and par time (seconds), and the most the pool is multiplied by for speed (at half of par). */
-export interface MinesweeperRewards {
-  pool: Record<MinesweeperLevel, number>;
-  parSeconds: Record<MinesweeperLevel, number>;
-  speedBonus: number;
-}
-
 export interface RoomState {
   /** This page's player. */
   you: string;
   players: PlayerView[];
   levels: Record<MinesweeperLevel, { cols: number; rows: number; mines: number }>;
+  /** What a board cleared pays: each level's pool and par time (seconds), and the most the pool is multiplied by for speed (at half of par). */
   rewards: MinesweeperRewards;
   /** The board being played, or the last one (a room starts on a beginner's). */
   game: GameView;
@@ -132,7 +139,7 @@ export type ErrorCode =
 
 export type ServerMessage =
   | { t: 'room'; state: RoomState }
-  | { t: 'best'; best: BestView }
+  | { t: 'best'; best: MinesweeperBest }
   | { t: 'cursor'; id: string; at: [x: number, y: number] | null }
   | { t: 'error'; code: ErrorCode }
   | ChatServerMessage;

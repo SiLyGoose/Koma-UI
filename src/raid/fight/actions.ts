@@ -1,5 +1,5 @@
 import { send } from '../connection';
-import type { RaidAction } from '../protocol';
+import type { RaidAction } from '../../protocol/raid';
 import { redraw } from '../render';
 import { play } from '../sfx';
 import { state } from '../state';

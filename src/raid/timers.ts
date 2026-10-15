@@ -12,14 +12,10 @@ function turnLength(endsAt: number): number {
   return Math.max(1000, endsAt - started);
 }
 
-/** The countdowns: the lobby closing, and the turn's time running out. */
+/** The countdown: the turn's time running out. */
 export function tick(): void {
-  const { view, lobbyTimer } = state;
+  const { view } = state;
   const now = Date.now();
-  if (view?.phase === 'lobby' && view.lobby?.closesAt !== undefined && lobbyTimer) {
-    const s = Math.max(0, Math.ceil((view.lobby.closesAt - now) / 1000));
-    lobbyTimer.textContent = s >= 60 ? `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}` : `${s}s`;
-  }
   if (view?.phase === 'fight' && view.fight) {
     const f = view.fight;
     if (f.open) {

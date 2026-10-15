@@ -1,15 +1,10 @@
-
+// Copied from the bot's src/protocol/ by scripts/sync.mjs: change it there, then `yarn sync`.
 /*
- * What this page and the Koma bot say to each other over Pinecraft's WebSocket. A copy of the bot's
- * src/web/pinecraft/protocol.ts (in the Koma repo): change both together.
+ * What Pinecraft's web page (the Koma-UI repo) and the bot say to each other over the WebSocket.
+ * Every message is one JSON object with a `t` saying what it is. The site keeps a copy (its `yarn sync`).
  *
- * The bot holds the world. The page is sent the blocks around the miner, one string per row and a
- * letter per block:
- *   .  open (the starting room, or dug)
- *   d s b   dirt, stone, bedrock
- *   c i o x e a r   coal, iron, gold, diamond, emerald, amethyst, ruby
- *   ?  not seen yet
- * A block is only sent once the miner can see it (next to open ground they can walk to).
+ * The bot holds the world. The page is sent the rows around the miner, with only the ores the miner
+ * can see in them (see viewRows in the bot's lib/game/pinecraft.ts).
  *
  *   page -> bot   hello    first message: the token from the link
  *                 mine     starts breaking the block that way (no answer)
@@ -17,19 +12,23 @@
  *                 move     one step; `seq` counts up from 1 with every move. Into a block, it finishes
  *                          breaking it: the bot holds the move until the block's break time has
  *                          passed since its `mine` (or since now, without one)
- *   bot -> page   state    the world around the miner, after the page's move `seq` (0: not after one)
+ *   bot -> page   state    the world around the miner, after the page's move `seq` (0: not after one; -1: the member's gear changed)
  *                 map      the map asked for
  *                 error    and the bot closes the connection
  *
- * Watching: a watch-only page says `watch` with the token from its watch link instead of `hello`,
- * and is then sent everything the player's page is sent about the game (not their errors), starting
- * with `watching` (whose game it is) and the world as it is. `away` says the player's page went away
- * (it may come back); `breaking` says they started on a block. A watcher can ask for the player's
- * `map` too. The player is sent `watchers` whenever how many are watching changes.
+ * Watching (the bot's web/games/live.ts): a watch-only page says `watch` with the token from its watch link instead of
+ * `hello`, and is then sent everything the player's page is sent about the game (not their errors),
+ * starting with `watching` (whose game it is) and the game as it is. `away` says the player's page
+ * went away (it may come back). The player is sent `watchers` whenever how many are watching changes.
+ * A watcher can ask for the player's `map` too, and is sent `breaking` when the player starts on a block.
  */
 
+/** The ores, from the most common and least valuable to the rarest. */
+export const PINECRAFT_ORES = ['coal', 'iron', 'gold', 'diamond', 'emerald', 'amethyst', 'ruby'] as const;
+export type PinecraftOre = (typeof PINECRAFT_ORES)[number];
+
+/** A way the miner can go. */
 export type Direction = 'up' | 'down' | 'left' | 'right';
-export type PinecraftOre = 'coal' | 'iron' | 'gold' | 'diamond' | 'emerald' | 'amethyst' | 'ruby';
 
 export type ClientMessage =
   | { t: 'hello'; token: string }
@@ -46,7 +45,7 @@ export interface WorldState {
   spawn: { x: number; y: number };
   /** The week the world is for: a new one is a new mine (the page forgets the old one's blocks). */
   week: string;
-  /** When the world next starts over (ms): every Saturday at midnight Eastern, with the raid's week. */
+  /** When the world next starts over (ms). */
   resetsAt: number;
   /** The blocks around the miner: one string per row, a letter per block, from block (left, top). */
   left: number;
@@ -66,7 +65,7 @@ export interface WorldState {
   dug: number;
   /** What each ore pays. */
   values: Record<'dirt' | 'stone' | PinecraftOre, number>;
-  /** How long each block takes to break, in ms. */
+  /** How long each block takes to break, in ms, with the miner's gear. */
   breakMs: Record<'dirt' | 'stone' | PinecraftOre, number>;
   /** Energy an ore takes to dig (dirt and stone take 1). */
   oreEnergy: number;
@@ -78,7 +77,7 @@ export interface WorldState {
   outfit: string;
 }
 
-/** The pickaxes the miner can be drawn with (public/pinecraft/pickaxes/pickaxe_<name>.png on the page). */
+/** The pickaxes the miner can be drawn with (public/pinecraft/pickaxes/<name>.png on the page). */
 export type PinecraftPickaxe = 'wood' | 'gold' | 'diamond' | 'ruby' | 'amethyst';
 
 /** What the page's last move did. */

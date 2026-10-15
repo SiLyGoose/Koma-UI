@@ -1,3 +1,4 @@
+import type { ChatClientMessage, ChatLine, ChatServerMessage } from '../../../protocol/chat';
 import './chat.css';
 
 /*
@@ -9,7 +10,7 @@ import './chat.css';
  * box that doesn't grow. On a phone it's out of the way: a round button floats at the bottom right,
  * with how many lines have been said since it was last looked at, and opens the chat over the game.
  *
- * Its messages are a copy of the bot's src/web/games/chat.ts (in the Koma repo): change both together.
+ * What is said is the bot's (../../../protocol/chat.ts, copied by `yarn sync`).
  *
  *   page -> bot   chat     says `text` to everyone at the table, with a picture pasted in (`image`) or not
  *   bot -> page   chats    the last lines said, on joining
@@ -24,22 +25,8 @@ import './chat.css';
  * from addresses checked first.
  */
 
-/** Something said at a table. */
-export interface ChatLine {
-  /** Counts up with every line said at the table, so a page knows one it has shown. */
-  no: number;
-  /** Who said it: the member's id, and their name then. */
-  id: string;
-  name: string;
-  text: string;
-  /** Its picture: a pasted one (`data:image/…`), or a GIF's address (`https://…`, the bot's reading of a tenor.com link). */
-  image?: string;
-  /** When (ms). */
-  at: number;
-}
-
-export type ChatClientMessage = { t: 'chat'; text: string; image?: string };
-export type ChatServerMessage = { t: 'chats'; lines: ChatLine[] } | { t: 'chat'; line: ChatLine };
+/** What is said (../../../protocol/chat.ts). */
+export type { ChatClientMessage, ChatLine, ChatServerMessage };
 
 /** The most characters one line can have, and the least time between two (the bot's CHAT: it drops what breaks them). */
 const MAX_LENGTH = 400;

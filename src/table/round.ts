@@ -1,7 +1,7 @@
 import { coin } from '../shared/util';
 import { mySeat, type TableContext } from './context';
 import { signedPoints } from './format';
-import type { RoundOf } from './protocol';
+import type { RoundOf } from '../protocol/table';
 import { render } from './render';
 import { play } from './sfx';
 

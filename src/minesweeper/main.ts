@@ -9,7 +9,7 @@ import { renderBoard, wireBoard } from './board';
 import { clearCursors, colourOf, moveCursor, syncCursors, wireCursor } from './cursors';
 import { renderHead, renderTime, wireHead } from './head';
 import { renderPlayers } from './players';
-import type { ClientMessage, ErrorCode, RoomState, ServerMessage } from './protocol';
+import type { ClientMessage, ErrorCode, RoomState, ServerMessage } from '../protocol/minesweeper';
 import { play } from './sfx';
 import { send, state } from './state';
 import { ui } from './ui';

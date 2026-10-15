@@ -1,7 +1,7 @@
 import { sound } from '../../shared/audio';
 import { art, SLOT_NAME, stars } from '../../shared/items';
 import { remember, remembered } from '../../shared/util/storage';
-import type { RaidLootItem, RaidView } from '../protocol';
+import type { RaidLootItem, RaidView } from '../../protocol/raid';
 import { state } from '../state';
 import { ui } from '../ui';
 import { el, popupShown } from '../widgets';

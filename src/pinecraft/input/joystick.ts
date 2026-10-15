@@ -1,4 +1,4 @@
-import type { Direction } from '../protocol';
+import type { Direction } from '../../protocol/pinecraft';
 import { ui } from '../ui';
 import { press, release } from './held';
 

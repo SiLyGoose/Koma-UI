@@ -1,5 +1,5 @@
 import { CHARACTERS, characterOf } from '../../shared/characters';
-import type { PinecraftOre, PinecraftPickaxe } from '../protocol';
+import type { PinecraftOre, PinecraftPickaxe } from '../../protocol/pinecraft';
 
 /*
  * The pictures of Pinecraft's blocks, in public/pinecraft/blocks as block_<name>.png: dirt, stone,

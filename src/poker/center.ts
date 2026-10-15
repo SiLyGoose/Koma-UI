@@ -1,7 +1,8 @@
 import { points } from '../shared/util';
 import { cardEl, sameCard } from './cards';
 import { mySeat, type PokerContext } from './context';
-import type { Card, PokerState } from './protocol';
+import type { PokerState } from '../protocol/poker';
+import type { Card } from '../protocol/cards';
 import { play } from './sfx';
 
 /*

@@ -4,7 +4,7 @@ import { GALGORIA } from '../sim/bosses/galgoria';
 import { HEROES } from '../sim/heroes';
 import { nearer } from '../sim/heroes/kit';
 import { el } from '../hud/dom';
-import type { PickView, PlayerView, RoomState } from '../protocol';
+import type { PickView, PlayerView, RoomState } from '../../protocol/technomagic';
 import { SOLO_BOSS_HP } from '../sim/rules';
 
 /*

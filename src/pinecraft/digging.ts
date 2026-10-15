@@ -3,7 +3,7 @@ import { send, connected } from './net/connection';
 import { DEFAULT_BREAK_MS, STEP, STRIKE_MS } from './constants';
 import { cellAt, isBedrock, isOpenCell, ORE_OF } from './draw';
 import { watching } from '../shared/game';
-import type { Direction } from './protocol';
+import type { Direction } from '../protocol/pinecraft';
 import { materialOf, play } from './sfx';
 import { state } from './state';
 import { ui } from './ui';

@@ -62,6 +62,21 @@ for each ore (stone with coloured gems) until there is a picture for it: drop `c
 `iron.png`, `gold.png`, `diamond.png`, `ruby.png` or `emerald.png` in there and it is used instead.
 Any square size works.
 
+## What this site shares with the bot
+
+The bot (the Koma repo, checked out beside this one as `../Koma`) and this site share two things, and
+**`yarn sync`** (`scripts/sync.mjs`) keeps them the same:
+
+- **What the pages and the bot say to each other** is the bot's (its `src/protocol/`: every game's messages, and the
+  chat's). `yarn sync` copies it into `src/protocol/`; don't edit the copies.
+- **The TechnoMagic Raid's fight** is this site's (`src/technomagic/sim/`). `yarn sync` builds it into one file for the
+  bot (`../Koma/vendor/technomagic-sim.mjs`, and its types), and writes its version (`sim/version.ts`: a hash of the
+  sim, so any change to it is a new one; a page whose sim isn't the bot's is told to reload).
+
+Run it whenever either changes, then deploy both. `yarn build` runs `yarn sync --check` first, which fails when
+anything is out of date (on Vercel, with no `../Koma`, it checks only the sim's version); the bot's tests check the
+same from its side.
+
 ## Files
 
 - `index.html`, `src/site/`: the site's own pages (the front page, `/gear/`, `/heroes/`, `/forge/`, `/shop/`, `/dressing-room/`, `/databank/`) as one
@@ -70,14 +85,12 @@ Any square size works.
   the login, the server picked and the header. `vercel.json` sends `/gear/`, `/heroes/`, `/forge/`, `/shop/` (and its
   tabs' paths), `/dressing-room/` and `/databank/` (and its sections' paths) to it, and the old `/banner/` to `/shop/wish/`.
 - `src/hub/`: the front page.
-- `games/pinecraft/index.html`, `src/pinecraft/`: Pinecraft. `protocol.ts` is a copy of the bot's
-  `src/web/pinecraft-protocol.ts` (change both together), `draw/` draws the world (`draw/textures.ts`
+- `src/protocol/`: what the pages and the bot say to each other, copied from the bot by `yarn sync`.
+- `games/pinecraft/index.html`, `src/pinecraft/`: Pinecraft. `draw/` draws the world (`draw/textures.ts`
   the blocks), `net/` talks to the bot, `hud/` is what's drawn over the mine (with the leaderboard, `hud/leaderboard/`),
   `input/` the keys and the joystick.
-- `games/mines/index.html`, `src/mines/`: Mines. `protocol.ts` is a copy of the bot's
-  `src/web/mines-protocol.ts` (change both together).
-- `games/minesweeper/index.html`, `src/minesweeper/`: Minesweeper. `protocol.ts` is a copy of the bot's
-  `src/web/games/minesweeper/protocol.ts` (change both together); `cursors.ts` draws the other players'
+- `games/mines/index.html`, `src/mines/`: Mines.
+- `games/minesweeper/index.html`, `src/minesweeper/`: Minesweeper. `cursors.ts` draws the other players'
   cursors over the board (the site's hand, a name beside it, a colour each) and tells them this page's.
 - `games/technomagic/index.html`, `src/technomagic/`: the TechnoMagic Raid, a boss fight seen from the side, drawn in 3D
   (three.js), against a boss (Galgoria so far), played as in King's Raid. Opened from the front page or Discord
@@ -85,41 +98,41 @@ Any square size works.
   (`prep/`), everyone puts heroes of their own (bought in the shop, geared on `/heroes/`) into a lineup of 9 (the host
   up to 4, everyone else up to 2; alone, up to 8 against an easier boss), says they're ready, and the host starts the
   fight. The bot runs the fight by its own clock with everyone's presses, and every page runs the same one, never past
-  where the bot has got (`protocol.ts` is a copy of the bot's `src/web/games/technomagic/protocol.ts`: change both
-  together). Each player has a card for each of their own heroes. Heroes that fall stay down. A win gives each player
+  where the bot has got (what they say: `src/protocol/technomagic.ts`). Each player has a card for each of their own heroes. Heroes that fall stay down. A win gives each player
   TechnoMagic gear, while they have runs left that day that give it. Opened with no link (`yarn dev`), it is a field for
   trying things out, with nothing kept: every skin's card, heroes on and off the field, and buttons that set the boss
   attacking. Every blow is physical or magical, by who deals it, and is worn down by its target's defense against that
   kind and by a block. Its folders:
-  - `sim/` is the fight itself, with nothing drawn: worked out a step at a time (thirty a second) from a seed, with no
-    `Math.random`, `pow`, `exp`, `sin` or `cos` in it, so the same seed and inputs make the same fight in any browser
-    and in Node. The page draws what it says happened (its events); `sim/verify.ts` is what the bot runs a room's
-    fight with. **`yarn build:sim`** builds it into one file in the bot (`../Koma/vendor/technomagic-sim.mjs`, and its
-    types): run it whenever the fight changes, raise `SIM_VERSION` in `sim/verify.ts` with anything that changes how a
-    fight goes (a page whose version isn't the bot's is told to reload), and deploy both. How long each move takes and when
-    its blows land is `sim/motion.ts`, from the skins' data (never from the files read).
+  - `sim/` is the fight itself, and everything that changes how one goes, with nothing drawn: worked out a step at a time
+    (thirty a second) from a seed, with no `Math.random`, `pow`, `exp`, `sin` or `cos` in it, so the same seed and
+    inputs make the same fight in any browser and in Node. Nothing in it names anything outside it (`yarn sync` won't
+    build it otherwise). It has each hero (`sim/heroes/`: its stats, skills and passive, what comes of each as it lands,
+    and how long each of its moves takes and when its blows land), each boss (`sim/bosses/`), how a blow is worked out
+    (`sim/combat/`), the sets, unique weapons and additional skills, and what the page is to show for them
+    (`sim/shown.ts`: names, words, icons, and whose picture, never where it is). The page draws what it says happened
+    (its events); `sim/bot.ts` is what the bot has of it (`yarn sync` builds it for the bot).
   - `assets/` names every file the page shows and nothing else: a file for each hero (`assets/heroes/`: its skins'
     models, its skills' pictures, its portraits) and each boss (`assets/bosses/`), the effects they share, and
     `paths.ts`, where each is kept. Its files name each other with their `.ts`, so Node reads them too.
   - `engine/` is three.js and nothing of this fight: `models.ts` loads the models, `rig.ts` poses their bones in code
     (the game's models come with no animation), `track.ts` is a movement written as poses at times, `retarget.ts` plays
     one skeleton's animations on another, `stage.ts` is the field and its camera.
-  - `heroes/` has a folder for each hero (`index.ts`: its health, the kind of damage it deals, its defenses, its skills
-    and what comes of each, in the sim; `fx.ts`: what is drawn for them; `moves.ts`: what its body does for them),
-    `body/` (a hero on the field: stood up from the game's files or from a skin rigged by Mixamo, and moved by poses
-    written in code or by animations, as the sim says), `moves/` (the moves every hero has, and the stances they are
-    written with) and `load.ts`, which reads every skin.
-  - `bosses/` has a folder for each boss (`bosses/galgoria/`: what it is, how its attacks go (`attacks.ts`), what its
-    skills do (`skills.ts`) and what is drawn for them (`fx.ts`), its model, its venom); `models.ts` names each one's body.
-  - `combat/` is how a blow is worked out (`damage.ts`: physical and magical damage, defense against each, block;
-    `status.ts`: what a skill leaves on a fighter for a while); `fight/` draws the sim's fight (`view.ts`) and what is
-    drawn for the moves every hero has (`fx.ts`).
+  - `heroes/` is how each hero is drawn: a folder for each (`fx.ts`: what is drawn for its skills; `moves.ts`: what its
+    body does for them, written to fit the sim's timing), `looks.ts` (each one's files and how it stands), `body/` (a
+    hero on the field: stood up from the game's files or from a skin rigged by Mixamo, and moved by poses written in
+    code or by animations, as the sim times them), `moves/` (the moves every hero has, and the stances they are written
+    with) and `load.ts`, which reads every skin.
+  - `bosses/` is how each boss is drawn (`bosses/galgoria/`: its model and how it stands (`model.ts`), its heads' moves
+    (`tracks.ts`), what is drawn for its skills (`fx.ts`), its venom); `models.ts` names each one's body.
+  - `fight/` draws the sim's fight (`view.ts`) and what is drawn for the moves every hero has (`fx.ts`); `art.ts` finds
+    the pictures the sim names.
   - `fx/` is what is drawn for a hit and a skill, `hud/` what is shown over the field (the cards, the boss's health and
     attacks), `prep/` getting ready in a room (the lineup, the heroes, the chat, who's in), `styles/` its CSS.
 
-  To add a hero: a file in `assets/heroes/`, a folder in `heroes/`, and a line in each one's `index.ts` and in
-  `heroes/fx.ts` (and its moves in `heroes/moves/index.ts`); a boss likewise (and `bosses/models.ts`). The bot knows
-  heroes by the same id (its `data/heroes.ts`). Its models are not in this repo: `node scripts/kr-assets.mjs` copies
+  To add a hero: its file in `sim/heroes/` (and a line in `sim/heroes/index.ts`, and its moves' timing in
+  `sim/heroes/moves.ts`), a file in `assets/heroes/`, a folder in `heroes/` (and a line in `heroes/looks.ts`,
+  `heroes/fx.ts` and `heroes/moves/index.ts`); a boss likewise (`sim/bosses/`, `bosses/models.ts`). Then `yarn sync`: the
+  bot takes its heroes (and the sets' words) from the sim. Its models are not in this repo: `node scripts/kr-assets.mjs` copies
   them into `public/kr/`, which git ignores and a build leaves out, so the page only shows them under `yarn dev` on a
   machine that has them. They are kept there by whose they are: `heroes/<hero>/models/`, `skills/` and `portraits/`,
   `bosses/<boss>/models/`, and `effects/`. The skins' pictures that are committed are in `public/technomagic/portraits/`.

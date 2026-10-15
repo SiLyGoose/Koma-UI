@@ -1,6 +1,6 @@
 import { points } from '../shared/util';
 import { mySeat, myTurn, send, showError, type PokerContext } from './context';
-import type { PokerMove, PokerState } from './protocol';
+import type { PokerMove, PokerState } from '../protocol/poker';
 
 /*
  * What this page's player can do. Not sitting: pick how many chips to sit down with (from the

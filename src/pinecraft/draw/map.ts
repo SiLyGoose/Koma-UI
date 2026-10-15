@@ -1,8 +1,8 @@
-import type { WorldMap } from '../protocol';
+import type { WorldMap } from '../../protocol/pinecraft';
 import { ORE_COLOR } from './textures';
 import { ORE_OF } from './scene';
 
-/** The map's colour for each letter (see ../protocol.ts); blocks not seen yet aren't drawn. */
+/** The map's colour for each letter (see ../../protocol/pinecraft.ts); blocks not seen yet aren't drawn. */
 const MAP_COLOR: Readonly<Record<string, string>> = {
   '.': '#b3682f',
   d: '#5b3f2b',

@@ -1,5 +1,5 @@
 import type { GameSocket } from '../shared/game';
-import type { BestView, ClientMessage, MinesweeperLevel, RoomState } from './protocol';
+import type { MinesweeperBest, ClientMessage, MinesweeperLevel, RoomState } from '../protocol/minesweeper';
 
 export const LEVEL_NAMES: Record<MinesweeperLevel, string> = { easy: 'Beginner', medium: 'Intermediate', hard: 'Expert' };
 
@@ -9,7 +9,7 @@ export const state = {
   /** The room as the bot last said. */
   room: null as RoomState | null,
   /** The server's fastest clears of each level, as the bot last said. */
-  best: null as BestView | null,
+  best: null as MinesweeperBest | null,
   /** When the board's clock started, on this page's clock (performance.now()), while it's running. */
   clockAt: 0,
   /** The board (its `no`) whose popup saying how it ended has been closed. */

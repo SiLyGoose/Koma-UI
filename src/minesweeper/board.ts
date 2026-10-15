@@ -7,7 +7,7 @@ const HOLD_MS = 400;
 /** A finger that moved further than this was scrolling the board, not holding a tile. */
 const HOLD_SLOP = 10;
 
-/** What a tile shows, by its character in the bot's `tiles` (see protocol.ts). An open tile shows its number, or nothing for 0. */
+/** What a tile shows, by its character in the bot's `tiles` (see ../protocol/minesweeper.ts). An open tile shows its number, or nothing for 0. */
 const MARKS: Record<string, string> = { F: '🚩', '*': '💣', '!': '💥', X: '❌' };
 
 let tiles: HTMLButtonElement[] = [];

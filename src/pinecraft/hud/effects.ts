@@ -1,4 +1,4 @@
-import type { PinecraftOre } from '../protocol';
+import type { PinecraftOre } from '../../protocol/pinecraft';
 import { materialOf, play } from '../sfx';
 import { state } from '../state';
 import { ui } from '../ui';

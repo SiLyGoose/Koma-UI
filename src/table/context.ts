@@ -2,7 +2,7 @@ import type { GameSocket } from '../shared/game';
 import type { ChatBox } from '../shared/ui';
 import { sumBets } from './format';
 import type { TableUi } from './panel';
-import type { Bets, ClientMessage, SeatView, TableState } from './protocol';
+import type { SpotBets, ClientMessage, SeatView, TableState } from '../protocol/table';
 import type { TableGame } from './types';
 
 /** Everything the table knows: its game, its elements, the table as the bot said, and this page's chips. */
@@ -19,7 +19,7 @@ export interface TableContext<S extends string, R, X> {
   /** The table as the bot last said. */
   state: TableState<S, R, X> | null;
   /** This page's chips: what the bot last confirmed, changed straight away as chips go down (and sent). */
-  bets: Bets<S>;
+  bets: SpotBets<S>;
   history: { spot: S; amount: number }[];
   /** The chip picked in the rack (tapping a spot puts one of these on it). */
   selected: number;
@@ -47,7 +47,7 @@ export function mySeat<S extends string, R, X>(ctx: TableContext<S, R, X>): Seat
 }
 
 /** How much this page has down (in `b`, or on the table now). */
-export const onTable = <S extends string, R, X>(ctx: TableContext<S, R, X>, b: Bets<S> = ctx.bets): number => sumBets(b);
+export const onTable = <S extends string, R, X>(ctx: TableContext<S, R, X>, b: SpotBets<S> = ctx.bets): number => sumBets(b);
 
 export const balance = <S extends string, R, X>(ctx: TableContext<S, R, X>): number | null => mySeat(ctx)?.balance ?? null;
 

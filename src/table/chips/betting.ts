@@ -1,7 +1,7 @@
 import { points, replay } from '../../shared/util';
 import { send } from '../connection';
 import { balance, busy, onTable, showError, type TableContext } from '../context';
-import type { Bets } from '../protocol';
+import type { SpotBets } from '../../protocol/table';
 import { render } from '../render';
 import { play } from '../sfx';
 
@@ -67,4 +67,4 @@ export function takeBack<S extends string, R, X>(ctx: TableContext<S, R, X>, spo
 }
 
 /** Every spot with chips on in `b`, and how many. */
-export const spotsIn = <S extends string>(b: Bets<S>): [S, number][] => (Object.entries(b) as [S, number | undefined][]).filter((e): e is [S, number] => (e[1] ?? 0) > 0);
+export const spotsIn = <S extends string>(b: SpotBets<S>): [S, number][] => (Object.entries(b) as [S, number | undefined][]).filter((e): e is [S, number] => (e[1] ?? 0) > 0);
