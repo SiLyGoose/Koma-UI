@@ -1,2 +1,2 @@
 // Made by scripts/sync.mjs from every other file here (a hash of them): don't edit it.
-export const VERSION = '296c55f577d1';
+export const VERSION = '055faa57aae4';

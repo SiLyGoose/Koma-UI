@@ -1,6 +1,7 @@
 import { share } from '../combat/damage';
 import { put } from '../combat/status';
 import { SKILL_SPEED } from '../motion';
+import { t5Light } from '../perks';
 import { BLOW, MAX_MANA, SECTION } from '../rules';
 import { skillArt, type Buff } from '../shown';
 import type { Fighter } from '../types';
@@ -21,6 +22,10 @@ import { CLASS_STATS, type HeroDef, type Passive } from './kit';
  * Vengeance then stuns the boss with every blow. (Light of Doom and Blessing of Doom spend it to dispel
  * what is on the boss, or on her allies, and there is nothing in this fight that can be dispelled yet.)
  * What is drawn for each is ../../heroes/fallen-frey/fx.ts; what her body does for each, and for her attack, ../../heroes/fallen-frey/moves.ts.
+ *
+ * Her own perks (../perks.ts) are King's Raid's. Heaven's Vengeance's Dark does nothing here (the boss has no mana to
+ * take). What hers give in attack speed is a pace, as Blessing of Doom's is; and what they give at the beginning of a
+ * battle, she gives as the fight begins (its only battle).
  */
 const SMITE = { blow: BLOW * 1.5 };
 const LIGHT = { heal: 25_000, near: 3.6, blast: 5000 };
@@ -29,6 +34,17 @@ const BLESSING = { shield: 30_000, lasts: 10, allies: 4, speed: 500 };
 const VENGEANCE = { blow: 1000, pierce: 500, exposed: 0.1, most: 5, lasts: 20, stun: 0.5 };
 // The game's 400 mana a second, of its 1000 to a section.
 const TAINTED = { taken: 1.15, mana: 0.4 * SECTION, every: 1, most: 2 };
+/**
+ * Her own perks' numbers: what Light of Doom leaves on the boss and its more healing, Blessing of Doom's block, the
+ * Blessing of the Fallen Angel's and the Bond's (attack speed in points, ATK a share of hers), and Transcend 5's Dark's.
+ */
+const PERKS = {
+  light: { takes: 1.2, lasts: 10, heals: 2 },
+  block: 400,
+  blessing: { takes: 0.9, defends: 1.2 },
+  bond: { speed: 200, atk: 0.07 },
+  favour: { speed: 150, deals: 1.15, lasts: 30 },
+};
 
 const art = skillArt('fallen-frey');
 
@@ -50,6 +66,11 @@ const DARKENED: Buff = { name: 'Darkened Power', about: 'Her next skill spends o
 const BLESSED: Buff = { name: 'Blessing of Doom', about: 'A shield takes the boss’s blows first, and its attacks are quickened.', icon: '🔮', art: art(1) };
 /** What Heaven's Vengeance leaves on the boss. */
 const EXPOSED = 'Heaven’s Vengeance';
+/** What her perks give her allies as the fight begins: Light of Doom's Light's mark on the boss, and the rest each ally's square. */
+const PURIFIED = 'Light of Doom';
+const FALLEN_BLESSING: Buff = { name: 'Blessing of the Fallen Angel', about: 'Takes 10% less, and its DEF is 20% higher.', icon: '🪽', art: art(3) };
+const FALLEN_BOND: Buff = { name: 'Bond of the Fallen Angel', about: 'Quicker, and its ATK higher by 7% of Fallen Frey’s.', icon: '🔗', art: art(3) };
+const FALLEN_FAVOUR: Buff = { name: 'Fallen Angel’s Favour', about: 'Quicker, and deals 15% more to the boss.', icon: '🌒', art: art(3) };
 
 export const FALLEN_FREY: HeroDef = {
   id: 'fallen-frey',
@@ -64,6 +85,24 @@ export const FALLEN_FREY: HeroDef = {
     { name: 'Heaven’s Vengeance', about: '20 blows of light on the boss, through some of its defense, each leaving it 10% easier to hurt for 20 seconds (up to 5 times over). With [Darkened Power], every blow stuns it for half a second.', icon: '☄️', art: art(2), move: 'vengeance', cooldown: 22, cost: 5 },
   ],
   passive: TAINTED_ANGEL,
+  perks: {
+    's1-light': { words: 'Increases All DMG the hit enemies take by 20% for 10 sec.' },
+    's1-dark': { words: 'Increases Mana Cost by 1 and Heal Rate by 100%.', skill: { index: 0, cost: 1 } },
+    's2-light': { words: 'Changes the target of shield to all allies.' },
+    's2-dark': { words: 'Increases All Block Chance of shielded allies by 400.' },
+    's3-light': { words: 'Increases DMG by 40%.', skill: { index: 2, dmg: 1.4 } },
+    's3-dark': { words: 'Each hit reduces Mana by 200.' },
+    's4-light': {
+      words: 'At the beginning of the first battle, grants [Blessing of the Fallen Angel] to all allies excluding self, reducing All DMG the targets take by 10% and increasing All DEF by 20%. The [Blessing of the Fallen Angel] effect is irremovable.',
+    },
+    's4-dark': {
+      words: "At the beginning of the first battle, grants [Bond of the Fallen Angel] to 1 ally with the highest ATK excluding self, increasing the target's ATK Spd by 200 and ATK equal to 7% of Fallen Frey's ATK. The [Bond of the Fallen Angel] effect is irremovable.",
+    },
+    't5-light': t5Light('ATK, DEF, HP +15% / Crit Chance +100', { crit: 100 }),
+    't5-dark': {
+      words: 'At the beginning of each battle, increases ATK Spd of the ally with the highest ATK excluding self by 150 and its DMG dealt to Non-Hero enemies by 15% for 30 sec. This effect is irremovable.',
+    },
+  },
   attack: 'smite',
   // Her animations: Light of Purification; and Vengeance, a span of a cutscene of the game’s drawn out to last as long as
   // the move written in code does (its blows as they land there, SKILL_SPEED as fast).
@@ -90,6 +129,16 @@ export const FALLEN_FREY: HeroDef = {
     /** The heroes on the field standing, the lowest health (for what it is out of) first. */
     const weakest = (): Fighter[] => fight.field.filter((ally) => ally.hp > 0).sort((a, b) => a.hp / a.stats.hp - b.hp / b.stats.hp);
 
+    // As the fight begins, her perks for her allies: every other's Blessing of the Fallen Angel, and the strongest other's Bond and Favour.
+    const others = fight.fighters.filter((ally) => ally !== self);
+    const strongest = others.reduce<Fighter | null>((best, ally) => (!best || ally.stats.atk > best.stats.atk ? ally : best), null);
+    if (self.perks.has('s4-light')) for (const ally of others) put(ally.statuses, { name: FALLEN_BLESSING.name, left: Infinity, takes: PERKS.blessing.takes, defends: PERKS.blessing.defends, shown: FALLEN_BLESSING });
+    if (strongest && self.perks.has('s4-dark')) {
+      strongest.stats.atk += PERKS.bond.atk * self.stats.atk;
+      put(strongest.statuses, { name: FALLEN_BOND.name, left: Infinity, pace: 1 + share(PERKS.bond.speed), shown: FALLEN_BOND });
+    }
+    if (strongest && self.perks.has('t5-dark')) put(strongest.statuses, { name: FALLEN_FAVOUR.name, left: PERKS.favour.lasts, pace: 1 + share(PERKS.favour.speed), deals: PERKS.favour.deals, shown: FALLEN_FAVOUR });
+
     return {
       lands: {
         // Her attack: a bolt of dark light into the boss.
@@ -109,19 +158,22 @@ export const FALLEN_FREY: HeroDef = {
               return Math.sqrt(x * x + z * z) <= LIGHT.near;
             });
             fight.cue(self, 'light', near);
-            for (const ally of near) fight.heal(ally, LIGHT.heal, self);
+            for (const ally of near) fight.heal(ally, LIGHT.heal * (self.perks.has('s1-dark') ? PERKS.light.heals : 1), self);
             return;
           }
           fight.hit(self, LIGHT.blast);
+          if (self.perks.has('s1-light')) put(fight.foe.statuses, { name: PURIFIED, left: PERKS.light.lasts, takes: PERKS.light.takes, shown: 'curse' });
         },
         // A shield on each of the four with the lowest health, and their attacks quickened while it lasts.
         blessing() {
           spend();
-          const allies = weakest().slice(0, BLESSING.allies);
+          // (Its Light: every ally; its Dark: their block higher.)
+          const allies = self.perks.has('s2-light') ? weakest() : weakest().slice(0, BLESSING.allies);
+          const block = self.perks.has('s2-dark') ? { blocks: { physical: PERKS.block, magical: PERKS.block } } : {};
           fight.cue(self, 'blessing', allies);
           for (const ally of allies) {
             fight.shield(ally, BLESSING.shield, BLESSING.lasts, self);
-            put(ally.statuses, { name: BLESSED.name, left: BLESSING.lasts, pace: 1 + share(BLESSING.speed), shown: BLESSED });
+            put(ally.statuses, { name: BLESSED.name, left: BLESSING.lasts, pace: 1 + share(BLESSING.speed), ...block, shown: BLESSED });
           }
         },
         // A blow of light down on the boss, through some of its defense; each leaves it easier to hurt (and, with Darkened Power, stuns it).
