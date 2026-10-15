@@ -85,6 +85,7 @@ const ANSWERS: Record<AnswerCode, string> = {
   picked: 'That hero is in already.',
   limit: 'You have as many heroes in as you can bring.',
   full: 'The lineup is full.',
+  team_full: 'That team is full.',
   not_ready: 'Everyone has to be ready first.',
   no_heroes: 'Everyone needs a hero in first.',
   failed: 'That didn’t work. Try again.',
@@ -344,7 +345,7 @@ async function start(): Promise<void> {
 
   function room(link: string, address: string): void {
     actionsRow.hidden = true;
-    hint.textContent = 'Each player uses their own heroes’ skills from their cards (or Auto, top left); everyone’s heroes are on the field. Heroes that fall stay down: beat Galgoria before its rage wipes the party.';
+    hint.textContent = 'Each player uses their own heroes’ skills from their cards (or Auto, top left); everyone’s heroes are on the field (alone, the Sub Team fights on Auto, with no cards). Heroes that fall stay down: beat Galgoria before its rage wipes the party.';
     let socket: GameSocket<ClientMessage> | null = null;
     let state: RoomState | null = null;
     let lock: Lock | null = null;
@@ -353,10 +354,10 @@ async function start(): Promise<void> {
     const name = (id: string): string => state?.players.find((player) => player.id === id)?.name ?? 'Someone';
 
     const prep = makePrep({
-      pick(hero) {
+      pick(hero, sub) {
         // In the first of its skins this computer has (any, should it have none).
         const entrant = entrants.find((one) => one.def.id === hero);
-        send({ t: 'pick', hero, skin: entrant ? skinOf(entrant) : 0 });
+        send({ t: 'pick', hero, skin: entrant ? skinOf(entrant) : 0, ...(sub && { sub }) });
       },
       unpick: (hero) => send({ t: 'unpick', hero }),
       ready: (on) => send({ t: 'ready', on }),
@@ -405,10 +406,11 @@ async function start(): Promise<void> {
       const bodies = await bodiesFor(start.heroes);
       if (lock !== mine) return;
       if (!bodies) return void showMessage('The models are missing', 'A hero in this fight isn’t on this computer.');
-      const sim = makeSim({ boss: def, heroes: start.heroes.map((hero, i) => ({ def: (bodies[i] as Entrant).def, skin: hero.skin, gear: hero.gear, set: hero.set, uw: hero.uw ?? null, skills: hero.skills ?? [] })), seed: start.seed, stage: start.stage, raid: true, solo: start.solo });
+      const sim = makeSim({ boss: def, heroes: start.heroes.map((hero, i) => ({ def: (bodies[i] as Entrant).def, skin: hero.skin, gear: hero.gear, set: hero.set, uw: hero.uw ?? null, skills: hero.skills ?? [], sub: hero.sub === true })), seed: start.seed, stage: start.stage, raid: true, solo: start.solo });
       const you = state?.you;
       game = play(sim, bodies, {
-        mine: (i) => start.heroes[i]?.owner === you,
+        // (Not the Sub Team's: they fight on Auto, with no cards.)
+        mine: (i) => start.heroes[i]?.owner === you && start.heroes[i]?.sub !== true,
         use: (fighter, skill) => send({ t: 'press', fighter, skill }),
         auto: (fighter) => send({ t: 'auto', fighter }),
         allAuto: () => send({ t: 'auto-all' }),

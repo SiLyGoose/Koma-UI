@@ -10,13 +10,16 @@ import { SOLO_BOSS_HP } from '../sim/rules';
 /*
  * Getting ready for a room's fight, as King's Raid has it: across the top the boss and the stage (the host
  * steps it up or down in Raid Settings, top right), then the lineup, a card for every slot (whose each hero is: 1P, 2P…; one of this
- * player's taken out by pressing it). Along the bottom: the heroes this player owns (pressing one puts it in,
+ * player's taken out by pressing it). Alone, the lineup is in two halves, the Main Team (whose skills are the player's to use)
+ * and the Sub Team (on Auto for the whole fight), each with its tab over it: a hero picked goes into the one whose tab is
+ * pressed, and one picked into the other already is moved over. Along the bottom: the heroes this player owns (pressing one puts it in,
  * or takes it out), the room's chat, and who's in (the host's crown, who's ready), with Raid Info, Ready
  * (everyone but the host) and Start Battle (the host, once everyone is ready).
  */
 
 export interface PrepActions {
-  pick(hero: string): void;
+  /** Puts a hero in (alone: in the Sub Team, `sub`, or the Main Team; moved over, from the other). */
+  pick(hero: string, sub: boolean): void;
   unpick(hero: string): void;
   ready(on: boolean): void;
   stage(stage: number): void;
@@ -34,6 +37,12 @@ export interface Prep {
 
 /** How many players a room takes (1P to 4P). */
 const ROOM_PLAYERS = 4;
+/** Alone: how many of the lineup's slots are the Main Team's (the rest are the Sub Team's). As the bot has it (TM_ROOM.mainTeam). */
+const MAIN_TEAM = 4;
+const TEAMS = [
+  { sub: false, name: 'Main Team' },
+  { sub: true, name: 'Sub Team' },
+] as const;
 
 /** A phone (or tablet) on its side, where the screen is scaled down to fit the field rather than scrolled. */
 const TOUCH_SIDEWAYS = matchMedia('(pointer: coarse) and (orientation: landscape)');
@@ -92,12 +101,14 @@ export function makePrep(act: PrepActions): Prep {
   let state: RoomState | null = null;
   /** The stage picked in Raid Settings, until it is confirmed (null: the popup is closed). */
   let picked: number | null = null;
+  /** Alone: the team whose tab is pressed, which a hero picked goes into. */
+  let intoSub = false;
 
   byId('prep-info').append(
     el('p', '', `${GALGORIA.name}: a chimera of three heads that spits venom. Its blows are magical, and nothing slows it; it heals itself all the while.`),
     el('p', '', 'Every 150 blows, the hero that has dealt the most is shut in the swamp for a while. Its Swamp Destroyer knocks every hero down.'),
     el('p', '', `Heroes that fall stay down. Beat it within 3:30, before its rage wipes the party. Alone, it has ${Math.round(SOLO_BOSS_HP * 100)}% of its health.`),
-    el('p', '', 'The host brings up to 4 heroes, everyone else up to 2 (alone, up to 8). A win gives each player TechnoMagic gear, while they have runs left today that give it.'),
+    el('p', '', 'The host brings up to 4 heroes, everyone else up to 2. Alone, up to 8: 4 in the Main Team, whose skills are yours to use, and 4 in the Sub Team, who fight on Auto. A win gives each player TechnoMagic gear, while they have runs left today that give it.'),
   );
 
   ready.addEventListener('click', () => act.ready(ready.getAttribute('aria-pressed') !== 'true'));
@@ -220,21 +231,62 @@ export function makePrep(act: PrepActions): Prep {
 
     level.textContent = `· Stage ${state.stage}`;
     drawSettings();
-    lineup.style.setProperty('--slots', String(state.slots));
     // As they stand on the field, facing the boss on the right: the front line rightmost, then the middle,
     // then the back; within a line, by class (the tank rightmost), then the first put in. The empty slots are to the left.
-    const placed = [...state.lineup].sort(nearerPick);
-    const slots = state.slots;
-    lineup.replaceChildren(
-      ...Array.from({ length: slots }, (_, i) => {
-        const pick = placed[slots - 1 - i];
+    const slots = (picks: readonly PickView[], count: number): HTMLElement[] => {
+      const placed = [...picks].sort(nearerPick);
+      return Array.from({ length: count }, (_, i) => {
+        const pick = placed[count - 1 - i];
         return slot(pick, owner(pick?.owner ?? ''), pick?.owner === state?.you);
-      }),
-    );
+      });
+    };
+    const solo = state.solo;
+    lineup.classList.toggle('teams', solo);
+    if (solo) {
+      // Alone: the Main Team and the Sub Team, side by side, each under its tab.
+      lineup.style.removeProperty('--slots');
+      lineup.replaceChildren(
+        ...TEAMS.map(({ sub, name }) => {
+          const picks = state?.lineup.filter((pick) => (pick.sub === true) === sub) ?? [];
+          const count = sub ? (state?.slots ?? MAIN_TEAM) - MAIN_TEAM : MAIN_TEAM;
+          const focused = intoSub === sub;
+          const team = el('li', focused ? 'tm-team focused' : 'tm-team');
+          const tab = el('button', 'tm-team-tab', name);
+          tab.type = 'button';
+          tab.setAttribute('aria-pressed', String(focused));
+          tab.title = `Put heroes in the ${name}${sub ? ' (they fight on Auto)' : ''}`;
+          tab.append(el('span', 'tm-team-count', `${picks.length}/${count}`));
+          // The other team: a press anywhere on it (its tab, a slot, a hero's card) only makes it the one heroes go into.
+          if (!focused) {
+            team.title = `Put heroes in the ${name}`;
+            team.addEventListener(
+              'click',
+              (event) => {
+                event.stopPropagation();
+                intoSub = sub;
+                draw();
+              },
+              { capture: true },
+            );
+          }
+          const row = el('ol', 'tm-team-slots');
+          row.style.setProperty('--slots', String(count));
+          row.append(...slots(picks, count));
+          team.append(tab, row);
+          return team;
+        }),
+      );
+    } else {
+      lineup.style.setProperty('--slots', String(state.slots));
+      lineup.replaceChildren(...slots(state.lineup, state.slots));
+    }
 
-    // Their heroes: pressing one puts it in, or takes it out.
+    // Their heroes: pressing one puts it in, or takes it out (alone: into the team whose tab is pressed, or over to it from the other).
     const limit = me?.limit ?? 0;
     const room = state.lineup.length < state.slots;
+    const into = solo && intoSub;
+    const teamName = into ? 'Sub Team' : 'Main Team';
+    const teamRoom = !solo || state.lineup.filter((pick) => (pick.sub === true) === into).length < (into ? state.slots - MAIN_TEAM : MAIN_TEAM);
     const owned = HEROES.filter((hero) => me?.owned.includes(hero.id));
     byId('prep-heroes-title').textContent = `Heroes List · ${mine.length}/${limit}`;
     if (owned.length === 0) {
@@ -249,15 +301,19 @@ export function makePrep(act: PrepActions): Prep {
     } else {
       heroes.replaceChildren(
         ...owned.map((hero) => {
-          const picked = mine.some((pick) => pick.hero === hero.id);
+          const pick = mine.find((one) => one.hero === hero.id);
+          const picked = pick !== undefined;
+          // Alone, in the other team than the tab's: pressing it moves it over.
+          const elsewhere = picked && solo && (pick.sub === true) !== into;
           const button = el('button', picked ? 'tm-prep-hero picked' : 'tm-prep-hero');
           button.type = 'button';
-          button.disabled = !picked && (mine.length >= limit || !room);
+          button.disabled = elsewhere ? !teamRoom : !picked && (mine.length >= limit || !room || !teamRoom);
           button.setAttribute('aria-pressed', String(picked));
-          button.title = picked ? `Take ${hero.name} out` : `Put ${hero.name} in`;
+          if (solo && picked) button.dataset.team = pick.sub ? 'sub' : 'main';
+          button.title = elsewhere ? `Move ${hero.name} to the ${teamName}` : picked ? `Take ${hero.name} out` : `Put ${hero.name} in${solo ? ` the ${teamName}` : ''}`;
           button.append(portrait(hero.id, 'tm-prep-hero-face'));
-          if (picked) button.append(el('span', 'tm-prep-hero-check', '✓'));
-          button.addEventListener('click', () => (picked ? act.unpick(hero.id) : act.pick(hero.id)));
+          if (picked) button.append(el('span', 'tm-prep-hero-check', solo ? (pick.sub ? 'S' : 'M') : '✓'));
+          button.addEventListener('click', () => (picked && !elsewhere ? act.unpick(hero.id) : act.pick(hero.id, into)));
           return button;
         }),
       );

@@ -16,7 +16,7 @@ import { UNIQUE_HEROES, uniqueAbout } from './unique';
  * timing): a page whose sim isn't the bot's version is told to reload.
  */
 
-export const SIM_VERSION = 13;
+export const SIM_VERSION = 14;
 
 /** Seconds in a step, and the most steps a raid can take (the raid's time, and the boss's rage after it). */
 export const STEP_SECONDS: number = TICK;
@@ -28,7 +28,8 @@ export const MOST_STAGE: number = STAGES;
 /**
  * A hero in a raid: its id, the index of its skin, what its gear gives it (the bot's HeroBonus), the TechnoMagic
  * set whose effect it has (three pieces worn), or none, its own unique weapon's tier (its refinement, 1
- * to 5), or none, and the additional skill of each piece of TechnoMagic gear it wears (TM_SKILLS' ids).
+ * to 5), or none, the additional skill of each piece of TechnoMagic gear it wears (TM_SKILLS' ids), and whether it
+ * is in the Sub Team (a raid fought alone: on Auto for the whole fight).
  */
 export interface RunHero {
   id: string;
@@ -37,6 +38,7 @@ export interface RunHero {
   set?: string | null;
   uw?: number | null;
   skills?: readonly string[] | null;
+  sub?: boolean;
 }
 
 /** The heroes that have a unique weapon, by id; and what one's does at a tier (1 to 5), as the bot says it: null for a hero with none. */
@@ -145,7 +147,7 @@ export function startRaid(run: Run): LiveRaid | string {
     const gear: Record<string, number> = {};
     for (const [stat, n] of Object.entries(hero.gear)) if (Number.isFinite(n)) gear[stat] = n;
     const skills = Array.isArray(hero.skills) ? hero.skills.filter((id): id is string => typeof id === 'string') : [];
-    entries.push({ def, skin: hero.skin, gear, set: typeof hero.set === 'string' ? hero.set : null, uw: typeof hero.uw === 'number' ? hero.uw : null, skills });
+    entries.push({ def, skin: hero.skin, gear, set: typeof hero.set === 'string' ? hero.set : null, uw: typeof hero.uw === 'number' ? hero.uw : null, skills, sub: run.solo === true && hero.sub === true });
   }
   const sim = makeSim({ boss, heroes: entries, seed: run.seed, stage: run.stage, raid: true, solo: run.solo === true });
   const heroes = entries.length;

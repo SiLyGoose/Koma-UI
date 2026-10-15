@@ -1,6 +1,6 @@
-import type { RiggedModel, SkinAssets } from '../assets';
+import { KIRZE_RUN, type RiggedModel, type SkinAssets } from '../assets';
 import { motionOf } from '../sim/motion';
-import { heroLike, riggedHero } from './body/animated';
+import { heroLike, riggedHero, runFrom } from './body/animated';
 import type { Hero, Stood } from './body/hero';
 import { posedHero } from './body/posed';
 import { loadRigged, type Rigged } from './body/rigged';
@@ -12,9 +12,10 @@ import type { HeroMove } from './moves';
 /*
  * Reads the heroes' skins and stands each up, ready for a fight: one that comes with its animations is
  * moved by them; one of the game's own files is moved by the animations its skin names (another skin's,
- * or a rig read only for them), or with none by the poses written in code. One whose sword is kept in the sheath in
- * its other hand draws it only for its moves (./body/sheath.ts). A skin that isn't on this computer is left out, and
- * so is whatever would have moved another.
+ * or a rig read only for them), or with none by the poses written in code. One with no run among them runs in
+ * in Kirze's (KIRZE_RUN), but for one that glides in seated. One whose sword is kept in the sheath in its other hand
+ * draws it only for its moves (./body/sheath.ts). A skin that isn't on this computer is left out, and
+ * so is whatever would have moved another (with Kirze's run not on it, they run as the poses written in code have them).
  */
 
 /** A skin on the field: whose it is, its body, and the move it attacks with. */
@@ -48,9 +49,13 @@ async function read(def: HeroDef, skin: SkinAssets): Promise<Read> {
   return { skin, stood, rigged: null, rig };
 }
 
+/** Kirze's run, read once (for every hero with none of its own, however many times heroes are read). */
+let kirzeRun: Promise<Rigged | null> | null = null;
+
 /** Every skin of `defs` that could be read, in the order of the heroes and of each one's skins. */
 export async function loadHeroes(defs: readonly HeroDef[]): Promise<Entrant[]> {
-  const all = await Promise.all(defs.map((def) => Promise.all(def.assets.skins.map((skin) => read(def, skin)))));
+  kirzeRun ??= quietly(loadRigged("Kirze's run", { folder: KIRZE_RUN.of }, KIRZE_RUN));
+  const [all, borrowedRun] = await Promise.all([Promise.all(defs.map((def) => Promise.all(def.assets.skins.map((skin) => read(def, skin))))), kirzeRun]);
   const entrants: Entrant[] = [];
   defs.forEach((def, i) => {
     const skins = all[i] as Read[];
@@ -62,7 +67,9 @@ export async function loadHeroes(defs: readonly HeroDef[]): Promise<Entrant[]> {
       if (!stood || skin.model.kind !== 'parts') continue;
       const { movedBy } = skin.model;
       const like = typeof movedBy === 'string' ? (skins.find((other) => other.skin.name === movedBy)?.rigged ?? null) : rig;
-      const posing = { seated: def.seated, bends: def.bends, varied: def.varies };
+      // (Made over from Kirze's before it is moved at all.)
+      const run = !def.seated && !like?.animations.run && borrowedRun ? runFrom(stood, borrowedRun) : undefined;
+      const posing = { seated: def.seated, bends: def.bends, varied: def.varies, ...(run && { run }) };
       const hero = like ? heroLike(stood, like, def.stands, posing) : posedHero(stood, def.stands, {}, posing);
       // (How long each move lasts, as the fight has it: the sword stays drawn that long.)
       const { moves } = motionOf(def, def.assets.skins.indexOf(skin));

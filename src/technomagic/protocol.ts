@@ -6,14 +6,16 @@ import type { ChatClientMessage, ChatServerMessage } from '../shared/ui';
  * change both together.
  *
  * A server has one room (the bot's web/games/technomagic/room.ts). Getting ready (`prep`), everyone in it picks heroes of their own into its
- * lineup (the host up to 4, everyone else up to 2, 9 in all; alone, up to 8 against an easier boss), says
- * they're ready, and the host starts the fight. The fight is this site's sim (./sim/):
+ * lineup (the host up to 4, everyone else up to 2, 9 in all; alone, up to 8 against an easier boss: 4 in the Main
+ * Team, whose skills are theirs to use, and 4 in the Sub Team, on Auto for the whole fight), says they're ready,
+ * and the host starts the fight. The fight is this site's sim (./sim/):
  * the bot runs it by its own clock with every player's presses, and every page runs the same one from the
  * same seed with the same presses (`fight`, then `turn` after `turn`), never going past the step the bot has
  * reached. So how it ends is the bot's word alone, and what a win gives is rolled by the bot (`over`).
  *
  *   page -> bot   hello     first message: the token from the link
- *                 pick      puts a hero of theirs (in one of its skins) in the lineup
+ *                 pick      puts a hero of theirs (in one of its skins) in the lineup (alone: in the Main Team or
+ *                           the Sub Team; one in the other team already is moved over)
  *                 unpick    takes one of theirs out of it
  *                 ready     says they're ready (or not), anyone but the host
  *                 stage     the raid's stage (the host)
@@ -32,7 +34,7 @@ import type { ChatClientMessage, ChatServerMessage } from '../shared/ui';
 
 export type ClientMessage =
   | { t: 'hello'; token: string }
-  | { t: 'pick'; hero: string; skin: number }
+  | { t: 'pick'; hero: string; skin: number; sub?: boolean }
   | { t: 'unpick'; hero: string }
   | { t: 'ready'; on: boolean }
   | { t: 'stage'; stage: number }
@@ -61,11 +63,12 @@ export interface PlayerView {
   owned: string[];
 }
 
-/** A hero in the lineup: whose, which, and in which of its skins. */
+/** A hero in the lineup: whose, which, in which of its skins, and (alone) whether it is in the Sub Team. */
 export interface PickView {
   owner: string;
   hero: string;
   skin: number;
+  sub?: boolean;
 }
 
 /** What a fight that is over gave each player (by id): the items found, and whether it was one of their runs that give gear. */
@@ -100,8 +103,8 @@ export interface RoomState {
 /**
  * What a fight is run from: the boss, the seed, the stage, whether it is fought alone, and each hero in it
  * (whose, which, its skin, what its gear gives it, the TechnoMagic set whose effect it has, or null, and its own
- * unique weapon's tier, 1 to 5, or null: absent from a bot from before them; and the additional skill of each
- * piece of TechnoMagic gear it wears: absent from a bot from before them).
+ * unique weapon's tier, 1 to 5, or null: absent from a bot from before them; the additional skill of each
+ * piece of TechnoMagic gear it wears: absent from a bot from before them; and, alone, whether it is in the Sub Team).
  */
 export interface FightStart {
   no: number;
@@ -109,7 +112,7 @@ export interface FightStart {
   seed: number;
   stage: number;
   solo: boolean;
-  heroes: { owner: string; id: string; skin: number; gear: Record<string, number>; set: string | null; uw?: number | null; skills?: string[] }[];
+  heroes: { owner: string; id: string; skin: number; gear: Record<string, number>; set: string | null; uw?: number | null; skills?: string[]; sub?: boolean }[];
 }
 
 /** One press, at the step it counts before: a skill (`skill` of hero `fighter`), or a hero's Auto. */
@@ -129,6 +132,8 @@ export type AnswerCode =
   | 'picked'
   | 'limit'
   | 'full'
+  /** Alone: the team picked into (Main or Sub) has no room left. */
+  | 'team_full'
   /** Starting: someone isn't ready, or has no hero in. */
   | 'not_ready'
   | 'no_heroes'

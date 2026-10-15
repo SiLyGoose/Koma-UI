@@ -51,7 +51,7 @@ export function riggedHero({ stood, animations }: Rigged): Hero {
  * run and no idle, running in in its run.
  * Its moves written in code are written from `rest`, either way.
  */
-export function heroLike(stood: Stood, like: Rigged, rest: Pose = REST, posing: Omit<Posing, 'idle' | 'run' | 'bladeRunning'> = {}): Hero {
+export function heroLike(stood: Stood, like: Rigged, rest: Pose = REST, posing: Omit<Posing, 'idle' | 'bladeRunning'> = {}): Hero {
   // A retargeter from each skeleton its animations were made for (made once each).
   const from = new Map<object, (clip: AnimationClip) => AnimationClip>();
   const mine = (clip: AnimationClip): AnimationClip => {
@@ -73,6 +73,15 @@ export function heroLike(stood: Stood, like: Rigged, rest: Pose = REST, posing: 
     return posedHero(stood, rest, own, { ...posing, ...(idle && { idle: mine(idle) }), ...(run && { run: mine(run), ...(bladeRunning && { bladeRunning }) }) });
   }
   return animatedHero(stood, BIPED, { idle: mine(idle), run: mine(run), attack, skills }, rest);
+}
+
+/**
+ * `from`'s run made over for a hero of the game's own files (standing as it was bound: before it has been moved),
+ * for one with no run of its own to run in in (Posing.run). None, when `from` has no run.
+ */
+export function runFrom(stood: Stood, from: Rigged): AnimationClip | undefined {
+  const { run } = from.animations;
+  return run && retargeter(from.others.get(run) ?? from.space, stood.models, BIPED_FROM_MIXAMO)(run);
 }
 
 /** A hero moved by animations of its skeleton's own (`bones` says which of its bones are which), and by the moves written in code (written from `rest`). */

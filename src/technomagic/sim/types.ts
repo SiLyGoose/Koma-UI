@@ -98,6 +98,8 @@ export interface Fighter {
   /** What another hero's skill (or the boss's) has left on it alone for a while (what is on every hero is the fight's). */
   statuses: Status<Buff>[];
   mana: number;
+  /** In the Sub Team (a raid fought alone): on Auto for the whole fight, with no card of its own. */
+  readonly sub: boolean;
   /** Its skills are used for it. */
   auto: boolean;
   /** Seconds until each of its skills can be used again. */

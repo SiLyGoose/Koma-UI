@@ -42,7 +42,8 @@ import type { Fight, Fighter, Foe, GearBonus } from './types';
 /**
  * A hero as it comes into the fight: which, in which of its skins (the first, unless it says), with what its gear
  * gives it, the TechnoMagic set whose effect it has (./sets.ts), its own unique weapon's tier (./unique.ts), and
- * the additional skill of each piece of TechnoMagic gear it wears (./skills.ts).
+ * the additional skill of each piece of TechnoMagic gear it wears (./skills.ts). One in the Sub Team (a raid fought
+ * alone: the heroes past the Main Team's) is on Auto for the whole fight.
  */
 export interface Entry {
   def: HeroDef;
@@ -51,6 +52,7 @@ export interface Entry {
   set?: string | null;
   uw?: number | null;
   skills?: readonly string[] | null;
+  sub?: boolean;
 }
 
 /** The additional skills that come round again every so many seconds: each first comes once that long has gone. */
@@ -133,7 +135,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
   let mendShown = 0;
   const party: Status<Buff>[] = [];
 
-  const fighters: Fighter[] = heroes.map(({ def: hero, skin = 0, gear = {}, set: wearing = null, uw = null, skills: worn = null }, index) => {
+  const fighters: Fighter[] = heroes.map(({ def: hero, skin = 0, gear = {}, set: wearing = null, uw = null, skills: worn = null, sub = false }, index) => {
     const set = setOf(wearing, hero.class);
     const tier = uniqueOf(hero.id, uw);
     const skills = skillsOf(worn);
@@ -185,7 +187,8 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       statuses: [],
       // As it comes into the fight: whole, with half its mana (and more with Authority's support).
       mana: Math.min(MAX_MANA, MAX_MANA / 2 + (set?.id === 'authority' && set.role === 'support' ? AUTHORITY.mana : 0)),
-      auto: false,
+      sub,
+      auto: sub,
       cooldowns: hero.abilities.map(() => 0),
       reserved: null,
       rested: 0,
@@ -804,12 +807,14 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
         if (fighter.reserved === input.skill) fighter.reserved = null;
         else if (sim.ready(fighter, input.skill)) fighter.reserved = input.skill;
         return;
+      // (Not one in the Sub Team's: it stays on Auto.)
       case 'auto':
-        if (fighter) fighter.auto = !fighter.auto;
+        if (fighter && !fighter.sub) fighter.auto = !fighter.auto;
         return;
       case 'all-auto': {
-        const on = !fighters.every((one) => one.auto);
-        for (const one of fighters) one.auto = on;
+        const main = fighters.filter((one) => !one.sub);
+        const on = !main.every((one) => one.auto);
+        for (const one of main) one.auto = on;
         return;
       }
       case 'leave':

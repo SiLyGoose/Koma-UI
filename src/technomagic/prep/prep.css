@@ -102,6 +102,96 @@
   box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.6);
 }
 
+/* Alone: the lineup in two halves, the Main Team and the Sub Team, side by side with a line between, each under its tab (../prep/prep.ts). */
+.tm-lineup.teams {
+  grid-template-columns: repeat(2, auto);
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.tm-team {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.tm-team + .tm-team {
+  border-left: 2px solid var(--gold-dim);
+}
+
+/* A team's tab: pressed, it is the one a hero picked goes into. */
+.tm-team-tab {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border: 0;
+  border-bottom: 2px solid var(--gold-dim);
+  background: rgba(0, 0, 0, 0.4);
+  color: rgba(255, 255, 255, 0.6);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tm-team-tab:hover {
+  color: #fff;
+}
+
+.tm-team-tab[aria-pressed='true'] {
+  border-bottom-color: var(--gold);
+  background: linear-gradient(180deg, rgba(226, 184, 92, 0.3), rgba(0, 0, 0, 0.25));
+  box-shadow: inset 0 0 0 2px var(--gold);
+  color: #fff;
+}
+
+/* The other team: darkened under a backdrop, and pressed anywhere to make it the one heroes go into. */
+.tm-team:not(.focused) {
+  position: relative;
+  cursor: pointer;
+}
+
+.tm-team:not(.focused)::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  pointer-events: none;
+  transition: background 0.15s;
+}
+
+.tm-team:not(.focused):hover::after {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.tm-team:not(.focused) .tm-slot-card {
+  cursor: pointer;
+}
+
+.tm-team-count {
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0.75;
+}
+
+.tm-team-slots {
+  display: grid;
+  grid-template-columns: repeat(var(--slots, 4), minmax(0, max(44px, calc((100cqh - 500px) * 9 / 16))));
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+  padding: 12px;
+  list-style: none;
+}
+
+/* Alone: which team a hero picked is in, on its square in the Heroes List (M or S), the Sub Team's dimmer. */
+.tm-prep-hero[data-team='sub'] .tm-prep-hero-check {
+  opacity: 0.7;
+}
+
 /* A slot: whose it is, big, over its card. */
 .tm-slot {
   display: flex;
