@@ -208,9 +208,10 @@ export function makePrep(act: PrepActions): Prep {
     if (!pick) return item;
     const hero = heroNamed(pick.hero);
     const card = el(mine ? 'button' : 'div', 'tm-slot-card');
+    card.title = hero?.name ?? pick.hero;
     if (card instanceof HTMLButtonElement) {
       card.type = 'button';
-      card.title = `Take ${hero?.name ?? pick.hero} out`;
+      card.setAttribute('aria-label', `Take ${hero?.name ?? pick.hero} out`);
       card.addEventListener('click', () => act.unpick(pick.hero));
     }
     item.dataset.player = String(owner?.number ?? 0);
@@ -310,7 +311,8 @@ export function makePrep(act: PrepActions): Prep {
           button.disabled = elsewhere ? !teamRoom : !picked && (mine.length >= limit || !room || !teamRoom);
           button.setAttribute('aria-pressed', String(picked));
           if (solo && picked) button.dataset.team = pick.sub ? 'sub' : 'main';
-          button.title = elsewhere ? `Move ${hero.name} to the ${teamName}` : picked ? `Take ${hero.name} out` : `Put ${hero.name} in${solo ? ` the ${teamName}` : ''}`;
+          button.title = hero.name;
+          button.setAttribute('aria-label', elsewhere ? `Move ${hero.name} to the ${teamName}` : picked ? `Take ${hero.name} out` : `Put ${hero.name} in${solo ? ` the ${teamName}` : ''}`);
           button.append(portrait(hero.id, 'tm-prep-hero-face'));
           if (picked) button.append(el('span', 'tm-prep-hero-check', solo ? (pick.sub ? 'S' : 'M') : '✓'));
           button.addEventListener('click', () => (picked && !elsewhere ? act.unpick(hero.id) : act.pick(hero.id, into)));

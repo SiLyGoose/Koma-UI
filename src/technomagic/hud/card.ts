@@ -48,6 +48,7 @@ export function makeCard(name: string, face: string, abilities: readonly Ability
 
   const portrait = el('button', 'tm-face');
   portrait.type = 'button';
+  portrait.title = name;
   const picture = el('img', '');
   picture.src = face;
   picture.alt = '';
@@ -144,10 +145,7 @@ export function makeCard(name: string, face: string, abilities: readonly Ability
     draw(state) {
       root.classList.toggle('picked', state.picked);
       const says = `${name}: ${state.picked ? 'take off' : 'put on'} the field`;
-      if (portrait.title !== says) {
-        portrait.title = says;
-        portrait.setAttribute('aria-label', says);
-      }
+      if (portrait.getAttribute('aria-label') !== says) portrait.setAttribute('aria-label', says);
       root.classList.toggle('down', state.hp <= 0);
       root.classList.toggle('awake', state.awake);
       const showing = state.effects.map((buff) => `${buff.name}:${Math.ceil(buff.left ?? 0)}:${buff.count ?? ''}`).join('|');
