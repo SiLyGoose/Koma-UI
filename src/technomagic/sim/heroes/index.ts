@@ -1,5 +1,5 @@
 import { ANNETTE } from './annette';
-import { CLAUSE } from './clause';
+import { KLAUS } from './klaus';
 import { EZEKIEL } from './ezekiel';
 import { FALLEN_FREY } from './fallen-frey';
 import { GREMORY } from './gremory';
@@ -12,4 +12,4 @@ import { SERIA } from './seria';
 import { VALANCE } from './valance';
 
 /** The heroes there are, in the order of their cards. */
-export const HEROES: readonly HeroDef[] = [KIRZE, CLAUSE, FALLEN_FREY, GREMORY, ANNETTE, MORRAH, LAIAS, SERIA, EZEKIEL, LORRAINE, VALANCE];
+export const HEROES: readonly HeroDef[] = [KIRZE, KLAUS, FALLEN_FREY, GREMORY, ANNETTE, MORRAH, LAIAS, SERIA, EZEKIEL, LORRAINE, VALANCE];

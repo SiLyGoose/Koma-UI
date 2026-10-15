@@ -5,7 +5,7 @@ import type { Art } from './sim/shown';
 
 /** Each unique weapon's picture: its item's (the bot's catalog id, public/gear/items/weapons/), by its hero. */
 const UNIQUE_PICTURES: Readonly<Record<string, string>> = {
-  clause: '/gear/items/weapons/the-guardian-exian.png',
+  klaus: '/gear/items/weapons/the-guardian-exian.png',
   kirze: '/gear/items/weapons/judgment-edge-elicipira.png',
   'fallen-frey': '/gear/items/weapons/angels-despair-rosmerta.png',
   gremory: '/gear/items/weapons/gateway-to-purgatory-pigritia.png',

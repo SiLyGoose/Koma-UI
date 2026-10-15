@@ -452,12 +452,12 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     if (nimble) fighter.nimble = Math.min(nimble.most, fighter.nimble + 1);
   }
 
-  /** A hero wielding its own unique weapon has used a skill (./unique.ts): Clause's every third, and Fallen Frey's every one. */
+  /** A hero wielding its own unique weapon has used a skill (./unique.ts): Klaus's every third, and Fallen Frey's every one. */
   function uniqueCast(fighter: Fighter): void {
     const unique = fighter.unique;
     if (!unique) return;
     unique.casts++;
-    if (fighter.id === 'clause' && unique.casts % EXIAN.every === 0) {
+    if (fighter.id === 'klaus' && unique.casts % EXIAN.every === 0) {
       const boost = 1 + atTier(EXIAN.boost, unique.tier);
       put(fighter.statuses, { name: EXIAN_UP.name, left: EXIAN.lasts, deals: boost, defends: boost, shown: EXIAN_UP });
     } else if (fighter.id === 'fallen-frey') {
@@ -660,7 +660,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       const type = foe.def.stats.deals;
       // Harder or softer for what is on the boss, and harder again once the raid's time is up; then dodged, or what the hero's defense against that kind of damage
       // (more for every Hope support on the field), and a block, take off.
-      // (And for what is on it: Clause's unique weapon, Morrah's Hellfire. And every Perseverance support's on the field, and every Bastion among them;
+      // (And for what is on it: Klaus's unique weapon, Morrah's Hellfire. And every Perseverance support's on the field, and every Bastion among them;
       // and Iron Wall's block, the more at first, and what is on it adds.)
       const guarded = 1 + HOPE.defense * wearing('hope', 'support').length + PERSEVERANCE.defense * wearing('perseverance', 'support').length + SKILL.bastion.defense * among('bastion');
       const walled = elapsed < SKILL['iron-wall'].lasts ? SKILL['iron-wall'].more * has(target, 'iron-wall') : 0;

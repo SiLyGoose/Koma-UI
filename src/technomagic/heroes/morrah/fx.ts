@@ -17,7 +17,7 @@ export const MORRAH_FX: HeroFx = {
       effects.play('slash', bossHit, part % 2 ? -0.5 : 0.5);
       effects.play('impact', bossHit, 0, 0.7);
     },
-    // Her attack as Clause's rig has it (his slash): the same cut.
+    // Her attack as Klaus's rig has it (his slash): the same cut.
     attack(fx, who, part) {
       MORRAH_FX.lands?.cleave?.(fx, who, part);
     },

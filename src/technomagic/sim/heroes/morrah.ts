@@ -115,7 +115,7 @@ export const MORRAH: HeroDef = {
     't5-dark': { words: `Flame stack DMG is increased by ${pct(PERKS.flame.each - 1)}, and max stack number is changed to ${PERKS.flame.most}.` },
   },
   attack: 'cleave',
-  // Clause’s slash (her animations are copies of his), timed as his is.
+  // Klaus’s slash (her animations are copies of his), timed as his is.
   timing: { attack: [{ lands: [0.68], until: 0.8 }] },
   join(fight, self) {
     /** How long Burning Power has her attack burning for yet; how long her Hellfire lasts yet, and toward its next Flame; and toward her Flame's next burn. */
@@ -157,7 +157,7 @@ export const MORRAH: HeroDef = {
 
     return {
       lands: {
-        // Her attack: a cut across the boss one way and then the other, as written in code; or Clause's slash, as his rig has it.
+        // Her attack: a cut across the boss one way and then the other, as written in code; or Klaus's slash, as his rig has it.
         cleave,
         attack: cleave,
         // Down on the boss, harder for its Flame: it is knocked down, and 3 more Flame; her attack burns for a while.

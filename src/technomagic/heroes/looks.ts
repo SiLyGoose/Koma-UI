@@ -1,4 +1,4 @@
-import { ANNETTE_ASSETS, CLAUSE_ASSETS, EZEKIEL_ASSETS, FALLEN_FREY_ASSETS, GREMORY_ASSETS, KIRZE_ASSETS, LAIAS_ASSETS, LORRAINE_ASSETS, MORRAH_ASSETS, SERIA_ASSETS, VALANCE_ASSETS, type HeroAssets } from '../assets';
+import { ANNETTE_ASSETS, KLAUS_ASSETS, EZEKIEL_ASSETS, FALLEN_FREY_ASSETS, GREMORY_ASSETS, KIRZE_ASSETS, LAIAS_ASSETS, LORRAINE_ASSETS, MORRAH_ASSETS, SERIA_ASSETS, VALANCE_ASSETS, type HeroAssets } from '../assets';
 import { STAND as ANNETTE } from './annette/moves';
 import type { Bends, Pose } from './body/pose';
 import { STAND as EZEKIEL } from './ezekiel/moves';
@@ -33,7 +33,7 @@ export interface HeroLook {
 
 const LOOKS: Readonly<Record<string, HeroLook>> = {
   kirze: { assets: KIRZE_ASSETS },
-  clause: { assets: CLAUSE_ASSETS },
+  klaus: { assets: KLAUS_ASSETS },
   'fallen-frey': { assets: FALLEN_FREY_ASSETS, stands: FALLEN_FREY, varies: true },
   gremory: { assets: GREMORY_ASSETS, stands: GREMORY, bends: GREMORY_BENDS, seated: true },
   annette: { assets: ANNETTE_ASSETS, stands: ANNETTE },

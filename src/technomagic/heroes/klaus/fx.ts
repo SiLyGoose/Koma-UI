@@ -1,11 +1,11 @@
 import { Vector3 } from 'three';
 import type { HeroFx } from '../../fight/fx';
 
-/* What is drawn for Clause's attack and skills (what they do is ./index.ts). */
+/* What is drawn for Klaus's attack and skills (what they do is ./index.ts). */
 
 const at = new Vector3();
 
-export const CLAUSE_FX: HeroFx = {
+export const KLAUS_FX: HeroFx = {
   lands: {
     // A cut across the boss one way, then the other.
     swing({ effects, bossHit }, _who, part) {

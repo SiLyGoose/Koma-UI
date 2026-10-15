@@ -2,13 +2,13 @@ import type { HeroAssets, RiggedModel } from '../types.ts';
 
 /*
  * Morrah: her body and hair, her sword (Carprain) in her right hand and her shield on her left arm, laid out as
- * Clause's are (the blade along what was its y). No rig of hers: she stands, runs in and attacks as Clause does, by
+ * Klaus's are (the blade along what was its y). No rig of hers: she stands, runs in and attacks as Klaus does, by
  * copies of his rig's animations (sword and shield, as hers are), and does her skills by the poses written in code
  * (../../heroes/morrah/moves.ts).
  */
 
 /**
- * Clause's idle, run and slash (copies of ../clause.ts's, on his skeleton), timed as his are: the blow lands a
+ * Klaus's idle, run and slash (copies of ../klaus.ts's, on his skeleton), timed as his are: the blow lands a
  * little after the sword hand is moving fastest, and she leaves it just after.
  */
 const MOVED_BY = {

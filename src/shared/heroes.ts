@@ -48,7 +48,7 @@ interface Frame {
 
 export const FACE: Frame = { wide: 1.7, tall: 1.7, above: 0.35, fit: {
     kirze: { zoom: 1.55, x: 0.08, y: 0.2 },
-    clause: { zoom: 1.5, x: -0.105, y: 0.14 },
+    klaus: { zoom: 1.5, x: -0.105, y: 0.14 },
     annette: { zoom: 1.25, x: -0.023, y: 0.25 },
     morrah: { zoom: 1.35, x: -0.1, y: 0.19 },
     laias: { zoom: 1.4, x: 0, y: 0.33 },
@@ -65,7 +65,7 @@ export const BUST: Frame = { wide: 3.4, tall: 4.6, above: 0.45 };
  */
 export const SHOP_BUST: Frame = { ...BUST, fit: {
     kirze: { zoom: 1.24, x: -0.11, y: 0.27 },
-    clause: { zoom: 1, x: -0.01, y: 0.13 },
+    klaus: { zoom: 1, x: -0.01, y: 0.13 },
     annette: { zoom: 1.15, x: 0.02, y: 0.23 },
     morrah: { zoom: 1.33, x: -0.09, y: 0.12 },
     laias: { zoom: 1.64, x: -0.04, y: 0.18 },

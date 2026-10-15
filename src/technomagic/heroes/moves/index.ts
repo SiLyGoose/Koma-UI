@@ -1,6 +1,6 @@
 import type { HeroMove } from '../../sim/heroes/moves';
 import { ELIMINATION, RAY, TREATMENT, ZAP } from '../annette/moves';
-import { BASH, GUARD, SLAM, SWING } from '../clause/moves';
+import { BASH, GUARD, SLAM, SWING } from '../klaus/moves';
 import { CLAW, DESPAIR, DOOM, INSTINCT } from '../ezekiel/moves';
 import { BLESSING, LIGHT, SMITE, VENGEANCE } from '../fallen-frey/moves';
 import { NUDGE, PIPPI, POCHI, PUCHI, SLEEP } from '../gremory/moves';
@@ -15,7 +15,7 @@ import type { Move } from './move';
 
 /*
  * Every move a hero's body can make, by name: the ones all have (./common.ts) and each hero's own
- * (../kirze/moves.ts, ../clause/moves.ts, ../fallen-frey/moves.ts, ../gremory/moves.ts, ../annette/moves.ts, ../morrah/moves.ts, ../laias/moves.ts, ../seria/moves.ts, ../ezekiel/moves.ts, ../lorraine/moves.ts, ../valance/moves.ts), written with the stances in ./stances.ts. Each is
+ * (../kirze/moves.ts, ../klaus/moves.ts, ../fallen-frey/moves.ts, ../gremory/moves.ts, ../annette/moves.ts, ../morrah/moves.ts, ../laias/moves.ts, ../seria/moves.ts, ../ezekiel/moves.ts, ../lorraine/moves.ts, ../valance/moves.ts), written with the stances in ./stances.ts. Each is
  * written to fit how the fight times it (../../sim/heroes/moves.ts).
  */
 

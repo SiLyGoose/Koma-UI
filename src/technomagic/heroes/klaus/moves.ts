@@ -3,7 +3,7 @@ import type { Move } from '../moves/move';
 import { COILED, KNEELING, LOW, LUNGE, TUCKED } from '../moves/stances';
 
 /*
- * What Clause's body does for his three skills and his attack: a knight's, a sword in his right hand
+ * What Klaus's body does for his three skills and his attack: a knight's, a sword in his right hand
  * and a shield on his left arm. What comes of each is in ./index.ts.
  */
 

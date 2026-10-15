@@ -9,7 +9,7 @@ import type { HeroMove } from './moves';
 /*
  * What a hero is in a fight, whatever skin it wears: its class (and so where it stands), how it stands
  * damage and the kind it deals, its skills and passive, how its moves are timed, and what comes of each of its
- * moves as it lands. Each hero is a file here (./kirze.ts, ./clause.ts); ./index.ts lists them. Nothing of it is
+ * moves as it lands. Each hero is a file here (./kirze.ts, ./klaus.ts); ./index.ts lists them. Nothing of it is
  * drawn: what the page draws for a hero is its folder under ../../heroes/ (its `fx.ts`, and what its body does
  * its `moves.ts`), and how it looks ../../heroes/looks.ts.
  */

@@ -2,7 +2,7 @@ import type { HeroAssets, PartsModel, RiggedModel } from '../types.ts';
 
 /*
  * Seria: her body (her hair is a part of its own, the first of her files'), her sword in her right hand (its blade
- * along what was its y, as Clause's) and its sheath held in her left. The sword is kept in the sheath (its hilt
+ * along what was its y, as Klaus's) and its sheath held in her left. The sword is kept in the sheath (its hilt
  * showing, as the sheath's file has it) but while she attacks or uses a skill: ../../heroes/body/sheath.ts. She runs in and attacks by animations of
  * Mixamo's (a sword and shield run and slash, the motions alone); she stands and does her skills by the poses written
  * in code (a swordsman's, and ../../heroes/seria/moves.ts).

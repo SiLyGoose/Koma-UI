@@ -5,7 +5,7 @@ import { isMesh, loadFbx, loadModels } from '../engine/models';
 
 /*
  * What a skill brings onto the field for a while, more than a flash (../assets/ names them): each hero's own
- * (its assets' props: Lorraine's vines, Clause's shield), drawn with their textures, and the shield any hero
+ * (its assets' props: Lorraine's vines, Klaus's shield), drawn with their textures, and the shield any hero
  * may have on it (Common_Shield, drawn by ./wards.ts). A hero's fx put a copy where it goes and move it
  * each frame, until they are done with it.
  */

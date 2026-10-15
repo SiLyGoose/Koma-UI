@@ -66,7 +66,7 @@ export const CODED: Readonly<Record<HeroMove | 'hit', Span>> = {
   judgment: { lands: [0.3, 0.44, 0.58, 0.72, 0.86, 1, 1.14, 1.6], until: 2.4 },
   haze: { lands: [0.62], until: 1.6 },
   flower: { lands: [0.47, 1.1], until: 1.8 },
-  // Clause.
+  // Klaus.
   slam: { lands: [0.78], until: 1.6 },
   bash: { lands: [0.4], until: 1.1 },
   guard: { lands: [0.5], until: 1.5 },

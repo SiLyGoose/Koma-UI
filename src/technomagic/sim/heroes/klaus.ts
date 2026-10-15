@@ -6,14 +6,14 @@ import { pct, skillArt, type Buff } from '../shown';
 import { CLASS_STATS, type HeroDef, type Passive } from './kit';
 
 /*
- * Clause's skills, as the game has them (what each costs, how long before it can be used again, and how
+ * Klaus's skills, as the game has them (what each costs, how long before it can be used again, and how
  * long what it does lasts are the game's; how hard each hits is not said there):
  * - Cut Ground: a leap and a blow down on the boss that stuns it.
  * - Shield Strike: a blow with the shield that leaves the boss slower to attack and easier to hurt.
  * - Guardian Shield: for a while every hero takes less from the boss.
  * His passive, Vow of Knights: when he blocks he strikes back, the boss hits less hard for a while, and
  * he gains mana. (How often he blocks is not the game's: there it comes of his gear.)
- * What is drawn for each is ../../heroes/clause/fx.ts; what his body does for each, and for his attack, ../../heroes/clause/moves.ts.
+ * What is drawn for each is ../../heroes/klaus/fx.ts; what his body does for each, and for his attack, ../../heroes/klaus/moves.ts.
  *
  * His own perks (../perks.ts) are King's Raid's. Two do nothing here: Cut Ground's Dark (the boss isn't drawn in, so it
  * costs no more), and Vow of Knights' Light (its blow back is at once here already). Guardian Shield guards with less
@@ -28,7 +28,7 @@ const VOW = { weak: 0.8, lasts: 8, mana: 300 };
 /** His own perks' numbers: Shield Strike's stun, Guardian Shield's more (and its P.DMG taken), Vow of Knights' less ATK, and Transcend 5's Dark's guard for every ally (how long, and how long it waits). */
 const PERKS = { bashStun: 1, guardMore: 1.4, guardPhysical: 0.75, weaker: 0.1, ward: { lasts: 10, every: 10, defends: 1.2, critResist: 200 } };
 
-const art = skillArt('clause');
+const art = skillArt('klaus');
 
 const VOW_OF_KNIGHTS: Passive = {
   attack: 1,
@@ -47,11 +47,11 @@ const GUARDED: Buff = { name: 'Guardian Shield', about: `Takes ${pct(1 - GUARDIA
 /** What his Transcend 5's Dark gives every ally when another is hit. */
 const WARDED: Buff = { name: 'Knight’s Guard', about: `P.DEF +${pct(PERKS.ward.defends - 1)} and P.Crit Resist +${pct(share(PERKS.ward.critResist))}.`, icon: '🛡️', art: art(3) };
 
-export const CLAUSE: HeroDef = {
-  id: 'clause',
-  name: 'Clause',
+export const KLAUS: HeroDef = {
+  id: 'klaus',
+  name: 'Klaus',
   class: 'knight',
-  skins: ['Clause'],
+  skins: ['Klaus'],
   // A knight whose blows are physical: as his class stands, otherwise (he blocks a good third of the blows that come at him).
   stats: { ...CLASS_STATS.knight, deals: 'physical' },
   abilities: [

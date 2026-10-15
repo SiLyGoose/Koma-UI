@@ -6,7 +6,7 @@ import type { Props } from './props';
 /*
  * What is kept on a hero while something guards it, for as long as it does: a shield on it (any hero's, unless
  * the skill has a look of its own) is the game's Common_Shield, a round bubble of light all round it (its file's dome
- * made a ball) with the file's ring of light on the floor under it; a skill with a look of its own (Clause's Guardian Shield) is that hero's own shield,
+ * made a ball) with the file's ring of light on the floor under it; a skill with a look of its own (Klaus's Guardian Shield) is that hero's own shield,
  * glowing, three of them going round it, spread evenly (a triangle), each facing out. Each comes up as it is put on, and fades as it goes.
  */
 
