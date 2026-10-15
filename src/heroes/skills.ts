@@ -1,10 +1,12 @@
 import { HERO_ASSETS, skillPicture } from '../technomagic/assets';
+import { HEROES } from '../technomagic/sim/heroes';
 
 /*
  * The heroes page's Skills tab: each hero's three skills and its passive in King's Raid's own words, as
  * kingsraid.shodyra.com has them (where the raid's skill pictures come from, ../technomagic/assets/heroes/),
- * with what each costs and how long before it can be used again. Where that site doesn't say a number
- * ("???"), the TechnoMagic Raid's own is put in (its heroes/: Kirze's FLOWER and EVIL_DEEDS; damage as
+ * with what each costs and how long before it can be used again (the fight's: ../technomagic/sim/heroes/; Gremory's
+ * none, each skill sealed once used, and once all three are, each turns into the fourth). Where that site doesn't
+ * say a number ("???"), the TechnoMagic Raid's own is put in (its heroes/: Kirze's FLOWER and EVIL_DEEDS; damage as
  * at its base ATK, technomagic/sim/combat/damage.ts). Changing one of those there means changing it here too.
  */
 
@@ -27,10 +29,8 @@ interface SkillText {
 }
 
 /** By hero id: its three skills, then its passive. */
-const SKILLS: Record<string, { costs: [number, number, number]; cooldowns: [number, number, number]; skills: [SkillText, SkillText, SkillText, SkillText] }> = {
+const SKILLS: Record<string, { skills: [SkillText, SkillText, SkillText, SkillText] }> = {
   clause: {
-    costs: [2, 1, 2],
-    cooldowns: [9, 8, 12],
     skills: [
       { name: 'Cut Ground', text: 'Leaps into the air and deals P.DMG to enemies in range, stunning them for 5 sec.' },
       {
@@ -45,8 +45,6 @@ const SKILLS: Record<string, { costs: [number, number, number]; cooldowns: [numb
     ],
   },
   kirze: {
-    costs: [2, 3, 4],
-    cooldowns: [9, 17, 20],
     skills: [
       {
         name: 'Slash, Blade of Judgment!',
@@ -64,8 +62,6 @@ const SKILLS: Record<string, { costs: [number, number, number]; cooldowns: [numb
     ],
   },
   'fallen-frey': {
-    costs: [2, 3, 5],
-    cooldowns: [9, 17, 22],
     skills: [
       {
         name: 'Light of Doom',
@@ -85,10 +81,7 @@ const SKILLS: Record<string, { costs: [number, number, number]; cooldowns: [numb
       },
     ],
   },
-  // No cooldowns: each skill is sealed once used, and once all three are, each turns into the fourth.
   gremory: {
-    costs: [3, 3, 4],
-    cooldowns: [0, 0, 0],
     skills: [
       {
         name: 'Pochi, bite them!',
@@ -113,8 +106,6 @@ const SKILLS: Record<string, { costs: [number, number, number]; cooldowns: [numb
     ],
   },
   annette: {
-    costs: [2, 2, 3],
-    cooldowns: [11, 13, 25],
     skills: [
       {
         name: 'Blasting Ray',
@@ -135,8 +126,6 @@ const SKILLS: Record<string, { costs: [number, number, number]; cooldowns: [numb
     ],
   },
   morrah: {
-    costs: [2, 3, 3],
-    cooldowns: [6, 12, 20],
     skills: [
       {
         name: 'Burning Power',
@@ -151,8 +140,6 @@ const SKILLS: Record<string, { costs: [number, number, number]; cooldowns: [numb
     ],
   },
   laias: {
-    costs: [2, 3, 4],
-    cooldowns: [8, 15, 20],
     skills: [
       {
         name: 'Healing Droplets',
@@ -173,8 +160,6 @@ const SKILLS: Record<string, { costs: [number, number, number]; cooldowns: [numb
     ],
   },
   seria: {
-    costs: [1, 2, 4],
-    cooldowns: [7, 13, 20],
     skills: [
       {
         name: 'Mysterious Sword - Falling Petals',
@@ -192,8 +177,6 @@ const SKILLS: Record<string, { costs: [number, number, number]; cooldowns: [numb
     ],
   },
   ezekiel: {
-    costs: [2, 2, 2],
-    cooldowns: [8, 10, 7],
     skills: [
       {
         name: 'Destructive Instinct',
@@ -214,8 +197,6 @@ const SKILLS: Record<string, { costs: [number, number, number]; cooldowns: [numb
     ],
   },
   lorraine: {
-    costs: [2, 3, 3],
-    cooldowns: [7, 10, 23],
     skills: [
       { name: 'Thornbush Forest', text: 'Attacks 3 times at random, dealing M.DMG to enemies in range and inflicting 1 stack of Poison with each attack.' },
       { name: 'Tangled Vine', text: 'Deals M.DMG to enemies in a straight line, stacking 2 Poison and shackling them for 4 sec. After some time, deals a large amount of DMG based on the number of Poison stacks.' },
@@ -227,8 +208,6 @@ const SKILLS: Record<string, { costs: [number, number, number]; cooldowns: [numb
     ],
   },
   valance: {
-    costs: [3, 5, 4],
-    cooldowns: [15, 20, 20],
     skills: [
       {
         name: 'Prototype – VA',
@@ -255,11 +234,12 @@ export function heroSkills(id: string): HeroSkill[] {
   const hero = SKILLS[id];
   if (!hero) return [];
   const assets = HERO_ASSETS.find((one) => one.folder === `heroes/${id}`);
+  const abilities = HEROES.find((one) => one.id === id)?.abilities ?? [];
   return hero.skills.map(({ tag, ...skill }, i) => ({
     ...skill,
     tag: tag ?? null,
-    cost: hero.costs[i] ?? null,
-    cooldown: hero.cooldowns[i] ?? null,
+    cost: abilities[i]?.cost ?? null,
+    cooldown: abilities[i]?.cooldown ?? null,
     picture: assets ? skillPicture(assets, i) : null,
   }));
 }
