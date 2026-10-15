@@ -13,7 +13,7 @@ import type { Buff, Mark } from './shown';
 import { CHAMPION_UP, DESPERATION_UP, MENDING_UP, SKILL, skillsOf, SURGE_UP, type SkillId } from './skills';
 import type { Fight, Fighter, Foe, GearBonus } from './types';
 import { atTier, ELICIPIRA, EXIAN, EXIAN_UP, ROSMERTA, ROSMERTA_UP, uniqueOf } from './unique';
-import { auraTotal, moveDmg, perkedStats, perksOf, tweaked, withPerks, type PerkDef } from './perks';
+import { auraTotal, moveDmg, moveMarks, moveWhole, perkedStats, perksOf, tweaked, withPerks, type PerkDef } from './perks';
 
 /*
  * The fight, worked out with nothing drawn: a boss and the heroes, up to MOST of them on the field at once,
@@ -189,6 +189,8 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       perkDefs: defs,
       abilities: hero.abilities.map((ability, i) => tweaked(ability, defs.filter((perk) => perk.skill?.index === i))),
       moveDmg: moveDmg(hero, perks),
+      moveWhole: moveWhole(hero, perks),
+      moveMarks: moveMarks(hero, perks),
       perkDmg: product((perk) => perk.dmg),
       perkTaken: { physical: product((perk) => perk.taken) * product((perk) => perk.takenPhysical), magical: product((perk) => perk.taken) },
       acc: defs.reduce((sum, perk) => sum + (perk.acc ?? 0), 0),
@@ -462,6 +464,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
         else common[move]?.(fighter, index);
         attacking = null;
         landing = null;
+        if (doing.blows === 1) for (const mark of fighter.moveMarks[move] ?? []) put(foe.statuses, { name: mark.name, left: mark.lasts, takes: mark.takes, shown: 'curse' });
       }
       // (What landed may have cut it short, or ended the raid.)
       if (fighter.doing !== doing || result) return;
@@ -537,7 +540,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     log,
     sums,
     roll,
-    hit(by, amount, counted = true, pierce = 0) {
+    hit(by, amount, counted = true, pierce = 0, whole = false) {
       if (foe.hp <= 0 || result) return false;
       // The hero whose blow it is: as hard as its attack, and its passive, have it (and harder or softer again for what is on it); now and
       // then far harder, by its crit chance and what its passive and what is on it add; and through its penetration, and the blow's own.
@@ -548,15 +551,17 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       const critTimes = by.critTimes + SKILL.whetstone.critDamage * among('whetstone') + critDamaging(by.statuses) + auras.critDamage;
       // (And its perks': more against the boss, and more for the skill whose blow it is. Its ACC sees past some of the boss's dodge and block.)
       const skilled = landing?.by === by ? (by.moveDmg[landing.move] ?? 1) : 1;
-      const against = by.acc > 0 ? seenPast(foe.def.stats, by.acc) : foe.def.stats;
-      const { taken, blocked, dodged } = strike(amount * (atk / ATK) * atkTimes(by) * dmgTimes(by) * attack * dealing(by.statuses) * (critical ? critTimes : 1) * by.perkDmg * skilled, type, against, pen + pierce + piercing(by.statuses), roll);
+      const seen = by.acc > 0 ? seenPast(foe.def.stats, by.acc) : foe.def.stats;
+      const through = whole || (landing?.by === by && by.moveWhole.has(landing.move));
+      const against = through ? { ...seen, physical: 0, magical: 0 } : { ...seen, physical: seen.physical * defending(foe.statuses, 'physical'), magical: seen.magical * defending(foe.statuses, 'magical') };
+      const { taken, blocked, dodged } = strike(amount * (atk / ATK) * atkTimes(by) * dmgTimes(by) * attack * dealing(by.statuses) * (critical ? critTimes : 1) * by.perkDmg * skilled * (by.part.deals?.() ?? 1), type, against, pen + pierce + piercing(by.statuses), roll);
       if (dodged) {
         events.push({ kind: 'number', on: 'boss', amount: 0, type: 'dodged' });
         return false;
       }
       events.push({ kind: 'boss-hit' });
       // Its perks that mark the boss as its blows land (Vital Detection, Experienced Fighter, Special Bullet): after this one.
-      const marking = by.perkDefs.filter((perk) => perk.mark && (perk.mark.every === undefined || perkDue(by, perk.name, perk.mark.every)));
+      const marking = by.perkDefs.filter((perk) => perk.mark && (perk.mark.every === undefined || perkDue(by, perk.mark.name, perk.mark.every)));
       // (And more or less by what is on the boss: a Shield Strike has left it easier to hurt.) Deathless: all of it, and the boss whole again once it would be beaten.
       const dealt = deathless ? taken * taking(foe.statuses, type) : Math.min(foe.hp, taken * taking(foe.statuses, type));
       foe.hp -= dealt;
@@ -574,6 +579,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       if (counted) {
         for (const fighter of fighters) fighter.part.struck?.();
         foe.part.struck?.(by, dealt);
+        by.part.blow?.(attacking !== by);
       }
       // Kirze's unique weapon: now and then a blow of hers (her attack's or a skill's) deals more, twice over against the boss.
       // (Not mana for her attack, and not counted: it isn't a blow of its own.)
@@ -623,15 +629,15 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       const walled = elapsed < SKILL['iron-wall'].lasts ? SKILL['iron-wall'].more * has(target, 'iron-wall') : 0;
       const stands = {
         ...target.stats,
-        physical: target.stats.physical * guarded * defending(target.statuses, 'physical'),
-        magical: target.stats.magical * guarded * defending(target.statuses, 'magical'),
+        physical: target.stats.physical * guarded * defending(target.statuses, 'physical') * defending(party, 'physical'),
+        magical: target.stats.magical * guarded * defending(target.statuses, 'magical') * defending(party, 'magical'),
         block: { physical: target.stats.block.physical + walled + blocking(target.statuses, 'physical'), magical: target.stats.block.magical + walled + blocking(target.statuses, 'magical') },
       };
       // (Swift and Nimble: more dodge for every second since it last dodged.)
       const nimble = target.nimble > 0 ? target.nimble * (target.perkDefs.find((perk) => perk.nimble)?.nimble?.dodge ?? 0) : 0;
       if (nimble > 0) stands.dodge = { physical: stands.dodge.physical + nimble, magical: stands.dodge.magical + nimble };
       // Now and then a crit, by the boss's crit chance less the hero's crit resist against its kind of damage (and what is on it adds).
-      const critical = roll() < share(foe.def.stats.crit - target.critResist[type] - critResisting(target.statuses, type)) + critting(foe.statuses);
+      const critical = roll() < share(foe.def.stats.crit - target.critResist[type] - critResisting(target.statuses, type) - critResisting(party, type)) + critting(foe.statuses);
       const { taken, blocked, dodged } = strike(amount * dealing(foe.statuses) * rage(clock - RAID_TIME) * (critical ? CRIT : 1), type, blockable ? stands : { ...stands, block: NONE, dodge: NONE }, 0, roll);
       if (dodged) {
         target.nimble = 0;
@@ -642,7 +648,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       }
       events.push({ kind: 'hurt', who: target.index, blocked });
       // (Less again while every hero is guarded, or it is; more if its passive leaves it easier to hurt; less for Hope's knight.)
-      let dealt = taken * taking(party, type) * taking(target.statuses, type) * (target.def.passive?.taken ?? 1) * (target.set?.id === 'hope' && target.set.role === 'knight' ? HOPE.taken : 1) * target.perkTaken[type];
+      let dealt = taken * taking(party, type) * taking(target.statuses, type) * (target.def.passive?.taken ?? 1) * (target.set?.id === 'hope' && target.set.role === 'knight' ? HOPE.taken : 1) * target.perkTaken[type] * (target.part.takes?.() ?? 1);
       // (Less for its Steadfast's stacks, and a Ward against the boss's kind of damage, the more as the fight's first seconds go.)
       dealt *= 1 - Math.min(0.9, SKILL.steadfast.taken * target.stacks.steadfast * has(target, 'steadfast'));
       const ward = type === 'physical' ? SKILL['physical-ward'] : SKILL['magical-ward'];
@@ -685,10 +691,11 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
         target.reserved = null;
       }
       target.mana = Math.min(MAX_MANA, target.mana + (MANA_PER_HP_LOST * lost) / target.stats.hp);
+      if (dealt > 0) for (const fighter of fighters) fighter.part.hurt?.(target);
       // Its perks that come of being hit: Vengeful Curse (on the boss), and Deception (once it has taken something).
       for (const perk of target.perkDefs) {
-        if (perk.curse && perkDue(target, perk.name, perk.curse.every)) put(foe.statuses, { name: perk.name, left: perk.curse.lasts, deals: perk.curse.deals, shown: 'curse' });
-        if (perk.immunity && dealt > 0 && target.hp > 0 && perkDue(target, perk.name, perk.immunity.every)) target.immune = perk.immunity.hits;
+        if (perk.curse && perkDue(target, perk.name ?? perk.words, perk.curse.every)) put(foe.statuses, { name: perk.name ?? 'Curse', left: perk.curse.lasts, deals: perk.curse.deals, shown: 'curse' });
+        if (perk.immunity && dealt > 0 && target.hp > 0 && perkDue(target, perk.name ?? perk.words, perk.immunity.every)) target.immune = perk.immunity.hits;
       }
       if (blocked) {
         target.part.blocked?.();
@@ -709,7 +716,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     },
     knock(fighter, seconds) {
       // (Not one Authority guards.)
-      if (fighter.hp <= 0 || away(fighter.statuses) || fighter.statuses.some((status) => status.guards)) return;
+      if (fighter.hp <= 0 || away(fighter.statuses) || fighter.statuses.some((status) => status.guards) || fighter.part.guards?.()) return;
       stagger(fighter);
       // (The shorter for its CC resist, and what is on it adds to it, and its Tenacity.)
       const shorter = Math.max(0, 1 - SKILL.tenacity.control * has(fighter, 'tenacity'));
@@ -865,7 +872,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       // Each hero's move goes on (quickened by its attack speed, its own skills and what is on it), and each over to its spot.
       const reform = Math.min(1, dt * REFORM);
       for (const on of field) {
-        on.haste = (1 + share(on.stats.speed + auras.speed)) * (on.part.pace?.() ?? 1) * pacing(on.statuses);
+        on.haste = (1 + share(on.stats.speed + auras.speed + (on.part.speed?.() ?? 0))) * (on.part.pace?.() ?? 1) * pacing(on.statuses);
         advance(on, dt * on.haste);
         if (result) return;
         const [x, z] = spots.get(on) as readonly [number, number];

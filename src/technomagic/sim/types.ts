@@ -75,6 +75,9 @@ export interface Fighter {
    * every blow of its deals the boss, and what the boss's blows take of it (of each kind).
    */
   readonly moveDmg: Partial<Record<HeroMove, number>>;
+  /** Its skills' moves whose blows go through all the boss's defense, and what each leaves on the boss as its first blow lands (its perks'). */
+  readonly moveWhole: ReadonlySet<HeroMove>;
+  readonly moveMarks: Partial<Record<HeroMove, readonly { name: string; takes: number | Partial<PerKind>; lasts: number }[]>>;
   readonly perkDmg: number;
   readonly perkTaken: PerKind;
   /** ACC (points): what of the boss's dodge and block its blows see past. */
@@ -171,9 +174,9 @@ export interface Fight {
    * A hero's blow lands on the boss: `amount` at ATK (./combat/damage.ts: a thousandth of ATK in the game's shares), before the hero's own attack, its passive
    * and the boss's defense against the kind of damage it deals (seen past by its penetration, and `pierce`
    * points more). One that is `counted` is told to every hero's part, and the boss's (not what comes of a status already on the boss).
-   * Returns whether it landed, and was critical.
+   * Returns whether it landed, and was critical. One `whole` goes through all the boss's defense.
    */
-  hit(by: Fighter, amount: number, counted?: boolean, pierce?: number): boolean;
+  hit(by: Fighter, amount: number, counted?: boolean, pierce?: number, whole?: boolean): boolean;
   /** A hero is given back `amount` of its health (not while it is down), less what is on it and the boss's skills take off; `by` is the hero whose heal it is (it gives as much more as its attack is over ATK, or less). */
   heal(fighter: Fighter, amount: number, by?: Fighter): void;
   /**

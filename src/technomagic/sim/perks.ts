@@ -23,7 +23,8 @@ export interface Aura {
 
 /** What a perk does in a fight (anything left out, nothing). */
 export interface PerkDef {
-  name: string;
+  /** Its name: an own perk's (Transcend 3's, 5's) goes by its skill's on the heroes page, and needs none here. */
+  name?: string;
   /** King's Raid's words for it. */
   words: string;
   /** What it adds to its hero's stats, as gear does. */
@@ -52,9 +53,11 @@ export interface PerkDef {
   mark?: { name: string; takes?: number; deals?: number; crit?: number; lasts: number; every?: number };
   /**
    * One of its skills (`index`): costing `cost` more mana sections (fewer, less than 0), its cooldown `cooldown` seconds
-   * longer (shorter, less than 0) or `cooldownShare` times as long, and its blows `dmg` times as hard.
+   * longer (shorter, less than 0) or `cooldownShare` times as long, its blows `dmg` times as hard and (`whole`) through
+   * all the boss's defense; and as its first blow lands, leaving `mark` on the boss (taking so many times as much, of
+   * every kind or of each it names, for `lasts` seconds).
    */
-  skill?: { index: number; cost?: number; cooldown?: number; cooldownShare?: number; dmg?: number };
+  skill?: { index: number; cost?: number; cooldown?: number; cooldownShare?: number; dmg?: number; whole?: boolean; mark?: { name: string; takes: number | Partial<Record<'physical' | 'magical', number>>; lasts: number } };
 }
 
 /** A perk's id: Transcend 1's (everyone's), 2's (its class's, by its place), 3's (its skills', by their place, Light and Dark) and 5's. */
@@ -159,12 +162,25 @@ export const perksOf = (ids: readonly string[] | null | undefined, def: HeroDef)
 /** Every ally's from `wearers` heroes with an aura: the first's, and each other's `again`. */
 export const auraOf = (one: Aura, wearers: number): number => (wearers > 0 ? one.first + one.again * (wearers - 1) : 0);
 
-/** How many times as much a hero's skill moves deal, by its perks' `skill.dmg` (by the move each skill is). */
+/** What a hero's perks make of its skills' moves (by the move each skill is): how many times as hard their blows are, which go through all the boss's defense, and what each leaves on the boss as its first blow lands. */
 export function moveDmg(def: HeroDef, perks: ReadonlyMap<string, PerkDef>): Partial<Record<HeroMove, number>> {
   const out: Partial<Record<HeroMove, number>> = {};
   for (const perk of perks.values()) {
     const ability = perk.skill?.dmg !== undefined ? def.abilities[perk.skill.index] : undefined;
     if (ability) out[ability.move] = (out[ability.move] ?? 1) * (perk.skill?.dmg ?? 1);
+  }
+  return out;
+}
+
+export function moveWhole(def: HeroDef, perks: ReadonlyMap<string, PerkDef>): Set<HeroMove> {
+  return new Set([...perks.values()].flatMap((perk) => (perk.skill?.whole ? [def.abilities[perk.skill.index]?.move].filter((move) => move !== undefined) : [])));
+}
+
+export function moveMarks(def: HeroDef, perks: ReadonlyMap<string, PerkDef>): Partial<Record<HeroMove, NonNullable<NonNullable<PerkDef['skill']>['mark']>[]>> {
+  const out: Partial<Record<HeroMove, NonNullable<NonNullable<PerkDef['skill']>['mark']>[]>> = {};
+  for (const perk of perks.values()) {
+    const move = perk.skill?.mark ? def.abilities[perk.skill.index]?.move : undefined;
+    if (move && perk.skill?.mark) (out[move] ??= []).push(perk.skill.mark);
   }
   return out;
 }
@@ -176,9 +192,10 @@ export function auraTotal(heroes: readonly (readonly PerkDef[])[], key: keyof No
     for (const perk of perks) {
       const aura = perk.allies?.[key];
       if (!aura) continue;
-      const one = worn.get(perk.name) ?? { aura, wearers: 0 };
+      const name = perk.name ?? perk.words;
+      const one = worn.get(name) ?? { aura, wearers: 0 };
       one.wearers++;
-      worn.set(perk.name, one);
+      worn.set(name, one);
     }
   }
   let total = 0;
@@ -209,3 +226,6 @@ export function perkedStats(stats: HeroStats, perks: Iterable<PerkDef>): HeroSta
   for (const perk of perks) if (perk.atkFromDefense) stats.atk += perk.atkFromDefense * stats.physical;
   return stats;
 }
+
+/** A hero's Transcend 5 Light: ATK, DEF and HP +15%, and `more` of its own (as gear gives it). */
+export const t5Light = (words: string, more: GearBonus): PerkDef => ({ words, bonus: { atk: 0.15, defense: 0.15, hp: 0.15, ...more } });

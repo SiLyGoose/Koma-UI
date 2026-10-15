@@ -60,8 +60,17 @@ export interface HeroPart {
   struck?(): void;
   /** It has blocked a blow of the boss's. */
   blocked?(): void;
-  /** How many times as fast everything it does is, for now. */
+  /** A blow of the boss's has hurt a hero (it, or another). */
+  hurt?(who: Fighter): void;
+  /** How many times as much it takes from the boss, for now; and whether it can't be knocked down, for now. */
+  takes?(): number;
+  guards?(): boolean;
+  /** How many times as fast everything it does is, for now; its attack speed's points more, for now; and how many times as hard its blows are, for now. */
   pace?(): number;
+  speed?(): number;
+  deals?(): number;
+  /** A blow of its own has landed on the boss (counted: not one that comes of a status already on it): its attack's, or (`skill`) a skill's. */
+  blow?(skill: boolean): void;
   /** Its card glows. */
   lit?(): boolean;
   /** What its skills have given it for now: squares on its card. */
