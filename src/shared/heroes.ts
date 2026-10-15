@@ -197,9 +197,34 @@ async function cutPicture(id: string, frame: Frame, width: number): Promise<stri
   return canvas.toDataURL();
 }
 
-/** A skill's words, as King's Raid marks them: its numbers (20%, 12,000, 0.5) and what's in brackets ([Darkened Power]) each in a colour of their own (the heroes page's Skills tab, the raid's popups). */
+/**
+ * The stats King's Raid counts in points, 1,000 to 100% (the raid's POINTS): its chances and rates, which the Stats tab shows
+ * as percentages. Not Crit DMG, Block DEF, ATK or mana, which aren't.
+ */
+const CHANCE_STAT =
+  "(?:(?:P\\.|M\\.)?Crit(?:ical)? (?:Chance|Rate|Resist(?:ance)?)|(?:DEF )?Penetration|(?:CC |Debuff )?ACC|Accuracy|Dodge(?: Rate| Chance)?|(?:All |P\\.|M\\.)?Block(?: Rate| Chance)?(?! DEF)|CC Resist(?:ance)?|Lifesteal|ATK Spd(?: reduction)?|ATK Speed|Attack Speed|Tough(?:ness)?)";
+/** A chance stat, then (in the same clause) "by" and its points: "ATK Spd of all allies by 300". */
+const STAT_BY = new RegExp(`\\b(${CHANCE_STAT})([^.,;%\\d]*?\\bby )(\\d+(?:\\.\\d+)?)(?![\\d.,]*\\s*(?:%|sec))\\b`, 'gi');
+/** Points just before a chance stat: "only 50 Penetration and 25 ACC". */
+const POINTS_STAT = new RegExp(`\\b(\\d+(?:\\.\\d+)?) (${CHANCE_STAT})\\b`, 'gi');
+/** What a perk "only gains" when it's had twice, after a chance stat: "When overlapped with the same perk, only gains 50." */
+const ONLY_GAINS = /\b(only gains|gains only) (\d+(?:\.\d+)?)(?=\.)/gi;
+
+/** Points as a percentage: 250 is "25%". */
+const asPercent = (points: string): string => `${Math.round(Number(points) * 10) / 100}%`;
+
+/** King's Raid's words with its chance stats' points as the percentages they are: "Increases Crit Chance by 250" says "by 25%". */
+export function chancesAsPercent(text: string): string {
+  let changed = false;
+  const out = text
+    .replace(STAT_BY, (_, stat: string, between: string, points: string) => ((changed = true), `${stat}${between}${asPercent(points)}`))
+    .replace(POINTS_STAT, (_, points: string, stat: string) => ((changed = true), `${asPercent(points)} ${stat}`));
+  return changed ? out.replace(ONLY_GAINS, (_, gains: string, points: string) => `${gains} ${asPercent(points)}`) : out;
+}
+
+/** A skill's words, as King's Raid marks them: its numbers (20%, 12,000, 0.5) and what's in brackets ([Darkened Power]) each in a colour of their own (the heroes page's Skills tab, the raid's popups), its chance stats' points as percentages. */
 export function skillText(text: string): (string | HTMLElement)[] {
-  return text
+  return chancesAsPercent(text)
     .split(/(\[[^\]]+\]|\d+(?:,\d{3})*(?:\.\d+)?%?)/)
     .filter(Boolean)
     .map((part) => (part.startsWith('[') ? el('b', 'skill-effect', part) : /^\d/.test(part) ? el('b', 'skill-number', part) : part));
