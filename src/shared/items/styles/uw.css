@@ -17,22 +17,13 @@
   overflow: visible;
 }
 
-/* No stars (a tier of its own): its rank in the bottom left, and what the card is across the middle, clear of the tabs. */
+/* No stars (a tier of its own): its rank in the bottom left, clear of the tabs. */
 .item:has(> .item-uw) .item-level,
 .slot-frame:has(> .item-uw) .slot-level {
   top: auto;
   right: auto;
   bottom: max(4px, 6cqi);
   left: max(5px, 8cqi);
-}
-
-.item:has(> .item-uw) .item-tag {
-  top: auto;
-  bottom: 24%;
-  left: 50%;
-  translate: -50% 0;
-  transform: none;
-  white-space: nowrap;
 }
 
 /* "UW": a dark tab edged in crimson over the top left corner, standing a little out past the card. */
