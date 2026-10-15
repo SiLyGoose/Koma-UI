@@ -4,8 +4,9 @@ import { COILED, KNEELING, LOW, LUNGE, TUCKED } from '../moves/stances';
 
 /*
  * What Morrah's body does for her attack and her three skills: a knight's, Carprain in her right hand and her
- * shield on her left arm. She has no animations of her own, so they are written from how she stands (STAND), not
- * from a swordsman's rest. What comes of each is in ./index.ts.
+ * shield on her left arm. She stands, runs in and attacks as Clause does, by his rig (../../assets/heroes/morrah.ts):
+ * her attack here is for a computer without it. They are written from how she stands (STAND), not from a swordsman's
+ * rest. What comes of each is in ./index.ts.
  */
 
 /** How she stands: ready and unbothered, her shield before her, her sword out to her right with its point down a little ahead. */

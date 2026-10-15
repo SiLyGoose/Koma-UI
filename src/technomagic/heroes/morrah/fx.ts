@@ -17,6 +17,10 @@ export const MORRAH_FX: HeroFx = {
       effects.play('slash', bossHit, part % 2 ? -0.5 : 0.5);
       effects.play('impact', bossHit, 0, 0.7);
     },
+    // Her attack as Clause's rig has it (his slash): the same cut.
+    attack(fx, who, part) {
+      MORRAH_FX.lands?.cleave?.(fx, who, part);
+    },
     // Her sword down on the boss: fire bursts from it, and a ring of it over the ground.
     burning({ effects, magic, bossHit, bossFeet }) {
       effects.play('blast', bossHit);

@@ -17,7 +17,7 @@ import { CLASS_STATS, type Ability, type HeroDef, type Passive } from '../kit';
  * harder (up to 30 times over, for the rest of the fight).
  * Her unique weapon (../../sim/unique.ts) is worked here too: a critical blow of her skills deals more, leaves the
  * boss healed less for a while, and heals her the more (up to 5 times over).
- * What is drawn for each is ./fx.ts; what her body does for each, ./moves.ts (her attack is most heroes').
+ * What is drawn for each is ./fx.ts; what her body does for each, ./moves.ts (her attack is her slash's animation: ../../assets/heroes/seria.ts).
  */
 const PETALS = { blow: 2500, window: 5 };
 const BLOSSOM = { blow: 2500 };

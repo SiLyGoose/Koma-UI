@@ -1,12 +1,24 @@
-import type { HeroAssets } from '../types.ts';
+import type { HeroAssets, RiggedModel } from '../types.ts';
 
 /*
  * Seria: her body (her hair is a part of its own, the first of her files'), her sword in her right hand (its blade
- * along what was its y, as Clause's) and its sheath held in her left. No rig of hers: she stands, runs in and does
- * everything by the poses written in code (a swordsman's, and ../../heroes/seria/moves.ts).
+ * along what was its y, as Clause's) and its sheath held in her left. The sword is kept in the sheath (its hilt
+ * showing, as the sheath's file has it) but while she attacks or uses a skill: ../../heroes/body/sheath.ts. She runs in and attacks by animations of
+ * Mixamo's (a sword and shield run and slash, the motions alone); she stands and does her skills by the poses written
+ * in code (a swordsman's, and ../../heroes/seria/moves.ts).
  */
 
 const DRIVE = 'https://drive.google.com/uc?export=download&id=';
+
+/** The same for both her skins (one skeleton). */
+const MOVED_BY = {
+  kind: 'rigged',
+  folder: 'Seria_Mixamo',
+  run: 'Seria - Sword And Shield Run.fbx',
+  // One slash where she stands, from her right across to her left: her sword hand is moving fastest 0.8 s in, and the blow
+  // lands a little after, as the swing comes through. Left as the swing ends, easing back to how she stands.
+  attack: [{ file: 'Seria - Sword And Shield Slash.fbx', lands: [0.86], until: 1.1 }],
+} as const satisfies RiggedModel;
 
 export const SERIA_ASSETS: HeroAssets = {
   name: 'Seria',
@@ -24,6 +36,7 @@ export const SERIA_ASSETS: HeroAssets = {
         right: 'Hero_Seria_Vari05_WeaponA',
         offHand: 'held',
         blade: 'y',
+        movedBy: MOVED_BY,
       },
     },
     // Her Christmas costume, with its own hair, sword and sheath.
@@ -37,6 +50,7 @@ export const SERIA_ASSETS: HeroAssets = {
         right: 'Hero_Seria_Cos19Christmas_Weapon_A',
         offHand: 'held',
         blade: 'y',
+        movedBy: MOVED_BY,
       },
     },
   ],

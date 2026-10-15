@@ -17,6 +17,11 @@ export const EZEKIEL_FX: HeroFx = {
       effects.play('impact', bossHit, 0, 0.7);
       magic.ring(bossFeet, BLUE, 3, 0.25);
     },
+    // A blow of his fist fight (his animation for his attack): it lands on the boss with his demon arm's blue fire, the last (the kick) the hardest.
+    attack({ effects, magic, bossHit, bossFeet }, _who, part) {
+      effects.play('impact', bossHit, 0, part === 4 ? 1.1 : 0.7);
+      magic.ring(bossFeet, BLUE, part === 4 ? 5 : 3, 0.25);
+    },
     // Destructive Instinct: the swipe round, then the blow to the ground.
     instinct({ effects, magic, bossHit, bossFeet }, _who, part) {
       if (part === 0) {

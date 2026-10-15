@@ -81,19 +81,23 @@ export const MORRAH: HeroDef = {
     /** Her allies on the field, standing and in the fight (her too). */
     const allies = (): Fighter[] => fight.field.filter((ally) => ally.hp > 0 && !away(ally.statuses));
 
+    /** A cut of her attack. With Burning Power, harder for its Flame, and leaving one more; with her unique weapon, now and then it hits less hard and takes more. */
+    const cleave = (): void => {
+      if (burning > 0) {
+        fight.hit(self, CLEAVE.blow + CLEAVE.burning * fanning());
+        burn(1);
+      } else fight.hit(self, CLEAVE.blow);
+      if (tier === null || fight.roll() >= CARPRAIN.chance) return;
+      const weaker = atTier(CARPRAIN.weaker, tier);
+      const takes = weaker * (flames() >= FLAME.most ? CARPRAIN.full : 1);
+      put(fight.foe.statuses, { name: CARPRAIN.name, left: CARPRAIN.lasts, deals: 1 - weaker, takes: { magical: 1 + takes }, shown: 'curse' });
+    };
+
     return {
       lands: {
-        // Her attack: a cut across the boss. With Burning Power, harder for its Flame, and leaving one more; with her unique weapon, now and then it hits less hard and takes more.
-        cleave() {
-          if (burning > 0) {
-            fight.hit(self, CLEAVE.blow + CLEAVE.burning * fanning());
-            burn(1);
-          } else fight.hit(self, CLEAVE.blow);
-          if (tier === null || fight.roll() >= CARPRAIN.chance) return;
-          const weaker = atTier(CARPRAIN.weaker, tier);
-          const takes = weaker * (flames() >= FLAME.most ? CARPRAIN.full : 1);
-          put(fight.foe.statuses, { name: CARPRAIN.name, left: CARPRAIN.lasts, deals: 1 - weaker, takes: { magical: 1 + takes }, shown: 'curse' });
-        },
+        // Her attack: a cut across the boss one way and then the other, as written in code; or Clause's slash, as his rig has it.
+        cleave,
+        attack: cleave,
         // Down on the boss, harder for its Flame: it is knocked down, and 3 more Flame; her attack burns for a while.
         burning() {
           fight.hit(self, BURNING.blow * fanning());

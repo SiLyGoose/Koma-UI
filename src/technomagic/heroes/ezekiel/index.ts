@@ -56,6 +56,8 @@ export const EZEKIEL: HeroDef = {
   id: 'ezekiel',
   name: 'Ezekiel',
   class: 'assassin',
+  // In the frontline, for all he is an assassin.
+  line: 'front',
   assets: EZEKIEL_ASSETS,
   // An assassin whose blows are magical (his demon arm's): as his class stands, otherwise.
   stats: { ...CLASS_STATS.assassin, deals: 'magical' },
@@ -67,6 +69,7 @@ export const EZEKIEL: HeroDef = {
   passive: CURSED_BLOOD,
   attack: 'claw',
   stands: STAND,
+  varies: true,
   join(fight, self) {
     /** His Cursed Blood; how long his Fury lasts yet; and whether he was on Auto before it (he is put back so after). */
     let stacks = 0;
@@ -98,12 +101,16 @@ export const EZEKIEL: HeroDef = {
       });
     };
 
+    /** A blow of his attack (twice as hard in Fury). */
+    const claw = (): void => {
+      fight.hit(self, CLAW.blow * (fury > 0 ? CLAW.fury : 1));
+    };
+
     return {
       lands: {
-        // His attack: a swipe of his demon arm (twice as hard in Fury).
-        claw() {
-          fight.hit(self, CLAW.blow * (fury > 0 ? CLAW.fury : 1));
-        },
+        // His attack: a swipe of his demon arm, as written in code; or each blow of his fist fight, as his animation for it has it.
+        claw,
+        attack: claw,
         // A swipe at the boss, then a blow to the ground that knocks it down (both harder in Fury).
         instinct(part) {
           const times = furious.instinct ? INSTINCT.fury : 1;

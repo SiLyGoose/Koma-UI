@@ -1,10 +1,23 @@
-import type { HeroAssets } from '../types.ts';
+import type { HeroAssets, RiggedModel } from '../types.ts';
 
 /*
  * Morrah: her body and hair, her sword (Carprain) in her right hand and her shield on her left arm, laid out as
- * Clause's are (the blade along what was its y). No rig of hers: she stands, runs in and does everything by the
- * poses written in code (../../heroes/morrah/moves.ts).
+ * Clause's are (the blade along what was its y). No rig of hers: she stands, runs in and attacks as Clause does, by
+ * copies of his rig's animations (sword and shield, as hers are), and does her skills by the poses written in code
+ * (../../heroes/morrah/moves.ts).
  */
+
+/**
+ * Clause's idle, run and slash (copies of ../clause.ts's, on his skeleton), timed as his are: the blow lands a
+ * little after the sword hand is moving fastest, and she leaves it just after. The same for both her skins.
+ */
+const MOVED_BY = {
+  kind: 'rigged',
+  folder: 'Morrah_Mixamo',
+  idle: 'Morrah - Sword And Shield Idle.fbx',
+  run: 'Morrah - Sword And Shield Run.fbx',
+  attack: [{ file: 'Morrah - Sword And Shield Slash.fbx', lands: [0.68], until: 0.8 }],
+} as const satisfies RiggedModel;
 export const MORRAH_ASSETS: HeroAssets = {
   name: 'Morrah',
   folder: 'heroes/morrah',
@@ -20,6 +33,7 @@ export const MORRAH_ASSETS: HeroAssets = {
         left: 'Hero_Morrah_Vari05_Shield',
         right: 'Hero_Morrah_Vari05_Sword',
         blade: 'y',
+        movedBy: MOVED_BY,
       },
     },
     // Her Halloween costume, with its own hair, sword and shield.
@@ -31,6 +45,7 @@ export const MORRAH_ASSETS: HeroAssets = {
         left: 'Hero_Morrah_Cos19Halloween_Shield',
         right: 'Hero_Morrah_Cos19Halloween_Sword',
         blade: 'y',
+        movedBy: MOVED_BY,
       },
     },
   ],

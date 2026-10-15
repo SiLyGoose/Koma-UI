@@ -4,8 +4,9 @@ import { COILED, KNEELING, LOW, LUNGE, TALL, TUCKED } from '../moves/stances';
 
 /*
  * What Ezekiel's body does for his attack and his three skills. He holds nothing: his right arm is Barbatos, his
- * demon arm, and he fights with its claws (where its hand points is where they reach). They are written from how
- * he stands (STAND), not from a swordsman's rest. What comes of each is in ./index.ts.
+ * demon arm, and he fights with its claws (where its hand points is where they reach). He stands in Kirze's idle and
+ * attacks with a fist fight, by animations (../../assets/heroes/ezekiel.ts): his attack here is for a computer
+ * without them. They are written from how he stands (STAND), not from a swordsman's rest. What comes of each is in ./index.ts.
  */
 
 /** How he stands: low and loose, his weight back, his demon arm hanging heavy at his right side with its claws pointing down, his left hand at his hip. */

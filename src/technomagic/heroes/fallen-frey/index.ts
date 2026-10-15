@@ -67,6 +67,7 @@ export const FALLEN_FREY: HeroDef = {
   passive: TAINTED_ANGEL,
   attack: 'smite',
   stands: STAND,
+  varies: true,
   join(fight, self) {
     /** Her Darkened Power, and how long her mana has been full toward the next. */
     let stacks = 0;

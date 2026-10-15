@@ -53,6 +53,7 @@ export const LORRAINE: HeroDef = {
   passive: BLADE_LEAF,
   attack: 'lash',
   stands: STAND,
+  varies: true,
   join(fight, self) {
     /** How long until Tangled Vine's blow after (0: none coming); toward her Poison's next bite; and toward her unique weapon's next blow. */
     let vine = 0;
