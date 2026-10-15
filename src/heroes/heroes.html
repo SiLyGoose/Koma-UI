@@ -45,11 +45,12 @@
         <h2>Active Effects</h2>
         <ul id="totals" class="detail-effects"></ul>
       </div>
-      <!-- What the panel beside the hero shows: its stats in the raid, the gear it can wear, or its skills. -->
+      <!-- What the panel beside the hero shows: its stats in the raid, the gear it can wear, its skills, or its transcendence perks. -->
       <div class="hero-tabs" role="tablist" aria-label="Show">
         <button type="button" class="action choice" role="tab" data-view="stats" aria-selected="false" aria-controls="stats">Stats</button>
         <button type="button" class="action choice" role="tab" data-view="gear" aria-selected="true" aria-controls="armory">Gear</button>
         <button type="button" class="action choice" role="tab" data-view="skills" aria-selected="false" aria-controls="skills">Skills</button>
+        <button type="button" class="action choice" role="tab" data-view="transcend" aria-selected="false" aria-controls="transcend">Transcend</button>
       </div>
     </div>
 
@@ -90,6 +91,24 @@
         <div class="sheet-scroll">
           <ol id="skills-list" class="skills-list"></ol>
         </div>
+      </div>
+    </div>
+
+    <!--
+      Transcend: the hero's transcendence perks (src/heroes/transcend.ts), a row for each tier as King's Raid has them, the
+      TP left over them. Picking one says what it does under them, with what learns it (or forgets it); Reset Perks forgets them all.
+    -->
+    <div id="transcend" class="armory stats transcend off" role="tabpanel">
+      <div class="armory-plaque plaque"><span id="transcend-title">Transcendence Perks</span></div>
+      <div class="armory-sheet">
+        <div class="sheet-scroll">
+          <p class="tp"><span class="tp-badge" aria-hidden="true">TP</span><span id="tp-left" class="tp-left"></span></p>
+          <div id="perk-rows" class="perk-rows"></div>
+          <div id="perk-info" class="perk-info" aria-live="polite"></div>
+        </div>
+      </div>
+      <div class="armory-foot">
+        <button type="button" id="reset-perks" class="armory-action action secondary danger">Reset Perks</button>
       </div>
     </div>
   </section>

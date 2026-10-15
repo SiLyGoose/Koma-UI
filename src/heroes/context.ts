@@ -31,6 +31,12 @@ export interface HeroesUi {
   skills: HTMLElement;
   skillsTitle: HTMLElement;
   skillsList: HTMLElement;
+  transcend: HTMLElement;
+  transcendTitle: HTMLElement;
+  tpLeft: HTMLElement;
+  perkRows: HTMLElement;
+  perkInfo: HTMLElement;
+  resetPerks: HTMLButtonElement;
 }
 
 /** Everything the mounted page knows. */
@@ -46,7 +52,9 @@ export interface HeroesContext {
   stars: StarChoice;
   query: string;
   /** What the panel beside the hero shows. */
-  tab: 'stats' | 'gear' | 'skills';
+  tab: 'stats' | 'gear' | 'skills' | 'transcend';
+  /** The transcendence perk whose words show (its id), if any. */
+  perk: string | null;
   /** The copy shown over the hero, if any. */
   picked: string | null;
   /** A change on its way, and its button: the page waits for it before taking another. */
@@ -98,6 +106,12 @@ export function createContext(root: HTMLElement): HeroesContext {
       skills: $('skills'),
       skillsTitle: $('skills-title'),
       skillsList: $('skills-list'),
+      transcend: $('transcend'),
+      transcendTitle: $('transcend-title'),
+      tpLeft: $('tp-left'),
+      perkRows: $('perk-rows'),
+      perkInfo: $('perk-info'),
+      resetPerks: $<HTMLButtonElement>('reset-perks'),
     },
     view: null,
     hero: null,
@@ -106,6 +120,7 @@ export function createContext(root: HTMLElement): HeroesContext {
     stars: 'all',
     query: '',
     tab: 'gear',
+    perk: null,
     picked: null,
     busy: null,
     members: [],

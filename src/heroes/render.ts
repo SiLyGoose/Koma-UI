@@ -4,10 +4,11 @@ import { working } from '../shared/ui';
 import { copyById, heroShown, mine, slotFor, slotOf, type HeroesContext } from './context';
 import { heroSkills } from './skills';
 import { heroStats } from './stats';
+import { heroPerks, spent, TRANSCEND_POINTS, type Perk, type TranscendTier } from './transcend';
 
 /*
  * Draws the heroes page from what the bot said (ctx.view): the roster of heroes, the one shown on the stage
- * with its slots, what its gear gives it, the gear a hero can wear (or its stats), and the copy picked.
+ * with its slots, what its gear gives it, the gear a hero can wear (or its stats, skills or transcendence perks), and the copy picked.
  */
 
 /** What the page's buttons do (page.ts). */
@@ -15,6 +16,8 @@ export interface HeroActions {
   pickHero(id: string): void;
   equip(copy: HeroCopy, slot: HeroSlot): void;
   unequip(slot: HeroSlot): void;
+  /** Picks the hero shown's transcendence perks, all of them at once (none: reset); `key` is the button waiting on it. */
+  transcend(perks: string[], key: string): void;
 }
 
 /** The armory always shows at least this many cells (rounded up to a full row), and fills out its last row. */
@@ -44,9 +47,11 @@ export function render(ctx: HeroesContext, act: HeroActions): void {
   renderDetail(ctx, act);
   renderStats(ctx);
   renderSkills(ctx);
+  renderTranscend(ctx, act);
   ui.armory.classList.toggle('off', ctx.tab !== 'gear');
   ui.stats.classList.toggle('off', ctx.tab !== 'stats');
   ui.skills.classList.toggle('off', ctx.tab !== 'skills');
+  ui.transcend.classList.toggle('off', ctx.tab !== 'transcend');
   for (const tab of ui.views) tab.setAttribute('aria-selected', String(tab.dataset.view === ctx.tab));
   // Someone else's heroes are only to look at.
   ui.unequipAll.hidden = !mine(ctx);
@@ -143,6 +148,7 @@ function renderStage(ctx: HeroesContext): void {
   ui.armoryTitle.textContent = mine(ctx) ? `${hero.name}'s Gear` : `${ctx.viewing?.name}'s Hero Gear`;
   ui.statsTitle.textContent = `${hero.name}'s Stats`;
   ui.skillsTitle.textContent = `${hero.name}'s Skills`;
+  ui.transcendTitle.textContent = `${hero.name}'s Transcendence`;
 }
 
 /** The five slots round the hero: what's in each (or that it's empty), the one last pressed framed. */
@@ -384,4 +390,91 @@ export function skillRows(id: string): HTMLElement[] {
     item.append(icon, words);
     return item;
   });
+}
+
+const TIERS: readonly TranscendTier[] = [1, 2, 3, 5];
+
+/** A perk's tier and side, as its tag says it: "Transcend 3 · Light". */
+const perkTag = (perk: Perk): string => `Transcend ${perk.tier}${perk.side ? ` · ${perk.side === 'light' ? 'Light' : 'Dark'}` : ''}`;
+
+/**
+ * The Transcend tab: the TP left, a row of perks for each tier (the ones learned lit and framed in gold, the rest
+ * greyed), and under them the words of the one picked, with Learn or Remove (their own hero's only); Reset Perks under it all.
+ */
+function renderTranscend(ctx: HeroesContext, act: HeroActions): void {
+  const { ui } = ctx;
+  const hero = heroShown(ctx);
+  if (!hero) return;
+  const perks = heroPerks(hero.id, hero.class);
+  const learned = hero.perks ?? [];
+  const left = TRANSCEND_POINTS - spent(perks, learned);
+  ui.tpLeft.textContent = `${left}/${TRANSCEND_POINTS}`;
+  ui.tpLeft.parentElement?.setAttribute('aria-label', `${left} of ${TRANSCEND_POINTS} TP left`);
+  if (ctx.perk && !perks.some((perk) => perk.id === ctx.perk)) ctx.perk = null;
+
+  // The rows drawn again only for another hero (their pictures would load again); what's learned and picked marked on them each time.
+  if (ui.perkRows.dataset.hero !== hero.id) {
+    ui.perkRows.dataset.hero = hero.id;
+    ui.perkRows.replaceChildren(
+      ...TIERS.map((tier) => {
+        const row = el('section', `perk-row tier-${tier}`);
+        const cells = el('div', 'perk-cells');
+        for (const perk of perks.filter((one) => one.tier === tier)) {
+          const cell = el('button', 'perk');
+          cell.type = 'button';
+          cell.dataset.perk = perk.id;
+          cell.title = perk.side ? `${perk.name} (${perk.side === 'light' ? 'Light' : 'Dark'})` : perk.name;
+          const picture = el('img');
+          picture.alt = '';
+          picture.src = perk.picture;
+          cell.append(picture, el('span', 'perk-cost', String(perk.cost)));
+          cell.addEventListener('click', () => {
+            ctx.perk = ctx.perk === perk.id ? null : perk.id;
+            render(ctx, act);
+          });
+          cells.append(cell);
+        }
+        row.append(el('h3', 'perk-tier', `Transcend ${tier}`), cells);
+        return row;
+      }),
+    );
+  }
+  for (const cell of ui.perkRows.querySelectorAll<HTMLButtonElement>('.perk')) {
+    const perk = perks.find((one) => one.id === cell.dataset.perk);
+    if (!perk) continue;
+    const on = learned.includes(perk.id);
+    cell.classList.toggle('learned', on);
+    cell.setAttribute('aria-pressed', String(ctx.perk === perk.id));
+    cell.setAttribute('aria-label', `${perk.name}${perk.side ? ` (${perk.side})` : ''}, ${perk.cost} TP${on ? ', learned' : ''}`);
+  }
+
+  // The perk picked: what it does, and what learns or forgets it.
+  ui.perkInfo.textContent = '';
+  const perk = perks.find((one) => one.id === ctx.perk);
+  if (!perk) {
+    ui.perkInfo.append(el('p', 'perk-hint', 'Pick a perk to see what it does.'));
+  } else {
+    const on = learned.includes(perk.id);
+    const head = el('div', 'perk-head');
+    head.append(el('h3', 'perk-name', perk.name), el('span', 'perk-tag', `${perkTag(perk)} · ${perk.cost} TP`));
+    const text = el('p', 'perk-text');
+    text.append(...skillText(perk.text));
+    ui.perkInfo.append(head, text);
+    if (!hero.owned) ui.perkInfo.append(el('p', 'detail-note', notRecruited(ctx, hero.name, 'transcend them')));
+    else if (mine(ctx)) {
+      const short = !on && perk.cost > left;
+      const action = el('button', `perk-action action ${on ? 'secondary' : 'main'}`, on ? 'Remove' : 'Learn');
+      action.type = 'button';
+      action.disabled = short;
+      working(action, ctx.busy, `perk:${perk.id}`);
+      action.addEventListener('click', () => act.transcend(on ? learned.filter((id) => id !== perk.id) : [...learned, perk.id], `perk:${perk.id}`));
+      ui.perkInfo.append(action);
+      if (short) ui.perkInfo.append(el('p', 'detail-note warn', `Needs ${perk.cost} TP: ${left} left. Remove another perk first.`));
+    }
+  }
+
+  // Someone else's heroes are only to look at.
+  ui.resetPerks.hidden = !mine(ctx);
+  ui.resetPerks.disabled = !hero.owned || learned.length === 0;
+  working(ui.resetPerks, ctx.busy, 'reset-perks');
 }

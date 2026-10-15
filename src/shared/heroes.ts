@@ -71,6 +71,8 @@ export interface Hero {
   skills?: string[];
   /** The same as lines (then its set's, and its additional skills', last). */
   totals: string[];
+  /** The transcendence perks picked for it (the bot's data/transcend.ts ids: ../heroes/transcend.ts; absent from a bot from before them). */
+  perks?: string[];
 }
 
 export interface HeroesView {
