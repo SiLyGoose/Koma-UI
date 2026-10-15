@@ -1,4 +1,6 @@
+import { share } from '../combat/damage';
 import { away, put, type Status } from '../combat/status';
+import { t5Light } from '../perks';
 import { BLOW, MAX_MANA } from '../rules';
 import { skillArt, type Buff } from '../shown';
 import type { Fighter } from '../types';
@@ -22,6 +24,11 @@ import { CLASS_STATS, type HeroDef, type Passive } from './kit';
  * Her unique weapon (../unique.ts) is worked here too: every so often a Charge (even while Overcharged)
  * and a little mana, and while she is Overcharged every ally deals more and takes less.
  * What is drawn for each is ../../heroes/annette/fx.ts; what her body does for each, and for her attack, ../../heroes/annette/moves.ts.
+ *
+ * Her own perks (../perks.ts) are King's Raid's. Process of Elimination's Dark doesn't say for how long: as long as it
+ * leaves the boss so Overcharged (10 seconds), Overcharged or not (and both, Overcharged). What Charge's Light adds, it
+ * adds to Overcharge's ATK; Transcend 5's Dark's ATK for every ally (a share of hers) is so much more DMG, and its
+ * attack speed a pace.
  */
 const ZAP = { blow: BLOW * 1.4 };
 const RAY = { blow: 4000, extra: 3000, weaker: 0.15, takes: 0.25, lasts: 10 };
@@ -29,6 +36,8 @@ const RAY = { blow: 4000, extra: 3000, weaker: 0.15, takes: 0.25, lasts: 10 };
 const TREATMENT = { heal: 40_000, lasts: 10, resist: 250, crit: 0.25, dmg: 0.1 };
 const ELIMINATION = { blow: 7000, over: 10000, takes: 0.25, lasts: 10, stun: 5 };
 const CHARGE = { every: 0.5, perCrystal: 10, full: 100, lasts: 15, atk: 0.3, cooldown: 0.1 };
+/** Her own perks' numbers: more Charge from a skill, Process of Elimination's mark, Overcharge's more ATK and longer, and Transcend 5's Dark's for every ally (attack speed in points, ATK a share of hers). */
+const PERKS = { charge: 1.4, eliminated: 0.25, overAtk: 1.4, overLonger: 3, allies: { speed: 200, atk: 0.05 } };
 
 const art = skillArt('annette');
 
@@ -47,6 +56,8 @@ const CHARGING: Passive = {
 const CHARGED: Buff = { name: 'Charge', about: 'At 100 she is [Overcharged].', icon: '⚡' };
 /** Overcharged: shown on her card, with how long it has left. */
 const OVERCHARGED: Buff = { name: 'Overcharge', about: '30% higher ATK; each attack takes 10% off her skills’ cooldowns; her skills do more.', icon: '🔋', art: art(3) };
+/** What Transcend 5's Dark gives every ally while she is Overcharged. */
+const ROUSED: Buff = { name: 'Overcharge (allies)', about: 'Quicker, and its ATK higher by 5% of Annette’s.', icon: '⚡', art: art(3) };
 /** What Emergency Treatment gives each ally: shown on its card, with how long it has left. */
 const TREATED: Buff = { name: 'Emergency Treatment', about: 'Healed over time, and knocked down for less long.', icon: '🩹', art: art(1) };
 const TREATED_OVER: Buff = { name: 'Emergency Treatment', about: 'Healed over time; more likely to land a critical blow, deals 10% more, and can’t be knocked down.', icon: '🩹', art: art(1) };
@@ -67,6 +78,18 @@ export const ANNETTE: HeroDef = {
     { name: 'Process of Elimination', about: 'A ball of energy that bursts on the boss. [Overcharged]: it bursts harder, stuns the boss for 5 seconds, and leaves it taking 25% more magical damage for 10.', icon: '💣', art: art(2), move: 'elimination', cooldown: 25, cost: 3 },
   ],
   passive: CHARGING,
+  perks: {
+    's1-light': { words: 'Target takes 25% increased M.DMG for 10 sec.', skill: { index: 0, mark: { name: 'Magic Weakness', takes: { magical: 1.25 }, lasts: 10 } } },
+    's1-dark': { words: 'Charge amount is boosted by 40% upon use.' },
+    's2-light': { words: 'Cooldown is reduced by 3 sec.', skill: { index: 1, cooldown: -3 } },
+    's2-dark': { words: 'Charge amount is boosted by 40% upon use.' },
+    's3-light': { words: 'DMG is increased by 40%.', skill: { index: 2, dmg: 1.4 } },
+    's3-dark': { words: 'Target takes 25% increased M.DMG.' },
+    's4-light': { words: 'ATK boost is increased by 40%.' },
+    's4-dark': { words: 'Overcharge duration is increased by 3 sec.' },
+    't5-light': t5Light('ATK, DEF, HP +15% / ATK Spd +100', { speed: 100 }),
+    't5-dark': { words: "When Overcharge activates, increases all allies' ATK Spd by 200, and increases the ATK of all allies by 5% of Annette's ATK." },
+  },
   attack: 'zap',
   join(fight, self) {
     /** Her Charge; how long she is Overcharged for yet; and toward her next Charge, and her unique weapon's. */
@@ -90,8 +113,12 @@ export const ANNETTE: HeroDef = {
       charge = Math.min(CHARGE.full, charge + count);
       if (charge < CHARGE.full || over > 0) return;
       charge = 0;
-      over = CHARGE.lasts;
-      put(self.statuses, { name: OVERCHARGED.name, left: over, deals: 1 + CHARGE.atk, shown: OVERCHARGED });
+      over = CHARGE.lasts + (self.perks.has('s4-dark') ? PERKS.overLonger : 0);
+      put(self.statuses, { name: OVERCHARGED.name, left: over, deals: 1 + CHARGE.atk * (self.perks.has('s4-light') ? PERKS.overAtk : 1), shown: OVERCHARGED });
+      // Transcend 5's Dark: every ally quicker, and its ATK higher by a share of hers (so much more DMG), while it lasts.
+      if (self.perks.has('t5-dark')) {
+        for (const ally of allies()) put(ally.statuses, { name: ROUSED.name, left: over, pace: 1 + share(PERKS.allies.speed), deals: 1 + (PERKS.allies.atk * self.stats.atk) / ally.stats.atk, shown: ROUSED });
+      }
     };
 
     return {
@@ -135,15 +162,18 @@ export const ANNETTE: HeroDef = {
         elimination() {
           const more = overcharged.elimination;
           fight.hit(self, more ? ELIMINATION.over : ELIMINATION.blow);
-          if (!more) return;
-          put(fight.foe.statuses, { name: ELIMINATED, left: ELIMINATION.lasts, takes: { magical: 1 + ELIMINATION.takes }, shown: 'curse' });
-          fight.stun(ELIMINATION.stun, { by: self });
+          // (Its Dark: the boss takes more magical damage, Overcharged or not.)
+          const takes = (more ? ELIMINATION.takes : 0) + (self.perks.has('s3-dark') ? PERKS.eliminated : 0);
+          if (takes > 0) put(fight.foe.statuses, { name: ELIMINATED, left: ELIMINATION.lasts, takes: { magical: 1 + takes }, shown: 'curse' });
+          if (more) fight.stun(ELIMINATION.stun, { by: self });
         },
       },
       // Each skill as it is used: whether she is Overcharged, and ten Charge for each crystal of mana it took.
-      used(_index, ability) {
+      used(index, ability) {
         if (ability.move === 'ray' || ability.move === 'treatment' || ability.move === 'elimination') overcharged[ability.move] = over > 0;
-        gain(ability.cost * CHARGE.perCrystal);
+        // (Blasting Ray's and Emergency Treatment's Dark: more Charge for them.)
+        const more = (index === 0 && self.perks.has('s1-dark')) || (index === 1 && self.perks.has('s2-dark')) ? PERKS.charge : 1;
+        gain(ability.cost * CHARGE.perCrystal * more);
       },
       tick(dt) {
         // Emergency Treatment heals every ally a share of it each second.
