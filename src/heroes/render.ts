@@ -3,6 +3,7 @@ import { classBadge, className, FACE, HERO_SLOT_KIND, heroCut, heroPicture, skil
 import { working } from '../shared/ui';
 import { copyById, heroShown, mine, slotFor, slotOf, type HeroesContext } from './context';
 import { heroSkills } from './skills';
+import type { HeroSkillView } from '../protocol/heroes';
 import { heroStats } from './stats';
 import { ESSENCE_NAME, essencePicture, heroPerks, spent, TRANSCEND_MAX, TRANSCEND_POINTS, type EssenceId, type Perk, type TranscendTier } from './transcend';
 import { GEM_EMOJI } from '../forge/anvil/gem';
@@ -383,15 +384,15 @@ function renderSkills(ctx: HeroesContext): void {
   // Only redrawn for another hero (its pictures would load again).
   if (!hero || ui.skillsList.dataset.hero === hero.id) return;
   ui.skillsList.dataset.hero = hero.id;
-  const skills = skillRows(hero.id);
+  const skills = skillRows(hero.id, hero.abilities ?? []);
   ui.skillsList.replaceChildren(...skills);
   if (skills.length === 0) ui.skillsList.append(el('p', 'stats-empty', 'No skills to show for this hero yet.'));
 }
 
-/** A row for each of a hero's skills, for a .skills-list (the databank's Heroes too); none for a hero with no words for them. */
-export function skillRows(id: string): HTMLElement[] {
-  return heroSkills(id).map((skill, i) => {
-    const passive = skill.cost === null && skill.tag === null;
+/** A row for each of a hero's skills (as the bot sends them), for a .skills-list (the databank's Heroes too). */
+export function skillRows(id: string, skills: readonly HeroSkillView[]): HTMLElement[] {
+  return heroSkills(id, skills).map((skill, i) => {
+    const passive = skill.cost === null;
     const item = el('li', 'skill');
     const icon = el('span', 'skill-icon', passive ? 'P' : String(i + 1));
     if (skill.picture) {
@@ -404,7 +405,7 @@ export function skillRows(id: string): HTMLElement[] {
     }
     const head = el('div', 'skill-head');
     head.append(el('h3', 'skill-name', skill.name));
-    head.append(el('span', 'skill-tag', skill.tag ?? (passive ? 'Passive' : `${skill.cost} Mana · ${skill.cooldown}s`)));
+    head.append(el('span', 'skill-tag', passive ? (skill.tag ?? 'Passive') : `${skill.cost} Mana · ${skill.tag ?? `${skill.cooldown}s`}`));
     const words = el('div', 'skill-words');
     const text = el('p', 'skill-text');
     text.append(...skillText(skill.text));

@@ -2,7 +2,6 @@ import { KEPT } from '../technomagic/assets';
 import { HEROES } from '../technomagic/sim/heroes';
 import type { HeroClass } from '../technomagic/sim/heroes/kit';
 import { CLASS_PERKS, COMMON_PERKS, type OwnPerkId } from '../technomagic/sim/perks';
-import { heroSkills } from './skills';
 import { TRANSCEND_PERKS, type TranscendTier } from '../protocol/heroes';
 
 /** How far a hero can be transcended, the TP it has at its most, and the hero essences: the bot's (../protocol/heroes.ts). */
@@ -42,9 +41,10 @@ const slug = (name: string): string => name.toLowerCase().replace(/[^a-z0-9]+/g,
 
 /** A hero's perks, in the bot's order (Transcend 1, 2, 3, then 5); only the ones the sim has words for. */
 export function heroPerks(id: string, heroClass: string): Perk[] {
-  const own = HEROES.find((hero) => hero.id === id)?.perks;
+  const def = HEROES.find((hero) => hero.id === id);
+  const own = def?.perks;
+  const skills = def ? [...def.abilities.map(({ name }) => name), def.passive?.shown.name] : [];
   const classes = CLASS_PERKS[heroClass as HeroClass] ?? [];
-  const skills = heroSkills(id);
   const perks: Perk[] = [];
   for (const { id: perk, tier, cost } of TRANSCEND_PERKS) {
     if (tier === 1) {
@@ -61,7 +61,7 @@ export function heroPerks(id: string, heroClass: string): Perk[] {
     if (!def) continue;
     const side = perk.endsWith('-light') ? 'light' : 'dark';
     // (A Transcend 3 perk goes by its skill's name, the passive's for s4; a Transcend 5 perk by its side.)
-    const name = tier === 3 ? (skills[Number(perk[1]) - 1]?.name ?? `Skill ${perk[1]}`) : side === 'light' ? 'Light' : 'Dark';
+    const name = tier === 3 ? (skills[Number(perk[1]) - 1] ?? `Skill ${perk[1]}`) : side === 'light' ? 'Light' : 'Dark';
     perks.push({ id: perk, tier, cost, name, side, text: def.words, picture: `${FOLDER}/${id}/${perk}.png` });
   }
   return perks;

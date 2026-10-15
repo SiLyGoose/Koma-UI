@@ -94,7 +94,7 @@ function renderHero(ctx: DatabankContext): void {
   const stats = heroStats({ class: hero.class }).filter((section) => section.title !== 'Hero');
   if (stats.length > 0) ui.heroBody.append(label('Stats'), el('p', 'db-boss-note', 'With no gear on: the heroes page has them with yours.'), ...statBlocks(stats));
 
-  const skills = skillRows(hero.id);
+  const skills = skillRows(hero.id, ctx.databank?.heroes?.find((one) => one.id === hero.id)?.abilities ?? []);
   if (skills.length > 0) {
     const list = el('ol', 'skills-list');
     list.append(...skills);

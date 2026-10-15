@@ -1,5 +1,5 @@
 // Copied from the bot's src/protocol/ by scripts/sync.mjs: change it there, then `yarn sync`.
-import type { EssenceId } from './heroes';
+import type { EssenceId, HeroSkillView } from './heroes';
 import type { Slot, Stars } from './items';
 import type { RaidBossId, RaidClassId, RaidLevel } from './raid';
 
@@ -99,6 +99,8 @@ export interface Databank {
   /** Every raid boss, in the order the weeks go through them, and what goes for them all. */
   bosses: DatabankBoss[];
   raid: DatabankRaid;
+  /** The TechnoMagic Raid's heroes, in the order the shop shows them: each one's three skills, then its passive. */
+  heroes: { id: string; abilities: HeroSkillView[] }[];
 }
 
 /** GET /api/raid/week: a server's raid, for the databank's boss pages. */
