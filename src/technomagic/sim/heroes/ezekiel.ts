@@ -1,5 +1,6 @@
 import { share } from '../combat/damage';
 import { put } from '../combat/status';
+import { t5Light } from '../perks';
 import { BLOW } from '../rules';
 import { skillArt, type Buff } from '../shown';
 import { atTier, BARBATOS } from '../unique';
@@ -21,6 +22,9 @@ import { CLASS_STATS, type HeroDef, type Passive } from './kit';
  * His unique weapon (../unique.ts) is worked here too: his Fury lasts longer, and while it does his critical
  * blows are harder and he stands being knocked down better.
  * What is drawn for each is ../../heroes/ezekiel/fx.ts; what his body does for each, and for his attack, ../../heroes/ezekiel/moves.ts.
+ *
+ * His own perks (../perks.ts) are King's Raid's. Strike of Doom's Light has him not to be knocked down while he
+ * strikes (what the boss does to a hero to hold it). What gives him ATK gives him so much more DMG, as Fury does.
  */
 const CLAW = { blow: BLOW * 1.2, fury: 2 };
 const INSTINCT = { swipe: 2000, strike: 2500, down: 3, fury: 1.5, cost: 0.15 };
@@ -28,6 +32,8 @@ const INSTINCT = { swipe: 2000, strike: 2500, down: 3, fury: 1.5, cost: 0.15 };
 const DESPAIR = { blow: 3500, speed: 300, slowed: 5, stun: 3, lasts: 10, cost: 0.1 };
 const DOOM = { blow: 4500, stun: 3, fury: 3, cost: 0.2 };
 const CURSED = { most: 3, blow: 5000, down: 3, lasts: 10, atk: 0.3 };
+/** His own perks' numbers: Destructive Instinct's Dark's ATK after it (how long), Fury's more Heal Rate, and less taken for each stack of Cursed Blood. */
+const PERKS = { atk: 1.4, atkFor: 5, heals: 1.5, taken: 0.12 };
 
 const art = skillArt('ezekiel');
 
@@ -49,6 +55,8 @@ const STACKED: Buff = { name: 'Cursed Blood', about: 'At 3, he is in [Fury].', i
 const FURY: Buff = { name: 'Fury', about: 'ATK 30% higher, his attack twice as hard, every skill reinforced (each costs a share of his health); he fights by himself.', icon: '😈', art: art(3) };
 /** What Dawning Despair in Fury gives him for a while. */
 const QUICKENED: Buff = { name: 'Dawning Despair', about: 'His attacks quickened.', icon: '💨', art: art(1) };
+/** What Destructive Instinct's Dark gives him after it. */
+const INSTINCT_UP: Buff = { name: 'Destructive Instinct', about: 'ATK 40% higher.', icon: '🌀', art: art(0) };
 
 export const EZEKIEL: HeroDef = {
   id: 'ezekiel',
@@ -65,6 +73,18 @@ export const EZEKIEL: HeroDef = {
     { name: 'Strike of Doom', about: 'A charged blow that stuns the boss for 3 seconds. In [Fury]: three times as hard, for 20% of the health he has.', icon: '💥', art: art(2), move: 'doom', cooldown: 7, cost: 2 },
   ],
   passive: CURSED_BLOOD,
+  perks: {
+    's1-light': { words: 'DMG is increased by 40%.', skill: { index: 0, dmg: 1.4 } },
+    's1-dark': { words: 'After activation, ATK is increased by 40% for 5 sec.' },
+    's2-light': { words: 'Mana cost is reduced by 1.', skill: { index: 1, cost: -1 } },
+    's2-dark': { words: 'When activated during Fury state, ignores target DEF.' },
+    's3-light': { words: 'Becomes immune to CC during activation.' },
+    's3-dark': { words: 'If there is 1 enemy, DMG is increased by 100%.', skill: { index: 2, dmg: 2 } },
+    's4-light': { words: 'When in Fury state, heal rate is increased by 50%.' },
+    's4-dark': { words: "Per every stacked 'Cursed Blood', takes 12% reduced DMG." },
+    't5-light': t5Light('ATK, DEF, HP +15% / ATK Spd +100', { speed: 100 }),
+    't5-dark': { words: 'When in Fury state, auto attack deals DMG that ignores DEF.' },
+  },
   attack: 'claw',
   // His animations: four blows, fist and foot.
   timing: { attack: [{ lands: [0.92, 1.52, 2.78, 3.62], until: 4.3 }] },
@@ -94,14 +114,15 @@ export const EZEKIEL: HeroDef = {
         name: FURY.name,
         left: fury,
         deals: 1 + CURSED.atk,
+        ...(self.perks.has('s4-light') && { heals: PERKS.heals }),
         ...(tier === null ? {} : { critDamage: atTier(BARBATOS.critDamage, tier), resist: atTier(BARBATOS.resist, tier) }),
         shown: FURY,
       });
     };
 
-    /** A blow of his attack (twice as hard in Fury). */
+    /** A blow of his attack (twice as hard in Fury; and with Transcend 5's Dark, through the boss's defense). */
     const claw = (): void => {
-      fight.hit(self, CLAW.blow * (fury > 0 ? CLAW.fury : 1));
+      fight.hit(self, CLAW.blow * (fury > 0 ? CLAW.fury : 1), true, 0, fury > 0 && self.perks.has('t5-dark'));
     };
 
     return {
@@ -118,10 +139,11 @@ export const EZEKIEL: HeroDef = {
           }
           fight.hit(self, INSTINCT.strike * times);
           fight.stun(INSTINCT.down, { down: true, by: self });
+          if (self.perks.has('s1-dark')) put(self.statuses, { name: INSTINCT_UP.name, left: PERKS.atkFor, deals: PERKS.atk, shown: INSTINCT_UP });
         },
         // A dash and a blow: the boss's attacks slowed (in Fury, it is also stunned, and his own attacks quickened).
         despair() {
-          fight.hit(self, DESPAIR.blow);
+          fight.hit(self, DESPAIR.blow, true, 0, furious.despair && self.perks.has('s2-dark'));
           fight.slow(1 - share(DESPAIR.speed), DESPAIR.slowed);
           if (!furious.despair) return;
           fight.stun(DESPAIR.stun, { by: self });
@@ -157,6 +179,8 @@ export const EZEKIEL: HeroDef = {
           self.statuses = self.statuses.filter((status) => status.name !== FURY.name);
         }
       },
+      takes: () => (self.perks.has('s4-dark') ? 1 - PERKS.taken * stacks : 1),
+      guards: () => self.doing?.move === 'doom' && self.perks.has('s3-light'),
       lit: () => fury > 0,
       buffs: () => (fury > 0 || stacks === 0 ? [] : [{ ...STACKED, count: stacks }]),
     };
