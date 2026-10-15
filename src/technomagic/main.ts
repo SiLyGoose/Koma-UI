@@ -11,6 +11,7 @@ import { portraitPicture } from './assets';
 import { bossNamed } from './sim/bosses';
 import { BOSS_VIEWS } from './bosses/models';
 import { makeStage } from './engine/stage';
+import { Ahead } from './fight/ahead';
 import { makeFightView, type FightView } from './fight/view';
 import { loadEffects } from './fx/effects';
 import { makeMagic } from './fx/magic';
@@ -119,6 +120,8 @@ interface Controls {
   auto(fighter: number): void;
   allAuto(): void;
   toggle?(fighter: number): void;
+  /** In a room: what this page has pressed that its fight hasn't taken yet, shown at once. */
+  ahead?: Ahead;
 }
 
 /** The fight on the page: its sim, how it is drawn, and what is shown over it. */
@@ -206,7 +209,7 @@ async function start(): Promise<void> {
     for (const { card } of shown) if (card) party.append(card.root);
     const bars = sim.fighters.map(() => makeOverhead(overheads));
     /** Every hero of this player's on Auto. */
-    const allAuto = (): boolean => sim.fighters.every((fighter, i) => !controls.mine(i) || fighter.auto);
+    const allAuto = (): boolean => sim.fighters.every((fighter, i) => !controls.mine(i) || (controls.ahead?.auto(i) ?? fighter.auto));
     const meter = makeMeter(
       meterAt,
       sim.fighters.map((fighter, i) => ({ name: fighter.name, face: heads.get((entries[i] as Entrant).skin) ?? (pictures[i] as string) })),
@@ -237,10 +240,10 @@ async function start(): Promise<void> {
             maxHp: fighter.stats.hp,
             mana: fighter.mana / SECTION,
             maxMana: SECTIONS,
-            auto: fighter.auto,
+            auto: controls.ahead?.auto(i) ?? fighter.auto,
             cooldowns: fighter.cooldowns,
             slots: fighter.def.abilities.map((_, index) => sim.slot(fighter, index)),
-            reserved: fighter.reserved,
+            reserved: controls.ahead ? controls.ahead.reserved(i) : fighter.reserved,
             awake: part.lit?.() ?? false,
             effects,
           });
@@ -443,12 +446,24 @@ async function start(): Promise<void> {
       if (!bodies) return void showMessage('The models are missing', 'A hero in this fight isn’t on this computer.');
       const sim = makeSim({ boss: def, heroes: start.heroes.map((hero, i) => ({ def: (bodies[i] as Entrant).def, skin: hero.skin, gear: hero.gear, set: hero.set, uw: hero.uw ?? null, skills: hero.skills ?? [], sub: hero.sub === true })), seed: start.seed, stage: start.stage, raid: true, solo: start.solo });
       const you = state?.you;
+      // (Not the Sub Team's: they fight on Auto, with no cards.)
+      const ours = (i: number): boolean => start.heroes[i]?.owner === you && start.heroes[i]?.sub !== true;
+      const ahead = new Ahead(sim);
       game = play(sim, bodies, {
-        // (Not the Sub Team's: they fight on Auto, with no cards.)
-        mine: (i) => start.heroes[i]?.owner === you && start.heroes[i]?.sub !== true,
-        use: (fighter, skill) => send({ t: 'press', fighter, skill }),
-        auto: (fighter) => send({ t: 'auto', fighter }),
-        allAuto: () => send({ t: 'auto-all' }),
+        mine: ours,
+        use(fighter, skill) {
+          ahead.press(fighter, skill);
+          send({ t: 'press', fighter, skill });
+        },
+        auto(fighter) {
+          ahead.toggle(fighter);
+          send({ t: 'auto', fighter });
+        },
+        allAuto() {
+          ahead.toggleAll(start.heroes.flatMap((_, i) => (ours(i) ? [i] : [])));
+          send({ t: 'auto-all' });
+        },
+        ahead,
       }, mine);
       // Joined a fight long under way: straight to where it is (drawing only who is on the field).
       if (mine.upTo - sim.tick > JUMP) {
@@ -471,6 +486,8 @@ async function start(): Promise<void> {
         if (theirs !== undefined && theirs !== sim.sums[at.checked] && !at.parted) {
           at.parted = true;
           console.warn(`This page's fight parted from the bot's at second ${at.checked + 1}: what it draws may not be what happens.`);
+          // (The bot notes it: the same sim, seed and presses should never part.)
+          send({ t: 'parted', no: at.start.no, second: at.checked + 1 });
         }
       }
     }
