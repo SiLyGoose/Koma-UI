@@ -1,3 +1,4 @@
+import { t5Light } from '../perks';
 import { skillArt, type Buff } from '../shown';
 import { CLASS_STATS, type HeroDef, type Passive } from './kit';
 
@@ -10,10 +11,15 @@ import { CLASS_STATS, type HeroDef, type Passive } from './kit';
  * - Bloom, Crimson Flower!: crystals in a line that then burst, and curse the boss: its attacks are slowed,
  *   every blow on it while cursed is counted, and when the curse ends it bursts, the harder for each one.
  * What is drawn for each is ../../heroes/kirze/fx.ts; what her body does, ../../heroes/kirze/moves.ts.
+ *
+ * Her own perks (../perks.ts) are King's Raid's. Blade of Judgment's Dark has the boss alone always; Crimson Flower's Dark
+ * is [Arcane Crystal Energy]'s, which this raid hasn't: it does nothing here.
  */
 const JUDGMENT = { cut: 1500, blow: 6000, down: 3 };
 const HAZE = { burst: 9000, stun: 2, lasts: 15, quicker: 1.5, every: 2, wave: 2500, waveStun: 1 };
 const FLOWER = { line: 8000, burst: 12000, slow: 0.5, slowed: 5, curse: 10, end: 6000, each: 800 };
+/** Her own perks' numbers: the shockwave's longer stun, Crimson Flower's stronger slow (an ATK Spd reduction of 300 more), her DMG while awakened, her opening's (how long, how much), and Transcend 5's Dark's attack speed for each blow (most). */
+const PERKS = { waveStun: 0.5, slower: 0.3, awakeDmg: 1.2, opening: 20, openingDmg: 1.25, quicker: 5, most: 100 };
 
 const art = skillArt('kirze');
 
@@ -43,6 +49,18 @@ export const KIRZE: HeroDef = {
     { name: 'Bloom, Crimson Flower!', about: 'Crystals in a line to the boss, then they burst: its attacks are 50% slower for 5 seconds, and it is cursed for 10. When the curse ends it bursts, the harder for every blow landed on the boss meanwhile.', icon: '🌺', art: art(2), move: 'flower', cooldown: 20, cost: 4 },
   ],
   passive: EVIL_DEEDS,
+  perks: {
+    's1-light': { words: 'Reduces Cooldown by 3% per each enemy hit.', skill: { index: 0, cooldownShare: 0.97 } },
+    's1-dark': { words: 'If there is only 1 enemy, DMG is increased by 100%.', skill: { index: 0, dmg: 2 } },
+    's2-light': { words: 'The duration of stun from the shockwave increases by 0.5 sec against Non-Hero enemies.' },
+    's2-dark': { words: 'While under [Arcane Crystal Awakening], self deals 20% increased DMG to Non-Hero enemies.' },
+    's3-light': { words: 'Increases ATK Spd reduction by 300.' },
+    's3-dark': { words: 'If there is only 1 enemy, inflicts 2 stacks of [Arcane Crystal Energy].' },
+    's4-light': { words: 'At the beginning of each battle, self deals 25% increased DMG to Non-Hero enemies for 20 sec.' },
+    's4-dark': { words: 'Deals 15% increased DMG to Bosses.', dmg: 1.15 },
+    't5-light': t5Light('ATK, DEF, HP +15% / ATK Spd +100', { speed: 100 }),
+    't5-dark': { words: 'Every normal and Skill attack increases ATK Spd by 5. This effect can be stacked up to max 100 times.' },
+  },
   // Her Glory League animations (both skins move by them): one cut inward where she stands, then three as she walks forward.
   timing: {
     attack: [
@@ -56,6 +74,9 @@ export const KIRZE: HeroDef = {
     let wave = 0;
     /** Her curse on the boss: how long it has left, and the blows counted against it. */
     let curse: { left: number; blows: number } | null = null;
+    /** Her perks: how long her opening's more DMG lasts yet (End to Evil Deeds!'s Light), and her blows counted for attack speed (Transcend 5's Dark). */
+    let opening = self.perks.has('s4-light') ? PERKS.opening : 0;
+    let quicker = 0;
 
     return {
       lands: {
@@ -77,7 +98,7 @@ export const KIRZE: HeroDef = {
           if (part === 0) return fight.hit(self, FLOWER.line);
           fight.hit(self, FLOWER.burst);
           curse = { left: FLOWER.curse, blows: 0 };
-          fight.slow(FLOWER.slow, FLOWER.slowed);
+          fight.slow(FLOWER.slow - (self.perks.has('s3-light') ? PERKS.slower : 0), FLOWER.slowed);
         },
       },
       // A blow on the boss while it is cursed is counted.
@@ -85,6 +106,7 @@ export const KIRZE: HeroDef = {
         if (curse) curse.blows++;
       },
       tick(dt) {
+        opening = Math.max(0, opening - dt);
         // Quickened: a shockwave out from her every so often, while she is on the field, that hurts the boss and stuns it.
         if (awake > 0) {
           awake = Math.max(0, awake - dt);
@@ -93,7 +115,7 @@ export const KIRZE: HeroDef = {
             wave += HAZE.every;
             fight.cue(self, 'wave');
             fight.hit(self, HAZE.wave);
-            fight.stun(HAZE.waveStun, { by: self });
+            fight.stun(HAZE.waveStun + (self.perks.has('s2-light') ? PERKS.waveStun : 0), { by: self });
           }
         }
         // Her curse runs out and bursts, the harder for each blow counted (what the burst does isn't one of them).
@@ -108,6 +130,11 @@ export const KIRZE: HeroDef = {
         }
       },
       pace: () => (awake > 0 ? HAZE.quicker : 1),
+      deals: () => (awake > 0 && self.perks.has('s2-dark') ? PERKS.awakeDmg : 1) * (opening > 0 ? PERKS.openingDmg : 1),
+      speed: () => quicker * PERKS.quicker,
+      blow() {
+        if (self.perks.has('t5-dark')) quicker = Math.min(PERKS.most, quicker + 1);
+      },
       lit: () => awake > 0,
       buffs: () => (awake > 0 ? [{ ...AWAKENING, left: awake }] : []),
       marks: () => (curse ? [{ text: `Curse ${Math.ceil(curse.left)} · ${curse.blows} blows`, tone: 'curse' }] : []),
