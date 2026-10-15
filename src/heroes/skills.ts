@@ -134,6 +134,85 @@ const SKILLS: Record<string, { costs: [number, number, number]; cooldowns: [numb
       },
     ],
   },
+  morrah: {
+    costs: [2, 3, 3],
+    cooldowns: [6, 12, 20],
+    skills: [
+      {
+        name: 'Burning Power',
+        text: 'Deals M.DMG to enemies in range and knocks them down, inflicting 3 stacks of Flame. Then for 15 sec, each auto attack deals M.DMG and inflicts 1 stack of Flame on enemy. Per each stacked Flame, DMG is increased by 2%. Each Flame stack deals separate M.DMG and reduces Heal rate by 1%.',
+      },
+      {
+        name: 'Hellfire',
+        text: "For 20 sec, all allies' M.DEF is increased by 30% and M.Block Chance is increased by 250. Additionally, every 1 sec, inflicts 1 stack of Flame on nearby enemies.",
+      },
+      { name: 'Lava Eruption', text: 'Deals M.DMG to enemies in range and inflict knock down. Per every stacked Flame, DMG is increased by 2%.' },
+      { name: 'Fire Smash', text: 'Upon Block, deals M.DMG to enemies in range, and inflicts 3 stack of Flame.' },
+    ],
+  },
+  laias: {
+    costs: [2, 3, 4],
+    cooldowns: [8, 15, 20],
+    skills: [
+      {
+        name: 'Healing Droplets',
+        text: "Heals HP of all allies and increases Heal Rate by 25% for 10 sec. If the target's HP is 50% or below, Heal Rate increases by 1.5 times.",
+      },
+      {
+        name: 'Bubble Shield',
+        text: 'For 15 sec, casts a Shield that blocks DMG on the ally with the lowest HP. While the Shield is active, gains immunity to CC, increases ATK and heals HP every sec. For 15 sec, the ally takes 30% reduced DMG from Non-Hero targets and increases DMG dealt to Non-Hero enemies by 15%. The DMG Reduction effect from and the DMG Boost effect to Non-Hero enemies is irremovable.',
+      },
+      {
+        name: 'Festival of the Flow',
+        text: 'Deals M.DMG to nearby enemies and knocks them down for 3 sec. Upon casting, heals HP of all allies by 15% of their Max HP and recovers 2 orbs of Mana of allies excluding self. Afterward, for 12 sec, creates a whirlpool every 4 sec that deals M.DMG to random enemies and knocks them down for 2 sec.',
+      },
+      {
+        name: 'Blessing of the Water Dragon',
+        text: "Increases Laias' CC Resist by 500, and increases all allies' M.DEF by 10% and M.Crit Resistance by 250. Whenever Laias casts an active Skill, reduces M.DMG all allies take by 25% for 5 sec.",
+      },
+    ],
+  },
+  seria: {
+    costs: [1, 2, 4],
+    cooldowns: [7, 13, 20],
+    skills: [
+      {
+        name: 'Mysterious Sword - Falling Petals',
+        text: 'Performs a horizontal slash to the front and deals M.DMG to the target and enemies in a narrow range. Can activate [Mysterious Sword - Blossom] (1 Mana: a vertical slash to the front, dealing M.DMG to the target and enemies in a narrow range) once within 5 sec after use.',
+      },
+      {
+        name: 'Blood Scattering Blade',
+        text: 'Rapidly charges forward to deal M.DMG and inflicts irremovable Original Sin of Blood on enemies for 3 sec. Enemies under Original Sin of Blood have their ATK Spd reduced by 300. Shortly afterward, attacks enemies under Original Sin of Blood 2 times, and deals additional M.DMG, and if the target is not a hero, deals additional DEF Ignoring M.DMG.',
+      },
+      {
+        name: 'Red Moon Blade',
+        text: 'Brandishes a moon-bloodying sword, dealing M.DMG to enemies in a wide range, and additional M.DMG on non-Hero enemies. When the moon is ripe, gains Moonlight for 1 sec, and when cast at this state, deals M.DMG to enemies and reduces their Heal Rate by 100%. If the target is not a hero, deals additional M.DMG.',
+      },
+      { name: 'Cold-Blooded Witch', text: 'ATK is increased by 38567. Upon a critical skill hit, own Crit DMG is increased by 5%. This effect can be stacked up to 30 times.' },
+    ],
+  },
+  ezekiel: {
+    costs: [2, 2, 2],
+    cooldowns: [8, 10, 7],
+    skills: [
+      {
+        name: 'Destructive Instinct',
+        text: 'Swipes nearby enemies in a circular range and deals M.DMG. Then strikes the ground, dealing M.DMG and knocking down enemies for 3 sec. [Fury] - Consumes 15% of current HP to activate. Effect range increases and swipe attack draws in enemies.',
+      },
+      {
+        name: 'Dawning Despair',
+        text: 'Dashes to an enemy with the highest ATK and deals M.DMG to enemies in range, reducing their ATK Spd by 300. [Fury] - Consumes 10% of current HP to activate. Effect range increases, Stuns target for 3 sec, and increases own ATK Spd by 300 for 10 sec.',
+      },
+      {
+        name: 'Strike of Doom',
+        text: "Charges energy and attacks target enemy, dealing M.DMG and inflicting Stun for 3 sec. Ignores target's DMG Reduction effects. [Fury] - Consumes 20% of current HP to activate. Attacks enemies in range of target and DMG is tripled.",
+      },
+      {
+        name: 'Cursed Blood',
+        text: "Ezekiel gains 1 stack of 'Cursed Blood' at the end of skill. Upon the 3rd stack, consumes Cursed Blood to reset all skill cooldown, dealing M.DMG to nearby enemies and knocking them down for 3 sec, while activating Fury for 10 sec, that cannot be dispelled. While in Fury state, goes into an auto-battle mode that cannot be controlled, and ATK is increased by 30%, auto attack DMG is doubled, and all Skill effect are reinforced. Cannot gain Cursed Blood during Fury state, except for when killing an enemy.",
+      },
+    ],
+  },
 };
 
 /** A hero's skills, its passive last; none for a hero this page has no words for. */

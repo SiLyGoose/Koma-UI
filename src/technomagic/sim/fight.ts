@@ -1,6 +1,6 @@
 import type { BossDef, BossPart } from '../bosses/boss';
 import { ATK, NONE, share, strike } from '../combat/damage';
-import { away, bound, critting, dealing, defending, filling, healing, pacing, piercing, put, resisting, taking, wear, type Status } from '../combat/status';
+import { away, blocking, bound, critDamaging, critResisting, critting, dealing, defending, filling, healing, pacing, piercing, put, resisting, taking, wear, type Status } from '../combat/status';
 import type { Mark } from '../hud/boss-bar';
 import type { Buff } from '../hud/buff';
 import { lineOf, NO_PASSIVE, type Ability, type HeroDef } from '../heroes/kit';
@@ -465,18 +465,18 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     sums,
     roll,
     hit(by, amount, counted = true, pierce = 0) {
-      if (foe.hp <= 0 || result) return;
+      if (foe.hp <= 0 || result) return false;
       // The hero whose blow it is: as hard as its attack, and its passive, have it (and harder or softer again for what is on it); now and
       // then far harder, by its crit chance and what its passive and what is on it add; and through its penetration, and the blow's own.
       const { attack, crit } = by.def.passive ?? NO_PASSIVE;
       const { atk, deals: type, crit: points, pen } = by.stats;
       const critical = roll() < share(points) + crit + critting(by.statuses);
-      // (Its additional skills' DMG, and every Whetstone on the field's crit DMG.)
-      const critTimes = by.critTimes + SKILL.whetstone.critDamage * among('whetstone');
+      // (Its additional skills' DMG, and every Whetstone on the field's crit DMG, and what is on it adds: Seria's Cold-Blooded Witch.)
+      const critTimes = by.critTimes + SKILL.whetstone.critDamage * among('whetstone') + critDamaging(by.statuses);
       const { taken, blocked, dodged } = strike(amount * (atk / ATK) * atkTimes(by) * dmgTimes(by) * attack * dealing(by.statuses) * (critical ? critTimes : 1), type, foe.def.stats, pen + pierce + piercing(by.statuses), roll);
       if (dodged) {
         events.push({ kind: 'number', on: 'boss', amount: 0, type: 'dodged' });
-        return;
+        return false;
       }
       events.push({ kind: 'boss-hit' });
       // (And more or less by what is on the boss: a Shield Strike has left it easier to hurt.)
@@ -503,11 +503,12 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
         sim.hit(by, atTier(ELICIPIRA.blow, by.unique.tier) * ELICIPIRA.boss, false);
         attacking = was;
       }
-      if (foe.hp > 0) return;
+      if (foe.hp > 0) return critical;
       // Beaten: won.
       sim.stun(1, { down: true });
       foe.part.beaten?.();
       end('won');
+      return critical;
     },
     heal(fighter, amount, by) {
       if (fighter.hp <= 0) return;
@@ -530,18 +531,18 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       const type = foe.def.stats.deals;
       // Harder or softer for what is on the boss, and harder again once the raid's time is up; then dodged, or what the hero's defense against that kind of damage
       // (more for every Hope support on the field), and a block, take off.
-      // (And for what is on it: Clause's unique weapon. And every Perseverance support's on the field, and every Bastion among them;
-      // and Iron Wall's block, the more at first.)
-      const guarded = (1 + HOPE.defense * wearing('hope', 'support').length + PERSEVERANCE.defense * wearing('perseverance', 'support').length + SKILL.bastion.defense * among('bastion')) * defending(target.statuses);
+      // (And for what is on it: Clause's unique weapon, Morrah's Hellfire. And every Perseverance support's on the field, and every Bastion among them;
+      // and Iron Wall's block, the more at first, and what is on it adds.)
+      const guarded = 1 + HOPE.defense * wearing('hope', 'support').length + PERSEVERANCE.defense * wearing('perseverance', 'support').length + SKILL.bastion.defense * among('bastion');
       const walled = elapsed < SKILL['iron-wall'].lasts ? SKILL['iron-wall'].more * has(target, 'iron-wall') : 0;
       const stands = {
         ...target.stats,
-        physical: target.stats.physical * guarded,
-        magical: target.stats.magical * guarded,
-        block: { physical: target.stats.block.physical + walled, magical: target.stats.block.magical + walled },
+        physical: target.stats.physical * guarded * defending(target.statuses, 'physical'),
+        magical: target.stats.magical * guarded * defending(target.statuses, 'magical'),
+        block: { physical: target.stats.block.physical + walled + blocking(target.statuses, 'physical'), magical: target.stats.block.magical + walled + blocking(target.statuses, 'magical') },
       };
-      // Now and then a crit, by the boss's crit chance less the hero's crit resist.
-      const critical = roll() < share(foe.def.stats.crit - target.critResist);
+      // Now and then a crit, by the boss's crit chance less the hero's crit resist (and what is on it adds).
+      const critical = roll() < share(foe.def.stats.crit - target.critResist - critResisting(target.statuses));
       const { taken, blocked, dodged } = strike(amount * dealing(foe.statuses) * rage(clock - RAID_TIME) * (critical ? CRIT : 1), type, blockable ? stands : { ...stands, block: NONE, dodge: NONE }, 0, roll);
       if (dodged) {
         events.push({ kind: 'number', on: target.index, amount: 0, type: 'dodged' });
@@ -662,8 +663,11 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
         const times = rage(clock - RAID_TIME);
         marks.push({ text: `Enraged ×${times < 10 ? times.toFixed(1) : Math.round(times).toLocaleString('en-US')}`, tone: 'rage' });
       }
-      // (One for the rest of the fight says how many are stacked in it, in place of the seconds it has left.)
-      for (const status of foe.statuses) marks.push({ text: `${status.name} ${Number.isFinite(status.left) ? Math.ceil(status.left) : `×${status.count ?? 1}`}`, tone: status.shown });
+      // (One for the rest of the fight says how many are stacked in it, in place of the seconds it has left; one that stacks for a while, both.)
+      for (const status of foe.statuses) {
+        const stacked = status.count !== undefined && Number.isFinite(status.left) ? ` ×${status.count}` : '';
+        marks.push({ text: `${status.name}${stacked} ${Number.isFinite(status.left) ? Math.ceil(status.left) : `×${status.count ?? 1}`}`, tone: status.shown });
+      }
       marks.push(...(foe.part.marks?.() ?? []));
       for (const fighter of fighters) marks.push(...(fighter.part.marks?.() ?? []));
       return marks;

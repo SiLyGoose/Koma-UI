@@ -149,8 +149,9 @@ export interface Fight {
    * A hero's blow lands on the boss: `amount` at ATK (../combat/damage.ts: a thousandth of ATK in the game's shares), before the hero's own attack, its passive
    * and the boss's defense against the kind of damage it deals (seen past by its penetration, and `pierce`
    * points more). One that is `counted` is told to every hero's part, and the boss's (not what comes of a status already on the boss).
+   * Returns whether it landed, and was critical.
    */
-  hit(by: Fighter, amount: number, counted?: boolean, pierce?: number): void;
+  hit(by: Fighter, amount: number, counted?: boolean, pierce?: number): boolean;
   /** A hero is given back `amount` of its health (not while it is down), less what is on it and the boss's skills take off; `by` is the hero whose heal it is (it gives as much more as its attack is over ATK, or less). */
   heal(fighter: Fighter, amount: number, by?: Fighter): void;
   /**

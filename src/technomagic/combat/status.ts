@@ -23,12 +23,18 @@ export interface Status<Shown> {
   mana?: number;
   /** Added to how likely its bearer's blows are to be critical. */
   crit?: number;
+  /** Added to how many times as hard its bearer's critical blows are (0.5: half again). */
+  critDamage?: number;
   /** Added to its bearer's penetration (points). */
   pen?: number;
-  /** Its bearer's defense is this many times as much. */
-  defends?: number;
+  /** Its bearer's defense is this many times as much: against every kind, or against each kind it names. */
+  defends?: number | Partial<Record<DamageType, number>>;
+  /** Added to its bearer's chance to block each kind it names (points). */
+  blocks?: Partial<Record<DamageType, number>>;
   /** Added to its bearer's CC resist (points). */
   resist?: number;
+  /** Taken off how likely the blows on its bearer are to be critical (points). */
+  critResist?: number;
   /** Its bearer can do nothing while it is on (knocked down); and is out of the fight altogether, not to be aimed at (imprisoned). */
   binds?: boolean;
   away?: boolean;
@@ -97,6 +103,13 @@ export function critting(on: readonly Status<unknown>[]): number {
   return more;
 }
 
+/** What these add to how many times as hard a bearer's critical blows are. */
+export function critDamaging(on: readonly Status<unknown>[]): number {
+  let more = 0;
+  for (const { critDamage } of on) more += critDamage ?? 0;
+  return more;
+}
+
 /** What these add to a bearer's penetration (points). */
 export function piercing(on: readonly Status<unknown>[]): number {
   let more = 0;
@@ -111,11 +124,25 @@ export function resisting(on: readonly Status<unknown>[]): number {
   return more;
 }
 
-/** How many times as much defense a bearer of these has. */
-export function defending(on: readonly Status<unknown>[]): number {
+/** What these take off how likely the blows on a bearer are to be critical (points). */
+export function critResisting(on: readonly Status<unknown>[]): number {
+  let more = 0;
+  for (const { critResist } of on) more += critResist ?? 0;
+  return more;
+}
+
+/** How many times as much defense against a kind of damage a bearer of these has. */
+export function defending(on: readonly Status<unknown>[], type: DamageType): number {
   let times = 1;
-  for (const { defends } of on) times *= defends ?? 1;
+  for (const { defends } of on) times *= typeof defends === 'number' ? defends : (defends?.[type] ?? 1);
   return times;
+}
+
+/** What these add to a bearer's chance to block a kind of damage (points). */
+export function blocking(on: readonly Status<unknown>[], type: DamageType): number {
+  let more = 0;
+  for (const { blocks } of on) more += blocks?.[type] ?? 0;
+  return more;
 }
 
 /** A bearer of these can do nothing; is out of the fight altogether. */

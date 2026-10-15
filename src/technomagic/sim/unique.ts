@@ -17,6 +17,15 @@ import type { Buff } from '../hud/buff';
  * - Annette, Crystallized Technomagic, Rascal: every so often she gains a Charge (even while Overcharged) and a
  *   little mana; and while she is Overcharged every ally deals more and takes less, twice as much for the ally with
  *   the highest ATK. (Her part does it: ../heroes/annette/.)
+ * - Laias, Flowing Circle, Eltoirre: healing reaches every ally the more, and every 5 seconds the ally with the
+ *   lowest health is healed. (The game's also raises every ally's M.DEF by a share of her ATK. Her part does it:
+ *   ../heroes/laias/.)
+ * - Seria, Executioner of Domains, Elsion: a critical blow of her skills deals more, leaves the boss healed less for a
+ *   while, and her healed more (up to 5 times over). (Her part does it: ../heroes/seria/.)
+ * - Morrah, Flame of Victory, Carprain: now and then a blow of her attack leaves the boss hitting less hard and
+ *   taking more magical damage for a while, twice as much more with her Flame stacked full on it. (Her part does it: ../heroes/morrah/.)
+ * - Ezekiel, Jailer of Despair, Barbatos: his Fury lasts longer, and while it does his critical blows are harder and
+ *   he stands being knocked down better. (His part does it: ../heroes/ezekiel/.)
  *
  * The game's shares of ATK are as they are for damage (this raid's blows are counted in thousandths of them, at ATK: ../combat/);
  * a heal is the game's share of ATK scaled by its heroes' HP to their ATK (some 86 to 1, where here it is
@@ -38,6 +47,14 @@ export const PIGRITIA = {
 };
 /** How often it gives her a Charge and a share of her max mana (seconds), and what every ally deals more and takes less while she is Overcharged (`top` times that for the ally with the highest ATK). */
 export const RASCAL = { name: 'Crystallized Technomagic, Rascal', every: [1.4, 1.3, 1.1, 0.9, 0.7], mana: 0.01, dmg: 0.02, taken: 0.02, top: 2 };
+/** The chance a blow of her attack has, how long what it leaves on the boss lasts (seconds), and how much less hard it hits and more magical damage it takes (`full` times that more with her Flame stacked full on it). */
+export const CARPRAIN = { name: 'Flame of Victory, Carprain', chance: 0.2, lasts: 10, weaker: [0.12, 0.14, 0.17, 0.21, 0.25], full: 2 };
+/** A critical skill blow's blow more (at ATK), what it takes off the boss's heals for `lasts` seconds, and what each of its stacks (up to `most`, for `healed` seconds) adds to hers. */
+export const ELSION = { name: 'Executioner of Domains, Elsion', blow: [600, 720, 860, 1030, 1250], unhealed: [0.29, 0.35, 0.42, 0.5, 0.6], lasts: 5, heals: [0.05, 0.06, 0.07, 0.09, 0.1], most: 5, healed: 20 };
+/** How much more healing reaches every ally, how often (seconds) the ally with the lowest health is healed, and by how much (as a heal at ATK). */
+export const ELTOIRRE = { name: 'Flowing Circle, Eltoirre', heals: [0.1, 0.12, 0.14, 0.17, 0.2], every: 5, mend: [1_200, 1_400, 1_700, 2_100, 2_500] };
+/** How many seconds longer his Fury lasts, and what it adds to his crit damage (a share more) and CC resist (points) while it does. */
+export const BARBATOS = { name: 'Jailer of Despair, Barbatos', longer: [3, 4, 5, 6, 7], critDamage: [0.9, 1, 1.1, 1.2, 1.3], resist: [240, 290, 350, 420, 500] };
 
 /** The most a weapon is refined. */
 export const TIERS = 5;
@@ -58,8 +75,16 @@ const ABOUT: Readonly<Record<string, (tier: number) => string>> = {
     `+${atTier(PIGRITIA.speed, tier)} attack speed. Each time she sleeps she is healed by ${pct(atTier(PIGRITIA.heal, tier))} of her max HP and recovers ${pct(atTier(PIGRITIA.mana, tier))} of her mana over ${PIGRITIA.over} seconds, and each Mana Charge gives her ${fine(atTier(PIGRITIA.charge, tier))} more ATK.`,
   annette: (tier) =>
     `Every ${atTier(RASCAL.every, tier)} seconds she gains a Charge (even while Overcharged) and ${pct(RASCAL.mana)} of her mana. While she is Overcharged, every ally deals ${pct(RASCAL.dmg)} more and takes ${pct(RASCAL.taken)} less (${pct(RASCAL.dmg * RASCAL.top)} for the ally with the highest ATK).`,
+  morrah: (tier) =>
+    `Each blow of her attack has a ${pct(CARPRAIN.chance)} chance to leave the boss hitting ${pct(atTier(CARPRAIN.weaker, tier))} less hard and taking ${pct(atTier(CARPRAIN.weaker, tier))} more magical damage for ${CARPRAIN.lasts} seconds (${pct(atTier(CARPRAIN.weaker, tier) * CARPRAIN.full)} more with 100 Flame on it).`,
+  laias: (tier) =>
+    `Healing reaches every ally ${pct(atTier(ELTOIRRE.heals, tier))} more, and every ${ELTOIRRE.every} seconds she heals the ally with the lowest HP by ${pct(atTier(ELTOIRRE.mend, tier) / 1000)} of her ATK.`,
+  seria: (tier) =>
+    `Each critical blow of her skills deals ${pct(atTier(ELSION.blow, tier) / 1000)} of her ATK more, leaves the boss healed ${pct(atTier(ELSION.unhealed, tier))} less for ${ELSION.lasts} seconds, and heals her ${pct(atTier(ELSION.heals, tier))} more for ${ELSION.healed} seconds (up to ${ELSION.most} times).`,
+  ezekiel: (tier) =>
+    `His Fury lasts ${atTier(BARBATOS.longer, tier)} seconds longer, and while it does his crit damage is ${pct(atTier(BARBATOS.critDamage, tier))} higher and his CC resist +${atTier(BARBATOS.resist, tier)}.`,
 };
-const NAMES: Readonly<Record<string, string>> = { clause: EXIAN.name, kirze: ELICIPIRA.name, 'fallen-frey': ROSMERTA.name, gremory: PIGRITIA.name, annette: RASCAL.name };
+const NAMES: Readonly<Record<string, string>> = { clause: EXIAN.name, kirze: ELICIPIRA.name, 'fallen-frey': ROSMERTA.name, gremory: PIGRITIA.name, annette: RASCAL.name, morrah: CARPRAIN.name, laias: ELTOIRRE.name, seria: ELSION.name, ezekiel: BARBATOS.name };
 /** Each weapon's picture: its item's (the bot's catalog id, public/gear/items/weapons/). */
 const PICTURES: Readonly<Record<string, string>> = {
   clause: '/gear/items/weapons/the-guardian-exian.png',
@@ -67,6 +92,10 @@ const PICTURES: Readonly<Record<string, string>> = {
   'fallen-frey': '/gear/items/weapons/angels-despair-rosmerta.png',
   gremory: '/gear/items/weapons/gateway-to-purgatory-pigritia.png',
   annette: '/gear/items/weapons/crystallized-technomagic-rascal.png',
+  morrah: '/gear/items/weapons/flame-of-victory-carprain.png',
+  laias: '/gear/items/weapons/flowing-circle-eltoirre.png',
+  seria: '/gear/items/weapons/executioner-of-domains-elsion.png',
+  ezekiel: '/gear/items/weapons/jailer-of-despair-barbatos.png',
 };
 
 /** The heroes that have a unique weapon, by id. */
@@ -84,7 +113,9 @@ export function uniqueOf(hero: string, tier: number | null | undefined): number 
 /** A hero's unique weapon, as a square on its card. */
 export const uniqueBuff = (hero: string, tier: number): Buff => ({ name: `${NAMES[hero] ?? 'Unique weapon'} (★${tier})`, about: uniqueAbout(hero, tier) ?? '', icon: '🗡️', image: PICTURES[hero] });
 
-/** What Exian gives Clause for a while, what Rosmerta gives Fallen Frey, and what Rascal gives every ally while Annette is Overcharged. */
+/** What Exian gives Clause for a while, what Rosmerta gives Fallen Frey, what Rascal gives every ally while Annette is Overcharged, and what Eltoirre gives every ally while Laias is on the field. */
 export const EXIAN_UP: Buff = { name: 'The Guardian, Exian', about: 'ATK and defense higher.', icon: '🛡️', image: PICTURES.clause };
 export const ROSMERTA_UP: Buff = { name: 'Angel’s Despair, Rosmerta', about: 'Sees past more of the boss’s defense.', icon: '🖤', image: PICTURES['fallen-frey'] };
 export const RASCAL_UP: Buff = { name: 'Crystallized Technomagic, Rascal', about: 'Deals more to the boss and takes less from it while Annette is Overcharged.', icon: '🤖', image: PICTURES.annette };
+export const ELTOIRRE_UP: Buff = { name: 'Flowing Circle, Eltoirre', about: 'Healing reaches it the more while Laias is on the field.', icon: '☥', image: PICTURES.laias };
+export const ELSION_UP: Buff = { name: 'Executioner of Domains, Elsion', about: 'Healing reaches her the more.', icon: '⚔️', image: PICTURES.seria };

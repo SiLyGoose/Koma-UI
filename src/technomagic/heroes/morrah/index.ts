@@ -1,0 +1,154 @@
+import { MORRAH_ASSETS, skillPicture } from '../../assets';
+import { away, put } from '../../combat/status';
+import type { Buff } from '../../hud/buff';
+import { BLOW } from '../../sim/rules';
+import type { Fighter } from '../../sim/types';
+import { atTier, CARPRAIN } from '../../sim/unique';
+import { CLASS_STATS, type HeroDef, type Passive } from '../kit';
+import { STAND } from './moves';
+
+/*
+ * Morrah's skills, as the game has them (what each costs, how long before it can be used again, how long what it
+ * does lasts, and the shares are the game's; how hard each hits, how much more M.DEF Hellfire gives, how long Flame
+ * lasts and how hard it burns are not said there). Her Flame is on the boss: up to a hundred stacked, each burning
+ * it every second and taking a share off what heals it, all of it begun again with each more.
+ * - Burning Power: a blow that knocks the boss down and leaves 3 Flame on it; then for a while each blow of her
+ *   attack deals more and leaves a Flame. Both are harder for each Flame on the boss.
+ * - Hellfire: for a while every ally has more M.DEF and is likelier to block magical blows, and a Flame is left on the
+ *   boss every second.
+ * - Lava Eruption: a blow that knocks the boss down, harder for each Flame on it.
+ * Her passive, Fire Smash: when she blocks, a blow back that leaves 3 Flame on the boss.
+ * Her unique weapon (../../sim/unique.ts) is worked here too: now and then a blow of her attack leaves the boss
+ * hitting less hard and taking more magical damage, the more with her Flame stacked full on it.
+ * What is drawn for each is ./fx.ts; what her body does for each, and for her attack, ./moves.ts.
+ */
+const CLEAVE = { blow: BLOW, burning: 150 };
+const BURNING = { blow: 1500, flames: 3, down: 1, lasts: 15 };
+// (Its 250 M.Block, as the game has it: points.)
+const HELLFIRE = { lasts: 20, defense: 1.3, block: 250, every: 1 };
+const ERUPTION = { blow: 3000, down: 3 };
+const SMASH = { blow: 1500, flames: 3 };
+/** The most Flame on the boss, how long it lasts once the last was left, how hard each burns every second, how much harder it makes her skills, and what each takes off the boss's heals. */
+const FLAME = { most: 100, lasts: 10, each: 4, every: 1, more: 0.02, heals: 0.01 };
+
+const art = (index: number): string => skillPicture(MORRAH_ASSETS, index);
+
+const FIRE_SMASH: Passive = {
+  attack: 1,
+  crit: 0,
+  control: 1,
+  shown: { name: 'Fire Smash', about: 'Passive. When she blocks she strikes back, leaving 3 Flame on the boss.', icon: '🔥', image: art(3) },
+};
+/** What Burning Power gives her for a while: shown beside her passive, with how long it has left. */
+const BURNING_UP: Buff = { name: 'Burning Power', about: 'Each blow of her attack deals more and leaves a Flame on the boss.', icon: '🔥', image: art(0) };
+/** What Hellfire gives every ally for a while: shown on each card, with how long it has left. */
+const HELLFIRE_UP: Buff = { name: 'Hellfire', about: '30% more M.DEF, and +250 M.Block.', icon: '🌋', image: art(1) };
+/** What her skills, and her unique weapon, leave on the boss. */
+const FLAMED = 'Flame';
+
+export const MORRAH: HeroDef = {
+  id: 'morrah',
+  name: 'Morrah',
+  class: 'knight',
+  assets: MORRAH_ASSETS,
+  // A knight whose blows are magical: as her class stands, otherwise.
+  stats: { ...CLASS_STATS.knight, deals: 'magical' },
+  abilities: [
+    { name: 'Burning Power', icon: '🔥', image: art(0), move: 'burning', cooldown: 6, cost: 2 },
+    { name: 'Hellfire', icon: '🌋', image: art(1), move: 'hellfire', cooldown: 12, cost: 3 },
+    { name: 'Lava Eruption', icon: '☄️', image: art(2), move: 'eruption', cooldown: 20, cost: 3 },
+  ],
+  passive: FIRE_SMASH,
+  attack: 'cleave',
+  stands: STAND,
+  join(fight, self) {
+    /** How long Burning Power has her attack burning for yet; how long her Hellfire lasts yet, and toward its next Flame; and toward her Flame's next burn. */
+    let burning = 0;
+    let hellfire = 0;
+    let fanned = 0;
+    let burnt = 0;
+    const tier = self.unique?.tier ?? null;
+
+    /** How many Flame are on the boss. */
+    const flames = (): number => fight.foe.statuses.find((status) => status.name === FLAMED)?.count ?? 0;
+    /** So many more Flame on the boss (up to the most), all of it begun again: what heals it heals it less for each. */
+    const burn = (count: number): void => {
+      const stacks = Math.min(FLAME.most, flames() + count);
+      put(fight.foe.statuses, { name: FLAMED, left: FLAME.lasts, count: stacks, heals: Math.max(0, 1 - FLAME.heals * stacks), shown: 'burn' });
+    };
+    /** How much harder her skills are for the Flame on the boss. */
+    const fanning = (): number => 1 + FLAME.more * flames();
+    /** Her allies on the field, standing and in the fight (her too). */
+    const allies = (): Fighter[] => fight.field.filter((ally) => ally.hp > 0 && !away(ally.statuses));
+
+    return {
+      lands: {
+        // Her attack: a cut across the boss. With Burning Power, harder for its Flame, and leaving one more; with her unique weapon, now and then it hits less hard and takes more.
+        cleave() {
+          if (burning > 0) {
+            fight.hit(self, CLEAVE.blow + CLEAVE.burning * fanning());
+            burn(1);
+          } else fight.hit(self, CLEAVE.blow);
+          if (tier === null || fight.roll() >= CARPRAIN.chance) return;
+          const weaker = atTier(CARPRAIN.weaker, tier);
+          const takes = weaker * (flames() >= FLAME.most ? CARPRAIN.full : 1);
+          put(fight.foe.statuses, { name: CARPRAIN.name, left: CARPRAIN.lasts, deals: 1 - weaker, takes: { magical: 1 + takes }, shown: 'curse' });
+        },
+        // Down on the boss, harder for its Flame: it is knocked down, and 3 more Flame; her attack burns for a while.
+        burning() {
+          fight.hit(self, BURNING.blow * fanning());
+          fight.stun(BURNING.down, { down: true, by: self });
+          burn(BURNING.flames);
+          burning = BURNING.lasts;
+        },
+        // The fire goes up round every ally: more M.DEF and M.Block for a while, and a Flame on the boss every second meanwhile.
+        hellfire() {
+          const on = allies();
+          fight.cue(self, 'hellfire', on);
+          for (const ally of on) {
+            put(ally.statuses, { name: HELLFIRE_UP.name, left: HELLFIRE.lasts, defends: { magical: HELLFIRE.defense }, blocks: { magical: HELLFIRE.block }, shown: HELLFIRE_UP });
+          }
+          hellfire = HELLFIRE.lasts;
+          fanned = 0;
+        },
+        // The lava bursts up under the boss, harder for its Flame: it is knocked down.
+        eruption() {
+          fight.hit(self, ERUPTION.blow * fanning());
+          fight.stun(ERUPTION.down, { down: true, by: self });
+        },
+      },
+      // Blocked: a blow back, and 3 more Flame.
+      blocked() {
+        fight.cue(self, 'smash');
+        fight.hit(self, SMASH.blow);
+        burn(SMASH.flames);
+      },
+      tick(dt) {
+        if (burning > 0) burning = Math.max(0, burning - dt);
+        // Hellfire: a Flame on the boss every second.
+        if (hellfire > 0) {
+          hellfire -= dt;
+          fanned += dt;
+          if (fanned >= HELLFIRE.every) {
+            fanned -= HELLFIRE.every;
+            burn(1);
+          }
+        }
+        // Her Flame burns the boss every second (the first Morrah's, where there are two: it is the same Flame), each stack of it a blow of its own (counted as one).
+        const count = flames();
+        if (count <= 0 || fight.fighters.find((one) => one.id === self.id) !== self) {
+          burnt = 0;
+          return;
+        }
+        burnt += dt;
+        if (burnt >= FLAME.every) {
+          burnt -= FLAME.every;
+          fight.cue(self, 'flame');
+          fight.hit(self, FLAME.each * count, false);
+        }
+      },
+      lit: () => burning > 0,
+      buffs: () => (burning > 0 ? [{ ...BURNING_UP, left: burning }] : []),
+    };
+  },
+};
