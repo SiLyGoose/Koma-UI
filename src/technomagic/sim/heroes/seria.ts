@@ -1,4 +1,6 @@
 import { put } from '../combat/status';
+import { t5Light } from '../perks';
+import { MAX_MANA, SECTION } from '../rules';
 import { skillArt, type Buff } from '../shown';
 import { atTier, ELSION, ELSION_UP } from '../unique';
 import { CLASS_STATS, type Ability, type HeroDef, type Passive } from './kit';
@@ -17,6 +19,9 @@ import { CLASS_STATS, type Ability, type HeroDef, type Passive } from './kit';
  * Her unique weapon (../unique.ts) is worked here too: a critical blow of her skills deals more, leaves the
  * boss healed less for a while, and heals her the more (up to 5 times over).
  * What is drawn for each is ../../heroes/seria/fx.ts; what her body does for each, ../../heroes/seria/moves.ts (her attack is her slash's animation: ../../assets/heroes/seria.ts).
+ *
+ * Her own perks (../perks.ts) are King's Raid's. Red Moon Blade's Light does nothing here: there is nothing on the boss
+ * to dispel. Blood Scattering Blade's Dark's mana is the game's 200 of its 1000 to a section, for each of its blows.
  */
 const PETALS = { blow: 2500, window: 5 };
 const BLOSSOM = { blow: 2500 };
@@ -25,6 +30,8 @@ const SCATTER = { rush: 2000, cut: 1200, through: 800, pierce: 1000, slow: 0.7, 
 const MOON = { blow: 6000, boss: 3000, ripe: 4000, every: 6, light: 1, unhealed: 10 };
 // (Its ATK as the game has it, at this raid's scale.)
 const WITCH = { atk: 38_567, critDamage: 0.05, most: 30 };
+/** Her own perks' numbers: Blossom's less healing for the boss, Blood Scattering Blade's mana for each blow, her less taken for each stack of Cold-Blooded Witch, her opening's more DMG, and Transcend 5's Dark's more taken. */
+const PERKS = { unhealed: { heals: 0.5, lasts: 5 }, mana: 0.2 * SECTION, taken: 0.007, opening: { deals: 1.25, lasts: 200 }, reckless: 1.25 };
 
 const art = skillArt('seria');
 
@@ -43,6 +50,10 @@ const WITCHED: Buff = { name: 'Cold-Blooded Witch', about: '5% more crit damage 
 const MOONLIGHT: Buff = { name: 'Moonlight', about: '[Red Moon Blade] used now cuts again, and leaves the boss healed not at all for 10 seconds.', icon: '🌕', art: art(2) };
 /** What her skills leave on the boss. */
 const SIN = 'Original Sin of Blood';
+const WILTED = 'Mysterious Sword - Blossom';
+/** What her perks give her: her opening's more DMG (Cold-Blooded Witch's Dark), and Transcend 5's Dark. */
+const OPENING: Buff = { name: 'Cold-Blooded Witch (opening)', about: 'Deals 25% more to the boss.', icon: '🩸', art: art(3) };
+const RECKLESS: Buff = { name: 'Bloodthirst', about: 'Every blow of hers critical; but she can’t block, and takes 25% more.', icon: '🩸', art: art(3) };
 const UNHEALED = 'Red Moon';
 
 export const SERIA: HeroDef = {
@@ -58,6 +69,24 @@ export const SERIA: HeroDef = {
     { name: 'Red Moon Blade', about: 'A great cut, harder on a boss. Used in [Moonlight] (a second of it every 6 seconds): it cuts again, and the boss is healed not at all for 10 seconds.', icon: '🌙', art: art(2), move: 'moon', cooldown: 20, cost: 4 },
   ],
   passive: COLD_BLOODED,
+  perks: {
+    's1-light': {
+      words: "[Mysterious Sword - Falling Petals] - Mana cost is reduced by 1. [Mysterious Sword - Blossom] - Hit enemies' heal rate is reduced by 50% for 5 sec.",
+      skill: { index: 0, cost: -1 },
+    },
+    's1-dark': {
+      words: "[Mysterious Sword - Falling Petals] - Target takes 25% increased M.DMG for 10 sec. [Mysterious Sword - Blossom] - Mana cost is increased by 1, and ignores enemy's DEF.",
+      skill: { index: 0, mark: { name: 'Magic Weakness', takes: { magical: 1.25 }, lasts: 10 } },
+    },
+    's2-light': { words: 'Reduces Mana Cost by 1.', skill: { index: 1, cost: -1 } },
+    's2-dark': { words: 'Upon each DMG dealt, recovers 200 Mana.' },
+    's3-light': { words: 'Dispels positive effects of all enemies in range.' },
+    's3-dark': { words: 'Increases Mana Cost by 1 and ignores DEF when attacking Non-Hero enemies.', skill: { index: 2, cost: 1, whole: true } },
+    's4-light': { words: 'Takes 0.7% reduced DMG per stack.' },
+    's4-dark': { words: 'When the battle starts, increases DMG to Non-Hero enemies by 25% for 200 sec.' },
+    't5-light': t5Light('ATK, DEF, HP +15% / Crit DMG +20%', { critDamage: 0.2 }),
+    't5-dark': { words: "All of caster's attacks will be critical hits, but the caster becomes unable to block while taking 25% increased damage." },
+  },
   // Her animations: one slash where she stands.
   timing: { attack: [{ lands: [0.86], until: 1.1 }] },
   join(fight, self) {
@@ -72,12 +101,17 @@ export const SERIA: HeroDef = {
     let witch = 0;
     let elsion = 0;
     const tier = self.unique?.tier ?? null;
+    // Her perks: Blossom costs more and cuts through the boss's defense (Falling Petals' Dark); as the fight begins, her opening, and Transcend 5's Dark (a block that can't be).
+    const blossomSkill = self.perks.has('s1-dark') ? { ...BLOSSOM_SKILL, cost: BLOSSOM_SKILL.cost + 1 } : BLOSSOM_SKILL;
+    if (self.perks.has('s4-dark')) put(self.statuses, { name: OPENING.name, left: PERKS.opening.lasts, deals: PERKS.opening.deals, shown: OPENING });
+    if (self.perks.has('t5-dark')) put(self.statuses, { name: RECKLESS.name, left: Infinity, crit: 1, takes: PERKS.reckless, blocks: { physical: -Infinity, magical: -Infinity }, shown: RECKLESS });
 
     /** A blow of a skill of hers: a critical one makes her critical blows harder, and (with her unique weapon) deals more, and leaves the boss healed less and her healed more. */
-    const cut = (amount: number, pierce = 0): void => {
-      if (!fight.hit(self, amount, true, pierce)) return;
+    const cut = (amount: number, pierce = 0, whole = false): void => {
+      if (!fight.hit(self, amount, true, pierce, whole)) return;
       witch = Math.min(WITCH.most, witch + 1);
-      put(self.statuses, { name: WITCHED.name, left: Infinity, count: witch, critDamage: WITCH.critDamage * witch, shown: WITCHED });
+      // (Its Light: less taken for each.)
+      put(self.statuses, { name: WITCHED.name, left: Infinity, count: witch, critDamage: WITCH.critDamage * witch, ...(self.perks.has('s4-light') && { takes: 1 - PERKS.taken * witch }), shown: WITCHED });
       if (tier === null) return;
       fight.hit(self, atTier(ELSION.blow, tier), false);
       put(fight.foe.statuses, { name: ELSION.name, left: ELSION.lasts, heals: 1 - atTier(ELSION.unhealed, tier), shown: 'curse' });
@@ -91,10 +125,15 @@ export const SERIA: HeroDef = {
           cut(PETALS.blow);
         },
         blossom() {
-          cut(BLOSSOM.blow);
+          cut(BLOSSOM.blow, 0, self.perks.has('s1-dark'));
+          // (Falling Petals' Light: the boss healed less for a while.)
+          if (self.perks.has('s1-light')) put(fight.foe.statuses, { name: WILTED, left: PERKS.unhealed.lasts, heals: PERKS.unhealed.heals, shown: 'curse' });
         },
         // The rush in leaves Original Sin of Blood on the boss (its attacks slower); each cut after it, a blow more through its defense.
         scatter(part) {
+          // (Its Dark: mana for each of its blows.)
+          const blows = part === 0 ? 1 : 2;
+          if (self.perks.has('s2-dark')) self.mana = Math.min(MAX_MANA, self.mana + PERKS.mana * blows);
           if (part === 0) {
             cut(SCATTER.rush);
             put(fight.foe.statuses, { name: SIN, left: SCATTER.lasts, shown: 'curse' });
@@ -113,9 +152,9 @@ export const SERIA: HeroDef = {
         },
       },
       // For a while after Falling Petals, its slot holds Blossom.
-      slot: (index) => (index === 0 && blossom > 0 ? BLOSSOM_SKILL : (self.abilities[index] ?? null)),
+      slot: (index) => (index === 0 && blossom > 0 ? blossomSkill : (self.abilities[index] ?? null)),
       used(index, ability) {
-        if (index === 0 && ability === BLOSSOM_SKILL) {
+        if (index === 0 && ability === blossomSkill) {
           // Blossom used: Falling Petals again, with what is left of its cooldown.
           blossom = 0;
           self.cooldowns[0] = petals;
