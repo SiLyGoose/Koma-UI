@@ -121,8 +121,7 @@ export function installCursor({ reticle = true }: { reticle?: boolean } = {}): v
   const px = (n: number): string => `${Math.round(n * 100) / 100}px`;
 
   /**
-   * The reticle's state, as data- attributes rather than classes: the holo foil (../items/items.ts)
-   * lines its animations up again on every class change on the page, and the reticle's change often.
+   * The reticle's state, as data- attributes rather than classes.
    */
   const set = (name: string, on: boolean): void => {
     host.toggleAttribute(`data-${name}`, on);

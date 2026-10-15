@@ -176,7 +176,6 @@ function renderSlots(ctx: HeroesContext): void {
     button.classList.toggle('empty', !copy);
     if (copy) button.dataset.sfx = 'own';
     else delete button.dataset.sfx;
-    button.classList.toggle('masterwork', copy?.masterwork === true);
     button.classList.toggle('filtered', ctx.target === slot && ctx.filter === kind);
     button.setAttribute('aria-label', copy ? `${slotName(slot)}: ${copy.name}` : `${slotName(slot)}: empty`);
     const frame = el('span', 'slot-frame');
@@ -220,7 +219,6 @@ function renderGrid(ctx: HeroesContext, act: HeroActions): void {
     card.type = 'button';
     card.dataset.stars = String(copy.stars);
     card.classList.toggle('picked', copy.id === ctx.picked);
-    card.classList.toggle('masterwork', copy.masterwork);
     card.classList.toggle('inert', !worksOn(copy, hero) || !wieldable(copy, hero));
     const onThis = copy.hero !== null && copy.hero === hero?.id;
     const other = copy.hero !== null && !onThis ? view.heroes.find((one) => one.id === copy.hero) : undefined;
@@ -284,7 +282,6 @@ function renderDetail(ctx: HeroesContext, act: HeroActions): void {
   const top = el('div', 'detail-top');
   const card = el('span', 'item detail-card');
   card.dataset.stars = String(copy.stars);
-  card.classList.toggle('masterwork', copy.masterwork);
   card.append(...itemFace(copy));
   const info = el('div', 'detail-info');
   const kind = el('p', 'detail-kind', SLOT_NAME[copy.slot]);
@@ -292,7 +289,6 @@ function renderDetail(ctx: HeroesContext, act: HeroActions): void {
   const rank = el('p', 'detail-rank', `R${copy.level}`);
   rank.append(el('span', 'detail-rank-of', ` / ${copy.maxLevel}`));
   info.append(kind, rank);
-  if (copy.masterwork) info.append(el('span', 'detail-mw', '✨ Masterwork'));
   top.append(card, info);
 
   const body = el('div', 'detail-body');

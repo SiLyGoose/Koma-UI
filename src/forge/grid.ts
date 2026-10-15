@@ -45,7 +45,6 @@ export function renderGrid(ctx: ForgeContext): void {
     // The copy on the anvil stays in its place, darkened and named for what's being done to it.
     button.classList.toggle('selected', isTarget);
     button.classList.toggle('material', isMaterial);
-    button.classList.toggle('masterwork', copy.masterwork);
     button.disabled = unusable;
     button.setAttribute('aria-label', `${copy.name}, ${copy.stars} star${copy.stars === 1 ? '' : 's'}, R${copy.level}${equipped.has(copy.id) ? ', equipped' : ''}${copy.locked ? ', locked' : ''}${isTarget ? ', on the anvil' : isMaterial ? ', material' : ''}`);
     if (isMaterial) button.append(el('span', 'item-tag', 'Material'));
@@ -53,7 +52,7 @@ export function renderGrid(ctx: ForgeContext): void {
     else if (equipped.has(copy.id)) button.append(el('span', 'item-tag', 'Equipped'));
     button.append(...itemFace(copy));
     if (copy.locked) button.append(lockBadge());
-    if (isTarget) button.append(el('span', 'item-selected', plan === 'refine' ? 'Refining' : plan === 'forge' ? 'Forging' : 'Selected'));
+    if (isTarget) button.append(el('span', 'item-selected', plan === 'refine' ? 'Refining' : 'Selected'));
     // The items' hover sound, as the gear page's armory has (not over one greyed out).
     hoverSound(button, copy.id, () => !button.disabled);
     button.addEventListener('click', () => (usable?.has(copy.id) ? pickMaterial(ctx, copy) : pick(ctx, copy)));

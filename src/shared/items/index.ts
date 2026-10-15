@@ -5,8 +5,8 @@
  * imported by each page.
  */
 
-export { art, effectSection, el, itemFace, keepHoloInStep, lockBadge, rich, type Slot, SLOT_NAME, stars, tierOf, tierRank, tmMarks, tmSections, tmTier, uwMarks, uwTier } from './items';
-export { armoryOrder, DORMANT, equippedIds, forgePlan, type GearCopy, type GearView, type Plan, type ShownStatSection, type StatSection } from './gear';
+export { art, effectSection, el, itemFace, lockBadge, rich, type Slot, SLOT_NAME, stars, tierOf, tierRank, tmMarks, tmSections, tmTier, uwMarks, uwTier } from './items';
+export { armoryOrder, equippedIds, forgePlan, type GearCopy, type GearView, type Plan, type ShownStatSection, type StatSection } from './gear';
 export { matchesSearch } from './search';
 export { statBlocks } from './stats';
 export { hoverSound, itemDetailsClosed, itemPicked, popupClosed } from './sfx';

@@ -173,8 +173,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .stage-sprite,
-  .slot.masterwork .slot-frame::after {
+  .stage-sprite {
     animation: none;
   }
 }

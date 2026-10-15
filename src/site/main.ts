@@ -25,7 +25,6 @@ import { gearPage } from '../gear/page';
 import { heroesPage } from '../heroes/page';
 import { hubPage } from '../hub/page';
 import { shopPage } from '../shop/page';
-import { keepHoloInStep } from '../shared/items';
 import { holdReveal, onSiteLink, swap, type Direction } from '../shared/transition';
 import { setGo, type GoOptions } from './nav';
 import type { Page } from './page';
@@ -52,8 +51,6 @@ document.body.prepend(backdrop());
 installCursor();
 // A click on anything pressable has its sound.
 installClickSounds();
-// The masterworks' foil carries on as their cards are drawn again.
-keepHoloInStep();
 const icon = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
 
 /** A path without its trailing slash (/gear/ and /gear are the same page). */

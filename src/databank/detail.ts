@@ -75,8 +75,6 @@ export function renderDetail(ctx: DatabankContext): void {
   const head = el('div', 'detail-head');
   const title = el('div', 'detail-title');
   const name = el('h3', '', item.name);
-  const bonusOn = ctx.masterwork && level === maxLevel && item.masterwork !== null;
-  if (bonusOn) name.append(el('span', 'detail-mw', '✨ Masterwork'));
   // Under the name, its category, then its stars (as the gear page's item panel); TechnoMagic gear and a unique weapon, their tiers of their own.
   title.append(name, el('p', 'detail-meta db-kind', SLOT_NAME[item.slot]), item.source === 'technomagic' ? tmTier() : item.source === 'heroBanner' ? uwTier() : stars(item.stars));
   // A class item says whose it is; TechnoMagic gear, its set (three pieces on a hero give its effect, for the hero's class: its effects say it too).
@@ -98,38 +96,24 @@ export function renderDetail(ctx: DatabankContext): void {
   });
   head.append(art(item.id, item.slot), title, close);
 
-  // The level picker: R1 to the top, then the masterwork (only items with a bonus have one).
+  // The level picker: R1 to the top.
   const levels = el('div', 'db-levels');
   levels.setAttribute('aria-label', 'Refinement level');
   for (let l = 1; l <= maxLevel; l++) {
     levels.append(
-      levelButton(`R${l}`, l === level && !bonusOn, false, () => {
+      levelButton(`R${l}`, l === level, false, () => {
         ctx.level = l;
-        ctx.masterwork = false;
-        renderDetail(ctx);
-      }),
-    );
-  }
-  if (item.masterwork !== null) {
-    levels.append(
-      levelButton('✨', bonusOn, false, () => {
-        ctx.level = maxLevel;
-        ctx.masterwork = true;
         renderDetail(ctx);
       }),
     );
   }
 
-  const lines = bonusOn ? (item.masterwork ?? []) : (item.effects[level - 1] ?? []);
+  const lines = item.effects[level - 1] ?? [];
   const effects = el('ul', 'detail-effects');
   for (const line of lines) effects.appendChild(el('li')).append(rich(line));
   if (lines.length === 0) effects.append(el('li', 'muted', 'No effects.'));
 
   ui.detailBody.append(head, el('p', 'detail-desc', item.description), levels, effects);
-  // At the top level the effects already name the (locked) bonus.
-  if (item.masterwork !== null && level < maxLevel) {
-    ui.detailBody.append(el('p', 'detail-note', `Has a masterwork bonus at R${maxLevel}: press ✨ to see it.`));
-  }
   // TechnoMagic gear: its set effect, then its additional effect (one of them, at random), each apart under its effects (the potentials a copy can roll).
   if (item.set?.pieces && item.set.effect) ui.detailBody.append(effectSection(`${item.set.pieces}-set effect:`, item.set.effect));
   if (item.source === 'technomagic') ui.detailBody.append(effectSection('Additional Effect:', skillList()));

@@ -7,7 +7,6 @@ import markup from '../../gear/gear.html?raw';
 import { apiFromSocket, backdrop } from '../../shared/ui';
 import { installCursor } from '../../shared/cursor';
 import { installClickSounds, setMuted } from '../../shared/audio';
-import { keepHoloInStep } from '../../shared/items';
 import { mountGear, type ApiResult, type Member } from '../../gear/view';
 
 /*
@@ -75,7 +74,6 @@ addEventListener('storage', (event) => {
 // The games' hand in place of the mouse pointer here too (the raid page's stops at the frame's edge).
 installCursor({ reticle: false });
 installClickSounds();
-keepHoloInStep();
 
 // Before the view's own Escape (which closes what's open in it): with nothing open, the popup goes.
 document.addEventListener('keydown', (event) => {

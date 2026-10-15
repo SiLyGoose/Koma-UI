@@ -1,4 +1,3 @@
-import { DORMANT } from '../../shared/items';
 
 /*
  * Now against after: an effect's lines before and after a refine or forge, paired up so each number
@@ -42,6 +41,3 @@ export function compare(before: readonly string[], after: readonly string[]): Ef
   for (const line of unused) rows.push({ line, changes: [], state: 'gone' });
   return rows;
 }
-
-/** Effect lines without the one for a masterwork bonus still waiting to be forged. */
-export const withoutDormant = (lines: readonly string[]): string[] => lines.filter((line) => !line.startsWith(DORMANT));

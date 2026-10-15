@@ -79,8 +79,6 @@
   }
 }
 
-/* A worn masterwork's slot is holographic like its card (the foil is items.css's). */
-
 /* Everything equipped: its list is the detail panel's effect list (items.css). */
 .totals h2 {
   margin: 16px 0 8px;

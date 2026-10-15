@@ -12,7 +12,6 @@ export function renderSlots(ctx: GearContext): void {
     // A filled slot is an item: its click has the item's sound (an empty one, the plain click).
     if (copy) button.dataset.sfx = 'own';
     else delete button.dataset.sfx;
-    button.classList.toggle('masterwork', copy?.masterwork === true);
     button.classList.toggle('filtered', ctx.filter === slot);
     button.setAttribute('aria-label', copy ? `${SLOT_NAME[slot]}: ${copy.name}` : `${SLOT_NAME[slot]}: empty`);
     const frame = el('span', 'slot-frame');

@@ -4,7 +4,6 @@ import { el, type GearCopy, itemFace, lockBadge } from '../../shared/items';
 export function card(copy: GearCopy): HTMLElement {
   const box = el('span', 'item');
   box.dataset.stars = String(copy.stars);
-  box.classList.toggle('masterwork', copy.masterwork);
   box.append(...itemFace(copy));
   if (copy.locked) box.append(lockBadge());
   return box;

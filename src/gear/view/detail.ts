@@ -35,7 +35,6 @@ export function renderDetail(ctx: GearContext): void {
   const rank = el('p', 'detail-rank', `R${copy.level}`);
   rank.append(el('span', 'detail-rank-of', ` / ${copy.maxLevel}`));
   info.append(kind, rank);
-  if (copy.masterwork) info.append(el('span', 'detail-mw', '✨ Masterwork'));
   top.append(card, info);
 
   const effects = effectList(copy, 'detail-effects');
@@ -49,7 +48,7 @@ export function renderDetail(ctx: GearContext): void {
   action.addEventListener('click', () => void (worn ? unequip(ctx, copy.slot) : equip(ctx, copy.id)));
 
   // Upgrade: to the forge, with this copy on the anvil (not while a change is on its way). With nothing left to
-  // do (fully refined, and a masterwork or with no bonus), "✓ Max" in its place.
+  // do (fully refined), "✓ Max" in its place.
   let upgrade: HTMLElement = doneMark('Max');
   if (forgePlan(copy).kind !== 'done') {
     const button = el('button', 'detail-action action secondary', 'Upgrade');
@@ -150,7 +149,6 @@ function lockFor(ctx: GearContext, copy: GearCopy): HTMLElement | null {
 function bigCard(copy: GearCopy): HTMLElement {
   const card = el('span', 'item detail-card');
   card.dataset.stars = String(copy.stars);
-  card.classList.toggle('masterwork', copy.masterwork);
   card.append(...itemFace(copy));
   return card;
 }

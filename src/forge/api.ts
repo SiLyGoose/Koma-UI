@@ -25,7 +25,7 @@ export function failed(ctx: ForgeContext, res: { status: number; error: string }
           ? 'Your gear was changing somewhere else. Try again.'
           : res.error === 'too_poor'
             ? "You can't afford that."
-            : ['no_duplicate', 'maxed', 'bad_material', 'too_low', 'forged'].includes(res.error)
+            : ['no_duplicate', 'maxed', 'bad_material'].includes(res.error)
               ? 'That changed in the meantime. Take another look and try again.'
               : what,
     true,
@@ -44,42 +44,41 @@ export async function loadGear(ctx: ForgeContext): Promise<void> {
   render(ctx);
 }
 
-/** Refines or forges the copy on the anvil, using up the material picked for a refine. */
+/** Refines the copy on the anvil, using up the material picked. */
 export async function strikeAnvil(ctx: ForgeContext): Promise<void> {
   const server = currentServer();
   const copy = copyById(ctx, ctx.picked);
   const plan = copy ? forgePlan(copy) : null;
-  if (ctx.busy || !server || !copy || !plan || (plan.kind !== 'refine' && plan.kind !== 'forge')) return;
-  const forging = plan.kind === 'forge';
+  if (ctx.busy || !server || !copy || plan?.kind !== 'refine') return;
   ctx.busy = busyWith('strike');
   renderAnvil(ctx);
   // The heat builds up bright behind the target, then the cover wipes over while the bot does it, and
   // comes off on the result.
   playAnimation(ctx.ui.target, 'heat', 'heat');
-  const request = api<GearView>(forging ? '/api/gear/forge' : '/api/gear/refine', {
+  const request = api<GearView>('/api/gear/refine', {
     method: 'POST',
-    body: JSON.stringify({ guild: server, copy: copy.id, ...(forging ? {} : { material: ctx.material }) }),
+    body: JSON.stringify({ guild: server, copy: copy.id, material: ctx.material }),
   });
   await sleep(HEAT_MS);
   const res = await curtain(async () => {
     const res = await request;
     ctx.busy = null;
-    // It cost zeiucoins or gems (or whatever the refusal was, the balance may be old): the header's balances follow.
+    // It cost zeiucoins (or whatever the refusal was, the balance may be old): the header's balances follow.
     void loadMe(true);
     if (!res.ok) return res;
     ctx.gear = res.data;
     ctx.material = null;
     const after = copyById(ctx, copy.id);
     ctx.doneWell = true;
-    ctx.done = forging ? `${copy.name} is now a masterwork. ✨` : `${copy.name} is now R${after?.level ?? copy.level + 1}.`;
+    ctx.done = `${copy.name} is now R${after?.level ?? copy.level + 1}.`;
     status(ctx, null);
     render(ctx);
-    // (A refine or a forge always takes: the bot has no failed one to say.)
-    if (after) showResult(ctx, copy, after, forging, true);
+    // (A refine always takes: the bot has no failed one to say.)
+    if (after) showResult(ctx, copy, after, true);
     return res;
-  }, forging ? 'Forging…' : 'Refining…');
+  }, 'Refining…');
   if (!res.ok) {
     renderAnvil(ctx);
-    failed(ctx, res, forging ? 'Could not forge that. Try again.' : 'Could not refine that. Try again.');
+    failed(ctx, res, 'Could not refine that. Try again.');
   }
 }

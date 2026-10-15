@@ -65,9 +65,8 @@ export interface DatabankContext {
   /** The item shown in the panel. On narrow screens it's only open once one is picked. */
   picked: string | null;
   sheetOpen: boolean;
-  /** The level the panel shows (1 to maxLevel), and whether the masterwork bonus is on (at the top level only). */
+  /** The level the panel shows (1 to maxLevel). */
   level: number;
-  masterwork: boolean;
   /** The boss shown, and the difficulty level its numbers are for. */
   boss: string | null;
   bossLevel: number;
@@ -93,7 +92,6 @@ export function createContext(root: HTMLElement): DatabankContext {
     picked: null,
     sheetOpen: false,
     level: 5,
-    masterwork: false,
     boss: null,
     bossLevel: 1,
     cls: null,

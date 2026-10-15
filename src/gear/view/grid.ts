@@ -30,7 +30,6 @@ export function renderGrid(ctx: GearContext): void {
     card.dataset.stars = String(copy.stars);
     // While picking what to sell, the one shown is marked only by the sale's red ring.
     card.classList.toggle('picked', !selling && copy.id === ctx.picked);
-    card.classList.toggle('masterwork', copy.masterwork);
     card.setAttribute('aria-label', `${copy.name}, ${copy.stars} star${copy.stars === 1 ? '' : 's'}, R${copy.level}${equipped.has(copy.id) ? ', equipped' : ''}${copy.locked ? ', locked' : ''}`);
     // Worn, or saved in any of their loadouts.
     if (equipped.has(copy.id)) card.append(el('span', 'item-tag', 'Equipped'));

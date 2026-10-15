@@ -117,11 +117,6 @@
   color: #8a6414;
 }
 
-.db-sheet .detail-mw {
-  background: rgb(138 100 20 / 14%);
-  color: #8a6414;
-}
-
 /* Its picture, big (the gear page's item panel's size), beside its name, category and stars. */
 .db-sheet .detail-head {
   gap: 16px;
@@ -251,7 +246,7 @@
   line-height: 18px;
 }
 
-/* The panel's level picker: R1 to the top level, then ✨ for a masterwork. */
+/* The panel's level picker: R1 to the top level. */
 .db-levels {
   display: flex;
   flex-wrap: wrap;
@@ -259,7 +254,7 @@
   margin: 0 0 12px;
 }
 
-/* R1 to the top, and ✨: the site's buttons for a choice (../shared/ui/button/), small, the level shown in blue. */
+/* R1 to the top: the site's buttons for a choice (../shared/ui/button/), small, the level shown in blue. */
 .db-level {
   min-width: 40px;
   min-height: 32px;
