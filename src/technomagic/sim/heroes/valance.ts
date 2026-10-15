@@ -1,8 +1,8 @@
 import { share } from '../combat/damage';
 import { away, put, type Status } from '../combat/status';
-import { t5Light } from '../perks';
+import { said, t5Light } from '../perks';
 import { BLOW, MAX_MANA, SECTION } from '../rules';
-import { pct, skillArt, type Buff } from '../shown';
+import { fine, pct, skillArt, type Buff } from '../shown';
 import type { Fighter } from '../types';
 import { CORBEAU, CORBEAU_UP } from '../unique';
 import { CLASS_STATS, type HeroDef, type Passive } from './kit';
@@ -111,17 +111,18 @@ export const VALANCE: HeroDef = {
   ],
   passive: AWAKENED,
   perks: {
-    's1-light': { words: '[Hologram] applies to 2 allies with the highest ATK.' },
-    's1-dark': { words: '[Hologram] additionally increases Crit DMG by 50%.' },
-    's2-light': { words: '[Violet Force Field] additionally reduces DMG taken by 25%.' },
-    's2-dark': { words: '[Violet Force Field] additionally increases ATK Spd by 300.' },
+    's1-light': { words: `[Hologram] applies to ${PERKS.holograms} allies with the highest ATK.` },
+    's1-dark': { words: `[Hologram] additionally increases Crit DMG by ${pct(PERKS.critDamage)}.` },
+    's2-light': { words: `[Violet Force Field] additionally reduces DMG taken by ${pct(1 - PERKS.fieldTaken)}.` },
+    's2-dark': { words: `[Violet Force Field] additionally increases ATK Spd by ${PERKS.fieldSpeed}.` },
     's3-light': { words: 'Dispels positive effects from the hit target.' },
-    's3-dark': { words: 'Reduces Mana Cost by 1.', skill: { index: 2, cost: -1 } },
-    's4-light': { words: 'Reduces DMG all allies take by 30% in Technomagic Kingdom.' },
-    's4-dark': { words: "Additionally increases all allies' DMG dealt to Bosses by 15% in Technomagic Kingdom." },
-    't5-light': t5Light('ATK, DEF, HP +15% / ATK Spd +10%', { speed: 100 }),
+    's3-dark': said({ skill: { index: 2, cost: -1 } }, ({ skill }) => `Reduces Mana Cost by ${-skill.cost}.`),
+    's4-light': { words: `Reduces DMG all allies take by ${pct(1 - PERKS.taken)} in Technomagic Kingdom.` },
+    's4-dark': { words: `Additionally increases all allies' DMG dealt to Bosses by ${pct(PERKS.boss)} in Technomagic Kingdom.` },
+    // (Its ATK Spd +10%, as the game says it: 100 points, 10 to 1%.)
+    't5-light': t5Light({ speed: 100 }, ({ speed }) => `ATK Spd +${pct(share(speed))}`),
     't5-dark': {
-      words: 'Reduces all DMG all allies take by 2.5% and increases All DMG all enemies take by 2.5%. This effect can be stacked up to the number of Technomagic Gear equipped to self.',
+      words: `Reduces all DMG all allies take by ${fine(PERKS.piece)} and increases All DMG all enemies take by ${fine(PERKS.piece)}. This effect can be stacked up to the number of Technomagic Gear equipped to self.`,
     },
   },
   attack: 'bolt',

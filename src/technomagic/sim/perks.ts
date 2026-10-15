@@ -1,6 +1,7 @@
 import type { Ability, HeroClass, HeroDef } from './heroes/kit';
 import type { HeroMove } from './heroes/moves';
-import type { HeroStats } from './combat/damage';
+import { POINTS, share, type HeroStats } from './combat/damage';
+import { fine, part, pct } from './shown';
 import type { GearBonus, GearStat } from './types';
 
 /*
@@ -13,6 +14,10 @@ import type { GearBonus, GearStat } from './types';
  *
  * Most only add to a hero's stats (`bonus`, as its gear does) or change one of its skills (`skill`). The rest are what
  * PerkDef's other fields say, and ./fight.ts does them; a hero's own that do more are its part's (./heroes/).
+ *
+ * Each number a perk's words say that the fight uses is written once: in its data (`said` fills its words in from it),
+ * or in its hero's own numbers. What the fight hasn't (an archer's, those that do nothing here) its words say as they
+ * are. A chance or a share in points (CC resist, crit chance, ATK Spd...) is 10 to 1%: 1000 is 100% (POINTS).
  */
 
 /** Every ally gains this much while a hero with the perk is on the field and standing; with another hero's same perk there too, only `again` more for each. */
@@ -64,22 +69,25 @@ export interface PerkDef {
 export type OwnPerkId = `s${1 | 2 | 3 | 4}-${'light' | 'dark'}` | `t5-${'light' | 'dark'}`;
 export type PerkId = keyof typeof COMMON_PERKS | `class-${1 | 2 | 3 | 4 | 5}` | OwnPerkId;
 
+/** A perk whose words say its own numbers: `words` is given its data, so each is written once (there). */
+export const said = <D extends Omit<PerkDef, 'words'>>(data: D, words: (data: D) => string): D & { words: string } => ({ ...data, words: words(data) });
+
 /** What overlaps itself: every ally gains `first` from one hero with it, and `again` more from each other. */
 const aura = (first: number, again: number): Aura => ({ first, again });
 
 /** Transcend 1: everyone's. */
 export const COMMON_PERKS = {
-  'atk-up': { name: 'ATK Up', words: 'ATK is increased by 30%', bonus: { atk: 0.3 } },
-  'hp-up': { name: 'HP Up', words: 'HP is increased by 30%', bonus: { hp: 0.3 } },
-  'def-up': { name: 'DEF Up', words: 'DEF is increased by 35%', bonus: { defense: 0.35 } },
-  'crit-resist-up': { name: 'Crit Resist Up', words: 'Crit Resistance is increased by 250', bonus: { critResist: 250 } },
-  'monster-hunting': { name: 'Monster Hunting', words: 'Increases DMG to Non-Hero enemies by 10% and takes 10% reduced DMG', dmg: 1.1, taken: 0.9 },
+  'atk-up': said({ name: 'ATK Up', bonus: { atk: 0.3 } }, ({ bonus }) => `ATK is increased by ${pct(bonus.atk)}`),
+  'hp-up': said({ name: 'HP Up', bonus: { hp: 0.3 } }, ({ bonus }) => `HP is increased by ${pct(bonus.hp)}`),
+  'def-up': said({ name: 'DEF Up', bonus: { defense: 0.35 } }, ({ bonus }) => `DEF is increased by ${pct(bonus.defense)}`),
+  'crit-resist-up': said({ name: 'Crit Resist Up', bonus: { critResist: 250 } }, ({ bonus }) => `Crit Resistance is increased by ${bonus.critResist}`),
+  'monster-hunting': said({ name: 'Monster Hunting', dmg: 1.1, taken: 0.9 }, ({ dmg, taken }) => `Increases DMG to Non-Hero enemies by ${pct(dmg - 1)} and takes ${pct(1 - taken)} reduced DMG`),
 } as const satisfies Record<string, PerkDef>;
 
-const OPPORTUNE_STRIKE: PerkDef = { name: 'Opportune Strike', words: 'Crit Chance is increased by 150 and Crit DMG is increased by 30%.', bonus: { crit: 150, critDamage: 0.3 } };
-const TACTICAL_FORESIGHT: PerkDef = { name: 'Tactical Foresight', words: 'Dodge rate is increased by 200 and takes 10% reduced DMG.', bonus: { dodge: 200 }, taken: 0.9 };
-const BLESSING_OF_MANA: PerkDef = { name: 'Blessing of Mana', words: 'Mana recovery per second rises by 250%.', bonus: { manaRegen: 2.5 } };
-const TARGET_WEAKNESS: PerkDef = { name: 'Target Weakness', words: 'ATK rises by 20% and DEF Penetration rises by 200.', bonus: { atk: 0.2, pen: 200 } };
+const OPPORTUNE_STRIKE: PerkDef = said({ name: 'Opportune Strike', bonus: { crit: 150, critDamage: 0.3 } }, ({ bonus }) => `Crit Chance is increased by ${bonus.crit} and Crit DMG is increased by ${pct(bonus.critDamage)}.`);
+const TACTICAL_FORESIGHT: PerkDef = said({ name: 'Tactical Foresight', bonus: { dodge: 200 }, taken: 0.9 }, ({ bonus, taken }) => `Dodge rate is increased by ${bonus.dodge} and takes ${pct(1 - taken)} reduced DMG.`);
+const BLESSING_OF_MANA: PerkDef = said({ name: 'Blessing of Mana', bonus: { manaRegen: 2.5 } }, ({ bonus }) => `Mana recovery per second rises by ${pct(bonus.manaRegen)}.`);
+const TARGET_WEAKNESS: PerkDef = said({ name: 'Target Weakness', bonus: { atk: 0.2, pen: 200 } }, ({ bonus }) => `ATK rises by ${pct(bonus.atk)} and DEF Penetration rises by ${bonus.pen}.`);
 
 /**
  * Transcend 2: each class's five, in the bot's order (class-1 to class-5). An archer's are in words only: there is no
@@ -89,36 +97,42 @@ export const CLASS_PERKS: Readonly<Record<HeroClass, readonly PerkDef[]>> = {
   warrior: [
     OPPORTUNE_STRIKE,
     // (One enemy: one stack.)
-    { name: 'Warlike', words: 'Per each enemy, ATK is increased by 7% and CC Resistance is increased by 30. Can be stacked up to max 10 times.', bonus: { atk: 0.07, resist: 30 } },
-    { name: 'Offensive Guard', words: 'ATK rises equal to half of P.DEF and received P.DMG decreases by 15%.', atkFromDefense: 0.5, takenPhysical: 0.85 },
+    said({ name: 'Warlike', bonus: { atk: 0.07, resist: 30 } }, ({ bonus }) => `Per each enemy, ATK is increased by ${pct(bonus.atk)} and CC Resistance is increased by ${bonus.resist}. Can be stacked up to max 10 times.`),
+    said({ name: 'Offensive Guard', atkFromDefense: 0.5, takenPhysical: 0.85 }, (p) => `ATK rises equal to ${part(p.atkFromDefense)} of P.DEF and received P.DMG decreases by ${pct(1 - p.takenPhysical)}.`),
     TACTICAL_FORESIGHT,
-    { name: 'Blood Wrath', words: 'Increases Lifesteal by 200 and ATK Spd by 200.', bonus: { lifesteal: 200, speed: 200 } },
+    said({ name: 'Blood Wrath', bonus: { lifesteal: 200, speed: 200 } }, ({ bonus }) => `Increases Lifesteal by ${bonus.lifesteal} and ATK Spd by ${bonus.speed}.`),
   ],
   priest: [
-    { name: 'Vengeful Curse', words: "When hit by an enemy, attacker's DMG is reduced by 70% for 3 sec. This effect only activates once in 40 sec, and cannot be dispelled.", curse: { deals: 0.3, lasts: 3, every: 40 } },
-    { name: 'Goddess Blessing', words: "All allies' Crit Chance is increased by 150. When overlapped with the same perk, only gains 50.", allies: { crit: aura(150, 50) } },
-    {
-      name: 'Inner Peace',
-      words: "Per every sec, all allies' HP is healed by 1%, and CC resistance is increased by 75. When overlapped with the same perk, only 0.3% HP per sec is healed, and CC resistance is increased by 25.",
-      allies: { mend: aura(0.01, 0.003), resist: aura(75, 25) },
-    },
+    said(
+      { name: 'Vengeful Curse', curse: { deals: 0.3, lasts: 3, every: 40 } },
+      ({ curse }) => `When hit by an enemy, attacker's DMG is reduced by ${pct(1 - curse.deals)} for ${curse.lasts} sec. This effect only activates once in ${curse.every} sec, and cannot be dispelled.`,
+    ),
+    said({ name: 'Goddess Blessing', allies: { crit: aura(150, 50) } }, ({ allies }) => `All allies' Crit Chance is increased by ${allies.crit.first}. When overlapped with the same perk, only gains ${allies.crit.again}.`),
+    said(
+      { name: 'Inner Peace', allies: { mend: aura(0.01, 0.003), resist: aura(75, 25) } },
+      ({ allies: { mend, resist } }) =>
+        `Per every sec, all allies' HP is healed by ${fine(mend.first)}, and CC resistance is increased by ${resist.first}. When overlapped with the same perk, only ${fine(mend.again)} HP per sec is healed, and CC resistance is increased by ${resist.again}.`,
+    ),
     BLESSING_OF_MANA,
-    { name: 'Swiftness', words: "All allies' ATK Spd is increased by 150. When overlapped with the same perk, only gains 50.", allies: { speed: aura(150, 50) } },
+    said({ name: 'Swiftness', allies: { speed: aura(150, 50) } }, ({ allies }) => `All allies' ATK Spd is increased by ${allies.speed.first}. When overlapped with the same perk, only gains ${allies.speed.again}.`),
   ],
   wizard: [
-    { name: 'Deception', words: 'When receiving DMG, becomes immune to the next 3 hits of DMG. This effect is activated every 40 sec.', immunity: { hits: 3, every: 40 } },
-    { name: 'Moral Rise', words: "All allies' ATK is increased by 15%. When overlapped with the same perk, only 3% applies.", allies: { atk: aura(0.15, 0.03) } },
+    said({ name: 'Deception', immunity: { hits: 3, every: 40 } }, ({ immunity }) => `When receiving DMG, becomes immune to the next ${immunity.hits} hits of DMG. This effect is activated every ${immunity.every} sec.`),
+    said({ name: 'Moral Rise', allies: { atk: aura(0.15, 0.03) } }, ({ allies }) => `All allies' ATK is increased by ${pct(allies.atk.first)}. When overlapped with the same perk, only ${pct(allies.atk.again)} applies.`),
     BLESSING_OF_MANA,
-    { name: 'Circuit Burst', words: 'Receives 20% more DMG but gains 40% ATK. ACC is increased by 200.', bonus: { atk: 0.4 }, taken: 1.2, acc: 200 },
-    { name: 'Destruction', words: 'Increases Crit Chance by 200 and DEF Penetration by 200.', bonus: { crit: 200, pen: 200 } },
+    said({ name: 'Circuit Burst', bonus: { atk: 0.4 }, taken: 1.2, acc: 200 }, ({ bonus, taken, acc }) => `Receives ${pct(taken - 1)} more DMG but gains ${pct(bonus.atk)} ATK. ACC is increased by ${acc}.`),
+    said({ name: 'Destruction', bonus: { crit: 200, pen: 200 } }, ({ bonus }) => `Increases Crit Chance by ${bonus.crit} and DEF Penetration by ${bonus.pen}.`),
   ],
   assassin: [
     TARGET_WEAKNESS,
-    { name: 'Swift and Nimble', words: 'Per every sec, Dodge rate is increased by 100. This effect can be stacked up to max 5 times, and resets upon dodging an attack.', nimble: { dodge: 100, most: 5 } },
+    said({ name: 'Swift and Nimble', nimble: { dodge: 100, most: 5 } }, ({ nimble }) => `Per every sec, Dodge rate is increased by ${nimble.dodge}. This effect can be stacked up to max ${nimble.most} times, and resets upon dodging an attack.`),
     TACTICAL_FORESIGHT,
     OPPORTUNE_STRIKE,
     // (The boss's attacks aren't slowed by attack speed here: only the DMG it takes.)
-    { name: 'Vital Detection', words: 'Upon Attack, causes the target to take 10% increased All DMG and have their ATK Spd reduced by 100 for 10 sec. This effect activates once every 3 sec.', mark: { name: 'Vital Detection', takes: 1.1, lasts: 10, every: 3 } },
+    said(
+      { name: 'Vital Detection', mark: { name: 'Vital Detection', takes: 1.1, lasts: 10, every: 3 } },
+      ({ mark }) => `Upon Attack, causes the target to take ${pct(mark.takes - 1)} increased All DMG and have their ATK Spd reduced by 100 for ${mark.lasts} sec. This effect activates once every ${mark.every} sec.`,
+    ),
   ],
   archer: [
     { name: 'Precision Shot', words: 'ATK rises by 20% and ACC rises by 400.' },
@@ -128,19 +142,23 @@ export const CLASS_PERKS: Readonly<Record<HeroClass, readonly PerkDef[]>> = {
     { name: 'Concentration', words: 'Every 6 sec, increases own Crit DMG by 4%. This effect can be stacked up to a max of 20 times and cannot be dispelled.' },
   ],
   knight: [
-    { name: 'Experienced Fighter', words: 'Attacked targets take 20% more DMG. Does not stack.', mark: { name: 'Experienced Fighter', takes: 1.2, lasts: Infinity } },
-    { name: 'Excellent Strategy', words: "All allies' CC ACC is increased by 150. When overlapped with the same perk, only 50 applies.", allies: { accuracy: aura(150, 50) } },
-    { name: 'Battle Cry', words: "All allies' Max HP is increased by 15%. When overlapped with the same perk, only 5% of effect applies.", allies: { hp: aura(0.15, 0.05) } },
-    { name: 'Shield of Protection', words: 'Block Rate is increased by 200 and CC resistance is increased by 300.', bonus: { block: 200, resist: 300 } },
+    said({ name: 'Experienced Fighter', mark: { name: 'Experienced Fighter', takes: 1.2, lasts: Infinity } }, ({ mark }) => `Attacked targets take ${pct(mark.takes - 1)} more DMG. Does not stack.`),
+    said({ name: 'Excellent Strategy', allies: { accuracy: aura(150, 50) } }, ({ allies }) => `All allies' CC ACC is increased by ${allies.accuracy.first}. When overlapped with the same perk, only ${allies.accuracy.again} applies.`),
+    said({ name: 'Battle Cry', allies: { hp: aura(0.15, 0.05) } }, ({ allies }) => `All allies' Max HP is increased by ${pct(allies.hp.first)}. When overlapped with the same perk, only ${pct(allies.hp.again)} of effect applies.`),
+    said({ name: 'Shield of Protection', bonus: { block: 200, resist: 300 } }, ({ bonus }) => `Block Rate is increased by ${bonus.block} and CC resistance is increased by ${bonus.resist}.`),
     // (ACC: what of the boss's dodge and block its blows see past.)
-    { name: 'Swift Move', words: 'Increases ATK Spd by 400 and ACC by 200.', bonus: { speed: 400 }, acc: 200 },
+    said({ name: 'Swift Move', bonus: { speed: 400 }, acc: 200 }, ({ bonus, acc }) => `Increases ATK Spd by ${bonus.speed} and ACC by ${acc}.`),
   ],
   mechanic: [
     TARGET_WEAKNESS,
-    { name: 'Ready Cannons', words: 'Mana recovery per second rises by 62.5% per every enemy.', bonus: { manaRegen: 0.625 } },
-    { name: 'Pressure Point', words: 'Crit Chance is increased by 400.', bonus: { crit: 400 } },
-    { name: 'Special Bullet', words: 'Attacked target loses 15% of ATK and 150 of Crit Chance. Does not stack.', mark: { name: 'Special Bullet', deals: 0.85, crit: -0.15, lasts: Infinity } },
-    { name: 'Amplified Gunpowder', words: 'Increases Crit DMG of all allies by 30%. When overlapped with the same perk, only 10% of effect applies.', allies: { critDamage: aura(0.3, 0.1) } },
+    said({ name: 'Ready Cannons', bonus: { manaRegen: 0.625 } }, ({ bonus }) => `Mana recovery per second rises by ${fine(bonus.manaRegen)} per every enemy.`),
+    said({ name: 'Pressure Point', bonus: { crit: 400 } }, ({ bonus }) => `Crit Chance is increased by ${bonus.crit}.`),
+    // (Its Crit Chance as the boss's blows have it: a share, 150 points of it.)
+    said(
+      { name: 'Special Bullet', mark: { name: 'Special Bullet', deals: 0.85, crit: -share(150), lasts: Infinity } },
+      ({ mark }) => `Attacked target loses ${pct(1 - mark.deals)} of ATK and ${Math.round(-mark.crit * POINTS)} of Crit Chance. Does not stack.`,
+    ),
+    said({ name: 'Amplified Gunpowder', allies: { critDamage: aura(0.3, 0.1) } }, ({ allies }) => `Increases Crit DMG of all allies by ${pct(allies.critDamage.first)}. When overlapped with the same perk, only ${pct(allies.critDamage.again)} of effect applies.`),
   ],
 };
 
@@ -227,5 +245,11 @@ export function perkedStats(stats: HeroStats, perks: Iterable<PerkDef>): HeroSta
   return stats;
 }
 
-/** A hero's Transcend 5 Light: ATK, DEF and HP +15%, and `more` of its own (as gear gives it). */
-export const t5Light = (words: string, more: GearBonus): PerkDef => ({ words, bonus: { atk: 0.15, defense: 0.15, hp: 0.15, ...more } });
+/** What every hero's Transcend 5 Light gives: ATK, DEF and HP so much more. */
+const T5_LIGHT = 0.15;
+
+/** A hero's Transcend 5 Light: ATK, DEF and HP +15%, and `more` of its own (as gear gives it), which `says` puts in words. */
+export const t5Light = <M extends GearBonus>(more: M, says: (more: M) => string): PerkDef => ({
+  words: `ATK, DEF, HP +${pct(T5_LIGHT)} / ${says(more)}`,
+  bonus: { atk: T5_LIGHT, defense: T5_LIGHT, hp: T5_LIGHT, ...more },
+});

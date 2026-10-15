@@ -1,5 +1,5 @@
 import { put } from '../combat/status';
-import { t5Light } from '../perks';
+import { said, t5Light } from '../perks';
 import { BLOW } from '../rules';
 import { pct, skillArt } from '../shown';
 import { atTier, ROBURU } from '../unique';
@@ -33,7 +33,7 @@ const LEAF = { chance: 0.3, times: 3, blow: 600 };
 /** The most Poison on the boss, how long it lasts once the last was left, how hard each eats at it every second, and what each takes off the boss's heals. */
 const POISON = { most: 5, lasts: 20, each: 100, every: 1, heals: 0.1 };
 /** Her own perks' numbers: Thornbush Forest's shackle at full Poison, Tangled Vine's more DMG and its stun after, more Poison at most, Blade Leaf's shackle (its chance), and Transcend 5's Dark's Thornbush Forest (how often, its chance). */
-const PERKS = { full: 5, shackle: 3, vine: 1.4, after: 2, most: 6, leaf: { chance: 0.2, shackle: 2 }, forest: { every: 5, chance: 0.3 } };
+const PERKS = { hits: 1, full: 5, shackle: 3, vine: 1.4, after: 2, most: 6, leaf: { chance: 0.2, shackle: 2 }, forest: { every: 5, chance: 0.3 } };
 
 const art = skillArt('lorraine');
 
@@ -88,16 +88,16 @@ export const LORRAINE: HeroDef = {
   ],
   passive: BLADE_LEAF,
   perks: {
-    's1-light': { words: 'Hit count is increased by 1.' },
-    's1-dark': { words: 'Enemies with 5 or more stacks of Poison are shackled for 3 sec upon hit.' },
-    's2-light': { words: 'DMG is increased by 40%.', skill: { index: 1, dmg: 1.4 } },
-    's2-dark': { words: 'Enemies hit by the final explosion effect are stunned for 2 sec.' },
-    's3-light': { words: 'Mana cost is increased by 1 orb but DMG is boosted by 100%.', skill: { index: 2, cost: 1, dmg: 2 } },
+    's1-light': { words: `Hit count is increased by ${PERKS.hits}.` },
+    's1-dark': { words: `Enemies with ${PERKS.full} or more stacks of Poison are shackled for ${PERKS.shackle} sec upon hit.` },
+    's2-light': said({ skill: { index: 1, dmg: PERKS.vine } }, ({ skill }) => `DMG is increased by ${pct(skill.dmg - 1)}.`),
+    's2-dark': { words: `Enemies hit by the final explosion effect are stunned for ${PERKS.after} sec.` },
+    's3-light': said({ skill: { index: 2, cost: 1, dmg: 2 } }, ({ skill }) => `Mana cost is increased by ${skill.cost} orb but DMG is boosted by ${pct(skill.dmg - 1)}.`),
     's3-dark': { words: 'Enemies with 5 or more stacks of Poison lose their positive effects.' },
-    's4-light': { words: 'Poison stack maximum is changed to 6.' },
-    's4-dark': { words: 'There is a 20% chance that hit enemies are shackled for 2 sec.' },
-    't5-light': t5Light('ATK, DEF, HP +15% / Crit Chance +100', { crit: 100 }),
-    't5-dark': { words: "Every 5 sec, targets all enemies and attacks with 'Thornbush Forest' with 30% chance on each enemy." },
+    's4-light': { words: `Poison stack maximum is changed to ${PERKS.most}.` },
+    's4-dark': { words: `There is a ${pct(PERKS.leaf.chance)} chance that hit enemies are shackled for ${PERKS.leaf.shackle} sec.` },
+    't5-light': t5Light({ crit: 100 }, ({ crit }) => `Crit Chance +${crit}`),
+    't5-dark': { words: `Every ${PERKS.forest.every} sec, targets all enemies and attacks with 'Thornbush Forest' with ${pct(PERKS.forest.chance)} chance on each enemy.` },
   },
   attack: 'lash',
   join(fight, self) {
@@ -143,7 +143,7 @@ export const LORRAINE: HeroDef = {
         // Each of three blows leaves a Poison (its Light: a fourth, with the third).
         thornbush(part) {
           thorn();
-          if (part === THORNS.hits - 1 && self.perks.has('s1-light')) thorn();
+          if (part === THORNS.hits - 1 && self.perks.has('s1-light')) for (let i = 0; i < PERKS.hits; i++) thorn();
         },
         // The vine: a blow, 2 Poison, and the boss shackled (as a stun: it can do nothing); its blow after comes in a moment.
         vine() {

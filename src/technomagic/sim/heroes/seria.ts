@@ -1,8 +1,8 @@
 import { share } from '../combat/damage';
 import { put } from '../combat/status';
-import { t5Light } from '../perks';
+import { said, t5Light } from '../perks';
 import { MAX_MANA, SECTION } from '../rules';
-import { pct, seconds, skillArt, type Buff } from '../shown';
+import { fine, pct, seconds, skillArt, type Buff } from '../shown';
 import { atTier, ELSION, ELSION_UP } from '../unique';
 import { CLASS_STATS, type Ability, type HeroDef, type Passive } from './kit';
 import { CODED } from './moves';
@@ -34,7 +34,7 @@ const MOON = { blow: 6000, boss: 3000, ripe: 4000, every: 6, light: 1, unhealed:
 // (Its ATK as the game has it, at this raid's scale.)
 const WITCH = { atk: 38_567, critDamage: 0.05, most: 30 };
 /** Her own perks' numbers: Blossom's less healing for the boss, Blood Scattering Blade's mana for each blow, her less taken for each stack of Cold-Blooded Witch, her opening's more DMG, and Transcend 5's Dark's more taken. */
-const PERKS = { unhealed: { heals: 0.5, lasts: 5 }, mana: 0.2 * SECTION, taken: 0.007, opening: { deals: 1.25, lasts: 200 }, reckless: 1.25 };
+const PERKS = { unhealed: { heals: 0.5, lasts: 5 }, blossomCost: 1, mana: 0.2 * SECTION, taken: 0.007, opening: { deals: 1.25, lasts: 200 }, reckless: 1.25 };
 
 const art = skillArt('seria');
 
@@ -101,22 +101,24 @@ export const SERIA: HeroDef = {
   ],
   passive: COLD_BLOODED,
   perks: {
-    's1-light': {
-      words: "[Mysterious Sword - Falling Petals] - Mana cost is reduced by 1. [Mysterious Sword - Blossom] - Hit enemies' heal rate is reduced by 50% for 5 sec.",
-      skill: { index: 0, cost: -1 },
-    },
-    's1-dark': {
-      words: "[Mysterious Sword - Falling Petals] - Target takes 25% increased M.DMG for 10 sec. [Mysterious Sword - Blossom] - Mana cost is increased by 1, and ignores enemy's DEF.",
-      skill: { index: 0, mark: { name: 'Magic Weakness', takes: { magical: 1.25 }, lasts: 10 } },
-    },
-    's2-light': { words: 'Reduces Mana Cost by 1.', skill: { index: 1, cost: -1 } },
-    's2-dark': { words: 'Upon each DMG dealt, recovers 200 Mana.' },
+    's1-light': said(
+      { skill: { index: 0, cost: -1 } },
+      ({ skill }) =>
+        `[Mysterious Sword - Falling Petals] - Mana cost is reduced by ${-skill.cost}. [Mysterious Sword - Blossom] - Hit enemies' heal rate is reduced by ${pct(1 - PERKS.unhealed.heals)} for ${PERKS.unhealed.lasts} sec.`,
+    ),
+    's1-dark': said(
+      { skill: { index: 0, mark: { name: 'Magic Weakness', takes: { magical: 1.25 }, lasts: 10 } } },
+      ({ skill: { mark } }) =>
+        `[Mysterious Sword - Falling Petals] - Target takes ${pct(mark.takes.magical - 1)} increased M.DMG for ${mark.lasts} sec. [Mysterious Sword - Blossom] - Mana cost is increased by ${PERKS.blossomCost}, and ignores enemy's DEF.`,
+    ),
+    's2-light': said({ skill: { index: 1, cost: -1 } }, ({ skill }) => `Reduces Mana Cost by ${-skill.cost}.`),
+    's2-dark': { words: `Upon each DMG dealt, recovers ${PERKS.mana} Mana.` },
     's3-light': { words: 'Dispels positive effects of all enemies in range.' },
-    's3-dark': { words: 'Increases Mana Cost by 1 and ignores DEF when attacking Non-Hero enemies.', skill: { index: 2, cost: 1, whole: true } },
-    's4-light': { words: 'Takes 0.7% reduced DMG per stack.' },
-    's4-dark': { words: 'When the battle starts, increases DMG to Non-Hero enemies by 25% for 200 sec.' },
-    't5-light': t5Light('ATK, DEF, HP +15% / Crit DMG +20%', { critDamage: 0.2 }),
-    't5-dark': { words: "All of caster's attacks will be critical hits, but the caster becomes unable to block while taking 25% increased damage." },
+    's3-dark': said({ skill: { index: 2, cost: 1, whole: true } }, ({ skill }) => `Increases Mana Cost by ${skill.cost} and ignores DEF when attacking Non-Hero enemies.`),
+    's4-light': { words: `Takes ${fine(PERKS.taken)} reduced DMG per stack.` },
+    's4-dark': { words: `When the battle starts, increases DMG to Non-Hero enemies by ${pct(PERKS.opening.deals - 1)} for ${PERKS.opening.lasts} sec.` },
+    't5-light': t5Light({ critDamage: 0.2 }, ({ critDamage }) => `Crit DMG +${pct(critDamage)}`),
+    't5-dark': { words: `All of caster's attacks will be critical hits, but the caster becomes unable to block while taking ${pct(PERKS.reckless - 1)} increased damage.` },
   },
   // Her animations: one slash where she stands.
   timing: { attack: [{ lands: [0.86], until: 1.1 }] },
@@ -133,7 +135,7 @@ export const SERIA: HeroDef = {
     let elsion = 0;
     const tier = self.unique?.tier ?? null;
     // Her perks: Blossom costs more and cuts through the boss's defense (Falling Petals' Dark); as the fight begins, her opening, and Transcend 5's Dark (a block that can't be).
-    const blossomSkill = self.perks.has('s1-dark') ? { ...BLOSSOM_SKILL, cost: BLOSSOM_SKILL.cost + 1 } : BLOSSOM_SKILL;
+    const blossomSkill = self.perks.has('s1-dark') ? { ...BLOSSOM_SKILL, cost: BLOSSOM_SKILL.cost + PERKS.blossomCost } : BLOSSOM_SKILL;
     if (self.perks.has('s4-dark')) put(self.statuses, { name: OPENING.name, left: PERKS.opening.lasts, deals: PERKS.opening.deals, shown: OPENING });
     if (self.perks.has('t5-dark')) put(self.statuses, { name: RECKLESS.name, left: Infinity, crit: 1, takes: PERKS.reckless, blocks: { physical: -Infinity, magical: -Infinity }, shown: RECKLESS });
 

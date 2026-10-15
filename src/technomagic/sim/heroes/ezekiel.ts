@@ -1,6 +1,6 @@
 import { share } from '../combat/damage';
 import { put } from '../combat/status';
-import { t5Light } from '../perks';
+import { said, t5Light } from '../perks';
 import { BLOW } from '../rules';
 import { fold, nth, pct, skillArt, times, type Buff } from '../shown';
 import { atTier, BARBATOS } from '../unique';
@@ -101,15 +101,15 @@ export const EZEKIEL: HeroDef = {
   ],
   passive: CURSED_BLOOD,
   perks: {
-    's1-light': { words: 'DMG is increased by 40%.', skill: { index: 0, dmg: 1.4 } },
-    's1-dark': { words: 'After activation, ATK is increased by 40% for 5 sec.' },
-    's2-light': { words: 'Mana cost is reduced by 1.', skill: { index: 1, cost: -1 } },
+    's1-light': said({ skill: { index: 0, dmg: 1.4 } }, ({ skill }) => `DMG is increased by ${pct(skill.dmg - 1)}.`),
+    's1-dark': { words: `After activation, ATK is increased by ${pct(PERKS.atk - 1)} for ${PERKS.atkFor} sec.` },
+    's2-light': said({ skill: { index: 1, cost: -1 } }, ({ skill }) => `Mana cost is reduced by ${-skill.cost}.`),
     's2-dark': { words: 'When activated during Fury state, ignores target DEF.' },
     's3-light': { words: 'Becomes immune to CC during activation.' },
-    's3-dark': { words: 'If there is 1 enemy, DMG is increased by 100%.', skill: { index: 2, dmg: 2 } },
-    's4-light': { words: 'When in Fury state, heal rate is increased by 50%.' },
-    's4-dark': { words: "Per every stacked 'Cursed Blood', takes 12% reduced DMG." },
-    't5-light': t5Light('ATK, DEF, HP +15% / ATK Spd +100', { speed: 100 }),
+    's3-dark': said({ skill: { index: 2, dmg: 2 } }, ({ skill }) => `If there is 1 enemy, DMG is increased by ${pct(skill.dmg - 1)}.`),
+    's4-light': { words: `When in Fury state, heal rate is increased by ${pct(PERKS.heals - 1)}.` },
+    's4-dark': { words: `Per every stacked 'Cursed Blood', takes ${pct(PERKS.taken)} reduced DMG.` },
+    't5-light': t5Light({ speed: 100 }, ({ speed }) => `ATK Spd +${speed}`),
     't5-dark': { words: 'When in Fury state, auto attack deals DMG that ignores DEF.' },
   },
   attack: 'claw',

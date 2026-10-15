@@ -1,5 +1,6 @@
+import { share } from '../combat/damage';
 import { away, put } from '../combat/status';
-import { t5Light } from '../perks';
+import { said, t5Light } from '../perks';
 import { BLOW, MAX_MANA, SECTION } from '../rules';
 import { pct, skillArt, type Buff } from '../shown';
 import type { Fighter } from '../types';
@@ -107,16 +108,16 @@ export const LAIAS: HeroDef = {
   ],
   passive: BLESSING,
   perks: {
-    's1-light': { words: 'Heal rate is increased by 40%.' },
-    's1-dark': { words: 'Upon healing, M.Crit Resistance rises by 25%.' },
+    's1-light': { words: `Heal rate is increased by ${pct(PERKS.heals - 1)}.` },
+    's1-dark': { words: `Upon healing, M.Crit Resistance rises by ${pct(share(PERKS.critResist))}.` },
     's2-light': { words: 'Changes the target to the ally with the highest ATK.' },
-    's2-dark': { words: 'Mana cost is reduced by 1.', skill: { index: 1, cost: -1 } },
-    's3-light': { words: 'DMG effect occurs every 3 sec.' },
-    's3-dark': { words: 'Heals all allies by 15% of their max HP.' },
-    's4-light': { words: 'M.DEF increase rate increases by 20%, and M.Crit Resistance increases by 150.' },
-    's4-dark': { words: 'Increases self CC Resist by 400.', bonus: { resist: 400 } },
-    't5-light': t5Light('ATK, DEF, HP +15% / M.Block +200', { blockMagical: 200 }),
-    't5-dark': { words: 'Recovers 350 Mana of all allies every 3 sec.' },
+    's2-dark': said({ skill: { index: 1, cost: -1 } }, ({ skill }) => `Mana cost is reduced by ${-skill.cost}.`),
+    's3-light': { words: `DMG effect occurs every ${PERKS.whirl} sec.` },
+    's3-dark': { words: `Heals all allies by ${pct(PERKS.festival)} of their max HP.` },
+    's4-light': { words: `M.DEF increase rate increases by ${pct(PERKS.defense - 1)}, and M.Crit Resistance increases by ${PERKS.critResistMore}.` },
+    's4-dark': said({ bonus: { resist: PERKS.resist } }, ({ bonus }) => `Increases self CC Resist by ${bonus.resist}.`),
+    't5-light': t5Light({ blockMagical: 200 }, ({ blockMagical }) => `M.Block +${blockMagical}`),
+    't5-dark': { words: `Recovers ${PERKS.mana.each} Mana of all allies every ${PERKS.mana.every} sec.` },
   },
   attack: 'splash',
   join(fight, self) {

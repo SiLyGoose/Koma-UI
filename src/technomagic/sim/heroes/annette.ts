@@ -1,6 +1,6 @@
 import { share } from '../combat/damage';
 import { away, put, type Status } from '../combat/status';
-import { t5Light } from '../perks';
+import { said, t5Light } from '../perks';
 import { BLOW, MAX_MANA } from '../rules';
 import { pct, skillArt, type Buff } from '../shown';
 import type { Fighter } from '../types';
@@ -108,16 +108,19 @@ export const ANNETTE: HeroDef = {
   ],
   passive: CHARGING,
   perks: {
-    's1-light': { words: 'Target takes 25% increased M.DMG for 10 sec.', skill: { index: 0, mark: { name: 'Magic Weakness', takes: { magical: 1.25 }, lasts: 10 } } },
-    's1-dark': { words: 'Charge amount is boosted by 40% upon use.' },
-    's2-light': { words: 'Cooldown is reduced by 3 sec.', skill: { index: 1, cooldown: -3 } },
-    's2-dark': { words: 'Charge amount is boosted by 40% upon use.' },
-    's3-light': { words: 'DMG is increased by 40%.', skill: { index: 2, dmg: 1.4 } },
-    's3-dark': { words: 'Target takes 25% increased M.DMG.' },
-    's4-light': { words: 'ATK boost is increased by 40%.' },
-    's4-dark': { words: 'Overcharge duration is increased by 3 sec.' },
-    't5-light': t5Light('ATK, DEF, HP +15% / ATK Spd +100', { speed: 100 }),
-    't5-dark': { words: "When Overcharge activates, increases all allies' ATK Spd by 200, and increases the ATK of all allies by 5% of Annette's ATK." },
+    's1-light': said(
+      { skill: { index: 0, mark: { name: 'Magic Weakness', takes: { magical: 1.25 }, lasts: 10 } } },
+      ({ skill: { mark } }) => `Target takes ${pct(mark.takes.magical - 1)} increased M.DMG for ${mark.lasts} sec.`,
+    ),
+    's1-dark': { words: `Charge amount is boosted by ${pct(PERKS.charge - 1)} upon use.` },
+    's2-light': said({ skill: { index: 1, cooldown: -3 } }, ({ skill }) => `Cooldown is reduced by ${-skill.cooldown} sec.`),
+    's2-dark': { words: `Charge amount is boosted by ${pct(PERKS.charge - 1)} upon use.` },
+    's3-light': said({ skill: { index: 2, dmg: 1.4 } }, ({ skill }) => `DMG is increased by ${pct(skill.dmg - 1)}.`),
+    's3-dark': { words: `Target takes ${pct(PERKS.eliminated)} increased M.DMG.` },
+    's4-light': { words: `ATK boost is increased by ${pct(PERKS.overAtk - 1)}.` },
+    's4-dark': { words: `Overcharge duration is increased by ${PERKS.overLonger} sec.` },
+    't5-light': t5Light({ speed: 100 }, ({ speed }) => `ATK Spd +${speed}`),
+    't5-dark': { words: `When Overcharge activates, increases all allies' ATK Spd by ${PERKS.allies.speed}, and increases the ATK of all allies by ${pct(PERKS.allies.atk)} of Annette's ATK.` },
   },
   attack: 'zap',
   join(fight, self) {

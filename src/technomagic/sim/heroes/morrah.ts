@@ -1,6 +1,6 @@
 import { share } from '../combat/damage';
 import { away, put } from '../combat/status';
-import { t5Light } from '../perks';
+import { said, t5Light } from '../perks';
 import { BLOW } from '../rules';
 import { pct, seconds, skillArt, type Buff } from '../shown';
 import type { Fighter } from '../types';
@@ -103,16 +103,16 @@ export const MORRAH: HeroDef = {
   ],
   passive: FIRE_SMASH,
   perks: {
-    's1-light': { words: 'ATK Spd is increased by 200 for 15 sec.' },
-    's1-dark': { words: 'Reduces cooldown by 6% per each enemy hit.', skill: { index: 0, cooldownShare: 0.94 } },
-    's2-light': { words: 'M.Block rate is boosted by 20%.' },
+    's1-light': { words: `ATK Spd is increased by ${PERKS.quicker} for ${BURNING.lasts} sec.` },
+    's1-dark': said({ skill: { index: 0, cooldownShare: 0.94 } }, ({ skill }) => `Reduces cooldown by ${pct(1 - skill.cooldownShare)} per each enemy hit.`),
+    's2-light': { words: `M.Block rate is boosted by ${pct(PERKS.block - 1)}.` },
     's2-dark': { words: 'While Hellfire is active, deals DMG based on own M.DEF to nearby enemies.' },
-    's3-light': { words: 'DMG is increased by 40%.', skill: { index: 2, dmg: 1.4 } },
-    's3-dark': { words: 'Heals HP equal to 40% of DMG dealt.' },
-    's4-light': { words: 'Increases own M.DEF by 5% per each block. Max stack is 10.' },
-    's4-dark': { words: 'Target with over 100 stacks of Flame takes 40% increased M.DMG.' },
-    't5-light': t5Light('ATK, DEF, HP +15% / M.Block +200', { blockMagical: 200 }),
-    't5-dark': { words: 'Flame stack DMG is increased by 100%, and max stack number is changed to 120.' },
+    's3-light': said({ skill: { index: 2, dmg: 1.4 } }, ({ skill }) => `DMG is increased by ${pct(skill.dmg - 1)}.`),
+    's3-dark': { words: `Heals HP equal to ${pct(PERKS.drain)} of DMG dealt.` },
+    's4-light': { words: `Increases own M.DEF by ${pct(PERKS.harder.defense)} per each block. Max stack is ${PERKS.harder.most}.` },
+    's4-dark': { words: `Target with over ${FLAME.most} stacks of Flame takes ${pct(PERKS.full)} increased M.DMG.` },
+    't5-light': t5Light({ blockMagical: 200 }, ({ blockMagical }) => `M.Block +${blockMagical}`),
+    't5-dark': { words: `Flame stack DMG is increased by ${pct(PERKS.flame.each - 1)}, and max stack number is changed to ${PERKS.flame.most}.` },
   },
   attack: 'cleave',
   // Clause’s slash (her animations are copies of his), timed as his is.

@@ -1,7 +1,7 @@
 import { share } from '../combat/damage';
 import { put } from '../combat/status';
 import { SKILL_SPEED } from '../motion';
-import { t5Light } from '../perks';
+import { said, t5Light } from '../perks';
 import { BLOW, MAX_MANA, SECTION } from '../rules';
 import { pct, skillArt, type Buff } from '../shown';
 import type { Fighter } from '../types';
@@ -117,21 +117,21 @@ export const FALLEN_FREY: HeroDef = {
   ],
   passive: TAINTED_ANGEL,
   perks: {
-    's1-light': { words: 'Increases All DMG the hit enemies take by 20% for 10 sec.' },
-    's1-dark': { words: 'Increases Mana Cost by 1 and Heal Rate by 100%.', skill: { index: 0, cost: 1 } },
+    's1-light': { words: `Increases All DMG the hit enemies take by ${pct(PERKS.light.takes - 1)} for ${PERKS.light.lasts} sec.` },
+    's1-dark': said({ skill: { index: 0, cost: 1 } }, ({ skill }) => `Increases Mana Cost by ${skill.cost} and Heal Rate by ${pct(PERKS.light.heals - 1)}.`),
     's2-light': { words: 'Changes the target of shield to all allies.' },
-    's2-dark': { words: 'Increases All Block Chance of shielded allies by 400.' },
-    's3-light': { words: 'Increases DMG by 40%.', skill: { index: 2, dmg: 1.4 } },
+    's2-dark': { words: `Increases All Block Chance of shielded allies by ${PERKS.block}.` },
+    's3-light': said({ skill: { index: 2, dmg: 1.4 } }, ({ skill }) => `Increases DMG by ${pct(skill.dmg - 1)}.`),
     's3-dark': { words: 'Each hit reduces Mana by 200.' },
     's4-light': {
-      words: 'At the beginning of the first battle, grants [Blessing of the Fallen Angel] to all allies excluding self, reducing All DMG the targets take by 10% and increasing All DEF by 20%. The [Blessing of the Fallen Angel] effect is irremovable.',
+      words: `At the beginning of the first battle, grants [Blessing of the Fallen Angel] to all allies excluding self, reducing All DMG the targets take by ${pct(1 - PERKS.blessing.takes)} and increasing All DEF by ${pct(PERKS.blessing.defends - 1)}. The [Blessing of the Fallen Angel] effect is irremovable.`,
     },
     's4-dark': {
-      words: "At the beginning of the first battle, grants [Bond of the Fallen Angel] to 1 ally with the highest ATK excluding self, increasing the target's ATK Spd by 200 and ATK equal to 7% of Fallen Frey's ATK. The [Bond of the Fallen Angel] effect is irremovable.",
+      words: `At the beginning of the first battle, grants [Bond of the Fallen Angel] to 1 ally with the highest ATK excluding self, increasing the target's ATK Spd by ${PERKS.bond.speed} and ATK equal to ${pct(PERKS.bond.atk)} of Fallen Frey's ATK. The [Bond of the Fallen Angel] effect is irremovable.`,
     },
-    't5-light': t5Light('ATK, DEF, HP +15% / Crit Chance +100', { crit: 100 }),
+    't5-light': t5Light({ crit: 100 }, ({ crit }) => `Crit Chance +${crit}`),
     't5-dark': {
-      words: 'At the beginning of each battle, increases ATK Spd of the ally with the highest ATK excluding self by 150 and its DMG dealt to Non-Hero enemies by 15% for 30 sec. This effect is irremovable.',
+      words: `At the beginning of each battle, increases ATK Spd of the ally with the highest ATK excluding self by ${PERKS.favour.speed} and its DMG dealt to Non-Hero enemies by ${pct(PERKS.favour.deals - 1)} for ${PERKS.favour.lasts} sec. This effect is irremovable.`,
     },
   },
   attack: 'smite',

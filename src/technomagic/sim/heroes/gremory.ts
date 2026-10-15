@@ -2,7 +2,7 @@ import { share } from '../combat/damage';
 import { put, type Status } from '../combat/status';
 import { BLOW, MAX_MANA } from '../rules';
 import { pct, skillArt, type Buff, type Tone } from '../shown';
-import { t5Light } from '../perks';
+import { said, t5Light } from '../perks';
 import { atTier, PIGRITIA } from '../unique';
 import { CLASS_STATS, type Ability, type HeroDef, type Passive } from './kit';
 import { CODED } from './moves';
@@ -128,15 +128,15 @@ export const GREMORY: HeroDef = {
   passive: LAZY,
   perks: {
     's1-light': { words: 'When there is 1 enemy, additional M.DMG dealt to bosses ignores DEF.' },
-    's1-dark': { words: "[Pochi's Mark] additionally reduces M.DEF by 6%." },
+    's1-dark': { words: `[Pochi's Mark] additionally reduces M.DEF by ${pct(PERKS.softer)}.` },
     's2-light': { words: "The M.Block Chance Reduction effect of [Puchi's Mark] will fix the M.Block Chance to 0 instead." },
     's2-dark': { words: 'Knocks the target away instead of inflicting Stun.' },
-    's3-light': { words: 'Reduces Mana Cost by 1.', skill: { index: 2, cost: -1 } },
-    's3-dark': { words: 'Increases Mana Cost by 1 and DMG by 100%.', skill: { index: 2, cost: 1, dmg: 2 } },
-    's4-light': { words: 'Increases All DMG Reduction effect by 20% while in use.' },
+    's3-light': said({ skill: { index: 2, cost: -1 } }, ({ skill }) => `Reduces Mana Cost by ${-skill.cost}.`),
+    's3-dark': said({ skill: { index: 2, cost: 1, dmg: 2 } }, ({ skill }) => `Increases Mana Cost by ${skill.cost} and DMG by ${pct(skill.dmg - 1)}.`),
+    's4-light': { words: `Increases All DMG Reduction effect by ${pct(PERKS.sleepier - 1)} while in use.` },
     's4-dark': { words: "At the beginning of each battle, [Eh, whatever. I'm gonna sleep.] becomes activated." },
-    't5-light': t5Light('ATK, DEF, HP +15% / Crit Chance +100', { crit: 100 }),
-    't5-dark': { words: 'Increases DMG dealt to Non-Hero enemies by 50% when there is 1 enemy.', dmg: 1.5 },
+    't5-light': t5Light({ crit: 100 }, ({ crit }) => `Crit Chance +${crit}`),
+    't5-dark': said({ dmg: 1.5 }, ({ dmg }) => `Increases DMG dealt to Non-Hero enemies by ${pct(dmg - 1)} when there is 1 enemy.`),
   },
   attack: 'nudge',
   // On her cube.

@@ -1,7 +1,7 @@
 import { share } from '../combat/damage';
 import { put } from '../combat/status';
 import { BLOW, MAX_MANA } from '../rules';
-import { t5Light } from '../perks';
+import { said, t5Light } from '../perks';
 import { pct, skillArt, type Buff } from '../shown';
 import { CLASS_STATS, type HeroDef, type Passive } from './kit';
 
@@ -89,16 +89,21 @@ export const CLAUSE: HeroDef = {
   ],
   passive: VOW_OF_KNIGHTS,
   perks: {
-    's1-light': { words: 'Cooldown is reduced by 2 sec.', skill: { index: 0, cooldown: -2 } },
+    's1-light': said({ skill: { index: 0, cooldown: -2 } }, ({ skill }) => `Cooldown is reduced by ${-skill.cooldown} sec.`),
     's1-dark': { words: 'In exchange for 1 additional Mana Cost, the skill has a 100% chance to draw the target in.' },
-    's2-light': { words: 'Target takes 25% increased P.DMG for 10 sec.', skill: { index: 1, mark: { name: 'Physical Weakness', takes: { physical: 1.25 }, lasts: 10 } } },
-    's2-dark': { words: 'Stuns the enemy for 1 sec.' },
-    's3-light': { words: 'DEF boost is increased by 40%.' },
-    's3-dark': { words: 'Receives 25% reduced P.DMG for the duration.' },
+    's2-light': said(
+      { skill: { index: 1, mark: { name: 'Physical Weakness', takes: { physical: 1.25 }, lasts: 10 } } },
+      ({ skill: { mark } }) => `Target takes ${pct(mark.takes.physical - 1)} increased P.DMG for ${mark.lasts} sec.`,
+    ),
+    's2-dark': { words: `Stuns the enemy for ${PERKS.bashStun} sec.` },
+    's3-light': { words: `DEF boost is increased by ${pct(PERKS.guardMore - 1)}.` },
+    's3-dark': { words: `Receives ${pct(1 - PERKS.guardPhysical)} reduced P.DMG for the duration.` },
     's4-light': { words: 'Casting time is greatly boosted.' },
-    's4-dark': { words: 'Reduces an additional 10% of ATK.' },
-    't5-light': t5Light('ATK, DEF, HP +15% / P.Block +200', { blockPhysical: 200 }),
-    't5-dark': { words: "When an ally other than this hero is hit by an attack, increases all allies' P.DEF by 20% and P.Crit Resist by 20% (10 sec Cooldown)." },
+    's4-dark': { words: `Reduces an additional ${pct(PERKS.weaker)} of ATK.` },
+    't5-light': t5Light({ blockPhysical: 200 }, ({ blockPhysical }) => `P.Block +${blockPhysical}`),
+    't5-dark': {
+      words: `When an ally other than this hero is hit by an attack, increases all allies' P.DEF by ${pct(PERKS.ward.defends - 1)} and P.Crit Resist by ${pct(share(PERKS.ward.critResist))} (${PERKS.ward.every} sec Cooldown).`,
+    },
   },
   // Without an animation for his attack: his sword from side to side.
   attack: 'swing',

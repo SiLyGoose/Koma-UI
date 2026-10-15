@@ -48,6 +48,8 @@ export const nth = (n: number): string => `${n}${n % 100 >= 11 && n % 100 <= 13 
 export const seconds = (n: number): string => `${n} second${n === 1 ? '' : 's'}`;
 /** Every so many seconds ("every second", "every 3 seconds"). */
 export const every = (n: number): string => (n === 1 ? 'every second' : `every ${n} seconds`);
+/** A share as King's Raid says it: "half", or a percent. */
+export const part = (share: number): string => (share === 0.5 ? 'half' : pct(share));
 /** A number as King's Raid writes it, its thousands set apart (12000: "12,000"). */
 export const num = (n: number): string => n.toLocaleString('en-US');
 /** To a tenth of a percent (0.048: "4.8%"). */

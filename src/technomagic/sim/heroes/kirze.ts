@@ -1,5 +1,5 @@
 import { share } from '../combat/damage';
-import { t5Light } from '../perks';
+import { said, t5Light } from '../perks';
 import { num, pct, skillArt, type Buff } from '../shown';
 import { CLASS_STATS, type HeroDef, type Passive } from './kit';
 import { CODED } from './moves';
@@ -85,16 +85,16 @@ export const KIRZE: HeroDef = {
   ],
   passive: EVIL_DEEDS,
   perks: {
-    's1-light': { words: 'Reduces Cooldown by 3% per each enemy hit.', skill: { index: 0, cooldownShare: 0.97 } },
-    's1-dark': { words: 'If there is only 1 enemy, DMG is increased by 100%.', skill: { index: 0, dmg: 2 } },
-    's2-light': { words: 'The duration of stun from the shockwave increases by 0.5 sec against Non-Hero enemies.' },
-    's2-dark': { words: 'While under [Arcane Crystal Awakening], self deals 20% increased DMG to Non-Hero enemies.' },
-    's3-light': { words: 'Increases ATK Spd reduction by 300.' },
+    's1-light': said({ skill: { index: 0, cooldownShare: 0.97 } }, ({ skill }) => `Reduces Cooldown by ${pct(1 - skill.cooldownShare)} per each enemy hit.`),
+    's1-dark': said({ skill: { index: 0, dmg: 2 } }, ({ skill }) => `If there is only 1 enemy, DMG is increased by ${pct(skill.dmg - 1)}.`),
+    's2-light': { words: `The duration of stun from the shockwave increases by ${PERKS.waveStun} sec against Non-Hero enemies.` },
+    's2-dark': { words: `While under [Arcane Crystal Awakening], self deals ${pct(PERKS.awakeDmg - 1)} increased DMG to Non-Hero enemies.` },
+    's3-light': { words: `Increases ATK Spd reduction by ${PERKS.slower}.` },
     's3-dark': { words: 'If there is only 1 enemy, inflicts 2 stacks of [Arcane Crystal Energy].' },
-    's4-light': { words: 'At the beginning of each battle, self deals 25% increased DMG to Non-Hero enemies for 20 sec.' },
-    's4-dark': { words: 'Deals 15% increased DMG to Bosses.', dmg: 1.15 },
-    't5-light': t5Light('ATK, DEF, HP +15% / ATK Spd +100', { speed: 100 }),
-    't5-dark': { words: 'Every normal and Skill attack increases ATK Spd by 5. This effect can be stacked up to max 100 times.' },
+    's4-light': { words: `At the beginning of each battle, self deals ${pct(PERKS.openingDmg - 1)} increased DMG to Non-Hero enemies for ${PERKS.opening} sec.` },
+    's4-dark': said({ dmg: 1.15 }, ({ dmg }) => `Deals ${pct(dmg - 1)} increased DMG to Bosses.`),
+    't5-light': t5Light({ speed: 100 }, ({ speed }) => `ATK Spd +${speed}`),
+    't5-dark': { words: `Every normal and Skill attack increases ATK Spd by ${PERKS.quicker}. This effect can be stacked up to max ${PERKS.most} times.` },
   },
   // Her Glory League animations (both skins move by them): one cut inward where she stands, then three as she walks forward.
   timing: {
