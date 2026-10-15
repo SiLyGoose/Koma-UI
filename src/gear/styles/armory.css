@@ -78,6 +78,14 @@
   font-weight: 500;
 }
 
+/* A picture before a value (a hero's ATK type: King's Raid's own, in its red box), in line with its words. */
+.stats-icon {
+  width: 1.4em;
+  height: 1.4em;
+  margin-right: 6px;
+  vertical-align: -0.38em;
+}
+
 .stats-empty {
   margin: 20px 0;
   text-align: center;

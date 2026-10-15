@@ -39,7 +39,8 @@ export function heroStats(hero: Pick<Hero, 'class'> & Partial<Pick<Hero, 'bonus'
       { label: 'Class', value: className(hero.class), base: null },
       ...(def
         ? [
-            { label: 'ATK type', value: def.stats.deals === 'physical' ? 'Physical' : 'Magic', base: null },
+            // (With King's Raid's icon before it, an orange sword or a blue star in a red box: public/shared/attack/, named as the raid's DamageType.)
+            { label: 'ATK type', value: def.stats.deals === 'physical' ? 'Physical' : 'Magic', icon: `/shared/attack/${def.stats.deals}.png`, base: null },
             { label: 'Position', value: POSITION[lineOf(def)], base: null },
           ]
         : []),

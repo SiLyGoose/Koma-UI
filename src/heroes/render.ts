@@ -357,7 +357,16 @@ export function statBlocks(sections: readonly StatSection[]): HTMLElement[] {
     const list = el('dl');
     for (const row of section.rows) {
       const line = el('div', `stats-row${row.base === null ? '' : ' changed'}`);
-      const value = el('dd', '', row.value);
+      const value = el('dd', '', row.icon ? undefined : row.value);
+      if (row.icon) {
+        // Its picture before the words.
+        const icon = el('img', 'stats-icon');
+        icon.src = row.icon;
+        icon.alt = '';
+        const shown = el('span', '', row.value);
+        shown.prepend(icon);
+        value.append(shown);
+      }
       if (row.base !== null) value.append(el('span', 'stats-base', `base ${row.base}`));
       line.append(el('dt', '', row.label), value);
       list.append(line);

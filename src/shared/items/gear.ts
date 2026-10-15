@@ -89,7 +89,8 @@ export interface GearLoadout {
 /** A group of stats on the Common tab (the bot's web/stats.ts StatSection); `base` is the value without gear, when gear changes it. */
 export interface StatSection {
   title: string;
-  rows: { label: string; value: string; base: string | null }[];
+  /** `icon`, a picture before the value (as public/shared/attack/'s): the heroes page's own, never the bot's. */
+  rows: { label: string; value: string; base: string | null; icon?: string }[];
 }
 
 export interface GearView {
