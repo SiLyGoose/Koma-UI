@@ -371,7 +371,7 @@ function renderSkills(ctx: HeroesContext): void {
 /** A row for each of a hero's skills, for a .skills-list (the databank's Heroes too); none for a hero with no words for them. */
 export function skillRows(id: string): HTMLElement[] {
   return heroSkills(id).map((skill, i) => {
-    const passive = skill.cost === null;
+    const passive = skill.cost === null && skill.tag === null;
     const item = el('li', 'skill');
     const icon = el('span', 'skill-icon', passive ? 'P' : String(i + 1));
     if (skill.picture) {
@@ -384,7 +384,7 @@ export function skillRows(id: string): HTMLElement[] {
     }
     const head = el('div', 'skill-head');
     head.append(el('h3', 'skill-name', skill.name));
-    head.append(el('span', 'skill-tag', passive ? 'Passive' : `${skill.cost} Mana · ${skill.cooldown}s`));
+    head.append(el('span', 'skill-tag', skill.tag ?? (passive ? 'Passive' : `${skill.cost} Mana · ${skill.cooldown}s`)));
     const words = el('div', 'skill-words');
     const text = el('p', 'skill-text');
     text.append(...skillText(skill.text));

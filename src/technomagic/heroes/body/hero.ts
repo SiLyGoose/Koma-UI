@@ -56,6 +56,12 @@ export interface Stood {
   shield?: { mark: string; face: Vector3 };
   /** What it is drawn with: tinted when it is hit. */
   materials: MeshBasicMaterial[];
+  /**
+   * What floats under it, when it sits on something (its skin's `floating`): its pieces (the bones that move
+   * each, and where each is at rest), the middle of its top layer (in the pieces' own axes: they spread apart from
+   * there, so what is on it stays on it), and the back of its underside, where it tips about (in the body's own lengths).
+   */
+  floating?: { pieces: { bone: Object3D; rest: Vector3 }[]; top: Vector3; pivot: Vector3 };
 }
 
 /** Where a shield's face is kept turned, in its hero's own axes: ahead, a little out to its left and up. */

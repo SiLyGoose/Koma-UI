@@ -3,7 +3,7 @@ import { ATK, NONE, share, strike } from '../combat/damage';
 import { away, bound, critting, dealing, defending, filling, healing, pacing, piercing, put, taking, wear, type Status } from '../combat/status';
 import type { Mark } from '../hud/boss-bar';
 import type { Buff } from '../hud/buff';
-import { lineOf, NO_PASSIVE, type HeroDef } from '../heroes/kit';
+import { lineOf, NO_PASSIVE, type Ability, type HeroDef } from '../heroes/kit';
 import type { HeroMove } from '../heroes/moves';
 import type { Input, Logged, Result, SimEvent } from './events';
 import { geared } from './gear';
@@ -91,6 +91,8 @@ export interface Sim extends Fight {
   step(): void;
   /** A hero could use a skill now, were it free: it is on the field, standing, the skill is ready, and it has the mana. */
   ready(fighter: Fighter, index: number): boolean;
+  /** What one of a hero's skill slots holds for now: its own skill, another its skills have turned into, or null (sealed). */
+  slot(fighter: Fighter, index: number): Ability | null;
   /** What is the matter with the boss, for under its health. */
   marks(): Mark[];
   /** A number that sums up how the fight stands (two fights that stand the same have the same). */
@@ -288,7 +290,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
 
   /** A hero uses a skill (true if it did: it must be free). */
   function use(fighter: Fighter, index: number): boolean {
-    const ability = fighter.def.abilities[index];
+    const ability = sim.slot(fighter, index);
     if (!ability || fighter.doing || !sim.ready(fighter, index)) return false;
     begin(fighter, ability.move, true);
     // Authority's knight: its skills strip what helps the boss.
@@ -297,6 +299,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     }
     fighter.cooldowns[index] = ability.cooldown;
     fighter.mana -= ability.cost * SECTION;
+    fighter.part.used?.(index, ability);
     uniqueCast(fighter);
     skillCast(fighter);
     return true;
@@ -628,8 +631,12 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       events.push({ kind: 'cue', who: who?.index ?? null, name, targets: targets.map((one) => one.index) });
     },
     ready(fighter, index) {
-      const ability = fighter.def.abilities[index];
-      return ability !== undefined && field.includes(fighter) && fighter.hp > 0 && !bound(fighter.statuses) && (fighter.cooldowns[index] as number) <= 0 && fighter.mana >= ability.cost * SECTION;
+      const ability = sim.slot(fighter, index);
+      return ability !== null && field.includes(fighter) && fighter.hp > 0 && !bound(fighter.statuses) && (fighter.cooldowns[index] as number) <= 0 && fighter.mana >= ability.cost * SECTION;
+    },
+    slot(fighter, index) {
+      if (index < 0 || index >= fighter.def.abilities.length) return null;
+      return fighter.part.slot ? fighter.part.slot(index) : (fighter.def.abilities[index] ?? null);
     },
     input(input) {
       pending.push(input);

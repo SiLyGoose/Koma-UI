@@ -50,6 +50,16 @@
   opacity: 0.3;
 }
 
+/* Sealed until its hero's skills are unsealed: grey, a lock over it. */
+.tm-skill.sealed .tm-icon {
+  opacity: 0.3;
+  filter: grayscale(1);
+}
+
+.tm-skill.sealed .tm-pips {
+  visibility: hidden;
+}
+
 .tm-wait {
   position: absolute;
   inset: 0;

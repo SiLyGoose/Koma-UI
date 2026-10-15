@@ -16,11 +16,14 @@ export interface HeroSkill {
   text: string;
   /** Its picture (under public/kr/, so only where those are served). */
   picture: string | null;
+  /** What its tag says, where that isn't its cost and cooldown (or Passive). */
+  tag: string | null;
 }
 
 interface SkillText {
   name: string;
   text: string;
+  tag?: string;
 }
 
 /** By hero id: its three skills, then its passive. */
@@ -82,6 +85,33 @@ const SKILLS: Record<string, { costs: [number, number, number]; cooldowns: [numb
       },
     ],
   },
+  // No cooldowns: each skill is sealed once used, and once all three are, each turns into the fourth.
+  gremory: {
+    costs: [3, 3, 4],
+    cooldowns: [0, 0, 0],
+    skills: [
+      {
+        name: 'Pochi, bite them!',
+        tag: '3 Mana · Sealed after use',
+        text: "Attacks an enemy 5 times, dealing M.DMG and inflicting [Pochi's Mark] each hit. The M.DMG of each hit increases by 15% per every stack of [Mana Charge]. [Pochi's Mark] reduces target's ATK by 6% for 15 sec, and it can be stacked up to max 5 times. If the target is a Boss, each hit deals additional M.DMG. The additional M.DMG increases by 30% per every stack of [Mana Charge]. This skill is sealed after use.",
+      },
+      {
+        name: 'Puchi, knock them away!',
+        tag: '3 Mana · Sealed after use',
+        text: "Attacks the farthest enemy from behind, dealing M.DMG. Afterward, inflicts Stun for 5 sec and [Puchi's Mark] on the target. This skill is sealed after use.",
+      },
+      {
+        name: 'Pippi, wrap them!',
+        tag: '4 Mana · Sealed after use',
+        text: "Deals a total of M.DMG over 10 times to the target and enemies within a large area around the target, inflicting [Pippi's Mark] on hit targets each hit. If this skill deals DMG to a target inflicted with 10 stacks of [Pippi's Mark], each hit deals additional M.DMG that ignores DEF. [Pippi's Mark] increases M.DMG the target takes by 5% for 12 sec, and it can be stacked up to max 10 times. This skill is sealed after use.",
+      },
+      {
+        name: 'Eh, whatever. I’m gonna sleep.',
+        tag: 'Once all are sealed',
+        text: "Available once all Skills are sealed. Upon use, dispels CC effects from self. While in use, Gremory gains immunity to CC, takes 40% reduced All DMG, and unlocks all of her sealed Skills. Every time she uses [Eh, whatever. I'm gonna sleep.], she gains a [Mana Charge] stack. Each [Mana Charge] stack increases Gremory's DMG dealt to enemies by 2% and her ATK by 10%. [Mana Charge] can be stacked up to max 5 times and is irremovable.",
+      },
+    ],
+  },
 };
 
 /** A hero's skills, its passive last; none for a hero this page has no words for. */
@@ -89,8 +119,9 @@ export function heroSkills(id: string): HeroSkill[] {
   const hero = SKILLS[id];
   if (!hero) return [];
   const assets = HERO_ASSETS.find((one) => one.folder === `heroes/${id}`);
-  return hero.skills.map((skill, i) => ({
+  return hero.skills.map(({ tag, ...skill }, i) => ({
     ...skill,
+    tag: tag ?? null,
     cost: hero.costs[i] ?? null,
     cooldown: hero.cooldowns[i] ?? null,
     picture: assets ? skillPicture(assets, i) : null,

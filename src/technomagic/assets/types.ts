@@ -62,6 +62,18 @@ export interface PartsModel {
   /** Which of its own axes the weapon in its right hand runs along (x when it doesn't say). */
   blade?: 'x' | 'y';
   /**
+   * What floats beside it, in no hand (a body whose file marks no hand to hold it): `at` where, in its model's
+   * own lengths from the floor under it (x to its left, y up, z ahead), `size` times as big as it comes. It
+   * goes along with it and up with it, but is kept upright whatever it does.
+   */
+  floating?: { model: string; at: readonly [number, number, number]; size: number };
+  /**
+   * Its parts drawn with another model's textures in place of their own: a texture of `from` (a model among its
+   * parts, whose files name its pictures after it) is drawn with the same picture of `to` (another of its hero's
+   * models, on the same layout), from that model's folder.
+   */
+  repaint?: { from: string; to: string };
+  /**
    * What moves it, its files having no animation: another of its hero's skins that comes with its
    * animations (by name), or a rig read for its animations alone, which has no card of its own. With
    * neither (or with it not on this computer) it is moved by the poses written in code.

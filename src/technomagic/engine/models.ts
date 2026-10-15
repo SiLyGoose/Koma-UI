@@ -72,9 +72,10 @@ export const loadFbx = (folder: string): Promise<Group> => new FBXLoader(manager
 
 /**
  * The models in `folders`, in their order. A material with no texture of its own in its file (a face's
- * eyebrows, in the hair's) takes the one a material of the same name has in another of the folders.
+ * eyebrows, in the hair's) takes the one a material of the same name has in another of the folders. With
+ * `repaint`, a texture whose name has `from` in it is the same picture of `to` instead, from the folder `at`.
  */
-export async function loadModels(folders: readonly string[]): Promise<Group[]> {
+export async function loadModels(folders: readonly string[], repaint?: { from: string; to: string; at: string }): Promise<Group[]> {
   const models = await Promise.all(folders.map(loadFbx));
 
   // Where each material's texture is: the file names it by its picture's name.
@@ -115,7 +116,8 @@ export async function loadModels(folders: readonly string[]): Promise<Group[]> {
       waiting.push(
         Promise.all(
           materials.map((material) => {
-            const own = material.map?.name ? { folder: folders[i] as string, file: colourOf(material.map.name) } : found.get(material.name);
+            const named = material.map?.name ? { folder: folders[i] as string, file: colourOf(material.map.name) } : found.get(material.name);
+            const own = repaint && named?.file.includes(repaint.from) ? { folder: repaint.at, file: named.file.replace(repaint.from, repaint.to) } : named;
             return draw(material.name, own?.folder ?? (folders[i] as string), own?.file);
           }),
         ).then((made) => {

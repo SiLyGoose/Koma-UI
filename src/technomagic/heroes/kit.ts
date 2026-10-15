@@ -4,7 +4,7 @@ import type { Line } from '../sim/rules';
 import type { Fight, Fighter } from '../sim/types';
 import type { Mark } from '../hud/boss-bar';
 import type { Buff } from '../hud/buff';
-import type { Pose } from './body/pose';
+import type { Bends, Pose } from './body/pose';
 import type { HeroMove } from './moves';
 
 /*
@@ -46,6 +46,13 @@ export const NO_PASSIVE: Omit<Passive, 'shown'> = { attack: 1, crit: 0, control:
 export interface HeroPart {
   /** What comes of each part of a move of its own as it lands (`part` counts them from 0). Its plain attack and cast are the fight's (unless it says otherwise here). */
   lands: Partial<Record<HeroMove, (part: number) => void>>;
+  /**
+   * What each of its skill slots (by index) holds for now, when that isn't always its own skill: its own, another
+   * that its skills have turned into, or null (sealed: it can't be used). Missing: always its own.
+   */
+  slot?(index: number): Ability | null;
+  /** It has used what is in one of its skill slots (as the move begins). */
+  used?(index: number, ability: Ability): void;
   /** Every frame, on the field or off it. */
   tick?(dt: number): void;
   /** A hero's blow has landed on the boss (not one that comes of a status already on it). */
@@ -121,6 +128,10 @@ export interface HeroDef {
   attack?: HeroMove;
   /** How it stands at rest when it is moved by the poses written in code (a swordsman's, REST, when it doesn't say): its own moves are written from it. */
   stands?: Pose;
+  /** It sits on what floats under it (its skins' `floating`) rather than standing: it glides in on it, bobbing, rather than running. */
+  seated?: boolean;
+  /** Which ways its knees and elbows bend as it is posed, where they aren't the usual ways (a body that lies rather than stands). */
+  bends?: Bends;
   /** Its part in a fight: made once, as the fight begins. */
   join(fight: Fight, self: Fighter): HeroPart;
 }

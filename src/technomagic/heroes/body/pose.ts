@@ -17,7 +17,9 @@ export const TURN = Math.PI * 2;
  * how far it is up on its toes (Tip); and
  * each hand (lh, rh) from the hips; and the way its blade points: turned from straight ahead toward its left
  * (bTurn) and raised (bUp), both angles, so that a sweep from one side to the other goes round through what is
- * between them. Raised past straight up, it points behind.
+ * between them. Raised past straight up, it points behind. And, for one seated on what floats under it: that
+ * tipped back with it on it, its front raised (`rock`, an angle, about the back of its underside), and its
+ * pieces spread apart (`spread`: 0 together, 1 twice as far from its middle).
  */
 export type Pose = {
   ahead: number;
@@ -25,6 +27,8 @@ export type Pose = {
   flip: number;
   /** Spun round where it stands, to its left. */
   spin: number;
+  /** Turned about its own length before it is turned head over heels, to its left: with `flip`, laid on its side. */
+  roll: number;
   hipX: number;
   hipY: number;
   hipZ: number;
@@ -50,9 +54,11 @@ export type Pose = {
   rhZ: number;
   bTurn: number;
   bUp: number;
+  rock: number;
+  spread: number;
 };
 
-export const STILL: Pose = { ahead: 0, jump: 0, flip: 0, spin: 0, hipX: 0, hipY: 0, hipZ: 0, hipTurn: 0, lean: 0, twist: 0, tilt: 0, nod: 0, look: 0, lfX: 0, lfY: 0, lfZ: 0, rfX: 0, rfY: 0, rfZ: 0, lfTip: 0, rfTip: 0, lhX: 0, lhY: 0, lhZ: 0, rhX: 0, rhY: 0, rhZ: 0, bTurn: 0, bUp: 0 };
+export const STILL: Pose = { ahead: 0, jump: 0, flip: 0, spin: 0, roll: 0, hipX: 0, hipY: 0, hipZ: 0, hipTurn: 0, lean: 0, twist: 0, tilt: 0, nod: 0, look: 0, lfX: 0, lfY: 0, lfZ: 0, rfX: 0, rfY: 0, rfZ: 0, lfTip: 0, rfTip: 0, lhX: 0, lhY: 0, lhZ: 0, rhX: 0, rhY: 0, rhZ: 0, bTurn: 0, bUp: 0, rock: 0, spread: 0 };
 
 /**
  * At rest: its weight on its right leg, the left foot out a little; the blade across its back, held low
@@ -79,6 +85,12 @@ export const REST: Pose = {
   bTurn: 1.9,
   bUp: 0.9,
 };
+
+/**
+ * The ways its knees and elbows bend, in the model's own axes, when they are not the usual ones (./posing.ts):
+ * a body laid out some other way than standing, whose joints bend toward what isn't ahead of it or below it.
+ */
+export type Bends = Partial<Record<'lKnee' | 'rKnee' | 'lElbow' | 'rElbow', readonly [number, number, number]>>;
 
 /** A pose as it is, for a track: tracks hold what is added to standing at rest (`from`: how the hero whose track it is stands, REST unless it has a stance of its own). */
 export function at(pose: Partial<Pose>, from: Pose = REST): Partial<Pose> {

@@ -79,7 +79,7 @@ for (const hero of HERO_ASSETS) {
   for (const { model, portrait } of hero.skins) {
     if (model.kind === 'rigged') copyRigged(model, modelFolder(hero, model.folder));
     else {
-      for (const part of [...model.parts, model.left, model.right].filter(Boolean)) copyModel(part, modelFolder(hero, part));
+      for (const part of [...model.parts, model.left, model.right, model.floating?.model, model.repaint?.to].filter(Boolean)) copyModel(part, modelFolder(hero, part));
       // What moves it, when that is a rig read for its animations alone.
       if (typeof model.movedBy === 'object') copyRigged(model.movedBy, modelFolder(hero, model.movedBy.folder));
     }

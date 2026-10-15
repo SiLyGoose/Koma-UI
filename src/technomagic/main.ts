@@ -226,6 +226,7 @@ async function start(): Promise<void> {
             maxMana: SECTIONS,
             auto: fighter.auto,
             cooldowns: fighter.cooldowns,
+            slots: fighter.def.abilities.map((_, index) => sim.slot(fighter, index)),
             reserved: fighter.reserved,
             awake: part.lit?.() ?? false,
             effects,

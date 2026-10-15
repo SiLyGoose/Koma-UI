@@ -1,4 +1,4 @@
-import { Vector3, type Object3D } from 'three';
+import { Box3, Vector3, type Object3D } from 'three';
 import { modelFolder, type HeroAssets, type PartsModel } from '../../assets';
 import { loadModels, materialsOf } from '../../engine/models';
 import { Rig } from '../../engine/rig';
@@ -8,7 +8,7 @@ import { hang, type Stood } from './hero';
 export async function standHero(owner: HeroAssets, model: PartsModel): Promise<Stood> {
   const hands = [model.left, model.right].filter((folder) => folder !== undefined);
   const folders = (names: readonly string[]): string[] => names.map((name) => modelFolder(owner, name));
-  const [parts, held] = await Promise.all([loadModels(folders(model.parts)), loadModels(folders(hands))]);
+  const [parts, held, floats] = await Promise.all([loadModels(folders(model.parts), model.repaint && { ...model.repaint, at: modelFolder(owner, model.repaint.to) }), loadModels(folders(hands)), loadModels(folders(model.floating ? [model.floating.model] : []))]);
   // Where the model's hips are as it stands: its hands are placed from them, and it turns about them.
   const hips = new Rig(parts).at('Bip001');
   const { root, body, middle } = hang(parts, hips.y);
@@ -39,9 +39,32 @@ export async function standHero(owner: HeroAssets, model: PartsModel): Promise<S
       break;
     }
   });
+  // What floats beside it: in the group that goes along the field and up with it, not the one that turns head over heels.
+  const [floating] = floats;
+  let floated: Stood['floating'];
+  if (floating && model.floating) {
+    floating.position.set(...model.floating.at);
+    floating.scale.multiplyScalar(model.floating.size);
+    body.add(floating);
+    // Its pieces: each moved by a bone of its own (its file names them Point_Move_01, _02…), about its middle.
+    const pieces: { bone: Object3D; rest: Vector3 }[] = [];
+    floating.traverse((o) => {
+      if (/^Point_Move_\d+$/.test(o.name)) pieces.push({ bone: o, rest: o.position.clone() });
+    });
+    // Where it tips about: the back of its underside, in the body's own lengths (its box, as it stands, out of the body's scale).
+    body.updateMatrixWorld(true);
+    const box = new Box3().setFromObject(floating);
+    const pivot = body.worldToLocal(new Vector3((box.min.x + box.max.x) / 2, box.min.y, box.min.z));
+    // Its top layer: the pieces highest up as it floats (its file's own axes may not have them up), and their middle.
+    const high = pieces.map(({ bone }) => bone.getWorldPosition(new Vector3()).y);
+    const highest = Math.max(...high);
+    const tops = pieces.filter((_, i) => (high[i] as number) > highest - 0.01);
+    const top = tops.reduce((sum, { rest }) => sum.add(rest), new Vector3()).divideScalar(Math.max(1, tops.length));
+    floated = { pieces, top, pivot };
+  }
 
   const rig = new Rig(parts);
   // Where its feet are as it stands: they are placed from there.
   const feet = { L: rig.at('Bip001_L_Foot'), R: rig.at('Bip001_R_Foot') };
-  return { root, body, middle, models: parts, rig, hips, feet, blade, shield, materials: materialsOf([...parts, ...held]) };
+  return { root, body, middle, models: parts, rig, hips, feet, blade, shield, materials: materialsOf([...parts, ...held, ...floats]), floating: floated };
 }

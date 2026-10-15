@@ -59,7 +59,7 @@ export async function loadHeroes(defs: readonly HeroDef[]): Promise<Entrant[]> {
       if (!stood || skin.model.kind !== 'parts') continue;
       const { movedBy } = skin.model;
       const like = typeof movedBy === 'string' ? (skins.find((other) => other.skin.name === movedBy)?.rigged ?? null) : rig;
-      heroes.set(skin, { hero: like ? heroLike(stood, like, def.stands) : posedHero(stood, def.stands), attack: attack(like) });
+      heroes.set(skin, { hero: like ? heroLike(stood, like, def.stands) : posedHero(stood, def.stands, {}, def.seated, def.bends), attack: attack(like) });
     }
     for (const { skin, rigged } of skins) if (rigged) heroes.set(skin, { hero: riggedHero(rigged), attack: attack(rigged) });
     for (const { skin } of skins) {

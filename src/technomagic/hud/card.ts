@@ -23,6 +23,8 @@ export interface CardState {
   auto: boolean;
   /** Seconds until each ability can be used again. */
   cooldowns: readonly number[];
+  /** What each slot holds for now: its own ability, another its abilities have turned into, or null (sealed). */
+  slots: readonly (Ability | null)[];
   /** The ability it will use as soon as it is free (null: none). */
   reserved: number | null;
   /** A skill of its own has it quickened: its card glows. */
@@ -83,20 +85,28 @@ export function makeCard(name: string, face: string, abilities: readonly Ability
     slot.type = 'button';
     const wait = el('b', 'tm-wait');
     const pips = el('span', 'tm-pips');
-    if (ability) {
-      slot.title = `${ability.name}${ability.cost ? ` · ${ability.cost} mana` : ''}`;
+    const icon = el('span', 'tm-icon');
+    /** Shows an ability in it: its name, its picture (or its icon), and what it costs. */
+    const show = (shown: Ability): void => {
+      slot.title = `${shown.name}${shown.cost ? ` · ${shown.cost} mana` : ''}`;
       slot.setAttribute('aria-label', slot.title);
-      for (let pip = 0; pip < ability.cost; pip++) pips.append(el('i', ''));
-      const icon = el('span', 'tm-icon', ability.icon);
-      if (ability.image) {
-        const picture = el('img', 'tm-art');
-        picture.alt = '';
-        picture.draggable = false;
-        // Not there: its icon stays. (Read already, as the page does before it makes the cards, it is there at once.)
-        picture.addEventListener('load', () => icon.replaceChildren(picture));
-        picture.src = ability.image;
-        if (picture.complete && picture.naturalWidth > 0) icon.replaceChildren(picture);
-      }
+      pips.replaceChildren(...Array.from({ length: shown.cost }, () => el('i', '')));
+      icon.textContent = shown.icon;
+      if (!shown.image) return;
+      const picture = el('img', 'tm-art');
+      picture.alt = '';
+      picture.draggable = false;
+      // Not there: its icon stays. (Read already, as the page does before it makes the cards, it is there at once.)
+      picture.addEventListener('load', () => {
+        if (showing === shown) icon.replaceChildren(picture);
+      });
+      picture.src = shown.image;
+      if (picture.complete && picture.naturalWidth > 0) icon.replaceChildren(picture);
+    };
+    /** The ability it shows: its own, or what that has turned into. */
+    let showing = ability;
+    if (ability) {
+      show(ability);
       slot.append(icon, wait, el('em', 'tm-reserved', 'Reserved'), pips);
       slot.addEventListener('click', () => on.use(i));
     } else {
@@ -105,7 +115,17 @@ export function makeCard(name: string, face: string, abilities: readonly Ability
       slot.setAttribute('aria-label', 'No ability');
     }
     skills.append(slot);
-    return { slot, wait, ability };
+    return {
+      slot,
+      wait,
+      ability,
+      /** Shows what it holds for now (a sealed one shows its own). */
+      hold(now: Ability): void {
+        if (now === showing) return;
+        showing = now;
+        show(now);
+      },
+    };
   });
 
   root.append(portrait, top, skills);
@@ -134,14 +154,18 @@ export function makeCard(name: string, face: string, abilities: readonly Ability
       });
       power.setAttribute('aria-label', `${Math.floor(state.mana)} of ${state.maxMana} mana`);
       auto.setAttribute('aria-pressed', String(state.auto));
-      slots.forEach(({ slot, wait, ability }, i) => {
+      slots.forEach(({ slot, wait, ability, hold }, i) => {
         if (!ability) return;
+        const now = state.slots[i] === undefined ? ability : state.slots[i];
+        hold(now ?? ability);
+        const sealed = now === null;
         const left = state.cooldowns[i] ?? 0;
-        const text = left > 0 ? String(Math.ceil(left)) : '';
+        const text = sealed ? '🔒' : left > 0 ? String(Math.ceil(left)) : '';
         if (wait.textContent !== text) wait.textContent = text;
-        slot.classList.toggle('waiting', left > 0);
+        slot.classList.toggle('sealed', sealed);
+        slot.classList.toggle('waiting', !sealed && left > 0);
         slot.classList.toggle('reserved', state.reserved === i);
-        slot.classList.toggle('short', left <= 0 && state.mana < ability.cost);
+        slot.classList.toggle('short', !sealed && left <= 0 && state.mana < (now ?? ability).cost);
         slot.disabled = !state.picked || state.hp <= 0;
       });
     },

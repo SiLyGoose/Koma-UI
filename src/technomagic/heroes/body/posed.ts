@@ -3,7 +3,7 @@ import { lengthOf } from '../../engine/track';
 import { SKILL_SPEED } from '../../sim/motion';
 import { flowing, MOVES, type HeroMove } from '../moves';
 import { ENTER, holdShield, RED, redden, type Hero, type Stood } from './hero';
-import { REST, STILL, TURN, type Pose } from './pose';
+import { REST, STILL, TURN, type Bends, type Pose } from './pose';
 import { poseBody, poseLoose } from './posing';
 import type { Played } from './rigged';
 import { BIPED } from './skeletons';
@@ -17,12 +17,17 @@ import { BIPED } from './skeletons';
 
 /** Running in: how many strides a second. */
 const STRIDES = 2.9;
+/** Seated on what floats under it: how far it bobs up and down (as the field measures it), and how fast. */
+const BOB = { high: 0.05, rate: 1.6 };
 /** How long a skill's animation takes to come in over how it stands, and to give way back to it when it is left. */
 const INTO = 0.14;
 const RETURN = 0.45;
 
-/** A hero moved by poses written in code: it stands `rest` (a swordsman's, unless its hero has a stance of its own), and its moves are added to that; but for the skills it has animations for (`skills`, by their move's name). */
-export function posedHero({ root, body, middle, models, rig, hips, feet, blade, shield, materials }: Stood, rest: Pose = REST, skills: Readonly<Record<string, Played>> = {}): Hero {
+/**
+ * A hero moved by poses written in code: it stands `rest` (a swordsman's, unless its hero has a stance of its own), and its moves are added to that; but for the skills it has animations for (`skills`, by their move's name).
+ * One `seated` on what floats under it glides in on it, bobbing, rather than running. Its knees and elbows bend as `bends` has them (./posing.ts).
+ */
+export function posedHero({ root, body, middle, models, rig, hips, feet, blade, shield, materials, floating }: Stood, rest: Pose = REST, skills: Readonly<Record<string, Played>> = {}, seated = false, bends: Bends = {}): Hero {
   // Each skill's animation plays on each of its models at once, each with what the animation has for the bones it has.
   const mixer = new AnimationMixer(root);
   const animated: Partial<Record<string, Played & { actions: AnimationAction[] }>> = Object.fromEntries(
@@ -98,8 +103,9 @@ export function posedHero({ root, body, middle, models, rig, hips, feet, blade, 
       const breath = Math.sin(now * 2);
       const pose = { ...rest };
       for (const part of Object.keys(pose) as (keyof Pose)[]) pose[part] += moved[part];
-      // It stays where it stands, whatever the move has it go: only running in takes it along the field.
-      pose.ahead = 0;
+      // It stays where it stands, whatever the move has it go: only running in takes it along the field. (But what one
+      // seated rides carries it where its move has it go, and back.)
+      if (!seated) pose.ahead = 0;
       pose.hipY += breath * 0.01;
       pose.hipX += Math.sin(now * 0.6) * 0.008;
       pose.lean += breath * 0.012;
@@ -110,6 +116,14 @@ export function posedHero({ root, body, middle, models, rig, hips, feet, blade, 
       pose.rhY += Math.sin(now * 2 - 1.1) * 0.008;
       pose.bTurn += Math.sin(now * 0.9) * 0.04;
 
+      // Seated, gliding in: only carried along the field, easing to a stop as it arrives.
+      if (running !== null && seated) {
+        running += dt;
+        const k = Math.min(1, running / ENTER.time);
+        pose.ahead += ENTER.from * (1 - k) ** 1.6;
+        pose.lean -= 0.12 * (1 - k);
+        if (k >= 1) running = null;
+      }
       // Running in: leaning into it, its legs striding and its blade trailing behind, easing into standing as it arrives.
       if (running !== null) {
         running += dt;
@@ -141,7 +155,7 @@ export function posedHero({ root, body, middle, models, rig, hips, feet, blade, 
         if (k >= 1) running = null;
       }
 
-      poseBody(rig, BIPED, pose, hips, feet, blade);
+      poseBody(rig, BIPED, pose, hips, feet, blade, bends);
       // How fast it is moving along the field, smoothed: its hair and tail trail behind.
       rush += ((pose.ahead - was) / Math.max(dt, 0.001) - rush) * Math.min(1, dt * 10);
       was = pose.ahead;
@@ -165,8 +179,22 @@ export function posedHero({ root, body, middle, models, rig, hips, feet, blade, 
       holdShield(rig, shield);
 
       body.position.z = pose.ahead;
-      body.position.y = Math.max(0, pose.jump);
-      middle.rotation.x = pose.flip;
+      body.position.y = Math.max(0, pose.jump) + (seated ? BOB.high * (1 + Math.sin(now * BOB.rate)) : 0);
+      // What it sits on: its pieces spread apart (down and out from its top, so it stays on it), and it tipped back, front up, with it on it (about the back of its underside).
+      body.rotation.x = 0;
+      if (floating) {
+        const apart = 1 + pose.spread;
+        for (const { bone, rest: at } of floating.pieces) bone.position.copy(at).sub(floating.top).multiplyScalar(apart).add(floating.top);
+        const k = body.scale.x;
+        const c = Math.cos(-pose.rock);
+        const s = Math.sin(-pose.rock);
+        const y = floating.pivot.y * k;
+        const z = floating.pivot.z * k;
+        body.rotation.x = -pose.rock;
+        body.position.y += y - (y * c - z * s);
+        body.position.z += z - (y * s + z * c);
+      }
+      middle.rotation.set(pose.flip, pose.roll, 0);
       body.rotation.y = pose.spin;
       red = Math.max(0, red - dt);
       redden(materials, red);

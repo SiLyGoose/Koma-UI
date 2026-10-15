@@ -12,6 +12,8 @@ import type { Buff } from '../hud/buff';
  *   of her ATK, twice over against a boss. (The game's also widens Bloom, Crimson Flower!: there's only the boss.)
  * - Fallen Frey, Angel's Despair, Rosmerta: each skill she uses heals her, and she sees past more of the
  *   boss's defense for a while. (The game's heals the two allies with the highest ATK, and raises theirs.)
+ * - Gremory, Gateway to Purgatory, Pigritia: she is quicker; each time she sleeps she is healed and her mana
+ *   filled a share over 2 seconds, and her Mana Charge raises her ATK more. (Her part does it: ../heroes/gremory/.)
  *
  * The game's shares of ATK are as they are for damage (this raid's blows are counted at ATK 1000, ../combat/);
  * a heal is the game's share of ATK scaled by its heroes' HP to their ATK (some 86 to 1, where here it is
@@ -22,6 +24,15 @@ import type { Buff } from '../hud/buff';
 export const EXIAN = { name: 'The Guardian, Exian', every: 3, lasts: 15, boost: [0.12, 0.14, 0.17, 0.21, 0.25] };
 export const ELICIPIRA = { name: 'Judgment Edge, Elicipira', chance: 0.04, boss: 2, blow: [6000, 7200, 8600, 10000, 12500] };
 export const ROSMERTA = { name: 'Angel’s Despair, Rosmerta', lasts: 7, heal: [20, 24, 29, 35, 42], pen: [240, 290, 350, 420, 500] };
+/** Its attack speed (points), its heal and mana on sleeping (shares of her max HP and max mana, the mana over `over` seconds), and the ATK each Mana Charge adds. */
+export const PIGRITIA = {
+  name: 'Gateway to Purgatory, Pigritia',
+  speed: [240, 290, 350, 420, 500],
+  heal: [0.24, 0.29, 0.35, 0.42, 0.5],
+  mana: [0.24, 0.29, 0.35, 0.42, 0.5],
+  over: 2,
+  charge: [0.048, 0.058, 0.07, 0.084, 0.1],
+};
 
 /** The most a weapon is refined. */
 export const TIERS = 5;
@@ -30,19 +41,24 @@ export const TIERS = 5;
 export const atTier = (list: readonly number[], tier: number): number => list[Math.min(list.length, Math.max(1, Math.floor(tier))) - 1] as number;
 
 const pct = (share: number): string => `${Math.round(share * 100)}%`;
+/** To a tenth of a percent (4.8%). */
+const fine = (share: number): string => `${Math.round(share * 1000) / 10}%`;
 
 /** What each hero's weapon does at a tier, as its card and the heroes page say it. */
 const ABOUT: Readonly<Record<string, (tier: number) => string>> = {
   clause: (tier) => `Every ${EXIAN.every}rd skill he uses, his ATK and defense are ${pct(atTier(EXIAN.boost, tier))} higher for ${EXIAN.lasts} seconds.`,
   kirze: (tier) => `Each of her blows has a ${pct(ELICIPIRA.chance)} chance to deal ${pct(atTier(ELICIPIRA.blow, tier) / 1000)} of her ATK more, doubled against the boss.`,
   'fallen-frey': (tier) => `Each skill she uses heals her by ${pct(atTier(ROSMERTA.heal, tier) / 1000)} of her ATK, and gives her +${atTier(ROSMERTA.pen, tier)} penetration for ${ROSMERTA.lasts} seconds.`,
+  gremory: (tier) =>
+    `+${atTier(PIGRITIA.speed, tier)} attack speed. Each time she sleeps she is healed by ${pct(atTier(PIGRITIA.heal, tier))} of her max HP and recovers ${pct(atTier(PIGRITIA.mana, tier))} of her mana over ${PIGRITIA.over} seconds, and each Mana Charge gives her ${fine(atTier(PIGRITIA.charge, tier))} more ATK.`,
 };
-const NAMES: Readonly<Record<string, string>> = { clause: EXIAN.name, kirze: ELICIPIRA.name, 'fallen-frey': ROSMERTA.name };
+const NAMES: Readonly<Record<string, string>> = { clause: EXIAN.name, kirze: ELICIPIRA.name, 'fallen-frey': ROSMERTA.name, gremory: PIGRITIA.name };
 /** Each weapon's picture: its item's (the bot's catalog id, public/gear/items/weapons/). */
 const PICTURES: Readonly<Record<string, string>> = {
   clause: '/gear/items/weapons/the-guardian-exian.png',
   kirze: '/gear/items/weapons/judgment-edge-elicipira.png',
   'fallen-frey': '/gear/items/weapons/angels-despair-rosmerta.png',
+  gremory: '/gear/items/weapons/gateway-to-purgatory-pigritia.png',
 };
 
 /** The heroes that have a unique weapon, by id. */
