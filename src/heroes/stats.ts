@@ -2,7 +2,7 @@ import type { ShownStatSection } from '../shared/items';
 import { className, type HeroView, type HeroStat } from '../shared/heroes';
 import { POINTS } from '../technomagic/sim/combat/damage';
 import { geared } from '../technomagic/sim/gear';
-import { perkedStats, perksOf, withPerks } from '../technomagic/sim/perks';
+import { ownAuras, perkedStats, perksOf, withPerks } from '../technomagic/sim/perks';
 import { CRIT, MANA_PER_ATTACK, MANA_RATE } from '../technomagic/sim/rules';
 import { SKILL, skilledCritDamage, skilledStats, skillsOf, type SkillId } from '../technomagic/sim/skills';
 import { HEROES } from '../technomagic/sim/heroes';
@@ -51,16 +51,27 @@ export function heroStats(hero: Pick<HeroView, 'class'> & Partial<Pick<HeroView,
   };
   const base = CLASS_STATS[hero.class as HeroClass];
   if (!base) return [about];
-  // (Its perks, picked as far as it is transcended, add to its stats as its gear does.)
+  // (Its perks, picked as far as it is transcended, add to its stats as its gear does; and what they give every ally, itself
+  // among them, as the fight has it: Battle Cry's max HP with its gear's, the rest beside its own.)
   const perks = def ? [...perksOf(hero.perks, def).values()] : [];
+  const auras = ownAuras(perks);
   const given = withPerks(hero.bonus ?? {}, perks);
+  if (auras.hp) given.hp = (given.hp ?? 0) + auras.hp;
   const bonus = (stat: HeroStat): number => given[stat] ?? 0;
   // (Its additional effects: on its own stats, as the fight has them from the start; and what it gives every ally, itself
   // among them, and Mana Spring's mana, as much a second as it gives every few.)
   const skills = skillsOf(hero.skills);
   const n = (id: SkillId): number => skills[id] ?? 0;
   const gear = skilledStats(perkedStats(geared({ ...base, deals: 'physical' }, given), perks), skills);
-  const allies = { atk: 1 + SKILL['war-cry'].atk * n('war-cry'), critDamage: SKILL.whetstone.critDamage * n('whetstone'), defense: 1 + SKILL.bastion.defense * n('bastion') };
+  const allies = {
+    atk: 1 + SKILL['war-cry'].atk * n('war-cry') + (auras.atk ?? 0),
+    crit: auras.crit ?? 0,
+    critDamage: SKILL.whetstone.critDamage * n('whetstone') + (auras.critDamage ?? 0),
+    speed: auras.speed ?? 0,
+    accuracy: auras.accuracy ?? 0,
+    resist: auras.resist ?? 0,
+    defense: 1 + SKILL.bastion.defense * n('bastion'),
+  };
   const spring = (SKILL['mana-spring'].mana / SKILL['mana-spring'].every) * n('mana-spring');
   return [
     about,
@@ -69,11 +80,11 @@ export function heroStats(hero: Pick<HeroView, 'class'> & Partial<Pick<HeroView,
       rows: [
         row('Health', base.hp, gear.hp, whole),
         row('Attack', base.atk, gear.atk * allies.atk, whole),
-        row('Critical Chance', base.crit, gear.crit, pct),
+        row('Critical Chance', base.crit, gear.crit + allies.crit, pct),
         row('Critical Damage', CRIT, CRIT + bonus('critDamage') + skilledCritDamage(skills) + allies.critDamage, times),
-        row('Attack Speed', base.speed, gear.speed, pct),
+        row('Attack Speed', base.speed, gear.speed + allies.speed, pct),
         row('Penetration', base.pen, gear.pen, pct),
-        row('Accuracy', 0, bonus('accuracy'), pct),
+        row('Accuracy', 0, bonus('accuracy') + allies.accuracy, pct),
         row('Lifesteal', 0, bonus('lifesteal'), pct),
       ],
     },
@@ -86,7 +97,7 @@ export function heroStats(hero: Pick<HeroView, 'class'> & Partial<Pick<HeroView,
         row('Magical Block', base.block.magical, gear.block.magical, pct),
         row('Physical Dodge', base.dodge.physical, gear.dodge.physical, pct),
         row('Magical Dodge', base.dodge.magical, gear.dodge.magical, pct),
-        row('Crowd Control Resistance', base.resist, gear.resist, pct),
+        row('Crowd Control Resistance', base.resist, gear.resist + allies.resist, pct),
         row('Physical Critical Resistance', 0, bonus('critResist'), pct),
         row('Magical Critical Resistance', 0, bonus('critResist'), pct),
       ],

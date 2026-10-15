@@ -188,7 +188,7 @@ function renderSlots(ctx: HeroesContext): void {
   }
 }
 
-/** Under the hero: what everything it wears gives it, all told. */
+/** Under the hero: what everything it wears gives it, all told; and under that, what its picked perks give its stats (a hero of theirs only). */
 function renderTotals(ctx: HeroesContext): void {
   const { ui } = ctx;
   const hero = heroShown(ctx);
@@ -196,6 +196,10 @@ function renderTotals(ctx: HeroesContext): void {
   for (const line of hero?.totals ?? []) ui.totals.appendChild(el('li')).append(rich(line));
   if (!hero?.owned) ui.totals.append(el('li', 'muted', notRecruited(ctx, hero?.name ?? 'this hero', 'give them gear')));
   else if (!hero.totals.length) ui.totals.append(el('li', 'muted', 'Nothing equipped yet.'));
+  ui.perkEffectsTitle.hidden = ui.perkEffects.hidden = !hero?.owned;
+  ui.perkEffects.textContent = '';
+  for (const line of hero?.perkEffects ?? []) ui.perkEffects.appendChild(el('li')).append(rich(line));
+  if (hero?.owned && !hero.perkEffects?.length) ui.perkEffects.append(el('li', 'muted', 'No perks that raise its stats picked yet.'));
 }
 
 /** How many cards across the armory is now. */

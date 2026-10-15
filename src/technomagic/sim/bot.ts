@@ -2,6 +2,7 @@ import { BOSSES } from './bosses';
 import type { Input } from './events';
 import { makeSim } from './fight';
 import { HEROES } from './heroes';
+import { perkStats, perksOf } from './perks';
 import { MOST, RAGE_WIPE, RAID_TIME, STAGES, TICK } from './rules';
 import { SET_INFO } from './sets';
 import { MOST_SKILLS, SKILLS } from './skills';
@@ -104,6 +105,16 @@ export interface TmHeroSkill {
   cooldown: number | null;
   tag: string | null;
   text: string;
+}
+
+/**
+ * What a hero's perks (the bot's ids) give its own stats, as gear's bonus has them (shares of ATK, max HP and crit DMG;
+ * chances and the like in points, 10 to 1%), and Offensive Guard's ATK from its physical defense (a share of it): for
+ * its Perk Effects on the heroes page. Null: no such hero.
+ */
+export function tmPerkStats(hero: string, perks: readonly string[]): { bonus: Readonly<Record<string, number>>; atkFromDefense: number } | null {
+  const def = HEROES.find((one) => one.id === hero);
+  return def ? perkStats(perksOf(perks, def).values()) : null;
 }
 
 /** The heroes there are, in the order of their cards; and the bosses, by id. */

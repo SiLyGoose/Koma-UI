@@ -18,6 +18,8 @@ export interface HeroesUi {
   buy: HTMLAnchorElement;
   slots: HTMLButtonElement[];
   totals: HTMLElement;
+  perkEffects: HTMLElement;
+  perkEffectsTitle: HTMLElement;
   views: HTMLButtonElement[];
   detail: HTMLElement;
   armory: HTMLElement;
@@ -95,6 +97,8 @@ export function createContext(root: HTMLElement): HeroesContext {
       buy: $<HTMLAnchorElement>('hero-buy'),
       slots: [...root.querySelectorAll<HTMLButtonElement>('.slot')],
       totals: $('totals'),
+      perkEffects: $('perk-effects'),
+      perkEffectsTitle: $('perk-effects-title'),
       views: [...root.querySelectorAll<HTMLButtonElement>('[data-view]')],
       detail: $('detail'),
       armory: $('armory'),

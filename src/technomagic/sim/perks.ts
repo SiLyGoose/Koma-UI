@@ -245,6 +245,33 @@ export function perkedStats(stats: HeroStats, perks: Iterable<PerkDef>): HeroSta
   return stats;
 }
 
+/** What a hero's own perks give every ally, itself among them: each perk's `first` (it is the first of its kind there), by what it raises. */
+export function ownAuras(perks: Iterable<PerkDef>): Partial<Record<keyof NonNullable<PerkDef['allies']>, number>> {
+  const out: Partial<Record<keyof NonNullable<PerkDef['allies']>, number>> = {};
+  for (const perk of perks) {
+    for (const [key, aura] of Object.entries(perk.allies ?? {}) as [keyof NonNullable<PerkDef['allies']>, Aura][]) out[key] = (out[key] ?? 0) + aura.first;
+  }
+  return out;
+}
+
+/** The stat each aura raises, as gear's bonus has it (Inner Peace's heal every second is none). */
+const AURA_STAT: Partial<Record<keyof NonNullable<PerkDef['allies']>, GearStat>> = { atk: 'atk', crit: 'crit', critDamage: 'critDamage', speed: 'speed', accuracy: 'accuracy', resist: 'resist', hp: 'hp' };
+
+/**
+ * What a hero's perks give its own stats, as gear's bonus has them (ATK, max HP and crit DMG shares; chances and the
+ * like in points, 10 to 1%): its own, and its share of what they give every ally; and Offensive Guard's ATK, so much
+ * of its physical defense, apart. What the heroes page lists as its perks' effects.
+ */
+export function perkStats(perks: Iterable<PerkDef>): { bonus: GearBonus; atkFromDefense: number } {
+  const list = [...perks];
+  const bonus = withPerks({}, list);
+  for (const [key, more] of Object.entries(ownAuras(list)) as [keyof NonNullable<PerkDef['allies']>, number][]) {
+    const stat = AURA_STAT[key];
+    if (stat) bonus[stat] = (bonus[stat] ?? 0) + more;
+  }
+  return { bonus, atkFromDefense: list.reduce((sum, perk) => sum + (perk.atkFromDefense ?? 0), 0) };
+}
+
 /** What every hero's Transcend 5 Light gives: ATK, DEF and HP so much more. */
 const T5_LIGHT = 0.15;
 
