@@ -61,6 +61,8 @@ import './technomagic.css';
 const FIELD_KEY = 'technomagic-field';
 /** Steps the sim may catch up in one frame (after the tab was away) when trying things out. */
 const CATCH_UP = 8;
+/** Trying things out: how far the wheel is turned (in its own pixels) to scroll the cards along by one. */
+const WHEEL_STEP = 50;
 /**
  * In a room: how far behind the bot this page may fall before it hurries to catch up (to LAG steps behind),
  * and, joining a fight long under way, jumps there.
@@ -300,7 +302,7 @@ async function start(): Promise<void> {
     }, null);
     actions?.remove();
     actions = makeActions(actionsRow, bossAutoButton, def.attacks, { use: (attack) => input({ kind: 'boss', attack }), toggle: () => input({ kind: 'boss-auto' }) });
-    hint.textContent = 'Trying things out: each hero on the field attacks by itself; use its skills from its card (or its Auto), and set the boss attacking. The hero on a card puts it on the field, or takes it off (up to 9 at once). With Deathless on, no one falls: a hero or the boss brought down is whole again, and the raid’s time stands still. With it off, heroes that fall stay down.';
+    hint.textContent = 'Trying things out: each hero on the field attacks by itself; use its skills from its card (or its Auto), and set the boss attacking. The hero on a card puts it on the field, or takes it off (up to 9 at once); four cards show at a time, as in a raid: scroll them along (or turn the wheel over them) for the rest. With Deathless on, no one falls: a hero or the boss brought down is whole again, and the raid’s time stands still. With it off, heroes that fall stay down.';
   }
 
   function practice(): void {
@@ -308,6 +310,24 @@ async function start(): Promise<void> {
     for (let n = 1; n <= STAGES; n++) stagePicker.append(new Option(String(n), String(n), false, n === stageNumber));
     deathlessButton.hidden = false;
     deathlessButton.addEventListener('click', () => game?.sim.input({ kind: 'deathless' }));
+    // As in a raid, four cards along the bottom at a time, the rest scrolled to: the wheel scrolls them sideways too, a
+    // card at a time (so many of a trackpad's little turns, or one of a wheel's, to a card).
+    party.classList.add('browse');
+    let turned = 0;
+    party.addEventListener(
+      'wheel',
+      (event) => {
+        if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
+        event.preventDefault();
+        turned += event.deltaY;
+        if (Math.abs(turned) < WHEEL_STEP) return;
+        const [first, second] = party.children as unknown as HTMLElement[];
+        const card = first && second ? second.offsetLeft - first.offsetLeft : party.clientWidth / 4;
+        party.scrollBy({ left: Math.sign(turned) * card, behavior: 'smooth' });
+        turned = 0;
+      },
+      { passive: false },
+    );
     stagePicker.addEventListener('change', () => {
       game?.sim.input({ kind: 'stage', stage: Number(stagePicker.value) });
       const address = new URL(location.href);

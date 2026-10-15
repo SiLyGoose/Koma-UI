@@ -16,6 +16,32 @@
   pointer-events: none;
 }
 
+/*
+ * Trying things out (every hero's skins have a card): four cards at a time, as a raid has at most, in the middle
+ * along the bottom, the rest scrolled to sideways (one card at a time). Room at its left for the first card's
+ * hero, who looks out from behind it.
+ */
+.tm-party.browse {
+  inset: auto auto 12px 50%;
+  width: min(calc(var(--skill) * (4 * 3.24 + 3 * 0.9 + 0.5) + 20px), 100% - 20px);
+  translate: -50% 0;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  padding: 0 10px 4px calc(10px + var(--skill) * 0.5);
+  overflow: auto hidden;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: calc(10px + var(--skill) * 0.5) 10px;
+  scrollbar-color: rgb(255 226 160 / 45%) transparent;
+  scrollbar-width: thin;
+  pointer-events: auto;
+}
+
+.tm-party.browse > .tm-card {
+  flex: none;
+  scroll-snap-align: start;
+}
+
 .tm-card {
   display: grid;
   gap: calc(var(--skill) * 0.08);
