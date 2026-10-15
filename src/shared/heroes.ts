@@ -122,7 +122,7 @@ export const FACE: Frame = { wide: 1.7, tall: 1.7, above: 0.35, fit: {
     annette: { zoom: 1.25, x: -0.023, y: 0.25 },
     morrah: { zoom: 1.35, x: -0.1, y: 0.19 },
     laias: { zoom: 1.4, x: 0, y: 0.33 },
-    ezekiel: { zoom: 1.3, x: -0.07, y: 0.12 },
+    ezekiel: { zoom: 1.5, x: 0.04, y: 0.13 },
     lorraine: { zoom: 1.45, x: 0.02, y: 0.23 },
     valance: { zoom: 1.8, x: -0.215, y: 0.22 },
     seria: { zoom: 1.4, x: 0.04, y: 0.23 },

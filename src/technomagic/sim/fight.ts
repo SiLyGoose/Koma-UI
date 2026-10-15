@@ -32,7 +32,9 @@ import type { Fight, Fighter, Foe, GearBonus } from './types';
  * As in King's Raid, one try is all there is: a hero down stays down (unless a skill of another's revives it),
  * the boss beaten is won, and every hero on the field down (or the boss's rage wiping them, RAGE_WIPE after the
  * raid's time is up) is lost. A raid takes nothing but the heroes' skills and Auto; trying things out, heroes
- * come onto the field and leave it as the player likes, and the boss is set attacking by hand. A hero in a
+ * come onto the field and leave it as the player likes, the boss is set attacking by hand, and with Deathless on
+ * (the page's start) no one falls: a hero or the boss a blow would bring down is whole again instead, and the
+ * raid's time stands still (no rage). A hero in a
  * TechnoMagic set's three pieces has the set's effect (./sets.ts), one wielding its own unique weapon has
  * the weapon's (./unique.ts), and each has the additional skills of the TechnoMagic gear it wears (./skills.ts).
  */
@@ -66,12 +68,16 @@ export interface SimOptions {
   solo?: boolean;
   /** Trying things out: the heroes on the field at first, by their index (with none of them, the first). */
   first?: readonly number[];
+  /** Trying things out: no one falls (a raid: never). */
+  deathless?: boolean;
 }
 
 export interface Sim extends Fight {
   readonly raid: boolean;
   /** The boss attacks by itself (always, in a raid). */
   readonly bossAuto: boolean;
+  /** No one falls: a hero or the boss brought down is whole again, and the raid's time stands still (only when trying things out). */
+  readonly deathless: boolean;
   /** Steps taken; seconds since the heroes ran in. */
   readonly tick: number;
   readonly elapsed: number;
@@ -105,7 +111,7 @@ const KNOCKED: Buff = { name: 'Knocked down', about: 'Can do nothing until it is
 /** Steps in a second (a checksum is kept at the end of each). */
 const SECOND = Math.round(1 / TICK);
 
-export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo = false, first = [] }: SimOptions): Sim {
+export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo = false, first = [], deathless: noDeaths = false }: SimOptions): Sim {
   const random = seeded(seed);
   const roll = (): number => random.next();
   const events: SimEvent[] = [];
@@ -120,6 +126,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
   let clock = 0;
   let stage = Math.min(STAGES, Math.max(1, Math.floor(firstStage) || 1));
   let bossAuto = raid;
+  let deathless = noDeaths && !raid;
   let result: Result | null = null;
   /** The boss's health given back since it was last shown, and how long since then. */
   let mended = 0;
@@ -272,6 +279,11 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
   /** How many times as much a heal or a shield gives for the hero whose it is (its attack, its gear and its Mending; one that is no hero's: as much as it says). */
   const byAttack = (by: Fighter | undefined): number =>
     by ? (by.stats.atk / ATK) * atkTimes(by) * by.healTimes * (bears(by, MENDING_UP.name) ? 1 + SKILL.mending.heal * has(by, 'mending') : 1) : 1;
+
+  /** Deathless: a hero brought down is whole again. */
+  function spare(fighter: Fighter): void {
+    if (deathless && fighter.hp <= 0) fighter.hp = fighter.stats.hp;
+  }
 
   function end(how: Result): void {
     if (result) return;
@@ -448,6 +460,9 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     get bossAuto() {
       return bossAuto;
     },
+    get deathless() {
+      return deathless;
+    },
     get tick() {
       return tick;
     },
@@ -479,9 +494,10 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
         return false;
       }
       events.push({ kind: 'boss-hit' });
-      // (And more or less by what is on the boss: a Shield Strike has left it easier to hurt.)
-      const dealt = Math.min(foe.hp, taken * taking(foe.statuses, type));
+      // (And more or less by what is on the boss: a Shield Strike has left it easier to hurt.) Deathless: all of it, and the boss whole again once it would be beaten.
+      const dealt = deathless ? taken * taking(foe.statuses, type) : Math.min(foe.hp, taken * taking(foe.statuses, type));
       foe.hp -= dealt;
+      if (deathless && foe.hp <= 0) foe.hp = foe.maxHp;
       by.dealt += dealt;
       events.push({ kind: 'number', on: 'boss', amount: dealt, type: blocked ? 'blocked' : critical ? 'crit' : 'hit' });
       // Lifesteal: a share of what it dealt heals it (less what the boss's skills take off healing).
@@ -568,6 +584,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
         if (covered > soak) {
           const lost = Math.min(cover.hp, covered - soak);
           cover.hp -= lost;
+          spare(cover);
           cover.mana = Math.min(MAX_MANA, cover.mana + (MANA_PER_HP_LOST * lost) / cover.stats.hp);
           events.push({ kind: 'number', on: cover.index, amount: covered - soak, type: 'hit' });
           if (cover.hp <= 0) {
@@ -585,6 +602,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       const lost = Math.min(target.hp, Math.max(0, dealt - soaked));
       if (dealt > soaked) {
         target.hp -= lost;
+        spare(target);
         events.push({ kind: 'number', on: target.index, amount: dealt - soaked, type: blocked ? 'blocked' : critical ? 'crit' : 'hit' });
       }
       if (target.hp <= 0) {
@@ -728,7 +746,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       foe.stunned = Math.max(0, foe.stunned - dt);
       wear(foe.statuses, dt);
       wear(party, dt);
-      clock += dt;
+      if (!deathless) clock += dt;
       foe.part.tick?.(dt);
       // What the boss has given itself back, shown once a second rather than a number every step.
       mendShown += dt;
@@ -771,7 +789,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       }
 
       // Every hero on the field down, or wiped by the boss's rage: lost.
-      if ((field.length > 0 && field.every((on) => on.hp <= 0)) || clock >= RAID_TIME + RAGE_WIPE) end('lost');
+      if (!deathless && ((field.length > 0 && field.every((on) => on.hp <= 0)) || clock >= RAID_TIME + RAGE_WIPE)) end('lost');
       tick++;
       if (tick % SECOND === 0) sums.push(sim.checksum());
     },
@@ -818,6 +836,14 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
         return;
       case 'boss-auto':
         bossAuto = !bossAuto;
+        return;
+      case 'deathless':
+        deathless = !deathless;
+        // (Turned on: anyone down already is up again, whole.)
+        if (deathless) {
+          for (const fighter of fighters) if (fighter.hp <= 0) sim.revive(fighter, 1);
+          if (foe.hp <= 0) foe.hp = foe.maxHp;
+        }
         return;
       case 'stage':
         stage = Math.min(STAGES, Math.max(1, Math.floor(input.stage) || 1));

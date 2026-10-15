@@ -15,10 +15,11 @@ export type Input =
   | { kind: 'all-auto' }
   /** The player leaves the raid: lost. */
   | { kind: 'leave' }
-  /** Only when trying things out: a hero onto the field or off it, the boss set to an attack, Boss auto on or off, the raid's stage. */
+  /** Only when trying things out: a hero onto the field or off it, the boss set to an attack, Boss auto on or off, Deathless on or off, the raid's stage. */
   | { kind: 'toggle'; fighter: number }
   | { kind: 'boss'; attack: string }
   | { kind: 'boss-auto' }
+  | { kind: 'deathless' }
   | { kind: 'stage'; stage: number };
 
 /** An input, with the step it was done before (the sim's `tick` then). */

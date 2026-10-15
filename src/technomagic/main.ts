@@ -48,7 +48,8 @@ import './technomagic.css';
  *
  * Opened with no link (`yarn dev`), it is a field for trying things out, with nothing kept: every hero's
  * skins have a card, the hero on a card puts it on the field or takes it off, the buttons under the field
- * set the boss attacking (or Boss auto), and the raid's stage (?stage=) is picked there. ?boss= picks the boss.
+ * set the boss attacking (or Boss auto), and the raid's stage (?stage=) is picked there. With Deathless (on to
+ * start with) no one falls, so moves and what they deal can be tried for as long as it takes. ?boss= picks the boss.
  *
  * Its parts: assets/ names the files (by hero, boss and effect); engine/ loads the models, poses their
  * bones and draws the field; heroes/ and bosses/ are who stands on it, a folder each; combat/ is how a
@@ -94,6 +95,7 @@ const numbersAt = document.getElementById('numbers') as HTMLElement;
 const meterAt = document.getElementById('meter') as HTMLElement;
 const actionsRow = document.getElementById('actions') as HTMLElement;
 const bossAutoButton = document.getElementById('auto') as HTMLButtonElement;
+const deathlessButton = document.getElementById('deathless') as HTMLButtonElement;
 const stagePicker = document.getElementById('stage-pick') as HTMLSelectElement;
 const hint = document.getElementById('hint') as HTMLElement;
 const result = document.getElementById('result') as HTMLElement;
@@ -277,7 +279,7 @@ async function start(): Promise<void> {
       // No storage (a private window), or nothing that can be read in it: the first hero.
     }
     const first = kept.map((name) => entrants.findIndex((entrant) => entrant.skin.name === name)).filter((i) => i >= 0);
-    const sim = makeSim({ boss: def, heroes: entrants.map((entrant) => ({ def: entrant.def, skin: skinOf(entrant) })), seed: Math.floor(Math.random() * 2 ** 32), stage: Number(stagePicker.value) || stageNumber, raid: false, first });
+    const sim = makeSim({ boss: def, heroes: entrants.map((entrant) => ({ def: entrant.def, skin: skinOf(entrant) })), seed: Math.floor(Math.random() * 2 ** 32), stage: Number(stagePicker.value) || stageNumber, raid: false, first, deathless: deathlessButton.getAttribute('aria-pressed') === 'true' });
     const input = (what: Input): void => sim.input(what);
     game = play(sim, entrants, {
       mine: () => true,
@@ -298,12 +300,14 @@ async function start(): Promise<void> {
     }, null);
     actions?.remove();
     actions = makeActions(actionsRow, bossAutoButton, def.attacks, { use: (attack) => input({ kind: 'boss', attack }), toggle: () => input({ kind: 'boss-auto' }) });
-    hint.textContent = 'Trying things out: each hero on the field attacks by itself; use its skills from its card (or its Auto), and set the boss attacking. The hero on a card puts it on the field, or takes it off (up to 9 at once). Heroes that fall stay down.';
+    hint.textContent = 'Trying things out: each hero on the field attacks by itself; use its skills from its card (or its Auto), and set the boss attacking. The hero on a card puts it on the field, or takes it off (up to 9 at once). With Deathless on, no one falls: a hero or the boss brought down is whole again, and the raid’s time stands still. With it off, heroes that fall stay down.';
   }
 
   function practice(): void {
     actionsRow.hidden = false;
     for (let n = 1; n <= STAGES; n++) stagePicker.append(new Option(String(n), String(n), false, n === stageNumber));
+    deathlessButton.hidden = false;
+    deathlessButton.addEventListener('click', () => game?.sim.input({ kind: 'deathless' }));
     stagePicker.addEventListener('change', () => {
       game?.sim.input({ kind: 'stage', stage: Number(stagePicker.value) });
       const address = new URL(location.href);
@@ -529,6 +533,7 @@ async function start(): Promise<void> {
     }
     view.update(now, dt);
     actions?.draw(sim.bossAuto);
+    if (!lock) deathlessButton.setAttribute('aria-pressed', String(sim.deathless));
     playing.draw();
 
     // What each blow took and each heal gave, coming off whom it was.

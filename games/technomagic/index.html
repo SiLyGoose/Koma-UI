@@ -67,11 +67,12 @@
         </section>
       </div>
 
-      <!-- Under the field, trying things out (no room): the raid's stage, the boss's attacks (a button for each is put here: ../../src/technomagic/hud/actions.ts) and Boss auto, which has it attack by itself. -->
+      <!-- Under the field, trying things out (no room): the raid's stage, the boss's attacks (a button for each is put here: ../../src/technomagic/hud/actions.ts), Boss auto, which has it attack by itself, and Deathless, with which no one falls. -->
       <div id="actions" class="tm-actions">
         <!-- The raid's stage: from 4 on, the boss's skills are harder on the heroes. -->
         <label class="tm-stage">Stage <select id="stage-pick"></select></label>
         <button type="button" id="auto" class="action choice tm-boss-auto" aria-pressed="false" disabled>Boss auto</button>
+        <button type="button" id="deathless" class="action choice" aria-pressed="true" hidden>Deathless</button>
       </div>
       <p id="hint" class="hint"></p>
 
