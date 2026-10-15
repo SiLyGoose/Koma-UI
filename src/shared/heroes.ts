@@ -140,7 +140,7 @@ export const SHOP_BUST: Frame = { ...BUST, fit: {
     morrah: { zoom: 1.33, x: -0.09, y: 0.12 },
     laias: { zoom: 1.64, x: -0.04, y: 0.18 },
     seria: { zoom: 1.04, x: 0, y: 0.27 },
-    ezekiel: { zoom: 1.14, x: -0.08, y: 0.11 },
+    ezekiel: { zoom: 1.6, x: 0.4, y: -0.25 },
     lorraine: { zoom: 1.03, x: 0.02, y: 0.09 },
     valance: { zoom: 1.45, x: -0.14, y: 0.21 },
   },
