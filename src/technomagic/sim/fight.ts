@@ -175,7 +175,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       controlTimes: 1 + (gear.control ?? 0),
       accuracy: gear.accuracy ?? 0,
       lifesteal: gear.lifesteal ?? 0,
-      critResist: gear.critResist ?? 0,
+      critResist: { physical: (gear.critResist ?? 0) + (gear.critResistPhysical ?? 0), magical: (gear.critResist ?? 0) + (gear.critResistMagical ?? 0) },
       manaPerAttack: MANA_PER_ATTACK * (1 + (gear.manaAttack ?? 0)),
       manaRegen: MANA_RATE * (1 + (gear.manaRegen ?? 0)),
       motion,
@@ -560,8 +560,8 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
         magical: target.stats.magical * guarded * defending(target.statuses, 'magical'),
         block: { physical: target.stats.block.physical + walled + blocking(target.statuses, 'physical'), magical: target.stats.block.magical + walled + blocking(target.statuses, 'magical') },
       };
-      // Now and then a crit, by the boss's crit chance less the hero's crit resist (and what is on it adds).
-      const critical = roll() < share(foe.def.stats.crit - target.critResist - critResisting(target.statuses));
+      // Now and then a crit, by the boss's crit chance less the hero's crit resist against its kind of damage (and what is on it adds).
+      const critical = roll() < share(foe.def.stats.crit - target.critResist[type] - critResisting(target.statuses, type));
       const { taken, blocked, dodged } = strike(amount * dealing(foe.statuses) * rage(clock - RAID_TIME) * (critical ? CRIT : 1), type, blockable ? stands : { ...stands, block: NONE, dodge: NONE }, 0, roll);
       if (dodged) {
         events.push({ kind: 'number', on: target.index, amount: 0, type: 'dodged' });

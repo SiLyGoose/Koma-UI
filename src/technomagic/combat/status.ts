@@ -33,8 +33,8 @@ export interface Status<Shown> {
   blocks?: Partial<Record<DamageType, number>>;
   /** Added to its bearer's CC resist (points). */
   resist?: number;
-  /** Taken off how likely the blows on its bearer are to be critical (points). */
-  critResist?: number;
+  /** Taken off how likely the blows on its bearer are to be critical (points): of every kind, or of each kind it names. */
+  critResist?: number | Partial<Record<DamageType, number>>;
   /** Its bearer can do nothing while it is on (knocked down); and is out of the fight altogether, not to be aimed at (imprisoned). */
   binds?: boolean;
   away?: boolean;
@@ -124,10 +124,10 @@ export function resisting(on: readonly Status<unknown>[]): number {
   return more;
 }
 
-/** What these take off how likely the blows on a bearer are to be critical (points). */
-export function critResisting(on: readonly Status<unknown>[]): number {
+/** What these take off how likely a kind of damage's blows on a bearer are to be critical (points). */
+export function critResisting(on: readonly Status<unknown>[], type: DamageType): number {
   let more = 0;
-  for (const { critResist } of on) more += critResist ?? 0;
+  for (const { critResist } of on) more += typeof critResist === 'number' ? critResist : (critResist?.[type] ?? 0);
   return more;
 }
 

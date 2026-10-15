@@ -1,5 +1,5 @@
 import type { BossDef, BossPart } from '../bosses/boss';
-import type { HeroStats } from '../combat/damage';
+import type { HeroStats, PerKind } from '../combat/damage';
 import type { Status } from '../combat/status';
 import type { Tone } from '../hud/boss-bar';
 import type { Buff } from '../hud/buff';
@@ -18,7 +18,7 @@ import type { SkillId } from './skills';
  * What a hero's gear gives it, as the bot counts it: points added to a chance or share (crit, attack speed,
  * penetration, block, dodge, CC resist, accuracy, lifesteal, crit resist: 1000 is 100%), ATK added as it is
  * (`atkFlat`: a unique weapon's), and a share more of its own for the rest (ATK, HP, crit damage, defense, heals
- * and shields, stun duration, mana per attack, mana recovery: 0.25 is 25% more). `defense` and `block` are
+ * and shields, stun duration, mana per attack, mana recovery: 0.25 is 25% more). `defense`, `block` and `critResist` are
  * against both kinds of damage; the ones ending in Physical or Magical against that kind only.
  */
 export type GearStat =
@@ -40,6 +40,8 @@ export type GearStat =
   | 'accuracy'
   | 'lifesteal'
   | 'critResist'
+  | 'critResistPhysical'
+  | 'critResistMagical'
   | 'heal'
   | 'control'
   | 'manaAttack'
@@ -68,10 +70,10 @@ export interface Fighter {
   readonly critTimes: number;
   readonly healTimes: number;
   readonly controlTimes: number;
-  /** Points, from its gear: what of the boss's CC resist it sees past, the share of what it deals that heals it, and what it takes off the boss's crit chance. */
+  /** Points, from its gear: what of the boss's CC resist it sees past, the share of what it deals that heals it, and what it takes off the boss's crit chance (against each kind of damage). */
   readonly accuracy: number;
   readonly lifesteal: number;
-  readonly critResist: number;
+  readonly critResist: PerKind;
   /** The mana it gains for each blow of its attack that lands, and recovers a second (../rules.ts's, with what its gear adds). */
   readonly manaPerAttack: number;
   readonly manaRegen: number;

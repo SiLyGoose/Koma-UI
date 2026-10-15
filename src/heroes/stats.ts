@@ -74,8 +74,9 @@ export function heroStats(hero: Pick<Hero, 'class'> & Partial<Pick<Hero, 'bonus'
         row('Magical block', base.block.magical, gear.block.magical, pct),
         row('Physical dodge', base.dodge.physical, gear.dodge.physical, pct),
         row('Magical dodge', base.dodge.magical, gear.dodge.magical, pct),
-        row('CC resist', base.resist, gear.resist, pct),
-        row('Crit resist', 0, bonus('critResist'), pct),
+        row('CC resistance', base.resist, gear.resist, pct),
+        row('Physical crit resistance', 0, bonus('critResist') + bonus('critResistPhysical'), pct),
+        row('Magical crit resistance', 0, bonus('critResist') + bonus('critResistMagical'), pct),
       ],
     },
     {

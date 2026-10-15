@@ -166,7 +166,7 @@ export const LAIAS: HeroDef = {
         // Her passive, and her unique weapon's heal rate, on every ally while she is there.
         const on = allies();
         for (const ally of on) {
-          put(ally.statuses, { name: BLESSED.name, left: Infinity, defends: { magical: WATER_DRAGON.defense }, critResist: WATER_DRAGON.critResist, shown: BLESSED });
+          put(ally.statuses, { name: BLESSED.name, left: Infinity, defends: { magical: WATER_DRAGON.defense }, critResist: { magical: WATER_DRAGON.critResist }, shown: BLESSED });
           if (tier !== null) put(ally.statuses, { name: ELTOIRRE_UP.name, left: Infinity, heals: 1 + atTier(ELTOIRRE.heals, tier), shown: ELTOIRRE_UP });
         }
         // Festival of the Flow's whirlpools: each strikes the boss and knocks it down again.
