@@ -213,6 +213,41 @@ const SKILLS: Record<string, { costs: [number, number, number]; cooldowns: [numb
       },
     ],
   },
+  lorraine: {
+    costs: [2, 3, 3],
+    cooldowns: [7, 10, 23],
+    skills: [
+      { name: 'Thornbush Forest', text: 'Attacks 3 times at random, dealing M.DMG to enemies in range and inflicting 1 stack of Poison with each attack.' },
+      { name: 'Tangled Vine', text: 'Deals M.DMG to enemies in a straight line, stacking 2 Poison and shackling them for 4 sec. After some time, deals a large amount of DMG based on the number of Poison stacks.' },
+      { name: 'Wrath of the Forest', text: 'Deals M.DMG to enemies in range and knocks them down for 3 sec. Enemies inflicted by Poison takes 20% more DMG per every stack.' },
+      {
+        name: 'Blade Leaf',
+        text: 'When dealing a normal attack, attacks a random enemy 3 times with a 30% chance of inflicting M.DMG and 1 stack of Poison for 20 seconds. Poison inflicts a total of M.DMG over 20 seconds, reduces Heal Rate, and can be stacked up to max 5 times. If Lorraine dies, Poison effects on enemies will disappear.',
+      },
+    ],
+  },
+  valance: {
+    costs: [3, 5, 4],
+    cooldowns: [15, 20, 20],
+    skills: [
+      {
+        name: 'Prototype – VA',
+        text: 'Dispels negative effects from the ally with the highest ATK and grants [Hologram] for 15 sec. [Hologram] increases the target’s ATK, Crit Chance, heals HP every sec, and reduces its Cooldown of all active Skills by 0.2 sec. While [Hologram] is active, the target gains immunity to negative effects.',
+      },
+      {
+        name: 'Absolute Protection Field – LA',
+        text: 'Creates an [Violet Force Field] that lasts for 5 sec within a wide range of self. Allies within the range of [Violet Force Field] have their All DEF increased by 15%, gain immunity to CC, and have their HP healed and Mana recovered every sec.',
+      },
+      {
+        name: 'Ultimate Laser Cannon – NCE',
+        text: 'Summons laser cannons behind self that fire laser beams, dealing P.DMG to the enemy. The hit target is inflicted with Stun for 3 sec and becomes [Manipulated] for 15 sec. Afterward, the cannons additionally fire a total of 9 laser beams to random enemies. Each laser beam deals P.DMG, inflicts Stun on the hit target for 1.5 sec, and inflicts [Manipulated] for 15 sec. Enemies who are [Manipulated] have their Heal Rate reduced by 5% and take 7% increased All DMG. [Manipulated] can be stacked up to max 7 times.',
+      },
+      {
+        name: 'Technomagic Awakening',
+        text: 'Increases self’s All DEF, Mana Recovery/Attack, and ATK of all allies. In Technomagic Kingdom, increases all allies’ DMG dealt to Bosses by 15%.',
+      },
+    ],
+  },
 };
 
 /** A hero's skills, its passive last; none for a hero this page has no words for. */

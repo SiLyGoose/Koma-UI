@@ -5,14 +5,16 @@ import { BLESSING, LIGHT, SMITE, VENGEANCE } from '../fallen-frey/moves';
 import { NUDGE, PIPPI, POCHI, PUCHI, SLEEP } from '../gremory/moves';
 import { FLOWER, HAZE, JUDGMENT } from '../kirze/moves';
 import { BUBBLE, DROPLETS, FESTIVAL, SPLASH } from '../laias/moves';
+import { LASH, THORNBUSH, VINE, WRATH } from '../lorraine/moves';
 import { BURNING, CLEAVE, ERUPTION, HELLFIRE } from '../morrah/moves';
 import { BLOSSOM, MOON, PETALS, SCATTER } from '../seria/moves';
+import { BOLT, CANNON, FIELD, PROTOTYPE } from '../valance/moves';
 import { ATTACK, CAST, HIT } from './common';
 import type { Move } from './move';
 
 /*
  * Every move a hero's body can make, by name: the ones all have (./common.ts) and each hero's own
- * (../kirze/moves.ts, ../clause/moves.ts, ../fallen-frey/moves.ts, ../gremory/moves.ts, ../annette/moves.ts, ../morrah/moves.ts, ../laias/moves.ts, ../seria/moves.ts, ../ezekiel/moves.ts), written with the stances in ./stances.ts.
+ * (../kirze/moves.ts, ../clause/moves.ts, ../fallen-frey/moves.ts, ../gremory/moves.ts, ../annette/moves.ts, ../morrah/moves.ts, ../laias/moves.ts, ../seria/moves.ts, ../ezekiel/moves.ts, ../lorraine/moves.ts, ../valance/moves.ts), written with the stances in ./stances.ts.
  */
 
 export type HeroMove =
@@ -53,7 +55,15 @@ export type HeroMove =
   | 'claw'
   | 'instinct'
   | 'despair'
-  | 'doom';
+  | 'doom'
+  | 'lash'
+  | 'thornbush'
+  | 'vine'
+  | 'wrath'
+  | 'bolt'
+  | 'prototype'
+  | 'field'
+  | 'cannon';
 export const MOVES: Record<HeroMove | 'hit', Move> = {
   attack: ATTACK,
   cast: CAST,
@@ -93,6 +103,14 @@ export const MOVES: Record<HeroMove | 'hit', Move> = {
   instinct: INSTINCT,
   despair: DESPAIR,
   doom: DOOM,
+  lash: LASH,
+  thornbush: THORNBUSH,
+  vine: VINE,
+  wrath: WRATH,
+  bolt: BOLT,
+  prototype: PROTOTYPE,
+  field: FIELD,
+  cannon: CANNON,
   hit: HIT,
 };
 

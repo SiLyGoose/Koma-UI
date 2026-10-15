@@ -26,6 +26,10 @@ import type { Buff } from '../hud/buff';
  *   taking more magical damage for a while, twice as much more with her Flame stacked full on it. (Her part does it: ../heroes/morrah/.)
  * - Ezekiel, Jailer of Despair, Barbatos: his Fury lasts longer, and while it does his critical blows are harder and
  *   he stands being knocked down better. (His part does it: ../heroes/ezekiel/.)
+ * - Lorraine, World Tree's Will, Roburu: every 7 seconds, with her Poison on the boss, a blow that leaves it taking more
+ *   magical damage for a while. (The game's also lowers its M.DEF: left out. Her part does it: ../heroes/lorraine/.)
+ * - Valance, Wonder of Magos Le'Flamme, Corbeau Rose: every ally gains by the TechnoMagic gear it wears, the same at
+ *   every tier. (Her part does it: ../heroes/valance/.)
  *
  * The game's shares of ATK are as they are for damage (this raid's blows are counted in thousandths of them, at ATK: ../combat/);
  * a heal is the game's share of ATK scaled by its heroes' HP to their ATK (some 86 to 1, where here it is
@@ -55,6 +59,11 @@ export const ELSION = { name: 'Executioner of Domains, Elsion', blow: [600, 720,
 export const ELTOIRRE = { name: 'Flowing Circle, Eltoirre', heals: [0.1, 0.12, 0.14, 0.17, 0.2], every: 5, mend: [1_200, 1_400, 1_700, 2_100, 2_500] };
 /** How many seconds longer his Fury lasts, and what it adds to his crit damage (a share more) and CC resist (points) while it does. */
 export const BARBATOS = { name: 'Jailer of Despair, Barbatos', longer: [3, 4, 5, 6, 7], critDamage: [0.9, 1, 1.1, 1.2, 1.3], resist: [240, 290, 350, 420, 500] };
+/** How often (seconds) it strikes a poisoned boss, how hard (at ATK), and how much more magical damage the boss takes after, for `lasts` seconds. */
+export const ROBURU = { name: 'World Tree’s Will, Roburu', every: 7, blow: [1200, 1400, 1700, 2100, 2500], takes: [0.12, 0.14, 0.17, 0.21, 0.25], lasts: 10 };
+
+/** What every ally gains by the TechnoMagic gear it wears (the same at every tier): 1 piece, more ATK; 2, more defense; 3, more max HP (here: taking that much less); 4, more DMG. */
+export const CORBEAU = { name: 'Wonder of Magos Le’Flamme, Corbeau Rose', atk: 0.06, defense: 0.06, hp: 0.06, dmg: 0.04 };
 
 /** The most a weapon is refined. */
 export const TIERS = 5;
@@ -83,8 +92,12 @@ const ABOUT: Readonly<Record<string, (tier: number) => string>> = {
     `Each critical blow of her skills deals ${pct(atTier(ELSION.blow, tier) / 1000)} of her ATK more, leaves the boss healed ${pct(atTier(ELSION.unhealed, tier))} less for ${ELSION.lasts} seconds, and heals her ${pct(atTier(ELSION.heals, tier))} more for ${ELSION.healed} seconds (up to ${ELSION.most} times).`,
   ezekiel: (tier) =>
     `His Fury lasts ${atTier(BARBATOS.longer, tier)} seconds longer, and while it does his crit damage is ${pct(atTier(BARBATOS.critDamage, tier))} higher and his CC resist +${atTier(BARBATOS.resist, tier)}.`,
+  lorraine: (tier) =>
+    `Every ${ROBURU.every} seconds, with her Poison on the boss, deals ${pct(atTier(ROBURU.blow, tier) / 1000)} of her ATK to it, and it takes ${pct(atTier(ROBURU.takes, tier))} more magical damage for ${ROBURU.lasts} seconds.`,
+  valance: () =>
+    `Every ally gains by the TechnoMagic gear it wears: with 1 piece, +${pct(CORBEAU.atk)} ATK; 2, +${pct(CORBEAU.defense)} defense; 3, +${pct(CORBEAU.hp)} max HP (it takes that much less); 4, +${pct(CORBEAU.dmg)} DMG.`,
 };
-const NAMES: Readonly<Record<string, string>> = { clause: EXIAN.name, kirze: ELICIPIRA.name, 'fallen-frey': ROSMERTA.name, gremory: PIGRITIA.name, annette: RASCAL.name, morrah: CARPRAIN.name, laias: ELTOIRRE.name, seria: ELSION.name, ezekiel: BARBATOS.name };
+const NAMES: Readonly<Record<string, string>> = { clause: EXIAN.name, kirze: ELICIPIRA.name, 'fallen-frey': ROSMERTA.name, gremory: PIGRITIA.name, annette: RASCAL.name, morrah: CARPRAIN.name, laias: ELTOIRRE.name, seria: ELSION.name, ezekiel: BARBATOS.name, lorraine: ROBURU.name, valance: CORBEAU.name };
 /** Each weapon's picture: its item's (the bot's catalog id, public/gear/items/weapons/). */
 const PICTURES: Readonly<Record<string, string>> = {
   clause: '/gear/items/weapons/the-guardian-exian.png',
@@ -96,6 +109,8 @@ const PICTURES: Readonly<Record<string, string>> = {
   laias: '/gear/items/weapons/flowing-circle-eltoirre.png',
   seria: '/gear/items/weapons/executioner-of-domains-elsion.png',
   ezekiel: '/gear/items/weapons/jailer-of-despair-barbatos.png',
+  lorraine: '/gear/items/weapons/world-trees-will-roburu.png',
+  valance: '/gear/items/weapons/wonder-of-magos-le-flamme-corbeau-rose.png',
 };
 
 /** The heroes that have a unique weapon, by id. */
@@ -119,3 +134,4 @@ export const ROSMERTA_UP: Buff = { name: 'Angel’s Despair, Rosmerta', about: '
 export const RASCAL_UP: Buff = { name: 'Crystallized Technomagic, Rascal', about: 'Deals more to the boss and takes less from it while Annette is Overcharged.', icon: '🤖', image: PICTURES.annette };
 export const ELTOIRRE_UP: Buff = { name: 'Flowing Circle, Eltoirre', about: 'Healing reaches it the more while Laias is on the field.', icon: '☥', image: PICTURES.laias };
 export const ELSION_UP: Buff = { name: 'Executioner of Domains, Elsion', about: 'Healing reaches her the more.', icon: '⚔️', image: PICTURES.seria };
+export const CORBEAU_UP: Buff = { name: 'Wonder of Magos Le’Flamme, Corbeau Rose', about: 'Gains by the TechnoMagic gear it wears while Valance is on the field.', icon: '🌹', image: PICTURES.valance };

@@ -22,8 +22,8 @@ export async function standHero(owner: HeroAssets, model: PartsModel): Promise<S
   hands.forEach((folder, i) => {
     const side = folder === model.left ? 'L' : 'R';
     for (const part of parts) {
-      // (Some files spell the mark with a small h.)
-      const point = part.getObjectByName(`Point_Hand_${side}`) ?? part.getObjectByName(`Point_hand_${side}`);
+      // (Some files spell the mark with a small h; some mark only one, at the right hand, as Point_Weapon: Lorraine's.)
+      const point = part.getObjectByName(`Point_Hand_${side}`) ?? part.getObjectByName(`Point_hand_${side}`) ?? (side === 'R' ? part.getObjectByName('Point_Weapon') : undefined);
       const hand = part.getObjectByName(`Bip001_${side}_Hand`);
       if (!point) continue;
       if (hand) hand.attach(point);
