@@ -1,6 +1,6 @@
 import { AnimationClip, AnimationMixer, LoopOnce, type AnimationAction, type Object3D, type Vector3 } from 'three';
+import type { Rig } from '../../engine/rig';
 import { lengthOf } from '../../engine/track';
-import { SKILL_SPEED } from '../../sim/motion';
 import { flowing, MOVES, type HeroMove } from '../moves';
 import { ENTER, holdShield, RED, redden, type Hero, type Stood } from './hero';
 import { REST, STILL, TURN, type Bends, type Pose } from './pose';
@@ -11,14 +11,15 @@ import { BIPED } from './skeletons';
 /*
  * A hero of the game's own files moved by the poses written in code: it stands at rest and breathes, its
  * hair, tail and ears moving with it; it runs in; and its attack, being hit and its skills are tracks of
- * poses (../moves/). A skill it is given an animation for (made over for its skeleton: ./animated.ts) is
- * played by that instead, eased in from how it stands and back out to it. Given an idle, it stands in that
- * (looping) rather than at rest, whenever it isn't running in or doing anything: eased out of it as a move
- * begins, and back into it after.
+ * poses (../moves/). Its attack or a skill it is given animations for (made over for its skeleton: ./animated.ts)
+ * is played by those instead, one after another, eased in from how it stands and back out to it. Given an idle, it
+ * stands in that (looping) rather than at rest, whenever it isn't running in or doing anything: eased out of it as
+ * a move begins, and back into it after. Varied, how it stands wanders as it stands there: never quite the same twice.
  */
 
-/** Running in: how many strides a second. */
+/** Running in: how many strides a second; and in its run, given one, how many times as fast that is played. */
 const STRIDES = 2.9;
+const RUN_RATE = 1.25;
 /** Seated on what floats under it: how far it bobs up and down (as the field measures it), and how fast. */
 const BOB = { high: 0.05, rate: 1.6 };
 /** What floats beside one that doesn't sit on it: how far it hovers up and down (in its model's own lengths), and how fast. */
@@ -26,36 +27,94 @@ const HOVER = { high: 0.05, rate: 2.2 };
 /** How long a skill's animation takes to come in over how it stands, and to give way back to it when it is left. */
 const INTO = 0.14;
 const RETURN = 0.45;
+/** One of its animations giving way to the next. */
+const BLEND = 0.18;
+/**
+ * Varied, as it stands: how far its chest turns, leans and tips and its head looks round and nods (radians), and
+ * its hips sway (in its model's lengths), each eased to a mark picked at random and held there for `hold` seconds
+ * (between the two); and how fast its idle is played, wandering between the two of `rate`.
+ */
+const VARY = { twist: 0.14, lean: 0.05, tip: 0.05, look: 0.3, nod: 0.08, sway: 0.012, rate: [0.86, 1.1], hold: [1.2, 4] } as const;
+
+/** A move it is given animations for: played one after another, so many times as fast. */
+export interface Own {
+  parts: readonly Played[];
+  speed: number;
+}
 
 /**
- * A hero moved by poses written in code: it stands `rest` (a swordsman's, unless its hero has a stance of its own), and its moves are added to that; but for the skills it has animations for (`skills`, by their move's name).
- * One `seated` on what floats under it glides in on it, bobbing, rather than running. Its knees and elbows bend as `bends` has them (./posing.ts).
- * With an `idle` (made over for its skeleton), it stands in that.
+ * How else it is moved: `seated` on what floats under it, it glides in on it, bobbing, rather than running. Its knees
+ * and elbows bend as `bends` has them (./posing.ts). With an `idle` (made over for its skeleton), it stands in that.
+ * With a `run`, it runs in in that (over its stride written in code), the blade in its right hand pointing along
+ * `bladeRunning` (a way in its model's axes), if that is given. `varied`, how it stands wanders (VARY).
  */
-export function posedHero({ root, body, middle, models, rig, hips, feet, blade, shield, materials, floating }: Stood, rest: Pose = REST, skills: Readonly<Record<string, Played>> = {}, seated = false, bends: Bends = {}, idle?: AnimationClip): Hero {
-  // Each skill's animation plays on each of its models at once, each with what the animation has for the bones it has.
+export interface Posing {
+  seated?: boolean;
+  bends?: Bends;
+  idle?: AnimationClip;
+  run?: AnimationClip;
+  bladeRunning?: Vector3;
+  varied?: boolean;
+}
+
+/** A value that wanders: eased to a mark picked at random within `most` of 0 (either way), held a while, then another. */
+function wandering(most: number): (dt: number) => number {
+  let at = (Math.random() * 2 - 1) * most;
+  let to = at;
+  let speed = 0;
+  let wait = 0;
+  return (dt) => {
+    wait -= dt;
+    if (wait <= 0) {
+      to = (Math.random() * 2 - 1) * most;
+      wait = VARY.hold[0] + Math.random() * (VARY.hold[1] - VARY.hold[0]);
+    }
+    // As a spring would take it there, slowing to a stop (in a second or so).
+    const k = 2.4;
+    speed += (k * k * (to - at) - 2 * k * speed) * dt;
+    at += speed * dt;
+    return at;
+  };
+}
+
+/**
+ * A hero moved by poses written in code: it stands `rest` (a swordsman's, unless its hero has a stance of its own), and its moves are added to that;
+ * but for those it has animations for (`own`, by their move's name). And as `posing` has it.
+ */
+export function posedHero({ root, body, middle, models, rig, hips, feet, blade, shield, materials, floating }: Stood, rest: Pose = REST, own: Readonly<Record<string, Own>> = {}, posing: Posing = {}): Hero {
+  const { seated = false, bends = {}, idle, run, bladeRunning, varied = false } = posing;
+  // Each animation plays on each of its models at once, each with what the animation has for the bones it has.
   const mixer = new AnimationMixer(root);
-  const animated: Partial<Record<string, Played & { actions: AnimationAction[] }>> = Object.fromEntries(
-    Object.entries(skills).map(([move, skill]) => [
+  type Part = Played & { actions: AnimationAction[] };
+  const animated: Partial<Record<string, { parts: Part[]; speed: number }>> = Object.fromEntries(
+    Object.entries(own).map(([move, { parts, speed }]) => [
       move,
       {
-        ...skill,
-        actions: models.map((model: Object3D) => {
-          const { clip } = skill;
-          const action = mixer.clipAction(new AnimationClip(clip.name, clip.duration, clip.tracks.filter((track) => model.getObjectByName(track.name.slice(0, track.name.lastIndexOf('.'))))), model);
-          action.setLoop(LoopOnce, 1);
-          action.clampWhenFinished = true;
-          return action;
-        }),
+        speed,
+        parts: parts.map((part) => ({
+          ...part,
+          actions: models.map((model: Object3D) => {
+            const { clip } = part;
+            const action = mixer.clipAction(new AnimationClip(clip.name, clip.duration, clip.tracks.filter((track) => model.getObjectByName(track.name.slice(0, track.name.lastIndexOf('.'))))), model);
+            action.setLoop(LoopOnce, 1);
+            action.clampWhenFinished = true;
+            return action;
+          }),
+        })),
       },
     ]),
   );
-  /** A skill played by its animation: which, how far in (in the animation's own time), and how long since it was left (null: it hasn't been). */
-  let playing: { own: Played & { actions: AnimationAction[] }; t: number; left: number | null } | null = null;
+  /**
+   * A move played by its animations: which, which of them it is in and how far in (in the animation's own time), how
+   * long since it was left (null: it hasn't been), and how its last animation left it as this one began (and how long ago).
+   */
+  let playing: { own: { parts: Part[]; speed: number }; part: number; t: number; left: number | null; from: { kept: ReturnType<Rig['keep']>; t: number } | null } | null = null;
   const stopPlaying = (): void => {
-    for (const action of playing?.own.actions ?? []) action.stop();
+    for (const action of playing?.own.parts[playing.part]?.actions ?? []) action.stop();
     playing = null;
   };
+  // Varied: what wanders (how fast its idle is played among it, and from how far into it it starts).
+  const wander = varied ? { twist: wandering(VARY.twist), lean: wandering(VARY.lean), tip: wandering(VARY.tip), look: wandering(VARY.look), nod: wandering(VARY.nod), sway: wandering(VARY.sway), rate: wandering((VARY.rate[1] - VARY.rate[0]) / 2) } : null;
   // How the poses written in code have it, this frame: what an animation is eased in from and out to.
   const posed = rig.keep();
   // Its idle, on a mixer of its own (so a skill's animation is never mixed with it): how far into it, and how much of it shows (0 to 1).
@@ -67,8 +126,19 @@ export function posedHero({ root, body, middle, models, rig, hips, feet, blade, 
         return action;
       })
     : [];
-  let idleT = 0;
+  let idleT = wander && idle ? Math.random() * idle.duration : 0;
   let standing = 1;
+  // Its run, the same way: how far into it, and how much of it shows (as much as its stride written in code does).
+  const runMixer = run && new AnimationMixer(root);
+  const runActions = runMixer
+    ? models.map((model: Object3D) => {
+        const action = runMixer.clipAction(new AnimationClip(run.name, run.duration, run.tracks.filter((track) => model.getObjectByName(track.name.slice(0, track.name.lastIndexOf('.'))))), model);
+        action.play();
+        return action;
+      })
+    : [];
+  let runT = 0;
+  let striding = 0;
 
   let red = 0;
   let doing: { name: HeroMove | 'hit'; t: number } | null = null;
@@ -83,15 +153,16 @@ export function posedHero({ root, body, middle, models, rig, hips, feet, blade, 
       doing = null;
       stopPlaying();
       running = 0;
+      runT = 0;
     },
     start(move) {
       running = null;
       stopPlaying();
       const own = animated[move];
-      if (own) {
+      if (own?.parts[0]) {
         doing = null;
-        playing = { own, t: 0, left: null };
-        for (const action of own.actions) action.reset().play();
+        playing = { own, part: 0, t: 0, left: null, from: null };
+        for (const action of own.parts[0].actions) action.reset().play();
       } else doing = { name: move, t: 0 };
     },
     head: (into) => (models[0] as Object3D).localToWorld(into.copy(rig.at(BIPED.head))),
@@ -137,6 +208,10 @@ export function posedHero({ root, body, middle, models, rig, hips, feet, blade, 
       pose.lhZ += Math.sin(now * 1.1) * 0.018;
       pose.rhY += Math.sin(now * 2 - 1.1) * 0.008;
       pose.bTurn += Math.sin(now * 0.9) * 0.04;
+      // Varied: what wanders goes on wandering whatever it does (its weight shifted from leg to leg here), though it shows only as it stands.
+      const step = Math.min(dt, 0.1);
+      const wandered = wander && { twist: wander.twist(step), lean: wander.lean(step), tip: wander.tip(step), look: wander.look(step), nod: wander.nod(step), sway: wander.sway(step), rate: wander.rate(step) };
+      if (wandered) pose.hipX += wandered.sway * standing;
 
       // Seated, gliding in: only carried along the field, easing to a stop as it arrives.
       if (running !== null && seated) {
@@ -174,8 +249,9 @@ export function posedHero({ root, body, middle, models, rig, hips, feet, blade, 
         // The blade low behind it, pointing back.
         pose.bTurn += (3.4 - rest.bTurn) * w;
         pose.bUp += (-0.3 - rest.bUp) * w;
+        striding = w;
         if (k >= 1) running = null;
-      }
+      } else striding = 0;
 
       poseBody(rig, BIPED, pose, hips, feet, blade, bends);
       // How fast it is moving along the field, smoothed: its hair and tail trail behind.
@@ -183,11 +259,22 @@ export function posedHero({ root, body, middle, models, rig, hips, feet, blade, 
       was = pose.ahead;
       poseLoose(rig, now, Math.max(-0.6, Math.min(0.6, rush * 0.06)));
 
+      // Running in in its run, over its stride written in code (as much of it as that shows), its blade held as it has it.
+      if (runMixer && run && striding > 0) {
+        runT = (runT + dt * RUN_RATE) % run.duration;
+        rig.keep(posed);
+        for (const action of runActions) action.time = runT;
+        runMixer.update(0);
+        if (bladeRunning) rig.point(BIPED.arms.R[2], blade, bladeRunning);
+        rig.blend(posed, 1 - striding);
+      }
+
       // Standing in its idle while it does nothing else: eased out of it quickly as a move begins, and back into it slowly after.
+      // (Under a move played by its animations it goes on standing in it: they are eased in from it, and back out to it.)
+      const still = !doing && running === null;
+      standing = still ? Math.min(1, standing + dt / RETURN) : Math.max(0, standing - dt / INTO);
       if (idling && idle) {
-        const still = !doing && !playing && running === null;
-        standing = still ? Math.min(1, standing + dt / RETURN) : Math.max(0, standing - dt / INTO);
-        idleT = (idleT + dt) % idle.duration;
+        idleT = (idleT + dt * (wandered ? (VARY.rate[0] + VARY.rate[1]) / 2 + wandered.rate : 1)) % idle.duration;
         if (standing > 0) {
           rig.keep(posed);
           for (const action of idleActions) action.time = idleT;
@@ -195,19 +282,47 @@ export function posedHero({ root, body, middle, models, rig, hips, feet, blade, 
           rig.blend(posed, 1 - standing * standing * (3 - 2 * standing));
         }
       }
+      // Varied: its chest and head turned as what wanders has them, as it stands.
+      if (wandered && standing > 0) {
+        const k = standing * standing * (3 - 2 * standing);
+        for (const bone of BIPED.chest) rig.turnAbout(bone, (wandered.lean * k) / 2, (wandered.twist * k) / 2, (wandered.tip * k) / 2);
+        rig.turnAbout(BIPED.head, wandered.nod * k, wandered.look * k, 0);
+      }
 
-      // A skill played by its animation, over how it stands: eased in as it starts, held where it is left, and eased out from there.
+      // A move played by its animations, over how it stands: eased in as it starts, each giving way to the next, held where it is left, and eased out from there.
       if (playing) {
+        let part = playing.own.parts[playing.part] as Part;
+        /** It as the animation it is in has it, `t` into it. */
+        const pose = (t: number): void => {
+          for (const action of part.actions) action.time = Math.min(t, part.until);
+          mixer.update(0);
+        };
         if (playing.left === null) {
-          playing.t += dt * SKILL_SPEED;
-          if (playing.t >= playing.own.until) playing.left = 0;
+          playing.t += dt * playing.own.speed;
+          const next = playing.own.parts[playing.part + 1];
+          if (playing.t >= part.until && next) {
+            // On to the next, from how this one leaves it.
+            rig.keep(posed);
+            pose(part.until);
+            playing.from = { kept: rig.keep(playing.from?.kept), t: 0 };
+            rig.blend(posed, 1);
+            for (const action of part.actions) action.stop();
+            playing.part++;
+            playing.t = 0;
+            part = next;
+            for (const action of part.actions) action.reset().play();
+          } else if (playing.t >= part.until) playing.left = 0;
         } else playing.left += dt;
-        const shown = playing.left === null ? Math.min(1, playing.t / INTO) : 1 - playing.left / RETURN;
+        const shown = playing.left === null ? (playing.part === 0 ? Math.min(1, playing.t / INTO) : 1) : 1 - playing.left / RETURN;
         if (shown <= 0) stopPlaying();
         else {
           rig.keep(posed);
-          for (const action of playing.own.actions) action.time = Math.min(playing.t, playing.own.until);
-          mixer.update(0);
+          pose(playing.t);
+          if (playing.from && playing.from.t < BLEND) {
+            playing.from.t += dt;
+            const k = Math.min(1, playing.from.t / BLEND);
+            rig.blend(playing.from.kept, 1 - k * k * (3 - 2 * k));
+          }
           rig.blend(posed, 1 - shown * shown * (3 - 2 * shown));
         }
       }

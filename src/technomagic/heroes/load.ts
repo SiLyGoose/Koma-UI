@@ -1,4 +1,4 @@
-import { modelFolder, type RiggedModel, type SkinAssets } from '../assets';
+import type { RiggedModel, SkinAssets } from '../assets';
 import { heroLike, riggedHero } from './body/animated';
 import type { Hero, Stood } from './body/hero';
 import { posedHero } from './body/posed';
@@ -38,7 +38,7 @@ const quietly = <T>(reading: Promise<T>): Promise<T | null> =>
   });
 
 async function read(def: HeroDef, skin: SkinAssets): Promise<Read> {
-  const animated = (name: string, model: RiggedModel): Promise<Rigged | null> => quietly(loadRigged(name, modelFolder(def.assets, model.folder), model));
+  const animated = (name: string, model: RiggedModel): Promise<Rigged | null> => quietly(loadRigged(name, def.assets, model));
   const { model } = skin;
   if (model.kind === 'rigged') return { skin, stood: null, rigged: await animated(skin.name, model), rig: null };
   const [stood, rig] = await Promise.all([quietly(standHero(def.assets, model)), typeof model.movedBy === 'object' ? animated(`${skin.name}'s rig`, model.movedBy) : null]);
@@ -59,7 +59,8 @@ export async function loadHeroes(defs: readonly HeroDef[]): Promise<Entrant[]> {
       if (!stood || skin.model.kind !== 'parts') continue;
       const { movedBy } = skin.model;
       const like = typeof movedBy === 'string' ? (skins.find((other) => other.skin.name === movedBy)?.rigged ?? null) : rig;
-      heroes.set(skin, { hero: like ? heroLike(stood, like, def.stands) : posedHero(stood, def.stands, {}, def.seated, def.bends), attack: attack(like) });
+      const posing = { seated: def.seated, bends: def.bends, varied: def.varies };
+      heroes.set(skin, { hero: like ? heroLike(stood, like, def.stands, posing) : posedHero(stood, def.stands, {}, posing), attack: attack(like) });
     }
     for (const { skin, rigged } of skins) if (rigged) heroes.set(skin, { hero: riggedHero(rigged), attack: attack(rigged) });
     for (const { skin } of skins) {

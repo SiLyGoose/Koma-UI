@@ -1,4 +1,4 @@
-import type { EffectAssets, HeroAssets, Portrait } from './types.ts';
+import type { EffectAssets, HeroAssets, Portrait, RiggedModel } from './types.ts';
 
 /*
  * Where each file is kept. Under public/kr/ (which git ignores and a build leaves out: the models stay
@@ -19,6 +19,13 @@ export const KEPT = '/technomagic';
 
 /** A model's folder, under public/kr/: `owner` is the hero or boss whose it is. */
 export const modelFolder = (owner: { folder: string }, model: string): string => `${owner.folder}/models/${model}`;
+
+/** A rig's folder, under public/kr/: `owner` is the hero it moves, whose models it is among (unless it is borrowed whole: RiggedModel.of). */
+export const rigFolder = (owner: { folder: string }, rig: RiggedModel): string => modelFolder(rig.of === undefined ? owner : { folder: rig.of }, rig.folder);
+
+/** A rig's animations, in the order they are read: its idle and run (those it has), its attack's, its skills'. */
+export const animationsIn = (rig: RiggedModel): string[] =>
+  [rig.idle, rig.run, ...(rig.attack ?? []).map((part) => part.file), ...Object.values(rig.skills ?? {}).map((skill) => skill.file)].filter((file) => file !== undefined);
 
 export const effectFolder = (effect: EffectAssets): string => `effects/${effect.folder}`;
 

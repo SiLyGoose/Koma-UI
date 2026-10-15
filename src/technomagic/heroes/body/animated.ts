@@ -4,7 +4,7 @@ import { lengthOf } from '../../engine/track';
 import { flowing, MOVES, type HeroMove } from '../moves';
 import { ENTER, holdShield, RED, redden, type Hero, type Stood } from './hero';
 import { OWN_SPEED, SKILL_SPEED } from '../../sim/motion';
-import { posedHero } from './posed';
+import { posedHero, type Posing } from './posed';
 import { REST, type Pose } from './pose';
 import { poseBody, poseLoose } from './posing';
 import type { Animations, Rigged } from './rigged';
@@ -18,7 +18,8 @@ import { BIPED, BIPED_FROM_MIXAMO, MIXAMO, type Skeleton } from './skeletons';
  * stand aside, and the two are eased into each other at its start and its end.
  *
  * A skin's animations are its hero's too: a skin of the game's own files, which have none, is moved by
- * them (heroLike), made over for its skeleton (../../engine/retarget.ts).
+ * them (heroLike), made over for its skeleton (../../engine/retarget.ts): each from the skeleton it was made
+ * for (its rig's, or a borrowed one's own).
  */
 
 /** How long one animation takes to give way to another, and an animation to a move written in code, and that back to it. */
@@ -39,30 +40,43 @@ type Standing = Animations & { idle: AnimationClip; run: AnimationClip };
 export function riggedHero({ stood, animations }: Rigged): Hero {
   const { idle, run } = animations;
   if (!idle || !run) throw new Error('A skin that comes with its animations has no idle or run');
-  return animatedHero(stood, MIXAMO, { ...animations, idle, run });
+  return animatedHero(stood, MIXAMO, { ...animations, idle, run }, REST);
 }
 
 /**
  * A hero of the game's own files moved as `like` is: by its animations, made over for the game's skeleton.
  * Both stand as they were bound: before either has been moved. With no idle or run among them (a rig read
- * only for some of its skills) it is posed in code (standing `rest`), but for those skills; with an idle and no
- * run, the same, but standing in its idle.
+ * only for some of what it does) it is posed in code (standing `rest`, and as `posing` has it), but for its
+ * attack and the skills it has animations for; with an idle and no run, the same, but standing in its idle; with a
+ * run and no idle, running in in its run.
+ * Its moves written in code are written from `rest`, either way.
  */
-export function heroLike(stood: Stood, like: Rigged, rest?: Pose): Hero {
-  const mine = retargeter(like.space, stood.models, BIPED_FROM_MIXAMO);
-  const { idle, run, attack, skills } = like.animations;
-  const made = Object.fromEntries(Object.entries(skills).map(([move, skill]) => [move, { ...skill, clip: mine(skill.clip) }]));
-  if (!idle || !run) return posedHero(stood, rest, made, false, {}, idle && mine(idle));
-  return animatedHero(stood, BIPED, {
-    idle: mine(idle),
-    run: mine(run),
-    attack: attack.map((part) => ({ ...part, clip: mine(part.clip) })),
-    skills: made,
-  });
+export function heroLike(stood: Stood, like: Rigged, rest: Pose = REST, posing: Omit<Posing, 'idle' | 'run' | 'bladeRunning'> = {}): Hero {
+  // A retargeter from each skeleton its animations were made for (made once each).
+  const from = new Map<object, (clip: AnimationClip) => AnimationClip>();
+  const mine = (clip: AnimationClip): AnimationClip => {
+    const skeleton = like.others.get(clip) ?? like.space;
+    let made = from.get(skeleton);
+    if (!made) {
+      made = retargeter(skeleton, stood.models, BIPED_FROM_MIXAMO);
+      from.set(skeleton, made);
+    }
+    return made(clip);
+  };
+  const { idle, run } = like.animations;
+  const attack = like.animations.attack.map((part) => ({ ...part, clip: mine(part.clip) }));
+  const skills = Object.fromEntries(Object.entries(like.animations.skills).map(([move, skill]) => [move, { ...skill, clip: mine(skill.clip) }]));
+  if (!idle || !run) {
+    const own = Object.fromEntries(Object.entries(skills).map(([move, skill]) => [move, { parts: [skill], speed: SKILL_SPEED }]));
+    if (attack.length > 0) own.attack = { parts: attack, speed: OWN_SPEED };
+    const { bladeRunning } = like.animations;
+    return posedHero(stood, rest, own, { ...posing, ...(idle && { idle: mine(idle) }), ...(run && { run: mine(run), ...(bladeRunning && { bladeRunning }) }) });
+  }
+  return animatedHero(stood, BIPED, { idle: mine(idle), run: mine(run), attack, skills }, rest);
 }
 
-/** A hero moved by animations of its skeleton's own (`bones` says which of its bones are which), and by the moves written in code. */
-function animatedHero({ root, body, middle, models, rig, hips, feet, blade, shield, materials }: Stood, bones: Skeleton, animations: Standing): Hero {
+/** A hero moved by animations of its skeleton's own (`bones` says which of its bones are which), and by the moves written in code (written from `rest`). */
+function animatedHero({ root, body, middle, models, rig, hips, feet, blade, shield, materials }: Stood, bones: Skeleton, animations: Standing, rest: Pose): Hero {
   // An animation plays on each of its models at once, each with what the animation has for the bones it has.
   const mixer = new AnimationMixer(root);
   const playing = (clip: AnimationClip, once = false): AnimationAction[] =>
@@ -155,7 +169,7 @@ function animatedHero({ root, body, middle, models, rig, hips, feet, blade, shie
         const move = MOVES[doing.what];
         const length = lengthOf(move.keys);
         const moved = flowing(move, doing.t);
-        const pose: Pose = { ...REST };
+        const pose: Pose = { ...rest };
         for (const part of Object.keys(pose) as (keyof Pose)[]) pose[part] += moved[part];
         // It stays where it stands, whatever the move has it go.
         ({ jump, flip, spin } = pose);

@@ -26,16 +26,25 @@ export interface Portrait {
 
 /**
  * A model rigged and animated outside the game's files (by Mixamo): one .fbx for each animation, each
- * holding the whole model, in `folder` among its hero's models. A rig read only for some of its skills
+ * holding the whole model, in `folder` among its hero's models (or among another's, `of` that hero's
+ * folder: a rig borrowed whole). A rig read only for some of its skills
  * (what moves a skin of the game's own files: PartsModel.movedBy) may have no idle or run: its skin then
  * stands, runs in and does everything else by the poses written in code. With an idle and no run, it stands
- * in that idle, and does the rest by the poses written in code.
+ * in that idle, and does the rest by the poses written in code; with a run and no idle, it runs in in that run.
+ * Its first file holds the model (or, for a rig that moves a skin of the game's own files, its skeleton alone).
+ * Each of the others may be on a skeleton of its own (another hero's, copied; or a file of the motion alone).
  */
 export interface RiggedModel {
   kind: 'rigged';
   folder: string;
+  of?: string;
   idle?: string;
   run?: string;
+  /**
+   * Running in its run with no idle (a skin of the game's own files, posed in code otherwise): the way the blade in
+   * its right hand is held pointing, in its model's axes (x to its left, y up, z ahead), whatever the run has its hand do.
+   */
+  bladeRunning?: readonly [number, number, number];
   /**
    * Its attack, when it has one of its own: animations played one after another. Of each: the moments
    * (seconds into it) its blows land, and when to leave it for the next, its last swing done.

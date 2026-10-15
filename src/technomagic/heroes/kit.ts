@@ -133,6 +133,12 @@ export interface HeroDef {
   seated?: boolean;
   /** Which ways its knees and elbows bend as it is posed, where they aren't the usual ways (a body that lies rather than stands). */
   bends?: Bends;
+  /**
+   * How it stands wanders, when it is moved by the poses written in code (in its idle, or at rest): its chest and head
+   * turned and its weight shifted a little, now one way and now another, and its idle played a little slower or faster
+   * (from a moment of its own), so that it never stands quite the same way twice, nor as another in the same idle does.
+   */
+  varies?: boolean;
   /** Its part in a fight: made once, as the fight begins. */
   join(fight: Fight, self: Fighter): HeroPart;
 }

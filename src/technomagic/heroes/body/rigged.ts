@@ -1,6 +1,6 @@
-import { Box3, DoubleSide, Group, LoadingManager, MeshBasicMaterial, Vector3, type AnimationClip, type Texture } from 'three';
+import { Box3, DoubleSide, Group, LoadingManager, MeshBasicMaterial, Vector3, type AnimationClip, type Object3D, type Texture } from 'three';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
-import type { RiggedModel } from '../../assets';
+import { animationsIn, rigFolder, type RiggedModel } from '../../assets';
 import { fileUrl, isMesh } from '../../engine/models';
 import { Rig, toBindPose } from '../../engine/rig';
 import { hang, type Stood } from './hero';
@@ -9,8 +9,9 @@ import { MIXAMO } from './skeletons';
 /*
  * A skin that comes with its animations (rigged and animated outside the game's files): each of its
  * files holds the whole model and one animation, its textures inside it and its weapon in its hand. The
- * first is the model on the field; the others are read for their animation alone. Read here; what
- * moves a hero by them is ./animated.ts.
+ * first is the model on the field; the others are read for their animation alone. Each of those is kept
+ * with its own skeleton, to be made over from it: it may not be this one's (a copy of another hero's
+ * animation, or a file of the motion alone). Read here; what moves a hero by them is ./animated.ts.
  */
 
 /** How tall the model is, ears and all, in the lengths the poses are written in (the game's own models'). */
@@ -71,17 +72,23 @@ export interface Animations {
   run?: AnimationClip;
   attack: readonly Played[];
   skills: Readonly<Record<string, Played>>;
+  /** Running in its run with no idle: the way the blade in its right hand is held pointing (its rig's `bladeRunning`). */
+  bladeRunning?: Vector3;
 }
 
-/** A hero that comes with its animations, read: stood on the field, `space` the axes its poses are in, and its animations. */
+/**
+ * A hero that comes with its animations, read: stood on the field, `space` the axes its poses are in, and its
+ * animations; and the skeleton each of the others was made for (its own file's, as bound: it may not be this one).
+ */
 export interface Rigged {
   stood: Stood;
   space: Group;
   animations: Animations;
+  others: ReadonlyMap<AnimationClip, Object3D>;
 }
 
-/** Reads a skin's files: `name` is the skin's, `folder` where its files are (a path under public/kr/). */
-export async function loadRigged(name: string, folder: string, files: RiggedModel): Promise<Rigged> {
+/** Reads a skin's files: `name` is the skin's, `owner` the hero whose models its folder is among (unless it is borrowed whole: RiggedModel.of). */
+export async function loadRigged(name: string, owner: { folder: string }, files: RiggedModel): Promise<Rigged> {
   // Its textures are inside its files, and go on being read after a file is: `settled` is when every one has been (or has failed).
   const manager = new LoadingManager();
   const settled = new Promise<void>((done) => {
@@ -92,7 +99,8 @@ export async function loadRigged(name: string, folder: string, files: RiggedMode
   const attacks = files.attack ?? [];
   // Its idle and run, when it has them (or its idle alone); the first file read is the model, whichever it is.
   const standing = [files.idle, files.run].filter((file) => file !== undefined);
-  const read = await Promise.all([...standing, ...attacks.map((part) => part.file), ...skills.map(([, skill]) => skill.file)].map((file) => loader.loadAsync(fileUrl(folder, file))));
+  const folder = rigFolder(owner, files);
+  const read = await Promise.all(animationsIn(files).map((file) => loader.loadAsync(fileUrl(folder, file))));
   const [model] = read;
   const idling = files.idle ? read[0] : undefined;
   const running = files.run ? read[standing.length - 1] : undefined;
@@ -123,10 +131,12 @@ export async function loadRigged(name: string, folder: string, files: RiggedMode
   await Promise.all(materials.map((material) => (material.map?.image as HTMLImageElement | undefined)?.decode?.().catch(() => undefined)));
 
   // Its files are in their own units. `space` is where the poses are written: the model in it as tall
-  // as the other hero's, standing as its skin was bound (not as its animation's first frame has it).
+  // as the other hero's, standing as its skin was bound (not as its animation's first frame has it). (A
+  // skeleton alone, with nothing to measure, is left as it comes: it is only made over for another.)
   const space = new Group();
   space.add(model);
-  model.scale.multiplyScalar(TALL / new Box3().setFromObject(model).getSize(new Vector3()).y);
+  const tall = new Box3().setFromObject(model).getSize(new Vector3()).y;
+  if (tall > 0) model.scale.multiplyScalar(TALL / tall);
   toBindPose(model);
   const rig = new Rig([space]);
   const hips = rig.at(MIXAMO.hips);
@@ -135,6 +145,17 @@ export async function loadRigged(name: string, folder: string, files: RiggedMode
   const weapon = model.getObjectByName('Weapon');
   const blade = new Vector3(1, 0, 0);
   if (weapon) blade.applyQuaternion(weapon.quaternion).normalize();
+
+  // Each file after the model's, on its own skeleton (the same as the model's, or not), stood as it was bound.
+  const others = new Map<AnimationClip, Object3D>();
+  read.forEach((other, i) => {
+    const clip = other.animations[0];
+    if (i === 0 || !clip) return;
+    const own = new Group();
+    own.add(other);
+    toBindPose(other);
+    others.set(clip, own);
+  });
 
   const attack = attacks.flatMap((part, i) => {
     const clip = attacking[i]?.animations[0];
@@ -146,5 +167,5 @@ export async function loadRigged(name: string, folder: string, files: RiggedMode
       return clip ? [[move, { clip: staying(clip), lands: skill.lands, until: skill.until }] as const] : [];
     }),
   );
-  return { stood: { ...hang([space], hips.y), models: [space], rig, hips, feet, blade, materials }, space, animations: { idle: clips.idle, run: clips.run && inPlace(clips.run), attack, skills: played } };
+  return { stood: { ...hang([space], hips.y), models: [space], rig, hips, feet, blade, materials }, space, animations: { idle: clips.idle, run: clips.run && inPlace(clips.run), attack, skills: played, ...(files.bladeRunning && { bladeRunning: new Vector3(...files.bladeRunning).normalize() }) }, others };
 }
