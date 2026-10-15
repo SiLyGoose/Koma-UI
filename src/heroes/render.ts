@@ -1,4 +1,4 @@
-import { art, el, hoverSound, itemDetailsClosed, itemFace, itemPicked, lockBadge, matchesSearch, matchesStars, rich, tierOf, SLOT_NAME, stars as starRow, tmMarks, tmSections, uwMarks, type ShownStatSection } from '../shared/items';
+import { art, el, hoverSound, itemDetailsClosed, itemFace, itemPicked, lockBadge, matchesSearch, matchesStars, rich, statBlocks, tierOf, SLOT_NAME, stars as starRow, tmMarks, tmSections, uwMarks } from '../shared/items';
 import { classBadge, className, FACE, HERO_SLOT_KIND, heroCut, heroPicture, skillText, type HeroView, type HeroCopy, type HeroSlot } from '../shared/heroes';
 import { working } from '../shared/ui';
 import { copyById, heroShown, mine, slotFor, slotOf, type HeroesContext } from './context';
@@ -351,40 +351,6 @@ function renderStats(ctx: HeroesContext): void {
   const hero = heroShown(ctx);
   ui.statsList.textContent = '';
   if (hero) ui.statsList.append(...statBlocks(heroStats(hero)));
-}
-
-/**
- * Stats, a heading over each group and a row for each (the databank's Heroes too); one that gear changes as King's Raid
- * has it, its total blue, then its base and what's added green, in brackets: "9.5% (0% + 9.5%)".
- */
-export function statBlocks(sections: readonly ShownStatSection[]): HTMLElement[] {
-  return sections.map((section) => {
-    const block = el('section', 'stats-section');
-    block.append(el('h3', '', section.title));
-    const list = el('dl');
-    for (const row of section.rows) {
-      const line = el('div', `stats-row${row.added === undefined ? (row.base === null ? '' : ' changed') : ' split'}`);
-      const value = el('dd', '', row.icon || row.added !== undefined ? undefined : row.value);
-      if (row.icon) {
-        // Its picture before the words.
-        const icon = el('img', 'stats-icon');
-        icon.src = row.icon;
-        icon.alt = '';
-        const shown = el('span', '', row.value);
-        shown.prepend(icon);
-        value.append(shown);
-      }
-      if (row.added !== undefined) {
-        const split = el('span', 'stats-split', `(${row.base} `);
-        split.append(el('span', 'stats-added', row.added), ')');
-        value.append(el('span', 'stats-total', row.value), split);
-      } else if (row.base !== null) value.append(el('span', 'stats-base', `base ${row.base}`));
-      line.append(el('dt', '', row.label), value);
-      list.append(line);
-    }
-    block.append(list);
-    return block;
-  });
 }
 
 /** The Skills tab: each skill's picture (its number, where there's none), name, cost and cooldown, and what it does; the passive last. */

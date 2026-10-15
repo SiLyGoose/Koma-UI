@@ -1,6 +1,6 @@
-import { el } from '../shared/items';
+import { el, statBlocks } from '../shared/items';
 import { BUST, classBadge, className, FACE, heroCut } from '../shared/heroes';
-import { skillRows, statBlocks } from '../heroes/render';
+import { skillRows } from '../heroes/render';
 import { heroStats } from '../heroes/stats';
 import { HEROES } from '../technomagic/sim/heroes';
 import type { HeroDef } from '../technomagic/sim/heroes/kit';

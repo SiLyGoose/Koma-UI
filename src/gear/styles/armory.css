@@ -15,7 +15,7 @@
   }
 }
 
-/* Common: the stats on parchment, a heading per group, the base under anything gear changed. */
+/* Common: the stats on parchment, a heading per group, the base under anything gear changed (the heroes page's beside it). */
 .stats .armory-sheet {
   margin-top: 4px;
   color: var(--ink);
@@ -67,6 +67,38 @@
   text-align: right;
 }
 
+/*
+ * The stats as King's Raid lays them out: every value left-aligned in one column, across all the groups, just past the
+ * longest name (one grid, its groups, lists and rows sharing its columns; the names at most 60% of it, wrapping past).
+ */
+.stats-list {
+  display: grid;
+  grid-template-columns: fit-content(60%) minmax(0, 1fr);
+  column-gap: 24px;
+}
+
+.stats-list .stats-section,
+.stats-list .stats-section dl,
+.stats-list .stats-row {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+}
+
+.stats-list .stats-section h3,
+.stats-list .stats-empty {
+  grid-column: 1 / -1;
+}
+
+.stats-list .stats-row {
+  column-gap: 24px;
+}
+
+.stats-list .stats-row dd {
+  align-items: flex-start;
+  text-align: left;
+}
+
 /* Changed by gear, for better or worse (some perks cost something), so gold rather than green. */
 .stats-row.changed dd {
   color: #8a5a00;
@@ -76,6 +108,31 @@
   color: #8a7f6c;
   font-size: 11px;
   font-weight: 500;
+}
+
+/*
+ * The heroes page's, changed by gear: its total blue, then (its base + what's added) with what's added green; each
+ * dark enough to read on the parchment.
+ */
+.stats-row.split dd {
+  flex-flow: row wrap;
+  align-items: baseline;
+  column-gap: 6px;
+}
+
+.stats-total {
+  color: #1a74b8;
+  font-weight: 700;
+}
+
+.stats-split {
+  color: #5b5163;
+  font-weight: 500;
+}
+
+.stats-added {
+  color: #2e8540;
+  font-weight: 700;
 }
 
 /* A picture before a value (a hero's ATK type: King's Raid's own, in its red box), in line with its words. */

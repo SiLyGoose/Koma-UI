@@ -224,59 +224,6 @@
   padding-inline: 8px;
 }
 
-/*
- * The Stats tab, as King's Raid lays it out: every value left-aligned in one column, across all the groups, just past
- * the longest name (one grid, its groups, lists and rows sharing its columns).
- */
-.heroes-page .stats-list {
-  display: grid;
-  grid-template-columns: fit-content(60%) minmax(0, 1fr);
-  column-gap: 16px;
-}
-
-.heroes-page .stats-section,
-.heroes-page .stats-section dl,
-.heroes-page .stats-row {
-  display: grid;
-  grid-column: 1 / -1;
-  grid-template-columns: subgrid;
-}
-
-.heroes-page .stats-section h3 {
-  grid-column: 1 / -1;
-}
-
-.heroes-page .stats-row {
-  column-gap: 16px;
-}
-
-.heroes-page .stats-row dd {
-  align-items: flex-start;
-  text-align: left;
-}
-
-/* A stat its gear changes: its total blue, then (its base + what's added) with what's added green. */
-.stats-row.split dd {
-  flex-flow: row wrap;
-  align-items: baseline;
-  column-gap: 6px;
-}
-
-.stats-total {
-  color: #1a74b8;
-  font-weight: 700;
-}
-
-.stats-split {
-  color: #5b5163;
-  font-weight: 500;
-}
-
-.stats-added {
-  color: #2e8540;
-  font-weight: 700;
-}
-
 /* The Skills tab: on the Stats tab's parchment, a row for each skill, its picture beside its name and what it does. */
 .skills-list {
   display: grid;
