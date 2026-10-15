@@ -15,7 +15,7 @@ import type { Line } from '../technomagic/sim/rules';
  * sim/heroes/kit.ts CLASS_STATS), and with what its gear, the additional effects of the TechnoMagic gear it wears and its
  * transcendence perks give it (the bot's bonus and skills, and the raid's sim/skills.ts and sim/perks.ts, as the raid's
  * sim/gear.ts counts it: points added to the chances and shares, a share more of the rest). Each row they change says
- * what it is without them.
+ * what it is without them. Each stat's name is spelled out (the user's).
  */
 
 const pct = (points: number): string => `${Math.round((points / POINTS) * 1000) / 10}%`;
@@ -43,7 +43,7 @@ export function heroStats(hero: Pick<HeroView, 'class'> & Partial<Pick<HeroView,
       ...(def
         ? [
             // (With King's Raid's icon before it, an orange sword or a blue star in a red box: public/shared/attack/, named as the raid's DamageType.)
-            { label: 'ATK type', value: def.stats.deals === 'physical' ? 'Physical' : 'Magic', icon: `/shared/attack/${def.stats.deals}.png`, base: null },
+            { label: 'Attack Type', value: def.stats.deals === 'physical' ? 'Physical' : 'Magic', icon: `/shared/attack/${def.stats.deals}.png`, base: null },
             { label: 'Position', value: POSITION[lineOf(def)], base: null },
           ]
         : []),
@@ -67,11 +67,11 @@ export function heroStats(hero: Pick<HeroView, 'class'> & Partial<Pick<HeroView,
     {
       title: 'Battle',
       rows: [
-        row('HP', base.hp, gear.hp, whole),
-        row('ATK', base.atk, gear.atk * allies.atk, whole),
-        row('Crit chance', base.crit, gear.crit, pct),
-        row('Crit damage', CRIT, CRIT + bonus('critDamage') + skilledCritDamage(skills) + allies.critDamage, times),
-        row('Attack speed', base.speed, gear.speed, pct),
+        row('Health', base.hp, gear.hp, whole),
+        row('Attack', base.atk, gear.atk * allies.atk, whole),
+        row('Critical Chance', base.crit, gear.crit, pct),
+        row('Critical Damage', CRIT, CRIT + bonus('critDamage') + skilledCritDamage(skills) + allies.critDamage, times),
+        row('Attack Speed', base.speed, gear.speed, pct),
         row('Penetration', base.pen, gear.pen, pct),
         row('Accuracy', 0, bonus('accuracy'), pct),
         row('Lifesteal', 0, bonus('lifesteal'), pct),
@@ -80,26 +80,26 @@ export function heroStats(hero: Pick<HeroView, 'class'> & Partial<Pick<HeroView,
     {
       title: 'Defense',
       rows: [
-        row('Physical defense', base.physical, gear.physical * allies.defense, whole),
-        row('Magical defense', base.magical, gear.magical * allies.defense, whole),
-        row('Physical block', base.block.physical, gear.block.physical, pct),
-        row('Magical block', base.block.magical, gear.block.magical, pct),
-        row('Physical dodge', base.dodge.physical, gear.dodge.physical, pct),
-        row('Magical dodge', base.dodge.magical, gear.dodge.magical, pct),
-        row('CC resistance', base.resist, gear.resist, pct),
-        row('Physical crit resistance', 0, bonus('critResist'), pct),
-        row('Magical crit resistance', 0, bonus('critResist'), pct),
+        row('Physical Defense', base.physical, gear.physical * allies.defense, whole),
+        row('Magical Defense', base.magical, gear.magical * allies.defense, whole),
+        row('Physical Block', base.block.physical, gear.block.physical, pct),
+        row('Magical Block', base.block.magical, gear.block.magical, pct),
+        row('Physical Dodge', base.dodge.physical, gear.dodge.physical, pct),
+        row('Magical Dodge', base.dodge.magical, gear.dodge.magical, pct),
+        row('Crowd Control Resistance', base.resist, gear.resist, pct),
+        row('Physical Critical Resistance', 0, bonus('critResist'), pct),
+        row('Magical Critical Resistance', 0, bonus('critResist'), pct),
       ],
     },
     {
       title: 'Support',
-      rows: [row('Heals and shields', 1, 1 + bonus('heal'), times), row('Stun duration', 1, 1 + bonus('control'), times)],
+      rows: [row('Heals and Shields', 1, 1 + bonus('heal'), times), row('Stun Duration', 1, 1 + bonus('control'), times)],
     },
     {
       title: 'Mana',
       rows: [
-        row('Mana per attack', MANA_PER_ATTACK, MANA_PER_ATTACK * (1 + bonus('manaAttack')), whole),
-        row('Mana recovery per second', MANA_RATE, MANA_RATE * (1 + bonus('manaRegen')) + spring, whole),
+        row('Mana per Attack', MANA_PER_ATTACK, MANA_PER_ATTACK * (1 + bonus('manaAttack')), whole),
+        row('Mana Recovery per Second', MANA_RATE, MANA_RATE * (1 + bonus('manaRegen')) + spring, whole),
       ],
     },
   ];
