@@ -13,6 +13,7 @@ import { makeStage } from './engine/stage';
 import { makeFightView, type FightView } from './fight/view';
 import { loadEffects } from './fx/effects';
 import { makeMagic } from './fx/magic';
+import { loadProps } from './fx/props';
 import { HEROES } from './heroes';
 import { SCALE, type Hero } from './heroes/body/hero';
 import { nearer } from './heroes/kit';
@@ -49,7 +50,8 @@ import './technomagic.css';
  * Opened with no link (`yarn dev`), it is a field for trying things out, with nothing kept: every hero's
  * skins have a card, the hero on a card puts it on the field or takes it off, the buttons under the field
  * set the boss attacking (or Boss auto), and the raid's stage (?stage=) is picked there. With Deathless (on to
- * start with) no one falls, so moves and what they deal can be tried for as long as it takes. ?boss= picks the boss.
+ * start with) no one falls, so moves and what they deal can be tried for as long as it takes; with Unique weapons
+ * every hero wields its own (at its fifth tier), drawn with it. ?boss= picks the boss.
  *
  * Its parts: assets/ names the files (by hero, boss and effect); engine/ loads the models, poses their
  * bones and draws the field; heroes/ and bosses/ are who stands on it, a folder each; combat/ is how a
@@ -57,6 +59,8 @@ import './technomagic.css';
  * hud/ is what is shown over the field; prep/ getting ready in a room; styles/ how the page looks.
  */
 
+/** Trying things out with Unique weapons on: the tier every hero's is at. */
+const UNIQUE_TRIED = 5;
 /** Which heroes were on the field last when trying things out (their names, as a list), kept by this browser. */
 const FIELD_KEY = 'technomagic-field';
 /** Steps the sim may catch up in one frame (after the tab was away) when trying things out. */
@@ -99,6 +103,7 @@ const meterAt = document.getElementById('meter') as HTMLElement;
 const actionsRow = document.getElementById('actions') as HTMLElement;
 const bossAutoButton = document.getElementById('auto') as HTMLButtonElement;
 const deathlessButton = document.getElementById('deathless') as HTMLButtonElement;
+const uniqueButton = document.getElementById('unique') as HTMLButtonElement;
 const stagePicker = document.getElementById('stage-pick') as HTMLSelectElement;
 const hint = document.getElementById('hint') as HTMLElement;
 const result = document.getElementById('result') as HTMLElement;
@@ -133,7 +138,7 @@ async function start(): Promise<void> {
   const stageNumber = Math.min(STAGES, Math.max(1, Math.floor(Number(params.get('stage'))) || 1));
   const stage = makeStage(canvas);
   // Whatever there is to read, at once. A skin that isn't on this computer is left out: the page goes on without it.
-  const [boss, entrants, effects] = await Promise.all([bossView.load(stage.scene), loadHeroes(HEROES), loadEffects(stage.scene)]);
+  const [boss, entrants, effects, props] = await Promise.all([bossView.load(stage.scene), loadHeroes(HEROES), loadEffects(stage.scene), loadProps(stage.scene, HEROES.map((hero) => hero.assets))]);
   const magic = makeMagic(stage.scene);
   // The skills' pictures, read before the cards are made, so a skill is never drawn without its own (one that isn't on this computer is left out).
   await Promise.all(
@@ -145,7 +150,7 @@ async function start(): Promise<void> {
     }),
   );
   // The skins' own pictures for their cards (one that can't be read is left out: it is pictured as it stands, once it does).
-  const faces = new Map(await Promise.all(entrants.map(async ({ def: hero, skin }) => [skin, skin.portrait ? await cutFace(portraitPicture(hero.assets, skin.portrait), skin.portrait.crop) : null] as const)));
+  const faces = new Map(await Promise.all(entrants.map(async ({ def: hero, skin }) => [skin, skin.portrait ? await cutFace(portraitPicture(hero.assets, skin.portrait), skin.portrait) : null] as const)));
   // And for the meter, their faces close up (one with none is the card's picture there too).
   const heads = new Map(await Promise.all(entrants.map(async ({ def: hero, skin }) => [skin, skin.portrait ? await cutHead(portraitPicture(hero.assets, skin.portrait), skin.portrait) : null] as const)));
   const at = new Vector3();
@@ -173,7 +178,7 @@ async function start(): Promise<void> {
     meterAt.replaceChildren();
     numbersAt.replaceChildren();
     const bodies: Hero[] = entries.map((entrant) => entrant.hero);
-    const view = makeFightView({ scene: stage.scene, sim, bodies, boss, bossFx: bossView!.fx, effects, magic });
+    const view = makeFightView({ scene: stage.scene, sim, bodies, boss, bossFx: bossView!.fx, effects, magic, props });
     // Each hero, for its card and the meter: its own picture, or with none a picture of its head and shoulders as it stands.
     const pictures = entries.map((entrant, i) => pictureOf(entrant, view, i));
     const cards = sim.fighters.map((fighter, i) => {
@@ -273,7 +278,11 @@ async function start(): Promise<void> {
 
   /** Every skin that could be read, the ones on the field last time on it again. */
   let actions: ReturnType<typeof makeActions> | null = null;
+  /** The skins as they look with their heroes' unique weapons, read once Unique weapons is first turned on (the ones that look the same: as they are). */
+  let wielders: Entrant[] | null = null;
   function practise(): void {
+    const wielding = uniqueButton.getAttribute('aria-pressed') === 'true' && wielders !== null;
+    const entries = wielding ? entrants.map((entrant) => wielders?.find((one) => one.def === entrant.def && one.skin === entrant.skin) ?? entrant) : entrants;
     let kept: string[] = [];
     try {
       const list: unknown = JSON.parse(localStorage.getItem(FIELD_KEY) ?? '[]');
@@ -282,9 +291,9 @@ async function start(): Promise<void> {
       // No storage (a private window), or nothing that can be read in it: the first hero.
     }
     const first = kept.map((name) => entrants.findIndex((entrant) => entrant.skin.name === name)).filter((i) => i >= 0);
-    const sim = makeSim({ boss: def, heroes: entrants.map((entrant) => ({ def: entrant.def, skin: skinOf(entrant) })), seed: Math.floor(Math.random() * 2 ** 32), stage: Number(stagePicker.value) || stageNumber, raid: false, first, deathless: deathlessButton.getAttribute('aria-pressed') === 'true' });
+    const sim = makeSim({ boss: def, heroes: entries.map((entrant) => ({ def: entrant.def, skin: skinOf(entrant), uw: wielding ? UNIQUE_TRIED : null })), seed: Math.floor(Math.random() * 2 ** 32), stage: Number(stagePicker.value) || stageNumber, raid: false, first, deathless: deathlessButton.getAttribute('aria-pressed') === 'true' });
     const input = (what: Input): void => sim.input(what);
-    game = play(sim, entrants, {
+    game = play(sim, entries, {
       mine: () => true,
       use: (fighter, skill) => input({ kind: 'skill', fighter, skill }),
       auto: (fighter) => input({ kind: 'auto', fighter }),
@@ -311,6 +320,18 @@ async function start(): Promise<void> {
     for (let n = 1; n <= STAGES; n++) stagePicker.append(new Option(String(n), String(n), false, n === stageNumber));
     deathlessButton.hidden = false;
     deathlessButton.addEventListener('click', () => game?.sim.input({ kind: 'deathless' }));
+    // Unique weapons: the fight begun again, every hero wielding its own (their models read the first time).
+    uniqueButton.hidden = false;
+    uniqueButton.addEventListener('click', async () => {
+      const on = uniqueButton.getAttribute('aria-pressed') !== 'true';
+      uniqueButton.setAttribute('aria-pressed', String(on));
+      if (on && !wielders) {
+        uniqueButton.disabled = true;
+        wielders = await loadHeroes(HEROES, { unique: true }).catch(() => []);
+        uniqueButton.disabled = false;
+      }
+      practise();
+    });
     // As in a raid, four cards along the bottom at a time, the rest scrolled to: the wheel scrolls them sideways too, a
     // card at a time (so many of a trackpad's little turns, or one of a wheel's, to a card).
     party.classList.add('browse');
@@ -376,20 +397,31 @@ async function start(): Promise<void> {
       navigate('/', { back: true });
     };
 
-    /** Bodies for a fight's heroes: one each, in its skin where this computer has it (two players' Kirze each need their own). */
+    /**
+     * Bodies for a fight's heroes: one each, in its skin where this computer has it (two players' Kirze each need their own),
+     * and with its unique weapon in its hands when it wields it (where that looks otherwise: read the first time it is needed).
+     */
     const spare = [...entrants];
+    /** The heroes whose skins have been read with their unique weapons (whatever came of it). */
+    const wieldersRead = new Set<string>();
     async function bodiesFor(heroes: FightStart['heroes']): Promise<Entrant[] | null> {
       const used = new Set<Entrant>();
       const bodies: Entrant[] = [];
       for (const hero of heroes) {
+        const def = HEROES.find((one) => one.id === hero.id);
+        if (!def) return null;
+        const wielding = typeof hero.uw === 'number';
+        if (wielding && !wieldersRead.has(def.id)) {
+          wieldersRead.add(def.id);
+          spare.push(...(await loadHeroes([def], { unique: true }).catch(() => [] as Entrant[])));
+        }
         const fits = (one: Entrant): boolean => one.def.id === hero.id && !used.has(one);
-        let body = spare.find((one) => fits(one) && skinOf(one) === hero.skin) ?? spare.find(fits);
+        const looks = (one: Entrant): boolean => fits(one) && one.unique === wielding;
+        let body = spare.find((one) => looks(one) && skinOf(one) === hero.skin) ?? spare.find((one) => fits(one) && skinOf(one) === hero.skin) ?? spare.find(looks) ?? spare.find(fits);
         if (!body) {
-          const def = HEROES.find((one) => one.id === hero.id);
-          if (!def) return null;
-          const more = await loadHeroes([def]).catch(() => [] as Entrant[]);
+          const more = [...(await loadHeroes([def]).catch(() => [] as Entrant[])), ...(wielding ? await loadHeroes([def], { unique: true }).catch(() => [] as Entrant[]) : [])];
           spare.push(...more);
-          body = more.find((one) => skinOf(one) === hero.skin) ?? more[0];
+          body = more.find((one) => one.unique === wielding && skinOf(one) === hero.skin) ?? more.find((one) => skinOf(one) === hero.skin) ?? more[0];
         }
         if (!body) return null;
         used.add(body);

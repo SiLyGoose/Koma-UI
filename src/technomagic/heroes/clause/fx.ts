@@ -12,9 +12,10 @@ export const CLAUSE_FX: HeroFx = {
       effects.play('slash', bossHit, part % 2 ? -0.5 : 0.5);
       effects.play('impact', bossHit, 0, 0.7);
     },
-    // Down out of the air on the boss: the ground rings.
+    // Down out of the air on the boss: the ground breaks up, and rings.
     slam({ effects, magic, bossHit, bossFeet }) {
       effects.play('impact', bossHit, 0, 1.4);
+      effects.play('quake', bossFeet);
       magic.ring(bossFeet, 0xffe9a8, 13, 0.5);
     },
     bash({ effects, bossHit }) {
@@ -31,4 +32,6 @@ export const CLAUSE_FX: HeroFx = {
       effects.play('impact', bossHit, 0, 0.7);
     },
   },
+  // Guardian Shield: his shield, glowing, held up before each hero while it lasts.
+  wards: { 'Guardian Shield': 'guardian' },
 };

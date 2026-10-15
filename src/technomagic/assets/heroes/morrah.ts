@@ -9,7 +9,7 @@ import type { HeroAssets, RiggedModel } from '../types.ts';
 
 /**
  * Clause's idle, run and slash (copies of ../clause.ts's, on his skeleton), timed as his are: the blow lands a
- * little after the sword hand is moving fastest, and she leaves it just after. The same for both her skins.
+ * little after the sword hand is moving fastest, and she leaves it just after.
  */
 const MOVED_BY = {
   kind: 'rigged',
@@ -22,6 +22,8 @@ export const MORRAH_ASSETS: HeroAssets = {
   name: 'Morrah',
   folder: 'heroes/morrah',
   skills: { from: 'https://kingsraid.shodyra.com/static/images/22/', files: ['s1.png', 's2.png', 's3.png', 's4.png'] },
+  // Her unique weapon, wielded: Carprain, her sword and shield.
+  unique: { Hero_Morrah_Vari05_Shield: 'Hero_Morrah_Unique01_Shield', Hero_Morrah_Vari05_Sword: 'Hero_Morrah_Unique01_Sword' },
   skins: [
     {
       name: 'Morrah',
@@ -32,18 +34,6 @@ export const MORRAH_ASSETS: HeroAssets = {
         parts: ['Hero_Morrah_Vari05_Body', 'Hero_Morrah_Vari05_Hair'],
         left: 'Hero_Morrah_Vari05_Shield',
         right: 'Hero_Morrah_Vari05_Sword',
-        blade: 'y',
-        movedBy: MOVED_BY,
-      },
-    },
-    // Her Halloween costume, with its own hair, sword and shield.
-    {
-      name: 'Morrah_Halloween',
-      model: {
-        kind: 'parts',
-        parts: ['Hero_Morrah_Cos19Halloween_Body', 'Hero_Morrah_Cos19Halloween_Hair'],
-        left: 'Hero_Morrah_Cos19Halloween_Shield',
-        right: 'Hero_Morrah_Cos19Halloween_Sword',
         blade: 'y',
         movedBy: MOVED_BY,
       },

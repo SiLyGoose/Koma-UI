@@ -9,7 +9,7 @@ import type { HeroAssets, RiggedModel } from '../types.ts';
 
 const DRIVE = 'https://drive.google.com/uc?export=download&id=';
 
-/** The same for both his skins (one skeleton). */
+/** What moves him. */
 const MOVED_BY = {
   kind: 'rigged',
   folder: 'Ezekiel_Mixamo',
@@ -23,6 +23,8 @@ export const EZEKIEL_ASSETS: HeroAssets = {
   name: 'Ezekiel',
   folder: 'heroes/ezekiel',
   skills: { from: 'https://kingsraid.shodyra.com/static/images/37/', files: ['s1.png', 's2.png', 's3.png', 's4.png'] },
+  // His unique weapon, wielded: Barbatos, his demon arm.
+  unique: { Hero_Ezekiel_Vari05_Weapon: 'Hero_Ezekiel_Unique01_Weapon' },
   skins: [
     {
       name: 'Ezekiel',
@@ -31,16 +33,6 @@ export const EZEKIEL_ASSETS: HeroAssets = {
       model: {
         kind: 'parts',
         parts: ['Hero_Ezekiel_Vari05_Mesh', 'Hero_Ezekiel_Vari05_Weapon', 'Hero_Ezekiel_Vari05_Arm'],
-        movedBy: MOVED_BY,
-      },
-    },
-    // His Halloween costume: a wolf's ears and tail, with its own arm and chains.
-    {
-      name: 'Ezekiel_Halloween',
-      portrait: { file: 'Ezekiel_Halloween.png', from: `${DRIVE}1b1DtYAIpUJij08QrDdNpi_tZIPRHyq79`, crop: { x: 510, y: 50, size: 180 }, head: { x: 545, y: 90, size: 110 } },
-      model: {
-        kind: 'parts',
-        parts: ['Hero_Ezekiel_Cos18Halloween_Mesh', 'Hero_Ezekiel_Cos18Halloween_Weapon', 'Hero_Ezekiel_Cos18Halloween_Arm'],
         movedBy: MOVED_BY,
       },
     },

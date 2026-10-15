@@ -1,6 +1,7 @@
 import type { Vector3 } from 'three';
 import type { Effects } from '../fx/effects';
 import type { Magic } from '../fx/magic';
+import type { Props } from '../fx/props';
 import type { HeroMove } from '../heroes/moves';
 
 /*
@@ -12,6 +13,8 @@ import type { HeroMove } from '../heroes/moves';
 export interface FxScene {
   effects: Effects;
   magic: Magic;
+  /** What a skill brings onto the field for a while (Lorraine's vines). */
+  props: Props;
   /** Where a hero's cut reaches the boss, and the floor under the boss. */
   bossHit: Vector3;
   bossFeet: Vector3;
@@ -24,10 +27,15 @@ export interface FxScene {
   floater(who: number, into: Vector3): Vector3;
 }
 
-/** What is drawn for a hero's moves as each part lands (`who` is the hero), and for what it cues (`targets`: whom it is on). */
+/**
+ * What is drawn for a hero's moves as each part lands (`who` is the hero), and for what it cues (`targets`: whom it is on).
+ * And what of its skills guards a hero with a look of its own (../fx/wards.ts): by the status's name, the prop of its
+ * hero's (../assets/) held up before each hero it is on, for as long as it is on.
+ */
 export interface HeroFx {
   lands?: Partial<Record<HeroMove, (fx: FxScene, who: number, part: number) => void>>;
   cues?: Readonly<Record<string, (fx: FxScene, who: number, targets: readonly number[]) => void>>;
+  wards?: Readonly<Record<string, string>>;
 }
 
 /** What is drawn for what a boss cues (`targets`: whom it is on). */

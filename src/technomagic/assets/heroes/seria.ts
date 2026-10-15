@@ -35,6 +35,8 @@ export const SERIA_ASSETS: HeroAssets = {
   name: 'Seria',
   folder: 'heroes/seria',
   skills: { from: 'https://kingsraid.shodyra.com/static/images/52/', files: ['s1.png', 's2.png', 's3.png', 's4.png'] },
+  // Her unique weapon, wielded: Elsion, her sword and its sheath.
+  unique: { Hero_Seria_Vari05_WeaponA: 'Hero_Seria_Unique01_WeaponA', Hero_Seria_Vari05_WeaponB: 'Hero_Seria_Unique01_WeaponB' },
   skins: [
     {
       name: 'Seria',

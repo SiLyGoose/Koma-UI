@@ -1,4 +1,4 @@
-import { KIRZE_RUN, type RiggedModel, type SkinAssets } from '../assets';
+import { KIRZE_RUN, type HeroAssets, type PartsModel, type RiggedModel, type SkinAssets } from '../assets';
 import { motionOf } from '../sim/motion';
 import { heroLike, riggedHero, runFrom } from './body/animated';
 import type { Hero, Stood } from './body/hero';
@@ -16,14 +16,33 @@ import type { HeroMove } from './moves';
  * in Kirze's (KIRZE_RUN), but for one that glides in seated. One whose sword is kept in the sheath in its other hand
  * draws it only for its moves (./body/sheath.ts). A skin that isn't on this computer is left out, and
  * so is whatever would have moved another (with Kirze's run not on it, they run as the poses written in code have them).
+ * Read for heroes wielding their unique weapons, each skin that looks otherwise with it is read as it does (the
+ * weapon's models in place of its own: HeroAssets.unique), and only those.
  */
 
-/** A skin on the field: whose it is, its body, and the move it attacks with. */
+/** A skin on the field: whose it is, its body, the move it attacks with, and whether it is wielding its hero's unique weapon. */
 export interface Entrant {
   def: HeroDef;
   skin: SkinAssets;
   hero: Hero;
   attack: HeroMove;
+  unique: boolean;
+}
+
+/** A skin of the game's own files as it looks with its hero's unique weapon (null: no otherwise). */
+function wielding(owner: HeroAssets, model: PartsModel): PartsModel | null {
+  const { unique } = owner;
+  if (!unique) return null;
+  const swap = <T extends string | undefined>(name: T): T => (name === undefined ? name : ((unique[name] ?? name) as T));
+  const made: PartsModel = {
+    ...model,
+    parts: model.parts.map(swap),
+    left: swap(model.left),
+    right: swap(model.right),
+    ...(model.floating && { floating: { ...model.floating, model: swap(model.floating.model) } }),
+  };
+  const changed = made.parts.some((part, i) => part !== model.parts[i]) || made.left !== model.left || made.right !== model.right || made.floating?.model !== model.floating?.model;
+  return changed ? made : null;
 }
 
 /** What was read of a skin: its model stood up (the game's own files) or it with its animations, and the rig read to move it. */
@@ -41,21 +60,39 @@ const quietly = <T>(reading: Promise<T>): Promise<T | null> =>
     return null;
   });
 
-async function read(def: HeroDef, skin: SkinAssets): Promise<Read> {
+/** A skin read (`model`: the skin's own, or as it looks with its unique weapon). */
+async function read(def: HeroDef, skin: SkinAssets, model = skin.model): Promise<Read> {
   const animated = (name: string, model: RiggedModel): Promise<Rigged | null> => quietly(loadRigged(name, def.assets, model));
-  const { model } = skin;
   if (model.kind === 'rigged') return { skin, stood: null, rigged: await animated(skin.name, model), rig: null };
   const [stood, rig] = await Promise.all([quietly(standHero(def.assets, model)), typeof model.movedBy === 'object' ? animated(`${skin.name}'s rig`, model.movedBy) : null]);
   return { skin, stood, rigged: null, rig };
 }
 
+/**
+ * The skins of `def` to read: each as it is, or (`unique`) each that looks otherwise with its unique weapon, as it does then,
+ * and what moves it (another skin, by its name) with it.
+ */
+function toRead(def: HeroDef, unique: boolean): Promise<Read>[] {
+  const { skins } = def.assets;
+  if (!unique) return skins.map((skin) => read(def, skin));
+  const wielded = skins.flatMap((skin) => {
+    const model = skin.model.kind === 'parts' ? wielding(def.assets, skin.model) : null;
+    return model ? [{ skin, model }] : [];
+  });
+  const movers = new Set(wielded.map(({ model }) => model.movedBy).filter((name) => typeof name === 'string'));
+  return [...wielded.map(({ skin, model }) => read(def, skin, model)), ...skins.filter((skin) => movers.has(skin.name)).map((skin) => read(def, skin))];
+}
+
 /** Kirze's run, read once (for every hero with none of its own, however many times heroes are read). */
 let kirzeRun: Promise<Rigged | null> | null = null;
 
-/** Every skin of `defs` that could be read, in the order of the heroes and of each one's skins. */
-export async function loadHeroes(defs: readonly HeroDef[]): Promise<Entrant[]> {
+/**
+ * Every skin of `defs` that could be read, in the order of the heroes and of each one's skins; or (`unique`) every one
+ * that looks otherwise with its hero's unique weapon, as it does then (none, for a hero whose weapon changes none).
+ */
+export async function loadHeroes(defs: readonly HeroDef[], { unique = false } = {}): Promise<Entrant[]> {
   kirzeRun ??= quietly(loadRigged("Kirze's run", { folder: KIRZE_RUN.of }, KIRZE_RUN));
-  const [all, borrowedRun] = await Promise.all([Promise.all(defs.map((def) => Promise.all(def.assets.skins.map((skin) => read(def, skin))))), kirzeRun]);
+  const [all, borrowedRun] = await Promise.all([Promise.all(defs.map((def) => Promise.all(toRead(def, unique)))), kirzeRun]);
   const entrants: Entrant[] = [];
   defs.forEach((def, i) => {
     const skins = all[i] as Read[];
@@ -76,12 +113,13 @@ export async function loadHeroes(defs: readonly HeroDef[]): Promise<Entrant[]> {
       const lasts = (move: HeroMove): number => moves[move].parts.reduce((sum, part) => sum + part.until, 0) / moves[move].speed;
       heroes.set(skin, { hero: stood.sheath ? sheathing(hero, stood, stood.sheath, lasts) : hero, attack: attack(like) });
     }
-    for (const { skin, rigged } of skins) if (rigged) heroes.set(skin, { hero: riggedHero(rigged), attack: attack(rigged) });
+    // (With its unique weapon, a skin that comes with its animations is read only to move another: not one of these.)
+    if (!unique) for (const { skin, rigged } of skins) if (rigged) heroes.set(skin, { hero: riggedHero(rigged), attack: attack(rigged) });
     for (const { skin } of skins) {
       const made = heroes.get(skin);
-      if (made) entrants.push({ def, skin, ...made });
+      if (made) entrants.push({ def, skin, ...made, unique });
     }
   });
-  if (entrants.length === 0) throw new Error('None of the heroes could be read');
+  if (entrants.length === 0 && !unique) throw new Error('None of the heroes could be read');
   return entrants;
 }

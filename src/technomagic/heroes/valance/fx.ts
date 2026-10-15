@@ -14,10 +14,11 @@ const from = new Vector3();
 
 export const VALANCE_FX: HeroFx = {
   lands: {
-    // Her attack: a bolt out of her crossbow into the boss.
+    // Her attack: a bolt out of her crossbow into the boss, piercing it.
     bolt({ effects, magic, bossHit, bossFeet, head }, who) {
       magic.bolt(head(who, from), bossHit, VIOLET, 0.16);
-      effects.play('impact', bossHit, 0, 0.7);
+      effects.play('pierce', bossHit, 0.2);
+      effects.play('impact', bossHit, 0, 0.5);
       magic.ring(bossFeet, VIOLET, 3, 0.25);
     },
     // Ultimate Laser Cannon: a ray out of a cannon behind her into the boss (the first the widest).
@@ -25,6 +26,8 @@ export const VALANCE_FX: HeroFx = {
       place(who, from);
       from.set(from.x - CANNON.back, from.y + CANNON.up + (part % 3) * 0.3, from.z + ((part % 3) - 1) * CANNON.spread);
       magic.ray(from, bossHit, CYAN, part === 0 ? 0.6 : 0.3, part === 0 ? 2.4 : 1.1);
+      // The cannon's flash as it fires (the flash's file points back, away from where it is shot).
+      effects.play('shoot', from, Math.PI, part === 0 ? 1.6 : 1);
       effects.play('impact', bossHit, 0, part === 0 ? 1.4 : 0.6);
       if (part === 0) magic.ring(bossFeet, CYAN, 10, 0.5);
     },

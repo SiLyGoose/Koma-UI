@@ -12,10 +12,14 @@ const RASCAL = { at: [0.6, 1.15, -0.2], size: 1 } as const;
  */
 const MOVED_BY = { kind: 'rigged', folder: 'Annette_Mixamo', idle: 'Annette - Idle.fbx' } as const;
 
+const DRIVE = 'https://drive.google.com/uc?export=download&id=';
+
 export const ANNETTE_ASSETS: HeroAssets = {
   name: 'Annette',
   folder: 'heroes/annette',
   skills: { from: 'https://kingsraid.shodyra.com/static/images/33/', files: ['s1.png', 's2.png', 's3.png', 's4.png'] },
+  // Her unique weapon, wielded: Rascal as it is made over.
+  unique: { Hero_Annette_Vari05_Weapon: 'Hero_Annette_Unique01_Weapon' },
   skins: [
     {
       name: 'Annette',
@@ -31,6 +35,8 @@ export const ANNETTE_ASSETS: HeroAssets = {
     // Her Halloween costume, with its own hair and a Rascal of its own (smaller).
     {
       name: 'Annette_Halloween',
+      // Her artwork as a black cat, a paw raised: her head and cat ears in the crop (the meter's close-up is her face by itself).
+      portrait: { file: 'Annette_Halloween.png', from: `${DRIVE}1RuKDrkocmMXny4VDPyKN9rX_zQiTNyhE`, crop: { x: 220, y: 40, size: 320 }, head: { x: 262, y: 138, size: 210 } },
       model: {
         kind: 'parts',
         parts: ['Hero_Annette_Cos17Halloween_Body', 'Hero_Annette_Cos17Halloween_Hair'],

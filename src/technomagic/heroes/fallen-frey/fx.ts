@@ -1,5 +1,7 @@
 import { Vector3 } from 'three';
 import type { HeroFx } from '../../fight/fx';
+import { HERO_TURN } from '../../sim';
+import { rise } from './apparition';
 
 /* What is drawn for Fallen Frey's attack and skills (what they do is ./index.ts). */
 
@@ -39,6 +41,8 @@ export const FALLEN_FREY_FX: HeroFx = {
       sky.set(at.x, VENGEANCE.high, at.z);
       magic.bolt(sky, at, PALE, VENGEANCE.down, VENGEANCE.up * 0.8);
       magic.beam(at, DARK, 0.35, 0.7, VENGEANCE.up * 0.8 + VENGEANCE.down);
+      // Every other one a shaft of light falling out of the sky with it.
+      if (part % 2 === 0) effects.play('falling', at, 0, 0.8 + Math.random() * 0.4);
       effects.play('impact', bossHit, 0, 0.6);
       if (part % 5 === 4) magic.ring(bossFeet, DARK, 7, 0.35);
     },
@@ -51,7 +55,9 @@ export const FALLEN_FREY_FX: HeroFx = {
       magic.ring(place(lowest, at), PALE, NEAR * 2, 0.5);
       for (const ally of targets) magic.beam(place(ally, at), PALE, 0.7, 1.2);
     },
-    blessing({ magic, place }, _who, targets) {
+    // Blessing of Doom: her dark self rising behind her, and the shields on each ally.
+    blessing({ magic, props, place }, who, targets) {
+      rise(props, place(who, at), HERO_TURN);
       for (const ally of targets) {
         place(ally, at);
         magic.beam(at, DARK, 0.6, 0.8);

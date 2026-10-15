@@ -37,8 +37,10 @@ export const ANNETTE_FX: HeroFx = {
     },
   },
   cues: {
-    // Emergency Treatment: a ring of light round her, and a column of it on each ally it reaches.
-    treatment({ magic, place }, who, targets) {
+    // Emergency Treatment: a ring of light round her, a magic circle under her, and a column of it on each ally it reaches.
+    treatment({ effects, magic, place }, who, targets) {
+      place(who, at).y = 0.03;
+      effects.play('holy', at);
       magic.ring(place(who, at), MINT, 10, 0.5);
       for (const ally of targets) magic.beam(place(ally, at), MINT, 0.7, 0.9);
     },

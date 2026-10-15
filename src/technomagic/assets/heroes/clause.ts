@@ -4,6 +4,10 @@ export const CLAUSE_ASSETS: HeroAssets = {
   name: 'Clause',
   folder: 'heroes/clause',
   skills: { from: 'https://kingsraid.shodyra.com/static/images/14/', files: ['s1.png', 's2.png', 's3.png', 's4.png'] },
+  // Guardian Shield's look: his own shield, held up before each hero it guards.
+  props: { guardian: 'Hero_Clause_Vari05_Shield' },
+  // His unique weapon, wielded: Exian, his sword and shield.
+  unique: { Hero_Clause_Vari05_Shield: 'Hero_Clause_Unique01_Shield', Hero_Clause_Vari05_Sword: 'Hero_Clause_Unique01_Sword' },
   skins: [
     {
       name: 'Clause',

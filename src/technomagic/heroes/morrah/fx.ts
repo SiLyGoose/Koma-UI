@@ -28,13 +28,16 @@ export const MORRAH_FX: HeroFx = {
       magic.ring(bossFeet, FLAME, 10, 0.45);
       magic.pool(bossFeet, LAVA, 5, 0.8);
     },
-    // The fire goes up round her.
-    hellfire({ magic, place }, who) {
+    // The fire goes up round her, a circle of it on the floor.
+    hellfire({ effects, magic, place }, who) {
+      place(who, at).y = 0.03;
+      effects.play('flames', at);
       magic.ring(place(who, at), FLAME, 18, 0.6);
       magic.pool(place(who, at), LAVA, 7, 1.2);
     },
     // The lava bursts up under the boss.
     eruption({ effects, magic, bossHit, bossFeet }) {
+      effects.play('explosion', bossFeet);
       magic.pool(bossFeet, LAVA, 12, 1.4);
       magic.beam(bossFeet, FLAME, 0.7, 2.2);
       magic.beam(bossFeet, GOLD, 0.5, 1.2, 0.05);

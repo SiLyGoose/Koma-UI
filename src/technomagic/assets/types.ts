@@ -55,7 +55,21 @@ export interface RiggedModel {
    * none here is the move written in code): the moments its blows land, and when to leave it (written down,
    * not read from the file, so the fight goes the same on a computer without it: ../sim/motion.ts).
    */
-  skills?: Readonly<Record<string, { file: string; lands: readonly number[]; until: number }>>;
+  skills?: Readonly<Record<string, SkillAnimation>>;
+}
+
+/**
+ * An animation a skill is played with: its file, the moments (seconds into it) its blows land, and when to leave it. One
+ * may be a file of the game's own (`folder`: one of its hero's models, its whole model on the game's skeleton: a cutscene's),
+ * made over from that skeleton, and only a `span` of it played (seconds into the file, from and to), drawn out (or hurried)
+ * to last until it is left.
+ */
+export interface SkillAnimation {
+  file: string;
+  folder?: string;
+  span?: readonly [number, number];
+  lands: readonly number[];
+  until: number;
 }
 
 /** Where something is held in a hand, in that hand's own axes (its bone's): how far from it, and how it is turned (about x, y and z, in that order, in radians). */
@@ -118,6 +132,13 @@ export interface HeroAssets {
   /** The pictures on its skills, in their order, its passive last: files fetched once from where they are published. */
   skills: { from: string; files: readonly string[] };
   skins: readonly SkinAssets[];
+  /** What its skills bring onto the field (Lorraine's vines), by the name its fx know it by: each a folder among its models. */
+  props?: Readonly<Record<string, string>>;
+  /**
+   * Its unique weapon, as it looks wielded: each model of its skins' (by its folder) that it is drawn with instead, a
+   * folder among its models (its weapon's: in the same hand, or on the same skeleton). A skin with none of them looks the same with it.
+   */
+  unique?: Readonly<Record<string, string>>;
 }
 
 /** A boss's files: its folder under public/kr/, and the models it is put together from. */
@@ -129,10 +150,17 @@ export interface BossAssets {
 
 /**
  * An effect: flat pictures that play once where a hit lands (../fx/effects.ts), white on black, drawn as
- * light in `tint` and `size` times as big as they come.
+ * light in `tint` and `size` times as big as they come. One that lies on the floor or stands up off it (`flat`:
+ * a magic circle, a shaft of light) is drawn among what is on the field, not over it, and isn't turned to the
+ * camera; one whose file plays on for longer than it is wanted stays only `lasts` seconds. A picture of its file's
+ * that isn't drawn as the game would here (`without`, by its mesh's name: one the game fades out as it grows over the
+ * whole screen, which drawn here lights it all) is left out.
  */
 export interface EffectAssets {
   folder: string;
   tint: number;
   size: number;
+  flat?: boolean;
+  lasts?: number;
+  without?: readonly string[];
 }

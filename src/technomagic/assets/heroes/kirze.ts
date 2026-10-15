@@ -11,6 +11,8 @@ export const KIRZE_ASSETS: HeroAssets = {
   name: 'Kirze',
   folder: FOLDER,
   skills: { from: 'https://kingsraid.shodyra.com/static/images/79/', files: ['s1.png', 's2.png', 's3.png', 's4.png'] },
+  // Her unique weapon, wielded: Elicipira.
+  unique: { Hero_Kirze_Vari05_Weapon: 'Hero_Kirze_Unique01_Weapon' },
   skins: [
     {
       name: 'Kirze',

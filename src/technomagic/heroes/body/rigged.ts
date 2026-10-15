@@ -1,6 +1,6 @@
-import { Box3, DoubleSide, Group, LoadingManager, MeshBasicMaterial, Vector3, type AnimationClip, type Object3D, type Texture } from 'three';
+import { AnimationClip, Box3, DoubleSide, Group, LoadingManager, MeshBasicMaterial, Vector3, type Object3D, type Texture } from 'three';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
-import { animationsIn, rigFolder, type RiggedModel } from '../../assets';
+import { animationFolders, animationsIn, type RiggedModel } from '../../assets';
 import { fileUrl, isMesh } from '../../engine/models';
 import { Rig, toBindPose } from '../../engine/rig';
 import { hang, type Stood } from './hero';
@@ -59,6 +59,14 @@ function staying(clip: AnimationClip): AnimationClip {
   return clip;
 }
 
+/** Only a span of an animation (seconds into it, from and to), drawn out (or hurried) to last `length`. */
+function cut(clip: AnimationClip, [from, to]: readonly [number, number], length: number): AnimationClip {
+  const times = length / (to - from);
+  // (Its keys are many to a second: those in the span are enough.)
+  const tracks = clip.tracks.map((track) => track.clone().trim(from, to).shift(-from).scale(times));
+  return new AnimationClip(clip.name, length, tracks);
+}
+
 /** An animation of a move: the moments (seconds into it) its blows land, and when to leave it. */
 export interface Played {
   clip: AnimationClip;
@@ -99,8 +107,8 @@ export async function loadRigged(name: string, owner: { folder: string }, files:
   const attacks = files.attack ?? [];
   // Its idle and run, when it has them (or its idle alone); the first file read is the model, whichever it is.
   const standing = [files.idle, files.run].filter((file) => file !== undefined);
-  const folder = rigFolder(owner, files);
-  const read = await Promise.all(animationsIn(files).map((file) => loader.loadAsync(fileUrl(folder, file))));
+  const folders = animationFolders(owner, files);
+  const read = await Promise.all(animationsIn(files).map((file, i) => loader.loadAsync(fileUrl(folders[i] as string, file))));
   const [model] = read;
   const idling = files.idle ? read[0] : undefined;
   const running = files.run ? read[standing.length - 1] : undefined;
@@ -164,7 +172,12 @@ export async function loadRigged(name: string, owner: { folder: string }, files:
   const played = Object.fromEntries(
     skills.flatMap(([move, skill], i) => {
       const clip = casting[i]?.animations[0];
-      return clip ? [[move, { clip: staying(clip), lands: skill.lands, until: skill.until }] as const] : [];
+      if (!clip) return [];
+      // (A span of it: made over from the same skeleton.)
+      const made = skill.span ? cut(clip, skill.span, skill.until) : clip;
+      const own = others.get(clip);
+      if (own) others.set(made, own);
+      return [[move, { clip: staying(made), lands: skill.lands, until: skill.until }] as const];
     }),
   );
   return { stood: { ...hang([space], hips.y), models: [space], rig, hips, feet, blade, materials }, space, animations: { idle: clips.idle, run: clips.run && inPlace(clips.run), attack, skills: played, ...(files.bladeRunning && { bladeRunning: new Vector3(...files.bladeRunning).normalize() }) }, others };

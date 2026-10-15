@@ -9,6 +9,8 @@ export const LAIAS_ASSETS: HeroAssets = {
   name: 'Laias',
   folder: 'heroes/laias',
   skills: { from: 'https://kingsraid.shodyra.com/static/images/29/', files: ['s1.png', 's2.png', 's3.png', 's4.png'] },
+  // Her unique weapon, wielded: Eltoirre, her staff (Ell's in the game's files).
+  unique: { Hero_Ell_Vari05_Weapon: 'Hero_Ell_Unique01_Weapon' },
   skins: [
     {
       name: 'Laias',
@@ -23,15 +25,6 @@ export const LAIAS_ASSETS: HeroAssets = {
         kind: 'parts',
         parts: ['Hero_Ell_Vari05_Body', 'Hero_Ell_Vari05_Hair'],
         right: 'Hero_Ell_Vari05_Weapon',
-      },
-    },
-    // Her Dessert costume, with its own hair and staff.
-    {
-      name: 'Laias_Dessert',
-      model: {
-        kind: 'parts',
-        parts: ['Hero_Ell_Cos20Dessert_Body', 'Hero_Ell_Cos20Dessert_Hair'],
-        right: 'Hero_Ell_Cos20Dessert_Weapon',
       },
     },
   ],

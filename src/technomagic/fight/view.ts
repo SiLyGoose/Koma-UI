@@ -2,6 +2,9 @@ import { Vector3, type Scene } from 'three';
 import type { Boss } from '../bosses/boss';
 import type { Effects } from '../fx/effects';
 import type { Magic } from '../fx/magic';
+import type { Props } from '../fx/props';
+import { makeSigns } from '../fx/signs';
+import { makeWards, type Emblem } from '../fx/wards';
 import { FALL, type Hero } from '../heroes/body/hero';
 import { HERO_FX } from '../heroes/fx';
 import type { Popup } from '../hud/numbers';
@@ -10,7 +13,8 @@ import { COMMON_FX, type BossFx, type FxScene } from './fx';
 
 /*
  * The fight as it is drawn: the boss's body and each hero's on the field, doing what the sim (../sim/) says
- * they do, and what is drawn for each blow and skill (./fx.ts, each hero's fx.ts and the boss's). Nothing
+ * they do, and what is drawn for each blow and skill (./fx.ts, each hero's fx.ts and the boss's), what is kept on a
+ * hero while it is guarded (../fx/wards.ts), and the signs of what comes on a fighter (../fx/signs.ts). Nothing
  * here changes how the fight goes: it is told what happened (the sim's events) and shows it.
  */
 
@@ -29,7 +33,7 @@ export interface FightView {
 }
 
 /** A fight drawn in `scene`: the sim's, its heroes' `bodies` (by their index among its fighters) and the boss's. */
-export function makeFightView({ scene, sim, bodies, boss, bossFx, effects, magic }: { scene: Scene; sim: Sim; bodies: readonly Hero[]; boss: Boss; bossFx: BossFx; effects: Effects; magic: Magic }): FightView {
+export function makeFightView({ scene, sim, bodies, boss, bossFx, effects, magic, props }: { scene: Scene; sim: Sim; bodies: readonly Hero[]; boss: Boss; bossFx: BossFx; effects: Effects; magic: Magic; props: Props }): FightView {
   const { def } = sim.foe;
   const at = new Vector3();
   const bossHit = new Vector3(...def.reach.hit).setX(def.stands.x + def.reach.hit[0]);
@@ -57,6 +61,7 @@ export function makeFightView({ scene, sim, bodies, boss, bossFx, effects, magic
   const fx: FxScene = {
     effects,
     magic,
+    props,
     bossHit,
     bossFeet,
     place: (who, into) => body(who).place(into),
@@ -65,6 +70,14 @@ export function makeFightView({ scene, sim, bodies, boss, bossFx, effects, magic
     floater: (who, into) => body(who).floater?.(into) ?? body(who).head(into),
   };
   const fxOf = (who: number) => HERO_FX[(sim.fighters[who] as Sim['fighters'][number]).id];
+  const wards = makeWards(scene, props);
+  /** The skills of the heroes in the fight that guard a hero with a look of their own: by the status's name, its look. */
+  const looks = new Map<string, Emblem>();
+  for (const fighter of sim.fighters)
+    for (const [status, name] of Object.entries(HERO_FX[fighter.id]?.wards ?? {})) looks.set(status, { hero: fighter.def.assets, name });
+  const emblems: Emblem[] = [];
+  const signs = makeSigns(effects);
+  const over = new Vector3();
 
   // The boss spits at the hero it is going for, at its chest (with no one, where one would stand).
   boss.target = (into) => {
@@ -124,6 +137,7 @@ export function makeFightView({ scene, sim, bodies, boss, bossFx, effects, magic
           case 'number': {
             const where = event.on === 'boss' ? bossHit.clone().setY(bossHit.y + (event.mend ? 1.4 : 0.6)) : body(event.on).head(new Vector3());
             numbers.push({ amount: event.amount, kind: event.type, at: where });
+            if (event.type === 'heal' && event.on !== 'boss' && on.has(event.on)) signs.healed(event.on, body(event.on).place(over).setY(0.1));
             break;
           }
           case 'cue':
@@ -138,9 +152,11 @@ export function makeFightView({ scene, sim, bodies, boss, bossFx, effects, magic
             break;
           case 'boss-daze':
             boss.daze(event.seconds, event.down);
+            signs.dazed(bossHit);
             break;
           case 'boss-slow':
             boss.slow(event.rate, event.seconds);
+            signs.slowed(bossHit);
             break;
           case 'end':
             break;
@@ -155,6 +171,14 @@ export function makeFightView({ scene, sim, bodies, boss, bossFx, effects, magic
         const hero = body(who);
         hero.root.position.x = fighter.x;
         hero.root.position.z = fighter.z;
+        // What guards it: a shield, and what else has a look of its own.
+        emblems.length = 0;
+        for (const status of [...fighter.statuses, ...sim.party]) {
+          const look = looks.get(status.name);
+          if (look) emblems.push(look);
+        }
+        wards.keep(who, hero.place(at), fighter.shield > 0, fighter.hp > 0 ? emblems : []);
+        if (fighter.hp > 0) signs.hero(who, [...fighter.statuses, ...sim.party], () => hero.head(over));
         const down = fighter.hp <= 0;
         let lying = fallen.get(who);
         if (down && !lying) {
@@ -176,8 +200,12 @@ export function makeFightView({ scene, sim, bodies, boss, bossFx, effects, magic
         hero.update(lying.still ?? now, lying.still === null ? dt : 0);
         if (!down && lying.over <= 0) fallen.delete(who);
       }
+      signs.boss(sim.foe.statuses, bossHit);
+      wards.update(dt);
+      signs.update(dt);
       effects.update(dt);
       magic.update(dt);
+      props.update(dt);
     },
     clear() {
       for (const who of on) {
@@ -188,6 +216,9 @@ export function makeFightView({ scene, sim, bodies, boss, bossFx, effects, magic
       }
       on.clear();
       fallen.clear();
+      wards.clear();
+      signs.clear();
+      props.clear();
     },
   };
 }

@@ -12,6 +12,20 @@ export const LORRAINE_ASSETS: HeroAssets = {
   name: 'Lorraine',
   folder: 'heroes/lorraine',
   skills: { from: 'https://kingsraid.shodyra.com/static/images/13/', files: ['s1.png', 's2.png', 's3.png', 's4.png'] },
+  // Her plants, the pitcher-plant monsters' (Characters Other/Creature Monster): Tangled Vine's vines (the stem, its two long
+  // arms wound round the boss), Thornbush Forest's fly-traps (the trap at the tip of one arm), and Wrath of the Forest's
+  // flowers (the four kinds). And her attack's thorns: the thorn-mushrooms' (Maps, Items, Other/Other).
+  props: {
+    vine: 'Mob_Nepenthes_Stem_Vari01_Mesh',
+    trap: 'Mob_Nepenthes_FlyTrap_Vari01_Mesh',
+    flower1: 'Mob_Nepenthes_Flower_Vari01_Mesh',
+    flower2: 'Mob_Nepenthes_Flower_Vari02_Mesh',
+    flower3: 'Mob_Nepenthes_Flower_Vari03_Mesh',
+    flower4: 'Mob_Nepenthes_Flower_Vari04_Mesh',
+    thorn: 'Monster_Muhroom_Thorn_Thorn',
+  },
+  // Her unique weapon, wielded: Roburu, her staff.
+  unique: { Hero_Lorraine_Vari05_Weapon: 'Hero_Lorraine_Unique01_Weapon' },
   skins: [
     {
       name: 'Lorraine',

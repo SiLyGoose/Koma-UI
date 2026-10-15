@@ -27,6 +27,16 @@ export const rigFolder = (owner: { folder: string }, rig: RiggedModel): string =
 export const animationsIn = (rig: RiggedModel): string[] =>
   [rig.idle, rig.run, ...(rig.attack ?? []).map((part) => part.file), ...Object.values(rig.skills ?? {}).map((skill) => skill.file)].filter((file) => file !== undefined);
 
+/** Where each of a rig's animations is, under public/kr/ (in the order animationsIn has them): its folder's, or one of its hero's models' (SkillAnimation.folder). */
+export const animationFolders = (owner: { folder: string }, rig: RiggedModel): string[] => {
+  const own = rigFolder(owner, rig);
+  const skills = Object.values(rig.skills ?? {});
+  return animationsIn(rig).map((_, i, all) => {
+    const skill = skills[i - (all.length - skills.length)];
+    return skill?.folder === undefined ? own : modelFolder(owner, skill.folder);
+  });
+};
+
 export const effectFolder = (effect: EffectAssets): string => `effects/${effect.folder}`;
 
 /** A skill's picture, under public/kr/. */

@@ -1,3 +1,4 @@
+import type { Bone, Object3D } from 'three';
 import type { Follow, Plan } from '../../engine/retarget';
 
 /*
@@ -61,6 +62,15 @@ const SAME = [
   ...['BL', 'BR'].flatMap((at) => [1, 2, 3, 4].map((n) => `Bone_Hair_${at}0${n}`)),
   ...[1, 2, 3, 4].map((n) => `Bone_Tail_0${n}`),
 ];
+
+/** The game's skeleton following itself (an animation of the game's own, made for another of its models: a cutscene's): each bone its own, by name, of those `from` has. */
+export function bipedFromBiped(from: Object3D): Plan {
+  const follows: Follow[] = [];
+  from.traverse((o) => {
+    if ((o as Bone).isBone && o.parent?.name !== o.name) follows.push({ bone: o.name, from: o.name });
+  });
+  return { follows, hips: { bone: BIPED.hips, from: BIPED.hips }, leg: { own: BIPED.legs.L, other: BIPED.legs.L } };
+}
 
 /** The game's skeleton following Mixamo's. */
 export const BIPED_FROM_MIXAMO: Plan = {

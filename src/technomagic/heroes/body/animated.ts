@@ -8,7 +8,7 @@ import { posedHero, type Posing } from './posed';
 import { REST, type Pose } from './pose';
 import { poseBody, poseLoose } from './posing';
 import type { Animations, Rigged } from './rigged';
-import { BIPED, BIPED_FROM_MIXAMO, MIXAMO, type Skeleton } from './skeletons';
+import { BIPED, BIPED_FROM_MIXAMO, bipedFromBiped, MIXAMO, type Skeleton } from './skeletons';
 
 /*
  * A hero moved by animations: it stands in its idle and runs in in its run. Its attack is its own when
@@ -58,7 +58,8 @@ export function heroLike(stood: Stood, like: Rigged, rest: Pose = REST, posing: 
     const skeleton = like.others.get(clip) ?? like.space;
     let made = from.get(skeleton);
     if (!made) {
-      made = retargeter(skeleton, stood.models, BIPED_FROM_MIXAMO);
+      // (Made for Mixamo's skeleton, or for the game's own: a cutscene's.)
+      made = retargeter(skeleton, stood.models, skeleton.getObjectByName(BIPED.hips) ? bipedFromBiped(skeleton) : BIPED_FROM_MIXAMO);
       from.set(skeleton, made);
     }
     return made(clip);
