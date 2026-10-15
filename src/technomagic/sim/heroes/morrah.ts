@@ -1,4 +1,6 @@
+import { share } from '../combat/damage';
 import { away, put } from '../combat/status';
+import { t5Light } from '../perks';
 import { BLOW } from '../rules';
 import { skillArt, type Buff } from '../shown';
 import type { Fighter } from '../types';
@@ -19,6 +21,10 @@ import { CLASS_STATS, type HeroDef, type Passive } from './kit';
  * Her unique weapon (../unique.ts) is worked here too: now and then a blow of her attack leaves the boss
  * hitting less hard and taking more magical damage, the more with her Flame stacked full on it.
  * What is drawn for each is ../../heroes/morrah/fx.ts; what her body does for each, and for her attack, ../../heroes/morrah/moves.ts.
+ *
+ * Her own perks (../perks.ts) are King's Raid's. Hellfire's Dark doesn't say how hard what it deals is: here every
+ * second while Hellfire lasts, a blow as hard as 1.5 times her M.DEF. Fire Smash's Dark counts 100 Flame or more.
+ * What Burning Power's Light gives in attack speed is a pace.
  */
 const CLEAVE = { blow: BLOW, burning: 150 };
 const BURNING = { blow: 1500, flames: 3, down: 1, lasts: 15 };
@@ -28,6 +34,12 @@ const ERUPTION = { blow: 3000, down: 3 };
 const SMASH = { blow: 1500, flames: 3 };
 /** The most Flame on the boss, how long it lasts once the last was left, how hard each burns every second, how much harder it makes her skills, and what each takes off the boss's heals. */
 const FLAME = { most: 100, lasts: 10, each: 4, every: 1, more: 0.02, heals: 0.01 };
+/**
+ * Her own perks' numbers: Burning Power's attack speed (points), Hellfire's more M.Block and its blow every second (a
+ * share of her M.DEF), Lava Eruption's heal (a share of what it dealt), Fire Smash's M.DEF for each block (most), the boss
+ * taking more at full Flame, and Transcend 5's Dark's Flame.
+ */
+const PERKS = { quicker: 200, block: 1.2, scorch: 1.5, drain: 0.4, harder: { defense: 0.05, most: 10 }, full: 0.4, flame: { each: 2, most: 120 } };
 
 const art = skillArt('morrah');
 
@@ -43,6 +55,10 @@ const BURNING_UP: Buff = { name: 'Burning Power', about: 'Each blow of her attac
 const HELLFIRE_UP: Buff = { name: 'Hellfire', about: '30% more M.DEF, and +250 M.Block.', icon: '🌋', art: art(1) };
 /** What her skills, and her unique weapon, leave on the boss. */
 const FLAMED = 'Flame';
+const SEARED = 'Searing Flame';
+/** What her perks give her: Burning Power's Light's attack speed, and Fire Smash's Light's M.DEF. */
+const QUICKENED: Buff = { name: 'Burning Power (speed)', about: 'Quicker.', icon: '🔥', art: art(0) };
+const HARDENED: Buff = { name: 'Fire Smash (M.DEF)', about: '5% more M.DEF for each block (10 at most).', icon: '🔥', art: art(3) };
 
 export const MORRAH: HeroDef = {
   id: 'morrah',
@@ -57,6 +73,18 @@ export const MORRAH: HeroDef = {
     { name: 'Lava Eruption', about: 'A blow that knocks the boss down for 3 seconds, 2% harder for each [Flame] on it.', icon: '☄️', art: art(2), move: 'eruption', cooldown: 20, cost: 3 },
   ],
   passive: FIRE_SMASH,
+  perks: {
+    's1-light': { words: 'ATK Spd is increased by 200 for 15 sec.' },
+    's1-dark': { words: 'Reduces cooldown by 6% per each enemy hit.', skill: { index: 0, cooldownShare: 0.94 } },
+    's2-light': { words: 'M.Block rate is boosted by 20%.' },
+    's2-dark': { words: 'While Hellfire is active, deals DMG based on own M.DEF to nearby enemies.' },
+    's3-light': { words: 'DMG is increased by 40%.', skill: { index: 2, dmg: 1.4 } },
+    's3-dark': { words: 'Heals HP equal to 40% of DMG dealt.' },
+    's4-light': { words: 'Increases own M.DEF by 5% per each block. Max stack is 10.' },
+    's4-dark': { words: 'Target with over 100 stacks of Flame takes 40% increased M.DMG.' },
+    't5-light': t5Light('ATK, DEF, HP +15% / M.Block +200', { blockMagical: 200 }),
+    't5-dark': { words: 'Flame stack DMG is increased by 100%, and max stack number is changed to 120.' },
+  },
   attack: 'cleave',
   // Clause’s slash (her animations are copies of his), timed as his is.
   timing: { attack: [{ lands: [0.68], until: 0.8 }] },
@@ -67,13 +95,19 @@ export const MORRAH: HeroDef = {
     let fanned = 0;
     let burnt = 0;
     const tier = self.unique?.tier ?? null;
+    /** Her perks: the most Flame there can be, and how hard each burns (Transcend 5's Dark); and her blocks counted for M.DEF (Fire Smash's Light). */
+    const most = self.perks.has('t5-dark') ? PERKS.flame.most : FLAME.most;
+    const each = FLAME.each * (self.perks.has('t5-dark') ? PERKS.flame.each : 1);
+    let blocks = 0;
 
     /** How many Flame are on the boss. */
     const flames = (): number => fight.foe.statuses.find((status) => status.name === FLAMED)?.count ?? 0;
     /** So many more Flame on the boss (up to the most), all of it begun again: what heals it heals it less for each. */
     const burn = (count: number): void => {
-      const stacks = Math.min(FLAME.most, flames() + count);
+      const stacks = Math.min(most, flames() + count);
       put(fight.foe.statuses, { name: FLAMED, left: FLAME.lasts, count: stacks, heals: Math.max(0, 1 - FLAME.heals * stacks), shown: 'burn' });
+      // (Fire Smash's Dark: at full Flame, the boss takes more magical damage, as long as it.)
+      if (self.perks.has('s4-dark') && stacks >= FLAME.most) put(fight.foe.statuses, { name: SEARED, left: FLAME.lasts, takes: { magical: 1 + PERKS.full }, shown: 'burn' });
     };
     /** How much harder her skills are for the Flame on the boss. */
     const fanning = (): number => 1 + FLAME.more * flames();
@@ -88,7 +122,7 @@ export const MORRAH: HeroDef = {
       } else fight.hit(self, CLEAVE.blow);
       if (tier === null || fight.roll() >= CARPRAIN.chance) return;
       const weaker = atTier(CARPRAIN.weaker, tier);
-      const takes = weaker * (flames() >= FLAME.most ? CARPRAIN.full : 1);
+      const takes = weaker * (flames() >= most ? CARPRAIN.full : 1);
       put(fight.foe.statuses, { name: CARPRAIN.name, left: CARPRAIN.lasts, deals: 1 - weaker, takes: { magical: 1 + takes }, shown: 'curse' });
     };
 
@@ -103,21 +137,25 @@ export const MORRAH: HeroDef = {
           fight.stun(BURNING.down, { down: true, by: self });
           burn(BURNING.flames);
           burning = BURNING.lasts;
+          if (self.perks.has('s1-light')) put(self.statuses, { name: QUICKENED.name, left: BURNING.lasts, pace: 1 + share(PERKS.quicker), shown: QUICKENED });
         },
         // The fire goes up round every ally: more M.DEF and M.Block for a while, and a Flame on the boss every second meanwhile.
         hellfire() {
           const on = allies();
           fight.cue(self, 'hellfire', on);
           for (const ally of on) {
-            put(ally.statuses, { name: HELLFIRE_UP.name, left: HELLFIRE.lasts, defends: { magical: HELLFIRE.defense }, blocks: { magical: HELLFIRE.block }, shown: HELLFIRE_UP });
+            put(ally.statuses, { name: HELLFIRE_UP.name, left: HELLFIRE.lasts, defends: { magical: HELLFIRE.defense }, blocks: { magical: HELLFIRE.block * (self.perks.has('s2-light') ? PERKS.block : 1) }, shown: HELLFIRE_UP });
           }
           hellfire = HELLFIRE.lasts;
           fanned = 0;
         },
         // The lava bursts up under the boss, harder for its Flame: it is knocked down.
         eruption() {
+          const before = fight.foe.hp;
           fight.hit(self, ERUPTION.blow * fanning());
           fight.stun(ERUPTION.down, { down: true, by: self });
+          // (Its Dark: what it dealt heals her a share.)
+          if (self.perks.has('s3-dark')) fight.heal(self, PERKS.drain * Math.max(0, before - fight.foe.hp));
         },
       },
       // Blocked: a blow back, and 3 more Flame.
@@ -125,6 +163,11 @@ export const MORRAH: HeroDef = {
         fight.cue(self, 'smash');
         fight.hit(self, SMASH.blow);
         burn(SMASH.flames);
+        // (Its Light: more M.DEF for each block, up to 10.)
+        if (self.perks.has('s4-light') && blocks < PERKS.harder.most) {
+          blocks++;
+          put(self.statuses, { name: HARDENED.name, left: Infinity, count: blocks, defends: { magical: 1 + PERKS.harder.defense * blocks }, shown: HARDENED });
+        }
       },
       tick(dt) {
         if (burning > 0) burning = Math.max(0, burning - dt);
@@ -135,6 +178,8 @@ export const MORRAH: HeroDef = {
           if (fanned >= HELLFIRE.every) {
             fanned -= HELLFIRE.every;
             burn(1);
+            // (Its Dark: a blow by her M.DEF.)
+            if (self.perks.has('s2-dark') && self.hp > 0 && fight.field.includes(self)) fight.hit(self, PERKS.scorch * self.stats.magical, false);
           }
         }
         // Her Flame burns the boss every second (the first Morrah's, where there are two: it is the same Flame), each stack of it a blow of its own (counted as one).
@@ -147,7 +192,7 @@ export const MORRAH: HeroDef = {
         if (burnt >= FLAME.every) {
           burnt -= FLAME.every;
           fight.cue(self, 'flame');
-          fight.hit(self, FLAME.each * count, false);
+          fight.hit(self, each * count, false);
         }
       },
       lit: () => burning > 0,
