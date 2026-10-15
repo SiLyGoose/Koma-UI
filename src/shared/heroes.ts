@@ -75,7 +75,7 @@ export interface Hero {
   /** The transcendence perks picked for it (the bot's data/transcend.ts ids: ../heroes/transcend.ts; absent from a bot from before them). */
   perks?: string[];
   /**
-   * How far it is transcended (1 to 5), the TP it has, and what the next level costs: so many of each of its class's
+   * How far it is transcended (0 to 5), the TP it has, and what the next level costs: so many of each of its class's
    * hero essences, and komaGems (null at the last). Absent from a bot from before it.
    */
   transcend?: { level: number; points: number; next: { essences: Partial<Record<EssenceId, number>>; gems: number } | null };

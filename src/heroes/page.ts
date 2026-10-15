@@ -16,7 +16,7 @@ import { render, type HeroActions } from './render';
  * last pressed, or the first free one of its kind; off any other hero it was on), and pressing a slot shows
  * what fits in it. The Stats tab has the hero's stats in the raid, with and without its gear; the Skills tab
  * its skills, in King's Raid's own words (./skills.ts); the Transcend tab its transcendence perks, which are
- * picked there (./transcend.ts: the TP they cost, out of what its level gives), and the Stats tab transcends it (T1 to
+ * picked there (./transcend.ts: the TP they cost, out of what its level gives), and the Stats tab transcends it (T0 to
  * T5, for its class's hero essences and komaGems). A copy can be
  * on the member and on one of their heroes at once, but on one hero only. Logged-in members only, in the
  * server picked; ?hero= picks the hero shown. On the left over the hero, whose heroes are shown: theirs, or
