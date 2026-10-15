@@ -31,6 +31,8 @@ export interface Hero {
   leftHand(into: Vector3): Vector3;
   /** Where what floats beside it is on the field (its skin's `floating`: Annette's Rascal), put in `into`; missing for one with none. */
   floater?(into: Vector3): Vector3;
+  /** Where the far end of what is in its right hand is on the field (what it shoots comes from there), put in `into`; missing for one holding nothing there. */
+  muzzle?(into: Vector3): Vector3;
   /** Hit: red for a moment. It goes on with what it was doing. */
   hit(): void;
   /** Staggered (stunned, thrown back): what it was doing is cut short. */
@@ -58,6 +60,8 @@ export interface Stood {
   feet: { L: Vector3; R: Vector3 };
   /** The way the blade in its right hand runs, in that hand's own axes. */
   blade: Vector3;
+  /** A mark at the far end of what is in its right hand, along its blade (its tip, or its muzzle), when it holds something there. */
+  muzzle?: Object3D;
   /** A shield on its left arm, when it has one: the mark it hangs on, and the way its face looks in that mark's own axes. */
   shield?: { mark: string; face: Vector3 };
   /**

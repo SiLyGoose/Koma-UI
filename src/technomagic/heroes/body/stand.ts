@@ -1,8 +1,27 @@
-import { Box3, Vector3, type Object3D } from 'three';
+import { Box3, Matrix4, Object3D, Vector3, type Mesh } from 'three';
 import { modelFolder, type HeroAssets, type PartsModel } from '../../assets';
 import { loadModels, materialsOf } from '../../engine/models';
 import { Rig } from '../../engine/rig';
 import { hang, type Stood } from './hero';
+
+/** A mark put on what is held at its far end along its own `axis` (as far out as its meshes reach that way): its tip, or its muzzle. */
+function tipOf(held: Object3D, axis: 'x' | 'y'): Object3D {
+  held.updateMatrixWorld(true);
+  const into = new Matrix4().copy(held.matrixWorld).invert();
+  const box = new Box3();
+  const part = new Box3();
+  held.traverse((o) => {
+    const { geometry } = o as Mesh;
+    if (!(o as Mesh).isMesh || !geometry) return;
+    if (!geometry.boundingBox) geometry.computeBoundingBox();
+    box.union(part.copy(geometry.boundingBox as Box3).applyMatrix4(new Matrix4().multiplyMatrices(into, o.matrixWorld)));
+  });
+  const tip = new Object3D();
+  tip.name = 'Muzzle';
+  tip.position.setComponent(axis === 'x' ? 0 : 1, box.isEmpty() ? 0 : box.max.getComponent(axis === 'x' ? 0 : 1));
+  held.add(tip);
+  return tip;
+}
 
 /** A skin of the game's own files, stood on the field: its parts on their skeleton, and what it holds in its hands. `owner` is the hero whose it is. */
 export async function standHero(owner: HeroAssets, model: PartsModel): Promise<Stood> {
@@ -19,6 +38,7 @@ export async function standHero(owner: HeroAssets, model: PartsModel): Promise<S
   /** The way the blade in the right hand runs, in that hand's own axes. */
   const blade = new Vector3(1, 0, 0);
   let shield: Stood['shield'];
+  let muzzle: Object3D | undefined;
   hands.forEach((folder, i) => {
     const side = folder === model.left ? 'L' : 'R';
     for (const part of parts) {
@@ -41,6 +61,7 @@ export async function standHero(owner: HeroAssets, model: PartsModel): Promise<S
         if (model.blade === 'y') blade.set(0, 1, 0).applyQuaternion((held[i] as Object3D).quaternion);
         else blade.set(1, 0, 0);
         blade.applyQuaternion(point.quaternion).normalize();
+        muzzle = tipOf(held[i] as Object3D, model.blade === 'y' ? 'y' : 'x');
       }
       break;
     }
@@ -78,5 +99,5 @@ export async function standHero(owner: HeroAssets, model: PartsModel): Promise<S
   const rig = new Rig(parts);
   // Where its feet are as it stands: they are placed from there.
   const feet = { L: rig.at('Bip001_L_Foot'), R: rig.at('Bip001_R_Foot') };
-  return { root, body, middle, models: parts, rig, hips, feet, blade, shield, sheath, materials: materialsOf([...parts, ...held, ...floats]), floating: floated };
+  return { root, body, middle, models: parts, rig, hips, feet, blade, muzzle, shield, sheath, materials: materialsOf([...parts, ...held, ...floats]), floating: floated };
 }

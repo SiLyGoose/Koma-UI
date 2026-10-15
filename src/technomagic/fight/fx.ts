@@ -25,6 +25,8 @@ export interface FxScene {
   leftHand(who: number, into: Vector3): Vector3;
   /** Where what floats beside a hero is (Annette's Rascal; its head, for one with nothing floating): put in `into`. */
   floater(who: number, into: Vector3): Vector3;
+  /** Where the far end of what is in a hero's right hand is (what it shoots comes from there; its head, for one holding nothing there): put in `into`. */
+  muzzle(who: number, into: Vector3): Vector3;
 }
 
 /**

@@ -85,7 +85,7 @@ function wandering(most: number): (dt: number) => number {
  * A hero moved by poses written in code: it stands `rest` (a swordsman's, unless its hero has a stance of its own), and its moves are added to that;
  * but for those it has animations for (`own`, by their move's name). And as `posing` has it.
  */
-export function posedHero({ root, body, middle, models, rig, hips, feet, blade, shield, materials, floating }: Stood, rest: Pose = REST, own: Readonly<Record<string, Own>> = {}, posing: Posing = {}): Hero {
+export function posedHero({ root, body, middle, models, rig, hips, feet, blade, muzzle, shield, materials, floating }: Stood, rest: Pose = REST, own: Readonly<Record<string, Own>> = {}, posing: Posing = {}): Hero {
   const { seated = false, bends = {}, idle, run, bladeRunning, varied = false } = posing;
   // Each animation is put on each of its models at once, each with what the animation has for the bones it has.
   type Part = Played & { sample: Sampler };
@@ -148,6 +148,7 @@ export function posedHero({ root, body, middle, models, rig, hips, feet, blade, 
     head: (into) => (models[0] as Object3D).localToWorld(into.copy(rig.at(BIPED.head))),
     leftHand: (into) => (models[0] as Object3D).localToWorld(into.copy(rig.at(BIPED.arms.L[2]))),
     ...(floating && { floater: (into: Vector3) => floating.model.getWorldPosition(into) }),
+    ...(muzzle && { muzzle: (into: Vector3) => muzzle.getWorldPosition(into) }),
     place: (into) => body.getWorldPosition(into),
     hit() {
       red = RED;

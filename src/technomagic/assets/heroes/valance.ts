@@ -2,9 +2,16 @@ import type { HeroAssets } from '../types.ts';
 
 /*
  * Valance's files have only her fourth look (Hero_Valance_Vari04_…): her body (her face in it; Hero_Valance_Facial_Mesh
- * is only its expressions), and her technomagic crossbow, in her right hand: the only hand her file marks. With no
- * rig of hers, she stands, runs in and does the rest as ../../heroes/valance/moves.ts has it.
+ * is only its expressions), and her technomagic crossbow, in her right hand: the only hand her file marks (at her feet,
+ * as Seria's do, so it is held as GRIP has it). With no rig of hers, she stands, runs in and does the rest as
+ * ../../heroes/valance/moves.ts has it.
  */
+
+/**
+ * How she holds her crossbow: by the cap at its back (where its file has its middle), in her palm, its bolt along her
+ * hand and out past her fingers (the crossbow's own x, its single top limb its y), so it points where her hand does.
+ */
+const GRIP = { at: [0.06, 0, 0], turn: [0, 0, 0] } as const;
 
 export const VALANCE_ASSETS: HeroAssets = {
   name: 'Valance',
@@ -25,6 +32,7 @@ export const VALANCE_ASSETS: HeroAssets = {
         kind: 'parts',
         parts: ['Hero_Valance_Vari04_Mesh'],
         right: 'Hero_Valance_Vari04_Weapon',
+        grips: { R: GRIP },
       },
     },
   ],

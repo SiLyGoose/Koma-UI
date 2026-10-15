@@ -8,7 +8,10 @@ import { COILED, LOW, TALL } from '../moves/stances';
  * comes of each is in ./index.ts.
  */
 
-/** How she stands: upright and poised, her feet together under her gown, her crossbow held low at her right side pointing ahead and down, her left hand at her waist. */
+/**
+ * How she stands: upright and poised, her feet together under her gown, her crossbow held low at her right side
+ * pointing down and a little ahead, along her forearm (so her wrist is straight), her left hand at her waist.
+ */
 export const STAND: Pose = {
   ...REST,
   hipX: 0,
@@ -24,11 +27,11 @@ export const STAND: Pose = {
   lhX: 0.16,
   lhY: 0.02,
   lhZ: 0.1,
-  rhX: -0.22,
-  rhY: -0.06,
-  rhZ: 0.12,
+  rhX: -0.21,
+  rhY: 0,
+  rhZ: 0.2,
   bTurn: 0,
-  bUp: -0.6,
+  bUp: -0.95,
 };
 
 /** A pose of hers, for a track: what is added to how she stands. */

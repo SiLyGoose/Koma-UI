@@ -14,9 +14,9 @@ const from = new Vector3();
 
 export const VALANCE_FX: HeroFx = {
   lands: {
-    // Her attack: a bolt out of her crossbow into the boss, piercing it.
-    bolt({ effects, magic, bossHit, bossFeet, head }, who) {
-      magic.bolt(head(who, from), bossHit, VIOLET, 0.16);
+    // Her attack: a bolt out of the end of her crossbow into the boss, piercing it.
+    bolt({ effects, magic, bossHit, bossFeet, muzzle }, who) {
+      magic.bolt(muzzle(who, from), bossHit, VIOLET, 0.16);
       effects.play('pierce', bossHit, 0.2);
       effects.play('impact', bossHit, 0, 0.5);
       magic.ring(bossFeet, VIOLET, 3, 0.25);

@@ -1,4 +1,4 @@
-import { AnimationClip, AnimationMixer, LoopOnce, LoopRepeat, type AnimationAction, type Object3D } from 'three';
+import { AnimationClip, AnimationMixer, LoopOnce, LoopRepeat, type AnimationAction, type Object3D, type Vector3 } from 'three';
 import { retargeter } from '../../engine/retarget';
 import { lengthOf } from '../../engine/track';
 import { flowing, MOVES, type HeroMove } from '../moves';
@@ -86,7 +86,7 @@ export function runFrom(stood: Stood, from: Rigged): AnimationClip | undefined {
 }
 
 /** A hero moved by animations of its skeleton's own (`bones` says which of its bones are which), and by the moves written in code (written from `rest`). */
-function animatedHero({ root, body, middle, models, rig, hips, feet, blade, shield, materials }: Stood, bones: Skeleton, animations: Standing, rest: Pose): Hero {
+function animatedHero({ root, body, middle, models, rig, hips, feet, blade, muzzle, shield, materials }: Stood, bones: Skeleton, animations: Standing, rest: Pose): Hero {
   // An animation plays on each of its models at once, each with what the animation has for the bones it has.
   const mixer = new AnimationMixer(root);
   const playing = (clip: AnimationClip, once = false): AnimationAction[] =>
@@ -140,6 +140,7 @@ function animatedHero({ root, body, middle, models, rig, hips, feet, blade, shie
     },
     head: (into) => (models[0] as Object3D).localToWorld(into.copy(rig.at(bones.head))),
     leftHand: (into) => (models[0] as Object3D).localToWorld(into.copy(rig.at(bones.arms.L[2]))),
+    ...(muzzle && { muzzle: (into: Vector3) => muzzle.getWorldPosition(into) }),
     place: (into) => body.getWorldPosition(into),
     hit() {
       red = RED;

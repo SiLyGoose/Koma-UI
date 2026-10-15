@@ -68,6 +68,7 @@ export function makeFightView({ scene, sim, bodies, boss, bossFx, effects, magic
     head: (who, into) => body(who).head(into),
     leftHand: (who, into) => body(who).leftHand(into),
     floater: (who, into) => body(who).floater?.(into) ?? body(who).head(into),
+    muzzle: (who, into) => body(who).muzzle?.(into) ?? body(who).head(into),
   };
   const fxOf = (who: number) => HERO_FX[(sim.fighters[who] as Sim['fighters'][number]).id];
   const wards = makeWards(scene, props);
