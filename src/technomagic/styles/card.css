@@ -125,6 +125,18 @@
   gap: 3px;
 }
 
+/*
+ * On a card: five to a row, from the left. Past five, another row over the first, and so on up (over the room
+ * for the hero's head) while the card keeps one row's height, so its rows and its hero don't move.
+ */
+.tm-bars > .tm-buffs {
+  flex-wrap: wrap-reverse;
+  justify-content: flex-start;
+  align-content: flex-start;
+  width: calc(var(--skill) * 0.32 * 5 + 3px * 4);
+  height: calc(var(--skill) * 0.32);
+}
+
 .tm-timed {
   display: contents;
 }
