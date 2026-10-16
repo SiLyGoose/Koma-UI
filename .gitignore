@@ -1,5 +1,7 @@
 node_modules/
 dist/
+# The heroes' faces and busts, cut as the site is built (scripts/hero-cuts.mjs).
+public/hero-cuts/
 .vercel
 *.log
 *.local

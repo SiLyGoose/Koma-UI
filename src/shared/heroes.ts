@@ -127,42 +127,101 @@ export const SHOP_BUST: Frame = { ...BUST, fit: {
   },
 };
 
-const cuts = new Map<string, Promise<string | null>>();
+/**
+ * The frames the pages cut the heroes' pictures with, and how many pixels across each one's cuts are made as the site
+ * is built (scripts/hero-cuts.mjs: the most any page asks of it). Each hero's is then a small picture of its own,
+ * fetched in place of its whole picture (hundreds of KB, and cut in the page). A frame not here is cut in the page.
+ */
+export const BUILT_CUTS: ReadonlyMap<Frame, number> = new Map([
+  [FACE, 256],
+  [BUST, 200],
+  [SHOP_BUST, 360],
+]);
 
-/** A hero's face or bust cut out of its picture (a data: address), `width` pixels across; null when it has none, or it can't be read. */
-export function heroCut(id: string, frame: Frame, width = 256): Promise<string | null> {
-  const fit = frame.fit?.[id];
-  const key = `${id}:${frame.wide}:${frame.tall}:${frame.above}:${fit ? `${fit.zoom}:${fit.x}:${fit.y}` : ''}:${width}`;
-  let cut = cuts.get(key);
-  if (!cut) {
-    cut = cutPicture(id, frame, width);
-    cuts.set(key, cut);
-  }
-  return cut;
+/** Where a cut comes from: its hero's picture, the part of it taken (in its pixels; it may go off the picture, where the cut is left clear), and the cut's size. */
+export interface CutArea {
+  src: string;
+  from: { x: number; y: number; w: number; h: number };
+  width: number;
+  height: number;
 }
 
-async function cutPicture(id: string, frame: Frame, width: number): Promise<string | null> {
+/** Where a hero's cut in `frame`, `width` pixels across, comes from: the face in the middle across, `above` of a face below the top. Null when it has no picture. */
+export function cutArea(id: string, frame: Frame, width: number): CutArea | null {
   const picture = heroPicture(id);
   if (!picture) return null;
-  const image = new Image();
-  image.src = picture.src;
-  try {
-    await image.decode();
-  } catch {
-    return null;
-  }
   const { x, y, size: square } = picture.crop;
   const fit = frame.fit?.[id] ?? { zoom: 1, x: 0, y: 0 };
   // The face's middle, and its size as the frame takes it.
   const middle = { x: x + square / 2 + fit.x * square, y: y + square / 2 + fit.y * square };
   const size = square / fit.zoom;
+  const from = { x: middle.x - (size * frame.wide) / 2, y: middle.y - size / 2 - size * frame.above, w: size * frame.wide, h: size * frame.tall };
+  return { src: picture.src, from, width, height: Math.round((width * frame.tall) / frame.wide) };
+}
+
+/**
+ * Where a built cut is (under public/hero-cuts/): named for its hero, and for what it's cut from and how, so a cut
+ * made before its picture's crop or its frame changed is never taken for it.
+ */
+export function cutFile(id: string, area: CutArea): string {
+  // FNV-1a.
+  let hash = 0x811c9dc5;
+  for (const char of JSON.stringify(area)) hash = Math.imul(hash ^ char.charCodeAt(0), 0x01000193);
+  return `/hero-cuts/${id}-${(hash >>> 0).toString(36)}.webp`;
+}
+
+const cuts = new Map<string, Promise<string | null>>();
+
+/**
+ * A hero's face or bust cut out of its picture, `width` pixels across (a page sizes it: a built cut is as big as
+ * BUILT_CUTS has it, whatever is asked); null when it has none, or it can't be read.
+ */
+export function heroCut(id: string, frame: Frame, width = 256): Promise<string | null> {
+  const fit = frame.fit?.[id];
+  const key = `${id}:${frame.wide}:${frame.tall}:${frame.above}:${fit ? `${fit.zoom}:${fit.x}:${fit.y}` : ''}:${width}`;
+  let cut = cuts.get(key);
+  if (!cut) {
+    cut = builtCut(id, frame).then((built) => built ?? cutPicture(id, frame, width));
+    cuts.set(key, cut);
+  }
+  return cut;
+}
+
+/** Its cut as the site was built (its address), null when there is none: in `yarn dev` (a picture may have changed since: it's cut in the page), or where the build couldn't cut it. */
+async function builtCut(id: string, frame: Frame): Promise<string | null> {
+  const width = BUILT_CUTS.get(frame);
+  if (import.meta.env.DEV || width === undefined) return null;
+  const area = cutArea(id, frame, width);
+  if (!area) return null;
+  const file = cutFile(id, area);
+  const image = new Image();
+  image.src = file;
+  try {
+    await image.decode();
+    return file;
+  } catch {
+    return null;
+  }
+}
+
+/** Its cut, made here from its whole picture (a data: address). */
+async function cutPicture(id: string, frame: Frame, width: number): Promise<string | null> {
+  const area = cutArea(id, frame, width);
+  if (!area) return null;
+  const image = new Image();
+  image.src = area.src;
+  try {
+    await image.decode();
+  } catch {
+    return null;
+  }
   const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = Math.round((width * frame.tall) / frame.wide);
+  canvas.width = area.width;
+  canvas.height = area.height;
   const pen = canvas.getContext('2d');
   if (!pen) return null;
-  // The face in the middle across, `above` of a face below the top; whatever falls off the picture is left clear.
-  const from = { x: middle.x - (size * frame.wide) / 2, y: middle.y - size / 2 - size * frame.above, w: size * frame.wide, h: size * frame.tall };
+  // Whatever falls off the picture is left clear.
+  const { from } = area;
   pen.drawImage(image, from.x, from.y, from.w, from.h, 0, 0, canvas.width, canvas.height);
   return canvas.toDataURL();
 }

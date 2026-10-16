@@ -55,6 +55,12 @@ and add `http://localhost:5173/` under Redirects in the Developer Portal (OAuth2
 Import this repo in Vercel. It is detected as Vite: build `yarn build`, output `dist`. Set one
 environment variable, `VITE_API_URL`: the bot's public address, like `https://koma.duckdns.org`.
 
+`yarn build` also cuts the heroes' faces and busts out of their pictures (`scripts/hero-cuts.mjs`, into
+`public/hero-cuts/`, not kept in git), so the pages fetch small pictures rather than whole portraits; should it
+fail, the pages cut them themselves, as they do in `yarn dev`. `vercel.json` lets browsers keep `/assets/` (named by
+their contents) for good, and the folders of pictures, models and sounds under `public/` for an hour (then used
+while they are checked again): a new folder there goes in its list too.
+
 ## Block pictures
 
 `public/blocks/` holds the blocks' pictures: `dirt.png` and `stone.png`. Pinecraft draws a stand-in
