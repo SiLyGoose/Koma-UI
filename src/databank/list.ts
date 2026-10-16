@@ -57,10 +57,11 @@ function card(ctx: DatabankContext, item: DatabankItem): HTMLButtonElement {
   // TechnoMagic gear is drawn as the raid's own (its class in its corner tab); any other class item wears its class's badge in the corner.
   if (item.class && cls && !tm) button.append(classBadge(item.class, cls));
   // (TechnoMagic gear and a unique weapon have no stars, but their marks.)
-  if (tm) button.append(art(item.id, item.slot), el('span', 'db-name', item.name), ...tmMarks(item.class));
-  else if (uw) button.append(art(item.id, item.slot), el('span', 'db-name', item.name), ...uwMarks(uw));
-  else if (ut) button.append(art(item.id, item.slot), el('span', 'db-name', item.name), ...utMarks(ut.hero));
-  else button.append(stars(item.stars), art(item.id, item.slot), el('span', 'db-name', item.name), el('span', 'item-curl'));
+  const picture = art(item.id, item.slot, true);
+  if (tm) button.append(picture, el('span', 'db-name', item.name), ...tmMarks(item.class));
+  else if (uw) button.append(picture, el('span', 'db-name', item.name), ...uwMarks(uw));
+  else if (ut) button.append(picture, el('span', 'db-name', item.name), ...utMarks(ut.hero));
+  else button.append(stars(item.stars), picture, el('span', 'db-name', item.name), el('span', 'item-curl'));
   button.dataset.sfx = 'own';
   hoverSound(button, item.id);
   button.addEventListener('click', () => {

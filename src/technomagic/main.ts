@@ -7,6 +7,7 @@ import { apiFromSocket, chatBox, startLive } from '../shared/ui';
 import { navigate } from '../shared/transition';
 import { Group, Vector3 } from 'three';
 import { artPicture } from './art';
+import { built } from '../shared/built';
 import { portraitPicture, type SkinAssets } from './assets';
 import { bossNamed } from './sim/bosses';
 import { BOSS_VIEWS } from './bosses/models';
@@ -29,7 +30,7 @@ import { leavePopup } from './hud/leave';
 import { makeMeter } from './hud/meter';
 import { makeNumbers } from './hud/numbers';
 import { makeOverhead } from './hud/overhead';
-import { cutFace, cutHead } from './hud/portrait';
+import { cutFace, cutHead, readPortrait } from './hud/portrait';
 import { makeTimer } from './hud/timer';
 import { makePrep } from './prep/prep';
 import { managePopup } from './manage/popup';
@@ -200,7 +201,9 @@ async function start(): Promise<void> {
         await Promise.all(
           entrants.map(async ({ skin }) => {
             const { portrait } = skin;
-            const [face, head] = portrait ? await Promise.all([cutFace(portraitPicture(assets, portrait), portrait), cutHead(portraitPicture(assets, portrait), portrait)]) : [null, null];
+            // (Its picture read once for both: the built WebP, a fifth of the PNG's size.)
+            const picture = portrait ? await readPortrait(built(portraitPicture(assets, portrait))) : null;
+            const [face, head] = picture && portrait ? [cutFace(picture, portrait), cutHead(picture, portrait)] : [null, null];
             faces.set(skin, face);
             heads.set(skin, head);
           }),

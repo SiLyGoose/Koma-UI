@@ -3,6 +3,7 @@
  * one), its stars, and its effect lines as Discord writes them.
  */
 
+import { built, hasItemArt } from '../built';
 import { FACE, heroCut } from '../heroes';
 import type { Slot } from '../../protocol/items';
 
@@ -36,17 +37,19 @@ const ART: Record<string, string> = {
 const slotIcon = (slot: Slot): string => `/gear/slots/${slot}.png`;
 
 /** The folder of public/gear/items each slot's pictures are in. */
-const ITEM_DIR: Record<Slot, string> = { weapon: 'weapons', armor: 'armor', treasure: 'treasures' };
+const ITEM_DIR = { weapon: 'weapons', armor: 'armor', treasure: 'treasures' } as const satisfies Record<Slot, string>;
 
-/** Items whose public/gear/items picture isn't there, so the page doesn't keep asking. */
+/** Items whose picture couldn't be read, so the page doesn't keep asking. */
 const noArt = new Set<string>();
 
 /**
  * An item's picture. One of public/gear/items is a full picture (`full`): it fills the whole card or
  * frame it's in, with the rest drawn over it. The sprites in ART, and the slot icon standing in for
- * a missing picture (`glyph`), stay small in the middle.
+ * a missing picture (`glyph`), stay small in the middle. An item with no picture there (the build says
+ * which: ../built.ts) has its slot's icon without asking for one. `lazy`: one of a long list (an armory,
+ * the databank), whose picture waits until it's scrolled near (and the page transition doesn't wait for it).
  */
-export function art(itemId: string | null, slot: Slot): HTMLElement {
+export function art(itemId: string | null, slot: Slot, lazy = false): HTMLElement {
   const box = el('span', 'art');
   const glyph = (): void => {
     box.classList.remove('full');
@@ -57,15 +60,17 @@ export function art(itemId: string | null, slot: Slot): HTMLElement {
     icon.src = slotIcon(slot);
     box.replaceChildren(icon);
   };
-  if (!itemId || noArt.has(itemId)) {
+  const sprite = itemId ? ART[itemId] : undefined;
+  if (!itemId || noArt.has(itemId) || (!sprite && !hasItemArt(ITEM_DIR[slot], itemId))) {
     glyph();
     return box;
   }
   const img = el('img');
   img.alt = '';
   img.draggable = false;
-  const sprite = ART[itemId];
-  img.src = sprite ?? `/gear/items/${ITEM_DIR[slot]}/${itemId}.png`;
+  if (lazy) img.loading = 'lazy';
+  img.decoding = 'async';
+  img.src = sprite ?? built(`/gear/items/${ITEM_DIR[slot]}/${itemId}.png`);
   if (!sprite) box.classList.add('full');
   img.addEventListener('error', () => {
     noArt.add(itemId);
@@ -164,12 +169,14 @@ export const tierOf = (item: { stars: number; heroOnly?: boolean; uniqueWeapon?:
  * What's on a copy's card, whatever the card is (an armory button, the anvil's, the details'): its rank, picture, stars and the
  * parchment's curl. TechnoMagic gear (`heroOnly`) has no stars, being a tier of its own, but its marks (with its class:
  * `itemClass`, or `class` as the heroes page has it); a unique weapon or unique treasure its own marks, with its hero.
+ * `lazy`: a card in a long list (art).
  */
-export function itemFace(copy: { level: number; itemId: string; slot: Slot; stars: number; heroOnly?: boolean; uniqueWeapon?: string | null; uniqueTreasure?: Treasure; itemClass?: string | null; class?: string | null }): HTMLElement[] {
-  if (copy.uniqueWeapon) return [el('span', 'item-level', `R${copy.level}`), art(copy.itemId, copy.slot), ...uwMarks(copy.uniqueWeapon)];
-  if (copy.uniqueTreasure) return [el('span', 'item-level', `R${copy.level}`), art(copy.itemId, copy.slot), ...utMarks(copy.uniqueTreasure.hero)];
-  if (copy.heroOnly) return [el('span', 'item-level', `R${copy.level}`), art(copy.itemId, copy.slot), ...tmMarks(copy.itemClass ?? copy.class)];
-  return [el('span', 'item-level', `R${copy.level}`), art(copy.itemId, copy.slot), stars(copy.stars), el('span', 'item-curl')];
+export function itemFace(copy: { level: number; itemId: string; slot: Slot; stars: number; heroOnly?: boolean; uniqueWeapon?: string | null; uniqueTreasure?: Treasure; itemClass?: string | null; class?: string | null }, lazy = false): HTMLElement[] {
+  const picture = art(copy.itemId, copy.slot, lazy);
+  if (copy.uniqueWeapon) return [el('span', 'item-level', `R${copy.level}`), picture, ...uwMarks(copy.uniqueWeapon)];
+  if (copy.uniqueTreasure) return [el('span', 'item-level', `R${copy.level}`), picture, ...utMarks(copy.uniqueTreasure.hero)];
+  if (copy.heroOnly) return [el('span', 'item-level', `R${copy.level}`), picture, ...tmMarks(copy.itemClass ?? copy.class)];
+  return [el('span', 'item-level', `R${copy.level}`), picture, stars(copy.stars), el('span', 'item-curl')];
 }
 
 /** How an item ranks among the tiers, best highest: TechnoMagic gear above 4 stars, and the unique weapons, then the unique treasures, between them. */

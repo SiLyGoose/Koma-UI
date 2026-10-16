@@ -1,3 +1,4 @@
+import { built } from '../shared/built';
 import { HERO_ASSETS, skillPicture, type HeroAssets } from './assets';
 import type { Art } from './sim/shown';
 
@@ -38,7 +39,7 @@ const heroAssets = (id: string): HeroAssets | undefined => HERO_ASSETS.find((her
 /** The address of a picture the fight names (none: it names none, or there is none for it). */
 export function artPicture(art: Art | undefined): string | undefined {
   if (!art) return undefined;
-  if ('uw' in art) return UNIQUE_PICTURES[art.uw];
-  const hero = heroAssets(art.hero);
-  return hero && skillPicture(hero, art.skill);
+  const hero = 'uw' in art ? undefined : heroAssets(art.hero);
+  const picture = 'uw' in art ? UNIQUE_PICTURES[art.uw] : hero && skillPicture(hero, art.skill);
+  return picture && built(picture);
 }

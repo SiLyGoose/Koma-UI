@@ -2,6 +2,8 @@ node_modules/
 dist/
 # The heroes' faces and busts, cut as the site is built (scripts/hero-cuts.mjs).
 public/hero-cuts/
+# The pictures made as WebP as the site is built (scripts/pictures.mjs).
+public/built/
 .vercel
 *.log
 *.local

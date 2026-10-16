@@ -1,5 +1,6 @@
 import { art, drawSell, el, forgeLink, itemDetailsClosed, itemPicked, lockToggle, pruneSale, replacesNote, rich, sellsFor, showDetail, statBlocks, SLOT_NAME, stars as starRow, tmMarks, tmSections, treasureParts, treasureSection, upgradeButton, utMarks, uwMarks } from '../shared/items';
 import { classBadge, className, FACE, HERO_SLOT_KIND, heroCut, heroPicture, skillText, STAGE_ZOOM, type HeroView, type HeroCopy, type HeroSlot } from '../shared/heroes';
+import { built } from '../shared/built';
 import { working } from '../shared/ui';
 import { canTrade, copyById, heroShown, mine, slotFor, slotOf, type HeroesContext } from './context';
 import { SIDE_SLOTS } from '../protocol/heroes';
@@ -103,7 +104,7 @@ function showWhole(img: HTMLImageElement, id: string, fallback: HTMLElement, ini
     img.hidden = false;
     fallback.textContent = '';
   };
-  img.src = picture.src;
+  img.src = built(picture.src);
 }
 
 /** Down the left: every hero, theirs first, the one shown framed. */

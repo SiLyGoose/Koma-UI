@@ -41,17 +41,22 @@ const CARD: Readonly<Record<string, { zoom: number; x: number; y: number }>> = {
 const HEAD = 96;
 const AROUND = 1.08;
 
-/** Cuts the meter's picture (a data: address) out of the one at `address`: its face close up. Null when it can't be read. */
-export async function cutHead(address: string, portrait: Portrait): Promise<string | null> {
-  const crop = portrait.head ?? portrait.crop;
-  const around = portrait.head ? 1 : AROUND;
+/** A skin's picture at `address`, read and ready to cut (once for both its cuts); null when it can't be read. */
+export async function readPortrait(address: string): Promise<HTMLImageElement | null> {
   const picture = new Image();
   picture.src = address;
   try {
     await picture.decode();
+    return picture;
   } catch {
     return null;
   }
+}
+
+/** Cuts the meter's picture (a data: address) out of `picture` (readPortrait): its face close up. */
+export function cutHead(picture: HTMLImageElement, portrait: Portrait): string | null {
+  const crop = portrait.head ?? portrait.crop;
+  const around = portrait.head ? 1 : AROUND;
   const cut = document.createElement('canvas');
   cut.width = cut.height = HEAD;
   const pen = cut.getContext('2d');
@@ -61,15 +66,8 @@ export async function cutHead(address: string, portrait: Portrait): Promise<stri
   return cut.toDataURL();
 }
 
-/** Cuts the card's picture (a data: address) out of the one at `address`, `portrait`'s (its head in its crop). Null when it can't be read. */
-export async function cutFace(address: string, portrait: Portrait): Promise<string | null> {
-  const picture = new Image();
-  picture.src = address;
-  try {
-    await picture.decode();
-  } catch {
-    return null;
-  }
+/** Cuts the card's picture (a data: address) out of `picture` (readPortrait), `portrait`'s (its head in its crop). */
+export function cutFace(picture: HTMLImageElement, portrait: Portrait): string | null {
   const cut = document.createElement('canvas');
   cut.width = FACE;
   cut.height = FACE * BODY;

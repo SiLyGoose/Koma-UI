@@ -29,7 +29,7 @@
       ]
     },
     {
-      "source": "/(kr|technomagic|hero-cuts|shared|raid|mines|pinecraft|characters|minesweeper|baccarat|gear/items|gear/classes|gear/slots|forge/sfx|banner/sfx)/(.*)",
+      "source": "/(kr|technomagic|hero-cuts|built|shared|raid|mines|pinecraft|characters|minesweeper|baccarat|gear/items|gear/classes|gear/slots|forge/sfx|banner/sfx)/(.*)",
       "headers": [
         {
           "key": "Cache-Control",

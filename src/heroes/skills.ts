@@ -1,3 +1,4 @@
+import { built } from '../shared/built';
 import { HERO_ASSETS, skillPicture } from '../technomagic/assets';
 import type { HeroSkillView } from '../protocol/heroes';
 
@@ -16,5 +17,5 @@ export interface HeroSkill extends HeroSkillView {
 /** A hero's skills, its passive last, each with its picture. */
 export function heroSkills(id: string, skills: readonly HeroSkillView[]): HeroSkill[] {
   const assets = HERO_ASSETS.find((one) => one.folder === `heroes/${id}`);
-  return skills.map((skill, i) => ({ ...skill, picture: assets ? skillPicture(assets, i) : null }));
+  return skills.map((skill, i) => ({ ...skill, picture: assets ? built(skillPicture(assets, i)) : null }));
 }

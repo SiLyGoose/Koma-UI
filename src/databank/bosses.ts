@@ -136,8 +136,8 @@ export function itemCard(item: DatabankItem): HTMLButtonElement {
   card.dataset.stars = String(item.stars);
   card.setAttribute('aria-label', `${item.name}, ${item.stars} stars: see it in the items`);
   // (TechnoMagic gear has no stars, but its marks.)
-  if (item.source === 'technomagic') card.append(art(item.id, item.slot), el('span', 'db-name', item.name), ...tmMarks(item.class));
-  else card.append(stars(item.stars), art(item.id, item.slot), el('span', 'db-name', item.name), el('span', 'item-curl'));
+  if (item.source === 'technomagic') card.append(art(item.id, item.slot, true), el('span', 'db-name', item.name), ...tmMarks(item.class));
+  else card.append(stars(item.stars), art(item.id, item.slot, true), el('span', 'db-name', item.name), el('span', 'item-curl'));
   hoverSound(card, item.id);
   card.addEventListener('click', () => go(`/databank/items/#${encodeURIComponent(item.id)}`));
   return card;

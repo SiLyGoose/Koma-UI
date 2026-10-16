@@ -258,7 +258,7 @@ function card(copy: ArmoryCopy, look: CardLook, ownSound: boolean, onPick: () =>
   const says = [copy.name, tierWords(copy), `R${copy.level}`, ...(look.tag ? [look.tag.text.toLowerCase()] : []), ...(copy.locked ? ['locked'] : []), ...(look.says ?? [])];
   button.setAttribute('aria-label', says.join(', '));
   if (look.tag) button.append(el('span', look.tag.className ? `item-tag ${look.tag.className}` : 'item-tag', look.tag.text));
-  button.append(...itemFace(copy));
+  button.append(...itemFace(copy, true));
   if (copy.locked) button.append(lockBadge());
   button.append(...(look.over ?? []));
   if (ownSound) button.dataset.sfx = 'own';

@@ -1,5 +1,6 @@
-import { CanvasTexture, DoubleSide, LoadingManager, MeshBasicMaterial, SRGBColorSpace, type Group, type Material, type Mesh, type Texture } from 'three';
+import { CanvasTexture, DoubleSide, LoadingManager, MeshBasicMaterial, SRGBColorSpace, Texture, type Group, type Material, type Mesh } from 'three';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
+import { built, texturesBuilt } from '../../shared/built';
 import { LOCAL } from '../assets';
 
 /*
@@ -34,12 +35,26 @@ function picture(url: string): Promise<HTMLImageElement> {
 
 const textures = new Map<string, Promise<Texture>>();
 
-/** A folder's colour picture, see-through where its (AS) picture says. */
+/**
+ * A folder's colour picture, see-through where its (AS) picture says. Once built, the two come as one picture
+ * (scripts/pictures.mjs: a tenth of their size, nothing to put together here); else, or if that can't be read,
+ * they're put together here.
+ */
 function texture(folder: string, file: string): Promise<Texture> {
   const key = `${folder}/${file}`;
   let made = textures.get(key);
   if (!made) {
     made = (async () => {
+      const own = `${ROOT}/${folder}/${file}`;
+      if (texturesBuilt(own)) {
+        const whole = await picture(built(own).split('/').map(encodeURIComponent).join('/')).catch(() => null);
+        if (whole) {
+          const ready = new Texture(whole);
+          ready.colorSpace = SRGBColorSpace;
+          ready.needsUpdate = true;
+          return ready;
+        }
+      }
       const colour = await picture(fileUrl(folder, file));
       const solid = solidOf(file) === file ? null : await picture(fileUrl(folder, solidOf(file))).catch(() => null);
       const canvas = document.createElement('canvas');

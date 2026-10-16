@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/sync.mjs --check && tsc --noEmit && node scripts/hero-cuts.mjs && vite build",
+    "build": "node scripts/sync.mjs --check && tsc --noEmit && node scripts/hero-cuts.mjs && node scripts/pictures.mjs && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "sync": "node scripts/sync.mjs"
