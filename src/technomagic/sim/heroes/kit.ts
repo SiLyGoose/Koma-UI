@@ -73,8 +73,8 @@ export interface HeroPart {
   used?(index: number, ability: Ability): void;
   /** Every frame, on the field or off it. */
   tick?(dt: number): void;
-  /** A hero's blow has landed on the boss (not one that comes of a status already on it). */
-  struck?(): void;
+  /** A hero's blow has landed on the boss (not one that comes of a status already on it): `by` is the hero whose it is. */
+  struck?(by: Fighter): void;
   /** It has blocked a blow of the boss's; it has dodged one. */
   blocked?(): void;
   dodged?(): void;
@@ -82,6 +82,11 @@ export interface HeroPart {
   hurt?(who: Fighter): void;
   /** How many times as much it takes from the boss, for now; and whether it can't be knocked down, for now. */
   takes?(): number;
+  /** It takes nothing at all from the boss's blows, for now; and its dodge's points more, for now. */
+  untouched?(): boolean;
+  dodge?(): number;
+  /** A blow of the boss's would bring it down: whether it is left on 1 HP instead (what else comes of that is its own). */
+  spared?(): boolean;
   guards?(): boolean;
   /** How many times as fast everything it does is, for now; its attack speed's points more, for now; and how many times as hard its blows are, for now. */
   pace?(): number;

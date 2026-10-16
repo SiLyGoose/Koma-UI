@@ -12,6 +12,8 @@ export interface BossLook {
   assets: BossAssets;
   stands: { x: number; turn: number };
   reach: { hit: readonly [number, number, number]; feet: readonly [number, number, number] };
+  /** Which of its attacks are its skills, not plain attacks (by their names): as a blow of one lands, the fight holds still and goes dark but for it. */
+  skills?: readonly string[];
 }
 
 /** The boss's body on the field: drawn doing what the sim says it does. */

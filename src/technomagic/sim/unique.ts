@@ -43,6 +43,20 @@ import { fine, pct, type Buff } from './shown';
  *   stack of Dragon Rage (up to 100, for a while), each his ATK and defense higher. (His part does it: ./heroes/phillop.ts.)
  * - Naila, Cursed Claws, Baroro: a critical blow of hers leaves the boss losing health for a while, and taking more
  *   physical damage meanwhile. (Her part does it: ./heroes/naila.ts.)
+ * - Yanne, Dragonbane, Svelta: a critical blow of hers deals more and gains her mana, no sooner than a moment after the
+ *   last; the same at every tier. (The game's more against a Dragon: nothing here, Galgoria is a chimera. Her part does
+ *   it: ./heroes/yanne.ts.)
+ * - Neraxis, Roaring Dragonmaw, Acravita: every so many blows of his attack a blow more that stuns the boss a moment,
+ *   and the Storm of Neraxis for a while: every ally's defense higher by a share of his, and its ATK higher. (His part
+ *   does it: ./heroes/neraxis.ts.)
+ * - Erze, Essence of Greed, Perion: each blow of her skills a stack (up to so many, for a while), each her ATK and
+ *   attack speed higher. (Her part does it: ./heroes/erze.ts.)
+ * - Loman, Wave of Protection, Gaiamenes: every 3rd skill of his a blow that leaves the boss taking more physical
+ *   damage, and his M.DEF higher for a while. (His part does it: ./heroes/loman.ts.)
+ * - Gau, Holy Bird, Numinu: his max HP higher (here: taking that much less), and now and then a blow of his attack
+ *   deals more and freezes the boss. (His part does it: ./heroes/gau.ts.)
+ * - Tanya, Demon of the Calm, Caethasis: in Stealth from the start, and untouched for a moment; her crit damage higher
+ *   while she is in Stealth. (Her part does it: ./heroes/tanya.ts.)
  *
  * The game's shares of ATK are as they are for damage (this raid's blows are counted in thousandths of them: ./combat/),
  * and for a heal (a share of ATK: its hero's health and attack are the game's own, so it mends as much as there).
@@ -87,6 +101,19 @@ export const ATEIN = { name: 'Dragon’s Ruins, Atein', defense: [0.12, 0.14, 0.
 /** What a critical blow leaves eating at the boss over `lasts` seconds (all of it, at ATK), and how much more physical damage it takes meanwhile. */
 export const BARORO = { name: 'Cursed Claws, Baroro', lasts: 10, blow: [1800, 2160, 2580, 3100, 5000], takes: [0.24, 0.28, 0.34, 0.41, 0.5] };
 
+/** What a critical blow of hers deals more (at ATK) and the mana it gains her, no sooner than `every` seconds after the last (the same at every tier). */
+export const SVELTA = { name: 'Dragonbane, Svelta', blow: 500, mana: 150, every: 0.5 };
+/** How many blows of his attack bring it on; its blow (at ATK) and stun; and the Storm of Neraxis for `lasts` seconds: every ally's defense higher by a share of his, and its ATK (a share). */
+export const ACRAVITA = { name: 'Roaring Dragonmaw, Acravita', blows: [19, 18, 17, 16, 15], blow: 1000, stun: 0.5, lasts: 10, defense: [0.048, 0.057, 0.069, 0.083, 0.1], atk: [0.12, 0.14, 0.17, 0.21, 0.25] };
+/** What each stack adds to her ATK (a share) and attack speed (points), for `lasts` seconds, up to `most`. */
+export const PERION = { name: 'Essence of Greed, Perion', atk: 0.005, speed: 5, lasts: 30, most: [90, 110, 130, 160, 200] };
+/** Every `skills` skills of his: a blow (at ATK), the boss taking more physical damage for `lasts` seconds, and his M.DEF higher (a share) for `guards`. */
+export const GAIAMENES = { name: 'Wave of Protection, Gaiamenes', skills: 3, blow: [2400, 2900, 3500, 4200, 5000], weakness: [0.3, 0.36, 0.43, 0.51, 0.6], lasts: 20, defense: [0.12, 0.14, 0.17, 0.21, 0.25], guards: 10 };
+/** His max HP higher (a share: here, taking that much less); and how likely a blow of his attack is to deal more (at ATK) and freeze the boss for `freeze` seconds. */
+export const NUMINU = { name: 'Holy Bird, Numinu', hp: [0.14, 0.17, 0.21, 0.25, 0.3], chance: 0.15, blow: [2400, 2900, 3500, 4200, 5000], freeze: 2 };
+/** In Stealth for `lasts` seconds from the start, untouched for the first so many; and her crit damage higher (a share) while she is in Stealth. */
+export const CAETHASIS = { name: 'Demon of the Calm, Caethasis', lasts: 10, untouched: [2.4, 2.9, 3.5, 4.2, 5], critDamage: [0.36, 0.43, 0.52, 0.62, 0.75] };
+
 /** What every ally gains by the TechnoMagic gear it wears (the same at every tier): 1 piece, more ATK; 2, more defense; 3, more max HP (here: taking that much less); 4, more DMG. */
 export const CORBEAU = { name: 'Wonder of Magos Le’Flamme, Corbeau Rose', atk: 0.06, defense: 0.06, hp: 0.06, dmg: 0.04 };
 
@@ -129,8 +156,19 @@ const ABOUT: Readonly<Record<string, (tier: number) => string>> = {
     `Hurt by the boss, every other ally’s defense is ${pct(atTier(ATEIN.defense, tier))} higher for ${ATEIN.guards} seconds, and he gains a stack of [Dragon Rage] for ${ATEIN.lasts} seconds (up to ${ATEIN.most}), each +${fine(atTier(ATEIN.rage, tier))} ATK and defense.`,
   naila: (tier) =>
     `Each critical blow of hers leaves the boss losing ${pct(atTier(BARORO.blow, tier) / 1000)} of her ATK over ${BARORO.lasts} seconds, and taking ${pct(atTier(BARORO.takes, tier))} more physical damage meanwhile.`,
+  yanne: () => `Each critical blow of hers deals ${pct(SVELTA.blow / 1000)} of her ATK more and gains her ${SVELTA.mana} mana, no sooner than ${SVELTA.every} seconds after the last.`,
+  neraxis: (tier) =>
+    `Every ${atTier(ACRAVITA.blows, tier)} blows of his attack, deals ${pct(ACRAVITA.blow / 1000)} of his ATK to the boss and stuns it for ${ACRAVITA.stun} seconds, and becomes the [Storm of Neraxis] for ${ACRAVITA.lasts} seconds: every ally gains ${fine(atTier(ACRAVITA.defense, tier))} of his P.DEF and M.DEF, and +${pct(atTier(ACRAVITA.atk, tier))} ATK.`,
+  erze: (tier) =>
+    `Each blow of her skills gives her a stack for ${PERION.lasts} seconds (up to ${atTier(PERION.most, tier)}), each +${fine(PERION.atk)} ATK and +${PERION.speed} attack speed. They can’t be dispelled.`,
+  loman: (tier) =>
+    `Every ${GAIAMENES.skills} skills he uses, deals ${pct(atTier(GAIAMENES.blow, tier) / 1000)} of his ATK to the boss, which takes ${pct(atTier(GAIAMENES.weakness, tier))} more physical damage for ${GAIAMENES.lasts} seconds; and his M.DEF is ${pct(atTier(GAIAMENES.defense, tier))} higher for ${GAIAMENES.guards} seconds.`,
+  gau: (tier) =>
+    `His max HP is ${pct(atTier(NUMINU.hp, tier))} higher (he takes that much less). Each blow of his attack has a ${pct(NUMINU.chance)} chance to deal ${pct(atTier(NUMINU.blow, tier) / 1000)} of his ATK more and freeze the boss for ${NUMINU.freeze} seconds.`,
+  tanya: (tier) =>
+    `In [Stealth] for ${CAETHASIS.lasts} seconds as the fight begins, and the boss can’t touch her for the first ${atTier(CAETHASIS.untouched, tier)}. While she is in [Stealth], her crit damage is ${pct(atTier(CAETHASIS.critDamage, tier))} higher.`,
 };
-const NAMES: Readonly<Record<string, string>> = { klaus: EXIAN.name, kirze: ELICIPIRA.name, 'fallen-frey': ROSMERTA.name, gremory: PIGRITIA.name, annette: RASCAL.name, morrah: CARPRAIN.name, laias: ELTOIRRE.name, seria: ELSION.name, ezekiel: BARBATOS.name, lorraine: ROBURU.name, valance: CORBEAU.name, lucikiel: GIGANTE.name, selene: NOTOS.name, crow: AKISTRA.name, oddy: TEMPODIANA.name, phillop: ATEIN.name, naila: BARORO.name };
+const NAMES: Readonly<Record<string, string>> = { klaus: EXIAN.name, kirze: ELICIPIRA.name, 'fallen-frey': ROSMERTA.name, gremory: PIGRITIA.name, annette: RASCAL.name, morrah: CARPRAIN.name, laias: ELTOIRRE.name, seria: ELSION.name, ezekiel: BARBATOS.name, lorraine: ROBURU.name, valance: CORBEAU.name, lucikiel: GIGANTE.name, selene: NOTOS.name, crow: AKISTRA.name, oddy: TEMPODIANA.name, phillop: ATEIN.name, naila: BARORO.name, yanne: SVELTA.name, neraxis: ACRAVITA.name, erze: PERION.name, loman: GAIAMENES.name, gau: NUMINU.name, tanya: CAETHASIS.name };
 /** The heroes that have a unique weapon, by id. */
 export const UNIQUE_HEROES: readonly string[] = Object.keys(ABOUT);
 
@@ -159,3 +197,9 @@ export const AKISTRA_UP: Buff = { name: 'Hellhound, Akistra', about: 'ATK and cr
 export const TEMPODIANA_UP: Buff = { name: 'Moonshade Countdown, Tempodiana', about: 'ATK higher.', icon: '🕰️', art: { uw: 'oddy' } };
 export const ATEIN_UP: Buff = { name: 'Dragon’s Ruins, Atein', about: 'Defense higher while Phillop is hurt.', icon: '🐉', art: { uw: 'phillop' } };
 export const DRAGON_RAGE: Buff = { name: 'Dragon Rage', about: 'ATK and defense higher for each.', icon: '🐉', art: { uw: 'phillop' } };
+export const SVELTA_UP: Buff = { name: 'Dragonbane, Svelta', about: 'A critical blow deals more and gains her mana.', icon: '🐲', art: { uw: 'yanne' } };
+export const ACRAVITA_UP: Buff = { name: 'Storm of Neraxis', about: 'Defense higher by a share of Neraxis’s, and ATK higher.', icon: '🌪️', art: { uw: 'neraxis' } };
+export const PERION_UP: Buff = { name: 'Essence of Greed, Perion', about: 'ATK and attack speed higher for each.', icon: '🩸', art: { uw: 'erze' } };
+export const GAIAMENES_UP: Buff = { name: 'Blessing of Orvelia', about: 'M.DEF higher.', icon: '🛡️', art: { uw: 'loman' } };
+export const NUMINU_UP: Buff = { name: 'Holy Bird, Numinu', about: 'Max HP higher: he takes that much less.', icon: '🕊️', art: { uw: 'gau' } };
+export const CAETHASIS_UP: Buff = { name: 'Demon of the Calm, Caethasis', about: 'Crit damage higher while in Stealth.', icon: '👁️', art: { uw: 'tanya' } };

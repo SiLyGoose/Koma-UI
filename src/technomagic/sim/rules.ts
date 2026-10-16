@@ -35,18 +35,76 @@ const LINE_X: Record<Line, number> = { front: HERO_X, middle: HERO_X - 5 * ROOM,
 const HINDMOST = HERO_X - (MOST - 1) * ROOM - 2 * GAP;
 
 /**
+ * The frontline stands round the boss: on an arc this far from where the boss stands (Galgoria's middle:
+ * ../bosses/galgoria/model.ts), through where the frontline begins, each this far from the next (wide enough
+ * that the arc's ends come round toward the boss as the camera sees it). Its first ring holds this many, a
+ * second (behind it, in its gaps) the rest.
+ */
+const AROUND = 7.5;
+const APART = 3 * ROOM;
+const RING = 5;
+/** The first ring's two ends (the furthest round, nearest the boss as the camera sees them) stand this much further back along the field. */
+const ENDS_BACK = ROOM;
+
+/**
+ * The frontline's spots round the boss, in the order its heroes take them: the first straight in front of it,
+ * then one either side in turn (behind first, then toward the camera), the last two drawn back (ENDS_BACK);
+ * once the first ring is full, a second behind it in its gaps, two rooms from each of the first's either side of it.
+ */
+function aroundBoss(count: number): (readonly [number, number])[] {
+  const middle = HERO_X + AROUND;
+  // Half the angle between two neighbours on the first ring: its sine and cosine; and those of a whole step and two.
+  const sin = APART / 2 / AROUND;
+  const cos = Math.sqrt(1 - sin * sin);
+  const cos2 = cos * cos - sin * sin;
+  const sin2 = 2 * sin * cos;
+  // The first ring's spots on the camera's side, out from straight in front of the boss.
+  const ring = [
+    [middle - AROUND, 0],
+    [middle - AROUND * cos2, AROUND * sin2],
+    [middle - AROUND * (cos2 * cos2 - sin2 * sin2) - ENDS_BACK, AROUND * 2 * sin2 * cos2],
+  ] as const;
+  // The second ring's, one in each gap between two of those: two rooms from both, on the side away from the boss.
+  const gap = ([ax, ay]: readonly [number, number], [bx, by]: readonly [number, number]) => {
+    const dx = bx - ax;
+    const dy = by - ay;
+    const apart = Math.sqrt(dx * dx + dy * dy);
+    const out = Math.sqrt(4 * ROOM * ROOM - (apart * apart) / 4) / apart;
+    return [(ax + bx) / 2 - dy * out, (ay + by) / 2 + dx * out] as const;
+  };
+  const gaps = [gap(ring[0], ring[1]), gap(ring[1], ring[2])] as const;
+  const spots: (readonly [number, number])[] = [];
+  for (let i = 0; i < count; i++) {
+    const first = i < RING;
+    const k = first ? i : i - RING;
+    const [x, y] = first ? ring[(k + 1) >> 1] ?? ring[2] : gaps[k >> 1] ?? gaps[1];
+    const side = k % 2 === (first ? 1 : 0) ? -1 : 1;
+    spots.push([x, side * y]);
+  }
+  return spots;
+}
+
+/**
  * Where each hero on the field stands, [along the field, toward the camera], by its line (`lines`, one
- * for each hero, in its order): the frontline first, then the middle, then the backline, each where its
- * line begins or behind the one before it, whichever is further back (but never past the hindmost a full
- * field reaches). Each hero is a room behind the last, in two rows, the back row in the front row's gaps
- * and as far back as keeps it two rooms from the front row too (each three neighbours a triangle with
- * sides of two rooms); one line is a room further again from the next.
+ * for each hero, in its order). The frontline round the boss, side by side (aroundBoss). Then the middle,
+ * then the backline, each where its line begins or behind the one before it, whichever is further back
+ * (but never past the hindmost a full field reaches). Each of those is a room behind the last, in two rows,
+ * the back row in the front row's gaps and as far back as keeps it two rooms from the front row too (each
+ * three neighbours a triangle with sides of two rooms); one line is a room further again from the next.
  */
 export function formation(lines: readonly Line[]): (readonly [number, number])[] {
   const spots: (readonly [number, number])[] = [];
+  const front = aroundBoss(lines.filter((line) => line === 'front').length);
   let placed = 0;
   let last = 0;
-  for (const line of LINES) {
+  lines.forEach((own, i) => {
+    if (own !== 'front') return;
+    const spot = front[placed] as readonly [number, number];
+    spots[i] = spot;
+    last = placed === 0 ? spot[0] : Math.min(last, spot[0]);
+    placed++;
+  });
+  for (const line of LINES.slice(1)) {
     let first = true;
     lines.forEach((own, i) => {
       if (own !== line) return;

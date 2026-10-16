@@ -636,7 +636,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       // A blow of its attack: its mana per attack.
       if (attacking === by) by.mana = Math.min(MAX_MANA, by.mana + by.manaPerAttack);
       if (counted) {
-        for (const fighter of fighters) fighter.part.struck?.();
+        for (const fighter of fighters) fighter.part.struck?.(by);
         foe.part.struck?.(by, dealt);
         by.part.blow?.(attacking !== by);
       }
@@ -673,9 +673,9 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     target: aimed,
     hurt(target, amount, blockable = true) {
       if (target.hp <= 0 || away(target.statuses) || result) return 0;
-      // Deception: immune to the boss's next blows.
-      if (target.immune > 0) {
-        target.immune--;
+      // Deception: immune to the boss's next blows. (Or what it is doing has it untouched for now.)
+      if (target.immune > 0 || target.part.untouched?.()) {
+        if (target.immune > 0) target.immune--;
         events.push({ kind: 'number', on: target.index, amount: 0, type: 'immune' });
         return 0;
       }
@@ -694,7 +694,9 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       };
       // (Swift and Nimble: more dodge for every second since it last dodged.)
       const nimble = target.nimble > 0 ? target.nimble * (target.perkDefs.find((perk) => perk.nimble)?.nimble?.dodge ?? 0) : 0;
-      if (nimble > 0) stands.dodge = { physical: stands.dodge.physical + nimble, magical: stands.dodge.magical + nimble };
+      // (And what it is doing adds: Tanya's Stealth.)
+      const nimbler = nimble + (target.part.dodge?.() ?? 0);
+      if (nimbler > 0) stands.dodge = { physical: stands.dodge.physical + nimbler, magical: stands.dodge.magical + nimbler };
       // Now and then a crit, by the boss's crit chance less the hero's crit resist against its kind of damage (and what is on it adds).
       const critical = roll() < share(foe.def.stats.crit - target.critResist[type] - critResisting(target.statuses, type) - critResisting(party, type)) + critting(foe.statuses);
       const { taken, blocked, dodged } = strike(amount * dealing(foe.statuses) * rage(clock - RAID_TIME) * (critical ? CRIT : 1), type, blockable ? stands : { ...stands, block: NONE, dodge: NONE }, 0, roll);
@@ -738,8 +740,9 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       const soaked = Math.min(target.shield, dealt);
       target.shield -= soaked;
       if (soaked > 0) events.push({ kind: 'number', on: target.index, amount: soaked, type: 'shield' });
-      // Health lost to the boss gains it mana, by the share of its max HP lost.
-      const lost = Math.min(target.hp, Math.max(0, dealt - soaked));
+      // Health lost to the boss gains it mana, by the share of its max HP lost. (A blow that would bring down one its part spares leaves it on 1 HP.)
+      const losing = Math.min(target.hp, Math.max(0, dealt - soaked));
+      const lost = losing >= target.hp && target.hp > 1 && target.part.spared?.() ? target.hp - 1 : losing;
       if (dealt > soaked) {
         target.hp -= lost;
         spare(target);

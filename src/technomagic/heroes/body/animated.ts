@@ -2,7 +2,7 @@ import { AnimationClip, AnimationMixer, LoopOnce, LoopRepeat, type AnimationActi
 import { retargeter } from '../../engine/retarget';
 import { lengthOf } from '../../engine/track';
 import { flowing, MOVES, type HeroMove } from '../moves';
-import { ENTER, holdShield, RED, redden, type Hero, type Stood } from './hero';
+import { ENTER, heightOf, holdShield, RED, redden, type Hero, type Stood } from './hero';
 import { OWN_SPEED, SKILL_SPEED } from '../../sim/motion';
 import { posedHero, type Posing } from './posed';
 import { REST, type Pose } from './pose';
@@ -140,7 +140,9 @@ function animatedHero({ root, body, middle, models, rig, hips, feet, blade, muzz
       doing = parts.length > 0 ? { what: 'own', move, parts, part: 0, t: 0 } : { what: move, t: 0 };
     },
     head: (into) => (models[0] as Object3D).localToWorld(into.copy(rig.at(bones.head))),
+    height: () => heightOf(root, models),
     leftHand: (into) => (models[0] as Object3D).localToWorld(into.copy(rig.at(bones.arms.L[2]))),
+    rightHand: (into) => (models[0] as Object3D).localToWorld(into.copy(rig.at(bones.arms.R[2]))),
     ...(muzzle && { muzzle: (into: Vector3) => muzzle.getWorldPosition(into) }),
     place: (into) => body.getWorldPosition(into),
     hit() {

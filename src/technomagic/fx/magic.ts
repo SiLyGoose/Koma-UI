@@ -1,4 +1,4 @@
-import { AdditiveBlending, type BufferGeometry, CanvasTexture, CircleGeometry, Color, ConeGeometry, CylinderGeometry, DoubleSide, Group, Mesh, MeshBasicMaterial, RingGeometry, type Scene, ShaderMaterial, TorusGeometry, Vector3 } from 'three';
+import { AdditiveBlending, type BufferGeometry, CanvasTexture, CircleGeometry, Color, ConeGeometry, CylinderGeometry, DoubleSide, Group, Mesh, MeshBasicMaterial, type Object3D, RingGeometry, ShaderMaterial, TorusGeometry, Vector3 } from 'three';
 
 /*
  * What a skill draws on the field, made here of plain shapes: rings of light that spread across the
@@ -304,7 +304,7 @@ export interface Magic {
   update(dt: number): void;
 }
 
-export function makeMagic(scene: Scene): Magic {
+export function makeMagic(scene: Object3D): Magic {
   const rings = new Set<Ring>();
   const crystals = new Set<Crystal>();
   const beams = new Set<Beam>();

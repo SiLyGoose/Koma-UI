@@ -17,8 +17,8 @@ export interface Emblem {
 }
 
 export interface Wards {
-  /** What is on a hero this frame (by its index among the fighters): where it stands, whether a shield is on it, and the emblems of what else guards it. */
-  keep(who: number, at: Vector3, shielded: boolean, emblems: readonly Emblem[]): void;
+  /** What is on a hero this frame (by its index among the fighters): where it stands, how tall it is, whether a shield is on it, and the emblems of what else guards it. */
+  keep(who: number, at: Vector3, tall: number, shielded: boolean, emblems: readonly Emblem[]): void;
   /** Moves them on: each that wasn't kept since last time fades, and is gone once it has. */
   update(dt: number): void;
   clear(): void;
@@ -27,9 +27,10 @@ export interface Wards {
 /**
  * The bubble: how far it reaches out from its middle, and how high that is over the floor (its foot is under the floor,
  * out of sight, as a ball sits round whoever stands in it); how big the ring on the floor is (as big as its file's
- * this many times); the colour it is lit (its file's picture's); how bright at its middle and at its rim.
+ * this many times); the colour it is lit (its file's picture's); how bright at its middle and at its rim. All of it is
+ * made bigger or smaller for each hero, for its top to be `headroom` over the top of its head (its hair, its horns).
  */
-const BUBBLE = { radius: 1.75, high: 1.2, ring: 1.3, colour: 0xffe7b0, inner: 0.06, rim: 0.85, sharp: 2.4 };
+const BUBBLE = { radius: 1.75, high: 1.2, ring: 1.3, colour: 0xffe7b0, inner: 0.06, rim: 0.85, sharp: 2.4, headroom: 0.35 };
 /**
  * An emblem: how many go round its hero, how big each is, how far out from its hero's middle and how high, how fast they
  * go round (radians a second), how much each bobs (and how fast), and the colour of their glow.
@@ -94,8 +95,9 @@ export function makeWards(scene: Scene, props: Props): Wards {
   const ring = props.shield ? { map: picture('Common_Shield01(Color).png'), alphaMap: picture('Common_Shield01(Alpha).png') } : null;
   const ball = new SphereGeometry(BUBBLE.radius, 48, 32);
 
-  function bubble(): Ward | null {
+  function bubble(tall: number): Ward | null {
     if (!props.shield || !ring) return null;
+    const fit = (tall + BUBBLE.headroom) / (BUBBLE.high + BUBBLE.radius);
     const root = new Group();
     // The file's ring on the floor (its dome left out: a ball in its place).
     const model = props.shield.clone(true);
@@ -110,7 +112,7 @@ export function makeWards(scene: Scene, props: Props): Wards {
       materials.push({ material, most: 1 });
     });
     const bubbled = new Mesh(ball, bubbleMaterial());
-    bubbled.position.y = BUBBLE.high;
+    bubbled.position.y = BUBBLE.high * fit;
     bubbled.renderOrder = 9;
     materials.push({ material: bubbled.material, most: 1 });
     root.add(model, bubbled);
@@ -123,7 +125,7 @@ export function makeWards(scene: Scene, props: Props): Wards {
       place(at, shown, t) {
         root.position.copy(at);
         // Swelling as it comes up, then breathing a little; and its ring turning slowly.
-        const swell = (0.7 + 0.3 * ease(shown)) * (1 + 0.02 * Math.sin(t * 2.5));
+        const swell = fit * (0.7 + 0.3 * ease(shown)) * (1 + 0.02 * Math.sin(t * 2.5));
         bubbled.scale.setScalar(swell);
         model.scale.setScalar(BUBBLE.ring * swell);
         root.rotation.y = t * 0.4;
@@ -208,8 +210,8 @@ export function makeWards(scene: Scene, props: Props): Wards {
   };
 
   return {
-    keep(who, at, shielded, emblems) {
-      if (shielded) keepOne(`${who}`, bubble, at);
+    keep(who, at, tall, shielded, emblems) {
+      if (shielded) keepOne(`${who}`, () => bubble(tall), at);
       for (const one of emblems) keepOne(`${who}/${one.hero.folder}/${one.name}`, () => emblem(one), at);
     },
     update(dt) {

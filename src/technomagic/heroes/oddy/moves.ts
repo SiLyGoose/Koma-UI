@@ -3,12 +3,13 @@ import type { Move } from '../moves/move';
 import { COILED, TALL, TUCKED } from '../moves/stances';
 
 /*
- * What Oddy's body does for her attack and her three skills: a little red panda's, her clock in her right paw. Her arms
- * and legs are short, so her paws move little. They are written from how she stands (STAND), not from a swordsman's
- * rest. What comes of each is in ../../sim/heroes/oddy.ts.
+ * What Oddy's body does for his attack and his three skills: a little red panda's, hovering, his clock on his back
+ * (../../assets/heroes/oddy.ts) and what he casts thrown from his right paw. His arms and legs are short, so his paws
+ * move little. They are written from how he floats (STAND), not from a swordsman's rest. What comes of each is in
+ * ../../sim/heroes/oddy.ts.
  */
 
-/** How she stands: up on her hind legs, her clock held up at her right side, her left paw out a little. */
+/** How he floats: upright, his feet hanging, toes down, his right paw up at his side, his left out a little. */
 export const STAND: Pose = {
   ...REST,
   hipX: 0,
@@ -17,9 +18,13 @@ export const STAND: Pose = {
   lean: 0.03,
   tilt: 0.02,
   lfX: 0.03,
+  lfY: 0.03,
   lfZ: 0.04,
   rfX: -0.03,
+  rfY: 0.02,
   rfZ: -0.03,
+  lfTip: 0.5,
+  rfTip: 0.5,
   lhX: 0.16,
   lhY: 0.12,
   lhZ: 0.08,
@@ -30,15 +35,15 @@ export const STAND: Pose = {
   bUp: 1.2,
 };
 
-/** A pose of hers, for a track: what is added to how she stands. */
+/** A pose of his, for a track: what is added to how he floats. */
 const as = (pose: Partial<Pose>): Partial<Pose> => at(pose, STAND);
 
-/** Her clock held out at the boss. */
+/** His right paw thrust out at the boss. */
 const HELD_OUT = { rhX: -0.08, rhY: 0.24, rhZ: 0.22, bTurn: 0, bUp: 0.6 };
 /** Both paws up high. */
 const UP = { rhX: -0.12, rhY: 0.4, rhZ: 0.06, lhX: 0.12, lhY: 0.38, lhZ: 0.06, bUp: 1.5 };
 
-// Her attack: a hop, her clock thrust at the boss (it chimes), and back.
+// His attack: a bob up, his paw thrust at the boss (a chime of his clock's light from it), and back.
 export const CHIME: Move = {
   keys: [
     [0, {}],
@@ -49,7 +54,7 @@ export const CHIME: Move = {
   ],
 };
 
-// Time Fracture: her clock raised, then thrust at the boss (a crack in time runs out to it), and back.
+// Time Fracture: his paw raised, then thrust at the boss (a crack in time runs out to it), and back.
 export const FRACTURE: Move = {
   keys: [
     [0, {}],
@@ -60,7 +65,7 @@ export const FRACTURE: Move = {
   ],
 };
 
-// Time Fragments: her clock spun round before her, shards of it flung at the boss one after the next, and back.
+// Time Fragments: shards of time flung from his paw at the boss one after the next, and back.
 export const FRAGMENTS: Move = {
   keys: [
     [0, {}],
@@ -70,7 +75,7 @@ export const FRAGMENTS: Move = {
   ],
 };
 
-// Time Distortion: a leap with both paws thrown up, her clock high over her as time turns about the field, and down.
+// Time Distortion: a rise with both paws thrown up as time turns about the field, and down.
 export const DISTORTION: Move = {
   keys: [
     [0, {}],

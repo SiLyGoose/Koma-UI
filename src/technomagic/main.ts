@@ -5,7 +5,7 @@ import { setMuted } from '../shared/audio';
 import { gameSocket, server, showMessage, token, watching, type GameSocket } from '../shared/game';
 import { apiFromSocket, chatBox, startLive } from '../shared/ui';
 import { navigate } from '../shared/transition';
-import { Vector3 } from 'three';
+import { Group, Vector3 } from 'three';
 import { artPicture } from './art';
 import { portraitPicture } from './assets';
 import { bossNamed } from './sim/bosses';
@@ -143,8 +143,11 @@ async function start(): Promise<void> {
   const stageNumber = Math.min(STAGES, Math.max(1, Math.floor(Number(params.get('stage'))) || 1));
   const stage = makeStage(canvas);
   // Whatever there is to read, at once. A skin that isn't on this computer is left out: the page goes on without it.
-  const [boss, entrants, effects, props] = await Promise.all([bossView.load(stage.scene), loadHeroes(HEROES), loadEffects(stage.scene), loadProps(stage.scene, HEROES.map((hero) => lookOf(hero.id).assets))]);
-  const magic = makeMagic(stage.scene);
+  // What is drawn as light (a hit's effects, magic, the boss's venom): kept bright when the field goes dark (fight/view.ts).
+  const bright = new Group();
+  stage.scene.add(bright);
+  const [boss, entrants, effects, props] = await Promise.all([bossView.load(stage.scene, bright), loadHeroes(HEROES), loadEffects(bright), loadProps(stage.scene, HEROES.map((hero) => lookOf(hero.id).assets))]);
+  const magic = makeMagic(bright);
   // The skills' pictures, read before the cards are made, so a skill is never drawn without its own (one that isn't on this computer is left out).
   await Promise.all(
     HEROES.flatMap((hero) => hero.abilities).map((ability) => {
@@ -585,7 +588,10 @@ async function start(): Promise<void> {
 
   stage.start((now, dt) => {
     const playing = game;
-    if (!playing) return;
+    if (!playing) {
+      stage.dim(0, []);
+      return;
+    }
     const { sim, view, lock } = playing;
     if (lock && stepLock) {
       // A room's: on with the bot, a few steps behind it, hurrying when it has fallen further.
@@ -606,6 +612,7 @@ async function start(): Promise<void> {
       }
     }
     view.update(now, dt);
+    stage.dim(view.dark, view.lit ? [view.lit, bright] : [bright]);
     actions?.draw(sim.bossAuto);
     if (!lock) deathlessButton.setAttribute('aria-pressed', String(sim.deathless));
     playing.draw();

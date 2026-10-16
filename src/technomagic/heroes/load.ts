@@ -14,7 +14,7 @@ import type { HeroMove } from './moves';
  * Reads the heroes' skins and stands each up, ready for a fight (how each looks: ./looks.ts): one that comes with its
  * animations is moved by them, as the fight times them (../sim/motion.ts); one of the game's own files is moved by the animations its skin names (another skin's,
  * or a rig read only for them), or with none by the poses written in code. One with no run among them runs in
- * in Kirze's (KIRZE_RUN), but for one that glides in seated. One whose sword is kept in the sheath in its other hand
+ * in Kirze's (KIRZE_RUN), but for one that glides in seated or hovering. One whose sword is kept in the sheath in its other hand
  * draws it only for its moves (./body/sheath.ts). A skin that isn't on this computer is left out, and
  * so is whatever would have moved another (with Kirze's run not on it, they run as the poses written in code have them).
  * Read for heroes wielding their unique weapons, each skin that looks otherwise with it is read as it does (the
@@ -109,8 +109,8 @@ export async function loadHeroes(defs: readonly HeroDef[], { unique = false } = 
       const { movedBy } = skin.model;
       const like = typeof movedBy === 'string' ? (skins.find((other) => other.skin.name === movedBy)?.rigged ?? null) : rig;
       // (Made over from Kirze's before it is moved at all.)
-      const run = !look.seated && !like?.animations.run && borrowedRun ? runFrom(stood, borrowedRun) : undefined;
-      const posing = { seated: look.seated, bends: look.bends, varied: look.varies, ...(run && { run }) };
+      const run = !look.seated && !look.hovers && !like?.animations.run && borrowedRun ? runFrom(stood, borrowedRun) : undefined;
+      const posing = { seated: look.seated, hovers: look.hovers, bends: look.bends, varied: look.varies, ...(run && { run }) };
       const hero = like ? heroLike(stood, like, look.stands, posing) : posedHero(stood, look.stands, {}, posing);
       heroes.set(skin, stood.sheath ? sheathing(hero, stood, stood.sheath, lasts) : hero);
     }

@@ -3,7 +3,7 @@ import type { Rig } from '../../engine/rig';
 import { sampler, type Sampler } from '../../engine/sampler';
 import { lengthOf } from '../../engine/track';
 import { flowing, MOVES, type HeroMove } from '../moves';
-import { ENTER, holdShield, RED, redden, type Hero, type Stood } from './hero';
+import { ENTER, heightOf, holdShield, RED, redden, type Hero, type Stood } from './hero';
 import { REST, STILL, TURN, type Bends, type Pose } from './pose';
 import { KNEE, poseBody, poseLoose } from './posing';
 import type { Played } from './rigged';
@@ -29,6 +29,11 @@ const RUN_RATE = 1.25;
 const BOB = { high: 0.05, rate: 1.6 };
 /** What floats beside one that doesn't sit on it: how far it hovers up and down (in its model's own lengths), and how fast. */
 const HOVER = { high: 0.05, rate: 2.2 };
+/**
+ * One that hovers: how high it floats over the floor, how far it bobs up and down about there (both as the field
+ * measures it), and how fast; and how fast it sinks to the floor as it falls (and rises again after), a second.
+ */
+const HOVERING = { high: 0.35, bob: 0.05, rate: 1.8, sink: 1 };
 /** How long a skill's animation takes to come in over how it stands, and to give way back to it when it is left. */
 const INTO = 0.14;
 const RETURN = 0.45;
@@ -59,7 +64,9 @@ export interface Own {
 }
 
 /**
- * How else it is moved: `seated` on what floats under it, it glides in on it, bobbing, rather than running. Its knees
+ * How else it is moved: `seated` on what floats under it, it glides in on it, bobbing, rather than running. `hovers`,
+ * it floats over the floor, bobbing, and glides in rather than running (what floats beside it, on its back, goes with
+ * it rather than bobbing by itself); fallen, it sinks to the floor, and rises again as it next does something. Its knees
  * and elbows bend as `bends` has them (./posing.ts). With an `idle` (made over for its skeleton), it stands in that.
  * With a `run`, it runs in in that (over its stride written in code), the blade in its right hand pointing along
  * `bladeRunning` (a way in its model's axes), if that is given. `varied`, how it stands wanders (VARY). With `loosed`,
@@ -68,6 +75,7 @@ export interface Own {
  */
 export interface Posing {
   seated?: boolean;
+  hovers?: boolean;
   bends?: Bends;
   idle?: AnimationClip;
   run?: AnimationClip;
@@ -101,7 +109,7 @@ function wandering(most: number): (dt: number) => number {
  * but for those it has animations for (`own`, by their move's name). And as `posing` has it.
  */
 export function posedHero({ root, body, middle, models, rig, hips, feet, blade, muzzle, inRight, shield, materials, floating }: Stood, rest: Pose = REST, own: Readonly<Record<string, Own>> = {}, posing: Posing = {}): Hero {
-  const { seated = false, bends = {}, idle, run, bladeRunning, varied = false, loosed } = posing;
+  const { seated = false, hovers = false, bends = {}, idle, run, bladeRunning, varied = false, loosed } = posing;
   // Each animation is put on each of its models at once, each with what the animation has for the bones it has.
   type Part = Played & { sample: Sampler };
   const animated: Partial<Record<string, { parts: Part[]; speed: number; chained: boolean }>> = Object.fromEntries(
@@ -154,6 +162,9 @@ export function posedHero({ root, body, middle, models, rig, hips, feet, blade, 
   /** Loosing what is in its right hand: whether it is in its hand now, and whether the move playing has loosed it yet. */
   let nocked = true;
   let shot = false;
+  /** Hovering: how high it floats now, and whether it has fallen (and so sinks to the floor). */
+  let lift = hovers ? HOVERING.high : 0;
+  let downed = false;
 
   /** A part of a move played by its animations, played crouched (its feet kept where they were) or aimed up, as it says. */
   const footL = new Vector3();
@@ -176,6 +187,7 @@ export function posedHero({ root, body, middle, models, rig, hips, feet, blade, 
     enter() {
       doing = null;
       stopPlaying();
+      downed = false;
       running = 0;
       runT = 0;
     },
@@ -184,6 +196,7 @@ export function posedHero({ root, body, middle, models, rig, hips, feet, blade, 
       // The same attack again, going straight on from the last.
       const chained = own?.chained === true && playing?.own === own;
       running = null;
+      downed = false;
       stopPlaying();
       carryOn();
       if (own?.parts[0]) {
@@ -195,7 +208,9 @@ export function posedHero({ root, body, middle, models, rig, hips, feet, blade, 
       } else doing = { name: move, t: 0 };
     },
     head: (into) => (models[0] as Object3D).localToWorld(into.copy(rig.at(BIPED.head))),
+    height: () => heightOf(root, models),
     leftHand: (into) => (models[0] as Object3D).localToWorld(into.copy(rig.at(BIPED.arms.L[2]))),
+    rightHand: (into) => (models[0] as Object3D).localToWorld(into.copy(rig.at(BIPED.arms.R[2]))),
     ...(floating && { floater: (into: Vector3) => floating.model.getWorldPosition(into) }),
     ...(muzzle && { muzzle: (into: Vector3) => muzzle.getWorldPosition(into) }),
     place: (into) => body.getWorldPosition(into),
@@ -211,6 +226,7 @@ export function posedHero({ root, body, middle, models, rig, hips, feet, blade, 
     },
     fall() {
       running = null;
+      downed = true;
       stopPlaying();
       doing = null;
     },
@@ -248,8 +264,8 @@ export function posedHero({ root, body, middle, models, rig, hips, feet, blade, 
       const wandered = wander && { twist: wander.twist(step), lean: wander.lean(step), tip: wander.tip(step), look: wander.look(step), nod: wander.nod(step), sway: wander.sway(step), rate: wander.rate(step) };
       if (wandered) pose.hipX += wandered.sway * standing;
 
-      // Seated, gliding in: only carried along the field, easing to a stop as it arrives.
-      if (running !== null && seated) {
+      // Seated or hovering, gliding in: only carried along the field, easing to a stop as it arrives.
+      if (running !== null && (seated || hovers)) {
         running += dt;
         const k = Math.min(1, running / ENTER.time);
         pose.ahead += ENTER.from * (1 - k) ** 1.6;
@@ -257,7 +273,7 @@ export function posedHero({ root, body, middle, models, rig, hips, feet, blade, 
         if (k >= 1) running = null;
       }
       // Running in: leaning into it, its legs striding and its blade trailing behind, easing into standing as it arrives.
-      if (running !== null) {
+      if (running !== null && !hovers) {
         running += dt;
         const k = Math.min(1, running / ENTER.time);
         const still = k < 0.8 ? 0 : (k - 0.8) / 0.2;
@@ -387,8 +403,12 @@ export function posedHero({ root, body, middle, models, rig, hips, feet, blade, 
 
       body.position.z = pose.ahead;
       body.position.y = Math.max(0, pose.jump) + (seated ? BOB.high * (1 + Math.sin(now * BOB.rate)) : 0);
-      // What floats beside it (not under it), hovering up and down.
-      if (floating && !seated) floating.model.position.set(floating.at.x, floating.at.y + HOVER.high * Math.sin(now * HOVER.rate), floating.at.z);
+      if (hovers) {
+        lift += Math.max(-dt * HOVERING.sink, Math.min(dt * HOVERING.sink, (downed ? 0 : HOVERING.high) - lift));
+        body.position.y += lift * (1 + (HOVERING.bob / HOVERING.high) * Math.sin(now * HOVERING.rate));
+      }
+      // What floats beside it (not under it, nor on the back of one hovering), hovering up and down.
+      if (floating && !seated && !hovers) floating.model.position.set(floating.at.x, floating.at.y + HOVER.high * Math.sin(now * HOVER.rate), floating.at.z);
       // What it sits on: its pieces spread apart (down and out from its top, so it stays on it), and it tipped back, front up, with it on it (about the back of its underside).
       body.rotation.x = 0;
       if (floating) {

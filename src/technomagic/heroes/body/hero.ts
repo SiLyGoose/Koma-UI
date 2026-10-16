@@ -1,4 +1,5 @@
 import { Group, Vector3, type MeshBasicMaterial, type Object3D } from 'three';
+import { isMesh } from '../../engine/models';
 import type { Rig } from '../../engine/rig';
 import { ENTER as RUNNING_IN } from '../../sim/rules';
 import type { HeroMove } from '../moves';
@@ -27,8 +28,12 @@ export interface Hero {
   /** Where its head is on the field, and where it stands (its feet, or under them when it is in the air): put in `into`. */
   head(into: Vector3): Vector3;
   place(into: Vector3): Vector3;
+  /** How tall it is as it is now: from where it stands to the top of its model (its hair, its horns; not what it holds, nor what floats beside it). */
+  height(): number;
   /** Where its left hand is on the field (what it holds there: a staff, a shield): put in `into`. */
   leftHand(into: Vector3): Vector3;
+  /** Where its right hand is on the field (what it casts from, holding nothing there: Oddy's paw): put in `into`. */
+  rightHand(into: Vector3): Vector3;
   /** Where what floats beside it is on the field (its skin's `floating`: Annette's Rascal), put in `into`; missing for one with none. */
   floater?(into: Vector3): Vector3;
   /** Where the far end of what is in its right hand is on the field (what it shoots comes from there), put in `into`; missing for one holding nothing there. */
@@ -109,6 +114,26 @@ export function hang(models: readonly Object3D[], high: number): Pick<Stood, 'ro
   const root = new Group();
   root.add(body);
   return { root, body, middle };
+}
+
+/**
+ * How high the top of `models` (what of them is shown, each skinned one as its bones have it now) is over where `root`
+ * stands. What hangs on the game's marks (Point_…: ./stand.ts) is left out: what it holds (Yanne's bow, upright), what is pinned to its head.
+ */
+export function heightOf(root: Object3D, models: readonly Object3D[]): number {
+  root.updateMatrixWorld(true);
+  const point = new Vector3();
+  let top = -Infinity;
+  const reach = (o: Object3D): void => {
+    if (!o.visible || o.name.startsWith('Point_')) return;
+    if (isMesh(o)) {
+      const { count } = o.geometry.getAttribute('position');
+      for (let i = 0; i < count; i++) top = Math.max(top, o.getVertexPosition(i, point).applyMatrix4(o.matrixWorld).y);
+    }
+    for (const child of o.children) reach(child);
+  };
+  for (const model of models) reach(model);
+  return top - root.getWorldPosition(point).y;
 }
 
 /** Tints what a hero is drawn with by how lately it was hit: `red` is how much of RED it has left. */

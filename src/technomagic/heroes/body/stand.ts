@@ -39,8 +39,9 @@ export async function standHero(owner: HeroAssets, model: PartsModel): Promise<S
   const blade = new Vector3(1, 0, 0);
   let shield: Stood['shield'];
   let muzzle: Object3D | undefined;
-  hands.forEach((folder, i) => {
-    const side = folder === model.left ? 'L' : 'R';
+  hands.forEach((_folder, i) => {
+    // (By its place, not its name: the same model may be in both hands, Tanya's katars.)
+    const side = model.left !== undefined && i === 0 ? 'L' : 'R';
     for (const part of parts) {
       // (Some files spell the mark with a small h; some mark only one, at the right hand, as Point_Weapon: Lorraine's.)
       const point = part.getObjectByName(`Point_Hand_${side}`) ?? part.getObjectByName(`Point_hand_${side}`) ?? (side === 'R' ? part.getObjectByName('Point_Weapon') : undefined);

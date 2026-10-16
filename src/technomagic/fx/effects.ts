@@ -1,4 +1,4 @@
-import { AdditiveBlending, AnimationMixer, DoubleSide, Group, LoopOnce, MeshBasicMaterial, SRGBColorSpace, TextureLoader, type AnimationClip, type Object3D, type Scene, type Vector3 } from 'three';
+import { AdditiveBlending, AnimationMixer, DoubleSide, Group, LoopOnce, MeshBasicMaterial, SRGBColorSpace, TextureLoader, type AnimationClip, type Object3D, type Vector3 } from 'three';
 import { EFFECTS, effectFolder, type EffectAssets, type EffectName } from '../assets';
 import { fileUrl, isMesh, loadFbx } from '../engine/models';
 
@@ -69,7 +69,7 @@ async function load(name: EffectName): Promise<Loaded> {
   return { model, clip: model.animations[0] ?? null, size, flat, lasts };
 }
 
-export async function loadEffects(scene: Scene): Promise<Effects> {
+export async function loadEffects(scene: Object3D): Promise<Effects> {
   const names = Object.keys(EFFECTS) as EffectName[];
   const loaded = new Map<EffectName, Loaded>();
   await Promise.all(

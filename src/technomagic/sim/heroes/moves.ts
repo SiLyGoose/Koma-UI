@@ -77,7 +77,31 @@ export type HeroMove =
   | 'talon'
   | 'winds'
   | 'reading'
-  | 'dive';
+  | 'dive'
+  | 'shot'
+  | 'focus'
+  | 'wipeout'
+  | 'unleash'
+  | 'maw'
+  | 'lightning'
+  | 'roar'
+  | 'breath'
+  | 'drain'
+  | 'sweet'
+  | 'soak'
+  | 'liberation'
+  | 'thrust'
+  | 'ground'
+  | 'shroud'
+  | 'creed'
+  | 'chop'
+  | 'smash'
+  | 'warcry'
+  | 'vortex'
+  | 'katar'
+  | 'sighted'
+  | 'tornado'
+  | 'whisper';
 
 /** `count` blows, the first `first` seconds in and each `every` after the last. */
 const every = (count: number, first: number, step: number): number[] => Array.from({ length: count }, (_, i) => first + i * step);
@@ -173,4 +197,34 @@ export const CODED: Readonly<Record<HeroMove | 'hit', Span>> = {
   winds: { lands: [0.45, 1.05], until: 1.6 },
   reading: { lands: [0.6], until: 1.3 },
   dive: { lands: [1], until: 1.7 },
+  // Yanne.
+  shot: { lands: [0.45], until: 1 },
+  focus: { lands: [1.3], until: 1.9 },
+  wipeout: { lands: [0.6], until: 1.3 },
+  unleash: { lands: [0.6], until: 1.4 },
+  // Neraxis (Black Lightning Claw's second blow a second after its first).
+  maw: { lands: [0.42], until: 1 },
+  lightning: { lands: [0.45, 1.45], until: 1.9 },
+  roar: { lands: [0.6], until: 1.5 },
+  breath: { lands: every(6, 0.6, 0.15), until: 1.9 },
+  // Erze (Soaking Blood's blow and Blood Liberation's come after, of themselves).
+  drain: { lands: [0.42], until: 1 },
+  sweet: { lands: [0.5], until: 1.2 },
+  soak: { lands: [0.6], until: 1.3 },
+  liberation: { lands: [0.7], until: 1.4 },
+  // Loman (Knight's Creed's last swing two blows).
+  thrust: { lands: [0.45], until: 1.1 },
+  ground: { lands: [0.6], until: 1.4 },
+  shroud: { lands: [0.6], until: 1.4 },
+  creed: { lands: [0.45, 0.8, 1.3, 1.45], until: 2 },
+  // Gau.
+  chop: { lands: [0.45], until: 1.1 },
+  smash: { lands: [0.4, 0.75], until: 1.3 },
+  warcry: { lands: [0.6], until: 1.5 },
+  vortex: { lands: every(6, 0.4, 0.15), until: 1.6 },
+  // Tanya (her attack a cut of each katar; Whisper of Death's last its blow more).
+  katar: { lands: [0.3, 0.55], until: 1 },
+  sighted: { lands: [0.5], until: 1.2 },
+  tornado: { lands: [0.4, 0.6, 0.8], until: 1.3 },
+  whisper: { lands: [...every(6, 0.4, 0.12), 1.3], until: 1.9 },
 };

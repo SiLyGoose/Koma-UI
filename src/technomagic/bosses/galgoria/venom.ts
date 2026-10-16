@@ -1,4 +1,4 @@
-import { AdditiveBlending, BufferAttribute, BufferGeometry, CanvasTexture, Points, PointsMaterial, type Scene, type Vector3 } from 'three';
+import { AdditiveBlending, BufferAttribute, BufferGeometry, CanvasTexture, Points, PointsMaterial, type Object3D, type Vector3 } from 'three';
 
 /*
  * Galgoria's venom: a spray of purple drops from a mouth to whoever it is spat at, and a splash where it
@@ -34,7 +34,7 @@ function drop(): CanvasTexture {
   return new CanvasTexture(canvas);
 }
 
-export function makeVenom(scene: Scene): Venom {
+export function makeVenom(scene: Object3D): Venom {
   const places = new Float32Array(COUNT * 3);
   const colours = new Float32Array(COUNT * 3);
   const speeds = new Float32Array(COUNT * 3);

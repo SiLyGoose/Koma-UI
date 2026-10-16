@@ -1,4 +1,4 @@
-import { CanvasTexture, CircleGeometry, Color, Mesh, MeshBasicMaterial, OrthographicCamera, PerspectiveCamera, Scene, SRGBColorSpace, Vector3, WebGLRenderer, WebGLRenderTarget, type Object3D } from 'three';
+import { CanvasTexture, CircleGeometry, Color, Mesh, MeshBasicMaterial, OrthographicCamera, PerspectiveCamera, PlaneGeometry, Scene, SRGBColorSpace, Vector3, WebGLRenderer, WebGLRenderTarget, type Object3D } from 'three';
 
 /*
  * The field, seen from the side: the heroes on the left looking right, the boss on the right looking
@@ -22,6 +22,11 @@ export interface Stage {
   scene: Scene;
   /** Draws every frame, after `update` (the time in seconds, and since the last frame). */
   start(update: (now: number, dt: number) => void): void;
+  /**
+   * Darkens the field by `amount` (0 not at all, 1 black) as it is drawn from now on, but for what is `lit` (on the
+   * field): that is drawn as bright as ever, over the dark.
+   */
+  dim(amount: number, lit: readonly Object3D[]): void;
   /** Where a place on the field is on the page, from the canvas's top left (CSS pixels). */
   project(at: Vector3): { x: number; y: number };
   /** A picture (a data: address) of a model from a little under `at` (its head) up, with nothing behind it, seen from `turn` radians round it: a hero, for its card. */
@@ -56,6 +61,31 @@ export function makeStage(canvas: HTMLCanvasElement): Stage {
   };
   new ResizeObserver(fit).observe(canvas);
   fit();
+
+  // The dark over the field (dim()): a black sheet over the whole picture, drawn between the field and what is lit.
+  const shade = new Mesh(new PlaneGeometry(2, 2), new MeshBasicMaterial({ color: 0x000000, transparent: true, depthTest: false, depthWrite: false }));
+  shade.position.z = -0.5;
+  shade.frustumCulled = false;
+  const shadeScene = new Scene().add(shade);
+  const flat = new OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  let dark = 0;
+  let lit: readonly Object3D[] = [];
+  const draw = (): void => {
+    if (dark <= 0) {
+      renderer.render(scene, camera);
+      return;
+    }
+    // The field without what is lit, the dark over it, then what is lit over that (each where the field doesn't stand before it).
+    const shown = lit.filter((o) => o.visible && o.parent);
+    for (const o of shown) o.visible = false;
+    renderer.render(scene, camera);
+    for (const o of shown) o.visible = true;
+    shade.material.opacity = dark;
+    renderer.autoClear = false;
+    renderer.render(shadeScene, flat);
+    for (const o of shown) renderer.render(o, camera);
+    renderer.autoClear = true;
+  };
 
   const seen = new Vector3();
   return {
@@ -104,6 +134,10 @@ export function makeStage(canvas: HTMLCanvasElement): Stage {
       g.putImageData(image, 0, 0);
       return picture.toDataURL('image/png');
     },
+    dim(amount, those) {
+      dark = Math.min(1, Math.max(0, amount));
+      lit = those;
+    },
     start(update) {
       let last = performance.now();
       const frame = (ms: number): void => {
@@ -111,7 +145,7 @@ export function makeStage(canvas: HTMLCanvasElement): Stage {
         const dt = Math.max(0, Math.min(0.064, (ms - last) / 1000));
         last = ms;
         update(ms / 1000, dt);
-        renderer.render(scene, camera);
+        draw();
         requestAnimationFrame(frame);
       };
       requestAnimationFrame(frame);

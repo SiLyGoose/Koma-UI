@@ -50,9 +50,10 @@ export const GALGORIA_LOOK: BossLook = {
   assets: GALGORIA_ASSETS,
   stands: { x: 7, turn: -1.1 },
   reach: { hit: [-2.2, 3.4, 3], feet: [-1, 0, 0.6] },
+  skills: ['destroyer', 'swamp', 'explosion', 'fatal'],
 };
 
-export async function loadGalgoria(scene: Scene): Promise<Boss> {
+export async function loadGalgoria(scene: Scene, bright: Object3D): Promise<Boss> {
   const models = await loadModels(GALGORIA_ASSETS.models.map((model) => modelFolder(GALGORIA_ASSETS, model)));
   const rig = new Rig(models);
   const root = new Group();
@@ -79,7 +80,8 @@ export async function loadGalgoria(scene: Scene): Promise<Boss> {
   let slowed = { rate: 1, left: 0 };
   const mouth = new Vector3();
   const aim = new Vector3();
-  const venom = makeVenom(scene);
+  // (Its venom is drawn as light: kept bright when the field goes dark.)
+  const venom = makeVenom(bright);
   const splashed = new Vector3();
   /** Begins a skill, as the fight has it begin: whatever its heads were at is cut short. */
   const use = (skill: string): void => {

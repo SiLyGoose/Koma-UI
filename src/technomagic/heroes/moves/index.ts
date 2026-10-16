@@ -16,12 +16,18 @@ import { ELIMINATE, GODS, SNIPE, STRUGGLE } from '../crow/moves';
 import { CHIME, DISTORTION, FRACTURE, FRAGMENTS } from '../oddy/moves';
 import { COLLISION, HEADBUTT, HEW, INCARNATE } from '../phillop/moves';
 import { DIVE, READING, TALON, WINDS } from '../naila/moves';
+import { FOCUS, SHOT, UNLEASH, WIPEOUT } from '../yanne/moves';
+import { BREATH, LIGHTNING, MAW, ROAR } from '../neraxis/moves';
+import { DRAIN, LIBERATION, SOAK, SWEET } from '../erze/moves';
+import { CREED, GROUND, SHROUD, THRUST } from '../loman/moves';
+import { CHOP, SMASH, VORTEX, WARCRY } from '../gau/moves';
+import { KATAR, SIGHTED, TORNADO, WHISPER } from '../tanya/moves';
 import { ATTACK, CAST, HIT } from './common';
 import type { Move } from './move';
 
 /*
  * Every move a hero's body can make, by name: the ones all have (./common.ts) and each hero's own
- * (../kirze/moves.ts, ../klaus/moves.ts, ../fallen-frey/moves.ts, ../gremory/moves.ts, ../annette/moves.ts, ../morrah/moves.ts, ../laias/moves.ts, ../seria/moves.ts, ../ezekiel/moves.ts, ../lorraine/moves.ts, ../valance/moves.ts, ../lucikiel/moves.ts, ../selene/moves.ts, ../crow/moves.ts, ../oddy/moves.ts, ../phillop/moves.ts, ../naila/moves.ts), written with the stances in ./stances.ts. Each is
+ * (../kirze/moves.ts, ../klaus/moves.ts, ../fallen-frey/moves.ts, ../gremory/moves.ts, ../annette/moves.ts, ../morrah/moves.ts, ../laias/moves.ts, ../seria/moves.ts, ../ezekiel/moves.ts, ../lorraine/moves.ts, ../valance/moves.ts, ../lucikiel/moves.ts, ../selene/moves.ts, ../crow/moves.ts, ../oddy/moves.ts, ../phillop/moves.ts, ../naila/moves.ts, ../yanne/moves.ts, ../neraxis/moves.ts, ../erze/moves.ts, ../loman/moves.ts, ../gau/moves.ts, ../tanya/moves.ts), written with the stances in ./stances.ts. Each is
  * written to fit how the fight times it (../../sim/heroes/moves.ts).
  */
 
@@ -97,6 +103,30 @@ export const MOVES: Record<HeroMove | 'hit', Move> = {
   winds: WINDS,
   reading: READING,
   dive: DIVE,
+  shot: SHOT,
+  focus: FOCUS,
+  wipeout: WIPEOUT,
+  unleash: UNLEASH,
+  maw: MAW,
+  lightning: LIGHTNING,
+  roar: ROAR,
+  breath: BREATH,
+  drain: DRAIN,
+  sweet: SWEET,
+  soak: SOAK,
+  liberation: LIBERATION,
+  thrust: THRUST,
+  ground: GROUND,
+  shroud: SHROUD,
+  creed: CREED,
+  chop: CHOP,
+  smash: SMASH,
+  warcry: WARCRY,
+  vortex: VORTEX,
+  katar: KATAR,
+  sighted: SIGHTED,
+  tornado: TORNADO,
+  whisper: WHISPER,
   hit: HIT,
 };
 
