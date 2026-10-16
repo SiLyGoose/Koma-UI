@@ -37,6 +37,12 @@
   display: none;
 }
 
+/* The top and the lineup never squeezed for the panels: alone, the lineup (overflow hidden) would shut to a line, and fit() would take that as fitting. */
+.tm-prep-top,
+.tm-lineup {
+  flex-shrink: 0;
+}
+
 .tm-prep-top {
   display: flex;
   flex-wrap: wrap;
@@ -672,9 +678,13 @@ button.tm-slot-card:hover {
   padding: 8px 12px;
 }
 
-/* Scaled down, the cards a set size: sized by the height, they would grow as fast as it is scaled. */
-.tm-prep.fit.scaled .tm-lineup {
+/* Scaled down, the cards a set size: sized by the height, they would grow as fast as it is scaled. Alone, each team's (its two halves side by side, as ever). */
+.tm-prep.fit.scaled .tm-lineup:not(.teams) {
   grid-template-columns: repeat(var(--slots, 9), minmax(0, 76px));
+}
+
+.tm-prep.fit.scaled .tm-team-slots {
+  grid-template-columns: repeat(var(--slots, 4), minmax(0, 76px));
 }
 
 .tm-prep.fit .tm-slot-owner {

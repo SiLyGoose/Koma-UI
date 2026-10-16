@@ -1,5 +1,6 @@
-import { Vector3, type Object3D, type Scene } from 'three';
+import { Vector3, type Material, type Object3D, type Scene } from 'three';
 import type { Boss, BossLook } from '../bosses/boss';
+import { isMesh } from '../engine/models';
 import type { Effects } from '../fx/effects';
 import type { Magic } from '../fx/magic';
 import type { Props } from '../fx/props';
@@ -29,6 +30,14 @@ const STOP = 0.08;
 const DARK = 0.55;
 const LIGHTEN = 0.35;
 const MAKE_UP = 0.25;
+
+/**
+ * A hero hidden (what of the sim's statuses hide one: Tanya's Stealth, and any other hero's) is drawn this
+ * see-through, fading to it and back over FADE seconds.
+ */
+const HIDING = new Set(['Stealth']);
+const HIDDEN = 0.4;
+const FADE = 0.2;
 
 /** A body on the field: a hero, by its index among the fighters, or the boss. */
 type Who = number | 'boss';
@@ -77,6 +86,29 @@ export function makeFightView({ scene, sim, bodies, boss, bossLook, bossFx, effe
   }
   /** How tall each hero stands at rest (what guards it is made to fit it). */
   const heights = bodies.map((hero) => hero.height());
+  /** What each hero is drawn with, as it is solid (to make it see-through, and solid again); and how solid each is drawn now. */
+  const solid = bodies.map((hero) => {
+    const all = new Map<Material, { opacity: number; alphaTest: number; transparent: boolean }>();
+    hero.root.traverse((o) => {
+      if (isMesh(o)) for (const material of [o.material].flat()) all.set(material, { opacity: material.opacity, alphaTest: material.alphaTest, transparent: material.transparent });
+    });
+    return all;
+  });
+  const solidity = bodies.map(() => 1);
+  /** Draws a hero `k` as solid (1 as it is). What is cut out where it isn't solid is cut by as much less, or it would be cut out altogether. */
+  const see = (who: number, k: number): void => {
+    if (solidity[who] === k) return;
+    solidity[who] = k;
+    for (const [material, was] of solid[who] ?? []) {
+      material.opacity = was.opacity * k;
+      material.alphaTest = was.alphaTest * k;
+      const transparent = was.transparent || k < 1;
+      if (material.transparent !== transparent) {
+        material.transparent = transparent;
+        material.needsUpdate = true;
+      }
+    }
+  };
 
   const fx: FxScene = {
     effects,
@@ -178,8 +210,9 @@ export function makeFightView({ scene, sim, bodies, boss, bossLook, bossFx, effe
             const { root } = body(event.who);
             scene.remove(root);
             on.delete(event.who);
-            // Put on again, it stands.
+            // Put on again, it stands, solid.
             fallen.delete(event.who);
+            see(event.who, 1);
             root.rotation.x = 0;
             root.position.y = 0;
             break;
@@ -262,6 +295,11 @@ export function makeFightView({ scene, sim, bodies, boss, bossLook, bossFx, effe
         const shielded = fighter.shield > 0 || fighter.statuses.some((status) => bubbles.has(status.name));
         wards.keep(who, hero.place(at), heights[who] as number, shielded, fighter.hp > 0 ? emblems : []);
         if (fighter.hp > 0) signs.hero(who, [...fighter.statuses, ...sim.party], () => hero.head(over));
+        // Hidden: see-through.
+        const hidden = fighter.hp > 0 && fighter.statuses.some((status) => HIDING.has(status.name));
+        const fading = (dt * (1 - HIDDEN)) / FADE;
+        const seen = solidity[who] as number;
+        see(who, hidden ? Math.max(HIDDEN, seen - fading) : Math.min(1, seen + fading));
         const down = fighter.hp <= 0;
         let lying = fallen.get(who);
         if (down && !lying) {
@@ -296,6 +334,7 @@ export function makeFightView({ scene, sim, bodies, boss, bossLook, bossFx, effe
         scene.remove(root);
         root.rotation.x = 0;
         root.position.y = 0;
+        see(who, 1);
       }
       on.clear();
       fallen.clear();
