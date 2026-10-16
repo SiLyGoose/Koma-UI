@@ -72,9 +72,15 @@ function face(id: string, img: HTMLImageElement, fallback: HTMLElement): void {
   });
 }
 
+/** Each hero's picture made so far, by where it goes (its class) and whose: the same one again on every redraw, already showing its face rather than flashing its letter. */
+const portraits = new Map<string, HTMLElement>();
 /** A hero's picture: its face, with its name's first letter until (or unless) there is one. */
 function portrait(id: string, className: string): HTMLElement {
+  const key = `${className}:${id}`;
+  const made = portraits.get(key);
+  if (made) return made;
   const box = el('span', className);
+  portraits.set(key, box);
   const img = el('img', '');
   img.alt = '';
   img.hidden = true;
@@ -382,13 +388,25 @@ export function makePrep(act: PrepActions): Prep {
     named();
   }
 
+  /** Alone: how many heroes are in a team, and how many it holds. */
+  const inTeam = (at: RoomState, sub: boolean): number => at.lineup.filter((pick) => (pick.sub === true) === sub).length;
+  const teamSize = (at: RoomState, sub: boolean): number => (sub ? at.slots - MAIN_TEAM : MAIN_TEAM);
+
   return {
     chat: byId('prep-chat'),
     show(next) {
+      // Alone: a hero put in that fills the team whose tab is pressed presses the other's, if it has room.
+      const before = state ? inTeam(state, intoSub) : 0;
+      if (next.solo && inTeam(next, intoSub) > before && inTeam(next, intoSub) >= teamSize(next, intoSub) && inTeam(next, !intoSub) < teamSize(next, !intoSub)) intoSub = !intoSub;
       state = next;
       root.hidden = false;
+      // Drawn anew, the Heroes List (and the screen) stay scrolled where they were.
+      const { scrollTop: listAt } = heroes;
+      const { scrollTop: rootAt } = root;
       draw();
       fit();
+      heroes.scrollTop = listAt;
+      root.scrollTop = rootAt;
     },
     note(text) {
       noteAt.textContent = text ?? '';
