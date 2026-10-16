@@ -38,6 +38,8 @@ export default defineConfig({
         raid: resolve(import.meta.dirname, 'games/raid/index.html'),
         minesweeper: resolve(import.meta.dirname, 'games/minesweeper/index.html'),
         technomagic: resolve(import.meta.dirname, 'games/technomagic/index.html'),
+        // The heroes page, in the TechnoMagic Raid's Manage popup.
+        technomagicHeroes: resolve(import.meta.dirname, 'games/technomagic/heroes/index.html'),
         // The raid party's gear, in the raid page's popup.
         raidGear: resolve(import.meta.dirname, 'games/raid/gear/index.html'),
       },

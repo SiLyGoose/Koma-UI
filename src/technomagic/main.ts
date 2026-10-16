@@ -30,6 +30,7 @@ import { makeOverhead } from './hud/overhead';
 import { cutFace, cutHead } from './hud/portrait';
 import { makeTimer } from './hud/timer';
 import { makePrep } from './prep/prep';
+import { managePopup } from './manage/popup';
 import { makeResult } from './result';
 import type { AnswerCode, ClientMessage, ErrorCode, FightStart, OverView, RoomState, ServerMessage, TurnInput } from '../protocol/technomagic';
 import { HERO_TURN, makeSim, SECTION, SECTIONS, SIM_VERSION, STAGES, TICK, type Input, type Sim } from './sim';
@@ -416,7 +417,7 @@ async function start(): Promise<void> {
 
   function room(link: string, address: string): void {
     actionsRow.hidden = true;
-    hint.textContent = 'Each player uses their own heroes’ skills from their cards (or Auto, top left); everyone’s heroes are on the field (alone, the Sub Team fights on Auto, with no cards). Heroes that fall stay down: beat Galgoria before its rage wipes the party.';
+    hint.textContent = 'Each player uses their own heroes’ skills from their cards (or Auto, top left); everyone’s heroes are on the field (single player, the Sub Team fights on Auto, with no cards). Heroes that fall stay down: beat Galgoria before its rage wipes the party.';
     let socket: GameSocket<ClientMessage> | null = null;
     let state: RoomState | null = null;
     let lock: Lock | null = null;
@@ -437,6 +438,12 @@ async function start(): Promise<void> {
       begin: () => send({ t: 'begin' }),
     });
     const chat = chatBox({ mount: prep.chat, send, you: () => state?.you ?? null });
+    // Manage: the heroes page over the room, not the site's (which would take them out of it).
+    const manage = managePopup(document.getElementById('app') as HTMLElement, link, address);
+    document.querySelector('.tm-prep-manage')?.addEventListener('click', (event) => {
+      event.preventDefault();
+      manage.open();
+    });
 
     // The way out: the host, mid-fight, gives the fight up; anyone else just goes (their heroes fight on, on Auto).
     leave = () => {
@@ -584,7 +591,11 @@ async function start(): Promise<void> {
             meterAt.replaceChildren();
             results.hide();
             prep.show(state);
-          } else prep.hide();
+          } else {
+            prep.hide();
+            // Their gear is taken as the fight begins: no more changing it.
+            manage.close();
+          }
           if (state.phase === 'over' && state.over && !game) showOver(state.over);
           return;
         }

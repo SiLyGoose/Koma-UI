@@ -1,6 +1,25 @@
 import { armoryFilter, type ArmoryFilter, type Slot, type StarChoice } from '../shared/items';
 import { HERO_SLOT_KIND, HERO_SLOTS, type HeroView, type HeroCopy, type HeroSlot, type HeroesView } from '../shared/heroes';
 import type { Busy } from '../shared/ui';
+import type { ApiResult } from '../site/session';
+
+/**
+ * Where the page asks the bot, and who is asking: the site's login (./page.ts), or a game's link (the TechnoMagic
+ * Raid's Manage popup, ../technomagic/manage/), which answers for its own server only.
+ */
+export interface HeroesHost {
+  /** Asks the bot (errors are { status, error }; status 0: no answer). */
+  api<T>(path: string, init?: RequestInit): Promise<ApiResult<T>>;
+  /** The bot's address is set (the site's is built with it). */
+  ready: boolean;
+  /** Their servers, for the server picker (null: no picker). */
+  me(): { servers: { id: string; name: string }[] } | null;
+  loadMe(): Promise<ApiResult<unknown>>;
+  server(): string | null;
+  setServer(id: string): void;
+  /** The login (or link) has run out. */
+  logOut(): void;
+}
 
 /** The page's elements, found once in its root. */
 export interface HeroesUi {
@@ -44,6 +63,7 @@ export interface HeroesUi {
 
 /** Everything the mounted page knows. */
 export interface HeroesContext {
+  host: HeroesHost;
   ui: HeroesUi;
   view: HeroesView | null;
   /** The hero shown (its id). */
@@ -82,9 +102,10 @@ export interface HeroMember {
   you: boolean;
 }
 
-export function createContext(root: HTMLElement): HeroesContext {
+export function createContext(root: HTMLElement, host: HeroesHost): HeroesContext {
   const $ = <T extends HTMLElement>(id: string): T => root.querySelector(`#${id}`) as T;
   return {
+    host,
     ui: {
       status: $('status'),
       page: $('heroes'),

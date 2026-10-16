@@ -4,7 +4,7 @@ import { HERO_CLASSES, HERO_SLOT_KIND, type HeroCopy, type HeroSlot, type Heroes
 import { API, busyWith, dropdown, fillServers } from '../shared/ui';
 import type { Page } from '../site/page';
 import { api, currentMe, currentServer, loadMe, logOut, setServer } from '../site/session';
-import { createContext, heroShown, mine, status, type HeroesContext, type HeroMember } from './context';
+import { createContext, heroShown, mine, status, type HeroesContext, type HeroesHost, type HeroMember } from './context';
 import { render, type HeroActions } from './render';
 
 /*
@@ -21,31 +21,41 @@ import { render, type HeroActions } from './render';
  * on the member and on one of their heroes at once, but on one hero only. Logged-in members only, in the
  * server picked; ?hero= picks the hero shown. On the left over the hero, whose heroes are shown: theirs, or
  * those of someone else in the server who has heroes, to look at (nothing on them can be changed then).
+ *
+ * The same page shows in the TechnoMagic Raid's Manage popup (../technomagic/manage/), asking the bot with the
+ * raid's link rather than the site's login (mountHeroes' `host`).
  */
 
-export const heroesPage: Page = { title: 'Heroes · Komaverse', icon: '🐲', markup, mount };
+export const heroesPage: Page = {
+  title: 'Heroes · Komaverse',
+  icon: '🐲',
+  markup,
+  mount: (root) => mountHeroes(root, { api, ready: !!API, me: currentMe, loadMe, server: currentServer, setServer, logOut }),
+};
 
-function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void } {
-  const ctx = createContext(root);
+/** The heroes page in `root` (its markup, ./heroes.html, already in it), asking the bot through `host`. */
+export function mountHeroes(root: HTMLElement, host: HeroesHost): { drawn: Promise<void>; unmount: () => void } {
+  const ctx = createContext(root, host);
   const act = actions(ctx);
   const unwire = wire(ctx, act);
   return { drawn: start(ctx, act), unmount: unwire };
 }
 
 async function start(ctx: HeroesContext, act: HeroActions): Promise<void> {
-  if (!API) return status(ctx, 'This site is not set up yet: VITE_API_URL (the bot’s address) is missing.', true);
+  const { host } = ctx;
+  if (!host.ready) return status(ctx, 'This site is not set up yet: VITE_API_URL (the bot’s address) is missing.', true);
   status(ctx, 'Loading…');
-  const res = await loadMe();
+  const res = await host.loadMe();
   if (!res.ok) return failed(ctx, act, res, 'Could not load your servers.');
-  if (!currentServer()) return status(ctx, 'None of your servers have Koma in them yet.');
-  const me = currentMe();
-  if (me) fillServers(ctx.ui.server, me.servers, currentServer());
+  if (!host.server()) return status(ctx, 'None of your servers have Koma in them yet.');
+  const me = host.me();
+  if (me) fillServers(ctx.ui.server, me.servers, host.server());
   await Promise.all([loadMembers(ctx), load(ctx, act)]);
 }
 
 /** Says why asking the bot didn't work (or, for a login that ran out, logs out). */
 function failed(ctx: HeroesContext, act: HeroActions, res: { status: number; error: string }, what: string): void {
-  if (res.status === 401) return logOut();
+  if (res.status === 401) return ctx.host.logOut();
   // No answer to a change: it may have gone through, so load what's there.
   if (res.status === 0) return void load(ctx, act);
   status(
@@ -79,12 +89,12 @@ function failed(ctx: HeroesContext, act: HeroActions, res: { status: number; err
 
 /** Loads (and draws) the heroes of whoever is shown. */
 async function load(ctx: HeroesContext, act: HeroActions): Promise<void> {
-  const server = currentServer();
+  const server = ctx.host.server();
   if (!server) return;
   const loads = ++ctx.loads;
   const whose = ctx.viewing;
   const user = whose ? `&user=${encodeURIComponent(whose.userId)}` : '';
-  const res = await api<HeroesView>(`/api/heroes?guild=${encodeURIComponent(server)}${user}`);
+  const res = await ctx.host.api<HeroesView>(`/api/heroes?guild=${encodeURIComponent(server)}${user}`);
   // Someone else was picked meanwhile.
   if (loads !== ctx.loads) return;
   if (!res.ok) {
@@ -104,10 +114,10 @@ async function load(ctx: HeroesContext, act: HeroActions): Promise<void> {
 
 /** Who else in the server has heroes, for the picker on the left. One that can't be loaded leaves just their own. */
 async function loadMembers(ctx: HeroesContext): Promise<void> {
-  const server = currentServer();
+  const server = ctx.host.server();
   if (!server) return;
-  const res = await api<{ members: HeroMember[] }>(`/api/heroes/members?guild=${encodeURIComponent(server)}`);
-  if (server !== currentServer()) return;
+  const res = await ctx.host.api<{ members: HeroMember[] }>(`/api/heroes/members?guild=${encodeURIComponent(server)}`);
+  if (server !== ctx.host.server()) return;
   ctx.members = res.ok ? res.data.members : [];
   fillMembers(ctx);
 }
@@ -145,13 +155,13 @@ function show(ctx: HeroesContext, act: HeroActions, view: HeroesView): void {
 
 /** Sends a change to the bot (one at a time), and draws their heroes as it answers. */
 async function change(ctx: HeroesContext, act: HeroActions, key: string, path: string, body: Record<string, unknown>, what: string): Promise<boolean> {
-  const server = currentServer();
+  const server = ctx.host.server();
   // Only their own heroes are theirs to change.
   if (ctx.busy || !server || !mine(ctx)) return false;
   ctx.busy = busyWith(key);
   status(ctx, null);
   render(ctx, act);
-  const res = await api<HeroesView>(path, { method: 'POST', body: JSON.stringify({ guild: server, ...body }) });
+  const res = await ctx.host.api<HeroesView>(path, { method: 'POST', body: JSON.stringify({ guild: server, ...body }) });
   ctx.busy = null;
   if (!res.ok) {
     render(ctx, act);
@@ -205,7 +215,7 @@ function wire(ctx: HeroesContext, act: HeroActions): () => void {
   const { ui } = ctx;
   const serverPicker = dropdown(ui.server);
   ui.server.addEventListener('change', () => {
-    setServer(ui.server.value);
+    ctx.host.setServer(ui.server.value);
     ctx.picked = null;
     ctx.target = null;
     // Back to their own heroes, in the new server.
