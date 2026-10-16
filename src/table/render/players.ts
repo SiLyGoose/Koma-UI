@@ -15,6 +15,8 @@ export function renderPlayers<S extends string, R, X>(ctx: TableContext<S, R, X>
     const li = document.createElement('li');
     li.className = 'tb-seat';
     if (seat.userId === state.you) li.classList.add('you');
+    // Their page went away: their seat is kept a while for them to come back.
+    if (seat.away) li.classList.add('away');
     // The name is cut short if it's long, but the "you" tag after it always shows.
     const name = document.createElement('div');
     name.className = 'tb-seat-name';
@@ -46,6 +48,8 @@ export function renderPlayers<S extends string, R, X>(ctx: TableContext<S, R, X>
     } else if (results && seat.refused) {
       status.textContent = 'Couldn’t cover the bet';
       status.classList.add('lost');
+    } else if (seat.away) {
+      status.textContent = 'Away';
     } else if (down > 0) {
       status.textContent = `${points(down)} down`;
       status.classList.add('down');
