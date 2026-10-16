@@ -62,6 +62,12 @@ export const FACE: Frame = { wide: 1.7, tall: 1.7, above: 0.35, fit: {
     selene: { zoom: 2, x: 0.03, y: -0.02 },
     crow: { zoom: 1.9, x: -0.05, y: 0.02 },
     naila: { zoom: 2, x: -0.07, y: 0.06 },
+    neraxis: { zoom: 2.3, x: 0.17, y: 0.13 },
+    yanne: { zoom: 2.2, x: 0.11, y: 0.04 },
+    erze: { zoom: 1.9, x: 0.2, y: -0.03 },
+    loman: { zoom: 2.1, x: -0.135, y: 0.05 },
+    gau: { zoom: 1.9, x: 0.05, y: -0.05 },
+    tanya: { zoom: 1.7, x: 0.16, y: 0 },
   },
 };
 /** The heroes page's stage: a hero's whole picture this many times as tall as the stage, where its face is small in it (by id). */
@@ -82,6 +88,12 @@ export const STAGE_ZOOM: Readonly<Record<string, number>> = {
   naila: 1.7,
   crow: 1.6,
   selene: 1.6,
+  neraxis: 1.95,
+  yanne: 2,
+  erze: 1.5,
+  loman: 2.05,
+  gau: 1.55,
+  tanya: 1.5,
 };
 export const BUST: Frame = { wide: 3.4, tall: 4.6, above: 0.45 };
 /**
@@ -101,6 +113,9 @@ export const SHOP_BUST: Frame = { ...BUST, fit: {
     selene: { zoom: 1.5, x: 0.02, y: 0.22 },
     crow: { zoom: 1.45, x: -0.05, y: 0.25 },
     naila: { zoom: 1.5, x: -0.05, y: 0.18 },
+    neraxis: { zoom: 1.3, x: 0, y: 0 },
+    yanne: { zoom: 1.3, x: 0, y: 0 },
+    tanya: { zoom: 1, x: -0.2, y: 0 },
     // Short ones (a red panda, a dwarf): set lower than the others, to fill the card down to their feet.
     oddy: { zoom: 1.15, x: 0, y: -0.9 },
     phillop: { zoom: 1.15, x: 0, y: -0.75 },

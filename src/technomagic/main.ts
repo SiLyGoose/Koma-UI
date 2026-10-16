@@ -148,7 +148,13 @@ async function start(): Promise<void> {
   // What is drawn as light (a hit's effects, magic, the boss's venom): kept bright when the field goes dark (fight/view.ts).
   const bright = new Group();
   stage.scene.add(bright);
-  const [boss, entrants, effects, props] = await Promise.all([bossView.load(stage.scene, bright), loadHeroes(HEROES), loadEffects(bright), loadProps(stage.scene, HEROES.map((hero) => lookOf(hero.id).assets))]);
+  const [boss, entrants, effects, props] = await Promise.all([
+    bossView.load(stage.scene, bright),
+    loadHeroes(HEROES),
+    loadEffects(bright),
+    loadProps(stage.scene, HEROES.map((hero) => lookOf(hero.id).assets)),
+    bossView.look.scenery && stage.dress(bossView.look.scenery),
+  ]);
   const magic = makeMagic(bright);
   // The skills' pictures, read before the cards are made, so a skill is never drawn without its own (one that isn't on this computer is left out).
   await Promise.all(

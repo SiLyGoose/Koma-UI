@@ -1,5 +1,6 @@
 import type { Group, Vector3 } from 'three';
 import type { BossAssets } from '../assets';
+import type { Scenery } from '../engine/stage';
 
 /*
  * A boss as the page draws it: how it looks and where it stands (BossLook), and its body on the field (Boss), drawn
@@ -14,6 +15,8 @@ export interface BossLook {
   reach: { hit: readonly [number, number, number]; feet: readonly [number, number, number] };
   /** Which of its attacks are its skills, not plain attacks (by their names): as a blow of one lands, the fight holds still and goes dark but for it. */
   skills?: readonly string[];
+  /** Where it is fought (without, a plain field). */
+  scenery?: Scenery;
 }
 
 /** The boss's body on the field: drawn doing what the sim says it does. */

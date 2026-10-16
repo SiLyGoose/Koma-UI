@@ -5,6 +5,7 @@ import { Rig } from '../../engine/rig';
 import { poseAt } from '../../engine/track';
 import { HEADS, MOVES, PLANS, type Attack, type Head } from '../../sim/bosses/galgoria/attacks';
 import type { Boss, BossLook } from '../boss';
+import { WASTELAND } from './scenery';
 import { STILL, TRACKS, type Pose } from './tracks';
 import { makeVenom } from './venom';
 
@@ -51,6 +52,7 @@ export const GALGORIA_LOOK: BossLook = {
   stands: { x: 7, turn: -1.1 },
   reach: { hit: [-2.2, 3.4, 3], feet: [-1, 0, 0.6] },
   skills: ['destroyer', 'swamp', 'explosion', 'fatal'],
+  scenery: WASTELAND,
 };
 
 export async function loadGalgoria(scene: Scene, bright: Object3D): Promise<Boss> {
