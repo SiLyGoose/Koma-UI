@@ -1,21 +1,11 @@
-import { coin, points } from '../../shared/util';
+import { askSale, saleOf, saleSaid } from '../../shared/items';
 import { change } from './api';
-import { copyById, type GearContext } from './context';
+import type { GearContext } from './context';
 import { render } from './render';
 import type { GearSold } from '../../protocol/gear';
 
 /** How many copies are picked to sell, and what they sell for together. */
-export function sale(ctx: GearContext): { count: number; total: number } {
-  let count = 0;
-  let total = 0;
-  for (const id of ctx.selling ?? []) {
-    const price = copyById(ctx, id)?.sell;
-    if (typeof price !== 'number') continue;
-    count++;
-    total += price;
-  }
-  return { count, total };
-}
+export const sale = (ctx: GearContext): { count: number; total: number; ids: string[] } => saleOf(ctx.gear?.copies ?? [], ctx.selling);
 
 /** Starts or stops picking copies to sell. */
 export function pickToSell(ctx: GearContext, on: boolean): void {
@@ -28,19 +18,12 @@ export function pickToSell(ctx: GearContext, on: boolean): void {
 /** Asks to confirm selling what's picked. */
 export function confirmSale(ctx: GearContext): void {
   const { count, total } = sale(ctx);
-  if (count === 0) return;
-  const dialog = ctx.ui.sellConfirm;
-  const title = dialog.querySelector('h3') as HTMLElement;
-  title.textContent = `Sell ${count} item${count === 1 ? '' : 's'}?`;
-  const amount = dialog.querySelector('.sell-confirm-total') as HTMLElement;
-  amount.textContent = '';
-  amount.append(`+${points(total)} `, coin('coin', 'zeiucoins'));
-  dialog.showModal();
+  askSale(ctx.ui.sellConfirm, count, total);
 }
 
 /** Sells what's picked, and says what it came to. */
 export async function sell(ctx: GearContext): Promise<void> {
-  const copies = [...(ctx.selling ?? [])].filter((id) => typeof copyById(ctx, id)?.sell === 'number');
+  const copies = sale(ctx).ids;
   if (copies.length === 0) return;
   const view = await change<GearSold>(ctx, 'sell', '/api/gear/sell', { copies }, 'Could not sell those. Try again.');
   // It paid zeiucoins (or whatever the refusal was, the balance may be old): the header's balance follows.
@@ -48,8 +31,5 @@ export async function sell(ctx: GearContext): Promise<void> {
   if (!view) return;
   ctx.selling = null;
   render(ctx);
-  if (view.sold) {
-    ctx.ui.status.hidden = false;
-    ctx.ui.status.append(`Sold ${view.sold.count} item${view.sold.count === 1 ? '' : 's'} for ${points(view.sold.earned)} `, coin('coin', 'zeiucoins'));
-  }
+  if (view.sold) saleSaid(ctx.ui.status, view.sold);
 }

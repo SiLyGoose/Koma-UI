@@ -1,4 +1,4 @@
-import { armoryFilter, type ArmoryFilter, equippedIds, forgePlan, type GearCopy, type GearView, type Slot, type StarChoice } from '../shared/items';
+import { armoryFilter, armoryGrid, type ArmoryFilter, type ArmoryGrid, equippedIds, forgePlan, type GearCopy, type GearView, type Slot, type StarChoice } from '../shared/items';
 import type { Busy } from '../shared/ui';
 import { currentMe, currentServer } from '../site/session';
 
@@ -17,7 +17,8 @@ export interface ForgeUi {
   cost: HTMLElement;
   go: HTMLButtonElement;
   armoryTitle: HTMLElement;
-  grid: HTMLElement;
+  /** The armory's cards (../shared/items/armory.ts). */
+  grid: ArmoryGrid<GearCopy>;
   search: HTMLInputElement;
   /** The armory's Filter: its type, its stars, and Refineable. */
   filter: ArmoryFilter;
@@ -45,8 +46,6 @@ export interface ForgeContext {
   doneWell: boolean;
   /** A refine or forge on its way (its button: 'strike'): the page waits for it before taking another. */
   busy: Busy | null;
-  /** How many cards across the armory is (3 to 5, by the screen: ../shared/items/items.css), so its blanks fill out the last row. */
-  gridColumns: number;
 }
 
 export function createContext(root: HTMLElement): ForgeContext {
@@ -66,7 +65,7 @@ export function createContext(root: HTMLElement): ForgeContext {
       cost: $('cost'),
       go: $<HTMLButtonElement>('go'),
       armoryTitle: $('armory-title'),
-      grid: $('armory-grid'),
+      grid: armoryGrid<GearCopy>($('armory-grid')),
       search: $<HTMLInputElement>('armory-search'),
       filter: armoryFilter($('armory-filter')),
       result: $('result'),
@@ -81,7 +80,6 @@ export function createContext(root: HTMLElement): ForgeContext {
     done: null,
     doneWell: true,
     busy: null,
-    gridColumns: 0,
   };
 }
 

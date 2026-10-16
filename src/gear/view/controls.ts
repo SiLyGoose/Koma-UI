@@ -1,11 +1,11 @@
 import { dropdown } from '../../shared/ui';
-import { hoverSound, itemPicked, type Slot } from '../../shared/items';
+import { hoverSound, itemPicked, type Slot, wireSaleDialog, wireSearch } from '../../shared/items';
 import { change, loadGear, unequipEverything } from './api';
 import { botHasClasses, classPickKey, fillClassPick, pickClass, renderClass, showClassPick, type HeroClass } from './classes';
 import type { GearContext } from './context';
 import { unpick } from './detail';
 import { showMenu } from './foot';
-import { columns, renderGrid } from './grid';
+import { renderGrid } from './grid';
 import { render } from './render';
 import { loadMembers, renderRoster } from './roster';
 import { confirmSale, pickToSell, sell } from './selling';
@@ -35,17 +35,8 @@ export function wireControls(ctx: GearContext): () => void {
     render(ctx);
   });
 
-  ui.search.addEventListener('input', () => {
-    ctx.query = ui.search.value.trim().toLowerCase();
-    renderGrid(ctx);
-  });
-  // Escape in the search empties it (every browser, not just those that do it themselves), and does nothing else.
-  ui.search.addEventListener('keydown', (event) => {
-    if (event.key !== 'Escape' || ui.search.value === '') return;
-    event.preventDefault();
-    event.stopPropagation();
-    ui.search.value = '';
-    ctx.query = '';
+  wireSearch(ui.search, (query) => {
+    ctx.query = query;
     renderGrid(ctx);
   });
 
@@ -65,13 +56,7 @@ export function wireControls(ctx: GearContext): () => void {
   ui.unequipAll.addEventListener('click', () => void unequipEverything(ctx));
   ui.sell.addEventListener('click', () => (ctx.selling ? confirmSale(ctx) : pickToSell(ctx, true)));
   ui.sellCancel.addEventListener('click', () => pickToSell(ctx, false));
-  ui.sellConfirm.addEventListener('click', (event) => {
-    const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-sell]');
-    // A click on the backdrop (the dialog itself, outside its box) cancels too.
-    if (!button && event.target !== ui.sellConfirm) return;
-    ui.sellConfirm.close();
-    if (button?.dataset.sell === 'confirm') void sell(ctx);
-  });
+  wireSaleDialog(ui.sellConfirm, () => void sell(ctx));
   ui.loadoutButton.addEventListener('click', (event) => {
     event.stopPropagation();
     showMenu(ctx, ui.loadoutMenu.hidden);
@@ -124,10 +109,6 @@ export function wireControls(ctx: GearContext): () => void {
     } else if (ctx.picked) unpick(ctx);
     else if (ctx.selling) pickToSell(ctx, false);
   };
-  // A resize that changes how many cards fit across refills the blanks.
-  const onResize = (): void => {
-    if (ctx.gridColumns && columns(ctx) !== ctx.gridColumns) renderGrid(ctx);
-  };
   // Come back to (another tab, another window): the roster as it is now.
   const onVisible = (): void => {
     if (document.visibilityState === 'visible' && !ctx.party) void loadMembers(ctx, true);
@@ -135,13 +116,12 @@ export function wireControls(ctx: GearContext): () => void {
   document.addEventListener('click', onClick);
   document.addEventListener('keydown', onKey);
   document.addEventListener('visibilitychange', onVisible);
-  window.addEventListener('resize', onResize);
 
   return () => {
     document.removeEventListener('click', onClick);
     document.removeEventListener('keydown', onKey);
     document.removeEventListener('visibilitychange', onVisible);
-    window.removeEventListener('resize', onResize);
+    ui.grid.destroy();
     if (ui.sellConfirm.open) ui.sellConfirm.close();
     serverPicker.destroy();
     ui.filter.destroy();

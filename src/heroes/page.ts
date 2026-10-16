@@ -1,5 +1,6 @@
 import markup from './heroes.html?raw';
 import { API } from '../shared/ui';
+import { go } from '../site/nav';
 import type { Page } from '../site/page';
 import { api, currentMe, currentServer, loadMe, logOut, setServer } from '../site/session';
 import { mountHeroes } from './view';
@@ -10,6 +11,6 @@ export const heroesPage: Page = {
   title: 'Heroes · Komaverse',
   icon: '🐲',
   markup,
-  mount: (root) => mountHeroes(root, { api, ready: !!API, me: currentMe, loadMe, server: currentServer, setServer, logOut }),
+  mount: (root) => mountHeroes(root, { api, ready: !!API, me: currentMe, loadMe, server: currentServer, setServer, logOut, site: true, go: (href) => go(href) }),
 };
 

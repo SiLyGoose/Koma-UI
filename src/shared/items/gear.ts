@@ -14,7 +14,7 @@ export type { GearCopy, GearLoadout, GearRefine, GearView, RefineBlock, StatRow,
  * The copies in the order the armories show them: by star tier (4 stars first), then by name, A to Z
  * (so an item's copies sit together), then each item's copies from the most refined down.
  */
-export function armoryOrder(copies: readonly GearCopy[]): GearCopy[] {
+export function armoryOrder<C extends { id: string; itemId: string; name: string; level: number; stars: number; heroOnly?: boolean; uniqueWeapon?: string | null }>(copies: readonly C[]): C[] {
   // TechnoMagic gear first: a tier of its own, above 4 stars; then the unique weapons.
   const tier = tierRank;
   return [...copies].sort(

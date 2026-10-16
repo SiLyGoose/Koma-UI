@@ -1,4 +1,4 @@
-import { armoryFilter, type ArmoryFilter, type GearCopy, type GearView, type Slot, type StarChoice } from '../../shared/items';
+import { armoryFilter, armoryGrid, type ArmoryFilter, type ArmoryGrid, type GearCopy, type GearView, type Slot, type StarChoice } from '../../shared/items';
 import type { Busy } from '../../shared/ui';
 import type { GearHost, Member } from './types';
 
@@ -20,7 +20,8 @@ export interface GearUi {
   search: HTMLInputElement;
   /** The armory's Filter: its type and stars. */
   filter: ArmoryFilter;
-  grid: HTMLElement;
+  /** The armory's cards (../../shared/items/armory.ts). */
+  grid: ArmoryGrid<GearCopy>;
   detail: HTMLElement;
   loadoutButton: HTMLButtonElement;
   loadoutMenu: HTMLElement;
@@ -67,8 +68,6 @@ export interface GearContext {
   selling: Set<string> | null;
   /** The loadout being named in the menu (null when none is): its number, what's typed so far, and why the bot wouldn't have it. */
   renaming: { number: number; value: string; error: string | null } | null;
-  /** How many cards across the armory is (3 to 5, by the screen: ../../shared/items/items.css), so its blanks fill out the last row. */
-  gridColumns: number;
 }
 
 export function createContext(root: HTMLElement, host: GearHost): GearContext {
@@ -93,7 +92,7 @@ export function createContext(root: HTMLElement, host: GearHost): GearContext {
       armoryTitle: $('armory-title'),
       search: $<HTMLInputElement>('armory-search'),
       filter: armoryFilter($('armory-filter')),
-      grid: $('armory-grid'),
+      grid: armoryGrid<GearCopy>($('armory-grid')),
       detail: $('detail'),
       loadoutButton: $<HTMLButtonElement>('loadout-button'),
       loadoutMenu: $('loadout-menu'),
@@ -123,7 +122,6 @@ export function createContext(root: HTMLElement, host: GearHost): GearContext {
     loads: 0,
     selling: null,
     renaming: null,
-    gridColumns: 0,
   };
 }
 

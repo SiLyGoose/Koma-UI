@@ -1,5 +1,6 @@
-import { itemDetailsClosed } from '../shared/items';
+import { askSale, itemDetailsClosed, saleOf, saleSaid, wireSaleDialog, wireSearch } from '../shared/items';
 import { HERO_CLASSES, HERO_SLOT_KIND, type HeroCopy, type HeroSlot, type HeroesView } from '../shared/heroes';
+import type { HeroesSold } from '../protocol/heroes';
 import { busyWith, dropdown, fillServers } from '../shared/ui';
 import { createContext, heroShown, mine, status, type HeroesContext, type HeroesHost, type HeroMember } from './context';
 import { render, type HeroActions } from './render';
@@ -10,8 +11,9 @@ import { render, type HeroActions } from './render';
  * Heroes tab, ../hero-shop/). The one picked stands on the stage with its five slots: two weapons on the
  * left, two armors on the right and its treasure under it. Beside it, the gear a hero can wear (the raid's,
  * and the TechnoMagic Raid's): picking a copy shows what it does on the hero and equips it (into the slot
- * last pressed, or the first free one of its kind; off any other hero it was on), and pressing a slot shows
- * what fits in it. The Stats tab has the hero's stats in the raid, with and without its gear; the Skills tab
+ * last pressed, or the first free one of its kind; off any other hero it was on), locks it, and its Upgrade goes to
+ * the forge with it on the anvil (as the gear page's); pressing a slot shows what fits in it. Under the armory, selling copies (pick them,
+ * then confirm), as the gear page does; locking and selling are the site's only, not the raid's Manage popup's. The Stats tab has the hero's stats in the raid, with and without its gear; the Skills tab
  * its skills, in King's Raid's own words (./skills.ts); the Transcend tab its transcendence perks, which are
  * picked there (./transcend.ts: the TP they cost, out of what its level gives), and the Stats tab transcends it (T0 to
  * T5, for its class's hero essences and komaGems). A copy can be
@@ -72,6 +74,8 @@ function failed(ctx: HeroesContext, act: HeroActions, res: { status: number; err
             ? 'Not enough hero essences or komaGems to transcend this hero.'
           : res.error === 'maxed'
             ? 'This hero is as transcended as it gets.'
+          : res.error === 'nothing_to_sell'
+            ? 'None of those can be sold any more. Take another look and try again.'
             : res.status === 404
               ? 'Heroes aren’t on the bot yet.'
               : what),
@@ -145,23 +149,44 @@ function show(ctx: HeroesContext, act: HeroActions, view: HeroesView): void {
   render(ctx, act);
 }
 
-/** Sends a change to the bot (one at a time), and draws their heroes as it answers. */
-async function change(ctx: HeroesContext, act: HeroActions, key: string, path: string, body: Record<string, unknown>, what: string, said?: Partial<Record<string, string>>): Promise<boolean> {
+/** Sends a change to the bot (one at a time), and draws their heroes as it answers (null: it didn't go through). */
+async function change<T extends HeroesView = HeroesView>(ctx: HeroesContext, act: HeroActions, key: string, path: string, body: Record<string, unknown>, what: string, said?: Partial<Record<string, string>>): Promise<T | null> {
   const server = ctx.host.server();
   // Only their own heroes are theirs to change.
-  if (ctx.busy || !server || !mine(ctx)) return false;
+  if (ctx.busy || !server || !mine(ctx)) return null;
   ctx.busy = busyWith(key);
   status(ctx, null);
   render(ctx, act);
-  const res = await ctx.host.api<HeroesView>(path, { method: 'POST', body: JSON.stringify({ guild: server, ...body }) });
+  const res = await ctx.host.api<T>(path, { method: 'POST', body: JSON.stringify({ guild: server, ...body }) });
   ctx.busy = null;
   if (!res.ok) {
     render(ctx, act);
     failed(ctx, act, res, what, said);
-    return false;
+    return null;
   }
   show(ctx, act, res.data);
-  return true;
+  return res.data;
+}
+
+/** Starts or stops picking copies to sell. */
+function pickToSell(ctx: HeroesContext, act: HeroActions, on: boolean): void {
+  ctx.selling = on ? new Set() : null;
+  ctx.picked = null;
+  if (on) ctx.tab = 'gear';
+  render(ctx, act);
+}
+
+/** Sells what's picked, and says what it came to. */
+async function sell(ctx: HeroesContext, act: HeroActions): Promise<void> {
+  const copies = saleOf(ctx.view?.copies ?? [], ctx.selling).ids;
+  if (copies.length === 0) return;
+  const view = await change<HeroesSold>(ctx, act, 'sell', '/api/heroes/sell', { copies }, 'Could not sell those. Try again.');
+  // It paid zeiucoins (or whatever the refusal was, the balance may be old): the header's balance follows.
+  void ctx.host.loadMe(true);
+  if (!view) return;
+  ctx.selling = null;
+  render(ctx, act);
+  saleSaid(ctx.ui.status, view.sold);
 }
 
 function actions(ctx: HeroesContext): HeroActions {
@@ -198,13 +223,9 @@ function actions(ctx: HeroesContext): HeroActions {
       const hero = ctx.hero;
       if (hero) void change(ctx, act, 'transcend', '/api/heroes/transcend', { hero }, 'Could not transcend this hero. Try again.');
     },
-    refine(copy: HeroCopy) {
-      void change(ctx, act, `refine:${copy.id}`, '/api/heroes/refine', { copy: copy.id }, 'Could not upgrade that. Try again.', {
-        too_poor: 'Not enough zeiucoins to upgrade that.',
-        no_duplicate: `You need another ${copy.name} to use up as material.`,
-        maxed: `${copy.name} is fully refined.`,
+    lock(copy: HeroCopy, locked: boolean) {
+      void change(ctx, act, `lock:${copy.id}`, '/api/heroes/lock', { copy: copy.id, locked }, locked ? 'Could not lock that. Try again.' : 'Could not unlock that. Try again.', {
         not_found: "That item isn't yours any more.",
-        busy: 'Your gear changed meanwhile. Try again.',
       });
     },
   };
@@ -219,6 +240,7 @@ function wire(ctx: HeroesContext, act: HeroActions): () => void {
     ctx.host.setServer(ui.server.value);
     ctx.picked = null;
     ctx.target = null;
+    ctx.selling = null;
     // Back to their own heroes, in the new server.
     ctx.viewing = null;
     ctx.members = [];
@@ -232,6 +254,7 @@ function wire(ctx: HeroesContext, act: HeroActions): () => void {
     ctx.viewing = ctx.members.find((m) => !m.you && m.userId === ui.member.value) ?? null;
     ctx.picked = null;
     ctx.target = null;
+    ctx.selling = null;
     void load(ctx, act);
   });
 
@@ -243,23 +266,18 @@ function wire(ctx: HeroesContext, act: HeroActions): () => void {
     if (ctx.target && HERO_SLOT_KIND[ctx.target] !== ctx.filter) ctx.target = null;
     render(ctx, act);
   });
-  ui.search.addEventListener('input', () => {
-    ctx.query = ui.search.value.trim().toLowerCase();
-    render(ctx, act);
-  });
-  ui.search.addEventListener('keydown', (event) => {
-    if (event.key !== 'Escape' || ui.search.value === '') return;
-    event.preventDefault();
-    event.stopPropagation();
-    ui.search.value = '';
-    ctx.query = '';
+  wireSearch(ui.search, (query) => {
+    ctx.query = query;
     render(ctx, act);
   });
 
   for (const tab of ui.views) {
     tab.addEventListener('click', () => {
       ctx.tab = tab.dataset.view as HeroesContext['tab'];
-      if (ctx.tab !== 'gear') ctx.picked = null;
+      if (ctx.tab !== 'gear') {
+        ctx.picked = null;
+        ctx.selling = null;
+      }
       render(ctx, act);
     });
   }
@@ -270,6 +288,13 @@ function wire(ctx: HeroesContext, act: HeroActions): () => void {
       const slot = button.dataset.slot as HeroSlot;
       const kind = HERO_SLOT_KIND[slot];
       ctx.tab = 'gear';
+      // While picking copies to sell, a slot only shows what fits in it.
+      if (ctx.selling) {
+        const again = ctx.target === slot && ctx.filter === kind;
+        ctx.target = again ? null : slot;
+        ctx.filter = again ? 'all' : kind;
+        return render(ctx, act);
+      }
       if (ctx.target === slot && ctx.filter === kind) {
         ctx.target = null;
         ctx.filter = 'all';
@@ -290,18 +315,31 @@ function wire(ctx: HeroesContext, act: HeroActions): () => void {
     if (hero) void change(ctx, act, 'unequip-all', '/api/heroes/unequip', { hero }, 'Could not take everything off. Try again.');
   });
 
-  // Escape closes the picked copy.
+  // Sell: to start picking copies, then (with some picked) to confirm the sale; Cancel stops picking.
+  ui.sell.addEventListener('click', () => {
+    if (!ctx.selling) return pickToSell(ctx, act, true);
+    const { count, total } = saleOf(ctx.view?.copies ?? [], ctx.selling);
+    askSale(ui.sellConfirm, count, total);
+  });
+  ui.sellCancel.addEventListener('click', () => pickToSell(ctx, act, false));
+  wireSaleDialog(ui.sellConfirm, () => void sell(ctx, act));
+
+  // Escape closes the picked copy, else stops picking copies to sell (the sale's confirmation closes itself).
   const onKey = (event: KeyboardEvent): void => {
-    if (event.key !== 'Escape' || !ctx.picked) return;
-    itemDetailsClosed();
-    ctx.picked = null;
-    render(ctx, act);
+    if (event.key !== 'Escape' || ui.sellConfirm.open) return;
+    if (ctx.picked) {
+      itemDetailsClosed();
+      ctx.picked = null;
+      render(ctx, act);
+    } else if (ctx.selling) pickToSell(ctx, act, false);
   };
   document.addEventListener('keydown', onKey);
   return () => {
     document.removeEventListener('keydown', onKey);
+    if (ui.sellConfirm.open) ui.sellConfirm.close();
     serverPicker.destroy();
     memberPicker.destroy();
     ui.filter.destroy();
+    ui.grid.destroy();
   };
 }

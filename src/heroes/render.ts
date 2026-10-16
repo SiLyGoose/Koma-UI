@@ -1,8 +1,7 @@
-import { art, el, hoverSound, itemDetailsClosed, itemFace, itemPicked, lockBadge, matchesSearch, matchesStars, rich, statBlocks, tierOf, SLOT_NAME, stars as starRow, tmMarks, tmSections, uwMarks } from '../shared/items';
+import { art, drawSell, el, forgeLink, itemDetailsClosed, itemPicked, lockToggle, pruneSale, replacesNote, rich, sellsFor, showDetail, statBlocks, SLOT_NAME, stars as starRow, tmMarks, tmSections, upgradeButton, uwMarks } from '../shared/items';
 import { classBadge, className, FACE, HERO_SLOT_KIND, heroCut, heroPicture, skillText, STAGE_ZOOM, type HeroView, type HeroCopy, type HeroSlot } from '../shared/heroes';
-import { doneMark, working } from '../shared/ui';
-import { points } from '../shared/util';
-import { copyById, heroShown, mine, slotFor, slotOf, type HeroesContext } from './context';
+import { working } from '../shared/ui';
+import { canTrade, copyById, heroShown, mine, slotFor, slotOf, type HeroesContext } from './context';
 import { heroSkills } from './skills';
 import type { HeroSkillView } from '../protocol/heroes';
 import { heroStats } from './stats';
@@ -23,12 +22,9 @@ export interface HeroActions {
   perks(perks: string[], key: string): void;
   /** Transcends the hero shown a level. */
   transcend(): void;
-  /** Refines a copy a level (a spare copy of it used up). */
-  refine(copy: HeroCopy): void;
+  /** Locks or unlocks a copy. */
+  lock(copy: HeroCopy, locked: boolean): void;
 }
-
-/** The armory always shows at least this many cells (rounded up to a full row), and fills out its last row. */
-const GRID_CELLS = 12;
 
 /** A slot's name under it. */
 const slotName = (slot: HeroSlot): string => SLOT_NAME[HERO_SLOT_KIND[slot]];
@@ -46,6 +42,9 @@ export function render(ctx: HeroesContext, act: HeroActions): void {
   const hero = heroShown(ctx);
   ui.page.classList.toggle('unowned', hero?.owned === false);
   ui.filter.show({ slot: ctx.filter, stars: ctx.stars, owned: null, refineable: null, cls: ctx.cls, heroGear: null });
+  // Not theirs to sell (someone else's, or the raid's Manage popup); and copies sold, put on or locked meanwhile aren't picked any more.
+  if (!canTrade(ctx)) ctx.selling = null;
+  if (ctx.selling) pruneSale(view.copies, ctx.selling);
   renderRoster(ctx, act);
   renderStage(ctx);
   renderSlots(ctx);
@@ -61,10 +60,11 @@ export function render(ctx: HeroesContext, act: HeroActions): void {
   ui.skills.classList.toggle('off', ctx.tab !== 'skills');
   ui.transcend.classList.toggle('off', ctx.tab !== 'transcend');
   for (const tab of ui.views) tab.setAttribute('aria-selected', String(tab.dataset.view === ctx.tab));
-  // Someone else's heroes are only to look at.
-  ui.unequipAll.hidden = !mine(ctx);
+  // Someone else's heroes are only to look at. Sell: to start picking, then (with some picked) to confirm.
+  ui.unequipAll.hidden = !mine(ctx) || ctx.selling !== null;
   ui.unequipAll.disabled = !hero?.owned || Object.values(hero.equipped).every((id) => id === null);
   working(ui.unequipAll, ctx.busy, 'unequip-all');
+  drawSell(ui.sell, ui.sellCancel, view.copies, ctx.selling, ctx.busy, canTrade(ctx));
 }
 
 /** A picture cut out for a hero, put in `img` once it's ready (its initial in `fallback` until then, or for good with none). */
@@ -204,164 +204,117 @@ function renderTotals(ctx: HeroesContext): void {
   for (const line of perkEffects) ui.perkEffects.appendChild(el('li')).append(rich(line));
 }
 
-/** How many cards across the armory is now. */
-const columns = (grid: HTMLElement): number => getComputedStyle(grid).gridTemplateColumns.split(' ').length || 4;
-
-/** The gear a hero can wear: every copy shown (by the filter, the stars and the search), then blanks to fill out the last row. */
+/** The gear a hero can wear (../shared/items/armory.ts): every copy shown (by the filter, the stars, the class and the search), then blanks to fill out the last row. */
 function renderGrid(ctx: HeroesContext, act: HeroActions): void {
   const { ui, view, filter, stars, cls, query } = ctx;
   if (!view) return;
   const hero = heroShown(ctx);
-  const across = columns(ui.grid);
-  const sheet = ui.grid.parentElement as HTMLElement;
-  const scrolled = sheet.scrollTop;
-  ui.grid.textContent = '';
-  const ofSlot = view.copies.filter((copy) => filter === 'all' || copy.slot === filter);
-  const shown = ofSlot.filter((copy) => (cls === 'all' || copy.class === null || copy.class === cls) && matchesStars(stars, tierOf(copy)) && matchesSearch(query, { name: copy.name, id: copy.itemId, description: copy.description }));
-  for (const copy of shown) {
-    const card = el('button', 'item');
-    card.type = 'button';
-    card.dataset.stars = String(copy.stars);
-    card.classList.toggle('picked', copy.id === ctx.picked);
-    card.classList.toggle('inert', !worksOn(copy, hero) || !wieldable(copy, hero));
-    const onThis = copy.hero !== null && copy.hero === hero?.id;
-    const other = copy.hero !== null && !onThis ? view.heroes.find((one) => one.id === copy.hero) : undefined;
-    card.setAttribute('aria-label', `${copy.name}, ${copy.stars} stars, R${copy.level}${onThis ? ', equipped' : other ? `, on ${other.name}` : ''}`);
-    if (onThis) card.append(el('span', 'item-tag', 'Equipped'));
-    else if (other) card.append(el('span', 'item-tag elsewhere', `On ${other.name}`));
-    card.append(...itemFace(copy));
-    if (copy.locked) card.append(lockBadge());
-    card.dataset.sfx = 'own';
-    hoverSound(card, copy.id, () => true);
-    card.addEventListener('click', () => {
+  ui.grid.draw({
+    copies: view.copies,
+    slot: filter,
+    stars,
+    query,
+    matches: (copy) => cls === 'all' || copy.class === null || copy.class === cls,
+    look: (copy) => {
+      const onThis = copy.hero !== null && copy.hero === hero?.id;
+      const other = copy.hero !== null && !onThis ? view.heroes.find((one) => one.id === copy.hero) : undefined;
+      return {
+        tag: onThis ? { text: 'Equipped' } : other ? { text: `On ${other.name}`, className: 'elsewhere' } : null,
+        classes: { inert: !worksOn(copy, hero) || !wieldable(copy, hero) },
+      };
+    },
+    picked: ctx.picked,
+    selling: ctx.selling,
+    none: mine(ctx) ? 'No hero gear yet. Raid bosses drop it, the raid shop sells it, and the TechnoMagic Raid drops its own.' : `${ctx.viewing?.name} has no hero gear yet.`,
+    onPick: (copy) => {
       const before = ctx.picked;
-      ctx.picked = ctx.picked === copy.id ? null : copy.id;
+      const { selling } = ctx;
+      // Picking what to sell: the one picked last is shown over the hero (unpicking it shows the one before).
+      if (selling) {
+        if (selling.delete(copy.id)) {
+          if (ctx.picked === copy.id) ctx.picked = [...selling].at(-1) ?? null;
+        } else {
+          selling.add(copy.id);
+          ctx.picked = copy.id;
+        }
+      } else ctx.picked = ctx.picked === copy.id ? null : copy.id;
       render(ctx, act);
       itemPicked(before, ctx.picked);
-    });
-    ui.grid.append(card);
-  }
-  const row = (n: number): number => Math.ceil(n / across) * across;
-  const cells = Math.max(row(GRID_CELLS), row(shown.length));
-  for (let i = shown.length; i < cells; i++) ui.grid.append(el('span', 'item blank'));
-  if (shown.length === 0) {
-    const none = mine(ctx) ? 'No hero gear yet. Raid bosses drop it, the raid shop sells it, and the TechnoMagic Raid drops its own.' : `${ctx.viewing?.name} has no hero gear yet.`;
-    ui.grid.append(el('p', 'armory-empty', ofSlot.length > 0 ? 'No items match that.' : filter === 'all' ? none : `No ${SLOT_NAME[filter].toLowerCase()} yet.`));
-  }
-  sheet.scrollTop = scrolled;
+    },
+  });
 }
 
-/** A copy's effect lines on a hero (or that it has none). */
-function effectList(copy: HeroCopy, className = 'detail-effects'): HTMLElement {
-  const list = el('ul', className);
-  for (const line of copy.effects) list.appendChild(el('li')).append(rich(line));
-  if (copy.effects.length === 0) list.append(el('li', 'muted', 'No effects on a hero.'));
-  return list;
-}
+/** What a copy's effects say with none. */
+const NONE = 'No effects on a hero.';
 
 /** The picked copy over the hero: what it does on it, and Equip (where it would go) or Unequip. */
 function renderDetail(ctx: HeroesContext, act: HeroActions): void {
   const { ui, view } = ctx;
   const copy = copyById(ctx, ctx.picked);
   const hero = heroShown(ctx);
-  ui.detail.hidden = !copy;
   ui.page.classList.toggle('picking', !!copy);
-  ui.detail.textContent = '';
-  if (!copy || !view || !hero) return;
-  ui.detail.dataset.stars = String(copy.stars);
-  ui.detail.setAttribute('aria-label', copy.name);
+  if (!copy || !view || !hero) return showDetail(ui.detail, undefined);
 
-  const bar = el('div', 'detail-bar');
-  const close = el('button', 'detail-close', '✕');
-  close.type = 'button';
-  close.setAttribute('aria-label', 'Close');
-  close.dataset.sfx = 'own';
-  close.addEventListener('click', () => {
-    itemDetailsClosed();
-    ctx.picked = null;
-    render(ctx, act);
-  });
-  bar.append(el('h3', '', copy.name), close);
-
-  const top = el('div', 'detail-top');
-  const card = el('span', 'item detail-card');
-  card.dataset.stars = String(copy.stars);
-  card.append(...itemFace(copy));
-  const info = el('div', 'detail-info');
-  const kind = el('p', 'detail-kind', SLOT_NAME[copy.slot]);
-  if (copy.level >= copy.maxLevel) kind.append(el('span', 'detail-max', 'MAX'));
-  const rank = el('p', 'detail-rank', `R${copy.level}`);
-  rank.append(el('span', 'detail-rank-of', ` / ${copy.maxLevel}`));
-  info.append(kind, rank);
-  top.append(card, info);
-
-  const body = el('div', 'detail-body');
   // (TechnoMagic gear's set effect and additional effect, each apart under them: its potentials are its effects. On a hero of a class it doesn't
   // work on, none of it counts, not even its stats: all of it greyed out.)
   const fits = worksOn(copy, hero);
   const shown = fits ? copy : { ...copy, setEffect: copy.setEffect && { ...copy.setEffect, active: false }, additionalActive: false };
-  body.append(el('p', 'detail-desc', copy.description), el('p', 'detail-label', 'On a hero'), effectList(copy, fits ? 'detail-effects' : 'detail-effects off'), ...tmSections(shown));
-  if (copy.class !== null && !fits) {
-    body.append(el('p', 'detail-note warn', `Only works on ${className(copy.class)}s`));
-  }
+  const notes: HTMLElement[] = [];
+  if (copy.class !== null && !fits) notes.push(el('p', 'detail-note warn', `Only works on ${className(copy.class)}s`));
   const owner = copy.uniqueWeapon ? view.heroes.find((one) => one.id === copy.uniqueWeapon) : undefined;
-  if (copy.uniqueWeapon && !wieldable(copy, hero)) body.append(el('p', 'detail-note warn', `${owner?.name ?? 'Another hero'}’s unique weapon: only they can wield it.`));
+  if (copy.uniqueWeapon && !wieldable(copy, hero)) notes.push(el('p', 'detail-note warn', `${owner?.name ?? 'Another hero'}’s unique weapon: only they can wield it.`));
 
   const worn = slotOf(hero, copy.id);
   const other = copy.hero !== null && copy.hero !== hero.id ? view.heroes.find((one) => one.id === copy.hero) : undefined;
-  const scroll = el('div', 'detail-scroll');
-  scroll.append(bar, top, body);
-  ui.detail.append(scroll);
+  const actions: HTMLElement[] = [];
+  // Being sold: no buttons (the armory's Sell does it), just what it sells for (under its rank, below).
+  if (ctx.selling) {
+    if (worn) notes.push(el('p', 'detail-note', `${hero.name} wears this.`));
+    else if (other) notes.push(el('p', 'detail-note', `${other.name} wears this.`));
+  }
   // Someone else's: what it is and who wears it, nothing to change.
-  if (!mine(ctx)) {
-    if (worn) body.append(el('p', 'detail-note', `${hero.name} wears this.`));
-    else if (other) body.append(el('p', 'detail-note', `${other.name} wears this.`));
-    return;
+  else if (!mine(ctx)) {
+    if (worn) notes.push(el('p', 'detail-note', `${hero.name} wears this.`));
+    else if (other) notes.push(el('p', 'detail-note', `${other.name} wears this.`));
+  } else {
+    if (other) notes.push(el('p', 'detail-note', `${other.name} wears this now: equipping it on ${hero.name} takes it off them.`));
+    const into = worn ?? slotFor(ctx, copy);
+    const replaced = worn ? undefined : copyById(ctx, hero.equipped[into]);
+    if (replaced) notes.push(...replacesNote(replaced, NONE));
+    // Upgrade: to the forge, with this copy on the anvil (not while a change is on its way), whoever's page it's on.
+    actions.push(
+      upgradeButton(copy, () => {
+        if (!ctx.busy) ctx.host.go(forgeLink(copy));
+      }),
+    );
+    if (!hero.owned) notes.push(el('p', 'detail-note', notRecruited(ctx, hero.name, 'put gear on them')));
+    // (Another hero's unique weapon: nothing to equip it with here, unless it's to come off.)
+    else if (worn || wieldable(copy, hero)) {
+      if (copy.uniqueWeapon && !worn) notes.push(el('p', 'detail-note', `A unique weapon only goes in ${slotLabel(into)}.`));
+      const action = el('button', `detail-action action ${worn ? 'secondary' : 'main'}`, worn ? 'Unequip' : `Equip as ${slotLabel(into)}`);
+      action.type = 'button';
+      working(action, ctx.busy, worn ? `unequip:${worn}` : `equip:${copy.id}`);
+      action.addEventListener('click', () => (worn ? act.unequip(worn) : act.equip(copy, into)));
+      actions.push(action);
+    }
   }
 
-  if (other) body.append(el('p', 'detail-note', `${other.name} wears this now: equipping it on ${hero.name} takes it off them.`));
-  const into = worn ?? slotFor(ctx, copy);
-  const replaced = worn ? undefined : copyById(ctx, hero.equipped[into]);
-  if (replaced) body.append(el('p', 'detail-replaces', `Replaces ${replaced.name} (R${replaced.level})`), effectList(replaced, 'detail-effects detail-replaced'));
-  const foot = el('div', 'detail-foot');
-  // A unique weapon: Upgrade, refining it here (a spare copy of it and zeiucoins used up), whoever's page it's on.
-  if (copy.uniqueWeapon) foot.append(upgradeFor(ctx, act, copy, body));
-  if (!hero.owned) body.append(el('p', 'detail-note', notRecruited(ctx, hero.name, 'put gear on them')));
-  // (Another hero's unique weapon: nothing to equip it with here, unless it's to come off.)
-  else if (worn || wieldable(copy, hero)) {
-    if (copy.uniqueWeapon && !worn) body.append(el('p', 'detail-note', `A unique weapon only goes in ${slotLabel(into)}.`));
-    const action = el('button', `detail-action action ${worn ? 'secondary' : 'main'}`, worn ? 'Unequip' : `Equip as ${slotLabel(into)}`);
-    action.type = 'button';
-    working(action, ctx.busy, worn ? `unequip:${worn}` : `equip:${copy.id}`);
-    action.addEventListener('click', () => (worn ? act.unequip(worn) : act.equip(copy, into)));
-    foot.append(action);
-  }
-  if (foot.childElementCount > 0) ui.detail.append(foot);
-}
-
-/**
- * A unique weapon's Upgrade: refines it a level, using up a spare copy of it and zeiucoins, with what that costs (and
- * what's in the way, or what it does then) said in `body`. Fully refined, "✓ Max" in its place.
- */
-function upgradeFor(ctx: HeroesContext, act: HeroActions, copy: HeroCopy, body: HTMLElement): HTMLElement {
-  const { refine } = copy;
-  if (copy.level >= copy.maxLevel || refine.blocked === 'maxed') return doneMark('Max');
-  const have = ctx.view?.balance ?? 0;
-  const cost = refine.cost ?? 0;
-  const button = el('button', 'detail-action action secondary', 'Upgrade');
-  button.type = 'button';
-  button.disabled = refine.blocked !== null;
-  working(button, ctx.busy, `refine:${copy.id}`);
-  button.addEventListener('click', () => act.refine(copy));
-  if (refine.blocked === 'no_duplicate') body.append(el('p', 'detail-note warn', `Upgrading needs another ${copy.name} to use up as material.`));
-  else if (refine.blocked === 'too_poor') body.append(el('p', 'detail-note warn', `Upgrading to R${copy.level + 1} costs ${points(cost)} zeiucoins: you need ${points(cost - have)} more.`));
-  else {
-    const spare = refine.spare !== null && refine.spare > 1 ? ` (an R${refine.spare}: its refinement is lost)` : '';
-    body.append(el('p', 'detail-label', `At R${copy.level + 1}`));
-    if (refine.after) body.append(effectList({ ...copy, effects: refine.after }));
-    body.append(el('p', 'detail-note', `Upgrading costs ${points(cost)} zeiucoins and a spare ${copy.name}${spare}.`));
-  }
-  return button;
+  showDetail(ui.detail, copy, {
+    onClose: () => {
+      itemDetailsClosed();
+      ctx.picked = null;
+      render(ctx, act);
+    },
+    label: 'On a hero',
+    none: NONE,
+    effectsOff: !fits,
+    sections: tmSections(shown),
+    notes,
+    // Lock: theirs to toggle on the site (not while picking what to sell); else just shown when shut.
+    corner: lockToggle(copy, ctx.busy, canTrade(ctx) && !ctx.selling ? (locked) => act.lock(copy, locked) : null),
+    info: ctx.selling ? sellsFor(copy) : [],
+    actions,
+  });
 }
 
 /** A hero that isn't theirs yet: to the shop to `then`; someone else's, that they haven't recruited it. */

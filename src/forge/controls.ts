@@ -1,8 +1,9 @@
+import { wireSearch } from '../shared/items';
 import { dropdown } from '../shared/ui';
 import { setServer } from '../site/session';
 import { loadGear, strikeAnvil } from './api';
 import type { ForgeContext } from './context';
-import { columns, renderGrid } from './grid';
+import { renderGrid } from './grid';
 import { clear } from './picking';
 import { render } from './render';
 import { closeResult, resultOpen } from './result';
@@ -27,17 +28,8 @@ export function wireControls(ctx: ForgeContext): () => void {
     render(ctx);
   });
 
-  ui.search.addEventListener('input', () => {
-    ctx.query = ui.search.value.trim().toLowerCase();
-    renderGrid(ctx);
-  });
-  // Escape in the search empties it (every browser, not just those that do it themselves), and does nothing else.
-  ui.search.addEventListener('keydown', (event) => {
-    if (event.key !== 'Escape' || ui.search.value === '') return;
-    event.preventDefault();
-    event.stopPropagation();
-    ui.search.value = '';
-    ctx.query = '';
+  wireSearch(ui.search, (query) => {
+    ctx.query = query;
     renderGrid(ctx);
   });
 
@@ -71,16 +63,11 @@ export function wireControls(ctx: ForgeContext): () => void {
     clear(ctx);
     render(ctx);
   };
-  // A resize that changes how many cards fit across refills the blanks.
-  const onResize = (): void => {
-    if (ctx.gridColumns && columns(ctx) !== ctx.gridColumns) renderGrid(ctx);
-  };
   document.addEventListener('keydown', onKey);
-  window.addEventListener('resize', onResize);
 
   return () => {
     document.removeEventListener('keydown', onKey);
-    window.removeEventListener('resize', onResize);
+    ui.grid.destroy();
     serverPicker.destroy();
     ui.filter.destroy();
   };

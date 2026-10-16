@@ -1,9 +1,7 @@
-import { coin, points } from '../../shared/util';
-import { art, el, type Slot, SLOT_NAME } from '../../shared/items';
+import { art, drawSell, el, type Slot, SLOT_NAME } from '../../shared/items';
 import { working } from '../../shared/ui';
 import { LOADOUT_NAME_MAX, renameLoadout, switchTo } from './api';
 import { canRename, copyById, mine, wearOnly, type GearContext } from './context';
-import { sale } from './selling';
 
 const SLOTS: Slot[] = ['weapon', 'armor', 'treasure'];
 
@@ -27,16 +25,8 @@ export function renderFoot(ctx: GearContext): void {
   ui.unequipAll.disabled = SLOTS.every((slot) => !gear.equipped[slot]);
   working(ui.unequipAll, busy, 'unequip-all');
   ui.unequipAll.hidden = !mine(ctx) || selling !== null;
-  // Sell: to start picking, then (with some picked) to confirm. A bot from before selling on the site prices nothing.
-  const { count, total } = sale(ctx);
-  ui.sell.hidden = !mine(ctx) || wearOnly(ctx) || gear.copies.some((c) => c.sell === undefined);
-  ui.sell.textContent = '';
-  if (selling && count > 0) ui.sell.append(`Sell ${count} · ${points(total)}`, coin('coin', 'zeiucoins'));
-  else ui.sell.append(selling ? 'Select items' : 'Sell');
-  ui.sell.disabled = selling ? count === 0 : !gear.copies.some((c) => typeof c.sell === 'number');
-  working(ui.sell, busy, 'sell');
-  ui.sell.classList.toggle('on', selling !== null);
-  ui.sellCancel.hidden = selling === null;
+  // Sell: to start picking, then (with some picked) to confirm.
+  drawSell(ui.sell, ui.sellCancel, gear.copies, selling, busy, mine(ctx) && !wearOnly(ctx));
   renderMenu(ctx);
 }
 

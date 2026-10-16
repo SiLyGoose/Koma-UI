@@ -1,7 +1,7 @@
 import { characterOf } from '../../shared/characters';
-import { el, rich } from '../../shared/items';
+import { el, pruneSale, rich } from '../../shared/items';
 import { renderClass } from './classes';
-import { copyById, mine, wearOnly, type GearContext } from './context';
+import { mine, wearOnly, type GearContext } from './context';
 import { renderDetail } from './detail';
 import { renderFoot } from './foot';
 import { renderGrid } from './grid';
@@ -19,7 +19,7 @@ export function render(ctx: GearContext): void {
   ui.gear.classList.toggle('peeking', !mine(ctx));
   // Someone else's gear isn't theirs to sell; and copies sold, or put on, meanwhile aren't picked any more.
   if (!mine(ctx) || wearOnly(ctx)) ctx.selling = null;
-  for (const id of ctx.selling ?? []) if (typeof copyById(ctx, id)?.sell !== 'number') ctx.selling?.delete(id);
+  if (ctx.selling) pruneSale(ctx.gear.copies, ctx.selling);
   ui.heroName.textContent = name;
   renderClass(ctx);
   const character = characterOf(ctx.gear.outfit);

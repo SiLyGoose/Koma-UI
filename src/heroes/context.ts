@@ -1,4 +1,4 @@
-import { armoryFilter, type ArmoryFilter, type Slot, type StarChoice } from '../shared/items';
+import { armoryFilter, armoryGrid, type ArmoryFilter, type ArmoryGrid, type Slot, type StarChoice } from '../shared/items';
 import { HERO_SLOT_KIND, HERO_SLOTS, type HeroView, type HeroCopy, type HeroSlot, type HeroesView } from '../shared/heroes';
 import type { Busy } from '../shared/ui';
 import type { ApiResult } from '../site/session';
@@ -14,11 +14,16 @@ export interface HeroesHost {
   ready: boolean;
   /** Their servers, for the server picker (null: no picker). */
   me(): { servers: { id: string; name: string }[] } | null;
-  loadMe(): Promise<ApiResult<unknown>>;
+  /** `fresh`: asked again, not the one already loaded (a sale changed their zeiucoins). */
+  loadMe(fresh?: boolean): Promise<ApiResult<unknown>>;
   server(): string | null;
   setServer(id: string): void;
   /** The login (or link) has run out. */
   logOut(): void;
+  /** The site's own login, not a game's link: selling and locking their gear are the site's only (as the gear page's). */
+  site: boolean;
+  /** Goes to another of the site's pages (the forge, from a copy's Upgrade). */
+  go(href: string): void;
 }
 
 /** The page's elements, found once in its root. */
@@ -44,8 +49,12 @@ export interface HeroesUi {
   armoryTitle: HTMLElement;
   search: HTMLInputElement;
   filter: ArmoryFilter;
-  grid: HTMLElement;
+  /** The armory's cards (../shared/items/armory.ts). */
+  grid: ArmoryGrid<HeroCopy>;
   unequipAll: HTMLButtonElement;
+  sell: HTMLButtonElement;
+  sellCancel: HTMLButtonElement;
+  sellConfirm: HTMLDialogElement;
   stats: HTMLElement;
   statsTitle: HTMLElement;
   statsList: HTMLElement;
@@ -86,6 +95,8 @@ export interface HeroesContext {
   picked: string | null;
   /** A change on its way, and its button: the page waits for it before taking another. */
   busy: Busy | null;
+  /** Picking copies to sell: the ones picked (null when not selling). The cards then toggle, rather than show what they do. */
+  selling: Set<string> | null;
   /** Who in the server has heroes to look at (them first), and whose are shown: null for their own. */
   members: HeroMember[];
   viewing: HeroMember | null;
@@ -128,8 +139,11 @@ export function createContext(root: HTMLElement, host: HeroesHost): HeroesContex
       armoryTitle: $('armory-title'),
       search: $<HTMLInputElement>('armory-search'),
       filter: armoryFilter($('armory-filter')),
-      grid: $('armory-grid'),
+      grid: armoryGrid<HeroCopy>($('armory-grid')),
       unequipAll: $<HTMLButtonElement>('unequip-all'),
+      sell: $<HTMLButtonElement>('sell'),
+      sellCancel: $<HTMLButtonElement>('sell-cancel'),
+      sellConfirm: $<HTMLDialogElement>('sell-confirm'),
       stats: $('stats'),
       statsTitle: $('stats-title'),
       statsList: $('stats-list'),
@@ -155,6 +169,7 @@ export function createContext(root: HTMLElement, host: HeroesHost): HeroesContex
     perk: null,
     picked: null,
     busy: null,
+    selling: null,
     members: [],
     viewing: null,
     loads: 0,
@@ -163,6 +178,9 @@ export function createContext(root: HTMLElement, host: HeroesHost): HeroesContex
 
 /** Whether the heroes shown are their own (theirs to change), not someone else's to look at. */
 export const mine = (ctx: HeroesContext): boolean => ctx.viewing === null;
+
+/** Whether their gear is theirs to sell and lock here: their own, on the site (not the raid's Manage popup). */
+export const canTrade = (ctx: HeroesContext): boolean => mine(ctx) && ctx.host.site;
 
 export const heroShown = (ctx: HeroesContext): HeroView | undefined => ctx.view?.heroes.find((hero) => hero.id === ctx.hero);
 

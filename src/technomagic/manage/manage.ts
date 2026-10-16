@@ -91,4 +91,8 @@ mountHeroes(root, {
     status.classList.add('bad');
     status.textContent = 'This raid link has run out. Open the TechnoMagic Raid again from the games page.';
   },
+  // Selling and locking stay on the site's heroes page.
+  site: false,
+  // The forge (a copy's Upgrade) in a tab of its own, leaving the raid's room as it is.
+  go: (href) => void window.open(new URL(href, location.origin).href, '_blank', 'noopener'),
 });
