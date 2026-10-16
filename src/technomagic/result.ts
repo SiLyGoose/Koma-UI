@@ -37,11 +37,11 @@ export interface Result {
 
 const className = (id: string): string => `${id[0]?.toUpperCase()}${id.slice(1)}`;
 
-/** A piece of gear's card, as the armories draw TechnoMagic gear (a new copy: R1). */
+/** A piece of gear's card, as the armories draw TechnoMagic gear (never refined: no rank). */
 function card(drop: DropView, extra = ''): HTMLElement {
   const face = el('span', `item ${extra}`.trim());
   face.dataset.stars = String(drop.stars);
-  face.append(...itemFace({ level: 1, itemId: drop.itemId, slot: drop.slot, stars: drop.stars, heroOnly: true, itemClass: drop.itemClass }));
+  face.append(...itemFace({ level: 1, maxLevel: 1, itemId: drop.itemId, slot: drop.slot, stars: drop.stars, heroOnly: true, itemClass: drop.itemClass }));
   return face;
 }
 

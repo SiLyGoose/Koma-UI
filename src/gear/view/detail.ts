@@ -47,7 +47,7 @@ export function renderDetail(ctx: GearContext): void {
   let info: HTMLElement[] = [];
   let actions: HTMLElement[] = [];
   if (selling) info = sellsFor(copy);
-  else if (mine(ctx)) actions = [...(wearOnly(ctx) ? [] : [upgrade]), ...(copy.heroOnly && !worn ? [] : [action])];
+  else if (mine(ctx)) actions = [...(wearOnly(ctx) || !upgrade ? [] : [upgrade]), ...(copy.heroOnly && !worn ? [] : [action])];
   else if (worn) info.push(el('span', 'detail-mw detail-worn', 'Equipped'));
 
   // (TechnoMagic gear's set effect and additional effect, each apart under them (its potentials are its effects): not

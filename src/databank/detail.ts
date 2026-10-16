@@ -111,7 +111,7 @@ export function renderDetail(ctx: DatabankContext): void {
   });
   head.append(art(item.id, item.slot), title, close);
 
-  // The level picker: R1 to the top.
+  // The level picker: R1 to the top (none for TechnoMagic gear, never refined).
   const levels = el('div', 'db-levels');
   levels.setAttribute('aria-label', 'Refinement level');
   for (let l = 1; l <= maxLevel; l++) {
@@ -132,7 +132,7 @@ export function renderDetail(ctx: DatabankContext): void {
   const tm = item.source === 'technomagic' && lines.length > 1;
   // (A unique treasure's: the options a copy can roll, folded away the same, then what it gives as its hero's main treasure.)
   const ut = item.uniqueTreasure ? treasureParts(lines) : null;
-  ui.detailBody.append(head, el('p', 'detail-desc', item.description), levels, ut ? effectSection('Potentials:', potentialList(ut.options)) : tm ? effectSection('Potentials:', potentialList(lines)) : effects);
+  ui.detailBody.append(head, el('p', 'detail-desc', item.description), ...(item.source === 'technomagic' ? [] : [levels]), ut ? effectSection('Potentials:', potentialList(ut.options)) : tm ? effectSection('Potentials:', potentialList(lines)) : effects);
   if (ut) ui.detailBody.append(...treasureSection(ut.main));
   // TechnoMagic gear: its set effect, then its additional effect (one of them, at random), each apart under its effects (the potentials a copy can roll).
   if (item.set?.pieces && item.set.effect) ui.detailBody.append(effectSection(`${item.set.pieces}-set effect:`, item.set.effect));
@@ -155,6 +155,7 @@ export function renderDetail(ctx: DatabankContext): void {
   const mine = ctx.owned?.get(item.id);
   if (ctx.owned) {
     ui.detailOwned.hidden = false;
-    ui.detailOwned.textContent = mine ? `You own ${mine.count} ${mine.count === 1 ? 'copy' : 'copies'}, the best at R${mine.best}.` : "You don't own this one yet.";
+    const best = item.source === 'technomagic' ? '' : `, the best at R${mine?.best}`;
+    ui.detailOwned.textContent = mine ? `You own ${mine.count} ${mine.count === 1 ? 'copy' : 'copies'}${best}.` : "You don't own this one yet.";
   }
 }

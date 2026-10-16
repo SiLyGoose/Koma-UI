@@ -165,18 +165,22 @@ type Treasure = { hero: string; skill: number } | null | undefined;
 export const tierOf = (item: { stars: number; heroOnly?: boolean; uniqueWeapon?: string | null; uniqueTreasure?: Treasure }): number | 'tm' | 'uw' | 'ut' =>
   item.uniqueWeapon ? 'uw' : item.uniqueTreasure ? 'ut' : item.heroOnly ? 'tm' : item.stars;
 
+/** Whether a copy has refinement levels to show, R1 up to its top: not TechnoMagic gear, which has the one (`maxLevel` 1), never being refined. */
+export const hasLevels = (copy: { maxLevel?: number }): boolean => copy.maxLevel !== 1;
+
 /**
- * What's on a copy's card, whatever the card is (an armory button, the anvil's, the details'): its rank, picture, stars and the
- * parchment's curl. TechnoMagic gear (`heroOnly`) has no stars, being a tier of its own, but its marks (with its class:
- * `itemClass`, or `class` as the heroes page has it); a unique weapon or unique treasure its own marks, with its hero.
- * `lazy`: a card in a long list (art).
+ * What's on a copy's card, whatever the card is (an armory button, the anvil's, the details'): its rank (none with the one
+ * level: hasLevels), picture, stars and the parchment's curl. TechnoMagic gear (`heroOnly`) has no stars, being a tier of its
+ * own, but its marks (with its class: `itemClass`, or `class` as the heroes page has it); a unique weapon or unique treasure
+ * its own marks, with its hero. `lazy`: a card in a long list (art).
  */
-export function itemFace(copy: { level: number; itemId: string; slot: Slot; stars: number; heroOnly?: boolean; uniqueWeapon?: string | null; uniqueTreasure?: Treasure; itemClass?: string | null; class?: string | null }, lazy = false): HTMLElement[] {
+export function itemFace(copy: { level: number; maxLevel?: number; itemId: string; slot: Slot; stars: number; heroOnly?: boolean; uniqueWeapon?: string | null; uniqueTreasure?: Treasure; itemClass?: string | null; class?: string | null }, lazy = false): HTMLElement[] {
   const picture = art(copy.itemId, copy.slot, lazy);
-  if (copy.uniqueWeapon) return [el('span', 'item-level', `R${copy.level}`), picture, ...uwMarks(copy.uniqueWeapon)];
-  if (copy.uniqueTreasure) return [el('span', 'item-level', `R${copy.level}`), picture, ...utMarks(copy.uniqueTreasure.hero)];
-  if (copy.heroOnly) return [el('span', 'item-level', `R${copy.level}`), picture, ...tmMarks(copy.itemClass ?? copy.class)];
-  return [el('span', 'item-level', `R${copy.level}`), picture, stars(copy.stars), el('span', 'item-curl')];
+  const rank = hasLevels(copy) ? [el('span', 'item-level', `R${copy.level}`)] : [];
+  if (copy.uniqueWeapon) return [...rank, picture, ...uwMarks(copy.uniqueWeapon)];
+  if (copy.uniqueTreasure) return [...rank, picture, ...utMarks(copy.uniqueTreasure.hero)];
+  if (copy.heroOnly) return [...rank, picture, ...tmMarks(copy.itemClass ?? copy.class)];
+  return [...rank, picture, stars(copy.stars), el('span', 'item-curl')];
 }
 
 /** How an item ranks among the tiers, best highest: TechnoMagic gear above 4 stars, and the unique weapons, then the unique treasures, between them. */

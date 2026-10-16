@@ -21,15 +21,6 @@
   overflow: visible;
 }
 
-/* No stars (TechnoMagic gear is a tier of its own): its rank in the bottom left, clear of the tabs. */
-.item:has(> .item-tm) .item-level,
-.slot-frame:has(> .item-tm) .slot-level {
-  top: auto;
-  right: auto;
-  bottom: max(4px, 6cqi);
-  left: max(5px, 8cqi);
-}
-
 /* "TM": a dark tab edged in gold over the top left corner, standing a little out past the card, its right end rounded off. */
 .item-tm {
   position: absolute;

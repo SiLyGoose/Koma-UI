@@ -1,7 +1,7 @@
 import { type Busy, doneMark, working } from '../ui';
 import { coin, points } from '../util';
 import { armoryOrder } from './gear';
-import { el, itemFace, lockBadge, rich, type Slot, SLOT_NAME, type Stars, tierOf } from './items';
+import { el, hasLevels, itemFace, lockBadge, rich, type Slot, SLOT_NAME, type Stars, tierOf } from './items';
 import { matchesStars, type StarChoice } from './armory-filter/armory-filter';
 import { padlock } from './padlock';
 import { matchesSearch } from './search';
@@ -187,6 +187,7 @@ const contentOf = (copy: ArmoryCopy, look: CardLook, ownSound: boolean): string 
     copy.stars,
     copy.slot,
     copy.level,
+    copy.maxLevel,
     copy.locked ?? null,
     copy.heroOnly ?? null,
     copy.uniqueWeapon ?? null,
@@ -297,8 +298,12 @@ export function sellsFor(copy: ArmoryCopy): HTMLElement[] {
   return [price];
 }
 
-/** A copy's Upgrade, in its details' buttons: to the forge (`go`), with it on the anvil. Fully refined, "✓ Max" in its place. */
-export function upgradeButton(copy: ArmoryCopy, go: () => void): HTMLElement {
+/**
+ * A copy's Upgrade, in its details' buttons: to the forge (`go`), with it on the anvil. Fully refined, "✓ Max" in its place;
+ * none for one never refined (TechnoMagic gear: hasLevels).
+ */
+export function upgradeButton(copy: ArmoryCopy, go: () => void): HTMLElement | null {
+  if (!hasLevels(copy)) return null;
   if (copy.level >= copy.maxLevel) return doneMark('Max');
   const button = el('button', 'detail-action action secondary', 'Upgrade');
   button.type = 'button';
@@ -336,7 +341,7 @@ function card(copy: ArmoryCopy, look: CardLook, ownSound: boolean, onPick: () =>
   const button = el('button', 'item');
   button.type = 'button';
   button.dataset.stars = String(copy.stars);
-  const says = [copy.name, tierWords(copy), `R${copy.level}`, ...(look.tag ? [look.tag.text.toLowerCase()] : []), ...(copy.locked ? ['locked'] : []), ...(look.says ?? [])];
+  const says = [copy.name, tierWords(copy), ...(hasLevels(copy) ? [`R${copy.level}`] : []), ...(look.tag ? [look.tag.text.toLowerCase()] : []), ...(copy.locked ? ['locked'] : []), ...(look.says ?? [])];
   button.setAttribute('aria-label', says.join(', '));
   if (look.tag) button.append(el('span', look.tag.className ? `item-tag ${look.tag.className}` : 'item-tag', look.tag.text));
   button.append(...itemFace(copy, true));
@@ -370,7 +375,7 @@ export function effectList(copy: { effects: readonly string[] }, none: string, c
 
 /** The copy equipping the one shown would take off, and what it does, set apart from the shown one's effects. */
 export const replacesNote = (copy: ArmoryCopy, none: string): HTMLElement[] => [
-  el('p', 'detail-replaces', `Replaces ${copy.name} (R${copy.level})`),
+  el('p', 'detail-replaces', `Replaces ${copy.name}${hasLevels(copy) ? ` (R${copy.level})` : ''}`),
   effectList(copy, none, 'detail-effects detail-replaced'),
 ];
 
@@ -419,10 +424,15 @@ export function showDetail(box: HTMLElement, copy: ArmoryCopy | undefined, parts
   big.append(...itemFace(copy));
   const info = el('div', 'detail-info');
   const kind = el('p', 'detail-kind', SLOT_NAME[copy.slot]);
-  if (copy.level >= copy.maxLevel) kind.append(el('span', 'detail-max', 'MAX'));
-  const rank = el('p', 'detail-rank', `R${copy.level}`);
-  rank.append(el('span', 'detail-rank-of', ` / ${copy.maxLevel}`));
-  info.append(kind, rank, ...(parts.info ?? []));
+  info.append(kind);
+  // (Its rank out of its top; none for one never refined: TechnoMagic gear.)
+  if (hasLevels(copy)) {
+    if (copy.level >= copy.maxLevel) kind.append(el('span', 'detail-max', 'MAX'));
+    const rank = el('p', 'detail-rank', `R${copy.level}`);
+    rank.append(el('span', 'detail-rank-of', ` / ${copy.maxLevel}`));
+    info.append(rank);
+  }
+  info.append(...(parts.info ?? []));
   top.append(big, info);
   if (parts.corner) top.append(parts.corner);
 

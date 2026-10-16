@@ -5,7 +5,7 @@
  * imported by each page.
  */
 
-export { art, effectSection, el, itemFace, lockBadge, rich, type Slot, SLOT_NAME, stars, tierOf, tierRank, tmMarks, tmSections, tmTier, treasureParts, treasureSection, utMarks, utTier, uwMarks, uwTier } from './items';
+export { art, effectSection, el, hasLevels, itemFace, lockBadge, rich, type Slot, SLOT_NAME, stars, tierOf, tierRank, tmMarks, tmSections, tmTier, treasureParts, treasureSection, utMarks, utTier, uwMarks, uwTier } from './items';
 export { armoryGrid, askSale, drawSell, effectList, forgeLink, lockToggle, upgradeButton, pruneSale, replacesNote, saleOf, saleSaid, sellsFor, showDetail, wireSaleDialog, wireSearch, type ArmoryCopy, type ArmoryDraw, type ArmoryGrid, type CardLook, type DetailParts } from './armory';
 export { armoryOrder, equippedIds, forgePlan, type GearCopy, type GearView, type Plan, type ShownStatSection, type StatSection } from './gear';
 export { matchesSearch } from './search';

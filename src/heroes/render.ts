@@ -1,4 +1,4 @@
-import { art, drawSell, el, forgeLink, itemDetailsClosed, itemPicked, lockToggle, pruneSale, replacesNote, rich, sellsFor, showDetail, statBlocks, SLOT_NAME, stars as starRow, tmMarks, tmSections, treasureParts, treasureSection, upgradeButton, utMarks, uwMarks } from '../shared/items';
+import { art, drawSell, el, forgeLink, hasLevels, itemDetailsClosed, itemPicked, lockToggle, pruneSale, replacesNote, rich, sellsFor, showDetail, statBlocks, SLOT_NAME, stars as starRow, tmMarks, tmSections, treasureParts, treasureSection, upgradeButton, utMarks, uwMarks } from '../shared/items';
 import { classBadge, className, FACE, HERO_SLOT_KIND, heroCut, heroPicture, skillText, STAGE_ZOOM, type HeroView, type HeroCopy, type HeroSlot } from '../shared/heroes';
 import { built } from '../shared/built';
 import { working } from '../shared/ui';
@@ -200,7 +200,7 @@ function renderSlots(ctx: HeroesContext): void {
       button.textContent = '';
       button.classList.toggle('empty', !copy);
       button.classList.toggle('filtered', ctx.target === slot && ctx.filter === kind);
-      button.title = copy ? `${slotLabel(slot)}: ${copy.name} (R${copy.level})` : `${slotLabel(slot)}: empty`;
+      button.title = copy ? `${slotLabel(slot)}: ${copy.name}${hasLevels(copy) ? ` (R${copy.level})` : ''}` : `${slotLabel(slot)}: empty`;
       button.setAttribute('aria-label', button.title);
       continue;
     }
@@ -213,8 +213,8 @@ function renderSlots(ctx: HeroesContext): void {
     button.setAttribute('aria-label', copy ? `${slotName(slot)}: ${copy.name}` : `${slotName(slot)}: empty`);
     const frame = el('span', 'slot-frame');
     frame.append(art(copy?.itemId ?? null, kind));
-    // (TechnoMagic gear has no stars, but its marks: a tier of its own.)
-    if (copy) frame.append(el('span', 'slot-level', `R${copy.level}`), ...(copy.uniqueWeapon ? uwMarks(copy.uniqueWeapon) : copy.uniqueTreasure ? utMarks(copy.uniqueTreasure.hero) : copy.heroOnly ? tmMarks(copy.class) : [starRow(copy.stars)]));
+    // (TechnoMagic gear has no stars, but its marks: a tier of its own; and no rank, never being refined.)
+    if (copy) frame.append(...(hasLevels(copy) ? [el('span', 'slot-level', `R${copy.level}`)] : []), ...(copy.uniqueWeapon ? uwMarks(copy.uniqueWeapon) : copy.uniqueTreasure ? utMarks(copy.uniqueTreasure.hero) : copy.heroOnly ? tmMarks(copy.class) : [starRow(copy.stars)]));
     button.append(frame, el('span', 'slot-name', slotName(slot)));
   }
 }
@@ -314,12 +314,11 @@ function renderDetail(ctx: HeroesContext, act: HeroActions): void {
     const into = worn ?? slotFor(ctx, copy);
     const replaced = worn ? undefined : copyById(ctx, hero.equipped[into]);
     if (replaced) notes.push(...replacesNote(replaced, NONE));
-    // Upgrade: to the forge, with this copy on the anvil (not while a change is on its way), whoever's page it's on.
-    actions.push(
-      upgradeButton(copy, () => {
-        if (!ctx.busy) ctx.host.go(forgeLink(copy));
-      }),
-    );
+    // Upgrade: to the forge, with this copy on the anvil (not while a change is on its way), whoever's page it's on. (None for TechnoMagic gear.)
+    const upgrade = upgradeButton(copy, () => {
+      if (!ctx.busy) ctx.host.go(forgeLink(copy));
+    });
+    if (upgrade) actions.push(upgrade);
     if (!hero.owned) notes.push(el('p', 'detail-note', notRecruited(ctx, hero.name, 'put gear on them')));
     // (Another hero's unique weapon: nothing to equip it with here, unless it's to come off.)
     else if (worn || wieldable(copy, hero)) {

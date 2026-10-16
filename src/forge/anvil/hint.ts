@@ -1,5 +1,5 @@
 import { points } from '../../shared/util';
-import type { GearCopy, Plan } from '../../shared/items';
+import { type GearCopy, hasLevels, type Plan } from '../../shared/items';
 import { balance, choosing, copyById, type ForgeContext } from '../context';
 
 /** The line over the slots: how the anvil works, what's in the way, or what was just done. */
@@ -10,7 +10,7 @@ export function hintFor(ctx: ForgeContext, copy: GearCopy | undefined, plan: Pla
     case 'unavailable':
       return { text: 'Refining on the site isn’t available yet: use `refine` in Discord.' };
     case 'done':
-      return { text: `Fully refined (R${copy.maxLevel}).` };
+      return { text: hasLevels(copy) ? `Fully refined (R${copy.maxLevel}).` : 'TechnoMagic gear is never refined: what it does is its potentials.' };
     case 'refine': {
       const { refine } = plan;
       if (refine.blocked === 'no_duplicate' || choosing(ctx)?.size === 0) return { text: `You need another ${copy.name} to use up as material.`, tone: 'bad' };
