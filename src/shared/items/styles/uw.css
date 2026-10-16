@@ -1,0 +1,96 @@
+/*
+ * A unique weapon: drawn as TechnoMagic gear is (./tm.css), in crimson in place of gold: its border crimson, a
+ * dark "UW" tab edged in crimson over its top left corner and its hero's face in a crimson-edged square over
+ * its top right one, each standing a little out past the card (../items.ts uwMarks). A card (.item) or a slot's
+ * frame (.slot-frame) with those marks in it is drawn so. Its marks' sizes go by the card's width.
+ */
+
+.item:has(> .item-uw),
+.slot-frame:has(> .item-uw) {
+  --tier: #d23a4c;
+  --tier-glow: rgb(210 58 76 / 45%);
+  --uw-crimson: linear-gradient(160deg, #ffc2c8 0%, #e2475a 25%, #8f1626 55%, #f07a88 75%, #7a1020 100%);
+  --uw-night: linear-gradient(180deg, #3a1420, #1c0a10);
+  --uw-border: 2px;
+  --uw-out: max(2px, 3cqi);
+  container-type: inline-size;
+  overflow: visible;
+}
+
+/* No stars (a tier of its own): its rank in the bottom left, clear of the tabs. */
+.item:has(> .item-uw) .item-level,
+.slot-frame:has(> .item-uw) .slot-level {
+  top: auto;
+  right: auto;
+  bottom: max(4px, 6cqi);
+  left: max(5px, 8cqi);
+}
+
+/* "UW": a dark tab edged in crimson over the top left corner, standing a little out past the card. */
+.item-uw {
+  position: absolute;
+  top: calc(-1 * (var(--uw-border) + var(--uw-out)));
+  left: calc(-1 * (var(--uw-border) + var(--uw-out)));
+  z-index: 2;
+  padding: 0.05em 0.55em 0.1em 0.45em;
+  border: max(1.5px, 1.6cqi) solid transparent;
+  border-radius: 0.2em 0.55em 0.55em 0.2em;
+  background:
+    var(--uw-night) padding-box,
+    var(--uw-crimson) border-box;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 45%);
+  color: #ffe0e4;
+  font-size: max(9px, 13cqi);
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  line-height: 1.15;
+  text-shadow: 0 0 0.35em rgb(255 110 130 / 60%);
+  pointer-events: none;
+}
+
+/* Its hero: the face, in a square edged in crimson over the top right corner. */
+.item-uw-hero {
+  position: absolute;
+  top: calc(-1 * (var(--uw-border) + var(--uw-out)));
+  right: calc(-1 * (var(--uw-border) + var(--uw-out)));
+  z-index: 2;
+  width: max(18px, 30cqi);
+  aspect-ratio: 1;
+  overflow: hidden;
+  border: max(1.5px, 1.6cqi) solid transparent;
+  border-radius: 0.3em 0.3em 0.3em 0.7em;
+  background:
+    var(--uw-night) padding-box,
+    var(--uw-crimson) border-box;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 45%);
+}
+
+.item-uw-hero img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
+
+.item-uw-hero img[hidden] {
+  display: none;
+}
+
+/* A unique weapon's tier, where others show their stars (the filters, the databank's lists and its item panel): "UW", as its tab. */
+.uw-tier {
+  display: inline-block;
+  padding: 0 0.5em;
+  border: 2px solid transparent;
+  border-radius: 0.2em 0.55em 0.55em 0.2em;
+  background:
+    linear-gradient(180deg, #3a1420, #1c0a10) padding-box,
+    linear-gradient(160deg, #ffc2c8, #e2475a 25%, #8f1626 55%, #f07a88 75%, #7a1020) border-box;
+  color: #ffe0e4;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+  vertical-align: middle;
+}

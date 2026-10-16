@@ -1,0 +1,49 @@
+/* A hero's health (on its card, and over its head on the field) and its mana. */
+
+.tm-overhead i,
+.tm-bar i {
+  display: block;
+  height: 100%;
+  /* Bright, with a band of light along its top. */
+  background: linear-gradient(180deg, #e4ff9c 0%, #b4f84a 38%, #6fe012 42%, #4cc40a 78%, #2f8f08 100%);
+  transition: width 0.2s ease-out;
+}
+
+.tm-bar,
+.tm-mp {
+  box-sizing: border-box;
+  border: 2px solid #3a3a30;
+  border-radius: 5px;
+  box-shadow: 0 0 0 1px #0b0b10;
+  overflow: hidden;
+}
+
+.tm-bar {
+  height: calc(var(--skill) * 0.2);
+  background: #1a1c14;
+}
+
+/* The mana bar: one bar cut into a section for each mana; a whole one is bright, the one filling dim. */
+.tm-mp {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 2px;
+  height: calc(var(--skill) * 0.17);
+  background: #0b0b10;
+}
+
+.tm-mp span {
+  background: #0f2f38;
+  overflow: hidden;
+}
+
+.tm-mp i {
+  display: block;
+  height: 100%;
+  background: #1f6f86;
+}
+
+.tm-mp .full i {
+  background: linear-gradient(180deg, #d6fbff 0%, #86ecff 38%, #35cdee 42%, #1fb0d8 78%, #127a9c 100%);
+}

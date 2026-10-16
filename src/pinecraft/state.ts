@@ -1,6 +1,6 @@
 import type { startLeaderboard } from './hud';
 import type { Scene } from './draw';
-import type { Direction, WorldMap } from './protocol';
+import type { Direction, WorldMap } from '../protocol/pinecraft';
 import type { Material } from './sfx';
 
 /** What more than one part of the page needs to know: the mine as drawn, and the move under way. */

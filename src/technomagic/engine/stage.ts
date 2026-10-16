@@ -1,0 +1,253 @@
+import {
+  CanvasTexture,
+  CircleGeometry,
+  Color,
+  Float32BufferAttribute,
+  Fog,
+  Mesh,
+  MeshBasicMaterial,
+  OrthographicCamera,
+  PerspectiveCamera,
+  PlaneGeometry,
+  RepeatWrapping,
+  Scene,
+  SRGBColorSpace,
+  TextureLoader,
+  Vector3,
+  WebGLRenderer,
+  WebGLRenderTarget,
+  type BufferGeometry,
+  type Object3D,
+} from 'three';
+
+/*
+ * The field, seen from the side: the heroes on the left looking right, the boss on the right looking
+ * left, both turned a little toward the camera. x runs along the field, y is up, and the camera stands
+ * back along z, and up a little looking down, far enough that the whole width shows whatever the
+ * canvas's shape.
+ */
+
+/** How much of the field shows across, and the least up and down, in the models' units (a hero is about 1.6 tall). */
+// As the game frames a boss fight: the boss a little over half the picture's height, the floor its lower third.
+const WIDTH = 34;
+const HEIGHT = 20;
+const FOV = 26;
+/** What the camera looks at, and how far it looks down at it (radians). */
+// Low, so the fight is in the upper part of the picture: the heroes' cards are along the bottom of it.
+const LOOK = new Vector3(0, 2.6, 0);
+// High enough that the heroes' back row shows above the front one: each hero, and its health, apart from the next.
+const ELEVATION = 0.26;
+
+/**
+ * Where a fight is, painted beforehand (so nothing of it is made as a fight begins): a picture behind the field, on an
+ * upright sheet across the back of it, of which the camera sees as much as the page's shape lets it; and the floor.
+ */
+export interface Scenery {
+  /** The sheet's picture, and where it stands: at `z`, from `left` to `right` and `bottom` to `top` (in the field's units). */
+  backdrop: { url: string; z: number; left: number; right: number; bottom: number; top: number };
+  /** One tile of the floor, repeated: a tile is `tile` across. */
+  ground: { url: string; tile: number };
+  /** What the floor fades into toward the back (the colour of the backdrop's foot, so they meet unseen): from `near` beyond the middle of the field to `far`. */
+  haze: { color: number; near: number; far: number };
+}
+
+export interface Stage {
+  scene: Scene;
+  /** Puts the fight in `scenery`, in place of the plain field (once its pictures are read). */
+  dress(scenery: Scenery): Promise<void>;
+  /** Draws every frame, after `update` (the time in seconds, and since the last frame). */
+  start(update: (now: number, dt: number) => void): void;
+  /**
+   * Darkens the field by `amount` (0 not at all, 1 black) as it is drawn from now on, but for what is `lit` (on the
+   * field): that is drawn as bright as ever, over the dark.
+   */
+  dim(amount: number, lit: readonly Object3D[]): void;
+  /** Where a place on the field is on the page, from the canvas's top left (CSS pixels). */
+  project(at: Vector3): { x: number; y: number };
+  /** A picture (a data: address) of a model from a little under `at` (its head) up, with nothing behind it, seen from `turn` radians round it: a hero, for its card. */
+  portrait(model: Object3D, at: Vector3, turn: number): string;
+}
+
+export function makeStage(canvas: HTMLCanvasElement): Stage {
+  const renderer = new WebGLRenderer({ canvas, antialias: true });
+  renderer.outputColorSpace = SRGBColorSpace;
+  const scene = new Scene();
+  scene.background = dusk();
+  const camera = new PerspectiveCamera(FOV, 16 / 9, 0.5, 400);
+
+  // The floor: a dark disc, lighter under where the fight is.
+  const floor = new Mesh<BufferGeometry, MeshBasicMaterial>(new CircleGeometry(60, 48), new MeshBasicMaterial({ color: 0x2a2233 }));
+  floor.rotation.x = -Math.PI / 2;
+  floor.position.y = -0.02;
+  scene.add(floor);
+
+  // How far the camera is from the middle of the field: the haze is measured from there, as that changes with the page's shape.
+  let back = 0;
+  let haze: Scenery['haze'] | undefined;
+  const fog = (): void => {
+    if (!(scene.fog instanceof Fog) || !haze) return;
+    scene.fog.near = back + haze.near;
+    scene.fog.far = back + haze.far;
+  };
+
+  const fit = (): void => {
+    const w = canvas.clientWidth;
+    const h = canvas.clientHeight;
+    if (w === 0 || h === 0) return;
+    renderer.setPixelRatio(Math.min(2, window.devicePixelRatio));
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    const half = Math.tan((FOV * Math.PI) / 360);
+    back = Math.max(HEIGHT / 2 / half, WIDTH / 2 / (half * camera.aspect));
+    camera.position.set(LOOK.x, LOOK.y + Math.sin(ELEVATION) * back, LOOK.z + Math.cos(ELEVATION) * back);
+    camera.lookAt(LOOK);
+    camera.updateProjectionMatrix();
+    fog();
+  };
+  new ResizeObserver(fit).observe(canvas);
+  fit();
+
+  // The dark over the field (dim()): a black sheet over the whole picture, drawn between the field and what is lit.
+  const shade = new Mesh(new PlaneGeometry(2, 2), new MeshBasicMaterial({ color: 0x000000, transparent: true, depthTest: false, depthWrite: false }));
+  shade.position.z = -0.5;
+  shade.frustumCulled = false;
+  const shadeScene = new Scene().add(shade);
+  const flat = new OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  let dark = 0;
+  let lit: readonly Object3D[] = [];
+  const draw = (): void => {
+    if (dark <= 0) {
+      renderer.render(scene, camera);
+      return;
+    }
+    // The field without what is lit, the dark over it, then what is lit over that (each where the field doesn't stand before it).
+    const shown = lit.filter((o) => o.visible && o.parent);
+    for (const o of shown) o.visible = false;
+    renderer.render(scene, camera);
+    for (const o of shown) o.visible = true;
+    shade.material.opacity = dark;
+    renderer.autoClear = false;
+    renderer.render(shadeScene, flat);
+    for (const o of shown) renderer.render(o, camera);
+    renderer.autoClear = true;
+  };
+
+  const seen = new Vector3();
+  return {
+    scene,
+    async dress(scenery) {
+      const pictures = new TextureLoader();
+      const [backdrop, ground] = await Promise.all([pictures.loadAsync(scenery.backdrop.url), pictures.loadAsync(scenery.ground.url)]);
+      backdrop.colorSpace = ground.colorSpace = SRGBColorSpace;
+
+      const { z, left, right, bottom, top } = scenery.backdrop;
+      const sheet = new Mesh(new PlaneGeometry(right - left, top - bottom), new MeshBasicMaterial({ map: backdrop, fog: false }));
+      sheet.position.set((left + right) / 2, (top + bottom) / 2, z);
+      scene.add(sheet);
+
+      // The floor, from the sheet's foot to well in front of the camera however far back it stands; darker away from the fight.
+      const across = right - left;
+      const deep = 160;
+      const plane = new PlaneGeometry(across, deep, 48, 48);
+      const at = plane.getAttribute('position');
+      const shade: number[] = [];
+      for (let i = 0; i < at.count; i++) {
+        // (Laid flat, the plane's y runs toward the back of the field.)
+        const away = Math.hypot(at.getX(i) / 30, (z + deep / 2 - at.getY(i)) / 22);
+        const k = 1 - 0.3 * Math.min(1, Math.max(0, away - 0.5));
+        shade.push(k, k, k);
+      }
+      plane.setAttribute('color', new Float32BufferAttribute(shade, 3));
+      ground.wrapS = ground.wrapT = RepeatWrapping;
+      ground.repeat.set(across / scenery.ground.tile, deep / scenery.ground.tile);
+      ground.anisotropy = renderer.capabilities.getMaxAnisotropy();
+      floor.geometry.dispose();
+      floor.material.dispose();
+      floor.geometry = plane;
+      floor.material = new MeshBasicMaterial({ map: ground, vertexColors: true });
+      floor.position.set((left + right) / 2, -0.02, z + deep / 2);
+
+      haze = scenery.haze;
+      scene.background = new Color(haze.color);
+      scene.fog = new Fog(haze.color, 0, 1);
+      fog();
+    },
+    project(at) {
+      camera.updateMatrixWorld();
+      seen.copy(at).project(camera);
+      return { x: (seen.x * 0.5 + 0.5) * canvas.clientWidth, y: (-seen.y * 0.5 + 0.5) * canvas.clientHeight };
+    },
+    portrait(model, at, turn) {
+      const SIZE = 320;
+      const HALF = 1.05;
+      const DOWN = 0.4;
+      const shot = new Scene();
+      const home = model.parent;
+      shot.add(model);
+      const eye = new OrthographicCamera(-HALF, HALF, HALF, -HALF, 0.1, 40);
+      eye.position.set(at.x + Math.sin(turn) * 10, at.y - DOWN, at.z + Math.cos(turn) * 10);
+      eye.lookAt(at.x, at.y - DOWN, at.z);
+      const target = new WebGLRenderTarget(SIZE, SIZE);
+      const was = renderer.getClearAlpha();
+      const colour = renderer.getClearColor(new Color());
+      renderer.setClearColor(0x000000, 0);
+      renderer.setRenderTarget(target);
+      renderer.render(shot, eye);
+      renderer.setClearColor(colour, was);
+      const pixels = new Uint8Array(SIZE * SIZE * 4);
+      renderer.readRenderTargetPixels(target, 0, 0, SIZE, SIZE, pixels);
+      renderer.setRenderTarget(null);
+      target.dispose();
+      shot.remove(model);
+      home?.add(model);
+      // As read it is upside down, and its colours are as light adds up, not as a screen shows them.
+      const picture = document.createElement('canvas');
+      picture.width = picture.height = SIZE;
+      const g = picture.getContext('2d') as CanvasRenderingContext2D;
+      const image = g.createImageData(SIZE, SIZE);
+      for (let y = 0; y < SIZE; y++) {
+        for (let x = 0; x < SIZE; x++) {
+          const from = ((SIZE - 1 - y) * SIZE + x) * 4;
+          const to = (y * SIZE + x) * 4;
+          for (let c = 0; c < 3; c++) image.data[to + c] = 255 * ((pixels[from + c] as number) / 255) ** (1 / 2.2);
+          image.data[to + 3] = pixels[from + 3] as number;
+        }
+      }
+      g.putImageData(image, 0, 0);
+      return picture.toDataURL('image/png');
+    },
+    dim(amount, those) {
+      dark = Math.min(1, Math.max(0, amount));
+      lit = those;
+    },
+    start(update) {
+      let last = performance.now();
+      const frame = (ms: number): void => {
+        // (A frame's time can be a moment before the time this was started at: never less than nothing.)
+        const dt = Math.max(0, Math.min(0.064, (ms - last) / 1000));
+        last = ms;
+        update(ms / 1000, dt);
+        draw();
+        requestAnimationFrame(frame);
+      };
+      requestAnimationFrame(frame);
+    },
+  };
+}
+
+/** The sky behind the field: dusk, darkest at the top. */
+function dusk(): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 2;
+  canvas.height = 256;
+  const g = canvas.getContext('2d') as CanvasRenderingContext2D;
+  const sky = g.createLinearGradient(0, 0, 0, canvas.height);
+  sky.addColorStop(0, '#1b1a2b');
+  sky.addColorStop(0.6, '#3b2a4a');
+  sky.addColorStop(1, '#6a3f55');
+  g.fillStyle = sky;
+  g.fillRect(0, 0, canvas.width, canvas.height);
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}

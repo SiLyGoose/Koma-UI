@@ -98,13 +98,13 @@ export const balance = (ctx: ForgeContext): number | null => ctx.gear?.balance ?
 
 /**
  * The spares a refine of `copy` can use up: their other copies of the item that aren't worn, saved in
- * a loadout, a masterwork or locked (as the bot's refinePlan allows).
+ * a loadout or locked (as the bot's refinePlan allows).
  */
 function materialsFor(ctx: ForgeContext, copy: GearCopy): GearCopy[] {
   const { gear } = ctx;
   if (!gear) return [];
   const kept = equippedIds(gear);
-  return gear.copies.filter((c) => c.itemId === copy.itemId && c.id !== copy.id && !kept.has(c.id) && !c.masterwork && !c.locked);
+  return gear.copies.filter((c) => c.itemId === copy.itemId && c.id !== copy.id && !kept.has(c.id) && !c.locked);
 }
 
 /**
@@ -115,7 +115,7 @@ export function refineableIds(ctx: ForgeContext): Set<string> {
   const { gear } = ctx;
   if (!gear) return new Set();
   const kept = equippedIds(gear);
-  const spare = (c: GearCopy): boolean => !kept.has(c.id) && !c.masterwork && !c.locked;
+  const spare = (c: GearCopy): boolean => !kept.has(c.id) && !c.locked;
   // How many spares there are of each item.
   const spares = new Map<string, number>();
   for (const c of gear.copies) if (spare(c)) spares.set(c.itemId, (spares.get(c.itemId) ?? 0) + 1);

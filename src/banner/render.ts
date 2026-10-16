@@ -1,5 +1,5 @@
 import { coin, points } from '../shared/util';
-import { art, el, rich, stars } from '../shared/items';
+import { art, el, rich, stars, uwMarks, uwTier } from '../shared/items';
 import { working } from '../shared/ui';
 import { timeLeft, type Featured } from './banners';
 import { canAfford, price, type BannerContext } from './context';
@@ -30,16 +30,17 @@ function costLine(box: HTMLElement, cost: { tokens: number; points: number }): v
   }
 }
 
-/** A featured item: its picture on a card, and its name plate with its stars (and UP!). */
+/** A featured item: its picture on a card, and its name plate with its stars (and UP!); a unique weapon, its marks and tier in their place. */
 function featured(box: HTMLElement, item: Featured, etc: boolean): void {
   const face = el('span', 'item banner-featured-card');
   face.dataset.stars = String(item.stars);
-  face.append(art(item.itemId, item.slot), el('span', 'item-curl'));
+  if (item.uniqueWeapon) face.append(art(item.itemId, item.slot), ...uwMarks(item.uniqueWeapon));
+  else face.append(art(item.itemId, item.slot), el('span', 'item-curl'));
   const plate = el('figcaption', 'banner-plate');
   plate.dataset.stars = String(item.stars);
   const name = el('span', 'banner-plate-name', item.name);
   if (etc) name.append(el('small', '', ' etc.'));
-  plate.append(el('span', 'banner-up', 'UP!'), name, stars(item.stars));
+  plate.append(el('span', 'banner-up', 'UP!'), name, item.uniqueWeapon ? uwTier() : stars(item.stars));
   box.replaceChildren(face, plate);
 }
 
@@ -108,17 +109,24 @@ export function render(ctx: BannerContext): void {
 
   const top = `${view.topStars}★`;
   const limited = banner.id === 'limited';
+  const hero = banner.id === 'hero';
   const featuredChance = percent(view.limited?.featuredChance ?? 0);
+  const chance = percent(view.rates[view.topStars] ?? 0);
   if (view.pity) {
     const { count, softStart, hardPity } = view.pity;
     ui.promise.textContent = limited
       ? `A ${top} item is guaranteed within ${points(hardPity)} pulls here, and ${featuredChance} of them are a featured one.`
-      : `A ${top} unique treasure is guaranteed within ${points(hardPity)} pulls.`;
-    ui.detailsPity.textContent = `Pity: every pull ${limited ? 'on a limited banner ' : ''}since your last ${top} item ${limited ? 'from one ' : ''}counts. From pull ${points(softStart)} your chance of a ${top} climbs with each pull, and pull ${points(hardPity)} is guaranteed to be one. You're at ${points(count)}.`;
+      : hero
+        ? `A unique weapon is guaranteed within ${points(hardPity)} pulls here, and every ${top} is one.`
+        : `A ${top} unique treasure is guaranteed within ${points(hardPity)} pulls.`;
+    const where = limited ? 'on a limited banner ' : hero ? 'on this banner ' : '';
+    ui.detailsPity.textContent = `Pity: every pull ${where}since your last ${top} item ${limited ? 'from one ' : hero ? 'here ' : ''}counts. From pull ${points(softStart)} your chance of a ${top} climbs with each pull, and pull ${points(hardPity)} is guaranteed to be one. You're at ${points(count)}.`;
   } else {
     ui.promise.textContent = limited
-      ? `Each pull has a ${percent(view.rates[view.topStars] ?? 0)} chance at a ${top} item, and ${featuredChance} of them are a featured one.`
-      : `Unique treasures are ${top}. Each pull has a ${percent(view.rates[view.topStars] ?? 0)} chance at one.`;
+      ? `Each pull has a ${chance} chance at a ${top} item, and ${featuredChance} of them are a featured one.`
+      : hero
+        ? `Every ${top} here is a unique weapon. Each pull has a ${chance} chance at one.`
+        : `Unique treasures are ${top}. Each pull has a ${chance} chance at one.`;
     ui.detailsPity.textContent = 'Pity is off in this server: every pull has the same odds.';
   }
   // Their own treasure: 1/1 when their next unique treasure is guaranteed to be it (their last was

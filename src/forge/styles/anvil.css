@@ -224,20 +224,3 @@
     animation: none;
   }
 }
-
-/* A forge's material: its komaGems. */
-.anvil-gem {
-  display: grid;
-  place-items: center;
-  width: 100%;
-  height: 100%;
-  border: 2px solid var(--plaque-edge);
-  border-radius: 8px;
-  background: rgb(18 16 22 / 78%);
-}
-
-.anvil-gem .emoji {
-  width: 52%;
-  height: auto;
-  filter: drop-shadow(0 0 10px rgb(120 200 255 / 45%));
-}

@@ -1,0 +1,86 @@
+/* The numbers coming off whoever is hit or healed (../hud/numbers.ts): yellow a blow, red a critical one (saying so over it),light blue one a block lessened, gray what a shield took, green a heal, white a blow dodged. */
+
+.tm-number {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  font: italic 900 20px/1 'Arial Black', Impact, sans-serif;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  color: #ffd84a;
+  -webkit-text-stroke: 4px #1a1206;
+  paint-order: stroke fill;
+  text-shadow: 0 2px 3px rgb(0 0 0 / 0.6);
+  pointer-events: none;
+  animation: tm-number 0.95s ease-out forwards;
+}
+
+.tm-number.crit {
+  font-size: 30px;
+  color: #ff4a3a;
+  -webkit-text-stroke-color: #2a0604;
+  animation-name: tm-number-crit;
+  animation-duration: 1.1s;
+}
+
+/* "Critical Hit" over a critical blow's number: smaller, and goes up and out with it. */
+.tm-number-label {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  text-align: center;
+  text-transform: uppercase;
+  -webkit-text-stroke-width: 3px;
+}
+
+.tm-number.blocked {
+  color: #8fd8ff;
+  -webkit-text-stroke-color: #061a2a;
+}
+
+.tm-number.shield {
+  color: #b8bcc4;
+  -webkit-text-stroke-color: #16181c;
+}
+
+.tm-number.heal {
+  color: #7dff9a;
+  -webkit-text-stroke-color: #062a10;
+}
+
+.tm-number.dodged,
+.tm-number.immune {
+  font-size: 16px;
+  color: #f2f2f2;
+  -webkit-text-stroke-color: #1a1a1a;
+}
+
+/* Out of the target, up, and gone. */
+@keyframes tm-number {
+  0% { opacity: 0; transform: translate(-50%, -100%) scale(0.6); }
+  12% { opacity: 1; transform: translate(-50%, -130%) scale(1.15); }
+  25% { transform: translate(-50%, -150%) scale(1); }
+  70% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -320%) scale(1); }
+}
+
+/* A critical blow bursts out bigger, and shakes. */
+@keyframes tm-number-crit {
+  0% { opacity: 0; transform: translate(-50%, -100%) scale(0.4); }
+  12% { opacity: 1; transform: translate(-50%, -130%) scale(1.45) rotate(-4deg); }
+  20% { transform: translate(-48%, -140%) scale(1.2) rotate(3deg); }
+  28% { transform: translate(-50%, -150%) scale(1.1) rotate(0); }
+  75% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -300%) scale(1.05); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tm-number,
+  .tm-number.crit {
+    animation-name: tm-number-still;
+  }
+  @keyframes tm-number-still {
+    0%, 70% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+}

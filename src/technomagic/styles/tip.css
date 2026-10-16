@@ -1,0 +1,223 @@
+/*
+ * Popups (../hud/tip.ts): an ability's, held down on, and a square's, pointed at with a mouse. Over the middle of
+ * what each is about, growing up from it, a little arrow down at it; scrolled within once it would be too tall.
+ */
+.tm-tip {
+  --tip-art: 56px;
+  position: fixed;
+  z-index: 50;
+  width: min(300px, 100vw - 16px);
+  border: 2px solid #8a7a4c;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #2b2036, #17121e);
+  box-shadow:
+    0 6px 18px rgb(0 0 0 / 60%),
+    inset 0 1px 0 rgb(255 226 160 / 12%);
+  color: #f4ead6;
+  font-size: 13px;
+  line-height: 1.4;
+  transform-origin: 50% 100%;
+  animation: tm-tip-up 0.14s ease-out;
+}
+
+.tm-tip[hidden] {
+  display: none;
+}
+
+.tm-tip-pointed {
+  width: min(240px, 100vw - 16px);
+  border-width: 1.5px;
+  pointer-events: none;
+  animation-duration: 0.1s;
+}
+
+@keyframes tm-tip-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scaleY(0.85);
+  }
+}
+
+.tm-tip-body {
+  padding: 10px;
+  overflow: hidden auto;
+  overscroll-behavior: contain;
+  scrollbar-color: rgb(255 226 160 / 45%) transparent;
+  scrollbar-width: thin;
+}
+
+.tm-tip-pointed .tm-tip-body {
+  padding: 7px 9px;
+}
+
+/* Down at what it is about (set across by ../hud/tip.ts). */
+.tm-tip-arrow {
+  position: absolute;
+  top: 100%;
+  width: 12px;
+  height: 7px;
+  translate: -50% 0;
+  background: #8a7a4c;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+
+/* An ability's: its picture at the top left, by it (as tall as it) its name, what it costs and its cooldown. */
+.tm-tip-ability {
+  display: flex;
+  gap: 10px;
+}
+
+.tm-tip-art {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: var(--tip-art);
+  height: var(--tip-art);
+  overflow: hidden;
+  border: 2px solid #6b6252;
+  border-radius: 7px;
+  background: radial-gradient(circle at 50% 40%, #5a2f72, #1d1626);
+  font-size: calc(var(--tip-art) * 0.5);
+}
+
+.tm-tip-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tm-tip-facts {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 0;
+  min-height: var(--tip-art);
+}
+
+.tm-tip-name {
+  color: #ffe2a0;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.tm-tip-cost,
+.tm-tip-cooldown {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #cfc9a8;
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.tm-tip-pips {
+  display: flex;
+  gap: 2px;
+}
+
+.tm-tip-pips i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #58d6ff;
+  box-shadow: 0 0 0 1.5px #06324a;
+}
+
+/* What it does: under the rest. */
+.tm-tip-about {
+  margin: 8px 0 0;
+  padding-top: 8px;
+  border-top: 1px solid rgb(255 226 160 / 18%);
+}
+
+/* In its words: its numbers blue, what's in brackets (an effect's name) yellow-green, as the heroes page's Skills tab has them (lighter, to read on the dark). */
+.tm-tip .skill-number {
+  color: #58b4ff;
+  font-weight: 700;
+}
+
+.tm-tip .skill-effect {
+  color: #a6d84a;
+  font-weight: 700;
+}
+
+/* A square's: its picture, its name, how long it has left or how many; under them what it does. */
+.tm-tip-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.tm-tip-head strong {
+  flex: 1;
+  min-width: 0;
+  color: #ffe2a0;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.tm-tip-head.harmful strong {
+  color: #ff8a95;
+}
+
+.tm-tip-head small {
+  flex: none;
+  color: #cfc9a8;
+  font-size: 11px;
+}
+
+.tm-tip-mini {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  overflow: hidden;
+  border: 1.5px solid #8a7a4c;
+  border-radius: 4px;
+  background: #1d1626;
+  font-size: 13px;
+}
+
+.tm-tip-head.harmful .tm-tip-mini {
+  border-color: #c2414f;
+  background: #2a1218;
+}
+
+.tm-tip-mini img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tm-tip-pointed .tm-tip-about {
+  margin-top: 5px;
+  padding-top: 0;
+  border-top: 0;
+  font-size: 12px;
+}
+
+/* A phone on its side: a size down. */
+@media (pointer: coarse) and (orientation: landscape) {
+  .tm-tip {
+    --tip-art: 46px;
+    width: min(270px, 100vw - 16px);
+    font-size: 12px;
+  }
+
+  .tm-tip-name {
+    font-size: 13px;
+  }
+
+  .tm-tip-cost,
+  .tm-tip-cooldown {
+    font-size: 11px;
+  }
+}
+
+/* A name's: as wide as the name. */
+.tm-tip-name {
+  width: max-content;
+  max-width: min(240px, 100vw - 16px);
+}

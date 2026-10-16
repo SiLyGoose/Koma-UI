@@ -2,7 +2,7 @@ import { points, replay } from '../../shared/util';
 import { centerCamera } from '../camera';
 import { burst } from '../draw';
 import { breakSounds, floatText, keysGap, renderEnergy, renderHud, renderOreTip } from '../hud';
-import type { WorldEvent, WorldState } from '../protocol';
+import type { WorldEvent, WorldState } from '../../protocol/pinecraft';
 import { play } from '../sfx';
 import { state } from '../state';
 import { ui } from '../ui';

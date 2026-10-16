@@ -1,5 +1,5 @@
 import type { GameSocket } from '../shared/game';
-import type { ClientMessage, PlayerMove, PokerState, SeatView } from './protocol';
+import type { ClientMessage, PlayerMove, PokerState, SeatView } from '../protocol/poker';
 
 /** Everything the page knows: the table as the bot last said, and what it has shown of it so far. */
 export interface PokerContext {

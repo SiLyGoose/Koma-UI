@@ -1,4 +1,4 @@
-import type { Card } from './protocol';
+import type { Card } from '../protocol/cards';
 
 /*
  * The cards on the table: face up (the board, this player's own, and anyone's at the showdown) or

@@ -1,5 +1,5 @@
 import { coin, points } from '../shared/util';
-import type { GameView, MinesweeperLevel, MinesweeperRewards, PaidView } from './protocol';
+import type { GameView, MinesweeperLevel, MinesweeperRewards, PaidView } from '../protocol/minesweeper';
 import { clock, elapsed, LEVEL_NAMES, send, state } from './state';
 import { ui } from './ui';
 

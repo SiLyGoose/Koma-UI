@@ -1,4 +1,4 @@
-import type { Direction, PinecraftPickaxe } from '../protocol';
+import type { Direction, PinecraftPickaxe } from '../../protocol/pinecraft';
 import { characterOf } from '../../shared/characters';
 import { characterImage, pickaxeImage } from './textures';
 

@@ -1,4 +1,4 @@
-import type { Outfit, OutfitsView } from '../shared/outfits';
+import type { OutfitView, OutfitsView } from '../shared/outfits';
 import type { Busy } from '../shared/ui';
 
 /** The Outfits tab's elements, found once in its root. */
@@ -19,7 +19,7 @@ export interface OutfitsContext {
   ui: OutfitsUi;
   view: OutfitsView | null;
   /** The outfit the buy box is asking about. */
-  buying: Outfit | null;
+  buying: OutfitView | null;
   /** A buy on its way (its button: 'buy'): the cards wait for it. */
   busy: Busy | null;
 }

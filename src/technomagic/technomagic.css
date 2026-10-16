@@ -1,0 +1,20 @@
+/*
+ * The TechnoMagic Raid's page (main.ts): the field filling the window under the title bar, with the
+ * boss's health across its top, the heroes' cards along its bottom and the health of the hero on it
+ * over its head; and under the field the boss's attacks. On a phone it's played on its side: held upright,
+ * the page says to turn it.
+ */
+
+@import './styles/field.css';
+@import './styles/boss.css';
+@import './styles/card.css';
+@import './styles/bars.css';
+@import './styles/skills.css';
+@import './styles/tip.css';
+@import './styles/numbers.css';
+@import './styles/meter.css';
+@import './styles/timer.css';
+@import './styles/rotate.css';
+@import './styles/phone.css';
+@import './prep/prep.css';
+@import './styles/over.css';

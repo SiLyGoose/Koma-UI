@@ -5,5 +5,5 @@
 
 export { renderAnvil } from './anvil';
 export { card } from './card';
-export { compare, withoutDormant } from './compare';
+export { compare } from './compare';
 export { fillEffects } from './effects';

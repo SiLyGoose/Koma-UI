@@ -1,10 +1,12 @@
-import { art, el, hoverSound, rich, stars } from '../shared/items';
+import { GEM_EMOJI } from '../forge/anvil/gem';
+import { ESSENCE_NAME, essencePicture, type EssenceId } from '../heroes/transcend';
+import { art, el, hoverSound, rich, stars, tmMarks } from '../shared/items';
 import { API } from '../shared/ui';
-import { points } from '../shared/util';
+import { coin, points } from '../shared/util';
 import { go } from '../site/nav';
 import { currentMe, currentServer } from '../site/session';
 import { bossById, type DatabankContext } from './context';
-import type { DatabankBoss, DatabankItem, RaidLevel } from './types';
+import type { DatabankBoss, DatabankItem, DatabankRewards, RaidLevel } from './types';
 
 /*
  * The raid bosses: a card for each down the side, and the one picked beside them on parchment, as
@@ -21,6 +23,27 @@ const percent = (share: number): string => `${Math.round(share * 1000) / 10}%`;
 
 /** What a win at a level drops for each raider, like "1× 4★ + 2× 3★". */
 const dropsText = (level: RaidLevel): string => level.drops.map((drop) => `${drop.count}× ${drop.stars}★`).join(' + ') || 'Nothing';
+
+/** komaTokens, as the bot writes them (its constants/core.ts TOKEN_EMOJI). */
+const TOKEN_EMOJI = '<:zeiutoken:1552921364489572362>';
+
+/** What a win pays each raider, a row each: the amount, its picture, and what it is (any it pays none of left out). */
+function rewardList(paid: DatabankRewards): HTMLElement {
+  const list = el('ul', 'detail-effects db-rewards');
+  const row = (amount: number, picture: Node, name: string): void => {
+    if (amount > 0) list.appendChild(el('li')).append(el('strong', '', points(amount)), ' ', picture, ` ${name}`);
+  };
+  row(paid.points, coin('emoji', 'zeiucoins'), 'zeiucoins');
+  row(paid.tokens, rich(TOKEN_EMOJI), 'komaTokens');
+  row(paid.gems, rich(GEM_EMOJI), 'komaGems');
+  for (const [id, amount] of Object.entries(paid.essences) as [EssenceId, number][]) {
+    const picture = el('img', 'emoji');
+    picture.src = essencePicture(id);
+    picture.alt = '';
+    row(amount, picture, `${ESSENCE_NAME[id]} essence`);
+  }
+  return list;
+}
 
 /** The boss's HP against a party of `raiders` at a level (the bot's lib/events/raid.ts bossHpFor). */
 function hpFor(boss: DatabankBoss, raiders: number, level: RaidLevel): number {
@@ -112,7 +135,9 @@ export function itemCard(item: DatabankItem): HTMLButtonElement {
   card.type = 'button';
   card.dataset.stars = String(item.stars);
   card.setAttribute('aria-label', `${item.name}, ${item.stars} stars: see it in the items`);
-  card.append(stars(item.stars), art(item.id, item.slot), el('span', 'db-name', item.name), el('span', 'item-curl'));
+  // (TechnoMagic gear has no stars, but its marks.)
+  if (item.source === 'technomagic') card.append(art(item.id, item.slot), el('span', 'db-name', item.name), ...tmMarks(item.class));
+  else card.append(stars(item.stars), art(item.id, item.slot), el('span', 'db-name', item.name), el('span', 'item-curl'));
   hoverSound(card, item.id);
   card.addEventListener('click', () => go(`/databank/items/#${encodeURIComponent(item.id)}`));
   return card;
@@ -187,9 +212,15 @@ function renderBoss(ctx: DatabankContext): void {
   if (level && level.level > 1) ui.bossBody.append(el('p', 'db-boss-note', `Their damage at Lv 1, before its phases: Lv ${level.level} multiplies it by ${times(level.damage)}.`));
   ui.bossBody.append(...lines(boss.moves), label('Phases'), ...lines(boss.phases));
 
-  const rewards = el('p', 'db-boss-text');
-  rewards.append(rich(boss.rewards));
-  ui.bossBody.append(label('Rewards'), rewards);
+  // What a win at the level picked pays, a row each (an older bot's is a line saying level 1's).
+  if (typeof boss.rewards === 'string') {
+    const rewards = el('p', 'db-boss-text');
+    rewards.append(rich(boss.rewards));
+    ui.bossBody.append(label('Rewards'), rewards);
+  } else {
+    const paid = boss.rewards[level ? raid.levels.indexOf(level) : 0] ?? boss.rewards[0];
+    if (paid) ui.bossBody.append(label(level ? `Rewards at Lv ${level.level}` : 'Rewards'), el('p', 'db-boss-text', 'Upon slaying, everyone who fought gets:'), rewardList(paid));
+  }
   // What a win can drop besides: raid items, of the tiers this level drops.
   const chance = databank.raidDropChance ?? 0;
   const perRaider = databank.raidDropChancePerRaider ?? 0;

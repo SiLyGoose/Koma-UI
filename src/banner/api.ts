@@ -71,10 +71,10 @@ function show(ctx: BannerContext, view: BannerView): boolean {
     ctx.views = {};
     return false;
   }
-  const { balance, tokens, cost, baseCost, limited, extraChance } = view;
+  const { balance, tokens, cost, baseCost, limited, hero, extraChance } = view;
   for (const banner of ctx.banners) {
     const kept = ctx.views[banner.id];
-    if (kept) ctx.views[banner.id] = { ...kept, balance, tokens, cost, baseCost, limited, extraChance };
+    if (kept) ctx.views[banner.id] = { ...kept, balance, tokens, cost, baseCost, limited, hero, extraChance };
   }
   ctx.views[showing.id] = view;
   ctx.banner = showing;

@@ -74,10 +74,13 @@
   font-weight: 700;
 }
 
+/* What the card is (Equipped, On Kirze): across the middle, just above its stars, over everything else on the card (its picture, its tabs, its lock). */
 .item-tag {
   position: absolute;
-  top: 5px;
-  left: 5px;
+  z-index: 3;
+  bottom: 24%;
+  left: 50%;
+  translate: -50% 0;
   padding: 1px 6px;
   border-radius: 3px;
   background: #2b2530;
@@ -87,5 +90,5 @@
   font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  transform: rotate(-4deg);
+  white-space: nowrap;
 }

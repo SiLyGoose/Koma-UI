@@ -1,6 +1,6 @@
 import { popupClosed } from '../../shared/items';
 import { avatar, el, popupShown } from '../widgets';
-import type { RaidView } from '../protocol';
+import type { RaidView } from '../../protocol/raid';
 import { nameOf, state } from '../state';
 import { ui } from '../ui';
 import { fmt } from '../words';

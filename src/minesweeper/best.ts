@@ -1,12 +1,12 @@
 import { closeMark } from '../shared/ui';
-import type { ClearView, MinesweeperLevel } from './protocol';
+import type { MinesweeperClear, MinesweeperLevel } from '../protocol/minesweeper';
 import { exactClock, state } from './state';
 import { ui } from './ui';
 
 /*
  * The server's fastest clears: the 🏆 beside the levels opens a popup of them, a level at a time (the
  * board's own to begin with), each with how long it took, everyone who opened a tile of it and the
- * day. The bot keeps them and says them (protocol.ts's `best`), on joining and whenever a board cleared
+ * day. The bot keeps them and says them (../protocol/minesweeper.ts's `best`), on joining and whenever a board cleared
  * makes its level's, so the popup is up to date while it's open.
  */
 
@@ -26,7 +26,7 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, className: string, te
 const day = (at: number): string => new Date(at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 
 /** A clear, `rank`th of its level's: its place, who cleared it (this page's player marked) and when, and its time. */
-function row(clear: ClearView, rank: number, you: string | null): HTMLLIElement {
+function row(clear: MinesweeperClear, rank: number, you: string | null): HTMLLIElement {
   const li = el('li', `ms-best-row${rank <= 3 ? ` top${rank}` : ''}`);
   li.classList.toggle(
     'mine',

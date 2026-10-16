@@ -11,6 +11,7 @@ import './header.css';
 const LINKS: readonly { label: string; href: string; route: string }[] = [
   { label: 'Games', href: '/#games', route: '/' },
   { label: 'Gear', href: '/gear/', route: '/gear' },
+  { label: 'Heroes', href: '/heroes/', route: '/heroes' },
   { label: 'Forge', href: '/forge/', route: '/forge' },
   { label: 'Shop', href: '/shop/', route: '/shop' },
   { label: 'Databank', href: '/databank/', route: '/databank' },

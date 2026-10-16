@@ -1,7 +1,8 @@
 import { sleep } from '../shared/util';
 import { startTable } from '../table/table';
 import './baccarat.css';
-import type { BaccaratExtras, BaccaratRoundView, Card, RoundView, Spot } from './protocol';
+import type { BaccaratExtras, BaccaratRoundView, RoundView, BaccaratBet } from '../protocol/baccarat';
+import type { Card } from '../protocol/cards';
 import { drawRoads } from './scoreboard';
 import { play } from './sfx';
 
@@ -20,8 +21,8 @@ const ui = {
   hands: { player: $('hand-player'), banker: $('hand-banker') },
 };
 
-const SPOT_NAME: Record<Spot, string> = { player: 'Player', banker: 'Banker', tie: 'Tie', kirin: 'Kirin', phoenix: 'Phoenix' };
-const spots = new Map<Spot, HTMLElement>([...document.querySelectorAll<HTMLElement>('[data-spot]')].map((el) => [el.dataset.spot as Spot, el]));
+const SPOT_NAME: Record<BaccaratBet, string> = { player: 'Player', banker: 'Banker', tie: 'Tie', kirin: 'Kirin', phoenix: 'Phoenix' };
+const spots = new Map<BaccaratBet, HTMLElement>([...document.querySelectorAll<HTMLElement>('[data-spot]')].map((el) => [el.dataset.spot as BaccaratBet, el]));
 
 /** How long between cards as a round is dealt out, and before the result shows. */
 const CARD_MS = 850;
@@ -59,7 +60,7 @@ function cardEl(card: Card, third: boolean): HTMLElement {
 
 drawRoads();
 
-startTable<Spot, BaccaratRoundView, BaccaratExtras>({
+startTable<BaccaratBet, BaccaratRoundView, BaccaratExtras>({
   name: 'baccarat',
   title: 'Baccarat',
   key: 'baccarat',

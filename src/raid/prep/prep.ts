@@ -1,7 +1,7 @@
 import { send } from '../connection';
 import { el, markdown } from '../widgets';
 import { openGear } from '../gear/gear-popup';
-import type { RaidView } from '../protocol';
+import type { RaidView } from '../../protocol/raid';
 import { nameOf, state } from '../state';
 import { ui } from '../ui';
 import { fmt } from '../words';
@@ -11,7 +11,7 @@ import { openLevel } from './level';
 /** The last boss and difficulty the party screen was drawn for (what it does and gives only change with them). */
 let prepBoss = '';
 
-/** The phone's notice that the week's boss hasn't been fought yet was tapped away (it comes up once a visit). */
+/** The phone's notice that a raid can be started was tapped away (it comes up once a visit). */
 let noticeSeen = false;
 
 /** The raiders' character (everyone's the same one for now). */
@@ -161,17 +161,12 @@ function renderStatus(v: RaidView): void {
   ui.leave.hidden = true;
   ui.begin.hidden = true;
   ui.disband.hidden = true;
-  state.lobbyTimer = null;
   let unfought = false;
   if (!lobby) disarmDisband();
   if (lobby) {
     const host = players[0] ?? null;
     const hp = el('span', 'rd-muted-inline', `Boss HP ${fmt(lobby.bossHp)}, growing with every raider.`);
-    if (lobby.closesAt !== undefined) {
-      // A bot from before the host started it: its lobby counts down.
-      state.lobbyTimer = el('b');
-      ui.prepStatus.replaceChildren('The fight starts in ', state.lobbyTimer, ', or when the host starts it. ', hp);
-    } else if (host === v.you) {
+    if (host === v.you) {
       ui.prepStatus.replaceChildren("You're the host: start the raid once everyone is in, or disband it. ", hp);
     } else {
       ui.prepStatus.replaceChildren(host ? `Waiting for ${nameOf(host)} (the host) to start the raid. ` : 'Waiting for the host to start the raid. ', hp);
@@ -179,19 +174,18 @@ function renderStatus(v: RaidView): void {
     ui.join.hidden = inIt;
     ui.leave.hidden = !inIt;
     ui.begin.hidden = host !== v.you;
-    // Disbanding came with the host starting it (a bot from before has neither).
-    ui.disband.hidden = host !== v.you || lobby.closesAt !== undefined;
+    ui.disband.hidden = host !== v.you;
   } else if (v.phase === 'over') {
     // A bot from before `idle.last` says a lobby that never came to a fight is over, and nothing more.
     ui.prepStatus.textContent = `${LAST_LOBBY[v.over?.end === 'called_off' ? 'called_off' : 'no_players']} Start it again in Discord with the raid command, or come back in a little while.`;
   } else if (v.idle?.week === 'busy') {
     ui.prepStatus.textContent = 'A raid is starting in Discord. It will show up here in a moment.';
   } else if (v.idle?.canStart) {
-    ui.prepStatus.textContent = `${last}This week's boss hasn't been fought yet. Join to start the raid: its lobby goes up in the server, and everyone can join, here or in Discord. The week resets ${reset}.`;
+    ui.prepStatus.textContent = `${last}Join to start a raid against this week's boss: its lobby goes up in the server, and everyone can join, here or in Discord. Raid as often as you like; the boss changes ${reset}.`;
     ui.start.hidden = false;
     unfought = true;
   } else {
-    ui.prepStatus.textContent = `${last}This week's boss hasn't been fought yet. This server has no bot channel, so start the raid in Discord with the raid command, then join it here. The week resets ${reset}.`;
+    ui.prepStatus.textContent = `${last}This server has no bot channel, so start a raid in Discord with the raid command, then join it here. Raid as often as you like; the boss changes ${reset}.`;
     unfought = true;
   }
   // On a phone, that line isn't across the top: it comes up first, over the party screen (../styles/prep-party.css).

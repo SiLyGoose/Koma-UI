@@ -1,4 +1,4 @@
-import type { Lobby, RunState } from './protocol';
+import type { Lobby, RunState } from '../protocol/mines';
 
 /** What more than one part of the page needs to know. */
 export const state = {

@@ -1,5 +1,5 @@
 import { el } from '../widgets';
-import type { RaidFightView } from '../protocol';
+import type { RaidFightView } from '../../protocol/raid';
 import { plural } from '../words';
 
 /**

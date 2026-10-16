@@ -47,6 +47,8 @@ export interface GearContext {
   filter: Slot | 'all';
   /** The star tier the armory shows (its Filter: ../../shared/items/armory-filter/). */
   stars: StarChoice;
+  /** The armory shows gear only heroes wear (TechnoMagic gear, unique weapons) too: off until its Filter turns it on (or picks their tier). */
+  heroGear: boolean;
   /** What the armory's search asks for (trimmed and lowercased): every word in a card's name or description (../../shared/items/search.ts). */
   query: string;
   /** What the panel beside the character shows. */
@@ -111,6 +113,7 @@ export function createContext(root: HTMLElement, host: GearHost): GearContext {
     gear: null,
     filter: 'all',
     stars: 'all',
+    heroGear: false,
     query: '',
     view: 'gear',
     picked: null,

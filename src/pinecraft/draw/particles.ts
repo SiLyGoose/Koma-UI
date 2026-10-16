@@ -1,4 +1,4 @@
-import type { PinecraftOre } from '../protocol';
+import type { PinecraftOre } from '../../protocol/pinecraft';
 import { ORE_COLOR } from './textures';
 import type { Scene } from './scene';
 

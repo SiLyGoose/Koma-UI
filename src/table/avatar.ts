@@ -1,4 +1,4 @@
-import type { SeatView } from './protocol';
+import type { SeatView } from '../protocol/table';
 
 /** A player's profile picture, their name on hover. */
 export function avatarImg(seat: SeatView, className: string): HTMLImageElement {

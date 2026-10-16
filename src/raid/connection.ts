@@ -2,7 +2,7 @@ import { setConn } from '../shared/ui/frame/frame';
 import { gameSocket, type GameSocket } from '../shared/game';
 import { firstPaint, showMessage } from './message';
 import { startAnswered } from './prep';
-import type { ClientMessage, ErrorCode, ServerMessage } from './protocol';
+import type { ClientMessage, ErrorCode, ServerMessage } from '../protocol/raid';
 import { render } from './render';
 import { state } from './state';
 import { toast } from './widgets';

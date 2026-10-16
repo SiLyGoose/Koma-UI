@@ -1,14 +1,13 @@
 import { el, forgePlan, type GearCopy, type Plan, rich } from '../../shared/items';
 import { working } from '../../shared/ui';
 import { card } from './card';
-import { compare, withoutDormant, type EffectRow } from './compare';
+import { compare, type EffectRow } from './compare';
 import { balance, choosing, copyById, type ForgeContext } from '../context';
 import { renderCost } from './cost';
 import { fillEffects } from './effects';
-import { GEM_EMOJI } from './gem';
 import { hintFor } from './hint';
 
-/** Every refine and forge works for now: no chance of failing, so nothing to make up for it. */
+/** Every refine works for now: no chance of failing, so nothing to make up for it. */
 const SUCCESS_RATE = 100;
 const FAILURE_BONUS = 0;
 
@@ -28,15 +27,10 @@ export function renderAnvil(ctx: ForgeContext): void {
   ui.target.replaceChildren(copy ? card(copy) : el('span', 'anvil-empty'));
   ui.target.classList.toggle('filled', !!copy);
   ui.target.title = copy ? 'Take it off the anvil' : '';
-  // What it uses up: the spare picked for a refine (the slot waiting for one until then), gems for a forge.
+  // What it uses up: the spare picked for a refine (the slot waiting for one until then).
   const spare = plan?.kind === 'refine' ? copyById(ctx, ctx.material) : undefined;
-  if (spare) ui.material.replaceChildren(card(spare));
-  else if (plan?.kind === 'forge') {
-    const gem = el('span', 'anvil-gem');
-    gem.append(rich(GEM_EMOJI));
-    ui.material.replaceChildren(gem);
-  } else ui.material.replaceChildren(el('span', 'anvil-empty'));
-  ui.material.classList.toggle('filled', !!spare || plan?.kind === 'forge');
+  ui.material.replaceChildren(spare ? card(spare) : el('span', 'anvil-empty'));
+  ui.material.classList.toggle('filled', !!spare);
   ui.material.classList.toggle('waiting', !spare && !!choosing(ctx)?.size);
   ui.material.title = spare ? 'Take it off the anvil' : '';
 
@@ -45,16 +39,10 @@ export function renderAnvil(ctx: ForgeContext): void {
   renderEffects(ctx, copy, plan);
   renderCost(ctx, plan);
 
-  ui.go.textContent = plan?.kind === 'forge' ? 'Forge Masterwork' : 'Refine Gear';
   const have = balance(ctx);
   working(ui.go, ctx.busy, 'strike');
   ui.go.disabled =
-    !plan ||
-    (plan.kind === 'refine'
-      ? plan.refine.blocked !== null || plan.refine.cost === null || (have !== null && have < plan.refine.cost) || !spare
-      : plan.kind === 'forge'
-        ? !plan.forge || plan.forge.blocked !== null
-        : true);
+    plan?.kind !== 'refine' || plan.refine.blocked !== null || plan.refine.cost === null || (have !== null && have < plan.refine.cost) || !spare;
 }
 
 /** What the copy on the anvil does now, against what it will do. */
@@ -63,8 +51,6 @@ function renderEffects(ctx: ForgeContext, copy: GearCopy | undefined, plan: Plan
   if (!copy || !plan) return;
   let rows: EffectRow[];
   if (plan.kind === 'refine' && plan.refine.after) rows = compare(copy.effects, plan.refine.after);
-  // The waiting bonus's line gives way to what it does once forged.
-  else if (plan.kind === 'forge' && plan.forge?.after) rows = compare(withoutDormant(copy.effects), plan.forge.after);
   else rows = copy.effects.map((line) => ({ line, changes: [], state: 'same' }));
   fillEffects(ctx.ui.effects, rows);
 }

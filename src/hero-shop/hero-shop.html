@@ -1,0 +1,26 @@
+<!-- The heroes for sale (src/hero-shop/page.ts): a card for each, with its picture, its class and its price. The shop's Heroes tab, swapped into its panel by src/shop/page.ts. Laid out as the Outfits tab (its outfits.css). -->
+<section class="outfits-page hero-shop">
+  <div class="outfits-bar">
+    <select id="server" class="server-pick" aria-label="Server" hidden></select>
+    <h2 class="outfits-title plaque">Heroes</h2>
+    <p class="outfits-wallet"><span id="balance" class="outfits-purse" title="zeiucoins" hidden></span></p>
+  </div>
+
+  <p id="status" class="status outfits-status" hidden></p>
+
+  <!-- A card for each hero (page.ts): its picture and class badge, its name, and at the bottom its price, or that it's theirs. -->
+  <div id="heroes" class="outfits-row"></div>
+
+  <!-- Buying one: what it costs (in red when it's more than they have). Not a <dialog>, as the Outfits tab's isn't. -->
+  <div id="buy" class="outfits-buy" role="dialog" aria-modal="true" aria-labelledby="buy-title" tabindex="-1" hidden>
+    <div class="outfits-buy-box">
+      <div class="outfits-buy-figure hero-buy-figure"><img id="buy-picture" class="hero-buy-picture" alt="" hidden /></div>
+      <h3 id="buy-title"></h3>
+      <p id="buy-price" class="outfits-buy-price"></p>
+      <div class="outfits-buy-foot">
+        <button type="button" class="action secondary" data-buy="cancel">Cancel</button>
+        <button type="button" class="action main" data-buy="confirm">Buy</button>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,700 @@
+/*
+ * Getting ready (./prep.ts), over the field until the fight begins: King's Raid's own screen, a dark red
+ * hall framed in gold, the lineup's cards across its middle and three panels along its bottom.
+ */
+
+.tm-prep {
+  --gold: #d9b56a;
+  --gold-dim: #8a6a33;
+  --velvet: #3b0f12;
+  --velvet-deep: #1c0709;
+  --panel: rgba(16, 12, 18, 0.88);
+  --ink: #f4ead6;
+  --ink-dim: #b8a88c;
+  /* Each player's colour, by their place in the room. */
+  --p1: #f1c75b;
+  --p2: #6fc3ff;
+  --p3: #9be17a;
+  --p4: #f58fb4;
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  /* Its height sizes the lineup's cards (100cqh, below). */
+  container-type: size;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 16px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  color: var(--ink);
+  background:
+    radial-gradient(ellipse at 50% 38%, rgba(160, 30, 36, 0.55), transparent 62%),
+    linear-gradient(180deg, #24090c, var(--velvet-deep));
+}
+
+.tm-prep[hidden] {
+  display: none;
+}
+
+/* The top and the lineup never squeezed for the panels: alone, the lineup (overflow hidden) would shut to a line, and fit() would take that as fitting. */
+.tm-prep-top,
+.tm-lineup {
+  flex-shrink: 0;
+}
+
+.tm-prep-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 18px;
+}
+
+.tm-prep-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.tm-prep-boss {
+  flex: 1;
+  margin: 0;
+  padding: 6px 16px;
+  border: 1px solid var(--gold-dim);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.45);
+  text-align: center;
+  font-size: 18px;
+}
+
+.tm-prep-boss b {
+  font-weight: 800;
+}
+
+/* Top right: Raid Settings, which opens the raid's own popup to step the stage (../../shared/ui/level/). */
+.tm-prep-settings {
+  margin-left: auto;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #e2b85c, #a87a2c);
+  color: #2a1606;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.tm-prep-settings:hover {
+  filter: brightness(1.1);
+}
+
+/*
+ * The lineup: a card for every slot, in a gold-framed row (wrapping on a narrow screen). Each card as wide as
+ * its share of the row, but no taller than the screen has room for once everything else is in (about 500px:
+ * the top, the lineup's frame and the panels along the bottom), and never smaller than 44px across.
+ */
+.tm-lineup {
+  display: grid;
+  grid-template-columns: repeat(var(--slots, 9), minmax(0, max(44px, calc((100cqh - 500px) * 9 / 16))));
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+  padding: 12px;
+  list-style: none;
+  border: 2px solid var(--gold-dim);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(110, 20, 24, 0.85), rgba(60, 10, 14, 0.9));
+  box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.6);
+}
+
+/* Alone: the lineup in two halves, the Main Team and the Sub Team, side by side with a line between, each under its tab (../prep/prep.ts). */
+.tm-lineup.teams {
+  grid-template-columns: repeat(2, auto);
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.tm-team {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.tm-team + .tm-team {
+  border-left: 2px solid var(--gold-dim);
+}
+
+/* A team's tab: pressed, it is the one a hero picked goes into. */
+.tm-team-tab {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border: 0;
+  border-bottom: 2px solid var(--gold-dim);
+  background: rgba(0, 0, 0, 0.4);
+  color: rgba(255, 255, 255, 0.6);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tm-team-tab:hover {
+  color: #fff;
+}
+
+.tm-team-tab[aria-pressed='true'] {
+  border-bottom-color: var(--gold);
+  background: linear-gradient(180deg, rgba(226, 184, 92, 0.3), rgba(0, 0, 0, 0.25));
+  box-shadow: inset 0 0 0 2px var(--gold);
+  color: #fff;
+}
+
+/* The other team: darkened under a backdrop, and pressed anywhere to make it the one heroes go into. */
+.tm-team:not(.focused) {
+  position: relative;
+  cursor: pointer;
+}
+
+.tm-team:not(.focused)::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  pointer-events: none;
+  transition: background 0.15s;
+}
+
+.tm-team:not(.focused):hover::after {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.tm-team:not(.focused) .tm-slot-card {
+  cursor: pointer;
+}
+
+.tm-team-count {
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0.75;
+}
+
+.tm-team-slots {
+  display: grid;
+  grid-template-columns: repeat(var(--slots, 4), minmax(0, max(44px, calc((100cqh - 500px) * 9 / 16))));
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+  padding: 12px;
+  list-style: none;
+}
+
+/* Alone: which team a hero picked is in, on its square in the Heroes List (M or S), the Sub Team's dimmer. */
+.tm-prep-hero[data-team='sub'] .tm-prep-hero-check {
+  opacity: 0.7;
+}
+
+/* A slot: whose it is, big, over its card. */
+.tm-slot {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.tm-slot-frame {
+  aspect-ratio: 9 / 16;
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.15));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+.tm-slot-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  overflow: hidden;
+  border: 2px solid var(--gold);
+  border-radius: 8px;
+  background: linear-gradient(180deg, #4a3a5a, #1e1626);
+  color: inherit;
+  font: inherit;
+}
+
+button.tm-slot-card {
+  cursor: pointer;
+}
+
+button.tm-slot-card:hover {
+  filter: brightness(1.12);
+}
+
+.tm-slot[data-player='1'] .tm-slot-card {
+  border-color: var(--p1);
+}
+
+.tm-slot[data-player='2'] .tm-slot-card {
+  border-color: var(--p2);
+}
+
+.tm-slot[data-player='3'] .tm-slot-card {
+  border-color: var(--p3);
+}
+
+.tm-slot[data-player='4'] .tm-slot-card {
+  border-color: var(--p4);
+}
+
+.tm-slot-owner {
+  /* Kept a line high when blank, so every card starts at the same height. */
+  min-height: 1em;
+  font-size: 28px;
+  font-weight: 900;
+  font-style: italic;
+  line-height: 1;
+  text-align: center;
+  text-shadow:
+    0 2px 0 #000,
+    0 0 6px rgba(0, 0, 0, 0.8);
+}
+
+.tm-slot[data-player='1'] .tm-slot-owner {
+  color: var(--p1);
+}
+
+.tm-slot[data-player='2'] .tm-slot-owner {
+  color: var(--p2);
+}
+
+.tm-slot[data-player='3'] .tm-slot-owner {
+  color: var(--p3);
+}
+
+.tm-slot[data-player='4'] .tm-slot-owner {
+  color: var(--p4);
+}
+
+.tm-slot-face,
+.tm-prep-hero-face {
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: #2b2236;
+}
+
+.tm-slot-face {
+  flex: 1;
+}
+
+.tm-slot-face img,
+.tm-prep-hero-face img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tm-face-letter {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--ink-dim);
+}
+
+.tm-slot-class {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: clamp(24px, 36%, 52px);
+  height: auto;
+  aspect-ratio: 1;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.8));
+}
+
+.tm-slot-name {
+  padding: 4px 2px;
+  background: rgba(0, 0, 0, 0.7);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Along the bottom: the heroes, the chat, and who's in. */
+.tm-prep-bottom {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr) minmax(0, 1fr);
+  /* As tall as what's left, and never shorter than a panel's contents (who's in, with its buttons). */
+  grid-template-rows: minmax(min-content, 1fr);
+  gap: 12px;
+  flex: 1;
+}
+
+.tm-prep-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 200px;
+  padding: 10px;
+  border: 1px solid var(--gold-dim);
+  border-radius: 10px;
+  background: var(--panel);
+}
+
+.tm-prep-panel-title {
+  margin: 0 0 8px;
+  font-size: 15px;
+  color: var(--gold);
+}
+
+/* The Heroes List's title, and Manage at its right. */
+.tm-prep-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.tm-prep-panel-head .tm-prep-panel-title {
+  margin: 0;
+}
+
+.tm-prep-manage {
+  flex-shrink: 0;
+  padding: 4px 12px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #e2b85c, #a87a2c);
+  color: #2a1606;
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.tm-prep-manage:hover {
+  filter: brightness(1.1);
+}
+
+.tm-prep-hero-list {
+  display: grid;
+  /* Three to a row; on a wide screen, as many more as fit. */
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  /* Each row as tall as its squares: left auto, the rows would shrink to fit the panel rather than scroll. */
+  grid-auto-rows: max-content;
+  gap: 8px;
+  align-content: start;
+  overflow-y: auto;
+  /* Scrolls without a bar. */
+  scrollbar-width: none;
+}
+
+.tm-prep-hero-list::-webkit-scrollbar {
+  display: none;
+}
+
+/* Not making their panels any taller: they take what the panels have, and scroll. */
+.tm-prep-hero-list,
+.tm-prep-chat .chat-lines {
+  flex: 1;
+  min-height: 0;
+  contain: size;
+}
+
+@media (min-width: 1400px) {
+  .tm-prep-hero-list {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  }
+}
+
+.tm-prep-hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  aspect-ratio: 1;
+  box-sizing: border-box;
+  /* Its width sizes the tick (cqi, below). */
+  container-type: inline-size;
+  padding: 0;
+  overflow: hidden;
+  border: 2px solid var(--gold-dim);
+  border-radius: 8px;
+  background: #1e1626;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.tm-prep-hero:disabled {
+  cursor: not-allowed;
+  filter: grayscale(0.8) brightness(0.6);
+}
+
+.tm-prep-hero.picked {
+  border-color: var(--gold);
+}
+
+/* The face fills its square. */
+.tm-prep-hero-face {
+  flex: 1;
+  min-height: 0;
+}
+
+/* One that's in: its face a little darker, under the tick. */
+.tm-prep-hero.picked .tm-prep-hero-face::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.tm-prep-hero-check {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  /* Half its square, up to 56px. */
+  font-size: min(56px, 50cqi);
+  line-height: 1;
+  font-weight: 900;
+  color: #ffd25a;
+  text-shadow: 0 2px 4px #000;
+  pointer-events: none;
+}
+
+.tm-prep-empty {
+  margin: 0;
+  color: var(--ink-dim);
+}
+
+.tm-prep-empty a {
+  color: var(--gold);
+}
+
+/* The room's chat fills its panel (../../shared/ui/chat/chat.css draws it). */
+.tm-prep-chat {
+  padding: 0;
+  overflow: hidden;
+}
+
+.tm-prep-chat .chat {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 10px 12px;
+  border: 0;
+}
+
+/* The lines take the panel's height, so the box to say something sits at its bottom. */
+.tm-prep-chat .chat-lines {
+  flex: 1;
+  height: auto;
+}
+
+.tm-prep-players {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0 0 8px;
+  padding: 0;
+  list-style: none;
+}
+
+.tm-prep-player {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, rgba(120, 80, 30, 0.6), rgba(40, 28, 20, 0.6));
+}
+
+/* A place no one has taken yet. */
+.tm-prep-player.open {
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  color: var(--ink-dim);
+}
+
+.tm-prep-player.open .tm-prep-player-no {
+  color: var(--ink-dim);
+}
+
+.tm-prep-player.open .tm-prep-player-name {
+  font-weight: 500;
+  font-style: italic;
+}
+
+.tm-prep-player.you {
+  box-shadow: inset 0 0 0 1px var(--gold);
+}
+
+.tm-prep-player-no {
+  font-size: 18px;
+}
+
+.tm-prep-player[data-player='1'] .tm-prep-player-no {
+  color: var(--p1);
+}
+
+.tm-prep-player[data-player='2'] .tm-prep-player-no {
+  color: var(--p2);
+}
+
+.tm-prep-player[data-player='3'] .tm-prep-player-no {
+  color: var(--p3);
+}
+
+.tm-prep-player[data-player='4'] .tm-prep-player-no {
+  color: var(--p4);
+}
+
+.tm-prep-player-name {
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tm-prep-player-heroes {
+  color: var(--ink-dim);
+  font-size: 13px;
+}
+
+.tm-prep-player-ready {
+  color: var(--ink-dim);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.tm-prep-player-ready.on {
+  color: #8be08b;
+}
+
+.tm-prep-note {
+  margin: 0 0 6px;
+  font-size: 13px;
+}
+
+.tm-prep-note:empty {
+  display: none;
+}
+
+.tm-prep-note {
+  color: #ffb4a8;
+}
+
+.tm-prep-actions {
+  /* Raid Info's box is placed by it. At the bottom of the panel. */
+  position: relative;
+  margin-top: auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.tm-prep-actions #prep-start {
+  flex: 1;
+}
+
+/* Raid Info and Ready as tall as Start Battle (a large button), and all a little narrower, to stay on one row. */
+.tm-prep-actions .action {
+  min-height: 48px;
+  padding: 0 14px;
+}
+
+.tm-prep-info summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.tm-prep-info summary::-webkit-details-marker {
+  display: none;
+}
+
+/*
+ * Raid Info's box: up over the panel from its row of buttons, as wide as the row (not wider than the
+ * panel, so it never makes the screen any wider), and no taller than most of the screen: past that it scrolls.
+ */
+.tm-prep-info-box {
+  position: absolute;
+  inset: auto 0 calc(100% + 6px);
+  z-index: 2;
+  max-height: 70cqh;
+  overflow-y: auto;
+  padding: 10px 12px;
+  border: 1px solid var(--gold-dim);
+  border-radius: 10px;
+  background: #140d16;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.tm-prep-info-box p {
+  margin: 0 0 6px;
+}
+
+/* A phone: the lineup in two rows, the panels one under another. */
+@media (max-width: 760px) {
+  .tm-prep {
+    padding: 10px 16px;
+  }
+
+  .tm-lineup {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    padding: 8px;
+  }
+
+  .tm-slot-owner {
+    font-size: 20px;
+  }
+
+  .tm-prep-bottom {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/*
+ * A phone (or tablet) on its side (.fit, put on by ./prep.ts): the whole screen laid out larger than the
+ * field and scaled down into it (--fit), so it fits without scrolling, in its desktop layout.
+ */
+.tm-prep.fit {
+  inset: 0 auto auto 0;
+  gap: 10px;
+  padding: 12px 16px;
+  transform: scale(var(--fit, 1));
+  transform-origin: 0 0;
+}
+
+.tm-prep.fit .tm-lineup {
+  padding: 8px 12px;
+}
+
+/* Scaled down, the cards a set size: sized by the height, they would grow as fast as it is scaled. Alone, each team's (its two halves side by side, as ever). */
+.tm-prep.fit.scaled .tm-lineup:not(.teams) {
+  grid-template-columns: repeat(var(--slots, 9), minmax(0, 76px));
+}
+
+.tm-prep.fit.scaled .tm-team-slots {
+  grid-template-columns: repeat(var(--slots, 4), minmax(0, 76px));
+}
+
+.tm-prep.fit .tm-slot-owner {
+  font-size: 22px;
+}
+
+.tm-prep.fit .tm-prep-bottom {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr) minmax(0, 1fr);
+}
+
+.tm-prep.fit .tm-prep-player {
+  padding: 4px 10px;
+}

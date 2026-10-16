@@ -1,4 +1,5 @@
 import { el } from '../shared/items';
+import { HEROES } from '../technomagic/sim/heroes';
 import type { DatabankContext } from './context';
 import { EMBLEM_RINGS } from './emblems';
 
@@ -35,5 +36,6 @@ export function renderHub(ctx: DatabankContext): void {
     // A bot from before the databank had them sends none (of the classes, neither).
     ...(bosses > 0 ? [node('bosses', '/databank/bosses/', 'Raid Bosses', String(bosses), `${bosses} raid ${bosses === 1 ? 'boss' : 'bosses'}`)] : []),
     ...(classes > 0 ? [node('classes', '/databank/classes/', 'Classes', String(classes), `${classes} raid ${classes === 1 ? 'class' : 'classes'}`)] : []),
+    node('heroes', '/databank/heroes/', 'Heroes', String(HEROES.length), `${HEROES.length} ${HEROES.length === 1 ? 'hero' : 'heroes'}`),
   );
 }

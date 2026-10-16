@@ -3,7 +3,7 @@ import { apply } from './apply';
 import { STEP } from '../constants';
 import { cellAt } from '../draw';
 import { breakTime } from '../digging';
-import type { Direction, WorldEvent, WorldState } from '../protocol';
+import type { Direction, WorldEvent, WorldState } from '../../protocol/pinecraft';
 import { state } from '../state';
 
 /* Watching someone dig: their moves come from the bot, not the keys. */

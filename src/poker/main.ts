@@ -8,7 +8,7 @@ import { points } from '../shared/util';
 import { renderCenter, renderStatus } from './center';
 import { mySeat, newContext, send, showError, type PokerContext } from './context';
 import { renderControls, wireControls } from './controls';
-import type { ClientMessage, ErrorCode, PokerState, Refusal, ServerMessage } from './protocol';
+import type { ClientMessage, ErrorCode, PokerState, Refusal, ServerMessage } from '../protocol/poker';
 import { renderSeats, renderSeatTimer } from './seats';
 import { play } from './sfx';
 

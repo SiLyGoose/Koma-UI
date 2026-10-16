@@ -1,0 +1,54 @@
+import type { HeroMove } from './heroes/moves';
+import type { NumberKind } from './shown';
+
+/*
+ * What goes in and out of the sim (./fight.ts). In: what the player does (Input), each kept with the step
+ * it was done before (Logged), so the bot can play the fight over the same way (./bot.ts). Out: what
+ * happened, for the page to draw (SimEvent). Heroes are named by their index among the fighters.
+ */
+
+export type Input =
+  /** A hero's skill is pressed: it waits its turn (and, short of mana, the mana), one at a time; pressed again meanwhile, not after all. */
+  | { kind: 'skill'; fighter: number; skill: number }
+  /** A hero's Auto is turned on or off; every hero's (on for all, unless all have it on already). */
+  | { kind: 'auto'; fighter: number }
+  | { kind: 'all-auto' }
+  /** The player leaves the raid: lost. */
+  | { kind: 'leave' }
+  /** Only when trying things out: a hero onto the field or off it, the boss set to an attack, Boss auto on or off, Deathless on or off, the raid's stage. */
+  | { kind: 'toggle'; fighter: number }
+  | { kind: 'boss'; attack: string }
+  | { kind: 'boss-auto' }
+  | { kind: 'deathless' }
+  | { kind: 'stage'; stage: number };
+
+/** An input, with the step it was done before (the sim's `tick` then). */
+export type Logged = Input & { tick: number };
+
+export type Result = 'won' | 'lost';
+
+export type SimEvent =
+  /** A hero runs in onto the field; one leaves it. */
+  | { kind: 'enter'; who: number }
+  | { kind: 'leave'; who: number }
+  /** A hero down is up again (a skill revived it). */
+  | { kind: 'revive'; who: number }
+  /** A hero begins a move: its attack, or (`skill`) one of its skills. */
+  | { kind: 'start'; who: number; move: HeroMove; skill: boolean }
+  /** What a hero was doing is cut short: it reels. */
+  | { kind: 'stagger'; who: number }
+  /** A part of a hero's move lands (`part` counts them from 0; an attack's fifth is its hardest). */
+  | { kind: 'land'; who: number; move: HeroMove; part: number }
+  /** A blow of the boss's reaches a hero: blocked, or it flinches. */
+  | { kind: 'hurt'; who: number; blocked: boolean }
+  /** A number to come off a hero or the boss (`mend`: the boss's own healing, shown higher up). */
+  | { kind: 'number'; on: number | 'boss'; amount: number; type: NumberKind; mend?: boolean }
+  /** Something a hero (`who`), or the boss (null), does that is drawn its own way, on `targets`. */
+  | { kind: 'cue'; who: number | null; name: string; targets: number[] }
+  /** The boss begins an attack; is hit; is stunned (knocked `down`); slowed. */
+  | { kind: 'boss-use'; attack: string }
+  | { kind: 'boss-hit' }
+  | { kind: 'boss-daze'; seconds: number; down: boolean }
+  | { kind: 'boss-slow'; rate: number; seconds: number }
+  /** The fight is over. */
+  | { kind: 'end'; result: Result };

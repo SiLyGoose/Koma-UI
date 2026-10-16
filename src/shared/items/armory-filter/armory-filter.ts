@@ -1,19 +1,21 @@
 import './armory-filter.css';
-import { el, type Slot, stars } from '../items';
+import { el, type Slot, stars, tmTier, uwTier } from '../items';
 
 /*
  * The armories' filter (the gear page's, the forge's, the databank's): a Filter button beside the search,
  * with how many filters are on, and its panel under it: the type (All, Weapons, Armor, Treasures), the
- * stars (Any, then 4 to 1) and, where the page offers them, the class (the databank's: a raid class's own items),
- * Owned only (the databank's) and Refineable (the forge's), with room for more (a sort) as they come. A choice applies at once and the panel stays open for the next; a click outside it, Escape or
+ * stars (Any, then 4 to 1) and, where the page offers them, the class (the databank's: a raid class's own items; the
+ * heroes page's: what works on a class, picked for the hero shown),
+ * Owned only (the databank's), Refineable (the forge's) and Hero gear (the gear page's: TechnoMagic gear and unique
+ * weapons, which only heroes wear, hidden until it is on), with room for more (a sort) as they come. A choice applies at once and the panel stays open for the next; a click outside it, Escape or
  * tabbing away closes it. Its markup is a box in the page (`<div id="armory-filter" class="armory-filter">`),
  * which this fills.
  */
 
-export type StarChoice = 1 | 2 | 3 | 4 | 'all';
+export type StarChoice = 1 | 2 | 3 | 4 | 'tm' | 'uw' | 'all';
 
-/** Whether an item of `n` stars is shown under `choice`. */
-export const matchesStars = (choice: StarChoice, n: number): boolean => choice === 'all' || n === choice;
+/** Whether an item of a tier (../items.ts tierOf: its stars, or TechnoMagic gear's or a unique weapon's own) is shown under `choice`. */
+export const matchesStars = (choice: StarChoice, tier: number | 'tm' | 'uw'): boolean => choice === 'all' || choice === tier;
 
 /** What the filter picks. */
 export interface ArmoryChoice {
@@ -23,8 +25,10 @@ export interface ArmoryChoice {
   owned: boolean | null;
   /** Only what can be refined; null where it isn't offered (anywhere but the forge). */
   refineable: boolean | null;
-  /** Only one raid class's items (its id), or 'all'; null where it isn't offered (anywhere but the databank). */
+  /** Only one raid class's items (its id), or 'all'; null where it isn't offered (anywhere but the databank and the heroes page). */
   cls: string | 'all' | null;
+  /** Gear only heroes wear (TechnoMagic gear, unique weapons) shown too; null where it isn't offered (anywhere but the gear page, which shows it always). */
+  heroGear: boolean | null;
 }
 
 /** A raid class the filter offers: its picture is public/gear/classes/<id>.png. */
@@ -50,13 +54,13 @@ const TYPES: readonly [Slot | 'all', string][] = [
   ['armor', 'Armor'],
   ['treasure', 'Treasures'],
 ];
-const TIERS: readonly StarChoice[] = ['all', 4, 3, 2, 1];
+const TIERS: readonly StarChoice[] = ['all', 'tm', 'uw', 4, 3, 2, 1];
 
 let count = 0;
 
 export function armoryFilter(box: HTMLElement): ArmoryFilter {
   const id = `armory-filter-${++count}`;
-  let current: ArmoryChoice = { slot: 'all', stars: 'all', owned: null, refineable: null, cls: null };
+  let current: ArmoryChoice = { slot: 'all', stars: 'all', owned: null, refineable: null, cls: null, heroGear: null };
   let listener: ((choice: ArmoryChoice) => void) | null = null;
 
   // The button: a funnel, Filter, and how many are on.
@@ -96,10 +100,11 @@ export function armoryFilter(box: HTMLElement): ArmoryFilter {
   panel.hidden = true;
   const types = group('Type', ...TYPES.map(([slot, name]) => option('radio', 'slot', slot, name)));
   // Any across the top, then the tiers in pairs.
-  const tiers = group('Stars', ...TIERS.map((n) => (n === 'all' ? option('radio', 'stars', 'all', 'Any', true) : option('radio', 'stars', String(n), stars(n)))));
+  const tiers = group('Stars', ...TIERS.map((n) => (n === 'all' ? option('radio', 'stars', 'all', 'Any', true) : option('radio', 'stars', String(n), n === 'tm' ? tmTier() : n === 'uw' ? uwTier() : stars(n)))));
   const owned = option('checkbox', 'owned', 'owned', 'Owned only', true);
   const refineable = option('checkbox', 'refineable', 'refineable', 'Refineable', true);
-  const only = group('Show', owned, refineable);
+  const heroGear = option('checkbox', 'hero-gear', 'hero-gear', 'Hero gear', true);
+  const only = group('Show', owned, refineable, heroGear);
   // The classes come from the page (setClasses): Any across the top, then each with its badge.
   const classes = group('Class');
   const classOptions = classes.querySelector('.armory-filter-options') as HTMLElement;
@@ -123,11 +128,18 @@ export function armoryFilter(box: HTMLElement): ArmoryFilter {
     if (cls) cls.checked = true;
     owned.hidden = current.owned === null;
     refineable.hidden = current.refineable === null;
-    only.hidden = owned.hidden && refineable.hidden;
+    heroGear.hidden = current.heroGear === null;
+    only.hidden = owned.hidden && refineable.hidden && heroGear.hidden;
     (input('owned', 'owned') as HTMLInputElement).checked = current.owned === true;
     (input('refineable', 'refineable') as HTMLInputElement).checked = current.refineable === true;
+    (input('hero-gear', 'hero-gear') as HTMLInputElement).checked = current.heroGear === true;
     const on =
-      Number(current.slot !== 'all') + Number(current.stars !== 'all') + Number(current.owned === true) + Number(current.refineable === true) + Number(current.cls !== null && current.cls !== 'all');
+      Number(current.slot !== 'all') +
+      Number(current.stars !== 'all') +
+      Number(current.owned === true) +
+      Number(current.refineable === true) +
+      Number(current.cls !== null && current.cls !== 'all') +
+      Number(current.heroGear === true);
     badge.textContent = String(on);
     badge.hidden = on === 0;
     clear.hidden = on === 0;
@@ -145,14 +157,22 @@ export function armoryFilter(box: HTMLElement): ArmoryFilter {
     const tier = picked('stars') ?? 'all';
     choose({
       slot: (picked('slot') ?? 'all') as Slot | 'all',
-      stars: tier === 'all' ? 'all' : (Number(tier) as StarChoice),
+      stars: tier === 'all' || tier === 'tm' || tier === 'uw' ? tier : (Number(tier) as StarChoice),
       owned: current.owned === null ? null : picked('owned') !== undefined,
       refineable: current.refineable === null ? null : picked('refineable') !== undefined,
       cls: current.cls === null ? null : (picked('class') ?? 'all'),
+      heroGear: current.heroGear === null ? null : picked('hero-gear') !== undefined,
     });
   });
   clear.addEventListener('click', () => {
-    choose({ slot: 'all', stars: 'all', owned: current.owned === null ? null : false, refineable: current.refineable === null ? null : false, cls: current.cls === null ? null : 'all' });
+    choose({
+      slot: 'all',
+      stars: 'all',
+      owned: current.owned === null ? null : false,
+      refineable: current.refineable === null ? null : false,
+      cls: current.cls === null ? null : 'all',
+      heroGear: current.heroGear === null ? null : false,
+    });
     // The button it was goes away with nothing left to clear: the focus goes to the first choice.
     panel.querySelector<HTMLInputElement>('input:checked')?.focus();
   });

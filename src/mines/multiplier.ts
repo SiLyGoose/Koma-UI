@@ -1,5 +1,5 @@
 import { points } from '../shared/util';
-import type { Lobby } from './protocol';
+import type { Lobby } from '../protocol/mines';
 
 export const TILES = 25;
 

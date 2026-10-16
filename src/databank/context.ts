@@ -1,11 +1,13 @@
 import { armoryFilter, type Slot, type StarChoice } from '../shared/items';
-import type { Databank, DatabankBoss, DatabankItem, Owned, RaidClass, RaidWeek } from './types';
+import { HEROES } from '../technomagic/sim/heroes';
+import type { HeroDef } from '../technomagic/sim/heroes/kit';
+import type { Databank, DatabankBoss, DatabankItem, Owned, RaidClass, RaidWeekView } from './types';
 
 /** Narrow screens show the item picked in a sheet over the list, only once one is picked. */
 export const narrow = window.matchMedia('(max-width: 899px)');
 
-/** What the page shows: the way in (what there is to look up), every item, the raid bosses, or the raid classes. Each has its path (./page.ts). */
-export type View = 'hub' | 'items' | 'bosses' | 'classes';
+/** What the page shows: the way in (what there is to look up), every item, the raid bosses, the raid classes, or the TechnoMagic Raid's heroes. Each has its path (./page.ts). */
+export type View = 'hub' | 'items' | 'bosses' | 'classes' | 'heroes';
 
 export type DatabankUi = ReturnType<typeof findUi>;
 
@@ -39,6 +41,11 @@ function findUi(root: HTMLElement) {
     classCount: $('class-count'),
     classInfo: $('class-info'),
     classBody: $('class-body'),
+    heroes: $('db-heroes'),
+    heroList: $('hero-list'),
+    heroCount: $('hero-count'),
+    heroInfo: $('hero-info'),
+    heroBody: $('hero-body'),
   };
 }
 
@@ -58,16 +65,17 @@ export interface DatabankContext {
   /** The item shown in the panel. On narrow screens it's only open once one is picked. */
   picked: string | null;
   sheetOpen: boolean;
-  /** The level the panel shows (1 to maxLevel), and whether the masterwork bonus is on (at the top level only). */
+  /** The level the panel shows (1 to maxLevel). */
   level: number;
-  masterwork: boolean;
   /** The boss shown, and the difficulty level its numbers are for. */
   boss: string | null;
   bossLevel: number;
   /** The raid class shown. */
   cls: string | null;
+  /** The hero shown. */
+  hero: string | null;
   /** How the raid stands in the server picked: null when not logged in (or the bot doesn't say). */
-  week: RaidWeek | null;
+  week: RaidWeekView | null;
 }
 
 export function createContext(root: HTMLElement): DatabankContext {
@@ -84,10 +92,10 @@ export function createContext(root: HTMLElement): DatabankContext {
     picked: null,
     sheetOpen: false,
     level: 5,
-    masterwork: false,
     boss: null,
     bossLevel: 1,
     cls: null,
+    hero: HEROES[0]?.id ?? null,
     week: null,
   };
 }
@@ -106,3 +114,6 @@ export const className = (ctx: DatabankContext, id: string): string => ctx.datab
 export const classById = (ctx: DatabankContext, id: string | null): RaidClass | undefined => (id ? ctx.databank?.classes?.find((cls) => cls.id === id) : undefined);
 
 export const bossById = (ctx: DatabankContext, id: string | null): DatabankBoss | undefined => (id ? ctx.databank?.bosses?.find((boss) => boss.id === id) : undefined);
+
+/** A TechnoMagic Raid hero (the raid's own, not the bot's). */
+export const heroById = (id: string | null): HeroDef | undefined => (id ? HEROES.find((hero) => hero.id === id) : undefined);

@@ -1,4 +1,4 @@
-import type { RaidView } from '../protocol';
+import type { RaidView } from '../../protocol/raid';
 
 export function el<K extends keyof HTMLElementTagNameMap>(tag: K, className = '', text?: string): HTMLElementTagNameMap[K] {
   const node = document.createElement(tag);

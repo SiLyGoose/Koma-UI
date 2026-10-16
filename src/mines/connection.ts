@@ -3,7 +3,7 @@ import { gameSocket, type GameSocket, hideMessage, showMessage, watching } from 
 import { showWatchers, showWatching, watchAway, watchBack } from '../shared/ui';
 import { refusalText, showLobby } from './lobby';
 import { setBalance, showError } from './panel';
-import type { ClientMessage, ErrorCode, ServerMessage } from './protocol';
+import type { ClientMessage, ErrorCode, ServerMessage } from '../protocol/mines';
 import { render } from './render';
 import { applyEvent } from './round';
 import { state } from './state';

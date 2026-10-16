@@ -1,0 +1,85 @@
+/*
+ * The databank's heroes (../heroes.ts): the classes' cards and frames (./classes.css, ./bosses.css), each
+ * card with the hero's face for a badge, and the one picked with its bust. Its stats and skills are the
+ * heroes page's own (../../gear/styles/armory.css, ../../heroes/heroes.css).
+ */
+
+/* A hero's face on its card: a rounded square, its initial until (or where) its picture can't be shown. */
+.db-hero-card-face,
+.db-hero-picture {
+  display: grid;
+  flex: none;
+  place-items: center;
+  overflow: hidden;
+  border: 2px solid #8a7a4c;
+  border-radius: 10px;
+  background: radial-gradient(circle at 50% 40%, #5a2f72, #1d1626);
+  color: #f1e3b4;
+  font-weight: 800;
+}
+
+.db-hero-card-face {
+  width: 52px;
+  height: 52px;
+  font-size: 22px;
+}
+
+.db-hero-card-face img,
+.db-hero-picture img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* The hero picked: its bust (BUST's shape) beside its name and class. */
+.db-hero-picture {
+  width: 84px;
+  aspect-ratio: 3.4 / 4.6;
+  font-size: 34px;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 35%);
+}
+
+.db-hero-class {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.db-hero-class img {
+  width: 22px;
+  height: 22px;
+}
+
+.db-heroes .skills-list {
+  margin-top: 4px;
+}
+
+@media (min-width: 900px) and (max-width: 1279px), (min-width: 900px) and (max-height: 820px) {
+  .db-hero-card-face {
+    width: 42px;
+    height: 42px;
+    font-size: 18px;
+  }
+}
+
+/* ------------------------------------------------------------------ the way in */
+
+/* Its mark on the way in (./hub.css), the fourth: high on the chart, as the second is; with four, each a size down and closer. */
+.db-node-heroes .db-emblem-art {
+  mask-image: url('/shared/emblems/heroes.png');
+}
+
+.db-nodes:has(.db-node-heroes) {
+  column-gap: clamp(16px, 3.5vw, 72px);
+}
+
+.db-nodes:has(.db-node-heroes) .db-emblem {
+  width: clamp(130px, 14vw, 190px);
+}
+
+@media (min-width: 900px) {
+  .db-node-heroes {
+    transform: translateY(-44px);
+  }
+}

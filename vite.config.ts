@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, rmSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { defineConfig, type Plugin } from 'vite';
 
@@ -18,14 +18,26 @@ function transitionHead(): Plugin {
   };
 }
 
+/**
+ * The TechnoMagic Raid's models (public/kr/, which git ignores) are for `yarn dev` on this machine only: a
+ * build made here would copy them into dist with the rest of public/, so they are taken out again.
+ */
+function localModelsOnly(): Plugin {
+  return {
+    name: 'local-models-only',
+    apply: 'build',
+    closeBundle: () => rmSync(resolve(import.meta.dirname, 'dist/kr'), { recursive: true, force: true }),
+  };
+}
+
 // The front page (log in, pick a server and a game) is index.html. Each game is served at
 // /games/<name>/: its page lives at games/<name>/index.html, and the build keeps that path
 // (dist/games/<name>/index.html), with the shared assets under /assets. The site's own pages (the front page,
-// /gear/, /forge/, /shop/ with its tabs, /dressing-room/ and /databank/ with its sections) are all index.html, which swaps between them
-// (src/site/main.ts; vercel.json sends /gear/, /forge/, /shop/…, /dressing-room/ and /databank/… there, and the old
+// /gear/, /heroes/, /forge/, /shop/ with its tabs, /dressing-room/ and /databank/ with its sections) are all index.html, which swaps between them
+// (src/site/main.ts; vercel.json sends /gear/, /heroes/, /forge/, /shop/…, /dressing-room/ and /databank/… there, and the old
 // /banner/ to /shop/wish/).
 export default defineConfig({
-  plugins: [transitionHead()],
+  plugins: [transitionHead(), localModelsOnly()],
   build: {
     rolldownOptions: {
       input: {
@@ -37,6 +49,7 @@ export default defineConfig({
         poker: resolve(import.meta.dirname, 'games/poker/index.html'),
         raid: resolve(import.meta.dirname, 'games/raid/index.html'),
         minesweeper: resolve(import.meta.dirname, 'games/minesweeper/index.html'),
+        technomagic: resolve(import.meta.dirname, 'games/technomagic/index.html'),
         // The raid party's gear, in the raid page's popup.
         raidGear: resolve(import.meta.dirname, 'games/raid/gear/index.html'),
       },

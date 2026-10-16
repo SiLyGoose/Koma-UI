@@ -1,6 +1,6 @@
 /*
  * The databank page, on top of the shared item template (../shared/items/items.css). The bar across its
- * top is ./styles/bar.css, its way in ./styles/hub.css, its raid bosses ./styles/bosses.css and its classes ./styles/classes.css; the rest here is the items: the same armory
+ * top is ./styles/bar.css, its way in ./styles/hub.css, its raid bosses ./styles/bosses.css, its classes ./styles/classes.css and its heroes ./styles/heroes.css; the rest here is the items: the same armory
  * frame and parchment cards, with every item in the game by star tier, each card named, and the picked
  * item's panel beside it (a sheet from the bottom on narrow screens, as on the gear page).
  */
@@ -9,6 +9,7 @@
 @import './styles/hub.css';
 @import './styles/bosses.css';
 @import './styles/classes.css';
+@import './styles/heroes.css';
 
 /* The section's layout and height are the shared .panels' (../shared/items/items.css). */
 
@@ -113,11 +114,6 @@
 }
 
 .db-sheet .detail-note {
-  color: #8a6414;
-}
-
-.db-sheet .detail-mw {
-  background: rgb(138 100 20 / 14%);
   color: #8a6414;
 }
 
@@ -250,7 +246,7 @@
   line-height: 18px;
 }
 
-/* The panel's level picker: R1 to the top level, then ✨ for a masterwork. */
+/* The panel's level picker: R1 to the top level. */
 .db-levels {
   display: flex;
   flex-wrap: wrap;
@@ -258,7 +254,7 @@
   margin: 0 0 12px;
 }
 
-/* R1 to the top, and ✨: the site's buttons for a choice (../shared/ui/button/), small, the level shown in blue. */
+/* R1 to the top: the site's buttons for a choice (../shared/ui/button/), small, the level shown in blue. */
 .db-level {
   min-width: 40px;
   min-height: 32px;

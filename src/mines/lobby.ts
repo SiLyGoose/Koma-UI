@@ -1,6 +1,6 @@
 import { points, remember, remembered } from '../shared/util';
 import { renderPanel, setBalance } from './panel';
-import type { Lobby, StartRefusal } from './protocol';
+import type { Lobby, StartRefusal } from '../protocol/mines';
 import { render } from './render';
 import { state } from './state';
 import { ui } from './ui';

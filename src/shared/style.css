@@ -20,6 +20,8 @@
   --gold: #d8bf7a;
   --green: #8fc9a3;
   --red: #d8686a;
+  /* An effect that is on (a TechnoMagic copy's set or additional effect): a light, soft blue. */
+  --effect-on: #8fd3ff;
   --radius: 12px;
   /*
    * The site pages' surfaces, here once so every page takes them instead of copying them (the buttons in

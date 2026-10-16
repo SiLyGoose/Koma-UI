@@ -1,8 +1,17 @@
 import { titleExtra } from '../shared/ui/frame/frame';
+import { levelPopup } from '../shared/ui/level/level';
 
 /** The raid page's elements (games/raid/index.html), found once. */
 
 export const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T;
+
+/**
+ * The difficulty to start the week's raid at (./prep/level.ts), before its lobby is up: the boss, the level
+ * between two arrows (as far as the server has unlocked), and Enter Raid, which starts it. Put with the
+ * page's other popups.
+ */
+export const level = levelPopup({ id: 'level-pop', title: 'Select Difficulty', label: 'Lv', confirm: 'Enter Raid', down: 'Easier', up: 'Harder' });
+$('gear-pop').before(level.root);
 
 export const ui = {
   bossTitle: titleExtra('rd-title-boss'),
@@ -44,14 +53,14 @@ export const ui = {
   difficultyText: $('difficulty-text'),
   prepNotice: $<HTMLButtonElement>('prep-notice'),
   prepNoticeText: $('prep-notice-text'),
-  levelPop: $('level-pop'),
-  levelPicture: $<HTMLImageElement>('level-picture'),
-  levelBossName: $('level-boss-name'),
-  levelDown: $<HTMLButtonElement>('level-down'),
-  levelUp: $<HTMLButtonElement>('level-up'),
-  levelNumber: $('level-number'),
-  levelEnter: $<HTMLButtonElement>('level-enter'),
-  levelClose: $<HTMLButtonElement>('level-close'),
+  levelPop: level.root,
+  levelPicture: level.picture,
+  levelBossName: level.bossName,
+  levelDown: level.down,
+  levelUp: level.up,
+  levelNumber: level.number,
+  levelEnter: level.confirm,
+  levelClose: level.close,
   start: $<HTMLButtonElement>('start'),
   join: $<HTMLButtonElement>('join'),
   leave: $<HTMLButtonElement>('leave'),

@@ -1,5 +1,5 @@
 import { avatar, el, hpBar } from '../widgets';
-import type { RaidFightView, RaidView } from '../protocol';
+import type { RaidFightView, RaidView } from '../../protocol/raid';
 import { play } from '../sfx';
 import { nameOf, state } from '../state';
 import { CC_NAME, fmt } from '../words';

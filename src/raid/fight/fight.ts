@@ -1,5 +1,5 @@
 import { el, markdown } from '../widgets';
-import type { ActProblem, RaidAction, RaidView } from '../protocol';
+import type { ActProblem, RaidAction, RaidView } from '../../protocol/raid';
 import { state } from '../state';
 import { ui } from '../ui';
 import { problemText } from '../words';

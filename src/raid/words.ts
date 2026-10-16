@@ -1,4 +1,4 @@
-import type { ActProblem, AnswerCode } from './protocol';
+import type { ActProblem, AnswerCode } from '../protocol/raid';
 
 export const fmt = (n: number): string => Math.round(n).toLocaleString('en-US');
 export const plural = (n: number, one: string, many: string): string => `${n} ${n === 1 ? one : many}`;

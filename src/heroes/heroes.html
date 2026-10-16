@@ -1,0 +1,124 @@
+<!-- The heroes page (src/heroes/page.ts): the TechnoMagic Raid's heroes down the left, the one picked with its five slots round it, and the gear a hero can wear. Laid out as the gear page (its gear.css), swapped into #view by src/site/main.ts. -->
+<main class="gear-page heroes-page">
+  <p id="status" class="status" hidden></p>
+
+  <section id="heroes" class="gear panels" hidden>
+    <!-- Every hero, theirs first: picking one shows it and its gear (one that isn't theirs, to buy in the shop). -->
+    <nav id="roster" class="roster" aria-label="Heroes">
+      <h2 class="roster-title">Heroes</h2>
+      <div id="roster-list" class="roster-list"></div>
+    </nav>
+
+    <!-- The hero: its picture, with two weapon slots on the left, two armor slots on the right and its treasure under it. -->
+    <div class="hero">
+      <!-- Whose heroes (theirs, or someone else's in the server, to look at), and the server. -->
+      <div class="hero-top">
+        <select id="member" class="member-pick" aria-label="Whose heroes" hidden></select>
+        <select id="server" class="server-pick" aria-label="Server" hidden></select>
+      </div>
+      <div class="stage hero-stage">
+        <!-- Hung from the stage's top-left corner: its class's badge. -->
+        <span class="hero-ribbon" aria-hidden="true"><span id="class-icon" class="hero-ribbon-icon set"></span></span>
+        <!-- Beside it: how far the hero is transcended, a star lit for each level (none at T0, all five at T5), as King's Raid has it. -->
+        <span id="hero-stars" class="hero-stars" hidden></span>
+        <!-- Its whole picture, its face in the middle, across the stage behind the slots (cut off at the stage's edges). -->
+        <div class="hero-portrait" aria-hidden="true"><img id="hero-bust" class="hero-bust" alt="" hidden /></div>
+        <div class="slot-col hero-weapons">
+          <button type="button" class="slot" data-slot="weapon1"></button>
+          <button type="button" class="slot" data-slot="weapon2"></button>
+        </div>
+        <div class="stage-figure hero-figure">
+          <span id="hero-initial" class="hero-initial" aria-hidden="true"></span>
+          <div class="stage-floor" aria-hidden="true"></div>
+          <h1 id="hero-name" class="hero-name"></h1>
+          <!-- Not theirs yet: to the shop's Heroes tab. -->
+          <a id="hero-buy" class="hero-buy action main" href="/shop/heroes/" hidden>Recruit in the Shop</a>
+        </div>
+        <div class="slot-col hero-armors">
+          <button type="button" class="slot" data-slot="armor1"></button>
+          <button type="button" class="slot" data-slot="armor2"></button>
+        </div>
+        <div class="hero-treasure">
+          <button type="button" class="slot" data-slot="treasure"></button>
+        </div>
+      </div>
+      <div class="totals">
+        <h2>Active Effects</h2>
+        <ul id="totals" class="detail-effects"></ul>
+        <!-- What its picked transcendence perks give its stats. -->
+        <h3 id="perk-effects-title" hidden>Perk Effects</h3>
+        <ul id="perk-effects" class="detail-effects" hidden></ul>
+      </div>
+      <!-- What the panel beside the hero shows: its stats in the raid, the gear it can wear, its skills, or its transcendence perks. -->
+      <div class="hero-tabs" role="tablist" aria-label="Show">
+        <button type="button" class="action choice" role="tab" data-view="stats" aria-selected="false" aria-controls="stats">Stats</button>
+        <button type="button" class="action choice" role="tab" data-view="gear" aria-selected="true" aria-controls="armory">Gear</button>
+        <button type="button" class="action choice" role="tab" data-view="skills" aria-selected="false" aria-controls="skills">Skills</button>
+        <button type="button" class="action choice" role="tab" data-view="transcend" aria-selected="false" aria-controls="transcend">Transcend</button>
+      </div>
+    </div>
+
+    <!-- A picked copy: what it does on the hero, over the hero (a sheet from the bottom on narrow screens). -->
+    <div id="detail" class="detail" role="dialog" aria-label="Item" hidden></div>
+
+    <!-- The gear a hero can wear: the raid's and the TechnoMagic Raid's, on parchment. -->
+    <div id="armory" class="armory" role="tabpanel">
+      <div class="armory-plaque plaque"><span id="armory-title">Hero Gear</span></div>
+      <div class="armory-tools">
+        <input id="armory-search" class="armory-search" type="search" placeholder="Search items" aria-label="Search items" autocomplete="off" />
+        <div id="armory-filter" class="armory-filter"></div>
+      </div>
+      <div class="armory-sheet">
+        <div class="sheet-scroll">
+          <div id="armory-grid" class="armory-grid"></div>
+        </div>
+      </div>
+      <div class="armory-foot">
+        <button type="button" id="unequip-all" class="armory-action action secondary danger">Unequip all</button>
+      </div>
+    </div>
+
+    <!--
+      Stats: first what the hero's next transcendence level costs (its class's three hero essences and komaGems) and what
+      transcends it; then its stats in the TechnoMagic Raid, with and without its gear.
+    -->
+    <div id="stats" class="armory stats off" role="tabpanel">
+      <div class="armory-plaque plaque"><span id="stats-title">Stats</span></div>
+      <div class="armory-sheet">
+        <div class="sheet-scroll">
+          <section id="ascend" class="ascend" aria-label="Transcendence"></section>
+          <div id="stats-list" class="stats-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Skills: the hero's three skills and its passive, in King's Raid's own words (src/heroes/skills.ts). -->
+    <div id="skills" class="armory stats skills off" role="tabpanel">
+      <div class="armory-plaque plaque"><span id="skills-title">Skills</span></div>
+      <div class="armory-sheet">
+        <div class="sheet-scroll">
+          <ol id="skills-list" class="skills-list"></ol>
+        </div>
+      </div>
+    </div>
+
+    <!--
+      Transcend: the hero's transcendence perks (src/heroes/transcend.ts), a row for each tier as King's Raid has them (a tier
+      past how far it is transcended locked), the TP left over them. Picking one says what it does under them, with what learns
+      it (or forgets it); Reset Perks forgets them all.
+    -->
+    <div id="transcend" class="armory stats transcend off" role="tabpanel">
+      <div class="armory-plaque plaque"><span id="transcend-title">Transcendence Perks</span></div>
+      <div class="armory-sheet">
+        <div class="sheet-scroll">
+          <p class="tp"><span class="tp-badge" aria-hidden="true">TP</span><span id="tp-left" class="tp-left"></span></p>
+          <div id="perk-rows" class="perk-rows"></div>
+          <div id="perk-info" class="perk-info" aria-live="polite"></div>
+        </div>
+      </div>
+      <div class="armory-foot">
+        <button type="button" id="reset-perks" class="armory-action action secondary danger">Reset Perks</button>
+      </div>
+    </div>
+  </section>
+</main>

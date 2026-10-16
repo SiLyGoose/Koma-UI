@@ -1,0 +1,322 @@
+/*
+ * A fight over (../result.ts), over the field: won or lost, then what this player got as tiles (the points the win
+ * paid, a coin on the armory's plaque, and each piece of gear found, drawn as the armories draw TechnoMagic gear),
+ * what everyone else found (smaller), and the way on along the bottom. A piece's details open over it all
+ * (.tm-loot), laid out as the gear page's item window. On a phone on its side the screen is short, so the card
+ * scrolls inside itself.
+ */
+
+/* The shared item cards, as the armories draw them (TechnoMagic gear's marks, and full pictures). */
+@import '../../shared/items/styles/art.css';
+@import '../../shared/items/styles/cards.css';
+@import '../../shared/items/styles/tm.css';
+@import '../../shared/items/styles/full-pictures.css';
+
+.tm-result {
+  /* What the shared item cards (../../shared/items/styles/) draw with, as the gear page sets it. */
+  --ink: #3b3444;
+  --parchment-edge: #b9ab88;
+  z-index: 40;
+}
+
+.tm-result .message-card {
+  width: min(560px, 92vw);
+  max-width: none;
+  max-height: calc(100dvh - 24px);
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+/* ------------------------------------------------------------------ tiles */
+
+.tm-rewards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px;
+  margin: 14px 0 4px;
+}
+
+/* A tile: its card (or the coin's plaque) and its name under it. */
+.tm-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 92px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.tm-tile .item {
+  width: 100%;
+}
+
+.tm-tile:hover .item,
+.tm-tile:focus-visible .item {
+  transform: translateY(-2px);
+}
+
+.tm-tile:focus-visible {
+  outline: none;
+}
+
+.tm-tile:focus-visible .item {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.tm-tile-name {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+/* The points: the coin on the armory's dark plaque, edged in gold, the amount under it. */
+.tm-tile-points {
+  cursor: default;
+}
+
+.tm-points-face {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 4px;
+  width: 100%;
+  aspect-ratio: 1;
+  box-sizing: border-box;
+  border: 2px solid var(--gold);
+  border-radius: 6px;
+  background: radial-gradient(circle at 50% 38%, rgb(216 191 122 / 30%), transparent 68%), var(--plaque);
+  box-shadow: inset 0 0 14px 4px rgb(216 191 122 / 25%);
+}
+
+.tm-points-coin {
+  width: 46%;
+  height: auto;
+}
+
+.tm-points-amount {
+  color: var(--gold);
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+/* Everyone else's: a row each, their name and their pieces, smaller. */
+.tm-others {
+  display: grid;
+  gap: 8px;
+  margin: 14px 0 0;
+  padding: 12px 0 0;
+  border-top: 1px solid var(--line);
+  list-style: none;
+  text-align: left;
+}
+
+.tm-others-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.tm-others-who {
+  flex: 0 0 auto;
+  width: 96px;
+  padding-top: 20px;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tm-others-tiles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.tm-tile.small {
+  width: 60px;
+}
+
+.tm-tile.small .tm-tile-name {
+  font-size: 10px;
+}
+
+.tm-result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+/* ------------------------------------------------------------------ a piece's details */
+
+.tm-loot {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  padding: 12px;
+  background: rgb(0 0 0 / 55%);
+  animation: fade-in 0.15s ease-out;
+}
+
+.tm-loot-card {
+  display: flex;
+  flex-direction: column;
+  width: min(420px, 100%);
+  max-height: calc(100dvh - 24px);
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-top: 3px solid #e0a92e;
+  border-radius: var(--radius);
+  background: var(--panel);
+  box-shadow: 0 12px 36px rgb(0 0 0 / 60%);
+  text-align: left;
+}
+
+.tm-loot-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px 10px 16px;
+  background: var(--panel-2);
+  border-bottom: 1px solid var(--line);
+}
+
+.tm-loot-bar h3 {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  color: #f2d28a;
+  font-size: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tm-loot .detail-close {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-3);
+  color: var(--muted);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.tm-loot .detail-close:hover {
+  color: var(--text);
+}
+
+.tm-loot-top {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 0 16px;
+  padding: 16px 0 14px;
+  border-bottom: 2px solid var(--line);
+}
+
+/* The piece's card, big and not a button. */
+.tm-loot .item.tm-loot-face {
+  flex-shrink: 0;
+  width: 96px;
+  cursor: default;
+}
+
+.tm-loot .item.tm-loot-face:hover {
+  transform: none;
+}
+
+.tm-loot-info {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+  min-width: 0;
+}
+
+.tm-loot-kind,
+.tm-loot-class {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.tm-loot-class {
+  color: var(--effect-on);
+}
+
+.tm-loot-rank {
+  margin: 0;
+  color: var(--text);
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.tm-loot-body {
+  padding: 0 16px 16px;
+}
+
+.tm-loot .detail-desc {
+  margin: 12px 0 16px;
+  color: var(--petal);
+  font-size: 13px;
+  font-style: italic;
+}
+
+.tm-loot-label {
+  margin: 14px 0 8px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.tm-loot .detail-desc + .tm-loot-label {
+  margin-top: 0;
+}
+
+.tm-loot-note {
+  margin: 16px 0 0;
+  color: var(--gold);
+  font-size: 13px;
+}
+
+.tm-loot-note a {
+  color: inherit;
+}
+
+/* A phone on its side: short, so the tiles a size down. */
+@media (pointer: coarse) and (orientation: landscape) {
+  .tm-tile {
+    width: 72px;
+  }
+
+  .tm-tile.small {
+    width: 52px;
+  }
+
+  .tm-loot .item.tm-loot-face {
+    width: 72px;
+  }
+}

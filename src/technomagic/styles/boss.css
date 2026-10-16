@@ -1,0 +1,76 @@
+/* The boss's health across the top of the field, and under it what is the matter with it. */
+.tm-boss {
+  position: absolute;
+  inset: 12px 0 auto;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  pointer-events: none;
+}
+
+.tm-boss-bar {
+  position: relative;
+  width: min(46%, 520px);
+  height: 22px;
+  border: 2px solid #6b6252;
+  border-radius: 6px;
+  background: #23202b;
+  overflow: hidden;
+}
+
+.tm-boss-bar i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(180deg, #ff6a5a, #c01f1f);
+  transition: width 0.2s ease-out;
+}
+
+.tm-boss-bar b {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-size: 13px;
+  text-shadow: 0 1px 2px #000;
+}
+
+.tm-marks {
+  display: flex;
+  gap: 6px;
+  min-height: 22px;
+}
+
+.tm-mark {
+  padding: 2px 9px;
+  border: 1px solid;
+  border-radius: 11px;
+  background: rgb(10 8 16 / 75%);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.tm-mark.stun,
+.tm-mark.down {
+  color: #ffe27a;
+}
+
+.tm-mark.slow {
+  color: #8fdcff;
+}
+
+.tm-mark.curse {
+  color: #ff7d9d;
+}
+
+.tm-mark.venom {
+  color: #8fe87a;
+}
+
+.tm-mark.burn {
+  color: #ffa14a;
+}
+
+.tm-mark.rage {
+  color: #ff5a3c;
+}

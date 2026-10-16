@@ -10,12 +10,7 @@ export function hintFor(ctx: ForgeContext, copy: GearCopy | undefined, plan: Pla
     case 'unavailable':
       return { text: 'Refining on the site isn’t available yet: use `refine` in Discord.' };
     case 'done':
-      return { text: plan.masterwork ? 'A fully refined masterwork: there’s nothing left to forge.' : `Fully refined (R${copy.maxLevel}).` };
-    case 'forge': {
-      if (!plan.forge) return { text: 'Forge it into a masterwork with `forge` in Discord to awaken its bonus.' };
-      if (plan.forge.blocked === 'too_poor') return { text: 'You don’t have enough komaGems to forge it. Win raids to earn more.', tone: 'bad' };
-      return { text: `Forging it into a masterwork awakens its bonus, for ${points(plan.forge.cost)} komaGems.` };
-    }
+      return { text: `Fully refined (R${copy.maxLevel}).` };
     case 'refine': {
       const { refine } = plan;
       if (refine.blocked === 'no_duplicate' || choosing(ctx)?.size === 0) return { text: `You need another ${copy.name} to use up as material.`, tone: 'bad' };

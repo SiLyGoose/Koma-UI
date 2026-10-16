@@ -1,4 +1,4 @@
-import type { Direction } from './protocol';
+import type { Direction } from '../protocol/pinecraft';
 
 /** Blocks across the view, when the page's styles don't say (--cols on the view). */
 export const VIEW_COLS = 8;

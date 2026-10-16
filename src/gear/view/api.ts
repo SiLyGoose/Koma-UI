@@ -58,7 +58,7 @@ export async function loadGear(ctx: GearContext): Promise<void> {
  * Asks the bot to change their gear (one at a time), and draws what it comes back as. `action` names the
  * button that asked, and what it's on (`equip:<copy>`), so only that button shows it's working.
  */
-export async function change(ctx: GearContext, action: string, path: string, body: Record<string, unknown>, what: string): Promise<GearView | null> {
+export async function change<T extends GearView = GearView>(ctx: GearContext, action: string, path: string, body: Record<string, unknown>, what: string): Promise<T | null> {
   // A party's link says its server itself.
   const server = ctx.host.server();
   if (ctx.busy || (!server && !ctx.party)) return null;
@@ -66,7 +66,7 @@ export async function change(ctx: GearContext, action: string, path: string, bod
   renderGrid(ctx);
   renderDetail(ctx);
   renderFoot(ctx);
-  const res = await ctx.host.api<GearView>(path, { method: 'POST', body: JSON.stringify({ guild: server ?? undefined, ...body }) });
+  const res = await ctx.host.api<T>(path, { method: 'POST', body: JSON.stringify({ guild: server ?? undefined, ...body }) });
   ctx.busy = null;
   if (!res.ok) {
     renderGrid(ctx);

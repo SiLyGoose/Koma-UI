@@ -1,7 +1,7 @@
 import markup from './outfits.html?raw';
 import { API, busyWith, dropdown, fillServers } from '../shared/ui';
 import type { ShopTab } from '../shop/tab';
-import type { Outfit, OutfitsView } from '../shared/outfits';
+import type { OutfitView, OutfitsView } from '../shared/outfits';
 import { api, currentMe, currentServer, loadMe, logOut, setServer } from '../site/session';
 import { createContext, status, type OutfitsContext } from './context';
 import { render, renderBuy } from './render';
@@ -104,8 +104,8 @@ async function load(ctx: OutfitsContext): Promise<void> {
   render(ctx);
 }
 
-/** Buys an outfit, draws the tab as it is after, and points them to the dressing room to put it on. */
-async function buy(ctx: OutfitsContext, outfit: Outfit): Promise<void> {
+/** Buys an outfit, and draws the tab as it is after. */
+async function buy(ctx: OutfitsContext, outfit: OutfitView): Promise<void> {
   const server = currentServer();
   if (ctx.busy || !server) return;
   ctx.busy = busyWith('buy');
@@ -121,9 +121,4 @@ async function buy(ctx: OutfitsContext, outfit: Outfit): Promise<void> {
   }
   ctx.view = res.data;
   render(ctx);
-  status(ctx, `${outfit.name} is yours! Put it on in the `);
-  const room = document.createElement('a');
-  room.href = '/dressing-room/';
-  room.textContent = 'Dressing Room';
-  ctx.ui.status.append(room, '.');
 }

@@ -1,5 +1,5 @@
 import { closeMap, openMap } from '../map';
-import type { Direction } from '../protocol';
+import type { Direction } from '../../protocol/pinecraft';
 import { held, state } from '../state';
 import { press, release } from './held';
 

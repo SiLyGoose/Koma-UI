@@ -3,10 +3,11 @@
  * choice (../shared/ui/button/: the plaque, the one picked in the blue tint) with its picture in a ring and its
  * name, over the tab picked, which fills the whole screen under the header: what it draws behind itself (the
  * Wish's sky) carries on under the tabs, and what's on it starts beside them. Phones: the tabs side by side
- * across the top.
+ * across the top (scrolled sideways when they don't all fit), the tab picked in the rest of the screen under
+ * them (nothing it scrolls goes behind them), and no scrollbars showing.
  *
  * So the tab picked keeps clear of the tabs, the panel says how far in it starts: --shop-inset-left (the rail's
- * width) and --shop-inset-top (on phones, its height), which each tab adds to its own padding.
+ * width; nothing on phones) and --shop-inset-top (nothing now: kept for the tabs that add it to their padding).
  */
 .shop-page {
   /* The site header's height (../shared/ui/header/header.css), so the shop fills the screen under it exactly. */
@@ -132,26 +133,53 @@ body:has(.shop-page) {
     grid-template-rows: var(--rail-h) minmax(0, 1fr);
   }
 
+  /* Under the tabs, not behind them: what it scrolls never shows through them. */
   .shop-panel {
     --shop-inset-left: 0px;
-    --shop-inset-top: var(--rail-h);
-    grid-row: 1 / -1;
+    --shop-inset-top: 0px;
+    grid-row: 2;
   }
 
+  /* As many tabs as fit, the rest scrolled to sideways (no scrollbar). */
   .shop-rail {
     flex-direction: row;
     gap: 8px;
     padding: 8px 12px;
-    overflow: visible;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    touch-action: pan-x;
   }
 
+  .shop-rail::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Each as wide as its name (filling the row when they all fit), its name on one line. */
   .shop-tab {
-    flex: 1;
+    flex: 1 0 auto;
     justify-content: center;
     gap: 8px;
+    width: auto;
     min-height: 44px;
     padding: 6px 10px;
     font-size: 14px;
+  }
+
+  .shop-tab-label {
+    white-space: nowrap;
+  }
+
+  /* What a tab scrolls, with no scrollbar showing. */
+  .shop-panel,
+  .shop-panel * {
+    scrollbar-width: none;
+  }
+
+  .shop-panel ::-webkit-scrollbar,
+  .shop-panel::-webkit-scrollbar {
+    display: none;
   }
 
   .shop-tab-icon {

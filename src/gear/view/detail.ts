@@ -1,5 +1,5 @@
 import { coin, points } from '../../shared/util';
-import { el, forgePlan, type GearCopy, itemDetailsClosed, itemFace, rich, SLOT_NAME } from '../../shared/items';
+import { el, forgePlan, type GearCopy, itemDetailsClosed, itemFace, rich, SLOT_NAME, tmSections } from '../../shared/items';
 import { doneMark, working } from '../../shared/ui';
 import { equip, setLocked, unequip } from './api';
 import { copyById, isWorn, mine, wearOnly, type GearContext } from './context';
@@ -35,13 +35,12 @@ export function renderDetail(ctx: GearContext): void {
   const rank = el('p', 'detail-rank', `R${copy.level}`);
   rank.append(el('span', 'detail-rank-of', ` / ${copy.maxLevel}`));
   info.append(kind, rank);
-  if (copy.masterwork) info.append(el('span', 'detail-mw', '✨ Masterwork'));
   top.append(card, info);
 
   const effects = effectList(copy, 'detail-effects');
 
   const worn = isWorn(ctx, copy);
-  const current = worn || !mine(ctx) || selling ? undefined : copyById(ctx, gear.equipped[copy.slot]);
+  const current = worn || !mine(ctx) || selling || copy.heroOnly ? undefined : copyById(ctx, gear.equipped[copy.slot]);
   // Equip, the panel's main button; worn, Unequip, a secondary one (taking it off isn't going anywhere).
   const action = el('button', `detail-action action ${worn ? 'secondary' : 'main'}`, worn ? 'Unequip' : 'Equip');
   action.type = 'button';
@@ -49,7 +48,7 @@ export function renderDetail(ctx: GearContext): void {
   action.addEventListener('click', () => void (worn ? unequip(ctx, copy.slot) : equip(ctx, copy.id)));
 
   // Upgrade: to the forge, with this copy on the anvil (not while a change is on its way). With nothing left to
-  // do (fully refined, and a masterwork or with no bonus), "✓ Max" in its place.
+  // do (fully refined), "✓ Max" in its place.
   let upgrade: HTMLElement = doneMark('Max');
   if (forgePlan(copy).kind !== 'done') {
     const button = el('button', 'detail-action action secondary', 'Upgrade');
@@ -65,7 +64,11 @@ export function renderDetail(ctx: GearContext): void {
 
   // What it does.
   const body = el('div', 'detail-body');
-  body.append(el('p', 'detail-desc', copy.description), el('p', 'detail-label', 'Effects'), effects);
+  // (TechnoMagic gear's set effect and additional effect, each apart under them (its potentials are its effects): not
+  // whether they are on, which goes by the hero wearing it, the heroes page's to say.)
+  const { setEffect } = copy;
+  const sections = tmSections({ ...copy, setEffect: setEffect && { pieces: setEffect.pieces, text: setEffect.text }, additionalActive: undefined });
+  body.append(el('p', 'detail-desc', copy.description), el('p', 'detail-label', 'Effects'), effects, ...sections);
   if (copy.borrowed !== null) {
     const who = mine(ctx) ? 'you get' : `${ctx.viewing?.name} gets`;
     body.append(el('p', 'detail-note', `This one is made for someone else: ${who} ${Math.round(copy.borrowed * 100)}% of its effects.`));
@@ -75,9 +78,18 @@ export function renderDetail(ctx: GearContext): void {
     body.append(el('p', 'detail-replaces', `Replaces ${current.name} (R${current.level})`), effectList(current, 'detail-effects detail-replaced'));
   }
 
+  // TechnoMagic gear: only heroes wear it, so no Equip, but the way to the heroes page.
+  if (copy.heroOnly) {
+    const note = el('p', 'detail-note', 'TechnoMagic gear: only heroes wear it. Put it on one on the ');
+    const link = el('a', '', 'Heroes page');
+    link.href = '/heroes/';
+    note.append(link, '.');
+    body.append(note);
+  }
+
   // What can be done with it, under a line along the bottom.
   const foot = el('div', 'detail-foot');
-  foot.append(...(wearOnly(ctx) ? [] : [upgrade]), action);
+  foot.append(...(wearOnly(ctx) ? [] : [upgrade]), ...(copy.heroOnly && !worn ? [] : [action]));
   // All but the buttons scrolls, when it runs longer than the panel.
   const scroll = el('div', 'detail-scroll');
   scroll.append(bar, top, body);
@@ -137,7 +149,6 @@ function lockFor(ctx: GearContext, copy: GearCopy): HTMLElement | null {
 function bigCard(copy: GearCopy): HTMLElement {
   const card = el('span', 'item detail-card');
   card.dataset.stars = String(copy.stars);
-  card.classList.toggle('masterwork', copy.masterwork);
   card.append(...itemFace(copy));
   return card;
 }

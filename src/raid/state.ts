@@ -1,4 +1,4 @@
-import type { RaidAction, RaidView } from './protocol';
+import type { RaidAction, RaidView } from '../protocol/raid';
 
 /** What more than one part of the page needs to know: the raid as last sent, and the picks under way. */
 export const state = {
@@ -14,8 +14,6 @@ export const state = {
   lastPick: null as RaidAction | null,
   /** The pick on its way to the bot. */
   pendingPick: null as RaidAction | null,
-  /** The lobby's countdown, in the party screen's status line (tick() keeps it going): only with a bot whose lobbies still have one. */
-  lobbyTimer: null as HTMLElement | null,
 };
 
 /** A raider's name, "(you)" after theirs. */

@@ -1,23 +1,23 @@
 import { colorOf, COLOR_NAME } from './colors';
-import type { Color, Pocket, RouletteRoundView, Spot } from './protocol';
+import type { RouletteColor, RoulettePocket, RouletteRoundView, RouletteSpot } from '../protocol/roulette';
 
 /*
  * The board is laid out like a casino's: 0 and 00, then 1 to 36 in twelve rows of three (across on a
  * computer, the rows as columns; down on a phone), the 2 to 1 columns at the end, the dozens and the
  * even-money bets along the side. Between the numbers are the inside bets: a chip on the line
  * between two numbers is a split, on a corner of four a corner, and on the edge of a row a street (or
- * where two rows meet, a line). Every bet's spot is named as the bot names it (see protocol.ts).
+ * where two rows meet, a line). Every bet's spot is named as the bot names it (see ../protocol/roulette.ts).
  */
 
 const board = document.getElementById('board') as HTMLElement;
 const range = (from: number, to: number): number[] => Array.from({ length: to - from + 1 }, (_, i) => from + i);
 
 /** Every spot, and the numbers it covers (to light them up while a chip hovers over it). */
-export const spots = new Map<Spot, HTMLElement>();
-const covers = new Map<Spot, Pocket[]>();
-const cells = new Map<Pocket, HTMLElement>();
+export const spots = new Map<RouletteSpot, HTMLElement>();
+const covers = new Map<RouletteSpot, RoulettePocket[]>();
+const cells = new Map<RoulettePocket, HTMLElement>();
 
-function spotButton(spot: Spot, numbers: Pocket[], className: string, label: string): HTMLButtonElement {
+function spotButton(spot: RouletteSpot, numbers: RoulettePocket[], className: string, label: string): HTMLButtonElement {
   const el = document.createElement('button');
   el.type = 'button';
   el.className = `rl-spot ${className}`;
@@ -33,7 +33,7 @@ function spotButton(spot: Spot, numbers: Pocket[], className: string, label: str
   return el;
 }
 
-function light(numbers: Pocket[], on: boolean): void {
+function light(numbers: RoulettePocket[], on: boolean): void {
   for (const n of numbers) cells.get(n)?.classList.toggle('lit', on);
 }
 
@@ -91,7 +91,7 @@ export function buildBoard(): void {
     board.append(dozen);
   }
 
-  const even: [Spot, string, number[]][] = [
+  const even: [RouletteSpot, string, number[]][] = [
     ['low', '1-18', range(1, 18)],
     ['even', 'Even', range(1, 36).filter((n) => n % 2 === 0)],
     ['red', '', range(1, 36).filter((n) => colorOf(n) === 'red')],
@@ -100,7 +100,7 @@ export function buildBoard(): void {
     ['high', '19-36', range(19, 36)],
   ];
   even.forEach(([spot, text, numbers], i) => {
-    const el = spotButton(spot, numbers, `rl-outside rl-even rl-${spot}`, `${text || COLOR_NAME[spot as Color]}, 1 to 1`);
+    const el = spotButton(spot, numbers, `rl-outside rl-even rl-${spot}`, `${text || COLOR_NAME[spot as RouletteColor]}, 1 to 1`);
     if (text) el.append(text);
     else {
       const diamond = document.createElement('i');
@@ -116,7 +116,7 @@ export function buildBoard(): void {
   // twelve rows (0 to 12), y down the three numbers of a row (0 to 3, from the top on a computer).
   const inside = document.createElement('div');
   inside.className = 'rl-inside';
-  const zone = (numbers: Pocket[], x: number, y: number, kind: string): void => {
+  const zone = (numbers: RoulettePocket[], x: number, y: number, kind: string): void => {
     const el = spotButton(numbers.join('-'), numbers, `rl-zone rl-${kind}`, `${kind[0]?.toUpperCase()}${kind.slice(1)} ${numbers.join(', ')}`);
     el.style.setProperty('--x', String(x));
     el.style.setProperty('--y', String(y));

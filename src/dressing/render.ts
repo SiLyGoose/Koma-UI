@@ -1,20 +1,20 @@
 import { characterOf } from '../shared/characters';
 import { el } from '../shared/items';
 import { working } from '../shared/ui';
-import type { Outfit } from '../shared/outfits';
+import type { OutfitView } from '../shared/outfits';
 import { coin, points } from '../shared/util';
 import type { DressingContext } from './context';
 
 /** Whether an outfit is the one worn, one of theirs, or still to get from the shop. */
 type OutfitState = 'worn' | 'owned' | 'locked';
 
-function stateOf(ctx: DressingContext, outfit: Outfit): OutfitState {
+function stateOf(ctx: DressingContext, outfit: OutfitView): OutfitState {
   if (outfit.id === ctx.view?.worn) return 'worn';
   return outfit.owned ? 'owned' : 'locked';
 }
 
 /** What the state says: Equipped, Owned, or its price. */
-function stateLine(box: HTMLElement, outfit: Outfit, state: OutfitState): void {
+function stateLine(box: HTMLElement, outfit: OutfitView, state: OutfitState): void {
   box.dataset.state = state;
   if (state === 'worn') box.replaceChildren('Equipped');
   else if (state === 'owned') box.replaceChildren('Owned');
@@ -41,7 +41,7 @@ function portrait(id: string): HTMLElement {
 }
 
 /** One row of the list: the portrait on the left, its name and state on the right. */
-function row(ctx: DressingContext, outfit: Outfit): HTMLButtonElement {
+function row(ctx: DressingContext, outfit: OutfitView): HTMLButtonElement {
   const state = stateOf(ctx, outfit);
   const button = el('button', 'dressing-row');
   button.type = 'button';

@@ -1,5 +1,5 @@
 import { colorOf } from './colors';
-import type { Pocket } from './protocol';
+import type { RoulettePocket } from '../protocol/roulette';
 
 const ui = {
   wheel: document.getElementById('wheel') as HTMLElement,
@@ -8,7 +8,7 @@ const ui = {
 };
 
 /** The pockets round an American wheel, clockwise from 0. */
-const WHEEL: Pocket[] = [0, 28, 9, 26, 30, 11, 7, 20, 32, 17, 5, 22, 34, 15, 3, 24, 36, 13, 1, '00', 27, 10, 25, 29, 12, 8, 19, 31, 18, 6, 21, 33, 16, 4, 23, 35, 14, 2];
+const WHEEL: RoulettePocket[] = [0, 28, 9, 26, 30, 11, 7, 20, 32, 17, 5, 22, 34, 15, 3, 24, 36, 13, 1, '00', 27, 10, 25, 29, 12, 8, 19, 31, 18, 6, 21, 33, 16, 4, 23, 35, 14, 2];
 const STEP = 360 / WHEEL.length;
 /** How long a spin takes, and the pause before how it went shows. */
 export const SPIN_MS = 6500;
@@ -54,7 +54,7 @@ export function buildWheel(): void {
 }
 
 /** Turns the wheel so `n`'s pocket is at the top, under the ball: over `ms` (spinning a few times first), or at once. */
-export function turnTo(n: Pocket, ms: number): void {
+export function turnTo(n: RoulettePocket, ms: number): void {
   const target = -WHEEL.indexOf(n) * STEP;
   const moving = ms > 0;
   if (moving) {
@@ -74,12 +74,12 @@ export function turnTo(n: Pocket, ms: number): void {
   }
 }
 
-export function showNumber(n: Pocket | null): void {
+export function showNumber(n: RoulettePocket | null): void {
   ui.number.textContent = n === null ? '' : String(n);
   ui.number.className = `rl-wheel-number${n === null ? '' : ` show ${colorOf(n)}`}`;
 }
 
-export function showRecent(numbers: Pocket[]): void {
+export function showRecent(numbers: RoulettePocket[]): void {
   ui.recent.textContent = '';
   for (const n of numbers) {
     const pill = document.createElement('span');

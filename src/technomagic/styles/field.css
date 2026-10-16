@@ -1,0 +1,119 @@
+/* The page: the field, the health over the hero on it, and the boss's attacks under it. */
+
+.technomagic {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  box-sizing: border-box;
+}
+
+/* The field: as wide as the window, never taller than leaves room for the buttons. */
+.tm-field {
+  position: relative;
+  flex: 1;
+  min-height: 240px;
+  /* Until the field is drawn (../engine/stage.ts draws its own sky). */
+  background: #1b1a2b;
+}
+
+/* Over the whole field, whatever size the canvas was last drawn at. */
+#stage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* A phone (or tablet) on its side: the page is the window's height and no more, so nothing scrolls. The
+   field takes what the bar leaves (getting ready scales itself down to it: ../prep/prep.ts), and the hint goes. */
+@media (pointer: coarse) and (orientation: landscape) {
+  .technomagic {
+    height: 100dvh;
+    min-height: 0;
+  }
+
+  .tm-field {
+    min-height: 0;
+  }
+
+  .technomagic .hint {
+    display: none;
+  }
+
+  .tm-actions {
+    padding: 6px 8px;
+  }
+}
+
+/* The health of a hero on the field, over its head (../hud/overhead.ts moves it there), what it has on it over that, and its shield under it. */
+.tm-overhead-at {
+  /* Its squares' size, as a card's are sized (./card.css): smaller here. */
+  --skill: 48px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 64px;
+  pointer-events: none;
+}
+
+/* Its squares: from the bar's left end, a second row going up over the first. */
+.tm-overhead-at .tm-buffs {
+  flex-wrap: wrap-reverse;
+  justify-content: flex-start;
+  gap: 2px;
+  margin-bottom: 2px;
+}
+
+.tm-overhead {
+  height: 7px;
+  border: 1px solid #0b0b10;
+  border-radius: 4px;
+  background: #1a1c14;
+  overflow: hidden;
+}
+
+/* Its shield: a thin yellow line under the bar (not moving the bar), as long as the shield left of the most it has had. */
+.tm-shield {
+  position: absolute;
+  top: calc(100% + 1px);
+  left: 1px;
+  max-width: calc(100% - 2px);
+  height: 3px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, #fff6b0, #f6d026 60%, #b98a0a);
+  box-shadow: 0 0 0 1px #0b0b10;
+  transition: width 0.2s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tm-shield {
+    transition: none;
+  }
+}
+
+.tm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 12px 4px;
+}
+
+.tm-boss-auto {
+  margin-left: 12px;
+}
+
+/* The raid's stage, before the boss's attacks. */
+.tm-stage {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: 12px;
+  font-weight: 600;
+}
+
+.tm-stage select {
+  padding: 4px 6px;
+  border-radius: 6px;
+  font: inherit;
+}

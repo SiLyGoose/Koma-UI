@@ -1,7 +1,7 @@
 import { popupClosed } from '../../shared/items';
 import { server, token } from '../link';
 import { popupShown } from '../widgets';
-import type { RaidView } from '../protocol';
+import type { RaidView } from '../../protocol/raid';
 import { ui } from '../ui';
 
 /*
