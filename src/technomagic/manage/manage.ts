@@ -4,11 +4,12 @@ import '../../shared/items/items.css';
 import '../../gear/gear.css';
 import '../../heroes/heroes.css';
 import '../../raid/gear/gear.css';
+import './manage.css';
 import markup from '../../heroes/heroes.html?raw';
 import { apiFromSocket, backdrop } from '../../shared/ui';
 import { installCursor } from '../../shared/cursor';
 import { installClickSounds, setMuted } from '../../shared/audio';
-import { mountHeroes } from '../../heroes/page';
+import { mountHeroes } from '../../heroes/view';
 import type { ApiResult } from '../../site/session';
 
 /*
@@ -16,7 +17,7 @@ import type { ApiResult } from '../../site/session';
  * goes by the screen's width, is laid out as on a computer and scaled down to fit: ./popup.ts). The player gears
  * their heroes, picks perks and transcends them without leaving the room; the bot takes their gear as it is when
  * the fight begins. It asks the bot with the raid's link, which answers for the link's server only (so no server
- * picker), and buying a hero stays the site's (no way to the shop from in here).
+ * picker), and buying a hero stays the site's (no way to the shop from in here: ./manage.css).
  *
  * Its link's #hash: the raid's token (t) and socket (s). Escape, with nothing open in the page to close, asks
  * the raid page to close the popup.
@@ -76,8 +77,6 @@ document.addEventListener('keydown', (event) => {
 const view = document.getElementById('view') as HTMLElement;
 view.innerHTML = markup;
 const root = view.firstElementChild as HTMLElement;
-// Buying a hero is the site's: no way to the shop from in here.
-root.querySelector('#hero-buy')?.remove();
 
 const status = root.querySelector('#status') as HTMLElement;
 mountHeroes(root, {

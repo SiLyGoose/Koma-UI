@@ -1,0 +1,6 @@
+/* The heroes page in the TechnoMagic Raid's Manage popup (./manage.ts), on top of the raid's gear popup's (../../raid/gear/gear.css). */
+
+/* Buying a hero is the site's. */
+.heroes-embed .hero-buy {
+  display: none !important;
+}
