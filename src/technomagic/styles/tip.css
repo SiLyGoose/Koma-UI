@@ -216,8 +216,8 @@
   }
 }
 
-/* A name's: as wide as the name. */
-.tm-tip-name {
+/* A name's: as wide as the name (the popup's own class; an ability's name in its popup has the same one). */
+.tm-tip.tm-tip-name {
   width: max-content;
   max-width: min(240px, 100vw - 16px);
 }
