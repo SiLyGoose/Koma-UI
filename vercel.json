@@ -18,6 +18,24 @@
           "value": "noindex"
         }
       ]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/(kr|technomagic|hero-cuts|shared|raid|mines|pinecraft|characters|minesweeper|baccarat|gear/items|gear/classes|gear/slots|forge/sfx|banner/sfx)/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600, stale-while-revalidate=604800"
+        }
+      ]
     }
   ],
   "redirects": [
