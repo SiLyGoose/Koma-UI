@@ -723,8 +723,10 @@ async function start(): Promise<void> {
     // The boss's health, and what is the matter with it.
     bossBar.draw(sim.foe.hp / sim.foe.maxHp, sim.marks());
     timer.draw(sim.left);
-    // Over (in a room: once the bot has said what it gave, and this page has drawn the fight to where it ended).
-    if (overShown !== sim && sim.result && (!lock || overWaiting())) {
+    // Over (in a room: once the bot has said what it gave, and this page has drawn the fight to where it ended; or as far
+    // as the bot took it, should this page's have parted from the bot's, or the bot's have failed: the bot's word is the one).
+    const ended = lock ? overWaiting() !== null && (sim.result !== null || sim.tick >= lock.upTo) : sim.result !== null;
+    if (overShown !== sim && ended) {
       overShown = sim;
       onOver(sim);
     }
