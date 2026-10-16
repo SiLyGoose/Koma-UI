@@ -1,6 +1,7 @@
 import { POINTS } from '../combat/damage';
 import { put } from '../combat/status';
 import { said, t5Light } from '../perks';
+import { fromTreasure, treasure, treasureTier } from '../treasures';
 import { BLOW } from '../rules';
 import { num, pct, skillArt, type Buff } from '../shown';
 import { atTier, ATEIN, ATEIN_UP, DRAGON_RAGE } from '../unique';
@@ -37,6 +38,18 @@ const PERKS = {
   broken: 0.01,
   exposed: { takes: 1.2, lasts: 20, every: 20 },
   bash: { chance: 0.1, stun: 2, blow: 0.1 },
+};
+
+/**
+ * His unique treasures' numbers (1★ to 5★: ../treasures.ts): Collision's less CC resist and P.Block on the boss (points);
+ * Headbutt's cheaper and less P.Crit resist on the boss (points); Earth Incarnate's attack speed and crit chance (points)
+ * and more of its defense; and Destroy Armor's weaker boss and less healing for it, for each stack.
+ */
+const UT = {
+  decoration: { resist: 250, block: [240, 290, 350, 420, 500], lasts: 10 },
+  helmet: { cost: -1, critResist: [240, 290, 350, 420, 500], lasts: 10 },
+  hammer: { speed: 250, crit: 250, defense: [0.24, 0.29, 0.35, 0.42, 0.5] },
+  titan: { weaker: 0.2, heals: [0.048, 0.058, 0.07, 0.084, 0.1] },
 };
 
 const art = skillArt('phillop');
@@ -95,6 +108,22 @@ export const PHILLOP: HeroDef = {
     },
   ],
   passive: DESTROY_ARMOR,
+  treasures: [
+    treasure('Mad Dragon Shield Decoration', (k) => ({
+      words: `[Collision] Reduces the target's CC Resist by ${UT.decoration.resist} and P.Block chance by ${k(UT.decoration.block)} for ${UT.decoration.lasts} sec.`,
+      skill: { index: 0, mark: { name: 'Mad Dragon Shield Decoration', resist: -UT.decoration.resist, blocks: { physical: -k(UT.decoration.block) }, lasts: UT.decoration.lasts } },
+    })),
+    treasure('Dwarfish Capricorn Helmet', (k) => ({
+      words: `[Headbutt] Reduces Mana Cost by ${-UT.helmet.cost} and reduces P.Crit Resistance of the affected enemy by ${k(UT.helmet.critResist)} for ${UT.helmet.lasts} sec.`,
+      skill: { index: 1, cost: UT.helmet.cost, mark: { name: 'Dwarfish Capricorn Helmet', critTaken: { physical: k(UT.helmet.critResist) }, lasts: UT.helmet.lasts } },
+    })),
+    treasure('Dwarven Ceremonial Hammer', (k) => ({
+      words: `[Earth Incarnate] For the duration of skill, ATK Spd and Crit chance is increased by ${UT.hammer.speed}, and DEF boost is increased by ${pct(k(UT.hammer.defense))}.`,
+    })),
+    treasure('Hammer of Titan', (k) => ({
+      words: `[Destroy Armor] Upon attack, reduces the target's ATK by ${pct(UT.titan.weaker)} and each stack reduces its Heal Rate by ${Math.round(k(UT.titan.heals) * 1000) / 10}%.`,
+    })),
+  ],
   perks: {
     's1-light': said({ skill: { index: 0, cost: -1 } }, ({ skill }) => `Mana cost is reduced by ${-skill.cost}.`),
     's1-dark': said({ skill: { index: 0, cooldownShare: 0.9 } }, ({ skill }) => `Cooldown is reduced by ${pct(1 - skill.cooldownShare)} per each enemy hit.`),
@@ -126,7 +155,9 @@ export const PHILLOP: HeroDef = {
     /** What Destroy Armor's stacks leave of the boss's P.DEF. */
     const armored = (): void => {
       const physical = fight.foe.def.stats.physical;
-      put(fight.foe.statuses, { name: BROKEN, left: ARMOR.lasts, count: broken, defends: { physical: physical > 0 ? Math.max(0, 1 - (ARMOR.defense * broken) / physical) : 1 }, shown: 'curse' });
+      // (Hammer of Titan: the boss weaker, and healed less for each.)
+      const titan = treasureTier(self, 3) > 0 ? { deals: 1 - UT.titan.weaker, heals: Math.max(0, 1 - fromTreasure(self, 3, UT.titan.heals) * broken) } : {};
+      put(fight.foe.statuses, { name: BROKEN, left: ARMOR.lasts, count: broken, defends: { physical: physical > 0 ? Math.max(0, 1 - (ARMOR.defense * broken) / physical) : 1 }, ...titan, shown: 'curse' });
     };
     /** His Dragon Rage, as his ATK and defense have it. */
     const raging = (): void => {
@@ -172,7 +203,10 @@ export const PHILLOP: HeroDef = {
         incarnate() {
           incarnate = INCARNATE.lasts;
           quake = 0;
-          put(self.statuses, { name: INCARNATION.name, left: INCARNATE.lasts, bolsters: { physical: INCARNATE.defense, magical: INCARNATE.defense }, shown: INCARNATION });
+          // (Dwarven Ceremonial Hammer: quicker, likelier critical, and more defense.)
+          const hammer = treasureTier(self, 2) > 0;
+          const defense = INCARNATE.defense * (1 + fromTreasure(self, 2, UT.hammer.defense));
+          put(self.statuses, { name: INCARNATION.name, left: INCARNATE.lasts, bolsters: { physical: defense, magical: defense }, ...(hammer && { pace: 1 + UT.hammer.speed / POINTS, crit: UT.hammer.crit / POINTS }), shown: INCARNATION });
           fight.heal(self, INCARNATE.heal * self.stats.hp);
           if (self.perks.has('s3-dark')) fight.stun(PERKS.stun, { by: self });
         },

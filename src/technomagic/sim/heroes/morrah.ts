@@ -1,6 +1,7 @@
 import { POINTS, share } from '../combat/damage';
 import { away, bolstering, defending, put } from '../combat/status';
 import { said, t5Light } from '../perks';
+import { fromTreasure, treasure, treasureTier } from '../treasures';
 import { BLOW } from '../rules';
 import { pct, seconds, skillArt, type Buff } from '../shown';
 import type { Fighter } from '../types';
@@ -42,6 +43,18 @@ const FLAME = { most: 100, lasts: 10, each: 10, every: 1, more: 0.02, heals: 0.0
  * taking more at full Flame, and Transcend 5's Dark's Flame.
  */
 const PERKS = { quicker: 200, block: 1.2, scorch: 1, drain: 0.4, harder: { defense: 0.05, most: 10 }, full: 0.4, flame: { each: 2, most: 120 } };
+
+/**
+ * Her unique treasures' numbers (1★ to 5★: ../treasures.ts): Burning Power's DMG; Hellfire's less taken (points) and
+ * M.Crit resist for a block of a magical blow while it lasts; Lava Eruption's DMG and less M.DEF on the boss; Fire Smash's
+ * more Flame and slower boss (ATK Spd, points).
+ */
+const UT = {
+  eye: { dmg: [0.24, 0.29, 0.35, 0.42, 0.5] },
+  gloves: { less: [120, 140, 170, 210, 250], critResist: 250 },
+  stone: { dmg: [0.24, 0.29, 0.35, 0.42, 0.5], defends: 0.25, lasts: 7 },
+  jewel: { flames: 3, speed: [170, 210, 250, 300, 360], lasts: 5 },
+};
 
 const art = skillArt('morrah');
 
@@ -105,6 +118,22 @@ export const MORRAH: HeroDef = {
     },
   ],
   passive: FIRE_SMASH,
+  treasures: [
+    treasure('Hell’s Eye', (k) => ({
+      words: `[Burning Power] Increases DMG by ${pct(k(UT.eye.dmg))}, and Flame stacked upon enemies become irremovable.`,
+      skill: { index: 0, dmg: 1 + k(UT.eye.dmg) },
+    })),
+    treasure('Hatchling Leather Gloves', (k) => ({
+      words: `[Hellfire] Upon blocking target's M.ATK during the skill's duration, DMG reduction is increased by ${k(UT.gloves.less)} and M.Crit resistance is increased by ${UT.gloves.critResist}.`,
+    })),
+    treasure('Hellish Sealing Stone', (k) => ({
+      words: `[Lava Eruption] DMG is increased by ${pct(k(UT.stone.dmg))} and target's M.DEF is decreased by ${pct(UT.stone.defends)} for ${UT.stone.lasts} sec.`,
+      skill: { index: 2, dmg: 1 + k(UT.stone.dmg), mark: { name: 'Hellish Sealing Stone', defends: { magical: 1 - UT.stone.defends }, lasts: UT.stone.lasts } },
+    })),
+    treasure('Jewel of Inferno', (k) => ({
+      words: `[Fire Smash] Increases the number of Flame stacks by ${UT.jewel.flames}. Hit targets have their ATK Spd reduced by ${k(UT.jewel.speed)} for ${UT.jewel.lasts} sec.`,
+    })),
+  ],
   perks: {
     's1-light': { words: `ATK Spd is increased by ${PERKS.quicker} for ${BURNING.lasts} sec.` },
     's1-dark': said({ skill: { index: 0, cooldownShare: 0.94 } }, ({ skill }) => `Reduces cooldown by ${pct(1 - skill.cooldownShare)} per each enemy hit.`),
@@ -194,7 +223,15 @@ export const MORRAH: HeroDef = {
       blocked() {
         fight.cue(self, 'smash');
         fight.hit(self, SMASH.blow);
-        burn(SMASH.flames);
+        // (Jewel of Inferno: more Flame, and the boss slower a moment.)
+        const jewel = treasureTier(self, 3) > 0;
+        burn(SMASH.flames + (jewel ? UT.jewel.flames : 0));
+        if (jewel) fight.slow(fromTreasure(self, 3, UT.jewel.speed), UT.jewel.lasts);
+        // (Hatchling Leather Gloves: a magical blow blocked while her Hellfire lasts, she takes less and is crit less, as long as it.)
+        if (hellfire > 0 && treasureTier(self, 1) > 0 && fight.foe.def.stats.deals === 'magical') {
+          const less = fromTreasure(self, 1, UT.gloves.less);
+          put(self.statuses, { name: 'Hatchling Leather Gloves', left: hellfire, takes: { magical: 1 - share(less) }, critResist: { magical: UT.gloves.critResist }, shown: { name: 'Hatchling Leather Gloves', about: `Takes ${pct(share(less))} less magical DMG, and is crit less.`, icon: '🧤', art: art(1) } });
+        }
         // (Its Light: more M.DEF for each block, up to 10.)
         if (self.perks.has('s4-light') && blocks < PERKS.harder.most) {
           blocks++;

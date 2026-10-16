@@ -1,5 +1,6 @@
 import { put } from '../combat/status';
 import { said, t5Light } from '../perks';
+import { fromTreasure, treasure, treasureTier } from '../treasures';
 import { BLOW } from '../rules';
 import { pct, skillArt, type Buff } from '../shown';
 import { atTier, GIGANTE, GIGANTE_UP } from '../unique';
@@ -43,6 +44,18 @@ const PAIN = { lasts: 10, blow: 1040 };
 const ARMOR = { taken: 0.75, held: 0.5, shield: 322_000, lasts: 6 };
 /** His own perks' numbers: Shadow of Death's more M.DMG taken, Armor of the Demon God's Dark's less taken besides, and Transcend 5's Dark (more DMG every so often, up to so many times). */
 const PERKS = { shadow: 1.25, taken: 0.15, doom: { dmg: 0.05, every: 6, most: 10 } };
+
+/**
+ * His unique treasures' numbers (1★ to 5★: ../treasures.ts): Death Storm's shorter cooldown and Shadow of Death's more
+ * M.DMG taken; the Wave's and the Surge's CC ACC (points, a moment: as long as their blows take to land); Pain of Doom's
+ * more DMG; and Authority of the Demon God's bigger shield.
+ */
+const UT = {
+  emblem: { cooldown: -3, takes: [0.14, 0.17, 0.21, 0.25, 0.3] },
+  strap: { wave: [360, 430, 520, 630, 750], surge: [480, 580, 700, 840, 1000], lasts: 2 },
+  horns: { dmg: [0.24, 0.29, 0.35, 0.42, 0.5] },
+  earrings: { shield: [0.24, 0.29, 0.35, 0.42, 0.5] },
+};
 
 const art = skillArt('lucikiel');
 
@@ -121,6 +134,23 @@ export const LUCIKIEL: HeroDef = {
     },
   ],
   passive: ARMOR_OF_THE_DEMON_GOD,
+  treasures: [
+    treasure('Emblem of Destruction', (k) => ({
+      words: `[Death Storm] Reduces Cooldown by ${-UT.emblem.cooldown} sec and [Shadow of Death] additionally increases M.DMG take by ${pct(k(UT.emblem.takes))}`,
+      skill: { index: 0, cooldown: UT.emblem.cooldown },
+    })),
+    // (The Wave and the Surge are one slot: what it dispels is both's.)
+    treasure('Dark Blue Leather Strap', (k) => ({
+      words: `[Annihilation Wave] Dispels positive effects from hit targets and increases CC ACC by ${k(UT.strap.wave)} for the duration of Skill. [Annihilation Surge] Dispels positive effects from hit targets and increases CC ACC by ${k(UT.strap.surge)} for the duration of Skill.`,
+      skill: { index: 1, dispel: true },
+    })),
+    treasure('Horns of a Random Demon', (k) => ({
+      words: `[Doomsday] Changes DMG dealt with [Pain of Doom] to DMG that ignores DEF and increases DMG dealt with [Pain of Doom] by ${pct(k(UT.horns.dmg))}.`,
+    })),
+    treasure('Blue Blood Earrings', (k) => ({
+      words: `[Armor of the Demon God] [Authority of the Demon God] becomes irremovable and shield increases by ${pct(k(UT.earrings.shield))}.`,
+    })),
+  ],
   perks: {
     's1-light': { words: '[Shadow of Death] Becomes irremovable.' },
     's1-dark': { words: `[Shadow of Death] additionally increases M.DMG taken by ${pct(PERKS.shadow - 1)}.` },
@@ -151,7 +181,8 @@ export const LUCIKIEL: HeroDef = {
 
     /** His shield, and for as long as it lasts he can't be knocked down. */
     const armor = (): void => {
-      fight.shield(self, ARMOR.shield, ARMOR.lasts, self);
+      // (Blue Blood Earrings: a bigger one.)
+      fight.shield(self, ARMOR.shield * (1 + fromTreasure(self, 3, UT.earrings.shield)), ARMOR.lasts, self);
       authority = ARMOR.lasts;
     };
     // Armor of the Demon God's Light: his shield as the fight begins.
@@ -173,7 +204,9 @@ export const LUCIKIEL: HeroDef = {
         // Each blow leaves Shadow of Death (begun again): its Dark, the boss taking more magical damage besides.
         storm() {
           fight.hit(self, STORM.blow);
-          put(fight.foe.statuses, { name: SHADOW_OF_DEATH, left: SHADOW.lasts, heals: SHADOW.heals, ...(self.perks.has('s1-dark') && { takes: { magical: PERKS.shadow } }), shown: 'curse' });
+          // (Emblem of Destruction: more M.DMG taken again.)
+          const shadow = (self.perks.has('s1-dark') ? PERKS.shadow : 1) * (1 + fromTreasure(self, 0, UT.emblem.takes));
+          put(fight.foe.statuses, { name: SHADOW_OF_DEATH, left: SHADOW.lasts, heals: SHADOW.heals, ...(shadow > 1 && { takes: { magical: shadow } }), shown: 'curse' });
         },
         wave(part) {
           fight.hit(self, WAVE.blow);
@@ -197,12 +230,18 @@ export const LUCIKIEL: HeroDef = {
       // His second slot holds the Wave or the Surge, each turning into the other as it is used.
       slot: (index) => (index === 1 && surging ? surgeSkill : (self.abilities[index] ?? null)),
       used(index, ability) {
-        if (index === 1) surging = ability !== surgeSkill;
+        if (index === 1) {
+          surging = ability !== surgeSkill;
+          // (Dark Blue Leather Strap: CC ACC while its blows land.)
+          const accuracy = fromTreasure(self, 1, ability === surgeSkill ? UT.strap.surge : UT.strap.wave);
+          if (accuracy > 0) put(self.statuses, { name: 'Dark Blue Leather Strap', left: UT.strap.lasts, accuracy, shown: { name: 'Dark Blue Leather Strap', about: `CC ACC +${accuracy}.`, icon: '🌊', art: art(1) } });
+        }
         armor();
       },
       // Each blow of his own: Pain of Doom's blow more, and his unique weapon's stacks (at the most, its blow more).
       blow() {
-        if (bears(PAIN_OF_DOOM)) fight.hit(self, PAIN.blow, false);
+        // (Horns of a Random Demon: harder, through the boss's defense.)
+        if (bears(PAIN_OF_DOOM)) fight.hit(self, PAIN.blow * (1 + fromTreasure(self, 2, UT.horns.dmg)), false, 0, treasureTier(self, 2) > 0);
         if (tier === null) return;
         if (incarnation >= GIGANTE.most) fight.hit(self, atTier(GIGANTE.blow, tier), false, 0, true);
         blows++;

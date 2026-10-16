@@ -6,6 +6,7 @@ import { perkStats, perksOf } from './perks';
 import { MARCH, MOST, RAGE_WIPE, RAID_TIME, STAGES, TICK } from './rules';
 import { SET_INFO } from './sets';
 import { MOST_SKILLS, SKILLS } from './skills';
+import { treasureAbout } from './treasures';
 import { UNIQUE_HEROES, uniqueAbout } from './unique';
 import { VERSION } from './version';
 
@@ -43,7 +44,20 @@ export interface RunHero {
   sub?: boolean;
   /** Its transcendence perks (the bot's ids). */
   perks?: readonly string[] | null;
+  /** Its main unique treasure: which of its four (1 to 4: UT1 to UT4), at which tier (its refinement, 1 to 5); or none. Its sub treasures' options are in `gear`. */
+  ut?: { skill: number; tier: number } | null;
 }
+
+/**
+ * What a hero's unique treasure (its `skill`th: 1 to 4, UT1 to UT4) does at a tier (1 to 5) as its main treasure, as the
+ * bot says it: its name, and King's Raid's words with the fight's numbers (null: no such hero or treasure).
+ */
+export const uniqueTreasureText = (hero: string, skill: number, tier: number): { name: string; text: string } | null =>
+  treasureAbout(
+    HEROES.find((one) => one.id === hero),
+    skill,
+    tier,
+  );
 
 /** The heroes that have a unique weapon, by id; and what one's does at a tier (1 to 5), as the bot says it: null for a hero with none. */
 export const UNIQUE_WEAPON_HEROES: readonly string[] = UNIQUE_HEROES;
@@ -93,6 +107,8 @@ export interface TmHero {
   skins: number;
   /** Its three skills, then its passive: as the heroes page says them (King's Raid's words, with the fight's numbers). */
   skills: TmHeroSkill[];
+  /** Its four unique treasures' names (UT1 to UT4: its skills', then its passive's). */
+  treasures: string[];
 }
 
 /**
@@ -127,6 +143,7 @@ export const TM_HEROES: readonly TmHero[] = HEROES.map((hero) => ({
     ...hero.abilities.map(({ name, cost, cooldown, tag, words, about }) => ({ name, cost, cooldown, tag: tag ?? null, text: words ?? about ?? '' })),
     ...(hero.passive ? [{ name: hero.passive.shown.name, cost: null, cooldown: null, tag: hero.passive.tag ?? null, text: hero.passive.words ?? hero.passive.shown.about ?? '' }] : []),
   ],
+  treasures: (hero.treasures ?? []).map((one) => one.name),
 }));
 export const BOSS_IDS: readonly string[] = BOSSES.map((boss) => boss.id);
 
@@ -203,7 +220,8 @@ export function startRaid(run: Run): LiveRaid | string {
     for (const [stat, n] of Object.entries(hero.gear)) if (Number.isFinite(n)) gear[stat] = n;
     const skills = Array.isArray(hero.skills) ? hero.skills.filter((id): id is string => typeof id === 'string') : [];
     const perks = Array.isArray(hero.perks) ? hero.perks.filter((id): id is string => typeof id === 'string') : [];
-    entries.push({ def, skin: hero.skin, gear, set: typeof hero.set === 'string' ? hero.set : null, uw: typeof hero.uw === 'number' ? hero.uw : null, skills, sub: run.solo === true && hero.sub === true, perks });
+    const ut = hero.ut && typeof hero.ut.skill === 'number' && typeof hero.ut.tier === 'number' ? { skill: hero.ut.skill, tier: hero.ut.tier } : null;
+    entries.push({ def, skin: hero.skin, gear, set: typeof hero.set === 'string' ? hero.set : null, uw: typeof hero.uw === 'number' ? hero.uw : null, skills, sub: run.solo === true && hero.sub === true, perks, ut });
   }
   const sim = makeSim({ boss, heroes: entries, seed: run.seed, stage: run.stage, raid: true, solo: run.solo === true });
   const heroes = entries.length;

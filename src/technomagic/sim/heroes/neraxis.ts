@@ -1,6 +1,7 @@
 import { put } from '../combat/status';
 import { said, t5Light } from '../perks';
-import { BLOW } from '../rules';
+import { fromTreasure, treasure, treasureTier } from '../treasures';
+import { BLOW, MAX_MANA, SECTION } from '../rules';
 import { num, pct, skillArt, type Buff } from '../shown';
 import { ACRAVITA, ACRAVITA_UP, atTier } from '../unique';
 import { CLASS_STATS, dmg, indexed, type HeroDef, type Passive } from './kit';
@@ -37,6 +38,18 @@ const BREATH = { blow: indexed('knight', 289_536) / CODED.breath.lands.length, w
 const HIDE = { defense: 18_962, taken: 0.85 };
 /** His own perks' numbers: Black Lightning Claw's Light and Dark, Obsidian Roar's Light, Breath of Destruction's Dark, Black Dragon Hide's Light and Dark, and Transcend 5's Dark. */
 const PERKS = { stun: 2, marked: { takes: 1.25, lasts: 10 }, roar: 2, weaker: 0.3, speed: 300, low: { below: 0.5, more: 1.5 }, guard: { taken: 0.9, lasts: 30 } };
+
+/**
+ * His unique treasures' numbers (1★ to 5★: ../treasures.ts): Black Lightning Claw's mana for each blow and his more
+ * defense; Obsidian Roar's more DEF for every ally; Breath of Destruction's longer stun and shorter cooldown; and Black
+ * Dragon Hide's mana, and every ally's block (points), every so often.
+ */
+const UT = {
+  cartridge: { mana: 100, defense: [0.12, 0.14, 0.17, 0.21, 0.25], lasts: 10 },
+  memories: { defense: [0.24, 0.29, 0.35, 0.42, 0.5] },
+  vortex: { stun: 1, cooldown: [4, 5, 6, 7, 8] },
+  nova: { every: 10, mana: SECTION, block: [240, 290, 350, 420, 500], lasts: 5 },
+};
 
 const art = skillArt('neraxis');
 
@@ -97,6 +110,23 @@ export const NERAXIS: HeroDef = {
     },
   ],
   passive: BLACK_DRAGON_HIDE,
+  treasures: [
+    treasure('Cartridge of Black Lightning', (k) => ({
+      words: `[Black Lightning Claw] Recovers Mana by ${UT.cartridge.mana} upon each hit, and increases own P.DEF and M.DEF by ${pct(k(UT.cartridge.defense))} for ${UT.cartridge.lasts} sec.`,
+      skill: { index: 0, self: { name: 'Cartridge of Black Lightning', lasts: UT.cartridge.lasts, defends: 1 + k(UT.cartridge.defense) } },
+    })),
+    treasure('Memories of the Blue God Dragon', (k) => ({
+      words: `[Obsidian Roar] Increases DEF Boost of allies by ${pct(k(UT.memories.defense))} and dispels positive effects from all enemies upon using Obsidian Roar.`,
+      skill: { index: 1, dispel: true },
+    })),
+    treasure('Rage Vortex', (k) => ({
+      words: `[Breath of Destruction] Increases Stun duration by ${UT.vortex.stun} sec and reduces Cooldown of Breath of Destruction by ${k(UT.vortex.cooldown)} sec.`,
+      skill: { index: 2, cooldown: -k(UT.vortex.cooldown) },
+    })),
+    treasure('Ashen Nova', (k) => ({
+      words: `[Black Dragon Hide] Every ${UT.nova.every} sec, recovers 1 orb of Mana and increases All Block of all allies by ${k(UT.nova.block)} for ${UT.nova.lasts} sec.`,
+    })),
+  ],
   perks: {
     's1-light': { words: `Increases Stun duration by ${PERKS.stun} sec.` },
     's1-dark': said({ skill: { index: 0, mark: { name: CLAWED, takes: { magical: PERKS.marked.takes }, lasts: PERKS.marked.lasts } } }, ({ skill }) => `Increases the M.DMG that the hit enemy takes by ${pct(PERKS.marked.takes - 1)} for ${skill.mark.lasts} sec.`),
@@ -118,6 +148,8 @@ export const NERAXIS: HeroDef = {
     let storm = 0;
     let guarded = false;
     const tier = self.unique?.tier ?? null;
+    /** Toward Ashen Nova's next. */
+    let nova = 0;
 
     /** What his skills do, as Black Dragon Hide's Dark has it: half again as much under half his health. */
     const more = (): number => (self.perks.has('s4-dark') && self.hp < self.stats.hp * PERKS.low.below ? PERKS.low.more : 1);
@@ -148,6 +180,8 @@ export const NERAXIS: HeroDef = {
         // A blow; a second after, a blow more and the boss stunned (its Light: for longer), and slowed (it is steady).
         lightning(part) {
           blow(part === 0 ? CLAW.blow : CLAW.after);
+          // (Cartridge of Black Lightning: mana for each.)
+          if (treasureTier(self, 0) > 0) self.mana = Math.min(MAX_MANA, self.mana + UT.cartridge.mana);
           if (part === 0) return;
           fight.stun((CLAW.stun + (self.perks.has('s1-light') ? PERKS.stun : 0)) * more(), { by: self });
           fight.slow(CLAW.speed, CLAW.slowed);
@@ -155,8 +189,10 @@ export const NERAXIS: HeroDef = {
         // Every ally's ATK and defense higher (its Light: twice as much), a blow, and the boss's ATK lower (its Dark: slowed too).
         roar() {
           const boost = ROAR.more * (self.perks.has('s2-light') ? PERKS.roar : 1) * more();
+          // (Memories of the Blue God Dragon: more of its DEF.)
+          const defense = boost * (1 + fromTreasure(self, 1, UT.memories.defense));
           const on = fight.field.filter((ally) => ally.hp > 0);
-          for (const ally of on) put(ally.statuses, { name: ROARED.name, left: ROAR.lasts, deals: 1 + boost / ally.stats.atk, bolsters: { physical: boost, magical: boost }, shown: ROARED });
+          for (const ally of on) put(ally.statuses, { name: ROARED.name, left: ROAR.lasts, deals: 1 + boost / ally.stats.atk, bolsters: { physical: defense, magical: defense }, shown: ROARED });
           fight.cue(self, 'roar', on);
           blow(ROAR.blow);
           put(fight.foe.statuses, { name: WEAKENED, left: ROAR.lasts, deals: Math.max(0, 1 - ROAR.weaker * more()), shown: 'curse' });
@@ -167,11 +203,22 @@ export const NERAXIS: HeroDef = {
           const weaker = (self.perks.has('s3-dark') ? PERKS.weaker : BREATH.weaker) * more();
           put(fight.foe.statuses, { name: BREATHED, left: BREATH.lasts, defends: { magical: Math.max(0, 1 - weaker) }, shown: 'curse' });
           blow(BREATH.blow);
-          fight.stun(BREATH.stun * more(), { by: self });
+          // (Rage Vortex: for longer.)
+          fight.stun((BREATH.stun + (treasureTier(self, 2) > 0 ? UT.vortex.stun : 0)) * more(), { by: self });
         },
       },
       tick(dt) {
         storm = Math.max(0, storm - dt);
+        // Ashen Nova: every so often, mana, and every ally's block higher a moment.
+        const block = fromTreasure(self, 3, UT.nova.block);
+        if (block > 0 && self.hp > 0 && fight.field.includes(self)) {
+          nova += dt;
+          if (nova >= UT.nova.every) {
+            nova -= UT.nova.every;
+            self.mana = Math.min(MAX_MANA, self.mana + UT.nova.mana);
+            for (const ally of fight.field) if (ally.hp > 0) put(ally.statuses, { name: 'Ashen Nova', left: UT.nova.lasts, blocks: { physical: block, magical: block }, shown: { name: 'Ashen Nova', about: `+${block} block.`, icon: '🐲', art: art(3) } });
+          }
+        }
         // Transcend 5's Dark: as the fight begins, every ally but him takes less for a while.
         if (guarded || !self.perks.has('t5-dark')) return;
         guarded = true;

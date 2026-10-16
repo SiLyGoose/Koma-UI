@@ -1,6 +1,7 @@
 import { share } from '../combat/damage';
 import { away, put, type Status } from '../combat/status';
 import { said, t5Light } from '../perks';
+import { fromTreasure, treasure, treasureTier } from '../treasures';
 import { BLOW, MAX_MANA } from '../rules';
 import { pct, skillArt, type Buff } from '../shown';
 import type { Fighter } from '../types';
@@ -39,6 +40,18 @@ const ELIMINATION = { blow: indexed('mechanic', 552_663), over: indexed('mechani
 const CHARGE = { every: 0.5, perCrystal: 10, full: 100, lasts: 15, atk: 0.3, cooldown: 0.1 };
 /** Her own perks' numbers: more Charge from a skill, Process of Elimination's mark, Overcharge's more ATK and longer, and Transcend 5's Dark's for every ally (attack speed in points, ATK a share of hers). */
 const PERKS = { charge: 1.4, eliminated: 0.25, overAtk: 1.4, overLonger: 3, allies: { speed: 200, atk: 0.05 } };
+
+/**
+ * Her unique treasures' numbers (1★ to 5★: ../treasures.ts): Blasting Ray's crit chance off the boss (points) and the
+ * mana it would take (the boss has none); Emergency Treatment's cheaper and more healing; Process of Elimination's DMG and
+ * the Charge each attack gains; the Charge she begins with, and Overcharge's more cooldown off each attack.
+ */
+const UT = {
+  lens: { crit: 250, mana: [480, 580, 700, 840, 1000], lasts: 10 },
+  script: { cost: -1, heals: [0.24, 0.29, 0.35, 0.42, 0.5] },
+  code: { dmg: [0.24, 0.29, 0.35, 0.42, 0.5], charge: 2 },
+  battery: { charge: [36, 43, 52, 63, 75], cooldown: 0.05 },
+};
 
 const art = skillArt('annette');
 
@@ -108,6 +121,24 @@ export const ANNETTE: HeroDef = {
     },
   ],
   passive: CHARGING,
+  treasures: [
+    treasure('Triplex Condensing Lens', (k) => ({
+      words: `[Ray of Annihilation] For ${UT.lens.lasts} sec, reduces the target's Crit Chance by ${UT.lens.crit} and the target's Mana by ${k(UT.lens.mana)}.`,
+      skill: { index: 0, mark: { name: 'Triplex Condensing Lens', crit: -share(UT.lens.crit), lasts: UT.lens.lasts } },
+    })),
+    // (Its more healing is her Emergency Treatment's over its time: tick().)
+    treasure('Script of Healing', (k) => ({
+      words: `[Emergency Treatment] Reduces Mana Cost by ${-UT.script.cost} and increases Heal Rate by ${pct(k(UT.script.heals))}.`,
+      skill: { index: 1, cost: UT.script.cost },
+    })),
+    treasure('Code of Annihilation', (k) => ({
+      words: `[Process of Elimination] DMG is increased by ${pct(k(UT.code.dmg))} and upon ATK, gains ${UT.code.charge} stack of Charge. This stack can be gained while in Overcharge state.`,
+      skill: { index: 2, dmg: 1 + k(UT.code.dmg) },
+    })),
+    treasure('High Performance Battery', (k) => ({
+      words: `[Charge] Gains ${k(UT.battery.charge)} stacks of Charge at the beginning of every battle. While in Overcharge, Normal attacks increase Cooldown Reduction by ${pct(UT.battery.cooldown)}.`,
+    })),
+  ],
   perks: {
     's1-light': said(
       { skill: { index: 0, mark: { name: 'Magic Weakness', takes: { magical: 1.25 }, lasts: 10 } } },
@@ -154,14 +185,22 @@ export const ANNETTE: HeroDef = {
       }
     };
 
+    // High Performance Battery: Charge to begin with.
+    const battery = fromTreasure(self, 3, UT.battery.charge);
+    if (battery > 0) gain(battery);
+
     return {
       lands: {
         // Her attack: Rascal fires at the boss. Overcharged, each takes a share off her skills' cooldowns.
         zap() {
           fight.hit(self, ZAP.blow);
+          // (Code of Annihilation: Charge for each, even Overcharged.)
+          if (treasureTier(self, 2) > 0) gain(UT.code.charge);
           if (over <= 0) return;
+          // (High Performance Battery: more off them.)
+          const off = CHARGE.cooldown + (treasureTier(self, 3) > 0 ? UT.battery.cooldown : 0);
           self.abilities.forEach((ability, i) => {
-            self.cooldowns[i] = Math.max(0, (self.cooldowns[i] as number) - ability.cooldown * CHARGE.cooldown);
+            self.cooldowns[i] = Math.max(0, (self.cooldowns[i] as number) - ability.cooldown * off);
           });
         },
         // A ray into the boss (two, Overcharged): it hits less hard and takes more magical damage for a while.
@@ -215,7 +254,8 @@ export const ANNETTE: HeroDef = {
           treated += dt;
           if (treated >= 1) {
             treated -= 1;
-            for (const ally of allies()) fight.heal(ally, TREATMENT.heal / TREATMENT.lasts, self);
+            // (Script of Healing: more.)
+            for (const ally of allies()) fight.heal(ally, (TREATMENT.heal / TREATMENT.lasts) * (1 + fromTreasure(self, 1, UT.script.heals)), self);
           }
         }
         if (over > 0) over = Math.max(0, over - dt);

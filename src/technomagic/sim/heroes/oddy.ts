@@ -1,6 +1,7 @@
 import { share } from '../combat/damage';
 import { put } from '../combat/status';
 import { said, t5Light } from '../perks';
+import { fromTreasure, treasure, treasureTier } from '../treasures';
 import { BLOW, MAX_MANA } from '../rules';
 import { pct, skillArt, type Buff } from '../shown';
 import { atTier, TEMPODIANA, TEMPODIANA_UP } from '../unique';
@@ -34,6 +35,18 @@ const DISTORTION = { blow: indexed('mechanic', 317_788), speed: 250, lasts: 15, 
 const CLOCK = { attacks: 2, blow: indexed('mechanic', 174_785), chance: 0.3, petrify: 3, every: 1 };
 /** Her own perks' numbers: Time Fragments' Dark (its cooldown less for each attack), Clock Magic's more attacks and chance, and Transcend 5's Dark (every so often, so many allies' cooldowns less). */
 const PERKS = { fragments: 1, attacks: 3, chance: 0.4, ticking: { every: 10, allies: 4, less: 1 } };
+
+/**
+ * Her unique treasures' numbers (1★ to 5★: ../treasures.ts): the mana Time Fracture would take (the boss has none); Time
+ * Fragments' DMG and its chance more to be ready again at once; Time Distortion's DMG; and Clock Magic's more DMG, and the
+ * boss's more M.DMG taken.
+ */
+const UT = {
+  orbment: { mana: [480, 580, 700, 840, 1000] },
+  collection: { chance: 0.25, dmg: [0.24, 0.29, 0.35, 0.42, 0.5] },
+  threads: { dmg: [0.24, 0.29, 0.35, 0.42, 0.5] },
+  clockwork: { dmg: 0.5, takes: [0.12, 0.14, 0.17, 0.21, 0.25], lasts: 10 },
+};
 
 const art = skillArt('oddy');
 
@@ -94,6 +107,24 @@ export const ODDY: HeroDef = {
     },
   ],
   passive: CLOCK_MAGIC,
+  treasures: [
+    treasure('Exquisite Orbment', (k) => ({
+      words: `[Time Fracture] Gains immunity to CC for the skill's duration, and reduces the target's Mana by ${k(UT.orbment.mana)}.`,
+      skill: { index: 0, steady: true },
+    })),
+    // (Its chance is besides the skill's own: one that misses has this one more.)
+    treasure('Fragment Collection', (k) => ({
+      words: `[Time Fragments] Has a ${pct(UT.collection.chance)} chance to reset Cooldown and increases DMG by ${pct(k(UT.collection.dmg))}.`,
+      skill: { index: 1, dmg: 1 + k(UT.collection.dmg) },
+    })),
+    treasure('Threads of Time', (k) => ({
+      words: `[Time Distortion] DMG is increased by ${pct(k(UT.threads.dmg))} and all allies' negative effects are dispelled.`,
+      skill: { index: 2, dmg: 1 + k(UT.threads.dmg), cleanse: 'allies' },
+    })),
+    treasure('Time Manipulating Clockwork', (k) => ({
+      words: `[Clock Magic] Increases DMG by ${pct(UT.clockwork.dmg)}. Hit enemies take ${pct(k(UT.clockwork.takes))} increased M.DMG for ${UT.clockwork.lasts} sec.`,
+    })),
+  ],
   perks: {
     's1-light': said({ skill: { index: 0, dmg: 1.4 } }, ({ skill }) => `DMG is increased by ${pct(skill.dmg - 1)}.`),
     's1-dark': said({ skill: { index: 0, cooldown: -1.5 } }, ({ skill }) => `Cooldown is reduced by ${-skill.cooldown} sec.`),
@@ -129,7 +160,10 @@ export const ODDY: HeroDef = {
           if (self.perks.has('s2-dark')) self.cooldowns[1] = Math.max(0, (self.cooldowns[1] as number) - PERKS.fragments);
           if (clock <= 0) return;
           clock--;
-          fight.hit(self, CLOCK.blow, false);
+          // (Time Manipulating Clockwork: harder, and the boss takes more M.DMG for a while.)
+          const clockwork = treasureTier(self, 3) > 0;
+          fight.hit(self, CLOCK.blow * (clockwork ? 1 + UT.clockwork.dmg : 1), false);
+          if (clockwork) put(fight.foe.statuses, { name: 'Time Manipulating Clockwork', left: UT.clockwork.lasts, takes: { magical: 1 + fromTreasure(self, 3, UT.clockwork.takes) }, shown: 'curse' });
           if (clockWait <= 0 && fight.roll() < chance) {
             clockWait = CLOCK.every;
             fight.stun(CLOCK.petrify, { by: self });
@@ -164,6 +198,8 @@ export const ODDY: HeroDef = {
         if (index !== 1) return;
         free = fight.roll() < FRAGMENTS.chance;
         if (free) self.cooldowns[1] = 0;
+        // (Fragment Collection: missed, a chance more it is ready again at once.)
+        else if (treasureTier(self, 1) > 0 && fight.roll() < UT.collection.chance) self.cooldowns[1] = 0;
       },
       tick(dt) {
         clockWait = Math.max(0, clockWait - dt);

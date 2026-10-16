@@ -1,6 +1,7 @@
 import { ATK, share } from '../combat/damage';
 import { away, put } from '../combat/status';
 import { said, t5Light } from '../perks';
+import { fromTreasure, treasure, treasureTier } from '../treasures';
 import { BLOW, MAX_MANA, SECTION } from '../rules';
 import { pct, skillArt, type Buff } from '../shown';
 import type { Fighter } from '../types';
@@ -43,6 +44,18 @@ const WATER_DRAGON = { resist: 500, defense: 1.1, critResist: 250, taken: 0.75, 
  * CC Resist, and Transcend 5's Dark's mana for every ally (how often).
  */
 const PERKS = { heals: 1.4, critResist: 250, whirl: 3, festival: 0.15, defense: 1.2, critResistMore: 150, resist: 400, mana: { each: 0.35 * SECTION, every: 3 } };
+
+/**
+ * Her unique treasures' numbers (1★ to 5★: ../treasures.ts): Healing Droplets' more healing and every ally's M.Block
+ * (points); Bubble Shield's shorter cooldown; Festival of the Flow's more mana for every ally; her passive's more M.DEF,
+ * and every ally's mana every second.
+ */
+const UT = {
+  scale: { heals: 0.5, block: [240, 290, 350, 420, 500], lasts: 10 },
+  crystal: { cooldown: [0.14, 0.17, 0.21, 0.25, 0.3] },
+  papyrus: { mana: [600, 720, 860, 1040, 1250] },
+  tear: { defense: 0.5, mana: [48, 58, 70, 84, 100] },
+};
 
 const art = skillArt('laias');
 
@@ -108,6 +121,24 @@ export const LAIAS: HeroDef = {
     },
   ],
   passive: BLESSING,
+  treasures: [
+    treasure('Water Dragon Scale', (k) => ({
+      words: `[Healing Droplets] Increases Heal Rate by ${pct(UT.scale.heals)}, and for ${UT.scale.lasts} sec, increases the target's M.Block by ${k(UT.scale.block)}.`,
+      skill: { index: 0, heals: 1 + UT.scale.heals, party: { name: 'Water Dragon Scale', lasts: UT.scale.lasts, blocks: { magical: k(UT.scale.block) } } },
+    })),
+    treasure('Oasis Crystal', (k) => ({
+      words: `[Bubble Shield] Reduces Cooldown by ${pct(k(UT.crystal.cooldown))} and dispels Negative Effects from the target.`,
+      skill: { index: 1, cooldownShare: 1 - k(UT.crystal.cooldown) },
+    })),
+    // (One enemy: its whirlpools have only the boss to target.)
+    treasure('Papyrus of the Flow', (k) => ({
+      words: `[Festival of the Flow] Whirlpool effect targets 2 enemies and all allies recover additional ${k(UT.papyrus.mana)} mana.`,
+      skill: { index: 2, allyMana: k(UT.papyrus.mana) },
+    })),
+    treasure('Tear of God Dragon', (k) => ({
+      words: `[Blessing of the Water Dragon] Increases DEF boost by ${pct(UT.tear.defense)}. All allies recover Mana by ${k(UT.tear.mana)} every sec.`,
+    })),
+  ],
   perks: {
     's1-light': { words: `Heal rate is increased by ${pct(PERKS.heals - 1)}.` },
     's1-dark': { words: `Upon healing, M.Crit Resistance rises by ${pct(share(PERKS.critResist))}.` },
@@ -134,7 +165,9 @@ export const LAIAS: HeroDef = {
     const tier = self.unique?.tier ?? null;
     /** Her perks: how often the whirlpools come; her passive's M.DEF and M.Crit Resistance for every ally; and toward Transcend 5's Dark's next mana. */
     const whirlEvery = self.perks.has('s3-light') ? PERKS.whirl : FESTIVAL.every;
-    const defense = self.perks.has('s4-light') ? 1 + (WATER_DRAGON.defense - 1) * PERKS.defense : WATER_DRAGON.defense;
+    // (Tear of God Dragon: more again.)
+    const defense = 1 + (WATER_DRAGON.defense - 1) * (self.perks.has('s4-light') ? PERKS.defense : 1) * (treasureTier(self, 3) > 0 ? 1 + UT.tear.defense : 1);
+    const tear = fromTreasure(self, 3, UT.tear.mana);
     const critResist = WATER_DRAGON.critResist + (self.perks.has('s4-light') ? PERKS.critResistMore : 0);
     let filling = 0;
 
@@ -174,6 +207,8 @@ export const LAIAS: HeroDef = {
           if (!ally) return;
           fight.cue(self, 'bubble', [ally]);
           if (bubbled && bubbled !== ally) lift(BUBBLE_HOLDS.name, [bubbled]);
+          // (Oasis Crystal: what the boss has left on it is gone.)
+          if (treasureTier(self, 1) > 0) ally.statuses = ally.statuses.filter((status) => status.shown.harmful !== true || status.binds === true);
           fight.shield(ally, BUBBLE.shield, BUBBLE.lasts, self);
           put(ally.statuses, { name: BUBBLED.name, left: BUBBLE.lasts, takes: BUBBLE.taken, deals: 1 + BUBBLE.dmg, shown: BUBBLED });
           bubbled = ally;
@@ -228,6 +263,8 @@ export const LAIAS: HeroDef = {
           put(ally.statuses, { name: BLESSED.name, left: Infinity, defends: { magical: defense }, critResist: { magical: critResist }, shown: BLESSED });
           if (tier !== null) put(ally.statuses, { name: ELTOIRRE_UP.name, left: Infinity, heals: 1 + atTier(ELTOIRRE.heals, tier), shown: ELTOIRRE_UP });
         }
+        // Tear of God Dragon: every ally's mana, every second.
+        if (tear > 0) for (const ally of on) ally.mana = Math.min(MAX_MANA, ally.mana + tear * dt);
         // Festival of the Flow's whirlpools: each strikes the boss and knocks it down again.
         if (flowing > 0) {
           flowing -= dt;

@@ -2,6 +2,7 @@ import { share } from '../combat/damage';
 import { put } from '../combat/status';
 import { SKILL_SPEED } from '../motion';
 import { said, t5Light } from '../perks';
+import { fromTreasure, treasure, treasureTier } from '../treasures';
 import { BLOW, MAX_MANA, SECTION } from '../rules';
 import { pct, skillArt, type Buff } from '../shown';
 import type { Fighter } from '../types';
@@ -47,6 +48,20 @@ const PERKS = {
   bond: { speed: 200, atk: 0.07 },
   favour: { speed: 150, deals: 1.15, lasts: 30 },
 };
+
+/**
+ * Her unique treasures' numbers (1★ to 5★: ../treasures.ts): Light of Doom's more healing and DMG; Blessing of Doom's
+ * longer shield and its ATK; Heaven's Vengeance's DMG; Tainted Angel's faster mana and every ally's ATK (three times
+ * as much for Dark Lord Kasel).
+ */
+const UT = {
+  faith: { more: [0.24, 0.29, 0.35, 0.42, 0.5] },
+  egg: { longer: [4, 5, 6, 7, 8], atk: 0.3 },
+  dream: { dmg: [0.24, 0.29, 0.35, 0.42, 0.5] },
+  allure: { mana: 0.5, atk: [0.1, 0.12, 0.14, 0.17, 0.2], kasel: 3 },
+};
+/** What Ring of Allure gives Dark Lord Kasel on top of what every ally has of it, while she is on the field and standing. */
+const ALLURED = 'Ring of Allure';
 
 const art = skillArt('fallen-frey');
 
@@ -117,6 +132,23 @@ export const FALLEN_FREY: HeroDef = {
     },
   ],
   passive: TAINTED_ANGEL,
+  treasures: [
+    treasure('Shattered Faith', (k) => ({
+      words: `[Light of Doom] Increases Heal Rate and DMG by ${pct(k(UT.faith.more))}. The Heal Rate Boost and Reduction effect become irremovable.`,
+      skill: { index: 0, dmg: 1 + k(UT.faith.more), heals: 1 + k(UT.faith.more) },
+    })),
+    treasure('Broken Angel’s Egg', (k) => ({
+      words: `[Blessing of Doom] Increases the duration of shield by ${k(UT.egg.longer)} sec and ATK of targets by ${pct(UT.egg.atk)} for the duration of shield.`,
+    })),
+    treasure('Blossomed Dream', (k) => ({
+      words: `[Heaven's Vengeance] Increases DMG by ${pct(k(UT.dream.dmg))} and gains immunity to CC while in use.`,
+      skill: { index: 2, dmg: 1 + k(UT.dream.dmg), steady: true },
+    })),
+    treasure('Ring of Allure', (k) => ({
+      words: `[Tainted Angel] Increases Mana Recovery per sec by ${pct(UT.allure.mana)} and ATK of all allies by ${pct(k(UT.allure.atk))}. If the target is [Dark Lord Kasel], the ATK Boost effect multiplies by ${UT.allure.kasel} times.`,
+      allies: { atk: { first: k(UT.allure.atk), again: k(UT.allure.atk) } },
+    })),
+  ],
   perks: {
     's1-light': { words: `Increases All DMG the hit enemies take by ${pct(PERKS.light.takes - 1)} for ${PERKS.light.lasts} sec.` },
     's1-dark': said({ skill: { index: 0, cost: 1 } }, ({ skill }) => `Increases Mana Cost by ${skill.cost} and Heal Rate by ${pct(PERKS.light.heals - 1)}.`),
@@ -170,6 +202,10 @@ export const FALLEN_FREY: HeroDef = {
       put(strongest.statuses, { name: FALLEN_BOND.name, left: Infinity, pace: 1 + share(PERKS.bond.speed), shown: FALLEN_BOND });
     }
     if (strongest && self.perks.has('t5-dark')) put(strongest.statuses, { name: FALLEN_FAVOUR.name, left: PERKS.favour.lasts, pace: 1 + share(PERKS.favour.speed), deals: PERKS.favour.deals, shown: FALLEN_FAVOUR });
+    // Ring of Allure: Dark Lord Kasel's ATK three times as much higher (every ally's is its aura: ../perks.ts).
+    const allure = fromTreasure(self, 3, UT.allure.atk);
+    const kasel = allure > 0 ? others.find((ally) => ally.id === 'dark-lord-kasel') : undefined;
+    const allured: Buff = { name: ALLURED, about: `ATK ${pct(allure * UT.allure.kasel)} higher while Fallen Frey is on the field.`, icon: '💍', art: art(3) };
 
     return {
       lands: {
@@ -203,9 +239,12 @@ export const FALLEN_FREY: HeroDef = {
           const allies = self.perks.has('s2-light') ? weakest() : weakest().slice(0, BLESSING.allies);
           const block = self.perks.has('s2-dark') ? { blocks: { physical: PERKS.block, magical: PERKS.block } } : {};
           fight.cue(self, 'blessing', allies);
+          // (Broken Angel's Egg: for longer, and their ATK higher meanwhile.)
+          const lasts = BLESSING.lasts + fromTreasure(self, 1, UT.egg.longer);
+          const egg = treasureTier(self, 1) > 0 ? { deals: 1 + UT.egg.atk } : {};
           for (const ally of allies) {
-            fight.shield(ally, BLESSING.shield, BLESSING.lasts, self);
-            put(ally.statuses, { name: BLESSED.name, left: BLESSING.lasts, pace: 1 + share(BLESSING.speed), ...block, shown: BLESSED });
+            fight.shield(ally, BLESSING.shield, lasts, self);
+            put(ally.statuses, { name: BLESSED.name, left: lasts, pace: 1 + share(BLESSING.speed), ...block, ...egg, shown: BLESSED });
           }
         },
         // A blow of light down on the boss, through some of its defense; each leaves it easier to hurt (and, with Darkened Power, stuns it).
@@ -219,7 +258,14 @@ export const FALLEN_FREY: HeroDef = {
       },
       // Her mana fills far faster; and while it is full, Darkened Power every second.
       tick(dt) {
-        self.mana = Math.min(MAX_MANA, self.mana + TAINTED.mana * dt);
+        self.mana = Math.min(MAX_MANA, self.mana + TAINTED.mana * (treasureTier(self, 3) > 0 ? 1 + UT.allure.mana : 1) * dt);
+        // (Ring of Allure on Dark Lord Kasel: the rest of his three times as much, while she is on the field and standing.)
+        if (kasel) {
+          const there = self.hp > 0 && fight.field.includes(self);
+          const on = kasel.statuses.some((status) => status.name === ALLURED);
+          if (there && !on) put(kasel.statuses, { name: ALLURED, left: Infinity, deals: (1 + allure * UT.allure.kasel) / (1 + allure), shown: allured });
+          else if (!there && on) kasel.statuses = kasel.statuses.filter((status) => status.name !== ALLURED);
+        }
         if (self.mana >= MAX_MANA && stacks < TAINTED.most) {
           darkening += dt;
           if (darkening >= TAINTED.every) {

@@ -1,8 +1,9 @@
 import { share } from '../combat/damage';
 import { put } from '../combat/status';
 import { said, t5Light } from '../perks';
+import { fromTreasure, treasure, treasureTier } from '../treasures';
 import { BLOW } from '../rules';
-import { num, pct, skillArt, type Buff } from '../shown';
+import { fine, num, pct, skillArt, type Buff } from '../shown';
 import { atTier, NOTOS, NOTOS_UP } from '../unique';
 import { CLASS_STATS, dmg, indexed, type HeroDef, type Passive } from './kit';
 import { CODED } from './moves';
@@ -37,6 +38,18 @@ const FLASH = { most: indexed('archer', 657_142), down: 3, boss: indexed('archer
 const MOON = { atk: 5056, crit: 100, lasts: 10, most: 3 };
 /** Her own perks' numbers: Arrow Rain's stun (its chance), Rush's flinch, and Moonlight Arrow's most stacks. */
 const PERKS = { stun: { chance: 0.2, lasts: 2 }, flinch: 0.5, most: 5 };
+
+/**
+ * Her unique treasures' numbers (1★ to 5★: ../treasures.ts): Arrow Rain's cheaper and shorter cooldown; Rush's DMG and
+ * its arrow's chance on her attack; Moonlight Flash's DMG and more P.DMG taken; Moonlight Arrow's attack speed (points)
+ * and more DMG to the boss for each stack.
+ */
+const UT = {
+  gloves: { cost: -1, cooldown: [1.2, 1.4, 1.7, 2.1, 2.5] },
+  seal: { dmg: [0.24, 0.29, 0.35, 0.42, 0.5], chance: 0.15, arrows: 1 },
+  silver: { dmg: [0.24, 0.29, 0.35, 0.42, 0.5], takes: 0.2, lasts: 10 },
+  circlet: { speed: 100, dmg: [0.024, 0.029, 0.035, 0.042, 0.05] },
+};
 
 const art = skillArt('selene');
 
@@ -95,6 +108,24 @@ export const SELENE: HeroDef = {
     },
   ],
   passive: MOONLIGHT_ARROW,
+  treasures: [
+    treasure('Sharpshooter’s Gloves', (k) => ({
+      words: `[Arrow Rain] Reduces Mana Cost by ${-UT.gloves.cost} and Cooldown by ${k(UT.gloves.cooldown)} sec.`,
+      skill: { index: 0, cost: UT.gloves.cost, cooldown: -k(UT.gloves.cooldown) },
+    })),
+    treasure('Wind Spirit Seal Stone', (k) => ({
+      words: `[Rush] Increases DMG by ${pct(k(UT.seal.dmg))} and has a ${pct(UT.seal.chance)} chance to summon ${UT.seal.arrows} Rush Arrow upon a normal attack.`,
+      skill: { index: 1, dmg: 1 + k(UT.seal.dmg) },
+    })),
+    treasure('Silver Arrow', (k) => ({
+      words: `[Moonlight Flash] DMG is increased by ${pct(k(UT.silver.dmg))} and target takes ${pct(UT.silver.takes)} additional P.DMG for ${UT.silver.lasts} sec.`,
+      skill: { index: 2, dmg: 1 + k(UT.silver.dmg), mark: { name: 'Silver Arrow', takes: { physical: 1 + UT.silver.takes }, lasts: UT.silver.lasts } },
+    })),
+    treasure('Circlet of Wind', (k) => ({
+      words: `[Moonlight Arrow] Increases ATK Spd by ${UT.circlet.speed} and each stack increases DMG to Non-Hero enemies by ${fine(k(UT.circlet.dmg))}.`,
+      bonus: { speed: UT.circlet.speed },
+    })),
+  ],
   perks: {
     's1-light': said({ skill: { index: 0, dmg: 1.4 } }, ({ skill }) => `DMG is increased by ${pct(skill.dmg - 1)}.`),
     's1-dark': { words: `There is a ${pct(PERKS.stun.chance)} chance to inflict Stun for ${PERKS.stun.lasts} sec.` },
@@ -134,7 +165,9 @@ export const SELENE: HeroDef = {
     };
     /** Her ATK and crit chance for her Moonlight Arrow's stacks. */
     const moonlit = (): void => {
-      put(self.statuses, { name: MOONLIT.name, left: MOON.lasts, count: moon, deals: 1 + (MOON.atk * moon) / self.stats.atk, crit: share(MOON.crit * moon), shown: MOONLIT });
+      // (Circlet of Wind: more to the boss for each.)
+      const circlet = 1 + fromTreasure(self, 3, UT.circlet.dmg) * moon;
+      put(self.statuses, { name: MOONLIT.name, left: MOON.lasts, count: moon, deals: (1 + (MOON.atk * moon) / self.stats.atk) * circlet, crit: share(MOON.crit * moon), shown: MOONLIT });
     };
 
     /** Her attack: an arrow, a stack of Moonlight Arrow (all of them begun again); with her unique weapon quickening her, an arrow more. */
@@ -144,6 +177,10 @@ export const SELENE: HeroDef = {
       moonLeft = MOON.lasts;
       moonlit();
       if (notos > 0 && tier !== null) fight.hit(self, atTier(NOTOS.arrow, tier), false);
+      // (Wind Spirit Seal Stone: now and then a Rush arrow besides, as hard as Rush's.)
+      if (treasureTier(self, 1) > 0 && fight.roll() < UT.seal.chance) {
+        for (let i = 0; i < UT.seal.arrows; i++) shoot(RUSH.blow * (1 + fromTreasure(self, 1, UT.seal.dmg)));
+      }
     };
 
     return {
