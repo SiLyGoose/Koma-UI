@@ -24,6 +24,7 @@ import { lookOf } from './heroes/looks';
 import { makeActions } from './hud/actions';
 import { makeBossBar } from './hud/boss-bar';
 import { makeCard } from './hud/card';
+import { el } from './hud/dom';
 import { makeMeter } from './hud/meter';
 import { makeNumbers } from './hud/numbers';
 import { makeOverhead } from './hud/overhead';
@@ -438,12 +439,16 @@ async function start(): Promise<void> {
       begin: () => send({ t: 'begin' }),
     });
     const chat = chatBox({ mount: prep.chat, send, you: () => state?.you ?? null });
-    // Manage: the heroes page over the room, not the site's (which would take them out of it).
+    // Manage: the heroes page over the room, not the site's (which would take them out of it). A button in place of
+    // the link: the page's links are caught before anything on them hears the click (../shared/transition/).
     const manage = managePopup(document.getElementById('app') as HTMLElement, link, address);
-    document.querySelector('.tm-prep-manage')?.addEventListener('click', (event) => {
-      event.preventDefault();
-      manage.open();
-    });
+    const manageLink = document.querySelector('.tm-prep-manage');
+    if (manageLink) {
+      const button = el('button', manageLink.className, manageLink.textContent ?? 'Manage');
+      button.type = 'button';
+      button.addEventListener('click', () => manage.open());
+      manageLink.replaceWith(button);
+    }
 
     // The way out: the host, mid-fight, gives the fight up; anyone else just goes (their heroes fight on, on Auto).
     leave = () => {

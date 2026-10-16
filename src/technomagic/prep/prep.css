@@ -385,12 +385,20 @@ button.tm-slot-card:hover {
 .tm-prep-manage {
   flex-shrink: 0;
   padding: 4px 12px;
+  border: 0;
   border-radius: 8px;
   background: linear-gradient(180deg, #e2b85c, #a87a2c);
   color: #2a1606;
   font-size: 13px;
   font-weight: 800;
   text-decoration: none;
+}
+
+/* In a room it is a button (../manage/popup.ts): the same as the link. */
+button.tm-prep-manage {
+  font-family: inherit;
+  line-height: inherit;
+  cursor: pointer;
 }
 
 .tm-prep-manage:hover {
