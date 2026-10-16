@@ -43,7 +43,7 @@ import { auraTotal, moveDmg, moveMarks, moveWhole, perkedStats, perksOf, tweaked
  * A hero as it comes into the fight: which, in which of its skins (the first, unless it says), with what its gear
  * gives it, the TechnoMagic set whose effect it has (./sets.ts), its own unique weapon's tier (./unique.ts), and
  * the additional skill of each piece of TechnoMagic gear it wears (./skills.ts). One in the Sub Team (a raid fought
- * alone: the heroes past the Main Team's) is on Auto for the whole fight.
+ * alone: the heroes past the Main Team's) is on Auto for the whole fight; in a raid, every other starts on it too.
  */
 export interface Entry {
   def: HeroDef;
@@ -216,7 +216,8 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       // As it comes into the fight: whole, with half its mana (and more with Authority's support).
       mana: Math.min(MAX_MANA, MAX_MANA / 2 + (set?.id === 'authority' && set.role === 'support' ? AUTHORITY.mana : 0)),
       sub,
-      auto: sub,
+      // On Auto from the start in a raid (the Main Team's can be taken off it); trying things out, not.
+      auto: sub || raid,
       cooldowns: hero.abilities.map(() => 0),
       reserved: null,
       lastUsed: hero.abilities.map(() => -Infinity),

@@ -38,8 +38,9 @@
   }
 
   .tm-meter-auto {
-    padding: 2px 12px;
-    font-size: 12px;
+    padding: 2px 10px;
+    border-width: 2px;
+    font-size: 13px;
   }
 
   .tm-meter-tab {
