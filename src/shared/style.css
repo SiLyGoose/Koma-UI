@@ -1,3 +1,6 @@
+/* The site's font (./fonts/: served from here, not from Google Fonts). */
+@import './fonts/poppins.css';
+
 :root {
   /*
    * The palette, from a banner of white spider lilies at night: near-black, charcoal and dusk-violet
