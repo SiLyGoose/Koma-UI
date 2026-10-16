@@ -1,6 +1,7 @@
 import { art, el, hoverSound, itemDetailsClosed, itemFace, itemPicked, lockBadge, matchesSearch, matchesStars, rich, statBlocks, tierOf, SLOT_NAME, stars as starRow, tmMarks, tmSections, uwMarks } from '../shared/items';
 import { classBadge, className, FACE, HERO_SLOT_KIND, heroCut, heroPicture, skillText, STAGE_ZOOM, type HeroView, type HeroCopy, type HeroSlot } from '../shared/heroes';
-import { working } from '../shared/ui';
+import { doneMark, working } from '../shared/ui';
+import { points } from '../shared/util';
 import { copyById, heroShown, mine, slotFor, slotOf, type HeroesContext } from './context';
 import { heroSkills } from './skills';
 import type { HeroSkillView } from '../protocol/heroes';
@@ -22,6 +23,8 @@ export interface HeroActions {
   perks(perks: string[], key: string): void;
   /** Transcends the hero shown a level. */
   transcend(): void;
+  /** Refines a copy a level (a spare copy of it used up). */
+  refine(copy: HeroCopy): void;
 }
 
 /** The armory always shows at least this many cells (rounded up to a full row), and fills out its last row. */
@@ -320,19 +323,45 @@ function renderDetail(ctx: HeroesContext, act: HeroActions): void {
   const into = worn ?? slotFor(ctx, copy);
   const replaced = worn ? undefined : copyById(ctx, hero.equipped[into]);
   if (replaced) body.append(el('p', 'detail-replaces', `Replaces ${replaced.name} (R${replaced.level})`), effectList(replaced, 'detail-effects detail-replaced'));
-  if (!hero.owned) {
-    body.append(el('p', 'detail-note', notRecruited(ctx, hero.name, 'put gear on them')));
-    return;
-  }
-  // (Another hero's unique weapon: nothing to equip it with here, unless it's to come off.)
-  if (!worn && !wieldable(copy, hero)) return;
   const foot = el('div', 'detail-foot');
-  const action = el('button', `detail-action action ${worn ? 'secondary' : 'main'}`, worn ? 'Unequip' : `Equip as ${slotLabel(into)}`);
-  action.type = 'button';
-  working(action, ctx.busy, worn ? `unequip:${worn}` : `equip:${copy.id}`);
-  action.addEventListener('click', () => (worn ? act.unequip(worn) : act.equip(copy, into)));
-  foot.append(action);
-  ui.detail.append(foot);
+  // A unique weapon: Upgrade, refining it here (a spare copy of it and zeiucoins used up), whoever's page it's on.
+  if (copy.uniqueWeapon) foot.append(upgradeFor(ctx, act, copy, body));
+  if (!hero.owned) body.append(el('p', 'detail-note', notRecruited(ctx, hero.name, 'put gear on them')));
+  // (Another hero's unique weapon: nothing to equip it with here, unless it's to come off.)
+  else if (worn || wieldable(copy, hero)) {
+    if (copy.uniqueWeapon && !worn) body.append(el('p', 'detail-note', `A unique weapon only goes in ${slotLabel(into)}.`));
+    const action = el('button', `detail-action action ${worn ? 'secondary' : 'main'}`, worn ? 'Unequip' : `Equip as ${slotLabel(into)}`);
+    action.type = 'button';
+    working(action, ctx.busy, worn ? `unequip:${worn}` : `equip:${copy.id}`);
+    action.addEventListener('click', () => (worn ? act.unequip(worn) : act.equip(copy, into)));
+    foot.append(action);
+  }
+  if (foot.childElementCount > 0) ui.detail.append(foot);
+}
+
+/**
+ * A unique weapon's Upgrade: refines it a level, using up a spare copy of it and zeiucoins, with what that costs (and
+ * what's in the way, or what it does then) said in `body`. Fully refined, "✓ Max" in its place.
+ */
+function upgradeFor(ctx: HeroesContext, act: HeroActions, copy: HeroCopy, body: HTMLElement): HTMLElement {
+  const { refine } = copy;
+  if (copy.level >= copy.maxLevel || refine.blocked === 'maxed') return doneMark('Max');
+  const have = ctx.view?.balance ?? 0;
+  const cost = refine.cost ?? 0;
+  const button = el('button', 'detail-action action secondary', 'Upgrade');
+  button.type = 'button';
+  button.disabled = refine.blocked !== null;
+  working(button, ctx.busy, `refine:${copy.id}`);
+  button.addEventListener('click', () => act.refine(copy));
+  if (refine.blocked === 'no_duplicate') body.append(el('p', 'detail-note warn', `Upgrading needs another ${copy.name} to use up as material.`));
+  else if (refine.blocked === 'too_poor') body.append(el('p', 'detail-note warn', `Upgrading to R${copy.level + 1} costs ${points(cost)} zeiucoins: you need ${points(cost - have)} more.`));
+  else {
+    const spare = refine.spare !== null && refine.spare > 1 ? ` (an R${refine.spare}: its refinement is lost)` : '';
+    body.append(el('p', 'detail-label', `At R${copy.level + 1}`));
+    if (refine.after) body.append(effectList({ ...copy, effects: refine.after }));
+    body.append(el('p', 'detail-note', `Upgrading costs ${points(cost)} zeiucoins and a spare ${copy.name}${spare}.`));
+  }
+  return button;
 }
 
 /** A hero that isn't theirs yet: to the shop to `then`; someone else's, that they haven't recruited it. */

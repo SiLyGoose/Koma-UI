@@ -44,14 +44,15 @@ async function start(ctx: HeroesContext, act: HeroActions): Promise<void> {
   await Promise.all([loadMembers(ctx), load(ctx, act)]);
 }
 
-/** Says why asking the bot didn't work (or, for a login that ran out, logs out). */
-function failed(ctx: HeroesContext, act: HeroActions, res: { status: number; error: string }, what: string): void {
+/** Says why asking the bot didn't work (or, for a login that ran out, logs out); `said`: what a change says for its own errors. */
+function failed(ctx: HeroesContext, act: HeroActions, res: { status: number; error: string }, what: string, said: Partial<Record<string, string>> = {}): void {
   if (res.status === 401) return ctx.host.logOut();
   // No answer to a change: it may have gone through, so load what's there.
   if (res.status === 0) return void load(ctx, act);
   status(
     ctx,
-    res.error === 'not_member'
+    said[res.error] ??
+    (res.error === 'not_member'
       ? "You don't seem to be in that server any more. Log out and in again to refresh it."
       : res.error === 'not_owned'
         ? "That item isn't yours any more."
@@ -59,8 +60,8 @@ function failed(ctx: HeroesContext, act: HeroActions, res: { status: number; err
           ? "That hero isn't yours yet."
           : res.error === 'wrong_hero'
             ? 'That unique weapon is another hero’s: only they can wield it.'
-            : res.error === 'one_unique'
-              ? 'A hero wields one unique weapon: replace the one they have.'
+          : res.error === 'wrong_slot'
+            ? 'A unique weapon only goes in Weapon I.'
           : res.error === 'busy'
             ? 'Your heroes’ gear changed meanwhile. Try again.'
           : res.error === 'too_many_points'
@@ -73,7 +74,7 @@ function failed(ctx: HeroesContext, act: HeroActions, res: { status: number; err
             ? 'This hero is as transcended as it gets.'
             : res.status === 404
               ? 'Heroes aren’t on the bot yet.'
-              : what,
+              : what),
     true,
   );
 }
@@ -145,7 +146,7 @@ function show(ctx: HeroesContext, act: HeroActions, view: HeroesView): void {
 }
 
 /** Sends a change to the bot (one at a time), and draws their heroes as it answers. */
-async function change(ctx: HeroesContext, act: HeroActions, key: string, path: string, body: Record<string, unknown>, what: string): Promise<boolean> {
+async function change(ctx: HeroesContext, act: HeroActions, key: string, path: string, body: Record<string, unknown>, what: string, said?: Partial<Record<string, string>>): Promise<boolean> {
   const server = ctx.host.server();
   // Only their own heroes are theirs to change.
   if (ctx.busy || !server || !mine(ctx)) return false;
@@ -156,7 +157,7 @@ async function change(ctx: HeroesContext, act: HeroActions, key: string, path: s
   ctx.busy = null;
   if (!res.ok) {
     render(ctx, act);
-    failed(ctx, act, res, what);
+    failed(ctx, act, res, what, said);
     return false;
   }
   show(ctx, act, res.data);
@@ -196,6 +197,15 @@ function actions(ctx: HeroesContext): HeroActions {
     transcend() {
       const hero = ctx.hero;
       if (hero) void change(ctx, act, 'transcend', '/api/heroes/transcend', { hero }, 'Could not transcend this hero. Try again.');
+    },
+    refine(copy: HeroCopy) {
+      void change(ctx, act, `refine:${copy.id}`, '/api/heroes/refine', { copy: copy.id }, 'Could not upgrade that. Try again.', {
+        too_poor: 'Not enough zeiucoins to upgrade that.',
+        no_duplicate: `You need another ${copy.name} to use up as material.`,
+        maxed: `${copy.name} is fully refined.`,
+        not_found: "That item isn't yours any more.",
+        busy: 'Your gear changed meanwhile. Try again.',
+      });
     },
   };
   return act;

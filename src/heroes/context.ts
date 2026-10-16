@@ -171,18 +171,17 @@ export const copyById = (ctx: HeroesContext, id: string | null): HeroCopy | unde
 /** The slot of the hero shown that a copy is in, or null. */
 export const slotOf = (hero: HeroView | undefined, copyId: string): HeroSlot | null => (hero ? (HERO_SLOTS.find((slot) => hero.equipped[slot] === copyId) ?? null) : null);
 
+/** The one slot a unique weapon goes in: the first weapon slot (the bot refuses it in another). */
+export const UNIQUE_SLOT: HeroSlot = 'weapon1';
+
 /**
  * Where equipping a copy puts it on the hero shown: the slot last pressed when it's one of the copy's
- * kind, else the first empty one of its kind, else the first of its kind. A unique weapon, while the hero
- * wields another, in that one's place (a hero wields one: the bot refuses a second).
+ * kind, else the first empty one of its kind, else the first of its kind. A unique weapon, always UNIQUE_SLOT.
  */
 export function slotFor(ctx: HeroesContext, copy: HeroCopy): HeroSlot {
   const hero = heroShown(ctx);
+  if (copy.uniqueWeapon) return UNIQUE_SLOT;
   const kind = HERO_SLOTS.filter((slot) => HERO_SLOT_KIND[slot] === copy.slot);
-  if (copy.uniqueWeapon) {
-    const unique = kind.find((slot) => copyById(ctx, hero?.equipped[slot] ?? null)?.uniqueWeapon);
-    if (unique) return unique;
-  }
   if (ctx.target && kind.includes(ctx.target)) return ctx.target;
   return kind.find((slot) => !hero?.equipped[slot]) ?? (kind[0] as HeroSlot);
 }
