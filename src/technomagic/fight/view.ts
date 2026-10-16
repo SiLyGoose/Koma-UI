@@ -10,7 +10,7 @@ import { FALL, type Hero } from '../heroes/body/hero';
 import { HERO_FX } from '../heroes/fx';
 import { lookOf } from '../heroes/looks';
 import type { Popup } from '../hud/numbers';
-import { HERO_TURN, HERO_X, type Sim } from '../sim';
+import { HERO_TURN, HERO_X, MARCH, MARCH_FROM, marchLeft, TICK, type Sim } from '../sim';
 import { COMMON_FX, type BossFx, type FxScene } from './fx';
 
 /*
@@ -39,6 +39,13 @@ const HIDING = new Set(['Stealth']);
 const HIDDEN = 0.4;
 const FADE = 0.2;
 
+/**
+ * A raid's run up to the boss (../sim/rules.ts MARCH): the camera sets off this much of the way back with the heroes and
+ * scrolls along with them, slowing as they do, to stand where it stands for the rest of the fight as they arrive (so
+ * they gain on it a little, and the boss comes into the picture).
+ */
+const FOLLOW = 0.85;
+
 /** A body on the field: a hero, by its index among the fighters, or the boss. */
 type Who = number | 'boss';
 
@@ -50,6 +57,8 @@ export interface FightView {
   head(who: number, into: Vector3): Vector3;
   /** Whether a hero is drawn on the field. */
   shown(who: number): boolean;
+  /** How far along the field the camera is to be moved from where it stands (less than 0: to the left): following a raid's run up to the boss. */
+  readonly pan: number;
   /** How dark the field is to be drawn (0 not at all, 1 black), and the body kept bright in it: the one whose skill's blow has just landed (null: none). */
   readonly dark: number;
   readonly lit: Object3D | null;
@@ -143,6 +152,8 @@ export function makeFightView({ scene, sim, bodies, boss, bossLook, bossFx, effe
   let held = 0;
   let caster: Who | null = null;
   let dark = 0;
+  /** How much of a raid's run up to the boss has been drawn (seconds): kept smooth between the sim's steps, but never more than one from it. */
+  let ran = 0;
   /** How far behind the fight each body held still is, to catch up. */
   const behind = new Map<Who, number>();
   const stop = (who: Who): void => {
@@ -184,6 +195,9 @@ export function makeFightView({ scene, sim, bodies, boss, bossLook, bossFx, effe
     place: fx.place,
     head: fx.head,
     shown: (who) => on.has(who),
+    get pan() {
+      return sim.raid ? -FOLLOW * MARCH_FROM * marchLeft(ran / MARCH) : 0;
+    },
     get dark() {
       return dark;
     },
@@ -193,6 +207,8 @@ export function makeFightView({ scene, sim, bodies, boss, bossLook, bossFx, effe
       return on.has(caster) ? body(caster).root : null;
     },
     update(now, dt) {
+      const marched = Math.min(MARCH, sim.tick * TICK);
+      ran = Math.min(MARCH, marched + TICK, Math.max(marched - TICK, ran + dt));
       skillBlow = null;
       bossSkill = Math.max(0, bossSkill - dt);
       for (const event of sim.events.splice(0)) {

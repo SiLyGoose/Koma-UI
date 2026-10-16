@@ -133,10 +133,18 @@ export const ENTER = 1.1;
  * this far behind the pair in front.
  */
 export const MARCH = 2;
-export const MARCH_FROM = 13;
+export const MARCH_FROM = 24;
 export const MARCH_ROW = 3;
 /** How far apart the two of a pair run. */
 export const MARCH_ABREAST = 3;
+/** The last of the run (of its time) in which they slow to a stop: before it, they run flat out. */
+const BRAKE = 0.3;
+
+/** A raid's run up to the boss, `k` of the way through it (0 to 1): how much of the way (MARCH_FROM) is still to go. */
+export function marchLeft(k: number): number {
+  const t = 1 - k;
+  return t < BRAKE ? (t * t) / (BRAKE * (2 - BRAKE)) : (2 * t - BRAKE) / (2 - BRAKE);
+}
 
 /** With Boss auto on: the wait between the boss's attacks. The wait between a hero's attacks. */
 export const AUTO_WAIT = 1.1;

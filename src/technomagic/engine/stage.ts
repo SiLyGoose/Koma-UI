@@ -62,6 +62,8 @@ export interface Stage {
    * field): that is drawn as bright as ever, over the dark.
    */
   dim(amount: number, lit: readonly Object3D[]): void;
+  /** Moves the camera along the field: `by` across from where it stands (less than 0: to the left), looking the same way. */
+  pan(by: number): void;
   /** Where a place on the field is on the page, from the canvas's top left (CSS pixels). */
   project(at: Vector3): { x: number; y: number };
   /** A picture (a data: address) of a model from a little under `at` (its head) up, with nothing behind it, seen from `turn` radians round it: a hero, for its card. */
@@ -83,6 +85,14 @@ export function makeStage(canvas: HTMLCanvasElement): Stage {
 
   // How far the camera is from the middle of the field: the haze is measured from there, as that changes with the page's shape.
   let back = 0;
+  // How far along the field it is moved (pan()).
+  let panned = 0;
+  const look = new Vector3();
+  const aim = (): void => {
+    look.copy(LOOK).setX(LOOK.x + panned);
+    camera.position.set(look.x, look.y + Math.sin(ELEVATION) * back, look.z + Math.cos(ELEVATION) * back);
+    camera.lookAt(look);
+  };
   let haze: Scenery['haze'] | undefined;
   const fog = (): void => {
     if (!(scene.fog instanceof Fog) || !haze) return;
@@ -99,8 +109,7 @@ export function makeStage(canvas: HTMLCanvasElement): Stage {
     camera.aspect = w / h;
     const half = Math.tan((FOV * Math.PI) / 360);
     back = Math.max(HEIGHT / 2 / half, WIDTH / 2 / (half * camera.aspect));
-    camera.position.set(LOOK.x, LOOK.y + Math.sin(ELEVATION) * back, LOOK.z + Math.cos(ELEVATION) * back);
-    camera.lookAt(LOOK);
+    aim();
     camera.updateProjectionMatrix();
     fog();
   };
@@ -219,6 +228,11 @@ export function makeStage(canvas: HTMLCanvasElement): Stage {
     dim(amount, those) {
       dark = Math.min(1, Math.max(0, amount));
       lit = those;
+    },
+    pan(by) {
+      if (by === panned) return;
+      panned = by;
+      aim();
     },
     start(update) {
       let last = performance.now();

@@ -206,5 +206,7 @@ function abilityTip(ability: Ability): Node[] {
   facts.append(el('strong', 'tm-tip-name', ability.name), cost, el('span', 'tm-tip-cooldown', ability.cooldown ? `⏱ ${ability.cooldown}s cooldown` : '⏱ No cooldown'));
   const head = el('div', 'tm-tip-ability');
   head.append(art, facts);
-  return ability.about ? [head, about(ability.about)] : [head];
+  // (King's Raid's words for it, as the heroes page shows them; or, with none, what it does.)
+  const text = ability.words ?? ability.about;
+  return text ? [head, about(text)] : [head];
 }

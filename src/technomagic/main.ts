@@ -245,7 +245,8 @@ async function start(): Promise<void> {
       const { def: hero } = fighter;
       // Its passive, its set's effect, its unique weapon's, and its gear's additional skills (squares on its card).
       const passives = [
-        ...(hero.passive ? [hero.passive.shown] : []),
+        // (Its passive in King's Raid's words, as the heroes page shows it.)
+        ...(hero.passive ? [hero.passive.words ? { ...hero.passive.shown, about: hero.passive.words } : hero.passive.shown] : []),
         ...(fighter.set ? [setBuff(fighter.set)] : []),
         ...(fighter.unique ? [uniqueBuff(fighter.id, fighter.unique.tier)] : []),
         ...skillBuffs(fighter.skills),
@@ -687,6 +688,7 @@ async function start(): Promise<void> {
     const playing = game;
     if (!playing) {
       stage.dim(0, []);
+      stage.pan(0);
       return;
     }
     const { sim, view, lock } = playing;
@@ -709,6 +711,7 @@ async function start(): Promise<void> {
       }
     }
     view.update(now, dt);
+    stage.pan(view.pan);
     stage.dim(view.dark, view.lit ? [view.lit, bright] : [bright]);
     actions?.draw(sim.bossAuto);
     if (!lock) deathlessButton.setAttribute('aria-pressed', String(sim.deathless));

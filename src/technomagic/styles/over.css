@@ -20,6 +20,8 @@
 }
 
 .tm-result .message-card {
+  /* (The tiles' badges stack inside it: never over a piece's details, laid over it.) */
+  isolation: isolate;
   width: min(560px, 92vw);
   max-width: none;
   max-height: calc(100dvh - 24px);

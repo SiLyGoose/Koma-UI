@@ -7,7 +7,7 @@ import { lineOf, nearer, NO_PASSIVE, type Ability, type HeroDef } from './heroes
 import type { HeroMove } from './heroes/moves';
 import { motionOf } from './motion';
 import { seeded } from './random';
-import { AUTO, AUTO_WAIT, BLOW, CRIT, formation, HERO_WAIT, HERO_X, MANA_PER_ATTACK, MARCH, MARCH_ABREAST, MARCH_FROM, MARCH_ROW, MANA_PER_HP_LOST, MANA_RATE, MAX_MANA, MOST, rage, RAGE_WIPE, RAID_TIME, REFORM, SECTION, STAGES, TICK } from './rules';
+import { AUTO, AUTO_WAIT, BLOW, CRIT, formation, HERO_WAIT, HERO_X, MANA_PER_ATTACK, MARCH, MARCH_ABREAST, MARCH_FROM, marchLeft, MARCH_ROW, MANA_PER_HP_LOST, MANA_RATE, MAX_MANA, MOST, rage, RAGE_WIPE, RAID_TIME, REFORM, SECTION, STAGES, TICK } from './rules';
 import { AUTHORITY, GUARDED, HOPE, PERSEVERANCE, setOf } from './sets';
 import type { Buff, Mark } from './shown';
 import { CHAMPION_UP, DESPERATION_UP, MENDING_UP, SKILL, skilledCritDamage, skilledStats, skillsOf, SURGE_UP, type SkillId } from './skills';
@@ -128,7 +128,9 @@ const KNOCKED: Buff = { name: 'Knocked down', about: 'Can do nothing until it is
 const SECOND = Math.round(1 / TICK);
 
 /** The run up to the boss: how much of the way through it the heroes begin fanning out to where each stands. */
-const FAN = 0.55;
+const FAN = 0.6;
+/** How far short of where it stands (along the field) a hero begins turning toward it, to arrive there and wait for the rest. */
+const NEAR = 6;
 
 export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo = false, first = [], deathless: noDeaths = false }: SimOptions): Sim {
   const random = seeded(seed);
@@ -257,12 +259,13 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
   }
   /**
    * The run up to the boss, `k` of the way (0 to 1): two abreast, the frontline first (its tanks leading), each pair
-   * behind the one before, slowing as they near the boss and fanning out, toward the end, to where each stands.
+   * behind the one before, flat out until they slow to a stop near the boss (marchLeft), fanning out toward the end to
+   * where each stands. One that comes up to where it stands sooner (further back) turns toward it as it nears it, and
+   * stays there once it has (`arrived` is told of each there).
    * (Only + - * /: ./rules.ts.)
    */
-  function lineUp(k: number): void {
-    const u = 1 - k;
-    const back = MARCH_FROM * u * u * (2 - u);
+  function lineUp(k: number, arrived?: (on: Fighter) => void): void {
+    const back = MARCH_FROM * marchLeft(k);
     const s = Math.max(0, (k - FAN) / (1 - FAN));
     const fan = s * s * (3 - 2 * s);
     const order = [...field].sort((a, b) => nearer(a.def, b.def));
@@ -272,8 +275,12 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       const x = HERO_X - back - (i >> 1) * MARCH_ROW;
       const z = (side * MARCH_ABREAST) / 2;
       const [toX, toZ] = spots.get(on) as readonly [number, number];
-      on.x = x + (toX - x) * fan;
-      on.z = z + (toZ - z) * fan;
+      const near = Math.min(1, Math.max(0, 1 - (toX - x) / NEAR));
+      const there = Math.max(fan, near * near * (3 - 2 * near));
+      const from = Math.min(x, toX);
+      on.x = from + (toX - from) * there;
+      on.z = z + (toZ - z) * there;
+      if (there >= 1) arrived?.(on);
     });
   }
 
@@ -1072,6 +1079,15 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
   // On the field from the start: in a raid, every hero (as many as fit); trying things out, the ones asked for, or the first.
   for (const fighter of raid ? fighters : first.map((index) => fighters[index])) if (fighter && !field.includes(fighter)) stand(fighter);
   if (field.length === 0 && fighters[0]) stand(fighters[0]);
-  if (marching > 0) lineUp(0);
+  if (marching > 0) {
+    // How long each hero runs, for its body to stop running as it arrives where it stands.
+    const runs = new Map<Fighter, number>();
+    for (let t = 1; t <= marching; t++)
+      lineUp(t / marching, (on) => {
+        if (!runs.has(on)) runs.set(on, t * TICK);
+      });
+    for (const event of events) if (event.kind === 'enter') event.run = runs.get(fighters[event.who] as Fighter) ?? MARCH;
+    lineUp(0);
+  }
   return sim;
 }
