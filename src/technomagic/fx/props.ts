@@ -11,7 +11,9 @@ import { isMesh, loadFbx, loadModels } from '../engine/models';
  */
 
 export interface Props {
-  /** A copy of one of a hero's props, by its name there, with bones of its own (null: it isn't on this computer). */
+  /** Reads a hero's own props (once, however often it's asked): until they are, copy() has none of them. */
+  read(hero: HeroAssets): Promise<void>;
+  /** A copy of one of a hero's props, by its name there, with bones of its own (null: it isn't on this computer, or hasn't been read). */
   copy(hero: HeroAssets, name: string): Group | null;
   /** The shield on a hero, as its file has it (its textures left for ./wards.ts to draw with). */
   readonly shield: Group | null;
@@ -28,22 +30,31 @@ interface Playing {
   t: number;
 }
 
-/** Each hero's props, and the shield, read; one that isn't on this computer is left out, and the page goes on without it. */
-export async function loadProps(scene: Scene, heroes: readonly HeroAssets[]): Promise<Props> {
+/**
+ * The shield, read; each hero's own props are read as its hero is (Props.read). One that isn't on this computer is
+ * left out, and the page goes on without it.
+ */
+export async function loadProps(scene: Scene): Promise<Props> {
   const loaded = new Map<string, Group>();
+  const reads = new Map<string, Promise<void>>();
   const key = (hero: HeroAssets, name: string): string => `${hero.folder}/${name}`;
-  const [shield] = await Promise.all([
-    loadFbx(effectFolder(EFFECTS.shield)).catch(() => null),
-    ...heroes.flatMap((hero) =>
-      Object.entries(hero.props ?? {}).map(async ([name, model]) => {
-        const [made] = await loadModels([modelFolder(hero, model)]).catch(() => []);
-        if (made) loaded.set(key(hero, name), made);
-      }),
-    ),
-  ]);
+  const shield = await loadFbx(effectFolder(EFFECTS.shield)).catch(() => null);
   const playing = new Set<Playing>();
 
   return {
+    read(hero) {
+      let reading = reads.get(hero.folder);
+      if (!reading) {
+        reading = Promise.all(
+          Object.entries(hero.props ?? {}).map(async ([name, model]) => {
+            const [made] = await loadModels([modelFolder(hero, model)]).catch(() => []);
+            if (made) loaded.set(key(hero, name), made);
+          }),
+        ).then(() => undefined);
+        reads.set(hero.folder, reading);
+      }
+      return reading;
+    },
     copy(hero, name) {
       const model = loaded.get(key(hero, name));
       if (!model) return null;

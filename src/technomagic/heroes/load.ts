@@ -45,12 +45,16 @@ function wielding(owner: HeroAssets, model: PartsModel): PartsModel | null {
   return changed ? made : null;
 }
 
-/** What was read of a skin: its model stood up (the game's own files) or it with its animations, and the rig read to move it. */
+/**
+ * What was read of a skin: its model stood up (the game's own files) or it with its animations, and the rig read to move it;
+ * and whether it was asked for (not: read only to move another).
+ */
 interface Read {
   skin: SkinAssets;
   stood: Stood | null;
   rigged: Rigged | null;
   rig: Rigged | null;
+  asked: boolean;
 }
 
 /** Null (and a word in the console) when what was being read isn't there. */
@@ -60,29 +64,33 @@ const quietly = <T>(reading: Promise<T>): Promise<T | null> =>
     return null;
   });
 
-/** A skin read (`model`: the skin's own, or as it looks with its unique weapon). */
-async function read(def: HeroDef, skin: SkinAssets, model = skin.model): Promise<Read> {
+/** A skin read (`model`: the skin's own, or as it looks with its unique weapon; `asked`: not read only to move another). */
+async function read(def: HeroDef, skin: SkinAssets, model = skin.model, asked = true): Promise<Read> {
   const { assets } = lookOf(def.id);
   const animated = (name: string, model: RiggedModel): Promise<Rigged | null> => quietly(loadRigged(name, assets, model, def.timing));
-  if (model.kind === 'rigged') return { skin, stood: null, rigged: await animated(skin.name, model), rig: null };
+  if (model.kind === 'rigged') return { skin, stood: null, rigged: await animated(skin.name, model), rig: null, asked };
   const [stood, rig] = await Promise.all([quietly(standHero(assets, model)), typeof model.movedBy === 'object' ? animated(`${skin.name}'s rig`, model.movedBy) : null]);
-  return { skin, stood, rigged: null, rig };
+  return { skin, stood, rigged: null, rig, asked };
 }
 
 /**
- * The skins of `def` to read: each as it is, or (`unique`) each that looks otherwise with its unique weapon, as it does then,
- * and what moves it (another skin, by its name) with it.
+ * The skins of `def` to read (`only`: just that one, by its index): each as it is, or (`unique`) each that looks
+ * otherwise with its unique weapon, as it does then; and what moves each (another skin, by its name) with them.
  */
-function toRead(def: HeroDef, unique: boolean): Promise<Read>[] {
+function toRead(def: HeroDef, unique: boolean, only?: number): Promise<Read>[] {
   const { assets } = lookOf(def.id);
   const { skins } = assets;
-  if (!unique) return skins.map((skin) => read(def, skin));
-  const wielded = skins.flatMap((skin) => {
-    const model = skin.model.kind === 'parts' ? wielding(assets, skin.model) : null;
-    return model ? [{ skin, model }] : [];
-  });
-  const movers = new Set(wielded.map(({ model }) => model.movedBy).filter((name) => typeof name === 'string'));
-  return [...wielded.map(({ skin, model }) => read(def, skin, model)), ...skins.filter((skin) => movers.has(skin.name)).map((skin) => read(def, skin))];
+  const asked = only === undefined ? skins : skins.filter((_, i) => i === only);
+  const wanted = unique
+    ? asked.flatMap((skin) => {
+        const model = skin.model.kind === 'parts' ? wielding(assets, skin.model) : null;
+        return model ? [{ skin, model }] : [];
+      })
+    : asked.map((skin) => ({ skin, model: skin.model }));
+  const movers = new Set(wanted.map(({ model }) => (model.kind === 'parts' ? model.movedBy : undefined)).filter((name) => typeof name === 'string'));
+  // (One asked for as it is is read once, mover or not.)
+  const moving = skins.filter((skin) => movers.has(skin.name) && (unique || !asked.includes(skin)));
+  return [...wanted.map(({ skin, model }) => read(def, skin, model)), ...moving.map((skin) => read(def, skin, skin.model, false))];
 }
 
 /** Kirze's run, read once (for every hero with none of its own, however many times heroes are read). */
@@ -91,10 +99,12 @@ let kirzeRun: Promise<Rigged | null> | null = null;
 /**
  * Every skin of `defs` that could be read, in the order of the heroes and of each one's skins; or (`unique`) every one
  * that looks otherwise with its hero's unique weapon, as it does then (none, for a hero whose weapon changes none).
+ * With `skin`, only that one of each's skins (by its index), and whatever moves it: a hero's skins are big, and a
+ * fight has only the one picked.
  */
-export async function loadHeroes(defs: readonly HeroDef[], { unique = false } = {}): Promise<Entrant[]> {
+export async function loadHeroes(defs: readonly HeroDef[], { unique = false, skin }: { unique?: boolean; skin?: number } = {}): Promise<Entrant[]> {
   kirzeRun ??= quietly(loadRigged("Kirze's run", { folder: KIRZE_RUN.of }, KIRZE_RUN));
-  const [all, borrowedRun] = await Promise.all([Promise.all(defs.map((def) => Promise.all(toRead(def, unique)))), kirzeRun]);
+  const [all, borrowedRun] = await Promise.all([Promise.all(defs.map((def) => Promise.all(toRead(def, unique, skin)))), kirzeRun]);
   const entrants: Entrant[] = [];
   defs.forEach((def, i) => {
     const skins = all[i] as Read[];
@@ -115,10 +125,10 @@ export async function loadHeroes(defs: readonly HeroDef[], { unique = false } = 
       heroes.set(skin, stood.sheath ? sheathing(hero, stood, stood.sheath, lasts) : hero);
     }
     // (With its unique weapon, a skin that comes with its animations is read only to move another: not one of these.)
-    if (!unique) for (const { skin, rigged } of skins) if (rigged) heroes.set(skin, riggedHero(rigged));
-    for (const { skin } of skins) {
+    if (!unique) for (const { skin, rigged, asked } of skins) if (rigged && asked) heroes.set(skin, riggedHero(rigged));
+    for (const { skin, asked } of skins) {
       const hero = heroes.get(skin);
-      if (hero) entrants.push({ def, skin, hero, unique });
+      if (hero && asked) entrants.push({ def, skin, hero, unique });
     }
   });
   if (entrants.length === 0 && !unique) throw new Error('None of the heroes could be read');

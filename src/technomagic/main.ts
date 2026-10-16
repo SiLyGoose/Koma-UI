@@ -7,7 +7,7 @@ import { apiFromSocket, chatBox, startLive } from '../shared/ui';
 import { navigate } from '../shared/transition';
 import { Group, Vector3 } from 'three';
 import { artPicture } from './art';
-import { portraitPicture } from './assets';
+import { portraitPicture, type SkinAssets } from './assets';
 import { bossNamed } from './sim/bosses';
 import { BOSS_VIEWS } from './bosses/models';
 import { makeStage } from './engine/stage';
@@ -18,7 +18,7 @@ import { makeMagic } from './fx/magic';
 import { loadProps } from './fx/props';
 import { HEROES } from './sim/heroes';
 import { SCALE, type Hero } from './heroes/body/hero';
-import { nearer } from './sim/heroes/kit';
+import { nearer, type HeroDef } from './sim/heroes/kit';
 import { loadHeroes, type Entrant } from './heroes/load';
 import { lookOf } from './heroes/looks';
 import { makeActions } from './hud/actions';
@@ -50,6 +50,8 @@ import './technomagic.css';
  * going past the step the bot has reached (a step or two behind it, so it never has to wait). Each player
  * has a card for each of their own heroes along the bottom of the field (its health and mana, its three
  * skills, its Auto); everyone's heroes are on the field. The bot says how it ended, and what each found.
+ * Only the lineup's heroes are read (every hero's models together are well over a hundred MB), each as it's
+ * picked, so they're in by the time the fight begins.
  *
  * Opened with no link (`yarn dev`), it is a field for trying things out, with nothing kept: every hero's
  * skins have a card, the hero on a card puts it on the field or takes it off, the buttons under the field
@@ -140,38 +142,72 @@ interface Game {
 }
 
 async function start(): Promise<void> {
+  // Watching isn't playing: nothing to read.
+  if (watching) {
+    setConn('Not watchable', 'bad');
+    showMessage('The raid isn’t watched', 'Open the TechnoMagic Raid from the games page to join the room instead.');
+    return;
+  }
   const params = new URLSearchParams(location.search);
   const def = bossNamed(params.get('boss'));
   const bossView = BOSS_VIEWS[def.id];
   if (!bossView) throw new Error(`${def.name} has no body`);
   const stageNumber = Math.min(STAGES, Math.max(1, Math.floor(Number(params.get('stage'))) || 1));
   const stage = makeStage(canvas);
-  // Whatever there is to read, at once. A skin that isn't on this computer is left out: the page goes on without it.
+  // What every fight has, at once: the boss, the effects and the shield (and the field dressed). The heroes are read as
+  // they're wanted (read()). Whatever isn't on this computer is left out: the page goes on without it.
   // What is drawn as light (a hit's effects, magic, the boss's venom): kept bright when the field goes dark (fight/view.ts).
   const bright = new Group();
   stage.scene.add(bright);
-  const [boss, entrants, effects, props] = await Promise.all([
+  const [boss, effects, props] = await Promise.all([
     bossView.load(stage.scene, bright),
-    loadHeroes(HEROES),
     loadEffects(bright),
-    loadProps(stage.scene, HEROES.map((hero) => lookOf(hero.id).assets)),
+    loadProps(stage.scene),
     bossView.look.scenery && stage.dress(bossView.look.scenery),
   ]);
   const magic = makeMagic(bright);
-  // The skills' pictures, read before the cards are made, so a skill is never drawn without its own (one that isn't on this computer is left out).
-  await Promise.all(
-    HEROES.flatMap((hero) => hero.abilities).map((ability) => {
-      const image = artPicture(ability.art);
-      if (!image) return undefined;
-      const picture = new Image();
-      picture.src = image;
-      return picture.decode().catch(() => undefined);
-    }),
-  );
-  // The skins' own pictures for their cards (one that can't be read is left out: it is pictured as it stands, once it does).
-  const faces = new Map(await Promise.all(entrants.map(async ({ def: hero, skin }) => [skin, skin.portrait ? await cutFace(portraitPicture(lookOf(hero.id).assets, skin.portrait), skin.portrait) : null] as const)));
-  // And for the meter, their faces close up (one with none is the card's picture there too).
-  const heads = new Map(await Promise.all(entrants.map(async ({ def: hero, skin }) => [skin, skin.portrait ? await cutHead(portraitPicture(lookOf(hero.id).assets, skin.portrait), skin.portrait) : null] as const)));
+
+  /** Every body read so far (each skin of each hero read, and as they look with their unique weapons once that's wanted), for a fight to take from. */
+  const pool: Entrant[] = [];
+  /** The skins' own pictures for their cards (null: none, or it can't be read: it is pictured as it stands, once it does). */
+  const faces = new Map<SkinAssets, string | null>();
+  /** And for the meter, their faces close up (null: the card's picture there too). */
+  const heads = new Map<SkinAssets, string | null>();
+  const reads = new Map<string, Promise<Entrant[]>>();
+  /**
+   * A hero's skin read (`skin`, by its index: its skins are big, and a fight has only the one picked; without it, every
+   * one), once however often it's asked for, with what its fight needs of it besides: its props, its skills' pictures
+   * (so a skill is never drawn without its own) and the skin's picture cut for its card and the meter. A skin that
+   * isn't on this computer is left out (none: none read).
+   */
+  function read(hero: HeroDef, skin?: number): Promise<Entrant[]> {
+    const key = skin === undefined ? hero.id : `${hero.id}:${skin}`;
+    let reading = reads.get(key);
+    if (!reading) {
+      const { assets } = lookOf(hero.id);
+      const pictures = hero.abilities.map((ability) => {
+        const image = artPicture(ability.art);
+        if (!image) return undefined;
+        const picture = new Image();
+        picture.src = image;
+        return picture.decode().catch(() => undefined);
+      });
+      reading = Promise.all([loadHeroes([hero], { skin }).catch(() => [] as Entrant[]), props.read(assets), Promise.all(pictures)]).then(async ([entrants]) => {
+        await Promise.all(
+          entrants.map(async ({ skin }) => {
+            const { portrait } = skin;
+            const [face, head] = portrait ? await Promise.all([cutFace(portraitPicture(assets, portrait), portrait), cutHead(portraitPicture(assets, portrait), portrait)]) : [null, null];
+            faces.set(skin, face);
+            heads.set(skin, head);
+          }),
+        );
+        pool.push(...entrants);
+        return entrants;
+      });
+      reads.set(key, reading);
+    }
+    return reading;
+  }
   const at = new Vector3();
   const pictureOf = (entrant: Entrant, view: FightView, who: number): string => {
     const face = faces.get(entrant.skin) ?? stage.portrait(entrant.hero.root, view.head(who, at), HERO_TURN - 0.45);
@@ -272,7 +308,7 @@ async function start(): Promise<void> {
   let actions: ReturnType<typeof makeActions> | null = null;
   /** The skins as they look with their heroes' unique weapons, read once Unique weapons is first turned on (the ones that look the same: as they are). */
   let wielders: Entrant[] | null = null;
-  function practise(): void {
+  function practise(entrants: readonly Entrant[]): void {
     const wielding = uniqueButton.getAttribute('aria-pressed') === 'true' && wielders !== null;
     const entries = wielding ? entrants.map((entrant) => wielders?.find((one) => one.def === entrant.def && one.skin === entrant.skin) ?? entrant) : entrants;
     let kept: string[] = [];
@@ -307,7 +343,10 @@ async function start(): Promise<void> {
     hint.textContent = 'Trying things out: each hero on the field attacks by itself; use its skills from its card (or its Auto), and set the boss attacking. The hero on a card puts it on the field, or takes it off (up to 9 at once); four cards show at a time, as in a raid: scroll them along (or turn the wheel over them) for the rest. With Deathless on, no one falls: a hero or the boss brought down is whole again, and the raid’s time stands still. With it off, heroes that fall stay down.';
   }
 
-  function practice(): void {
+  /** Trying things out: every hero read first (each skin has a card). */
+  async function practice(): Promise<void> {
+    const entrants = (await Promise.all(HEROES.map((hero) => read(hero)))).flat();
+    if (entrants.length === 0) throw new Error('None of the heroes could be read');
     actionsRow.hidden = false;
     for (let n = 1; n <= STAGES; n++) stagePicker.append(new Option(String(n), String(n), false, n === stageNumber));
     deathlessButton.hidden = false;
@@ -322,7 +361,7 @@ async function start(): Promise<void> {
         wielders = await loadHeroes(HEROES, { unique: true }).catch(() => []);
         uniqueButton.disabled = false;
       }
-      practise();
+      practise(entrants);
     });
     // As in a raid, four cards along the bottom at a time, the rest scrolled to: the wheel scrolls them sideways too, a
     // card at a time (so many of a trackpad's little turns, or one of a wheel's, to a card).
@@ -348,7 +387,7 @@ async function start(): Promise<void> {
       address.searchParams.set('stage', stagePicker.value);
       history.replaceState(null, '', address);
     });
-    practise();
+    practise(entrants);
     setConn('Preview', 'ok');
     // Over: the result, and again.
     onOver = (sim) =>
@@ -364,7 +403,7 @@ async function start(): Promise<void> {
             main: true,
             run: () => {
               results.hide();
-              practise();
+              practise(entrants);
             },
           },
           { label: 'Games', run: () => leave() },
@@ -386,9 +425,10 @@ async function start(): Promise<void> {
 
     const prep = makePrep({
       pick(hero, sub) {
-        // In the first of its skins this computer has (any, should it have none).
-        const entrant = entrants.find((one) => one.def.id === hero);
-        send({ t: 'pick', hero, skin: entrant ? skinOf(entrant) : 0, ...(sub && { sub }) });
+        // In its own skin (the first), read now for the fight.
+        const def = HEROES.find((one) => one.id === hero);
+        if (def) void read(def, 0);
+        send({ t: 'pick', hero, skin: 0, ...(sub && { sub }) });
       },
       unpick: (hero) => send({ t: 'unpick', hero }),
       ready: (on) => send({ t: 'ready', on }),
@@ -407,30 +447,45 @@ async function start(): Promise<void> {
       navigate('/', { back: true });
     };
 
+    /** The skins read as they look with their heroes' unique weapons (whatever came of it), by hero and skin. */
+    const wieldersRead = new Map<string, Promise<void>>();
+    /** A hero's skin read as it looks with its unique weapon, once (where that looks otherwise: none, where it doesn't). */
+    const wield = (def: HeroDef, skin: number): Promise<void> => {
+      const key = `${def.id}:${skin}`;
+      let reading = wieldersRead.get(key);
+      if (!reading) {
+        reading = loadHeroes([def], { unique: true, skin }).then((more) => void pool.push(...more), () => undefined);
+        wieldersRead.set(key, reading);
+      }
+      return reading;
+    };
+
     /**
      * Bodies for a fight's heroes: one each, in its skin where this computer has it (two players' Kirze each need their own),
      * and with its unique weapon in its hands when it wields it (where that looks otherwise: read the first time it is needed).
      */
-    const spare = [...entrants];
-    /** The heroes whose skins have been read with their unique weapons (whatever came of it). */
-    const wieldersRead = new Set<string>();
     async function bodiesFor(heroes: FightStart['heroes']): Promise<Entrant[] | null> {
+      const defs = heroes.map((hero) => HEROES.find((one) => one.id === hero.id));
+      // Every hero read in its skin (those in the lineup were, as they were picked), and as it looks wielding its unique weapon where it does, all at once.
+      await Promise.all(heroes.map((hero, i) => defs[i] && Promise.all([read(defs[i], hero.skin), typeof hero.uw === 'number' && wield(defs[i], hero.skin)])));
       const used = new Set<Entrant>();
       const bodies: Entrant[] = [];
-      for (const hero of heroes) {
-        const def = HEROES.find((one) => one.id === hero.id);
+      for (const [i, hero] of heroes.entries()) {
+        const def = defs[i];
         if (!def) return null;
         const wielding = typeof hero.uw === 'number';
-        if (wielding && !wieldersRead.has(def.id)) {
-          wieldersRead.add(def.id);
-          spare.push(...(await loadHeroes([def], { unique: true }).catch(() => [] as Entrant[])));
-        }
         const fits = (one: Entrant): boolean => one.def.id === hero.id && !used.has(one);
         const looks = (one: Entrant): boolean => fits(one) && one.unique === wielding;
-        let body = spare.find((one) => looks(one) && skinOf(one) === hero.skin) ?? spare.find((one) => fits(one) && skinOf(one) === hero.skin) ?? spare.find(looks) ?? spare.find(fits);
+        let body = pool.find((one) => looks(one) && skinOf(one) === hero.skin) ?? pool.find((one) => fits(one) && skinOf(one) === hero.skin) ?? pool.find(looks) ?? pool.find(fits);
         if (!body) {
-          const more = [...(await loadHeroes([def]).catch(() => [] as Entrant[])), ...(wielding ? await loadHeroes([def], { unique: true }).catch(() => [] as Entrant[]) : [])];
-          spare.push(...more);
+          // Another of it (two players' Kirze), or its skin isn't on this computer: that skin read again, or (with none) any of its.
+          const again = async (skin?: number): Promise<Entrant[]> => [
+            ...(await loadHeroes([def], { skin }).catch(() => [] as Entrant[])),
+            ...(wielding ? await loadHeroes([def], { unique: true, skin }).catch(() => [] as Entrant[]) : []),
+          ];
+          let more = await again(hero.skin);
+          if (more.length === 0) more = await again();
+          pool.push(...more);
           body = more.find((one) => one.unique === wielding && skinOf(one) === hero.skin) ?? more.find((one) => skinOf(one) === hero.skin) ?? more[0];
         }
         if (!body) return null;
@@ -513,6 +568,11 @@ async function start(): Promise<void> {
             socket?.finish();
             showMessage('This page is out of date', 'The raid has changed since this page was opened. Reload it to play.');
             return;
+          }
+          // The lineup's heroes read meanwhile, each in its skin (once), so they're in when the fight begins.
+          for (const pick of state.lineup) {
+            const hero = HEROES.find((one) => one.id === pick.hero);
+            if (hero) void read(hero, pick.skin);
           }
           if (state.phase === 'prep') {
             lock = null;
@@ -598,13 +658,8 @@ async function start(): Promise<void> {
   let overWaiting: () => OverView | null = () => null;
   let overShown: Sim | null = null;
 
-  if (watching) {
-    setConn('Not watchable', 'bad');
-    showMessage('The raid isn’t watched', 'Open the TechnoMagic Raid from the games page to join the room instead.');
-    return;
-  }
   if (token && server) room(token, server);
-  else practice();
+  else await practice();
 
   stage.start((now, dt) => {
     const playing = game;
