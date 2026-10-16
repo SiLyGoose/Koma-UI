@@ -96,6 +96,7 @@ export const STAGE_ZOOM: Readonly<Record<string, number>> = {
   loman: 2.05,
   gau: 1.55,
   tanya: 1.5,
+  'rebel-klaus': 2,
 };
 export const BUST: Frame = { wide: 3.4, tall: 4.6, above: 0.45 };
 /**
