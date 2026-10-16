@@ -95,8 +95,11 @@
  * the top, the lineup's frame and the panels along the bottom), and never smaller than 44px across.
  */
 .tm-lineup {
+  --card: max(44px, calc((100cqh - 500px) * 9 / 16));
+  /* A team's tab, over its half alone (.tm-team-tab). */
+  --tab: 34px;
   display: grid;
-  grid-template-columns: repeat(var(--slots, 9), minmax(0, max(44px, calc((100cqh - 500px) * 9 / 16))));
+  grid-template-columns: repeat(var(--slots, 9), minmax(0, var(--card)));
   justify-content: center;
   gap: 8px;
   margin: 0;
@@ -108,9 +111,14 @@
   box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.6);
 }
 
-/* Alone: the lineup in two halves, the Main Team and the Sub Team, side by side with a line between, each under its tab (../prep/prep.ts). */
+/*
+ * Alone: the lineup in two halves, the Main Team and the Sub Team, side by side with a line between, each under its tab (../prep/prep.ts),
+ * each half as wide as its share of the 7 slots. Every card the same size in both: as large as in a room's lineup of 8
+ * (the 60px is the screen's padding and the lineup's frame), less the tab's height, so the lineup is as tall alone as in a room.
+ */
 .tm-lineup.teams {
-  grid-template-columns: repeat(2, auto);
+  --card: calc(max(44px, min(calc((100cqh - 500px) * 9 / 16), calc((100cqi - 60px - 7 * 8px) / 8))) - var(--tab) * 9 / 16);
+  grid-template-columns: minmax(0, 4fr) minmax(0, 3fr);
   gap: 0;
   padding: 0;
   overflow: hidden;
@@ -140,6 +148,8 @@
   font: inherit;
   font-size: 16px;
   font-weight: 700;
+  /* With its padding and line, as tall as --tab. */
+  line-height: 20px;
   cursor: pointer;
 }
 
@@ -185,7 +195,7 @@
 
 .tm-team-slots {
   display: grid;
-  grid-template-columns: repeat(var(--slots, 4), minmax(0, max(44px, calc((100cqh - 500px) * 9 / 16))));
+  grid-template-columns: repeat(var(--slots, 4), minmax(0, var(--card)));
   justify-content: center;
   gap: 8px;
   margin: 0;
@@ -658,6 +668,11 @@ button.tm-slot-card:hover {
     padding: 8px;
   }
 
+  /* Alone, each half's cards as large as it has room for. */
+  .tm-team-slots {
+    grid-template-columns: repeat(var(--slots, 4), minmax(0, 1fr));
+  }
+
   .tm-slot-owner {
     font-size: 20px;
   }
@@ -683,13 +698,13 @@ button.tm-slot-card:hover {
   padding: 8px 12px;
 }
 
-/* Scaled down, the cards a set size: sized by the height, they would grow as fast as it is scaled. Alone, each team's (its two halves side by side, as ever). */
+/* Scaled down, the cards a set size: sized by the height, they would grow as fast as it is scaled. Alone, each team's, less the tab's height as above. */
 .tm-prep.fit.scaled .tm-lineup:not(.teams) {
   grid-template-columns: repeat(var(--slots, 9), minmax(0, 76px));
 }
 
 .tm-prep.fit.scaled .tm-team-slots {
-  grid-template-columns: repeat(var(--slots, 4), minmax(0, 76px));
+  grid-template-columns: repeat(var(--slots, 4), minmax(0, calc(76px - var(--tab) * 9 / 16)));
 }
 
 .tm-prep.fit .tm-slot-owner {
