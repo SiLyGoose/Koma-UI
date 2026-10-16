@@ -3,7 +3,7 @@ import { put } from '../combat/status';
 import { BLOW, MAX_MANA } from '../rules';
 import { said, t5Light } from '../perks';
 import { pct, skillArt, type Buff } from '../shown';
-import { CLASS_STATS, type HeroDef, type Passive } from './kit';
+import { CLASS_STATS, dmg, indexed, type HeroDef, type Passive } from './kit';
 
 /*
  * Klaus's skills, as the game has them (what each costs, how long before it can be used again, and how
@@ -20,11 +20,12 @@ import { CLASS_STATS, type HeroDef, type Passive } from './kit';
  * taken rather than more DEF: its Light's 40% more makes that 35% less. Transcend 5's Dark doesn't say how long its
  * DEF lasts: as long as it waits (10 seconds).
  */
-const CUT_GROUND = { blow: 7000, stun: 5 };
+// (How hard each of his skills hits is the King's Raid Index's, at his class's ATK: ./kit.ts's indexed.)
+const CUT_GROUND = { blow: indexed('knight', 89_289), stun: 5 };
 // (Its slow, as the game has it: an ATK Spd reduction, in points.)
-const SHIELD_STRIKE = { blow: 4000, lasts: 20, speed: 500, exposed: 1.3 };
+const SHIELD_STRIKE = { blow: indexed('knight', 136_104), lasts: 20, speed: 500, exposed: 1.3 };
 const GUARDIAN = { lasts: 20, taken: 0.75 };
-const VOW = { weak: 0.8, lasts: 8, mana: 300 };
+const VOW = { blow: indexed('knight', 16_582), weak: 0.8, lasts: 8, mana: 300 };
 /** His own perks' numbers: Shield Strike's stun, Guardian Shield's more (and its P.DMG taken), Vow of Knights' less ATK, and Transcend 5's Dark's guard for every ally (how long, and how long it waits). */
 const PERKS = { bashStun: 1, guardMore: 1.4, guardPhysical: 0.75, weaker: 0.1, ward: { lasts: 10, every: 10, defends: 1.2, critResist: 200 } };
 
@@ -40,7 +41,7 @@ const VOW_OF_KNIGHTS: Passive = {
     icon: '🛡️',
     art: art(3),
   },
-  words: `Upon blocking, deals P.DMG to frontal enemies and decreases ATK of affected targets by ${pct(1 - VOW.weak)} for ${VOW.lasts} sec. Recovers ${VOW.mana} MP after hitting the target. When an ally excluding self takes DMG increases all allies' P.DEF by 20% and P.Crit Resistance by 200 for 5 sec. This effect only activates once every 10 sec.`,
+  words: `Upon blocking, deals ${dmg('knight', VOW.blow)} P.DMG to frontal enemies and decreases ATK of affected targets by ${pct(1 - VOW.weak)} for ${VOW.lasts} sec. Recovers ${VOW.mana} MP after hitting the target. When an ally excluding self takes DMG increases all allies' P.DEF by 20% and P.Crit Resistance by 200 for 5 sec. This effect only activates once every 10 sec.`,
 };
 /** What Guardian Shield gives every hero for a while: shown on each card, with how long it has left. */
 const GUARDED: Buff = { name: 'Guardian Shield', about: `Takes ${pct(1 - GUARDIAN.taken)} less from the boss.`, icon: '✨', art: art(2) };
@@ -58,7 +59,7 @@ export const KLAUS: HeroDef = {
     {
       name: 'Cut Ground',
       about: `A leap and a blow down on the boss that stuns it for ${CUT_GROUND.stun} seconds.`,
-      words: `Leaps into the air and deals P.DMG to enemies in range, stunning them for ${CUT_GROUND.stun} sec.`,
+      words: `Leaps into the air and deals ${dmg('knight', CUT_GROUND.blow)} P.DMG to enemies in range, stunning them for ${CUT_GROUND.stun} sec.`,
       icon: '⚔️',
       art: art(0),
       move: 'slam',
@@ -68,7 +69,7 @@ export const KLAUS: HeroDef = {
     {
       name: 'Shield Strike',
       about: `A blow with his shield: for ${SHIELD_STRIKE.lasts} seconds the boss attacks ${pct(share(SHIELD_STRIKE.speed))} slower and takes ${pct(SHIELD_STRIKE.exposed - 1)} more.`,
-      words: `Deals P.DMG proportional to P.DEF to enemies in range and knocks them back. Hit enemies' All DEF and ATK Spd is reduced by ${pct(SHIELD_STRIKE.exposed - 1)} and ${SHIELD_STRIKE.speed} for ${SHIELD_STRIKE.lasts} sec, respectively. Upon blocking an attack, skill cooldown is reduced by 0.5 sec.`,
+      words: `Deals ${dmg('knight', SHIELD_STRIKE.blow)} P.DMG proportional to P.DEF to enemies in range and knocks them back. Hit enemies' All DEF and ATK Spd is reduced by ${pct(SHIELD_STRIKE.exposed - 1)} and ${SHIELD_STRIKE.speed} for ${SHIELD_STRIKE.lasts} sec, respectively. Upon blocking an attack, skill cooldown is reduced by 0.5 sec.`,
       icon: '🛡️',
       art: art(1),
       move: 'bash',
@@ -140,7 +141,7 @@ export const KLAUS: HeroDef = {
       // Blocked: a blow back, the boss hits less hard for a while, and mana gained.
       blocked() {
         fight.cue(self, 'vow');
-        fight.hit(self, BLOW);
+        fight.hit(self, VOW.blow);
         put(fight.foe.statuses, { name: 'Weakened', left: VOW.lasts, deals: VOW.weak - (self.perks.has('s4-dark') ? PERKS.weaker : 0), shown: 'slow' });
         self.mana = Math.min(MAX_MANA, self.mana + VOW.mana);
       },

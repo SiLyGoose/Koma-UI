@@ -3,7 +3,7 @@ import { said, t5Light } from '../perks';
 import { BLOW } from '../rules';
 import { pct, skillArt } from '../shown';
 import { atTier, ROBURU } from '../unique';
-import { CLASS_STATS, type HeroDef, type Passive } from './kit';
+import { CLASS_STATS, dmg, indexed, type HeroDef, type Passive } from './kit';
 import { CODED } from './moves';
 
 /*
@@ -24,14 +24,15 @@ import { CODED } from './moves';
  * nothing here: there is nothing on the boss to dispel. Blade Leaf's Dark is for the leaves, its hit enemies; Tangled
  * Vine's Light makes its blow after harder too, and its Dark has that (its final explosion) stun.
  */
+// (How hard each of her skills hits is the King's Raid Index's, at her class's ATK: ./kit.ts's indexed.)
 const LASH = { blow: BLOW * 1.3 };
 // (As many blows as its move has.)
-const THORNS = { hits: CODED.thornbush.lands.length, blow: 1500 };
-const VINE = { blow: 3000, poison: 2, shackle: 4, after: 2, each: 1500 };
-const WRATH = { blow: 6000, down: 3, more: 0.2 };
-const LEAF = { chance: 0.3, times: 3, blow: 600 };
+const THORNS = { hits: CODED.thornbush.lands.length, blow: indexed('wizard', 243_273) / CODED.thornbush.lands.length };
+const VINE = { blow: indexed('wizard', 208_671), poison: 2, shackle: 4, after: 2, each: indexed('wizard', 208_671) / 2 };
+const WRATH = { blow: indexed('wizard', 359_928), down: 3, more: 0.2 };
+const LEAF = { chance: 0.3, times: 3, blow: indexed('wizard', 50_538) };
 /** The most Poison on the boss, how long it lasts once the last was left, how hard each eats at it every second, and what each takes off the boss's heals. */
-const POISON = { most: 5, lasts: 20, each: 100, every: 1, heals: 0.1 };
+const POISON = { most: 5, lasts: 20, each: indexed('wizard', 271_720) / 20, every: 1, heals: 0.1 };
 /** Her own perks' numbers: Thornbush Forest's shackle at full Poison, Tangled Vine's more DMG and its stun after, more Poison at most, Blade Leaf's shackle (its chance), and Transcend 5's Dark's Thornbush Forest (how often, its chance). */
 const PERKS = { hits: 1, full: 5, shackle: 3, vine: 1.4, after: 2, most: 6, leaf: { chance: 0.2, shackle: 2 }, forest: { every: 5, chance: 0.3 } };
 
@@ -42,7 +43,7 @@ const BLADE_LEAF: Passive = {
   crit: 0,
   control: 1,
   shown: { name: 'Blade Leaf', about: `Passive. Her attack has a ${pct(LEAF.chance)} chance to send ${LEAF.times} leaves at the boss besides, each leaving a [Poison] on it (up to ${POISON.most}).`, icon: '🍃', art: art(3) },
-  words: `When dealing a normal attack, attacks a random enemy ${LEAF.times} times with a ${pct(LEAF.chance)} chance of inflicting M.DMG and 1 stack of Poison for ${POISON.lasts} seconds. Poison inflicts a total of M.DMG over ${POISON.lasts} seconds, reduces Heal Rate, and can be stacked up to max ${POISON.most} times. If Lorraine dies, Poison effects on enemies will disappear.`,
+  words: `When dealing a normal attack, attacks a random enemy ${LEAF.times} times with a ${pct(LEAF.chance)} chance of inflicting ${dmg('wizard', LEAF.blow)} M.DMG and 1 stack of Poison for ${POISON.lasts} seconds. Poison inflicts a total of ${dmg('wizard', POISON.each * POISON.lasts)} M.DMG over ${POISON.lasts} seconds, reduces Heal Rate, and can be stacked up to max ${POISON.most} times. If Lorraine dies, Poison effects on enemies will disappear.`,
 };
 /** What her skills leave on the boss. */
 const POISONED = 'Poison';
@@ -58,7 +59,7 @@ export const LORRAINE: HeroDef = {
     {
       name: 'Thornbush Forest',
       about: `${THORNS.hits} blows, each leaving a [Poison] on the boss (up to ${POISON.most}): each eats at it every second and leaves it healed ${pct(POISON.heals)} less.`,
-      words: `Attacks ${THORNS.hits} times at random, dealing M.DMG to enemies in range and inflicting 1 stack of Poison with each attack.`,
+      words: `Attacks ${THORNS.hits} times at random, dealing a total of ${dmg('wizard', THORNS.blow * THORNS.hits)} M.DMG to enemies in range and inflicting 1 stack of Poison with each attack.`,
       icon: '🌿',
       art: art(0),
       move: 'thornbush',
@@ -68,7 +69,7 @@ export const LORRAINE: HeroDef = {
     {
       name: 'Tangled Vine',
       about: `A blow that leaves ${VINE.poison} [Poison] and shackles the boss for ${VINE.shackle} seconds (it can do nothing); ${VINE.after} seconds after, a blow the harder for each [Poison] on it.`,
-      words: `Deals M.DMG to enemies in a straight line, stacking ${VINE.poison} Poison and shackling them for ${VINE.shackle} sec. After some time, deals a large amount of DMG based on the number of Poison stacks.`,
+      words: `Deals ${dmg('wizard', VINE.blow)} M.DMG to enemies in a straight line, stacking ${VINE.poison} Poison and shackling them for ${VINE.shackle} sec. After some time, deals ${dmg('wizard', VINE.each)} M.DMG for each Poison stack.`,
       icon: '🪢',
       art: art(1),
       move: 'vine',
@@ -78,7 +79,7 @@ export const LORRAINE: HeroDef = {
     {
       name: 'Wrath of the Forest',
       about: `A blow that knocks the boss down for ${WRATH.down} seconds, ${pct(WRATH.more)} harder for each [Poison] on it.`,
-      words: `Deals M.DMG to enemies in range and knocks them down for ${WRATH.down} sec. Enemies inflicted by Poison takes ${pct(WRATH.more)} more DMG per every stack.`,
+      words: `Deals ${dmg('wizard', WRATH.blow)} M.DMG to enemies in range and knocks them down for ${WRATH.down} sec. Enemies inflicted by Poison takes ${pct(WRATH.more)} more DMG per every stack.`,
       icon: '🌳',
       art: art(2),
       move: 'wrath',

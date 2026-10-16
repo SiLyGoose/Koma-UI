@@ -5,7 +5,7 @@ import { BLOW, MAX_MANA } from '../rules';
 import { pct, skillArt, type Buff } from '../shown';
 import type { Fighter } from '../types';
 import { atTier, RASCAL, RASCAL_UP } from '../unique';
-import { CLASS_STATS, type HeroDef, type Passive } from './kit';
+import { CLASS_STATS, dmg, healed, indexed, indexedHeal, type HeroDef, type Passive } from './kit';
 
 /*
  * Annette's skills, as the game has them (what each costs, how long before it can be used again, how long what
@@ -30,11 +30,12 @@ import { CLASS_STATS, type HeroDef, type Passive } from './kit';
  * adds to Overcharge's ATK; Transcend 5's Dark's ATK for every ally (a share of hers) is so much more DMG, and its
  * attack speed a pace.
  */
+// (How hard each of her skills hits, and how much each heals, is the King's Raid Index's, at her class's ATK: ./kit.ts's indexed and indexedHeal.)
 const ZAP = { blow: BLOW * 1.4 };
-const RAY = { blow: 4000, extra: 3000, weaker: 0.15, takes: 0.25, lasts: 10 };
+const RAY = { blow: indexed('mechanic', 207_192), extra: indexed('mechanic', 207_192), weaker: 0.15, takes: 0.25, lasts: 10 };
 // (Its 250 CC Resistance and 250 Crit Chance, as the game has them: points.)
-const TREATMENT = { heal: 400_000, lasts: 10, resist: 250, crit: 250, dmg: 0.1 };
-const ELIMINATION = { blow: 7000, over: 10000, takes: 0.25, lasts: 10, stun: 5 };
+const TREATMENT = { heal: indexedHeal('mechanic', 284_970), lasts: 10, resist: 250, crit: 250, dmg: 0.1 };
+const ELIMINATION = { blow: indexed('mechanic', 552_663), over: indexed('mechanic', 552_663 + 130_220), takes: 0.25, lasts: 10, stun: 5 };
 const CHARGE = { every: 0.5, perCrystal: 10, full: 100, lasts: 15, atk: 0.3, cooldown: 0.1 };
 /** Her own perks' numbers: more Charge from a skill, Process of Elimination's mark, Overcharge's more ATK and longer, and Transcend 5's Dark's for every ally (attack speed in points, ATK a share of hers). */
 const PERKS = { charge: 1.4, eliminated: 0.25, overAtk: 1.4, overLonger: 3, allies: { speed: 200, atk: 0.05 } };
@@ -77,7 +78,7 @@ export const ANNETTE: HeroDef = {
     {
       name: 'Blasting Ray',
       about: `Rascal fires a ray into the boss: for ${RAY.lasts} seconds it hits ${pct(RAY.weaker)} softer and takes ${pct(RAY.takes)} more magical damage. [Overcharged]: a second ray, and twice that.`,
-      words: `Attacks enemies in a straight line, dealing M.DMG, reducing their ATK by ${pct(RAY.weaker)} and hit enemies take ${pct(RAY.takes)} increased M.DMG for ${RAY.lasts} sec. If the skill is used when in Overcharge state, deals extra M.DMG, additionally reduces their ATK by ${pct(RAY.weaker)}, and hit enemies take ${pct(RAY.takes)} increased M.DMG.`,
+      words: `Attacks enemies in a straight line, dealing ${dmg('mechanic', RAY.blow)} M.DMG, reducing their ATK by ${pct(RAY.weaker)} and hit enemies take ${pct(RAY.takes)} increased M.DMG for ${RAY.lasts} sec. If the skill is used when in Overcharge state, deals ${dmg('mechanic', RAY.extra)} extra M.DMG, additionally reduces their ATK by ${pct(RAY.weaker)}, and hit enemies take ${pct(RAY.takes)} increased M.DMG.`,
       icon: '🔆',
       art: art(0),
       move: 'ray',
@@ -88,7 +89,7 @@ export const ANNETTE: HeroDef = {
       name: 'Emergency Treatment',
       auto: { heals: true },
       about: `Clears what the boss has left on every ally (not what holds one down or shuts one away) and heals them over ${TREATMENT.lasts} seconds, and they stand being knocked down better meanwhile. [Overcharged]: they are also ${pct(share(TREATMENT.crit))} likelier to land a critical blow, deal ${pct(TREATMENT.dmg)} more, and can’t be knocked down.`,
-      words: `Dispels negative effects of all allies and heals HP for ${TREATMENT.lasts} sec while increasing CC Resistance by ${TREATMENT.resist}. While Overcharged, all allies' Crit Chance is increased by ${TREATMENT.crit} and DMG dealt to Non-Hero enemies by ${pct(TREATMENT.dmg)} and gains immunity to CC.`,
+      words: `Dispels negative effects of all allies and heals a total of ${healed('mechanic', TREATMENT.heal)} HP for ${TREATMENT.lasts} sec while increasing CC Resistance by ${TREATMENT.resist}. While Overcharged, all allies' Crit Chance is increased by ${TREATMENT.crit} and DMG dealt to Non-Hero enemies by ${pct(TREATMENT.dmg)} and gains immunity to CC.`,
       icon: '🩹',
       art: art(1),
       move: 'treatment',
@@ -98,7 +99,7 @@ export const ANNETTE: HeroDef = {
     {
       name: 'Process of Elimination',
       about: `A ball of energy that bursts on the boss. [Overcharged]: it bursts harder, stuns the boss for ${ELIMINATION.stun} seconds, and leaves it taking ${pct(ELIMINATION.takes)} more magical damage for ${ELIMINATION.lasts}.`,
-      words: `Fires an exploding energy ball to a random target and nearby enemies in range, dealing M.DMG. When in Overcharge state, deals M.DMG, increases M.DMG enemies take by ${pct(ELIMINATION.takes)} for ${ELIMINATION.lasts} sec, and inflicts Stun for ${ELIMINATION.stun} sec upon explosion.`,
+      words: `Fires an exploding energy ball to a random target and nearby enemies in range, dealing ${dmg('mechanic', ELIMINATION.blow)} M.DMG. When in Overcharge state, deals ${dmg('mechanic', ELIMINATION.over)} M.DMG, increases M.DMG enemies take by ${pct(ELIMINATION.takes)} for ${ELIMINATION.lasts} sec, and inflicts Stun for ${ELIMINATION.stun} sec upon explosion.`,
       icon: '💣',
       art: art(2),
       move: 'elimination',

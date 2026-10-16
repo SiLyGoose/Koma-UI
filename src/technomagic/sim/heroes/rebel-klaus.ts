@@ -4,7 +4,7 @@ import { said, t5Light } from '../perks';
 import { BLOW, MAX_MANA } from '../rules';
 import { num, pct, skillArt, type Buff } from '../shown';
 import { atTier, GALICTA, GALICTA_UP } from '../unique';
-import { CLASS_STATS, type HeroDef, type Passive } from './kit';
+import { CLASS_STATS, dmg, type HeroDef, type Passive } from './kit';
 
 /*
  * Rebel Klaus's skills, as the game has them (the game's Rebel Clause: what each costs, how long before it can be used
@@ -24,15 +24,16 @@ import { CLASS_STATS, type HeroDef, type Passive } from './kit';
  * His own perks (../perks.ts) are King's Raid's. Transcend 5's Dark stacks once a battle: there is one here, so it is
  * once. Determined Strike's Light (more with one enemy) always holds: there is only the boss.
  */
+// (How hard each of his skills hits: the King's Raid Index hasn't him, so ×3.34 what it was, as the other warriors' went to theirs from it.)
 const REND = { blow: BLOW * 1.2 };
 /** Determined Strike: its blow, the blow more against a boss, and how long it stuns. */
-const DETERMINED = { blow: 2400, boss: 1600, stun: 2 };
+const DETERMINED = { blow: 8020, boss: 5340, stun: 2 };
 /** Indomitable Will: its blow, and the state's attack speed (points) and how much shorter it is held down, for `lasts` seconds. */
-const WILL = { blow: 1500, lasts: 10, speed: 500, held: 0.5 };
+const WILL = { blow: 5010, lasts: 10, speed: 500, held: 0.5 };
 /** Perish.: its blows (as many as its move has, but the last), the last's, and how long that knocks the boss down. */
-const PERISH = { blow: 1000, last: 2500, down: 3 };
+const PERISH = { blow: 3340, last: 8350, down: 3 };
 /** Power of Galicta: his crit chance more (points), the penetration past which his blows go through all of the boss's defense, his attack's blow more and how long its curse lasts. */
-const GALICTA_POWER = { crit: 200, whole: 1000, blow: 1200, lasts: 6 };
+const GALICTA_POWER = { crit: 200, whole: 1000, blow: 4010, lasts: 6 };
 /** His own perks' numbers: Determined Strike's Light and Dark, Indomitable Will's Light, Perish.'s Light, Power of Galicta's Light and Dark, and Transcend 5's Dark. */
 const PERKS = { alone: 2, stun: 1, critDamage: 0.5, mana: 100, exposed: 0.5, boss: 1000, dark: { dmg: 1.12, taken: 0.95 } };
 
@@ -48,7 +49,7 @@ const POWER_OF_GALICTA: Passive = {
     icon: '🗡️',
     art: art(3),
   },
-  words: `Rebel Klaus is not affected by Block stats, but his Crit Chance increases by ${GALICTA_POWER.crit}, and when his DEF Penetration reaches ${num(GALICTA_POWER.whole)} or above, all of his attacks ignore the target's DEF. Additionally, his normal attack deal additional P.DMG to all enemies and inflict [Curse of Galicta] upon them for ${GALICTA_POWER.lasts} sec. If the target is already inflicted with [Curse of Galicta], the target won't take additional DMG.`,
+  words: `Rebel Klaus is not affected by Block stats, but his Crit Chance increases by ${GALICTA_POWER.crit}, and when his DEF Penetration reaches ${num(GALICTA_POWER.whole)} or above, all of his attacks ignore the target's DEF. Additionally, his normal attack deal additional ${dmg('warrior', GALICTA_POWER.blow)} P.DMG to all enemies and inflict [Curse of Galicta] upon them for ${GALICTA_POWER.lasts} sec. If the target is already inflicted with [Curse of Galicta], the target won't take additional DMG.`,
 };
 /** [Indomitable Will] on him; Galicta's DMG stacks on him. */
 const WILLED: Buff = { name: 'Indomitable Will', about: `ATK Spd +${WILL.speed}, and held down ${pct(WILL.held)} as long.`, icon: '🔥', art: art(1) };
@@ -67,7 +68,7 @@ export const REBEL_KLAUS: HeroDef = {
     {
       name: 'Determined Strike',
       about: `A blow that stuns the boss for ${DETERMINED.stun} seconds, and a blow more against a boss.`,
-      words: `Deals P.DMG to frontal enemies within range and inflicts Stun for ${DETERMINED.stun} sec. If the target is a boss, deals additional P.DMG.`,
+      words: `Deals ${dmg('warrior', DETERMINED.blow)} P.DMG to frontal enemies within range and inflicts Stun for ${DETERMINED.stun} sec. If the target is a boss, deals additional ${dmg('warrior', DETERMINED.boss)} P.DMG.`,
       icon: '⚔️',
       art: art(0),
       move: 'determined',
@@ -77,7 +78,7 @@ export const REBEL_KLAUS: HeroDef = {
     {
       name: 'Indomitable Will',
       about: `A blow, and [Indomitable Will] for ${WILL.lasts} seconds: ATK Spd +${WILL.speed}, and what knocks him down holds him ${pct(WILL.held)} as long.`,
-      words: `Deals P.DMG to nearby enemies, entering into the irremoveable state [Indomitable Will] for ${WILL.lasts} sec. While in [Indomitable Will] state, ATK Spd is increased by ${WILL.speed} and the duration of CC inflicted upon self is reduced by ${pct(1 - WILL.held)}.`,
+      words: `Deals ${dmg('warrior', WILL.blow)} P.DMG to nearby enemies, entering into the irremoveable state [Indomitable Will] for ${WILL.lasts} sec. While in [Indomitable Will] state, ATK Spd is increased by ${WILL.speed} and the duration of CC inflicted upon self is reduced by ${pct(1 - WILL.held)}.`,
       icon: '🔥',
       art: art(1),
       move: 'indomitable',
@@ -87,7 +88,7 @@ export const REBEL_KLAUS: HeroDef = {
     {
       name: 'Perish.',
       about: `Blows on the boss one after another, and a last that knocks it down for ${PERISH.down} seconds.`,
-      words: `Attacks a random enemy 6 times, dealing P.DMG each hit. Afterward, delivers an additional attack that deals P.DMG to nearby enemies and knocks them down for ${PERISH.down} sec.`,
+      words: `Attacks a random enemy 6 times, dealing ${dmg('warrior', PERISH.blow)} P.DMG each hit. Afterward, delivers an additional attack that deals ${dmg('warrior', PERISH.last)} P.DMG to nearby enemies and knocks them down for ${PERISH.down} sec.`,
       icon: '💀',
       art: art(2),
       move: 'perish',

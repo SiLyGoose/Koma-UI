@@ -4,7 +4,7 @@ import { said, t5Light } from '../perks';
 import { BLOW } from '../rules';
 import { num, pct, skillArt, type Buff } from '../shown';
 import { atTier, NOTOS, NOTOS_UP } from '../unique';
-import { CLASS_STATS, type HeroDef, type Passive } from './kit';
+import { CLASS_STATS, dmg, indexed, type HeroDef, type Passive } from './kit';
 import { CODED } from './moves';
 
 /*
@@ -24,14 +24,15 @@ import { CODED } from './moves';
  * Her own perks (../perks.ts) are King's Raid's. Rush's Light always holds (there is only the boss). Moonlight Flash's
  * Dark does nothing here (the boss doesn't block), nor Moonlight Arrow's (there is nowhere further to reach).
  */
+// (How hard each of her skills hits is the King's Raid Index's, at her class's ATK: ./kit.ts's indexed.)
 const ARROW = { blow: BLOW * 1.3 };
 /** Her arrow when she draws it as her attack's animation has it (quicker than as written in code): her attack about as hard over time. */
 const DRAWN = { blow: BLOW * 1.06 };
 // (As many arrows as its move has.)
-const RAIN = { arrows: CODED.rain.lands.length, blow: 500 };
-const RUSH = { arrows: CODED.rush.lands.length, blow: 500 };
+const RAIN = { arrows: CODED.rain.lands.length, blow: indexed('archer', 617_748) / CODED.rain.lands.length };
+const RUSH = { arrows: CODED.rush.lands.length, blow: indexed('archer', 112_278) };
 /** Its arrow at most (with the boss's health whole), knocking it down, and its blow more against a boss, through its defense. */
-const FLASH = { most: 6000, down: 3, boss: 3000 };
+const FLASH = { most: indexed('archer', 657_142), down: 3, boss: indexed('archer', 657_142) / 2 };
 /** Moonlight Arrow: her ATK and crit chance (points) more for each stack, for `lasts` seconds, up to `most`. */
 const MOON = { atk: 5056, crit: 100, lasts: 10, most: 3 };
 /** Her own perks' numbers: Arrow Rain's stun (its chance), Rush's flinch, and Moonlight Arrow's most stacks. */
@@ -65,7 +66,7 @@ export const SELENE: HeroDef = {
     {
       name: 'Arrow Rain',
       about: `${RAIN.arrows} arrows at the boss.`,
-      words: `Shoots ${RAIN.arrows} arrows to random enemies and deals a total of P.DMG.`,
+      words: `Shoots ${RAIN.arrows} arrows to random enemies and deals a total of ${dmg('archer', RAIN.blow * RAIN.arrows)} P.DMG.`,
       icon: '🏹',
       art: art(0),
       move: 'rain',
@@ -75,7 +76,7 @@ export const SELENE: HeroDef = {
     {
       name: 'Rush',
       about: `${RUSH.arrows} arrows that launch at the boss.`,
-      words: `Upon attacking, summons ${RUSH.arrows} arrows that launch towards the enemy. Each arrow deals P.DMG.`,
+      words: `Upon attacking, summons ${RUSH.arrows} arrows that launch towards the enemy. Each arrow deals ${dmg('archer', RUSH.blow)} P.DMG.`,
       icon: '💨',
       art: art(1),
       move: 'rush',
@@ -85,7 +86,7 @@ export const SELENE: HeroDef = {
     {
       name: 'Moonlight Flash',
       about: `An arrow the harder the more of the boss’s health is left, knocking it down for ${FLASH.down} seconds, and a blow more through its defense.`,
-      words: "Fires an arrow in a straight line, dealing P.DMG to all enemies in range based on the target's remaining HP. Deals a maximum of P.DMG and knocks down the target. Against Bosses, deals additional P.DMG that ignores DEF.",
+      words: `Fires an arrow in a straight line, dealing P.DMG to all enemies in range based on the target's remaining HP. Deals a maximum of ${dmg('archer', FLASH.most)} P.DMG and knocks down the target. Against Bosses, deals additional ${dmg('archer', FLASH.boss)} P.DMG that ignores DEF.`,
       icon: '🌕',
       art: art(2),
       move: 'flash',

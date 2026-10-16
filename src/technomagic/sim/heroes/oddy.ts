@@ -4,7 +4,7 @@ import { said, t5Light } from '../perks';
 import { BLOW, MAX_MANA } from '../rules';
 import { pct, skillArt, type Buff } from '../shown';
 import { atTier, TEMPODIANA, TEMPODIANA_UP } from '../unique';
-import { CLASS_STATS, type Ability, type HeroDef, type Passive } from './kit';
+import { CLASS_STATS, dmg, indexed, type Ability, type HeroDef, type Passive } from './kit';
 import { CODED } from './moves';
 
 /*
@@ -23,14 +23,15 @@ import { CODED } from './moves';
  * Her own perks (../perks.ts) are King's Raid's. Time Fragments' Light does nothing here (there is only the boss to
  * hit), nor Time Distortion's Dark (there are never 5 enemies). Its Light fills every ally's mana.
  */
+// (How hard each of her skills hits is the King's Raid Index's, at her class's ATK: ./kit.ts's indexed.)
 const CHIME = { blow: BLOW * 1.3 };
-const FRACTURE = { blow: 3500, petrify: 3 };
+const FRACTURE = { blow: indexed('mechanic', 76_654), petrify: 3 };
 // (As many blows as its move has.)
-const FRAGMENTS = { hits: CODED.fragments.lands.length, blow: 500, chance: 0.5 };
+const FRAGMENTS = { hits: CODED.fragments.lands.length, blow: indexed('mechanic', 431_328) / CODED.fragments.lands.length, chance: 0.5 };
 /** Its blow, every ally's ATK Spd more (points) for `lasts` seconds, and what is left of their cooldowns. */
-const DISTORTION = { blow: 3000, speed: 250, lasts: 15, cooldowns: 0.5 };
+const DISTORTION = { blow: indexed('mechanic', 317_788), speed: 250, lasts: 15, cooldowns: 0.5 };
 /** Clock Magic: how many of her attacks after a skill deal more, how much (at ATK), their chance to petrify the boss (for `petrify` seconds), and how often at most. */
-const CLOCK = { attacks: 2, blow: 1500, chance: 0.3, petrify: 3, every: 1 };
+const CLOCK = { attacks: 2, blow: indexed('mechanic', 174_785), chance: 0.3, petrify: 3, every: 1 };
 /** Her own perks' numbers: Time Fragments' Dark (its cooldown less for each attack), Clock Magic's more attacks and chance, and Transcend 5's Dark (every so often, so many allies' cooldowns less). */
 const PERKS = { fragments: 1, attacks: 3, chance: 0.4, ticking: { every: 10, allies: 4, less: 1 } };
 
@@ -46,7 +47,7 @@ const CLOCK_MAGIC: Passive = {
     icon: '🕰️',
     art: art(3),
   },
-  words: `Upon using the skill, next ${CLOCK.attacks} attacks deal additional M.DMG with a ${pct(CLOCK.chance)} chance to petrify the target for ${CLOCK.petrify} sec. This effect activates every ${CLOCK.every} sec.`,
+  words: `Upon using the skill, next ${CLOCK.attacks} attacks deal additional ${dmg('mechanic', CLOCK.blow)} M.DMG with a ${pct(CLOCK.chance)} chance to petrify the target for ${CLOCK.petrify} sec. This effect activates every ${CLOCK.every} sec.`,
 };
 /** Clock Magic's attacks to come: shown on her card. */
 const TICKING: Buff = { name: 'Clock Magic', about: 'Her next attacks deal more, and may petrify the boss.', icon: '🕰️', art: art(3) };
@@ -64,7 +65,7 @@ export const ODDY: HeroDef = {
     {
       name: 'Time Fracture',
       about: `A blow that petrifies the boss for ${FRACTURE.petrify} seconds.`,
-      words: `Deals M.DMG to enemies in a straight line, and inflicts Petrify for ${FRACTURE.petrify} sec.`,
+      words: `Deals ${dmg('mechanic', FRACTURE.blow)} M.DMG to enemies in a straight line, and inflicts Petrify for ${FRACTURE.petrify} sec.`,
       icon: '⌛',
       art: art(0),
       move: 'fracture',
@@ -74,7 +75,7 @@ export const ODDY: HeroDef = {
     {
       name: 'Time Fragments',
       about: `${FRAGMENTS.hits} blows. ${pct(FRAGMENTS.chance)} of the time, it is ready again at once and costs nothing the next time.`,
-      words: `Attacks random enemies ${FRAGMENTS.hits} times, dealing a total of M.DMG. With ${pct(FRAGMENTS.chance)} chance, 'Time Fragments' cooldown resets and consumes no mana for the next single activation.`,
+      words: `Attacks random enemies ${FRAGMENTS.hits} times, dealing a total of ${dmg('mechanic', FRAGMENTS.blow * FRAGMENTS.hits)} M.DMG. With ${pct(FRAGMENTS.chance)} chance, 'Time Fragments' cooldown resets and consumes no mana for the next single activation.`,
       icon: '🧩',
       art: art(1),
       move: 'fragments',
@@ -84,7 +85,7 @@ export const ODDY: HeroDef = {
     {
       name: 'Time Distortion',
       about: `A blow; every ally +${DISTORTION.speed} attack speed for ${DISTORTION.lasts} seconds, and what is left of every ally’s cooldowns halved.`,
-      words: `Deals M.DMG to all enemies and increases all allies' ATK Spd by ${DISTORTION.speed} for ${DISTORTION.lasts} sec. All allies' skill cooldown is reduced by ${pct(DISTORTION.cooldowns)}. 'Time Distortion' is not affected by skill cooldown reduction.`,
+      words: `Deals ${dmg('mechanic', DISTORTION.blow)} M.DMG to all enemies and increases all allies' ATK Spd by ${DISTORTION.speed} for ${DISTORTION.lasts} sec. All allies' skill cooldown is reduced by ${pct(DISTORTION.cooldowns)}. 'Time Distortion' is not affected by skill cooldown reduction.`,
       icon: '⏳',
       art: art(2),
       move: 'distortion',

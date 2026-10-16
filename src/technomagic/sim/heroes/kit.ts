@@ -1,8 +1,8 @@
-import { NONE, type HeroStats, type PerKind } from '../combat/damage';
+import { ATK, NONE, POINTS, type HeroStats, type PerKind } from '../combat/damage';
 import type { OwnTiming } from '../motion';
 import type { OwnPerkId, PerkDef } from '../perks';
 import type { Line } from '../rules';
-import type { Art, Buff, Mark } from '../shown';
+import { num, type Art, type Buff, type Mark } from '../shown';
 import type { Fight, Fighter } from '../types';
 import type { HeroMove } from './moves';
 
@@ -184,6 +184,18 @@ export const CLASS_STATS = Object.fromEntries(
     return [one, stats];
   }),
 ) as Record<HeroClass, Omit<HeroStats, 'deals'>>;
+
+/**
+ * A blow as the King's Raid Index (kingsraid.netlify.app) has it: the DMG its words say a hero of `kind` deals, as
+ * thousandths of ATK (as a blow's numbers are), so that at its class's ATK it deals just that.
+ */
+export const indexed = (kind: HeroClass, dmg: number): number => (POINTS * dmg) / KINGS_RAID[kind].atk;
+/** A heal or a shield as the King's Raid Index has it: so that a hero of `kind`, at its class's ATK, gives just `amount` (a heal gives as much more as its healer's attack is over ATK). */
+export const indexedHeal = (kind: HeroClass, amount: number): number => (amount * ATK) / KINGS_RAID[kind].atk;
+/** What a blow of `blow` deals from a hero of `kind` at its class's ATK, as its words say it (the Index's own number, where it has one). */
+export const dmg = (kind: HeroClass, blow: number): string => num(Math.round((blow * KINGS_RAID[kind].atk) / POINTS));
+/** What a heal or a shield of `amount` gives from a hero of `kind` at its class's ATK, as its words say it. */
+export const healed = (kind: HeroClass, amount: number): string => num(Math.round((amount * KINGS_RAID[kind].atk) / ATK));
 
 export interface HeroDef {
   /** What the bot and the site know it by: its file here (and its folder under ../../heroes/ and assets/heroes/). */

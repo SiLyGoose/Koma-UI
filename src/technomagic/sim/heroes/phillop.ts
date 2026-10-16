@@ -4,7 +4,7 @@ import { said, t5Light } from '../perks';
 import { BLOW } from '../rules';
 import { num, pct, skillArt, type Buff } from '../shown';
 import { atTier, ATEIN, ATEIN_UP, DRAGON_RAGE } from '../unique';
-import { CLASS_STATS, type HeroDef, type Passive } from './kit';
+import { CLASS_STATS, dmg, indexed, type HeroDef, type Passive } from './kit';
 
 /*
  * Phillop's skills, as the game has them (what each costs, how long before it can be used again, how long what it does
@@ -21,10 +21,11 @@ import { CLASS_STATS, type HeroDef, type Passive } from './kit';
  * of his ATK). Collision's Dark always holds once (there is only the boss), and Destroy Armor's Dark has nothing on the
  * boss to dispel: only its more P.DMG taken.
  */
+// (How hard each of his skills hits is the King's Raid Index's, at his class's ATK: ./kit.ts's indexed.)
 const HEW = { blow: BLOW * 1.2 };
-const COLLISION = { blow: 4000, down: 3 };
+const COLLISION = { blow: indexed('knight', 87_446), down: 3 };
 // (Its slow, as the game has it: an ATK Spd reduction, in points.)
-const HEADBUTT = { blow: 3000, speed: 200, slowed: 10 };
+const HEADBUTT = { blow: indexed('knight', 72_113), speed: 200, slowed: 10 };
 const INCARNATE = { defense: 36_550, heal: 0.15, lasts: 15 };
 /** Destroy Armor: what each stack takes off the boss's P.DEF, for `lasts` seconds, up to `most`. */
 const ARMOR = { defense: 3159, lasts: 15, most: 5 };
@@ -64,7 +65,7 @@ export const PHILLOP: HeroDef = {
     {
       name: 'Collision',
       about: `A blow that knocks the boss down for ${COLLISION.down} seconds.`,
-      words: `Deals P.DMG and knocks down the enemy for ${COLLISION.down} sec.`,
+      words: `Deals ${dmg('knight', COLLISION.blow)} P.DMG and knocks down the enemy for ${COLLISION.down} sec.`,
       icon: '💥',
       art: art(0),
       move: 'collision',
@@ -74,7 +75,7 @@ export const PHILLOP: HeroDef = {
     {
       name: 'Headbutt',
       about: `A dash and a blow: the boss’s attacks ${pct(HEADBUTT.speed / POINTS)} slower for ${HEADBUTT.slowed} seconds.`,
-      words: `Dashes toward the enemy and deals P.DMG, knocking them back. Hit enemy's Attack Spd is reduced by ${pct(HEADBUTT.speed / POINTS)} for ${HEADBUTT.slowed} sec.`,
+      words: `Dashes toward the enemy and deals ${dmg('knight', HEADBUTT.blow)} P.DMG, knocking them back. Hit enemy's Attack Spd is reduced by ${pct(HEADBUTT.speed / POINTS)} for ${HEADBUTT.slowed} sec.`,
       icon: '🐏',
       art: art(1),
       move: 'headbutt',

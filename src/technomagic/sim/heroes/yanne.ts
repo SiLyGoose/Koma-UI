@@ -4,7 +4,7 @@ import { said, t5Light } from '../perks';
 import { BLOW, MAX_MANA } from '../rules';
 import { num, pct, skillArt, type Buff } from '../shown';
 import { SVELTA, SVELTA_UP } from '../unique';
-import { CLASS_STATS, type HeroDef, type Passive } from './kit';
+import { CLASS_STATS, dmg, indexed, type HeroDef, type Passive } from './kit';
 
 /*
  * Yanne's skills, as the game has them (what each costs, how long before it can be used again, what No Holding Back!
@@ -21,12 +21,13 @@ import { CLASS_STATS, type HeroDef, type Passive } from './kit';
  * Her own perks (../perks.ts) are King's Raid's. Wipeout!'s Light always holds (there is only the boss). Dragon
  * Slayer's Light and Dark, and Transcend 5's Dark, do nothing here (no Dragon; the boss doesn't block).
  */
+// (How hard each of her skills hits is the King's Raid Index's, at her class's ATK: ./kit.ts's indexed.)
 const SHOT = { blow: BLOW * 1.3 };
 /** Her arrow when she draws it as her attack's animation has it (quicker than as written in code): her attack about as hard over time. */
 const DRAWN = { blow: BLOW * 1.06 };
 /** Focus Shot!'s arrow, and how many times as hard it is focused (she always focuses as long as she can). */
-const FOCUS = { blow: 2000, focused: 2 };
-const WIPEOUT = { blow: 3500 };
+const FOCUS = { blow: indexed('archer', 179_237), focused: 2 };
+const WIPEOUT = { blow: indexed('archer', 279_459) };
 /** No Holding Back!: her ATK and penetration (points) more, for `lasts` seconds; the share of her mana each blow of her attack takes meanwhile. */
 const UNLEASHED = { atk: 32_032, pen: 500, lasts: 30, mana: 0.03 };
 /** Dragon Slayer: her ATK more, and her max HP a share more. */
@@ -64,7 +65,7 @@ export const YANNE: HeroDef = {
     {
       name: 'Focus Shot!',
       about: `An arrow, focused on as long as she can (its DMG doubled).`,
-      words: 'Taking up a stance, focuses for a while and deals P.DMG to enemies in a straight line. If the target is a dragon, inflicts Stun for 3 sec. The longer she focuses, DMG and Stun duration are increased by 100%.',
+      words: `Taking up a stance, focuses for a while and deals ${dmg('archer', FOCUS.blow)} P.DMG to enemies in a straight line. If the target is a dragon, inflicts Stun for 3 sec. The longer she focuses, DMG and Stun duration are increased by 100%.`,
       icon: '🎯',
       art: art(0),
       move: 'focus',
@@ -74,7 +75,7 @@ export const YANNE: HeroDef = {
     {
       name: 'Wipeout!',
       about: 'A great arrow at the boss.',
-      words: 'Deals P.DMG to target enemy and other enemies in range. If the target is a Dragon, deals extra DMG that ignores DEF.',
+      words: `Deals ${dmg('archer', WIPEOUT.blow)} P.DMG to target enemy and other enemies in range. If the target is a Dragon, deals extra DMG that ignores DEF.`,
       icon: '💥',
       art: art(1),
       move: 'wipeout',

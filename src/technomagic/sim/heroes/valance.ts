@@ -5,7 +5,7 @@ import { BLOW, MAX_MANA, SECTION } from '../rules';
 import { fine, pct, skillArt, type Buff } from '../shown';
 import type { Fighter } from '../types';
 import { CORBEAU, CORBEAU_UP } from '../unique';
-import { CLASS_STATS, type HeroDef, type Passive } from './kit';
+import { CLASS_STATS, dmg, healed, type HeroDef, type Passive } from './kit';
 import { CODED } from './moves';
 
 /*
@@ -29,11 +29,12 @@ import { CODED } from './moves';
  * Transcend 5's Dark stacks once for each piece of TechnoMagic gear she wears. Transcend 5's Light's ATK Spd +10% is
  * 100 points (1000: 100%).
  */
+// (How hard each of his skills hits: the King's Raid Index hasn't him, so ×2.91 what it was, as the other mechanics' went to theirs from it; how much each heals, ×0.69, likewise.)
 const BOLT = { blow: BLOW * 1.4 };
-const HOLOGRAM = { lasts: 15, atk: 0.2, crit: 0.2, heal: 20_000, cooldown: 0.2 };
-const FIELD = { lasts: 5, defense: 1.15, heal: 40_000, mana: 0.3 * SECTION };
+const HOLOGRAM = { lasts: 15, atk: 0.2, crit: 0.2, heal: 13_840, cooldown: 0.2 };
+const FIELD = { lasts: 5, defense: 1.15, heal: 27_670, mana: 0.3 * SECTION };
 // (Its lasers after the first: its move's blows but the first.)
-const CANNON = { blow: 4000, stun: 3, lasers: CODED.cannon.lands.length - 1, laser: 700, laserStun: 1.5, lasts: 15, takes: 0.07, heals: 0.05, most: 7 };
+const CANNON = { blow: 11_640, stun: 3, lasers: CODED.cannon.lands.length - 1, laser: 2040, laserStun: 1.5, lasts: 15, takes: 0.07, heals: 0.05, most: 7 };
 const AWAKENING = { defense: 1.2, mana: 1.3, atk: 0.1, boss: 0.15 };
 /**
  * Her own perks' numbers: how many allies her Hologram is on, and its crit DMG; the field's less taken and attack speed
@@ -81,7 +82,7 @@ export const VALANCE: HeroDef = {
     {
       name: 'Prototype – VA',
       about: `Clears what the boss has left on the ally with the highest ATK, and gives it a [Hologram] for ${HOLOGRAM.lasts} seconds: ${pct(HOLOGRAM.atk)} more ATK and ${pct(HOLOGRAM.crit)} more crit chance, healed every second, its skills ready ${pct(HOLOGRAM.cooldown)} sooner, and nothing the boss does holds it.`,
-      words: `Dispels negative effects from the ally with the highest ATK and grants [Hologram] for ${HOLOGRAM.lasts} sec. [Hologram] increases the target’s ATK, Crit Chance, heals HP every sec, and reduces its Cooldown of all active Skills by ${HOLOGRAM.cooldown} sec. While [Hologram] is active, the target gains immunity to negative effects.`,
+      words: `Dispels negative effects from the ally with the highest ATK and grants [Hologram] for ${HOLOGRAM.lasts} sec. [Hologram] increases the target’s ATK, Crit Chance, heals ${healed('mechanic', HOLOGRAM.heal)} HP every sec, and reduces its Cooldown of all active Skills by ${HOLOGRAM.cooldown} sec. While [Hologram] is active, the target gains immunity to negative effects.`,
       icon: '💠',
       art: art(0),
       move: 'prototype',
@@ -91,7 +92,7 @@ export const VALANCE: HeroDef = {
     {
       name: 'Absolute Protection Field – LA',
       about: `A field for ${FIELD.lasts} seconds that reaches every ally: ${pct(FIELD.defense - 1)} more defense, can’t be knocked down, and healed and given mana every second.`,
-      words: `Creates an [Violet Force Field] that lasts for ${FIELD.lasts} sec within a wide range of self. Allies within the range of [Violet Force Field] have their All DEF increased by ${pct(FIELD.defense - 1)}, gain immunity to CC, and have their HP healed and Mana recovered every sec.`,
+      words: `Creates an [Violet Force Field] that lasts for ${FIELD.lasts} sec within a wide range of self. Allies within the range of [Violet Force Field] have their All DEF increased by ${pct(FIELD.defense - 1)}, gain immunity to CC, and have ${healed('mechanic', FIELD.heal)} HP healed and Mana recovered every sec.`,
       icon: '🟣',
       art: art(1),
       move: 'field',
@@ -101,7 +102,7 @@ export const VALANCE: HeroDef = {
     {
       name: 'Ultimate Laser Cannon – NCE',
       about: `A laser that stuns the boss for ${CANNON.stun} seconds, then ${CANNON.lasers} more, each stunning it for ${CANNON.laserStun}; each leaves it [Manipulated] for ${CANNON.lasts} seconds (up to ${CANNON.most} times over): taking ${pct(CANNON.takes)} more and healed ${pct(CANNON.heals)} less.`,
-      words: `Summons laser cannons behind self that fire laser beams, dealing P.DMG to the enemy. The hit target is inflicted with Stun for ${CANNON.stun} sec and becomes [Manipulated] for ${CANNON.lasts} sec. Afterward, the cannons additionally fire a total of ${CANNON.lasers} laser beams to random enemies. Each laser beam deals P.DMG, inflicts Stun on the hit target for ${CANNON.laserStun} sec, and inflicts [Manipulated] for ${CANNON.lasts} sec. Enemies who are [Manipulated] have their Heal Rate reduced by ${pct(CANNON.heals)} and take ${pct(CANNON.takes)} increased All DMG. [Manipulated] can be stacked up to max ${CANNON.most} times.`,
+      words: `Summons laser cannons behind self that fire laser beams, dealing ${dmg('mechanic', CANNON.blow)} P.DMG to the enemy. The hit target is inflicted with Stun for ${CANNON.stun} sec and becomes [Manipulated] for ${CANNON.lasts} sec. Afterward, the cannons additionally fire a total of ${CANNON.lasers} laser beams to random enemies. Each laser beam deals ${dmg('mechanic', CANNON.laser)} P.DMG, inflicts Stun on the hit target for ${CANNON.laserStun} sec, and inflicts [Manipulated] for ${CANNON.lasts} sec. Enemies who are [Manipulated] have their Heal Rate reduced by ${pct(CANNON.heals)} and take ${pct(CANNON.takes)} increased All DMG. [Manipulated] can be stacked up to max ${CANNON.most} times.`,
       icon: '🔫',
       art: art(2),
       move: 'cannon',

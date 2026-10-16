@@ -3,7 +3,8 @@ import { said, t5Light } from '../perks';
 import { BLOW } from '../rules';
 import { num, pct, skillArt, type Buff } from '../shown';
 import { ACRAVITA, ACRAVITA_UP, atTier } from '../unique';
-import { CLASS_STATS, type HeroDef, type Passive } from './kit';
+import { CLASS_STATS, dmg, indexed, type HeroDef, type Passive } from './kit';
+import { CODED } from './moves';
 
 /*
  * Neraxis's skills, as the game has them (what each costs, how long before it can be used again, how long what it does
@@ -22,15 +23,16 @@ import { CLASS_STATS, type HeroDef, type Passive } from './kit';
  * Dragon Hide's Dark makes what his skills do half again as much (their blows, what Obsidian Roar adds and takes, and
  * their stuns) while he is under half his health.
  */
+// (How hard each of his skills hits is the King's Raid Index's, at his class's ATK: ./kit.ts's indexed.)
 const MAW = { blow: BLOW * 1.2 };
 /** His fist as his attack's animation has it (four blows, quicker than as written in code): his attack about as hard over time. */
 const FIST = { blow: BLOW * 0.76 };
 /** Black Lightning Claw: its first blow and its second, and the second's stun. */
-const CLAW = { blow: 1500, after: 1500, stun: 3, speed: 300, slowed: 10 };
+const CLAW = { blow: indexed('knight', 85_803), after: indexed('knight', 122_794), stun: 3, speed: 300, slowed: 10 };
 /** Obsidian Roar: every ally's ATK and defense more, for `lasts` seconds; its blow; and the boss's ATK as much less meanwhile. */
-const ROAR = { more: 13_488, lasts: 15, blow: 2000, weaker: 0.3 };
+const ROAR = { more: 13_488, lasts: 15, blow: indexed('knight', 184_295), weaker: 0.3 };
 /** Breath of Destruction: its blows (as many as its move has), each taking a share of the boss's M.DEF for `lasts` seconds, and stunning it. */
-const BREATH = { blow: 1000, weaker: 0.2, lasts: 1, stun: 1 };
+const BREATH = { blow: indexed('knight', 289_536) / CODED.breath.lands.length, weaker: 0.2, lasts: 1, stun: 1 };
 /** Black Dragon Hide: his P.DEF and M.DEF more, and what he takes. */
 const HIDE = { defense: 18_962, taken: 0.85 };
 /** His own perks' numbers: Black Lightning Claw's Light and Dark, Obsidian Roar's Light, Breath of Destruction's Dark, Black Dragon Hide's Light and Dark, and Transcend 5's Dark. */
@@ -65,7 +67,7 @@ export const NERAXIS: HeroDef = {
     {
       name: 'Black Lightning Claw',
       about: `A blow, and a second after a blow more that stuns the boss for ${CLAW.stun} seconds.`,
-      words: `Draws enemies towards the target and deals M.DMG. Deals M.DMG around the target after 1 sec and stuns them for ${CLAW.stun} sec. Reduces ATK Spd of hit enemies by ${CLAW.speed} for ${CLAW.slowed} sec.`,
+      words: `Draws enemies towards the target and deals ${dmg('knight', CLAW.blow)} M.DMG. Deals ${dmg('knight', CLAW.after)} M.DMG around the target after 1 sec and stuns them for ${CLAW.stun} sec. Reduces ATK Spd of hit enemies by ${CLAW.speed} for ${CLAW.slowed} sec.`,
       icon: '⚡',
       art: art(0),
       move: 'lightning',
@@ -75,7 +77,7 @@ export const NERAXIS: HeroDef = {
     {
       name: 'Obsidian Roar',
       about: `Every ally +${num(ROAR.more)} ATK, P.DEF and M.DEF for ${ROAR.lasts} seconds; a blow, and the boss’s ATK ${pct(ROAR.weaker)} lower meanwhile.`,
-      words: `Increases ATK, P.DEF, and M.DEF of all allies by ${num(ROAR.more)} for ${ROAR.lasts} sec. Deals M.DMG to all enemies and reduces their ATK by ${pct(ROAR.weaker)} for ${ROAR.lasts} sec.`,
+      words: `Increases ATK, P.DEF, and M.DEF of all allies by ${num(ROAR.more)} for ${ROAR.lasts} sec. Deals ${dmg('knight', ROAR.blow)} M.DMG to all enemies and reduces their ATK by ${pct(ROAR.weaker)} for ${ROAR.lasts} sec.`,
       icon: '🐉',
       art: art(1),
       move: 'roar',
@@ -86,7 +88,7 @@ export const NERAXIS: HeroDef = {
     {
       name: 'Breath of Destruction',
       about: `Six blows, each taking ${pct(BREATH.weaker)} of the boss’s M.DEF for ${BREATH.lasts} second and stunning it for ${BREATH.stun} second.`,
-      words: `Deals a total of M.DMG to enemies within a large area around the target over 6 times and reduces their M.DEF by ${pct(BREATH.weaker)} for ${BREATH.lasts} sec. Each hit stuns the enemy for ${BREATH.stun} sec.`,
+      words: `Deals a total of ${dmg('knight', BREATH.blow * CODED.breath.lands.length)} M.DMG to enemies within a large area around the target over 6 times and reduces their M.DEF by ${pct(BREATH.weaker)} for ${BREATH.lasts} sec. Each hit stuns the enemy for ${BREATH.stun} sec.`,
       icon: '🌋',
       art: art(2),
       move: 'breath',

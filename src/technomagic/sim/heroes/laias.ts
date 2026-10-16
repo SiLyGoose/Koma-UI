@@ -5,7 +5,7 @@ import { BLOW, MAX_MANA, SECTION } from '../rules';
 import { pct, skillArt, type Buff } from '../shown';
 import type { Fighter } from '../types';
 import { atTier, ELTOIRRE, ELTOIRRE_UP } from '../unique';
-import { CLASS_STATS, type HeroDef, type Passive } from './kit';
+import { CLASS_STATS, dmg, healed, indexed, indexedHeal, type HeroDef, type Passive } from './kit';
 
 /*
  * Laias's skills, as the game has them (what each costs, how long before it can be used again, how long what it
@@ -29,11 +29,12 @@ import { CLASS_STATS, type HeroDef, type Passive } from './kit';
  * Resistance lasts as its Heal Rate does. Festival of the Flow's Dark heals every ally another 15% of its max HP.
  * Transcend 5's Dark's mana is the game's 350 of its 1000 to a section.
  */
+// (How hard each of her skills hits, and how much each heals and shields, is the King's Raid Index's, at her class's ATK: ./kit.ts's indexed and indexedHeal.)
 const SPLASH = { blow: BLOW * 1.5 };
 // (Its 25% Heal Rate, 1.5 times for an ally at half its health or less, as the game has it.)
-const DROPLETS = { heal: 150_000, lasts: 10, heals: 0.25, low: 0.5, lowTimes: 1.5 };
-const BUBBLE = { shield: 450_000, lasts: 15, taken: 0.7, dmg: 0.15, atk: 0.2, heal: 15_000 };
-const FESTIVAL = { blow: 2500, down: 3, heal: 0.15, mana: 2 * SECTION, lasts: 12, every: 4, whirl: 1500, whirlDown: 2 };
+const DROPLETS = { heal: indexedHeal('priest', 338_882), lasts: 10, heals: 0.25, low: 0.5, lowTimes: 1.5 };
+const BUBBLE = { shield: indexedHeal('priest', 879_673), lasts: 15, taken: 0.7, dmg: 0.15, atk: 0.2, heal: indexedHeal('priest', 35_192) };
+const FESTIVAL = { blow: indexed('priest', 210_084), down: 3, heal: 0.15, mana: 2 * SECTION, lasts: 12, every: 4, whirl: indexed('priest', 140_066), whirlDown: 2 };
 // (Her 500 CC Resist and every ally's 250 M.Crit Resistance, as the game has them: points.)
 const WATER_DRAGON = { resist: 500, defense: 1.1, critResist: 250, taken: 0.75, lasts: 5 };
 /**
@@ -78,7 +79,7 @@ export const LAIAS: HeroDef = {
       name: 'Healing Droplets',
       auto: { heals: true },
       about: `Heals every ally, and for ${DROPLETS.lasts} seconds healing reaches them ${pct(DROPLETS.heals)} more (${DROPLETS.lowTimes} times that for one at ${pct(DROPLETS.low)} of its health or less).`,
-      words: `Heals HP of all allies and increases Heal Rate by ${pct(DROPLETS.heals)} for ${DROPLETS.lasts} sec. If the target's HP is ${pct(DROPLETS.low)} or below, Heal Rate increases by ${DROPLETS.lowTimes} times.`,
+      words: `Heals ${healed('priest', DROPLETS.heal)} HP of all allies and increases Heal Rate by ${pct(DROPLETS.heals)} for ${DROPLETS.lasts} sec. If the target's HP is ${pct(DROPLETS.low)} or below, Heal Rate increases by ${DROPLETS.lowTimes} times.`,
       icon: '💧',
       art: art(0),
       move: 'droplets',
@@ -88,7 +89,7 @@ export const LAIAS: HeroDef = {
     {
       name: 'Bubble Shield',
       about: `A shield on the ally with the lowest health: for ${BUBBLE.lasts} seconds it takes ${pct(1 - BUBBLE.taken)} less from the boss and deals ${pct(BUBBLE.dmg)} more. While the shield holds it can’t be knocked down, hits ${pct(BUBBLE.atk)} harder and is healed every second.`,
-      words: `For ${BUBBLE.lasts} sec, casts a Shield that blocks DMG on the ally with the lowest HP. While the Shield is active, gains immunity to CC, increases ATK and heals HP every sec. For ${BUBBLE.lasts} sec, the ally takes ${pct(1 - BUBBLE.taken)} reduced DMG from Non-Hero targets and increases DMG dealt to Non-Hero enemies by ${pct(BUBBLE.dmg)}. The DMG Reduction effect from and the DMG Boost effect to Non-Hero enemies is irremovable.`,
+      words: `For ${BUBBLE.lasts} sec, casts a Shield that blocks ${healed('priest', BUBBLE.shield)} DMG on the ally with the lowest HP. While the Shield is active, gains immunity to CC, increases ATK and heals ${healed('priest', BUBBLE.heal)} HP every sec. For ${BUBBLE.lasts} sec, the ally takes ${pct(1 - BUBBLE.taken)} reduced DMG from Non-Hero targets and increases DMG dealt to Non-Hero enemies by ${pct(BUBBLE.dmg)}. The DMG Reduction effect from and the DMG Boost effect to Non-Hero enemies is irremovable.`,
       icon: '🫧',
       art: art(1),
       move: 'bubble',
@@ -98,7 +99,7 @@ export const LAIAS: HeroDef = {
     {
       name: 'Festival of the Flow',
       about: `Knocks the boss down for ${FESTIVAL.down} seconds, heals every ally ${pct(FESTIVAL.heal)} of its max HP and gives every other ally ${FESTIVAL.mana / SECTION} mana. Then for ${FESTIVAL.lasts} seconds a whirlpool every ${FESTIVAL.every} seconds strikes the boss and knocks it down for ${FESTIVAL.whirlDown}.`,
-      words: `Deals M.DMG to nearby enemies and knocks them down for ${FESTIVAL.down} sec. Upon casting, heals HP of all allies by ${pct(FESTIVAL.heal)} of their Max HP and recovers ${FESTIVAL.mana / SECTION} orbs of Mana of allies excluding self. Afterward, for ${FESTIVAL.lasts} sec, creates a whirlpool every ${FESTIVAL.every} sec that deals M.DMG to random enemies and knocks them down for ${FESTIVAL.whirlDown} sec.`,
+      words: `Deals ${dmg('priest', FESTIVAL.blow)} M.DMG to nearby enemies and knocks them down for ${FESTIVAL.down} sec. Upon casting, heals HP of all allies by ${pct(FESTIVAL.heal)} of their Max HP and recovers ${FESTIVAL.mana / SECTION} orbs of Mana of allies excluding self. Afterward, for ${FESTIVAL.lasts} sec, creates a whirlpool every ${FESTIVAL.every} sec that deals ${dmg('priest', FESTIVAL.whirl)} M.DMG to random enemies and knocks them down for ${FESTIVAL.whirlDown} sec.`,
       icon: '🌊',
       art: art(2),
       move: 'festival',

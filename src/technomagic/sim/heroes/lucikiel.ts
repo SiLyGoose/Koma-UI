@@ -3,7 +3,7 @@ import { said, t5Light } from '../perks';
 import { BLOW } from '../rules';
 import { pct, skillArt, type Buff } from '../shown';
 import { atTier, GIGANTE, GIGANTE_UP } from '../unique';
-import { CLASS_STATS, type Ability, type HeroDef, type Passive } from './kit';
+import { CLASS_STATS, dmg, healed, type Ability, type HeroDef, type Passive } from './kit';
 import { CODED } from './moves';
 
 /*
@@ -26,20 +26,21 @@ import { CODED } from './moves';
  * boss off it), nor Doomsday's Dark (the boss has no mana to take). Annihilation Wave's Light makes the Surge cheaper
  * too: it is the same slot.
  */
+// (How hard each of his skills hits: the King's Raid Index hasn't him, so ×2.61 what it was, as the other wizards' went to theirs from it; his shield, ×1.61, as the shields it has went, no wizard's among them.)
 const HAVOC = { blow: BLOW * 1.3 };
 /** Each of the four blows of his fist fight (his attack's animation): his attack about as hard over time as Havoc's. */
 const FIST = { blow: BLOW * 0.76 };
 // (As many blows as its move has.)
-const STORM = { hits: CODED.storm.lands.length, blow: 2000 };
+const STORM = { hits: CODED.storm.lands.length, blow: 5220 };
 /** Shadow of Death: how long it lasts, how hard it eats at the boss every second, and what it leaves of the boss's heals. */
-const SHADOW = { lasts: 10, each: 200, every: 1, heals: 0.7 };
-const WAVE = { blow: 3000, stun: 3 };
-const SURGE = { blow: 3500, stun: 5 };
-const DOOMSDAY = { hits: CODED.doomsday.lands.length, blow: 800, last: 4000, down: 5 };
+const SHADOW = { lasts: 10, each: 520, every: 1, heals: 0.7 };
+const WAVE = { blow: 7830, stun: 3 };
+const SURGE = { blow: 9140, stun: 5 };
+const DOOMSDAY = { hits: CODED.doomsday.lands.length, blow: 2090, last: 10_440, down: 5 };
 /** Pain of Doom: how long it lasts, and the blow more each of his blows on it deals. */
-const PAIN = { lasts: 10, blow: 400 };
+const PAIN = { lasts: 10, blow: 1040 };
 /** His passive: what he takes, how long what knocks him down holds him, and his shield's size and how long it lasts. */
-const ARMOR = { taken: 0.75, held: 0.5, shield: 200_000, lasts: 6 };
+const ARMOR = { taken: 0.75, held: 0.5, shield: 322_000, lasts: 6 };
 /** His own perks' numbers: Shadow of Death's more M.DMG taken, Armor of the Demon God's Dark's less taken besides, and Transcend 5's Dark (more DMG every so often, up to so many times). */
 const PERKS = { shadow: 1.25, taken: 0.15, doom: { dmg: 0.05, every: 6, most: 10 } };
 
@@ -57,13 +58,13 @@ const ARMOR_OF_THE_DEMON_GOD: Passive = {
     icon: '🛡️',
     art: art(3),
   },
-  words: `Reduces All DMG taken by ${pct(1 - ARMOR.taken)} and the duration of CC by ${pct(1 - ARMOR.held)}. Upon every Skill use, creates [Authority of the Demon God] that absorbs DMG for ${ARMOR.lasts} sec. Gains immunity to CC for the duration of [Authority of the Demon God].`,
+  words: `Reduces All DMG taken by ${pct(1 - ARMOR.taken)} and the duration of CC by ${pct(1 - ARMOR.held)}. Upon every Skill use, creates [Authority of the Demon God] that absorbs ${healed('wizard', ARMOR.shield)} DMG for ${ARMOR.lasts} sec. Gains immunity to CC for the duration of [Authority of the Demon God].`,
 };
 /** What Annihilation Wave's slot holds once it is used (its picture is the game's for it, past his passive's). */
 const SURGE_SKILL: Ability = {
   name: 'Annihilation Surge',
   about: `A wider wave: a blow that stuns the boss for ${SURGE.stun} seconds, and a blow more. Used, this slot holds [Annihilation Wave] again.`,
-  words: `Attacks frontal enemies within a wide range 2 times. The first attack deals M.DMG and inflicts stun for ${SURGE.stun} sec. The second attack deals M.DMG and draws in hit targets in front of self. After use, the Skill changes to [Annihilation Wave].`,
+  words: `Attacks frontal enemies within a wide range 2 times. The first attack deals ${dmg('wizard', SURGE.blow)} M.DMG and inflicts stun for ${SURGE.stun} sec. The second attack deals ${dmg('wizard', SURGE.blow)} M.DMG and draws in hit targets in front of self. After use, the Skill changes to [Annihilation Wave].`,
   icon: '🌊',
   art: art(4),
   move: 'surge',
@@ -91,7 +92,7 @@ export const LUCIKIEL: HeroDef = {
     {
       name: 'Death Storm',
       about: `${STORM.hits} blows that leave [Shadow of Death] on the boss for ${SHADOW.lasts} seconds: it eats at the boss every second and leaves it healed ${pct(1 - SHADOW.heals)} less.`,
-      words: `Attacks the target and nearby enemies ${STORM.hits} times, dealing a total of M.DMG and leaving a [Shadow of Death]. [Shadow of Death] deals M.DMG and reduces the target's Heal Rate by ${pct(1 - SHADOW.heals)} over ${SHADOW.lasts} sec.`,
+      words: `Attacks the target and nearby enemies ${STORM.hits} times, dealing a total of ${dmg('wizard', STORM.blow * STORM.hits)} M.DMG and leaving a [Shadow of Death]. [Shadow of Death] deals ${dmg('wizard', SHADOW.each * SHADOW.lasts)} M.DMG and reduces the target's Heal Rate by ${pct(1 - SHADOW.heals)} over ${SHADOW.lasts} sec.`,
       icon: '🌪️',
       art: art(0),
       move: 'storm',
@@ -101,7 +102,7 @@ export const LUCIKIEL: HeroDef = {
     {
       name: 'Annihilation Wave',
       about: `A blow that stuns the boss for ${WAVE.stun} seconds, and a blow more. Used, this slot holds [Annihilation Surge].`,
-      words: `Attacks frontal enemies within range 2 times. The first attack deals M.DMG and inflicts Stun for ${WAVE.stun} sec. The second attack deals M.DMG and draws in hit targets in front of self. After use, the Skill changes to [Annihilation Surge].`,
+      words: `Attacks frontal enemies within range 2 times. The first attack deals ${dmg('wizard', WAVE.blow)} M.DMG and inflicts Stun for ${WAVE.stun} sec. The second attack deals ${dmg('wizard', WAVE.blow)} M.DMG and draws in hit targets in front of self. After use, the Skill changes to [Annihilation Surge].`,
       icon: '🌊',
       art: art(1),
       move: 'wave',
@@ -111,7 +112,7 @@ export const LUCIKIEL: HeroDef = {
     {
       name: 'Doomsday',
       about: `${DOOMSDAY.hits} blows, the last knocking the boss down for ${DOOMSDAY.down} seconds and leaving [Pain of Doom] on it for ${PAIN.lasts}: each blow of his on it meanwhile deals more.`,
-      words: `Attacks nearby enemies ${DOOMSDAY.hits} times, dealing M.DMG, and draws them in front of self. The last hit deals M.DMG, knocks down hit targets for ${DOOMSDAY.down} sec, and leaves [Pain of Doom] that lasts for ${PAIN.lasts} sec. Each time Lucikiel attacks targets inflicted with [Pain of Doom] with a normal or Skill attack, he deals additional M.DMG.`,
+      words: `Attacks nearby enemies ${DOOMSDAY.hits} times, dealing ${dmg('wizard', DOOMSDAY.blow)} M.DMG each, and draws them in front of self. The last hit deals ${dmg('wizard', DOOMSDAY.last)} more M.DMG, knocks down hit targets for ${DOOMSDAY.down} sec, and leaves [Pain of Doom] that lasts for ${PAIN.lasts} sec. Each time Lucikiel attacks targets inflicted with [Pain of Doom] with a normal or Skill attack, he deals additional ${dmg('wizard', PAIN.blow)} M.DMG.`,
       icon: '☄️',
       art: art(2),
       move: 'doomsday',

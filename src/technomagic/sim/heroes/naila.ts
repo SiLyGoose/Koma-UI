@@ -4,7 +4,8 @@ import { said, t5Light } from '../perks';
 import { BLOW } from '../rules';
 import { nth, num, pct, skillArt, type Buff } from '../shown';
 import { atTier, BARORO } from '../unique';
-import { CLASS_STATS, type HeroDef, type Passive } from './kit';
+import { CLASS_STATS, dmg, indexed, type HeroDef, type Passive } from './kit';
+import { CODED } from './moves';
 
 /*
  * Naila's skills, as the game has them (what each costs, how long before it can be used again, how long what it does
@@ -24,14 +25,15 @@ import { CLASS_STATS, type HeroDef, type Passive } from './kit';
  * critical. Transcend 5's Light's P.Dodge does nothing here, nor what her Transcend 5's Dark comes of but for a
  * magical blow dodged.
  */
+// (How hard each of her skills hits is the King's Raid Index's, at her class's ATK: ./kit.ts's indexed.)
 const TALON = { blow: BLOW * 1.2 };
 /** Each of the four blows of her fist fight (her attack's animation): her attack about as hard over time as her talons'. */
 const FIST = { blow: BLOW * 0.78 };
-const WINDS = { blow: 2000, boss: 1000, down: 3 };
+const WINDS = { blow: indexed('warrior', 212_140) / CODED.winds.lands.length, boss: indexed('warrior', 158_995) / CODED.winds.lands.length, down: 3 };
 const READING = { dodge: 250, atk: 37_514, lasts: 15 };
-const DIVE = { blow: 4000, boss: 2000, downed: 1.5 };
+const DIVE = { blow: indexed('warrior', 296_346), boss: indexed('warrior', 444_527), downed: 1.5 };
 /** Tornado Strike: every so many attacks, its chance, its blow, how much more physical damage the boss takes, and for how long, and how long it is knocked down. */
-const TORNADO = { every: 5, chance: 0.4, blow: 3000, takes: 1.3, lasts: 10, down: 3 };
+const TORNADO = { every: 5, chance: 0.4, blow: indexed('warrior', 183_165), takes: 1.3, lasts: 10, down: 3 };
 /** Her own perks' numbers: Wind Reading's Dark, Dive Bomb's Dark's cooldown less, Tornado Strike's (its chance, and her ATK Spd after), and Transcend 5's Dark (for each dodge, up to so many). */
 const PERKS = { reading: 1.3, dive: 0.1, chance: 0.6, speed: 300, dodge: { cooldowns: 0.02, atk: 0.03, speed: 30, most: 10 } };
 
@@ -47,7 +49,7 @@ const TORNADO_STRIKE: Passive = {
     icon: '🌪️',
     art: art(3),
   },
-  words: `Every ${nth(TORNADO.every)} normal attack has a ${pct(TORNADO.chance)} chance to deal additional P.DMG to the target. The target takes ${pct(TORNADO.takes - 1)} increased P.DMG for ${TORNADO.lasts} sec and is knocked down for ${TORNADO.down} sec.`,
+  words: `Every ${nth(TORNADO.every)} normal attack has a ${pct(TORNADO.chance)} chance to deal additional ${dmg('warrior', TORNADO.blow)} P.DMG to the target. The target takes ${pct(TORNADO.takes - 1)} increased P.DMG for ${TORNADO.lasts} sec and is knocked down for ${TORNADO.down} sec.`,
 };
 /** What Wind Reading gives every ally, and its Dark gives her. */
 const READ: Buff = { name: 'Wind Reading', about: `+${READING.dodge} P.Dodge and +${num(READING.atk)} ATK.`, icon: '🍃', art: art(1) };
@@ -69,7 +71,7 @@ export const NAILA: HeroDef = {
     {
       name: 'Fierce Winds',
       about: `Two dashes through the boss, each a blow that knocks it down for ${WINDS.down} seconds.`,
-      words: `Dashes toward the enemy 2 times, dealing P.DMG to enemies in range, knocking them down for ${WINDS.down} sec. If the target is not a Hero, deals additional P.DMG.`,
+      words: `Dashes toward the enemy 2 times, dealing ${dmg('warrior', WINDS.blow * CODED.winds.lands.length)} P.DMG to enemies in range, knocking them down for ${WINDS.down} sec. If the target is not a Hero, deals additional ${dmg('warrior', WINDS.boss * CODED.winds.lands.length)} P.DMG.`,
       icon: '💨',
       art: art(0),
       move: 'winds',
@@ -90,7 +92,7 @@ export const NAILA: HeroDef = {
     {
       name: 'Dive Bomb',
       about: `She flies up and strikes the boss, ${pct(DIVE.downed - 1)} harder while she has it knocked down.`,
-      words: `Flies up and strikes P.DMG to enemies in range. Knocked down enemies take ${pct(DIVE.downed - 1)} increased DMG. If the target is not a Hero, deals additional P.DMG.`,
+      words: `Flies up and strikes ${dmg('warrior', DIVE.blow)} P.DMG to enemies in range. Knocked down enemies take ${pct(DIVE.downed - 1)} increased DMG. If the target is not a Hero, deals additional ${dmg('warrior', DIVE.boss)} P.DMG.`,
       icon: '🦅',
       art: art(2),
       move: 'dive',

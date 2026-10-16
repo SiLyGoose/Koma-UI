@@ -4,7 +4,8 @@ import { said, t5Light } from '../perks';
 import { BLOW } from '../rules';
 import { num, pct, skillArt, type Buff } from '../shown';
 import { atTier, NUMINU, NUMINU_UP } from '../unique';
-import { CLASS_STATS, type HeroDef, type Passive } from './kit';
+import { CLASS_STATS, dmg, indexed, type HeroDef, type Passive } from './kit';
+import { CODED } from './moves';
 
 /*
  * Gau's skills, as the game has them (what each costs, how long before it can be used again, how long what it does
@@ -23,13 +24,14 @@ import { CLASS_STATS, type HeroDef, type Passive } from './kit';
  * His own perks (../perks.ts) are King's Raid's. Transcend 5's Light's P. Block does nothing here (Galgoria deals only
  * magic). Enrage's Dark's lifesteal heals him by what each blow of his deals.
  */
+// (How hard each of his skills hits is the King's Raid Index's, at his class's ATK: ./kit.ts's indexed.)
 const CHOP = { blow: BLOW * 1.2 };
 /** Smash: its two blows, and how long the first knocks the boss down. */
-const SMASH = { blow: 1600, down: 3, speed: 250, slowed: 10 };
+const SMASH = { blow: indexed('warrior', 157_882) / CODED.smash.lands.length, down: 3, speed: 250, slowed: 10 };
 /** Battle Roar: every ally's ATK more, for `lasts` seconds. */
 const ROAR = { atk: 3845, lasts: 15 };
 /** Vortex: its blows (as many as its move has; against one that isn't a Hero), and how long the last freezes the boss. */
-const VORTEX = { blow: 1200, freeze: 4 };
+const VORTEX = { blow: indexed('warrior', 347_796) / CODED.vortex.lands.length, freeze: 4 };
 /** Enrage: his ATK more for each stack, and his DMG on the boss (a share), for `lasts` seconds, up to `most`. */
 const ENRAGE = { atk: 901, dmg: 0.03, lasts: 5, most: 10 };
 /** His own perks' numbers: Smash's Dark, Battle Roar's Light and Dark, Enrage's Light and Dark, and Transcend 5's Dark. */
@@ -59,7 +61,7 @@ export const GAU: HeroDef = {
     {
       name: 'Smash',
       about: `Two blows, the first knocking the boss down for ${SMASH.down} seconds.`,
-      words: `Deals P.DMG to enemies within range, and the first attack knocks them down for ${SMASH.down} sec and reduces their ATK Spd by ${SMASH.speed} for ${SMASH.slowed} sec.`,
+      words: `Deals ${dmg('warrior', SMASH.blow * CODED.smash.lands.length)} P.DMG to enemies within range, and the first attack knocks them down for ${SMASH.down} sec and reduces their ATK Spd by ${SMASH.speed} for ${SMASH.slowed} sec.`,
       icon: '🪓',
       art: art(0),
       move: 'smash',
@@ -80,7 +82,7 @@ export const GAU: HeroDef = {
     {
       name: 'Vortex',
       about: `A whirl of blows, the last freezing the boss for ${VORTEX.freeze} seconds; he can’t be knocked down meanwhile.`,
-      words: `Deals P.DMG to nearby enemies. If the target is not a Hero, deals P.DMG. The last attack freezes nearby enemies for ${VORTEX.freeze} sec. Gains immunity to CC for the duration of Skill.`,
+      words: `Deals ${dmg('warrior', VORTEX.blow * CODED.vortex.lands.length)} P.DMG to nearby enemies. If the target is not a Hero, deals P.DMG. The last attack freezes nearby enemies for ${VORTEX.freeze} sec. Gains immunity to CC for the duration of Skill.`,
       icon: '🌀',
       art: art(2),
       move: 'vortex',

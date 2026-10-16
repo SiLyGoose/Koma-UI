@@ -4,7 +4,7 @@ import { said, t5Light } from '../perks';
 import { BLOW, MAX_MANA } from '../rules';
 import { pct, skillArt, type Buff, type Mark } from '../shown';
 import { atTier, PERION, PERION_UP } from '../unique';
-import { CLASS_STATS, type Ability, type HeroDef, type Passive } from './kit';
+import { CLASS_STATS, dmg, indexed, type Ability, type HeroDef, type Passive } from './kit';
 
 /*
  * Erze's skills, as the game has them (what each costs, how long before it can be used again, how long what it does
@@ -25,13 +25,14 @@ import { CLASS_STATS, type Ability, type HeroDef, type Passive } from './kit';
  * Her own perks (../perks.ts) are King's Raid's. Life Drinker's Dark does nothing here (it is for an enemy killed), nor
  * its Light's more max HP for one: only its smaller cut to her max HP.
  */
+// (How hard each of her skills hits is the King's Raid Index's, at her class's ATK: ./kit.ts's indexed.)
 const DRAIN = { blow: BLOW * 1.2 };
 /** Sweet Blood: its blow, the share of what it deals she steals, how much shorter its cooldown is for the hit; its stacks, and the blows more at the most. */
-const SWEET = { blow: 2100, steals: 0.1, sooner: 0.5, most: 5, more: 2 };
+const SWEET = { blow: indexed('assassin', 104_556), steals: 0.1, sooner: 0.5, most: 5, more: 2 };
 /** Soaking Blood: how long nothing touches her, how long before its blow; the most stacks on the boss; its blow, a blow more for every `per` stacks, and the share of what it deals she steals. */
-const SOAK = { lasts: 5, after: 5, most: 6, blow: 3000, per: 3, steals: 0.25 };
+const SOAK = { lasts: 5, after: 5, most: 6, blow: indexed('assassin', 76_974), per: 3, steals: 0.25 };
 /** Blood Liberation: how long, a blow every `every` seconds and a blow more each time. */
-const LIBERATION = { lasts: 10, every: 1, blow: 600 };
+const LIBERATION = { lasts: 10, every: 1, blow: indexed('assassin', 40_404) };
 /** Life Drinker: her max HP lower by this share once it has spared her. */
 const DRINKER = { cut: 0.4 };
 /** Her own perks' numbers: Sweet Blood's Light and Dark, Soaking Blood's Light, Blood Liberation's Light, Life Drinker's Light, and Transcend 5's Dark. */
@@ -67,7 +68,7 @@ export const ERZE: HeroDef = {
     {
       name: 'Sweet Blood',
       about: `A blow that steals ${pct(SWEET.steals)} of what it deals, its cooldown ${SWEET.sooner} seconds shorter; and a stack of it (at ${SWEET.most}, ${SWEET.more} blows more).`,
-      words: `Deals P.DMG to all enemies and steals HP equal to ${pct(SWEET.steals)} of DMG dealt. Reduces Cooldown of [Sweet Blood] by ${SWEET.sooner} sec on each hit, and gains 1 stack of [Sweet Blood]. [Sweet Blood] can be stacked up to ${SWEET.most} times, and using the skill with ${SWEET.most} stacks of [Sweet Blood] grants additional hits and removes [Sweet Blood] stacks.`,
+      words: `Deals ${dmg('assassin', SWEET.blow)} P.DMG to all enemies and steals HP equal to ${pct(SWEET.steals)} of DMG dealt. Reduces Cooldown of [Sweet Blood] by ${SWEET.sooner} sec on each hit, and gains 1 stack of [Sweet Blood]. [Sweet Blood] can be stacked up to ${SWEET.most} times, and using the skill with ${SWEET.most} stacks of [Sweet Blood] grants additional hits and removes [Sweet Blood] stacks.`,
       icon: '🩸',
       art: art(0),
       move: 'sweet',
@@ -77,7 +78,7 @@ export const ERZE: HeroDef = {
     {
       name: 'Soaking Blood',
       about: `For ${SOAK.lasts} seconds nothing touches her and she can’t be knocked down; after ${SOAK.after}, a blow on the boss that steals ${pct(SOAK.steals)} of what it deals (a blow more for every ${SOAK.per} stacks of it).`,
-      words: `Dispels all negative effects and gains immunity to all CCs, P.DMG, and M.DMG for ${SOAK.lasts} sec. Inflicts 1 stack of [Soaking Blood] on all enemies, and additional 1 stack upon attacking a target with [Soaking Blood]. [Soaking Blood] can be stacked up to ${SOAK.most} times. Deals P.DMG to enemies with [Soaking Blood] stacks after ${SOAK.after} sec, and steals HP equal to ${pct(SOAK.steals)} of the DMG dealt. For every ${SOAK.per} stack(s) of [Soaking Blood], hit count increases by 1 and removes [Soaking Blood] stacks upon attacking.`,
+      words: `Dispels all negative effects and gains immunity to all CCs, P.DMG, and M.DMG for ${SOAK.lasts} sec. Inflicts 1 stack of [Soaking Blood] on all enemies, and additional 1 stack upon attacking a target with [Soaking Blood]. [Soaking Blood] can be stacked up to ${SOAK.most} times. Deals ${dmg('assassin', SOAK.blow)} P.DMG to enemies with [Soaking Blood] stacks after ${SOAK.after} sec, and steals HP equal to ${pct(SOAK.steals)} of the DMG dealt. For every ${SOAK.per} stack(s) of [Soaking Blood], hit count increases by 1 and removes [Soaking Blood] stacks upon attacking.`,
       icon: '🛡️',
       art: art(1),
       move: 'soak',
@@ -87,7 +88,7 @@ export const ERZE: HeroDef = {
     {
       name: 'Blood Liberation',
       about: `For ${LIBERATION.lasts} seconds, every second a blow and a blow more.`,
-      words: `Deals P.DMG to all enemies every ${LIBERATION.every} sec for ${LIBERATION.lasts} sec. Each hit of [Blood Liberation] causes an additional hit on 1 random enemy.`,
+      words: `Deals ${dmg('assassin', LIBERATION.blow)} P.DMG to all enemies every ${LIBERATION.every} sec for ${LIBERATION.lasts} sec. Each hit of [Blood Liberation] causes an additional hit on 1 random enemy.`,
       icon: '🌹',
       art: art(2),
       move: 'liberation',

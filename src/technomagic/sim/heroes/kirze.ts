@@ -1,7 +1,7 @@
 import { share } from '../combat/damage';
 import { said, t5Light } from '../perks';
-import { num, pct, skillArt, type Buff } from '../shown';
-import { CLASS_STATS, type HeroDef, type Passive } from './kit';
+import { pct, skillArt, type Buff } from '../shown';
+import { CLASS_STATS, dmg, type HeroDef, type Passive } from './kit';
 import { CODED } from './moves';
 
 /*
@@ -17,10 +17,11 @@ import { CODED } from './moves';
  * Her own perks (../perks.ts) are King's Raid's. Blade of Judgment's Dark has the boss alone always; Crimson Flower's Dark
  * is [Arcane Crystal Energy]'s, which this raid hasn't: it does nothing here.
  */
-const JUDGMENT = { cuts: CODED.judgment.lands.length - 1, cut: 1500, blow: 6000, down: 3 };
-const HAZE = { burst: 9000, stun: 2, lasts: 15, quicker: 1.5, every: 2, wave: 2500, waveStun: 1 };
+// (How hard each of her skills hits: the King's Raid Index hasn't her, so ×3.34 what it was, as the other warriors' went to theirs from it.)
+const JUDGMENT = { cuts: CODED.judgment.lands.length - 1, cut: 5010, blow: 20_040, down: 3 };
+const HAZE = { burst: 30_060, stun: 2, lasts: 15, quicker: 1.5, every: 2, wave: 8350, waveStun: 1 };
 // (Its slow, as the game has it: an ATK Spd reduction, in points.)
-const FLOWER = { line: 8000, burst: 12000, speed: 200, slowed: 5, curse: 10, end: 6000, each: 800 };
+const FLOWER = { line: 26_720, burst: 40_080, speed: 200, slowed: 5, curse: 10, end: 20_040, each: 2670 };
 /** Her passive's: her ATK higher, her crit chance (points), and the stuns on a boss longer. */
 const DEEDS = { atk: 0.2, crit: 200, control: 0.3 };
 /** Her own perks' numbers: the shockwave's longer stun, Crimson Flower's stronger slow (points), her DMG while awakened, her opening's (how long, how much), and Transcend 5's Dark's attack speed for each blow (most). */
@@ -55,7 +56,7 @@ export const KIRZE: HeroDef = {
     {
       name: 'Slash, Blade of Judgment!',
       about: `${JUDGMENT.cuts} cuts as she spins, then a blow that knocks the boss down for ${JUDGMENT.down} seconds.`,
-      words: `Deals M.DMG over ${JUDGMENT.cuts} attacks to nearby enemies in a circular range of self. Then, attacks frontal enemies in range, dealing M.DMG and knocking them down for ${JUDGMENT.down} sec.`,
+      words: `Deals ${dmg('warrior', JUDGMENT.cut * JUDGMENT.cuts)} M.DMG over ${JUDGMENT.cuts} attacks to nearby enemies in a circular range of self. Then, attacks frontal enemies in range, dealing ${dmg('warrior', JUDGMENT.blow)} M.DMG and knocking them down for ${JUDGMENT.down} sec.`,
       icon: '🌀',
       art: art(0),
       move: 'judgment',
@@ -65,7 +66,7 @@ export const KIRZE: HeroDef = {
     {
       name: 'Disperse, Crystal Haze!',
       about: `A burst that stuns the boss for ${HAZE.stun} seconds. Then for ${HAZE.lasts} seconds she is ${pct(HAZE.quicker - 1)} quicker, and a shockwave goes out from her every ${HAZE.every} seconds that stuns it for ${HAZE.waveStun}.`,
-      words: `Unleashes the power of Arcane Crystals within to deal M.DMG to all enemies and stun them for ${HAZE.stun} sec. Upon casting, activates [Arcane Crystal Awakening] for ${HAZE.lasts} sec, which increases ATK Spd of all allies by 300 and releases a shockwave every ${HAZE.every} sec to enemies in range of self, dealing M.DMG and stunning them for ${HAZE.waveStun} sec.`,
+      words: `Unleashes the power of Arcane Crystals within to deal ${dmg('warrior', HAZE.burst)} M.DMG to all enemies and stun them for ${HAZE.stun} sec. Upon casting, activates [Arcane Crystal Awakening] for ${HAZE.lasts} sec, which increases ATK Spd of all allies by 300 and releases a shockwave every ${HAZE.every} sec to enemies in range of self, dealing ${dmg('warrior', HAZE.wave)} M.DMG and stunning them for ${HAZE.waveStun} sec.`,
       icon: '💠',
       art: art(1),
       move: 'haze',
@@ -75,7 +76,7 @@ export const KIRZE: HeroDef = {
     {
       name: 'Bloom, Crimson Flower!',
       about: `Crystals in a line to the boss, then they burst: its attacks are ${pct(share(FLOWER.speed))} slower for ${FLOWER.slowed} seconds, and it is cursed for ${FLOWER.curse}. When the curse ends it bursts, the harder for every blow landed on the boss meanwhile.`,
-      words: `Summons Arcane Crystals and deals M.DMG to frontal enemies in a straight line. Shortly afterward, causes an explosion that deals ${num(FLOWER.burst)} additional M.DMG and inflicts [Arcane Crystal Curse] upon enemies for ${FLOWER.slowed} sec, reducing their ATK Spd by ${FLOWER.speed}. Attacking enemies under [Arcane Crystal Curse] inflicts a stack of [Arcane Crystal Energy]. [Arcane Crystal Curse] explodes after ${FLOWER.curse} sec, dealing M.DMG equal to ${num(FLOWER.end)} + ${num(FLOWER.each)} per stack of Arcane Crystal Energy.`,
+      words: `Summons Arcane Crystals and deals ${dmg('warrior', FLOWER.line)} M.DMG to frontal enemies in a straight line. Shortly afterward, causes an explosion that deals ${dmg('warrior', FLOWER.burst)} additional M.DMG and inflicts [Arcane Crystal Curse] upon enemies for ${FLOWER.slowed} sec, reducing their ATK Spd by ${FLOWER.speed}. Attacking enemies under [Arcane Crystal Curse] inflicts a stack of [Arcane Crystal Energy]. [Arcane Crystal Curse] explodes after ${FLOWER.curse} sec, dealing M.DMG equal to ${dmg('warrior', FLOWER.end)} + ${dmg('warrior', FLOWER.each)} per stack of Arcane Crystal Energy.`,
       icon: '🌺',
       art: art(2),
       move: 'flower',

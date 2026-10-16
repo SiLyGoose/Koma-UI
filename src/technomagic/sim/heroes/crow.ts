@@ -3,7 +3,7 @@ import { said, t5Light } from '../perks';
 import { BLOW, MAX_MANA } from '../rules';
 import { num, pct, skillArt, type Buff } from '../shown';
 import { AKISTRA, AKISTRA_UP, atTier } from '../unique';
-import { CLASS_STATS, type HeroDef, type Passive } from './kit';
+import { CLASS_STATS, dmg, indexed, type HeroDef, type Passive } from './kit';
 import { CODED } from './moves';
 
 /*
@@ -26,12 +26,13 @@ import { CODED } from './moves';
  * hero, from his first blow on. His passive's mana is the game's 300 a second (of its 1000 to a section), besides what
  * he recovers as every hero does (all that Hunting Preparation's Dark, and his gear, raise).
  */
+// (How hard each of his skills hits is the King's Raid Index's, at his class's ATK: ./kit.ts's indexed.)
 const SNIPE = { blow: BLOW * 1.3 };
 // (As many shots as its move has.)
-const ELIMINATE = { shots: CODED.eliminate.lands.length, blow: 300, marks: 2 };
+const ELIMINATE = { shots: CODED.eliminate.lands.length, blow: indexed('mechanic', 164_145) / CODED.eliminate.lands.length, marks: 2 };
 // (Its shots: its move's blows but the last, the Frost Bullet.)
-const STRUGGLE = { shots: CODED.struggle.lands.length - 1, blow: 250, frost: 2000, freeze: 4, area: 6, every: 2, chill: 800, chance: 0.5, chilled: 2 };
-const GODS = { blow: 4000, each: 100, focus: 2 };
+const STRUGGLE = { shots: CODED.struggle.lands.length - 1, blow: indexed('mechanic', 195_630) / (CODED.struggle.lands.length - 1), frost: indexed('mechanic', 109_497), freeze: 4, area: 6, every: 2, chill: indexed('mechanic', 52_409), chance: 0.5, chilled: 2 };
+const GODS = { blow: indexed('mechanic', 165_718), each: indexed('mechanic', 5299), focus: 2 };
 /** Hunting Dog's Fang Marks: how long they last, and the most there can be. */
 const FANG = { lasts: 40, most: 100 };
 /** Hunting Preparation: his ATK (added to his class's, as the game has it), crit DMG more, and mana a second. */
@@ -70,7 +71,7 @@ export const CROW: HeroDef = {
     {
       name: 'Target will be Eliminated.',
       about: `${ELIMINATE.shots} shots, then ${ELIMINATE.marks} [Hunting Dog’s Fang Marks] on the boss (up to ${FANG.most}, for ${FANG.lasts} seconds).`,
-      words: `Deals a total of P.DMG to enemies in front over ${ELIMINATE.shots} times and leaves ${ELIMINATE.marks} 'Hunting Dog's Fang Marks' for ${FANG.lasts} sec. Hunting Dog's Fang Mark stacks up to max ${FANG.most} times.`,
+      words: `Deals a total of ${dmg('mechanic', ELIMINATE.blow * ELIMINATE.shots)} P.DMG to enemies in front over ${ELIMINATE.shots} times and leaves ${ELIMINATE.marks} 'Hunting Dog's Fang Marks' for ${FANG.lasts} sec. Hunting Dog's Fang Mark stacks up to max ${FANG.most} times.`,
       icon: '🔫',
       art: art(0),
       move: 'eliminate',
@@ -80,7 +81,7 @@ export const CROW: HeroDef = {
     {
       name: 'Struggle is Meaningless.',
       about: `${STRUGGLE.shots} shots, then a Frost Bullet that freezes the boss for ${STRUGGLE.freeze} seconds and leaves a freezing area under it for ${STRUGGLE.area}: every ${STRUGGLE.every} seconds it strikes, with a ${pct(STRUGGLE.chance)} chance to freeze the boss for ${STRUGGLE.chilled}.`,
-      words: `Attacks a random enemy ${STRUGGLE.shots} times and deals a total of P.DMG. Shoots a Frost Bullet that deals P.DMG to target and surrounding enemies, freezing them for ${STRUGGLE.freeze} sec. The special Frost Bullet creates a freezing area for ${STRUGGLE.area} seconds that deals P.DMG every ${STRUGGLE.every} sec, with a ${pct(STRUGGLE.chance)} chance to freeze for ${STRUGGLE.chilled} sec.`,
+      words: `Attacks a random enemy ${STRUGGLE.shots} times and deals a total of ${dmg('mechanic', STRUGGLE.blow * STRUGGLE.shots)} P.DMG. Shoots a Frost Bullet that deals ${dmg('mechanic', STRUGGLE.frost)} P.DMG to target and surrounding enemies, freezing them for ${STRUGGLE.freeze} sec. The special Frost Bullet creates a freezing area for ${STRUGGLE.area} seconds that deals ${dmg('mechanic', STRUGGLE.chill)} P.DMG every ${STRUGGLE.every} sec, with a ${pct(STRUGGLE.chance)} chance to freeze for ${STRUGGLE.chilled} sec.`,
       icon: '❄️',
       art: art(1),
       move: 'struggle',
@@ -90,7 +91,7 @@ export const CROW: HeroDef = {
     {
       name: 'Even Gods shall Die.',
       about: `He focuses, then a laser, harder for each [Hunting Dog’s Fang Mark] on the boss (all of them spent), and ${pct(GODS.focus - 1)} harder for his focus.`,
-      words: `Takes position and focuses to shoot a laser, dealing P.DMG to frontal enemies within range, and consumes target's stack of Hunting Dog's Fang Mark to deal additional P.DMG per each stack. Depending on the focusing time, the effect's range increases, and DMG is increased up to max ${pct(GODS.focus - 1)}. Once the focus is completed, knocks back the enemy far away.`,
+      words: `Takes position and focuses to shoot a laser, dealing ${dmg('mechanic', GODS.blow)} P.DMG to frontal enemies within range, and consumes target's stack of Hunting Dog's Fang Mark to deal additional ${dmg('mechanic', GODS.each)} P.DMG per each stack. Depending on the focusing time, the effect's range increases, and DMG is increased up to max ${pct(GODS.focus - 1)}. Once the focus is completed, knocks back the enemy far away.`,
       icon: '💥',
       art: art(2),
       move: 'gods',

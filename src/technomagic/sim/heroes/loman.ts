@@ -3,7 +3,7 @@ import { said, t5Light } from '../perks';
 import { BLOW } from '../rules';
 import { num, pct, skillArt, type Buff, type Mark } from '../shown';
 import { atTier, GAIAMENES, GAIAMENES_UP } from '../unique';
-import { CLASS_STATS, type HeroDef, type Passive } from './kit';
+import { CLASS_STATS, dmg, indexed, indexedHeal, type HeroDef, type Passive } from './kit';
 
 /*
  * Loman's skills, as the game has them (what each costs, how long before it can be used again, how long what it does
@@ -22,15 +22,16 @@ import { CLASS_STATS, type HeroDef, type Passive } from './kit';
  * His own perks (../perks.ts) are King's Raid's. Knight's Creed's Light always holds (there is only the boss). The Last
  * Gatekeeper's Dark does nothing here (Galgoria is steady).
  */
+// (How hard each of his skills hits, and how much each shields, is the King's Raid Index's, at his class's ATK: ./kit.ts's indexed and indexedHeal.)
 const THRUST = { blow: BLOW * 1.2 };
 /** Cut Ground: its blow, how long the boss is down, and how much more physical damage it takes for `lasts` seconds. */
-const CUT = { blow: 2000, down: 4, weakness: 0.25, lasts: 10 };
+const CUT = { blow: indexed('knight', 122_794), down: 4, weakness: 0.25, lasts: 10 };
 /** Shrouding Creed: the shield on every ally for `lasts` seconds (none knocked down meanwhile), and what each takes for `taken` seconds. */
-const SHROUD = { shield: 315_448, lasts: 5, less: 0.8, taken: 10 };
+const SHROUD = { absorbs: 315_448, shield: indexedHeal('knight', 315_448), lasts: 5, less: 0.8, taken: 10 };
 /** Knight's Creed: its first two blows and their stun; its last swing (two blows, all of it) and its stun; the Mark of Creed's blow, how long it lasts, and how often. */
-const CREED = { blow: 1700, stun: 1.5, last: 4000, lastStun: 5, mark: 300, lasts: 15, every: 0.5 };
+const CREED = { blow: indexed('knight', 102_676) / 2, stun: 1.5, last: indexed('knight', 242_634), lastStun: 5, mark: indexed('knight', 95_532), lasts: 15, every: 0.5 };
 /** The Last Gatekeeper: Endurance a second, and for a block (no sooner than `every` after the last); at `most`, its blow (through the boss's defense), and the boss's ATK lower for `lasts` seconds. */
-const GATEKEEPER = { each: 1, every: 0.2, most: 20, blow: 1200, weaker: 0.2, lasts: 10 };
+const GATEKEEPER = { each: 1, every: 0.2, most: 20, blow: indexed('knight', 70_202), weaker: 0.2, lasts: 10 };
 /** His own perks' numbers: Cut Ground's Dark, Shrouding Creed's Dark, The Last Gatekeeper's Light, and Transcend 5's Dark. */
 const PERKS = { weakness: 0.25, longer: 5, each: 1, ward: { block: 200, defense: 0.1, lasts: 5, every: 5 } };
 
@@ -46,7 +47,7 @@ const LAST_GATEKEEPER: Passive = {
     icon: '🏰',
     art: art(3),
   },
-  words: `Stacks [Endurance] every second. [Endurance] cannot be dispelled, and when stacked ${GATEKEEPER.most} times, deals P.DMG, ignoring DEF on nearby enemies and reduces ATK of affected enemies by ${pct(GATEKEEPER.weaker)} for ${GATEKEEPER.lasts} second(s). A successful block grants 1 additional [Endurance] stack. This effect is activated only once every ${GATEKEEPER.every} second(s).`,
+  words: `Stacks [Endurance] every second. [Endurance] cannot be dispelled, and when stacked ${GATEKEEPER.most} times, deals ${dmg('knight', GATEKEEPER.blow)} P.DMG, ignoring DEF on nearby enemies and reduces ATK of affected enemies by ${pct(GATEKEEPER.weaker)} for ${GATEKEEPER.lasts} second(s). A successful block grants 1 additional [Endurance] stack. This effect is activated only once every ${GATEKEEPER.every} second(s).`,
 };
 /** Shrouding Creed's shield, and what every ally takes less for a while; Transcend 5's Dark; Endurance's stacks. */
 const SHROUDED: Buff = { name: 'Shrouding Creed', about: 'A shield: it can’t be knocked down while it lasts.', icon: '🛡️', art: art(1) };
@@ -69,7 +70,7 @@ export const LOMAN: HeroDef = {
     {
       name: 'Cut Ground',
       about: `A blow that knocks the boss down for ${CUT.down} seconds; it takes ${pct(CUT.weakness)} more physical damage for ${CUT.lasts} seconds.`,
-      words: `Deals P.DMG to frontal enemies within range and knocks them down for ${CUT.down} sec, increasing P.Weakness of the affected targets by ${pct(CUT.weakness)} for ${CUT.lasts} sec.`,
+      words: `Deals ${dmg('knight', CUT.blow)} P.DMG to frontal enemies within range and knocks them down for ${CUT.down} sec, increasing P.Weakness of the affected targets by ${pct(CUT.weakness)} for ${CUT.lasts} sec.`,
       icon: '⚔️',
       art: art(0),
       move: 'ground',
@@ -78,8 +79,8 @@ export const LOMAN: HeroDef = {
     },
     {
       name: 'Shrouding Creed',
-      about: `What the boss has left on every ally is cleared; a shield of ${num(SHROUD.shield)} on each for ${SHROUD.lasts} seconds (none can be knocked down meanwhile), and each takes ${pct(1 - SHROUD.less)} less for ${SHROUD.taken} seconds.`,
-      words: `Removes negative effects from all allies. Casts a shield upon all allies that absorbs ${num(SHROUD.shield)} DMG for ${SHROUD.lasts} second(s) and reduces all DMG to allies by ${pct(1 - SHROUD.less)} for ${SHROUD.taken} second(s). The shield grants immunity to CC while it lasts.`,
+      about: `What the boss has left on every ally is cleared; a shield of ${num(SHROUD.absorbs)} on each for ${SHROUD.lasts} seconds (none can be knocked down meanwhile), and each takes ${pct(1 - SHROUD.less)} less for ${SHROUD.taken} seconds.`,
+      words: `Removes negative effects from all allies. Casts a shield upon all allies that absorbs ${num(SHROUD.absorbs)} DMG for ${SHROUD.lasts} second(s) and reduces all DMG to allies by ${pct(1 - SHROUD.less)} for ${SHROUD.taken} second(s). The shield grants immunity to CC while it lasts.`,
       icon: '🛡️',
       art: art(1),
       move: 'shroud',
@@ -90,7 +91,7 @@ export const LOMAN: HeroDef = {
     {
       name: "Knight's Creed",
       about: `Two blows that stun the boss for ${CREED.stun} seconds, and a last swing that stuns it for ${CREED.lastStun} and leaves the [Mark of Creed] on it for ${CREED.lasts}: each other ally’s blow on it a blow of his more.`,
-      words: `Hits frontal enemies within range 3 times. First 2 hits deal P.DMG and stun enemies for ${CREED.stun} second(s) while the last hit attacks enemies in wider range 2 times, dealing P.DMG in total. The last hit stuns enemies for ${CREED.lastStun} seconds and leaves [Mark of Creed] on the enemies, damaging them for ${CREED.lasts} second(s). Targets with [Mark of Creed] take additional P.DMG from allies excluding caster. Additional DMG effect is activated only once every ${CREED.every} second(s).`,
+      words: `Hits frontal enemies within range 3 times. First 2 hits deal ${dmg('knight', CREED.blow * 2)} P.DMG and stun enemies for ${CREED.stun} second(s) while the last hit attacks enemies in wider range 2 times, dealing ${dmg('knight', CREED.last)} P.DMG in total. The last hit stuns enemies for ${CREED.lastStun} seconds and leaves [Mark of Creed] on the enemies, damaging them for ${CREED.lasts} second(s). Targets with [Mark of Creed] take additional ${dmg('knight', CREED.mark)} P.DMG from allies excluding caster. Additional DMG effect is activated only once every ${CREED.every} second(s).`,
       icon: '✝️',
       art: art(2),
       move: 'creed',

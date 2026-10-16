@@ -4,7 +4,8 @@ import { said, t5Light } from '../perks';
 import { BLOW, MAX_MANA } from '../rules';
 import { pct, skillArt, type Buff, type Mark } from '../shown';
 import { atTier, CAETHASIS, CAETHASIS_UP } from '../unique';
-import { CLASS_STATS, type HeroDef, type Passive } from './kit';
+import { CLASS_STATS, dmg, indexed, type HeroDef, type Passive } from './kit';
+import { CODED } from './moves';
 
 /*
  * Tanya's skills, as the game has them (what each costs, how long before it can be used again, how long what it does
@@ -25,21 +26,22 @@ import { CLASS_STATS, type HeroDef, type Passive } from './kit';
  * Her own perks (../perks.ts) are King's Raid's. Target Sighted's Dark does nothing here (Galgoria has no crit
  * resistance to lower), nor Silent Ambush's Dark (no silence). Blade Tornado's Light always holds (there is only the boss).
  */
+// (How hard each of her skills hits is the King's Raid Index's, at her class's ATK: ./kit.ts's indexed.)
 const KATAR = { blow: BLOW * 0.65 };
 /** Her katars as her attack's animation has it (four blows, quicker than as written in code): her attack about as hard over time. */
 const FIST = { blow: BLOW * 0.7 };
 /** Stealth: how long, her crit chance and dodge (points) more meanwhile. */
 const STEALTH = { lasts: 10, crit: 50, dodge: 50 };
 /** Target Sighted: how much more physical damage the boss takes for `lasts` seconds, its blow, how long the boss is down, and (in Stealth) stunned. */
-const SIGHTED = { takes: 1.3, lasts: 10, blow: 2000, down: 2, stun: 6 };
+const SIGHTED = { takes: 1.3, lasts: 10, blow: indexed('assassin', 119_110), down: 2, stun: 6 };
 /** Blade Tornado: its blows (as many as its move has), each a stack of Bleed; in Stealth, the boss's healing as much as `heals` for `lasts` seconds. */
-const TORNADO = { blow: 1350, heals: 0.3, lasts: 10 };
+const TORNADO = { blow: indexed('assassin', 247_062) / CODED.tornado.lands.length, heals: 0.3, lasts: 10 };
 /** A stack of Bleed: what it takes of the boss every second (at her ATK), for `lasts` seconds. */
-const BLEED = { each: 150, lasts: 5 };
+const BLEED = { each: 470, lasts: 5 };
 /** Whisper of Death: its six blows, and its last. */
-const WHISPER = { blow: 1100, last: 2500 };
+const WHISPER = { blow: indexed('assassin', 841_890) / (CODED.whisper.lands.length - 1), last: indexed('assassin', 264_085) };
 /** Silent Ambush: a critical blow of a skill deals more (at ATK); on the boss, a blow more through its defense. */
-const AMBUSH = { blow: 1000, boss: 700, speed: 200, slowed: 10 };
+const AMBUSH = { blow: indexed('assassin', 61_307), boss: indexed('assassin', 42_824), speed: 200, slowed: 10 };
 /** Her own perks' numbers: Target Sighted's Light, Blade Tornado's Dark, Silent Ambush's Light, and Transcend 5's Dark. */
 const PERKS = { heals: 0.7, mana: 200, boss: 2, stealth: { chance: 0.15, more: 1.5 } };
 
@@ -55,7 +57,7 @@ const SILENT_AMBUSH: Passive = {
     icon: '🗡️',
     art: art(3),
   },
-  words: `Deals additional P.DMG to the enemy and silences them for 1 sec upon a Critical Hit with the skill. If the target is not a Hero, deals additional P.DMG that ignores DEF and reduces the target's ATK Spd by ${AMBUSH.speed} for ${AMBUSH.slowed} sec.`,
+  words: `Deals additional ${dmg('assassin', AMBUSH.blow)} P.DMG to the enemy and silences them for 1 sec upon a Critical Hit with the skill. If the target is not a Hero, deals additional ${dmg('assassin', AMBUSH.boss)} P.DMG that ignores DEF and reduces the target's ATK Spd by ${AMBUSH.speed} for ${AMBUSH.slowed} sec.`,
 };
 /** Stealth on her; Bleed on the boss. */
 const STEALTHED: Buff = { name: 'Stealth', about: `+${STEALTH.crit} crit chance and +${STEALTH.dodge} dodge.`, icon: '🌫️', art: art(0) };
@@ -78,7 +80,7 @@ export const TANYA: HeroDef = {
     {
       name: 'Target Sighted',
       about: `The boss takes ${pct(SIGHTED.takes - 1)} more physical damage for ${SIGHTED.lasts} seconds; a blow that knocks it down (in Stealth: stunned for ${SIGHTED.stun} seconds; else, Stealth).`,
-      words: `Moves behind the enemy with the lowest P.DEF and increase their P.DMG taken by ${pct(SIGHTED.takes - 1)}, while knocking them down and inflicting P.DMG. If in a Stealth state, stun said enemy for ${SIGHTED.stun} sec. If not, gain Stealth for ${STEALTH.lasts} sec. While in a Stealth State, Crit Rate and Dodge Rate rises by ${STEALTH.crit}.`,
+      words: `Moves behind the enemy with the lowest P.DEF and increase their P.DMG taken by ${pct(SIGHTED.takes - 1)}, while knocking them down and inflicting ${dmg('assassin', SIGHTED.blow)} P.DMG. If in a Stealth state, stun said enemy for ${SIGHTED.stun} sec. If not, gain Stealth for ${STEALTH.lasts} sec. While in a Stealth State, Crit Rate and Dodge Rate rises by ${STEALTH.crit}.`,
       icon: '🎯',
       art: art(0),
       move: 'sighted',
@@ -88,7 +90,7 @@ export const TANYA: HeroDef = {
     {
       name: 'Blade Tornado',
       about: `Three blows, each a stack of Bleed on the boss (in Stealth: it is healed ${pct(1 - TORNADO.heals)} less for ${TORNADO.lasts} seconds, her Stealth spent; else, Stealth).`,
-      words: `Attacks nearby enemies 3 times and deals a total of P.DMG, inflicting 1 stack of Bleed per each hit. If used in a Stealth state, target's heal rate is reduced by ${pct(1 - TORNADO.heals)}, and Stealth is dispelled. If not, turns into Stealth mode for ${STEALTH.lasts} sec. [Stealth] Crit Rate and Dodge Rate are increased by ${STEALTH.crit}.`,
+      words: `Attacks nearby enemies 3 times and deals a total of ${dmg('assassin', TORNADO.blow * CODED.tornado.lands.length)} P.DMG, inflicting 1 stack of Bleed per each hit. If used in a Stealth state, target's heal rate is reduced by ${pct(1 - TORNADO.heals)}, and Stealth is dispelled. If not, turns into Stealth mode for ${STEALTH.lasts} sec. [Stealth] Crit Rate and Dodge Rate are increased by ${STEALTH.crit}.`,
       icon: '🌪️',
       art: art(1),
       move: 'tornado',
@@ -98,7 +100,7 @@ export const TANYA: HeroDef = {
     {
       name: 'Whisper of Death',
       about: 'Six blows and a seventh (out of Stealth: Stealth).',
-      words: `Attacks random enemies 6 times and deals a total of P.DMG, then deals one additional attack of extra P.DMG. If used in Stealth state, dispels all enemies' buffs. If not, turns into Stealth mode for ${STEALTH.lasts} sec. [Stealth] Crit Rate and Dodge Rate are increased by ${STEALTH.crit}.`,
+      words: `Attacks random enemies 6 times and deals a total of ${dmg('assassin', WHISPER.blow * (CODED.whisper.lands.length - 1))} P.DMG, then deals one additional attack of ${dmg('assassin', WHISPER.last)} extra P.DMG. If used in Stealth state, dispels all enemies' buffs. If not, turns into Stealth mode for ${STEALTH.lasts} sec. [Stealth] Crit Rate and Dodge Rate are increased by ${STEALTH.crit}.`,
       icon: '💀',
       art: art(2),
       move: 'whisper',

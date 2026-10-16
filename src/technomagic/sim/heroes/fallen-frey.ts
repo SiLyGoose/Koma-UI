@@ -5,7 +5,7 @@ import { said, t5Light } from '../perks';
 import { BLOW, MAX_MANA, SECTION } from '../rules';
 import { pct, skillArt, type Buff } from '../shown';
 import type { Fighter } from '../types';
-import { CLASS_STATS, type HeroDef, type Passive } from './kit';
+import { CLASS_STATS, dmg, healed, type HeroDef, type Passive } from './kit';
 import { CODED } from './moves';
 
 /*
@@ -28,11 +28,12 @@ import { CODED } from './moves';
  * take). What hers give in attack speed is a pace, as Blessing of Doom's is; and what they give at the beginning of a
  * battle, she gives as the fight begins (its only battle).
  */
+// (How hard each of her skills hits: the King's Raid Index hasn't her, so ×4.81 what it was, as the other priests' went to theirs from it; how much each heals, ×2.45, and shields, ×2.08, likewise.)
 const SMITE = { blow: BLOW * 1.5 };
-const LIGHT = { heal: 250_000, near: 3.6, blast: 5000 };
+const LIGHT = { heal: 612_050, near: 3.6, blast: 24_050 };
 // (Its 500 ATK Spd, as the game has it: points.)
-const BLESSING = { shield: 300_000, lasts: 10, allies: 4, speed: 500 };
-const VENGEANCE = { hits: CODED.vengeance.lands.length, blow: 1000, pierce: 500, exposed: 0.1, most: 5, lasts: 20, stun: 0.5 };
+const BLESSING = { shield: 623_630, lasts: 10, allies: 4, speed: 500 };
+const VENGEANCE = { hits: CODED.vengeance.lands.length, blow: 4810, pierce: 500, exposed: 0.1, most: 5, lasts: 20, stun: 0.5 };
 // The game's 400 mana a second, of its 1000 to a section.
 const TAINTED = { taken: 1.15, mana: 0.4 * SECTION, every: 1, most: 2 };
 /**
@@ -87,7 +88,7 @@ export const FALLEN_FREY: HeroDef = {
       auto: { heals: true },
       about: 'Heals the ally with the lowest health and those near it, then the light bursts on the boss.',
       words:
-        'Heals HP of the ally with the lowest HP and nearby allies and increases Heal Rate by 20% for 10 sec. Afterward, explodes the area around the target and deals M.DMG to enemies in range, reducing their Heal Rate by 20% for 10 sec. If this Skill is used with 1 or more stacks of [Darkened Power], consumes 1 stack and dispels positive effects of all enemies within range.',
+        `Heals ${healed('priest', LIGHT.heal)} HP of the ally with the lowest HP and nearby allies and increases Heal Rate by 20% for 10 sec. Afterward, explodes the area around the target and deals ${dmg('priest', LIGHT.blast)} M.DMG to enemies in range, reducing their Heal Rate by 20% for 10 sec. If this Skill is used with 1 or more stacks of [Darkened Power], consumes 1 stack and dispels positive effects of all enemies within range.`,
       icon: '✴️',
       art: art(0),
       move: 'light',
@@ -97,7 +98,7 @@ export const FALLEN_FREY: HeroDef = {
     {
       name: 'Blessing of Doom',
       about: `A shield on the ${BLESSING.allies} allies with the lowest health for ${BLESSING.lasts} seconds, their attacks ${pct(share(BLESSING.speed))} quicker meanwhile.`,
-      words: `Grants [Blessing of Doom] to ${BLESSING.allies} allies with the lowest HP, absorbing DMG for ${BLESSING.lasts} sec. The shield grants immunity to CC and increases ATK Spd by ${BLESSING.speed} for the duration. If this Skill is used with 1 or more stacks of [Darkened Power], consumes 1 stack to dispel negative effects from self and additionally dispels negative effects from targets.`,
+      words: `Grants [Blessing of Doom] to ${BLESSING.allies} allies with the lowest HP, absorbing ${healed('priest', BLESSING.shield)} DMG for ${BLESSING.lasts} sec. The shield grants immunity to CC and increases ATK Spd by ${BLESSING.speed} for the duration. If this Skill is used with 1 or more stacks of [Darkened Power], consumes 1 stack to dispel negative effects from self and additionally dispels negative effects from targets.`,
       icon: '🔮',
       art: art(1),
       move: 'blessing',
@@ -107,7 +108,7 @@ export const FALLEN_FREY: HeroDef = {
     {
       name: 'Heaven’s Vengeance',
       about: `${VENGEANCE.hits} blows of light on the boss, through some of its defense, each leaving it ${pct(VENGEANCE.exposed)} easier to hurt for ${VENGEANCE.lasts} seconds (up to ${VENGEANCE.most} times over). With [Darkened Power], every blow stuns it for ${VENGEANCE.stun} seconds.`,
-      words: `Brings Heaven's Vengeance upon a random enemy and nearby enemies over ${VENGEANCE.hits} hits, dealing M.DMG each hit and increasing All DMG the target takes by ${pct(VENGEANCE.exposed)} for ${VENGEANCE.lasts} sec. ${VENGEANCE.pierce} additional DEF Penetration applies to this Skill. If this Skill is used with 1 or more stacks of [Darkened Power], consumes 1 stack and inflicts Stun on the hit enemies for ${VENGEANCE.stun} sec each hit. The DMG Boost effect can be stacked up to max ${VENGEANCE.most} times.`,
+      words: `Brings Heaven's Vengeance upon a random enemy and nearby enemies over ${VENGEANCE.hits} hits, dealing ${dmg('priest', VENGEANCE.blow)} M.DMG each hit and increasing All DMG the target takes by ${pct(VENGEANCE.exposed)} for ${VENGEANCE.lasts} sec. ${VENGEANCE.pierce} additional DEF Penetration applies to this Skill. If this Skill is used with 1 or more stacks of [Darkened Power], consumes 1 stack and inflicts Stun on the hit enemies for ${VENGEANCE.stun} sec each hit. The DMG Boost effect can be stacked up to max ${VENGEANCE.most} times.`,
       icon: '☄️',
       art: art(2),
       move: 'vengeance',

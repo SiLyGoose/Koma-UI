@@ -4,7 +4,7 @@ import { said, t5Light } from '../perks';
 import { BLOW } from '../rules';
 import { fold, nth, pct, skillArt, times, type Buff } from '../shown';
 import { atTier, BARBATOS } from '../unique';
-import { CLASS_STATS, type HeroDef, type Passive } from './kit';
+import { CLASS_STATS, dmg, indexed, type HeroDef, type Passive } from './kit';
 
 /*
  * Ezekiel's skills, as the game has them (what each costs, how long before it can be used again, how long what
@@ -26,12 +26,13 @@ import { CLASS_STATS, type HeroDef, type Passive } from './kit';
  * His own perks (../perks.ts) are King's Raid's. Strike of Doom's Light has him not to be knocked down while he
  * strikes (what the boss does to a hero to hold it). What gives him ATK gives him so much more DMG, as Fury does.
  */
+// (How hard each of his skills hits is the King's Raid Index's, at his class's ATK: ./kit.ts's indexed.)
 const CLAW = { blow: BLOW * 1.2, fury: 2 };
-const INSTINCT = { swipe: 2000, strike: 2500, down: 3, fury: 1.5, cost: 0.15 };
+const INSTINCT = { swipe: indexed('assassin', 130_014), strike: indexed('assassin', 168_860), down: 3, fury: 1.5, cost: 0.15 };
 // (Its 300 ATK Spd, the boss's lowered and his own raised in Fury, as the game has it: points.)
-const DESPAIR = { blow: 3500, speed: 300, slowed: 5, stun: 3, lasts: 10, cost: 0.1 };
-const DOOM = { blow: 4500, stun: 3, fury: 3, cost: 0.2 };
-const CURSED = { most: 3, blow: 5000, down: 3, lasts: 10, atk: 0.3 };
+const DESPAIR = { blow: indexed('assassin', 270_214), speed: 300, slowed: 5, stun: 3, lasts: 10, cost: 0.1 };
+const DOOM = { blow: indexed('assassin', 294_746), stun: 3, fury: 3, cost: 0.2 };
+const CURSED = { most: 3, blow: indexed('assassin', 220_255), down: 3, lasts: 10, atk: 0.3 };
 /** His own perks' numbers: Destructive Instinct's Dark's ATK after it (how long), Fury's more Heal Rate, and less taken for each stack of Cursed Blood. */
 const PERKS = { atk: 1.4, atkFor: 5, heals: 1.5, taken: 0.12 };
 
@@ -47,7 +48,7 @@ const CURSED_BLOOD: Passive = {
     icon: '🩸',
     art: art(3),
   },
-  words: `Ezekiel gains 1 stack of 'Cursed Blood' at the end of skill. Upon the ${nth(CURSED.most)} stack, consumes Cursed Blood to reset all skill cooldown, dealing M.DMG to nearby enemies and knocking them down for ${CURSED.down} sec, while activating Fury for ${CURSED.lasts} sec, that cannot be dispelled. While in Fury state, goes into an auto-battle mode that cannot be controlled, and ATK is increased by ${pct(CURSED.atk)}, auto attack DMG is ${fold(CLAW.fury)}, and all Skill effect are reinforced. Cannot gain Cursed Blood during Fury state, except for when killing an enemy.`,
+  words: `Ezekiel gains 1 stack of 'Cursed Blood' at the end of skill. Upon the ${nth(CURSED.most)} stack, consumes Cursed Blood to reset all skill cooldown, dealing ${dmg('assassin', CURSED.blow)} M.DMG to nearby enemies and knocking them down for ${CURSED.down} sec, while activating Fury for ${CURSED.lasts} sec, that cannot be dispelled. While in Fury state, goes into an auto-battle mode that cannot be controlled, and ATK is increased by ${pct(CURSED.atk)}, auto attack DMG is ${fold(CLAW.fury)}, and all Skill effect are reinforced. Cannot gain Cursed Blood during Fury state, except for when killing an enemy.`,
 };
 /** His stacks of Cursed Blood: shown beside his passive, with how many he has. */
 const STACKED: Buff = { name: 'Cursed Blood', about: `At ${CURSED.most}, he is in [Fury].`, icon: '🩸' };
@@ -71,7 +72,7 @@ export const EZEKIEL: HeroDef = {
     {
       name: 'Destructive Instinct',
       about: `A swipe of his demon arm, then a blow to the ground that knocks the boss down for ${INSTINCT.down} seconds. In [Fury]: both ${pct(INSTINCT.fury - 1)} harder, for ${pct(INSTINCT.cost)} of the health he has.`,
-      words: `Swipes nearby enemies in a circular range and deals M.DMG. Then strikes the ground, dealing M.DMG and knocking down enemies for ${INSTINCT.down} sec. [Fury] - Consumes ${pct(INSTINCT.cost)} of current HP to activate. Effect range increases and swipe attack draws in enemies.`,
+      words: `Swipes nearby enemies in a circular range and deals ${dmg('assassin', INSTINCT.swipe)} M.DMG. Then strikes the ground, dealing ${dmg('assassin', INSTINCT.strike)} M.DMG and knocking down enemies for ${INSTINCT.down} sec. [Fury] - Consumes ${pct(INSTINCT.cost)} of current HP to activate. Effect range increases and swipe attack draws in enemies.`,
       icon: '🌀',
       art: art(0),
       move: 'instinct',
@@ -81,7 +82,7 @@ export const EZEKIEL: HeroDef = {
     {
       name: 'Dawning Despair',
       about: `A dash and a blow: the boss’s attacks ${pct(share(DESPAIR.speed))} slower for ${DESPAIR.slowed} seconds. In [Fury]: it is also stunned for ${DESPAIR.stun} seconds, and his attacks are ${pct(share(DESPAIR.speed))} quicker for ${DESPAIR.lasts}, for ${pct(DESPAIR.cost)} of the health he has.`,
-      words: `Dashes to an enemy with the highest ATK and deals M.DMG to enemies in range, reducing their ATK Spd by ${DESPAIR.speed}. [Fury] - Consumes ${pct(DESPAIR.cost)} of current HP to activate. Effect range increases, Stuns target for ${DESPAIR.stun} sec, and increases own ATK Spd by ${DESPAIR.speed} for ${DESPAIR.lasts} sec.`,
+      words: `Dashes to an enemy with the highest ATK and deals ${dmg('assassin', DESPAIR.blow)} M.DMG to enemies in range, reducing their ATK Spd by ${DESPAIR.speed}. [Fury] - Consumes ${pct(DESPAIR.cost)} of current HP to activate. Effect range increases, Stuns target for ${DESPAIR.stun} sec, and increases own ATK Spd by ${DESPAIR.speed} for ${DESPAIR.lasts} sec.`,
       icon: '💨',
       art: art(1),
       move: 'despair',
@@ -91,7 +92,7 @@ export const EZEKIEL: HeroDef = {
     {
       name: 'Strike of Doom',
       about: `A charged blow that stuns the boss for ${DOOM.stun} seconds. In [Fury]: ${times(DOOM.fury)} as hard, for ${pct(DOOM.cost)} of the health he has.`,
-      words: `Charges energy and attacks target enemy, dealing M.DMG and inflicting Stun for ${DOOM.stun} sec. Ignores target's DMG Reduction effects. [Fury] - Consumes ${pct(DOOM.cost)} of current HP to activate. Attacks enemies in range of target and DMG is ${fold(DOOM.fury)}.`,
+      words: `Charges energy and attacks target enemy, dealing ${dmg('assassin', DOOM.blow)} M.DMG and inflicting Stun for ${DOOM.stun} sec. Ignores target's DMG Reduction effects. [Fury] - Consumes ${pct(DOOM.cost)} of current HP to activate. Attacks enemies in range of target and DMG is ${fold(DOOM.fury)}.`,
       icon: '💥',
       art: art(2),
       move: 'doom',
