@@ -40,10 +40,11 @@ export const GALGORIA_FX: BossFx = {
     magic.pool(middle, SWAMPY, across * 2 + 4, SWAMP.lasts);
     magic.ring(middle, SWAMPY, across * 2 + 8, 0.7);
   },
-  explosion({ magic, place }, [hero]) {
-    if (hero !== undefined) magic.ring(place(hero, at), VENOMOUS, 5, 0.4);
+  // Its venom bursting on every hero.
+  explosion({ magic, place }, heroes) {
+    for (const hero of heroes) magic.ring(place(hero, at), VENOMOUS, 5, 0.4);
   },
-  fatal({ magic, place }, [hero]) {
-    if (hero !== undefined) magic.beam(place(hero, at), VENOMOUS, 0.5, 0.8);
+  fatal({ magic, place }, heroes) {
+    for (const hero of heroes) magic.beam(place(hero, at), VENOMOUS, 0.5, 0.8);
   },
 };

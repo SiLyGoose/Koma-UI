@@ -1,4 +1,4 @@
-import type { BossStats } from '../combat/damage';
+import type { BossStats, DamageType } from '../combat/damage';
 import type { Mark } from '../shown';
 import type { Fight, Fighter } from '../types';
 
@@ -43,14 +43,24 @@ export interface BossPart {
   shielding?(): number;
   /** Nothing slows its attacks. */
   steady?: boolean;
+  /** How many times as much it takes of each kind of damage (none said: as much as it is dealt). */
+  taken?: Partial<Record<DamageType, number>>;
+  /** No hero's life steal takes anything from it. */
+  unstolen?: boolean;
+  /** It has begun an attack, by its name. */
+  used?(attack: string): void;
+  /** Boss auto: an attack it must use next, before any other (null: none); and whether it may pick an attack now (none said: any, always). */
+  next?(): string | null;
+  ready?(attack: string): boolean;
   /** What it has going for it that only it keeps count of: marks under its health. */
   marks?(): Mark[];
 }
 
-/** At a stage: so many times a boss's health, and so many times as hard its blows. */
+/** At a stage: so many times a boss's health, so many times as hard its blows, and so many times its defenses (none said: its own). */
 export interface BossScale {
   hp: number;
   deals: number;
+  defense?: number;
 }
 
 /** A boss's scale at `stage` (1 to its last; past it, its last), alone or not. */

@@ -304,6 +304,12 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       going.set(by, moves);
     });
     events.push({ kind: 'boss-use', attack });
+    foe.part.used?.(attack);
+  }
+  /** The boss's stats as it stands the heroes' blows at this stage: its defenses so many times its own. */
+  function bossStands(): BossDef['stats'] {
+    const times = scaleAt(def, stage, solo).defense ?? 1;
+    return times === 1 ? def.stats : { ...def.stats, physical: def.stats.physical * times, magical: def.stats.magical * times };
   }
   /** One of the heroes on the field the boss can go for (not one out of the fight), at random: one standing, if any is (null: there is none). */
   const anyone = (): Fighter | null => {
@@ -638,7 +644,8 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       // (And its perks': more against the boss, and more for the skill whose blow it is. Its ACC sees past some of the boss's dodge and block.)
       const skilled = landing?.by === by ? (by.moveDmg[landing.move] ?? 1) : 1;
       const acc = by.acc + auras.acc;
-      const seen = acc > 0 ? seenPast(foe.def.stats, acc) : foe.def.stats;
+      const stood = bossStands();
+      const seen = acc > 0 ? seenPast(stood, acc) : stood;
       const through = whole || (landing?.by === by && by.moveWhole.has(landing.move));
       const against = through ? { ...seen, physical: 0, magical: 0 } : { ...seen, physical: seen.physical * defending(foe.statuses, 'physical'), magical: seen.magical * defending(foe.statuses, 'magical') };
       const { taken, blocked, dodged } = strike(amount * (atk / POINTS) * atkTimes(by) * dmgTimes(by) * attack * dealing(by.statuses) * (critical ? critTimes : 1) * by.perkDmg * skilled * (by.part.deals?.() ?? 1), type, against, pen + auras.pen + pierce + piercing(by.statuses), roll);
@@ -650,7 +657,8 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       // Its perks that mark the boss as its blows land (Vital Detection, Experienced Fighter, Special Bullet): after this one.
       const marking = by.perkDefs.filter((perk) => perk.mark && (perk.mark.every === undefined || perkDue(by, perk.mark.name, perk.mark.every)));
       // (And more or less by what is on the boss: a Shield Strike has left it easier to hurt.) Deathless: all of it, and the boss whole again once it would be beaten.
-      const dealt = deathless ? taken * taking(foe.statuses, type) : Math.min(foe.hp, taken * taking(foe.statuses, type));
+      const struck = taken * taking(foe.statuses, type) * (foe.part.taken?.[type] ?? 1);
+      const dealt = deathless ? struck : Math.min(foe.hp, struck);
       foe.hp -= dealt;
       if (deathless && foe.hp <= 0) foe.hp = foe.maxHp;
       by.dealt += dealt;
@@ -663,7 +671,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
         put(foe.statuses, { name: wound.name ?? 'Mortal Wound', left: wound.wound.lasts, heals: wound.wound.heals, shown: 'curse' });
       }
       // Lifesteal: a share of what it dealt heals it (less what the boss's skills take off healing).
-      if (by.lifesteal > 0 && by.hp > 0) {
+      if (by.lifesteal > 0 && by.hp > 0 && !foe.part.unstolen) {
         const stolen = Math.min(dealt * share(soft(by.lifesteal, SOFT.lifesteal)) * healing(by.statuses) * (foe.part.healing?.() ?? 1), by.stats.hp - by.hp);
         if (stolen > 0) by.hp += stolen;
       }
@@ -925,9 +933,13 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       const before = fighters.map((fighter) => fighter.mana);
       spent.clear();
 
-      // Boss auto: once the boss has been still a moment, another attack, picked at random.
+      // Boss auto: once the boss has been still a moment, another attack: the one it must use next, or one of those it may, picked at random.
       idle = bossBusy() ? 0 : idle + dt;
-      if (bossAuto && idle >= AUTO_WAIT) bossUse((def.attacks[Math.floor(roll() * def.attacks.length)] ?? def.attacks[0])?.name ?? '');
+      if (bossAuto && idle >= AUTO_WAIT) {
+        const forced = foe.part.next?.() ?? null;
+        const may = def.attacks.filter((one) => foe.part.ready?.(one.name) ?? true);
+        bossUse(forced ?? (may[Math.floor(roll() * may.length)] ?? def.attacks[0])?.name ?? '');
+      }
 
       for (const fighter of fighters) {
         // (Slower while something on it, or on every hero, holds its mana back.)
