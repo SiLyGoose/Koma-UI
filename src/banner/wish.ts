@@ -209,7 +209,7 @@ function reveal(pull: BannerPull): HTMLElement {
   text.append(pull.isNew ? el('p', 'wish-new', 'New!') : el('p', 'wish-owned', `You have ${pull.count}`));
   if (pull.borrowed !== null) text.append(el('p', 'wish-note', `Made for someone else: it works at ${Math.round(pull.borrowed * 100)}% for you.`));
   if (pull.uniqueWeapon) text.append(el('p', 'wish-note', `A unique weapon: only its own hero wields it. Put it on them on the Heroes page.`));
-  if (pull.uniqueTreasure) text.append(el('p', 'wish-note', `A unique treasure (UT${pull.uniqueTreasure.skill}): only its own hero wears it, as its main treasure for its effect, or as a sub treasure for its options. Put it on them on the Heroes page.`));
+  if (pull.uniqueTreasure) text.append(el('p', 'wish-note', `A unique treasure: only its own hero wears it, as its main treasure for its effect, or as a sub treasure for its options. Put it on them on the Heroes page.`));
   // (Refined as it was pulled: King's Raid's now and then.)
   if ((pull.level ?? 1) > 1) text.append(el('p', 'wish-note', `It came refined: R${pull.level}!`));
 

@@ -204,7 +204,9 @@ export const slotsFor = (copy: HeroCopy): HeroSlot[] =>
 export function slotFor(ctx: HeroesContext, copy: HeroCopy): HeroSlot {
   const hero = heroShown(ctx);
   if (copy.uniqueWeapon) return UNIQUE_SLOT;
-  const kind = slotsFor(copy);
+  // (Sub treasures only under a main one that is a unique treasure: until then, a unique treasure is the main one.)
+  const main = copyById(ctx, hero?.equipped.treasure ?? null);
+  const kind = copy.uniqueTreasure && !main?.uniqueTreasure ? (['treasure'] as HeroSlot[]) : slotsFor(copy);
   if (ctx.target && kind.includes(ctx.target)) return ctx.target;
   return kind.find((slot) => !hero?.equipped[slot]) ?? (kind[0] as HeroSlot);
 }

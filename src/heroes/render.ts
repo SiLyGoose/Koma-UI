@@ -177,7 +177,8 @@ function renderSlots(ctx: HeroesContext): void {
   const hero = heroShown(ctx);
   const treasure = (slot: HeroSlot): HeroCopy | undefined => copyById(ctx, hero?.equipped[slot] ?? null);
   const subs = ctx.ui.page.querySelector<HTMLElement>('.hero-subs');
-  if (subs) subs.hidden = !treasure('treasure')?.uniqueTreasure && !SIDE_SLOTS.some((slot) => treasure(slot));
+  // (Only a unique treasure has sub treasures.)
+  if (subs) subs.hidden = !treasure('treasure')?.uniqueTreasure;
   for (const button of ctx.ui.slots) {
     const slot = button.dataset.slot as HeroSlot;
     const copy = copyById(ctx, hero?.equipped[slot] ?? null);
@@ -212,7 +213,7 @@ function renderTotals(ctx: HeroesContext): void {
   ui.totals.textContent = '';
   for (const line of hero?.totals ?? []) ui.totals.appendChild(el('li')).append(rich(line));
   // (Its main treasure's effect, when that is one of its own unique treasures: its sub treasures give only their options.)
-  if (hero?.treasure) ui.totals.appendChild(el('li', 'hero-ut')).append(rich(`💎 **${hero.treasure.name}** (UT${hero.treasure.skill}, ★${hero.treasure.tier}): ${hero.treasure.text}`));
+  if (hero?.treasure) ui.totals.appendChild(el('li', 'hero-ut')).append(rich(`💎 **${hero.treasure.name}** (UT, ★${hero.treasure.tier}): ${hero.treasure.text}`));
   if (!hero?.owned) ui.totals.append(el('li', 'muted', notRecruited(ctx, hero?.name ?? 'this hero', 'give them gear')));
   else if (!hero.totals.length) ui.totals.append(el('li', 'muted', 'Nothing equipped yet.'));
   const perkEffects = hero?.perkEffects ?? [];
@@ -311,11 +312,11 @@ function renderDetail(ctx: HeroesContext, act: HeroActions): void {
     else if (worn || wieldable(copy, hero)) {
       if (copy.uniqueWeapon && !worn) notes.push(el('p', 'detail-note', `A unique weapon only goes in ${slotLabel(into)}.`));
       // (A unique treasure: its effect only as the main treasure; a sub treasure gives only its options.)
-      if (copy.uniqueTreasure) notes.push(el('p', 'detail-note', SIDE_SLOTS.includes(worn ?? into) ? 'As a sub treasure, only its options count: its HP and effect are the main treasure’s alone.' : 'As the main treasure, its HP and effect count too. As a sub treasure, only its options do.'));
-      // (Worn as a sub treasure: to be its main one; worn as the main one: to a sub treasure slot, the first empty one.)
-      const to = !copy.uniqueTreasure || !worn ? null : worn === 'treasure' ? (SIDE_SLOTS.find((slot) => !hero.equipped[slot]) ?? SIDE_SLOTS[0]) : 'treasure';
+      if (copy.uniqueTreasure) notes.push(el('p', 'detail-note', SIDE_SLOTS.includes(worn ?? into) ? 'As a sub treasure, only its options count: its HP and effect are the main treasure’s alone.' : 'As the main treasure, its HP and effect count too, and it holds up to three sub treasures (only their options count).'));
+      // (Worn as a sub treasure: to be its main one, the one there coming off. Not the other way: its sub treasures need a main one.)
+      const to = copy.uniqueTreasure && worn && SIDE_SLOTS.includes(worn) ? 'treasure' : null;
       if (to) {
-        const move = el('button', 'detail-action action secondary', to === 'treasure' ? 'Make Main Treasure' : `Move to ${slotLabel(to)}`);
+        const move = el('button', 'detail-action action secondary', 'Make Main Treasure');
         move.type = 'button';
         working(move, ctx.busy, `equip:${copy.id}`);
         move.addEventListener('click', () => act.equip(copy, to));
@@ -405,6 +406,29 @@ export function skillRows(id: string, skills: readonly HeroSkillView[]): HTMLEle
 
 const TIERS: readonly TranscendTier[] = [1, 2, 3, 5];
 
+/**
+ * A perk's popup, pointed at with a mouse (the raid's own: ../technomagic/hud/tip.ts): its picture, its name, its tier
+ * and side and what it costs, then what it does, its numbers marked as the Skills tab's are. Null: no such perk shown.
+ */
+export function perkTip(ctx: HeroesContext, cell: Element): Node[] | null {
+  const hero = heroShown(ctx);
+  const perk = hero ? heroPerks(hero.id, hero.class).find((one) => one.id === (cell as HTMLElement).dataset.perk) : undefined;
+  if (!perk) return null;
+  const art = el('span', 'tm-tip-art');
+  const picture = el('img');
+  picture.alt = '';
+  picture.draggable = false;
+  picture.src = perk.picture;
+  art.append(picture);
+  const facts = el('div', 'tm-tip-facts');
+  facts.append(el('strong', 'tm-tip-name', perk.name), el('span', 'tm-tip-cost', perkTag(perk)), el('span', 'tm-tip-cooldown', `${perk.cost} TP`));
+  const head = el('div', 'tm-tip-ability');
+  head.append(art, facts);
+  const about = el('p', 'tm-tip-about');
+  about.append(...skillText(perk.text));
+  return [head, about];
+}
+
 /** A perk's tier and side, as its tag says it: "Transcend 3 · Light". */
 const perkTag = (perk: Perk): string => `Transcend ${perk.tier}${perk.side ? ` · ${perk.side === 'light' ? 'Light' : 'Dark'}` : ''}`;
 
@@ -437,7 +461,8 @@ function renderTranscend(ctx: HeroesContext, act: HeroActions): void {
           const cell = el('button', 'perk');
           cell.type = 'button';
           cell.dataset.perk = perk.id;
-          cell.title = perk.side ? `${perk.name} (${perk.side === 'light' ? 'Light' : 'Dark'})` : perk.name;
+          // (Its name for a screen reader; pointed at, the raid's popup: perkTip.)
+          cell.setAttribute('aria-label', perk.side ? `${perk.name} (${perk.side === 'light' ? 'Light' : 'Dark'})` : perk.name);
           const picture = el('img');
           picture.alt = '';
           picture.src = perk.picture;

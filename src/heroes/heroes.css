@@ -82,7 +82,9 @@
 }
 
 .hero-subs .sub-box:not(.empty) {
-  background: linear-gradient(160deg, #b8f27a, #4caf2e 55%, #2f7d1a);
+  border-color: #0f3d08;
+  background: linear-gradient(160deg, #eaffb0, #7dff3c 45%, #3fd11a);
+  box-shadow: 0 0 6px rgb(125 255 60 / 70%), 0 1px 2px rgb(0 0 0 / 55%), inset 0 1px 0 rgb(255 255 255 / 60%);
 }
 
 .hero-subs .sub-box:hover,

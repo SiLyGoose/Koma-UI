@@ -3,7 +3,9 @@ import { HERO_CLASSES, HERO_SLOT_KIND, type HeroCopy, type HeroSlot, type Heroes
 import type { HeroesSold } from '../protocol/heroes';
 import { busyWith, dropdown, fillServers } from '../shared/ui';
 import { createContext, heroShown, mine, status, type HeroesContext, type HeroesHost, type HeroMember } from './context';
-import { render, type HeroActions } from './render';
+import { perkTip, render, type HeroActions } from './render';
+import { pointTips } from '../technomagic/hud/tip';
+import '../technomagic/styles/tip.css';
 
 /*
  * The heroes page (/heroes/): the TechnoMagic Raid's heroes (the bot's /api/heroes), laid out as the gear
@@ -67,6 +69,8 @@ function failed(ctx: HeroesContext, act: HeroActions, res: { status: number; err
             ? 'That doesn’t go there: a unique weapon only goes in Weapon I, and only a hero’s own unique treasures go in its sub treasure slots.'
           : res.error === 'duplicate'
             ? 'This hero already wears a copy of that unique treasure: each of its four once.'
+          : res.error === 'no_main_treasure'
+            ? 'Only a unique treasure has sub treasures: put one of this hero’s unique treasures in its main treasure slot first.'
           : res.error === 'busy'
             ? 'Your heroes’ gear changed meanwhile. Try again.'
           : res.error === 'too_many_points'
@@ -312,6 +316,8 @@ function wire(ctx: HeroesContext, act: HeroActions): () => void {
   }
 
   ui.resetPerks.addEventListener('click', () => act.perks([], 'reset-perks'));
+  // A perk pointed at: the raid's popup over it, saying what it does.
+  pointTips(ui.perkRows, '.perk', (cell) => perkTip(ctx, cell));
 
   ui.unequipAll.addEventListener('click', () => {
     const hero = ctx.hero;
