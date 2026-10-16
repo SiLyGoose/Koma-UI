@@ -11,4 +11,6 @@ export interface ShopTab {
   markup: string;
   /** Sets it up in `root` (a fresh copy of its markup), as a site page does (../site/page.ts). */
   mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void };
+  /** Asks the bot now for what mount() will (../site/page.ts's prefetch, the shop's for the tab gone to). */
+  prefetch?(): void;
 }

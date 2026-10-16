@@ -2,7 +2,7 @@ import markup from './dressing.html?raw';
 import { API, busyWith, dropdown, fillServers } from '../shared/ui';
 import type { OutfitsView } from '../shared/outfits';
 import type { Page } from '../site/page';
-import { api, currentMe, currentServer, loadMe, logOut, setServer } from '../site/session';
+import { api, currentMe, currentServer, loadMe, logOut, prefetchFor, setServer } from '../site/session';
 import { createContext, status, type DressingContext } from './context';
 import { render } from './render';
 
@@ -15,7 +15,7 @@ import { render } from './render';
  * shirt button opens it. Logged-in members only, in the server picked.
  */
 
-export const dressingPage: Page = { title: 'Dressing Room · Komaverse', icon: '👗', markup, mount };
+export const dressingPage: Page = { title: 'Dressing Room · Komaverse', icon: '👗', markup, mount, prefetch: () => prefetchFor((guild) => `/api/outfits?guild=${guild}`) };
 
 function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void } {
   const ctx = createContext(root);

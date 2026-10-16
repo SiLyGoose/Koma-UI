@@ -1,6 +1,7 @@
 import markup from './databank.html?raw';
 import { API } from '../shared/ui';
 import type { Page } from '../site/page';
+import { prefetchFor } from '../site/session';
 import { bossById, classById, createContext, heroById, itemById, status, type DatabankContext, type View } from './context';
 import { wireControls } from './controls';
 import { loadDatabank } from './load';
@@ -25,7 +26,17 @@ import { render } from './render';
  * the server picker and the X out of a section, back to the way in.
  */
 
-export const databankPage: Page = { title: 'Databank · Komaverse', icon: '📖', markup, mount };
+export const databankPage: Page = {
+  title: 'Databank · Komaverse',
+  icon: '📖',
+  markup,
+  mount,
+  // The databank (kept for the session once read: ./load.ts), and, logged in, what they own and how the raid stands (./owned.ts).
+  prefetch: () => {
+    if (API) void loadDatabank();
+    prefetchFor((guild) => `/api/gear?guild=${guild}`, (guild) => `/api/raid/week?guild=${guild}`);
+  },
+};
 
 const PATHS: Record<View, string> = { hub: '/databank/', items: '/databank/items/', bosses: '/databank/bosses/', classes: '/databank/classes/', heroes: '/databank/heroes/' };
 

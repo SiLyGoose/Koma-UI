@@ -1,7 +1,7 @@
 import markup from './raid-shop.html?raw';
 import { API, busyWith, dropdown, fillServers } from '../shared/ui';
 import type { ShopTab } from '../shop/tab';
-import { api, currentMe, currentServer, loadMe, logOut, setServer } from '../site/session';
+import { api, currentMe, currentServer, loadMe, logOut, prefetchFor, setServer } from '../site/session';
 import { createContext, status, type Asking, type RaidShopContext } from './context';
 import { render, renderAsk, renderTimer } from './render';
 import type { RaidShopView } from './types';
@@ -21,7 +21,7 @@ const ICON = '<svg viewBox="0 0 24 24"><path d="M12 2 4 5v6c0 5 3.4 9.3 8 11 4.6
 /** How often the time until the shelf changes is said again (and the shelf fetched once it has). */
 const TICK_MS = 30_000;
 
-export const raidShopTab: ShopTab = { id: 'raid', label: 'Raid Gear', title: 'Raid Gear · Komaverse', icon: ICON, markup, mount };
+export const raidShopTab: ShopTab = { id: 'raid', label: 'Raid Gear', title: 'Raid Gear · Komaverse', icon: ICON, markup, mount, prefetch: () => prefetchFor((guild) => `/api/raid-shop?guild=${guild}`) };
 
 function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void } {
   const ctx = createContext(root);

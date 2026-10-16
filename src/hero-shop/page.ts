@@ -4,7 +4,7 @@ import { el } from '../shared/items';
 import { API, busyWith, dropdown, fillServers, working, type Busy } from '../shared/ui';
 import { coin, points } from '../shared/util';
 import type { ShopTab } from '../shop/tab';
-import { api, currentMe, currentServer, loadMe, logOut, setServer } from '../site/session';
+import { api, currentMe, currentServer, loadMe, logOut, prefetchFor, setServer } from '../site/session';
 
 /*
  * The shop's Heroes tab (../shop/page.ts): a card for each of the TechnoMagic Raid's heroes (the bot's
@@ -18,7 +18,7 @@ import { api, currentMe, currentServer, loadMe, logOut, setServer } from '../sit
 const ICON =
   '<svg viewBox="0 0 24 24"><path d="M4 3h3l9 9-1.5 1.5L5.5 4.5 4 6Zm16 0v3l-9 9-1.5-1.5 9-9ZM6.6 14.2l3.2 3.2-1.4 1.4-1-1-2.4 2.4H3.6v-1.4L6 16.4l-1-1Zm10.8 0 1.4 1.4-1 1 2.4 2.4V20.4h-1.4L16.4 18l-1 1-1.4-1.4Z" fill="currentColor"/></svg>';
 
-export const heroShopTab: ShopTab = { id: 'heroes', label: 'Heroes', title: 'Heroes · Komaverse', icon: ICON, markup, mount };
+export const heroShopTab: ShopTab = { id: 'heroes', label: 'Heroes', title: 'Heroes · Komaverse', icon: ICON, markup, mount, prefetch: () => prefetchFor((guild) => `/api/heroes?guild=${guild}`) };
 
 interface Ui {
   server: HTMLSelectElement;
