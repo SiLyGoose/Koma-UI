@@ -171,10 +171,9 @@
   image-rendering: pixelated;
 }
 
-/* The TechnoMagic Raid: its field's dusk (no picture). */
 .technomagic-art {
-  letter-spacing: 0;
-  background: linear-gradient(180deg, #1b1a2b 0%, #3b2a4a 60%, #6a3f55 100%);
+  /* A fight against Galgoria (../../public/technomagic/cover.jpg), the party and the boss in the middle. */
+  background: #1b1a2b url('/technomagic/cover.jpg') center / cover no-repeat;
 }
 
 .mines-art {
