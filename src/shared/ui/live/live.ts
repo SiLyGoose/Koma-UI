@@ -8,6 +8,11 @@ import { navigate } from '../../transition';
  *
  * The games put it in the frame's title bar and ask with their link's token; the front page puts it
  * by the member's profile and asks with their login.
+ *
+ * A tab in the background asks nothing, and asks again as it comes back. (On the site's pages asking is what
+ * counts them as on the site, so they drop off the list a little after leaving the tab; a game counts them
+ * by its own connection, which stays.) The list itself is drawn only while it's open, and only when what it
+ * says has changed.
  */
 
 type Activity = 'hub' | 'mines' | 'pinecraft' | 'baccarat' | 'roulette' | 'poker' | 'raid' | 'minesweeper';
@@ -67,14 +72,26 @@ export function startLive(options: LiveOptions): void {
 
   let live: Live | null = null;
   let timer: ReturnType<typeof setTimeout> | null = null;
+  /** Asking now (another ask meanwhile waits for this one). */
+  let asking = false;
+  /** What the list was last drawn from (the answer, and the minute its times were said in). */
+  let drawn = '';
   const url = (path: string): string => `${options.api}${path}${options.query?.() ?? ''}`;
 
   function render(): void {
     if (!live) return;
     const count = live.players.length;
     button.hidden = false;
-    button.innerHTML = '<span class="live-dot"></span>';
-    button.append(`${count} online`);
+    const label = `${count} online`;
+    if (button.textContent !== label) {
+      button.innerHTML = '<span class="live-dot"></span>';
+      button.append(label);
+    }
+    // The list only while it's open (open() draws it), and only when it would say something else.
+    if (panel.hidden) return;
+    const key = `${Math.floor(Date.now() / 60_000)}|${JSON.stringify(live)}`;
+    if (key === drawn) return;
+    drawn = key;
     panel.textContent = '';
     panel.append(el('div', 'live-head', count === 1 ? 'Just you here' : `${count} on the site`));
     for (const p of live.players) {
@@ -103,8 +120,11 @@ export function startLive(options: LiveOptions): void {
   async function refresh(): Promise<void> {
     if (timer) clearTimeout(timer);
     timer = null;
+    // In the background: nothing asked until the tab is back (visibilitychange).
+    if (asking || document.hidden) return;
     const auth = options.auth();
     if (auth) {
+      asking = true;
       try {
         const res = await fetch(url('/api/live'), { headers: { Authorization: auth } });
         if (res.ok) {
@@ -113,9 +133,11 @@ export function startLive(options: LiveOptions): void {
         }
       } catch {
         // The bot didn't answer: try again next time.
+      } finally {
+        asking = false;
       }
     }
-    timer = setTimeout(() => void refresh(), panel.hidden ? POLL_MS : POLL_OPEN_MS);
+    if (!document.hidden) timer = setTimeout(() => void refresh(), panel.hidden ? POLL_MS : POLL_OPEN_MS);
   }
 
   async function startWatching(game: Exclude<Activity, 'hub'>, target: string, watch: HTMLButtonElement): Promise<void> {
@@ -135,6 +157,8 @@ export function startLive(options: LiveOptions): void {
     } catch {
       tab?.close();
       watch.textContent = 'Not playing now';
+      // (The list drawn again from the next answer, even if it says the same.)
+      drawn = '';
       void refresh();
     } finally {
       watch.disabled = false;
@@ -144,6 +168,8 @@ export function startLive(options: LiveOptions): void {
   function open(): void {
     panel.hidden = false;
     button.setAttribute('aria-expanded', 'true');
+    // What it knows already at once, then asked afresh.
+    render();
     void refresh();
   }
 
@@ -158,6 +184,10 @@ export function startLive(options: LiveOptions): void {
   });
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && !panel.hidden) close();
+  });
+  // Back to the tab: asked at once.
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) void refresh();
   });
   void refresh();
 }
