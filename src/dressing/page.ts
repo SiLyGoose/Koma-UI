@@ -15,7 +15,7 @@ import { render } from './render';
  * shirt button opens it. Logged-in members only, in the server picked.
  */
 
-export const dressingPage: Page = { path: '/dressing-room', title: 'Dressing Room · Komaverse', icon: '👗', markup, needsLogin: true, mount };
+export const dressingPage: Page = { title: 'Dressing Room · Komaverse', icon: '👗', markup, mount };
 
 function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void } {
   const ctx = createContext(root);

@@ -21,7 +21,7 @@ const TABS: readonly ShopTab[] = [wishTab, outfitsTab, heroShopTab, raidShopTab]
 /** The tab for a path under /shop/ (the first for /shop/ itself, or one there isn't). */
 const tabAt = (path: string): ShopTab => TABS.find((tab) => path.replace(/\/+$/, '') === `/shop/${tab.id}`) ?? (TABS[0] as ShopTab);
 
-export const shopPage: Page = { path: '/shop', subpaths: true, title: 'Shop · Komaverse', icon: '🛍️', markup, needsLogin: true, mount };
+export const shopPage: Page = { title: 'Shop · Komaverse', icon: '🛍️', markup, mount };
 
 function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void; navigate: (url: URL) => void } {
   const rail = root.querySelector('.shop-rail') as HTMLElement;

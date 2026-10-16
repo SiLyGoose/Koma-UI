@@ -18,7 +18,7 @@ const GAMES: readonly Game[] = ['mines', 'pinecraft', 'baccarat', 'roulette', 'p
 
 const points = (n: number): string => n.toLocaleString('en-US');
 
-export const hubPage: Page = { path: '', title: 'Komaverse', icon: '🎮', markup, mount };
+export const hubPage: Page = { title: 'Komaverse', icon: '🎮', markup, mount };
 
 function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void } {
   const $ = <T extends HTMLElement>(id: string): T => root.querySelector(`#${id}`) as T;

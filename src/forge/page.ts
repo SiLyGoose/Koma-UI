@@ -24,7 +24,7 @@ import { pick } from './picking';
  * everything that can be pressed.
  */
 
-export const forgePage: Page = { path: '/forge', title: 'Forge · Komaverse', icon: '🔨', markup, needsLogin: true, mount };
+export const forgePage: Page = { title: 'Forge · Komaverse', icon: '🔨', markup, mount };
 
 function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void } {
   const ctx = createContext(root);

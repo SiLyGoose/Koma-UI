@@ -23,7 +23,7 @@ import { render, type HeroActions } from './render';
  * those of someone else in the server who has heroes, to look at (nothing on them can be changed then).
  */
 
-export const heroesPage: Page = { path: '/heroes', title: 'Heroes · Komaverse', icon: '🐲', markup, needsLogin: true, mount };
+export const heroesPage: Page = { title: 'Heroes · Komaverse', icon: '🐲', markup, mount };
 
 function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void } {
   const ctx = createContext(root);

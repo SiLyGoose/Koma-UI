@@ -26,7 +26,7 @@ import type { Databank } from './types';
  * the server picker and the X out of a section, back to the way in.
  */
 
-export const databankPage: Page = { path: '/databank', subpaths: true, title: 'Databank · Komaverse', icon: '📖', markup, mount };
+export const databankPage: Page = { title: 'Databank · Komaverse', icon: '📖', markup, mount };
 
 const PATHS: Record<View, string> = { hub: '/databank/', items: '/databank/items/', bosses: '/databank/bosses/', classes: '/databank/classes/', heroes: '/databank/heroes/' };
 
