@@ -52,6 +52,17 @@ export interface RiggedModel {
    */
   attack?: readonly { file: string }[];
   /**
+   * Its attack goes straight on into the next (a skin of the game's own files, with no idle): as one ends it is eased
+   * from where that leaves it to where its attack begins, ready for the next, not back to how it stands (unless none comes).
+   */
+  chained?: boolean;
+  /**
+   * What is in its right hand is loosed (an arrow; a skin of the game's own files, with no idle): gone from its hand as
+   * each move played by these animations lands its first blow (the shot), and back as it reaches to draw again: `nock`
+   * seconds into its attack's animation, or as a skill played by these begins (drawn already).
+   */
+  loosed?: { nock: number };
+  /**
    * Animations its skills are played with, by the name of the move each would otherwise be (one with none here is
    * the move written in code), each timed as its hero's skill is in the fight (HeroDef.timing).
    */
@@ -67,6 +78,9 @@ export interface SkillAnimation {
   file: string;
   folder?: string;
   span?: readonly [number, number];
+  /** Played crouched (its hips this much lower, in its model's lengths, its feet where they were) and aimed up (its chest leant back this far, radians). */
+  crouch?: number;
+  aimUp?: number;
 }
 
 /** Where something is held in a hand, in that hand's own axes (its bone's): how far from it, and how it is turned (about x, y and z, in that order, in radians). */

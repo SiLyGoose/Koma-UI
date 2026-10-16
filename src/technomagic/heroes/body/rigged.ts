@@ -68,10 +68,13 @@ function cut(clip: AnimationClip, [from, to]: readonly [number, number], length:
   return new AnimationClip(clip.name, length, tracks);
 }
 
-/** An animation of a move, and when to leave it (as the fight times it). */
+/** An animation of a move, when its blows land and when to leave it (as the fight times it), and how it is played otherwise (crouched, aimed up: SkillAnimation's). */
 export interface Played {
   clip: AnimationClip;
   until: number;
+  lands: readonly number[];
+  crouch?: number;
+  aimUp?: number;
 }
 
 /** What moves a hero: its idle and its run (none, or an idle alone, for a rig read only for some of what it does), its attack's animations one after another, and an animation for some of its skills (by their move's name). */
@@ -82,6 +85,10 @@ export interface Animations {
   skills: Readonly<Record<string, Played>>;
   /** Running in its run with no idle: the way the blade in its right hand is held pointing (its rig's `bladeRunning`). */
   bladeRunning?: Vector3;
+  /** Its attack goes straight on into the next (its rig's `chained`). */
+  chained?: boolean;
+  /** What is in its right hand is loosed as it shoots (its rig's `loosed`). */
+  loosed?: { nock: number };
 }
 
 /**
@@ -172,7 +179,7 @@ export async function loadRigged(name: string, owner: { folder: string }, files:
   const attack = attacks.flatMap((_, i) => {
     const clip = attacking[i]?.animations[0];
     const span = timing.attack?.[i];
-    return clip && span ? [{ clip: staying(clip), until: span.until }] : [];
+    return clip && span ? [{ clip: staying(clip), until: span.until, lands: span.lands }] : [];
   });
   const played = Object.fromEntries(
     skills.flatMap(([move, skill], i) => {
@@ -183,8 +190,8 @@ export async function loadRigged(name: string, owner: { folder: string }, files:
       const made = skill.span ? cut(clip, skill.span, span.until) : clip;
       const own = others.get(clip);
       if (own) others.set(made, own);
-      return [[move, { clip: staying(made), until: span.until }] as const];
+      return [[move, { clip: staying(made), until: span.until, lands: span.lands, ...(skill.crouch && { crouch: skill.crouch }), ...(skill.aimUp && { aimUp: skill.aimUp }) }] as const];
     }),
   );
-  return { stood: { ...hang([space], hips.y), models: [space], rig, hips, feet, blade, materials }, space, animations: { idle: clips.idle, run: clips.run && inPlace(clips.run), attack, skills: played, ...(files.bladeRunning && { bladeRunning: new Vector3(...files.bladeRunning).normalize() }) }, others };
+  return { stood: { ...hang([space], hips.y), models: [space], rig, hips, feet, blade, materials }, space, animations: { idle: clips.idle, run: clips.run && inPlace(clips.run), attack, skills: played, ...(files.bladeRunning && { bladeRunning: new Vector3(...files.bladeRunning).normalize() }), ...(files.chained && { chained: true }), ...(files.loosed && { loosed: files.loosed }) }, others };
 }

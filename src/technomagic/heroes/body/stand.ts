@@ -99,5 +99,5 @@ export async function standHero(owner: HeroAssets, model: PartsModel): Promise<S
   const rig = new Rig(parts);
   // Where its feet are as it stands: they are placed from there.
   const feet = { L: rig.at('Bip001_L_Foot'), R: rig.at('Bip001_R_Foot') };
-  return { root, body, middle, models: parts, rig, hips, feet, blade, muzzle, shield, sheath, materials: materialsOf([...parts, ...held, ...floats]), floating: floated };
+  return { root, body, middle, models: parts, rig, hips, feet, blade, muzzle, ...(sword && { inRight: sword }), shield, sheath, materials: materialsOf([...parts, ...held, ...floats]), floating: floated };
 }

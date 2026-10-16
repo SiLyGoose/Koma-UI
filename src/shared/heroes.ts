@@ -58,7 +58,30 @@ export const FACE: Frame = { wide: 1.7, tall: 1.7, above: 0.35, fit: {
     lorraine: { zoom: 1.45, x: 0.02, y: 0.23 },
     valance: { zoom: 1.8, x: -0.215, y: 0.22 },
     seria: { zoom: 1.4, x: 0.04, y: 0.23 },
+    lucikiel: { zoom: 1.9, x: 0.06, y: 0.06 },
+    selene: { zoom: 2, x: 0.03, y: -0.02 },
+    crow: { zoom: 1.9, x: -0.05, y: 0.02 },
+    naila: { zoom: 2, x: -0.07, y: 0.06 },
   },
+};
+/** The heroes page's stage: a hero's whole picture this many times as tall as the stage, where its face is small in it (by id). */
+export const STAGE_ZOOM: Readonly<Record<string, number>> = {
+  'fallen-frey': 1.5,
+  annette: 1.8,
+  ezekiel: 1.45,
+  gremory: 1.85,
+  kirze: 1.75,
+  klaus: 1.4,
+  laias: 1.5,
+  lorraine: 1.35,
+  lucikiel: 1.4,
+  morrah: 1.9,
+  oddy: 1.1,
+  seria: 1.3,
+  valance: 1.45,
+  naila: 1.7,
+  crow: 1.6,
+  selene: 1.6,
 };
 export const BUST: Frame = { wide: 3.4, tall: 4.6, above: 0.45 };
 /**
@@ -75,6 +98,12 @@ export const SHOP_BUST: Frame = { ...BUST, fit: {
     ezekiel: { zoom: 1.6, x: 0.4, y: -0.25 },
     lorraine: { zoom: 1.03, x: 0.02, y: 0.09 },
     valance: { zoom: 1.45, x: -0.14, y: 0.21 },
+    selene: { zoom: 1.5, x: 0.02, y: 0.22 },
+    crow: { zoom: 1.45, x: -0.05, y: 0.25 },
+    naila: { zoom: 1.5, x: -0.05, y: 0.18 },
+    // Short ones (a red panda, a dwarf): set lower than the others, to fill the card down to their feet.
+    oddy: { zoom: 1.15, x: 0, y: -0.9 },
+    phillop: { zoom: 1.15, x: 0, y: -0.75 },
   },
 };
 

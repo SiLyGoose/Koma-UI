@@ -16,8 +16,7 @@ import type { GearBonus, GearStat } from './types';
  * PerkDef's other fields say, and ./fight.ts does them; a hero's own that do more are its part's (./heroes/).
  *
  * Each number a perk's words say that the fight uses is written once: in its data (`said` fills its words in from it),
- * or in its hero's own numbers. What the fight hasn't (an archer's, those that do nothing here) its words say as they
- * are. A chance or a share in points (CC resist, crit chance, ATK Spd...) is 10 to 1%: 1000 is 100% (POINTS).
+ * or in its hero's own numbers. What the fight hasn't (those that do nothing here) its words say as they are. A chance or a share in points (CC resist, crit chance, ATK Spd...) is 10 to 1%: 1000 is 100% (POINTS).
  */
 
 /** Every ally gains this much while a hero with the perk is on the field and standing; with another hero's same perk there too, only `again` more for each. */
@@ -42,8 +41,17 @@ export interface PerkDef {
   acc?: number;
   /** Its ATK rises by this share of its physical defense. */
   atkFromDefense?: number;
-  /** What every ally gains while its hero is on the field and standing (ATK, crit DMG and max HP as shares; crit chance, attack speed, CC ACC and CC resist as points; `mend`, a share of each one's max HP healed every second). */
-  allies?: Partial<Record<'atk' | 'crit' | 'critDamage' | 'speed' | 'accuracy' | 'resist' | 'hp' | 'mend', Aura>>;
+  /** What every ally gains while its hero is on the field and standing (ATK, crit DMG and max HP as shares; crit chance, attack speed, penetration, ACC, CC ACC and CC resist as points; `mend`, a share of each one's max HP healed every second). */
+  allies?: Partial<Record<'atk' | 'crit' | 'critDamage' | 'speed' | 'pen' | 'acc' | 'accuracy' | 'resist' | 'hp' | 'mend', Aura>>;
+  /**
+   * A critical blow of its hero's leaves the boss healed `heals` as much and losing so much every second (`each`, in
+   * thousandths of its hero's ATK, as a blow's numbers are) for `lasts` seconds; one already on it is begun again.
+   */
+  wound?: { heals: number; each: number; lasts: number };
+  /** Every `every` seconds of the fight, its hero's crit DMG is `critDamage` more (a share), up to `most` times. */
+  focus?: { critDamage: number; every: number; most: number };
+  /** Every one of its hero's skills costs `cost` more mana sections, and its blows are `dmg` times as hard. */
+  allSkills?: { cost: number; dmg: number };
   /** Hit by the boss: the boss's DMG is `deals` times as much for `lasts` seconds; again no sooner than `every` seconds after. */
   curse?: { deals: number; lasts: number; every: number };
   /** Hurt by the boss: immune to its next `hits` blows; again no sooner than `every` seconds after. */
@@ -89,10 +97,7 @@ const TACTICAL_FORESIGHT: PerkDef = said({ name: 'Tactical Foresight', bonus: { 
 const BLESSING_OF_MANA: PerkDef = said({ name: 'Blessing of Mana', bonus: { manaRegen: 2.5 } }, ({ bonus }) => `Mana recovery per second rises by ${pct(bonus.manaRegen)}.`);
 const TARGET_WEAKNESS: PerkDef = said({ name: 'Target Weakness', bonus: { atk: 0.2, pen: 200 } }, ({ bonus }) => `ATK rises by ${pct(bonus.atk)} and DEF Penetration rises by ${bonus.pen}.`);
 
-/**
- * Transcend 2: each class's five, in the bot's order (class-1 to class-5). An archer's are in words only: there is no
- * archer yet, and they come with the first.
- */
+/** Transcend 2: each class's five, in the bot's order (class-1 to class-5). */
 export const CLASS_PERKS: Readonly<Record<HeroClass, readonly PerkDef[]>> = {
   warrior: [
     OPPORTUNE_STRIKE,
@@ -135,11 +140,21 @@ export const CLASS_PERKS: Readonly<Record<HeroClass, readonly PerkDef[]>> = {
     ),
   ],
   archer: [
-    { name: 'Precision Shot', words: 'ATK rises by 20% and ACC rises by 400.' },
-    { name: 'Eagle Eye', words: "All allies' Penetration is increased by 150, and ACC is increased by 75. When overlapped with the same perk, gains only 50 Penetration and 25 ACC." },
-    { name: 'Mortal Wound', words: 'Successful Crit Attack reduces enemy recovery rate by 50% and deals Physical continuous DMG every second equal to 20% of ATK. Does not stack.' },
-    { name: 'Opportune Strike', words: OPPORTUNE_STRIKE.words },
-    { name: 'Concentration', words: 'Every 6 sec, increases own Crit DMG by 4%. This effect can be stacked up to a max of 20 times and cannot be dispelled.' },
+    said({ name: 'Precision Shot', bonus: { atk: 0.2 }, acc: 400 }, ({ bonus, acc }) => `ATK rises by ${pct(bonus.atk)} and ACC rises by ${acc}.`),
+    said(
+      { name: 'Eagle Eye', allies: { pen: aura(150, 50), acc: aura(75, 25) } },
+      ({ allies: { pen, acc } }) => `All allies' Penetration is increased by ${pen.first}, and ACC is increased by ${acc.first}. When overlapped with the same perk, gains only ${pen.again} Penetration and ${acc.again} ACC.`,
+    ),
+    // (How long it lasts the game doesn't say: 5 seconds here, begun again by each critical blow.)
+    said(
+      { name: 'Mortal Wound', wound: { heals: 0.5, each: 200, lasts: 5 } },
+      ({ wound }) => `Successful Crit Attack reduces enemy recovery rate by ${pct(1 - wound.heals)} and deals Physical continuous DMG every second equal to ${pct(wound.each / 1000)} of ATK. Does not stack.`,
+    ),
+    OPPORTUNE_STRIKE,
+    said(
+      { name: 'Concentration', focus: { critDamage: 0.04, every: 6, most: 20 } },
+      ({ focus }) => `Every ${focus.every} sec, increases own Crit DMG by ${pct(focus.critDamage)}. This effect can be stacked up to a max of ${focus.most} times and cannot be dispelled.`,
+    ),
   ],
   knight: [
     said({ name: 'Experienced Fighter', mark: { name: 'Experienced Fighter', takes: 1.2, lasts: Infinity } }, ({ mark }) => `Attacked targets take ${pct(mark.takes - 1)} more DMG. Does not stack.`),
@@ -186,6 +201,8 @@ export function moveDmg(def: HeroDef, perks: ReadonlyMap<string, PerkDef>): Part
   for (const perk of perks.values()) {
     const ability = perk.skill?.dmg !== undefined ? def.abilities[perk.skill.index] : undefined;
     if (ability) out[ability.move] = (out[ability.move] ?? 1) * (perk.skill?.dmg ?? 1);
+    // (One for every skill: each of them.)
+    if (perk.allSkills) for (const { move } of def.abilities) out[move] = (out[move] ?? 1) * perk.allSkills.dmg;
   }
   return out;
 }
@@ -221,12 +238,12 @@ export function auraTotal(heroes: readonly (readonly PerkDef[])[], key: keyof No
   return total;
 }
 
-/** A skill as a hero's perks for it change it (its cost and cooldown); with none, as it is. */
+/** A skill as a hero's perks for it (or for every skill) change it (its cost and cooldown); with none, as it is. */
 export function tweaked(ability: Ability, perks: readonly PerkDef[]): Ability {
   if (perks.length === 0) return ability;
   let { cost, cooldown } = ability;
-  for (const { skill } of perks) {
-    cost += skill?.cost ?? 0;
+  for (const { skill, allSkills } of perks) {
+    cost += (skill?.cost ?? 0) + (allSkills?.cost ?? 0);
     cooldown = (cooldown + (skill?.cooldown ?? 0)) * (skill?.cooldownShare ?? 1);
   }
   return { ...ability, cost: Math.max(0, cost), cooldown: Math.max(0, cooldown) };
@@ -254,8 +271,8 @@ export function ownAuras(perks: Iterable<PerkDef>): Partial<Record<keyof NonNull
   return out;
 }
 
-/** The stat each aura raises, as gear's bonus has it (Inner Peace's heal every second is none). */
-const AURA_STAT: Partial<Record<keyof NonNullable<PerkDef['allies']>, GearStat>> = { atk: 'atk', crit: 'crit', critDamage: 'critDamage', speed: 'speed', accuracy: 'accuracy', resist: 'resist', hp: 'hp' };
+/** The stat each aura raises, as gear's bonus has it (Inner Peace's heal every second, and Eagle Eye's ACC, are none). */
+const AURA_STAT: Partial<Record<keyof NonNullable<PerkDef['allies']>, GearStat>> = { atk: 'atk', crit: 'crit', critDamage: 'critDamage', speed: 'speed', pen: 'pen', accuracy: 'accuracy', resist: 'resist', hp: 'hp' };
 
 /**
  * What a hero's perks give its own stats, as gear's bonus has them (ATK, max HP and crit DMG shares; chances and the

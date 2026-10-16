@@ -30,6 +30,19 @@ import { fine, pct, type Buff } from './shown';
  *   magical damage for a while. (The game's also lowers its M.DEF: left out. Her part does it: ./heroes/lorraine.ts.)
  * - Valance, Wonder of Magos Le'Flamme, Corbeau Rose: every ally gains by the TechnoMagic gear it wears, the same at
  *   every tier. (Her part does it: ./heroes/valance.ts.)
+ * - Lucikiel, Form of Ultimate Destruction, Barbatos Gigante: every 10 of his blows a stack of Incarnation of Doom (up
+ *   to 10), each his ATK and attack speed higher; at 10, each blow of his deals more through the boss's defense. (His part
+ *   does it: ./heroes/lucikiel.ts.)
+ * - Selene, Green Winds, Notos: a critical blow quickens her for a while, and meanwhile her attack shoots an arrow
+ *   more. (Her part does it: ./heroes/selene.ts.)
+ * - Crow, Hellhound, Akistra: his attack shoots a bullet more, and a skill of his raises his ATK and crit damage for a
+ *   while, no sooner than that while after the last. (His part does it: ./heroes/crow.ts.)
+ * - Oddy, Moonshade Countdown, Tempodiana: her Time Distortion takes more off every ally's cooldowns, and raises their
+ *   ATK for a while. (Her part does it: ./heroes/oddy.ts.)
+ * - Phillop, Dragon's Ruins, Atein: hurt by the boss, every other ally's defense is higher a moment, and he gains a
+ *   stack of Dragon Rage (up to 100, for a while), each his ATK and defense higher. (His part does it: ./heroes/phillop.ts.)
+ * - Naila, Cursed Claws, Baroro: a critical blow of hers leaves the boss losing health for a while, and taking more
+ *   physical damage meanwhile. (Her part does it: ./heroes/naila.ts.)
  *
  * The game's shares of ATK are as they are for damage (this raid's blows are counted in thousandths of them: ./combat/),
  * and for a heal (a share of ATK: its hero's health and attack are the game's own, so it mends as much as there).
@@ -61,6 +74,19 @@ export const BARBATOS = { name: 'Jailer of Despair, Barbatos', longer: [3, 4, 5,
 /** How often (seconds) it strikes a poisoned boss, how hard (at ATK), and how much more magical damage the boss takes after, for `lasts` seconds. */
 export const ROBURU = { name: 'World Tree’s Will, Roburu', every: 7, blow: [1200, 1400, 1700, 2100, 2500], takes: [0.12, 0.14, 0.17, 0.21, 0.25], lasts: 10 };
 
+/** How many blows gain him a stack, the most stacks, what each adds to his ATK (a share) and attack speed (points), and at the most his blows' blow more (at ATK, through the boss's defense). */
+export const GIGANTE = { name: 'Form of Ultimate Destruction, Barbatos Gigante', blows: 10, most: 10, atk: [0.048, 0.058, 0.07, 0.084, 0.1], speed: [24, 29, 35, 42, 50], blow: [360, 430, 520, 630, 750] };
+/** Her attack speed (points) after a critical blow, for `lasts` seconds, and meanwhile the arrow more each attack shoots (at ATK). */
+export const NOTOS = { name: 'Green Winds, Notos', lasts: 10, speed: [240, 280, 340, 410, 500], arrow: [1200, 1400, 1700, 2100, 2500] };
+/** The bullet more his attack shoots (at ATK); and after a skill his ATK and crit damage higher (shares) for `lasts` seconds, no sooner than `every` after the last. */
+export const AKISTRA = { name: 'Hellhound, Akistra', bullet: [600, 700, 850, 1000, 1250], boost: [0.36, 0.43, 0.52, 0.62, 0.75], lasts: 20, every: 20 };
+/** How many seconds more her Time Distortion takes off every ally's cooldowns, and their ATK higher (a share) for `lasts` seconds. */
+export const TEMPODIANA = { name: 'Moonshade Countdown, Tempodiana', cooldown: [3, 4, 5, 6, 7], atk: [0.17, 0.21, 0.25, 0.3, 0.35], lasts: 10 };
+/** Every other ally's defense higher (a share) for `guards` seconds; and a stack of Dragon Rage (up to `most`, for `lasts` seconds), each his ATK and defense higher. */
+export const ATEIN = { name: 'Dragon’s Ruins, Atein', defense: [0.12, 0.14, 0.17, 0.21, 0.25], guards: 3, rage: [0.01, 0.012, 0.014, 0.017, 0.02], most: 100, lasts: 10 };
+/** What a critical blow leaves eating at the boss over `lasts` seconds (all of it, at ATK), and how much more physical damage it takes meanwhile. */
+export const BARORO = { name: 'Cursed Claws, Baroro', lasts: 10, blow: [1800, 2160, 2580, 3100, 5000], takes: [0.24, 0.28, 0.34, 0.41, 0.5] };
+
 /** What every ally gains by the TechnoMagic gear it wears (the same at every tier): 1 piece, more ATK; 2, more defense; 3, more max HP (here: taking that much less); 4, more DMG. */
 export const CORBEAU = { name: 'Wonder of Magos Le’Flamme, Corbeau Rose', atk: 0.06, defense: 0.06, hp: 0.06, dmg: 0.04 };
 
@@ -91,8 +117,20 @@ const ABOUT: Readonly<Record<string, (tier: number) => string>> = {
     `Every ${ROBURU.every} seconds, with her Poison on the boss, deals ${pct(atTier(ROBURU.blow, tier) / 1000)} of her ATK to it, and it takes ${pct(atTier(ROBURU.takes, tier))} more magical damage for ${ROBURU.lasts} seconds.`,
   valance: () =>
     `Every ally gains by the TechnoMagic gear it wears: with 1 piece, +${pct(CORBEAU.atk)} ATK; 2, +${pct(CORBEAU.defense)} defense; 3, +${pct(CORBEAU.hp)} max HP (it takes that much less); 4, +${pct(CORBEAU.dmg)} DMG.`,
+  lucikiel: (tier) =>
+    `Every ${GIGANTE.blows} of his blows gain him a stack of [Incarnation of Doom] (up to ${GIGANTE.most}), each +${fine(atTier(GIGANTE.atk, tier))} ATK and +${atTier(GIGANTE.speed, tier)} attack speed. At ${GIGANTE.most}, each of his blows deals ${pct(atTier(GIGANTE.blow, tier) / 1000)} of his ATK more, through the boss’s defense.`,
+  selene: (tier) =>
+    `Each critical blow of hers gives her +${atTier(NOTOS.speed, tier)} attack speed for ${NOTOS.lasts} seconds, and meanwhile her attack shoots an arrow more, dealing ${pct(atTier(NOTOS.arrow, tier) / 1000)} of her ATK.`,
+  crow: (tier) =>
+    `His attack shoots a bullet more, dealing ${pct(atTier(AKISTRA.bullet, tier) / 1000)} of his ATK. A skill of his raises his ATK and crit damage by ${pct(atTier(AKISTRA.boost, tier))} for ${AKISTRA.lasts} seconds, once every ${AKISTRA.every} seconds.`,
+  oddy: (tier) =>
+    `Her [Time Distortion] takes ${atTier(TEMPODIANA.cooldown, tier)} seconds more off every ally’s cooldowns, and raises their ATK by ${pct(atTier(TEMPODIANA.atk, tier))} for ${TEMPODIANA.lasts} seconds.`,
+  phillop: (tier) =>
+    `Hurt by the boss, every other ally’s defense is ${pct(atTier(ATEIN.defense, tier))} higher for ${ATEIN.guards} seconds, and he gains a stack of [Dragon Rage] for ${ATEIN.lasts} seconds (up to ${ATEIN.most}), each +${fine(atTier(ATEIN.rage, tier))} ATK and defense.`,
+  naila: (tier) =>
+    `Each critical blow of hers leaves the boss losing ${pct(atTier(BARORO.blow, tier) / 1000)} of her ATK over ${BARORO.lasts} seconds, and taking ${pct(atTier(BARORO.takes, tier))} more physical damage meanwhile.`,
 };
-const NAMES: Readonly<Record<string, string>> = { klaus: EXIAN.name, kirze: ELICIPIRA.name, 'fallen-frey': ROSMERTA.name, gremory: PIGRITIA.name, annette: RASCAL.name, morrah: CARPRAIN.name, laias: ELTOIRRE.name, seria: ELSION.name, ezekiel: BARBATOS.name, lorraine: ROBURU.name, valance: CORBEAU.name };
+const NAMES: Readonly<Record<string, string>> = { klaus: EXIAN.name, kirze: ELICIPIRA.name, 'fallen-frey': ROSMERTA.name, gremory: PIGRITIA.name, annette: RASCAL.name, morrah: CARPRAIN.name, laias: ELTOIRRE.name, seria: ELSION.name, ezekiel: BARBATOS.name, lorraine: ROBURU.name, valance: CORBEAU.name, lucikiel: GIGANTE.name, selene: NOTOS.name, crow: AKISTRA.name, oddy: TEMPODIANA.name, phillop: ATEIN.name, naila: BARORO.name };
 /** The heroes that have a unique weapon, by id. */
 export const UNIQUE_HEROES: readonly string[] = Object.keys(ABOUT);
 
@@ -115,3 +153,9 @@ export const RASCAL_UP: Buff = { name: 'Crystallized Technomagic, Rascal', about
 export const ELTOIRRE_UP: Buff = { name: 'Flowing Circle, Eltoirre', about: 'Healing reaches it the more while Laias is on the field.', icon: '☥', art: { uw: 'laias' } };
 export const ELSION_UP: Buff = { name: 'Executioner of Domains, Elsion', about: 'Healing reaches her the more.', icon: '⚔️', art: { uw: 'seria' } };
 export const CORBEAU_UP: Buff = { name: 'Wonder of Magos Le’Flamme, Corbeau Rose', about: 'Gains by the TechnoMagic gear it wears while Valance is on the field.', icon: '🌹', art: { uw: 'valance' } };
+export const GIGANTE_UP: Buff = { name: 'Incarnation of Doom', about: 'ATK and attack speed higher for each; at the most, his blows deal more through the boss’s defense.', icon: '👿', art: { uw: 'lucikiel' } };
+export const NOTOS_UP: Buff = { name: 'Green Winds, Notos', about: 'Quicker, and her attack shoots an arrow more.', icon: '🍃', art: { uw: 'selene' } };
+export const AKISTRA_UP: Buff = { name: 'Hellhound, Akistra', about: 'ATK and crit damage higher.', icon: '🐺', art: { uw: 'crow' } };
+export const TEMPODIANA_UP: Buff = { name: 'Moonshade Countdown, Tempodiana', about: 'ATK higher.', icon: '🕰️', art: { uw: 'oddy' } };
+export const ATEIN_UP: Buff = { name: 'Dragon’s Ruins, Atein', about: 'Defense higher while Phillop is hurt.', icon: '🐉', art: { uw: 'phillop' } };
+export const DRAGON_RAGE: Buff = { name: 'Dragon Rage', about: 'ATK and defense higher for each.', icon: '🐉', art: { uw: 'phillop' } };

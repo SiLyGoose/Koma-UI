@@ -1,11 +1,11 @@
-import type { AnimationClip, Object3D, Vector3 } from 'three';
+import { Vector3, type AnimationClip, type Object3D } from 'three';
 import type { Rig } from '../../engine/rig';
 import { sampler, type Sampler } from '../../engine/sampler';
 import { lengthOf } from '../../engine/track';
 import { flowing, MOVES, type HeroMove } from '../moves';
 import { ENTER, holdShield, RED, redden, type Hero, type Stood } from './hero';
 import { REST, STILL, TURN, type Bends, type Pose } from './pose';
-import { poseBody, poseLoose } from './posing';
+import { KNEE, poseBody, poseLoose } from './posing';
 import type { Played } from './rigged';
 import { BIPED } from './skeletons';
 
@@ -15,7 +15,10 @@ import { BIPED } from './skeletons';
  * poses (../moves/). Its attack or a skill it is given animations for (made over for its skeleton: ./animated.ts)
  * is played by those instead, one after another, eased in from how it stands and back out to it. Given an idle, it
  * stands in that (looping) rather than at rest, whenever it isn't running in or doing anything: eased out of it as
- * a move begins, and back into it after. Varied, how it stands wanders as it stands there: never quite the same twice.
+ * a move begins, and back into it after. An attack that goes straight on into the next (Own.chained) is eased, as it
+ * ends, to where it begins rather than back to how it stands, and the next is begun from there. An arrow in its right
+ * hand (Posing.loosed) is gone from it once it is shot, and back as it reaches to draw again. A skill's animation may be
+ * played crouched or aimed up (Played.crouch and aimUp). Varied, how it stands wanders as it stands there: never quite the same twice.
  * Whatever it goes on to (a move begun, or one written in code done), it is eased there from how it was: it never jumps.
  */
 
@@ -31,6 +34,13 @@ const INTO = 0.14;
 const RETURN = 0.45;
 /** One of its animations giving way to the next. */
 const BLEND = 0.18;
+/**
+ * An attack that goes straight on into the next: how long it is eased, as it ends, to where it begins (about as long as a
+ * hero waits to attack again: ../../sim/rules.ts, HERO_WAIT), and how long it is held there for the next before it gives up
+ * and eases back to how it stands.
+ */
+const RECOCK = 0.4;
+const LINGER = 0.3;
 /** Going on to something else (a move begun, or one written in code done): how long it is eased there from how it was. */
 const CARRY = 0.2;
 /**
@@ -44,13 +54,17 @@ const VARY = { twist: 0.14, lean: 0.05, tip: 0.05, look: 0.3, nod: 0.08, sway: 0
 export interface Own {
   parts: readonly Played[];
   speed: number;
+  /** It goes straight on into the next of it (an attack: ../../assets/types.ts, RiggedModel.chained). */
+  chained?: boolean;
 }
 
 /**
  * How else it is moved: `seated` on what floats under it, it glides in on it, bobbing, rather than running. Its knees
  * and elbows bend as `bends` has them (./posing.ts). With an `idle` (made over for its skeleton), it stands in that.
  * With a `run`, it runs in in that (over its stride written in code), the blade in its right hand pointing along
- * `bladeRunning` (a way in its model's axes), if that is given. `varied`, how it stands wanders (VARY).
+ * `bladeRunning` (a way in its model's axes), if that is given. `varied`, how it stands wanders (VARY). With `loosed`,
+ * what is in its right hand (an arrow) is loosed as each of its moves played by its animations lands its first blow,
+ * and back `nock` seconds into its attack's animation (as it reaches for the next), or as a skill played by them begins.
  */
 export interface Posing {
   seated?: boolean;
@@ -59,6 +73,7 @@ export interface Posing {
   run?: AnimationClip;
   bladeRunning?: Vector3;
   varied?: boolean;
+  loosed?: { nock: number };
 }
 
 /** A value that wanders: eased to a mark picked at random within `most` of 0 (either way), held a while, then another. */
@@ -85,18 +100,28 @@ function wandering(most: number): (dt: number) => number {
  * A hero moved by poses written in code: it stands `rest` (a swordsman's, unless its hero has a stance of its own), and its moves are added to that;
  * but for those it has animations for (`own`, by their move's name). And as `posing` has it.
  */
-export function posedHero({ root, body, middle, models, rig, hips, feet, blade, muzzle, shield, materials, floating }: Stood, rest: Pose = REST, own: Readonly<Record<string, Own>> = {}, posing: Posing = {}): Hero {
-  const { seated = false, bends = {}, idle, run, bladeRunning, varied = false } = posing;
+export function posedHero({ root, body, middle, models, rig, hips, feet, blade, muzzle, inRight, shield, materials, floating }: Stood, rest: Pose = REST, own: Readonly<Record<string, Own>> = {}, posing: Posing = {}): Hero {
+  const { seated = false, bends = {}, idle, run, bladeRunning, varied = false, loosed } = posing;
   // Each animation is put on each of its models at once, each with what the animation has for the bones it has.
   type Part = Played & { sample: Sampler };
-  const animated: Partial<Record<string, { parts: Part[]; speed: number }>> = Object.fromEntries(
-    Object.entries(own).map(([move, { parts, speed }]) => [move, { speed, parts: parts.map((part) => ({ ...part, sample: sampler(part.clip, models) })) }]),
+  const animated: Partial<Record<string, { parts: Part[]; speed: number; chained: boolean }>> = Object.fromEntries(
+    Object.entries(own).map(([move, { parts, speed, chained = false }]) => [move, { speed, chained, parts: parts.map((part) => ({ ...part, sample: sampler(part.clip, models) })) }]),
   );
   /**
    * A move played by its animations: which, which of them it is in and how far in (in the animation's own time), how
-   * long since it was left (null: it hasn't been), and how its last animation left it as this one began (and how long ago).
+   * long since it was left (null: it hasn't been), how its last animation left it as this one began (and how long ago),
+   * and whether it went straight on from the last of it (so it isn't eased in from how it stands).
    */
-  let playing: { own: { parts: Part[]; speed: number }; part: number; t: number; left: number | null; from: { kept: ReturnType<Rig['keep']>; t: number } | null } | null = null;
+  let playing: {
+    own: { parts: Part[]; speed: number; chained: boolean };
+    part: number;
+    t: number;
+    left: number | null;
+    from: { kept: ReturnType<Rig['keep']>; t: number } | null;
+    chained: boolean;
+  } | null = null;
+  /** Where a move that goes straight on into the next begins, as it is eased there. */
+  const begins = new Map() as ReturnType<Rig['keep']>;
   const stopPlaying = (): void => {
     playing = null;
   };
@@ -126,6 +151,25 @@ export function posedHero({ root, body, middle, models, rig, hips, feet, blade, 
   let rush = 0;
   /** How long it has been running in (null: it isn't). */
   let running: number | null = null;
+  /** Loosing what is in its right hand: whether it is in its hand now, and whether the move playing has loosed it yet. */
+  let nocked = true;
+  let shot = false;
+
+  /** A part of a move played by its animations, played crouched (its feet kept where they were) or aimed up, as it says. */
+  const footL = new Vector3();
+  const footR = new Vector3();
+  const bent = (part: Part): void => {
+    if (part.crouch) {
+      footL.copy(rig.at(BIPED.legs.L[2]));
+      footR.copy(rig.at(BIPED.legs.R[2]));
+      rig.move(BIPED.hips, 0, -part.crouch, 0);
+      rig.reach(...BIPED.legs.L, footL, KNEE.L);
+      rig.reach(...BIPED.legs.R, footR, KNEE.R);
+      rig.level(BIPED.legs.L[2]);
+      rig.level(BIPED.legs.R[2]);
+    }
+    if (part.aimUp) for (const bone of BIPED.chest) rig.turnAbout(bone, -part.aimUp / 2, 0, 0);
+  };
 
   const hero: Hero = {
     root,
@@ -136,13 +180,18 @@ export function posedHero({ root, body, middle, models, rig, hips, feet, blade, 
       runT = 0;
     },
     start(move) {
+      const own = animated[move];
+      // The same attack again, going straight on from the last.
+      const chained = own?.chained === true && playing?.own === own;
       running = null;
       stopPlaying();
       carryOn();
-      const own = animated[move];
       if (own?.parts[0]) {
         doing = null;
-        playing = { own, part: 0, t: 0, left: null, from: null };
+        playing = { own, part: 0, t: 0, left: null, from: null, chained };
+        // (A skill's begins drawn: its arrow in its hand already. Its attack's reaches for it first.)
+        shot = false;
+        if (move !== 'attack') nocked = true;
       } else doing = { name: move, t: 0 };
     },
     head: (into) => (models[0] as Object3D).localToWorld(into.copy(rig.at(BIPED.head))),
@@ -291,12 +340,33 @@ export function posedHero({ root, body, middle, models, rig, hips, feet, blade, 
             playing.t = 0;
             part = next;
           } else if (playing.t >= part.until) playing.left = 0;
+          // Its arrow: back in its hand as it reaches to draw, gone as it is shot.
+          if (loosed) {
+            if (!nocked && playing.own === animated.attack && playing.part === 0 && playing.t >= loosed.nock && !shot) nocked = true;
+            const first = part.lands[0];
+            if (!shot && first !== undefined && playing.t >= first) {
+              shot = true;
+              nocked = false;
+            }
+          }
         } else playing.left += dt;
-        const shown = playing.left === null ? (playing.part === 0 ? Math.min(1, playing.t / INTO) : 1) : 1 - playing.left / RETURN;
+        // (Going straight on into the next: held there a while, for it.)
+        const left = playing.left === null ? null : playing.own.chained ? Math.max(0, playing.left - RECOCK - LINGER) : playing.left;
+        const shown = left === null ? (playing.part === 0 && !playing.chained ? Math.min(1, playing.t / INTO) : 1) : 1 - left / RETURN;
         if (shown <= 0) stopPlaying();
         else {
           rig.keep(posed);
-          pose(playing.t);
+          if (playing.left !== null && playing.own.chained) {
+            // Eased from where it was left to where it begins.
+            (playing.own.parts[0] as Part).sample(0);
+            rig.keep(begins);
+            pose(playing.t);
+            const k = Math.min(1, playing.left / RECOCK);
+            rig.blend(begins, k * k * (3 - 2 * k));
+          } else {
+            pose(playing.t);
+            bent(part);
+          }
           if (playing.from && playing.from.t < BLEND) {
             playing.from.t += dt;
             const k = Math.min(1, playing.from.t / BLEND);
@@ -313,6 +383,7 @@ export function posedHero({ root, body, middle, models, rig, hips, feet, blade, 
         if (k >= 1) carry = null;
       }
       holdShield(rig, shield);
+      if (loosed && inRight) inRight.visible = nocked;
 
       body.position.z = pose.ahead;
       body.position.y = Math.max(0, pose.jump) + (seated ? BOB.high * (1 + Math.sin(now * BOB.rate)) : 0);

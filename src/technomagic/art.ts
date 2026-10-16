@@ -16,6 +16,12 @@ const UNIQUE_PICTURES: Readonly<Record<string, string>> = {
   ezekiel: '/gear/items/weapons/jailer-of-despair-barbatos.png',
   lorraine: '/gear/items/weapons/world-trees-will-roburu.png',
   valance: '/gear/items/weapons/wonder-of-magos-le-flamme-corbeau-rose.png',
+  lucikiel: '/gear/items/weapons/form-of-ultimate-destruction-barbatos-gigante.png',
+  selene: '/gear/items/weapons/green-winds-notos.png',
+  crow: '/gear/items/weapons/hellhound-akistra.png',
+  oddy: '/gear/items/weapons/moonshade-countdown-tempodiana.png',
+  phillop: '/gear/items/weapons/dragons-ruins-atein.png',
+  naila: '/gear/items/weapons/cursed-claws-baroro.png',
 };
 
 /** A hero's files, by its id (its folder under public/kr/heroes/). */

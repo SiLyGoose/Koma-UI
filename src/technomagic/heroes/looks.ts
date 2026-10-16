@@ -1,4 +1,4 @@
-import { ANNETTE_ASSETS, KLAUS_ASSETS, EZEKIEL_ASSETS, FALLEN_FREY_ASSETS, GREMORY_ASSETS, KIRZE_ASSETS, LAIAS_ASSETS, LORRAINE_ASSETS, MORRAH_ASSETS, SERIA_ASSETS, VALANCE_ASSETS, type HeroAssets } from '../assets';
+import { ANNETTE_ASSETS, KLAUS_ASSETS, EZEKIEL_ASSETS, FALLEN_FREY_ASSETS, GREMORY_ASSETS, KIRZE_ASSETS, LAIAS_ASSETS, LORRAINE_ASSETS, MORRAH_ASSETS, SERIA_ASSETS, VALANCE_ASSETS, LUCIKIEL_ASSETS, SELENE_ASSETS, CROW_ASSETS, ODDY_ASSETS, PHILLOP_ASSETS, NAILA_ASSETS, type HeroAssets } from '../assets';
 import { STAND as ANNETTE } from './annette/moves';
 import type { Bends, Pose } from './body/pose';
 import { STAND as EZEKIEL } from './ezekiel/moves';
@@ -8,6 +8,12 @@ import { STAND as LAIAS } from './laias/moves';
 import { STAND as LORRAINE } from './lorraine/moves';
 import { STAND as MORRAH } from './morrah/moves';
 import { STAND as VALANCE } from './valance/moves';
+import { STAND as LUCIKIEL } from './lucikiel/moves';
+import { STAND as SELENE } from './selene/moves';
+import { STAND as CROW } from './crow/moves';
+import { STAND as ODDY } from './oddy/moves';
+import { STAND as PHILLOP } from './phillop/moves';
+import { STAND as NAILA } from './naila/moves';
 
 /*
  * How each hero looks on the field, by its id: what it is in a fight is the sim's (../sim/heroes/), and its folder
@@ -43,6 +49,12 @@ const LOOKS: Readonly<Record<string, HeroLook>> = {
   ezekiel: { assets: EZEKIEL_ASSETS, stands: EZEKIEL, varies: true },
   lorraine: { assets: LORRAINE_ASSETS, stands: LORRAINE, varies: true },
   valance: { assets: VALANCE_ASSETS, stands: VALANCE },
+  lucikiel: { assets: LUCIKIEL_ASSETS, stands: LUCIKIEL, varies: true },
+  selene: { assets: SELENE_ASSETS, stands: SELENE, varies: true },
+  crow: { assets: CROW_ASSETS, stands: CROW, varies: true },
+  oddy: { assets: ODDY_ASSETS, stands: ODDY },
+  phillop: { assets: PHILLOP_ASSETS, stands: PHILLOP },
+  naila: { assets: NAILA_ASSETS, stands: NAILA, varies: true },
 };
 
 /** How the hero `id` looks (every hero the sim has has a look). */

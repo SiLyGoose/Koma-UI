@@ -90,17 +90,17 @@
 }
 
 /*
- * As tall as the stage, its face (--face and --face-y: how far across and down the picture it is, render.ts)
- * in the middle across and --head-at down the stage.
+ * As tall as the stage (--zoom times, for a hero whose face is small in its picture), its face (--face and
+ * --face-y: how far across and down the picture it is, render.ts) in the middle across and --head-at down the stage.
  */
 .hero-bust {
   --head-at: 0.333;
   position: absolute;
-  top: calc((var(--head-at) - var(--face-y, 0.2)) * 100%);
+  top: calc((var(--head-at) - var(--face-y, 0.2) * var(--zoom, 1)) * 100%);
   left: 50%;
   width: auto;
   max-width: none;
-  height: 100%;
+  height: calc(var(--zoom, 1) * 100%);
   translate: calc(var(--face, 0.5) * -100%) 0;
   animation: idle 2.4s ease-in-out infinite;
 }

@@ -48,6 +48,9 @@ export interface Passive {
   crit: number;
   control: number;
   taken?: number;
+  /** What knocks it down holds it this many times as long (1 when it doesn't say); and (`steady`) nothing changes how fast it moves: neither its attack speed nor what is on it. */
+  held?: number;
+  steady?: boolean;
   shown: Buff;
   /** King's Raid's words for it, as an Ability's are; and what its tag says, where not "Passive". */
   words?: string;
@@ -72,8 +75,9 @@ export interface HeroPart {
   tick?(dt: number): void;
   /** A hero's blow has landed on the boss (not one that comes of a status already on it). */
   struck?(): void;
-  /** It has blocked a blow of the boss's. */
+  /** It has blocked a blow of the boss's; it has dodged one. */
   blocked?(): void;
+  dodged?(): void;
   /** A blow of the boss's has hurt a hero (it, or another). */
   hurt?(who: Fighter): void;
   /** How many times as much it takes from the boss, for now; and whether it can't be knocked down, for now. */

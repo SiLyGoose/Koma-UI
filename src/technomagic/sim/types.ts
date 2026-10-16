@@ -88,10 +88,11 @@ export interface Fighter {
   readonly perkTaken: PerKind;
   /** ACC (points): what of the boss's dodge and block its blows see past (its class's, and its perks'). */
   readonly acc: number;
-  /** Seconds until each of its perks that waits between times may again (by its name); the boss's blows it is immune to yet (Deception); Swift and Nimble's stacks. */
+  /** Seconds until each of its perks that waits between times may again (by its name); the boss's blows it is immune to yet (Deception); Swift and Nimble's stacks; how long its Mortal Wound on the boss lasts yet. */
   readonly perkWaits: Record<string, number>;
   immune: number;
   nimble: number;
+  wound: number;
   /** Its stats: its hero's, with what its gear gives it. And how many times as hard a critical blow is, as much its heals and shields give, and as long its stuns last. */
   readonly stats: HeroStats;
   readonly critTimes: number;

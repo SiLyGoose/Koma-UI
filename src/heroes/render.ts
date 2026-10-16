@@ -1,5 +1,5 @@
 import { art, el, hoverSound, itemDetailsClosed, itemFace, itemPicked, lockBadge, matchesSearch, matchesStars, rich, statBlocks, tierOf, SLOT_NAME, stars as starRow, tmMarks, tmSections, uwMarks } from '../shared/items';
-import { classBadge, className, FACE, HERO_SLOT_KIND, heroCut, heroPicture, skillText, type HeroView, type HeroCopy, type HeroSlot } from '../shared/heroes';
+import { classBadge, className, FACE, HERO_SLOT_KIND, heroCut, heroPicture, skillText, STAGE_ZOOM, type HeroView, type HeroCopy, type HeroSlot } from '../shared/heroes';
 import { working } from '../shared/ui';
 import { copyById, heroShown, mine, slotFor, slotOf, type HeroesContext } from './context';
 import { heroSkills } from './skills';
@@ -95,6 +95,7 @@ function showWhole(img: HTMLImageElement, id: string, fallback: HTMLElement, ini
     const { x, y, size } = picture.crop;
     img.style.setProperty('--face', String((x + size / 2) / img.naturalWidth));
     img.style.setProperty('--face-y', String((y + size / 2) / img.naturalHeight));
+    img.style.setProperty('--zoom', String(STAGE_ZOOM[id] ?? 1));
     img.hidden = false;
     fallback.textContent = '';
   };

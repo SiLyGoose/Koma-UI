@@ -62,6 +62,8 @@ export interface Stood {
   blade: Vector3;
   /** A mark at the far end of what is in its right hand, along its blade (its tip, or its muzzle), when it holds something there. */
   muzzle?: Object3D;
+  /** What is in its right hand, when it holds something there. */
+  inRight?: Object3D;
   /** A shield on its left arm, when it has one: the mark it hangs on, and the way its face looks in that mark's own axes. */
   shield?: { mark: string; face: Vector3 };
   /**

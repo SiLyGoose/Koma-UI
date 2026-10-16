@@ -10,7 +10,7 @@ import type { Skeleton } from './skeletons';
  */
 
 /** The way each joint bends: knees ahead and a little out, elbows down and behind. */
-const KNEE = { L: new Vector3(0.15, 0, 1), R: new Vector3(-0.15, 0, 1) };
+export const KNEE = { L: new Vector3(0.15, 0, 1), R: new Vector3(-0.15, 0, 1) };
 const ELBOW = { L: new Vector3(0.4, -0.7, -0.6), R: new Vector3(-0.4, -0.7, -0.6) };
 /** The ways a body's own bends have them (where it doesn't say, KNEE's and ELBOW's). */
 const bent = { lKnee: new Vector3(), rKnee: new Vector3(), lElbow: new Vector3(), rElbow: new Vector3() };

@@ -51,7 +51,7 @@ export function riggedHero({ stood, animations }: Rigged): Hero {
  * run and no idle, running in in its run.
  * Its moves written in code are written from `rest`, either way.
  */
-export function heroLike(stood: Stood, like: Rigged, rest: Pose = REST, posing: Omit<Posing, 'idle' | 'bladeRunning'> = {}): Hero {
+export function heroLike(stood: Stood, like: Rigged, rest: Pose = REST, posing: Omit<Posing, 'idle' | 'bladeRunning' | 'loosed'> = {}): Hero {
   // A retargeter from each skeleton its animations were made for (made once each).
   const from = new Map<object, (clip: AnimationClip) => AnimationClip>();
   const mine = (clip: AnimationClip): AnimationClip => {
@@ -69,9 +69,10 @@ export function heroLike(stood: Stood, like: Rigged, rest: Pose = REST, posing: 
   const skills = Object.fromEntries(Object.entries(like.animations.skills).map(([move, skill]) => [move, { ...skill, clip: mine(skill.clip) }]));
   if (!idle || !run) {
     const own = Object.fromEntries(Object.entries(skills).map(([move, skill]) => [move, { parts: [skill], speed: SKILL_SPEED }]));
-    if (attack.length > 0) own.attack = { parts: attack, speed: OWN_SPEED };
+    if (attack.length > 0) own.attack = { parts: attack, speed: OWN_SPEED, ...(like.animations.chained && { chained: true }) };
     const { bladeRunning } = like.animations;
-    return posedHero(stood, rest, own, { ...posing, ...(idle && { idle: mine(idle) }), ...(run && { run: mine(run), ...(bladeRunning && { bladeRunning }) }) });
+    const { loosed } = like.animations;
+    return posedHero(stood, rest, own, { ...posing, ...(idle && { idle: mine(idle) }), ...(run && { run: mine(run), ...(bladeRunning && { bladeRunning }) }), ...(loosed && { loosed }) });
   }
   return animatedHero(stood, BIPED, { idle: mine(idle), run: mine(run), attack, skills }, rest);
 }
