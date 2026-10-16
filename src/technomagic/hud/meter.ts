@@ -8,9 +8,10 @@ import { el } from './dom';
 
 type Tab = 'dps' | 'hps';
 
-/** How one hero stands on the meter: on the field, and its totals this fight. */
+/** How one hero stands on the meter: on the field (and fallen there), and its totals this fight. */
 export interface MeterRow {
   on: boolean;
+  down: boolean;
   dealt: number;
   healed: number;
 }
@@ -95,6 +96,8 @@ export function makeMeter(root: HTMLElement, heroes: readonly { name: string; fa
         const shown = rows[i] as (typeof rows)[number];
         shown.row.hidden = !row.on && of(row) <= 0;
         shown.row.style.order = String(place);
+        // Fallen: its picture and its bar go grey.
+        shown.row.classList.toggle('down', row.down);
         shown.label.textContent = tab === 'dps' ? 'Dps' : 'Hps';
         shown.value.textContent = said(of(row) / Math.max(1, elapsed));
         shown.total.textContent = said(of(row));

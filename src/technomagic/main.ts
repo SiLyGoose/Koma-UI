@@ -25,6 +25,7 @@ import { makeActions } from './hud/actions';
 import { makeBossBar } from './hud/boss-bar';
 import { makeCard } from './hud/card';
 import { el } from './hud/dom';
+import { leavePopup } from './hud/leave';
 import { makeMeter } from './hud/meter';
 import { makeNumbers } from './hud/numbers';
 import { makeOverhead } from './hud/overhead';
@@ -300,7 +301,7 @@ async function start(): Promise<void> {
             effects,
           });
         });
-        meter.draw(allAuto(), sim.fighters.map((fighter) => ({ on: sim.field.includes(fighter), dealt: fighter.dealt, healed: fighter.healed })), sim.elapsed);
+        meter.draw(allAuto(), sim.fighters.map((fighter) => ({ on: sim.field.includes(fighter), down: sim.field.includes(fighter) && fighter.hp <= 0, dealt: fighter.dealt, healed: fighter.healed })), sim.elapsed);
       },
     };
   }
@@ -450,13 +451,15 @@ async function start(): Promise<void> {
       manageLink.replaceWith(button);
     }
 
-    // The way out: the host, mid-fight, gives the fight up; anyone else just goes (their heroes fight on, on Auto).
+    // The way out: mid-fight, asked first (../hud/leave.ts), then the bot told they've left it for good (`quit`: they
+    // forfeit what it gives; single player, it is lost; with others, their heroes fight on). Otherwise they just go.
+    const leaving = leavePopup(document.getElementById('app') as HTMLElement, () => {
+      if (state?.phase === 'fight' && !send({ t: 'quit' })) return 'Not connected to the raid right now. Try again in a moment.';
+      navigate('/', { back: true });
+      return null;
+    });
     leave = () => {
-      const me = state?.players.find((player) => player.id === state?.you);
-      if (state?.phase === 'fight' && me?.host && !game?.sim.result) {
-        if (confirm('Give up the raid? It counts as lost for everyone.')) send({ t: 'give-up' });
-        return;
-      }
+      if (state?.phase === 'fight' && !game?.sim.result) return leaving.open(state.solo);
       navigate('/', { back: true });
     };
 
@@ -601,6 +604,7 @@ async function start(): Promise<void> {
             // Their gear is taken as the fight begins: no more changing it.
             manage.close();
           }
+          if (state.phase !== 'fight') leaving.close();
           if (state.phase === 'over' && state.over && !game) showOver(state.over);
           return;
         }

@@ -136,6 +136,12 @@
   background: linear-gradient(90deg, #2c8a3c, #5ccf6c);
 }
 
+/* Its hero has fallen: its picture and its bar go grey (its numbers stay as they are, to be read). */
+.tm-meter-row.down img,
+.tm-meter-row.down .tm-meter-bar i {
+  filter: grayscale(1);
+}
+
 /* Its total: black in a white outline, to read on the bar's orange (or green) and off it. */
 .tm-meter-bar b {
   position: absolute;

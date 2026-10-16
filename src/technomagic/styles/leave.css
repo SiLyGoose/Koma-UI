@@ -1,0 +1,108 @@
+/* Leave, mid-fight in a room: the popup asking first (../hud/leave.ts), in the Raid Settings' box (the shared level.css). */
+
+.tm-leave-pop {
+  z-index: 45;
+}
+
+.tm-leave-icon {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  margin: 20px auto 0;
+  border: 2px solid rgba(233, 219, 170, 0.55);
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 35%, #3a2a3e, #140d18);
+  box-shadow: 0 0 18px rgba(233, 80, 80, 0.25);
+  font-size: 30px;
+}
+
+.tm-leave-text {
+  margin: 14px 28px 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.45;
+  text-align: center;
+}
+
+/* What it costs them, in red. */
+.tm-leave-warn {
+  margin: 10px 28px 0;
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 120, 110, 0.45);
+  border-radius: 8px;
+  background: rgba(120, 20, 20, 0.35);
+  color: #ffb4a8;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.tm-leave-note {
+  color: #ffd27a;
+}
+
+.tm-leave-pop .level-actions {
+  gap: 10px;
+}
+
+/* The two big buttons: Stay (dark, the one focused) and Leave (red). */
+.tm-leave-stay,
+.tm-leave-go {
+  flex: 1;
+  padding: 14px 18px;
+  border: 2px solid #d8c48c;
+  border-radius: 10px;
+  color: #fff;
+  font: inherit;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-shadow: 0 2px 3px rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+  transition:
+    filter 0.12s ease,
+    transform 0.08s ease;
+}
+
+.tm-leave-stay {
+  background: linear-gradient(180deg, #4a4f5c 0%, #2f333d 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 4px 14px rgba(0, 0, 0, 0.5);
+}
+
+.tm-leave-go {
+  background: linear-gradient(180deg, #e0574b 0%, #b8302a 55%, #8f201c 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 4px 14px rgba(0, 0, 0, 0.5);
+}
+
+.tm-leave-stay:hover:not(:disabled),
+.tm-leave-go:hover:not(:disabled) {
+  filter: brightness(1.12);
+}
+
+.tm-leave-stay:active:not(:disabled),
+.tm-leave-go:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.tm-leave-go:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* A short screen (a phone on its side): as the box is sized down (level.css), the words and buttons too. */
+@media (max-height: 520px) {
+  .tm-leave-icon {
+    width: 48px;
+    height: 48px;
+    margin-top: 12px;
+    font-size: 22px;
+  }
+
+  .tm-leave-stay,
+  .tm-leave-go {
+    padding: 10px 14px;
+    font-size: 17px;
+  }
+}
