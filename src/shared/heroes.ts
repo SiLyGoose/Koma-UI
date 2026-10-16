@@ -68,6 +68,8 @@ export const FACE: Frame = { wide: 1.7, tall: 1.7, above: 0.35, fit: {
     loman: { zoom: 2.1, x: -0.135, y: 0.05 },
     gau: { zoom: 1.9, x: 0.05, y: -0.05 },
     tanya: { zoom: 1.7, x: 0.16, y: 0 },
+    'rebel-klaus': { zoom: 1.8, x: 0.07, y: 0.1 },
+    'dark-lord-kasel': { zoom: 1.5, x: -0.1, y: 0.38 },
   },
 };
 /** The heroes page's stage: a hero's whole picture this many times as tall as the stage, where its face is small in it (by id). */
@@ -119,6 +121,8 @@ export const SHOP_BUST: Frame = { ...BUST, fit: {
     // Short ones (a red panda, a dwarf): set lower than the others, to fill the card down to their feet.
     oddy: { zoom: 1.15, x: 0, y: -0.9 },
     phillop: { zoom: 1.15, x: 0, y: -0.75 },
+    'rebel-klaus': { zoom: 1.4, x: 0.07, y: 0.12 },
+    'dark-lord-kasel': { zoom: 1.4, x: -0.1, y: 0.26 },
   },
 };
 

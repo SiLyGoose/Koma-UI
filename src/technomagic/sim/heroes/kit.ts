@@ -88,6 +88,8 @@ export interface HeroPart {
   /** A blow of the boss's would bring it down: whether it is left on 1 HP instead (what else comes of that is its own). */
   spared?(): boolean;
   guards?(): boolean;
+  /** How many times as long what knocks it down holds it, for now (on top of its passive's `held`). */
+  held?(): number;
   /** How many times as fast everything it does is, for now; its attack speed's points more, for now; and how many times as hard its blows are, for now. */
   pace?(): number;
   speed?(): number;

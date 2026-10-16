@@ -57,6 +57,10 @@ import { fine, pct, type Buff } from './shown';
  *   deals more and freezes the boss. (His part does it: ./heroes/gau.ts.)
  * - Tanya, Demon of the Calm, Caethasis: in Stealth from the start, and untouched for a moment; her crit damage higher
  *   while she is in Stealth. (Her part does it: ./heroes/tanya.ts.)
+ * - Rebel Klaus, Adversary of the Goddess, Galicta: his penetration higher; each skill he uses costs him a share of his
+ *   HP, and gives him a stack (up to so many, for a while), each his DMG higher. (His part does it: ./heroes/rebel-klaus.ts.)
+ * - Dark Lord Kasel, Corrupted Holy Sword, Aea: each blow of his leaves the boss healed less for a while (up to so many
+ *   times over), and may deal a blow more. (His part does it: ./heroes/dark-lord-kasel.ts.)
  *
  * The game's shares of ATK are as they are for damage (this raid's blows are counted in thousandths of them: ./combat/),
  * and for a heal (a share of ATK: its hero's health and attack are the game's own, so it mends as much as there).
@@ -113,6 +117,10 @@ export const GAIAMENES = { name: 'Wave of Protection, Gaiamenes', skills: 3, blo
 export const NUMINU = { name: 'Holy Bird, Numinu', hp: [0.14, 0.17, 0.21, 0.25, 0.3], chance: 0.15, blow: [2400, 2900, 3500, 4200, 5000], freeze: 2 };
 /** In Stealth for `lasts` seconds from the start, untouched for the first so many; and her crit damage higher (a share) while she is in Stealth. */
 export const CAETHASIS = { name: 'Demon of the Calm, Caethasis', lasts: 10, untouched: [2.4, 2.9, 3.5, 4.2, 5], critDamage: [0.36, 0.43, 0.52, 0.62, 0.75] };
+/** His penetration more (points); the share of his current HP each skill costs him, and the DMG each stack adds (a share), for `lasts` seconds, up to `most`. */
+export const GALICTA = { name: 'Adversary of the Goddess, Galicta', pen: [240, 290, 350, 420, 500], hp: 0.2, dmg: [0.024, 0.029, 0.035, 0.042, 0.05], lasts: 30, most: 5 };
+/** How much less each of his blows leaves the boss healed (a share) for `lasts` seconds, up to `most` times over; and how likely each is to deal a blow more (at ATK). */
+export const AEA = { name: 'Corrupted Holy Sword, Aea', heals: [0.012, 0.014, 0.017, 0.021, 0.025], lasts: 10, most: 12, chance: 0.35, blow: [1200, 1400, 1700, 2100, 2500] };
 
 /** What every ally gains by the TechnoMagic gear it wears (the same at every tier): 1 piece, more ATK; 2, more defense; 3, more max HP (here: taking that much less); 4, more DMG. */
 export const CORBEAU = { name: 'Wonder of Magos Le’Flamme, Corbeau Rose', atk: 0.06, defense: 0.06, hp: 0.06, dmg: 0.04 };
@@ -167,8 +175,12 @@ const ABOUT: Readonly<Record<string, (tier: number) => string>> = {
     `His max HP is ${pct(atTier(NUMINU.hp, tier))} higher (he takes that much less). Each blow of his attack has a ${pct(NUMINU.chance)} chance to deal ${pct(atTier(NUMINU.blow, tier) / 1000)} of his ATK more and freeze the boss for ${NUMINU.freeze} seconds.`,
   tanya: (tier) =>
     `In [Stealth] for ${CAETHASIS.lasts} seconds as the fight begins, and the boss can’t touch her for the first ${atTier(CAETHASIS.untouched, tier)}. While she is in [Stealth], her crit damage is ${pct(atTier(CAETHASIS.critDamage, tier))} higher.`,
+  'rebel-klaus': (tier) =>
+    `+${atTier(GALICTA.pen, tier)} penetration. Each skill he uses costs him ${pct(GALICTA.hp)} of his current HP, but gives him a stack for ${GALICTA.lasts} seconds (up to ${GALICTA.most}), each +${fine(atTier(GALICTA.dmg, tier))} DMG. They can’t be dispelled.`,
+  'dark-lord-kasel': (tier) =>
+    `Each of his blows leaves the boss healed ${fine(atTier(AEA.heals, tier))} less for ${AEA.lasts} seconds (up to ${AEA.most} times over), and has a ${pct(AEA.chance)} chance to deal ${pct(atTier(AEA.blow, tier) / 1000)} of his ATK more.`,
 };
-const NAMES: Readonly<Record<string, string>> = { klaus: EXIAN.name, kirze: ELICIPIRA.name, 'fallen-frey': ROSMERTA.name, gremory: PIGRITIA.name, annette: RASCAL.name, morrah: CARPRAIN.name, laias: ELTOIRRE.name, seria: ELSION.name, ezekiel: BARBATOS.name, lorraine: ROBURU.name, valance: CORBEAU.name, lucikiel: GIGANTE.name, selene: NOTOS.name, crow: AKISTRA.name, oddy: TEMPODIANA.name, phillop: ATEIN.name, naila: BARORO.name, yanne: SVELTA.name, neraxis: ACRAVITA.name, erze: PERION.name, loman: GAIAMENES.name, gau: NUMINU.name, tanya: CAETHASIS.name };
+const NAMES: Readonly<Record<string, string>> = { klaus: EXIAN.name, kirze: ELICIPIRA.name, 'fallen-frey': ROSMERTA.name, gremory: PIGRITIA.name, annette: RASCAL.name, morrah: CARPRAIN.name, laias: ELTOIRRE.name, seria: ELSION.name, ezekiel: BARBATOS.name, lorraine: ROBURU.name, valance: CORBEAU.name, lucikiel: GIGANTE.name, selene: NOTOS.name, crow: AKISTRA.name, oddy: TEMPODIANA.name, phillop: ATEIN.name, naila: BARORO.name, yanne: SVELTA.name, neraxis: ACRAVITA.name, erze: PERION.name, loman: GAIAMENES.name, gau: NUMINU.name, tanya: CAETHASIS.name, 'rebel-klaus': GALICTA.name, 'dark-lord-kasel': AEA.name };
 /** The heroes that have a unique weapon, by id. */
 export const UNIQUE_HEROES: readonly string[] = Object.keys(ABOUT);
 
@@ -203,3 +215,5 @@ export const PERION_UP: Buff = { name: 'Essence of Greed, Perion', about: 'ATK a
 export const GAIAMENES_UP: Buff = { name: 'Blessing of Orvelia', about: 'M.DEF higher.', icon: '🛡️', art: { uw: 'loman' } };
 export const NUMINU_UP: Buff = { name: 'Holy Bird, Numinu', about: 'Max HP higher: he takes that much less.', icon: '🕊️', art: { uw: 'gau' } };
 export const CAETHASIS_UP: Buff = { name: 'Demon of the Calm, Caethasis', about: 'Crit damage higher while in Stealth.', icon: '👁️', art: { uw: 'tanya' } };
+export const GALICTA_UP: Buff = { name: 'Adversary of the Goddess, Galicta', about: 'Penetration higher; each skill costs HP but stacks DMG higher.', icon: '⚔️', art: { uw: 'rebel-klaus' } };
+export const AEA_UP: Buff = { name: 'Corrupted Holy Sword, Aea', about: 'Each blow leaves the boss healed less, and may deal a blow more.', icon: '🗡️', art: { uw: 'dark-lord-kasel' } };

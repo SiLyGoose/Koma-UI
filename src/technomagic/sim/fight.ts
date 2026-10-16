@@ -781,8 +781,8 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       // (Not one Authority guards.)
       if (fighter.hp <= 0 || away(fighter.statuses) || fighter.statuses.some((status) => status.guards) || fighter.part.guards?.()) return;
       stagger(fighter);
-      // (The shorter for its CC resist, and what is on it adds to it, and its Tenacity; and as its passive has it.)
-      const shorter = Math.max(0, 1 - SKILL.tenacity.control * has(fighter, 'tenacity')) * (fighter.def.passive?.held ?? 1);
+      // (The shorter for its CC resist, and what is on it adds to it, and its Tenacity; and as its passive, and its part for now, have it.)
+      const shorter = Math.max(0, 1 - SKILL.tenacity.control * has(fighter, 'tenacity')) * (fighter.def.passive?.held ?? 1) * (fighter.part.held?.() ?? 1);
       put(fighter.statuses, { name: KNOCKED.name, left: seconds * (1 - share(soft(fighter.stats.resist + resisting(fighter.statuses) + auras.resist, SOFT.resist))) * shorter, binds: true, shown: KNOCKED });
     },
     stagger,

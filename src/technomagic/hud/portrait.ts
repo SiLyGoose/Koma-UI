@@ -18,7 +18,7 @@ const BODY = 1.7;
 const CARD: Readonly<Record<string, { zoom: number; x: number; y: number }>> = {
   'Kirze.png': { zoom: 1.03, x: 0.08, y: -0.08 },
   'Kirze_Glory.png': { zoom: 1.15, x: 0.12, y: 0.11 },
-  'Klaus.png': { zoom: 0.98, x: 0.01, y: 0.13 },
+  'Klaus.png': { zoom: 0.98, x: 0.01, y: -0.02 },
   'Fallen_Frey.png': { zoom: 0.77, x: 0, y: 0.13 },
   'Gremory.png': { zoom: 0.84, x: -0.04, y: 0.16 },
   'Gremory_DailyLook.png': { zoom: 0.91, x: 0, y: -0.11 },

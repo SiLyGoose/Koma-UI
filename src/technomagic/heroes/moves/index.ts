@@ -22,12 +22,14 @@ import { DRAIN, LIBERATION, SOAK, SWEET } from '../erze/moves';
 import { CREED, GROUND, SHROUD, THRUST } from '../loman/moves';
 import { CHOP, SMASH, VORTEX, WARCRY } from '../gau/moves';
 import { KATAR, SIGHTED, TORNADO, WHISPER } from '../tanya/moves';
+import { DETERMINED, INDOMITABLE, PERISH, REND } from '../rebel-klaus/moves';
+import { ADVENT, CORRUPT, JUDGE, RUIN } from '../dark-lord-kasel/moves';
 import { ATTACK, CAST, HIT } from './common';
 import type { Move } from './move';
 
 /*
  * Every move a hero's body can make, by name: the ones all have (./common.ts) and each hero's own
- * (../kirze/moves.ts, ../klaus/moves.ts, ../fallen-frey/moves.ts, ../gremory/moves.ts, ../annette/moves.ts, ../morrah/moves.ts, ../laias/moves.ts, ../seria/moves.ts, ../ezekiel/moves.ts, ../lorraine/moves.ts, ../valance/moves.ts, ../lucikiel/moves.ts, ../selene/moves.ts, ../crow/moves.ts, ../oddy/moves.ts, ../phillop/moves.ts, ../naila/moves.ts, ../yanne/moves.ts, ../neraxis/moves.ts, ../erze/moves.ts, ../loman/moves.ts, ../gau/moves.ts, ../tanya/moves.ts), written with the stances in ./stances.ts. Each is
+ * (../kirze/moves.ts, ../klaus/moves.ts, ../fallen-frey/moves.ts, ../gremory/moves.ts, ../annette/moves.ts, ../morrah/moves.ts, ../laias/moves.ts, ../seria/moves.ts, ../ezekiel/moves.ts, ../lorraine/moves.ts, ../valance/moves.ts, ../lucikiel/moves.ts, ../selene/moves.ts, ../crow/moves.ts, ../oddy/moves.ts, ../phillop/moves.ts, ../naila/moves.ts, ../yanne/moves.ts, ../neraxis/moves.ts, ../erze/moves.ts, ../loman/moves.ts, ../gau/moves.ts, ../tanya/moves.ts, ../rebel-klaus/moves.ts, ../dark-lord-kasel/moves.ts), written with the stances in ./stances.ts. Each is
  * written to fit how the fight times it (../../sim/heroes/moves.ts).
  */
 
@@ -127,6 +129,14 @@ export const MOVES: Record<HeroMove | 'hit', Move> = {
   sighted: SIGHTED,
   tornado: TORNADO,
   whisper: WHISPER,
+  rend: REND,
+  determined: DETERMINED,
+  indomitable: INDOMITABLE,
+  perish: PERISH,
+  corrupt: CORRUPT,
+  judge: JUDGE,
+  ruin: RUIN,
+  advent: ADVENT,
   hit: HIT,
 };
 

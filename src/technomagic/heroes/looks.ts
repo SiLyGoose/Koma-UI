@@ -1,4 +1,4 @@
-import { ANNETTE_ASSETS, KLAUS_ASSETS, EZEKIEL_ASSETS, FALLEN_FREY_ASSETS, GREMORY_ASSETS, KIRZE_ASSETS, LAIAS_ASSETS, LORRAINE_ASSETS, MORRAH_ASSETS, SERIA_ASSETS, VALANCE_ASSETS, LUCIKIEL_ASSETS, SELENE_ASSETS, CROW_ASSETS, ODDY_ASSETS, PHILLOP_ASSETS, NAILA_ASSETS, YANNE_ASSETS, NERAXIS_ASSETS, ERZE_ASSETS, LOMAN_ASSETS, GAU_ASSETS, TANYA_ASSETS, type HeroAssets } from '../assets';
+import { ANNETTE_ASSETS, KLAUS_ASSETS, EZEKIEL_ASSETS, FALLEN_FREY_ASSETS, GREMORY_ASSETS, KIRZE_ASSETS, LAIAS_ASSETS, LORRAINE_ASSETS, MORRAH_ASSETS, SERIA_ASSETS, VALANCE_ASSETS, LUCIKIEL_ASSETS, SELENE_ASSETS, CROW_ASSETS, ODDY_ASSETS, PHILLOP_ASSETS, NAILA_ASSETS, YANNE_ASSETS, NERAXIS_ASSETS, ERZE_ASSETS, LOMAN_ASSETS, GAU_ASSETS, TANYA_ASSETS, REBEL_KLAUS_ASSETS, DARK_LORD_KASEL_ASSETS, type HeroAssets } from '../assets';
 import { STAND as ANNETTE } from './annette/moves';
 import type { Bends, Pose } from './body/pose';
 import { STAND as EZEKIEL } from './ezekiel/moves';
@@ -20,6 +20,8 @@ import { STAND as ERZE } from './erze/moves';
 import { STAND as LOMAN } from './loman/moves';
 import { STAND as GAU } from './gau/moves';
 import { STAND as TANYA } from './tanya/moves';
+import { STAND as REBEL_KLAUS } from './rebel-klaus/moves';
+import { STAND as DARK_LORD_KASEL } from './dark-lord-kasel/moves';
 
 /*
  * How each hero looks on the field, by its id: what it is in a fight is the sim's (../sim/heroes/), and its folder
@@ -69,6 +71,8 @@ const LOOKS: Readonly<Record<string, HeroLook>> = {
   loman: { assets: LOMAN_ASSETS, stands: LOMAN },
   gau: { assets: GAU_ASSETS, stands: GAU },
   tanya: { assets: TANYA_ASSETS, stands: TANYA, varies: true },
+  'rebel-klaus': { assets: REBEL_KLAUS_ASSETS, stands: REBEL_KLAUS, varies: true },
+  'dark-lord-kasel': { assets: DARK_LORD_KASEL_ASSETS, stands: DARK_LORD_KASEL, varies: true },
 };
 
 /** How the hero `id` looks (every hero the sim has has a look). */

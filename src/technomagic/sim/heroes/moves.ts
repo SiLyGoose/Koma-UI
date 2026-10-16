@@ -101,7 +101,15 @@ export type HeroMove =
   | 'katar'
   | 'sighted'
   | 'tornado'
-  | 'whisper';
+  | 'whisper'
+  | 'rend'
+  | 'determined'
+  | 'indomitable'
+  | 'perish'
+  | 'corrupt'
+  | 'judge'
+  | 'ruin'
+  | 'advent';
 
 /** `count` blows, the first `first` seconds in and each `every` after the last. */
 const every = (count: number, first: number, step: number): number[] => Array.from({ length: count }, (_, i) => first + i * step);
@@ -227,4 +235,14 @@ export const CODED: Readonly<Record<HeroMove | 'hit', Span>> = {
   sighted: { lands: [0.5], until: 1.2 },
   tornado: { lands: [0.4, 0.6, 0.8], until: 1.3 },
   whisper: { lands: [...every(6, 0.4, 0.12), 1.3], until: 1.9 },
+  // Rebel Klaus (Perish.'s last its blow on the ground).
+  rend: { lands: [0.45], until: 1.1 },
+  determined: { lands: [0.5], until: 1.2 },
+  indomitable: { lands: [0.55], until: 1.4 },
+  perish: { lands: [...every(6, 0.4, 0.12), 1.4], until: 2 },
+  // Dark Lord Kasel (each skill's last blow its [Dark Lord] state's blow more: nothing without it).
+  corrupt: { lands: [0.3, 0.6], until: 1.15 },
+  judge: { lands: [0.4, 0.65, 1.1], until: 1.6 },
+  ruin: { lands: [0.5, 0.7, 0.9, 1.35], until: 1.8 },
+  advent: { lands: [0.8], until: 1.6 },
 };

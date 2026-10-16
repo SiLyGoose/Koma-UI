@@ -22,6 +22,8 @@ import { ERZE } from './erze';
 import { LOMAN } from './loman';
 import { GAU } from './gau';
 import { TANYA } from './tanya';
+import { REBEL_KLAUS } from './rebel-klaus';
+import { DARK_LORD_KASEL } from './dark-lord-kasel';
 
 /** The heroes there are, in the order of their cards. */
-export const HEROES: readonly HeroDef[] = [KIRZE, KLAUS, FALLEN_FREY, GREMORY, ANNETTE, MORRAH, LAIAS, SERIA, EZEKIEL, LORRAINE, VALANCE, LUCIKIEL, SELENE, CROW, ODDY, PHILLOP, NAILA, YANNE, NERAXIS, ERZE, LOMAN, GAU, TANYA];
+export const HEROES: readonly HeroDef[] = [KIRZE, KLAUS, FALLEN_FREY, GREMORY, ANNETTE, MORRAH, LAIAS, SERIA, EZEKIEL, LORRAINE, VALANCE, LUCIKIEL, SELENE, CROW, ODDY, PHILLOP, NAILA, YANNE, NERAXIS, ERZE, LOMAN, GAU, TANYA, REBEL_KLAUS, DARK_LORD_KASEL];

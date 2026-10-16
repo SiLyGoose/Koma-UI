@@ -28,6 +28,8 @@ const UNIQUE_PICTURES: Readonly<Record<string, string>> = {
   loman: '/gear/items/weapons/wave-of-protection-gaiamenes.png',
   gau: '/gear/items/weapons/holy-bird-numinu.png',
   tanya: '/gear/items/weapons/demon-of-the-calm-caethasis.png',
+  'rebel-klaus': '/gear/items/weapons/adversary-of-the-goddess-galicta.png',
+  'dark-lord-kasel': '/gear/items/weapons/corrupted-holy-sword-aea.png',
 };
 
 /** A hero's files, by its id (its folder under public/kr/heroes/). */
