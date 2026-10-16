@@ -52,6 +52,11 @@ export interface RiggedModel {
    */
   attack?: readonly { file: string }[];
   /**
+   * Its attack leaves the blade in its right hand pointing across it: eased back to its idle from there, that blade is
+   * swung round the front of it (out ahead of it, half way), not the shortest way, which turns it back through its legs.
+   */
+  returnAhead?: boolean;
+  /**
    * Its attack goes straight on into the next (a skin of the game's own files, with no idle): as one ends it is eased
    * from where that leaves it to where its attack begins, ready for the next, not back to how it stands (unless none comes).
    */

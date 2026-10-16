@@ -87,6 +87,8 @@ export interface Animations {
   bladeRunning?: Vector3;
   /** Its attack goes straight on into the next (its rig's `chained`). */
   chained?: boolean;
+  /** Eased back to its idle after its attack, its blade is swung round the front of it (its rig's `returnAhead`). */
+  returnAhead?: boolean;
   /** What is in its right hand is loosed as it shoots (its rig's `loosed`). */
   loosed?: { nock: number };
 }
@@ -193,5 +195,5 @@ export async function loadRigged(name: string, owner: { folder: string }, files:
       return [[move, { clip: staying(made), until: span.until, lands: span.lands, ...(skill.crouch && { crouch: skill.crouch }), ...(skill.aimUp && { aimUp: skill.aimUp }) }] as const];
     }),
   );
-  return { stood: { ...hang([space], hips.y), models: [space], rig, hips, feet, blade, materials }, space, animations: { idle: clips.idle, run: clips.run && inPlace(clips.run), attack, skills: played, ...(files.bladeRunning && { bladeRunning: new Vector3(...files.bladeRunning).normalize() }), ...(files.chained && { chained: true }), ...(files.loosed && { loosed: files.loosed }) }, others };
+  return { stood: { ...hang([space], hips.y), models: [space], rig, hips, feet, blade, materials }, space, animations: { idle: clips.idle, run: clips.run && inPlace(clips.run), attack, skills: played, ...(files.bladeRunning && { bladeRunning: new Vector3(...files.bladeRunning).normalize() }), ...(files.chained && { chained: true }), ...(files.returnAhead && { returnAhead: true }), ...(files.loosed && { loosed: files.loosed }) }, others };
 }

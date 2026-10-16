@@ -1,4 +1,4 @@
-import { AnimationClip, AnimationMixer, LoopOnce, LoopRepeat, type AnimationAction, type Object3D, type Vector3 } from 'three';
+import { AnimationClip, AnimationMixer, LoopOnce, LoopRepeat, Quaternion, Vector3, type AnimationAction, type Object3D } from 'three';
 import { retargeter } from '../../engine/retarget';
 import { lengthOf } from '../../engine/track';
 import { flowing, MOVES, type HeroMove } from '../moves';
@@ -32,6 +32,16 @@ const OUT_OF = 0.32;
  * is the fight's (../../sim/motion.ts).
  */
 const RETURN = 0.45;
+/** One whose blade is swung round the front of it as it eases back to its idle (Animations.returnAhead): the way it points half way, in its model's axes (ahead of it, a little down). */
+const AHEAD = new Vector3(0, -0.35, 1).normalize();
+
+const swing = new Quaternion();
+const some = new Quaternion();
+/** The way `from` turned toward `to`, `k` of the way (both of length 1): put in `into`. */
+function toward(from: Vector3, to: Vector3, k: number, into: Vector3): Vector3 {
+  swing.setFromUnitVectors(from, to);
+  return into.copy(from).applyQuaternion(some.identity().slerp(swing, k));
+}
 
 /** Animations with an idle and a run: what stands a hero by them. */
 type Standing = Animations & { idle: AnimationClip; run: AnimationClip };
@@ -74,7 +84,7 @@ export function heroLike(stood: Stood, like: Rigged, rest: Pose = REST, posing: 
     const { loosed } = like.animations;
     return posedHero(stood, rest, own, { ...posing, ...(idle && { idle: mine(idle) }), ...(run && { run: mine(run), ...(bladeRunning && { bladeRunning }) }), ...(loosed && { loosed }) });
   }
-  return animatedHero(stood, BIPED, { idle: mine(idle), run: mine(run), attack, skills }, rest);
+  return animatedHero(stood, BIPED, { idle: mine(idle), run: mine(run), attack, skills, ...(like.animations.returnAhead && { returnAhead: true }) }, rest);
 }
 
 /**
@@ -116,6 +126,10 @@ function animatedHero({ root, body, middle, models, rig, hips, feet, blade, muzz
   };
   /** Its own attack has just ended: it eases back to its idle the slower way. */
   let returning = false;
+  /** Swung back round the front of it as it does (Animations.returnAhead): the way its blade pointed as its attack ended, and how long ago. */
+  let back: { from: Vector3; t: number } | null = null;
+  const hand = bones.arms.R[2];
+  const way = new Vector3();
 
   let red = 0;
   /** What it is doing besides standing: running in, or a move written in code. */
@@ -136,6 +150,7 @@ function animatedHero({ root, body, middle, models, rig, hips, feet, blade, muzz
     start(move) {
       // (Unless it is in a move written in code already: then its bones aren't as its animations have them.)
       if (!doing || doing.what === 'own' || doing.what === 'enter') rig.keep(animated);
+      back = null;
       const parts = move === 'attack' ? own : (skills[move] ?? []);
       doing = parts.length > 0 ? { what: 'own', move, parts, part: 0, t: 0 } : { what: move, t: 0 };
     },
@@ -153,12 +168,14 @@ function animatedHero({ root, body, middle, models, rig, hips, feet, blade, muzz
       red = RED;
       // Unless it is in a move written in code already: then its bones aren't as its animations have them.
       if (!doing || doing.what === 'own') rig.keep(animated);
+      back = null;
       doing = { what: 'hit', t: 0 };
     },
     fall() {
       // Cut short in a move written in code: back as its animations last had it, for its idle to take on from there.
       if (doing && doing.what !== 'own' && doing.what !== 'enter') rig.blend(animated, 1);
       doing = null;
+      back = null;
     },
     update(now, dt) {
       let ahead = 0;
@@ -175,7 +192,10 @@ function animatedHero({ root, body, middle, models, rig, hips, feet, blade, muzz
         mixer.update(dt);
         if (doing.t >= part.until) {
           doing = doing.part + 1 < doing.parts.length ? { ...doing, part: doing.part + 1, t: 0 } : null;
-          if (!doing) returning = true;
+          if (!doing) {
+            returning = true;
+            if (animations.returnAhead && attacking) back = { from: rig.pointing(hand, blade, new Vector3()), t: 0 };
+          }
         }
       } else if (doing && doing.what !== 'enter') {
         // A move written in code, on this skeleton.
@@ -214,6 +234,16 @@ function animatedHero({ root, body, middle, models, rig, hips, feet, blade, muzz
           returning = false;
         }
         mixer.update(dt);
+        // Its blade swung from where its attack left it out ahead of it, then on to where its idle has it.
+        if (back) {
+          back.t += dt;
+          const k = Math.min(1, back.t / RETURN);
+          const eased = k * k * (3 - 2 * k);
+          if (eased < 0.5) toward(back.from, AHEAD, eased * 2, way);
+          else toward(AHEAD, rig.pointing(hand, blade, way), eased * 2 - 1, way);
+          rig.point(hand, blade, way);
+          if (k >= 1) back = null;
+        }
       }
 
       // Its shield, if it has one, faces ahead whatever its arm is doing.

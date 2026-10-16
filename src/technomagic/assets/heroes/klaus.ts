@@ -28,6 +28,9 @@ export const KLAUS_ASSETS: HeroAssets = {
           // One slash where he stands. His sword hand is moving fastest 0.6 s in: the blow lands a little after, as the swing comes through.
           // Left just after it (before the clip's follow-through brings the sword down across him), easing back to his idle.
           attack: [{ file: 'Klaus - Sword And Shield Slash.fbx' }],
+          // The slash leaves his sword pointing across him, to his right: brought back to his idle round the front of him,
+          // not turned back through his legs.
+          returnAhead: true,
           // Guardian Shield: his shield arm raised high, then brought down to the ground (1.75 s in, where it lands), and up again.
           skills: { guard: { file: 'Klaus - Sword And Shield Casting.fbx' } },
         },

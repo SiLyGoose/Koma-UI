@@ -232,6 +232,15 @@ export class Rig {
     }
   }
 
+  /** The way `axis` (a way in a bone's own axes) points now, in its model's axes (the first model that has the bone): put in `into`. */
+  pointing(name: string, axis: Vector3, into: Vector3): Vector3 {
+    const bone = this.named.get(name)?.[0];
+    if (!bone) return into.copy(axis);
+    const model = this.model.get(bone) as Object3D;
+    model.updateWorldMatrix(true, true);
+    return into.copy(axis).applyQuaternion(bone.getWorldQuaternion(frame)).applyQuaternion(model.getWorldQuaternion(turn).invert()).normalize();
+  }
+
   /** Turns a bone, the shortest way, so that what pointed along `was` points along `will` (both in the world's axes). */
   private aim(bone: Object3D, was: Vector3, will: Vector3): void {
     if (!bone.parent) return;
