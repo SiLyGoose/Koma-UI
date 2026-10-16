@@ -10,7 +10,7 @@ import type { PickView, PlayerView, RoomState } from '../../protocol/technomagic
 /*
  * Getting ready for a room's fight, as King's Raid has it: across the top the boss and the stage (the host
  * steps it up or down in Raid Settings, top right, where the room's link can be copied for others to join), then the lineup, a card for every slot (whose each hero is: 1P, 2P…; one of this
- * player's taken out by pressing it). Alone, the lineup is in two halves, the Main Team (whose skills are the player's to use)
+ * player's taken out by pressing it). Single player, the lineup is in two halves, the Main Team (whose skills are the player's to use)
  * and the Sub Team (on Auto for the whole fight), each with its tab over it: a hero picked goes into the one whose tab is
  * pressed, and one picked into the other already is moved over. Along the bottom: the heroes this player owns (pressing one puts it in,
  * or takes it out), the room's chat, and who's in (the host's crown, who's ready), with Raid Info, Ready
@@ -113,8 +113,8 @@ export function makePrep(act: PrepActions): Prep {
   byId('prep-info').append(
     el('p', '', `${GALGORIA.name}: a chimera of three heads that spits venom. Its blows are magical, and nothing slows it; it heals itself all the while.`),
     el('p', '', 'Every 150 blows, the hero that has dealt the most is shut in the swamp for a while. Its Swamp Destroyer knocks every hero down.'),
-    el('p', '', `Heroes that fall stay down. Beat it within 3:30, before its rage wipes the party. Each stage, it has more health and hits harder; alone, it has ${Math.round(((GALGORIA.stages.solo[0]?.hp ?? 1) / (GALGORIA.stages.room[0]?.hp ?? 1)) * 100)}% of the health.`),
-    el('p', '', 'The host brings up to 4 heroes, everyone else up to 3, 8 in all. Alone, up to 7: 4 in the Main Team, whose skills are yours to use, and 3 in the Sub Team, who fight on Auto. A win gives each player TechnoMagic gear, while they have runs left today that give it.'),
+    el('p', '', `Heroes that fall stay down. Beat it within 3:30, before its rage wipes the party. Each stage, it has more health and hits harder; single player, it has ${Math.round(((GALGORIA.stages.solo[0]?.hp ?? 1) / (GALGORIA.stages.room[0]?.hp ?? 1)) * 100)}% of the health.`),
+    el('p', '', 'With others, the host brings up to 4 heroes, everyone else up to 3, 8 in all. Single player, up to 7: 4 in the Main Team, whose skills are yours to use, and 3 in the Sub Team, who fight on Auto. A win gives each player TechnoMagic gear, while they have runs left today that give it.'),
     el('p', '', 'The host picks the stage: each after the first opens once they have beaten the one before it.'),
   );
 
