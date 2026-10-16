@@ -9,7 +9,7 @@ import type { HeroSkillView } from '../protocol/heroes';
  */
 
 export interface HeroSkill extends HeroSkillView {
-  /** Its picture (under public/kr/, so only where those are served). */
+  /** Its picture (under public/kr/). */
   picture: string | null;
 }
 

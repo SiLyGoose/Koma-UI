@@ -126,9 +126,6 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
 
   ui.loginButton.addEventListener('click', logIn);
 
-  // The TechnoMagic Raid is only there under `yarn dev`: its models aren't deployed.
-  if (!import.meta.env.DEV) root.querySelector<HTMLElement>('[data-game="technomagic"]')?.remove();
-
   for (const button of ui.playButtons) {
     button.addEventListener('click', async () => {
       const server = currentServer();

@@ -8,7 +8,7 @@ import { HEROES } from '../technomagic/sim/heroes';
  * The hero on the heroes page's stage as the TechnoMagic Raid has it (../technomagic/heroes/): its model,
  * standing in its idle and breathing, seen from the front from its head down to its thighs, behind its
  * slots. Read only when the page first shows a hero (three.js and the models are big), each hero once.
- * Its models are kept on this computer only (public/kr/): where one can't be read, show() says so and the
+ * Its models are under public/kr/: where one can't be read, show() says so and the
  * page keeps the hero's picture.
  */
 

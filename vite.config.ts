@@ -1,4 +1,4 @@
-import { readFileSync, rmSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { defineConfig, type Plugin } from 'vite';
 
@@ -18,18 +18,6 @@ function transitionHead(): Plugin {
   };
 }
 
-/**
- * The TechnoMagic Raid's models (public/kr/, which git ignores) are for `yarn dev` on this machine only: a
- * build made here would copy them into dist with the rest of public/, so they are taken out again.
- */
-function localModelsOnly(): Plugin {
-  return {
-    name: 'local-models-only',
-    apply: 'build',
-    closeBundle: () => rmSync(resolve(import.meta.dirname, 'dist/kr'), { recursive: true, force: true }),
-  };
-}
-
 // The front page (log in, pick a server and a game) is index.html. Each game is served at
 // /games/<name>/: its page lives at games/<name>/index.html, and the build keeps that path
 // (dist/games/<name>/index.html), with the shared assets under /assets. The site's own pages (the front page,
@@ -37,7 +25,7 @@ function localModelsOnly(): Plugin {
 // (src/site/main.ts; vercel.json sends /gear/, /heroes/, /forge/, /shop/…, /dressing-room/ and /databank/… there, and the old
 // /banner/ to /shop/wish/).
 export default defineConfig({
-  plugins: [transitionHead(), localModelsOnly()],
+  plugins: [transitionHead()],
   build: {
     rolldownOptions: {
       input: {

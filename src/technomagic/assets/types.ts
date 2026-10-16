@@ -14,7 +14,7 @@ export interface Crop {
 /**
  * A skin's picture for its card: a file, and the square of it that is the hero's head and a little
  * more. It is kept with the page (public/technomagic/portraits/) unless it says where it is fetched
- * `from`: then under its hero's folder in public/kr/, which git ignores and a build leaves out.
+ * `from`: then under its hero's folder in public/kr/, with the models.
  */
 export interface Portrait {
   file: string;

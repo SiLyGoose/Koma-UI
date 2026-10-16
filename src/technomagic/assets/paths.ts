@@ -1,8 +1,7 @@
 import type { EffectAssets, HeroAssets, Portrait, RiggedModel } from './types.ts';
 
 /*
- * Where each file is kept. Under public/kr/ (which git ignores and a build leaves out: the models stay
- * on this machine), by whose it is:
+ * Where each file is kept. Under public/kr/ (the models, copied in by scripts/kr-assets.mjs), by whose it is:
  *
  *   heroes/<hero>/models/<model>/     a model's .fbx and its textures (a rigged skin's: its animations)
  *   heroes/<hero>/skills/             the pictures on its skills

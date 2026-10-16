@@ -132,9 +132,8 @@ same from its side.
   To add a hero: its file in `sim/heroes/` (and a line in `sim/heroes/index.ts`, and its moves' timing in
   `sim/heroes/moves.ts`), a file in `assets/heroes/`, a folder in `heroes/` (and a line in `heroes/looks.ts`,
   `heroes/fx.ts` and `heroes/moves/index.ts`); a boss likewise (`sim/bosses/`, `bosses/models.ts`). Then `yarn sync`: the
-  bot takes its heroes (and the sets' words) from the sim. Its models are not in this repo: `node scripts/kr-assets.mjs` copies
-  them into `public/kr/`, which git ignores and a build leaves out, so the page only shows them under `yarn dev` on a
-  machine that has them. They are kept there by whose they are: `heroes/<hero>/models/`, `skills/` and `portraits/`,
+  bot takes its heroes (and the sets' words) from the sim. `node scripts/kr-assets.mjs` copies its models from the game's
+  files into `public/kr/`, which is committed and deployed with the site. They are kept there by whose they are: `heroes/<hero>/models/`, `skills/` and `portraits/`,
   `bosses/<boss>/models/`, and `effects/`. The skins' pictures that are committed are in `public/technomagic/portraits/`.
 - `src/gear/`: the gear page. `src/databank/`: the databank: its way in (`/databank/`), the items (`/databank/items/`)
   and the raid bosses (`/databank/bosses/`).

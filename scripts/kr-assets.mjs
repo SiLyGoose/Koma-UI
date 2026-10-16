@@ -1,6 +1,6 @@
 /*
  * Copies the models the TechnoMagic Raid page shows (src/technomagic/assets/ names them) into
- * public/kr/, a folder git ignores: they stay on this machine and are never part of a deploy. Each goes
+ * public/kr/, which is committed and deployed with the site. Each goes
  * where its owner's files are kept (src/technomagic/assets/paths.ts): heroes/<hero>/…, bosses/<boss>/…,
  * effects/….
  *
