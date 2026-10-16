@@ -3,7 +3,10 @@ import { HERO_CLASSES, HERO_SLOT_KIND, type HeroCopy, type HeroSlot, type Heroes
 import type { HeroesSold } from '../protocol/heroes';
 import { busyWith, dropdown, fillServers } from '../shared/ui';
 import { createContext, heroShown, mine, status, type HeroesContext, type HeroesHost, type HeroMember } from './context';
-import { perkTip, render, type HeroActions } from './render';
+import { perkTip, render, renderPick, renderSearch, type HeroActions } from './render';
+
+/** How long the search waits for typing to stop before the armory is drawn again. */
+const SEARCH_MS = 120;
 import { pointTips } from '../technomagic/hud/tip';
 import '../technomagic/styles/tip.css';
 
@@ -273,9 +276,12 @@ function wire(ctx: HeroesContext, act: HeroActions): () => void {
     if (ctx.target && HERO_SLOT_KIND[ctx.target] !== ctx.filter) ctx.target = null;
     render(ctx, act);
   });
+  // The armory alone, once typing stops for a moment (not the whole page for every key).
+  let typing: ReturnType<typeof setTimeout> | undefined;
   wireSearch(ui.search, (query) => {
     ctx.query = query;
-    render(ctx, act);
+    clearTimeout(typing);
+    typing = setTimeout(() => renderSearch(ctx, act), SEARCH_MS);
   });
 
   for (const tab of ui.views) {
@@ -339,11 +345,12 @@ function wire(ctx: HeroesContext, act: HeroActions): () => void {
     if (ctx.picked) {
       itemDetailsClosed();
       ctx.picked = null;
-      render(ctx, act);
+      renderPick(ctx, act);
     } else if (ctx.selling) pickToSell(ctx, act, false);
   };
   document.addEventListener('keydown', onKey);
   return () => {
+    clearTimeout(typing);
     document.removeEventListener('keydown', onKey);
     if (ui.sellConfirm.open) ui.sellConfirm.close();
     serverPicker.destroy();

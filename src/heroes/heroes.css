@@ -92,6 +92,29 @@
   transform: scale(1.2);
 }
 
+/*
+ * More to press than the little box shows, for a finger: out past the main treasure's left edge (not over the rest of
+ * it, whose press is the main treasure's), and up and down to halfway to the next box (further, above the first and
+ * below the last). Not seen.
+ */
+.hero-subs .sub-box {
+  position: relative;
+}
+
+.hero-subs .sub-box::before {
+  content: '';
+  position: absolute;
+  inset: -2.5px -4px -2.5px -16px;
+}
+
+.hero-subs .sub-box:first-child::before {
+  top: -8px;
+}
+
+.hero-subs .sub-box:last-child::before {
+  bottom: -8px;
+}
+
 /* The one last pressed: where the next of its unique treasures goes. */
 .hero-subs .sub-box.filtered {
   outline: 2px solid var(--picked);

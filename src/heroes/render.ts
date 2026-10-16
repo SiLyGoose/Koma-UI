@@ -69,6 +69,18 @@ export function render(ctx: HeroesContext, act: HeroActions): void {
   drawSell(ui.sell, ui.sellCancel, view.copies, ctx.selling, ctx.busy, canTrade(ctx));
 }
 
+/** A copy picked or put down (or picked to sell, or not): only what that changes, the armory's cards, the details and Sell. */
+export function renderPick(ctx: HeroesContext, act: HeroActions): void {
+  const { ui, view } = ctx;
+  if (!view) return;
+  renderGrid(ctx, act);
+  renderDetail(ctx, act);
+  drawSell(ui.sell, ui.sellCancel, view.copies, ctx.selling, ctx.busy, canTrade(ctx));
+}
+
+/** The search changed: only the armory. */
+export const renderSearch = (ctx: HeroesContext, act: HeroActions): void => renderGrid(ctx, act);
+
 /** A picture cut out for a hero, put in `img` once it's ready (its initial in `fallback` until then, or for good with none). */
 function showCut(img: HTMLImageElement, id: string, frame: typeof FACE, width: number, fallback: HTMLElement, initial: string): void {
   img.dataset.hero = id;
@@ -257,7 +269,7 @@ function renderGrid(ctx: HeroesContext, act: HeroActions): void {
           ctx.picked = copy.id;
         }
       } else ctx.picked = ctx.picked === copy.id ? null : copy.id;
-      render(ctx, act);
+      renderPick(ctx, act);
       itemPicked(before, ctx.picked);
     },
   });
@@ -337,7 +349,7 @@ function renderDetail(ctx: HeroesContext, act: HeroActions): void {
     onClose: () => {
       itemDetailsClosed();
       ctx.picked = null;
-      render(ctx, act);
+      renderPick(ctx, act);
     },
     label: ut ? 'Options' : 'On a hero',
     none: NONE,
@@ -470,7 +482,7 @@ function renderTranscend(ctx: HeroesContext, act: HeroActions): void {
           cell.append(picture, el('span', 'perk-cost', String(perk.cost)));
           cell.addEventListener('click', () => {
             ctx.perk = ctx.perk === perk.id ? null : perk.id;
-            render(ctx, act);
+            renderTranscend(ctx, act);
           });
           cells.append(cell);
         }

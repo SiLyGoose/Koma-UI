@@ -69,7 +69,9 @@ function card(ctx: DatabankContext, item: DatabankItem): HTMLButtonElement {
     const opened = ctx.picked !== item.id || !ctx.sheetOpen;
     ctx.picked = item.id;
     ctx.sheetOpen = true;
-    renderList(ctx);
+    // Only the ring moves (the list as it is, its pictures and all).
+    for (const other of ctx.ui.list.querySelectorAll('.db-item.picked')) other.classList.remove('picked');
+    button.classList.add('picked');
     renderDetail(ctx);
     itemPicked(opened ? null : item.id, item.id);
   });
