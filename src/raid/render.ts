@@ -49,7 +49,7 @@ export function render(next: RaidView): void {
   }
   const holding = ended && !resultShown;
   // The end screen goes over the battle's scene (the boss stays put under it) as the battle's own parts fade out.
-  // Before the fight (not fought yet this week, the lobby open, or a lobby that never came to a fight): the party screen.
+  // Before the fight (no raid going on, the lobby open, or a lobby that never came to a fight): the party screen.
   const preparing = next.phase === 'lobby' || (next.phase === 'idle' && next.idle !== null) || (next.phase === 'over' && next.over !== null && !ended);
   ui.prep.hidden = !preparing;
   ui.battle.hidden = !(fighting || ended);
