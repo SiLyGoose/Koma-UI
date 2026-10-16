@@ -9,7 +9,7 @@ import type { PickView, PlayerView, RoomState } from '../../protocol/technomagic
 
 /*
  * Getting ready for a room's fight, as King's Raid has it: across the top the boss and the stage (the host
- * steps it up or down in Raid Settings, top right), then the lineup, a card for every slot (whose each hero is: 1P, 2P…; one of this
+ * steps it up or down in Raid Settings, top right, where the room's link can be copied for others to join), then the lineup, a card for every slot (whose each hero is: 1P, 2P…; one of this
  * player's taken out by pressing it). Alone, the lineup is in two halves, the Main Team (whose skills are the player's to use)
  * and the Sub Team (on Auto for the whole fight), each with its tab over it: a hero picked goes into the one whose tab is
  * pressed, and one picked into the other already is moved over. Along the bottom: the heroes this player owns (pressing one puts it in,
@@ -92,6 +92,11 @@ export function makePrep(act: PrepActions): Prep {
   const level = byId('prep-level');
   const settings = levelPopup({ id: 'prep-settings-pop', title: 'Raid Settings', label: 'Stage', confirm: 'Confirm', down: 'Lower stage', up: 'Higher stage' });
   settings.picture.hidden = true;
+  // The room's link, for others to join it (not in a room of the player's own: single player).
+  const copyLink = el('button', 'tm-room-link', 'Copy Room Link');
+  copyLink.type = 'button';
+  settings.confirm.before(copyLink);
+  let copied: number | undefined;
   // Beside the screen rather than in it: scaled down on a phone (fit()), it would hold the popup in it.
   root.after(settings.root);
   const noteAt = byId('prep-note');
@@ -126,6 +131,19 @@ export function makePrep(act: PrepActions): Prep {
     drawSettings();
     settings.root.hidden = false;
     settings.confirm.focus();
+  });
+  copyLink.addEventListener('click', () => {
+    const link = state?.link;
+    if (!link) return;
+    const said = (text: string): void => {
+      copyLink.textContent = text;
+      clearTimeout(copied);
+      copied = window.setTimeout(() => (copyLink.textContent = 'Copy Room Link'), 1600);
+    };
+    navigator.clipboard.writeText(link).then(
+      () => said('Copied!'),
+      () => said('Could not copy'),
+    );
   });
   settings.bind({
     step(by) {
@@ -199,6 +217,7 @@ export function makePrep(act: PrepActions): Prep {
     settings.down.disabled = !host || picked <= 1;
     settings.up.disabled = !host || picked >= state.unlocked;
     settings.confirm.hidden = !host;
+    copyLink.hidden = state.link === null;
     const next = host && state.unlocked < state.stages ? `Win stage ${state.unlocked} to open stage ${state.unlocked + 1}. ` : '';
     settings.note.textContent = `${host ? next : 'Only the host changes the stage. '}Each stage, the boss has more health and hits harder; from stage 4 on it is harder on the heroes still, and a win gives more gear.`;
   }

@@ -341,3 +341,18 @@
   opacity: 0.5;
   cursor: default;
 }
+
+.play[hidden] {
+  display: none;
+}
+
+/* A game played alone or with others: the two in place of its Play. */
+.play-modes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.play-modes[hidden] {
+  display: none;
+}

@@ -2,7 +2,7 @@ import '../shared/style.css';
 import '../shared/ui/button/button.css';
 import { barSlot, setConn, soundButton } from '../shared/ui/frame/frame';
 import { setMuted } from '../shared/audio';
-import { gameSocket, server, showMessage, token, watching, type GameSocket } from '../shared/game';
+import { gameSocket, server, showMessage, single, token, watching, type GameSocket } from '../shared/game';
 import { apiFromSocket, chatBox, startLive } from '../shared/ui';
 import { navigate } from '../shared/transition';
 import { Group, Vector3 } from 'three';
@@ -44,7 +44,8 @@ import './technomagic.css';
  * this page draws it (fight/view.ts) and tells it what the players do.
  *
  * Opened from Discord or the front page (the link carries the player's token and the bot's WebSocket, after
- * the #), it is the server's room, played together as in King's Raid (../protocol/technomagic.ts). Getting ready (prep/):
+ * the #), it is the server's room, played together as in King's Raid (../protocol/technomagic.ts), or (single player,
+ * picked on the front page) a room of the player's own. Getting ready (prep/):
  * everyone puts heroes of theirs into the lineup and the host starts the fight. The fight is run by the bot,
  * and this page runs the same one from the same seed with everyone's presses as the bot relays them, never
  * going past the step the bot has reached (a step or two behind it, so it never has to wait). Each player
@@ -648,7 +649,7 @@ async function start(): Promise<void> {
     };
     overWaiting = () => (state?.phase === 'over' && state.over ? state.over : null);
 
-    socket = gameSocket<ServerMessage, ClientMessage>({ server: address, hello: () => ({ t: 'hello', token: link }), receive });
+    socket = gameSocket<ServerMessage, ClientMessage>({ server: address, hello: () => (single ? { t: 'hello', token: link, single } : { t: 'hello', token: link }), receive });
     startLive({ mount: barSlot(), api: apiFromSocket(address), auth: () => `Game ${link}`, newTab: true });
   }
 

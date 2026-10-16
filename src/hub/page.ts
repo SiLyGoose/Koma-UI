@@ -9,10 +9,14 @@ import { api, currentMe, currentServer, hasSession, loadMe, loggedIn, logIn, log
  * (its /api, at VITE_API_URL): this page sends the browser to the bot, which sends it to Discord,
  * which sends it back here with a code; the bot trades the code for a session, kept in this
  * browser (../site/session.ts). Picking a game asks the bot for a link to it, like the ones handed out
- * in Discord; the game is its own page.
+ * in Discord; the game is its own page. The TechnoMagic Raid's Play asks first: Single Player (a room of
+ * their own, not said in Discord) or Multiplayer (the server's room, which the bot says in Discord was opened).
  */
 
-/** A game to open once logged in: from a link like /?play=mines&guild=123 (the bot's buttons in Discord). */
+/**
+ * A game to open once logged in: from a link like /?play=mines&guild=123 (the bot's buttons in Discord). The
+ * TechnoMagic Raid's (its room's link) has &mode=multi, and goes straight into the server's room.
+ */
 const PLAY_KEY = 'koma.playNext';
 const GAMES: readonly Game[] = ['mines', 'pinecraft', 'baccarat', 'roulette', 'poker', 'raid', 'minesweeper', 'technomagic'];
 
@@ -116,18 +120,27 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     store.set(sessionStorage, PLAY_KEY, null);
     const me = currentMe();
     if (!wanted || !me) return;
-    const { game, guild } = JSON.parse(wanted) as { game: string; guild: string | null };
+    const { game, guild, mode } = JSON.parse(wanted) as { game: string; guild: string | null; mode?: string | null };
     if (guild && me.servers.some((s) => s.id === guild)) {
       setServer(guild);
       render();
     }
-    ui.playButtons.find((button) => button.dataset.play === game)?.click();
+    const ofGame = ui.playButtons.filter((button) => button.dataset.play === game);
+    (ofGame.find((button) => mode && button.dataset.mode === mode) ?? ofGame[0])?.click();
   }
 
   ui.loginButton.addEventListener('click', logIn);
 
   for (const button of ui.playButtons) {
     button.addEventListener('click', async () => {
+      // A game played alone or with others: its Play gives way to the choice.
+      const modes = button.nextElementSibling;
+      if (button.dataset.choose !== undefined && modes instanceof HTMLElement) {
+        button.hidden = true;
+        modes.hidden = false;
+        modes.querySelector('button')?.focus();
+        return;
+      }
       const server = currentServer();
       if (!server) return;
       const label = button.textContent;
@@ -136,7 +149,8 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
       button.textContent = 'Opening…';
       const res = await api<{ url: string }>('/api/play', { method: 'POST', body: JSON.stringify({ guild: server, game: button.dataset.play }) });
       if (res.ok) {
-        navigate(res.data.url);
+        // Single player: the game's page asks the bot for a room of the player's own (see ../shared/game/link.ts).
+        navigate(button.dataset.mode === 'single' ? `${res.data.url}&m=single` : res.data.url);
         return;
       }
       button.disabled = false;
@@ -152,7 +166,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     // A link to a game (from Discord): remember it through the login, and tidy the address.
     const play = query.get('play');
     if (GAMES.includes(play as Game)) {
-      store.set(sessionStorage, PLAY_KEY, JSON.stringify({ game: play, guild: query.get('guild') }));
+      store.set(sessionStorage, PLAY_KEY, JSON.stringify({ game: play, guild: query.get('guild'), mode: query.get('mode') }));
       history.replaceState(history.state, '', location.pathname + location.hash);
     }
     const code = query.get('code');
