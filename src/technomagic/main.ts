@@ -118,6 +118,8 @@ soundButton('technomagic-muted', setMuted);
 /** What pressing a card does (trying things out: the sim directly; in a room: told to the bot), and whose cards are shown. */
 interface Controls {
   mine(fighter: number): boolean;
+  /** In a room: another player's hero (its health bar blue). */
+  ally?(fighter: number): boolean;
   use(fighter: number, skill: number): void;
   auto(fighter: number): void;
   allAuto(): void;
@@ -218,7 +220,7 @@ async function start(): Promise<void> {
     // Along the bottom as the lineup had them (../prep/prep.ts): the nearest the boss on the right, so the furthest back first.
     const shown = sim.fighters.map((fighter, i) => ({ def: fighter.def, card: cards[i] })).sort((a, b) => nearer(a.def, b.def)).reverse();
     for (const { card } of shown) if (card) party.append(card.root);
-    const bars = sim.fighters.map(() => makeOverhead(overheads));
+    const bars = sim.fighters.map((_, i) => makeOverhead(overheads, controls.ally?.(i) ?? false));
     /** Every hero of this player's on Auto. */
     const allAuto = (): boolean => sim.fighters.every((fighter, i) => !controls.mine(i) || (controls.ahead?.auto(i) ?? fighter.auto));
     const meter = makeMeter(
@@ -453,6 +455,7 @@ async function start(): Promise<void> {
       const ahead = new Ahead(sim);
       game = play(sim, bodies, {
         mine: ours,
+        ally: (i) => start.heroes[i]?.owner !== you,
         use(fighter, skill) {
           ahead.press(fighter, skill);
           send({ t: 'press', fighter, skill });

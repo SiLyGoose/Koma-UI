@@ -14,11 +14,11 @@ export interface Overhead {
   hide(): void;
 }
 
-/** A hero's health bar, put in `parent`. */
-export function makeOverhead(parent: HTMLElement): Overhead {
+/** A hero's health bar, put in `parent`: blue for an `ally`'s (another player's hero, in a room). */
+export function makeOverhead(parent: HTMLElement, ally = false): Overhead {
   const root = el('div', 'tm-overhead-at');
   const buffs = el('div', 'tm-buffs');
-  const bar = el('div', 'tm-overhead');
+  const bar = el('div', ally ? 'tm-overhead ally' : 'tm-overhead');
   const fill = el('i', '');
   bar.append(fill);
   const line = el('div', 'tm-shield');

@@ -198,6 +198,11 @@
   opacity: 0.7;
 }
 
+/* In already, another player's: whose, smaller. */
+.tm-prep-hero.taken .tm-prep-hero-check {
+  font-size: min(32px, 30cqi);
+}
+
 /* A slot: whose it is, big, over its card. */
 .tm-slot {
   display: flex;

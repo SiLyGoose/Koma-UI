@@ -9,6 +9,11 @@
   transition: width 0.2s ease-out;
 }
 
+/* Over another player's hero (in a room): blue. */
+.tm-overhead.ally i {
+  background: linear-gradient(180deg, #d4ecff 0%, #8cc8ff 38%, #3f97f2 42%, #2a78d8 78%, #1a4f9c 100%);
+}
+
 .tm-bar,
 .tm-mp {
   box-sizing: border-box;

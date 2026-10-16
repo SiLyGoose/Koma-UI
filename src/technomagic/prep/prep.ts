@@ -308,17 +308,20 @@ export function makePrep(act: PrepActions): Prep {
         ...owned.map((hero) => {
           const pick = mine.find((one) => one.hero === hero.id);
           const picked = pick !== undefined;
+          // Another player's in already: no hero is brought twice.
+          const taker = picked ? undefined : owner(state?.lineup.find((one) => one.hero === hero.id)?.owner ?? '');
           // Alone, in the other team than the tab's: pressing it moves it over.
           const elsewhere = picked && solo && (pick.sub === true) !== into;
-          const button = el('button', picked ? 'tm-prep-hero picked' : 'tm-prep-hero');
+          const button = el('button', picked ? 'tm-prep-hero picked' : taker ? 'tm-prep-hero taken' : 'tm-prep-hero');
           button.type = 'button';
-          button.disabled = elsewhere ? !teamRoom : !picked && (mine.length >= limit || !room || !teamRoom);
+          button.disabled = elsewhere ? !teamRoom : !picked && (taker !== undefined || mine.length >= limit || !room || !teamRoom);
           button.setAttribute('aria-pressed', String(picked));
           if (solo && picked) button.dataset.team = pick.sub ? 'sub' : 'main';
           button.dataset.name = hero.name;
-          button.setAttribute('aria-label', elsewhere ? `Move ${hero.name} to the ${teamName}` : picked ? `Take ${hero.name} out` : `Put ${hero.name} in${solo ? ` the ${teamName}` : ''}`);
+          button.setAttribute('aria-label', elsewhere ? `Move ${hero.name} to the ${teamName}` : picked ? `Take ${hero.name} out` : taker ? `${hero.name}: in already, ${taker.number}P's` : `Put ${hero.name} in${solo ? ` the ${teamName}` : ''}`);
           button.append(portrait(hero.id, 'tm-prep-hero-face'));
           if (picked) button.append(el('span', 'tm-prep-hero-check', solo ? (pick.sub ? 'S' : 'M') : '✓'));
+          else if (taker) button.append(el('span', 'tm-prep-hero-check', `${taker.number}P`));
           button.addEventListener('click', () => (picked && !elsewhere ? act.unpick(hero.id) : act.pick(hero.id, into)));
           return button;
         }),
