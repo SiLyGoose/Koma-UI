@@ -60,6 +60,21 @@ function skillList(): HTMLElement {
   return box;
 }
 
+/**
+ * TechnoMagic gear's potentials, folded away as its additional skills are: the bot's first line says how many a copy
+ * rolls ("4 of these at random as it drops, …:"), the rest are the pool, each with its range.
+ */
+function potentialList(lines: string[]): HTMLElement {
+  const [head = '', ...pool] = lines;
+  const rolls = /^(\d+) of these/.exec(head)?.[1];
+  const box = el('details', 'detail-note db-skills');
+  box.append(el('summary', '', rolls ? `Each copy rolls ${rolls} of ${pool.length} potentials, at random, each a different one.` : head.replace(/:$/, '.')));
+  const list = el('ul', 'detail-effects');
+  for (const line of pool) list.appendChild(el('li')).append(rich(line));
+  box.append(list);
+  return box;
+}
+
 /** The panel: the item picked, what it does at the level picked, and what they own of it. */
 export function renderDetail(ctx: DatabankContext): void {
   const { ui, databank, level } = ctx;
@@ -113,7 +128,9 @@ export function renderDetail(ctx: DatabankContext): void {
   for (const line of lines) effects.appendChild(el('li')).append(rich(line));
   if (lines.length === 0) effects.append(el('li', 'muted', 'No effects.'));
 
-  ui.detailBody.append(head, el('p', 'detail-desc', item.description), levels, effects);
+  // (TechnoMagic gear's effects are the potentials a copy can roll: folded away under a line, as its additional effect is.)
+  const tm = item.source === 'technomagic' && lines.length > 1;
+  ui.detailBody.append(head, el('p', 'detail-desc', item.description), levels, tm ? effectSection('Potentials:', potentialList(lines)) : effects);
   // TechnoMagic gear: its set effect, then its additional effect (one of them, at random), each apart under its effects (the potentials a copy can roll).
   if (item.set?.pieces && item.set.effect) ui.detailBody.append(effectSection(`${item.set.pieces}-set effect:`, item.set.effect));
   if (item.source === 'technomagic') ui.detailBody.append(effectSection('Additional Effect:', skillList()));
