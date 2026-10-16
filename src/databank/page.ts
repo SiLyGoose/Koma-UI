@@ -1,12 +1,11 @@
 import markup from './databank.html?raw';
 import { API } from '../shared/ui';
 import type { Page } from '../site/page';
-import { api } from '../site/session';
 import { bossById, classById, createContext, heroById, itemById, status, type DatabankContext, type View } from './context';
 import { wireControls } from './controls';
+import { loadDatabank } from './load';
 import { loadMember } from './owned';
 import { render } from './render';
-import type { Databank } from './types';
 
 /*
  * The databank page (the bot's /api/databank, which needs no login). /databank/ is the way in: what
@@ -80,7 +79,7 @@ function place(ctx: DatabankContext, url: URL): void {
 async function start(ctx: DatabankContext): Promise<void> {
   if (!API) return status(ctx, 'This site is not set up yet: VITE_API_URL (the bot’s address) is missing.', true);
   status(ctx, 'Loading…');
-  const [res] = await Promise.all([api<Databank>('/api/databank'), loadMember(ctx)]);
+  const [res] = await Promise.all([loadDatabank(), loadMember(ctx)]);
   if (!res.ok) return status(ctx, 'Could not load the databank.', true);
   const databank = res.data;
   ctx.databank = databank;
