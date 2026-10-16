@@ -6,7 +6,7 @@ import type { HeroMove } from './heroes/moves';
 import type { Motion } from './motion';
 import type { SetRole, TmSet } from './sets';
 import type { Buff, Tone } from './shown';
-import type { PerkDef } from './perks';
+import type { PerkDef, SkillMark } from './perks';
 import type { SkillId } from './skills';
 
 /*
@@ -17,7 +17,7 @@ import type { SkillId } from './skills';
 /**
  * What a hero's gear gives it, as the bot counts it: points added to a chance or share (crit, attack speed,
  * penetration, block, block DEF, dodge, Tough, CC resist, accuracy, lifesteal, crit resist: 1000 is 100%), ATK added
- * as it is (`atkFlat`: a unique weapon's), and a share more of its own for the rest (ATK, HP, crit damage, defense,
+ * as it is (`atkFlat`: a unique weapon's), HP added as it is (`hpFlat`: a main unique treasure's), and a share more of its own for the rest (ATK, HP, crit damage, defense,
  * heals and shields, stun duration, mana per attack, mana recovery: 0.25 is 25% more). `defense`, `block`, `blockDef`,
  * `tough` and `critResist` are against both kinds of damage; the ones ending in Physical or Magical against that kind only.
  */
@@ -25,6 +25,7 @@ export type GearStat =
   | 'atk'
   | 'atkFlat'
   | 'hp'
+  | 'hpFlat'
   | 'crit'
   | 'critDamage'
   | 'speed'
@@ -85,7 +86,9 @@ export interface Fighter {
   readonly moveDmg: Partial<Record<HeroMove, number>>;
   /** Its skills' moves whose blows go through all the boss's defense, and what each leaves on the boss as its first blow lands (its perks'). */
   readonly moveWhole: ReadonlySet<HeroMove>;
-  readonly moveMarks: Partial<Record<HeroMove, readonly { name: string; takes: number | Partial<PerKind>; lasts: number }[]>>;
+  readonly moveMarks: Partial<Record<HeroMove, readonly SkillMark[]>>;
+  /** How many times as much its skills' heals and shields give (by the move each skill is: its perks', its main treasure's). */
+  readonly moveHeals: Partial<Record<HeroMove, number>>;
   readonly perkDmg: number;
   readonly perkTaken: PerKind;
   /** ACC (points): what of the boss's dodge and block its blows see past (its class's, and its perks'). */
@@ -111,6 +114,8 @@ export interface Fighter {
   readonly set: { id: TmSet; role: SetRole } | null;
   /** Its own unique weapon, as far as it is refined (1 to 5: ./unique.ts), and how many skills it has used with it; null: none. */
   readonly unique: { tier: number; casts: number } | null;
+  /** Its main unique treasure (../treasures.ts): which of its four (0 to 3), at which tier; null: none. Its effect is among its perks (as 'ut'). */
+  readonly treasure: { index: number; tier: number } | null;
   /**
    * The additional skills of the TechnoMagic gear it wears (./skills.ts): how many of each; what its own count
    * up (Momentum's stacks and Steadfast's); and seconds until each that waits between times may again.

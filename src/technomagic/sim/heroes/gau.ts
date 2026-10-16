@@ -1,6 +1,7 @@
 import { share } from '../combat/damage';
 import { put, type Status } from '../combat/status';
 import { said, t5Light } from '../perks';
+import { fromTreasure, treasure, treasureTier } from '../treasures';
 import { BLOW } from '../rules';
 import { num, pct, skillArt, type Buff } from '../shown';
 import { atTier, NUMINU, NUMINU_UP } from '../unique';
@@ -36,6 +37,18 @@ const VORTEX = { blow: indexed('warrior', 347_796) / CODED.vortex.lands.length, 
 const ENRAGE = { atk: 901, dmg: 0.03, lasts: 5, most: 10 };
 /** His own perks' numbers: Smash's Dark, Battle Roar's Light and Dark, Enrage's Light and Dark, and Transcend 5's Dark. */
 const PERKS = { harder: { more: 0.15, most: 10 }, roar: 1.4, speed: 200, enrage: 1.4, fury: { taken: 0.05, crit: 50, lifesteal: 50 }, mend: { heal: 0.1, less: 0.006 } };
+
+/**
+ * His unique treasures' numbers (1★ to 5★: ../treasures.ts): Smash's weaker boss and more P.DMG taken; Battle Roar's
+ * cheaper and every ally's crit DMG; Vortex's DMG; and Enrage's more stacks at most, and his penetration (points) at
+ * the most.
+ */
+const UT = {
+  helmet: { weaker: 0.2, takes: [0.12, 0.14, 0.17, 0.21, 0.25], lasts: 10 },
+  horn: { cost: -1, critDamage: [0.24, 0.29, 0.35, 0.42, 0.5] },
+  mug: { dmg: [0.1, 0.12, 0.14, 0.17, 0.2] },
+  bracelet: { most: 30, pen: [120, 140, 170, 210, 250] },
+};
 
 const art = skillArt('gau');
 
@@ -91,6 +104,23 @@ export const GAU: HeroDef = {
     },
   ],
   passive: ENRAGED,
+  treasures: [
+    treasure('King of Frost Helmet', (k) => ({
+      words: `[Smash] Reduces the target's ATK by ${pct(UT.helmet.weaker)} and increases P.DMG target receives by ${pct(k(UT.helmet.takes))} for ${UT.helmet.lasts} sec.`,
+      skill: { index: 0, mark: { name: 'King of Frost Helmet', deals: 1 - UT.helmet.weaker, takes: { physical: 1 + k(UT.helmet.takes) }, lasts: UT.helmet.lasts } },
+    })),
+    treasure('Fighter’s Horn', (k) => ({
+      words: `[Battle Roar] Reduces Mana Cost by ${-UT.horn.cost} and increases Crit DMG by ${pct(k(UT.horn.critDamage))} for duration of skill.`,
+      skill: { index: 1, cost: UT.horn.cost },
+    })),
+    treasure('Barbarian Mug', (k) => ({
+      words: `[Vortex] DMG is increased by ${pct(k(UT.mug.dmg))}.`,
+      skill: { index: 2, dmg: 1 + k(UT.mug.dmg) },
+    })),
+    treasure('Snowdrop Bracelet', (k) => ({
+      words: `[Enrage] Max stack number is changed to ${UT.bracelet.most}, and after ${UT.bracelet.most}th stack, own Penetration is increased by ${k(UT.bracelet.pen)}.`,
+    })),
+  ],
   perks: {
     's1-light': said({ skill: { index: 0, cost: -1 } }, ({ skill }) => `Mana cost is reduced by ${-skill.cost}.`),
     's1-dark': { words: `Each use increases DMG by ${pct(PERKS.harder.more)}. Stacks ${PERKS.harder.most} times max.` },
@@ -113,12 +143,15 @@ export const GAU: HeroDef = {
     let smashed = 0;
     let mending = 0;
     const tier = self.unique?.tier ?? null;
+    // (Snowdrop Bracelet: more stacks at most, and penetration at the most.)
+    const most = treasureTier(self, 3) > 0 ? UT.bracelet.most : ENRAGE.most;
+    const bracelet = fromTreasure(self, 3, UT.bracelet.pen);
 
     /** Enrage's stacks on him: his ATK (its Light: more) and DMG on the boss; its Dark, his crit chance too. */
     const enraged = (): void => {
       const atk = ENRAGE.atk * (self.perks.has('s4-light') ? PERKS.enrage : 1) * rage;
       const fury = self.perks.has('s4-dark');
-      put(self.statuses, { name: RAGING.name, left: ENRAGE.lasts, count: rage, deals: (1 + atk / self.stats.atk) * (1 + ENRAGE.dmg * rage), ...(fury && { crit: share(PERKS.fury.crit * rage) }), shown: RAGING });
+      put(self.statuses, { name: RAGING.name, left: ENRAGE.lasts, count: rage, deals: (1 + atk / self.stats.atk) * (1 + ENRAGE.dmg * rage), ...(fury && { crit: share(PERKS.fury.crit * rage) }), ...(bracelet > 0 && rage >= most && { pen: bracelet }), shown: RAGING });
     };
     /** A blow of his: with Enrage's Dark, he steals a share of what it deals for each stack. */
     const strike = (amount: number, counted = true): boolean => {
@@ -130,7 +163,7 @@ export const GAU: HeroDef = {
     /** His attack: a blow, a stack of Enrage (all begun again); with his unique weapon, now and then a blow more and the boss frozen. */
     const chop = (amount: number): void => {
       strike(amount);
-      rage = Math.min(ENRAGE.most, rage + 1);
+      rage = Math.min(most, rage + 1);
       rageLeft = ENRAGE.lasts;
       enraged();
       if (tier !== null && fight.roll() < NUMINU.chance) {
@@ -160,7 +193,9 @@ export const GAU: HeroDef = {
           const on = fight.field.filter((ally) => ally.hp > 0);
           for (const ally of on) {
             ally.statuses = ally.statuses.filter((status) => !harmful(status));
-            put(ally.statuses, { name: ROARED.name, left: ROAR.lasts, deals: 1 + atk / ally.stats.atk, ...(self.perks.has('s2-dark') && { pace: 1 + share(PERKS.speed) }), shown: ROARED });
+            // (Fighter's Horn: crit DMG too.)
+            const horn = fromTreasure(self, 1, UT.horn.critDamage);
+            put(ally.statuses, { name: ROARED.name, left: ROAR.lasts, deals: 1 + atk / ally.stats.atk, ...(self.perks.has('s2-dark') && { pace: 1 + share(PERKS.speed) }), ...(horn > 0 && { critDamage: horn }), shown: ROARED });
           }
           fight.cue(self, 'warcry', on);
         },
@@ -192,7 +227,7 @@ export const GAU: HeroDef = {
       // Vortex: not to be knocked down while he whirls (its Dark: nothing touches him either).
       guards: () => self.doing?.move === 'vortex',
       untouched: () => self.perks.has('s3-dark') && self.doing?.move === 'vortex',
-      lit: () => rage >= ENRAGE.most,
+      lit: () => rage >= most,
       buffs: () => (tier !== null ? [NUMINU_UP] : []),
     };
   },

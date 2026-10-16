@@ -1,6 +1,7 @@
 import { ATK, NONE, POINTS, type HeroStats, type PerKind } from '../combat/damage';
 import type { OwnTiming } from '../motion';
 import type { OwnPerkId, PerkDef } from '../perks';
+import type { TreasureDef } from '../treasures';
 import type { Line } from '../rules';
 import { num, type Art, type Buff, type Mark } from '../shown';
 import type { Fight, Fighter } from '../types';
@@ -214,6 +215,8 @@ export interface HeroDef {
   attack?: HeroMove;
   /** Its own transcendence perks (Transcend 3's and 5's): King's Raid's words for each, and what each does (./../perks.ts; what more, its part does). */
   perks?: Partial<Record<OwnPerkId, PerkDef>>;
+  /** Its four unique treasures (UT1 to UT4: its skills' and its passive's, in order), each King's Raid's (../treasures.ts). */
+  treasures?: readonly [TreasureDef, TreasureDef, TreasureDef, TreasureDef];
   /** How its own animations are timed (its skins' that have them are drawn to fit: ../motion.ts); none, its moves are all timed as written in code. */
   timing?: OwnTiming;
   /** Its part in a fight: made once, as the fight begins. */

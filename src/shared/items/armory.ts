@@ -30,6 +30,7 @@ export interface ArmoryCopy {
   effects: string[];
   heroOnly?: boolean;
   uniqueWeapon?: string | null;
+  uniqueTreasure?: { hero: string; skill: number } | null;
   /** Its class, as the gear page has it (`itemClass`) or the heroes page (`class`). */
   itemClass?: string | null;
   class?: string | null;
@@ -87,43 +88,127 @@ const GRID_CELLS = 12;
 /** A copy's tier in words, for a screen reader. */
 const tierWords = (copy: ArmoryCopy): string => {
   const tier = tierOf(copy);
-  return tier === 'tm' ? 'TechnoMagic' : tier === 'uw' ? 'unique weapon' : `${tier} star${tier === 1 ? '' : 's'}`;
+  return tier === 'tm' ? 'TechnoMagic' : tier === 'uw' ? 'unique weapon' : tier === 'ut' ? 'unique treasure' : `${tier} star${tier === 1 ? '' : 's'}`;
 };
 
-/** The armory's grid in `element`: drawn by `draw`, and again when a resize changes how many cards fit across. */
+/** A card the grid has drawn, kept to be shown again as it is (armoryGrid). */
+interface Card {
+  button: HTMLButtonElement;
+  /** What it was drawn from, but for its state (its classes, disabled, pressed), which is set on it each time. */
+  content: string;
+  /** The classes its state last put on it. */
+  on: Set<string>;
+  /** What a click on it does (the latest draw's). */
+  pick: () => void;
+}
+
+/**
+ * The armory's grid in `element`: drawn by `draw`, and again when a resize changes how many cards fit across. A card
+ * already drawn is kept and shown again (with its picture, already in) unless what's on it changed: a pick, the search
+ * or a filter only moves cards and sets their state, rather than drawing hundreds again.
+ */
 export function armoryGrid<C extends ArmoryCopy>(element: HTMLElement): ArmoryGrid<C> {
   let last: ArmoryDraw<C> | null = null;
   let across = 0;
   const columns = (): number => getComputedStyle(element).gridTemplateColumns.split(' ').length || 4;
+  /** By copy id. */
+  const cards = new Map<string, Card>();
+  const blanks: HTMLElement[] = [];
+  const empty = el('p', 'armory-empty');
+
+  /** `copy`'s card as `look` has it: the one drawn before if nothing on it changed, else drawn afresh. */
+  function cardFor(copy: C, look: CardLook, ownSound: boolean, onPick: () => void): HTMLButtonElement {
+    const content = contentOf(copy, look, ownSound);
+    let kept = cards.get(copy.id);
+    if (!kept || kept.content !== content) {
+      const made: Card = { button: card(copy, look, ownSound, () => made.pick()), content, on: new Set(), pick: onPick };
+      cards.set(copy.id, made);
+      kept = made;
+    }
+    kept.pick = onPick;
+    setState(kept, look);
+    return kept.button;
+  }
 
   function draw(what: ArmoryDraw<C>): void {
     last = what;
     const { slot, stars, query, hidden, matches, look } = what;
-    // Measured before emptying the grid, and the sheet's scroll put back after: a layout of the empty
-    // grid would scroll the sheet back to the top on every pick.
+    // The sheet's scroll put back after: a grid much shorter for a moment would scroll it back to the top.
     across = columns();
     const sheet = element.parentElement as HTMLElement;
     const scrolled = sheet.scrollTop;
-    element.textContent = '';
     element.classList.toggle('selling', !!what.selling);
     const ofSlot = armoryOrder(what.copies).filter((c) => (slot === 'all' || c.slot === slot) && !hidden?.(c));
     const shown = ofSlot.filter((c) => (matches?.(c) ?? true) && matchesStars(stars, tierOf(c)) && matchesSearch(query, { name: c.name, id: c.itemId, description: c.description }));
-    for (const copy of shown) element.append(card(copy, withSale(copy, look(copy), what), what.ownSound !== false, () => what.onPick(copy)));
+    const ownSound = what.ownSound !== false;
+    const nodes: HTMLElement[] = shown.map((copy) => cardFor(copy, withSale(copy, look(copy), what), ownSound, () => what.onPick(copy)));
     const row = (n: number): number => Math.ceil(n / across) * across;
     const cells = Math.max(row(GRID_CELLS), row(shown.length));
-    for (let i = shown.length; i < cells; i++) element.append(el('span', 'item blank'));
+    for (let i = 0; i < cells - shown.length; i++) nodes.push((blanks[i] ??= el('span', 'item blank')));
     if (shown.length === 0) {
-      const note = what.first ?? (ofSlot.length > 0 ? 'No items match that.' : slot === 'all' ? what.none : `No ${SLOT_NAME[slot].toLowerCase()} yet.`);
-      element.append(el('p', 'armory-empty', note));
+      empty.textContent = what.first ?? (ofSlot.length > 0 ? 'No items match that.' : slot === 'all' ? what.none : `No ${SLOT_NAME[slot].toLowerCase()} yet.`);
+      nodes.push(empty);
     }
+    place(element, nodes);
+    // The cards of copies gone (sold, or someone else's shown now) aren't kept.
+    const ids = new Set(what.copies.map((copy) => copy.id));
+    for (const id of cards.keys()) if (!ids.has(id)) cards.delete(id);
     sheet.scrollTop = scrolled;
   }
 
-  const onResize = (): void => {
+  // Drawn again when as many cards don't fit across any more (the grid's width changed, not just the window's).
+  const resized = new ResizeObserver(() => {
     if (last && across && columns() !== across) draw(last);
-  };
-  window.addEventListener('resize', onResize);
-  return { element, draw, destroy: () => window.removeEventListener('resize', onResize) };
+  });
+  resized.observe(element);
+  return { element, draw, destroy: () => resized.disconnect() };
+}
+
+/** Puts `nodes` in `parent` in that order (and nothing else), moving only what isn't already where it goes. */
+function place(parent: HTMLElement, nodes: readonly Node[]): void {
+  let at = parent.firstChild;
+  for (const node of nodes) {
+    if (node === at) at = at.nextSibling;
+    else parent.insertBefore(node, at);
+  }
+  while (at) {
+    const next = at.nextSibling;
+    parent.removeChild(at);
+    at = next;
+  }
+}
+
+/** Everything a card is drawn from (card), but for its state (setState). */
+const contentOf = (copy: ArmoryCopy, look: CardLook, ownSound: boolean): string =>
+  JSON.stringify([
+    copy.id,
+    copy.itemId,
+    copy.name,
+    copy.stars,
+    copy.slot,
+    copy.level,
+    copy.locked ?? null,
+    copy.heroOnly ?? null,
+    copy.uniqueWeapon ?? null,
+    copy.uniqueTreasure ?? null,
+    copy.itemClass ?? null,
+    copy.class ?? null,
+    look.tag ?? null,
+    look.says ?? [],
+    (look.over ?? []).map((node) => node.outerHTML),
+    ownSound,
+  ]);
+
+/** A card's state as `look` has it: its classes (those it had before and hasn't now taken off), disabled, pressed. */
+function setState(kept: Card, look: CardLook): void {
+  const { button } = kept;
+  const on = new Set(Object.entries(look.classes ?? {}).flatMap(([name, yes]) => (yes ? [name] : [])));
+  for (const name of kept.on) if (!on.has(name)) button.classList.remove(name);
+  for (const name of on) button.classList.add(name);
+  kept.on = on;
+  button.disabled = look.disabled === true;
+  if (look.pressed === undefined) button.removeAttribute('aria-pressed');
+  else button.setAttribute('aria-pressed', String(look.pressed));
 }
 
 /**
@@ -246,18 +331,15 @@ export function lockToggle(copy: ArmoryCopy, busy: Busy | null, toggle: ((locked
   return lock;
 }
 
-/** One copy's card in the grid. */
+/** One copy's card in the grid (its state, setState's). */
 function card(copy: ArmoryCopy, look: CardLook, ownSound: boolean, onPick: () => void): HTMLButtonElement {
   const button = el('button', 'item');
   button.type = 'button';
   button.dataset.stars = String(copy.stars);
-  for (const [name, on] of Object.entries(look.classes ?? {})) button.classList.toggle(name, on);
-  button.disabled = look.disabled === true;
-  if (look.pressed !== undefined) button.setAttribute('aria-pressed', String(look.pressed));
   const says = [copy.name, tierWords(copy), `R${copy.level}`, ...(look.tag ? [look.tag.text.toLowerCase()] : []), ...(copy.locked ? ['locked'] : []), ...(look.says ?? [])];
   button.setAttribute('aria-label', says.join(', '));
   if (look.tag) button.append(el('span', look.tag.className ? `item-tag ${look.tag.className}` : 'item-tag', look.tag.text));
-  button.append(...itemFace(copy));
+  button.append(...itemFace(copy, true));
   if (copy.locked) button.append(lockBadge());
   button.append(...(look.over ?? []));
   if (ownSound) button.dataset.sfx = 'own';

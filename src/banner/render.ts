@@ -1,5 +1,5 @@
 import { coin, points } from '../shared/util';
-import { art, el, rich, stars, uwMarks, uwTier } from '../shared/items';
+import { art, el, rich, stars, utMarks, utTier, uwMarks, uwTier } from '../shared/items';
 import { working } from '../shared/ui';
 import { timeLeft, type Featured } from './banners';
 import { canAfford, price, type BannerContext } from './context';
@@ -35,12 +35,13 @@ function featured(box: HTMLElement, item: Featured, etc: boolean): void {
   const face = el('span', 'item banner-featured-card');
   face.dataset.stars = String(item.stars);
   if (item.uniqueWeapon) face.append(art(item.itemId, item.slot), ...uwMarks(item.uniqueWeapon));
+  else if (item.uniqueTreasure) face.append(art(item.itemId, item.slot), ...utMarks(item.uniqueTreasure.hero));
   else face.append(art(item.itemId, item.slot), el('span', 'item-curl'));
   const plate = el('figcaption', 'banner-plate');
   plate.dataset.stars = String(item.stars);
   const name = el('span', 'banner-plate-name', item.name);
   if (etc) name.append(el('small', '', ' etc.'));
-  plate.append(el('span', 'banner-up', 'UP!'), name, item.uniqueWeapon ? uwTier() : stars(item.stars));
+  plate.append(el('span', 'banner-up', 'UP!'), name, item.uniqueWeapon ? uwTier() : item.uniqueTreasure ? utTier() : stars(item.stars));
   box.replaceChildren(face, plate);
 }
 
@@ -112,12 +113,15 @@ export function render(ctx: BannerContext): void {
   const hero = banner.id === 'hero';
   const featuredChance = percent(view.limited?.featuredChance ?? 0);
   const chance = percent(view.rates[view.topStars] ?? 0);
+  // (The Hero Item banner's top tier: its unique weapons and its unique treasures, by its share of each.)
+  const treasures = hero && (view.hero?.treasures?.length ?? 0) > 0;
+  const heroTop = treasures ? 'unique weapon or unique treasure' : 'unique weapon';
   if (view.pity) {
     const { count, softStart, hardPity } = view.pity;
     ui.promise.textContent = limited
       ? `A ${top} item is guaranteed within ${points(hardPity)} pulls here, and ${featuredChance} of them are a featured one.`
       : hero
-        ? `A unique weapon is guaranteed within ${points(hardPity)} pulls here, and every ${top} is one.`
+        ? `A ${heroTop} is guaranteed within ${points(hardPity)} pulls here, and every ${top} is one.`
         : `A ${top} unique treasure is guaranteed within ${points(hardPity)} pulls.`;
     const where = limited ? 'on a limited banner ' : hero ? 'on this banner ' : '';
     ui.detailsPity.textContent = `Pity: every pull ${where}since your last ${top} item ${limited ? 'from one ' : hero ? 'here ' : ''}counts. From pull ${points(softStart)} your chance of a ${top} climbs with each pull, and pull ${points(hardPity)} is guaranteed to be one. You're at ${points(count)}.`;
@@ -125,7 +129,7 @@ export function render(ctx: BannerContext): void {
     ui.promise.textContent = limited
       ? `Each pull has a ${chance} chance at a ${top} item, and ${featuredChance} of them are a featured one.`
       : hero
-        ? `Every ${top} here is a unique weapon. Each pull has a ${chance} chance at one.`
+        ? `Every ${top} here is a ${heroTop}. Each pull has a ${chance} chance at one.`
         : `Unique treasures are ${top}. Each pull has a ${chance} chance at one.`;
     ui.detailsPity.textContent = 'Pity is off in this server: every pull has the same odds.';
   }
@@ -167,6 +171,20 @@ export function render(ctx: BannerContext): void {
 
   ui.rates.textContent = '';
   for (const tier of TIERS) {
+    // (The Hero Item banner's top tier: a row for its unique weapons and one for its unique treasures.)
+    if (treasures && tier === view.topStars) {
+      const share = view.hero?.weaponShare ?? 1;
+      for (const [tierMark, part] of [
+        [uwTier(), share],
+        [utTier(), 1 - share],
+      ] as const) {
+        const row = el('li', 'banner-rate');
+        row.dataset.stars = String(tier);
+        row.append(tierMark, el('strong', '', percent((view.rates[tier] ?? 0) * part)));
+        ui.rates.append(row);
+      }
+      continue;
+    }
     const row = el('li', 'banner-rate');
     row.dataset.stars = String(tier);
     row.append(stars(tier), el('strong', '', percent(view.rates[tier] ?? 0)));

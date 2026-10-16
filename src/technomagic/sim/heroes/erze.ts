@@ -1,6 +1,7 @@
 import { share } from '../combat/damage';
 import { put, type Status } from '../combat/status';
 import { said, t5Light } from '../perks';
+import { fromTreasure, treasure, treasureTier } from '../treasures';
 import { BLOW, MAX_MANA } from '../rules';
 import { pct, skillArt, type Buff, type Mark } from '../shown';
 import { atTier, PERION, PERION_UP } from '../unique';
@@ -37,6 +38,20 @@ const LIBERATION = { lasts: 10, every: 1, blow: indexed('assassin', 40_404) };
 const DRINKER = { cut: 0.4 };
 /** Her own perks' numbers: Sweet Blood's Light and Dark, Soaking Blood's Light, Blood Liberation's Light, Life Drinker's Light, and Transcend 5's Dark. */
 const PERKS = { mana: 150, sweeter: { more: 0.1, most: 30 }, stun: 3, liberated: 75, cut: 0.33, last: 0.25 };
+
+/**
+ * Her unique treasures' numbers (1★ to 5★: ../treasures.ts): Sweet Blood's cheaper and more P.DMG taken for each blow (up
+ * to so many, for as long as it lasts); Soaking Blood's DMG and shorter cooldown; Blood Liberation's DMG; and Life
+ * Drinker's more of what it gives for each enemy killed (nothing here).
+ */
+const UT = {
+  fang: { cost: -1, takes: [0.012, 0.014, 0.017, 0.021, 0.025], most: 10, lasts: 15 },
+  wine: { dmg: 0.5, cooldown: [6, 7, 8, 9, 10] },
+  lipstick: { dmg: [0.24, 0.29, 0.35, 0.42, 0.5] },
+  piano: { more: [0.24, 0.29, 0.35, 0.42, 0.5] },
+};
+/** What Fang of Thirst leaves on the boss. */
+const THIRST = 'Fang of Thirst';
 
 const art = skillArt('erze');
 
@@ -97,6 +112,24 @@ export const ERZE: HeroDef = {
     },
   ],
   passive: LIFE_DRINKER,
+  treasures: [
+    treasure('Fang of Thirst', (k) => ({
+      words: `[Sweet Blood] Reduces Mana Cost by ${-UT.fang.cost} and increases P.DMG the hit enemy takes by ${Math.round(k(UT.fang.takes) * 1000) / 10}%. This effect can be stacked up to max ${UT.fang.most} times.`,
+      skill: { index: 0, cost: UT.fang.cost },
+    })),
+    treasure('Wine of Shivers', (k) => ({
+      words: `[Soaking Blood] Increases DMG of [Soaking Blood] by ${pct(UT.wine.dmg)} and reduces Cooldown of [Soaking Blood] by ${k(UT.wine.cooldown)} sec.`,
+      skill: { index: 1, dmg: 1 + UT.wine.dmg, cooldown: -k(UT.wine.cooldown) },
+    })),
+    // (Its immunity lasts as long as Blood Liberation's blows: her part's.)
+    treasure('Lipstick of Shame', (k) => ({
+      words: `[Blood Liberation] Increases DMG of [Blood Liberation] by ${pct(k(UT.lipstick.dmg))} and gains immunity to CC for the duration of [Blood Liberation].`,
+      skill: { index: 2, dmg: 1 + k(UT.lipstick.dmg) },
+    })),
+    treasure('Moonlight Piano', (k) => ({
+      words: `[Life Drinker] Increases ATK boost and Max HP boost by ${pct(k(UT.piano.more))}. Life Drinker becomes irremovable.`,
+    })),
+  ],
   perks: {
     's1-light': { words: `Recovers ${PERKS.mana} Mana every hit.` },
     's1-dark': { words: `Each use increases DMG by ${pct(PERKS.sweeter.more)}. Stacks ${PERKS.sweeter.most} times max.` },
@@ -164,8 +197,14 @@ export const ERZE: HeroDef = {
           const full = sweet >= SWEET.most;
           const harder = 1 + PERKS.sweeter.more * sweeter;
           if (self.perks.has('s1-dark')) sweeter = Math.min(PERKS.sweeter.most, sweeter + 1);
+          const fang = fromTreasure(self, 0, UT.fang.takes);
           for (let i = 0; i < (full ? 1 + SWEET.more : 1); i++) {
             drink(SWEET.blow * harder, SWEET.steals, true);
+            // (Fang of Thirst: the boss takes more P.DMG for each, up to so many.)
+            if (fang > 0) {
+              const count = Math.min(UT.fang.most, (fight.foe.statuses.find((status) => status.name === THIRST)?.count ?? 0) + 1);
+              put(fight.foe.statuses, { name: THIRST, left: UT.fang.lasts, count, takes: { physical: 1 + fang * count }, shown: 'curse' });
+            }
             if (self.perks.has('s1-light')) self.mana = Math.min(MAX_MANA, self.mana + PERKS.mana);
             self.cooldowns[0] = Math.max(0, (self.cooldowns[0] ?? 0) - SWEET.sooner);
           }
@@ -213,6 +252,8 @@ export const ERZE: HeroDef = {
         }
       },
       untouched: () => soaked > 0,
+      // (Lipstick of Shame: not to be knocked down while Blood Liberation lasts.)
+      guards: () => liberated > 0 && treasureTier(self, 2) > 0,
       // Life Drinker: a blow that would bring her down casts Soaking Blood, if it is ready (all her mana spent), and her max HP lower after.
       spared() {
         const index = 1;

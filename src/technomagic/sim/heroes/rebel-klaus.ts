@@ -1,6 +1,7 @@
 import { share } from '../combat/damage';
 import { piercing, put, type Status } from '../combat/status';
 import { said, t5Light } from '../perks';
+import { fromTreasure, treasure, treasureTier } from '../treasures';
 import { BLOW, MAX_MANA } from '../rules';
 import { num, pct, skillArt, type Buff } from '../shown';
 import { atTier, GALICTA, GALICTA_UP } from '../unique';
@@ -36,6 +37,18 @@ const PERISH = { blow: 3340, last: 8350, down: 3 };
 const GALICTA_POWER = { crit: 200, whole: 1000, blow: 4010, lasts: 6 };
 /** His own perks' numbers: Determined Strike's Light and Dark, Indomitable Will's Light, Perish.'s Light, Power of Galicta's Light and Dark, and Transcend 5's Dark. */
 const PERKS = { alone: 2, stun: 1, critDamage: 0.5, mana: 100, exposed: 0.5, boss: 1000, dark: { dmg: 1.12, taken: 0.95 } };
+
+/**
+ * His unique treasures' numbers (1★ to 5★: ../treasures.ts): Determined Strike's cheaper and more of its blow against a
+ * boss; Indomitable Will's longer and his ATK meanwhile; Perish.'s shorter cooldown and its stun for each blow; and Power of
+ * Galicta's CC resist (points), and the penetration it would take off the boss (it has none).
+ */
+const UT = {
+  cloak: { cost: -1, boss: [0.48, 0.58, 0.7, 0.84, 1] },
+  hatred: { longer: 5, atk: [0.14, 0.17, 0.21, 0.25, 0.3] },
+  mittens: { cooldown: [2.4, 2.9, 3.5, 4.2, 5], stun: 1 },
+  protection: { resist: [360, 430, 520, 630, 750], pen: 200 },
+};
 
 const art = skillArt('rebel-klaus');
 
@@ -97,6 +110,23 @@ export const REBEL_KLAUS: HeroDef = {
     },
   ],
   passive: POWER_OF_GALICTA,
+  treasures: [
+    treasure('Cloak of Despair', (k) => ({
+      words: `[Determined Strike] Reduces Mana Cost by ${-UT.cloak.cost} and increases additional P.DMG by ${pct(k(UT.cloak.boss))} if the target is a boss.`,
+      skill: { index: 0, cost: UT.cloak.cost },
+    })),
+    treasure('Irreversible Hatred', (k) => ({
+      words: `[Indomitable Will] Increases the duration of [Indomitable Will] by ${UT.hatred.longer} sec, and increases ATK by ${pct(k(UT.hatred.atk))} for the duration of Skill.`,
+    })),
+    treasure('Old Mittens', (k) => ({
+      words: `[Perish.] Reduces Cooldown by ${k(UT.mittens.cooldown)} sec, and each hit inflicts Stun on the target for ${UT.mittens.stun} sec.`,
+      skill: { index: 2, cooldown: -k(UT.mittens.cooldown) },
+    })),
+    treasure('Everlasting Protection', (k) => ({
+      words: `[Power of Galicta] Increases CC Resist by ${k(UT.protection.resist)}, and reduces the targets DEF Penetration by ${UT.protection.pen} for the duration of [Curse of Galicta].`,
+      bonus: { resist: k(UT.protection.resist) },
+    })),
+  ],
   attack: 'rend',
   perks: {
     's1-light': said({ skill: { index: 0, dmg: PERKS.alone } }, ({ skill }) => `Increases DMG by ${pct(skill.dmg - 1)} when there is one enemy.`),
@@ -129,8 +159,10 @@ export const REBEL_KLAUS: HeroDef = {
     };
     /** [Indomitable Will] on him (its Light: his crit damage higher meanwhile). */
     const will = (): void => {
-      willed = WILL.lasts;
-      put(self.statuses, { name: WILLED.name, left: WILL.lasts, ...(self.perks.has('s2-light') && { critDamage: PERKS.critDamage }), shown: WILLED });
+      // (Irreversible Hatred: for longer, and his ATK higher meanwhile.)
+      const hatred = treasureTier(self, 1) > 0;
+      willed = WILL.lasts + (hatred ? UT.hatred.longer : 0);
+      put(self.statuses, { name: WILLED.name, left: willed, ...(self.perks.has('s2-light') && { critDamage: PERKS.critDamage }), ...(hatred && { deals: 1 + fromTreasure(self, 1, UT.hatred.atk) }), shown: WILLED });
     };
     /** His attack: a blow; unless the boss bears the curse, a blow more and the curse on it (its Light: its P.DEF lower meanwhile). Its Dark: a blow more against a Non-Hero. */
     const rend = (): void => {
@@ -149,7 +181,8 @@ export const REBEL_KLAUS: HeroDef = {
         // A blow that stuns the boss (its Dark: the longer), and a blow more against a boss.
         determined() {
           strike(DETERMINED.blow);
-          strike(DETERMINED.boss, false);
+          // (Cloak of Despair: more of it.)
+          strike(DETERMINED.boss * (1 + fromTreasure(self, 0, UT.cloak.boss)), false);
           fight.stun(DETERMINED.stun + (self.perks.has('s1-dark') ? PERKS.stun : 0), { by: self });
         },
         // A blow, and [Indomitable Will] on him (its Dark: what the boss has left on him cleared first).
@@ -165,6 +198,8 @@ export const REBEL_KLAUS: HeroDef = {
         perish(part) {
           const last = part === (self.motion.moves.perish.parts[0]?.lands.length ?? 1) - 1;
           strike(last ? PERISH.last : PERISH.blow);
+          // (Old Mittens: each blow stuns the boss.)
+          if (treasureTier(self, 2) > 0) fight.stun(UT.mittens.stun, { by: self });
           if (last) fight.stun(PERISH.down, { down: true, by: self });
           else if (self.perks.has('s3-light')) self.mana = Math.min(MAX_MANA, self.mana + PERKS.mana);
         },

@@ -1,6 +1,7 @@
 import { share } from '../combat/damage';
 import { put, type Status } from '../combat/status';
 import { said, t5Light } from '../perks';
+import { fromTreasure, treasure } from '../treasures';
 import { BLOW, MAX_MANA } from '../rules';
 import { num, pct, skillArt, type Buff } from '../shown';
 import { SVELTA, SVELTA_UP } from '../unique';
@@ -34,6 +35,18 @@ const UNLEASHED = { atk: 32_032, pen: 500, lasts: 30, mana: 0.03 };
 const SLAYER = { atk: 9477, hp: 0.3 };
 /** Her own perks' numbers: Focus Shot!'s Dark, Wipeout!'s Dark, No Holding Back!'s Light and Dark. */
 const PERKS = { marked: { takes: 1.25, lasts: 10 }, stun: 2, speed: 250, taken: 0.75 };
+
+/**
+ * Her unique treasures' numbers (1★ to 5★: ../treasures.ts): Focus Shot!'s more P.DMG taken; Wipeout!'s DMG and the
+ * share off its cooldown on a critical blow; No Holding Back!'s cheaper and more DMG to the boss; and Dragon Slayer's
+ * against Dragons (nothing here: Galgoria is a chimera).
+ */
+const UT = {
+  talisman: { takes: [0.12, 0.14, 0.17, 0.21, 0.25], lasts: 10 },
+  arrow: { dmg: [0.24, 0.29, 0.35, 0.42, 0.5], cooldown: 0.12 },
+  steak: { cost: -1, dmg: [0.14, 0.17, 0.21, 0.25, 0.3] },
+  heart: { taken: 0.1, dmg: [0.072, 0.086, 0.104, 0.126, 0.15] },
+};
 
 const art = skillArt('yanne');
 
@@ -95,6 +108,23 @@ export const YANNE: HeroDef = {
     },
   ],
   passive: DRAGON_SLAYER,
+  treasures: [
+    treasure('Talisman of Concentration', (k) => ({
+      words: `[Focus Shot!] Gains immunity to CC while in use and increases P.DMG target receives by ${pct(k(UT.talisman.takes))} for ${UT.talisman.lasts} sec.`,
+      skill: { index: 0, steady: true, mark: { name: 'Talisman of Concentration', takes: { physical: 1 + k(UT.talisman.takes) }, lasts: UT.talisman.lasts } },
+    })),
+    treasure('Giant Arrow of Sudden Death', (k) => ({
+      words: `[Wipeout!] Increases DMG by ${pct(k(UT.arrow.dmg))} and reduces Cooldown by ${pct(UT.arrow.cooldown)} upon a Crit Hit`,
+      skill: { index: 1, dmg: 1 + k(UT.arrow.dmg), critCooldown: UT.arrow.cooldown },
+    })),
+    treasure('Dragon Steak', (k) => ({
+      words: `[No Holding Back!] Reduces Mana Cost by ${-UT.steak.cost} and increases DMG to Non-Hero Enemies by ${pct(k(UT.steak.dmg))} for the skill's duration.`,
+      skill: { index: 2, cost: UT.steak.cost },
+    })),
+    treasure('Blazing Heart of Giant', (k) => ({
+      words: `[Dragon Slayer] Reduces DMG that allies take from Dragons by an additional ${pct(UT.heart.taken)} and increase DMG dealt to dragons by ${Math.round(k(UT.heart.dmg) * 1000) / 10}%`,
+    })),
+  ],
   perks: {
     's1-light': said({ skill: { index: 0, dmg: 1.4 } }, ({ skill }) => `DMG is increased by ${pct(skill.dmg - 1)}.`),
     's1-dark': said({ skill: { index: 0, mark: { name: MARKED, takes: { physical: PERKS.marked.takes }, lasts: PERKS.marked.lasts } } }, ({ skill }) => `Target takes ${pct(PERKS.marked.takes - 1)} additional P.DMG for ${skill.mark.lasts} sec.`),
@@ -155,7 +185,8 @@ export const YANNE: HeroDef = {
           put(self.statuses, {
             name: UNLEASH.name,
             left: UNLEASHED.lasts,
-            deals: 1 + UNLEASHED.atk / self.stats.atk,
+            // (Dragon Steak: more to the boss meanwhile.)
+            deals: (1 + UNLEASHED.atk / self.stats.atk) * (1 + fromTreasure(self, 2, UT.steak.dmg)),
             pen: UNLEASHED.pen,
             ...(self.perks.has('s3-light') && { pace: 1 + share(PERKS.speed) }),
             ...(self.perks.has('s3-dark') && { takes: PERKS.taken }),

@@ -1,5 +1,6 @@
 import { armoryFilter, armoryGrid, type ArmoryFilter, type ArmoryGrid, type Slot, type StarChoice } from '../shared/items';
 import { HERO_SLOT_KIND, HERO_SLOTS, type HeroView, type HeroCopy, type HeroSlot, type HeroesView } from '../shared/heroes';
+import { SIDE_SLOTS } from '../protocol/heroes';
 import type { Busy } from '../shared/ui';
 import type { ApiResult } from '../site/session';
 
@@ -192,14 +193,20 @@ export const slotOf = (hero: HeroView | undefined, copyId: string): HeroSlot | n
 /** The one slot a unique weapon goes in: the first weapon slot (the bot refuses it in another). */
 export const UNIQUE_SLOT: HeroSlot = 'weapon1';
 
+/** The slots a copy goes in (as the bot's heroSlotsFor): a unique weapon UNIQUE_SLOT, a unique treasure the treasure slot and the sub treasure slots, any other those of its kind but the sub treasure slots. */
+export const slotsFor = (copy: HeroCopy): HeroSlot[] =>
+  copy.uniqueWeapon ? [UNIQUE_SLOT] : copy.uniqueTreasure ? ['treasure', ...SIDE_SLOTS] : HERO_SLOTS.filter((slot) => HERO_SLOT_KIND[slot] === copy.slot && !SIDE_SLOTS.includes(slot));
+
 /**
- * Where equipping a copy puts it on the hero shown: the slot last pressed when it's one of the copy's
- * kind, else the first empty one of its kind, else the first of its kind. A unique weapon, always UNIQUE_SLOT.
+ * Where equipping a copy puts it on the hero shown: the slot last pressed when it's one the copy goes in, else the
+ * first empty one it goes in, else the first. A unique weapon, always UNIQUE_SLOT.
  */
 export function slotFor(ctx: HeroesContext, copy: HeroCopy): HeroSlot {
   const hero = heroShown(ctx);
   if (copy.uniqueWeapon) return UNIQUE_SLOT;
-  const kind = HERO_SLOTS.filter((slot) => HERO_SLOT_KIND[slot] === copy.slot);
+  // (Sub treasures only under a main one that is a unique treasure: until then, a unique treasure is the main one.)
+  const main = copyById(ctx, hero?.equipped.treasure ?? null);
+  const kind = copy.uniqueTreasure && !main?.uniqueTreasure ? (['treasure'] as HeroSlot[]) : slotsFor(copy);
   if (ctx.target && kind.includes(ctx.target)) return ctx.target;
   return kind.find((slot) => !hero?.equipped[slot]) ?? (kind[0] as HeroSlot);
 }

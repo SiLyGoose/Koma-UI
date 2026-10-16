@@ -1,3 +1,4 @@
+import { built } from '../shared/built';
 import { KEPT } from '../technomagic/assets';
 import { HEROES } from '../technomagic/sim/heroes';
 import type { HeroClass } from '../technomagic/sim/heroes/kit';
@@ -18,7 +19,7 @@ export { ESSENCE_NAME, TRANSCEND_MAX, TRANSCEND_POINTS, type EssenceId, type Tra
  */
 
 /** An essence's picture. */
-export const essencePicture = (id: string): string => `${KEPT}/transcend/essences/${id}.png`;
+export const essencePicture = (id: string): string => built(`${KEPT}/transcend/essences/${id}.png`);
 
 export interface Perk {
   /** The bot's id. */
@@ -49,12 +50,12 @@ export function heroPerks(id: string, heroClass: string): Perk[] {
   for (const { id: perk, tier, cost } of TRANSCEND_PERKS) {
     if (tier === 1) {
       const { name, words } = COMMON_PERKS[perk as keyof typeof COMMON_PERKS];
-      perks.push({ id: perk, tier, cost, name, side: null, text: words, picture: `${FOLDER}/perks/${perk}.png` });
+      perks.push({ id: perk, tier, cost, name, side: null, text: words, picture: built(`${FOLDER}/perks/${perk}.png`) });
       continue;
     }
     if (tier === 2) {
       const def = classes[Number(perk.slice('class-'.length)) - 1];
-      if (def?.name) perks.push({ id: perk, tier, cost, name: def.name, side: null, text: def.words, picture: `${FOLDER}/perks/${slug(def.name)}.png` });
+      if (def?.name) perks.push({ id: perk, tier, cost, name: def.name, side: null, text: def.words, picture: built(`${FOLDER}/perks/${slug(def.name)}.png`) });
       continue;
     }
     const def = own?.[perk as OwnPerkId];
@@ -62,7 +63,7 @@ export function heroPerks(id: string, heroClass: string): Perk[] {
     const side = perk.endsWith('-light') ? 'light' : 'dark';
     // (A Transcend 3 perk goes by its skill's name, the passive's for s4; a Transcend 5 perk by its side.)
     const name = tier === 3 ? (skills[Number(perk[1]) - 1] ?? `Skill ${perk[1]}`) : side === 'light' ? 'Light' : 'Dark';
-    perks.push({ id: perk, tier, cost, name, side, text: def.words, picture: `${FOLDER}/${id}/${perk}.png` });
+    perks.push({ id: perk, tier, cost, name, side, text: def.words, picture: built(`${FOLDER}/${id}/${perk}.png`) });
   }
   return perks;
 }

@@ -172,10 +172,27 @@ function go(href: string, options: GoOptions = {}): void {
   }
   if (options.replace) history.replaceState({ idx: index }, '', url);
   else history.pushState({ idx: ++index }, '', url);
-  // Its module read while the wipe goes on, not once it has (show() takes it from there, or says it couldn't be).
-  void route?.page().catch(() => undefined);
+  // Its module read while the wipe goes on, not once it has (show() takes it from there, or says it couldn't be), and the
+  // bot asked for its data meanwhile too.
+  void route
+    ?.page()
+    .then((page) => page.prefetch?.(url))
+    .catch(() => undefined);
   void swap(options.back ? 'back' : 'forward', () => show(url));
 }
+
+/**
+ * A link to one of the site's pages, the mouse over it or the keyboard on it: its module read already (not its data),
+ * so it's there by the time it's clicked.
+ */
+function warm(event: Event): void {
+  const link = (event.target as Element | null)?.closest?.('a[href]');
+  if (!(link instanceof HTMLAnchorElement)) return;
+  const url = new URL(link.href, location.href);
+  if (url.origin === location.origin) void routeAt(url.pathname)?.page().catch(() => undefined);
+}
+document.addEventListener('pointerover', warm, { passive: true });
+document.addEventListener('focusin', warm);
 
 setGo(go);
 

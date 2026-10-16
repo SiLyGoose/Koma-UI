@@ -1,5 +1,6 @@
 import { share } from '../combat/damage';
 import { said, t5Light } from '../perks';
+import { fromTreasure, treasure } from '../treasures';
 import { pct, skillArt, type Buff } from '../shown';
 import { CLASS_STATS, dmg, type HeroDef, type Passive } from './kit';
 import { CODED } from './moves';
@@ -26,6 +27,18 @@ const FLOWER = { line: 26_720, burst: 40_080, speed: 200, slowed: 5, curse: 10, 
 const DEEDS = { atk: 0.2, crit: 200, control: 0.3 };
 /** Her own perks' numbers: the shockwave's longer stun, Crimson Flower's stronger slow (points), her DMG while awakened, her opening's (how long, how much), and Transcend 5's Dark's attack speed for each blow (most). */
 const PERKS = { waveStun: 0.5, slower: 300, awakeDmg: 1.2, opening: 20, openingDmg: 1.25, quicker: 5, most: 100 };
+
+/**
+ * Her unique treasures' numbers (1★ to 5★: ../treasures.ts): Blade of Judgment's DMG; Crystal Haze's attack speed
+ * (points) and every ally's penetration; Crimson Flower's shorter cooldown and the chance of 3 stacks more; End to
+ * Evil Deeds!'s crit chance and its longer stuns.
+ */
+const UT = {
+  lotus: { dmg: [0.24, 0.29, 0.35, 0.42, 0.5], cost: -1 },
+  hobby: { speed: [120, 140, 170, 210, 250], pen: 250 },
+  escape: { cooldown: 0.3, chance: [0.48, 0.58, 0.7, 0.84, 1], more: 3 },
+  peace: { crit: 250, control: [0.32, 0.34, 0.37, 0.41, 0.45] },
+};
 
 const art = skillArt('kirze');
 
@@ -85,6 +98,25 @@ export const KIRZE: HeroDef = {
     },
   ],
   passive: EVIL_DEEDS,
+  treasures: [
+    treasure('Lotus of Crimson Crystal', (k) => ({
+      words: `[Slash, Blade of Judgment!] Increases DMG by ${pct(k(UT.lotus.dmg))} and reduces Mana Cost by ${-UT.lotus.cost}.`,
+      skill: { index: 0, dmg: 1 + k(UT.lotus.dmg), cost: UT.lotus.cost },
+    })),
+    treasure('Remnant of Hobby', (k) => ({
+      words: `[Disperse, Crystal Haze!] Increases ATK Spd by an additional ${k(UT.hobby.speed)} and increases penetration of all allies by ${UT.hobby.pen} for the duration of the skill.`,
+      skill: { index: 1, party: { name: 'Remnant of Hobby', lasts: HAZE.lasts, pen: UT.hobby.pen } },
+    })),
+    treasure('Reminiscence of Escape', (k) => ({
+      words: `[Bloom, Crimson Flower!] Decreases Cooldown by ${pct(UT.escape.cooldown)}, and gaining 1 stack of [Arcane Crystal Energy] has a ${pct(k(UT.escape.chance))} chance to add ${UT.escape.more} additional stacks.`,
+      skill: { index: 2, cooldownShare: 1 - UT.escape.cooldown },
+    })),
+    // (Her stuns' more is her passive's: what the treasure changes it to, over it.)
+    treasure('Moment of Peace', (k) => ({
+      words: `[End to Evil Deeds!] Increases Crit Chance by an additional ${UT.peace.crit} and the effect of the duration of CC increase changes to ${pct(k(UT.peace.control))}.`,
+      bonus: { crit: UT.peace.crit, control: (1 + k(UT.peace.control)) / (1 + DEEDS.control) - 1 },
+    })),
+  ],
   perks: {
     's1-light': said({ skill: { index: 0, cooldownShare: 0.97 } }, ({ skill }) => `Reduces Cooldown by ${pct(1 - skill.cooldownShare)} per each enemy hit.`),
     's1-dark': said({ skill: { index: 0, dmg: 2 } }, ({ skill }) => `If there is only 1 enemy, DMG is increased by ${pct(skill.dmg - 1)}.`),
@@ -139,7 +171,11 @@ export const KIRZE: HeroDef = {
       },
       // A blow on the boss while it is cursed is counted.
       struck() {
-        if (curse) curse.blows++;
+        if (!curse) return;
+        curse.blows++;
+        // (Reminiscence of Escape: now and then 3 more.)
+        const chance = fromTreasure(self, 2, UT.escape.chance);
+        if (chance > 0 && fight.roll() < chance) curse.blows += UT.escape.more;
       },
       tick(dt) {
         opening = Math.max(0, opening - dt);
@@ -167,7 +203,8 @@ export const KIRZE: HeroDef = {
       },
       pace: () => (awake > 0 ? HAZE.quicker : 1),
       deals: () => (awake > 0 && self.perks.has('s2-dark') ? PERKS.awakeDmg : 1) * (opening > 0 ? PERKS.openingDmg : 1),
-      speed: () => quicker * PERKS.quicker,
+      // (And Remnant of Hobby's more while she is quickened.)
+      speed: () => quicker * PERKS.quicker + (awake > 0 ? fromTreasure(self, 1, UT.hobby.speed) : 0),
       blow() {
         if (self.perks.has('t5-dark')) quicker = Math.min(PERKS.most, quicker + 1);
       },

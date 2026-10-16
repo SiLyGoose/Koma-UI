@@ -1,6 +1,7 @@
 import { share } from '../combat/damage';
 import { away, put, type Status } from '../combat/status';
 import { said, t5Light } from '../perks';
+import { fromTreasure, treasure, treasureTier } from '../treasures';
 import { BLOW, MAX_MANA, SECTION } from '../rules';
 import { fine, pct, skillArt, type Buff } from '../shown';
 import type { Fighter } from '../types';
@@ -41,6 +42,18 @@ const AWAKENING = { defense: 1.2, mana: 1.3, atk: 0.1, boss: 0.15 };
  * (points); her passive's less taken and more to the boss; and Transcend 5's Dark's for each piece of TechnoMagic gear.
  */
 const PERKS = { holograms: 2, critDamage: 0.5, fieldTaken: 0.75, fieldSpeed: 300, taken: 0.7, boss: 0.15, piece: 0.025 };
+
+/**
+ * Her unique treasures' numbers (1★ to 5★: ../treasures.ts): the Hologram's more DMG to the boss and its more cooldown
+ * off; the field's block (points); the cannon's shorter cooldown and more Manipulated at most; and every ally's more
+ * healing, with her passive's own DEF and mana for every ally.
+ */
+const UT = {
+  device: { dmg: [0.12, 0.14, 0.17, 0.21, 0.25], cooldown: 0.5 },
+  tea: { block: [240, 280, 340, 420, 500] },
+  sincerity: { cooldown: [3, 4, 5, 6, 7], most: 10 },
+  failure: { heals: [0.12, 0.14, 0.17, 0.21, 0.25] },
+};
 
 const art = skillArt('valance');
 
@@ -111,6 +124,22 @@ export const VALANCE: HeroDef = {
     },
   ],
   passive: AWAKENED,
+  treasures: [
+    treasure('Formula Input Device', (k) => ({
+      words: `[Hologram] The effect additionally increases DMG dealt to Non-Hero enemies by ${pct(k(UT.device.dmg))} and the target's Cooldown Reduction by ${pct(UT.device.cooldown)}.`,
+    })),
+    treasure('A Moment of Tea', (k) => ({
+      words: `[Absolute Protection Field - LA] Dispels negative effects from self upon use. For the duration of [Violet Force Field], increases the target's All Block Chance by ${k(UT.tea.block)}.`,
+      skill: { index: 1, cleanse: 'self' },
+    })),
+    treasure('Sloppy Sincerity', (k) => ({
+      words: `[Ultimate Laser Cannon - NCE] Reduces Cooldown by ${k(UT.sincerity.cooldown)} sec and changes the max number of [Manipulated] stacks to ${UT.sincerity.most}.`,
+      skill: { index: 2, cooldown: -k(UT.sincerity.cooldown) },
+    })),
+    treasure('First Failure', (k) => ({
+      words: `[Technomagic Awakening] All DEF Boost and Mana Recovery/Attack Boost effects now apply to all allies. Increases Heal Rate of all allies by ${pct(k(UT.failure.heals))}.`,
+    })),
+  ],
   perks: {
     's1-light': { words: `[Hologram] applies to ${PERKS.holograms} allies with the highest ATK.` },
     's1-dark': { words: `[Hologram] additionally increases Crit DMG by ${pct(PERKS.critDamage)}.` },
@@ -146,7 +175,8 @@ export const VALANCE: HeroDef = {
     };
     /** One more stack of Manipulated on the boss (up to seven), begun again. */
     const manipulate = (): void => {
-      const stacks = Math.min(CANNON.most, (fight.foe.statuses.find((status) => status.name === MANIPULATED)?.count ?? 0) + 1);
+      // (Sloppy Sincerity: more of it at most.)
+      const stacks = Math.min(treasureTier(self, 2) > 0 ? UT.sincerity.most : CANNON.most, (fight.foe.statuses.find((status) => status.name === MANIPULATED)?.count ?? 0) + 1);
       put(fight.foe.statuses, { name: MANIPULATED, left: CANNON.lasts, count: stacks, takes: 1 + CANNON.takes * stacks, heals: Math.max(0, 1 - CANNON.heals * stacks), shown: 'curse' });
     };
     /** How many pieces of TechnoMagic gear an ally wears: each comes with one additional skill (../skills.ts). */
@@ -172,9 +202,11 @@ export const VALANCE: HeroDef = {
           for (const was of holos) if (!top.includes(was)) was.statuses = was.statuses.filter((status) => status.name !== HOLOGRAPHED.name);
           // (Its Dark: crit DMG higher too.)
           const harder = self.perks.has('s1-dark') ? { critDamage: PERKS.critDamage } : {};
+          // (Formula Input Device: more to the boss again.)
+          const device = 1 + fromTreasure(self, 0, UT.device.dmg);
           for (const ally of top) {
             ally.statuses = ally.statuses.filter((status) => !harmful(status));
-            put(ally.statuses, { name: HOLOGRAPHED.name, left: HOLOGRAM.lasts, deals: 1 + HOLOGRAM.atk, crit: HOLOGRAM.crit, ...harder, guards: true, shown: HOLOGRAPHED });
+            put(ally.statuses, { name: HOLOGRAPHED.name, left: HOLOGRAM.lasts, deals: (1 + HOLOGRAM.atk) * device, crit: HOLOGRAM.crit, ...harder, guards: true, shown: HOLOGRAPHED });
           }
           holos = top;
           holoLeft = HOLOGRAM.lasts;
@@ -185,7 +217,9 @@ export const VALANCE: HeroDef = {
           const on = allies();
           fight.cue(self, 'field', on);
           // (Its Light: less taken; its Dark: quicker.)
-          const more = { ...(self.perks.has('s2-light') && { takes: PERKS.fieldTaken }), ...(self.perks.has('s2-dark') && { pace: 1 + share(PERKS.fieldSpeed) }) };
+          // (A Moment of Tea: their block higher.)
+          const tea = fromTreasure(self, 1, UT.tea.block);
+          const more = { ...(self.perks.has('s2-light') && { takes: PERKS.fieldTaken }), ...(self.perks.has('s2-dark') && { pace: 1 + share(PERKS.fieldSpeed) }), ...(tea > 0 && { blocks: { physical: tea, magical: tea } }) };
           for (const ally of on) put(ally.statuses, { name: FIELDED.name, left: FIELD.lasts, defends: FIELD.defense, ...more, guards: true, shown: FIELDED });
           field = FIELD.lasts;
           fieldTick = 0;
@@ -207,7 +241,8 @@ export const VALANCE: HeroDef = {
           if (healing) holoHeal -= 1;
           for (const on of holos) {
             on.statuses = on.statuses.filter((status) => !harmful(status));
-            on.cooldowns = on.cooldowns.map((left) => Math.max(0, left - HOLOGRAM.cooldown * dt));
+            // (Formula Input Device: more off.)
+            on.cooldowns = on.cooldowns.map((left) => Math.max(0, left - HOLOGRAM.cooldown * (treasureTier(self, 0) > 0 ? 1 + UT.device.cooldown : 1) * dt));
             if (healing) fight.heal(on, HOLOGRAM.heal, self);
           }
         }
@@ -234,9 +269,12 @@ export const VALANCE: HeroDef = {
         }
         // Her passive on every ally (and her own part of it on her); her unique weapon's by the TechnoMagic gear each wears. (And Transcend 5's Dark, on the boss.)
         if (pieces > 0) put(fight.foe.statuses, { name: EXPOSED, left: Infinity, count: pieces, takes: 1 + PERKS.piece * pieces, shown: 'curse' });
+        // (First Failure: her own DEF and mana for every ally, and more healing for each.)
+        const failure = fromTreasure(self, 3, UT.failure.heals);
         put(self.statuses, { name: AWAKENING_SELF.name, left: Infinity, defends: AWAKENING.defense, mana: AWAKENING.mana, shown: AWAKENING_SELF });
         for (const ally of allies()) {
-          put(ally.statuses, { name: AWAKENING_UP.name, left: Infinity, deals: (1 + AWAKENING.atk) * (1 + boss), ...(taken < 1 && { takes: taken }), shown: AWAKENING_UP });
+          if (failure > 0 && ally !== self) put(ally.statuses, { name: AWAKENING_SELF.name, left: Infinity, defends: AWAKENING.defense, mana: AWAKENING.mana, shown: AWAKENING_SELF });
+          put(ally.statuses, { name: AWAKENING_UP.name, left: Infinity, deals: (1 + AWAKENING.atk) * (1 + boss), ...(taken < 1 && { takes: taken }), ...(failure > 0 && { heals: 1 + failure }), shown: AWAKENING_UP });
           if (!self.unique) continue;
           const pieces = Math.min(4, tmPieces(ally));
           if (pieces === 0) {

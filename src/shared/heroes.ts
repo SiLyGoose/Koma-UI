@@ -98,6 +98,8 @@ export const STAGE_ZOOM: Readonly<Record<string, number>> = {
   tanya: 1.5,
   'rebel-klaus': 2,
 };
+/** A face as small as a unique weapon's or treasure's corner tab shows it (about 30px across): FACE's, cut small (BUILT_CUTS). */
+export const TAB_FACE: Frame = { ...FACE };
 export const BUST: Frame = { wide: 3.4, tall: 4.6, above: 0.45 };
 /**
  * The shop's cards: a bust, each hero's face framed as Gremory's and Fallen Frey's are (their own face squares, as
@@ -134,6 +136,7 @@ export const SHOP_BUST: Frame = { ...BUST, fit: {
  */
 export const BUILT_CUTS: ReadonlyMap<Frame, number> = new Map([
   [FACE, 256],
+  [TAB_FACE, 96],
   [BUST, 200],
   [SHOP_BUST, 360],
 ]);

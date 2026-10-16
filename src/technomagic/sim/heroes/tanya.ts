@@ -1,6 +1,7 @@
 import { share } from '../combat/damage';
 import { put } from '../combat/status';
 import { said, t5Light } from '../perks';
+import { fromTreasure, treasure, treasureTier } from '../treasures';
 import { BLOW, MAX_MANA } from '../rules';
 import { pct, skillArt, type Buff, type Mark } from '../shown';
 import { atTier, CAETHASIS, CAETHASIS_UP } from '../unique';
@@ -44,6 +45,18 @@ const WHISPER = { blow: indexed('assassin', 841_890) / (CODED.whisper.lands.leng
 const AMBUSH = { blow: indexed('assassin', 61_307), boss: indexed('assassin', 42_824), speed: 200, slowed: 10 };
 /** Her own perks' numbers: Target Sighted's Light, Blade Tornado's Dark, Silent Ambush's Light, and Transcend 5's Dark. */
 const PERKS = { heals: 0.7, mana: 200, boss: 2, stealth: { chance: 0.15, more: 1.5 } };
+
+/**
+ * Her unique treasures' numbers (1★ to 5★: ../treasures.ts): Target Sighted's DMG and mana; Blade Tornado's DMG and the
+ * share off its cooldown on a critical blow; Whisper of Death's DMG, and her ATK for it used in Stealth; and Silent
+ * Ambush's mana for her, and the mana it would take (the boss has none).
+ */
+const UT = {
+  codex: { dmg: 0.5, mana: [480, 580, 700, 840, 1000] },
+  mask: { dmg: [0.24, 0.29, 0.35, 0.42, 0.5], cooldown: 0.08 },
+  dagger: { dmg: [0.24, 0.29, 0.35, 0.42, 0.5], atk: 0.2, lasts: 10 },
+  needle: { mana: [120, 140, 170, 210, 250], drain: 200 },
+};
 
 const art = skillArt('tanya');
 
@@ -109,6 +122,23 @@ export const TANYA: HeroDef = {
     },
   ],
   passive: SILENT_AMBUSH,
+  treasures: [
+    treasure('Copied Codex of Stealth', (k) => ({
+      words: `[Target Sighted] Increases DMG by ${pct(UT.codex.dmg)}, and after use, recovers Mana by ${k(UT.codex.mana)}.`,
+      skill: { index: 0, dmg: 1 + UT.codex.dmg, mana: k(UT.codex.mana) },
+    })),
+    treasure('Laughing Mask All-round Belt', (k) => ({
+      words: `[Blade Tornado] Increases DMG by ${pct(k(UT.mask.dmg))} and reduces Cooldown by ${pct(UT.mask.cooldown)} upon a Crit Hit.`,
+      skill: { index: 1, dmg: 1 + k(UT.mask.dmg), critCooldown: UT.mask.cooldown },
+    })),
+    treasure('Dagger of Silence', (k) => ({
+      words: `[Whisper of Death] DMG is increased by ${pct(k(UT.dagger.dmg))} and upon use, immediately gains Stealth. If used in Stealth mode, ATK is increased by ${pct(UT.dagger.atk)} for ${UT.dagger.lasts} sec.`,
+      skill: { index: 2, dmg: 1 + k(UT.dagger.dmg) },
+    })),
+    treasure('Needle of Silence', (k) => ({
+      words: `[Silent Ambush] Upon activation, recovers own Mana by ${k(UT.needle.mana)} while reducing the target's Mana by ${UT.needle.drain}.`,
+    })),
+  ],
   perks: {
     's1-light': { words: `Reduces the target's Heal Rate by ${pct(1 - PERKS.heals)}.` },
     's1-dark': { words: "For 10 sec, target's P.Crit resistance is reduced by 250." },
@@ -149,6 +179,8 @@ export const TANYA: HeroDef = {
       const critical = fight.hit(self, amount);
       if (!critical) return;
       fight.hit(self, AMBUSH.blow, false);
+      // (Needle of Silence: mana.)
+      self.mana = Math.min(MAX_MANA, self.mana + fromTreasure(self, 3, UT.needle.mana));
       fight.hit(self, AMBUSH.boss * (self.perks.has('s4-light') ? PERKS.boss : 1), false, 0, true);
       fight.slow(AMBUSH.speed, AMBUSH.slowed);
       if (tornado && self.perks.has('s2-dark')) self.mana = Math.min(MAX_MANA, self.mana + PERKS.mana);
@@ -191,6 +223,12 @@ export const TANYA: HeroDef = {
           skill(part === last ? WHISPER.last : WHISPER.blow);
           if (part === last && stealth <= 0) hide();
         },
+      },
+      // Dagger of Silence: Whisper of Death used in Stealth, her ATK higher a while; and Stealth at once.
+      used(index) {
+        if (index !== 2 || treasureTier(self, 2) <= 0) return;
+        if (stealth > 0) put(self.statuses, { name: 'Dagger of Silence', left: UT.dagger.lasts, deals: 1 + UT.dagger.atk, shown: { name: 'Dagger of Silence', about: `ATK ${pct(UT.dagger.atk)} higher.`, icon: '🗡️', art: art(2) } });
+        hide();
       },
       tick(dt) {
         // Her unique weapon: in Stealth as the fight begins, and untouched for a moment.

@@ -1,5 +1,6 @@
 import { put } from '../combat/status';
 import { said, t5Light } from '../perks';
+import { fromTreasure, treasure } from '../treasures';
 import { BLOW, MAX_MANA } from '../rules';
 import { num, pct, skillArt, type Buff } from '../shown';
 import { AKISTRA, AKISTRA_UP, atTier } from '../unique';
@@ -39,6 +40,18 @@ const FANG = { lasts: 40, most: 100 };
 const HUNTING = { atk: 25_288, critDamage: 0.8, mana: 300 };
 /** His own perks' numbers: Target will be Eliminated.'s mana for each blow, and the freezing area's more chance. */
 const PERKS = { mana: 30, chance: 0.3 };
+
+/**
+ * His unique treasures' numbers (1★ to 5★: ../treasures.ts): Target will be Eliminated.'s shorter cooldown and the mana it
+ * would take (the boss has none); Struggle is Meaningless.'s cheaper and its chance to freeze the boss with each shot;
+ * Even Gods shall Die.'s DMG; and Hunting Preparation's more ATK.
+ */
+const UT = {
+  bullet: { cooldown: -3, mana: [24, 29, 35, 42, 50] },
+  barrage: { cost: -1, chance: [0.12, 0.14, 0.17, 0.21, 0.25], freeze: 3 },
+  pendant: { dmg: [0.24, 0.29, 0.35, 0.42, 0.5] },
+  box: { atk: [0.24, 0.29, 0.35, 0.42, 0.5] },
+};
 
 const art = skillArt('crow');
 
@@ -100,6 +113,24 @@ export const CROW: HeroDef = {
     },
   ],
   passive: HUNTING_PREPARATION,
+  treasures: [
+    treasure('Teeth-mark Bullet', (k) => ({
+      words: `[Target will be Eliminated.] Reduces Cooldown by ${-UT.bullet.cooldown} sec, and upon every hit, reduces the target's Mana by ${k(UT.bullet.mana)}.`,
+      skill: { index: 0, cooldown: UT.bullet.cooldown },
+    })),
+    treasure('Cold Barrage', (k) => ({
+      words: `[Struggle is Meaningless] Reduces Mana Cost by ${-UT.barrage.cost} and has a ${pct(k(UT.barrage.chance))} chance to freeze target for ${UT.barrage.freeze} sec upon every strike.`,
+      skill: { index: 1, cost: UT.barrage.cost },
+    })),
+    treasure('Pendant of Memories', (k) => ({
+      words: `[Even Gods shall Die] Gains immunity to CC during skill activation and DMG is increased by ${pct(k(UT.pendant.dmg))}.`,
+      skill: { index: 2, dmg: 1 + k(UT.pendant.dmg), steady: true },
+    })),
+    // (His passive's ATK is added to his class's: the more of it, added as it is.)
+    treasure('Carousel Music Box', (k) => ({
+      words: `[Hunting Preparation] Increases ATK boost by ${pct(k(UT.box.atk))}. Hunting Dog's Fang Mark becomes irremovable.`,
+    })),
+  ],
   perks: {
     's1-light': { words: `Upon each DMG dealt, recovers ${PERKS.mana} Mana.` },
     's1-dark': { words: 'Gains immunity to CC while in use.' },
@@ -119,6 +150,10 @@ export const CROW: HeroDef = {
     let chill = 0;
     let akistra = 0;
     const tier = self.unique?.tier ?? null;
+    // Carousel Music Box: his passive's ATK the more.
+    self.stats.atk += HUNTING.atk * fromTreasure(self, 3, UT.box.atk);
+    /** Cold Barrage: each shot's chance to freeze the boss. */
+    const barrage = fromTreasure(self, 1, UT.barrage.chance);
 
     /** How many Fang Marks are on the boss. */
     const fangs = (): number => fight.foe.statuses.find((status) => status.name === FANG_MARK)?.count ?? 0;
@@ -147,9 +182,11 @@ export const CROW: HeroDef = {
         struggle(part) {
           if (part < STRUGGLE.shots) {
             fight.hit(self, STRUGGLE.blow);
+            if (barrage > 0 && fight.roll() < barrage) freeze(UT.barrage.freeze);
             return;
           }
           fight.hit(self, STRUGGLE.frost);
+          if (barrage > 0 && fight.roll() < barrage) freeze(UT.barrage.freeze);
           freeze(STRUGGLE.freeze);
           area = STRUGGLE.area;
           chill = 0;

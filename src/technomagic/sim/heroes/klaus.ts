@@ -2,6 +2,7 @@ import { share } from '../combat/damage';
 import { put } from '../combat/status';
 import { BLOW, MAX_MANA } from '../rules';
 import { said, t5Light } from '../perks';
+import { fromTreasure, treasure, treasureTier } from '../treasures';
 import { pct, skillArt, type Buff } from '../shown';
 import { CLASS_STATS, dmg, indexed, type HeroDef, type Passive } from './kit';
 
@@ -28,6 +29,17 @@ const GUARDIAN = { lasts: 20, taken: 0.75 };
 const VOW = { blow: indexed('knight', 16_582), weak: 0.8, lasts: 8, mana: 300 };
 /** His own perks' numbers: Shield Strike's stun, Guardian Shield's more (and its P.DMG taken), Vow of Knights' less ATK, and Transcend 5's Dark's guard for every ally (how long, and how long it waits). */
 const PERKS = { bashStun: 1, guardMore: 1.4, guardPhysical: 0.75, weaker: 0.1, ward: { lasts: 10, every: 10, defends: 1.2, critResist: 200 } };
+
+/**
+ * His unique treasures' numbers (1★ to 5★: ../treasures.ts): Cut Ground's more taken and mana; Shield Strike's crit
+ * resist and crit chance off the boss; Guardian Shield's more of its guard; Vow of Knights' heal and P.DEF.
+ */
+const UT = {
+  cape: { takes: [0.12, 0.14, 0.17, 0.21, 0.25], lasts: 10, mana: 400 },
+  determination: { critResist: 500, crit: [120, 140, 170, 210, 250], lasts: 10 },
+  insignia: { more: [0.24, 0.29, 0.35, 0.42, 0.5] },
+  mittens: { heal: 0.02, defends: [0.24, 0.29, 0.35, 0.42, 0.5], lasts: 5 },
+};
 
 const art = skillArt('klaus');
 
@@ -89,6 +101,24 @@ export const KLAUS: HeroDef = {
     },
   ],
   passive: VOW_OF_KNIGHTS,
+  treasures: [
+    treasure('Cape of Justice', (k) => ({
+      words: `[Cut Ground] Increases DMG target receives by ${pct(k(UT.cape.takes))} for ${UT.cape.lasts} sec, and recovers own Mana by ${UT.cape.mana} per every hit enemy.`,
+      skill: { index: 0, mark: { name: 'Cape of Justice', takes: 1 + k(UT.cape.takes), lasts: UT.cape.lasts }, mana: UT.cape.mana },
+    })),
+    treasure('Firm Determination', (k) => ({
+      words: `[Shield Strike] Reduces All Crit Resistance of the affected enemy by ${UT.determination.critResist} and Crit Chance by ${k(UT.determination.crit)} for ${UT.determination.lasts} sec.`,
+      skill: { index: 1, mark: { name: 'Firm Determination', critTaken: UT.determination.critResist, crit: -share(k(UT.determination.crit)), lasts: UT.determination.lasts } },
+    })),
+    // (His guard is less taken here: its more makes that less again, as his Light's does.)
+    treasure('Guardian Knight Insignia', (k) => ({
+      words: `[Guardian Shield] Upon activation, removes negative effects on self, and DEF boost is increased by ${pct(k(UT.insignia.more))}.`,
+      skill: { index: 2, cleanse: 'self' },
+    })),
+    treasure('Mittens', (k) => ({
+      words: `[Vow of Knights] Upon activation, heals HP by ${pct(UT.mittens.heal)} of Max HP, and increases own P.DEF by ${pct(k(UT.mittens.defends))} for ${UT.mittens.lasts} sec.`,
+    })),
+  ],
   perks: {
     's1-light': said({ skill: { index: 0, cooldown: -2 } }, ({ skill }) => `Cooldown is reduced by ${-skill.cooldown} sec.`),
     's1-dark': { words: 'In exchange for 1 additional Mana Cost, the skill has a 100% chance to draw the target in.' },
@@ -134,7 +164,9 @@ export const KLAUS: HeroDef = {
         // The shield raised: every hero is guarded.
         guard() {
           // (Its Light: more less taken; its Dark: less again of physical blows.)
-          const taken = self.perks.has('s3-light') ? 1 - (1 - GUARDIAN.taken) * PERKS.guardMore : GUARDIAN.taken;
+          // (And Guardian Knight Insignia's more again.)
+          const more = (self.perks.has('s3-light') ? PERKS.guardMore : 1) * (1 + fromTreasure(self, 2, UT.insignia.more));
+          const taken = Math.max(0, 1 - (1 - GUARDIAN.taken) * more);
           put(fight.party, { name: GUARDED.name, left: GUARDIAN.lasts, takes: self.perks.has('s3-dark') ? { physical: taken * PERKS.guardPhysical, magical: taken } : taken, shown: GUARDED });
         },
       },
@@ -144,6 +176,11 @@ export const KLAUS: HeroDef = {
         fight.hit(self, VOW.blow);
         put(fight.foe.statuses, { name: 'Weakened', left: VOW.lasts, deals: VOW.weak - (self.perks.has('s4-dark') ? PERKS.weaker : 0), shown: 'slow' });
         self.mana = Math.min(MAX_MANA, self.mana + VOW.mana);
+        // (Mittens: healed, and his P.DEF higher a moment.)
+        if (treasureTier(self, 3) > 0) {
+          fight.heal(self, UT.mittens.heal * self.stats.hp);
+          put(self.statuses, { name: 'Mittens', left: UT.mittens.lasts, defends: { physical: 1 + fromTreasure(self, 3, UT.mittens.defends) }, shown: { name: 'Mittens', about: `P.DEF +${pct(fromTreasure(self, 3, UT.mittens.defends))}.`, icon: '🧤', art: art(3) } });
+        }
       },
       tick(dt) {
         warding = Math.max(0, warding - dt);

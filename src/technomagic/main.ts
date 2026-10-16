@@ -7,6 +7,7 @@ import { apiFromSocket, chatBox, startLive } from '../shared/ui';
 import { navigate } from '../shared/transition';
 import { Group, Vector3 } from 'three';
 import { artPicture } from './art';
+import { built } from '../shared/built';
 import { portraitPicture, type SkinAssets } from './assets';
 import { bossNamed } from './sim/bosses';
 import { BOSS_VIEWS } from './bosses/models';
@@ -29,7 +30,7 @@ import { leavePopup } from './hud/leave';
 import { makeMeter } from './hud/meter';
 import { makeNumbers } from './hud/numbers';
 import { makeOverhead } from './hud/overhead';
-import { cutFace, cutHead } from './hud/portrait';
+import { cutFace, cutHead, readPortrait } from './hud/portrait';
 import { makeTimer } from './hud/timer';
 import { makePrep } from './prep/prep';
 import { managePopup } from './manage/popup';
@@ -200,7 +201,9 @@ async function start(): Promise<void> {
         await Promise.all(
           entrants.map(async ({ skin }) => {
             const { portrait } = skin;
-            const [face, head] = portrait ? await Promise.all([cutFace(portraitPicture(assets, portrait), portrait), cutHead(portraitPicture(assets, portrait), portrait)]) : [null, null];
+            // (Its picture read once for both: the built WebP, a fifth of the PNG's size.)
+            const picture = portrait ? await readPortrait(built(portraitPicture(assets, portrait))) : null;
+            const [face, head] = picture && portrait ? [cutFace(picture, portrait), cutHead(picture, portrait)] : [null, null];
             faces.set(skin, face);
             heads.set(skin, head);
           }),
@@ -521,7 +524,7 @@ async function start(): Promise<void> {
       const bodies = await bodiesFor(start.heroes);
       if (lock !== mine) return;
       if (!bodies) return void showMessage('The models are missing', 'A hero in this fight isn’t on this computer.');
-      const sim = makeSim({ boss: def, heroes: start.heroes.map((hero, i) => ({ def: (bodies[i] as Entrant).def, skin: hero.skin, gear: hero.gear, set: hero.set, uw: hero.uw ?? null, skills: hero.skills, perks: hero.perks, sub: hero.sub === true })), seed: start.seed, stage: start.stage, raid: true, solo: start.solo });
+      const sim = makeSim({ boss: def, heroes: start.heroes.map((hero, i) => ({ def: (bodies[i] as Entrant).def, skin: hero.skin, gear: hero.gear, set: hero.set, uw: hero.uw ?? null, ut: hero.ut ?? null, skills: hero.skills, perks: hero.perks, sub: hero.sub === true })), seed: start.seed, stage: start.stage, raid: true, solo: start.solo });
       const you = state?.you;
       // (Not the Sub Team's: they fight on Auto, with no cards.)
       const ours = (i: number): boolean => start.heroes[i]?.owner === you && start.heroes[i]?.sub !== true;

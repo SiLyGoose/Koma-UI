@@ -33,8 +33,11 @@ export interface Status<Shown> {
   bolsters?: Partial<Record<DamageType, number>>;
   /** Added to its bearer's chance to block each kind it names (points). */
   blocks?: Partial<Record<DamageType, number>>;
-  /** Added to its bearer's CC resist (points). */
+  /** Added to its bearer's CC resist (points); and to a hero bearing it's CC ACC (points: what of the boss's CC resist its stuns see past). */
   resist?: number;
+  accuracy?: number;
+  /** Added to how likely the blows on its bearer are to be critical (points: of every kind, or of each kind it names): the boss's Crit Resistance lowered. */
+  critTaken?: number | Partial<Record<DamageType, number>>;
   /** Taken off how likely the blows on its bearer are to be critical (points): of every kind, or of each kind it names. */
   critResist?: number | Partial<Record<DamageType, number>>;
   /** Its bearer can do nothing while it is on (knocked down); and is out of the fight altogether, not to be aimed at (imprisoned). */
@@ -119,10 +122,24 @@ export function piercing(on: readonly Status<unknown>[]): number {
   return more;
 }
 
+/** What these add to a bearer's CC ACC (points). */
+export function accurate(on: readonly Status<unknown>[]): number {
+  let more = 0;
+  for (const { accuracy } of on) more += accuracy ?? 0;
+  return more;
+}
+
 /** What these add to a bearer's CC resist (points). */
 export function resisting(on: readonly Status<unknown>[]): number {
   let more = 0;
   for (const { resist } of on) more += resist ?? 0;
+  return more;
+}
+
+/** What these add to how likely the blows on a bearer are to be critical (points). */
+export function critTaking(on: readonly Status<unknown>[], type: DamageType): number {
+  let more = 0;
+  for (const { critTaken } of on) more += typeof critTaken === 'number' ? critTaken : (critTaken?.[type] ?? 0);
   return more;
 }
 

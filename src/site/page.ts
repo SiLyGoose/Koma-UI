@@ -16,4 +16,9 @@ export interface Page {
    * (gone to, or back or forward to) in place, with no transition.
    */
   mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void; navigate?: (url: URL) => void };
+  /**
+   * Asks the bot now for what mount() will for the page at `url` (../site/session.ts prefetch): called as the transition
+   * starts covering the page before (going to this one), so its data is on its way while it covers it.
+   */
+  prefetch?(url: URL): void;
 }

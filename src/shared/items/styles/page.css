@@ -57,8 +57,10 @@
  * one over the other, in one column no wider than the page (an implicit auto column would grow to fit
  * its widest content, like a long server name). Wide screens: side by side, as tall as each other and
  * the same height on every page, so they line up going from one to the next; each page sets its columns.
+ * In :where(), so a page's own .gear/.forge/.databank rules win whichever stylesheet comes last: the build
+ * puts this one (shared with the popups) in its own file, linked after the site's.
  */
-.panels {
+:where(.panels) {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 20px;
@@ -66,7 +68,7 @@
 }
 
 @media (min-width: 900px) {
-  .panels {
+  :where(.panels) {
     align-items: stretch;
     height: var(--panels-h);
     min-height: var(--panels-min);

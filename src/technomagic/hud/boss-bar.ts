@@ -19,7 +19,7 @@ export function makeBossBar(root: HTMLElement, name: string, deals: string): Bos
   return {
     draw(share, marks) {
       root.hidden = false;
-      fill.style.width = `${share * 100}%`;
+      fill.style.transform = `scaleX(${Math.max(0, share)})`;
       const percent = `${Math.ceil(share * 100)}%`;
       if (words.textContent !== percent) words.textContent = percent;
       const said = marks.map(({ text }) => text).join('|');

@@ -34,7 +34,7 @@ export function makeOverhead(parent: HTMLElement, ally = false): Overhead {
     draw(x, y, share, shield, on) {
       root.hidden = false;
       root.style.transform = `translate(${x}px, ${y}px) translate(-50%, -100%)`;
-      fill.style.width = `${share * 100}%`;
+      fill.style.transform = `scaleX(${Math.max(0, share)})`;
       most = shield > 0 ? Math.max(most, shield) : 0;
       line.hidden = most <= 0;
       if (most > 0) line.style.width = `${(shield / most) * 100}%`;

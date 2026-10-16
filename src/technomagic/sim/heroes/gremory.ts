@@ -3,6 +3,7 @@ import { put, type Status } from '../combat/status';
 import { BLOW, MAX_MANA } from '../rules';
 import { pct, skillArt, type Buff, type Tone } from '../shown';
 import { said, t5Light } from '../perks';
+import { fromTreasure, treasure, treasureTier } from '../treasures';
 import { atTier, PIGRITIA } from '../unique';
 import { CLASS_STATS, dmg, type Ability, type HeroDef, type Passive } from './kit';
 import { CODED } from './moves';
@@ -39,6 +40,18 @@ const PERKS = { softer: 0.06, sleepier: 1.2 };
 
 /** Eh, whatever. I'm gonna sleep.: how long she lies asleep (her move written in code has her wake as it ends). */
 export const ASLEEP = 3;
+
+/**
+ * Her unique treasures' numbers (1★ to 5★: ../treasures.ts): Pochi's DMG and its mark's less healing (for each); Puchi's
+ * CC ACC (points, a moment: as long as its blow takes to land) and what it dispels; Pippi's longer mark and more M.DMG
+ * taken (for each); her sleep's more less taken and her Mana Charge's crit DMG (for each).
+ */
+const UT = {
+  pillow: { dmg: [0.24, 0.29, 0.35, 0.42, 0.5], heals: 0.06 },
+  treats: { accuracy: [360, 430, 520, 630, 750], lasts: 2 },
+  cage: { longer: 8, takes: [0.014, 0.018, 0.022, 0.026, 0.03] },
+  fruit: { sleepier: 1.2, critDamage: [0.048, 0.058, 0.07, 0.084, 0.1] },
+};
 
 const art = skillArt('gremory');
 
@@ -127,6 +140,22 @@ export const GREMORY: HeroDef = {
     },
   ],
   passive: LAZY,
+  treasures: [
+    treasure('Fluffy Pillow', (k) => ({
+      words: `[Pochi, bite them!] Increases DMG by ${pct(k(UT.pillow.dmg))}, and [Pochi's Mark] additionally reduces Heal Rate by ${pct(UT.pillow.heals)}.`,
+      skill: { index: 0, dmg: 1 + k(UT.pillow.dmg) },
+    })),
+    treasure('Yum Yum Treats', (k) => ({
+      words: `[Puchi, Knock them away!] Increases CC Acc by ${k(UT.treats.accuracy)} for the duration of Skill, and dispels positive effects from the target.`,
+      skill: { index: 1, dispel: true, self: { name: 'Yum Yum Treats', lasts: UT.treats.lasts, accuracy: k(UT.treats.accuracy) } },
+    })),
+    treasure('Carrier Cage', (k) => ({
+      words: `[Pippi, wrap them!] Increases the duration of [Pippi's Mark] by ${UT.cage.longer} sec and M.DMG Boost effect by ${Math.round(k(UT.cage.takes) * 1000) / 10}%.`,
+    })),
+    treasure('Sinful Fruit: Hot & Spicy', (k) => ({
+      words: `[Eh, whatever. I'm gonna sleep.] Increases the DMG Reduction effect by ${pct(UT.fruit.sleepier - 1)} for the duration of Skill, and [Mana Charge] additionally increases Crit DMG by ${Math.round(k(UT.fruit.critDamage) * 1000) / 10}%.`,
+    })),
+  ],
   perks: {
     's1-light': { words: 'When there is 1 enemy, additional M.DMG dealt to bosses ignores DEF.' },
     's1-dark': { words: `[Pochi's Mark] additionally reduces M.DEF by ${pct(PERKS.softer)}.` },
@@ -166,7 +195,9 @@ export const GREMORY: HeroDef = {
           } else fight.hit(self, bite + boss);
           // (Its Dark: the boss's M.DEF lower for each too.)
           const softer = self.perks.has('s1-dark');
-          mark(fight.foe.statuses, POCHI_MARK, POCHI.most, POCHI.lasts, (count) => ({ deals: 1 - POCHI.weaker * count, ...(softer && { defends: { magical: 1 - PERKS.softer * count } }) }));
+          // (Fluffy Pillow: the boss healed less for each too.)
+          const pillow = treasureTier(self, 0) > 0;
+          mark(fight.foe.statuses, POCHI_MARK, POCHI.most, POCHI.lasts, (count) => ({ deals: 1 - POCHI.weaker * count, ...(softer && { defends: { magical: 1 - PERKS.softer * count } }), ...(pillow && { heals: Math.max(0, 1 - UT.pillow.heals * count) }) }));
         },
         // From behind: a blow, and the boss stunned.
         puchi() {
@@ -175,7 +206,10 @@ export const GREMORY: HeroDef = {
         },
         // A wrap: the boss takes more magical damage for each (up to ten); with all ten on it, the blow deals more, through its defense.
         pippi() {
-          const count = mark(fight.foe.statuses, PIPPI_MARK, PIPPI.most, PIPPI.lasts, (stacks) => ({ takes: { magical: 1 + PIPPI.takes * stacks } }));
+          // (Carrier Cage: for longer, and more for each.)
+          const caged = treasureTier(self, 2) > 0;
+          const takes = PIPPI.takes + fromTreasure(self, 2, UT.cage.takes);
+          const count = mark(fight.foe.statuses, PIPPI_MARK, PIPPI.most, PIPPI.lasts + (caged ? UT.cage.longer : 0), (stacks) => ({ takes: { magical: 1 + takes * stacks } }));
           fight.hit(self, PIPPI.blow);
           if (count >= PIPPI.most) fight.hit(self, PIPPI.through, false, PIPPI.pierce);
         },
@@ -195,9 +229,13 @@ export const GREMORY: HeroDef = {
         // She sleeps: her skills unsealed, and one more Mana Charge (with her unique weapon, the more ATK for each; and she is healed, and her mana fills).
         sealed.fill(false);
         charges = Math.min(CHARGE.most, charges + 1);
-        put(self.statuses, { name: SLEEPING.name, left: ASLEEP, takes: self.perks.has('s4-light') ? 1 - (1 - SLEEP.taken) * PERKS.sleepier : SLEEP.taken, guards: true, shown: SLEEPING });
+        // (Sinful Fruit: less taken again, and crit DMG for each Mana Charge.)
+        const fruit = treasureTier(self, 3) > 0;
+        const sleepier = (self.perks.has('s4-light') ? PERKS.sleepier : 1) * (fruit ? UT.fruit.sleepier : 1);
+        put(self.statuses, { name: SLEEPING.name, left: ASLEEP, takes: Math.max(0, 1 - (1 - SLEEP.taken) * sleepier), guards: true, shown: SLEEPING });
         const atk = CHARGE.atk + (tier === null ? 0 : atTier(PIGRITIA.charge, tier));
-        put(self.statuses, { name: CHARGED.name, left: Infinity, count: charges, deals: (1 + atk * charges) * (1 + CHARGE.dmg * charges), shown: CHARGED });
+        const critDamage = fromTreasure(self, 3, UT.fruit.critDamage) * charges;
+        put(self.statuses, { name: CHARGED.name, left: Infinity, count: charges, deals: (1 + atk * charges) * (1 + CHARGE.dmg * charges), ...(critDamage > 0 && { critDamage }), shown: CHARGED });
         if (tier !== null) {
           fight.heal(self, atTier(PIGRITIA.heal, tier) * self.stats.hp);
           filling = PIGRITIA.over;

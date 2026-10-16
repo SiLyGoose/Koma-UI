@@ -1,6 +1,7 @@
 import { share } from '../combat/damage';
 import { put } from '../combat/status';
 import { said, t5Light } from '../perks';
+import { treasure, treasureTier } from '../treasures';
 import { BLOW } from '../rules';
 import { nth, num, pct, skillArt, type Buff } from '../shown';
 import { atTier, BARORO } from '../unique';
@@ -36,6 +37,18 @@ const DIVE = { blow: indexed('warrior', 296_346), boss: indexed('warrior', 444_5
 const TORNADO = { every: 5, chance: 0.4, blow: indexed('warrior', 183_165), takes: 1.3, lasts: 10, down: 3 };
 /** Her own perks' numbers: Wind Reading's Dark, Dive Bomb's Dark's cooldown less, Tornado Strike's (its chance, and her ATK Spd after), and Transcend 5's Dark (for each dodge, up to so many). */
 const PERKS = { reading: 1.3, dive: 0.1, chance: 0.6, speed: 300, dodge: { cooldowns: 0.02, atk: 0.03, speed: 30, most: 10 } };
+
+/**
+ * Her unique treasures' numbers (1★ to 5★: ../treasures.ts): Fierce Winds' DMG and the mana a critical blow of it would
+ * take (the boss has none); Wind Reading's heal; Dive Bomb's cheaper and DMG; Tornado Strike's more chance, and its blow
+ * in Guild War (nothing here).
+ */
+const UT = {
+  gust: { dmg: 0.5, mana: [240, 290, 350, 420, 500] },
+  scarf: { heal: [0.12, 0.14, 0.17, 0.21, 0.25] },
+  pride: { cost: -1, dmg: [0.24, 0.29, 0.35, 0.42, 0.5] },
+  ribbon: { chance: 0.1, guildWar: [0.12, 0.14, 0.17, 0.21, 0.25] },
+};
 
 const art = skillArt('naila');
 
@@ -101,6 +114,23 @@ export const NAILA: HeroDef = {
     },
   ],
   passive: TORNADO_STRIKE,
+  treasures: [
+    treasure('Soul of Gust', (k) => ({
+      words: `[Fierce Winds] Increases DMG by ${pct(UT.gust.dmg)} and upon a Critical Hit, reduces Mana by ${k(UT.gust.mana)}`,
+      skill: { index: 0, dmg: 1 + UT.gust.dmg },
+    })),
+    treasure('Himmullis’s Scarf', (k) => ({
+      words: `[Wind Reading] All effects become irremovable and upon activation, heals own HP equals ${pct(k(UT.scarf.heal))} of Max HP.`,
+      skill: { index: 1, heal: k(UT.scarf.heal) },
+    })),
+    treasure('Tempest Pride', (k) => ({
+      words: `[Dive Bomb] Reduces Mana Cost by ${-UT.pride.cost} and increases DMG by ${pct(k(UT.pride.dmg))}`,
+      skill: { index: 2, cost: UT.pride.cost, dmg: 1 + k(UT.pride.dmg) },
+    })),
+    treasure('Green Ribbon', (k) => ({
+      words: `[Tornado Strike] Increases the chance of dealing additional DMG by ${pct(UT.ribbon.chance)} and upon activation during Guild War, deals additional P.DMG equal to ${pct(k(UT.ribbon.guildWar))} of target's Max HP.`,
+    })),
+  ],
   perks: {
     's1-light': said({ skill: { index: 0, dmg: 2 } }, ({ skill }) => `If there is 1 enemy, DMG is increased by ${pct(skill.dmg - 1)}.`),
     's1-dark': { words: 'Target changes to the enemy with the highest ATK.' },
@@ -148,7 +178,8 @@ export const NAILA: HeroDef = {
       attacks++;
       if (attacks < TORNADO.every) return;
       attacks = 0;
-      if (fight.roll() >= (self.perks.has('s4-light') ? PERKS.chance : TORNADO.chance)) return;
+      // (Green Ribbon: likelier.)
+      if (fight.roll() >= (self.perks.has('s4-light') ? PERKS.chance : TORNADO.chance) + (treasureTier(self, 3) > 0 ? UT.ribbon.chance : 0)) return;
       fight.cue(self, 'tornado');
       strike(TORNADO.blow);
       put(fight.foe.statuses, { name: TORN, left: TORNADO.lasts, takes: { physical: TORNADO.takes }, shown: 'curse' });

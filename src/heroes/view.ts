@@ -3,13 +3,19 @@ import { HERO_CLASSES, HERO_SLOT_KIND, type HeroCopy, type HeroSlot, type Heroes
 import type { HeroesSold } from '../protocol/heroes';
 import { busyWith, dropdown, fillServers } from '../shared/ui';
 import { createContext, heroShown, mine, status, type HeroesContext, type HeroesHost, type HeroMember } from './context';
-import { render, type HeroActions } from './render';
+import { perkTip, render, renderPick, renderSearch, type HeroActions } from './render';
+
+/** How long the search waits for typing to stop before the armory is drawn again. */
+const SEARCH_MS = 120;
+import { pointTips } from '../technomagic/hud/tip';
+import '../technomagic/styles/tip.css';
 
 /*
  * The heroes page (/heroes/): the TechnoMagic Raid's heroes (the bot's /api/heroes), laid out as the gear
  * page. Down the left every hero, theirs first (one that isn't theirs is greyed, with the way to the shop's
- * Heroes tab, ../hero-shop/). The one picked stands on the stage with its five slots: two weapons on the
- * left, two armors on the right and its treasure under it. Beside it, the gear a hero can wear (the raid's,
+ * Heroes tab, ../hero-shop/). The one picked stands on the stage with its slots: two weapons on the
+ * left, two armors on the right and its treasure under it, with its three sub treasure slots beside that (only its own
+ * unique treasures go there, and only their options count). Beside it, the gear a hero can wear (the raid's,
  * and the TechnoMagic Raid's): picking a copy shows what it does on the hero and equips it (into the slot
  * last pressed, or the first free one of its kind; off any other hero it was on), locks it, and its Upgrade goes to
  * the forge with it on the anvil (as the gear page's); pressing a slot shows what fits in it. Under the armory, selling copies (pick them,
@@ -61,9 +67,13 @@ function failed(ctx: HeroesContext, act: HeroActions, res: { status: number; err
         : res.error === 'not_found'
           ? "That hero isn't yours yet."
           : res.error === 'wrong_hero'
-            ? 'That unique weapon is another hero’s: only they can wield it.'
+            ? 'That is another hero’s own: only they can wear it.'
           : res.error === 'wrong_slot'
-            ? 'A unique weapon only goes in Weapon I.'
+            ? 'That doesn’t go there: a unique weapon only goes in Weapon I, and only a hero’s own unique treasures go in its sub treasure slots.'
+          : res.error === 'duplicate'
+            ? 'This hero already wears a copy of that unique treasure: each of its four once.'
+          : res.error === 'no_main_treasure'
+            ? 'Only a unique treasure has sub treasures: put one of this hero’s unique treasures in its main treasure slot first.'
           : res.error === 'busy'
             ? 'Your heroes’ gear changed meanwhile. Try again.'
           : res.error === 'too_many_points'
@@ -266,9 +276,12 @@ function wire(ctx: HeroesContext, act: HeroActions): () => void {
     if (ctx.target && HERO_SLOT_KIND[ctx.target] !== ctx.filter) ctx.target = null;
     render(ctx, act);
   });
+  // The armory alone, once typing stops for a moment (not the whole page for every key).
+  let typing: ReturnType<typeof setTimeout> | undefined;
   wireSearch(ui.search, (query) => {
     ctx.query = query;
-    render(ctx, act);
+    clearTimeout(typing);
+    typing = setTimeout(() => renderSearch(ctx, act), SEARCH_MS);
   });
 
   for (const tab of ui.views) {
@@ -309,6 +322,8 @@ function wire(ctx: HeroesContext, act: HeroActions): () => void {
   }
 
   ui.resetPerks.addEventListener('click', () => act.perks([], 'reset-perks'));
+  // A perk pointed at: the raid's popup over it, saying what it does.
+  pointTips(ui.perkRows, '.perk', (cell) => perkTip(ctx, cell));
 
   ui.unequipAll.addEventListener('click', () => {
     const hero = ctx.hero;
@@ -330,11 +345,12 @@ function wire(ctx: HeroesContext, act: HeroActions): () => void {
     if (ctx.picked) {
       itemDetailsClosed();
       ctx.picked = null;
-      render(ctx, act);
+      renderPick(ctx, act);
     } else if (ctx.selling) pickToSell(ctx, act, false);
   };
   document.addEventListener('keydown', onKey);
   return () => {
+    clearTimeout(typing);
     document.removeEventListener('keydown', onKey);
     if (ui.sellConfirm.open) ui.sellConfirm.close();
     serverPicker.destroy();

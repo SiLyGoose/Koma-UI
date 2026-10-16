@@ -38,8 +38,16 @@
           <button type="button" class="slot" data-slot="armor1"></button>
           <button type="button" class="slot" data-slot="armor2"></button>
         </div>
+        <!-- Its main treasure, and over its left edge a box for each of its three sub treasures (only its own unique treasures go in those). -->
         <div class="hero-treasure">
-          <button type="button" class="slot" data-slot="treasure"></button>
+          <div class="hero-main-treasure">
+            <button type="button" class="slot" data-slot="treasure"></button>
+            <div class="hero-subs" hidden>
+              <button type="button" class="slot sub-box" data-slot="side1"></button>
+              <button type="button" class="slot sub-box" data-slot="side2"></button>
+              <button type="button" class="slot sub-box" data-slot="side3"></button>
+            </div>
+          </div>
         </div>
       </div>
       <div class="totals">

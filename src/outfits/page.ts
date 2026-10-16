@@ -2,7 +2,7 @@ import markup from './outfits.html?raw';
 import { API, busyWith, dropdown, fillServers } from '../shared/ui';
 import type { ShopTab } from '../shop/tab';
 import type { OutfitView, OutfitsView } from '../shared/outfits';
-import { api, currentMe, currentServer, loadMe, logOut, setServer } from '../site/session';
+import { api, currentMe, currentServer, loadMe, logOut, prefetchFor, setServer } from '../site/session';
 import { createContext, status, type OutfitsContext } from './context';
 import { render, renderBuy } from './render';
 
@@ -17,7 +17,7 @@ import { render, renderBuy } from './render';
 /** A shirt, on the shop's rail (as on the gear page's Outfits button). */
 const ICON = '<svg viewBox="0 0 24 24"><path d="M8 3 3 6l2 5 2-1v11h10V10l2 1 2-5-5-3c-.5 1.5-2 2.5-4 2.5S8.5 4.5 8 3Z" fill="currentColor"/></svg>';
 
-export const outfitsTab: ShopTab = { id: 'outfits', label: 'Outfits', title: 'Outfits · Komaverse', icon: ICON, markup, mount };
+export const outfitsTab: ShopTab = { id: 'outfits', label: 'Outfits', title: 'Outfits · Komaverse', icon: ICON, markup, mount, prefetch: () => prefetchFor((guild) => `/api/outfits?guild=${guild}`) };
 
 function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void } {
   const ctx = createContext(root);

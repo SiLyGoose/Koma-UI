@@ -1,6 +1,7 @@
 import { share } from '../combat/damage';
 import { put } from '../combat/status';
 import { said, t5Light } from '../perks';
+import { fromTreasure, treasure, treasureTier } from '../treasures';
 import { BLOW } from '../rules';
 import { fold, nth, pct, skillArt, times, type Buff } from '../shown';
 import { atTier, BARBATOS } from '../unique';
@@ -35,6 +36,18 @@ const DOOM = { blow: indexed('assassin', 294_746), stun: 3, fury: 3, cost: 0.2 }
 const CURSED = { most: 3, blow: indexed('assassin', 220_255), down: 3, lasts: 10, atk: 0.3 };
 /** His own perks' numbers: Destructive Instinct's Dark's ATK after it (how long), Fury's more Heal Rate, and less taken for each stack of Cursed Blood. */
 const PERKS = { atk: 1.4, atkFor: 5, heals: 1.5, taken: 0.12 };
+
+/**
+ * His unique treasures' numbers (1★ to 5★: ../treasures.ts): Destructive Instinct's heal and more M.DMG taken; Dawning
+ * Despair's attack speed (points); Strike of Doom's DMG and its Cursed Blood more; the Cursed Blood he begins with, and his
+ * more DMG to the boss in Fury.
+ */
+const UT = {
+  belt: { heal: 0.15, takes: [0.12, 0.14, 0.17, 0.21, 0.25], lasts: 10 },
+  choker: { speed: [120, 140, 170, 210, 250], lasts: 10 },
+  binds: { dmg: [0.24, 0.29, 0.35, 0.42, 0.5], stacks: 1 },
+  sculpture: { stacks: 2, dmg: [0.24, 0.29, 0.35, 0.42, 0.5] },
+};
 
 const art = skillArt('ezekiel');
 
@@ -101,6 +114,23 @@ export const EZEKIEL: HeroDef = {
     },
   ],
   passive: CURSED_BLOOD,
+  treasures: [
+    treasure('Wild Beast’s Leather Belt', (k) => ({
+      words: `[Destructive Instinct] Upon use, heals own HP by ${pct(UT.belt.heal)}, and for ${UT.belt.lasts} sec, increases M.DMG target receives by ${pct(k(UT.belt.takes))}.`,
+      skill: { index: 0, heal: UT.belt.heal, mark: { name: 'Wild Beast’s Leather Belt', takes: { magical: 1 + k(UT.belt.takes) }, lasts: UT.belt.lasts } },
+    })),
+    treasure('Wild Beast’s Choker', (k) => ({
+      words: `[Dawning Despair] Gains Immunity to CC for the skill's duration and increases ATK Spd by ${k(UT.choker.speed)} for ${UT.choker.lasts} sec.`,
+      skill: { index: 1, steady: true, self: { name: 'Wild Beast’s Choker', lasts: UT.choker.lasts, pace: 1 + share(k(UT.choker.speed)) } },
+    })),
+    treasure('Sealing Binds', (k) => ({
+      words: `[Strike of Doom] DMG is increased by ${pct(k(UT.binds.dmg))} and gains ${UT.binds.stacks} additional stack of Cursed Blood after using the skill.`,
+      skill: { index: 2, dmg: 1 + k(UT.binds.dmg) },
+    })),
+    treasure('Sculpture of Blood', (k) => ({
+      words: `[Cursed Blood] At the beginning of first battle, Ezekiel gains ${UT.sculpture.stacks} stacks of Cursed Blood. While under Fury, DMG dealt to bosses increases by ${pct(k(UT.sculpture.dmg))}.`,
+    })),
+  ],
   perks: {
     's1-light': said({ skill: { index: 0, dmg: 1.4 } }, ({ skill }) => `DMG is increased by ${pct(skill.dmg - 1)}.`),
     's1-dark': { words: `After activation, ATK is increased by ${pct(PERKS.atk - 1)} for ${PERKS.atkFor} sec.` },
@@ -118,7 +148,8 @@ export const EZEKIEL: HeroDef = {
   timing: { attack: [{ lands: [0.92, 1.52, 2.78, 3.62], until: 4.3 }] },
   join(fight, self) {
     /** His Cursed Blood; how long his Fury lasts yet; and whether he was on Auto before it (he is put back so after). */
-    let stacks = 0;
+    // (Sculpture of Blood: some to begin with.)
+    let stacks = treasureTier(self, 3) > 0 ? UT.sculpture.stacks : 0;
     let fury = 0;
     let wasAuto = false;
     /** Each skill was used in Fury (as it began: it lands reinforced). */
@@ -192,7 +223,8 @@ export const EZEKIEL: HeroDef = {
           bleed(move === 'instinct' ? INSTINCT.cost : move === 'despair' ? DESPAIR.cost : DOOM.cost);
           return;
         }
-        stacks++;
+        // (Sealing Binds: one more for Strike of Doom.)
+        stacks += 1 + (move === 'doom' && treasureTier(self, 2) > 0 ? UT.binds.stacks : 0);
         if (stacks >= CURSED.most) rage();
       },
       tick(dt) {
@@ -208,6 +240,7 @@ export const EZEKIEL: HeroDef = {
         }
       },
       takes: () => (self.perks.has('s4-dark') ? 1 - PERKS.taken * stacks : 1),
+      deals: () => (fury > 0 ? 1 + fromTreasure(self, 3, UT.sculpture.dmg) : 1),
       guards: () => self.doing?.move === 'doom' && self.perks.has('s3-light'),
       lit: () => fury > 0,
       buffs: () => (fury > 0 || stacks === 0 ? [] : [{ ...STACKED, count: stacks }]),

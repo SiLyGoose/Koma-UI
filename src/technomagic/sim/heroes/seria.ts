@@ -1,6 +1,7 @@
 import { share } from '../combat/damage';
 import { put } from '../combat/status';
 import { said, t5Light } from '../perks';
+import { fromTreasure, treasure, treasureTier } from '../treasures';
 import { MAX_MANA, SECTION } from '../rules';
 import { fine, pct, seconds, skillArt, type Buff } from '../shown';
 import { atTier, ELSION, ELSION_UP } from '../unique';
@@ -36,6 +37,19 @@ const MOON = { blow: indexed('warrior', 376_079), boss: indexed('warrior', 186_3
 const WITCH = { atk: 38_567, critDamage: 0.05, most: 30 };
 /** Her own perks' numbers: Blossom's less healing for the boss, Blood Scattering Blade's mana for each blow, her less taken for each stack of Cold-Blooded Witch, her opening's more DMG, and Transcend 5's Dark's more taken. */
 const PERKS = { unhealed: { heals: 0.5, lasts: 5 }, blossomCost: 1, mana: 0.2 * SECTION, taken: 0.007, opening: { deals: 1.25, lasts: 200 }, reckless: 1.25 };
+
+/**
+ * Her unique treasures' numbers (1★ to 5★: ../treasures.ts): Falling Petals' and Blossom's DMG, Falling Petals' mana on a
+ * critical blow and Blossom's seconds off Falling Petals' cooldown on one; Blood Scattering Blade's DMG and less M.Block
+ * on the boss (points, for as long as its Magic Weakness would last); Red Moon Blade's more DMG for her first so many blows of
+ * the fight; and Cold-Blooded Witch's more DMG to the boss for each stack.
+ */
+const UT = {
+  whetstone: { dmg: 0.5, mana: [240, 290, 350, 420, 500], seconds: [1, 1.2, 1.4, 1.7, 2] },
+  abyss: { dmg: 0.5, block: [240, 290, 350, 420, 500], lasts: 10 },
+  candle: { dmg: 0.7, times: [7, 9, 11, 13, 15] },
+  trigrams: { dmg: [0.007, 0.008, 0.01, 0.012, 0.015] },
+};
 
 const art = skillArt('seria');
 
@@ -101,6 +115,24 @@ export const SERIA: HeroDef = {
     },
   ],
   passive: COLD_BLOODED,
+  treasures: [
+    // (Blossom is Falling Petals' slot's for a while: its part is hers.)
+    treasure('Whetstone of Demon', (k) => ({
+      words: `[Mysterious Sword - Falling Petals] Increases DMG by ${pct(UT.whetstone.dmg)}, and upon Critical Hit, recovers Mana by ${k(UT.whetstone.mana)}. [Mysterious Sword - Blossom] Increases DMG by ${pct(UT.whetstone.dmg)}, and upon Critical Hit, reduces Cooldown of [Mysterious Sword - Falling Petals] by ${k(UT.whetstone.seconds)} sec.`,
+    })),
+    treasure('Ring of Abyss', (k) => ({
+      words: `[Blood Scattering Blade] Increases DMG by ${pct(UT.abyss.dmg)} and reduces M.Block of affected enemies by ${k(UT.abyss.block)}.`,
+      skill: { index: 1, dmg: 1 + UT.abyss.dmg, mark: { name: 'Ring of Abyss', blocks: { magical: -k(UT.abyss.block) }, lasts: UT.abyss.lasts } },
+    })),
+    // (Its more DMG is for her blows, the first so many of the fight: her part's.)
+    treasure('Enlightening Candlelight', (k) => ({
+      words: `[Red Moon Blade] Gains immunity to CC for the duration of the skill. When the battle starts, increases DMG by ${pct(UT.candle.dmg)} for ${k(UT.candle.times)} time.`,
+      skill: { index: 2, steady: true },
+    })),
+    treasure('Demonic Eight Trigrams', (k) => ({
+      words: `[Cold-Blooded Witch] DMG Boost against Non-Hero enemies increases by an additional ${fine(k(UT.trigrams.dmg))} per stack.`,
+    })),
+  ],
   perks: {
     's1-light': said(
       { skill: { index: 0, cost: -1 } },
@@ -141,25 +173,32 @@ export const SERIA: HeroDef = {
     if (self.perks.has('t5-dark')) put(self.statuses, { name: RECKLESS.name, left: Infinity, crit: 1, takes: PERKS.reckless, blocks: { physical: -Infinity, magical: -Infinity }, shown: RECKLESS });
 
     /** A blow of a skill of hers: a critical one makes her critical blows harder, and (with her unique weapon) deals more, and leaves the boss healed less and her healed more. */
-    const cut = (amount: number, pierce = 0, whole = false): void => {
-      if (!fight.hit(self, amount, true, pierce, whole)) return;
+    const cut = (amount: number, pierce = 0, whole = false): boolean => {
+      if (!fight.hit(self, amount, true, pierce, whole)) return false;
       witch = Math.min(WITCH.most, witch + 1);
       // (Its Light: less taken for each.)
       put(self.statuses, { name: WITCHED.name, left: Infinity, count: witch, critDamage: WITCH.critDamage * witch, ...(self.perks.has('s4-light') && { takes: 1 - PERKS.taken * witch }), shown: WITCHED });
-      if (tier === null) return;
+      if (tier === null) return true;
       fight.hit(self, atTier(ELSION.blow, tier), false);
       put(fight.foe.statuses, { name: ELSION.name, left: ELSION.lasts, heals: 1 - atTier(ELSION.unhealed, tier), shown: 'curse' });
       elsion = Math.min(ELSION.most, elsion + 1);
       put(self.statuses, { name: ELSION_UP.name, left: ELSION.healed, count: elsion, heals: 1 + atTier(ELSION.heals, tier) * elsion, shown: ELSION_UP });
+      return true;
     };
+    // Her unique treasures: Whetstone of Demon's more DMG; Enlightening Candlelight's blows left; Demonic Eight Trigrams' DMG for each stack.
+    const whetstone = treasureTier(self, 0) > 0 ? 1 + UT.whetstone.dmg : 1;
+    let candle = fromTreasure(self, 2, UT.candle.times);
+    const trigrams = fromTreasure(self, 3, UT.trigrams.dmg);
 
     return {
       lands: {
+        // (Whetstone of Demon: more, and a critical blow gains her mana.)
         petals() {
-          cut(PETALS.blow);
+          if (cut(PETALS.blow * whetstone) && whetstone > 1) self.mana = Math.min(MAX_MANA, self.mana + fromTreasure(self, 0, UT.whetstone.mana));
         },
+        // (Whetstone of Demon: more, and a critical blow takes seconds off Falling Petals' cooldown.)
         blossom() {
-          cut(BLOSSOM.blow, 0, self.perks.has('s1-dark'));
+          if (cut(BLOSSOM.blow * whetstone, 0, self.perks.has('s1-dark')) && whetstone > 1) petals = Math.max(0, petals - fromTreasure(self, 0, UT.whetstone.seconds));
           // (Falling Petals' Light: the boss healed less for a while.)
           if (self.perks.has('s1-light')) put(fight.foe.statuses, { name: WILTED, left: PERKS.unhealed.lasts, heals: PERKS.unhealed.heals, shown: 'curse' });
         },
@@ -212,6 +251,10 @@ export const SERIA: HeroDef = {
           waxing -= MOON.every;
           moonlight = MOON.light;
         }
+      },
+      deals: () => (candle > 0 ? 1 + UT.candle.dmg : 1) * (1 + trigrams * witch),
+      blow() {
+        if (candle > 0) candle--;
       },
       lit: () => moonlight > 0,
       // Auto saves Red Moon Blade for Moonlight.

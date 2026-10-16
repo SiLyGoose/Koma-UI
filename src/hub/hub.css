@@ -161,13 +161,13 @@
 }
 
 .pinecraft-art {
-  /* A picture of the game (../../public/pinecraft/cover.png), on Tsuri in the middle. */
-  background: #1a1411 url('/pinecraft/cover.png') center / cover no-repeat;
+  /* A picture of the game (../../public/pinecraft/cover.webp), on Tsuri in the middle. */
+  background: #1a1411 url('/pinecraft/cover.webp') center / cover no-repeat;
 }
 
 .raid-art {
-  /* This week's boss: the Wyvern (../../public/raid/cover.png). */
-  background: #0f1830 url('/raid/cover.png') center / cover no-repeat;
+  /* This week's boss: the Wyvern (../../public/raid/cover.webp). */
+  background: #0f1830 url('/raid/cover.webp') center / cover no-repeat;
   image-rendering: pixelated;
 }
 
@@ -177,8 +177,8 @@
 }
 
 .mines-art {
-  /* A picture of the game (../../public/mines/cover.png), on the gem in the middle. */
-  background: var(--panel) url('/mines/cover.png') center / cover no-repeat;
+  /* A picture of the game (../../public/mines/cover.webp), on the gem in the middle. */
+  background: var(--panel) url('/mines/cover.webp') center / cover no-repeat;
 }
 
 /* Baccarat: two cards side by side on green felt (no picture needed). */
@@ -221,8 +221,8 @@
 }
 
 .minesweeper-art {
-  /* A picture of the game (../../public/minesweeper/cover.png): an Expert board part cleared, on its middle. */
-  background: var(--panel) url('/minesweeper/cover.png') center / cover no-repeat;
+  /* A picture of the game (../../public/minesweeper/cover.webp): an Expert board part cleared, on its middle. */
+  background: var(--panel) url('/minesweeper/cover.webp') center / cover no-repeat;
 }
 
 /* Poker: two hole cards and a chip on green felt (no picture needed). */

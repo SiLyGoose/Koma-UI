@@ -1,4 +1,4 @@
-import { art, effectSection, el, itemDetailsClosed, rich, SLOT_NAME, stars, tmTier, uwTier } from '../shared/items';
+import { art, effectSection, el, itemDetailsClosed, rich, SLOT_NAME, stars, tmTier, treasureParts, treasureSection, utTier, uwTier } from '../shared/items';
 import { go } from '../site/nav';
 import { SKILLS } from '../technomagic/sim/skills';
 import { classTag } from './class-tag';
@@ -91,7 +91,7 @@ export function renderDetail(ctx: DatabankContext): void {
   const title = el('div', 'detail-title');
   const name = el('h3', '', item.name);
   // Under the name, its category, then its stars (as the gear page's item panel); TechnoMagic gear and a unique weapon, their tiers of their own.
-  title.append(name, el('p', 'detail-meta db-kind', SLOT_NAME[item.slot]), item.source === 'technomagic' ? tmTier() : item.source === 'heroBanner' ? uwTier() : stars(item.stars));
+  title.append(name, el('p', 'detail-meta db-kind', SLOT_NAME[item.slot]), item.source === 'technomagic' ? tmTier() : item.uniqueTreasure ? utTier() : item.source === 'heroBanner' ? uwTier() : stars(item.stars));
   // A class item says whose it is; TechnoMagic gear, its set (three pieces on a hero give its effect, for the hero's class: its effects say it too).
   if (item.class) title.append(classTag(item.class, className(ctx, item.class)));
   if (item.set) {
@@ -130,7 +130,10 @@ export function renderDetail(ctx: DatabankContext): void {
 
   // (TechnoMagic gear's effects are the potentials a copy can roll: folded away under a line, as its additional effect is.)
   const tm = item.source === 'technomagic' && lines.length > 1;
-  ui.detailBody.append(head, el('p', 'detail-desc', item.description), levels, tm ? effectSection('Potentials:', potentialList(lines)) : effects);
+  // (A unique treasure's: the options a copy can roll, folded away the same, then what it gives as its hero's main treasure.)
+  const ut = item.uniqueTreasure ? treasureParts(lines) : null;
+  ui.detailBody.append(head, el('p', 'detail-desc', item.description), levels, ut ? effectSection('Potentials:', potentialList(ut.options)) : tm ? effectSection('Potentials:', potentialList(lines)) : effects);
+  if (ut) ui.detailBody.append(...treasureSection(ut.main));
   // TechnoMagic gear: its set effect, then its additional effect (one of them, at random), each apart under its effects (the potentials a copy can roll).
   if (item.set?.pieces && item.set.effect) ui.detailBody.append(effectSection(`${item.set.pieces}-set effect:`, item.set.effect));
   if (item.source === 'technomagic') ui.detailBody.append(effectSection('Additional Effect:', skillList()));

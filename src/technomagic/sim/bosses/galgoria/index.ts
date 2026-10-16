@@ -5,18 +5,24 @@ import { galgoriaPart } from './skills';
 
 /**
  * So many times less health than the game's: a hero's ATK here is the game's (its unique weapon's and its potentials'), but
- * what more King's Raid's heroes deal to it (sets, more DMG to bosses, buffs) is not here. Tried with 8 heroes on Auto (R5
- * unique weapons, 30% more ATK, no set): stage 1 won every time in about a minute and a half. (Before HP, which it cuts.)
+ * what more King's Raid's heroes deal to it (sets, more DMG to bosses, buffs) is not here. (Before HP, which it cuts.)
  */
 const GEARED = 80;
 /**
+ * Its health at stage 1, before GEARED: more than the game's (20 billion), so that 8 heroes on Auto at Transcend 5 (ATK Up,
+ * Monster Hunting, HP Up, two class perks, T5 Light) with R1 unique weapons and no other gear win about 4 times in 5
+ * (tried over 60 fights). Its stages 2 and 3 go up from it evenly (each so many times the last) to stage 4.
+ */
+const FIRST_HP = 38.4e9;
+/**
  * Its health and defense (P.DEF and M.DEF alike) at each stage, as King's Raid's Galgoria raid has them at its stages 1
  * to 5 (its table, from its players' guides on DC Inside's King's Raid gallery: 20 to 87.6 billion HP, 117,000 to 222,300
- * DEF); 6 to 8 go on from there (a first guess: the game's stage 6 is said to be past 300,000 DEF). That health is the
- * game's raid's, with more than one player, cut by GEARED; alone, it is ROOM_HP times less again. And how hard its blows
- * are, either way.
+ * DEF); 6 to 8 go on from there (a first guess: the game's stage 6 is said to be past 300,000 DEF). But for its health at
+ * stages 1 to 3 (FIRST_HP). That health is the game's raid's, with more than one player, cut by GEARED; alone, it is
+ * ROOM_HP times less again. And how hard its blows are, either way.
  */
-const HP = [20e9, 26.9e9, 37.8e9, 50.7e9, 87.6e9, 120e9, 165e9, 225e9].map((hp) => hp / GEARED);
+const KR_HP = [20e9, 26.9e9, 37.8e9, 50.7e9, 87.6e9, 120e9, 165e9, 225e9];
+const HP = KR_HP.map((hp, i) => (i < 3 ? FIRST_HP * ((KR_HP[3] as number) / FIRST_HP) ** (i / 3) : hp) / GEARED);
 const DEF = [117_000, 128_300, 142_000, 175_300, 222_300, 300_000, 380_000, 470_000];
 const ROOM_HP = 1.7;
 const DEALS = [2, 2.25, 2.5, 2.75, 3, 3.25, 3.5, 3.75];

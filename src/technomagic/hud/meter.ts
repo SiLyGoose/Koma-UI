@@ -26,6 +26,11 @@ const EVERY = 0.25;
 
 const said = (n: number): string => Math.round(n).toLocaleString('en-US');
 
+/** Puts `text` in `node`, unless it says that already. */
+const put = (node: HTMLElement, text: string): void => {
+  if (node.textContent !== text) node.textContent = text;
+};
+
 /** The meter in `root`, a row for each hero (its name and its picture). `auto` is told when Auto is pressed. */
 export function makeMeter(root: HTMLElement, heroes: readonly { name: string; face: string }[], auto: () => void): Meter {
   const button = el('button', 'tm-meter-auto', 'Auto');
@@ -98,11 +103,12 @@ export function makeMeter(root: HTMLElement, heroes: readonly { name: string; fa
         shown.row.style.order = String(place);
         // Fallen: its picture and its bar go grey.
         shown.row.classList.toggle('down', row.down);
-        shown.label.textContent = tab === 'dps' ? 'Dps' : 'Hps';
-        shown.value.textContent = said(of(row) / Math.max(1, elapsed));
-        shown.total.textContent = said(of(row));
-        shown.fill.style.width = `${(of(row) / most) * 100}%`;
-        shown.fill.className = tab;
+        // (Written only when they change: a text written again is laid out again, every frame.)
+        put(shown.label, tab === 'dps' ? 'Dps' : 'Hps');
+        put(shown.value, said(of(row) / Math.max(1, elapsed)));
+        put(shown.total, said(of(row)));
+        shown.fill.style.transform = `scaleX(${of(row) / most})`;
+        if (shown.fill.className !== tab) shown.fill.className = tab;
       });
     },
   };

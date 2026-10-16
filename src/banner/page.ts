@@ -1,7 +1,7 @@
 import markup from './banner.html?raw';
 import { API, dropdown, fillServers } from '../shared/ui';
 import type { ShopTab } from '../shop/tab';
-import { currentMe, currentServer, loadMe, setServer } from '../site/session';
+import { currentMe, currentServer, loadMe, prefetchFor, setServer } from '../site/session';
 import { failed, loadBanner, pickBanner, pickGuaranteed, pull } from './api';
 import { createContext, status, type BannerContext } from './context';
 import { render } from './render';
@@ -21,7 +21,8 @@ import { render } from './render';
 const ICON =
   '<svg viewBox="0 0 24 24"><path d="M17 2.5l1.3 3.2 3.2 1.3-3.2 1.3L17 11.5l-1.3-3.2L12.5 7l3.2-1.3z" fill="currentColor"/><path d="M13.6 10.4 3.5 20.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity=".55"/><path d="M11.8 12.2 6 18" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/></svg>';
 
-export const wishTab: ShopTab = { id: 'wish', label: 'Wish', title: 'Wish · Komaverse', icon: ICON, markup, mount };
+// (The banner it opens on: the standard one, as ./api.ts's viewPath asks for it.)
+export const wishTab: ShopTab = { id: 'wish', label: 'Wish', title: 'Wish · Komaverse', icon: ICON, markup, mount, prefetch: () => prefetchFor((guild) => `/api/gacha?guild=${guild}&banner=standard`) };
 
 function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void } {
   const ctx = createContext(root);

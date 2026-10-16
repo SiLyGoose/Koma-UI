@@ -1,5 +1,6 @@
 import { put, type Status } from '../combat/status';
 import { said, t5Light } from '../perks';
+import { treasure, treasureTier } from '../treasures';
 import { BLOW } from '../rules';
 import { num, pct, skillArt, type Buff, type Mark } from '../shown';
 import { atTier, GAIAMENES, GAIAMENES_UP } from '../unique';
@@ -34,6 +35,18 @@ const CREED = { blow: indexed('knight', 102_676) / 2, stun: 1.5, last: indexed('
 const GATEKEEPER = { each: 1, every: 0.2, most: 20, blow: indexed('knight', 70_202), weaker: 0.2, lasts: 10 };
 /** His own perks' numbers: Cut Ground's Dark, Shrouding Creed's Dark, The Last Gatekeeper's Light, and Transcend 5's Dark. */
 const PERKS = { weakness: 0.25, longer: 5, each: 1, ward: { block: 200, defense: 0.1, lasts: 5, every: 5 } };
+
+/**
+ * His unique treasures' numbers (1★ to 5★: ../treasures.ts): Cut Ground's less P.Block and CC resist on the boss (points);
+ * Shrouding Creed's cheaper and every ally's mana; Knight's Creed's shorter cooldown and more P.DMG taken; and The Last
+ * Gatekeeper's M.Block (points), and its more Endurance for a block.
+ */
+const UT = {
+  techniques: { block: 500, resist: [120, 140, 170, 210, 250], lasts: 10 },
+  doll: { cost: -1, mana: [480, 580, 700, 840, 1000] },
+  sea: { cooldown: 0.3, takes: [0.12, 0.14, 0.17, 0.21, 0.25], lasts: 10 },
+  shield: { block: [240, 290, 350, 420, 500], endurance: 1 },
+};
 
 const art = skillArt('loman');
 
@@ -100,6 +113,25 @@ export const LOMAN: HeroDef = {
     },
   ],
   passive: LAST_GATEKEEPER,
+  treasures: [
+    treasure('Basic Combat Techniques of Orvelian Knights', (k) => ({
+      words: `[Cut Ground] For ${UT.techniques.lasts} sec, reduces the target's P.Block by ${UT.techniques.block} and CC Resist by ${k(UT.techniques.resist)}.`,
+      skill: { index: 0, mark: { name: 'Basic Combat Techniques', blocks: { physical: -UT.techniques.block }, resist: -k(UT.techniques.resist), lasts: UT.techniques.lasts } },
+    })),
+    // (Its target is every ally its shield is on.)
+    treasure('Wooden Doll Miniature', (k) => ({
+      words: `[Shrouding Creed] Reduces Mana Cost by ${-UT.doll.cost} and recovers target's Mana by ${k(UT.doll.mana)}.`,
+      skill: { index: 1, cost: UT.doll.cost, allyMana: k(UT.doll.mana) },
+    })),
+    treasure('Sea of Invocation', (k) => ({
+      words: `[Knight's Creed] Reduces Cooldown by ${pct(UT.sea.cooldown)}, and increases P.Weakness of the target by ${pct(k(UT.sea.takes))} for ${UT.sea.lasts} seconds.`,
+      skill: { index: 2, cooldownShare: 1 - UT.sea.cooldown, mark: { name: 'Sea of Invocation', takes: { physical: 1 + k(UT.sea.takes) }, lasts: UT.sea.lasts } },
+    })),
+    treasure('Father’s Shield', (k) => ({
+      words: `[The Last Gatekeeper] Increases own M.Block by ${k(UT.shield.block)}. Upon block, the number of Endurance Stacks increases by ${UT.shield.endurance}.`,
+      bonus: { blockMagical: k(UT.shield.block) },
+    })),
+  ],
   perks: {
     's1-light': said({ skill: { index: 0, cooldown: -3 } }, ({ skill }) => `Cooldown is reduced by ${-skill.cooldown} sec.`),
     's1-dark': { words: `Increases P.Weakness of the affected target by ${pct(PERKS.weakness)} for ${CUT.lasts} seconds.` },
@@ -193,6 +225,8 @@ export const LOMAN: HeroDef = {
         if (parried <= 0) {
           parried = GATEKEEPER.every;
           endure();
+          // (Father's Shield: more.)
+          if (treasureTier(self, 3) > 0) for (let i = 0; i < UT.shield.endurance; i++) endure();
         }
         if (!self.perks.has('t5-dark') || warding > 0 || fight.foe.def.stats.deals !== 'magical') return;
         warding = PERKS.ward.every;

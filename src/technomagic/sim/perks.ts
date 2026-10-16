@@ -67,10 +67,76 @@ export interface PerkDef {
   /**
    * One of its skills (`index`): costing `cost` more mana sections (fewer, less than 0), its cooldown `cooldown` seconds
    * longer (shorter, less than 0) or `cooldownShare` times as long, its blows `dmg` times as hard and (`whole`) through
-   * all the boss's defense; and as its first blow lands, leaving `mark` on the boss (taking so many times as much, of
-   * every kind or of each it names, for `lasts` seconds).
+   * all the boss's defense, and its heals and shields `heals` times as much; and as its first blow lands, leaving `mark`
+   * on the boss (SkillMark) and slowing its attacks (`slow`: its ATK Spd so many points lower, for `lasts` seconds).
+   * The rest is a unique treasure's (./treasures.ts), as the skill is used: its hero gains `mana` and is healed `heal`
+   * (a share of its max HP); `steady`, it can't be knocked down while it is using it; `cleanse`, what the boss has left
+   * on it (or on every ally) is gone; `dispel`, what helps the boss is gone; `self` and `party`, what it puts on its
+   * hero (or on every ally) for a while; and `allyMana`, every ally gains so much mana. A critical blow of it gains its
+   * hero `critMana` mana and takes `critCooldown` of its cooldown off what is left of it.
    */
-  skill?: { index: number; cost?: number; cooldown?: number; cooldownShare?: number; dmg?: number; whole?: boolean; mark?: { name: string; takes: number | Partial<Record<'physical' | 'magical', number>>; lasts: number } };
+  skill?: {
+    index: number;
+    cost?: number;
+    cooldown?: number;
+    cooldownShare?: number;
+    dmg?: number;
+    whole?: boolean;
+    heals?: number;
+    mark?: SkillMark;
+    slow?: { points: number; lasts: number };
+    mana?: number;
+    heal?: number;
+    steady?: boolean;
+    cleanse?: 'self' | 'allies';
+    dispel?: boolean;
+    self?: SkillStatus;
+    party?: SkillStatus;
+    allyMana?: number;
+    critMana?: number;
+    critCooldown?: number;
+  };
+}
+
+/**
+ * What a skill leaves on the boss as its first blow lands (named `name`, for `lasts` seconds): taking so many times as
+ * much (of every kind, or of each it names); dealing so many times as much, and its blows `crit` likelier critical (a share: less than 0, less likely); its defense (`defends`) and healing
+ * (`heals`) so many times as much; the heroes' blows on it so many points likelier critical (`critTaken`); and its block
+ * and CC resist so many points lower (`blocks`, `resist`: less than 0).
+ */
+export interface SkillMark {
+  name: string;
+  lasts: number;
+  takes?: number | Partial<Record<'physical' | 'magical', number>>;
+  deals?: number;
+  defends?: number | Partial<Record<'physical' | 'magical', number>>;
+  heals?: number;
+  crit?: number;
+  critTaken?: number | Partial<Record<'physical' | 'magical', number>>;
+  blocks?: Partial<Record<'physical' | 'magical', number>>;
+  resist?: number;
+}
+
+/**
+ * What a skill puts on its hero (or every ally) for a while as it is used (named `name`, for `lasts` seconds): its
+ * blows so many times as hard (`deals`); what it takes so many times as much; its defense so many times as much; its
+ * crit chance, crit DMG, penetration, CC resist and block so much more (points; crit DMG a share); and its attack so
+ * many times as quick (`pace`).
+ */
+export interface SkillStatus {
+  name: string;
+  lasts: number;
+  deals?: number;
+  takes?: number | Partial<Record<'physical' | 'magical', number>>;
+  defends?: number | Partial<Record<'physical' | 'magical', number>>;
+  crit?: number;
+  critDamage?: number;
+  pen?: number;
+  resist?: number;
+  blocks?: Partial<Record<'physical' | 'magical', number>>;
+  pace?: number;
+  heals?: number;
+  accuracy?: number;
 }
 
 /** A perk's id: Transcend 1's (everyone's), 2's (its class's, by its place), 3's (its skills', by their place, Light and Dark) and 5's. */
@@ -211,8 +277,18 @@ export function moveWhole(def: HeroDef, perks: ReadonlyMap<string, PerkDef>): Se
   return new Set([...perks.values()].flatMap((perk) => (perk.skill?.whole ? [def.abilities[perk.skill.index]?.move].filter((move) => move !== undefined) : [])));
 }
 
-export function moveMarks(def: HeroDef, perks: ReadonlyMap<string, PerkDef>): Partial<Record<HeroMove, NonNullable<NonNullable<PerkDef['skill']>['mark']>[]>> {
-  const out: Partial<Record<HeroMove, NonNullable<NonNullable<PerkDef['skill']>['mark']>[]>> = {};
+/** What a hero's perks make of its skills' heals and shields (by the move each skill is): how many times as much they give. */
+export function moveHeals(def: HeroDef, perks: ReadonlyMap<string, PerkDef>): Partial<Record<HeroMove, number>> {
+  const out: Partial<Record<HeroMove, number>> = {};
+  for (const perk of perks.values()) {
+    const ability = perk.skill?.heals !== undefined ? def.abilities[perk.skill.index] : undefined;
+    if (ability) out[ability.move] = (out[ability.move] ?? 1) * (perk.skill?.heals ?? 1);
+  }
+  return out;
+}
+
+export function moveMarks(def: HeroDef, perks: ReadonlyMap<string, PerkDef>): Partial<Record<HeroMove, SkillMark[]>> {
+  const out: Partial<Record<HeroMove, SkillMark[]>> = {};
   for (const perk of perks.values()) {
     const move = perk.skill?.mark ? def.abilities[perk.skill.index]?.move : undefined;
     if (move && perk.skill?.mark) (out[move] ??= []).push(perk.skill.mark);

@@ -1,5 +1,6 @@
 import { put, type Status } from '../combat/status';
 import { said, t5Light } from '../perks';
+import { fromTreasure, treasure, treasureTier } from '../treasures';
 import { BLOW } from '../rules';
 import { pct, skillArt, type Buff } from '../shown';
 import { AEA, AEA_UP, atTier } from '../unique';
@@ -38,6 +39,18 @@ const ADVENT = { blow: 10_020, lasts: 20, blowMore: 2000, atk: 0.01, pen: 10 };
 const FALLEN = { atk: 0.25, needs: [5, 15, 25], most: 40, each: 1 };
 /** His own perks' numbers: Judgment Blade's Light, Doom's Light, Advent's Dark, One Fallen to Darkness's Light and Dark, and Transcend 5's Dark. */
 const PERKS = { judge: { needs: 10, dmg: 1.8 }, doom: { takes: 1.3, lasts: 10 }, attack: 1.5, start: 10, more: 2, dark: { atk: 0.01, dmg: 0.01, lasts: 20, most: 30 } };
+
+/**
+ * His unique treasures' numbers (1★ to 5★: ../treasures.ts; King's Raid's own, its 3★ 34% among them): Judgment Blade's
+ * DMG; Doom's DMG; the [Dark Lord] state's more DMG to the boss and crit DMG; and One Fallen to Darkness's more [Dark
+ * Energy] at most, and the chance of a stack more for each blow of his attack.
+ */
+const UT = {
+  authority: { dmg: [0.24, 0.29, 0.34, 0.42, 0.5] },
+  lifeforce: { dmg: [0.24, 0.29, 0.35, 0.42, 0.5], pulled: 2 },
+  portrait: { dmg: [0.14, 0.17, 0.21, 0.25, 0.3], critDamage: 0.8 },
+  tear: { most: [64, 69, 75, 82, 90], chance: 0.35 },
+};
 
 const art = skillArt('dark-lord-kasel');
 
@@ -101,6 +114,22 @@ export const DARK_LORD_KASEL: HeroDef = {
     },
   ],
   passive: ONE_FALLEN,
+  treasures: [
+    treasure('Authority of Corruption', (k) => ({
+      words: `[Judgment Blade] Increases DMG by ${pct(k(UT.authority.dmg))} and dispels positive effects from the target.`,
+      skill: { index: 0, dmg: 1 + k(UT.authority.dmg), dispel: true },
+    })),
+    treasure('Faint Lifeforce', (k) => ({
+      words: `[Doom] Increases DMG by ${pct(k(UT.lifeforce.dmg))} and changes the number of pulled enemies to ${UT.lifeforce.pulled} during [Dark Lord] state.`,
+      skill: { index: 1, dmg: 1 + k(UT.lifeforce.dmg) },
+    })),
+    treasure('Traveler’s Portrait', (k) => ({
+      words: `[Advent of the Dark Lord] Increases DMG dealt to Non-Hero enemies by ${pct(k(UT.portrait.dmg))} and Crit DMG by ${pct(UT.portrait.critDamage)} during [Dark Lord] state.`,
+    })),
+    treasure('Twisted Tear', (k) => ({
+      words: `[One Fallen to Darkness] Changes the max number of stacks to ${k(UT.tear.most)}, and normal attacks have a ${pct(UT.tear.chance)} chance of stacking 1 additional stack of [Dark Energy].`,
+    })),
+  ],
   attack: 'corrupt',
   perks: {
     's1-light': said({ skill: { index: 0, dmg: PERKS.judge.dmg } }, ({ skill }) => `Increases number of Dark Energy stacks required for use by ${PERKS.judge.needs} and increases DMG by ${pct(skill.dmg - 1)}.`),
@@ -126,6 +155,8 @@ export const DARK_LORD_KASEL: HeroDef = {
     let darkLeft = 0;
     let unhealed = 0;
     const tier = self.unique?.tier ?? null;
+    // (Twisted Tear: more [Dark Energy] at most.)
+    const most = fromTreasure(self, 3, UT.tear.most, FALLEN.most);
     const needs = (index: number): number => (FALLEN.needs[index] ?? 0) + (index === 0 && self.perks.has('s1-light') ? PERKS.judge.needs : 0);
 
     /** His [Dark Energy] on his card (it can't be dispelled). */
@@ -147,7 +178,9 @@ export const DARK_LORD_KASEL: HeroDef = {
           const harder = lord > 0 && self.perks.has('s3-dark') ? PERKS.attack : 1;
           strike(CORRUPT.blow * harder);
           if (lord > 0) strike(ADVENT.blowMore * harder);
-          energy = Math.min(FALLEN.most, energy + FALLEN.each + (self.perks.has('s4-dark') ? PERKS.more : 0));
+          // (Twisted Tear: now and then a stack more.)
+          const tear = treasureTier(self, 3) > 0 && fight.roll() < UT.tear.chance ? 1 : 0;
+          energy = Math.min(most, energy + FALLEN.each + (self.perks.has('s4-dark') ? PERKS.more : 0) + tear);
           shown();
           if (self.perks.has('t5-dark')) {
             dark = Math.min(PERKS.dark.most, dark + 1);
@@ -183,7 +216,9 @@ export const DARK_LORD_KASEL: HeroDef = {
         energy = 0;
         shown();
         lord = ADVENT.lasts;
-        put(self.statuses, { name: LORD.name, left: ADVENT.lasts, deals: 1 + ADVENT.atk * spent, shown: LORD });
+        // (Traveler's Portrait: more to the boss, and crit DMG, meanwhile.)
+        const portrait = treasureTier(self, 2) > 0;
+        put(self.statuses, { name: LORD.name, left: ADVENT.lasts, deals: (1 + ADVENT.atk * spent) * (1 + fromTreasure(self, 2, UT.portrait.dmg)), ...(portrait && { critDamage: UT.portrait.critDamage }), shown: LORD });
       },
       tick(dt) {
         // No mana: his bar stays empty.

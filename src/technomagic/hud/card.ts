@@ -159,10 +159,10 @@ export function makeCard(name: string, face: string, abilities: readonly Ability
         timed.replaceChildren(...state.effects.map(square));
         pointed();
       }
-      hp.style.width = `${Math.max(0, (state.hp / state.maxHp) * 100)}%`;
+      hp.style.transform = `scaleX(${Math.max(0, state.hp / state.maxHp)})`;
       cells.forEach(({ cell, fill }, i) => {
         const part = Math.min(1, Math.max(0, state.mana - i));
-        fill.style.width = `${part * 100}%`;
+        fill.style.transform = `scaleX(${part})`;
         cell.classList.toggle('full', part >= 1);
       });
       power.setAttribute('aria-label', `${Math.floor(state.mana)} of ${state.maxMana} mana`);

@@ -29,6 +29,28 @@ export const currentMe = (): Me | null => me;
 /** How long to wait between tries while the bot isn't answering. */
 const RETRY_MS = 2500;
 
+/** How long an answer asked for ahead (prefetch) is good for: a page uses it as it's shown, a second or so later. */
+const AHEAD_MS = 10_000;
+/** GETs asked for ahead, by path: the first api() call for one takes its answer. */
+const ahead = new Map<string, { at: number; answer: Promise<ApiResult<unknown>> }>();
+
+/**
+ * Asks the bot for `path` (a GET) now, for a page about to be shown: going to a page, its data is asked for as the
+ * transition covers the old one (../site/main.ts), not only once the new one is set up under it, a second later. The
+ * page's own api() call for it then takes this answer.
+ */
+export function prefetch(path: string): void {
+  const known = ahead.get(path);
+  if (known && performance.now() - known.at < AHEAD_MS) return;
+  ahead.set(path, { at: performance.now(), answer: api(path) });
+}
+
+/** A page's prefetch: each of `paths` in the server picked (`guild`, ready to go in an address), for someone logged in. */
+export function prefetchFor(...paths: ((guild: string) => string)[]): void {
+  if (!API || !session || !server) return;
+  for (const path of paths) prefetch(path(encodeURIComponent(server)));
+}
+
 const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
@@ -39,6 +61,12 @@ const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout
  * answer) for the page to load what's there afresh.
  */
 export async function api<T>(path: string, init: RequestInit = {}): Promise<ApiResult<T>> {
+  // Asked for ahead (prefetch), a moment ago: that answer.
+  const early = (init.method ?? 'GET') === 'GET' && Object.keys(init).every((key) => key === 'method') ? ahead.get(path) : undefined;
+  if (early) {
+    ahead.delete(path);
+    if (performance.now() - early.at < AHEAD_MS) return early.answer as Promise<ApiResult<T>>;
+  }
   const first = await ask<T>(path, init);
   if (first.ok || first.status !== 0) return first;
   const done = reconnecting();

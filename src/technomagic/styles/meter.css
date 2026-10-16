@@ -126,10 +126,13 @@
   overflow: hidden;
 }
 
+/* The whole bar, squeezed to its share from the left (hud/meter.ts: scaleX, by the graphics card): its gradient goes with it. */
 .tm-meter-bar i {
   display: block;
+  width: 100%;
   height: 100%;
-  transition: width 0.25s ease-out;
+  transform-origin: left;
+  transition: transform 0.25s ease-out;
 }
 
 .tm-meter-bar i.dps {

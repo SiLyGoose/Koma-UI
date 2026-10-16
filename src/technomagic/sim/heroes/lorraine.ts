@@ -1,5 +1,6 @@
 import { put } from '../combat/status';
 import { said, t5Light } from '../perks';
+import { fromTreasure, treasure, treasureTier } from '../treasures';
 import { BLOW } from '../rules';
 import { pct, skillArt } from '../shown';
 import { atTier, ROBURU } from '../unique';
@@ -35,6 +36,18 @@ const LEAF = { chance: 0.3, times: 3, blow: indexed('wizard', 50_538) };
 const POISON = { most: 5, lasts: 20, each: indexed('wizard', 271_720) / 20, every: 1, heals: 0.1 };
 /** Her own perks' numbers: Thornbush Forest's shackle at full Poison, Tangled Vine's more DMG and its stun after, more Poison at most, Blade Leaf's shackle (its chance), and Transcend 5's Dark's Thornbush Forest (how often, its chance). */
 const PERKS = { hits: 1, full: 5, shackle: 3, vine: 1.4, after: 2, most: 6, leaf: { chance: 0.2, shackle: 2 }, forest: { every: 5, chance: 0.3 } };
+
+/**
+ * Her unique treasures' numbers (1★ to 5★: ../treasures.ts): Thornbush Forest's DMG and shorter cooldown; Tangled Vine's
+ * cheaper, the mana it would drain (the boss has none) and her own mana; Wrath of the Forest's DMG and, on a critical blow
+ * at full Poison, the share off her skills' cooldowns; and Blade Leaf's more M.DMG taken (as long as its Poison).
+ */
+const UT = {
+  book: { dmg: 0.5, cooldown: [1.4, 1.7, 2.1, 2.5, 3] },
+  belladonna: { cost: -1, drain: [240, 290, 350, 420, 500], mana: [120, 140, 170, 210, 250] },
+  root: { dmg: [0.24, 0.29, 0.35, 0.42, 0.5], cooldown: 0.04, poison: 5 },
+  terrarium: { takes: [0.12, 0.14, 0.17, 0.21, 0.25] },
+};
 
 const art = skillArt('lorraine');
 
@@ -88,6 +101,23 @@ export const LORRAINE: HeroDef = {
     },
   ],
   passive: BLADE_LEAF,
+  treasures: [
+    treasure('Book of Life', (k) => ({
+      words: `[Thornbush Forest] DMG is increased by ${pct(UT.book.dmg)} and Cooldown is reduced by ${k(UT.book.cooldown)} sec.`,
+      skill: { index: 0, dmg: 1 + UT.book.dmg, cooldown: -k(UT.book.cooldown) },
+    })),
+    treasure('Deadly Belladonna', (k) => ({
+      words: `[Tangled Vine] Reduces Mana Cost by ${-UT.belladonna.cost} and drains ${k(UT.belladonna.drain)} MP from the affected enemy that took the DMG, and recovers own Mana by ${k(UT.belladonna.mana)}.`,
+      skill: { index: 1, cost: UT.belladonna.cost, mana: k(UT.belladonna.mana) },
+    })),
+    treasure('Root of the World Tree', (k) => ({
+      words: `[Wrath of the Forest] DMG is increased by ${pct(k(UT.root.dmg))}. Upon Crit Hit on enemies with over ${UT.root.poison} stacks of Poison, skill cooldown is reduced by ${pct(UT.root.cooldown)}.`,
+      skill: { index: 2, dmg: 1 + k(UT.root.dmg) },
+    })),
+    treasure('Terrarium of Circulation', (k) => ({
+      words: `[Blade Leaf] Posion effect will become irremovable, and increases M.DMG the target takes by ${pct(k(UT.terrarium.takes))} for the duration of the skill.`,
+    })),
+  ],
   perks: {
     's1-light': { words: `Hit count is increased by ${PERKS.hits}.` },
     's1-dark': { words: `Enemies with ${PERKS.full} or more stacks of Poison are shackled for ${PERKS.shackle} sec upon hit.` },
@@ -138,6 +168,9 @@ export const LORRAINE: HeroDef = {
           fight.cue(self, 'leaf');
           fight.hit(self, LASH.blow + LEAF.blow * LEAF.times);
           poison(LEAF.times);
+          // (Terrarium of Circulation: more M.DMG taken, as long as its Poison.)
+          const terrarium = fromTreasure(self, 3, UT.terrarium.takes);
+          if (terrarium > 0) put(fight.foe.statuses, { name: 'Terrarium of Circulation', left: POISON.lasts, takes: { magical: 1 + terrarium }, shown: 'venom' });
           // (Its Dark: now and then the boss shackled.)
           if (self.perks.has('s4-dark') && fight.roll() < PERKS.leaf.chance) fight.stun(PERKS.leaf.shackle, { by: self });
         },
@@ -155,7 +188,13 @@ export const LORRAINE: HeroDef = {
         },
         // The forest bursts up under the boss, harder for each Poison on it: it is knocked down.
         wrath() {
-          fight.hit(self, WRATH.blow * (1 + WRATH.more * poisons()));
+          const critical = fight.hit(self, WRATH.blow * (1 + WRATH.more * poisons()));
+          // (Root of the World Tree: a critical blow on the boss at full Poison takes a share off her skills' cooldowns.)
+          if (critical && treasureTier(self, 2) > 0 && poisons() >= UT.root.poison) {
+            self.abilities.forEach((ability, i) => {
+              self.cooldowns[i] = Math.max(0, (self.cooldowns[i] as number) - ability.cooldown * UT.root.cooldown);
+            });
+          }
           fight.stun(WRATH.down, { down: true, by: self });
         },
       },
