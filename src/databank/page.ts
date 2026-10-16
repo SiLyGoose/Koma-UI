@@ -31,7 +31,7 @@ export const databankPage: Page = {
   icon: '📖',
   markup,
   mount,
-  // The databank (kept for the session once read: ./load.ts), and, logged in, what they own and how the raid stands (./owned.ts).
+  // The databank (./load.ts: unchanged since the last visit, nothing is downloaded), and, logged in, what they own and how the raid stands (./owned.ts).
   prefetch: () => {
     if (API) void loadDatabank();
     prefetchFor((guild) => `/api/gear?guild=${guild}`, (guild) => `/api/raid/week?guild=${guild}`);

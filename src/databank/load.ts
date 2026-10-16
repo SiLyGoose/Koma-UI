@@ -2,22 +2,22 @@ import { api, type ApiResult } from '../site/session';
 import type { Databank } from './types';
 
 /*
- * The bot's /api/databank: the same for everyone, and changed only when the bot is updated. Asked for the first time
- * it's wanted, and kept while the site is open, so going back to the databank doesn't download it again.
+ * The bot's /api/databank: the same for everyone, changed by the bot's settings (re-read while it runs) or an update.
+ * The browser keeps it, and asks the bot each visit whether it has changed (its ETag): unchanged, nothing is downloaded
+ * again. Here, one answer serves the page's prefetch (as the transition covers the page before) and the page itself.
  */
 
-let asked: Promise<ApiResult<Databank>> | null = null;
+/** How long an answer is shared: from the prefetch to the page set up under the transition, a second or so. */
+const SHARED_MS = 10_000;
 
-/** The databank, asked for once (one that couldn't be read is asked for again next time). */
+let asked: { at: number; answer: Promise<ApiResult<Databank>> } | null = null;
+
+/** The databank, asked for (the answer asked for a moment ago, if there is one). */
 export function loadDatabank(): Promise<ApiResult<Databank>> {
-  asked ??= api<Databank>('/api/databank').then((res): ApiResult<Databank> => {
-    if (!res.ok) {
-      asked = null;
-      return res;
-    }
-    return { ok: true, data: withPools(res.data) };
-  });
-  return asked;
+  if (asked && performance.now() - asked.at < SHARED_MS) return asked.answer;
+  const answer = api<Databank>('/api/databank').then((res): ApiResult<Databank> => (res.ok ? { ok: true, data: withPools(res.data) } : res));
+  asked = { at: performance.now(), answer };
+  return answer;
 }
 
 /**
