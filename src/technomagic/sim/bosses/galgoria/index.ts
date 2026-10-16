@@ -4,6 +4,12 @@ import { ATTACKS, MOVES, PLANS } from './attacks';
 import { galgoriaPart } from './skills';
 
 /**
+ * So many times less health than the game's: a hero's ATK here is the game's (its unique weapon's and its potentials'), but
+ * what more King's Raid's heroes deal to it (sets, more DMG to bosses, buffs) is not here. Tried with 8 heroes on Auto (R5
+ * unique weapons, 30% more ATK, no set): stage 1 won every time in about a minute and a half. (Before HP, which it cuts.)
+ */
+const GEARED = 80;
+/**
  * Its health and defense (P.DEF and M.DEF alike) at each stage, as King's Raid's Galgoria raid has them at its stages 1
  * to 5 (its table, from its players' guides on DC Inside's King's Raid gallery: 20 to 87.6 billion HP, 117,000 to 222,300
  * DEF); 6 to 8 go on from there (a first guess: the game's stage 6 is said to be past 300,000 DEF). That health is the
@@ -11,12 +17,6 @@ import { galgoriaPart } from './skills';
  * are, either way.
  */
 const HP = [20e9, 26.9e9, 37.8e9, 50.7e9, 87.6e9, 120e9, 165e9, 225e9].map((hp) => hp / GEARED);
-/**
- * So many times less health than the game's: a hero's ATK here is the game's (its unique weapon's and its potentials'), but
- * what more King's Raid's heroes deal to it (sets, more DMG to bosses, buffs) is not here. Tried with 8 heroes on Auto (R5
- * unique weapons, 30% more ATK, no set): stage 1 won every time in about a minute and a half.
- */
-const GEARED = 80;
 const DEF = [117_000, 128_300, 142_000, 175_300, 222_300, 300_000, 380_000, 470_000];
 const ROOM_HP = 1.7;
 const DEALS = [2, 2.25, 2.5, 2.75, 3, 3.25, 3.5, 3.75];
