@@ -8,8 +8,9 @@ import { render, type HeroActions } from './render';
 /*
  * The heroes page (/heroes/): the TechnoMagic Raid's heroes (the bot's /api/heroes), laid out as the gear
  * page. Down the left every hero, theirs first (one that isn't theirs is greyed, with the way to the shop's
- * Heroes tab, ../hero-shop/). The one picked stands on the stage with its five slots: two weapons on the
- * left, two armors on the right and its treasure under it. Beside it, the gear a hero can wear (the raid's,
+ * Heroes tab, ../hero-shop/). The one picked stands on the stage with its slots: two weapons on the
+ * left, two armors on the right and its treasure under it, with its three sub treasure slots beside that (only its own
+ * unique treasures go there, and only their options count). Beside it, the gear a hero can wear (the raid's,
  * and the TechnoMagic Raid's): picking a copy shows what it does on the hero and equips it (into the slot
  * last pressed, or the first free one of its kind; off any other hero it was on), locks it, and its Upgrade goes to
  * the forge with it on the anvil (as the gear page's); pressing a slot shows what fits in it. Under the armory, selling copies (pick them,
@@ -61,9 +62,11 @@ function failed(ctx: HeroesContext, act: HeroActions, res: { status: number; err
         : res.error === 'not_found'
           ? "That hero isn't yours yet."
           : res.error === 'wrong_hero'
-            ? 'That unique weapon is another hero’s: only they can wield it.'
+            ? 'That is another hero’s own: only they can wear it.'
           : res.error === 'wrong_slot'
-            ? 'A unique weapon only goes in Weapon I.'
+            ? 'That doesn’t go there: a unique weapon only goes in Weapon I, and only a hero’s own unique treasures go in its sub treasure slots.'
+          : res.error === 'duplicate'
+            ? 'This hero already wears a copy of that unique treasure: each of its four once.'
           : res.error === 'busy'
             ? 'Your heroes’ gear changed meanwhile. Try again.'
           : res.error === 'too_many_points'

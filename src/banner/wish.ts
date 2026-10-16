@@ -1,4 +1,4 @@
-import { art, el, SLOT_NAME, stars, uwMarks, uwTier } from '../shared/items';
+import { art, el, SLOT_NAME, stars, utMarks, utTier, uwMarks, uwTier } from '../shared/items';
 import { sleep } from '../shared/util';
 import type { ApiResult } from '../site/session';
 import type { BannerContext } from './context';
@@ -202,13 +202,16 @@ function reveal(pull: BannerPull): HTMLElement {
   burst.append(el('span', 'wish-rays'), el('span', 'wish-rays back'), el('span', 'wish-core'), card(pull));
 
   const text = el('div', 'wish-text');
-  // (A unique weapon's tier is its own, in place of its stars.)
-  const row = pull.uniqueWeapon ? uwTier() : stars(pull.stars);
+  // (A unique weapon's or treasure's tier is its own, in place of its stars.)
+  const row = pull.uniqueWeapon ? uwTier() : pull.uniqueTreasure ? utTier() : stars(pull.stars);
   [...row.children].forEach((star, i) => (star as HTMLElement).style.setProperty('--i', String(i)));
   text.append(el('p', 'wish-slot', SLOT_NAME[pull.slot]), el('h2', 'wish-name', pull.name), row);
   text.append(pull.isNew ? el('p', 'wish-new', 'New!') : el('p', 'wish-owned', `You have ${pull.count}`));
   if (pull.borrowed !== null) text.append(el('p', 'wish-note', `Made for someone else: it works at ${Math.round(pull.borrowed * 100)}% for you.`));
   if (pull.uniqueWeapon) text.append(el('p', 'wish-note', `A unique weapon: only its own hero wields it. Put it on them on the Heroes page.`));
+  if (pull.uniqueTreasure) text.append(el('p', 'wish-note', `A unique treasure (UT${pull.uniqueTreasure.skill}): only its own hero wears it, as its main treasure for its effect, or as a sub treasure for its options. Put it on them on the Heroes page.`));
+  // (Refined as it was pulled: King's Raid's now and then.)
+  if ((pull.level ?? 1) > 1) text.append(el('p', 'wish-note', `It came refined: R${pull.level}!`));
 
   box.append(burst, text, el('p', 'wish-tap', 'Click to continue'));
   return box;
@@ -235,6 +238,7 @@ function card(pull: BannerPull): HTMLElement {
   const face = el('span', 'item wish-card');
   face.dataset.stars = String(pull.stars);
   if (pull.uniqueWeapon) face.append(art(pull.itemId, pull.slot), ...uwMarks(pull.uniqueWeapon));
+  else if (pull.uniqueTreasure) face.append(art(pull.itemId, pull.slot), ...utMarks(pull.uniqueTreasure.hero));
   else face.append(art(pull.itemId, pull.slot), stars(pull.stars), el('span', 'item-curl'));
   return face;
 }

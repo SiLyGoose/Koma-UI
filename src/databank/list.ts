@@ -1,14 +1,14 @@
-import { art, el, hoverSound, itemPicked, SLOT_NAME, stars, tmMarks, tmTier, uwMarks, uwTier } from '../shared/items';
+import { art, el, hoverSound, itemPicked, SLOT_NAME, stars, tmMarks, tmTier, utMarks, utTier, uwMarks, uwTier } from '../shared/items';
 import { classBadge } from './class-tag';
 import { className, type DatabankContext } from './context';
 import { renderDetail } from './detail';
 import { matches } from './filter';
 import type { DatabankItem, Stars } from './types';
 
-/** The tiers, best first: TechnoMagic gear (a tier of its own, above 4 stars), the unique weapons, then 4 stars down to 1. */
-const TIERS: readonly (Stars | 'tm' | 'uw')[] = ['tm', 'uw', 4, 3, 2, 1];
-const tierOfItem = (item: DatabankItem): Stars | 'tm' | 'uw' => (item.source === 'technomagic' ? 'tm' : item.source === 'heroBanner' ? 'uw' : item.stars);
-const ofTier = (item: DatabankItem, tier: Stars | 'tm' | 'uw'): boolean => tierOfItem(item) === tier;
+/** The tiers, best first: TechnoMagic gear (a tier of its own, above 4 stars), the unique weapons, the unique treasures, then 4 stars down to 1. */
+const TIERS: readonly (Stars | 'tm' | 'uw' | 'ut')[] = ['tm', 'uw', 'ut', 4, 3, 2, 1];
+const tierOfItem = (item: DatabankItem): Stars | 'tm' | 'uw' | 'ut' => (item.source === 'technomagic' ? 'tm' : item.uniqueTreasure ? 'ut' : item.source === 'heroBanner' ? 'uw' : item.stars);
+const ofTier = (item: DatabankItem, tier: Stars | 'tm' | 'uw' | 'ut'): boolean => tierOfItem(item) === tier;
 
 /** Every item shown, by tier, and how many there are. */
 export function renderList(ctx: DatabankContext): void {
@@ -25,6 +25,7 @@ export function renderList(ctx: DatabankContext): void {
     // (TechnoMagic gear's heading, and the unique weapons', is its tier alone, with no count.)
     if (tier === 'tm') head.append(tmTier());
     else if (tier === 'uw') head.append(uwTier());
+    else if (tier === 'ut') head.append(utTier());
     else head.append(stars(tier), el('span', '', `${items.length} item${items.length === 1 ? '' : 's'}`));
     const grid = el('div', 'armory-grid');
     for (const item of items) grid.append(card(ctx, item));
@@ -51,12 +52,14 @@ function card(ctx: DatabankContext, item: DatabankItem): HTMLButtonElement {
   // How many they own, in the corner (not on TechnoMagic gear or a unique weapon: its corners are its tabs').
   const tm = item.source === 'technomagic';
   const uw = item.source === 'heroBanner' && item.uniqueWeapon ? item.uniqueWeapon : null;
-  if (mine && !tm && !uw) button.append(el('span', 'item-level', `×${mine.count}`));
+  const ut = item.source === 'heroBanner' && item.uniqueTreasure ? item.uniqueTreasure : null;
+  if (mine && !tm && !uw && !ut) button.append(el('span', 'item-level', `×${mine.count}`));
   // TechnoMagic gear is drawn as the raid's own (its class in its corner tab); any other class item wears its class's badge in the corner.
   if (item.class && cls && !tm) button.append(classBadge(item.class, cls));
   // (TechnoMagic gear and a unique weapon have no stars, but their marks.)
   if (tm) button.append(art(item.id, item.slot), el('span', 'db-name', item.name), ...tmMarks(item.class));
   else if (uw) button.append(art(item.id, item.slot), el('span', 'db-name', item.name), ...uwMarks(uw));
+  else if (ut) button.append(art(item.id, item.slot), el('span', 'db-name', item.name), ...utMarks(ut.hero));
   else button.append(stars(item.stars), art(item.id, item.slot), el('span', 'db-name', item.name), el('span', 'item-curl'));
   button.dataset.sfx = 'own';
   hoverSound(button, item.id);

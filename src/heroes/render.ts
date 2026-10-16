@@ -1,7 +1,8 @@
-import { art, drawSell, el, forgeLink, itemDetailsClosed, itemPicked, lockToggle, pruneSale, replacesNote, rich, sellsFor, showDetail, statBlocks, SLOT_NAME, stars as starRow, tmMarks, tmSections, upgradeButton, uwMarks } from '../shared/items';
+import { art, drawSell, el, forgeLink, itemDetailsClosed, itemPicked, lockToggle, pruneSale, replacesNote, rich, sellsFor, showDetail, statBlocks, SLOT_NAME, stars as starRow, tmMarks, tmSections, treasureParts, treasureSection, upgradeButton, utMarks, uwMarks } from '../shared/items';
 import { classBadge, className, FACE, HERO_SLOT_KIND, heroCut, heroPicture, skillText, STAGE_ZOOM, type HeroView, type HeroCopy, type HeroSlot } from '../shared/heroes';
 import { working } from '../shared/ui';
 import { canTrade, copyById, heroShown, mine, slotFor, slotOf, type HeroesContext } from './context';
+import { SIDE_SLOTS } from '../protocol/heroes';
 import { heroSkills } from './skills';
 import type { HeroSkillView } from '../protocol/heroes';
 import { heroStats } from './stats';
@@ -26,14 +27,14 @@ export interface HeroActions {
   lock(copy: HeroCopy, locked: boolean): void;
 }
 
-/** A slot's name under it. */
-const slotName = (slot: HeroSlot): string => SLOT_NAME[HERO_SLOT_KIND[slot]];
+/** A slot's name under it (a sub treasure slot's: Sub). */
+const slotName = (slot: HeroSlot): string => (SIDE_SLOTS.includes(slot) ? 'Sub' : SLOT_NAME[HERO_SLOT_KIND[slot]]);
 
 /** Whether a copy does anything on `hero`: a class item only on its class. */
 const worksOn = (copy: HeroCopy, hero: HeroView | undefined): boolean => copy.class === null || copy.class === hero?.class;
 
 /** Whether `hero` may wield a copy at all: anyone, but a unique weapon only its own hero (the bot refuses it on another). */
-const wieldable = (copy: HeroCopy, hero: HeroView | undefined): boolean => !copy.uniqueWeapon || copy.uniqueWeapon === hero?.id;
+const wieldable = (copy: HeroCopy, hero: HeroView | undefined): boolean => (!copy.uniqueWeapon || copy.uniqueWeapon === hero?.id) && (!copy.uniqueTreasure || copy.uniqueTreasure.hero === hero?.id);
 
 export function render(ctx: HeroesContext, act: HeroActions): void {
   const { ui, view } = ctx;
@@ -168,13 +169,27 @@ function renderStage(ctx: HeroesContext): void {
   ui.transcendTitle.textContent = `${hero.name}'s Transcendence`;
 }
 
-/** The five slots round the hero: what's in each (or that it's empty), the one last pressed framed. */
+/**
+ * The slots round the hero: what's in each (or that it's empty), the one last pressed framed. Its sub treasures are boxes
+ * on its main treasure's left edge (grey while empty, green with one in it), shown once it wears a unique treasure.
+ */
 function renderSlots(ctx: HeroesContext): void {
   const hero = heroShown(ctx);
+  const treasure = (slot: HeroSlot): HeroCopy | undefined => copyById(ctx, hero?.equipped[slot] ?? null);
+  const subs = ctx.ui.page.querySelector<HTMLElement>('.hero-subs');
+  if (subs) subs.hidden = !treasure('treasure')?.uniqueTreasure && !SIDE_SLOTS.some((slot) => treasure(slot));
   for (const button of ctx.ui.slots) {
     const slot = button.dataset.slot as HeroSlot;
     const copy = copyById(ctx, hero?.equipped[slot] ?? null);
     const kind = HERO_SLOT_KIND[slot];
+    if (SIDE_SLOTS.includes(slot)) {
+      button.textContent = '';
+      button.classList.toggle('empty', !copy);
+      button.classList.toggle('filtered', ctx.target === slot && ctx.filter === kind);
+      button.title = copy ? `${slotLabel(slot)}: ${copy.name} (R${copy.level})` : `${slotLabel(slot)}: empty`;
+      button.setAttribute('aria-label', button.title);
+      continue;
+    }
     button.textContent = '';
     button.dataset.stars = copy ? String(copy.stars) : '';
     button.classList.toggle('empty', !copy);
@@ -185,7 +200,7 @@ function renderSlots(ctx: HeroesContext): void {
     const frame = el('span', 'slot-frame');
     frame.append(art(copy?.itemId ?? null, kind));
     // (TechnoMagic gear has no stars, but its marks: a tier of its own.)
-    if (copy) frame.append(el('span', 'slot-level', `R${copy.level}`), ...(copy.uniqueWeapon ? uwMarks(copy.uniqueWeapon) : copy.heroOnly ? tmMarks(copy.class) : [starRow(copy.stars)]));
+    if (copy) frame.append(el('span', 'slot-level', `R${copy.level}`), ...(copy.uniqueWeapon ? uwMarks(copy.uniqueWeapon) : copy.uniqueTreasure ? utMarks(copy.uniqueTreasure.hero) : copy.heroOnly ? tmMarks(copy.class) : [starRow(copy.stars)]));
     button.append(frame, el('span', 'slot-name', slotName(slot)));
   }
 }
@@ -196,6 +211,8 @@ function renderTotals(ctx: HeroesContext): void {
   const hero = heroShown(ctx);
   ui.totals.textContent = '';
   for (const line of hero?.totals ?? []) ui.totals.appendChild(el('li')).append(rich(line));
+  // (Its main treasure's effect, when that is one of its own unique treasures: its sub treasures give only their options.)
+  if (hero?.treasure) ui.totals.appendChild(el('li', 'hero-ut')).append(rich(`💎 **${hero.treasure.name}** (UT${hero.treasure.skill}, ★${hero.treasure.tier}): ${hero.treasure.text}`));
   if (!hero?.owned) ui.totals.append(el('li', 'muted', notRecruited(ctx, hero?.name ?? 'this hero', 'give them gear')));
   else if (!hero.totals.length) ui.totals.append(el('li', 'muted', 'Nothing equipped yet.'));
   const perkEffects = hero?.perkEffects ?? [];
@@ -261,8 +278,10 @@ function renderDetail(ctx: HeroesContext, act: HeroActions): void {
   const shown = fits ? copy : { ...copy, setEffect: copy.setEffect && { ...copy.setEffect, active: false }, additionalActive: false };
   const notes: HTMLElement[] = [];
   if (copy.class !== null && !fits) notes.push(el('p', 'detail-note warn', `Only works on ${className(copy.class)}s`));
-  const owner = copy.uniqueWeapon ? view.heroes.find((one) => one.id === copy.uniqueWeapon) : undefined;
+  const ownerId = copy.uniqueWeapon ?? copy.uniqueTreasure?.hero;
+  const owner = ownerId ? view.heroes.find((one) => one.id === ownerId) : undefined;
   if (copy.uniqueWeapon && !wieldable(copy, hero)) notes.push(el('p', 'detail-note warn', `${owner?.name ?? 'Another hero'}’s unique weapon: only they can wield it.`));
+  if (copy.uniqueTreasure && !wieldable(copy, hero)) notes.push(el('p', 'detail-note warn', `${owner?.name ?? 'Another hero'}’s unique treasure: only they can wear it.`));
 
   const worn = slotOf(hero, copy.id);
   const other = copy.hero !== null && copy.hero !== hero.id ? view.heroes.find((one) => one.id === copy.hero) : undefined;
@@ -291,6 +310,17 @@ function renderDetail(ctx: HeroesContext, act: HeroActions): void {
     // (Another hero's unique weapon: nothing to equip it with here, unless it's to come off.)
     else if (worn || wieldable(copy, hero)) {
       if (copy.uniqueWeapon && !worn) notes.push(el('p', 'detail-note', `A unique weapon only goes in ${slotLabel(into)}.`));
+      // (A unique treasure: its effect only as the main treasure; a sub treasure gives only its options.)
+      if (copy.uniqueTreasure) notes.push(el('p', 'detail-note', SIDE_SLOTS.includes(worn ?? into) ? 'As a sub treasure, only its options count: its HP and effect are the main treasure’s alone.' : 'As the main treasure, its HP and effect count too. As a sub treasure, only its options do.'));
+      // (Worn as a sub treasure: to be its main one; worn as the main one: to a sub treasure slot, the first empty one.)
+      const to = !copy.uniqueTreasure || !worn ? null : worn === 'treasure' ? (SIDE_SLOTS.find((slot) => !hero.equipped[slot]) ?? SIDE_SLOTS[0]) : 'treasure';
+      if (to) {
+        const move = el('button', 'detail-action action secondary', to === 'treasure' ? 'Make Main Treasure' : `Move to ${slotLabel(to)}`);
+        move.type = 'button';
+        working(move, ctx.busy, `equip:${copy.id}`);
+        move.addEventListener('click', () => act.equip(copy, to));
+        actions.push(move);
+      }
       const action = el('button', `detail-action action ${worn ? 'secondary' : 'main'}`, worn ? 'Unequip' : `Equip as ${slotLabel(into)}`);
       action.type = 'button';
       working(action, ctx.busy, worn ? `unequip:${worn}` : `equip:${copy.id}`);
@@ -299,16 +329,18 @@ function renderDetail(ctx: HeroesContext, act: HeroActions): void {
     }
   }
 
-  showDetail(ui.detail, copy, {
+  // (A unique treasure: its options as its effects, and what it gives as the main treasure apart, lit while it is this hero's.)
+  const ut = copy.uniqueTreasure ? treasureParts(copy.effects) : null;
+  showDetail(ui.detail, ut ? { ...copy, effects: ut.options } : copy, {
     onClose: () => {
       itemDetailsClosed();
       ctx.picked = null;
       render(ctx, act);
     },
-    label: 'On a hero',
+    label: ut ? 'Options' : 'On a hero',
     none: NONE,
     effectsOff: !fits,
-    sections: tmSections(shown),
+    sections: ut ? treasureSection(ut.main, worn === 'treasure') : tmSections(shown),
     notes,
     // Lock: theirs to toggle on the site (not while picking what to sell); else just shown when shut.
     corner: lockToggle(copy, ctx.busy, canTrade(ctx) && !ctx.selling ? (locked) => act.lock(copy, locked) : null),
@@ -321,8 +353,9 @@ function renderDetail(ctx: HeroesContext, act: HeroActions): void {
 const notRecruited = (ctx: HeroesContext, name: string, then: string): string =>
   mine(ctx) ? `Recruit ${name} in the shop to ${then}.` : `${ctx.viewing?.name} hasn't recruited ${name}.`;
 
-/** A slot's name in a sentence: which of two, when there are two of its kind. */
-const slotLabel = (slot: HeroSlot): string => (slot === 'treasure' ? 'Treasure' : `${slotName(slot)} ${slot.endsWith('1') ? 'I' : 'II'}`);
+/** A slot's name in a sentence: which of two (or three), when there are more of its kind. */
+const slotLabel = (slot: HeroSlot): string =>
+  slot === 'treasure' ? 'Main Treasure' : SIDE_SLOTS.includes(slot) ? `Sub Treasure ${['I', 'II', 'III'][SIDE_SLOTS.indexOf(slot)]}` : `${slotName(slot)} ${slot.endsWith('1') ? 'I' : 'II'}`;
 
 /** The Stats tab: the hero's stats in the raid, with and without its gear. */
 function renderStats(ctx: HeroesContext): void {

@@ -1,8 +1,8 @@
 /*
  * The heroes page (page.ts), on top of the gear page's (../gear/gear.css: the roster, the stage, the slots,
  * the armory, the details and the stats are its): the hero's whole picture across the stage, behind its slots,
- * its two weapon slots on the left, its two armor slots on the right and its treasure under it; a hero
- * that isn't theirs yet greyed, with the way to the shop.
+ * its two weapon slots on the left, its two armor slots on the right and its treasure under it, a box for each of its
+ * three sub treasures over its left edge (as King's Raid's); a hero that isn't theirs yet greyed, with the way to the shop.
  */
 
 /* Whose heroes on the left, the server on the right; shown when either is (the gear page's hides it with no server picker). */
@@ -46,6 +46,54 @@
   grid-area: treasure;
   justify-content: center;
   padding-top: 8px;
+}
+
+.hero-main-treasure {
+  position: relative;
+}
+
+/*
+ * Its sub treasures, as King's Raid's: three little boxes down the left edge of its main treasure, under its UT tab, grey
+ * while empty and green with one of its own unique treasures in it. Shown once it wears a unique treasure.
+ */
+.hero-subs {
+  position: absolute;
+  top: 19px;
+  left: 4px;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.hero-subs[hidden] {
+  display: none;
+}
+
+.hero-subs .sub-box {
+  display: block;
+  width: 13px;
+  height: 13px;
+  border: 1.5px solid #1a1a1f;
+  border-radius: 3px;
+  background: linear-gradient(160deg, #8d8d96, #55555d);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 55%), inset 0 1px 0 rgb(255 255 255 / 25%);
+  transition: transform 0.15s ease;
+}
+
+.hero-subs .sub-box:not(.empty) {
+  background: linear-gradient(160deg, #b8f27a, #4caf2e 55%, #2f7d1a);
+}
+
+.hero-subs .sub-box:hover,
+.hero-subs .sub-box:focus-visible {
+  transform: scale(1.2);
+}
+
+/* The one last pressed: where the next of its unique treasures goes. */
+.hero-subs .sub-box.filtered {
+  outline: 2px solid var(--picked);
+  outline-offset: 1px;
 }
 
 /* Right of the class banner, along the stage's top: a gold star for each level it is transcended, the rest dim. */
@@ -600,6 +648,15 @@
 @media (max-width: 479px) {
   .hero-stage {
     height: 430px;
+  }
+
+  .hero-subs {
+    top: 16px;
+  }
+
+  .hero-subs .sub-box {
+    width: 11px;
+    height: 11px;
   }
 
   .heroes-page .hero-tabs {

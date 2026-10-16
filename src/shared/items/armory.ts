@@ -30,6 +30,7 @@ export interface ArmoryCopy {
   effects: string[];
   heroOnly?: boolean;
   uniqueWeapon?: string | null;
+  uniqueTreasure?: { hero: string; skill: number } | null;
   /** Its class, as the gear page has it (`itemClass`) or the heroes page (`class`). */
   itemClass?: string | null;
   class?: string | null;
@@ -87,7 +88,7 @@ const GRID_CELLS = 12;
 /** A copy's tier in words, for a screen reader. */
 const tierWords = (copy: ArmoryCopy): string => {
   const tier = tierOf(copy);
-  return tier === 'tm' ? 'TechnoMagic' : tier === 'uw' ? 'unique weapon' : `${tier} star${tier === 1 ? '' : 's'}`;
+  return tier === 'tm' ? 'TechnoMagic' : tier === 'uw' ? 'unique weapon' : tier === 'ut' ? 'unique treasure' : `${tier} star${tier === 1 ? '' : 's'}`;
 };
 
 /** The armory's grid in `element`: drawn by `draw`, and again when a resize changes how many cards fit across. */

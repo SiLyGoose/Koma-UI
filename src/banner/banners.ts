@@ -5,17 +5,20 @@ import type { BannerView, HeroBanner, LimitedBanner, Stars } from './types';
  * The banners the page offers, each its own tab along the top: the standard one (everything the
  * gacha holds: the bot's web/models/gacha.ts), the limited one while the bot says it is open
  * (its featured items, name and end come from the bot: the view's `limited`), and the Hero Item one,
- * whose top tier is the heroes' unique weapons (the view's `hero`).
+ * whose top tier is the heroes' unique weapons and unique treasures (the view's `hero`).
  */
 
-/** An item a banner shows off on its card (its picture is the item's, ../shared/items): a unique weapon says whose. */
+/** An item a banner shows off on its card (its picture is the item's, ../shared/items): a unique weapon or treasure says whose. */
 export interface Featured {
   itemId: string;
   name: string;
   stars: Stars;
   slot: Slot;
   uniqueWeapon?: string | null;
+  uniqueTreasure?: { hero: string; skill: number } | null;
 }
+
+const percent = (share: number): string => `${Math.round(share * 1000) / 10}%`;
 
 export interface Banner {
   /** What the bot calls it (`banner` on its requests). */
@@ -65,16 +68,28 @@ export function limitedBanner(limited: LimitedBanner | undefined): Banner | null
   };
 }
 
-/** The Hero Item banner as the bot has it, or null from a bot from before it (or with no unique weapons). */
+/**
+ * The Hero Item banner as the bot has it, or null from a bot from before it (or with no unique weapons): a unique weapon
+ * big on its card, a unique treasure (if it has any) smaller.
+ */
 export function heroBanner(hero: HeroBanner | undefined): Banner | null {
-  const [first, second = first] = hero?.featured ?? [];
-  if (!first || !second) return null;
+  const weapons = hero?.featured ?? [];
+  const treasures = hero?.treasures ?? [];
+  const [first] = weapons;
+  const second = treasures[0] ?? weapons[1] ?? first;
+  if (!first || !second || !hero) return null;
+  const share = hero.weaponShare ?? 1;
+  // (How often a unique weapon comes refined: R2 and up.)
+  const refined = (hero.weaponLevels ?? []).slice(1).map((chance, i) => `R${i + 2} ${percent(chance)}`);
   return {
     id: 'hero',
     kind: 'Hero Item Wish',
     tab: 'Hero Item',
     name: ['Hero', 'Item'],
-    blurb: `Every ${first.stars}★ here is a hero's unique weapon (${hero?.featured.map((item) => item.name).join(', ')}), each as likely, and only its own hero wields it.`,
+    blurb:
+      treasures.length > 0
+        ? `Every ${first.stars}★ here is a hero's own, as in King's Raid's Treasure Summon: a unique weapon ${percent(share)} of the time, a unique treasure ${percent(1 - share)}, each of its kind as likely. Only its own hero wears it.${refined.length > 0 ? ` A unique weapon now and then comes refined (${refined.join(', ')}).` : ''}`
+        : `Every ${first.stars}★ here is a hero's unique weapon (${weapons.map((item) => item.name).join(', ')}), each as likely, and only its own hero wields it.`,
     featured: [first, second],
     ends: null,
   };

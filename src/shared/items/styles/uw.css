@@ -1,5 +1,5 @@
 /*
- * A unique weapon: drawn as TechnoMagic gear is (./tm.css), in crimson in place of gold: its border crimson, a
+ * A unique weapon, and a unique treasure (its tab "UT"): drawn as TechnoMagic gear is (./tm.css), in crimson in place of gold: its border crimson, a
  * dark "UW" tab edged in crimson over its top left corner and its hero's face in a crimson-edged square over
  * its top right one, each standing a little out past the card (../items.ts uwMarks). A card (.item) or a slot's
  * frame (.slot-frame) with those marks in it is drawn so. Its marks' sizes go by the card's width.

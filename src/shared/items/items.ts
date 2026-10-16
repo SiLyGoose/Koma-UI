@@ -116,13 +116,24 @@ export function uwTier(): HTMLElement {
   return tier;
 }
 
+/** A unique treasure's tier, in place of stars: a tier of its own, between the unique weapons and 4 stars. */
+export function utTier(): HTMLElement {
+  const tier = el('span', 'uw-tier ut-tier', 'UT');
+  tier.setAttribute('aria-label', 'Unique treasure');
+  return tier;
+}
+
+/** A unique treasure's marks: a unique weapon's (uwMarks), its tab "UT" (styles/uw.css). */
+export const utMarks = (hero: string): HTMLElement[] => uwMarks(hero, true);
+
 /**
  * A unique weapon's marks, as TechnoMagic gear's (tmMarks) but in crimson: a "UW" tab over its top left corner, and
- * over its top right one its hero's face (styles/uw.css, for a card with these in it).
+ * over its top right one its hero's face (styles/uw.css, for a card with these in it). A unique treasure's (`treasure`),
+ * the same, its tab "UT".
  */
-export function uwMarks(hero: string): HTMLElement[] {
-  const tag = el('span', 'item-uw', 'UW');
-  tag.setAttribute('aria-label', 'Unique weapon');
+export function uwMarks(hero: string, treasure = false): HTMLElement[] {
+  const tag = el('span', treasure ? 'item-uw item-ut' : 'item-uw', treasure ? 'UT' : 'UW');
+  tag.setAttribute('aria-label', treasure ? 'Unique treasure' : 'Unique weapon');
   const tab = el('span', 'item-uw-hero');
   const name = hero
     .split('-')
@@ -142,23 +153,28 @@ export function uwMarks(hero: string): HTMLElement[] {
   return [tag, tab];
 }
 
-/** An item's tier as the filters and the lists have it: TechnoMagic gear's or a unique weapon's own, or its stars. */
-export const tierOf = (item: { stars: number; heroOnly?: boolean; uniqueWeapon?: string | null }): number | 'tm' | 'uw' =>
-  item.uniqueWeapon ? 'uw' : item.heroOnly ? 'tm' : item.stars;
+/** A unique treasure as a copy or an item says it. */
+type Treasure = { hero: string; skill: number } | null | undefined;
+
+/** An item's tier as the filters and the lists have it: TechnoMagic gear's, a unique weapon's or a unique treasure's own, or its stars. */
+export const tierOf = (item: { stars: number; heroOnly?: boolean; uniqueWeapon?: string | null; uniqueTreasure?: Treasure }): number | 'tm' | 'uw' | 'ut' =>
+  item.uniqueWeapon ? 'uw' : item.uniqueTreasure ? 'ut' : item.heroOnly ? 'tm' : item.stars;
 
 /**
  * What's on a copy's card, whatever the card is (an armory button, the anvil's, the details'): its rank, picture, stars and the
  * parchment's curl. TechnoMagic gear (`heroOnly`) has no stars, being a tier of its own, but its marks (with its class:
- * `itemClass`, or `class` as the heroes page has it); a unique weapon its own marks, with its hero.
+ * `itemClass`, or `class` as the heroes page has it); a unique weapon or unique treasure its own marks, with its hero.
  */
-export function itemFace(copy: { level: number; itemId: string; slot: Slot; stars: number; heroOnly?: boolean; uniqueWeapon?: string | null; itemClass?: string | null; class?: string | null }): HTMLElement[] {
+export function itemFace(copy: { level: number; itemId: string; slot: Slot; stars: number; heroOnly?: boolean; uniqueWeapon?: string | null; uniqueTreasure?: Treasure; itemClass?: string | null; class?: string | null }): HTMLElement[] {
   if (copy.uniqueWeapon) return [el('span', 'item-level', `R${copy.level}`), art(copy.itemId, copy.slot), ...uwMarks(copy.uniqueWeapon)];
+  if (copy.uniqueTreasure) return [el('span', 'item-level', `R${copy.level}`), art(copy.itemId, copy.slot), ...utMarks(copy.uniqueTreasure.hero)];
   if (copy.heroOnly) return [el('span', 'item-level', `R${copy.level}`), art(copy.itemId, copy.slot), ...tmMarks(copy.itemClass ?? copy.class)];
   return [el('span', 'item-level', `R${copy.level}`), art(copy.itemId, copy.slot), stars(copy.stars), el('span', 'item-curl')];
 }
 
-/** How an item ranks among the tiers, best highest: TechnoMagic gear above 4 stars, and the unique weapons between them. */
-export const tierRank = (item: { stars: number; heroOnly?: boolean; uniqueWeapon?: string | null }): number => (item.uniqueWeapon ? 4.5 : item.heroOnly ? 5 : item.stars);
+/** How an item ranks among the tiers, best highest: TechnoMagic gear above 4 stars, and the unique weapons, then the unique treasures, between them. */
+export const tierRank = (item: { stars: number; heroOnly?: boolean; uniqueWeapon?: string | null; uniqueTreasure?: Treasure }): number =>
+  item.uniqueWeapon ? 4.5 : item.uniqueTreasure ? 4.4 : item.heroOnly ? 5 : item.stars;
 
 /**
  * An effect line as Discord shows it: custom emoji (<:name:id>) become their pictures, **bold**,
@@ -194,6 +210,26 @@ export function effectSection(label: string, body: string | Node, on?: boolean):
   text.append(typeof body === 'string' ? rich(body) : body);
   section.append(el('p', 'detail-section-label', label), text);
   return section;
+}
+
+/**
+ * A unique treasure's lines as the bot says them, apart: its options (a copy's, or the databank's pool of them), and what
+ * it gives as its hero's main treasure (its HP, then its effect, each without its "as main treasure").
+ */
+export function treasureParts(lines: readonly string[]): { options: string[]; main: string[] } {
+  const isMain = (line: string): boolean => /^As main treasure: |, as main treasure, /.test(line);
+  return {
+    options: lines.filter((line) => !isMain(line)),
+    main: lines.filter(isMain).map((line) => line.replace(/^As main treasure: /, '').replace(/^.+? only, as main treasure, /, '')),
+  };
+}
+
+/** What a unique treasure gives as its hero's main treasure, set apart as a TechnoMagic copy's effects are: lit while it is (`on`), greyed while it isn't. */
+export function treasureSection(main: readonly string[], on?: boolean): HTMLElement[] {
+  if (main.length === 0) return [];
+  const list = el('ul', 'detail-effects');
+  for (const line of main) list.appendChild(el('li')).append(rich(line));
+  return [effectSection('Main Treasure:', list, on)];
 }
 
 /**
