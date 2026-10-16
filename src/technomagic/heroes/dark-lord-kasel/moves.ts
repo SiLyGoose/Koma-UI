@@ -1,4 +1,4 @@
-import { at, REST, type Pose } from '../body/pose';
+import { at, REST, TURN, type Pose } from '../body/pose';
 import type { Move } from '../moves/move';
 import { COILED, KNEELING, LOW, LUNGE, TALL, TUCKED, WIDE } from '../moves/stances';
 
@@ -32,9 +32,12 @@ export const STAND: Pose = {
 /** A pose of his, for a track: what is added to how he stands. */
 const as = (pose: Partial<Pose>): Partial<Pose> => at(pose, STAND);
 
-/** Drawn back low at his right; swept across to his left; raised high over his head; brought down before him. */
-const DRAWN = { rhX: -0.42, rhY: 0.22, rhZ: -0.12, bTurn: 4.4, bUp: 0.2 };
-const SWEPT = { rhX: 0.3, rhY: 0.22, rhZ: 0.36, bTurn: 7.2, bUp: 0 };
+/**
+ * Drawn back low at his right; swept across to his left; raised high over his head; brought down before him. (Aea's turns
+ * are a whole turn less than a knight's, as he holds it straight ahead: so it comes back to how he stands the short way, not round all of him.)
+ */
+const DRAWN = { rhX: -0.42, rhY: 0.22, rhZ: -0.12, bTurn: 4.4 - TURN, bUp: 0.2 };
+const SWEPT = { rhX: 0.3, rhY: 0.22, rhZ: 0.36, bTurn: 7.2 - TURN, bUp: 0 };
 const RAISED = { lhX: 0.05, lhY: 0.6, lhZ: 0, rhX: -0.12, rhY: 0.64, rhZ: -0.05, bTurn: 0, bUp: 2.4 };
 const DOWN = { lhX: 0.02, lhY: 0.18, lhZ: 0.45, rhX: -0.08, rhY: 0.15, rhZ: 0.5, bTurn: 0, bUp: -0.5 };
 
@@ -44,9 +47,9 @@ export const CORRUPT: Move = {
     [0, {}],
     [0.18, as({ ...LOW, twist: -0.55, lean: 0.06, ...DRAWN })],
     [0.3, as({ ...LOW, hipZ: 0.08, twist: 0.5, lean: 0.2, ...SWEPT })],
-    [0.44, as({ ...LOW, hipZ: 0.06, twist: 0.6, lean: 0.16, ...SWEPT, bTurn: 7.8 })],
-    [0.6, as({ ...LOW, hipZ: 0.08, twist: -0.5, lean: 0.2, ...DRAWN, rhZ: 0.32, bTurn: 5.3 })],
-    [0.74, as({ ...LOW, hipZ: 0.06, twist: -0.6, lean: 0.14, ...DRAWN, bTurn: 4.8 })],
+    [0.44, as({ ...LOW, hipZ: 0.06, twist: 0.6, lean: 0.16, ...SWEPT, bTurn: 7.8 - TURN })],
+    [0.6, as({ ...LOW, hipZ: 0.08, twist: -0.5, lean: 0.2, ...DRAWN, rhZ: 0.32, bTurn: 5.3 - TURN })],
+    [0.74, as({ ...LOW, hipZ: 0.06, twist: -0.6, lean: 0.14, ...DRAWN, bTurn: 4.8 - TURN })],
     [1.15, {}],
   ],
 };

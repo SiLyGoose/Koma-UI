@@ -1,4 +1,4 @@
-import { at, REST, type Pose } from '../body/pose';
+import { at, REST, TURN, type Pose } from '../body/pose';
 import type { Move } from '../moves/move';
 import { COILED, KNEELING, LOW, LUNGE, TALL, TUCKED, WIDE } from '../moves/stances';
 
@@ -35,9 +35,12 @@ const as = (pose: Partial<Pose>): Partial<Pose> => at(pose, STAND);
 /** Galicta raised high over his head, both hands on it; brought down before him. */
 const RAISED = { lhX: 0.05, lhY: 0.62, lhZ: 0, rhX: -0.12, rhY: 0.64, rhZ: -0.05, bTurn: 0, bUp: 2.4 };
 const DOWN = { lhX: 0.02, lhY: 0.18, lhZ: 0.45, rhX: -0.08, rhY: 0.15, rhZ: 0.5, bTurn: 0, bUp: -0.5 };
-/** Drawn back low at his right; swept across to his left. */
-const DRAWN = { lhX: -0.05, lhY: 0.2, lhZ: 0.1, rhX: -0.42, rhY: 0.22, rhZ: -0.12, bTurn: 4.4, bUp: 0.2 };
-const SWEPT = { lhX: 0.25, lhY: 0.25, lhZ: 0.25, rhX: 0.3, rhY: 0.22, rhZ: 0.36, bTurn: 7.2, bUp: 0 };
+/**
+ * Drawn back low at his right; swept across to his left. (Galicta's turns are a whole turn less than a knight's, as he
+ * holds it straight ahead: so it comes back to how he stands the short way, not round all of him.)
+ */
+const DRAWN = { lhX: -0.05, lhY: 0.2, lhZ: 0.1, rhX: -0.42, rhY: 0.22, rhZ: -0.12, bTurn: 4.4 - TURN, bUp: 0.2 };
+const SWEPT = { lhX: 0.25, lhY: 0.25, lhZ: 0.25, rhX: 0.3, rhY: 0.22, rhZ: 0.36, bTurn: 7.2 - TURN, bUp: 0 };
 
 // His attack: Galicta raised and brought down on the boss, and back.
 export const REND: Move = {
