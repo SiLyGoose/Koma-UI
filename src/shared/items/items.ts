@@ -4,7 +4,7 @@
  */
 
 import { built, hasItemArt } from '../built';
-import { FACE, heroCut } from '../heroes';
+import { heroCut, TAB_FACE } from '../heroes';
 import type { Slot } from '../../protocol/items';
 
 export type { Slot, Stars } from '../../protocol/items';
@@ -149,7 +149,7 @@ export function uwMarks(hero: string, treasure = false): HTMLElement[] {
   const face = el('img');
   face.alt = '';
   face.hidden = true;
-  void heroCut(hero, FACE, 96).then((src) => {
+  void heroCut(hero, TAB_FACE, 96).then((src) => {
     if (!src) return;
     face.src = src;
     face.hidden = false;
