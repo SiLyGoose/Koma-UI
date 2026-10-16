@@ -53,7 +53,6 @@
             <section class="tm-prep-panel tm-prep-party" aria-label="Players">
               <ol id="prep-players" class="tm-prep-players"></ol>
               <p id="prep-note" class="tm-prep-note" role="status"></p>
-              <p id="prep-rewards" class="tm-prep-rewards"></p>
               <div class="tm-prep-actions">
                 <details class="tm-prep-info">
                   <summary class="action secondary">Raid Info</summary>
@@ -84,15 +83,17 @@
         <p class="tm-rotate-text">The TechnoMagic Raid is played in landscape.</p>
       </div>
 
-      <!-- A fight over: won or lost (the bot's word), and what each player found. -->
-      <div id="result" class="message" hidden>
+      <!-- A fight over: won or lost (the bot's word), what this player got as tiles (the points, and each piece of gear,
+           whose details open over it in .tm-loot), what everyone else found, and the way on (../../src/technomagic/result.ts). -->
+      <div id="result" class="message tm-result" hidden>
         <div class="message-card">
           <div class="message-title"></div>
           <div class="message-text"></div>
-          <ul class="tm-drops"></ul>
-          <button type="button" class="action main" data-again>Back to the room</button>
-          <a class="action secondary" href="/heroes/">Heroes</a>
+          <div class="tm-rewards" hidden></div>
+          <ul class="tm-others" hidden></ul>
+          <div class="tm-result-actions"></div>
         </div>
+        <div class="tm-loot" hidden></div>
       </div>
     </main>
 

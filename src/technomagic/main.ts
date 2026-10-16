@@ -30,6 +30,7 @@ import { makeOverhead } from './hud/overhead';
 import { cutFace, cutHead } from './hud/portrait';
 import { makeTimer } from './hud/timer';
 import { makePrep } from './prep/prep';
+import { makeResult } from './result';
 import type { AnswerCode, ClientMessage, ErrorCode, FightStart, OverView, RoomState, ServerMessage, TurnInput } from '../protocol/technomagic';
 import { HERO_TURN, makeSim, SECTION, SECTIONS, SIM_VERSION, STAGES, TICK, type Input, type Sim } from './sim';
 import { setBuff } from './sim/sets';
@@ -95,6 +96,7 @@ const ANSWERS: Record<AnswerCode, string> = {
   team_full: 'That team is full.',
   not_ready: 'Everyone has to be ready first.',
   no_heroes: 'Everyone needs a hero in first.',
+  locked: 'Win the stage before it first.',
   failed: 'That didn’t work. Try again.',
 };
 
@@ -109,7 +111,7 @@ const deathlessButton = document.getElementById('deathless') as HTMLButtonElemen
 const uniqueButton = document.getElementById('unique') as HTMLButtonElement;
 const stagePicker = document.getElementById('stage-pick') as HTMLSelectElement;
 const hint = document.getElementById('hint') as HTMLElement;
-const result = document.getElementById('result') as HTMLElement;
+const results = makeResult(document.getElementById('result') as HTMLElement);
 
 soundButton('technomagic-muted', setMuted);
 
@@ -256,33 +258,6 @@ async function start(): Promise<void> {
     };
   }
 
-  /** The result of a fight over: won or lost, and what each player found (with the additional skill and potentials each copy came with). */
-  function showResult(title: string, text: string, drops: { who: string; name: string; stars: number; skill: string | null; potentials: string[] }[], again: string, onAgain: () => void): void {
-    (result.querySelector('.message-title') as HTMLElement).textContent = title;
-    (result.querySelector('.message-text') as HTMLElement).textContent = text;
-    (result.querySelector('.tm-drops') as HTMLElement).replaceChildren(
-      ...drops.map((drop) => {
-        const item = document.createElement('li');
-        item.dataset.stars = String(drop.stars);
-        item.textContent = `${drop.who ? `${drop.who}: ` : ''}${'★'.repeat(drop.stars)} ${drop.name}${drop.skill ? ` (${drop.skill})` : ''}`;
-        if (drop.potentials.length > 0) {
-          const potentials = document.createElement('span');
-          potentials.className = 'tm-drop-potentials';
-          potentials.textContent = drop.potentials.join(' · ');
-          item.append(potentials);
-        }
-        return item;
-      }),
-    );
-    const button = result.querySelector('[data-again]') as HTMLButtonElement;
-    button.textContent = again;
-    button.onclick = () => {
-      result.hidden = true;
-      onAgain();
-    };
-    result.hidden = false;
-  }
-
   // ---- Trying things out (no link) ----
 
   /** Every skin that could be read, the ones on the field last time on it again. */
@@ -368,7 +343,25 @@ async function start(): Promise<void> {
     practise();
     setConn('Preview', 'ok');
     // Over: the result, and again.
-    onOver = (sim) => showResult(sim.result === 'won' ? 'Victory' : 'Defeat', sim.result === 'won' ? 'Galgoria is beaten.' : 'Your heroes fell.', [], 'Again', practise);
+    onOver = (sim) =>
+      results.show({
+        title: sim.result === 'won' ? 'Victory' : 'Defeat',
+        text: sim.result === 'won' ? 'Galgoria is beaten.' : 'Your heroes fell.',
+        points: 0,
+        mine: [],
+        others: [],
+        actions: [
+          {
+            label: 'Again',
+            main: true,
+            run: () => {
+              results.hide();
+              practise();
+            },
+          },
+          { label: 'Games', run: () => leave() },
+        ],
+      });
   }
 
   // ---- A room (the link's server) ----
@@ -443,7 +436,7 @@ async function start(): Promise<void> {
       const mine = new Lock(start);
       lock = mine;
       shownOver = null;
-      result.hidden = true;
+      results.hide();
       const bodies = await bodiesFor(start.heroes);
       if (lock !== mine) return;
       if (!bodies) return void showMessage('The models are missing', 'A hero in this fight isn’t on this computer.');
@@ -519,7 +512,7 @@ async function start(): Promise<void> {
             party.replaceChildren();
             overheads.replaceChildren();
             meterAt.replaceChildren();
-            result.hidden = true;
+            results.hide();
             prep.show(state);
           } else prep.hide();
           if (state.phase === 'over' && state.over && !game) showOver(state.over);
@@ -551,17 +544,35 @@ async function start(): Promise<void> {
       if (shownOver === over) return;
       shownOver = over;
       const you = state?.you ?? '';
-      const drops = Object.entries(over.drops).flatMap(([who, items]) => items.map((item) => ({ who: who === you ? 'You' : name(who), name: item.name, stars: item.stars, skill: item.skill ?? null, potentials: item.potentials ?? [] })));
-      const rewarded = over.rewarded.includes(you);
+      const mine = over.drops[you] ?? [];
+      const paid = over.points[you] ?? 0;
+      const others = Object.entries(over.drops).flatMap(([who, drops]) => (who !== you && drops.length > 0 ? [{ who: name(who), drops }] : []));
       const text =
         over.result === 'won'
-          ? drops.length > 0
+          ? mine.length > 0 || paid > 0
             ? 'Found in the swamp:'
-            : rewarded
-              ? 'Nothing was found this time.'
-              : 'No more runs today give you gear.'
+            : 'Nothing was found this time.'
           : 'The party fell. Gear your heroes up on the Heroes page and try again.';
-      showResult(over.result === 'won' ? 'Victory' : 'Defeat', rewarded || over.result !== 'won' ? text : `${text} (No more runs today give you gear.)`, drops, 'Back to the room', () => send({ t: 'back' }));
+      results.show({
+        title: over.result === 'won' ? 'Victory' : 'Defeat',
+        text,
+        points: paid,
+        mine,
+        others,
+        actions: [
+          // The host's starts the next fight (once everyone else is ready); anyone else's says they're ready for it.
+          {
+            label: 'Run Again',
+            main: true,
+            run: () => {
+              results.hide();
+              send({ t: 'again' });
+            },
+          },
+          { label: 'Raid Prep', run: () => send({ t: 'back' }) },
+          { label: 'Games', run: () => leave() },
+        ],
+      });
     }
     onOver = () => {
       if (state?.over) showOver(state.over);

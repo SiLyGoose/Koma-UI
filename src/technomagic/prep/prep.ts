@@ -6,7 +6,6 @@ import { nearer } from '../sim/heroes/kit';
 import { el } from '../hud/dom';
 import { nameTips } from '../hud/tip';
 import type { PickView, PlayerView, RoomState } from '../../protocol/technomagic';
-import { SOLO_BOSS_HP } from '../sim/rules';
 
 /*
  * Getting ready for a room's fight, as King's Raid has it: across the top the boss and the stage (the host
@@ -95,7 +94,6 @@ export function makePrep(act: PrepActions): Prep {
   settings.picture.hidden = true;
   // Beside the screen rather than in it: scaled down on a phone (fit()), it would hold the popup in it.
   root.after(settings.root);
-  const rewards = byId('prep-rewards');
   const noteAt = byId('prep-note');
   const ready = byId('prep-ready') as HTMLButtonElement;
   const start = byId('prep-start') as HTMLButtonElement;
@@ -110,8 +108,9 @@ export function makePrep(act: PrepActions): Prep {
   byId('prep-info').append(
     el('p', '', `${GALGORIA.name}: a chimera of three heads that spits venom. Its blows are magical, and nothing slows it; it heals itself all the while.`),
     el('p', '', 'Every 150 blows, the hero that has dealt the most is shut in the swamp for a while. Its Swamp Destroyer knocks every hero down.'),
-    el('p', '', `Heroes that fall stay down. Beat it within 3:30, before its rage wipes the party. Alone, it has ${Math.round(SOLO_BOSS_HP * 100)}% of its health.`),
-    el('p', '', 'The host brings up to 4 heroes, everyone else up to 2. Alone, up to 8: 4 in the Main Team, whose skills are yours to use, and 4 in the Sub Team, who fight on Auto. A win gives each player TechnoMagic gear, while they have runs left today that give it.'),
+    el('p', '', `Heroes that fall stay down. Beat it within 3:30, before its rage wipes the party. Each stage, it has more health and hits harder; alone, it has ${Math.round(((GALGORIA.stages.solo[0]?.hp ?? 1) / (GALGORIA.stages.room[0]?.hp ?? 1)) * 100)}% of the health.`),
+    el('p', '', 'The host brings up to 4 heroes, everyone else up to 3, 8 in all. Alone, up to 7: 4 in the Main Team, whose skills are yours to use, and 3 in the Sub Team, who fight on Auto. A win gives each player TechnoMagic gear, while they have runs left today that give it.'),
+    el('p', '', 'The host picks the stage: each after the first opens once they have beaten the one before it.'),
   );
 
   ready.addEventListener('click', () => act.ready(ready.getAttribute('aria-pressed') !== 'true'));
@@ -193,13 +192,15 @@ export function makePrep(act: PrepActions): Prep {
   function drawSettings(): void {
     if (!state || picked === null) return;
     const host = state.players.some((player) => player.id === state?.you && player.host);
-    picked = host ? Math.min(Math.max(1, picked), state.stages) : state.stage;
+    // The host can go up to the stage after the highest they have won.
+    picked = host ? Math.min(Math.max(1, picked), state.unlocked) : state.stage;
     settings.bossName.textContent = state.boss.name;
     settings.number.textContent = String(picked);
     settings.down.disabled = !host || picked <= 1;
-    settings.up.disabled = !host || picked >= state.stages;
+    settings.up.disabled = !host || picked >= state.unlocked;
     settings.confirm.hidden = !host;
-    settings.note.textContent = `${host ? '' : 'Only the host changes the stage. '}From stage 4 on, the boss is harder on the heroes, and a win likelier to give 4-star gear.`;
+    const next = host && state.unlocked < state.stages ? `Win stage ${state.unlocked} to open stage ${state.unlocked + 1}. ` : '';
+    settings.note.textContent = `${host ? next : 'Only the host changes the stage. '}Each stage, the boss has more health and hits harder; from stage 4 on it is harder on the heroes still, and a win gives more gear.`;
   }
 
   /** One slot of the lineup: a hero (whose, which) or empty. */
@@ -343,8 +344,6 @@ export function makePrep(act: PrepActions): Prep {
         return row;
       }),
     );
-
-    rewards.textContent = state.rewardsLeft > 0 ? `${state.rewardsLeft} run${state.rewardsLeft === 1 ? '' : 's'} left today that give gear` : 'No more runs today give gear (you can still fight)';
 
     ready.hidden = host;
     const isReady = me?.ready === true && !host;

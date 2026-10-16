@@ -380,9 +380,17 @@ button.tm-slot-card:hover {
   display: grid;
   /* Three to a row; on a wide screen, as many more as fit. */
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  /* Each row as tall as its squares: left auto, the rows would shrink to fit the panel rather than scroll. */
+  grid-auto-rows: max-content;
   gap: 8px;
   align-content: start;
   overflow-y: auto;
+  /* Scrolls without a bar. */
+  scrollbar-width: none;
+}
+
+.tm-prep-hero-list::-webkit-scrollbar {
+  display: none;
 }
 
 /* Not making their panels any taller: they take what the panels have, and scroll. */
@@ -403,6 +411,10 @@ button.tm-slot-card:hover {
   position: relative;
   display: flex;
   flex-direction: column;
+  aspect-ratio: 1;
+  box-sizing: border-box;
+  /* Its width sizes the tick (cqi, below). */
+  container-type: inline-size;
   padding: 0;
   overflow: hidden;
   border: 2px solid var(--gold-dim);
@@ -422,8 +434,10 @@ button.tm-slot-card:hover {
   border-color: var(--gold);
 }
 
+/* The face fills its square. */
 .tm-prep-hero-face {
-  aspect-ratio: 1;
+  flex: 1;
+  min-height: 0;
 }
 
 /* One that's in: its face a little darker, under the tick. */
@@ -436,10 +450,12 @@ button.tm-slot-card:hover {
 
 .tm-prep-hero-check {
   position: absolute;
-  top: 10%;
+  top: 50%;
   left: 50%;
-  translate: -50% 0;
-  font-size: 56px;
+  translate: -50% -50%;
+  /* Half its square, up to 56px. */
+  font-size: min(56px, 50cqi);
+  line-height: 1;
   font-weight: 900;
   color: #ffd25a;
   text-shadow: 0 2px 4px #000;
@@ -561,19 +577,6 @@ button.tm-slot-card:hover {
   font-size: 13px;
 }
 
-/* How many runs today still give gear: a notice across the panel, right over the buttons. */
-.tm-prep-rewards {
-  margin: auto 0 8px;
-  padding: 8px 12px;
-  border: 1px solid var(--gold-dim);
-  border-radius: 8px;
-  background: linear-gradient(90deg, rgba(217, 181, 106, 0.08), rgba(217, 181, 106, 0.2), rgba(217, 181, 106, 0.08));
-  color: var(--gold);
-  font-size: 13px;
-  font-weight: 700;
-  text-align: center;
-}
-
 .tm-prep-note:empty {
   display: none;
 }
@@ -583,8 +586,9 @@ button.tm-slot-card:hover {
 }
 
 .tm-prep-actions {
-  /* Raid Info's box is placed by it. */
+  /* Raid Info's box is placed by it. At the bottom of the panel. */
   position: relative;
+  margin-top: auto;
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;

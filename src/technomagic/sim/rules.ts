@@ -151,9 +151,6 @@ export const MANA_RATE = 100;
 export const MANA_PER_ATTACK = 60;
 export const MANA_PER_HP_LOST = 2500;
 
-/** A raid fought alone: the boss has this share of its health. */
-export const SOLO_BOSS_HP = 0.6;
-
 /**
  * The raid's time (3:30), shown top right: once it is up the boss is enraged, its blows at once twice as
  * hard and growing hyperbolically, 2 ^ (3 * RAGE_WIPE / (RAGE_WIPE - seconds since) - 2): four times at

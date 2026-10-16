@@ -47,12 +47,29 @@ export interface BossPart {
   marks?(): Mark[];
 }
 
+/** At a stage: so many times a boss's health, and so many times as hard its blows. */
+export interface BossScale {
+  hp: number;
+  deals: number;
+}
+
+/** A boss's scale at `stage` (1 to its last; past it, its last), alone or not. */
+export function scaleAt(def: BossDef, stage: number, solo: boolean): BossScale {
+  const row = solo ? def.stages.solo : def.stages.room;
+  return row[Math.min(row.length, Math.max(1, Math.floor(stage) || 1)) - 1] ?? { hp: 1, deals: 1 };
+}
+
 export interface BossDef {
   /** What the bot and the site know it by. */
   id: string;
   name: string;
   /** Its health, the kind of damage its blows deal, how it stands the heroes', and its crits and CC resist. */
   stats: BossStats;
+  /**
+   * How much tougher it is at each stage (the first is stage 1's), fought with more than one player and alone: so
+   * many times its health, and so many times as hard its blows.
+   */
+  stages: { room: readonly BossScale[]; solo: readonly BossScale[] };
   /** Its attacks; how each goes (`plans`, by its name), and the moves they are made of (`moves`). */
   attacks: readonly BossAttack[];
   plans: Readonly<Record<string, Plan>>;

@@ -103,35 +103,6 @@
   margin-left: 12px;
 }
 
-/* A fight over: what each player found, a line each, in its stars' colour. */
-.tm-drops {
-  margin: 10px 0 14px;
-  padding: 0;
-  list-style: none;
-  font-weight: 700;
-}
-
-.tm-drops [data-stars='4'] {
-  color: #c99bff;
-}
-
-.tm-drops [data-stars='3'] {
-  color: #6fb4ff;
-}
-
-/* A drop's potentials, under its name. */
-.tm-drop-potentials {
-  display: block;
-  margin: 2px 0 6px;
-  font-size: 0.85em;
-  font-weight: 400;
-  opacity: 0.85;
-}
-
-#result .action + .action {
-  margin-left: 8px;
-}
-
 /* The raid's stage, before the boss's attacks. */
 .tm-stage {
   display: flex;

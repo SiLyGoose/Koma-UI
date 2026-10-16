@@ -1,4 +1,4 @@
-import type { BossDef, BossPart } from './bosses/boss';
+import { scaleAt, type BossDef, type BossPart } from './bosses/boss';
 import { ATK, NONE, POINTS, share, soft, SOFT, strike } from './combat/damage';
 import { away, blocking, bolstering, bound, critDamaging, critResisting, critting, dealing, defending, filling, healing, pacing, piercing, put, resisting, taking, wear, type Status } from './combat/status';
 import type { Input, Logged, Result, SimEvent } from './events';
@@ -7,7 +7,7 @@ import { lineOf, NO_PASSIVE, type Ability, type HeroDef } from './heroes/kit';
 import type { HeroMove } from './heroes/moves';
 import { motionOf } from './motion';
 import { seeded } from './random';
-import { AUTO, AUTO_WAIT, BLOW, CRIT, formation, HERO_WAIT, MANA_PER_ATTACK, MANA_PER_HP_LOST, MANA_RATE, MAX_MANA, MOST, rage, RAGE_WIPE, RAID_TIME, REFORM, SECTION, SOLO_BOSS_HP, STAGES, TICK } from './rules';
+import { AUTO, AUTO_WAIT, BLOW, CRIT, formation, HERO_WAIT, MANA_PER_ATTACK, MANA_PER_HP_LOST, MANA_RATE, MAX_MANA, MOST, rage, RAGE_WIPE, RAID_TIME, REFORM, SECTION, STAGES, TICK } from './rules';
 import { AUTHORITY, GUARDED, HOPE, PERSEVERANCE, setOf } from './sets';
 import type { Buff, Mark } from './shown';
 import { CHAMPION_UP, DESPERATION_UP, MENDING_UP, SKILL, skilledCritDamage, skilledStats, skillsOf, SURGE_UP, type SkillId } from './skills';
@@ -68,7 +68,7 @@ export interface SimOptions {
   stage: number;
   /** A raid (every hero on the field, Boss auto on), or trying things out. */
   raid: boolean;
-  /** Fought alone: the boss is easier (SOLO_BOSS_HP of its health). */
+  /** Fought alone: the boss is as its stages have it alone (BossDef.stages). */
   solo?: boolean;
   /** Trying things out: the heroes on the field at first, by their index (with none of them, the first). */
   first?: readonly number[];
@@ -136,7 +136,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
   const log: Logged[] = [];
   const sums: number[] = [];
   let pending: Input[] = [];
-  const maxHp = def.stats.hp * (solo ? SOLO_BOSS_HP : 1);
+  const maxHp = def.stats.hp * scaleAt(def, firstStage, solo).hp;
   const foe: Foe = { def, part: { lands: {} }, hp: maxHp, maxHp, stunned: 0, slowed: 0, slowRate: 1, statuses: [] };
   let tick = 0;
   let elapsed = 0;
@@ -699,7 +699,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       if (nimbler > 0) stands.dodge = { physical: stands.dodge.physical + nimbler, magical: stands.dodge.magical + nimbler };
       // Now and then a crit, by the boss's crit chance less the hero's crit resist against its kind of damage (and what is on it adds).
       const critical = roll() < share(foe.def.stats.crit - target.critResist[type] - critResisting(target.statuses, type) - critResisting(party, type)) + critting(foe.statuses);
-      const { taken, blocked, dodged } = strike(amount * dealing(foe.statuses) * rage(clock - RAID_TIME) * (critical ? CRIT : 1), type, blockable ? stands : { ...stands, block: NONE, dodge: NONE }, 0, roll);
+      const { taken, blocked, dodged } = strike(amount * scaleAt(def, stage, solo).deals * dealing(foe.statuses) * rage(clock - RAID_TIME) * (critical ? CRIT : 1), type, blockable ? stands : { ...stands, block: NONE, dodge: NONE }, 0, roll);
       if (dodged) {
         target.nimble = 0;
         events.push({ kind: 'number', on: target.index, amount: 0, type: 'dodged' });
