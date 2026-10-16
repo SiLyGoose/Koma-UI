@@ -29,7 +29,8 @@ export type Result = 'won' | 'lost';
 
 export type SimEvent =
   /** A hero runs in onto the field; one leaves it. */
-  | { kind: 'enter'; who: number }
+  /** (`run`: the raid's run up to the boss, so many seconds, the fight moving it along: ./rules.ts MARCH.) */
+  | { kind: 'enter'; who: number; run?: number }
   | { kind: 'leave'; who: number }
   /** A hero down is up again (a skill revived it). */
   | { kind: 'revive'; who: number }

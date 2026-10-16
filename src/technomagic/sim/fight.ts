@@ -3,11 +3,11 @@ import { ATK, NONE, POINTS, share, soft, SOFT, strike } from './combat/damage';
 import { away, blocking, bolstering, bound, critDamaging, critResisting, critting, dealing, defending, filling, healing, pacing, piercing, put, resisting, taking, wear, type Status } from './combat/status';
 import type { Input, Logged, Result, SimEvent } from './events';
 import { geared } from './gear';
-import { lineOf, NO_PASSIVE, type Ability, type HeroDef } from './heroes/kit';
+import { lineOf, nearer, NO_PASSIVE, type Ability, type HeroDef } from './heroes/kit';
 import type { HeroMove } from './heroes/moves';
 import { motionOf } from './motion';
 import { seeded } from './random';
-import { AUTO, AUTO_WAIT, BLOW, CRIT, formation, HERO_WAIT, MANA_PER_ATTACK, MANA_PER_HP_LOST, MANA_RATE, MAX_MANA, MOST, rage, RAGE_WIPE, RAID_TIME, REFORM, SECTION, STAGES, TICK } from './rules';
+import { AUTO, AUTO_WAIT, BLOW, CRIT, formation, HERO_WAIT, HERO_X, MANA_PER_ATTACK, MARCH, MARCH_ABREAST, MARCH_FROM, MARCH_ROW, MANA_PER_HP_LOST, MANA_RATE, MAX_MANA, MOST, rage, RAGE_WIPE, RAID_TIME, REFORM, SECTION, STAGES, TICK } from './rules';
 import { AUTHORITY, GUARDED, HOPE, PERSEVERANCE, setOf } from './sets';
 import type { Buff, Mark } from './shown';
 import { CHAMPION_UP, DESPERATION_UP, MENDING_UP, SKILL, skilledCritDamage, skilledStats, skillsOf, SURGE_UP, type SkillId } from './skills';
@@ -101,7 +101,7 @@ export interface Sim extends Fight {
   step(): void;
   /** A hero could use a skill now, were it free: it is on the field, standing, the skill is ready, and it has the mana. */
   ready(fighter: Fighter, index: number): boolean;
-  /** A hero can be told to use a skill as soon as it can (reserved): it could use it now but for its mana, which it then waits for. */
+  /** A hero can be told to use a skill as soon as it can (reserved): it could use it now but for its cooldown or its mana, which it then waits for. */
   reservable(fighter: Fighter, index: number): boolean;
   /** What one of a hero's skill slots holds for now: its own skill, another its skills have turned into, or null (sealed). */
   slot(fighter: Fighter, index: number): Ability | null;
@@ -127,6 +127,9 @@ const KNOCKED: Buff = { name: 'Knocked down', about: 'Can do nothing until it is
 /** Steps in a second (a checksum is kept at the end of each). */
 const SECOND = Math.round(1 / TICK);
 
+/** The run up to the boss: how much of the way through it the heroes begin fanning out to where each stands. */
+const FAN = 0.55;
+
 export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo = false, first = [], deathless: noDeaths = false }: SimOptions): Sim {
   const random = seeded(seed);
   const roll = (): number => random.next();
@@ -146,6 +149,8 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
   let bossAuto = raid;
   let deathless = noDeaths && !raid;
   let result: Result | null = null;
+  /** A raid's run up to the boss: the steps it takes (the first steps of the fight). */
+  const marching = raid ? Math.round(MARCH / TICK) : 0;
   /** The boss's health given back since it was last shown, and how long since then. */
   let mended = 0;
   let mendShown = 0;
@@ -247,8 +252,29 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     [fighter.x, fighter.z] = spots.get(fighter) as readonly [number, number];
     fighter.rested = 0;
     fighter.doing = { move: 'enter', t: 0, part: 0, landed: 0, blows: 0 };
-    events.push({ kind: 'enter', who: fighter.index });
+    events.push({ kind: 'enter', who: fighter.index, ...(tick < marching && { run: MARCH }) });
     return true;
+  }
+  /**
+   * The run up to the boss, `k` of the way (0 to 1): two abreast, the frontline first (its tanks leading), each pair
+   * behind the one before, slowing as they near the boss and fanning out, toward the end, to where each stands.
+   * (Only + - * /: ./rules.ts.)
+   */
+  function lineUp(k: number): void {
+    const u = 1 - k;
+    const back = MARCH_FROM * u * u * (2 - u);
+    const s = Math.max(0, (k - FAN) / (1 - FAN));
+    const fan = s * s * (3 - 2 * s);
+    const order = [...field].sort((a, b) => nearer(a.def, b.def));
+    order.forEach((on, i) => {
+      // (One left over at the back runs in the middle.)
+      const side = i === order.length - 1 && i % 2 === 0 ? 0 : i % 2 ? -1 : 1;
+      const x = HERO_X - back - (i >> 1) * MARCH_ROW;
+      const z = (side * MARCH_ABREAST) / 2;
+      const [toX, toZ] = spots.get(on) as readonly [number, number];
+      on.x = x + (toX - x) * fan;
+      on.z = z + (toZ - z) * fan;
+    });
   }
 
   /** The hero whose attack's blow is landing right now (null: none: a skill's, or something else's); and whose move, and which. */
@@ -344,17 +370,17 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     events.push({ kind: 'stagger', who: fighter.index });
   }
 
-  /** A hero begins a move (it must be free). */
-  function begin(fighter: Fighter, move: HeroMove, skill: boolean): void {
-    fighter.doing = { move, t: 0, part: 0, landed: 0, blows: 0 };
-    events.push({ kind: 'start', who: fighter.index, move, skill });
+  /** A hero begins a move (it must be free): its attack, or the skill in one of its slots. */
+  function begin(fighter: Fighter, move: HeroMove, skill: number | null): void {
+    fighter.doing = { move, t: 0, part: 0, landed: 0, blows: 0, ...(skill !== null && { skill }) };
+    events.push({ kind: 'start', who: fighter.index, move, skill: skill !== null });
   }
 
   /** A hero uses a skill (true if it did: it must be free). */
   function use(fighter: Fighter, index: number): boolean {
     const ability = sim.slot(fighter, index);
     if (!ability || fighter.doing || !sim.ready(fighter, index)) return false;
-    begin(fighter, ability.move, true);
+    begin(fighter, ability.move, index);
     // Authority's knight: its skills strip what helps the boss.
     if (fighter.set?.id === 'authority' && fighter.set.role === 'knight') {
       for (let i = foe.statuses.length - 1; i >= 0; i--) if (((foe.statuses[i] as Status<unknown>).deals ?? 1) > 1) foe.statuses.splice(i, 1);
@@ -388,7 +414,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       .filter((one): one is { index: number; ability: Ability } => one.ability !== null && wanted(one.ability))
       .sort((a, b) => (last(a.index) === last(b.index) ? 0 : last(a.index) < last(b.index) ? -1 : 1) || b.ability.cost - a.ability.cost || b.index - a.index);
     const ripe = (index: number): boolean => on.part.ripe?.(index) ?? true;
-    const usable = ({ index, ability }: { index: number; ability: Ability }): boolean => ripe(index) && sim.reservable(on, index) && on.mana >= ability.cost * SECTION;
+    const usable = ({ index }: { index: number }): boolean => ripe(index) && sim.ready(on, index);
     const target = slots.find((slot) => wait(slot.index) <= 0) ?? slots.reduce<(typeof slots)[number] | undefined>((soonest, slot) => (!soonest || wait(slot.index) < wait(soonest.index) ? slot : soonest), undefined);
     if (!target) return null;
     if (usable(target)) return target.index;
@@ -812,10 +838,10 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       events.push({ kind: 'cue', who: who?.index ?? null, name, targets: targets.map((one) => one.index) });
     },
     ready(fighter, index) {
-      return sim.reservable(fighter, index) && fighter.mana >= (sim.slot(fighter, index) as Ability).cost * SECTION;
+      return sim.reservable(fighter, index) && (fighter.cooldowns[index] as number) <= 0 && fighter.mana >= (sim.slot(fighter, index) as Ability).cost * SECTION;
     },
     reservable(fighter, index) {
-      return sim.slot(fighter, index) !== null && field.includes(fighter) && fighter.hp > 0 && !bound(fighter.statuses) && (fighter.cooldowns[index] as number) <= 0;
+      return sim.slot(fighter, index) !== null && field.includes(fighter) && fighter.hp > 0 && !bound(fighter.statuses);
     },
     slot(fighter, index) {
       if (index < 0 || index >= fighter.abilities.length) return null;
@@ -877,6 +903,15 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       pending = [];
       for (const input of now) apply(input);
       if (result) return;
+      // A raid's run up to the boss: the heroes run in and nothing else happens (a skill reserved meanwhile waits for it to be
+      // over); arrived, they are free to fight.
+      if (tick < marching) {
+        tick++;
+        lineUp(tick / marching);
+        if (tick === marching) for (const on of field) on.doing = null;
+        if (tick % SECOND === 0) sums.push(sim.checksum());
+        return;
+      }
       const dt = TICK;
       elapsed += dt;
       aurasNow();
@@ -925,7 +960,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
         if (on.reserved !== null && !sim.reservable(on, on.reserved) && !bound(on.statuses)) on.reserved = null;
         if (!on.doing && on.hp > 0 && !bound(on.statuses)) {
           if (on.reserved !== null && use(on, on.reserved)) on.reserved = null;
-          else if (on.rested >= HERO_WAIT && foe.hp > 0) begin(on, on.attack, false);
+          else if (on.rested >= HERO_WAIT && foe.hp > 0) begin(on, on.attack, null);
         }
       }
 
@@ -1037,5 +1072,6 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
   // On the field from the start: in a raid, every hero (as many as fit); trying things out, the ones asked for, or the first.
   for (const fighter of raid ? fighters : first.map((index) => fighters[index])) if (fighter && !field.includes(fighter)) stand(fighter);
   if (field.length === 0 && fighters[0]) stand(fighters[0]);
+  if (marching > 0) lineUp(0);
   return sim;
 }

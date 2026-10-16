@@ -96,16 +96,20 @@
   background: #44505a;
 }
 
-/* A skill it will use as soon as it is free (and, pressed short of mana, has the mana: dimmed till then): lit, and saying so. */
-.tm-reserved {
-  position: absolute;
-  inset: 3px 0 auto;
-  display: none;
-  color: #fff3b0;
-  font-size: calc(var(--skill) * 0.15);
-  font-style: normal;
-  font-weight: 700;
-  text-shadow: 0 1px 2px #000;
+/*
+ * A skill it will use as soon as it is free (and, pressed while it waits for its cooldown or short of mana, once it has
+ * them: dimmed till then): lit, two streaks of light going round its edge, one either side.
+ */
+@property --tm-spin {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@keyframes tm-spin {
+  to {
+    --tm-spin: 360deg;
+  }
 }
 
 .tm-skill.reserved {
@@ -113,8 +117,64 @@
   box-shadow: 0 0 10px #ffb400;
 }
 
-.tm-skill.reserved .tm-reserved {
+/* (Over its edge, a little either side of it: only that ring of the turning light shows.) */
+.tm-lights {
+  position: absolute;
+  inset: -5px;
+  display: none;
+  padding: 7px;
+  border-radius: 10px;
+  background: conic-gradient(
+    from var(--tm-spin),
+    transparent 0deg 10deg,
+    rgb(255 255 255 / 0.5) 40deg,
+    #fff 62deg 80deg,
+    rgb(255 255 255 / 0.6) 88deg,
+    transparent 96deg 190deg,
+    rgb(255 255 255 / 0.5) 220deg,
+    #fff 242deg 260deg,
+    rgb(255 255 255 / 0.6) 268deg,
+    transparent 276deg
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  pointer-events: none;
+  animation: tm-spin 1.6s linear infinite;
+}
+
+.tm-skill.reserved .tm-lights {
   display: block;
+}
+
+/* Another skill of its hero's is being used: saying so, along its top. */
+.tm-casting {
+  position: absolute;
+  inset: calc(var(--skill) * 0.05) 0 auto;
+  display: none;
+  color: #7dff3f;
+  font-size: calc(var(--skill) * 0.16);
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  text-shadow:
+    1px 1px 0 #0c3a06,
+    -1px -1px 0 #0c3a06,
+    1px -1px 0 #0c3a06,
+    -1px 1px 0 #0c3a06,
+    0 0 3px #000;
+  pointer-events: none;
+}
+
+.tm-skill.casting .tm-casting {
+  display: block;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tm-lights {
+    animation-duration: 4s;
+  }
 }
 
 /* Quickened by a skill of its own: its skills are edged in its light. */

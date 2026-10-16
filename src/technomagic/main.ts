@@ -297,6 +297,7 @@ async function start(): Promise<void> {
             cooldowns: fighter.cooldowns,
             slots: fighter.def.abilities.map((_, index) => sim.slot(fighter, index)),
             reserved: controls.ahead ? controls.ahead.reserved(i) : fighter.reserved,
+            casting: fighter.doing?.skill ?? null,
             awake: part.lit?.() ?? false,
             effects,
           });

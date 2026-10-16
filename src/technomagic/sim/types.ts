@@ -57,6 +57,8 @@ export type GearBonus = Partial<Record<GearStat, number>>;
 /** What a hero is doing besides standing: running in, a move (`part` of its animations, `t` seconds into it; the blows that have landed), or reeling from being knocked about. */
 export interface Doing {
   move: HeroMove | 'hit' | 'enter';
+  /** A skill: which of its slots it is. */
+  skill?: number;
   t: number;
   part: number;
   landed: number;

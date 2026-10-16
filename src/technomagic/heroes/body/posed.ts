@@ -3,7 +3,7 @@ import type { Rig } from '../../engine/rig';
 import { sampler, type Sampler } from '../../engine/sampler';
 import { lengthOf } from '../../engine/track';
 import { flowing, MOVES, type HeroMove } from '../moves';
-import { ENTER, heightOf, holdShield, RED, redden, type Hero, type Stood } from './hero';
+import { ENTER, heightOf, holdShield, RED, redden, runOf, type Hero, type Stood } from './hero';
 import { REST, STILL, TURN, type Bends, type Pose } from './pose';
 import { KNEE, poseBody, poseLoose } from './posing';
 import type { Played } from './rigged';
@@ -159,6 +159,7 @@ export function posedHero({ root, body, middle, models, rig, hips, feet, blade, 
   let rush = 0;
   /** How long it has been running in (null: it isn't). */
   let running: number | null = null;
+  let runIn = ENTER;
   /** Loosing what is in its right hand: whether it is in its hand now, and whether the move playing has loosed it yet. */
   let nocked = true;
   let shot = false;
@@ -184,7 +185,8 @@ export function posedHero({ root, body, middle, models, rig, hips, feet, blade, 
 
   const hero: Hero = {
     root,
-    enter() {
+    enter(lasts) {
+      runIn = runOf(lasts);
       doing = null;
       stopPlaying();
       downed = false;
@@ -267,19 +269,19 @@ export function posedHero({ root, body, middle, models, rig, hips, feet, blade, 
       // Seated or hovering, gliding in: only carried along the field, easing to a stop as it arrives.
       if (running !== null && (seated || hovers)) {
         running += dt;
-        const k = Math.min(1, running / ENTER.time);
-        pose.ahead += ENTER.from * (1 - k) ** 1.6;
+        const k = Math.min(1, running / runIn.time);
+        pose.ahead += runIn.from * (1 - k) ** 1.6;
         pose.lean -= 0.12 * (1 - k);
         if (k >= 1) running = null;
       }
       // Running in: leaning into it, its legs striding and its blade trailing behind, easing into standing as it arrives.
       if (running !== null && !hovers) {
         running += dt;
-        const k = Math.min(1, running / ENTER.time);
+        const k = Math.min(1, running / runIn.time);
         const still = k < 0.8 ? 0 : (k - 0.8) / 0.2;
         const w = 1 - still * still * (3 - 2 * still);
         const stride = running * STRIDES * TURN;
-        pose.ahead += ENTER.from * (1 - k) ** 1.6;
+        pose.ahead += runIn.from * (1 - k) ** 1.6;
         pose.hipX -= rest.hipX * w;
         pose.tilt -= rest.tilt * w;
         // Long strides: each foot far out ahead, then far behind and kicked up as it comes through.

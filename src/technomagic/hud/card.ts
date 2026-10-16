@@ -30,6 +30,8 @@ export interface CardState {
   slots: readonly (Ability | null)[];
   /** The ability it will use as soon as it is free (null: none). */
   reserved: number | null;
+  /** The ability it is using now (null: none): its others say it is casting. */
+  casting: number | null;
   /** A skill of its own has it quickened: its card glows. */
   awake: boolean;
   /** What its skills have given it for now, after its passives over its health. */
@@ -115,7 +117,8 @@ export function makeCard(name: string, face: string, abilities: readonly Ability
     let showing = ability;
     if (ability) {
       show(ability);
-      slot.append(icon, wait, el('em', 'tm-reserved', 'Reserved'), pips);
+      // Reserved: two lights going round its edge. While another of its hero's is being used: saying so.
+      slot.append(icon, wait, el('span', 'tm-lights'), el('em', 'tm-casting', 'Casting...'), pips);
       // Not disabled when it can't be used, so it can still be held down on for what it does.
       slot.addEventListener('click', () => {
         if (slot.getAttribute('aria-disabled') !== 'true') on.use(i);
@@ -175,6 +178,7 @@ export function makeCard(name: string, face: string, abilities: readonly Ability
         slot.classList.toggle('sealed', sealed);
         slot.classList.toggle('waiting', !sealed && left > 0);
         slot.classList.toggle('reserved', state.reserved === i);
+        slot.classList.toggle('casting', state.casting !== null && state.casting !== i);
         slot.classList.toggle('short', !sealed && left <= 0 && state.mana < (now ?? ability).cost);
         slot.setAttribute('aria-disabled', String(!state.picked || state.hp <= 0));
       });

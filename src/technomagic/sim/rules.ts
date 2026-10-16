@@ -126,6 +126,18 @@ export const REFORM = 4;
 /** Running in: how long it takes (a hero can do nothing meanwhile). */
 export const ENTER = 1.1;
 
+/**
+ * A raid's start: the heroes run up to the boss together, two abreast, the frontline (its tanks first) leading, for this
+ * many seconds; then each fans out to where it stands. Nothing else happens meanwhile (the raid's time stands still),
+ * but skills can be reserved for when it is over. They set off this far behind where the frontline stands, each pair
+ * this far behind the pair in front.
+ */
+export const MARCH = 2;
+export const MARCH_FROM = 13;
+export const MARCH_ROW = 3;
+/** How far apart the two of a pair run. */
+export const MARCH_ABREAST = 3;
+
 /** With Boss auto on: the wait between the boss's attacks. The wait between a hero's attacks. */
 export const AUTO_WAIT = 1.1;
 export const HERO_WAIT = 0.45;

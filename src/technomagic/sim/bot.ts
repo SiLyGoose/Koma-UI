@@ -3,7 +3,7 @@ import type { Input } from './events';
 import { makeSim } from './fight';
 import { HEROES } from './heroes';
 import { perkStats, perksOf } from './perks';
-import { MOST, RAGE_WIPE, RAID_TIME, STAGES, TICK } from './rules';
+import { MARCH, MOST, RAGE_WIPE, RAID_TIME, STAGES, TICK } from './rules';
 import { SET_INFO } from './sets';
 import { MOST_SKILLS, SKILLS } from './skills';
 import { UNIQUE_HEROES, uniqueAbout } from './unique';
@@ -22,7 +22,7 @@ export const SIM_VERSION: string = VERSION;
 
 /** Seconds in a step, and the most steps a raid can take (the raid's time, and the boss's rage after it). */
 export const STEP_SECONDS: number = TICK;
-export const MOST_TICKS: number = Math.ceil((RAID_TIME + RAGE_WIPE) / TICK) + 1;
+export const MOST_TICKS: number = Math.ceil((MARCH + RAID_TIME + RAGE_WIPE) / TICK) + 1;
 /** The most inputs a raid is taken with (more than anyone presses in its time). */
 export const MOST_INPUTS = 20_000;
 export const MOST_STAGE: number = STAGES;

@@ -2,7 +2,7 @@ import { AnimationClip, AnimationMixer, LoopOnce, LoopRepeat, Quaternion, Vector
 import { retargeter } from '../../engine/retarget';
 import { lengthOf } from '../../engine/track';
 import { flowing, MOVES, type HeroMove } from '../moves';
-import { ENTER, heightOf, holdShield, RED, redden, type Hero, type Stood } from './hero';
+import { ENTER, heightOf, holdShield, RED, redden, runOf, type Hero, type Stood } from './hero';
 import { OWN_SPEED, SKILL_SPEED } from '../../sim/motion';
 import { posedHero, type Posing } from './posed';
 import { REST, type Pose } from './pose';
@@ -139,12 +139,15 @@ function animatedHero({ root, body, middle, models, rig, hips, feet, blade, muzz
     // Its own attack, or a skill of its own: which of its animations it is in, and how far in (in the animation's own time).
     | { what: 'own'; move: HeroMove; parts: typeof own; part: number; t: number }
     | null = null;
+  /** Running in: how long, and from how far back. */
+  let runIn = ENTER;
   // How its animations have it, kept while a move written in code has it otherwise.
   const animated = rig.keep();
 
   const hero: Hero = {
     root,
-    enter() {
+    enter(lasts) {
+      runIn = runOf(lasts);
       doing = { what: 'enter', t: 0 };
     },
     start(move) {
@@ -225,8 +228,8 @@ function animatedHero({ root, body, middle, models, rig, hips, feet, blade, muzz
         if (doing) {
           // Running in.
           doing.t += dt;
-          const k = Math.min(1, doing.t / ENTER.time);
-          ahead = ENTER.from * (1 - k) ** 1.6;
+          const k = Math.min(1, doing.t / runIn.time);
+          ahead = runIn.from * (1 - k) ** 1.6;
           show(k < 0.86 ? run : idle, 1.25);
           if (k >= 1) doing = null;
         } else {

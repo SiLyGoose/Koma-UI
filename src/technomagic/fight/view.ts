@@ -203,7 +203,7 @@ export function makeFightView({ scene, sim, bodies, boss, bossLook, bossFx, effe
             hero.root.position.set(fighter.x, 0, fighter.z);
             scene.add(hero.root);
             on.add(event.who);
-            hero.enter();
+            hero.enter(event.run);
             break;
           }
           case 'leave': {
