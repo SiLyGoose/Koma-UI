@@ -1,0 +1,27 @@
+<!-- The admin page (src/admin/page.ts): the bot's settings, by group, to change and save together. Swapped into #view by src/site/main.ts. -->
+<main class="admin-page">
+  <div class="admin-bar">
+    <h1 class="admin-title">Settings</h1>
+    <input id="search" class="admin-search" type="search" placeholder="Find a setting" aria-label="Find a setting" autocomplete="off" hidden />
+  </div>
+
+  <p id="status" class="status admin-status" hidden></p>
+  <p id="note" class="admin-note" role="status" hidden></p>
+
+  <div id="board" class="admin-board" hidden>
+    <!-- The groups (page.ts), to jump to; a dot on those with changes not saved yet. -->
+    <nav id="groups" class="admin-groups" aria-label="Groups"></nav>
+    <!-- A section per group, a row per setting (render.ts). -->
+    <div id="list" class="admin-list"></div>
+  </div>
+
+  <!-- The changes not saved yet, and saving or dropping them: shown while there are any. -->
+  <div id="savebar" class="admin-savebar" hidden>
+    <div class="admin-savebar-text">
+      <p id="pending" class="admin-pending"></p>
+      <p id="problem" class="admin-problem" hidden></p>
+    </div>
+    <button type="button" id="discard" class="action secondary">Discard</button>
+    <button type="button" id="save" class="action main">Save</button>
+  </div>
+</main>

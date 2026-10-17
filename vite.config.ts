@@ -51,8 +51,8 @@ function pictures(): Plugin {
 // The front page (log in, pick a server and a game) is index.html. Each game is served at
 // /games/<name>/: its page lives at games/<name>/index.html, and the build keeps that path
 // (dist/games/<name>/index.html), with the shared assets under /assets. The site's own pages (the front page,
-// /gear/, /heroes/, /forge/, /shop/ with its tabs, /dressing-room/ and /databank/ with its sections) are all index.html, which swaps between them
-// (src/site/main.ts; vercel.json sends /gear/, /heroes/, /forge/, /shop/…, /dressing-room/ and /databank/… there, and the old
+// /gear/, /heroes/, /forge/, /shop/ with its tabs, /dressing-room/, /databank/ with its sections and /admin/) are all index.html, which swaps between them
+// (src/site/main.ts; vercel.json sends /gear/, /heroes/, /forge/, /shop/…, /dressing-room/, /databank/… and /admin/ there, and the old
 // /banner/ to /shop/wish/).
 export default defineConfig({
   plugins: [transitionHead(), pictures()],

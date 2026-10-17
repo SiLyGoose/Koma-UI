@@ -21,6 +21,10 @@ player can see, so nothing in the page or its dev tools gives away where the min
   clear and the mines they have opened. No bet: a board cleared pays out between everyone who opened its tiles, by how many
   each opened, and more the faster it's cleared.
 
+- **Admin** (`/admin/`): the bot's settings (what `k!config` lists), for the bot admin only (the profile menu offers
+  it to them). Change any number of them, then Save: the bot checks them all, and the rules between them, and saves
+  all of them or none.
+
 ## How a player gets to a game
 
 Log in with Discord on the front page (the bot does the login, at `VITE_API_URL`), pick a server

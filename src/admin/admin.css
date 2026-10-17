@@ -1,0 +1,379 @@
+/*
+ * The admin page (page.ts): "Settings" and a search along the top; the groups down the left (along the top on phones),
+ * each with a dot while it has changes not saved; and a plaque for each group, a row for each setting: its name, what
+ * it does, its default and range on the left, its field on the right (under it on phones). A changed row has a blue
+ * edge; a row the bot turned down, its problem in red. The save bar floats at the bottom while there are changes.
+ */
+.admin-page {
+  /* The site header's height (../shared/ui/header/header.css): the groups stick under it. */
+  --header-h: 56px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 1160px;
+  margin: 0 auto;
+  /* Room at the bottom for the save bar. */
+  padding: 16px clamp(16px, 3vw, 40px) 120px;
+}
+
+@media (min-width: 768px) {
+  .admin-page {
+    --header-h: 72px;
+  }
+}
+
+.admin-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.admin-title {
+  flex: 1;
+  margin: 0;
+  color: var(--plaque-text);
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  text-shadow: 0 2px 6px rgb(0 0 0 / 50%);
+}
+
+.admin-search {
+  width: min(320px, 100%);
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--plaque-edge);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--text);
+  font-size: 15px;
+}
+
+.admin-search:focus-visible,
+.admin-input:focus-visible {
+  border-color: var(--sky);
+  outline: none;
+  box-shadow: 0 0 0 2px rgb(0 173 244 / 30%);
+}
+
+.admin-search[hidden],
+.admin-board[hidden],
+.admin-savebar[hidden] {
+  display: none;
+}
+
+.admin-status {
+  margin: 24px 0;
+}
+
+.admin-note {
+  margin: 0;
+  padding: 10px 14px;
+  border: 1px solid rgb(143 201 163 / 40%);
+  border-radius: 8px;
+  background: rgb(143 201 163 / 8%);
+  color: var(--green);
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.admin-board {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+
+/* The groups: a row to scroll sideways on phones, a column that stays in view on wider screens. */
+.admin-groups {
+  display: flex;
+  gap: 6px;
+  margin: 0 -16px;
+  padding: 2px 16px 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.admin-group-link {
+  position: relative;
+  flex: none;
+  padding: 7px 12px;
+  border: 1px solid var(--plaque-edge);
+  border-radius: 8px;
+  background: var(--plaque);
+  color: var(--petal);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.admin-group-link:hover {
+  border-color: var(--tint-edge);
+  color: var(--text);
+}
+
+.admin-group-link:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.admin-group-link[hidden] {
+  display: none;
+}
+
+/* Changes not saved in it. */
+.admin-group-link.changed::after {
+  content: '';
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--sky);
+}
+
+@media (min-width: 900px) {
+  .admin-board {
+    grid-template-columns: 180px minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .admin-groups {
+    position: sticky;
+    top: calc(var(--header-h) + 16px);
+    flex-direction: column;
+    max-height: calc(100dvh - var(--header-h) - 32px);
+    margin: 0;
+    padding: 0;
+    overflow-y: auto;
+  }
+}
+
+.admin-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.admin-group {
+  padding: 4px 18px 6px;
+  border: 1px solid var(--plaque-edge);
+  border-radius: var(--radius);
+  background: var(--plaque);
+  /* Clear of the sticky header when jumped to. */
+  scroll-margin-top: calc(var(--header-h) + 16px);
+}
+
+.admin-group[hidden],
+.admin-row[hidden] {
+  display: none;
+}
+
+.admin-group-title {
+  margin: 0;
+  padding: 12px 0 10px;
+  border-bottom: 1px solid var(--plaque-line);
+  color: var(--plaque-text);
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.admin-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+  margin: 0 -18px;
+  padding: 14px 18px;
+  border-top: 1px solid rgb(63 61 72 / 60%);
+}
+
+.admin-group-title + .admin-row {
+  border-top: 0;
+}
+
+@media (min-width: 640px) {
+  .admin-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 20px;
+    align-items: center;
+  }
+}
+
+/* Changed, not saved yet: a blue edge. */
+.admin-row.changed {
+  background: rgb(0 174 244 / 6%);
+  box-shadow: inset 3px 0 0 var(--sky);
+}
+
+.admin-row-text {
+  min-width: 0;
+}
+
+.admin-key {
+  color: var(--tint-text);
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-size: 13.5px;
+  overflow-wrap: anywhere;
+}
+
+.admin-desc,
+.admin-locked,
+.admin-facts,
+.admin-error {
+  margin: 4px 0 0;
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+
+.admin-desc {
+  color: var(--petal);
+}
+
+.admin-locked {
+  color: var(--gold);
+}
+
+.admin-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 14px;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+.admin-error {
+  color: var(--red);
+}
+
+.admin-field {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+@media (min-width: 640px) {
+  .admin-field {
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+  }
+}
+
+.admin-input-box {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.admin-input {
+  width: 150px;
+  min-height: 38px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--text);
+  font-size: 15px;
+}
+
+.admin-input.number {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The banner's dates, and anything else written out. */
+.admin-input:not(.number) {
+  width: 210px;
+}
+
+.admin-input[aria-invalid='true'] {
+  border-color: var(--red);
+}
+
+/* Can't be changed here (the prefix from the bot's .env). */
+.admin-input:disabled {
+  border-style: dashed;
+  background: transparent;
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.admin-unit {
+  width: 1ch;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.admin-color {
+  width: 38px;
+  height: 38px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  cursor: pointer;
+}
+
+.action.admin-use-default {
+  min-height: 34px;
+  padding: 0 12px;
+  font-size: 13px;
+}
+
+.action.admin-use-default[hidden] {
+  display: none;
+}
+
+.admin-empty {
+  margin: 24px 0;
+}
+
+.admin-empty[hidden] {
+  display: none;
+}
+
+/* The changes not saved: floating at the bottom, over the list. */
+.admin-savebar {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  left: 16px;
+  z-index: 15;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 12px;
+  align-items: center;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 12px 14px 12px 18px;
+  border: 1px solid var(--plaque-edge);
+  border-radius: var(--radius);
+  background: var(--plaque);
+  box-shadow:
+    inset 0 0 0 1px var(--plaque-line),
+    0 10px 30px rgb(0 0 0 / 55%);
+}
+
+.admin-savebar-text {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.admin-pending,
+.admin-problem {
+  margin: 0;
+  font-size: 14px;
+}
+
+.admin-pending {
+  color: var(--plaque-text);
+  font-weight: 600;
+}
+
+.admin-problem {
+  margin-top: 2px;
+  color: var(--red);
+}

@@ -112,6 +112,14 @@
     {
       "source": "/databank/:section/",
       "destination": "/index.html"
+    },
+    {
+      "source": "/admin",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/admin/",
+      "destination": "/index.html"
     }
   ]
 }

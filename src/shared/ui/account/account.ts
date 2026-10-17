@@ -73,6 +73,8 @@ const ICONS = {
     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-1.2 12.1a1 1 0 0 1-1 .9H7.2a1 1 0 0 1-1-.9z"/><path d="M8.5 10V7a3.5 3.5 0 0 1 7 0v3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
   databank:
     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5A2.5 2.5 0 0 1 7.5 1H20v17H7.5a1 1 0 0 0 0 2H20v3H7.5A4.5 4.5 0 0 1 3 18.5V5.5z"/><path d="M9 5.5h7v2H9z" fill="rgb(0 0 0 / 35%)"/></svg>',
+  admin:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5.5h8.2a3 3 0 0 1 5.6 0H21v2.5h-4.2a3 3 0 0 1-5.6 0H3zM3 16h2.2a3 3 0 0 1 5.6 0H21v2.5H10.8a3 3 0 0 1-5.6 0H3z"/></svg>',
   logout:
     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4v-2.4H6.4V6.4H10z"/><path d="M15.5 7.2 21 12l-5.5 4.8v-3.3H9.5v-3h6z"/></svg>',
 } as const;

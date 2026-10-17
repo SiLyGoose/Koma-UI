@@ -13,7 +13,8 @@ export type { Game, Me } from '../protocol/site';
  * fresh /api/me (the points shown there change as they play).
  */
 
-export type ApiResult<T> = { ok: true; data: T } | { ok: false; status: number; error: string };
+/** An error's `detail` is the rest of what the bot said with it (the admin page's invalid_setting has its `problems`). */
+export type ApiResult<T> = { ok: true; data: T } | { ok: false; status: number; error: string; detail?: Record<string, unknown> };
 
 const SERVER_KEY = 'koma.server';
 const STATE_KEY = 'koma.loginState';
@@ -96,7 +97,7 @@ async function ask<T>(path: string, init: RequestInit = {}): Promise<ApiResult<T
       headers: { 'Content-Type': 'application/json', ...(session ? { Authorization: `Bearer ${session}` } : {}), ...init.headers },
     });
     const body = (await res.json().catch(() => ({}))) as { error?: string };
-    return res.ok ? { ok: true, data: body as T } : { ok: false, status: res.status, error: body.error ?? 'failed' };
+    return res.ok ? { ok: true, data: body as T } : { ok: false, status: res.status, error: body.error ?? 'failed', detail: body };
   } catch {
     return { ok: false, status: 0, error: 'offline' };
   }
@@ -197,6 +198,8 @@ function renderHeader(): void {
     { label: 'Shop', icon: 'shop', href: '/shop/', className: 'site-nav-item' },
     { label: 'Databank', icon: 'databank', href: '/databank/', className: 'site-nav-item' },
     { label: 'My Servers', icon: 'servers', href: '/#play' },
+    // The bot's settings (../admin/), for the bot admin only.
+    ...(me.admin ? [{ label: 'Admin', icon: 'admin', href: '/admin/' } as const] : []),
     { label: 'Logout', icon: 'logout', onSelect: logOut },
   ]);
   ui.me.append(profile);

@@ -15,6 +15,7 @@ import '../hero-shop/hero-shop.css';
 import '../heroes/heroes.css';
 import '../raid-shop/raid-shop.css';
 import '../shop/shop.css';
+import '../admin/admin.css';
 import { backdrop, siteHeader } from '../shared/ui';
 import { installCursor } from '../shared/cursor';
 import { installClickSounds } from '../shared/audio';
@@ -25,7 +26,7 @@ import type { Page } from './page';
 import { hasSession } from './session';
 
 /*
- * The site's pages (the front page, gear, the forge, the shop, the dressing room, the databank) as one document: moving between them swaps the
+ * The site's pages (the front page, gear, the forge, the shop, the dressing room, the databank, the admin page) as one document: moving between them swaps the
  * page under the header, through the transition's wipe (../shared/transition/), instead of loading a
  * new document, so the header, the login and the rest stay (./session.ts), and back and forward get the
  * wipe too (right to left going back). The games are pages of their own.
@@ -57,6 +58,7 @@ const ROUTES: readonly Route[] = [
   { path: '/shop', needsLogin: true, subpaths: true, page: () => import('../shop/page').then((m) => m.shopPage) },
   { path: '/dressing-room', needsLogin: true, page: () => import('../dressing/page').then((m) => m.dressingPage) },
   { path: '/databank', subpaths: true, page: () => import('../databank/page').then((m) => m.databankPage) },
+  { path: '/admin', needsLogin: true, page: () => import('../admin/page').then((m) => m.adminPage) },
 ];
 
 /** The address last opened as a new document because its page's module couldn't be read (reloadOnce). */
