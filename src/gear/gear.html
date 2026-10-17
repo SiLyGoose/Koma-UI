@@ -54,8 +54,8 @@
       </div>
       <!-- What the panel beside the character shows: their stats, or their gear. -->
       <div class="hero-tabs" role="tablist" aria-label="Show">
-        <button type="button" class="action choice" role="tab" data-view="common" aria-selected="false" aria-controls="stats">Common</button>
-        <button type="button" class="action choice" role="tab" data-view="gear" aria-selected="true" aria-controls="armory">Gear</button>
+        <button type="button" class="action choice" role="tab" data-view="common" aria-selected="true" aria-controls="stats">Common</button>
+        <button type="button" class="action choice" role="tab" data-view="gear" aria-selected="false" aria-controls="armory">Gear</button>
       </div>
     </div>
 
@@ -63,7 +63,7 @@
     <div id="detail" class="detail" role="dialog" aria-label="Item" hidden></div>
 
     <!-- The armory: every copy they own, on parchment. -->
-    <div id="armory" class="armory" role="tabpanel">
+    <div id="armory" class="armory off" role="tabpanel">
       <div class="armory-plaque plaque"><span id="armory-title">Armory</span></div>
       <!-- The search, and the Filter beside it (src/shared/items/armory-filter/ fills it in). -->
       <div class="armory-tools">
@@ -95,7 +95,7 @@
     </dialog>
 
     <!-- Common: every number their gear can change, with and without it, raid stats last. -->
-    <div id="stats" class="armory stats off" role="tabpanel">
+    <div id="stats" class="armory stats" role="tabpanel">
       <div class="armory-plaque plaque"><span id="stats-title">Stats</span></div>
       <div class="armory-sheet">
         <div class="sheet-scroll">

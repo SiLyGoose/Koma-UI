@@ -1,4 +1,4 @@
-import { armoryFilter, armoryGrid, type ArmoryFilter, type ArmoryGrid, type GearCopy, type GearView, type Slot, type StarChoice } from '../../shared/items';
+import { armoryFilter, armoryGrid, type ArmoryFilter, type ArmoryGrid, type GearCopy, type GearView, type Slot, type StarChoice, type TmSort } from '../../shared/items';
 import type { Busy } from '../../shared/ui';
 import type { GearHost, Member } from './types';
 
@@ -50,6 +50,8 @@ export interface GearContext {
   stars: StarChoice;
   /** The armory shows gear only heroes wear (TechnoMagic gear, unique weapons) too: off until its Filter turns it on (or picks their tier). */
   heroGear: boolean;
+  /** How the armory sorts TechnoMagic gear (its Filter's Sort): by a main stat or a potential, or in its own order. */
+  sort: TmSort;
   /** What the armory's search asks for (trimmed and lowercased): every word in a card's name or description (../../shared/items/search.ts). */
   query: string;
   /** What the panel beside the character shows. */
@@ -113,8 +115,9 @@ export function createContext(root: HTMLElement, host: GearHost): GearContext {
     filter: 'all',
     stars: 'all',
     heroGear: false,
+    sort: 'default',
     query: '',
-    view: 'gear',
+    view: 'common',
     picked: null,
     busy: null,
     members,
