@@ -9,8 +9,16 @@ import { sound } from './sfx';
  */
 
 const SFX = (file: string): string => `${import.meta.env.BASE_URL}shared/sfx/${file}.mp3`;
-const select = sound(SFX('generic_select'));
+let select = sound(SFX('generic_select'));
+/** How loud the click plays (a share of the shared volume). */
+let selectVolume = 1;
 const loaded = sound(SFX('generic_select_load'));
+
+/** A page's own click sound in place of generic_select (the TechnoMagic Raid's, King's Raid's own), and how loud it plays. */
+export function setClickSound(url: string, volume = 1): void {
+  select = sound(url);
+  selectVolume = volume;
+}
 
 /** What counts as pressable. (Not a label: its click is passed on to its field, which counts once.) */
 const PRESSABLE = 'button, a[href], summary, select, input:is([type="checkbox"], [type="radio"], [type="button"], [type="submit"]), [role="button"], [role="tab"], [role="menuitem"], [role="option"], [role="radio"]';
@@ -27,7 +35,7 @@ export function installClickSounds(): void {
       const target = (event.target as Element | null)?.closest?.(PRESSABLE);
       if (!target || target.closest('[data-sfx="own"]')) return;
       if ((target as HTMLButtonElement).disabled || target.getAttribute('aria-disabled') === 'true') return;
-      select();
+      select(selectVolume);
     },
     true,
   );

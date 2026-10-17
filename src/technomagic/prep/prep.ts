@@ -10,6 +10,7 @@ import { nearer } from '../sim/heroes/kit';
 import { el } from '../hud/dom';
 import { movePopup } from './move';
 import { nameTips } from '../hud/tip';
+import { play } from '../sfx';
 import type { PickView, PlayerView, RoomState } from '../../protocol/technomagic';
 
 /*
@@ -175,7 +176,12 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
   const bossName = byId('prep-boss');
 
   ready.addEventListener('click', () => act.ready(ready.getAttribute('aria-pressed') !== 'true'));
-  start.addEventListener('click', () => act.begin());
+  // Start Battle has its own sound (../sfx.ts), not the plain click's.
+  start.dataset.sfx = 'own';
+  start.addEventListener('click', () => {
+    play('start');
+    act.begin();
+  });
   // Raid Settings: the stage stepped between the arrows, and taken on Confirm (only the host's).
   const closeSettings = (): void => {
     settings.root.hidden = true;

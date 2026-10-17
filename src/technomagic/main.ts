@@ -36,6 +36,7 @@ import { makeTimer } from './hud/timer';
 import { makePrep } from './prep/prep';
 import { managePopup } from './manage/popup';
 import { makeResult } from './result';
+import { installSounds } from './sfx';
 import type { AnswerCode, ClientMessage, ErrorCode, FightStart, OverView, RoomState, ServerMessage, TurnInput } from '../protocol/technomagic';
 import { HERO_TURN, makeSim, SECTION, SECTIONS, SIM_VERSION, TICK, type Input, type Sim } from './sim';
 import { setBuff } from './sim/sets';
@@ -166,6 +167,7 @@ const hint = document.getElementById('hint') as HTMLElement;
 const results = makeResult(document.getElementById('result') as HTMLElement);
 
 soundButton('technomagic-muted', setMuted);
+installSounds();
 
 /** What pressing a card does (trying things out: the sim directly; in a room: told to the bot), and whose cards are shown. */
 interface Controls {

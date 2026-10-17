@@ -4,4 +4,4 @@
  */
 
 export { notes, setMuted, sound, track, type Stop } from './sfx';
-export { installClickSounds, playLoaded } from './ui-sfx';
+export { installClickSounds, playLoaded, setClickSound } from './ui-sfx';
