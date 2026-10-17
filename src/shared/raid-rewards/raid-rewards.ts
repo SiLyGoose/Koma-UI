@@ -28,7 +28,7 @@ const image = (src: string): HTMLImageElement => {
 const icon = (reward: RaidReward): [HTMLElement, string, string] => {
   switch (reward.kind) {
     case 'points':
-      return [coin('raid-reward-art', ''), 'Zeiucoins', 'points'];
+      return [coin('raid-reward-art', ''), 'zeiucoins', 'points'];
     case 'essence':
       return reward.id === null
         ? [el('span', 'raid-reward-any', '?'), 'Any essence', 'essence']

@@ -1,5 +1,5 @@
 /** The bot's currency, :zeiucoin:, to go after an amount. */
-export function coin(className = 'coin', alt = 'zeiucoin'): HTMLImageElement {
+export function coin(className = 'coin', alt = 'zeiucoins'): HTMLImageElement {
   const img = document.createElement('img');
   img.src = `${import.meta.env.BASE_URL}shared/zeiucoin.png`;
   img.alt = alt;

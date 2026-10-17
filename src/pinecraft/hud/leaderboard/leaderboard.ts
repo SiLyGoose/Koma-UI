@@ -3,7 +3,7 @@ import './leaderboard.css';
 /*
  * Pinecraft's leaderboard: a 🏆 chip in the stats bar that opens a popup of the server's best
  * miners (the bot's /api/pinecraft/leaderboard), with a header to switch between blocks mined and
- * coins earned, both all told. The one asking is marked, and shown at the bottom when
+ * zeiucoins earned, both all told. The one asking is marked, and shown at the bottom when
  * they aren't in the top 10.
  */
 
@@ -27,7 +27,7 @@ export interface LeaderboardOptions {
 
 const TABS: { stat: Stat; label: string }[] = [
   { stat: 'dug', label: 'Blocks mined' },
-  { stat: 'earned', label: 'Coins earned' },
+  { stat: 'earned', label: 'Zeiucoins earned' },
 ];
 const MEDALS = ['🥇', '🥈', '🥉'];
 const STAT_KEY = 'pinecraft.leaderboard';
@@ -44,7 +44,7 @@ const points = (n: number): string => n.toLocaleString('en-US');
 function coin(): HTMLImageElement {
   const img = el('img', 'lb-coin');
   img.src = `${import.meta.env.BASE_URL}shared/zeiucoin.png`;
-  img.alt = 'coins';
+  img.alt = 'zeiucoins';
   return img;
 }
 

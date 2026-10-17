@@ -142,7 +142,7 @@ export function makeResult(root: HTMLElement): Result {
     const face = el('span', 'tm-points-face');
     // (Only the coin: how many is under it.)
     face.append(coin('tm-points-coin', 'zeiucoins'));
-    tile.append(face, el('span', 'tm-tile-name', `${points(amount)} coins`));
+    tile.append(face, el('span', 'tm-tile-name', `×${points(amount)} zeiucoins`));
     return tile;
   }
 

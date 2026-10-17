@@ -23,7 +23,7 @@ export function renderResult(v: RaidView): void {
   const reward: (Node | string)[] = o.rewardText
     ? [' Everyone who fought gets ', ...markdown(o.rewardText, v.names)]
     : o.reward
-      ? [` Everyone who fought gets ${fmt(o.reward.points)} points${o.reward.tokens ? `, ${plural(o.reward.tokens, 'token', 'tokens')}` : ''}${o.reward.gems ? ` and ${plural(o.reward.gems, 'komaGem', 'komaGems')}` : ''}`]
+      ? [` Everyone who fought gets ${fmt(o.reward.points)} zeiucoins${o.reward.tokens ? `, ${plural(o.reward.tokens, 'token', 'tokens')}` : ''}${o.reward.gems ? ` and ${plural(o.reward.gems, 'komaGem', 'komaGems')}` : ''}`]
       : [];
   ui.resultText.replaceChildren(
     ...(won

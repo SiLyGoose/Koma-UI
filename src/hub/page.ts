@@ -107,7 +107,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
       name.textContent = s.name;
       const balance = document.createElement('span');
       balance.className = 'server-balance';
-      balance.textContent = `${points(s.balance)} pts`;
+      balance.textContent = `${points(s.balance)} zeiucoins`;
       button.append(icon, name, balance);
       button.addEventListener('click', () => {
         setServer(s.id);
