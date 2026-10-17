@@ -181,11 +181,11 @@ function renderStatus(v: RaidView): void {
   } else if (v.idle?.week === 'busy') {
     ui.prepStatus.textContent = 'A raid is starting in Discord. It will show up here in a moment.';
   } else if (v.idle?.canStart) {
-    ui.prepStatus.textContent = `${last}Join to start a raid against this week's boss: its lobby goes up in the server, and everyone can join, here or in Discord. Raid as often as you like; the boss changes ${reset}.`;
+    ui.prepStatus.textContent = `${last}Join to start a Weekly Boss fight against this week's boss: its lobby goes up in the server, and everyone can join, here or in Discord. Fight it as often as you like (only your first win of the week pays); the boss changes ${reset}.`;
     ui.start.hidden = false;
     unfought = true;
   } else {
-    ui.prepStatus.textContent = `${last}This server has no bot channel, so start a raid in Discord with the raid command, then join it here. Raid as often as you like; the boss changes ${reset}.`;
+    ui.prepStatus.textContent = `${last}This server has no bot channel, so start a raid in Discord with the raid command, then join it here. Fight it as often as you like (only your first win of the week pays); the boss changes ${reset}.`;
     unfought = true;
   }
   // On a phone, that line isn't across the top: it comes up first, over the party screen (../styles/prep-party.css).

@@ -72,6 +72,14 @@
   filter: drop-shadow(0 0 2px rgb(120 190 255 / 90%));
 }
 
+/* Gear of whichever class (a set's pieces, in a raid's rewards: ../../../hub/raid-list.ts): a "?" in the tab, as a class's symbol is drawn. */
+.item-tm-any {
+  font-size: max(11px, 19cqi);
+  font-weight: 800;
+  line-height: 1;
+  text-shadow: 0 0 3px rgb(120 190 255 / 90%);
+}
+
 /* TechnoMagic gear's tier, where others show their stars (the filters, the databank's lists and its item panel): "TM", as its tab. */
 .tm-tier {
   display: inline-block;

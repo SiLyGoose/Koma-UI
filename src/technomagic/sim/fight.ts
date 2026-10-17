@@ -686,7 +686,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       // then far harder, by its crit chance and what its passive and what is on it add; and through its penetration, and the blow's own.
       const { attack, crit } = by.def.passive ?? NO_PASSIVE;
       const { atk, deals: type, crit: points, pen } = by.stats;
-      const critical = roll() < share(points + auras.crit + critTaking(foe.statuses, type)) + crit + critting(by.statuses);
+      const critical = roll() < share(points + auras.crit + critTaking(foe.statuses, type) - (foe.part.critResist ?? 0)) + crit + critting(by.statuses);
       // (Its additional skills' DMG, and every Whetstone on the field's crit DMG, and what is on it adds: Seria's Cold-Blooded Witch.)
       // (And its Concentration: more for every so many seconds of the fight.)
       const focus = by.perkDefs.find((perk) => perk.focus)?.focus;
@@ -742,7 +742,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       }
       if (counted) {
         for (const fighter of fighters) fighter.part.struck?.(by);
-        foe.part.struck?.(by, dealt);
+        foe.part.struck?.(by, dealt, critical);
         by.part.blow?.(attacking !== by);
       }
       // Kirze's unique weapon: now and then a blow of hers (her attack's or a skill's) deals more, twice over against the boss.
@@ -902,10 +902,14 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     },
     stun(seconds, { down = false, by } = {}) {
       // (A hero's: the shorter for the boss's CC resist, less what the hero's accuracy sees past.)
-      const lasts = seconds * (by ? (by.def.passive?.control ?? 1) * by.controlTimes * (1 - share(soft(Math.max(0, foe.def.stats.resist + resisting(foe.statuses)), SOFT.resist) - soft(by.accuracy + auras.accuracy + accurate(by.statuses), SOFT.acc))) : 1);
+      const held = seconds * (by ? (by.def.passive?.control ?? 1) * by.controlTimes * (1 - share(soft(Math.max(0, foe.def.stats.resist + resisting(foe.statuses)), SOFT.resist) - soft(by.accuracy + auras.accuracy + accurate(by.statuses), SOFT.acc))) : 1);
+      // (A boss with a CC gauge takes it off that instead: only once it is empty is it held, knocked down. Not as it is beaten.)
+      const taken = foe.part.controlled && foe.hp > 0 ? foe.part.controlled(held, down) : { seconds: held, down };
+      if (!taken || taken.seconds <= 0) return;
+      const lasts = taken.seconds;
       going.clear();
       foe.stunned = Math.max(foe.stunned, lasts);
-      events.push({ kind: 'boss-daze', seconds: lasts, down });
+      events.push({ kind: 'boss-daze', seconds: lasts, down: taken.down });
     },
     slow(points, seconds) {
       // (A boss nothing slows shrugs it off.)

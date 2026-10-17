@@ -88,8 +88,6 @@
 .tm-points-face {
   display: grid;
   place-items: center;
-  align-content: center;
-  gap: 4px;
   width: 100%;
   aspect-ratio: 1;
   box-sizing: border-box;
@@ -99,16 +97,23 @@
   box-shadow: inset 0 0 14px 4px rgb(216 191 122 / 25%);
 }
 
+/* The tile is the coin alone: how many is said under it. */
 .tm-points-coin {
-  width: 46%;
+  width: 64%;
   height: auto;
 }
 
-.tm-points-amount {
-  color: var(--gold);
-  font-size: 17px;
-  font-weight: 800;
-  line-height: 1;
+/* An essence's tile is its picture, edge to edge. */
+.tm-essence-face {
+  overflow: hidden;
+  background: var(--plaque);
+  box-shadow: none;
+}
+
+.tm-essence-art {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 /* Everyone else's: a row each, their name and their pieces, smaller. */

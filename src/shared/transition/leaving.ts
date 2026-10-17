@@ -18,10 +18,13 @@ export const page = { leaving: false };
 /** A page's path without its trailing slash (/gear/ and /gear are the same page), as transition/head.js compares them. */
 const pagePath = (path: string): string => path.replace(/\/+$/, '');
 
-/** Whether going to `url` gets a transition: another page (a game on another site too, from a game link). */
-function goesThrough(url: URL): boolean {
+/**
+ * Whether going to `url` gets a transition: another page (a game on another site too, from a game link). With
+ * `again`, this page too, at another address (another boss in the same raid, say).
+ */
+function goesThrough(url: URL, again = false): boolean {
   const to = pagePath(url.pathname);
-  if (url.origin === location.origin) return to !== pagePath(location.pathname);
+  if (url.origin === location.origin) return to !== pagePath(location.pathname) || (again && url.search !== location.search);
   return /^\/games\/[^/]+$/.test(to);
 }
 
@@ -34,11 +37,12 @@ export function remember(pending: Pending): void {
 }
 
 /**
- * Wipes the loading screen over this page, fetches where it's going meanwhile, then goes there. `to` can take a
- * while to say where (navigateAfter()): the loading screen stays up as it does. Nowhere (null) wipes it off again
- * and stays on this page: false.
+ * Wipes the loading screen over this page, fetches where it's going meanwhile, then goes there (`replace`: in this
+ * page's place in the history). `to` can take a while to say where (navigateAfter()): the loading screen stays up as
+ * it does. Nowhere (null) wipes it off again and stays on this page: false.
  */
-async function leave(to: URL | Promise<URL | null>, dir: Direction): Promise<boolean> {
+async function leave(to: URL | Promise<URL | null>, dir: Direction, replace = false): Promise<boolean> {
+  const go = (url: URL): void => (replace ? location.replace(url.href) : location.assign(url.href));
   page.leaving = true;
   wipeOn(dir);
   const coverAt = Date.now() + WIPE_MS;
@@ -51,8 +55,8 @@ async function leave(to: URL | Promise<URL | null>, dir: Direction): Promise<boo
     return false;
   }
   // Somewhere with no transition of its own: straight there, from under the loading screen.
-  if (!goesThrough(url)) {
-    location.href = url.href;
+  if (!goesThrough(url, replace)) {
+    go(url);
     return true;
   }
   const pending = { to: pagePath(url.pathname), dir, at: Date.now(), sprite: shownSprite() } satisfies Pending;
@@ -71,22 +75,24 @@ async function leave(to: URL | Promise<URL | null>, dir: Direction): Promise<boo
   // The loading screen shows at least LOAD_MS, counted from when it covered the page (so not again after a wait for `to`).
   await Promise.all([wait(coverAt + LOAD_MS - Date.now()), Promise.race([fetched, wait(MAX_FETCH_MS)])]);
   remember({ ...pending, at: Date.now() });
-  location.href = url.href;
+  go(url);
   return true;
 }
 
 /**
  * Sends the browser to `href`, through a transition when there is one for it. For code that goes
- * somewhere by itself (links go through one on their own). `back` runs it right to left.
+ * somewhere by itself (links go through one on their own). `back` runs it right to left; `replace` takes
+ * this page's place in the history, and goes through a transition to this same page at another address too.
  */
-export function navigate(href: string, options: { back?: boolean } = {}): void {
+export function navigate(href: string, options: { back?: boolean; replace?: boolean } = {}): void {
   const url = new URL(href, location.href);
   if (page.leaving) return;
-  if (!goesThrough(url) || lessMotion()) {
-    location.href = url.href;
+  if (!goesThrough(url, options.replace) || lessMotion()) {
+    if (options.replace) location.replace(url.href);
+    else location.href = url.href;
     return;
   }
-  void leave(url, options.back ? 'back' : 'forward');
+  void leave(url, options.back ? 'back' : 'forward', options.replace);
 }
 
 /**

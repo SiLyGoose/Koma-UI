@@ -98,13 +98,23 @@ export function stars(n: number): HTMLElement {
 
 /**
  * TechnoMagic gear's marks, as King's Raid draws its TM gear: a "TM" tab over its top left corner, and over its
- * top right one a tab with its class's symbol (none for gear of no class). Its card is otherwise as any other's,
- * its border gold (styles/tm.css, for a card with these in it).
+ * top right one a tab with its class's symbol (none for gear of no class; a "?" for ANY_CLASS: a set's pieces, whichever
+ * class's comes). Its card is otherwise as any other's, its border gold (styles/tm.css, for a card with these in it).
  */
+/** TechnoMagic gear of whichever class (a set's pieces, as a raid's rewards say them): its class tab says "?". */
+export const ANY_CLASS = '?';
+
 export function tmMarks(itemClass: string | null | undefined): HTMLElement[] {
   const tag = el('span', 'item-tm', 'TM');
   tag.setAttribute('aria-label', 'TechnoMagic gear');
   if (!itemClass) return [tag];
+  if (itemClass === ANY_CLASS) {
+    const any = el('span', 'item-tm-class');
+    any.title = 'Any class';
+    any.setAttribute('aria-label', any.title);
+    any.append(el('span', 'item-tm-any', '?'));
+    return [tag, any];
+  }
   const tab = el('span', 'item-tm-class');
   tab.title = `${itemClass[0]?.toUpperCase()}${itemClass.slice(1)} only`;
   tab.setAttribute('aria-label', tab.title);

@@ -3,13 +3,14 @@ import '../shared/ui/button/button.css';
 import { barSlot, setConn, soundButton } from '../shared/ui/frame/frame';
 import { setMuted } from '../shared/audio';
 import { gameSocket, server, showMessage, single, token, watching, type GameSocket } from '../shared/game';
-import { apiFromSocket, chatBox, startLive } from '../shared/ui';
+import { apiFromSocket, chatBox, startLive, store } from '../shared/ui';
 import { navigate } from '../shared/transition';
 import { Group, Vector3 } from 'three';
 import { artPicture } from './art';
 import { built } from '../shared/built';
 import { portraitPicture, type SkinAssets } from './assets';
-import { bossNamed } from './sim/bosses';
+import { bossNamed, DRAGONS, TM_BOSSES } from './sim/bosses';
+import type { BossDef } from './sim/bosses/boss';
 import { BOSS_VIEWS } from './bosses/models';
 import { makeStage } from './engine/stage';
 import { Ahead } from './fight/ahead';
@@ -48,8 +49,9 @@ import './technomagic.css';
  * this page draws it (fight/view.ts) and tells it what the players do.
  *
  * Opened from Discord or the front page (the link carries the player's token and the bot's WebSocket, after
- * the #), it is the server's room, played together as in King's Raid (../protocol/technomagic.ts), or (single player,
- * picked on the front page) a room of the player's own. Getting ready (prep/):
+ * the #), it is a raid of the server's, played together as in King's Raid (../protocol/technomagic.ts): the one the address
+ * names (?room=, its id; `new`: one to create, put in the address once the bot says its id, so a reload comes back to it),
+ * else an open one against the boss; or (single player, picked on the front page) a room of the player's own. Getting ready (prep/):
  * everyone puts heroes of theirs into the lineup and the host starts the fight. The fight is run by the bot,
  * and this page runs the same one from the same seed with everyone's presses as the bot relays them, never
  * going past the step the bot has reached (a step or two behind it, so it never has to wait). Each player
@@ -63,6 +65,10 @@ import './technomagic.css';
  * set the boss attacking (or Boss auto), and the raid's stage (?stage=) is picked there. With Deathless (on to
  * start with) no one falls, so moves and what they deal can be tried for as long as it takes; with Unique weapons
  * every hero wields its own (at its fifth tier), drawn with it. ?boss= picks the boss.
+ *
+ * The Dragon Raid (King's Raid's dragons, the raid heroes farm for gear and essences) is this page too, at games/dragon/
+ * (its #app says `data-raid="dragon"`): its own socket, and the dragon named in the address (?boss=, else the last one
+ * played here), switched between on the prep screen (the host bringing the raid along, or anyone going alone: prep/move.ts).
  *
  * Its parts: assets/ names the files (by hero, boss and effect); engine/ loads the models, poses their
  * bones and draws the field; heroes/ and bosses/ are who stands on it, a folder each; combat/ is how a
@@ -85,12 +91,51 @@ const WHEEL_STEP = 50;
 const LAG = 4;
 const HURRY = 10;
 const JUMP = 90;
+/**
+ * A fight over: how long the boss is seen beaten (or the party fallen) before what it gave is shown; and, the bot saying it
+ * was won while this page's fight has the boss still standing (it fell behind, or parted from the bot's), how long its
+ * health takes to drain to nothing first, so it is never shown won with health left.
+ */
+const OVER_WAIT = 2;
+const DRAIN = 0.5;
+
+/** Which raid this page is (its #app's data-raid): the TechnoMagic Raid's, or the Dragon Raid's; its name; and its bosses. */
+const DRAGON = (document.getElementById('app') as HTMLElement).dataset.raid === 'dragon';
+const RAID_NAME = DRAGON ? 'Dragon Raid' : 'TechnoMagic Raid';
+const RAID_BOSSES: readonly BossDef[] = DRAGON ? DRAGONS : TM_BOSSES;
+/** The dragon last played here (this browser's), fought when the address names none. */
+const DRAGON_KEY = 'dragon-raid-boss';
+
+/**
+ * The boss this page is against: the one the address names (?boss=, one of this raid's), else (the Dragon Raid's) the
+ * one last played here, else the raid's first. Trying things out, any boss may be named.
+ */
+function bossOfPage(params: URLSearchParams, trying: boolean): BossDef {
+  const named = params.get('boss');
+  const asked = named ? bossNamed(named) : null;
+  if (asked && (trying || RAID_BOSSES.includes(asked))) return asked;
+  const last = DRAGON ? RAID_BOSSES.find((boss) => boss.id === store.get(localStorage, DRAGON_KEY)) : undefined;
+  return last ?? (RAID_BOSSES[0] as BossDef);
+}
+
+/**
+ * This page again against another boss (the raid's, or another dragon's), its link kept (after the #), in the same raid
+ * or (`room`) another (`new`: one to create): under the site's loading screen (../shared/transition/), so the page
+ * reloading never shows bare.
+ */
+function goToBoss(id: string, room?: string): void {
+  const address = new URL(location.href);
+  address.searchParams.set('boss', id);
+  if (room) address.searchParams.set('room', room);
+  navigate(address.href, { replace: true });
+}
 
 const ERRORS: Record<ErrorCode, [string, string]> = {
-  bad_token: ['This link has run out', 'Open the TechnoMagic Raid again from the games page or from Discord for a new one.'],
+  bad_token: ['This link has run out', `Open the ${RAID_NAME} again from the games page or from Discord for a new one.`],
   replaced: ['Opened somewhere else', 'The raid is open in another tab or window. Only one can play at a time.'],
   bad_message: ['Disconnected', 'The bot could not understand this page. Try reloading.'],
-  full: ['The room is full', 'As many people as can are already in this server’s room. Try again once a fight is over.'],
+  full: ['The raid is full', 'As many people as can are already in this raid. Find or create another from the games page.'],
+  gone: ['This raid is over', 'Everyone has left it. Find or create another from the games page.'],
 };
 
 const ANSWERS: Record<AnswerCode, string> = {
@@ -150,11 +195,12 @@ async function start(): Promise<void> {
   // Watching isn't playing: nothing to read.
   if (watching) {
     setConn('Not watchable', 'bad');
-    showMessage('The raid isn’t watched', 'Open the TechnoMagic Raid from the games page to join the room instead.');
+    showMessage('The raid isn’t watched', `Open the ${RAID_NAME} from the games page to join the room instead.`);
     return;
   }
   const params = new URLSearchParams(location.search);
-  const def = bossNamed(params.get('boss'));
+  const def = bossOfPage(params, !(token && server));
+  if (DRAGON) store.set(localStorage, DRAGON_KEY, def.id);
   const bossView = BOSS_VIEWS[def.id];
   if (!bossView) throw new Error(`${def.name} has no body`);
   const stageNumber = Math.min(STAGES, Math.max(1, Math.floor(Number(params.get('stage'))) || 1));
@@ -402,7 +448,7 @@ async function start(): Promise<void> {
     onOver = (sim) =>
       results.show({
         title: sim.result === 'won' ? 'Victory' : 'Defeat',
-        text: sim.result === 'won' ? 'Galgoria is beaten.' : 'Your heroes fell.',
+        text: sim.result === 'won' ? `${def.name} is beaten.` : 'Your heroes fell.',
         points: 0,
         mine: [],
         others: [],
@@ -424,7 +470,7 @@ async function start(): Promise<void> {
 
   function room(link: string, address: string): void {
     actionsRow.hidden = true;
-    hint.textContent = 'Each player uses their own heroes’ skills from their cards (or Auto, top left); everyone’s heroes are on the field (single player, the Sub Team fights on Auto, with no cards). Heroes that fall stay down: beat Galgoria before its rage wipes the party.';
+    hint.textContent = `Each player uses their own heroes’ skills from their cards (or Auto, top left); everyone’s heroes are on the field (single player, the Sub Team fights on Auto, with no cards). Heroes that fall stay down: beat ${def.name} before its rage wipes the party.${DRAGON ? ' Your heroes’ stuns wear its CC Gauge down: empty, it is knocked down, and takes more damage.' : ''}`;
     let socket: GameSocket<ClientMessage> | null = null;
     let state: RoomState | null = null;
     let lock: Lock | null = null;
@@ -443,7 +489,20 @@ async function start(): Promise<void> {
       ready: (on) => send({ t: 'ready', on }),
       stage: (n) => send({ t: 'stage', stage: n }),
       begin: () => send({ t: 'begin' }),
-    });
+      // Another dragon: the raid taken against it (the page goes once the bot says so), or this page again alone, in a
+      // room of their own against it (single player) or out of the raid into a new one.
+      boss: (id, bring) => {
+        if (id === def.id) return;
+        if (bring) {
+          send({ t: 'boss', boss: id });
+          return;
+        }
+        if (state?.solo) return goToBoss(id);
+        send({ t: 'part' });
+        socket?.finish();
+        goToBoss(id, 'new');
+      },
+    }, def);
     const chat = chatBox({ mount: prep.chat, send, you: () => state?.you ?? null });
     // Manage: the heroes page over the room, not the site's (which would take them out of it). A button in place of
     // the link: the page's links are caught before anything on them hears the click (../shared/transition/).
@@ -585,10 +644,22 @@ async function start(): Promise<void> {
         }
         case 'room': {
           state = message.state;
+          // A raid just created (or found): its id in the address, so a reload comes back to it.
+          if (state.room && state.room !== wantedRoom) {
+            wantedRoom = state.room;
+            const address = new URL(location.href);
+            address.searchParams.set('room', state.room);
+            history.replaceState(history.state, '', address);
+          }
           if (state.version !== SIM_VERSION) {
             socket?.finish();
             showMessage('This page is out of date', 'The raid has changed since this page was opened. Reload it to play.');
             return;
+          }
+          // In another boss's room than this page's (one this raid hasn't): this page again, against that one.
+          if (state.boss.id !== def.id) {
+            socket?.finish();
+            return goToBoss(state.boss.id);
           }
           // The lineup's heroes read meanwhile, each in its skin (once), so they're in when the fight begins.
           for (const pick of state.lineup) {
@@ -641,17 +712,22 @@ async function start(): Promise<void> {
       const you = state?.you ?? '';
       const mine = over.drops[you] ?? [];
       const paid = over.points[you] ?? 0;
+      const essences = over.essences?.[you] ?? {};
       const others = Object.entries(over.drops).flatMap(([who, drops]) => (who !== you && drops.length > 0 ? [{ who: name(who), drops }] : []));
       const text =
         over.result === 'won'
           ? mine.length > 0 || paid > 0
-            ? 'Found in the swamp:'
+            ? DRAGON
+              ? `Found in ${def.name}’s lair:`
+              : 'Found in the swamp:'
             : 'Nothing was found this time.'
           : 'The party fell. Gear your heroes up on the Heroes page and try again.';
       results.show({
         title: over.result === 'won' ? 'Victory' : 'Defeat',
         text,
         points: paid,
+        essences,
+        raid: DRAGON ? 'dragon' : 'technomagic',
         mine,
         others,
         actions: [
@@ -674,7 +750,10 @@ async function start(): Promise<void> {
     };
     overWaiting = () => (state?.phase === 'over' && state.over ? state.over : null);
 
-    socket = gameSocket<ServerMessage, ClientMessage>({ server: address, hello: () => (single ? { t: 'hello', token: link, single } : { t: 'hello', token: link }), receive });
+    // The raid the address names (?room=), one to create (`new`), or (none) an open one against the boss.
+    let wantedRoom = new URLSearchParams(location.search).get('room');
+    const where = (): Pick<Extract<ClientMessage, { t: 'hello' }>, 'room' | 'create'> => (single || !wantedRoom ? {} : wantedRoom === 'new' ? { create: true } : { room: wantedRoom });
+    socket = gameSocket<ServerMessage, ClientMessage>({ server: address, hello: () => ({ t: 'hello', token: link, ...(single && { single }), boss: def.id, ...where() }), receive });
     startLive({ mount: barSlot(), api: apiFromSocket(address), auth: () => `Game ${link}`, newTab: true });
   }
 
@@ -683,6 +762,8 @@ async function start(): Promise<void> {
   let onOver: (sim: Sim) => void = () => {};
   let overWaiting: () => OverView | null = () => null;
   let overShown: Sim | null = null;
+  /** The fight over, before what it gave is shown: since when (the frame's time: from when the boss was at 0%), and the boss's health as it ended. */
+  let ending: { sim: Sim; at: number; from: number } | null = null;
 
   if (token && server) room(token, server);
   else await practice();
@@ -731,10 +812,21 @@ async function start(): Promise<void> {
     timer.draw(sim.left);
     // Over (in a room: once the bot has said what it gave, and this page has drawn the fight to where it ended; or as far
     // as the bot took it, should this page's have parted from the bot's, or the bot's have failed: the bot's word is the one).
+    // Won, the boss is seen at 0% (drained there, should this page's fight still have it standing) and beaten for a moment
+    // (OVER_WAIT) before what it gave is shown; lost, the party fallen for as long.
     const ended = lock ? overWaiting() !== null && (sim.result !== null || sim.tick >= lock.upTo) : sim.result !== null;
     if (overShown !== sim && ended) {
-      overShown = sim;
-      onOver(sim);
+      if (ending?.sim !== sim) ending = { sim, at: now, from: sim.foe.hp };
+      const won = lock ? overWaiting()?.result === 'won' : sim.result === 'won';
+      if (won && sim.foe.hp > 0) {
+        sim.foe.hp = Math.max(0, sim.foe.hp - (ending.from * dt) / DRAIN);
+        ending.at = now;
+        // (Down it goes, as it does when this page's fight beats it.)
+        if (sim.foe.hp <= 0) sim.events.push({ kind: 'boss-daze', seconds: OVER_WAIT + 1, down: true });
+      } else if (now - ending.at >= OVER_WAIT) {
+        overShown = sim;
+        onOver(sim);
+      }
     }
   });
 }

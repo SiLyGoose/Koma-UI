@@ -1,9 +1,14 @@
 import { classBadge, className, FACE, heroCut } from '../../shared/heroes';
 import { levelPopup } from '../../shared/ui/level/level';
-import { GALGORIA } from '../sim/bosses/galgoria';
+import type { BossDef } from '../sim/bosses/boss';
+import { GAUGE } from '../sim/bosses/dragon/common';
+import { isDragon } from '../sim/bosses';
+import { DRAGON_LIST, raidCard, TM_LIST } from '../../shared/raids';
+import { raidRewards } from '../../shared/raid-rewards/raid-rewards';
 import { HEROES } from '../sim/heroes';
 import { nearer } from '../sim/heroes/kit';
 import { el } from '../hud/dom';
+import { movePopup } from './move';
 import { nameTips } from '../hud/tip';
 import type { PickView, PlayerView, RoomState } from '../../protocol/technomagic';
 
@@ -14,7 +19,10 @@ import type { PickView, PlayerView, RoomState } from '../../protocol/technomagic
  * and the Sub Team (on Auto for the whole fight), each with its tab over it: a hero picked goes into the one whose tab is
  * pressed, and one picked into the other already is moved over. Along the bottom: the heroes this player owns (pressing one puts it in,
  * or takes it out), the room's chat, and who's in (the host's crown, who's ready), with Raid Info, Ready
- * (everyone but the host) and Start Battle (the host, once everyone is ready).
+ * (everyone but the host) and Start Battle (the host, once everyone is ready). The Dragon Raid's has its dragons along the
+ * top in place of the boss's name: pressing another goes against it. Alone (single player, or the only one in the raid),
+ * straight there; with others in the raid, a popup (./move.ts) asks the host whether to bring them along (the raid goes
+ * against it, everyone with it) or go alone (leaving the raid to them), and anyone else whether to leave it to go alone.
  */
 
 export interface PrepActions {
@@ -24,6 +32,11 @@ export interface PrepActions {
   ready(on: boolean): void;
   stage(stage: number): void;
   begin(): void;
+  /**
+   * Goes against another of the raid's bosses (the Dragon Raid's: another dragon): `bring`, the raid with everyone in it
+   * (the host's), else alone (single player, a room of their own against it; with others, out of the raid into a new one).
+   */
+  boss(id: string, bring: boolean): void;
 }
 
 export interface Prep {
@@ -33,6 +46,28 @@ export interface Prep {
   /** Says why something wasn't done (null: nothing to say). */
   note(text: string | null): void;
   hide(): void;
+}
+
+/** Raid Info: what the boss does, and how its raid goes. */
+function infoOf(boss: BossDef): string[] {
+  const solo = Math.round(((boss.stages.solo[0]?.hp ?? 1) / (boss.stages.room[0]?.hp ?? 1)) * 100);
+  const lineup = 'With others, the host brings up to 4 heroes, everyone else up to 3, 8 in all. Single player, up to 7: 4 in the Main Team, whose skills are yours to use, and 3 in the Sub Team, who fight on Auto.';
+  if (isDragon(boss.id)) {
+    return [
+      raidCard(boss.id)?.about ?? boss.name,
+      `Its CC Gauge: no stun holds a dragon, but your heroes' stuns wear the gauge down; empty, it is Knocked Down for ${GAUGE.lasts} seconds (its breath cut short) and takes ${Math.round((GAUGE.takes - 1) * 100)}% more damage.`,
+      `Heroes that fall stay down. Beat it within 3:30, before its rage wipes the party. Each stage, it has more health and hits harder; single player, it has ${solo}% of the health.`,
+      `${lineup} A win gives every player hero gear (raid items), zeiucoins and hero essences of the dragon's two kinds, more at each stage. There is no daily limit.`,
+      'The host picks the stage: each after the first opens once they have beaten the one before it, each dragon apart.',
+    ];
+  }
+  return [
+    `${boss.name}: a chimera of three heads that spits venom. Its blows are magical, and nothing slows it; it heals itself all the while.`,
+    'Every 150 blows, the hero that has dealt the most is shut in the swamp for a while. Its Swamp Destroyer knocks every hero down.',
+    `Heroes that fall stay down. Beat it within 3:30, before its rage wipes the party. Each stage, it has more health and hits harder; single player, it has ${solo}% of the health.`,
+    `${lineup} A win gives each player TechnoMagic gear and zeiucoins.`,
+    'The host picks the stage: each after the first opens once they have beaten the one before it.',
+  ];
 }
 
 /** How many players a room takes (1P to 4P). */
@@ -90,7 +125,7 @@ function portrait(id: string, className: string): HTMLElement {
   return box;
 }
 
-export function makePrep(act: PrepActions): Prep {
+export function makePrep(act: PrepActions, boss: BossDef): Prep {
   const root = byId('prep');
   const lineup = byId('lineup');
   const heroes = byId('prep-heroes');
@@ -115,14 +150,29 @@ export function makePrep(act: PrepActions): Prep {
   let intoSub = false;
   // A hero pointed at with a mouse (in the lineup, or the Heroes List): its name, over it.
   const named = nameTips(root, '[data-name]');
+  // (Beside the screen too, as Raid Settings is.)
+  let movingTo = '';
+  const moving = movePopup(root.parentElement ?? document.body, {
+    bring: () => act.boss(movingTo, true),
+    alone: () => act.boss(movingTo, false),
+  });
 
-  byId('prep-info').append(
-    el('p', '', `${GALGORIA.name}: a chimera of three heads that spits venom. Its blows are magical, and nothing slows it; it heals itself all the while.`),
-    el('p', '', 'Every 150 blows, the hero that has dealt the most is shut in the swamp for a while. Its Swamp Destroyer knocks every hero down.'),
-    el('p', '', `Heroes that fall stay down. Beat it within 3:30, before its rage wipes the party. Each stage, it has more health and hits harder; single player, it has ${Math.round(((GALGORIA.stages.solo[0]?.hp ?? 1) / (GALGORIA.stages.room[0]?.hp ?? 1)) * 100)}% of the health.`),
-    el('p', '', 'With others, the host brings up to 4 heroes, everyone else up to 3, 8 in all. Single player, up to 7: 4 in the Main Team, whose skills are yours to use, and 3 in the Sub Team, who fight on Auto. A win gives each player TechnoMagic gear, while they have runs left today that give it.'),
-    el('p', '', 'The host picks the stage: each after the first opens once they have beaten the one before it.'),
-  );
+  /** Another boss pressed: straight there alone, or (others in the raid) as the popup says. */
+  function pickBoss(id: string): void {
+    if (!state || id === state.boss.id) return;
+    const you = state.you;
+    const host = state.players.some((player) => player.id === you && player.host);
+    const others = state.players.filter((player) => player.id !== you).map((player) => player.name);
+    if (state.solo || others.length === 0) return act.boss(id, !state.solo);
+    movingTo = id;
+    moving.open(state.bosses.find((boss) => boss.id === id)?.name ?? id, others, host);
+  }
+
+  // Raid Info: what the boss does, then what a win gives (as the front page's Raid List draws it).
+  const rewards = raidCard(boss.id)?.rewards ?? [];
+  byId('prep-info').append(...infoOf(boss).map((line) => el('p', '', line)));
+  if (rewards.length > 0) byId('prep-info').append(raidRewards(rewards, (isDragon(boss.id) ? DRAGON_LIST : TM_LIST).rewardNote));
+  const bossName = byId('prep-boss');
 
   ready.addEventListener('click', () => act.ready(ready.getAttribute('aria-pressed') !== 'true'));
   start.addEventListener('click', () => act.begin());
@@ -260,6 +310,19 @@ export function makePrep(act: PrepActions): Prep {
     const owner = (id: string): PlayerView | undefined => state?.players.find((player) => player.id === id);
 
     level.textContent = `· Stage ${state.stage}`;
+    // The boss; the Dragon Raid's, each of its dragons, this room's pressed (another: to its room).
+    if (state.bosses.length > 1) {
+      bossName.replaceChildren(
+        ...state.bosses.map(({ id, name }) => {
+          const pick = el('button', 'tm-prep-boss-pick', name);
+          pick.type = 'button';
+          pick.setAttribute('aria-pressed', String(id === state?.boss.id));
+          pick.title = id === state?.boss.id ? `${name}: this raid's` : `Go against ${name}`;
+          pick.addEventListener('click', () => pickBoss(id));
+          return pick;
+        }),
+      );
+    } else bossName.textContent = state.boss.name;
     drawSettings();
     // As they stand on the field, facing the boss on the right: the front line rightmost, then the middle,
     // then the back; within a line, by class (the tank rightmost), then the first put in. The empty slots are to the left.
@@ -414,6 +477,7 @@ export function makePrep(act: PrepActions): Prep {
     },
     hide() {
       closeSettings();
+      moving.close();
       root.hidden = true;
       named();
     },

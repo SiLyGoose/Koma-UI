@@ -258,7 +258,7 @@ function renderGrid(ctx: HeroesContext, act: HeroActions): void {
     },
     picked: ctx.picked,
     selling: ctx.selling,
-    none: mine(ctx) ? 'No hero gear yet. Raid bosses drop it, the raid shop sells it, and the TechnoMagic Raid drops its own.' : `${ctx.viewing?.name} has no hero gear yet.`,
+    none: mine(ctx) ? 'No hero gear yet. The Weekly Boss and the Dragon Raid drop it, the raid shop sells it, and the TechnoMagic Raid drops its own.' : `${ctx.viewing?.name} has no hero gear yet.`,
     onPick: (copy) => {
       const before = ctx.picked;
       const { selling } = ctx;
@@ -592,5 +592,5 @@ function renderAscend(ctx: HeroesContext, act: HeroActions): void {
   working(action, ctx.busy, 'transcend');
   action.addEventListener('click', () => act.transcend());
   costs.append(action);
-  if (short) ui.ascend.append(el('p', 'ascend-note', 'Beating the weekly raid gives hero essences and komaGems.'));
+  if (short) ui.ascend.append(el('p', 'ascend-note', 'The Dragon Raid gives hero essences, and the Weekly Boss gives them with komaGems.'));
 }

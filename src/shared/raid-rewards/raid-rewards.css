@@ -1,0 +1,96 @@
+/*
+ * What a win against a raid's boss gives, as ./raid-rewards.ts draws it: a small framed icon for each, its name under
+ * it, and a line about them under the row. In the front page's Raid List and in a raid's Raid Info.
+ */
+
+.raid-rewards {
+  margin: 4px 0 8px;
+}
+
+.raid-rewards-label {
+  margin: 0 0 6px;
+  color: var(--gold);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.raid-rewards-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.raid-reward {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  width: 68px;
+}
+
+.raid-reward-face {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  box-sizing: border-box;
+  border: 2px solid var(--gold-dim, #8a6d3b);
+  border-radius: 8px;
+  background: radial-gradient(circle at 50% 40%, rgb(216 191 122 / 22%), transparent 70%), var(--plaque);
+  overflow: hidden;
+}
+
+.raid-reward-art {
+  display: block;
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
+/* TechnoMagic gear: the armories' TM card (../items/styles/tm.css), as big as the other icons, its tabs standing out past it. */
+.raid-reward-tm {
+  width: 64px;
+  box-sizing: border-box;
+  cursor: default;
+}
+
+.raid-reward-tm:hover {
+  transform: none;
+}
+
+/* A slot's icon is drawn to its edges: a little smaller, to sit inside the frame as the coin does. */
+.raid-reward-face.reward-gear .raid-reward-art {
+  width: 38px;
+  height: 38px;
+}
+
+/* An essence's picture fills its icon (inside its 2px frame), as on the result screen. */
+.raid-reward-face.reward-essence .raid-reward-art {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+}
+
+.raid-reward-any {
+  color: var(--gold);
+  font-size: 30px;
+  font-weight: 800;
+}
+
+.raid-reward-name {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.raid-rewards-note {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}

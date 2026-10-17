@@ -72,6 +72,37 @@
   font-weight: 800;
 }
 
+/* The Dragon Raid's dragons, in place of the boss's name: this room's lit, the others a press away. */
+.tm-prep-boss b:has(.tm-prep-boss-pick) {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
+.tm-prep-boss-pick {
+  padding: 3px 12px;
+  border: 1px solid var(--gold-dim);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.35);
+  color: inherit;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tm-prep-boss-pick:hover {
+  border-color: var(--gold);
+}
+
+.tm-prep-boss-pick[aria-pressed='true'] {
+  border-color: var(--gold);
+  background: linear-gradient(180deg, #e2b85c, #a87a2c);
+  color: #2a1606;
+  cursor: default;
+}
+
 /* Top right: Raid Settings, which opens the raid's own popup to step the stage (../../shared/ui/level/). */
 .tm-prep-settings {
   margin-left: auto;
@@ -661,7 +692,8 @@ button.tm-prep-manage {
   line-height: 1.45;
 }
 
-.tm-prep-info-box p {
+/* (Its own lines: not the rewards', which keep their spacing.) */
+.tm-prep-info-box > p {
   margin: 0 0 6px;
 }
 

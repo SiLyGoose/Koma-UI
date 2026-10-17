@@ -106,3 +106,47 @@
     font-size: 17px;
   }
 }
+
+/* Another dragon, from a raid with others in it (../prep/move.ts): the same box, Bring Them in gold, the way on. */
+.tm-move-icon {
+  box-shadow: 0 0 18px rgba(233, 196, 106, 0.3);
+}
+
+.tm-move-bring {
+  flex: 1;
+  padding: 14px 18px;
+  border: 2px solid #f3dc9a;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #e8c66d 0%, #b88a2e 55%, #8c6420 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 4px 14px rgba(0, 0, 0, 0.5);
+  color: #fff;
+  font: inherit;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-shadow: 0 2px 3px rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+  transition:
+    filter 0.12s ease,
+    transform 0.08s ease;
+}
+
+.tm-move-bring:hover {
+  filter: brightness(1.12);
+}
+
+.tm-move-bring:active {
+  transform: translateY(1px);
+}
+
+.tm-move-bring[hidden],
+.tm-leave-stay[hidden] {
+  display: none;
+}
+
+@media (max-height: 520px) {
+  .tm-move-bring {
+    padding: 10px 14px;
+    font-size: 17px;
+  }
+}

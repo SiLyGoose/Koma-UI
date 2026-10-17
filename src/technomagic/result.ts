@@ -1,10 +1,14 @@
 import { coin, points } from '../shared/util';
+import { built } from '../shared/built';
 import { el, itemDetailsClosed, itemFace, mainStatLine, SLOT_NAME, tmSections, rich } from '../shared/items';
-import type { DropView } from '../protocol/technomagic';
+import { ESSENCE_NAME, type EssenceId } from '../protocol/heroes';
+import type { DropView, RaidKind } from '../protocol/technomagic';
+import { KEPT } from './assets';
 
 /*
  * A fight over, over the field (the page's #result): won or lost, and then what this player got, as tiles: the points
- * the win paid them, and each piece of gear they found. A click on a piece opens its details over the screen (what it
+ * the win paid them, the hero essences (the Dragon Raid's), and each piece of gear they found (the Dragon Raid's are raid items,
+ * not TechnoMagic gear). A click on a piece opens its details over the screen (what it
  * is, its potentials, its set's effect and its additional skill); a click outside them, their ✕ or Escape goes back.
  * Under those, what everyone else found (their pieces open the same way), and the way on: run it again, back to getting
  * ready, or back to the games.
@@ -23,7 +27,10 @@ export interface ResultShown {
   text: string;
   /** The points the win paid this player (0: none, and no tile for them). */
   points: number;
-  /** The gear this player found. */
+  /** The hero essences the win gave this player, so many of each kind (none: no tiles). */
+  essences?: Readonly<Record<string, number>>;
+  /** The gear this player found: TechnoMagic gear, or (the Dragon Raid's) raid items. */
+  raid?: RaidKind;
   mine: readonly DropView[];
   /** What everyone else found, by name (only those who found something). */
   others: readonly { who: string; drops: readonly DropView[] }[];
@@ -37,11 +44,11 @@ export interface Result {
 
 const className = (id: string): string => `${id[0]?.toUpperCase()}${id.slice(1)}`;
 
-/** A piece of gear's card, as the armories draw TechnoMagic gear (never refined: no rank). */
-function card(drop: DropView, extra = ''): HTMLElement {
+/** A piece of gear's card, as the armories draw TechnoMagic gear (never refined: no rank), or (`raid`) a raid item. */
+function card(drop: DropView, extra = '', raid = false): HTMLElement {
   const face = el('span', `item ${extra}`.trim());
   face.dataset.stars = String(drop.stars);
-  face.append(...itemFace({ level: 1, maxLevel: 1, itemId: drop.itemId, slot: drop.slot, stars: drop.stars, heroOnly: true, itemClass: drop.itemClass }));
+  face.append(...itemFace({ level: 1, maxLevel: raid ? 5 : 1, itemId: drop.itemId, slot: drop.slot, stars: drop.stars, heroOnly: !raid, itemClass: drop.itemClass }));
   return face;
 }
 
@@ -71,6 +78,9 @@ export function makeResult(root: HTMLElement): Result {
     closeDetail();
   });
 
+  /** Whether what was found is the Dragon Raid's (raid items), not TechnoMagic gear. */
+  let raid = false;
+
   /** A piece's details, laid out as the gear page's: its name across the top, its card beside its slot, then what it does. */
   function openDetail(drop: DropView): void {
     const box = el('div', 'tm-loot-card');
@@ -90,18 +100,21 @@ export function makeResult(root: HTMLElement): Result {
     const top = el('div', 'tm-loot-top');
     const info = el('div', 'tm-loot-info');
     // (Never refined, so no rank: its main stat in its place, King's Raid's at 5★; none for a treasure.)
-    info.append(el('p', 'tm-loot-kind', `TechnoMagic ${SLOT_NAME[drop.slot]}`), ...(drop.mainStat ? [mainStatLine(drop.mainStat, 'tm-loot-main')] : []));
+    info.append(el('p', 'tm-loot-kind', `${raid ? `${drop.stars}★ Raid` : 'TechnoMagic'} ${SLOT_NAME[drop.slot]}`), ...(drop.mainStat ? [mainStatLine(drop.mainStat, 'tm-loot-main')] : []));
     if (drop.itemClass) info.append(el('p', 'tm-loot-class', `${className(drop.itemClass)} only`));
-    top.append(card(drop, 'tm-loot-face'), info);
+    top.append(card(drop, 'tm-loot-face', raid), info);
 
     const body = el('div', 'tm-loot-body');
     if (drop.description) body.append(el('p', 'detail-desc', drop.description));
-    body.append(el('p', 'tm-loot-label', 'Potentials'));
-    const list = el('ul', 'detail-effects');
-    for (const line of drop.potentials) list.appendChild(el('li')).append(rich(line));
-    if (drop.potentials.length === 0) list.append(el('li', 'muted', 'No potentials.'));
-    body.append(list, ...tmSections({ setEffect: drop.setEffect, additional: drop.skill }));
-    const note = el('p', 'tm-loot-note', 'Only heroes wear TechnoMagic gear: put it on one on the ');
+    // (A raid item has no potentials, set or additional skill: what it does is its description.)
+    if (!raid) {
+      body.append(el('p', 'tm-loot-label', 'Potentials'));
+      const list = el('ul', 'detail-effects');
+      for (const line of drop.potentials) list.appendChild(el('li')).append(rich(line));
+      if (drop.potentials.length === 0) list.append(el('li', 'muted', 'No potentials.'));
+      body.append(list, ...tmSections({ setEffect: drop.setEffect, additional: drop.skill }));
+    }
+    const note = el('p', 'tm-loot-note', raid ? 'Wear it yourself on the Gear page, or put it on a hero on the ' : 'Only heroes wear TechnoMagic gear: put it on one on the ');
     const link = el('a', '', 'Heroes page');
     link.href = '/heroes/';
     note.append(link, '.');
@@ -118,7 +131,7 @@ export function makeResult(root: HTMLElement): Result {
     const tile = el('button', `tm-tile${small ? ' small' : ''}`);
     tile.type = 'button';
     tile.title = `${drop.name}: see its details`;
-    tile.append(card(drop), el('span', 'tm-tile-name', drop.name));
+    tile.append(card(drop, '', raid), el('span', 'tm-tile-name', drop.name));
     tile.addEventListener('click', () => openDetail(drop));
     return tile;
   }
@@ -127,17 +140,37 @@ export function makeResult(root: HTMLElement): Result {
   function pointsTile(amount: number): HTMLElement {
     const tile = el('div', 'tm-tile tm-tile-points');
     const face = el('span', 'tm-points-face');
-    face.append(coin('tm-points-coin', 'zeiucoins'), el('span', 'tm-points-amount', points(amount)));
+    // (Only the coin: how many is under it.)
+    face.append(coin('tm-points-coin', 'zeiucoins'));
     tile.append(face, el('span', 'tm-tile-name', `${points(amount)} coins`));
+    return tile;
+  }
+
+  /** So many of a kind of hero essence the win gave, as a tile beside the points. */
+  function essenceTile(id: string, amount: number): HTMLElement {
+    const tile = el('div', 'tm-tile tm-tile-points');
+    // (The essence's picture is the whole tile.)
+    const face = el('span', 'tm-points-face tm-essence-face');
+    const picture = el('img', 'tm-essence-art');
+    picture.src = built(`${KEPT}/transcend/essences/${id}.png`);
+    picture.alt = '';
+    face.append(picture);
+    tile.append(face, el('span', 'tm-tile-name', `${ESSENCE_NAME[id as EssenceId] ?? id} ×${points(amount)}`));
     return tile;
   }
 
   return {
     show(shown) {
       closeDetail();
+      raid = shown.raid === 'dragon';
       title.textContent = shown.title;
       text.textContent = shown.text;
-      rewards.replaceChildren(...(shown.points > 0 ? [pointsTile(shown.points)] : []), ...shown.mine.map((drop) => gearTile(drop)));
+      const essences = Object.entries(shown.essences ?? {}).filter(([, amount]) => amount > 0);
+      rewards.replaceChildren(
+        ...(shown.points > 0 ? [pointsTile(shown.points)] : []),
+        ...essences.map(([id, amount]) => essenceTile(id, amount)),
+        ...shown.mine.map((drop) => gearTile(drop)),
+      );
       rewards.hidden = rewards.childElementCount === 0;
       others.replaceChildren(
         ...shown.others.map(({ who, drops }) => {

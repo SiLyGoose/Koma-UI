@@ -17,7 +17,8 @@ function levelButton(label: string, pressed: boolean, disabled: boolean, onClick
 /** Each place an item comes from: its box's words. */
 const SOURCES: Record<ItemSource, string> = {
   gacha: 'Gacha - Discord',
-  raid: 'Raid Drops',
+  raid: 'Weekly Boss',
+  dragon: 'Dragon Raid',
   raidShop: 'Raid Shop',
   limited: 'Limited Banner',
   technomagic: 'TechnoMagic Raid',
@@ -25,10 +26,10 @@ const SOURCES: Record<ItemSource, string> = {
 };
 
 /**
- * Where each place's box goes: the databank's raid bosses (./bosses.ts), which say what they drop, the
+ * Where each place's box goes: the databank's Weekly Bosses (./bosses.ts), which say what they drop, the
  * shop's Raid Gear tab (../raid-shop/), for TechnoMagic gear (which only heroes wear) the heroes page
  * (../heroes/), and for a unique weapon the shop's wish tab, where the Hero Item banner is. The gacha's is in
- * Discord, so it only clicks.
+ * Discord, and the Dragon Raid's is a game (opened from the front page), so they only click.
  */
 const SOURCE_PAGE: Partial<Record<ItemSource, string>> = {
   raid: '/databank/bosses/',

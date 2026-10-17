@@ -1,4 +1,4 @@
-import { BOSSES } from './bosses';
+import { BOSSES, DRAGONS, TM_BOSSES } from './bosses';
 import type { Input } from './events';
 import { makeSim } from './fight';
 import { HEROES } from './heroes';
@@ -146,6 +146,15 @@ export const TM_HEROES: readonly TmHero[] = HEROES.map((hero) => ({
   treasures: (hero.treasures ?? []).map((one) => one.name),
 }));
 export const BOSS_IDS: readonly string[] = BOSSES.map((boss) => boss.id);
+
+/** A boss as the bot says it: its id and name. */
+export interface BossInfo {
+  id: string;
+  name: string;
+}
+/** The TechnoMagic Raid's bosses, and the Dragon Raid's dragons, in order. */
+export const TM_BOSS_INFO: readonly BossInfo[] = TM_BOSSES.map(({ id, name }) => ({ id, name }));
+export const DRAGON_INFO: readonly BossInfo[] = DRAGONS.map(({ id, name }) => ({ id, name }));
 
 /** A TechnoMagic set as the fight has it: its id, name and icon, and what it does for a hero of each class wearing three of its pieces (by class; one it does nothing for left out). */
 export interface TmSetInfo {

@@ -34,7 +34,7 @@ export function renderHub(ctx: DatabankContext): void {
   ui.nodes.replaceChildren(
     node('items', '/databank/items/', 'Items', mine === null ? String(total) : `${mine}/${total}`, mine === null ? `${total} items` : `you own ${mine} of ${total}`),
     // A bot from before the databank had them sends none (of the classes, neither).
-    ...(bosses > 0 ? [node('bosses', '/databank/bosses/', 'Raid Bosses', String(bosses), `${bosses} raid ${bosses === 1 ? 'boss' : 'bosses'}`)] : []),
+    ...(bosses > 0 ? [node('bosses', '/databank/bosses/', 'Weekly Bosses', String(bosses), `${bosses} weekly ${bosses === 1 ? 'boss' : 'bosses'}`)] : []),
     ...(classes > 0 ? [node('classes', '/databank/classes/', 'Classes', String(classes), `${classes} raid ${classes === 1 ? 'class' : 'classes'}`)] : []),
     node('heroes', '/databank/heroes/', 'Heroes', String(HEROES.length), `${HEROES.length} ${HEROES.length === 1 ? 'hero' : 'heroes'}`),
   );

@@ -34,8 +34,13 @@ export interface BossPart {
   lands: Partial<Record<string, (part: number, amount: number) => void>>;
   /** Every step. */
   tick?(dt: number): void;
-  /** A hero's blow has landed on it, taking `dealt` (not one that comes of a status already on it). */
-  struck?(by: Fighter, dealt: number): void;
+  /** A hero's blow has landed on it, taking `dealt` (not one that comes of a status already on it); and whether it was a critical blow. */
+  struck?(by: Fighter, dealt: number, critical: boolean): void;
+  /**
+   * A stun of so many seconds is put on it (knocked `down`, or not), already as short as its CC resist has it: what holds it
+   * instead (null, or no seconds: nothing does; a dragon's CC gauge has taken it). None said: as it comes.
+   */
+  controlled?(seconds: number, down: boolean): { seconds: number; down: boolean } | null;
   /** It has been beaten. */
   beaten?(): void;
   /** How many times as much healing reaches the heroes, and how many times as strong a shield on one is. */
@@ -45,6 +50,8 @@ export interface BossPart {
   steady?: boolean;
   /** How many times as much it takes of each kind of damage (none said: as much as it is dealt). */
   taken?: Partial<Record<DamageType, number>>;
+  /** Taken off how likely a hero's blow on it is to be critical (points): its Crit Resistance. */
+  critResist?: number;
   /** No hero's life steal takes anything from it. */
   unstolen?: boolean;
   /** It has begun an attack, by its name. */

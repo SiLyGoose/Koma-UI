@@ -19,8 +19,8 @@
       <article class="game" data-game="raid">
         <div class="game-art raid-art" aria-hidden="true"></div>
         <div class="game-body">
-          <h3>Raid</h3>
-          <p>Team up against this week's raid boss, turn by turn: attack, guard, heal or support. The same fight as in Discord, so raiders here and there fight together. Beat it for points, tokens and komaGems.</p>
+          <h3>Weekly Boss</h3>
+          <p>Team up against this week's boss, turn by turn: attack, guard, heal or support. The same fight as in Discord, so raiders here and there fight together. Your first win of the week pays five times over: zeiucoins, tokens, komaGems, hero essences and raid items.</p>
           <button type="button" class="play" data-play="raid">Play</button>
         </div>
       </article>
@@ -30,11 +30,17 @@
         <div class="game-body">
           <h3>TechnoMagic Raid</h3>
           <p>Galgoria, a three-headed chimera, against your heroes, as in King's Raid: take it on alone, or get ready together in your server's room, each bringing heroes of your own, and fight it at once. Wins give TechnoMagic gear.</p>
-          <button type="button" class="play" data-play="technomagic" data-choose>Play</button>
-          <div class="play-modes" hidden>
-            <button type="button" class="play" data-play="technomagic" data-mode="single">Single Player</button>
-            <button type="button" class="play" data-play="technomagic" data-mode="multi">Multiplayer</button>
-          </div>
+          <!-- Opens its Raid List (src/hub/raid-list.ts): a boss, then Single Player or Multiplayer. -->
+          <button type="button" class="play" data-play="technomagic" data-list="technomagic">Play</button>
+        </div>
+      </article>
+      <article class="game" data-game="dragon">
+        <div class="game-art dragon-art" aria-hidden="true"></div>
+        <div class="game-body">
+          <h3>Dragon Raid</h3>
+          <p>King's Raid's dragons (Temeraire, Scalaxia, Zyrrkinoth and Armarta) against your heroes, alone or together. Break their CC Gauge before their breath. Every win gives hero gear, zeiucoins and hero essences, with no daily limit.</p>
+          <!-- Opens the Raid List (src/hub/raid-list.ts): a dragon, then Single Player or Multiplayer. -->
+          <button type="button" class="play" data-play="dragon" data-list="dragon">Play</button>
         </div>
       </article>
       <article class="game" data-game="pinecraft">

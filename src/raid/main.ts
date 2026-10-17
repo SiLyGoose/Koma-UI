@@ -47,7 +47,7 @@ setUpLandscape();
 
 if (!token || !server) {
   setConn('No link', 'bad');
-  showMessage('Open this from the games page', 'Log in on the games page and pick Raid, or use the Play on the web button on the raid in Discord.');
+  showMessage('Open this from the games page', 'Log in on the games page and pick Weekly Boss, or use the Play on the web button on the raid in Discord.');
 } else {
   connect(server, token);
   startLive({ mount: barSlot(), api, auth: () => `Game ${token}`, newTab: true });
