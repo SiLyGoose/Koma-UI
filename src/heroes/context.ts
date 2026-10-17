@@ -1,4 +1,4 @@
-import { armoryFilter, armoryGrid, type ArmoryFilter, type ArmoryGrid, type Slot, type StarChoice, type TmSort } from '../shared/items';
+import { armoryFilter, armoryGrid, type ArmoryFilter, type ArmoryGrid, type Slot, type StarChoice, TM_UNSORTED, type TmSort } from '../shared/items';
 import { HERO_SLOT_KIND, HERO_SLOTS, type HeroView, type HeroCopy, type HeroSlot, type HeroesView } from '../shared/heroes';
 import { SIDE_SLOTS } from '../protocol/heroes';
 import type { Busy } from '../shared/ui';
@@ -87,7 +87,7 @@ export interface HeroesContext {
   filter: Slot | 'all';
   stars: StarChoice;
   cls: string | 'all';
-  /** How the armory sorts TechnoMagic gear (its Filter's Sort): by a main stat or a potential, or in its own order. */
+  /** How the armory sorts TechnoMagic gear (its Filter's Sort): by a main stat and by potentials, or in its own order. */
   sort: TmSort;
   query: string;
   /** What the panel beside the hero shows. */
@@ -167,7 +167,7 @@ export function createContext(root: HTMLElement, host: HeroesHost): HeroesContex
     filter: 'all',
     stars: 'all',
     cls: 'all',
-    sort: 'default',
+    sort: TM_UNSORTED,
     query: '',
     tab: 'stats',
     perk: null,

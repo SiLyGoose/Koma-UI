@@ -1,6 +1,6 @@
 import { type Busy, doneMark, working } from '../ui';
 import { coin, points } from '../util';
-import { armoryOrder } from './gear';
+import { armoryOrder, type TmSort } from './gear';
 import { el, hasLevels, itemFace, lockBadge, mainStatLine, rich, type Slot, SLOT_NAME, type Stars, tierOf } from './items';
 import type { MainStat } from '../../protocol/items';
 import { matchesStars, type StarChoice } from './armory-filter/armory-filter';
@@ -60,6 +60,8 @@ export interface ArmoryDraw<C extends ArmoryCopy> {
   stars: StarChoice;
   /** The search, trimmed and lowercased. */
   query: string;
+  /** How TechnoMagic gear is sorted (the Filter's Sort): left out, in the armory's own order. */
+  sort?: TmSort;
   /** Left out as if it weren't there (the gear page's gear only heroes wear, until its Filter shows it). */
   hidden?: (copy: C) => boolean;
   /** A filter of the page's own, on top of the stars and the search (the heroes page's class, the forge's Refineable). */
@@ -141,7 +143,7 @@ export function armoryGrid<C extends ArmoryCopy>(element: HTMLElement): ArmoryGr
     const sheet = element.parentElement as HTMLElement;
     const scrolled = sheet.scrollTop;
     element.classList.toggle('selling', !!what.selling);
-    const ofSlot = armoryOrder(what.copies).filter((c) => (slot === 'all' || c.slot === slot) && !hidden?.(c));
+    const ofSlot = armoryOrder(what.copies, what.sort).filter((c) => (slot === 'all' || c.slot === slot) && !hidden?.(c));
     const shown = ofSlot.filter((c) => (matches?.(c) ?? true) && matchesStars(stars, tierOf(c)) && matchesSearch(query, { name: c.name, id: c.itemId, description: c.description }));
     const ownSound = what.ownSound !== false;
     const nodes: HTMLElement[] = shown.map((copy) => cardFor(copy, withSale(copy, look(copy), what), ownSound, () => what.onPick(copy)));

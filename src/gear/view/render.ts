@@ -28,7 +28,8 @@ export function render(ctx: GearContext): void {
   ui.sprite.height = character.height;
   ui.armoryTitle.textContent = `${name}'s Armory`;
   ui.statsTitle.textContent = `${name}'s Stats`;
-  ui.filter.show({ slot: ctx.filter, stars: ctx.stars, owned: null, refineable: null, cls: null, heroGear: ctx.heroGear });
+  ui.filter.setSorts(ctx.gear.copies);
+  ui.filter.show({ slot: ctx.filter, stars: ctx.stars, owned: null, refineable: null, cls: null, heroGear: ctx.heroGear, sort: ctx.sort });
   renderSlots(ctx);
   renderGrid(ctx);
   renderDetail(ctx);

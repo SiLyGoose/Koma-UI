@@ -1,5 +1,5 @@
 import { dropdown } from '../../shared/ui';
-import { hoverSound, itemPicked, type Slot, wireSaleDialog, wireSearch } from '../../shared/items';
+import { hoverSound, itemPicked, type Slot, TM_UNSORTED, wireSaleDialog, wireSearch } from '../../shared/items';
 import { change, loadGear, unequipEverything } from './api';
 import { botHasClasses, classPickKey, fillClassPick, pickClass, renderClass, showClassPick, type HeroClass } from './classes';
 import type { GearContext } from './context';
@@ -32,6 +32,7 @@ export function wireControls(ctx: GearContext): () => void {
     ctx.filter = choice.slot;
     ctx.stars = choice.stars;
     ctx.heroGear = choice.heroGear === true;
+    ctx.sort = choice.sort ?? TM_UNSORTED;
     render(ctx);
   });
 

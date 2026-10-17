@@ -6,8 +6,9 @@ import './dropdown.css';
  * it's disabled; this shows a button with the chosen option, and a list under it (or over it, when
  * there's more room there), a set height for the screen, that scrolls without a scrollbar showing.
  * Choosing sets the select's value and fires its `change`, so code that listens to the select works
- * as before. Hiding the select (`hidden`) hides the dropdown too. It looks like the profile menu's
- * drop-down (../account/account.css): the same list, items and turning arrow.
+ * as before. A <select multiple> picks many: choosing one picks or unpicks it (ticked in the list) and the list stays
+ * open; the button shows those picked, or its `data-none` with none. Hiding the select (`hidden`) hides the dropdown
+ * too. It looks like the profile menu's drop-down (../account/account.css): the same list, items and turning arrow.
  *
  * Keyboard: Enter, Space or the arrow keys open it; the arrows (and Home, End, Page Up/Down) move;
  * Enter or Space chooses; Escape or Tab closes. Typing picks the option starting with what was typed
@@ -52,8 +53,9 @@ export function dropdown(select: HTMLSelectElement): Dropdown {
   select.setAttribute('aria-hidden', 'true');
   select.after(wrap);
   wrap.append(button, list);
-  // A <label for> the select now points at the button.
-  for (const l of document.querySelectorAll<HTMLLabelElement>(`label[for="${select.id}"]`)) {
+  // A <label for> the select now points at the button (looked for in what the select is in: the page, or a part of it
+  // not on the page yet).
+  for (const l of (select.getRootNode() as ParentNode).querySelectorAll<HTMLLabelElement>(`label[for="${select.id}"]`)) {
     l.htmlFor = button.id;
     list.setAttribute('aria-labelledby', l.id || (l.id = `${id}-label`));
   }
@@ -66,24 +68,27 @@ export function dropdown(select: HTMLSelectElement): Dropdown {
     const options = [...select.options];
     if (items().length !== options.length || items().some((li, i) => li.dataset.value !== options[i]?.value)) {
       list.textContent = '';
-      for (const option of options) {
+      options.forEach((option, i) => {
         const li = document.createElement('li');
         li.className = 'dd-option';
         li.setAttribute('role', 'option');
-        li.id = `${id}-option-${option.value}`;
+        // By its place, not its value: a value can have spaces, which an id can't.
+        li.id = `${id}-option-${i}`;
         li.dataset.value = option.value;
         li.textContent = option.textContent;
         li.addEventListener('pointerdown', (e) => e.preventDefault()); // keep the focus on the list
         li.addEventListener('click', () => choose(option.value));
         list.append(li);
-      }
+      });
     }
-    for (const li of items()) {
-      const chosen = li.dataset.value === select.value;
+    items().forEach((li, i) => {
+      const chosen = options[i]?.selected === true;
       li.classList.toggle('chosen', chosen);
       li.setAttribute('aria-selected', String(chosen));
-    }
-    label.textContent = select.selectedOptions[0]?.textContent ?? '';
+    });
+    list.setAttribute('aria-multiselectable', String(select.multiple));
+    const picked = [...select.selectedOptions].map((option) => option.textContent);
+    label.textContent = select.multiple ? picked.join(', ') || (select.dataset.none ?? '') : (picked[0] ?? '');
     button.disabled = select.disabled;
     wrap.hidden = select.hidden;
     if (select.disabled) close();
@@ -120,6 +125,14 @@ export function dropdown(select: HTMLSelectElement): Dropdown {
   }
 
   function choose(value: string): void {
+    // Picking many: picked or unpicked, and the list stays open for the next.
+    const option = [...select.options].find((one) => one.value === value);
+    if (select.multiple && option) {
+      option.selected = !option.selected;
+      refresh();
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+      return;
+    }
     const changed = select.value !== value;
     select.value = value;
     refresh();

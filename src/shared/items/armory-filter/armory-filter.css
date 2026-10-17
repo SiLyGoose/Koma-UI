@@ -177,7 +177,8 @@ input[type='checkbox']:checked + .armory-filter-mark::after {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .armory-filter-option {
+  .armory-filter-option,
+  button.armory-filter-sort {
     transition: none;
   }
 }
@@ -194,4 +195,58 @@ input[type='checkbox']:checked + .armory-filter-mark::after {
   flex: none;
   width: 22px;
   height: auto;
+}
+
+/* Sort TM gear: its main stat, then its potentials, each a dropdown with its name before it. */
+.armory-filter-sort-row {
+  display: grid;
+  grid-template-columns: 78px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+}
+
+.armory-filter-sort-row + .armory-filter-sort-row {
+  margin-top: 6px;
+}
+
+.armory-filter-sort-row[hidden] {
+  display: none;
+}
+
+.armory-filter-sort-name {
+  padding-left: 6px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* A list as wide as its longest stat ("Mana Recovery per Attack"), hanging from its dropdown's right edge. */
+.armory-filter-sort-row .dd-list {
+  left: auto;
+  width: max-content;
+  min-width: 100%;
+  max-width: calc(100vw - 32px);
+}
+
+/* Each the site's dropdown (../../ui/dropdown/), its rows' height and corners. */
+button.armory-filter-sort {
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  transition: background-color 0.15s ease;
+}
+
+button.armory-filter-sort:hover,
+button.armory-filter-sort[aria-expanded='true'] {
+  background-color: var(--panel-3);
+}
+
+button.armory-filter-sort:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: -2px;
 }

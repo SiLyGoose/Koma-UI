@@ -13,6 +13,7 @@ export function renderGrid(ctx: GearContext): void {
     slot: filter,
     stars,
     query,
+    sort: ctx.sort,
     // (Gear only heroes wear, only with Hero gear on, or its own tier picked.)
     hidden: (c) => !ctx.heroGear && typeof tierOf(c) !== 'number' && stars !== tierOf(c),
     // Worn, or saved in any of their loadouts.

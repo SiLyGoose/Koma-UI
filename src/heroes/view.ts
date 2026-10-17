@@ -1,4 +1,4 @@
-import { askSale, itemDetailsClosed, saleOf, saleSaid, wireSaleDialog, wireSearch } from '../shared/items';
+import { askSale, itemDetailsClosed, saleOf, saleSaid, TM_UNSORTED, wireSaleDialog, wireSearch } from '../shared/items';
 import { HERO_CLASSES, HERO_SLOT_KIND, type HeroCopy, type HeroSlot, type HeroesView } from '../shared/heroes';
 import type { HeroesSold } from '../protocol/heroes';
 import { busyWith, dropdown, fillServers } from '../shared/ui';
@@ -273,6 +273,7 @@ function wire(ctx: HeroesContext, act: HeroActions): () => void {
     ctx.filter = choice.slot;
     ctx.stars = choice.stars;
     ctx.cls = choice.cls ?? 'all';
+    ctx.sort = choice.sort ?? TM_UNSORTED;
     if (ctx.target && HERO_SLOT_KIND[ctx.target] !== ctx.filter) ctx.target = null;
     render(ctx, act);
   });

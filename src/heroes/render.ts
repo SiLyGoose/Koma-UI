@@ -43,7 +43,8 @@ export function render(ctx: HeroesContext, act: HeroActions): void {
   ui.page.hidden = false;
   const hero = heroShown(ctx);
   ui.page.classList.toggle('unowned', hero?.owned === false);
-  ui.filter.show({ slot: ctx.filter, stars: ctx.stars, owned: null, refineable: null, cls: ctx.cls, heroGear: null });
+  ui.filter.setSorts(view.copies);
+  ui.filter.show({ slot: ctx.filter, stars: ctx.stars, owned: null, refineable: null, cls: ctx.cls, heroGear: null, sort: ctx.sort });
   // Not theirs to sell (someone else's, or the raid's Manage popup); and copies sold, put on or locked meanwhile aren't picked any more.
   if (!canTrade(ctx)) ctx.selling = null;
   if (ctx.selling) pruneSale(view.copies, ctx.selling);
@@ -237,7 +238,7 @@ function renderTotals(ctx: HeroesContext): void {
 
 /** The gear a hero can wear (../shared/items/armory.ts): every copy shown (by the filter, the stars, the class and the search), then blanks to fill out the last row. */
 function renderGrid(ctx: HeroesContext, act: HeroActions): void {
-  const { ui, view, filter, stars, cls, query } = ctx;
+  const { ui, view, filter, stars, cls, sort, query } = ctx;
   if (!view) return;
   const hero = heroShown(ctx);
   ui.grid.draw({
@@ -245,6 +246,7 @@ function renderGrid(ctx: HeroesContext, act: HeroActions): void {
     slot: filter,
     stars,
     query,
+    sort,
     matches: (copy) => cls === 'all' || copy.class === null || copy.class === cls,
     look: (copy) => {
       const onThis = copy.hero !== null && copy.hero === hero?.id;

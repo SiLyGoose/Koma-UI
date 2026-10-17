@@ -1,4 +1,6 @@
 import './armory-filter.css';
+import { dropdown } from '../../ui';
+import { TM_UNSORTED, tmStats, type TmSort, type TmStats } from '../gear';
 import { el, type Slot, stars, tmTier, utTier, uwTier } from '../items';
 
 /*
@@ -7,9 +9,11 @@ import { el, type Slot, stars, tmTier, utTier, uwTier } from '../items';
  * stars (Any, then 4 to 1) and, where the page offers them, the class (the databank's: a raid class's own items; the
  * heroes page's: what works on a class, picked for the hero shown),
  * Owned only (the databank's), Refineable (the forge's) and Hero gear (the gear page's: TechnoMagic gear and unique
- * weapons, which only heroes wear, hidden until it is on), with room for more (a sort) as they come. A choice applies at once and the panel stays open for the next; a click outside it, Escape or
- * tabbing away closes it. Its markup is a box in the page (`<div id="armory-filter" class="armory-filter">`),
- * which this fills.
+ * weapons, which only heroes wear, hidden until it is on), then, where the page offers it, how TechnoMagic gear is sorted
+ * (the gear page's and the heroes page's: by a main stat and by any of the potentials its copies have, each in the site's
+ * dropdown). A choice
+ * applies at once and the panel stays open for the next; a click outside it, Escape or tabbing away closes it. Its
+ * markup is a box in the page (`<div id="armory-filter" class="armory-filter">`), which this fills.
  */
 
 export type StarChoice = 1 | 2 | 3 | 4 | 'tm' | 'uw' | 'ut' | 'all';
@@ -29,6 +33,8 @@ export interface ArmoryChoice {
   cls: string | 'all' | null;
   /** Gear only heroes wear (TechnoMagic gear, unique weapons) shown too; null where it isn't offered (anywhere but the gear page, which shows it always). */
   heroGear: boolean | null;
+  /** How TechnoMagic gear is sorted; null where it isn't offered (anywhere but the gear and heroes pages). */
+  sort: TmSort | null;
 }
 
 /** A raid class the filter offers: its picture is public/gear/classes/<id>.png. */
@@ -44,6 +50,8 @@ export interface ArmoryFilter {
   onChange(listener: (choice: ArmoryChoice) => void): void;
   /** The classes its Class group offers (a page that has them, once it knows them). */
   setClasses(classes: readonly ClassChoice[]): void;
+  /** What its Sort offers: the stats the TechnoMagic copies among `copies` have (the page's, each time it has them). */
+  setSorts(copies: Parameters<typeof tmStats>[0]): void;
   /** Stops listening to the page (a page going away). */
   destroy(): void;
 }
@@ -60,7 +68,7 @@ let count = 0;
 
 export function armoryFilter(box: HTMLElement): ArmoryFilter {
   const id = `armory-filter-${++count}`;
-  let current: ArmoryChoice = { slot: 'all', stars: 'all', owned: null, refineable: null, cls: null, heroGear: null };
+  let current: ArmoryChoice = { slot: 'all', stars: 'all', owned: null, refineable: null, cls: null, heroGear: null, sort: null };
   let listener: ((choice: ArmoryChoice) => void) | null = null;
 
   // The button: a funnel, Filter, and how many are on.
@@ -109,13 +117,63 @@ export function armoryFilter(box: HTMLElement): ArmoryFilter {
   const classes = group('Class');
   const classOptions = classes.querySelector('.armory-filter-options') as HTMLElement;
   let offered = 0;
+  // How TechnoMagic gear is sorted: a main stat (one) and potentials (any), each in the site's dropdown with its name
+  // beside it, offering what the page's copies have (setSorts).
+  const sorts = el('fieldset', 'armory-filter-group');
+  const sortRow = (name: string, text: string, multiple: boolean): { row: HTMLElement; select: HTMLSelectElement } => {
+    const select = el('select', 'armory-filter-sort');
+    select.id = `${id}-${name}`;
+    select.multiple = multiple;
+    const label = el('label', 'armory-filter-sort-name', text);
+    label.htmlFor = select.id;
+    const row = el('div', 'armory-filter-sort-row');
+    row.append(label, select);
+    return { row, select };
+  };
+  const { row: mainRow, select: mainSelect } = sortRow('main', 'Main stat', false);
+  const { row: potentialRow, select: potentialSelect } = sortRow('potentials', 'Potentials', true);
+  potentialSelect.dataset.none = 'Any';
+  sorts.append(el('legend', '', 'Sort TM gear'), mainRow, potentialRow);
+  let stats: TmStats = { main: [], potentials: [] };
+  /** The stats the dropdowns have (drawSorts), as JSON. */
+  let sortsShown = '';
   const clear = el('button', 'armory-filter-clear action secondary', 'Clear filters');
   clear.type = 'button';
-  panel.append(types, tiers, classes, only, clear);
+  panel.append(types, tiers, classes, only, sorts, clear);
   box.append(button, panel);
+  const mainPicker = dropdown(mainSelect);
+  const potentialPicker = dropdown(potentialSelect);
 
   const input = (name: string, value: string): HTMLInputElement | null =>
     panel.querySelector<HTMLInputElement>(`input[name="${id}-${name}"][value="${value}"]`);
+
+  /**
+   * The Sort's dropdowns: the stats the copies have (`stats`), with those chosen even if none has them now (Any for no
+   * main stat, and for no potentials); each hidden with nothing to offer.
+   */
+  function drawSorts(): void {
+    const chosen = current.sort ?? TM_UNSORTED;
+    const main = [...new Set([...stats.main, ...(chosen.main === null ? [] : [chosen.main])])];
+    const potentials = [...new Set([...stats.potentials, ...chosen.potentials])];
+    const shown = JSON.stringify([main, potentials]);
+    if (shown !== sortsShown) {
+      sortsShown = shown;
+      const option = (value: string, text: string): HTMLOptionElement => {
+        const one = el('option', '', text);
+        one.value = value;
+        return one;
+      };
+      mainSelect.replaceChildren(option('', 'Any'), ...main.map((name) => option(name, name)));
+      potentialSelect.replaceChildren(...potentials.map((name) => option(name, name)));
+    }
+    mainSelect.value = chosen.main ?? '';
+    for (const one of potentialSelect.options) one.selected = chosen.potentials.includes(one.value);
+    mainRow.hidden = main.length === 0;
+    potentialRow.hidden = potentials.length === 0;
+    sorts.hidden = current.sort === null || (mainRow.hidden && potentialRow.hidden);
+    mainPicker.refresh();
+    potentialPicker.refresh();
+  }
 
   /** Draws `current`: the choices checked, Owned only and Refineable if offered, and how many are on. */
   function draw(): void {
@@ -133,13 +191,16 @@ export function armoryFilter(box: HTMLElement): ArmoryFilter {
     (input('owned', 'owned') as HTMLInputElement).checked = current.owned === true;
     (input('refineable', 'refineable') as HTMLInputElement).checked = current.refineable === true;
     (input('hero-gear', 'hero-gear') as HTMLInputElement).checked = current.heroGear === true;
+    drawSorts();
     const on =
       Number(current.slot !== 'all') +
       Number(current.stars !== 'all') +
       Number(current.owned === true) +
       Number(current.refineable === true) +
       Number(current.cls !== null && current.cls !== 'all') +
-      Number(current.heroGear === true);
+      Number(current.heroGear === true) +
+      Number(current.sort !== null && current.sort.main !== null) +
+      Number(current.sort !== null && current.sort.potentials.length > 0);
     badge.textContent = String(on);
     badge.hidden = on === 0;
     clear.hidden = on === 0;
@@ -152,16 +213,20 @@ export function armoryFilter(box: HTMLElement): ArmoryFilter {
     listener?.(current);
   }
 
-  panel.addEventListener('change', () => {
+  panel.addEventListener('change', (e) => {
     const picked = (name: string): string | undefined => panel.querySelector<HTMLInputElement>(`input[name="${id}-${name}"]:checked`)?.value;
     const tier = picked('stars') ?? 'all';
+    const sort: TmSort | null = current.sort === null ? null : { main: mainSelect.value || null, potentials: [...potentialSelect.selectedOptions].map((one) => one.value) };
+    // A sort picked shows the gear it sorts, where that's hidden until Hero gear is on (unless its tier is picked).
+    const sorting = (e.target === mainSelect || e.target === potentialSelect) && sort !== null && (sort.main !== null || sort.potentials.length > 0) && tier !== 'tm';
     choose({
       slot: (picked('slot') ?? 'all') as Slot | 'all',
       stars: tier === 'all' || tier === 'tm' || tier === 'uw' || tier === 'ut' ? tier : (Number(tier) as StarChoice),
       owned: current.owned === null ? null : picked('owned') !== undefined,
       refineable: current.refineable === null ? null : picked('refineable') !== undefined,
       cls: current.cls === null ? null : (picked('class') ?? 'all'),
-      heroGear: current.heroGear === null ? null : picked('hero-gear') !== undefined,
+      heroGear: current.heroGear === null ? null : picked('hero-gear') !== undefined || sorting,
+      sort,
     });
   });
   clear.addEventListener('click', () => {
@@ -172,6 +237,7 @@ export function armoryFilter(box: HTMLElement): ArmoryFilter {
       refineable: current.refineable === null ? null : false,
       cls: current.cls === null ? null : 'all',
       heroGear: current.heroGear === null ? null : false,
+      sort: current.sort === null ? null : TM_UNSORTED,
     });
     // The button it was goes away with nothing left to clear: the focus goes to the first choice.
     panel.querySelector<HTMLInputElement>('input:checked')?.focus();
@@ -228,8 +294,14 @@ export function armoryFilter(box: HTMLElement): ArmoryFilter {
       );
       draw();
     },
+    setSorts(copies) {
+      stats = tmStats(copies);
+      drawSorts();
+    },
     destroy() {
       document.removeEventListener('pointerdown', outside);
+      mainPicker.destroy();
+      potentialPicker.destroy();
     },
   };
 }
