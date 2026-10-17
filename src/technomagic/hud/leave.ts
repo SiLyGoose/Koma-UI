@@ -14,8 +14,8 @@ export interface LeavePopup {
 }
 
 /**
- * The popup, put in `into`. Leave calls `leave`, which says why it couldn't (shown in the popup), or null once the
- * page is on its way out.
+ * The popup, put in `into`. Leave calls `leave`, which says why it couldn't (shown in the popup), or null once they
+ * have left (their Defeat shown, or the page on its way out).
  */
 export function leavePopup(into: HTMLElement, leave: () => string | null): LeavePopup {
   const root = el('div', 'level-pop tm-leave-pop');

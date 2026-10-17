@@ -516,16 +516,52 @@ async function start(): Promise<void> {
     }
 
     // The way out: mid-fight, asked first (../hud/leave.ts), then the bot told they've left it for good (`quit`: they
-    // forfeit what it gives; single player, it is lost; with others, their heroes fight on). Otherwise they just go.
+    // forfeit what it gives; single player, it is lost; with others, their heroes fight on and they are out of the room,
+    // so this page stops coming back to it) and their Defeat shown, from which they go. Otherwise they just go.
+    /** They left the fight going on (its result, once it ends, isn't shown them); and (single player) once it is over, back to getting ready. */
+    let left = false;
+    let backAfter = false;
+    const games = (): void => navigate('/', { back: true });
     const leaving = leavePopup(document.getElementById('app') as HTMLElement, () => {
-      if (state?.phase === 'fight' && !send({ t: 'quit' })) return 'Not connected to the raid right now. Try again in a moment.';
-      navigate('/', { back: true });
+      if (state?.phase !== 'fight') {
+        games();
+        return null;
+      }
+      if (!send({ t: 'quit' })) return 'Not connected to the raid right now. Try again in a moment.';
+      left = true;
+      if (!state.solo) socket?.finish();
+      leaving.close();
+      showLeft(state.solo);
       return null;
     });
     leave = () => {
-      if (state?.phase === 'fight' && !game?.sim.result) return leaving.open(state.solo);
-      navigate('/', { back: true });
+      if (state?.phase === 'fight' && !game?.sim.result && !left) return leaving.open(state.solo);
+      games();
     };
+
+    /** Their Defeat, having left: single player, back to getting ready (once the bot has ended the fight) or to the games; with others, to the games. */
+    function showLeft(solo: boolean): void {
+      results.show({
+        title: 'Defeat',
+        text: solo ? 'You left the battle, so it was lost.' : 'You left the raid. Your heroes fight on with the party on Auto, but you forfeit its rewards.',
+        points: 0,
+        mine: [],
+        others: [],
+        actions: solo
+          ? [
+              {
+                label: 'Raid Prep',
+                main: true,
+                run: () => {
+                  if (state?.phase === 'over') send({ t: 'back' });
+                  else backAfter = true;
+                },
+              },
+              { label: 'Games', run: games },
+            ]
+          : [{ label: 'Games', main: true, run: games }],
+      });
+    }
 
     /** The skins read as they look with their heroes' unique weapons (whatever came of it), by hero and skin. */
     const wieldersRead = new Map<string, Promise<void>>();
@@ -666,7 +702,13 @@ async function start(): Promise<void> {
             const hero = HEROES.find((one) => one.id === pick.hero);
             if (hero) void read(hero, pick.skin);
           }
+          if (state.phase === 'over' && backAfter) {
+            backAfter = false;
+            send({ t: 'back' });
+          }
           if (state.phase === 'prep') {
+            left = false;
+            backAfter = false;
             lock = null;
             game?.view.clear();
             game = null;
@@ -707,7 +749,7 @@ async function start(): Promise<void> {
 
     /** What a fight over gave everyone, once this page has drawn it to its end. */
     function showOver(over: OverView): void {
-      if (shownOver === over) return;
+      if (shownOver === over || left) return;
       shownOver = over;
       const you = state?.you ?? '';
       const mine = over.drops[you] ?? [];
