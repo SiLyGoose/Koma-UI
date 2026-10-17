@@ -5,7 +5,7 @@ import { el } from './dom';
 /**
  * A hero's health over its head, while it is on the field: a row of small squares for what it has on
  * it, under them a bar, its fill an <i>; and under that, while the hero has a shield, a thin yellow
- * line, shorter as the shield wears away.
+ * line on a dark track as wide as the bar, shorter as the shield wears away.
  */
 export interface Overhead {
   /** Where on the field's picture its foot's middle goes (CSS pixels from its top left), how much health (0 to 1), the shield on it, and what it has on it. */
@@ -21,10 +21,12 @@ export function makeOverhead(parent: HTMLElement, ally = false): Overhead {
   const bar = el('div', ally ? 'tm-overhead ally' : 'tm-overhead');
   const fill = el('i', '');
   bar.append(fill);
-  const line = el('div', 'tm-shield');
-  line.hidden = true;
+  const track = el('div', 'tm-shield');
+  const line = el('i', '');
+  track.append(line);
+  track.hidden = true;
   root.hidden = true;
-  root.append(buffs, bar, line);
+  root.append(buffs, bar, track);
   parent.append(root);
   /** The most shield on it since it last had none: the line's whole length. */
   let most = 0;
@@ -36,7 +38,7 @@ export function makeOverhead(parent: HTMLElement, ally = false): Overhead {
       root.style.transform = `translate(${x}px, ${y}px) translate(-50%, -100%)`;
       fill.style.transform = `scaleX(${Math.max(0, share)})`;
       most = shield > 0 ? Math.max(most, shield) : 0;
-      line.hidden = most <= 0;
+      track.hidden = most <= 0;
       if (most > 0) line.style.width = `${(shield / most) * 100}%`;
       const showing = on.map((buff) => `${buff.name}:${Math.ceil(buff.left ?? 0)}:${buff.count ?? ''}`).join('|');
       if (showing !== shown) {

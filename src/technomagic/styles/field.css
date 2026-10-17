@@ -72,21 +72,30 @@
   overflow: hidden;
 }
 
-/* Its shield: a thin yellow line under the bar (not moving the bar), as long as the shield left of the most it has had. */
+/* Its shield: a thin yellow line under the bar (not moving the bar), as long as the shield left of the most it has had, on a dark track as wide as the bar. */
 .tm-shield {
   position: absolute;
   top: calc(100% + 1px);
-  left: 1px;
-  max-width: calc(100% - 2px);
-  height: 3px;
+  left: 0;
+  right: 0;
+  height: 5px;
+  padding: 1px;
+  border-radius: 3px;
+  background: rgba(8, 8, 12, 0.85);
+  box-shadow: 0 0 0 1px #0b0b10;
+}
+
+.tm-shield i {
+  display: block;
+  height: 100%;
+  max-width: 100%;
   border-radius: 2px;
   background: linear-gradient(180deg, #fff6b0, #f6d026 60%, #b98a0a);
-  box-shadow: 0 0 0 1px #0b0b10;
   transition: width 0.2s ease-out;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tm-shield {
+  .tm-shield i {
     transition: none;
   }
 }
