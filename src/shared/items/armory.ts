@@ -1,7 +1,8 @@
 import { type Busy, doneMark, working } from '../ui';
 import { coin, points } from '../util';
 import { armoryOrder } from './gear';
-import { el, hasLevels, itemFace, lockBadge, rich, type Slot, SLOT_NAME, type Stars, tierOf } from './items';
+import { el, hasLevels, itemFace, lockBadge, mainStatLine, rich, type Slot, SLOT_NAME, type Stars, tierOf } from './items';
+import type { MainStat } from '../../protocol/items';
 import { matchesStars, type StarChoice } from './armory-filter/armory-filter';
 import { padlock } from './padlock';
 import { matchesSearch } from './search';
@@ -28,6 +29,8 @@ export interface ArmoryCopy {
   /** What selling it pays: null when it's never sold (worn, in a loadout, on a hero, locked); left out by a bot from before selling. */
   sell?: number | null;
   effects: string[];
+  /** TechnoMagic gear's main stat (a weapon's HP, an armor's P.DEF or M.DEF): null or left out for anything else, or by a bot from before it said it. */
+  mainStat?: MainStat | null;
   heroOnly?: boolean;
   uniqueWeapon?: string | null;
   uniqueTreasure?: { hero: string; skill: number } | null;
@@ -425,13 +428,13 @@ export function showDetail(box: HTMLElement, copy: ArmoryCopy | undefined, parts
   const info = el('div', 'detail-info');
   const kind = el('p', 'detail-kind', SLOT_NAME[copy.slot]);
   info.append(kind);
-  // (Its rank out of its top; none for one never refined: TechnoMagic gear.)
+  // (Its rank out of its top; none for one never refined: TechnoMagic gear, which has its main stat there instead.)
   if (hasLevels(copy)) {
     if (copy.level >= copy.maxLevel) kind.append(el('span', 'detail-max', 'MAX'));
     const rank = el('p', 'detail-rank', `R${copy.level}`);
     rank.append(el('span', 'detail-rank-of', ` / ${copy.maxLevel}`));
     info.append(rank);
-  }
+  } else if (copy.mainStat) info.append(mainStatLine(copy.mainStat));
   info.append(...(parts.info ?? []));
   top.append(big, info);
   if (parts.corner) top.append(parts.corner);

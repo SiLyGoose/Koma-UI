@@ -135,6 +135,29 @@
   font-weight: 600;
 }
 
+/* TechnoMagic gear's main stat, where another item's rank is: its name, then how much (the name over it when they don't fit side by side). */
+.detail-main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 8px;
+  margin: 0;
+  line-height: 1;
+}
+
+.detail-main .main-stat-name {
+  color: var(--muted);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.detail-main .main-stat-value {
+  color: var(--text);
+  font-size: 32px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
 .detail-scroll {
   display: flex;
   flex-direction: column;
@@ -203,6 +226,10 @@
 
   .detail-rank {
     font-size: 32px;
+  }
+
+  .detail-main .main-stat-value {
+    font-size: 26px;
   }
 
   .detail-foot {

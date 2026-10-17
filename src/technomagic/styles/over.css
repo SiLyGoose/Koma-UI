@@ -266,12 +266,27 @@
   color: var(--effect-on);
 }
 
-.tm-loot-rank {
+/* Its main stat, where another item's rank would be: its name, then how much (the name over it when they don't fit side by side). */
+.tm-loot-main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 8px;
   margin: 0;
-  color: var(--text);
-  font-size: 34px;
-  font-weight: 800;
   line-height: 1;
+}
+
+.tm-loot-main .main-stat-name {
+  color: var(--muted);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.tm-loot-main .main-stat-value {
+  color: var(--text);
+  font-size: 28px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
 }
 
 .tm-loot-body {

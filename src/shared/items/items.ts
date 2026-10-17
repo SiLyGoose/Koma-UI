@@ -5,7 +5,8 @@
 
 import { built, hasItemArt } from '../built';
 import { heroCut, TAB_FACE } from '../heroes';
-import type { Slot } from '../../protocol/items';
+import { points } from '../util';
+import type { MainStat, Slot } from '../../protocol/items';
 
 export type { Slot, Stars } from '../../protocol/items';
 
@@ -254,6 +255,20 @@ export function tmSections(copy: { setEffect?: { pieces: number; text: string; a
     ...(copy.additional ? [effectSection('Additional Effect:', copy.additional, copy.additionalActive)] : []),
   ];
 }
+
+/**
+ * A TechnoMagic copy's main stat (King's Raid's at 5★), where another item's details have its rank: its name, then how
+ * much, like "HP 1,634,124". `className` is the page's (the gear and heroes pages' detail-main, the raid's tm-loot-main).
+ */
+export function mainStatLine(stat: MainStat, className = 'detail-main'): HTMLElement {
+  const line = el('p', className);
+  line.append(el('span', 'main-stat-name', stat.name), el('span', 'main-stat-value', points(stat.value)));
+  return line;
+}
+
+/** The main stats a TechnoMagic item's copy can have, as the databank says them: a weapon's, or an armor's two, whichever it rolls. */
+export const mainStatText = (stats: readonly MainStat[]): string =>
+  stats.map(({ name, value }) => `**${name}** ${points(value)}`).join(' or ') + (stats.length > 1 ? ', one at random as it drops' : '');
 
 /**
  * A locked copy's mark on its card: a dark tab set into the card's right edge, holding a white padlock

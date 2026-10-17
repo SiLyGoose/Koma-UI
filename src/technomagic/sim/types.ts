@@ -17,7 +17,8 @@ import type { SkillId } from './skills';
 /**
  * What a hero's gear gives it, as the bot counts it: points added to a chance or share (crit, attack speed,
  * penetration, block, block DEF, dodge, Tough, CC resist, accuracy, lifesteal, crit resist: 1000 is 100%), ATK added
- * as it is (`atkFlat`: a unique weapon's), HP added as it is (`hpFlat`: a main unique treasure's), and a share more of its own for the rest (ATK, HP, crit damage, defense,
+ * as it is (`atkFlat`: a unique weapon's), HP added as it is (`hpFlat`: a main unique treasure's, and TechnoMagic weapons' main stat), P.DEF and M.DEF
+ * added as they are (`defPhysicalFlat`, `defMagicalFlat`: TechnoMagic armors' main stat), and a share more of its own for the rest (ATK, HP, crit damage, defense,
  * heals and shields, stun duration, mana per attack, mana recovery: 0.25 is 25% more). `defense`, `block`, `blockDef`,
  * `tough` and `critResist` are against both kinds of damage; the ones ending in Physical or Magical against that kind only.
  */
@@ -33,6 +34,8 @@ export type GearStat =
   | 'defense'
   | 'defPhysical'
   | 'defMagical'
+  | 'defPhysicalFlat'
+  | 'defMagicalFlat'
   | 'block'
   | 'blockPhysical'
   | 'blockMagical'
