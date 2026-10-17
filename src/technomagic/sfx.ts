@@ -9,14 +9,15 @@ import { setClickSound, sound } from '../shared/audio';
 
 const SFX = (file: string): string => `${import.meta.env.BASE_URL}technomagic/sfx/${file}.mp3`;
 
+/** Each sound, and how loud it plays (a share of the shared volume). */
 const SOUNDS = {
-  start: sound(SFX('ready_04')),
+  start: { play: sound(SFX('ready_04')), volume: 0.3 },
 };
 
 export type Sound = keyof typeof SOUNDS;
 
 export function play(sound: Sound): void {
-  SOUNDS[sound]();
+  SOUNDS[sound].play(SOUNDS[sound].volume);
 }
 
 /** Every click on the page plays King's Raid's button sound, at half volume. */
