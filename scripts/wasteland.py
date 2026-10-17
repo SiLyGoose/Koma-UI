@@ -3,9 +3,9 @@ Paints the wasteland Galgoria is fought in, as the game has it: a grey waste und
 ruins going back into the haze, a great fallen slab, dead trees and bent street lamps. It is painted once, into the
 two pictures the page reads (src/technomagic/bosses/galgoria/scenery.ts), not made again each fight:
 
-    backdrop.jpg   what stands behind the field: on an upright sheet across the back of it (LEFT..RIGHT, BOTTOM..TOP,
+    backdrop.webp  what stands behind the field: on an upright sheet across the back of it (LEFT..RIGHT, BOTTOM..TOP,
                    in the field's units), of which the camera sees the middle, more or less of it by the page's shape
-    ground.jpg     one tile of the floor, repeated
+    ground.webp    one tile of the floor, repeated
 
     python scripts/wasteland.py public/technomagic/scenery/wasteland
 
@@ -362,6 +362,6 @@ def ground():
 if __name__ == '__main__':
     out = Path(sys.argv[1] if len(sys.argv) > 1 else 'public/technomagic/scenery/wasteland')
     out.mkdir(parents=True, exist_ok=True)
-    backdrop().save(out / 'backdrop.jpg', quality=88, optimize=True)
-    ground().save(out / 'ground.jpg', quality=90, optimize=True)
-    print(f'{out}/backdrop.jpg {W}x{H}, {out}/ground.jpg {TILE}x{TILE}')
+    backdrop().save(out / 'backdrop.webp', quality=85, method=6)
+    ground().save(out / 'ground.webp', quality=88, method=6)
+    print(f'{out}/backdrop.webp {W}x{H}, {out}/ground.webp {TILE}x{TILE}')

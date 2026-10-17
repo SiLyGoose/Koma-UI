@@ -4,8 +4,8 @@ Paints where the Dragon Raid's dragons are fought, as King's Raid names their la
 Sun (Armarta). Each is painted once, into the two pictures the page reads (src/technomagic/bosses/dragon/scenery.ts), on
 the same sheet and with the same brushes as Galgoria's wasteland (./wasteland.py):
 
-    backdrop.jpg   what stands behind the field, on an upright sheet across the back of it
-    ground.jpg     one tile of the floor, repeated
+    backdrop.webp  what stands behind the field, on an upright sheet across the back of it
+    ground.webp    one tile of the floor, repeated
 
     python scripts/lairs.py public/technomagic/scenery
 
@@ -227,6 +227,6 @@ if __name__ == '__main__':
         w.rnd.seed(f'{SEED}:{name}')
         out = root / name
         out.mkdir(parents=True, exist_ok=True)
-        back().save(out / 'backdrop.jpg', quality=88, optimize=True)
-        floor().save(out / 'ground.jpg', quality=90, optimize=True)
+        back().save(out / 'backdrop.webp', quality=85, method=6)
+        floor().save(out / 'ground.webp', quality=88, method=6)
         print(f'{out}: backdrop {W}x{H}, ground {TILE}x{TILE}')

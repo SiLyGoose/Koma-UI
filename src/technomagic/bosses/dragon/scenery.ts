@@ -7,8 +7,8 @@ import type { Scenery } from '../../engine/stage';
  * by scripts/lairs.py (whose sheet and hazes these are: a change to one is a change to the other), and kept with the page.
  */
 const lair = (folder: string, haze: number): Scenery => ({
-  backdrop: { url: `${KEPT}/scenery/${folder}/backdrop.jpg`, z: -22, left: -60, right: 60, bottom: -1, top: 35 },
-  ground: { url: `${KEPT}/scenery/${folder}/ground.jpg`, tile: 14 },
+  backdrop: { url: `${KEPT}/scenery/${folder}/backdrop.webp`, z: -22, left: -60, right: 60, bottom: -1, top: 35 },
+  ground: { url: `${KEPT}/scenery/${folder}/ground.webp`, tile: 14 },
   haze: { color: haze, near: 7, far: 22 },
 });
 
