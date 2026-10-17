@@ -1,9 +1,7 @@
 import type { BossDef } from '../boss';
-import { dragonStages, firstOf, OPEN } from '../dragon/common';
+import { dragonStages, FIRST, OPEN } from '../dragon/common';
 import { MOVES, PLANS } from '../dragon/moves';
 import { zyrrkinothPart } from './skills';
-
-const FIRST = firstOf(0.75, 1);
 
 /**
  * Zyrrkinoth, the ancient green venomous dragon, of Grimvine (the Dragon Raid's Poison Dragon). As in King's Raid, it has

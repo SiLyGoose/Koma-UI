@@ -187,7 +187,7 @@ export interface Fight {
   readonly foe: Foe;
   /** What is on every hero for a while. */
   readonly party: Status<Buff>[];
-  /** The raid's stage (1 to STAGES). */
+  /** The raid's stage (1 to the boss's last: stagesOf). */
   readonly stage: number;
   /** The fight's chances: a number from 0 up to 1 (./random.ts). Nothing in it is to use Math.random. */
   roll(): number;

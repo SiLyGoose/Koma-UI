@@ -10,8 +10,8 @@ import type { BossPart, BossScale } from '../boss';
  *   would have held it; once the gauge is empty the dragon is Knocked Down for a while (what it was doing cut short,
  *   its breath among it), taking more damage, and its gauge is full again as it gets up. "Trying to deplete the CC gauge
  *   before a dragon uses a powerful skill is the common strategy for all dragons" (the game's own tip).
- * - Its stages: the Dragon Raid is the raid heroes farm (for gear, essences and points), so it is easier than the
- *   TechnoMagic Raid's bosses (STAGE_HP, STAGE_DEF, STAGE_DEALS: first guesses, tried in fights).
+ * - Its stages, King's Raid's Hard Dragon Raid's (KR_HP, KR_DEF, KR_ATK): the Dragon Raid is the raid heroes farm (for
+ *   gear, essences and points), so it is easier than the TechnoMagic Raid's bosses.
  * And what its skills share: the heroes it can reach, a blow on each, what stacks on them for a while, and what eats at
  * them every second (a burn, poison).
  */
@@ -27,19 +27,33 @@ export const GAUGE = {
   takes: 1.3,
 };
 
-/** Its health, defense and how hard its blows are at each stage (1 to 8), fought with more than one player; alone, ROOM_HP times less health. */
-const STAGE_HP = [1.6e8, 2.2e8, 3e8, 4.1e8, 5.6e8, 7.6e8, 1.03e9, 1.4e9];
-const STAGE_DEF = [40_000, 50_000, 62_000, 77_000, 95_000, 118_000, 146_000, 180_000];
-const STAGE_DEALS = [1.4, 1.6, 1.85, 2.1, 2.4, 2.7, 3, 3.35];
+/*
+ * Its stages (1 to 10) are King's Raid's Hard Dragon Raid's (its game data: MonsterTierTable, by CampaignWaveTable's
+ * chapters 911 to 914), where all four dragons are the same: KR_DEF is their defense as it is; KR_ATK is their ATK, of
+ * which how hard its blows are at each stage is (DEALS times stage 1's); and KR_HP is their health, of which its health
+ * is (HP times). The game's own health is far less than its TechnoMagic Raid's (Galgoria's 20 billion), so HP is what
+ * test fights found to make it the easier raid: 8 heroes on Auto in the usual King's Raid gear (UW R5, ATK potentials)
+ * beat it in about 30 seconds at stages 1 to 5 and 2 to 2½ minutes at stage 10, where Galgoria takes them over 3 minutes
+ * at stage 1. Fought with more than one player; alone, ROOM_HP times less health.
+ */
+const KR_HP = [9_262_000, 9_262_000, 9_262_000, 9_262_000, 9_262_000, 9_872_000, 12_390_000, 13_120_000, 15_930_000, 21_130_000];
+const KR_DEF = [79_200, 79_200, 79_200, 79_200, 79_200, 93_600, 115_200, 151_200, 183_600, 259_200];
+const KR_ATK = [809_600, 809_600, 809_600, 809_600, 809_600, 1_060_800, 1_280_000, 2_083_200, 2_529_600, 3_801_600];
+const HP = 12.5;
+const DEALS = 1.4;
 const ROOM_HP = 1.7;
 
-/** A dragon's health and defense at stage 1 (`hp` and `def` times the table's), for its stats. */
-export const firstOf = (hp: number, def: number): { hp: number; def: number } => ({ hp: (STAGE_HP[0] as number) * hp, def: (STAGE_DEF[0] as number) * def });
+/** A dragon's health and defense at stage 1, for its stats. */
+export const FIRST = { hp: (KR_HP[0] as number) * HP, def: KR_DEF[0] as number };
 
 /** A dragon's stages, fought with others and alone. */
 export function dragonStages(): { room: BossScale[]; solo: BossScale[] } {
   const scales = (times: number): BossScale[] =>
-    STAGE_HP.map((hp, i) => ({ hp: (hp / (STAGE_HP[0] as number)) * times, deals: STAGE_DEALS[i] as number, defense: (STAGE_DEF[i] as number) / (STAGE_DEF[0] as number) }));
+    KR_HP.map((hp, i) => ({
+      hp: (hp / (KR_HP[0] as number)) * times,
+      deals: DEALS * ((KR_ATK[i] as number) / (KR_ATK[0] as number)),
+      defense: (KR_DEF[i] as number) / (KR_DEF[0] as number),
+    }));
   return { room: scales(1), solo: scales(1 / ROOM_HP) };
 }
 

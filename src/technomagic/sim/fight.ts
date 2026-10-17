@@ -1,4 +1,4 @@
-import { scaleAt, type BossDef, type BossPart } from './bosses/boss';
+import { scaleAt, stagesOf, type BossDef, type BossPart } from './bosses/boss';
 import { ATK, NONE, POINTS, share, soft, SOFT, strike } from './combat/damage';
 import { accurate, away, blocking, bolstering, bound, critDamaging, critResisting, critTaking, critting, dealing, defending, filling, healing, pacing, piercing, put, resisting, taking, wear, type Status } from './combat/status';
 import type { Input, Logged, Result, SimEvent } from './events';
@@ -7,7 +7,7 @@ import { lineOf, nearer, NO_PASSIVE, type Ability, type HeroDef } from './heroes
 import type { HeroMove } from './heroes/moves';
 import { motionOf } from './motion';
 import { seeded } from './random';
-import { AUTO, AUTO_WAIT, BLOW, CRIT, formation, HERO_WAIT, HERO_X, MANA_PER_ATTACK, MARCH, MARCH_ABREAST, MARCH_FROM, marchLeft, MARCH_ROW, MANA_PER_HP_LOST, MANA_RATE, MAX_MANA, MOST, rage, RAGE_WIPE, RAID_TIME, REFORM, SECTION, STAGES, TICK } from './rules';
+import { AUTO, AUTO_WAIT, BLOW, CRIT, formation, HERO_WAIT, HERO_X, MANA_PER_ATTACK, MARCH, MARCH_ABREAST, MARCH_FROM, marchLeft, MARCH_ROW, MANA_PER_HP_LOST, MANA_RATE, MAX_MANA, MOST, rage, RAGE_WIPE, RAID_TIME, REFORM, SECTION, TICK } from './rules';
 import { AUTHORITY, GUARDED, HOPE, PERSEVERANCE, setOf } from './sets';
 import type { Buff, Mark } from './shown';
 import { CHAMPION_UP, DESPERATION_UP, MENDING_UP, SKILL, skilledCritDamage, skilledStats, skillsOf, SURGE_UP, type SkillId } from './skills';
@@ -68,7 +68,7 @@ export interface SimOptions {
   boss: BossDef;
   heroes: readonly Entry[];
   seed: number;
-  /** The raid's stage (1 to STAGES). */
+  /** The raid's stage (1 to the boss's last: stagesOf). */
   stage: number;
   /** A raid (every hero on the field, Boss auto on), or trying things out. */
   raid: boolean;
@@ -153,7 +153,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
   let elapsed = 0;
   /** Seconds of the raid's time gone, against this boss. */
   let clock = 0;
-  let stage = Math.min(STAGES, Math.max(1, Math.floor(firstStage) || 1));
+  let stage = Math.min(stagesOf(def), Math.max(1, Math.floor(firstStage) || 1));
   let bossAuto = raid;
   let deathless = noDeaths && !raid;
   let result: Result | null = null;
@@ -1143,7 +1143,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
         }
         return;
       case 'stage':
-        stage = Math.min(STAGES, Math.max(1, Math.floor(input.stage) || 1));
+        stage = Math.min(stagesOf(def), Math.max(1, Math.floor(input.stage) || 1));
         return;
     }
   }

@@ -72,6 +72,9 @@ export interface BossScale {
   defense?: number;
 }
 
+/** How many stages a boss has: the higher, the harder it is on the heroes (as its stages say). */
+export const stagesOf = (def: BossDef): number => def.stages.room.length;
+
 /** A boss's scale at `stage` (1 to its last; past it, its last), alone or not. */
 export function scaleAt(def: BossDef, stage: number, solo: boolean): BossScale {
   const row = solo ? def.stages.solo : def.stages.room;

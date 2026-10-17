@@ -10,7 +10,7 @@ import { artPicture } from './art';
 import { built } from '../shared/built';
 import { portraitPicture, type SkinAssets } from './assets';
 import { bossNamed, DRAGONS, TM_BOSSES } from './sim/bosses';
-import type { BossDef } from './sim/bosses/boss';
+import { stagesOf, type BossDef } from './sim/bosses/boss';
 import { BOSS_VIEWS } from './bosses/models';
 import { makeStage } from './engine/stage';
 import { Ahead } from './fight/ahead';
@@ -37,7 +37,7 @@ import { makePrep } from './prep/prep';
 import { managePopup } from './manage/popup';
 import { makeResult } from './result';
 import type { AnswerCode, ClientMessage, ErrorCode, FightStart, OverView, RoomState, ServerMessage, TurnInput } from '../protocol/technomagic';
-import { HERO_TURN, makeSim, SECTION, SECTIONS, SIM_VERSION, STAGES, TICK, type Input, type Sim } from './sim';
+import { HERO_TURN, makeSim, SECTION, SECTIONS, SIM_VERSION, TICK, type Input, type Sim } from './sim';
 import { setBuff } from './sim/sets';
 import { skillBuffs } from './sim/skills';
 import { uniqueBuff } from './sim/unique';
@@ -203,7 +203,7 @@ async function start(): Promise<void> {
   if (DRAGON) store.set(localStorage, DRAGON_KEY, def.id);
   const bossView = BOSS_VIEWS[def.id];
   if (!bossView) throw new Error(`${def.name} has no body`);
-  const stageNumber = Math.min(STAGES, Math.max(1, Math.floor(Number(params.get('stage'))) || 1));
+  const stageNumber = Math.min(stagesOf(def), Math.max(1, Math.floor(Number(params.get('stage'))) || 1));
   const stage = makeStage(canvas);
   // What every fight has, at once: the boss, the effects and the shield (and the field dressed). The heroes are read as
   // they're wanted (read()). Whatever isn't on this computer is left out: the page goes on without it.
@@ -403,7 +403,7 @@ async function start(): Promise<void> {
     const entrants = (await Promise.all(HEROES.map((hero) => read(hero)))).flat();
     if (entrants.length === 0) throw new Error('None of the heroes could be read');
     actionsRow.hidden = false;
-    for (let n = 1; n <= STAGES; n++) stagePicker.append(new Option(String(n), String(n), false, n === stageNumber));
+    for (let n = 1; n <= stagesOf(def); n++) stagePicker.append(new Option(String(n), String(n), false, n === stageNumber));
     deathlessButton.hidden = false;
     deathlessButton.addEventListener('click', () => game?.sim.input({ kind: 'deathless' }));
     // Unique weapons: the fight begun again, every hero wielding its own (their models read the first time).

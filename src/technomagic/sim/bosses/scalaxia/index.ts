@@ -1,9 +1,7 @@
 import type { BossDef } from '../boss';
-import { dragonStages, firstOf, OPEN } from '../dragon/common';
+import { dragonStages, FIRST, OPEN } from '../dragon/common';
 import { MOVES, PLANS } from '../dragon/moves';
 import { scalaxiaPart } from './skills';
-
-const FIRST = firstOf(1.1, 0.9);
 
 /**
  * Scalaxia, the ancient blue dragon of ice, of Turandana (the Dragon Raid's Frost Dragon). As in King's Raid, its blows

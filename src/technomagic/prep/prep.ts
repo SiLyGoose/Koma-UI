@@ -56,7 +56,7 @@ function infoOf(boss: BossDef): string[] {
     return [
       raidCard(boss.id)?.about ?? boss.name,
       `Its CC Gauge: no stun holds a dragon, but your heroes' stuns wear the gauge down; empty, it is Knocked Down for ${GAUGE.lasts} seconds (its breath cut short) and takes ${Math.round((GAUGE.takes - 1) * 100)}% more damage.`,
-      `Heroes that fall stay down. Beat it within 3:30, before its rage wipes the party. Each stage, it has more health and hits harder; single player, it has ${solo}% of the health.`,
+      `Heroes that fall stay down. Beat it within 3:30, before its rage wipes the party. Its stages are King's Raid's Hard Dragon Raid's: stages 1 to 5 are the same dragon, and from stage 6 on it has more health and defense and hits harder; single player, it has ${solo}% of the health.`,
       `${lineup} A win gives every player hero gear (raid items), zeiucoins and hero essences of the dragon's two kinds, more at each stage. There is no daily limit.`,
       'The host picks the stage: each after the first opens once they have beaten the one before it, each dragon apart.',
     ];
@@ -275,7 +275,10 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
     settings.confirm.hidden = !host;
     copyLink.hidden = state.link === null;
     const next = host && state.unlocked < state.stages ? `Win stage ${state.unlocked} to open stage ${state.unlocked + 1}. ` : '';
-    settings.note.textContent = `${host ? next : 'Only the host changes the stage. '}Each stage, the boss has more health and hits harder; from stage 4 on it is harder on the heroes still, and a win gives more gear.`;
+    const stages = isDragon(state.boss.id)
+      ? 'Stages 1 to 5 are the same dragon; from stage 6 on it has more health and defense and hits harder. A win gives more at each stage.'
+      : 'Each stage, the boss has more health and hits harder; from stage 4 on it is harder on the heroes still, and a win gives more gear.';
+    settings.note.textContent = `${host ? next : 'Only the host changes the stage. '}${stages}`;
   }
 
   /** One slot of the lineup: a hero (whose, which) or empty. */

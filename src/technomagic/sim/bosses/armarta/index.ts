@@ -1,15 +1,12 @@
 import type { BossDef } from '../boss';
-import { dragonStages, firstOf, OPEN } from '../dragon/common';
+import { dragonStages, FIRST, OPEN } from '../dragon/common';
 import { MOVES, PLANS } from '../dragon/moves';
 import { armartaPart } from './skills';
 
-const FIRST = firstOf(1.2, 1.25);
-
 /**
- * Armarta, the ancient black dragon of stone, of Ashen Nox, the Black Sun (the Dragon Raid's Black Dragon, its strongest).
- * As in King's Raid, its Black Flame Breath leaves the Dark Flames, which eat at whoever it lands on; its gaze turns a hero
- * to stone; and it is harder to wear down than the others (more health and defense). Its blows are magical. What its
- * skills do is ./skills.ts; its body is the page's (../../../bosses/dragon/).
+ * Armarta, the ancient black dragon of stone, of Ashen Nox, the Black Sun (the Dragon Raid's Black Dragon). As in King's
+ * Raid, its Black Flame Breath leaves the Dark Flames, which eat at whoever it lands on; and its gaze turns a hero to
+ * stone. Its blows are magical. What its skills do is ./skills.ts; its body is the page's (../../../bosses/dragon/).
  */
 export const ARMARTA: BossDef = {
   id: 'armarta',

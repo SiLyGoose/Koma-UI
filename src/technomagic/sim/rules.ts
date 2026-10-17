@@ -216,6 +216,3 @@ export function rage(over: number): number {
 /** What a blow of a hero's attack takes of the boss, before the boss's defense; and how much harder a critical blow is (before its gear's crit damage). */
 export const BLOW = 1100;
 export const CRIT = 2;
-
-/** Stages of the raid there are: the higher, the harder the boss's skills are on the heroes (as the boss says). */
-export const STAGES = 8;

@@ -1,9 +1,7 @@
 import type { BossDef } from '../boss';
-import { dragonStages, firstOf, OPEN } from '../dragon/common';
+import { dragonStages, FIRST, OPEN } from '../dragon/common';
 import { MOVES, PLANS } from '../dragon/moves';
 import { temerairePart } from './skills';
-
-const FIRST = firstOf(1, 1);
 
 /**
  * Temeraire, the ancient red dragon of fire, of Dragia (the Dragon Raid's Fire Dragon). As in King's Raid, all its
