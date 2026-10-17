@@ -1,6 +1,6 @@
 import { NONE } from '../../combat/damage';
 import { put, type Status } from '../../combat/status';
-import type { Buff, Mark } from '../../shown';
+import type { Buff } from '../../shown';
 import type { Fight, Fighter } from '../../types';
 import type { BossPart, BossScale } from '../boss';
 
@@ -153,9 +153,7 @@ export function withGauge(fight: Fight, own: BossPart): BossPart {
       downed = 0;
       own.beaten?.();
     },
-    marks(): Mark[] {
-      // (Down, it says so as it is: Knocked Down.)
-      return [...(downed > 0 ? [] : [{ text: `CC Gauge ${Math.ceil(gauge)}/${GAUGE.full}`, tone: 'stun' as const }]), ...(own.marks?.() ?? [])];
-    },
+    // (Down, it is empty: its Knocked Down says for how long.)
+    gauge: () => gauge / GAUGE.full,
   };
 }

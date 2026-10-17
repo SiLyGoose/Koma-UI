@@ -61,6 +61,8 @@ export interface BossPart {
   ready?(attack: string): boolean;
   /** What it has going for it that only it keeps count of: marks under its health. */
   marks?(): Mark[];
+  /** How full its CC gauge is (0 to 1), for the bar under its health (none said: it has none). */
+  gauge?(): number;
 }
 
 /** At a stage: so many times a boss's health, so many times as hard its blows, and so many times its defenses (none said: its own). */

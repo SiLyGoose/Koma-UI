@@ -111,6 +111,8 @@ export interface Sim extends Fight {
   slot(fighter: Fighter, index: number): Ability | null;
   /** What is the matter with the boss, for under its health. */
   marks(): Mark[];
+  /** How full the boss's CC gauge is (0 to 1), for the bar under its health (null: it has none). */
+  gauge(): number | null;
   /** A number that sums up how the fight stands (two fights that stand the same have the same). */
   checksum(): number;
 }
@@ -954,6 +956,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       for (const fighter of fighters) marks.push(...(fighter.part.marks?.() ?? []));
       return marks;
     },
+    gauge: () => foe.part.gauge?.() ?? null,
     checksum() {
       const word = new DataView(new ArrayBuffer(8));
       let hash = 0x811c9dc5;
