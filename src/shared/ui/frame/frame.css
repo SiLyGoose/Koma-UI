@@ -70,8 +70,98 @@
   cursor: pointer;
 }
 
-.frame-mute:hover {
+.frame-mute:hover,
+.frame-mute[aria-expanded='true'] {
   background: rgba(0, 0, 0, 0.25);
+}
+
+/* The sound button's panel (frame.ts soundButton): sound on or off, and each volume, under the button. */
+.frame-sound {
+  position: relative;
+}
+
+.frame-volume {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 250px;
+  padding: 12px 14px;
+  box-sizing: border-box;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  background: #1c1b29;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 13px;
+}
+
+.frame-volume[hidden] {
+  display: none;
+}
+
+.frame-volume-toggle {
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.frame-volume-toggle:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.frame-volume-row {
+  display: grid;
+  grid-template-columns: 76px 1fr 38px;
+  align-items: center;
+  gap: 8px;
+}
+
+.frame-volume-row output {
+  color: #c9c6de;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* Muted: the volumes still set, but dimmed. */
+.frame-volume.muted .frame-volume-row {
+  opacity: 0.45;
+}
+
+.frame-volume-row input[type='range'] {
+  width: 100%;
+  height: 6px;
+  margin: 0;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #6aa8ff var(--filled, 100%), rgba(255, 255, 255, 0.18) var(--filled, 100%));
+  appearance: none;
+  cursor: pointer;
+}
+
+.frame-volume-row input[type='range']::-webkit-slider-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  appearance: none;
+}
+
+.frame-volume-row input[type='range']::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
 }
 
 /* The member logged in (../account/account.css), smaller to fit the bar, and lighter on the blue. */

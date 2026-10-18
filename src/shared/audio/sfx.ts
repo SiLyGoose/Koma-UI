@@ -4,20 +4,49 @@
  * be made louder or quieter from here. A browser keeps sound off until the player first touches or
  * presses something, so the first input wakes it. The frame's sound button mutes it (setMuted). Music
  * goes through a gain of its own (tunes), quiet while the tab isn't the one in front.
+ *
+ * Each sound is of a channel (Channel: voice-over, sound effects, or music), each with its own volume, all under the
+ * master's: the frame's sound button sets them (setVolume), and they are remembered for every game (VOLUMES_KEY).
  */
+
+/** What a sound is: a voice-over (a hero's or a boss's lines), a sound effect, or music. */
+export type Channel = 'voice' | 'sfx' | 'bgm';
+/** The volumes the player can set, each 0 to 1: the master's, and each channel's under it. */
+export type Volumes = Record<'master' | Channel, number>;
+/** Where the volumes are remembered (for every game alike). */
+const VOLUMES_KEY = 'audio-volumes';
 
 /** How loud every sound is, 0 to 1 (1: the files as recorded). A sound's own volume is a share of this. */
 export const VOLUME = 0.5;
 
 let muted = false;
 
+/** The player's volumes, as they last set them (all at full: as the sounds are made). */
+const volumes: Volumes = { master: 1, voice: 1, sfx: 1, bgm: 1 };
+try {
+  const kept: unknown = JSON.parse(localStorage.getItem(VOLUMES_KEY) ?? '{}');
+  for (const key of Object.keys(volumes) as (keyof Volumes)[]) {
+    const value = (kept as Partial<Volumes>)[key];
+    if (typeof value === 'number' && value >= 0 && value <= 1) volumes[key] = value;
+  }
+} catch {
+  // No storage (a private window), or not readable: at full.
+}
+
 const Ctx = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
 const audio = Ctx ? new Ctx() : null;
 const master = audio?.createGain() ?? null;
 const tunes = audio?.createGain() ?? null;
+/** Each channel's own volume, under the master's (music's then through tunes). */
+const channels: Record<Channel, GainNode | null> = { voice: audio?.createGain() ?? null, sfx: audio?.createGain() ?? null, bgm: audio?.createGain() ?? null };
 if (audio && master && tunes) {
-  master.gain.value = VOLUME;
+  master.gain.value = muted ? 0 : VOLUME * volumes.master;
   master.connect(audio.destination);
+  for (const channel of Object.keys(channels) as Channel[]) {
+    const gain = channels[channel] as GainNode;
+    gain.gain.value = volumes[channel];
+    gain.connect(channel === 'bgm' ? tunes : master);
+  }
   tunes.connect(master);
   // Music fades out while the tab is hidden or another window has focus (a popup's iframe on the page still counts
   // as the page: hasFocus, checked once the focus has moved), and back in when it's in front again.
@@ -56,9 +85,9 @@ function ready(): AudioContext | null {
 /** Stops a sound that's playing, fading out over `fade` seconds (0: at once). */
 export type Stop = (fade?: number) => void;
 
-/** A recorded sound: loads it, and returns a function that plays it (unless the sound is off). */
-export function sound(url: string): (volume?: number) => void {
-  const play = track(url);
+/** A recorded sound (of `channel`: a sound effect, unless it says): loads it, and returns a function that plays it (unless the sound is off). */
+export function sound(url: string, channel: Channel = 'sfx'): (volume?: number) => void {
+  const play = track(url, 0, channel);
   return (volume) => void play(volume);
 }
 
@@ -66,17 +95,18 @@ export function sound(url: string): (volume?: number) => void {
  * A long recorded sound, as sound(), played from `from` seconds into its file: playing it gives back
  * what stops it early.
  */
-export function track(url: string, from = 0): (volume?: number) => Stop {
+export function track(url: string, from = 0, channel: Channel = 'sfx'): (volume?: number) => Stop {
   const loaded = load(url);
   return (volume = 1) => {
     const ctx = ready();
     const buffer = loaded();
-    if (!ctx || !master || !buffer) return () => {};
+    const out = channels[channel];
+    if (!ctx || !out || !buffer) return () => {};
     const source = ctx.createBufferSource();
     source.buffer = buffer;
     const gain = ctx.createGain();
     gain.gain.value = volume;
-    source.connect(gain).connect(master);
+    source.connect(gain).connect(out);
     source.start(0, from);
     return (fade = 0) => {
       const now = ctx.currentTime;
@@ -96,10 +126,11 @@ export function track(url: string, from = 0): (volume?: number) => Stop {
 export function music(url: string, loop?: number): (volume?: number) => Stop {
   const loaded = load(url);
   return (volume = 1) => {
-    if (!audio || !tunes) return () => {};
+    const out = channels.bgm;
+    if (!audio || !out) return () => {};
     const gain = audio.createGain();
     gain.gain.value = volume;
-    gain.connect(tunes);
+    gain.connect(out);
     let source: AudioBufferSourceNode | null = null;
     let stopped = false;
     const begin = (): void => {
@@ -159,7 +190,8 @@ function load(url: string): () => AudioBuffer | null {
 /** A few notes made here (no file): each `spacing` seconds after the last, fading out over `length`. */
 export function notes(freqs: number[], opts: { type: OscillatorType; volume: number; length: number; spacing?: number }): void {
   const ctx = ready();
-  if (!ctx || !master) return;
+  const out = channels.sfx;
+  if (!ctx || !out) return;
   const now = ctx.currentTime;
   freqs.forEach((freq, i) => {
     const osc = ctx.createOscillator();
@@ -169,7 +201,7 @@ export function notes(freqs: number[], opts: { type: OscillatorType; volume: num
     const start = now + i * (opts.spacing ?? 0);
     gain.gain.setValueAtTime(opts.volume, start);
     gain.gain.exponentialRampToValueAtTime(0.001, start + opts.length);
-    osc.connect(gain).connect(master);
+    osc.connect(gain).connect(out);
     osc.start(start);
     osc.stop(start + opts.length);
   });
@@ -179,5 +211,24 @@ export function notes(freqs: number[], opts: { type: OscillatorType; volume: num
 export function setMuted(on: boolean): void {
   muted = on;
   // (Music already going on goes quiet too, and is heard again when it's turned back on.)
-  if (master) master.gain.value = on ? 0 : VOLUME;
+  if (master) master.gain.value = on ? 0 : VOLUME * volumes.master;
+}
+
+/** The player's volumes, as they are now. */
+export const getVolumes = (): Volumes => ({ ...volumes });
+
+/** Sets one of the player's volumes (0 to 1): the master's, or a channel's; remembered for every game. */
+export function setVolume(which: keyof Volumes, value: number): void {
+  volumes[which] = Math.min(1, Math.max(0, value));
+  if (which === 'master') {
+    if (master && !muted) master.gain.value = VOLUME * volumes.master;
+  } else {
+    const gain = channels[which];
+    if (gain) gain.gain.value = volumes[which];
+  }
+  try {
+    localStorage.setItem(VOLUMES_KEY, JSON.stringify(volumes));
+  } catch {
+    // Not remembered, but set for now.
+  }
 }

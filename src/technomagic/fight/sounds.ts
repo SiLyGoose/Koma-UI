@@ -1,4 +1,4 @@
-import { music, preload, sound, type Stop } from '../../shared/audio';
+import { music, preload, sound, type Stop, type Channel } from '../../shared/audio';
 import { musicFile, soundFile, type BossAssets, type GameSound, type HeroAssets } from '../assets';
 import { MINION_FX, type MinionFx } from '../assets/minions';
 
@@ -44,6 +44,9 @@ export interface FightSounds {
   stop(): void;
 }
 
+/** What a clip is: a voice-over (a hero's or a boss's own, kept in its own sounds/: soundFile's `own`), or else a sound effect (the shared ones). */
+const voiced = (url: string): Channel => (url.includes('/effects/sounds/') ? 'sfx' : 'voice');
+
 /** Every file a hero's sounds play. */
 const heroFiles = (hero: HeroAssets): string[] =>
   [...Object.values(hero.sounds?.hits ?? {}).flat(), ...Object.values(hero.sounds?.casts ?? {}), hero.sounds?.victory ?? []].flatMap((list) => list.map((clip) => soundFile(hero, clip)));
@@ -66,7 +69,7 @@ export function makeFightSounds(heroes: readonly HeroAssets[], boss: BossAssets)
   // (And its raid's minions': their clips are the shared ones, public/kr/effects/sounds/.)
   const shared = { folder: 'effects' };
   const minionFiles = Object.keys(boss.minions ?? {}).flatMap((kind) => Object.values(MINION_FX[kind]?.sounds ?? {}).flatMap((list) => list.map((clip) => soundFile(shared, clip))));
-  for (const url of [...heroes.flatMap(heroFiles), ...bossFiles(boss), ...minionFiles]) if (!clips.has(url)) clips.set(url, sound(url));
+  for (const url of [...heroes.flatMap(heroFiles), ...bossFiles(boss), ...minionFiles]) if (!clips.has(url)) clips.set(url, sound(url, voiced(url)));
   const { uses = {}, hits = {}, down, dead } = boss.sounds ?? {};
 
   const last = new Map<string, number>();

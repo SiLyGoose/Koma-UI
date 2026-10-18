@@ -1,6 +1,6 @@
 import { loadUser, profileMenu, setSession } from '../account/account';
 import { installCursor } from '../../cursor';
-import { installClickSounds } from '../../audio';
+import { getVolumes, installClickSounds, setVolume, type Volumes } from '../../audio';
 import './frame.css';
 import { catchBack, holdReveal } from '../../transition';
 
@@ -20,7 +20,9 @@ bar.className = 'top';
 bar.innerHTML = `
   <a class="back" href="/" aria-label="Back to the games">←</a>
   <h1></h1>
-  <button type="button" id="mute" class="frame-mute" aria-label="Turn sound off" aria-pressed="false">🔊</button>
+  <span class="frame-sound">
+    <button type="button" id="mute" class="frame-mute" aria-label="Sound settings" aria-haspopup="dialog" aria-expanded="false">🔊</button>
+  </span>
   <span id="conn" class="conn">Connecting…</span>`;
 const frame = document.querySelector<HTMLElement>('.frame');
 const title = bar.querySelector('h1') as HTMLElement;
@@ -61,9 +63,19 @@ export function setConn(text: string, kind: '' | 'ok' | 'bad'): void {
   else if (kind === 'bad') revealed();
 }
 
+/** The volumes the sound button's panel sets, in its order, with what each is called. */
+const VOLUME_ROWS: readonly { key: keyof Volumes; label: string }[] = [
+  { key: 'master', label: 'Master' },
+  { key: 'voice', label: 'Voice-over' },
+  { key: 'sfx', label: 'SFX' },
+  { key: 'bgm', label: 'BGM' },
+];
+
 /**
- * The sound button: shows whether sound is off and remembers it (in storage under `key`, so each
- * game has its own), telling `onChange` straight away and on every click.
+ * The sound button: shows whether sound is off, and opens a panel under it with sound on or off (remembered in storage
+ * under `key`, so each game has its own: `onChange` is told straight away and on every change) and the volumes, the
+ * master's, voice-over's, sound effects' and music's (the same for every game: ../../audio/sfx.ts). A click outside it,
+ * or Escape, closes it.
  */
 export function soundButton(key: string, onChange: (muted: boolean) => void): void {
   const button = document.getElementById('mute') as HTMLButtonElement;
@@ -73,12 +85,56 @@ export function soundButton(key: string, onChange: (muted: boolean) => void): vo
   } catch {
     // No storage (a private window): sound starts on.
   }
+
+  const panel = document.createElement('div');
+  panel.className = 'frame-volume';
+  panel.setAttribute('role', 'dialog');
+  panel.setAttribute('aria-label', 'Sound');
+  panel.hidden = true;
+  const toggle = document.createElement('button');
+  toggle.type = 'button';
+  toggle.className = 'frame-volume-toggle';
+  panel.append(toggle);
+  const volumes = getVolumes();
+  for (const { key: which, label } of VOLUME_ROWS) {
+    const row = document.createElement('label');
+    row.className = 'frame-volume-row';
+    const name = document.createElement('span');
+    name.textContent = label;
+    const slider = document.createElement('input');
+    slider.type = 'range';
+    slider.min = '0';
+    slider.max = '100';
+    slider.step = '1';
+    slider.value = String(Math.round(volumes[which] * 100));
+    slider.setAttribute('aria-label', `${label} volume`);
+    const value = document.createElement('output');
+    const show = (): void => {
+      value.textContent = `${slider.value}%`;
+      slider.style.setProperty('--filled', `${slider.value}%`);
+    };
+    slider.addEventListener('input', () => {
+      setVolume(which, Number(slider.value) / 100);
+      show();
+    });
+    show();
+    row.append(name, slider, value);
+    panel.append(row);
+  }
+  button.after(panel);
+
   const render = (): void => {
     button.textContent = muted ? '🔇' : '🔊';
-    button.setAttribute('aria-pressed', String(muted));
-    button.setAttribute('aria-label', muted ? 'Turn sound on' : 'Turn sound off');
+    toggle.textContent = muted ? '🔇 Sound off' : '🔊 Sound on';
+    toggle.setAttribute('aria-pressed', String(!muted));
+    panel.classList.toggle('muted', muted);
   };
-  button.addEventListener('click', () => {
+  const open = (on: boolean): void => {
+    panel.hidden = !on;
+    button.setAttribute('aria-expanded', String(on));
+  };
+  button.addEventListener('click', () => open(panel.hidden));
+  toggle.addEventListener('click', () => {
     muted = !muted;
     try {
       localStorage.setItem(key, muted ? '1' : '0');
@@ -87,6 +143,15 @@ export function soundButton(key: string, onChange: (muted: boolean) => void): vo
     }
     render();
     onChange(muted);
+  });
+  document.addEventListener('pointerdown', (event) => {
+    if (!panel.hidden && !(event.target instanceof Node && (panel.contains(event.target) || button.contains(event.target)))) open(false);
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && !panel.hidden) {
+      open(false);
+      button.focus();
+    }
   });
   render();
   onChange(muted);

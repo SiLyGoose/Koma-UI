@@ -15,9 +15,9 @@ const SOUNDS = {
   start: { play: sound(SFX('ready_04')), volume: 0.3 },
   battle: { play: sound(SFX('battle_start')), volume: 0.3 },
   victory: { play: sound(SFX('victory')), volume: 0.3 },
-  victoryMusic: { play: sound(SFX('victory_bgm')), volume: 0.15 },
+  victoryMusic: { play: sound(SFX('victory_bgm'), 'bgm'), volume: 0.15 },
   lose: { play: sound(SFX('lose')), volume: 0.3 },
-  loseMusic: { play: sound(SFX('lose_bgm')), volume: 0.15 },
+  loseMusic: { play: sound(SFX('lose_bgm'), 'bgm'), volume: 0.15 },
 };
 
 export type Sound = keyof typeof SOUNDS;
