@@ -2,7 +2,14 @@ import { HERO_ASSETS, iconPicture, portraitPicture, type Crop } from '../technom
 import { el } from './items';
 
 /** The heroes as the bot says them (../protocol/heroes.ts). */
-export { HERO_SLOT_KIND, HERO_SLOTS, type HeroCopy, type HeroesView, type HeroSlot, type HeroStat, type HeroView } from '../protocol/heroes';
+export { HERO_PART_NAME, HERO_SLOT_PART, HERO_SLOTS, type HeroCopy, type HeroesView, type HeroPart, type HeroSlot, type HeroStat, type HeroView } from '../protocol/heroes';
+import { HERO_SLOT_PART as PART_OF, HERO_SLOTS as SLOTS, type HeroSlot as Slot_ } from '../protocol/heroes';
+import type { Slot } from '../protocol/items';
+
+/** The kind of item (the pages' filters') each of a hero's slots takes: a weapon, an armor (Armor and Secondary Armor), or the rest. */
+export const HERO_SLOT_KIND: Readonly<Record<Slot_, Slot>> = Object.fromEntries(
+  SLOTS.map((slot) => [slot, PART_OF[slot] === 'weapon' ? 'weapon' : PART_OF[slot] === 'armor' || PART_OF[slot] === 'secondary' ? 'armor' : 'treasure']),
+) as Record<Slot_, Slot>;
 
 
 /*

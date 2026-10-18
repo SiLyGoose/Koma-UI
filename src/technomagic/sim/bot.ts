@@ -6,7 +6,7 @@ import { HEROES } from './heroes';
 import { perkStats, perksOf } from './perks';
 import { MARCH, MOST, RAGE_WIPE, RAID_TIME, TICK } from './rules';
 import { ARTIFACTS } from './artifacts';
-import { KR_ARTIFACTS } from './gear/kr-data';
+import { KR_ARTIFACTS, KR_PIECES as PIECES, KR_POOLS as POOLS, KR_REFINE as REFINE, KR_RUNES as RUNES, KR_SETS as SETS, KR_UNIQUE as UNIQUE } from './gear/kr-data';
 import { SET_INFO, SET_PIECES } from './sets';
 import { MOST_SKILLS, SKILLS } from './skills';
 import { treasureAbout } from './treasures';
@@ -181,7 +181,69 @@ export const TM_SET_PIECES: number = SET_PIECES;
  * their option pools, the sets' bonuses, the unique options, the runes, and how refinement raises a main stat. The bot
  * makes its items, drops and copies of them; the fight is given what they add up to (RunHero.gear, set, artifact).
  */
-export { KR_PIECES, KR_POOLS, KR_REFINE, KR_RUNES, KR_SETS, KR_UNIQUE, type KrMainStat, type KrOptionData, type KrPart, type KrPieceData, type KrRuneData, type KrSetData } from './gear/kr-data';
+export type KrPart = 'weapon' | 'armor' | 'secondary' | 'accessory' | 'orb';
+export type KrMainStat = 'atk' | 'hp' | 'defPhysical' | 'defMagical';
+
+/** An option a piece may roll: its stat (a gear stat's id), the share it gives (from min to max, in `steps` steps), and how likely it is next to the others. */
+export interface KrOptionData {
+  stat: string;
+  min: number;
+  max: number;
+  steps: number;
+  weight: number;
+}
+
+/**
+ * A piece of hero gear: its id, KR code and name, its set and tier, its part (an accessory's kind, an armor's weight), who
+ * wears it (class ids), its main stat's base, its option pool and how many options it rolls, whether it has a unique option
+ * (the additional skills: TM_SKILLS), its rune sockets, and its icon (Koma-UI's public/kr/items/<icon>.webp).
+ */
+export interface KrPieceData {
+  id: string;
+  code: string;
+  name: string;
+  set: string;
+  tier: number;
+  part: KrPart;
+  kind?: string;
+  classes: readonly string[];
+  main: readonly [KrMainStat, number];
+  pool: string;
+  options: number;
+  unique?: boolean;
+  runes: number;
+  icon: string;
+}
+
+/** A set's bonuses: a dragon set's 2- and 4-piece stats (both at 4: shares, by gear stat), a TechnoMagic set's 4-piece skill for each class and King's Raid's words for it. */
+export interface KrSetData {
+  name: string;
+  two?: Readonly<Record<string, number>>;
+  four: Readonly<Record<string, number>> | Readonly<Record<string, { skill: number; text: string }>>;
+  detail?: number;
+}
+
+/** A rune: its id, KR code and name, grade (1 Common to 6 Legendary; Ancient and Velkazar 5), colour, the parts it goes in, its stats (shares, by gear stat) and icon. */
+export interface KrRuneData {
+  id: string;
+  code: string;
+  name: string;
+  grade: number;
+  color: string;
+  parts: readonly KrPart[];
+  stats: Readonly<Record<string, number>>;
+  icon: string;
+  ancient?: boolean;
+}
+
+export const KR_PIECES: readonly KrPieceData[] = PIECES;
+export const KR_POOLS: Readonly<Record<string, readonly KrOptionData[]>> = POOLS;
+/** A main stat's base, times its refinement's factor (R1 to R5: thousandths, at max level) for its kind of stat. */
+export const KR_REFINE: { readonly atk: readonly number[]; readonly hp: readonly number[]; readonly def: readonly number[] } = REFINE;
+export const KR_SETS: Readonly<Record<string, KrSetData>> = SETS;
+export const KR_RUNES: readonly KrRuneData[] = RUNES;
+/** The TechnoMagic gear's unique options (King's Raid's 47), by number: the additional skill each is (null: none), and King's Raid's words and numbers. */
+export const KR_UNIQUE: readonly { n: number; skill: string | null; text: string; params: readonly string[] }[] = UNIQUE;
 
 /** An artifact the fight has a use for (./artifacts.ts): its id, KR code and name, icon, and what it does at R1 to R5 in King's Raid's words. */
 export interface TmArtifactInfo {
