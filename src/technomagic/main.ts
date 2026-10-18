@@ -253,7 +253,7 @@ async function start(): Promise<void> {
   // The game's banners over the battle (its start, its finish).
   const banners = makeBanners(stage);
   // The minions of its raid's waves, their models and clips read now (a raid of one wave: none).
-  const minions = makeMinions(stage.scene, bossView.look.assets);
+  const minions = makeMinions(stage.scene, bossView.look.assets, kr);
   // The map moved on to the next wave's platform, its own effects with it.
   const slide = (seconds: number): void => stage.slide(seconds, (dx) => kr.shift(dx));
 

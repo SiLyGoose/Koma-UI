@@ -4,12 +4,15 @@ import { animationFile, modelFolder, type BossAssets } from '../assets';
 import { loadKrClip } from '../engine/kr-clips';
 import { isMesh, loadModels } from '../engine/models';
 import { SCALE } from '../heroes/body/hero';
+import { MINION_FX } from '../assets/minions';
+import type { KrEffects } from '../fx/kr-effects';
 
 /*
  * The minions of a raid's waves on the field (../sim/bosses/dragon/minions.ts), drawn as the sim says: each the game's own
  * model of it (its boss's `minions`: ../assets/bosses/), as big beside the heroes as the game has it, moved by King's Raid's
  * own clips of it: standing, its attack and its skill as it begins each, reeling when stunned, and falling as it is beaten
- * (then gone). Hit, it shows white for a moment. Its models and clips are read as the fight begins.
+ * (then gone). Hit, it shows white for a moment. Its models and clips are read as the fight begins; and King's Raid's own
+ * effects of it (../assets/minions.ts) are played on it as it comes on, as it begins its attack and its skill, and where it falls.
  */
 
 /** Hit: white for this long. Beaten: gone this long after it falls. How long one clip takes to give way to the next. */
@@ -55,9 +58,19 @@ interface Body {
   high: number;
 }
 
-/** Each minion of `boss`'s raid in `scene` (its kinds' models and clips read now, for the waves to come). */
-export function makeMinions(scene: Scene, boss: BossAssets): Minions {
+/** Each minion of `boss`'s raid in `scene` (its kinds' models and clips read now, for the waves to come), its effects played by `kr`. */
+export function makeMinions(scene: Scene, boss: BossAssets, kr: KrEffects): Minions {
   const looks = boss.minions ?? {};
+  kr.read(Object.keys(looks).flatMap((kind) => Object.values(MINION_FX[kind]?.vfx ?? {}).flat()));
+  /** Each one's kind, by its index. */
+  const kindOf = new Map<number, string>();
+  /** Plays its kind's effects of `what` on it (or, `at` it, where it is). */
+  const effect = (foe: number, what: 'attack' | 'skill' | 'down' | 'enter', at = false): void => {
+    const body = bodies.get(foe);
+    const codes = MINION_FX[kindOf.get(foe) ?? '']?.vfx[what] ?? [];
+    if (!body) return;
+    for (const code of codes) kr.play(code, at ? { at: body.root.position, turn: body.root.rotation.y, scale: SCALE } : { on: body.root, scale: SCALE });
+  };
   const kinds = new Map<string, Promise<Kind | null>>();
   for (const [kind, look] of Object.entries(looks)) {
     const owner = { folder: boss.folder };
@@ -92,6 +105,7 @@ export function makeMinions(scene: Scene, boss: BossAssets): Minions {
 
   return {
     enter(foe, kind, x, z) {
+      kindOf.set(foe, kind);
       void kinds.get(kind)?.then((made) => {
         if (!made || bodies.has(foe)) return;
         const model = clone(made.model);
@@ -118,11 +132,14 @@ export function makeMinions(scene: Scene, boss: BossAssets): Minions {
         bodies.set(foe, body);
         // (Coming onto the field: its own coming, where it has one.)
         body.back = play(body, actions.has('Advent') ? 'Advent' : 'Astand', actions.has('Advent'));
+        effect(foe, 'enter');
       });
     },
     use(foe, move) {
       const body = bodies.get(foe);
-      if (body && body.gone === 0) body.back = play(body, move === 'skill' ? 'Skill1' : 'Attack1', true);
+      if (!body || body.gone > 0) return;
+      body.back = play(body, move === 'skill' ? 'Skill1' : 'Attack1', true);
+      effect(foe, move);
     },
     hit(foe) {
       const body = bodies.get(foe);
@@ -137,6 +154,7 @@ export function makeMinions(scene: Scene, boss: BossAssets): Minions {
     down(foe) {
       const body = bodies.get(foe);
       if (!body) return;
+      effect(foe, 'down', true);
       play(body, 'Dead', true);
       body.back = 0;
       body.gone = GONE;

@@ -149,6 +149,9 @@ export function makeFightView({
    * and when it came to lie still (null: it hasn't yet), so it lies as it was then.
    */
   const fallen = new Map<number, { over: number; still: number | null }>();
+  /** Each minion's kind, and the move it began last (whose blows are landing), by its index among the sim's enemies. */
+  const foeKinds = new Map<number, string>();
+  const foeMoves = new Map<number, 'attack' | 'skill'>();
   /** The heroes standing in a row as the fight is over (celebrate()): null while it goes on. */
   let celebrating: readonly number[] | null = null;
 
@@ -367,11 +370,11 @@ export function makeFightView({
             // Blocked: a ring round it, and no flinch.
             if (event.blocked) magic.ring(body(event.who).place(at), 0xffe9a8, 7, 0.4);
             else body(event.who).hit();
-            // (The boss's own sound and effect for a blow of its; not a minion's.)
+            // (The boss's own sound and effect for a blow of its; a minion's, its own.)
             if (event.by === undefined) {
               sounds.hurt();
               krBoss.hurt(event.who);
-            }
+            } else sounds.minion(foeKinds.get(event.by) ?? '', foeMoves.get(event.by) === 'skill' ? 'hitSkill' : 'hitAttack');
             break;
           case 'number': {
             // (On a minion: over its head.)
@@ -399,6 +402,7 @@ export function makeFightView({
           case 'boss-hit':
             if (event.foe) {
               minions.hit(event.foe);
+              sounds.minion(foeKinds.get(event.foe) ?? '', 'hurt');
               break;
             }
             boss.hit();
@@ -429,15 +433,19 @@ export function makeFightView({
             banners.play(event.wave === 2 ? 'stage2' : 'stage3');
             break;
           case 'foe-enter':
+            foeKinds.set(event.foe, event.minion);
             minions.enter(event.foe, event.minion, event.x, event.z);
             break;
           case 'foe-use':
+            foeMoves.set(event.foe, event.move);
             minions.use(event.foe, event.move);
+            sounds.minion(foeKinds.get(event.foe) ?? '', event.move);
             break;
           case 'foe-daze':
             minions.daze(event.foe, event.seconds);
             break;
           case 'foe-down':
+            sounds.minion(foeKinds.get(event.foe) ?? '', 'down');
             minions.down(event.foe);
             break;
           case 'end':

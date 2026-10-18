@@ -1,5 +1,6 @@
 import { music, preload, sound, type Stop } from '../../shared/audio';
 import { musicFile, soundFile, type BossAssets, type GameSound, type HeroAssets } from '../assets';
+import { MINION_FX, type MinionFx } from '../assets/minions';
 
 /*
  * What is heard in a fight, King's Raid's own (the heroes' and the boss's asset files' `sounds`, and its `music`):
@@ -13,6 +14,8 @@ import { musicFile, soundFile, type BossAssets, type GameSound, type HeroAssets 
 const VOLUME = 0.1;
 /** How loud a hero's victory is (its voice, over the stings of the result). */
 const VICTORY = 0.2;
+/** How loud a minion is (many of them at once: softer than the boss). */
+const MINION = 0.06;
 const BOSS = 0.1;
 const MUSIC = 0.1;
 /** The same clip again within this many seconds isn't played: a whole raid's blows can land together. */
@@ -31,6 +34,8 @@ export interface FightSounds {
   hurt(): void;
   /** The boss is knocked down. */
   down(): void;
+  /** A minion of a raid's waves (of its kind: ../assets/minions.ts): begins its attack or its skill, lands a blow of one on a hero, is hit, falls. */
+  minion(kind: string, what: keyof MinionFx['sounds']): void;
   /** A hero (by its index) strikes its victory pose: what it says, and what is heard with it. */
   victory(who: number): void;
   /** The fight is over (`won`: the boss has fallen): the music fades away. */
@@ -58,7 +63,10 @@ export function readSounds(owner: { hero: HeroAssets } | { boss: BossAssets }): 
 /** The sounds of a fight of `heroes` (by their index among the fighters) against `boss`. */
 export function makeFightSounds(heroes: readonly HeroAssets[], boss: BossAssets): FightSounds {
   const clips = new Map<string, (volume?: number) => void>();
-  for (const url of [...heroes.flatMap(heroFiles), ...bossFiles(boss)]) if (!clips.has(url)) clips.set(url, sound(url));
+  // (And its raid's minions': their clips are the shared ones, public/kr/effects/sounds/.)
+  const shared = { folder: 'effects' };
+  const minionFiles = Object.keys(boss.minions ?? {}).flatMap((kind) => Object.values(MINION_FX[kind]?.sounds ?? {}).flatMap((list) => list.map((clip) => soundFile(shared, clip))));
+  for (const url of [...heroes.flatMap(heroFiles), ...bossFiles(boss), ...minionFiles]) if (!clips.has(url)) clips.set(url, sound(url));
   const { uses = {}, hits = {}, down, dead } = boss.sounds ?? {};
 
   const last = new Map<string, number>();
@@ -108,6 +116,9 @@ export function makeFightSounds(heroes: readonly HeroAssets[], boss: BossAssets)
     },
     down() {
       hear(boss, down, BOSS);
+    },
+    minion(kind, what) {
+      hear(shared, MINION_FX[kind]?.sounds[what], MINION);
     },
     victory(who) {
       const hero = heroes[who];
