@@ -7,7 +7,6 @@ import type { Span } from '../../sim/motion';
 import type { Boss, BossLook } from '../boss';
 import { krBossMotion, loadKrBossClips } from '../kr';
 import { WASTELAND } from './scenery';
-import { TRACKS } from './tracks';
 import { makeVenom } from './venom';
 
 /*
@@ -15,12 +14,14 @@ import { makeVenom } from './venom';
  * Raid's own animations for it (../kr.ts: its idle, each of its attacks, going down and getting up), each attack fitted to
  * how the fight has it go (../../sim/bosses/galgoria/attacks.ts: each of its skills is some of its heads' moves, one after
  * another). Its venom is drawn here, by its heads' moves as the fight times them: sprayed from a head's mouth at whoever
- * it is fighting (./venom.ts, while ./tracks.ts says), and splashing where it lands. It is only drawn: when it attacks,
+ * it is fighting (./venom.ts, through SPRAY of its spit), and splashing where it lands. It is only drawn: when it attacks,
  * is stunned or slowed, and what comes of each blow, is the fight's sim's (../../sim/bosses/galgoria/).
  */
 
 /** Hit: white for this long, and shaken. */
 const FLINCH = 0.22;
+/** When in a head's spit its venom sprays (it takes a moment to get there). */
+const SPRAY = [0.6, 1.2] as const;
 
 /**
  * How the fight times each of its attacks: when its heads' blows land (each head's moves one after another, each
@@ -113,8 +114,7 @@ export async function loadGalgoria(scene: Scene, bright: Object3D): Promise<Boss
         if (!moves || !doing) continue;
         doing.t += dt * rate;
         const move = MOVES[doing.kind];
-        const spray = TRACKS[doing.kind].spray;
-        if (spray && doing.t >= spray[0] && doing.t <= spray[1]) venom.spray(tongue(head, mouth), boss.target(aim), dt);
+        if (doing.kind === 'spit' && doing.t >= SPRAY[0] && doing.t <= SPRAY[1]) venom.spray(tongue(head, mouth), boss.target(aim), dt);
         if (move.hit !== null && !doing.hit && doing.t >= move.hit) {
           // It lands: its venom splashes where its target is (or, come down into the swamp, where its mouth is).
           doing.hit = true;

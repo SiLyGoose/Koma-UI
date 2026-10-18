@@ -5,6 +5,22 @@ export const SCALAXIA_ASSETS: BossAssets = {
   name: 'Scalaxia',
   folder: 'bosses/scalaxia',
   models: ['Raid_Dragon_Ice_Vari01_Mesh', 'Raid_Dragon_Ice_Pillar_Vari01_Mesh'],
+  // King's Raid's own (its blows as the game's timelines have them: Raid/Dragon's skill scripts). Its bite is its Attack1,
+  // its claw its Attack2, its tail its Skill1 and its breath its Skill2; its rise into the air, what it casts there and
+  // its landing its Skill4. (One its sim has land far sooner than the game, its blows aren't matched: it is only sped up.)
+  animations: {
+    idle: 'Astand',
+    down: 'Getup_Down',
+    getUp: 'Getup_Getup',
+    attacks: {
+      bite: { clips: ['Attack1'], hits: [1.2] },
+      claw: { clips: ['Attack2'], hits: [1.4] },
+      sweep: { clips: ['Skill1'], hits: [2] },
+      smashes: { clips: ['Skill1'], hits: [2] },
+      breath: { clips: ['Skill2'], hits: [2.2, 4.6] },
+      storm: { clips: ['Skill4-1', 'Skill4-2', 'Landing'], hits: [5, 5.8, 7.6] },
+    },
+  },
   // The music the Dragon Raid plays (BattleBGM.RaidBGM): it ends where it begins, so it goes round again from its end.
   music: { file: 'RaidBGM.mp3', loop: 64.762 },
   // King's Raid's sounds (its BeginFireSkill.<skill>, Hit.Raid.Dragon.Ice.*, Damage and Dead ones): as each of its attacks begins

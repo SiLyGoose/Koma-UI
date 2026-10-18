@@ -1,17 +1,10 @@
 /*
- * A movement written down as a track: poses at times (seconds), each reached from the one before by
- * its easing. The models have no animation of their own, so a boss's attacks (../bosses/) and a
- * hero's moves (../heroes/moves/) are tracks like these, read each frame.
+ * A movement written down as a track: poses at times (seconds). A hero with no animation of King's Raid's
+ * moves by tracks like these (../heroes/moves/), read each frame.
  */
 
 /** A pose at a time; what it leaves out is as at rest. */
 export type Key<P> = [at: number, pose: Partial<P>, ease?: (k: number) => number];
-
-export const smooth = (k: number): number => k * k * (3 - 2 * k);
-/** Slow, then all at once: a strike. */
-export const snap = (k: number): number => k * k * k;
-/** All at once, then slowing: coming to a stop. */
-export const settle = (k: number): number => 1 - (1 - k) ** 3;
 
 /** How long a track runs. */
 export const lengthOf = <P>(keys: readonly Key<P>[]): number => (keys.at(-1) as Key<P>)[0];
@@ -49,21 +42,4 @@ export function flowAt<P extends Record<string, number>>(keys: readonly Key<P>[]
     pose[part] = (2 * k3 - 3 * k2 + 1) * value(i) + (k3 - 2 * k2 + k) * h * speed(i) + (-2 * k3 + 3 * k2) * value(i + 1) + (k3 - k2) * h * speed(i + 1);
   }
   return pose as P;
-}
-
-/** The pose `t` seconds into a track (`still`, the pose at rest, once it is over). */
-export function poseAt<P extends Record<string, number>>(keys: readonly Key<P>[], t: number, still: P): P {
-  let from = keys[0] as Key<P>;
-  for (const key of keys.slice(1)) {
-    if (t <= key[0]) {
-      const k = (key[2] ?? smooth)((t - from[0]) / (key[0] - from[0]));
-      const a = { ...still, ...from[1] };
-      const b = { ...still, ...key[1] };
-      const pose: Record<string, number> = {};
-      for (const part of Object.keys(still)) pose[part] = (a[part] as number) + ((b[part] as number) - (a[part] as number)) * k;
-      return pose as P;
-    }
-    from = key;
-  }
-  return still;
 }
