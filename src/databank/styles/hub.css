@@ -270,7 +270,10 @@
   }
 }
 
-/* Going from one part of the databank to another (../page.ts): it fades out, and the other fades (and rises a little) in. */
+/*
+ * Going from one part of the databank to another (../page.ts): it fades out, and the other fades in. Only its opacity: moved
+ * at all, the page would stand out past the window for a moment, and the window's scrollbar show.
+ */
 .databank-page.fade-out {
   opacity: 0;
   transition: opacity 0.16s ease-in;
@@ -283,11 +286,9 @@
 @keyframes db-page-in {
   from {
     opacity: 0;
-    transform: translateY(8px);
   }
 
   to {
     opacity: 1;
-    transform: none;
   }
 }
