@@ -225,9 +225,9 @@ export const isTmPiece = (itemId: string): boolean => /^(perseverance|hope|autho
 export const levelLabel = (copy: { level: number }): string => `★${copy.level}`;
 
 /**
- * A copy's stars (its level), as King's Raid draws them on its gear (its own stars: public/kr/ui/): `level` lit, then (with
- * `max`) the rest dark. Gold, but (`tm`) a TechnoMagic piece's blue (King's Raid's TechnoMagic_Equip_Star). A hero's gear at
- * 0★ has none lit.
+ * A copy's stars (its level), as King's Raid draws them on its gear (public/kr/ui/: its TechnoMagic_Equip_Star, even on all
+ * sides): `level` lit, then (with `max`) the rest dark. Gold, but (`tm`) a TechnoMagic piece's own blue. A hero's gear at 0★
+ * has none lit.
  */
 export function krStars(level: number, max = level, tm = false): HTMLElement {
   const row = el('span', 'kr-stars');

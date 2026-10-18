@@ -1,5 +1,6 @@
 /*
- * A hero's gear's stars (items.ts's krStars): King's Raid's own gold stars, as it draws them on its gear, across the bottom
+ * A copy's stars (items.ts's krStars): King's Raid's TechnoMagic star (TechnoMagic_Equip_Star), even on all sides, in its
+ * blue for a TechnoMagic piece and in King's Raid's gold (and dark, for a star not reached) for everything else, across the bottom
  * of a card or a slot from the left, over its picture. Sized by the card (a share of its height), so the same on a small
  * armory card and the big one in its details. Inline (the details' level, the databank's picker): a line's height.
  */
@@ -17,15 +18,13 @@
   display: block;
   height: 1.15em;
   width: auto;
-  aspect-ratio: 91 / 117;
+  aspect-ratio: 1;
   filter: drop-shadow(0 1px 1px rgb(0 0 0 / 55%));
 }
 
-/* A TechnoMagic piece's: King's Raid's blue star, square with its glow, a little larger to match the gold's points. */
+/* A TechnoMagic piece's: King's Raid's blue star, its own glow round it. */
 .kr-star.tm {
-  aspect-ratio: 1;
   filter: none;
-  transform: scale(1.15);
 }
 
 /* A place not reached yet: KR's dark star, a little faded. */
@@ -34,18 +33,21 @@
   filter: none;
 }
 
-/* On a card or a slot: along its bottom, from the left, a fifth of its height tall, over everything but its tabs. */
+/* On a card or a slot: along its bottom, in the middle, a fifth of its height tall, over everything but its tabs. */
 .item > .kr-stars,
 .slot-frame > .kr-stars {
   position: absolute;
   z-index: 2;
+  right: 0;
   bottom: 4%;
-  left: 5%;
+  left: 0;
+  justify-content: center;
   height: 21%;
 }
 
+/* (Their points a little into each other, as King's Raid's rows of stars are.) */
 .item > .kr-stars .kr-star,
 .slot-frame > .kr-stars .kr-star {
   height: 100%;
-  margin-right: -3%;
+  margin: 0 -1.5%;
 }
