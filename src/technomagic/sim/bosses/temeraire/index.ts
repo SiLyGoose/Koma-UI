@@ -5,14 +5,15 @@ import { temerairePart } from './skills';
 
 /**
  * Temeraire, the ancient red dragon of fire, of Dragia (the Dragon Raid's Fire Dragon). As in King's Raid, all its
- * attacks deal massive M.DMG, it blocks all P.DMG, and its Blessing of the Flame is worn away by heroes that hit often.
+ * attacks deal massive M.DMG, it shrugs off most P.DMG (the playtest's 900 P.Tough, where the game's tip has it blocking it all), and its Blessing of the Flame is worn away by heroes that hit often.
  * What its skills do is ./skills.ts; its body is the page's (../../../bosses/dragon/).
  */
 export const TEMERAIRE: BossDef = {
   id: 'temeraire',
   name: 'Temeraire',
-  stats: { hp: FIRST.hp, deals: 'magical', physical: FIRST.def, magical: FIRST.def, ...OPEN, block: { physical: 1000, magical: 0 }, crit: 100, resist: 150 },
-  stages: dragonStages(),
+  stats: { hp: FIRST.hp, deals: 'magical', physical: FIRST.def, magical: FIRST.def, ...OPEN, tough: { physical: 900, magical: 0 }, crit: 100, resist: 150 },
+  // (How hard its blows are, and its health, beside the other dragons': what keeps it as hard as it was, with King's Raid's playtest's rules, in test fights.)
+  stages: dragonStages({ deals: 0.7 }),
   attacks: [
     { name: 'bite', label: 'Bite' },
     { name: 'claw', label: 'Claw' },

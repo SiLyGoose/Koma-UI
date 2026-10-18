@@ -3,29 +3,20 @@ import { put, type Status } from '../../combat/status';
 import type { Buff } from '../../shown';
 import type { Fight, Fighter } from '../../types';
 import type { BossPart, BossScale } from '../boss';
+import { DRAGON_GAUGE, withGauge } from '../gauge';
 
 /*
  * What every dragon has, as King's Raid's Dragon Raid has it:
- * - Its CC Gauge: no stun holds a dragon. A hero's stun (or knock down) wears its gauge down instead, by how long it
- *   would have held it; once the gauge is empty the dragon is Knocked Down for a while (what it was doing cut short,
- *   its breath among it), taking more damage, and its gauge is full again as it gets up. "Trying to deplete the CC gauge
- *   before a dragon uses a powerful skill is the common strategy for all dragons" (the game's own tip).
+ * - Its CC Gauge (../gauge.ts): no stun holds a dragon. A hero's stun (or knock down) wears its gauge down instead, by how
+ *   long it would have held it; once the gauge is empty the dragon is Down for a while (what it was doing cut short, its
+ *   breath among it), and its gauge is full again as it gets up. "Trying to deplete the CC gauge before a dragon uses a
+ *   powerful skill is the common strategy for all dragons" (the game's own tip).
+ * - Its penetration, 400 points of every hero's defense (the playtest's PiercePower).
  * - Its stages, King's Raid's Hard Dragon Raid's (KR_HP, KR_DEF, KR_ATK): the Dragon Raid is the raid heroes farm (for
  *   gear, essences and points), so it is easier than the TechnoMagic Raid's bosses.
  * And what its skills share: the heroes it can reach, a blow on each, what stacks on them for a while, and what eats at
  * them every second (a burn, poison).
  */
-
-export const GAUGE = {
-  /** How full it is. */
-  full: 100,
-  /** How much a second of a stun wears it down (knocked down: `down` times as much). */
-  perSecond: 12,
-  down: 1.5,
-  /** Knocked down: for so long, taking so many times as much. */
-  lasts: 6,
-  takes: 1.3,
-};
 
 /*
  * Its stages (1 to 10) are King's Raid's Hard Dragon Raid's (its game data: MonsterTierTable, by CampaignWaveTable's
@@ -47,22 +38,23 @@ const ROOM_HP = 1.7;
 /** A dragon's health and defense at stage 1, for its stats. */
 export const FIRST = { hp: (KR_HP[0] as number) * HP, def: KR_DEF[0] as number };
 
-/** A dragon's stages, fought with others and alone. */
-export function dragonStages(): { room: BossScale[]; solo: BossScale[] } {
+/**
+ * A dragon's stages, fought with others and alone: so many times as hard its blows, and so many times its health, as the
+ * rest's (`own`: how it stood the test fights, with King's Raid's playtest's rules, beside what they were before).
+ */
+export function dragonStages(own: { deals?: number; hp?: number } = {}): { room: BossScale[]; solo: BossScale[] } {
   const scales = (times: number): BossScale[] =>
     KR_HP.map((hp, i) => ({
-      hp: (hp / (KR_HP[0] as number)) * times,
-      deals: DEALS * ((KR_ATK[i] as number) / (KR_ATK[0] as number)),
+      hp: (hp / (KR_HP[0] as number)) * times * (own.hp ?? 1),
+      deals: DEALS * (own.deals ?? 1) * ((KR_ATK[i] as number) / (KR_ATK[0] as number)),
       defense: (KR_DEF[i] as number) / (KR_DEF[0] as number),
       level: KR_LEVEL[i] as number,
     }));
   return { room: scales(1), solo: scales(1 / ROOM_HP) };
 }
 
-/** Neither blocks nor dodges, of either kind. */
-export const OPEN = { block: NONE, dodge: NONE };
-
-const DOWNED: Buff = { name: 'Knocked Down', icon: '💫' };
+/** Neither blocks nor dodges, of either kind; and sees past 400 points of a hero's defense. */
+export const OPEN = { block: NONE, dodge: NONE, pen: 400 };
 
 /** The heroes a dragon can reach: on the field, standing, and in the fight. */
 export const reachable = (fight: Fight): Fighter[] => fight.field.filter((fighter) => fighter.hp > 0 && !fighter.statuses.some((status) => status.away));
@@ -135,41 +127,5 @@ export function cooldowns(of: Readonly<Record<string, number>>): { used(attack: 
   };
 }
 
-/**
- * A dragon's part: its own (`own`), with its CC Gauge. A stun wears the gauge down rather than holding it; empty, it is
- * Knocked Down (and takes more), and full again once it is up.
- */
-export function withGauge(fight: Fight, own: BossPart): BossPart {
-  const { foe } = fight;
-  let gauge = GAUGE.full;
-  /** How long it is down for yet (the gauge is full again once it is up). */
-  let downed = 0;
-  return {
-    ...own,
-    controlled(seconds, down) {
-      // (Down already: nothing more holds it, and nothing wears its gauge.)
-      if (downed > 0) return null;
-      gauge -= seconds * GAUGE.perSecond * (down ? GAUGE.down : 1);
-      if (gauge > 0) return null;
-      gauge = 0;
-      downed = GAUGE.lasts;
-      put(foe.statuses, { name: DOWNED.name, left: GAUGE.lasts, takes: GAUGE.takes, shown: 'down' });
-      fight.cue(null, 'gauge');
-      return { seconds: GAUGE.lasts, down: true };
-    },
-    tick(dt) {
-      if (downed > 0) {
-        downed = Math.max(0, downed - dt);
-        if (downed === 0) gauge = GAUGE.full;
-      }
-      own.tick?.(dt);
-    },
-    beaten() {
-      gauge = GAUGE.full;
-      downed = 0;
-      own.beaten?.();
-    },
-    // (Down, it is empty: its Knocked Down says for how long.)
-    gauge: () => gauge / GAUGE.full,
-  };
-}
+/** A dragon's part: its own (`own`), with its CC Gauge (../gauge.ts: the Hard Dragon Raid's). */
+export const withDragonGauge = (fight: Fight, own: BossPart): BossPart => withGauge(fight, own, DRAGON_GAUGE);

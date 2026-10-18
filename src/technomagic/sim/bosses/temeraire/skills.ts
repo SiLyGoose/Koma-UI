@@ -2,7 +2,7 @@ import { put } from '../../combat/status';
 import type { Buff, Mark } from '../../shown';
 import type { Fight, Fighter } from '../../types';
 import type { BossPart } from '../boss';
-import { all, cooldowns, dot, lift, single, withGauge } from '../dragon/common';
+import { all, cooldowns, dot, lift, single, withDragonGauge } from '../dragon/common';
 import { INHALE } from '../dragon/moves';
 
 /*
@@ -44,7 +44,7 @@ export function temerairePart(fight: Fight): BossPart {
     put(foe.statuses, { name: FLAME, left: Infinity, deals: BLESSING.deals, takes: { physical: BLESSING.physical }, count: flame, shown: 'burn' });
   }
 
-  return withGauge(fight, {
+  return withDragonGauge(fight, {
     lands: {
       // Its flame called up: on it until the heroes' blows put it out.
       blessing(_part, amount) {

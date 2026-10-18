@@ -2,6 +2,7 @@ import { put, type Status } from '../../combat/status';
 import type { Buff, Mark } from '../../shown';
 import type { Fight, Fighter } from '../../types';
 import type { BossPart } from '../boss';
+import { GALGORIA_GAUGE, withGauge } from '../gauge';
 
 /*
  * What Galgoria's skills do, as the game has them (its raid's skill list, from its players' guides on DC Inside's King's
@@ -53,6 +54,11 @@ function stack<Shown>(on: Status<Shown>[], name: string, most: number, made: (co
 }
 
 export function galgoriaPart(fight: Fight): BossPart {
+  return withGauge(fight, ownPart(fight), GALGORIA_GAUGE);
+}
+
+/** What its skills do, but for its CC Gauge. */
+function ownPart(fight: Fight): BossPart {
   const { foe } = fight;
   /** Blows the heroes have landed toward the next imprisonment, and what each has dealt since the last. */
   let hits = 0;

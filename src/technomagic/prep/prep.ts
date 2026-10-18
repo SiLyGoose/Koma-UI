@@ -1,7 +1,7 @@
 import { classBadge, className, FACE, heroCut } from '../../shared/heroes';
 import { levelPopup } from '../../shared/ui/level/level';
 import type { BossDef } from '../sim/bosses/boss';
-import { GAUGE } from '../sim/bosses/dragon/common';
+import { DOWN } from '../sim/bosses/gauge';
 import { isDragon } from '../sim/bosses';
 import { DRAGON_LIST, raidCard, TM_LIST } from '../../shared/raids';
 import { raidRewards } from '../../shared/raid-rewards/raid-rewards';
@@ -56,7 +56,7 @@ function infoOf(boss: BossDef): string[] {
   if (isDragon(boss.id)) {
     return [
       raidCard(boss.id)?.about ?? boss.name,
-      `Its CC Gauge: no stun holds a dragon, but your heroes' stuns wear the gauge down; empty, it is Knocked Down for ${GAUGE.lasts} seconds (its breath cut short) and takes ${Math.round((GAUGE.takes - 1) * 100)}% more damage.`,
+      `Its CC Gauge: no stun holds a dragon, but your heroes' stuns wear the gauge down (it fills again soon after); empty, it is Down for ${DOWN} seconds, its breath cut short.`,
       `Heroes that fall stay down. Beat it within 3:30, before its rage wipes the party. Its stages are King's Raid's Hard Dragon Raid's: stages 1 to 5 are the same dragon, and from stage 6 on it has more health and defense and hits harder; single player, it has ${solo}% of the health.`,
       `${lineup} A win gives every player hero gear (raid items), zeiucoins and hero essences of the dragon's two kinds, more at each stage. There is no daily limit.`,
       'The host picks the stage: each after the first opens once they have beaten the one before it, each dragon apart.',
@@ -64,7 +64,7 @@ function infoOf(boss: BossDef): string[] {
   }
   return [
     `${boss.name}: a chimera of three heads that spits venom. Its blows are magical, and nothing slows it; it heals itself all the while.`,
-    'Every 150 blows, the hero that has dealt the most is shut in the swamp for a while. Its Swamp Destroyer knocks every hero down.',
+    `Every 150 blows, the hero that has dealt the most is shut in the swamp for a while. Its Swamp Destroyer knocks every hero down. No stun holds it, but stuns wear its CC Gauge down (it fills again soon after); empty, it is Down for ${DOWN} seconds.`,
     `Heroes that fall stay down. Beat it within 3:30, before its rage wipes the party. Each stage, it has more health and hits harder; single player, it has ${solo}% of the health.`,
     `${lineup} A win gives each player TechnoMagic gear and zeiucoins.`,
     'The host picks the stage: each after the first opens once they have beaten the one before it.',

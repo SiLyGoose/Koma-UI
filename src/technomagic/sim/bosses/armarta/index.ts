@@ -12,7 +12,8 @@ export const ARMARTA: BossDef = {
   id: 'armarta',
   name: 'Armarta',
   stats: { hp: FIRST.hp, deals: 'magical', physical: FIRST.def, magical: FIRST.def, ...OPEN, crit: 150, resist: 200 },
-  stages: dragonStages(),
+  // (How hard its blows are, and its health, beside the other dragons': what keeps it as hard as it was, with King's Raid's playtest's rules, in test fights.)
+  stages: dragonStages({ deals: 0.9 }),
   attacks: [
     { name: 'bite', label: 'Bite' },
     { name: 'claw', label: 'Claw' },

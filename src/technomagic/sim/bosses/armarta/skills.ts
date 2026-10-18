@@ -2,7 +2,7 @@ import { put, type Status } from '../../combat/status';
 import type { Buff, Mark } from '../../shown';
 import type { Fight, Fighter } from '../../types';
 import type { BossPart } from '../boss';
-import { all, cooldowns, dot, lift, reachable, single, withGauge } from '../dragon/common';
+import { all, cooldowns, dot, lift, reachable, single, withDragonGauge } from '../dragon/common';
 import { INHALE } from '../dragon/moves';
 
 /*
@@ -35,7 +35,7 @@ export function armartaPart(fight: Fight): BossPart {
   const eating = dot(fight, DARK.name, (fighter) => flames.get(fighter) ?? 0);
   const burning = (fighter: Fighter): boolean => fighter.statuses.some((status) => status.name === DARK.name);
 
-  return withGauge(fight, {
+  return withDragonGauge(fight, {
     lands: {
       breath(part, amount) {
         if (part < INHALE) return;

@@ -3,7 +3,7 @@ import { put } from '../../combat/status';
 import type { Buff } from '../../shown';
 import type { Fight, Fighter } from '../../types';
 import type { BossPart } from '../boss';
-import { addStacks, all, cooldowns, lift, single, withGauge } from '../dragon/common';
+import { addStacks, all, cooldowns, lift, single, withDragonGauge } from '../dragon/common';
 import { INHALE } from '../dragon/moves';
 
 /*
@@ -43,7 +43,9 @@ export function scalaxiaPart(fight: Fight): BossPart {
     if (addStacks(fighter, FROSTED.name, by, FROST.freezeAt, FROST.lasts, () => ({ shown: FROSTED })) >= FROST.freezeAt) freeze(fighter);
   }
 
-  return withGauge(fight, {
+  return withDragonGauge(fight, {
+    // (Its 600 M.DMG cut: the playtest's M.DefensePower.)
+    taken: { magical: 0.4 },
     lands: {
       smashes: (_part, amount) => void all(fight, amount, (fighter) => frost(fighter, SMASH.frost), 'smash'),
       breath(part, amount) {

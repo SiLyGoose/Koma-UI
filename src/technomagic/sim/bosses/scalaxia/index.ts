@@ -5,14 +5,17 @@ import { scalaxiaPart } from './skills';
 
 /**
  * Scalaxia, the ancient blue dragon of ice, of Turandana (the Dragon Raid's Frost Dragon). As in King's Raid, its blows
- * leave Frost, ten of which freeze a hero, and it flies up to freeze them all. Its blows are magical. What its skills do
+ * leave Frost, ten of which freeze a hero, and it flies up to freeze them all. Its blows are magical. It stands M.DMG as
+ * the playtest has it: it blocks it whenever it can (1000 M.Block), a blocked blow cut the most a block cuts (its 1000
+ * M.Block power, as the game's curve has it: 368 more), 200 M.Tough, and 60% less M.DMG taken (./skills.ts). What its skills do
  * is ./skills.ts; its body is the page's (../../../bosses/dragon/), with the ice pillars its storm calls up.
  */
 export const SCALAXIA: BossDef = {
   id: 'scalaxia',
   name: 'Scalaxia',
-  stats: { hp: FIRST.hp, deals: 'magical', physical: FIRST.def, magical: FIRST.def, ...OPEN, crit: 100, resist: 150 },
-  stages: dragonStages(),
+  stats: { hp: FIRST.hp, deals: 'magical', physical: FIRST.def, magical: FIRST.def, ...OPEN, block: { physical: 0, magical: 1000 }, blockDef: { physical: 0, magical: 0.368 }, tough: { physical: 0, magical: 200 }, crit: 100, resist: 150 },
+  // (How hard its blows are, and its health, beside the other dragons': what keeps it as hard as it was, with King's Raid's playtest's rules, in test fights.)
+  stages: dragonStages({ deals: 0.5, hp: 0.7 }),
   attacks: [
     { name: 'bite', label: 'Bite' },
     { name: 'claw', label: 'Claw' },

@@ -2,7 +2,7 @@ import { put } from '../../combat/status';
 import type { Buff, Mark } from '../../shown';
 import type { Fight, Fighter } from '../../types';
 import type { BossPart } from '../boss';
-import { addStacks, all, cooldowns, dot, lift, single, stacksOf, withGauge } from '../dragon/common';
+import { addStacks, all, cooldowns, dot, lift, single, stacksOf, withDragonGauge } from '../dragon/common';
 import { INHALE } from '../dragon/moves';
 
 /*
@@ -11,16 +11,16 @@ import { INHALE } from '../dragon/moves';
  * affected by changes in ATK Spd."; its skill's words: "Deals P.DMG to enemies within range 3 times and adds 5 stacks of
  * Poison per hit. Knocks back enemies. Enemies with 30 or more stacks of Poison are Petrified for 5 sec."; the rest are
  * first guesses):
- * - Toxic Scales: its Crit Resistance (SCALES.critResist points off every hero's crit chance on it), and it takes only
- *   SCALES.taken of what is dealt it; each critical blow it takes has it take SCALES.per more for the rest of the fight
- *   (up to SCALES.most times).
+ * - Toxic Scales: its Crit Resistance (SCALES.critResist points off every hero's crit chance on it), and its DMG
+ *   Reduction: the playtest's 900 Tough against both kinds (./index.ts); each critical blow it takes has it take
+ *   SCALES.per more for the rest of the fight (up to SCALES.most times).
  * - Poison: every blow of its leaves Poison on whoever it lands on (POISON.lasts, begun again with each), every stack of
  *   it eating at them every second; at POISON.petrifyAt they are Petrified for POISON.petrify seconds, the poison gone.
  * - Tail Lash: three lashes of its tail on the heroes, each leaving LASH.stacks Poison and knocking them back.
  * - Venomous Breath: four blows of venom over the field, each leaving BREATH.stacks Poison.
  * Its claws and bite are on whoever it is going for, its tail across the field. And its CC Gauge (../dragon/common.ts).
  */
-export const SCALES = { critResist: 400, taken: 0.7, per: 0.03, most: 30 };
+export const SCALES = { critResist: 400, per: 0.03, most: 30 };
 const POISON = { petrifyAt: 30, lasts: 12, petrify: 5, hurts: 4_000, blow: 2 };
 const LASH = { stacks: 5, knock: 0.6, cooldown: 11 };
 const BREATH = { stacks: 3, cooldown: 16 };
@@ -32,7 +32,7 @@ export function zyrrkinothPart(fight: Fight): BossPart {
   const waits = cooldowns({ smashes: LASH.cooldown, breath: BREATH.cooldown });
   /** The critical blows it has taken (up to SCALES.most): each has it take more. */
   let cracks = 0;
-  const taken = { physical: SCALES.taken, magical: SCALES.taken };
+  const taken = { physical: 1, magical: 1 };
   const eating = dot(fight, POISONED.name, (fighter) => stacksOf(fighter, POISONED.name) * POISON.hurts);
 
   /** So much more Poison on a hero (none while it is stone): at POISON.petrifyAt, Petrified. */
@@ -46,7 +46,7 @@ export function zyrrkinothPart(fight: Fight): BossPart {
     fight.cue(null, 'petrify', [fighter]);
   }
 
-  return withGauge(fight, {
+  return withDragonGauge(fight, {
     lands: {
       smashes: (_part, amount) =>
         void all(
@@ -69,7 +69,7 @@ export function zyrrkinothPart(fight: Fight): BossPart {
     struck(_by, _dealt, critical) {
       if (!critical || cracks >= SCALES.most) return;
       cracks++;
-      taken.physical = taken.magical = SCALES.taken * (1 + SCALES.per * cracks);
+      taken.physical = taken.magical = 1 + SCALES.per * cracks;
     },
     critResist: SCALES.critResist,
     taken,
