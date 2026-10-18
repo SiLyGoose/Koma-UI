@@ -1,4 +1,4 @@
-import { askSale, itemDetailsClosed, saleOf, saleSaid, TM_UNSORTED, wireSaleDialog, wireSearch } from '../shared/items';
+import { askSale, itemDetailsClosed, itemIcons, saleOf, saleSaid, TM_UNSORTED, wireSaleDialog, wireSearch } from '../shared/items';
 import { HERO_CLASSES, HERO_SLOT_KIND, type HeroCopy, type HeroSlot, type HeroesView } from '../shared/heroes';
 import type { HeroesSold } from '../protocol/heroes';
 import { busyWith, dropdown, fillServers } from '../shared/ui';
@@ -148,6 +148,8 @@ function fillMembers(ctx: HeroesContext): void {
 /** Takes the bot's word on their heroes, keeping the hero shown (the address's, else their first, else the first). */
 function show(ctx: HeroesContext, act: HeroActions, view: HeroesView): void {
   ctx.view = view;
+  // (King's Raid's hero gear's pictures: its icons, as the bot says them.)
+  for (const copy of view.copies) if (copy.icon) itemIcons.set(copy.itemId, copy.icon);
   const asked = new URLSearchParams(location.search).get('hero');
   const has = (id: string | null): boolean => view.heroes.some((hero) => hero.id === id);
   if (!has(ctx.hero)) {
@@ -232,6 +234,23 @@ function actions(ctx: HeroesContext): HeroActions {
     transcend() {
       const hero = ctx.hero;
       if (hero) void change(ctx, act, 'transcend', '/api/heroes/transcend', { hero }, 'Could not transcend this hero. Try again.');
+    },
+    rune(copy: HeroCopy, socket: number, rune: string | null) {
+      void change(ctx, act, `rune:${copy.id}:${socket}`, '/api/heroes/rune', { copy: copy.id, socket, rune }, rune ? 'Could not put that rune in. Try again.' : 'Could not take that rune out. Try again.', {
+        no_rune: rune ? 'You have none of that rune left.' : 'That socket is empty.',
+        wrong_part: 'That rune doesn’t go in this piece.',
+      });
+    },
+    reroll(copy: HeroCopy, option: number | 'unique') {
+      void change(ctx, act, `reroll:${copy.id}:${option}`, '/api/heroes/reroll', { copy: copy.id, option }, 'Could not reroll that. Try again.', {
+        too_poor: 'Not enough zeiucoins to reroll that.',
+      }).then(() => void ctx.host.loadMe(true));
+    },
+    upgrade(copy: HeroCopy) {
+      void change(ctx, act, `upgrade:${copy.id}`, '/api/heroes/upgrade', { copy: copy.id }, 'Could not upgrade that. Try again.', {
+        too_poor: 'Not enough zeiucoins to upgrade that.',
+        maxed: 'Every option is at its top already.',
+      }).then(() => void ctx.host.loadMe(true));
     },
     lock(copy: HeroCopy, locked: boolean) {
       void change(ctx, act, `lock:${copy.id}`, '/api/heroes/lock', { copy: copy.id, locked }, locked ? 'Could not lock that. Try again.' : 'Could not unlock that. Try again.', {

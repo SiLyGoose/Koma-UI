@@ -705,3 +705,84 @@
     animation: none;
   }
 }
+
+/* King's Raid's slots: three a side, a little closer together. */
+.heroes-page .hero-stage .slot-col {
+  gap: 10px;
+}
+
+/* A King's Raid piece's parts in the detail: options with their steps, its unique option, its set, its rune sockets. */
+.kr-section {
+  margin-top: 10px;
+}
+
+.kr-section-title {
+  margin: 0 0 4px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.kr-option,
+.kr-socket {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  align-items: center;
+  padding: 3px 0;
+}
+
+.kr-option.off {
+  opacity: 0.5;
+}
+
+.kr-option-line {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.kr-pips {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.kr-pip {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--line);
+}
+
+.kr-pip.on {
+  background: var(--picked);
+}
+
+.kr-bonus {
+  margin: 2px 0;
+  opacity: 0.55;
+}
+
+.kr-bonus.on {
+  opacity: 1;
+}
+
+.kr-rune-icon {
+  width: 28px;
+  height: 28px;
+}
+
+.kr-rune-name {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.kr-rune-pick {
+  max-width: 100%;
+}
+
+.kr-action {
+  padding: 2px 10px;
+  font-size: 12px;
+}

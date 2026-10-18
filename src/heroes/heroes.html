@@ -9,7 +9,7 @@
       <div id="roster-list" class="roster-list"></div>
     </nav>
 
-    <!-- The hero: its picture, with two weapon slots on the left, two armor slots on the right and its treasure under it. -->
+    <!-- The hero: its picture, with its Weapon, Armor and Secondary Armor on the left, its Accessory, Orb and Artifact on the right, and its treasure under it. -->
     <div class="hero">
       <!-- Whose heroes (theirs, or someone else's in the server, to look at), and the server. -->
       <div class="hero-top">
@@ -24,8 +24,9 @@
         <!-- Its whole picture, its face in the middle, across the stage behind the slots (cut off at the stage's edges). -->
         <div class="hero-portrait" aria-hidden="true"><img id="hero-bust" class="hero-bust" alt="" hidden /></div>
         <div class="slot-col hero-weapons">
-          <button type="button" class="slot" data-slot="weapon1"></button>
-          <button type="button" class="slot" data-slot="weapon2"></button>
+          <button type="button" class="slot" data-slot="weapon"></button>
+          <button type="button" class="slot" data-slot="armor"></button>
+          <button type="button" class="slot" data-slot="secondary"></button>
         </div>
         <div class="stage-figure hero-figure">
           <span id="hero-initial" class="hero-initial" aria-hidden="true"></span>
@@ -35,8 +36,9 @@
           <a id="hero-buy" class="hero-buy action main" href="/shop/heroes/" hidden>Recruit in the Shop</a>
         </div>
         <div class="slot-col hero-armors">
-          <button type="button" class="slot" data-slot="armor1"></button>
-          <button type="button" class="slot" data-slot="armor2"></button>
+          <button type="button" class="slot" data-slot="accessory"></button>
+          <button type="button" class="slot" data-slot="orb"></button>
+          <button type="button" class="slot" data-slot="artifact"></button>
         </div>
         <!-- Its main treasure, and over its left edge a box for each of its three sub treasures (only its own unique treasures go in those). -->
         <div class="hero-treasure">

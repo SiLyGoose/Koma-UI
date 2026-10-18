@@ -1,5 +1,5 @@
-import { art, drawSell, el, forgeLink, hasLevels, itemDetailsClosed, itemPicked, lockToggle, pruneSale, replacesNote, rich, sellsFor, showDetail, statBlocks, SLOT_NAME, stars as starRow, tmMarks, tmSections, treasureParts, treasureSection, upgradeButton, utMarks, uwMarks } from '../shared/items';
-import { classBadge, className, FACE, HERO_SLOT_KIND, heroCut, heroPicture, skillText, STAGE_ZOOM, type HeroView, type HeroCopy, type HeroSlot } from '../shared/heroes';
+import { art, drawSell, el, forgeLink, hasLevels, itemDetailsClosed, itemPicked, lockToggle, pruneSale, replacesNote, rich, sellsFor, showDetail, statBlocks, stars as starRow, tmMarks, tmSections, treasureParts, treasureSection, upgradeButton, utMarks, uwMarks } from '../shared/items';
+import { classBadge, className, FACE, HERO_PART_NAME, HERO_SLOT_KIND, HERO_SLOT_PART, heroCut, heroPicture, skillText, STAGE_ZOOM, type HeroView, type HeroCopy, type HeroSlot } from '../shared/heroes';
 import { built } from '../shared/built';
 import { working } from '../shared/ui';
 import { canTrade, copyById, heroShown, mine, slotFor, slotOf, type HeroesContext } from './context';
@@ -26,13 +26,20 @@ export interface HeroActions {
   transcend(): void;
   /** Locks or unlocks a copy. */
   lock(copy: HeroCopy, locked: boolean): void;
+  /** Puts one of their runes in a copy's socket (null: takes the one in it out). */
+  rune(copy: HeroCopy, socket: number, rune: string | null): void;
+  /** Rerolls one of a copy's options (by its place), or its unique option. */
+  reroll(copy: HeroCopy, option: number | 'unique'): void;
+  /** Upgrades one of a copy's options a step. */
+  upgrade(copy: HeroCopy): void;
 }
 
 /** A slot's name under it (a sub treasure slot's: Sub). */
-const slotName = (slot: HeroSlot): string => (SIDE_SLOTS.includes(slot) ? 'Sub' : SLOT_NAME[HERO_SLOT_KIND[slot]]);
+const slotName = (slot: HeroSlot): string => (SIDE_SLOTS.includes(slot) ? 'Sub' : HERO_PART_NAME[HERO_SLOT_PART[slot]]);
 
-/** Whether a copy does anything on `hero`: a class item only on its class. */
-const worksOn = (copy: HeroCopy, hero: HeroView | undefined): boolean => copy.class === null || copy.class === hero?.class;
+/** Whether a copy does anything on `hero`: King's Raid's gear only on its classes, a class item only on its class. */
+const worksOn = (copy: HeroCopy, hero: HeroView | undefined): boolean =>
+  copy.classes.length > 0 ? !!hero && copy.classes.includes(hero.class) : copy.class === null || copy.class === hero?.class;
 
 /** Whether `hero` may wield a copy at all: anyone, but a unique weapon only its own hero (the bot refuses it on another). */
 const wieldable = (copy: HeroCopy, hero: HeroView | undefined): boolean => (!copy.uniqueWeapon || copy.uniqueWeapon === hero?.id) && (!copy.uniqueTreasure || copy.uniqueTreasure.hero === hero?.id);
@@ -293,7 +300,7 @@ function renderDetail(ctx: HeroesContext, act: HeroActions): void {
   const fits = worksOn(copy, hero);
   const shown = fits ? copy : { ...copy, setEffect: copy.setEffect && { ...copy.setEffect, active: false }, additionalActive: false };
   const notes: HTMLElement[] = [];
-  if (copy.class !== null && !fits) notes.push(el('p', 'detail-note warn', `Only works on ${className(copy.class)}s`));
+  if (!fits) notes.push(el('p', 'detail-note warn', `Only works on ${(copy.classes.length > 0 ? copy.classes : copy.class ? [copy.class] : []).map((one) => `${className(one)}s`).join(', ')}`));
   const ownerId = copy.uniqueWeapon ?? copy.uniqueTreasure?.hero;
   const owner = ownerId ? view.heroes.find((one) => one.id === ownerId) : undefined;
   if (copy.uniqueWeapon && !wieldable(copy, hero)) notes.push(el('p', 'detail-note warn', `${owner?.name ?? 'Another hero'}’s unique weapon: only they can wield it.`));
@@ -355,7 +362,7 @@ function renderDetail(ctx: HeroesContext, act: HeroActions): void {
     label: ut ? 'Options' : 'On a hero',
     none: NONE,
     effectsOff: !fits,
-    sections: ut ? treasureSection(ut.main, worn === 'treasure') : tmSections(shown),
+    sections: ut ? treasureSection(ut.main, worn === 'treasure') : copy.krSet || copy.part === 'artifact' ? krSections(ctx, act, copy, fits) : tmSections(shown),
     notes,
     // Lock: theirs to toggle on the site (not while picking what to sell); else just shown when shut.
     corner: lockToggle(copy, ctx.busy, canTrade(ctx) && !ctx.selling ? (locked) => act.lock(copy, locked) : null),
@@ -368,9 +375,85 @@ function renderDetail(ctx: HeroesContext, act: HeroActions): void {
 const notRecruited = (ctx: HeroesContext, name: string, then: string): string =>
   mine(ctx) ? `Recruit ${name} in the shop to ${then}.` : `${ctx.viewing?.name} hasn't recruited ${name}.`;
 
-/** A slot's name in a sentence: which of two (or three), when there are more of its kind. */
-const slotLabel = (slot: HeroSlot): string =>
-  slot === 'treasure' ? 'Main Treasure' : SIDE_SLOTS.includes(slot) ? `Sub Treasure ${['I', 'II', 'III'][SIDE_SLOTS.indexOf(slot)]}` : `${slotName(slot)} ${slot.endsWith('1') ? 'I' : 'II'}`;
+/** A slot's name in a sentence. */
+const slotLabel = (slot: HeroSlot): string => (slot === 'treasure' ? 'Main Treasure' : SIDE_SLOTS.includes(slot) ? `Sub Treasure ${['I', 'II', 'III'][SIDE_SLOTS.indexOf(slot)]}` : slotName(slot));
+
+/** A small button of a section's (a reroll, an upgrade, a rune in or out), waiting on `key` while it goes. */
+function sectionButton(ctx: HeroesContext, text: string, key: string, onClick: () => void): HTMLButtonElement {
+  const button = el('button', 'kr-action action secondary', text);
+  button.type = 'button';
+  working(button, ctx.busy, key);
+  button.addEventListener('click', onClick);
+  return button;
+}
+
+/** A section of a King's Raid piece's: its title, then its rows. */
+function krSection(title: string, rows: HTMLElement[], className = ''): HTMLElement {
+  const section = el('section', `kr-section ${className}`.trim());
+  section.append(el('h4', 'kr-section-title', title), ...rows);
+  return section;
+}
+
+/**
+ * King's Raid's gear's parts in the detail, under its effects: its options (each its step, and a reroll for its price), its
+ * unique option (its additional skill, with its reroll), an upgrade, its set's bonuses (lit while on), and its rune sockets
+ * (a rune in each, to take out; or one of theirs that fits, to put in). Buttons only on their own copy.
+ */
+function krSections(ctx: HeroesContext, act: HeroActions, copy: HeroCopy, fits: boolean): HTMLElement[] {
+  const own = mine(ctx) && !ctx.selling;
+  const out: HTMLElement[] = [];
+  if (copy.options.length > 0) {
+    const rows: HTMLElement[] = copy.options.map((option, i) => {
+      const row = el('div', `kr-option${fits ? '' : ' off'}`);
+      const pips = el('span', 'kr-pips');
+      pips.title = `Step ${option.step} of ${option.steps}`;
+      for (let k = 0; k < option.steps; k++) pips.append(el('span', `kr-pip${k < option.step ? ' on' : ''}`));
+      row.append(el('span', 'kr-option-line', option.line), pips);
+      if (own) row.append(sectionButton(ctx, `Reroll · ${option.price.toLocaleString()}`, `reroll:${copy.id}:${i}`, () => act.reroll(copy, i)));
+      return row;
+    });
+    if (own && copy.upgrade !== null) rows.push(sectionButton(ctx, `Upgrade an option · ${copy.upgrade.toLocaleString()}`, `upgrade:${copy.id}`, () => act.upgrade(copy)));
+    out.push(krSection('Options', rows));
+  }
+  if (copy.additional) {
+    const row = el('div', `kr-option${copy.additionalActive ? '' : ' off'}`);
+    row.append(rich(copy.additional));
+    if (own && copy.rerollUnique !== null) row.append(sectionButton(ctx, `Reroll · ${copy.rerollUnique.toLocaleString()}`, `reroll:${copy.id}:unique`, () => act.reroll(copy, 'unique')));
+    out.push(krSection('Unique Option', [row]));
+  }
+  if (copy.setBonuses.length > 0 && copy.krSet) {
+    out.push(krSection(`${copy.krSet.name} Set${copy.krSet.tier < 9 ? ` · T${copy.krSet.tier}` : ''}`, copy.setBonuses.map((bonus) => el('p', `kr-bonus${bonus.active ? ' on' : ''}`, `${bonus.pieces} pieces: ${bonus.text}`))));
+  }
+  if (copy.runes.length > 0) {
+    const runes = ctx.view?.runes ?? [];
+    const rows = copy.runes.map((rune, socket) => {
+      const row = el('div', 'kr-socket');
+      if (rune) {
+        const icon = el('img', 'kr-rune-icon');
+        icon.src = `/kr/items/${rune.icon}.webp`;
+        icon.alt = '';
+        row.append(icon, el('span', 'kr-rune-name', `${rune.name}: ${rune.lines.join(', ')}`));
+        if (own) row.append(sectionButton(ctx, 'Take out', `rune:${copy.id}:${socket}`, () => act.rune(copy, socket, null)));
+        return row;
+      }
+      const fitting = runes.filter((one) => one.parts.includes(copy.part === 'weapon' ? 'weapon' : copy.part));
+      row.append(el('span', 'kr-rune-name muted', 'Empty socket'));
+      if (own && fitting.length > 0) {
+        const pick = el('select', 'kr-rune-pick');
+        pick.setAttribute('aria-label', 'A rune to put in');
+        for (const one of fitting) {
+          const option = el('option', '', `${one.name} ×${one.count}: ${one.lines.join(', ')}`);
+          option.value = one.id;
+          pick.append(option);
+        }
+        row.append(pick, sectionButton(ctx, 'Put in', `rune:${copy.id}:${socket}`, () => act.rune(copy, socket, pick.value)));
+      } else if (own) row.append(el('span', 'kr-rune-name muted', '(no rune of theirs fits)'));
+      return row;
+    });
+    out.push(krSection('Runes', rows));
+  }
+  return out;
+}
 
 /** The Stats tab: the hero's stats in the raid, with and without its gear. */
 function renderStats(ctx: HeroesContext): void {

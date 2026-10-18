@@ -1,6 +1,6 @@
 import { coin, points } from '../shared/util';
 import { built } from '../shared/built';
-import { el, itemDetailsClosed, itemFace, mainStatLine, SLOT_NAME, tmSections, rich } from '../shared/items';
+import { el, itemDetailsClosed, itemFace, itemIcons, mainStatLine, SLOT_NAME, tmSections, rich } from '../shared/items';
 import { ESSENCE_NAME, type EssenceId } from '../protocol/heroes';
 import type { DropView, RaidKind } from '../protocol/technomagic';
 import { KEPT } from './assets';
@@ -49,6 +49,8 @@ const className = (id: string): string => `${id[0]?.toUpperCase()}${id.slice(1)}
 function card(drop: DropView, extra = '', raid = false): HTMLElement {
   const face = el('span', `item ${extra}`.trim());
   face.dataset.stars = String(drop.stars);
+  // (King's Raid's hero gear: its icon.)
+  if (drop.icon) itemIcons.set(drop.itemId, drop.icon);
   face.append(...itemFace({ level: 1, maxLevel: raid ? 5 : 1, itemId: drop.itemId, slot: drop.slot, stars: drop.stars, heroOnly: !raid, itemClass: drop.itemClass }));
   return face;
 }

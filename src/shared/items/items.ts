@@ -40,6 +40,9 @@ const slotIcon = (slot: Slot): string => `/gear/slots/${slot}.png`;
 /** The folder of public/gear/items each slot's pictures are in. */
 const ITEM_DIR = { weapon: 'weapons', armor: 'armor', treasure: 'treasures' } as const satisfies Record<Slot, string>;
 
+/** King's Raid's hero gear's icons (public/kr/items/<icon>.webp), by item id: as the bot says them (the heroes page's copies). */
+export const itemIcons = new Map<string, string>();
+
 /** Items whose picture couldn't be read, so the page doesn't keep asking. */
 const noArt = new Set<string>();
 
@@ -62,6 +65,23 @@ export function art(itemId: string | null, slot: Slot, lazy = false): HTMLElemen
     box.replaceChildren(icon);
   };
   const sprite = itemId ? ART[itemId] : undefined;
+  const icon = itemId ? itemIcons.get(itemId) : undefined;
+  if (icon && itemId && !noArt.has(itemId)) {
+    const img = el('img');
+    img.alt = '';
+    img.draggable = false;
+    if (lazy) img.loading = 'lazy';
+    img.decoding = 'async';
+    img.src = `/kr/items/${icon}.webp`;
+    box.classList.add('full');
+    img.addEventListener('error', () => {
+      noArt.add(itemId);
+      img.remove();
+      glyph();
+    });
+    box.append(img);
+    return box;
+  }
   if (!itemId || noArt.has(itemId) || (!sprite && !hasItemArt(ITEM_DIR[slot], itemId))) {
     glyph();
     return box;
