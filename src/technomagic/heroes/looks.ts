@@ -1,4 +1,4 @@
-import { ANNETTE_ASSETS, KLAUS_ASSETS, EZEKIEL_ASSETS, FALLEN_FREY_ASSETS, GREMORY_ASSETS, KIRZE_ASSETS, LAIAS_ASSETS, LORRAINE_ASSETS, MORRAH_ASSETS, SERIA_ASSETS, VALANCE_ASSETS, LUCIKIEL_ASSETS, SELENE_ASSETS, CROW_ASSETS, ODDY_ASSETS, PHILLOP_ASSETS, NAILA_ASSETS, YANNE_ASSETS, NERAXIS_ASSETS, ERZE_ASSETS, LOMAN_ASSETS, GAU_ASSETS, TANYA_ASSETS, REBEL_KLAUS_ASSETS, DARK_LORD_KASEL_ASSETS, type HeroAssets } from '../assets';
+import { ANNETTE_ASSETS, KLAUS_ASSETS, EZEKIEL_ASSETS, FALLEN_FREY_ASSETS, GREMORY_ASSETS, KIRZE_ASSETS, LAIAS_ASSETS, LORRAINE_ASSETS, MORRAH_ASSETS, SERIA_ASSETS, VALANCE_ASSETS, LUCIKIEL_ASSETS, SELENE_ASSETS, CROW_ASSETS, ODDY_ASSETS, PHILLOP_ASSETS, NAILA_ASSETS, YANNE_ASSETS, NERAXIS_ASSETS, ERZE_ASSETS, LOMAN_ASSETS, GAU_ASSETS, TANYA_ASSETS, REBEL_KLAUS_ASSETS, DARK_LORD_KASEL_ASSETS, THEO_ASSETS, PRISCILLA_ASSETS, GLENWYS_ASSETS, CHASE_ASSETS, ASELICA_ASSETS, LAKRAK_ASSETS, MIRURU_ASSETS, MIRIANNE_ASSETS, KARA_ASSETS, ZAFIR_ASSETS, PANSIRONE_ASSETS, ISOLET_ASSETS, LILIA_ASSETS, LUCIAS_ASSETS, REHARTNA_ASSETS, SHEA_ASSETS, LAVRIL_ASSETS, EVAN_ASSETS, ESTELLE_ASSETS, type HeroAssets } from '../assets';
 import { STAND as ANNETTE } from './annette/moves';
 import type { Bends, Pose } from './body/pose';
 import { STAND as EZEKIEL } from './ezekiel/moves';
@@ -73,6 +73,26 @@ const LOOKS: Readonly<Record<string, HeroLook>> = {
   tanya: { assets: TANYA_ASSETS, stands: TANYA, varies: true },
   'rebel-klaus': { assets: REBEL_KLAUS_ASSETS, stands: REBEL_KLAUS, varies: true },
   'dark-lord-kasel': { assets: DARK_LORD_KASEL_ASSETS, stands: DARK_LORD_KASEL, varies: true },
+  // (Moved only by King's Raid's own animations: no poses of their own.)
+  theo: { assets: THEO_ASSETS },
+  priscilla: { assets: PRISCILLA_ASSETS },
+  glenwys: { assets: GLENWYS_ASSETS },
+  chase: { assets: CHASE_ASSETS },
+  aselica: { assets: ASELICA_ASSETS },
+  lakrak: { assets: LAKRAK_ASSETS },
+  miruru: { assets: MIRURU_ASSETS },
+  mirianne: { assets: MIRIANNE_ASSETS },
+  kara: { assets: KARA_ASSETS },
+  zafir: { assets: ZAFIR_ASSETS },
+  pansirone: { assets: PANSIRONE_ASSETS },
+  isolet: { assets: ISOLET_ASSETS },
+  lilia: { assets: LILIA_ASSETS },
+  lucias: { assets: LUCIAS_ASSETS },
+  rehartna: { assets: REHARTNA_ASSETS },
+  shea: { assets: SHEA_ASSETS },
+  lavril: { assets: LAVRIL_ASSETS },
+  evan: { assets: EVAN_ASSETS },
+  estelle: { assets: ESTELLE_ASSETS },
 };
 
 /** How the hero `id` looks (every hero the sim has has a look). */
