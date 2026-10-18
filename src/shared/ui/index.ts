@@ -6,7 +6,8 @@
  * (reconnect/) and the server picker (server-options/), and the site header (header/).
  *
  * Not frame/: importing it sets up a game's page (the cursor, the click sounds, the way back), so only
- * a game imports it, as ./frame/frame.
+ * a game imports it, as ./frame/frame. Nor landscape/: importing it watches which way round the screen is
+ * (the cover asking to turn the phone, and the page turned for it), so only a game played sideways imports it.
  */
 
 export { API, arrow, getSession, loadUser, profileMenu, setSession, store, type MenuItem, type User } from './account/account';

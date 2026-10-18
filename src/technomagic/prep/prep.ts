@@ -1,3 +1,4 @@
+import { inLandscape, onLandscape } from '../../shared/ui/landscape/landscape';
 import { classBadge, className, FACE, heroCut } from '../../shared/heroes';
 import { levelPopup } from '../../shared/ui/level/level';
 import type { BossDef } from '../sim/bosses/boss';
@@ -87,8 +88,6 @@ const TEAMS = [
   { sub: true, name: 'Sub Team' },
 ] as const;
 
-/** A phone (or tablet) on its side, where the screen is scaled down to fit the field rather than scrolled. */
-const TOUCH_SIDEWAYS = matchMedia('(pointer: coarse) and (orientation: landscape)');
 /** The least it is scaled to; past that it scrolls. */
 const MIN_FIT = 0.4;
 
@@ -233,7 +232,8 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
    */
   function fit(): void {
     const field = root.parentElement;
-    const on = !root.hidden && TOUCH_SIDEWAYS.matches && field !== null;
+    // (A phone or tablet on its side, or the page turned for it: ../../shared/ui/landscape.)
+    const on = !root.hidden && inLandscape() && field !== null;
     root.classList.toggle('fit', on);
     root.classList.remove('scaled');
     if (!on) {
@@ -264,7 +264,7 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
     root.style.setProperty('--fit', String(scale));
   }
   if (root.parentElement) new ResizeObserver(fit).observe(root.parentElement);
-  TOUCH_SIDEWAYS.addEventListener('change', fit);
+  onLandscape(fit);
   // Again once the font is in, its words a little wider and taller than the fallback's.
   void document.fonts.ready.then(fit);
 

@@ -3,7 +3,7 @@
 .technomagic {
   display: flex;
   flex-direction: column;
-  min-height: 100dvh;
+  min-height: var(--ls-vh);
   box-sizing: border-box;
 }
 
@@ -26,23 +26,21 @@
 
 /* A phone (or tablet) on its side: the page is the window's height and no more, so nothing scrolls. The
    field takes what the bar leaves (getting ready scales itself down to it: ../prep/prep.ts), and the hint goes. */
-@media (pointer: coarse) and (orientation: landscape) {
-  .technomagic {
-    height: 100dvh;
-    min-height: 0;
-  }
+:where(.ls-landscape) .technomagic {
+  height: var(--ls-vh);
+  min-height: 0;
+}
 
-  .tm-field {
-    min-height: 0;
-  }
+:where(.ls-landscape) .tm-field {
+  min-height: 0;
+}
 
-  .technomagic .hint {
-    display: none;
-  }
+:where(.ls-landscape) .technomagic .hint {
+  display: none;
+}
 
-  .tm-actions {
-    padding: 6px 8px;
-  }
+:where(.ls-landscape) .tm-actions {
+  padding: 6px 8px;
 }
 
 /* The health of a hero on the field, over its head (../hud/overhead.ts moves it there), what it has on it over that, and its shield under it. */

@@ -4,7 +4,7 @@
  * of it tall) still leaves the field most of the room.
  */
 .tm-party {
-  --skill: clamp(34px, min(7.2vw, 12dvh), 88px);
+  --skill: clamp(34px, min(calc(var(--ls-vw) * 0.072), calc(var(--ls-vh) * 0.12)), 88px);
   position: absolute;
   inset: auto 0 12px;
   display: flex;

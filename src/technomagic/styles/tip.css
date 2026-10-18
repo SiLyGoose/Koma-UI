@@ -6,7 +6,7 @@
   --tip-art: 56px;
   position: fixed;
   z-index: 50;
-  width: min(300px, 100vw - 16px);
+  width: min(300px, var(--ls-vw) - 16px);
   border: 2px solid #8a7a4c;
   border-radius: 8px;
   background: linear-gradient(180deg, #2b2036, #17121e);
@@ -25,7 +25,7 @@
 }
 
 .tm-tip-pointed {
-  width: min(240px, 100vw - 16px);
+  width: min(240px, var(--ls-vw) - 16px);
   border-width: 1.5px;
   pointer-events: none;
   animation-duration: 0.1s;
@@ -199,25 +199,23 @@
 }
 
 /* A phone on its side: a size down. */
-@media (pointer: coarse) and (orientation: landscape) {
-  .tm-tip {
-    --tip-art: 46px;
-    width: min(270px, 100vw - 16px);
-    font-size: 12px;
-  }
+:where(.ls-landscape) .tm-tip {
+  --tip-art: 46px;
+  width: min(270px, var(--ls-vw) - 16px);
+  font-size: 12px;
+}
 
-  .tm-tip-name {
-    font-size: 13px;
-  }
+:where(.ls-landscape) .tm-tip-name {
+  font-size: 13px;
+}
 
-  .tm-tip-cost,
-  .tm-tip-cooldown {
-    font-size: 11px;
-  }
+:where(.ls-landscape) .tm-tip-cost,
+:where(.ls-landscape) .tm-tip-cooldown {
+  font-size: 11px;
 }
 
 /* A name's: as wide as the name (the popup's own class; an ability's name in its popup has the same one). */
 .tm-tip.tm-tip-name {
   width: max-content;
-  max-width: min(240px, 100vw - 16px);
+  max-width: min(240px, var(--ls-vw) - 16px);
 }

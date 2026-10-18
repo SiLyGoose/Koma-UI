@@ -1,0 +1,135 @@
+/*
+ * A game played sideways (./landscape.ts). The page's width and height: --ls-vw and --ls-vh, in place of 100vw and
+ * 100dvh, swapped while the page is turned by hand.
+ */
+:root {
+  --ls-vw: 100vw;
+  --ls-vh: 100vh;
+}
+
+@supports (height: 100dvh) {
+  :root {
+    --ls-vh: 100dvh;
+  }
+}
+
+/*
+ * The page turned sideways by hand, for a phone that can't turn the screen itself (an iPhone with its rotation lock
+ * on). The page is laid out as wide as the screen is tall, and turned a quarter clockwise to fill it: read with the
+ * phone turned counterclockwise, as the cover's picture shows. Only while the browser is upright: turned for real, the
+ * page is just landscape.
+ */
+@media (orientation: portrait) {
+  html.ls-sideways {
+    --ls-vw: 100vh;
+    --ls-vh: 100vw;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  @supports (height: 100dvh) {
+    html.ls-sideways {
+      --ls-vw: 100dvh;
+    }
+  }
+
+  html.ls-sideways body {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: var(--ls-vw);
+    height: var(--ls-vh);
+    overflow: auto;
+    overscroll-behavior: none;
+    transform-origin: 0 0;
+    transform: translateX(100vw) rotate(90deg);
+  }
+}
+
+/* A touch screen held upright (and not turned by hand): over everything, a phone turning onto its side, the words and the button. */
+.ls-cover {
+  display: none;
+}
+
+@media (orientation: portrait) and (pointer: coarse) {
+  :where(html:not(.ls-sideways)) .ls-cover {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: #121116;
+    color: var(--text, #efe3bf);
+    text-align: center;
+  }
+
+  /* The page under it doesn't scroll meanwhile. */
+  html:not(.ls-sideways):has(.ls-cover),
+  html:not(.ls-sideways):has(.ls-cover) body {
+    overflow: hidden;
+  }
+}
+
+.ls-card {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  max-width: 300px;
+}
+
+/* A phone, turning from upright onto its side, again and again. */
+.ls-phone {
+  width: 44px;
+  height: 76px;
+  margin-bottom: 12px;
+  border: 3px solid var(--gold, #d8bf7a);
+  border-radius: 8px;
+  box-shadow: inset 0 -8px 0 -5px var(--gold, #d8bf7a);
+  animation: ls-turn 2.4s ease-in-out infinite;
+}
+
+.ls-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.ls-text {
+  margin: 0;
+  color: var(--muted, #9a93a8);
+  font-size: 14px;
+}
+
+.ls-go {
+  margin-top: 8px;
+}
+
+.ls-hint {
+  margin: 0;
+  color: var(--muted, #9a93a8);
+  font-size: 12px;
+}
+
+@keyframes ls-turn {
+  0%,
+  20% {
+    transform: rotate(0deg);
+  }
+
+  50%,
+  80% {
+    transform: rotate(-90deg);
+  }
+
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ls-phone {
+    animation: none;
+    transform: rotate(-90deg);
+  }
+}

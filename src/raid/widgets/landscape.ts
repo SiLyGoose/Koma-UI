@@ -1,3 +1,4 @@
+import { canLockLandscape as canLock, playLandscape } from '../../shared/ui/landscape/landscape';
 import { $, ui } from '../ui';
 
 /*
@@ -10,20 +11,6 @@ import { $, ui } from '../ui';
  */
 
 const root = document.documentElement;
-const orientation = screen.orientation as (ScreenOrientation & { lock?: (o: string) => Promise<void> }) | undefined;
-// iOS 16.4+ has screen.orientation.lock, but it always turns the request down: full screen tells them apart.
-const canLock = document.fullscreenEnabled === true && typeof root.requestFullscreen === 'function' && typeof orientation?.lock === 'function';
-
-/** Full screen and locked to landscape. False when the browser turned it down. */
-async function playLandscape(): Promise<boolean> {
-  try {
-    if (!document.fullscreenElement) await root.requestFullscreen({ navigationUI: 'hide' });
-    await orientation?.lock?.('landscape');
-    return true;
-  } catch {
-    return false;
-  }
-}
 
 /** Turns the page itself sideways (see .rd-sideways). */
 function turnSideways(): void {

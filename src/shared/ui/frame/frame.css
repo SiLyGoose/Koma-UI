@@ -195,8 +195,8 @@
 /* On a phone: the connection and the online button at the top of the profile's drop-down (frame.ts).
    With the pages under them it can run long, so it scrolls rather than running off the screen. */
 .frame-profile-extra .account-menu {
-  width: min(320px, calc(100vw - 16px));
-  max-height: calc(100dvh - 64px);
+  width: min(320px, calc(var(--ls-vw, 100vw) - 16px));
+  max-height: calc(var(--ls-vh, 100dvh) - 64px);
   overflow-y: auto;
 }
 

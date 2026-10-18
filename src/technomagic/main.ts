@@ -4,6 +4,7 @@ import { barSlot, setConn, soundButton } from '../shared/ui/frame/frame';
 import { setMuted } from '../shared/audio';
 import { gameSocket, server, showMessage, single, token, watching, type GameSocket } from '../shared/game';
 import { apiFromSocket, chatBox, startLive, store } from '../shared/ui';
+import { landscapeCover } from '../shared/ui/landscape/landscape';
 import { navigate } from '../shared/transition';
 import { Group, Vector3 } from 'three';
 import { artPicture } from './art';
@@ -118,6 +119,14 @@ const DRAIN = 0.5;
 const DRAGON = (document.getElementById('app') as HTMLElement).dataset.raid === 'dragon';
 const RAID_NAME = DRAGON ? 'Dragon Raid' : 'TechnoMagic Raid';
 const RAID_BOSSES: readonly BossDef[] = DRAGON ? DRAGONS : TM_BOSSES;
+
+// A phone held upright: the raid is played on its side, so over everything, the words to turn it and the button that turns it.
+landscapeCover(document.getElementById('app') as HTMLElement, {
+  title: 'Turn your phone sideways',
+  text: `The ${RAID_NAME} is played in landscape.`,
+  back: { go: () => navigate('/', { back: true }) },
+});
+
 /** The dragon last played here (this browser's), fought when the address names none. */
 const DRAGON_KEY = 'dragon-raid-boss';
 

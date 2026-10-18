@@ -1,3 +1,4 @@
+import { pageRect, pageSize } from '../../shared/ui/landscape/landscape';
 import { el } from './dom';
 
 /*
@@ -36,12 +37,14 @@ function makeTip(className: string): Tip {
       root.hidden = false;
       body.scrollTop = 0;
       // Over the middle of what it is about, kept inside the window; as tall as there is room for over it, at most.
-      const at = anchor.getBoundingClientRect();
-      body.style.maxHeight = `${Math.max(64, Math.min(at.top - GAP - EDGE, innerHeight * TALLEST))}px`;
+      // (On the page as it is laid out: turned by hand, not the screen's way round. ../../shared/ui/landscape.)
+      const at = pageRect(anchor);
+      const page = pageSize();
+      body.style.maxHeight = `${Math.max(64, Math.min(at.top - GAP - EDGE, page.height * TALLEST))}px`;
       const middle = at.left + at.width / 2;
-      const left = Math.min(Math.max(EDGE, middle - root.offsetWidth / 2), innerWidth - EDGE - root.offsetWidth);
+      const left = Math.min(Math.max(EDGE, middle - root.offsetWidth / 2), page.width - EDGE - root.offsetWidth);
       root.style.left = `${left}px`;
-      root.style.bottom = `${innerHeight - at.top + GAP}px`;
+      root.style.bottom = `${page.height - at.top + GAP}px`;
       arrow.style.left = `${middle - left}px`;
     },
     hide() {
