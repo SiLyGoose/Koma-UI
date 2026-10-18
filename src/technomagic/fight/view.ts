@@ -4,6 +4,7 @@ import { isMesh } from '../engine/models';
 import type { Effects } from '../fx/effects';
 import type { EffectName } from '../assets';
 import type { KrEffects } from '../fx/kr-effects';
+import type { Banners } from '../hud/banners';
 import type { Magic } from '../fx/magic';
 import type { Props } from '../fx/props';
 import { makeSigns } from '../fx/signs';
@@ -88,7 +89,7 @@ export interface FightView {
 }
 
 /** A fight drawn in `scene`: the sim's, its heroes' `bodies` (by their index among its fighters) and the boss's. */
-export function makeFightView({ scene, sim, bodies, boss, bossLook, bossFx, effects, kr, magic, props }: { scene: Scene; sim: Sim; bodies: readonly Hero[]; boss: Boss; bossLook: BossLook; bossFx: BossFx; effects: Effects; kr: KrEffects; magic: Magic; props: Props }): FightView {
+export function makeFightView({ scene, sim, bodies, boss, bossLook, bossFx, effects, kr, magic, props, banners }: { scene: Scene; sim: Sim; bodies: readonly Hero[]; boss: Boss; bossLook: BossLook; bossFx: BossFx; effects: Effects; kr: KrEffects; magic: Magic; props: Props; banners: Banners }): FightView {
   const { stands, reach } = bossLook;
   const at = new Vector3();
   const bossHit = new Vector3(...reach.hit).setX(stands.x + reach.hit[0]);
@@ -331,6 +332,7 @@ export function makeFightView({ scene, sim, bodies, boss, bossLook, bossFx, effe
             break;
           case 'end':
             sounds.end(event.result === 'won');
+            banners.play('finish');
             break;
         }
       }

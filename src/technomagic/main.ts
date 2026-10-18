@@ -34,6 +34,7 @@ import { leavePopup } from './hud/leave';
 import { makeMeter } from './hud/meter';
 import { makeNumbers } from './hud/numbers';
 import { makeOverhead } from './hud/overhead';
+import { makeBanners } from './hud/banners';
 import { cutFace, cutHead, readPortrait } from './hud/portrait';
 import { makeTimer } from './hud/timer';
 import { makePrep } from './prep/prep';
@@ -232,6 +233,8 @@ async function start(): Promise<void> {
   const kr = makeKrEffects(bright, stage.camera);
   // Its map's own (its fog, its sparks), always going on.
   if (fieldEffects) kr.ambient(fieldEffects);
+  // The game's banners over the battle (its start, its finish).
+  const banners = makeBanners(stage);
 
   /** Every body read so far (each skin of each hero read, and as they look with their unique weapons once that's wanted), for a fight to take from. */
   const pool: Entrant[] = [];
@@ -305,7 +308,8 @@ async function start(): Promise<void> {
     meterAt.replaceChildren();
     numbersAt.replaceChildren();
     const bodies: Hero[] = entries.map((entrant) => entrant.hero);
-    const view = makeFightView({ scene: stage.scene, sim, bodies, boss, bossLook: bossView!.look, bossFx: bossView!.fx, effects, kr, magic, props });
+    const view = makeFightView({ scene: stage.scene, sim, bodies, boss, bossLook: bossView!.look, bossFx: bossView!.fx, effects, kr, magic, props, banners });
+    banners.play('start');
     // Each hero, for its card and the meter: its own picture, or with none a picture of its head and shoulders as it stands.
     const pictures = entries.map((entrant, i) => pictureOf(entrant, view, i));
     const cards = sim.fighters.map((fighter, i) => {
@@ -835,6 +839,7 @@ async function start(): Promise<void> {
   else await practice();
 
   stage.start((now, dt) => {
+    banners.update(dt);
     const playing = game;
     if (!playing) {
       stage.dim(0, []);

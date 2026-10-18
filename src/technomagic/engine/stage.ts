@@ -36,6 +36,11 @@ import { struggling } from './memory';
 const WIDTH = 34;
 const HEIGHT = 20;
 const FOV = 26;
+/**
+ * How tall the screen is in the units King's Raid's own UI is made in (its banners: ../hud/banners.ts). It is seen from
+ * the other side (left and right swapped): its effects are made mirrored, as all the game's are, for the field.
+ */
+const UI_HIGH = 12;
 /** Where a King's Raid map's own effects are played, of those it has: no further than this from the middle of the field. */
 const NEAR = 60;
 /** What the camera looks at, and how far it looks down at it (radians). */
@@ -89,6 +94,8 @@ export interface Stage {
   scene: Scene;
   /** What the field is seen from (what faces it is turned to: the effects' flat pictures). */
   camera: PerspectiveCamera;
+  /** Drawn over the field, flat on the screen (King's Raid's banners): what, and seen how (the screen `UI_HIGH` tall, its middle at 0). */
+  overlay: { scene: Scene; camera: OrthographicCamera };
   /** Puts the fight in `scenery`, in place of the plain field (once its pictures are read): the effects its map has of its own, where they are on the field. */
   dress(scenery: Scenery): Promise<readonly FieldEffect[]>;
   /** Draws every frame, after `update` (the time in seconds, and since the last frame). */
@@ -148,6 +155,9 @@ export function makeStage(canvas: HTMLCanvasElement): Stage {
 
   /** The sharpest it is drawn now (SHARPEST, until it was found too slow). */
   let sharpest = SHARPEST;
+  // Over the field, flat on the screen.
+  const overlay = new Scene();
+  const flatUi = new OrthographicCamera(UI_HIGH / 2, -UI_HIGH / 2, UI_HIGH / 2, -UI_HIGH / 2, -1000, 1000);
   const fit = (): void => {
     const w = canvas.clientWidth;
     const h = canvas.clientHeight;
@@ -160,6 +170,9 @@ export function makeStage(canvas: HTMLCanvasElement): Stage {
     back = Math.max(HEIGHT / 2 / half, WIDTH / 2 / (half * camera.aspect));
     aim();
     camera.updateProjectionMatrix();
+    flatUi.left = (UI_HIGH / 2) * camera.aspect;
+    flatUi.right = (-UI_HIGH / 2) * camera.aspect;
+    flatUi.updateProjectionMatrix();
     fog();
   };
   new ResizeObserver(fit).observe(canvas);
@@ -175,7 +188,18 @@ export function makeStage(canvas: HTMLCanvasElement): Stage {
   let lit: readonly Object3D[] = [];
   /** Covered over (cover()): not drawn. */
   let covered = false;
+  const over = (): void => {
+    if (overlay.children.length === 0) return;
+    renderer.autoClear = false;
+    renderer.clearDepth();
+    renderer.render(overlay, flatUi);
+    renderer.autoClear = true;
+  };
   const draw = (): void => {
+    field();
+    over();
+  };
+  const field = (): void => {
     if (dark <= 0) {
       renderer.render(scene, camera);
       return;
@@ -196,6 +220,7 @@ export function makeStage(canvas: HTMLCanvasElement): Stage {
   return {
     scene,
     camera,
+    overlay: { scene: overlay, camera: flatUi },
     async dress(scenery) {
       if (scenery.map) {
         const { folder, at, turn, floor: beyond, camera: own, grounded } = scenery.map;
