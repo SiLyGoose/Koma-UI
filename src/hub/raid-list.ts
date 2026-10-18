@@ -1,6 +1,6 @@
 import { closeButton } from '../shared/ui/close/close';
 import { raidRewards } from '../shared/raid-rewards/raid-rewards';
-import { raidBanner, type RaidCard, type RaidList as RaidSetup } from '../shared/raids';
+import { raidBanner, type RaidCard, type RaidList as RaidSetup, type UpcomingCard } from '../shared/raids';
 import type { RaidRooms } from './raid-rooms';
 
 /*
@@ -8,7 +8,8 @@ import type { RaidRooms } from './raid-rooms';
  * theirs over the page (../shared/raids.ts says what is in each). A banner for each boss (its head, its name and its
  * raid's), and beside it Raid Info (what it does and what a win gives, sliding open under its banner: one boss's at a time,
  * another's closing it), Single Player (straight into a room of the player's own) and Multiplayer (Find Raid and Create Raid
- * over the list: ./raid-rooms.ts). A press outside it, its ✕ or Escape closes it (Multiplayer first, when it is open).
+ * over the list: ./raid-rooms.ts). A boss still to come is under the others, its banner greyed and "Upcoming" in place of
+ * its buttons. A press outside it, its ✕ or Escape closes it (Multiplayer first, when it is open).
  */
 
 export interface RaidList {
@@ -53,15 +54,13 @@ export function makeRaidList(root: HTMLElement, raid: RaidSetup, single: (boss: 
       button.setAttribute('aria-expanded', String(shown));
     }
   };
-  rows.append(...raid.cards.map(row));
+  rows.append(...raid.cards.map(row), ...(raid.upcoming ?? []).map(soon));
   panel.append(head, tip, rows);
   shade.append(panel);
   root.append(shade);
 
-  /** A boss's banner and its buttons, with its Raid Info under them (closed to begin with). */
-  function row(card: RaidCard): HTMLLIElement {
-    const item = el('li', 'raid-row');
-    item.dataset.boss = card.id;
+  /** A boss's banner: its head, its raid's name and its own. */
+  function bannerOf(card: UpcomingCard): HTMLDivElement {
     const banner = el('div', 'raid-row-banner');
     const picture = el('img', 'raid-row-art');
     picture.src = raidBanner(card.id);
@@ -70,6 +69,22 @@ export function makeRaidList(root: HTMLElement, raid: RaidSetup, single: (boss: 
     const names = el('div', 'raid-row-names');
     names.append(el('span', 'raid-row-title', card.title), el('span', 'raid-row-name', card.name));
     banner.append(picture, names);
+    return banner;
+  }
+
+  /** A boss to come: its banner, and "Upcoming" where its buttons will be. */
+  function soon(card: UpcomingCard): HTMLLIElement {
+    const item = el('li', 'raid-row upcoming');
+    item.dataset.boss = card.id;
+    item.append(bannerOf(card), el('span', 'raid-row-soon', 'Upcoming'));
+    return item;
+  }
+
+  /** A boss's banner and its buttons, with its Raid Info under them (closed to begin with). */
+  function row(card: RaidCard): HTMLLIElement {
+    const item = el('li', 'raid-row');
+    item.dataset.boss = card.id;
+    const banner = bannerOf(card);
 
     // (Its words in a box of their own, which the outer one slides open round: ./hub.css.)
     const info = el('div', 'raid-row-info');

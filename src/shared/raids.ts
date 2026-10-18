@@ -26,12 +26,16 @@ export interface RaidCard {
   rewards: readonly RaidReward[];
 }
 
-/** A raid's list: the game it opens, its line under the heading, the line under each boss's rewards, and its bosses. */
+/** A boss still to come to a raid: on its Raid List under the others, with its banner, but not yet to be fought. */
+export type UpcomingCard = Pick<RaidCard, 'id' | 'name' | 'title'>;
+
+/** A raid's list: the game it opens, its line under the heading, the line under each boss's rewards, its bosses, and those to come. */
 export interface RaidList {
   game: 'technomagic' | 'dragon';
   tip: string;
   rewardNote: string;
   cards: readonly RaidCard[];
+  upcoming?: readonly UpcomingCard[];
 }
 
 const POINTS: RaidReward = { kind: 'points' };
@@ -52,6 +56,7 @@ export const TM_LIST: RaidList = {
       rewards: [POINTS, { kind: 'tm', slot: 'weapon', name: 'Perseverance Set' }],
     },
   ],
+  upcoming: [{ id: 'siegfried', name: 'Siegfried', title: 'TechnoMagic Raid' }],
 };
 
 export const DRAGON_LIST: RaidList = {
