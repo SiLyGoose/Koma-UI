@@ -18,6 +18,11 @@ export function built(src: string): string {
 /** Whether a TechnoMagic texture's colour and (AS) halves come as one picture (built), at built(its colour's address). */
 export const texturesBuilt = (src: string): boolean => built(src) !== src;
 
+const small = new Set(BUILT?.small ?? []);
+
+/** Where to get a big TechnoMagic texture (by its colour's address) at half its size each way, built for a device short of memory; null if none was. */
+export const builtSmall = (src: string): string | null => (BUILT && small.has(src) ? `${BUILT.dir}/small${src.replace(/\.png$/i, '.webp')}` : null);
+
 const itemArt = { weapons: new Set(ITEM_ART.weapons), armor: new Set(ITEM_ART.armor), treasures: new Set(ITEM_ART.treasures) };
 
 /** Whether item `id` has a picture in public/gear/items/<folder>/. */

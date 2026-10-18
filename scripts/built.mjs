@@ -25,6 +25,14 @@ export const isSolid = (path) => isTexture(path) && colourOf(path) !== path;
 /** The built picture's path (under public/) for a picture's. */
 export const builtPath = (path) => `${BUILT_DIR}/${path.replace(/\.png$/i, '.webp')}`;
 
+/**
+ * A model texture this big or bigger (its longer side, in pixels) is also made at half its size each way, a quarter of
+ * the memory, for a device short of it (src/technomagic/engine/memory.ts): in public/built/small/, at the same path.
+ */
+export const SMALL_FROM = 1024;
+/** The half-size built picture's path (under public/) for a texture's. */
+export const smallPath = (path) => `${BUILT_DIR}/small/${path.replace(/\.png$/i, '.webp')}`;
+
 /** Every picture (its path under public/, with /) that is made as WebP. */
 export function pictures(pub) {
   const found = [];

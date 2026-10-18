@@ -1,7 +1,8 @@
 import { CanvasTexture, DoubleSide, LoadingManager, MeshBasicMaterial, SRGBColorSpace, Texture, type Group, type Material, type Mesh } from 'three';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
-import { built, texturesBuilt } from '../../shared/built';
+import { built, builtSmall, texturesBuilt } from '../../shared/built';
 import { LOCAL } from '../assets';
+import { lowMemory } from './memory';
 
 /*
  * Loads the models (../assets/ names them): each folder's .fbx, drawn with its textures. A texture comes as two
@@ -37,7 +38,8 @@ const textures = new Map<string, Promise<Texture>>();
 
 /**
  * A folder's colour picture, see-through where its (AS) picture says. Once built, the two come as one picture
- * (scripts/pictures.mjs: a tenth of their size, nothing to put together here); else, or if that can't be read,
+ * (scripts/pictures.mjs: a tenth of their size, nothing to put together here; a big one at half its size on a device
+ * short of memory); else, or if that can't be read,
  * they're put together here.
  */
 function texture(folder: string, file: string): Promise<Texture> {
@@ -47,7 +49,10 @@ function texture(folder: string, file: string): Promise<Texture> {
     made = (async () => {
       const own = `${ROOT}/${folder}/${file}`;
       if (texturesBuilt(own)) {
-        const whole = await picture(built(own).split('/').map(encodeURIComponent).join('/')).catch(() => null);
+        const read = (url: string): Promise<HTMLImageElement | null> => picture(url.split('/').map(encodeURIComponent).join('/')).catch(() => null);
+        // (Short of memory, a big one at half its size, where there is one: ./memory.ts.)
+        const small = lowMemory() ? builtSmall(own) : null;
+        const whole = (small && (await read(small))) || (await read(built(own)));
         if (whole) {
           const ready = new Texture(whole);
           ready.colorSpace = SRGBColorSpace;

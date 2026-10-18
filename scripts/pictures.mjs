@@ -1,13 +1,14 @@
 // The site's pictures as WebP, made as the site is built (`yarn build` runs this): each picture ./built.mjs names, at the
 // same path in public/built/ (not kept in git), mostly a fifth of the size or less; a TechnoMagic model texture's colour
-// and (AS) pictures put together into one. The pages ask for these in place of the originals once built
+// and (AS) pictures put together into one (and a big one at half its size besides, in public/built/small/, for a
+// device short of memory). The pages ask for these in place of the originals once built
 // (src/shared/built.ts), and for the originals in `yarn dev` or wherever one couldn't be made. So nothing here stops a
 // build. One made before, whose pictures haven't changed since, is kept as it is.
 import { cpus } from 'node:os';
 import { existsSync, mkdirSync, readdirSync, rmSync, statSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { BUILT_DIR, builtPath, isTexture, pictures, solidOf } from './built.mjs';
+import { BUILT_DIR, builtPath, isTexture, pictures, SMALL_FROM, smallPath, solidOf } from './built.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const pub = resolve(root, 'public');
@@ -37,9 +38,17 @@ async function makeAll() {
     const dest = join(pub, builtPath(path));
     const solid = isTexture(path) ? join(pub, solidOf(path)) : null;
     const halves = [source, ...(solid && solid !== source && existsSync(solid) ? [solid] : [])];
-    if (existsSync(dest) && halves.every((half) => statSync(half).mtimeMs <= statSync(dest).mtimeMs)) return void kept++;
+    const fresh = (file) => existsSync(file) && halves.every((half) => statSync(half).mtimeMs <= statSync(file).mtimeMs);
     try {
+      // A big texture: made at half its size besides (for a device short of memory).
+      const { width = 0, height = 0 } = isTexture(path) ? await sharp(source).metadata() : {};
+      const small = Math.max(width, height) >= SMALL_FROM ? join(pub, smallPath(path)) : null;
+      if (small) wanted.add(small);
+      if (fresh(dest) && (!small || fresh(small))) return void kept++;
       mkdirSync(dirname(dest), { recursive: true });
+      if (small) mkdirSync(dirname(small), { recursive: true });
+      /** The half-size one of what is made (as `made` is made, from its pixels). */
+      const halved = (made) => small && made.clone().resize(Math.round(width / 2), Math.round(height / 2)).webp(TEXTURE).toFile(small);
       if (halves.length === 2) {
         // The colour, see-through where its (AS) picture's red says (that drawn at the colour's size, as models.ts draws it;
         // where the (AS) picture is itself clear, clear). Put together pixel by pixel: sharp's joinChannel after removeAlpha
@@ -54,14 +63,17 @@ async function makeAll() {
           rgba[i * 4 + 2] = colour.data[i * 3 + 2];
           rgba[i * 4 + 3] = solidRaw[i * 4 + 3] === 0 ? 0 : solidRaw[i * 4];
         }
-        await sharp(rgba, { raw: { width, height, channels: 4 } }).webp(TEXTURE).toFile(dest);
+        const whole = sharp(rgba, { raw: { width, height, channels: 4 } });
+        await Promise.all([whole.clone().webp(TEXTURE).toFile(dest), halved(whole)]);
       } else {
-        await sharp(source).webp(isTexture(path) ? TEXTURE : PICTURE).toFile(dest);
+        const whole = sharp(source);
+        await Promise.all([whole.clone().webp(isTexture(path) ? TEXTURE : PICTURE).toFile(dest), halved(whole)]);
       }
       made++;
     } catch (error) {
       failed++;
       rmSync(dest, { force: true });
+      rmSync(join(pub, smallPath(path)), { force: true });
       console.warn(`pictures: ${path} not made: ${error instanceof Error ? error.message : error}`);
     }
   });

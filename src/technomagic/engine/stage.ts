@@ -19,6 +19,7 @@ import {
   type BufferGeometry,
   type Object3D,
 } from 'three';
+import { struggling } from './memory';
 
 /*
  * The field, seen from the side: the heroes on the left looking right, the boss on the right looking
@@ -90,6 +91,8 @@ export interface Stage {
 export function makeStage(canvas: HTMLCanvasElement): Stage {
   // (Smoothing the edges: not on a sharp screen, where they hardly show and it costs a phone the most.)
   const renderer = new WebGLRenderer({ canvas, antialias: window.devicePixelRatio < 2 });
+  // The drawing lost (most often a phone out of memory; Safari reloads the page then): its textures read small the next time.
+  canvas.addEventListener('webglcontextlost', struggling);
   renderer.outputColorSpace = SRGBColorSpace;
   const scene = new Scene();
   scene.background = dusk();
@@ -288,6 +291,8 @@ export function makeStage(canvas: HTMLCanvasElement): Stage {
               sharpest = Math.max(SOFTEST, now - STEP);
               slow = 0;
               fit();
+              // (A device that slow: its textures read small from now on, and the next time it's here.)
+              struggling();
             }
           }
         }
