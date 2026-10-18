@@ -8,7 +8,7 @@ import { navigate } from '../shared/transition';
 import { Group, Vector3 } from 'three';
 import { artPicture } from './art';
 import { built } from '../shared/built';
-import { portraitPicture, type SkinAssets } from './assets';
+import { iconPicture, portraitPicture, type SkinAssets } from './assets';
 import { bossNamed, DRAGONS, TM_BOSSES } from './sim/bosses';
 import { stagesOf, type BossDef } from './sim/bosses/boss';
 import { BOSS_VIEWS } from './bosses/models';
@@ -267,7 +267,8 @@ async function start(): Promise<void> {
             const picture = portrait ? await readPortrait(built(portraitPicture(assets, portrait))) : null;
             const [face, head] = picture && portrait ? [cutFace(picture, portrait), cutHead(picture, portrait)] : [null, null];
             faces.set(skin, face);
-            heads.set(skin, head);
+            // (The meter's close-up: the game's own icon of it, where it has one.)
+            heads.set(skin, iconPicture(assets, skin) ?? head);
           }),
         );
         pool.push(...entrants);

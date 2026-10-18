@@ -1,4 +1,4 @@
-import type { EffectAssets, HeroAssets, Portrait, SoundClip } from './types.ts';
+import type { EffectAssets, HeroAssets, Portrait, SkinAssets, SoundClip } from './types.ts';
 
 /*
  * Where each file is kept. Under public/kr/ (the models, copied in by scripts/kr-assets.mjs), by whose it is:
@@ -41,6 +41,9 @@ export const portraitFile = (hero: HeroAssets, portrait: Portrait): string => `$
 
 /** The address of the picture on a hero's skill: `index` counts its skills from 0, its passive last. */
 export const skillPicture = (hero: HeroAssets, index: number): string => `${LOCAL}/${skillFile(hero, hero.skills.files[index] ?? '')}`;
+
+/** The address of a skin's own icon (King's Raid's: its face, square), null for one with none. */
+export const iconPicture = (hero: HeroAssets, skin: SkinAssets): string | null => (skin.icon ? `${LOCAL}/${hero.folder}/icons/${skin.icon}` : null);
 
 /** The address of a skin's picture. */
 export const portraitPicture = (hero: HeroAssets, portrait: Portrait): string => (portrait.from ? `${LOCAL}/${portraitFile(hero, portrait)}` : `${KEPT}/portraits/${portrait.file}`);

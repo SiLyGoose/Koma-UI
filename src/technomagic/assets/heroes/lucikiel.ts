@@ -55,6 +55,8 @@ export const LUCIKIEL_ASSETS: HeroAssets = {
   skins: [
     {
       name: 'Lucikiel',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Lucikiel.webp',
       // His artwork (from the wiki, asked for as the PNG it was uploaded as): his head and horns in the crop (the meter's close-up is his face by itself).
       portrait: {
         file: 'Lucikiel.png',

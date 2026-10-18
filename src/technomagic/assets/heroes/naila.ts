@@ -53,6 +53,8 @@ export const NAILA_ASSETS: HeroAssets = {
   skins: [
     {
       name: 'Naila',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Naila.webp',
       // Her artwork (from the wiki, asked for as the PNG it was uploaded as), her wings spread: her head in the crop (the meter's close-up is her face by itself).
       portrait: {
         file: 'Naila.png',

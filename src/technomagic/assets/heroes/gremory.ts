@@ -58,6 +58,8 @@ export const GREMORY_ASSETS: HeroAssets = {
     // open too: Hero_Gremory_Vari05_Hood and _HoodOpen, each with its own hair.)
     {
       name: 'Gremory',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Gremory.webp',
       // Her artwork, sitting on her cube (its face is small: the meter's close-up is her face by itself).
       portrait: { file: 'Gremory.png', crop: { x: 315, y: 132, size: 80 }, head: { x: 327, y: 142, size: 56 } },
       model: {
@@ -71,6 +73,8 @@ export const GREMORY_ASSETS: HeroAssets = {
     // Her Daily Look: its body has her hair in it.
     {
       name: 'Gremory_DailyLook',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Gremory_DailyLook.webp',
       // Her artwork in her hoodie, sitting on her cube (the King's Raid wiki's: `format=original` has it send the PNG, not a WebP):
       // her hood and horns in the crop, her face by itself the meter's close-up.
       portrait: {

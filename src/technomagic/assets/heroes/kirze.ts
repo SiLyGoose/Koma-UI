@@ -50,6 +50,8 @@ export const KIRZE_ASSETS: HeroAssets = {
   skins: [
     {
       name: 'Kirze',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Kirze.webp',
       // (Her face square takes in her ears: the meter's close-up is her face by itself.)
       portrait: { file: 'Kirze.png', crop: { x: 805, y: 4, size: 170 }, head: { x: 808, y: 62, size: 125 } },
       model: {
@@ -63,6 +65,8 @@ export const KIRZE_ASSETS: HeroAssets = {
     // Her Glory League costume, the game's own model of it: moved as she is.
     {
       name: 'Kirze_Glory',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Kirze_Glory.webp',
       portrait: { file: 'Kirze_Glory.png', crop: { x: 356, y: 112, size: 135 }, head: { x: 362, y: 140, size: 85 } },
       model: {
         kind: 'parts',

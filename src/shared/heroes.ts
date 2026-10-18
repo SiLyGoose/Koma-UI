@@ -1,4 +1,4 @@
-import { HERO_ASSETS, portraitPicture, type Crop } from '../technomagic/assets';
+import { HERO_ASSETS, iconPicture, portraitPicture, type Crop } from '../technomagic/assets';
 import { el } from './items';
 
 /** The heroes as the bot says them (../protocol/heroes.ts). */
@@ -180,6 +180,12 @@ const cuts = new Map<string, Promise<string | null>>();
  * BUILT_CUTS has it, whatever is asked); null when it has none, or it can't be read.
  */
 export function heroCut(id: string, frame: Frame, width = 256): Promise<string | null> {
+  // A face by itself (a square frame): King's Raid's own icon of it, where it has one.
+  if (frame.wide === frame.tall) {
+    const assets = HERO_ASSETS.find((hero) => hero.folder === `heroes/${id}`);
+    const icon = assets?.skins[0] && iconPicture(assets, assets.skins[0]);
+    if (icon) return Promise.resolve(icon);
+  }
   const fit = frame.fit?.[id];
   const key = `${id}:${frame.wide}:${frame.tall}:${frame.above}:${fit ? `${fit.zoom}:${fit.x}:${fit.y}` : ''}:${width}`;
   let cut = cuts.get(key);

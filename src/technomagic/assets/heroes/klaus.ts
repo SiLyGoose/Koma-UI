@@ -48,6 +48,8 @@ export const KLAUS_ASSETS: HeroAssets = {
   skins: [
     {
       name: 'Klaus',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Klaus.webp',
       portrait: { file: 'Klaus.png', from: 'https://drive.google.com/uc?export=download&id=1bFANcAEYPRzphZmxGd79xgdvYFda-6ev', crop: { x: 612, y: 62, size: 160 } },
       model: {
         kind: 'parts',

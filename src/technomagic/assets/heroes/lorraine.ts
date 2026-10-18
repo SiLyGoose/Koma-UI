@@ -68,6 +68,8 @@ export const LORRAINE_ASSETS: HeroAssets = {
   skins: [
     {
       name: 'Lorraine',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Lorraine.webp',
       // Her newer artwork, sitting on the World Tree's roots under its flowers: her head and ears in the crop (the meter's close-up is her face by itself).
       portrait: { file: 'Lorraine.png', from: `${DRIVE}1mBAtFWXJu10lnOCXx7rzecxSsDuFvV51`, crop: { x: 450, y: 185, size: 185 }, head: { x: 490, y: 225, size: 115 } },
       model: {
@@ -81,6 +83,8 @@ export const LORRAINE_ASSETS: HeroAssets = {
     // Her Christmas costume, with its own hair and staff.
     {
       name: 'Lorraine_Christmas',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Lorraine_Christmas.webp',
       // Her artwork, lying on a great cushion: her face is small in it.
       portrait: { file: 'Lorraine_Christmas.png', from: `${DRIVE}1m5CYTgPvIgBnDivY3QCu6mi524mV3Uie`, crop: { x: 335, y: 25, size: 140 }, head: { x: 360, y: 82, size: 75 } },
       model: {

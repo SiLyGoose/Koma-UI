@@ -48,6 +48,8 @@ export const FALLEN_FREY_ASSETS: HeroAssets = {
   skins: [
     {
       name: 'Fallen Frey',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Fallen_Frey.webp',
       // Her artwork, cut out of its white ground.
       portrait: { file: 'Fallen_Frey.png', crop: { x: 528, y: 72, size: 150 } },
       model: {

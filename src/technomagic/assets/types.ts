@@ -97,6 +97,8 @@ export interface SkinAssets {
   name: string;
   /** With none it is pictured as it stands on the field. */
   portrait?: Portrait;
+  /** King's Raid's own icon of it (its face, square: a file under its hero's icons/), shown wherever its face is by itself. */
+  icon?: string;
   model: PartsModel;
 }
 

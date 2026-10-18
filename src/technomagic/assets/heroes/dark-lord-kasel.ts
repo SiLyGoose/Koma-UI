@@ -50,6 +50,8 @@ export const DARK_LORD_KASEL_ASSETS: HeroAssets = {
   skins: [
     {
       name: 'Dark Lord Kasel',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Dark_Lord_Kasel.webp',
       // His artwork, darkness in his raised left hand (i.postimg.cc/2850R7jk/Dark-Lord-Kasel-1.jpg: only 214 pixels wide, on
       // white; kept with the page four times as big, the white cut away): his head and horns in the crop (the meter's
       // close-up is his face by itself).
