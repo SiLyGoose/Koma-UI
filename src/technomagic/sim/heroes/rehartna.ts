@@ -1,7 +1,7 @@
 import { away, put } from '../combat/status';
 import { said, t5Light } from '../perks';
 import { MAX_MANA } from '../rules';
-import { fromTreasure, treasure, treasureTier } from '../treasures';
+import { fromTreasure, treasure, wearsTreasure } from '../treasures';
 import { num, pct, skillArt, type Buff } from '../shown';
 import type { Fighter } from '../types';
 import { atTier, NEW_ROAD, NEW_ROAD_UP } from '../unique';
@@ -41,9 +41,9 @@ const PERKS = { pen: 250, penLasts: 10, takes: 1.25, allies: 6, mana: 1000, crit
  */
 const UT = {
   document: {},
-  generator: { critResist: [120, 140, 170, 210, 250], mana: 150 },
-  medley: { sooner: [1.2, 1.4, 1.7, 2.1, 2.5], immune: 5 },
-  dragon: { most: 6, boss: [0.036, 0.043, 0.052, 0.062, 0.075] },
+  generator: { critResist: [100, 120, 140, 170, 210, 250], mana: 150 },
+  medley: { sooner: [1, 1.2, 1.4, 1.7, 2.1, 2.5], immune: 5 },
+  dragon: { most: 6, boss: [0.03, 0.036, 0.043, 0.052, 0.062, 0.075] },
 };
 
 const art = skillArt('rehartna');
@@ -142,7 +142,7 @@ export const REHARTNA: HeroDef = {
     let wave = 0;
     let road = 0;
     const cheered = new Map<Fighter, number>();
-    const most = treasureTier(self, 3) > 0 ? UT.dragon.most : MARCH.most;
+    const most = wearsTreasure(self, 3) ? UT.dragon.most : MARCH.most;
     /** Her allies on the field, standing and in the fight (her too). */
     const allies = (): Fighter[] => fight.field.filter((ally) => ally.hp > 0 && !away(ally.statuses));
     /** `count` of her allies, at random. */
@@ -185,7 +185,7 @@ export const REHARTNA: HeroDef = {
           for (const ally of on) {
             ally.cooldowns = ally.cooldowns.map((left) => Math.max(0, left - sooner));
             put(ally.statuses, { name: ARMED.name, left: WEAPON.lasts, atk: atk / ally.stats.atk, shown: ARMED });
-            if (treasureTier(self, 2) > 0) put(ally.statuses, { name: 'Medley Sheet', left: UT.medley.immune, guards: true, shown: ARMED });
+            if (wearsTreasure(self, 2)) put(ally.statuses, { name: 'Medley Sheet', left: UT.medley.immune, guards: true, shown: ARMED });
           }
           armed = on;
           armedLeft = WEAPON.lasts;
@@ -222,7 +222,7 @@ export const REHARTNA: HeroDef = {
               count: marched,
               heals: 1 + MARCH.heals * marched,
               ...(self.perks.has('s4-dark') && { critDamage: PERKS.critDamage * marched }),
-              ...(treasureTier(self, 3) > 0 && { deals: 1 + fromTreasure(self, 3, UT.dragon.boss) * marched }),
+              ...(wearsTreasure(self, 3) && { deals: 1 + fromTreasure(self, 3, UT.dragon.boss) * marched }),
               shown: MARCHING,
             });
           }
@@ -241,8 +241,8 @@ export const REHARTNA: HeroDef = {
               crystalTick -= 1;
               for (const ally of allies()) {
                 fight.heal(ally, CRYSTAL.each, self);
-                put(ally.statuses, { name: STEADIED.name, left: 1, bolsters: { physical: CRYSTAL.defense, magical: CRYSTAL.defense }, ...(treasureTier(self, 1) > 0 && { critResist: fromTreasure(self, 1, UT.generator.critResist) }), shown: STEADIED });
-                if (treasureTier(self, 1) > 0) ally.mana = Math.min(MAX_MANA, ally.mana + UT.generator.mana);
+                put(ally.statuses, { name: STEADIED.name, left: 1, bolsters: { physical: CRYSTAL.defense, magical: CRYSTAL.defense }, ...(wearsTreasure(self, 1) && { critResist: fromTreasure(self, 1, UT.generator.critResist) }), shown: STEADIED });
+                if (wearsTreasure(self, 1)) ally.mana = Math.min(MAX_MANA, ally.mana + UT.generator.mana);
               }
               fight.hit(self, CRYSTAL.blow);
               fight.slow(CRYSTAL.slow, 1);

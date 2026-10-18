@@ -1,7 +1,7 @@
 import { share } from '../combat/damage';
 import { put } from '../combat/status';
 import { said, t5Light } from '../perks';
-import { fromTreasure, treasure, treasureTier } from '../treasures';
+import { fromTreasure, treasure, wearsTreasure } from '../treasures';
 import { MAX_MANA } from '../rules';
 import { pct, skillArt, type Buff } from '../shown';
 import { atTier, TEMPODIANA, TEMPODIANA_UP } from '../unique';
@@ -41,10 +41,10 @@ const PERKS = { fragments: 1, attacks: 3, chance: 0.4, ticking: { every: 10, all
  * boss's more M.DMG taken.
  */
 const UT = {
-  orbment: { mana: [480, 580, 700, 840, 1000] },
-  collection: { chance: 0.25, dmg: [0.24, 0.29, 0.35, 0.42, 0.5] },
-  threads: { dmg: [0.24, 0.29, 0.35, 0.42, 0.5] },
-  clockwork: { dmg: 0.5, takes: [0.12, 0.14, 0.17, 0.21, 0.25], lasts: 10 },
+  orbment: { mana: [400, 480, 580, 700, 840, 1000] },
+  collection: { chance: 0.25, dmg: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5] },
+  threads: { dmg: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5] },
+  clockwork: { dmg: 0.5, takes: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25], lasts: 10 },
 };
 
 const art = skillArt('oddy');
@@ -160,7 +160,7 @@ export const ODDY: HeroDef = {
           if (clock <= 0) return;
           clock--;
           // (Time Manipulating Clockwork: harder, and the boss takes more M.DMG for a while.)
-          const clockwork = treasureTier(self, 3) > 0;
+          const clockwork = wearsTreasure(self, 3);
           fight.hit(self, CLOCK.blow * (clockwork ? 1 + UT.clockwork.dmg : 1), false);
           if (clockwork) put(fight.foe.statuses, { name: 'Time Manipulating Clockwork', left: UT.clockwork.lasts, takes: { magical: 1 + fromTreasure(self, 3, UT.clockwork.takes) }, shown: 'curse' });
           if (clockWait <= 0 && fight.roll() < chance) {
@@ -198,7 +198,7 @@ export const ODDY: HeroDef = {
         free = fight.roll() < FRAGMENTS.chance;
         if (free) self.cooldowns[1] = 0;
         // (Fragment Collection: missed, a chance more it is ready again at once.)
-        else if (treasureTier(self, 1) > 0 && fight.roll() < UT.collection.chance) self.cooldowns[1] = 0;
+        else if (wearsTreasure(self, 1) && fight.roll() < UT.collection.chance) self.cooldowns[1] = 0;
       },
       tick(dt) {
         clockWait = Math.max(0, clockWait - dt);

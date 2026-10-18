@@ -1,7 +1,7 @@
 import { away, put } from '../combat/status';
 import { said, t5Light } from '../perks';
 import { MAX_MANA } from '../rules';
-import { fromTreasure, treasure, treasureTier } from '../treasures';
+import { fromTreasure, treasure, wearsTreasure } from '../treasures';
 import { num, pct, skillArt, type Buff } from '../shown';
 import type { Fighter } from '../types';
 import { atTier, BENEDICIA, BENEDICIA_UP } from '../unique';
@@ -40,10 +40,10 @@ const PERKS = { mana: 500, zoneMana: 200, heals: 1.4, regen: 4, regenLasts: 3 };
  * Stigmata's shorter cooldown; Holy Sacrifice's more DEF and the ATK it gives its allies, for a while.
  */
 const UT = {
-  book: { cooldown: [0.14, 0.17, 0.21, 0.25, 0.3] },
+  book: { cooldown: [0.12, 0.14, 0.17, 0.21, 0.25, 0.3] },
   dice: {},
-  star: { cooldown: [0.14, 0.17, 0.21, 0.25, 0.3] },
-  sword: { defense: 0.5, atk: [0.1, 0.12, 0.14, 0.17, 0.2], lasts: 5 },
+  star: { cooldown: [0.12, 0.14, 0.17, 0.21, 0.25, 0.3] },
+  sword: { defense: 0.5, atk: [0.08, 0.1, 0.12, 0.14, 0.17, 0.2], lasts: 5 },
 };
 
 const art = skillArt('lucias');
@@ -142,7 +142,7 @@ export const LUCIAS: HeroDef = {
     let into = 0;
     /** His allies on the field, standing and in the fight (him too). */
     const allies = (): Fighter[] => fight.field.filter((ally) => ally.hp > 0 && !away(ally.statuses));
-    const sword = treasureTier(self, 3) > 0;
+    const sword = wearsTreasure(self, 3);
     /** A heal of Path's or Zone's: and Holy Sacrifice's (its Light: more; Sword of Sacrifice: more DEF, and ATK a while). */
     const bless = (ally: Fighter, amount: number): void => {
       fight.heal(ally, amount, self);

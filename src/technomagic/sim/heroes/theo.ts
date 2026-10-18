@@ -1,7 +1,7 @@
 import { put } from '../combat/status';
 import { said, t5Light } from '../perks';
 import { MAX_MANA } from '../rules';
-import { fromTreasure, treasure, treasureTier } from '../treasures';
+import { fromTreasure, treasure, wearsTreasure } from '../treasures';
 import { pct, skillArt, type Buff } from '../shown';
 import { atTier, LEGIOS, LEGIOS_UP } from '../unique';
 import { attackStarts, bookDmg, CLASS_STATS, dmg, type HeroDef, type Passive, played } from './kit';
@@ -40,10 +40,10 @@ const PERKS = { thunder: { atk: 2, taken: 1.3 }, stun: 1, jane: 0.2, dark: { atk
  * each blow's blow more (a share of ATK); and For Jane's chance more and his attack speed at the start.
  */
 const UT = {
-  sable: { chance: [0.1, 0.12, 0.14, 0.17, 0.2] },
-  necklace: { speed: 250, chance: [0.096, 0.115, 0.138, 0.165, 0.2] },
-  essence: { cooldown: 0.3, blow: [0.48, 0.58, 0.7, 0.84, 1] },
-  doll: { chance: [0.24, 0.29, 0.35, 0.42, 0.5], speed: 350, lasts: 30 },
+  sable: { chance: [0.08, 0.1, 0.12, 0.14, 0.17, 0.2] },
+  necklace: { speed: 250, chance: [0.08, 0.096, 0.115, 0.138, 0.165, 0.2] },
+  essence: { cooldown: 0.3, blow: [0.4, 0.48, 0.58, 0.7, 0.84, 1] },
+  doll: { chance: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5], speed: 350, lasts: 30 },
 };
 
 const art = skillArt('theo');
@@ -142,7 +142,7 @@ export const THEO: HeroDef = {
     // (God of Lightning's ATK: a share of his own, as the fight begins; its Dark: twice it.)
     const godAtk = (THUNDER.atk * THUNDER.books * (self.perks.has('s2-dark') ? PERKS.thunder.atk : 1)) / self.stats.atk;
     // (Another Funeral Doll: quicker for a while as the fight begins.)
-    if (treasureTier(self, 3) > 0) put(self.statuses, { name: DOLL.name, left: UT.doll.lasts, speed: UT.doll.speed, shown: DOLL });
+    if (wearsTreasure(self, 3)) put(self.statuses, { name: DOLL.name, left: UT.doll.lasts, speed: UT.doll.speed, shown: DOLL });
 
     /** For Jane's chance, for now. */
     const janeChance = (): number =>
@@ -186,7 +186,7 @@ export const THEO: HeroDef = {
         if (index !== 1) return;
         // God of Lightning: the state (its Dark: him taking more meanwhile; God of Lightning's Necklace: quicker meanwhile).
         god = THUNDER.lasts;
-        const necklace = treasureTier(self, 1) > 0 ? { speed: UT.necklace.speed } : {};
+        const necklace = wearsTreasure(self, 1) ? { speed: UT.necklace.speed } : {};
         put(self.statuses, { name: GOD.name, left: THUNDER.lasts, atk: godAtk, ...(self.perks.has('s2-dark') && { takes: PERKS.thunder.taken }), ...necklace, shown: GOD });
       },
       // His unique weapon: each blow of his a stack of Lightning (none while Legios is on); at 50, Lightning Bolt, Legios.

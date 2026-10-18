@@ -1,7 +1,7 @@
 import { share } from '../combat/damage';
 import { put } from '../combat/status';
 import { said, t5Light } from '../perks';
-import { fromTreasure, treasure, treasureTier } from '../treasures';
+import { fromTreasure, treasure, wearsTreasure } from '../treasures';
 import { fine, num, pct, skillArt, type Buff } from '../shown';
 import { atTier, NOTOS, NOTOS_UP } from '../unique';
 import { bookDmg, CLASS_STATS, dmg, type HeroDef, indexed, type Passive } from './kit';
@@ -41,10 +41,10 @@ const PERKS = { stun: { chance: 0.2, lasts: 2 }, flinch: 0.5, most: 5 };
  * and more DMG to the boss for each stack.
  */
 const UT = {
-  gloves: { cost: -1, cooldown: [1.2, 1.4, 1.7, 2.1, 2.5] },
-  seal: { dmg: [0.24, 0.29, 0.35, 0.42, 0.5], chance: 0.15, arrows: 1 },
-  silver: { dmg: [0.24, 0.29, 0.35, 0.42, 0.5], takes: 0.2, lasts: 10 },
-  circlet: { speed: 100, dmg: [0.024, 0.029, 0.035, 0.042, 0.05] },
+  gloves: { cost: -1, cooldown: [1, 1.2, 1.4, 1.7, 2.1, 2.5] },
+  seal: { dmg: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5], chance: 0.15, arrows: 1 },
+  silver: { dmg: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5], takes: 0.2, lasts: 10 },
+  circlet: { speed: 100, dmg: [0.02, 0.024, 0.029, 0.035, 0.042, 0.05] },
 };
 
 const art = skillArt('selene');
@@ -174,7 +174,7 @@ export const SELENE: HeroDef = {
       moonlit();
       if (notos > 0 && tier !== null) fight.hit(self, atTier(NOTOS.arrow, tier), false);
       // (Wind Spirit Seal Stone: now and then a Rush arrow besides, as hard as Rush's.)
-      if (treasureTier(self, 1) > 0 && fight.roll() < UT.seal.chance) {
+      if (wearsTreasure(self, 1) && fight.roll() < UT.seal.chance) {
         for (let i = 0; i < UT.seal.arrows; i++) shoot(RUSH.blow * (1 + fromTreasure(self, 1, UT.seal.dmg)));
       }
     };

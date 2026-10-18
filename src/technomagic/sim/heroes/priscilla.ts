@@ -1,6 +1,6 @@
 import { away, put } from '../combat/status';
 import { said, t5Light } from '../perks';
-import { fromTreasure, treasure, treasureTier } from '../treasures';
+import { fromTreasure, treasure, wearsTreasure } from '../treasures';
 import { num, pct, skillArt, type Buff } from '../shown';
 import type { Fighter } from '../types';
 import { atTier, EXCILIUS, EXCILIUS_UP } from '../unique';
@@ -38,10 +38,10 @@ const PERKS = { stun: 1.8, critDamage: 1.5, lasts: 15, takes: 1.25, sooner: 0.1,
  * and its stun; Weapon Mastery's more ATK and her DEF more.
  */
 const UT = {
-  weight: { dmg: 0.5, block: [240, 290, 350, 420, 500], lasts: 10 },
-  tea: { atk: [0.24, 0.29, 0.35, 0.42, 0.5], cooldown: 0.3 },
-  stone: { dmg: [0.24, 0.29, 0.35, 0.42, 0.5], stun: 3 },
-  turbulence: { atk: 0.5, defense: [0.12, 0.14, 0.17, 0.21, 0.25] },
+  weight: { dmg: 0.5, block: [200, 240, 290, 350, 420, 500], lasts: 10 },
+  tea: { atk: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5], cooldown: 0.3 },
+  stone: { dmg: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5], stun: 3 },
+  turbulence: { atk: 0.5, defense: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25] },
 };
 
 const art = skillArt('priscilla');
@@ -137,8 +137,8 @@ export const PRISCILLA: HeroDef = {
     /** Her allies on the field, standing and in the fight (her too). */
     const allies = (): Fighter[] => fight.field.filter((ally) => ally.hp > 0 && !away(ally.statuses));
     /** Her Weapon Mastery's ATK: a share of her own, as the fight begins (its Light, and Beginning of Turbulence: more). */
-    const mastery = (MASTERY.atk * MASTERY.books * (self.perks.has('s4-light') ? PERKS.atk : 1) * (treasureTier(self, 3) > 0 ? 1 + UT.turbulence.atk : 1)) / self.stats.atk;
-    put(self.statuses, { name: MASTERED.shown.name, left: Infinity, atk: mastery, ...(treasureTier(self, 3) > 0 && { defends: 1 + fromTreasure(self, 3, UT.turbulence.defense) }), shown: treasureTier(self, 3) > 0 ? STEADY : MASTERED.shown });
+    const mastery = (MASTERY.atk * MASTERY.books * (self.perks.has('s4-light') ? PERKS.atk : 1) * (wearsTreasure(self, 3) ? 1 + UT.turbulence.atk : 1)) / self.stats.atk;
+    put(self.statuses, { name: MASTERED.shown.name, left: Infinity, atk: mastery, ...(wearsTreasure(self, 3) && { defends: 1 + fromTreasure(self, 3, UT.turbulence.defense) }), shown: wearsTreasure(self, 3) ? STEADY : MASTERED.shown });
     const assaulted = (): boolean => self.statuses.some((status) => status.name === ASSAULT.name);
     /** Her unique weapon: a skill's blow off its cooldown, and a stack of attack speed. */
     const excilius = (index: number): void => {
@@ -178,13 +178,13 @@ export const PRISCILLA: HeroDef = {
           }
           // (Fancy Tea Set: the ally with the highest ATK's cooldowns shorter.)
           const top = on.filter((ally) => ally !== self)[0];
-          if (top && treasureTier(self, 1) > 0) top.cooldowns = top.cooldowns.map((left) => left * (1 - UT.tea.cooldown));
+          if (top && wearsTreasure(self, 1)) top.cooldowns = top.cooldowns.map((left) => left * (1 - UT.tea.cooldown));
         },
         // A great blow; under [Assault], the boss takes more physical damage. Its Light: a critical one, its cooldown shorter.
         turbulent() {
           const critical = fight.hit(self, DANCE.blow);
           if (assaulted()) put(fight.foe.statuses, { name: DANCED.name, left: DANCE.lasts, takes: { physical: DANCE.takes }, shown: 'curse' });
-          if (treasureTier(self, 2) > 0) fight.stun(UT.stone.stun, { by: self });
+          if (wearsTreasure(self, 2)) fight.stun(UT.stone.stun, { by: self });
           excilius(2);
           if (critical && self.perks.has('s3-light')) self.cooldowns[2] = (self.cooldowns[2] ?? 0) * (1 - PERKS.sooner);
         },

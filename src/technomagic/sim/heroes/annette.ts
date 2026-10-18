@@ -1,7 +1,7 @@
 import { share } from '../combat/damage';
 import { away, put, type Status } from '../combat/status';
 import { said, t5Light } from '../perks';
-import { fromTreasure, treasure, treasureTier } from '../treasures';
+import { fromTreasure, treasure, wearsTreasure } from '../treasures';
 import { MAX_MANA } from '../rules';
 import { pct, skillArt, type Buff } from '../shown';
 import type { Fighter } from '../types';
@@ -48,10 +48,10 @@ const PERKS = { charge: 1.4, eliminated: 0.25, overAtk: 1.4, overLonger: 3, alli
  * the Charge each attack gains; the Charge she begins with, and Overcharge's more cooldown off each attack.
  */
 const UT = {
-  lens: { crit: 250, mana: [480, 580, 700, 840, 1000], lasts: 10 },
-  script: { cost: -1, heals: [0.24, 0.29, 0.35, 0.42, 0.5] },
-  code: { dmg: [0.24, 0.29, 0.35, 0.42, 0.5], charge: 2 },
-  battery: { charge: [36, 43, 52, 63, 75], cooldown: 0.05 },
+  lens: { crit: 250, mana: [400, 480, 580, 700, 840, 1000], lasts: 10 },
+  script: { cost: -1, heals: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5] },
+  code: { dmg: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5], charge: 2 },
+  battery: { charge: [30, 36, 43, 52, 63, 75], cooldown: 0.05 },
 };
 
 const art = skillArt('annette');
@@ -196,10 +196,10 @@ export const ANNETTE: HeroDef = {
         zap() {
           fight.hit(self, fight.basic);
           // (Code of Annihilation: Charge for each, even Overcharged.)
-          if (treasureTier(self, 2) > 0) gain(UT.code.charge);
+          if (wearsTreasure(self, 2)) gain(UT.code.charge);
           if (over <= 0) return;
           // (High Performance Battery: more off them.)
-          const off = CHARGE.cooldown + (treasureTier(self, 3) > 0 ? UT.battery.cooldown : 0);
+          const off = CHARGE.cooldown + (wearsTreasure(self, 3) ? UT.battery.cooldown : 0);
           self.abilities.forEach((ability, i) => {
             self.cooldowns[i] = Math.max(0, (self.cooldowns[i] as number) - ability.cooldown * off);
           });

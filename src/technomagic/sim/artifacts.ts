@@ -5,15 +5,15 @@ import type { Buff, Tone } from './shown';
 import type { Fighter, Foe, GearBonus, GearStat } from './types';
 
 /*
- * The artifacts, as King's Raid's CBT2 playtest has them (./gear/kr-data.ts: SkillTable's numbers at each refinement, R1
- * to R5): a hero wears one, in its artifact slot (the bot says which, and how far refined, as the fight begins). Those
+ * The artifacts, as King's Raid's CBT2 playtest has them (./gear/kr-data.ts: SkillTable's numbers at each of its stars, 0★
+ * to 5★): a hero wears one, in its artifact slot (the bot says which, and its stars, as the fight begins). Those
  * that do something in a raid against one boss: not those that count enemies past one, kills, Heroes (the Arena's) or
  * other races than the dragons' (KR's masks: no boss here is of theirs), nor those on enemies' mana or skills, which no
  * boss here has. ./fight.ts calls on an artifact's hooks (artifactHooks) as the fight goes.
  */
 
-/** A number at each refinement, R1 to R5. */
-type Tiers = readonly [number, number, number, number, number];
+/** A number at each of its stars, 0★ to 5★ (the index is the stars). */
+type Tiers = readonly [number, number, number, number, number, number];
 
 /** What lands on whom: itself, every ally, the ally with the highest ATK (and itself too). */
 type Whom = 'self' | 'allies' | 'top' | 'self-top';
@@ -102,172 +102,172 @@ export interface ArtifactDef {
 }
 
 /** The same at every refinement. */
-const all = (n: number): Tiers => [n, n, n, n, n];
-/** King's Raid's thousandths, at each refinement, as shares (or points: 1000 is 1). */
+const all = (n: number): Tiers => [n, n, n, n, n, n];
+/** King's Raid's thousandths, at each of its stars, as shares (or points: 1000 is 1). */
 const k = (...t: Tiers): Tiers => t.map((n) => n / 1000) as unknown as Tiers;
 
 /** Every artifact the fight has a use for, by id (KR_ARTIFACTS'). */
 export const ARTIFACTS: Readonly<Record<string, ArtifactDef>> = {
   // Apocalypsion's Tear: with one enemy, every ally's ATK and crit DMG.
-  'artifact-1001': { allies: { atk: k(140, 170, 210, 250, 300), critDamage: k(280, 340, 420, 500, 600) } },
+  'artifact-1001': { allies: { atk: k(120, 140, 170, 210, 250, 300), critDamage: k(240, 280, 340, 420, 500, 600) } },
   // Earth Protection: at first, CC immune and DEF up.
-  'artifact-24': { start: { on: 'self', lasts: [10, 12, 14, 17, 20], defense: all(0.5), guards: true } },
+  'artifact-24': { start: { on: 'self', lasts: [8, 10, 12, 14, 17, 20], defense: all(0.5), guards: true } },
   // Infernal Whip: every 8 seconds a magical blow, and the boss takes more for a while (the more each time).
-  'artifact-44': { timer: { every: 8, lasts: 5, hit: [240, 290, 350, 420, 500], weakness: k(120, 140, 170, 210, 250), grows: k(5, 6, 7, 8, 10), most: 25 } },
+  'artifact-44': { timer: { every: 8, lasts: 5, hit: [200, 240, 290, 350, 420, 500], weakness: k(100, 120, 140, 170, 210, 250), grows: k(4, 5, 6, 7, 8, 10), most: 25 } },
   // Golem's Fuel: more DMG to any enemy, less taken.
-  'artifact-1002': { foes: k(120, 140, 170, 210, 250), taken: k(-60, -70, -85, -105, -125) },
+  'artifact-1002': { foes: k(100, 120, 140, 170, 210, 250), taken: k(-50, -60, -70, -85, -105, -125) },
   // Madame's Bronze Mirrors.
-  'artifact-11': { own: { blockMagical: [330, 360, 400, 440, 500], toughMagical: [110, 120, 140, 160, 200] } },
+  'artifact-11': { own: { blockMagical: [300, 330, 360, 400, 440, 500], toughMagical: [100, 110, 120, 140, 160, 200] } },
   // Judgment of Light Bracelet: ACC and CC ACC.
-  'artifact-21': { own: { acc: [360, 430, 520, 630, 750], accuracy: [360, 430, 520, 630, 750] } },
+  'artifact-21': { own: { acc: [300, 360, 430, 520, 630, 750], accuracy: [300, 360, 430, 520, 630, 750] } },
   // Spellbound Ring of the Deep: the boss's ATK less at first.
-  'artifact-41': { bossAtk: { atk: k(-240, -290, -350, -420, -500), lasts: [10, 12, 14, 17, 20] } },
+  'artifact-41': { bossAtk: { atk: k(-200, -240, -290, -350, -420, -500), lasts: [8, 10, 12, 14, 17, 20] } },
   // Happy Pumpkin Head: every 7 seconds, healed by its ATK, and healing more each time.
-  'artifact-61': { timer: { every: 7, heal: k(1200, 1400, 1700, 2100, 2500), recovery: k(24, 28, 34, 42, 50), most: 15 } },
+  'artifact-61': { timer: { every: 7, heal: k(1000, 1200, 1400, 1700, 2100, 2500), recovery: k(20, 24, 28, 34, 42, 50), most: 15 } },
   // Orbs of Contract: every 7 seconds, M.DEF by a share of its ATK.
-  'artifact-32': { timer: { every: 7, mdef: k(12, 14, 17, 20, 25), most: 6 } },
+  'artifact-32': { timer: { every: 7, mdef: k(10, 12, 14, 17, 20, 25), most: 6 } },
   // Guardian Crystal of the Deep: with one enemy, DEF.
-  'artifact-42': { own: { defense: k(600, 720, 860, 1030, 1250) } },
+  'artifact-42': { own: { defense: k(500, 600, 720, 860, 1030, 1250) } },
   // Angry Pumpkin Head.
-  'artifact-52': { own: { tough: [120, 140, 170, 200, 250] }, dmg: k(120, 140, 170, 200, 250) },
+  'artifact-52': { own: { tough: [100, 120, 140, 170, 200, 250] }, dmg: k(100, 120, 140, 170, 200, 250) },
   // Surprised Pumpkin Head: knocked down, mana and ATK Spd.
-  'artifact-62': { onKnock: { wait: all(30), manaShare: k(140, 170, 210, 250, 300), speed: [240, 290, 350, 420, 500], lasts: all(5) } },
+  'artifact-62': { onKnock: { wait: all(30), manaShare: k(120, 140, 170, 210, 250, 300), speed: [200, 240, 290, 350, 420, 500], lasts: all(5) } },
   // Christmas Tree of Holy Night.
-  'artifact-505': { own: { critDamage: k(600, 720, 870, 1050, 1250) } },
+  'artifact-505': { own: { critDamage: k(500, 600, 720, 870, 1050, 1250) } },
   // Warm Turkey Dish.
-  'artifact-504': { own: { hp: k(120, 140, 170, 210, 250), block: [120, 140, 170, 210, 250] } },
+  'artifact-504': { own: { hp: k(100, 120, 140, 170, 210, 250), block: [100, 120, 140, 170, 210, 250] } },
   // Academic Achievement Award: every ally's ATK, its own DEF.
-  'artifact-507': { allies: { atk: k(100, 120, 140, 170, 200) }, own: { defense: k(120, 140, 170, 210, 250) } },
+  'artifact-507': { allies: { atk: k(80, 100, 120, 140, 170, 200) }, own: { defense: k(100, 120, 140, 170, 210, 250) } },
   // New Year's Fanfare: every ally's ATK at first.
-  'artifact-506': { start: { on: 'allies', lasts: all(20), atk: k(60, 72, 86, 104, 125) } },
+  'artifact-506': { start: { on: 'allies', lasts: all(20), atk: k(50, 60, 72, 86, 104, 125) } },
   // Abyssal Crown: after 30 seconds, the ally with the highest ATK.
-  'artifact-502': { later: { after: 30, atk: k(360, 430, 520, 630, 750) } },
+  'artifact-502': { later: { after: 30, atk: k(300, 360, 430, 520, 630, 750) } },
   // Ancient God King's Coin.
-  'artifact-509': { own: { atk: k(240, 290, 350, 420, 500), critDamage: k(240, 290, 350, 420, 500) } },
+  'artifact-509': { own: { atk: k(200, 240, 290, 350, 420, 500), critDamage: k(200, 240, 290, 350, 420, 500) } },
   // Heart Cotton Candy: itself and the ally with the highest ATK, at first.
-  'artifact-508': { start: { on: 'self-top', lasts: all(20), atk: k(120, 140, 170, 210, 250) } },
+  'artifact-508': { start: { on: 'self-top', lasts: all(20), atk: k(100, 120, 140, 170, 210, 250) } },
   // Honorary Medal: every ally's ATK, HP and DEF.
-  'artifact-901': { allies: { atk: k(90, 105, 120, 135, 150), hp: k(90, 105, 120, 135, 150), defense: k(90, 105, 120, 135, 150) } },
+  'artifact-901': { allies: { atk: k(75, 90, 105, 120, 135, 150), hp: k(75, 90, 105, 120, 135, 150), defense: k(75, 90, 105, 120, 135, 150) } },
   // Honorary Trophy.
-  'artifact-900': { own: { atk: k(300, 350, 400, 450, 500), crit: [300, 350, 400, 450, 500] } },
+  'artifact-900': { own: { atk: k(250, 300, 350, 400, 450, 500), crit: [250, 300, 350, 400, 450, 500] } },
   // Hero's Plaque of Appreciation: its HP; after 30 seconds, another ally's crit DMG.
-  'artifact-902': { own: { hp: k(300, 350, 400, 450, 500) }, later: { after: 30.5, others: true, critDamage: k(600, 700, 800, 900, 1000) } },
+  'artifact-902': { own: { hp: k(250, 300, 350, 400, 450, 500) }, later: { after: 30.5, others: true, critDamage: k(500, 600, 700, 800, 900, 1000) } },
   // Burning Brazier of Elf: its attack, now and then, mana.
-  'artifact-1': { onBasic: { chance: k(120, 140, 170, 200, 250), wait: 1, mana: 1000 } },
+  'artifact-1': { onBasic: { chance: k(100, 120, 140, 170, 200, 250), wait: 1, mana: 1000 } },
   // Drinking Horn of Ancient Cow.
-  'artifact-2': { onBasic: { chance: all(0.1), wait: 10, atk: k(120, 140, 170, 200, 250), speed: [120, 140, 170, 200, 250], lasts: 10 } },
+  'artifact-2': { onBasic: { chance: all(0.1), wait: 10, atk: k(100, 120, 140, 170, 200, 250), speed: [100, 120, 140, 170, 200, 250], lasts: 10 } },
   // Dice of Magical Letters: its attack, now and then, a great magical blow.
-  'artifact-3': { onBasic: { chance: all(0.03), wait: 1, hit: [4800, 5750, 6900, 8300, 10000] } },
+  'artifact-3': { onBasic: { chance: all(0.03), wait: 1, hit: [4000, 4800, 5750, 6900, 8300, 10000] } },
   // Golden Cat Statue.
-  'artifact-4': { start: { on: 'self', lasts: all(15), speed: [480, 570, 690, 830, 1000] } },
+  'artifact-4': { start: { on: 'self', lasts: all(15), speed: [400, 480, 570, 690, 830, 1000] } },
   // Pocket Watch of Ancient Civilization: every 10 seconds, cooldowns shorter and ATK Spd.
-  'artifact-5': { timer: { every: 10, cooldown: [1.2, 1.4, 1.7, 2, 2.5], speed: [96, 115, 138, 165, 200], lasts: 5 } },
+  'artifact-5': { timer: { every: 10, cooldown: [1, 1.2, 1.4, 1.7, 2, 2.5], speed: [80, 96, 115, 138, 165, 200], lasts: 5 } },
   // Primer for the Heroes: low on health.
-  'artifact-6': { low: { below: 0.2, atk: k(360, 430, 510, 620, 750), speed: [360, 430, 510, 620, 750], tough: [360, 430, 510, 620, 750] } },
+  'artifact-6': { low: { below: 0.2, atk: k(300, 360, 430, 510, 620, 750), speed: [300, 360, 430, 510, 620, 750], tough: [300, 360, 430, 510, 620, 750] } },
   // The Ancient Scope: mana full, crit and ACC.
-  'artifact-7': { fullMana: { wait: 20, crit: [480, 570, 690, 830, 1000], acc: [480, 570, 690, 830, 1000], lasts: 10 } },
+  'artifact-7': { fullMana: { wait: 20, crit: [400, 480, 570, 690, 830, 1000], acc: [400, 480, 570, 690, 830, 1000], lasts: 10 } },
   // Golden Apple of a Goddess.
-  'artifact-9': { rescue: { below: 0.25, heal: k(360, 430, 510, 620, 750) } },
+  'artifact-9': { rescue: { below: 0.25, heal: k(300, 360, 430, 510, 620, 750) } },
   // Assassin's Veil: P.Dodge, and ATK for each dodge.
-  'artifact-38': { own: { dodgePhysical: [120, 140, 170, 210, 250] }, onDodge: { atk: k(12, 14, 17, 21, 25), most: 20 } },
+  'artifact-38': { own: { dodgePhysical: [100, 120, 140, 170, 210, 250] }, onDodge: { atk: k(10, 12, 14, 17, 21, 25), most: 20 } },
   // Magical Flute: every 8 seconds, ATK Spd for itself and two allies.
-  'artifact-48': { timer: { every: 8, lasts: 4, speed: [120, 140, 170, 210, 250], random: 2 } },
+  'artifact-48': { timer: { every: 8, lasts: 4, speed: [100, 120, 140, 170, 210, 250], random: 2 } },
   // Kiddy Chick.
-  'artifact-58': { own: { speed: [96, 115, 138, 165, 200] } },
+  'artifact-58': { own: { speed: [80, 96, 115, 138, 165, 200] } },
   // Fragment of an Ancient Kingdom.
-  'artifact-68': { own: { resist: [240, 290, 350, 420, 500], accuracy: [240, 290, 350, 420, 500] } },
+  'artifact-68': { own: { resist: [200, 240, 290, 350, 420, 500], accuracy: [200, 240, 290, 350, 420, 500] } },
   // Forge Hammer MK-II.
-  'artifact-515': { onBasic: { chance: all(0.05), wait: 0, speed: [480, 580, 700, 840, 1000], lasts: 5 } },
+  'artifact-515': { onBasic: { chance: all(0.05), wait: 0, speed: [400, 480, 580, 700, 840, 1000], lasts: 5 } },
   // Pumpkin-Stuck Evil Spirit: its HP; with one enemy, every ally's ATK.
-  'artifact-514': { own: { hp: k(240, 290, 350, 420, 500) }, allies: { atk: k(240, 290, 350, 420, 500) } },
+  'artifact-514': { own: { hp: k(200, 240, 290, 350, 420, 500) }, allies: { atk: k(200, 240, 290, 350, 420, 500) } },
   // New-Type Thruster: knocked down, cooldowns shorter and mana.
-  'artifact-516': { onKnock: { wait: all(20), cooldown: [6, 7, 8, 9, 10], manaEach: [600, 700, 800, 900, 1000] } },
+  'artifact-516': { onKnock: { wait: all(20), cooldown: [5, 6, 7, 8, 9, 10], manaEach: [500, 600, 700, 800, 900, 1000] } },
   // Master Chef's Recipe Book.
-  'artifact-511': { own: { defense: k(120, 140, 170, 210, 250), recovery: k(120, 140, 170, 210, 250) } },
+  'artifact-511': { own: { defense: k(100, 120, 140, 170, 210, 250), recovery: k(100, 120, 140, 170, 210, 250) } },
   // Pendulum of Fantasy.
-  'artifact-510': { own: { atk: k(120, 140, 170, 210, 250) } },
+  'artifact-510': { own: { atk: k(100, 120, 140, 170, 210, 250) } },
   // Juno's Special Dessert: hit, now and then, the boss takes more.
-  'artifact-513': { onHurt: { chance: 0.2, wait: all(0), lasts: all(5), weakness: k(120, 140, 170, 210, 250) } },
+  'artifact-513': { onHurt: { chance: 0.2, wait: all(0), lasts: all(5), weakness: k(100, 120, 140, 170, 210, 250) } },
   // Blessing of Earth: with one enemy, ATK.
-  'artifact-25': { own: { atk: k(480, 580, 690, 830, 1000) } },
+  'artifact-25': { own: { atk: k(400, 480, 580, 690, 830, 1000) } },
   // Ring of Spirit Morph: at first, its health won't fall below 10%.
-  'artifact-35': { undying: { floor: 0.1, lasts: [5, 6, 7, 8, 9] } },
+  'artifact-35': { undying: { floor: 0.1, lasts: [4, 5, 6, 7, 8, 9] } },
   // Christmas Star Ornament: at first, mana recovery and crit resist.
-  'artifact-55': { start: { on: 'self', lasts: all(5), mana: k(3100, 3700, 4500, 5400, 6500), critResist: [120, 140, 170, 210, 250] } },
+  'artifact-55': { start: { on: 'self', lasts: all(5), mana: k(2600, 3100, 3700, 4500, 5400, 6500), critResist: [100, 120, 140, 170, 210, 250] } },
   // Treasure Hunt Capsule: at first, cooldowns shorter; more DMG to any enemy.
-  'artifact-521': { opening: { cooldown: [1.2, 1.4, 1.7, 2.1, 2.5] }, foes: k(12, 14, 17, 21, 25) },
+  'artifact-521': { opening: { cooldown: [1, 1.2, 1.4, 1.7, 2.1, 2.5] }, foes: k(10, 12, 14, 17, 21, 25) },
   // Heart of the Abyss: at first, the ally with the highest ATK.
-  'artifact-520': { start: { on: 'top', lasts: all(100), atk: k(100, 120, 140, 170, 200) } },
+  'artifact-520': { start: { on: 'top', lasts: all(100), atk: k(80, 100, 120, 140, 170, 200) } },
   // Belt Ornament of the Deep: at first and every 30 seconds, every ally's Tough for a while, and cleansed.
-  'artifact-523': { start: { on: 'allies', lasts: all(3), tough: [240, 290, 350, 420, 500] }, timer: { every: 30, lasts: 3, tough: [240, 290, 350, 420, 500] } },
+  'artifact-523': { start: { on: 'allies', lasts: all(3), tough: [200, 240, 290, 350, 420, 500] }, timer: { every: 30, lasts: 3, tough: [200, 240, 290, 350, 420, 500] } },
   // Earth Fortress: with one enemy, the boss healed less, and more DMG to a boss.
-  'artifact-522': { bossHeal: k(-120, -140, -170, -210, -250), boss: k(120, 140, 170, 210, 250) },
+  'artifact-522': { bossHeal: k(-100, -120, -140, -170, -210, -250), boss: k(100, 120, 140, 170, 210, 250) },
   // Earth Core.
-  'artifact-26': { own: { atk: k(120, 140, 170, 200, 250), hp: k(120, 140, 170, 200, 250), defense: k(120, 140, 170, 200, 250) } },
+  'artifact-26': { own: { atk: k(100, 120, 140, 170, 200, 250), hp: k(100, 120, 140, 170, 200, 250), defense: k(100, 120, 140, 170, 200, 250) } },
   // Feather of Sacrifice: for 120 seconds, the boss takes more.
-  'artifact-36': { start: { on: 'self', lasts: all(120), boss: k(120, 140, 170, 210, 250) } },
+  'artifact-36': { start: { on: 'self', lasts: all(120), boss: k(100, 120, 140, 170, 210, 250) } },
   // Infernal Gate.
-  'artifact-46': { own: { defense: k(120, 140, 170, 210, 250) }, dmg: k(72, 86, 105, 125, 150), foes: k(72, 86, 105, 125, 150) },
+  'artifact-46': { own: { defense: k(100, 120, 140, 170, 210, 250) }, dmg: k(60, 72, 86, 105, 125, 150), foes: k(60, 72, 86, 105, 125, 150) },
   // New Year's Fireworks.
-  'artifact-56': { start: { on: 'self', lasts: all(60), atk: k(60, 72, 86, 104, 125) } },
+  'artifact-56': { start: { on: 'self', lasts: all(60), atk: k(50, 60, 72, 86, 104, 125) } },
   // Amethyst Pendulum: every 10 seconds, crit resist for a while.
-  'artifact-66': { timer: { every: 10, lasts: 7, critResist: [240, 290, 350, 420, 500] } },
+  'artifact-66': { timer: { every: 10, lasts: 7, critResist: [200, 240, 290, 350, 420, 500] } },
   // Earth Storm: knocked down, mana, and the boss takes more for a while.
-  'artifact-23': { onKnock: { wait: all(20), mana: [700, 800, 1000, 1200, 1500], weakness: k(140, 170, 210, 250, 300) } },
+  'artifact-23': { onKnock: { wait: all(20), mana: [600, 700, 800, 1000, 1200, 1500], weakness: k(120, 140, 170, 210, 250, 300) } },
   // Infernal Greatsword.
-  'artifact-43': { own: { recovery: all(-0.3), pen: [360, 430, 520, 630, 750], critDamage: k(360, 430, 520, 630, 750) } },
+  'artifact-43': { own: { recovery: all(-0.3), pen: [300, 360, 430, 520, 630, 750], critDamage: k(300, 360, 430, 520, 630, 750) } },
   // Well-Done Turkey Roast: every 15 seconds, healed a share of its max HP each second for 3.
-  'artifact-53': { timer: { every: 15, lasts: 3, hot: k(12, 14, 17, 20, 25) } },
+  'artifact-53': { timer: { every: 15, lasts: 3, hot: k(10, 12, 14, 17, 20, 25) } },
   // Fantastic Hybrid Animals: for 200 seconds, more DMG to any enemy, less taken.
-  'artifact-63': { start: { on: 'self', lasts: all(200), foes: k(140, 170, 210, 250, 300), taken: k(-140, -170, -210, -250, -300) } },
+  'artifact-63': { start: { on: 'self', lasts: all(200), foes: k(120, 140, 170, 210, 250, 300), taken: k(-120, -140, -170, -210, -250, -300) } },
   // Soul Spring Water: at first, healed and mana.
-  'artifact-19': { opening: { heal: k(280, 340, 420, 500, 600), mana: k(140, 170, 210, 250, 300) } },
+  'artifact-19': { opening: { heal: k(240, 280, 340, 420, 500, 600), mana: k(120, 140, 170, 210, 250, 300) } },
   // Nail Ornament of the Deep: for 200 seconds, no DEF, and more DMG to a boss.
-  'artifact-39': { start: { on: 'self', lasts: all(200), noDef: true, boss: k(240, 290, 350, 420, 500) } },
+  'artifact-39': { start: { on: 'self', lasts: all(200), noDef: true, boss: k(200, 240, 290, 350, 420, 500) } },
   // Lion of Protection.
-  'artifact-49': { own: { defPhysical: k(240, 290, 350, 420, 500), blockPhysical: [120, 140, 170, 210, 250] } },
+  'artifact-49': { own: { defPhysical: k(200, 240, 290, 350, 420, 500), blockPhysical: [100, 120, 140, 170, 210, 250] } },
   // Cooling Delicacy in the Summer: for 30 seconds, less taken, and mana.
-  'artifact-59': { start: { on: 'self', lasts: all(30), taken: k(-240, -280, -340, -420, -500), manaEach: [120, 140, 170, 210, 250] } },
+  'artifact-59': { start: { on: 'self', lasts: all(30), taken: k(-200, -240, -280, -340, -420, -500), manaEach: [100, 120, 140, 170, 210, 250] } },
   // Dragon's Doomstone: more DMG to any enemy, less taken; the more against a dragon.
   'artifact-1000': {
-    foes: k(120, 140, 170, 210, 250),
-    taken: k(-60, -70, -85, -105, -125),
-    dragon: k(215, 246, 291, 348, 400),
-    dragonTaken: k(-128, -150, -186, -235, -289),
+    foes: k(100, 120, 140, 170, 210, 250),
+    taken: k(-50, -60, -70, -85, -105, -125),
+    dragon: k(182, 215, 246, 291, 348, 400),
+    dragonTaken: k(-105, -128, -150, -186, -235, -289),
   },
   // Mask of Evil King.
-  'artifact-17': { boss: k(120, 140, 170, 200, 250) },
+  'artifact-17': { boss: k(100, 120, 140, 170, 200, 250) },
   // Book of the Mad: mana drained, more DMG.
-  'artifact-47': { drain: [-120, -140, -170, -210, -250], dmg: k(170, 210, 250, 300, 350) },
+  'artifact-47': { drain: [-100, -120, -140, -170, -210, -250], dmg: k(140, 170, 210, 250, 300, 350) },
   // Fancy Traditional Pendant.
-  'artifact-57': { own: { crit: [120, 140, 170, 210, 250], critDamage: k(240, 290, 350, 420, 500) } },
+  'artifact-57': { own: { crit: [100, 120, 140, 170, 210, 250], critDamage: k(200, 240, 290, 350, 420, 500) } },
   // Goddess of Glory: every ally's ATK Spd at first.
-  'artifact-67': { start: { on: 'allies', lasts: all(20), speed: [120, 140, 170, 210, 250] } },
+  'artifact-67': { start: { on: 'allies', lasts: all(20), speed: [100, 120, 140, 170, 210, 250] } },
   // Golden Mask of Ancient King: hit, now and then, it takes nothing for a while.
-  'artifact-10': { onHurt: { chance: 0.05, wait: [8.5, 9, 10, 11, 12.5], lasts: [3.5, 4, 5, 6, 7.5], invulnerable: true } },
+  'artifact-10': { onHurt: { chance: 0.05, wait: [8, 8.5, 9, 10, 11, 12.5], lasts: [3, 3.5, 4, 5, 6, 7.5], invulnerable: true } },
   // Talismans of Resistance: knocked down, it isn't, and is CC immune for a while.
-  'artifact-20': { onKnock: { wait: [19, 18, 17, 16, 15], immune: [1.5, 2, 2.5, 3, 3.5] } },
+  'artifact-20': { onKnock: { wait: [20, 19, 18, 17, 16, 15], immune: [1, 1.5, 2, 2.5, 3, 3.5] } },
   // Tarot Card of Loss.
-  'artifact-30': { own: { crit: [-180, -210, -260, -310, -375], atk: k(360, 430, 520, 630, 750) } },
+  'artifact-30': { own: { crit: [-150, -180, -210, -260, -310, -375], atk: k(300, 360, 430, 520, 630, 750) } },
   // Trident of the Deep: every 100 blows, ATK and crit for a while.
-  'artifact-40': { blows: { count: 100, atk: k(360, 440, 530, 630, 750), crit: [240, 290, 350, 420, 500], lasts: 15 } },
+  'artifact-40': { blows: { count: 100, atk: k(300, 360, 440, 530, 630, 750), crit: [200, 240, 290, 350, 420, 500], lasts: 15 } },
   // LuLu's Necklace: for 30 seconds, more DMG to any enemy, and mana.
-  'artifact-60': { start: { on: 'self', lasts: all(30), foes: k(240, 280, 340, 420, 500), manaEach: [240, 280, 340, 420, 500] } },
+  'artifact-60': { start: { on: 'self', lasts: all(30), foes: k(200, 240, 280, 340, 420, 500), manaEach: [200, 240, 280, 340, 420, 500] } },
   // Perfume of the Queen: every third time it is knocked down, ATK Spd for a while.
-  'artifact-64': { onKnock: { wait: all(0), count: 3, speed: all(500), lasts: [4.8, 5.8, 7, 8.4, 10] } },
+  'artifact-64': { onKnock: { wait: all(0), count: 3, speed: all(500), lasts: [4, 4.8, 5.8, 7, 8.4, 10] } },
 };
 
-/** Its name, and what it does at each refinement, in King's Raid's words. */
+/** Its name, and what it does at each of its stars (0★ to 5★), in King's Raid's words. */
 const DATA = new Map(KR_ARTIFACTS.map((one) => [one.id, one]));
 
-/** An artifact as a hero wears it: which, and its tier (R1 to R5); null: none, or one the fight has no use for. */
+/** An artifact as a hero wears it: which, and its tier (its stars, 0★ to 5★); null: none, or one the fight has no use for. */
 export function artifactOf(worn: { id: string; tier: number } | null | undefined): { id: string; def: ArtifactDef; tier: number } | null {
   const def = worn && ARTIFACTS[worn.id];
-  return worn && def ? { id: worn.id, def, tier: Math.min(5, Math.max(1, Math.floor(worn.tier) || 1)) } : null;
+  return worn && def ? { id: worn.id, def, tier: Math.min(5, Math.max(0, Math.floor(worn.tier) || 0)) } : null;
 }
 
 /** A number at its tier. */
-export const at = (tiers: Tiers | undefined, tier: number): number => tiers?.[tier - 1] ?? 0;
+export const at = (tiers: Tiers | undefined, tier: number): number => tiers?.[tier] ?? 0;
 
 /** What its own stats gain from the start (as its gear's). */
 export function artifactStats(worn: ReturnType<typeof artifactOf>): GearBonus {
@@ -278,7 +278,7 @@ export function artifactStats(worn: ReturnType<typeof artifactOf>): GearBonus {
 /** An artifact as a square on its wearer's card. */
 export const artifactBuff = (worn: NonNullable<ReturnType<typeof artifactOf>>): Buff => {
   const data = DATA.get(worn.id);
-  return { name: data?.name ?? 'Artifact', about: data?.text?.[worn.tier - 1] ?? '', icon: '🏺' };
+  return { name: data?.name ?? 'Artifact', about: data?.text?.[worn.tier] ?? '', icon: '🏺' };
 };
 
 /** What the fight gives an artifact's hooks: its time, the heroes on the field, the boss, and what it does. */

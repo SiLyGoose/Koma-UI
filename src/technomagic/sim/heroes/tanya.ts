@@ -1,7 +1,7 @@
 import { share } from '../combat/damage';
 import { put } from '../combat/status';
 import { said, t5Light } from '../perks';
-import { fromTreasure, treasure, treasureTier } from '../treasures';
+import { fromTreasure, treasure, wearsTreasure } from '../treasures';
 import { MAX_MANA } from '../rules';
 import { pct, skillArt, type Buff, type Mark } from '../shown';
 import { atTier, CAETHASIS, CAETHASIS_UP } from '../unique';
@@ -49,10 +49,10 @@ const PERKS = { heals: 0.7, mana: 200, boss: 2, stealth: { chance: 0.15, more: 1
  * Ambush's mana for her, and the mana it would take (the boss has none).
  */
 const UT = {
-  codex: { dmg: 0.5, mana: [480, 580, 700, 840, 1000] },
-  mask: { dmg: [0.24, 0.29, 0.35, 0.42, 0.5], cooldown: 0.08 },
-  dagger: { dmg: [0.24, 0.29, 0.35, 0.42, 0.5], atk: 0.2, lasts: 10 },
-  needle: { mana: [120, 140, 170, 210, 250], drain: 200 },
+  codex: { dmg: 0.5, mana: [400, 480, 580, 700, 840, 1000] },
+  mask: { dmg: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5], cooldown: 0.08 },
+  dagger: { dmg: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5], atk: 0.2, lasts: 10 },
+  needle: { mana: [100, 120, 140, 170, 210, 250], drain: 200 },
 };
 
 const art = skillArt('tanya');
@@ -223,7 +223,7 @@ export const TANYA: HeroDef = {
       },
       // Dagger of Silence: Whisper of Death used in Stealth, her ATK higher a while; and Stealth at once.
       used(index) {
-        if (index !== 2 || treasureTier(self, 2) <= 0) return;
+        if (index !== 2 || !wearsTreasure(self, 2)) return;
         if (stealth > 0) put(self.statuses, { name: 'Dagger of Silence', left: UT.dagger.lasts, deals: 1 + UT.dagger.atk, shown: { name: 'Dagger of Silence', about: `ATK ${pct(UT.dagger.atk)} higher.`, icon: '🗡️', art: art(2) } });
         hide();
       },

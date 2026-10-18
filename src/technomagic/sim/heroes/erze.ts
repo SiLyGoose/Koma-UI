@@ -1,7 +1,7 @@
 import { share } from '../combat/damage';
 import { put, type Status } from '../combat/status';
 import { said, t5Light } from '../perks';
-import { fromTreasure, treasure, treasureTier } from '../treasures';
+import { fromTreasure, treasure, wearsTreasure } from '../treasures';
 import { MAX_MANA } from '../rules';
 import { pct, skillArt, type Buff, type Mark } from '../shown';
 import { atTier, PERION, PERION_UP } from '../unique';
@@ -44,10 +44,10 @@ const PERKS = { mana: 150, sweeter: { more: 0.1, most: 30 }, stun: 3, liberated:
  * Drinker's more of what it gives for each enemy killed (nothing here).
  */
 const UT = {
-  fang: { cost: -1, takes: [0.012, 0.014, 0.017, 0.021, 0.025], most: 10, lasts: 15 },
-  wine: { dmg: 0.5, cooldown: [6, 7, 8, 9, 10] },
-  lipstick: { dmg: [0.24, 0.29, 0.35, 0.42, 0.5] },
-  piano: { more: [0.24, 0.29, 0.35, 0.42, 0.5] },
+  fang: { cost: -1, takes: [0.01, 0.012, 0.014, 0.017, 0.021, 0.025], most: 10, lasts: 15 },
+  wine: { dmg: 0.5, cooldown: [5, 6, 7, 8, 9, 10] },
+  lipstick: { dmg: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5] },
+  piano: { more: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5] },
 };
 /** What Fang of Thirst leaves on the boss. */
 const THIRST = 'Fang of Thirst';
@@ -252,7 +252,7 @@ export const ERZE: HeroDef = {
       },
       untouched: () => soaked > 0,
       // (Lipstick of Shame: not to be knocked down while Blood Liberation lasts.)
-      guards: () => liberated > 0 && treasureTier(self, 2) > 0,
+      guards: () => liberated > 0 && wearsTreasure(self, 2),
       // Life Drinker: a blow that would bring her down casts Soaking Blood, if it is ready (all her mana spent), and her max HP lower after.
       spared() {
         const index = 1;

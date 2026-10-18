@@ -1,6 +1,6 @@
 import { put } from '../combat/status';
 import { said, t5Light } from '../perks';
-import { fromTreasure, treasure, treasureTier } from '../treasures';
+import { fromTreasure, treasure, wearsTreasure } from '../treasures';
 import { pct, skillArt, type Buff } from '../shown';
 import { atTier, GIGANTE, GIGANTE_UP } from '../unique';
 import { type Ability, bookDmg, bookHeal, CLASS_STATS, dmg, healed, type HeroDef, type Passive } from './kit';
@@ -47,10 +47,10 @@ const PERKS = { shadow: 1.25, taken: 0.15, doom: { dmg: 0.05, every: 6, most: 10
  * more DMG; and Authority of the Demon God's bigger shield.
  */
 const UT = {
-  emblem: { cooldown: -3, takes: [0.14, 0.17, 0.21, 0.25, 0.3] },
-  strap: { wave: [360, 430, 520, 630, 750], surge: [480, 580, 700, 840, 1000], lasts: 2 },
-  horns: { dmg: [0.24, 0.29, 0.35, 0.42, 0.5] },
-  earrings: { shield: [0.24, 0.29, 0.35, 0.42, 0.5] },
+  emblem: { cooldown: -3, takes: [0.12, 0.14, 0.17, 0.21, 0.25, 0.3] },
+  strap: { wave: [300, 360, 430, 520, 630, 750], surge: [300, 480, 580, 700, 840, 1000], lasts: 2 },
+  horns: { dmg: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5] },
+  earrings: { shield: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5] },
 };
 
 const art = skillArt('lucikiel');
@@ -237,7 +237,7 @@ export const LUCIKIEL: HeroDef = {
       // Each blow of his own: Pain of Doom's blow more, and his unique weapon's stacks (at the most, its blow more).
       blow() {
         // (Horns of a Random Demon: harder, through the boss's defense.)
-        if (bears(PAIN_OF_DOOM)) fight.hit(self, PAIN.blow * (1 + fromTreasure(self, 2, UT.horns.dmg)), false, 0, treasureTier(self, 2) > 0);
+        if (bears(PAIN_OF_DOOM)) fight.hit(self, PAIN.blow * (1 + fromTreasure(self, 2, UT.horns.dmg)), false, 0, wearsTreasure(self, 2));
         if (tier === null) return;
         if (incarnation >= GIGANTE.most) fight.hit(self, atTier(GIGANTE.blow, tier), false, 0, true);
         blows++;

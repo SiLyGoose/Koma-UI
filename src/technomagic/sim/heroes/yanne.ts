@@ -40,10 +40,10 @@ const PERKS = { marked: { takes: 1.25, lasts: 10 }, stun: 2, speed: 250, taken: 
  * against Dragons (nothing here: Galgoria is a chimera).
  */
 const UT = {
-  talisman: { takes: [0.12, 0.14, 0.17, 0.21, 0.25], lasts: 10 },
-  arrow: { dmg: [0.24, 0.29, 0.35, 0.42, 0.5], cooldown: 0.12 },
-  steak: { cost: -1, dmg: [0.14, 0.17, 0.21, 0.25, 0.3] },
-  heart: { taken: 0.1, dmg: [0.072, 0.086, 0.104, 0.126, 0.15] },
+  talisman: { takes: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25], lasts: 10 },
+  arrow: { dmg: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5], cooldown: 0.12 },
+  steak: { cost: -1, dmg: [0.12, 0.14, 0.17, 0.21, 0.25, 0.3] },
+  heart: { taken: 0.1, dmg: [0.06, 0.072, 0.086, 0.104, 0.126, 0.15] },
 };
 
 const art = skillArt('yanne');

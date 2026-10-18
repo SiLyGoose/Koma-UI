@@ -1,6 +1,6 @@
 import { away, put } from '../combat/status';
 import { said, t5Light } from '../perks';
-import { fromTreasure, treasure, treasureTier } from '../treasures';
+import { fromTreasure, treasure, wearsTreasure } from '../treasures';
 import { num, pct, skillArt, type Buff } from '../shown';
 import type { Fighter } from '../types';
 import { atTier, MAXITHEA, MAXITHEA_UP } from '../unique';
@@ -41,10 +41,10 @@ const PERKS = { slow: 250, lasts: 10, takes: 1.25, stun: 0.5, critTaken: 250, co
  * to Non-Hero enemies it gives her and the ally with the highest ATK as the fight begins.
  */
 const UT = {
-  badge: { dmg: 0.5, sooner: [0.012, 0.014, 0.017, 0.02, 0.025] },
-  dandelion: { cooldown: 4.5, heals: [0.24, 0.28, 0.34, 0.42, 0.5], lasts: 10 },
-  ruby: { more: 0.5, takes: [0.12, 0.14, 0.17, 0.21, 0.25], lasts: 10 },
-  glory: { atk: 0.5, critDamage: [0.36, 0.42, 0.5, 0.63, 0.75], dmg: [0.12, 0.14, 0.17, 0.21, 0.25], lasts: 20 },
+  badge: { dmg: 0.5, sooner: [0.01, 0.012, 0.014, 0.017, 0.02, 0.025] },
+  dandelion: { cooldown: 4.5, heals: [0.2, 0.24, 0.28, 0.34, 0.42, 0.5], lasts: 10 },
+  ruby: { more: 0.5, takes: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25], lasts: 10 },
+  glory: { atk: 0.5, critDamage: [0.3, 0.36, 0.42, 0.5, 0.63, 0.75], dmg: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25], lasts: 20 },
 };
 
 const art = skillArt('glenwys');
@@ -140,8 +140,8 @@ export const GLENWYS: HeroDef = {
     /** Her allies on the field, standing and in the fight (her too). */
     const allies = (): Fighter[] => fight.field.filter((ally) => ally.hp > 0 && !away(ally.statuses));
     /** Pride's ATK for every ally (Golden Glory: more); Time For Counterattack's (its Dark, Ballas Ruby: more). */
-    const pride = PRIDE.atk * PRIDE.books * (treasureTier(self, 3) > 0 ? 1 + UT.glory.atk : 1);
-    const counterMore = COUNTER.books * (self.perks.has('s3-dark') ? PERKS.counter : 1) * (treasureTier(self, 2) > 0 ? 1 + UT.ruby.more : 1);
+    const pride = PRIDE.atk * PRIDE.books * (wearsTreasure(self, 3) ? 1 + UT.glory.atk : 1);
+    const counterMore = COUNTER.books * (self.perks.has('s3-dark') ? PERKS.counter : 1) * (wearsTreasure(self, 2) ? 1 + UT.ruby.more : 1);
 
     return {
       lands: {
@@ -199,7 +199,7 @@ export const GLENWYS: HeroDef = {
           const dealt = self.perks.has('s4-light') ? PERKS.pride : PRIDE.dealt;
           const taken = self.perks.has('s4-dark') ? PERKS.pride : PRIDE.taken;
           put(fight.party, { name: RALLY.name, left: PRIDE.lasts, deals: 1 + dealt, takes: 1 - taken, shown: RALLY });
-          if (treasureTier(self, 3) > 0) {
+          if (wearsTreasure(self, 3)) {
             const top = allies().filter((ally) => ally !== self).sort((a, b) => b.stats.atk - a.stats.atk)[0];
             for (const one of top ? [self, top] : [self]) put(one.statuses, { name: GLORY.name, left: UT.glory.lasts, critDamage: fromTreasure(self, 3, UT.glory.critDamage), deals: 1 + fromTreasure(self, 3, UT.glory.dmg), shown: GLORY });
           }

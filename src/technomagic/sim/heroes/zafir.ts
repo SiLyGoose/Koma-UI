@@ -1,7 +1,7 @@
 import { away, put } from '../combat/status';
 import { said, t5Light } from '../perks';
 import { MAX_MANA } from '../rules';
-import { fromTreasure, treasure, treasureTier } from '../treasures';
+import { fromTreasure, treasure, wearsTreasure } from '../treasures';
 import { pct, skillArt, type Buff } from '../shown';
 import type { Fighter, Foe } from '../types';
 import { atTier, ZARIES, ZARIES_UP } from '../unique';
@@ -43,10 +43,10 @@ const PERKS = { critDamage: 0.1, stun: 1, allies: 3, start: { shield: playedHeal
  * chance; Calling's stun and the boss's more physical damage taken on a critical one.
  */
 const UT = {
-  arrow: { dmg: [0.024, 0.029, 0.035, 0.042, 0.05], most: 20, chance: 0.3 },
-  mirage: { mana: [100, 120, 140, 170, 200] },
-  oasis: { cooldown: 0.3, chance: [0.096, 0.115, 0.138, 0.165, 0.2] },
-  cat: { stun: 2, takes: [0.12, 0.14, 0.17, 0.21, 0.25], lasts: 10 },
+  arrow: { dmg: [0.02, 0.024, 0.029, 0.035, 0.042, 0.05], most: 20, chance: 0.3 },
+  mirage: { mana: [80, 100, 120, 140, 170, 200] },
+  oasis: { cooldown: 0.3, chance: [0.08, 0.096, 0.115, 0.138, 0.165, 0.2] },
+  cat: { stun: 2, takes: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25], lasts: 10 },
 };
 
 const art = skillArt('zafir');
@@ -167,7 +167,7 @@ export const ZAFIR: HeroDef = {
           if (!starts.has(part) || fight.roll() >= (self.perks.has('s4-dark') ? PERKS.chance : CALLING.chance)) return;
           const critical = fight.hit(self, CALLING.blow);
           mark(fight.foe, 1);
-          if (critical && treasureTier(self, 3) > 0) {
+          if (critical && wearsTreasure(self, 3)) {
             fight.stun(UT.cat.stun, { by: self });
             put(fight.foe.statuses, { name: 'Black Cat, Hoabis', left: UT.cat.lasts, takes: { physical: 1 + fromTreasure(self, 3, UT.cat.takes) }, shown: 'curse' });
           }
@@ -180,7 +180,7 @@ export const ZAFIR: HeroDef = {
           self.cooldowns[0] = Math.max(0, (self.cooldowns[0] ?? 0) - JUDGMENT.sooner);
           if (self.perks.has('s1-dark')) fight.stun(PERKS.stun, { by: self });
           if (self.perks.has('s1-light')) put(self.statuses, { name: JUDGED.name, left: Infinity, critDamage: PERKS.critDamage, shown: JUDGED });
-          if (treasureTier(self, 0) > 0 && fight.roll() < UT.arrow.chance) mark(fight.foe, 1);
+          if (wearsTreasure(self, 0) && fight.roll() < UT.arrow.chance) mark(fight.foe, 1);
         },
         // The shields (its Light, with few allies: on all of them, and no [Sandstorm]).
         spirit() {
@@ -199,7 +199,7 @@ export const ZAFIR: HeroDef = {
       },
       used(index) {
         // Sandstorm Arrow: Judgment of the Desert harder for each use.
-        if (index === 0 && treasureTier(self, 0) > 0) {
+        if (index === 0 && wearsTreasure(self, 0)) {
           arrows = Math.min(UT.arrow.most, arrows + 1);
           put(self.statuses, { name: ARROW.name, left: Infinity, count: arrows, shown: ARROW });
         }

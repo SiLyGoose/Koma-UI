@@ -2,7 +2,7 @@ import { share } from '../combat/damage';
 import { put } from '../combat/status';
 import { MAX_MANA } from '../rules';
 import { said, t5Light } from '../perks';
-import { fromTreasure, treasure, treasureTier } from '../treasures';
+import { fromTreasure, treasure, wearsTreasure } from '../treasures';
 import { pct, skillArt, type Buff } from '../shown';
 import { bookDmg, CLASS_STATS, dmg, type HeroDef, indexed, type Passive } from './kit';
 
@@ -35,10 +35,10 @@ const PERKS = { bashStun: 1, guardMore: 1.4, guardPhysical: 0.75, weaker: 0.1, w
  * resist and crit chance off the boss; Guardian Shield's more of its guard; Vow of Knights' heal and P.DEF.
  */
 const UT = {
-  cape: { takes: [0.12, 0.14, 0.17, 0.21, 0.25], lasts: 10, mana: 400 },
-  determination: { critResist: 500, crit: [120, 140, 170, 210, 250], lasts: 10 },
-  insignia: { more: [0.24, 0.29, 0.35, 0.42, 0.5] },
-  mittens: { heal: 0.02, defends: [0.24, 0.29, 0.35, 0.42, 0.5], lasts: 5 },
+  cape: { takes: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25], lasts: 10, mana: 400 },
+  determination: { critResist: 500, crit: [100, 120, 140, 170, 210, 250], lasts: 10 },
+  insignia: { more: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5] },
+  mittens: { heal: 0.02, defends: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5], lasts: 5 },
 };
 
 const art = skillArt('klaus');
@@ -177,7 +177,7 @@ export const KLAUS: HeroDef = {
         put(fight.foe.statuses, { name: 'Weakened', left: VOW.lasts, deals: VOW.weak - (self.perks.has('s4-dark') ? PERKS.weaker : 0), shown: 'slow' });
         self.mana = Math.min(MAX_MANA, self.mana + VOW.mana);
         // (Mittens: healed, and his P.DEF higher a moment.)
-        if (treasureTier(self, 3) > 0) {
+        if (wearsTreasure(self, 3)) {
           fight.heal(self, UT.mittens.heal * self.stats.hp);
           put(self.statuses, { name: 'Mittens', left: UT.mittens.lasts, defends: { physical: 1 + fromTreasure(self, 3, UT.mittens.defends) }, shown: { name: 'Mittens', about: `P.DEF +${pct(fromTreasure(self, 3, UT.mittens.defends))}.`, icon: '🧤', art: art(3) } });
         }

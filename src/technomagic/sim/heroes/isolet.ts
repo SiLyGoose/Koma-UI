@@ -1,7 +1,7 @@
 import { away, put } from '../combat/status';
 import { said, t5Light } from '../perks';
 import { MAX_MANA } from '../rules';
-import { fromTreasure, treasure, treasureTier } from '../treasures';
+import { fromTreasure, treasure, wearsTreasure } from '../treasures';
 import { pct, skillArt, type Buff } from '../shown';
 import { atTier, TERRAVION, TERRAVION_UP } from '../unique';
 import { bookDmg, CLASS_STATS, dmg, type HeroDef, type Passive, played } from './kit';
@@ -42,10 +42,10 @@ const PERKS = { takes: 1.25, longer: 5, reaction: 1.6, heals: 0.025, boss: 0.01,
  * stacks and crit DMG.
  */
 const UT = {
-  certificate: { heals: [0.12, 0.14, 0.17, 0.21, 0.25] },
-  card: { dmg: [0.24, 0.28, 0.35, 0.42, 0.5] },
-  bracelet: { slow: 300, takes: [0.12, 0.14, 0.17, 0.21, 0.25], lasts: 5 },
-  compass: { reactions: 5, storms: 1, critDamage: [0.24, 0.28, 0.35, 0.42, 0.5] },
+  certificate: { heals: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25] },
+  card: { dmg: [0.2, 0.24, 0.28, 0.35, 0.42, 0.5] },
+  bracelet: { slow: 300, takes: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25], lasts: 5 },
+  compass: { reactions: 5, storms: 1, critDamage: [0.2, 0.24, 0.28, 0.35, 0.42, 0.5] },
 };
 
 const art = skillArt('isolet');
@@ -143,7 +143,7 @@ export const ISOLET: HeroDef = {
     let unhealed = 0;
     let terravion = 0;
     let terraNext = 0;
-    const compass = treasureTier(self, 3) > 0;
+    const compass = wearsTreasure(self, 3);
     const mostReactions = ESSENCE.reactions + (compass ? UT.compass.reactions : 0);
     const mostStorms = ESSENCE.storms + (compass ? UT.compass.storms : 0);
 
@@ -187,7 +187,7 @@ export const ISOLET: HeroDef = {
           storm = ICARUS.lasts;
           stormTick = 0;
           blazing = 0;
-          if (treasureTier(self, 2) > 0) fight.slow(UT.bracelet.slow, ICARUS.lasts);
+          if (wearsTreasure(self, 2)) fight.slow(UT.bracelet.slow, ICARUS.lasts);
         },
       },
       // Each skill she uses gains her mana.
@@ -213,7 +213,7 @@ export const ISOLET: HeroDef = {
               unhealed = Math.min(ICARUS.most, unhealed + 1);
               const each = self.perks.has('s3-dark') ? PERKS.heals : ICARUS.heals;
               put(fight.foe.statuses, { name: 'Blazing Storm', left: ICARUS.healLasts, count: unhealed, heals: 1 - each * unhealed, shown: 'burn' });
-              if (treasureTier(self, 2) > 0) put(fight.foe.statuses, { name: 'Bracelet of Wishes', left: UT.bracelet.lasts, takes: { physical: 1 + fromTreasure(self, 2, UT.bracelet.takes) }, shown: 'curse' });
+              if (wearsTreasure(self, 2)) put(fight.foe.statuses, { name: 'Bracelet of Wishes', left: UT.bracelet.lasts, takes: { physical: 1 + fromTreasure(self, 2, UT.bracelet.takes) }, shown: 'curse' });
             }
           }
         }

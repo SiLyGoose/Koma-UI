@@ -1,7 +1,7 @@
 import { share } from '../combat/damage';
 import { put } from '../combat/status';
 import { said, t5Light } from '../perks';
-import { fromTreasure, treasure, treasureTier } from '../treasures';
+import { fromTreasure, treasure, wearsTreasure } from '../treasures';
 import { BLOW } from '../rules';
 import { fold, nth, pct, skillArt, times, type Buff } from '../shown';
 import { atTier, BARBATOS } from '../unique';
@@ -43,10 +43,10 @@ const PERKS = { atk: 1.4, atkFor: 5, heals: 1.5, taken: 0.12 };
  * more DMG to the boss in Fury.
  */
 const UT = {
-  belt: { heal: 0.15, takes: [0.12, 0.14, 0.17, 0.21, 0.25], lasts: 10 },
-  choker: { speed: [120, 140, 170, 210, 250], lasts: 10 },
-  binds: { dmg: [0.24, 0.29, 0.35, 0.42, 0.5], stacks: 1 },
-  sculpture: { stacks: 2, dmg: [0.24, 0.29, 0.35, 0.42, 0.5] },
+  belt: { heal: 0.15, takes: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25], lasts: 10 },
+  choker: { speed: [100, 120, 140, 170, 210, 250], lasts: 10 },
+  binds: { dmg: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5], stacks: 1 },
+  sculpture: { stacks: 2, dmg: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5] },
 };
 
 const art = skillArt('ezekiel');
@@ -149,7 +149,7 @@ export const EZEKIEL: HeroDef = {
   join(fight, self) {
     /** His Cursed Blood; how long his Fury lasts yet; and whether he was on Auto before it (he is put back so after). */
     // (Sculpture of Blood: some to begin with.)
-    let stacks = treasureTier(self, 3) > 0 ? UT.sculpture.stacks : 0;
+    let stacks = wearsTreasure(self, 3) ? UT.sculpture.stacks : 0;
     let fury = 0;
     let wasAuto = false;
     /** Each skill was used in Fury (as it began: it lands reinforced). */
@@ -224,7 +224,7 @@ export const EZEKIEL: HeroDef = {
           return;
         }
         // (Sealing Binds: one more for Strike of Doom.)
-        stacks += 1 + (move === 'doom' && treasureTier(self, 2) > 0 ? UT.binds.stacks : 0);
+        stacks += 1 + (move === 'doom' && wearsTreasure(self, 2) ? UT.binds.stacks : 0);
         if (stacks >= CURSED.most) rage();
       },
       tick(dt) {

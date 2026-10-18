@@ -1,6 +1,6 @@
 import { put } from '../combat/status';
 import { said, t5Light } from '../perks';
-import { fromTreasure, treasure, treasureTier } from '../treasures';
+import { fromTreasure, treasure, wearsTreasure } from '../treasures';
 import { pct, skillArt } from '../shown';
 import { atTier, ROBURU } from '../unique';
 import { bookDmg, CLASS_STATS, dmg, type HeroDef, indexed, type Passive } from './kit';
@@ -41,10 +41,10 @@ const PERKS = { hits: 1, full: 5, shackle: 3, vine: 1.4, after: 2, most: 6, leaf
  * at full Poison, the share off her skills' cooldowns; and Blade Leaf's more M.DMG taken (as long as its Poison).
  */
 const UT = {
-  book: { dmg: 0.5, cooldown: [1.4, 1.7, 2.1, 2.5, 3] },
-  belladonna: { cost: -1, drain: [240, 290, 350, 420, 500], mana: [120, 140, 170, 210, 250] },
-  root: { dmg: [0.24, 0.29, 0.35, 0.42, 0.5], cooldown: 0.04, poison: 5 },
-  terrarium: { takes: [0.12, 0.14, 0.17, 0.21, 0.25] },
+  book: { dmg: 0.5, cooldown: [1.2, 1.4, 1.7, 2.1, 2.5, 3] },
+  belladonna: { cost: -1, drain: [200, 240, 290, 350, 420, 500], mana: [100, 120, 140, 170, 210, 250] },
+  root: { dmg: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5], cooldown: 0.04, poison: 5 },
+  terrarium: { takes: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25] },
 };
 
 const art = skillArt('lorraine');
@@ -188,7 +188,7 @@ export const LORRAINE: HeroDef = {
         wrath() {
           const critical = fight.hit(self, WRATH.blow * (1 + WRATH.more * poisons()));
           // (Root of the World Tree: a critical blow on the boss at full Poison takes a share off her skills' cooldowns.)
-          if (critical && treasureTier(self, 2) > 0 && poisons() >= UT.root.poison) {
+          if (critical && wearsTreasure(self, 2) && poisons() >= UT.root.poison) {
             self.abilities.forEach((ability, i) => {
               self.cooldowns[i] = Math.max(0, (self.cooldowns[i] as number) - ability.cooldown * UT.root.cooldown);
             });

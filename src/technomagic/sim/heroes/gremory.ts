@@ -3,7 +3,7 @@ import { put, type Status } from '../combat/status';
 import { MAX_MANA } from '../rules';
 import { pct, skillArt, type Buff, type Tone } from '../shown';
 import { said, t5Light } from '../perks';
-import { fromTreasure, treasure, treasureTier } from '../treasures';
+import { fromTreasure, treasure, wearsTreasure } from '../treasures';
 import { atTier, PIGRITIA } from '../unique';
 import { type Ability, bookDmg, CLASS_STATS, dmg, type HeroDef, type Passive } from './kit';
 import { CODED } from './moves';
@@ -47,10 +47,10 @@ export const ASLEEP = 3;
  * taken (for each); her sleep's more less taken and her Mana Charge's crit DMG (for each).
  */
 const UT = {
-  pillow: { dmg: [0.24, 0.29, 0.35, 0.42, 0.5], heals: 0.06 },
-  treats: { accuracy: [360, 430, 520, 630, 750], lasts: 2 },
-  cage: { longer: 8, takes: [0.014, 0.018, 0.022, 0.026, 0.03] },
-  fruit: { sleepier: 1.2, critDamage: [0.048, 0.058, 0.07, 0.084, 0.1] },
+  pillow: { dmg: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5], heals: 0.06 },
+  treats: { accuracy: [300, 360, 430, 520, 630, 750], lasts: 2 },
+  cage: { longer: 8, takes: [0.01, 0.014, 0.018, 0.022, 0.026, 0.03] },
+  fruit: { sleepier: 1.2, critDamage: [0.04, 0.048, 0.058, 0.07, 0.084, 0.1] },
 };
 
 const art = skillArt('gremory');
@@ -196,7 +196,7 @@ export const GREMORY: HeroDef = {
           // (Its Dark: the boss's M.DEF lower for each too.)
           const softer = self.perks.has('s1-dark');
           // (Fluffy Pillow: the boss healed less for each too.)
-          const pillow = treasureTier(self, 0) > 0;
+          const pillow = wearsTreasure(self, 0);
           mark(fight.foe.statuses, POCHI_MARK, POCHI.most, POCHI.lasts, (count) => ({ deals: 1 - POCHI.weaker * count, ...(softer && { defends: { magical: 1 - PERKS.softer * count } }), ...(pillow && { heals: Math.max(0, 1 - UT.pillow.heals * count) }) }));
         },
         // From behind: a blow, and the boss stunned.
@@ -207,7 +207,7 @@ export const GREMORY: HeroDef = {
         // A wrap: the boss takes more magical damage for each (up to ten); with all ten on it, the blow deals more, through its defense.
         pippi() {
           // (Carrier Cage: for longer, and more for each.)
-          const caged = treasureTier(self, 2) > 0;
+          const caged = wearsTreasure(self, 2);
           const takes = PIPPI.takes + fromTreasure(self, 2, UT.cage.takes);
           const count = mark(fight.foe.statuses, PIPPI_MARK, PIPPI.most, PIPPI.lasts + (caged ? UT.cage.longer : 0), (stacks) => ({ takes: { magical: 1 + takes * stacks } }));
           fight.hit(self, PIPPI.blow);
@@ -230,7 +230,7 @@ export const GREMORY: HeroDef = {
         sealed.fill(false);
         charges = Math.min(CHARGE.most, charges + 1);
         // (Sinful Fruit: less taken again, and crit DMG for each Mana Charge.)
-        const fruit = treasureTier(self, 3) > 0;
+        const fruit = wearsTreasure(self, 3);
         const sleepier = (self.perks.has('s4-light') ? PERKS.sleepier : 1) * (fruit ? UT.fruit.sleepier : 1);
         put(self.statuses, { name: SLEEPING.name, left: ASLEEP, takes: Math.max(0, 1 - (1 - SLEEP.taken) * sleepier), guards: true, shown: SLEEPING });
         const atk = CHARGE.atk + (tier === null ? 0 : atTier(PIGRITIA.charge, tier));

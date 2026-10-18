@@ -1,7 +1,7 @@
 import { put } from '../combat/status';
 import { said, t5Light } from '../perks';
 import { MAX_MANA } from '../rules';
-import { fromTreasure, treasure, treasureTier } from '../treasures';
+import { fromTreasure, treasure, wearsTreasure } from '../treasures';
 import { pct, skillArt, type Buff } from '../shown';
 import { atTier, MONOLITH, MONOLITH_UP } from '../unique';
 import { attackStarts, bookDmg, CLASS_STATS, dmg, type HeroDef, type Passive, played } from './kit';
@@ -41,10 +41,10 @@ const PERKS = { stun: 2, dark: 0.4, heals: 2, risenAtk: 0.5, down: 3, every: { d
  * long it is immune to CC.
  */
 const UT = {
-  sin: { mana: [240, 290, 350, 420, 500] },
-  handkerchief: { blow: [0.48, 0.58, 0.7, 0.84, 1], recovery: 0.3 },
-  pauldron: { dmg: [0.24, 0.29, 0.35, 0.42, 0.5] },
-  sensor: { longer: 1, immune: [1.5, 2, 2.5, 3, 3.5] },
+  sin: { mana: [200, 240, 290, 350, 420, 500] },
+  handkerchief: { blow: [0.4, 0.48, 0.58, 0.7, 0.84, 1], recovery: 0.3 },
+  pauldron: { dmg: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5] },
+  sensor: { longer: 1, immune: [20, 1.5, 2, 2.5, 3, 3.5] },
 };
 
 const art = skillArt('chase');
@@ -203,7 +203,7 @@ export const CHASE: HeroDef = {
         if (rising > 0) return true;
         if (risen) return false;
         risen = true;
-        rising = HELL.rise + (treasureTier(self, 3) > 0 ? UT.sensor.longer : 0);
+        rising = HELL.rise + (wearsTreasure(self, 3) ? UT.sensor.longer : 0);
         off();
         rose = true;
         if (self.perks.has('s4-dark')) fight.stun(PERKS.down, { down: true, by: self });
@@ -245,7 +245,7 @@ export const CHASE: HeroDef = {
             speed: LIMIT.speed * grown,
             guards: true,
             ...(dark > 0 && { heals: 1 + dark, takes: 1 - dark }),
-            ...(treasureTier(self, 1) > 0 && { heals: 1 + dark + UT.handkerchief.recovery }),
+            ...(wearsTreasure(self, 1) && { heals: 1 + dark + UT.handkerchief.recovery }),
             shown: UNLEASHED,
           });
           if (drain >= 1) {

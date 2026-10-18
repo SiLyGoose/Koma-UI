@@ -1,7 +1,7 @@
 import { put } from '../combat/status';
 import { said, t5Light } from '../perks';
 import { MAX_MANA } from '../rules';
-import { fromTreasure, treasure, treasureTier } from '../treasures';
+import { fromTreasure, treasure, wearsTreasure } from '../treasures';
 import { num, pct, skillArt, type Buff } from '../shown';
 import type { Foe } from '../types';
 import { atTier, TERSIA, TERSIA_UP } from '../unique';
@@ -45,10 +45,10 @@ const PERKS = { takes: 1.25, lasts: 10, floor: 0.1, floorLasts: 5, stun: 2, mana
  * to 20); Cruel Delight's more crit DMG and seconds off every cooldown.
  */
 const UT = {
-  painting: { dmg: [0.24, 0.29, 0.35, 0.42, 0.5] },
-  tank: { immune: [4.8, 5.8, 7, 8.4, 10] },
-  cottage: { dmg: 0.5, critDamage: [0.024, 0.029, 0.035, 0.042, 0.05], most: 20, lasts: 10 },
-  letter: { critDamage: 0.5, sooner: [3.6, 4.3, 5.2, 6.2, 7.5] },
+  painting: { dmg: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5] },
+  tank: { immune: [4, 4.8, 5.8, 7, 8.4, 10] },
+  cottage: { dmg: 0.5, critDamage: [0.02, 0.024, 0.029, 0.035, 0.042, 0.05], most: 20, lasts: 10 },
+  letter: { critDamage: 0.5, sooner: [3, 3.6, 4.3, 5.2, 6.2, 7.5] },
 };
 
 const art = skillArt('pansirone');
@@ -226,7 +226,7 @@ export const PANSIRONE: HeroDef = {
           strike(DARE.blow * (1 + DARE.more * dared));
           dared++;
           if (part === 0 && self.perks.has('s3-light')) fight.stun(PERKS.stun, { by: self });
-          if (treasureTier(self, 2) > 0) {
+          if (wearsTreasure(self, 2)) {
             cottage = Math.min(UT.cottage.most, cottage + 1);
             put(self.statuses, { name: COTTAGE.name, left: UT.cottage.lasts, count: cottage, critDamage: fromTreasure(self, 2, UT.cottage.critDamage) * cottage, shown: COTTAGE });
           }

@@ -1,7 +1,7 @@
 import { away, put } from '../combat/status';
 import { said, t5Light } from '../perks';
 import { MAX_MANA, SECTION } from '../rules';
-import { fromTreasure, treasure, treasureTier } from '../treasures';
+import { fromTreasure, treasure, wearsTreasure } from '../treasures';
 import { num, pct, skillArt, type Buff } from '../shown';
 import type { Fighter } from '../types';
 import { atTier, NEMECIA, NEMECIA_UP } from '../unique';
@@ -44,10 +44,10 @@ const PERKS = { critTaken: 500, heals: 2, floor: 0.05, allies: 2, sooner: 8, bos
  * more magical damage taken for each blow; Together's more ATK and healing for her linked ally.
  */
 const UT = {
-  tarot: { dmg: 0.5, heals: [0.24, 0.29, 0.35, 0.42, 0.5], lasts: 10 },
-  scent: { heals: 0.5, critDamage: [0.24, 0.29, 0.35, 0.42, 0.5], dmg: 0.5, defense: [0.12, 0.14, 0.17, 0.21, 0.25] },
-  protection: { most: 2, takes: [0.012, 0.014, 0.017, 0.021, 0.025] },
-  tear: { atk: 0.5, heals: [0.12, 0.14, 0.17, 0.21, 0.25] },
+  tarot: { dmg: 0.5, heals: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5], lasts: 10 },
+  scent: { heals: 0.5, critDamage: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5], dmg: 0.5, defense: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25] },
+  protection: { most: 2, takes: [0.01, 0.012, 0.014, 0.017, 0.021, 0.025] },
+  tear: { atk: 0.5, heals: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25] },
 };
 
 const art = skillArt('lavril');
@@ -163,7 +163,7 @@ export const LAVRIL: HeroDef = {
     let devoted = 0;
     /** Her allies on the field, standing and in the fight (her too). */
     const allies = (): Fighter[] => fight.field.filter((ally) => ally.hp > 0 && !away(ally.statuses));
-    const most = ALONE.most + (treasureTier(self, 2) > 0 ? UT.protection.most : 0);
+    const most = ALONE.most + (wearsTreasure(self, 2) ? UT.protection.most : 0);
     /** A blow of G-go Away!'s (or its Ectoplasm's): every ally healed a share of it (its Dark: twice). */
     const drain = (amount: number): void => {
       const alive = fight.foe.hp > 0;
@@ -205,9 +205,9 @@ export const LAVRIL: HeroDef = {
         },
         // A great blow; the boss slowed and taking more magical damage (Fairy's Scent: harder, and its M.DEF lower).
         scare() {
-          fight.hit(self, SCARE.blow * (treasureTier(self, 1) > 0 ? 1 + UT.scent.dmg : 1));
+          fight.hit(self, SCARE.blow * (wearsTreasure(self, 1) ? 1 + UT.scent.dmg : 1));
           fight.slow(SCARE.slow, SCARE.lasts);
-          put(fight.foe.statuses, { name: YOU_SCARE_ME.name, left: SCARE.lasts, takes: { magical: SCARE.takes }, ...(treasureTier(self, 1) > 0 && { defends: { magical: 1 - fromTreasure(self, 1, UT.scent.defense) } }), shown: 'curse' });
+          put(fight.foe.statuses, { name: YOU_SCARE_ME.name, left: SCARE.lasts, takes: { magical: SCARE.takes }, ...(wearsTreasure(self, 1) && { defends: { magical: 1 - fromTreasure(self, 1, UT.scent.defense) } }), shown: 'curse' });
         },
         // A blow, and the tornado (tick).
         alone() {
@@ -251,7 +251,7 @@ export const LAVRIL: HeroDef = {
         if (!linked && fight.field.includes(self) && self.hp > 0) {
           const others = allies().filter((ally) => ally !== self);
           linked = others.sort((a, b) => b.stats.atk - a.stats.atk)[0] ?? self;
-          const atk = LINK.atk * LINK.books * (treasureTier(self, 3) > 0 ? 1 + UT.tear.atk : 1);
+          const atk = LINK.atk * LINK.books * (wearsTreasure(self, 3) ? 1 + UT.tear.atk : 1);
           for (const one of linked === self ? [self] : [self, linked])
             put(one.statuses, {
               name: LINKED.name,
@@ -260,7 +260,7 @@ export const LAVRIL: HeroDef = {
               pen: LINK.pen,
               deals: 1 + (self.perks.has('s4-light') ? PERKS.boss : LINK.boss),
               ...(self.perks.has('s4-dark') && { takes: 1 - PERKS.taken }),
-              ...(treasureTier(self, 3) > 0 && { heals: 1 + fromTreasure(self, 3, UT.tear.heals) }),
+              ...(wearsTreasure(self, 3) && { heals: 1 + fromTreasure(self, 3, UT.tear.heals) }),
               ...(tier !== null && one !== self && { critDamage: atTier(NEMECIA.critDamage, tier) }),
               shown: LINKED,
             });

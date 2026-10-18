@@ -1,7 +1,7 @@
 import { POINTS } from '../combat/damage';
 import { put } from '../combat/status';
 import { said, t5Light } from '../perks';
-import { fromTreasure, treasure, treasureTier } from '../treasures';
+import { fromTreasure, treasure, wearsTreasure } from '../treasures';
 import { num, pct, skillArt, type Buff } from '../shown';
 import { atTier, ATEIN, ATEIN_UP, DRAGON_RAGE } from '../unique';
 import { bookDmg, CLASS_STATS, dmg, type HeroDef, indexed, type Passive } from './kit';
@@ -44,10 +44,10 @@ const PERKS = {
  * and more of its defense; and Destroy Armor's weaker boss and less healing for it, for each stack.
  */
 const UT = {
-  decoration: { resist: 250, block: [240, 290, 350, 420, 500], lasts: 10 },
-  helmet: { cost: -1, critResist: [240, 290, 350, 420, 500], lasts: 10 },
-  hammer: { speed: 250, crit: 250, defense: [0.24, 0.29, 0.35, 0.42, 0.5] },
-  titan: { weaker: 0.2, heals: [0.048, 0.058, 0.07, 0.084, 0.1] },
+  decoration: { resist: 250, block: [200, 240, 290, 350, 420, 500], lasts: 10 },
+  helmet: { cost: -1, critResist: [200, 240, 290, 350, 420, 500], lasts: 10 },
+  hammer: { speed: 250, crit: 250, defense: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5] },
+  titan: { weaker: 0.2, heals: [0.04, 0.048, 0.058, 0.07, 0.084, 0.1] },
 };
 
 const art = skillArt('phillop');
@@ -154,7 +154,7 @@ export const PHILLOP: HeroDef = {
     const armored = (): void => {
       const physical = fight.foe.def.stats.physical;
       // (Hammer of Titan: the boss weaker, and healed less for each.)
-      const titan = treasureTier(self, 3) > 0 ? { deals: 1 - UT.titan.weaker, heals: Math.max(0, 1 - fromTreasure(self, 3, UT.titan.heals) * broken) } : {};
+      const titan = wearsTreasure(self, 3) ? { deals: 1 - UT.titan.weaker, heals: Math.max(0, 1 - fromTreasure(self, 3, UT.titan.heals) * broken) } : {};
       put(fight.foe.statuses, { name: BROKEN, left: ARMOR.lasts, count: broken, defends: { physical: physical > 0 ? Math.max(0, 1 - (ARMOR.defense * broken) / physical) : 1 }, dodges: { physical: -ARMOR.dodge * broken }, ...titan, shown: 'curse' });
     };
     /** His Dragon Rage, as his ATK and defense have it. */
@@ -202,7 +202,7 @@ export const PHILLOP: HeroDef = {
           incarnate = INCARNATE.lasts;
           quake = 0;
           // (Dwarven Ceremonial Hammer: quicker, likelier critical, and more defense.)
-          const hammer = treasureTier(self, 2) > 0;
+          const hammer = wearsTreasure(self, 2);
           const defense = INCARNATE.defense * (1 + fromTreasure(self, 2, UT.hammer.defense));
           put(self.statuses, { name: INCARNATION.name, left: INCARNATE.lasts, bolsters: { physical: defense, magical: defense }, ...(hammer && { pace: 1 + UT.hammer.speed / POINTS, crit: UT.hammer.crit / POINTS }), shown: INCARNATION });
           fight.heal(self, INCARNATE.heal * self.stats.hp);

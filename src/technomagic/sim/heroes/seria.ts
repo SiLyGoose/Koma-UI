@@ -1,7 +1,7 @@
 import { share } from '../combat/damage';
 import { put } from '../combat/status';
 import { said, t5Light } from '../perks';
-import { fromTreasure, treasure, treasureTier } from '../treasures';
+import { fromTreasure, treasure, wearsTreasure } from '../treasures';
 import { MAX_MANA, SECTION } from '../rules';
 import { fine, pct, seconds, skillArt, type Buff } from '../shown';
 import { atTier, ELSION, ELSION_UP } from '../unique';
@@ -45,10 +45,10 @@ const PERKS = { unhealed: { heals: 0.5, lasts: 5 }, blossomCost: 1, mana: 0.2 * 
  * the fight; and Cold-Blooded Witch's more DMG to the boss for each stack.
  */
 const UT = {
-  whetstone: { dmg: 0.5, mana: [240, 290, 350, 420, 500], seconds: [1, 1.2, 1.4, 1.7, 2] },
-  abyss: { dmg: 0.5, block: [240, 290, 350, 420, 500], lasts: 10 },
-  candle: { dmg: 0.7, times: [7, 9, 11, 13, 15] },
-  trigrams: { dmg: [0.007, 0.008, 0.01, 0.012, 0.015] },
+  whetstone: { dmg: 0.5, mana: [200, 240, 290, 350, 420, 500], seconds: [0.8, 1, 1.2, 1.4, 1.7, 2] },
+  abyss: { dmg: 0.5, block: [200, 240, 290, 350, 420, 500], lasts: 10 },
+  candle: { dmg: 0.7, times: [5, 7, 9, 11, 13, 15] },
+  trigrams: { dmg: [0.006, 0.007, 0.008, 0.01, 0.012, 0.015] },
 };
 
 const art = skillArt('seria');
@@ -186,7 +186,7 @@ export const SERIA: HeroDef = {
       return true;
     };
     // Her unique treasures: Whetstone of Demon's more DMG; Enlightening Candlelight's blows left; Demonic Eight Trigrams' DMG for each stack.
-    const whetstone = treasureTier(self, 0) > 0 ? 1 + UT.whetstone.dmg : 1;
+    const whetstone = wearsTreasure(self, 0) ? 1 + UT.whetstone.dmg : 1;
     let candle = fromTreasure(self, 2, UT.candle.times);
     const trigrams = fromTreasure(self, 3, UT.trigrams.dmg);
 

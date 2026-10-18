@@ -1,7 +1,7 @@
 import { put } from '../combat/status';
 import { said, t5Light } from '../perks';
 import { MAX_MANA } from '../rules';
-import { fromTreasure, treasure, treasureTier } from '../treasures';
+import { fromTreasure, treasure, wearsTreasure } from '../treasures';
 import { num, pct, skillArt, type Buff } from '../shown';
 import { atTier, SHATTERER, SHATTERER_UP } from '../unique';
 import { type Ability, bookDmg, CLASS_STATS, dmg, type HeroDef, type Passive, played } from './kit';
@@ -44,10 +44,10 @@ const PERKS = { mana: 200, laser: 2, stun: 1, stacks: 2, most: 60, sooner: 0.03,
  * mana on a crit; the Siege Weapon's more DMG and the most its crits lower the boss's M.DEF; Essence's more DEF, and her crit DMG.
  */
 const UT = {
-  lens: { dmg: [0.24, 0.29, 0.35, 0.42, 0.5], takes: 1.25, lasts: 10 },
-  recorder: { dmg: 0.5, slow: [120, 140, 170, 210, 250], lasts: 10, sooner: [0.024, 0.029, 0.035, 0.042, 0.05], mana: 150 },
-  power: { dmg: 0.5, defense: 0.01, most: [24, 29, 35, 42, 50] },
-  drawing: { more: 0.5, critDamage: [0.24, 0.29, 0.35, 0.42, 0.5] },
+  lens: { dmg: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5], takes: 1.25, lasts: 10 },
+  recorder: { dmg: 0.5, slow: [100, 120, 140, 170, 210, 250], lasts: 10, sooner: [0.02, 0.024, 0.029, 0.035, 0.042, 0.05], mana: 150 },
+  power: { dmg: 0.5, defense: 0.01, most: [20, 24, 29, 35, 42, 50] },
+  drawing: { more: 0.5, critDamage: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5] },
 };
 
 const art = skillArt('kara');
@@ -177,8 +177,8 @@ export const KARA: HeroDef = {
     /** Her skills in the [Siege Weapon], as her perks change them (Siege Laser's costs: its Light more, its Dark less). */
     const siegeSkills: Ability[] = SIEGE_SKILLS.map((one, i) => (i === 0 ? { ...one, cost: one.cost + (self.perks.has('s1-light') ? 1 : 0) - (self.perks.has('s1-dark') ? 1 : 0) } : one));
     const most = self.perks.has('s2-dark') ? PERKS.most : FOCUSED.most;
-    const drawing = treasureTier(self, 3) > 0 ? 1 + UT.drawing.more : 1;
-    const powered = treasureTier(self, 2) > 0 ? 1 + UT.power.dmg : 1;
+    const drawing = wearsTreasure(self, 3) ? 1 + UT.drawing.more : 1;
+    const powered = wearsTreasure(self, 2) ? 1 + UT.power.dmg : 1;
 
     /** Her mode's own, on her for good: its DEF, or its more to the boss and taken (and her perks' with each). */
     const mode = (): void => {
@@ -220,7 +220,7 @@ export const KARA: HeroDef = {
             const critical = strike(SIEGE.blow * powered * (self.perks.has('s3-light') ? 2 : 1));
             if (!critical) continue;
             if (self.perks.has('s3-dark')) self.cooldowns = self.cooldowns.map((left, j) => Math.max(0, left - (self.abilities[j]?.cooldown ?? 0) * PERKS.sooner));
-            if (treasureTier(self, 2) > 0 && lowered < fromTreasure(self, 2, UT.power.most)) {
+            if (wearsTreasure(self, 2) && lowered < fromTreasure(self, 2, UT.power.most)) {
               lowered++;
               put(fight.foe.statuses, { name: 'Ancient Power Source', left: Infinity, count: lowered, defends: { magical: 1 - UT.power.defense * lowered }, shown: 'curse' });
             }
@@ -250,7 +250,7 @@ export const KARA: HeroDef = {
             focused = Math.min(most, focused + (self.perks.has('s2-light') ? PERKS.stacks : 1));
             focusLeft = FOCUSED.lasts;
             put(fight.foe.statuses, { name: 'Focused Fire', left: FOCUSED.lasts, count: focused, shown: 'curse' });
-            if (critical && treasureTier(self, 1) > 0) {
+            if (critical && wearsTreasure(self, 1)) {
               self.cooldowns[1] = (self.cooldowns[1] ?? 0) * (1 - fromTreasure(self, 1, UT.recorder.sooner));
               self.mana = Math.min(MAX_MANA, self.mana + UT.recorder.mana);
             }

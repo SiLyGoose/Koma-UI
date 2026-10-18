@@ -1,7 +1,7 @@
 import { POINTS, share } from '../combat/damage';
 import { away, bolstering, defending, put } from '../combat/status';
 import { said, t5Light } from '../perks';
-import { fromTreasure, treasure, treasureTier } from '../treasures';
+import { fromTreasure, treasure, wearsTreasure } from '../treasures';
 import { BLOW } from '../rules';
 import { pct, seconds, skillArt, type Buff } from '../shown';
 import type { Fighter } from '../types';
@@ -50,10 +50,10 @@ const PERKS = { quicker: 200, block: 1.2, scorch: 1, drain: 0.4, harder: { defen
  * more Flame and slower boss (ATK Spd, points).
  */
 const UT = {
-  eye: { dmg: [0.24, 0.29, 0.35, 0.42, 0.5] },
-  gloves: { less: [120, 140, 170, 210, 250], critResist: 250 },
-  stone: { dmg: [0.24, 0.29, 0.35, 0.42, 0.5], defends: 0.25, lasts: 7 },
-  jewel: { flames: 3, speed: [170, 210, 250, 300, 360], lasts: 5 },
+  eye: { dmg: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5] },
+  gloves: { less: [100, 120, 140, 170, 210, 250], critResist: 250 },
+  stone: { dmg: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5], defends: 0.25, lasts: 7 },
+  jewel: { flames: 3, speed: [140, 170, 210, 250, 300, 360], lasts: 5 },
 };
 
 const art = skillArt('morrah');
@@ -224,11 +224,11 @@ export const MORRAH: HeroDef = {
         fight.cue(self, 'smash');
         fight.hit(self, SMASH.blow);
         // (Jewel of Inferno: more Flame, and the boss slower a moment.)
-        const jewel = treasureTier(self, 3) > 0;
+        const jewel = wearsTreasure(self, 3);
         burn(SMASH.flames + (jewel ? UT.jewel.flames : 0));
         if (jewel) fight.slow(fromTreasure(self, 3, UT.jewel.speed), UT.jewel.lasts);
         // (Hatchling Leather Gloves: a magical blow blocked while her Hellfire lasts, she takes less and is crit less, as long as it.)
-        if (hellfire > 0 && treasureTier(self, 1) > 0 && fight.foe.def.stats.deals === 'magical') {
+        if (hellfire > 0 && wearsTreasure(self, 1) && fight.foe.def.stats.deals === 'magical') {
           const less = fromTreasure(self, 1, UT.gloves.less);
           put(self.statuses, { name: 'Hatchling Leather Gloves', left: hellfire, takes: { magical: 1 - share(less) }, critResist: { magical: UT.gloves.critResist }, shown: { name: 'Hatchling Leather Gloves', about: `Takes ${pct(share(less))} less magical DMG, and is crit less.`, icon: '🧤', art: art(1) } });
         }

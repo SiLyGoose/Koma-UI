@@ -1,7 +1,7 @@
 import { share } from '../combat/damage';
 import { put, type Status } from '../combat/status';
 import { said, t5Light } from '../perks';
-import { fromTreasure, treasure, treasureTier } from '../treasures';
+import { fromTreasure, treasure, wearsTreasure } from '../treasures';
 import { num, pct, skillArt, type Buff } from '../shown';
 import { atTier, NUMINU, NUMINU_UP } from '../unique';
 import { bookDmg, CLASS_STATS, dmg, type HeroDef, indexed, type Passive } from './kit';
@@ -42,10 +42,10 @@ const PERKS = { harder: { more: 0.15, most: 10 }, roar: 1.4, speed: 200, enrage:
  * the most.
  */
 const UT = {
-  helmet: { weaker: 0.2, takes: [0.12, 0.14, 0.17, 0.21, 0.25], lasts: 10 },
-  horn: { cost: -1, critDamage: [0.24, 0.29, 0.35, 0.42, 0.5] },
-  mug: { dmg: [0.1, 0.12, 0.14, 0.17, 0.2] },
-  bracelet: { most: 30, pen: [120, 140, 170, 210, 250] },
+  helmet: { weaker: 0.2, takes: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25], lasts: 10 },
+  horn: { cost: -1, critDamage: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5] },
+  mug: { dmg: [0.08, 0.1, 0.12, 0.14, 0.17, 0.2] },
+  bracelet: { most: 30, pen: [100, 120, 140, 170, 210, 250] },
 };
 
 const art = skillArt('gau');
@@ -142,7 +142,7 @@ export const GAU: HeroDef = {
     let mending = 0;
     const tier = self.unique?.tier ?? null;
     // (Snowdrop Bracelet: more stacks at most, and penetration at the most.)
-    const most = treasureTier(self, 3) > 0 ? UT.bracelet.most : ENRAGE.most;
+    const most = wearsTreasure(self, 3) ? UT.bracelet.most : ENRAGE.most;
     const bracelet = fromTreasure(self, 3, UT.bracelet.pen);
 
     /** Enrage's stacks on him: his ATK (its Light: more) and DMG on the boss; its Dark, his crit chance too. */

@@ -46,10 +46,10 @@ const PERKS = { mana: 30, chance: 0.3 };
  * Even Gods shall Die.'s DMG; and Hunting Preparation's more ATK.
  */
 const UT = {
-  bullet: { cooldown: -3, mana: [24, 29, 35, 42, 50] },
-  barrage: { cost: -1, chance: [0.12, 0.14, 0.17, 0.21, 0.25], freeze: 3 },
-  pendant: { dmg: [0.24, 0.29, 0.35, 0.42, 0.5] },
-  box: { atk: [0.24, 0.29, 0.35, 0.42, 0.5] },
+  bullet: { cooldown: -3, mana: [20, 24, 29, 35, 42, 50] },
+  barrage: { cost: -1, chance: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25], freeze: 3 },
+  pendant: { dmg: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5] },
+  box: { atk: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5] },
 };
 
 const art = skillArt('crow');

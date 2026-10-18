@@ -1,7 +1,7 @@
 import { ATK, share } from '../combat/damage';
 import { away, put } from '../combat/status';
 import { said, t5Light } from '../perks';
-import { fromTreasure, treasure, treasureTier } from '../treasures';
+import { fromTreasure, treasure, wearsTreasure } from '../treasures';
 import { MAX_MANA, SECTION } from '../rules';
 import { pct, skillArt, type Buff } from '../shown';
 import type { Fighter } from '../types';
@@ -50,10 +50,10 @@ const PERKS = { heals: 1.4, critResist: 250, whirl: 3, festival: 0.15, defense: 
  * and every ally's mana every second.
  */
 const UT = {
-  scale: { heals: 0.5, block: [240, 290, 350, 420, 500], lasts: 10 },
-  crystal: { cooldown: [0.14, 0.17, 0.21, 0.25, 0.3] },
-  papyrus: { mana: [600, 720, 860, 1040, 1250] },
-  tear: { defense: 0.5, mana: [48, 58, 70, 84, 100] },
+  scale: { heals: 0.5, block: [200, 240, 290, 350, 420, 500], lasts: 10 },
+  crystal: { cooldown: [0.12, 0.14, 0.17, 0.21, 0.25, 0.3] },
+  papyrus: { mana: [500, 600, 720, 860, 1040, 1250] },
+  tear: { defense: 0.5, mana: [40, 48, 58, 70, 84, 100] },
 };
 
 const art = skillArt('laias');
@@ -165,7 +165,7 @@ export const LAIAS: HeroDef = {
     /** Her perks: how often the whirlpools come; her passive's M.DEF and M.Crit Resistance for every ally; and toward Transcend 5's Dark's next mana. */
     const whirlEvery = self.perks.has('s3-light') ? PERKS.whirl : FESTIVAL.every;
     // (Tear of God Dragon: more again.)
-    const defense = 1 + (WATER_DRAGON.defense - 1) * (self.perks.has('s4-light') ? PERKS.defense : 1) * (treasureTier(self, 3) > 0 ? 1 + UT.tear.defense : 1);
+    const defense = 1 + (WATER_DRAGON.defense - 1) * (self.perks.has('s4-light') ? PERKS.defense : 1) * (wearsTreasure(self, 3) ? 1 + UT.tear.defense : 1);
     const tear = fromTreasure(self, 3, UT.tear.mana);
     const critResist = WATER_DRAGON.critResist + (self.perks.has('s4-light') ? PERKS.critResistMore : 0);
     let filling = 0;
@@ -207,7 +207,7 @@ export const LAIAS: HeroDef = {
           fight.cue(self, 'bubble', [ally]);
           if (bubbled && bubbled !== ally) lift(BUBBLE_HOLDS.name, [bubbled]);
           // (Oasis Crystal: what the boss has left on it is gone.)
-          if (treasureTier(self, 1) > 0) ally.statuses = ally.statuses.filter((status) => status.shown.harmful !== true || status.binds === true);
+          if (wearsTreasure(self, 1)) ally.statuses = ally.statuses.filter((status) => status.shown.harmful !== true || status.binds === true);
           fight.shield(ally, BUBBLE.shield, BUBBLE.lasts, self);
           // (Its third book: its mana fills faster meanwhile.)
           put(ally.statuses, { name: BUBBLED.name, left: BUBBLE.lasts, takes: BUBBLE.taken, deals: 1 + BUBBLE.dmg, mana: BUBBLE.mana, shown: BUBBLED });

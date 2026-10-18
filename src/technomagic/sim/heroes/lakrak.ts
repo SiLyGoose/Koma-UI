@@ -1,7 +1,7 @@
 import { put } from '../combat/status';
 import { said, t5Light } from '../perks';
 import { MAX_MANA } from '../rules';
-import { fromTreasure, treasure, treasureTier } from '../treasures';
+import { fromTreasure, treasure, wearsTreasure } from '../treasures';
 import { pct, skillArt, type Buff } from '../shown';
 import { atTier, MK1, MK1_UP } from '../unique';
 import { attackStarts, bookDmg, CLASS_STATS, dmg, type HeroDef, type Passive, played } from './kit';
@@ -41,10 +41,10 @@ const PERKS = { chance: 0.25, stun: 0.5, mana: 500, dark: { speed: 120, accuracy
  * Load Cannon's mana off the boss, and its first shot certain.
  */
 const UT = {
-  cudgel: { dmg: 0.5, takes: [0.12, 0.14, 0.17, 0.21, 0.25], lasts: 10 },
-  mask: { cooldown: 0.3, blind: [1.2, 1.4, 1.7, 2.1, 2.5] },
-  gunpowder: { dmg: 0.5, mana: [240, 290, 350, 420, 500] },
-  cannonball: { mana: [480, 580, 700, 840, 1000] },
+  cudgel: { dmg: 0.5, takes: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25], lasts: 10 },
+  mask: { cooldown: 0.3, blind: [1, 1.2, 1.4, 1.7, 2.1, 2.5] },
+  gunpowder: { dmg: 0.5, mana: [200, 240, 290, 350, 420, 500] },
+  cannonball: { mana: [400, 480, 580, 700, 840, 1000] },
 };
 
 const art = skillArt('lakrak');
@@ -135,7 +135,7 @@ export const LAKRAK: HeroDef = {
     let success = false;
     let enhanced = false;
     let bombs: number[] = [];
-    let first = treasureTier(self, 3) > 0;
+    let first = wearsTreasure(self, 3);
     let gunpowder = 0;
     /** A skill of his going (its [Experiment] comes as it ends). */
     let skilling = false;

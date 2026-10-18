@@ -1,7 +1,7 @@
 import { share } from '../combat/damage';
 import { put } from '../combat/status';
 import { said, t5Light } from '../perks';
-import { treasure, treasureTier } from '../treasures';
+import { treasure, wearsTreasure } from '../treasures';
 import { nth, num, pct, skillArt, type Buff } from '../shown';
 import { atTier, BARORO } from '../unique';
 import { bookDmg, CLASS_STATS, dmg, type HeroDef, indexed, type Passive } from './kit';
@@ -40,10 +40,10 @@ const PERKS = { reading: 1.3, dive: 0.1, chance: 0.6, speed: 300, dodge: { coold
  * in Guild War (nothing here).
  */
 const UT = {
-  gust: { dmg: 0.5, mana: [240, 290, 350, 420, 500] },
-  scarf: { heal: [0.12, 0.14, 0.17, 0.21, 0.25] },
-  pride: { cost: -1, dmg: [0.24, 0.29, 0.35, 0.42, 0.5] },
-  ribbon: { chance: 0.1, guildWar: [0.12, 0.14, 0.17, 0.21, 0.25] },
+  gust: { dmg: 0.5, mana: [200, 240, 290, 350, 420, 500] },
+  scarf: { heal: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25] },
+  pride: { cost: -1, dmg: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5] },
+  ribbon: { chance: 0.1, guildWar: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25] },
 };
 
 const art = skillArt('naila');
@@ -175,7 +175,7 @@ export const NAILA: HeroDef = {
       if (attacks < TORNADO.every) return;
       attacks = 0;
       // (Green Ribbon: likelier.)
-      if (fight.roll() >= (self.perks.has('s4-light') ? PERKS.chance : TORNADO.chance) + (treasureTier(self, 3) > 0 ? UT.ribbon.chance : 0)) return;
+      if (fight.roll() >= (self.perks.has('s4-light') ? PERKS.chance : TORNADO.chance) + (wearsTreasure(self, 3) ? UT.ribbon.chance : 0)) return;
       fight.cue(self, 'tornado');
       strike(TORNADO.blow);
       put(fight.foe.statuses, { name: TORN, left: TORNADO.lasts, takes: { physical: TORNADO.takes }, shown: 'curse' });

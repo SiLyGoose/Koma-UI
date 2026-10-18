@@ -34,10 +34,10 @@ const PERKS = { waveStun: 0.5, slower: 300, awakeDmg: 1.2, opening: 20, openingD
  * Evil Deeds!'s crit chance and its longer stuns.
  */
 const UT = {
-  lotus: { dmg: [0.24, 0.29, 0.35, 0.42, 0.5], cost: -1 },
-  hobby: { speed: [120, 140, 170, 210, 250], pen: 250 },
-  escape: { cooldown: 0.3, chance: [0.48, 0.58, 0.7, 0.84, 1], more: 3 },
-  peace: { crit: 250, control: [0.32, 0.34, 0.37, 0.41, 0.45] },
+  lotus: { dmg: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5], cost: -1 },
+  hobby: { speed: [100, 120, 140, 170, 210, 250], pen: 250 },
+  escape: { cooldown: 0.3, chance: [0.4, 0.48, 0.58, 0.7, 0.84, 1], more: 3 },
+  peace: { crit: 250, control: [0.3, 0.32, 0.34, 0.37, 0.41, 0.45] },
 };
 
 const art = skillArt('kirze');

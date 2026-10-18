@@ -1,6 +1,6 @@
 import { put } from '../combat/status';
 import { said, t5Light } from '../perks';
-import { fromTreasure, treasure, treasureTier } from '../treasures';
+import { fromTreasure, treasure, wearsTreasure } from '../treasures';
 import { MAX_MANA, SECTION } from '../rules';
 import { num, pct, skillArt, type Buff } from '../shown';
 import { ACRAVITA, ACRAVITA_UP, atTier } from '../unique';
@@ -42,10 +42,10 @@ const PERKS = { stun: 2, marked: { takes: 1.25, lasts: 10 }, roar: 2, weaker: 0.
  * Dragon Hide's mana, and every ally's block (points), every so often.
  */
 const UT = {
-  cartridge: { mana: 100, defense: [0.12, 0.14, 0.17, 0.21, 0.25], lasts: 10 },
-  memories: { defense: [0.24, 0.29, 0.35, 0.42, 0.5] },
-  vortex: { stun: 1, cooldown: [4, 5, 6, 7, 8] },
-  nova: { every: 10, mana: SECTION, block: [240, 290, 350, 420, 500], lasts: 5 },
+  cartridge: { mana: 100, defense: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25], lasts: 10 },
+  memories: { defense: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5] },
+  vortex: { stun: 1, cooldown: [3, 4, 5, 6, 7, 8] },
+  nova: { every: 10, mana: SECTION, block: [200, 240, 290, 350, 420, 500], lasts: 5 },
 };
 
 const art = skillArt('neraxis');
@@ -178,7 +178,7 @@ export const NERAXIS: HeroDef = {
         lightning(part) {
           blow(part === 0 ? CLAW.blow : CLAW.after);
           // (Cartridge of Black Lightning: mana for each.)
-          if (treasureTier(self, 0) > 0) self.mana = Math.min(MAX_MANA, self.mana + UT.cartridge.mana);
+          if (wearsTreasure(self, 0)) self.mana = Math.min(MAX_MANA, self.mana + UT.cartridge.mana);
           if (part === 0) return;
           fight.stun((CLAW.stun + (self.perks.has('s1-light') ? PERKS.stun : 0)) * more(), { by: self });
           fight.slow(CLAW.speed, CLAW.slowed);
@@ -201,7 +201,7 @@ export const NERAXIS: HeroDef = {
           put(fight.foe.statuses, { name: BREATHED, left: BREATH.lasts, defends: { magical: Math.max(0, 1 - weaker) }, shown: 'curse' });
           blow(BREATH.blow);
           // (Rage Vortex: for longer.)
-          fight.stun((BREATH.stun + (treasureTier(self, 2) > 0 ? UT.vortex.stun : 0)) * more(), { by: self });
+          fight.stun((BREATH.stun + (wearsTreasure(self, 2) ? UT.vortex.stun : 0)) * more(), { by: self });
         },
       },
       tick(dt) {

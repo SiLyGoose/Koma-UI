@@ -1,7 +1,7 @@
 import { away, put } from '../combat/status';
 import { t5Light } from '../perks';
 import { MAX_MANA } from '../rules';
-import { fromTreasure, treasure, treasureTier } from '../treasures';
+import { fromTreasure, treasure, wearsTreasure } from '../treasures';
 import { num, pct, skillArt, type Buff } from '../shown';
 import type { Fighter } from '../types';
 import { atTier, SCHWANHEITE, SCHWANHEITE_UP } from '../unique';
@@ -39,10 +39,10 @@ const PERKS = { heal: 0.15, boss: 0.2, mana: 500, speed: 250, atk: 1.4, takes: 1
  * Song's ACC and mana for each ally's skill; Passion's crit DMG for every ally; Trance's ATK and attack speed meanwhile.
  */
 const UT = {
-  flower: { heals: 0.5, resist: [120, 140, 170, 210, 250] },
-  windy: { acc: 250, mana: [190, 230, 270, 330, 400] },
-  crown: { critDamage: [0.24, 0.29, 0.35, 0.42, 0.5] },
-  mira: { atk: 0.2, speed: [120, 140, 170, 210, 250] },
+  flower: { heals: 0.5, resist: [100, 120, 140, 170, 210, 250] },
+  windy: { acc: 250, mana: [160, 190, 230, 270, 330, 400] },
+  crown: { critDamage: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5] },
+  mira: { atk: 0.2, speed: [100, 120, 140, 170, 210, 250] },
 };
 
 const art = skillArt('shea');
@@ -169,7 +169,7 @@ export const SHEA: HeroDef = {
                 left: MELODY.lasts,
                 takes: 1 - (tranced ? MELODY.tranced : MELODY.taken),
                 ...(self.perks.has('s1-dark') && { deals: 1 + PERKS.boss }),
-                ...(treasureTier(self, 0) > 0 && { resist: fromTreasure(self, 0, UT.flower.resist) }),
+                ...(wearsTreasure(self, 0) && { resist: fromTreasure(self, 0, UT.flower.resist) }),
                 shown: SHELTERED,
               });
             }
@@ -182,7 +182,7 @@ export const SHEA: HeroDef = {
           const on = allies();
           if (part === 0) {
             fight.cue(self, 'song', on);
-            if (treasureTier(self, 1) > 0) windy = SONG.lasts;
+            if (wearsTreasure(self, 1)) windy = SONG.lasts;
             for (const ally of on) {
               if (self.perks.has('s2-light')) ally.mana = Math.min(MAX_MANA, ally.mana + PERKS.mana);
               put(ally.statuses, {
@@ -190,7 +190,7 @@ export const SHEA: HeroDef = {
                 left: SONG.lasts,
                 ...(tranced ? { guards: true } : { resist: SONG.shorter * 1000 }),
                 ...(self.perks.has('s2-dark') && { speed: PERKS.speed }),
-                ...(treasureTier(self, 1) > 0 && { acc: UT.windy.acc }),
+                ...(wearsTreasure(self, 1) && { acc: UT.windy.acc }),
                 shown: WINDY,
               });
             }
@@ -206,7 +206,7 @@ export const SHEA: HeroDef = {
             const on = allies();
             fight.cue(self, 'passion', on);
             const atk = PASSION.atk * PASSION.books * (tranced ? 2 : 1) * (self.perks.has('s3-light') ? PERKS.atk : 1);
-            for (const ally of on) put(ally.statuses, { name: PASSIONATE.name, left: PASSION.lasts, atk: atk / ally.stats.atk, ...(treasureTier(self, 2) > 0 && { critDamage: fromTreasure(self, 2, UT.crown.critDamage) }), shown: PASSIONATE });
+            for (const ally of on) put(ally.statuses, { name: PASSIONATE.name, left: PASSION.lasts, atk: atk / ally.stats.atk, ...(wearsTreasure(self, 2) && { critDamage: fromTreasure(self, 2, UT.crown.critDamage) }), shown: PASSIONATE });
             if (self.perks.has('s3-dark')) put(fight.foe.statuses, { name: 'Dance of Red Passion', left: PASSION.lasts, takes: PERKS.takes, shown: 'curse' });
           }
           if (pulse(part)) fight.hit(self, PASSION.blow * (tranced ? 2 : 1));
@@ -218,7 +218,7 @@ export const SHEA: HeroDef = {
           bliss = 0;
           trance = TRANCE.lasts;
           self.statuses = self.statuses.filter((status) => status.name !== BLISS.name);
-          put(self.statuses, { name: TRANCED.name, left: TRANCE.lasts, ...(treasureTier(self, 3) > 0 && { atk: UT.mira.atk, speed: fromTreasure(self, 3, UT.mira.speed) }), shown: TRANCED });
+          put(self.statuses, { name: TRANCED.name, left: TRANCE.lasts, ...(wearsTreasure(self, 3) && { atk: UT.mira.atk, speed: fromTreasure(self, 3, UT.mira.speed) }), shown: TRANCED });
           if (self.perks.has('s4-dark')) {
             fight.hit(self, TRANCE.blow);
             put(fight.foe.statuses, { name: 'Trance', left: PERKS.defenseLasts, defends: PERKS.defense, shown: 'curse' });

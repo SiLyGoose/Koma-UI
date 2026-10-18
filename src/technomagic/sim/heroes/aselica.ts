@@ -1,7 +1,7 @@
 import { away, put } from '../combat/status';
 import { said, t5Light } from '../perks';
 import { MAX_MANA } from '../rules';
-import { fromTreasure, treasure, treasureTier } from '../treasures';
+import { fromTreasure, treasure, wearsTreasure } from '../treasures';
 import { num, pct, skillArt, type Buff } from '../shown';
 import type { Fighter } from '../types';
 import { atTier, IGNISIUS } from '../unique';
@@ -55,10 +55,10 @@ const PERKS = { takes: 1.25, lasts: 10, allies: 2, needs: 7, dark: 0.2 };
  * boss's more magical damage taken.
  */
 const UT = {
-  dawn: { mana: [240, 290, 350, 420, 500] },
-  bracelet: { taken: [0.12, 0.14, 0.17, 0.21, 0.25], lasts: 10 },
-  trumpet: { more: [0.24, 0.29, 0.35, 0.42, 0.5] },
-  will: { takes: [0.12, 0.14, 0.17, 0.21, 0.25], lasts: 10 },
+  dawn: { mana: [200, 240, 290, 350, 420, 500] },
+  bracelet: { taken: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25], lasts: 10 },
+  trumpet: { more: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5] },
+  will: { takes: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25], lasts: 10 },
 };
 
 const art = skillArt('aselica');
@@ -173,7 +173,7 @@ export const ASELICA: HeroDef = {
       fight.foe.statuses = fight.foe.statuses.filter((status) => status.name !== CURSE_SHOWN.shown.name);
       fight.hit(self, CURSE.blow, false);
       put(fight.foe.statuses, { name: 'Sun’s Weakness', left: CURSE.weakLasts, deals: 1 - CURSE.weaker, shown: 'curse' });
-      if (treasureTier(self, 3) > 0) put(fight.foe.statuses, { name: 'Will of Light', left: UT.will.lasts, takes: { magical: 1 + fromTreasure(self, 3, UT.will.takes) }, shown: 'curse' });
+      if (wearsTreasure(self, 3)) put(fight.foe.statuses, { name: 'Will of Light', left: UT.will.lasts, takes: { magical: 1 + fromTreasure(self, 3, UT.will.takes) }, shown: 'curse' });
     };
     /** A blow of hers: and the curse. */
     const strike = (amount: number): boolean => {
@@ -213,7 +213,7 @@ export const ASELICA: HeroDef = {
             if (self.perks.has('s2-dark')) ally.statuses = ally.statuses.filter((status) => status.shown.harmful !== true || status.binds === true);
             const atk = ((BLESSING.atk + BLESSING.defense * self.stats.physical) * BLESSING.books) / ally.stats.atk;
             put(ally.statuses, { name: BLESSED.name, left: BLESSING.lasts, atk, deals: 1 + BLESSING.boss, shown: BLESSED });
-            if (treasureTier(self, 1) > 0) put(ally.statuses, { name: WARDED.name, left: UT.bracelet.lasts, takes: { physical: 1 - fromTreasure(self, 1, UT.bracelet.taken) }, shown: WARDED });
+            if (wearsTreasure(self, 1)) put(ally.statuses, { name: WARDED.name, left: UT.bracelet.lasts, takes: { physical: 1 - fromTreasure(self, 1, UT.bracelet.taken) }, shown: WARDED });
           }
         },
         // Eight blows (the boss's M.DEF lower) and heals (her allies' P.DEF higher); then a last blow that knocks the boss down, and a great heal.

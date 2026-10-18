@@ -1,7 +1,7 @@
 import { share } from '../combat/damage';
 import { piercing, put, type Status } from '../combat/status';
 import { said, t5Light } from '../perks';
-import { fromTreasure, treasure, treasureTier } from '../treasures';
+import { fromTreasure, treasure, wearsTreasure } from '../treasures';
 import { MAX_MANA } from '../rules';
 import { num, pct, skillArt, type Buff } from '../shown';
 import { atTier, GALICTA, GALICTA_UP } from '../unique';
@@ -43,10 +43,10 @@ const PERKS = { alone: 2, stun: 1, critDamage: 0.5, mana: 100, exposed: 0.5, bos
  * Galicta's CC resist (points), and the penetration it would take off the boss (it has none).
  */
 const UT = {
-  cloak: { cost: -1, boss: [0.48, 0.58, 0.7, 0.84, 1] },
-  hatred: { longer: 5, atk: [0.14, 0.17, 0.21, 0.25, 0.3] },
-  mittens: { cooldown: [2.4, 2.9, 3.5, 4.2, 5], stun: 1 },
-  protection: { resist: [360, 430, 520, 630, 750], pen: 200 },
+  cloak: { cost: -1, boss: [0.4, 0.48, 0.58, 0.7, 0.84, 1] },
+  hatred: { longer: 5, atk: [0.12, 0.14, 0.17, 0.21, 0.25, 0.3] },
+  mittens: { cooldown: [2, 2.4, 2.9, 3.5, 4.2, 5], stun: 1 },
+  protection: { resist: [300, 360, 430, 520, 630, 750], pen: 200 },
 };
 
 const art = skillArt('rebel-klaus');
@@ -159,7 +159,7 @@ export const REBEL_KLAUS: HeroDef = {
     /** [Indomitable Will] on him (its Light: his crit damage higher meanwhile). */
     const will = (): void => {
       // (Irreversible Hatred: for longer, and his ATK higher meanwhile.)
-      const hatred = treasureTier(self, 1) > 0;
+      const hatred = wearsTreasure(self, 1);
       willed = WILL.lasts + (hatred ? UT.hatred.longer : 0);
       put(self.statuses, { name: WILLED.name, left: willed, ...(self.perks.has('s2-light') && { critDamage: PERKS.critDamage }), ...(hatred && { deals: 1 + fromTreasure(self, 1, UT.hatred.atk) }), shown: WILLED });
     };
@@ -198,7 +198,7 @@ export const REBEL_KLAUS: HeroDef = {
           const last = part === (self.motion.moves.perish.parts[0]?.lands.length ?? 1) - 1;
           strike(last ? PERISH.last : PERISH.blow);
           // (Old Mittens: each blow stuns the boss.)
-          if (treasureTier(self, 2) > 0) fight.stun(UT.mittens.stun, { by: self });
+          if (wearsTreasure(self, 2)) fight.stun(UT.mittens.stun, { by: self });
           if (last) fight.stun(PERISH.down, { down: true, by: self });
           else if (self.perks.has('s3-light')) self.mana = Math.min(MAX_MANA, self.mana + PERKS.mana);
         },

@@ -1,7 +1,7 @@
 import { away, put } from '../combat/status';
 import { said, t5Light } from '../perks';
 import { MAX_MANA } from '../rules';
-import { fromTreasure, treasure, treasureTier } from '../treasures';
+import { fromTreasure, treasure, wearsTreasure } from '../treasures';
 import { pct, skillArt, type Buff } from '../shown';
 import type { Fighter } from '../types';
 import { atTier, NAAV, NAAV_UP } from '../unique';
@@ -49,10 +49,10 @@ const PERKS = { longer: 20, resist: 500, taken: 0.25, immune: 5, dark: { atk: 0.
  * taken as each skill is used.
  */
 const UT = {
-  stone: { heals: 0.5, taken: [0.12, 0.14, 0.17, 0.21, 0.25], dmg: 0.5, unhealed: [0.12, 0.14, 0.17, 0.21, 0.25], lasts: 15 },
-  bag: { atk: [0.14, 0.17, 0.21, 0.25, 0.3], cooldown: 7, slow: [140, 170, 210, 250, 300] },
-  pendulum: { shield: [0.24, 0.29, 0.35, 0.42, 0.5], block: [240, 290, 350, 420, 500], lasts: 10 },
-  flask: { lasts: 40, takes: [0.12, 0.14, 0.17, 0.21, 0.25], marked: 7 },
+  stone: { heals: 0.5, taken: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25], dmg: 0.5, unhealed: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25], lasts: 15 },
+  bag: { atk: [0.12, 0.14, 0.17, 0.21, 0.25, 0.3], cooldown: 7, slow: [120, 140, 170, 210, 250, 300] },
+  pendulum: { shield: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5], block: [200, 240, 290, 350, 420, 500], lasts: 10 },
+  flask: { lasts: 40, takes: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25], marked: 7 },
 };
 
 const art = skillArt('evan');
@@ -191,7 +191,7 @@ export const EVAN: HeroDef = {
     let formed = 0;
     /** His dark skills as his perks and treasures change them (Gluttony's Dark: cheaper; All-Purpose Bag: shorter). */
     const darkSkills: Ability[] = DARK_SKILLS.map((one, i) =>
-      i === 1 ? { ...one, cost: one.cost - (self.perks.has('s2-dark') ? 1 : 0), cooldown: one.cooldown - (treasureTier(self, 1) > 0 ? UT.bag.cooldown : 0) } : one,
+      i === 1 ? { ...one, cost: one.cost - (self.perks.has('s2-dark') ? 1 : 0), cooldown: one.cooldown - (wearsTreasure(self, 1) ? UT.bag.cooldown : 0) } : one,
     );
     /** His allies on the field, standing and in the fight (him too). */
     const allies = (): Fighter[] => fight.field.filter((ally) => ally.hp > 0 && !away(ally.statuses));
@@ -221,7 +221,7 @@ export const EVAN: HeroDef = {
           fight.cue(self, 'purify', on);
           for (const ally of on) {
             fight.heal(ally, PURIFY.heal, self);
-            put(ally.statuses, { name: PURIFIED.name, left: PURIFY.lasts, heals: 1 + PURIFY.heals, ...(treasureTier(self, 0) > 0 && { takes: { physical: 1 - fromTreasure(self, 0, UT.stone.taken) } }), shown: PURIFIED });
+            put(ally.statuses, { name: PURIFIED.name, left: PURIFY.lasts, heals: 1 + PURIFY.heals, ...(wearsTreasure(self, 0) && { takes: { physical: 1 - fromTreasure(self, 0, UT.stone.taken) } }), shown: PURIFIED });
           }
         },
         // The circle (tick).
@@ -238,8 +238,8 @@ export const EVAN: HeroDef = {
         },
         // A blow; the boss taking more physical damage (its Dark: longer; Rune Stone: harder, and the boss healed less).
         uproar() {
-          fight.hit(self, UPROAR.blow * (treasureTier(self, 0) > 0 ? 1 + UT.stone.dmg : 1));
-          put(fight.foe.statuses, { name: 'Uproar of Naav Gehen', left: self.perks.has('s1-dark') ? PERKS.longer : UPROAR.lasts, takes: { physical: UPROAR.takes }, ...(treasureTier(self, 0) > 0 && { heals: 1 - fromTreasure(self, 0, UT.stone.unhealed) }), shown: 'curse' });
+          fight.hit(self, UPROAR.blow * (wearsTreasure(self, 0) ? 1 + UT.stone.dmg : 1));
+          put(fight.foe.statuses, { name: 'Uproar of Naav Gehen', left: self.perks.has('s1-dark') ? PERKS.longer : UPROAR.lasts, takes: { physical: UPROAR.takes }, ...(wearsTreasure(self, 0) && { heals: 1 - fromTreasure(self, 0, UT.stone.unhealed) }), shown: 'curse' });
         },
         // A blow and the circle (tick).
         gluttony() {
@@ -252,7 +252,7 @@ export const EVAN: HeroDef = {
           const last = part >= 6;
           fight.hit(self, last ? RAMPAGE.last : RAMPAGE.blow);
           fight.stun(last ? RAMPAGE.lastStun : RAMPAGE.stun, { by: self });
-          if (last && treasureTier(self, 2) > 0) put(fight.foe.statuses, { name: 'Navigating Dowsing Pendulum', left: UT.pendulum.lasts, blocks: { physical: -fromTreasure(self, 2, UT.pendulum.block), magical: -fromTreasure(self, 2, UT.pendulum.block) }, shown: 'curse' });
+          if (last && wearsTreasure(self, 2)) put(fight.foe.statuses, { name: 'Navigating Dowsing Pendulum', left: UT.pendulum.lasts, blocks: { physical: -fromTreasure(self, 2, UT.pendulum.block), magical: -fromTreasure(self, 2, UT.pendulum.block) }, shown: 'curse' });
         },
       },
       // His dark form's skills in his skills' places.
@@ -266,7 +266,7 @@ export const EVAN: HeroDef = {
           put(fight.party, { name: NAAV_UP.name, left: NAAV.lasts, takes: { physical: 1 - atTier(NAAV.taken, tier) }, shown: NAAV_UP });
           put(fight.boss.statuses, { name: NAAV_UP.name, left: NAAV.lasts, takes: { physical: 1 + atTier(NAAV.takes, tier) }, shown: 'curse' });
         }
-        if (treasureTier(self, 3) > 0) put(fight.boss.statuses, { name: 'Naav’s First Flask', left: UT.flask.marked, takes: { physical: 1 + fromTreasure(self, 3, UT.flask.takes) }, shown: 'curse' });
+        if (wearsTreasure(self, 3)) put(fight.boss.statuses, { name: 'Naav’s First Flask', left: UT.flask.marked, takes: { physical: 1 + fromTreasure(self, 3, UT.flask.takes) }, shown: 'curse' });
       },
       tick(dt) {
         if (turning) {
@@ -282,7 +282,7 @@ export const EVAN: HeroDef = {
           const on = allies();
           fight.cue(self, 'alchemy', on);
           for (const ally of on) fight.heal(ally, ALCHEMY.heal, self);
-          put(fight.party, { name: ALCHEMIZED.name, left: treasureTier(self, 3) > 0 ? UT.flask.lasts : ALCHEMY.lasts, takes: { physical: 1 - (self.perks.has('s4-light') ? PERKS.taken : ALCHEMY.taken) }, shown: ALCHEMIZED });
+          put(fight.party, { name: ALCHEMIZED.name, left: wearsTreasure(self, 3) ? UT.flask.lasts : ALCHEMY.lasts, takes: { physical: 1 - (self.perks.has('s4-light') ? PERKS.taken : ALCHEMY.taken) }, shown: ALCHEMIZED });
           if (!started && self.perks.has('s4-dark')) {
             turn();
             put(self.statuses, { name: 'Alchemist’s Guard', left: PERKS.immune, guards: true, shown: DARK });
@@ -297,7 +297,7 @@ export const EVAN: HeroDef = {
             circleTick -= 1;
             for (const ally of allies()) {
               fight.heal(ally, CIRCLE.heal, self);
-              put(ally.statuses, { name: CIRCLED.name, left: 1.2, speed: CIRCLE.speed, ...(self.perks.has('s2-light') && { resist: PERKS.resist }), ...(treasureTier(self, 1) > 0 && { atk: fromTreasure(self, 1, UT.bag.atk) }), shown: CIRCLED });
+              put(ally.statuses, { name: CIRCLED.name, left: 1.2, speed: CIRCLE.speed, ...(self.perks.has('s2-light') && { resist: PERKS.resist }), ...(wearsTreasure(self, 1) && { atk: fromTreasure(self, 1, UT.bag.atk) }), shown: CIRCLED });
             }
           }
         }
@@ -309,7 +309,7 @@ export const EVAN: HeroDef = {
             gluttonyTick -= 1;
             fight.hit(self, GLUTTONY.tick);
             put(fight.foe.statuses, { name: 'Naav Gehen of Gluttony', left: 1.2, deals: GLUTTONY.weaker, shown: 'curse' });
-            if (treasureTier(self, 1) > 0) fight.slow(fromTreasure(self, 1, UT.bag.slow), 1.2);
+            if (wearsTreasure(self, 1)) fight.slow(fromTreasure(self, 1, UT.bag.slow), 1.2);
           }
         }
         // Origin of Life: while its shield holds, mana every second and immune to CC.

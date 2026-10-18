@@ -1,7 +1,7 @@
 import { away, put } from '../combat/status';
 import { said, t5Light } from '../perks';
 import { MAX_MANA, SECTION } from '../rules';
-import { fromTreasure, treasure, treasureTier } from '../treasures';
+import { fromTreasure, treasure, wearsTreasure } from '../treasures';
 import { num, pct, skillArt, type Buff } from '../shown';
 import type { Fighter, Foe } from '../types';
 import { atTier, RIVENTINA, RIVENTINA_UP } from '../unique';
@@ -42,10 +42,10 @@ const PERKS = { lock: 0.6, restrain: 1.2, guard: 2, stun: 1, crit: 300, taken: 0
  * blow; Target Eliminated's more ATK and its stun every so often on an enemy under [Target Lock On].
  */
 const UT = {
-  endeavor: { dmg: [0.24, 0.29, 0.35, 0.42, 0.5], critTaken: 500, lasts: 10 },
-  gemini: { mana: [190, 230, 270, 330, 400] },
-  powder: { dmg: 0.5, atk: [0.12, 0.14, 0.17, 0.21, 0.25], lasts: 10 },
-  miracle: { atk: 0.5, every: 5, stun: [1.2, 1.4, 1.7, 2.1, 2.5] },
+  endeavor: { dmg: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5], critTaken: 500, lasts: 10 },
+  gemini: { mana: [160, 190, 230, 270, 330, 400] },
+  powder: { dmg: 0.5, atk: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25], lasts: 10 },
+  miracle: { atk: 0.5, every: 5, stun: [1, 1.2, 1.4, 1.7, 2.1, 2.5] },
 };
 
 const art = skillArt('mirianne');
@@ -137,7 +137,7 @@ export const MIRIANNE: HeroDef = {
     let riventina = 0;
     let miracle = 0;
     /** Target Eliminated's ATK: a share of her own, as the fight begins (Birth of Miracle: more). */
-    const eliminated = (ELIMINATED.atk * ELIMINATED.books * (treasureTier(self, 3) > 0 ? 1 + UT.miracle.atk : 1)) / self.stats.atk;
+    const eliminated = (ELIMINATED.atk * ELIMINATED.books * (wearsTreasure(self, 3) ? 1 + UT.miracle.atk : 1)) / self.stats.atk;
     // Her unique weapon: quicker, for good.
     if (tier !== null) put(self.statuses, { name: RIVENTINA_UP.name, left: Infinity, speed: atTier(RIVENTINA.speed, tier), shown: RIVENTINA_UP });
     /** Whether an enemy is under [Target Lock On] (this one: the one in question). */
@@ -198,7 +198,7 @@ export const MIRIANNE: HeroDef = {
           const critical = strike(ASSASSIN.blow);
           strike(ASSASSIN.boss);
           if (self.perks.has('s3-light')) fight.stun(PERKS.stun, { by: self });
-          if (critical && treasureTier(self, 2) > 0) put(self.statuses, { name: POWDER.name, left: UT.powder.lasts, atk: fromTreasure(self, 2, UT.powder.atk), shown: POWDER });
+          if (critical && wearsTreasure(self, 2)) put(self.statuses, { name: POWDER.name, left: UT.powder.lasts, atk: fromTreasure(self, 2, UT.powder.atk), shown: POWDER });
         },
       },
       tick(dt) {
@@ -214,7 +214,7 @@ export const MIRIANNE: HeroDef = {
             shown: HUNTING,
           });
           // Birth of Miracle: every so often, the boss under it stunned.
-          if (treasureTier(self, 3) > 0) {
+          if (wearsTreasure(self, 3)) {
             miracle += dt;
             if (miracle >= UT.miracle.every) {
               miracle -= UT.miracle.every;

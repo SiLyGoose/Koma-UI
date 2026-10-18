@@ -1,6 +1,6 @@
 import { put, type Status } from '../combat/status';
 import { said, t5Light } from '../perks';
-import { treasure, treasureTier } from '../treasures';
+import { treasure, wearsTreasure } from '../treasures';
 import { num, pct, skillArt, type Buff, type Mark } from '../shown';
 import { atTier, GAIAMENES, GAIAMENES_UP } from '../unique';
 import { bookDmg, CLASS_STATS, dmg, type HeroDef, indexed, indexedHeal, type Passive } from './kit';
@@ -40,10 +40,10 @@ const PERKS = { weakness: 0.25, longer: 5, each: 1, ward: { block: 200, defense:
  * Gatekeeper's M.Block (points), and its more Endurance for a block.
  */
 const UT = {
-  techniques: { block: 500, resist: [120, 140, 170, 210, 250], lasts: 10 },
-  doll: { cost: -1, mana: [480, 580, 700, 840, 1000] },
-  sea: { cooldown: 0.3, takes: [0.12, 0.14, 0.17, 0.21, 0.25], lasts: 10 },
-  shield: { block: [240, 290, 350, 420, 500], endurance: 1 },
+  techniques: { block: 500, resist: [100, 120, 140, 170, 210, 250], lasts: 10 },
+  doll: { cost: -1, mana: [400, 480, 580, 700, 840, 1000] },
+  sea: { cooldown: 0.3, takes: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25], lasts: 10 },
+  shield: { block: [200, 240, 290, 350, 420, 500], endurance: 1 },
 };
 
 const art = skillArt('loman');
@@ -226,7 +226,7 @@ export const LOMAN: HeroDef = {
           parried = GATEKEEPER.every;
           endure();
           // (Father's Shield: more.)
-          if (treasureTier(self, 3) > 0) for (let i = 0; i < UT.shield.endurance; i++) endure();
+          if (wearsTreasure(self, 3)) for (let i = 0; i < UT.shield.endurance; i++) endure();
         }
         if (!self.perks.has('t5-dark') || warding > 0 || fight.foe.def.stats.deals !== 'magical') return;
         warding = PERKS.ward.every;

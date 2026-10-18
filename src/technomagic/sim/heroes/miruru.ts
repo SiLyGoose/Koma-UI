@@ -1,7 +1,7 @@
 import { put } from '../combat/status';
 import { said, t5Light } from '../perks';
 import { MAX_MANA } from '../rules';
-import { fromTreasure, treasure, treasureTier } from '../treasures';
+import { fromTreasure, treasure, wearsTreasure } from '../treasures';
 import { pct, skillArt, type Buff } from '../shown';
 import { atTier, LEVIATHAN } from '../unique';
 import { attackStarts, bookDmg, CLASS_STATS, dmg, type HeroDef, type Passive, played } from './kit';
@@ -37,10 +37,10 @@ const PERKS = { atk: 0.5, atkLasts: 4, sooner: 0.08, pirates: 1.2, halved: 0.7, 
  * cooldown; Boooooom!'s more DMG and attack speed as it fires.
  */
 const UT = {
-  coin: { critTaken: [240, 290, 350, 420, 500], lasts: 10 },
-  sextant: { dmg: [0.048, 0.058, 0.07, 0.084, 0.1], most: 10, mana: 120 },
-  cannonball: { dmg: 0.5, cooldown: [0.14, 0.17, 0.21, 0.25, 0.3] },
-  keg: { dmg: 0.5, speed: [240, 290, 350, 420, 500], lasts: 3 },
+  coin: { critTaken: [200, 240, 290, 350, 420, 500], lasts: 10 },
+  sextant: { dmg: [0.04, 0.048, 0.058, 0.07, 0.084, 0.1], most: 10, mana: 120 },
+  cannonball: { dmg: 0.5, cooldown: [0.12, 0.14, 0.17, 0.21, 0.25, 0.3] },
+  keg: { dmg: 0.5, speed: [200, 240, 290, 350, 420, 500], lasts: 3 },
 };
 
 const art = skillArt('miruru');
@@ -135,7 +135,7 @@ export const MIRURU: HeroDef = {
     let rollLeft = 0;
     let uses = 0;
     let darkness = 0;
-    const keg = treasureTier(self, 3) > 0;
+    const keg = wearsTreasure(self, 3);
 
     /** A blow of hers (Transcend 5's Dark: a stack of [Darkness]; at 50, [Rampage]). */
     const strike = (amount: number, counted = true): boolean => {
@@ -190,7 +190,7 @@ export const MIRURU: HeroDef = {
           rollLeft = ROLL.lasts;
           put(fight.foe.statuses, { name: 'Roll Over', left: ROLL.lasts, count: rolled, takes: { physical: 1 + ROLL.takes * rolled }, shown: 'curse' });
           if (self.perks.has('s2-dark')) self.cooldowns[1] = (self.cooldowns[1] ?? 0) * (1 - PERKS.sooner);
-          if (critical && treasureTier(self, 1) > 0) self.mana = Math.min(MAX_MANA, self.mana + UT.sextant.mana);
+          if (critical && wearsTreasure(self, 1)) self.mana = Math.min(MAX_MANA, self.mana + UT.sextant.mana);
         },
         // Five blows (its Dark: ten, each less, and the boss slowed more), each slowing the boss's attacks, and a blow more on a Non-Hero enemy.
         pirates() {
@@ -204,7 +204,7 @@ export const MIRURU: HeroDef = {
         },
       },
       used(index) {
-        if (index !== 1 || treasureTier(self, 1) === 0) return;
+        if (index !== 1 || !wearsTreasure(self, 1)) return;
         uses = Math.min(UT.sextant.most, uses + 1);
         put(self.statuses, { name: SEXTANT.name, left: Infinity, count: uses, shown: SEXTANT });
       },

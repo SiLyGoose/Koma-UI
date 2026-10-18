@@ -1,6 +1,6 @@
 import { put, type Status } from '../combat/status';
 import { said, t5Light } from '../perks';
-import { fromTreasure, treasure, treasureTier } from '../treasures';
+import { fromTreasure, treasure, wearsTreasure } from '../treasures';
 import { pct, skillArt, type Buff } from '../shown';
 import { AEA, AEA_UP, atTier } from '../unique';
 import { type Ability, bookDmg, CLASS_STATS, dmg, type HeroDef, type Passive } from './kit';
@@ -44,10 +44,10 @@ const PERKS = { judge: { needs: 10, dmg: 1.8 }, doom: { takes: 1.3, lasts: 10 },
  * Energy] at most, and the chance of a stack more for each blow of his attack.
  */
 const UT = {
-  authority: { dmg: [0.24, 0.29, 0.34, 0.42, 0.5] },
-  lifeforce: { dmg: [0.24, 0.29, 0.35, 0.42, 0.5], pulled: 2 },
-  portrait: { dmg: [0.14, 0.17, 0.21, 0.25, 0.3], critDamage: 0.8 },
-  tear: { most: [64, 69, 75, 82, 90], chance: 0.35 },
+  authority: { dmg: [0.2, 0.24, 0.29, 0.34, 0.42, 0.5] },
+  lifeforce: { dmg: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5], pulled: 2 },
+  portrait: { dmg: [0.12, 0.14, 0.17, 0.21, 0.25, 0.3], critDamage: 0.8 },
+  tear: { most: [60, 64, 69, 75, 82, 90], chance: 0.35 },
 };
 
 const art = skillArt('dark-lord-kasel');
@@ -177,7 +177,7 @@ export const DARK_LORD_KASEL: HeroDef = {
           strike(fight.basic * harder);
           if (lord > 0) strike(ADVENT.blowMore * harder);
           // (Twisted Tear: now and then a stack more.)
-          const tear = treasureTier(self, 3) > 0 && fight.roll() < UT.tear.chance ? 1 : 0;
+          const tear = wearsTreasure(self, 3) && fight.roll() < UT.tear.chance ? 1 : 0;
           energy = Math.min(most, energy + FALLEN.each + (self.perks.has('s4-dark') ? PERKS.more : 0) + tear);
           shown();
           if (self.perks.has('t5-dark')) {
@@ -215,7 +215,7 @@ export const DARK_LORD_KASEL: HeroDef = {
         shown();
         lord = ADVENT.lasts;
         // (Traveler's Portrait: more to the boss, and crit DMG, meanwhile.)
-        const portrait = treasureTier(self, 2) > 0;
+        const portrait = wearsTreasure(self, 2);
         put(self.statuses, { name: LORD.name, left: ADVENT.lasts, deals: (1 + ADVENT.atk * spent) * (1 + fromTreasure(self, 2, UT.portrait.dmg)), ...(portrait && { critDamage: UT.portrait.critDamage }), shown: LORD });
       },
       tick(dt) {

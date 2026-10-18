@@ -1,7 +1,7 @@
 import { share } from '../combat/damage';
 import { away, put, type Status } from '../combat/status';
 import { said, t5Light } from '../perks';
-import { fromTreasure, treasure, treasureTier } from '../treasures';
+import { fromTreasure, treasure, wearsTreasure } from '../treasures';
 import { MAX_MANA, SECTION } from '../rules';
 import { fine, pct, skillArt, type Buff } from '../shown';
 import type { Fighter } from '../types';
@@ -49,10 +49,10 @@ const PERKS = { holograms: 2, critDamage: 0.5, fieldTaken: 0.75, fieldSpeed: 300
  * healing, with her passive's own DEF and mana for every ally.
  */
 const UT = {
-  device: { dmg: [0.12, 0.14, 0.17, 0.21, 0.25], cooldown: 0.5 },
-  tea: { block: [240, 280, 340, 420, 500] },
-  sincerity: { cooldown: [3, 4, 5, 6, 7], most: 10 },
-  failure: { heals: [0.12, 0.14, 0.17, 0.21, 0.25] },
+  device: { dmg: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25], cooldown: 0.5 },
+  tea: { block: [200, 240, 280, 340, 420, 500] },
+  sincerity: { cooldown: [2, 3, 4, 5, 6, 7], most: 10 },
+  failure: { heals: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25] },
 };
 
 const art = skillArt('valance');
@@ -176,7 +176,7 @@ export const VALANCE: HeroDef = {
     /** One more stack of Manipulated on the boss (up to seven), begun again. */
     const manipulate = (): void => {
       // (Sloppy Sincerity: more of it at most.)
-      const stacks = Math.min(treasureTier(self, 2) > 0 ? UT.sincerity.most : CANNON.most, (fight.foe.statuses.find((status) => status.name === MANIPULATED)?.count ?? 0) + 1);
+      const stacks = Math.min(wearsTreasure(self, 2) ? UT.sincerity.most : CANNON.most, (fight.foe.statuses.find((status) => status.name === MANIPULATED)?.count ?? 0) + 1);
       put(fight.foe.statuses, { name: MANIPULATED, left: CANNON.lasts, count: stacks, takes: 1 + CANNON.takes * stacks, heals: Math.max(0, 1 - CANNON.heals * stacks), shown: 'curse' });
     };
     /** How many pieces of TechnoMagic gear an ally wears: each comes with one additional skill (../skills.ts). */
@@ -242,7 +242,7 @@ export const VALANCE: HeroDef = {
           for (const on of holos) {
             on.statuses = on.statuses.filter((status) => !harmful(status));
             // (Formula Input Device: more off.)
-            on.cooldowns = on.cooldowns.map((left) => Math.max(0, left - HOLOGRAM.cooldown * (treasureTier(self, 0) > 0 ? 1 + UT.device.cooldown : 1) * dt));
+            on.cooldowns = on.cooldowns.map((left) => Math.max(0, left - HOLOGRAM.cooldown * (wearsTreasure(self, 0) ? 1 + UT.device.cooldown : 1) * dt));
             if (healing) fight.heal(on, HOLOGRAM.heal, self);
           }
         }

@@ -1,7 +1,7 @@
 import { away, put } from '../combat/status';
 import { t5Light } from '../perks';
 import { MAX_MANA, SECTION } from '../rules';
-import { fromTreasure, treasure, treasureTier } from '../treasures';
+import { fromTreasure, treasure, wearsTreasure } from '../treasures';
 import { pct, skillArt, type Buff } from '../shown';
 import type { Fighter } from '../types';
 import { atTier, STOSMOS, STOSMOS_UP } from '../unique';
@@ -44,10 +44,10 @@ const PERKS = { block: 300, defense: 0.7, allies: 2, boss: 0.15, mana: 2 * SECTI
  * Guide's (nothing the fight has).
  */
 const UT = {
-  badge: { dodge: [120, 140, 170, 210, 250], weaker: [0.12, 0.14, 0.17, 0.21, 0.25] },
-  memoir: { cooldown: 6, boss: [0.072, 0.086, 0.104, 0.125, 0.15] },
-  whistle: { heals: [0.24, 0.29, 0.35, 0.42, 0.5] },
-  homeland: { chance: [0.24, 0.29, 0.35, 0.42, 0.5] },
+  badge: { dodge: [100, 120, 140, 170, 210, 250], weaker: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25] },
+  memoir: { cooldown: 6, boss: [0.06, 0.072, 0.086, 0.104, 0.125, 0.15] },
+  whistle: { heals: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5] },
+  homeland: { chance: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5] },
 };
 
 const art = skillArt('estelle');
@@ -217,7 +217,7 @@ export const ESTELLE: HeroDef = {
             left: lasting(HEADWIND.lasts),
             takes: { physical: HEADWIND.takes },
             ...(self.perks.has('s1-dark') && { defends: { physical: PERKS.defense } }),
-            ...(treasureTier(self, 0) > 0 && { deals: 1 - fromTreasure(self, 0, UT.badge.weaker) }),
+            ...(wearsTreasure(self, 0) && { deals: 1 - fromTreasure(self, 0, UT.badge.weaker) }),
             shown: 'curse',
           });
         },
@@ -227,7 +227,7 @@ export const ESTELLE: HeroDef = {
             const others = allies().filter((ally) => ally !== self);
             const on = (others.length > 0 ? others : [self]).sort((a, b) => b.stats.atk - a.stats.atk).slice(0, self.perks.has('s2-light') ? PERKS.allies : 1);
             fight.cue(self, 'wakeup', on);
-            for (const ally of on) put(ally.statuses, { name: CHEERED.name, left: lasting(WAKE.lasts), critDamage: WAKE.critDamage, ...(treasureTier(self, 1) > 0 && { deals: 1 + fromTreasure(self, 1, UT.memoir.boss) }), shown: CHEERED });
+            for (const ally of on) put(ally.statuses, { name: CHEERED.name, left: lasting(WAKE.lasts), critDamage: WAKE.critDamage, ...(wearsTreasure(self, 1) && { deals: 1 + fromTreasure(self, 1, UT.memoir.boss) }), shown: CHEERED });
             return;
           }
           fight.hit(self, WAKE.blow);

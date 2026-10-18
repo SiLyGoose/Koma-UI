@@ -17,18 +17,18 @@ import { atTier } from './unique';
  * can't happen in this raid does nothing (there is one enemy, the boss, and it isn't a hero; it has no mana).
  */
 
-/** A unique treasure: its name, and its effect at a tier (1 to 5). */
+/** A unique treasure: its name, and its effect at a tier (its stars, 0★ to 5★). */
 export interface TreasureDef {
   name: string;
   at(tier: number): PerkDef;
 }
 
-/** The most a treasure is refined to: its tiers are 1 to this. */
+/** The most stars a treasure is awakened to: its tiers are 0★ to this. */
 export const TREASURE_TIERS = 5;
 
 /**
  * A unique treasure whose effect is `effect`, given its tier's numbers: `k(row)` is a row's number at the tier (the
- * row's 1★ to 5★).
+ * row's 0★ to 5★).
  */
 export const treasure = (name: string, effect: (k: (row: readonly number[]) => number) => PerkDef): TreasureDef => ({
   name,
@@ -40,16 +40,19 @@ export function treasureOf(def: HeroDef, ut: { skill: number; tier: number } | n
   if (!ut || !Number.isInteger(ut.skill) || typeof ut.tier !== 'number' || !Number.isFinite(ut.tier)) return null;
   const index = ut.skill - 1;
   if (!def.treasures?.[index]) return null;
-  return { index, tier: Math.min(TREASURE_TIERS, Math.max(1, Math.floor(ut.tier))) };
+  return { index, tier: Math.min(TREASURE_TIERS, Math.max(0, Math.floor(ut.tier))) };
 }
 
-/** The tier of a hero's main treasure when it is its `index`th (0 to 3), else 0: what its part reads its own numbers by. */
-export const treasureTier = (self: Pick<Fighter, 'treasure'>, index: number): number => (self.treasure?.index === index ? self.treasure.tier : 0);
+/** The tier of a hero's main treasure (its stars, 0★ to 5★) when it is its `index`th (0 to 3), else -1: what its part reads its own numbers by. */
+export const treasureTier = (self: Pick<Fighter, 'treasure'>, index: number): number => (self.treasure?.index === index ? self.treasure.tier : -1);
+
+/** Whether a hero's main treasure is its `index`th (0 to 3), at any stars. */
+export const wearsTreasure = (self: Pick<Fighter, 'treasure'>, index: number): boolean => self.treasure?.index === index;
 
 /** A hero's main treasure's number in `row` when it is its `index`th, else `none`. */
 export const fromTreasure = (self: Pick<Fighter, 'treasure'>, index: number, row: readonly number[], none = 0): number => {
   const tier = treasureTier(self, index);
-  return tier > 0 ? atTier(row, tier) : none;
+  return tier >= 0 ? atTier(row, tier) : none;
 };
 
 /** A hero's treasures' names, and what one does at a tier, as the bot says them (null: no such hero or treasure). */

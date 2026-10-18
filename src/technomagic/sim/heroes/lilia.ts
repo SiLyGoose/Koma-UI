@@ -1,7 +1,7 @@
 import { away, filling, put } from '../combat/status';
 import { said, t5Light } from '../perks';
 import { MAX_MANA, SECTION } from '../rules';
-import { fromTreasure, treasure, treasureTier } from '../treasures';
+import { fromTreasure, treasure, wearsTreasure } from '../treasures';
 import { num, pct, skillArt, type Buff } from '../shown';
 import type { Fighter } from '../types';
 import { atTier, CIELAMAHA, CIELAMAHA_UP } from '../unique';
@@ -39,10 +39,10 @@ const PERKS = { slow: 250, slowLasts: 10, tempest: 0.2, most: 15, critDamage: 0.
  * Purification's crit DMG and more mana every so often, for a while.
  */
 const UT = {
-  whisper: { cooldown: 2.5, takes: [0.12, 0.14, 0.17, 0.21, 0.25] },
-  heart: { critDamage: [0.24, 0.29, 0.35, 0.42, 0.5] },
-  kettle: { chance: 0.07, blow: 1000, critDamage: [0.024, 0.029, 0.035, 0.042, 0.05], lasts: 7 },
-  key: { every: 10, critDamage: 0.8, mana: [0.36, 0.43, 0.52, 0.63, 0.75], lasts: 5 },
+  whisper: { cooldown: 2.5, takes: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25] },
+  heart: { critDamage: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5] },
+  kettle: { chance: 0.07, blow: 1000, critDamage: [0.02, 0.024, 0.029, 0.035, 0.042, 0.05], lasts: 7 },
+  key: { every: 10, critDamage: 0.8, mana: [0.3, 0.36, 0.43, 0.52, 0.63, 0.75], lasts: 5 },
 };
 
 const art = skillArt('lilia');
@@ -147,7 +147,7 @@ export const LILIA: HeroDef = {
     /** A blow of hers: Bottomless Kettle, now and then a great drop more, and crit DMG. */
     const strike = (amount: number): boolean => {
       const critical = fight.hit(self, amount);
-      if (treasureTier(self, 2) > 0 && fight.roll() < UT.kettle.chance) {
+      if (wearsTreasure(self, 2) && fight.roll() < UT.kettle.chance) {
         fight.hit(self, UT.kettle.blow, false);
         put(self.statuses, { name: KETTLE.name, left: UT.kettle.lasts, critDamage: fromTreasure(self, 2, UT.kettle.critDamage), shown: KETTLE });
       }
@@ -223,7 +223,7 @@ export const LILIA: HeroDef = {
         put(self.statuses, { name: FLOWING.name, left: Infinity, atk: purification + regen / PURIFICATION.per + dark, ...(self.perks.has('s4-dark') && { deals: 1 + PERKS.boss }), shown: FLOWING });
         if (self.perks.has('t5-dark')) put(self.statuses, { name: SURGING.name, left: Infinity, count: Math.floor(self.mana / SECTION), shown: SURGING });
         // Key of Purity: every so often, crit DMG and faster mana for a while.
-        if (treasureTier(self, 3) > 0) {
+        if (wearsTreasure(self, 3)) {
           key += dt;
           if (key >= UT.key.every) {
             key -= UT.key.every;
@@ -238,7 +238,7 @@ export const LILIA: HeroDef = {
             tempestTick -= TEMPEST.every;
             strike(TEMPEST.blow * (1 + PERKS.tempest * tempests));
             if (self.perks.has('s1-light')) fight.slow(PERKS.slow, PERKS.slowLasts);
-            if (treasureTier(self, 0) > 0) put(fight.foe.statuses, { name: 'Whisper of Sea', left: TEMPEST.every * 2, takes: { physical: 1 + fromTreasure(self, 0, UT.whisper.takes) }, shown: 'curse' });
+            if (wearsTreasure(self, 0)) put(fight.foe.statuses, { name: 'Whisper of Sea', left: TEMPEST.every * 2, takes: { physical: 1 + fromTreasure(self, 0, UT.whisper.takes) }, shown: 'curse' });
           }
         }
       },
