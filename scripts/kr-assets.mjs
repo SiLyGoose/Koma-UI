@@ -4,7 +4,10 @@
  * where its owner's files are kept (src/technomagic/assets/paths.ts): heroes/<hero>/…, bosses/<boss>/…,
  * effects/….
  *
- *   node scripts/kr-assets.mjs
+ *   node scripts/kr-assets.mjs [--force]
+ *
+ * A model already there is kept as it is (its textures may have been put right since: KR-extracted/scripts/kr-tints.py),
+ * unless --force, which copies every one again.
  *
  * Each model is a folder holding its .fbx and textures; they are looked for in the folders below, or
  * in the ones KR_SOURCES names (separated by ;). (Their animations, King's Raid's own, are made by
@@ -26,11 +29,13 @@ const sources = (
   ]
 ).filter(Boolean);
 const out = resolve(import.meta.dirname, '../public/kr');
+const force = process.argv.includes('--force');
 
 let missing = 0;
 
-/** Copies a model's folder (found by its name in the sources) to where it is kept, under public/kr/. */
+/** Copies a model's folder (found by its name in the sources) to where it is kept, under public/kr/ (unless it is there already). */
 function copyModel(name, to) {
+  if (!force && existsSync(join(out, to))) return;
   const from = sources.map((source) => join(source, name)).find((path) => existsSync(path));
   if (!from) {
     console.error(`not found: ${name}`);
