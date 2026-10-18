@@ -244,6 +244,7 @@ function actions(ctx: HeroesContext): HeroActions {
     reroll(copy: HeroCopy, option: number | 'unique') {
       void change(ctx, act, `reroll:${copy.id}:${option}`, '/api/heroes/reroll', { copy: copy.id, option }, 'Could not reroll that. Try again.', {
         too_poor: 'Not enough zeiucoins to reroll that.',
+        no_gems: 'Not enough komaGems to reroll that.',
       }).then(() => void ctx.host.loadMe(true));
     },
     upgrade(copy: HeroCopy) {

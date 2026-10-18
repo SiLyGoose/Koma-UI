@@ -424,7 +424,12 @@ function krSections(ctx: HeroesContext, act: HeroActions, copy: HeroCopy, fits: 
   if (copy.additional) {
     const row = el('div', `kr-option${copy.additionalActive ? '' : ' off'}`);
     row.append(rich(copy.additional));
-    if (own && copy.rerollUnique !== null) row.append(sectionButton(ctx, `Reroll · ${copy.rerollUnique.toLocaleString()}`, `reroll:${copy.id}:unique`, () => act.reroll(copy, 'unique')));
+    // (Its reroll: in komaGems.)
+    if (own && copy.rerollUnique !== null) {
+      const button = sectionButton(ctx, `Reroll · ${copy.rerollUnique.toLocaleString()} `, `reroll:${copy.id}:unique`, () => act.reroll(copy, 'unique'));
+      button.append(rich(GEM_EMOJI));
+      row.append(button);
+    }
     out.push(krSection('Unique Option', [row]));
   }
   if (copy.setBonuses.length > 0 && copy.krSet) {

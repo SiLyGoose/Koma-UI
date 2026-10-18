@@ -259,9 +259,12 @@
   filter: drop-shadow(0 1px 2px rgb(0 0 0 / 80%));
 }
 
-/* On another of their heroes: a darker tag than Equipped, so it reads as elsewhere. */
+/* On another of their heroes: its strip edged in grey, not gold, and its words paler, so it reads as elsewhere. */
 .armory-grid .item-tag.elsewhere {
-  background: rgb(44 42 52 / 88%);
+  background:
+    linear-gradient(90deg, transparent, rgb(14 11 18 / 92%) 18%, rgb(14 11 18 / 92%) 82%, transparent) padding-box,
+    linear-gradient(90deg, transparent, rgb(190 185 205 / 70%) 25%, rgb(190 185 205 / 70%) 75%, transparent) border-box;
+  color: #ddd6ea;
 }
 
 /* A class item on a hero of another class: does nothing there. */
