@@ -4,7 +4,7 @@ import { fromTreasure, treasure, treasureTier } from '../treasures';
 import { MAX_MANA, SECTION } from '../rules';
 import { num, pct, skillArt, type Buff } from '../shown';
 import { ACRAVITA, ACRAVITA_UP, atTier } from '../unique';
-import { CLASS_STATS, dmg, indexed, type HeroDef, type Passive } from './kit';
+import { bookDmg, CLASS_STATS, dmg, type HeroDef, indexed, type Passive } from './kit';
 import { CODED } from './moves';
 
 /*
@@ -77,7 +77,7 @@ export const NERAXIS: HeroDef = {
     {
       name: 'Black Lightning Claw',
       about: `A blow, and a second after a blow more that stuns the boss for ${CLAW.stun} seconds.`,
-      words: `Draws enemies towards the target and deals ${dmg('knight', CLAW.blow)} M.DMG. Deals ${dmg('knight', CLAW.after)} M.DMG around the target after 1 sec and stuns them for ${CLAW.stun} sec. Reduces ATK Spd of hit enemies by ${CLAW.speed} for ${CLAW.slowed} sec.`,
+      words: `Draws enemies towards the target and deals ${dmg('knight', CLAW.blow, bookDmg('neraxis', 0))} M.DMG. Deals ${dmg('knight', CLAW.after, bookDmg('neraxis', 0))} M.DMG around the target after 1 sec and stuns them for ${CLAW.stun} sec. Reduces ATK Spd of hit enemies by ${CLAW.speed} for ${CLAW.slowed} sec.`,
       icon: '⚡',
       art: art(0),
       move: 'lightning',
@@ -87,7 +87,7 @@ export const NERAXIS: HeroDef = {
     {
       name: 'Obsidian Roar',
       about: `Every ally +${num(ROAR.more)} ATK, P.DEF and M.DEF for ${ROAR.lasts} seconds; a blow, and the boss’s ATK ${pct(ROAR.weaker)} lower meanwhile.`,
-      words: `Increases ATK, P.DEF, and M.DEF of all allies by ${num(ROAR.more)} for ${ROAR.lasts} sec. Deals ${dmg('knight', ROAR.blow)} M.DMG to all enemies and reduces their ATK by ${pct(ROAR.weaker)} for ${ROAR.lasts} sec.`,
+      words: `Increases ATK, P.DEF, and M.DEF of all allies by ${num(ROAR.more)} for ${ROAR.lasts} sec. Deals ${dmg('knight', ROAR.blow, bookDmg('neraxis', 1))} M.DMG to all enemies and reduces their ATK by ${pct(ROAR.weaker)} for ${ROAR.lasts} sec.`,
       icon: '🐉',
       art: art(1),
       move: 'roar',
@@ -98,7 +98,7 @@ export const NERAXIS: HeroDef = {
     {
       name: 'Breath of Destruction',
       about: `Six blows, each taking ${pct(BREATH.weaker)} of the boss’s M.DEF for ${BREATH.lasts} second and stunning it for ${BREATH.stun} second.`,
-      words: `Deals a total of ${dmg('knight', BREATH.blow * CODED.breath.lands.length)} M.DMG to enemies within a large area around the target over 6 times and reduces their M.DEF by ${pct(BREATH.weaker)} for ${BREATH.lasts} sec. Each hit stuns the enemy for ${BREATH.stun} sec.`,
+      words: `Deals a total of ${dmg('knight', BREATH.blow * CODED.breath.lands.length, bookDmg('neraxis', 2))} M.DMG to enemies within a large area around the target over 6 times and reduces their M.DEF by ${pct(BREATH.weaker)} for ${BREATH.lasts} sec. Each hit stuns the enemy for ${BREATH.stun} sec.`,
       icon: '🌋',
       art: art(2),
       move: 'breath',

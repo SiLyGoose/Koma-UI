@@ -5,7 +5,7 @@ import { fromTreasure, treasure, treasureTier } from '../treasures';
 import { MAX_MANA } from '../rules';
 import { num, pct, skillArt, type Buff } from '../shown';
 import { atTier, GALICTA, GALICTA_UP } from '../unique';
-import { CLASS_STATS, dmg, type HeroDef, type Passive } from './kit';
+import { bookDmg, CLASS_STATS, dmg, type HeroDef, type Passive } from './kit';
 
 /*
  * Rebel Klaus's skills, as the game has them (the game's Rebel Clause: what each costs, how long before it can be used
@@ -61,7 +61,7 @@ const POWER_OF_GALICTA: Passive = {
     icon: '🗡️',
     art: art(3),
   },
-  words: `Rebel Klaus is not affected by Block stats, but his Crit Chance increases by ${GALICTA_POWER.crit}, and when his DEF Penetration reaches ${num(GALICTA_POWER.whole)} or above, all of his attacks ignore the target's DEF. Additionally, his normal attack deal additional ${dmg('warrior', GALICTA_POWER.blow)} P.DMG to all enemies and inflict [Curse of Galicta] upon them for ${GALICTA_POWER.lasts} sec. If the target is already inflicted with [Curse of Galicta], the target won't take additional DMG.`,
+  words: `Rebel Klaus is not affected by Block stats, but his Crit Chance increases by ${GALICTA_POWER.crit}, and when his DEF Penetration reaches ${num(GALICTA_POWER.whole)} or above, all of his attacks ignore the target's DEF. Additionally, his normal attack deal additional ${dmg('warrior', GALICTA_POWER.blow, bookDmg('rebel-klaus', 3))} P.DMG to all enemies and inflict [Curse of Galicta] upon them for ${GALICTA_POWER.lasts} sec. If the target is already inflicted with [Curse of Galicta], the target won't take additional DMG.`,
 };
 /** [Indomitable Will] on him; Galicta's DMG stacks on him. */
 const WILLED: Buff = { name: 'Indomitable Will', about: `ATK Spd +${WILL.speed}, and held down ${pct(WILL.held)} as long.`, icon: '🔥', art: art(1) };
@@ -80,7 +80,7 @@ export const REBEL_KLAUS: HeroDef = {
     {
       name: 'Determined Strike',
       about: `A blow that stuns the boss for ${DETERMINED.stun} seconds, and a blow more against a boss.`,
-      words: `Deals ${dmg('warrior', DETERMINED.blow)} P.DMG to frontal enemies within range and inflicts Stun for ${DETERMINED.stun} sec. If the target is a boss, deals additional ${dmg('warrior', DETERMINED.boss)} P.DMG.`,
+      words: `Deals ${dmg('warrior', DETERMINED.blow, bookDmg('rebel-klaus', 0))} P.DMG to frontal enemies within range and inflicts Stun for ${DETERMINED.stun} sec. If the target is a boss, deals additional ${dmg('warrior', DETERMINED.boss, bookDmg('rebel-klaus', 0))} P.DMG.`,
       icon: '⚔️',
       art: art(0),
       move: 'determined',
@@ -90,7 +90,7 @@ export const REBEL_KLAUS: HeroDef = {
     {
       name: 'Indomitable Will',
       about: `A blow, and [Indomitable Will] for ${WILL.lasts} seconds: ATK Spd +${WILL.speed}, and what knocks him down holds him ${pct(WILL.held)} as long.`,
-      words: `Deals ${dmg('warrior', WILL.blow)} P.DMG to nearby enemies, entering into the irremoveable state [Indomitable Will] for ${WILL.lasts} sec. While in [Indomitable Will] state, ATK Spd is increased by ${WILL.speed} and the duration of CC inflicted upon self is reduced by ${pct(1 - WILL.held)}.`,
+      words: `Deals ${dmg('warrior', WILL.blow, bookDmg('rebel-klaus', 1))} P.DMG to nearby enemies, entering into the irremoveable state [Indomitable Will] for ${WILL.lasts} sec. While in [Indomitable Will] state, ATK Spd is increased by ${WILL.speed} and the duration of CC inflicted upon self is reduced by ${pct(1 - WILL.held)}.`,
       icon: '🔥',
       art: art(1),
       move: 'indomitable',
@@ -100,7 +100,7 @@ export const REBEL_KLAUS: HeroDef = {
     {
       name: 'Perish.',
       about: `Blows on the boss one after another, and a last that knocks it down for ${PERISH.down} seconds.`,
-      words: `Attacks a random enemy 6 times, dealing ${dmg('warrior', PERISH.blow)} P.DMG each hit. Afterward, delivers an additional attack that deals ${dmg('warrior', PERISH.last)} P.DMG to nearby enemies and knocks them down for ${PERISH.down} sec.`,
+      words: `Attacks a random enemy 6 times, dealing ${dmg('warrior', PERISH.blow, bookDmg('rebel-klaus', 2))} P.DMG each hit. Afterward, delivers an additional attack that deals ${dmg('warrior', PERISH.last, bookDmg('rebel-klaus', 2))} P.DMG to nearby enemies and knocks them down for ${PERISH.down} sec.`,
       icon: '💀',
       art: art(2),
       move: 'perish',

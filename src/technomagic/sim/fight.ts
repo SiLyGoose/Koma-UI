@@ -8,7 +8,7 @@ import { KR_HEROES } from './heroes/kr';
 import type { HeroMove } from './heroes/moves';
 import { motionOf } from './motion';
 import { seeded } from './random';
-import { AUTO, AUTO_WAIT, BLOW, BOSS_X, CRIT, formation, HERO_WAIT, HERO_X, MANA_PER_ATTACK, MARCH, MARCH_ABREAST, MARCH_FROM, marchLeft, MARCH_ROW, MANA_PER_HP_LOST, MANA_RATE, MAX_MANA, MOST, rage, RAGE_WIPE, RAID_TIME, REFORM, SECTION, TICK } from './rules';
+import { AUTO, AUTO_WAIT, BLOW, BOSS_X, CLASS_BUFF, CRIT, formation, HERO_WAIT, HERO_X, MANA_PER_ATTACK, MARCH, MARCH_ABREAST, MARCH_FROM, marchLeft, MARCH_ROW, MANA_PER_HP_LOST, MANA_RATE, MAX_MANA, MOST, rage, RAGE_WIPE, RAID_TIME, REFORM, SECTION, TICK } from './rules';
 import { AUTHORITY, GUARDED, HOPE, PERSEVERANCE, setOf } from './sets';
 import type { Buff, Mark } from './shown';
 import { CHAMPION_UP, DESPERATION_UP, MENDING_UP, SKILL, skilledCritDamage, skilledStats, skillsOf, SURGE_UP, type SkillId } from './skills';
@@ -186,6 +186,9 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     const perks = perkSets[index] as Map<string, PerkDef>;
     const gear = withPerks(worn, perks.values());
     if (battleCry > 0) gear.hp = (gear.hp ?? 0) + battleCry;
+    // (And its class buffs: ../rules.ts.)
+    gear.atk = (gear.atk ?? 0) + CLASS_BUFF.atk;
+    gear.hp = (gear.hp ?? 0) + CLASS_BUFF.hp;
     const stats = perkedStats(geared(hero.stats, gear), perks.values());
     // A set's effects on its wearer's own stats, from the start.
     if (set?.id === 'authority' && set.role === 'dps') stats.pen += AUTHORITY.pen;
@@ -394,8 +397,22 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
   const byAttack = (by: Fighter | undefined): number =>
     by ? (by.stats.atk / ATK) * atkTimes(by) * by.healTimes * (bears(by, MENDING_UP.name) ? 1 + SKILL.mending.heal * has(by, 'mending') : 1) : 1;
 
-  /** How many times as much the heal or shield of the skill landing gives, by its perks (its main unique treasure's: moveHeals). */
-  const healed = (by: Fighter | undefined): number => (by && landing?.by === by ? (by.moveHeals[landing.move] ?? 1) : 1);
+  /**
+   * Its skills' books (./heroes/kr.ts: all of them), on what of its own lands (`kind`: its blows, or its heals and shields): the
+   * skill using's; what comes of one later, or of its passive, as its books give on the whole (those that give any). Its
+   * attack's, none.
+   */
+  const bookShare = (by: Fighter, kind: 'dmg' | 'heal'): number => {
+    if (attacking === by) return 0;
+    const books = KR_HEROES[by.id]?.books[kind];
+    if (!books) return 0;
+    const skill = landing?.by === by ? by.doing?.skill : undefined;
+    if (skill !== undefined) return books[skill] ?? 0;
+    const some = books.filter((one) => one > 0);
+    return some.length > 0 ? some.reduce((sum, one) => sum + one, 0) / some.length : 0;
+  };
+  /** How many times as much the heal or shield of the skill landing gives, by its books and its perks (its main unique treasure's: moveHeals), added up as King's Raid's skill power is. */
+  const healed = (by: Fighter | undefined): number => (by ? 1 + bookShare(by, 'heal') + (landing?.by === by ? (by.moveHeals[landing.move] ?? 1) : 1) - 1 : 1);
 
   /** Deathless: a hero brought down is whole again. */
   function spare(fighter: Fighter): void {
@@ -723,9 +740,11 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       const seen = acc > 0 ? seenPast(stood, acc) : stood;
       const through = whole || (landing?.by === by && by.moveWhole.has(landing.move));
       const against = through ? { ...seen, physical: 0, magical: 0 } : { ...seen, physical: seen.physical * defending(foe.statuses, 'physical'), magical: seen.magical * defending(foe.statuses, 'magical') };
-      // (Its DMG, all that makes it more, and what is on the boss that has it take more, add up: King's Raid's damage amplifiers.)
-      const more = amplified([dmgTimes(by), attack, ...deals(by.statuses), by.perkDmg, skilled, by.part.deals?.() ?? 1, ...takes(foe.statuses, type)]);
-      const { taken, blocked, dodged } = strike(amount * (atk / POINTS) * atkTimes(by) * more * (critical ? critTimes : 1), type, against, pen + auras.pen + pierce + piercing(by.statuses), reachAt(HERO_LEVEL), roll);
+      // (Its skill's power: its books and its perks for the skill, added up. Then its DMG, all that makes it more, and what is on the
+      // boss that has it take more, added up: King's Raid's damage amplifiers.)
+      const power = 1 + bookShare(by, 'dmg') + skilled - 1;
+      const more = amplified([dmgTimes(by), attack, ...deals(by.statuses), by.perkDmg, by.part.deals?.() ?? 1, ...takes(foe.statuses, type)]);
+      const { taken, blocked, dodged } = strike(amount * (atk / POINTS) * atkTimes(by) * power * more * (critical ? critTimes : 1), type, against, pen + auras.pen + pierce + piercing(by.statuses), reachAt(HERO_LEVEL), roll);
       if (dodged) {
         events.push({ kind: 'number', on: 'boss', amount: 0, type: 'dodged' });
         return false;

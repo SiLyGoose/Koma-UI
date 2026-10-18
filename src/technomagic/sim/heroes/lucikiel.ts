@@ -3,7 +3,7 @@ import { said, t5Light } from '../perks';
 import { fromTreasure, treasure, treasureTier } from '../treasures';
 import { pct, skillArt, type Buff } from '../shown';
 import { atTier, GIGANTE, GIGANTE_UP } from '../unique';
-import { CLASS_STATS, dmg, healed, type Ability, type HeroDef, type Passive } from './kit';
+import { type Ability, bookDmg, bookHeal, CLASS_STATS, dmg, healed, type HeroDef, type Passive } from './kit';
 import { CODED } from './moves';
 
 /*
@@ -67,7 +67,7 @@ const ARMOR_OF_THE_DEMON_GOD: Passive = {
     icon: '🛡️',
     art: art(3),
   },
-  words: `Reduces All DMG taken by ${pct(1 - ARMOR.taken)} and the duration of CC by ${pct(1 - ARMOR.held)}. Upon every Skill use, creates [Authority of the Demon God] that absorbs ${healed('wizard', ARMOR.shield)} DMG for ${ARMOR.lasts} sec. Gains immunity to CC for the duration of [Authority of the Demon God].`,
+  words: `Reduces All DMG taken by ${pct(1 - ARMOR.taken)} and the duration of CC by ${pct(1 - ARMOR.held)}. Upon every Skill use, creates [Authority of the Demon God] that absorbs ${healed('wizard', ARMOR.shield, bookHeal('lucikiel', 3))} DMG for ${ARMOR.lasts} sec. Gains immunity to CC for the duration of [Authority of the Demon God].`,
 };
 /** What Annihilation Wave's slot holds once it is used (its picture is the game's for it, past his passive's). */
 const SURGE_SKILL: Ability = {
@@ -101,7 +101,7 @@ export const LUCIKIEL: HeroDef = {
     {
       name: 'Death Storm',
       about: `${STORM.hits} blows that leave [Shadow of Death] on the boss for ${SHADOW.lasts} seconds: it eats at the boss every second and leaves it healed ${pct(1 - SHADOW.heals)} less.`,
-      words: `Attacks the target and nearby enemies ${STORM.hits} times, dealing a total of ${dmg('wizard', STORM.blow * STORM.hits)} M.DMG and leaving a [Shadow of Death]. [Shadow of Death] deals ${dmg('wizard', SHADOW.each * SHADOW.lasts)} M.DMG and reduces the target's Heal Rate by ${pct(1 - SHADOW.heals)} over ${SHADOW.lasts} sec.`,
+      words: `Attacks the target and nearby enemies ${STORM.hits} times, dealing a total of ${dmg('wizard', STORM.blow * STORM.hits, bookDmg('lucikiel', 0))} M.DMG and leaving a [Shadow of Death]. [Shadow of Death] deals ${dmg('wizard', SHADOW.each * SHADOW.lasts, bookDmg('lucikiel', 0))} M.DMG and reduces the target's Heal Rate by ${pct(1 - SHADOW.heals)} over ${SHADOW.lasts} sec.`,
       icon: '🌪️',
       art: art(0),
       move: 'storm',
@@ -111,7 +111,7 @@ export const LUCIKIEL: HeroDef = {
     {
       name: 'Annihilation Wave',
       about: `A blow that stuns the boss for ${WAVE.stun} seconds, and a blow more. Used, this slot holds [Annihilation Surge].`,
-      words: `Attacks frontal enemies within range 2 times. The first attack deals ${dmg('wizard', WAVE.blow)} M.DMG and inflicts Stun for ${WAVE.stun} sec. The second attack deals ${dmg('wizard', WAVE.blow)} M.DMG and draws in hit targets in front of self. After use, the Skill changes to [Annihilation Surge].`,
+      words: `Attacks frontal enemies within range 2 times. The first attack deals ${dmg('wizard', WAVE.blow, bookDmg('lucikiel', 1))} M.DMG and inflicts Stun for ${WAVE.stun} sec. The second attack deals ${dmg('wizard', WAVE.blow, bookDmg('lucikiel', 1))} M.DMG and draws in hit targets in front of self. After use, the Skill changes to [Annihilation Surge].`,
       icon: '🌊',
       art: art(1),
       move: 'wave',
@@ -121,7 +121,7 @@ export const LUCIKIEL: HeroDef = {
     {
       name: 'Doomsday',
       about: `${DOOMSDAY.hits} blows, the last knocking the boss down for ${DOOMSDAY.down} seconds and leaving [Pain of Doom] on it for ${PAIN.lasts}: each blow of his on it meanwhile deals more.`,
-      words: `Attacks nearby enemies ${DOOMSDAY.hits} times, dealing ${dmg('wizard', DOOMSDAY.blow)} M.DMG each, and draws them in front of self. The last hit deals ${dmg('wizard', DOOMSDAY.last)} more M.DMG, knocks down hit targets for ${DOOMSDAY.down} sec, and leaves [Pain of Doom] that lasts for ${PAIN.lasts} sec. Each time Lucikiel attacks targets inflicted with [Pain of Doom] with a normal or Skill attack, he deals additional ${dmg('wizard', PAIN.blow)} M.DMG.`,
+      words: `Attacks nearby enemies ${DOOMSDAY.hits} times, dealing ${dmg('wizard', DOOMSDAY.blow, bookDmg('lucikiel', 2))} M.DMG each, and draws them in front of self. The last hit deals ${dmg('wizard', DOOMSDAY.last, bookDmg('lucikiel', 2))} more M.DMG, knocks down hit targets for ${DOOMSDAY.down} sec, and leaves [Pain of Doom] that lasts for ${PAIN.lasts} sec. Each time Lucikiel attacks targets inflicted with [Pain of Doom] with a normal or Skill attack, he deals additional ${dmg('wizard', PAIN.blow, bookDmg('lucikiel', 2))} M.DMG.`,
       icon: '☄️',
       art: art(2),
       move: 'doomsday',

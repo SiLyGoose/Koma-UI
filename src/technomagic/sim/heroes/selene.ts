@@ -4,7 +4,7 @@ import { said, t5Light } from '../perks';
 import { fromTreasure, treasure, treasureTier } from '../treasures';
 import { fine, num, pct, skillArt, type Buff } from '../shown';
 import { atTier, NOTOS, NOTOS_UP } from '../unique';
-import { CLASS_STATS, dmg, indexed, type HeroDef, type Passive } from './kit';
+import { bookDmg, CLASS_STATS, dmg, type HeroDef, indexed, type Passive } from './kit';
 import { CODED } from './moves';
 
 /*
@@ -75,7 +75,7 @@ export const SELENE: HeroDef = {
     {
       name: 'Arrow Rain',
       about: `${RAIN.arrows} arrows at the boss.`,
-      words: `Shoots ${RAIN.arrows} arrows to random enemies and deals a total of ${dmg('archer', RAIN.blow * RAIN.arrows)} P.DMG.`,
+      words: `Shoots ${RAIN.arrows} arrows to random enemies and deals a total of ${dmg('archer', RAIN.blow * RAIN.arrows, bookDmg('selene', 0))} P.DMG.`,
       icon: '🏹',
       art: art(0),
       move: 'rain',
@@ -85,7 +85,7 @@ export const SELENE: HeroDef = {
     {
       name: 'Rush',
       about: `${RUSH.arrows} arrows that launch at the boss.`,
-      words: `Upon attacking, summons ${RUSH.arrows} arrows that launch towards the enemy. Each arrow deals ${dmg('archer', RUSH.blow)} P.DMG.`,
+      words: `Upon attacking, summons ${RUSH.arrows} arrows that launch towards the enemy. Each arrow deals ${dmg('archer', RUSH.blow, bookDmg('selene', 1))} P.DMG.`,
       icon: '💨',
       art: art(1),
       move: 'rush',
@@ -95,7 +95,7 @@ export const SELENE: HeroDef = {
     {
       name: 'Moonlight Flash',
       about: `An arrow the harder the more of the boss’s health is left, knocking it down for ${FLASH.down} seconds, and a blow more through its defense.`,
-      words: `Fires an arrow in a straight line, dealing P.DMG to all enemies in range based on the target's remaining HP. Deals a maximum of ${dmg('archer', FLASH.most)} P.DMG and knocks down the target. Against Bosses, deals additional ${dmg('archer', FLASH.boss)} P.DMG that ignores DEF.`,
+      words: `Fires an arrow in a straight line, dealing P.DMG to all enemies in range based on the target's remaining HP. Deals a maximum of ${dmg('archer', FLASH.most, bookDmg('selene', 2))} P.DMG and knocks down the target. Against Bosses, deals additional ${dmg('archer', FLASH.boss, bookDmg('selene', 2))} P.DMG that ignores DEF.`,
       icon: '🌕',
       art: art(2),
       move: 'flash',

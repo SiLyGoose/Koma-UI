@@ -5,7 +5,7 @@ import { fromTreasure, treasure, treasureTier } from '../treasures';
 import { MAX_MANA, SECTION } from '../rules';
 import { fine, pct, seconds, skillArt, type Buff } from '../shown';
 import { atTier, ELSION, ELSION_UP } from '../unique';
-import { CLASS_STATS, dmg, indexed, type Ability, type HeroDef, type Passive } from './kit';
+import { type Ability, bookDmg, CLASS_STATS, dmg, type HeroDef, indexed, type Passive } from './kit';
 import { CODED } from './moves';
 
 /*
@@ -86,7 +86,7 @@ export const SERIA: HeroDef = {
     {
       name: 'Mysterious Sword - Falling Petals',
       about: `A cut across the boss. For ${PETALS.window} seconds after, this slot holds [Mysterious Sword - Blossom], once.`,
-      words: `Performs a horizontal slash to the front and deals ${dmg('warrior', PETALS.blow)} M.DMG to the target and enemies in a narrow range. Can activate [Mysterious Sword - Blossom] (${BLOSSOM_SKILL.cost} Mana: a vertical slash to the front, dealing ${dmg('warrior', BLOSSOM.blow)} M.DMG to the target and enemies in a narrow range) once within ${PETALS.window} sec after use.`,
+      words: `Performs a horizontal slash to the front and deals ${dmg('warrior', PETALS.blow, bookDmg('seria', 0))} M.DMG to the target and enemies in a narrow range. Can activate [Mysterious Sword - Blossom] (${BLOSSOM_SKILL.cost} Mana: a vertical slash to the front, dealing ${dmg('warrior', BLOSSOM.blow, bookDmg('seria', 0))} M.DMG to the target and enemies in a narrow range) once within ${PETALS.window} sec after use.`,
       icon: '🌸',
       art: art(0),
       move: 'petals',
@@ -96,7 +96,7 @@ export const SERIA: HeroDef = {
     {
       name: 'Blood Scattering Blade',
       about: `A rush in with a cut that leaves [Original Sin of Blood] (the boss’s attacks ${pct(share(SCATTER.speed))} slower for ${SCATTER.lasts} seconds); then ${SCATTER.cuts} more cuts, each with a blow more through its defense.`,
-      words: `Rapidly charges forward to deal ${dmg('warrior', SCATTER.rush)} M.DMG and inflicts irremovable Original Sin of Blood on enemies for ${SCATTER.lasts} sec. Enemies under Original Sin of Blood have their ATK Spd reduced by ${SCATTER.speed}. Shortly afterward, attacks enemies under Original Sin of Blood ${SCATTER.cuts} times, and deals additional ${dmg('warrior', SCATTER.cut * SCATTER.cuts)} M.DMG, and if the target is not a hero, deals additional ${dmg('warrior', SCATTER.through * SCATTER.cuts)} DEF Ignoring M.DMG.`,
+      words: `Rapidly charges forward to deal ${dmg('warrior', SCATTER.rush, bookDmg('seria', 1))} M.DMG and inflicts irremovable Original Sin of Blood on enemies for ${SCATTER.lasts} sec. Enemies under Original Sin of Blood have their ATK Spd reduced by ${SCATTER.speed}. Shortly afterward, attacks enemies under Original Sin of Blood ${SCATTER.cuts} times, and deals additional ${dmg('warrior', SCATTER.cut * SCATTER.cuts, bookDmg('seria', 1))} M.DMG, and if the target is not a hero, deals additional ${dmg('warrior', SCATTER.through * SCATTER.cuts, bookDmg('seria', 1))} DEF Ignoring M.DMG.`,
       icon: '🩸',
       art: art(1),
       move: 'scatter',
@@ -106,7 +106,7 @@ export const SERIA: HeroDef = {
     {
       name: 'Red Moon Blade',
       about: `A great cut, harder on a boss. Used in [Moonlight] (${seconds(MOON.light)} of it every ${MOON.every} seconds): it cuts again, and the boss is healed ${pct(1 - MOON.heals)} less for ${MOON.unhealed} seconds.`,
-      words: `Brandishes a moon-bloodying sword, dealing ${dmg('warrior', MOON.blow)} M.DMG to enemies in a wide range, and additional ${dmg('warrior', MOON.boss)} M.DMG on non-Hero enemies. When the moon is ripe, gains Moonlight for ${MOON.light} sec, and when cast at this state, deals ${dmg('warrior', MOON.ripe)} M.DMG to enemies and reduces their Heal Rate by ${pct(1 - MOON.heals)}. If the target is not a hero, deals additional ${dmg('warrior', MOON.ripeBoss)} M.DMG.`,
+      words: `Brandishes a moon-bloodying sword, dealing ${dmg('warrior', MOON.blow, bookDmg('seria', 2))} M.DMG to enemies in a wide range, and additional ${dmg('warrior', MOON.boss, bookDmg('seria', 2))} M.DMG on non-Hero enemies. When the moon is ripe, gains Moonlight for ${MOON.light} sec, and when cast at this state, deals ${dmg('warrior', MOON.ripe, bookDmg('seria', 2))} M.DMG to enemies and reduces their Heal Rate by ${pct(1 - MOON.heals)}. If the target is not a hero, deals additional ${dmg('warrior', MOON.ripeBoss, bookDmg('seria', 2))} M.DMG.`,
       icon: '🌙',
       art: art(2),
       move: 'moon',

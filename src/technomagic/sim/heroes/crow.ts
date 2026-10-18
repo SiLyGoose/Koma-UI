@@ -4,7 +4,7 @@ import { fromTreasure, treasure } from '../treasures';
 import { MAX_MANA } from '../rules';
 import { num, pct, skillArt, type Buff } from '../shown';
 import { AKISTRA, AKISTRA_UP, atTier } from '../unique';
-import { CLASS_STATS, dmg, indexed, type HeroDef, type Passive } from './kit';
+import { bookDmg, CLASS_STATS, dmg, type HeroDef, indexed, type Passive } from './kit';
 import { CODED } from './moves';
 
 /*
@@ -83,7 +83,7 @@ export const CROW: HeroDef = {
     {
       name: 'Target will be Eliminated.',
       about: `${ELIMINATE.shots} shots, then ${ELIMINATE.marks} [Hunting Dog’s Fang Marks] on the boss (up to ${FANG.most}, for ${FANG.lasts} seconds).`,
-      words: `Deals a total of ${dmg('mechanic', ELIMINATE.blow * ELIMINATE.shots)} P.DMG to enemies in front over ${ELIMINATE.shots} times and leaves ${ELIMINATE.marks} 'Hunting Dog's Fang Marks' for ${FANG.lasts} sec. Hunting Dog's Fang Mark stacks up to max ${FANG.most} times.`,
+      words: `Deals a total of ${dmg('mechanic', ELIMINATE.blow * ELIMINATE.shots, bookDmg('crow', 0))} P.DMG to enemies in front over ${ELIMINATE.shots} times and leaves ${ELIMINATE.marks} 'Hunting Dog's Fang Marks' for ${FANG.lasts} sec. Hunting Dog's Fang Mark stacks up to max ${FANG.most} times.`,
       icon: '🔫',
       art: art(0),
       move: 'eliminate',
@@ -93,7 +93,7 @@ export const CROW: HeroDef = {
     {
       name: 'Struggle is Meaningless.',
       about: `${STRUGGLE.shots} shots, then a Frost Bullet that freezes the boss for ${STRUGGLE.freeze} seconds and leaves a freezing area under it for ${STRUGGLE.area}: every ${STRUGGLE.every} seconds it strikes, with a ${pct(STRUGGLE.chance)} chance to freeze the boss for ${STRUGGLE.chilled}.`,
-      words: `Attacks a random enemy ${STRUGGLE.shots} times and deals a total of ${dmg('mechanic', STRUGGLE.blow * STRUGGLE.shots)} P.DMG. Shoots a Frost Bullet that deals ${dmg('mechanic', STRUGGLE.frost)} P.DMG to target and surrounding enemies, freezing them for ${STRUGGLE.freeze} sec. The special Frost Bullet creates a freezing area for ${STRUGGLE.area} seconds that deals ${dmg('mechanic', STRUGGLE.chill)} P.DMG every ${STRUGGLE.every} sec, with a ${pct(STRUGGLE.chance)} chance to freeze for ${STRUGGLE.chilled} sec.`,
+      words: `Attacks a random enemy ${STRUGGLE.shots} times and deals a total of ${dmg('mechanic', STRUGGLE.blow * STRUGGLE.shots, bookDmg('crow', 1))} P.DMG. Shoots a Frost Bullet that deals ${dmg('mechanic', STRUGGLE.frost, bookDmg('crow', 1))} P.DMG to target and surrounding enemies, freezing them for ${STRUGGLE.freeze} sec. The special Frost Bullet creates a freezing area for ${STRUGGLE.area} seconds that deals ${dmg('mechanic', STRUGGLE.chill, bookDmg('crow', 1))} P.DMG every ${STRUGGLE.every} sec, with a ${pct(STRUGGLE.chance)} chance to freeze for ${STRUGGLE.chilled} sec.`,
       icon: '❄️',
       art: art(1),
       move: 'struggle',
@@ -103,7 +103,7 @@ export const CROW: HeroDef = {
     {
       name: 'Even Gods shall Die.',
       about: `He focuses, then a laser, harder for each [Hunting Dog’s Fang Mark] on the boss (all of them spent), and ${pct(GODS.focus - 1)} harder for his focus.`,
-      words: `Takes position and focuses to shoot a laser, dealing ${dmg('mechanic', GODS.blow)} P.DMG to frontal enemies within range, and consumes target's stack of Hunting Dog's Fang Mark to deal additional ${dmg('mechanic', GODS.each)} P.DMG per each stack. Depending on the focusing time, the effect's range increases, and DMG is increased up to max ${pct(GODS.focus - 1)}. Once the focus is completed, knocks back the enemy far away.`,
+      words: `Takes position and focuses to shoot a laser, dealing ${dmg('mechanic', GODS.blow, bookDmg('crow', 2))} P.DMG to frontal enemies within range, and consumes target's stack of Hunting Dog's Fang Mark to deal additional ${dmg('mechanic', GODS.each, bookDmg('crow', 2))} P.DMG per each stack. Depending on the focusing time, the effect's range increases, and DMG is increased up to max ${pct(GODS.focus - 1)}. Once the focus is completed, knocks back the enemy far away.`,
       icon: '💥',
       art: art(2),
       move: 'gods',

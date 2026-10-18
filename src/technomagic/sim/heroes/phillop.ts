@@ -4,7 +4,7 @@ import { said, t5Light } from '../perks';
 import { fromTreasure, treasure, treasureTier } from '../treasures';
 import { num, pct, skillArt, type Buff } from '../shown';
 import { atTier, ATEIN, ATEIN_UP, DRAGON_RAGE } from '../unique';
-import { CLASS_STATS, dmg, indexed, type HeroDef, type Passive } from './kit';
+import { bookDmg, CLASS_STATS, dmg, type HeroDef, indexed, type Passive } from './kit';
 
 /*
  * Phillop's skills, as the game has them (what each costs, how long before it can be used again, how long what it does
@@ -76,7 +76,7 @@ export const PHILLOP: HeroDef = {
     {
       name: 'Collision',
       about: `A blow that knocks the boss down for ${COLLISION.down} seconds.`,
-      words: `Deals ${dmg('knight', COLLISION.blow)} P.DMG and knocks down the enemy for ${COLLISION.down} sec.`,
+      words: `Deals ${dmg('knight', COLLISION.blow, bookDmg('phillop', 0))} P.DMG and knocks down the enemy for ${COLLISION.down} sec.`,
       icon: '💥',
       art: art(0),
       move: 'collision',
@@ -86,7 +86,7 @@ export const PHILLOP: HeroDef = {
     {
       name: 'Headbutt',
       about: `A dash and a blow: the boss’s attacks ${pct(HEADBUTT.speed / POINTS)} slower for ${HEADBUTT.slowed} seconds.`,
-      words: `Dashes toward the enemy and deals ${dmg('knight', HEADBUTT.blow)} P.DMG, knocking them back. Hit enemy's Attack Spd is reduced by ${pct(HEADBUTT.speed / POINTS)} for ${HEADBUTT.slowed} sec.`,
+      words: `Dashes toward the enemy and deals ${dmg('knight', HEADBUTT.blow, bookDmg('phillop', 1))} P.DMG, knocking them back. Hit enemy's Attack Spd is reduced by ${pct(HEADBUTT.speed / POINTS)} for ${HEADBUTT.slowed} sec.`,
       icon: '🐏',
       art: art(1),
       move: 'headbutt',

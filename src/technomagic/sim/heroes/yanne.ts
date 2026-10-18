@@ -5,7 +5,7 @@ import { fromTreasure, treasure } from '../treasures';
 import { MAX_MANA } from '../rules';
 import { num, pct, skillArt, type Buff } from '../shown';
 import { SVELTA, SVELTA_UP } from '../unique';
-import { CLASS_STATS, dmg, indexed, type HeroDef, type Passive } from './kit';
+import { bookDmg, CLASS_STATS, dmg, type HeroDef, indexed, type Passive } from './kit';
 
 /*
  * Yanne's skills, as the game has them (what each costs, how long before it can be used again, what No Holding Back!
@@ -75,7 +75,7 @@ export const YANNE: HeroDef = {
     {
       name: 'Focus Shot!',
       about: `An arrow, focused on as long as she can (its DMG doubled).`,
-      words: `Taking up a stance, focuses for a while and deals ${dmg('archer', FOCUS.blow)} P.DMG to enemies in a straight line. If the target is a dragon, inflicts Stun for 3 sec. The longer she focuses, DMG and Stun duration are increased by 100%.`,
+      words: `Taking up a stance, focuses for a while and deals ${dmg('archer', FOCUS.blow, bookDmg('yanne', 0))} P.DMG to enemies in a straight line. If the target is a dragon, inflicts Stun for 3 sec. The longer she focuses, DMG and Stun duration are increased by 100%.`,
       icon: '🎯',
       art: art(0),
       move: 'focus',
@@ -85,7 +85,7 @@ export const YANNE: HeroDef = {
     {
       name: 'Wipeout!',
       about: 'A great arrow at the boss.',
-      words: `Deals ${dmg('archer', WIPEOUT.blow)} P.DMG to target enemy and other enemies in range. If the target is a Dragon, deals extra DMG that ignores DEF.`,
+      words: `Deals ${dmg('archer', WIPEOUT.blow, bookDmg('yanne', 1))} P.DMG to target enemy and other enemies in range. If the target is a Dragon, deals extra DMG that ignores DEF.`,
       icon: '💥',
       art: art(1),
       move: 'wipeout',

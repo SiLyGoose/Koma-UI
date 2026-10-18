@@ -4,7 +4,7 @@ import { said, t5Light } from '../perks';
 import { fromTreasure, treasure, treasureTier } from '../treasures';
 import { num, pct, skillArt, type Buff } from '../shown';
 import { atTier, NUMINU, NUMINU_UP } from '../unique';
-import { CLASS_STATS, dmg, indexed, type HeroDef, type Passive } from './kit';
+import { bookDmg, CLASS_STATS, dmg, type HeroDef, indexed, type Passive } from './kit';
 import { CODED } from './moves';
 
 /*
@@ -72,7 +72,7 @@ export const GAU: HeroDef = {
     {
       name: 'Smash',
       about: `Two blows, the first knocking the boss down for ${SMASH.down} seconds.`,
-      words: `Deals ${dmg('warrior', SMASH.blow * CODED.smash.lands.length)} P.DMG to enemies within range, and the first attack knocks them down for ${SMASH.down} sec and reduces their ATK Spd by ${SMASH.speed} for ${SMASH.slowed} sec.`,
+      words: `Deals ${dmg('warrior', SMASH.blow * CODED.smash.lands.length, bookDmg('gau', 0))} P.DMG to enemies within range, and the first attack knocks them down for ${SMASH.down} sec and reduces their ATK Spd by ${SMASH.speed} for ${SMASH.slowed} sec.`,
       icon: '🪓',
       art: art(0),
       move: 'smash',
@@ -93,7 +93,7 @@ export const GAU: HeroDef = {
     {
       name: 'Vortex',
       about: `A whirl of blows, the last freezing the boss for ${VORTEX.freeze} seconds; he can’t be knocked down meanwhile.`,
-      words: `Deals ${dmg('warrior', VORTEX.blow * CODED.vortex.lands.length)} P.DMG to nearby enemies. If the target is not a Hero, deals P.DMG. The last attack freezes nearby enemies for ${VORTEX.freeze} sec. Gains immunity to CC for the duration of Skill.`,
+      words: `Deals ${dmg('warrior', VORTEX.blow * CODED.vortex.lands.length, bookDmg('gau', 2))} P.DMG to nearby enemies. If the target is not a Hero, deals P.DMG. The last attack freezes nearby enemies for ${VORTEX.freeze} sec. Gains immunity to CC for the duration of Skill.`,
       icon: '🌀',
       art: art(2),
       move: 'vortex',

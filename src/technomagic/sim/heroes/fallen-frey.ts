@@ -6,7 +6,7 @@ import { fromTreasure, treasure, treasureTier } from '../treasures';
 import { MAX_MANA, SECTION } from '../rules';
 import { pct, skillArt, type Buff } from '../shown';
 import type { Fighter } from '../types';
-import { CLASS_STATS, dmg, healed, type HeroDef, type Passive } from './kit';
+import { bookDmg, bookHeal, CLASS_STATS, dmg, healed, type HeroDef, type Passive } from './kit';
 import { CODED } from './moves';
 
 /*
@@ -102,7 +102,7 @@ export const FALLEN_FREY: HeroDef = {
       auto: { heals: true },
       about: 'Heals the ally with the lowest health and those near it, then the light bursts on the boss.',
       words:
-        `Heals ${healed('priest', LIGHT.heal)} HP of the ally with the lowest HP and nearby allies and increases Heal Rate by 20% for 10 sec. Afterward, explodes the area around the target and deals ${dmg('priest', LIGHT.blast)} M.DMG to enemies in range, reducing their Heal Rate by 20% for 10 sec. If this Skill is used with 1 or more stacks of [Darkened Power], consumes 1 stack and dispels positive effects of all enemies within range.`,
+        `Heals ${healed('priest', LIGHT.heal, bookHeal('fallen-frey', 0))} HP of the ally with the lowest HP and nearby allies and increases Heal Rate by 20% for 10 sec. Afterward, explodes the area around the target and deals ${dmg('priest', LIGHT.blast, bookDmg('fallen-frey', 0))} M.DMG to enemies in range, reducing their Heal Rate by 20% for 10 sec. If this Skill is used with 1 or more stacks of [Darkened Power], consumes 1 stack and dispels positive effects of all enemies within range.`,
       icon: '✴️',
       art: art(0),
       move: 'light',
@@ -112,7 +112,7 @@ export const FALLEN_FREY: HeroDef = {
     {
       name: 'Blessing of Doom',
       about: `A shield on the ${BLESSING.allies} allies with the lowest health for ${BLESSING.lasts} seconds, their attacks ${pct(share(BLESSING.speed))} quicker meanwhile.`,
-      words: `Grants [Blessing of Doom] to ${BLESSING.allies} allies with the lowest HP, absorbing ${healed('priest', BLESSING.shield)} DMG for ${BLESSING.lasts} sec. The shield grants immunity to CC and increases ATK Spd by ${BLESSING.speed} for the duration. If this Skill is used with 1 or more stacks of [Darkened Power], consumes 1 stack to dispel negative effects from self and additionally dispels negative effects from targets.`,
+      words: `Grants [Blessing of Doom] to ${BLESSING.allies} allies with the lowest HP, absorbing ${healed('priest', BLESSING.shield, bookHeal('fallen-frey', 1))} DMG for ${BLESSING.lasts} sec. The shield grants immunity to CC and increases ATK Spd by ${BLESSING.speed} for the duration. If this Skill is used with 1 or more stacks of [Darkened Power], consumes 1 stack to dispel negative effects from self and additionally dispels negative effects from targets.`,
       icon: '🔮',
       art: art(1),
       move: 'blessing',
@@ -122,7 +122,7 @@ export const FALLEN_FREY: HeroDef = {
     {
       name: 'Heaven’s Vengeance',
       about: `${VENGEANCE.hits} blows of light on the boss, through some of its defense, each leaving it ${pct(VENGEANCE.exposed)} easier to hurt for ${VENGEANCE.lasts} seconds (up to ${VENGEANCE.most} times over). With [Darkened Power], every blow stuns it for ${VENGEANCE.stun} seconds.`,
-      words: `Brings Heaven's Vengeance upon a random enemy and nearby enemies over ${VENGEANCE.hits} hits, dealing ${dmg('priest', VENGEANCE.blow)} M.DMG each hit and increasing All DMG the target takes by ${pct(VENGEANCE.exposed)} for ${VENGEANCE.lasts} sec. ${VENGEANCE.pierce} additional DEF Penetration applies to this Skill. If this Skill is used with 1 or more stacks of [Darkened Power], consumes 1 stack and inflicts Stun on the hit enemies for ${VENGEANCE.stun} sec each hit. The DMG Boost effect can be stacked up to max ${VENGEANCE.most} times.`,
+      words: `Brings Heaven's Vengeance upon a random enemy and nearby enemies over ${VENGEANCE.hits} hits, dealing ${dmg('priest', VENGEANCE.blow, bookDmg('fallen-frey', 2))} M.DMG each hit and increasing All DMG the target takes by ${pct(VENGEANCE.exposed)} for ${VENGEANCE.lasts} sec. ${VENGEANCE.pierce} additional DEF Penetration applies to this Skill. If this Skill is used with 1 or more stacks of [Darkened Power], consumes 1 stack and inflicts Stun on the hit enemies for ${VENGEANCE.stun} sec each hit. The DMG Boost effect can be stacked up to max ${VENGEANCE.most} times.`,
       icon: '☄️',
       art: art(2),
       move: 'vengeance',

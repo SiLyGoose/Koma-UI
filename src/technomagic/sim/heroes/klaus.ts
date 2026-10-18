@@ -4,7 +4,7 @@ import { MAX_MANA } from '../rules';
 import { said, t5Light } from '../perks';
 import { fromTreasure, treasure, treasureTier } from '../treasures';
 import { pct, skillArt, type Buff } from '../shown';
-import { CLASS_STATS, dmg, indexed, type HeroDef, type Passive } from './kit';
+import { bookDmg, CLASS_STATS, dmg, type HeroDef, indexed, type Passive } from './kit';
 
 /*
  * Klaus's skills, as the game has them (what each costs, how long before it can be used again, and how
@@ -53,7 +53,7 @@ const VOW_OF_KNIGHTS: Passive = {
     icon: '🛡️',
     art: art(3),
   },
-  words: `Upon blocking, deals ${dmg('knight', VOW.blow)} P.DMG to frontal enemies and decreases ATK of affected targets by ${pct(1 - VOW.weak)} for ${VOW.lasts} sec. Recovers ${VOW.mana} MP after hitting the target. When an ally excluding self takes DMG increases all allies' P.DEF by 20% and P.Crit Resistance by 200 for 5 sec. This effect only activates once every 10 sec.`,
+  words: `Upon blocking, deals ${dmg('knight', VOW.blow, bookDmg('klaus', 3))} P.DMG to frontal enemies and decreases ATK of affected targets by ${pct(1 - VOW.weak)} for ${VOW.lasts} sec. Recovers ${VOW.mana} MP after hitting the target. When an ally excluding self takes DMG increases all allies' P.DEF by 20% and P.Crit Resistance by 200 for 5 sec. This effect only activates once every 10 sec.`,
 };
 /** What Guardian Shield gives every hero for a while: shown on each card, with how long it has left. */
 const GUARDED: Buff = { name: 'Guardian Shield', about: `Takes ${pct(1 - GUARDIAN.taken)} less from the boss.`, icon: '✨', art: art(2) };
@@ -71,7 +71,7 @@ export const KLAUS: HeroDef = {
     {
       name: 'Cut Ground',
       about: `A leap and a blow down on the boss that stuns it for ${CUT_GROUND.stun} seconds.`,
-      words: `Leaps into the air and deals ${dmg('knight', CUT_GROUND.blow)} P.DMG to enemies in range, stunning them for ${CUT_GROUND.stun} sec.`,
+      words: `Leaps into the air and deals ${dmg('knight', CUT_GROUND.blow, bookDmg('klaus', 0))} P.DMG to enemies in range, stunning them for ${CUT_GROUND.stun} sec.`,
       icon: '⚔️',
       art: art(0),
       move: 'slam',
@@ -81,7 +81,7 @@ export const KLAUS: HeroDef = {
     {
       name: 'Shield Strike',
       about: `A blow with his shield: for ${SHIELD_STRIKE.lasts} seconds the boss attacks ${pct(share(SHIELD_STRIKE.speed))} slower and takes ${pct(SHIELD_STRIKE.exposed - 1)} more.`,
-      words: `Deals ${dmg('knight', SHIELD_STRIKE.blow)} P.DMG proportional to P.DEF to enemies in range and knocks them back. Hit enemies' All DEF and ATK Spd is reduced by ${pct(SHIELD_STRIKE.exposed - 1)} and ${SHIELD_STRIKE.speed} for ${SHIELD_STRIKE.lasts} sec, respectively. Upon blocking an attack, skill cooldown is reduced by 0.5 sec.`,
+      words: `Deals ${dmg('knight', SHIELD_STRIKE.blow, bookDmg('klaus', 1))} P.DMG proportional to P.DEF to enemies in range and knocks them back. Hit enemies' All DEF and ATK Spd is reduced by ${pct(SHIELD_STRIKE.exposed - 1)} and ${SHIELD_STRIKE.speed} for ${SHIELD_STRIKE.lasts} sec, respectively. Upon blocking an attack, skill cooldown is reduced by 0.5 sec.`,
       icon: '🛡️',
       art: art(1),
       move: 'bash',

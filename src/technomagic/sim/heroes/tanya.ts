@@ -5,7 +5,7 @@ import { fromTreasure, treasure, treasureTier } from '../treasures';
 import { MAX_MANA } from '../rules';
 import { pct, skillArt, type Buff, type Mark } from '../shown';
 import { atTier, CAETHASIS, CAETHASIS_UP } from '../unique';
-import { CLASS_STATS, dmg, indexed, type HeroDef, type Passive } from './kit';
+import { bookDmg, CLASS_STATS, dmg, type HeroDef, indexed, type Passive } from './kit';
 import { CODED } from './moves';
 
 /*
@@ -67,7 +67,7 @@ const SILENT_AMBUSH: Passive = {
     icon: '🗡️',
     art: art(3),
   },
-  words: `Deals additional ${dmg('assassin', AMBUSH.blow)} P.DMG to the enemy and silences them for 1 sec upon a Critical Hit with the skill. If the target is not a Hero, deals additional ${dmg('assassin', AMBUSH.boss)} P.DMG that ignores DEF and reduces the target's ATK Spd by ${AMBUSH.speed} for ${AMBUSH.slowed} sec.`,
+  words: `Deals additional ${dmg('assassin', AMBUSH.blow, bookDmg('tanya', 3))} P.DMG to the enemy and silences them for 1 sec upon a Critical Hit with the skill. If the target is not a Hero, deals additional ${dmg('assassin', AMBUSH.boss, bookDmg('tanya', 3))} P.DMG that ignores DEF and reduces the target's ATK Spd by ${AMBUSH.speed} for ${AMBUSH.slowed} sec.`,
 };
 /** Stealth on her; Bleed on the boss. */
 const STEALTHED: Buff = { name: 'Stealth', about: `+${STEALTH.crit} crit chance and +${STEALTH.dodge} dodge.`, icon: '🌫️', art: art(0) };
@@ -90,7 +90,7 @@ export const TANYA: HeroDef = {
     {
       name: 'Target Sighted',
       about: `The boss takes ${pct(SIGHTED.takes - 1)} more physical damage for ${SIGHTED.lasts} seconds; a blow that knocks it down (in Stealth: stunned for ${SIGHTED.stun} seconds; else, Stealth).`,
-      words: `Moves behind the enemy with the lowest P.DEF and increase their P.DMG taken by ${pct(SIGHTED.takes - 1)}, while knocking them down and inflicting ${dmg('assassin', SIGHTED.blow)} P.DMG. If in a Stealth state, stun said enemy for ${SIGHTED.stun} sec. If not, gain Stealth for ${STEALTH.lasts} sec. While in a Stealth State, Crit Rate and Dodge Rate rises by ${STEALTH.crit}.`,
+      words: `Moves behind the enemy with the lowest P.DEF and increase their P.DMG taken by ${pct(SIGHTED.takes - 1)}, while knocking them down and inflicting ${dmg('assassin', SIGHTED.blow, bookDmg('tanya', 0))} P.DMG. If in a Stealth state, stun said enemy for ${SIGHTED.stun} sec. If not, gain Stealth for ${STEALTH.lasts} sec. While in a Stealth State, Crit Rate and Dodge Rate rises by ${STEALTH.crit}.`,
       icon: '🎯',
       art: art(0),
       move: 'sighted',
@@ -100,7 +100,7 @@ export const TANYA: HeroDef = {
     {
       name: 'Blade Tornado',
       about: `Three blows, each a stack of Bleed on the boss (in Stealth: it is healed ${pct(1 - TORNADO.heals)} less for ${TORNADO.lasts} seconds, her Stealth spent; else, Stealth).`,
-      words: `Attacks nearby enemies 3 times and deals a total of ${dmg('assassin', TORNADO.blow * CODED.tornado.lands.length)} P.DMG, inflicting 1 stack of Bleed per each hit. If used in a Stealth state, target's heal rate is reduced by ${pct(1 - TORNADO.heals)}, and Stealth is dispelled. If not, turns into Stealth mode for ${STEALTH.lasts} sec. [Stealth] Crit Rate and Dodge Rate are increased by ${STEALTH.crit}.`,
+      words: `Attacks nearby enemies 3 times and deals a total of ${dmg('assassin', TORNADO.blow * CODED.tornado.lands.length, bookDmg('tanya', 1))} P.DMG, inflicting 1 stack of Bleed per each hit. If used in a Stealth state, target's heal rate is reduced by ${pct(1 - TORNADO.heals)}, and Stealth is dispelled. If not, turns into Stealth mode for ${STEALTH.lasts} sec. [Stealth] Crit Rate and Dodge Rate are increased by ${STEALTH.crit}.`,
       icon: '🌪️',
       art: art(1),
       move: 'tornado',
@@ -110,7 +110,7 @@ export const TANYA: HeroDef = {
     {
       name: 'Whisper of Death',
       about: 'Six blows and a seventh (out of Stealth: Stealth).',
-      words: `Attacks random enemies 6 times and deals a total of ${dmg('assassin', WHISPER.blow * (CODED.whisper.lands.length - 1))} P.DMG, then deals one additional attack of ${dmg('assassin', WHISPER.last)} extra P.DMG. If used in Stealth state, dispels all enemies' buffs. If not, turns into Stealth mode for ${STEALTH.lasts} sec. [Stealth] Crit Rate and Dodge Rate are increased by ${STEALTH.crit}.`,
+      words: `Attacks random enemies 6 times and deals a total of ${dmg('assassin', WHISPER.blow * (CODED.whisper.lands.length - 1), bookDmg('tanya', 2))} P.DMG, then deals one additional attack of ${dmg('assassin', WHISPER.last, bookDmg('tanya', 2))} extra P.DMG. If used in Stealth state, dispels all enemies' buffs. If not, turns into Stealth mode for ${STEALTH.lasts} sec. [Stealth] Crit Rate and Dodge Rate are increased by ${STEALTH.crit}.`,
       icon: '💀',
       art: art(2),
       move: 'whisper',

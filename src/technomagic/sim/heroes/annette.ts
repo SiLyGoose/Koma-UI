@@ -6,7 +6,7 @@ import { MAX_MANA } from '../rules';
 import { pct, skillArt, type Buff } from '../shown';
 import type { Fighter } from '../types';
 import { atTier, RASCAL, RASCAL_UP } from '../unique';
-import { CLASS_STATS, dmg, healed, indexed, indexedHeal, type HeroDef, type Passive } from './kit';
+import { bookDmg, bookHeal, CLASS_STATS, dmg, healed, type HeroDef, indexed, indexedHeal, type Passive } from './kit';
 
 /*
  * Annette's skills, as the game has them (what each costs, how long before it can be used again, how long what
@@ -90,7 +90,7 @@ export const ANNETTE: HeroDef = {
     {
       name: 'Blasting Ray',
       about: `Rascal fires a ray into the boss: for ${RAY.lasts} seconds it hits ${pct(RAY.weaker)} softer and takes ${pct(RAY.takes)} more magical damage. [Overcharged]: a second ray, and twice that.`,
-      words: `Attacks enemies in a straight line, dealing ${dmg('mechanic', RAY.blow)} M.DMG, reducing their ATK by ${pct(RAY.weaker)} and hit enemies take ${pct(RAY.takes)} increased M.DMG for ${RAY.lasts} sec. If the skill is used when in Overcharge state, deals ${dmg('mechanic', RAY.extra)} extra M.DMG, additionally reduces their ATK by ${pct(RAY.weaker)}, and hit enemies take ${pct(RAY.takes)} increased M.DMG.`,
+      words: `Attacks enemies in a straight line, dealing ${dmg('mechanic', RAY.blow, bookDmg('annette', 0))} M.DMG, reducing their ATK by ${pct(RAY.weaker)} and hit enemies take ${pct(RAY.takes)} increased M.DMG for ${RAY.lasts} sec. If the skill is used when in Overcharge state, deals ${dmg('mechanic', RAY.extra, bookDmg('annette', 0))} extra M.DMG, additionally reduces their ATK by ${pct(RAY.weaker)}, and hit enemies take ${pct(RAY.takes)} increased M.DMG.`,
       icon: '🔆',
       art: art(0),
       move: 'ray',
@@ -101,7 +101,7 @@ export const ANNETTE: HeroDef = {
       name: 'Emergency Treatment',
       auto: { heals: true },
       about: `Clears what the boss has left on every ally (not what holds one down or shuts one away) and heals them over ${TREATMENT.lasts} seconds, and they stand being knocked down better meanwhile. [Overcharged]: they are also ${pct(share(TREATMENT.crit))} likelier to land a critical blow, deal ${pct(TREATMENT.dmg)} more, and can’t be knocked down.`,
-      words: `Dispels negative effects of all allies and heals a total of ${healed('mechanic', TREATMENT.heal)} HP for ${TREATMENT.lasts} sec while increasing CC Resistance by ${TREATMENT.resist}. While Overcharged, all allies' Crit Chance is increased by ${TREATMENT.crit} and DMG dealt to Non-Hero enemies by ${pct(TREATMENT.dmg)} and gains immunity to CC.`,
+      words: `Dispels negative effects of all allies and heals a total of ${healed('mechanic', TREATMENT.heal, bookHeal('annette', 1))} HP for ${TREATMENT.lasts} sec while increasing CC Resistance by ${TREATMENT.resist}. While Overcharged, all allies' Crit Chance is increased by ${TREATMENT.crit} and DMG dealt to Non-Hero enemies by ${pct(TREATMENT.dmg)} and gains immunity to CC.`,
       icon: '🩹',
       art: art(1),
       move: 'treatment',
@@ -111,7 +111,7 @@ export const ANNETTE: HeroDef = {
     {
       name: 'Process of Elimination',
       about: `A ball of energy that bursts on the boss. [Overcharged]: it bursts harder, stuns the boss for ${ELIMINATION.stun} seconds, and leaves it taking ${pct(ELIMINATION.takes)} more magical damage for ${ELIMINATION.lasts}.`,
-      words: `Fires an exploding energy ball to a random target and nearby enemies in range, dealing ${dmg('mechanic', ELIMINATION.blow)} M.DMG. When in Overcharge state, deals ${dmg('mechanic', ELIMINATION.over)} M.DMG, increases M.DMG enemies take by ${pct(ELIMINATION.takes)} for ${ELIMINATION.lasts} sec, and inflicts Stun for ${ELIMINATION.stun} sec upon explosion.`,
+      words: `Fires an exploding energy ball to a random target and nearby enemies in range, dealing ${dmg('mechanic', ELIMINATION.blow, bookDmg('annette', 2))} M.DMG. When in Overcharge state, deals ${dmg('mechanic', ELIMINATION.over, bookDmg('annette', 2))} M.DMG, increases M.DMG enemies take by ${pct(ELIMINATION.takes)} for ${ELIMINATION.lasts} sec, and inflicts Stun for ${ELIMINATION.stun} sec upon explosion.`,
       icon: '💣',
       art: art(2),
       move: 'elimination',

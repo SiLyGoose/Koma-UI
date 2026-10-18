@@ -2,7 +2,7 @@ import { share } from '../combat/damage';
 import { said, t5Light } from '../perks';
 import { fromTreasure, treasure } from '../treasures';
 import { pct, skillArt, type Buff } from '../shown';
-import { CLASS_STATS, dmg, type HeroDef, type Passive } from './kit';
+import { bookDmg, CLASS_STATS, dmg, type HeroDef, type Passive } from './kit';
 import { CODED } from './moves';
 
 /*
@@ -69,7 +69,7 @@ export const KIRZE: HeroDef = {
     {
       name: 'Slash, Blade of Judgment!',
       about: `${JUDGMENT.cuts} cuts as she spins, then a blow that knocks the boss down for ${JUDGMENT.down} seconds.`,
-      words: `Deals ${dmg('warrior', JUDGMENT.cut * JUDGMENT.cuts)} M.DMG over ${JUDGMENT.cuts} attacks to nearby enemies in a circular range of self. Then, attacks frontal enemies in range, dealing ${dmg('warrior', JUDGMENT.blow)} M.DMG and knocking them down for ${JUDGMENT.down} sec.`,
+      words: `Deals ${dmg('warrior', JUDGMENT.cut * JUDGMENT.cuts, bookDmg('kirze', 0))} M.DMG over ${JUDGMENT.cuts} attacks to nearby enemies in a circular range of self. Then, attacks frontal enemies in range, dealing ${dmg('warrior', JUDGMENT.blow, bookDmg('kirze', 0))} M.DMG and knocking them down for ${JUDGMENT.down} sec.`,
       icon: '🌀',
       art: art(0),
       move: 'judgment',
@@ -79,7 +79,7 @@ export const KIRZE: HeroDef = {
     {
       name: 'Disperse, Crystal Haze!',
       about: `A burst that stuns the boss for ${HAZE.stun} seconds. Then for ${HAZE.lasts} seconds she is ${pct(HAZE.quicker - 1)} quicker, and a shockwave goes out from her every ${HAZE.every} seconds that stuns it for ${HAZE.waveStun}.`,
-      words: `Unleashes the power of Arcane Crystals within to deal ${dmg('warrior', HAZE.burst)} M.DMG to all enemies and stun them for ${HAZE.stun} sec. Upon casting, activates [Arcane Crystal Awakening] for ${HAZE.lasts} sec, which increases ATK Spd of all allies by 300 and releases a shockwave every ${HAZE.every} sec to enemies in range of self, dealing ${dmg('warrior', HAZE.wave)} M.DMG and stunning them for ${HAZE.waveStun} sec.`,
+      words: `Unleashes the power of Arcane Crystals within to deal ${dmg('warrior', HAZE.burst, bookDmg('kirze', 1))} M.DMG to all enemies and stun them for ${HAZE.stun} sec. Upon casting, activates [Arcane Crystal Awakening] for ${HAZE.lasts} sec, which increases ATK Spd of all allies by 300 and releases a shockwave every ${HAZE.every} sec to enemies in range of self, dealing ${dmg('warrior', HAZE.wave, bookDmg('kirze', 1))} M.DMG and stunning them for ${HAZE.waveStun} sec.`,
       icon: '💠',
       art: art(1),
       move: 'haze',
@@ -89,7 +89,7 @@ export const KIRZE: HeroDef = {
     {
       name: 'Bloom, Crimson Flower!',
       about: `Crystals in a line to the boss, then they burst: its attacks are ${pct(share(FLOWER.speed))} slower for ${FLOWER.slowed} seconds, and it is cursed for ${FLOWER.curse}. When the curse ends it bursts, the harder for every blow landed on the boss meanwhile.`,
-      words: `Summons Arcane Crystals and deals ${dmg('warrior', FLOWER.line)} M.DMG to frontal enemies in a straight line. Shortly afterward, causes an explosion that deals ${dmg('warrior', FLOWER.burst)} additional M.DMG and inflicts [Arcane Crystal Curse] upon enemies for ${FLOWER.slowed} sec, reducing their ATK Spd by ${FLOWER.speed}. Attacking enemies under [Arcane Crystal Curse] inflicts a stack of [Arcane Crystal Energy]. [Arcane Crystal Curse] explodes after ${FLOWER.curse} sec, dealing M.DMG equal to ${dmg('warrior', FLOWER.end)} + ${dmg('warrior', FLOWER.each)} per stack of Arcane Crystal Energy.`,
+      words: `Summons Arcane Crystals and deals ${dmg('warrior', FLOWER.line, bookDmg('kirze', 2))} M.DMG to frontal enemies in a straight line. Shortly afterward, causes an explosion that deals ${dmg('warrior', FLOWER.burst, bookDmg('kirze', 2))} additional M.DMG and inflicts [Arcane Crystal Curse] upon enemies for ${FLOWER.slowed} sec, reducing their ATK Spd by ${FLOWER.speed}. Attacking enemies under [Arcane Crystal Curse] inflicts a stack of [Arcane Crystal Energy]. [Arcane Crystal Curse] explodes after ${FLOWER.curse} sec, dealing M.DMG equal to ${dmg('warrior', FLOWER.end, bookDmg('kirze', 2))} + ${dmg('warrior', FLOWER.each, bookDmg('kirze', 2))} per stack of Arcane Crystal Energy.`,
       icon: '🌺',
       art: art(2),
       move: 'flower',

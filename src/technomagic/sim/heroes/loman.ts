@@ -3,7 +3,7 @@ import { said, t5Light } from '../perks';
 import { treasure, treasureTier } from '../treasures';
 import { num, pct, skillArt, type Buff, type Mark } from '../shown';
 import { atTier, GAIAMENES, GAIAMENES_UP } from '../unique';
-import { CLASS_STATS, dmg, indexed, indexedHeal, type HeroDef, type Passive } from './kit';
+import { bookDmg, CLASS_STATS, dmg, type HeroDef, indexed, indexedHeal, type Passive } from './kit';
 
 /*
  * Loman's skills, as the game has them (what each costs, how long before it can be used again, how long what it does
@@ -58,7 +58,7 @@ const LAST_GATEKEEPER: Passive = {
     icon: '🏰',
     art: art(3),
   },
-  words: `Stacks [Endurance] every second. [Endurance] cannot be dispelled, and when stacked ${GATEKEEPER.most} times, deals ${dmg('knight', GATEKEEPER.blow)} P.DMG, ignoring DEF on nearby enemies and reduces ATK of affected enemies by ${pct(GATEKEEPER.weaker)} for ${GATEKEEPER.lasts} second(s). A successful block grants 1 additional [Endurance] stack. This effect is activated only once every ${GATEKEEPER.every} second(s).`,
+  words: `Stacks [Endurance] every second. [Endurance] cannot be dispelled, and when stacked ${GATEKEEPER.most} times, deals ${dmg('knight', GATEKEEPER.blow, bookDmg('loman', 3))} P.DMG, ignoring DEF on nearby enemies and reduces ATK of affected enemies by ${pct(GATEKEEPER.weaker)} for ${GATEKEEPER.lasts} second(s). A successful block grants 1 additional [Endurance] stack. This effect is activated only once every ${GATEKEEPER.every} second(s).`,
 };
 /** Shrouding Creed's shield, and what every ally takes less for a while; Transcend 5's Dark; Endurance's stacks. */
 const SHROUDED: Buff = { name: 'Shrouding Creed', about: 'A shield: it can’t be knocked down while it lasts.', icon: '🛡️', art: art(1) };
@@ -81,7 +81,7 @@ export const LOMAN: HeroDef = {
     {
       name: 'Cut Ground',
       about: `A blow that knocks the boss down for ${CUT.down} seconds; it takes ${pct(CUT.weakness)} more physical damage for ${CUT.lasts} seconds.`,
-      words: `Deals ${dmg('knight', CUT.blow)} P.DMG to frontal enemies within range and knocks them down for ${CUT.down} sec, increasing P.Weakness of the affected targets by ${pct(CUT.weakness)} for ${CUT.lasts} sec.`,
+      words: `Deals ${dmg('knight', CUT.blow, bookDmg('loman', 0))} P.DMG to frontal enemies within range and knocks them down for ${CUT.down} sec, increasing P.Weakness of the affected targets by ${pct(CUT.weakness)} for ${CUT.lasts} sec.`,
       icon: '⚔️',
       art: art(0),
       move: 'ground',
@@ -102,7 +102,7 @@ export const LOMAN: HeroDef = {
     {
       name: "Knight's Creed",
       about: `Two blows that stun the boss for ${CREED.stun} seconds, and a last swing that stuns it for ${CREED.lastStun} and leaves the [Mark of Creed] on it for ${CREED.lasts}: each other ally’s blow on it a blow of his more.`,
-      words: `Hits frontal enemies within range 3 times. First 2 hits deal ${dmg('knight', CREED.blow * 2)} P.DMG and stun enemies for ${CREED.stun} second(s) while the last hit attacks enemies in wider range 2 times, dealing ${dmg('knight', CREED.last)} P.DMG in total. The last hit stuns enemies for ${CREED.lastStun} seconds and leaves [Mark of Creed] on the enemies, damaging them for ${CREED.lasts} second(s). Targets with [Mark of Creed] take additional ${dmg('knight', CREED.mark)} P.DMG from allies excluding caster. Additional DMG effect is activated only once every ${CREED.every} second(s).`,
+      words: `Hits frontal enemies within range 3 times. First 2 hits deal ${dmg('knight', CREED.blow * 2, bookDmg('loman', 2))} P.DMG and stun enemies for ${CREED.stun} second(s) while the last hit attacks enemies in wider range 2 times, dealing ${dmg('knight', CREED.last, bookDmg('loman', 2))} P.DMG in total. The last hit stuns enemies for ${CREED.lastStun} seconds and leaves [Mark of Creed] on the enemies, damaging them for ${CREED.lasts} second(s). Targets with [Mark of Creed] take additional ${dmg('knight', CREED.mark, bookDmg('loman', 2))} P.DMG from allies excluding caster. Additional DMG effect is activated only once every ${CREED.every} second(s).`,
       icon: '✝️',
       art: art(2),
       move: 'creed',

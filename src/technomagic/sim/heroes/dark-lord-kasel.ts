@@ -3,7 +3,7 @@ import { said, t5Light } from '../perks';
 import { fromTreasure, treasure, treasureTier } from '../treasures';
 import { pct, skillArt, type Buff } from '../shown';
 import { AEA, AEA_UP, atTier } from '../unique';
-import { CLASS_STATS, dmg, type Ability, type HeroDef, type Passive } from './kit';
+import { type Ability, bookDmg, CLASS_STATS, dmg, type HeroDef, type Passive } from './kit';
 
 /*
  * Dark Lord Kasel's skills, as the game has them (how long before each can be used again, the [Dark Energy] each needs,
@@ -80,7 +80,7 @@ export const DARK_LORD_KASEL: HeroDef = {
     {
       name: 'Judgment Blade',
       about: `Two blows. [Dark Lord]: a blow more that knocks the boss down for ${JUDGE.down} seconds. Needs ${FALLEN.needs[0]} [Dark Energy].`,
-      words: `Attacks frontal enemies in a straight line 2 times, dealing ${dmg('warrior', JUDGE.blow)} P.DMG each and preventing enemies from recovering Mana for 2 seconds. [Dark Lord] Additionally attacks enemies in a wide range 1 time, dealing ${dmg('warrior', JUDGE.lord)} P.DMG and knocking them down for ${JUDGE.down} seconds. Requires ${FALLEN.needs[0]} or more stacks of [Dark Energy] for use.`,
+      words: `Attacks frontal enemies in a straight line 2 times, dealing ${dmg('warrior', JUDGE.blow, bookDmg('dark-lord-kasel', 0))} P.DMG each and preventing enemies from recovering Mana for 2 seconds. [Dark Lord] Additionally attacks enemies in a wide range 1 time, dealing ${dmg('warrior', JUDGE.lord, bookDmg('dark-lord-kasel', 0))} P.DMG and knocking them down for ${JUDGE.down} seconds. Requires ${FALLEN.needs[0]} or more stacks of [Dark Energy] for use.`,
       tag: `${FALLEN.needs[0]} Dark Energy`,
       icon: '⚔️',
       art: art(0),
@@ -91,7 +91,7 @@ export const DARK_LORD_KASEL: HeroDef = {
     {
       name: 'Doom',
       about: `Three blows that knock the boss down for ${RUIN.down} seconds. [Dark Lord]: a blow more. Needs ${FALLEN.needs[1]} [Dark Energy].`,
-      words: `Explodes darkness and attacks frontal enemies in a straight line 3 times, dealing ${dmg('warrior', RUIN.blow)} P.DMG each and knocking them away for ${RUIN.down} seconds. [Dark Lord] Deals ${dmg('warrior', RUIN.lord)} P.DMG to 1 enemy furthest away and pulls them in front of self, exploding darkness afterward. Can be used with ${FALLEN.needs[1]} or more stacks of [Dark Energy].`,
+      words: `Explodes darkness and attacks frontal enemies in a straight line 3 times, dealing ${dmg('warrior', RUIN.blow, bookDmg('dark-lord-kasel', 1))} P.DMG each and knocking them away for ${RUIN.down} seconds. [Dark Lord] Deals ${dmg('warrior', RUIN.lord, bookDmg('dark-lord-kasel', 1))} P.DMG to 1 enemy furthest away and pulls them in front of self, exploding darkness afterward. Can be used with ${FALLEN.needs[1]} or more stacks of [Dark Energy].`,
       tag: `${FALLEN.needs[1]} Dark Energy`,
       icon: '💥',
       art: art(1),
@@ -102,7 +102,7 @@ export const DARK_LORD_KASEL: HeroDef = {
     {
       name: 'Advent of the Dark Lord',
       about: `What the boss has left on him cleared, a blow, and [Dark Lord] for ${ADVENT.lasts} seconds: all his [Dark Energy] spent, each +${pct(ADVENT.atk)} ATK and +${ADVENT.pen} penetration; his skills enhanced, immune to CC, and his attack deals more. Needs ${FALLEN.needs[2]} [Dark Energy].`,
-      words: `Dispels negative effects from self and enters into an irremovable [Dark Lord] state for ${ADVENT.lasts} sec, dealing ${dmg('warrior', ADVENT.blow)} P.DMG to nearby enemies in a circular range of self. During [Dark Lord] state, all Skills are enhanced, gains immunity to CC, and normal attacks deal additional ${dmg('warrior', ADVENT.blowMore)} P.DMG each hit. Requires ${FALLEN.needs[2]} or more stacks of [Dark Energy] for use. Upon use, consumes all stacks to increase own ATK, and DEF Penetration by ${ADVENT.pen} per stack.`,
+      words: `Dispels negative effects from self and enters into an irremovable [Dark Lord] state for ${ADVENT.lasts} sec, dealing ${dmg('warrior', ADVENT.blow, bookDmg('dark-lord-kasel', 2))} P.DMG to nearby enemies in a circular range of self. During [Dark Lord] state, all Skills are enhanced, gains immunity to CC, and normal attacks deal additional ${dmg('warrior', ADVENT.blowMore, bookDmg('dark-lord-kasel', 2))} P.DMG each hit. Requires ${FALLEN.needs[2]} or more stacks of [Dark Energy] for use. Upon use, consumes all stacks to increase own ATK, and DEF Penetration by ${ADVENT.pen} per stack.`,
       tag: `${FALLEN.needs[2]} Dark Energy`,
       icon: '😈',
       art: art(2),

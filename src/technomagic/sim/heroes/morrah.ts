@@ -6,7 +6,7 @@ import { BLOW } from '../rules';
 import { pct, seconds, skillArt, type Buff } from '../shown';
 import type { Fighter } from '../types';
 import { atTier, CARPRAIN } from '../unique';
-import { CLASS_STATS, dmg, indexed, type HeroDef, type Passive } from './kit';
+import { bookDmg, CLASS_STATS, dmg, type HeroDef, indexed, type Passive } from './kit';
 
 /*
  * Morrah's skills, as the game has them (what each costs, how long before it can be used again, how long what it
@@ -63,7 +63,7 @@ const FIRE_SMASH: Passive = {
   crit: 0,
   control: 1,
   shown: { name: 'Fire Smash', about: `Passive. When she blocks she strikes back, leaving ${SMASH.flames} [Flame] on the boss.`, icon: '🔥', art: art(3) },
-  words: `Upon Block, deals ${dmg('knight', SMASH.blow)} M.DMG to enemies in range, and inflicts ${SMASH.flames} stack of Flame.`,
+  words: `Upon Block, deals ${dmg('knight', SMASH.blow, bookDmg('morrah', 3))} M.DMG to enemies in range, and inflicts ${SMASH.flames} stack of Flame.`,
 };
 /** What Burning Power gives her for a while: shown beside her passive, with how long it has left. */
 const BURNING_UP: Buff = { name: 'Burning Power', about: 'Each blow of her attack deals more and leaves a [Flame] on the boss.', icon: '🔥', art: art(0) };
@@ -88,7 +88,7 @@ export const MORRAH: HeroDef = {
     {
       name: 'Burning Power',
       about: `A blow that knocks the boss down for ${seconds(BURNING.down)} and leaves ${BURNING.flames} [Flame] on it. Then for ${BURNING.lasts} seconds each blow of her attack deals more and leaves a [Flame]. Both are ${pct(FLAME.more)} harder for each [Flame] on the boss.`,
-      words: `Deals ${dmg('knight', BURNING.blow)} M.DMG to enemies in range and knocks them down, inflicting ${BURNING.flames} stacks of Flame. Then for ${BURNING.lasts} sec, each auto attack deals ${dmg('knight', CLEAVE.burning)} M.DMG and inflicts 1 stack of Flame on enemy. Per each stacked Flame, DMG is increased by ${pct(FLAME.more)}. Each Flame stack deals separate ${dmg('knight', FLAME.each)} M.DMG every second and reduces Heal rate by ${pct(FLAME.heals)}.`,
+      words: `Deals ${dmg('knight', BURNING.blow, bookDmg('morrah', 0))} M.DMG to enemies in range and knocks them down, inflicting ${BURNING.flames} stacks of Flame. Then for ${BURNING.lasts} sec, each auto attack deals ${dmg('knight', CLEAVE.burning, bookDmg('morrah', 0))} M.DMG and inflicts 1 stack of Flame on enemy. Per each stacked Flame, DMG is increased by ${pct(FLAME.more)}. Each Flame stack deals separate ${dmg('knight', FLAME.each, bookDmg('morrah', 0))} M.DMG every second and reduces Heal rate by ${pct(FLAME.heals)}.`,
       icon: '🔥',
       art: art(0),
       move: 'burning',
@@ -109,7 +109,7 @@ export const MORRAH: HeroDef = {
     {
       name: 'Lava Eruption',
       about: `A blow that knocks the boss down for ${seconds(ERUPTION.down)}, ${pct(FLAME.more)} harder for each [Flame] on it.`,
-      words: `Deals ${dmg('knight', ERUPTION.blow)} M.DMG to enemies in range and inflict knock down. Per every stacked Flame, DMG is increased by ${pct(FLAME.more)}.`,
+      words: `Deals ${dmg('knight', ERUPTION.blow, bookDmg('morrah', 2))} M.DMG to enemies in range and inflict knock down. Per every stacked Flame, DMG is increased by ${pct(FLAME.more)}.`,
       icon: '☄️',
       art: art(2),
       move: 'eruption',

@@ -6,7 +6,7 @@ import { MAX_MANA, SECTION } from '../rules';
 import { pct, skillArt, type Buff } from '../shown';
 import type { Fighter } from '../types';
 import { atTier, ELTOIRRE, ELTOIRRE_UP } from '../unique';
-import { CLASS_STATS, dmg, healed, indexed, indexedHeal, type HeroDef, type Passive } from './kit';
+import { bookDmg, bookHeal, CLASS_STATS, dmg, healed, type HeroDef, indexed, indexedHeal, type Passive } from './kit';
 
 /*
  * Laias's skills, as the game has them (what each costs, how long before it can be used again, how long what it
@@ -91,7 +91,7 @@ export const LAIAS: HeroDef = {
       name: 'Healing Droplets',
       auto: { heals: true },
       about: `Heals every ally, and for ${DROPLETS.lasts} seconds healing reaches them ${pct(DROPLETS.heals)} more (${DROPLETS.lowTimes} times that for one at ${pct(DROPLETS.low)} of its health or less).`,
-      words: `Heals ${healed('priest', DROPLETS.heal)} HP of all allies and increases Heal Rate by ${pct(DROPLETS.heals)} for ${DROPLETS.lasts} sec. If the target's HP is ${pct(DROPLETS.low)} or below, Heal Rate increases by ${DROPLETS.lowTimes} times.`,
+      words: `Heals ${healed('priest', DROPLETS.heal, bookHeal('laias', 0))} HP of all allies and increases Heal Rate by ${pct(DROPLETS.heals)} for ${DROPLETS.lasts} sec. If the target's HP is ${pct(DROPLETS.low)} or below, Heal Rate increases by ${DROPLETS.lowTimes} times.`,
       icon: '💧',
       art: art(0),
       move: 'droplets',
@@ -101,7 +101,7 @@ export const LAIAS: HeroDef = {
     {
       name: 'Bubble Shield',
       about: `A shield on the ally with the lowest health: for ${BUBBLE.lasts} seconds it takes ${pct(1 - BUBBLE.taken)} less from the boss and deals ${pct(BUBBLE.dmg)} more. While the shield holds it can’t be knocked down, hits ${pct(BUBBLE.atk)} harder and is healed every second.`,
-      words: `For ${BUBBLE.lasts} sec, casts a Shield that blocks ${healed('priest', BUBBLE.shield)} DMG on the ally with the lowest HP. While the Shield is active, gains immunity to CC, increases ATK and heals ${healed('priest', BUBBLE.heal)} HP every sec. For ${BUBBLE.lasts} sec, the ally takes ${pct(1 - BUBBLE.taken)} reduced DMG from Non-Hero targets and increases DMG dealt to Non-Hero enemies by ${pct(BUBBLE.dmg)}. The DMG Reduction effect from and the DMG Boost effect to Non-Hero enemies is irremovable.`,
+      words: `For ${BUBBLE.lasts} sec, casts a Shield that blocks ${healed('priest', BUBBLE.shield, bookHeal('laias', 1))} DMG on the ally with the lowest HP. While the Shield is active, gains immunity to CC, increases ATK and heals ${healed('priest', BUBBLE.heal, bookHeal('laias', 1))} HP every sec. For ${BUBBLE.lasts} sec, the ally takes ${pct(1 - BUBBLE.taken)} reduced DMG from Non-Hero targets and increases DMG dealt to Non-Hero enemies by ${pct(BUBBLE.dmg)}. The DMG Reduction effect from and the DMG Boost effect to Non-Hero enemies is irremovable.`,
       icon: '🫧',
       art: art(1),
       move: 'bubble',
@@ -111,7 +111,7 @@ export const LAIAS: HeroDef = {
     {
       name: 'Festival of the Flow',
       about: `Knocks the boss down for ${FESTIVAL.down} seconds, heals every ally ${pct(FESTIVAL.heal)} of its max HP and gives every other ally ${FESTIVAL.mana / SECTION} mana. Then for ${FESTIVAL.lasts} seconds a whirlpool every ${FESTIVAL.every} seconds strikes the boss and knocks it down for ${FESTIVAL.whirlDown}.`,
-      words: `Deals ${dmg('priest', FESTIVAL.blow)} M.DMG to nearby enemies and knocks them down for ${FESTIVAL.down} sec. Upon casting, heals HP of all allies by ${pct(FESTIVAL.heal)} of their Max HP and recovers ${FESTIVAL.mana / SECTION} orbs of Mana of allies excluding self. Afterward, for ${FESTIVAL.lasts} sec, creates a whirlpool every ${FESTIVAL.every} sec that deals ${dmg('priest', FESTIVAL.whirl)} M.DMG to random enemies and knocks them down for ${FESTIVAL.whirlDown} sec.`,
+      words: `Deals ${dmg('priest', FESTIVAL.blow, bookDmg('laias', 2))} M.DMG to nearby enemies and knocks them down for ${FESTIVAL.down} sec. Upon casting, heals HP of all allies by ${pct(FESTIVAL.heal)} of their Max HP and recovers ${FESTIVAL.mana / SECTION} orbs of Mana of allies excluding self. Afterward, for ${FESTIVAL.lasts} sec, creates a whirlpool every ${FESTIVAL.every} sec that deals ${dmg('priest', FESTIVAL.whirl, bookDmg('laias', 2))} M.DMG to random enemies and knocks them down for ${FESTIVAL.whirlDown} sec.`,
       icon: '🌊',
       art: art(2),
       move: 'festival',

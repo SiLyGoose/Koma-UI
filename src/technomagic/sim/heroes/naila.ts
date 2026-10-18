@@ -4,7 +4,7 @@ import { said, t5Light } from '../perks';
 import { treasure, treasureTier } from '../treasures';
 import { nth, num, pct, skillArt, type Buff } from '../shown';
 import { atTier, BARORO } from '../unique';
-import { CLASS_STATS, dmg, indexed, type HeroDef, type Passive } from './kit';
+import { bookDmg, CLASS_STATS, dmg, type HeroDef, indexed, type Passive } from './kit';
 import { CODED } from './moves';
 
 /*
@@ -58,7 +58,7 @@ const TORNADO_STRIKE: Passive = {
     icon: '🌪️',
     art: art(3),
   },
-  words: `Every ${nth(TORNADO.every)} normal attack has a ${pct(TORNADO.chance)} chance to deal additional ${dmg('warrior', TORNADO.blow)} P.DMG to the target. The target takes ${pct(TORNADO.takes - 1)} increased P.DMG for ${TORNADO.lasts} sec and is knocked down for ${TORNADO.down} sec.`,
+  words: `Every ${nth(TORNADO.every)} normal attack has a ${pct(TORNADO.chance)} chance to deal additional ${dmg('warrior', TORNADO.blow, bookDmg('naila', 3))} P.DMG to the target. The target takes ${pct(TORNADO.takes - 1)} increased P.DMG for ${TORNADO.lasts} sec and is knocked down for ${TORNADO.down} sec.`,
 };
 /** What Wind Reading gives every ally, and its Dark gives her. */
 const READ: Buff = { name: 'Wind Reading', about: `+${READING.dodge} P.Dodge and +${num(READING.atk)} ATK.`, icon: '🍃', art: art(1) };
@@ -80,7 +80,7 @@ export const NAILA: HeroDef = {
     {
       name: 'Fierce Winds',
       about: `Two dashes through the boss, each a blow that knocks it down for ${WINDS.down} seconds.`,
-      words: `Dashes toward the enemy 2 times, dealing ${dmg('warrior', WINDS.blow * CODED.winds.lands.length)} P.DMG to enemies in range, knocking them down for ${WINDS.down} sec. If the target is not a Hero, deals additional ${dmg('warrior', WINDS.boss * CODED.winds.lands.length)} P.DMG.`,
+      words: `Dashes toward the enemy 2 times, dealing ${dmg('warrior', WINDS.blow * CODED.winds.lands.length, bookDmg('naila', 0))} P.DMG to enemies in range, knocking them down for ${WINDS.down} sec. If the target is not a Hero, deals additional ${dmg('warrior', WINDS.boss * CODED.winds.lands.length, bookDmg('naila', 0))} P.DMG.`,
       icon: '💨',
       art: art(0),
       move: 'winds',
@@ -101,7 +101,7 @@ export const NAILA: HeroDef = {
     {
       name: 'Dive Bomb',
       about: `She flies up and strikes the boss, ${pct(DIVE.downed - 1)} harder while she has it knocked down.`,
-      words: `Flies up and strikes ${dmg('warrior', DIVE.blow)} P.DMG to enemies in range. Knocked down enemies take ${pct(DIVE.downed - 1)} increased DMG. If the target is not a Hero, deals additional ${dmg('warrior', DIVE.boss)} P.DMG.`,
+      words: `Flies up and strikes ${dmg('warrior', DIVE.blow, bookDmg('naila', 2))} P.DMG to enemies in range. Knocked down enemies take ${pct(DIVE.downed - 1)} increased DMG. If the target is not a Hero, deals additional ${dmg('warrior', DIVE.boss, bookDmg('naila', 2))} P.DMG.`,
       icon: '🦅',
       art: art(2),
       move: 'dive',

@@ -3,7 +3,7 @@ import { said, t5Light } from '../perks';
 import { fromTreasure, treasure, treasureTier } from '../treasures';
 import { pct, skillArt } from '../shown';
 import { atTier, ROBURU } from '../unique';
-import { CLASS_STATS, dmg, indexed, type HeroDef, type Passive } from './kit';
+import { bookDmg, CLASS_STATS, dmg, type HeroDef, indexed, type Passive } from './kit';
 import { CODED } from './moves';
 
 /*
@@ -54,7 +54,7 @@ const BLADE_LEAF: Passive = {
   crit: 0,
   control: 1,
   shown: { name: 'Blade Leaf', about: `Passive. Her attack has a ${pct(LEAF.chance)} chance to send ${LEAF.times} leaves at the boss besides, each leaving a [Poison] on it (up to ${POISON.most}).`, icon: '🍃', art: art(3) },
-  words: `When dealing a normal attack, attacks a random enemy ${LEAF.times} times with a ${pct(LEAF.chance)} chance of inflicting ${dmg('wizard', LEAF.blow)} M.DMG and 1 stack of Poison for ${POISON.lasts} seconds. Poison inflicts a total of ${dmg('wizard', POISON.each * POISON.lasts)} M.DMG over ${POISON.lasts} seconds, reduces Heal Rate, and can be stacked up to max ${POISON.most} times. If Lorraine dies, Poison effects on enemies will disappear.`,
+  words: `When dealing a normal attack, attacks a random enemy ${LEAF.times} times with a ${pct(LEAF.chance)} chance of inflicting ${dmg('wizard', LEAF.blow, bookDmg('lorraine', 3))} M.DMG and 1 stack of Poison for ${POISON.lasts} seconds. Poison inflicts a total of ${dmg('wizard', POISON.each * POISON.lasts, bookDmg('lorraine', 3))} M.DMG over ${POISON.lasts} seconds, reduces Heal Rate, and can be stacked up to max ${POISON.most} times. If Lorraine dies, Poison effects on enemies will disappear.`,
 };
 /** What her skills leave on the boss. */
 const POISONED = 'Poison';
@@ -70,7 +70,7 @@ export const LORRAINE: HeroDef = {
     {
       name: 'Thornbush Forest',
       about: `${THORNS.hits} blows, each leaving a [Poison] on the boss (up to ${POISON.most}): each eats at it every second and leaves it healed ${pct(POISON.heals)} less.`,
-      words: `Attacks ${THORNS.hits} times at random, dealing a total of ${dmg('wizard', THORNS.blow * THORNS.hits)} M.DMG to enemies in range and inflicting 1 stack of Poison with each attack.`,
+      words: `Attacks ${THORNS.hits} times at random, dealing a total of ${dmg('wizard', THORNS.blow * THORNS.hits, bookDmg('lorraine', 0))} M.DMG to enemies in range and inflicting 1 stack of Poison with each attack.`,
       icon: '🌿',
       art: art(0),
       move: 'thornbush',
@@ -80,7 +80,7 @@ export const LORRAINE: HeroDef = {
     {
       name: 'Tangled Vine',
       about: `A blow that leaves ${VINE.poison} [Poison] and shackles the boss for ${VINE.shackle} seconds (it can do nothing); ${VINE.after} seconds after, a blow the harder for each [Poison] on it.`,
-      words: `Deals ${dmg('wizard', VINE.blow)} M.DMG to enemies in a straight line, stacking ${VINE.poison} Poison and shackling them for ${VINE.shackle} sec. After some time, deals ${dmg('wizard', VINE.each)} M.DMG for each Poison stack.`,
+      words: `Deals ${dmg('wizard', VINE.blow, bookDmg('lorraine', 1))} M.DMG to enemies in a straight line, stacking ${VINE.poison} Poison and shackling them for ${VINE.shackle} sec. After some time, deals ${dmg('wizard', VINE.each, bookDmg('lorraine', 1))} M.DMG for each Poison stack.`,
       icon: '🪢',
       art: art(1),
       move: 'vine',
@@ -90,7 +90,7 @@ export const LORRAINE: HeroDef = {
     {
       name: 'Wrath of the Forest',
       about: `A blow that knocks the boss down for ${WRATH.down} seconds, ${pct(WRATH.more)} harder for each [Poison] on it.`,
-      words: `Deals ${dmg('wizard', WRATH.blow)} M.DMG to enemies in range and knocks them down for ${WRATH.down} sec. Enemies inflicted by Poison takes ${pct(WRATH.more)} more DMG per every stack.`,
+      words: `Deals ${dmg('wizard', WRATH.blow, bookDmg('lorraine', 2))} M.DMG to enemies in range and knocks them down for ${WRATH.down} sec. Enemies inflicted by Poison takes ${pct(WRATH.more)} more DMG per every stack.`,
       icon: '🌳',
       art: art(2),
       move: 'wrath',

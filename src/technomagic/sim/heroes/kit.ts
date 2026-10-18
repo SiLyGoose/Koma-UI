@@ -1,4 +1,5 @@
 import { ATK, NONE, POINTS, type HeroStats, type PerKind } from '../combat/damage';
+import { KR_HEROES } from './kr';
 import type { OwnTiming } from '../motion';
 import type { OwnPerkId, PerkDef } from '../perks';
 import type { TreasureDef } from '../treasures';
@@ -193,10 +194,19 @@ export const CLASS_STATS = Object.fromEntries(
 export const indexed = (kind: HeroClass, dmg: number): number => (POINTS * dmg) / KINGS_RAID[kind].atk;
 /** A heal or a shield as the King's Raid Index has it: so that a hero of `kind`, at its class's ATK, gives just `amount` (a heal gives as much more as its healer's attack is over ATK). */
 export const indexedHeal = (kind: HeroClass, amount: number): number => (amount * ATK) / KINGS_RAID[kind].atk;
-/** What a blow of `blow` deals from a hero of `kind` at its class's ATK, as its words say it (the Index's own number, where it has one). */
-export const dmg = (kind: HeroClass, blow: number): string => num(Math.round((blow * KINGS_RAID[kind].atk) / POINTS));
-/** What a heal or a shield of `amount` gives from a hero of `kind` at its class's ATK, as its words say it. */
-export const healed = (kind: HeroClass, amount: number): string => num(Math.round((amount * KINGS_RAID[kind].atk) / ATK));
+/**
+ * What a blow of `blow` deals from a hero of `kind` at its class's ATK, as its words say it (the Index's own number, where it
+ * has one), `books` times as much (bookDmg: as it is with its skill's books).
+ */
+export const dmg = (kind: HeroClass, blow: number, books = 1): string => num(Math.round((blow * books * KINGS_RAID[kind].atk) / POINTS));
+/** What a heal or a shield of `amount` gives from a hero of `kind` at its class's ATK, as its words say it, `books` times as much (bookHeal). */
+export const healed = (kind: HeroClass, amount: number, books = 1): string => num(Math.round((amount * books * KINGS_RAID[kind].atk) / ATK));
+/**
+ * A hero's skills are as they are with all their books (King's Raid's playtest's: ./kr.ts), there being none to get here: how
+ * many times as much the `index`th skill's damage is for them (3: its passive's), and its heals and shields.
+ */
+export const bookDmg = (id: string, index: number): number => 1 + (KR_HEROES[id]?.books.dmg[index] ?? 0);
+export const bookHeal = (id: string, index: number): number => 1 + (KR_HEROES[id]?.books.heal[index] ?? 0);
 
 export interface HeroDef {
   /** What the bot and the site know it by: its file here (and its folder under ../../heroes/ and assets/heroes/). */

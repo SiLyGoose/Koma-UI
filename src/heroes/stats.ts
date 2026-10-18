@@ -4,7 +4,7 @@ import { POINTS } from '../technomagic/sim/combat/damage';
 import { geared } from '../technomagic/sim/gear';
 import { ownAuras, perkedStats, perksOf, withPerks } from '../technomagic/sim/perks';
 import { KR_HEROES } from '../technomagic/sim/heroes/kr';
-import { CRIT, MANA_PER_ATTACK, MANA_RATE } from '../technomagic/sim/rules';
+import { CLASS_BUFF, CRIT, MANA_PER_ATTACK, MANA_RATE } from '../technomagic/sim/rules';
 import { SKILL, skilledCritDamage, skilledStats, skillsOf, type SkillId } from '../technomagic/sim/skills';
 import { HEROES } from '../technomagic/sim/heroes';
 import { CLASS_STATS, lineOf, type HeroClass } from '../technomagic/sim/heroes/kit';
@@ -63,6 +63,9 @@ export function heroStats(hero: Pick<HeroView, 'class'> & Partial<Pick<HeroView,
   const auras = ownAuras(perks);
   const given = withPerks(hero.bonus ?? {}, perks);
   if (auras.hp) given.hp = (given.hp ?? 0) + auras.hp;
+  // (And its class buffs, as the fight has them.)
+  given.atk = (given.atk ?? 0) + CLASS_BUFF.atk;
+  given.hp = (given.hp ?? 0) + CLASS_BUFF.hp;
   const bonus = (stat: HeroStat): number => given[stat] ?? 0;
   // (Its additional effects: on its own stats, as the fight has them from the start; and what it gives every ally, itself
   // among them, and Mana Spring's mana, as much a second as it gives every few.)

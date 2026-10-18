@@ -215,6 +215,12 @@ export function rage(over: number): number {
   return power >= MOST_RAGE_POWER ? MOST_RAGE : exp2(power);
 }
 
+/**
+ * King's Raid's class buffs, as its playtest has them at their most (every class alike, in every raid): a share more ATK and
+ * max HP for every hero (added up with the rest of each, as the game's are).
+ */
+export const CLASS_BUFF = { atk: 0.52, hp: 0.52 };
+
 /** What a blow of a hero's attack takes of the boss, before the boss's defense, where King's Raid's playtest doesn't say (./heroes/kr.ts); and how much harder a critical blow is (before its gear's crit damage). */
 export const BLOW = 1100;
 export const CRIT = 2;

@@ -5,7 +5,7 @@ import { pct, skillArt, type Buff, type Tone } from '../shown';
 import { said, t5Light } from '../perks';
 import { fromTreasure, treasure, treasureTier } from '../treasures';
 import { atTier, PIGRITIA } from '../unique';
-import { CLASS_STATS, dmg, type Ability, type HeroDef, type Passive } from './kit';
+import { type Ability, bookDmg, CLASS_STATS, dmg, type HeroDef, type Passive } from './kit';
 import { CODED } from './moves';
 
 /*
@@ -107,7 +107,7 @@ export const GREMORY: HeroDef = {
     {
       name: 'Pochi, bite them!',
       about: `${BITES} bites, each harder for her [Mana Charge], each leaving [Pochi’s Mark]: the boss hits ${pct(POCHI.weaker)} softer for each, for ${POCHI.lasts} seconds (up to ${POCHI.most}). Sealed once used.`,
-      words: `Attacks an enemy ${BITES} times, dealing ${dmg('assassin', POCHI.bite)} M.DMG and inflicting [Pochi's Mark] each hit. The M.DMG of each hit increases by ${pct(POCHI.more)} per every stack of [Mana Charge]. [Pochi's Mark] reduces target's ATK by ${pct(POCHI.weaker)} for ${POCHI.lasts} sec, and it can be stacked up to max ${POCHI.most} times. If the target is a Boss, each hit deals additional ${dmg('assassin', POCHI.boss)} M.DMG. The additional M.DMG increases by ${pct(POCHI.bossMore)} per every stack of [Mana Charge]. This skill is sealed after use.`,
+      words: `Attacks an enemy ${BITES} times, dealing ${dmg('assassin', POCHI.bite, bookDmg('gremory', 0))} M.DMG and inflicting [Pochi's Mark] each hit. The M.DMG of each hit increases by ${pct(POCHI.more)} per every stack of [Mana Charge]. [Pochi's Mark] reduces target's ATK by ${pct(POCHI.weaker)} for ${POCHI.lasts} sec, and it can be stacked up to max ${POCHI.most} times. If the target is a Boss, each hit deals additional ${dmg('assassin', POCHI.boss, bookDmg('gremory', 0))} M.DMG. The additional M.DMG increases by ${pct(POCHI.bossMore)} per every stack of [Mana Charge]. This skill is sealed after use.`,
       tag: 'Sealed after use',
       icon: '🐶',
       art: art(0),
@@ -118,7 +118,7 @@ export const GREMORY: HeroDef = {
     {
       name: 'Puchi, knock them away!',
       about: `A blow from behind that stuns the boss for ${PUCHI.stun} seconds. Sealed once used.`,
-      words: `Attacks the farthest enemy from behind, dealing ${dmg('assassin', PUCHI.blow)} M.DMG. Afterward, inflicts Stun for ${PUCHI.stun} sec and [Puchi's Mark] on the target. This skill is sealed after use.`,
+      words: `Attacks the farthest enemy from behind, dealing ${dmg('assassin', PUCHI.blow, bookDmg('gremory', 1))} M.DMG. Afterward, inflicts Stun for ${PUCHI.stun} sec and [Puchi's Mark] on the target. This skill is sealed after use.`,
       tag: 'Sealed after use',
       icon: '💥',
       art: art(1),
@@ -129,7 +129,7 @@ export const GREMORY: HeroDef = {
     {
       name: 'Pippi, wrap them!',
       about: `${WRAPS} blows, each leaving [Pippi’s Mark]: the boss takes ${pct(PIPPI.takes)} more magical damage for each, for ${PIPPI.lasts} seconds (up to ${PIPPI.most}). With all ${PIPPI.most} on it, each blow deals more, through its defense. Sealed once used.`,
-      words: `Deals a total of ${dmg('assassin', PIPPI.blow * WRAPS)} M.DMG over ${WRAPS} times to the target and enemies within a large area around the target, inflicting [Pippi's Mark] on hit targets each hit. If this skill deals DMG to a target inflicted with ${PIPPI.most} stacks of [Pippi's Mark], each hit deals additional ${dmg('assassin', PIPPI.through)} M.DMG that ignores DEF. [Pippi's Mark] increases M.DMG the target takes by ${pct(PIPPI.takes)} for ${PIPPI.lasts} sec, and it can be stacked up to max ${PIPPI.most} times. This skill is sealed after use.`,
+      words: `Deals a total of ${dmg('assassin', PIPPI.blow * WRAPS, bookDmg('gremory', 2))} M.DMG over ${WRAPS} times to the target and enemies within a large area around the target, inflicting [Pippi's Mark] on hit targets each hit. If this skill deals DMG to a target inflicted with ${PIPPI.most} stacks of [Pippi's Mark], each hit deals additional ${dmg('assassin', PIPPI.through, bookDmg('gremory', 2))} M.DMG that ignores DEF. [Pippi's Mark] increases M.DMG the target takes by ${pct(PIPPI.takes)} for ${PIPPI.lasts} sec, and it can be stacked up to max ${PIPPI.most} times. This skill is sealed after use.`,
       tag: 'Sealed after use',
       icon: '🎀',
       art: art(2),
