@@ -4,7 +4,8 @@ declare module 'virtual:pictures' {
   export const ITEM_ART: Readonly<Record<'weapons' | 'armor' | 'treasures', readonly string[]>>;
   /**
    * In a build: where the pictures made as WebP are (`dir`, as public/built/), the folders they're made for, those
-   * of them that couldn't be made, and the model textures made at half size besides (their addresses). Null in `yarn dev`.
+   * of them that couldn't be made, and the model textures made at half size besides (their addresses); and the animation
+   * clips made (scripts/clips.mjs): the folder they're made for, and those that couldn't be. Null in `yarn dev`.
    */
-  export const BUILT: { dir: string; folders: readonly string[]; missing: readonly string[]; small: readonly string[] } | null;
+  export const BUILT: { dir: string; folders: readonly string[]; missing: readonly string[]; small: readonly string[]; clips: { folder: string; missing: readonly string[] } } | null;
 }

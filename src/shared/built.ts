@@ -23,6 +23,14 @@ const small = new Set(BUILT?.small ?? []);
 /** Where to get a big TechnoMagic texture (by its colour's address) at half its size each way, built for a device short of memory; null if none was. */
 export const builtSmall = (src: string): string | null => (BUILT && small.has(src) ? `${BUILT.dir}/small${src.replace(/\.png$/i, '.webp')}` : null);
 
+const unclipped = new Set(BUILT?.clips.missing ?? []);
+
+/** Where to get the King's Raid clip at `src` (its .json's address): its .krc once built (../technomagic/engine/kr-clip-file.js), else null (its JSON). */
+export function builtClip(src: string): string | null {
+  if (!BUILT || !/\/animations\/.+\.json$/.test(src) || !src.startsWith(BUILT.clips.folder) || unclipped.has(src)) return null;
+  return `${BUILT.dir}${src.replace(/\.json$/, '.krc')}`;
+}
+
 const itemArt = { weapons: new Set(ITEM_ART.weapons), armor: new Set(ITEM_ART.armor), treasures: new Set(ITEM_ART.treasures) };
 
 /** Whether item `id` has a picture in public/gear/items/<folder>/. */

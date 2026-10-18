@@ -2,7 +2,7 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { defineConfig, type Plugin } from 'vite';
 // @ts-expect-error: a plain script (no types), shared with scripts/pictures.mjs.
-import { BUILT_DIR, builtPath, FOLDERS, pictures as builtPictures, smallPath } from './scripts/built.mjs';
+import { BUILT_DIR, builtClipPath, builtPath, CLIP_FOLDER, clips as builtClips, FOLDERS, pictures as builtPictures, smallPath } from './scripts/built.mjs';
 
 /**
  * The page transitions' first half (src/shared/transition/head.*), inline at the end of every page's
@@ -24,7 +24,7 @@ function transitionHead(): Plugin {
  * `virtual:pictures` (src/shared/built.ts reads it): which items have a picture (public/gear/items/<folder>/<id>.png, so
  * none is asked for that isn't there), and, in a build, which pictures were made as WebP (scripts/pictures.mjs runs
  * before it): the folders they're made for, any of those that couldn't be made, and the textures made at half size
- * besides. In `yarn dev`, none (the PNGs).
+ * besides; and the clips made (scripts/clips.mjs): their folder, and any that couldn't be. In `yarn dev`, none (the PNGs, the JSON).
  */
 function pictures(): Plugin {
   const id = 'virtual:pictures';
@@ -43,9 +43,10 @@ function pictures(): Plugin {
       const made = building ? (builtPictures(pub) as string[]) : [];
       const missing = made.filter((path) => !existsSync(resolve(pub, builtPath(path) as string))).map((path) => `/${path}`);
       const small = made.filter((path) => existsSync(resolve(pub, smallPath(path) as string))).map((path) => `/${path}`);
+      const unclipped = building ? (builtClips(pub) as string[]).filter((path) => !existsSync(resolve(pub, builtClipPath(path) as string))).map((path) => `/${path}`) : [];
       return [
         `export const ITEM_ART = ${JSON.stringify(art)};`,
-        `export const BUILT = ${building ? JSON.stringify({ dir: `/${BUILT_DIR}`, folders: (FOLDERS as string[]).map((folder) => `/${folder}`), missing, small }) : 'null'};`,
+        `export const BUILT = ${building ? JSON.stringify({ dir: `/${BUILT_DIR}`, folders: (FOLDERS as string[]).map((folder) => `/${folder}`), missing, small, clips: { folder: `/${CLIP_FOLDER}`, missing: unclipped } }) : 'null'};`,
       ].join('\n');
     },
   };

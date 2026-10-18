@@ -1,32 +1,38 @@
 import { AnimationClip, QuaternionKeyframeTrack, VectorKeyframeTrack, type KeyframeTrack } from 'three';
+import { builtClip } from '../../shared/built';
+import { decodeClip, type ClipFile } from './kr-clip-file.js';
 
 /*
  * King's Raid's own animation clips, as KR-extracted/scripts/kr-anims.py writes them from the game's files (each
  * bone's rotation, and its position and scale where they move, sampled so many times a second, already in our
  * models' axes), read as three.js clips; and fitted to how the fight times a move (../sim/motion.ts): its clips one
- * after another, their blows landing when the fight's do, drawn out or hurried evenly between.
+ * after another, their blows landing when the fight's do, drawn out or hurried evenly between. A build sends each as a
+ * .krc (./kr-clip-file.js: the same clip in about half the bytes), read here in place of its JSON.
  */
-
-interface ClipFile {
-  name: string;
-  duration: number;
-  fps: number;
-  /** What hangs straight from the creature, beside its skeleton, that it moves (what it holds: Point_Dummy; the marks of its hands). */
-  top?: string[];
-  /**
-   * A bone's name, what of it (q: its rotation, p: its position, s: its scale), and its values frame by frame (or one
-   * frame's: it stays so); or, with the frames' numbers after them, only at those frames (the rest lie on a straight line between).
-   */
-  tracks: [string, 'q' | 'p' | 's', number[], number[]?][];
-}
 
 const PROPERTY = { q: 'quaternion', p: 'position', s: 'scale' } as const;
 
-/** A clip read from its file. */
+/** A clip's file as its build made it (gzipped: unpacked here, as a host sends a binary file as it is); null where it can't be read. */
+async function readBuilt(url: string): Promise<ClipFile | null> {
+  try {
+    const res = await fetch(url);
+    if (!res.ok || !res.body) return null;
+    const unpacked = await new Response(res.body.pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
+    return decodeClip(new Uint8Array(unpacked));
+  } catch {
+    return null;
+  }
+}
+
+/** A clip read from its file (its built one, where there is one: else, or if that can't be read, its JSON). */
 export async function loadKrClip(url: string): Promise<AnimationClip> {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`${url}: ${res.status}`);
-  const file = (await res.json()) as ClipFile;
+  const made = builtClip(url);
+  let file = made ? await readBuilt(made) : null;
+  if (!file) {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`${url}: ${res.status}`);
+    file = (await res.json()) as ClipFile;
+  }
   const frames = Math.round(file.duration * file.fps) + 1;
   const every = Array.from({ length: frames }, (_, i) => Math.min(i / file.fps, file.duration));
   const tracks = file.tracks.map(([bone, kind, values, at]): KeyframeTrack => {

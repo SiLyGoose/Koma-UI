@@ -47,3 +47,33 @@ export function pictures(pub) {
   for (const folder of FOLDERS) walk(folder);
   return found;
 }
+
+/*
+ * And King's Raid's animation clips (./clips.mjs makes them): every .json in an animations/ folder of a hero's, boss's
+ * or minion's under public/kr/, as a .krc under public/built/ at the same path (src/technomagic/engine/kr-clip-file.js:
+ * every number exactly, about half the bytes of the JSON gzipped).
+ */
+
+/** The folder (under public/) whose clips are made. */
+export const CLIP_FOLDER = 'kr/';
+
+/** Whether a file (its path under public/) is a clip: a .json in an animations/ folder. */
+export const isClip = (path) => path.startsWith(CLIP_FOLDER) && /\/animations\/.+\.json$/.test(path);
+
+/** The built clip's path (under public/) for a clip's. */
+export const builtClipPath = (path) => `${BUILT_DIR}/${path.replace(/\.json$/, '.krc')}`;
+
+/** Every clip (its path under public/, with /) that is made. */
+export function clips(pub) {
+  const found = [];
+  const walk = (dir) => {
+    if (!existsSync(join(pub, dir))) return;
+    for (const entry of readdirSync(join(pub, dir), { withFileTypes: true })) {
+      const path = `${dir}${entry.name}`;
+      if (entry.isDirectory()) walk(`${path}/`);
+      else if (isClip(path)) found.push(path);
+    }
+  };
+  walk(CLIP_FOLDER);
+  return found;
+}
