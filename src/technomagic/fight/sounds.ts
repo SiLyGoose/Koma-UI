@@ -1,11 +1,12 @@
-import { music, sound, type Stop } from '../../shared/audio';
+import { music, preload, sound, type Stop } from '../../shared/audio';
 import { musicFile, soundFile, type BossAssets, type GameSound, type HeroAssets } from '../assets';
 
 /*
  * What is heard in a fight, King's Raid's own (the heroes' and the boss's asset files' `sounds`, and its `music`):
  * a hero's blow landing and a hero's skill beginning; the boss's attack beginning, its blow landing on a hero, it
  * knocked down and falling; and the raid's music. All through the shared ../../shared/audio/sfx.ts (its volume, and
- * the frame's sound button). Only the fight's heroes' and boss's files are read, each once however many share it.
+ * the frame's sound button). Only the fight's heroes' and boss's files are read, each once however many share it
+ * (and however many fights: sfx.ts keeps each it has read), in a room ahead of the fight (readSounds()).
  */
 
 /** How loud the heroes are, the boss, and the music (each a share of the shared volume), before the game's own volume for each sound. */
@@ -34,21 +35,27 @@ export interface FightSounds {
   stop(): void;
 }
 
+/** Every file a hero's sounds play. */
+const heroFiles = (hero: HeroAssets): string[] =>
+  [...Object.values(hero.sounds?.hits ?? {}).flat(), ...Object.values(hero.sounds?.casts ?? {})].flatMap((list) => list.map((clip) => soundFile(hero, clip)));
+
+/** Every file a boss's sounds play (not its music). */
+const bossFiles = (boss: BossAssets): string[] => {
+  const { uses = {}, hits = {}, down, dead } = boss.sounds ?? {};
+  return [...Object.values(uses), ...Object.values(hits), down ?? [], dead ?? []].flatMap((list) => list.map((clip) => soundFile(boss, clip)));
+};
+
+/** Starts loading a hero's sounds, or a boss's and its music, before its fight (in a room, as it's picked: the fight then begins with them in). */
+export function readSounds(owner: { hero: HeroAssets } | { boss: BossAssets }): void {
+  const urls = 'hero' in owner ? heroFiles(owner.hero) : [...bossFiles(owner.boss), ...(owner.boss.music ? [musicFile(owner.boss.music.file)] : [])];
+  for (const url of new Set(urls)) preload(url);
+}
+
 /** The sounds of a fight of `heroes` (by their index among the fighters) against `boss`. */
 export function makeFightSounds(heroes: readonly HeroAssets[], boss: BossAssets): FightSounds {
   const clips = new Map<string, (volume?: number) => void>();
-  const read = (owner: { folder: string }, list: GameSound | undefined): void => {
-    for (const clip of list ?? []) {
-      const url = soundFile(owner, clip);
-      if (!clips.has(url)) clips.set(url, sound(url));
-    }
-  };
-  for (const hero of heroes) {
-    for (const blows of Object.values(hero.sounds?.hits ?? {})) for (const blow of blows) read(hero, blow);
-    for (const cast of Object.values(hero.sounds?.casts ?? {})) read(hero, cast);
-  }
+  for (const url of [...heroes.flatMap(heroFiles), ...bossFiles(boss)]) if (!clips.has(url)) clips.set(url, sound(url));
   const { uses = {}, hits = {}, down, dead } = boss.sounds ?? {};
-  for (const list of [...Object.values(uses), ...Object.values(hits), down, dead]) read(boss, list);
 
   const last = new Map<string, number>();
   const play = (url: string, volume: number): void => {

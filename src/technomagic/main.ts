@@ -14,7 +14,9 @@ import { stagesOf, type BossDef } from './sim/bosses/boss';
 import { BOSS_VIEWS } from './bosses/models';
 import { makeStage } from './engine/stage';
 import { Ahead } from './fight/ahead';
-import { makeFightView, type FightView } from './fight/view';
+import { bossEffects, heroEffects } from './fight/kr-moves';
+import { readSounds } from './fight/sounds';
+import { makeFightView, SIGN_EFFECTS, type FightView } from './fight/view';
 import { loadEffects } from './fx/effects';
 import { makeKrEffects } from './fx/kr-effects';
 import { makeMagic } from './fx/magic';
@@ -255,6 +257,9 @@ async function start(): Promise<void> {
         return picture.decode().catch(() => undefined);
       });
       reading = Promise.all([loadHeroes([hero], { skin }).catch(unread), props.read(assets), Promise.all(pictures)]).then(async ([entrants]) => {
+        // Its effects and sounds next (once its body is in: it can't fight without that, but can without these), so the fight begins with them.
+        kr.read(heroEffects(assets));
+        readSounds({ hero: assets });
         await Promise.all(
           entrants.map(async ({ skin }) => {
             const { portrait } = skin;
@@ -481,6 +486,9 @@ async function start(): Promise<void> {
 
   function room(link: string, address: string): void {
     actionsRow.hidden = true;
+    // The boss's effects, sounds and music, and every fight's signs, read while everyone gets ready (the heroes' as they're picked: read()).
+    kr.read([...bossEffects(bossView!.look.assets), ...SIGN_EFFECTS]);
+    readSounds({ boss: bossView!.look.assets });
     hint.textContent = `Each player uses their own heroes’ skills from their cards (or Auto, top left); everyone’s heroes are on the field (single player, the Sub Team fights on Auto, with no cards). Heroes that fall stay down: beat ${def.name} before its rage wipes the party.${DRAGON ? ' Your heroes’ stuns wear its CC Gauge down: empty, it is knocked down, and takes more damage.' : ''}`;
     let socket: GameSocket<ClientMessage> | null = null;
     let state: RoomState | null = null;

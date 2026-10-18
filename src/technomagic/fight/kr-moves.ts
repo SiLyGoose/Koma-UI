@@ -29,10 +29,19 @@ const numberOf = (code: string): number | null => {
   return m ? Number(m[1]) : null;
 };
 
+/** Every effect a hero's moves play (a projectile's not: it's never played). */
+export const heroEffects = (hero: HeroAssets): string[] => Object.values(hero.vfx ?? {}).flatMap((move) => [...(move.start ?? []), ...(move.land ?? [])].filter((code) => !flies(code)));
+
+/** Every effect a boss plays: its attacks', and its coming on the field. */
+export const bossEffects = (boss: BossAssets): string[] => {
+  const { attacks = {}, advent = [] } = boss.vfx ?? {};
+  return [...advent, ...Object.values(attacks).flatMap((attack) => [...(attack.start ?? []), ...(attack.hit ?? [])])];
+};
+
 /** The effects of `heroes`' moves (by their index among the fighters; `bodies` theirs on the field), their blows landing at `target`. */
 export function makeKrMoves(kr: KrEffects, heroes: readonly HeroAssets[], bodies: readonly Hero[], target: Vector3): KrMoves {
-  // Read as the fight begins (the fight's heroes' alone).
-  kr.read(heroes.flatMap((hero) => Object.values(hero.vfx ?? {}).flatMap((move) => [...(move.start ?? []), ...(move.land ?? [])].filter((code) => !flies(code)))));
+  // Read as the fight begins (the fight's heroes' alone), unless they were already (in a room, as each was picked).
+  kr.read(heroes.flatMap(heroEffects));
   const begun = new Map<string, number>();
   const last = new Map<string, number>();
   let now = 0;
@@ -78,7 +87,7 @@ export interface KrBoss {
 /** The effects of the boss's attacks (its asset file's `vfx`): on `root` as each begins, and on the heroes (`bodies`) its blows land on; and its coming on the field. */
 export function makeKrBoss(kr: KrEffects, boss: BossAssets, root: Object3D, bodies: readonly Hero[]): KrBoss {
   const { attacks = {}, advent = [] } = boss.vfx ?? {};
-  kr.read([...advent, ...Object.values(attacks).flatMap((attack) => [...(attack.start ?? []), ...(attack.hit ?? [])])]);
+  kr.read(bossEffects(boss));
   let coming = advent.length > 0;
   let attack = '';
   const last = new Map<string, number>();

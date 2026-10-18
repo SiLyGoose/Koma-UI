@@ -128,19 +128,32 @@ export function music(url: string, loop?: number): (volume?: number) => Stop {
   };
 }
 
+/** Starts loading a sound's file ahead of when it is first played (sound(), track() or music() of it then find it loaded). */
+export function preload(url: string): void {
+  load(url);
+}
+
+/** Every sound's file asked for so far, by its address: each fetched and decoded once however often it's asked for. */
+const files = new Map<string, () => AudioBuffer | null>();
+
 /** A sound's file, loaded and made ready to play: what gives it (null until it has loaded, or if it won't). */
 function load(url: string): () => AudioBuffer | null {
+  const known = files.get(url);
+  if (known) return known;
   let buffer: AudioBuffer | null = null;
+  const loaded = (): AudioBuffer | null => buffer;
+  files.set(url, loaded);
   if (audio) {
     void fetch(url)
       .then((res) => (res.ok ? res.arrayBuffer() : Promise.reject()))
       .then((data) => audio.decodeAudioData(data))
       .then((decoded) => (buffer = decoded))
       .catch(() => {
-        // A sound that won't load just doesn't play.
+        // A sound that won't load just doesn't play (and is tried again the next time it's asked for).
+        files.delete(url);
       });
   }
-  return () => buffer;
+  return loaded;
 }
 
 /** A few notes made here (no file): each `spacing` seconds after the last, fading out over `length`. */

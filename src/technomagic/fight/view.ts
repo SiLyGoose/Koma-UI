@@ -28,6 +28,8 @@ const KR_SIGNS: Partial<Record<EffectName, string>> = {
   stun: 'Common.Stun',
 };
 const BOSS_SIGN = 3;
+/** Every fight's effects for its signs (read with the boss's, in a room, before the fight). */
+export const SIGN_EFFECTS: readonly string[] = Object.values(KR_SIGNS);
 
 /*
  * The fight as it is drawn: the boss's body and each hero's on the field, doing what the sim (../sim/) says
@@ -176,7 +178,7 @@ export function makeFightView({ scene, sim, bodies, boss, bossLook, bossFx, effe
     else kr.play(code, { on: body(who).root, scale: SCALE });
     return true;
   });
-  kr.read(Object.values(KR_SIGNS));
+  kr.read(SIGN_EFFECTS);
   const over = new Vector3();
   /** The heroes doing one of their skills (not their attack); and the hero whose skill's blow landed last (null: the last was no skill's). */
   const skilling = new Set<number>();
