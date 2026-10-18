@@ -201,6 +201,7 @@ function renderHeader(): void {
     // On smaller screens the header's links are here instead.
     { label: 'Games', icon: 'games', href: '/#games', className: 'site-nav-item' },
     { label: 'Gear', icon: 'gear', href: '/gear/', className: 'site-nav-item' },
+    { label: 'Heroes', icon: 'heroes', href: '/heroes/', className: 'site-nav-item' },
     { label: 'Forge', icon: 'forge', href: '/forge/', className: 'site-nav-item' },
     { label: 'Shop', icon: 'shop', href: '/shop/', className: 'site-nav-item' },
     { label: 'Databank', icon: 'databank', href: '/databank/', className: 'site-nav-item' },
