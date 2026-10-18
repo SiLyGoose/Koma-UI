@@ -1,4 +1,4 @@
-import { art, effectSection, el, itemDetailsClosed, mainStatText, rich, SLOT_NAME, stars, tmTier, treasureParts, treasureSection, utTier, uwTier } from '../shared/items';
+import { art, effectSection, el, itemDetailsClosed, mainStatText, rich, SLOT_NAME, tierMark, tmTier, treasureParts, treasureSection, utTier, uwTier } from '../shared/items';
 import { go } from '../site/nav';
 import { SKILLS } from '../technomagic/sim/skills';
 import { classTag } from './class-tag';
@@ -92,7 +92,7 @@ export function renderDetail(ctx: DatabankContext): void {
   const title = el('div', 'detail-title');
   const name = el('h3', '', item.name);
   // Under the name, its category, then its stars (as the gear page's item panel); TechnoMagic gear and a unique weapon, their tiers of their own.
-  title.append(name, el('p', 'detail-meta db-kind', SLOT_NAME[item.slot]), item.source === 'technomagic' ? tmTier() : item.uniqueTreasure ? utTier() : item.source === 'heroBanner' ? uwTier() : stars(item.stars));
+  title.append(name, el('p', 'detail-meta db-kind', SLOT_NAME[item.slot]), item.source === 'technomagic' ? tmTier() : item.uniqueTreasure ? utTier() : item.source === 'heroBanner' ? uwTier() : tierMark(item.stars));
   // A class item says whose it is; TechnoMagic gear, its set (three pieces on a hero give its effect, for the hero's class: its effects say it too).
   if (item.class) title.append(classTag(item.class, className(ctx, item.class)));
   if (item.set) {
@@ -112,12 +112,12 @@ export function renderDetail(ctx: DatabankContext): void {
   });
   head.append(art(item.id, item.slot), title, close);
 
-  // The level picker: R1 to the top (none for TechnoMagic gear, never refined).
+  // The level picker: its stars, ★1 to the top.
   const levels = el('div', 'db-levels');
-  levels.setAttribute('aria-label', 'Refinement level');
+  levels.setAttribute('aria-label', 'Stars');
   for (let l = 1; l <= maxLevel; l++) {
     levels.append(
-      levelButton(`R${l}`, l === level, false, () => {
+      levelButton(`★${l}`, l === level, false, () => {
         ctx.level = l;
         renderDetail(ctx);
       }),
@@ -158,7 +158,7 @@ export function renderDetail(ctx: DatabankContext): void {
   const mine = ctx.owned?.get(item.id);
   if (ctx.owned) {
     ui.detailOwned.hidden = false;
-    const best = item.source === 'technomagic' ? '' : `, the best at R${mine?.best}`;
+    const best = item.source === 'technomagic' ? '' : `, the best at ★${mine?.best}`;
     ui.detailOwned.textContent = mine ? `You own ${mine.count} ${mine.count === 1 ? 'copy' : 'copies'}${best}.` : "You don't own this one yet.";
   }
 }

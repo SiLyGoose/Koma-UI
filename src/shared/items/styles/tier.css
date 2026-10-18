@@ -1,0 +1,51 @@
+/*
+ * The members' own gear's tier, T1 to T4 (items.ts's tierMark): a small label in its tier's colour, made like TechnoMagic
+ * gear's "TM" and the unique weapons' "UW" (./tm.css, ./uw.css), wherever its tier is said: a card's corner, the filters, a
+ * banner's rates, the databank's lists.
+ */
+.tier-mark {
+  --mark: var(--star-1);
+  display: inline-block;
+  padding: 0 0.45em;
+  border: 2px solid transparent;
+  border-radius: 0.2em 0.55em 0.55em 0.2em;
+  background:
+    linear-gradient(180deg, #23202b, #121016) padding-box,
+    linear-gradient(160deg, color-mix(in srgb, var(--mark) 45%, #fff), var(--mark) 45%, color-mix(in srgb, var(--mark) 60%, #000)) border-box;
+  color: color-mix(in srgb, var(--mark) 35%, #fff);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+  vertical-align: middle;
+  white-space: nowrap;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.tier-mark[data-tier='2'] {
+  --mark: var(--star-2);
+}
+
+.tier-mark[data-tier='3'] {
+  --mark: var(--star-3);
+}
+
+.tier-mark[data-tier='4'] {
+  --mark: var(--star-4);
+}
+
+/* On a card or a slot: in its top right corner (where its refinement was), sized by the card. */
+.item > .tier-mark,
+.slot-frame > .tier-mark {
+  position: absolute;
+  z-index: 2;
+  top: 4%;
+  right: 5%;
+  font-size: clamp(8px, 15cqi, 12px);
+}
+
+.item:has(> .tier-mark),
+.slot-frame:has(> .tier-mark) {
+  container-type: inline-size;
+}

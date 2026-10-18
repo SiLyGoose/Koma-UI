@@ -102,7 +102,7 @@ export function renderMenu(ctx: GearContext): void {
       const copy = copyById(ctx, loadout.equipped[slot]);
       const cell = el('span', `loadout-icon${copy ? '' : ' empty'}`);
       if (copy) cell.dataset.stars = String(copy.stars);
-      cell.title = copy ? `${copy.name} (R${copy.level})` : `No ${SLOT_NAME[slot].toLowerCase()}`;
+      cell.title = copy ? `${copy.name} (★${copy.level})` : `No ${SLOT_NAME[slot].toLowerCase()}`;
       cell.append(art(copy?.itemId ?? null, slot));
       icons.append(cell);
     }

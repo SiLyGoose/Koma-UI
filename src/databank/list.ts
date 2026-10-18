@@ -1,4 +1,4 @@
-import { art, el, hoverSound, itemPicked, SLOT_NAME, stars, tmMarks, tmTier, utMarks, utTier, uwMarks, uwTier } from '../shared/items';
+import { art, el, hoverSound, itemPicked, SLOT_NAME, tierMark, tmMarks, tmTier, utMarks, utTier, uwMarks, uwTier } from '../shared/items';
 import { classBadge } from './class-tag';
 import { className, type DatabankContext } from './context';
 import { renderDetail } from './detail';
@@ -26,7 +26,7 @@ export function renderList(ctx: DatabankContext): void {
     if (tier === 'tm') head.append(tmTier());
     else if (tier === 'uw') head.append(uwTier());
     else if (tier === 'ut') head.append(utTier());
-    else head.append(stars(tier), el('span', '', `${items.length} item${items.length === 1 ? '' : 's'}`));
+    else head.append(tierMark(tier), el('span', '', `${items.length} item${items.length === 1 ? '' : 's'}`));
     const grid = el('div', 'armory-grid');
     for (const item of items) grid.append(card(ctx, item));
     section.append(head, grid);
@@ -61,7 +61,7 @@ function card(ctx: DatabankContext, item: DatabankItem): HTMLButtonElement {
   if (tm) button.append(picture, el('span', 'db-name', item.name), ...tmMarks(item.class));
   else if (uw) button.append(picture, el('span', 'db-name', item.name), ...uwMarks(uw));
   else if (ut) button.append(picture, el('span', 'db-name', item.name), ...utMarks(ut.hero));
-  else button.append(stars(item.stars), picture, el('span', 'db-name', item.name), el('span', 'item-curl'));
+  else button.append(tierMark(item.stars), picture, el('span', 'db-name', item.name), el('span', 'item-curl'));
   button.dataset.sfx = 'own';
   hoverSound(button, item.id);
   button.addEventListener('click', () => {

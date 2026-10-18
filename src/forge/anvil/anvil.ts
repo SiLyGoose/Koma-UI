@@ -1,4 +1,4 @@
-import { el, forgePlan, type GearCopy, type Plan, rich } from '../../shared/items';
+import { el, forgePlan, type GearCopy, heroGear, type Plan, rich } from '../../shared/items';
 import { working } from '../../shared/ui';
 import { card } from './card';
 import { compare, type EffectRow } from './compare';
@@ -40,6 +40,8 @@ export function renderAnvil(ctx: ForgeContext): void {
   renderCost(ctx, plan);
 
   const have = balance(ctx);
+  // (A hero's gear is awakened, King's Raid's: its stars.)
+  ui.go.textContent = copy && heroGear(copy) ? 'Awaken Gear' : 'Refine Gear';
   working(ui.go, ctx.busy, 'strike');
   ui.go.disabled =
     plan?.kind !== 'refine' || plan.refine.blocked !== null || plan.refine.cost === null || (have !== null && have < plan.refine.cost) || !spare;

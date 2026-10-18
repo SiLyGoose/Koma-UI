@@ -1,5 +1,5 @@
 import { GEM_EMOJI } from '../forge/anvil/gem';
-import { el, itemFace, rich, stars } from '../shared/items';
+import { el, itemFace, rich, tierMark } from '../shared/items';
 import { working } from '../shared/ui';
 import { points } from '../shared/util';
 import type { RaidShopContext } from './context';
@@ -95,7 +95,7 @@ export function renderAsk(ctx: RaidShopContext): void {
   ui.askEffects.hidden = !item;
   if (item) {
     ui.askArt.replaceChildren(face(item, 'span'));
-    ui.askTitle.replaceChildren(`Buy ${item.name}?`, stars(item.stars));
+    ui.askTitle.replaceChildren(`Buy ${item.name}?`, tierMark(item.stars));
     ui.askAbout.textContent = item.description;
     ui.askEffects.replaceChildren(
       ...item.effects.map((line) => {

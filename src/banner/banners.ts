@@ -79,8 +79,8 @@ export function heroBanner(hero: HeroBanner | undefined): Banner | null {
   const second = treasures[0] ?? weapons[1] ?? first;
   if (!first || !second || !hero) return null;
   const share = hero.weaponShare ?? 1;
-  // (How often a unique weapon comes refined: R2 and up.)
-  const refined = (hero.weaponLevels ?? []).slice(1).map((chance, i) => `R${i + 2} ${percent(chance)}`);
+  // (How often a unique weapon comes with stars: ★1 and up, King's Raid's; a new one's 0★.)
+  const refined = (hero.weaponLevels ?? []).slice(1).map((chance, i) => `★${i + 1} ${percent(chance)}`);
   return {
     id: 'hero',
     kind: 'Hero Item Wish',
@@ -88,8 +88,8 @@ export function heroBanner(hero: HeroBanner | undefined): Banner | null {
     name: ['Hero', 'Item'],
     blurb:
       treasures.length > 0
-        ? `Every ${first.stars}★ here is a hero's own, as in King's Raid's Treasure Summon: a unique weapon ${percent(share)} of the time, a unique treasure ${percent(1 - share)}, each of its kind as likely. Only its own hero wears it.${refined.length > 0 ? ` A unique weapon now and then comes refined (${refined.join(', ')}).` : ''} Below it, King's Raid's All-In-One Summon's kinds: artifacts and Unique Weapon or Treasure Tickets (to your mailbox, to pick), dragon sets' gear, and Mysterious Runes.`
-        : `Every ${first.stars}★ here is a hero's unique weapon (${weapons.map((item) => item.name).join(', ')}), each as likely, and only its own hero wields it.`,
+        ? `Every T${first.stars} here is a hero's own, as in King's Raid's Treasure Summon: a unique weapon ${percent(share)} of the time, a unique treasure ${percent(1 - share)}, each of its kind as likely. Only its own hero wears it.${refined.length > 0 ? ` Each comes at 0★, a unique weapon now and then with stars (${refined.join(', ')}).` : ''} Below it, King's Raid's All-In-One Summon's kinds: artifacts and Unique Weapon or Treasure Tickets (to your mailbox, to pick), dragon sets' gear, and Mysterious Runes.`
+        : `Every T${first.stars} here is a hero's unique weapon (${weapons.map((item) => item.name).join(', ')}), each as likely, and only its own hero wields it.`,
     featured: [first, second],
     ends: null,
   };

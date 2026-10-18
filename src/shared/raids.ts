@@ -62,7 +62,7 @@ export const TM_LIST: RaidList = {
 export const DRAGON_LIST: RaidList = {
   game: 'dragon',
   tip: 'Every win gives hero gear, zeiucoins and the dragon’s hero essences, more at each stage. There is no daily limit.',
-  rewardNote: 'Hero gear is raid items (3★, and 4★ from stage 5). Every stage pays more.',
+  rewardNote: 'Hero gear is raid items (T3, and T4 from stage 5). Every stage pays more.',
   cards: [
     {
       id: 'temeraire',

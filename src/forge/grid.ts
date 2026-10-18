@@ -1,4 +1,4 @@
-import { el, equippedIds, forgePlan } from '../shared/items';
+import { el, equippedIds, forgePlan, heroGear } from '../shared/items';
 import { choosing, copyById, type ForgeContext, refineableIds } from './context';
 import { pick, pickMaterial } from './picking';
 
@@ -31,7 +31,7 @@ export function renderGrid(ctx: ForgeContext): void {
         classes: { selected: isTarget, material: isMaterial },
         disabled: usable !== null && !isTarget && !usable.has(copy.id),
         says: isTarget ? ['on the anvil'] : [],
-        over: isTarget ? [el('span', 'item-selected', plan === 'refine' ? 'Refining' : 'Selected')] : [],
+        over: isTarget ? [el('span', 'item-selected', plan === 'refine' ? (heroGear(copy) ? 'Awakening' : 'Refining') : 'Selected')] : [],
       };
     },
     first: refineable?.size === 0 && gear.copies.length > 0 ? 'Nothing can be refined yet: a refine uses up a spare copy of the same gear.' : null,

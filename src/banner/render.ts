@@ -1,5 +1,5 @@
 import { coin, points } from '../shared/util';
-import { art, el, rich, stars, utMarks, utTier, uwMarks, uwTier } from '../shared/items';
+import { art, el, rich, tierMark, utMarks, utTier, uwMarks, uwTier } from '../shared/items';
 import { working } from '../shared/ui';
 import { timeLeft, type Featured } from './banners';
 import { canAfford, price, type BannerContext } from './context';
@@ -41,7 +41,7 @@ function featured(box: HTMLElement, item: Featured, etc: boolean): void {
   plate.dataset.stars = String(item.stars);
   const name = el('span', 'banner-plate-name', item.name);
   if (etc) name.append(el('small', '', ' etc.'));
-  plate.append(el('span', 'banner-up', 'UP!'), name, item.uniqueWeapon ? uwTier() : item.uniqueTreasure ? utTier() : stars(item.stars));
+  plate.append(el('span', 'banner-up', 'UP!'), name, item.uniqueWeapon ? uwTier() : item.uniqueTreasure ? utTier() : tierMark(item.stars));
   box.replaceChildren(face, plate);
 }
 
@@ -81,7 +81,7 @@ function renderPick(ctx: BannerContext, choices: NonNullable<BannerView['choices
     const face = el('span', 'banner-path-art banner-pick-art');
     if (choice) {
       face.append(art(choice.itemId, choice.slot));
-      option.append(face, el('span', 'banner-pick-name', choice.name), stars(choice.stars));
+      option.append(face, el('span', 'banner-pick-name', choice.name), tierMark(choice.stars));
     } else {
       face.textContent = '?';
       option.append(face, el('span', 'banner-pick-name', 'Any of them'));
@@ -108,7 +108,7 @@ export function render(ctx: BannerContext): void {
   featured(ui.feature1, banner.featured[0], false);
   featured(ui.feature2, banner.featured[1], true);
 
-  const top = `${view.topStars}★`;
+  const top = `T${view.topStars}`;
   const limited = banner.id === 'limited';
   const hero = banner.id === 'hero';
   const featuredChance = percent(view.limited?.featuredChance ?? 0);
@@ -187,7 +187,7 @@ export function render(ctx: BannerContext): void {
     }
     const row = el('li', 'banner-rate');
     row.dataset.stars = String(tier);
-    row.append(stars(tier), el('strong', '', percent(view.rates[tier] ?? 0)));
+    row.append(tierMark(tier), el('strong', '', percent(view.rates[tier] ?? 0)));
     ui.rates.append(row);
   }
 

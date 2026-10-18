@@ -1,4 +1,4 @@
-import { forgePlan, type GearView } from '../shared/items';
+import { forgePlan, type GearView, heroGear, levelLabel } from '../shared/items';
 import { busyWith } from '../shared/ui';
 import { sleep } from '../shared/util';
 import { curtain } from '../shared/transition';
@@ -70,13 +70,13 @@ export async function strikeAnvil(ctx: ForgeContext): Promise<void> {
     ctx.material = null;
     const after = copyById(ctx, copy.id);
     ctx.doneWell = true;
-    ctx.done = `${copy.name} is now R${after?.level ?? copy.level + 1}.`;
+    ctx.done = `${copy.name} is now ${levelLabel(after ?? { ...copy, level: copy.level + 1 })}.`;
     status(ctx, null);
     render(ctx);
     // (A refine always takes: the bot has no failed one to say.)
     if (after) showResult(ctx, copy, after, true);
     return res;
-  }, 'Refining…');
+  }, heroGear(copy) ? 'Awakening…' : 'Refining…');
   if (!res.ok) {
     renderAnvil(ctx);
     failed(ctx, res, 'Could not refine that. Try again.');

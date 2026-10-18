@@ -109,11 +109,15 @@ export function tmTier(): HTMLElement {
   return tier;
 }
 
-export function stars(n: number): HTMLElement {
-  const row = el('span', 'stars');
-  row.setAttribute('aria-label', `${n} star${n === 1 ? '' : 's'}`);
-  for (let i = 0; i < n; i++) row.append(el('span', 'star', '★'));
-  return row;
+/**
+ * The members' own gear's tier, T1 to T4 (its rarity: what was its stars, which are now a copy's level), as a small label in
+ * its tier's colour (styles/tier.css), as TechnoMagic gear's and the unique weapons' are.
+ */
+export function tierMark(n: number): HTMLElement {
+  const mark = el('span', 'tier-mark', `T${n}`);
+  mark.dataset.tier = String(n);
+  mark.setAttribute('aria-label', `Tier ${n}`);
+  return mark;
 }
 
 /**
@@ -196,22 +200,60 @@ type Treasure = { hero: string; skill: number } | null | undefined;
 export const tierOf = (item: { stars: number; heroOnly?: boolean; uniqueWeapon?: string | null; uniqueTreasure?: Treasure }): number | 'tm' | 'uw' | 'ut' =>
   item.uniqueWeapon ? 'uw' : item.uniqueTreasure ? 'ut' : item.heroOnly ? 'tm' : item.stars;
 
-/** Whether a copy has refinement levels to show, R1 up to its top: not TechnoMagic gear, which has the one (`maxLevel` 1), never being refined. */
+/** Whether a copy has levels (stars) to show, up to its top: not the old TechnoMagic gear, which has the one (`maxLevel` 1). */
 export const hasLevels = (copy: { maxLevel?: number }): boolean => copy.maxLevel !== 1;
 
 /**
- * What's on a copy's card, whatever the card is (an armory button, the anvil's, the details'): its rank (none with the one
- * level: hasLevels), picture, stars and the parchment's curl. TechnoMagic gear (`heroOnly`) has no stars, being a tier of its
- * own, but its marks (with its class: `itemClass`, or `class` as the heroes page has it); a unique weapon or unique treasure
- * its own marks, with its hero. `lazy`: a card in a long list (art).
+ * Whether an item is a hero's gear (the bot's heroOnly: King's Raid's pieces and artifacts, unique weapons and unique
+ * treasures), whose stars (0★ to 5★) are raised by awakening it with a duplicate (King's Raid's); the members' own gear's
+ * (1★ to 5★) by refining it.
+ */
+export const heroGear = (item: { heroOnly?: boolean; uniqueWeapon?: string | null; uniqueTreasure?: Treasure | null }): boolean =>
+  item.heroOnly === true || !!item.uniqueWeapon || !!item.uniqueTreasure;
+
+/** Whether an item is a piece of a TechnoMagic set (Perseverance, Hope, Authority: its id says it), which has TechnoMagic gear's marks. */
+export const isTmPiece = (itemId: string): boolean => /^(perseverance|hope|authority)-/.test(itemId);
+
+/** A copy's level (its stars) as a page says it: "★3". */
+export const levelLabel = (copy: { level: number }): string => `★${copy.level}`;
+
+/**
+ * A copy's stars (its level), as King's Raid draws them on its gear (its own gold stars: public/kr/ui/): `level` lit, then
+ * (with `max`) the rest dark. A hero's gear at 0★ has none lit.
+ */
+export function krStars(level: number, max = level): HTMLElement {
+  const row = el('span', 'kr-stars');
+  row.setAttribute('role', 'img');
+  row.setAttribute('aria-label', `${level} star${level === 1 ? '' : 's'}`);
+  for (let i = 1; i <= max; i++) {
+    const star = el('img', i <= level ? 'kr-star' : 'kr-star off');
+    star.src = `${import.meta.env.BASE_URL}kr/ui/star-${i <= level ? 'on' : 'off'}.webp`;
+    star.alt = '';
+    star.draggable = false;
+    row.append(star);
+  }
+  return row;
+}
+
+/**
+ * What's on a copy's card, whatever the card is (an armory button, the anvil's, the details'): its picture, its level as
+ * King's Raid's stars (krStars; none with the one level: hasLevels), and what kind it is: the members' own gear its tier
+ * (T1 to T4) and the parchment's curl; a hero's gear its marks, a unique weapon's or unique treasure's with its hero, a
+ * TechnoMagic piece's with its class (`itemClass`, or `class` as the heroes page has it), none for a dragon set's piece or
+ * an artifact. `lazy`: a card in a long list (art).
  */
 export function itemFace(copy: { level: number; maxLevel?: number; itemId: string; slot: Slot; stars: number; heroOnly?: boolean; uniqueWeapon?: string | null; uniqueTreasure?: Treasure; itemClass?: string | null; class?: string | null }, lazy = false): HTMLElement[] {
   const picture = art(copy.itemId, copy.slot, lazy);
-  const rank = hasLevels(copy) ? [el('span', 'item-level', `R${copy.level}`)] : [];
-  if (copy.uniqueWeapon) return [...rank, picture, ...uwMarks(copy.uniqueWeapon)];
-  if (copy.uniqueTreasure) return [...rank, picture, ...utMarks(copy.uniqueTreasure.hero)];
-  if (copy.heroOnly) return [...rank, picture, ...tmMarks(copy.itemClass ?? copy.class)];
-  return [...rank, picture, stars(copy.stars), el('span', 'item-curl')];
+  const level = hasLevels(copy) ? [krStars(copy.level)] : [];
+  if (heroGear(copy)) return [picture, ...heroMarks(copy), ...level];
+  return [tierMark(copy.stars), picture, ...level, el('span', 'item-curl')];
+}
+
+/** A hero's gear's marks (itemFace): a unique weapon's or unique treasure's, a TechnoMagic piece's, or none. */
+export function heroMarks(copy: { itemId: string; uniqueWeapon?: string | null; uniqueTreasure?: Treasure; itemClass?: string | null; class?: string | null }): HTMLElement[] {
+  if (copy.uniqueWeapon) return uwMarks(copy.uniqueWeapon);
+  if (copy.uniqueTreasure) return utMarks(copy.uniqueTreasure.hero);
+  return isTmPiece(copy.itemId) ? tmMarks(copy.itemClass ?? copy.class) : [];
 }
 
 /** How an item ranks among the tiers, best highest: TechnoMagic gear above 4 stars, and the unique weapons, then the unique treasures, between them. */

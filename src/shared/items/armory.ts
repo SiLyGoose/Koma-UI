@@ -1,7 +1,7 @@
 import { type Busy, doneMark, working } from '../ui';
 import { coin, points } from '../util';
 import { armoryOrder, type TmSort } from './gear';
-import { el, hasLevels, itemFace, lockBadge, mainStatLine, rich, type Slot, SLOT_NAME, type Stars, tierOf } from './items';
+import { el, hasLevels, heroGear, itemFace, krStars, levelLabel, lockBadge, mainStatLine, rich, type Slot, SLOT_NAME, type Stars, tierOf } from './items';
 import type { MainStat } from '../../protocol/items';
 import { matchesStars, type StarChoice } from './armory-filter/armory-filter';
 import { padlock } from './padlock';
@@ -93,7 +93,7 @@ const GRID_CELLS = 12;
 /** A copy's tier in words, for a screen reader. */
 const tierWords = (copy: ArmoryCopy): string => {
   const tier = tierOf(copy);
-  return tier === 'tm' ? 'TechnoMagic' : tier === 'uw' ? 'unique weapon' : tier === 'ut' ? 'unique treasure' : `${tier} star${tier === 1 ? '' : 's'}`;
+  return tier === 'tm' ? 'TechnoMagic' : tier === 'uw' ? 'unique weapon' : tier === 'ut' ? 'unique treasure' : `tier ${tier}`;
 };
 
 /** A card the grid has drawn, kept to be shown again as it is (armoryGrid). */
@@ -304,13 +304,13 @@ export function sellsFor(copy: ArmoryCopy): HTMLElement[] {
 }
 
 /**
- * A copy's Upgrade, in its details' buttons: to the forge (`go`), with it on the anvil. Fully refined, "✓ Max" in its place;
- * none for one never refined (TechnoMagic gear: hasLevels).
+ * A copy's Upgrade (a hero's gear: Awaken, King's Raid's), in its details' buttons: to the forge (`go`), with it on the anvil.
+ * At its top, "✓ Max" in its place; none for one never refined (hasLevels).
  */
 export function upgradeButton(copy: ArmoryCopy, go: () => void): HTMLElement | null {
   if (!hasLevels(copy)) return null;
   if (copy.level >= copy.maxLevel) return doneMark('Max');
-  const button = el('button', 'detail-action action secondary', 'Upgrade');
+  const button = el('button', 'detail-action action secondary', heroGear(copy) ? 'Awaken' : 'Upgrade');
   button.type = 'button';
   button.addEventListener('click', go);
   return button;
@@ -346,7 +346,7 @@ function card(copy: ArmoryCopy, look: CardLook, ownSound: boolean, onPick: () =>
   const button = el('button', 'item');
   button.type = 'button';
   button.dataset.stars = String(copy.stars);
-  const says = [copy.name, tierWords(copy), ...(hasLevels(copy) ? [`R${copy.level}`] : []), ...(look.tag ? [look.tag.text.toLowerCase()] : []), ...(copy.locked ? ['locked'] : []), ...(look.says ?? [])];
+  const says = [copy.name, tierWords(copy), ...(hasLevels(copy) ? [levelLabel(copy)] : []), ...(look.tag ? [look.tag.text.toLowerCase()] : []), ...(copy.locked ? ['locked'] : []), ...(look.says ?? [])];
   button.setAttribute('aria-label', says.join(', '));
   if (look.tag) button.append(el('span', look.tag.className ? `item-tag ${look.tag.className}` : 'item-tag', look.tag.text));
   button.append(...itemFace(copy, true));
@@ -380,7 +380,7 @@ export function effectList(copy: { effects: readonly string[] }, none: string, c
 
 /** The copy equipping the one shown would take off, and what it does, set apart from the shown one's effects. */
 export const replacesNote = (copy: ArmoryCopy, none: string): HTMLElement[] => [
-  el('p', 'detail-replaces', `Replaces ${copy.name}${hasLevels(copy) ? ` (R${copy.level})` : ''}`),
+  el('p', 'detail-replaces', `Replaces ${copy.name}${hasLevels(copy) ? ` (${levelLabel(copy)})` : ''}`),
   effectList(copy, none, 'detail-effects detail-replaced'),
 ];
 
@@ -430,11 +430,11 @@ export function showDetail(box: HTMLElement, copy: ArmoryCopy | undefined, parts
   const info = el('div', 'detail-info');
   const kind = el('p', 'detail-kind', SLOT_NAME[copy.slot]);
   info.append(kind);
-  // (Its rank out of its top; none for one never refined: TechnoMagic gear, which has its main stat there instead.)
+  // (Its stars of its top; none for one with the one level, which has its main stat there instead.)
   if (hasLevels(copy)) {
     if (copy.level >= copy.maxLevel) kind.append(el('span', 'detail-max', 'MAX'));
-    const rank = el('p', 'detail-rank', `R${copy.level}`);
-    rank.append(el('span', 'detail-rank-of', ` / ${copy.maxLevel}`));
+    const rank = el('p', 'detail-rank detail-stars');
+    rank.append(krStars(copy.level, copy.maxLevel));
     info.append(rank);
   } else if (copy.mainStat) info.append(mainStatLine(copy.mainStat));
   info.append(...(parts.info ?? []));

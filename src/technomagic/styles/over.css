@@ -10,6 +10,8 @@
 @import '../../shared/items/styles/art.css';
 @import '../../shared/items/styles/cards.css';
 @import '../../shared/items/styles/tm.css';
+@import '../../shared/items/styles/kr-stars.css';
+@import '../../shared/items/styles/tier.css';
 @import '../../shared/items/styles/full-pictures.css';
 
 .tm-result {

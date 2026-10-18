@@ -1,5 +1,5 @@
 import { sound } from '../../shared/audio';
-import { art, SLOT_NAME, stars } from '../../shared/items';
+import { art, SLOT_NAME, tierMark } from '../../shared/items';
 import { remember, remembered } from '../../shared/util/storage';
 import type { RaidLootItem, RaidView } from '../../protocol/raid';
 import { state } from '../state';
@@ -98,7 +98,7 @@ function draw(): void {
 function card(item: RaidLootItem): HTMLElement {
   const face = el('span', 'item rd-loot-card');
   face.dataset.stars = String(item.stars);
-  face.append(art(item.itemId, item.slot), stars(item.stars), el('span', 'item-curl'));
+  face.append(art(item.itemId, item.slot), tierMark(item.stars), el('span', 'item-curl'));
   return face;
 }
 
@@ -142,7 +142,7 @@ function reveal(items: readonly RaidLootItem[], at: number): HTMLElement {
   burst.append(el('span', 'rd-loot-rays'), el('span', 'rd-loot-rays back'), el('span', 'rd-loot-core'), card(item));
 
   const text = el('div', 'rd-loot-text');
-  const row = stars(item.stars);
+  const row = tierMark(item.stars);
   [...row.children].forEach((star, i) => (star as HTMLElement).style.setProperty('--i', String(i)));
   text.append(el('p', 'rd-loot-slot', SLOT_NAME[item.slot]), el('h2', 'rd-loot-name', item.name), row);
   if (item.isNew) text.append(el('p', 'rd-loot-new', 'New!'));

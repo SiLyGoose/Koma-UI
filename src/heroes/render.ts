@@ -1,4 +1,4 @@
-import { art, drawSell, el, forgeLink, hasLevels, itemDetailsClosed, itemPicked, lockToggle, pruneSale, replacesNote, rich, sellsFor, showDetail, statBlocks, stars as starRow, tmMarks, tmSections, treasureParts, treasureSection, upgradeButton, utMarks, uwMarks } from '../shared/items';
+import { art, drawSell, el, forgeLink, hasLevels, heroMarks, itemDetailsClosed, krStars, levelLabel, itemPicked, lockToggle, pruneSale, replacesNote, rich, sellsFor, showDetail, statBlocks, tmMarks, tmSections, treasureParts, treasureSection, upgradeButton, utMarks, uwMarks } from '../shared/items';
 import { classBadge, className, FACE, HERO_PART_NAME, HERO_SLOT_KIND, HERO_SLOT_PART, heroCut, heroPicture, skillText, STAGE_ZOOM, type HeroView, type HeroCopy, type HeroSlot } from '../shared/heroes';
 import { built } from '../shared/built';
 import { working } from '../shared/ui';
@@ -208,7 +208,7 @@ function renderSlots(ctx: HeroesContext): void {
       button.textContent = '';
       button.classList.toggle('empty', !copy);
       button.classList.toggle('filtered', ctx.target === slot && ctx.filter === kind);
-      button.title = copy ? `${slotLabel(slot)}: ${copy.name}${hasLevels(copy) ? ` (R${copy.level})` : ''}` : `${slotLabel(slot)}: empty`;
+      button.title = copy ? `${slotLabel(slot)}: ${copy.name}${hasLevels(copy) ? ` (${levelLabel(copy)})` : ''}` : `${slotLabel(slot)}: empty`;
       button.setAttribute('aria-label', button.title);
       continue;
     }
@@ -221,8 +221,8 @@ function renderSlots(ctx: HeroesContext): void {
     button.setAttribute('aria-label', copy ? `${slotName(slot)}: ${copy.name}` : `${slotName(slot)}: empty`);
     const frame = el('span', 'slot-frame');
     frame.append(art(copy?.itemId ?? null, kind));
-    // (TechnoMagic gear has no stars, but its marks: a tier of its own; and no rank, never being refined.)
-    if (copy) frame.append(...(hasLevels(copy) ? [el('span', 'slot-level', `R${copy.level}`)] : []), ...(copy.uniqueWeapon ? uwMarks(copy.uniqueWeapon) : copy.uniqueTreasure ? utMarks(copy.uniqueTreasure.hero) : copy.heroOnly ? tmMarks(copy.class) : [starRow(copy.stars)]));
+    // (A hero's gear: its marks (a unique weapon's or treasure's, a TechnoMagic piece's) and its stars, King's Raid's.)
+    if (copy) frame.append(...heroMarks(copy), krStars(copy.level));
     button.append(frame, el('span', 'slot-name', slotName(slot)));
   }
 }
@@ -387,7 +387,7 @@ function sectionButton(ctx: HeroesContext, text: string, key: string, onClick: (
   return button;
 }
 
-/** A unique treasure's enhance (one of its options a step higher, for its price): only on their own copy, while one can go higher. Refining doesn't raise them. */
+/** A unique treasure's enhance (one of its options a step higher, for its price): only on their own copy, while one can go higher. Awakening doesn't raise them. */
 function utEnhance(ctx: HeroesContext, act: HeroActions, copy: HeroCopy): HTMLElement[] {
   if (!mine(ctx) || ctx.selling || copy.upgrade === null) return [];
   return [krSection('Enhance', [el('p', 'detail-note', 'Raises one of its options, at random, a step (up to its top).'), sectionButton(ctx, `Enhance an option · ${copy.upgrade.toLocaleString()}`, `upgrade:${copy.id}`, () => act.upgrade(copy))])];

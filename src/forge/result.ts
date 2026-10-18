@@ -1,5 +1,5 @@
 import { sound } from '../shared/audio';
-import { el, type GearCopy } from '../shared/items';
+import { el, type GearCopy, levelLabel } from '../shared/items';
 import { card, compare, fillEffects } from './anvil';
 import type { ForgeContext } from './context';
 
@@ -19,7 +19,7 @@ export function showResult(ctx: ForgeContext, before: GearCopy, after: GearCopy,
   title.id = 'result-title';
   ui.result.classList.toggle('fail', !success);
   if (success) {
-    const sub = el('p', 'forge-result-sub', `${after.name} · R${before.level} » R${after.level}`);
+    const sub = el('p', 'forge-result-sub', `${after.name} · ${levelLabel(before)} » ${levelLabel(after)}`);
     const burst = el('div', 'forge-result-burst');
     burst.append(el('span', 'forge-result-rays'), el('span', 'forge-result-rays back'), el('span', 'forge-result-core'), card(after));
     const list = el('ul', 'forge-effects');
@@ -28,7 +28,7 @@ export function showResult(ctx: ForgeContext, before: GearCopy, after: GearCopy,
     panel.append(list);
     box.append(title, sub, burst, panel);
   } else {
-    const sub = el('p', 'forge-result-sub', `${after.name} is still R${after.level}.`);
+    const sub = el('p', 'forge-result-sub', `${after.name} is still ${levelLabel(after)}.`);
     const still = el('div', 'forge-result-still');
     still.append(card(after));
     box.append(title, sub, still);

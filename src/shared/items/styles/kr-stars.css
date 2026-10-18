@@ -1,0 +1,44 @@
+/*
+ * A hero's gear's stars (items.ts's krStars): King's Raid's own gold stars, as it draws them on its gear, across the bottom
+ * of a card or a slot from the left, over its picture. Sized by the card (a share of its height), so the same on a small
+ * armory card and the big one in its details. Inline (the details' level, the databank's picker): a line's height.
+ */
+.kr-stars {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 0;
+  line-height: 1;
+  user-select: none;
+  -webkit-user-select: none;
+  pointer-events: none;
+}
+
+.kr-star {
+  display: block;
+  height: 1.15em;
+  width: auto;
+  aspect-ratio: 91 / 117;
+  filter: drop-shadow(0 1px 1px rgb(0 0 0 / 55%));
+}
+
+/* A place not reached yet: KR's dark star, a little faded. */
+.kr-star.off {
+  opacity: 0.8;
+  filter: none;
+}
+
+/* On a card or a slot: along its bottom, from the left, a fifth of its height tall, over everything but its tabs. */
+.item > .kr-stars,
+.slot-frame > .kr-stars {
+  position: absolute;
+  z-index: 2;
+  bottom: 4%;
+  left: 5%;
+  height: 21%;
+}
+
+.item > .kr-stars .kr-star,
+.slot-frame > .kr-stars .kr-star {
+  height: 100%;
+  margin-right: -3%;
+}

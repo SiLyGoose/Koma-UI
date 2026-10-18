@@ -1,6 +1,6 @@
 import { GEM_EMOJI } from '../forge/anvil/gem';
 import { ESSENCE_NAME, essencePicture, type EssenceId } from '../heroes/transcend';
-import { art, el, hoverSound, rich, stars, tmMarks } from '../shared/items';
+import { art, el, hoverSound, rich, tierMark, tmMarks } from '../shared/items';
 import { API } from '../shared/ui';
 import { coin, points } from '../shared/util';
 import { go } from '../site/nav';
@@ -21,8 +21,8 @@ const times = (multiplier: number): string => `${Math.round(multiplier * 100) / 
 /** A share (0 to 1) as a percentage, like "30%". */
 const percent = (share: number): string => `${Math.round(share * 1000) / 10}%`;
 
-/** What a win at a level drops for each raider, like "1× 4★ + 2× 3★". */
-const dropsText = (level: RaidLevel): string => level.drops.map((drop) => `${drop.count}× ${drop.stars}★`).join(' + ') || 'Nothing';
+/** What a win at a level drops for each raider, like "1× T4 + 2× T3". */
+const dropsText = (level: RaidLevel): string => level.drops.map((drop) => `${drop.count}× T${drop.stars}`).join(' + ') || 'Nothing';
 
 /** komaTokens, as the bot writes them (its constants/core.ts TOKEN_EMOJI). */
 const TOKEN_EMOJI = '<:zeiutoken:1552921364489572362>';
@@ -137,7 +137,7 @@ export function itemCard(item: DatabankItem): HTMLButtonElement {
   card.setAttribute('aria-label', `${item.name}, ${item.stars} stars: see it in the items`);
   // (TechnoMagic gear has no stars, but its marks.)
   if (item.source === 'technomagic') card.append(art(item.id, item.slot, true), el('span', 'db-name', item.name), ...tmMarks(item.class));
-  else card.append(stars(item.stars), art(item.id, item.slot, true), el('span', 'db-name', item.name), el('span', 'item-curl'));
+  else card.append(tierMark(item.stars), art(item.id, item.slot, true), el('span', 'db-name', item.name), el('span', 'item-curl'));
   hoverSound(card, item.id);
   card.addEventListener('click', () => go(`/databank/items/#${encodeURIComponent(item.id)}`));
   return card;

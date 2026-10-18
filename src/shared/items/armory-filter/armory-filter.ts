@@ -1,7 +1,7 @@
 import './armory-filter.css';
 import { dropdown } from '../../ui';
 import { TM_UNSORTED, tmStats, type TmSort, type TmStats } from '../gear';
-import { el, type Slot, stars, tmTier, utTier, uwTier } from '../items';
+import { el, type Slot, tierMark, tmTier, utTier, uwTier } from '../items';
 
 /*
  * The armories' filter (the gear page's, the forge's, the databank's): a Filter button beside the search,
@@ -108,7 +108,7 @@ export function armoryFilter(box: HTMLElement): ArmoryFilter {
   panel.hidden = true;
   const types = group('Type', ...TYPES.map(([slot, name]) => option('radio', 'slot', slot, name)));
   // Any across the top, then the tiers in pairs.
-  const tiers = group('Stars', ...TIERS.map((n) => (n === 'all' ? option('radio', 'stars', 'all', 'Any', true) : option('radio', 'stars', String(n), n === 'tm' ? tmTier() : n === 'uw' ? uwTier() : n === 'ut' ? utTier() : stars(n)))));
+  const tiers = group('Tier', ...TIERS.map((n) => (n === 'all' ? option('radio', 'stars', 'all', 'Any', true) : option('radio', 'stars', String(n), n === 'tm' ? tmTier() : n === 'uw' ? uwTier() : n === 'ut' ? utTier() : tierMark(n)))));
   const owned = option('checkbox', 'owned', 'owned', 'Owned only', true);
   const refineable = option('checkbox', 'refineable', 'refineable', 'Refineable', true);
   const heroGear = option('checkbox', 'hero-gear', 'hero-gear', 'Hero gear', true);
