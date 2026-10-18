@@ -466,18 +466,21 @@ async function start(): Promise<void> {
 
   /** Every skin that could be read, the ones on the field last time on it again. */
   let actions: ReturnType<typeof makeActions> | null = null;
-  /** The skins as they look with their heroes' unique weapons, read once Unique weapons is first turned on (the ones that look the same: as they are). */
+  /** The skins as they look with their heroes' unique weapons, read as Unique weapons is turned on for the heroes in the fight then (the ones that look the same: as they are). */
   let wielders: Entrant[] | null = null;
+  /** The skins on the field last time (their names), as this browser kept them: none in a private window, or with nothing in it that can be read. */
+  function keptField(): string[] {
+    try {
+      const list: unknown = JSON.parse(localStorage.getItem(FIELD_KEY) ?? '[]');
+      return Array.isArray(list) ? list.filter((name): name is string => typeof name === 'string') : [];
+    } catch {
+      return [];
+    }
+  }
   function practise(entrants: readonly Entrant[]): void {
     const wielding = uniqueButton.getAttribute('aria-pressed') === 'true' && wielders !== null;
     const entries = wielding ? entrants.map((entrant) => wielders?.find((one) => one.def === entrant.def && one.skin === entrant.skin) ?? entrant) : entrants;
-    let kept: string[] = [];
-    try {
-      const list: unknown = JSON.parse(localStorage.getItem(FIELD_KEY) ?? '[]');
-      if (Array.isArray(list)) kept = list.filter((name): name is string => typeof name === 'string');
-    } catch {
-      // No storage (a private window), or nothing that can be read in it: the first hero.
-    }
+    const kept = keptField();
     const first = kept.map((name) => entrants.findIndex((entrant) => entrant.skin.name === name)).filter((i) => i >= 0);
     const sim = makeSim({ boss: def, heroes: entries.map((entrant) => ({ def: entrant.def, skin: skinOf(entrant), uw: wielding ? UNIQUE_TRIED : null })), seed: Math.floor(Math.random() * 2 ** 32), stage: Number(stagePicker.value) || stageNumber, raid: false, first, deathless: deathlessButton.getAttribute('aria-pressed') === 'true' });
     const input = (what: Input): void => sim.input(what);
@@ -503,10 +506,25 @@ async function start(): Promise<void> {
     hint.textContent = 'Trying things out: each hero on the field attacks by itself; use its skills from its card (or its Auto), and set the boss attacking. The hero on a card puts it on the field, or takes it off (up to 9 at once); four cards show at a time, as in a raid: scroll them along (or turn the wheel over them) for the rest. With Deathless on, no one falls: a hero or the boss brought down is whole again, and the raid’s time stands still. With it off, heroes that fall stay down.';
   }
 
-  /** Trying things out: every hero read first (each skin has a card). */
+  /**
+   * Trying things out: the heroes on the field last time (else the first) read first, and the fight begun with them;
+   * every other hero read after, and the fight begun again with them all (each skin has a card), the field kept.
+   */
   async function practice(): Promise<void> {
-    const entrants = (await Promise.all(HEROES.map((hero) => read(hero)))).flat();
+    const kept = keptField();
+    const fielded = HEROES.filter((hero) => lookOf(hero.id).assets.skins.some((skin) => kept.includes(skin.name)));
+    let entrants = (await Promise.all((fielded.length > 0 ? fielded : HEROES.slice(0, 1)).map((hero) => read(hero)))).flat();
+    // (None of them could be read: everyone, waited for.)
+    let everyone = entrants.length > 0 ? null : (entrants = (await Promise.all(HEROES.map((hero) => read(hero)))).flat());
     if (entrants.length === 0) throw new Error('None of the heroes could be read');
+    /** Unique weapons: those of the heroes in the fight read, where they haven't been. */
+    const wield = async (): Promise<void> => {
+      const missing = [...new Set(entrants.map((entrant) => entrant.def))].filter((hero) => !wielders?.some((one) => one.def === hero));
+      if (missing.length === 0) return;
+      uniqueButton.disabled = true;
+      wielders = [...(wielders ?? []), ...(await loadHeroes(missing, { unique: true }).catch(unread))];
+      uniqueButton.disabled = false;
+    };
     actionsRow.hidden = false;
     for (let n = 1; n <= stagesOf(def); n++) stagePicker.append(new Option(String(n), String(n), false, n === stageNumber));
     deathlessButton.hidden = false;
@@ -516,11 +534,7 @@ async function start(): Promise<void> {
     uniqueButton.addEventListener('click', async () => {
       const on = uniqueButton.getAttribute('aria-pressed') !== 'true';
       uniqueButton.setAttribute('aria-pressed', String(on));
-      if (on && !wielders) {
-        uniqueButton.disabled = true;
-        wielders = await loadHeroes(HEROES, { unique: true }).catch(unread);
-        uniqueButton.disabled = false;
-      }
+      if (on) await wield();
       practise(entrants);
     });
     // As in a raid, four cards along the bottom at a time, the rest scrolled to: the wheel scrolls them sideways too, a
@@ -549,6 +563,15 @@ async function start(): Promise<void> {
     });
     practise(entrants);
     setConn('Preview', 'ok');
+    // The rest, read meanwhile: the fight begun again with everyone (as Unique weapons has it).
+    if (!everyone)
+      void Promise.all(HEROES.map((hero) => read(hero))).then(async (all) => {
+        everyone = all.flat();
+        if (everyone.length <= entrants.length) return;
+        entrants = everyone;
+        if (uniqueButton.getAttribute('aria-pressed') === 'true') await wield();
+        practise(entrants);
+      });
     // Over: the result, and again.
     onOver = (sim) =>
       results.show({
