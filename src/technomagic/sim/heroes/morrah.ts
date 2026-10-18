@@ -250,7 +250,7 @@ export const MORRAH: HeroDef = {
             // (Its Dark: a blow by her M.DEF.)
             if (self.perks.has('s2-dark') && self.hp > 0 && fight.field.includes(self)) {
               // (A blow is so many thousandths of her ATK: as hard as her M.DEF is that share of it.)
-              const defense = (self.stats.magical + bolstering(self.statuses, 'magical') + bolstering(fight.party, 'magical')) * defending(self.statuses, 'magical') * defending(fight.party, 'magical');
+              const defense = (self.stats.magical + bolstering(self.statuses, 'magical') + bolstering(fight.party, 'magical')) * defending([...self.statuses, ...fight.party], 'magical');
               fight.hit(self, (POINTS * PERKS.scorch * defense) / self.stats.atk, false);
             }
           }

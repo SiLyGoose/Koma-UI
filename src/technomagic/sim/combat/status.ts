@@ -66,40 +66,53 @@ export function wear<Shown>(on: Status<Shown>[], dt: number): void {
   }
 }
 
+/**
+ * King's Raid's way with what makes something so many times as much (each a share: 1.3 is 30% more, 0.8 20% less): what is
+ * of one kind adds up, rather than each going on top of the last (two of 30% more: 60% more, not 69%). A stat's (ATK, DEF,
+ * attack speed, healing, mana): all its shares added, and less than 50% less ever nearer all of it but never there
+ * (StatController.AttenuateStatUnderMinX), and never below none.
+ */
+export function stacked(times: Iterable<number>): number {
+  let sum = 0;
+  for (const t of times) sum += t - 1;
+  // (Past 50% less: the game's -1000 + 1e9 / (2x² - 1000x + 1e6), x in thousandths.)
+  if (sum < -0.5) {
+    const x = sum * 1000;
+    sum = (-1000 + 1e9 / (2 * x * x - 1000 * x + 1e6)) / 1000;
+  }
+  return Math.max(0, 1 + sum);
+}
+/**
+ * Damage's (StatController.GiveDamage): what makes it more adds up (the dealer's DMG and the bearer's weakness alike), what
+ * makes it less adds up apart, and the one goes on top of the other; all of it less is none.
+ */
+export function amplified(times: Iterable<number>): number {
+  let more = 0;
+  let less = 0;
+  for (const t of times) {
+    if (t > 1) more += t - 1;
+    else less += 1 - t;
+  }
+  return (1 + more) * Math.max(0, 1 - less);
+}
+
+/** What each of these makes a kind of damage its bearer takes (so many times as much). */
+export const takes = (on: readonly Status<unknown>[], type: DamageType): number[] => on.map(({ takes }) => (typeof takes === 'number' ? takes : (takes?.[type] ?? 1)));
+/** What each makes its bearer's blows (so many times as hard). */
+export const deals = (on: readonly Status<unknown>[]): number[] => on.map(({ deals }) => deals ?? 1);
+/** What each makes its bearer's defense against a kind of damage (so many times as much). */
+export const defends = (on: readonly Status<unknown>[], type: DamageType): number[] => on.map(({ defends }) => (typeof defends === 'number' ? defends : (defends?.[type] ?? 1)));
+
 /** How many times as much of a kind of damage a bearer of these takes. */
-export function taking(on: readonly Status<unknown>[], type: DamageType): number {
-  let times = 1;
-  for (const { takes } of on) times *= typeof takes === 'number' ? takes : (takes?.[type] ?? 1);
-  return times;
-}
-
+export const taking = (on: readonly Status<unknown>[], type: DamageType): number => amplified(takes(on, type));
 /** How many times as hard a bearer of these hits. */
-export function dealing(on: readonly Status<unknown>[]): number {
-  let times = 1;
-  for (const { deals } of on) times *= deals ?? 1;
-  return times;
-}
-
-/** How many times as fast a bearer of these is. */
-export function pacing(on: readonly Status<unknown>[]): number {
-  let times = 1;
-  for (const { pace } of on) times *= pace ?? 1;
-  return times;
-}
-
-/** How many times as much healing reaches a bearer of these. */
-export function healing(on: readonly Status<unknown>[]): number {
-  let times = 1;
-  for (const { heals } of on) times *= heals ?? 1;
-  return times;
-}
-
-/** How many times as fast a bearer of these gains mana. */
-export function filling(on: readonly Status<unknown>[]): number {
-  let times = 1;
-  for (const { mana } of on) times *= mana ?? 1;
-  return times;
-}
+export const dealing = (on: readonly Status<unknown>[]): number => amplified(deals(on));
+/** How many times as fast a bearer of these is (`and`: more of the kind, besides). */
+export const pacing = (on: readonly Status<unknown>[], ...and: readonly number[]): number => stacked([...on.map(({ pace }) => pace ?? 1), ...and]);
+/** How many times as much healing reaches a bearer of these (`and`: more of the kind, besides). */
+export const healing = (on: readonly Status<unknown>[], ...and: readonly number[]): number => stacked([...on.map(({ heals }) => heals ?? 1), ...and]);
+/** How many times as fast a bearer of these gains mana (`and`: more of the kind, besides). */
+export const filling = (on: readonly Status<unknown>[], ...and: readonly number[]): number => stacked([...on.map(({ mana }) => mana ?? 1), ...and]);
 
 /** What these add to how likely a bearer's blows are to be critical. */
 export function critting(on: readonly Status<unknown>[]): number {
@@ -151,11 +164,7 @@ export function critResisting(on: readonly Status<unknown>[], type: DamageType):
 }
 
 /** How many times as much defense against a kind of damage a bearer of these has. */
-export function defending(on: readonly Status<unknown>[], type: DamageType): number {
-  let times = 1;
-  for (const { defends } of on) times *= typeof defends === 'number' ? defends : (defends?.[type] ?? 1);
-  return times;
-}
+export const defending = (on: readonly Status<unknown>[], type: DamageType): number => stacked(defends(on, type));
 
 /** What these add to a bearer's defense against a kind of damage. */
 export function bolstering(on: readonly Status<unknown>[], type: DamageType): number {
