@@ -1,7 +1,7 @@
 import { type Busy, doneMark, working } from '../ui';
 import { coin, points } from '../util';
 import { armoryOrder, type TmSort } from './gear';
-import { el, hasLevels, heroGear, isTmPiece, itemFace, krStars, levelLabel, lockBadge, mainStatLine, rich, type Slot, SLOT_NAME, type Stars, tierOf } from './items';
+import { el, hasLevels, heroGear, itemFace, levelLabel, lockBadge, mainStatLine, rich, type Slot, SLOT_NAME, type Stars, tierOf } from './items';
 import type { MainStat } from '../../protocol/items';
 import { matchesStars, type StarChoice } from './armory-filter/armory-filter';
 import { padlock } from './padlock';
@@ -430,14 +430,9 @@ export function showDetail(box: HTMLElement, copy: ArmoryCopy | undefined, parts
   const info = el('div', 'detail-info');
   const kind = el('p', 'detail-kind', SLOT_NAME[copy.slot]);
   info.append(kind);
-  // (Right under its slot, its main stat (an armor's P. DEF, a unique weapon's ATK…); then its stars of its top, none for one with the one level.)
+  // (Right under its slot, its main stat (an armor's P. DEF, a unique weapon's ATK…); its stars are on its card, and MAX by its slot at the top.)
   if (copy.mainStat) info.append(mainStatLine(copy.mainStat));
-  if (hasLevels(copy)) {
-    if (copy.level >= copy.maxLevel) kind.append(el('span', 'detail-max', 'MAX'));
-    const rank = el('p', 'detail-rank detail-stars');
-    rank.append(krStars(copy.level, copy.maxLevel, isTmPiece(copy.itemId)));
-    info.append(rank);
-  }
+  if (hasLevels(copy) && copy.level >= copy.maxLevel) kind.append(el('span', 'detail-max', 'MAX'));
   info.append(...(parts.info ?? []));
   top.append(big, info);
   if (parts.corner) top.append(parts.corner);
