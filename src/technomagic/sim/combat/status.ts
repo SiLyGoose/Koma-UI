@@ -25,6 +25,15 @@ export interface Status<Shown> {
   crit?: number;
   /** Added to how many times as hard its bearer's critical blows are (0.5: half again). */
   critDamage?: number;
+  /**
+   * Added to its bearer's ATK (a share, with its others: King's Raid's ATK adds up), ATK Spd, Tough against both kinds of
+   * damage, ACC (its hit chance) and crit chance (points, before King's Raid's curve for each).
+   */
+  atk?: number;
+  speed?: number;
+  tough?: number;
+  acc?: number;
+  critPoints?: number;
   /** Added to its bearer's penetration (points). */
   pen?: number;
   /** Its bearer's defense is this many times as much: against every kind, or against each kind it names. */
@@ -134,6 +143,13 @@ export function critDamaging(on: readonly Status<unknown>[]): number {
 export function piercing(on: readonly Status<unknown>[]): number {
   let more = 0;
   for (const { pen } of on) more += pen ?? 0;
+  return more;
+}
+
+/** What these add to a bearer's ATK (a share), or to its ATK Spd, Tough, ACC or crit chance (points). */
+export function adding(on: readonly Status<unknown>[], key: 'atk' | 'speed' | 'tough' | 'acc' | 'critPoints'): number {
+  let more = 0;
+  for (const status of on) more += status[key] ?? 0;
   return more;
 }
 

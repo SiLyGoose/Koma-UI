@@ -5,7 +5,9 @@ import { makeSim } from './fight';
 import { HEROES } from './heroes';
 import { perkStats, perksOf } from './perks';
 import { MARCH, MOST, RAGE_WIPE, RAID_TIME, TICK } from './rules';
-import { SET_INFO } from './sets';
+import { ARTIFACTS } from './artifacts';
+import { KR_ARTIFACTS } from './gear/kr-data';
+import { SET_INFO, SET_PIECES } from './sets';
 import { MOST_SKILLS, SKILLS } from './skills';
 import { treasureAbout } from './treasures';
 import { UNIQUE_HEROES, uniqueAbout } from './unique';
@@ -48,6 +50,8 @@ export interface RunHero {
   perks?: readonly string[] | null;
   /** Its main unique treasure: which of its four (1 to 4: UT1 to UT4), at which tier (its refinement, 1 to 5); or none. Its sub treasures' options are in `gear`. */
   ut?: { skill: number; tier: number } | null;
+  /** Its artifact: which (KR_ARTIFACTS' id), at which tier (its refinement, 1 to 5); or none. */
+  artifact?: { id: string; tier: number } | null;
 }
 
 /**
@@ -169,6 +173,33 @@ export interface TmSetInfo {
 
 export const TM_SET_INFO: readonly TmSetInfo[] = SET_INFO;
 
+/** How many of a TechnoMagic set's pieces a hero wears for its effect. */
+export const TM_SET_PIECES: number = SET_PIECES;
+
+/**
+ * King's Raid's hero gear as the TechnoMagic Raid has it (./gear/kr-data.ts, from the CBT2 playtest's tables): the pieces,
+ * their option pools, the sets' bonuses, the unique options, the runes, and how refinement raises a main stat. The bot
+ * makes its items, drops and copies of them; the fight is given what they add up to (RunHero.gear, set, artifact).
+ */
+export { KR_PIECES, KR_POOLS, KR_REFINE, KR_RUNES, KR_SETS, KR_UNIQUE, type KrMainStat, type KrOptionData, type KrPart, type KrPieceData, type KrRuneData, type KrSetData } from './gear/kr-data';
+
+/** An artifact the fight has a use for (./artifacts.ts): its id, KR code and name, icon, and what it does at R1 to R5 in King's Raid's words. */
+export interface TmArtifactInfo {
+  id: string;
+  code: string;
+  name: string;
+  icon: string;
+  text: readonly string[];
+}
+
+export const TM_ARTIFACTS: readonly TmArtifactInfo[] = KR_ARTIFACTS.filter((one) => one.id in ARTIFACTS).map(({ id, code, name, icon, text }) => ({
+  id,
+  code,
+  name,
+  icon,
+  text: (text ?? []).map((line) => line ?? ''),
+}));
+
 /** An input of the page's, as a raid takes it: a skill pressed, a hero's Auto, every hero's Auto, or leaving (with the step it came before). */
 export interface RunInput {
   tick: number;
@@ -233,7 +264,8 @@ export function startRaid(run: Run): LiveRaid | string {
     const skills = Array.isArray(hero.skills) ? hero.skills.filter((id): id is string => typeof id === 'string') : [];
     const perks = Array.isArray(hero.perks) ? hero.perks.filter((id): id is string => typeof id === 'string') : [];
     const ut = hero.ut && typeof hero.ut.skill === 'number' && typeof hero.ut.tier === 'number' ? { skill: hero.ut.skill, tier: hero.ut.tier } : null;
-    entries.push({ def, skin: hero.skin, gear, set: typeof hero.set === 'string' ? hero.set : null, uw: typeof hero.uw === 'number' ? hero.uw : null, skills, sub: run.solo === true && hero.sub === true, perks, ut });
+    const artifact = hero.artifact && typeof hero.artifact.id === 'string' && typeof hero.artifact.tier === 'number' ? { id: hero.artifact.id, tier: hero.artifact.tier } : null;
+    entries.push({ def, skin: hero.skin, gear, set: typeof hero.set === 'string' ? hero.set : null, uw: typeof hero.uw === 'number' ? hero.uw : null, skills, sub: run.solo === true && hero.sub === true, perks, ut, artifact });
   }
   const sim = makeSim({ boss, heroes: entries, seed: run.seed, stage: run.stage, raid: true, solo: run.solo === true });
   const heroes = entries.length;

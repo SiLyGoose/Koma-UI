@@ -4,7 +4,8 @@ import type { Status } from './combat/status';
 import type { Ability, HeroDef, HeroPart } from './heroes/kit';
 import type { HeroMove } from './heroes/moves';
 import type { Motion } from './motion';
-import type { SetRole, TmSet } from './sets';
+import type { ArtifactDef } from './artifacts';
+import type { SetEffect, TmSet } from './sets';
 import type { Buff, Tone } from './shown';
 import type { PerkDef, SkillMark } from './perks';
 import type { SkillId } from './skills';
@@ -50,7 +51,7 @@ export type GearStat =
   | 'toughMagical'
   | 'resist'
   | 'accuracy'
-  | 'ccAccuracy'
+  | 'acc'
   | 'lifesteal'
   | 'critResist'
   | 'critResistPhysical'
@@ -115,11 +116,17 @@ export interface Fighter {
   readonly accuracy: number;
   readonly lifesteal: number;
   readonly critResist: PerKind;
+  /** Shares more: of the healing that reaches it (its gear's Recovery), and of the mana it gains as it loses health (its gear's). */
+  readonly recovery: number;
+  readonly manaDamage: number;
   /** The mana it gains as each part of its attack lands, and recovers a second (its own: ./heroes/kr.ts, with what its gear adds). */
   readonly manaPerAttack: number;
   readonly manaRegen: number;
-  /** The TechnoMagic set whose effect it has, and what its class is to it (./sets.ts); null: none. */
-  readonly set: { id: TmSet; role: SetRole } | null;
+  /** The TechnoMagic set whose effect it has, and what it does for its class (./sets.ts); null: none. And which of its effects that come once have come. */
+  readonly set: { id: TmSet; effect: SetEffect } | null;
+  readonly setDone: { wind: boolean; full: boolean };
+  /** Its artifact (./artifacts.ts): which, what it does, at which tier (R1 to R5); null: none, or one the fight has no use for. */
+  readonly artifact: { id: string; def: ArtifactDef; tier: number } | null;
   /** Its own unique weapon, as far as it is refined (1 to 5: ./unique.ts), and how many skills it has used with it; null: none. */
   readonly unique: { tier: number; casts: number } | null;
   /** Its main unique treasure (../treasures.ts): which of its four (0 to 3), at which tier; null: none. Its effect is among its perks (as 'ut'). */

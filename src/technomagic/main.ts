@@ -46,6 +46,7 @@ import { makeResult } from './result';
 import { installSounds, play as playSound } from './sfx';
 import type { AnswerCode, ClientMessage, ErrorCode, FightStart, OverView, RoomState, ServerMessage, TurnInput } from '../protocol/technomagic';
 import { HERO_TURN, makeSim, SECTION, SECTIONS, SIM_VERSION, TICK, type Input, type Sim } from './sim';
+import { artifactBuff } from './sim/artifacts';
 import { setBuff } from './sim/sets';
 import { skillBuffs } from './sim/skills';
 import { uniqueBuff } from './sim/unique';
@@ -377,7 +378,8 @@ async function start(): Promise<void> {
       const passives = [
         // (Its passive in King's Raid's words, as the heroes page shows it.)
         ...(hero.passive ? [hero.passive.words ? { ...hero.passive.shown, about: hero.passive.words } : hero.passive.shown] : []),
-        ...(fighter.set ? [setBuff(fighter.set)] : []),
+        ...(fighter.set ? [setBuff(fighter.set, hero.class)] : []),
+        ...(fighter.artifact ? [artifactBuff(fighter.artifact)] : []),
         ...(fighter.unique ? [uniqueBuff(fighter.id, fighter.unique.tier)] : []),
         ...skillBuffs(fighter.skills),
       ];

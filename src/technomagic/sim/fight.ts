@@ -1,6 +1,7 @@
+import { alliesFrom, artifactHooks, artifactOf, artifactStats, at, type ArtifactHooks } from './artifacts';
 import { scaleAt, stagesOf, type BossDef, type BossPart } from './bosses/boss';
 import { ATK, CURVE, curved, HERO_LEVEL, NONE, POINTS, reachAt, share, SLOWEST, strike } from './combat/damage';
-import { accurate, amplified, away, blocking, bolstering, bound, critDamaging, critResisting, critTaking, critting, dealing, deals, defending, defends, dodging, filling, healing, pacing, piercing, put, resisting, stacked, takes, wear, type Status } from './combat/status';
+import { accurate, adding, amplified, away, blocking, bolstering, bound, critDamaging, critResisting, critTaking, critting, dealing, deals, defending, defends, dodging, filling, healing, pacing, piercing, put, resisting, stacked, takes, wear, type Status } from './combat/status';
 import type { Input, Logged, Result, SimEvent } from './events';
 import { geared } from './gear';
 import { lineOf, nearer, NO_PASSIVE, type Ability, type HeroDef } from './heroes/kit';
@@ -9,10 +10,10 @@ import type { HeroMove } from './heroes/moves';
 import { motionOf } from './motion';
 import { seeded } from './random';
 import { AUTO, AUTO_WAIT, BLOW, BOSS_X, CLASS_BUFF, CRIT, formation, HERO_WAIT, HERO_X, MANA_PER_ATTACK, MARCH, MARCH_ABREAST, MARCH_FROM, marchLeft, MARCH_ROW, MANA_PER_HP_LOST, MANA_RATE, MAX_MANA, MOST, rage, RAGE_WIPE, RAID_TIME, REFORM, SECTION, TICK } from './rules';
-import { AUTHORITY, GUARDED, HOPE, PERSEVERANCE, setOf } from './sets';
+import { grown, SET_UP, setOf, type SetEffect } from './sets';
 import type { Buff, Mark } from './shown';
 import { CHAMPION_UP, DESPERATION_UP, MENDING_UP, SKILL, skilledCritDamage, skilledStats, skillsOf, SURGE_UP, type SkillId } from './skills';
-import type { Fight, Fighter, Foe, GearBonus } from './types';
+import type { Fight, Fighter, Foe, GearBonus, GearStat } from './types';
 import { atTier, ELICIPIRA, EXIAN, EXIAN_UP, ROSMERTA, ROSMERTA_UP, uniqueOf } from './unique';
 import { auraTotal, moveDmg, moveHeals, moveMarks, moveWhole, perkedStats, perksOf, tweaked, withPerks, type PerkDef, type SkillMark, type SkillStatus } from './perks';
 import { treasureOf } from './treasures';
@@ -63,7 +64,12 @@ export interface Entry {
   perks?: readonly string[] | null;
   /** Its main unique treasure (./treasures.ts): which of its four (1 to 4: UT1 to UT4), at which tier (1 to 5). */
   ut?: { skill: number; tier: number } | null;
+  /** Its artifact (./artifacts.ts): which (KR_ARTIFACTS' id), at which tier (R1 to R5). */
+  artifact?: { id: string; tier: number } | null;
 }
+
+/** The dragons' ids: King's Raid's Dragon race, for an artifact's DMG against one (./artifacts.ts). */
+const DRAGON_IDS: ReadonlySet<string> = new Set(['temeraire', 'scalaxia', 'zyrrkinoth', 'armarta']);
 
 /** The additional skills that come round again every so many seconds: each first comes once that long has gone. */
 const EVERY: readonly SkillId[] = ['regeneration', 'mana-spring', 'focus-1', 'focus-2', 'focus-3'];
@@ -227,8 +233,14 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
   /** What every ally gains from the start, by perks like Battle Cry (each wearer's: the first in full, the rest each `again`). */
   const startAura = (key: keyof NonNullable<PerkDef['allies']>): number => auraTotal(perkSets.map((perks) => [...perks.values()]), key);
   const battleCry = startAura('hp');
-  const fighters: Fighter[] = heroes.map(({ def: hero, skin = 0, gear: worn = {}, set: wearing = null, uw = null, skills: tm = null, sub = false }, index) => {
+  // (And every ally's from the artifacts the heroes wear: the highest of them, as King's Raid's don't stack.)
+  const artifactHp = heroes.reduce((most, { artifact }) => {
+    const worn = artifactOf(artifact);
+    return Math.max(most, worn ? at(worn.def.allies?.hp, worn.tier) : 0);
+  }, 0);
+  const fighters: Fighter[] = heroes.map(({ def: hero, skin = 0, gear: worn = {}, set: wearing = null, uw = null, skills: tm = null, sub = false, artifact = null }, index) => {
     const set = setOf(wearing, hero.class);
+    const relic = artifactOf(artifact);
     const tier = uniqueOf(hero.id, uw);
     const skills = skillsOf(tm);
     const n = (id: SkillId): number => skills[id] ?? 0;
@@ -236,13 +248,14 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     const perks = perkSets[index] as Map<string, PerkDef>;
     const gear = withPerks(worn, perks.values());
     if (battleCry > 0) gear.hp = (gear.hp ?? 0) + battleCry;
+    // (And its set's own stats from the start: ./sets.ts.)
+    // (And its artifact's: ./artifacts.ts.)
+    for (const [stat, value] of Object.entries({ ...set?.effect.own }).concat(Object.entries(artifactStats(relic))) as [GearStat, number][]) gear[stat] = (gear[stat] ?? 0) + value;
+    if (artifactHp > 0) gear.hp = (gear.hp ?? 0) + artifactHp;
     // (And its class buffs: ../rules.ts; and what its books add to its ATK: ./heroes/kr.ts.)
     gear.atk = (gear.atk ?? 0) + CLASS_BUFF.atk + (KR_HEROES[hero.id]?.books.atk ?? 0);
     gear.hp = (gear.hp ?? 0) + CLASS_BUFF.hp;
     const stats = perkedStats(geared(hero.stats, gear), perks.values());
-    // A set's effects on its wearer's own stats, from the start.
-    if (set?.id === 'authority' && set.role === 'dps') stats.pen += AUTHORITY.pen;
-    if (set?.id === 'authority' && set.role === 'knight') stats.resist += AUTHORITY.resist;
     // Its additional skills' on its own stats, from the start; and its books' crit chance.
     skilledStats(stats, skills);
     stats.crit += KR_HEROES[hero.id]?.books.critStat ?? 0;
@@ -276,6 +289,8 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       critTimes: CRIT + stats.critDamage + (gear.critDamage ?? 0) + skilledCritDamage(skills),
       healTimes: 1 + (gear.heal ?? 0),
       set,
+      setDone: { wind: false, full: false },
+      artifact: relic,
       unique: tier === null ? null : { tier, casts: 0 },
       treasure: treasures[index] ?? null,
       skills,
@@ -284,6 +299,8 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       controlTimes: 1 + (gear.control ?? 0),
       accuracy: gear.accuracy ?? 0,
       lifesteal: gear.lifesteal ?? 0,
+      recovery: gear.recovery ?? 0,
+      manaDamage: gear.manaDamage ?? 0,
       critResist: { physical: (gear.critResist ?? 0) + (gear.critResistPhysical ?? 0), magical: (gear.critResist ?? 0) + (gear.critResistMagical ?? 0) },
       manaPerAttack: mana.attack * (1 + (gear.manaAttack ?? 0)),
       manaRegen: mana.regen * (1 + (gear.manaRegen ?? 0)),
@@ -294,8 +311,8 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       shield: 0,
       shieldLeft: 0,
       statuses: [],
-      // As it comes into the fight: whole, with no mana (but Authority's support's), as in King's Raid's raids.
-      mana: Math.min(MAX_MANA, set?.id === 'authority' && set.role === 'support' ? AUTHORITY.mana : 0),
+      // As it comes into the fight: whole, with no mana, as in King's Raid's raids.
+      mana: 0,
       sub,
       // On Auto from the start in a raid (the Main Team's can be taken off it); trying things out, not.
       auto: sub || raid,
@@ -397,14 +414,29 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     const far = (fighter: Fighter): number => (fighter.x - BOSS_X) * (fighter.x - BOSS_X) + fighter.z * fighter.z;
     return from.reduce<Fighter | null>((nearest, fighter) => (!nearest || far(fighter) < far(nearest) - 1e-9 ? fighter : nearest), null);
   };
+  /** Each hero's artifact's hooks (./artifacts.ts), wearing one the fight has a use for. */
+  const relics = new Map<Fighter, ArtifactHooks>();
   /** Whom the boss is going for: another, should that one have left the field, or the fight. */
   const aimed = (): Fighter | null => {
     if (!aim || !field.includes(aim) || away(aim.statuses)) aim = anyone();
     return aim;
   };
 
-  /** Heroes on the field, standing and in the fight, with a set's `role` (each support of Hope's or Perseverance's gives every ally more). */
-  const wearing = (id: string, role: string): Fighter[] => field.filter((on) => on.hp > 0 && !away(on.statuses) && on.set?.id === id && on.set.role === role);
+  /**
+   * What the sets worn by the heroes on the field, standing and in the fight, give `to` (an ally) of `key` (./sets.ts
+   * SetEffect.allies), added up: twice over the front line's ATK Spd, or the rest's crit DMG, for a set that says so; mana
+   * recovery only once its time has come.
+   */
+  const allied = (to: Fighter, key: 'atk' | 'defense' | 'speed' | 'critDamage' | 'dmg' | 'recovery' | 'mana'): number =>
+    field.reduce((sum, on) => {
+      const allies = on.hp > 0 && !away(on.statuses) ? on.set?.effect.allies : undefined;
+      if (!allies?.[key] || (key === 'mana' && elapsed < (allies.manaAfter ?? 0))) return sum;
+      const front = lineOf(to.def) === 'front';
+      const twice = (allies.twice === 'front' && key === 'speed' && front) || (allies.twice === 'back' && key === 'critDamage' && !front);
+      return sum + (allies[key] as number) * (twice ? 2 : 1);
+    }, 0);
+  /** Its set's effect (none: an empty one). */
+  const setEffect = (by: Fighter): SetEffect => by.set?.effect ?? {};
   /** How many of an additional skill the heroes on the field, standing and in the fight, have between them (one that gives every ally something). */
   const among = (id: SkillId): number => field.reduce((count, on) => count + (on.hp > 0 && !away(on.statuses) ? (on.skills[id] ?? 0) : 0), 0);
   /** What every ally gains, as this step began, from the perks of the heroes on the field and standing (./perks.ts's auras). */
@@ -423,22 +455,27 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
   const has = (fighter: Fighter, id: SkillId): number => fighter.skills[id] ?? 0;
   const bears = (fighter: Fighter, name: string): boolean => fighter.statuses.some((status) => status.name === name);
   /**
-   * How many times its ATK a hero's blows, heals and shields go by, for now: every Hope and Perseverance support
-   * on the field and every War Cry among them; and its own Momentum's stacks and Desperation. (All added up, as King's
-   * Raid's ATK is: ./combat/status.ts.)
+   * How many times its ATK a hero's blows, heals and shields go by, for now: what the sets on the field give every ally
+   * and every War Cry among them; its own set's, growing, at first or once its mana has been full; and its own Momentum's
+   * stacks and Desperation. (All added up, as King's Raid's ATK is: ./combat/status.ts.)
    */
-  const atkTimes = (by: Fighter): number =>
-    stacked([
-      1 + HOPE.atk * wearing('hope', 'support').length + PERSEVERANCE.atk * wearing('perseverance', 'support').length + SKILL['war-cry'].atk * among('war-cry') + auras.atk,
+  const atkTimes = (by: Fighter): number => {
+    const own = setEffect(by);
+    const set = (own.grows?.atk ?? 0) * grown(own, elapsed) + (own.opening && elapsed < own.opening.lasts ? own.opening.atk : 0) + (own.fullMana && by.setDone.full ? own.fullMana.atk : 0);
+    return stacked([
+      1 + allied(by, 'atk') + set + SKILL['war-cry'].atk * among('war-cry') + auras.atk + alliesFrom(field, 'atk') + adding(by.statuses, 'atk'),
       1 + SKILL.momentum.atk * by.stacks.momentum * has(by, 'momentum'),
       bears(by, DESPERATION_UP.name) ? 1 + SKILL.desperation.atk * has(by, 'desperation') : 1,
     ]);
+  };
   /**
-   * How many times as much DMG a hero's blows deal besides (not its heals): Perseverance's damage dealer, growing as
-   * the fight goes on; and its own Vigor while its health is high, Persistence growing, and Fundamentals on its attack.
+   * How many times as much DMG a hero's blows deal besides (not its heals): its set's, growing as the fight goes on, and
+   * what the sets on the field give every ally; and its own Vigor while its health is high, Persistence growing, and
+   * Fundamentals on its attack.
    */
   const dmgTimes = (by: Fighter): number => {
-    const set = by.set?.id === 'perseverance' && by.set.role === 'dps' ? PERSEVERANCE.dmg + PERSEVERANCE.step * Math.min(PERSEVERANCE.most, Math.floor(elapsed / PERSEVERANCE.every)) : 0;
+    const own = setEffect(by);
+    const set = (own.dmg ?? 0) + (own.grows?.dmg ?? 0) * grown(own, elapsed) + allied(by, 'dmg');
     const vigor = by.hp > by.stats.hp * SKILL.vigor.above ? SKILL.vigor.dmg * has(by, 'vigor') : 0;
     const persistence = SKILL.persistence.dmg * has(by, 'persistence') * Math.min(SKILL.persistence.most, Math.floor(elapsed / SKILL.persistence.every));
     const fundamentals = attacking === by ? SKILL.fundamentals.dmg * has(by, 'fundamentals') : 0;
@@ -493,8 +530,6 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     const ability = sim.slot(fighter, index);
     if (!ability || fighter.doing || !sim.ready(fighter, index)) return false;
     begin(fighter, ability.move, index);
-    // Authority's knight: its skills strip what helps the boss.
-    if (fighter.set?.id === 'authority' && fighter.set.role === 'knight') dispel();
     for (const perk of fighter.perkDefs) if (perk.skill?.index === index) usedWith(fighter, perk.skill);
     fighter.cooldowns[index] = ability.cooldown;
     fighter.lastUsed[index] = elapsed;
@@ -503,6 +538,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     asFighter(fighter, () => fighter.part.used?.(index, ability));
     uniqueCast(fighter);
     skillCast(fighter);
+    setCast(fighter);
     return true;
   }
 
@@ -584,6 +620,39 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     if (has(fighter, 'momentum') > 0) fighter.stacks.momentum = Math.min(SKILL.momentum.most, fighter.stacks.momentum + 1);
     if (has(fighter, 'steadfast') > 0) fighter.stacks.steadfast = Math.min(SKILL.steadfast.most, fighter.stacks.steadfast + 1);
     if (due(fighter, 'mending', SKILL.mending.wait)) put(fighter.statuses, { name: MENDING_UP.name, left: SKILL.mending.lasts, shown: MENDING_UP });
+  }
+
+  /** A hero has used a skill: its set's that comes of it (Hope's assassin: mana, and crit DMG for a while). */
+  function setCast(fighter: Fighter): void {
+    const on = setEffect(fighter).onSkill;
+    if (!on) return;
+    fighter.mana = Math.min(MAX_MANA, fighter.mana + on.mana);
+    put(fighter.statuses, { name: SET_UP.onSkill.name, left: on.lasts, critDamage: on.critDamage, shown: SET_UP.onSkill });
+  }
+
+  /**
+   * A step's time passes for a hero's set (on the field, standing and in the fight): Hope's mechanic's mana and cooldowns for
+   * every ally, every so often; Authority's wizard's, once its mana is first full; Authority's warrior's second wind.
+   */
+  function setTick(fighter: Fighter): void {
+    const own = setEffect(fighter);
+    if (!field.includes(fighter) || fighter.hp <= 0 || away(fighter.statuses)) return;
+    if (own.tick && perkDue(fighter, 'set', own.tick.every)) {
+      for (const ally of field.filter((on) => on.hp > 0 && !away(on.statuses))) {
+        ally.mana = Math.min(MAX_MANA, ally.mana + own.tick.mana);
+        ally.cooldowns = ally.cooldowns.map((left) => Math.max(0, left - (own.tick?.cooldown ?? 0)));
+      }
+    }
+    if (own.fullMana && !fighter.setDone.full && fighter.mana >= MAX_MANA) {
+      fighter.setDone.full = true;
+      put(fighter.statuses, { name: SET_UP.fullMana.name, left: Infinity, mana: 1 + own.fullMana.mana, shown: SET_UP.fullMana });
+    }
+    if (own.secondWind && !fighter.setDone.wind && fighter.hp < fighter.stats.hp * own.secondWind.below) {
+      fighter.setDone.wind = true;
+      sim.heal(fighter, own.secondWind.heal * fighter.stats.hp);
+      fighter.stats.speed += own.secondWind.speed;
+      put(fighter.statuses, { name: SET_UP.secondWind.name, left: Infinity, shown: SET_UP.secondWind });
+    }
   }
 
   /** Whether a hero's additional skill that waits between times comes now (it has it, and its wait is over): then it waits again, `again` seconds. */
@@ -679,7 +748,10 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
         basic = attacking ? (part.blows?.[doing.landed - 1] ?? 0) : 0;
         landing = { by: fighter, move };
         // Each part of its attack gains it mana, as its first blow lands (King's Raid's: once a part of its attack is under way).
-        if (attacking && doing.landed === 1) fighter.mana = Math.min(MAX_MANA, fighter.mana + fighter.manaPerAttack);
+        if (attacking && doing.landed === 1) {
+          fighter.mana = Math.min(MAX_MANA, fighter.mana + fighter.manaPerAttack);
+          relics.get(fighter)?.basic();
+        }
         // (The enemy in question as it lands: the one it is fighting.)
         asFighter(fighter, () => {
           const own = fighter.part.lands[move];
@@ -746,15 +818,19 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       // then far harder, by its crit chance and what its passive and what is on it add; and through its penetration, and the blow's own.
       const { attack, crit } = by.def.passive ?? NO_PASSIVE;
       const { atk, deals: type, crit: points, pen } = by.stats;
-      const critical = roll() < share(curved(CURVE.crit, points + auras.crit + bookShare(by, 'crit')) + critTaking(foe.statuses, type) - curved(CURVE.chance, foe.part.critResist ?? 0)) + crit + critting(by.statuses);
+      // (Every blow a crit with crit chance enough: Authority's mechanic's.)
+      const allCrit = by.set?.effect.allCrit;
+      const critical = (allCrit !== undefined && points >= allCrit.at) || roll() < share(curved(CURVE.crit, points + auras.crit + bookShare(by, 'crit') + adding(by.statuses, 'critPoints')) + critTaking(foe.statuses, type) - curved(CURVE.chance, foe.part.critResist ?? 0)) + crit + critting(by.statuses);
       // (Its additional skills' DMG, and every Whetstone on the field's crit DMG, and what is on it adds: Seria's Cold-Blooded Witch.)
       // (And its Concentration: more for every so many seconds of the fight.)
       const focus = by.perkDefs.find((perk) => perk.focus)?.focus;
       const focused = focus ? focus.critDamage * Math.min(focus.most, Math.floor(elapsed / focus.every)) : 0;
-      const critTimes = by.critTimes + SKILL.whetstone.critDamage * among('whetstone') + critDamaging(by.statuses) + auras.critDamage + focused;
+      // (And its set's, growing, and what the sets on the field give every ally.)
+      const setCrit = (setEffect(by).grows?.critDamage ?? 0) * grown(setEffect(by), elapsed) + allied(by, 'critDamage') + alliesFrom(field, 'critDamage');
+      const critTimes = by.critTimes + SKILL.whetstone.critDamage * among('whetstone') + critDamaging(by.statuses) + auras.critDamage + focused + setCrit;
       // (And its perks': more against the boss, and more for the skill whose blow it is. Its ACC sees past some of the boss's dodge: strike.)
       const skilled = landing?.by === by ? (by.moveDmg[landing.move] ?? 1) : 1;
-      const acc = by.acc + auras.acc;
+      const acc = by.acc + auras.acc + adding(by.statuses, 'acc');
       // (Less of a block for what is on the boss: a unique treasure's.)
       const plain = foe === boss ? bossStands() : foe.def.stats;
       const lower = { physical: blocking(foe.statuses, 'physical'), magical: blocking(foe.statuses, 'magical') };
@@ -765,14 +841,17 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       const against = through ? { ...stood, physical: 0, magical: 0 } : { ...stood, physical: stood.physical * defending(foe.statuses, 'physical'), magical: stood.magical * defending(foe.statuses, 'magical') };
       // (Its skill's power: its books and its perks for the skill, added up. Then its DMG, all that makes it more, and what is on the
       // boss that has it take more, added up: King's Raid's damage amplifiers.)
-      const power = 1 + bookShare(by, 'dmg') + skilled - 1;
-      const more = amplified([dmgTimes(by), attack, ...deals(by.statuses), by.perkDmg, by.part.deals?.() ?? 1, ...takes(foe.statuses, type)]);
+      // (And DMG past DEF, the more for its set: Authority's assassin's.)
+      const power = (1 + bookShare(by, 'dmg') + skilled - 1) * (through ? 1 + (setEffect(by).pastDef ?? 0) : 1);
+      // (And its artifact's: ./artifacts.ts.)
+      const more = amplified([dmgTimes(by), attack, ...deals(by.statuses), by.perkDmg, by.part.deals?.() ?? 1, relics.get(by)?.deals(foe) ?? 1, ...takes(foe.statuses, type)]);
       const { taken, blocked, dodged } = strike(amount * (atk / POINTS) * atkTimes(by) * power * more * (critical ? critTimes : 1), type, against, pen + auras.pen + pierce + piercing(by.statuses), reachAt(HERO_LEVEL), roll, acc);
       if (dodged) {
         events.push({ kind: 'number', on: 'boss', foe: foe.index, amount: 0, type: 'dodged' });
         return false;
       }
       events.push({ kind: 'boss-hit', foe: foe.index });
+      relics.get(by)?.blow();
       // Its perks that mark the boss as its blows land (Vital Detection, Experienced Fighter, Special Bullet): after this one.
       const marking = by.perkDefs.filter((perk) => perk.mark && (perk.mark.every === undefined || perkDue(by, perk.mark.name, perk.mark.every)));
       // (And more or less by the boss's own: Galgoria's more physical damage.) Deathless: all of it, and the boss whole again once it would be beaten.
@@ -1062,7 +1141,8 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     },
     heal(fighter, amount, by) {
       if (fighter.hp <= 0) return;
-      const given = Math.min(amount * byAttack(by) * healed(by) * healing(fighter.statuses) * (boss.part.healing?.() ?? 1), fighter.stats.hp - fighter.hp);
+      // (The more for its Recovery: its gear's, and what the sets on the field give every ally.)
+      const given = Math.min(amount * byAttack(by) * healed(by) * healing(fighter.statuses, 1 + fighter.recovery + allied(fighter, 'recovery')) * (boss.part.healing?.() ?? 1), fighter.stats.hp - fighter.hp);
       fighter.hp += given;
       if (by) by.healed += given;
       if (given > 0) events.push({ kind: 'number', on: fighter.index, amount: given, type: 'heal' });
@@ -1089,15 +1169,19 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       const type = kind ?? foe.def.stats.deals;
       // Harder or softer for what is on the boss, and harder again once the raid's time is up; then dodged, or what the hero's defense against that kind of damage
       // (more for every Hope support on the field), and a block, take off.
-      // (And for what is on it: Klaus's unique weapon, Morrah's Hellfire. And every Perseverance support's on the field, and every Bastion among them;
-      // and Iron Wall's block, the more at first, and what is on it adds.)
-      const guarded = 1 + HOPE.defense * wearing('hope', 'support').length + PERSEVERANCE.defense * wearing('perseverance', 'support').length + SKILL.bastion.defense * among('bastion');
+      // (And for what is on it: Klaus's unique weapon, Morrah's Hellfire. And what the sets on the field give every ally, and every Bastion among them;
+      // and Iron Wall's block, the more at first, and what is on it adds. And its set's Tough, growing: Perseverance's knight's.)
+      const guarded = 1 + allied(target, 'defense') + SKILL.bastion.defense * among('bastion') + alliesFrom(field, 'defense');
+      const toughened = (setEffect(target).grows?.tough ?? 0) * grown(setEffect(target), elapsed) + adding(target.statuses, 'tough');
+      // (None at all while its artifact has it so: Nail Ornament of the Deep's.)
+      const bare = relics.get(target)?.noDef() === true;
       const walled = elapsed < SKILL['iron-wall'].lasts ? SKILL['iron-wall'].more * has(target, 'iron-wall') : 0;
       const stands = {
         ...target.stats,
-        physical: (target.stats.physical + bolstering(target.statuses, 'physical') + bolstering(party, 'physical')) * stacked([guarded, ...defends(target.statuses, 'physical'), ...defends(party, 'physical')]),
-        magical: (target.stats.magical + bolstering(target.statuses, 'magical') + bolstering(party, 'magical')) * stacked([guarded, ...defends(target.statuses, 'magical'), ...defends(party, 'magical')]),
+        physical: bare ? 0 : (target.stats.physical + bolstering(target.statuses, 'physical') + bolstering(party, 'physical')) * stacked([guarded, ...defends(target.statuses, 'physical'), ...defends(party, 'physical')]),
+        magical: bare ? 0 : (target.stats.magical + bolstering(target.statuses, 'magical') + bolstering(party, 'magical')) * stacked([guarded, ...defends(target.statuses, 'magical'), ...defends(party, 'magical')]),
         block: { physical: target.stats.block.physical + walled + blocking(target.statuses, 'physical'), magical: target.stats.block.magical + walled + blocking(target.statuses, 'magical') },
+        tough: { physical: (target.stats.tough?.physical ?? 0) + toughened, magical: (target.stats.tough?.magical ?? 0) + toughened },
       };
       // (Swift and Nimble: more dodge for every second since it last dodged.)
       const nimble = target.nimble > 0 ? target.nimble * (target.perkDefs.find((perk) => perk.nimble)?.nimble?.dodge ?? 0) : 0;
@@ -1119,10 +1203,11 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
         target.part.dodged?.();
         // Mirage: a dodge mends it a little.
         if (due(target, 'mirage', SKILL.mirage.wait)) sim.heal(target, SKILL.mirage.heal * has(target, 'mirage') * target.stats.hp);
+        relics.get(target)?.dodged();
         return 0;
       }
       events.push({ kind: 'hurt', who: target.index, blocked, ...(foe !== boss && { by: foe.index }) });
-      // (Less again while every hero is guarded, or it is; more if its passive leaves it easier to hurt; less for Hope's knight;
+      // (Less again while every hero is guarded, or it is; more if its passive leaves it easier to hurt;
       // less for its Steadfast's stacks, and a Ward against the boss's kind of damage, the more as the fight's first seconds go.
       // What makes it more adds up, and what makes it less: King's Raid's.)
       const ward = type === 'physical' ? SKILL['physical-ward'] : SKILL['magical-ward'];
@@ -1133,39 +1218,22 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
           ...takes(party, type),
           ...takes(target.statuses, type),
           target.def.passive?.taken ?? 1,
-          target.set?.id === 'hope' && target.set.role === 'knight' ? HOPE.taken : 1,
           target.perkTaken[type],
           target.part.takes?.() ?? 1,
+          relics.get(target)?.taken() ?? 1,
           1 - Math.min(0.9, SKILL.steadfast.taken * target.stacks.steadfast * has(target, 'steadfast')),
           warded > 0 ? 1 - Math.min(0.9, warded * (ward.taken + (ward.most - ward.taken) * Math.min(1, elapsed / ward.over))) : 1,
         ]);
-      // Hope's knight takes a share of what any other ally takes on itself.
-      const cover = target.def.class === 'knight' ? undefined : wearing('hope', 'knight').find((knight) => knight !== target);
-      if (cover) {
-        const covered = dealt * HOPE.covers;
-        dealt -= covered;
-        const soak = Math.min(cover.shield, covered);
-        cover.shield -= soak;
-        if (covered > soak) {
-          const lost = Math.min(cover.hp, covered - soak);
-          cover.hp -= lost;
-          spare(cover);
-          cover.mana = Math.min(MAX_MANA, cover.mana + (MANA_PER_HP_LOST * lost) / cover.stats.hp);
-          events.push({ kind: 'number', on: cover.index, amount: covered - soak, type: 'hit' });
-          if (cover.hp <= 0) {
-            cover.shield = 0;
-            cover.doing = null;
-            cover.reserved = null;
-          }
-        }
-      }
       // A shield on it takes what it can first; its health, the rest.
       const soaked = Math.min(target.shield, dealt);
       target.shield -= soaked;
       if (soaked > 0) events.push({ kind: 'number', on: target.index, amount: soaked, type: 'shield' });
       // Health lost to the boss gains it mana, by the share of its max HP lost. (A blow that would bring down one its part spares leaves it on 1 HP.)
       const losing = Math.min(target.hp, Math.max(0, dealt - soaked));
-      const lost = losing >= target.hp && target.hp > 1 && target.part.spared?.() ? target.hp - 1 : losing;
+      // (Nor below what its artifact keeps it at: Ring of Spirit Morph's, at first.)
+      const floor = relics.get(target)?.floor() ?? 0;
+      const kept = floor > 0 && target.hp > floor ? Math.min(losing, target.hp - floor) : losing;
+      const lost = kept >= target.hp && target.hp > 1 && target.part.spared?.() ? target.hp - 1 : kept;
       if (dealt > soaked) {
         target.hp -= lost;
         spare(target);
@@ -1176,8 +1244,10 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
         target.doing = null;
         target.reserved = null;
       }
-      target.mana = Math.min(MAX_MANA, target.mana + (MANA_PER_HP_LOST * lost) / target.stats.hp);
+      // (The more for its gear's mana on taking damage.)
+      target.mana = Math.min(MAX_MANA, target.mana + (MANA_PER_HP_LOST * (1 + target.manaDamage) * lost) / target.stats.hp);
       if (dealt > 0) for (const fighter of fighters) fighter.part.hurt?.(target);
+      if (dealt > 0) relics.get(target)?.hurt();
       // Its perks that come of being hit: Vengeful Curse (on the boss), and Deception (once it has taken something).
       for (const perk of target.perkDefs) {
         if (perk.curse && perkDue(target, perk.name ?? perk.words, perk.curse.every)) put(foe.statuses, { name: perk.name ?? 'Curse', left: perk.curse.lasts, deals: perk.curse.deals, shown: 'curse' });
@@ -1187,6 +1257,9 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
         target.part.blocked?.();
         // Parry: a block gains it mana.
         if (target.hp > 0 && due(target, 'parry', SKILL.parry.wait)) target.mana = Math.min(MAX_MANA, target.mana + SKILL.parry.mana * has(target, 'parry'));
+        // Its set's: its skills' cooldowns shorter (Authority's knight's, once in a while).
+        const onBlock = setEffect(target).onBlock;
+        if (onBlock && target.hp > 0 && perkDue(target, 'set-block', onBlock.wait)) target.cooldowns = target.cooldowns.map((left) => Math.max(0, left - onBlock.cooldown));
       }
       return dealt;
     },
@@ -1206,6 +1279,8 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       // (Nor one using a skill a perk has it steady through: its main unique treasure's.)
       const using = fighter.doing?.skill;
       if (using !== undefined && fighter.perkDefs.some((perk) => perk.skill?.index === using && perk.skill.steady)) return;
+      // (Nor one its artifact keeps up: Talismans of Resistance's.)
+      if (relics.get(fighter)?.knocked() === false) return;
       stagger(fighter);
       // (The shorter for its CC resist, and what is on it adds to it, and its Tenacity; and as its passive, and its part for now, have it.)
       const shorter = Math.max(0, 1 - SKILL.tenacity.control * has(fighter, 'tenacity')) * (fighter.def.passive?.held ?? 1) * (fighter.part.held?.() ?? 1);
@@ -1354,7 +1429,8 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
 
       for (const fighter of fighters) {
         // (Slower while something on it, or on every hero, holds its mana back.)
-        fighter.mana = Math.min(MAX_MANA, fighter.mana + fighter.manaRegen * dt * filling([...fighter.statuses, ...party]));
+        // (Faster for what the sets on the field give every ally.)
+        fighter.mana = Math.min(MAX_MANA, fighter.mana + fighter.manaRegen * dt * filling([...fighter.statuses, ...party], 1 + allied(fighter, 'mana')));
         fighter.cooldowns = fighter.cooldowns.map((left) => Math.max(0, left - dt));
         // What another hero gave it runs down: its shield, once its time is up, is gone.
         wear(fighter.statuses, dt);
@@ -1362,7 +1438,15 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
         if (fighter.shieldLeft <= 0) fighter.shield = 0;
         skillTick(fighter, dt);
         perkTick(fighter, dt);
+        setTick(fighter);
+        relics.get(fighter)?.tick(dt);
         asFighter(fighter, () => fighter.part.tick?.(dt));
+        // Hope's wizard's: the ally who has dealt the most, once its time has come, deals more for good.
+        const top = setEffect(fighter).top;
+        if (top && elapsed >= top.after && elapsed - dt < top.after && field.includes(fighter) && fighter.hp > 0) {
+          const most = field.reduce<Fighter | null>((best, on) => (on.hp > 0 && (!best || on.dealt > best.dealt) ? on : best), null);
+          if (most) put(most.statuses, { name: `${SET_UP.top.name} ${fighter.index}`, left: Infinity, deals: 1 + top.dmg, shown: SET_UP.top });
+        }
         if (result) return;
       }
       // What is on the boss and on the heroes for a while runs down.
@@ -1419,7 +1503,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       for (const on of field) {
         // (Its attack speed, all of it with what is on it and what quickens it, on King's Raid's curve: 1000 points as quick as it
         // comes, never slower than SLOWEST. One whose passive has it steady: as it comes, whatever its attack speed or what is on it.)
-        const speed = (on.stats.speed + auras.speed + (on.part.speed?.() ?? 0)) * pacing(on.statuses, on.part.pace?.() ?? 1);
+        const speed = (on.stats.speed + auras.speed + allied(on, 'speed') + adding(on.statuses, 'speed') + (on.part.speed?.() ?? 0)) * pacing(on.statuses, on.part.pace?.() ?? 1);
         on.haste = on.def.passive?.steady ? 1 : Math.max(SLOWEST, curved(CURVE.speed, speed)) / POINTS;
         advance(on, dt * on.haste);
         if (result) return;
@@ -1501,10 +1585,25 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
   }
 
   boss.part = as(boss, () => def.join?.(sim) as BossPart | undefined) ?? boss.part;
-  // Authority's support: the ally with the highest ATK can't be knocked down for a while.
-  if (fighters.some((fighter) => fighter.set?.id === 'authority' && fighter.set.role === 'support')) {
-    const strongest = fighters.reduce<Fighter | null>((best, fighter) => (!best || fighter.stats.atk > best.stats.atk ? fighter : best), null);
-    if (strongest) put(strongest.statuses, { name: GUARDED.name, left: AUTHORITY.guardFor, guards: true, shown: GUARDED });
+  // Each hero's artifact (./artifacts.ts): what it does as the fight goes, and what comes of it beginning.
+  for (const fighter of fighters) {
+    const hooks = artifactHooks(fighter, {
+      elapsed: () => elapsed,
+      field: () => field,
+      boss: () => boss,
+      dragon: DRAGON_IDS.has(def.id),
+      roll,
+      hit: (by, amount) => void sim.hit(by, amount, true),
+      heal: (on, amount) => sim.heal(on, amount),
+      due: (on, name, again) => perkDue(on, name, again),
+    });
+    if (hooks) relics.set(fighter, hooks);
+  }
+  for (const hooks of relics.values()) hooks.begin();
+  // A set's that comes round every so often (Hope's mechanic's) comes first after that long, as King's Raid's timers do.
+  for (const fighter of fighters) {
+    const tick = setEffect(fighter).tick;
+    if (tick) fighter.perkWaits.set = tick.every;
   }
   // Champion: the ally with the highest ATK deals more for a while (more again for every Champion among them).
   const champions = fighters.reduce((count, fighter) => count + has(fighter, 'champion'), 0);

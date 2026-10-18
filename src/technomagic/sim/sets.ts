@@ -1,107 +1,128 @@
-import { POINTS } from './combat/damage';
 import type { HeroClass } from './heroes/kit';
-import { SECTION } from './rules';
-import { fine, pct, type Buff } from './shown';
+import { KR_SETS } from './gear/kr-data';
+import type { Buff } from './shown';
+import type { GearBonus } from './types';
 
 /*
- * The TechnoMagic Raids' gear sets, as the fight has them: a hero wearing three of a set's pieces (of its weapons and
- * armors: the bot says which set, if any, as the fight begins) has its effect, which depends on its class:
- * the frontline's tank (knight), the supports (Hope and Authority count mechanics with the priests; Perseverance
- * its priests and knights), and the damage dealers (everyone else). One boss drops each: Galgoria Perseverance, Siegfried Hope,
- * Ascalon Authority. ./fight.ts applies them.
+ * The TechnoMagic Raids' gear sets, as King's Raid's CBT2 playtest has them (./gear/kr-data.ts): a hero wearing four of a
+ * set's pieces (its Armor, Secondary Armor, Accessory and Orb: the bot says which set, if any, as the fight begins) has
+ * the set's skill for its class. One boss drops each: Galgoria Perseverance, Siegfried Hope, Ascalon Authority.
+ * ./fight.ts applies them. (The dragon sets' bonuses are only stats: the bot adds them to what its gear gives.)
  *
- * - Perseverance: a damage dealer deals 10% more DMG, and another 1.5% more every 10 seconds, ten times over
- *   (25% more after 100 seconds); a support (its priests and knights) gives every ally +5% ATK and +10% defense,
- *   again for each wearing it.
- * - Hope: a support gives every ally +5% ATK and +10% defense, again for each wearing it; a knight takes 10%
- *   less, and takes a share of what the boss deals every other ally on itself.
- * - Authority: a damage dealer sees past 500 more of the boss's defense (its kills, in a fight with only the
- *   boss, there are none of); a support starts with 2 more mana sections, and the ally with the highest ATK
- *   can't be knocked down for a while; a knight's CC resist +300, and its skills strip what helps the boss.
+ * - Perseverance: a damage dealer's DMG and ATK (a mechanic's and a wizard's crit DMG) +10%, growing every 2 seconds to
+ *   +25% (+50%) after 100; a knight's DMG +10% and its Tough 100, growing every second to +20% and 200 after 50; a
+ *   priest's heals and shields +25%.
+ * - Hope: every ally's ATK Spd, crit DMG, DMG, DEF and ATK, healing and mana (each class something), and a mechanic's
+ *   mana and cooldowns for every ally every 10 seconds; an assassin's mana and crit DMG as it uses a skill.
+ * - Authority: each its own: a knight's block and cooldowns on blocking, a warrior's HP and a second wind, an assassin's
+ *   penetration and DMG past DEF, an archer's ATK, a mechanic's crit chance (every blow a crit from 1400), a wizard's ATK
+ *   and mana once its mana is first full, and every ally's ATK from a priest.
  */
 
 export type TmSet = 'perseverance' | 'hope' | 'authority';
-export type SetRole = 'dps' | 'support' | 'knight';
 
 export const TM_SETS: readonly TmSet[] = ['perseverance', 'hope', 'authority'];
 
-/** What each class is, for each set (a class the set does nothing for is left out). */
-const ROLES: Record<TmSet, Partial<Record<HeroClass, SetRole>>> = {
-  perseverance: { warrior: 'dps', assassin: 'dps', archer: 'dps', mechanic: 'dps', wizard: 'dps', priest: 'support', knight: 'support' },
-  hope: { priest: 'support', mechanic: 'support', knight: 'knight' },
-  authority: { warrior: 'dps', assassin: 'dps', archer: 'dps', wizard: 'dps', priest: 'support', mechanic: 'support', knight: 'knight' },
-};
+/** The pieces of a set a hero wears for its effect. */
+export const SET_PIECES = 4;
 
-/** A hero's set as it fights: which, and what its class is to it (null: no set, or one that does nothing for its class). */
-export function setOf(set: string | null | undefined, heroClass: HeroClass): { id: TmSet; role: SetRole } | null {
-  if (!set || !(TM_SETS as readonly string[]).includes(set)) return null;
-  const role = ROLES[set as TmSet][heroClass];
-  return role ? { id: set as TmSet, role } : null;
+/**
+ * What a set does for a hero of a class (shares: 0.1 is 10%; points: 1000 is 100%; seconds):
+ * - `own`: its own stats from the start (as its gear's: GearBonus);
+ * - `dmg`: its DMG dealt from the start; `grows`: every `every` seconds, so much more DMG, ATK, crit DMG and Tough, `most` times;
+ * - `allies`: what every ally on the field gains (each wearer's, added up): ATK, DEF, ATK Spd (points), crit DMG, DMG, healing
+ *   received, and mana recovery from `manaAfter` seconds on; ATK Spd twice over for the front line (`twice: 'front'`) or crit DMG
+ *   for the rest (`twice: 'back'`);
+ * - `top`: after `after` seconds, the ally who has dealt the most deals `dmg` more for the rest of the fight;
+ * - `tick`: every `every` seconds, every ally on the field gains `mana` and its skills' cooldowns are `cooldown` seconds shorter;
+ * - `onSkill`: as it uses a skill, it gains `mana`, and its crit DMG `critDamage` more for `lasts` seconds;
+ * - `onBlock`: as it blocks, its skills' cooldowns are `cooldown` seconds shorter (once every `wait` seconds);
+ * - `secondWind`: the first time its health falls below `below`, it heals `heal` of its max HP and its ATK Spd is `speed` more for good;
+ * - `opening`: its ATK `atk` more for the first `lasts` seconds;
+ * - `allCrit`: every blow of its a crit, should its crit chance be `at` or more;
+ * - `fullMana`: the first time its mana is full, its mana recovery and ATK so much more for good;
+ * - `pastDef`: its DMG that goes past DEF so much more.
+ */
+export interface SetEffect {
+  own?: GearBonus;
+  dmg?: number;
+  grows?: { every: number; most: number; dmg?: number; atk?: number; critDamage?: number; tough?: number };
+  allies?: { atk?: number; defense?: number; speed?: number; critDamage?: number; dmg?: number; recovery?: number; mana?: number; manaAfter?: number; twice?: 'front' | 'back' };
+  top?: { after: number; dmg: number };
+  tick?: { every: number; mana: number; cooldown: number };
+  onSkill?: { mana: number; critDamage: number; lasts: number };
+  onBlock?: { cooldown: number; wait: number };
+  secondWind?: { below: number; heal: number; speed: number };
+  opening?: { atk: number; lasts: number };
+  allCrit?: { at: number };
+  fullMana?: { mana: number; atk: number };
+  pastDef?: number;
 }
 
-export const PERSEVERANCE = {
-  /** A damage dealer's DMG: so much more at once, and `step` more every `every` seconds, `most` times. */
-  dmg: 0.1,
-  step: 0.015,
-  every: 10,
-  most: 10,
-  /** What each support wearing it gives every ally. */
-  atk: 0.05,
-  defense: 0.1,
+/** Perseverance's growing DMG and ATK, King's Raid's TechSet_50: every 2 seconds 0.3% more, 50 times. */
+const GROWS = { every: 2, most: 50, dmg: 0.003 };
+
+/** Each set's skill for each class: King's Raid's (EquipSetBonusTable's 4-piece UseSkill, SkillTable's numbers). */
+export const SET_EFFECTS: Readonly<Record<TmSet, Readonly<Record<HeroClass, SetEffect>>>> = {
+  perseverance: {
+    knight: { dmg: 0.1, own: { tough: 100 }, grows: { every: 1, most: 50, dmg: 0.002, tough: 2 } },
+    warrior: { dmg: 0.1, own: { atk: 0.1 }, grows: { ...GROWS, atk: 0.003 } },
+    assassin: { dmg: 0.1, own: { atk: 0.1 }, grows: { ...GROWS, atk: 0.003 } },
+    archer: { dmg: 0.1, own: { atk: 0.1 }, grows: { ...GROWS, atk: 0.003 } },
+    mechanic: { dmg: 0.1, own: { critDamage: 0.2 }, grows: { ...GROWS, critDamage: 0.006 } },
+    wizard: { dmg: 0.1, own: { critDamage: 0.2 }, grows: { ...GROWS, critDamage: 0.006 } },
+    priest: { own: { heal: 0.25 } },
+  },
+  hope: {
+    knight: { allies: { defense: 0.1, atk: 0.05 } },
+    warrior: { allies: { speed: 100, twice: 'front' } },
+    assassin: { own: { critDamage: 0.4 }, onSkill: { mana: 300, critDamage: 0.4, lasts: 3 } },
+    archer: { allies: { critDamage: 0.2, twice: 'back' } },
+    mechanic: { tick: { every: 10, mana: 500, cooldown: 0.5 } },
+    wizard: { allies: { dmg: 0.02 }, top: { after: 30, dmg: 0.02 } },
+    priest: { allies: { recovery: 0.06, mana: 0.06, manaAfter: 5 } },
+  },
+  authority: {
+    knight: { own: { block: 300 }, onBlock: { cooldown: 1, wait: 2.5 } },
+    warrior: { own: { hp: 0.3 }, secondWind: { below: 0.5, heal: 0.3, speed: 300 } },
+    assassin: { own: { pen: 250 }, pastDef: 0.12 },
+    archer: { own: { atk: 0.25 }, opening: { atk: 0.25, lasts: 20 } },
+    mechanic: { own: { crit: 300 }, allCrit: { at: 1400 } },
+    wizard: { fullMana: { mana: 0.2, atk: 0.4 } },
+    priest: { allies: { atk: 0.1 } },
+  },
 };
 
-export const HOPE = {
-  /** What each support wearing it gives every ally. */
-  atk: 0.05,
-  defense: 0.1,
-  /** A knight: what it takes, and the share of what the boss deals every other ally that it takes instead. */
-  taken: 0.9,
-  covers: 0.2,
-};
+/** A hero's set as it fights: which, and what it does for its class (null: no set). */
+export function setOf(set: string | null | undefined, heroClass: HeroClass): { id: TmSet; effect: SetEffect } | null {
+  if (!set || !(TM_SETS as readonly string[]).includes(set)) return null;
+  return { id: set as TmSet, effect: SET_EFFECTS[set as TmSet][heroClass] };
+}
 
-export const AUTHORITY = {
-  /** A damage dealer's penetration (points). */
-  pen: 500,
-  /** A support's mana at the start, and how long the ally with the highest ATK can't be knocked down. */
-  mana: 2 * SECTION,
-  guardFor: 15,
-  /** A knight's CC resist (points). */
-  resist: 300,
-};
+/** How many stacks of a set's growing effect it has `elapsed` seconds into the fight. */
+export const grown = (effect: SetEffect, elapsed: number): number => (effect.grows ? Math.min(effect.grows.most, Math.floor(elapsed / effect.grows.every)) : 0);
 
 const NAMES: Record<TmSet, string> = { perseverance: 'Perseverance', hope: 'Hope', authority: 'Authority' };
 const ICONS: Record<TmSet, string> = { perseverance: '⚔️', hope: '🛡️', authority: '⚡' };
 
-/** What a support of Perseverance's or Hope's gives every ally. */
-const ALLIES = (set: { atk: number; defense: number }): string => `every ally +${pct(set.atk)} ATK and +${pct(set.defense)} defense (again for every other hero wearing it so)`;
-
-/** What each set does for a hero in each role it has: its card says it, and the bot (its pieces, and the heroes page). */
-const ABOUT: Record<TmSet, Partial<Record<SetRole, string>>> = {
-  perseverance: {
-    dps: `+${pct(PERSEVERANCE.dmg)} DMG, and another +${fine(PERSEVERANCE.step)} every ${PERSEVERANCE.every} seconds (up to +${pct(PERSEVERANCE.dmg + PERSEVERANCE.step * PERSEVERANCE.most)} after ${PERSEVERANCE.every * PERSEVERANCE.most} seconds)`,
-    support: ALLIES(PERSEVERANCE),
-  },
-  hope: {
-    support: ALLIES(HOPE),
-    knight: `takes ${pct(1 - HOPE.taken)} less, and takes ${pct(HOPE.covers)} of what the boss deals every other ally`,
-  },
-  authority: {
-    dps: `+${AUTHORITY.pen} penetration`,
-    support: `+${AUTHORITY.mana / SECTION} mana sections at the start; the ally with the highest ATK can’t be knocked down for ${AUTHORITY.guardFor} seconds`,
-    knight: `+${pct(AUTHORITY.resist / POINTS)} CC resist; its skills strip what helps the boss`,
-  },
-};
+/** What a set does for each class, in King's Raid's words. */
+const about = (id: TmSet, heroClass: HeroClass): string => (KR_SETS[id]?.four as Partial<Record<HeroClass, { text: string }>> | undefined)?.[heroClass]?.text ?? '';
 
 /** A hero's set, as a square on its card. */
-export const setBuff = ({ id, role }: { id: TmSet; role: SetRole }): Buff => ({ name: `${NAMES[id]} set`, about: `Set effect: ${ABOUT[id][role]}.`, icon: ICONS[id] });
+export const setBuff = ({ id }: { id: TmSet }, heroClass: HeroClass): Buff => ({ name: `${NAMES[id]} set`, about: `Set effect: ${about(id, heroClass)}`, icon: ICONS[id] });
 
-/** Each set as the bot has it: its name and icon, and what it does for a hero of each class wearing three of its pieces (a class it does nothing for left out). */
+/** Each set as the bot has it: its name and icon, and what it does for a hero of each class wearing four of its pieces. */
 export const SET_INFO: readonly { id: TmSet; name: string; icon: string; effects: Partial<Record<HeroClass, string>> }[] = TM_SETS.map((id) => ({
   id,
   name: NAMES[id],
   icon: ICONS[id],
-  effects: Object.fromEntries(Object.entries(ROLES[id]).map(([heroClass, role]) => [heroClass, ABOUT[id][role]])),
+  effects: Object.fromEntries((Object.keys(SET_EFFECTS[id]) as HeroClass[]).map((heroClass) => [heroClass, about(id, heroClass)])),
 }));
 
-/** What Authority's support puts on the ally with the highest ATK. */
-export const GUARDED: Buff = { name: 'Authority', about: 'Can’t be knocked down.', icon: '⚡' };
+/** What a set's triggered effects put on their wearer: shown on its card. */
+export const SET_UP = {
+  onSkill: { name: 'Hope', about: 'More crit DMG.', icon: '🛡️' },
+  secondWind: { name: 'Authority', about: 'ATK Spd up for good.', icon: '⚡' },
+  fullMana: { name: 'Authority', about: 'Mana recovery and ATK up for good.', icon: '⚡' },
+  top: { name: 'Hope', about: 'Deals more DMG.', icon: '🛡️' },
+} as const satisfies Record<string, Buff>;

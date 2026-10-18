@@ -17,9 +17,11 @@ export function geared(stats: HeroStats, gear: GearBonus = {}): HeroStats {
     crit: plus(stats.crit, gear.crit),
     speed: plus(stats.speed, gear.speed),
     pen: plus(stats.pen, gear.pen),
+    // (ACC: its hit chance, against a dodge. Gear's `accuracy` is its CC ACC, against a CC resist: ./fight.ts.)
+    acc: plus(stats.acc, gear.acc),
     resist: plus(stats.resist, gear.resist),
     block: { physical: plus(stats.block.physical, both(gear.block, gear.blockPhysical)), magical: plus(stats.block.magical, both(gear.block, gear.blockMagical)) },
-    dodge: { physical: plus(stats.dodge.physical, gear.dodge), magical: plus(stats.dodge.magical, gear.dodge) },
+    dodge: { physical: plus(stats.dodge.physical, both(gear.dodge, gear.dodgePhysical)), magical: plus(stats.dodge.magical, both(gear.dodge, gear.dodgeMagical)) },
     // (Block DEF a share more taken off a blocked blow, and gear's in points: 1000 is 100%.)
     blockDef: {
       physical: (stats.blockDef?.physical ?? 0) + both(gear.blockDef, gear.blockDefPhysical) / POINTS,
