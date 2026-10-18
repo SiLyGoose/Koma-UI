@@ -39,6 +39,19 @@ const LOOK = new Vector3(0, 2.6, 0);
 const ELEVATION = 0.26;
 
 /**
+ * How sharply the field is drawn: as many of the canvas's own pixels to a CSS pixel as the screen has, up to SHARPEST.
+ * Drawn slower than SLOW_FPS frames a second for SLOW seconds on end (a slow phone, or one saving its battery), it is
+ * drawn STEP less sharply from then on, down to SOFTEST: far fewer pixels to fill, the fight goes smoothly again.
+ */
+const SHARPEST = 2;
+const SOFTEST = 1;
+const SLOW_FPS = 45;
+const SLOW = 3;
+const STEP = 0.25;
+/** Frames further apart than this (seconds: the tab away, or a long load) aren't counted. */
+const GAP = 1;
+
+/**
  * Where a fight is, painted beforehand (so nothing of it is made as a fight begins): a picture behind the field, on an
  * upright sheet across the back of it, of which the camera sees as much as the page's shape lets it; and the floor.
  */
@@ -59,6 +72,8 @@ export interface Stage {
   dress(scenery: Scenery): Promise<void>;
   /** Draws every frame, after `update` (the time in seconds, and since the last frame). */
   start(update: (now: number, dt: number) => void): void;
+  /** Whether the field is covered over (getting ready: ../prep/), so it isn't drawn meanwhile (`update` still is called). */
+  cover(covered: boolean): void;
   /**
    * Darkens the field by `amount` (0 not at all, 1 black) as it is drawn from now on, but for what is `lit` (on the
    * field): that is drawn as bright as ever, over the dark.
@@ -73,7 +88,8 @@ export interface Stage {
 }
 
 export function makeStage(canvas: HTMLCanvasElement): Stage {
-  const renderer = new WebGLRenderer({ canvas, antialias: true });
+  // (Smoothing the edges: not on a sharp screen, where they hardly show and it costs a phone the most.)
+  const renderer = new WebGLRenderer({ canvas, antialias: window.devicePixelRatio < 2 });
   renderer.outputColorSpace = SRGBColorSpace;
   const scene = new Scene();
   scene.background = dusk();
@@ -102,11 +118,13 @@ export function makeStage(canvas: HTMLCanvasElement): Stage {
     scene.fog.far = back + haze.far;
   };
 
+  /** The sharpest it is drawn now (SHARPEST, until it was found too slow). */
+  let sharpest = SHARPEST;
   const fit = (): void => {
     const w = canvas.clientWidth;
     const h = canvas.clientHeight;
     if (w === 0 || h === 0) return;
-    renderer.setPixelRatio(Math.min(2, window.devicePixelRatio));
+    renderer.setPixelRatio(Math.min(sharpest, window.devicePixelRatio));
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     const half = Math.tan((FOV * Math.PI) / 360);
@@ -126,6 +144,8 @@ export function makeStage(canvas: HTMLCanvasElement): Stage {
   const flat = new OrthographicCamera(-1, 1, 1, -1, 0, 1);
   let dark = 0;
   let lit: readonly Object3D[] = [];
+  /** Covered over (cover()): not drawn. */
+  let covered = false;
   const draw = (): void => {
     if (dark <= 0) {
       renderer.render(scene, camera);
@@ -237,14 +257,40 @@ export function makeStage(canvas: HTMLCanvasElement): Stage {
       panned = by;
       aim();
     },
+    cover(on) {
+      covered = on;
+    },
     start(update) {
       let last = performance.now();
+      // How fast it is drawn: the frames drawn since `since` (ms), and how many seconds on end were too slow.
+      let since = last;
+      let frames = 0;
+      let slow = 0;
       const frame = (ms: number): void => {
+        const gap = (ms - last) / 1000;
         // (A frame's time can be a moment before the time this was started at: never less than nothing.)
-        const dt = Math.max(0, Math.min(0.064, (ms - last) / 1000));
+        const dt = Math.max(0, Math.min(0.064, gap));
         last = ms;
         update(ms / 1000, dt);
-        draw();
+        if (covered || gap > GAP) {
+          since = ms;
+          frames = slow = 0;
+        }
+        if (!covered) {
+          draw();
+          frames++;
+          if (ms - since >= 1000) {
+            slow = (frames * 1000) / (ms - since) < SLOW_FPS ? slow + 1 : 0;
+            since = ms;
+            frames = 0;
+            const now = Math.min(sharpest, window.devicePixelRatio);
+            if (slow >= SLOW && now > SOFTEST) {
+              sharpest = Math.max(SOFTEST, now - STEP);
+              slow = 0;
+              fit();
+            }
+          }
+        }
         requestAnimationFrame(frame);
       };
       requestAnimationFrame(frame);

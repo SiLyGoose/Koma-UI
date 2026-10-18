@@ -741,6 +741,8 @@ async function start(): Promise<void> {
             // Their gear is taken as the fight begins: no more changing it.
             manage.close();
           }
+          // (The field isn't drawn under getting ready: it can't be seen, and a phone has the heroes being read meanwhile.)
+          stage.cover(state.phase === 'prep');
           if (state.phase !== 'fight') leaving.close();
           if (state.phase === 'over' && state.over && !game) showOver(state.over);
           return;
