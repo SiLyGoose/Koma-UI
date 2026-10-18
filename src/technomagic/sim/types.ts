@@ -43,19 +43,24 @@ export type GearStat =
   | 'blockDefPhysical'
   | 'blockDefMagical'
   | 'dodge'
+  | 'dodgePhysical'
+  | 'dodgeMagical'
   | 'tough'
   | 'toughPhysical'
   | 'toughMagical'
   | 'resist'
   | 'accuracy'
+  | 'ccAccuracy'
   | 'lifesteal'
   | 'critResist'
   | 'critResistPhysical'
   | 'critResistMagical'
   | 'heal'
+  | 'recovery'
   | 'control'
   | 'manaAttack'
-  | 'manaRegen';
+  | 'manaRegen'
+  | 'manaDamage';
 export type GearBonus = Partial<Record<GearStat, number>>;
 
 /** What a hero is doing besides standing: running in, a move (`part` of its animations, `t` seconds into it; the blows that have landed), or reeling from being knocked about. */
