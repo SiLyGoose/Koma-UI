@@ -48,9 +48,20 @@ html.hand-on :is(textarea, [contenteditable], input:is(:not([type]), [type='text
   --reticle-glow: rgb(255 255 255 / 55%);
   position: fixed;
   inset: 0;
-  /* Over everything, the page transition's panel included. */
+  /* Over everything, the page transition's panel included (and, a popover, over a modal dialog too: index.ts). */
   z-index: 2147483647;
   pointer-events: none;
+  /* None of the browser's popover box: its size, margin, border, padding and background. */
+  width: auto;
+  height: auto;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  background: none;
+  color: inherit;
 }
 
 /* Shown once the mouse is in the window, and not over a field being typed in (the I-beam alone there): fading in and out. */

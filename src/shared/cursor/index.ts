@@ -52,6 +52,21 @@ export function installCursor({ reticle = true }: { reticle?: boolean } = {}): v
   const html = document.documentElement;
   const { host, frame, turn, dot } = buildParts();
   document.body.append(host);
+  /*
+   * A modal dialog (the mailbox, the armory's sell-confirm) is in the browser's top layer, over anything a z-index lifts:
+   * so the reticle is in it too (a popover), and put back on top each time one opens (the last one in is uppermost).
+   */
+  if (typeof host.showPopover === 'function') {
+    const lift = (): void => {
+      if (host.matches(':popover-open')) host.hidePopover();
+      host.showPopover();
+    };
+    host.popover = 'manual';
+    lift();
+    new MutationObserver((changes) => {
+      if (changes.some(({ target }) => target instanceof HTMLDialogElement && target.matches(':modal'))) lift();
+    }).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['open'] });
+  }
   /**
    * Under the loading screen (arrived under it, ../transition/head.js, or a page swapped under it, or the quick
    * cover): the hand alone, nothing drawn here. A page building and drawing itself keeps the browser too busy
