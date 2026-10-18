@@ -33,6 +33,7 @@ import { el } from './hud/dom';
 import { leavePopup } from './hud/leave';
 import { makeMeter } from './hud/meter';
 import { makeNumbers } from './hud/numbers';
+import { makeCastBar } from './hud/cast';
 import { makeOverhead, type Overhead } from './hud/overhead';
 import { makeBanners } from './hud/banners';
 import { makeCurtain } from './fight/curtain';
@@ -391,8 +392,9 @@ async function start(): Promise<void> {
     const shown = sim.fighters.map((fighter, i) => ({ def: fighter.def, card: cards[i] })).sort((a, b) => nearer(a.def, b.def)).reverse();
     for (const { card } of shown) if (card) party.append(card.root);
     const bars = sim.fighters.map((_, i) => makeOverhead(overheads, controls.ally?.(i) ?? false));
-    // Each minion's health bar over its head (red), made as it comes onto the field.
+    // Each minion's health bar over its head (red), made as it comes onto the field; and the boss's wind-up, over its.
     const foeBars = new Map<number, Overhead>();
+    const castBar = makeCastBar(overheads);
     /** Every hero of this player's on Auto. */
     const allAuto = (): boolean => sim.fighters.every((fighter, i) => !controls.mine(i) || (controls.ahead?.auto(i) ?? fighter.auto));
     const meter = makeMeter(
@@ -408,6 +410,11 @@ async function start(): Promise<void> {
       lock,
       owed: 0,
       draw() {
+        const charging = view.charging;
+        if (charging && !sim.boss.away) {
+          const spot = stage.project(view.bossHead(at));
+          castBar.draw(spot.x, spot.y, charging.name, charging.share);
+        } else castBar.hide();
         for (const foe of sim.foes) {
           if (foe === sim.boss) continue;
           let bar = foeBars.get(foe.index);

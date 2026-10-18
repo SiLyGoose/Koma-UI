@@ -87,6 +87,12 @@ export interface FightView {
   /** How dark the field is to be drawn (0 not at all, 1 black), and the body kept bright in it: the one whose skill's blow has just landed (null: none). */
   readonly dark: number;
   readonly lit: Object3D | null;
+  /**
+   * The boss winding up a skill (one of its look's `skills`): its name, and how far it is to its first blow landing (0 to 1);
+   * and over its head, put in `into`, for the red bar King's Raid shows there meanwhile. Null: it isn't.
+   */
+  readonly charging: { name: string; share: number } | null;
+  bossHead(into: Vector3): Vector3;
   /** Over the head of an enemy not the boss (a minion, by its index among the sim's enemies), put in `into`; null for one not on the field. */
   foeHead(foe: number, into: Vector3): Vector3 | null;
   /** Draws what the sim says has happened since last time, and moves everything on by `dt` seconds. */
@@ -255,6 +261,21 @@ export function makeFightView({
     else behind.delete(who);
     return dt + back;
   };
+  /** How long one of the boss's attacks takes before its first blow lands (its first part's moves up to it: none, its whole length). */
+  const windup = (attack: string): number => {
+    const { plans, moves } = sim.boss.def as BossDef;
+    let first = Infinity;
+    const parts = new Map<string, number>();
+    for (const [move, by, after] of plans[attack] ?? []) {
+      const from = (parts.get(by) ?? 0) + after;
+      const one = moves[move];
+      if (one?.hit !== null && one?.hit !== undefined) first = Math.min(first, from + one.hit);
+      parts.set(by, from + (one?.length ?? 0));
+    }
+    return Number.isFinite(first) ? first : Math.max(0, ...parts.values());
+  };
+  /** The skill the boss is winding up: its name, how far in (its own time), and how long until its first blow. */
+  let charge: { name: string; t: number; until: number } | null = null;
   /** How long one of the boss's attacks takes, all its parts' moves done, as slow as it is now. */
   const lasts = (attack: string): number => {
     const { plans, moves } = sim.boss.def as BossDef;
@@ -368,7 +389,12 @@ export function makeFightView({
             boss.use(event.attack);
             sounds.use(event.attack);
             krBoss.use(event.attack);
-            if (bossLook.skills?.includes(event.attack)) bossSkill = Math.max(bossSkill, lasts(event.attack));
+            if (bossLook.skills?.includes(event.attack)) {
+              bossSkill = Math.max(bossSkill, lasts(event.attack));
+              const until = windup(event.attack);
+              const label = (sim.boss.def as BossDef).attacks.find((one) => one.name === event.attack)?.label ?? event.attack;
+              charge = until > 0.3 ? { name: label, t: 0, until } : null;
+            }
             break;
           case 'boss-hit':
             if (event.foe) {
@@ -379,6 +405,7 @@ export function makeFightView({
             if (skillBlow !== null) stop(skillBlow);
             break;
           case 'boss-daze':
+            charge = null;
             boss.daze(event.seconds, event.down);
             if (event.down) sounds.down();
             signs.dazed(bossHit);
@@ -390,6 +417,7 @@ export function makeFightView({
           // A raid of more than one wave: the boss flies off, and lands back; the heroes run on to the next (the map moving
           // past them), its banner over the field; what is there comes onto it, fights, and falls.
           case 'boss-leave':
+            charge = null;
             boss.leave?.();
             break;
           case 'boss-return':
@@ -483,6 +511,11 @@ export function makeFightView({
       effects.update(dt);
       krBoss.update();
       minions.update(dt);
+      // (Its wind-up goes as fast as it does: slowed, slower.)
+      if (charge) {
+        charge.t += dt * (sim.boss.slowed > 0 ? sim.boss.slowRate : 1);
+        if (charge.t >= charge.until) charge = null;
+      }
       kr.update(dt);
       magic.update(dt);
       props.update(dt);
@@ -508,7 +541,12 @@ export function makeFightView({
       if (won && who[0] !== undefined) sounds.victory(who[0]);
     },
     foeHead: (foe, into) => minions.head(foe, into),
+    get charging() {
+      return charge && { name: charge.name, share: Math.min(1, charge.t / charge.until) };
+    },
+    bossHead: (into) => into.copy(bossHit).setY(bossHit.y + 2.2),
     clear() {
+      charge = null;
       minions.clear();
       celebrating = null;
       boss.root.visible = true;

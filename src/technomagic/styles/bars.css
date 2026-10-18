@@ -69,3 +69,47 @@
 .tm-mp .full i {
   background: linear-gradient(180deg, #d6fbff 0%, #86ecff 38%, #35cdee 42%, #1fb0d8 78%, #127a9c 100%);
 }
+
+/* The boss winding up a skill (../hud/cast.ts): its name, and a red bar filling until its first blow lands, over its head. */
+.tm-cast {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  pointer-events: none;
+}
+
+.tm-cast-name {
+  color: #ffe3d8;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  text-shadow:
+    0 0 4px #000,
+    0 1px 2px #000;
+}
+
+.tm-cast-bar {
+  width: 150px;
+  height: 9px;
+  box-sizing: border-box;
+  border: 2px solid #2a0e0a;
+  border-radius: 5px;
+  background: rgb(20 6 6 / 85%);
+  box-shadow:
+    0 0 0 1px #c9a26b,
+    0 0 10px rgb(255 60 30 / 55%);
+  overflow: hidden;
+}
+
+.tm-cast-bar i {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, #ffb8a0 0%, #ff5a36 40%, #d8200e 60%, #8f1006 100%);
+  transform-origin: left;
+}
