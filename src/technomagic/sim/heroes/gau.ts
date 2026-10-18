@@ -32,7 +32,7 @@ const ROAR = { atk: 3845, lasts: 15 };
 /** Vortex: its blows (as many as its move has; against one that isn't a Hero), and how long the last freezes the boss. */
 const VORTEX = { blow: indexed('warrior', 347_796) / CODED.vortex.lands.length, freeze: 4 };
 /** Enrage: his ATK more for each stack, and his DMG on the boss (a share), for `lasts` seconds, up to `most`. */
-const ENRAGE = { atk: 901, dmg: 0.03, lasts: 5, most: 10 };
+const ENRAGE = { atk: 901, dmg: 0.03, lasts: 5, most: 10, resist: 10 };
 /** His own perks' numbers: Smash's Dark, Battle Roar's Light and Dark, Enrage's Light and Dark, and Transcend 5's Dark. */
 const PERKS = { harder: { more: 0.15, most: 10 }, roar: 1.4, speed: 200, enrage: 1.4, fury: { taken: 0.05, crit: 50, lifesteal: 50 }, mend: { heal: 0.1, less: 0.006 } };
 
@@ -55,7 +55,7 @@ const ENRAGED: Passive = {
   crit: 0,
   control: 1,
   shown: { name: 'Enrage', about: `Passive. Each blow of his attack: +${num(ENRAGE.atk)} ATK and +${pct(ENRAGE.dmg)} DMG on the boss for ${ENRAGE.lasts} seconds (up to ${ENRAGE.most} times).`, icon: '😡', art: art(3) },
-  words: `Upon attacking, increases ATK by ${num(ENRAGE.atk)} for ${ENRAGE.lasts} sec, and DMG to Non-Hero enemies by ${pct(ENRAGE.dmg)}. This effect can be stacked up to max ${ENRAGE.most} times.`,
+  words: `Upon attacking, increases ATK by ${num(ENRAGE.atk)} for ${ENRAGE.lasts} sec, and DMG to Non-Hero enemies by ${pct(ENRAGE.dmg)}. This effect can be stacked up to max ${ENRAGE.most} times. Status Resistance increases by ${ENRAGE.resist} for each stack.`,
 };
 /** Battle Roar on an ally; Enrage's stacks on him. */
 const ROARED: Buff = { name: 'Battle Roar', about: 'ATK higher.', icon: '📯', art: art(1) };
@@ -149,7 +149,7 @@ export const GAU: HeroDef = {
     const enraged = (): void => {
       const atk = ENRAGE.atk * (self.perks.has('s4-light') ? PERKS.enrage : 1) * rage;
       const fury = self.perks.has('s4-dark');
-      put(self.statuses, { name: RAGING.name, left: ENRAGE.lasts, count: rage, deals: (1 + atk / self.stats.atk) * (1 + ENRAGE.dmg * rage), ...(fury && { crit: share(PERKS.fury.crit * rage) }), ...(bracelet > 0 && rage >= most && { pen: bracelet }), shown: RAGING });
+      put(self.statuses, { name: RAGING.name, left: ENRAGE.lasts, count: rage, deals: (1 + atk / self.stats.atk) * (1 + ENRAGE.dmg * rage), resist: ENRAGE.resist * rage, ...(fury && { crit: share(PERKS.fury.crit * rage) }), ...(bracelet > 0 && rage >= most && { pen: bracelet }), shown: RAGING });
     };
     /** A blow of his: with Enrage's Dark, he steals a share of what it deals for each stack. */
     const strike = (amount: number, counted = true): boolean => {

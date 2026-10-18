@@ -63,8 +63,10 @@ export function heroStats(hero: Pick<HeroView, 'class'> & Partial<Pick<HeroView,
   const auras = ownAuras(perks);
   const given = withPerks(hero.bonus ?? {}, perks);
   if (auras.hp) given.hp = (given.hp ?? 0) + auras.hp;
-  // (And its class buffs, as the fight has them.)
-  given.atk = (given.atk ?? 0) + CLASS_BUFF.atk;
+  // (And its class buffs, and what its books add to its ATK and crit chance, as the fight has them.)
+  const books = KR_HEROES[hero.id ?? '']?.books;
+  given.atk = (given.atk ?? 0) + CLASS_BUFF.atk + (books?.atk ?? 0);
+  given.crit = (given.crit ?? 0) + (books?.critStat ?? 0);
   given.hp = (given.hp ?? 0) + CLASS_BUFF.hp;
   const bonus = (stat: HeroStat): number => given[stat] ?? 0;
   // (Its additional effects: on its own stats, as the fight has them from the start; and what it gives every ally, itself

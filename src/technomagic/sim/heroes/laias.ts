@@ -33,7 +33,7 @@ import { bookDmg, bookHeal, CLASS_STATS, dmg, healed, type HeroDef, indexed, ind
 // (How hard each of her skills hits, and how much each heals and shields, is the King's Raid Index's, at her class's ATK: ./kit.ts's indexed and indexedHeal.)
 // (Its 25% Heal Rate, 1.5 times for an ally at half its health or less, as the game has it.)
 const DROPLETS = { heal: indexedHeal('priest', 338_882), lasts: 10, heals: 0.25, low: 0.5, lowTimes: 1.5 };
-const BUBBLE = { shield: indexedHeal('priest', 879_673), lasts: 15, taken: 0.7, dmg: 0.15, atk: 0.2, heal: indexedHeal('priest', 35_192) };
+const BUBBLE = { shield: indexedHeal('priest', 879_673), lasts: 15, taken: 0.7, dmg: 0.15, atk: 0.2, heal: indexedHeal('priest', 35_192), mana: 1.5 };
 const FESTIVAL = { blow: indexed('priest', 210_084), down: 3, heal: 0.15, mana: 2 * SECTION, lasts: 12, every: 4, whirl: indexed('priest', 140_066), whirlDown: 2 };
 // (Her 500 CC Resist and every ally's 250 M.Crit Resistance, as the game has them: points.)
 const WATER_DRAGON = { resist: 500, defense: 1.1, critResist: 250, taken: 0.75, lasts: 5 };
@@ -101,7 +101,7 @@ export const LAIAS: HeroDef = {
     {
       name: 'Bubble Shield',
       about: `A shield on the ally with the lowest health: for ${BUBBLE.lasts} seconds it takes ${pct(1 - BUBBLE.taken)} less from the boss and deals ${pct(BUBBLE.dmg)} more. While the shield holds it can’t be knocked down, hits ${pct(BUBBLE.atk)} harder and is healed every second.`,
-      words: `For ${BUBBLE.lasts} sec, casts a Shield that blocks ${healed('priest', BUBBLE.shield, bookHeal('laias', 1))} DMG on the ally with the lowest HP. While the Shield is active, gains immunity to CC, increases ATK and heals ${healed('priest', BUBBLE.heal, bookHeal('laias', 1))} HP every sec. For ${BUBBLE.lasts} sec, the ally takes ${pct(1 - BUBBLE.taken)} reduced DMG from Non-Hero targets and increases DMG dealt to Non-Hero enemies by ${pct(BUBBLE.dmg)}. The DMG Reduction effect from and the DMG Boost effect to Non-Hero enemies is irremovable.`,
+      words: `For ${BUBBLE.lasts} sec, casts a Shield that blocks ${healed('priest', BUBBLE.shield, bookHeal('laias', 1))} DMG on the ally with the lowest HP. While the Shield is active, gains immunity to CC, increases ATK and heals ${healed('priest', BUBBLE.heal, bookHeal('laias', 1))} HP every sec. For ${BUBBLE.lasts} sec, the ally takes ${pct(1 - BUBBLE.taken)} reduced DMG from Non-Hero targets and increases DMG dealt to Non-Hero enemies by ${pct(BUBBLE.dmg)}. The DMG Reduction effect from and the DMG Boost effect to Non-Hero enemies is irremovable. The target's Mana recovery per second increases by ${pct(BUBBLE.mana - 1)}.`,
       icon: '🫧',
       art: art(1),
       move: 'bubble',
@@ -209,7 +209,8 @@ export const LAIAS: HeroDef = {
           // (Oasis Crystal: what the boss has left on it is gone.)
           if (treasureTier(self, 1) > 0) ally.statuses = ally.statuses.filter((status) => status.shown.harmful !== true || status.binds === true);
           fight.shield(ally, BUBBLE.shield, BUBBLE.lasts, self);
-          put(ally.statuses, { name: BUBBLED.name, left: BUBBLE.lasts, takes: BUBBLE.taken, deals: 1 + BUBBLE.dmg, shown: BUBBLED });
+          // (Its third book: its mana fills faster meanwhile.)
+          put(ally.statuses, { name: BUBBLED.name, left: BUBBLE.lasts, takes: BUBBLE.taken, deals: 1 + BUBBLE.dmg, mana: BUBBLE.mana, shown: BUBBLED });
           bubbled = ally;
           bubbleLeft = BUBBLE.lasts;
           bubbleHeal = 0;

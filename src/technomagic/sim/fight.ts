@@ -1,6 +1,6 @@
 import { scaleAt, stagesOf, type BossDef, type BossPart } from './bosses/boss';
 import { ATK, CURVE, curved, HERO_LEVEL, NONE, POINTS, reachAt, share, SLOWEST, strike } from './combat/damage';
-import { accurate, amplified, away, blocking, bolstering, bound, critDamaging, critResisting, critTaking, critting, dealing, deals, defending, defends, filling, healing, pacing, piercing, put, resisting, stacked, takes, wear, type Status } from './combat/status';
+import { accurate, amplified, away, blocking, bolstering, bound, critDamaging, critResisting, critTaking, critting, dealing, deals, defending, defends, dodging, filling, healing, pacing, piercing, put, resisting, stacked, takes, wear, type Status } from './combat/status';
 import type { Input, Logged, Result, SimEvent } from './events';
 import { geared } from './gear';
 import { lineOf, nearer, NO_PASSIVE, type Ability, type HeroDef } from './heroes/kit';
@@ -177,15 +177,16 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     const perks = perkSets[index] as Map<string, PerkDef>;
     const gear = withPerks(worn, perks.values());
     if (battleCry > 0) gear.hp = (gear.hp ?? 0) + battleCry;
-    // (And its class buffs: ../rules.ts.)
-    gear.atk = (gear.atk ?? 0) + CLASS_BUFF.atk;
+    // (And its class buffs: ../rules.ts; and what its books add to its ATK: ./heroes/kr.ts.)
+    gear.atk = (gear.atk ?? 0) + CLASS_BUFF.atk + (KR_HEROES[hero.id]?.books.atk ?? 0);
     gear.hp = (gear.hp ?? 0) + CLASS_BUFF.hp;
     const stats = perkedStats(geared(hero.stats, gear), perks.values());
     // A set's effects on its wearer's own stats, from the start.
     if (set?.id === 'authority' && set.role === 'dps') stats.pen += AUTHORITY.pen;
     if (set?.id === 'authority' && set.role === 'knight') stats.resist += AUTHORITY.resist;
-    // Its additional skills' on its own stats, from the start.
+    // Its additional skills' on its own stats, from the start; and its books' crit chance.
     skilledStats(stats, skills);
+    stats.crit += KR_HEROES[hero.id]?.books.critStat ?? 0;
     const motion = motionOf(hero);
     // (Its mana, King's Raid's playtest's: ./heroes/kr.ts.)
     const mana = KR_HEROES[hero.id]?.mana ?? { regen: MANA_RATE, attack: MANA_PER_ATTACK };
@@ -393,7 +394,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
    * skill using's; what comes of one later, or of its passive, as its books give on the whole (those that give any). Its
    * attack's, none.
    */
-  const bookShare = (by: Fighter, kind: 'dmg' | 'heal'): number => {
+  const bookShare = (by: Fighter, kind: 'dmg' | 'heal' | 'crit'): number => {
     if (attacking === by) return 0;
     const books = KR_HEROES[by.id]?.books[kind];
     if (!books) return 0;
@@ -715,7 +716,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       // then far harder, by its crit chance and what its passive and what is on it add; and through its penetration, and the blow's own.
       const { attack, crit } = by.def.passive ?? NO_PASSIVE;
       const { atk, deals: type, crit: points, pen } = by.stats;
-      const critical = roll() < share(curved(CURVE.crit, points + auras.crit) + critTaking(foe.statuses, type) - curved(CURVE.chance, foe.part.critResist ?? 0)) + crit + critting(by.statuses);
+      const critical = roll() < share(curved(CURVE.crit, points + auras.crit + bookShare(by, 'crit')) + critTaking(foe.statuses, type) - curved(CURVE.chance, foe.part.critResist ?? 0)) + crit + critting(by.statuses);
       // (Its additional skills' DMG, and every Whetstone on the field's crit DMG, and what is on it adds: Seria's Cold-Blooded Witch.)
       // (And its Concentration: more for every so many seconds of the fight.)
       const focus = by.perkDefs.find((perk) => perk.focus)?.focus;
@@ -727,7 +728,9 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       // (Less of a block for what is on the boss: a unique treasure's.)
       const plain = bossStands();
       const lower = { physical: blocking(foe.statuses, 'physical'), magical: blocking(foe.statuses, 'magical') };
-      const stood = lower.physical === 0 && lower.magical === 0 ? plain : { ...plain, block: { physical: Math.max(0, plain.block.physical + lower.physical), magical: Math.max(0, plain.block.magical + lower.magical) } };
+      // (And more or less of a dodge for what is on it: Phillop's Destroy Armor's book.)
+      const dodge = { physical: Math.max(0, plain.dodge.physical + dodging(foe.statuses, 'physical')), magical: Math.max(0, plain.dodge.magical + dodging(foe.statuses, 'magical')) };
+      const stood = { ...plain, dodge, block: { physical: Math.max(0, plain.block.physical + lower.physical), magical: Math.max(0, plain.block.magical + lower.magical) } };
       const through = whole || (landing?.by === by && by.moveWhole.has(landing.move));
       const against = through ? { ...stood, physical: 0, magical: 0 } : { ...stood, physical: stood.physical * defending(foe.statuses, 'physical'), magical: stood.magical * defending(foe.statuses, 'magical') };
       // (Its skill's power: its books and its perks for the skill, added up. Then its DMG, all that makes it more, and what is on the
@@ -831,7 +834,9 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       const nimble = target.nimble > 0 ? target.nimble * (target.perkDefs.find((perk) => perk.nimble)?.nimble?.dodge ?? 0) : 0;
       // (And what it is doing adds: Tanya's Stealth.)
       const nimbler = nimble + (target.part.dodge?.() ?? 0);
-      if (nimbler > 0) stands.dodge = { physical: stands.dodge.physical + nimbler, magical: stands.dodge.magical + nimbler };
+      // (And what is on it, or on every hero, adds to it.)
+      const nimblest = { physical: nimbler + dodging(target.statuses, 'physical') + dodging(party, 'physical'), magical: nimbler + dodging(target.statuses, 'magical') + dodging(party, 'magical') };
+      if (nimblest.physical !== 0 || nimblest.magical !== 0) stands.dodge = { physical: Math.max(0, stands.dodge.physical + nimblest.physical), magical: Math.max(0, stands.dodge.magical + nimblest.magical) };
       // Now and then a crit, by the boss's crit chance less the hero's crit resist against its kind of damage (and what is on it adds).
       const critical = roll() < share(curved(CURVE.crit, foe.def.stats.crit) - curved(CURVE.chance, target.critResist[type] + critResisting(target.statuses, type) + critResisting(party, type))) + critting(foe.statuses);
       // (Through its penetration, and as much of the hero's defense as counts against its level.)

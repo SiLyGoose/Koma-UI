@@ -34,8 +34,8 @@ const LIGHT = { heal: 612_050, near: 3.6, blast: 24_050 };
 // (Its 500 ATK Spd, as the game has it: points.)
 const BLESSING = { shield: 623_630, lasts: 10, allies: 4, speed: 500 };
 const VENGEANCE = { hits: CODED.vengeance.lands.length, blow: 4810, pierce: 500, exposed: 0.1, most: 5, lasts: 20, stun: 0.5 };
-// The game's 400 mana a second, of its 1000 to a section.
-const TAINTED = { taken: 1.15, mana: 0.4 * SECTION, every: 1, most: 2 };
+// The game's 400 mana a second, and its books' 200 more (the playtest's), of its 1000 to a section.
+const TAINTED = { taken: 1.15, mana: 0.6 * SECTION, every: 1, most: 2 };
 /**
  * Her own perks' numbers: what Light of Doom leaves on the boss and its more healing, Blessing of Doom's block, the
  * Blessing of the Fallen Angel's and the Bond's (attack speed in points, ATK a share of hers), and Transcend 5's Dark's.

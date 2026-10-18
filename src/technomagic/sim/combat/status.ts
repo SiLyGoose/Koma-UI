@@ -31,6 +31,8 @@ export interface Status<Shown> {
   defends?: number | Partial<Record<DamageType, number>>;
   /** Added to a hero bearing it's defense against each kind it names (before what makes it so many times as much). */
   bolsters?: Partial<Record<DamageType, number>>;
+  /** Added to its bearer's chance to dodge each kind it names (points; less than none: less likely). */
+  dodges?: Partial<Record<DamageType, number>>;
   /** Added to its bearer's chance to block each kind it names (points). */
   blocks?: Partial<Record<DamageType, number>>;
   /** Added to its bearer's CC resist (points); and to a hero bearing it's CC ACC (points: what of the boss's CC resist its stuns see past). */
@@ -170,6 +172,13 @@ export const defending = (on: readonly Status<unknown>[], type: DamageType): num
 export function bolstering(on: readonly Status<unknown>[], type: DamageType): number {
   let more = 0;
   for (const { bolsters } of on) more += bolsters?.[type] ?? 0;
+  return more;
+}
+
+/** What these add to a bearer's chance to dodge a kind of damage (points). */
+export function dodging(on: readonly Status<unknown>[], type: DamageType): number {
+  let more = 0;
+  for (const { dodges } of on) more += dodges?.[type] ?? 0;
   return more;
 }
 

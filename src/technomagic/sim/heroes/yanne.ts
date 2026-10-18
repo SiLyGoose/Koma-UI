@@ -24,7 +24,8 @@ import { bookDmg, CLASS_STATS, dmg, type HeroDef, indexed, type Passive } from '
  */
 // (How hard each of her skills hits is the King's Raid Index's, at her class's ATK: ./kit.ts's indexed.)
 /** Focus Shot!'s arrow, and how many times as hard it is focused (she always focuses as long as she can). */
-const FOCUS = { blow: indexed('archer', 179_237), focused: 2 };
+// (Focused: the playtest's 25% more DMG, and its books' 12.6% more; the stun 25% longer.)
+const FOCUS = { blow: indexed('archer', 179_237), focused: 1.376 };
 const WIPEOUT = { blow: indexed('archer', 279_459) };
 /** No Holding Back!: her ATK and penetration (points) more, for `lasts` seconds; the share of her mana each blow of her attack takes meanwhile. */
 const UNLEASHED = { atk: 32_032, pen: 500, lasts: 30, mana: 0.03 };
@@ -74,8 +75,8 @@ export const YANNE: HeroDef = {
   abilities: [
     {
       name: 'Focus Shot!',
-      about: `An arrow, focused on as long as she can (its DMG doubled).`,
-      words: `Taking up a stance, focuses for a while and deals ${dmg('archer', FOCUS.blow, bookDmg('yanne', 0))} P.DMG to enemies in a straight line. If the target is a dragon, inflicts Stun for 3 sec. The longer she focuses, DMG and Stun duration are increased by 100%.`,
+      about: `An arrow, focused on as long as she can (its DMG ${pct(FOCUS.focused - 1)} more).`,
+      words: `Taking up a stance, focuses for a while and deals ${dmg('archer', FOCUS.blow, bookDmg('yanne', 0))} P.DMG to enemies in a straight line. If the target is a dragon, inflicts Stun for 3 sec. The longer she focuses, DMG is increased by ${pct(FOCUS.focused - 1)} and Stun duration by 25%.`,
       icon: '🎯',
       art: art(0),
       move: 'focus',

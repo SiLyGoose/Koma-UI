@@ -27,7 +27,7 @@ const COLLISION = { blow: indexed('knight', 87_446), down: 3 };
 const HEADBUTT = { blow: indexed('knight', 72_113), speed: 200, slowed: 10 };
 const INCARNATE = { defense: 36_550, heal: 0.15, lasts: 15 };
 /** Destroy Armor: what each stack takes off the boss's P.DEF, for `lasts` seconds, up to `most`. */
-const ARMOR = { defense: 3159, lasts: 15, most: 5 };
+const ARMOR = { defense: 3159, lasts: 15, most: 5, dodge: 40 };
 /** His own perks' numbers: Headbutt's blow more and Earth Incarnate's every second (shares of his max HP), the stuns, Destroy Armor's (at full stacks, and its Dark), and Transcend 5's Dark. */
 const PERKS = {
   headbutt: 0.1,
@@ -57,7 +57,7 @@ const DESTROY_ARMOR: Passive = {
   crit: 0,
   control: 1,
   shown: { name: 'Destroy Armor', about: `Passive. Each attack of his takes ${num(ARMOR.defense)} off the boss’s P.DEF for ${ARMOR.lasts} seconds (up to ${ARMOR.most} times).`, icon: '🪓', art: art(3) },
-  words: `Upon attacking, weakens enemy P.DEF by ${num(ARMOR.defense)} for ${ARMOR.lasts} sec. Can be stacked up to ${ARMOR.most} times max.`,
+  words: `Upon attacking, weakens enemy P.DEF by ${num(ARMOR.defense)} for ${ARMOR.lasts} sec. Can be stacked up to ${ARMOR.most} times max. Per every stack, enemy P.Dodge chance is reduced by ${ARMOR.dodge / 10}%.`,
 };
 /** Earth Incarnate: shown on his card while it lasts. */
 const INCARNATION: Buff = { name: 'Earth Incarnate', about: `+${num(INCARNATE.defense)} P.DEF and M.DEF; he can’t be knocked down.`, icon: '⛰️', art: art(2) };
@@ -155,7 +155,7 @@ export const PHILLOP: HeroDef = {
       const physical = fight.foe.def.stats.physical;
       // (Hammer of Titan: the boss weaker, and healed less for each.)
       const titan = treasureTier(self, 3) > 0 ? { deals: 1 - UT.titan.weaker, heals: Math.max(0, 1 - fromTreasure(self, 3, UT.titan.heals) * broken) } : {};
-      put(fight.foe.statuses, { name: BROKEN, left: ARMOR.lasts, count: broken, defends: { physical: physical > 0 ? Math.max(0, 1 - (ARMOR.defense * broken) / physical) : 1 }, ...titan, shown: 'curse' });
+      put(fight.foe.statuses, { name: BROKEN, left: ARMOR.lasts, count: broken, defends: { physical: physical > 0 ? Math.max(0, 1 - (ARMOR.defense * broken) / physical) : 1 }, dodges: { physical: -ARMOR.dodge * broken }, ...titan, shown: 'curse' });
     };
     /** His Dragon Rage, as his ATK and defense have it. */
     const raging = (): void => {

@@ -31,7 +31,7 @@ const RUSH = { arrows: CODED.rush.lands.length, blow: indexed('archer', 112_278)
 /** Its arrow at most (with the boss's health whole), knocking it down, and its blow more against a boss, through its defense. */
 const FLASH = { most: indexed('archer', 657_142), down: 3, boss: indexed('archer', 657_142) / 2 };
 /** Moonlight Arrow: her ATK and crit chance (points) more for each stack, for `lasts` seconds, up to `most`. */
-const MOON = { atk: 5056, crit: 100, lasts: 10, most: 3 };
+const MOON = { atk: 5056, crit: 100, lasts: 10, most: 3, critDamage: 0.1 };
 /** Her own perks' numbers: Arrow Rain's stun (its chance), Rush's flinch, and Moonlight Arrow's most stacks. */
 const PERKS = { stun: { chance: 0.2, lasts: 2 }, flinch: 0.5, most: 5 };
 
@@ -59,7 +59,7 @@ const MOONLIGHT_ARROW: Passive = {
     icon: '🌙',
     art: art(3),
   },
-  words: `Upon attacking, increases ATK by ${num(MOON.atk)} and Crit Chance by ${MOON.crit} for ${MOON.lasts} sec. This effect stacks up to ${MOON.most} times.`,
+  words: `Upon attacking, increases ATK by ${num(MOON.atk)} and Crit Chance by ${MOON.crit} for ${MOON.lasts} sec. This effect stacks up to ${MOON.most} times. Critical DMG increases additionally by ${pct(MOON.critDamage)} per stack.`,
 };
 /** Moonlight Arrow's stacks: shown on her card. */
 const MOONLIT: Buff = { name: 'Moonlight Arrow', about: 'ATK and crit chance higher for each.', icon: '🌙', art: art(3) };
@@ -163,7 +163,7 @@ export const SELENE: HeroDef = {
     const moonlit = (): void => {
       // (Circlet of Wind: more to the boss for each.)
       const circlet = 1 + fromTreasure(self, 3, UT.circlet.dmg) * moon;
-      put(self.statuses, { name: MOONLIT.name, left: MOON.lasts, count: moon, deals: (1 + (MOON.atk * moon) / self.stats.atk) * circlet, crit: share(MOON.crit * moon), shown: MOONLIT });
+      put(self.statuses, { name: MOONLIT.name, left: MOON.lasts, count: moon, deals: (1 + (MOON.atk * moon) / self.stats.atk) * circlet, crit: share(MOON.crit * moon), critDamage: MOON.critDamage * moon, shown: MOONLIT });
     };
 
     /** Her attack: an arrow, a stack of Moonlight Arrow (all of them begun again); with her unique weapon quickening her, an arrow more. */

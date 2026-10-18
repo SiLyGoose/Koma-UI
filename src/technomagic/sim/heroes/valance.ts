@@ -32,7 +32,8 @@ import { CODED } from './moves';
  */
 // (How hard each of his skills hits: the King's Raid Index hasn't him, so ×2.91 what it was, as the other mechanics' went to theirs from it; how much each heals, ×0.69, likewise.)
 const HOLOGRAM = { lasts: 15, atk: 0.2, crit: 0.2, heal: 13_840, cooldown: 0.2 };
-const FIELD = { lasts: 5, defense: 1.15, heal: 27_670, mana: 0.3 * SECTION };
+// (Its DEF Boost the playtest's 15%, and its books' 15% more.)
+const FIELD = { lasts: 5, defense: 1.3, heal: 27_670, mana: 0.3 * SECTION };
 // (Its lasers after the first: its move's blows but the first.)
 const CANNON = { blow: 11_640, stun: 3, lasers: CODED.cannon.lands.length - 1, laser: 2040, laserStun: 1.5, lasts: 15, takes: 0.07, heals: 0.05, most: 7 };
 const AWAKENING = { defense: 1.2, mana: 1.3, atk: 0.1, boss: 0.15 };

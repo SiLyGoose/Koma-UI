@@ -81,7 +81,7 @@ export const LOMAN: HeroDef = {
     {
       name: 'Cut Ground',
       about: `A blow that knocks the boss down for ${CUT.down} seconds; it takes ${pct(CUT.weakness)} more physical damage for ${CUT.lasts} seconds.`,
-      words: `Deals ${dmg('knight', CUT.blow, bookDmg('loman', 0))} P.DMG to frontal enemies within range and knocks them down for ${CUT.down} sec, increasing P.Weakness of the affected targets by ${pct(CUT.weakness)} for ${CUT.lasts} sec.`,
+      words: `Deals ${dmg('knight', CUT.blow, bookDmg('loman', 0))} P.DMG to frontal enemies within range and knocks them down for ${CUT.down} sec, increasing P.Weakness of the affected targets by ${pct(CUT.weakness)} for ${CUT.lasts} sec. Blocks all DMG while the skill is in use.`,
       icon: '⚔️',
       art: art(0),
       move: 'ground',
@@ -167,6 +167,8 @@ export const LOMAN: HeroDef = {
     };
 
     return {
+      // (Cut Ground's third book: it blocks all DMG while he uses it.)
+      untouched: () => self.doing?.move === 'ground',
       lands: {
         // His attack: a thrust of his halberd.
         thrust: () => fight.hit(self, fight.basic),

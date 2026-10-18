@@ -33,7 +33,8 @@ const POCHI = { bite: 5650, boss: 3770, more: 0.15, bossMore: 0.3, weaker: 0.06,
 const PUCHI = { blow: 21_980, stun: 5 };
 const PIPPI = { blow: 4710, through: 3140, pierce: 500, takes: 0.05, most: 10, lasts: 12 };
 const SLEEP = { taken: 0.6 };
-const CHARGE = { most: 5, atk: 0.1, dmg: 0.02 };
+// (Its DMG for each, the playtest's 2% and its books' 3% more.)
+const CHARGE = { most: 5, atk: 0.1, dmg: 0.05 };
 /** Her own perks' numbers: Pochi's Mark's less M.DEF for each, and her sleep's more less taken. */
 const PERKS = { softer: 0.06, sleepier: 1.2 };
 

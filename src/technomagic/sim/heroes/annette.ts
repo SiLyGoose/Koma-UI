@@ -37,6 +37,8 @@ const RAY = { blow: indexed('mechanic', 207_192), extra: indexed('mechanic', 207
 const TREATMENT = { heal: indexedHeal('mechanic', 284_970), lasts: 10, resist: 250, crit: 250, dmg: 0.1 };
 const ELIMINATION = { blow: indexed('mechanic', 552_663), over: indexed('mechanic', 552_663 + 130_220), takes: 0.25, lasts: 10, stun: 5 };
 const CHARGE = { every: 0.5, perCrystal: 10, full: 100, lasts: 15, atk: 0.3, cooldown: 0.1 };
+/** Her books' (King's Raid's playtest's): more Charge as each skill is used (unless she is Overcharged), and Overcharged, ATK Spd (points). */
+const BOOKS = { charge: [6, 6, 9], speed: 250 };
 /** Her own perks' numbers: more Charge from a skill, Process of Elimination's mark, Overcharge's more ATK and longer, and Transcend 5's Dark's for every ally (attack speed in points, ATK a share of hers). */
 const PERKS = { charge: 1.4, eliminated: 0.25, overAtk: 1.4, overLonger: 3, allies: { speed: 200, atk: 0.05 } };
 
@@ -64,7 +66,7 @@ const CHARGING: Passive = {
     icon: '⚡',
     art: art(3),
   },
-  words: `Gains 1 stack of Charge every ${CHARGE.every} sec, and gains ${CHARGE.perCrystal} stacks of Charge per every orb of mana used. Upon the ${CHARGE.full}th Charge stacked, enters Overcharge state. When in Overcharge, ATK is increased by ${pct(CHARGE.atk)} for ${CHARGE.lasts} sec, and each auto attack reduces skill cooldown by ${pct(CHARGE.cooldown)}. All effects cannot be dispelled, and Charge will not stack during Overcharge state.`,
+  words: `Gains 1 stack of Charge every ${CHARGE.every} sec, and gains ${CHARGE.perCrystal} stacks of Charge per every orb of mana used. Upon the ${CHARGE.full}th Charge stacked, enters Overcharge state. When in Overcharge, ATK is increased by ${pct(CHARGE.atk)} for ${CHARGE.lasts} sec, and each auto attack reduces skill cooldown by ${pct(CHARGE.cooldown)}. All effects cannot be dispelled, and Charge will not stack during Overcharge state. When Overcharged, ATK Spd is increased by ${BOOKS.speed}.`,
 };
 /** Her Charge: shown beside her passive, with how many she has. */
 const CHARGED: Buff = { name: 'Charge', about: `At ${CHARGE.full} she is [Overcharged].`, icon: '⚡' };
@@ -90,7 +92,7 @@ export const ANNETTE: HeroDef = {
     {
       name: 'Blasting Ray',
       about: `Rascal fires a ray into the boss: for ${RAY.lasts} seconds it hits ${pct(RAY.weaker)} softer and takes ${pct(RAY.takes)} more magical damage. [Overcharged]: a second ray, and twice that.`,
-      words: `Attacks enemies in a straight line, dealing ${dmg('mechanic', RAY.blow, bookDmg('annette', 0))} M.DMG, reducing their ATK by ${pct(RAY.weaker)} and hit enemies take ${pct(RAY.takes)} increased M.DMG for ${RAY.lasts} sec. If the skill is used when in Overcharge state, deals ${dmg('mechanic', RAY.extra, bookDmg('annette', 0))} extra M.DMG, additionally reduces their ATK by ${pct(RAY.weaker)}, and hit enemies take ${pct(RAY.takes)} increased M.DMG.`,
+      words: `Attacks enemies in a straight line, dealing ${dmg('mechanic', RAY.blow, bookDmg('annette', 0))} M.DMG, reducing their ATK by ${pct(RAY.weaker)} and hit enemies take ${pct(RAY.takes)} increased M.DMG for ${RAY.lasts} sec. If the skill is used when in Overcharge state, deals ${dmg('mechanic', RAY.extra, bookDmg('annette', 0))} extra M.DMG, additionally reduces their ATK by ${pct(RAY.weaker)}, and hit enemies take ${pct(RAY.takes)} increased M.DMG. Upon use, the amount of Charge gained is increased by 30%.`,
       icon: '🔆',
       art: art(0),
       move: 'ray',
@@ -101,7 +103,7 @@ export const ANNETTE: HeroDef = {
       name: 'Emergency Treatment',
       auto: { heals: true },
       about: `Clears what the boss has left on every ally (not what holds one down or shuts one away) and heals them over ${TREATMENT.lasts} seconds, and they stand being knocked down better meanwhile. [Overcharged]: they are also ${pct(share(TREATMENT.crit))} likelier to land a critical blow, deal ${pct(TREATMENT.dmg)} more, and can’t be knocked down.`,
-      words: `Dispels negative effects of all allies and heals a total of ${healed('mechanic', TREATMENT.heal, bookHeal('annette', 1))} HP for ${TREATMENT.lasts} sec while increasing CC Resistance by ${TREATMENT.resist}. While Overcharged, all allies' Crit Chance is increased by ${TREATMENT.crit} and DMG dealt to Non-Hero enemies by ${pct(TREATMENT.dmg)} and gains immunity to CC.`,
+      words: `Dispels negative effects of all allies and heals a total of ${healed('mechanic', TREATMENT.heal, bookHeal('annette', 1))} HP for ${TREATMENT.lasts} sec while increasing CC Resistance by ${TREATMENT.resist}. While Overcharged, all allies' Crit Chance is increased by ${TREATMENT.crit} and DMG dealt to Non-Hero enemies by ${pct(TREATMENT.dmg)} and gains immunity to CC. Upon use, the amount of Charge gained is increased by 30%.`,
       icon: '🩹',
       art: art(1),
       move: 'treatment',
@@ -111,7 +113,7 @@ export const ANNETTE: HeroDef = {
     {
       name: 'Process of Elimination',
       about: `A ball of energy that bursts on the boss. [Overcharged]: it bursts harder, stuns the boss for ${ELIMINATION.stun} seconds, and leaves it taking ${pct(ELIMINATION.takes)} more magical damage for ${ELIMINATION.lasts}.`,
-      words: `Fires an exploding energy ball to a random target and nearby enemies in range, dealing ${dmg('mechanic', ELIMINATION.blow, bookDmg('annette', 2))} M.DMG. When in Overcharge state, deals ${dmg('mechanic', ELIMINATION.over, bookDmg('annette', 2))} M.DMG, increases M.DMG enemies take by ${pct(ELIMINATION.takes)} for ${ELIMINATION.lasts} sec, and inflicts Stun for ${ELIMINATION.stun} sec upon explosion.`,
+      words: `Fires an exploding energy ball to a random target and nearby enemies in range, dealing ${dmg('mechanic', ELIMINATION.blow, bookDmg('annette', 2))} M.DMG. When in Overcharge state, deals ${dmg('mechanic', ELIMINATION.over, bookDmg('annette', 2))} M.DMG, increases M.DMG enemies take by ${pct(ELIMINATION.takes)} for ${ELIMINATION.lasts} sec, and inflicts Stun for ${ELIMINATION.stun} sec upon explosion. Upon use, the amount of Charge gained is increased by 30%.`,
       icon: '💣',
       art: art(2),
       move: 'elimination',
@@ -177,7 +179,7 @@ export const ANNETTE: HeroDef = {
       if (charge < CHARGE.full || over > 0) return;
       charge = 0;
       over = CHARGE.lasts + (self.perks.has('s4-dark') ? PERKS.overLonger : 0);
-      put(self.statuses, { name: OVERCHARGED.name, left: over, deals: 1 + CHARGE.atk * (self.perks.has('s4-light') ? PERKS.overAtk : 1), shown: OVERCHARGED });
+      put(self.statuses, { name: OVERCHARGED.name, left: over, deals: 1 + CHARGE.atk * (self.perks.has('s4-light') ? PERKS.overAtk : 1), pace: 1 + share(BOOKS.speed), shown: OVERCHARGED });
       // Transcend 5's Dark: every ally quicker, and its ATK higher by a share of hers (so much more DMG), while it lasts.
       if (self.perks.has('t5-dark')) {
         for (const ally of allies()) put(ally.statuses, { name: ROUSED.name, left: over, pace: 1 + share(PERKS.allies.speed), deals: 1 + (PERKS.allies.atk * self.stats.atk) / ally.stats.atk, shown: ROUSED });
@@ -244,7 +246,8 @@ export const ANNETTE: HeroDef = {
         if (ability.move === 'ray' || ability.move === 'treatment' || ability.move === 'elimination') overcharged[ability.move] = over > 0;
         // (Blasting Ray's and Emergency Treatment's Dark: more Charge for them.)
         const more = (index === 0 && self.perks.has('s1-dark')) || (index === 1 && self.perks.has('s2-dark')) ? PERKS.charge : 1;
-        gain(ability.cost * CHARGE.perCrystal * more);
+        // (Its third book: more Charge, unless she is Overcharged already.)
+        gain(ability.cost * CHARGE.perCrystal * more + (over > 0 ? 0 : (BOOKS.charge[index] ?? 0)));
       },
       tick(dt) {
         // Emergency Treatment heals every ally a share of it each second.
