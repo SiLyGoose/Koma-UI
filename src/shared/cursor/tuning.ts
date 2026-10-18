@@ -27,6 +27,6 @@ export const MAX_H = 0.6;
 export const CONTROL = 'button, a[href], select, summary, label, input, [role="button"], [role="option"], [role="menuitem"], [role="tab"]';
 /** Marks what's boxed, for the hand to go over it (cursor.css). */
 export const BOXED = 'data-reticle-boxed';
-/** Fields typed in: they keep the browser's I-beam, and the reticle hides over them. */
+/** Fields typed in: boxed like what can be pressed, but they keep the browser's I-beam, the dot hidden over them. */
 export const TEXT_FIELD =
   'textarea, [contenteditable]:not([contenteditable="false"]), input:is(:not([type]), [type="text"], [type="number"], [type="search"], [type="email"], [type="password"], [type="url"], [type="tel"])';

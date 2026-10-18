@@ -64,14 +64,18 @@ html.hand-on :is(textarea, [contenteditable], input:is(:not([type]), [type='text
   color: inherit;
 }
 
-/* Shown once the mouse is in the window, and not over a field being typed in (the I-beam alone there): fading in and out. */
+/*
+ * Shown once the mouse is in the window: fading in and out. Over a field typed in, the brackets box it but the dot goes (the
+ * field's I-beam is the pointer there).
+ */
 .reticle-dot,
 .reticle-frame {
   opacity: 0;
   transition: opacity 0.35s ease;
 }
 
-.reticle[data-shown]:not([data-over-text]) :is(.reticle-dot, .reticle-frame) {
+.reticle[data-shown] .reticle-frame,
+.reticle[data-shown]:not([data-over-text]) .reticle-dot {
   opacity: 1;
 }
 
