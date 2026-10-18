@@ -207,7 +207,7 @@ function renderRaidBoss(ctx: DatabankContext, boss: BossDef): void {
   defense.append(
     stat('P. DEF', points(Math.round(boss.stats.physical * (room.defense ?? 1)))),
     stat('M. DEF', points(Math.round(boss.stats.magical * (room.defense ?? 1)))),
-    stat('Its blows', boss.stats.deals === 'magical' ? 'Magical' : 'Physical'),
+    stat('Deals', boss.stats.deals === 'magical' ? 'Magical' : 'Physical'),
   );
   const time = boss.time ?? RAID_TIME;
   ui.bossBody.append(
