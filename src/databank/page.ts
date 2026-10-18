@@ -41,11 +41,8 @@ export const databankPage: Page = {
 
 const PATHS: Record<View, string> = { hub: '/databank/', itemKinds: '/databank/items/', items: '/databank/items/player/', bosses: '/databank/enemies/', classes: '/databank/classes/', heroes: '/databank/heroes/' };
 
-/** How long the way in's marks take to fade out, going between the way in and the items' way in (./styles/hub.css's fade). */
+/** How long the databank takes to fade out, going from one of its parts to another (./styles/hub.css's fade). */
 const FADE_MS = 160;
-
-/** Whether a path is one of the two star charts: the way in, or the items' way in. */
-const chartAt = (path: string): boolean => ['/databank', '/databank/items'].includes(path.replace(/\/+$/, ''));
 
 function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void; navigate: (url: URL) => void } {
   const ctx = createContext(root);
@@ -56,27 +53,26 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void; 
     render(ctx);
     window.scrollTo(0, 0);
   };
+  // (The page itself fades: the databank's main, whatever part of it is showing.)
+  const page = root.querySelector<HTMLElement>('.databank-page') ?? root;
   return {
     drawn: start(ctx),
     unmount: unwire,
     navigate: (url) => {
       const mine = ++going;
-      const nodes = ctx.ui.nodes;
-      // From one star chart to the other (the way in, the items' way in): its marks fade out, then the other's fade in.
-      if ((ctx.view === 'hub' || ctx.view === 'itemKinds') && chartAt(url.pathname) && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        nodes.classList.remove('fade-in');
-        nodes.classList.add('fade-out');
-        window.setTimeout(() => {
-          // (Another place asked for meanwhile: that one's.)
-          if (mine !== going) return;
-          show(url);
-          nodes.classList.remove('fade-out');
-          nodes.classList.add('fade-in');
-        }, FADE_MS);
-        return;
-      }
-      nodes.classList.remove('fade-out', 'fade-in');
-      show(url);
+      // From one part of the databank to another (the way in, the items', a list, the enemies…): it fades out, then in.
+      if (matchMedia('(prefers-reduced-motion: reduce)').matches) return show(url);
+      page.classList.remove('fade-in');
+      page.classList.add('fade-out');
+      window.setTimeout(() => {
+        // (Another place asked for meanwhile: that one's.)
+        if (mine !== going) return;
+        show(url);
+        page.classList.remove('fade-out');
+        // (Again from its start, if it was still fading in.)
+        void page.offsetWidth;
+        page.classList.add('fade-in');
+      }, FADE_MS);
     },
   };
 }

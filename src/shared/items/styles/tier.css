@@ -35,13 +35,18 @@
   --mark: var(--star-4);
 }
 
-/* On a card or a slot: in its top left corner (the top right is a class item's badge, in the databank), sized by the card. */
+/*
+ * On a card or a slot: a tab set into its top left corner, flush with its edges (only its inner corner rounded), as the TM
+ * and UW tabs are (the top right is a class item's badge, in the databank), sized by the card.
+ */
 .item > .tier-mark,
 .slot-frame > .tier-mark {
   position: absolute;
   z-index: 2;
-  top: 4%;
-  left: 5%;
+  top: 0;
+  left: 0;
+  border-width: 0 2px 2px 0;
+  border-radius: 3px 0 7px;
   font-size: clamp(8px, 15cqi, 12px);
 }
 

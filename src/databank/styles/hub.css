@@ -270,17 +270,17 @@
   }
 }
 
-/* Going between the way in and the items' way in: the marks fade out, and the other's fade (and rise a little) in. */
-.db-nodes.fade-out {
+/* Going from one part of the databank to another (../page.ts): it fades out, and the other fades (and rises a little) in. */
+.databank-page.fade-out {
   opacity: 0;
   transition: opacity 0.16s ease-in;
 }
 
-.db-nodes.fade-in {
-  animation: db-nodes-in 0.28s ease-out;
+.databank-page.fade-in {
+  animation: db-page-in 0.28s ease-out;
 }
 
-@keyframes db-nodes-in {
+@keyframes db-page-in {
   from {
     opacity: 0;
     transform: translateY(8px);

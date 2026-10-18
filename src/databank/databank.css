@@ -438,7 +438,7 @@
   right: 3px;
   z-index: 2;
   display: block;
-  width: 22px;
+  width: 30px;
   filter: drop-shadow(0 1px 2px rgb(0 0 0 / 45%));
 }
 
@@ -472,5 +472,5 @@
 
 /* How many they own (top right) under a class item's badge, not over it. */
 .db-item:has(> .db-class-badge) > .item-level {
-  top: 28px;
+  top: 36px;
 }
