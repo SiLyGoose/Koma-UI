@@ -351,8 +351,13 @@
  * of a dark screen, "Tap to continue" under it (.rewarding: ../result.ts); then the heroes alone, and the way on at the
  * foot, to the right.
  */
-body.tm-ended :is(#boss, #overheads, #numbers, #meter, #timer, #party, #actions, #hint) {
+body.tm-ended :is(#boss, #overheads, #numbers, #meter, #timer, #party) {
   visibility: hidden;
+}
+
+/* (The bars under the field gone too, not only unseen: the field takes the whole page, the way on drawn over it.) */
+body.tm-ended :is(#actions, #hint) {
+  display: none;
 }
 
 .tm-result.staged {
