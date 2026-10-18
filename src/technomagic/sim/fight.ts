@@ -1,5 +1,5 @@
 import { scaleAt, stagesOf, type BossDef, type BossPart } from './bosses/boss';
-import { ATK, HERO_LEVEL, NONE, POINTS, reachAt, share, soft, SOFT, strike } from './combat/damage';
+import { ATK, CURVE, curved, HERO_LEVEL, NONE, POINTS, reachAt, share, SLOWEST, strike } from './combat/damage';
 import { accurate, amplified, away, blocking, bolstering, bound, critDamaging, critResisting, critTaking, critting, dealing, deals, defending, defends, filling, healing, pacing, piercing, put, resisting, stacked, takes, wear, type Status } from './combat/status';
 import type { Input, Logged, Result, SimEvent } from './events';
 import { geared } from './gear';
@@ -118,14 +118,13 @@ export interface Sim extends Fight {
   checksum(): number;
 }
 
-/** The boss's defenses as blows with `acc` points of ACC find them (soft-capped): so much less likely dodged or blocked. */
+/**
+ * The boss's defenses as blows with `acc` points of ACC find them (on King's Raid's curve): so much less likely dodged. (ACC
+ * does nothing to a block, as King's Raid's.)
+ */
 const seenPast = (stats: BossDef['stats'], points: number): BossDef['stats'] => {
-  const acc = soft(points, SOFT.acc);
-  return {
-    ...stats,
-    dodge: { physical: Math.max(0, stats.dodge.physical - acc), magical: Math.max(0, stats.dodge.magical - acc) },
-    block: { physical: Math.max(0, stats.block.physical - acc), magical: Math.max(0, stats.block.magical - acc) },
-  };
+  const acc = curved(CURVE.acc, points);
+  return { ...stats, dodge: { physical: Math.max(0, stats.dodge.physical - acc), magical: Math.max(0, stats.dodge.magical - acc) } };
 };
 
 /** What knocks a hero down: shown on its card, with how long it has left. */
@@ -724,7 +723,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       // then far harder, by its crit chance and what its passive and what is on it add; and through its penetration, and the blow's own.
       const { attack, crit } = by.def.passive ?? NO_PASSIVE;
       const { atk, deals: type, crit: points, pen } = by.stats;
-      const critical = roll() < share(points + auras.crit + critTaking(foe.statuses, type) - (foe.part.critResist ?? 0)) + crit + critting(by.statuses);
+      const critical = roll() < share(curved(CURVE.crit, points + auras.crit) + critTaking(foe.statuses, type) - curved(CURVE.chance, foe.part.critResist ?? 0)) + crit + critting(by.statuses);
       // (Its additional skills' DMG, and every Whetstone on the field's crit DMG, and what is on it adds: Seria's Cold-Blooded Witch.)
       // (And its Concentration: more for every so many seconds of the fight.)
       const focus = by.perkDefs.find((perk) => perk.focus)?.focus;
@@ -768,7 +767,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       }
       // Lifesteal: a share of what it dealt heals it (less what the boss's skills take off healing).
       if (by.lifesteal > 0 && by.hp > 0 && !foe.part.unstolen) {
-        const stolen = Math.min(dealt * share(soft(by.lifesteal, SOFT.lifesteal)) * healing(by.statuses) * (foe.part.healing?.() ?? 1), by.stats.hp - by.hp);
+        const stolen = Math.min(dealt * share(curved(CURVE.chance, by.lifesteal)) * healing(by.statuses) * (foe.part.healing?.() ?? 1), by.stats.hp - by.hp);
         if (stolen > 0) by.hp += stolen;
       }
       // A critical blow of a skill a perk of its changes (its main unique treasure's): mana, and its cooldown shorter.
@@ -843,7 +842,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       const nimbler = nimble + (target.part.dodge?.() ?? 0);
       if (nimbler > 0) stands.dodge = { physical: stands.dodge.physical + nimbler, magical: stands.dodge.magical + nimbler };
       // Now and then a crit, by the boss's crit chance less the hero's crit resist against its kind of damage (and what is on it adds).
-      const critical = roll() < share(foe.def.stats.crit - target.critResist[type] - critResisting(target.statuses, type) - critResisting(party, type)) + critting(foe.statuses);
+      const critical = roll() < share(curved(CURVE.crit, foe.def.stats.crit) - curved(CURVE.chance, target.critResist[type] + critResisting(target.statuses, type) + critResisting(party, type))) + critting(foe.statuses);
       // (Through its penetration, and as much of the hero's defense as counts against its level.)
       const scale = scaleAt(def, stage, solo);
       const { taken, blocked, dodged } = strike(amount * scale.deals * dealing(foe.statuses) * rage(clock - RAID_TIME) * (critical ? CRIT : 1), type, blockable ? stands : { ...stands, block: NONE, dodge: NONE }, foe.def.stats.pen ?? 0, reachAt(scale.level), roll);
@@ -943,7 +942,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       stagger(fighter);
       // (The shorter for its CC resist, and what is on it adds to it, and its Tenacity; and as its passive, and its part for now, have it.)
       const shorter = Math.max(0, 1 - SKILL.tenacity.control * has(fighter, 'tenacity')) * (fighter.def.passive?.held ?? 1) * (fighter.part.held?.() ?? 1);
-      put(fighter.statuses, { name: KNOCKED.name, left: seconds * (1 - share(soft(fighter.stats.resist + resisting(fighter.statuses) + auras.resist, SOFT.resist))) * shorter, binds: true, shown: KNOCKED });
+      put(fighter.statuses, { name: KNOCKED.name, left: seconds * (1 - share(curved(CURVE.resist, fighter.stats.resist + resisting(fighter.statuses) + auras.resist))) * shorter, binds: true, shown: KNOCKED });
     },
     stagger,
     mend(amount) {
@@ -954,7 +953,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     },
     stun(seconds, { down = false, by } = {}) {
       // (A hero's: the shorter for the boss's CC resist, less what the hero's accuracy sees past.)
-      const held = seconds * (by ? (by.def.passive?.control ?? 1) * by.controlTimes * (1 - share(soft(Math.max(0, foe.def.stats.resist + resisting(foe.statuses)), SOFT.resist) - soft(by.accuracy + auras.accuracy + accurate(by.statuses), SOFT.acc))) : 1);
+      const held = seconds * (by ? (by.def.passive?.control ?? 1) * by.controlTimes * (1 - share(curved(CURVE.resist, Math.max(0, foe.def.stats.resist + resisting(foe.statuses))) - curved(CURVE.accuracy, by.accuracy + auras.accuracy + accurate(by.statuses)))) : 1);
       // (A boss with a CC gauge takes it off that instead: only once it is empty is it held, knocked down. Not as it is beaten.)
       const taken = foe.part.controlled && foe.hp > 0 ? foe.part.controlled(held, down) : { seconds: held, down };
       if (!taken || taken.seconds <= 0) return;
@@ -1115,10 +1114,10 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       // Each hero's move goes on (quickened by its attack speed, its own skills and what is on it), and each over to its spot.
       const reform = Math.min(1, dt * REFORM);
       for (const on of field) {
-        // (Its attack speed: 1000 points as quick as it comes; what is more, soft-capped.)
-        const quicker = Math.max(0, on.stats.speed + auras.speed + (on.part.speed?.() ?? 0) - POINTS);
-        // (One whose passive has it steady: as it comes, whatever its attack speed or what is on it.)
-        on.haste = on.def.passive?.steady ? 1 : ((POINTS + soft(quicker, SOFT.chance, SOFT.hard)) / POINTS) * pacing(on.statuses, on.part.pace?.() ?? 1);
+        // (Its attack speed, all of it with what is on it and what quickens it, on King's Raid's curve: 1000 points as quick as it
+        // comes, never slower than SLOWEST. One whose passive has it steady: as it comes, whatever its attack speed or what is on it.)
+        const speed = (on.stats.speed + auras.speed + (on.part.speed?.() ?? 0)) * pacing(on.statuses, on.part.pace?.() ?? 1);
+        on.haste = on.def.passive?.steady ? 1 : Math.max(SLOWEST, curved(CURVE.speed, speed)) / POINTS;
         advance(on, dt * on.haste);
         if (result) return;
         const [x, z] = spots.get(on) as readonly [number, number];

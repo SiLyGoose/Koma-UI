@@ -21,20 +21,56 @@ export const POINTS = 1000;
 export const share = (points: number): number => Math.min(1, Math.max(0, points / POINTS));
 
 /**
- * King's Raid's soft caps: a stat's points past its soft cap count half (past `hard`, a fifth), so none is easily
- * pushed to 100%. Each stat's (SOFT) is where the fight uses it.
+ * One of King's Raid's curves for a stat (its StatAttenuationTable): its points as they count. Up to `x2` as they are; up to
+ * `x1`, a2 x + b2 (thousandths); past `x1`, ever nearer `maxK` (maxK - maxK / (a1 x² + b1 x + 1)); below `x3`, ever nearer
+ * `minK`; below `x4`, minK / (a4 x² + b4 x + 1) (x in thousandths). What it doesn't give is 0.
  */
-export function soft(points: number, cap: number, hard = Infinity): number {
-  if (points <= cap) return points;
-  if (points <= hard) return cap + (points - cap) * 0.5;
-  return cap + (hard - cap) * 0.5 + (points - hard) * 0.2;
+interface Curve {
+  maxK: number;
+  x1: number;
+  a1: number;
+  b1: number;
+  x2: number;
+  a2: number;
+  b2: number;
+  minK?: number;
+  x3?: number;
+  a3?: number;
+  b3?: number;
+  x4?: number;
+  a4?: number;
+  b4?: number;
+}
+/** As StatAttenuationData.Attenuate. */
+export function curved(c: Curve, x: number): number {
+  if (x === 0) return 0;
+  // (What a curve doesn't say is 0, as the game's table has it: most stats below none count as none.)
+  const { minK = 0, x3 = 0, a3 = 0, b3 = 0, x4 = 0, a4 = 0, b4 = 0 } = c;
+  const toward = (k: number, a: number, b: number): number => k - (k * 1e6) / (a * x * x + b * x + 1e6);
+  if (x > c.x1) return toward(c.maxK, c.a1, c.b1);
+  if (x > c.x2) return (c.a2 * x) / 1000 + c.b2;
+  if (x < x3) return toward(minK, a3, b3);
+  if (x < x4) return (minK * 1e6) / (a4 * x * x + b4 * x + 1e6);
+  return x;
 }
 /**
- * Each stat's soft cap (points): penetration, Tough and block DEF at 450; ACC, CC accuracy, CC resist and lifesteal at
- * 500; block and dodge at 500, with a hard cap at 1000; attack speed at 500 more than as quick as it comes (1000), with
- * a hard cap 1000 more.
+ * King's Raid's curves (its playtest's), for the stats the fight has: crit chance; a chance against a blow (dodge and
+ * block) or a crit (crit resist), and lifesteal; block DEF (more off a blocked blow, on top of the game's 500); ACC
+ * (hit chance); penetration and Tough; CC resist; CC accuracy (the game's HitCcChance); and attack speed (all of it: 1000
+ * as quick as it comes).
  */
-export const SOFT = { pen: 450, tough: 450, blockDef: 450, acc: 500, resist: 500, lifesteal: 500, chance: 500, hard: 1000 };
+export const CURVE = {
+  crit: { maxK: 2000, x1: 2000, a1: 1, b1: 1500, x2: 1500, a2: 500, b2: 750, x3: -500 },
+  chance: { maxK: 1000, x1: 1000, a1: 3, b1: 0, x2: 500, a2: 500, b2: 250, x3: -500 },
+  blockDef: { maxK: 450, x1: 775, a1: 3, b1: 1500, x2: 225, a2: 204, b2: 179, minK: -920, x3: -2, a3: 3, b3: -938, x4: -1 },
+  acc: { maxK: 2000, x1: 2000, a1: 1, b1: 1500, x2: 1500, a2: 500, b2: 750, minK: -920, x3: -2, a3: 3, b3: -938, x4: -1 },
+  pen: { maxK: 900, x1: 1000, a1: 2, b1: 1000, x2: 450, a2: 409, b2: 266, x3: -500 },
+  resist: { maxK: 1000, x1: 1000, a1: 1e6, b1: 1e6, x2: 500, a2: 1000, b2: 0, x3: -500 },
+  accuracy: { maxK: 900, x1: 900, a1: 1e6, b1: 1e6, x2: 450, a2: 1000, b2: 0, x3: -500 },
+  speed: { maxK: 2500, x1: 2400, a1: 1, b1: -733, x2: 1600, a2: 500, b2: 800, minK: 250, x3: -10000, x4: 500, a4: 1, b4: -1500 },
+} as const satisfies Record<string, Curve>;
+/** The slowest an attack speed counts as (the game's MinAttackSpeed). */
+export const SLOWEST = 300;
 
 /**
  * How a fighter stands what comes at it: its defense against each kind of damage, and its chance against each to block it,
@@ -128,13 +164,13 @@ const BLOCKED = 0.5;
  * `roll` is the fight's chances (../sim/random.ts).
  */
 export function strike(amount: number, type: DamageType, target: Defenses, pen: number, reach: number, roll: () => number): { taken: number; blocked: boolean; dodged: boolean } {
-  // (Each soft-capped: SOFT.)
-  if (roll() < share(soft(target.dodge[type], SOFT.chance, SOFT.hard))) return { taken: 0, blocked: false, dodged: true };
-  const blocked = roll() < share(soft(target.block[type], SOFT.chance, SOFT.hard));
-  const defense = Math.max(0, target[type]) * (1 - share(soft(pen, SOFT.pen)));
+  // (Each on King's Raid's curve for it: CURVE.)
+  if (roll() < share(curved(CURVE.chance, target.dodge[type]))) return { taken: 0, blocked: false, dodged: true };
+  const blocked = roll() < share(curved(CURVE.chance, target.block[type]));
+  const defense = Math.max(0, target[type]) * (1 - share(curved(CURVE.pen, pen)));
   // Its defense, then its block, then its Tough: each takes its share off what the one before let through.
-  const kept = blocked ? Math.max(0, BLOCKED - soft((target.blockDef?.[type] ?? 0) * POINTS, SOFT.blockDef) / POINTS) : 1;
-  const tough = 1 - share(soft(target.tough?.[type] ?? 0, SOFT.tough));
+  const kept = blocked ? Math.max(0, BLOCKED - curved(CURVE.blockDef, (target.blockDef?.[type] ?? 0) * POINTS) / POINTS) : 1;
+  const tough = 1 - share(curved(CURVE.pen, target.tough?.[type] ?? 0));
   const cut = DEF_MOST * Math.min(1, defense / reach);
   return { taken: amount * (1 - cut) * kept * tough, blocked, dodged: false };
 }
