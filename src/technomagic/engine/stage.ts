@@ -4,6 +4,7 @@ import {
   Color,
   Float32BufferAttribute,
   Fog,
+  Group,
   Mesh,
   MeshBasicMaterial,
   OrthographicCamera,
@@ -19,6 +20,7 @@ import {
   type BufferGeometry,
   type Object3D,
 } from 'three';
+import { loadKrMap } from './kr-map';
 import { struggling } from './memory';
 
 /*
@@ -63,6 +65,13 @@ export interface Scenery {
   ground: { url: string; tile: number };
   /** What the floor fades into toward the back (the colour of the backdrop's foot, so they meet unseen): from `near` beyond the middle of the field to `far`. */
   haze: { color: number; near: number; far: number };
+  /**
+   * King's Raid's own map of where it is fought (./kr-map.ts), in place of the painted sheet and floor (they are what is
+   * shown should it not be read): its folder, where the middle of the field is on it (`at`, in the map's units), and how far it is turned about the
+   * upright there (radians: the game sees its maps from the other side); and the colour of the floor beyond its own (its
+   * floor is no deeper than the game's camera sees: ours sees further).
+   */
+  map?: { folder: string; at: readonly [number, number, number]; turn: number; floor: number };
 }
 
 export interface Stage {
@@ -171,6 +180,26 @@ export function makeStage(canvas: HTMLCanvasElement): Stage {
     scene,
     camera,
     async dress(scenery) {
+      if (scenery.map) {
+        const { folder, at, turn, floor: beyond } = scenery.map;
+        const map = await loadKrMap(folder).catch((error: unknown) => {
+          console.warn(error);
+          return null;
+        });
+        if (map) {
+          // (Its middle of the field at the field's, turned about it.)
+          const field = new Group();
+          map.position.set(-at[0], -at[1], -at[2]);
+          field.add(map);
+          field.rotation.y = turn;
+          scene.add(field);
+          // (Under its floor, and in front of it: what of it is under the floor isn't seen.)
+          floor.material.color.set(beyond);
+          floor.position.y = -0.05;
+          scene.background = new Color(scenery.haze.color);
+          return;
+        }
+      }
       const pictures = new TextureLoader();
       const [backdrop, ground] = await Promise.all([pictures.loadAsync(scenery.backdrop.url), pictures.loadAsync(scenery.ground.url)]);
       backdrop.colorSpace = ground.colorSpace = SRGBColorSpace;
