@@ -22,14 +22,15 @@ import { INHALE } from '../dragon/moves';
  */
 export const SCALES = { critResist: 400, per: 0.03, most: 30 };
 const POISON = { petrifyAt: 30, lasts: 12, petrify: 5, hurts: 4_000, blow: 2 };
-const LASH = { stacks: 5, knock: 0.6, cooldown: 11 };
-const BREATH = { stacks: 3, cooldown: 16 };
+const LASH = { stacks: 5, knock: 0.6 };
+const BREATH = { stacks: 3 };
 
 const POISONED: Buff = { name: 'Poison', about: `Eats at it every second, the more for every stack; at ${POISON.petrifyAt}, Petrified.`, icon: '🧪', harmful: true };
 const PETRIFIED: Buff = { name: 'Petrified', about: 'Turned to stone: it can do nothing.', icon: '🗿', harmful: true };
 
 export function zyrrkinothPart(fight: Fight): BossPart {
-  const waits = cooldowns({ smashes: LASH.cooldown, breath: BREATH.cooldown });
+  // (Each skill's cooldown, and first wait, the playtest's: its Toxic Mist's for its tail lash, Poison Cloud's for its sweep.)
+  const waits = cooldowns({ claw: [5, 2.5], smashes: [15, 8], breath: [25, 12], sweep: [20, 10] });
   /** The critical blows it has taken (up to SCALES.most): each has it take more. */
   let cracks = 0;
   const taken = { physical: 1, magical: 1 };

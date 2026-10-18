@@ -114,13 +114,17 @@ export function dot(fight: Fight, name: string, each: (fighter: Fighter) => numb
   };
 }
 
-/** Its skills' cooldowns: each begun as it is used, and run down every step. */
-export function cooldowns(of: Readonly<Record<string, number>>): { used(attack: string): void; ready(attack: string): boolean; tick(dt: number): void } {
-  const left = new Map<string, number>();
+/**
+ * Its skills' cooldowns (seconds), each begun as it is used and run down every step; and, as King's Raid's (InitialCoolTimeMs),
+ * how long each waits as the fight begins: [cooldown, first], or just its cooldown (ready from the start).
+ */
+export function cooldowns(of: Readonly<Record<string, number | readonly [number, number]>>): { used(attack: string): void; ready(attack: string): boolean; tick(dt: number): void } {
+  const length = (one: number | readonly [number, number]): number => (typeof one === 'number' ? one : one[0]);
+  const left = new Map<string, number>(Object.entries(of).flatMap(([attack, one]) => (typeof one === 'number' ? [] : [[attack, one[1]] as const])));
   return {
     used(attack) {
       const cooldown = of[attack];
-      if (cooldown !== undefined) left.set(attack, cooldown);
+      if (cooldown !== undefined) left.set(attack, length(cooldown));
     },
     ready: (attack) => (left.get(attack) ?? 0) <= 0,
     tick(dt) {
@@ -128,6 +132,21 @@ export function cooldowns(of: Readonly<Record<string, number>>): { used(attack: 
     },
   };
 }
+
+/**
+ * A blow that takes `share` of what health each of `heroes` has left, as King's Raid's playtest's dragons' do ($ByMEHp4), and
+ * nothing blocks.
+ */
+export function fraction(fight: Fight, heroes: readonly (Fighter | null)[], share: number): void {
+  for (const fighter of heroes) if (fighter && fighter.hp > 0) fight.hurt(fighter, fighter.hp * share, false);
+}
+
+/** A dragon's ultimate is open once it is down to this share of its health (the playtest's OnHpRatio 700). */
+export const ULTIMATE = 0.7;
+/** Whether a dragon's ultimate is open. */
+export const opened = (fight: Fight): boolean => fight.foe.hp <= fight.foe.maxHp * ULTIMATE;
+/** How long a dragon rests after an attack: as long as makes its bite take its plain attack's time, `seconds` (the playtest's). */
+export const restFor = (seconds: number): number => seconds - 1.7;
 
 /** A dragon's part: its own (`own`), with its CC Gauge (../gauge.ts: the Hard Dragon Raid's). */
 export const withDragonGauge = (fight: Fight, own: BossPart): BossPart => withGauge(fight, own, DRAGON_GAUGE);

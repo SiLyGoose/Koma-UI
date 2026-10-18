@@ -2,7 +2,7 @@ import { put } from '../../combat/status';
 import type { Buff, Mark } from '../../shown';
 import type { Fight, Fighter } from '../../types';
 import type { BossPart } from '../boss';
-import { all, cooldowns, dot, lift, single, withDragonGauge } from '../dragon/common';
+import { all, cooldowns, dot, fraction, lift, opened, single, withDragonGauge } from '../dragon/common';
 import { INHALE } from '../dragon/moves';
 
 /*
@@ -15,19 +15,24 @@ import { INHALE } from '../dragon/moves';
  *   calls it up again once it is out and its cooldown is over.
  * - Flame Breath: four blows of fire over the whole field, each leaving Burn: a share of the blow again, every second for
  *   6 seconds.
- * - Eruption: up on its wings and down on the field with all its weight: a blow on every hero.
- * Its claws and bite are on whoever it is going for, its tail across the field. And its CC Gauge (../dragon/common.ts).
+ * - Eruption: up on its wings and down on the field with all its weight: a blow on every hero, and the playtest's Rage of
+ *   Dragon's share of what health each has left (its 33%, five of 12.5% and 20%: 73% in all). Open once it is down to
+ *   ULTIMATE of its health.
+ * Its claws and bite are on whoever it is going for, its tail across the field, and its Tail Strike takes 2/3 of the health
+ * left of the one it goes for. Each skill's cooldown, and first wait, is the playtest's (its Bombing Flame is not here). And
+ * its CC Gauge (../dragon/common.ts).
  */
 export const BLESSING = { charges: 150, deals: 1.5, physical: 0.4, cooldown: 30 };
-const BREATH = { burn: 0.12, lasts: 6, cooldown: 16 };
-const ERUPTION = { cooldown: 12 };
+const BREATH = { burn: 0.12, lasts: 6 };
+const TAIL = 2 / 3;
+const RAGE = 0.73;
 
 const FLAME = 'Blessing of the Flame';
 const BURN: Buff = { name: 'Burn', about: `Fire eats at it every second: ${Math.round(BREATH.burn * 100)}% of the breath's blow.`, icon: '🔥', harmful: true };
 
 export function temerairePart(fight: Fight): BossPart {
   const { foe } = fight;
-  const waits = cooldowns({ breath: BREATH.cooldown, blessing: BLESSING.cooldown, eruption: ERUPTION.cooldown });
+  const waits = cooldowns({ claw: [5, 3], sweep: [13, 8], breath: [25, 15], blessing: BLESSING.cooldown, eruption: [45, 30] });
   /** What of its flame is left (0: none on it), and how hard each hero's burn is. */
   let flame = 0;
   const burns = new Map<Fighter, number>();
@@ -66,11 +71,14 @@ export function temerairePart(fight: Fight): BossPart {
       },
       // Down on the field from the air.
       eruption(part, amount) {
-        if (part === 1) all(fight, amount, undefined, 'eruption');
+        if (part === 1) fraction(fight, all(fight, amount, undefined, 'eruption'), RAGE);
       },
       bite: (_part, amount) => single(fight, amount),
       claw: (_part, amount) => single(fight, amount),
-      sweep: (_part, amount) => void all(fight, amount, undefined, 'sweep'),
+      sweep(_part, amount) {
+        all(fight, amount, undefined, 'sweep');
+        fraction(fight, [fight.target()], TAIL);
+      },
     },
     struck() {
       if (flame > 0) kindle(flame - 1);
@@ -78,7 +86,7 @@ export function temerairePart(fight: Fight): BossPart {
     used: waits.used,
     // Its flame first, whenever it is out and may be called up again.
     next: () => (flame <= 0 && waits.ready('blessing') ? 'blessing' : null),
-    ready: (attack) => attack !== 'blessing' && waits.ready(attack),
+    ready: (attack) => attack !== 'blessing' && waits.ready(attack) && (attack !== 'eruption' || opened(fight)),
     tick(dt) {
       waits.tick(dt);
       burning(dt);

@@ -41,6 +41,9 @@ export const GALGORIA: BossDef = {
   name: 'Galgoria',
   stats: { hp: HP[0] as number, deals: 'magical', physical: DEF[0] as number, magical: DEF[0] as number, block: NONE, dodge: NONE, crit: 100, resist: 0, pen: 500, acc: 300 },
   stages: { room: scales(1), solo: scales(KR_PARTY / PARTY) },
+  // (A head's venom its plain attack, every 3.1 seconds as the playtest's.)
+  basic: ['left', 'centre', 'right'],
+  rest: 3.1 - MOVES.spit.length,
   attacks: ATTACKS,
   plans: PLANS,
   moves: MOVES,

@@ -100,6 +100,13 @@ export interface BossDef {
   attacks: readonly BossAttack[];
   plans: Readonly<Record<string, Plan>>;
   moves: Readonly<Record<string, BossMove>>;
+  /**
+   * Boss auto, as King's Raid's bosses go: its attacks that are its plain attack (`basic`: one of them, at random, whenever
+   * none of its skills is ready), and how long it rests after each attack (`rest`: as long as makes its plain attack take
+   * the game's; none said: ../rules.ts AUTO_WAIT). Without `basic`, any it may, at random.
+   */
+  basic?: readonly string[];
+  rest?: number;
   /** How long its raid lasts (seconds; none said: ../rules.ts RAID_TIME). */
   time?: number;
   /** Its part in a fight, when its skills do more than hurt whoever they land on: made once, as the fight begins. */

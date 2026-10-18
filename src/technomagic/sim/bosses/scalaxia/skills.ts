@@ -3,7 +3,7 @@ import { put } from '../../combat/status';
 import type { Buff } from '../../shown';
 import type { Fight, Fighter } from '../../types';
 import type { BossPart } from '../boss';
-import { addStacks, all, cooldowns, lift, single, withDragonGauge } from '../dragon/common';
+import { addStacks, all, cooldowns, fraction, lift, opened, single, withDragonGauge } from '../dragon/common';
 import { INHALE } from '../dragon/moves';
 
 /*
@@ -20,15 +20,16 @@ import { INHALE } from '../dragon/moves';
  * Its claws and bite are on whoever it is going for, its tail across the field. And its CC Gauge (../dragon/common.ts).
  */
 const FROST = { freezeAt: 10, lasts: 10, freeze: 3, takes: 1.3 };
-const SMASH = { frost: 2, cooldown: 10 };
-const BREATH = { frost: 2, cooldown: 16 };
-export const STORM = { mana: 1500, cooldown: 26 };
+const SMASH = { frost: 2, health: 1 / 3 };
+const BREATH = { frost: 2 };
+export const STORM = { mana: 1500, health: 0.42 };
 
 const FROSTED: Buff = { name: 'Frost', about: `At ${FROST.freezeAt} of it, Frozen.`, icon: '❄️', harmful: true };
 const FROZEN: Buff = { name: 'Freeze', about: `Frozen: it can do nothing, and takes ${Math.round((FROST.takes - 1) * 100)}% more damage.`, icon: '🧊', harmful: true };
 
 export function scalaxiaPart(fight: Fight): BossPart {
-  const waits = cooldowns({ smashes: SMASH.cooldown, breath: BREATH.cooldown, storm: STORM.cooldown });
+  // (Each skill's cooldown, and first wait, the playtest's: its Frost Hell's for its tail sweep.)
+  const waits = cooldowns({ claw: [5, 3], sweep: [20, 18], smashes: [13, 8], breath: [25, 15], storm: [45, 30] });
 
   /** A hero frozen: it can do nothing for a while, and takes more meanwhile (its Frost gone). */
   function freeze(fighter: Fighter): void {
@@ -47,14 +48,19 @@ export function scalaxiaPart(fight: Fight): BossPart {
     // (Its 600 M.DMG cut: the playtest's M.DefensePower.)
     taken: { magical: 0.4 },
     lands: {
-      smashes: (_part, amount) => void all(fight, amount, (fighter) => frost(fighter, SMASH.frost), 'smash'),
+      // (The first, its Frost Smash's share of what health the one it goes for has left.)
+      smashes(part, amount) {
+        all(fight, amount, (fighter) => frost(fighter, SMASH.frost), 'smash');
+        if (part === 0) fraction(fight, [fight.target()], SMASH.health);
+      },
       breath(part, amount) {
         if (part >= INHALE) all(fight, amount, (fighter) => frost(fighter, BREATH.frost), 'frost');
       },
-      // Up in the air, its ice twice on every hero; then down on them, freezing them all and taking their mana.
+      // Up in the air, its ice twice on every hero (each the playtest's Absolute Zero's share of what health each has left); then
+      // down on them, freezing them all and taking their mana. (Open once it is down to ULTIMATE of its health.)
       storm(part, amount) {
         if (part === 0) return;
-        if (part < 3) return void all(fight, amount, (fighter) => frost(fighter, 1), 'storm');
+        if (part < 3) return void fraction(fight, all(fight, amount, (fighter) => frost(fighter, 1), 'storm'), STORM.health);
         all(
           fight,
           amount,
@@ -74,7 +80,7 @@ export function scalaxiaPart(fight: Fight): BossPart {
       // Its storm calls up its pillars of ice.
       if (attack === 'storm') fight.cue(null, 'pillars');
     },
-    ready: waits.ready,
+    ready: (attack) => waits.ready(attack) && (attack !== 'storm' || opened(fight)),
     tick: waits.tick,
     beaten() {
       for (const fighter of fight.fighters) {

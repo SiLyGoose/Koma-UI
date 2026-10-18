@@ -46,8 +46,9 @@ const WEAKENED: Buff = { name: 'Poisonous Explosion', about: `Hits ${Math.round(
 const DULLED: Buff = { name: 'Poisonous Explosion (crit)', about: `${Math.round(-EXPLOSION.crit * 1000)} less crit chance.`, icon: '💥', harmful: true };
 const FATAL_VENOM: Buff = { name: 'Fatal Venom', about: `${Math.round(FATAL.heals * 100)}% less healing reaches it for each (the rest of the fight), and the boss hits harder.`, icon: '☠️', harmful: true };
 
-/** Its skills that count toward Fatal Venom, and each one's cooldown. */
+/** Its skills that count toward Fatal Venom, and each one's cooldown; and how long each waits as the fight begins (the playtest's). */
 const COOLDOWNS: Readonly<Record<string, number>> = { destroyer: DESTROYER.cooldown, swamp: SWAMP.cooldown, explosion: EXPLOSION.cooldown };
+const FIRST: Readonly<Record<string, number>> = { destroyer: 5, swamp: 8, explosion: 12 };
 
 /** Stacks one more of a status that stays the rest of the fight, up to `most`: `made` makes it, `count` of them stacked. */
 function stack<Shown>(on: Status<Shown>[], name: string, most: number, made: (count: number) => Omit<Status<Shown>, 'name' | 'left' | 'count'>): void {
@@ -68,7 +69,7 @@ function ownPart(fight: Fight): BossPart {
   /** The heroes shut away: a ring where each comes back out. */
   const shut = new Set<Fighter>();
   /** Its skills' cooldowns, by name; its skills used toward Fatal Venom; and how long its swamp lasts yet, its blow each so often. */
-  const cooldowns = new Map<string, number>();
+  const cooldowns = new Map<string, number>(Object.entries(FIRST));
   let used = 0;
   let swamp = 0;
   let swampHurts = 0;

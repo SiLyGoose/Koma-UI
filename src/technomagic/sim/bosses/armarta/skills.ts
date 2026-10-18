@@ -2,7 +2,7 @@ import { put, type Status } from '../../combat/status';
 import type { Buff, Mark } from '../../shown';
 import type { Fight, Fighter } from '../../types';
 import type { BossPart } from '../boss';
-import { all, cooldowns, dot, lift, reachable, single, withDragonGauge } from '../dragon/common';
+import { all, cooldowns, dot, fraction, lift, opened, reachable, single, withDragonGauge } from '../dragon/common';
 import { INHALE } from '../dragon/moves';
 
 /*
@@ -17,9 +17,10 @@ import { INHALE } from '../dragon/moves';
  *   the fight (up to ECLIPSE.most times).
  * Its claws and bite are on whoever it is going for, its tail across the field. And its CC Gauge (../dragon/common.ts).
  */
-const FLAMES = { lasts: 10, burn: 0.15, heals: 0.5, cooldown: 15 };
-const GAZE = { lasts: 4, cooldown: 20 };
-export const ECLIPSE = { after: 3, burning: 1.6, deals: 0.1, most: 5 };
+const FLAMES = { lasts: 10, burn: 0.15, heals: 0.5 };
+const GAZE = { lasts: 4 };
+export const ECLIPSE = { burning: 1.6, deals: 0.1, most: 5, health: 0.73 };
+const TAIL = 2 / 3;
 
 const DARK: Buff = { name: 'Dark Flames', about: `Black fire eats at it every second, and ${Math.round((1 - FLAMES.heals) * 100)}% less healing reaches it.`, icon: '🖤', harmful: true };
 const STONE: Buff = { name: 'Petrified', about: 'Turned to stone by its gaze: it can do nothing.', icon: '🗿', harmful: true };
@@ -27,9 +28,10 @@ const ASHEN = 'Ashen Nox';
 
 export function armartaPart(fight: Fight): BossPart {
   const { foe } = fight;
-  const waits = cooldowns({ breath: FLAMES.cooldown, gaze: GAZE.cooldown });
-  /** Its skills used toward its eclipse; how hard each hero's Dark Flames are; and what each has dealt since its last gaze. */
-  let used = 0;
+  // (Each skill's cooldown, and first wait, the playtest's: its Dark Whip's for its sweep, Obsidian Spear's for its gaze, Dragon
+  // Fury's for its eclipse, open once it is down to ULTIMATE of its health.)
+  const waits = cooldowns({ claw: [6.5, 2], sweep: [15, 10], breath: [30, 20], gaze: [25, 25], eclipse: [60, 40] });
+  /** How hard each hero's Dark Flames are; and what each has dealt since its last gaze. */
   const flames = new Map<Fighter, number>();
   const dealt = new Map<Fighter, number>();
   const eating = dot(fight, DARK.name, (fighter) => flames.get(fighter) ?? 0);
@@ -64,6 +66,8 @@ export function armartaPart(fight: Fight): BossPart {
         if (part !== 1) return;
         const heroes = reachable(fight);
         for (const fighter of heroes) fight.hurt(fighter, amount * (burning(fighter) ? ECLIPSE.burning : 1));
+        // (And Dragon Fury's share of what health each has left.)
+        fraction(fight, heroes, ECLIPSE.health);
         fight.cue(null, 'eclipse', heroes);
         const count = Math.min(ECLIPSE.most, (foe.statuses.find((status) => status.name === ASHEN)?.count ?? 0) + 1);
         const status: Status<'curse'> = { name: ASHEN, left: Infinity, deals: 1 + ECLIPSE.deals * count, count, shown: 'curse' };
@@ -71,24 +75,22 @@ export function armartaPart(fight: Fight): BossPart {
       },
       bite: (_part, amount) => single(fight, amount),
       claw: (_part, amount) => single(fight, amount),
-      sweep: (_part, amount) => void all(fight, amount, undefined, 'sweep'),
+      // (Its Dark Whip: 2/3 of what health the one it goes for has left.)
+      sweep(_part, amount) {
+        all(fight, amount, undefined, 'sweep');
+        fraction(fight, [fight.target()], TAIL);
+      },
     },
     struck(by, amount) {
       dealt.set(by, (dealt.get(by) ?? 0) + amount);
     },
-    used(attack) {
-      waits.used(attack);
-      if (attack === 'breath' || attack === 'gaze') used++;
-      else if (attack === 'eclipse') used = 0;
-    },
-    next: () => (used >= ECLIPSE.after ? 'eclipse' : null),
-    ready: (attack) => attack !== 'eclipse' && waits.ready(attack),
+    used: waits.used,
+    ready: (attack) => waits.ready(attack) && (attack !== 'eclipse' || opened(fight)),
     tick(dt) {
       waits.tick(dt);
       eating(dt);
     },
     beaten() {
-      used = 0;
       dealt.clear();
       const at = foe.statuses.findIndex((status) => status.name === ASHEN);
       if (at >= 0) foe.statuses.splice(at, 1);
@@ -97,6 +99,6 @@ export function armartaPart(fight: Fight): BossPart {
         lift(fighter, STONE.name);
       }
     },
-    marks: (): Mark[] => [{ text: `Ashen Eclipse ${Math.min(used, ECLIPSE.after)}/${ECLIPSE.after}`, tone: 'curse' }],
+    marks: (): Mark[] => [],
   });
 }

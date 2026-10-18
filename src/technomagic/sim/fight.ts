@@ -1046,12 +1046,16 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       const before = fighters.map((fighter) => fighter.mana);
       spent.clear();
 
-      // Boss auto: once the boss has been still a moment, another attack: the one it must use next, or one of those it may, picked at random.
+      // Boss auto: once the boss has rested, another attack: the one it must use next; or, as King's Raid's bosses do, the first of
+      // its skills that is ready, else its plain attack; or (a boss that doesn't say what its plain attack is) one it may, at random.
       idle = bossBusy() ? 0 : idle + dt;
-      if (bossAuto && idle >= AUTO_WAIT) {
+      if (bossAuto && idle >= (def.rest ?? AUTO_WAIT)) {
         const forced = foe.part.next?.() ?? null;
         const may = def.attacks.filter((one) => foe.part.ready?.(one.name) ?? true);
-        bossUse(forced ?? (may[Math.floor(roll() * may.length)] ?? def.attacks[0])?.name ?? '');
+        const basic = def.basic;
+        const skill = basic ? may.find((one) => !basic.includes(one.name))?.name : undefined;
+        const plain = basic ? basic[Math.floor(roll() * basic.length)] : (may[Math.floor(roll() * may.length)] ?? def.attacks[0])?.name;
+        bossUse(forced ?? skill ?? plain ?? '');
       }
 
       for (const fighter of fighters) {

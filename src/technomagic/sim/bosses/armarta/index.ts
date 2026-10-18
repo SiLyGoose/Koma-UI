@@ -1,5 +1,5 @@
 import type { BossDef } from '../boss';
-import { DRAGON_TIME, dragonStages, FIRST, OPEN } from '../dragon/common';
+import { DRAGON_TIME, dragonStages, restFor, FIRST, OPEN } from '../dragon/common';
 import { MOVES, PLANS } from '../dragon/moves';
 import { armartaPart } from './skills';
 
@@ -13,6 +13,9 @@ export const ARMARTA: BossDef = {
   name: 'Armarta',
   stats: { hp: FIRST.hp, deals: 'physical', physical: FIRST.def, magical: FIRST.def, ...OPEN },
   stages: dragonStages(),
+  // (Its bite its plain attack, every 2.4 seconds as the playtest's.)
+  basic: ['bite'],
+  rest: restFor(2.4),
   time: DRAGON_TIME,
   attacks: [
     { name: 'bite', label: 'Bite' },
