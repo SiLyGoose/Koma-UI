@@ -1,8 +1,10 @@
-import { NONE } from '../../combat/damage';
+import { NONE, type BossStats } from '../../combat/damage';
 import { put, type Status } from '../../combat/status';
 import type { Buff } from '../../shown';
 import type { Fight, Fighter } from '../../types';
-import type { BossPart, BossScale } from '../boss';
+import type { BossDef, BossPart, BossScale } from '../boss';
+import { MINIONS } from './minions';
+import { WAVES, type WaveMinion } from './waves';
 import { DRAGON_GAUGE, withGauge } from '../gauge';
 import { HEROES_DEAL, HEROES_HP, PARTY } from '../playtest';
 
@@ -147,6 +149,23 @@ export const ULTIMATE = 0.7;
 export const opened = (fight: Fight): boolean => fight.foe.hp <= fight.foe.maxHp * ULTIMATE;
 /** How long a dragon rests after an attack: as long as makes its bite take its plain attack's time, `seconds` (the playtest's). */
 export const restFor = (seconds: number): number => seconds - 1.7;
+
+/**
+ * A dragon's raid's waves (./waves.ts: the Hard Dragon Raid's): at 70% of its health it flies off (the playtest's OnHpRatio 700,
+ * BeginResting), its minions come in two waves on the platforms on, and it comes back for the last, its landing taking half of
+ * what health every hero has left and knocking them down 1.5 seconds (its OnBeginPlaying(0, 3): $ByMEHp4(500), Knockback).
+ */
+export const dragonWaves = (id: string): NonNullable<BossDef['waves']> => ({ at: (stage) => WAVES[id]?.[stage - 1] ?? [], leaves: ULTIMATE, lands: { share: 0.5, knock: 1.5 } });
+
+/**
+ * A minion of a wave (./waves.ts) as the dragons are scaled: its health the game's as much less as the heroes here deal and
+ * as much more as there are of them (alone, as much less again); its ATK (what its blows are shares of: ./minions.ts) as much
+ * less as the heroes here have less health; its defenses the game's; and the rest as the hard dragons' (OPEN).
+ */
+export function minionOf(minion: WaveMinion, solo: boolean): { hp: number; atk: number; stats: BossStats } {
+  const hp = ((minion.hp * HEROES_DEAL * PARTY) / KR_PARTY) * (solo ? SOLO / PARTY : 1);
+  return { hp, atk: minion.atk * HEROES_HP, stats: { hp, deals: MINIONS[minion.kind].deals, magical: minion.def[0], physical: minion.def[1], ...OPEN } };
+}
 
 /** A dragon's part: its own (`own`), with its CC Gauge (../gauge.ts: the Hard Dragon Raid's). */
 export const withDragonGauge = (fight: Fight, own: BossPart): BossPart => withGauge(fight, own, DRAGON_GAUGE);

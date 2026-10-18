@@ -1,5 +1,5 @@
 import type { BossDef, BossPart } from './bosses/boss';
-import type { HeroStats, PerKind } from './combat/damage';
+import type { DamageType, HeroStats, PerKind } from './combat/damage';
 import type { Status } from './combat/status';
 import type { Ability, HeroDef, HeroPart } from './heroes/kit';
 import type { HeroMove } from './heroes/moves';
@@ -163,9 +163,16 @@ export interface Fighter {
   z: number;
 }
 
-/** The boss in the fight. */
+/** What there is to know of an enemy: what it is known by, and its stats (a boss's: BossDef; a minion's, at its wave's stage). */
+export type FoeDef = Pick<BossDef, 'id' | 'name' | 'stats'>;
+
+/** An enemy in the fight: the boss, or a minion of a wave of its raid (./bosses/dragon/minions.ts). */
 export interface Foe {
-  readonly def: BossDef;
+  /** Its place among the enemies (the boss is 0; minions after it, as they come). */
+  readonly index: number;
+  /** 'boss', or the minion's kind. */
+  readonly kind: string;
+  readonly def: FoeDef;
   /** What its skills do beyond hurting whoever they land on. */
   part: BossPart;
   hp: number;
@@ -177,6 +184,11 @@ export interface Foe {
   slowRate: number;
   /** What the heroes' skills have left on it for a while. */
   statuses: Status<Tone>[];
+  /** Where it stands on the field (along it, toward the camera). */
+  x: number;
+  z: number;
+  /** Off the field for now (the boss flown off between waves), or beaten: no blow reaches it. */
+  away: boolean;
 }
 
 /** What a hero's part, or the boss's, can ask of the fight. */
@@ -184,7 +196,18 @@ export interface Fight {
   readonly fighters: readonly Fighter[];
   /** The heroes on the field, in the order they came onto it (there may be none). */
   readonly field: readonly Fighter[];
+  /**
+   * The enemy in question: as a hero's move lands (or what it has to do with anything), the one it is fighting; as a blow
+   * lands, the one it lands on; as an enemy's own move goes, that one; and otherwise the boss (or, while it is away, the
+   * first minion standing).
+   */
   readonly foe: Foe;
+  /** The boss; and every enemy that has come onto the field, the boss first, beaten or not. */
+  readonly boss: Foe;
+  readonly foes: readonly Foe[];
+  /** The wave of its raid the fight is on (1 to `waves`), and how many it has. */
+  readonly wave: number;
+  readonly waves: number;
   /** What is on every hero for a while. */
   readonly party: Status<Buff>[];
   /** The raid's stage (1 to the boss's last: stagesOf). */
@@ -213,7 +236,7 @@ export interface Fight {
    * A blow of the boss's lands on a hero: `amount` before what is on the boss, the hero's defense against
    * the boss's kind of damage, and a dodge or a block (`blockable`, unless it says not: then it can be neither). Returns what it took.
    */
-  hurt(fighter: Fighter, amount: number, blockable?: boolean): number;
+  hurt(fighter: Fighter, amount: number, blockable?: boolean, kind?: DamageType): number;
   /** A hero is knocked down: what it was doing is cut short, and it can do nothing for so many seconds (fewer for its CC resist). */
   knock(fighter: Fighter, seconds: number): void;
   /** What a hero was doing is cut short (it reels a moment). */

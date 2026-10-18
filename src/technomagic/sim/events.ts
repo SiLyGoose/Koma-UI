@@ -40,16 +40,28 @@ export type SimEvent =
   | { kind: 'stagger'; who: number }
   /** A part of a hero's move lands (`part` counts them from 0; an attack's fifth is its hardest). */
   | { kind: 'land'; who: number; move: HeroMove; part: number }
-  /** A blow of the boss's reaches a hero: blocked, or it flinches. */
-  | { kind: 'hurt'; who: number; blocked: boolean }
-  /** A number to come off a hero or the boss (`mend`: the boss's own healing, shown higher up). */
-  | { kind: 'number'; on: number | 'boss'; amount: number; type: NumberKind; mend?: boolean }
+  /** A blow of the boss's (or, `by`, another enemy's) reaches a hero: blocked, or it flinches. */
+  | { kind: 'hurt'; who: number; blocked: boolean; by?: number }
+  /** A number to come off a hero or an enemy (`on` 'boss': the boss, or the enemy `foe`; `mend`: the boss's own healing, shown higher up). */
+  | { kind: 'number'; on: number | 'boss'; foe?: number; amount: number; type: NumberKind; mend?: boolean }
   /** Something a hero (`who`), or the boss (null), does that is drawn its own way, on `targets`. */
   | { kind: 'cue'; who: number | null; name: string; targets: number[] }
   /** The boss begins an attack; is hit; is stunned (knocked `down`); slowed. */
   | { kind: 'boss-use'; attack: string }
-  | { kind: 'boss-hit' }
+  | { kind: 'boss-hit'; foe?: number }
   | { kind: 'boss-daze'; seconds: number; down: boolean }
   | { kind: 'boss-slow'; rate: number; seconds: number }
+  /**
+   * A raid of more than one wave: the heroes move on to the next (`wave` of `of`), and what is on it comes onto the field
+   * (an enemy, `foe` by its index, of its kind, where it stands); the boss flies off the field, and comes back.
+   */
+  | { kind: 'wave'; wave: number; of: number }
+  | { kind: 'foe-enter'; foe: number; minion: string; x: number; z: number }
+  | { kind: 'boss-leave' }
+  | { kind: 'boss-return' }
+  /** An enemy not the boss begins a move (its plain attack, or its skill); is stunned; is beaten. */
+  | { kind: 'foe-use'; foe: number; move: 'attack' | 'skill' }
+  | { kind: 'foe-daze'; foe: number; seconds: number }
+  | { kind: 'foe-down'; foe: number }
   /** The fight is over. */
   | { kind: 'end'; result: Result };

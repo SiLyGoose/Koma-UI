@@ -1,5 +1,6 @@
 import { HERO_LEVEL, type BossStats, type DamageType } from '../combat/damage';
 import type { Mark } from '../shown';
+import type { WaveMinion } from './dragon/waves';
 import type { Fight, Fighter } from '../types';
 
 /*
@@ -109,6 +110,12 @@ export interface BossDef {
   rest?: number;
   /** How long its raid lasts (seconds; none said: ../rules.ts RAID_TIME). */
   time?: number;
+  /**
+   * A raid of more than one wave (the Hard Dragon Raid's): its waves past the first at a stage, each its minions; the share
+   * of its health it leaves the field at (the first wave over: it flies off); and as it comes back for the last, what its
+   * landing takes of every hero (a share of its health left) and how long it knocks them down.
+   */
+  waves?: { at(stage: number): readonly (readonly WaveMinion[])[]; leaves: number; lands: { share: number; knock: number } };
   /** Its part in a fight, when its skills do more than hurt whoever they land on: made once, as the fight begins. */
   join?(fight: Fight): BossPart;
 }

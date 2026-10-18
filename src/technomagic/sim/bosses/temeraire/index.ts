@@ -1,5 +1,5 @@
 import type { BossDef } from '../boss';
-import { DRAGON_TIME, dragonStages, restFor, FIRE_ATK, FIRST, OPEN } from '../dragon/common';
+import { DRAGON_TIME, dragonStages, restFor, FIRE_ATK, FIRST, OPEN, dragonWaves } from '../dragon/common';
 import { MOVES, PLANS } from '../dragon/moves';
 import { temerairePart } from './skills';
 
@@ -17,6 +17,7 @@ export const TEMERAIRE: BossDef = {
   basic: ['bite'],
   rest: restFor(2.4),
   time: DRAGON_TIME,
+  waves: dragonWaves('temeraire'),
   attacks: [
     { name: 'bite', label: 'Bite' },
     { name: 'claw', label: 'Claw' },

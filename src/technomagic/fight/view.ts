@@ -14,6 +14,7 @@ import { HERO_FX } from '../heroes/fx';
 import { lookOf } from '../heroes/looks';
 import type { Popup } from '../hud/numbers';
 import { HERO_TURN, HERO_X, MARCH, MARCH_FROM, marchLeft, TICK, type Sim } from '../sim';
+import type { BossDef } from '../sim/bosses/boss';
 import { COMMON_FX, type BossFx, type FxScene } from './fx';
 import { makeKrBoss, makeKrMoves } from './kr-moves';
 import { makeFightSounds } from './sounds';
@@ -224,10 +225,10 @@ export function makeFightView({ scene, sim, bodies, boss, bossLook, bossFx, effe
   };
   /** How long one of the boss's attacks takes, all its parts' moves done, as slow as it is now. */
   const lasts = (attack: string): number => {
-    const { plans, moves } = sim.foe.def;
+    const { plans, moves } = sim.boss.def as BossDef;
     const parts = new Map<string, number>();
     for (const [move, by, after] of plans[attack] ?? []) parts.set(by, (parts.get(by) ?? 0) + after + (moves[move]?.length ?? 0));
-    return Math.max(0, ...parts.values()) / (sim.foe.slowed > 0 ? sim.foe.slowRate : 1);
+    return Math.max(0, ...parts.values()) / (sim.boss.slowed > 0 ? sim.boss.slowRate : 1);
   };
 
   // The boss spits at the hero it is going for, at its chest (with no one, where one would stand).
@@ -410,7 +411,7 @@ export function makeFightView({ scene, sim, bodies, boss, bossLook, bossFx, effe
         hero.update(lying.still ?? now, lying.still === null ? moved : 0);
         if (!down && lying.over <= 0) fallen.delete(who);
       }
-      signs.boss(sim.foe.statuses, bossHit);
+      signs.boss(sim.boss.statuses, bossHit);
       wards.update(dt);
       signs.update(dt);
       effects.update(dt);

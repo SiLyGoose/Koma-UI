@@ -1,5 +1,5 @@
 import type { BossDef } from '../boss';
-import { DRAGON_TIME, dragonStages, restFor, FIRST, OPEN } from '../dragon/common';
+import { DRAGON_TIME, dragonStages, restFor, FIRST, OPEN, dragonWaves } from '../dragon/common';
 import { MOVES, PLANS } from '../dragon/moves';
 import { scalaxiaPart } from './skills';
 
@@ -19,6 +19,7 @@ export const SCALAXIA: BossDef = {
   basic: ['bite'],
   rest: restFor(2.3),
   time: DRAGON_TIME,
+  waves: dragonWaves('scalaxia'),
   attacks: [
     { name: 'bite', label: 'Bite' },
     { name: 'claw', label: 'Claw' },

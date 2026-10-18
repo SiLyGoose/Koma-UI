@@ -925,7 +925,7 @@ async function start(): Promise<void> {
     }
 
     // The boss's health, and what is the matter with it.
-    bossBar.draw(sim.foe.hp / sim.foe.maxHp, sim.marks(), sim.gauge());
+    bossBar.draw(sim.boss.hp / sim.boss.maxHp, sim.marks(), sim.gauge());
     timer.draw(sim.left);
     // Over (in a room: once the bot has said what it gave, and this page has drawn the fight to where it ended; or as far
     // as the bot took it, should this page's have parted from the bot's, or the bot's have failed: the bot's word is the one).
@@ -933,13 +933,13 @@ async function start(): Promise<void> {
     // (OVER_WAIT) before what it gave is shown; lost, the party fallen for as long.
     const ended = lock ? overWaiting() !== null && (sim.result !== null || sim.tick >= lock.upTo) : sim.result !== null;
     if (overShown !== sim && ended) {
-      if (ending?.sim !== sim) ending = { sim, at: now, from: sim.foe.hp };
+      if (ending?.sim !== sim) ending = { sim, at: now, from: sim.boss.hp };
       const won = lock ? overWaiting()?.result === 'won' : sim.result === 'won';
-      if (won && sim.foe.hp > 0) {
-        sim.foe.hp = Math.max(0, sim.foe.hp - (ending.from * dt) / DRAIN);
+      if (won && sim.boss.hp > 0) {
+        sim.boss.hp = Math.max(0, sim.boss.hp - (ending.from * dt) / DRAIN);
         ending.at = now;
         // (Down it goes, as it does when this page's fight beats it.)
-        if (sim.foe.hp <= 0) sim.events.push({ kind: 'boss-daze', seconds: OVER_WAIT + 1, down: true });
+        if (sim.boss.hp <= 0) sim.events.push({ kind: 'boss-daze', seconds: OVER_WAIT + 1, down: true });
       } else if (now - ending.at >= OVER_WAIT) {
         overShown = sim;
         stageEnd(playing, won);
