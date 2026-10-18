@@ -1,4 +1,4 @@
-import { art, el, heroGear, heroMarks, itemIcons, krStars, SLOT_NAME, tierMark, utTier, uwTier } from '../shared/items';
+import { art, el, heroGear, heroMarks, isTmPiece, itemIcons, krStars, SLOT_NAME, tierMark, utTier, uwTier } from '../shared/items';
 import { sleep } from '../shared/util';
 import type { ApiResult } from '../site/session';
 import type { BannerContext } from './context';
@@ -240,7 +240,7 @@ function card(pull: BannerPull): HTMLElement {
   const face = el('span', 'item wish-card');
   face.dataset.stars = String(pull.stars);
   // (A hero's gear: its marks and its stars, King's Raid's.)
-  if (heroGear(pull)) face.append(art(pull.itemId, pull.slot), ...heroMarks(pull), krStars(pull.level));
+  if (heroGear(pull)) face.append(art(pull.itemId, pull.slot), ...heroMarks(pull), krStars(pull.level, pull.level, isTmPiece(pull.itemId)));
   else face.append(art(pull.itemId, pull.slot), tierMark(pull.stars), el('span', 'item-curl'));
   return face;
 }

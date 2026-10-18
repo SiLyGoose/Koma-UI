@@ -21,6 +21,13 @@
   filter: drop-shadow(0 1px 1px rgb(0 0 0 / 55%));
 }
 
+/* A TechnoMagic piece's: King's Raid's blue star, square with its glow, a little larger to match the gold's points. */
+.kr-star.tm {
+  aspect-ratio: 1;
+  filter: none;
+  transform: scale(1.15);
+}
+
 /* A place not reached yet: KR's dark star, a little faded. */
 .kr-star.off {
   opacity: 0.8;

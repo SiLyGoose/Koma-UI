@@ -49,3 +49,33 @@
 .slot-frame:has(> .tier-mark) {
   container-type: inline-size;
 }
+
+/*
+ * Its card's frame: King's Raid's grade frame in its tier's colour (its Equip_Grade 2, 3, 4 and 7: green, cyan, magenta,
+ * red, as the tiers' colours), laid over the card's edge (its inside is clear), the card's own coloured edge giving way.
+ */
+.tier-frame {
+  position: absolute;
+  z-index: 1;
+  inset: -2px;
+  border-radius: inherit;
+  background: url('/kr/ui/tier-frame-1.webp') center / 100% 100% no-repeat;
+  pointer-events: none;
+}
+
+.tier-frame[data-tier='2'] {
+  background-image: url('/kr/ui/tier-frame-2.webp');
+}
+
+.tier-frame[data-tier='3'] {
+  background-image: url('/kr/ui/tier-frame-3.webp');
+}
+
+.tier-frame[data-tier='4'] {
+  background-image: url('/kr/ui/tier-frame-4.webp');
+}
+
+.item:has(> .tier-frame),
+.slot-frame:has(> .tier-frame) {
+  border-color: transparent;
+}

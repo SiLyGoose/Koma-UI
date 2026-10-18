@@ -1,7 +1,7 @@
 import { type Busy, doneMark, working } from '../ui';
 import { coin, points } from '../util';
 import { armoryOrder, type TmSort } from './gear';
-import { el, hasLevels, heroGear, itemFace, krStars, levelLabel, lockBadge, mainStatLine, rich, type Slot, SLOT_NAME, type Stars, tierOf } from './items';
+import { el, hasLevels, heroGear, isTmPiece, itemFace, krStars, levelLabel, lockBadge, mainStatLine, rich, type Slot, SLOT_NAME, type Stars, tierOf } from './items';
 import type { MainStat } from '../../protocol/items';
 import { matchesStars, type StarChoice } from './armory-filter/armory-filter';
 import { padlock } from './padlock';
@@ -434,7 +434,7 @@ export function showDetail(box: HTMLElement, copy: ArmoryCopy | undefined, parts
   if (hasLevels(copy)) {
     if (copy.level >= copy.maxLevel) kind.append(el('span', 'detail-max', 'MAX'));
     const rank = el('p', 'detail-rank detail-stars');
-    rank.append(krStars(copy.level, copy.maxLevel));
+    rank.append(krStars(copy.level, copy.maxLevel, isTmPiece(copy.itemId)));
     info.append(rank);
   } else if (copy.mainStat) info.append(mainStatLine(copy.mainStat));
   info.append(...(parts.info ?? []));

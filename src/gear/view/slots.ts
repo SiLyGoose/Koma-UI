@@ -1,4 +1,4 @@
-import { art, el, krStars, type Slot, SLOT_NAME, tierMark } from '../../shared/items';
+import { art, el, krStars, type Slot, SLOT_NAME, tierFrame, tierMark } from '../../shared/items';
 import { copyById, type GearContext } from './context';
 
 /** The three slots round the character: what's in each (or that it's empty). */
@@ -17,7 +17,7 @@ export function renderSlots(ctx: GearContext): void {
     const frame = el('span', 'slot-frame');
     frame.append(art(copy?.itemId ?? null, slot));
     if (copy) {
-      frame.append(tierMark(copy.stars), krStars(copy.level));
+      frame.append(tierFrame(copy.stars), tierMark(copy.stars), krStars(copy.level));
     }
     button.append(frame, el('span', 'slot-name', SLOT_NAME[slot]));
   }

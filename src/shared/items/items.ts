@@ -120,6 +120,13 @@ export function tierMark(n: number): HTMLElement {
   return mark;
 }
 
+/** The members' own gear's tier as its card's frame: King's Raid's grade frame of its tier's colour (styles/tier.css), over the card's edge. */
+export function tierFrame(n: number): HTMLElement {
+  const frame = el('span', 'tier-frame');
+  frame.dataset.tier = String(n);
+  return frame;
+}
+
 /**
  * TechnoMagic gear's marks, as King's Raid draws its TM gear: a "TM" tab over its top left corner, and over its
  * top right one a tab with its class's symbol (none for gear of no class; a "?" for ANY_CLASS: a set's pieces, whichever
@@ -218,16 +225,18 @@ export const isTmPiece = (itemId: string): boolean => /^(perseverance|hope|autho
 export const levelLabel = (copy: { level: number }): string => `★${copy.level}`;
 
 /**
- * A copy's stars (its level), as King's Raid draws them on its gear (its own gold stars: public/kr/ui/): `level` lit, then
- * (with `max`) the rest dark. A hero's gear at 0★ has none lit.
+ * A copy's stars (its level), as King's Raid draws them on its gear (its own stars: public/kr/ui/): `level` lit, then (with
+ * `max`) the rest dark. Gold, but (`tm`) a TechnoMagic piece's blue (King's Raid's TechnoMagic_Equip_Star). A hero's gear at
+ * 0★ has none lit.
  */
-export function krStars(level: number, max = level): HTMLElement {
+export function krStars(level: number, max = level, tm = false): HTMLElement {
   const row = el('span', 'kr-stars');
   row.setAttribute('role', 'img');
   row.setAttribute('aria-label', `${level} star${level === 1 ? '' : 's'}`);
   for (let i = 1; i <= max; i++) {
-    const star = el('img', i <= level ? 'kr-star' : 'kr-star off');
-    star.src = `${import.meta.env.BASE_URL}kr/ui/star-${i <= level ? 'on' : 'off'}.webp`;
+    const lit = i <= level;
+    const star = el('img', `kr-star${lit ? '' : ' off'}${lit && tm ? ' tm' : ''}`);
+    star.src = `${import.meta.env.BASE_URL}kr/ui/star-${lit ? (tm ? 'tm' : 'on') : 'off'}.webp`;
     star.alt = '';
     star.draggable = false;
     row.append(star);
@@ -238,15 +247,15 @@ export function krStars(level: number, max = level): HTMLElement {
 /**
  * What's on a copy's card, whatever the card is (an armory button, the anvil's, the details'): its picture, its level as
  * King's Raid's stars (krStars; none with the one level: hasLevels), and what kind it is: the members' own gear its tier
- * (T1 to T4) and the parchment's curl; a hero's gear its marks, a unique weapon's or unique treasure's with its hero, a
+ * (T1 to T4, and King's Raid's grade frame) and the parchment's curl; a hero's gear its marks (a TechnoMagic piece's stars blue), a unique weapon's or unique treasure's with its hero, a
  * TechnoMagic piece's with its class (`itemClass`, or `class` as the heroes page has it), none for a dragon set's piece or
  * an artifact. `lazy`: a card in a long list (art).
  */
 export function itemFace(copy: { level: number; maxLevel?: number; itemId: string; slot: Slot; stars: number; heroOnly?: boolean; uniqueWeapon?: string | null; uniqueTreasure?: Treasure; itemClass?: string | null; class?: string | null }, lazy = false): HTMLElement[] {
   const picture = art(copy.itemId, copy.slot, lazy);
-  const level = hasLevels(copy) ? [krStars(copy.level)] : [];
+  const level = hasLevels(copy) ? [krStars(copy.level, copy.level, isTmPiece(copy.itemId))] : [];
   if (heroGear(copy)) return [picture, ...heroMarks(copy), ...level];
-  return [tierMark(copy.stars), picture, ...level, el('span', 'item-curl')];
+  return [tierFrame(copy.stars), tierMark(copy.stars), picture, ...level, el('span', 'item-curl')];
 }
 
 /** A hero's gear's marks (itemFace): a unique weapon's or unique treasure's, a TechnoMagic piece's, or none. */

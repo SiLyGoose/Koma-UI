@@ -1,4 +1,4 @@
-import { art, drawSell, el, forgeLink, hasLevels, heroMarks, itemDetailsClosed, krStars, levelLabel, itemPicked, lockToggle, pruneSale, replacesNote, rich, sellsFor, showDetail, statBlocks, tmMarks, tmSections, treasureParts, treasureSection, upgradeButton, utMarks, uwMarks } from '../shared/items';
+import { art, drawSell, el, forgeLink, hasLevels, heroMarks, isTmPiece, itemDetailsClosed, krStars, levelLabel, itemPicked, lockToggle, pruneSale, replacesNote, rich, sellsFor, showDetail, statBlocks, tmMarks, tmSections, treasureParts, treasureSection, upgradeButton, utMarks, uwMarks } from '../shared/items';
 import { classBadge, className, FACE, HERO_PART_NAME, HERO_SLOT_KIND, HERO_SLOT_PART, heroCut, heroPicture, skillText, STAGE_ZOOM, type HeroView, type HeroCopy, type HeroSlot } from '../shared/heroes';
 import { built } from '../shared/built';
 import { working } from '../shared/ui';
@@ -222,7 +222,7 @@ function renderSlots(ctx: HeroesContext): void {
     const frame = el('span', 'slot-frame');
     frame.append(art(copy?.itemId ?? null, kind));
     // (A hero's gear: its marks (a unique weapon's or treasure's, a TechnoMagic piece's) and its stars, King's Raid's.)
-    if (copy) frame.append(...heroMarks(copy), krStars(copy.level));
+    if (copy) frame.append(...heroMarks(copy), krStars(copy.level, copy.level, isTmPiece(copy.itemId)));
     button.append(frame, el('span', 'slot-name', slotName(slot)));
   }
 }
