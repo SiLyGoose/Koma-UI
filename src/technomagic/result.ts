@@ -11,7 +11,8 @@ import { KEPT } from './assets';
  * not TechnoMagic gear). A click on a piece opens its details over the screen (what it
  * is, its potentials, its set's effect and its additional skill); a click outside them, their ✕ or Escape goes back.
  * Under those, what everyone else found (their pieces open the same way), and the way on: run it again, back to getting
- * ready, or back to the games.
+ * ready, or back to the games. Staged (the heroes posing behind it: ../main.ts), what was found shows first, over a dark
+ * screen, until a tap anywhere but on a piece; then the way on.
  */
 
 /** One of the ways on, along the bottom. */
@@ -59,6 +60,13 @@ export function makeResult(root: HTMLElement): Result {
   const others = root.querySelector('.tm-others') as HTMLElement;
   const actions = root.querySelector('.tm-result-actions') as HTMLElement;
   const detail = root.querySelector('.tm-loot') as HTMLElement;
+  const tap = el('p', 'tm-tap', 'Tap to continue');
+  actions.before(tap);
+  // What was found shown over the dark (staged): a tap anywhere but on a piece, or on its details, goes on.
+  root.addEventListener('click', (event) => {
+    if (!root.classList.contains('rewarding') || (event.target as Element).closest('.tm-tile, .tm-loot')) return;
+    root.classList.remove('rewarding');
+  });
 
   function closeDetail(): void {
     if (detail.hidden) return;
@@ -182,6 +190,7 @@ export function makeResult(root: HTMLElement): Result {
         }),
       );
       others.hidden = shown.others.length === 0;
+      root.classList.toggle('rewarding', root.classList.contains('staged') && !(rewards.hidden && others.hidden));
       actions.replaceChildren(
         ...shown.actions.map(({ label, main, run }) => {
           const button = el('button', `action ${main ? 'main' : 'secondary'}`, label);
@@ -194,6 +203,7 @@ export function makeResult(root: HTMLElement): Result {
     },
     hide() {
       closeDetail();
+      root.classList.remove('rewarding');
       root.hidden = true;
     },
   };

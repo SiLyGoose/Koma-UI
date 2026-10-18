@@ -347,8 +347,9 @@
 
 /*
  * The fight over (../main.ts stageEnd): this player's heroes in a row before a sheet of light, the page's HUD put away;
- * over them, the title across the top (gold for a win, steel for a loss), what was found along a dark band at the foot,
- * and the way on beneath it, to the right.
+ * over them, the title across the top (gold for a win, steel for a loss). First what was found, on a band in the middle
+ * of a dark screen, "Tap to continue" under it (.rewarding: ../result.ts); then the heroes alone, and the way on at the
+ * foot, to the right.
  */
 body.tm-ended :is(#boss, #overheads, #numbers, #meter, #timer, #party, #actions, #hint) {
   visibility: hidden;
@@ -400,11 +401,13 @@ body.tm-ended :is(#boss, #overheads, #numbers, #meter, #timer, #party, #actions,
   animation: tm-rise 0.5s 0.3s both;
 }
 
-/* What was found: a dark band across the foot of the screen, under its name. */
+/* What was found: a band across the middle of the darkened screen, under its name. */
 .tm-result.staged .tm-rewards {
   position: relative;
   width: min(920px, 100%);
   margin: auto auto 0;
+  /* (Over the dark: never under it.) */
+  z-index: 1;
   padding: 26px 22px 14px;
   box-sizing: border-box;
   background: linear-gradient(90deg, transparent, rgb(12 9 22 / 82%) 14%, rgb(12 9 22 / 82%) 86%, transparent);
@@ -437,16 +440,70 @@ body.tm-ended :is(#boss, #overheads, #numbers, #meter, #timer, #party, #actions,
   color: #efe6cf;
 }
 
-/* (Nothing found: the way on still at the foot.) */
-.tm-result.staged .tm-rewards[hidden] + .tm-others[hidden] + .tm-result-actions {
-  margin-top: auto;
+.tm-result .tm-tap {
+  display: none;
+}
+
+/* Showing what was found: the screen darkened under it, the way on not yet. */
+.tm-result.staged.rewarding {
+  cursor: pointer;
+}
+
+.tm-result.staged.rewarding::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgb(4 3 10 / 74%);
+  animation: fade-in 0.4s 0.4s both;
+}
+
+.tm-result.staged .message-card {
+  position: relative;
+}
+
+.tm-result.staged .tm-loot {
+  z-index: 2;
+}
+
+.tm-result.staged.rewarding .tm-tap {
+  display: block;
+  position: relative;
+  margin: auto 0 0;
+  color: #efe6cf;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 4px #000;
+  animation:
+    tm-rise 0.5s 0.9s both,
+    tm-blink 1.6s 1.4s ease-in-out infinite;
+}
+
+.tm-result.staged.rewarding :is(.message-text, .tm-result-actions) {
+  display: none;
+}
+
+.tm-result.staged.rewarding .tm-others {
+  position: relative;
+}
+
+/* Gone on: the heroes alone, the way on at the foot. */
+.tm-result.staged:not(.rewarding) :is(.tm-rewards, .tm-others) {
+  display: none;
 }
 
 .tm-result.staged .tm-result-actions {
   justify-content: flex-end;
   width: min(920px, 100%);
-  margin: 12px auto 0;
-  animation: tm-rise 0.5s 0.7s both;
+  margin: auto auto 0;
+  animation: tm-rise 0.5s 0.2s both;
+}
+
+@keyframes tm-blink {
+  50% {
+    opacity: 0.35;
+  }
 }
 
 @keyframes tm-title-in {

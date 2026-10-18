@@ -70,7 +70,7 @@ const FOLLOW = 0.85;
 type Who = number | 'boss';
 
 /** How far apart the heroes stand in a row as the fight is over (celebrate()). */
-const ROW = 1.7;
+const ROW = 2.7;
 
 export interface FightView {
   /** What each blow took and each heal gave since the page last looked, for it to show coming off whom it was (the page empties it). */

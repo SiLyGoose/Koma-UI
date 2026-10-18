@@ -201,7 +201,7 @@ interface Controls {
  */
 const ROW_Z = 2;
 const ROW_LOOK = 1.7;
-const ROW_HIGH = 6.6;
+const ROW_HIGH = 7.2;
 const STING = 3.2;
 
 interface Game {
@@ -335,7 +335,7 @@ async function start(): Promise<void> {
     curtain.hide();
     stage.focus(null);
     document.body.classList.remove('tm-ended');
-    resultAt.classList.remove('staged', 'won', 'lost');
+    resultAt.classList.remove('staged', 'won', 'lost', 'rewarding');
   }
   const hideResults = results.hide;
   results.hide = () => {
