@@ -26,8 +26,10 @@ const HP = KR_HP.map((hp, i) => (i < 3 ? FIRST_HP * ((KR_HP[3] as number) / FIRS
 const DEF = [117_000, 128_300, 142_000, 175_300, 222_300, 300_000, 380_000, 470_000];
 const ROOM_HP = 1.7;
 const DEALS = [2, 2.25, 2.5, 2.75, 3, 3.25, 3.5, 3.75];
+/** Its level at each stage, as King's Raid's playtest has its Galgoria raid (CampaignWaveTable, chapter 10). */
+const LEVEL = [88, 90, 95, 100, 108, 110, 116, 125];
 const scales = (times: number): BossScale[] =>
-  HP.map((hp, i) => ({ hp: (hp / (HP[0] as number)) * times, deals: DEALS[i] as number, defense: (DEF[i] as number) / (DEF[0] as number) }));
+  HP.map((hp, i) => ({ hp: (hp / (HP[0] as number)) * times, deals: DEALS[i] as number, defense: (DEF[i] as number) / (DEF[0] as number), level: LEVEL[i] as number }));
 
 /**
  * Galgoria: a chimera of three heads that spits venom. Its blows are magical. It neither blocks nor dodges, and takes

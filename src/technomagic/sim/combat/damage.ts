@@ -58,12 +58,14 @@ export interface Stats extends Defenses {
 }
 
 /**
- * A boss's, besides: its chance of a critical blow on a hero (less the hero's crit resist), and its CC
- * resist (a stun on it lasts the shorter by as much, less the stunning hero's accuracy). In points.
+ * A boss's, besides: its chance of a critical blow on a hero (less the hero's crit resist), its CC resist (a stun on it
+ * lasts the shorter by as much, less the stunning hero's accuracy), and its penetration. In points.
  */
 export interface BossStats extends Stats {
   crit: number;
   resist: number;
+  /** Its penetration (points): what of a hero's defense its blows see past (none said: none). */
+  pen?: number;
 }
 
 /**
@@ -90,21 +92,42 @@ export interface HeroStats extends Stats {
  */
 export const ATK = 19_592;
 /**
- * What a defense takes off a blow, as King's Raid has it (its community's formula, against a level 90 boss): DEF_MOST
- * of the blow at most, half of that at DEF_CURVE, never all of it. Defense is King's Raid's own size of DEF.
+ * What a defense takes off a blow, as King's Raid has it (its playtest's StatController.CalculateDamage): DEF_MOST of
+ * the blow at most, and as much of that as its defense is of the most that counts against its attacker's level (`reach`:
+ * reachAt). Defense is King's Raid's own size of DEF.
  */
-const DEF_MOST = 0.9817;
-const DEF_CURVE = 19_360.37;
+const DEF_MOST = 0.9;
+/** The level a hero fights at (its reach, for a boss's defense). */
+export const HERO_LEVEL = 100;
+/**
+ * The most defense that counts against an attacker of each level from 70 (King's Raid's DefenceLevelTable): straight from
+ * one of these levels to the next, and on past the last as from the one before.
+ */
+const REACH: readonly (readonly [level: number, most: number])[] = [
+  [70, 155_459],
+  [80, 196_561],
+  [90, 198_457],
+  [100, 294_062],
+  [130, 470_477],
+];
+/** The most defense that counts against an attacker of `level`. */
+export function reachAt(level: number): number {
+  let i = 1;
+  while (i < REACH.length - 1 && level > (REACH[i] as readonly [number, number])[0]) i++;
+  const [l0, m0] = REACH[i - 1] as readonly [number, number];
+  const [l1, m1] = REACH[i] as readonly [number, number];
+  return Math.max(1, m0 + ((m1 - m0) * (level - l0)) / (l1 - l0));
+}
 /** A blocked blow does this much of what it would have (less its target's block DEF against that kind). */
 const BLOCKED = 0.5;
 
 /**
- * A blow of `amount` of a kind lands on `target`, from one with `pen` points of penetration: dodged (it
- * takes nothing), or what it takes once the target's defense against that kind (less what penetration
- * sees past) has worn it down, and whether it blocked it (then less again), and its Tough off what is left. `roll` is the
- * fight's chances (../sim/random.ts).
+ * A blow of `amount` of a kind lands on `target`, from one with `pen` points of penetration whose level has `reach`
+ * (reachAt): dodged (it takes nothing), or what it takes once the target's defense against that kind (less what
+ * penetration sees past) has worn it down, and whether it blocked it (then less again), and its Tough off what is left.
+ * `roll` is the fight's chances (../sim/random.ts).
  */
-export function strike(amount: number, type: DamageType, target: Defenses, pen: number, roll: () => number): { taken: number; blocked: boolean; dodged: boolean } {
+export function strike(amount: number, type: DamageType, target: Defenses, pen: number, reach: number, roll: () => number): { taken: number; blocked: boolean; dodged: boolean } {
   // (Each soft-capped: SOFT.)
   if (roll() < share(soft(target.dodge[type], SOFT.chance, SOFT.hard))) return { taken: 0, blocked: false, dodged: true };
   const blocked = roll() < share(soft(target.block[type], SOFT.chance, SOFT.hard));
@@ -112,6 +135,6 @@ export function strike(amount: number, type: DamageType, target: Defenses, pen: 
   // Its defense, then its block, then its Tough: each takes its share off what the one before let through.
   const kept = blocked ? Math.max(0, BLOCKED - soft((target.blockDef?.[type] ?? 0) * POINTS, SOFT.blockDef) / POINTS) : 1;
   const tough = 1 - share(soft(target.tough?.[type] ?? 0, SOFT.tough));
-  const cut = (DEF_MOST * defense) / (DEF_CURVE + defense);
+  const cut = DEF_MOST * Math.min(1, defense / reach);
   return { taken: amount * (1 - cut) * kept * tough, blocked, dodged: false };
 }

@@ -1,5 +1,5 @@
 import { scaleAt, stagesOf, type BossDef, type BossPart } from './bosses/boss';
-import { ATK, NONE, POINTS, share, soft, SOFT, strike } from './combat/damage';
+import { ATK, HERO_LEVEL, NONE, POINTS, reachAt, share, soft, SOFT, strike } from './combat/damage';
 import { accurate, amplified, away, blocking, bolstering, bound, critDamaging, critResisting, critTaking, critting, dealing, deals, defending, defends, filling, healing, pacing, piercing, put, resisting, stacked, takes, wear, type Status } from './combat/status';
 import type { Input, Logged, Result, SimEvent } from './events';
 import { geared } from './gear';
@@ -710,7 +710,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       const against = through ? { ...seen, physical: 0, magical: 0 } : { ...seen, physical: seen.physical * defending(foe.statuses, 'physical'), magical: seen.magical * defending(foe.statuses, 'magical') };
       // (Its DMG, all that makes it more, and what is on the boss that has it take more, add up: King's Raid's damage amplifiers.)
       const more = amplified([dmgTimes(by), attack, ...deals(by.statuses), by.perkDmg, skilled, by.part.deals?.() ?? 1, ...takes(foe.statuses, type)]);
-      const { taken, blocked, dodged } = strike(amount * (atk / POINTS) * atkTimes(by) * more * (critical ? critTimes : 1), type, against, pen + auras.pen + pierce + piercing(by.statuses), roll);
+      const { taken, blocked, dodged } = strike(amount * (atk / POINTS) * atkTimes(by) * more * (critical ? critTimes : 1), type, against, pen + auras.pen + pierce + piercing(by.statuses), reachAt(HERO_LEVEL), roll);
       if (dodged) {
         events.push({ kind: 'number', on: 'boss', amount: 0, type: 'dodged' });
         return false;
@@ -812,7 +812,9 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       if (nimbler > 0) stands.dodge = { physical: stands.dodge.physical + nimbler, magical: stands.dodge.magical + nimbler };
       // Now and then a crit, by the boss's crit chance less the hero's crit resist against its kind of damage (and what is on it adds).
       const critical = roll() < share(foe.def.stats.crit - target.critResist[type] - critResisting(target.statuses, type) - critResisting(party, type)) + critting(foe.statuses);
-      const { taken, blocked, dodged } = strike(amount * scaleAt(def, stage, solo).deals * dealing(foe.statuses) * rage(clock - RAID_TIME) * (critical ? CRIT : 1), type, blockable ? stands : { ...stands, block: NONE, dodge: NONE }, 0, roll);
+      // (Through its penetration, and as much of the hero's defense as counts against its level.)
+      const scale = scaleAt(def, stage, solo);
+      const { taken, blocked, dodged } = strike(amount * scale.deals * dealing(foe.statuses) * rage(clock - RAID_TIME) * (critical ? CRIT : 1), type, blockable ? stands : { ...stands, block: NONE, dodge: NONE }, foe.def.stats.pen ?? 0, reachAt(scale.level), roll);
       if (dodged) {
         target.nimble = 0;
         events.push({ kind: 'number', on: target.index, amount: 0, type: 'dodged' });

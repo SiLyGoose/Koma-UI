@@ -1,4 +1,4 @@
-import type { BossStats, DamageType } from '../combat/damage';
+import { HERO_LEVEL, type BossStats, type DamageType } from '../combat/damage';
 import type { Mark } from '../shown';
 import type { Fight, Fighter } from '../types';
 
@@ -65,11 +65,15 @@ export interface BossPart {
   gauge?(): number;
 }
 
-/** At a stage: so many times a boss's health, so many times as hard its blows, and so many times its defenses (none said: its own). */
+/**
+ * At a stage: so many times a boss's health, so many times as hard its blows, and so many times its defenses (none said: its
+ * own); and its level, as King's Raid has it there (how much of a hero's defense counts against its blows: ../combat/damage.ts).
+ */
 export interface BossScale {
   hp: number;
   deals: number;
   defense?: number;
+  level: number;
 }
 
 /** How many stages a boss has: the higher, the harder it is on the heroes (as its stages say). */
@@ -78,7 +82,7 @@ export const stagesOf = (def: BossDef): number => def.stages.room.length;
 /** A boss's scale at `stage` (1 to its last; past it, its last), alone or not. */
 export function scaleAt(def: BossDef, stage: number, solo: boolean): BossScale {
   const row = solo ? def.stages.solo : def.stages.room;
-  return row[Math.min(row.length, Math.max(1, Math.floor(stage) || 1)) - 1] ?? { hp: 1, deals: 1 };
+  return row[Math.min(row.length, Math.max(1, Math.floor(stage) || 1)) - 1] ?? { hp: 1, deals: 1, level: HERO_LEVEL };
 }
 
 export interface BossDef {

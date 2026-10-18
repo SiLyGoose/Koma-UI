@@ -29,7 +29,7 @@ export const GAUGE = {
 
 /*
  * Its stages (1 to 10) are King's Raid's Hard Dragon Raid's (its game data: MonsterTierTable, by CampaignWaveTable's
- * chapters 911 to 914), where all four dragons are the same: KR_DEF is their defense as it is; KR_ATK is their ATK, of
+ * chapters 911 to 914), where all four dragons are the same: KR_DEF is their defense as it is, KR_LEVEL their level; KR_ATK is their ATK, of
  * which how hard its blows are at each stage is (DEALS times stage 1's); and KR_HP is their health, of which its health
  * is (HP times). The game's own health is far less than its TechnoMagic Raid's (Galgoria's 20 billion), so HP is what
  * test fights found to make it the easier raid: 8 heroes on Auto in the usual King's Raid gear (UW R5, ATK potentials)
@@ -39,6 +39,7 @@ export const GAUGE = {
 const KR_HP = [9_262_000, 9_262_000, 9_262_000, 9_262_000, 9_262_000, 9_872_000, 12_390_000, 13_120_000, 15_930_000, 21_130_000];
 const KR_DEF = [79_200, 79_200, 79_200, 79_200, 79_200, 93_600, 115_200, 151_200, 183_600, 259_200];
 const KR_ATK = [809_600, 809_600, 809_600, 809_600, 809_600, 1_060_800, 1_280_000, 2_083_200, 2_529_600, 3_801_600];
+const KR_LEVEL = [77, 81, 85, 93, 108, 110, 110, 115, 115, 120];
 const HP = 12.5;
 const DEALS = 1.4;
 const ROOM_HP = 1.7;
@@ -53,6 +54,7 @@ export function dragonStages(): { room: BossScale[]; solo: BossScale[] } {
       hp: (hp / (KR_HP[0] as number)) * times,
       deals: DEALS * ((KR_ATK[i] as number) / (KR_ATK[0] as number)),
       defense: (KR_DEF[i] as number) / (KR_DEF[0] as number),
+      level: KR_LEVEL[i] as number,
     }));
   return { room: scales(1), solo: scales(1 / ROOM_HP) };
 }
