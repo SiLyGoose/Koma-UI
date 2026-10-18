@@ -47,7 +47,7 @@ export const ESTELLE_ASSETS: HeroAssets = {
       cheer: [{ clip: 'Estelle-Vox_Skill7_a', volume: 2.9, at: 0.016, own: true }, { clip: 'Buff-heal-02', volume: 2.7, at: 0.016 }, { clip: 'Bell_cast_02', volume: 2.7, at: 0.753 }, { clip: 'Bell_cast_03', volume: 2.7, at: 1.619 }, { clip: 'Bell_shot_07', volume: 2.7, at: 2.177 }, { clip: 'Bell_idle_01', volume: 2.7, at: 3.351 }],
       headwind: [{ clip: 'Estelle-Vox_Skill2_a', volume: 2.9, at: 0.748, own: true }, { clip: 'Bell_shot_04', volume: 2.7, at: 1.36 }],
     },
-    victory: [{ clip: 'Idle-Cloth-09', volume: 2.5, at: 0.454 }, { clip: 'Idle-cloth-01', volume: 2.5, at: 0.663 }, { clip: 'Idle-fall-01', volume: 2.5, at: 0.705 }, { clip: 'Estelle-Vox_Victory_a', volume: 3, at: 0.908, own: true }, { clip: 'Idle-Cloth-01', volume: 2.5, at: 1.868 }, { clip: 'Idle-cloth-07', volume: 2.5, at: 2.782 }, { clip: 'Idle-cloth-06', volume: 2.5, at: 3.266 }, { clip: 'Attack-Step-01', volume: 2.5, at: 4.439 }],
+    victory: [{ clip: 'Idle-Cloth-09~EFFECT2_Common', volume: 2.5, at: 0.454 }, { clip: 'Idle-cloth-01~EFFECT3_Common', volume: 2.5, at: 0.663 }, { clip: 'Idle-fall-01', volume: 2.5, at: 0.705 }, { clip: 'Estelle-Vox_Victory_a', volume: 3, at: 0.908, own: true }, { clip: 'Idle-cloth-01', volume: 2.5, at: 1.868 }, { clip: 'Idle-cloth-07', volume: 2.5, at: 2.782 }, { clip: 'Idle-cloth-06', volume: 2.5, at: 3.266 }, { clip: 'Attack-Step-01', volume: 2.5, at: 4.439 }],
   },
   // King's Raid's own effects for its moves (../../fx/kr-effects.ts): as each begins, on it, and as each of its blows lands, where it
   // lands (KR-extracted/scripts/tm-vfx.mjs).
