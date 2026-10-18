@@ -10,6 +10,7 @@ import {
   OrthographicCamera,
   PerspectiveCamera,
   PlaneGeometry,
+  Quaternion,
   RepeatWrapping,
   Scene,
   SRGBColorSpace,
@@ -35,6 +36,8 @@ import { struggling } from './memory';
 const WIDTH = 34;
 const HEIGHT = 20;
 const FOV = 26;
+/** Where a King's Raid map's own effects are played, of those it has: no further than this from the middle of the field. */
+const NEAR = 60;
 /** What the camera looks at, and how far it looks down at it (radians). */
 // Low, so the fight is in the upper part of the picture: the heroes' cards are along the bottom of it.
 const LOOK = new Vector3(0, 2.6, 0);
@@ -71,15 +74,23 @@ export interface Scenery {
    * upright there (radians: the game sees its maps from the other side); and the colour of the floor beyond its own (its
    * floor is no deeper than the game's camera sees: ours sees further).
    */
-  map?: { folder: string; at: readonly [number, number, number]; turn: number; floor: number };
+  map?: { folder: string; at: readonly [number, number, number]; turn: number; floor: number; camera?: { look: number; fov: number }; grounded?: boolean };
+}
+
+/** An effect a map has of its own (fog, sparks, a portal's glow), where it is on the field. */
+export interface FieldEffect {
+  code: string;
+  at: Vector3;
+  rotation: Quaternion;
+  scale: number;
 }
 
 export interface Stage {
   scene: Scene;
   /** What the field is seen from (what faces it is turned to: the effects' flat pictures). */
   camera: PerspectiveCamera;
-  /** Puts the fight in `scenery`, in place of the plain field (once its pictures are read). */
-  dress(scenery: Scenery): Promise<void>;
+  /** Puts the fight in `scenery`, in place of the plain field (once its pictures are read): the effects its map has of its own, where they are on the field. */
+  dress(scenery: Scenery): Promise<readonly FieldEffect[]>;
   /** Draws every frame, after `update` (the time in seconds, and since the last frame). */
   start(update: (now: number, dt: number) => void): void;
   /** Whether the field is covered over (getting ready: ../prep/), so it isn't drawn meanwhile (`update` still is called). */
@@ -115,12 +126,17 @@ export function makeStage(canvas: HTMLCanvasElement): Stage {
 
   // How far the camera is from the middle of the field: the haze is measured from there, as that changes with the page's shape.
   let back = 0;
+  // How far down it looks (radians) and how wide (degrees): as a King's Raid map has the game see it, where the field is one.
+  let elevation = ELEVATION;
+  let wide = FOV;
+  /** What moves on the map (its glows, its fogs), each frame. */
+  let mapTick: ((dt: number) => void) | null = null;
   // How far along the field it is moved (pan()).
   let panned = 0;
   const look = new Vector3();
   const aim = (): void => {
     look.copy(LOOK).setX(LOOK.x + panned);
-    camera.position.set(look.x, look.y + Math.sin(ELEVATION) * back, look.z + Math.cos(ELEVATION) * back);
+    camera.position.set(look.x, look.y + Math.sin(elevation) * back, look.z + Math.cos(elevation) * back);
     camera.lookAt(look);
   };
   let haze: Scenery['haze'] | undefined;
@@ -139,7 +155,8 @@ export function makeStage(canvas: HTMLCanvasElement): Stage {
     renderer.setPixelRatio(Math.min(sharpest, window.devicePixelRatio));
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
-    const half = Math.tan((FOV * Math.PI) / 360);
+    camera.fov = wide;
+    const half = Math.tan((wide * Math.PI) / 360);
     back = Math.max(HEIGHT / 2 / half, WIDTH / 2 / (half * camera.aspect));
     aim();
     camera.updateProjectionMatrix();
@@ -181,23 +198,36 @@ export function makeStage(canvas: HTMLCanvasElement): Stage {
     camera,
     async dress(scenery) {
       if (scenery.map) {
-        const { folder, at, turn, floor: beyond } = scenery.map;
-        const map = await loadKrMap(folder).catch((error: unknown) => {
+        const { folder, at, turn, floor: beyond, camera: own, grounded } = scenery.map;
+        const read = await loadKrMap(folder, grounded).catch((error: unknown) => {
           console.warn(error);
           return null;
         });
-        if (map) {
+        if (read) {
           // (Its middle of the field at the field's, turned about it.)
           const field = new Group();
-          map.position.set(-at[0], -at[1], -at[2]);
-          field.add(map);
+          read.map.position.set(-at[0], -at[1], -at[2]);
+          field.add(read.map);
           field.rotation.y = turn;
           scene.add(field);
-          // (Under its floor, and in front of it: what of it is under the floor isn't seen.)
+          mapTick = read.update;
+          // (Under it, and in front of its floor: drawn before the map, which is painted over it.)
           floor.material.color.set(beyond);
-          floor.position.y = -0.05;
+          floor.material.depthWrite = false;
+          floor.renderOrder = -20_000;
           scene.background = new Color(scenery.haze.color);
-          return;
+          // (As the game sees it, unless the scenery sees it its own way: a map the game's files have no camera for.)
+          const seen = own ?? read.camera;
+          elevation = (seen.look * Math.PI) / 180;
+          wide = seen.fov;
+          fit();
+          // Its own effects, those near the fight, where they are on the field.
+          field.updateMatrixWorld(true);
+          return read.effects.flatMap((effect) => {
+            const where = read.map.localToWorld(new Vector3(...effect.position));
+            const rotation = field.quaternion.clone().multiply(new Quaternion(...effect.rotation));
+            return Math.hypot(where.x, where.z) > NEAR ? [] : [{ code: effect.code, at: where, rotation, scale: effect.scale }];
+          });
         }
       }
       const pictures = new TextureLoader();
@@ -235,6 +265,7 @@ export function makeStage(canvas: HTMLCanvasElement): Stage {
       scene.background = new Color(haze.color);
       scene.fog = new Fog(haze.color, 0, 1);
       fog();
+      return [];
     },
     project(at) {
       camera.updateMatrixWorld();
@@ -304,6 +335,7 @@ export function makeStage(canvas: HTMLCanvasElement): Stage {
         const dt = Math.max(0, Math.min(0.064, gap));
         last = ms;
         update(ms / 1000, dt);
+        mapTick?.(dt);
         if (covered || gap > GAP) {
           since = ms;
           frames = slow = 0;

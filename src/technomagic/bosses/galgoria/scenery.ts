@@ -10,5 +10,5 @@ export const WASTELAND: Scenery = {
   ground: { url: `${KEPT}/scenery/wasteland/ground.webp`, tile: 14 },
   haze: { color: 0x47464a, near: 7, far: 22 },
   // King's Raid's own map of its raid (Raid.GargoriaField1).
-  map: { folder: `${LOCAL}/bosses/galgoria/map`, at: [48, 0, -5], turn: Math.PI, floor: 0x201a2c },
+  map: { folder: `${LOCAL}/bosses/galgoria/map`, at: [48, 0, -5], turn: Math.PI, floor: 0x201a2c, camera: { look: 15, fov: 26 }, grounded: true },
 };

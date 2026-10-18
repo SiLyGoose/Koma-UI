@@ -1,4 +1,4 @@
-import type { Camera, Object3D, Vector3 } from 'three';
+import type { Camera, Object3D, Quaternion, Vector3 } from 'three';
 import { LOCAL } from '../assets';
 import { KrEffect, loadKrEffect, type KrEffectAsset } from './kr-vfx-player.js';
 
@@ -16,6 +16,8 @@ export interface KrWhere {
   on?: Object3D;
   at?: Vector3;
   turn?: number;
+  /** Turned this way instead (about every axis: a map's own, as it sets them). */
+  rotation?: Quaternion;
   scale?: number;
   /** One that goes on until it is stopped (a loop: the game stops it as what it goes with ends) is stopped after this long (seconds). */
   lasts?: number;
@@ -31,6 +33,8 @@ export interface KrEffects {
   ready(code: string): boolean;
   /** Plays one (by its code, its "Effect." left out): what stops it early (one that goes on until it is: a status's). */
   play(code: string, where: KrWhere): () => void;
+  /** These go on all the while (a map's own: its fog, its sparks), each begun again as it ends or is taken off. */
+  ambient(effects: readonly { code: string; at: Vector3; rotation: Quaternion; scale: number }[]): void;
   update(dt: number): void;
   /** Takes every one off (the fight is done with). */
   clear(): void;
@@ -46,6 +50,8 @@ export function makeKrEffects(scene: Object3D, camera: Camera): KrEffects {
   const playing = new Set<KrEffect>();
   /** When each loop is to be stopped (seconds from now, counted down). */
   const loops = new Map<KrEffect, number>();
+  /** The map's own, each with the one of it going on now. */
+  const always: { code: string; at: Vector3; rotation: Quaternion; scale: number; fx: KrEffect | null }[] = [];
   const read = (code: string): void => {
     if (assets.has(code) || reading.has(code)) return;
     reading.add(code);
@@ -63,31 +69,42 @@ export function makeKrEffects(scene: Object3D, camera: Camera): KrEffects {
     playing.delete(fx);
     loops.delete(fx);
   };
+  /** Begins one (null: not read yet, or not on this computer). */
+  const start = (code: string, { on, at, turn = 0, rotation, scale = 1, lasts }: KrWhere): KrEffect | null => {
+    const asset = assets.get(code);
+    if (!asset) {
+      read(code);
+      return null;
+    }
+    const fx = new KrEffect(asset, { findNode: (name) => on?.getObjectByName(ours(name)) ?? null });
+    if (on) on.add(fx);
+    else {
+      if (at) fx.position.copy(at);
+      if (rotation) fx.quaternion.copy(rotation);
+      else fx.rotation.y = turn;
+      scene.add(fx);
+    }
+    fx.scale.setScalar(scale);
+    playing.add(fx);
+    // (The game's own length for one that goes on until it is stopped: a loop.)
+    if (asset.def.length > 60 || lasts !== undefined) loops.set(fx, lasts ?? LOOP);
+    return fx;
+  };
   return {
     read(codes) {
       for (const code of codes) read(code);
     },
     ready: (code) => Boolean(assets.get(code)),
-    play(code, { on, at, turn = 0, scale = 1, lasts }) {
-      const asset = assets.get(code);
-      if (!asset) {
-        read(code);
-        return () => {};
-      }
-      const fx = new KrEffect(asset, { findNode: (name) => on?.getObjectByName(ours(name)) ?? null });
-      if (on) on.add(fx);
-      else {
-        if (at) fx.position.copy(at);
-        fx.rotation.y = turn;
-        scene.add(fx);
-      }
-      fx.scale.setScalar(scale);
-      playing.add(fx);
-      // (The game's own length for one that goes on until it is stopped: a loop.)
-      if (asset.def.length > 60 || lasts !== undefined) loops.set(fx, lasts ?? LOOP);
-      return () => fx.stop();
+    play(code, where) {
+      const fx = start(code, where);
+      return fx ? () => fx.stop() : () => {};
+    },
+    ambient(effects) {
+      always.splice(0, always.length, ...effects.map((effect) => ({ ...effect, fx: null })));
+      for (const effect of effects) read(effect.code);
     },
     update(dt) {
+      for (const one of always) if (!one.fx || !playing.has(one.fx)) one.fx = start(one.code, { at: one.at, rotation: one.rotation, scale: one.scale, lasts: Infinity });
       for (const fx of playing) {
         const left = loops.get(fx);
         if (left !== undefined) {

@@ -221,7 +221,7 @@ async function start(): Promise<void> {
   // What is drawn as light (a hit's effects, magic, the boss's venom): kept bright when the field goes dark (fight/view.ts).
   const bright = new Group();
   stage.scene.add(bright);
-  const [boss, effects, props] = await Promise.all([
+  const [boss, effects, props, fieldEffects] = await Promise.all([
     bossView.load(stage.scene, bright),
     loadEffects(bright),
     loadProps(stage.scene),
@@ -230,6 +230,8 @@ async function start(): Promise<void> {
   const magic = makeMagic(bright);
   // King's Raid's own effects, each read as it is first wanted.
   const kr = makeKrEffects(bright, stage.camera);
+  // Its map's own (its fog, its sparks), always going on.
+  if (fieldEffects) kr.ambient(fieldEffects);
 
   /** Every body read so far (each skin of each hero read, and as they look with their unique weapons once that's wanted), for a fight to take from. */
   const pool: Entrant[] = [];

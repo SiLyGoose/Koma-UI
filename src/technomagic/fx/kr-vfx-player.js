@@ -129,6 +129,12 @@ function makeMaterial(asset, index, skinning = false) {
   if (skinning) material.defines.USE_SKINNING = '';
   if (m.rim != null && !skinning) material.defines.USE_RIM = '';
   material.userData.base = { color: [...m.color], st: [...(m.st ?? [1, 1, 0, 0])], scroll: m.scroll };
+  // One in an earlier queue than the fighters' (a map's own: its smoke behind its far rim): drawn among the map's layers,
+  // in its queue's place (../engine/kr-map.ts), before the fighters.
+  if (m.queue != null && m.queue < 2500) {
+    material.transparent = false;
+    material.userData.order = m.queue - 10000;
+  }
   return material;
 }
 
@@ -213,6 +219,7 @@ function buildPrefab(asset, index, materials) {
       mesh.bind(new Skeleton(bones, inverses), new Matrix4());
     } else mesh = new Mesh(geometry, material);
     mesh.frustumCulled = false;
+    if (material.userData.order != null) mesh.renderOrder = material.userData.order;
     nodes[i].add(mesh);
     renderers.set(i, material);
   });
@@ -506,7 +513,7 @@ export class KrEffect extends Group {
         const material = makeMaterial(asset, spec.render?.mat ?? 0);
         this.materials.push(material);
         const e = new Emitter(asset, spec, inst.nodes[spec.node], material, this);
-        e.mesh.renderOrder = 20 + i;
+        e.mesh.renderOrder = material.userData.order ?? 20 + i;
         this.add(e.mesh);
         return e;
       });
