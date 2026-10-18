@@ -2,13 +2,9 @@ import type { HeroAssets, KrAnimations } from '../types.ts';
 
 /*
  * Erze in her fourth look (Hero_Erze_Vari04_…: her fifth's weapon has its colour picture spoiled, one hue all over):
- * her body, her hair, and her bat-winged orb of blood floating by her right shoulder (its file has it on her skeleton,
- * at her feet, where the game's own animations move it from). She is moved by King's Raid's own animations of her
- * (ANIMATIONS: ../../heroes/body/kr.ts).
+ * her body, her hair, and her bat-winged orb of blood, held as her right hand's: King's Raid's own animations of her
+ * (ANIMATIONS: ../../heroes/body/kr.ts) float its mark by her shoulder and beat its wings.
  */
-
-/** Where her orb floats: by her right shoulder, a little ahead of her. */
-const ORB = { at: [-0.4, 1.25, 0.15], size: 1 } as const;
 
 /**
  * King's Raid's own animations (its skins of the game's files are moved by them: ../../heroes/body/kr.ts): its basic attack's
@@ -60,7 +56,7 @@ export const ERZE_ASSETS: HeroAssets = {
       name: 'Erze',
       // Her artwork (the King's Raid Index's): her head in the crop (the meter's close-up is her face by itself).
       portrait: { file: 'Erze.png', from: 'https://raw.githubusercontent.com/IcyDipity/KingsRaidIndex/master/images/heroes/Erze/Erze.png', crop: { x: 455, y: 160, size: 190 }, head: { x: 535, y: 205, size: 105 } },
-      model: { kind: 'parts', animations: ANIMATIONS, parts: ['Hero_Erze_Vari04_Body', 'Hero_Erze_Vari04_Hair'], floating: { model: 'Hero_Erze_Vari04_Weapon', ...ORB } },
+      model: { kind: 'parts', animations: ANIMATIONS, parts: ['Hero_Erze_Vari04_Body', 'Hero_Erze_Vari04_Hair'], right: 'Hero_Erze_Vari04_Weapon' },
     },
   ],
 };

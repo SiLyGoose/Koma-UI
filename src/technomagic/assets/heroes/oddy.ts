@@ -1,13 +1,9 @@
 import type { HeroAssets, KrAnimations } from '../types.ts';
 
 /*
- * Oddy, a red panda: his body (all of him in one), and his clock floating on his back, its face to the back (its file
- * has it at his right hand, but it is no weapon he swings: what he casts comes from his paw). He is moved by King's
- * Raid's own animations of him (ANIMATIONS: ../../heroes/body/kr.ts).
+ * Oddy, a red panda: his body (all of him in one), and his clock, held as his right hand's: King's Raid's own
+ * animations of him (ANIMATIONS: ../../heroes/body/kr.ts) keep its mark on his back, and carry it (grown) as he leaps.
  */
-
-/** His clock on his back: its middle at his chest's height, its front a little behind him, its top over his head. */
-const CLOCK = { at: [0, 0.75, -0.32], size: 1 } as const;
 
 /**
  * King's Raid's own animations (its skins of the game's files are moved by them: ../../heroes/body/kr.ts): its basic attack's
@@ -68,7 +64,7 @@ export const ODDY_ASSETS: HeroAssets = {
         kind: 'parts',
         animations: ANIMATIONS,
         parts: ['Hero_Oddy_Vari05_Mesh'],
-        floating: { model: 'Hero_Oddy_Vari05_Weapon', ...CLOCK },
+        right: 'Hero_Oddy_Vari05_Weapon',
       },
     },
   ],
