@@ -1,11 +1,13 @@
 import './mail.css';
-import type { MailboxView, MailClaimed, MailView } from '../../../protocol/mail';
+import type { MailboxView, MailClaimed, MailHero, MailPickItem, MailView } from '../../../protocol/mail';
 
 /*
  * The mailbox, in the site header: a mail icon beside the profile button, with how many mails are unread on it (none: no
- * badge). Pressing it opens the mailbox: each mail (the newest first) with its message and what it carries, and Claim for
- * what it carries; a Unique Weapon or Unique Treasure Ticket picks its hero (and a unique treasure, which of its four) first.
- * Opening it marks the mail read. The bot's GET /api/mail, POST /api/mail/read and /claim (its services/mail.ts).
+ * badge). Pressing it opens the mailbox: each mail (the newest first) with its message and what it carries, a line each, and
+ * Claim for what it carries. A mail with tickets (a Unique Weapon or Unique Treasure Ticket) has each picked in a popup of
+ * its own once Claim is pressed, the weapons' first: its hero (and a unique treasure, which of its four); what each was
+ * picked as shows beside it. Opening it marks the mail read. The bot's GET /api/mail, POST /api/mail/read and /claim (its
+ * services/mail.ts).
  */
 
 type Api = <T>(path: string, init?: RequestInit) => Promise<{ ok: true; data: T } | { ok: false; status: number; error: string }>;
@@ -24,6 +26,41 @@ const el = <K extends keyof HTMLElementTagNameMap>(tag: K, className = '', text?
   if (text !== undefined) node.textContent = text;
   return node;
 };
+
+/** A ticket's kind, as its popup says it. */
+const TICKET = { uw: 'Unique Weapon', ut: 'Unique Treasure' } as const;
+
+/** A pick of a ticket: its hero (a unique treasure's, which of its four), and the item that is. */
+interface Picked {
+  hero: string;
+  skill?: number;
+  item: MailPickItem;
+}
+
+/** Where the item pictures are (../../built.ts): fetched when the mailbox first opens, not with every page. */
+let pictures: Promise<typeof import('../../built')> | null = null;
+
+/** An item's picture (a unique weapon's or treasure's), in a box of `className`; empty until the pictures' list is in. */
+function picture(item: MailPickItem, className: string): HTMLElement {
+  const box = el('span', className);
+  void (pictures ??= import('../../built')).then(({ built, hasItemArt }) => {
+    const folder = hasItemArt('weapons', item.itemId) ? 'weapons' : hasItemArt('treasures', item.itemId) ? 'treasures' : null;
+    if (!folder) return;
+    const img = el('img');
+    img.alt = '';
+    img.decoding = 'async';
+    img.src = built(`/gear/items/${folder}/${item.itemId}.png`);
+    box.append(img);
+  });
+  return box;
+}
+
+/** What a ticket was picked as, beside it: an arrow, and its item's picture and name. */
+function pickedBeside(item: MailPickItem): HTMLElement {
+  const box = el('span', 'mail-picked');
+  box.append(el('span', 'mail-picked-arrow', '→'), picture(item, 'mail-picked-pic'), el('span', 'mail-picked-name', item.name));
+  return box;
+}
 
 const ENVELOPE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 5h18a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Zm1 2.4V17h16V7.4l-8 5.3-8-5.3ZM5.2 7 12 11.5 18.8 7H5.2Z"/></svg>';
 
@@ -52,6 +89,8 @@ export function mailButton(mount: HTMLElement, host: MailHost): { refresh: () =>
   let view: MailboxView | null = null;
   let busy = false;
   let note = '';
+  /** A mail's tickets picked so far, being claimed (by its id; each by its attachment's index). */
+  const picking = new Map<string, Map<number, MailPickItem>>();
 
   const query = (): string | null => {
     const server = host.server();
@@ -80,13 +119,34 @@ export function mailButton(mount: HTMLElement, host: MailHost): { refresh: () =>
     return res.ok ? res.data : res.error;
   }
 
-  async function claim(mail: MailView, pick: { hero?: string; skill?: number }): Promise<void> {
+  async function claim(mail: MailView): Promise<void> {
     if (busy) return;
-    busy = true;
     note = '';
+    // Its tickets first, a popup each (the weapons', then the treasures'): cancelling one leaves it unclaimed.
+    const tickets = mail.attachments.flatMap((one, index) => (one.selector ? [{ of: one.selector, index }] : []));
+    const order = [...tickets.filter((one) => one.of === 'uw'), ...tickets.filter((one) => one.of === 'ut')];
+    const picks = new Map<number, Picked>();
+    const shown = new Map<number, MailPickItem>();
+    picking.set(mail.id, shown);
+    let hero: string | undefined;
+    for (const [n, ticket] of order.entries()) {
+      const pick = await choose(ticket.of, order.length > 1 ? `${n + 1} of ${order.length}` : '', hero);
+      if (!pick) {
+        picking.delete(mail.id);
+        draw();
+        return;
+      }
+      hero = pick.hero;
+      picks.set(ticket.index, pick);
+      shown.set(ticket.index, pick.item);
+      draw();
+    }
+    busy = true;
     draw();
-    const done = await post<MailClaimed>('/api/mail/claim', { id: mail.id, ...pick });
+    const body = picks.size > 0 ? { picks: tickets.map((one) => ({ hero: picks.get(one.index)?.hero, skill: picks.get(one.index)?.skill })) } : {};
+    const done = await post<MailClaimed>('/api/mail/claim', { id: mail.id, ...body });
     busy = false;
+    picking.delete(mail.id);
     if (typeof done === 'string') note = CLAIM_ERRORS[done] ?? 'Could not claim that. Try again.';
     else {
       view = done;
@@ -97,37 +157,92 @@ export function mailButton(mount: HTMLElement, host: MailHost): { refresh: () =>
     draw();
   }
 
-  /** A mail's picker for its ticket: a hero, and (a unique treasure's) which of its four. */
-  function picker(mail: MailView): { box: HTMLElement; pick: () => { hero?: string; skill?: number } } | null {
-    const ticket = mail.attachments.find((one) => one.selector)?.selector;
-    if (!ticket || !view) return null;
-    const box = el('div', 'mail-pick');
-    const hero = el('select');
-    hero.setAttribute('aria-label', 'Hero');
-    for (const one of view.heroes) {
+  /**
+   * A ticket's popup, over the mailbox: its hero (`hero` at first: the one picked before), and its item (a unique weapon:
+   * the hero's; a unique treasure: which of its four). `step`: which popup of how many ("1 of 2"). The pick, or null if it
+   * was cancelled.
+   */
+  function choose(of: 'uw' | 'ut', step: string, hero?: string): Promise<Picked | null> {
+    const heroes = (view?.heroes ?? []).filter((one) => (of === 'uw' ? one.weapon : one.treasures.length > 0));
+    const popup = el('dialog', 'mail-popup');
+    popup.setAttribute('aria-label', `Pick a ${TICKET[of]}`);
+    const head = el('div', 'mail-popup-head');
+    head.append(el('h3', 'mail-popup-title', `${TICKET[of]} Ticket`));
+    if (step) head.append(el('span', 'mail-popup-step', step));
+    const hint = el('p', 'mail-popup-hint', of === 'uw' ? 'Pick a hero: their unique weapon is yours.' : 'Pick a hero, then which of their unique treasures.');
+    const who = el('select', 'mail-popup-hero');
+    who.setAttribute('aria-label', 'Hero');
+    for (const one of heroes) {
       const option = el('option', '', one.name);
       option.value = one.id;
-      hero.append(option);
+      who.append(option);
     }
-    box.append(hero);
-    const skill = el('select');
-    skill.setAttribute('aria-label', 'Unique treasure');
+    if (hero && heroes.some((one) => one.id === hero)) who.value = hero;
+    const items = el('div', `mail-popup-items ${of}`);
+    let skill = 1;
+    const heroOf = (): MailHero | undefined => heroes.find((one) => one.id === who.value);
     const fill = (): void => {
-      const treasures = view?.heroes.find((one) => one.id === hero.value)?.treasures ?? [];
-      skill.replaceChildren(
-        ...treasures.map((name, i) => {
-          const option = el('option', '', `UT${i + 1}: ${name}`);
-          option.value = String(i + 1);
-          return option;
+      const one = heroOf();
+      if (of === 'uw') {
+        const weapon = one?.weapon;
+        items.replaceChildren(...(weapon ? [card(weapon, '')] : []));
+        return;
+      }
+      skill = 1;
+      items.replaceChildren(
+        ...(one?.treasures ?? []).map((treasure, i) => {
+          const choice = card(treasure, `UT${i + 1}`, i === 0);
+          choice.addEventListener('click', () => {
+            skill = i + 1;
+            for (const other of items.children) other.classList.toggle('on', other === choice);
+            for (const other of items.children) other.setAttribute('aria-pressed', String(other === choice));
+          });
+          return choice;
         }),
       );
     };
-    if (ticket === 'ut') {
-      fill();
-      hero.addEventListener('change', fill);
-      box.append(skill);
-    }
-    return { box, pick: () => ({ hero: hero.value, ...(ticket === 'ut' && { skill: Number(skill.value) }) }) };
+    const card = (item: MailPickItem, label: string, on = true): HTMLElement => {
+      const choice = el(of === 'ut' ? 'button' : 'div', `mail-choice${on ? ' on' : ''}`);
+      if (choice instanceof HTMLButtonElement) {
+        choice.type = 'button';
+        choice.setAttribute('aria-pressed', String(on));
+      }
+      choice.append(picture(item, 'mail-choice-pic'));
+      if (label) choice.append(el('span', 'mail-choice-label', label));
+      choice.append(el('span', 'mail-choice-name', item.name));
+      return choice;
+    };
+    fill();
+    who.addEventListener('change', fill);
+    const buttons = el('div', 'mail-popup-buttons');
+    const cancel = el('button', 'mail-popup-cancel action', 'Cancel');
+    cancel.type = 'button';
+    const confirm = el('button', 'mail-popup-confirm action main', 'Confirm');
+    confirm.type = 'button';
+    confirm.disabled = heroes.length === 0;
+    buttons.append(cancel, confirm);
+    popup.append(head, hint, who, items, buttons);
+    document.body.append(popup);
+    popup.showModal();
+    return new Promise((resolve) => {
+      let picked: Picked | null = null;
+      cancel.addEventListener('click', () => popup.close());
+      confirm.addEventListener('click', () => {
+        const one = heroOf();
+        const item = of === 'uw' ? one?.weapon : one?.treasures[skill - 1];
+        if (!one || !item) return;
+        picked = { hero: one.id, ...(of === 'ut' && { skill }), item };
+        popup.close();
+      });
+      popup.addEventListener('click', (event) => {
+        if (event.target === popup) popup.close();
+      });
+      // (Closed any way, Escape too: cancelled, unless confirmed.)
+      popup.addEventListener('close', () => {
+        popup.remove();
+        resolve(picked);
+      });
+    });
   }
 
   function draw(): void {
@@ -149,7 +264,7 @@ export function mailButton(mount: HTMLElement, host: MailHost): { refresh: () =>
       item.append(top, el('p', 'mail-message', mail.message));
       if (mail.attachments.length > 0) {
         const things = el('ul', 'mail-attachments');
-        for (const one of mail.attachments) {
+        for (const [index, one] of mail.attachments.entries()) {
           const row = el('li', 'mail-attachment');
           if (one.icon) {
             const icon = el('img');
@@ -158,17 +273,18 @@ export function mailButton(mount: HTMLElement, host: MailHost): { refresh: () =>
             row.append(icon);
           }
           row.append(el('span', '', one.text));
+          // A ticket's pick, beside it (claimed, or picked in its popup just now).
+          const picked = one.picked ?? picking.get(mail.id)?.get(index);
+          if (picked) row.append(pickedBeside(picked));
           things.append(row);
         }
         item.append(things);
         if (mail.claimed) item.append(el('p', 'mail-claimed', 'Claimed'));
         else {
-          const chooser = picker(mail);
-          if (chooser) item.append(chooser.box);
           const take = el('button', 'mail-claim action main', 'Claim');
           take.type = 'button';
-          take.disabled = busy;
-          take.addEventListener('click', () => void claim(mail, chooser?.pick() ?? {}));
+          take.disabled = busy || picking.has(mail.id);
+          take.addEventListener('click', () => void claim(mail));
           item.append(take);
         }
       }

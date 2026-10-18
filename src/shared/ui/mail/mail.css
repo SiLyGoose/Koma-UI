@@ -112,45 +112,186 @@
   justify-content: space-between;
 }
 
+/* A mail's title: twice the text's size. */
+.mail-title {
+  font-size: 2em;
+  line-height: 1.15;
+}
+
 .mail-from {
   color: var(--muted, #aaa);
   font-size: 12px;
 }
 
 .mail-message {
-  margin: 6px 0;
+  margin: 8px 0 18px;
   white-space: pre-wrap;
 }
 
+/* What it carries: a row each. */
 .mail-attachments {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px 12px;
-  margin: 0 0 8px;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0 0 12px;
   padding: 0;
   list-style: none;
 }
 
 .mail-attachment {
-  display: inline-flex;
+  display: flex;
+  flex-wrap: wrap;
   gap: 6px;
   align-items: center;
 }
 
-.mail-attachment img {
+.mail-attachment > img {
   width: 28px;
   height: 28px;
 }
 
-.mail-pick {
-  display: flex;
-  flex-wrap: wrap;
+/* What a ticket was picked as, to its right. */
+.mail-picked {
+  display: inline-flex;
   gap: 6px;
-  margin-bottom: 8px;
+  align-items: center;
+  margin-left: 6px;
+  color: var(--picked, #e0b84a);
+  font-weight: 600;
 }
 
-.mail-pick select {
-  max-width: 100%;
+.mail-picked-arrow {
+  color: var(--muted, #aaa);
+  font-weight: 400;
+}
+
+.mail-picked-pic,
+.mail-choice-pic {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 6px;
+  background: rgb(255 255 255 / 6%);
+}
+
+.mail-picked-pic {
+  width: 32px;
+  height: 32px;
+}
+
+.mail-picked-pic img,
+.mail-choice-pic img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* A ticket's popup, over the mailbox: its hero, then its item (a unique treasure's: one of four). */
+.mail-popup {
+  width: min(460px, calc(100vw - 32px));
+  max-height: min(86vh, 720px);
+  padding: 16px;
+  border: 1px solid var(--line, #444);
+  border-radius: 12px;
+  background: var(--panel, #1c1c22);
+  color: inherit;
+}
+
+.mail-popup::backdrop {
+  background: rgb(0 0 0 / 45%);
+}
+
+.mail-popup-head {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.mail-popup-title {
+  margin: 0;
+  font-size: 18px;
+}
+
+.mail-popup-step,
+.mail-popup-hint {
+  color: var(--muted, #aaa);
+  font-size: 12px;
+}
+
+.mail-popup-hint {
+  margin: 4px 0 12px;
+  font-size: 13px;
+}
+
+.mail-popup-hero {
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.mail-popup-items {
+  display: grid;
+  gap: 8px;
+}
+
+.mail-popup-items.ut {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.mail-popup-items.uw {
+  justify-items: center;
+}
+
+.mail-choice {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+  padding: 8px;
+  border: 2px solid var(--line, #444);
+  border-radius: 10px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: center;
+}
+
+button.mail-choice {
+  cursor: pointer;
+}
+
+.mail-choice.on {
+  border-color: var(--picked, #e0b84a);
+  background: rgb(224 184 74 / 8%);
+}
+
+.mail-choice-pic {
+  width: 72px;
+  height: 72px;
+}
+
+.mail-popup-items.uw .mail-choice-pic {
+  width: 112px;
+  height: 112px;
+}
+
+.mail-choice-label {
+  color: var(--muted, #aaa);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.mail-choice-name {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.mail-popup-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 14px;
 }
 
 .mail-claimed {

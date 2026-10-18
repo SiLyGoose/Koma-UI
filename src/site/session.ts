@@ -211,9 +211,10 @@ function renderHeader(): void {
     { label: 'Logout', icon: 'logout', onSelect: logOut },
   ]);
   ui.me.append(profile);
-  // The mailbox: its button before the profile, its unread count on it.
-  mail?.remove();
-  mail = mailButton(ui.me, { api, server: () => server, changed: () => void loadMe(true) });
+  // The mailbox: its button before the profile, its unread count on it. Kept as it is when the header is drawn again (a
+  // claim's balance, loadMe: the mailbox stays open on what was claimed), only its mail asked for again.
+  if (mail) mail.refresh();
+  else mail = mailButton(ui.me, { api, server: () => server, changed: () => void loadMe(true) });
 }
 
 ui.login.addEventListener('click', logIn);
