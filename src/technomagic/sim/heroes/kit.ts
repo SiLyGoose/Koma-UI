@@ -127,9 +127,10 @@ const CLASS_RANK: Record<HeroClass, number> = { knight: 0, warrior: 1, assassin:
 export const nearer = (a: HeroDef, b: HeroDef): number => LINE_RANK[lineOf(a)] - LINE_RANK[lineOf(b)] || CLASS_RANK[a.class] - CLASS_RANK[b.class];
 
 /**
- * King's Raid's own stats for each class at level 80. Every hero of a class has its class's (the King's Raid Index,
+ * King's Raid's own stats for each class. Every hero of a class has its class's (the King's Raid Index,
  * kingsraid.netlify.app, shows each hero its class's Basic Stats and Additional Options). Its Basic Stats: max HP,
- * ATK, P.DEF and M.DEF. Its Additional Options, in points as the game has them (1000: 100%), none where it has none:
+ * ATK, P.DEF and M.DEF, at level 100, 5★, Transcend 5 (King's Raid's playtest's: its CreatureLevelStatTable2 and star
+ * factors; the Index's are at level 80, 0.794 of these). Its Additional Options, in points as the game has them (1000: 100%), none where it has none:
  * crit chance, Crit DMG (a share more), penetration, ACC, block and dodge against each kind, Tough against each kind
  * (a share of every blow taken off: ../combat/damage.ts), CC resist, M.Block DEF (the share more a block takes off: the game shows the priest's 250 points as
  * 23%), and ATK Spd (1000 for every class: its attack as quick as it comes).
@@ -150,15 +151,17 @@ interface KingsRaidClass {
   speed: number;
 }
 const KINGS_RAID: Record<HeroClass, KingsRaidClass> = {
-  knight: { hp: 1_354_584, atk: 15_712, defense: { physical: 6984, magical: 5432 }, crit: 50, block: { physical: 100, magical: 100 }, tough: { physical: 250, magical: 250 }, speed: 1000 },
-  warrior: { hp: 1_150_488, atk: 17_848, defense: { physical: 5816, magical: 6984 }, crit: 150, pen: 150, acc: 100, dodge: { physical: 100, magical: 100 }, resist: 150, speed: 1000 },
-  assassin: { hp: 1_099_264, atk: 19_592, defense: { physical: 6208, magical: 5432 }, crit: 200, critDamage: 0.3, acc: 100, dodge: { physical: 200, magical: 200 }, speed: 1000 },
-  archer: { hp: 846_664, atk: 22_112, defense: { physical: 4264, magical: 3488 }, crit: 150, pen: 250, acc: 100, speed: 1000 },
-  mechanic: { hp: 918_448, atk: 20_176, defense: { physical: 4264, magical: 3488 }, crit: 150, critDamage: 0.5, pen: 100, acc: 200, speed: 1000 },
-  wizard: { hp: 782_056, atk: 23_280, defense: { physical: 3104, magical: 4656 }, crit: 100, pen: 150, acc: 100, block: { physical: 0, magical: 250 }, dodge: { physical: 0, magical: 200 }, speed: 1000 },
-  priest: { hp: 876_928, atk: 18_424, defense: { physical: 3880, magical: 4848 }, crit: 100, acc: 100, block: { physical: 0, magical: 500 }, tough: { physical: 0, magical: 150 }, blockDef: { physical: 0, magical: 0.23 }, speed: 1000 },
+  knight: { hp: 1_706_672, atk: 19_792, defense: { physical: 8792, magical: 6840 }, crit: 50, block: { physical: 100, magical: 100 }, tough: { physical: 250, magical: 250 }, speed: 1000 },
+  warrior: { hp: 1_449_520, atk: 22_488, defense: { physical: 7328, magical: 8792 }, crit: 150, pen: 150, acc: 100, dodge: { physical: 100, magical: 100 }, resist: 150, speed: 1000 },
+  assassin: { hp: 1_384_992, atk: 24_688, defense: { physical: 7816, magical: 6840 }, crit: 200, critDamage: 0.3, acc: 100, dodge: { physical: 200, magical: 200 }, speed: 1000 },
+  archer: { hp: 1_066_728, atk: 27_864, defense: { physical: 5376, magical: 4392 }, crit: 150, pen: 250, acc: 100, speed: 1000 },
+  mechanic: { hp: 1_157_176, atk: 25_416, defense: { physical: 5376, magical: 4392 }, crit: 150, critDamage: 0.5, pen: 100, acc: 200, speed: 1000 },
+  wizard: { hp: 985_328, atk: 29_328, defense: { physical: 3904, magical: 5864 }, crit: 100, pen: 150, acc: 100, block: { physical: 0, magical: 250 }, dodge: { physical: 0, magical: 200 }, speed: 1000 },
+  priest: { hp: 1_104_864, atk: 23_216, defense: { physical: 4888, magical: 6104 }, crit: 100, acc: 100, block: { physical: 0, magical: 500 }, tough: { physical: 0, magical: 150 }, blockDef: { physical: 0, magical: 0.23 }, speed: 1000 },
 };
 const CLASSES = Object.keys(KINGS_RAID) as HeroClass[];
+/** Each class's ATK as the King's Raid Index has it (level 80): what its numbers for a skill's DMG and heals are at. */
+const INDEX_ATK: Record<HeroClass, number> = { knight: 15_712, warrior: 17_848, assassin: 19_592, archer: 22_112, mechanic: 20_176, wizard: 23_280, priest: 18_424 };
 
 /**
  * How each class stands, before what is a hero's own (the kind of damage it deals, and anything else it has
@@ -189,11 +192,11 @@ export const CLASS_STATS = Object.fromEntries(
 
 /**
  * A blow as the King's Raid Index (kingsraid.netlify.app) has it: the DMG its words say a hero of `kind` deals, as
- * thousandths of ATK (as a blow's numbers are), so that at its class's ATK it deals just that.
+ * thousandths of ATK (as a blow's numbers are), so that at its class's ATK as the Index has it (INDEX_ATK) it deals just that.
  */
-export const indexed = (kind: HeroClass, dmg: number): number => (POINTS * dmg) / KINGS_RAID[kind].atk;
+export const indexed = (kind: HeroClass, dmg: number): number => (POINTS * dmg) / INDEX_ATK[kind];
 /** A heal or a shield as the King's Raid Index has it: so that a hero of `kind`, at its class's ATK, gives just `amount` (a heal gives as much more as its healer's attack is over ATK). */
-export const indexedHeal = (kind: HeroClass, amount: number): number => (amount * ATK) / KINGS_RAID[kind].atk;
+export const indexedHeal = (kind: HeroClass, amount: number): number => (amount * ATK) / INDEX_ATK[kind];
 /**
  * What a blow of `blow` deals from a hero of `kind` at its class's ATK, as its words say it (the Index's own number, where it
  * has one), `books` times as much (bookDmg: as it is with its skill's books).
