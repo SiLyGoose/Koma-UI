@@ -109,6 +109,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 4px 10px;
+  align-items: center;
   justify-content: space-between;
 }
 
@@ -126,6 +127,11 @@
 .mail-message {
   margin: 8px 0 18px;
   white-space: pre-wrap;
+}
+
+.mail-message-label {
+  color: var(--muted, #aaa);
+  font-weight: 600;
 }
 
 /* What it carries: a row each. */
@@ -166,7 +172,8 @@
 }
 
 .mail-picked-pic,
-.mail-choice-pic {
+.mail-option-pic,
+.mail-detail-pic {
   display: inline-grid;
   flex: none;
   place-items: center;
@@ -181,124 +188,316 @@
 }
 
 .mail-picked-pic img,
-.mail-choice-pic img {
+.mail-option-pic img,
+.mail-detail-pic img {
   width: 100%;
   height: 100%;
   object-fit: contain;
 }
 
-/* A ticket's popup, over the mailbox: its hero, then its item (a unique treasure's: one of four). */
+/*
+ * A ticket's popup, over the mailbox, as King's Raid's ticket: every item it can be on the left, a row each, the one picked
+ * on the right (its picture and name, its hero, its main stat, its unique effect) and Confirm. One over the other on a phone.
+ */
 .mail-popup {
-  width: min(460px, calc(100vw - 32px));
-  max-height: min(86vh, 720px);
-  padding: 16px;
-  border: 1px solid var(--line, #444);
+  display: none;
+  width: min(780px, calc(100vw - 24px));
+  height: min(600px, calc(100dvh - 24px));
+  max-height: none;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid #6b5a3a;
   border-radius: 12px;
   background: var(--panel, #1c1c22);
   color: inherit;
 }
 
+.mail-popup[open] {
+  display: flex;
+  flex-direction: column;
+}
+
 .mail-popup::backdrop {
-  background: rgb(0 0 0 / 45%);
+  background: rgb(0 0 0 / 50%);
 }
 
 .mail-popup-head {
+  position: relative;
   display: flex;
+  flex: none;
   gap: 10px;
-  align-items: baseline;
-  justify-content: space-between;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 48px;
+  border-bottom: 1px solid #6b5a3a;
+  background: linear-gradient(#4a3d29, #2e261a);
 }
 
 .mail-popup-title {
   margin: 0;
-  font-size: 18px;
-}
-
-.mail-popup-step,
-.mail-popup-hint {
-  color: var(--muted, #aaa);
-  font-size: 12px;
-}
-
-.mail-popup-hint {
-  margin: 4px 0 12px;
-  font-size: 13px;
-}
-
-.mail-popup-hero {
-  width: 100%;
-  margin-bottom: 12px;
-}
-
-.mail-popup-items {
-  display: grid;
-  gap: 8px;
-}
-
-.mail-popup-items.ut {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.mail-popup-items.uw {
-  justify-items: center;
-}
-
-.mail-choice {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  align-items: center;
-  padding: 8px;
-  border: 2px solid var(--line, #444);
-  border-radius: 10px;
-  background: none;
-  color: inherit;
-  font: inherit;
+  font-size: 20px;
   text-align: center;
 }
 
-button.mail-choice {
+.mail-popup-step {
+  color: #d9c79f;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.mail-popup-close {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  width: 30px;
+  height: 30px;
+  border: 1px solid #b8452f;
+  border-radius: 6px;
+  background: #8c2a1c;
+  color: #fff;
+  font-size: 15px;
+  cursor: pointer;
+  translate: 0 -50%;
+}
+
+.mail-popup-body {
+  display: grid;
+  flex: 1;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+  min-height: 0;
+  padding: 12px;
+}
+
+.mail-popup-side {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  padding: 8px;
+  border-radius: 10px;
+  background: #142033;
+}
+
+.mail-popup-search {
+  flex: none;
+  padding: 7px 10px;
+  border: 1px solid var(--line, #444);
+  border-radius: 8px;
+  background: rgb(0 0 0 / 30%);
+  color: inherit;
+  font: inherit;
+}
+
+.mail-popup-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 0;
+  margin: 0;
+  padding: 0 2px 0 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.mail-popup-list li[hidden] {
+  display: none;
+}
+
+/* A row: the item's icon, its name over its hero's. */
+.mail-option {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  padding: 6px;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  background: #f1e7cf;
+  color: #2b2418;
+  font: inherit;
+  text-align: left;
   cursor: pointer;
 }
 
-.mail-choice.on {
-  border-color: var(--picked, #e0b84a);
-  background: rgb(224 184 74 / 8%);
+.mail-option.on {
+  border-color: #f2a516;
+  box-shadow: 0 0 10px rgb(242 165 22 / 60%);
 }
 
-.mail-choice-pic {
-  width: 72px;
-  height: 72px;
+.mail-option-pic {
+  width: 52px;
+  height: 52px;
+  border: 2px solid #4a3d29;
 }
 
-.mail-popup-items.uw .mail-choice-pic {
-  width: 112px;
-  height: 112px;
+.mail-option-words {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
-.mail-choice-label {
-  color: var(--muted, #aaa);
-  font-size: 11px;
+.mail-option-name {
   font-weight: 700;
 }
 
-.mail-choice-name {
+.mail-option-hero {
+  color: #6e5f45;
+  font-size: 12px;
+}
+
+/* The one picked: like King's Raid's, on parchment. */
+.mail-popup-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  padding: 14px;
+  overflow-y: auto;
+  border-radius: 10px;
+  background: #f4ead3;
+  color: #2b2418;
+}
+
+.mail-detail-top {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.mail-detail-pic {
+  width: 84px;
+  height: 84px;
+  border: 3px solid #4a3d29;
+}
+
+.mail-detail-name {
+  flex: 1;
+  padding: 6px 10px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #6e5f45, #4a3d29);
+  color: #fff;
+  font-size: 16px;
+}
+
+.mail-detail-limit {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 0;
+  border-block: 1px solid #d8c9a4;
+}
+
+.mail-detail-label {
+  color: #d0543b;
   font-size: 13px;
   font-weight: 600;
 }
 
-.mail-popup-buttons {
+.mail-detail-face {
+  width: 40px;
+  height: 40px;
+  overflow: hidden;
+  border: 2px solid #4a3d29;
+  border-radius: 50%;
+  background: #2b2418;
+}
+
+.mail-detail-face img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mail-detail-hero {
+  color: #2f8a2f;
+  font-weight: 700;
+}
+
+.mail-detail-body {
+  flex: 1;
+}
+
+.mail-detail-main {
   display: flex;
-  gap: 8px;
-  justify-content: flex-end;
-  margin-top: 14px;
+  align-items: center;
+  color: #d9611c;
+  font-size: 17px;
+  font-weight: 700;
 }
 
-.mail-claimed {
+.mail-detail-main::before,
+.mail-detail-effect::before {
+  content: '◆';
+  margin-right: 6px;
+  color: #d0543b;
+  font-size: 0.8em;
+}
+
+.mail-detail-main span:last-child {
+  margin-left: auto;
+}
+
+.mail-detail-heading {
+  margin: 14px 0 6px;
+  color: #8a5a00;
+  font-size: 15px;
+}
+
+.mail-detail-effect {
   margin: 0;
-  color: var(--muted, #aaa);
+  color: #b4532a;
+  line-height: 1.45;
 }
 
-.mailbox-empty {
-  color: var(--muted, #aaa);
+.mail-detail-effect .skill-effect {
+  color: #9b3fb8;
+}
+
+.mail-detail-effect .skill-number {
+  color: #c2410c;
+}
+
+/* (Kept in sight at the bottom, however long its effect.) */
+.mail-popup-confirm {
+  position: sticky;
+  bottom: 0;
+  flex: none;
+  width: 100%;
+  margin-top: auto;
+  padding: 12px;
+  font-size: 18px;
+}
+
+/* A phone: the whole screen, the list over the one picked. */
+@media (width <= 600px) {
+  .mail-popup {
+    height: calc(100dvh - 24px);
+  }
+
+  .mail-popup-title {
+    font-size: 17px;
+  }
+
+  .mail-popup-body {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .mail-option-pic {
+    width: 40px;
+    height: 40px;
+  }
+
+  .mail-detail-pic {
+    width: 60px;
+    height: 60px;
+  }
+
+  .mail-popup-detail {
+    gap: 6px;
+    padding: 10px;
+  }
 }
