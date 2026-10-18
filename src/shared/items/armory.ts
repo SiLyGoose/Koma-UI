@@ -430,13 +430,14 @@ export function showDetail(box: HTMLElement, copy: ArmoryCopy | undefined, parts
   const info = el('div', 'detail-info');
   const kind = el('p', 'detail-kind', SLOT_NAME[copy.slot]);
   info.append(kind);
-  // (Its stars of its top; none for one with the one level, which has its main stat there instead.)
+  // (Right under its slot, its main stat (an armor's P. DEF, a unique weapon's ATK…); then its stars of its top, none for one with the one level.)
+  if (copy.mainStat) info.append(mainStatLine(copy.mainStat));
   if (hasLevels(copy)) {
     if (copy.level >= copy.maxLevel) kind.append(el('span', 'detail-max', 'MAX'));
     const rank = el('p', 'detail-rank detail-stars');
     rank.append(krStars(copy.level, copy.maxLevel, isTmPiece(copy.itemId)));
     info.append(rank);
-  } else if (copy.mainStat) info.append(mainStatLine(copy.mainStat));
+  }
   info.append(...(parts.info ?? []));
   top.append(big, info);
   if (parts.corner) top.append(parts.corner);
