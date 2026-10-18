@@ -109,7 +109,73 @@ export type HeroMove =
   | 'corrupt'
   | 'judge'
   | 'ruin'
-  | 'advent';
+  | 'advent'
+  | 'present'
+  | 'thrill'
+  | 'dare'
+  | 'die'
+  | 'melody'
+  | 'song'
+  | 'passion'
+  | 'vital'
+  | 'coordination'
+  | 'turbulent'
+  | 'finisher'
+  | 'unstayed'
+  | 'counter'
+  | 'crash'
+  | 'thunder'
+  | 'explosion'
+  | 'break'
+  | 'limit'
+  | 'fury'
+  | 'rapid'
+  | 'smoke'
+  | 'glue'
+  | 'baam'
+  | 'pirates'
+  | 'roll'
+  | 'lockon'
+  | 'restrain'
+  | 'assassinate'
+  | 'laser'
+  | 'barrage'
+  | 'siege'
+  | 'sieglaser'
+  | 'focused'
+  | 'unsiege'
+  | 'tailwind'
+  | 'wakeup'
+  | 'cheer'
+  | 'headwind'
+  | 'caienne'
+  | 'devion'
+  | 'icarus'
+  | 'purify'
+  | 'circle'
+  | 'origin'
+  | 'uproar'
+  | 'gluttony'
+  | 'rampage'
+  | 'ultrasonic'
+  | 'crystal'
+  | 'instrument'
+  | 'path'
+  | 'zone'
+  | 'stigmata'
+  | 'tempest'
+  | 'oasis'
+  | 'cataract'
+  | 'sunsword'
+  | 'sunbless'
+  | 'sunjudge'
+  | 'shoo'
+  | 'bear'
+  | 'alone'
+  | 'scare'
+  | 'desert'
+  | 'spirit'
+  | 'sandstorm';
 
 /** `count` blows, the first `first` seconds in and each `every` after the last. */
 const every = (count: number, first: number, step: number): number[] => Array.from({ length: count }, (_, i) => first + i * step);
@@ -245,4 +311,90 @@ export const CODED: Readonly<Record<HeroMove | 'hit', Span>> = {
   judge: { lands: [0.4, 0.65, 1.1], until: 1.6 },
   ruin: { lands: [0.5, 0.7, 0.9, 1.35], until: 1.8 },
   advent: { lands: [0.8], until: 1.6 },
+  // Pansirone (King's Raid's own timings: its animations').
+  present: { lands: [1.7], until: 3 },
+  thrill: { lands: [1.6, 1.7, 1.8, 1.9, 2, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8], until: 5.1 },
+  dare: { lands: [1.6, 1.8, 2, 2.2, 2.4, 2.6, 2.8, 3, 3.2, 3.4], until: 4.9 },
+  die: { lands: [2.3, 2.6, 2.9, 3.2, 3.5, 3.8, 4.1], until: 5.2 },
+  // Shea (King's Raid's own timings: its animations').
+  melody: { lands: [1.4, 2.1, 3.1, 4.1, 5.1, 6.1, 7.1, 7.7, 8.1, 9.1], until: 9.2 },
+  song: { lands: [1.4, 2.1, 3.1, 4.1, 5.1, 6.1, 7.1, 8.1, 9.1, 9.8], until: 10.6 },
+  passion: { lands: [1.4, 2.1, 3.1, 4.1, 5.1, 6.1, 7.1, 8.1, 9.1, 9.7], until: 10.6 },
+  // Priscilla (King's Raid's own timings: its animations').
+  vital: { lands: [1.7], until: 3.1 },
+  coordination: { lands: [0.9, 1], until: 1.8 },
+  turbulent: { lands: [2.1], until: 3.5 },
+  // Glenwys (King's Raid's own timings: its animations').
+  finisher: { lands: [1.4, 1.7, 2, 2.3, 2.6, 2.9, 3.2], until: 4.1 },
+  unstayed: { lands: [0.8, 0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.9], until: 2.8 },
+  counter: { lands: [1.5], until: 3.1 },
+  // Theo (King's Raid's own timings: its animations').
+  crash: { lands: [0.8, 1, 1.2, 1.4, 1.6, 1.8, 2, 2.2, 2.5, 2.6, 2.7, 2.8, 2.9, 3.1, 3.3, 3.5], until: 3.6 },
+  thunder: { lands: [1.6], until: 2.3 },
+  explosion: { lands: [1.9, 2, 2.1, 2.3, 2.4], until: 2.9 },
+  // Chase (King's Raid's own timings: its animations').
+  break: { lands: [1.5], until: 2.5 },
+  limit: { lands: [1.2], until: 2.5 },
+  fury: { lands: [0.3, 1.8, 2.6, 2.8, 3], until: 4 },
+  // Lakrak (King's Raid's own timings: its animations').
+  rapid: { lands: [1.8], until: 2.77 },
+  smoke: { lands: [1.2], until: 2 },
+  glue: { lands: [1.3], until: 2 },
+  // Miruru (King's Raid's own timings: its animations').
+  baam: { lands: [1.6], until: 3 },
+  pirates: { lands: [1.6, 1.9, 2.2, 2.5, 2.8], until: 2.9 },
+  roll: { lands: [0.6, 1.2, 1.8], until: 1.9 },
+  // Mirianne (King's Raid's own timings: its animations').
+  lockon: { lands: [1.4, 1.7, 2], until: 2.8 },
+  restrain: { lands: [1.1], until: 3 },
+  assassinate: { lands: [2, 2.1], until: 3.7 },
+  // Kara (King's Raid's own timings: its animations').
+  laser: { lands: [1.1, 1.3, 1.5, 1.7, 2.1], until: 3.8 },
+  barrage: { lands: [2.3, 2.7, 3.1, 3.5], until: 4.4 },
+  // (Release Siege Weapon: only her turning into the Siege Weapon; and her two skills as one, and turning back.)
+  siege: { lands: [], until: 1.1 },
+  sieglaser: { lands: [1.8], until: 3.1 },
+  focused: { lands: [2, 2.1, 2.2, 2.3, 2.4], until: 3.8 },
+  unsiege: { lands: [], until: 1.5 },
+  // Estelle (King's Raid's own timings: its animations').
+  tailwind: { lands: [1.6, 4.3], until: 5.4 },
+  wakeup: { lands: [0.4, 1.1], until: 2.3 },
+  cheer: { lands: [2.5], until: 4.5 },
+  headwind: { lands: [1.8], until: 2.9 },
+  // Isolet (King's Raid's own timings: its animations').
+  caienne: { lands: [1.8], until: 2.7 },
+  devion: { lands: [1.8, 2.2, 2.6, 3, 3.4], until: 4.4 },
+  icarus: { lands: [1.9], until: 4.1 },
+  // Evan (King's Raid's own timings: its animations').
+  purify: { lands: [2.3], until: 3.5 },
+  circle: { lands: [2.8], until: 4.1 },
+  origin: { lands: [1.9], until: 4.6 },
+  uproar: { lands: [2], until: 3.3 },
+  gluttony: { lands: [1.9], until: 3.4 },
+  rampage: { lands: [2.5, 3, 3.4, 3.9, 4.2, 4.7, 5.6], until: 5.8 },
+  // Rehartna (King's Raid's own timings: its animations').
+  ultrasonic: { lands: [2.3, 2.5, 2.7, 2.9], until: 4 },
+  crystal: { lands: [0.7], until: 1.9 },
+  instrument: { lands: [2.3], until: 4 },
+  // Lucias (King's Raid's own timings: its animations').
+  path: { lands: [1.1], until: 2.3 },
+  zone: { lands: [1.3], until: 2.5 },
+  stigmata: { lands: [2.1], until: 3.3 },
+  // Lilia (King's Raid's own timings: its animations').
+  tempest: { lands: [1], until: 2.1 },
+  oasis: { lands: [1.6], until: 2.6 },
+  cataract: { lands: [0, 1.9, 2.1, 2.3, 2.5, 2.7, 2.9, 3.1, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 4, 4.3, 4.6, 4.9, 5.2, 5.5], until: 6.6 },
+  // Aselica (King's Raid's own timings: its animations').
+  sunsword: { lands: [1.6], until: 2.2 },
+  sunbless: { lands: [0, 1.1], until: 2.5 },
+  sunjudge: { lands: [0.4, 0.9, 1.4, 1.9, 2.4, 2.9, 3.4, 3.9, 4.9], until: 6.1 },
+  // Lavril (King's Raid's own timings: its animations').
+  shoo: { lands: [1], until: 2.1 },
+  bear: { lands: [1.9], until: 4 },
+  alone: { lands: [2.7], until: 5 },
+  scare: { lands: [1.9], until: 4 },
+  // Zafir (King's Raid's own timings: its animations').
+  desert: { lands: [1.5], until: 2.5 },
+  spirit: { lands: [1.3], until: 2.5 },
+  sandstorm: { lands: [1.9], until: 3.5 },
 };

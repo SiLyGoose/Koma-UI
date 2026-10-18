@@ -198,6 +198,15 @@ export const indexed = (kind: HeroClass, dmg: number): number => (POINTS * dmg) 
 /** A heal or a shield as the King's Raid Index has it: so that a hero of `kind`, at its class's ATK, gives just `amount` (a heal gives as much more as its healer's attack is over ATK). */
 export const indexedHeal = (kind: HeroClass, amount: number): number => (amount * ATK) / INDEX_ATK[kind];
 /**
+ * A blow as King's Raid's playtest has it (its skill at level 90, 5★: stats/<hero>.md): `ratio` thousandths of ATK and
+ * `flat` more, as thousandths of ATK, the flat part at its class's ATK (level 100: KINGS_RAID). The Index's numbers are the
+ * same blows at the same level, so a hero from either deals alike (Tanya's Blade Tornado: 3 × (136.5% + 69,958) is its 247,062).
+ */
+export const played = (kind: HeroClass, ratio: number, flat = 0): number => ratio + (POINTS * flat) / KINGS_RAID[kind].atk;
+/** A heal or a shield as the playtest has it: `ratio` thousandths of its healer's ATK and `flat` more, at its class's ATK (as indexedHeal). */
+export const playedHeal = (kind: HeroClass, ratio: number, flat = 0): number => ATK * (ratio / POINTS + flat / KINGS_RAID[kind].atk);
+
+/**
  * What a blow of `blow` deals from a hero of `kind` at its class's ATK, as its words say it (the Index's own number, where it
  * has one), `books` times as much (bookDmg: as it is with its skill's books).
  */
@@ -209,6 +218,19 @@ export const healed = (kind: HeroClass, amount: number, books = 1): string => nu
  * many times as much the `index`th skill's damage is for them (3: its passive's), and its heals and shields.
  */
 export const bookDmg = (id: string, index: number): number => 1 + (KR_HEROES[id]?.books.dmg[index] ?? 0);
+/**
+ * Which blows of a hero's attack (as its part counts them: the whole chain's, from 0) are the first of a part of it: King's
+ * Raid's "on a normal attack" (OnBaseAttack) is once for each part, not each blow.
+ */
+export const attackStarts = (id: string): ReadonlySet<number> => {
+  const starts = new Set<number>();
+  let at = 0;
+  for (const part of KR_HEROES[id]?.attack ?? []) {
+    if (part.lands.length > 0) starts.add(Math.min(at, 4));
+    at += part.lands.length;
+  }
+  return starts;
+};
 export const bookHeal = (id: string, index: number): number => 1 + (KR_HEROES[id]?.books.heal[index] ?? 0);
 
 export interface HeroDef {

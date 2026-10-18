@@ -24,6 +24,25 @@ import { GAU } from './gau';
 import { TANYA } from './tanya';
 import { REBEL_KLAUS } from './rebel-klaus';
 import { DARK_LORD_KASEL } from './dark-lord-kasel';
+import { THEO } from './theo';
+import { PRISCILLA } from './priscilla';
+import { GLENWYS } from './glenwys';
+import { CHASE } from './chase';
+import { ASELICA } from './aselica';
+import { LAKRAK } from './lakrak';
+import { MIRURU } from './miruru';
+import { MIRIANNE } from './mirianne';
+import { KARA } from './kara';
+import { ZAFIR } from './zafir';
+import { PANSIRONE } from './pansirone';
+import { ISOLET } from './isolet';
+import { LILIA } from './lilia';
+import { LUCIAS } from './lucias';
+import { REHARTNA } from './rehartna';
+import { SHEA } from './shea';
+import { LAVRIL } from './lavril';
+import { EVAN } from './evan';
+import { ESTELLE } from './estelle';
 
 /** The heroes there are, in the order of their cards. */
-export const HEROES: readonly HeroDef[] = [KIRZE, KLAUS, FALLEN_FREY, GREMORY, ANNETTE, MORRAH, LAIAS, SERIA, EZEKIEL, LORRAINE, VALANCE, LUCIKIEL, SELENE, CROW, ODDY, PHILLOP, NAILA, YANNE, NERAXIS, ERZE, LOMAN, GAU, TANYA, REBEL_KLAUS, DARK_LORD_KASEL];
+export const HEROES: readonly HeroDef[] = [KIRZE, KLAUS, FALLEN_FREY, GREMORY, ANNETTE, MORRAH, LAIAS, SERIA, EZEKIEL, LORRAINE, VALANCE, LUCIKIEL, SELENE, CROW, ODDY, PHILLOP, NAILA, YANNE, NERAXIS, ERZE, LOMAN, GAU, TANYA, REBEL_KLAUS, DARK_LORD_KASEL, THEO, PRISCILLA, GLENWYS, CHASE, ASELICA, LAKRAK, MIRURU, MIRIANNE, KARA, ZAFIR, PANSIRONE, ISOLET, LILIA, LUCIAS, REHARTNA, SHEA, LAVRIL, EVAN, ESTELLE];

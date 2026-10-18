@@ -61,6 +61,43 @@ import { fine, pct, type Buff } from './shown';
  *   HP, and gives him a stack (up to so many, for a while), each his DMG higher. (His part does it: ./heroes/rebel-klaus.ts.)
  * - Dark Lord Kasel, Corrupted Holy Sword, Aea: each blow of his leaves the boss healed less for a while (up to so many
  *   times over), and may deal a blow more. (His part does it: ./heroes/dark-lord-kasel.ts.)
+ * - Theo, Lightning Bolt, Legios: each of his blows a stack of Lightning; at 50, his attack speed, crit DMG and penetration
+ *   higher for a while (none stacked meanwhile).
+ * - Priscilla, Tumultuous Dance, Excilius: each blow of Vital Strike and Turbulent Dance takes time off that skill's
+ *   cooldown, and quickens her (up to 10 times).
+ * - Glenwys, The Counterattack, Maxithea: each skill she uses raises every ally's ATK and crit DMG (up to 4 times, twice
+ *   that at 4), for good.
+ * - Chase, Blood Lancer Monolith: his crit DMG higher; each part of his attack a blow of flame more that heals him (twice
+ *   under [Remove Limit]).
+ * - Aselica, Solar Halo, Ignisius: every 5 blows of her attack, the boss takes more magical damage for a while and is
+ *   stunned a moment.
+ * - Lakrak, Lakrak MK-1: each part of his attack may gain him a stack of Gunpowder (up to 7), each his ATK, attack speed
+ *   and DMG to Non-Hero enemies higher.
+ * - Miruru, Ultimate Weapon, Leviathan: each shell of Boooooom! may deal a blow more and leave the boss taking more physical
+ *   damage for a while.
+ * - Mirianne, Endless Acceleration, Riventina: quicker; her blows on an enemy under [Target Lock On] deal a blow more,
+ *   every 2 seconds at most.
+ * - Kara, 0-Form Perpetual Motion Cannon, Heaven Shatterer: her ATK higher every second, up to so many times.
+ * - Zafir, Glory of the God King, Zaries: each skill he uses a stack of [Will of Desert] (up to 8), each his ATK and crit
+ *   DMG higher for a while.
+ * - Pansirone, Roar of Raging Heat, Tersia: each of her blows on an enemy in [Eternal Blaze] raises her ATK, DEF and the
+ *   blaze's damage (up to 20 times).
+ * - Isolet, Conqueror of Darkness, Del Terravion: every 10 seconds the boss takes more physical damage for a while, and her
+ *   DMG is higher (up to 6 times).
+ * - Lilia, Infinite Spring, Cielamaha: her mana fills by so much more every second, and each part of her attack may deal a
+ *   blow more.
+ * - Lucias, Blessing of Light, Benedicia: for the fight's first seconds, every ally takes less physical damage, is quicker
+ *   and deals more to Non-Hero enemies.
+ * - Rehartna, Anthem of a New Road, Matimaruma: every 3 skills she uses, what the boss left on every ally is cleared, and
+ *   they take less for a while.
+ * - Shea, Charming Melody, Schwanheite: her CC resist higher; each stack of [Blissful Performance] takes a share off her
+ *   cooldowns and gains her mana.
+ * - Lavril, Void Soul, Dunn Nemecia: each skill she uses, untouched for a moment (no more often than every 10 seconds);
+ *   her [Soul Link]'s ally's crit DMG higher.
+ * - Evan, Small Synthesized Darkness, Naav Gehen: each skill he uses gains him mana, and for a moment every ally takes less
+ *   physical damage and the boss more.
+ * - Estelle, Chant of Tailwinds, Stosmos: [Adventure Guide] the longer, and every ally's ATK higher meanwhile.
+ *   (Each of these, the hero's part does it: ./heroes/<hero>.ts.)
  *
  * The game's shares of ATK are as they are for damage (this raid's blows are counted in thousandths of them: ./combat/),
  * and for a heal (a share of ATK: its hero's health and attack are the game's own, so it mends as much as there).
@@ -121,6 +158,44 @@ export const CAETHASIS = { name: 'Demon of the Calm, Caethasis', lasts: 10, unto
 export const GALICTA = { name: 'Adversary of the Goddess, Galicta', pen: [240, 290, 350, 420, 500], hp: 0.2, dmg: [0.024, 0.029, 0.035, 0.042, 0.05], lasts: 30, most: 5 };
 /** How much less each of his blows leaves the boss healed (a share) for `lasts` seconds, up to `most` times over; and how likely each is to deal a blow more (at ATK). */
 export const AEA = { name: 'Corrupted Holy Sword, Aea', heals: [0.012, 0.014, 0.017, 0.021, 0.025], lasts: 10, most: 12, chance: 0.35, blow: [1200, 1400, 1700, 2100, 2500] };
+/** Theo's: the stacks it takes, how long it lasts; attack speed, crit DMG and penetration. */
+export const LEGIOS = { name: 'Lightning Bolt, Legios', stacks: 50, lasts: 15, speed: [360, 430, 520, 620, 750], critDamage: [1.2, 1.44, 1.73, 2.08, 2.5], pen: [360, 430, 520, 620, 750] };
+/** Priscilla's: seconds off the skill's cooldown; attack speed for each stack, for how long, up to how many. */
+export const EXCILIUS = { name: 'Tumultuous Dance, Excilius', sooner: [1.2, 1.4, 1.7, 2, 2.5], speed: 50, lasts: 5, most: 10 };
+/** Glenwys's: up to how many; each one's ATK and crit DMG (shares). */
+export const MAXITHEA = { name: 'The Counterattack, Maxithea', most: 4, atk: [0.012, 0.014, 0.017, 0.02, 0.025], critDamage: [0.024, 0.028, 0.034, 0.042, 0.05] };
+/** Chase's: crit DMG; its flame (a share of ATK), and the share of it that heals him. */
+export const MONOLITH = { name: 'Blood Lancer Monolith', critDamage: [0.24, 0.28, 0.34, 0.42, 0.5], flame: [0.36, 0.43, 0.52, 0.62, 0.75], heal: 0.2 };
+/** Aselica's: every how many blows; the boss's more magical damage taken, for how long; its stun. */
+export const IGNISIUS = { name: 'Solar Halo, Ignisius', every: 5, takes: [0.24, 0.29, 0.35, 0.42, 0.5], lasts: 10, stun: 0.5 };
+/** Lakrak's: its chance, up to how many; each one's ATK, attack speed and more to Non-Hero enemies. */
+export const MK1 = { name: 'Lakrak MK-1', chance: 0.25, most: 7, atk: [0.036, 0.043, 0.051, 0.062, 0.075], speed: [36, 43, 51, 62, 75], boss: [0.036, 0.043, 0.051, 0.062, 0.075] };
+/** Miruru's: its chance, its blow (a share of ATK); the boss's more physical damage taken, for how long. */
+export const LEVIATHAN = { name: 'Ultimate Weapon, Leviathan', chance: 0.5, blow: [1.2, 1.4, 1.7, 2.1, 2.5], takes: [0.24, 0.29, 0.35, 0.42, 0.5], lasts: 10 };
+/** Mirianne's: attack speed; its blow (a share of ATK), every how many seconds at most. */
+export const RIVENTINA = { name: 'Endless Acceleration, Riventina', speed: [240, 290, 350, 420, 500], blow: [2.4, 2.9, 3.5, 4.2, 5], every: 2 };
+/** Kara's: ATK each second, up to how many. */
+export const SHATTERER = { name: '0-Form Perpetual Motion Cannon, Heaven Shatterer', atk: 0.02, most: [20, 25, 30, 35, 40] };
+/** Zafir's: each stack's ATK and crit DMG, up to how many, for how long. */
+export const ZARIES = { name: 'Glory of the God King, Zaries', boost: [0.048, 0.056, 0.068, 0.084, 0.1], most: 8, lasts: 30 };
+/** Pansirone's: each stack's ATK, DEF and the blaze's more, up to how many. */
+export const TERSIA = { name: 'Roar of Raging Heat, Tersia', boost: [0.012, 0.014, 0.017, 0.021, 0.025], most: 20 };
+/** Isolet's: every how many seconds; the boss's more physical damage taken, for how long; her DMG for each, up to how many. */
+export const TERRAVION = { name: 'Conqueror of Darkness, Del Terravion', every: 10, takes: [0.12, 0.14, 0.17, 0.21, 0.25], lasts: 12, dmg: [0.024, 0.029, 0.035, 0.042, 0.05], most: 6 };
+/** Lilia's: mana every second; its chance, and its blow (a share of ATK). */
+export const CIELAMAHA = { name: 'Infinite Spring, Cielamaha', mana: [60, 70, 85, 105, 125], chance: 0.8, blow: [0.24, 0.28, 0.34, 0.42, 0.5] };
+/** Lucias's: for how long; physical damage less, attack speed, more to Non-Hero enemies. */
+export const BENEDICIA = { name: 'Blessing of Light, Benedicia', lasts: 30, taken: [0.12, 0.14, 0.17, 0.21, 0.25], speed: [120, 140, 170, 210, 250], boss: [0.1, 0.12, 0.14, 0.17, 0.2] };
+/** Rehartna's: every how many skills; damage less, for how long. */
+export const NEW_ROAD = { name: 'Anthem of a New Road, Matimaruma', skills: 3, taken: [0.12, 0.14, 0.17, 0.21, 0.25], lasts: 10 };
+/** Shea's: CC resist; for each stack, the share off her cooldowns and the mana. */
+export const SCHWANHEITE = { name: 'Charming Melody, Schwanheite', resist: [360, 430, 520, 630, 700], sooner: [0.12, 0.14, 0.17, 0.21, 0.25], mana: [480, 580, 700, 840, 1000] };
+/** Lavril's: how long untouched, no more often than; her linked ally's crit DMG. */
+export const NEMECIA = { name: 'Void Soul, Dunn Nemecia', untouched: [1.2, 1.4, 1.7, 2.1, 2.5], every: 10, critDamage: [0.36, 0.42, 0.51, 0.63, 0.75] };
+/** Evan's: mana; every ally's physical damage less and the boss's more, for how long. */
+export const NAAV = { name: 'Small Synthesized Darkness, Naav Gehen', mana: [480, 580, 700, 840, 1000], taken: [0.12, 0.14, 0.17, 0.21, 0.25], takes: [0.12, 0.14, 0.17, 0.21, 0.25], lasts: 5 };
+/** Estelle's: [Adventure Guide]'s more seconds; every ally's ATK meanwhile. */
+export const STOSMOS = { name: 'Chant of Tailwinds, Stosmos', longer: [2, 3, 4, 5, 6], atk: [0.12, 0.14, 0.17, 0.21, 0.25] };
 
 /** What every ally gains by the TechnoMagic gear it wears (the same at every tier): 1 piece, more ATK; 2, more defense; 3, more max HP (here: taking that much less); 4, more DMG. */
 export const CORBEAU = { name: 'Wonder of Magos Le’Flamme, Corbeau Rose', atk: 0.06, defense: 0.06, hp: 0.06, dmg: 0.04 };
@@ -177,10 +252,46 @@ const ABOUT: Readonly<Record<string, (tier: number) => string>> = {
     `In [Stealth] for ${CAETHASIS.lasts} seconds as the fight begins, and the boss can’t touch her for the first ${atTier(CAETHASIS.untouched, tier)}. While she is in [Stealth], her crit damage is ${pct(atTier(CAETHASIS.critDamage, tier))} higher.`,
   'rebel-klaus': (tier) =>
     `+${atTier(GALICTA.pen, tier)} penetration. Each skill he uses costs him ${pct(GALICTA.hp)} of his current HP, but gives him a stack for ${GALICTA.lasts} seconds (up to ${GALICTA.most}), each +${fine(atTier(GALICTA.dmg, tier))} DMG. They can’t be dispelled.`,
+  theo: (tier) =>
+    `Each of his blows stacks Lightning on him; at ${LEGIOS.stacks}, for ${LEGIOS.lasts} seconds his attack speed is +${atTier(LEGIOS.speed, tier)}, his crit DMG +${pct(atTier(LEGIOS.critDamage, tier))} and his penetration +${atTier(LEGIOS.pen, tier)}, stacking none meanwhile. It can’t be dispelled.`,
+  priscilla: (tier) =>
+    `Each blow of Vital Strike and Turbulent Dance takes ${atTier(EXCILIUS.sooner, tier)} seconds off that skill's cooldown, and gives her +${EXCILIUS.speed} attack speed for ${EXCILIUS.lasts} seconds (up to ${EXCILIUS.most} times).`,
+  glenwys: (tier) =>
+    `Each skill she uses raises every ally's ATK by ${fine(atTier(MAXITHEA.atk, tier))} and crit DMG by ${fine(atTier(MAXITHEA.critDamage, tier))} (up to ${MAXITHEA.most} times; at ${MAXITHEA.most}, twice that). It can’t be dispelled.`,
+  chase: (tier) =>
+    `His crit DMG is ${pct(atTier(MONOLITH.critDamage, tier))} higher. Each part of his attack deals ${pct(atTier(MONOLITH.flame, tier))} of his ATK more with [Flame of Monolith], and heals him ${pct(MONOLITH.heal)} of it; under [Remove Limit], twice.`,
+  aselica: (tier) =>
+    `Every ${IGNISIUS.every} blows of her attack, the boss takes ${pct(atTier(IGNISIUS.takes, tier))} more magical damage for ${IGNISIUS.lasts} seconds and is stunned for ${IGNISIUS.stun}. It can’t be dispelled.`,
+  lakrak: (tier) =>
+    `Each part of his attack has a ${pct(MK1.chance)} chance to gain him a stack of Gunpowder (up to ${MK1.most}), each +${fine(atTier(MK1.atk, tier))} ATK, +${atTier(MK1.speed, tier)} attack speed and ${fine(atTier(MK1.boss, tier))} more to Non-Hero enemies. They can’t be removed.`,
+  miruru: (tier) =>
+    `Each shell of Boooooom! has a ${pct(LEVIATHAN.chance)} chance to deal ${pct(atTier(LEVIATHAN.blow, tier))} of her ATK more, and leave the boss taking ${pct(atTier(LEVIATHAN.takes, tier))} more physical damage for ${LEVIATHAN.lasts} seconds.`,
+  mirianne: (tier) =>
+    `+${atTier(RIVENTINA.speed, tier)} attack speed. Her blows on an enemy under [Target Lock On] deal ${pct(atTier(RIVENTINA.blow, tier))} of her ATK more, once every ${RIVENTINA.every} seconds.`,
+  kara: (tier) => `Her ATK is ${pct(SHATTERER.atk)} higher every second, up to ${atTier(SHATTERER.most, tier)} times.`,
+  zafir: (tier) =>
+    `Each skill he uses gains him a stack of [Will of Desert] for ${ZARIES.lasts} seconds (up to ${ZARIES.most}), each +${fine(atTier(ZARIES.boost, tier))} ATK and crit DMG. It can’t be dispelled.`,
+  pansirone: (tier) =>
+    `Each of her blows on an enemy in [Eternal Blaze] raises her ATK and DEF, and the blaze's damage, by ${fine(atTier(TERSIA.boost, tier))} (up to ${TERSIA.most} times).`,
+  isolet: (tier) =>
+    `Every ${TERRAVION.every} seconds, the boss takes ${pct(atTier(TERRAVION.takes, tier))} more physical damage for ${TERRAVION.lasts} seconds, and her DMG is ${fine(atTier(TERRAVION.dmg, tier))} higher (up to ${TERRAVION.most} times). It can’t be removed.`,
+  lilia: (tier) =>
+    `+${atTier(CIELAMAHA.mana, tier)} mana every second; each part of her attack has a ${pct(CIELAMAHA.chance)} chance to deal ${pct(atTier(CIELAMAHA.blow, tier))} of her ATK more.`,
+  lucias: (tier) =>
+    `For the first ${BENEDICIA.lasts} seconds of the fight, every ally takes ${pct(atTier(BENEDICIA.taken, tier))} less physical damage, has +${atTier(BENEDICIA.speed, tier)} attack speed and deals ${pct(atTier(BENEDICIA.boss, tier))} more to Non-Hero enemies.`,
+  rehartna: (tier) =>
+    `Every ${NEW_ROAD.skills} skills she uses, what the boss has left on every ally is cleared, and they take ${pct(atTier(NEW_ROAD.taken, tier))} less for ${NEW_ROAD.lasts} seconds.`,
+  shea: (tier) =>
+    `+${atTier(SCHWANHEITE.resist, tier)} CC resist. Each stack of [Blissful Performance] takes ${pct(atTier(SCHWANHEITE.sooner, tier))} off her cooldowns and gains her ${atTier(SCHWANHEITE.mana, tier)} mana.`,
+  lavril: (tier) =>
+    `Each skill she uses, the boss's blows don't touch her for ${atTier(NEMECIA.untouched, tier)} seconds (once every ${NEMECIA.every} seconds at most). Her [Soul Link]'s ally has ${pct(atTier(NEMECIA.critDamage, tier))} more crit DMG.`,
+  evan: (tier) =>
+    `Each skill he uses gains him ${atTier(NAAV.mana, tier)} mana, and for ${NAAV.lasts} seconds every ally takes ${pct(atTier(NAAV.taken, tier))} less physical damage and the boss ${pct(atTier(NAAV.takes, tier))} more.`,
+  estelle: (tier) => `[Adventure Guide] lasts ${atTier(STOSMOS.longer, tier)} seconds longer, and meanwhile every ally's ATK is ${pct(atTier(STOSMOS.atk, tier))} higher.`,
   'dark-lord-kasel': (tier) =>
     `Each of his blows leaves the boss healed ${fine(atTier(AEA.heals, tier))} less for ${AEA.lasts} seconds (up to ${AEA.most} times over), and has a ${pct(AEA.chance)} chance to deal ${pct(atTier(AEA.blow, tier) / 1000)} of his ATK more.`,
 };
-const NAMES: Readonly<Record<string, string>> = { klaus: EXIAN.name, kirze: ELICIPIRA.name, 'fallen-frey': ROSMERTA.name, gremory: PIGRITIA.name, annette: RASCAL.name, morrah: CARPRAIN.name, laias: ELTOIRRE.name, seria: ELSION.name, ezekiel: BARBATOS.name, lorraine: ROBURU.name, valance: CORBEAU.name, lucikiel: GIGANTE.name, selene: NOTOS.name, crow: AKISTRA.name, oddy: TEMPODIANA.name, phillop: ATEIN.name, naila: BARORO.name, yanne: SVELTA.name, neraxis: ACRAVITA.name, erze: PERION.name, loman: GAIAMENES.name, gau: NUMINU.name, tanya: CAETHASIS.name, 'rebel-klaus': GALICTA.name, 'dark-lord-kasel': AEA.name };
+const NAMES: Readonly<Record<string, string>> = { klaus: EXIAN.name, kirze: ELICIPIRA.name, 'fallen-frey': ROSMERTA.name, gremory: PIGRITIA.name, annette: RASCAL.name, morrah: CARPRAIN.name, laias: ELTOIRRE.name, seria: ELSION.name, ezekiel: BARBATOS.name, lorraine: ROBURU.name, valance: CORBEAU.name, lucikiel: GIGANTE.name, selene: NOTOS.name, crow: AKISTRA.name, oddy: TEMPODIANA.name, phillop: ATEIN.name, naila: BARORO.name, yanne: SVELTA.name, neraxis: ACRAVITA.name, erze: PERION.name, loman: GAIAMENES.name, gau: NUMINU.name, tanya: CAETHASIS.name, 'rebel-klaus': GALICTA.name, 'dark-lord-kasel': AEA.name, theo: LEGIOS.name, priscilla: EXCILIUS.name, glenwys: MAXITHEA.name, chase: MONOLITH.name, aselica: IGNISIUS.name, lakrak: MK1.name, miruru: LEVIATHAN.name, mirianne: RIVENTINA.name, kara: SHATTERER.name, zafir: ZARIES.name, pansirone: TERSIA.name, isolet: TERRAVION.name, lilia: CIELAMAHA.name, lucias: BENEDICIA.name, rehartna: NEW_ROAD.name, shea: SCHWANHEITE.name, lavril: NEMECIA.name, evan: NAAV.name, estelle: STOSMOS.name };
 /** The heroes that have a unique weapon, by id. */
 export const UNIQUE_HEROES: readonly string[] = Object.keys(ABOUT);
 
@@ -217,3 +328,20 @@ export const NUMINU_UP: Buff = { name: 'Holy Bird, Numinu', about: 'Max HP highe
 export const CAETHASIS_UP: Buff = { name: 'Demon of the Calm, Caethasis', about: 'Crit damage higher while in Stealth.', icon: '👁️', art: { uw: 'tanya' } };
 export const GALICTA_UP: Buff = { name: 'Adversary of the Goddess, Galicta', about: 'Penetration higher; each skill costs HP but stacks DMG higher.', icon: '⚔️', art: { uw: 'rebel-klaus' } };
 export const AEA_UP: Buff = { name: 'Corrupted Holy Sword, Aea', about: 'Each blow leaves the boss healed less, and may deal a blow more.', icon: '🗡️', art: { uw: 'dark-lord-kasel' } };
+export const LEGIOS_UP: Buff = { name: 'Lightning Bolt, Legios', about: 'Attack speed, crit DMG and penetration higher.', icon: '⚡', art: { uw: 'theo' } };
+export const EXCILIUS_UP: Buff = { name: 'Tumultuous Dance, Excilius', about: 'Attack speed higher for each.', icon: '💃', art: { uw: 'priscilla' } };
+export const MAXITHEA_UP: Buff = { name: 'The Counterattack, Maxithea', about: 'ATK and crit DMG higher for each.', icon: '🛡️', art: { uw: 'glenwys' } };
+export const MONOLITH_UP: Buff = { name: 'Blood Lancer Monolith', about: 'Crit DMG higher; his attack a blow of flame more.', icon: '🔥', art: { uw: 'chase' } };
+export const MK1_UP: Buff = { name: 'Gunpowder', about: 'ATK, attack speed and DMG to Non-Hero enemies higher for each.', icon: '💣', art: { uw: 'lakrak' } };
+export const RIVENTINA_UP: Buff = { name: 'Endless Acceleration, Riventina', about: 'Quicker, and a blow more on an enemy under [Target Lock On].', icon: '🎯', art: { uw: 'mirianne' } };
+export const SHATTERER_UP: Buff = { name: 'Heaven Shatterer', about: 'ATK higher for each.', icon: '⚙️', art: { uw: 'kara' } };
+export const ZARIES_UP: Buff = { name: 'Will of Desert', about: 'ATK and crit DMG higher for each.', icon: '🏜️', art: { uw: 'zafir' } };
+export const TERSIA_UP: Buff = { name: 'Roar of Raging Heat, Tersia', about: 'ATK, DEF and the blaze higher for each.', icon: '🔥', art: { uw: 'pansirone' } };
+export const TERRAVION_UP: Buff = { name: 'Conqueror of Darkness, Del Terravion', about: 'DMG higher for each.', icon: '⚙️', art: { uw: 'isolet' } };
+export const CIELAMAHA_UP: Buff = { name: 'Infinite Spring, Cielamaha', about: 'Mana every second, and now and then a blow more.', icon: '💧', art: { uw: 'lilia' } };
+export const BENEDICIA_UP: Buff = { name: 'Blessing of Light, Benedicia', about: 'Takes less physical damage, quicker, and deals more to Non-Hero enemies.', icon: '✨', art: { uw: 'lucias' } };
+export const NEW_ROAD_UP: Buff = { name: 'Anthem of a New Road, Matimaruma', about: 'Takes less.', icon: '🎵', art: { uw: 'rehartna' } };
+export const SCHWANHEITE_UP: Buff = { name: 'Charming Melody, Schwanheite', about: 'CC resist higher.', icon: '🎶', art: { uw: 'shea' } };
+export const NEMECIA_UP: Buff = { name: 'Void Soul, Dunn Nemecia', about: 'Untouched a moment as she uses a skill.', icon: '👻', art: { uw: 'lavril' } };
+export const NAAV_UP: Buff = { name: 'Small Synthesized Darkness, Naav Gehen', about: 'Takes less physical damage.', icon: '🌑', art: { uw: 'evan' } };
+export const STOSMOS_UP: Buff = { name: 'Chant of Tailwinds, Stosmos', about: 'ATK higher.', icon: '🍃', art: { uw: 'estelle' } };
