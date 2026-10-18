@@ -9,7 +9,7 @@
       <div id="roster-list" class="roster-list"></div>
     </nav>
 
-    <!-- The hero: its picture, with its Weapon, Armor and Secondary Armor on the left, its Accessory, Orb and Artifact on the right, and its treasure under it. -->
+    <!-- The hero: its picture, with its Weapon, Armor and Secondary Armor on the left, its Accessory, Orb and treasure on the right, and its Artifact under it. -->
     <div class="hero">
       <!-- Whose heroes (theirs, or someone else's in the server, to look at), and the server. -->
       <div class="hero-top">
@@ -38,10 +38,7 @@
         <div class="slot-col hero-armors">
           <button type="button" class="slot" data-slot="accessory"></button>
           <button type="button" class="slot" data-slot="orb"></button>
-          <button type="button" class="slot" data-slot="artifact"></button>
-        </div>
-        <!-- Its main treasure, and over its left edge a box for each of its three sub treasures (only its own unique treasures go in those). -->
-        <div class="hero-treasure">
+          <!-- Its main treasure, and over its left edge a box for each of its three sub treasures (only its own unique treasures go in those). -->
           <div class="hero-main-treasure">
             <button type="button" class="slot" data-slot="treasure"></button>
             <div class="hero-subs" hidden>
@@ -50,6 +47,9 @@
               <button type="button" class="slot sub-box" data-slot="side3"></button>
             </div>
           </div>
+        </div>
+        <div class="hero-artifact">
+          <button type="button" class="slot" data-slot="artifact"></button>
         </div>
       </div>
       <div class="totals">

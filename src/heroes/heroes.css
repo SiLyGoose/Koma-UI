@@ -1,8 +1,9 @@
 /*
  * The heroes page (page.ts), on top of the gear page's (../gear/gear.css: the roster, the stage, the slots,
  * the armory, the details and the stats are its): the hero's whole picture across the stage, behind its slots,
- * its two weapon slots on the left, its two armor slots on the right and its treasure under it, a box for each of its
- * three sub treasures over its left edge (as King's Raid's); a hero that isn't theirs yet greyed, with the way to the shop.
+ * its weapon slots on the left, its armor slots and its treasure on the right (a box for each of its three sub
+ * treasures over the treasure's left edge, as King's Raid's) and its artifact under it; a hero that isn't theirs yet
+ * greyed, with the way to the shop.
  */
 
 /* Whose heroes on the left, the server on the right; shown when either is (the gear page's hides it with no server picker). */
@@ -23,7 +24,7 @@
   grid-template-rows: minmax(0, 1fr) auto;
   grid-template-areas:
     'weapons figure armors'
-    'weapons treasure armors';
+    'weapons artifact armors';
   height: 480px;
   padding: 64px 14px 14px;
 }
@@ -41,15 +42,17 @@
   justify-content: flex-end;
 }
 
-.hero-treasure {
+.hero-artifact {
   display: flex;
-  grid-area: treasure;
+  grid-area: artifact;
   justify-content: center;
   padding-top: 8px;
 }
 
+/* As wide as its own slot (not its column's widest), so its sub treasure boxes sit on its frame's left edge. */
 .hero-main-treasure {
   position: relative;
+  align-self: center;
 }
 
 /*
@@ -181,7 +184,7 @@
 /* The slots and the name over it. */
 .hero-stage > .slot-col,
 .hero-stage > .hero-figure,
-.hero-stage > .hero-treasure {
+.hero-stage > .hero-artifact {
   position: relative;
   z-index: 1;
 }
