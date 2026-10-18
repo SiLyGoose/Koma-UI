@@ -1,7 +1,7 @@
 import type { HeroAssets, KrAnimations } from '../types.ts';
 
 /*
- * Priscilla, the Sword Dancer (Hero_Priscilla_…): her body and hair, and her weapon in her right hand, as King's Raid's own model has them. She is
+ * Priscilla, the Sword Dancer (Hero_Priscilla_…): her body and hair, and her weapon in her left hand, as King's Raid's own model has them. She is
  * moved by King's Raid's own animations of her (ANIMATIONS: ../../heroes/body/kr.ts).
  */
 
@@ -66,7 +66,9 @@ export const PRISCILLA_ASSETS: HeroAssets = {
         kind: 'parts',
         animations: ANIMATIONS,
         parts: ['Hero_Priscilla_Vari05_Body', 'Hero_Priscilla_Vari05'],
-        right: 'Hero_Priscilla_Vari05_Weapon',
+        // (In her left hand, where King's Raid's clips hang it: Point_hand_L.)
+        left: 'Hero_Priscilla_Vari05_Weapon',
+        offHand: 'held',
       },
     },
   ],
