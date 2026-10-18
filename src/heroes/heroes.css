@@ -786,30 +786,3 @@
   padding: 2px 10px;
   font-size: 12px;
 }
-
-/* A slot's name over the hero's picture: a dark shadow round it, so it reads over the picture's light parts too. */
-.heroes-page .hero-stage .slot-name {
-  text-shadow: 0 0 3px rgb(0 0 0 / 95%), 0 1px 2px rgb(0 0 0 / 95%);
-}
-
-/* Under a slot's name: its piece's main stat, its name muted and its number bright, on a dark backing so it reads over the hero's picture. */
-.heroes-page .slot-main {
-  display: flex;
-  gap: 4px;
-  margin-top: -4px;
-  padding: 1px 6px;
-  border-radius: 4px;
-  background: rgb(10 10 14 / 72%);
-  font-size: 11px;
-  font-weight: 700;
-  line-height: 1.25;
-  white-space: nowrap;
-}
-
-.heroes-page .slot-main-name {
-  color: #c9c2d6;
-}
-
-.heroes-page .slot-main-value {
-  color: #f0d78c;
-}
