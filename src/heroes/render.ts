@@ -2,6 +2,7 @@ import { art, drawSell, el, forgeLink, hasLevels, heroMarks, isTmPiece, itemDeta
 import { classBadge, className, FACE, HERO_PART_NAME, HERO_SLOT_KIND, HERO_SLOT_PART, heroCut, heroPicture, skillText, STAGE_ZOOM, type HeroView, type HeroCopy, type HeroSlot } from '../shared/heroes';
 import { built } from '../shared/built';
 import { working } from '../shared/ui';
+import { points } from '../shared/util';
 import { canTrade, copyById, heroShown, mine, slotFor, slotOf, type HeroesContext } from './context';
 import { SIDE_SLOTS } from '../protocol/heroes';
 import { heroSkills } from './skills';
@@ -224,6 +225,12 @@ function renderSlots(ctx: HeroesContext): void {
     // (A hero's gear: its marks (a unique weapon's or treasure's, a TechnoMagic piece's) and its stars, King's Raid's.)
     if (copy) frame.append(...heroMarks(copy), krStars(copy.level, copy.level, isTmPiece(copy.itemId)));
     button.append(frame, el('span', 'slot-name', slotName(slot)));
+    // Under its name, what's in it gives as its main stat (its P. DEF, a unique weapon's ATK…), as King's Raid's gear screen has it.
+    if (copy?.mainStat) {
+      const main = el('span', 'slot-main');
+      main.append(el('span', 'slot-main-name', copy.mainStat.name), el('span', 'slot-main-value', points(copy.mainStat.value)));
+      button.append(main);
+    }
   }
 }
 
