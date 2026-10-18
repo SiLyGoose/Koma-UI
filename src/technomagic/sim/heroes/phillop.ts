@@ -2,7 +2,6 @@ import { POINTS } from '../combat/damage';
 import { put } from '../combat/status';
 import { said, t5Light } from '../perks';
 import { fromTreasure, treasure, treasureTier } from '../treasures';
-import { BLOW } from '../rules';
 import { num, pct, skillArt, type Buff } from '../shown';
 import { atTier, ATEIN, ATEIN_UP, DRAGON_RAGE } from '../unique';
 import { CLASS_STATS, dmg, indexed, type HeroDef, type Passive } from './kit';
@@ -23,7 +22,6 @@ import { CLASS_STATS, dmg, indexed, type HeroDef, type Passive } from './kit';
  * boss to dispel: only its more P.DMG taken.
  */
 // (How hard each of his skills hits is the King's Raid Index's, at his class's ATK: ./kit.ts's indexed.)
-const HEW = { blow: BLOW * 1.2 };
 const COLLISION = { blow: indexed('knight', 87_446), down: 3 };
 // (Its slow, as the game has it: an ATK Spd reduction, in points.)
 const HEADBUTT = { blow: indexed('knight', 72_113), speed: 200, slowed: 10 };
@@ -168,7 +166,7 @@ export const PHILLOP: HeroDef = {
 
     /** His attack: a stack of Destroy Armor (all begun again; its Light, at full stacks, a blow more; its Dark, now and then the boss exposed). */
     const hew = (): void => {
-      fight.hit(self, HEW.blow);
+      fight.hit(self, fight.basic);
       broken = Math.min(ARMOR.most, broken + 1);
       brokenLeft = ARMOR.lasts;
       armored();

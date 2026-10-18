@@ -4,6 +4,7 @@ import { accurate, amplified, away, blocking, bolstering, bound, critDamaging, c
 import type { Input, Logged, Result, SimEvent } from './events';
 import { geared } from './gear';
 import { lineOf, nearer, NO_PASSIVE, type Ability, type HeroDef } from './heroes/kit';
+import { KR_HEROES } from './heroes/kr';
 import type { HeroMove } from './heroes/moves';
 import { motionOf } from './motion';
 import { seeded } from './random';
@@ -192,6 +193,8 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     // Its additional skills' on its own stats, from the start.
     skilledStats(stats, skills);
     const motion = motionOf(hero);
+    // (Its mana, King's Raid's playtest's: ./heroes/kr.ts.)
+    const mana = KR_HEROES[hero.id]?.mana ?? { regen: MANA_RATE, attack: MANA_PER_ATTACK };
     const name = hero.skins[skin] ?? hero.skins[0] ?? hero.name;
     const defs = [...perks.values()];
     // (Its perks' DMG and what it takes add up, as King's Raid's do: ./combat/status.ts.)
@@ -228,8 +231,8 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       accuracy: gear.accuracy ?? 0,
       lifesteal: gear.lifesteal ?? 0,
       critResist: { physical: (gear.critResist ?? 0) + (gear.critResistPhysical ?? 0), magical: (gear.critResist ?? 0) + (gear.critResistMagical ?? 0) },
-      manaPerAttack: MANA_PER_ATTACK * (1 + (gear.manaAttack ?? 0)),
-      manaRegen: MANA_RATE * (1 + (gear.manaRegen ?? 0)),
+      manaPerAttack: mana.attack * (1 + (gear.manaAttack ?? 0)),
+      manaRegen: mana.regen * (1 + (gear.manaRegen ?? 0)),
       motion,
       attack: motion.attack,
       part: { lands: {} },
@@ -237,15 +240,15 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       shield: 0,
       shieldLeft: 0,
       statuses: [],
-      // As it comes into the fight: whole, with half its mana (and more with Authority's support).
-      mana: Math.min(MAX_MANA, MAX_MANA / 2 + (set?.id === 'authority' && set.role === 'support' ? AUTHORITY.mana : 0)),
+      // As it comes into the fight: whole, with no mana (but Authority's support's), as in King's Raid's raids.
+      mana: Math.min(MAX_MANA, set?.id === 'authority' && set.role === 'support' ? AUTHORITY.mana : 0),
       sub,
       // On Auto from the start in a raid (the Main Team's can be taken off it); trying things out, not.
       auto: sub || raid,
       cooldowns: hero.abilities.map(() => 0),
       reserved: null,
       lastUsed: hero.abilities.map(() => -Infinity),
-      income: MANA_RATE * (1 + (gear.manaRegen ?? 0)),
+      income: mana.regen * (1 + (gear.manaRegen ?? 0)),
       rested: 0,
       dealt: 0,
       healed: 0,
@@ -301,8 +304,9 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     });
   }
 
-  /** The hero whose attack's blow is landing right now (null: none: a skill's, or something else's); and whose move, and which. */
+  /** The hero whose attack's blow is landing right now (null: none: a skill's, or something else's), and how hard it is (King's Raid's); and whose move, and which. */
   let attacking: Fighter | null = null;
+  let basic = 0;
   let landing: { by: Fighter; move: HeroMove } | null = null;
 
   /** How long the boss has been still; what each of its parts (heads) is doing, and will do after; whom it goes for, and whether it was busy last step. */
@@ -572,8 +576,8 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
 
   /** What comes of the moves every hero has, as each part lands (unless its own part says otherwise). */
   const common: Partial<Record<HeroMove, (fighter: Fighter, part: number) => void>> = {
-    // A blow of its attack, the last the hardest.
-    attack: (fighter, part) => sim.hit(fighter, BLOW * (part === 4 ? 1.6 : 1)),
+    // A blow of its attack: as King's Raid's has it, or else the last the hardest.
+    attack: (fighter, part) => sim.hit(fighter, basic || BLOW * (part === 4 ? 1.6 : 1)),
     cast: (fighter) => sim.hit(fighter, BLOW * 3),
   };
 
@@ -597,13 +601,17 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
         const last = timeline.fifth && doing.part === timeline.parts.length - 1 && doing.landed === part.lands.length;
         const index = last ? 4 : doing.blows - 1;
         events.push({ kind: 'land', who: fighter.index, move, part: index });
-        // (A blow of its attack gains it mana: hit() is told whose attack is landing.)
+        // (hit() is told whose attack is landing; and its parts are told how hard King's Raid's blow is: sim.basic.)
         attacking = move === fighter.attack ? fighter : null;
+        basic = attacking ? (part.blows?.[doing.landed - 1] ?? 0) : 0;
         landing = { by: fighter, move };
+        // Each part of its attack gains it mana, as its first blow lands (King's Raid's: once a part of its attack is under way).
+        if (attacking && doing.landed === 1) fighter.mana = Math.min(MAX_MANA, fighter.mana + fighter.manaPerAttack);
         const own = fighter.part.lands[move];
         if (own) own(index);
         else common[move]?.(fighter, index);
         attacking = null;
+        basic = 0;
         landing = null;
         if (doing.blows === 1) {
           for (const mark of fighter.moveMarks[move] ?? []) marked(mark);
@@ -682,6 +690,9 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     get result() {
       return result;
     },
+    get basic() {
+      return basic;
+    },
     events,
     log,
     sums,
@@ -737,8 +748,6 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
         const stolen = Math.min(dealt * share(soft(by.lifesteal, SOFT.lifesteal)) * healing(by.statuses) * (foe.part.healing?.() ?? 1), by.stats.hp - by.hp);
         if (stolen > 0) by.hp += stolen;
       }
-      // A blow of its attack: its mana per attack.
-      if (attacking === by) by.mana = Math.min(MAX_MANA, by.mana + by.manaPerAttack);
       // A critical blow of a skill a perk of its changes (its main unique treasure's): mana, and its cooldown shorter.
       const skillIndex = critical && landing?.by === by && attacking !== by ? by.doing?.skill : undefined;
       if (skillIndex !== undefined) {
@@ -1070,7 +1079,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
         if (on.reserved !== null && !sim.reservable(on, on.reserved) && !bound(on.statuses)) on.reserved = null;
         if (!on.doing && on.hp > 0 && !bound(on.statuses)) {
           if (on.reserved !== null && use(on, on.reserved)) on.reserved = null;
-          else if (on.rested >= HERO_WAIT && foe.hp > 0) begin(on, on.attack, null);
+          else if (on.rested >= (KR_HEROES[on.id]?.wait ?? HERO_WAIT) && foe.hp > 0) begin(on, on.attack, null);
         }
       }
 

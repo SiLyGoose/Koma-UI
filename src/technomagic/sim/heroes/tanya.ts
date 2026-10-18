@@ -2,7 +2,7 @@ import { share } from '../combat/damage';
 import { put } from '../combat/status';
 import { said, t5Light } from '../perks';
 import { fromTreasure, treasure, treasureTier } from '../treasures';
-import { BLOW, MAX_MANA } from '../rules';
+import { MAX_MANA } from '../rules';
 import { pct, skillArt, type Buff, type Mark } from '../shown';
 import { atTier, CAETHASIS, CAETHASIS_UP } from '../unique';
 import { CLASS_STATS, dmg, indexed, type HeroDef, type Passive } from './kit';
@@ -28,9 +28,6 @@ import { CODED } from './moves';
  * resistance to lower), nor Silent Ambush's Dark (no silence). Blade Tornado's Light always holds (there is only the boss).
  */
 // (How hard each of her skills hits is the King's Raid Index's, at her class's ATK: ./kit.ts's indexed.)
-const KATAR = { blow: BLOW * 0.65 };
-/** Her katars as her attack's animation has it (four blows, quicker than as written in code): her attack about as hard over time. */
-const FIST = { blow: BLOW * 0.7 };
 /** Stealth: how long, her crit chance and dodge (points) more meanwhile. */
 const STEALTH = { lasts: 10, crit: 50, dodge: 50 };
 /** Target Sighted: how much more physical damage the boss takes for `lasts` seconds, its blow, how long the boss is down, and (in Stealth) stunned. */
@@ -195,8 +192,8 @@ export const TANYA: HeroDef = {
     return {
       lands: {
         // Her attack: a cut of each katar, as written in code; or as her animation for it has it.
-        katar: () => attack(KATAR.blow),
-        attack: () => attack(FIST.blow),
+        katar: () => attack(fight.basic),
+        attack: () => attack(fight.basic),
         // The boss exposed, a blow that knocks it down; in Stealth, stunned; else, Stealth. Its Light: the boss healed less.
         sighted() {
           const hidden = stealth > 0;

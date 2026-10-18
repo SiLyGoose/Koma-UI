@@ -1,7 +1,7 @@
 import { put } from '../combat/status';
 import { said, t5Light } from '../perks';
 import { fromTreasure, treasure } from '../treasures';
-import { BLOW, MAX_MANA } from '../rules';
+import { MAX_MANA } from '../rules';
 import { num, pct, skillArt, type Buff } from '../shown';
 import { AKISTRA, AKISTRA_UP, atTier } from '../unique';
 import { CLASS_STATS, dmg, indexed, type HeroDef, type Passive } from './kit';
@@ -28,7 +28,6 @@ import { CODED } from './moves';
  * he recovers as every hero does (all that Hunting Preparation's Dark, and his gear, raise).
  */
 // (How hard each of his skills hits is the King's Raid Index's, at his class's ATK: ./kit.ts's indexed.)
-const SNIPE = { blow: BLOW * 1.3 };
 // (As many shots as its move has.)
 const ELIMINATE = { shots: CODED.eliminate.lands.length, blow: indexed('mechanic', 164_145) / CODED.eliminate.lands.length, marks: 2 };
 // (Its shots: its move's blows but the last, the Frost Bullet.)
@@ -168,7 +167,7 @@ export const CROW: HeroDef = {
       lands: {
         // His attack: a shot that leaves a Fang Mark (and with his unique weapon, a bullet more).
         snipe() {
-          fight.hit(self, SNIPE.blow);
+          fight.hit(self, fight.basic);
           mark(1);
           if (tier !== null) fight.hit(self, atTier(AKISTRA.bullet, tier), false);
         },

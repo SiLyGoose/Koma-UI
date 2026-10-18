@@ -110,7 +110,7 @@ export interface Fighter {
   readonly accuracy: number;
   readonly lifesteal: number;
   readonly critResist: PerKind;
-  /** The mana it gains for each blow of its attack that lands, and recovers a second (../rules.ts's, with what its gear adds). */
+  /** The mana it gains as each part of its attack lands, and recovers a second (its own: ./heroes/kr.ts, with what its gear adds). */
   readonly manaPerAttack: number;
   readonly manaRegen: number;
   /** The TechnoMagic set whose effect it has, and what its class is to it (./sets.ts); null: none. */
@@ -198,6 +198,8 @@ export interface Fight {
    * Returns whether it landed, and was critical. One `whole` goes through all the boss's defense.
    */
   hit(by: Fighter, amount: number, counted?: boolean, pierce?: number, whole?: boolean): boolean;
+  /** The blow of a hero's attack landing now, as King's Raid's playtest has it (thousandths of ATK: ./heroes/kr.ts); 0 while none is. */
+  readonly basic: number;
   /** A hero is given back `amount` of its health (not while it is down), less what is on it and the boss's skills take off; `by` is the hero whose heal it is (it gives as much more as its attack is over ATK, or less). */
   heal(fighter: Fighter, amount: number, by?: Fighter): void;
   /**

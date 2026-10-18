@@ -2,7 +2,7 @@ import { share } from '../combat/damage';
 import { put } from '../combat/status';
 import { said, t5Light } from '../perks';
 import { fromTreasure, treasure, treasureTier } from '../treasures';
-import { BLOW, MAX_MANA } from '../rules';
+import { MAX_MANA } from '../rules';
 import { pct, skillArt, type Buff } from '../shown';
 import { atTier, TEMPODIANA, TEMPODIANA_UP } from '../unique';
 import { CLASS_STATS, dmg, indexed, type Ability, type HeroDef, type Passive } from './kit';
@@ -25,7 +25,6 @@ import { CODED } from './moves';
  * hit), nor Time Distortion's Dark (there are never 5 enemies). Its Light fills every ally's mana.
  */
 // (How hard each of her skills hits is the King's Raid Index's, at her class's ATK: ./kit.ts's indexed.)
-const CHIME = { blow: BLOW * 1.3 };
 const FRACTURE = { blow: indexed('mechanic', 76_654), petrify: 3 };
 // (As many blows as its move has.)
 const FRAGMENTS = { hits: CODED.fragments.lands.length, blow: indexed('mechanic', 431_328) / CODED.fragments.lands.length, chance: 0.5 };
@@ -156,7 +155,7 @@ export const ODDY: HeroDef = {
       lands: {
         // Her attack (its Dark: Time Fragments' cooldown less); with Clock Magic, more, and now and then the boss petrified.
         chime() {
-          fight.hit(self, CHIME.blow);
+          fight.hit(self, fight.basic);
           if (self.perks.has('s2-dark')) self.cooldowns[1] = Math.max(0, (self.cooldowns[1] as number) - PERKS.fragments);
           if (clock <= 0) return;
           clock--;

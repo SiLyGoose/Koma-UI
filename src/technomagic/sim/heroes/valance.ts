@@ -2,7 +2,7 @@ import { share } from '../combat/damage';
 import { away, put, type Status } from '../combat/status';
 import { said, t5Light } from '../perks';
 import { fromTreasure, treasure, treasureTier } from '../treasures';
-import { BLOW, MAX_MANA, SECTION } from '../rules';
+import { MAX_MANA, SECTION } from '../rules';
 import { fine, pct, skillArt, type Buff } from '../shown';
 import type { Fighter } from '../types';
 import { CORBEAU, CORBEAU_UP } from '../unique';
@@ -31,7 +31,6 @@ import { CODED } from './moves';
  * 100 points (1000: 100%).
  */
 // (How hard each of his skills hits: the King's Raid Index hasn't him, so ×2.91 what it was, as the other mechanics' went to theirs from it; how much each heals, ×0.69, likewise.)
-const BOLT = { blow: BLOW * 1.4 };
 const HOLOGRAM = { lasts: 15, atk: 0.2, crit: 0.2, heal: 13_840, cooldown: 0.2 };
 const FIELD = { lasts: 5, defense: 1.15, heal: 27_670, mana: 0.3 * SECTION };
 // (Its lasers after the first: its move's blows but the first.)
@@ -190,7 +189,7 @@ export const VALANCE: HeroDef = {
       lands: {
         // Her attack: a bolt out of her crossbow.
         bolt() {
-          fight.hit(self, BOLT.blow);
+          fight.hit(self, fight.basic);
         },
         // The Hologram, on the ally with the highest ATK (the two, with its Light): what the boss left on it cleared.
         prototype() {

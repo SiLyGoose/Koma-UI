@@ -1,7 +1,6 @@
 import { put } from '../combat/status';
 import { said, t5Light } from '../perks';
 import { fromTreasure, treasure, treasureTier } from '../treasures';
-import { BLOW } from '../rules';
 import { pct, skillArt } from '../shown';
 import { atTier, ROBURU } from '../unique';
 import { CLASS_STATS, dmg, indexed, type HeroDef, type Passive } from './kit';
@@ -26,7 +25,6 @@ import { CODED } from './moves';
  * Vine's Light makes its blow after harder too, and its Dark has that (its final explosion) stun.
  */
 // (How hard each of her skills hits is the King's Raid Index's, at her class's ATK: ./kit.ts's indexed.)
-const LASH = { blow: BLOW * 1.3 };
 // (As many blows as its move has.)
 const THORNS = { hits: CODED.thornbush.lands.length, blow: indexed('wizard', 243_273) / CODED.thornbush.lands.length };
 const VINE = { blow: indexed('wizard', 208_671), poison: 2, shackle: 4, after: 2, each: indexed('wizard', 208_671) / 2 };
@@ -162,11 +160,11 @@ export const LORRAINE: HeroDef = {
         // Her attack: a thorn at the boss; now and then three leaves besides, each leaving a Poison.
         lash() {
           if (fight.roll() >= LEAF.chance) {
-            fight.hit(self, LASH.blow);
+            fight.hit(self, fight.basic);
             return;
           }
           fight.cue(self, 'leaf');
-          fight.hit(self, LASH.blow + LEAF.blow * LEAF.times);
+          fight.hit(self, fight.basic + LEAF.blow * LEAF.times);
           poison(LEAF.times);
           // (Terrarium of Circulation: more M.DMG taken, as long as its Poison.)
           const terrarium = fromTreasure(self, 3, UT.terrarium.takes);

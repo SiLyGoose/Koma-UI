@@ -3,7 +3,7 @@ import { put } from '../combat/status';
 import { SKILL_SPEED } from '../motion';
 import { said, t5Light } from '../perks';
 import { fromTreasure, treasure, treasureTier } from '../treasures';
-import { BLOW, MAX_MANA, SECTION } from '../rules';
+import { MAX_MANA, SECTION } from '../rules';
 import { pct, skillArt, type Buff } from '../shown';
 import type { Fighter } from '../types';
 import { CLASS_STATS, dmg, healed, type HeroDef, type Passive } from './kit';
@@ -30,7 +30,6 @@ import { CODED } from './moves';
  * battle, she gives as the fight begins (its only battle).
  */
 // (How hard each of her skills hits: the King's Raid Index hasn't her, so ×4.81 what it was, as the other priests' went to theirs from it; how much each heals, ×2.45, and shields, ×2.08, likewise.)
-const SMITE = { blow: BLOW * 1.5 };
 const LIGHT = { heal: 612_050, near: 3.6, blast: 24_050 };
 // (Its 500 ATK Spd, as the game has it: points.)
 const BLESSING = { shield: 623_630, lasts: 10, allies: 4, speed: 500 };
@@ -211,7 +210,7 @@ export const FALLEN_FREY: HeroDef = {
       lands: {
         // Her attack: a bolt of dark light into the boss.
         smite() {
-          fight.hit(self, SMITE.blow);
+          fight.hit(self, fight.basic);
         },
         // The light comes down on the ally with the lowest health and those near it; then it bursts on the boss.
         light(part) {

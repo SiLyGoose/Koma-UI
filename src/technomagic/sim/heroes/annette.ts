@@ -2,7 +2,7 @@ import { share } from '../combat/damage';
 import { away, put, type Status } from '../combat/status';
 import { said, t5Light } from '../perks';
 import { fromTreasure, treasure, treasureTier } from '../treasures';
-import { BLOW, MAX_MANA } from '../rules';
+import { MAX_MANA } from '../rules';
 import { pct, skillArt, type Buff } from '../shown';
 import type { Fighter } from '../types';
 import { atTier, RASCAL, RASCAL_UP } from '../unique';
@@ -32,7 +32,6 @@ import { CLASS_STATS, dmg, healed, indexed, indexedHeal, type HeroDef, type Pass
  * attack speed a pace.
  */
 // (How hard each of her skills hits, and how much each heals, is the King's Raid Index's, at her class's ATK: ./kit.ts's indexed and indexedHeal.)
-const ZAP = { blow: BLOW * 1.4 };
 const RAY = { blow: indexed('mechanic', 207_192), extra: indexed('mechanic', 207_192), weaker: 0.15, takes: 0.25, lasts: 10 };
 // (Its 250 CC Resistance and 250 Crit Chance, as the game has them: points.)
 const TREATMENT = { heal: indexedHeal('mechanic', 284_970), lasts: 10, resist: 250, crit: 250, dmg: 0.1 };
@@ -193,7 +192,7 @@ export const ANNETTE: HeroDef = {
       lands: {
         // Her attack: Rascal fires at the boss. Overcharged, each takes a share off her skills' cooldowns.
         zap() {
-          fight.hit(self, ZAP.blow);
+          fight.hit(self, fight.basic);
           // (Code of Annihilation: Charge for each, even Overcharged.)
           if (treasureTier(self, 2) > 0) gain(UT.code.charge);
           if (over <= 0) return;

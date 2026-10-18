@@ -1,7 +1,6 @@
 import { put } from '../combat/status';
 import { said, t5Light } from '../perks';
 import { fromTreasure, treasure, treasureTier } from '../treasures';
-import { BLOW } from '../rules';
 import { pct, skillArt, type Buff } from '../shown';
 import { atTier, GIGANTE, GIGANTE_UP } from '../unique';
 import { CLASS_STATS, dmg, healed, type Ability, type HeroDef, type Passive } from './kit';
@@ -28,9 +27,6 @@ import { CODED } from './moves';
  * too: it is the same slot.
  */
 // (How hard each of his skills hits: the King's Raid Index hasn't him, so ×2.61 what it was, as the other wizards' went to theirs from it; his shield, ×1.61, as the shields it has went, no wizard's among them.)
-const HAVOC = { blow: BLOW * 1.3 };
-/** Each of the four blows of his fist fight (his attack's animation): his attack about as hard over time as Havoc's. */
-const FIST = { blow: BLOW * 0.76 };
 // (As many blows as its move has.)
 const STORM = { hits: CODED.storm.lands.length, blow: 5220 };
 /** Shadow of Death: how long it lasts, how hard it eats at the boss every second, and what it leaves of the boss's heals. */
@@ -196,10 +192,10 @@ export const LUCIKIEL: HeroDef = {
       lands: {
         // His attack: a blow of havoc, as written in code; or each blow of his fist fight, as his animation for it has it.
         havoc() {
-          fight.hit(self, HAVOC.blow);
+          fight.hit(self, fight.basic);
         },
         attack() {
-          fight.hit(self, FIST.blow);
+          fight.hit(self, fight.basic);
         },
         // Each blow leaves Shadow of Death (begun again): its Dark, the boss taking more magical damage besides.
         storm() {

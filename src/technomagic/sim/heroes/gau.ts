@@ -2,7 +2,6 @@ import { share } from '../combat/damage';
 import { put, type Status } from '../combat/status';
 import { said, t5Light } from '../perks';
 import { fromTreasure, treasure, treasureTier } from '../treasures';
-import { BLOW } from '../rules';
 import { num, pct, skillArt, type Buff } from '../shown';
 import { atTier, NUMINU, NUMINU_UP } from '../unique';
 import { CLASS_STATS, dmg, indexed, type HeroDef, type Passive } from './kit';
@@ -26,7 +25,6 @@ import { CODED } from './moves';
  * magic). Enrage's Dark's lifesteal heals him by what each blow of his deals.
  */
 // (How hard each of his skills hits is the King's Raid Index's, at his class's ATK: ./kit.ts's indexed.)
-const CHOP = { blow: BLOW * 1.2 };
 /** Smash: its two blows, and how long the first knocks the boss down. */
 const SMASH = { blow: indexed('warrior', 157_882) / CODED.smash.lands.length, down: 3, speed: 250, slowed: 10 };
 /** Battle Roar: every ally's ATK more, for `lasts` seconds. */
@@ -175,8 +173,8 @@ export const GAU: HeroDef = {
     return {
       lands: {
         // His attack: a blow of his axe, as written in code; or as his animation for it has it.
-        chop: () => chop(CHOP.blow),
-        attack: () => chop(CHOP.blow),
+        chop: () => chop(fight.basic),
+        attack: () => chop(fight.basic),
         // Two blows, the first knocking the boss down (and slowing it: it is steady). Its Dark: harder each time.
         smash(part) {
           strike(SMASH.blow * (1 + PERKS.harder.more * smashed));

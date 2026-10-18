@@ -181,7 +181,7 @@ export const EZEKIEL: HeroDef = {
 
     /** A blow of his attack (twice as hard in Fury; and with Transcend 5's Dark, through the boss's defense). */
     const claw = (): void => {
-      fight.hit(self, CLAW.blow * (fury > 0 ? CLAW.fury : 1), true, 0, fury > 0 && self.perks.has('t5-dark'));
+      fight.hit(self, fight.basic * (fury > 0 ? CLAW.fury : 1), true, 0, fury > 0 && self.perks.has('t5-dark'));
     };
 
     return {

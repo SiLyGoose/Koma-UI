@@ -2,7 +2,7 @@ import { share } from '../combat/damage';
 import { put, type Status } from '../combat/status';
 import { said, t5Light } from '../perks';
 import { fromTreasure, treasure } from '../treasures';
-import { BLOW, MAX_MANA } from '../rules';
+import { MAX_MANA } from '../rules';
 import { num, pct, skillArt, type Buff } from '../shown';
 import { SVELTA, SVELTA_UP } from '../unique';
 import { CLASS_STATS, dmg, indexed, type HeroDef, type Passive } from './kit';
@@ -23,9 +23,6 @@ import { CLASS_STATS, dmg, indexed, type HeroDef, type Passive } from './kit';
  * Slayer's Light and Dark, and Transcend 5's Dark, do nothing here (no Dragon; the boss doesn't block).
  */
 // (How hard each of her skills hits is the King's Raid Index's, at her class's ATK: ./kit.ts's indexed.)
-const SHOT = { blow: BLOW * 1.3 };
-/** Her arrow when she draws it as her attack's animation has it (quicker than as written in code): her attack about as hard over time. */
-const DRAWN = { blow: BLOW * 1.06 };
 /** Focus Shot!'s arrow, and how many times as hard it is focused (she always focuses as long as she can). */
 const FOCUS = { blow: indexed('archer', 179_237), focused: 2 };
 const WIPEOUT = { blow: indexed('archer', 279_459) };
@@ -168,8 +165,8 @@ export const YANNE: HeroDef = {
     return {
       lands: {
         // Her attack: an arrow, as written in code; or as her animation for it has it.
-        shot: () => loose(SHOT.blow),
-        attack: () => loose(DRAWN.blow),
+        shot: () => loose(fight.basic),
+        attack: () => loose(fight.basic),
         // Focused as long as she can: doubled.
         focus: () => shoot(FOCUS.blow * FOCUS.focused),
         // A great arrow (its Dark: the boss stunned).

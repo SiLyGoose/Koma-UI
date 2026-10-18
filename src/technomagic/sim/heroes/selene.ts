@@ -2,7 +2,6 @@ import { share } from '../combat/damage';
 import { put } from '../combat/status';
 import { said, t5Light } from '../perks';
 import { fromTreasure, treasure, treasureTier } from '../treasures';
-import { BLOW } from '../rules';
 import { fine, num, pct, skillArt, type Buff } from '../shown';
 import { atTier, NOTOS, NOTOS_UP } from '../unique';
 import { CLASS_STATS, dmg, indexed, type HeroDef, type Passive } from './kit';
@@ -26,9 +25,6 @@ import { CODED } from './moves';
  * Dark does nothing here (the boss doesn't block), nor Moonlight Arrow's (there is nowhere further to reach).
  */
 // (How hard each of her skills hits is the King's Raid Index's, at her class's ATK: ./kit.ts's indexed.)
-const ARROW = { blow: BLOW * 1.3 };
-/** Her arrow when she draws it as her attack's animation has it (quicker than as written in code): her attack about as hard over time. */
-const DRAWN = { blow: BLOW * 1.06 };
 // (As many arrows as its move has.)
 const RAIN = { arrows: CODED.rain.lands.length, blow: indexed('archer', 617_748) / CODED.rain.lands.length };
 const RUSH = { arrows: CODED.rush.lands.length, blow: indexed('archer', 112_278) };
@@ -186,8 +182,8 @@ export const SELENE: HeroDef = {
     return {
       lands: {
         // Her attack: an arrow, as written in code; or as her animation for it has it.
-        arrow: () => loose(ARROW.blow),
-        attack: () => loose(DRAWN.blow),
+        arrow: () => loose(fight.basic),
+        attack: () => loose(fight.basic),
         // Each arrow (its Dark: now and then the boss stunned).
         rain() {
           shoot(RAIN.blow);

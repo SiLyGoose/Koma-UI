@@ -3,6 +3,7 @@ import { className, type HeroView, type HeroStat } from '../shared/heroes';
 import { POINTS } from '../technomagic/sim/combat/damage';
 import { geared } from '../technomagic/sim/gear';
 import { ownAuras, perkedStats, perksOf, withPerks } from '../technomagic/sim/perks';
+import { KR_HEROES } from '../technomagic/sim/heroes/kr';
 import { CRIT, MANA_PER_ATTACK, MANA_RATE } from '../technomagic/sim/rules';
 import { SKILL, skilledCritDamage, skilledStats, skillsOf, type SkillId } from '../technomagic/sim/skills';
 import { HEROES } from '../technomagic/sim/heroes';
@@ -53,6 +54,8 @@ export function heroStats(hero: Pick<HeroView, 'class'> & Partial<Pick<HeroView,
   };
   // (A hero the raid knows stands as its own stats have it, its class's with what is its own over them.)
   const base = def?.stats ?? CLASS_STATS[hero.class as HeroClass];
+  // (Its mana: King's Raid's playtest's.)
+  const mana = KR_HEROES[hero.id ?? '']?.mana ?? { regen: MANA_RATE, attack: MANA_PER_ATTACK };
   if (!base) return [about];
   // (Its perks, picked as far as it is transcended, add to its stats as its gear does; and what they give every ally, itself
   // among them, as the fight has it: Battle Cry's max HP with its gear's, the rest beside its own.)
@@ -117,8 +120,8 @@ export function heroStats(hero: Pick<HeroView, 'class'> & Partial<Pick<HeroView,
     {
       title: 'Mana',
       rows: [
-        row('Mana per Attack', MANA_PER_ATTACK, MANA_PER_ATTACK * (1 + bonus('manaAttack')), whole),
-        row('Mana Recovery per Second', MANA_RATE, MANA_RATE * (1 + bonus('manaRegen')) + spring, whole),
+        row('Mana per Attack', mana.attack, mana.attack * (1 + bonus('manaAttack')), whole),
+        row('Mana Recovery per Second', mana.regen, mana.regen * (1 + bonus('manaRegen')) + spring, whole),
       ],
     },
   ];

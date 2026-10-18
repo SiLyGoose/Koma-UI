@@ -2,7 +2,7 @@ import { ATK, share } from '../combat/damage';
 import { away, put } from '../combat/status';
 import { said, t5Light } from '../perks';
 import { fromTreasure, treasure, treasureTier } from '../treasures';
-import { BLOW, MAX_MANA, SECTION } from '../rules';
+import { MAX_MANA, SECTION } from '../rules';
 import { pct, skillArt, type Buff } from '../shown';
 import type { Fighter } from '../types';
 import { atTier, ELTOIRRE, ELTOIRRE_UP } from '../unique';
@@ -31,7 +31,6 @@ import { CLASS_STATS, dmg, healed, indexed, indexedHeal, type HeroDef, type Pass
  * Transcend 5's Dark's mana is the game's 350 of its 1000 to a section.
  */
 // (How hard each of her skills hits, and how much each heals and shields, is the King's Raid Index's, at her class's ATK: ./kit.ts's indexed and indexedHeal.)
-const SPLASH = { blow: BLOW * 1.5 };
 // (Its 25% Heal Rate, 1.5 times for an ally at half its health or less, as the game has it.)
 const DROPLETS = { heal: indexedHeal('priest', 338_882), lasts: 10, heals: 0.25, low: 0.5, lowTimes: 1.5 };
 const BUBBLE = { shield: indexedHeal('priest', 879_673), lasts: 15, taken: 0.7, dmg: 0.15, atk: 0.2, heal: indexedHeal('priest', 35_192) };
@@ -186,7 +185,7 @@ export const LAIAS: HeroDef = {
       lands: {
         // Her attack: a bolt of water into the boss.
         splash() {
-          fight.hit(self, SPLASH.blow);
+          fight.hit(self, fight.basic);
         },
         // Every ally is healed (the more at half its health or less), and healing reaches it the more for a while.
         droplets() {

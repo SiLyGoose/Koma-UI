@@ -1,7 +1,7 @@
 import { put } from '../combat/status';
 import { said, t5Light } from '../perks';
 import { fromTreasure, treasure, treasureTier } from '../treasures';
-import { BLOW, MAX_MANA, SECTION } from '../rules';
+import { MAX_MANA, SECTION } from '../rules';
 import { num, pct, skillArt, type Buff } from '../shown';
 import { ACRAVITA, ACRAVITA_UP, atTier } from '../unique';
 import { CLASS_STATS, dmg, indexed, type HeroDef, type Passive } from './kit';
@@ -25,9 +25,6 @@ import { CODED } from './moves';
  * their stuns) while he is under half his health.
  */
 // (How hard each of his skills hits is the King's Raid Index's, at his class's ATK: ./kit.ts's indexed.)
-const MAW = { blow: BLOW * 1.2 };
-/** His fist as his attack's animation has it (four blows, quicker than as written in code): his attack about as hard over time. */
-const FIST = { blow: BLOW * 0.76 };
 /** Black Lightning Claw: its first blow and its second, and the second's stun. */
 const CLAW = { blow: indexed('knight', 85_803), after: indexed('knight', 122_794), stun: 3, speed: 300, slowed: 10 };
 /** Obsidian Roar: every ally's ATK and defense more, for `lasts` seconds; its blow; and the boss's ATK as much less meanwhile. */
@@ -175,8 +172,8 @@ export const NERAXIS: HeroDef = {
     return {
       lands: {
         // His attack: a blow of his dragon's claw, as written in code; or as his animation for it has it.
-        maw: () => attack(MAW.blow),
-        attack: () => attack(FIST.blow),
+        maw: () => attack(fight.basic),
+        attack: () => attack(fight.basic),
         // A blow; a second after, a blow more and the boss stunned (its Light: for longer), and slowed (it is steady).
         lightning(part) {
           blow(part === 0 ? CLAW.blow : CLAW.after);

@@ -2,7 +2,6 @@ import { share } from '../combat/damage';
 import { put } from '../combat/status';
 import { said, t5Light } from '../perks';
 import { treasure, treasureTier } from '../treasures';
-import { BLOW } from '../rules';
 import { nth, num, pct, skillArt, type Buff } from '../shown';
 import { atTier, BARORO } from '../unique';
 import { CLASS_STATS, dmg, indexed, type HeroDef, type Passive } from './kit';
@@ -27,9 +26,6 @@ import { CODED } from './moves';
  * magical blow dodged.
  */
 // (How hard each of her skills hits is the King's Raid Index's, at her class's ATK: ./kit.ts's indexed.)
-const TALON = { blow: BLOW * 1.2 };
-/** Each of the four blows of her fist fight (her attack's animation): her attack about as hard over time as her talons'. */
-const FIST = { blow: BLOW * 0.78 };
 const WINDS = { blow: indexed('warrior', 212_140) / CODED.winds.lands.length, boss: indexed('warrior', 158_995) / CODED.winds.lands.length, down: 3 };
 const READING = { dodge: 250, atk: 37_514, lasts: 15 };
 const DIVE = { blow: indexed('warrior', 296_346), boss: indexed('warrior', 444_527), downed: 1.5 };
@@ -190,8 +186,8 @@ export const NAILA: HeroDef = {
     return {
       lands: {
         // Her attack: a rake of her talons, as written in code; or each blow of her fist fight, as her animation for it has it.
-        talon: () => attack(TALON.blow),
-        attack: () => attack(FIST.blow),
+        talon: () => attack(fight.basic),
+        attack: () => attack(fight.basic),
         // Each dash a blow, more on a boss, that knocks it down.
         winds() {
           strike(WINDS.blow + WINDS.boss);

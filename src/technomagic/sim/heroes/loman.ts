@@ -1,7 +1,6 @@
 import { put, type Status } from '../combat/status';
 import { said, t5Light } from '../perks';
 import { treasure, treasureTier } from '../treasures';
-import { BLOW } from '../rules';
 import { num, pct, skillArt, type Buff, type Mark } from '../shown';
 import { atTier, GAIAMENES, GAIAMENES_UP } from '../unique';
 import { CLASS_STATS, dmg, indexed, indexedHeal, type HeroDef, type Passive } from './kit';
@@ -24,7 +23,6 @@ import { CLASS_STATS, dmg, indexed, indexedHeal, type HeroDef, type Passive } fr
  * Gatekeeper's Dark does nothing here (Galgoria is steady).
  */
 // (How hard each of his skills hits, and how much each shields, is the King's Raid Index's, at his class's ATK: ./kit.ts's indexed and indexedHeal.)
-const THRUST = { blow: BLOW * 1.2 };
 /** Cut Ground: its blow, how long the boss is down, and how much more physical damage it takes for `lasts` seconds. */
 const CUT = { blow: indexed('knight', 122_794), down: 4, weakness: 0.25, lasts: 10 };
 /** Shrouding Creed: the shield on every ally for `lasts` seconds (none knocked down meanwhile), and what each takes for `taken` seconds. */
@@ -171,7 +169,7 @@ export const LOMAN: HeroDef = {
     return {
       lands: {
         // His attack: a thrust of his halberd.
-        thrust: () => fight.hit(self, THRUST.blow),
+        thrust: () => fight.hit(self, fight.basic),
         // A blow, the boss knocked down, and taking more physical damage for a while (its Dark: more again).
         ground() {
           fight.hit(self, CUT.blow);

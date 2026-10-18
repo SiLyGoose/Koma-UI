@@ -2,7 +2,7 @@ import { share } from '../combat/damage';
 import { put, type Status } from '../combat/status';
 import { said, t5Light } from '../perks';
 import { fromTreasure, treasure, treasureTier } from '../treasures';
-import { BLOW, MAX_MANA } from '../rules';
+import { MAX_MANA } from '../rules';
 import { pct, skillArt, type Buff, type Mark } from '../shown';
 import { atTier, PERION, PERION_UP } from '../unique';
 import { CLASS_STATS, dmg, indexed, type Ability, type HeroDef, type Passive } from './kit';
@@ -27,7 +27,6 @@ import { CLASS_STATS, dmg, indexed, type Ability, type HeroDef, type Passive } f
  * its Light's more max HP for one: only its smaller cut to her max HP.
  */
 // (How hard each of her skills hits is the King's Raid Index's, at her class's ATK: ./kit.ts's indexed.)
-const DRAIN = { blow: BLOW * 1.2 };
 /** Sweet Blood: its blow, the share of what it deals she steals, how much shorter its cooldown is for the hit; its stacks, and the blows more at the most. */
 const SWEET = { blow: indexed('assassin', 104_556), steals: 0.1, sooner: 0.5, most: 5, more: 2 };
 /** Soaking Blood: how long nothing touches her, how long before its blow; the most stacks on the boss; its blow, a blow more for every `per` stacks, and the share of what it deals she steals. */
@@ -191,7 +190,7 @@ export const ERZE: HeroDef = {
     return {
       lands: {
         // Her attack: a blow of blood from what floats by her hand.
-        drain: () => attack(DRAIN.blow),
+        drain: () => attack(fight.basic),
         // A blow that steals HP (its Light: mana), its cooldown shorter, a stack; at the most, blows more (the stacks spent). Its Dark: harder each time.
         sweet() {
           const full = sweet >= SWEET.most;

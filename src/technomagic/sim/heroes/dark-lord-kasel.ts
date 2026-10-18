@@ -1,7 +1,6 @@
 import { put, type Status } from '../combat/status';
 import { said, t5Light } from '../perks';
 import { fromTreasure, treasure, treasureTier } from '../treasures';
-import { BLOW } from '../rules';
 import { pct, skillArt, type Buff } from '../shown';
 import { AEA, AEA_UP, atTier } from '../unique';
 import { CLASS_STATS, dmg, type Ability, type HeroDef, type Passive } from './kit';
@@ -28,7 +27,6 @@ import { CLASS_STATS, dmg, type Ability, type HeroDef, type Passive } from './ki
  * enemy) always holds.
  */
 // (How hard each of his skills hits: the King's Raid Index hasn't him, so ×3.34 what it was, as the other warriors' went to theirs from it.)
-const CORRUPT = { blow: BLOW * 0.6 };
 /** Judgment Blade: its two blows, and in the [Dark Lord] state its blow more and how long that knocks the boss down. */
 const JUDGE = { blow: 6010, lord: 8350, down: 3 };
 /** Doom: its three blows, how long they knock the boss down, and in the [Dark Lord] state its blow more. */
@@ -176,7 +174,7 @@ export const DARK_LORD_KASEL: HeroDef = {
         // A blow of his attack: [Dark Energy] (its Dark: more); in the [Dark Lord] state a blow more (its Dark: harder). Transcend 5's Dark: a stack more of it.
         corrupt() {
           const harder = lord > 0 && self.perks.has('s3-dark') ? PERKS.attack : 1;
-          strike(CORRUPT.blow * harder);
+          strike(fight.basic * harder);
           if (lord > 0) strike(ADVENT.blowMore * harder);
           // (Twisted Tear: now and then a stack more.)
           const tear = treasureTier(self, 3) > 0 && fight.roll() < UT.tear.chance ? 1 : 0;

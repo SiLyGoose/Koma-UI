@@ -1,6 +1,6 @@
 import { share } from '../combat/damage';
 import { put, type Status } from '../combat/status';
-import { BLOW, MAX_MANA } from '../rules';
+import { MAX_MANA } from '../rules';
 import { pct, skillArt, type Buff, type Tone } from '../shown';
 import { said, t5Light } from '../perks';
 import { fromTreasure, treasure, treasureTier } from '../treasures';
@@ -29,7 +29,6 @@ import { CODED } from './moves';
  * and knocking the boss away (it can't be: it is stunned, as ever). Her sleep's Light makes its less taken a fifth more.
  */
 // (How hard each of her skills hits: the King's Raid Index hasn't her, so ×3.14 what it was, as the other assassins' went to theirs from it.)
-const NUDGE = { blow: BLOW * 1.3 };
 const POCHI = { bite: 5650, boss: 3770, more: 0.15, bossMore: 0.3, weaker: 0.06, most: 5, lasts: 15 };
 const PUCHI = { blow: 21_980, stun: 5 };
 const PIPPI = { blow: 4710, through: 3140, pierce: 500, takes: 0.05, most: 10, lasts: 12 };
@@ -182,7 +181,7 @@ export const GREMORY: HeroDef = {
       lands: {
         // Her attack: something out of her cube goes for the boss.
         nudge() {
-          fight.hit(self, NUDGE.blow);
+          fight.hit(self, fight.basic);
         },
         // A bite, harder for her Mana Charge (and more again, as on any boss); the boss hits less hard for each (up to five).
         pochi() {

@@ -1,6 +1,6 @@
 import { share } from '../combat/damage';
 import { put } from '../combat/status';
-import { BLOW, MAX_MANA } from '../rules';
+import { MAX_MANA } from '../rules';
 import { said, t5Light } from '../perks';
 import { fromTreasure, treasure, treasureTier } from '../treasures';
 import { pct, skillArt, type Buff } from '../shown';
@@ -147,7 +147,7 @@ export const KLAUS: HeroDef = {
       lands: {
         // His attack written in code: a cut across the boss one way, then the other.
         swing() {
-          fight.hit(self, BLOW);
+          fight.hit(self, fight.basic);
         },
         // Down out of the air on the boss: the boss is stunned.
         slam() {

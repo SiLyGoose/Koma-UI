@@ -146,7 +146,7 @@ export function marchLeft(k: number): number {
   return t < BRAKE ? (t * t) / (BRAKE * (2 - BRAKE)) : (2 * t - BRAKE) / (2 - BRAKE);
 }
 
-/** With Boss auto on: the wait between the boss's attacks. The wait between a hero's attacks. */
+/** With Boss auto on: the wait between the boss's attacks. The wait between a hero's attacks, where King's Raid's playtest doesn't say (./heroes/kr.ts). */
 export const AUTO_WAIT = 1.1;
 export const HERO_WAIT = 0.45;
 
@@ -158,18 +158,18 @@ export const HERO_WAIT = 0.45;
 export const AUTO = { hurt: 0.7, spare: 1, income: 8 };
 
 /**
- * A hero's mana, as King's Raid has it: the crystals of its mana bar and the mana in each (a skill costs whole
- * crystals), what it recovers a second, what it gains for every blow of its attack that lands, and what it gains
- * for its health lost to the boss (so much for the whole of its max HP: a tenth of it lost, a tenth of this).
- * Its gear can add to what it recovers a second and gains for each blow (a share more: GearBonus's manaRegen
- * and manaAttack).
+ * A hero's mana, as King's Raid's playtest has it: the crystals of its mana bar and the mana in each (a skill costs whole
+ * crystals), what it recovers a second and gains as each part of its attack lands (each hero's own: ./heroes/kr.ts; these
+ * where the playtest doesn't say), and what it gains for its health lost to the boss (so much for the whole of its max
+ * HP: a tenth of it lost, a tenth of this). It comes into a raid with none. Its gear can add to what it recovers a second
+ * and gains for each part of its attack (a share more: GearBonus's manaRegen and manaAttack).
  */
 export const SECTIONS = 6;
 export const SECTION = 1000;
 export const MAX_MANA = SECTIONS * SECTION;
-export const MANA_RATE = 100;
-export const MANA_PER_ATTACK = 60;
-export const MANA_PER_HP_LOST = 2500;
+export const MANA_RATE = 75;
+export const MANA_PER_ATTACK = 300;
+export const MANA_PER_HP_LOST = 2000;
 
 /**
  * The raid's time (3:30), shown top right: once it is up the boss is enraged, its blows at once twice as
@@ -213,6 +213,6 @@ export function rage(over: number): number {
   return power >= MOST_RAGE_POWER ? MOST_RAGE : exp2(power);
 }
 
-/** What a blow of a hero's attack takes of the boss, before the boss's defense; and how much harder a critical blow is (before its gear's crit damage). */
+/** What a blow of a hero's attack takes of the boss, before the boss's defense, where King's Raid's playtest doesn't say (./heroes/kr.ts); and how much harder a critical blow is (before its gear's crit damage). */
 export const BLOW = 1100;
 export const CRIT = 2;

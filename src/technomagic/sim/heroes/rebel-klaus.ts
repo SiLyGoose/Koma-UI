@@ -2,7 +2,7 @@ import { share } from '../combat/damage';
 import { piercing, put, type Status } from '../combat/status';
 import { said, t5Light } from '../perks';
 import { fromTreasure, treasure, treasureTier } from '../treasures';
-import { BLOW, MAX_MANA } from '../rules';
+import { MAX_MANA } from '../rules';
 import { num, pct, skillArt, type Buff } from '../shown';
 import { atTier, GALICTA, GALICTA_UP } from '../unique';
 import { CLASS_STATS, dmg, type HeroDef, type Passive } from './kit';
@@ -26,7 +26,6 @@ import { CLASS_STATS, dmg, type HeroDef, type Passive } from './kit';
  * once. Determined Strike's Light (more with one enemy) always holds: there is only the boss.
  */
 // (How hard each of his skills hits: the King's Raid Index hasn't him, so ×3.34 what it was, as the other warriors' went to theirs from it.)
-const REND = { blow: BLOW * 1.2 };
 /** Determined Strike: its blow, the blow more against a boss, and how long it stuns. */
 const DETERMINED = { blow: 8020, boss: 5340, stun: 2 };
 /** Indomitable Will: its blow, and the state's attack speed (points) and how much shorter it is held down, for `lasts` seconds. */
@@ -166,7 +165,7 @@ export const REBEL_KLAUS: HeroDef = {
     };
     /** His attack: a blow; unless the boss bears the curse, a blow more and the curse on it (its Light: its P.DEF lower meanwhile). Its Dark: a blow more against a Non-Hero. */
     const rend = (): void => {
-      strike(REND.blow);
+      strike(fight.basic);
       if (!fight.foe.statuses.some((status) => status.name === CURSE)) {
         strike(GALICTA_POWER.blow, false);
         put(fight.foe.statuses, { name: CURSE, left: GALICTA_POWER.lasts, ...(self.perks.has('s4-light') && { defends: { physical: 1 - PERKS.exposed } }), shown: 'curse' });

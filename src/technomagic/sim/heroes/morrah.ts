@@ -178,9 +178,9 @@ export const MORRAH: HeroDef = {
     /** A cut of her attack. With Burning Power, harder for its Flame, and leaving one more; with her unique weapon, now and then it hits less hard and takes more. */
     const cleave = (): void => {
       if (burning > 0) {
-        fight.hit(self, CLEAVE.blow + CLEAVE.burning * fanning());
+        fight.hit(self, fight.basic + CLEAVE.burning * fanning());
         burn(1);
-      } else fight.hit(self, CLEAVE.blow);
+      } else fight.hit(self, fight.basic);
       if (tier === null || fight.roll() >= CARPRAIN.chance) return;
       const weaker = atTier(CARPRAIN.weaker, tier);
       const takes = weaker * (flames() >= most ? CARPRAIN.full : 1);
