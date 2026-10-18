@@ -1,6 +1,6 @@
 import { art, el, hoverSound, itemPicked, SLOT_NAME, tierMark, tmMarks, tmTier, utMarks, utTier, uwMarks, uwTier } from '../shared/items';
 import { classBadge } from './class-tag';
-import { className, type DatabankContext } from './context';
+import { className, itemsOfKind, type DatabankContext } from './context';
 import { renderDetail } from './detail';
 import { matches } from './filter';
 import type { DatabankItem, Stars } from './types';
@@ -15,7 +15,9 @@ export function renderList(ctx: DatabankContext): void {
   const { databank, ui, owned } = ctx;
   if (!databank) return;
   ui.list.textContent = '';
-  const shown = databank.items.filter((item) => matches(ctx, item));
+  // (Only its kind's: a hero's gear, or the members' own.)
+  const all = itemsOfKind(ctx, ctx.itemKind);
+  const shown = all.filter((item) => matches(ctx, item));
   for (const tier of TIERS) {
     const items = shown.filter((item) => ofTier(item, tier));
     if (items.length === 0) continue;
@@ -33,9 +35,9 @@ export function renderList(ctx: DatabankContext): void {
     ui.list.append(section);
   }
   if (shown.length === 0) ui.list.append(el('p', 'db-empty', ctx.onlyOwned && owned?.size === 0 ? "You don't own any gear here yet." : 'No items match that.'));
-  const total = databank.items.length;
+  const total = all.length;
   ui.count.textContent = shown.length === total ? `${total} items` : `${shown.length} of ${total} items`;
-  if (owned) ui.count.textContent += ` · you own ${databank.items.filter((item) => owned.has(item.id)).length}`;
+  if (owned) ui.count.textContent += ` · you own ${all.filter((item) => owned.has(item.id)).length}`;
 }
 
 /** An item's card: picking it shows it in the panel. */

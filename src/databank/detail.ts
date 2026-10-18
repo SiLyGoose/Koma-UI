@@ -32,7 +32,7 @@ const SOURCES: Record<ItemSource, string> = {
  * Discord, and the Dragon Raid's is a game (opened from the front page), so they only click.
  */
 const SOURCE_PAGE: Partial<Record<ItemSource, string>> = {
-  raid: '/databank/bosses/',
+  raid: '/databank/enemies/',
   raidShop: '/shop/raid/',
   technomagic: '/heroes/',
   heroBanner: '/shop/wish/',

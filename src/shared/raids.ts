@@ -43,8 +43,8 @@ const HERO_GEAR: RaidReward = { kind: 'gear', slot: 'armor', name: 'Hero gear' }
 
 export const TM_LIST: RaidList = {
   game: 'technomagic',
-  tip: 'Every win gives TechnoMagic gear of the boss’s own set, and zeiucoins. There is no daily limit.',
-  rewardNote: 'TechnoMagic gear: 3 pieces at stages 1–3, 4 at stages 4–6 and 5 at stages 7–8, each with its potentials and an additional skill.',
+  tip: 'Every win gives TechnoMagic gear of the boss’s own set, runes and zeiucoins. There is no daily limit.',
+  rewardNote: 'TechnoMagic gear of its set (3 pieces at stages 1–3, 4 at 4–6, 5 at 7–8, each with its options and an additional effect), runes (better from the start than a dragon’s), and now and then an artifact.',
   cards: [
     {
       id: 'galgoria',
@@ -61,8 +61,8 @@ export const TM_LIST: RaidList = {
 
 export const DRAGON_LIST: RaidList = {
   game: 'dragon',
-  tip: 'Every win gives hero gear, zeiucoins and the dragon’s hero essences, more at each stage. There is no daily limit.',
-  rewardNote: 'Hero gear is raid items (T3, and T4 from stage 5). Every stage pays more.',
+  tip: 'Every win gives the dragon’s own set’s gear, runes, zeiucoins and its hero essences, more at each stage. There is no daily limit.',
+  rewardNote: 'Its set’s gear: T6 at stages 1–3, T7 at 4–7 and T8 at 8–10, more pieces at each stage; and runes, better from stage to stage. Every stage pays more.',
   cards: [
     {
       id: 'temeraire',

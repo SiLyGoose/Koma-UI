@@ -5,14 +5,21 @@ import { API } from '../shared/ui';
 import { coin, points } from '../shared/util';
 import { go } from '../site/nav';
 import { currentMe, currentServer } from '../site/session';
-import { bossById, type DatabankContext } from './context';
+import { DRAGON_LIST, raidCard, TM_LIST } from '../shared/raids';
+import { raidRewards } from '../shared/raid-rewards/raid-rewards';
+import { DRAGONS, isDragon, TM_BOSSES } from '../technomagic/sim/bosses';
+import { scaleAt, stagesOf, type BossDef } from '../technomagic/sim/bosses/boss';
+import { RAID_TIME } from '../technomagic/sim/rules';
+import { bossById, raidBossById, type DatabankContext } from './context';
 import type { DatabankBoss, DatabankItem, DatabankRewards, RaidLevel } from './types';
 
 /*
- * The raid bosses: a card for each down the side, and the one picked beside them on parchment, as
- * `raid stats` tells it: its picture, the difficulty level to see it at (what that does to its HP and
- * damage, what a win at it drops, and how far the server has unlocked them), its moves, its phases and
- * what beating it gives. Logged in, this week's boss in the server picked is marked.
+ * The enemies: a card for each down the side, and the one picked beside them on parchment. A Weekly Boss as `raid stats`
+ * tells it: its picture, the difficulty level to see it at (what that does to its HP and damage, what a win at it drops,
+ * and how far the server has unlocked them), its moves, its phases and what beating it gives; logged in, this week's boss
+ * in the server picked is marked. The TechnoMagic Raid's bosses and the Dragon Raid's dragons as the raid has them (its
+ * sim's): King's Raid's portrait, what it does, the stage to see it at (its HP, with others and alone, its DEF and level),
+ * its attacks and what a win gives.
  */
 
 /** A multiplier, like "1.5×". */
@@ -96,26 +103,40 @@ export function renderBosses(ctx: DatabankContext): void {
   renderBoss(ctx);
 }
 
-/** A card for each boss; picking one shows it. */
+/** A raid boss's portrait (King's Raid's: public/kr/bosses/<id>/portrait.webp). */
+const portrait = (boss: BossDef, className: string): HTMLImageElement => {
+  const img = el('img', className);
+  img.src = `${import.meta.env.BASE_URL}kr/bosses/${boss.id}/portrait.webp`;
+  img.alt = '';
+  img.draggable = false;
+  return img;
+};
+
+/** Which raid an enemy is of, as its card's tag says it. */
+const raidOf = (id: string): string => (isDragon(id) ? 'Dragon Raid' : raidBossById(id) ? 'TechnoMagic Raid' : 'Weekly Boss');
+
+/** A card for each enemy (the Weekly Bosses, then the TechnoMagic Raid's bosses, then the Dragon Raid's dragons); picking one shows it. */
 function renderBossList(ctx: DatabankContext): void {
   const { ui, databank, week } = ctx;
   const bosses = databank?.bosses ?? [];
+  const card = (id: string, face: HTMLImageElement, name: string): HTMLButtonElement => {
+    const button = el('button', 'db-boss-card');
+    button.type = 'button';
+    button.classList.toggle('picked', id === ctx.boss);
+    button.setAttribute('aria-pressed', String(id === ctx.boss));
+    button.append(face, el('span', 'db-boss-card-name', name), el('span', 'db-boss-card-kind', raidOf(id)));
+    if (week?.boss === id) button.append(el('span', 'db-boss-card-week', 'This week'));
+    button.addEventListener('click', () => {
+      ctx.boss = id;
+      renderBosses(ctx);
+      // On narrow screens the enemy is under the cards: there, once picked.
+      if (ui.bossInfo.getBoundingClientRect().top > window.innerHeight * 0.6) ui.bossInfo.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    return button;
+  };
   ui.bossList.replaceChildren(
-    ...bosses.map((boss) => {
-      const card = el('button', 'db-boss-card');
-      card.type = 'button';
-      card.classList.toggle('picked', boss.id === ctx.boss);
-      card.setAttribute('aria-pressed', String(boss.id === ctx.boss));
-      card.append(picture(boss, ''), el('span', 'db-boss-card-name', `${boss.emoji} ${boss.name}`));
-      if (week?.boss === boss.id) card.append(el('span', 'db-boss-card-week', 'This week'));
-      card.addEventListener('click', () => {
-        ctx.boss = boss.id;
-        renderBosses(ctx);
-        // On narrow screens the boss is under the cards: there, once picked.
-        if (ui.bossInfo.getBoundingClientRect().top > window.innerHeight * 0.6) ui.bossInfo.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      });
-      return card;
-    }),
+    ...bosses.map((boss) => card(boss.id, picture(boss, ''), `${boss.emoji} ${boss.name}`)),
+    ...[...TM_BOSSES, ...DRAGONS].map((boss) => card(boss.id, portrait(boss, 'db-boss-portrait'), boss.name)),
   );
   // The one picked stays in sight where the cards scroll (sideways, on narrow screens), without moving the page.
   const picked = ui.bossList.querySelector('.picked');
@@ -126,7 +147,8 @@ function renderBossList(ctx: DatabankContext): void {
     if (at.top < box.top || at.bottom > box.bottom) ui.bossList.scrollTop += at.top - box.top - 4;
   }
   const thisWeek = bossById(ctx, week?.boss ?? null);
-  ui.bossCount.textContent = `${bosses.length} raid ${bosses.length === 1 ? 'boss' : 'bosses'}${thisWeek ? ` · this week in ${serverName()}: ${thisWeek.name}` : ''}`;
+  const enemies = bosses.length + TM_BOSSES.length + DRAGONS.length;
+  ui.bossCount.textContent = `${enemies} ${enemies === 1 ? 'enemy' : 'enemies'}${thisWeek ? ` · this week's boss in ${serverName()}: ${thisWeek.name}` : ''}`;
 }
 
 /** An item's card, as the items' list has them: it opens the item there (a raid item a boss drops, a class's item). */
@@ -143,9 +165,73 @@ export function itemCard(item: DatabankItem): HTMLButtonElement {
   return card;
 }
 
-/** The boss picked, at the difficulty level picked. */
+/** A raid's boss picked (the TechnoMagic Raid's, or a dragon), at the stage picked: as the raid has it. */
+function renderRaidBoss(ctx: DatabankContext, boss: BossDef): void {
+  const { ui } = ctx;
+  ui.bossBody.textContent = '';
+  ui.bossInfo.hidden = false;
+  ui.bossInfo.setAttribute('aria-label', boss.name);
+  const card = raidCard(boss.id);
+  const dragon = isDragon(boss.id);
+  const stages = stagesOf(boss);
+  const stage = Math.min(stages, Math.max(1, ctx.bossStage));
+
+  const head = el('div', 'db-boss-head');
+  const title = el('div', 'detail-title');
+  // (Its raid's name, and its own title in it when it has one: a dragon's, "Fire Dragon".)
+  const raid = raidOf(boss.id);
+  title.append(el('h3', '', boss.name), el('p', 'detail-meta db-kind', card && card.title !== raid ? `${card.title} · ${raid}` : raid));
+  if (card) title.append(el('p', 'db-boss-week', `Fought in ${card.lair}.`));
+  head.append(portrait(boss, 'db-boss-picture db-boss-portrait'), title);
+  ui.bossBody.append(head);
+  if (card) ui.bossBody.append(el('p', 'db-boss-text', card.about));
+
+  // The stage picker, and what that stage makes of it: its health with others and alone, its defense and its level.
+  const levels = el('div', 'db-levels');
+  levels.setAttribute('aria-label', 'Stage');
+  for (let s = 1; s <= stages; s++) {
+    const button = el('button', 'action choice db-level', `Stage ${s}`);
+    button.type = 'button';
+    button.setAttribute('aria-pressed', String(s === stage));
+    button.addEventListener('click', () => {
+      ctx.bossStage = s;
+      renderRaidBoss(ctx, boss);
+    });
+    levels.append(button);
+  }
+  const room = scaleAt(boss, stage, false);
+  const solo = scaleAt(boss, stage, true);
+  const health = el('div', 'db-stats');
+  health.append(stat('HP, with others', points(Math.round(boss.stats.hp * room.hp))), stat('HP, single player', points(Math.round(boss.stats.hp * solo.hp))), stat('Level', String(room.level)));
+  const defense = el('div', 'db-stats');
+  defense.append(
+    stat('P. DEF', points(Math.round(boss.stats.physical * (room.defense ?? 1)))),
+    stat('M. DEF', points(Math.round(boss.stats.magical * (room.defense ?? 1)))),
+    stat('Its blows', boss.stats.deals === 'magical' ? 'Magical' : 'Physical'),
+  );
+  const time = boss.time ?? RAID_TIME;
+  ui.bossBody.append(
+    label('Stage'),
+    levels,
+    health,
+    defense,
+    el('p', 'detail-note', `Beat it within ${Math.floor(time / 60)}:${String(time % 60).padStart(2, '0')}, before its rage wipes the party. Heroes that fall stay down. Each stage opens once the one before it is beaten.`),
+  );
+
+  // Its attacks, a row each.
+  const attacks = el('ul', 'detail-effects');
+  for (const attack of boss.attacks) attacks.appendChild(el('li')).append(attack.label);
+  ui.bossBody.append(label('Attacks'), attacks);
+
+  // What a win gives (as the raid's own Raid Info has it).
+  if (card && card.rewards.length > 0) ui.bossBody.append(raidRewards(card.rewards, (dragon ? DRAGON_LIST : TM_LIST).rewardNote));
+}
+
+/** The enemy picked: a Weekly Boss at the difficulty level picked, or a raid's boss (renderRaidBoss). */
 function renderBoss(ctx: DatabankContext): void {
   const { ui, databank, week } = ctx;
+  const raidBoss = raidBossById(ctx.boss);
+  if (raidBoss) return renderRaidBoss(ctx, raidBoss);
   const boss = bossById(ctx, ctx.boss);
   const raid = databank?.raid;
   ui.bossBody.textContent = '';
