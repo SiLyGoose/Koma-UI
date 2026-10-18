@@ -96,11 +96,23 @@ export async function loadKrClips(owner: HeroAssets, animations: KrAnimations, m
 }
 
 /** A hero of the game's own files moved by its clips (`motion`: how the fight times its moves), but for the marks `still` (left in its hands). */
-export function krHero({ root, body, models, rig, materials }: Stood, clips: KrClips, motion: Motion, still: readonly string[] = []): Hero {
+export function krHero({ root, body, models: parts, rig, materials, floating }: Stood, clips: KrClips, motion: Motion, still: readonly string[] = []): Hero {
   // What hangs straight from it in the game's files, beside its skeleton, is moved there by its clips: what it holds
   // (Point_Dummy, in whichever hand it was put) and the marks of its hands. Here too it hangs from its skeleton's root
   // (the file's own, not the model's group), in its first model, whose clip moves it.
   const every = [clips.idle, clips.run, ...(clips.hurt ? [clips.hurt] : []), ...Object.values(clips.moves).flat(2)];
+  // What floats by it, where the clips move it too (Gremory's cube, its pieces coming apart and back): hung where its body's
+  // file is, as the game has it, and moved with it.
+  const models = [...parts];
+  const first = parts[0];
+  const moved = (model: Object3D): boolean => every.some((clip) => clip.tracks.some((track) => !/^Bip001/.test(track.name) && model.getObjectByName(track.name.slice(0, track.name.lastIndexOf('.')))));
+  if (floating && first?.parent && moved(floating.model)) {
+    first.parent.add(floating.model);
+    floating.model.position.copy(first.position);
+    floating.model.quaternion.copy(first.quaternion);
+    floating.model.scale.copy(first.scale);
+    models.push(floating.model);
+  }
   const from = models[0]?.getObjectByName(BIPED.hips)?.parent;
   if (from)
     for (const name of new Set(every.flatMap(topOf))) {

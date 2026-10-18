@@ -1,10 +1,9 @@
 import type { HeroAssets, KrAnimations } from '../types.ts';
 
-/**
- * Rascal, her golem, hovering beside her left shoulder and a little behind it: on the boss's side of her as the
- * field shows her, so her attack's beam (out of it: ../../heroes/annette/fx.ts) goes clear of her. The same for both her skins.
+/*
+ * Rascal, her golem, held as her right hand's: King's Raid's own animations of her (ANIMATIONS: ../../heroes/body/kr.ts)
+ * float its mark beside her and beat its wings. The same for both her skins.
  */
-const RASCAL = { at: [0.6, 1.15, -0.2], size: 1 } as const;
 
 const DRIVE = 'https://drive.google.com/uc?export=download&id=';
 
@@ -61,7 +60,7 @@ export const ANNETTE_ASSETS: HeroAssets = {
         kind: 'parts',
         animations: ANIMATIONS,
         parts: ['Hero_Annette_Vari05_Body', 'Hero_Annette_Vari05_Hair'],
-        floating: { model: 'Hero_Annette_Vari05_Weapon', ...RASCAL },
+        right: 'Hero_Annette_Vari05_Weapon',
       },
     },
     // Her Halloween costume, with its own hair and a Rascal of its own (smaller).
@@ -73,7 +72,7 @@ export const ANNETTE_ASSETS: HeroAssets = {
         kind: 'parts',
         animations: ANIMATIONS,
         parts: ['Hero_Annette_Cos17Halloween_Body', 'Hero_Annette_Cos17Halloween_Hair'],
-        floating: { model: 'Hero_Annette_Cos17Halloween_Weapon', ...RASCAL },
+        right: 'Hero_Annette_Cos17Halloween_Weapon',
       },
     },
   ],
