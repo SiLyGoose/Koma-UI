@@ -14,6 +14,9 @@ const ANIMATIONS = {
   idle: 'Idle',
   run: 'Run',
   hurt: 'Damage',
+  victory: 'Victory',
+  lose: 'Lose',
+  dead: 'Dead',
   attack: [{ clips: ['Attack1'], hits: [0.9, 1] }],
   skills: {
     eliminate: { clips: ['Skill1-1', 'Skill1-2', 'Skill1-3'], hits: [1.1, 1.3, 1.5, 1.7, 1.9, 2.1, 2.3, 2.5, 2.7, 2.9, 3.1, 3.3, 3.5, 3.7, 3.9] },
@@ -29,7 +32,7 @@ export const CROW_ASSETS: HeroAssets = {
   // His unique weapon, wielded: Akistra, his gun.
   unique: { Hero_Crow_Vari04_Weapon: 'Hero_Crow_Unique01_Weapon' },
   // King's Raid's sounds (its Hit.Hero.Crow.* and BeginFireSkill.<skill> ones): as each blow of a move lands, a move's n-th part
-  // playing its n-th (round again past the last); and as each skill begins.
+  // playing its n-th (round again past the last); as each skill begins; and as it strikes its victory pose (Victory.Hero.*).
   sounds: {
     hits: {
       snipe: [[{ clip: 'Hit_gun_02', volume: 1.5 }]],
@@ -42,6 +45,7 @@ export const CROW_ASSETS: HeroAssets = {
       struggle: [{ clip: 'Attack-Casting-09' }, { clip: 'Attack-Casting-16' }, { clip: 'Crow-Vox_Skill2', volume: 2.3, at: 1.16, own: true }, { clip: 'Attack-Casting-45', volume: 1.4, at: 1.54 }, { clip: 'Attack-Shot-25', volume: 1.6, at: 2.6 }, { clip: 'Attack-Shot-25', volume: 1.6, at: 3.19 }],
       gods: [{ clip: 'Attack-Casting-09' }, { clip: 'Attack-Casting-16' }, { clip: 'Attack-Casting-42', volume: 1.8, at: 0.33 }, { clip: 'Attack-Casting-31', volume: 1.4, at: 0.9 }, { clip: 'Crow-Vox_Skill3', volume: 2.3, at: 1.16, own: true }, { clip: 'Crow-Vox_Casting2', volume: 2.3, at: 4.28, own: true }, { clip: 'Attack-Magic-22', volume: 1.3, at: 4.98 }, { clip: 'Attack-Magic-55', volume: 1.3, at: 4.98 }],
     },
+    victory: [{ clip: 'Crow-Vox_Victory', volume: 3.5, at: 0.25, own: true }, { clip: 'FX-Gun-01', volume: 1.5, at: 0.39 }, { clip: 'Attack-Action-02', volume: 1.4, at: 0.41 }, { clip: 'Attack-Action-01', volume: 1.5, at: 1.21 }, { clip: 'FX-Gun-02', volume: 1.5, at: 1.24 }],
   },
   // King's Raid's own effects for its moves (../../fx/kr-effects.ts): as each begins, on it, and as each of its blows lands, where it
   // lands (KR-extracted/scripts/tm-vfx.mjs).

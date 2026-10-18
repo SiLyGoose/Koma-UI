@@ -18,6 +18,9 @@ const ANIMATIONS = {
   idle: 'Idle',
   run: 'Run',
   hurt: 'Damage',
+  victory: 'Victory',
+  lose: 'Lose',
+  dead: 'Dead',
   attack: [{ clips: ['Attack1-1'], hits: [0.3] }, { clips: ['Attack1-2'], hits: [0.2, 0.5] }, { clips: ['Attack1-3'], hits: [0.4] }, { clips: ['Attack1-4'], hits: [0.3] }],
   skills: {
     instinct: { clips: ['Skill1'], hits: [0, 1.3, 2] },
@@ -33,7 +36,7 @@ export const EZEKIEL_ASSETS: HeroAssets = {
   // His unique weapon, wielded: Barbatos, his demon arm.
   unique: { Hero_Ezekiel_Vari05_Weapon: 'Hero_Ezekiel_Unique01_Weapon' },
   // King's Raid's sounds (its Hit.Hero.Ezekiel.* and BeginFireSkill.<skill> ones): as each blow of a move lands, a move's n-th part
-  // playing its n-th (round again past the last); and as each skill begins.
+  // playing its n-th (round again past the last); as each skill begins; and as it strikes its victory pose (Victory.Hero.*).
   sounds: {
     hits: {
       attack: [[{ clip: 'Dmg_punch_01', volume: 1.5 }]],
@@ -44,6 +47,7 @@ export const EZEKIEL_ASSETS: HeroAssets = {
       despair: [{ clip: 'Ezekiel-Vox_Skill2', volume: 2.3, own: true }, { clip: 'Attack-Casting-04', volume: 1.3, at: 0.16 }, { clip: 'Attack-Casting-16', volume: 1.3, at: 0.27 }, { clip: 'Attack-Magic-05', volume: 1.4, at: 0.84 }, { clip: 'Attack-Magic-05', volume: 1.4, at: 1.01 }],
       doom: [{ clip: 'Attack-Casting-04', volume: 1.3, at: 0.16 }, { clip: 'Attack-Casting-16', volume: 1.3, at: 0.27 }, { clip: 'Ezekiel-Vox_Skill3', volume: 2.3, at: 0.41, own: true }, { clip: 'Attack-Magic-06', volume: 1.4, at: 0.86 }, { clip: 'Attack-Magic-16', volume: 1.4, at: 2.03 }, { clip: 'Attack-Magic-09', volume: 1.4, at: 2.18 }, { clip: 'Attack-Magic-20', volume: 1.4, at: 2.18 }],
     },
+    victory: [{ clip: 'Attack-Body-01', volume: 1.2, at: 0.29 }, { clip: 'Ezekiel-Vox_Victory', volume: 2.3, at: 0.4, own: true }],
   },
   // King's Raid's own effects for its moves (../../fx/kr-effects.ts): as each begins, on it, and as each of its blows lands, where it
   // lands (KR-extracted/scripts/tm-vfx.mjs).

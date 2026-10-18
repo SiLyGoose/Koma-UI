@@ -16,6 +16,9 @@ const ANIMATIONS = {
   idle: 'Idle',
   run: 'Run',
   hurt: 'Damage',
+  victory: 'Victory',
+  lose: 'Lose',
+  dead: 'Dead',
   attack: [{ clips: ['Attack1'], hits: [0.3] }],
   skills: {
     thornbush: { clips: ['Skill1'], hits: [1.6, 1.7, 1.8] },
@@ -43,7 +46,7 @@ export const LORRAINE_ASSETS: HeroAssets = {
   // Her unique weapon, wielded: Roburu, her staff.
   unique: { Hero_Lorraine_Vari05_Weapon: 'Hero_Lorraine_Unique01_Weapon' },
   // King's Raid's sounds (its Hit.Hero.Lorraine.* and BeginFireSkill.<skill> ones): as each blow of a move lands, a move's n-th part
-  // playing its n-th (round again past the last); and as each skill begins.
+  // playing its n-th (round again past the last); as each skill begins; and as it strikes its victory pose (Victory.Hero.*).
   sounds: {
     hits: {
       lash: [[{ clip: 'Hit_gun_01', volume: 1.5 }]],
@@ -56,6 +59,7 @@ export const LORRAINE_ASSETS: HeroAssets = {
       vine: [{ clip: 'Attack-Woosh-09', volume: 1.2, at: 0.37 }, { clip: 'Lorraine-Vox_Attack3', volume: 1.6, at: 0.78, own: true }, { clip: 'Attack-Woosh-08', volume: 1.2, at: 0.83 }, { clip: 'Attack-Magic-02', at: 0.95 }],
       wrath: [{ clip: 'Lorraine-Vox_Casting2', volume: 2.1, at: 0.08, own: true }, { clip: 'Attack-Casting-04', volume: 2.9, at: 0.15 }, { clip: 'Attack-Casting-02', volume: 2.9, at: 0.35 }, { clip: 'FX-Lorraine-02', volume: 2.65, at: 0.41 }, { clip: 'Lorraine-Vox_Skill3_b', volume: 2.5, at: 1.46, own: true }, { clip: 'FX-Lorraine-01', volume: 2.8, at: 1.52 }],
     },
+    victory: [{ clip: 'Lorraine-Vox_Victory_b', volume: 1.3, at: 0.21, own: true }, { clip: 'Lorraine-Vox-Laugh', volume: 1.3, at: 2.67, own: true }],
   },
   // King's Raid's own effects for its moves (../../fx/kr-effects.ts): as each begins, on it, and as each of its blows lands, where it
   // lands (KR-extracted/scripts/tm-vfx.mjs).

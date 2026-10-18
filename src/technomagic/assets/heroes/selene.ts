@@ -15,6 +15,10 @@ const ANIMATIONS = {
   idle: 'Idle',
   run: 'Run',
   hurt: 'Damage',
+  victory: 'Victory',
+  victoryIdle: 'VictoryIdol',
+  lose: 'Lose',
+  dead: 'Dead',
   attack: [{ clips: ['Attack1'], hits: [1, 1.1, 1.2, 1.3] }],
   skills: {
     rain: { clips: ['Skill1'], hits: [2, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 3, 3.1] },
@@ -30,7 +34,7 @@ export const SELENE_ASSETS: HeroAssets = {
   // Her unique weapon, wielded: Notos, her bow.
   unique: { Hero_Selene_Vari03_Weapon: 'Hero_Selene_Unique01_Weapon' },
   // King's Raid's sounds (its Hit.Hero.Selene.* and BeginFireSkill.<skill> ones): as each blow of a move lands, a move's n-th part
-  // playing its n-th (round again past the last); and as each skill begins.
+  // playing its n-th (round again past the last); as each skill begins; and as it strikes its victory pose (Victory.Hero.*).
   sounds: {
     hits: {
       attack: [[{ clip: 'Hit_bow_01', volume: 1.5 }]],
@@ -42,6 +46,7 @@ export const SELENE_ASSETS: HeroAssets = {
       rush: [{ clip: 'Selene-Vox_Attack6', volume: 2, at: 0.21, own: true }, { clip: 'Attack-Casting-04', volume: 2.8, at: 0.27 }, { clip: 'Attack-Jump-01', volume: 3, at: 0.31 }, { clip: 'Attack-Spin-05', volume: 2.6, at: 0.85 }, { clip: 'Selene-Vox_Skill2_b', volume: 2, at: 0.87, own: true }, { clip: 'Attack-Magic-04', volume: 3, at: 1.27 }, { clip: 'Attack-Landing-01', volume: 3, at: 1.58 }, { clip: 'Attack-Landing-01', volume: 3, at: 1.58 }],
       flash: [{ clip: 'Attack-Casting-09', volume: 3.5, at: 0.08 }, { clip: 'Selene-Vox_Attack1', volume: 2.2, at: 0.62, own: true }, { clip: 'Attack-Casting-02', volume: 3.5, at: 1.13 }, { clip: 'Attack-BowPull-01', volume: 3, at: 1.47 }, { clip: 'Selene-Vox_Skill3', volume: 2.2, at: 1.61, own: true }, { clip: 'Attack-BowShot-01', volume: 3.2, at: 2.25 }, { clip: 'Attack-Shot-03', volume: 3.2, at: 2.56 }, { clip: 'Attack-Shot-11', volume: 3.2, at: 2.57 }],
     },
+    victory: [{ clip: 'Attack-Body-02', at: 0.22 }, { clip: 'Selene-Vox_Victory_b', volume: 1.5, at: 0.26, own: true }, { clip: 'Attack-Jump-01', at: 0.52 }, { clip: 'Attack-Landing-01', at: 1.26 }, { clip: 'Attack-BowPull-02', at: 1.99 }, { clip: 'Attack-BowShot-01', at: 2.54 }],
   },
   // King's Raid's own effects for its moves (../../fx/kr-effects.ts): as each begins, on it, and as each of its blows lands, where it
   // lands (KR-extracted/scripts/tm-vfx.mjs).

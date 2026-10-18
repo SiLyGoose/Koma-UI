@@ -342,3 +342,123 @@
     width: 72px;
   }
 }
+
+/* ------------------------------------------------------------------ staged: the fight over, as King's Raid shows it */
+
+/*
+ * The fight over (../main.ts stageEnd): this player's heroes in a row before a sheet of light, the page's HUD put away;
+ * over them, the title across the top (gold for a win, steel for a loss), what was found along a dark band at the foot,
+ * and the way on beneath it, to the right.
+ */
+body.tm-ended :is(#boss, #overheads, #numbers, #meter, #timer, #party, #actions, #hint) {
+  visibility: hidden;
+}
+
+.tm-result.staged {
+  background: radial-gradient(ellipse at 50% 55%, transparent 45%, rgb(0 0 0 / 45%));
+  place-items: stretch;
+}
+
+.tm-result.staged .message-card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  padding: clamp(10px, 3vh, 26px) clamp(12px, 3vw, 32px) clamp(10px, 3vh, 22px);
+  overflow-y: auto;
+  background: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.tm-result.staged .message-title {
+  margin: 0;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(40px, 9vh, 86px);
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  background: linear-gradient(#fff7d6, #f6c451 48%, #b5721c);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 3px 0 rgb(70 35 0 / 85%)) drop-shadow(0 0 20px rgb(255 190 80 / 55%));
+  animation: tm-title-in 0.7s cubic-bezier(0.2, 1.5, 0.4, 1) both;
+}
+
+.tm-result.staged.lost .message-title {
+  background: linear-gradient(#eef1f8, #9ea7bc 50%, #586075);
+  background-clip: text;
+  -webkit-background-clip: text;
+  filter: drop-shadow(0 3px 0 rgb(0 0 0 / 85%)) drop-shadow(0 0 16px rgb(120 140 200 / 40%));
+}
+
+.tm-result.staged .message-text {
+  color: #efe6cf;
+  text-shadow: 0 1px 4px #000;
+  animation: tm-rise 0.5s 0.3s both;
+}
+
+/* What was found: a dark band across the foot of the screen, under its name. */
+.tm-result.staged .tm-rewards {
+  position: relative;
+  width: min(920px, 100%);
+  margin: auto auto 0;
+  padding: 26px 22px 14px;
+  box-sizing: border-box;
+  background: linear-gradient(90deg, transparent, rgb(12 9 22 / 82%) 14%, rgb(12 9 22 / 82%) 86%, transparent);
+  border-top: 1px solid rgb(216 191 122 / 45%);
+  border-bottom: 1px solid rgb(216 191 122 / 45%);
+  animation: tm-rise 0.5s 0.5s both;
+}
+
+.tm-result.staged .tm-rewards::before {
+  content: 'Rewards';
+  position: absolute;
+  top: 4px;
+  left: 50%;
+  translate: -50% 0;
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.tm-result.staged .tm-tile-name {
+  color: #f3ead2;
+  text-shadow: 0 1px 2px #000;
+}
+
+.tm-result.staged .tm-others {
+  width: min(920px, 100%);
+  margin: 8px auto 0;
+  color: #efe6cf;
+}
+
+/* (Nothing found: the way on still at the foot.) */
+.tm-result.staged .tm-rewards[hidden] + .tm-others[hidden] + .tm-result-actions {
+  margin-top: auto;
+}
+
+.tm-result.staged .tm-result-actions {
+  justify-content: flex-end;
+  width: min(920px, 100%);
+  margin: 12px auto 0;
+  animation: tm-rise 0.5s 0.7s both;
+}
+
+@keyframes tm-title-in {
+  from {
+    opacity: 0;
+    transform: scale(1.6);
+  }
+}
+
+@keyframes tm-rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}

@@ -11,6 +11,8 @@ import { musicFile, soundFile, type BossAssets, type GameSound, type HeroAssets 
 
 /** How loud the heroes are, the boss, and the music (each a share of the shared volume), before the game's own volume for each sound. */
 const VOLUME = 0.1;
+/** How loud a hero's victory is (its voice, over the stings of the result). */
+const VICTORY = 0.2;
 const BOSS = 0.1;
 const MUSIC = 0.1;
 /** The same clip again within this many seconds isn't played: a whole raid's blows can land together. */
@@ -29,6 +31,8 @@ export interface FightSounds {
   hurt(): void;
   /** The boss is knocked down. */
   down(): void;
+  /** A hero (by its index) strikes its victory pose: what it says, and what is heard with it. */
+  victory(who: number): void;
   /** The fight is over (`won`: the boss has fallen): the music fades away. */
   end(won: boolean): void;
   /** The fight is taken off the page: the music stops. */
@@ -37,7 +41,7 @@ export interface FightSounds {
 
 /** Every file a hero's sounds play. */
 const heroFiles = (hero: HeroAssets): string[] =>
-  [...Object.values(hero.sounds?.hits ?? {}).flat(), ...Object.values(hero.sounds?.casts ?? {})].flatMap((list) => list.map((clip) => soundFile(hero, clip)));
+  [...Object.values(hero.sounds?.hits ?? {}).flat(), ...Object.values(hero.sounds?.casts ?? {}), hero.sounds?.victory ?? []].flatMap((list) => list.map((clip) => soundFile(hero, clip)));
 
 /** Every file a boss's sounds play (not its music). */
 const bossFiles = (boss: BossAssets): string[] => {
@@ -104,6 +108,10 @@ export function makeFightSounds(heroes: readonly HeroAssets[], boss: BossAssets)
     },
     down() {
       hear(boss, down, BOSS);
+    },
+    victory(who) {
+      const hero = heroes[who];
+      if (hero) hear(hero, hero.sounds?.victory, VICTORY);
     },
     end(won) {
       if (won) hear(boss, dead, BOSS);

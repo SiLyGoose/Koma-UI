@@ -10,6 +10,9 @@ const ANIMATIONS = {
   idle: 'Idle',
   run: 'Run',
   hurt: 'Damage',
+  victory: 'Victory',
+  lose: 'Lose',
+  dead: 'Dead',
   attack: [{ clips: ['Attack1-1'], hits: [0.3, 0.5] }, { clips: ['Attack1-2'], hits: [0.4, 1] }, { clips: ['Attack1-3'], hits: [0.7] }],
   skills: {
     judgment: { clips: ['Skill1'], hits: [1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 2.4] },
@@ -25,7 +28,7 @@ export const KIRZE_ASSETS: HeroAssets = {
   // Her unique weapon, wielded: Elicipira.
   unique: { Hero_Kirze_Vari05_Weapon: 'Hero_Kirze_Unique01_Weapon' },
   // King's Raid's sounds (its Hit.Hero.Kirze.* and BeginFireSkill.<skill> ones): as each blow of a move lands, a move's n-th part
-  // playing its n-th (round again past the last); and as each skill begins.
+  // playing its n-th (round again past the last); as each skill begins; and as it strikes its victory pose (Victory.Hero.*).
   sounds: {
     hits: {
       attack: [[{ clip: 'Hit_sword_04', volume: 1.5 }], [{ clip: 'Hit_sword_01', volume: 1.5 }], [{ clip: 'Hit_dmg_01', volume: 1.8 }]],
@@ -38,6 +41,7 @@ export const KIRZE_ASSETS: HeroAssets = {
       haze: [{ clip: 'Attack-Casting-14', volume: 1.2 }, { clip: 'Attack-Casting-37', volume: 1.2 }, { clip: 'Kirze-Vox_Skill5_b', volume: 2.2, own: true }, { clip: 'Attack-Magic-57', volume: 1.4, at: 0.94 }, { clip: 'Attack-Magic-68', volume: 1.4, at: 1.04 }],
       flower: [{ clip: 'Attack-Casting-05', volume: 1.2 }, { clip: 'Kirze-Vox_Skill4', volume: 2.2, own: true }, { clip: 'Attack-Casting-03', volume: 1.2, at: 0.39 }, { clip: 'Attack-Magic-22', volume: 1.4, at: 0.7 }, { clip: 'Attack-Magic-31', volume: 1.3, at: 1.09 }, { clip: 'Attack-Magic-36', volume: 1.2, at: 1.44 }, { clip: 'Attack-Magic-34', volume: 1.6, at: 1.69 }, { clip: 'Attack-Magic-39', volume: 1.2, at: 2.34 }, { clip: 'Kirze-Vox_Landing', volume: 2.2, at: 2.44, own: true }, { clip: 'Attack-Magic-34', volume: 1.6, at: 2.49 }],
     },
+    victory: [{ clip: 'Attack-Woosh-03', volume: 1.3, at: 0.4 }, { clip: 'Kirze-Vox_Victory', volume: 2.5, at: 0.47, own: true }, { clip: 'Attack-Action-02', volume: 1.5, at: 0.53 }, { clip: 'Attack-Jump-01', volume: 1.7, at: 1.16 }, { clip: 'Attack-Landing-01', volume: 1.7, at: 2.26 }, { clip: 'FX-Sword-11', volume: 0.8, at: 3.82 }],
   },
   // King's Raid's own effects for its moves (../../fx/kr-effects.ts): as each begins, on it, and as each of its blows lands, where it
   // lands (KR-extracted/scripts/tm-vfx.mjs).

@@ -35,12 +35,13 @@ import { makeMeter } from './hud/meter';
 import { makeNumbers } from './hud/numbers';
 import { makeOverhead } from './hud/overhead';
 import { makeBanners } from './hud/banners';
+import { makeCurtain } from './fight/curtain';
 import { cutFace, cutHead, readPortrait } from './hud/portrait';
 import { makeTimer } from './hud/timer';
 import { makePrep } from './prep/prep';
 import { managePopup } from './manage/popup';
 import { makeResult } from './result';
-import { installSounds } from './sfx';
+import { installSounds, play as playSound } from './sfx';
 import type { AnswerCode, ClientMessage, ErrorCode, FightStart, OverView, RoomState, ServerMessage, TurnInput } from '../protocol/technomagic';
 import { HERO_TURN, makeSim, SECTION, SECTIONS, SIM_VERSION, TICK, type Input, type Sim } from './sim';
 import { setBuff } from './sim/sets';
@@ -193,9 +194,21 @@ interface Controls {
 }
 
 /** The fight on the page: its sim, how it is drawn, and what is shown over it. */
+/**
+ * As a fight is over (stageEnd()): where the row of heroes stands (how far toward the camera from the field's middle), the
+ * height the camera looks at, how much of it it sees up and down, and how long the sting (Victory, Lose) plays before
+ * its music.
+ */
+const ROW_Z = 2;
+const ROW_LOOK = 1.7;
+const ROW_HIGH = 6.6;
+const STING = 3.2;
+
 interface Game {
   sim: Sim;
   view: FightView;
+  /** The fighters this player has (by their index), in the fight's order: the first four stand in the row as it is over. */
+  mine: readonly number[];
   /** A room's (null: trying things out). */
   lock: Lock | null;
   /** Seconds not yet stepped. */
@@ -300,8 +313,39 @@ async function start(): Promise<void> {
   // Top right: the raid's time left, and the way out of it.
   const timer = makeTimer(document.getElementById('timer') as HTMLElement, () => leave());
 
+  // As a fight is over: the row of this player's heroes before a sheet of light, seen close (the page's HUD put away),
+  // the result over them; and each of those taken back as the result is (or another fight begins).
+  const curtain = makeCurtain(stage.scene);
+  const resultAt = document.getElementById('result') as HTMLElement;
+  let afterSting = 0;
+  function stageEnd(playing: Game, won: boolean): void {
+    const at = new Vector3(playing.view.pan, 0, ROW_Z);
+    // (Its first four on the field: the main team; in a room, its own.)
+    playing.view.celebrate(playing.mine.filter((i) => playing.view.shown(i)).slice(0, 4), won, at);
+    curtain.show(won, at);
+    stage.focus({ at: new Vector3(at.x, ROW_LOOK, at.z), high: ROW_HIGH });
+    document.body.classList.add('tm-ended');
+    resultAt.classList.add('staged', won ? 'won' : 'lost');
+    playSound(won ? 'victory' : 'lose');
+    clearTimeout(afterSting);
+    afterSting = window.setTimeout(() => playSound(won ? 'victoryMusic' : 'loseMusic'), STING * 1000);
+  }
+  function unstage(): void {
+    clearTimeout(afterSting);
+    curtain.hide();
+    stage.focus(null);
+    document.body.classList.remove('tm-ended');
+    resultAt.classList.remove('staged', 'won', 'lost');
+  }
+  const hideResults = results.hide;
+  results.hide = () => {
+    hideResults();
+    unstage();
+  };
+
   /** Puts a fight on the page (in place of the one there was): `entries` are its heroes' bodies, in the sim's order. */
   function play(sim: Sim, entries: readonly Entrant[], controls: Controls, lock: Lock | null): Game {
+    unstage();
     game?.view.clear();
     party.replaceChildren();
     overheads.replaceChildren();
@@ -310,6 +354,7 @@ async function start(): Promise<void> {
     const bodies: Hero[] = entries.map((entrant) => entrant.hero);
     const view = makeFightView({ scene: stage.scene, sim, bodies, boss, bossLook: bossView!.look, bossFx: bossView!.fx, effects, kr, magic, props, banners });
     banners.play('start');
+    playSound('battle');
     // Each hero, for its card and the meter: its own picture, or with none a picture of its head and shoulders as it stands.
     const pictures = entries.map((entrant, i) => pictureOf(entrant, view, i));
     const cards = sim.fighters.map((fighter, i) => {
@@ -345,6 +390,7 @@ async function start(): Promise<void> {
     return {
       sim,
       view,
+      mine: sim.fighters.map((_, i) => i).filter((i) => controls.mine(i)),
       lock,
       owed: 0,
       draw() {
@@ -896,6 +942,7 @@ async function start(): Promise<void> {
         if (sim.foe.hp <= 0) sim.events.push({ kind: 'boss-daze', seconds: OVER_WAIT + 1, down: true });
       } else if (now - ending.at >= OVER_WAIT) {
         overShown = sim;
+        stageEnd(playing, won);
         onOver(sim);
       }
     }

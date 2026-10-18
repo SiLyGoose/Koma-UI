@@ -8,6 +8,10 @@ const ANIMATIONS = {
   idle: 'Idle',
   run: 'Run',
   hurt: 'Damage',
+  victory: 'Victory',
+  victoryIdle: 'VictoryIdol',
+  lose: 'Lose',
+  dead: 'Dead',
   attack: [{ clips: ['Attack1-1'], hits: [0.5, 0.7] }, { clips: ['Attack1-2'], hits: [0.6, 1.1] }, { clips: ['Attack1-3'], hits: [0.7] }],
   skills: {
     slam: { clips: ['Dash', 'Skill2'], hits: [1.3] },
@@ -25,7 +29,7 @@ export const KLAUS_ASSETS: HeroAssets = {
   // His unique weapon, wielded: Exian, his sword and shield.
   unique: { Hero_Klaus_Vari05_Shield: 'Hero_Klaus_Unique01_Shield', Hero_Klaus_Vari05_Sword: 'Hero_Klaus_Unique01_Sword' },
   // King's Raid's sounds (its Hit.Hero.Clause.* and BeginFireSkill.<skill> ones): as each blow of a move lands, a move's n-th part
-  // playing its n-th (round again past the last); and as each skill begins.
+  // playing its n-th (round again past the last); as each skill begins; and as it strikes its victory pose (Victory.Hero.*).
   sounds: {
     hits: {
       attack: [[{ clip: 'Hit_Dmg-Metal-01', volume: 1.5 }]],
@@ -36,6 +40,7 @@ export const KLAUS_ASSETS: HeroAssets = {
       bash: [{ clip: 'Attack-Casting-15', volume: 1.2, at: 0.12 }, { clip: 'Attack-Woosh-03', volume: 3, at: 0.38 }, { clip: 'Attack-Cut-08', volume: 0.25, at: 0.95 }, { clip: 'Clause-Vox_02', volume: 2, at: 0.95, own: true }, { clip: 'Attack-Woosh-09', volume: 2, at: 0.95 }, { clip: 'Attack-Body-02', at: 1 }, { clip: 'Attack-Woosh-08', volume: 1.5, at: 1.35 }, { clip: 'Attack-Woosh-09', volume: 1.5, at: 1.37 }, { clip: 'Clause-Vox_03', volume: 1.9, at: 1.38, own: true }, { clip: 'Attack-Body-02', at: 1.38 }],
       guard: [{ clip: 'Attack-Casting-05', volume: 3, at: 0.01 }, { clip: 'Attack-Casting-04', volume: 2.2, at: 0.15 }, { clip: 'Attack-Woosh-10', volume: 2.4, at: 0.22 }, { clip: 'Clause-Vox_Skill1', volume: 2.1, at: 0.43, own: true }, { clip: 'Attack-Casting-03', volume: 3.5, at: 1.27 }, { clip: 'Attack-Body-01', volume: 3, at: 1.78 }, { clip: 'Attack-Magic-03', volume: 3.1, at: 1.9 }, { clip: 'Attack-Damage-19', volume: 3.3, at: 1.9 }, { clip: 'Attack-Magic-04', volume: 2.5, at: 1.91 }],
     },
+    victory: [{ clip: 'Clause-Vox_Victory', volume: 0.9, at: 0.28, own: true }, { clip: 'FX-Clause_01', volume: 0.8, at: 0.8 }, { clip: 'Attack-Woosh-11', volume: 2, at: 1.46 }, { clip: 'Attack-Action-01', at: 1.59 }, { clip: 'FX-Clause_02', volume: 0.7, at: 2.98 }],
   },
   // King's Raid's own effects for its moves (../../fx/kr-effects.ts): as each begins, on it, and as each of its blows lands, where it
   // lands (KR-extracted/scripts/tm-vfx.mjs).

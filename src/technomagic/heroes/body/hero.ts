@@ -44,8 +44,12 @@ export interface Hero {
   hit(): void;
   /** Staggered (stunned, thrown back): what it was doing is cut short. */
   stagger(): void;
-  /** Fallen: what it was doing is cut short, and it stands at rest (the page lays it on the floor: ../../fight/view.ts). */
+  /** Fallen: what it was doing is cut short, and it stands at rest (the page lays it on the floor: ../../fight/view.ts), or (`falls`) it falls as its own animation has it. */
   fall(): void;
+  /** Whether it falls by its own animation (King's Raid's Dead): the page leaves it as that has it. */
+  readonly falls?: boolean;
+  /** The fight over: it strikes its victory pose (and holds the one after it), or its loss's (for one with none, it stands). */
+  pose?(end: 'victory' | 'lose'): void;
   update(now: number, dt: number): void;
 }
 

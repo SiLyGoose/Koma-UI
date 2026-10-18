@@ -13,6 +13,9 @@ const ANIMATIONS = {
   idle: 'Idle',
   run: 'Run',
   hurt: 'Damage',
+  victory: 'Victory',
+  lose: 'Lose',
+  dead: 'Dead',
   attack: [{ clips: ['Attack1'], hits: [1.4] }],
   skills: {
     fracture: { clips: ['Skill1'], hits: [1.9] },
@@ -28,7 +31,7 @@ export const ODDY_ASSETS: HeroAssets = {
   // His unique weapon, wielded: Tempodiana, his clock.
   unique: { Hero_Oddy_Vari05_Weapon: 'Hero_Oddy_Unique01_Weapon' },
   // King's Raid's sounds (its Hit.Hero.Oddy.* and BeginFireSkill.<skill> ones): as each blow of a move lands, a move's n-th part
-  // playing its n-th (round again past the last); and as each skill begins.
+  // playing its n-th (round again past the last); as each skill begins; and as it strikes its victory pose (Victory.Hero.*).
   sounds: {
     hits: {
       chime: [[{ clip: 'Hit_gun_02', volume: 1.5 }]],
@@ -41,6 +44,7 @@ export const ODDY_ASSETS: HeroAssets = {
       fragments: [{ clip: 'Attack-Casting-62', volume: 1.8 }, { clip: 'Oddy-Vox_Skill3', volume: 2.2, own: true }, { clip: 'Attack-Casting-20', volume: 1.6, at: 0.45 }, { clip: 'Attack-Shot-03', volume: 1.8, at: 1.84 }, { clip: 'Attack-Shot-03', volume: 1.8, at: 2.02 }, { clip: 'Attack-Shot-03', volume: 1.8, at: 2.27 }, { clip: 'Attack-Shot-03', volume: 1.8, at: 2.46 }, { clip: 'Attack-Landing-01', volume: 1.6, at: 3.63 }],
       distortion: [{ clip: 'Oddy-Vox_Skill2', volume: 2.2, own: true }, { clip: 'Attack-Casting-40', volume: 1.8, at: 0.05 }, { clip: 'Attack-Woosh-10', volume: 1.5, at: 0.63 }, { clip: 'Attack-Woosh-10', volume: 1.5, at: 1.03 }, { clip: 'Attack-Casting-45', volume: 1.5, at: 1.18 }, { clip: 'Attack-Casting-45', volume: 1.8, at: 1.8 }, { clip: 'Attack-Magic-39', volume: 1.6, at: 2.45 }],
     },
+    victory: [{ clip: 'Oddy-Vox_Victory', volume: 2.2, at: 0.63, own: true }, { clip: 'Attack-Body-02', volume: 1.8, at: 1.45 }],
   },
   // King's Raid's own effects for its moves (../../fx/kr-effects.ts): as each begins, on it, and as each of its blows lands, where it
   // lands (KR-extracted/scripts/tm-vfx.mjs).

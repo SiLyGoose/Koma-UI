@@ -22,6 +22,9 @@ const ANIMATIONS = {
   idle: 'Idle',
   run: 'Run',
   hurt: 'Damage',
+  victory: 'Victory',
+  lose: 'Lose',
+  dead: 'Dead',
   attack: [{ clips: ['Attack1-1'], hits: [0.4] }, { clips: ['Attack1-2'], hits: [0.3, 0.6] }, { clips: ['Attack1-3'], hits: [0.2] }, { clips: ['Attack1-4'], hits: [0.6] }],
   skills: {
     collision: { clips: ['Skill1'], hits: [0.8, 1.4] },
@@ -35,7 +38,7 @@ export const PHILLOP_ASSETS: HeroAssets = {
   folder: 'heroes/phillop',
   skills: { from: 'https://kingsraid.shodyra.com/static/images/6/', files: ['s1.png', 's2.png', 's3.png', 's4.png'] },
   // King's Raid's sounds (its Hit.Hero.Phillop.* and BeginFireSkill.<skill> ones): as each blow of a move lands, a move's n-th part
-  // playing its n-th (round again past the last); and as each skill begins.
+  // playing its n-th (round again past the last); as each skill begins; and as it strikes its victory pose (Victory.Hero.*).
   sounds: {
     hits: {
       attack: [[{ clip: 'Hit_axe_01', volume: 1.5 }]],
@@ -47,6 +50,7 @@ export const PHILLOP_ASSETS: HeroAssets = {
       headbutt: [{ clip: 'Phillop-Vox_Skill2', volume: 2.2, own: true }, { clip: 'Attack-Magic-15', volume: 0.7, at: 0.04 }, { clip: 'Attack-Magic-01', volume: 0.8, at: 0.1 }, { clip: 'Attack-Casting-06', volume: 0.5, at: 0.48 }, { clip: 'Attack-Woosh-09', volume: 0.7, at: 0.95 }, { clip: 'Attack-Magic-05', volume: 1.2, at: 0.96 }, { clip: 'Attack-Jump-01', at: 1 }, { clip: 'Attack-Damage-32', volume: 1.3, at: 1.03 }],
       incarnate: [{ clip: 'Attack-Casting-04', volume: 2.8, at: 0.04 }, { clip: 'Attack-Body-02', volume: 2.6, at: 0.05 }, { clip: 'Phillop-Vox_Skill3_b', volume: 2.5, at: 0.08, own: true }, { clip: 'Attack-Magic-05', volume: 3.2, at: 0.88 }, { clip: 'Attack-Magic-21', volume: 2.95, at: 0.88 }, { clip: 'Attack-Magic-02', volume: 2.1, at: 0.89 }],
     },
+    victory: [{ clip: 'Attack-Jump-02', at: 0.53 }, { clip: 'Death-Sword-02', at: 0.55 }, { clip: 'Attack-Woosh-10', at: 0.6 }, { clip: 'Phillop-Vox_Victory', volume: 1.8, at: 0.61, own: true }, { clip: 'FX-Machine-03', at: 1.07 }, { clip: 'Death-Sword-01', at: 1.55 }],
   },
   // King's Raid's own effects for its moves (../../fx/kr-effects.ts): as each begins, on it, and as each of its blows lands, where it
   // lands (KR-extracted/scripts/tm-vfx.mjs).

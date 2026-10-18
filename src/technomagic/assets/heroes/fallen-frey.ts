@@ -8,6 +8,9 @@ const ANIMATIONS = {
   idle: 'Idle',
   run: 'Run',
   hurt: 'Damage',
+  victory: 'Victory',
+  lose: 'Lose',
+  dead: 'Dead',
   attack: [{ clips: ['Attack1'], hits: [1.1] }],
   skills: {
     light: { clips: ['Skill1'], hits: [1.7] },
@@ -25,7 +28,7 @@ export const FALLEN_FREY_ASSETS: HeroAssets = {
   // Her unique weapon, wielded: Rosmerta.
   unique: { Hero_Frey_Fallen_Vari05_Weapon: 'Hero_Frey_Fallen_Unique01_Weapon' },
   // King's Raid's sounds (its Hit.Hero.FallenFrey.* and BeginFireSkill.<skill> ones): as each blow of a move lands, a move's n-th part
-  // playing its n-th (round again past the last); and as each skill begins.
+  // playing its n-th (round again past the last); as each skill begins; and as it strikes its victory pose (Victory.Hero.*).
   sounds: {
     hits: {
       smite: [[{ clip: 'Dmg-shot-01', volume: 1.5, at: 0.05 }]],
@@ -36,6 +39,7 @@ export const FALLEN_FREY_ASSETS: HeroAssets = {
       blessing: [{ clip: 'Cast-05', volume: 2.8, at: 0.333 }, { clip: 'FreyB-Vox_Skill2-1', volume: 3, at: 0.333, own: true }, { clip: 'FreyB-Vox_Skill2-2', volume: 3, at: 1.266, own: true }, { clip: 'Impact-05', volume: 2.8, at: 1.718 }, { clip: 'FreyB-Vox_Skill2-3', volume: 3, at: 2.166, own: true }],
       vengeance: [{ clip: 'FreyB-Vox_Skill3', volume: 3, at: 0.02, own: true }, { clip: 'Cast-06', volume: 2.8, at: 0.126 }, { clip: 'Cast-07', volume: 2.8, at: 1.239 }],
     },
+    victory: [{ clip: 'FreyB-Vox_Victory', volume: 3, at: 0.005, own: true }, { clip: 'Item-fx-01', volume: 2.5, at: 1.033 }, { clip: 'Texture-01', volume: 2.5, at: 1.933 }, { clip: 'Flap-03', volume: 2.5, at: 1.933 }, { clip: 'Kiss-01', volume: 2.5, at: 2.9 }],
   },
   // King's Raid's own effects for its moves (../../fx/kr-effects.ts): as each begins, on it, and as each of its blows lands, where it
   // lands (KR-extracted/scripts/tm-vfx.mjs).

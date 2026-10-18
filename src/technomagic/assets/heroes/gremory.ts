@@ -15,6 +15,9 @@ const ANIMATIONS = {
   idle: 'Idle',
   run: 'Run',
   hurt: 'Damage',
+  victory: 'Victory',
+  lose: 'Lose',
+  dead: 'Dead',
   attack: [{ clips: ['Attack1'], hits: [1, 1.1, 1.2] }],
   skills: {
     pochi: { clips: ['Skill1'], hits: [2.5, 2.7, 2.9, 3.1, 3.3] },
@@ -30,7 +33,7 @@ export const GREMORY_ASSETS: HeroAssets = {
   // Her unique weapon, wielded: Pigritia, her cube.
   unique: { Hero_Gremory_Vari05_Weapon: 'Hero_Gremory_Unique01_Weapon' },
   // King's Raid's sounds (its Hit.Hero.Gremory.* and BeginFireSkill.<skill> ones): as each blow of a move lands, a move's n-th part
-  // playing its n-th (round again past the last); and as each skill begins.
+  // playing its n-th (round again past the last); as each skill begins; and as it strikes its victory pose (Victory.Hero.*).
   sounds: {
     hits: {
       nudge: [[{ clip: 'Hit_common_01', volume: 1.5, at: 0.02 }]],
@@ -43,6 +46,7 @@ export const GREMORY_ASSETS: HeroAssets = {
       puchi: [{ clip: 'Gremory-Vox_Skill2', volume: 2.9, at: 0.043, own: true }, { clip: 'Texture-06', volume: 2.6, at: 0.204 }, { clip: 'Cast-16', volume: 2.6, at: 0.469 }, { clip: 'Shot-magic-04', volume: 2.6, at: 2.264 }, { clip: 'Mon_vc_03', volume: 2.6, at: 3.216 }, { clip: 'Exp_04', volume: 2.6, at: 3.216 }, { clip: 'Exp_03', volume: 2.6, at: 3.857 }, { clip: 'Mon_vc_04', volume: 2.6, at: 3.857 }],
       pippi: [{ clip: 'Dark-fx-01', volume: 2.6, at: 0.071 }, { clip: 'Gremory-Vox_Skill6_a', volume: 3.6, at: 0.48, own: true }, { clip: 'Cast-17', volume: 2.6, at: 0.998 }, { clip: 'Texture-06', volume: 2.6, at: 3.537 }, { clip: 'Poison-shot-01', volume: 2.6, at: 3.715 }, { clip: 'Whoosh-wind-01', volume: 2.6, at: 4.214 }],
     },
+    victory: [{ clip: 'Crystal-Cast-02', volume: 2.6, at: 0.01 }, { clip: 'Gremory-Vox_Victory', volume: 2.9, at: 0.167, own: true }, { clip: 'Bubble_02', volume: 2.6, at: 0.6 }, { clip: 'Idle-cloth-05', volume: 2.6, at: 2.567 }],
   },
   // King's Raid's own effects for its moves (../../fx/kr-effects.ts): as each begins, on it, and as each of its blows lands, where it
   // lands (KR-extracted/scripts/tm-vfx.mjs).

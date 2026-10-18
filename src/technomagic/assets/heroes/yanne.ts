@@ -19,6 +19,9 @@ const ANIMATIONS = {
   idle: 'Idle',
   run: 'Run',
   hurt: 'Damage',
+  victory: 'Victory',
+  lose: 'Lose',
+  dead: 'Dead',
   attack: [{ clips: ['Attack1'], hits: [1.2] }],
   skills: {
     focus: { clips: ['Skill1-1', 'Skill1-2', 'Skill1-2', 'Skill1-2', 'Skill1-3'], hits: [0.6, 1.5, 2.4, 3.1, 3.3] },
@@ -34,7 +37,7 @@ export const YANNE_ASSETS: HeroAssets = {
   // Her unique weapon, wielded: Svelta, her bow.
   unique: { Hero_Yanne_Vari04_Weapon: 'Hero_Yanne_Unique01_Weapon' },
   // King's Raid's sounds (its Hit.Hero.Yanne.* and BeginFireSkill.<skill> ones): as each blow of a move lands, a move's n-th part
-  // playing its n-th (round again past the last); and as each skill begins.
+  // playing its n-th (round again past the last); as each skill begins; and as it strikes its victory pose (Victory.Hero.*).
   sounds: {
     hits: {
       attack: [[{ clip: 'Hit_bow_03', volume: 1.5 }]],
@@ -46,6 +49,7 @@ export const YANNE_ASSETS: HeroAssets = {
       wipeout: [{ clip: 'Attack-Casting-04', volume: 1.5 }, { clip: 'Attack-Magic-19', volume: 1.6 }, { clip: 'Yanne-Vox_02', volume: 2.2, at: 0.14, own: true }, { clip: 'Yanne-Vox_Skill2', volume: 2.2, at: 0.63, own: true }, { clip: 'Attack-Casting-43', volume: 1.5, at: 0.78 }, { clip: 'Attack-Magic-22', volume: 1.8, at: 1.69 }, { clip: 'Attack-Magic-06', volume: 1.8, at: 1.69 }],
       unleash: [{ clip: 'Attack-Casting-04', volume: 1.5 }, { clip: 'Attack-Magic-19', volume: 1.5 }, { clip: 'Yanne-Vox_Skill1', volume: 2.2, own: true }, { clip: 'Attack-Magic-22', volume: 1.8, at: 0.83 }, { clip: 'Attack-Magic-06', volume: 1.8, at: 0.83 }],
     },
+    victory: [{ clip: 'Yanne-Vox_07', volume: 2.2, at: 0.49, own: true }, { clip: 'Attack-Body-02', at: 0.49 }, { clip: 'Yanne-Vox_Victory', volume: 2.2, at: 1.5, own: true }],
   },
   // King's Raid's own effects for its moves (../../fx/kr-effects.ts): as each begins, on it, and as each of its blows lands, where it
   // lands (KR-extracted/scripts/tm-vfx.mjs).

@@ -17,6 +17,9 @@ const ANIMATIONS = {
   idle: 'Idle',
   run: 'Run',
   hurt: 'Damage',
+  victory: 'Victory',
+  lose: 'Lose',
+  dead: 'Dead',
   attack: [{ clips: ['Attack1-1'], hits: [0.3] }, { clips: ['Attack1-2'], hits: [0.4] }, { clips: ['Attack1-3'], hits: [0.2, 0.7] }, { clips: ['Attack1-4'], hits: [0.6] }],
   skills: {
     ground: { clips: ['Skill1'], hits: [1.4] },
@@ -32,7 +35,7 @@ export const LOMAN_ASSETS: HeroAssets = {
   // His unique weapon, wielded: Gaiamenes, his halberd.
   unique: { Hero_Loman_Vari04_Weapon: 'Hero_Loman_Unique_Weapon' },
   // King's Raid's sounds (its Hit.Hero.Loman.* and BeginFireSkill.<skill> ones): as each blow of a move lands, a move's n-th part
-  // playing its n-th (round again past the last); and as each skill begins.
+  // playing its n-th (round again past the last); as each skill begins; and as it strikes its victory pose (Victory.Hero.*).
   sounds: {
     hits: {
       thrust: [[{ clip: 'Hit_common_01', volume: 1.5 }]],
@@ -44,6 +47,7 @@ export const LOMAN_ASSETS: HeroAssets = {
       shroud: [{ clip: 'Attack-Casting-15', volume: 1.3 }, { clip: 'Roman-Vox_Skill2', volume: 2.4, at: 0.08, own: true }, { clip: 'Attack-Magic-37', volume: 1.4, at: 0.74 }, { clip: 'Attack-Casting-27', volume: 1.3, at: 1.14 }, { clip: 'Attack-Magic-39', volume: 1.3, at: 1.16 }, { clip: 'Attack-Magic-09', volume: 1.4, at: 1.17 }],
       creed: [{ clip: 'Attack-Casting-15', volume: 1.3 }, { clip: 'Roman-Vox_Attack1', volume: 2.4, at: 0.16, own: true }, { clip: 'Attack-Magic-05', volume: 1.4, at: 0.91 }, { clip: 'Attack-Magic-39', volume: 1.5, at: 1.45 }, { clip: 'FX-Golem-06', volume: 2, at: 1.56 }],
     },
+    victory: [{ clip: 'Attack-Cut-11', volume: 1.2, at: 0.57 }, { clip: 'Attack-Action-01', volume: 1.3, at: 0.73 }, { clip: 'Roman-Vox_Victory', volume: 2.2, at: 1.51, own: true }, { clip: 'Attack-Jump-01', volume: 1.3, at: 1.73 }, { clip: 'Attack-Woosh-09', volume: 1.5, at: 2.4 }, { clip: 'Attack-Landing-01', volume: 1.5, at: 2.61 }],
   },
   // King's Raid's own effects for its moves (../../fx/kr-effects.ts): as each begins, on it, and as each of its blows lands, where it
   // lands (KR-extracted/scripts/tm-vfx.mjs).

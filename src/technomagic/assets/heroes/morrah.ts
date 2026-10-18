@@ -14,6 +14,9 @@ const ANIMATIONS = {
   idle: 'Idle',
   run: 'Run',
   hurt: 'Damage',
+  victory: 'Victory',
+  lose: 'Lose',
+  dead: 'Dead',
   attack: [{ clips: ['Attack1-1'], hits: [0.3] }, { clips: ['Attack1-2'], hits: [0.2, 0.4] }, { clips: ['Attack1-3'], hits: [0.5] }, { clips: ['Attack1-4'], hits: [0.8] }],
   skills: {
     burning: { clips: ['Skill1'], hits: [1.2, 1.3, 1.4] },
@@ -29,7 +32,7 @@ export const MORRAH_ASSETS: HeroAssets = {
   // Her unique weapon, wielded: Carprain, her sword and shield.
   unique: { Hero_Morrah_Vari05_Shield: 'Hero_Morrah_Unique01_Shield', Hero_Morrah_Vari05_Sword: 'Hero_Morrah_Unique01_Sword' },
   // King's Raid's sounds (its Hit.Hero.Morrah.* and BeginFireSkill.<skill> ones): as each blow of a move lands, a move's n-th part
-  // playing its n-th (round again past the last); and as each skill begins.
+  // playing its n-th (round again past the last); as each skill begins; and as it strikes its victory pose (Victory.Hero.*).
   sounds: {
     hits: {
       attack: [[{ clip: 'Dmg_punch_01', volume: 1.5 }], [{ clip: 'Dmg_punch_02', volume: 1.5 }], [{ clip: 'Dmg_punch_03', volume: 1.5 }], [{ clip: 'Dmg_punch_04', volume: 1.5 }]],
@@ -42,6 +45,7 @@ export const MORRAH_ASSETS: HeroAssets = {
       hellfire: [{ clip: 'Attack-Casting-14', volume: 1.1 }, { clip: 'Attack-Casting-15', volume: 0.95 }, { clip: 'Morrah-Vox_Skill2', volume: 2.1, at: 0.11, own: true }, { clip: 'Attack-Magic-22', volume: 2.2, at: 0.87 }, { clip: 'Attack-Magic-10', volume: 2.2, at: 0.92 }, { clip: 'Attack-Magic-19', volume: 1.2, at: 1.4 }],
       eruption: [{ clip: 'Attack-Casting-14', volume: 1.1 }, { clip: 'Attack-Casting-15', volume: 0.95 }, { clip: 'Attack-Woosh-09', volume: 1.8, at: 0.45 }, { clip: 'Morrah-Vox_Attack2', volume: 2.1, at: 0.52, own: true }, { clip: 'Attack-Magic-23', volume: 2.5, at: 0.6 }, { clip: 'Attack-Shot-09', volume: 1.6, at: 0.6 }, { clip: 'Attack-Woosh-09', volume: 1.8, at: 0.96 }, { clip: 'Morrah-Vox_Attack3', volume: 2.1, at: 1.07, own: true }, { clip: 'Attack-Magic-23', volume: 2.5, at: 1.12 }, { clip: 'Attack-Shot-09', volume: 1.6, at: 1.12 }, { clip: 'Morrah-Vox_Skill3', volume: 2.1, at: 1.66, own: true }, { clip: 'Attack-Magic-10', volume: 2.5, at: 1.74 }, { clip: 'Attack-Magic-22', volume: 2.5, at: 1.76 }, { clip: 'Attack-Woosh-09', volume: 1.8, at: 2.13 }, { clip: 'Attack-Magic-26', volume: 2.5, at: 2.27 }, { clip: 'Death-Fall-06', volume: 3.5, at: 2.27 }],
     },
+    victory: [{ clip: 'Attack-Woosh-11', volume: 1.8, at: 0.18 }, { clip: 'Attack-Woosh-10', volume: 1.2, at: 0.54 }, { clip: 'Attack-Woosh-10', volume: 1.2, at: 0.86 }, { clip: 'Attack-Woosh-10', volume: 1.2, at: 1.07 }, { clip: 'Attack-Woosh-10', volume: 1.2, at: 1.36 }, { clip: 'Attack-Body-02', volume: 1.8, at: 1.46 }, { clip: 'Attack-Action-02', volume: 1.8, at: 1.74 }, { clip: 'Morrah-Vox_Victory_c', volume: 1.8, at: 1.97, own: true }, { clip: 'Attack-Body-01', volume: 1.8, at: 2.42 }],
   },
   // King's Raid's own effects for its moves (../../fx/kr-effects.ts): as each begins, on it, and as each of its blows lands, where it
   // lands (KR-extracted/scripts/tm-vfx.mjs).

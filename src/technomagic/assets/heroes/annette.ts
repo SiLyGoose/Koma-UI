@@ -15,6 +15,10 @@ const ANIMATIONS = {
   idle: 'Idle',
   run: 'Run',
   hurt: 'Damage',
+  victory: 'Victory',
+  victoryIdle: 'VictoryIdol',
+  lose: 'Lose',
+  dead: 'Dead',
   attack: [{ clips: ['Attack1'], hits: [1, 1.2, 1.4] }],
   skills: {
     ray: { clips: ['Skill1'], hits: [2.2, 2.3] },
@@ -30,7 +34,7 @@ export const ANNETTE_ASSETS: HeroAssets = {
   // Her unique weapon, wielded: Rascal as it is made over.
   unique: { Hero_Annette_Vari05_Weapon: 'Hero_Annette_Unique01_Weapon' },
   // King's Raid's sounds (its Hit.Hero.Aneette.* and BeginFireSkill.<skill> ones): as each blow of a move lands, a move's n-th part
-  // playing its n-th (round again past the last); and as each skill begins.
+  // playing its n-th (round again past the last); as each skill begins; and as it strikes its victory pose (Victory.Hero.*).
   sounds: {
     hits: {
       zap: [[{ clip: 'Hit_gun_02', volume: 1.5 }]],
@@ -42,6 +46,7 @@ export const ANNETTE_ASSETS: HeroAssets = {
       treatment: [{ clip: 'Attack-Casting-48', volume: 1.8, at: 0.09 }, { clip: 'Annette-Vox_Attack4', volume: 2.5, at: 0.23, own: true }, { clip: 'Attack-Casting-30', volume: 1.5, at: 0.56 }, { clip: 'Annette-Vox_Skill2_c', volume: 2.5, at: 1.19, own: true }, { clip: 'Attack-Magic-56', volume: 1.8, at: 1.45 }, { clip: 'Attack-Casting-50', volume: 1.5, at: 1.73 }, { clip: 'Attack-Casting-48', volume: 1.8, at: 2.53 }, { clip: 'Attack-Magic-39', volume: 1.7, at: 2.53 }, { clip: 'Attack-Magic-22', volume: 1.7, at: 2.53 }],
       elimination: [{ clip: 'Attack-Body-02', volume: 1.4 }, { clip: 'Attack-Casting-48', volume: 2, at: 0.58 }, { clip: 'Attack-Casting-47', volume: 1.6, at: 0.58 }, { clip: 'Annette-Vox_Skill3-1_b', volume: 2.5, at: 0.93, own: true }, { clip: 'Attack-Magic-05', volume: 0.7, at: 1.2 }, { clip: 'Attack-Magic-05', volume: 0.7, at: 1.36 }, { clip: 'Attack-Magic-05', volume: 0.7, at: 1.49 }, { clip: 'Attack-Magic-05', volume: 0.7, at: 1.68 }, { clip: 'Attack-Magic-05', volume: 0.7, at: 1.89 }, { clip: 'Attack-Magic-05', volume: 0.7, at: 2.2 }, { clip: 'Attack-Magic-56', volume: 1.5, at: 3 }, { clip: 'Annette-Vox_Skill3-2_c', volume: 2.5, at: 3.02, own: true }],
     },
+    victory: [{ clip: 'Attack-Body-02', volume: 0.9, at: 0.46 }, { clip: 'Annette-Vox_Victory_b', volume: 2.5, at: 0.52, own: true }],
   },
   // King's Raid's own effects for its moves (../../fx/kr-effects.ts): as each begins, on it, and as each of its blows lands, where it
   // lands (KR-extracted/scripts/tm-vfx.mjs).

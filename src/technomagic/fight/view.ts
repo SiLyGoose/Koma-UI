@@ -69,6 +69,9 @@ const FOLLOW = 0.85;
 /** A body on the field: a hero, by its index among the fighters, or the boss. */
 type Who = number | 'boss';
 
+/** How far apart the heroes stand in a row as the fight is over (celebrate()). */
+const ROW = 1.7;
+
 export interface FightView {
   /** What each blow took and each heal gave since the page last looked, for it to show coming off whom it was (the page empties it). */
   readonly numbers: Popup[];
@@ -84,6 +87,11 @@ export interface FightView {
   readonly lit: Object3D | null;
   /** Draws what the sim says has happened since last time, and moves everything on by `dt` seconds. */
   update(now: number, dt: number): void;
+  /**
+   * The fight over: these heroes (`who`) stand in a row about `at`, facing the camera, and strike their victory pose (`won`) or
+   * their loss's; everyone else, and the boss, is taken off the field. Only they go on moving from then.
+   */
+  celebrate(who: readonly number[], won: boolean, at: Vector3): void;
   /** Takes the heroes off the field (the fight is done with). */
   clear(): void;
 }
@@ -102,6 +110,8 @@ export function makeFightView({ scene, sim, bodies, boss, bossLook, bossFx, effe
    * and when it came to lie still (null: it hasn't yet), so it lies as it was then.
    */
   const fallen = new Map<number, { over: number; still: number | null }>();
+  /** The heroes standing in a row as the fight is over (celebrate()): null while it goes on. */
+  let celebrating: readonly number[] | null = null;
 
   boss.root.position.x = stands.x;
   boss.root.rotation.y = stands.turn;
@@ -245,6 +255,11 @@ export function makeFightView({ scene, sim, bodies, boss, bossLook, bossFx, effe
       return on.has(caster) ? body(caster).root : null;
     },
     update(now, dt) {
+      if (celebrating) {
+        for (const who of celebrating) body(who).update(now, dt);
+        kr.update(dt);
+        return;
+      }
       const marched = Math.min(MARCH, sim.tick * TICK);
       ran = Math.min(MARCH, marched + TICK, Math.max(marched - TICK, ran + dt));
       skillBlow = null;
@@ -371,6 +386,16 @@ export function makeFightView({ scene, sim, bodies, boss, bossLook, bossFx, effe
           lying = { over: 0, still: null };
           fallen.set(who, lying);
         }
+        // (One that falls by its own animation is left as that has it, going on.)
+        if (lying && hero.falls) {
+          hero.update(now, moved);
+          // (Revived: up again, through its being hurt.)
+          if (!down) {
+            hero.stagger();
+            fallen.delete(who);
+          }
+          continue;
+        }
         if (!lying) {
           hero.update(now, sim.result ? 0 : moved * fighter.haste);
           continue;
@@ -394,7 +419,30 @@ export function makeFightView({ scene, sim, bodies, boss, bossLook, bossFx, effe
       magic.update(dt);
       props.update(dt);
     },
+    celebrate(who, won, at) {
+      celebrating = who;
+      for (const one of on) if (!who.includes(one)) body(one).root.visible = false;
+      boss.root.visible = false;
+      wards.clear();
+      signs.clear();
+      kr.clear();
+      who.forEach((one, i) => {
+        const hero = body(one);
+        const { root } = hero;
+        if (!root.parent) scene.add(root);
+        root.visible = true;
+        see(one, 1);
+        root.position.set(at.x + (i - (who.length - 1) / 2) * ROW, 0, at.z);
+        root.rotation.set(0, 0, 0, 'YXZ');
+        hero.pose?.(won ? 'victory' : 'lose');
+      });
+      // The first of them speaks for them all.
+      if (won && who[0] !== undefined) sounds.victory(who[0]);
+    },
     clear() {
+      celebrating = null;
+      boss.root.visible = true;
+      for (const hero of bodies) hero.root.visible = true;
       for (const who of on) {
         const { root } = body(who);
         scene.remove(root);

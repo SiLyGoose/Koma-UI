@@ -15,6 +15,9 @@ const ANIMATIONS = {
   idle: 'Idle',
   run: 'Run',
   hurt: 'Damage',
+  victory: 'Victory',
+  lose: 'Lose',
+  dead: 'Dead',
   attack: [{ clips: ['Attack1-1'], hits: [0.5, 0.7, 0.9, 1.4] }, { clips: ['Attack1-2'], hits: [0.2, 0.3] }, { clips: ['Attack1-3'], hits: [0.2] }],
   skills: {
     sighted: { clips: ['Skill1-1', 'Skill1-2', 'Skill1-3'], hits: [0.7, 1.6, 1.9] },
@@ -30,7 +33,7 @@ export const TANYA_ASSETS: HeroAssets = {
   // Her unique weapon, wielded: Caethasis, her katars.
   unique: { Hero_Tanya_Vari05_Weapon: 'Hero_Tanya_Unique01_Weapon' },
   // King's Raid's sounds (its Hit.Hero.Tanya.* and BeginFireSkill.<skill> ones): as each blow of a move lands, a move's n-th part
-  // playing its n-th (round again past the last); and as each skill begins.
+  // playing its n-th (round again past the last); as each skill begins; and as it strikes its victory pose (Victory.Hero.*).
   sounds: {
     hits: {
       attack: [[{ clip: 'Hit_sword_01', volume: 1.5 }]],
@@ -43,6 +46,7 @@ export const TANYA_ASSETS: HeroAssets = {
       tornado: [{ clip: 'Attack-Casting-07', volume: 0.9, at: 0.02 }, { clip: 'Attack-Casting-12', volume: 0.9, at: 0.02 }, { clip: 'Attack-Magic-23', at: 0.45 }, { clip: 'Attack-Action-02', volume: 1.5, at: 0.48 }, { clip: 'Attack-Cut-07', volume: 0.7, at: 0.89 }, { clip: 'Attack-Woosh-08', volume: 1.5, at: 0.89 }, { clip: 'Tanya-Vox_Skill2_b', volume: 2.5, at: 0.9, own: true }, { clip: 'Attack-Magic-23', at: 1 }, { clip: 'Attack-Magic-23', at: 1.23 }, { clip: 'Attack-Magic-23', at: 1.51 }, { clip: 'Attack-Magic-23', at: 1.89 }, { clip: 'Attack-Magic-16', volume: 1.2, at: 1.89 }, { clip: 'Attack-Woosh-07', volume: 1.5, at: 1.89 }, { clip: 'Attack-Jump-01', volume: 1.3, at: 1.98 }, { clip: 'Attack-Woosh-07', volume: 1.5, at: 2.03 }, { clip: 'Attack-Woosh-07', volume: 1.5, at: 2.19 }, { clip: 'Attack-Landing-01', volume: 1.5, at: 2.85 }],
       whisper: [{ clip: 'Attack-Casting-10', volume: 0.9, at: 0.03 }, { clip: 'Tanya-Vox_Skill3', volume: 2.5, at: 0.2, own: true }, { clip: 'Attack-Casting-21', volume: 1.2, at: 0.95 }, { clip: 'Attack-Magic-10', volume: 1.2, at: 0.95 }, { clip: 'Attack-Jump-01', volume: 1.2, at: 1.08 }, { clip: 'Attack-Woosh-07', volume: 1.5, at: 1.23 }, { clip: 'Attack-Woosh-07', volume: 1.5, at: 1.37 }, { clip: 'Attack-Magic-22', volume: 1.2, at: 1.53 }, { clip: 'Attack-Landing-01', volume: 1.2, at: 1.67 }, { clip: 'Attack-Action-02', volume: 1.2, at: 1.67 }, { clip: 'Attack-Landing-01', volume: 1.5, at: 1.96 }, { clip: 'Attack-Magic-22', volume: 1.2, at: 2.36 }, { clip: 'Attack-Woosh-10', volume: 1.5, at: 2.36 }, { clip: 'Attack-Magic-22', volume: 1.2, at: 2.7 }, { clip: 'Attack-Woosh-10', volume: 1.5, at: 2.7 }, { clip: 'Attack-Magic-22', volume: 1.2, at: 2.83 }, { clip: 'Attack-Woosh-10', volume: 1.5, at: 2.83 }, { clip: 'Attack-Magic-22', volume: 1.2, at: 2.98 }, { clip: 'Attack-Woosh-10', volume: 1.5, at: 2.98 }, { clip: 'Attack-Magic-22', volume: 1.2, at: 3.08 }, { clip: 'Attack-Woosh-10', volume: 1.5, at: 3.08 }, { clip: 'Attack-Magic-22', volume: 1.2, at: 3.24 }, { clip: 'Attack-Woosh-10', volume: 1.5, at: 3.24 }, { clip: 'Attack-Magic-22', volume: 1.2, at: 3.45 }, { clip: 'Attack-Woosh-10', volume: 1.5, at: 3.45 }, { clip: 'Attack-Magic-22', volume: 1.2, at: 3.85 }, { clip: 'Attack-Woosh-10', volume: 1.5, at: 3.85 }, { clip: 'Attack-Magic-22', volume: 1.2, at: 4.47 }, { clip: 'Attack-Woosh-10', volume: 1.5, at: 4.47 }, { clip: 'Attack-Landing-01', volume: 1.2, at: 4.75 }],
     },
+    victory: [{ clip: 'Tanya-Vox_Casting2', volume: 2.2, at: 0.09, own: true }, { clip: 'Attack-Action-02', volume: 1.5, at: 0.53 }, { clip: 'Attack-Woosh-07', volume: 1.3, at: 1.08 }, { clip: 'Attack-Jump-01', volume: 0.4, at: 1.08 }, { clip: 'Tanya-Vox_Attack2', volume: 2.2, at: 1.16, own: true }, { clip: 'Attack-Landing-01', volume: 1.5, at: 1.96 }, { clip: 'Attack-Action-02', volume: 1.5, at: 2.05 }, { clip: 'Tanya-Vox_Victory_b', volume: 2.2, at: 2.2, own: true }],
   },
   // King's Raid's own effects for its moves (../../fx/kr-effects.ts): as each begins, on it, and as each of its blows lands, where it
   // lands (KR-extracted/scripts/tm-vfx.mjs).

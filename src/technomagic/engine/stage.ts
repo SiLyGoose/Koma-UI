@@ -41,6 +41,8 @@ const FOV = 26;
  * the other side (left and right swapped): its effects are made mirrored, as all the game's are, for the field.
  */
 const UI_HIGH = 12;
+/** Seen up close (focus()): how far down the camera looks then (radians). */
+const CLOSE_LOOK = 0.1;
 /** Where a King's Raid map's own effects are played, of those it has: no further than this from the middle of the field. */
 const NEAR = 60;
 /** What the camera looks at, and how far it looks down at it (radians). */
@@ -107,6 +109,8 @@ export interface Stage {
    * field): that is drawn as bright as ever, over the dark.
    */
   dim(amount: number, lit: readonly Object3D[]): void;
+  /** Looks at `at` from close by, so much (`high`) of the field seen up and down; null: back to the field as a whole. */
+  focus(target: { at: Vector3; high: number } | null): void;
   /** Moves the camera along the field: `by` across from where it stands (less than 0: to the left), looking the same way. */
   pan(by: number): void;
   /** Where a place on the field is on the page, from the canvas's top left (CSS pixels). */
@@ -141,7 +145,15 @@ export function makeStage(canvas: HTMLCanvasElement): Stage {
   // How far along the field it is moved (pan()).
   let panned = 0;
   const look = new Vector3();
+  /** What it is looking at up close (focus()), or null. */
+  let close: { at: Vector3; high: number } | null = null;
   const aim = (): void => {
+    if (close) {
+      const away = close.high / 2 / Math.tan((wide * Math.PI) / 360);
+      camera.position.set(close.at.x, close.at.y + Math.sin(CLOSE_LOOK) * away, close.at.z + Math.cos(CLOSE_LOOK) * away);
+      camera.lookAt(close.at);
+      return;
+    }
     look.copy(LOOK).setX(LOOK.x + panned);
     camera.position.set(look.x, look.y + Math.sin(elevation) * back, look.z + Math.cos(elevation) * back);
     camera.lookAt(look);
@@ -221,6 +233,10 @@ export function makeStage(canvas: HTMLCanvasElement): Stage {
     scene,
     camera,
     overlay: { scene: overlay, camera: flatUi },
+    focus(target) {
+      close = target && { at: target.at.clone(), high: target.high };
+      aim();
+    },
     async dress(scenery) {
       if (scenery.map) {
         const { folder, at, turn, floor: beyond, camera: own, grounded } = scenery.map;

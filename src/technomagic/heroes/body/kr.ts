@@ -25,6 +25,8 @@ export interface KrClips {
   idle: AnimationClip;
   run: AnimationClip;
   hurt?: AnimationClip;
+  /** How it ends (as the game has them, not fitted to anything): its victory and the pose it holds after, its loss, its fall. */
+  ends: { victory?: AnimationClip; victoryIdle?: AnimationClip; lose?: AnimationClip; dead?: AnimationClip };
   moves: Partial<Record<HeroMove, AnimationClip[][]>>;
 }
 
@@ -47,7 +49,8 @@ function filled(clip: AnimationClip, idle: AnimationClip): AnimationClip {
 
 /** Reads `owner`'s clips that `animations` names, each move's fitted to how `motion` times it. */
 export async function loadKrClips(owner: HeroAssets, animations: KrAnimations, motion: Motion): Promise<KrClips> {
-  const names = new Set([animations.idle, animations.run, ...(animations.hurt ? [animations.hurt] : []), ...[...(animations.attack ?? []), ...Object.values(animations.skills ?? {})].flatMap((move) => move.clips)]);
+  const endNames = { victory: animations.victory, victoryIdle: animations.victoryIdle, lose: animations.lose, dead: animations.dead };
+  const names = new Set([animations.idle, animations.run, ...(animations.hurt ? [animations.hurt] : []), ...Object.values(endNames).filter((name): name is string => Boolean(name)), ...[...(animations.attack ?? []), ...Object.values(animations.skills ?? {})].flatMap((move) => move.clips)]);
   const read = new Map(await Promise.all([...names].map(async (name) => [name, await loadKrClip(animationFile(owner, name))] as const)));
   const clip = (name: string): AnimationClip => read.get(name) as AnimationClip;
   const idle = inPlace(clip(animations.idle));
@@ -87,8 +90,11 @@ export async function loadKrClips(owner: HeroAssets, animations: KrAnimations, m
     if (one) moves[move as HeroMove] = [[one]];
   }
   const hit = motion.moves.hit.parts[0];
+  const ends: KrClips['ends'] = {};
+  for (const [end, name] of Object.entries(endNames)) if (name) ends[end as keyof KrClips['ends']] = filled(inPlace(clip(name)), idle);
   return {
     idle,
+    ends,
     run: filled(inPlace(clip(animations.run)), idle),
     ...(animations.hurt && hit && { hurt: filled(inPlace(fitted([clip(animations.hurt)], [], [], hit.until)), idle) }),
     moves,
@@ -100,7 +106,7 @@ export function krHero({ root, body, models: parts, rig, materials, floating }: 
   // What hangs straight from it in the game's files, beside its skeleton, is moved there by its clips: what it holds
   // (Point_Dummy, in whichever hand it was put) and the marks of its hands. Here too it hangs from its skeleton's root
   // (the file's own, not the model's group), in its first model, whose clip moves it.
-  const every = [clips.idle, clips.run, ...(clips.hurt ? [clips.hurt] : []), ...Object.values(clips.moves).flat(2)];
+  const every = [clips.idle, clips.run, ...(clips.hurt ? [clips.hurt] : []), ...Object.values(clips.moves).flat(2), ...Object.values(clips.ends)];
   // What floats by it, where the clips move it too (Gremory's cube, its pieces coming apart and back): hung where its body's
   // file is, as the game has it, and moved with it.
   const models = [...parts];
@@ -141,6 +147,19 @@ export function krHero({ root, body, models: parts, rig, materials, floating }: 
   const idle = playing(clips.idle);
   const run = playing(clips.run);
   const hurt = clips.hurt ? playing(clips.hurt, true) : null;
+  // How it ends: each once and held at its end, but the pose after its victory, held as it goes on.
+  const { victory, victoryIdle, lose, dead } = clips.ends;
+  const ends = {
+    victory: victory ? playing(victory, true) : null,
+    victoryIdle: victoryIdle ? playing(victoryIdle) : null,
+    lose: lose ? playing(lose, true) : null,
+    dead: dead ? playing(dead, true) : null,
+  };
+  /** Plays one of how it ends (its clip's length), then holds `then` (null: its own end). */
+  const ending = (actions: AnimationAction[] | null, clip: AnimationClip | undefined, then: AnimationAction[] | null = null): void => {
+    doing = actions && clip ? { what: 'end', actions, t: 0, length: clip.duration, then } : null;
+    again = true;
+  };
   const moves = Object.fromEntries(Object.entries(clips.moves).map(([move, takes]) => [move, takes.map((parts) => parts.map((part) => playing(part, true)))])) as Partial<Record<HeroMove, AnimationAction[][][]>>;
   /** How many times each move has been begun: its takes are played in turn. */
   const begun = new Map<HeroMove, number>();
@@ -165,7 +184,13 @@ export function krHero({ root, body, models: parts, rig, materials, floating }: 
 
   let red = 0;
   /** What it is doing besides standing: running in, a move (which part of it, and how far in: in the fight's time for it), or being hurt. */
-  let doing: { what: 'enter'; t: number } | { what: 'move'; move: HeroMove; parts: AnimationAction[][]; part: number; t: number } | { what: 'hurt'; t: number } | null = null;
+  let doing:
+    | { what: 'enter'; t: number }
+    | { what: 'move'; move: HeroMove; parts: AnimationAction[][]; part: number; t: number }
+    | { what: 'hurt'; t: number }
+    | { what: 'end'; actions: AnimationAction[]; t: number; length: number; then: AnimationAction[] | null }
+    | { what: 'held' }
+    | null = null;
   let runIn = ENTER;
   let returning = false;
 
@@ -198,7 +223,12 @@ export function krHero({ root, body, models: parts, rig, materials, floating }: 
       again = true;
     },
     fall() {
-      doing = null;
+      ending(ends.dead, dead);
+    },
+    falls: Boolean(dead),
+    pose(end) {
+      if (end === 'victory') ending(ends.victory, victory, ends.victoryIdle);
+      else ending(ends.lose, lose);
     },
     update(_now, dt) {
       let ahead = 0;
@@ -219,6 +249,15 @@ export function krHero({ root, body, models: parts, rig, materials, floating }: 
           doing = null;
           returning = true;
         }
+      } else if (doing?.what === 'end') {
+        doing.t += dt;
+        show(doing.actions);
+        if (doing.t >= doing.length) {
+          if (doing.then) show(doing.then);
+          doing = { what: 'held' };
+        }
+      } else if (doing?.what === 'held') {
+        // (Held as it ended: its last frame, or the pose after it going on.)
       } else if (doing?.what === 'enter') {
         doing.t += dt;
         const k = Math.min(1, doing.t / runIn.time);

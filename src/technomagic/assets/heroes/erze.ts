@@ -14,6 +14,9 @@ const ANIMATIONS = {
   idle: 'Idle',
   run: 'Run',
   hurt: 'Damage',
+  victory: 'Victory',
+  lose: 'Lose',
+  dead: 'Dead',
   attack: [{ clips: ['Attack1-1'], hits: [0.4] }, { clips: ['Attack1-2'], hits: [0.3, 0.7] }, { clips: ['Attack1-3'], hits: [0.7] }],
   skills: {
     sweet: { clips: ['Skill1'], hits: [1.3] },
@@ -29,7 +32,7 @@ export const ERZE_ASSETS: HeroAssets = {
   // Her unique weapon, wielded: Perion, her orb.
   unique: { Hero_Erze_Vari04_Weapon: 'Hero_Erze_Unique01_Weapon' },
   // King's Raid's sounds (its Hit.Hero.Erze.* and BeginFireSkill.<skill> ones): as each blow of a move lands, a move's n-th part
-  // playing its n-th (round again past the last); and as each skill begins.
+  // playing its n-th (round again past the last); as each skill begins; and as it strikes its victory pose (Victory.Hero.*).
   sounds: {
     hits: {
       drain: [[{ clip: 'Dmg_punch_01', volume: 1.5 }], [{ clip: 'Hit_common_01', volume: 1.8 }]],
@@ -42,6 +45,7 @@ export const ERZE_ASSETS: HeroAssets = {
       soak: [{ clip: 'Attack-Casting-26', volume: 1.3 }, { clip: 'Attack-Casting-10', volume: 1.3 }, { clip: 'Erze-Vox_Skill2', volume: 2.2, own: true }, { clip: 'Attack-Casting-24', volume: 1.3, at: 0.65 }, { clip: 'Attack-Casting-33', volume: 1.3, at: 1.56 }, { clip: 'Attack-Magic-39', volume: 1.5, at: 1.96 }, { clip: 'Attack-Magic-48', volume: 1.4, at: 1.99 }, { clip: 'Attack-Magic-29', volume: 1.4, at: 2.08 }, { clip: 'Attack-Magic-55', volume: 1.4, at: 7.97 }],
       liberation: [{ clip: 'Attack-Casting-26', volume: 1.3 }, { clip: 'Attack-Casting-10', volume: 1.3 }, { clip: 'Attack-Casting-37', volume: 1.3, at: 0.46 }, { clip: 'Attack-Magic-35', volume: 1.2, at: 0.66 }, { clip: 'Erze-Vox_Skill3', volume: 2.2, at: 0.87, own: true }, { clip: 'Attack-Magic-39', volume: 1.2, at: 3.26 }, { clip: 'Attack-Magic-48', volume: 1.5, at: 3.29 }],
     },
+    victory: [{ clip: 'Erze-Vox_Victory', volume: 2.2, at: 0.1, own: true }],
   },
   // King's Raid's own effects for its moves (../../fx/kr-effects.ts): as each begins, on it, and as each of its blows lands, where it
   // lands (KR-extracted/scripts/tm-vfx.mjs).

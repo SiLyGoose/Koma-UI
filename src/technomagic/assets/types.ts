@@ -34,6 +34,11 @@ export interface KrAnimations {
   idle: string;
   run: string;
   hurt?: string;
+  /** How it ends: its victory, the pose it holds after (where it has one), its loss, and its fall in a fight. */
+  victory?: string;
+  victoryIdle?: string;
+  lose?: string;
+  dead?: string;
   /** Its attack's parts, as the fight times them (as many). */
   attack?: readonly KrMove[];
   /** Its skills', by the move's name. */
@@ -121,7 +126,7 @@ export interface HeroAssets {
    * blows' sounds in turn, the n-th part of the move playing the n-th, round again past the last), and as each of its
    * skills begins (`casts`, by the move). A move with none is unheard.
    */
-  sounds?: { hits?: Readonly<Record<string, readonly GameSound[]>>; casts?: Readonly<Record<string, GameSound>> };
+  sounds?: { hits?: Readonly<Record<string, readonly GameSound[]>>; casts?: Readonly<Record<string, GameSound>>; victory?: GameSound };
   /**
    * King's Raid's own effects for its moves, by the move (../fx/kr-effects.ts: codes of public/kr/effects/kr/): played on
    * it as the move begins (`start`: of those numbered, Casting1…, one each time, in turn), and as each of its blows lands

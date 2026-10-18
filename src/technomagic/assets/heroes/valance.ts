@@ -21,6 +21,9 @@ const ANIMATIONS = {
   idle: 'Idle',
   run: 'Run',
   hurt: 'Damage',
+  victory: 'Victory',
+  lose: 'Lose',
+  dead: 'Dead',
   attack: [{ clips: ['Attack1'], hits: [1.2] }],
   skills: {
     prototype: { clips: ['Skill1'], hits: [3.2] },
@@ -34,7 +37,7 @@ export const VALANCE_ASSETS: HeroAssets = {
   folder: 'heroes/valance',
   skills: { from: 'https://kingsraid.shodyra.com/static/images/101/', files: ['s1.png', 's2.png', 's3.png', 's4.png'] },
   // King's Raid's sounds (its Hit.Hero.Valance.* and BeginFireSkill.<skill> ones): as each blow of a move lands, a move's n-th part
-  // playing its n-th (round again past the last); and as each skill begins.
+  // playing its n-th (round again past the last); as each skill begins; and as it strikes its victory pose (Victory.Hero.*).
   sounds: {
     hits: {
       bolt: [[{ clip: 'Dmg-Laser-01', volume: 2.3, at: 0.01 }]],
@@ -45,6 +48,7 @@ export const VALANCE_ASSETS: HeroAssets = {
       field: [{ clip: 'magic-gear-04', volume: 2.8, at: 0.025 }, { clip: 'Valance-Vox_Skill7', volume: 4, at: 0.137, own: true }],
       cannon: [{ clip: 'magic-gear-05', volume: 2.8, at: 0.033 }, { clip: 'Valance-Vox_Skill2', volume: 4, at: 0.5, own: true }],
     },
+    victory: [{ clip: 'Idle-Gear-05', volume: 2.8, at: 0.167 }, { clip: 'Valance-Vox_Victory', volume: 3, at: 0.269, own: true }, { clip: 'Idle-Gear-06', volume: 2.8, at: 2.833 }],
   },
   // King's Raid's own effects for its moves (../../fx/kr-effects.ts): as each begins, on it, and as each of its blows lands, where it
   // lands (KR-extracted/scripts/tm-vfx.mjs).

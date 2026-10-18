@@ -13,6 +13,9 @@ import type { HeroAssets, KrAnimations } from '../types.ts';
 const ANIMATIONS = {
   idle: 'Idle',
   run: 'Run',
+  victory: 'Victory',
+  lose: 'Lose',
+  dead: 'Dead',
   attack: [{ clips: ['Attack1-1', 'Attack1-2'], hits: [0.3, 0.8] }, { clips: ['Attack1-3', 'Attack1-4'], hits: [0.3, 0.4] }, { clips: ['Attack1-5'], hits: [0.7] }],
   skills: {
     judge: { clips: ['Skill1'], hits: [1.2, 1.6] },
@@ -28,7 +31,7 @@ export const DARK_LORD_KASEL_ASSETS: HeroAssets = {
   // His unique weapon, wielded: Aea, the Corrupted Holy Sword.
   unique: { Hero_Kasel_DarkLord_Vari05_Weapon: 'Hero_Kasel_DarkLord_Unique01_Weapon' },
   // King's Raid's sounds (its Hit.Hero.DarkLordKasel.* and BeginFireSkill.<skill> ones): as each blow of a move lands, a move's n-th part
-  // playing its n-th (round again past the last); and as each skill begins.
+  // playing its n-th (round again past the last); as each skill begins; and as it strikes its victory pose (Victory.Hero.*).
   sounds: {
     hits: {
       corrupt: [[{ clip: 'Dmg-swd-01', volume: 1.5, at: 0.05 }], [{ clip: 'Dmg-swd-02', volume: 1.5, at: 0.05 }], [{ clip: 'Dmg-swd-03', volume: 1.5, at: 0.05 }], [{ clip: 'Dmg-swd-01', volume: 1.5, at: 0.05 }], [{ clip: 'Dmg-swd-01', volume: 1.5, at: 0.05 }], [{ clip: 'Dmg-swd-03', volume: 1.5, at: 0.05 }]],
@@ -40,6 +43,7 @@ export const DARK_LORD_KASEL_ASSETS: HeroAssets = {
       ruin: [{ clip: 'KaselB-Vox_Skill4', volume: 3, at: 0.058, own: true }, { clip: 'Cast-01', volume: 2.8, at: 0.093 }, { clip: 'Swd-stab-01', volume: 2.8, at: 0.759 }, { clip: 'Dark-fx-03', volume: 2.8, at: 1.291 }, { clip: 'Magic-fire-01', volume: 2.8, at: 2.287 }],
       advent: [{ clip: 'Dark-fx-01', volume: 2.8, at: 0.026 }, { clip: 'KaselB-Vox_Skill2', volume: 3, at: 0.189, own: true }, { clip: 'Swd-stab-01', volume: 2.8, at: 0.855 }, { clip: 'Ground-Hit-01', volume: 2.4, at: 0.855 }, { clip: 'Cast-03', volume: 2.8, at: 1.789 }, { clip: 'Cast-02', volume: 2.8, at: 2.092 }, { clip: 'Dark-fx-03', volume: 2.8, at: 3.088 }, { clip: 'Sword-Stab-01', volume: 2.4, at: 3.088 }, { clip: 'Magic-exp-01', volume: 2.8, at: 3.843 }, { clip: 'KaselB-Vox_Attack4', volume: 3, at: 3.843, own: true }],
     },
+    victory: [{ clip: 'KaselB-Vox_Victory', volume: 2.8, at: 0.2, own: true }, { clip: 'Texture-01', volume: 2.5, at: 0.2 }, { clip: 'Texture-04', volume: 2.5, at: 2.133 }, { clip: 'Texture-03', volume: 2.5, at: 2.667 }],
   },
   // King's Raid's own effects for its moves (../../fx/kr-effects.ts): as each begins, on it, and as each of its blows lands, where it
   // lands (KR-extracted/scripts/tm-vfx.mjs).

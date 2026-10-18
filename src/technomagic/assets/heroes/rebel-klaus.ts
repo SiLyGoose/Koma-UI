@@ -14,6 +14,9 @@ const ANIMATIONS = {
   idle: 'Idle',
   run: 'Run',
   hurt: 'Damage',
+  victory: 'Victory',
+  lose: 'Lose',
+  dead: 'Dead',
   attack: [{ clips: ['Attack1-1', 'Attack1-2', 'Attack1-3'], hits: [0.4, 0.6] }],
   skills: {
     determined: { clips: ['Skill1'], hits: [2.5] },
@@ -29,7 +32,7 @@ export const REBEL_KLAUS_ASSETS: HeroAssets = {
   // His unique weapon, wielded: Galicta, the Adversary of the Goddess.
   unique: { Hero_Clause_Traitor_Vari05_Weapon: 'Hero_Clause_Traitor_Unique01_Weapon' },
   // King's Raid's sounds (its Hit.Hero.ClauseTraitor.* and BeginFireSkill.<skill> ones): as each blow of a move lands, a move's n-th part
-  // playing its n-th (round again past the last); and as each skill begins.
+  // playing its n-th (round again past the last); as each skill begins; and as it strikes its victory pose (Victory.Hero.*).
   sounds: {
     hits: {
       rend: [[{ clip: 'Dmg-swd-01', volume: 1.5, at: 0.03 }], [{ clip: 'Dmg-swd-02', volume: 1.5, at: 0.03 }], [{ clip: 'Dmg-swd-03', volume: 1.5, at: 0.03 }]],
@@ -42,6 +45,7 @@ export const REBEL_KLAUS_ASSETS: HeroAssets = {
       indomitable: [{ clip: 'Clause_ice-Vox_Skill2_b', volume: 3, at: 0.016, own: true }, { clip: 'Cast-13', volume: 2.7, at: 0.586 }, { clip: 'Cast-07', volume: 2.7, at: 0.586 }, { clip: 'Rock_cast_01', volume: 2.7, at: 0.818 }, { clip: 'Swd-05', volume: 2.7, at: 1.92 }, { clip: 'Exp_02', volume: 2.7, at: 1.986 }],
       perish: [{ clip: 'Clause_ice-Vox_Skill7', volume: 3, at: 0.033, own: true }, { clip: 'Skill-Sword-02', volume: 2.7, at: 0.23 }, { clip: 'Skill-Sword-03', volume: 2.7, at: 1.593 }, { clip: 'Swd-fx-01', volume: 2.7, at: 1.981 }, { clip: 'Swd-05', volume: 2.7, at: 2.516 }, { clip: 'Skill-Sword-04', volume: 2.7, at: 2.648 }, { clip: 'Exp_04', volume: 2.7, at: 5.799 }, { clip: 'Swd_impact_01', volume: 2.7, at: 6.161 }],
     },
+    victory: [{ clip: 'Clause_ice-Vox_Victory', volume: 2.8, at: 0.433, own: true }, { clip: 'Texture-04', volume: 2.7, at: 0.733 }, { clip: 'Texture-10', volume: 2.7, at: 1.7 }, { clip: 'Texture-01', volume: 2.7, at: 1.7 }, { clip: 'Swd-stab-01', volume: 2.3, at: 2.5 }, { clip: 'Idle-cloth-03', volume: 2.3, at: 3.567 }, { clip: 'Texture-07', volume: 2.3, at: 3.567 }],
   },
   // King's Raid's own effects for its moves (../../fx/kr-effects.ts): as each begins, on it, and as each of its blows lands, where it
   // lands (KR-extracted/scripts/tm-vfx.mjs).

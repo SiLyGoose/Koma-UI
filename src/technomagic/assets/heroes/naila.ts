@@ -14,6 +14,9 @@ const ANIMATIONS = {
   idle: 'Idle',
   run: 'Run',
   hurt: 'Damage',
+  victory: 'Victory',
+  lose: 'Lose',
+  dead: 'Dead',
   attack: [{ clips: ['Attack1-1'], hits: [0.3] }, { clips: ['Attack1-2'], hits: [0.1, 0.3, 0.7] }, { clips: ['Attack1-3'], hits: [0.3] }, { clips: ['Attack1-4'], hits: [0.6] }],
   skills: {
     winds: { clips: ['Skill1-a', 'Skill1-b'], hits: [1] },
@@ -29,7 +32,7 @@ export const NAILA_ASSETS: HeroAssets = {
   // Her unique weapon, wielded: Baroro, her claws.
   unique: { Hero_Naila_Vari05_Weapon: 'Hero_Naila_Unique01_Weapon' },
   // King's Raid's sounds (its Hit.Hero.Naila.* and BeginFireSkill.<skill> ones): as each blow of a move lands, a move's n-th part
-  // playing its n-th (round again past the last); and as each skill begins.
+  // playing its n-th (round again past the last); as each skill begins; and as it strikes its victory pose (Victory.Hero.*).
   sounds: {
     hits: {
       attack: [[{ clip: 'Dmg_punch_01', volume: 1.5 }], [{ clip: 'Dmg_punch_02', volume: 1.5 }], [{ clip: 'Dmg_punch_03', volume: 1.5 }], [{ clip: 'Dmg_punch_04', volume: 1.5 }]],
@@ -41,6 +44,7 @@ export const NAILA_ASSETS: HeroAssets = {
       reading: [{ clip: 'Naila-Vox_Skill2', volume: 2.3, own: true }, { clip: 'Attack-Magic-06', volume: 1.8, at: 0.15 }, { clip: 'Attack-Casting-10', volume: 1.5, at: 0.19 }, { clip: 'Attack-Casting-21', volume: 1.4, at: 0.19 }, { clip: 'Attack-Magic-22', volume: 1.8, at: 0.5 }],
       dive: [{ clip: 'Attack-Casting-07', volume: 1.8 }, { clip: 'Naila-Vox_Skill3', volume: 2, at: 0.67, own: true }, { clip: 'Attack-Casting-16', volume: 1.3, at: 0.9 }, { clip: 'Attack-Casting-16', volume: 1.3, at: 0.9 }, { clip: 'Attack-Magic-03', at: 0.9 }, { clip: 'Attack-Casting-21', volume: 1.6, at: 1.14 }],
     },
+    victory: [{ clip: 'Attack-Jump-01', volume: 1.6, at: 0.37 }, { clip: 'Naila-Vox_Victory', volume: 1.8, at: 0.48, own: true }, { clip: 'Attack-Action-02', volume: 1.2, at: 0.51 }, { clip: 'FX-Naila-01', volume: 1.9, at: 1.52 }],
   },
   // King's Raid's own effects for its moves (../../fx/kr-effects.ts): as each begins, on it, and as each of its blows lands, where it
   // lands (KR-extracted/scripts/tm-vfx.mjs).

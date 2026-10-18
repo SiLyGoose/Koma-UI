@@ -28,6 +28,9 @@ const ANIMATIONS = {
   idle: 'Idle',
   run: 'Run',
   hurt: 'Damage',
+  victory: 'Victory',
+  lose: 'Lose',
+  dead: 'Dead',
   attack: [{ clips: ['Attack1-1'], hits: [0.4] }, { clips: ['Attack1-2'], hits: [0.5] }, { clips: ['Attack1-3'], hits: [0.4, 0.8] }],
   skills: {
     petals: { clips: ['Skill1-1', 'Skill1-2'], hits: [0.5, 2.2] },
@@ -44,7 +47,7 @@ export const SERIA_ASSETS: HeroAssets = {
   // Her unique weapon, wielded: Elsion, her sword and its sheath.
   unique: { Hero_Seria_Vari05_WeaponA: 'Hero_Seria_Unique01_WeaponA', Hero_Seria_Vari05_WeaponB: 'Hero_Seria_Unique01_WeaponB' },
   // King's Raid's sounds (its Hit.Hero.Seria.* and BeginFireSkill.<skill> ones): as each blow of a move lands, a move's n-th part
-  // playing its n-th (round again past the last); and as each skill begins.
+  // playing its n-th (round again past the last); as each skill begins; and as it strikes its victory pose (Victory.Hero.*).
   sounds: {
     hits: {
       attack: [[{ clip: 'Hit_sword_01', volume: 1.5 }]],
@@ -58,6 +61,7 @@ export const SERIA_ASSETS: HeroAssets = {
       scatter: [{ clip: 'Seria-Vox_Skill2', volume: 3.2, at: 0.05, own: true }, { clip: 'Attack-Cut-04', volume: 1.5, at: 0.25 }, { clip: 'Attack-Magic-09', volume: 1.3, at: 0.36 }, { clip: 'Attack-Casting-09', volume: 1.2, at: 1.39 }, { clip: 'Attack-Casting-09', volume: 1.2, at: 1.73 }, { clip: 'FX-Sword-10', volume: 1.5, at: 2.37 }, { clip: 'Attack-Magic-05', volume: 1.3, at: 2.77 }],
       moon: [{ clip: 'Attack-Casting-09', volume: 1.3 }, { clip: 'Seria-Vox_Skill5', volume: 3.2, own: true }, { clip: 'Attack-Casting-07', volume: 1.1, at: 0.45 }, { clip: 'Attack-Casting-34', volume: 1.8, at: 0.63 }, { clip: 'Attack-Casting-26', volume: 1.3, at: 0.74 }],
     },
+    victory: [{ clip: 'Attack-Jump-01', volume: 1.2, at: 0.31 }, { clip: 'Attack-Body-02', volume: 1.2, at: 0.74 }, { clip: 'Attack-Cut-08', volume: 1.3, at: 1.59 }, { clip: 'Seria-Vox_Victory', volume: 3.2, at: 1.6, own: true }, { clip: 'Attack-Spin-01', volume: 1.3, at: 2.72 }, { clip: 'FX-Sword-07', volume: 1.3, at: 3.27 }],
   },
   // King's Raid's own effects for its moves (../../fx/kr-effects.ts): as each begins, on it, and as each of its blows lands, where it
   // lands (KR-extracted/scripts/tm-vfx.mjs).

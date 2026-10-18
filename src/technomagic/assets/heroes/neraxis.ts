@@ -18,6 +18,9 @@ const ANIMATIONS = {
   idle: 'Idle',
   run: 'Run',
   hurt: 'Damage',
+  victory: 'Victory',
+  lose: 'Lose',
+  dead: 'Dead',
   attack: [{ clips: ['Attack1-1'], hits: [0.4, 0.6] }, { clips: ['Attack1-2'], hits: [0.2] }, { clips: ['Attack1-3'], hits: [0.4, 1.1] }],
   skills: {
     lightning: { clips: ['Skill1'], hits: [2.1] },
@@ -33,7 +36,7 @@ export const NERAXIS_ASSETS: HeroAssets = {
   // His unique weapon, wielded: Acravita, his gauntlet.
   unique: { Hero_Neraxis_Vari05_Weapon: 'Hero_Neraxis_Unique01_Weapon' },
   // King's Raid's sounds (its Hit.Hero.Neraxis.* and BeginFireSkill.<skill> ones): as each blow of a move lands, a move's n-th part
-  // playing its n-th (round again past the last); and as each skill begins.
+  // playing its n-th (round again past the last); as each skill begins; and as it strikes its victory pose (Victory.Hero.*).
   sounds: {
     hits: {
       attack: [[{ clip: 'Dmg_punch_02', volume: 1.5 }], [{ clip: 'Dmg_punch_03', volume: 1.5 }], [{ clip: 'Dmg_punch_04', volume: 1.7 }]],
@@ -46,6 +49,7 @@ export const NERAXIS_ASSETS: HeroAssets = {
       roar: [{ clip: 'Attack-Casting-24', volume: 1.2 }, { clip: 'FX-Spark-01', volume: 1.1 }, { clip: 'Attack-Magic-16', volume: 1.2, at: 0.09 }, { clip: 'Neraxis-Vox_Attack3', volume: 2.2, at: 0.3, own: true }, { clip: 'Attack-Magic-20', volume: 1.2, at: 0.56 }, { clip: 'Neraxis-Vox_Skill2', volume: 2.2, at: 1.28, own: true }, { clip: 'Attack-Magic-18', volume: 1.3, at: 1.4 }, { clip: 'FX-Spark-04', volume: 1.2, at: 1.92 }, { clip: 'Attack-Magic-09', volume: 1.6, at: 2 }],
       breath: [{ clip: 'Attack-Casting-24', volume: 1.2 }, { clip: 'Attack-Magic-18', volume: 1.2, at: 0.44 }, { clip: 'FX-Spark-01', volume: 1.1, at: 0.52 }, { clip: 'Attack-Jump-01', volume: 1.6, at: 1.02 }, { clip: 'Neraxis-Vox_Skill3', volume: 2.2, at: 1.02, own: true }, { clip: 'Attack-Casting-37', volume: 1.3, at: 1.35 }, { clip: 'Attack-Magic-25', volume: 1.5, at: 2.58 }],
     },
+    victory: [{ clip: 'Attack-Body-02', volume: 1.2, at: 0.39 }, { clip: 'Attack-Woosh-02', volume: 1.3, at: 0.68 }, { clip: 'Neraxis-Vox_Victory', volume: 1.8, at: 0.74, own: true }, { clip: 'Attack-Woosh-13', volume: 1.3, at: 1.37 }, { clip: 'Attack-Woosh-02', volume: 1.3, at: 2.55 }],
   },
   // King's Raid's own effects for its moves (../../fx/kr-effects.ts): as each begins, on it, and as each of its blows lands, where it
   // lands (KR-extracted/scripts/tm-vfx.mjs).

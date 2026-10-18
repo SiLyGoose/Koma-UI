@@ -16,6 +16,9 @@ const ANIMATIONS = {
   idle: 'Idle',
   run: 'Run',
   hurt: 'Damage',
+  victory: 'Victory',
+  lose: 'Lose',
+  dead: 'Dead',
   attack: [{ clips: ['Attack1-1'], hits: [0.3] }, { clips: ['Attack1-2'], hits: [0.4, 1.2] }, { clips: ['Attack1-3'], hits: [0.5] }],
   skills: {
     storm: { clips: ['Skill1'], hits: [0.4, 0.8, 2] },
@@ -30,7 +33,7 @@ export const LUCIKIEL_ASSETS: HeroAssets = {
   // (And Annihilation Surge's, past his passive's.)
   skills: { from: 'https://kingsraid.shodyra.com/static/images/97/', files: ['s1.png', 's2.png', 's3.png', 's4.png', 's21.png'] },
   // King's Raid's sounds (its Hit.Hero.Lucikiel.* and BeginFireSkill.<skill> ones): as each blow of a move lands, a move's n-th part
-  // playing its n-th (round again past the last); and as each skill begins.
+  // playing its n-th (round again past the last); as each skill begins; and as it strikes its victory pose (Victory.Hero.*).
   sounds: {
     hits: {
       attack: [[{ clip: 'Dmg_punch_01', volume: 1.7, at: 0.2 }], [{ clip: 'Dmg_punch_02', volume: 1.7, at: 0.2 }], [{ clip: 'Dmg_punch_03', volume: 1.7, at: 0.2 }], [{ clip: 'Dmg_punch_04', volume: 1.7, at: 0.2 }], [{ clip: 'Dmg_punch_04', volume: 1.7, at: 0.2 }], [{ clip: 'Dmg_punch_05', volume: 1.7, at: 0.2 }]],
@@ -43,6 +46,7 @@ export const LUCIKIEL_ASSETS: HeroAssets = {
       wave: [{ clip: 'Lusikiel-Vox_Skill4', volume: 2.9, at: 0.016, own: true }, { clip: 'Impact-01', volume: 2.7, at: 0.265 }, { clip: 'Magic-glass-07', volume: 2.7, at: 1.415 }, { clip: 'Buff-heal-02', volume: 2.7, at: 2.149 }],
       doomsday: [{ clip: 'Buff-spell-02', volume: 2.3, at: 0.066 }, { clip: 'Lusikiel-Vox_Skill3_1', volume: 2.9, at: 0.137, own: true }, { clip: 'Exp_04', volume: 2.3, at: 0.483 }, { clip: 'Elect_01', volume: 2.7, at: 0.723 }, { clip: 'Exp_05', volume: 2.7, at: 2.319 }],
     },
+    victory: [{ clip: 'Lusikiel-Vox_Sigh', volume: 3, at: 0.001, own: true }, { clip: 'Leather-01', volume: 2.5, at: 0.362 }, { clip: 'Leather-02', volume: 2.5, at: 1.467 }, { clip: 'Lusikiel-Vox_Jump', volume: 3, at: 1.554, own: true }, { clip: 'Texture-10', volume: 2.7, at: 1.624 }, { clip: 'Idle-fall-02', volume: 2.7, at: 2.333 }, { clip: 'Lusikiel-Vox_Landing', volume: 3, at: 2.366, own: true }, { clip: 'Idle-cloth-09', volume: 2.7, at: 3.37 }],
   },
   // King's Raid's own effects for its moves (../../fx/kr-effects.ts): as each begins, on it, and as each of its blows lands, where it
   // lands (KR-extracted/scripts/tm-vfx.mjs).
