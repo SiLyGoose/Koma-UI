@@ -1,4 +1,4 @@
-import { art, el, SLOT_NAME, stars, utMarks, utTier, uwMarks, uwTier } from '../shared/items';
+import { art, el, itemIcons, SLOT_NAME, stars, utMarks, utTier, uwMarks, uwTier } from '../shared/items';
 import { sleep } from '../shared/util';
 import type { ApiResult } from '../site/session';
 import type { BannerContext } from './context';
@@ -114,6 +114,8 @@ export async function playWish(ctx: BannerContext, request: Promise<ApiResult<Ba
 
   // Best first, as Genshin lines them up (in the order pulled within a tier), what the pulls gave on top (Pot of Greed) among them.
   const pulls = [...res.data.pulls, ...(res.data.extras ?? [])].sort((a, b) => b.stars - a.stars);
+  // (King's Raid's gear, artifacts, tickets and runes: their icons.)
+  for (const pull of pulls) if (pull.icon) itemIcons.set(pull.itemId, pull.icon);
   const best = pulls[0]?.stars ?? 1;
   ui.wish.dataset.stars = String(best);
 

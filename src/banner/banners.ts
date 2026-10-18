@@ -88,7 +88,7 @@ export function heroBanner(hero: HeroBanner | undefined): Banner | null {
     name: ['Hero', 'Item'],
     blurb:
       treasures.length > 0
-        ? `Every ${first.stars}★ here is a hero's own, as in King's Raid's Treasure Summon: a unique weapon ${percent(share)} of the time, a unique treasure ${percent(1 - share)}, each of its kind as likely. Only its own hero wears it.${refined.length > 0 ? ` A unique weapon now and then comes refined (${refined.join(', ')}).` : ''}`
+        ? `Every ${first.stars}★ here is a hero's own, as in King's Raid's Treasure Summon: a unique weapon ${percent(share)} of the time, a unique treasure ${percent(1 - share)}, each of its kind as likely. Only its own hero wears it.${refined.length > 0 ? ` A unique weapon now and then comes refined (${refined.join(', ')}).` : ''} Below it, King's Raid's All-In-One Summon's kinds: artifacts and Unique Weapon or Treasure Tickets (to your mailbox, to pick), dragon sets' gear, and Mysterious Runes.`
         : `Every ${first.stars}★ here is a hero's unique weapon (${weapons.map((item) => item.name).join(', ')}), each as likely, and only its own hero wields it.`,
     featured: [first, second],
     ends: null,

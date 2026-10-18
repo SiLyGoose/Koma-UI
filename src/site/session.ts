@@ -1,3 +1,4 @@
+import { mailButton } from '../shared/ui/mail/mail';
 import { API, getSession, profileMenu, reconnecting, setSession, siteHeader, startLive, store } from '../shared/ui';
 import { go } from './nav';
 import type { Me } from '../protocol/site';
@@ -182,6 +183,8 @@ function pickServer(): void {
 
 const ui = siteHeader();
 let profile: HTMLElement | null = null;
+/** The mail button beside the profile (../shared/ui/mail/mail.ts), once logged in. */
+let mail: ReturnType<typeof mailButton> | null = null;
 
 /** The header's right side: the profile button (with who's online), or Login. */
 function renderHeader(): void {
@@ -189,7 +192,11 @@ function renderHeader(): void {
   ui.login.hidden = !!me || !!session;
   profile?.remove();
   profile = null;
-  if (!me) return;
+  if (!me) {
+    mail?.remove();
+    mail = null;
+    return;
+  }
   profile = profileMenu(me.user, [
     // On smaller screens the header's links are here instead.
     { label: 'Games', icon: 'games', href: '/#games', className: 'site-nav-item' },
@@ -203,6 +210,9 @@ function renderHeader(): void {
     { label: 'Logout', icon: 'logout', onSelect: logOut },
   ]);
   ui.me.append(profile);
+  // The mailbox: its button before the profile, its unread count on it.
+  mail?.remove();
+  mail = mailButton(ui.me, { api, server: () => server, changed: () => void loadMe(true) });
 }
 
 ui.login.addEventListener('click', logIn);
