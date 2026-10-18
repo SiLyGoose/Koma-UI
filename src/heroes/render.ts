@@ -362,7 +362,7 @@ function renderDetail(ctx: HeroesContext, act: HeroActions): void {
     label: ut ? 'Options' : 'On a hero',
     none: NONE,
     effectsOff: !fits,
-    sections: ut ? treasureSection(ut.main, worn === 'treasure') : copy.krSet || copy.part === 'artifact' ? krSections(ctx, act, copy, fits) : tmSections(shown),
+    sections: ut ? [...utEnhance(ctx, act, copy), ...treasureSection(ut.main, worn === 'treasure')] : copy.krSet || copy.part === 'artifact' ? krSections(ctx, act, copy, fits) : tmSections(shown),
     notes,
     // Lock: theirs to toggle on the site (not while picking what to sell); else just shown when shut.
     corner: lockToggle(copy, ctx.busy, canTrade(ctx) && !ctx.selling ? (locked) => act.lock(copy, locked) : null),
@@ -385,6 +385,12 @@ function sectionButton(ctx: HeroesContext, text: string, key: string, onClick: (
   working(button, ctx.busy, key);
   button.addEventListener('click', onClick);
   return button;
+}
+
+/** A unique treasure's enhance (one of its options a step higher, for its price): only on their own copy, while one can go higher. Refining doesn't raise them. */
+function utEnhance(ctx: HeroesContext, act: HeroActions, copy: HeroCopy): HTMLElement[] {
+  if (!mine(ctx) || ctx.selling || copy.upgrade === null) return [];
+  return [krSection('Enhance', [el('p', 'detail-note', 'Raises one of its options, at random, a step (up to its top).'), sectionButton(ctx, `Enhance an option · ${copy.upgrade.toLocaleString()}`, `upgrade:${copy.id}`, () => act.upgrade(copy))])];
 }
 
 /** A section of a King's Raid piece's: its title, then its rows. */
