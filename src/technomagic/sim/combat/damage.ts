@@ -102,6 +102,8 @@ export interface BossStats extends Stats {
   resist: number;
   /** Its penetration (points): what of a hero's defense its blows see past (none said: none). */
   pen?: number;
+  /** Its hit chance (points): what of a hero's dodge its blows see past (none said: none). */
+  acc?: number;
 }
 
 /**
@@ -158,14 +160,14 @@ export function reachAt(level: number): number {
 const BLOCKED = 0.5;
 
 /**
- * A blow of `amount` of a kind lands on `target`, from one with `pen` points of penetration whose level has `reach`
- * (reachAt): dodged (it takes nothing), or what it takes once the target's defense against that kind (less what
- * penetration sees past) has worn it down, and whether it blocked it (then less again), and its Tough off what is left.
- * `roll` is the fight's chances (../sim/random.ts).
+ * A blow of `amount` of a kind lands on `target`, from one with `pen` points of penetration and `acc` of ACC (its hit chance)
+ * whose level has `reach` (reachAt): dodged (it takes nothing), or what it takes once the target's defense against that kind
+ * (less what penetration sees past) has worn it down, and whether it blocked it (then less again), and its Tough off what is
+ * left. `roll` is the fight's chances (../sim/random.ts).
  */
-export function strike(amount: number, type: DamageType, target: Defenses, pen: number, reach: number, roll: () => number): { taken: number; blocked: boolean; dodged: boolean } {
-  // (Each on King's Raid's curve for it: CURVE.)
-  if (roll() < share(curved(CURVE.chance, target.dodge[type]))) return { taken: 0, blocked: false, dodged: true };
+export function strike(amount: number, type: DamageType, target: Defenses, pen: number, reach: number, roll: () => number, acc = 0): { taken: number; blocked: boolean; dodged: boolean } {
+  // (Each on King's Raid's curve for it: CURVE. Its ACC sees past as much of the dodge, as King's Raid's hit chance does.)
+  if (roll() < share(curved(CURVE.chance, target.dodge[type]) - curved(CURVE.acc, acc))) return { taken: 0, blocked: false, dodged: true };
   const blocked = roll() < share(curved(CURVE.chance, target.block[type]));
   const defense = Math.max(0, target[type]) * (1 - share(curved(CURVE.pen, pen)));
   // Its defense, then its block, then its Tough: each takes its share off what the one before let through.

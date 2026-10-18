@@ -100,6 +100,8 @@ export interface BossDef {
   attacks: readonly BossAttack[];
   plans: Readonly<Record<string, Plan>>;
   moves: Readonly<Record<string, BossMove>>;
+  /** How long its raid lasts (seconds; none said: ../rules.ts RAID_TIME). */
+  time?: number;
   /** Its part in a fight, when its skills do more than hurt whoever they land on: made once, as the fight begins. */
   join?(fight: Fight): BossPart;
 }

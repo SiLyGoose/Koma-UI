@@ -1,5 +1,5 @@
 import type { BossDef } from '../boss';
-import { dragonStages, FIRST, OPEN } from '../dragon/common';
+import { DRAGON_TIME, dragonStages, FIRST, OPEN } from '../dragon/common';
 import { MOVES, PLANS } from '../dragon/moves';
 import { zyrrkinothPart } from './skills';
 
@@ -12,8 +12,9 @@ import { zyrrkinothPart } from './skills';
 export const ZYRRKINOTH: BossDef = {
   id: 'zyrrkinoth',
   name: 'Zyrrkinoth',
-  stats: { hp: FIRST.hp, deals: 'physical', physical: FIRST.def, magical: FIRST.def, ...OPEN, tough: { physical: 900, magical: 900 }, crit: 100, resist: 150 },
+  stats: { hp: FIRST.hp, deals: 'physical', physical: FIRST.def, magical: FIRST.def, ...OPEN, tough: { physical: 900, magical: 900 } },
   stages: dragonStages(),
+  time: DRAGON_TIME,
   attacks: [
     { name: 'bite', label: 'Bite' },
     { name: 'claw', label: 'Claw' },

@@ -1,18 +1,19 @@
 import type { BossDef } from '../boss';
-import { dragonStages, FIRST, OPEN } from '../dragon/common';
+import { DRAGON_TIME, dragonStages, FIRST, OPEN } from '../dragon/common';
 import { MOVES, PLANS } from '../dragon/moves';
 import { armartaPart } from './skills';
 
 /**
  * Armarta, the ancient black dragon of stone, of Ashen Nox, the Black Sun (the Dragon Raid's Black Dragon). As in King's
  * Raid, its Black Flame Breath leaves the Dark Flames, which eat at whoever it lands on; and its gaze turns a hero to
- * stone. Its blows are magical. What its skills do is ./skills.ts; its body is the page's (../../../bosses/dragon/).
+ * stone. Its blows are physical (as the playtest's). What its skills do is ./skills.ts; its body is the page's (../../../bosses/dragon/).
  */
 export const ARMARTA: BossDef = {
   id: 'armarta',
   name: 'Armarta',
-  stats: { hp: FIRST.hp, deals: 'magical', physical: FIRST.def, magical: FIRST.def, ...OPEN, crit: 150, resist: 200 },
+  stats: { hp: FIRST.hp, deals: 'physical', physical: FIRST.def, magical: FIRST.def, ...OPEN },
   stages: dragonStages(),
+  time: DRAGON_TIME,
   attacks: [
     { name: 'bite', label: 'Bite' },
     { name: 'claw', label: 'Claw' },

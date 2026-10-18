@@ -50,8 +50,13 @@ export function dragonStages({ atk = 1 }: { atk?: number } = {}): { room: BossSc
   return { room: scales(1), solo: scales(SOLO / PARTY) };
 }
 
-/** Neither blocks nor dodges, of either kind; and sees past 400 points of a hero's defense. */
-export const OPEN = { block: NONE, dodge: NONE, pen: 400 };
+/**
+ * As the playtest's hard dragons are: no block; 150 dodge against both kinds; 400 points of a hero's defense seen past, and
+ * 250 of its dodge (hit chance); a crit chance of 250; and no CC resist (the gauge stands for it).
+ */
+export const OPEN = { block: NONE, dodge: { physical: 150, magical: 150 }, pen: 400, acc: 250, crit: 250, resist: 0 };
+/** The Hard Dragon Raid's time: 3 minutes (the playtest's Raid_Hard). */
+export const DRAGON_TIME = 180;
 
 /** The heroes a dragon can reach: on the field, standing, and in the fight. */
 export const reachable = (fight: Fight): Fighter[] => fight.field.filter((fighter) => fighter.hp > 0 && !fighter.statuses.some((status) => status.away));

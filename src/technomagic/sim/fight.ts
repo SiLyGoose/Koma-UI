@@ -118,15 +118,6 @@ export interface Sim extends Fight {
   checksum(): number;
 }
 
-/**
- * The boss's defenses as blows with `acc` points of ACC find them (on King's Raid's curve): so much less likely dodged. (ACC
- * does nothing to a block, as King's Raid's.)
- */
-const seenPast = (stats: BossDef['stats'], points: number): BossDef['stats'] => {
-  const acc = curved(CURVE.acc, points);
-  return { ...stats, dodge: { physical: Math.max(0, stats.dodge.physical - acc), magical: Math.max(0, stats.dodge.magical - acc) } };
-};
-
 /** What knocks a hero down: shown on its card, with how long it has left. */
 const KNOCKED: Buff = { name: 'Knocked down', about: 'Can do nothing until it is up.', icon: '💫', harmful: true };
 
@@ -151,8 +142,9 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
   const foe: Foe = { def, part: { lands: {} }, hp: maxHp, maxHp, stunned: 0, slowed: 0, slowRate: 1, statuses: [] };
   let tick = 0;
   let elapsed = 0;
-  /** Seconds of the raid's time gone, against this boss. */
+  /** Seconds of the raid's time gone, against this boss; and how long its raid lasts. */
   let clock = 0;
+  const raidTime = def.time ?? RAID_TIME;
   let stage = Math.min(stagesOf(def), Math.max(1, Math.floor(firstStage) || 1));
   let bossAuto = raid;
   let deathless = noDeaths && !raid;
@@ -705,7 +697,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       return elapsed;
     },
     get left() {
-      return RAID_TIME - clock;
+      return raidTime - clock;
     },
     get result() {
       return result;
@@ -729,21 +721,20 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       const focus = by.perkDefs.find((perk) => perk.focus)?.focus;
       const focused = focus ? focus.critDamage * Math.min(focus.most, Math.floor(elapsed / focus.every)) : 0;
       const critTimes = by.critTimes + SKILL.whetstone.critDamage * among('whetstone') + critDamaging(by.statuses) + auras.critDamage + focused;
-      // (And its perks': more against the boss, and more for the skill whose blow it is. Its ACC sees past some of the boss's dodge and block.)
+      // (And its perks': more against the boss, and more for the skill whose blow it is. Its ACC sees past some of the boss's dodge: strike.)
       const skilled = landing?.by === by ? (by.moveDmg[landing.move] ?? 1) : 1;
       const acc = by.acc + auras.acc;
       // (Less of a block for what is on the boss: a unique treasure's.)
       const plain = bossStands();
       const lower = { physical: blocking(foe.statuses, 'physical'), magical: blocking(foe.statuses, 'magical') };
       const stood = lower.physical === 0 && lower.magical === 0 ? plain : { ...plain, block: { physical: Math.max(0, plain.block.physical + lower.physical), magical: Math.max(0, plain.block.magical + lower.magical) } };
-      const seen = acc > 0 ? seenPast(stood, acc) : stood;
       const through = whole || (landing?.by === by && by.moveWhole.has(landing.move));
-      const against = through ? { ...seen, physical: 0, magical: 0 } : { ...seen, physical: seen.physical * defending(foe.statuses, 'physical'), magical: seen.magical * defending(foe.statuses, 'magical') };
+      const against = through ? { ...stood, physical: 0, magical: 0 } : { ...stood, physical: stood.physical * defending(foe.statuses, 'physical'), magical: stood.magical * defending(foe.statuses, 'magical') };
       // (Its skill's power: its books and its perks for the skill, added up. Then its DMG, all that makes it more, and what is on the
       // boss that has it take more, added up: King's Raid's damage amplifiers.)
       const power = 1 + bookShare(by, 'dmg') + skilled - 1;
       const more = amplified([dmgTimes(by), attack, ...deals(by.statuses), by.perkDmg, by.part.deals?.() ?? 1, ...takes(foe.statuses, type)]);
-      const { taken, blocked, dodged } = strike(amount * (atk / POINTS) * atkTimes(by) * power * more * (critical ? critTimes : 1), type, against, pen + auras.pen + pierce + piercing(by.statuses), reachAt(HERO_LEVEL), roll);
+      const { taken, blocked, dodged } = strike(amount * (atk / POINTS) * atkTimes(by) * power * more * (critical ? critTimes : 1), type, against, pen + auras.pen + pierce + piercing(by.statuses), reachAt(HERO_LEVEL), roll, acc);
       if (dodged) {
         events.push({ kind: 'number', on: 'boss', amount: 0, type: 'dodged' });
         return false;
@@ -845,7 +836,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       const critical = roll() < share(curved(CURVE.crit, foe.def.stats.crit) - curved(CURVE.chance, target.critResist[type] + critResisting(target.statuses, type) + critResisting(party, type))) + critting(foe.statuses);
       // (Through its penetration, and as much of the hero's defense as counts against its level.)
       const scale = scaleAt(def, stage, solo);
-      const { taken, blocked, dodged } = strike(amount * scale.deals * dealing(foe.statuses) * rage(clock - RAID_TIME) * (critical ? CRIT : 1), type, blockable ? stands : { ...stands, block: NONE, dodge: NONE }, foe.def.stats.pen ?? 0, reachAt(scale.level), roll);
+      const { taken, blocked, dodged } = strike(amount * scale.deals * dealing(foe.statuses) * rage(clock - raidTime) * (critical ? CRIT : 1), type, blockable ? stands : { ...stands, block: NONE, dodge: NONE }, foe.def.stats.pen ?? 0, reachAt(scale.level), roll, foe.def.stats.acc ?? 0);
       if (dodged) {
         target.nimble = 0;
         events.push({ kind: 'number', on: target.index, amount: 0, type: 'dodged' });
@@ -992,8 +983,8 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       if (foe.hp <= 0) marks.push({ text: 'Beaten', tone: 'down' });
       else if (foe.stunned > 0) marks.push({ text: `Stunned ${Math.ceil(foe.stunned)}`, tone: 'stun' });
       if (foe.slowed > 0) marks.push({ text: `Slowed ${Math.ceil(foe.slowed)}`, tone: 'slow' });
-      if (foe.hp > 0 && clock > RAID_TIME) {
-        const times = rage(clock - RAID_TIME);
+      if (foe.hp > 0 && clock > raidTime) {
+        const times = rage(clock - raidTime);
         marks.push({ text: `Enraged ×${times < 10 ? times.toFixed(1) : Math.round(times).toLocaleString('en-US')}`, tone: 'rage' });
       }
       // (One for the rest of the fight says how many are stacked in it, in place of the seconds it has left; one that stacks for a while, both.)
@@ -1126,7 +1117,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       }
 
       // Every hero on the field down, or wiped by the boss's rage: lost.
-      if (!deathless && ((field.length > 0 && field.every((on) => on.hp <= 0)) || clock >= RAID_TIME + RAGE_WIPE)) end('lost');
+      if (!deathless && ((field.length > 0 && field.every((on) => on.hp <= 0)) || clock >= raidTime + RAGE_WIPE)) end('lost');
       // What each hero gained this step, counted toward what it gains a second (not while its mana is full: it gains nothing then).
       fighters.forEach((fighter, i) => {
         const was = before[i] as number;

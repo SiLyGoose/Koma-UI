@@ -32,14 +32,14 @@ const scales = (times: number): BossScale[] =>
  * best with penetration, and with what cuts its healing (it gives itself back its health all the while: ./skills.ts).
  * How its attacks go is ./attacks.ts, and what its skills do ./skills.ts; what is drawn for them is
  * ../../../bosses/galgoria/fx.ts, and its body ../../../bosses/galgoria/model.ts.
- * No stun holds it: stuns wear its CC Gauge down instead (../gauge.ts), the shorter for its CC resist (accuracy tells),
- * and empty, it is Down a while. Its blows see past 500 points of a hero's defense (the playtest's PiercePower). Now and
- * then a blow of its is a crit (crit resist tells): a first guess, as its CC resist is.
+ * No stun holds it: stuns wear its CC Gauge down instead (../gauge.ts), and empty, it is Down a while; it has no CC resist,
+ * as the playtest's. Its blows see past 500 points of a hero's defense (the playtest's PiercePower) and 300 of its dodge
+ * (its Persistent Life Force's hit chance). Now and then a blow of its is a crit (crit resist tells): a first guess.
  */
 export const GALGORIA: BossDef = {
   id: 'galgoria',
   name: 'Galgoria',
-  stats: { hp: HP[0] as number, deals: 'magical', physical: DEF[0] as number, magical: DEF[0] as number, block: NONE, dodge: NONE, crit: 100, resist: 150, pen: 500 },
+  stats: { hp: HP[0] as number, deals: 'magical', physical: DEF[0] as number, magical: DEF[0] as number, block: NONE, dodge: NONE, crit: 100, resist: 0, pen: 500, acc: 300 },
   stages: { room: scales(1), solo: scales(KR_PARTY / PARTY) },
   attacks: ATTACKS,
   plans: PLANS,

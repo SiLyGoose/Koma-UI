@@ -1,5 +1,5 @@
 import type { BossDef } from '../boss';
-import { dragonStages, FIRE_ATK, FIRST, OPEN } from '../dragon/common';
+import { DRAGON_TIME, dragonStages, FIRE_ATK, FIRST, OPEN } from '../dragon/common';
 import { MOVES, PLANS } from '../dragon/moves';
 import { temerairePart } from './skills';
 
@@ -11,8 +11,9 @@ import { temerairePart } from './skills';
 export const TEMERAIRE: BossDef = {
   id: 'temeraire',
   name: 'Temeraire',
-  stats: { hp: FIRST.hp, deals: 'magical', physical: FIRST.high, magical: FIRST.def, ...OPEN, tough: { physical: 900, magical: 0 }, crit: 100, resist: 150 },
+  stats: { hp: FIRST.hp, deals: 'magical', physical: FIRST.high, magical: FIRST.def, ...OPEN, tough: { physical: 900, magical: 0 } },
   stages: dragonStages({ atk: FIRE_ATK }),
+  time: DRAGON_TIME,
   attacks: [
     { name: 'bite', label: 'Bite' },
     { name: 'claw', label: 'Claw' },
