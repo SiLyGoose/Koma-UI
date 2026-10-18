@@ -71,6 +71,11 @@ export interface PartsModel {
    */
   grips?: { L?: Grip; R?: Grip };
   /**
+   * The hands whose mark King's Raid's own animations move somewhere other than where it holds what is in it (Valance's
+   * right: where her shots start, above her): kept in the hand, as its grip has it.
+   */
+  heldStill?: readonly ('L' | 'R')[];
+  /**
    * What floats beside it, in no hand (a body whose file marks no hand to hold it): `at` where, in its model's
    * own lengths from the floor under it (x to its left, y up, z ahead), `size` times as big as it comes. It
    * goes along with it and up with it, but is kept upright whatever it does.

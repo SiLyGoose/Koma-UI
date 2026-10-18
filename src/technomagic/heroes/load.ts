@@ -89,7 +89,7 @@ export async function loadHeroes(defs: readonly HeroDef[], { unique = false, ski
     for (const { skin, stood, kr } of all[i] as Read[]) {
       if (!stood) continue;
       let hero: Hero;
-      if (kr) hero = krHero(stood, kr, motion);
+      if (kr) hero = krHero(stood, kr, motion, (skin.model.heldStill ?? []).map((side) => `Point_Hand_${side}`));
       else {
         const posed = posedHero(stood, look.stands, {}, { seated: look.seated, hovers: look.hovers, bends: look.bends, varied: look.varies });
         hero = stood.sheath ? sheathing(posed, stood, stood.sheath, lasts) : posed;

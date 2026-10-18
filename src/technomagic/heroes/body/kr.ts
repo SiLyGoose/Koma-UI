@@ -56,14 +56,15 @@ export async function loadKrClips(owner: HeroAssets, animations: KrAnimations, m
     return span ? filled(inPlace(fitted(move.clips.map(clip), move.hits, span.lands, span.until)), idle) : null;
   };
   const moves: KrClips['moves'] = {};
-  // Its attack, whatever its move's name: the fight having it in one part, each of the game's chain is a take of its own
-  // (the next one each time it attacks); in more, the chain is shared out among them (each one after another; more of
-  // the game's in one part, its blows from where each begins; fewer, round again).
+  // Its attack, whatever its move's name: the fight having it in one part of one blow, each of the game's chain is a take
+  // of its own (the next one each time it attacks); otherwise the chain is shared out among its parts (each one after
+  // another; more of the game's in one part, its blows from where each begins; fewer, round again), all of it in one
+  // part of several blows.
   const chain = animations.attack ?? [];
   const timeline = motion.moves[motion.attack];
   if (chain.length > 0) {
     const count = timeline.parts.length;
-    if (count === 1) {
+    if (count === 1 && (timeline.parts[0]?.lands.length ?? 0) <= 1) {
       const takes = chain.map((move) => fit(move, timeline, 0));
       if (takes.every((take) => take !== null)) moves[motion.attack] = (takes as AnimationClip[]).map((take) => [take]);
     } else {
@@ -94,8 +95,8 @@ export async function loadKrClips(owner: HeroAssets, animations: KrAnimations, m
   };
 }
 
-/** A hero of the game's own files moved by its clips (`motion`: how the fight times its moves). */
-export function krHero({ root, body, models, rig, materials }: Stood, clips: KrClips, motion: Motion): Hero {
+/** A hero of the game's own files moved by its clips (`motion`: how the fight times its moves), but for the marks `still` (left in its hands). */
+export function krHero({ root, body, models, rig, materials }: Stood, clips: KrClips, motion: Motion, still: readonly string[] = []): Hero {
   // What hangs straight from it in the game's files, beside its skeleton, is moved there by its clips: what it holds
   // (Point_Dummy, in whichever hand it was put) and the marks of its hands. Here too it hangs from its skeleton's root
   // (the file's own, not the model's group), in its first model, whose clip moves it.
@@ -104,7 +105,7 @@ export function krHero({ root, body, models, rig, materials }: Stood, clips: KrC
   if (from)
     for (const name of new Set(every.flatMap(topOf))) {
       // (Only marks and what is held on them: a bone a clip lists there is its skeleton's own, where it is.)
-      const node = /^Point_|Dummy/.test(name) ? root.getObjectByName(name) : undefined;
+      const node = /^Point_|Dummy/.test(name) && !still.includes(name) ? root.getObjectByName(name) : undefined;
       // (Never what it hangs from itself, nor anything that does.)
       let inside = false;
       from.traverseAncestors((above) => (inside ||= above === node));
@@ -115,7 +116,10 @@ export function krHero({ root, body, models, rig, materials }: Stood, clips: KrC
   const mixer = new AnimationMixer(root);
   const playing = (clip: AnimationClip, once = false): AnimationAction[] =>
     models.map((model: Object3D) => {
-      const action = mixer.clipAction(new AnimationClip(clip.name, clip.duration, clip.tracks.filter((track) => model.getObjectByName(track.name.slice(0, track.name.lastIndexOf('.'))))), model);
+      const action = mixer.clipAction(new AnimationClip(clip.name, clip.duration, clip.tracks.filter((track) => {
+        const node = track.name.slice(0, track.name.lastIndexOf('.'));
+        return !still.includes(node) && model.getObjectByName(node);
+      })), model);
       if (once) {
         action.setLoop(LoopOnce, 1);
         action.clampWhenFinished = true;

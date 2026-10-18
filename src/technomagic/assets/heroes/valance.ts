@@ -71,6 +71,7 @@ export const VALANCE_ASSETS: HeroAssets = {
         parts: ['Hero_Valance_Vari04_Mesh'],
         right: 'Hero_Valance_Vari04_Weapon',
         grips: { R: GRIP },
+        heldStill: ['R'],
       },
     },
   ],
