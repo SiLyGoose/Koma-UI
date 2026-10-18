@@ -120,14 +120,18 @@ export function krHero({ root, body, models: parts, rig, materials, floating }: 
     models.push(floating.model);
   }
   const from = models[0]?.getObjectByName(BIPED.hips)?.parent;
+  /** What is re-hung there. */
+  const hung = new Set<string>();
   if (from)
     for (const name of new Set(every.flatMap(topOf))) {
-      // (Only marks and what is held on them: a bone a clip lists there is its skeleton's own, where it is.)
-      const node = /^Point_|Dummy/.test(name) && !still.includes(name) ? root.getObjectByName(name) : undefined;
+      // (Only the marks of its hands and what is held on them: anything else a clip lists there (a bone, the marks its
+      // cloth hangs from: Gremory's Skill3, Point_Thigh_L…) is its skeleton's own, where it is.)
+      const node = /^Point_[Hh]and_|Dummy/.test(name) && !still.includes(name) ? root.getObjectByName(name) : undefined;
       // (Never what it hangs from itself, nor anything that does.)
       let inside = false;
       from.traverseAncestors((above) => (inside ||= above === node));
       if (node && node !== from && !inside && node.parent !== from) from.attach(node);
+      if (node && node !== from && !inside) hung.add(name);
     }
 
   // A clip plays on each of its models at once, each with what the clip has for the bones it has.
@@ -136,6 +140,8 @@ export function krHero({ root, body, models: parts, rig, materials, floating }: 
     models.map((model: Object3D) => {
       const action = mixer.clipAction(new AnimationClip(clip.name, clip.duration, clip.tracks.filter((track) => {
         const node = track.name.slice(0, track.name.lastIndexOf('.'));
+        // (What a clip moves from the skeleton's root that isn't hung there: where it says is nowhere near where that is.)
+        if (topOf(clip).includes(node) && !hung.has(node)) return false;
         return !still.includes(node) && model.getObjectByName(node);
       })), model);
       if (once) {
