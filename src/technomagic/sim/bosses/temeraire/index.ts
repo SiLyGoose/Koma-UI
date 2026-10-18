@@ -1,5 +1,5 @@
 import type { BossDef } from '../boss';
-import { dragonStages, FIRST, OPEN } from '../dragon/common';
+import { dragonStages, FIRE_ATK, FIRST, OPEN } from '../dragon/common';
 import { MOVES, PLANS } from '../dragon/moves';
 import { temerairePart } from './skills';
 
@@ -11,9 +11,8 @@ import { temerairePart } from './skills';
 export const TEMERAIRE: BossDef = {
   id: 'temeraire',
   name: 'Temeraire',
-  stats: { hp: FIRST.hp, deals: 'magical', physical: FIRST.def, magical: FIRST.def, ...OPEN, tough: { physical: 900, magical: 0 }, crit: 100, resist: 150 },
-  // (How hard its blows are, and its health, beside the other dragons': what keeps it as hard as it was, with King's Raid's playtest's rules, in test fights.)
-  stages: dragonStages({ deals: 0.7 }),
+  stats: { hp: FIRST.hp, deals: 'magical', physical: FIRST.high, magical: FIRST.def, ...OPEN, tough: { physical: 900, magical: 0 }, crit: 100, resist: 150 },
+  stages: dragonStages({ atk: FIRE_ATK }),
   attacks: [
     { name: 'bite', label: 'Bite' },
     { name: 'claw', label: 'Claw' },

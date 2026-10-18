@@ -8,7 +8,7 @@ import { KR_HEROES } from './heroes/kr';
 import type { HeroMove } from './heroes/moves';
 import { motionOf } from './motion';
 import { seeded } from './random';
-import { AUTO, AUTO_WAIT, BLOW, CRIT, formation, HERO_WAIT, HERO_X, MANA_PER_ATTACK, MARCH, MARCH_ABREAST, MARCH_FROM, marchLeft, MARCH_ROW, MANA_PER_HP_LOST, MANA_RATE, MAX_MANA, MOST, rage, RAGE_WIPE, RAID_TIME, REFORM, SECTION, TICK } from './rules';
+import { AUTO, AUTO_WAIT, BLOW, BOSS_X, CRIT, formation, HERO_WAIT, HERO_X, MANA_PER_ATTACK, MARCH, MARCH_ABREAST, MARCH_FROM, marchLeft, MARCH_ROW, MANA_PER_HP_LOST, MANA_RATE, MAX_MANA, MOST, rage, RAGE_WIPE, RAID_TIME, REFORM, SECTION, TICK } from './rules';
 import { AUTHORITY, GUARDED, HOPE, PERSEVERANCE, setOf } from './sets';
 import type { Buff, Mark } from './shown';
 import { CHAMPION_UP, DESPERATION_UP, MENDING_UP, SKILL, skilledCritDamage, skilledStats, skillsOf, SURGE_UP, type SkillId } from './skills';
@@ -332,12 +332,16 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     const times = scaleAt(def, stage, solo).defense ?? 1;
     return times === 1 ? def.stats : { ...def.stats, physical: def.stats.physical * times, magical: def.stats.magical * times };
   }
-  /** One of the heroes on the field the boss can go for (not one out of the fight), at random: one standing, if any is (null: there is none). */
+  /**
+   * The hero on the field the boss goes for (not one out of the fight): the one nearest it, as King's Raid's bosses go for
+   * theirs; one standing, if any is (null: there is none). Of two as near, the one that came onto the field first.
+   */
   const anyone = (): Fighter | null => {
     const there = field.filter((fighter) => !away(fighter.statuses));
     const up = there.filter((fighter) => fighter.hp > 0);
     const from = up.length > 0 ? up : there;
-    return from.length > 0 ? (from[Math.floor(roll() * from.length)] as Fighter) : null;
+    const far = (fighter: Fighter): number => (fighter.x - BOSS_X) * (fighter.x - BOSS_X) + fighter.z * fighter.z;
+    return from.reduce<Fighter | null>((nearest, fighter) => (!nearest || far(fighter) < far(nearest) - 1e-9 ? fighter : nearest), null);
   };
   /** Whom the boss is going for: another, should that one have left the field, or the fight. */
   const aimed = (): Fighter | null => {

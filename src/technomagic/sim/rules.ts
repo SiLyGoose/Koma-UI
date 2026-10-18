@@ -41,6 +41,8 @@ const HINDMOST = HERO_X - (MOST - 1) * ROOM - 2 * GAP;
  * second (behind it, in its gaps) the rest.
  */
 const AROUND = 7.5;
+/** Where the boss stands along the field (the middle of the frontline's arc). */
+export const BOSS_X = HERO_X + AROUND;
 const APART = 3 * ROOM;
 const RING = 5;
 /** The first ring's two ends (the furthest round, nearest the boss as the camera sees them) stand this much further back along the field. */

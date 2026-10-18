@@ -57,7 +57,7 @@ function infoOf(boss: BossDef): string[] {
     return [
       raidCard(boss.id)?.about ?? boss.name,
       `Its CC Gauge: no stun holds a dragon, but your heroes' stuns wear the gauge down (it fills again soon after); empty, it is Down for ${DOWN} seconds, its breath cut short.`,
-      `Heroes that fall stay down. Beat it within 3:30, before its rage wipes the party. Its stages are King's Raid's Hard Dragon Raid's: stages 1 to 5 are the same dragon, and from stage 6 on it has more health and defense and hits harder; single player, it has ${solo}% of the health.`,
+      `Heroes that fall stay down. Beat it within 3:30, before its rage wipes the party. Its stages are King's Raid's Hard Dragon Raid's: each has more health and defense and hits harder, and from stage 5 on far more; single player, it has ${solo}% of the health.`,
       `${lineup} A win gives every player hero gear (raid items), zeiucoins and hero essences of the dragon's two kinds, more at each stage. There is no daily limit.`,
       'The host picks the stage: each after the first opens once they have beaten the one before it, each dragon apart.',
     ];

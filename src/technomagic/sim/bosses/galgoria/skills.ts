@@ -6,30 +6,32 @@ import { GALGORIA_GAUGE, withGauge } from '../gauge';
 
 /*
  * What Galgoria's skills do, as the game has them (its raid's skill list, from its players' guides on DC Inside's King's
- * Raid gallery: each one's cooldown, how long what it does lasts, and its shares; how hard each hits, Swamp Destroyer's
- * share of health, the swamp's blows, Fatal Venom's numbers and how much more the heroes deal while one is imprisoned
- * are not said there, and are a first guess):
+ * Raid gallery, with how hard each hits, Swamp Destroyer's share of health, Fatal Venom's numbers and how much more the
+ * heroes deal while one is imprisoned from King's Raid's playtest: its skills' shares of its ATK, as ./attacks.ts has it):
+ * - Its attack: a head's venom at whoever it is going for (330%).
  * - Swamp Imprisonment: once the heroes have landed 150 blows, the one that has dealt the most since the last is shut
  *   away in the swamp for 8 seconds: not to be hit, and doing nothing; every other hero deals more meanwhile.
- * - Swamp Destroyer: each head's venom in turn on whoever it is going for, then all three down into the swamp: every
- *   hero is hurt by a share of the health it has left, and knocked down for 3 seconds.
+ * - Swamp Destroyer: each head's venom in turn on whoever it is going for (55% each), then all three down into the swamp:
+ *   every hero is hurt by a share of the health it has left (the playtest's 100/110 of it), and knocked down for 3 seconds.
  * - Poisonous Swamp: a swamp under the heroes for 5 seconds that hurts them every second; while they stand in it their
  *   mana fills 40% slower, but their ATK is 40% higher.
- * - Poisonous Explosion: two blows of venom on every hero: the first leaves each hitting 50% softer for 10 seconds, the
- *   second 500 less likely to land a critical blow.
- * - Fatal Venom: once it has used its skills 3 times, venom on every hero that stays the rest of the fight, and stacks:
- *   less healing reaches each; and Galgoria hits harder for each time.
+ * - Poisonous Explosion: two blows of venom on every hero (110% each): the first leaves each hitting 50% softer for 10
+ *   seconds, the second 500 less likely to land a critical blow.
+ * - Fatal Venom: once it has used its skills 3 times, venom on every hero (140%) that stays the rest of the fight, and
+ *   stacks: less healing reaches each; and Galgoria hits harder for each time.
  * Its passive, Persistent Life Force: nothing slows its attacks, no hero's life steal takes anything from it, and it
  * gives itself back 0.393% of its health every second, 70% more than that (its healing) and from stage 4 on 120% more
  * (less while something on it cuts healing). From stage 4 on, 40% less healing reaches the heroes, and their shields
  * are 60% weaker. It takes 20% more physical damage.
  * What is drawn for them is ./fx.ts.
  */
-export const IMPRISONMENT = { hits: 150, lasts: 8, deals: 1.3 };
-const DESTROYER = { share: 0.3, down: 3, cooldown: 10 };
+/** Its attack's share of its ATK. */
+const HEAD = 3.3;
+export const IMPRISONMENT = { hits: 150, lasts: 8, deals: 1.7 };
+const DESTROYER = { venom: 0.55, share: 100 / 110, down: 3, cooldown: 10 };
 export const SWAMP = { lasts: 5, every: 1, mana: 0.6, deals: 1.4, cooldown: 17 };
-const EXPLOSION = { lasts: 10, deals: 0.5, crit: -0.5, cooldown: 18 };
-const FATAL = { after: 3, heals: 0.2, most: 5, deals: 0.1, mostOnIt: 10 };
+const EXPLOSION = { blow: 1.1, lasts: 10, deals: 0.5, crit: -0.5, cooldown: 18 };
+const FATAL = { blow: 1.4, after: 3, heals: 0.2, most: 5, deals: 0.14, mostOnIt: 10 };
 /** What it gives itself back a second, of its health, and how much more its healing gives it: from stage `from` on, `later`. */
 const LIFE_FORCE = { share: 0.00393, healing: 0.7, later: 1.2, from: 4 };
 /** From stage 4 on: how much healing reaches the heroes, and how strong their shields are. */
@@ -101,8 +103,11 @@ function ownPart(fight: Fight): BossPart {
   return {
     lands: {
       // Each head's venom; then all three down into the swamp, over the whole field: a share of what health each has left.
+      left: (_part, amount) => venom(amount * HEAD),
+      centre: (_part, amount) => venom(amount * HEAD),
+      right: (_part, amount) => venom(amount * HEAD),
       destroyer(part, amount) {
-        if (part < 3) return venom(amount);
+        if (part < 3) return venom(amount * DESTROYER.venom);
         if (part > 3) return;
         const heroes = reachable();
         fight.cue(null, 'destroyer', heroes);
@@ -126,7 +131,7 @@ function ownPart(fight: Fight): BossPart {
       explosion(part, amount) {
         const heroes = reachable();
         for (const fighter of heroes) {
-          fight.hurt(fighter, amount);
+          fight.hurt(fighter, amount * EXPLOSION.blow);
           if (part === 0) put(fighter.statuses, { name: WEAKENED.name, left: EXPLOSION.lasts, deals: EXPLOSION.deals, shown: WEAKENED });
           else put(fighter.statuses, { name: DULLED.name, left: EXPLOSION.lasts, crit: EXPLOSION.crit, shown: DULLED });
         }
@@ -136,7 +141,7 @@ function ownPart(fight: Fight): BossPart {
       fatal(_part, amount) {
         const heroes = reachable();
         for (const fighter of heroes) {
-          fight.hurt(fighter, amount);
+          fight.hurt(fighter, amount * FATAL.blow);
           stack(fighter.statuses, FATAL_VENOM.name, FATAL.most, (count) => ({ heals: Math.max(0, 1 - FATAL.heals * count), shown: FATAL_VENOM }));
         }
         stack(foe.statuses, FATAL_VENOM.name, FATAL.mostOnIt, (count) => ({ deals: 1 + FATAL.deals * count, shown: 'venom' }));

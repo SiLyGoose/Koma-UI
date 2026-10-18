@@ -1,4 +1,5 @@
 import type { BossMove, Plan } from '../boss';
+import { KR_ATK } from './common';
 
 /*
  * The dragons' moves, as the fight has them: King's Raid's four dragons (Temeraire, Scalaxia, Zyrrkinoth, Armarta) are one
@@ -12,26 +13,34 @@ export type DragonMove = 'bite' | 'claw' | 'sweep' | 'smash' | 'inhale' | 'breat
 /** Its one part: all its moves are its body's. */
 export const BODY = 'D';
 
-/** How long each of its moves takes, when its blow lands, and what that takes of whoever it lands on, least to most, before their defense. */
+/** What a blow takes, as a share of a dragon's ATK at stage 1 (King's Raid's playtest's: its skill's damage share). */
+const share = (of: number): readonly [number, number] => [of * (KR_ATK[0] as number), of * (KR_ATK[0] as number)];
+
+/**
+ * How long each of its moves takes, when its blow lands, and what that takes of whoever it lands on, before their defense: as
+ * the playtest's dragons' skills have it, of their ATK (a dragon's attack 250%; its quick skill 120%; Tail Strike 100%; a
+ * tail smash 40%, a blow of its breath 30%, of its storm 25%; its landing 200%. Its share of a hero's health that some add
+ * is not here).
+ */
 export const MOVES: Readonly<Record<DragonMove, BossMove>> = {
   // Its jaws, at whoever it is going for.
-  bite: { length: 1.7, hit: 0.8, hurts: [280_000, 400_000] },
+  bite: { length: 1.7, hit: 0.8, hurts: share(2.5) },
   // A swipe of a foreclaw, at whoever it is going for.
-  claw: { length: 1.6, hit: 0.75, hurts: [240_000, 340_000] },
+  claw: { length: 1.6, hit: 0.75, hurts: share(1.2) },
   // Its tail swept across the whole field.
-  sweep: { length: 2.1, hit: 1, hurts: [160_000, 230_000] },
+  sweep: { length: 2.1, hit: 1, hurts: share(1) },
   // Its tail brought down on the heroes (three in a row, as Scalaxia's and Zyrrkinoth's are).
-  smash: { length: 1.1, hit: 0.55, hurts: [110_000, 160_000] },
+  smash: { length: 1.1, hit: 0.55, hurts: share(0.4) },
   // Breathing in, before its breath (nothing lands: a CC gauge broken now stops the breath).
   inhale: { length: 1.4, hit: null },
   // Its breath over the field, a blow at a time.
-  breath: { length: 0.55, hit: 0.25, hurts: [120_000, 170_000] },
+  breath: { length: 0.55, hit: 0.25, hurts: share(0.3) },
   // A roar that shakes the field (a little: what it calls up is the rest).
-  roar: { length: 2.1, hit: 0.6, hurts: [60_000, 90_000] },
+  roar: { length: 2.1, hit: 0.6, hurts: share(0.25) },
   // Up into the air on its wings (nothing lands), and what it casts from there, and down again with all its weight.
   rise: { length: 1.4, hit: null },
-  storm: { length: 1, hit: 0.45, hurts: [200_000, 280_000] },
-  land: { length: 1.3, hit: 0.85, hurts: [300_000, 420_000] },
+  storm: { length: 1, hit: 0.45, hurts: share(0.25) },
+  land: { length: 1.3, hit: 0.85, hurts: share(2) },
   // Its eyes on one hero (Armarta's Stone Gaze).
   gaze: { length: 1.8, hit: 1.1 },
 };

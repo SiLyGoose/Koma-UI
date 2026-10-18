@@ -1,5 +1,13 @@
 import type { BossAttack, BossMove } from '../boss';
 
+/**
+ * Its M.ATK at each stage, as King's Raid's playtest builds it (its Galgoria raid, chapter 10's stages 1 to 8: its stats at
+ * the stage's level, times its MonsterTierTable entry: KR-extracted/scripts/boss-stats.mjs). Its blows are shares of it.
+ */
+export const KR_ATK = [4_515_117, 5_942_354, 8_184_999, 9_373_382, 13_161_563, 19_055_025, 23_048_231, 39_699_242];
+/** What a blow takes: `of` its ATK at stage 1 (how much of that each skill's blow takes is ./skills.ts). */
+const share = (of: number): readonly [number, number] => [of * (KR_ATK[0] as number), of * (KR_ATK[0] as number)];
+
 /*
  * Galgoria's attacks, as the fight has them: each of its skills is some of its heads' moves, one after another, and
  * each move takes so long, its blow landing so far into it. What comes of each as it lands is ./skills.ts; how its
@@ -10,12 +18,12 @@ export type Head = 'C' | 'L' | 'R';
 export const HEADS: readonly Head[] = ['C', 'L', 'R'];
 export type Attack = 'spit' | 'roar' | 'slam';
 
-/** How long each of its heads' moves takes, when its blow lands, and what that takes of whoever it lands on, least to most, before their defense. */
+/** How long each of its heads' moves takes, when its blow lands, and what that takes of whoever it lands on, before their defense (its ATK; each skill takes its share of it). */
 export const MOVES: Readonly<Record<Attack, BossMove>> = {
   // Its venom: it takes a moment to get there.
-  spit: { length: 2, hit: 0.88, hurts: [300_000, 450_000] },
-  // What it calls up lands as it begins to shake.
-  roar: { length: 2.1, hit: 0.5, hurts: [200_000, 300_000] },
+  spit: { length: 2, hit: 0.88, hurts: share(1) },
+  // What it calls up lands as it begins to shake: the swamp's blows, in all (the playtest's 30% a second, for 5 seconds).
+  roar: { length: 2.1, hit: 0.5, hurts: share(1.5) },
   // Down into the swamp: the ground shakes where it lands.
   slam: { length: 1.9, hit: 0.75 },
 };

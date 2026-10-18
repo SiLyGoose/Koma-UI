@@ -13,9 +13,8 @@ import { scalaxiaPart } from './skills';
 export const SCALAXIA: BossDef = {
   id: 'scalaxia',
   name: 'Scalaxia',
-  stats: { hp: FIRST.hp, deals: 'magical', physical: FIRST.def, magical: FIRST.def, ...OPEN, block: { physical: 0, magical: 1000 }, blockDef: { physical: 0, magical: 0.368 }, tough: { physical: 0, magical: 200 }, crit: 100, resist: 150 },
-  // (How hard its blows are, and its health, beside the other dragons': what keeps it as hard as it was, with King's Raid's playtest's rules, in test fights.)
-  stages: dragonStages({ deals: 0.5, hp: 0.7 }),
+  stats: { hp: FIRST.hp, deals: 'magical', physical: FIRST.def, magical: FIRST.high, ...OPEN, block: { physical: 0, magical: 1000 }, blockDef: { physical: 0, magical: 0.368 }, tough: { physical: 0, magical: 200 }, crit: 100, resist: 150 },
+  stages: dragonStages(),
   attacks: [
     { name: 'bite', label: 'Bite' },
     { name: 'claw', label: 'Claw' },

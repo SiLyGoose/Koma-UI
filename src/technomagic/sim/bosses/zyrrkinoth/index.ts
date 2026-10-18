@@ -13,8 +13,7 @@ export const ZYRRKINOTH: BossDef = {
   id: 'zyrrkinoth',
   name: 'Zyrrkinoth',
   stats: { hp: FIRST.hp, deals: 'physical', physical: FIRST.def, magical: FIRST.def, ...OPEN, tough: { physical: 900, magical: 900 }, crit: 100, resist: 150 },
-  // (How hard its blows are, and its health, beside the other dragons': what keeps it as hard as it was, with King's Raid's playtest's rules, in test fights.)
-  stages: dragonStages({ deals: 0.5 }),
+  stages: dragonStages(),
   attacks: [
     { name: 'bite', label: 'Bite' },
     { name: 'claw', label: 'Claw' },

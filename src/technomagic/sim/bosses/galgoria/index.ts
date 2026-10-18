@@ -1,53 +1,46 @@
 import { NONE } from '../../combat/damage';
 import type { BossDef, BossScale } from '../boss';
-import { ATTACKS, MOVES, PLANS } from './attacks';
+import { HEROES_DEAL, HEROES_HP, PARTY } from '../playtest';
+import { ATTACKS, KR_ATK, MOVES, PLANS } from './attacks';
 import { galgoriaPart } from './skills';
 
-/**
- * So many times less health than the game's: a hero's ATK here is the game's (its unique weapon's and its potentials'), but
- * what more King's Raid's heroes deal to it (sets, more DMG to bosses, buffs) is not here. (Before HP, which it cuts.)
+/*
+ * Its stages, King's Raid's playtest's Galgoria raid's (chapter 10's first 8 of 9), as the game builds it (KR-extracted/scripts/
+ * boss-stats.mjs): its health (KR_HP), DEF (KR_DEF, and its Persistent Life Force's 60,000 more: LIFE_DEF), M.ATK
+ * (./attacks.ts) and level. Its health is the game's for its party of KR_PARTY, as much less as the heroes here deal
+ * (../playtest.ts) and as much more as there are of them; how hard it hits, the game's, as much less as the heroes here have
+ * less health. Alone (as many heroes as the game's party), its health is as much less again.
  */
-const GEARED = 115;
-/**
- * Its health at stage 1, before GEARED: more than the game's (20 billion), so that (with GEARED and DEALS) 8 heroes on Auto
- * at Transcend 5 (ATK Up, Monster Hunting, HP Up, two class perks, T5 Light) with R1 unique weapons and no other gear win
- * about 4 times in 5, in about 2½ minutes (tried over 60 fights, King's Raid's playtest's rules: no stun holds it). Its
- * stages 2 and 3 go up from it evenly (each so many times the last) to stage 4.
- */
-const FIRST_HP = 38.4e9;
-/**
- * Its health and defense (P.DEF and M.DEF alike) at each stage, as King's Raid's Galgoria raid has them at its stages 1
- * to 5 (its table, from its players' guides on DC Inside's King's Raid gallery: 20 to 87.6 billion HP, 117,000 to 222,300
- * DEF); 6 to 8 go on from there (a first guess: the game's stage 6 is said to be past 300,000 DEF). But for its health at
- * stages 1 to 3 (FIRST_HP). That health is the game's raid's, with more than one player, cut by GEARED; alone, it is
- * ROOM_HP times less again. And how hard its blows are, either way.
- */
-const KR_HP = [20e9, 26.9e9, 37.8e9, 50.7e9, 87.6e9, 120e9, 165e9, 225e9];
-const HP = KR_HP.map((hp, i) => (i < 3 ? FIRST_HP * ((KR_HP[3] as number) / FIRST_HP) ** (i / 3) : hp) / GEARED);
-const DEF = [117_000, 128_300, 142_000, 175_300, 222_300, 300_000, 380_000, 470_000];
-const ROOM_HP = 1.7;
-const DEALS = [0.2, 0.225, 0.25, 0.275, 0.3, 0.325, 0.35, 0.375];
-/** Its level at each stage, as King's Raid's playtest has its Galgoria raid (CampaignWaveTable, chapter 10). */
+const KR_HP = [14_184_543_765, 19_721_142_351, 26_463_862_400, 37_178_723_386, 49_825_627_800, 71_216_166_313, 86_139_389_687, 158_093_465_948];
+const KR_DEF = [53_269, 57_090, 68_670, 82_450, 116_318, 124_308, 164_065, 261_750];
+const LIFE_DEF = 60_000;
 const LEVEL = [88, 90, 95, 100, 108, 110, 116, 125];
+const KR_PARTY = 7;
+const HP = KR_HP.map((hp) => (hp * HEROES_DEAL * PARTY) / KR_PARTY);
+const DEF = KR_DEF.map((def) => def + LIFE_DEF);
 const scales = (times: number): BossScale[] =>
-  HP.map((hp, i) => ({ hp: (hp / (HP[0] as number)) * times, deals: DEALS[i] as number, defense: (DEF[i] as number) / (DEF[0] as number), level: LEVEL[i] as number }));
+  HP.map((hp, i) => ({
+    hp: (hp / (HP[0] as number)) * times,
+    deals: HEROES_HP * ((KR_ATK[i] as number) / (KR_ATK[0] as number)),
+    defense: (DEF[i] as number) / (DEF[0] as number),
+    level: LEVEL[i] as number,
+  }));
 
 /**
  * Galgoria: a chimera of three heads that spits venom. Its blows are magical. It neither blocks nor dodges, and takes
- * 20% more physical damage (./skills.ts). Its health and defenses are the game's (HP, DEF), and so huge: heroes
- * wear it down only with penetration, and with what cuts its healing (it gives itself back its health all the while:
- * ./skills.ts). How its attacks go is ./attacks.ts, and what its skills do ./skills.ts; what is drawn for them is
+ * 20% more physical damage (./skills.ts). Its health and defenses are the playtest's (HP, DEF), so heroes wear it down
+ * best with penetration, and with what cuts its healing (it gives itself back its health all the while: ./skills.ts).
+ * How its attacks go is ./attacks.ts, and what its skills do ./skills.ts; what is drawn for them is
  * ../../../bosses/galgoria/fx.ts, and its body ../../../bosses/galgoria/model.ts.
  * No stun holds it: stuns wear its CC Gauge down instead (../gauge.ts), the shorter for its CC resist (accuracy tells),
  * and empty, it is Down a while. Its blows see past 500 points of a hero's defense (the playtest's PiercePower). Now and
- * then a blow of its is a crit (crit resist tells): a first guess, as its CC resist and how hard its blows are (DEALS, and
- * ./attacks.ts).
+ * then a blow of its is a crit (crit resist tells): a first guess, as its CC resist is.
  */
 export const GALGORIA: BossDef = {
   id: 'galgoria',
   name: 'Galgoria',
   stats: { hp: HP[0] as number, deals: 'magical', physical: DEF[0] as number, magical: DEF[0] as number, block: NONE, dodge: NONE, crit: 100, resist: 150, pen: 500 },
-  stages: { room: scales(1), solo: scales(1 / ROOM_HP) },
+  stages: { room: scales(1), solo: scales(KR_PARTY / PARTY) },
   attacks: ATTACKS,
   plans: PLANS,
   moves: MOVES,

@@ -4,6 +4,7 @@ import type { Buff } from '../../shown';
 import type { Fight, Fighter } from '../../types';
 import type { BossPart, BossScale } from '../boss';
 import { DRAGON_GAUGE, withGauge } from '../gauge';
+import { HEROES_DEAL, HEROES_HP, PARTY } from '../playtest';
 
 /*
  * What every dragon has, as King's Raid's Dragon Raid has it:
@@ -12,45 +13,41 @@ import { DRAGON_GAUGE, withGauge } from '../gauge';
  *   breath among it), and its gauge is full again as it gets up. "Trying to deplete the CC gauge before a dragon uses a
  *   powerful skill is the common strategy for all dragons" (the game's own tip).
  * - Its penetration, 400 points of every hero's defense (the playtest's PiercePower).
- * - Its stages, King's Raid's Hard Dragon Raid's (KR_HP, KR_DEF, KR_ATK): the Dragon Raid is the raid heroes farm (for
- *   gear, essences and points), so it is easier than the TechnoMagic Raid's bosses.
+ * - Its stages, King's Raid's playtest's Hard Dragon Raid's (KR_HP, KR_DEF, KR_ATK, KR_LEVEL).
  * And what its skills share: the heroes it can reach, a blow on each, what stacks on them for a while, and what eats at
  * them every second (a burn, poison).
  */
 
 /*
- * Its stages (1 to 10) are King's Raid's Hard Dragon Raid's (its game data: MonsterTierTable, by CampaignWaveTable's
- * chapters 911 to 914), where all four dragons are the same: KR_DEF is their defense as it is, KR_LEVEL their level; KR_ATK is their ATK, of
- * which how hard its blows are at each stage is (DEALS times stage 1's); and KR_HP is their health, of which its health
- * is (HP times). The game's own health is far less than its TechnoMagic Raid's (Galgoria's 20 billion), so HP is what
- * test fights found to make it the easier raid: 8 heroes on Auto in the usual King's Raid gear (UW R5, ATK potentials)
- * beat it in about 30 seconds at stages 1 to 5 and 2 to 2½ minutes at stage 10, where Galgoria takes them over 3 minutes
- * at stage 1. Fought with more than one player; alone, ROOM_HP times less health.
+ * Its stages (1 to 10) are King's Raid's playtest's Hard Dragon Raid's (chapters 911 to 914), as the game builds its dragons:
+ * each its creature's stats at the stage's level, times its MonsterTierTable entry (KR-extracted/scripts/boss-stats.mjs). All
+ * four are alike, but Temeraire's ATK (KR_ATK × FIRE_ATK) and that the higher of Temeraire's and Scalaxia's DEF (P.DEF and
+ * M.DEF) is HIGH_DEF times the other. Its health is the game's for its party of KR_PARTY, as much less as the heroes here deal
+ * (../playtest.ts) and as much more as there are of them; how hard it hits, the game's (its skills' shares of KR_ATK: ./moves.ts),
+ * as much less as the heroes here have less health. Alone (7 heroes), its health is as much less again.
  */
-const KR_HP = [9_262_000, 9_262_000, 9_262_000, 9_262_000, 9_262_000, 9_872_000, 12_390_000, 13_120_000, 15_930_000, 21_130_000];
-const KR_DEF = [79_200, 79_200, 79_200, 79_200, 79_200, 93_600, 115_200, 151_200, 183_600, 259_200];
-const KR_ATK = [809_600, 809_600, 809_600, 809_600, 809_600, 1_060_800, 1_280_000, 2_083_200, 2_529_600, 3_801_600];
+const KR_HP = [931_159_153, 1_120_206_503, 1_347_633_837, 1_950_395_922, 3_900_791_843, 4_560_670_244, 5_725_394_959, 7_635_313_815, 9_271_452_032, 15_491_771_741];
+export const KR_ATK = [1_898_512, 2_284_691, 2_748_592, 3_977_565, 7_955_939, 11_434_363, 13_797_120, 28_289_856, 34_351_968, 65_045_376];
+const KR_DEF = [92_822, 111_751, 134_402, 194_515, 389_110, 504_410, 620_813, 1_026_648, 1_246_644, 2_217_456];
 const KR_LEVEL = [77, 81, 85, 93, 108, 110, 110, 115, 115, 120];
-const HP = 12.5;
-const DEALS = 1.4;
-const ROOM_HP = 1.7;
+export const FIRE_ATK = 1_763_309 / 1_898_512;
+const HIGH_DEF = 132_660 / 92_822;
+const KR_PARTY = 9;
+const SOLO = 7;
 
-/** A dragon's health and defense at stage 1, for its stats. */
-export const FIRST = { hp: (KR_HP[0] as number) * HP, def: KR_DEF[0] as number };
+/** A dragon's health and defense at stage 1, for its stats: its lower defense, and its higher. */
+export const FIRST = { hp: ((KR_HP[0] as number) * HEROES_DEAL * PARTY) / KR_PARTY, def: KR_DEF[0] as number, high: (KR_DEF[0] as number) * HIGH_DEF };
 
-/**
- * A dragon's stages, fought with others and alone: so many times as hard its blows, and so many times its health, as the
- * rest's (`own`: how it stood the test fights, with King's Raid's playtest's rules, beside what they were before).
- */
-export function dragonStages(own: { deals?: number; hp?: number } = {}): { room: BossScale[]; solo: BossScale[] } {
+/** A dragon's stages, fought with others and alone (`atk`: its ATK, of the others'). */
+export function dragonStages({ atk = 1 }: { atk?: number } = {}): { room: BossScale[]; solo: BossScale[] } {
   const scales = (times: number): BossScale[] =>
     KR_HP.map((hp, i) => ({
-      hp: (hp / (KR_HP[0] as number)) * times * (own.hp ?? 1),
-      deals: DEALS * (own.deals ?? 1) * ((KR_ATK[i] as number) / (KR_ATK[0] as number)),
+      hp: (hp / (KR_HP[0] as number)) * times,
+      deals: HEROES_HP * atk * ((KR_ATK[i] as number) / (KR_ATK[0] as number)),
       defense: (KR_DEF[i] as number) / (KR_DEF[0] as number),
       level: KR_LEVEL[i] as number,
     }));
-  return { room: scales(1), solo: scales(1 / ROOM_HP) };
+  return { room: scales(1), solo: scales(SOLO / PARTY) };
 }
 
 /** Neither blocks nor dodges, of either kind; and sees past 400 points of a hero's defense. */
