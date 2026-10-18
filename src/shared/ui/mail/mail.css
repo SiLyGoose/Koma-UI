@@ -134,10 +134,9 @@
   font-weight: 600;
 }
 
-/* What it carries: a row each. */
+/* What it carries: a tile each, all in one row (sharing it evenly; a long one's words wrap): its picture over what it is. */
 .mail-attachments {
   display: flex;
-  flex-direction: column;
   gap: 8px;
   margin: 0 0 12px;
   padding: 0;
@@ -146,29 +145,52 @@
 
 .mail-attachment {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 8px 6px;
+  border: 1px solid var(--line, #444);
+  border-radius: 10px;
+  background: rgb(255 255 255 / 4%);
+  text-align: center;
+}
+
+/* A ticket with its pick beside it: twice the room. */
+.mail-attachment:has(.mail-picked-pic) {
+  flex-grow: 2;
+}
+
+.mail-attachment-pics {
+  display: flex;
   gap: 6px;
   align-items: center;
 }
 
-.mail-attachment > img {
-  width: 28px;
-  height: 28px;
+.mail-reward-pic {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
 }
 
-/* What a ticket was picked as, to its right. */
-.mail-picked {
-  display: inline-flex;
-  gap: 6px;
-  align-items: center;
-  margin-left: 6px;
-  color: var(--picked, #e0b84a);
-  font-weight: 600;
+.mail-attachment-text {
+  font-size: 13px;
+  line-height: 1.25;
+  overflow-wrap: break-word;
 }
 
+/* What a ticket was picked as: its picture to the ticket's right, its name under them. */
 .mail-picked-arrow {
   color: var(--muted, #aaa);
-  font-weight: 400;
+}
+
+.mail-picked-name {
+  color: var(--picked, #e0b84a);
+  overflow-wrap: break-word;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.25;
 }
 
 .mail-picked-pic,
@@ -183,8 +205,8 @@
 }
 
 .mail-picked-pic {
-  width: 32px;
-  height: 32px;
+  width: 52px;
+  height: 52px;
 }
 
 .mail-picked-pic img,
@@ -281,12 +303,6 @@
 
 .mail-popup-search {
   flex: none;
-  padding: 7px 10px;
-  border: 1px solid var(--line, #444);
-  border-radius: 8px;
-  background: rgb(0 0 0 / 30%);
-  color: inherit;
-  font: inherit;
 }
 
 .mail-popup-list {
@@ -499,5 +515,121 @@
   .mail-popup-detail {
     gap: 6px;
     padding: 10px;
+  }
+}
+
+/*
+ * The mailbox's and a ticket popup's scrollbars, like the armory sheet's (../../items/styles/armory.css): a rounded pill in
+ * a colour of what it's on, no track, no arrows. Chrome and Safari draw it from the ::-webkit-scrollbar parts; they would
+ * ignore those if the standard properties were set too, so those are only for Firefox, which has no such parts.
+ */
+.mailbox,
+.mail-popup-list,
+.mail-popup-detail {
+  --pill: var(--line, #444);
+  --pill-hover: var(--dusk, #666);
+}
+
+.mail-popup-list {
+  --pill: #3b5378;
+  --pill-hover: #557099;
+}
+
+.mail-popup-detail {
+  --pill: var(--parchment-edge, #cbb98f);
+  --pill-hover: #9c8c66;
+}
+
+.mailbox::-webkit-scrollbar,
+.mail-popup-list::-webkit-scrollbar,
+.mail-popup-detail::-webkit-scrollbar {
+  width: 14px;
+}
+
+.mailbox::-webkit-scrollbar-track,
+.mailbox::-webkit-scrollbar-corner,
+.mail-popup-list::-webkit-scrollbar-track,
+.mail-popup-list::-webkit-scrollbar-corner,
+.mail-popup-detail::-webkit-scrollbar-track,
+.mail-popup-detail::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+.mailbox::-webkit-scrollbar-track,
+.mail-popup-detail::-webkit-scrollbar-track {
+  margin-block: 10px;
+}
+
+.mailbox::-webkit-scrollbar-button,
+.mail-popup-list::-webkit-scrollbar-button,
+.mail-popup-detail::-webkit-scrollbar-button {
+  display: none;
+}
+
+.mailbox::-webkit-scrollbar-thumb,
+.mail-popup-list::-webkit-scrollbar-thumb,
+.mail-popup-detail::-webkit-scrollbar-thumb {
+  min-height: 48px;
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: var(--pill) padding-box;
+}
+
+.mailbox::-webkit-scrollbar-thumb:hover,
+.mail-popup-list::-webkit-scrollbar-thumb:hover,
+.mail-popup-detail::-webkit-scrollbar-thumb:hover {
+  background-color: var(--pill-hover);
+}
+
+@supports not selector(::-webkit-scrollbar) {
+  .mailbox,
+  .mail-popup-list,
+  .mail-popup-detail {
+    scrollbar-width: thin;
+    scrollbar-color: var(--pill) transparent;
+  }
+}
+
+/*
+ * A phone: the tiles' pictures smaller, to fit a ticket's and its pick's side by side; and what doesn't fit one row (tickets
+ * with their picks beside them) onto the next.
+ */
+@media (width <= 600px) {
+  .mail-attachments {
+    flex-wrap: wrap;
+  }
+
+  .mail-attachment {
+    flex: 1 1 64px;
+  }
+
+  .mail-attachment:has(.mail-picked-pic) {
+    flex: 2 1 120px;
+  }
+
+  .mail-reward-pic,
+  .mail-picked-pic {
+    width: 36px;
+    height: 36px;
+  }
+
+  .mail-attachment-pics {
+    gap: 2px;
+  }
+
+  .mail-attachments {
+    gap: 6px;
+  }
+
+  .mail-attachment {
+    padding: 6px 4px;
+  }
+
+  .mail-attachment-text {
+    font-size: 11px;
+  }
+
+  .mail-picked-name {
+    font-size: 10px;
   }
 }

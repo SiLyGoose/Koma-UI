@@ -1,5 +1,6 @@
 import './mail.css';
-import type { MailboxView, MailClaimed, MailHero, MailPickItem, MailTicketItem, MailTickets, MailView } from '../../../protocol/mail';
+import type { MailAttachmentView, MailboxView, MailClaimed, MailHero, MailPickItem, MailTicketItem, MailTickets, MailView } from '../../../protocol/mail';
+import { coin } from '../../util/coin';
 
 /*
  * The mailbox, in the site header: a mail icon beside the profile button, with how many mails are unread on it (none: no
@@ -66,11 +67,18 @@ function picture(item: MailPickItem, className: string, lazy = false): HTMLEleme
   return box;
 }
 
-/** What a ticket was picked as, beside it: an arrow, and its item's picture and name. */
-function pickedBeside(item: MailPickItem): HTMLElement {
-  const box = el('span', 'mail-picked');
-  box.append(el('span', 'mail-picked-arrow', '→'), picture(item, 'mail-picked-pic'), el('span', 'mail-picked-name', item.name));
-  return box;
+/** The bot's komaGems and komaTokens emoji (its constants/core.ts GEM_EMOJI, TOKEN_EMOJI), by their Discord ids. */
+const EMOJI = { gems: '1551635240210927736', tokens: '1552921364489572362' } as const;
+
+/** What a mail carries' picture: King's Raid's icon (a ticket, a rune), or a currency's emoji (zeiucoins: the site's coin). Null: none. */
+function rewardPicture(one: MailAttachmentView): HTMLElement | null {
+  if (one.currency === 'points') return coin('mail-reward-pic');
+  const img = el('img', 'mail-reward-pic');
+  img.alt = '';
+  if (one.currency) img.src = `https://cdn.discordapp.com/emojis/${EMOJI[one.currency]}.webp?size=96`;
+  else if (one.icon) img.src = `/kr/items/${one.icon}.webp`;
+  else return null;
+  return img;
 }
 
 const ENVELOPE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 5h18a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Zm1 2.4V17h16V7.4l-8 5.3-8-5.3ZM5.2 7 12 11.5 18.8 7H5.2Z"/></svg>';
@@ -209,8 +217,10 @@ export function mailButton(mount: HTMLElement, host: MailHost): { refresh: () =>
 
     // The left: every item, a row each.
     const side = el('div', 'mail-popup-side');
-    const search = el('input', 'mail-popup-search');
+    // (The armory's search field.)
+    const search = el('input', 'armory-search mail-popup-search');
     search.type = 'search';
+    search.autocomplete = 'off';
     search.placeholder = 'Search heroes or items';
     search.setAttribute('aria-label', 'Search heroes or items');
     const list = el('ul', 'mail-popup-list');
@@ -328,19 +338,18 @@ export function mailButton(mount: HTMLElement, host: MailHost): { refresh: () =>
       item.append(top, message);
       if (mail.attachments.length > 0) {
         const things = el('ul', 'mail-attachments');
+        // A tile each, in a row: its picture over what it is.
         for (const [index, one] of mail.attachments.entries()) {
-          const row = el('li', 'mail-attachment');
-          if (one.icon) {
-            const icon = el('img');
-            icon.src = `/kr/items/${one.icon}.webp`;
-            icon.alt = '';
-            row.append(icon);
-          }
-          row.append(el('span', '', one.text));
-          // A ticket's pick, beside it (claimed, or picked in its popup just now).
+          const tile = el('li', 'mail-attachment');
+          const pictures = el('div', 'mail-attachment-pics');
+          const art = rewardPicture(one);
+          if (art) pictures.append(art);
+          // A ticket's pick, to its right (claimed, or picked in its popup just now), and its name under it.
           const picked = one.picked ?? picking.get(mail.id)?.get(index);
-          if (picked) row.append(pickedBeside(picked));
-          things.append(row);
+          if (picked) pictures.append(el('span', 'mail-picked-arrow', '→'), picture(picked, 'mail-picked-pic'));
+          tile.append(pictures, el('span', 'mail-attachment-text', one.text));
+          if (picked) tile.append(el('span', 'mail-picked-name', picked.name));
+          things.append(tile);
         }
         item.append(things);
         if (mail.claimed) item.append(el('p', 'mail-claimed', 'Claimed'));

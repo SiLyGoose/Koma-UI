@@ -538,6 +538,27 @@ canvas {
   letter-spacing: 0.02em;
 }
 
+/*
+ * A search field: the armory's (searching the cards by name or description), and a mailbox ticket popup's (ui/mail/). Here, not
+ * with the armory's styles (items/styles/armory.css), since the mailbox is on every page.
+ */
+.armory-search {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-2);
+  color: var(--text);
+  font-size: 14px;
+}
+
+.armory-search:focus {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+
 /* Scrolls as usual (wheel, drag, touch, keys), with the scrollbar hidden. */
 .no-scrollbar {
   scrollbar-width: none;
