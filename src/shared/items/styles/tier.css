@@ -35,13 +35,13 @@
   --mark: var(--star-4);
 }
 
-/* On a card or a slot: in its top right corner (where its refinement was), sized by the card. */
+/* On a card or a slot: in its top left corner (the top right is a class item's badge, in the databank), sized by the card. */
 .item > .tier-mark,
 .slot-frame > .tier-mark {
   position: absolute;
   z-index: 2;
   top: 4%;
-  right: 5%;
+  left: 5%;
   font-size: clamp(8px, 15cqi, 12px);
 }
 

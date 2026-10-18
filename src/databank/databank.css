@@ -431,11 +431,11 @@
 
 /* ------------------------------------------------------------------ class items */
 
-/* A class item's badge (class-tag.ts), in its card's top left corner (the top right is how many they own). */
+/* A class item's badge (class-tag.ts), in its card's top right corner (the top left is its tier). */
 .db-class-badge {
   position: absolute;
   top: 3px;
-  left: 3px;
+  right: 3px;
   z-index: 2;
   display: block;
   width: 22px;
@@ -468,4 +468,9 @@
 
 .db-class-tag img {
   width: 22px;
+}
+
+/* How many they own (top right) under a class item's badge, not over it. */
+.db-item:has(> .db-class-badge) > .item-level {
+  top: 28px;
 }

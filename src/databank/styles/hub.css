@@ -269,3 +269,25 @@
     transform: none;
   }
 }
+
+/* Going between the way in and the items' way in: the marks fade out, and the other's fade (and rise a little) in. */
+.db-nodes.fade-out {
+  opacity: 0;
+  transition: opacity 0.16s ease-in;
+}
+
+.db-nodes.fade-in {
+  animation: db-nodes-in 0.28s ease-out;
+}
+
+@keyframes db-nodes-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

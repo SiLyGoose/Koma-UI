@@ -2,7 +2,7 @@ import markup from './databank.html?raw';
 import { API } from '../shared/ui';
 import type { Page } from '../site/page';
 import { prefetchFor } from '../site/session';
-import { bossById, classById, createContext, heroById, itemById, kindOf, raidBossById, status, type DatabankContext, type View } from './context';
+import { bossById, classById, createContext, heroById, itemById, itemsOfKind, kindOf, raidBossById, status, type DatabankContext, type View } from './context';
 import { wireControls } from './controls';
 import { loadDatabank } from './load';
 import { loadMember } from './owned';
@@ -41,16 +41,42 @@ export const databankPage: Page = {
 
 const PATHS: Record<View, string> = { hub: '/databank/', itemKinds: '/databank/items/', items: '/databank/items/player/', bosses: '/databank/enemies/', classes: '/databank/classes/', heroes: '/databank/heroes/' };
 
+/** How long the way in's marks take to fade out, going between the way in and the items' way in (./styles/hub.css's fade). */
+const FADE_MS = 160;
+
+/** Whether a path is one of the two star charts: the way in, or the items' way in. */
+const chartAt = (path: string): boolean => ['/databank', '/databank/items'].includes(path.replace(/\/+$/, ''));
+
 function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void; navigate: (url: URL) => void } {
   const ctx = createContext(root);
   const unwire = wireControls(ctx);
+  let going = 0;
+  const show = (url: URL): void => {
+    place(ctx, url);
+    render(ctx);
+    window.scrollTo(0, 0);
+  };
   return {
     drawn: start(ctx),
     unmount: unwire,
     navigate: (url) => {
-      place(ctx, url);
-      render(ctx);
-      window.scrollTo(0, 0);
+      const mine = ++going;
+      const nodes = ctx.ui.nodes;
+      // From one star chart to the other (the way in, the items' way in): its marks fade out, then the other's fade in.
+      if ((ctx.view === 'hub' || ctx.view === 'itemKinds') && chartAt(url.pathname) && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        nodes.classList.remove('fade-in');
+        nodes.classList.add('fade-out');
+        window.setTimeout(() => {
+          // (Another place asked for meanwhile: that one's.)
+          if (mine !== going) return;
+          show(url);
+          nodes.classList.remove('fade-out');
+          nodes.classList.add('fade-in');
+        }, FADE_MS);
+        return;
+      }
+      nodes.classList.remove('fade-out', 'fade-in');
+      show(url);
     },
   };
 }
@@ -92,6 +118,10 @@ function place(ctx: DatabankContext, url: URL): void {
   }
   ctx.view = view;
   if (view === 'items' && item) ctx.picked = item.id;
+  // A list's panel on one of its own items (it was on the other kind's: its first).
+  else if (view === 'items' && (!itemById(ctx, ctx.picked) || kindOf(itemById(ctx, ctx.picked) as NonNullable<ReturnType<typeof itemById>>) !== ctx.itemKind)) {
+    ctx.picked = itemsOfKind(ctx, ctx.itemKind)[0]?.id ?? null;
+  }
   if (view === 'bosses' && boss) ctx.boss = boss.id;
   if (view === 'classes') ctx.cls = classById(ctx, wanted)?.id ?? ctx.cls;
   if (view === 'heroes') ctx.hero = heroById(wanted)?.id ?? ctx.hero;
