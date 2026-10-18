@@ -5,4 +5,40 @@ export const TEMERAIRE_ASSETS: BossAssets = {
   name: 'Temeraire',
   folder: 'bosses/temeraire',
   models: ['Raid_Dragon_Fire_Vari01_Mesh'],
+  // The music the Dragon Raid plays (BattleBGM.RaidBGM): it ends where it begins, so it goes round again from its end.
+  music: { file: 'RaidBGM.mp3', loop: 64.762 },
+  // King's Raid's sounds (its BeginFireSkill.<skill>, Hit.Raid.Dragon.Fire.*, Damage and Dead ones): as each of its attacks begins
+  // (cut to how long the attack takes here), as its blows land on a hero, as it is knocked down, and as it falls.
+  sounds: {
+    uses: {
+      bite: [{ clip: 'Attack-Woosh-14', volume: 2.2, at: 0.94 }, { clip: 'Raid_Dragon_02', volume: 2.5, at: 1.06, own: true }, { clip: 'FX-Dragon-Landing-01', volume: 1.8, at: 1.12 }],
+      claw: [{ clip: 'Attack-Woosh-14', volume: 2.2, at: 1.21 }, { clip: 'Raid_Dragon_03', volume: 2.6, at: 1.22, own: true }],
+      sweep: [{ clip: 'Raid_Dragon_01', volume: 2.6, at: 0.15, own: true }, { clip: 'Attack-Woosh-14', volume: 2.2, at: 1.9 }, { clip: 'Attack-Magic-39', volume: 2.2, at: 1.94 }, { clip: 'Attack-Casting-32', volume: 1.6, at: 1.98 }, { clip: 'FX-Dragon-Landing-01', volume: 1.9, at: 2.03 }],
+      breath: [{ clip: 'Raid_Dragon_06', volume: 2.5, own: true }, { clip: 'Attack-Casting-32', volume: 1.2, at: 0.06 }, { clip: 'Attack-Casting-18', volume: 1.2, at: 0.08 }, { clip: 'Raid_Dragon_07', volume: 2.5, at: 1.99, own: true }, { clip: 'Attack-Magic-40', volume: 2.2, at: 2.16 }],
+      blessing: [{ clip: 'Raid_Dragon_03', volume: 2.6, at: 0.18, own: true }, { clip: 'Raid_Dragon_02', volume: 2.6, at: 1.42, own: true }],
+      eruption: [{ clip: 'FX-Dragon-Wing-01', volume: 2 }, { clip: 'Raid_Dragon_03', volume: 2.6, at: 0.8, own: true }, { clip: 'FX-Dragon-Wing-01', volume: 2, at: 1.16 }, { clip: 'FX-Dragon-Wing-02', volume: 2, at: 2.38 }],
+    },
+    hits: {
+      bite: [{ clip: 'Attack-Damage-28', volume: 2 }],
+      claw: [{ clip: 'Attack-Damage-28', volume: 2 }],
+      sweep: [{ clip: 'Attack-Damage-09', volume: 2.7 }],
+      breath: [{ clip: 'Attack-Damage-09', volume: 2.7 }],
+      blessing: [{ clip: 'Attack-Damage-09', volume: 2.7 }],
+      eruption: [{ clip: 'Attack-Damage-09', volume: 2.7 }],
+    },
+    down: [{ clip: 'Raid_Dragon_04', volume: 2.6, own: true }],
+    dead: [{ clip: 'Raid_Dragon_05', volume: 2.6, own: true }, { clip: 'FX-Dragon-Landing-01', volume: 1.6, at: 2.8 }],
+  },
+  // King's Raid's own effects for it (KR-extracted/scripts/tm-boss-vfx.mjs): each attack's, as it begins and as its blows land on a hero.
+  vfx: {
+    attacks: {
+      bite: { start: ['Skill.Raid.Dragon.Fire.Attack01'] },
+      claw: { start: ['Skill.Raid.Dragon.Fire.Attack02'] },
+      sweep: { start: ['Skill.Raid.Dragon.Fire.Skill1.Casting'] },
+      breath: { start: ['Skill.Raid.Dragon.Fire.Skill2.Casting', 'Skill.Raid.Dragon.Fire.Skill2.Shot'] },
+      blessing: { start: ['Skill.Raid.Dragon.Fire.Skill3.Casting'], hit: ['Skill.Raid.Dragon.Fire.Skill3.Hit'] },
+      eruption: { start: ['Skill.Raid.Dragon.Fire.Skill4.Casting'], hit: ['Skill.Raid.Dragon.Fire.Skill4.Hit'] },
+    },
+    advent: ['Skill.Raid.Dragon.Fire.Encounter'],
+  },
 };

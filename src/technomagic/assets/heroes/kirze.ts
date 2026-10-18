@@ -1,11 +1,22 @@
-import type { HeroAssets, RiggedModel } from '../types.ts';
+import type { HeroAssets, KrAnimations } from '../types.ts';
 
 const FOLDER = 'heroes/kirze';
-const GLORY = 'Kirze_Cos20GloryLeague';
-const RUN = 'Kirze_Cos20GloryLeague - Standing Run Forward.fbx';
 
-/** Her Glory League rig's run, borrowed whole: how a hero with no run of its own runs in (../../heroes/load.ts). */
-export const KIRZE_RUN = { kind: 'rigged', folder: GLORY, of: FOLDER, run: RUN } as const satisfies RiggedModel;
+/**
+ * King's Raid's own animations (its skins of the game's files are moved by them: ../../heroes/body/kr.ts): its basic attack's
+ * chain, and each skill's clips, with when its blows land in them as the game's timelines have them (KR-extracted/scripts/tm-anims.mjs).
+ */
+const ANIMATIONS = {
+  idle: 'Idle',
+  run: 'Run',
+  hurt: 'Damage',
+  attack: [{ clips: ['Attack1-1'], hits: [0.3, 0.5] }, { clips: ['Attack1-2'], hits: [0.4, 1] }, { clips: ['Attack1-3'], hits: [0.7] }],
+  skills: {
+    judgment: { clips: ['Skill1'], hits: [1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 2.4] },
+    haze: { clips: ['Skill2'], hits: [1.2] },
+    flower: { clips: ['Skill3'], hits: [1.9] },
+  },
+} as const satisfies KrAnimations;
 
 export const KIRZE_ASSETS: HeroAssets = {
   name: 'Kirze',
@@ -13,6 +24,29 @@ export const KIRZE_ASSETS: HeroAssets = {
   skills: { from: 'https://kingsraid.shodyra.com/static/images/79/', files: ['s1.png', 's2.png', 's3.png', 's4.png'] },
   // Her unique weapon, wielded: Elicipira.
   unique: { Hero_Kirze_Vari05_Weapon: 'Hero_Kirze_Unique01_Weapon' },
+  // King's Raid's sounds (its Hit.Hero.Kirze.* and BeginFireSkill.<skill> ones): as each blow of a move lands, a move's n-th part
+  // playing its n-th (round again past the last); and as each skill begins.
+  sounds: {
+    hits: {
+      attack: [[{ clip: 'Hit_sword_04', volume: 1.5 }], [{ clip: 'Hit_sword_01', volume: 1.5 }], [{ clip: 'Hit_dmg_01', volume: 1.8 }]],
+      judgment: [[{ clip: 'Hit_common_03', volume: 1.5 }]],
+      haze: [[{ clip: 'Hit_shield_02', volume: 1.5 }]],
+      flower: [[{ clip: 'Dmg-Fire-01', volume: 1.5 }]],
+    },
+    casts: {
+      judgment: [{ clip: 'Kirze-Vox_Skill3_b', volume: 2.2, own: true }, { clip: 'Attack-Casting-10', volume: 1.5, at: 0.13 }, { clip: 'Attack-Magic-41', volume: 1.2, at: 0.46 }, { clip: 'FX-Sword-03', volume: 1.1, at: 0.52 }, { clip: 'Attack-Jump-01', volume: 1.6, at: 1.01 }, { clip: 'Attack-Spin-08', volume: 1.5, at: 1.11 }, { clip: 'Attack-Magic-81', volume: 1.2, at: 1.29 }, { clip: 'Kirze-Vox_Landing', volume: 2.2, at: 2.28, own: true }, { clip: 'Attack-Magic-46', volume: 1.4, at: 2.31 }, { clip: 'Attack-Cut-04', volume: 1.1, at: 2.32 }],
+      haze: [{ clip: 'Attack-Casting-14', volume: 1.2 }, { clip: 'Attack-Casting-37', volume: 1.2 }, { clip: 'Kirze-Vox_Skill5_b', volume: 2.2, own: true }, { clip: 'Attack-Magic-57', volume: 1.4, at: 0.94 }, { clip: 'Attack-Magic-68', volume: 1.4, at: 1.04 }],
+      flower: [{ clip: 'Attack-Casting-05', volume: 1.2 }, { clip: 'Kirze-Vox_Skill4', volume: 2.2, own: true }, { clip: 'Attack-Casting-03', volume: 1.2, at: 0.39 }, { clip: 'Attack-Magic-22', volume: 1.4, at: 0.7 }, { clip: 'Attack-Magic-31', volume: 1.3, at: 1.09 }, { clip: 'Attack-Magic-36', volume: 1.2, at: 1.44 }, { clip: 'Attack-Magic-34', volume: 1.6, at: 1.69 }, { clip: 'Attack-Magic-39', volume: 1.2, at: 2.34 }, { clip: 'Kirze-Vox_Landing', volume: 2.2, at: 2.44, own: true }, { clip: 'Attack-Magic-34', volume: 1.6, at: 2.49 }],
+    },
+  },
+  // King's Raid's own effects for its moves (../../fx/kr-effects.ts): as each begins, on it, and as each of its blows lands, where it
+  // lands (KR-extracted/scripts/tm-vfx.mjs).
+  vfx: {
+    attack: { start: ['Skill.Hero.Kirze.Attack1.Casting1', 'Skill.Hero.Kirze.Attack1.Casting2', 'Skill.Hero.Kirze.Attack1.Casting3'], land: ['Skill.Hero.Kirze.Attack1.Hit'] },
+    judgment: { start: ['Skill.Hero.Kirze.Skill1.Casting'] },
+    haze: { start: ['Skill.Hero.Kirze.Skill2.Casting'], land: ['Skill.Hero.Kirze.Skill2.HitLoop03', 'Skill.Hero.Kirze.Skill2.HitLoop02', 'Skill.Hero.Kirze.Skill2.HitLoop01.Hit', 'Skill.Hero.Kirze.Skill2.Hit', 'Skill.Hero.Kirze.Skill2.HitLoop01'] },
+    flower: { start: ['Skill.Hero.Kirze.Skill3.Casting2', 'Skill.Hero.Kirze.Skill3.Casting1', 'Skill.Hero.Kirze.Skill3.Loop'], land: ['Skill.Hero.Kirze.Skill3.Hit'] },
+  },
   skins: [
     {
       name: 'Kirze',
@@ -20,28 +54,23 @@ export const KIRZE_ASSETS: HeroAssets = {
       portrait: { file: 'Kirze.png', crop: { x: 805, y: 4, size: 170 }, head: { x: 808, y: 62, size: 125 } },
       model: {
         kind: 'parts',
+        animations: ANIMATIONS,
         parts: ['Hero_Kirze_Vari05_Body', 'Hero_Kirze_Vari05_Hair', 'Hero_Kirze_Vari05_Arms_Mesh'],
         // Her two blades joined as one, in her right hand (they also come apart: Hero_Kirze_Vari05_Weapon_L and _R, one for each hand).
         right: 'Hero_Kirze_Vari05_Weapon',
-        movedBy: 'Kirze_Glory',
       },
     },
-    // Rigged by Mixamo, then finished with the game's own skin weights, its tail, hair and skirt bones, and its weapon.
+    // Her Glory League costume, the game's own model of it: moved as she is.
     {
       name: 'Kirze_Glory',
       portrait: { file: 'Kirze_Glory.png', crop: { x: 356, y: 112, size: 135 }, head: { x: 362, y: 140, size: 85 } },
       model: {
-        kind: 'rigged',
-        folder: GLORY,
-        idle: 'Kirze_Cos20GloryLeague - Ninja Idle.fbx',
-        run: RUN,
-        // One cut inward where it stands, then three as it walks forward. A blow lands a little after its blade is
-        // moving fastest (1.17 s into the first; 0.63, 1.2 and 2.43 s into the second): as the swing comes through.
-        attack: [
-          { file: 'Kirze_Cos20GloryLeague - Stable Sword Inward Slash.fbx' },
-          { file: 'Kirze_Cos20GloryLeague - Sword And Shield Slash.fbx' },
-        ],
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Kirze_Cos20GloryLeague_Body', 'Hero_Kirze_Cos20GloryLeague_Hair'],
+        right: 'Hero_Kirze_Cos20GloryLeague_Weapon',
       },
     },
+
   ],
 };

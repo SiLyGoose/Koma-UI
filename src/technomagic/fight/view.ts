@@ -2,21 +2,38 @@ import { Vector3, type Material, type Object3D, type Scene } from 'three';
 import type { Boss, BossLook } from '../bosses/boss';
 import { isMesh } from '../engine/models';
 import type { Effects } from '../fx/effects';
+import type { EffectName } from '../assets';
+import type { KrEffects } from '../fx/kr-effects';
 import type { Magic } from '../fx/magic';
 import type { Props } from '../fx/props';
 import { makeSigns } from '../fx/signs';
 import { makeWards, type Emblem } from '../fx/wards';
-import { FALL, type Hero } from '../heroes/body/hero';
+import { FALL, SCALE, type Hero } from '../heroes/body/hero';
 import { HERO_FX } from '../heroes/fx';
 import { lookOf } from '../heroes/looks';
 import type { Popup } from '../hud/numbers';
 import { HERO_TURN, HERO_X, MARCH, MARCH_FROM, marchLeft, TICK, type Sim } from '../sim';
 import { COMMON_FX, type BossFx, type FxScene } from './fx';
+import { makeKrBoss, makeKrMoves } from './kr-moves';
+import { makeFightSounds } from './sounds';
+
+/** The game's own sign for each of the page's (../fx/signs.ts), and how big the boss's are drawn. */
+const KR_SIGNS: Partial<Record<EffectName, string>> = {
+  guard: 'Common.DefenseUp',
+  ward: 'Common.DefenseMagicUp',
+  haste: 'Common.SpeedUp',
+  heal: 'Common.HealBig',
+  weaken: 'Common.DefenseDown',
+  slow: 'Common.SpeedDown',
+  stun: 'Common.Stun',
+};
+const BOSS_SIGN = 3;
 
 /*
  * The fight as it is drawn: the boss's body and each hero's on the field, doing what the sim (../sim/) says
  * they do, and what is drawn for each blow and skill (./fx.ts, each hero's fx.ts and the boss's), what is kept on a
- * hero while it is guarded (../fx/wards.ts), and the signs of what comes on a fighter (../fx/signs.ts). Nothing
+ * hero while it is guarded (../fx/wards.ts), the signs of what comes on a fighter (../fx/signs.ts), and what is heard:
+ * the heroes' blows and skills, the boss's attacks, and the raid's music (./sounds.ts). Nothing
  * here changes how the fight goes: it is told what happened (the sim's events) and shows it.
  */
 
@@ -69,7 +86,7 @@ export interface FightView {
 }
 
 /** A fight drawn in `scene`: the sim's, its heroes' `bodies` (by their index among its fighters) and the boss's. */
-export function makeFightView({ scene, sim, bodies, boss, bossLook, bossFx, effects, magic, props }: { scene: Scene; sim: Sim; bodies: readonly Hero[]; boss: Boss; bossLook: BossLook; bossFx: BossFx; effects: Effects; magic: Magic; props: Props }): FightView {
+export function makeFightView({ scene, sim, bodies, boss, bossLook, bossFx, effects, kr, magic, props }: { scene: Scene; sim: Sim; bodies: readonly Hero[]; boss: Boss; bossLook: BossLook; bossFx: BossFx; effects: Effects; kr: KrEffects; magic: Magic; props: Props }): FightView {
   const { stands, reach } = bossLook;
   const at = new Vector3();
   const bossHit = new Vector3(...reach.hit).setX(stands.x + reach.hit[0]);
@@ -140,8 +157,26 @@ export function makeFightView({ scene, sim, bodies, boss, bossLook, bossFx, effe
     for (const [status, name] of Object.entries(HERO_FX[fighter.id]?.wards ?? {})) looks.set(status, { hero: lookOf(fighter.id).assets, name });
   /** The skills of the heroes in the fight that put the bubble on a hero as a shield does: by the status's name. */
   const bubbles = new Set(sim.fighters.flatMap((fighter) => HERO_FX[fighter.id]?.bubbles ?? []));
+  /** What is heard: the heroes' blows and skills, the boss's attacks, and the raid's music. */
+  const sounds = makeFightSounds(sim.fighters.map((fighter) => lookOf(fighter.id).assets), bossLook.assets);
+  /** King's Raid's own effects for the heroes' moves. */
+  const krMoves = makeKrMoves(
+    kr,
+    sim.fighters.map((fighter) => lookOf(fighter.id).assets),
+    bodies,
+    bossHit,
+  );
+  const krBoss = makeKrBoss(kr, bossLook.assets, boss.root, bodies);
   const emblems: Emblem[] = [];
-  const signs = makeSigns(effects);
+  // The signs of what comes on a fighter: the game's own (a hero's on it, the boss's where its blows land, bigger).
+  const signs = makeSigns(effects, (who, sign) => {
+    const code = KR_SIGNS[sign];
+    if (!code) return false;
+    if (who < 0) kr.play(code, { at: bossHit, scale: BOSS_SIGN });
+    else kr.play(code, { on: body(who).root, scale: SCALE });
+    return true;
+  });
+  kr.read(Object.values(KR_SIGNS));
   const over = new Vector3();
   /** The heroes doing one of their skills (not their attack); and the hero whose skill's blow landed last (null: the last was no skill's). */
   const skilling = new Set<number>();
@@ -235,10 +270,11 @@ export function makeFightView({ scene, sim, bodies, boss, bossLook, bossFx, effe
           }
           case 'start':
             body(event.who).start(event.move);
+            sounds.start(event.who, event.move, event.skill);
             if (event.skill) skilling.add(event.who);
             else skilling.delete(event.who);
-            // A skill: a ring rises round its feet as it begins.
-            if (event.skill) {
+            // The game's own effects for it; a skill with none: a ring rises round its feet as it begins.
+            if (!krMoves.start(event.who, event.move) && event.skill) {
               body(event.who).place(at).y = 0.05;
               effects.play('cast', at);
             }
@@ -250,13 +286,17 @@ export function makeFightView({ scene, sim, bodies, boss, bossLook, bossFx, effe
             break;
           case 'land':
             skillBlow = skilling.has(event.who) ? event.who : null;
-            (fxOf(event.who)?.lands?.[event.move] ?? COMMON_FX.lands?.[event.move])?.(fx, event.who, event.part);
+            // The game's own effects for it, or what is drawn here for it.
+            if (!krMoves.land(event.who, event.move)) (fxOf(event.who)?.lands?.[event.move] ?? COMMON_FX.lands?.[event.move])?.(fx, event.who, event.part);
+            sounds.land(event.who, event.move, event.part);
             break;
           case 'hurt':
             if (bossSkill > 0) stop('boss');
             // Blocked: a ring round it, and no flinch.
             if (event.blocked) magic.ring(body(event.who).place(at), 0xffe9a8, 7, 0.4);
             else body(event.who).hit();
+            sounds.hurt();
+            krBoss.hurt(event.who);
             break;
           case 'number': {
             const where = event.on === 'boss' ? bossHit.clone().setY(bossHit.y + (event.mend ? 1.4 : 0.6)) : body(event.on).head(new Vector3());
@@ -270,6 +310,8 @@ export function makeFightView({ scene, sim, bodies, boss, bossLook, bossFx, effe
             break;
           case 'boss-use':
             boss.use(event.attack);
+            sounds.use(event.attack);
+            krBoss.use(event.attack);
             if (bossLook.skills?.includes(event.attack)) bossSkill = Math.max(bossSkill, lasts(event.attack));
             break;
           case 'boss-hit':
@@ -278,6 +320,7 @@ export function makeFightView({ scene, sim, bodies, boss, bossLook, bossFx, effe
             break;
           case 'boss-daze':
             boss.daze(event.seconds, event.down);
+            if (event.down) sounds.down();
             signs.dazed(bossHit);
             break;
           case 'boss-slow':
@@ -285,6 +328,7 @@ export function makeFightView({ scene, sim, bodies, boss, bossLook, bossFx, effe
             signs.slowed(bossHit);
             break;
           case 'end':
+            sounds.end(event.result === 'won');
             break;
         }
       }
@@ -341,6 +385,8 @@ export function makeFightView({ scene, sim, bodies, boss, bossLook, bossFx, effe
       wards.update(dt);
       signs.update(dt);
       effects.update(dt);
+      krBoss.update();
+      kr.update(dt);
       magic.update(dt);
       props.update(dt);
     },
@@ -361,6 +407,8 @@ export function makeFightView({ scene, sim, bodies, boss, bossLook, bossFx, effe
       wards.clear();
       signs.clear();
       props.clear();
+      sounds.stop();
+      kr.clear();
     },
   };
 }

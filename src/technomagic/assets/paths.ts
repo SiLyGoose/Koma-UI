@@ -1,15 +1,18 @@
-import type { EffectAssets, HeroAssets, Portrait, RiggedModel } from './types.ts';
+import type { EffectAssets, HeroAssets, Portrait, SoundClip } from './types.ts';
 
 /*
  * Where each file is kept. Under public/kr/ (the models, copied in by scripts/kr-assets.mjs), by whose it is:
  *
- *   heroes/<hero>/models/<model>/     a model's .fbx and its textures (a rigged skin's: its animations)
+ *   heroes/<hero>/models/<model>/     a model's .fbx and its textures
  *   heroes/<hero>/skills/             the pictures on its skills
  *   heroes/<hero>/portraits/          its skins' pictures, the ones fetched
  *   bosses/<boss>/models/<model>/
  *   effects/<effect>/
+ *   heroes/<hero>/sounds/, bosses/<boss>/sounds/   its own sounds (its voice)
+ *   heroes/<hero>/animations/, bosses/<boss>/animations/   King's Raid's own animations for it
+ *   effects/sounds/                  the sounds every hero and boss shares
  *
- * and under public/technomagic/, kept with the page: portraits/ (the skins' pictures that are committed).
+ * and under public/technomagic/, kept with the page: portraits/ (the skins' pictures that are committed), and music/.
  */
 
 /** Where the two are served from. */
@@ -19,24 +22,16 @@ export const KEPT = '/technomagic';
 /** A model's folder, under public/kr/: `owner` is the hero or boss whose it is. */
 export const modelFolder = (owner: { folder: string }, model: string): string => `${owner.folder}/models/${model}`;
 
-/** A rig's folder, under public/kr/: `owner` is the hero it moves, whose models it is among (unless it is borrowed whole: RiggedModel.of). */
-export const rigFolder = (owner: { folder: string }, rig: RiggedModel): string => modelFolder(rig.of === undefined ? owner : { folder: rig.of }, rig.folder);
-
-/** A rig's animations, in the order they are read: its idle and run (those it has), its attack's, its skills'. */
-export const animationsIn = (rig: RiggedModel): string[] =>
-  [rig.idle, rig.run, ...(rig.attack ?? []).map((part) => part.file), ...Object.values(rig.skills ?? {}).map((skill) => skill.file)].filter((file) => file !== undefined);
-
-/** Where each of a rig's animations is, under public/kr/ (in the order animationsIn has them): its folder's, or one of its hero's models' (SkillAnimation.folder). */
-export const animationFolders = (owner: { folder: string }, rig: RiggedModel): string[] => {
-  const own = rigFolder(owner, rig);
-  const skills = Object.values(rig.skills ?? {});
-  return animationsIn(rig).map((_, i, all) => {
-    const skill = skills[i - (all.length - skills.length)];
-    return skill?.folder === undefined ? own : modelFolder(owner, skill.folder);
-  });
-};
-
 export const effectFolder = (effect: EffectAssets): string => `effects/${effect.folder}`;
+
+/** The address of one of a hero's or a boss's sounds (`owner`'s): one every hero and boss shares, or its own. */
+export const soundFile = (owner: { folder: string }, clip: SoundClip): string => `${LOCAL}/${clip.own ? `${owner.folder}/sounds` : 'effects/sounds'}/${clip.clip}.mp3`;
+
+/** The address of one of a hero's or boss's King's Raid animations (KrAnimations: by the clip's name). */
+export const animationFile = (owner: { folder: string }, clip: string): string => `${LOCAL}/${owner.folder}/animations/${clip}.json`;
+
+/** The address of a raid's music. */
+export const musicFile = (file: string): string => `${KEPT}/music/${file}`;
 
 /** A skill's picture, under public/kr/. */
 export const skillFile = (hero: HeroAssets, file: string): string => `${hero.folder}/skills/${file}`;

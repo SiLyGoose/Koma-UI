@@ -49,7 +49,7 @@ export const SMITE: Move = {
 };
 
 // Light of Doom: both hands gathered before her, then raised high (the light comes down on her allies), then thrust out ahead (it bursts).
-// (Drawn by her Mixamo rig's animation where it is on the computer: ../../assets/heroes/fallen-frey.ts.)
+// (Drawn by King's Raid's own animation of her where it is on the computer: ../../assets/heroes/fallen-frey.ts.)
 export const LIGHT: Move = {
   keys: [
     [0, {}],

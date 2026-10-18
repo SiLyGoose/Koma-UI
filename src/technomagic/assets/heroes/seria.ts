@@ -1,11 +1,9 @@
-import type { HeroAssets, PartsModel, RiggedModel } from '../types.ts';
+import type { HeroAssets, PartsModel, KrAnimations } from '../types.ts';
 
 /*
  * Seria: her body (her hair is a part of its own, the first of her files'), her sword in her right hand (its blade
- * along what was its y, as Klaus's) and its sheath held in her left. The sword is kept in the sheath (its hilt
- * showing, as the sheath's file has it) but while she attacks or uses a skill: ../../heroes/body/sheath.ts. She runs in and attacks by animations of
- * Mixamo's (a sword and shield run and slash, the motions alone); she stands and does her skills by the poses written
- * in code (a swordsman's, and ../../heroes/seria/moves.ts).
+ * along what was its y, as Klaus's) and its sheath held in her left. She is moved by King's Raid's own animations of
+ * her (ANIMATIONS: ../../heroes/body/kr.ts).
  */
 
 const DRIVE = 'https://drive.google.com/uc?export=download&id=';
@@ -21,15 +19,23 @@ const GRIPS = {
   L: { at: [0.064, 0.021, 0.002], turn: [Math.PI, -0.436, 0] },
 } as const satisfies PartsModel['grips'];
 
-/** The same for both her skins (one skeleton). */
-const MOVED_BY = {
-  kind: 'rigged',
-  folder: 'Seria_Mixamo',
-  run: 'Seria - Sword And Shield Run.fbx',
-  // One slash where she stands, from her right across to her left: her sword hand is moving fastest 0.8 s in, and the blow
-  // lands a little after, as the swing comes through. Left as the swing ends, easing back to how she stands.
-  attack: [{ file: 'Seria - Sword And Shield Slash.fbx' }],
-} as const satisfies RiggedModel;
+
+/**
+ * King's Raid's own animations (its skins of the game's files are moved by them: ../../heroes/body/kr.ts): its basic attack's
+ * chain, and each skill's clips, with when its blows land in them as the game's timelines have them (KR-extracted/scripts/tm-anims.mjs).
+ */
+const ANIMATIONS = {
+  idle: 'Idle',
+  run: 'Run',
+  hurt: 'Damage',
+  attack: [{ clips: ['Attack1-1'], hits: [0.4] }, { clips: ['Attack1-2'], hits: [0.5] }, { clips: ['Attack1-3'], hits: [0.4, 0.8] }],
+  skills: {
+    petals: { clips: ['Skill1-1', 'Skill1-2'], hits: [0.5, 2.2] },
+    scatter: { clips: ['Skill2-1', 'Dash'], hits: [] },
+    moon: { clips: ['Skill3-1', 'Skill3-2', 'Skill3-3'], hits: [0, 2.2, 3] },
+    blossom: { clips: ['Skill1-1', 'Skill1-2'], hits: [0.5, 2.2] },
+  },
+} as const satisfies KrAnimations;
 
 export const SERIA_ASSETS: HeroAssets = {
   name: 'Seria',
@@ -37,6 +43,31 @@ export const SERIA_ASSETS: HeroAssets = {
   skills: { from: 'https://kingsraid.shodyra.com/static/images/52/', files: ['s1.png', 's2.png', 's3.png', 's4.png'] },
   // Her unique weapon, wielded: Elsion, her sword and its sheath.
   unique: { Hero_Seria_Vari05_WeaponA: 'Hero_Seria_Unique01_WeaponA', Hero_Seria_Vari05_WeaponB: 'Hero_Seria_Unique01_WeaponB' },
+  // King's Raid's sounds (its Hit.Hero.Seria.* and BeginFireSkill.<skill> ones): as each blow of a move lands, a move's n-th part
+  // playing its n-th (round again past the last); and as each skill begins.
+  sounds: {
+    hits: {
+      attack: [[{ clip: 'Hit_sword_01', volume: 1.5 }]],
+      petals: [[{ clip: 'Hit_sword_02', volume: 2 }]],
+      scatter: [[{ clip: 'Hit_sword_03', volume: 2 }]],
+      moon: [[{ clip: 'Damage_01', volume: 2 }]],
+      blossom: [[{ clip: 'Hit_sword_02', volume: 2 }]],
+    },
+    casts: {
+      petals: [{ clip: 'Attack-Casting-20', volume: 1.2 }, { clip: 'Attack-Cut-04', volume: 1.5, at: 0.36 }, { clip: 'Seria-Vox_Skill1', volume: 3.2, at: 0.44, own: true }],
+      scatter: [{ clip: 'Seria-Vox_Skill2', volume: 3.2, at: 0.05, own: true }, { clip: 'Attack-Cut-04', volume: 1.5, at: 0.25 }, { clip: 'Attack-Magic-09', volume: 1.3, at: 0.36 }, { clip: 'Attack-Casting-09', volume: 1.2, at: 1.39 }, { clip: 'Attack-Casting-09', volume: 1.2, at: 1.73 }, { clip: 'FX-Sword-10', volume: 1.5, at: 2.37 }, { clip: 'Attack-Magic-05', volume: 1.3, at: 2.77 }],
+      moon: [{ clip: 'Attack-Casting-09', volume: 1.3 }, { clip: 'Seria-Vox_Skill5', volume: 3.2, own: true }, { clip: 'Attack-Casting-07', volume: 1.1, at: 0.45 }, { clip: 'Attack-Casting-34', volume: 1.8, at: 0.63 }, { clip: 'Attack-Casting-26', volume: 1.3, at: 0.74 }],
+    },
+  },
+  // King's Raid's own effects for its moves (../../fx/kr-effects.ts): as each begins, on it, and as each of its blows lands, where it
+  // lands (KR-extracted/scripts/tm-vfx.mjs).
+  vfx: {
+    attack: { start: ['Skill.Hero.Seria.Attack1.Casting1', 'Skill.Hero.Seria.Attack1.Casting3', 'Skill.Hero.Seria.Attack1.Casting2'], land: ['Skill.Hero.Seria.Attack1.Hit'] },
+    petals: { start: ['Skill.Hero.Seria.Skill1-1.Casting', 'Skill.Hero.Seria.Skill1-2.Casting'] },
+    scatter: { start: ['Skill.Hero.Seria.Skill2.Slash', 'Skill.Hero.Seria.Skill2.Casting'], land: ['Skill.Hero.Seria.Skill2.HitLoop', 'Skill.Hero.Seria.Skill2.Hit'] },
+    moon: { start: ['Skill.Hero.Seria.Skill3.Casting1Loop', 'Skill.Hero.Seria.Skill3.Casting2', 'Skill.Hero.Seria.Skill3.Casting1', 'Skill.Hero.Seria.Skill3.Moon1', 'Skill.Hero.Seria.Skill3.Moon2', 'Skill.Hero.Seria.Skill3.Moon3', 'Skill.Hero.Seria.Skill3.Icon'] },
+    blossom: { start: ['Skill.Hero.Seria.Skill1-1.Casting', 'Skill.Hero.Seria.Skill1-2.Casting'] },
+  },
   skins: [
     {
       name: 'Seria',
@@ -44,13 +75,13 @@ export const SERIA_ASSETS: HeroAssets = {
       portrait: { file: 'Seria.png', from: `${DRIVE}1eTijd3ZY18qjl6KknmLWuOYgZQCwDCrN`, crop: { x: 605, y: 70, size: 200 }, head: { x: 655, y: 160, size: 120 } },
       model: {
         kind: 'parts',
+        animations: ANIMATIONS,
         parts: ['Hero_Seria_Vari05_Body', 'Hero_Seria_Hair_01'],
         left: 'Hero_Seria_Vari05_WeaponB',
         right: 'Hero_Seria_Vari05_WeaponA',
         offHand: 'held',
         blade: 'y',
         grips: GRIPS,
-        movedBy: MOVED_BY,
       },
     },
     // Her Christmas costume, with its own hair, sword and sheath.
@@ -59,13 +90,13 @@ export const SERIA_ASSETS: HeroAssets = {
       portrait: { file: 'Seria_Christmas.png', from: `${DRIVE}1zbsVdK__ytCQ-YxrIpRV_SNKRaDSqamX`, crop: { x: 345, y: 10, size: 200 }, head: { x: 400, y: 118, size: 115 } },
       model: {
         kind: 'parts',
+        animations: ANIMATIONS,
         parts: ['Hero_Seria_Cos19Christmas_Body', 'Hero_Seria_Cos19Christmas_Hair'],
         left: 'Hero_Seria_Cos19Christmas_Weapon_B',
         right: 'Hero_Seria_Cos19Christmas_Weapon_A',
         offHand: 'held',
         blade: 'y',
         grips: GRIPS,
-        movedBy: MOVED_BY,
       },
     },
   ],

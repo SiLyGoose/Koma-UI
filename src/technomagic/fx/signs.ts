@@ -50,7 +50,11 @@ function bossSign(status: Status<unknown>): EffectName | null {
   return better(status.defends, false).length > 0 || better(status.takes, true).length > 0 ? 'weaken' : null;
 }
 
-export function makeSigns(effects: Effects): Signs {
+/**
+ * The signs, drawn with `effects`; or, where `own` plays the game's own for a sign (on a hero, by its index among the
+ * fighters; on the boss, -1) and says so, with that.
+ */
+export function makeSigns(effects: Effects, own?: (who: number, sign: EffectName) => boolean): Signs {
   /** The names of the statuses on each when last looked at (by hero, and the boss's under -1). */
   let shown = new Map<number, Set<string>>();
   /** When each sign was last shown on each (by `who:sign`, the boss's as -1). */
@@ -69,7 +73,7 @@ export function makeSigns(effects: Effects): Signs {
     const key = `${who}:${name}`;
     if (now - (last.get(key) ?? -Infinity) < AGAIN) return;
     last.set(key, now);
-    effects.play(name, at.copy(where).setY(where.y + y));
+    if (!own?.(who, name)) effects.play(name, at.copy(where).setY(where.y + y));
   };
 
   return {

@@ -16,6 +16,7 @@ import { makeStage } from './engine/stage';
 import { Ahead } from './fight/ahead';
 import { makeFightView, type FightView } from './fight/view';
 import { loadEffects } from './fx/effects';
+import { makeKrEffects } from './fx/kr-effects';
 import { makeMagic } from './fx/magic';
 import { loadProps } from './fx/props';
 import { HEROES } from './sim/heroes';
@@ -81,6 +82,12 @@ import './technomagic.css';
 const UNIQUE_TRIED = 5;
 /** Which heroes were on the field last when trying things out (their names, as a list), kept by this browser. */
 const FIELD_KEY = 'technomagic-field';
+/** Heroes that couldn't be read: none (and why, in the console), so the page goes on without them. */
+const unread = (error: unknown): Entrant[] => {
+  console.warn(error);
+  return [];
+};
+
 /** Steps the sim may catch up in one frame (after the tab was away) when trying things out. */
 const CATCH_UP = 8;
 /** Trying things out: how far the wheel is turned (in its own pixels) to scroll the cards along by one. */
@@ -219,6 +226,8 @@ async function start(): Promise<void> {
     bossView.look.scenery && stage.dress(bossView.look.scenery),
   ]);
   const magic = makeMagic(bright);
+  // King's Raid's own effects, each read as it is first wanted.
+  const kr = makeKrEffects(bright, stage.camera);
 
   /** Every body read so far (each skin of each hero read, and as they look with their unique weapons once that's wanted), for a fight to take from. */
   const pool: Entrant[] = [];
@@ -245,7 +254,7 @@ async function start(): Promise<void> {
         picture.src = image;
         return picture.decode().catch(() => undefined);
       });
-      reading = Promise.all([loadHeroes([hero], { skin }).catch(() => [] as Entrant[]), props.read(assets), Promise.all(pictures)]).then(async ([entrants]) => {
+      reading = Promise.all([loadHeroes([hero], { skin }).catch(unread), props.read(assets), Promise.all(pictures)]).then(async ([entrants]) => {
         await Promise.all(
           entrants.map(async ({ skin }) => {
             const { portrait } = skin;
@@ -288,7 +297,7 @@ async function start(): Promise<void> {
     meterAt.replaceChildren();
     numbersAt.replaceChildren();
     const bodies: Hero[] = entries.map((entrant) => entrant.hero);
-    const view = makeFightView({ scene: stage.scene, sim, bodies, boss, bossLook: bossView!.look, bossFx: bossView!.fx, effects, magic, props });
+    const view = makeFightView({ scene: stage.scene, sim, bodies, boss, bossLook: bossView!.look, bossFx: bossView!.fx, effects, kr, magic, props });
     // Each hero, for its card and the meter: its own picture, or with none a picture of its head and shoulders as it stands.
     const pictures = entries.map((entrant, i) => pictureOf(entrant, view, i));
     const cards = sim.fighters.map((fighter, i) => {
@@ -415,7 +424,7 @@ async function start(): Promise<void> {
       uniqueButton.setAttribute('aria-pressed', String(on));
       if (on && !wielders) {
         uniqueButton.disabled = true;
-        wielders = await loadHeroes(HEROES, { unique: true }).catch(() => []);
+        wielders = await loadHeroes(HEROES, { unique: true }).catch(unread);
         uniqueButton.disabled = false;
       }
       practise(entrants);
@@ -598,8 +607,8 @@ async function start(): Promise<void> {
         if (!body) {
           // Another of it (two players' Kirze), or its skin isn't on this computer: that skin read again, or (with none) any of its.
           const again = async (skin?: number): Promise<Entrant[]> => [
-            ...(await loadHeroes([def], { skin }).catch(() => [] as Entrant[])),
-            ...(wielding ? await loadHeroes([def], { unique: true, skin }).catch(() => [] as Entrant[]) : []),
+            ...(await loadHeroes([def], { skin }).catch(unread)),
+            ...(wielding ? await loadHeroes([def], { unique: true, skin }).catch(unread) : []),
           ];
           let more = await again(hero.skin);
           if (more.length === 0) more = await again();

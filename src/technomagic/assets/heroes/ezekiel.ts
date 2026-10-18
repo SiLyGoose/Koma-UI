@@ -1,4 +1,4 @@
-import type { HeroAssets, RiggedModel } from '../types.ts';
+import type { HeroAssets, KrAnimations } from '../types.ts';
 
 /*
  * Ezekiel holds nothing: his weapon, Barbatos, is his demonic right arm, a part on his own skeleton (his body has
@@ -9,15 +9,22 @@ import type { HeroAssets, RiggedModel } from '../types.ts';
 
 const DRIVE = 'https://drive.google.com/uc?export=download&id=';
 
-/** What moves him. */
-const MOVED_BY = {
-  kind: 'rigged',
-  folder: 'Ezekiel_Mixamo',
-  idle: 'Ezekiel - Ninja Idle.fbx',
-  // A motion of Mixamo's alone (no model in it): a jab, a cross, a hook and a kick from his guard, and back to it. Each
-  // blow lands a little after the fist (or the foot) is moving fastest, as it reaches out: 0.92, 1.52, 2.78 and 3.62 s in.
-  attack: [{ file: 'Ezekiel - Fist Fight A.fbx' }],
-} as const satisfies RiggedModel;
+
+/**
+ * King's Raid's own animations (its skins of the game's files are moved by them: ../../heroes/body/kr.ts): its basic attack's
+ * chain, and each skill's clips, with when its blows land in them as the game's timelines have them (KR-extracted/scripts/tm-anims.mjs).
+ */
+const ANIMATIONS = {
+  idle: 'Idle',
+  run: 'Run',
+  hurt: 'Damage',
+  attack: [{ clips: ['Attack1-1'], hits: [0.3] }, { clips: ['Attack1-2'], hits: [0.2, 0.5] }, { clips: ['Attack1-3'], hits: [0.4] }, { clips: ['Attack1-4'], hits: [0.3] }],
+  skills: {
+    instinct: { clips: ['Skill1'], hits: [0, 1.3, 2] },
+    despair: { clips: ['Skill2-1', 'Skill2-2', 'Skill2-3'], hits: [1.2] },
+    doom: { clips: ['Skill3'], hits: [2.1] },
+  },
+} as const satisfies KrAnimations;
 
 export const EZEKIEL_ASSETS: HeroAssets = {
   name: 'Ezekiel',
@@ -25,6 +32,25 @@ export const EZEKIEL_ASSETS: HeroAssets = {
   skills: { from: 'https://kingsraid.shodyra.com/static/images/37/', files: ['s1.png', 's2.png', 's3.png', 's4.png'] },
   // His unique weapon, wielded: Barbatos, his demon arm.
   unique: { Hero_Ezekiel_Vari05_Weapon: 'Hero_Ezekiel_Unique01_Weapon' },
+  // King's Raid's sounds (its Hit.Hero.Ezekiel.* and BeginFireSkill.<skill> ones): as each blow of a move lands, a move's n-th part
+  // playing its n-th (round again past the last); and as each skill begins.
+  sounds: {
+    hits: {
+      attack: [[{ clip: 'Dmg_punch_01', volume: 1.5 }]],
+      despair: [[{ clip: 'Dmg_punch_04', volume: 2 }]],
+    },
+    casts: {
+      instinct: [{ clip: 'Attack-Casting-04', volume: 1.3, at: 0.1 }, { clip: 'Attack-Casting-16', volume: 1.3, at: 0.21 }, { clip: 'Ezekiel-Vox_Skill1', volume: 2.3, at: 0.55, own: true }, { clip: 'Attack-Magic-04', volume: 1.4, at: 1.23 }, { clip: 'Attack-Woosh-15', volume: 1.6, at: 1.29 }, { clip: 'Attack-Woosh-14', volume: 1.6, at: 1.5 }, { clip: 'FX-WB_Golem_01', volume: 1.6, at: 2.06 }, { clip: 'Attack-Damage-20', volume: 1.5, at: 2.06 }],
+      despair: [{ clip: 'Ezekiel-Vox_Skill2', volume: 2.3, own: true }, { clip: 'Attack-Casting-04', volume: 1.3, at: 0.16 }, { clip: 'Attack-Casting-16', volume: 1.3, at: 0.27 }, { clip: 'Attack-Magic-05', volume: 1.4, at: 0.84 }, { clip: 'Attack-Magic-05', volume: 1.4, at: 1.01 }],
+      doom: [{ clip: 'Attack-Casting-04', volume: 1.3, at: 0.16 }, { clip: 'Attack-Casting-16', volume: 1.3, at: 0.27 }, { clip: 'Ezekiel-Vox_Skill3', volume: 2.3, at: 0.41, own: true }, { clip: 'Attack-Magic-06', volume: 1.4, at: 0.86 }, { clip: 'Attack-Magic-16', volume: 1.4, at: 2.03 }, { clip: 'Attack-Magic-09', volume: 1.4, at: 2.18 }, { clip: 'Attack-Magic-20', volume: 1.4, at: 2.18 }],
+    },
+  },
+  // King's Raid's own effects for its moves (../../fx/kr-effects.ts): as each begins, on it, and as each of its blows lands, where it
+  // lands (KR-extracted/scripts/tm-vfx.mjs).
+  vfx: {
+    attack: { start: ['Skill.Hero.Ezekiel.Attack1-1.Casting.4', 'Skill.Hero.Ezekiel.Attack1-1.Casting.1', 'Skill.Hero.Ezekiel.Attack1-1.Casting.3', 'Skill.Hero.Ezekiel.Attack1-1.Casting.2', 'Skill.Hero.Ezekiel.Attack1-2.Casting.4', 'Skill.Hero.Ezekiel.Attack1-2.Casting.2', 'Skill.Hero.Ezekiel.Attack1-2.Casting.3', 'Skill.Hero.Ezekiel.Attack1-2.Casting.1'], land: ['Skill.Hero.Ezekiel.Attack1-1.Hit2', 'Skill.Hero.Ezekiel.Attack1-1.Hit1'] },
+    despair: { start: ['Skill.Hero.Ezekiel.Skill2-1.Casting2', 'Skill.Hero.Ezekiel.Skill2-1.Casting1', 'Skill.Hero.Ezekiel.Skill2-2.Casting2', 'Skill.Hero.Ezekiel.Skill2-2.Casting1'] },
+  },
   skins: [
     {
       name: 'Ezekiel',
@@ -32,8 +58,8 @@ export const EZEKIEL_ASSETS: HeroAssets = {
       portrait: { file: 'Ezekiel.png', from: `${DRIVE}1YnvFZjPQRrM40MH0gZrBU_lYrFu6t1pR`, crop: { x: 320, y: 200, size: 190 }, head: { x: 350, y: 240, size: 120 } },
       model: {
         kind: 'parts',
+        animations: ANIMATIONS,
         parts: ['Hero_Ezekiel_Vari05_Mesh', 'Hero_Ezekiel_Vari05_Weapon', 'Hero_Ezekiel_Vari05_Arm'],
-        movedBy: MOVED_BY,
       },
     },
   ],

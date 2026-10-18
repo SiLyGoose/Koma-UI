@@ -25,67 +25,25 @@ export interface Portrait {
 }
 
 /**
- * A model rigged and animated outside the game's files (by Mixamo): one .fbx for each animation, each
- * holding the whole model, in `folder` among its hero's models (or among another's, `of` that hero's
- * folder: a rig borrowed whole). A rig read only for some of its skills
- * (what moves a skin of the game's own files: PartsModel.movedBy) may have no idle or run: its skin then
- * stands, runs in and does everything else by the poses written in code. With an idle and no run, it stands
- * in that idle, and does the rest by the poses written in code; with a run and no idle, it runs in in that run.
- * Its first file holds the model (or, for a rig that moves a skin of the game's own files, its skeleton alone).
- * Each of the others may be on a skeleton of its own (another hero's, copied; or a file of the motion alone).
+ * King's Raid's own animations for a skin of its files, each a file under its hero's animations/ (by the clip's name in
+ * the game: Idle, Skill1, Attack1-2…; made from the game's files by KR-extracted/scripts/kr-anims.py): its idle and its
+ * run, being staggered, and its attack and skills. Each move is fitted to how the fight times it (../sim/motion.ts),
+ * its blows landing when the fight's do.
  */
-export interface RiggedModel {
-  kind: 'rigged';
-  folder: string;
-  of?: string;
-  idle?: string;
-  run?: string;
-  /**
-   * Running in its run with no idle (a skin of the game's own files, posed in code otherwise): the way the blade in
-   * its right hand is held pointing, in its model's axes (x to its left, y up, z ahead), whatever the run has its hand do.
-   */
-  bladeRunning?: readonly [number, number, number];
-  /**
-   * Its attack, when it has one of its own: animations played one after another, each timed as its hero's attack's
-   * part is in the fight (../sim/heroes/: HeroDef.timing, never read from the file, so the fight goes the same on a
-   * computer without it).
-   */
-  attack?: readonly { file: string }[];
-  /**
-   * Its attack leaves the blade in its right hand pointing across it: eased back to its idle from there, that blade is
-   * swung round the front of it (out ahead of it, half way), not the shortest way, which turns it back through its legs.
-   */
-  returnAhead?: boolean;
-  /**
-   * Its attack goes straight on into the next (a skin of the game's own files, with no idle): as one ends it is eased
-   * from where that leaves it to where its attack begins, ready for the next, not back to how it stands (unless none comes).
-   */
-  chained?: boolean;
-  /**
-   * What is in its right hand is loosed (an arrow; a skin of the game's own files, with no idle): gone from its hand as
-   * each move played by these animations lands its first blow (the shot), and back as it reaches to draw again: `nock`
-   * seconds into its attack's animation, or as a skill played by these begins (drawn already).
-   */
-  loosed?: { nock: number };
-  /**
-   * Animations its skills are played with, by the name of the move each would otherwise be (one with none here is
-   * the move written in code), each timed as its hero's skill is in the fight (HeroDef.timing).
-   */
-  skills?: Readonly<Record<string, SkillAnimation>>;
+export interface KrAnimations {
+  idle: string;
+  run: string;
+  hurt?: string;
+  /** Its attack's parts, as the fight times them (as many). */
+  attack?: readonly KrMove[];
+  /** Its skills', by the move's name. */
+  skills?: Readonly<Record<string, KrMove>>;
 }
 
-/**
- * An animation a skill is played with: its file. One may be a file of the game's own (`folder`: one of its hero's models,
- * its whole model on the game's skeleton: a cutscene's), made over from that skeleton, and only a `span` of it played
- * (seconds into the file, from and to), drawn out (or hurried) to last as long as the fight has the skill take.
- */
-export interface SkillAnimation {
-  file: string;
-  folder?: string;
-  span?: readonly [number, number];
-  /** Played crouched (its hips this much lower, in its model's lengths, its feet where they were) and aimed up (its chest leant back this far, radians). */
-  crouch?: number;
-  aimUp?: number;
+/** A move of the game's: its clips, played one after another, and the moments its blows land in them (seconds into the first, as the game has them). */
+export interface KrMove {
+  clips: readonly string[];
+  hits: readonly number[];
 }
 
 /** Where something is held in a hand, in that hand's own axes (its bone's): how far from it, and how it is turned (about x, y and z, in that order, in radians). */
@@ -124,12 +82,8 @@ export interface PartsModel {
    * models, on the same layout), from that model's folder.
    */
   repaint?: { from: string; to: string };
-  /**
-   * What moves it, its files having no animation: another of its hero's skins that comes with its
-   * animations (by name), or a rig read for its animations alone, which has no card of its own. With
-   * neither (or with it not on this computer) it is moved by the poses written in code.
-   */
-  movedBy?: string | RiggedModel;
+  /** King's Raid's own animations for it (../heroes/body/kr.ts): without them on this computer, it is moved by the poses written in code. */
+  animations?: KrAnimations;
 }
 
 /** A skin: what a hero looks like on the field and on its card. Each has a card of its own. */
@@ -138,7 +92,7 @@ export interface SkinAssets {
   name: string;
   /** With none it is pictured as it stands on the field. */
   portrait?: Portrait;
-  model: PartsModel | RiggedModel;
+  model: PartsModel;
 }
 
 /** A hero's files: its folder under public/kr/, its skills' pictures, and its skins. */
@@ -155,6 +109,31 @@ export interface HeroAssets {
    * folder among its models (its weapon's: in the same hand, or on the same skeleton). A skin with none of them looks the same with it.
    */
   unique?: Readonly<Record<string, string>>;
+  /**
+   * King's Raid's sounds for it: as each blow of its moves lands (`hits`, by the move: its attack's, its skills'; the
+   * blows' sounds in turn, the n-th part of the move playing the n-th, round again past the last), and as each of its
+   * skills begins (`casts`, by the move). A move with none is unheard.
+   */
+  sounds?: { hits?: Readonly<Record<string, readonly GameSound[]>>; casts?: Readonly<Record<string, GameSound>> };
+  /**
+   * King's Raid's own effects for its moves, by the move (../fx/kr-effects.ts: codes of public/kr/effects/kr/): played on
+   * it as the move begins (`start`: of those numbered, Casting1…, one each time, in turn), and as each of its blows lands
+   * (`land`: where it lands; a shot's, at it; a projectile's, not at all).
+   */
+  vfx?: Readonly<Record<string, { start?: readonly string[]; land?: readonly string[] }>>;
+}
+
+/**
+ * Something heard, as the game has it: one or more clips, each `at` seconds after it begins (0 when it doesn't say)
+ * and `volume` times as loud as recorded (1 when it doesn't say). A clip is a file under public/kr/effects/sounds/
+ * (the ones every hero and boss shares), or (`own`) under its owner's folder, in sounds/ (its voice).
+ */
+export type GameSound = readonly SoundClip[];
+export interface SoundClip {
+  clip: string;
+  volume?: number;
+  at?: number;
+  own?: boolean;
 }
 
 /** A boss's files: its folder under public/kr/, and the models it is put together from. */
@@ -162,6 +141,31 @@ export interface BossAssets {
   name: string;
   folder: string;
   models: readonly string[];
+  /**
+   * King's Raid's sounds for it: as each of its attacks begins (`uses`, by the attack's name), as a blow of one lands
+   * on a hero (`hits`), as it is knocked down, and as it falls.
+   */
+  sounds?: { uses?: Readonly<Record<string, GameSound>>; hits?: Readonly<Record<string, GameSound>>; down?: GameSound; dead?: GameSound };
+  /** The music its raid plays, King's Raid's: a file under public/technomagic/music/, played over and over, from its start again `loop` seconds in. */
+  music?: { file: string; loop: number };
+  /** King's Raid's own animations for it (../bosses/kr.ts). */
+  animations?: KrBossAnimations;
+  /**
+   * King's Raid's own effects for it (../fx/kr-effects.ts: codes of public/kr/effects/kr/): for each of its attacks, played
+   * on it as the attack begins (`start`) and on each hero as a blow of it lands (`hit`); and as it first comes on the field (`advent`).
+   */
+  vfx?: { attacks: Readonly<Record<string, { start?: readonly string[]; hit?: readonly string[] }>>; advent?: readonly string[] };
+}
+
+/**
+ * King's Raid's own animations for a boss, each a file under its animations/ (as KrAnimations' are): its idle, going
+ * down and getting up again (knocked down), and each of its attacks (by the attack's name), fitted to how the fight times it.
+ */
+export interface KrBossAnimations {
+  idle: string;
+  down?: string;
+  getUp?: string;
+  attacks: Readonly<Record<string, KrMove>>;
 }
 
 /**

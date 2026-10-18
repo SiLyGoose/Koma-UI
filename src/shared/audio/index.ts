@@ -3,5 +3,5 @@
  * clicks make (ui-sfx.ts).
  */
 
-export { notes, setMuted, sound, track, type Stop } from './sfx';
+export { music, notes, setMuted, sound, track, type Stop } from './sfx';
 export { installClickSounds, playLoaded, setClickSound } from './ui-sfx';

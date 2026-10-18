@@ -53,6 +53,8 @@ export interface Scenery {
 
 export interface Stage {
   scene: Scene;
+  /** What the field is seen from (what faces it is turned to: the effects' flat pictures). */
+  camera: PerspectiveCamera;
   /** Puts the fight in `scenery`, in place of the plain field (once its pictures are read). */
   dress(scenery: Scenery): Promise<void>;
   /** Draws every frame, after `update` (the time in seconds, and since the last frame). */
@@ -144,6 +146,7 @@ export function makeStage(canvas: HTMLCanvasElement): Stage {
   const seen = new Vector3();
   return {
     scene,
+    camera,
     async dress(scenery) {
       const pictures = new TextureLoader();
       const [backdrop, ground] = await Promise.all([pictures.loadAsync(scenery.backdrop.url), pictures.loadAsync(scenery.ground.url)]);

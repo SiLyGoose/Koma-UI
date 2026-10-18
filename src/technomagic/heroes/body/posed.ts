@@ -6,7 +6,6 @@ import { flowing, MOVES, type HeroMove } from '../moves';
 import { ENTER, heightOf, holdShield, RED, redden, runOf, type Hero, type Stood } from './hero';
 import { REST, STILL, TURN, type Bends, type Pose } from './pose';
 import { KNEE, poseBody, poseLoose } from './posing';
-import type { Played } from './rigged';
 import { BIPED } from './skeletons';
 
 /*
@@ -22,6 +21,15 @@ import { BIPED } from './skeletons';
  * Whatever it goes on to (a move begun, or one written in code done), it is eased there from how it was: it never jumps.
  */
 
+
+/** An animation of a move, when its blows land and when to leave it (as the fight times it), and how it is played otherwise (crouched, aimed up). */
+export interface Played {
+  clip: AnimationClip;
+  until: number;
+  lands: readonly number[];
+  crouch?: number;
+  aimUp?: number;
+}
 /** Running in: how many strides a second; and in its run, given one, how many times as fast that is played. */
 const STRIDES = 2.9;
 const RUN_RATE = 1.25;
@@ -59,7 +67,7 @@ const VARY = { twist: 0.14, lean: 0.05, tip: 0.05, look: 0.3, nod: 0.08, sway: 0
 export interface Own {
   parts: readonly Played[];
   speed: number;
-  /** It goes straight on into the next of it (an attack: ../../assets/types.ts, RiggedModel.chained). */
+  /** It goes straight on into the next of it (an attack). */
   chained?: boolean;
 }
 
