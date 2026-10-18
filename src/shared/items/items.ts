@@ -4,7 +4,7 @@
  */
 
 import { built, hasItemArt } from '../built';
-import { heroCut, TAB_FACE } from '../heroes';
+import { HERO_PART_NAME, heroCut, type HeroPart, TAB_FACE } from '../heroes';
 import { points } from '../util';
 import type { MainStat, Slot } from '../../protocol/items';
 
@@ -12,6 +12,9 @@ export type { Slot, Stars } from '../../protocol/items';
 
 
 export const SLOT_NAME: Record<Slot, string> = { weapon: 'Weapon', armor: 'Armor', treasure: 'Treasure' };
+
+/** What an item is, as its details say it: hero gear by its part (an accessory's or an orb's slot is the treasure's), anything else by its slot. */
+export const kindName = (item: { slot: Slot; part?: HeroPart | null }): string => (item.part ? HERO_PART_NAME[item.part] : SLOT_NAME[item.slot]);
 
 export const el = <K extends keyof HTMLElementTagNameMap>(tag: K, className = '', text?: string): HTMLElementTagNameMap[K] => {
   const e = document.createElement(tag);

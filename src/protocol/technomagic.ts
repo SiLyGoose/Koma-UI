@@ -1,5 +1,6 @@
 // Copied from the bot's src/protocol/ by scripts/sync.mjs: change it there, then `yarn sync`.
 import type { ChatClientMessage, ChatServerMessage } from './chat';
+import type { HeroPart } from './heroes';
 import type { MainStat } from './items';
 
 /*
@@ -94,7 +95,7 @@ export interface PickView {
 /**
  * An item found: which, and the additional skill and potentials its copy came with, as they are said (like "Vigor: Increases
  * DMG…"; null: none; and "+5.2% ATK"), and its main stat (a weapon's HP, an armor's P.DEF or M.DEF; null: none). And for its
- * details: its slot, its description, the class it works for (null: any) and its set's effect once a hero wears `pieces` of
+ * details: its slot and the part of a hero's gear it is (null: not hero gear), its description, the class it works for (null: any) and its set's effect once a hero wears `pieces` of
  * it (null: none).
  */
 export interface DropView {
@@ -108,6 +109,7 @@ export interface DropView {
   icon: string | null;
   mainStat: MainStat | null;
   slot: 'weapon' | 'armor' | 'treasure';
+  part: HeroPart | null;
   description: string;
   itemClass: string | null;
   setEffect: { pieces: number; text: string } | null;

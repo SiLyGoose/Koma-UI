@@ -1,7 +1,8 @@
 import { type Busy, doneMark, working } from '../ui';
 import { coin, points } from '../util';
 import { armoryOrder, type TmSort } from './gear';
-import { el, hasLevels, heroGear, itemFace, levelLabel, lockBadge, mainStatLine, rich, type Slot, SLOT_NAME, type Stars, tierOf } from './items';
+import { el, hasLevels, heroGear, itemFace, kindName, levelLabel, lockBadge, mainStatLine, rich, type Slot, SLOT_NAME, type Stars, tierOf } from './items';
+import type { HeroPart } from '../../protocol/heroes';
 import type { MainStat } from '../../protocol/items';
 import { matchesStars, type StarChoice } from './armory-filter/armory-filter';
 import { padlock } from './padlock';
@@ -22,6 +23,8 @@ export interface ArmoryCopy {
   name: string;
   stars: Stars;
   slot: Slot;
+  /** Hero gear: the part of a hero's gear it is, which its details name it by (the heroes page's). */
+  part?: HeroPart | null;
   description: string;
   level: number;
   maxLevel: number;
@@ -428,7 +431,7 @@ export function showDetail(box: HTMLElement, copy: ArmoryCopy | undefined, parts
   big.dataset.stars = String(copy.stars);
   big.append(...itemFace(copy));
   const info = el('div', 'detail-info');
-  const kind = el('p', 'detail-kind', SLOT_NAME[copy.slot]);
+  const kind = el('p', 'detail-kind', kindName(copy));
   info.append(kind);
   // (Right under its slot, its main stat (an armor's P. DEF, a unique weapon's ATK…); its stars are on its card, and MAX by its slot at the top.)
   if (copy.mainStat) info.append(mainStatLine(copy.mainStat));

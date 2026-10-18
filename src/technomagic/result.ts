@@ -1,6 +1,6 @@
 import { coin, points } from '../shared/util';
 import { built } from '../shared/built';
-import { el, itemDetailsClosed, itemFace, itemIcons, mainStatLine, SLOT_NAME, tmSections, rich } from '../shared/items';
+import { el, itemDetailsClosed, itemFace, itemIcons, kindName, mainStatLine, tmSections, rich } from '../shared/items';
 import { ESSENCE_NAME, type EssenceId } from '../protocol/heroes';
 import type { DropView, RaidKind } from '../protocol/technomagic';
 import { KEPT } from './assets';
@@ -110,7 +110,7 @@ export function makeResult(root: HTMLElement): Result {
     const top = el('div', 'tm-loot-top');
     const info = el('div', 'tm-loot-info');
     // (Never refined, so no rank: its main stat in its place, King's Raid's at 5★; none for a treasure.)
-    info.append(el('p', 'tm-loot-kind', `${raid ? `T${drop.stars} Raid` : 'TechnoMagic'} ${SLOT_NAME[drop.slot]}`), ...(drop.mainStat ? [mainStatLine(drop.mainStat, 'tm-loot-main')] : []));
+    info.append(el('p', 'tm-loot-kind', `${raid ? `T${drop.stars} Raid` : 'TechnoMagic'} ${kindName(drop)}`), ...(drop.mainStat ? [mainStatLine(drop.mainStat, 'tm-loot-main')] : []));
     if (drop.itemClass) info.append(el('p', 'tm-loot-class', `${className(drop.itemClass)} only`));
     top.append(card(drop, 'tm-loot-face', raid), info);
 

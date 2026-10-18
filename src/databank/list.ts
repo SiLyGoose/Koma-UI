@@ -1,4 +1,4 @@
-import { art, el, hoverSound, itemPicked, SLOT_NAME, tierMark, tmMarks, tmTier, utMarks, utTier, uwMarks, uwTier } from '../shared/items';
+import { art, el, hoverSound, itemPicked, kindName, tierMark, tmMarks, tmTier, utMarks, utTier, uwMarks, uwTier } from '../shared/items';
 import { classBadge } from './class-tag';
 import { className, itemsOfKind, type DatabankContext } from './context';
 import { renderDetail } from './detail';
@@ -50,7 +50,7 @@ function card(ctx: DatabankContext, item: DatabankItem): HTMLButtonElement {
   button.classList.toggle('picked', item.id === ctx.picked);
   button.classList.toggle('unowned', owned !== null && !mine);
   const cls = item.class ? className(ctx, item.class) : null;
-  button.setAttribute('aria-label', `${item.name}, ${item.stars} star${item.stars === 1 ? '' : 's'}, ${SLOT_NAME[item.slot]}${cls ? `, ${cls} class item` : ''}${mine ? `, you own ${mine.count}` : ''}`);
+  button.setAttribute('aria-label', `${item.name}, ${item.stars} star${item.stars === 1 ? '' : 's'}, ${kindName(item)}${cls ? `, ${cls} class item` : ''}${mine ? `, you own ${mine.count}` : ''}`);
   // How many they own, in the corner (not on TechnoMagic gear or a unique weapon: its corners are its tabs').
   const tm = item.source === 'technomagic';
   const uw = item.source === 'heroBanner' && item.uniqueWeapon ? item.uniqueWeapon : null;

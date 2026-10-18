@@ -1,5 +1,5 @@
 // Copied from the bot's src/protocol/ by scripts/sync.mjs: change it there, then `yarn sync`.
-import type { EssenceId, HeroSkillView } from './heroes';
+import type { EssenceId, HeroPart, HeroSkillView } from './heroes';
 import type { MainStat, Slot, Stars } from './items';
 import type { RaidBossId, RaidClassId, RaidLevel } from './raid';
 
@@ -10,6 +10,8 @@ export interface DatabankItem {
   name: string;
   stars: Stars;
   slot: Slot;
+  /** Hero gear: the part of a hero's gear it is (an accessory's slot is 'treasure', its part 'accessory'). Null: not hero gear. */
+  part: HeroPart | null;
   description: string;
   /** What it does at each refinement level: `effects[0]` is R1, the last is REFINE.maxLevel. */
   effects: string[][];
