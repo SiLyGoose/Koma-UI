@@ -15,12 +15,12 @@ const lair = (folder: string, haze: number, map: Scenery['map']): Scenery => ({
 
 /**
  * King's Raid's own map of a dragon's raid (Raid.FireField1, Raid.IceField1_3D, Raid.PoisonField1_3D, GuildRaid.BlackField1,
- * as CampaignDungeonTable's BattleField names them): its last platform (the game's x 157: its first two are at 37 and 97,
- * a stage of the raid on each), or Armarta's one (at 37). Our x is the game's turned round: less than 0.
+ * as CampaignDungeonTable's BattleField names them): its first platform (the game's x 37), the fight moving on 60 along to the
+ * next as each wave of its raid is over (97, then 157: `next`), or Armarta's one. Our x is the game's turned round: less than 0.
  */
-const own = (dragon: string, at: readonly [number, number, number], floor: number): Scenery['map'] => ({ folder: `${LOCAL}/bosses/${dragon}/map`, at, turn: Math.PI, floor });
+const own = (dragon: string, at: readonly [number, number, number], floor: number, next?: number): Scenery['map'] => ({ folder: `${LOCAL}/bosses/${dragon}/map`, at, turn: Math.PI, floor, ...(next && { next }) });
 
-export const DRAGIA = lair('dragia', 0x3a1f1a, own('temeraire', [-157, 0, 0], 0x3a1f1a));
-export const TURANDANA = lair('turandana', 0x9aa9b8, own('scalaxia', [-157, 0, 0], 0x9aa9b8));
-export const GRIMVINE = lair('grimvine', 0x2c3626, own('zyrrkinoth', [-157, 0, 0], 0x2c3626));
+export const DRAGIA = lair('dragia', 0x3a1f1a, own('temeraire', [-37, 0, 0], 0x3a1f1a, 60));
+export const TURANDANA = lair('turandana', 0x9aa9b8, own('scalaxia', [-37, 0, 0], 0x9aa9b8, 60));
+export const GRIMVINE = lair('grimvine', 0x2c3626, own('zyrrkinoth', [-37, 0, 0], 0x2c3626, 60));
 export const ASHEN_NOX = lair('ashen-nox', 0x1d1a22, own('armarta', [-37, 0, 0], 0x1d1a22));

@@ -31,6 +31,9 @@ export interface Boss {
   slow(rate: number, seconds: number): void;
   /** Hit: white for a moment, and shaken. */
   hit(): void;
+  /** A raid of more than one wave: it flies off the field (then isn't drawn), and lands back on it. */
+  leave?(): void;
+  arrive?(): void;
   /** Where whoever it is fighting is, on the field (their chest): asked as it attacks, put in `into`. The page sets it. */
   target: (into: Vector3) => Vector3;
   update(now: number, dt: number): void;

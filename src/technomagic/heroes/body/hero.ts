@@ -25,6 +25,8 @@ export interface Hero {
   root: Group;
   /** Runs in from off the field to where it stands (or, `lasts` given, runs that many seconds as the fight moves it: runOf). */
   enter(lasts?: number): void;
+  /** Runs where it stands for so many seconds (the field moving past it: a raid's run on to its next wave). */
+  jog?(seconds: number): void;
   /** Starts an attack or a skill (cutting short whatever it was doing: the sim says when). */
   start(move: HeroMove): void;
   /** Where its head is on the field, and where it stands (its feet, or under them when it is in the air): put in `into`. */

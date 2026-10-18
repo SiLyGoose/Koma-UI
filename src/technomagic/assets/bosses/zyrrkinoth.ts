@@ -12,6 +12,8 @@ export const ZYRRKINOTH_ASSETS: BossAssets = {
     idle: 'Astand',
     down: 'Getup_Down',
     getUp: 'Getup_Getup',
+    leave: 'Phase',
+    arrive: 'Landing',
     attacks: {
       bite: { clips: ['Attack1'], hits: [1.3] },
       claw: { clips: ['Attack2'], hits: [1.2] },
@@ -19,6 +21,12 @@ export const ZYRRKINOTH_ASSETS: BossAssets = {
       smashes: { clips: ['Skill1'], hits: [3.5] },
       breath: { clips: ['Skill2'], hits: [2.5, 4.3] },
     },
+  },
+  // The minions of its raid's waves (King's Raid's own: their model, and their clips; both its wyrms the one model).
+  minions: {
+    'hatchling-poison': { model: 'Monster_Hatchling_Poison_Vari01_Mesh', animations: 'hatchling' },
+    wyrm: { model: 'Mob_GiantWorm_Grass_Vari01_Mesh', animations: 'wyrm' },
+    wyrmling: { model: 'Mob_GiantWorm_Grass_Vari01_Mesh', animations: 'wyrm' },
   },
   // The music the Dragon Raid plays (BattleBGM.RaidBGM): it ends where it begins, so it goes round again from its end.
   music: { file: 'RaidBGM.mp3', loop: 64.762 },

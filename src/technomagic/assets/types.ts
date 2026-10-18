@@ -163,6 +163,11 @@ export interface BossAssets {
   /** King's Raid's own animations for it (../bosses/kr.ts). */
   animations?: KrBossAnimations;
   /**
+   * The minions of its raid's waves (../fight/minions.ts), by their kind (../sim/bosses/dragon/minions.ts): each one's model (a
+   * folder of its models/), and the folder of its clips under its animations/ (Astand, Attack1, Skill1, Stun, Dead, and `clips`).
+   */
+  minions?: Readonly<Record<string, { model: string; animations: string; clips?: readonly string[] }>>;
+  /**
    * King's Raid's own effects for it (../fx/kr-effects.ts: codes of public/kr/effects/kr/): for each of its attacks, played
    * on it as the attack begins (`start`) and on each hero as a blow of it lands (`hit`); and as it first comes on the field (`advent`).
    */
@@ -177,6 +182,9 @@ export interface KrBossAnimations {
   idle: string;
   down?: string;
   getUp?: string;
+  /** A raid of more than one wave: it flying off the field, and landing back on it. */
+  leave?: string;
+  arrive?: string;
   attacks: Readonly<Record<string, KrMove>>;
 }
 

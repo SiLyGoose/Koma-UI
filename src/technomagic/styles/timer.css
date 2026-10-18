@@ -19,6 +19,12 @@
   text-shadow: 0 1px 2px #000;
 }
 
+/* A raid of more than one wave: King's Raid's "PHASE" mark of the one it is on, left of the time. */
+.tm-phase {
+  height: 30px;
+  filter: drop-shadow(0 1px 2px #000);
+}
+
 .tm-timer-skull {
   font-size: 20px;
   line-height: 1;

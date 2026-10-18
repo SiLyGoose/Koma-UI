@@ -21,12 +21,14 @@ export interface KrBossClips {
   idle: AnimationClip;
   down?: AnimationClip;
   getUp?: AnimationClip;
+  leave?: AnimationClip;
+  arrive?: AnimationClip;
   attacks: Readonly<Record<string, AnimationClip>>;
 }
 
 /** Reads `owner`'s clips that `animations` names, each attack's fitted to `timing` (by the attack's name: one it doesn't time is left out). */
 export async function loadKrBossClips(owner: BossAssets, animations: KrBossAnimations, timing: Readonly<Record<string, Span>>): Promise<KrBossClips> {
-  const names = new Set([animations.idle, ...(animations.down ? [animations.down] : []), ...(animations.getUp ? [animations.getUp] : []), ...Object.values(animations.attacks).flatMap((move) => move.clips)]);
+  const names = new Set([animations.idle, ...[animations.down, animations.getUp, animations.leave, animations.arrive].filter((name): name is string => Boolean(name)), ...Object.values(animations.attacks).flatMap((move) => move.clips)]);
   const read = new Map(await Promise.all([...names].map(async (name) => [name, await loadKrClip(animationFile(owner, name))] as const)));
   const clip = (name: string): AnimationClip => read.get(name) as AnimationClip;
   const attacks: Record<string, AnimationClip> = {};
@@ -34,7 +36,14 @@ export async function loadKrBossClips(owner: BossAssets, animations: KrBossAnima
     const span = timing[attack];
     if (span) attacks[attack] = fitted(move.clips.map(clip), move.hits, span.lands, span.until);
   }
-  return { idle: clip(animations.idle), ...(animations.down && { down: clip(animations.down) }), ...(animations.getUp && { getUp: clip(animations.getUp) }), attacks };
+  return {
+    idle: clip(animations.idle),
+    ...(animations.down && { down: clip(animations.down) }),
+    ...(animations.getUp && { getUp: clip(animations.getUp) }),
+    ...(animations.leave && { leave: clip(animations.leave) }),
+    ...(animations.arrive && { arrive: clip(animations.arrive) }),
+    attacks,
+  };
 }
 
 /** What moves a boss by its clips. */
@@ -45,6 +54,9 @@ export interface KrBossMotion {
   daze(seconds: number, down: boolean): void;
   /** Everything it does goes at `rate` of its speed for so many seconds. */
   slow(rate: number, seconds: number): void;
+  /** It flies off the field (and stays gone: the page hides it once it is), or lands back on it. Returns how long it takes (seconds). */
+  leave(): number;
+  arrive(): number;
   update(dt: number): void;
 }
 
@@ -63,6 +75,8 @@ export function krBossMotion(models: readonly Object3D[], clips: KrBossClips): K
   const idle = playing(clips.idle);
   const down = clips.down ? playing(clips.down, true) : null;
   const getUp = clips.getUp ? playing(clips.getUp, true) : null;
+  const leaving = clips.leave ? playing(clips.leave, true) : null;
+  const arriving = clips.arrive ? playing(clips.arrive, true) : null;
   const attacks = Object.fromEntries(Object.entries(clips.attacks).map(([name, clip]) => [name, playing(clip, true)]));
   for (const action of idle) action.play();
   let showing = idle;
@@ -76,7 +90,7 @@ export function krBossMotion(models: readonly Object3D[], clips: KrBossClips): K
   };
 
   /** What it is doing besides standing: an attack (how far in, in its own time), lying down, or getting up. */
-  let doing: { what: 'attack'; actions: AnimationAction[]; t: number; length: number } | { what: 'down' } | { what: 'up'; t: number } | null = null;
+  let doing: { what: 'attack'; actions: AnimationAction[]; t: number; length: number } | { what: 'down' } | { what: 'up'; t: number } | { what: 'gone' } | null = null;
   let dazed = 0;
   let slowed = { rate: 1, left: 0 };
 
@@ -100,6 +114,23 @@ export function krBossMotion(models: readonly Object3D[], clips: KrBossClips): K
     },
     slow(rate, seconds) {
       slowed = { rate, left: seconds };
+    },
+    leave() {
+      dazed = 0;
+      if (!leaving || !clips.leave) return 0;
+      show(leaving, BLEND, true);
+      doing = { what: 'gone' };
+      return clips.leave.duration;
+    },
+    arrive() {
+      if (!arriving || !clips.arrive) {
+        doing = null;
+        show(idle, RETURN);
+        return 0;
+      }
+      show(arriving, BLEND, true);
+      doing = { what: 'attack', actions: arriving, t: 0, length: clips.arrive.duration };
+      return clips.arrive.duration;
     },
     update(dt) {
       slowed.left = Math.max(0, slowed.left - dt);
@@ -131,7 +162,7 @@ export function krBossMotion(models: readonly Object3D[], clips: KrBossClips): K
           show(idle, RETURN);
         }
       } else if (dazed > 0) speed = DAZED;
-      for (const action of showing) action.timeScale = doing?.what === 'up' || doing?.what === 'down' ? 1 : speed;
+      for (const action of showing) action.timeScale = doing?.what === 'up' || doing?.what === 'down' || doing?.what === 'gone' ? 1 : speed;
       mixer.update(dt);
     },
   };

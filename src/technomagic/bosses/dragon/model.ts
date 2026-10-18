@@ -68,6 +68,8 @@ export async function loadDragon(body: DragonBody, scene: Scene, bright: Object3
   const going: { move: DragonMove; part: number; t: number; hit: boolean }[] = [];
   let flinch = 0;
   let slowed = { rate: 1, left: 0 };
+  /** Flying off the field: how long until it is gone (0: it isn't flying off). */
+  let gone = 0;
   /** Its pillars of ice, standing (Scalaxia's): each one's body, and how long it has stood. */
   const pillars: { body: Object3D; age: number }[] = [];
   const mouth = new Vector3();
@@ -108,8 +110,22 @@ export async function loadDragon(body: DragonBody, scene: Scene, bright: Object3
     hit() {
       flinch = FLINCH;
     },
+    leave() {
+      going.splice(0);
+      gone = motion.leave();
+    },
+    arrive() {
+      gone = 0;
+      root.visible = true;
+      motion.arrive();
+    },
     update(now, dt) {
       motion.update(dt);
+      // (Flying off: hidden once it is gone.)
+      if (gone > 0) {
+        gone -= dt;
+        if (gone <= 0) root.visible = false;
+      }
       slowed.left = Math.max(0, slowed.left - dt);
       const rate = slowed.left > 0 ? slowed.rate : 1;
 

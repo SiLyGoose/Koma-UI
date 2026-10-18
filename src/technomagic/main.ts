@@ -33,9 +33,10 @@ import { el } from './hud/dom';
 import { leavePopup } from './hud/leave';
 import { makeMeter } from './hud/meter';
 import { makeNumbers } from './hud/numbers';
-import { makeOverhead } from './hud/overhead';
+import { makeOverhead, type Overhead } from './hud/overhead';
 import { makeBanners } from './hud/banners';
 import { makeCurtain } from './fight/curtain';
+import { makeMinions } from './fight/minions';
 import { cutFace, cutHead, readPortrait } from './hud/portrait';
 import { makeTimer } from './hud/timer';
 import { makePrep } from './prep/prep';
@@ -199,6 +200,8 @@ interface Controls {
  * height the camera looks at, how much of it it sees up and down, and how long the sting (Victory, Lose) plays before
  * its music.
  */
+/** A raid of more than one wave: how long after the battle's banner its first phase's comes (seconds). */
+const PHASE_AFTER = 1.9;
 const ROW_Z = 2;
 const ROW_LOOK = 1.7;
 const ROW_HIGH = 7.2;
@@ -248,6 +251,10 @@ async function start(): Promise<void> {
   if (fieldEffects) kr.ambient(fieldEffects);
   // The game's banners over the battle (its start, its finish).
   const banners = makeBanners(stage);
+  // The minions of its raid's waves, their models and clips read now (a raid of one wave: none).
+  const minions = makeMinions(stage.scene, bossView.look.assets);
+  // The map moved on to the next wave's platform, its own effects with it.
+  const slide = (seconds: number): void => stage.slide(seconds, (dx) => kr.shift(dx));
 
   /** Every body read so far (each skin of each hero read, and as they look with their unique weapons once that's wanted), for a fight to take from. */
   const pool: Entrant[] = [];
@@ -315,6 +322,8 @@ async function start(): Promise<void> {
 
   // As a fight is over: the row of this player's heroes before a sheet of light, seen close (the page's HUD put away),
   // the result over them; and each of those taken back as the result is (or another fight begins).
+  /** The first phase's banner, to come once the battle's has played (PHASE_AFTER seconds). */
+  let phaseBanner = 0;
   const curtain = makeCurtain(stage.scene);
   const resultAt = document.getElementById('result') as HTMLElement;
   let afterSting = 0;
@@ -352,9 +361,12 @@ async function start(): Promise<void> {
     meterAt.replaceChildren();
     numbersAt.replaceChildren();
     const bodies: Hero[] = entries.map((entrant) => entrant.hero);
-    const view = makeFightView({ scene: stage.scene, sim, bodies, boss, bossLook: bossView!.look, bossFx: bossView!.fx, effects, kr, magic, props, banners });
+    const view = makeFightView({ scene: stage.scene, sim, bodies, boss, bossLook: bossView!.look, bossFx: bossView!.fx, effects, kr, magic, props, banners, minions, slide });
     banners.play('start');
     playSound('battle');
+    // (A raid of more than one wave: its first phase's banner after it, as the game's encounter has it.)
+    clearTimeout(phaseBanner);
+    if (sim.waves > 1) phaseBanner = window.setTimeout(() => banners.play('stage1'), PHASE_AFTER * 1000);
     // Each hero, for its card and the meter: its own picture, or with none a picture of its head and shoulders as it stands.
     const pictures = entries.map((entrant, i) => pictureOf(entrant, view, i));
     const cards = sim.fighters.map((fighter, i) => {
@@ -379,6 +391,8 @@ async function start(): Promise<void> {
     const shown = sim.fighters.map((fighter, i) => ({ def: fighter.def, card: cards[i] })).sort((a, b) => nearer(a.def, b.def)).reverse();
     for (const { card } of shown) if (card) party.append(card.root);
     const bars = sim.fighters.map((_, i) => makeOverhead(overheads, controls.ally?.(i) ?? false));
+    // Each minion's health bar over its head (red), made as it comes onto the field.
+    const foeBars = new Map<number, Overhead>();
     /** Every hero of this player's on Auto. */
     const allAuto = (): boolean => sim.fighters.every((fighter, i) => !controls.mine(i) || (controls.ahead?.auto(i) ?? fighter.auto));
     const meter = makeMeter(
@@ -394,6 +408,19 @@ async function start(): Promise<void> {
       lock,
       owed: 0,
       draw() {
+        for (const foe of sim.foes) {
+          if (foe === sim.boss) continue;
+          let bar = foeBars.get(foe.index);
+          if (!bar && !foe.away) {
+            bar = makeOverhead(overheads, false, true);
+            foeBars.set(foe.index, bar);
+          }
+          const head = !foe.away && foe.hp > 0 ? view.foeHead(foe.index, at) : null;
+          if (bar && head) {
+            const spot = stage.project(head);
+            bar.draw(spot.x, spot.y, foe.hp / foe.maxHp, 0, []);
+          } else bar?.hide();
+        }
         sim.fighters.forEach((fighter, i) => {
           const { part } = fighter;
           const on = sim.field.includes(fighter);
@@ -926,7 +953,7 @@ async function start(): Promise<void> {
 
     // The boss's health, and what is the matter with it.
     bossBar.draw(sim.boss.hp / sim.boss.maxHp, sim.marks(), sim.gauge());
-    timer.draw(sim.left);
+    timer.draw(sim.left, sim.wave, sim.waves);
     // Over (in a room: once the bot has said what it gave, and this page has drawn the fight to where it ended; or as far
     // as the bot took it, should this page's have parted from the bot's, or the bot's have failed: the bot's word is the one).
     // Won, the boss is seen at 0% (drained there, should this page's fight still have it standing) and beaten for a moment

@@ -12,6 +12,8 @@ export const TEMERAIRE_ASSETS: BossAssets = {
     idle: 'Astand',
     down: 'Getup_Down',
     getUp: 'Getup_Getup',
+    leave: 'Phase',
+    arrive: 'Landing',
     attacks: {
       bite: { clips: ['Attack1'], hits: [1.2] },
       claw: { clips: ['Attack2'], hits: [1.3] },
@@ -21,6 +23,8 @@ export const TEMERAIRE_ASSETS: BossAssets = {
       eruption: { clips: ['Skill4-1', 'Landing'], hits: [6.6] },
     },
   },
+  // The minions of its raid's waves (King's Raid's own: their model, and their clips).
+  minions: { 'hatchling-fire': { model: 'Monster_Hatchling_Fire_Vari01_Mesh', animations: 'hatchling' } },
   // The music the Dragon Raid plays (BattleBGM.RaidBGM): it ends where it begins, so it goes round again from its end.
   music: { file: 'RaidBGM.mp3', loop: 64.762 },
   // King's Raid's sounds (its BeginFireSkill.<skill>, Hit.Raid.Dragon.Fire.*, Damage and Dead ones): as each of its attacks begins

@@ -16,6 +16,15 @@
 }
 
 /* Over another player's hero (in a room): blue. */
+/* An enemy's (a minion of a raid's waves): red, and smaller. */
+.tm-overhead.foe {
+  width: 44px;
+}
+
+.tm-overhead.foe i {
+  background: linear-gradient(180deg, #ffc0b0 0%, #ff6a4a 38%, #e3301a 42%, #b81e10 78%, #7d1208 100%);
+}
+
 .tm-overhead.ally i {
   background: linear-gradient(180deg, #d4ecff 0%, #8cc8ff 38%, #3f97f2 42%, #2a78d8 78%, #1a4f9c 100%);
 }

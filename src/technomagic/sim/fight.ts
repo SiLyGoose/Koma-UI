@@ -895,8 +895,8 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       const before = placed.get(spot) ?? 0;
       placed.set(spot, before + 1);
       if (before > 0) {
-        x += Math.cos((before * Math.PI * 2) / 5) * 1.3;
-        z += Math.sin((before * Math.PI * 2) / 5) * 1.3;
+        x += Math.cos((before * Math.PI * 2) / 5) * 1.8;
+        z += Math.sin((before * Math.PI * 2) / 5) * 1.8;
       }
       const foe: Foe = {
         index: foes.length,

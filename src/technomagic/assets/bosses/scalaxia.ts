@@ -12,6 +12,8 @@ export const SCALAXIA_ASSETS: BossAssets = {
     idle: 'Astand',
     down: 'Getup_Down',
     getUp: 'Getup_Getup',
+    leave: 'Phase',
+    arrive: 'Landing',
     attacks: {
       bite: { clips: ['Attack1'], hits: [1.2] },
       claw: { clips: ['Attack2'], hits: [1.4] },
@@ -21,6 +23,8 @@ export const SCALAXIA_ASSETS: BossAssets = {
       storm: { clips: ['Skill4-1', 'Skill4-2', 'Landing'], hits: [5, 5.8, 7.6] },
     },
   },
+  // The minions of its raid's waves (King's Raid's own: their model, and their clips).
+  minions: { 'hatchling-ice': { model: 'Monster_Hatchling_Ice_Vari01_Mesh', animations: 'hatchling' }, 'ice-pillar': { model: 'Raid_Dragon_Ice_Pillar_Vari01_Mesh', animations: 'pillar', clips: ['Advent'] } },
   // The music the Dragon Raid plays (BattleBGM.RaidBGM): it ends where it begins, so it goes round again from its end.
   music: { file: 'RaidBGM.mp3', loop: 64.762 },
   // King's Raid's sounds (its BeginFireSkill.<skill>, Hit.Raid.Dragon.Ice.*, Damage and Dead ones): as each of its attacks begins

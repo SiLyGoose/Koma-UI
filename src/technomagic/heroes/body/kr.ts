@@ -196,12 +196,16 @@ export function krHero({ root, body, models: parts, rig, materials, floating }: 
     | { what: 'hurt'; t: number }
     | { what: 'end'; actions: AnimationAction[]; t: number; length: number; then: AnimationAction[] | null }
     | { what: 'held' }
+    | { what: 'jog'; left: number }
     | null = null;
   let runIn = ENTER;
   let returning = false;
 
   return {
     root,
+    jog(seconds) {
+      doing = { what: 'jog', left: seconds };
+    },
     enter(lasts) {
       runIn = runOf(lasts);
       doing = { what: 'enter', t: 0 };
@@ -261,6 +265,13 @@ export function krHero({ root, body, models: parts, rig, materials, floating }: 
         if (doing.t >= doing.length) {
           if (doing.then) show(doing.then);
           doing = { what: 'held' };
+        }
+      } else if (doing?.what === 'jog') {
+        doing.left -= dt;
+        show(run, 1.25);
+        if (doing.left <= 0) {
+          doing = null;
+          returning = true;
         }
       } else if (doing?.what === 'held') {
         // (Held as it ended: its last frame, or the pose after it going on.)

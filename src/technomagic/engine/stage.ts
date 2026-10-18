@@ -81,7 +81,7 @@ export interface Scenery {
    * upright there (radians: the game sees its maps from the other side); and the colour of the floor beyond its own (its
    * floor is no deeper than the game's camera sees: ours sees further).
    */
-  map?: { folder: string; at: readonly [number, number, number]; turn: number; floor: number; camera?: { look: number; fov: number }; grounded?: boolean };
+  map?: { folder: string; at: readonly [number, number, number]; turn: number; floor: number; camera?: { look: number; fov: number }; grounded?: boolean; next?: number };
 }
 
 /** An effect a map has of its own (fog, sparks, a portal's glow), where it is on the field. */
@@ -111,6 +111,11 @@ export interface Stage {
   dim(amount: number, lit: readonly Object3D[]): void;
   /** Looks at `at` from close by, so much (`high`) of the field seen up and down; null: back to the field as a whole. */
   focus(target: { at: Vector3; high: number } | null): void;
+  /**
+   * A raid of more than one wave: the map moves on by its `next` (the next platform comes to where the fight is) over so many
+   * seconds, `moved` told how far along the field (the field's units) each frame moves it (for what stands on it: its effects).
+   */
+  slide(seconds: number, moved: (dx: number) => void): void;
   /** Moves the camera along the field: `by` across from where it stands (less than 0: to the left), looking the same way. */
   pan(by: number): void;
   /** Where a place on the field is on the page, from the canvas's top left (CSS pixels). */
@@ -142,6 +147,9 @@ export function makeStage(canvas: HTMLCanvasElement): Stage {
   let wide = FOV;
   /** What moves on the map (its glows, its fogs), each frame. */
   let mapTick: ((dt: number) => void) | null = null;
+  /** The map, how far it moves on to its next platform, and what is left of a move on (null: none). */
+  let mapAt: { map: Object3D; next: number; turn: number } | null = null;
+  let sliding: { left: number; seconds: number; moved: (dx: number) => void } | null = null;
   // How far along the field it is moved (pan()).
   let panned = 0;
   const look = new Vector3();
@@ -233,6 +241,9 @@ export function makeStage(canvas: HTMLCanvasElement): Stage {
     scene,
     camera,
     overlay: { scene: overlay, camera: flatUi },
+    slide(seconds, moved) {
+      if (mapAt) sliding = { left: seconds, seconds, moved };
+    },
     focus(target) {
       close = target && { at: target.at.clone(), high: target.high };
       aim();
@@ -252,6 +263,7 @@ export function makeStage(canvas: HTMLCanvasElement): Stage {
           field.rotation.y = turn;
           scene.add(field);
           mapTick = read.update;
+          if (scenery.map.next) mapAt = { map: read.map, next: scenery.map.next, turn };
           // (Under it, and in front of its floor: drawn before the map, which is painted over it.)
           floor.material.color.set(beyond);
           floor.material.depthWrite = false;
@@ -267,7 +279,9 @@ export function makeStage(canvas: HTMLCanvasElement): Stage {
           return read.effects.flatMap((effect) => {
             const where = read.map.localToWorld(new Vector3(...effect.position));
             const rotation = field.quaternion.clone().multiply(new Quaternion(...effect.rotation));
-            return Math.hypot(where.x, where.z) > NEAR ? [] : [{ code: effect.code, at: where, rotation, scale: effect.scale }];
+            // (A map moved on along its platforms: those of each of them.)
+            const near = NEAR + 2 * (scenery.map?.next ?? 0);
+            return Math.hypot(where.x, where.z) > near ? [] : [{ code: effect.code, at: where, rotation, scale: effect.scale }];
           });
         }
       }
@@ -377,6 +391,16 @@ export function makeStage(canvas: HTMLCanvasElement): Stage {
         last = ms;
         update(ms / 1000, dt);
         mapTick?.(dt);
+        if (sliding && mapAt) {
+          // (Eased: slow to start and to stop, as the heroes do.)
+          const was = sliding.left;
+          sliding.left = Math.max(0, sliding.left - dt);
+          const along = (k: number): number => k * k * (3 - 2 * k);
+          const step = mapAt.next * (along(1 - sliding.left / sliding.seconds) - along(1 - was / sliding.seconds));
+          mapAt.map.position.x += step;
+          sliding.moved(step * Math.cos(mapAt.turn));
+          if (sliding.left <= 0) sliding = null;
+        }
         if (covered || gap > GAP) {
           since = ms;
           frames = slow = 0;

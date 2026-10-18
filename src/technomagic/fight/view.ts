@@ -5,6 +5,7 @@ import type { Effects } from '../fx/effects';
 import type { EffectName } from '../assets';
 import type { KrEffects } from '../fx/kr-effects';
 import type { Banners } from '../hud/banners';
+import type { Minions } from './minions';
 import type { Magic } from '../fx/magic';
 import type { Props } from '../fx/props';
 import { makeSigns } from '../fx/signs';
@@ -13,7 +14,7 @@ import { FALL, SCALE, type Hero } from '../heroes/body/hero';
 import { HERO_FX } from '../heroes/fx';
 import { lookOf } from '../heroes/looks';
 import type { Popup } from '../hud/numbers';
-import { HERO_TURN, HERO_X, MARCH, MARCH_FROM, marchLeft, TICK, type Sim } from '../sim';
+import { HERO_TURN, HERO_X, MARCH, MARCH_FROM, marchLeft, RUN_ON, TICK, type Sim } from '../sim';
 import type { BossDef } from '../sim/bosses/boss';
 import { COMMON_FX, type BossFx, type FxScene } from './fx';
 import { makeKrBoss, makeKrMoves } from './kr-moves';
@@ -86,6 +87,8 @@ export interface FightView {
   /** How dark the field is to be drawn (0 not at all, 1 black), and the body kept bright in it: the one whose skill's blow has just landed (null: none). */
   readonly dark: number;
   readonly lit: Object3D | null;
+  /** Over the head of an enemy not the boss (a minion, by its index among the sim's enemies), put in `into`; null for one not on the field. */
+  foeHead(foe: number, into: Vector3): Vector3 | null;
   /** Draws what the sim says has happened since last time, and moves everything on by `dt` seconds. */
   update(now: number, dt: number): void;
   /**
@@ -98,7 +101,36 @@ export interface FightView {
 }
 
 /** A fight drawn in `scene`: the sim's, its heroes' `bodies` (by their index among its fighters) and the boss's. */
-export function makeFightView({ scene, sim, bodies, boss, bossLook, bossFx, effects, kr, magic, props, banners }: { scene: Scene; sim: Sim; bodies: readonly Hero[]; boss: Boss; bossLook: BossLook; bossFx: BossFx; effects: Effects; kr: KrEffects; magic: Magic; props: Props; banners: Banners }): FightView {
+export function makeFightView({
+  scene,
+  sim,
+  bodies,
+  boss,
+  bossLook,
+  bossFx,
+  effects,
+  kr,
+  magic,
+  props,
+  banners,
+  minions,
+  slide,
+}: {
+  scene: Scene;
+  sim: Sim;
+  bodies: readonly Hero[];
+  boss: Boss;
+  bossLook: BossLook;
+  bossFx: BossFx;
+  effects: Effects;
+  kr: KrEffects;
+  magic: Magic;
+  props: Props;
+  banners: Banners;
+  /** The minions of the boss's raid's waves (./minions.ts); and the map moved on to the next wave's platform, over so many seconds. */
+  minions: Minions;
+  slide: (seconds: number) => void;
+}): FightView {
   const { stands, reach } = bossLook;
   const at = new Vector3();
   const bossHit = new Vector3(...reach.hit).setX(stands.x + reach.hit[0]);
@@ -314,11 +346,16 @@ export function makeFightView({ scene, sim, bodies, boss, bossLook, bossFx, effe
             // Blocked: a ring round it, and no flinch.
             if (event.blocked) magic.ring(body(event.who).place(at), 0xffe9a8, 7, 0.4);
             else body(event.who).hit();
-            sounds.hurt();
-            krBoss.hurt(event.who);
+            // (The boss's own sound and effect for a blow of its; not a minion's.)
+            if (event.by === undefined) {
+              sounds.hurt();
+              krBoss.hurt(event.who);
+            }
             break;
           case 'number': {
-            const where = event.on === 'boss' ? bossHit.clone().setY(bossHit.y + (event.mend ? 1.4 : 0.6)) : body(event.on).head(new Vector3());
+            // (On a minion: over its head.)
+            const minion = event.on === 'boss' && event.foe ? minions.head(event.foe, new Vector3()) : null;
+            const where = minion ?? (event.on === 'boss' ? bossHit.clone().setY(bossHit.y + (event.mend ? 1.4 : 0.6)) : body(event.on).head(new Vector3()));
             numbers.push({ amount: event.amount, kind: event.type, at: where });
             if (event.type === 'heal' && event.on !== 'boss' && on.has(event.on)) signs.healed(event.on, body(event.on).place(over).setY(0.1));
             break;
@@ -334,6 +371,10 @@ export function makeFightView({ scene, sim, bodies, boss, bossLook, bossFx, effe
             if (bossLook.skills?.includes(event.attack)) bossSkill = Math.max(bossSkill, lasts(event.attack));
             break;
           case 'boss-hit':
+            if (event.foe) {
+              minions.hit(event.foe);
+              break;
+            }
             boss.hit();
             if (skillBlow !== null) stop(skillBlow);
             break;
@@ -345,6 +386,31 @@ export function makeFightView({ scene, sim, bodies, boss, bossLook, bossFx, effe
           case 'boss-slow':
             boss.slow(event.rate, event.seconds);
             signs.slowed(bossHit);
+            break;
+          // A raid of more than one wave: the boss flies off, and lands back; the heroes run on to the next (the map moving
+          // past them), its banner over the field; what is there comes onto it, fights, and falls.
+          case 'boss-leave':
+            boss.leave?.();
+            break;
+          case 'boss-return':
+            boss.arrive?.();
+            break;
+          case 'wave':
+            for (const who of on) if ((sim.fighters[who]?.hp ?? 0) > 0) body(who).jog?.(RUN_ON);
+            slide(RUN_ON);
+            banners.play(event.wave === 2 ? 'stage2' : 'stage3');
+            break;
+          case 'foe-enter':
+            minions.enter(event.foe, event.minion, event.x, event.z);
+            break;
+          case 'foe-use':
+            minions.use(event.foe, event.move);
+            break;
+          case 'foe-daze':
+            minions.daze(event.foe, event.seconds);
+            break;
+          case 'foe-down':
+            minions.down(event.foe);
             break;
           case 'end':
             sounds.end(event.result === 'won');
@@ -416,6 +482,7 @@ export function makeFightView({ scene, sim, bodies, boss, bossLook, bossFx, effe
       signs.update(dt);
       effects.update(dt);
       krBoss.update();
+      minions.update(dt);
       kr.update(dt);
       magic.update(dt);
       props.update(dt);
@@ -440,7 +507,9 @@ export function makeFightView({ scene, sim, bodies, boss, bossLook, bossFx, effe
       // The first of them speaks for them all.
       if (won && who[0] !== undefined) sounds.victory(who[0]);
     },
+    foeHead: (foe, into) => minions.head(foe, into),
     clear() {
+      minions.clear();
       celebrating = null;
       boss.root.visible = true;
       for (const hero of bodies) hero.root.visible = true;

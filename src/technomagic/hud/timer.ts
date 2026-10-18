@@ -6,9 +6,12 @@ import { el } from './dom';
  */
 
 export interface Timer {
-  /** Seconds of the raid's time left (0 or less: it is up). */
-  draw(left: number): void;
+  /** Seconds of the raid's time left (0 or less: it is up); and a raid of more than one wave, the one it is on (`wave` of `of`: King's Raid's "PHASE" mark, left of the time). */
+  draw(left: number, wave?: number, of?: number): void;
 }
+
+/** King's Raid's own marks of a raid's phases (its NguiAtlas_UI_Prefab_Raid's RiadBoss_Phase01 to 03). */
+const PHASE = (n: number): string => `${import.meta.env.BASE_URL}technomagic/hud/phase-${n}.webp`;
 
 /** "3:28": whole seconds, rounded up, so it says 0:00 only once the time is up. */
 const said = (left: number): string => {
@@ -34,11 +37,25 @@ export function makeTimer(root: HTMLElement, leave: () => void): Timer {
   button.append(door, el('span', 'tm-leave-words', 'Leave'));
   button.addEventListener('click', leave);
 
-  root.append(clock, button);
+  const phase = el('img', 'tm-phase');
+  phase.alt = '';
+  phase.hidden = true;
+  root.append(phase, clock, button);
 
   let shown = '';
+  let wave = 0;
   return {
-    draw(left) {
+    draw(left, now = 1, of = 1) {
+      // (Only for a raid of more than one wave.)
+      const on = of > 1 ? Math.min(3, now) : 0;
+      if (on !== wave) {
+        wave = on;
+        phase.hidden = on === 0;
+        if (on > 0) {
+          phase.src = PHASE(on);
+          phase.alt = `Phase ${on} of ${of}`;
+        }
+      }
       const text = said(left);
       if (text === shown) return;
       shown = text;
