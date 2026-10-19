@@ -11,10 +11,10 @@ export const HERO_SLOT_KIND: Readonly<Record<Slot_, Slot>> = Object.fromEntries(
   SLOTS.map((slot) => [slot, PART_OF[slot] === 'weapon' ? 'weapon' : PART_OF[slot] === 'armor' || PART_OF[slot] === 'secondary' ? 'armor' : 'treasure']),
 ) as Record<Slot_, Slot>;
 
-/** The type of item (the armories' filters') each of a hero's slots takes: its slot's, but an accessory, an orb or an artifact by its part. */
+/** The type of item (the armories' filters') each of a hero's slots takes: its slot's, but a Secondary Armor, an accessory, an orb or an artifact by its part. */
 export const HERO_SLOT_TYPE: Readonly<Record<Slot_, ItemType>> = Object.fromEntries(
   // (As ./items.ts typeOf has it, which isn't called here: that file imports this one.)
-  SLOTS.map((slot) => [slot, PART_OF[slot] === 'accessory' || PART_OF[slot] === 'orb' || PART_OF[slot] === 'artifact' ? PART_OF[slot] : HERO_SLOT_KIND[slot]]),
+  SLOTS.map((slot) => [slot, PART_OF[slot] === 'secondary' || PART_OF[slot] === 'accessory' || PART_OF[slot] === 'orb' || PART_OF[slot] === 'artifact' ? PART_OF[slot] : HERO_SLOT_KIND[slot]]),
 ) as Record<Slot_, ItemType>;
 
 

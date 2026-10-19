@@ -5,7 +5,7 @@ import { el, type ItemType, tierMark, tmTier, utTier, uwTier } from '../items';
 
 /*
  * The armories' filter (the gear page's, the forge's, the databank's): a Filter button beside the search,
- * with how many filters are on, and its panel under it: the type (All, Weapons, Armor, Accessories, Orbs, Treasures, Artifacts), the
+ * with how many filters are on, and its panel under it: the type (All, Weapons, Armor, Secondary Armor, Accessories, Orbs, Treasures, Artifacts), the
  * stars (Any, then 4 to 1) and, where the page offers them, the class (the databank's: a raid class's own items; the
  * heroes page's: what works on a class, picked for the hero shown),
  * Owned only (the databank's), Refineable (the forge's) and Hero gear (the gear page's: TechnoMagic gear and unique
@@ -60,13 +60,14 @@ const TYPES: readonly [ItemType | 'all', string][] = [
   ['all', 'All'],
   ['weapon', 'Weapons'],
   ['armor', 'Armor'],
+  ['secondary', 'Secondary Armor'],
   ['accessory', 'Accessories'],
   ['orb', 'Orbs'],
   ['treasure', 'Treasures'],
   ['artifact', 'Artifacts'],
 ];
 /** The types only heroes wear. */
-const HERO_TYPES: readonly (ItemType | 'all')[] = ['accessory', 'orb', 'artifact'];
+const HERO_TYPES: readonly (ItemType | 'all')[] = ['secondary', 'accessory', 'orb', 'artifact'];
 const TIERS: readonly StarChoice[] = ['all', 'tm', 'uw', 'ut', 4, 3, 2, 1];
 
 let count = 0;
@@ -111,8 +112,9 @@ export function armoryFilter(box: HTMLElement): ArmoryFilter {
   // Focusable, so a click on its words (not themselves focusable) keeps the focus in it rather than dropping it.
   panel.tabIndex = -1;
   panel.hidden = true;
-  // All across the top, then the types in pairs; and Any across the top, then the tiers in pairs.
-  const types = group('Type', ...TYPES.map(([slot, name]) => option('radio', 'slot', slot, name, slot === 'all')));
+  // All across the top, then the types in pairs (Secondary Armor, too long for half, on its own); and Any across the top,
+  // then the tiers in pairs.
+  const types = group('Type', ...TYPES.map(([slot, name]) => option('radio', 'slot', slot, name, slot === 'all' || slot === 'secondary')));
   const tiers = group('Tier', ...TIERS.map((n) => (n === 'all' ? option('radio', 'stars', 'all', 'Any', true) : option('radio', 'stars', String(n), n === 'tm' ? tmTier() : n === 'uw' ? uwTier() : n === 'ut' ? utTier() : tierMark(n)))));
   const owned = option('checkbox', 'owned', 'owned', 'Owned only', true);
   const refineable = option('checkbox', 'refineable', 'refineable', 'Refineable', true);
@@ -225,7 +227,7 @@ export function armoryFilter(box: HTMLElement): ArmoryFilter {
     // A sort picked shows the gear it sorts, where that's hidden until Hero gear is on (unless its tier is picked).
     const sorting = (e.target === mainSelect || e.target === potentialSelect) && sort !== null && (sort.main !== null || sort.potentials.length > 0) && tier !== 'tm';
     const slot = (picked('slot') ?? 'all') as ItemType | 'all';
-    // So does a type only heroes wear (accessories, orbs, artifacts: hero gear's alone).
+    // So does a type only heroes wear (Secondary Armor, accessories, orbs, artifacts: hero gear's alone).
     const heroType = e.target === input('slot', slot) && HERO_TYPES.includes(slot);
     choose({
       slot,
