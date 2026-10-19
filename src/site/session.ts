@@ -198,13 +198,14 @@ function renderHeader(): void {
     return;
   }
   profile = profileMenu(me.user, [
+    // Always here (not in the header).
+    { label: 'Games', icon: 'games', href: '/#games' },
+    { label: 'Forge', icon: 'forge', href: '/forge/' },
+    { label: 'Databank', icon: 'databank', href: '/databank/' },
     // On smaller screens the header's links are here instead.
-    { label: 'Games', icon: 'games', href: '/#games', className: 'site-nav-item' },
     { label: 'Gear', icon: 'gear', href: '/gear/', className: 'site-nav-item' },
     { label: 'Heroes', icon: 'heroes', href: '/heroes/', className: 'site-nav-item' },
-    { label: 'Forge', icon: 'forge', href: '/forge/', className: 'site-nav-item' },
     { label: 'Shop', icon: 'shop', href: '/shop/', className: 'site-nav-item' },
-    { label: 'Databank', icon: 'databank', href: '/databank/', className: 'site-nav-item' },
     { label: 'My Servers', icon: 'servers', href: '/#play' },
     // The bot's settings (../admin/), for the bot admin only.
     ...(me.admin ? [{ label: 'Admin', icon: 'admin', href: '/admin/' } as const] : []),

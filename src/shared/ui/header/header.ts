@@ -7,14 +7,14 @@ import './header.css';
  * it's on (../../../site/main.ts, by each link's data-route).
  */
 
-/** The pages in the header, in order: their links, and the route each marks (the router's page.path). */
+/**
+ * The pages in the header, in order: their links, and the route each marks (the router's page.path). Games, the Forge and the
+ * Databank are in the profile's drop-down instead (../../../site/session.ts).
+ */
 const LINKS: readonly { label: string; href: string; route: string }[] = [
-  { label: 'Games', href: '/#games', route: '/' },
   { label: 'Gear', href: '/gear/', route: '/gear' },
   { label: 'Heroes', href: '/heroes/', route: '/heroes' },
-  { label: 'Forge', href: '/forge/', route: '/forge' },
   { label: 'Shop', href: '/shop/', route: '/shop' },
-  { label: 'Databank', href: '/databank/', route: '/databank' },
 ];
 
 export interface SiteHeader {
