@@ -117,8 +117,8 @@ export function makeCard(name: string, face: string, abilities: readonly Ability
     let showing = ability;
     if (ability) {
       show(ability);
-      // Reserved: two lights going round its edge. While another of its hero's is being used: saying so.
-      slot.append(icon, wait, el('span', 'tm-lights'), el('em', 'tm-casting', 'Casting...'), pips);
+      // Reserved: two lights going round its edge, and saying so. While another of its hero's is being used: saying so.
+      slot.append(icon, wait, el('span', 'tm-lights'), el('em', 'tm-casting', 'Casting...'), el('em', 'tm-reserved', 'Reserved'), pips);
       // Not disabled when it can't be used, so it can still be held down on for what it does.
       slot.addEventListener('click', () => {
         if (slot.getAttribute('aria-disabled') !== 'true') on.use(i);
