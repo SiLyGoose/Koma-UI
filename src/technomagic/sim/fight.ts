@@ -532,10 +532,16 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     events.push({ kind: 'start', who: fighter.index, move, skill: skill !== null });
   }
 
-  /** A hero uses a skill (true if it did: it must be free). */
+  /** Whether a hero is free for a skill: doing nothing, or only its attack (which the skill cuts short, as King's Raid's does; not another skill, nor its flinch or entrance). */
+  function cuttable(fighter: Fighter): boolean {
+    const { doing } = fighter;
+    return !doing || (doing.move === fighter.attack && doing.skill === undefined);
+  }
+
+  /** A hero uses a skill (true if it did: it must be free, or only attacking). */
   function use(fighter: Fighter, index: number): boolean {
     const ability = sim.slot(fighter, index);
-    if (!ability || fighter.doing || !sim.ready(fighter, index)) return false;
+    if (!ability || !cuttable(fighter) || !sim.ready(fighter, index)) return false;
     begin(fighter, ability.move, index);
     for (const perk of fighter.perkDefs) if (perk.skill?.index === index) usedWith(fighter, perk.skill);
     fighter.cooldowns[index] = ability.cooldown;
@@ -1531,17 +1537,18 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
         return;
       }
 
-      // Each hero on the field, when it is free: the skill it was told to use (or, on Auto, the dearest it can), or else its attack. (Not one that can do nothing for now.)
+      // Each hero on the field: the skill it was told to use (or, on Auto, the dearest it can), as soon as it is free or only
+      // attacking (King's Raid's cuts the attack short); or else, free, its attack. (Not one that can do nothing for now.)
       for (const on of field) {
         on.rested = on.doing ? 0 : on.rested + dt;
-        // (On Auto, once it is free: what it uses is picked as it can use it.)
-        if (on.auto && on.reserved === null && !on.doing) on.reserved = autoSkill(on);
+        // (On Auto, once it is free or attacking: what it uses is picked as it can use it.)
+        if (on.auto && on.reserved === null && cuttable(on)) on.reserved = autoSkill(on);
         // (A skill pressed while it can do nothing waits for it; and one pressed short of mana waits for the mana, the hero
         // attacking meanwhile.)
         if (on.reserved !== null && !sim.reservable(on, on.reserved) && !bound(on.statuses)) on.reserved = null;
-        if (!on.doing && on.hp > 0 && !bound(on.statuses)) {
+        if (on.hp > 0 && !bound(on.statuses)) {
           if (on.reserved !== null && use(on, on.reserved)) on.reserved = null;
-          else if (on.rested >= (KR_HEROES[on.id]?.wait ?? HERO_WAIT) && targetOf(on)) begin(on, on.attack, null);
+          else if (!on.doing && on.rested >= (KR_HEROES[on.id]?.wait ?? HERO_WAIT) && targetOf(on)) begin(on, on.attack, null);
         }
       }
 
