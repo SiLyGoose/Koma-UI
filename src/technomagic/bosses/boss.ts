@@ -34,6 +34,8 @@ export interface Boss {
   /** A raid of more than one wave: it flies off the field (then isn't drawn), and lands back on it. */
   leave?(): void;
   arrive?(): void;
+  /** Standing where it stands again, as a fight begins (whatever it was doing as the last ended: flown off, lying down). */
+  reset?(): void;
   /** Where whoever it is fighting is, on the field (their chest): asked as it attacks, put in `into`. The page sets it. */
   target: (into: Vector3) => Vector3;
   update(now: number, dt: number): void;

@@ -116,6 +116,8 @@ export interface Stage {
    * seconds, `moved` told how far along the field (the field's units) each frame moves it (for what stands on it: its effects).
    */
   slide(seconds: number, moved: (dx: number) => void): void;
+  /** The map back on its first platform, a move on cut short (a fight begun again): `moved` told how far back it went. */
+  home(moved: (dx: number) => void): void;
   /** Moves the camera along the field: `by` across from where it stands (less than 0: to the left), looking the same way. */
   pan(by: number): void;
   /** Where a place on the field is on the page, from the canvas's top left (CSS pixels). */
@@ -150,6 +152,8 @@ export function makeStage(canvas: HTMLCanvasElement): Stage {
   /** The map, how far it moves on to its next platform, and what is left of a move on (null: none). */
   let mapAt: { map: Object3D; next: number; turn: number } | null = null;
   let sliding: { left: number; seconds: number; moved: (dx: number) => void } | null = null;
+  /** How far the map has moved on from its first platform (its own units). */
+  let slid = 0;
   // How far along the field it is moved (pan()).
   let panned = 0;
   const look = new Vector3();
@@ -236,13 +240,37 @@ export function makeStage(canvas: HTMLCanvasElement): Stage {
     renderer.autoClear = true;
   };
 
+  /** The map moved on by `dt` seconds of its move on to the next platform (if it is moving). */
+  const slideOn = (dt: number): void => {
+    if (!sliding || !mapAt) return;
+    // (Eased: slow to start and to stop, as the heroes do.)
+    const was = sliding.left;
+    sliding.left = Math.max(0, sliding.left - dt);
+    const along = (k: number): number => k * k * (3 - 2 * k);
+    const step = mapAt.next * (along(1 - sliding.left / sliding.seconds) - along(1 - was / sliding.seconds));
+    mapAt.map.position.x += step;
+    slid += step;
+    sliding.moved(step * Math.cos(mapAt.turn));
+    if (sliding.left <= 0) sliding = null;
+  };
+
   const seen = new Vector3();
   return {
     scene,
     camera,
     overlay: { scene: overlay, camera: flatUi },
     slide(seconds, moved) {
-      if (mapAt) sliding = { left: seconds, seconds, moved };
+      if (!mapAt) return;
+      // (One still moving on: there at once, so each wave's platform is moved on to.)
+      if (sliding) slideOn(sliding.left);
+      sliding = { left: seconds, seconds, moved };
+    },
+    home(moved) {
+      sliding = null;
+      if (!mapAt || slid === 0) return;
+      mapAt.map.position.x -= slid;
+      moved(-slid * Math.cos(mapAt.turn));
+      slid = 0;
     },
     focus(target) {
       close = target && { at: target.at.clone(), high: target.high };
@@ -391,16 +419,7 @@ export function makeStage(canvas: HTMLCanvasElement): Stage {
         last = ms;
         update(ms / 1000, dt);
         mapTick?.(dt);
-        if (sliding && mapAt) {
-          // (Eased: slow to start and to stop, as the heroes do.)
-          const was = sliding.left;
-          sliding.left = Math.max(0, sliding.left - dt);
-          const along = (k: number): number => k * k * (3 - 2 * k);
-          const step = mapAt.next * (along(1 - sliding.left / sliding.seconds) - along(1 - was / sliding.seconds));
-          mapAt.map.position.x += step;
-          sliding.moved(step * Math.cos(mapAt.turn));
-          if (sliding.left <= 0) sliding = null;
-        }
+        slideOn(dt);
         if (covered || gap > GAP) {
           since = ms;
           frames = slow = 0;

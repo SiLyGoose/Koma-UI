@@ -265,7 +265,8 @@ async function start(): Promise<void> {
   // The minions of its raid's waves, their models and clips read now (a raid of one wave: none).
   const minions = makeMinions(stage.scene, bossView.look.assets, kr);
   // The map moved on to the next wave's platform, its own effects with it.
-  const slide = (seconds: number): void => stage.slide(seconds, (dx) => kr.shift(dx));
+  const shift = (dx: number): void => kr.shift(dx);
+  const slide = (seconds: number): void => stage.slide(seconds, shift);
 
   /** Every body read so far (each skin of each hero read, and as they look with their unique weapons once that's wanted), for a fight to take from. */
   const pool: Entrant[] = [];
@@ -367,6 +368,8 @@ async function start(): Promise<void> {
   function play(sim: Sim, entries: readonly Entrant[], controls: Controls, lock: Lock | null): Game {
     unstage();
     game?.view.clear();
+    // (A raid of more than one wave: the map back on its first platform, wherever the last fight left it.)
+    stage.home(shift);
     party.replaceChildren();
     overheads.replaceChildren();
     meterAt.replaceChildren();

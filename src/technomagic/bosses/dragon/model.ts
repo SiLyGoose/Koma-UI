@@ -119,6 +119,15 @@ export async function loadDragon(body: DragonBody, scene: Scene, bright: Object3
       root.visible = true;
       motion.arrive();
     },
+    reset() {
+      going.splice(0);
+      gone = 0;
+      flinch = 0;
+      slowed = { rate: 1, left: 0 };
+      for (const old of pillars.splice(0)) scene.remove(old.body);
+      root.visible = true;
+      motion.reset();
+    },
     update(now, dt) {
       motion.update(dt);
       // (Flying off: hidden once it is gone.)

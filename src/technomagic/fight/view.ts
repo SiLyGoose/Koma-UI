@@ -557,6 +557,7 @@ export function makeFightView({
       charge = null;
       minions.clear();
       celebrating = null;
+      boss.reset?.();
       boss.root.visible = true;
       for (const hero of bodies) hero.root.visible = true;
       for (const who of on) {

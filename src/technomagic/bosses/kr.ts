@@ -57,6 +57,8 @@ export interface KrBossMotion {
   /** It flies off the field (and stays gone: the page hides it once it is), or lands back on it. Returns how long it takes (seconds). */
   leave(): number;
   arrive(): number;
+  /** Standing in its idle again, whatever it was doing. */
+  reset(): void;
   update(dt: number): void;
 }
 
@@ -131,6 +133,14 @@ export function krBossMotion(models: readonly Object3D[], clips: KrBossClips): K
       show(arriving, BLEND, true);
       doing = { what: 'attack', actions: arriving, t: 0, length: clips.arrive.duration };
       return clips.arrive.duration;
+    },
+    reset() {
+      doing = null;
+      dazed = 0;
+      slowed = { rate: 1, left: 0 };
+      mixer.stopAllAction();
+      for (const action of idle) action.reset().play();
+      showing = idle;
     },
     update(dt) {
       slowed.left = Math.max(0, slowed.left - dt);
