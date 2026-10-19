@@ -6,12 +6,12 @@ export { HERO_PART_NAME, HERO_SLOT_PART, HERO_SLOTS, type HeroCopy, type HeroesV
 import { HERO_SLOT_PART as PART_OF, HERO_SLOTS as SLOTS, type HeroSlot as Slot_ } from '../protocol/heroes';
 import type { Slot } from '../protocol/items';
 
-/** The slot of the items each of a hero's slots takes (its empty icon's): a weapon, an armor (Armor and Secondary Armor), or the rest. */
+/** The slot of the items each of a hero's slots takes (its empty icon's): a weapon, an armor (Armor and Mantle), or the rest. */
 export const HERO_SLOT_KIND: Readonly<Record<Slot_, Slot>> = Object.fromEntries(
   SLOTS.map((slot) => [slot, PART_OF[slot] === 'weapon' ? 'weapon' : PART_OF[slot] === 'armor' || PART_OF[slot] === 'secondary' ? 'armor' : 'treasure']),
 ) as Record<Slot_, Slot>;
 
-/** The type of item (the armories' filters') each of a hero's slots takes: its slot's, but a Secondary Armor, an accessory, an orb or an artifact by its part. */
+/** The type of item (the armories' filters') each of a hero's slots takes: its slot's, but a Mantle, an accessory, an orb or an artifact by its part. */
 export const HERO_SLOT_TYPE: Readonly<Record<Slot_, ItemType>> = Object.fromEntries(
   // (As ./items.ts typeOf has it, which isn't called here: that file imports this one.)
   SLOTS.map((slot) => [slot, PART_OF[slot] === 'secondary' || PART_OF[slot] === 'accessory' || PART_OF[slot] === 'orb' || PART_OF[slot] === 'artifact' ? PART_OF[slot] : HERO_SLOT_KIND[slot]]),

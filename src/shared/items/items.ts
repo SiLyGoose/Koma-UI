@@ -17,12 +17,12 @@ export const SLOT_NAME: Record<Slot, string> = { weapon: 'Weapon', armor: 'Armor
 export const kindName = (item: { slot: Slot; part?: HeroPart | null }): string => (item.part ? HERO_PART_NAME[item.part] : SLOT_NAME[item.slot]);
 
 /**
- * What the armories' filters pick an item by: its slot, but hero gear's Secondary Armor (M.DEF; its slot is the armor's, whose
+ * What the armories' filters pick an item by: its slot, but hero gear's Mantle (M.DEF; its slot is the armor's, whose
  * Armor is P.DEF) and its accessories, orbs and artifacts (whose slot is the treasure's) by their part.
  */
 export type ItemType = Slot | 'secondary' | 'accessory' | 'orb' | 'artifact';
 
-export const ITEM_TYPE_NAME: Record<ItemType, string> = { ...SLOT_NAME, secondary: 'Secondary Armor', accessory: 'Accessory', orb: 'Orb', artifact: 'Artifact' };
+export const ITEM_TYPE_NAME: Record<ItemType, string> = { ...SLOT_NAME, secondary: 'Mantle', accessory: 'Accessory', orb: 'Orb', artifact: 'Artifact' };
 
 export const typeOf = (item: { slot: Slot; part?: HeroPart | null }): ItemType =>
   item.part === 'secondary' || item.part === 'accessory' || item.part === 'orb' || item.part === 'artifact' ? item.part : item.slot;
