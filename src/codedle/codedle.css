@@ -12,18 +12,13 @@
    * A tile: as big as fits five across and six rows down with everything else on the screen (--around: how tall that
    * is), but never tiny.
    */
-  --around: 425px;
+  --around: 435px;
   --tile: max(34px, min(60px, calc((100vw - 64px) / 5), calc((100dvh - var(--around)) / 6.6)));
   display: flex;
   flex-direction: column;
   min-height: 100vh;
   min-height: 100dvh;
   padding-bottom: 12px;
-}
-
-.cd > .top,
-.cd::before {
-  margin-bottom: 12px;
 }
 
 .cd > .cd-game {
@@ -33,7 +28,8 @@
   align-items: center;
   gap: 12px;
   width: min(520px, 100% - 24px);
-  margin: 0 auto;
+  /* (Room under the title bar: its own margin is the frame's, frame.css, which comes after this.) */
+  margin: 20px auto 0;
   flex: 1;
 }
 
@@ -46,7 +42,7 @@
 /* A short screen (a phone): the rules under the keypad left out, for bigger tiles. */
 @media (max-height: 760px) {
   .cd {
-    --around: 355px;
+    --around: 365px;
   }
 
   .cd > .hint {
