@@ -867,7 +867,9 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       foe.hp -= dealt;
       if (deathless && foe === boss && foe.hp <= 0) foe.hp = foe.maxHp;
       by.dealt += dealt;
-      events.push({ kind: 'number', on: 'boss', foe: foe.index, amount: dealt, type: blocked ? 'blocked' : critical ? 'crit' : 'hit' });
+      // (Shown as King's Raid's: a crit over a block, and a skill's blow apart from its attack's and its passive's.)
+      const skill = landing?.by === by && by.doing?.skill !== undefined;
+      events.push({ kind: 'number', on: 'boss', foe: foe.index, amount: dealt, type: critical ? 'crit' : blocked ? 'blocked' : skill ? 'skill' : 'hit' });
       for (const { mark } of marking) if (mark) put(foe.statuses, { name: mark.name, left: mark.lasts, ...(mark.takes && { takes: mark.takes }), ...(mark.deals && { deals: mark.deals }), ...(mark.crit && { crit: mark.crit }), shown: 'curse' as const });
       // Mortal Wound: a critical blow leaves the boss healed less, and eating at it (perkTick), for a while.
       const wound = critical ? by.perkDefs.find((perk) => perk.wound) : undefined;
@@ -1244,7 +1246,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       if (dealt > soaked) {
         target.hp -= lost;
         spare(target);
-        events.push({ kind: 'number', on: target.index, amount: dealt - soaked, type: blocked ? 'blocked' : critical ? 'crit' : 'hit' });
+        events.push({ kind: 'number', on: target.index, amount: dealt - soaked, type: critical ? 'crit' : blocked ? 'blocked' : 'hit' });
       }
       if (target.hp <= 0) {
         target.shield = 0;

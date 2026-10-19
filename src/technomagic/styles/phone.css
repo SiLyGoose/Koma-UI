@@ -151,8 +151,14 @@
   -webkit-text-stroke-width: 3px;
 }
 
+:where(.ls-landscape) .tm-number.skill,
 :where(.ls-landscape) .tm-number.crit {
   font-size: 20px;
+}
+
+:where(.ls-landscape) .tm-number.blocked,
+:where(.ls-landscape) .tm-number.heal {
+  font-size: 17px;
 }
 
 :where(.ls-landscape) .tm-number-label {

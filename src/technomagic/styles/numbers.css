@@ -1,30 +1,67 @@
-/* The numbers coming off whoever is hit or healed (../hud/numbers.ts): yellow a blow, red a critical one (saying so over it),light blue one a block lessened, gray what a shield took, green a heal, white a blow dodged. */
+/*
+ * The numbers coming off whoever is hit or healed (../hud/numbers.ts), in King's Raid's colours (its GameSetting's DamageFloatDataNew,
+ * a gradient top to bottom): white a blow, orange a skill's, gold a critical one (saying so over it), light blue one a block lessened,
+ * gray what a shield took, green a heal, white a blow dodged. Each text is its dark outline, with its gradient drawn again on top.
+ */
 
 .tm-number {
+  --top: #ffffff;
+  --bottom: #ffffff;
   position: absolute;
   transform: translate(-50%, -100%);
   font: italic 900 20px/1 'Arial Black', Impact, sans-serif;
   letter-spacing: 0.02em;
   white-space: nowrap;
-  color: #ffd84a;
-  -webkit-text-stroke: 4px #1a1206;
-  paint-order: stroke fill;
+  color: #16120c;
+  -webkit-text-stroke: 4px #16120c;
   text-shadow: 0 2px 3px rgb(0 0 0 / 0.6);
   pointer-events: none;
   animation: tm-number 0.95s ease-out forwards;
 }
 
+.tm-number-value,
+.tm-number-label {
+  position: relative;
+  display: block;
+}
+
+.tm-number-value::after,
+.tm-number-label::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  -webkit-text-stroke: 0;
+  text-shadow: none;
+  color: transparent;
+  background: linear-gradient(var(--top), var(--bottom));
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+/* A skill's blow and a critical one: bigger, bursting out. */
+.tm-number.skill,
 .tm-number.crit {
   font-size: 30px;
-  color: #ff4a3a;
-  -webkit-text-stroke-color: #2a0604;
   animation-name: tm-number-crit;
   animation-duration: 1.1s;
 }
 
+.tm-number.skill {
+  --top: #ff6d40;
+  --bottom: #ffc092;
+  color: #2a0c04;
+  -webkit-text-stroke-color: #2a0c04;
+}
+
+.tm-number.crit {
+  --top: #ffcc00;
+  --bottom: #fffeb7;
+  color: #2a1a02;
+  -webkit-text-stroke-color: #2a1a02;
+}
+
 /* "Critical Hit" over a critical blow's number: smaller, and goes up and out with it. */
 .tm-number-label {
-  display: block;
   margin-bottom: 2px;
   font-size: 13px;
   letter-spacing: 0.06em;
@@ -34,24 +71,32 @@
 }
 
 .tm-number.blocked {
-  color: #8fd8ff;
-  -webkit-text-stroke-color: #061a2a;
+  --top: #a3d7f8;
+  --bottom: #7d7dff;
+  font-size: 24px;
+  color: #0a0a2a;
+  -webkit-text-stroke-color: #0a0a2a;
 }
 
 .tm-number.shield {
-  color: #b8bcc4;
+  --top: #c0c0c0;
+  --bottom: #c0c0c0;
+  color: #16181c;
   -webkit-text-stroke-color: #16181c;
 }
 
 .tm-number.heal {
-  color: #7dff9a;
-  -webkit-text-stroke-color: #062a10;
+  --top: #81f935;
+  --bottom: #cafdac;
+  font-size: 24px;
+  color: #0a2a06;
+  -webkit-text-stroke-color: #0a2a06;
 }
 
 .tm-number.dodged,
 .tm-number.immune {
-  font-size: 16px;
-  color: #f2f2f2;
+  font-size: 18px;
+  color: #1a1a1a;
   -webkit-text-stroke-color: #1a1a1a;
 }
 
@@ -64,7 +109,7 @@
   100% { opacity: 0; transform: translate(-50%, -320%) scale(1); }
 }
 
-/* A critical blow bursts out bigger, and shakes. */
+/* A critical blow (and a skill's) bursts out bigger, and shakes. */
 @keyframes tm-number-crit {
   0% { opacity: 0; transform: translate(-50%, -100%) scale(0.4); }
   12% { opacity: 1; transform: translate(-50%, -130%) scale(1.45) rotate(-4deg); }
@@ -76,6 +121,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .tm-number,
+  .tm-number.skill,
   .tm-number.crit {
     animation-name: tm-number-still;
   }
