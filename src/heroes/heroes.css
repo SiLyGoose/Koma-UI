@@ -284,7 +284,7 @@
  * with its kind's gem on it, ../shared/items/styles/runes.css; its name and what it gives; how many; Put in). The search,
  * the Filter, Sell and Unequip all are for the cards, so hidden with them.
  */
-.armory.runes :is(.armory-tools, .armory-grid, .armory-foot) {
+.armory.runes :is(.armory-tools, .armory-grid, .armory-foot, .sell-tools) {
   display: none;
 }
 
@@ -898,4 +898,59 @@
 .kr-action {
   padding: 2px 10px;
   font-size: 12px;
+}
+
+/* Picking copies to sell: Select shown, and Include locked beside it, a row over Sell and Cancel. */
+.sell-tools {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.sell-tools[hidden],
+.sell-locked[hidden] {
+  display: none;
+}
+
+.sell-tools .armory-action {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 0 14px;
+}
+
+.sell-locked {
+  display: inline-flex;
+  flex: 1 1 0;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  color: var(--muted);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.sell-locked input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--red);
+  cursor: pointer;
+}
+
+.sell-locked:has(input:checked) {
+  color: var(--red);
+}
+
+.sell-tools + .armory-foot {
+  margin-top: 10px;
+}
+
+/* Selling locked ones: said in red under what it comes to. */
+.sell-confirm-locked {
+  margin: 8px 0 0;
+  color: var(--red);
+  font-size: 13px;
+  font-weight: 600;
 }

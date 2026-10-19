@@ -60,6 +60,10 @@ export interface HeroesUi {
   sell: HTMLButtonElement;
   sellCancel: HTMLButtonElement;
   sellConfirm: HTMLDialogElement;
+  /** Picking copies to sell: Select shown and Include locked. */
+  sellTools: HTMLElement;
+  sellShown: HTMLButtonElement;
+  sellLocked: HTMLInputElement;
   stats: HTMLElement;
   statsTitle: HTMLElement;
   statsList: HTMLElement;
@@ -106,6 +110,8 @@ export interface HeroesContext {
   busy: Busy | null;
   /** Picking copies to sell: the ones picked (null when not selling). The cards then toggle, rather than show what they do. */
   selling: Set<string> | null;
+  /** Picking copies to sell: locked ones can be picked too (Include locked). */
+  sellLocked: boolean;
   /** Who in the server has heroes to look at (them first), and whose are shown: null for their own. */
   members: HeroMember[];
   viewing: HeroMember | null;
@@ -155,6 +161,9 @@ export function createContext(root: HTMLElement, host: HeroesHost): HeroesContex
       sell: $<HTMLButtonElement>('sell'),
       sellCancel: $<HTMLButtonElement>('sell-cancel'),
       sellConfirm: $<HTMLDialogElement>('sell-confirm'),
+      sellTools: $('sell-tools'),
+      sellShown: $<HTMLButtonElement>('sell-shown'),
+      sellLocked: $<HTMLInputElement>('sell-locked'),
       stats: $('stats'),
       statsTitle: $('stats-title'),
       statsList: $('stats-list'),
@@ -183,6 +192,7 @@ export function createContext(root: HTMLElement, host: HeroesHost): HeroesContex
     runes: false,
     busy: null,
     selling: null,
+    sellLocked: false,
     members: [],
     viewing: null,
     loads: 0,

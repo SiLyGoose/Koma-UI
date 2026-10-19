@@ -31,6 +31,8 @@ export interface ArmoryCopy {
   locked?: boolean;
   /** What selling it pays: null when it's never sold (worn, in a loadout, on a hero, locked); left out by a bot from before selling. */
   sell?: number | null;
+  /** What selling it pays though it's locked, where a sale can take locked ones too (the heroes page's): null or left out otherwise. */
+  sellLocked?: number | null;
   effects: string[];
   /** TechnoMagic gear's main stat (a weapon's HP, an armor's P.DEF or M.DEF): null or left out for anything else, or by a bot from before it said it. */
   mainStat?: MainStat | null;
@@ -76,6 +78,8 @@ export interface ArmoryDraw<C extends ArmoryCopy> {
   picked?: string | null;
   /** Picking copies to sell: the ones picked (null when not selling). What can't be sold is greyed out, and the cards toggle. */
   selling?: ReadonlySet<string> | null;
+  /** Locked copies can be picked to sell too (the heroes page's Include locked). */
+  sellLocked?: boolean;
   /** Said with nothing at all to show and no type picked ("You don't own any gear yet."). */
   none: string;
   /** Said with nothing shown, before anything else (the forge's "Nothing can be refined yet"). */
@@ -88,6 +92,8 @@ export interface ArmoryDraw<C extends ArmoryCopy> {
 export interface ArmoryGrid<C extends ArmoryCopy> {
   element: HTMLElement;
   draw(what: ArmoryDraw<C>): void;
+  /** The copies the last draw showed (by the filter, the stars and the search), in its order. */
+  shown(): readonly C[];
   /** Stops listening to the window (the page going away). */
   destroy(): void;
 }
@@ -119,6 +125,7 @@ interface Card {
  */
 export function armoryGrid<C extends ArmoryCopy>(element: HTMLElement): ArmoryGrid<C> {
   let last: ArmoryDraw<C> | null = null;
+  let lastShown: readonly C[] = [];
   let across = 0;
   const columns = (): number => getComputedStyle(element).gridTemplateColumns.split(' ').length || 4;
   /** By copy id. */
@@ -150,6 +157,7 @@ export function armoryGrid<C extends ArmoryCopy>(element: HTMLElement): ArmoryGr
     element.classList.toggle('selling', !!what.selling);
     const ofSlot = armoryOrder(what.copies, what.sort).filter((c) => (slot === 'all' || typeOf(c) === slot) && !hidden?.(c));
     const shown = ofSlot.filter((c) => (matches?.(c) ?? true) && matchesStars(stars, tierOf(c)) && matchesSearch(query, { name: c.name, id: c.itemId, description: c.description }));
+    lastShown = shown;
     const ownSound = what.ownSound !== false;
     const nodes: HTMLElement[] = shown.map((copy) => cardFor(copy, withSale(copy, look(copy), what), ownSound, () => what.onPick(copy)));
     const row = (n: number): number => Math.ceil(n / across) * across;
@@ -171,7 +179,7 @@ export function armoryGrid<C extends ArmoryCopy>(element: HTMLElement): ArmoryGr
     if (last && across && columns() !== across) draw(last);
   });
   resized.observe(element);
-  return { element, draw, destroy: () => resized.disconnect() };
+  return { element, draw, shown: () => lastShown, destroy: () => resized.disconnect() };
 }
 
 /** Puts `nodes` in `parent` in that order (and nothing else), moving only what isn't already where it goes. */
@@ -226,11 +234,11 @@ function setState(kept: Card, look: CardLook): void {
  * A card's look with the armory's own on it: ringed when its details show; picking copies to sell, ticked when picked,
  * and what can't be sold (worn, saved in a loadout or locked) greyed out, tagged "In loadout" when nothing else says why.
  */
-function withSale(copy: ArmoryCopy, look: CardLook, { picked, selling }: { picked?: string | null; selling?: ReadonlySet<string> | null }): CardLook {
+function withSale(copy: ArmoryCopy, look: CardLook, { picked, selling, sellLocked }: { picked?: string | null; selling?: ReadonlySet<string> | null; sellLocked?: boolean }): CardLook {
   const classes = { picked: !selling && copy.id === picked, ...look.classes };
   if (!selling) return { ...look, classes };
   const on = selling.has(copy.id);
-  const sellable = typeof copy.sell === 'number';
+  const sellable = priceOf(copy, sellLocked) !== null;
   return {
     ...look,
     tag: look.tag ?? (!sellable && !copy.locked ? { text: 'In loadout' } : null),
@@ -241,44 +249,66 @@ function withSale(copy: ArmoryCopy, look: CardLook, { picked, selling }: { picke
   };
 }
 
-/** How many copies are picked to sell (of those that still can be), what they sell for together, and their ids. */
-export function saleOf(copies: readonly ArmoryCopy[], selling: ReadonlySet<string> | null): { count: number; total: number; ids: string[] } {
+/** What selling a copy pays, or null when it can't be sold: a locked one's only with `unlocked` (locked ones picked too). */
+export const priceOf = (copy: ArmoryCopy, unlocked = false): number | null =>
+  typeof copy.sell === 'number' ? copy.sell : unlocked && typeof copy.sellLocked === 'number' ? copy.sellLocked : null;
+
+/**
+ * How many copies are picked to sell (of those that still can be; locked ones too with `unlocked`), what they sell for
+ * together, their ids, and how many of them are locked.
+ */
+export function saleOf(copies: readonly ArmoryCopy[], selling: ReadonlySet<string> | null, unlocked = false): { count: number; total: number; ids: string[]; locked: number } {
   const ids: string[] = [];
   let total = 0;
+  let locked = 0;
   for (const copy of copies) {
-    if (!selling?.has(copy.id) || typeof copy.sell !== 'number') continue;
+    const price = priceOf(copy, unlocked);
+    if (!selling?.has(copy.id) || price === null) continue;
     ids.push(copy.id);
-    total += copy.sell;
+    total += price;
+    if (typeof copy.sell !== 'number') locked++;
   }
-  return { count: ids.length, total, ids };
+  return { count: ids.length, total, ids, locked };
 }
 
-/** Drops from `selling` what can't be sold any more (sold, put on or locked meanwhile). */
-export function pruneSale(copies: readonly ArmoryCopy[], selling: Set<string>): void {
-  const sellable = new Set(copies.filter((copy) => typeof copy.sell === 'number').map((copy) => copy.id));
+/** Drops from `selling` what can't be sold any more (sold, put on or locked meanwhile; locked ones kept with `unlocked`). */
+export function pruneSale(copies: readonly ArmoryCopy[], selling: Set<string>, unlocked = false): void {
+  const sellable = new Set(copies.filter((copy) => priceOf(copy, unlocked) !== null).map((copy) => copy.id));
   for (const id of selling) if (!sellable.has(id)) selling.delete(id);
 }
 
-/** The armory's Sell (to start picking, then, with some picked, to confirm) and Cancel beside it. A bot from before selling prices nothing: no Sell. */
-export function drawSell(sell: HTMLButtonElement, cancel: HTMLElement, copies: readonly ArmoryCopy[], selling: ReadonlySet<string> | null, busy: Busy | null, shown: boolean): void {
-  const { count, total } = saleOf(copies, selling);
+/**
+ * The armory's Sell (to start picking, then, with some picked, to confirm) and Cancel beside it. A bot from before selling
+ * prices nothing: no Sell. `unlocked`: locked ones are picked too; null where a sale never takes them (anywhere but the
+ * heroes page, where a locked one is still a reason to start picking).
+ */
+export function drawSell(sell: HTMLButtonElement, cancel: HTMLElement, copies: readonly ArmoryCopy[], selling: ReadonlySet<string> | null, busy: Busy | null, shown: boolean, unlocked: boolean | null = null): void {
+  const { count, total } = saleOf(copies, selling, unlocked === true);
   sell.hidden = !shown || copies.some((copy) => copy.sell === undefined);
   sell.textContent = '';
   if (selling && count > 0) sell.append(`Sell ${count} · ${points(total)}`, coin('coin', 'zeiucoins'));
   else sell.append(selling ? 'Select items' : 'Sell');
-  sell.disabled = selling ? count === 0 : !copies.some((copy) => typeof copy.sell === 'number');
+  sell.disabled = selling ? count === 0 : !copies.some((copy) => priceOf(copy, unlocked !== null) !== null);
   working(sell, busy, 'sell');
   sell.classList.toggle('on', selling !== null);
   cancel.hidden = !shown || selling === null;
 }
 
-/** Asks (in the page's sell-confirm dialog) to confirm selling `count` copies for `total`. */
-export function askSale(dialog: HTMLDialogElement, count: number, total: number): void {
+/**
+ * Asks (in the page's sell-confirm dialog) to confirm selling `count` copies for `total`, saying how many of them are
+ * `locked` (in its .sell-confirm-locked, where it has one).
+ */
+export function askSale(dialog: HTMLDialogElement, count: number, total: number, locked = 0): void {
   if (count === 0) return;
   (dialog.querySelector('h3') as HTMLElement).textContent = `Sell ${count} item${count === 1 ? '' : 's'}?`;
   const amount = dialog.querySelector('.sell-confirm-total') as HTMLElement;
   amount.textContent = '';
   amount.append(`+${points(total)} `, coin('coin', 'zeiucoins'));
+  const lockedNote = dialog.querySelector<HTMLElement>('.sell-confirm-locked');
+  if (lockedNote) {
+    lockedNote.hidden = locked === 0;
+    lockedNote.textContent = locked === count ? (locked === 1 ? 'It is locked.' : 'All of them are locked.') : `${locked} of them ${locked === 1 ? 'is' : 'are'} locked.`;
+  }
   dialog.showModal();
 }
 
@@ -300,10 +330,11 @@ export function saleSaid(status: HTMLElement, sold: { count: number; earned: num
   status.append(`Sold ${sold.count} item${sold.count === 1 ? '' : 's'} for ${points(sold.earned)} `, coin('coin', 'zeiucoins'));
 }
 
-/** Under a copy's rank while picking copies to sell: what it sells for (nothing, when it can't be sold). */
-export function sellsFor(copy: ArmoryCopy): HTMLElement[] {
-  if (typeof copy.sell !== 'number') return [];
-  const price = el('span', 'detail-mw detail-sells', `Sells for ${points(copy.sell)} `);
+/** Under a copy's rank while picking copies to sell: what it sells for (nothing, when it can't be sold; a locked one's with `unlocked`). */
+export function sellsFor(copy: ArmoryCopy, unlocked = false): HTMLElement[] {
+  const value = priceOf(copy, unlocked);
+  if (value === null) return [];
+  const price = el('span', 'detail-mw detail-sells', `Sells for ${points(value)} `);
   price.append(coin('coin', 'zeiucoins'));
   return [price];
 }

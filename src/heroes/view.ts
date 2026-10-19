@@ -1,9 +1,9 @@
-import { askSale, itemDetailsClosed, itemIcons, itemPicked, saleOf, saleSaid, TM_UNSORTED, wireSaleDialog, wireSearch } from '../shared/items';
+import { askSale, itemDetailsClosed, itemIcons, itemPicked, pruneSale, saleOf, saleSaid, TM_UNSORTED, wireSaleDialog, wireSearch } from '../shared/items';
 import { HERO_CLASSES, HERO_SLOT_TYPE, type HeroCopy, type HeroSlot, type HeroesView } from '../shared/heroes';
 import type { HeroesSold } from '../protocol/heroes';
 import { busyWith, dropdown, fillServers } from '../shared/ui';
 import { createContext, heroShown, mine, status, type HeroesContext, type HeroesHost, type HeroMember } from './context';
-import { perkTip, render, renderPick, renderSearch, type HeroActions } from './render';
+import { perkTip, render, renderPick, renderSearch, sellableShown, type HeroActions } from './render';
 
 /** How long the search waits for typing to stop before the armory is drawn again. */
 const SEARCH_MS = 120;
@@ -183,6 +183,7 @@ async function change<T extends HeroesView = HeroesView>(ctx: HeroesContext, act
 /** Starts or stops picking copies to sell. */
 function pickToSell(ctx: HeroesContext, act: HeroActions, on: boolean): void {
   ctx.selling = on ? new Set() : null;
+  ctx.sellLocked = false;
   ctx.picked = null;
   ctx.runes = false;
   if (on) ctx.tab = 'gear';
@@ -191,13 +192,15 @@ function pickToSell(ctx: HeroesContext, act: HeroActions, on: boolean): void {
 
 /** Sells what's picked, and says what it came to. */
 async function sell(ctx: HeroesContext, act: HeroActions): Promise<void> {
-  const copies = saleOf(ctx.view?.copies ?? [], ctx.selling).ids;
+  const { ids: copies, locked } = saleOf(ctx.view?.copies ?? [], ctx.selling, ctx.sellLocked);
   if (copies.length === 0) return;
-  const view = await change<HeroesSold>(ctx, act, 'sell', '/api/heroes/sell', { copies }, 'Could not sell those. Try again.');
+  // (Locked ones only sell when it says so.)
+  const view = await change<HeroesSold>(ctx, act, 'sell', '/api/heroes/sell', { copies, ...(locked > 0 ? { locked: true } : {}) }, 'Could not sell those. Try again.');
   // It paid zeiucoins (or whatever the refusal was, the balance may be old): the header's balance follows.
   void ctx.host.loadMe(true);
   if (!view) return;
   ctx.selling = null;
+  ctx.sellLocked = false;
   render(ctx, act);
   saleSaid(ctx.ui.status, view.sold);
 }
@@ -353,10 +356,28 @@ function wire(ctx: HeroesContext, act: HeroActions): () => void {
   // Sell: to start picking copies, then (with some picked) to confirm the sale; Cancel stops picking.
   ui.sell.addEventListener('click', () => {
     if (!ctx.selling) return pickToSell(ctx, act, true);
-    const { count, total } = saleOf(ctx.view?.copies ?? [], ctx.selling);
-    askSale(ui.sellConfirm, count, total);
+    const { count, total, locked } = saleOf(ctx.view?.copies ?? [], ctx.selling, ctx.sellLocked);
+    askSale(ui.sellConfirm, count, total, locked);
   });
   ui.sellCancel.addEventListener('click', () => pickToSell(ctx, act, false));
+  // Select shown: every copy the filter and search show that can be sold, picked (all of them picked already: unpicked).
+  ui.sellShown.addEventListener('click', () => {
+    const { selling } = ctx;
+    if (!selling) return;
+    const shown = sellableShown(ctx);
+    if (shown.every((copy) => selling.has(copy.id))) {
+      for (const copy of shown) selling.delete(copy.id);
+      if (ctx.picked && !selling.has(ctx.picked)) ctx.picked = [...selling].at(-1) ?? null;
+    } else for (const copy of shown) selling.add(copy.id);
+    renderPick(ctx, act);
+  });
+  // Include locked: locked ones can be picked too (off: those picked are let go).
+  ui.sellLocked.addEventListener('change', () => {
+    ctx.sellLocked = ui.sellLocked.checked;
+    if (ctx.selling && ctx.view) pruneSale(ctx.view.copies, ctx.selling, ctx.sellLocked);
+    if (ctx.picked && ctx.selling && !ctx.selling.has(ctx.picked)) ctx.picked = [...ctx.selling].at(-1) ?? null;
+    renderPick(ctx, act);
+  });
   wireSaleDialog(ui.sellConfirm, () => void sell(ctx, act));
 
   // Escape closes the picked copy, else stops picking copies to sell (the sale's confirmation closes itself).

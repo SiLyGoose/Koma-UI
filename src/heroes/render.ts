@@ -1,4 +1,4 @@
-import { art, drawSell, el, forgeLink, hasLevels, heroMarks, isTmPiece, itemDetailsClosed, krStars, levelLabel, itemPicked, lockToggle, pruneSale, replacesNote, rich, runeMarks, sellsFor, showDetail, statBlocks, tmMarks, tmSections, treasureParts, treasureSection, utMarks, uwMarks } from '../shared/items';
+import { art, drawSell, el, forgeLink, hasLevels, heroMarks, isTmPiece, itemDetailsClosed, krStars, levelLabel, itemPicked, lockToggle, priceOf, pruneSale, replacesNote, rich, runeMarks, sellsFor, showDetail, statBlocks, tmMarks, tmSections, treasureParts, treasureSection, utMarks, uwMarks } from '../shared/items';
 import { classBadge, className, FACE, HERO_PART_NAME, HERO_SLOT_KIND, HERO_SLOT_PART, HERO_SLOT_TYPE, HERO_SLOTS, heroCut, heroPicture, optionPips, skillText, STAGE_ZOOM, type HeroView, type HeroCopy, type HeroSlot } from '../shared/heroes';
 import { built } from '../shared/built';
 import { working } from '../shared/ui';
@@ -54,7 +54,7 @@ export function render(ctx: HeroesContext, act: HeroActions): void {
   ui.filter.show({ slot: ctx.filter, stars: ctx.stars, owned: null, refineable: null, cls: ctx.cls, heroGear: null, sort: ctx.sort });
   // Not theirs to sell (someone else's, or the raid's Manage popup); and copies sold, put on or locked meanwhile aren't picked any more.
   if (!canTrade(ctx)) ctx.selling = null;
-  if (ctx.selling) pruneSale(view.copies, ctx.selling);
+  if (ctx.selling) pruneSale(view.copies, ctx.selling, ctx.sellLocked);
   renderRoster(ctx, act);
   renderStage(ctx);
   renderSlots(ctx);
@@ -74,8 +74,27 @@ export function render(ctx: HeroesContext, act: HeroActions): void {
   ui.unequipAll.hidden = !mine(ctx) || ctx.selling !== null;
   ui.unequipAll.disabled = !hero?.owned || Object.values(hero.equipped).every((id) => id === null);
   working(ui.unequipAll, ctx.busy, 'unequip-all');
-  drawSell(ui.sell, ui.sellCancel, view.copies, ctx.selling, ctx.busy, canTrade(ctx));
+  drawSale(ctx);
 }
+
+/**
+ * Sell and Cancel, and while picking copies to sell, Select shown (Unselect shown with every one shown that can be sold
+ * picked) and Include locked (only with a locked one that could be sold).
+ */
+function drawSale(ctx: HeroesContext): void {
+  const { ui, view, selling } = ctx;
+  if (!view) return;
+  drawSell(ui.sell, ui.sellCancel, view.copies, selling, ctx.busy, canTrade(ctx), ctx.sellLocked);
+  ui.sellTools.hidden = !canTrade(ctx) || selling === null;
+  const sellable = sellableShown(ctx);
+  ui.sellShown.textContent = sellable.length > 0 && sellable.every((copy) => selling?.has(copy.id)) ? 'Unselect shown' : 'Select shown';
+  ui.sellShown.disabled = sellable.length === 0 || ctx.busy !== null;
+  ui.sellLocked.checked = ctx.sellLocked;
+  (ui.sellLocked.parentElement as HTMLElement).hidden = !view.copies.some((copy) => typeof copy.sellLocked === 'number');
+}
+
+/** The copies the armory shows that can be sold now (locked ones too, with Include locked). */
+export const sellableShown = (ctx: HeroesContext): HeroCopy[] => ctx.ui.grid.shown().filter((copy) => priceOf(copy, ctx.sellLocked) !== null);
 
 /** A copy picked or put down (or picked to sell, or not): only what that changes, the armory's cards, the details and Sell. */
 export function renderPick(ctx: HeroesContext, act: HeroActions): void {
@@ -83,11 +102,14 @@ export function renderPick(ctx: HeroesContext, act: HeroActions): void {
   if (!view) return;
   renderGrid(ctx, act);
   renderDetail(ctx, act);
-  drawSell(ui.sell, ui.sellCancel, view.copies, ctx.selling, ctx.busy, canTrade(ctx));
+  drawSale(ctx);
 }
 
-/** The search changed: only the armory. */
-export const renderSearch = (ctx: HeroesContext, act: HeroActions): void => renderGrid(ctx, act);
+/** The search changed: only the armory (and Select shown, which picks what it shows). */
+export function renderSearch(ctx: HeroesContext, act: HeroActions): void {
+  renderGrid(ctx, act);
+  drawSale(ctx);
+}
 
 /** A picture cut out for a hero, put in `img` once it's ready (its initial in `fallback` until then, or for good with none). */
 function showCut(img: HTMLImageElement, id: string, frame: typeof FACE, width: number, fallback: HTMLElement, initial: string): void {
@@ -272,6 +294,7 @@ function renderGrid(ctx: HeroesContext, act: HeroActions): void {
     },
     picked: ctx.picked,
     selling: ctx.selling,
+    sellLocked: ctx.sellLocked,
     none: mine(ctx) ? 'No hero gear yet. The Weekly Boss and the Dragon Raid drop it, the raid shop sells it, and the TechnoMagic Raid drops its own.' : `${ctx.viewing?.name} has no hero gear yet.`,
     onPick: (copy) => {
       const before = ctx.picked;
@@ -444,7 +467,7 @@ function renderDetail(ctx: HeroesContext, act: HeroActions): void {
     notes,
     // Lock: theirs to toggle on the site (not while picking what to sell); else just shown when shut.
     corner: lockToggle(copy, ctx.busy, canTrade(ctx) && !ctx.selling ? (locked) => act.lock(copy, locked) : null),
-    info: ctx.selling ? sellsFor(copy) : [],
+    info: ctx.selling ? sellsFor(copy, ctx.sellLocked) : [],
     actions,
   });
 }
