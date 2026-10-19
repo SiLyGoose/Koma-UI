@@ -258,17 +258,38 @@ export function krStars(level: number, max = level, tm = false): HTMLElement {
   return row;
 }
 
+/** A rune in a copy's socket as its card shows it (the heroes page's HeroRune): its kind's colour, red, green or blue. */
+type SocketRune = { color: string; name?: string } | null;
+
+/** The rune kinds' names by their colour, as King's Raid sorts its runes. */
+const RUNE_KIND: Readonly<Record<string, string>> = { red: 'Offensive', green: 'Utility', blue: 'Defensive' };
+
+/**
+ * A copy's rune sockets, as King's Raid draws them down its card's left edge (styles/runes.css): a gold ring filled dark
+ * each, its rune's gem in it, red for an offensive rune, green for a utility one, blue for a defensive one; an empty one's
+ * gem fading in and out pink. None for a piece with no sockets.
+ */
+export function runeMarks(runes: readonly SocketRune[] | undefined): HTMLElement[] {
+  if (!runes?.length) return [];
+  const column = el('span', 'kr-runes');
+  column.setAttribute('role', 'img');
+  const says = runes.map((rune) => (rune ? `${RUNE_KIND[rune.color] ?? 'A'} rune${rune.name ? ` (${rune.name})` : ''}` : 'empty rune socket'));
+  column.setAttribute('aria-label', says.join(', '));
+  for (const rune of runes) column.append(el('span', rune ? `kr-rune ${rune.color}` : 'kr-rune empty'));
+  return [column];
+}
+
 /**
  * What's on a copy's card, whatever the card is (an armory button, the anvil's, the details'): its picture, its level as
  * King's Raid's stars (krStars; none with the one level: hasLevels), and what kind it is: the members' own gear its tier
  * (T1 to T4, and King's Raid's grade frame) and the parchment's curl; a hero's gear its marks (a TechnoMagic piece's stars blue), a unique weapon's or unique treasure's with its hero, a
  * TechnoMagic piece's with its class (`itemClass`, or `class` as the heroes page has it), none for a dragon set's piece or
- * an artifact. `lazy`: a card in a long list (art).
+ * an artifact, and its rune sockets (runeMarks). `lazy`: a card in a long list (art).
  */
-export function itemFace(copy: { level: number; maxLevel?: number; itemId: string; slot: Slot; stars: number; heroOnly?: boolean; uniqueWeapon?: string | null; uniqueTreasure?: Treasure; itemClass?: string | null; class?: string | null }, lazy = false): HTMLElement[] {
+export function itemFace(copy: { level: number; maxLevel?: number; itemId: string; slot: Slot; stars: number; heroOnly?: boolean; uniqueWeapon?: string | null; uniqueTreasure?: Treasure; itemClass?: string | null; class?: string | null; runes?: readonly SocketRune[] }, lazy = false): HTMLElement[] {
   const picture = art(copy.itemId, copy.slot, lazy);
   const level = hasLevels(copy) ? [krStars(copy.level, copy.level, isTmPiece(copy.itemId))] : [];
-  if (heroGear(copy)) return [picture, ...heroMarks(copy), ...level];
+  if (heroGear(copy)) return [picture, ...heroMarks(copy), ...runeMarks(copy.runes), ...level];
   return [tierFrame(copy.stars), tierMark(copy.stars), picture, ...level, el('span', 'item-curl')];
 }
 

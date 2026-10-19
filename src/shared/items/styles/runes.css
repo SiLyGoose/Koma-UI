@@ -1,0 +1,107 @@
+/*
+ * A copy's rune sockets (items.ts's runeMarks), as King's Raid draws them: a column of sockets down the left edge of a
+ * card or a slot, under its corner tab and over its picture, each a gold ring filled nearly black with its rune's gem in
+ * it, and (a unique weapon's three) a short gold-edged dark link between one and the next. Red for an offensive rune,
+ * green for a utility one, blue for a defensive one; an empty socket's gem fades in and out pink, its ring staying. Sized
+ * by the card's width, so the same on a small armory card and the big one in its details.
+ */
+.item > .kr-runes,
+.slot-frame > .kr-runes {
+  position: absolute;
+  z-index: 2;
+  top: 23%;
+  left: 3%;
+  display: flex;
+  flex-direction: column;
+  width: 15%;
+  pointer-events: none;
+}
+
+/* The socket: a gold ring, filled nearly black. */
+.kr-rune {
+  --gold: #d9b46a;
+  --gem: #ff7ac8;
+  --gem-light: #ffe0f2;
+  --gem-dark: #a3266b;
+  position: relative;
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  aspect-ratio: 1;
+  border: 1.5px solid var(--gold);
+  border-radius: 50%;
+  background: rgb(14 10 8 / 80%);
+  box-shadow:
+    inset 0 0 0 1px rgb(90 60 20 / 70%),
+    0 1px 2px rgb(0 0 0 / 60%);
+}
+
+.kr-rune + .kr-rune {
+  margin-top: 22%;
+}
+
+/* Its gem, in the middle of the ring. */
+.kr-rune::before {
+  content: '';
+  position: absolute;
+  inset: 13%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 36% 30%, var(--gem-light) 0 12%, var(--gem) 45%, var(--gem-dark) 100%);
+}
+
+/* The link up to the socket above: a short bar, gold-edged and dark as the sockets are, behind them both. */
+.kr-rune + .kr-rune::after {
+  content: '';
+  position: absolute;
+  bottom: 88%;
+  left: 50%;
+  z-index: -1;
+  width: 34%;
+  height: 50%;
+  box-sizing: border-box;
+  border: 1px solid var(--gold);
+  background: rgb(14 10 8 / 80%);
+  transform: translateX(-50%);
+}
+
+.kr-rune.red {
+  --gem: #f2332b;
+  --gem-light: #ffc6bc;
+  --gem-dark: #7c0d0b;
+}
+
+.kr-rune.green {
+  --gem: #8fdc24;
+  --gem-light: #ecffc8;
+  --gem-dark: #3c7a0a;
+}
+
+.kr-rune.blue {
+  --gem: #2f9bff;
+  --gem-light: #d2eaff;
+  --gem-dark: #0c3a86;
+}
+
+/* An empty socket: its gem pink, fading in and out. */
+.kr-rune.empty::before {
+  animation: kr-rune-empty 1.8s ease-in-out infinite alternate;
+}
+
+@keyframes kr-rune-empty {
+  from {
+    opacity: 0.2;
+    box-shadow: none;
+  }
+
+  to {
+    opacity: 1;
+    box-shadow: 0 0 4px 1px rgb(255 120 205 / 75%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kr-rune.empty::before {
+    animation: none;
+    opacity: 0.7;
+  }
+}

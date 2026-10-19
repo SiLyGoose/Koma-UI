@@ -40,6 +40,8 @@ export interface ArmoryCopy {
   /** Its class, as the gear page has it (`itemClass`) or the heroes page (`class`). */
   itemClass?: string | null;
   class?: string | null;
+  /** Hero gear: its rune sockets, each the rune in it (its colour) or null for an empty one; none for a piece with no sockets. */
+  runes?: readonly ({ color: string; name?: string } | null)[];
 }
 
 /** How a page wants one card drawn. */
