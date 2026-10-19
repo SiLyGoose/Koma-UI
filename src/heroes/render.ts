@@ -5,7 +5,7 @@ import { working } from '../shared/ui';
 import { canTrade, copyById, heroShown, mine, slotFor, slotOf, type HeroesContext } from './context';
 import { SIDE_SLOTS } from '../protocol/heroes';
 import { heroSkills } from './skills';
-import type { HeroSkillView } from '../protocol/heroes';
+import type { HeroRuneStack, HeroSkillView } from '../protocol/heroes';
 import { heroStats } from './stats';
 import { ESSENCE_NAME, essencePicture, heroPerks, spent, TRANSCEND_MAX, TRANSCEND_POINTS, type EssenceId, type Perk, type TranscendTier } from './transcend';
 import { GEM_EMOJI } from '../forge/anvil/gem';
@@ -184,7 +184,6 @@ function renderStage(ctx: HeroesContext): void {
   }
   ui.buy.hidden = hero.owned || !mine(ctx);
   ui.buy.href = '/shop/heroes/';
-  ui.armoryTitle.textContent = mine(ctx) ? `${hero.name}'s Gear` : `${ctx.viewing?.name}'s Hero Gear`;
   ui.statsTitle.textContent = `${hero.name}'s Stats`;
   ui.skillsTitle.textContent = `${hero.name}'s Skills`;
   ui.transcendTitle.textContent = `${hero.name}'s Transcendence`;
@@ -249,6 +248,12 @@ function renderGrid(ctx: HeroesContext, act: HeroActions): void {
   const { ui, view, filter, stars, cls, sort, query } = ctx;
   if (!view) return;
   const hero = heroShown(ctx);
+  // A piece's Runes: their runes in the cards' place, its search, Filter, Sell and Unequip all hidden (heroes.css).
+  const piece = runesFor(ctx);
+  ui.armory.classList.toggle('runes', !!piece);
+  ui.runeList.hidden = !piece;
+  ui.armoryTitle.textContent = piece ? 'Runes' : mine(ctx) ? `${hero?.name ?? 'Hero'}'s Gear` : `${ctx.viewing?.name}'s Hero Gear`;
+  if (piece) return renderRunes(ctx, act, piece);
   ui.grid.draw({
     copies: view.copies,
     slot: filter,
@@ -283,6 +288,44 @@ function renderGrid(ctx: HeroesContext, act: HeroActions): void {
       itemPicked(before, ctx.picked);
     },
   });
+}
+
+/** The picked piece whose Runes show in the cards' place: theirs, on the Gear tab, not selling, one with sockets; else null. */
+function runesFor(ctx: HeroesContext): HeroCopy | null {
+  if (!ctx.runes || ctx.tab !== 'gear' || ctx.selling || !mine(ctx)) return null;
+  const copy = copyById(ctx, ctx.picked);
+  return copy && copy.runes.length > 0 ? copy : null;
+}
+
+/**
+ * Their runes in the cards' place, for `copy`: the ones that go in it first, each its icon (its kind's gem on it), name, what
+ * it gives and how many, with Put in (into its first empty socket; a piece of one socket, full: Swap in, the one in it back to
+ * them). The rest, greyed, say what they go in.
+ */
+function renderRunes(ctx: HeroesContext, act: HeroActions, copy: HeroCopy): void {
+  const runes = ctx.view?.runes ?? [];
+  const empty = copy.runes.indexOf(null);
+  const socket = empty >= 0 ? empty : copy.runes.length === 1 ? 0 : -1;
+  const filled = copy.runes.filter((rune) => rune !== null).length;
+  const rows: HTMLElement[] = [el('p', 'rune-list-note', `${copy.name}: ${filled} of ${copy.runes.length} socket${copy.runes.length === 1 ? '' : 's'} filled.${socket < 0 ? ' Take a rune out (in its details) to put another in.' : ''}`)];
+  if (runes.length === 0) rows.push(el('p', 'rune-list-note muted', 'No runes yet.'));
+  const fits = (rune: HeroRuneStack): boolean => rune.parts.includes(copy.part);
+  for (const rune of [...runes.filter(fits), ...runes.filter((one) => !fits(one))]) {
+    const ok = fits(rune);
+    const row = el('div', `rune-row${ok ? '' : ' off'}`);
+    const pic = el('span', 'rune-pic');
+    const icon = el('img');
+    icon.src = `/kr/items/${rune.icon}.webp`;
+    icon.alt = '';
+    icon.loading = 'lazy';
+    pic.append(icon, el('span', `kr-rune ${rune.color}`));
+    const words = el('span', 'rune-words');
+    words.append(el('span', 'rune-name', rune.name), el('span', 'rune-lines', ok ? rune.lines.join(', ') : `${rune.lines.join(', ')} · goes in ${rune.parts.map((part) => HERO_PART_NAME[part]).join(', ')}`));
+    row.append(pic, words, el('span', 'rune-count', `×${rune.count}`));
+    if (ok && socket >= 0) row.append(sectionButton(ctx, empty >= 0 ? 'Put in' : 'Swap in', `rune:${copy.id}:${socket}`, () => act.rune(copy, socket, rune.id)));
+    rows.push(row);
+  }
+  ctx.ui.runeList.replaceChildren(...rows);
 }
 
 /** What a copy's effects say with none. */
@@ -324,11 +367,25 @@ function renderDetail(ctx: HeroesContext, act: HeroActions): void {
     const into = worn ?? slotFor(ctx, copy);
     const replaced = worn ? undefined : copyById(ctx, hero.equipped[into]);
     if (replaced) notes.push(...replacesNote(replaced, NONE));
-    // Upgrade: to the forge, with this copy on the anvil (not while a change is on its way), whoever's page it's on. (None for TechnoMagic gear.)
-    const upgrade = upgradeButton(copy, () => {
+    // Upgrade: to the forge, with this copy on the anvil (not while a change is on its way), whoever's page it's on. (None for TechnoMagic gear,
+    // nor at its top: its MAX is by its kind.)
+    const upgrade = copy.level < copy.maxLevel ? upgradeButton(copy, () => {
       if (!ctx.busy) ctx.host.go(forgeLink(copy));
-    });
+    }) : null;
     if (upgrade) actions.push(upgrade);
+    // Runes: the Gear tab shows their runes in the cards' place, to put in it (again: the cards back). Only a piece with sockets.
+    if (copy.runes.length > 0) {
+      // (Tinted while the list shows, as a secondary button whose panel is open: ../shared/ui/button/button.css.)
+      const runes = el('button', 'detail-action action secondary', 'Runes');
+      runes.type = 'button';
+      runes.setAttribute('aria-controls', 'rune-list');
+      runes.setAttribute('aria-expanded', String(ctx.runes));
+      runes.addEventListener('click', () => {
+        ctx.runes = !ctx.runes;
+        renderPick(ctx, act);
+      });
+      actions.push(runes);
+    }
     if (!hero.owned) notes.push(el('p', 'detail-note', notRecruited(ctx, hero.name, 'put gear on them')));
     // (Another hero's unique weapon: nothing to equip it with here, unless it's to come off.)
     else if (worn || wieldable(copy, hero)) {
@@ -358,6 +415,7 @@ function renderDetail(ctx: HeroesContext, act: HeroActions): void {
     onClose: () => {
       itemDetailsClosed();
       ctx.picked = null;
+      ctx.runes = false;
       renderPick(ctx, act);
     },
     label: ut ? 'Options' : 'On a hero',
@@ -404,7 +462,7 @@ function krSection(title: string, rows: HTMLElement[], className = ''): HTMLElem
 /**
  * King's Raid's gear's parts in the detail, under its effects: its options (each its step, and a reroll for its price), its
  * unique option (its additional skill, with its reroll), an upgrade, its set's bonuses (lit while on), and its rune sockets
- * (a rune in each, to take out; or one of theirs that fits, to put in). Buttons only on their own copy.
+ * (a rune in each, to take out; their runes to put in are its Runes, in the cards' place). Buttons only on their own copy.
  */
 function krSections(ctx: HeroesContext, act: HeroActions, copy: HeroCopy, fits: boolean): HTMLElement[] {
   const own = mine(ctx) && !ctx.selling;
@@ -437,7 +495,6 @@ function krSections(ctx: HeroesContext, act: HeroActions, copy: HeroCopy, fits: 
     out.push(krSection(`${copy.krSet.name} Set${copy.krSet.tier < 9 ? ` · T${copy.krSet.tier}` : ''}`, copy.setBonuses.map((bonus) => el('p', `kr-bonus${bonus.active ? ' on' : ''}`, `${bonus.pieces} pieces: ${bonus.text}`))));
   }
   if (copy.runes.length > 0) {
-    const runes = ctx.view?.runes ?? [];
     const rows = copy.runes.map((rune, socket) => {
       const row = el('div', 'kr-socket');
       if (rune) {
@@ -448,18 +505,8 @@ function krSections(ctx: HeroesContext, act: HeroActions, copy: HeroCopy, fits: 
         if (own) row.append(sectionButton(ctx, 'Take out', `rune:${copy.id}:${socket}`, () => act.rune(copy, socket, null)));
         return row;
       }
-      const fitting = runes.filter((one) => one.parts.includes(copy.part === 'weapon' ? 'weapon' : copy.part));
-      row.append(el('span', 'kr-rune-name muted', 'Empty socket'));
-      if (own && fitting.length > 0) {
-        const pick = el('select', 'kr-rune-pick');
-        pick.setAttribute('aria-label', 'A rune to put in');
-        for (const one of fitting) {
-          const option = el('option', '', `${one.name} ×${one.count}: ${one.lines.join(', ')}`);
-          option.value = one.id;
-          pick.append(option);
-        }
-        row.append(pick, sectionButton(ctx, 'Put in', `rune:${copy.id}:${socket}`, () => act.rune(copy, socket, pick.value)));
-      } else if (own) row.append(el('span', 'kr-rune-name muted', '(no rune of theirs fits)'));
+      // (Their runes to put in: its Runes, below, lists them in the cards' place.)
+      row.append(el('span', 'kr-rune-name muted', own ? 'Empty socket: press Runes to put one in' : 'Empty socket'));
       return row;
     });
     out.push(krSection('Runes', rows));

@@ -184,6 +184,7 @@ async function change<T extends HeroesView = HeroesView>(ctx: HeroesContext, act
 function pickToSell(ctx: HeroesContext, act: HeroActions, on: boolean): void {
   ctx.selling = on ? new Set() : null;
   ctx.picked = null;
+  ctx.runes = false;
   if (on) ctx.tab = 'gear';
   render(ctx, act);
 }
@@ -209,6 +210,7 @@ function actions(ctx: HeroesContext): HeroActions {
       // The armory shows what works on its class.
       ctx.cls = heroShown(ctx)?.class ?? 'all';
       ctx.picked = null;
+      ctx.runes = false;
       ctx.target = null;
       ctx.perk = null;
       const address = new URL(location.href);
@@ -269,6 +271,7 @@ function wire(ctx: HeroesContext, act: HeroActions): () => void {
   ui.server.addEventListener('change', () => {
     ctx.host.setServer(ui.server.value);
     ctx.picked = null;
+    ctx.runes = false;
     ctx.target = null;
     ctx.selling = null;
     // Back to their own heroes, in the new server.
@@ -283,6 +286,7 @@ function wire(ctx: HeroesContext, act: HeroActions): () => void {
   ui.member.addEventListener('change', () => {
     ctx.viewing = ctx.members.find((m) => !m.you && m.userId === ui.member.value) ?? null;
     ctx.picked = null;
+    ctx.runes = false;
     ctx.target = null;
     ctx.selling = null;
     void load(ctx, act);
@@ -308,6 +312,7 @@ function wire(ctx: HeroesContext, act: HeroActions): () => void {
   for (const tab of ui.views) {
     tab.addEventListener('click', () => {
       ctx.tab = tab.dataset.view as HeroesContext['tab'];
+      ctx.runes = false;
       if (ctx.tab !== 'gear') {
         ctx.picked = null;
         ctx.selling = null;
@@ -322,6 +327,7 @@ function wire(ctx: HeroesContext, act: HeroActions): () => void {
       const slot = button.dataset.slot as HeroSlot;
       const kind = HERO_SLOT_TYPE[slot];
       ctx.tab = 'gear';
+      ctx.runes = false;
       // While picking copies to sell, a slot only shows what fits in it.
       if (ctx.selling) {
         const again = ctx.target === slot && ctx.filter === kind;
@@ -366,6 +372,7 @@ function wire(ctx: HeroesContext, act: HeroActions): () => void {
     if (ctx.picked) {
       itemDetailsClosed();
       ctx.picked = null;
+      ctx.runes = false;
       renderPick(ctx, act);
     } else if (ctx.selling) pickToSell(ctx, act, false);
   };

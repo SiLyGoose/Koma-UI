@@ -48,10 +48,14 @@ export interface HeroesUi {
   detail: HTMLElement;
   armory: HTMLElement;
   armoryTitle: HTMLElement;
+  /** Over the cards: the search and the Filter (hidden while the rune list shows). */
+  armoryTools: HTMLElement;
   search: HTMLInputElement;
   filter: ArmoryFilter;
   /** The armory's cards (../shared/items/armory.ts). */
   grid: ArmoryGrid<HeroCopy>;
+  /** Their runes, in the cards' place (a picked piece's Runes). */
+  runeList: HTMLElement;
   unequipAll: HTMLButtonElement;
   sell: HTMLButtonElement;
   sellCancel: HTMLButtonElement;
@@ -96,6 +100,8 @@ export interface HeroesContext {
   perk: string | null;
   /** The copy shown over the hero, if any. */
   picked: string | null;
+  /** The Gear tab shows their runes, to put in the picked piece (its Runes), in place of the cards. */
+  runes: boolean;
   /** A change on its way, and its button: the page waits for it before taking another. */
   busy: Busy | null;
   /** Picking copies to sell: the ones picked (null when not selling). The cards then toggle, rather than show what they do. */
@@ -140,9 +146,11 @@ export function createContext(root: HTMLElement, host: HeroesHost): HeroesContex
       detail: $('detail'),
       armory: $('armory'),
       armoryTitle: $('armory-title'),
+      armoryTools: root.querySelector('.armory-tools') as HTMLElement,
       search: $<HTMLInputElement>('armory-search'),
       filter: armoryFilter($('armory-filter')),
       grid: armoryGrid<HeroCopy>($('armory-grid')),
+      runeList: $('rune-list'),
       unequipAll: $<HTMLButtonElement>('unequip-all'),
       sell: $<HTMLButtonElement>('sell'),
       sellCancel: $<HTMLButtonElement>('sell-cancel'),
@@ -172,6 +180,7 @@ export function createContext(root: HTMLElement, host: HeroesHost): HeroesContex
     tab: 'stats',
     perk: null,
     picked: null,
+    runes: false,
     busy: null,
     selling: null,
     members: [],
