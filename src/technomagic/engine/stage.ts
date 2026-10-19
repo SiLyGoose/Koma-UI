@@ -179,9 +179,12 @@ export function makeStage(canvas: HTMLCanvasElement): Stage {
 
   /** The sharpest it is drawn now (SHARPEST, until it was found too slow). */
   let sharpest = SHARPEST;
-  // Over the field, flat on the screen.
+  // Over the field, flat on the screen: seen from the front, looking along +z as King's Raid's camera does (its effects are
+  // mirrored in x, ../fx/kr-vfx-player.js), so what is further along is drawn behind (a banner's shade behind its word).
   const overlay = new Scene();
-  const flatUi = new OrthographicCamera(UI_HIGH / 2, -UI_HIGH / 2, UI_HIGH / 2, -UI_HIGH / 2, -1000, 1000);
+  const flatUi = new OrthographicCamera(-UI_HIGH / 2, UI_HIGH / 2, UI_HIGH / 2, -UI_HIGH / 2, -1000, 1000);
+  flatUi.rotation.y = Math.PI;
+  flatUi.updateMatrixWorld();
   const fit = (): void => {
     const w = canvas.clientWidth;
     const h = canvas.clientHeight;
@@ -194,8 +197,8 @@ export function makeStage(canvas: HTMLCanvasElement): Stage {
     back = Math.max(HEIGHT / 2 / half, WIDTH / 2 / (half * camera.aspect));
     aim();
     camera.updateProjectionMatrix();
-    flatUi.left = (UI_HIGH / 2) * camera.aspect;
-    flatUi.right = (-UI_HIGH / 2) * camera.aspect;
+    flatUi.left = (-UI_HIGH / 2) * camera.aspect;
+    flatUi.right = (UI_HIGH / 2) * camera.aspect;
     flatUi.updateProjectionMatrix();
     fog();
   };
