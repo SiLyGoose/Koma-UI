@@ -1,5 +1,5 @@
 import { sound } from '../shared/audio';
-import { type ArmoryCopy, el, type GearCopy, levelLabel } from '../shared/items';
+import { type ArmoryCopy, el, type GearCopy, levelLabel, shownName } from '../shared/items';
 import { card, compare, fillEffects } from './anvil';
 import type { EffectRow } from './anvil/compare';
 import type { ForgeContext } from './context';
@@ -20,7 +20,7 @@ export function showResult(ctx: ForgeContext, before: GearCopy, after: GearCopy,
   title.id = 'result-title';
   ui.result.classList.toggle('fail', !success);
   if (success) {
-    const sub = el('p', 'forge-result-sub', `${after.name} · ${levelLabel(before)} » ${levelLabel(after)}`);
+    const sub = el('p', 'forge-result-sub', `${shownName(after)} · ${levelLabel(before)} » ${levelLabel(after)}`);
     const burst = el('div', 'forge-result-burst');
     burst.append(el('span', 'forge-result-rays'), el('span', 'forge-result-rays back'), el('span', 'forge-result-core'), card(after));
     const list = el('ul', 'forge-effects');
@@ -29,7 +29,7 @@ export function showResult(ctx: ForgeContext, before: GearCopy, after: GearCopy,
     panel.append(list);
     box.append(title, sub, burst, panel);
   } else {
-    const sub = el('p', 'forge-result-sub', `${after.name} is still ${levelLabel(after)}.`);
+    const sub = el('p', 'forge-result-sub', `${shownName(after)} is still ${levelLabel(after)}.`);
     const still = el('div', 'forge-result-still');
     still.append(card(after));
     box.append(title, sub, still);
@@ -57,7 +57,7 @@ export function showChange(ctx: ForgeContext, after: ArmoryCopy, sub: string, ro
   fillEffects(list, rows);
   const panel = el('div', 'forge-result-panel');
   panel.append(list);
-  box.append(title, el('p', 'forge-result-sub', `${after.name} · ${sub}`), burst, panel, el('p', 'forge-result-tap', 'Click anywhere to continue.'));
+  box.append(title, el('p', 'forge-result-sub', `${shownName(after)} · ${sub}`), burst, panel, el('p', 'forge-result-tap', 'Click anywhere to continue.'));
   ui.result.replaceChildren(box);
   succeeded();
   ui.result.classList.add('on');

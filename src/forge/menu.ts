@@ -1,4 +1,4 @@
-import { el, forgePlan } from '../shared/items';
+import { el, forgePlan, shownName } from '../shared/items';
 import { copyById, type ForgeContext, heroCopyById } from './context';
 import { FORGE_MODES, type ForgeMode, heroCan } from './modes';
 import { render } from './render';
@@ -11,7 +11,7 @@ export function renderMenu(ctx: ForgeContext): void {
   const { ui } = ctx;
   const piece = heroCopyById(ctx, ctx.wanted) ?? copyById(ctx, ctx.wanted);
   ui.menuFor.hidden = !piece;
-  ui.menuFor.textContent = piece ? `For ${piece.name}` : '';
+  ui.menuFor.textContent = piece ? `For ${shownName(piece)}` : '';
   ui.modes.replaceChildren(
     ...FORGE_MODES.map((mode) => {
       const can = !piece || canDo(ctx, mode.id, ctx.wanted);

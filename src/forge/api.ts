@@ -1,4 +1,4 @@
-import { forgePlan, type GearView, heroGear, levelLabel } from '../shared/items';
+import { forgePlan, type GearView, heroGear, levelLabel, shownName } from '../shared/items';
 import type { HeroCopy, HeroesView } from '../shared/heroes';
 import { busyWith } from '../shared/ui';
 import { sleep } from '../shared/util';
@@ -133,7 +133,7 @@ export async function strikeAnvil(ctx: ForgeContext): Promise<void> {
     if (heroGear(copy)) void loadHeroes(ctx);
     const after = copyById(ctx, copy.id);
     ctx.doneWell = true;
-    ctx.done = `${copy.name} is now ${levelLabel(after ?? { ...copy, level: copy.level + 1 })}.`;
+    ctx.done = `${shownName(copy)} is now ${levelLabel(after ?? { ...copy, level: copy.level + 1 })}.`;
     status(ctx, null);
     render(ctx);
     // (A refine always takes: the bot has no failed one to say.)

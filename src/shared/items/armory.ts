@@ -1,7 +1,7 @@
 import { type Busy, doneMark, working } from '../ui';
 import { coin, points } from '../util';
 import { armoryOrder, type TmSort } from './gear';
-import { el, hasLevels, heroGear, itemFace, type ItemType, ITEM_TYPE_NAME, kindName, levelLabel, lockBadge, mainStatLine, rich, type Slot, type Stars, tierOf, typeOf } from './items';
+import { dragonTier, el, hasLevels, heroGear, itemFace, type ItemType, ITEM_TYPE_NAME, kindName, levelLabel, lockBadge, mainStatLine, rich, shownName, type Slot, type Stars, tierOf, typeOf } from './items';
 import type { HeroPart } from '../../protocol/heroes';
 import type { MainStat } from '../../protocol/items';
 import { matchesStars, type StarChoice } from './armory-filter/armory-filter';
@@ -104,7 +104,7 @@ const GRID_CELLS = 12;
 /** A copy's tier in words, for a screen reader. */
 const tierWords = (copy: ArmoryCopy): string => {
   const tier = tierOf(copy);
-  return tier === 'tm' ? 'TechnoMagic' : tier === 'uw' ? 'unique weapon' : tier === 'ut' ? 'unique treasure' : `tier ${tier}`;
+  return tier === 'tm' ? 'TechnoMagic' : tier === 'uw' ? 'unique weapon' : tier === 'ut' ? 'unique treasure' : `tier ${dragonTier(copy.itemId) ?? tier}`;
 };
 
 /** A card the grid has drawn, kept to be shown again as it is (armoryGrid). */
@@ -382,7 +382,7 @@ function card(copy: ArmoryCopy, look: CardLook, ownSound: boolean, onPick: () =>
   const button = el('button', 'item');
   button.type = 'button';
   button.dataset.stars = String(copy.stars);
-  const says = [copy.name, tierWords(copy), ...(hasLevels(copy) ? [levelLabel(copy)] : []), ...(look.tag ? [look.tag.text.toLowerCase()] : []), ...(copy.locked ? ['locked'] : []), ...(look.says ?? [])];
+  const says = [shownName(copy), tierWords(copy), ...(hasLevels(copy) ? [levelLabel(copy)] : []), ...(look.tag ? [look.tag.text.toLowerCase()] : []), ...(copy.locked ? ['locked'] : []), ...(look.says ?? [])];
   button.setAttribute('aria-label', says.join(', '));
   if (look.tag) button.append(el('span', look.tag.className ? `item-tag ${look.tag.className}` : 'item-tag', look.tag.text));
   button.append(...itemFace(copy, true));
@@ -416,7 +416,7 @@ export function effectList(copy: { effects: readonly string[] }, none: string, c
 
 /** The copy equipping the one shown would take off, and what it does, set apart from the shown one's effects. */
 export const replacesNote = (copy: ArmoryCopy, none: string): HTMLElement[] => [
-  el('p', 'detail-replaces', `Replaces ${copy.name}${hasLevels(copy) ? ` (${levelLabel(copy)})` : ''}`),
+  el('p', 'detail-replaces', `Replaces ${shownName(copy)}${hasLevels(copy) ? ` (${levelLabel(copy)})` : ''}`),
   effectList(copy, none, 'detail-effects detail-replaced'),
 ];
 
@@ -449,7 +449,7 @@ export function showDetail(box: HTMLElement, copy: ArmoryCopy | undefined, parts
   box.textContent = '';
   if (!copy || !parts) return;
   box.dataset.stars = String(copy.stars);
-  box.setAttribute('aria-label', copy.name);
+  box.setAttribute('aria-label', shownName(copy));
 
   const bar = el('div', 'detail-bar');
   const close = el('button', 'detail-close', '✕');
@@ -457,7 +457,7 @@ export function showDetail(box: HTMLElement, copy: ArmoryCopy | undefined, parts
   close.setAttribute('aria-label', 'Close');
   close.dataset.sfx = 'own';
   close.addEventListener('click', parts.onClose);
-  bar.append(el('h3', '', copy.name), close);
+  bar.append(el('h3', '', shownName(copy)), close);
 
   const top = el('div', 'detail-top');
   const big = el('span', 'item detail-card');

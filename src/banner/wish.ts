@@ -1,4 +1,4 @@
-import { art, el, heroGear, heroMarks, isTmPiece, itemIcons, krStars, SLOT_NAME, tierMark, utTier, uwTier } from '../shared/items';
+import { art, el, heroGear, heroMarks, isTmPiece, itemIcons, krStars, shownName, SLOT_NAME, tierMark, utTier, uwTier } from '../shared/items';
 import { sleep } from '../shared/util';
 import type { ApiResult } from '../site/session';
 import type { BannerContext } from './context';
@@ -207,7 +207,7 @@ function reveal(pull: BannerPull): HTMLElement {
   // (A unique weapon's or treasure's tier is its own, in place of its stars.)
   const row = pull.uniqueWeapon ? uwTier() : pull.uniqueTreasure ? utTier() : tierMark(pull.stars);
   [...row.children].forEach((star, i) => (star as HTMLElement).style.setProperty('--i', String(i)));
-  text.append(el('p', 'wish-slot', SLOT_NAME[pull.slot]), el('h2', 'wish-name', pull.name), row);
+  text.append(el('p', 'wish-slot', SLOT_NAME[pull.slot]), el('h2', 'wish-name', shownName(pull)), row);
   text.append(pull.isNew ? el('p', 'wish-new', 'New!') : el('p', 'wish-owned', `You have ${pull.count}`));
   if (pull.borrowed !== null) text.append(el('p', 'wish-note', `Made for someone else: it works at ${Math.round(pull.borrowed * 100)}% for you.`));
   if (pull.uniqueWeapon) text.append(el('p', 'wish-note', `A unique weapon: only its own hero wields it. Put it on them on the Heroes page.`));
@@ -227,7 +227,7 @@ function summary(pulls: readonly BannerPull[]): HTMLElement {
     const tile = el('li', 'wish-tile');
     tile.dataset.stars = String(pull.stars);
     tile.style.setProperty('--i', String(i));
-    tile.append(card(pull), el('span', 'wish-tile-name', pull.name));
+    tile.append(card(pull), el('span', 'wish-tile-name', shownName(pull)));
     if (pull.isNew) tile.append(el('span', 'wish-tile-new', 'New'));
     grid.append(tile);
   }

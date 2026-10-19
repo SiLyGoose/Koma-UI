@@ -1,6 +1,6 @@
 import { coin, points } from '../shared/util';
 import { built } from '../shared/built';
-import { el, itemDetailsClosed, itemFace, itemIcons, kindName, mainStatLine, tmSections, rich } from '../shared/items';
+import { el, itemDetailsClosed, itemFace, itemIcons, kindName, mainStatLine, shownName, tmSections, rich } from '../shared/items';
 import { ESSENCE_NAME, type EssenceId } from '../protocol/heroes';
 import type { DropView, RaidKind } from '../protocol/technomagic';
 import { KEPT } from './assets';
@@ -116,7 +116,7 @@ export function makeResult(root: HTMLElement): Result {
     box.dataset.stars = String(drop.stars);
     box.setAttribute('role', 'dialog');
     box.setAttribute('aria-modal', 'true');
-    box.setAttribute('aria-label', drop.name);
+    box.setAttribute('aria-label', shownName(drop));
 
     const bar = el('div', 'tm-loot-bar');
     const close = el('button', 'detail-close', '✕');
@@ -124,7 +124,7 @@ export function makeResult(root: HTMLElement): Result {
     close.setAttribute('aria-label', 'Close');
     close.dataset.sfx = 'own';
     close.addEventListener('click', closeDetail);
-    bar.append(el('h3', '', drop.name), close);
+    bar.append(el('h3', '', shownName(drop)), close);
 
     const top = el('div', 'tm-loot-top');
     const info = el('div', 'tm-loot-info');
@@ -159,8 +159,8 @@ export function makeResult(root: HTMLElement): Result {
   function gearTile(drop: DropView, small = false): HTMLElement {
     const tile = el('button', `tm-tile${small ? ' small' : ''}`);
     tile.type = 'button';
-    tile.title = `${drop.name}: see its details`;
-    tile.append(card(drop, '', raid), el('span', 'tm-tile-name', drop.name));
+    tile.title = `${shownName(drop)}: see its details`;
+    tile.append(card(drop, '', raid), el('span', 'tm-tile-name', shownName(drop)));
     tile.addEventListener('click', () => openDetail(drop));
     return tile;
   }

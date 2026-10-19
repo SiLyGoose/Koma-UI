@@ -134,6 +134,30 @@ export function tierMark(n: number): HTMLElement {
   return mark;
 }
 
+/**
+ * King's Raid's dragon sets' pieces (Opportune Fire, Gritty Frost, Unrelenting Poison, Swift Darkness) come at tiers 6 to 8,
+ * which their ids say ("gritty-frost-t7-…") and the bot's names too ("Gritty Frost Bow T7", so each is its own to equip by
+ * name on Discord). A page says it as its card's tab (heroMarks), not in its name (shownName).
+ */
+const DRAGON_ID = /^(?:opportune-fire|gritty-frost|unrelenting-poison|swift-darkness)-t(\d+)-/;
+const DRAGON_NAME = /^((?:Opportune Fire|Gritty Frost|Unrelenting Poison|Swift Darkness) .+) T\d+$/;
+
+/** A dragon set's piece's tier (null: not one). */
+export const dragonTier = (itemId: string): number | null => {
+  const tier = DRAGON_ID.exec(itemId)?.[1];
+  return tier ? Number(tier) : null;
+};
+
+/** An item's name as a page shows it: a dragon set's piece's without its tier, which its card's tab says. */
+export const shownName = (item: { name: string }): string => DRAGON_NAME.exec(item.name)?.[1] ?? item.name;
+
+/** A dragon set's piece's tier (T6 to T8) as its card's tab, as the members' own gear's (tierMark), in its card's colour (styles/tier.css). */
+export function dragonTierMark(n: number): HTMLElement {
+  const mark = tierMark(n);
+  mark.classList.add('dragon');
+  return mark;
+}
+
 /** The members' own gear's tier as its card's frame: King's Raid's grade frame of its tier's colour (styles/tier.css), over the card's edge. */
 export function tierFrame(n: number): HTMLElement {
   const frame = el('span', 'tier-frame');
@@ -283,7 +307,7 @@ export function runeMarks(runes: readonly SocketRune[] | undefined): HTMLElement
  * What's on a copy's card, whatever the card is (an armory button, the anvil's, the details'): its picture, its level as
  * King's Raid's stars (krStars; none with the one level: hasLevels), and what kind it is: the members' own gear its tier
  * (T1 to T4, and King's Raid's grade frame) and the parchment's curl; a hero's gear its marks (a TechnoMagic piece's stars blue), a unique weapon's or unique treasure's with its hero, a
- * TechnoMagic piece's with its class (`itemClass`, or `class` as the heroes page has it), none for a dragon set's piece or
+ * TechnoMagic piece's with its class (`itemClass`, or `class` as the heroes page has it), a dragon set's piece's its tier, none for
  * an artifact, and its rune sockets (runeMarks). `lazy`: a card in a long list (art).
  */
 export function itemFace(copy: { level: number; maxLevel?: number; itemId: string; slot: Slot; stars: number; heroOnly?: boolean; uniqueWeapon?: string | null; uniqueTreasure?: Treasure; itemClass?: string | null; class?: string | null; runes?: readonly SocketRune[] }, lazy = false): HTMLElement[] {
@@ -293,11 +317,13 @@ export function itemFace(copy: { level: number; maxLevel?: number; itemId: strin
   return [tierFrame(copy.stars), tierMark(copy.stars), picture, ...level, el('span', 'item-curl')];
 }
 
-/** A hero's gear's marks (itemFace): a unique weapon's or unique treasure's, a TechnoMagic piece's, or none. */
+/** A hero's gear's marks (itemFace): a unique weapon's or unique treasure's, a TechnoMagic piece's, a dragon set's piece's tier, or none. */
 export function heroMarks(copy: { itemId: string; uniqueWeapon?: string | null; uniqueTreasure?: Treasure; itemClass?: string | null; class?: string | null }): HTMLElement[] {
   if (copy.uniqueWeapon) return uwMarks(copy.uniqueWeapon);
   if (copy.uniqueTreasure) return utMarks(copy.uniqueTreasure.hero);
-  return isTmPiece(copy.itemId) ? tmMarks(copy.itemClass ?? copy.class) : [];
+  if (isTmPiece(copy.itemId)) return tmMarks(copy.itemClass ?? copy.class);
+  const tier = dragonTier(copy.itemId);
+  return tier === null ? [] : [dragonTierMark(tier)];
 }
 
 /** How an item ranks among the tiers, best highest: TechnoMagic gear above 4 stars, and the unique weapons, then the unique treasures, between them. */

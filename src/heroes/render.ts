@@ -1,4 +1,4 @@
-import { art, drawSell, el, forgeLink, hasLevels, heroMarks, isTmPiece, itemDetailsClosed, krStars, levelLabel, itemPicked, lockToggle, priceOf, pruneSale, replacesNote, rich, runeMarks, sellsFor, showDetail, statBlocks, tmMarks, tmSections, treasureParts, treasureSection, utMarks, uwMarks } from '../shared/items';
+import { art, drawSell, el, forgeLink, hasLevels, heroMarks, isTmPiece, itemDetailsClosed, krStars, levelLabel, itemPicked, lockToggle, priceOf, pruneSale, replacesNote, rich, runeMarks, sellsFor, showDetail, shownName, statBlocks, tmMarks, tmSections, treasureParts, treasureSection, utMarks, uwMarks } from '../shared/items';
 import { classBadge, className, FACE, HERO_PART_NAME, HERO_SLOT_KIND, HERO_SLOT_PART, HERO_SLOT_TYPE, HERO_SLOTS, heroCut, heroPicture, optionPips, skillText, STAGE_ZOOM, type HeroView, type HeroCopy, type HeroSlot } from '../shared/heroes';
 import { built } from '../shared/built';
 import { working } from '../shared/ui';
@@ -230,7 +230,7 @@ function renderSlots(ctx: HeroesContext): void {
       button.textContent = '';
       button.classList.toggle('empty', !copy);
       button.classList.toggle('filtered', ctx.target === slot && ctx.filter === type);
-      button.title = copy ? `${slotLabel(slot)}: ${copy.name}${hasLevels(copy) ? ` (${levelLabel(copy)})` : ''}` : `${slotLabel(slot)}: empty`;
+      button.title = copy ? `${slotLabel(slot)}: ${shownName(copy)}${hasLevels(copy) ? ` (${levelLabel(copy)})` : ''}` : `${slotLabel(slot)}: empty`;
       button.setAttribute('aria-label', button.title);
       continue;
     }
@@ -240,7 +240,7 @@ function renderSlots(ctx: HeroesContext): void {
     if (copy) button.dataset.sfx = 'own';
     else delete button.dataset.sfx;
     button.classList.toggle('filtered', ctx.target === slot && ctx.filter === type);
-    button.setAttribute('aria-label', copy ? `${slotName(slot)}: ${copy.name}` : `${slotName(slot)}: empty`);
+    button.setAttribute('aria-label', copy ? `${slotName(slot)}: ${shownName(copy)}` : `${slotName(slot)}: empty`);
     const frame = el('span', 'slot-frame');
     frame.append(art(copy?.itemId ?? null, kind));
     // (A hero's gear: its marks (a unique weapon's or treasure's, a TechnoMagic piece's), its rune sockets and its stars, King's Raid's.)
@@ -339,7 +339,7 @@ function renderRunes(ctx: HeroesContext, act: HeroActions, copy: HeroCopy): void
     renderPick(ctx, act);
   });
   const head = el('div', 'rune-list-head');
-  head.append(el('p', 'rune-list-note', `${copy.name}: ${filled} of ${copy.runes.length} socket${copy.runes.length === 1 ? '' : 's'} filled.${socket < 0 ? ' Take a rune out (in its details) to put another in.' : ''}`), back);
+  head.append(el('p', 'rune-list-note', `${shownName(copy)}: ${filled} of ${copy.runes.length} socket${copy.runes.length === 1 ? '' : 's'} filled.${socket < 0 ? ' Take a rune out (in its details) to put another in.' : ''}`), back);
   const rows: HTMLElement[] = [head];
   if (runes.length === 0) rows.push(el('p', 'rune-list-note muted', 'No runes yet.'));
   const fits = (rune: HeroRuneStack): boolean => rune.parts.includes(copy.part);
