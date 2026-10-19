@@ -1,5 +1,5 @@
 import { art, drawSell, el, forgeLink, hasLevels, heroMarks, isTmPiece, itemDetailsClosed, krStars, levelLabel, itemPicked, lockToggle, pruneSale, replacesNote, rich, runeMarks, sellsFor, showDetail, statBlocks, tmMarks, tmSections, treasureParts, treasureSection, upgradeButton, utMarks, uwMarks } from '../shared/items';
-import { classBadge, className, FACE, HERO_PART_NAME, HERO_SLOT_KIND, HERO_SLOT_PART, HERO_SLOT_TYPE, heroCut, heroPicture, skillText, STAGE_ZOOM, type HeroView, type HeroCopy, type HeroSlot } from '../shared/heroes';
+import { classBadge, className, FACE, HERO_PART_NAME, HERO_SLOT_KIND, HERO_SLOT_PART, HERO_SLOT_TYPE, HERO_SLOTS, heroCut, heroPicture, skillText, STAGE_ZOOM, type HeroView, type HeroCopy, type HeroSlot } from '../shared/heroes';
 import { built } from '../shared/built';
 import { working } from '../shared/ui';
 import { canTrade, copyById, heroShown, mine, slotFor, slotOf, type HeroesContext } from './context';
@@ -351,6 +351,8 @@ function renderDetail(ctx: HeroesContext, act: HeroActions): void {
   if (copy.uniqueTreasure && !wieldable(copy, hero)) notes.push(el('p', 'detail-note warn', `${owner?.name ?? 'Another hero'}’s unique treasure: only they can wear it.`));
 
   const worn = slotOf(hero, copy.id);
+  // Where Equip would put it (none: it's worn, or can't be equipped here), for its set's bonuses it would turn on.
+  let equipInto: HeroSlot | null = null;
   const other = copy.hero !== null && copy.hero !== hero.id ? view.heroes.find((one) => one.id === copy.hero) : undefined;
   const actions: HTMLElement[] = [];
   // Being sold: no buttons (the armory's Sell does it), just what it sells for (under its rank, below).
@@ -401,6 +403,7 @@ function renderDetail(ctx: HeroesContext, act: HeroActions): void {
         move.addEventListener('click', () => act.equip(copy, to));
         actions.push(move);
       }
+      if (!worn) equipInto = into;
       const action = el('button', `detail-action action ${worn ? 'secondary' : 'main'}`, worn ? 'Unequip' : `Equip as ${slotLabel(into)}`);
       action.type = 'button';
       working(action, ctx.busy, worn ? `unequip:${worn}` : `equip:${copy.id}`);
@@ -421,13 +424,24 @@ function renderDetail(ctx: HeroesContext, act: HeroActions): void {
     label: ut ? 'Options' : 'On a hero',
     none: NONE,
     effectsOff: !fits,
-    sections: ut ? [...utEnhance(ctx, act, copy), ...treasureSection(ut.main, worn === 'treasure')] : copy.krSet || copy.part === 'artifact' ? krSections(ctx, act, copy, fits) : tmSections(shown),
+    sections: ut ? [...utEnhance(ctx, act, copy), ...treasureSection(ut.main, worn === 'treasure')] : copy.krSet || copy.part === 'artifact' ? krSections(ctx, act, copy, fits, fits && equipInto ? setPieces(ctx, hero, copy, equipInto) : null) : tmSections(shown),
     notes,
     // Lock: theirs to toggle on the site (not while picking what to sell); else just shown when shut.
     corner: lockToggle(copy, ctx.busy, canTrade(ctx) && !ctx.selling ? (locked) => act.lock(copy, locked) : null),
     info: ctx.selling ? sellsFor(copy) : [],
     actions,
   });
+}
+
+/**
+ * How many pieces of `copy`'s King's Raid set `hero` wears now, and would with it equipped in `into` (what's there coming
+ * off); null for a piece of no set.
+ */
+function setPieces(ctx: HeroesContext, hero: HeroView, copy: HeroCopy, into: HeroSlot): { now: number; equipped: number } | null {
+  const set = copy.krSet?.id;
+  if (!set) return null;
+  const ofSet = (slots: readonly HeroSlot[]): number => slots.filter((slot) => copyById(ctx, hero.equipped[slot])?.krSet?.id === set).length;
+  return { now: ofSet(HERO_SLOTS), equipped: ofSet(HERO_SLOTS.filter((slot) => slot !== into)) + 1 };
 }
 
 /** A hero that isn't theirs yet: to the shop to `then`; someone else's, that they haven't recruited it. */
@@ -461,10 +475,11 @@ function krSection(title: string, rows: HTMLElement[], className = ''): HTMLElem
 
 /**
  * King's Raid's gear's parts in the detail, under its effects: its options (each its step, and a reroll for its price), its
- * unique option (its additional skill, with its reroll), an upgrade, its set's bonuses (lit while on), and its rune sockets
+ * unique option (its additional skill, with its reroll), an upgrade, its set's bonuses (lit while on; picked to equip, `pieces`:
+ * lit too where equipping it would turn them on, with a tag saying so), and its rune sockets
  * (a rune in each, to take out; their runes to put in are its Runes, in the cards' place). Buttons only on their own copy.
  */
-function krSections(ctx: HeroesContext, act: HeroActions, copy: HeroCopy, fits: boolean): HTMLElement[] {
+function krSections(ctx: HeroesContext, act: HeroActions, copy: HeroCopy, fits: boolean, pieces: { now: number; equipped: number } | null = null): HTMLElement[] {
   const own = mine(ctx) && !ctx.selling;
   const out: HTMLElement[] = [];
   if (copy.options.length > 0) {
@@ -492,7 +507,14 @@ function krSections(ctx: HeroesContext, act: HeroActions, copy: HeroCopy, fits: 
     out.push(krSection('Unique Option', [row]));
   }
   if (copy.setBonuses.length > 0 && copy.krSet) {
-    out.push(krSection(`${copy.krSet.name} Set${copy.krSet.tier < 9 ? ` · T${copy.krSet.tier}` : ''}`, copy.setBonuses.map((bonus) => el('p', `kr-bonus${bonus.active ? ' on' : ''}`, `${bonus.pieces} pieces: ${bonus.text}`))));
+    out.push(krSection(`${copy.krSet.name} Set${copy.krSet.tier < 9 ? ` · T${copy.krSet.tier}` : ''}`, copy.setBonuses.map((bonus) => {
+      // (Picked to equip: on as this hero would have it, not as whoever wears it now.)
+      const on = pieces ? pieces.equipped >= bonus.pieces : bonus.active;
+      const gain = on && pieces !== null && pieces.now < bonus.pieces;
+      const row = el('p', `kr-bonus${on ? ' on' : ''}${gain ? ' gain' : ''}`, `${bonus.pieces} pieces: ${bonus.text}`);
+      if (gain) row.append(el('span', 'kr-bonus-tag', 'On equip'));
+      return row;
+    })));
   }
   if (copy.runes.length > 0) {
     const rows = copy.runes.map((rune, socket) => {

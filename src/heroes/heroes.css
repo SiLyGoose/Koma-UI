@@ -851,6 +851,23 @@
   opacity: 1;
 }
 
+/* A bonus equipping the picked piece would turn on: lit green, with a tag saying so. */
+.kr-bonus.gain {
+  color: var(--green);
+}
+
+.kr-bonus-tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 6px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 0.75em;
+  line-height: 1.5;
+  vertical-align: 1px;
+  white-space: nowrap;
+}
+
 .kr-rune-icon {
   width: 28px;
   height: 28px;
