@@ -441,12 +441,13 @@
   line-height: 1.45;
 }
 
+/* Its effects and numbers as the heroes page's skills have them (heroes.css .skill-effect, .skill-number). */
 .mail-detail-effect .skill-effect {
-  color: #9b3fb8;
+  color: #5e8a0c;
 }
 
 .mail-detail-effect .skill-number {
-  color: #c2410c;
+  color: #1a74b8;
 }
 
 /* (Kept in sight at the bottom, however long its effect.) */
