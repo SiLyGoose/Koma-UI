@@ -1,4 +1,4 @@
-import { askSale, itemDetailsClosed, itemIcons, saleOf, saleSaid, TM_UNSORTED, wireSaleDialog, wireSearch } from '../shared/items';
+import { askSale, itemDetailsClosed, itemIcons, itemPicked, saleOf, saleSaid, TM_UNSORTED, wireSaleDialog, wireSearch } from '../shared/items';
 import { HERO_CLASSES, HERO_SLOT_TYPE, type HeroCopy, type HeroSlot, type HeroesView } from '../shared/heroes';
 import type { HeroesSold } from '../protocol/heroes';
 import { busyWith, dropdown, fillServers } from '../shared/ui';
@@ -314,6 +314,11 @@ function wire(ctx: HeroesContext, act: HeroActions): () => void {
     button.addEventListener('click', () => {
       const slot = button.dataset.slot as HeroSlot;
       const kind = HERO_SLOT_TYPE[slot];
+      // A slot with something in it is an item (data-sfx="own"): its sound, once what's in it is picked (or not).
+      if (button.dataset.sfx === 'own') {
+        const before = ctx.picked;
+        setTimeout(() => itemPicked(before, ctx.picked), 0);
+      }
       ctx.tab = 'gear';
       ctx.runes = false;
       // While picking copies to sell, a slot only shows what fits in it.
