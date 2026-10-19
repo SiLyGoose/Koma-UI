@@ -10,8 +10,9 @@ import { fine, pct, type Buff } from './shown';
  *   (The game's raises every ally's, and the highest ATK's twice over.)
  * - Kirze, Judgment Edge, Elicipira: each of her blows (her attack's and her skills') may deal more, a share
  *   of her ATK, twice over against a boss. (The game's also widens Bloom, Crimson Flower!: there's only the boss.)
- * - Fallen Frey, Angel's Despair, Rosmerta: each skill she uses heals her, and she sees past more of the
- *   boss's defense for a while. (The game's heals the two allies with the highest ATK, and raises theirs.)
+ * - Fallen Frey, Angel's Despair, Rosmerta: each skill she uses heals the two allies with the highest ATK (her too, if
+ *   she is one), and they see past more of the boss's defense for a while. (The game's also quickens Dark Lord Kasel:
+ *   left out.)
  * - Gremory, Gateway to Purgatory, Pigritia: she is quicker; each time she sleeps she is healed and her mana
  *   filled a share over 2 seconds, and her Mana Charge raises her ATK more. (Her part does it: ./heroes/gremory.ts.)
  * - Annette, Crystallized Technomagic, Rascal: every so often she gains a Charge (even while Overcharged) and a
@@ -106,7 +107,11 @@ import { fine, pct, type Buff } from './shown';
 /** Each weapon's numbers at its stars, 0★ to 5★ (the index is its stars: King's Raid's, kingsraid.shodyra.com's). */
 export const EXIAN = { name: 'The Guardian, Exian', every: 3, lasts: 15, boost: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25] };
 export const ELICIPIRA = { name: 'Judgment Edge, Elicipira', chance: 0.04, boss: 2, blow: [5000, 6000, 7200, 8600, 10000, 12500] };
-export const ROSMERTA = { name: 'Angel’s Despair, Rosmerta', lasts: 7, heal: [1.667, 2, 2.4, 2.9, 3.5, 4.2], pen: [200, 240, 290, 350, 420, 500] };
+/**
+ * How many allies it reaches (those with the highest ATK), how long, and its heal (a share of her ATK) and penetration. Its
+ * 5★ is King's Raid's as the user has it (140%, +200); below that, shodyra's steps scaled down to it.
+ */
+export const ROSMERTA = { name: 'Angel’s Despair, Rosmerta', allies: 2, lasts: 7, heal: [0.54, 0.66, 0.82, 0.97, 1.17, 1.4], pen: [80, 96, 116, 140, 168, 200] };
 /** Its attack speed (points), its heal and mana on sleeping (shares of her max HP and max mana, the mana over `over` seconds), and the ATK each Mana Charge adds. */
 export const PIGRITIA = {
   name: 'Gateway to Purgatory, Pigritia',
@@ -216,7 +221,7 @@ export const atTier = (list: readonly number[], tier: number): number => {
 const ABOUT: Readonly<Record<string, (tier: number) => string>> = {
   klaus: (tier) => `Every ${EXIAN.every}rd skill he uses, his ATK and defense are ${pct(atTier(EXIAN.boost, tier))} higher for ${EXIAN.lasts} seconds.`,
   kirze: (tier) => `Each of her blows has a ${pct(ELICIPIRA.chance)} chance to deal ${pct(atTier(ELICIPIRA.blow, tier) / 1000)} of her ATK more, doubled against the boss.`,
-  'fallen-frey': (tier) => `Each skill she uses heals her by ${pct(atTier(ROSMERTA.heal, tier))} of her ATK, and gives her +${atTier(ROSMERTA.pen, tier)} penetration for ${ROSMERTA.lasts} seconds.`,
+  'fallen-frey': (tier) => `Each skill she uses heals the ${ROSMERTA.allies} allies with the highest ATK by ${pct(atTier(ROSMERTA.heal, tier))} of her ATK, and gives them +${atTier(ROSMERTA.pen, tier)} DEF penetration for ${ROSMERTA.lasts} seconds.`,
   gremory: (tier) =>
     `+${atTier(PIGRITIA.speed, tier)} attack speed. Each time she sleeps she is healed by ${pct(atTier(PIGRITIA.heal, tier))} of her max HP and recovers ${pct(atTier(PIGRITIA.mana, tier))} of her mana over ${PIGRITIA.over} seconds, and each Mana Charge gives her ${fine(atTier(PIGRITIA.charge, tier))} more ATK.`,
   annette: (tier) =>

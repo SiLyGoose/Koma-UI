@@ -710,9 +710,16 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       const boost = 1 + atTier(EXIAN.boost, unique.tier);
       put(fighter.statuses, { name: EXIAN_UP.name, left: EXIAN.lasts, deals: boost, defends: boost, shown: EXIAN_UP });
     } else if (fighter.id === 'fallen-frey') {
-      // (A share of her ATK: a heal's numbers are at ATK.)
-      sim.heal(fighter, atTier(ROSMERTA.heal, unique.tier) * ATK, fighter);
-      put(fighter.statuses, { name: ROSMERTA_UP.name, left: ROSMERTA.lasts, pen: atTier(ROSMERTA.pen, unique.tier), shown: ROSMERTA_UP });
+      // The allies with the highest ATK (her among them, if she is one; a tie in the field's order): healed by a share of her
+      // ATK (a heal's numbers are at ATK), and seeing past more of the boss's defense for a while.
+      const top = field
+        .filter((ally) => ally.hp > 0 && !away(ally.statuses))
+        .sort((a, b) => b.stats.atk - a.stats.atk)
+        .slice(0, ROSMERTA.allies);
+      for (const ally of top) {
+        sim.heal(ally, atTier(ROSMERTA.heal, unique.tier) * ATK, fighter);
+        put(ally.statuses, { name: ROSMERTA_UP.name, left: ROSMERTA.lasts, pen: atTier(ROSMERTA.pen, unique.tier), shown: ROSMERTA_UP });
+      }
     }
   }
 
