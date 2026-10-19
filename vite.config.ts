@@ -71,6 +71,7 @@ export default defineConfig({
         poker: resolve(import.meta.dirname, 'games/poker/index.html'),
         raid: resolve(import.meta.dirname, 'games/raid/index.html'),
         minesweeper: resolve(import.meta.dirname, 'games/minesweeper/index.html'),
+        codedle: resolve(import.meta.dirname, 'games/codedle/index.html'),
         technomagic: resolve(import.meta.dirname, 'games/technomagic/index.html'),
         // The Dragon Raid: the TechnoMagic Raid's page, against the dragons.
         dragon: resolve(import.meta.dirname, 'games/dragon/index.html'),

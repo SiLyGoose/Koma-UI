@@ -24,7 +24,7 @@ import { api, currentMe, currentServer, hasSession, loadMe, loggedIn, logIn, log
  * the boss's Find Raid.
  */
 const PLAY_KEY = 'koma.playNext';
-const GAMES: readonly Game[] = ['mines', 'pinecraft', 'baccarat', 'roulette', 'poker', 'raid', 'minesweeper', 'technomagic', 'dragon'];
+const GAMES: readonly Game[] = ['mines', 'pinecraft', 'baccarat', 'roulette', 'poker', 'raid', 'minesweeper', 'technomagic', 'dragon', 'codedle'];
 
 const points = (n: number): string => n.toLocaleString('en-US');
 

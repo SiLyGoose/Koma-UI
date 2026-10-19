@@ -15,7 +15,7 @@ import { navigate } from '../../transition';
  * says has changed.
  */
 
-type Activity = 'hub' | 'mines' | 'pinecraft' | 'baccarat' | 'roulette' | 'poker' | 'raid' | 'minesweeper';
+type Activity = 'hub' | 'mines' | 'pinecraft' | 'baccarat' | 'roulette' | 'poker' | 'raid' | 'minesweeper' | 'technomagic' | 'dragon' | 'codedle';
 
 interface Live {
   you: string;
@@ -35,7 +35,7 @@ export interface LiveOptions {
   newTab?: boolean;
 }
 
-const ACTIVITY: Record<Activity, string> = { hub: '🏠 Home', mines: '💎 Mines', pinecraft: '🌲 Pinecraft', baccarat: '🃏 Baccarat', roulette: '🎡 Roulette', poker: '♠️ Poker', raid: '⚔️ Raid', minesweeper: '🚩 Minesweeper' };
+const ACTIVITY: Record<Activity, string> = { hub: '🏠 Home', mines: '💎 Mines', pinecraft: '🌲 Pinecraft', baccarat: '🃏 Baccarat', roulette: '🎡 Roulette', poker: '♠️ Poker', raid: '⚔️ Raid', minesweeper: '🚩 Minesweeper', technomagic: '🐲 TechnoMagic Raid', dragon: '🐉 Dragon Raid', codedle: '🔐 Codedle' };
 const POLL_MS = 10_000;
 const POLL_OPEN_MS = 4_000;
 

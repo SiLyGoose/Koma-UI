@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="robots" content="noindex" />
+    <title>Koma Codedle</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔐</text></svg>" />
+  </head>
+  <body>
+    <main id="app" class="frame cd" data-title="🔐 Codedle">
+      <div class="cd-game">
+        <!-- The vault: what's in it, when it closes, what a guess costs, and how many guesses everyone has made (../../src/codedle/view.ts). -->
+        <section class="cd-vault" aria-label="The vault">
+          <div class="cd-stat cd-prize">
+            <span class="cd-stat-label">In the vault</span>
+            <b id="prize" class="cd-stat-value">–</b>
+          </div>
+          <div class="cd-stat">
+            <span class="cd-stat-label" id="clock-label">Closes in</span>
+            <b id="clock" class="cd-stat-value" role="timer">–</b>
+          </div>
+          <div class="cd-stat">
+            <span class="cd-stat-label">A guess</span>
+            <b id="cost" class="cd-stat-value">–</b>
+          </div>
+        </section>
+        <p id="crowd" class="cd-crowd" aria-live="polite"></p>
+
+        <!-- The digits cracked so far, a dial for each place in the code: lit as a guess gets one right. -->
+        <div id="dials" class="cd-dials" aria-label="Digits cracked so far" hidden></div>
+
+        <!-- The board: this player's guesses, the one being typed, and empty rows under it (or, the vault open, everyone's). -->
+        <div id="board-scroll" class="cd-board-scroll" hidden>
+          <div id="board" class="cd-board" role="grid" aria-label="Your guesses"></div>
+        </div>
+
+        <!-- What just happened, for a moment (a guess too short, not enough zeiucoins…). -->
+        <div id="toast" class="cd-toast" role="status" aria-live="assertive" hidden></div>
+
+        <!-- The keypad, as Wordle's keyboard: each digit coloured by the best its guesses have shown. -->
+        <div id="keys" class="cd-keys" aria-label="Keypad" hidden>
+          <div class="cd-key-row">
+            <button type="button" class="cd-key" data-key="1">1</button>
+            <button type="button" class="cd-key" data-key="2">2</button>
+            <button type="button" class="cd-key" data-key="3">3</button>
+            <button type="button" class="cd-key" data-key="4">4</button>
+            <button type="button" class="cd-key" data-key="5">5</button>
+          </div>
+          <div class="cd-key-row">
+            <button type="button" class="cd-key" data-key="6">6</button>
+            <button type="button" class="cd-key" data-key="7">7</button>
+            <button type="button" class="cd-key" data-key="8">8</button>
+            <button type="button" class="cd-key" data-key="9">9</button>
+            <button type="button" class="cd-key" data-key="0">0</button>
+          </div>
+          <div class="cd-key-row">
+            <button type="button" class="cd-key cd-key-wide" data-key="Backspace" aria-label="Delete">⌫</button>
+            <button type="button" class="cd-key cd-key-wide cd-key-enter" data-key="Enter">Guess</button>
+          </div>
+        </div>
+
+        <!-- With no Codedle going: the vault shut, and how the last one ended. -->
+        <section id="idle" class="cd-idle" hidden>
+          <div class="cd-idle-lock" aria-hidden="true">🔒</div>
+          <h2 id="idle-title" class="cd-idle-title">The vault is shut</h2>
+          <p id="idle-text" class="cd-idle-text">No Codedle is going right now. When one pops up in Discord, it opens here too: keep this page open.</p>
+        </section>
+
+        <!-- How the last one ended: the code, who cracked it, and everyone's guesses. -->
+        <section id="result" class="cd-result" hidden>
+          <h2 id="result-title" class="cd-result-title"></h2>
+          <div id="result-code" class="cd-result-code" aria-label="The code"></div>
+          <p id="result-text" class="cd-result-text"></p>
+          <h3 class="cd-result-board-title">Everyone's guesses</h3>
+          <ol id="result-board" class="cd-result-board"></ol>
+        </section>
+      </div>
+
+      <p class="hint">Type or tap the digits, then Guess · 🟩 right digit, right place · 🟨 in the code, another place · ⬛ not in it · Digits can repeat · Only you see your guesses until the vault opens</p>
+    </main>
+
+    <script type="module" src="/src/codedle/main.ts"></script>
+  </body>
+</html>
