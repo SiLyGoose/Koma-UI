@@ -3,8 +3,8 @@ import type { MailAttachmentView, MailboxView, MailClaimed, MailHero, MailPickIt
 import { coin } from '../../util/coin';
 
 /*
- * The mailbox, in the site header: a mail icon beside the profile button, with how many mails are unread on it (none: no
- * badge). Pressing it opens the mailbox: each mail (the newest first) with its message and what it carries, a line each, and
+ * The mailbox, in the site header: a mail icon beside the profile button, with how many mails wait on it (unread, or with
+ * rewards unclaimed; none: no badge). Pressing it opens the mailbox: each mail (the newest first) with its message and what it carries, a line each, and
  * Claim for what it carries. A mail with tickets (a Unique Weapon or Unique Treasure Ticket) has each picked in a popup of
  * its own once Claim is pressed, the weapons' first, as King's Raid's ticket has it: every item it can be on the left, the
  * one picked's main stat and unique effect on the right; what each was picked as shows beside it. Opening it marks the mail read. The bot's GET /api/mail, POST /api/mail/read and /claim (its
@@ -91,7 +91,7 @@ const CLAIM_ERRORS: Record<string, string> = {
   not_found: 'That mail is gone.',
 };
 
-/** The mail button, put in `mount` (before what is there): it keeps its unread count and opens the mailbox. */
+/** The mail button, put in `mount` (before what is there): it keeps its count of mail waiting and opens the mailbox. */
 export function mailButton(mount: HTMLElement, host: MailHost): { refresh: () => void; remove: () => void } {
   const button = el('button', 'mail-button');
   button.type = 'button';
@@ -130,7 +130,7 @@ export function mailButton(mount: HTMLElement, host: MailHost): { refresh: () =>
   const showCount = (unread: number): void => {
     badge.hidden = unread <= 0;
     badge.textContent = unread > 99 ? '99+' : String(unread);
-    button.setAttribute('aria-label', unread > 0 ? `Mail: ${unread} unread` : 'Mail');
+    button.setAttribute('aria-label', unread > 0 ? `Mail: ${unread} waiting` : 'Mail');
   };
 
   async function refresh(): Promise<void> {
@@ -374,7 +374,7 @@ export function mailButton(mount: HTMLElement, host: MailHost): { refresh: () =>
     void (async () => {
       await refresh();
       // (Opened: all of it read.)
-      if (view && view.unread > 0) {
+      if (view?.mail.some((mail) => !mail.read)) {
         const read = await post<MailboxView>('/api/mail/read', { id: null });
         if (typeof read !== 'string') {
           view = read;

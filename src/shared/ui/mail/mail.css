@@ -134,9 +134,10 @@
   font-weight: 600;
 }
 
-/* What it carries: a tile each, all in one row (sharing it evenly; a long one's words wrap): its picture over what it is. */
+/* What it carries: a tile each, of a set size, in a row (more than fit: onto the next): its picture over what it is. */
 .mail-attachments {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin: 0 0 12px;
   padding: 0;
@@ -148,8 +149,8 @@
   flex-direction: column;
   gap: 4px;
   align-items: center;
-  flex: 1 1 0;
-  min-width: 0;
+  flex: none;
+  width: 96px;
   padding: 8px 6px;
   border: 1px solid var(--line, #444);
   border-radius: 10px;
@@ -157,9 +158,9 @@
   text-align: center;
 }
 
-/* A ticket with its pick beside it: twice the room. */
+/* A ticket with its pick beside it: room for both pictures. */
 .mail-attachment:has(.mail-picked-pic) {
-  flex-grow: 2;
+  width: 152px;
 }
 
 .mail-attachment-pics {
@@ -590,21 +591,14 @@
   }
 }
 
-/*
- * A phone: the tiles' pictures smaller, to fit a ticket's and its pick's side by side; and what doesn't fit one row (tickets
- * with their picks beside them) onto the next.
- */
+/* A phone: the tiles and their pictures smaller. */
 @media (width <= 600px) {
-  .mail-attachments {
-    flex-wrap: wrap;
-  }
-
   .mail-attachment {
-    flex: 1 1 64px;
+    width: 62px;
   }
 
   .mail-attachment:has(.mail-picked-pic) {
-    flex: 2 1 120px;
+    width: 104px;
   }
 
   .mail-reward-pic,
