@@ -1,4 +1,4 @@
-import { mailButton } from '../shared/ui/mail/mail';
+import { mailbox, type Mailbox } from '../shared/ui/mail/mail';
 import { API, getSession, profileMenu, reconnecting, setSession, siteHeader, startLive, store } from '../shared/ui';
 import { go } from './nav';
 import type { Me } from '../protocol/site';
@@ -183,8 +183,8 @@ function pickServer(): void {
 
 const ui = siteHeader();
 let profile: HTMLElement | null = null;
-/** The mail button beside the profile (../shared/ui/mail/mail.ts), once logged in. */
-let mail: ReturnType<typeof mailButton> | null = null;
+/** The mailbox (../shared/ui/mail/mail.ts): the profile's Inbox, once logged in. */
+let mail: Mailbox | null = null;
 
 /** The header's right side: the profile button (with who's online), or Login. */
 function renderHeader(): void {
@@ -197,25 +197,31 @@ function renderHeader(): void {
     mail = null;
     return;
   }
-  profile = profileMenu(me.user, [
-    // Always here (not in the header).
-    { label: 'Games', icon: 'games', href: '/#games' },
-    { label: 'Forge', icon: 'forge', href: '/forge/' },
-    { label: 'Databank', icon: 'databank', href: '/databank/' },
-    // On smaller screens the header's links are here instead.
-    { label: 'Gear', icon: 'gear', href: '/gear/', className: 'site-nav-item' },
-    { label: 'Heroes', icon: 'heroes', href: '/heroes/', className: 'site-nav-item' },
-    { label: 'Shop', icon: 'shop', href: '/shop/', className: 'site-nav-item' },
-    { label: 'My Servers', icon: 'servers', href: '/#play' },
-    // The bot's settings (../admin/), for the bot admin only.
-    ...(me.admin ? [{ label: 'Admin', icon: 'admin', href: '/admin/' } as const] : []),
-    { label: 'Logout', icon: 'logout', onSelect: logOut },
-  ]);
-  ui.me.append(profile);
-  // The mailbox: its button before the profile, its unread count on it. Kept as it is when the header is drawn again (a
-  // claim's balance, loadMe: the mailbox stays open on what was claimed), only its mail asked for again.
+  // The mailbox: kept as it is when the header is drawn again (a claim's balance, loadMe: the mailbox stays open on what was
+  // claimed), only its mail asked for again. Its count is on the profile (closed) and the Inbox (open).
   if (mail) mail.refresh();
-  else mail = mailButton(ui.me, { api, server: () => server, changed: () => void loadMe(true) });
+  else mail = mailbox({ api, server: () => server, changed: () => void loadMe(true) });
+  const inbox = mail;
+  profile = profileMenu(
+    me.user,
+    [
+      { label: 'Inbox', icon: 'inbox', onSelect: () => inbox.open(), badge: inbox.badges.item },
+      // Always here (not in the header).
+      { label: 'Games', icon: 'games', href: '/#games' },
+      { label: 'Forge', icon: 'forge', href: '/forge/' },
+      { label: 'Databank', icon: 'databank', href: '/databank/' },
+      // On smaller screens the header's links are here instead.
+      { label: 'Gear', icon: 'gear', href: '/gear/', className: 'site-nav-item' },
+      { label: 'Heroes', icon: 'heroes', href: '/heroes/', className: 'site-nav-item' },
+      { label: 'Shop', icon: 'shop', href: '/shop/', className: 'site-nav-item' },
+      { label: 'My Servers', icon: 'servers', href: '/#play' },
+      // The bot's settings (../admin/), for the bot admin only.
+      ...(me.admin ? [{ label: 'Admin', icon: 'admin', href: '/admin/' } as const] : []),
+      { label: 'Logout', icon: 'logout', onSelect: logOut },
+    ],
+    inbox.badges.profile,
+  );
+  ui.me.append(profile);
 }
 
 ui.login.addEventListener('click', logIn);

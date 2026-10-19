@@ -3,8 +3,9 @@ import type { MailAttachmentView, MailboxView, MailClaimed, MailHero, MailPickIt
 import { coin } from '../../util/coin';
 
 /*
- * The mailbox, in the site header: a mail icon beside the profile button, with how many mails wait on it (unread, or with
- * rewards unclaimed; none: no badge). Pressing it opens the mailbox: each mail (the newest first) with its message and what it carries, a line each, and
+ * The mailbox, the Inbox in the profile's drop-down (../../../site/session.ts): how many mails wait (unread, or with rewards
+ * unclaimed; none: no badge) is on the profile button while the drop-down is closed, and on the Inbox open. The Inbox opens
+ * the mailbox: each mail (the newest first) with its message and what it carries, a line each, and
  * Claim for what it carries. A mail with tickets (a Unique Weapon or Unique Treasure Ticket) has each picked in a popup of
  * its own once Claim is pressed, the weapons' first, as King's Raid's ticket has it: every item it can be on the left, the
  * one picked's main stat and unique effect on the right; what each was picked as shows beside it. Opening it marks the mail read. The bot's GET /api/mail, POST /api/mail/read and /claim (its
@@ -81,8 +82,6 @@ function rewardPicture(one: MailAttachmentView): HTMLElement | null {
   return img;
 }
 
-const ENVELOPE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 5h18a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Zm1 2.4V17h16V7.4l-8 5.3-8-5.3ZM5.2 7 12 11.5 18.8 7H5.2Z"/></svg>';
-
 /** What the bot answered a claim with that wasn't a claim, said for the member. */
 const CLAIM_ERRORS: Record<string, string> = {
   claimed: 'Already claimed.',
@@ -91,16 +90,22 @@ const CLAIM_ERRORS: Record<string, string> = {
   not_found: 'That mail is gone.',
 };
 
-/** The mail button, put in `mount` (before what is there): it keeps its count of mail waiting and opens the mailbox. */
-export function mailButton(mount: HTMLElement, host: MailHost): { refresh: () => void; remove: () => void } {
-  const button = el('button', 'mail-button');
-  button.type = 'button';
-  button.innerHTML = ENVELOPE;
-  button.setAttribute('aria-label', 'Mail');
-  const badge = el('span', 'mail-badge');
-  badge.hidden = true;
-  button.append(badge);
-  mount.prepend(button);
+/** The mailbox's badges, for the profile button and the Inbox (each kept up to date), and what opens it. */
+export interface Mailbox {
+  badges: { profile: HTMLElement; item: HTMLElement };
+  open: () => void;
+  refresh: () => void;
+  remove: () => void;
+}
+
+/** The mailbox: it keeps its count of mail waiting on its badges, and opens (`open`, the Inbox). */
+export function mailbox(host: MailHost): Mailbox {
+  const badge = (): HTMLElement => {
+    const one = el('span', 'mail-badge account-badge');
+    one.hidden = true;
+    return one;
+  };
+  const badges = { profile: badge(), item: badge() };
 
   const dialog = el('dialog', 'mailbox');
   dialog.setAttribute('aria-label', 'Mailbox');
@@ -128,9 +133,11 @@ export function mailButton(mount: HTMLElement, host: MailHost): { refresh: () =>
     return server ? `?guild=${encodeURIComponent(server)}` : null;
   };
   const showCount = (unread: number): void => {
-    badge.hidden = unread <= 0;
-    badge.textContent = unread > 99 ? '99+' : String(unread);
-    button.setAttribute('aria-label', unread > 0 ? `Mail: ${unread} waiting` : 'Mail');
+    for (const one of [badges.profile, badges.item]) {
+      one.hidden = unread <= 0;
+      one.textContent = unread > 99 ? '99+' : String(unread);
+      one.title = `${unread} mail waiting`;
+    }
   };
 
   async function refresh(): Promise<void> {
@@ -367,7 +374,7 @@ export function mailButton(mount: HTMLElement, host: MailHost): { refresh: () =>
     dialog.append(list);
   }
 
-  button.addEventListener('click', () => {
+  const open = (): void => {
     note = '';
     draw();
     dialog.showModal();
@@ -383,7 +390,7 @@ export function mailButton(mount: HTMLElement, host: MailHost): { refresh: () =>
         }
       }
     })();
-  });
+  };
   dialog.addEventListener('click', (event) => {
     if (event.target === dialog) dialog.close();
   });
@@ -393,11 +400,14 @@ export function mailButton(mount: HTMLElement, host: MailHost): { refresh: () =>
   const onFocus = (): void => void refresh();
   window.addEventListener('focus', onFocus);
   return {
+    badges,
+    open,
     refresh: () => void refresh(),
     remove: () => {
       window.clearInterval(timer);
       window.removeEventListener('focus', onFocus);
-      button.remove();
+      badges.profile.remove();
+      badges.item.remove();
       dialog.remove();
     },
   };

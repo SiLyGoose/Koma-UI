@@ -1,33 +1,7 @@
-/* The mail button in the site header, its unread badge, and the mailbox (./mail.ts). */
-.mail-button {
-  position: relative;
-  display: inline-grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  margin-right: 8px;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: transparent;
-  color: inherit;
-  cursor: pointer;
-}
+/* The mailbox's badge, and the mailbox (./mail.ts). */
 
-.mail-button svg {
-  width: 22px;
-  height: 22px;
-}
-
-.mail-button:hover,
-.mail-button:focus-visible {
-  background: rgb(255 255 255 / 10%);
-}
-
+/* How many mails wait: on the profile button, or the Inbox (../account/account.css places it). */
 .mail-badge {
-  position: absolute;
-  top: 2px;
-  right: 0;
   min-width: 16px;
   height: 16px;
   padding: 0 4px;

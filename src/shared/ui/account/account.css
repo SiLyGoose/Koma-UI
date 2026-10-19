@@ -9,6 +9,7 @@
 
 /* The profile button. */
 .account-user {
+  position: relative;
   display: flex;
   align-items: center;
   padding: 4px;
@@ -123,4 +124,23 @@
 
 .account-item-name {
   margin-left: 7px;
+}
+
+/* A badge (the inbox's count): on the profile button's corner while its drop-down is closed; open, after the item's label. */
+.account-user > .account-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+}
+
+.account-user[aria-expanded='true'] > .account-badge {
+  display: none;
+}
+
+.account-item > .account-badge {
+  margin-left: auto;
+}
+
+.account-item:has(> .account-badge) > .account-item-name {
+  margin-right: 12px;
 }

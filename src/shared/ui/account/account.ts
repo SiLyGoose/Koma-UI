@@ -58,9 +58,13 @@ export interface MenuItem {
   onSelect?: () => void;
   /** A class for its row (to show it only on some screens, say). */
   className?: string;
+  /** A badge after its label (a count: the inbox's mail waiting), kept by its owner. */
+  badge?: HTMLElement;
 }
 
 const ICONS = {
+  inbox:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Zm1 2.4V17h16V7.4l-8 5.3-8-5.3ZM5.2 7 12 11.5 18.8 7H5.2Z"/></svg>',
   servers:
     '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 19c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6z"/><circle cx="17" cy="9" r="2.8"/><path d="M16.2 13.1c3 .2 5.3 2.3 5.3 5.9h-4.2c0-2.3-.4-4.2-1.1-5.9z"/></svg>',
   games:
@@ -132,6 +136,7 @@ export function dropdown(button: HTMLButtonElement, items: MenuItem[]): HTMLElem
       link.append(icon);
     }
     link.append(el('span', 'account-item-name', item.label));
+    if (item.badge) link.append(item.badge);
     link.addEventListener('click', (e) => {
       if (item.onSelect) {
         e.preventDefault();
@@ -149,8 +154,11 @@ export function dropdown(button: HTMLButtonElement, items: MenuItem[]): HTMLElem
 /** The drop-down arrow, turning while open. */
 export const arrow = (): HTMLSpanElement => el('span', 'account-arrow');
 
-/** The profile button: the member's picture, name and an arrow, dropping down `items`. */
-export function profileMenu(user: User, items: MenuItem[]): HTMLElement {
+/**
+ * The profile button: the member's picture, name and an arrow, dropping down `items`. A `badge` (the inbox's count) sits on
+ * its corner while the drop-down is closed (open, it is the item's own: MenuItem.badge).
+ */
+export function profileMenu(user: User, items: MenuItem[], badge?: HTMLElement): HTMLElement {
   const button = el('button', 'account-user');
   button.type = 'button';
   button.setAttribute('aria-label', `${user.name}: account`);
@@ -160,5 +168,6 @@ export function profileMenu(user: User, items: MenuItem[]): HTMLElement {
   avatar.width = 32;
   avatar.height = 32;
   button.append(avatar, el('span', 'account-name', user.name), arrow());
+  if (badge) button.append(badge);
   return dropdown(button, items);
 }
