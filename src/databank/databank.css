@@ -32,6 +32,17 @@
   border-top: 3px solid var(--tier, #cbbd97);
 }
 
+/* A unique weapon's or treasure's effect: its numbers and effects coloured as the heroes page's skills have them (heroes.css .skill-number, .skill-effect). */
+.db-skill-text .skill-number {
+  color: #1a74b8;
+  font-weight: 700;
+}
+
+.db-skill-text .skill-effect {
+  color: #5e8a0c;
+  font-weight: 700;
+}
+
 .databank .detail .armory-plaque {
   display: none;
 }

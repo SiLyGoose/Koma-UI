@@ -352,11 +352,14 @@ export function treasureParts(lines: readonly string[]): { options: string[]; ma
   };
 }
 
-/** What a unique treasure gives as its hero's main treasure, set apart as a TechnoMagic copy's effects are: lit while it is (`on`), greyed while it isn't. */
-export function treasureSection(main: readonly string[], on?: boolean): HTMLElement[] {
+/**
+ * What a unique treasure gives as its hero's main treasure, set apart as a TechnoMagic copy's effects are: lit while it is
+ * (`on`), greyed while it isn't. `line`: how each line is drawn (Discord's way, rich, unless the page says).
+ */
+export function treasureSection(main: readonly string[], on?: boolean, line: (text: string) => Node = rich): HTMLElement[] {
   if (main.length === 0) return [];
   const list = el('ul', 'detail-effects');
-  for (const line of main) list.appendChild(el('li')).append(rich(line));
+  for (const text of main) list.appendChild(el('li')).append(line(text));
   return [effectSection('Main Treasure:', list, on)];
 }
 
