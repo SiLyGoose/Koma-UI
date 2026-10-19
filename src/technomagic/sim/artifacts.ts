@@ -278,7 +278,7 @@ export function artifactStats(worn: ReturnType<typeof artifactOf>): GearBonus {
 /** An artifact as a square on its wearer's card. */
 export const artifactBuff = (worn: NonNullable<ReturnType<typeof artifactOf>>): Buff => {
   const data = DATA.get(worn.id);
-  return { name: data?.name ?? 'Artifact', about: data?.text?.[worn.tier] ?? '', icon: '🏺' };
+  return { name: data?.name ?? 'Artifact', about: data?.text?.[worn.tier] ?? '', icon: '🏺', ...(data && { art: { item: data.icon } }) };
 };
 
 /** What the fight gives an artifact's hooks: its time, the heroes on the field, the boss, and what it does. */

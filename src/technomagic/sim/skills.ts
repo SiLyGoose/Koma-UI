@@ -1,5 +1,5 @@
 import { POINTS, share, type HeroStats } from './combat/damage';
-import { every, fine, pct, seconds, type Buff } from './shown';
+import { every, fine, pct, seconds, stateArt, type Buff } from './shown';
 
 /*
  * TechnoMagic gear's additional skills, as the fight has them: every piece of TechnoMagic gear comes with one,
@@ -110,6 +110,52 @@ export interface SkillDef {
   about: string;
 }
 
+/**
+ * The picture of each on a hero's card: King's Raid's own status icon for what it does (its gear skills have none of
+ * their own): ATK or DMG up, DEF up, a shield, quicker, unseen (dodge), not to be knocked down, mana.
+ */
+const STATE: Readonly<Record<SkillId, string>> = {
+  vigor: 'AttackUp',
+  persistence: 'AttackUp',
+  'war-cry': 'AttackUp',
+  whetstone: 'AttackUp',
+  champion: 'AttackUp',
+  berserk: 'ArenaPowerUp',
+  fortress: 'DefenseUp',
+  aegis: 'Shield',
+  mirage: 'Hide',
+  fundamentals: 'AttackUp',
+  vitality: 'DefenseUp',
+  overflow: 'SpeedUp',
+  momentum: 'AttackUp',
+  overdrive: 'SpeedUp',
+  regeneration: 'Shield',
+  steadfast: 'DefenseUp',
+  swiftness: 'SpeedUp',
+  'focus-1': 'SpeedUp',
+  'focus-2': 'SpeedUp',
+  'focus-3': 'SpeedUp',
+  'warm-up': 'AttackUp',
+  might: 'AttackUp',
+  'physical-ward': 'DefenseUp',
+  'magical-ward': 'DefenseUp',
+  bastion: 'DefenseUp',
+  ruthless: 'AttackUp',
+  piercing: 'AttackUp',
+  precision: 'AttackUp',
+  guard: 'DefenseUp',
+  parry: 'Electronic',
+  'lone-foe': 'AttackUp',
+  'lone-guard': 'DefenseUp',
+  armor: 'DefenseUp',
+  'mana-spring': 'Electronic',
+  surge: 'AttackUp',
+  desperation: 'AttackUp',
+  mending: 'Shield',
+  'iron-wall': 'DefenseUp',
+  tenacity: 'ImmuneCc',
+};
+
 /** Every additional skill, in the tier list's order. */
 export const SKILLS: readonly SkillDef[] = [
   { id: 'vigor', name: 'Vigor', tier: 'S', about: `Increases DMG dealt by ${pct(SKILL.vigor.dmg)} while HP is above ${pct(SKILL.vigor.above)}.` },
@@ -197,10 +243,10 @@ export const skilledCritDamage = (skills: Partial<Record<SkillId, number>>): num
 
 /** A hero's skills, as squares on its card (one for each skill, its count in the corner when it has it more than once). */
 export const skillBuffs = (counts: Partial<Record<SkillId, number>>): Buff[] =>
-  Object.entries(counts).map(([id, count]) => ({ name: BY_ID.get(id)?.name ?? id, about: BY_ID.get(id)?.about, icon: '✴️', ...(count && count > 1 ? { count } : {}) }));
+  Object.entries(counts).map(([id, count]) => ({ name: BY_ID.get(id)?.name ?? id, about: BY_ID.get(id)?.about, icon: '✴️', ...(STATE[id as SkillId] && { art: stateArt(STATE[id as SkillId]) }), ...(count && count > 1 ? { count } : {}) }));
 
 /** What some skills leave on a hero for a while (Champion, Surge, Desperation, Mending). */
-export const CHAMPION_UP: Buff = { name: 'Champion', about: 'DMG dealt higher.', icon: '👑' };
-export const SURGE_UP: Buff = { name: 'Surge', about: 'DMG dealt higher.', icon: '⚡' };
-export const DESPERATION_UP: Buff = { name: 'Desperation', about: 'ATK higher.', icon: '🔥' };
-export const MENDING_UP: Buff = { name: 'Mending', about: 'Heals and shields stronger.', icon: '💚' };
+export const CHAMPION_UP: Buff = { name: 'Champion', about: 'DMG dealt higher.', icon: '👑', art: stateArt(STATE.champion) };
+export const SURGE_UP: Buff = { name: 'Surge', about: 'DMG dealt higher.', icon: '⚡', art: stateArt(STATE.surge) };
+export const DESPERATION_UP: Buff = { name: 'Desperation', about: 'ATK higher.', icon: '🔥', art: stateArt(STATE.desperation) };
+export const MENDING_UP: Buff = { name: 'Mending', about: 'Heals and shields stronger.', icon: '💚', art: stateArt(STATE.mending) };

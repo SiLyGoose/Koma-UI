@@ -1,5 +1,5 @@
 import { put, type Status } from '../../combat/status';
-import type { Buff, Mark } from '../../shown';
+import { stateArt, type Buff, type Mark } from '../../shown';
 import type { Fight, Fighter } from '../../types';
 import type { BossPart } from '../boss';
 import { GALGORIA_GAUGE, withGauge } from '../gauge';
@@ -39,12 +39,12 @@ const STAGES = { from: 4, heals: 0.6, shields: 0.4 };
 /** How many times as much it takes of each kind of damage. */
 const TAKEN = { physical: 1.2 };
 
-const IMPRISONED: Buff = { name: 'Swamp Imprisonment', about: 'Shut away in the swamp: it can do nothing, and the boss can’t reach it.', icon: '🪤', harmful: true };
-const UNBOUND: Buff = { name: 'Swamp Imprisonment (free)', about: `An ally is shut away: ${Math.round((IMPRISONMENT.deals - 1) * 100)}% more damage dealt meanwhile.`, icon: '🗡️' };
-const POISONED: Buff = { name: 'Poisonous Swamp', about: `Hurt every second; mana fills ${Math.round((1 - SWAMP.mana) * 100)}% slower, and ATK is ${Math.round((SWAMP.deals - 1) * 100)}% higher.`, icon: '🫧', harmful: true };
-const WEAKENED: Buff = { name: 'Poisonous Explosion', about: `Hits ${Math.round((1 - EXPLOSION.deals) * 100)}% softer.`, icon: '💥', harmful: true };
-const DULLED: Buff = { name: 'Poisonous Explosion (crit)', about: `${Math.round(-EXPLOSION.crit * 1000)} less crit chance.`, icon: '💥', harmful: true };
-const FATAL_VENOM: Buff = { name: 'Fatal Venom', about: `${Math.round(FATAL.heals * 100)}% less healing reaches it for each (the rest of the fight), and the boss hits harder.`, icon: '☠️', harmful: true };
+const IMPRISONED: Buff = { name: 'Swamp Imprisonment', about: 'Shut away in the swamp: it can do nothing, and the boss can’t reach it.', icon: '🪤', art: stateArt('3590043'), harmful: true };
+const UNBOUND: Buff = { name: 'Swamp Imprisonment (free)', about: `An ally is shut away: ${Math.round((IMPRISONMENT.deals - 1) * 100)}% more damage dealt meanwhile.`, icon: '🗡️', art: stateArt('AttackUp') };
+const POISONED: Buff = { name: 'Poisonous Swamp', about: `Hurt every second; mana fills ${Math.round((1 - SWAMP.mana) * 100)}% slower, and ATK is ${Math.round((SWAMP.deals - 1) * 100)}% higher.`, icon: '🫧', art: stateArt('3590020'), harmful: true };
+const WEAKENED: Buff = { name: 'Poisonous Explosion', about: `Hits ${Math.round((1 - EXPLOSION.deals) * 100)}% softer.`, icon: '💥', art: stateArt('3590030'), harmful: true };
+const DULLED: Buff = { name: 'Poisonous Explosion (crit)', about: `${Math.round(-EXPLOSION.crit * 1000)} less crit chance.`, icon: '💥', art: stateArt('3590030'), harmful: true };
+const FATAL_VENOM: Buff = { name: 'Fatal Venom', about: `${Math.round(FATAL.heals * 100)}% less healing reaches it for each (the rest of the fight), and the boss hits harder.`, icon: '☠️', art: stateArt('3590040'), harmful: true };
 
 /** Its skills that count toward Fatal Venom, and each one's cooldown; and how long each waits as the fight begins (the playtest's). */
 const COOLDOWNS: Readonly<Record<string, number>> = { destroyer: DESTROYER.cooldown, swamp: SWAMP.cooldown, explosion: EXPLOSION.cooldown };
@@ -145,7 +145,7 @@ function ownPart(fight: Fight): BossPart {
           fight.hurt(fighter, amount * FATAL.blow);
           stack(fighter.statuses, FATAL_VENOM.name, FATAL.most, (count) => ({ heals: Math.max(0, 1 - FATAL.heals * count), shown: FATAL_VENOM }));
         }
-        stack(foe.statuses, FATAL_VENOM.name, FATAL.mostOnIt, (count) => ({ deals: 1 + FATAL.deals * count, shown: 'venom' }));
+        stack(foe.statuses, FATAL_VENOM.name, FATAL.mostOnIt, (count) => ({ deals: 1 + FATAL.deals * count, art: FATAL_VENOM.art, shown: 'venom' }));
         fight.cue(null, 'fatal', heroes);
       },
     },
@@ -203,9 +203,9 @@ function ownPart(fight: Fight): BossPart {
     steady: true,
     marks(): Mark[] {
       return [
-        { text: 'Life Force', tone: 'venom' },
-        { text: `Imprisonment ${hits}/${IMPRISONMENT.hits}`, tone: 'venom' },
-        { text: `Fatal Venom ${Math.min(used, FATAL.after)}/${FATAL.after}`, tone: 'venom' },
+        { text: 'Persistent Life Force', tone: 'venom', art: stateArt('3590041') },
+        { text: `Swamp Imprisonment ${hits}/${IMPRISONMENT.hits}`, tone: 'venom', art: stateArt('3590043'), count: `${hits}/${IMPRISONMENT.hits}` },
+        { text: `Fatal Venom ${Math.min(used, FATAL.after)}/${FATAL.after}`, tone: 'venom', art: stateArt('3590040'), count: `${Math.min(used, FATAL.after)}/${FATAL.after}` },
       ];
     },
   };

@@ -3,7 +3,7 @@ import { put } from '../combat/status';
 import { said, t5Light } from '../perks';
 import { fromTreasure, treasure, wearsTreasure } from '../treasures';
 import { MAX_MANA } from '../rules';
-import { pct, skillArt, type Buff, type Mark } from '../shown';
+import { pct, skillArt, stateArt, type Buff, type Mark } from '../shown';
 import { atTier, CAETHASIS, CAETHASIS_UP } from '../unique';
 import { bookDmg, CLASS_STATS, dmg, type HeroDef, indexed, type Passive } from './kit';
 import { CODED } from './moves';
@@ -254,7 +254,7 @@ export const TANYA: HeroDef = {
       dodge: () => (stealth > 0 ? STEALTH.dodge : 0),
       lit: () => stealth > 0,
       buffs: () => (tier !== null && stealth > 0 ? [{ ...CAETHASIS_UP, left: stealth }] : []),
-      marks: (): Mark[] => (bleeds.length > 0 ? [{ text: `${BLED} ×${bleeds.length}`, tone: 'curse' }] : []),
+      marks: (): Mark[] => (bleeds.length > 0 ? [{ text: `${BLED} ×${bleeds.length}`, tone: 'curse', art: stateArt('Bleeding'), count: `×${bleeds.length}` }] : []),
     };
   },
 };

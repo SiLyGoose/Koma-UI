@@ -1,14 +1,46 @@
+import { artPicture } from '../art';
 import type { Mark } from '../sim/shown';
 import { el } from './dom';
+import { pointTips } from './tip';
 
 /*
  * The boss's health across the top of the field, a dragon's CC gauge in orange just under it, and under them what is the
- * matter with it (its marks: ../sim/shown.ts).
+ * matter with it (its marks: ../sim/shown.ts), as King's Raid shows them: a square of each one's icon, its seconds (or
+ * count) in the corner, what it is when pointed at; said in words where it has no picture.
  */
 
 export interface BossBar {
   /** Its health (0 to 1 of it), the marks under it, and how full its CC gauge is (0 to 1; null: it has none). */
   draw(share: number, marks: readonly Mark[], gauge: number | null): void;
+}
+
+/** What each square drawn is of, for its popup. */
+const OF = new WeakMap<Element, Mark>();
+
+/** A mark: its square (its picture edged in its tone, its count in the corner), or its words. */
+function markOf(mark: Mark): HTMLElement {
+  const picture = artPicture(mark.art);
+  if (!picture) return el('span', `tm-mark ${mark.tone}`, mark.text);
+  const made = el('span', `tm-mark-square ${mark.tone}`);
+  OF.set(made, mark);
+  made.setAttribute('role', 'img');
+  made.setAttribute('aria-label', mark.text);
+  const image = el('img', '');
+  image.alt = '';
+  image.draggable = false;
+  image.src = picture;
+  made.append(image);
+  if (mark.count) made.append(el('b', '', mark.count));
+  return made;
+}
+
+/** What a square's popup says: all its words. */
+function markTip(made: Element): Node[] | null {
+  const mark = OF.get(made);
+  if (!mark) return null;
+  const head = el('div', 'tm-tip-head');
+  head.append(el('strong', '', mark.text));
+  return [head];
 }
 
 /**
@@ -27,6 +59,8 @@ export function makeBossBar(root: HTMLElement, name: string, deals: string): Bos
   meter.setAttribute('aria-label', 'CC Gauge');
   meter.setAttribute('aria-valuemin', '0');
   meter.setAttribute('aria-valuemax', '100');
+  // A square pointed at with a mouse: what it is, over it.
+  const pointed = pointTips(row, '.tm-mark-square', markTip);
   let marked = '';
   return {
     draw(share, marks, gauge) {
@@ -43,7 +77,8 @@ export function makeBossBar(root: HTMLElement, name: string, deals: string): Bos
       const said = marks.map(({ text }) => text).join('|');
       if (said === marked) return;
       marked = said;
-      row.replaceChildren(...marks.map(({ text, tone }) => el('span', `tm-mark ${tone}`, text)));
+      row.replaceChildren(...marks.map(markOf));
+      pointed();
     },
   };
 }

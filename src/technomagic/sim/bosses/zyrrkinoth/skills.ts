@@ -1,5 +1,5 @@
 import { put } from '../../combat/status';
-import type { Buff, Mark } from '../../shown';
+import { stateArt, type Buff, type Mark } from '../../shown';
 import type { Fight, Fighter } from '../../types';
 import type { BossPart } from '../boss';
 import { addStacks, all, cooldowns, dot, lift, single, stacksOf, withDragonGauge } from '../dragon/common';
@@ -25,8 +25,8 @@ const POISON = { petrifyAt: 30, lasts: 12, petrify: 5, hurts: 4_000, blow: 2 };
 const LASH = { stacks: 5, knock: 0.6 };
 const BREATH = { stacks: 3 };
 
-const POISONED: Buff = { name: 'Poison', about: `Eats at it every second, the more for every stack; at ${POISON.petrifyAt}, Petrified.`, icon: '🧪', harmful: true };
-const PETRIFIED: Buff = { name: 'Petrified', about: 'Turned to stone: it can do nothing.', icon: '🗿', harmful: true };
+const POISONED: Buff = { name: 'Poison', about: `Eats at it every second, the more for every stack; at ${POISON.petrifyAt}, Petrified.`, icon: '🧪', art: stateArt('CriticalPoison'), harmful: true };
+const PETRIFIED: Buff = { name: 'Petrified', about: 'Turned to stone: it can do nothing.', icon: '🗿', art: stateArt('Stone'), harmful: true };
 
 export function zyrrkinothPart(fight: Fight): BossPart {
   // (Each skill's cooldown, and first wait, the playtest's: its Toxic Mist's for its tail lash, Poison Cloud's for its sweep.)
@@ -87,6 +87,6 @@ export function zyrrkinothPart(fight: Fight): BossPart {
         lift(fighter, PETRIFIED.name);
       }
     },
-    marks: (): Mark[] => [{ text: `Toxic Scales ${Math.round(taken.physical * 100)}%`, tone: 'venom' }],
+    marks: (): Mark[] => [{ text: `Toxic Scales ${Math.round(taken.physical * 100)}%`, tone: 'venom', art: stateArt('440396'), count: `${Math.round(taken.physical * 100)}%` }],
   });
 }

@@ -1,5 +1,5 @@
 import { put, type Status } from '../../combat/status';
-import type { Buff, Mark } from '../../shown';
+import { stateArt, type Buff, type Mark } from '../../shown';
 import type { Fight, Fighter } from '../../types';
 import type { BossPart } from '../boss';
 import { all, cooldowns, dot, fraction, lift, opened, reachable, single, withDragonGauge } from '../dragon/common';
@@ -22,8 +22,8 @@ const GAZE = { lasts: 4 };
 export const ECLIPSE = { burning: 1.6, deals: 0.1, most: 5, health: 0.73 };
 const TAIL = 2 / 3;
 
-const DARK: Buff = { name: 'Dark Flames', about: `Black fire eats at it every second, and ${Math.round((1 - FLAMES.heals) * 100)}% less healing reaches it.`, icon: '🖤', harmful: true };
-const STONE: Buff = { name: 'Petrified', about: 'Turned to stone by its gaze: it can do nothing.', icon: '🗿', harmful: true };
+const DARK: Buff = { name: 'Dark Flames', about: `Black fire eats at it every second, and ${Math.round((1 - FLAMES.heals) * 100)}% less healing reaches it.`, icon: '🖤', art: stateArt('440420'), harmful: true };
+const STONE: Buff = { name: 'Petrified', about: 'Turned to stone by its gaze: it can do nothing.', icon: '🗿', art: stateArt('Stone'), harmful: true };
 const ASHEN = 'Ashen Nox';
 
 export function armartaPart(fight: Fight): BossPart {
@@ -70,7 +70,7 @@ export function armartaPart(fight: Fight): BossPart {
         fraction(fight, heroes, ECLIPSE.health);
         fight.cue(null, 'eclipse', heroes);
         const count = Math.min(ECLIPSE.most, (foe.statuses.find((status) => status.name === ASHEN)?.count ?? 0) + 1);
-        const status: Status<'curse'> = { name: ASHEN, left: Infinity, deals: 1 + ECLIPSE.deals * count, count, shown: 'curse' };
+        const status: Status<'curse'> = { name: ASHEN, art: stateArt('Eclipse'), left: Infinity, deals: 1 + ECLIPSE.deals * count, count, shown: 'curse' };
         put(foe.statuses, status);
       },
       bite: (_part, amount) => single(fight, amount),

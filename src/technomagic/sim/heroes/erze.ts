@@ -266,7 +266,7 @@ export const ERZE: HeroDef = {
       },
       lit: () => sweet >= SWEET.most,
       buffs: () => [...(sweet > 0 ? [{ ...SWEETENED, count: sweet }] : [])],
-      marks: (): Mark[] => (soakStacks > 0 && soaking > 0 ? [{ text: `Soaking Blood ×${soakStacks} ${Math.ceil(soaking)}s`, tone: 'curse' }] : []),
+      marks: (): Mark[] => (soakStacks > 0 && soaking > 0 ? [{ text: `Soaking Blood ×${soakStacks} ${Math.ceil(soaking)}s`, tone: 'curse', art: art(1), count: `×${soakStacks}` }] : []),
     };
   },
 };

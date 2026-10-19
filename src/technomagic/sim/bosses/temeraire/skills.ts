@@ -1,5 +1,5 @@
 import { put } from '../../combat/status';
-import type { Buff, Mark } from '../../shown';
+import { stateArt, type Buff, type Mark } from '../../shown';
 import type { Fight, Fighter } from '../../types';
 import type { BossPart } from '../boss';
 import { all, cooldowns, dot, fraction, lift, opened, single, withDragonGauge } from '../dragon/common';
@@ -28,7 +28,7 @@ const TAIL = 2 / 3;
 const RAGE = 0.73;
 
 const FLAME = 'Blessing of the Flame';
-const BURN: Buff = { name: 'Burn', about: `Fire eats at it every second: ${Math.round(BREATH.burn * 100)}% of the breath's blow.`, icon: '🔥', harmful: true };
+const BURN: Buff = { name: 'Burn', about: `Fire eats at it every second: ${Math.round(BREATH.burn * 100)}% of the breath's blow.`, icon: '🔥', art: stateArt('Burn'), harmful: true };
 
 export function temerairePart(fight: Fight): BossPart {
   const { foe } = fight;
@@ -46,7 +46,7 @@ export function temerairePart(fight: Fight): BossPart {
       if (at >= 0) foe.statuses.splice(at, 1);
       return;
     }
-    put(foe.statuses, { name: FLAME, left: Infinity, deals: BLESSING.deals, takes: { physical: BLESSING.physical }, count: flame, shown: 'burn' });
+    put(foe.statuses, { name: FLAME, art: stateArt('RedFire3'), left: Infinity, deals: BLESSING.deals, takes: { physical: BLESSING.physical }, count: flame, shown: 'burn' });
   }
 
   return withDragonGauge(fight, {

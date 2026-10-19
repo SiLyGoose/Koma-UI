@@ -1,5 +1,5 @@
 import type { DamageType } from '../../combat/damage';
-import type { Buff } from '../../shown';
+import { stateArt, type Buff } from '../../shown';
 
 /*
  * The minions of the Hard Dragon Raid's waves past its first (./waves.ts), as King's Raid's playtest has them (its
@@ -52,9 +52,9 @@ const hatchling = (name: string, leaves?: Leaves): MinionDef => ({
 });
 
 /** The ice hatchling's frost: its attacks 2% slower, for 15 seconds (the playtest's DragonSnow). */
-const SNOW = { slow: { name: 'Dragon Snow', about: 'Attack speed down.', icon: '❄️', harmful: true, pace: 0.98, lasts: 15 } } as const;
+const SNOW = { slow: { name: 'Dragon Snow', about: 'Attack speed down.', icon: '❄️', art: stateArt('1940'), harmful: true, pace: 0.98, lasts: 15 } } as const;
 /** The poison wyrm's venom: 1% less damage for every blow of it, up to 100, for the rest of the fight (the playtest's DragonAttackDown). */
-const VENOM = { weaken: { name: 'Wyrm Venom', about: 'Deals less damage for the rest of the fight.', icon: '🐍', harmful: true, each: 0.01, most: 100 } } as const;
+const VENOM = { weaken: { name: 'Wyrm Venom', about: 'Deals less damage for the rest of the fight.', icon: '🐍', art: stateArt('AttackDown'), harmful: true, each: 0.01, most: 100 } } as const;
 
 export const MINIONS: Readonly<Record<MinionKind, MinionDef>> = {
   'hatchling-fire': hatchling('Fire Hatchling'),

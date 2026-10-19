@@ -174,7 +174,7 @@ export const KLAUS: HeroDef = {
       blocked() {
         fight.cue(self, 'vow');
         fight.hit(self, VOW.blow);
-        put(fight.foe.statuses, { name: 'Weakened', left: VOW.lasts, deals: VOW.weak - (self.perks.has('s4-dark') ? PERKS.weaker : 0), shown: 'slow' });
+        put(fight.foe.statuses, { name: 'Weakened', art: art(3), left: VOW.lasts, deals: VOW.weak - (self.perks.has('s4-dark') ? PERKS.weaker : 0), shown: 'slow' });
         self.mana = Math.min(MAX_MANA, self.mana + VOW.mana);
         // (Mittens: healed, and his P.DEF higher a moment.)
         if (wearsTreasure(self, 3)) {

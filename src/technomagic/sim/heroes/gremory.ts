@@ -82,7 +82,7 @@ const LAZY: Passive = {
 /** Asleep: shown on her card, with how long it has left. */
 const SLEEPING: Buff = { name: 'Asleep', about: `Takes ${pct(1 - SLEEP.taken)} less from the boss, and can’t be knocked down.`, icon: '💤', art: art(3) };
 /** Her Mana Charge: shown on her card, with how many she has. */
-const CHARGED: Buff = { name: 'Mana Charge', about: `Each: +${pct(CHARGE.atk)} ATK and +${pct(CHARGE.dmg)} to all she deals; [Pochi, bite them!] hits harder for each.`, icon: '🔋' };
+const CHARGED: Buff = { name: 'Mana Charge', about: `Each: +${pct(CHARGE.atk)} ATK and +${pct(CHARGE.dmg)} to all she deals; [Pochi, bite them!] hits harder for each.`, icon: '🔋', art: art(3) };
 /** How many times each of her skills strikes (its move's blows). */
 const BITES = CODED.pochi.lands.length;
 const WRAPS = CODED.pippi.lands.length;

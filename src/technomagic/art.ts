@@ -58,6 +58,9 @@ const heroAssets = (id: string): HeroAssets | undefined => HERO_ASSETS.find((her
 /** The address of a picture the fight names (none: it names none, or there is none for it). */
 export function artPicture(art: Art | undefined): string | undefined {
   if (!art) return undefined;
+  // King's Raid's own icons (cut from its atlases by KR-extracted/scripts/tm-states.mjs) and its items' (public/kr/items/).
+  if ('state' in art) return `/kr/states/${art.state}.webp`;
+  if ('item' in art) return `/kr/items/${art.item}.webp`;
   const hero = 'uw' in art ? undefined : heroAssets(art.hero);
   const picture = 'uw' in art ? UNIQUE_PICTURES[art.uw] : hero && skillPicture(hero, art.skill);
   return picture && built(picture);

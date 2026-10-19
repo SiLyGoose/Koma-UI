@@ -69,7 +69,7 @@ const CHARGING: Passive = {
   words: `Gains 1 stack of Charge every ${CHARGE.every} sec, and gains ${CHARGE.perCrystal} stacks of Charge per every orb of mana used. Upon the ${CHARGE.full}th Charge stacked, enters Overcharge state. When in Overcharge, ATK is increased by ${pct(CHARGE.atk)} for ${CHARGE.lasts} sec, and each auto attack reduces skill cooldown by ${pct(CHARGE.cooldown)}. All effects cannot be dispelled, and Charge will not stack during Overcharge state. When Overcharged, ATK Spd is increased by ${BOOKS.speed}.`,
 };
 /** Her Charge: shown beside her passive, with how many she has. */
-const CHARGED: Buff = { name: 'Charge', about: `At ${CHARGE.full} she is [Overcharged].`, icon: '⚡' };
+const CHARGED: Buff = { name: 'Charge', about: `At ${CHARGE.full} she is [Overcharged].`, icon: '⚡', art: art(0) };
 /** Overcharged: shown on her card, with how long it has left. */
 const OVERCHARGED: Buff = { name: 'Overcharge', about: `${pct(CHARGE.atk)} higher ATK; each attack takes ${pct(CHARGE.cooldown)} off her skills’ cooldowns; her skills do more.`, icon: '🔋', art: art(3) };
 /** What Transcend 5's Dark gives every ally while she is Overcharged. */

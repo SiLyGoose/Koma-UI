@@ -1,6 +1,6 @@
 import { MAX_MANA } from '../../rules';
 import { put } from '../../combat/status';
-import type { Buff } from '../../shown';
+import { stateArt, type Buff } from '../../shown';
 import type { Fight, Fighter } from '../../types';
 import type { BossPart } from '../boss';
 import { addStacks, all, cooldowns, fraction, lift, opened, single, withDragonGauge } from '../dragon/common';
@@ -24,8 +24,8 @@ const SMASH = { frost: 2, health: 1 / 3 };
 const BREATH = { frost: 2 };
 export const STORM = { mana: 1500, health: 0.42 };
 
-const FROSTED: Buff = { name: 'Frost', about: `At ${FROST.freezeAt} of it, Frozen.`, icon: '❄️', harmful: true };
-const FROZEN: Buff = { name: 'Freeze', about: `Frozen: it can do nothing, and takes ${Math.round((FROST.takes - 1) * 100)}% more damage.`, icon: '🧊', harmful: true };
+const FROSTED: Buff = { name: 'Frost', about: `At ${FROST.freezeAt} of it, Frozen.`, icon: '❄️', art: stateArt('1940'), harmful: true };
+const FROZEN: Buff = { name: 'Freeze', about: `Frozen: it can do nothing, and takes ${Math.round((FROST.takes - 1) * 100)}% more damage.`, icon: '🧊', art: stateArt('Frozen'), harmful: true };
 
 export function scalaxiaPart(fight: Fight): BossPart {
   // (Each skill's cooldown, and first wait, the playtest's: its Frost Hell's for its tail sweep.)

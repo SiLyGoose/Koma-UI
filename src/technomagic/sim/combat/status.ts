@@ -1,3 +1,4 @@
+import type { Art } from '../shown';
 import type { DamageType } from './damage';
 
 /*
@@ -9,6 +10,8 @@ import type { DamageType } from './damage';
 /** `shown` is how the page shows it: a mark under the boss's health, a square on a hero's card. */
 export interface Status<Shown> {
   name: string;
+  /** Its picture, where the page can't tell it by its name or by whose skill put it there (a boss's own: ../shown.ts). */
+  art?: Art;
   /** Seconds it has left (Infinity: for the rest of the fight). */
   left: number;
   /** What its bearer takes is this many times as much: of every kind, or of each kind it names. */

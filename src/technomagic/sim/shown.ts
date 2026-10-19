@@ -5,9 +5,14 @@
 
 /**
  * A picture the page shows for something of the fight's: one of a hero's skills' (`skill` counts them from 0, its
- * passive last), or a hero's unique weapon's.
+ * passive last), a hero's unique weapon's, one of King's Raid's own icons for what is on someone (`state`: a status's,
+ * like Stun or AttackUp, or a boss skill's, by its id: as the game's StateTable gives each state its IconPath), or a
+ * King's Raid item's (`item`: its icon's code, like ARTIFACT_UNIQUE_24).
  */
-export type Art = { hero: string; skill: number } | { uw: string };
+export type Art = { hero: string; skill: number } | { uw: string } | { state: string } | { item: string };
+
+/** One of King's Raid's own icons for what is on someone. */
+export const stateArt = (state: string): Art => ({ state });
 
 /** The pictures of `hero`'s skills, by index (its passive last). */
 export const skillArt =
@@ -32,10 +37,15 @@ export interface Buff {
 /** A mark's colour, by what kind of thing it is. */
 export type Tone = 'stun' | 'down' | 'slow' | 'curse' | 'venom' | 'burn' | 'rage';
 
-/** What is the matter with the boss, said under its health, with how long it has left. */
+/**
+ * What is the matter with the boss, under its health: a square of its picture with `count` in its corner (how long it
+ * has left, or how many), `text` saying all of it when pointed at; said in words, if it has no picture.
+ */
 export interface Mark {
   text: string;
   tone: Tone;
+  art?: Art;
+  count?: string;
 }
 
 /** A share as a whole percentage (0.25: "25%"). */

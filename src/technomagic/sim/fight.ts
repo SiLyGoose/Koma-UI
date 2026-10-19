@@ -1,4 +1,4 @@
-import { alliesFrom, artifactHooks, artifactOf, artifactStats, at, type ArtifactHooks } from './artifacts';
+import { alliesFrom, artifactBuff, artifactHooks, artifactOf, artifactStats, at, type ArtifactHooks } from './artifacts';
 import { scaleAt, stagesOf, type BossDef, type BossPart } from './bosses/boss';
 import { ATK, CURVE, curved, HERO_LEVEL, NONE, POINTS, reachAt, share, SLOWEST, strike } from './combat/damage';
 import { accurate, adding, amplified, away, blocking, bolstering, bound, critDamaging, critResisting, critTaking, critting, dealing, deals, defending, defends, dodging, filling, healing, pacing, piercing, put, resisting, stacked, takes, wear, type Status } from './combat/status';
@@ -11,10 +11,10 @@ import { motionOf } from './motion';
 import { seeded } from './random';
 import { AUTO, AUTO_WAIT, BLOW, BOSS_X, CLASS_BUFF, CRIT, formation, HERO_WAIT, HERO_X, MANA_PER_ATTACK, MARCH, MARCH_ABREAST, MARCH_FROM, marchLeft, MARCH_ROW, MANA_PER_HP_LOST, MANA_RATE, MAX_MANA, MOST, rage, RAGE_WIPE, RAID_TIME, REFORM, SECTION, TICK } from './rules';
 import { grown, SET_UP, setOf, type SetEffect } from './sets';
-import type { Buff, Mark } from './shown';
+import { stateArt, type Art, type Buff, type Mark, type Tone } from './shown';
 import { CHAMPION_UP, DESPERATION_UP, MENDING_UP, SKILL, skilledCritDamage, skilledStats, skillsOf, SURGE_UP, type SkillId } from './skills';
 import type { Fight, Fighter, Foe, GearBonus, GearStat } from './types';
-import { atTier, ELICIPIRA, EXIAN, EXIAN_UP, ROSMERTA, ROSMERTA_UP, uniqueOf } from './unique';
+import { atTier, ELICIPIRA, EXIAN, EXIAN_UP, ROSMERTA, ROSMERTA_UP, uniqueName, uniqueOf } from './unique';
 import { auraTotal, moveDmg, moveHeals, moveMarks, moveWhole, perkedStats, perksOf, tweaked, withPerks, type PerkDef, type SkillMark, type SkillStatus } from './perks';
 import { treasureOf } from './treasures';
 import { minionOf } from './bosses/dragon/common';
@@ -130,7 +130,10 @@ export interface Sim extends Fight {
 }
 
 /** What knocks a hero down: shown on its card, with how long it has left. */
-const KNOCKED: Buff = { name: 'Knocked down', about: 'Can do nothing until it is up.', icon: '💫', harmful: true };
+const KNOCKED: Buff = { name: 'Knocked down', about: 'Can do nothing until it is up.', icon: '💫', art: stateArt('Down'), harmful: true };
+
+/** King's Raid's icon for what is on the boss, by its kind, for one whose hero's skill has no picture of the name. */
+const TONE_STATE: Readonly<Record<Tone, string>> = { stun: 'Stun', down: 'Down', slow: 'SpeedDown', curse: 'DefenseDown', venom: 'Poison', burn: 'Burn', rage: 'AttackUp' };
 
 /** Steps in a second (a checksum is kept at the end of each). */
 const SECOND = Math.round(1 / TICK);
@@ -535,7 +538,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     fighter.lastUsed[index] = elapsed;
     fighter.mana -= ability.cost * SECTION;
     spent.set(fighter, (spent.get(fighter) ?? 0) + ability.cost * SECTION);
-    asFighter(fighter, () => fighter.part.used?.(index, ability));
+    noting(ability.art ?? passiveArt(fighter), () => asFighter(fighter, () => fighter.part.used?.(index, ability)));
     uniqueCast(fighter);
     skillCast(fighter);
     setCast(fighter);
@@ -760,7 +763,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
           relics.get(fighter)?.basic();
         }
         // (The enemy in question as it lands: the one it is fighting.)
-        asFighter(fighter, () => {
+        noting(fighter.abilities.find((one) => one.move === move)?.art ?? passiveArt(fighter), () => asFighter(fighter, () => {
           const own = fighter.part.lands[move];
           if (own) own(index);
           else common[move]?.(fighter, index);
@@ -773,7 +776,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
             const slowing = doing.skill === undefined ? undefined : fighter.perkDefs.find((perk) => perk.skill?.index === doing.skill && perk.skill?.slow)?.skill?.slow;
             if (slowing) sim.slow(slowing.points, slowing.lasts);
           }
-        });
+        }));
       }
       // (What landed may have cut it short, or ended the raid.)
       if (fighter.doing !== doing || result) return;
@@ -1098,6 +1101,32 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     }
   }
 
+  /**
+   * What is on the boss, shown by a picture of what put it there: a skill's, passive's, unique weapon's or artifact's of a
+   * hero on the field by its name (`named`, its words in brackets after it aside); else (`whose`) the picture of what the
+   * hero was doing as it was put there first: the skill it used, or whose move was landing, or its passive (its attack's
+   * blows, and what goes on by itself). Only the page asks: nothing the fight does turns on these.
+   */
+  const named = new Map<string, Art>();
+  for (const { def, artifact } of fighters) {
+    for (const shown of [...def.abilities, ...(def.passive ? [def.passive.shown] : [])]) if (shown.art && !named.has(shown.name)) named.set(shown.name, shown.art);
+    const weapon = uniqueName(def.id);
+    if (weapon) named.set(weapon, { uw: def.id });
+    const relic = artifact && artifactBuff(artifact);
+    if (relic?.art) named.set(relic.name, relic.art);
+  }
+  const whose = new Map<string, Art>();
+  /** `run` (what `fighter` does), with what it puts on the boss first known by `art`. */
+  const noting = <T>(art: Art | undefined, run: () => T): T => {
+    if (!art) return run();
+    const before = boss.statuses.slice();
+    const done = run();
+    for (const status of boss.statuses) if (!before.includes(status) && !whose.has(status.name)) whose.set(status.name, art);
+    return done;
+  };
+  const passiveArt = (fighter: Fighter): Art | undefined => fighter.def.passive?.shown.art;
+  const statusArt = (status: Status<Tone>): Art => status.art ?? named.get(status.name) ?? named.get(status.name.replace(/ \(.*\)$/, '')) ?? whose.get(status.name) ?? stateArt(TONE_STATE[status.shown]);
+
   const sim: Sim = {
     raid,
     fighters,
@@ -1260,7 +1289,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       if (dealt > 0) relics.get(target)?.hurt();
       // Its perks that come of being hit: Vengeful Curse (on the boss), and Deception (once it has taken something).
       for (const perk of target.perkDefs) {
-        if (perk.curse && perkDue(target, perk.name ?? perk.words, perk.curse.every)) put(foe.statuses, { name: perk.name ?? 'Curse', left: perk.curse.lasts, deals: perk.curse.deals, shown: 'curse' });
+        if (perk.curse && perkDue(target, perk.name ?? perk.words, perk.curse.every)) put(foe.statuses, { name: perk.name ?? 'Curse', art: stateArt('AttackDown'), left: perk.curse.lasts, deals: perk.curse.deals, shown: 'curse' });
         if (perk.immunity && dealt > 0 && target.hp > 0 && perkDue(target, perk.name ?? perk.words, perk.immunity.every)) target.immune = perk.immunity.hits;
       }
       if (blocked) {
@@ -1356,16 +1385,19 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       const foe = boss;
       const marks: Mark[] = [];
       if (foe.hp <= 0) marks.push({ text: 'Beaten', tone: 'down' });
-      else if (foe.stunned > 0) marks.push({ text: `Stunned ${Math.ceil(foe.stunned)}`, tone: 'stun' });
-      if (foe.slowed > 0) marks.push({ text: `Slowed ${Math.ceil(foe.slowed)}`, tone: 'slow' });
+      else if (foe.stunned > 0) marks.push({ text: `Stunned ${Math.ceil(foe.stunned)}`, tone: 'stun', art: stateArt('Stun'), count: String(Math.ceil(foe.stunned)) });
+      if (foe.slowed > 0) marks.push({ text: `Slowed ${Math.ceil(foe.slowed)}`, tone: 'slow', art: stateArt('SpeedDown'), count: String(Math.ceil(foe.slowed)) });
       if (foe.hp > 0 && clock > raidTime) {
         const times = rage(clock - raidTime);
-        marks.push({ text: `Enraged ×${times < 10 ? times.toFixed(1) : Math.round(times).toLocaleString('en-US')}`, tone: 'rage' });
+        const shown = `×${times < 10 ? times.toFixed(1) : Math.round(times).toLocaleString('en-US')}`;
+        marks.push({ text: `Enraged ${shown}`, tone: 'rage', art: stateArt('AttackUp'), count: shown });
       }
       // (One for the rest of the fight says how many are stacked in it, in place of the seconds it has left; one that stacks for a while, both.)
+      // Its picture: the skill's (or passive's) of the hero whose it is, by its name; else King's Raid's icon for its kind.
       for (const status of foe.statuses) {
         const stacked = status.count !== undefined && Number.isFinite(status.left) ? ` ×${status.count}` : '';
-        marks.push({ text: `${status.name}${stacked} ${Number.isFinite(status.left) ? Math.ceil(status.left) : `×${status.count ?? 1}`}`, tone: status.shown });
+        const count = Number.isFinite(status.left) ? String(Math.ceil(status.left)) : `×${status.count ?? 1}`;
+        marks.push({ text: `${status.name}${stacked} ${count}`, tone: status.shown, art: statusArt(status), count });
       }
       marks.push(...(foe.part.marks?.() ?? []));
       for (const fighter of fighters) marks.push(...(fighter.part.marks?.() ?? []));
@@ -1450,7 +1482,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
         perkTick(fighter, dt);
         setTick(fighter);
         relics.get(fighter)?.tick(dt);
-        asFighter(fighter, () => fighter.part.tick?.(dt));
+        noting(passiveArt(fighter), () => asFighter(fighter, () => fighter.part.tick?.(dt)));
         // Hope's wizard's: the ally who has dealt the most, once its time has come, deals more for good.
         const top = setEffect(fighter).top;
         if (top && elapsed >= top.after && elapsed - dt < top.after && field.includes(fighter) && fighter.hp > 0) {

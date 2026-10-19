@@ -1,6 +1,6 @@
 import type { HeroClass } from './heroes/kit';
 import { KR_SETS } from './gear/kr-data';
-import type { Buff } from './shown';
+import { stateArt, type Buff } from './shown';
 import type { GearBonus } from './types';
 
 /*
@@ -121,8 +121,8 @@ export const SET_INFO: readonly { id: TmSet; name: string; icon: string; effects
 
 /** What a set's triggered effects put on their wearer: shown on its card. */
 export const SET_UP = {
-  onSkill: { name: 'Hope', about: 'More crit DMG.', icon: '🛡️' },
-  secondWind: { name: 'Authority', about: 'ATK Spd up for good.', icon: '⚡' },
-  fullMana: { name: 'Authority', about: 'Mana recovery and ATK up for good.', icon: '⚡' },
-  top: { name: 'Hope', about: 'Deals more DMG.', icon: '🛡️' },
+  onSkill: { name: 'Hope', about: 'More crit DMG.', icon: '🛡️', art: stateArt('AttackUp') },
+  secondWind: { name: 'Authority', about: 'ATK Spd up for good.', icon: '⚡', art: stateArt('SpeedUp') },
+  fullMana: { name: 'Authority', about: 'Mana recovery and ATK up for good.', icon: '⚡', art: stateArt('AttackUp') },
+  top: { name: 'Hope', about: 'Deals more DMG.', icon: '🛡️', art: stateArt('AttackUp') },
 } as const satisfies Record<string, Buff>;

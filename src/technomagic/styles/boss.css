@@ -64,8 +64,39 @@
 
 .tm-marks {
   display: flex;
+  align-items: center;
   gap: 6px;
   min-height: 22px;
+}
+
+/* A mark with a picture (King's Raid's icon for it): a square edged in its tone, its seconds or count in the corner. */
+.tm-mark-square {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  border: 1.5px solid currentColor;
+  border-radius: 4px;
+  background: #1d1626;
+  overflow: hidden;
+  pointer-events: auto;
+}
+
+.tm-mark-square img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tm-mark-square b {
+  position: absolute;
+  inset: auto 1px 0 auto;
+  color: #fff;
+  font-size: 11px;
+  line-height: 1;
+  text-shadow:
+    0 0 2px #000,
+    0 1px 2px #000;
 }
 
 .tm-mark {
@@ -78,26 +109,33 @@
 }
 
 .tm-mark.stun,
-.tm-mark.down {
+.tm-mark-square.stun,
+.tm-mark.down,
+.tm-mark-square.down {
   color: #ffe27a;
 }
 
-.tm-mark.slow {
+.tm-mark.slow,
+.tm-mark-square.slow {
   color: #8fdcff;
 }
 
-.tm-mark.curse {
+.tm-mark.curse,
+.tm-mark-square.curse {
   color: #ff7d9d;
 }
 
-.tm-mark.venom {
+.tm-mark.venom,
+.tm-mark-square.venom {
   color: #8fe87a;
 }
 
-.tm-mark.burn {
+.tm-mark.burn,
+.tm-mark-square.burn {
   color: #ffa14a;
 }
 
-.tm-mark.rage {
+.tm-mark.rage,
+.tm-mark-square.rage {
   color: #ff5a3c;
 }

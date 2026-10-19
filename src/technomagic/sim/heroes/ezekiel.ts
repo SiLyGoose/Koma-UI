@@ -64,7 +64,7 @@ const CURSED_BLOOD: Passive = {
   words: `Ezekiel gains 1 stack of 'Cursed Blood' at the end of skill. Upon the ${nth(CURSED.most)} stack, consumes Cursed Blood to reset all skill cooldown, dealing ${dmg('assassin', CURSED.blow, bookDmg('ezekiel', 3))} M.DMG to nearby enemies and knocking them down for ${CURSED.down} sec, while activating Fury for ${CURSED.lasts} sec, that cannot be dispelled. While in Fury state, goes into an auto-battle mode that cannot be controlled, and ATK is increased by ${pct(CURSED.atk)}, auto attack DMG is ${fold(CLAW.fury)}, and all Skill effect are reinforced. Cannot gain Cursed Blood during Fury state, except for when killing an enemy.`,
 };
 /** His stacks of Cursed Blood: shown beside his passive, with how many he has. */
-const STACKED: Buff = { name: 'Cursed Blood', about: `At ${CURSED.most}, he is in [Fury].`, icon: '🩸' };
+const STACKED: Buff = { name: 'Cursed Blood', about: `At ${CURSED.most}, he is in [Fury].`, icon: '🩸', art: art(0) };
 /** Fury: shown on his card, with how long it has left. */
 const FURY: Buff = { name: 'Fury', about: `ATK ${pct(CURSED.atk)} higher, his attack ${times(CLAW.fury)} as hard, every skill reinforced (each costs a share of his health); he fights by himself.`, icon: '😈', art: art(3) };
 /** What Dawning Despair in Fury gives him for a while. */
