@@ -157,13 +157,14 @@ export function soundButton(key: string, onChange: (muted: boolean) => void): vo
   onChange(muted);
 }
 
+/** The sound button's place in the title bar (it and its panel), for what goes before it. */
+const sound = bar.querySelector('.frame-sound') as HTMLElement;
+
 /** A place in the title bar, before the sound button, for something more (the online button, ../live/live.ts). */
 export function barSlot(): HTMLElement {
   const slot = document.createElement('span');
   slot.className = 'frame-slot';
-  const mute = document.getElementById('mute');
-  if (mute) mute.before(slot);
-  else bar.append(slot);
+  sound.before(slot);
   return slot;
 }
 
@@ -213,7 +214,7 @@ function onPhonesInProfile(profile: HTMLElement): void {
       if (live) extra.append(live);
     } else {
       profile.before(conn);
-      if (live) document.getElementById('mute')?.before(live);
+      if (live) sound.before(live);
     }
   };
   place();
