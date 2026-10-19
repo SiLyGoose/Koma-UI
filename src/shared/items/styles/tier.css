@@ -58,13 +58,15 @@
 /*
  * Its card's frame: King's Raid's grade frame in its tier's colour (its Equip_Grade 2, 3, 4 and 7: green, cyan, magenta,
  * red, as the tiers' colours), laid over the card's edge (its inside is clear), the card's own coloured edge giving way.
+ * The frame's pictures are 64px with 3px clear round it: drawn 64/58 as big, so the frame itself meets the card's edge
+ * (else the card's picture shows outside it).
  */
 .tier-frame {
   position: absolute;
   z-index: 1;
-  inset: -2px;
+  inset: 0;
   border-radius: inherit;
-  background: url('/kr/ui/tier-frame-1.webp') center / 100% 100% no-repeat;
+  background: url('/kr/ui/tier-frame-1.webp') center / calc(100% * 64 / 58) calc(100% * 64 / 58) no-repeat;
   pointer-events: none;
 }
 
