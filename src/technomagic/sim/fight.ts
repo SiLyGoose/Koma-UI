@@ -144,6 +144,8 @@ const FAN = 0.6;
 const NEAR = 6;
 /** A raid of more than one wave: how long the heroes run on to the next (seconds; ../fight/view.ts runs them as long). */
 export const RUN_ON = 3;
+/** A raid of more than one wave: how long the boss takes flying off the field (the dragons' Phase clip) before the heroes run on. */
+export const FLY_OFF = 4;
 /** Where a wave's minions stand: about this far along the field (before the boss), as its wave has them, closer together (the field is narrower here). */
 const MINION_X = BOSS_X - 2.5;
 
@@ -197,6 +199,8 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
   const waves = 1 + later.length;
   let wave = 1;
   let moving = 0;
+  /** The boss flying off (the first wave over): seconds left until the heroes run on. */
+  let lifting = 0;
   /** Each minion on the field: what it is, its ATK, what it is doing (a move, and whom at), how long it rests yet, how long before its skill is ready, and how long it has stood. */
   interface Minion {
     def: MinionDef;
@@ -953,13 +957,15 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     if (boss.away && wave < waves && standing().length === 0) nextWave();
   }
 
-  /** The boss flies off the field (the first wave over): the heroes move on. */
+  /** The boss flies off the field (the first wave over): the heroes stand while it does (nothing else happens meanwhile), then move on. */
   function bossLeave(): void {
     boss.away = true;
     boss.stunned = 0;
     going.clear();
+    aims.clear();
+    for (const on of field) on.doing = null;
+    lifting = FLY_OFF;
     events.push({ kind: 'boss-leave' });
-    nextWave();
   }
 
   /** On to the next wave: the heroes run on (nothing else happens meanwhile), and what is there comes onto the field as they arrive (arrive()). */
@@ -1415,6 +1421,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       mix(clock);
       mix(wave);
       mix(moving);
+      mix(lifting);
       for (const foe of foes) {
         mix(foe.hp);
         mix(foe.stunned);
@@ -1509,10 +1516,16 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
         mendShown = 0;
       }
 
-      // Running on to the next wave: nothing else happens meanwhile; arrived, what is there comes onto the field.
-      if (moving > 0) {
-        moving = Math.max(0, moving - dt);
-        if (moving <= 0) arrive();
+      // The boss flying off, then the heroes running on to the next wave: nothing else happens meanwhile; it gone, they
+      // set off; arrived, what is there comes onto the field.
+      if (lifting > 0 || moving > 0) {
+        if (lifting > 0) {
+          lifting = Math.max(0, lifting - dt);
+          if (lifting <= 0) nextWave();
+        } else {
+          moving = Math.max(0, moving - dt);
+          if (moving <= 0) arrive();
+        }
         tick++;
         if (tick % SECOND === 0) sums.push(sim.checksum());
         return;
