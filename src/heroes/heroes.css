@@ -868,14 +868,11 @@
 }
 
 .kr-bonus.on {
+  color: var(--effect-on);
   opacity: 1;
 }
 
-/* A bonus equipping the picked piece would turn on: lit green, with a tag saying so. */
-.kr-bonus.gain {
-  color: var(--green);
-}
-
+/* On a bonus equipping the picked piece would turn on (lit, as one on): On equip. */
 .kr-bonus-tag {
   display: inline-block;
   margin-left: 6px;
