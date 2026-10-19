@@ -1,11 +1,12 @@
-import { art, drawSell, el, forgeLink, hasLevels, heroMarks, isTmPiece, itemDetailsClosed, krStars, levelLabel, itemPicked, lockToggle, pruneSale, replacesNote, rich, runeMarks, sellsFor, showDetail, statBlocks, tmMarks, tmSections, treasureParts, treasureSection, upgradeButton, utMarks, uwMarks } from '../shared/items';
-import { classBadge, className, FACE, HERO_PART_NAME, HERO_SLOT_KIND, HERO_SLOT_PART, HERO_SLOT_TYPE, HERO_SLOTS, heroCut, heroPicture, skillText, STAGE_ZOOM, type HeroView, type HeroCopy, type HeroSlot } from '../shared/heroes';
+import { art, drawSell, el, forgeLink, hasLevels, heroMarks, isTmPiece, itemDetailsClosed, krStars, levelLabel, itemPicked, lockToggle, pruneSale, replacesNote, rich, runeMarks, sellsFor, showDetail, statBlocks, tmMarks, tmSections, treasureParts, treasureSection, utMarks, uwMarks } from '../shared/items';
+import { classBadge, className, FACE, HERO_PART_NAME, HERO_SLOT_KIND, HERO_SLOT_PART, HERO_SLOT_TYPE, HERO_SLOTS, heroCut, heroPicture, optionPips, skillText, STAGE_ZOOM, type HeroView, type HeroCopy, type HeroSlot } from '../shared/heroes';
 import { built } from '../shared/built';
 import { working } from '../shared/ui';
 import { canTrade, copyById, heroShown, mine, slotFor, slotOf, type HeroesContext } from './context';
 import { SIDE_SLOTS } from '../protocol/heroes';
 import { heroSkills } from './skills';
-import type { HeroRuneStack, HeroSkillView } from '../protocol/heroes';
+import type { HeroOption, HeroRuneStack, HeroSkillView } from '../protocol/heroes';
+import { FORGE_MODES, heroCan } from '../forge/modes';
 import { heroStats } from './stats';
 import { ESSENCE_NAME, essencePicture, heroPerks, spent, TRANSCEND_MAX, TRANSCEND_POINTS, type EssenceId, type Perk, type TranscendTier } from './transcend';
 import { GEM_EMOJI } from '../forge/anvil/gem';
@@ -28,11 +29,10 @@ export interface HeroActions {
   lock(copy: HeroCopy, locked: boolean): void;
   /** Puts one of their runes in a copy's socket (null: takes the one in it out). */
   rune(copy: HeroCopy, socket: number, rune: string | null): void;
-  /** Rerolls one of a copy's options (by its place), or its unique option. */
-  reroll(copy: HeroCopy, option: number | 'unique'): void;
-  /** Upgrades one of a copy's options a step. */
-  upgrade(copy: HeroCopy): void;
 }
+
+/** Narrow screens, where the details are a sheet over the bottom of the page (../shared/items/styles/detail.css). */
+const NARROW = '(max-width: 899px)';
 
 /** A slot's name under it (a sub treasure slot's: Sub). */
 const slotName = (slot: HeroSlot): string => (SIDE_SLOTS.includes(slot) ? 'Sub' : HERO_PART_NAME[HERO_SLOT_PART[slot]]);
@@ -251,6 +251,7 @@ function renderGrid(ctx: HeroesContext, act: HeroActions): void {
   // A piece's Runes: their runes in the cards' place, its search, Filter, Sell and Unequip all hidden (heroes.css).
   const piece = runesFor(ctx);
   ui.armory.classList.toggle('runes', !!piece);
+  ui.page.classList.toggle('runes-open', !!piece);
   ui.runeList.hidden = !piece;
   ui.armoryTitle.textContent = piece ? 'Runes' : mine(ctx) ? `${hero?.name ?? 'Hero'}'s Gear` : `${ctx.viewing?.name}'s Hero Gear`;
   if (piece) return renderRunes(ctx, act, piece);
@@ -307,7 +308,16 @@ function renderRunes(ctx: HeroesContext, act: HeroActions, copy: HeroCopy): void
   const empty = copy.runes.indexOf(null);
   const socket = empty >= 0 ? empty : copy.runes.length === 1 ? 0 : -1;
   const filled = copy.runes.filter((rune) => rune !== null).length;
-  const rows: HTMLElement[] = [el('p', 'rune-list-note', `${copy.name}: ${filled} of ${copy.runes.length} socket${copy.runes.length === 1 ? '' : 's'} filled.${socket < 0 ? ' Take a rune out (in its details) to put another in.' : ''}`)];
+  // Back: its details again (on narrow screens, the sheet the list took the place of), the cards in the list's place.
+  const back = el('button', 'kr-action action secondary', 'Back');
+  back.type = 'button';
+  back.addEventListener('click', () => {
+    ctx.runes = false;
+    renderPick(ctx, act);
+  });
+  const head = el('div', 'rune-list-head');
+  head.append(el('p', 'rune-list-note', `${copy.name}: ${filled} of ${copy.runes.length} socket${copy.runes.length === 1 ? '' : 's'} filled.${socket < 0 ? ' Take a rune out (in its details) to put another in.' : ''}`), back);
+  const rows: HTMLElement[] = [head];
   if (runes.length === 0) rows.push(el('p', 'rune-list-note muted', 'No runes yet.'));
   const fits = (rune: HeroRuneStack): boolean => rune.parts.includes(copy.part);
   for (const rune of [...runes.filter(fits), ...runes.filter((one) => !fits(one))]) {
@@ -369,12 +379,16 @@ function renderDetail(ctx: HeroesContext, act: HeroActions): void {
     const into = worn ?? slotFor(ctx, copy);
     const replaced = worn ? undefined : copyById(ctx, hero.equipped[into]);
     if (replaced) notes.push(...replacesNote(replaced, NONE));
-    // Upgrade: to the forge, with this copy on the anvil (not while a change is on its way), whoever's page it's on. (None for TechnoMagic gear,
-    // nor at its top: its MAX is by its kind.)
-    const upgrade = copy.level < copy.maxLevel ? upgradeButton(copy, () => {
-      if (!ctx.busy) ctx.host.go(forgeLink(copy));
-    }) : null;
-    if (upgrade) actions.push(upgrade);
+    // Upgrade: to the forge's menu with this copy (not while a change is on its way), where it's refined, its substats rerolled or
+    // enhanced and its effect rerolled; none when the forge can do none of those to it.
+    if (FORGE_MODES.some((mode) => heroCan(copy, mode.id))) {
+      const upgrade = el('button', 'detail-action action secondary', 'Upgrade');
+      upgrade.type = 'button';
+      upgrade.addEventListener('click', () => {
+        if (!ctx.busy) ctx.host.go(forgeLink(copy));
+      });
+      actions.push(upgrade);
+    }
     // Runes: the Gear tab shows their runes in the cards' place, to put in it (again: the cards back). Only a piece with sockets.
     if (copy.runes.length > 0) {
       // (Tinted while the list shows, as a secondary button whose panel is open: ../shared/ui/button/button.css.)
@@ -385,6 +399,8 @@ function renderDetail(ctx: HeroesContext, act: HeroActions): void {
       runes.addEventListener('click', () => {
         ctx.runes = !ctx.runes;
         renderPick(ctx, act);
+        // (Narrow screens: the details' sheet steps aside for the list, which is further down the page: to it.)
+        if (ctx.runes && matchMedia(NARROW).matches) ui.armory.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
       actions.push(runes);
     }
@@ -424,7 +440,7 @@ function renderDetail(ctx: HeroesContext, act: HeroActions): void {
     label: ut ? 'Options' : 'On a hero',
     none: NONE,
     effectsOff: !fits,
-    sections: ut ? [...utEnhance(ctx, act, copy), ...treasureSection(ut.main, worn === 'treasure')] : copy.krSet || copy.part === 'artifact' ? krSections(ctx, act, copy, fits, fits && equipInto ? setPieces(ctx, hero, copy, equipInto) : null) : tmSections(shown),
+    sections: ut ? treasureSection(ut.main, worn === 'treasure') : copy.krSet || copy.part === 'artifact' ? krSections(ctx, act, copy, fits, fits && equipInto ? setPieces(ctx, hero, copy, equipInto) : null) : tmSections(shown),
     notes,
     // Lock: theirs to toggle on the site (not while picking what to sell); else just shown when shut.
     corner: lockToggle(copy, ctx.busy, canTrade(ctx) && !ctx.selling ? (locked) => act.lock(copy, locked) : null),
@@ -451,7 +467,7 @@ const notRecruited = (ctx: HeroesContext, name: string, then: string): string =>
 /** A slot's name in a sentence. */
 const slotLabel = (slot: HeroSlot): string => (slot === 'treasure' ? 'Main Treasure' : SIDE_SLOTS.includes(slot) ? `Sub Treasure ${['I', 'II', 'III'][SIDE_SLOTS.indexOf(slot)]}` : slotName(slot));
 
-/** A small button of a section's (a reroll, an upgrade, a rune in or out), waiting on `key` while it goes. */
+/** A small button of a section's (a rune in or out), waiting on `key` while it goes. */
 function sectionButton(ctx: HeroesContext, text: string, key: string, onClick: () => void): HTMLButtonElement {
   const button = el('button', 'kr-action action secondary', text);
   button.type = 'button';
@@ -460,10 +476,11 @@ function sectionButton(ctx: HeroesContext, text: string, key: string, onClick: (
   return button;
 }
 
-/** A unique treasure's enhance (one of its options a step higher, for its price): only on their own copy, while one can go higher. Awakening doesn't raise them. */
-function utEnhance(ctx: HeroesContext, act: HeroActions, copy: HeroCopy): HTMLElement[] {
-  if (!mine(ctx) || ctx.selling || copy.upgrade === null) return [];
-  return [krSection('Enhance', [el('p', 'detail-note', 'Raises one of its options, at random, a step (up to its top).'), sectionButton(ctx, `Enhance an option · ${copy.upgrade.toLocaleString()}`, `upgrade:${copy.id}`, () => act.upgrade(copy))])];
+/** One of a King's Raid piece's options in its details: its line and its steps (greyed where the piece does nothing). */
+function optionRow(option: HeroOption, on: boolean): HTMLElement {
+  const row = el('div', `kr-option${on ? '' : ' off'}`);
+  row.append(el('span', 'kr-option-line', option.line), optionPips(option));
+  return row;
 }
 
 /** A section of a King's Raid piece's: its title, then its rows. */
@@ -474,36 +491,18 @@ function krSection(title: string, rows: HTMLElement[], className = ''): HTMLElem
 }
 
 /**
- * King's Raid's gear's parts in the detail, under its effects: its options (each its step, and a reroll for its price), its
- * unique option (its additional skill, with its reroll), an upgrade, its set's bonuses (lit while on; picked to equip, `pieces`:
- * lit too where equipping it would turn them on, with a tag saying so), and its rune sockets
- * (a rune in each, to take out; their runes to put in are its Runes, in the cards' place). Buttons only on their own copy.
+ * King's Raid's gear's parts in the detail, under its effects: its options (each its step), its unique option (its
+ * additional skill), its set's bonuses (lit while on; picked to equip, `pieces`: lit too where equipping it would turn
+ * them on, with a tag saying so), and its rune sockets (a rune in each, to take out; their runes to put
+ * in are its Runes, in the cards' place). Rerolling and enhancing them is the forge's (its Upgrade). Buttons only on their own copy.
  */
 function krSections(ctx: HeroesContext, act: HeroActions, copy: HeroCopy, fits: boolean, pieces: { now: number; equipped: number } | null = null): HTMLElement[] {
   const own = mine(ctx) && !ctx.selling;
   const out: HTMLElement[] = [];
-  if (copy.options.length > 0) {
-    const rows: HTMLElement[] = copy.options.map((option, i) => {
-      const row = el('div', `kr-option${fits ? '' : ' off'}`);
-      const pips = el('span', 'kr-pips');
-      pips.title = `Step ${option.step} of ${option.steps}`;
-      for (let k = 0; k < option.steps; k++) pips.append(el('span', `kr-pip${k < option.step ? ' on' : ''}`));
-      row.append(el('span', 'kr-option-line', option.line), pips);
-      if (own) row.append(sectionButton(ctx, `Reroll · ${option.price.toLocaleString()}`, `reroll:${copy.id}:${i}`, () => act.reroll(copy, i)));
-      return row;
-    });
-    if (own && copy.upgrade !== null) rows.push(sectionButton(ctx, `Upgrade an option · ${copy.upgrade.toLocaleString()}`, `upgrade:${copy.id}`, () => act.upgrade(copy)));
-    out.push(krSection('Options', rows));
-  }
+  if (copy.options.length > 0) out.push(krSection('Options', copy.options.map((option) => optionRow(option, fits))));
   if (copy.additional) {
     const row = el('div', `kr-option${copy.additionalActive ? '' : ' off'}`);
     row.append(rich(copy.additional));
-    // (Its reroll: in komaGems.)
-    if (own && copy.rerollUnique !== null) {
-      const button = sectionButton(ctx, `Reroll · ${copy.rerollUnique.toLocaleString()} `, `reroll:${copy.id}:unique`, () => act.reroll(copy, 'unique'));
-      button.append(rich(GEM_EMOJI));
-      row.append(button);
-    }
     out.push(krSection('Unique Option', [row]));
   }
   if (copy.setBonuses.length > 0 && copy.krSet) {

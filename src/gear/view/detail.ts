@@ -22,7 +22,7 @@ export function renderDetail(ctx: GearContext): void {
   working(action, ctx.busy, worn ? `unequip:${copy.slot}` : `equip:${copy.id}`);
   action.addEventListener('click', () => void (worn ? unequip(ctx, copy.slot) : equip(ctx, copy.id)));
 
-  // Upgrade: to the forge, with this copy on the anvil (not while a change is on its way).
+  // Upgrade: to the forge's menu, with this copy (not while a change is on its way).
   const upgrade = upgradeButton(copy, () => {
     if (!ctx.busy) ctx.host.go(forgeLink(copy));
   });

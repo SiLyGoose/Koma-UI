@@ -280,3 +280,14 @@ export function skillText(text: string): (string | HTMLElement)[] {
     .filter(Boolean)
     .map((part) => (part.startsWith('[') ? el('b', 'skill-effect', part) : /^\d/.test(part) ? el('b', 'skill-number', part) : part));
 }
+
+/**
+ * A King's Raid option's steps (its pips, the heroes page's heroes.css), one lit for each it has gone up of `steps`: the heroes
+ * page's details and the forge's substats.
+ */
+export function optionPips(option: { step: number; steps: number }): HTMLElement {
+  const pips = el('span', 'kr-pips');
+  pips.title = `Step ${option.step} of ${option.steps}`;
+  for (let k = 0; k < option.steps; k++) pips.append(el('span', `kr-pip${k < option.step ? ' on' : ''}`));
+  return pips;
+}

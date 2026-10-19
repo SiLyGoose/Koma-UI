@@ -1,11 +1,20 @@
 import { armoryFilter, armoryGrid, type ArmoryFilter, type ArmoryGrid, equippedIds, forgePlan, type GearCopy, type GearView, type ItemType, type StarChoice } from '../shared/items';
+import type { HeroCopy, HeroesView } from '../shared/heroes';
+import type { ForgeMode } from './modes';
 import type { Busy } from '../shared/ui';
 import { currentMe, currentServer } from '../site/session';
 
 /** The forge's elements, found once in its root. */
 export interface ForgeUi {
   status: HTMLElement;
+  /** The menu (what the forge is to do), its line naming the piece it's for, and its buttons. */
+  menu: HTMLElement;
+  menuFor: HTMLElement;
+  modes: HTMLElement;
   forge: HTMLElement;
+  /** Back to the menu, and the mode's name in it. */
+  back: HTMLButtonElement;
+  modeName: HTMLElement;
   anvil: HTMLElement;
   server: HTMLSelectElement;
   hint: HTMLElement;
@@ -17,8 +26,8 @@ export interface ForgeUi {
   cost: HTMLElement;
   go: HTMLButtonElement;
   armoryTitle: HTMLElement;
-  /** The armory's cards (../shared/items/armory.ts). */
-  grid: ArmoryGrid<GearCopy>;
+  /** The armory's cards (../shared/items/armory.ts): their gear to refine, or their hero gear for the rest. */
+  grid: ArmoryGrid<GearCopy | HeroCopy>;
   search: HTMLInputElement;
   /** The armory's Filter: its type, its stars, and Refineable. */
   filter: ArmoryFilter;
@@ -28,7 +37,15 @@ export interface ForgeUi {
 /** Everything the mounted forge knows: its elements, and what's on the anvil. */
 export interface ForgeContext {
   ui: ForgeUi;
+  /** What the forge is doing (null: its menu, to pick). */
+  mode: ForgeMode | null;
+  /** A piece brought from its Upgrade (?copy=<id>): named over the menu, and on the anvil in the mode picked (if it can be). */
+  wanted: string | null;
   gear: GearView | null;
+  /** Their hero gear (GET /api/heroes), with its substats, effects and what changing them costs: the menu's other modes'. */
+  heroes: HeroesView | null;
+  /** Rerolling substats: which of the piece on the anvil's (its place), if one's picked. */
+  option: number | null;
   filter: ItemType | 'all';
   /** The star tier the armory shows (its Filter: ../shared/items/armory-filter/). */
   stars: StarChoice;
@@ -53,7 +70,12 @@ export function createContext(root: HTMLElement): ForgeContext {
   return {
     ui: {
       status: $('status'),
+      menu: $('forge-menu'),
+      menuFor: $('forge-menu-for'),
+      modes: $('forge-modes'),
       forge: $('forge'),
+      back: $<HTMLButtonElement>('back'),
+      modeName: $('mode-name'),
       anvil: root.querySelector('.anvil') as HTMLElement,
       server: $<HTMLSelectElement>('server'),
       hint: $('hint'),
@@ -65,12 +87,16 @@ export function createContext(root: HTMLElement): ForgeContext {
       cost: $('cost'),
       go: $<HTMLButtonElement>('go'),
       armoryTitle: $('armory-title'),
-      grid: armoryGrid<GearCopy>($('armory-grid')),
+      grid: armoryGrid<GearCopy | HeroCopy>($('armory-grid')),
       search: $<HTMLInputElement>('armory-search'),
       filter: armoryFilter($('armory-filter')),
       result: $('result'),
     },
+    mode: null,
+    wanted: null,
     gear: null,
+    heroes: null,
+    option: null,
     filter: 'all',
     stars: 'all',
     refineable: false,
@@ -91,8 +117,14 @@ export function status(ctx: ForgeContext, text: string | null, bad = false): voi
 
 export const copyById = (ctx: ForgeContext, id: string | null): GearCopy | undefined => (id ? ctx.gear?.copies.find((c) => c.id === id) : undefined);
 
+/** One of their hero gear copies (as the heroes page has it: its substats, its effect and their prices). */
+export const heroCopyById = (ctx: ForgeContext, id: string | null): HeroCopy | undefined => (id ? ctx.heroes?.copies.find((c) => c.id === id) : undefined);
+
 /** Their zeiucoins in the server picked. */
-export const balance = (ctx: ForgeContext): number | null => ctx.gear?.balance ?? currentMe()?.servers.find((s) => s.id === currentServer())?.balance ?? null;
+export const balance = (ctx: ForgeContext): number | null => ctx.gear?.balance ?? ctx.heroes?.balance ?? currentMe()?.servers.find((s) => s.id === currentServer())?.balance ?? null;
+
+/** Their komaGems (what rerolling an effect costs), once their hero gear is loaded. */
+export const gems = (ctx: ForgeContext): number | null => ctx.heroes?.gems ?? null;
 
 /**
  * The spares a refine of `copy` can use up: their other copies of the item that aren't worn, saved in

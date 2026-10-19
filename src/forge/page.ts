@@ -2,21 +2,23 @@ import markup from './forge.html?raw';
 import { API, fillServers } from '../shared/ui';
 import type { Page } from '../site/page';
 import { currentMe, currentServer, loadMe, prefetchFor } from '../site/session';
-import { failed, loadGear } from './api';
-import { copyById, createContext, status, type ForgeContext } from './context';
+import { failed, loadGear, loadHeroes } from './api';
+import { createContext, status, type ForgeContext } from './context';
 import { wireControls } from './controls';
-import { pick } from './picking';
 
 /*
- * The forge: the member's armory on the right, the anvil on the left. Picking a copy puts it on the
+ * The forge: first its menu (menu.ts), a column of what it does (modes.ts): Refine Gear, and for a hero's gear Reroll
+ * Substats, Enhance Substats and Reroll Effects (TechnoMagic gear's additional effect: anvil/hero.ts, on GET /api/heroes).
+ * Picked, the member's armory on the right, the anvil on the left, Back to the menu over it. Picking a copy puts it on the
  * anvil as the target, and the armory greys out everything that can't be its material; for a refine,
  * the member picks the spare copy to use up from what's left. Under them: the odds, what it does now
  * against what it will do (each number that changes as old » new), and the price in the corner beside
  * the button. Every copy is its own: the one on the anvil is the one refined, whatever level
  * its item's other copies are at. Clicking a slot on the anvil empties it. Refining wipes a
  * quick cover over the page while the bot does it, which comes off on the result: what it's become and
- * each number that went up, over the page blurred, until a click. The gear page's Upgrade comes here with ?copy=<id>, which
- * starts with that copy on the anvil. Logged-in members only, in the server picked.
+ * each number that went up, over the page blurred, until a click. The gear and heroes pages' Upgrade comes here with ?copy=<id>,
+ * which names that copy over the menu (what can't be done to it greyed out) and puts it on the anvil in the mode picked.
+ * Logged-in members only, in the server picked.
  *
  * Its parts share one ForgeContext (./context.ts): render.ts draws grid.ts (the armory) and anvil/anvil.ts
  * (with anvil/hint.ts, anvil/cost.ts and anvil/effects.ts, the numbers paired up by anvil/compare.ts); picking.ts puts copies on
@@ -24,7 +26,7 @@ import { pick } from './picking';
  * everything that can be pressed.
  */
 
-export const forgePage: Page = { title: 'Forge · Komaverse', icon: '🔨', markup, mount, prefetch: () => prefetchFor((guild) => `/api/gear?guild=${guild}`) };
+export const forgePage: Page = { title: 'Forge · Komaverse', icon: '🔨', markup, mount, prefetch: () => prefetchFor((guild) => `/api/gear?guild=${guild}`, (guild) => `/api/heroes?guild=${guild}`) };
 
 function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void } {
   const ctx = createContext(root);
@@ -40,11 +42,10 @@ async function start(ctx: ForgeContext): Promise<void> {
   if (!currentServer()) return status(ctx, 'None of your servers have Koma in them yet.');
   const me = currentMe();
   if (me) fillServers(ctx.ui.server, me.servers, currentServer());
-  await loadGear(ctx);
-  // From the gear page's Upgrade: that copy on the anvil, and the link back to plain /forge/.
+  // From an Upgrade: that copy named over the menu, and the link back to plain /forge/.
   const url = new URL(location.href);
-  const wanted = copyById(ctx, url.searchParams.get('copy'));
-  if (wanted) pick(ctx, wanted);
+  ctx.wanted = url.searchParams.get('copy');
+  await Promise.all([loadGear(ctx), loadHeroes(ctx)]);
   if (url.searchParams.has('copy')) {
     url.searchParams.delete('copy');
     history.replaceState(history.state, '', url);

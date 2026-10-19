@@ -1,0 +1,135 @@
+/*
+ * The forge's menu (../menu.ts), before anything else: a box over the forge's glow, its title, the piece it's for (from an
+ * Upgrade), and a column of the site's dark buttons, each its name over what it does (greyed out where it can't be done).
+ * Then, a mode picked: Back to it over the anvil, and the mode's own parts.
+ */
+.forge-menu {
+  display: flex;
+  justify-content: center;
+  padding: 8px 0 24px;
+}
+
+.forge-menu-box {
+  width: min(100%, 440px);
+  padding: 22px 20px 24px;
+  border: 1px solid var(--line);
+  border-top: 3px solid #f0a13a;
+  border-radius: var(--radius);
+  background:
+    radial-gradient(ellipse 70% 40% at 50% 0%, rgb(255 170 70 / 22%), transparent 70%),
+    linear-gradient(180deg, #241b18, var(--panel) 45%);
+  box-shadow: inset 0 30px 40px -20px rgb(0 0 0 / 55%);
+}
+
+.forge-menu-title {
+  margin: 0 0 4px;
+  color: #efd48a;
+  font-size: 24px;
+  text-align: center;
+  text-shadow: 0 2px 0 #3a2410, 0 0 10px rgb(0 0 0 / 70%);
+}
+
+.forge-menu-for {
+  margin: 0 0 4px;
+  color: #f3e6c4;
+  font-size: 14px;
+  text-align: center;
+}
+
+.forge-modes {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+/* A mode: its name, and under it what it does. */
+.forge-mode.action {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-height: 62px;
+  padding: 10px 18px;
+  text-align: left;
+}
+
+.forge-mode-name {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.forge-mode-about {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* Over the anvil: Back to the menu (with the mode's name), and the server picker. */
+.anvil-top {
+  justify-content: space-between;
+}
+
+.anvil-back.action {
+  min-height: 34px;
+  padding: 0 14px;
+  font-size: 14px;
+}
+
+.anvil-stage > .anvil-hint {
+  margin-top: 10px;
+}
+
+/* A refine's own parts (the Materials slot, the odds): not in the other modes, which use nothing up. */
+.forge:not([data-mode='refine']) .refine-only {
+  display: none;
+}
+
+/* The other modes' slots: just the Target, its label over it. */
+.forge:not([data-mode='refine']) .anvil-slots {
+  margin-bottom: 20px;
+}
+
+/* A substat under the anvil: its line and its steps (the heroes page's pips). */
+.forge-option {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+/* Rerolling: each substat a button, the one picked framed in gold. */
+.forge-option:has(> .forge-option-pick) {
+  display: block;
+  padding-left: 0;
+}
+
+.forge-option:has(> .forge-option-pick)::before {
+  display: none;
+}
+
+.forge-option-pick {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-2);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.forge-option-pick:hover:not(:disabled) {
+  border-color: var(--plaque-edge);
+}
+
+.forge-option-pick[aria-pressed='true'] {
+  border-color: var(--picked);
+  box-shadow: inset 0 0 12px rgb(255 222 140 / 20%);
+}
+
+.forge-option-pick:disabled {
+  cursor: default;
+}

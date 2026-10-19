@@ -1,0 +1,101 @@
+import { el, rich } from '../../shared/items';
+import { type HeroCopy, optionPips } from '../../shared/heroes';
+import { working } from '../../shared/ui';
+import { points } from '../../shared/util';
+import { balance, gems, heroCopyById, type ForgeContext } from '../context';
+import { FORGE_MODES, type ForgeMode } from '../modes';
+import { render } from '../render';
+import { showHint, showTarget } from './anvil';
+import { showPrice } from './cost';
+
+/** The menu's modes for a hero's gear (not refining). */
+export type HeroMode = Exclude<ForgeMode, 'refine'>;
+
+/** What a mode costs for `copy` (rerolling: the substat picked's, else what any costs), and in what; null: it can't be done to it. */
+export function priceOf(copy: HeroCopy, mode: HeroMode, option: number | null): { cost: number; unit: 'zeiucoins' | 'komaGems' } | null {
+  switch (mode) {
+    case 'reroll':
+      return copy.reroll === null || copy.options.length === 0 ? null : { cost: (option !== null ? copy.options[option]?.price : undefined) ?? copy.reroll, unit: 'zeiucoins' };
+    case 'enhance':
+      return copy.upgrade === null ? null : { cost: copy.upgrade, unit: 'zeiucoins' };
+    case 'effects':
+      return copy.rerollUnique === null ? null : { cost: copy.rerollUnique, unit: 'komaGems' };
+  }
+}
+
+/**
+ * The anvil for a hero's gear: the hint, the piece on it, its substats (rerolling: each a button, the one to reroll picked) or
+ * its effect, the price (zeiucoins; an effect's, komaGems) and the mode's button. Nothing is used up, so no Materials and no odds.
+ */
+export function renderHeroAnvil(ctx: ForgeContext, mode: HeroMode): void {
+  const { ui } = ctx;
+  const copy = heroCopyById(ctx, ctx.picked);
+  if (ctx.option !== null && (!copy || ctx.option >= copy.options.length)) ctx.option = null;
+  const price = copy ? priceOf(copy, mode, ctx.option) : null;
+  const have = price?.unit === 'komaGems' ? gems(ctx) : balance(ctx);
+  const short = !!price && have !== null && have < price.cost;
+  showHint(ctx, heroHint(ctx, mode, copy, price, have));
+  showTarget(ctx, copy);
+  renderRows(ctx, mode, copy);
+  showPrice(ctx, price?.cost ?? 0, have, price?.unit ?? (mode === 'effects' ? 'komaGems' : 'zeiucoins'), short);
+  ui.go.textContent = FORGE_MODES.find((one) => one.id === mode)?.go ?? '';
+  working(ui.go, ctx.busy, 'strike');
+  ui.go.disabled = !copy || !price || short || (mode === 'reroll' && ctx.option === null);
+}
+
+/** The line over the slots: what to pick, what's in the way, what it will do, or what was just done. */
+function heroHint(ctx: ForgeContext, mode: HeroMode, copy: HeroCopy | undefined, price: ReturnType<typeof priceOf>, have: number | null): { text: string; tone?: 'good' | 'bad' } {
+  if (ctx.done) return { text: ctx.done, tone: ctx.doneWell ? 'good' : 'bad' };
+  if (!copy) {
+    if (mode === 'reroll') return { text: 'Pick a piece of hero gear from your armory to reroll one of its substats.' };
+    if (mode === 'enhance') return { text: 'Pick a piece of hero gear from your armory to raise one of its substats a step.' };
+    return { text: 'Pick a TechnoMagic piece from your armory to reroll its additional effect.' };
+  }
+  if (!price) {
+    if (mode === 'reroll') return { text: 'This piece has no substats to reroll.', tone: 'bad' };
+    if (mode === 'enhance') return { text: 'Every substat of this piece is at its top already.', tone: 'bad' };
+    return { text: 'This piece has no additional effect to reroll.', tone: 'bad' };
+  }
+  if (have !== null && have < price.cost) return { text: `You need ${points(price.cost - have)} more ${price.unit} to do that.`, tone: 'bad' };
+  if (mode === 'reroll') return { text: ctx.option === null ? 'Pick the substat to reroll, below.' : 'The substat picked is rolled again: a new one takes its place, at random.' };
+  if (mode === 'enhance') return { text: 'One of its substats, at random, goes up a step (up to its top).' };
+  return { text: 'Its additional effect is rolled again: a new one takes its place, at random.' };
+}
+
+/**
+ * Under the slots: its substats, each its line and steps (rerolling, each a button: the one picked is rerolled), or (an
+ * effect's mode) its additional effect.
+ */
+function renderRows(ctx: ForgeContext, mode: HeroMode, copy: HeroCopy | undefined): void {
+  const { ui } = ctx;
+  ui.effects.textContent = '';
+  if (!copy) return;
+  if (mode === 'effects') {
+    const row = el('li', 'forge-row');
+    row.append(copy.additional ? rich(copy.additional) : 'No additional effect.');
+    ui.effects.append(row);
+    return;
+  }
+  copy.options.forEach((option, i) => {
+    const row = el('li', 'forge-row forge-option');
+    const line = el('span', 'forge-line', option.line);
+    if (mode !== 'reroll') {
+      row.append(line, optionPips(option));
+      return void ui.effects.append(row);
+    }
+    // Rerolling: the substat to reroll, picked (again: none).
+    const pick = el('button', 'forge-option-pick');
+    pick.type = 'button';
+    pick.setAttribute('aria-pressed', String(ctx.option === i));
+    pick.disabled = !!ctx.busy;
+    pick.append(line, optionPips(option));
+    pick.addEventListener('click', () => {
+      ctx.done = null;
+      ctx.option = ctx.option === i ? null : i;
+      render(ctx);
+    });
+    row.append(pick);
+    ui.effects.append(row);
+  });
+  if (copy.options.length === 0) ui.effects.append(el('li', 'forge-row muted', 'No substats.'));
+}

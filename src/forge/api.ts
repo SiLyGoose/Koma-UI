@@ -1,13 +1,16 @@
 import { forgePlan, type GearView, heroGear, levelLabel } from '../shared/items';
+import type { HeroCopy, HeroesView } from '../shared/heroes';
 import { busyWith } from '../shared/ui';
 import { sleep } from '../shared/util';
 import { curtain } from '../shared/transition';
 import { api, currentServer, loadMe, logOut } from '../site/session';
 import { renderAnvil } from './anvil';
-import { choosing, copyById, status, type ForgeContext } from './context';
+import type { HeroMode } from './anvil/hero';
+import { compare } from './anvil/compare';
+import { choosing, copyById, heroCopyById, status, type ForgeContext } from './context';
 import { playAnimation } from './play-animation';
 import { render } from './render';
-import { showResult } from './result';
+import { showChange, showResult } from './result';
 
 /** How long the heat behind the target builds before the cover wipes over (its brightest: forge.css's heat). */
 const HEAT_MS = 420;
@@ -16,7 +19,7 @@ const HEAT_MS = 420;
 export function failed(ctx: ForgeContext, res: { status: number; error: string }, what: string): void {
   if (res.status === 401) return logOut();
   // No answer to a change ("Reconnecting…" waited for the bot to be back): it may have gone through, so load what's there.
-  if (res.status === 0) return void loadGear(ctx);
+  if (res.status === 0) return void Promise.all([loadGear(ctx), loadHeroes(ctx)]);
   status(
     ctx,
     res.error === 'not_member'
@@ -25,9 +28,11 @@ export function failed(ctx: ForgeContext, res: { status: number; error: string }
           ? 'Your gear was changing somewhere else. Try again.'
           : res.error === 'too_poor'
             ? "You can't afford that."
-            : ['no_duplicate', 'maxed', 'bad_material'].includes(res.error)
-              ? 'That changed in the meantime. Take another look and try again.'
-              : what,
+            : res.error === 'no_gems'
+              ? "You don't have enough komaGems for that."
+              : ['no_duplicate', 'maxed', 'bad_material', 'no_option'].includes(res.error)
+                ? 'That changed in the meantime. Take another look and try again.'
+                : what,
     true,
   );
 }
@@ -42,6 +47,62 @@ export async function loadGear(ctx: ForgeContext): Promise<void> {
   if (!ctx.picked || !choosing(ctx)?.has(ctx.material ?? '')) ctx.material = null;
   status(ctx, null);
   render(ctx);
+}
+
+/** Their hero gear (GET /api/heroes), with its substats, its effect and their prices: the menu's other modes work on it. */
+export async function loadHeroes(ctx: ForgeContext): Promise<void> {
+  const server = currentServer();
+  if (!server) return;
+  const res = await api<HeroesView>(`/api/heroes?guild=${encodeURIComponent(server)}`);
+  if (!res.ok) return failed(ctx, res, 'Could not load your hero gear.');
+  ctx.heroes = res.data;
+  if (ctx.mode && ctx.mode !== 'refine' && !heroCopyById(ctx, ctx.picked)) ctx.picked = null;
+  render(ctx);
+}
+
+/** What a hero mode changes on a copy, a line each: its substats, or its additional effect. */
+const linesOf = (copy: HeroCopy, mode: HeroMode): string[] => (mode === 'effects' ? (copy.additional ? [copy.additional] : []) : copy.options.map((option) => option.line));
+
+/**
+ * Rerolls the substat picked, enhances one at random, or rerolls the effect of the piece on the anvil (the mode's: the bot's
+ * POST /api/heroes/reroll or /upgrade), with the anvil's heat and cover as a refine has, and shows what changed.
+ */
+export async function strikeHero(ctx: ForgeContext, mode: HeroMode): Promise<void> {
+  const server = currentServer();
+  const copy = heroCopyById(ctx, ctx.picked);
+  const option = mode === 'reroll' ? ctx.option : mode === 'effects' ? 'unique' : null;
+  if (ctx.busy || !server || !copy || (mode === 'reroll' && option === null)) return;
+  ctx.busy = busyWith('strike');
+  renderAnvil(ctx);
+  playAnimation(ctx.ui.target, 'heat', 'heat');
+  const request = api<HeroesView>(mode === 'enhance' ? '/api/heroes/upgrade' : '/api/heroes/reroll', {
+    method: 'POST',
+    body: JSON.stringify({ guild: server, copy: copy.id, ...(option === null ? {} : { option }) }),
+  });
+  await sleep(HEAT_MS);
+  const res = await curtain(async () => {
+    const res = await request;
+    ctx.busy = null;
+    // It cost zeiucoins or komaGems: the header's balances follow, and the gear's (a refine's balance) too.
+    void loadMe(true);
+    if (!res.ok) return res;
+    ctx.heroes = res.data;
+    void loadGear(ctx);
+    const after = heroCopyById(ctx, copy.id);
+    const rows = after ? compare(linesOf(copy, mode), linesOf(after, mode)) : [];
+    const changed = rows.filter((row) => row.state !== 'same' && row.state !== 'gone').map((row) => (row.state === 'changed' ? row.changes.map((one) => `${one.from} » ${one.to}`).join(', ') : row.line));
+    ctx.doneWell = true;
+    ctx.done = mode === 'enhance' ? `Enhanced: ${changed.join(', ') || 'a substat went up a step'}.` : `Rerolled into ${changed.join(', ') || 'the same again'}.`;
+    // (Rerolling: the substat picked stays picked, to roll it again.)
+    status(ctx, null);
+    render(ctx);
+    if (after) showChange(ctx, after, mode === 'enhance' ? 'Substat enhanced' : mode === 'reroll' ? 'Substat rerolled' : 'Effect rerolled', rows);
+    return res;
+  }, mode === 'enhance' ? 'Enhancing…' : 'Rerolling…');
+  if (!res.ok) {
+    renderAnvil(ctx);
+    failed(ctx, res, mode === 'enhance' ? 'Could not enhance that. Try again.' : 'Could not reroll that. Try again.');
+  }
 }
 
 /** Refines the copy on the anvil, using up the material picked. */
@@ -68,6 +129,8 @@ export async function strikeAnvil(ctx: ForgeContext): Promise<void> {
     if (!res.ok) return res;
     ctx.gear = res.data;
     ctx.material = null;
+    // (A hero's gear awakened: the hero gear's stars too.)
+    if (heroGear(copy)) void loadHeroes(ctx);
     const after = copyById(ctx, copy.id);
     ctx.doneWell = true;
     ctx.done = `${copy.name} is now ${levelLabel(after ?? { ...copy, level: copy.level + 1 })}.`;

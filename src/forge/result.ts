@@ -1,6 +1,7 @@
 import { sound } from '../shared/audio';
-import { el, type GearCopy, levelLabel } from '../shared/items';
+import { type ArmoryCopy, el, type GearCopy, levelLabel } from '../shared/items';
 import { card, compare, fillEffects } from './anvil';
+import type { EffectRow } from './anvil/compare';
 import type { ForgeContext } from './context';
 
 /** A refine that worked (public/forge/sfx), through the shared ../shared/audio/sfx.ts. */
@@ -36,6 +37,29 @@ export function showResult(ctx: ForgeContext, before: GearCopy, after: GearCopy,
   box.append(el('p', 'forge-result-tap', 'Click anywhere to continue.'));
   ui.result.replaceChildren(box);
   if (success) succeeded();
+  ui.result.classList.add('on');
+  ui.result.focus();
+}
+
+/**
+ * Shows what a hero's gear's reroll or enhance did, over the page blurred, as a refine that worked: SUCCESS, what was done
+ * (`sub`), the copy as it is now in a burst of light, and its substats (or effect) before against now.
+ */
+export function showChange(ctx: ForgeContext, after: ArmoryCopy, sub: string, rows: readonly EffectRow[]): void {
+  const { ui } = ctx;
+  const box = el('div', 'forge-result-box');
+  const title = el('h2', 'forge-result-title', 'SUCCESS');
+  title.id = 'result-title';
+  ui.result.classList.remove('fail');
+  const burst = el('div', 'forge-result-burst');
+  burst.append(el('span', 'forge-result-rays'), el('span', 'forge-result-rays back'), el('span', 'forge-result-core'), card(after));
+  const list = el('ul', 'forge-effects');
+  fillEffects(list, rows);
+  const panel = el('div', 'forge-result-panel');
+  panel.append(list);
+  box.append(title, el('p', 'forge-result-sub', `${after.name} · ${sub}`), burst, panel, el('p', 'forge-result-tap', 'Click anywhere to continue.'));
+  ui.result.replaceChildren(box);
+  succeeded();
   ui.result.classList.add('on');
   ui.result.focus();
 }

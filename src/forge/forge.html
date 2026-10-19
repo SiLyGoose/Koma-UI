@@ -2,25 +2,40 @@
 <main class="gear-page forge-page">
   <p id="status" class="status" hidden></p>
 
+  <!--
+    What the forge is to do, first (src/forge/modes.ts): a column of buttons, each its name and what it does. From an item's
+    Upgrade (?copy=<id>), that piece is named over them, and what can't be done to it is greyed out.
+  -->
+  <section id="forge-menu" class="forge-menu" hidden>
+    <div class="forge-menu-box">
+      <h1 class="forge-menu-title">Forge</h1>
+      <p id="forge-menu-for" class="forge-menu-for" hidden></p>
+      <div id="forge-modes" class="forge-modes"></div>
+    </div>
+  </section>
+
   <section id="forge" class="forge panels" hidden>
     <!-- The anvil: the copy picked and what it uses up, the odds, what it does now and after, and the price. -->
     <div class="anvil">
       <div class="anvil-stage">
         <div class="anvil-top">
-          <p id="hint" class="anvil-hint" aria-live="polite"></p>
+          <!-- Back to the menu, and what the anvil is doing. -->
+          <button type="button" id="back" class="anvil-back action secondary" aria-label="Back to the forge's menu">‹ <span id="mode-name"></span></button>
           <select id="server" class="server-pick" aria-label="Server" hidden></select>
         </div>
+        <p id="hint" class="anvil-hint" aria-live="polite"></p>
         <div class="anvil-slots">
           <div class="anvil-slot">
             <span class="anvil-label">Target</span>
             <div id="target" class="anvil-frame"></div>
           </div>
-          <div class="anvil-slot">
+          <!-- (A refine's only: the substats and effects use nothing up.) -->
+          <div class="anvil-slot refine-only">
             <span class="anvil-label">Materials</span>
             <div id="material" class="anvil-frame"></div>
           </div>
         </div>
-        <div class="anvil-odds">
+        <div class="anvil-odds refine-only">
           <p class="anvil-rate"><span>Success Rate</span><strong id="rate"></strong></p>
           <p class="anvil-bonus"><span>Failure Bonus</span><span id="bonus"></span></p>
         </div>

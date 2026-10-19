@@ -292,6 +292,26 @@
   color: var(--ink);
 }
 
+/* Narrow screens: the details' sheet would cover the list, so it steps aside while the list shows (its Back brings it back). */
+@media (max-width: 899px) {
+  .gear.runes-open > .detail {
+    display: none;
+  }
+}
+
+/* Over the runes: how full the piece's sockets are, and Back (to its details, the cards in the list's place). */
+.rune-list-head {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.rune-list-head .rune-list-note {
+  margin: 0;
+}
+
 .rune-list-note {
   margin: 0 0 8px;
   font-size: 13px;

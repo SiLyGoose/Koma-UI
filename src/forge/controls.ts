@@ -1,9 +1,10 @@
 import { wireSearch } from '../shared/items';
 import { dropdown } from '../shared/ui';
 import { setServer } from '../site/session';
-import { loadGear, strikeAnvil } from './api';
+import { loadGear, loadHeroes, strikeAnvil, strikeHero } from './api';
 import type { ForgeContext } from './context';
 import { renderGrid } from './grid';
+import { toMenu } from './menu';
 import { clear } from './picking';
 import { render } from './render';
 import { closeResult, resultOpen } from './result';
@@ -18,7 +19,9 @@ export function wireControls(ctx: ForgeContext): () => void {
   ui.server.addEventListener('change', () => {
     setServer(ui.server.value);
     clear(ctx);
+    ctx.wanted = null;
     void loadGear(ctx);
+    void loadHeroes(ctx);
   });
 
   ui.filter.onChange((choice) => {
@@ -33,7 +36,13 @@ export function wireControls(ctx: ForgeContext): () => void {
     renderGrid(ctx);
   });
 
-  ui.go.addEventListener('click', () => void strikeAnvil(ctx));
+  // The anvil's button: the mode's (a refine, or a hero's gear's reroll or enhance).
+  ui.go.addEventListener('click', () => void (ctx.mode === 'refine' ? strikeAnvil(ctx) : ctx.mode ? strikeHero(ctx, ctx.mode) : undefined));
+
+  // Back to the menu (not while the anvil is busy).
+  ui.back.addEventListener('click', () => {
+    if (!ctx.busy) toMenu(ctx);
+  });
 
   // A slot on the anvil empties when clicked: the target takes its material with it.
   ui.target.addEventListener('click', () => {

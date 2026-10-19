@@ -1,12 +1,12 @@
-import type { GearCopy } from '../shared/items';
 import type { ForgeContext } from './context';
 import { playAnimation } from './play-animation';
 import { render } from './render';
 
 /** Puts `copy` on the anvil (its slot takes it with a pop), or takes it off again. */
-export function pick(ctx: ForgeContext, copy: GearCopy): void {
+export function pick(ctx: ForgeContext, copy: { id: string }): void {
   ctx.done = null;
   ctx.material = null;
+  ctx.option = null;
   ctx.picked = ctx.picked === copy.id ? null : copy.id;
   render(ctx);
   if (ctx.picked) playAnimation(ctx.ui.target, 'placed', 'placed');
@@ -15,7 +15,7 @@ export function pick(ctx: ForgeContext, copy: GearCopy): void {
 }
 
 /** Puts `copy` in the Materials slot (which takes it with a pop), or takes it out again. */
-export function pickMaterial(ctx: ForgeContext, copy: GearCopy): void {
+export function pickMaterial(ctx: ForgeContext, copy: { id: string }): void {
   ctx.done = null;
   ctx.material = ctx.material === copy.id ? null : copy.id;
   render(ctx);
@@ -26,5 +26,6 @@ export function pickMaterial(ctx: ForgeContext, copy: GearCopy): void {
 export function clear(ctx: ForgeContext): void {
   ctx.picked = null;
   ctx.material = null;
+  ctx.option = null;
   ctx.done = null;
 }

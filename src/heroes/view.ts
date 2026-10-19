@@ -243,18 +243,6 @@ function actions(ctx: HeroesContext): HeroActions {
         wrong_part: 'That rune doesn’t go in this piece.',
       });
     },
-    reroll(copy: HeroCopy, option: number | 'unique') {
-      void change(ctx, act, `reroll:${copy.id}:${option}`, '/api/heroes/reroll', { copy: copy.id, option }, 'Could not reroll that. Try again.', {
-        too_poor: 'Not enough zeiucoins to reroll that.',
-        no_gems: 'Not enough komaGems to reroll that.',
-      }).then(() => void ctx.host.loadMe(true));
-    },
-    upgrade(copy: HeroCopy) {
-      void change(ctx, act, `upgrade:${copy.id}`, '/api/heroes/upgrade', { copy: copy.id }, 'Could not upgrade that. Try again.', {
-        too_poor: 'Not enough zeiucoins to upgrade that.',
-        maxed: 'Every option is at its top already.',
-      }).then(() => void ctx.host.loadMe(true));
-    },
     lock(copy: HeroCopy, locked: boolean) {
       void change(ctx, act, `lock:${copy.id}`, '/api/heroes/lock', { copy: copy.id, locked }, locked ? 'Could not lock that. Try again.' : 'Could not unlock that. Try again.', {
         not_found: "That item isn't yours any more.",

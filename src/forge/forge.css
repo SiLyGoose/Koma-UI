@@ -1,10 +1,11 @@
 /*
- * The forge, on top of the shared item template (../shared/items/items.css): the anvil on the left (the
- * target and its material over a forge's glow, the odds, what it does now against after, the price and
- * the button along the bottom), and the armory on the right, as the gear page's. One over the other on
- * narrow screens.
+ * The forge, on top of the shared item template (../shared/items/items.css): first its menu (styles/menu.css),
+ * then the anvil on the left (the target and its material over a forge's glow, the odds, what it does now
+ * against after, the price and the button along the bottom), and the armory on the right, as the gear page's.
+ * One over the other on narrow screens.
  */
 
+@import './styles/menu.css';
 @import './styles/anvil.css';
 @import './styles/odds.css';
 @import './styles/effects.css';
