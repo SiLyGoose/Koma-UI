@@ -990,9 +990,9 @@ async function start(): Promise<void> {
     playing.draw();
 
     // What each blow took and each heal gave, coming off whom it was.
-    for (const { amount, kind, at: from } of view.numbers.splice(0)) {
+    for (const { amount, kind, at: from, magical } of view.numbers.splice(0)) {
       const spot = stage.project(from);
-      numbers.show(spot.x, spot.y, amount, kind);
+      numbers.show(spot.x, spot.y, amount, kind, magical);
     }
 
     // The boss's health, and what is the matter with it.

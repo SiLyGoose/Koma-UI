@@ -1,7 +1,9 @@
 /*
  * The numbers coming off whoever is hit or healed (../hud/numbers.ts), in King's Raid's colours (its GameSetting's DamageFloatDataNew,
  * a gradient top to bottom): white a blow, orange a skill's, gold a critical one (saying so over it), light blue one a block lessened,
- * gray what a shield took, green a heal, white a blow dodged. Each text is its dark outline, with its gradient drawn again on top.
+ * gray what a shield took, green a heal, white a blow dodged. Each text is its dark outline, with its gradient drawn again on top;
+ * King's Raid's words ("Critical Hit", "Block", "Miss", "Physical Immune": public/kr/damage/) are its pictures, white with a
+ * dark edge, the gradient laid over them (multiplied: the edge stays dark) and cut to their shape.
  */
 
 .tm-number {
@@ -19,14 +21,12 @@
   animation: tm-number 0.95s ease-out forwards;
 }
 
-.tm-number-value,
-.tm-number-label {
+.tm-number-value {
   position: relative;
   display: block;
 }
 
-.tm-number-value::after,
-.tm-number-label::after {
+.tm-number-value::after {
   content: attr(data-text);
   position: absolute;
   inset: 0;
@@ -60,14 +60,41 @@
   -webkit-text-stroke-color: #2a1a02;
 }
 
-/* "Critical Hit" over a critical blow's number: smaller, and goes up and out with it. */
+/* One of King's Raid's words, as tall as its box: in the kind's gradient. */
+.tm-number-word {
+  display: block;
+  height: 100%;
+  background:
+    linear-gradient(var(--top), var(--bottom)),
+    var(--word) center / 100% 100% no-repeat;
+  background-blend-mode: multiply;
+  -webkit-mask: var(--word) center / 100% 100% no-repeat;
+  mask: var(--word) center / 100% 100% no-repeat;
+}
+
+/* "Critical Hit" over a critical blow's number, "Block" (and its shield) over a blocked one's: smaller, and goes up and out with it. */
 .tm-number-label {
-  margin-bottom: 2px;
-  font-size: 13px;
-  letter-spacing: 0.06em;
-  text-align: center;
-  text-transform: uppercase;
-  -webkit-text-stroke-width: 3px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2px;
+  height: 21px;
+  margin-bottom: 3px;
+  filter: drop-shadow(0 2px 2px rgb(0 0 0 / 0.6));
+}
+
+.tm-number-block img {
+  height: 120%;
+}
+
+/* A word alone (a blow dodged, or one it is immune to). */
+.tm-number-only {
+  height: 28px;
+  filter: drop-shadow(0 2px 2px rgb(0 0 0 / 0.6));
+}
+
+.tm-number.immune .tm-number-only {
+  height: 25px;
 }
 
 .tm-number.blocked {
@@ -93,11 +120,10 @@
   -webkit-text-stroke-color: #0a2a06;
 }
 
+/* (Its word's height, not its font's: its picture is all it shows.) */
 .tm-number.dodged,
 .tm-number.immune {
-  font-size: 18px;
-  color: #1a1a1a;
-  -webkit-text-stroke-color: #1a1a1a;
+  line-height: 0;
 }
 
 /* Out of the target, up, and gone. */

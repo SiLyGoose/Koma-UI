@@ -162,12 +162,15 @@
 }
 
 :where(.ls-landscape) .tm-number-label {
-  font-size: 9px;
-  -webkit-text-stroke-width: 2px;
+  height: 14px;
 }
 
-:where(.ls-landscape) .tm-number.dodged {
-  font-size: 12px;
+:where(.ls-landscape) .tm-number-only {
+  height: 19px;
+}
+
+:where(.ls-landscape) .tm-number.immune .tm-number-only {
+  height: 17px;
 }
 
 /* Trying things out: the boss's attacks under the field, in one or two short rows. */

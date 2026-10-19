@@ -1172,7 +1172,8 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       // Deception: immune to the boss's next blows. (Or what it is doing has it untouched for now.)
       if (target.immune > 0 || target.part.untouched?.()) {
         if (target.immune > 0) target.immune--;
-        events.push({ kind: 'number', on: target.index, amount: 0, type: 'immune' });
+        // (Which kind of damage it is immune to, as King's Raid says: Physical Immune, Magic Immune.)
+        events.push({ kind: 'number', on: target.index, amount: 0, type: 'immune', ...((kind ?? foe.def.stats.deals) === 'magical' && { magical: true }) });
         return 0;
       }
       const type = kind ?? foe.def.stats.deals;

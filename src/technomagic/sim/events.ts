@@ -43,7 +43,7 @@ export type SimEvent =
   /** A blow of the boss's (or, `by`, another enemy's) reaches a hero: blocked, or it flinches. */
   | { kind: 'hurt'; who: number; blocked: boolean; by?: number }
   /** A number to come off a hero or an enemy (`on` 'boss': the boss, or the enemy `foe`; `mend`: the boss's own healing, shown higher up). */
-  | { kind: 'number'; on: number | 'boss'; foe?: number; amount: number; type: NumberKind; mend?: boolean }
+  | { kind: 'number'; on: number | 'boss'; foe?: number; amount: number; type: NumberKind; mend?: boolean; magical?: boolean }
   /** Something a hero (`who`), or the boss (null), does that is drawn its own way, on `targets`. */
   | { kind: 'cue'; who: number | null; name: string; targets: number[] }
   /** The boss begins an attack; is hit; is stunned (knocked `down`); slowed. */
