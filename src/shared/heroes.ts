@@ -141,6 +141,8 @@ export const SHOP_BUST: Frame = { ...BUST, fit: {
     'dark-lord-kasel': { zoom: 1.4, x: -0.1, y: 0.26 },
     aselica: { zoom: 1.66, x: 0, y: 0.227 },
     chase: { zoom: 1.51, x: -0.023, y: 0.06 },
+    estelle: { zoom: 1.07, x: 0, y: 0.194 },
+    isolet: { zoom: 1.17, x: -0.043, y: 0.243 },
     evan: { zoom: 1.51, x: 0.087, y: 0.053 },
     glenwys: { zoom: 2.09, x: -0.094, y: -0.052 },
     kara: { zoom: 1.97, x: 0.1, y: 0.233 },

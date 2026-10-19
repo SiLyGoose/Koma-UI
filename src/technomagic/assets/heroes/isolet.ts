@@ -58,6 +58,8 @@ export const ISOLET_ASSETS: HeroAssets = {
       name: 'Isolet',
       // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
       icon: 'Isolet.webp',
+      // Her artwork (krinfo.net's; the Drive folder has none of her): her head and the brim of her hat in the crop (the meter's close-up is her face by itself).
+      portrait: { file: 'Isolet.png', from: 'https://krinfo.net/kingsraid-data/assets/heroes/Isolet/cos/Basic.png', crop: { x: 405, y: 235, size: 105 }, head: { x: 424, y: 278, size: 60 } },
       model: {
         kind: 'parts',
         animations: ANIMATIONS,
