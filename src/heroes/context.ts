@@ -1,4 +1,4 @@
-import { armoryFilter, armoryGrid, type ArmoryFilter, type ArmoryGrid, type Slot, type StarChoice, TM_UNSORTED, type TmSort } from '../shared/items';
+import { armoryFilter, armoryGrid, type ArmoryFilter, type ArmoryGrid, type ItemType, type StarChoice, TM_UNSORTED, type TmSort } from '../shared/items';
 import { HERO_SLOT_PART, HERO_SLOTS, type HeroView, type HeroCopy, type HeroSlot, type HeroesView } from '../shared/heroes';
 import { SIDE_SLOTS } from '../protocol/heroes';
 import type { Busy } from '../shared/ui';
@@ -84,7 +84,7 @@ export interface HeroesContext {
    * What the armory shows: a kind of item (all of them), a star tier, what works on a class (its own items and those of
    * no class; picked for the hero shown as it is picked), and what the search asks for.
    */
-  filter: Slot | 'all';
+  filter: ItemType | 'all';
   stars: StarChoice;
   cls: string | 'all';
   /** How the armory sorts TechnoMagic gear (its Filter's Sort): by a main stat and by potentials, or in its own order. */

@@ -5,7 +5,7 @@
  * imported by each page.
  */
 
-export { ANY_CLASS, art, effectSection, el, hasLevels, heroGear, heroMarks, isTmPiece, itemFace, itemIcons, kindName, krStars, levelLabel, lockBadge, mainStatLine, mainStatText, rich, type Slot, SLOT_NAME, tierFrame, tierMark, tierOf, tierRank, tmMarks, tmSections, tmTier, treasureParts, treasureSection, utMarks, utTier, uwMarks, uwTier } from './items';
+export { ANY_CLASS, art, effectSection, el, hasLevels, heroGear, heroMarks, isTmPiece, itemFace, itemIcons, type ItemType, ITEM_TYPE_NAME, kindName, krStars, levelLabel, lockBadge, mainStatLine, mainStatText, rich, type Slot, SLOT_NAME, tierFrame, tierMark, tierOf, tierRank, tmMarks, tmSections, tmTier, treasureParts, treasureSection, typeOf, utMarks, utTier, uwMarks, uwTier } from './items';
 export { armoryGrid, askSale, drawSell, effectList, forgeLink, lockToggle, upgradeButton, pruneSale, replacesNote, saleOf, saleSaid, sellsFor, showDetail, wireSaleDialog, wireSearch, type ArmoryCopy, type ArmoryDraw, type ArmoryGrid, type CardLook, type DetailParts } from './armory';
 export { armoryOrder, equippedIds, forgePlan, type GearCopy, type GearView, type Plan, type ShownStatSection, type StatSection, TM_UNSORTED, type TmSort } from './gear';
 export { matchesSearch } from './search';

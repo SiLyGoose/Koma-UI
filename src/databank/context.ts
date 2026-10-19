@@ -1,4 +1,4 @@
-import { armoryFilter, type Slot, type StarChoice } from '../shared/items';
+import { armoryFilter, type ItemType, type StarChoice } from '../shared/items';
 import { BOSSES } from '../technomagic/sim/bosses';
 import type { BossDef } from '../technomagic/sim/bosses/boss';
 import { HEROES } from '../technomagic/sim/heroes';
@@ -65,7 +65,7 @@ export interface DatabankContext {
   databank: Databank | null;
   /** By item id; null when not logged in (nothing to mark). */
   owned: Map<string, Owned> | null;
-  slotFilter: Slot | 'all';
+  slotFilter: ItemType | 'all';
   starFilter: StarChoice;
   /** Only one raid class's own items (its id), or every item. */
   classFilter: string | 'all';

@@ -1,11 +1,11 @@
 import './armory-filter.css';
 import { dropdown } from '../../ui';
 import { TM_UNSORTED, tmStats, type TmSort, type TmStats } from '../gear';
-import { el, type Slot, tierMark, tmTier, utTier, uwTier } from '../items';
+import { el, type ItemType, tierMark, tmTier, utTier, uwTier } from '../items';
 
 /*
  * The armories' filter (the gear page's, the forge's, the databank's): a Filter button beside the search,
- * with how many filters are on, and its panel under it: the type (All, Weapons, Armor, Treasures), the
+ * with how many filters are on, and its panel under it: the type (All, Weapons, Armor, Accessories, Orbs, Treasures, Artifacts), the
  * stars (Any, then 4 to 1) and, where the page offers them, the class (the databank's: a raid class's own items; the
  * heroes page's: what works on a class, picked for the hero shown),
  * Owned only (the databank's), Refineable (the forge's) and Hero gear (the gear page's: TechnoMagic gear and unique
@@ -23,7 +23,7 @@ export const matchesStars = (choice: StarChoice, tier: number | 'tm' | 'uw' | 'u
 
 /** What the filter picks. */
 export interface ArmoryChoice {
-  slot: Slot | 'all';
+  slot: ItemType | 'all';
   stars: StarChoice;
   /** Only what they own; null where it isn't offered (the gear page and forge, or the databank logged out). */
   owned: boolean | null;
@@ -56,12 +56,17 @@ export interface ArmoryFilter {
   destroy(): void;
 }
 
-const TYPES: readonly [Slot | 'all', string][] = [
+const TYPES: readonly [ItemType | 'all', string][] = [
   ['all', 'All'],
   ['weapon', 'Weapons'],
   ['armor', 'Armor'],
+  ['accessory', 'Accessories'],
+  ['orb', 'Orbs'],
   ['treasure', 'Treasures'],
+  ['artifact', 'Artifacts'],
 ];
+/** The types only heroes wear. */
+const HERO_TYPES: readonly (ItemType | 'all')[] = ['accessory', 'orb', 'artifact'];
 const TIERS: readonly StarChoice[] = ['all', 'tm', 'uw', 'ut', 4, 3, 2, 1];
 
 let count = 0;
@@ -106,8 +111,8 @@ export function armoryFilter(box: HTMLElement): ArmoryFilter {
   // Focusable, so a click on its words (not themselves focusable) keeps the focus in it rather than dropping it.
   panel.tabIndex = -1;
   panel.hidden = true;
-  const types = group('Type', ...TYPES.map(([slot, name]) => option('radio', 'slot', slot, name)));
-  // Any across the top, then the tiers in pairs.
+  // All across the top, then the types in pairs; and Any across the top, then the tiers in pairs.
+  const types = group('Type', ...TYPES.map(([slot, name]) => option('radio', 'slot', slot, name, slot === 'all')));
   const tiers = group('Tier', ...TIERS.map((n) => (n === 'all' ? option('radio', 'stars', 'all', 'Any', true) : option('radio', 'stars', String(n), n === 'tm' ? tmTier() : n === 'uw' ? uwTier() : n === 'ut' ? utTier() : tierMark(n)))));
   const owned = option('checkbox', 'owned', 'owned', 'Owned only', true);
   const refineable = option('checkbox', 'refineable', 'refineable', 'Refineable', true);
@@ -219,13 +224,16 @@ export function armoryFilter(box: HTMLElement): ArmoryFilter {
     const sort: TmSort | null = current.sort === null ? null : { main: mainSelect.value || null, potentials: [...potentialSelect.selectedOptions].map((one) => one.value) };
     // A sort picked shows the gear it sorts, where that's hidden until Hero gear is on (unless its tier is picked).
     const sorting = (e.target === mainSelect || e.target === potentialSelect) && sort !== null && (sort.main !== null || sort.potentials.length > 0) && tier !== 'tm';
+    const slot = (picked('slot') ?? 'all') as ItemType | 'all';
+    // So does a type only heroes wear (accessories, orbs, artifacts: hero gear's alone).
+    const heroType = e.target === input('slot', slot) && HERO_TYPES.includes(slot);
     choose({
-      slot: (picked('slot') ?? 'all') as Slot | 'all',
+      slot,
       stars: tier === 'all' || tier === 'tm' || tier === 'uw' || tier === 'ut' ? tier : (Number(tier) as StarChoice),
       owned: current.owned === null ? null : picked('owned') !== undefined,
       refineable: current.refineable === null ? null : picked('refineable') !== undefined,
       cls: current.cls === null ? null : (picked('class') ?? 'all'),
-      heroGear: current.heroGear === null ? null : picked('hero-gear') !== undefined || sorting,
+      heroGear: current.heroGear === null ? null : picked('hero-gear') !== undefined || sorting || heroType,
       sort,
     });
   });

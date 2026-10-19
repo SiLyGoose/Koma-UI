@@ -1,4 +1,4 @@
-import { armoryFilter, armoryGrid, type ArmoryFilter, type ArmoryGrid, type GearCopy, type GearView, type Slot, type StarChoice, TM_UNSORTED, type TmSort } from '../../shared/items';
+import { armoryFilter, armoryGrid, type ArmoryFilter, type ArmoryGrid, type GearCopy, type GearView, type ItemType, type StarChoice, TM_UNSORTED, type TmSort } from '../../shared/items';
 import type { Busy } from '../../shared/ui';
 import type { GearHost, Member } from './types';
 
@@ -45,7 +45,7 @@ export interface GearContext {
   party: NonNullable<GearHost['party']> | null;
   ui: GearUi;
   gear: GearView | null;
-  filter: Slot | 'all';
+  filter: ItemType | 'all';
   /** The star tier the armory shows (its Filter: ../../shared/items/armory-filter/). */
   stars: StarChoice;
   /** The armory shows gear only heroes wear (TechnoMagic gear, unique weapons) too: off until its Filter turns it on (or picks their tier). */

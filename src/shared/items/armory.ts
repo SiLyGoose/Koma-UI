@@ -1,7 +1,7 @@
 import { type Busy, doneMark, working } from '../ui';
 import { coin, points } from '../util';
 import { armoryOrder, type TmSort } from './gear';
-import { el, hasLevels, heroGear, itemFace, kindName, levelLabel, lockBadge, mainStatLine, rich, type Slot, SLOT_NAME, type Stars, tierOf } from './items';
+import { el, hasLevels, heroGear, itemFace, type ItemType, ITEM_TYPE_NAME, kindName, levelLabel, lockBadge, mainStatLine, rich, type Slot, type Stars, tierOf, typeOf } from './items';
 import type { HeroPart } from '../../protocol/heroes';
 import type { MainStat } from '../../protocol/items';
 import { matchesStars, type StarChoice } from './armory-filter/armory-filter';
@@ -23,7 +23,7 @@ export interface ArmoryCopy {
   name: string;
   stars: Stars;
   slot: Slot;
-  /** Hero gear: the part of a hero's gear it is, which its details name it by (the heroes page's). */
+  /** Hero gear: the part of a hero's gear it is, which its details name it by and the filter picks it by. */
   part?: HeroPart | null;
   description: string;
   level: number;
@@ -59,7 +59,7 @@ export interface CardLook {
 
 export interface ArmoryDraw<C extends ArmoryCopy> {
   copies: readonly C[];
-  slot: Slot | 'all';
+  slot: ItemType | 'all';
   stars: StarChoice;
   /** The search, trimmed and lowercased. */
   query: string;
@@ -146,7 +146,7 @@ export function armoryGrid<C extends ArmoryCopy>(element: HTMLElement): ArmoryGr
     const sheet = element.parentElement as HTMLElement;
     const scrolled = sheet.scrollTop;
     element.classList.toggle('selling', !!what.selling);
-    const ofSlot = armoryOrder(what.copies, what.sort).filter((c) => (slot === 'all' || c.slot === slot) && !hidden?.(c));
+    const ofSlot = armoryOrder(what.copies, what.sort).filter((c) => (slot === 'all' || typeOf(c) === slot) && !hidden?.(c));
     const shown = ofSlot.filter((c) => (matches?.(c) ?? true) && matchesStars(stars, tierOf(c)) && matchesSearch(query, { name: c.name, id: c.itemId, description: c.description }));
     const ownSound = what.ownSound !== false;
     const nodes: HTMLElement[] = shown.map((copy) => cardFor(copy, withSale(copy, look(copy), what), ownSound, () => what.onPick(copy)));
@@ -154,7 +154,7 @@ export function armoryGrid<C extends ArmoryCopy>(element: HTMLElement): ArmoryGr
     const cells = Math.max(row(GRID_CELLS), row(shown.length));
     for (let i = 0; i < cells - shown.length; i++) nodes.push((blanks[i] ??= el('span', 'item blank')));
     if (shown.length === 0) {
-      empty.textContent = what.first ?? (ofSlot.length > 0 ? 'No items match that.' : slot === 'all' ? what.none : `No ${SLOT_NAME[slot].toLowerCase()} yet.`);
+      empty.textContent = what.first ?? (ofSlot.length > 0 ? 'No items match that.' : slot === 'all' ? what.none : `No ${ITEM_TYPE_NAME[slot].toLowerCase()} yet.`);
       nodes.push(empty);
     }
     place(element, nodes);

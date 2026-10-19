@@ -1,4 +1,5 @@
 // Copied from the bot's src/protocol/ by scripts/sync.mjs: change it there, then `yarn sync`.
+import type { HeroPart } from './heroes';
 import type { MainStat, Slot, Stars } from './items';
 import type { RaidClassId } from './raid';
 
@@ -12,6 +13,8 @@ export interface GearCopy {
   name: string;
   stars: Stars;
   slot: Slot;
+  /** Hero gear: the part of a hero's gear it is (an accessory's slot is 'treasure', its part 'accessory'). Null: not hero gear. */
+  part: HeroPart | null;
   description: string;
   level: number;
   /** Its top refinement level: 1 for TechnoMagic gear, which is never refined (no level is shown for it, and no refine offered). */

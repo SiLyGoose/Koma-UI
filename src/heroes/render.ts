@@ -1,5 +1,5 @@
 import { art, drawSell, el, forgeLink, hasLevels, heroMarks, isTmPiece, itemDetailsClosed, krStars, levelLabel, itemPicked, lockToggle, pruneSale, replacesNote, rich, sellsFor, showDetail, statBlocks, tmMarks, tmSections, treasureParts, treasureSection, upgradeButton, utMarks, uwMarks } from '../shared/items';
-import { classBadge, className, FACE, HERO_PART_NAME, HERO_SLOT_KIND, HERO_SLOT_PART, heroCut, heroPicture, skillText, STAGE_ZOOM, type HeroView, type HeroCopy, type HeroSlot } from '../shared/heroes';
+import { classBadge, className, FACE, HERO_PART_NAME, HERO_SLOT_KIND, HERO_SLOT_PART, HERO_SLOT_TYPE, heroCut, heroPicture, skillText, STAGE_ZOOM, type HeroView, type HeroCopy, type HeroSlot } from '../shared/heroes';
 import { built } from '../shared/built';
 import { working } from '../shared/ui';
 import { canTrade, copyById, heroShown, mine, slotFor, slotOf, type HeroesContext } from './context';
@@ -204,10 +204,11 @@ function renderSlots(ctx: HeroesContext): void {
     const slot = button.dataset.slot as HeroSlot;
     const copy = copyById(ctx, hero?.equipped[slot] ?? null);
     const kind = HERO_SLOT_KIND[slot];
+    const type = HERO_SLOT_TYPE[slot];
     if (SIDE_SLOTS.includes(slot)) {
       button.textContent = '';
       button.classList.toggle('empty', !copy);
-      button.classList.toggle('filtered', ctx.target === slot && ctx.filter === kind);
+      button.classList.toggle('filtered', ctx.target === slot && ctx.filter === type);
       button.title = copy ? `${slotLabel(slot)}: ${copy.name}${hasLevels(copy) ? ` (${levelLabel(copy)})` : ''}` : `${slotLabel(slot)}: empty`;
       button.setAttribute('aria-label', button.title);
       continue;
@@ -217,7 +218,7 @@ function renderSlots(ctx: HeroesContext): void {
     button.classList.toggle('empty', !copy);
     if (copy) button.dataset.sfx = 'own';
     else delete button.dataset.sfx;
-    button.classList.toggle('filtered', ctx.target === slot && ctx.filter === kind);
+    button.classList.toggle('filtered', ctx.target === slot && ctx.filter === type);
     button.setAttribute('aria-label', copy ? `${slotName(slot)}: ${copy.name}` : `${slotName(slot)}: empty`);
     const frame = el('span', 'slot-frame');
     frame.append(art(copy?.itemId ?? null, kind));

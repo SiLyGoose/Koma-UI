@@ -1,4 +1,4 @@
-import { armoryFilter, armoryGrid, type ArmoryFilter, type ArmoryGrid, equippedIds, forgePlan, type GearCopy, type GearView, type Slot, type StarChoice } from '../shared/items';
+import { armoryFilter, armoryGrid, type ArmoryFilter, type ArmoryGrid, equippedIds, forgePlan, type GearCopy, type GearView, type ItemType, type StarChoice } from '../shared/items';
 import type { Busy } from '../shared/ui';
 import { currentMe, currentServer } from '../site/session';
 
@@ -29,7 +29,7 @@ export interface ForgeUi {
 export interface ForgeContext {
   ui: ForgeUi;
   gear: GearView | null;
-  filter: Slot | 'all';
+  filter: ItemType | 'all';
   /** The star tier the armory shows (its Filter: ../shared/items/armory-filter/). */
   stars: StarChoice;
   /** Whether the armory shows only what can be refined (its Filter's Refineable). */
