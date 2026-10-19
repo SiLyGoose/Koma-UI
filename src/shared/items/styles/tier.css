@@ -55,18 +55,26 @@
   container-type: inline-size;
 }
 
+/* Framed: inside the tier's frame, against its inner edge (the frame's coloured band is 3/52 of the card: below). */
+.item:has(> .tier-frame) > .tier-mark,
+.slot-frame:has(> .tier-frame) > .tier-mark {
+  top: calc(100% * 3 / 52);
+  left: calc(100% * 3 / 52);
+}
+
 /*
  * Its card's frame: King's Raid's grade frame in its tier's colour (its Equip_Grade 2, 3, 4 and 7: green, cyan, magenta,
  * red, as the tiers' colours), laid over the card's edge (its inside is clear), the card's own coloured edge giving way.
- * The frame's pictures are 64px with 3px clear round it: drawn 64/58 as big, so the frame itself meets the card's edge
- * (else the card's picture shows outside it).
+ * The frame's pictures are 64px: 3px clear, a black line and a grey band (to 6px in), then the tier's colour (3px). Drawn
+ * 64/52 as big, so the tier's colour is the card's outer edge, the black and grey cut off (and the card's picture never
+ * shows outside it).
  */
 .tier-frame {
   position: absolute;
   z-index: 1;
   inset: 0;
   border-radius: inherit;
-  background: url('/kr/ui/tier-frame-1.webp') center / calc(100% * 64 / 58) calc(100% * 64 / 58) no-repeat;
+  background: url('/kr/ui/tier-frame-1.webp') center / calc(100% * 64 / 52) calc(100% * 64 / 52) no-repeat;
   pointer-events: none;
 }
 
