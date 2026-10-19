@@ -82,7 +82,8 @@
   background-image: url('/kr/ui/tier-frame-4.webp');
 }
 
+/* (No edge of its own at all: the frame is its edge, out to the card's full size, as big as an unframed card's.) */
 .item:has(> .tier-frame),
 .slot-frame:has(> .tier-frame) {
-  border-color: transparent;
+  border-width: 0;
 }
