@@ -17,7 +17,7 @@ import { makeStage } from './engine/stage';
 import { Ahead } from './fight/ahead';
 import { bossEffects, heroEffects } from './fight/kr-moves';
 import { readSounds } from './fight/sounds';
-import { makeFightView, SIGN_EFFECTS, type FightView } from './fight/view';
+import { makeFightView, SIGN_EFFECTS, skim, type FightView } from './fight/view';
 import { loadEffects } from './fx/effects';
 import { makeKrEffects } from './fx/kr-effects';
 import { makeMagic } from './fx/magic';
@@ -102,7 +102,7 @@ const CATCH_UP = 8;
 const WHEEL_STEP = 50;
 /**
  * In a room: how far behind the bot this page may fall before it hurries to catch up (to LAG steps behind),
- * and, joining a fight long under way, jumps there.
+ * and, joining a fight long under way (or back to it after the page was away), jumps there.
  */
 const LAG = 4;
 const HURRY = 10;
@@ -786,12 +786,10 @@ async function start(): Promise<void> {
         },
         ahead,
       }, mine);
-      // Joined a fight long under way: straight to where it is (drawing only who is on the field).
+      // Joined a fight long under way (or back to it after the page was away): straight to where it is (drawing only what stands on the field).
       if (mine.upTo - sim.tick > JUMP) {
         while (sim.tick < mine.upTo - LAG && !sim.result) stepRoom(sim, mine);
-        const standing = sim.events.filter((event) => event.kind === 'enter');
-        sim.events.length = 0;
-        sim.events.push(...standing);
+        skim(sim.events);
       }
     }
 
@@ -943,7 +941,14 @@ async function start(): Promise<void> {
     // The raid the address names (?room=), one to create (`new`), or (none) an open one against the boss.
     let wantedRoom = new URLSearchParams(location.search).get('room');
     const where = (): Pick<Extract<ClientMessage, { t: 'hello' }>, 'room' | 'create'> => (single || !wantedRoom ? {} : wantedRoom === 'new' ? { create: true } : { room: wantedRoom });
-    socket = gameSocket<ServerMessage, ClientMessage>({ server: address, hello: () => ({ t: 'hello', token: link, ...(single && { single }), boss: def.id, ...where() }), receive });
+    // (In a fight, the bot says what was pressed every tenth of a second: quiet for long, the connection is dead, a phone back
+    // from another app most often, and it is made again, the fight taken up again from the bot's.)
+    socket = gameSocket<ServerMessage, ClientMessage>({
+      server: address,
+      hello: () => ({ t: 'hello', token: link, ...(single && { single }), boss: def.id, ...where() }),
+      receive,
+      steady: () => state?.phase === 'fight' && game !== null && game.sim.result === null,
+    });
     startLive({ mount: barSlot(), api: apiFromSocket(address), auth: () => `Game ${link}`, newTab: true });
   }
 
@@ -973,10 +978,17 @@ async function start(): Promise<void> {
       let steps = Math.floor(playing.owed / TICK);
       playing.owed -= steps * TICK;
       const behind = lock.upTo - sim.tick;
-      if (behind > HURRY) steps = Math.max(steps, behind - LAG);
-      steps = Math.min(steps, behind);
-      for (let i = 0; i < steps && !sim.result; i++) stepLock(sim, lock);
-      if (sim.tick >= lock.upTo) playing.owed = Math.min(playing.owed, TICK);
+      if (behind > JUMP) {
+        // Far behind (the page was away, a phone on another app): straight to where it is, drawing only what stands on the field.
+        while (sim.tick < lock.upTo - LAG && !sim.result) stepLock(sim, lock);
+        skim(sim.events);
+        playing.owed = 0;
+      } else {
+        if (behind > HURRY) steps = Math.max(steps, behind - LAG);
+        steps = Math.min(steps, behind);
+        for (let i = 0; i < steps && !sim.result; i++) stepLock(sim, lock);
+        if (sim.tick >= lock.upTo) playing.owed = Math.min(playing.owed, TICK);
+      }
     } else {
       // Trying things out: as many steps as the time drawn calls for.
       playing.owed = Math.min(playing.owed + dt, TICK * CATCH_UP);

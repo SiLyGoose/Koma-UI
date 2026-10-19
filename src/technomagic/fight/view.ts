@@ -14,7 +14,7 @@ import { FALL, SCALE, type Hero } from '../heroes/body/hero';
 import { HERO_FX } from '../heroes/fx';
 import { lookOf } from '../heroes/looks';
 import type { Popup } from '../hud/numbers';
-import { HERO_TURN, HERO_X, MARCH, MARCH_FROM, marchLeft, RUN_ON, TICK, type Sim } from '../sim';
+import { HERO_TURN, HERO_X, MARCH, MARCH_FROM, marchLeft, RUN_ON, TICK, type Sim, type SimEvent } from '../sim';
 import type { BossDef } from '../sim/bosses/boss';
 import { COMMON_FX, type BossFx, type FxScene } from './fx';
 import { makeKrBoss, makeKrMoves } from './kr-moves';
@@ -67,6 +67,21 @@ const FADE = 0.2;
  * they gain on it a little, and the boss comes into the picture).
  */
 const FOLLOW = 0.85;
+
+/** What of the sim's events says what stands on the field (who is on it, the boss gone or back, the waves, the minions), not what is done there. */
+const STANDING = new Set<SimEvent['kind']>(['enter', 'leave', 'boss-leave', 'boss-return', 'wave', 'foe-enter', 'foe-down', 'end']);
+
+/**
+ * The fight caught up all at once (a page joining it under way, or back after it was away): of what happened meanwhile,
+ * only what says what stands on the field now, so it is drawn as it stands rather than every blow at once (a minion that
+ * came and fell meanwhile, not at all).
+ */
+export function skim(events: SimEvent[]): void {
+  const came = new Set(events.flatMap((event) => (event.kind === 'foe-enter' ? [event.foe] : [])));
+  const gone = new Set(events.flatMap((event) => (event.kind === 'foe-down' && came.has(event.foe) ? [event.foe] : [])));
+  const kept = events.filter((event) => STANDING.has(event.kind) && !((event.kind === 'foe-enter' || event.kind === 'foe-down') && gone.has(event.foe)));
+  events.splice(0, events.length, ...kept);
+}
 
 /** A body on the field: a hero, by its index among the fighters, or the boss. */
 type Who = number | 'boss';
