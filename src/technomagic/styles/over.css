@@ -348,8 +348,8 @@
 /*
  * The fight over (../main.ts stageEnd): this player's heroes in a row before a sheet of light, the page's HUD put away;
  * over them, the title across the top (gold for a win, steel for a loss). First what was found, on a band in the middle
- * of a dark screen, "Tap to continue" under it (.rewarding: ../result.ts); then the heroes alone, and the way on at the
- * foot, to the right.
+ * of a dark screen, "Tap to continue" under it (.rewarding: ../result.ts); then the heroes alone, and the way on in the
+ * bottom right corner (King's Raid's round buttons).
  */
 body.tm-ended :is(#boss, #overheads, #numbers, #meter, #timer, #party) {
   visibility: hidden;
@@ -498,11 +498,95 @@ body.tm-ended :is(#actions, #hint) {
   display: none;
 }
 
+/*
+ * The way on: King's Raid's round buttons stacked in the bottom right corner, each its name to its left, the first on top
+ * (Run Again, then Raid Prep, then Games at the foot). Unstaged, they're the site's buttons, and the rings are hidden.
+ */
+.tm-act-ring {
+  display: none;
+}
+
 .tm-result.staged .tm-result-actions {
-  justify-content: flex-end;
-  width: min(920px, 100%);
-  margin: auto auto 0;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: flex-end;
+  gap: 10px;
+  margin: auto 0 0 auto;
   animation: tm-rise 0.5s 0.2s both;
+}
+
+.tm-result.staged .tm-result-actions .action.tm-act {
+  all: unset;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.tm-result.staged .tm-act-label {
+  color: #f3ead2;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-shadow:
+    0 1px 3px #000,
+    0 0 10px rgb(0 0 0 / 70%);
+}
+
+.tm-result.staged .tm-act-ring {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: url('/kr/ui/round-button.webp') center / 100% 100% no-repeat;
+  filter: drop-shadow(0 3px 6px rgb(0 0 0 / 65%));
+  transition:
+    transform 0.1s ease,
+    filter 0.15s ease;
+}
+
+/* (The main one, Run Again, aglow.) */
+.tm-result.staged .tm-act.main .tm-act-ring {
+  filter: drop-shadow(0 3px 6px rgb(0 0 0 / 65%)) drop-shadow(0 0 10px rgb(255 200 90 / 55%));
+}
+
+.tm-result.staged .tm-act-ring svg {
+  width: 46%;
+  height: 46%;
+  fill: none;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 1px 0 rgb(50 25 0 / 90%));
+}
+
+.tm-result.staged .tm-act:hover .tm-act-ring {
+  transform: scale(1.06);
+}
+
+.tm-result.staged .tm-act:hover .tm-act-label {
+  color: #fff;
+}
+
+.tm-result.staged .tm-act:active .tm-act-ring {
+  transform: scale(0.95);
+}
+
+.tm-result.staged .tm-act:focus-visible .tm-act-ring {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+
+/* A phone on its side: short, so the buttons a size down. */
+:where(.ls-landscape) .tm-result.staged .tm-act-ring {
+  width: 50px;
+  height: 50px;
+}
+
+:where(.ls-landscape) .tm-result.staged .tm-result-actions {
+  gap: 6px;
 }
 
 @keyframes tm-blink {

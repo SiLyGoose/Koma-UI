@@ -18,9 +18,28 @@ import { KEPT } from './assets';
 /** One of the ways on, along the bottom. */
 export interface ResultAction {
   label: string;
+  /** What its round button shows (staged: King's Raid's round button, ../../public/kr/ui/round-button.webp). */
+  icon: ResultIcon;
   /** The site's main button (the rest are its dark ones). */
   main?: boolean;
   run: () => void;
+}
+
+export type ResultIcon = 'again' | 'prep' | 'games';
+
+/** Each way on's symbol, in gold as King's Raid's round buttons draw theirs: going again, back to getting ready (crossed swords), the games (a controller). */
+const ICONS: Record<ResultIcon, string> = {
+  again: '<polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>',
+  prep: '<polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/><line x1="13" x2="19" y1="19" y2="13"/><line x1="16" x2="20" y1="16" y2="20"/><line x1="19" x2="21" y1="21" y2="19"/><polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5"/><line x1="5" x2="9" y1="14" y2="18"/><line x1="7" x2="4" y1="17" y2="20"/><line x1="3" x2="5" y1="19" y2="21"/>',
+  games: '<line x1="6" x2="10" y1="11" y2="11"/><line x1="8" x2="8" y1="9" y2="13"/><line x1="15" x2="15.01" y1="12" y2="12"/><line x1="18" x2="18.01" y1="10" y2="10"/><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"/>',
+};
+
+/** A way on's round button: King's Raid's, its symbol in gold (shown only staged: styles/over.css). */
+function ring(icon: ResultIcon): HTMLElement {
+  const round = el('span', 'tm-act-ring');
+  round.setAttribute('aria-hidden', 'true');
+  round.innerHTML = `<svg viewBox="0 0 24 24"><defs><linearGradient id="tm-gold-${icon}" gradientUnits="userSpaceOnUse" x1="0" y1="2" x2="0" y2="22"><stop offset="0" stop-color="#fff6dc"/><stop offset="0.55" stop-color="#ebc97f"/><stop offset="1" stop-color="#a8772f"/></linearGradient></defs><g stroke="url(#tm-gold-${icon})">${ICONS[icon]}</g></svg>`;
+  return round;
 }
 
 export interface ResultShown {
@@ -194,9 +213,10 @@ export function makeResult(root: HTMLElement): Result {
       others.hidden = shown.others.length === 0;
       root.classList.toggle('rewarding', root.classList.contains('staged') && !(rewards.hidden && others.hidden));
       actions.replaceChildren(
-        ...shown.actions.map(({ label, main, run }) => {
-          const button = el('button', `action ${main ? 'main' : 'secondary'}`, label);
+        ...shown.actions.map(({ label, icon, main, run }) => {
+          const button = el('button', `action tm-act ${main ? 'main' : 'secondary'}`);
           button.type = 'button';
+          button.append(el('span', 'tm-act-label', label), ring(icon));
           button.addEventListener('click', run);
           return button;
         }),

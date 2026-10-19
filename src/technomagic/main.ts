@@ -592,13 +592,14 @@ async function start(): Promise<void> {
         actions: [
           {
             label: 'Again',
+            icon: 'again',
             main: true,
             run: () => {
               results.hide();
               practise(entrants);
             },
           },
-          { label: 'Games', run: () => leave() },
+          { label: 'Games', icon: 'games', run: () => leave() },
         ],
       });
   }
@@ -691,15 +692,16 @@ async function start(): Promise<void> {
           ? [
               {
                 label: 'Raid Prep',
+                icon: 'prep',
                 main: true,
                 run: () => {
                   if (state?.phase === 'over') send({ t: 'back' });
                   else backAfter = true;
                 },
               },
-              { label: 'Games', run: games },
+              { label: 'Games', icon: 'games', run: games },
             ]
-          : [{ label: 'Games', main: true, run: games }],
+          : [{ label: 'Games', icon: 'games', main: true, run: games }],
       });
     }
 
@@ -918,14 +920,15 @@ async function start(): Promise<void> {
           // The host's starts the next fight (once everyone else is ready); anyone else's says they're ready for it.
           {
             label: 'Run Again',
+            icon: 'again',
             main: true,
             run: () => {
               results.hide();
               send({ t: 'again' });
             },
           },
-          { label: 'Raid Prep', run: () => send({ t: 'back' }) },
-          { label: 'Games', run: () => leave() },
+          { label: 'Raid Prep', icon: 'prep', run: () => send({ t: 'back' }) },
+          { label: 'Games', icon: 'games', run: () => leave() },
         ],
       });
     }
