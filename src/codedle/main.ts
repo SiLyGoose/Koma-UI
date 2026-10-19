@@ -13,8 +13,7 @@ import type { ClientMessage, CodedleEnded, CodedleLive, CodedleMark, CodedleRefu
  * Play on the site, or the front page) carries the player's token (t) and the bot's WebSocket address (s) after the #.
  *
  * Wordle's board, but ours: as many guesses as they'll pay for (each costs its fee, into the vault), so the board grows
- * and scrolls; a row of dials over it with each digit cracked so far, in its place; a keypad of digits, each lit by the
- * best its guesses have shown; and everyone guessing the one code at once, against the clock. Only their own guesses are
+ * and scrolls; a keypad of digits, each lit by the best its guesses have shown; and everyone guessing the one code at once, against the clock. Only their own guesses are
  * shown while the vault is locked; once it opens (or time runs out), the code, who cracked it, and everyone's guesses.
  * The bot holds the code and scores every guess: nothing here gives it away.
  */
@@ -39,7 +38,6 @@ const ui = {
   clockLabel: $('clock-label'),
   cost: $('cost'),
   crowd: $('crowd'),
-  dials: $('dials'),
   boardScroll: $('board-scroll'),
   board: $('board'),
   toast: $('toast'),
@@ -157,17 +155,6 @@ function renderLive(game: CodedleState, live: CodedleLive): void {
   else ui.cost.textContent = 'Free';
   ui.crowd.textContent = live.guesses === 0 ? 'No guesses yet. Be the first to try the lock.' : `${live.guesses.toLocaleString('en-US')} ${live.guesses === 1 ? 'guess' : 'guesses'} by ${live.guessers} ${live.guessers === 1 ? 'player' : 'players'} so far`;
 
-  // The dials: each place's digit, once a guess has it right there.
-  ui.dials.replaceChildren();
-  for (let i = 0; i < length; i++) {
-    const cracked = live.mine.find((row) => row.marks[i] === 'hit')?.guess[i];
-    const dial = document.createElement('span');
-    dial.className = `cd-dial${cracked ? ' cracked' : ''}`;
-    dial.textContent = cracked ?? '?';
-    dial.setAttribute('aria-label', cracked ? `Place ${i + 1}: ${cracked}` : `Place ${i + 1}: not cracked yet`);
-    ui.dials.append(dial);
-  }
-
   // The board: their guesses (the new ones turned over), the one being typed, then empty rows.
   const fresh = live.mine.length > state.shown;
   for (const row of live.mine.slice(state.shown)) guessRows.append(guessRow(row, true));
@@ -235,7 +222,7 @@ function render(): void {
   if (!game) return;
   const live = game.live;
   ui.game.classList.toggle('live', live !== null);
-  for (const part of [ui.dials, ui.boardScroll, ui.keys]) part.hidden = live === null;
+  for (const part of [ui.boardScroll, ui.keys]) part.hidden = live === null;
   ui.idle.hidden = live !== null;
   if (live) {
     renderLive(game, live);

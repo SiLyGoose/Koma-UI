@@ -1,6 +1,6 @@
 /*
  * Codedle (main.ts): Wordle's board and keyboard, in the vault's colours. Over them the vault (what's in it, the clock,
- * a guess's cost) and the dials of the digits cracked so far; with none going, the vault shut and how the last ended.
+ * a guess's cost); with none going, the vault shut and how the last ended.
  */
 
 .cd {
@@ -12,7 +12,7 @@
    * A tile: as big as fits five across and six rows down with everything else on the screen (--around: how tall that
    * is), but never tiny.
    */
-  --around: 470px;
+  --around: 425px;
   --tile: max(34px, min(60px, calc((100vw - 64px) / 5), calc((100dvh - var(--around)) / 6.6)));
   display: flex;
   flex-direction: column;
@@ -46,7 +46,7 @@
 /* A short screen (a phone): the rules under the keypad left out, for bigger tiles. */
 @media (max-height: 760px) {
   .cd {
-    --around: 400px;
+    --around: 355px;
   }
 
   .cd > .hint {
@@ -123,36 +123,6 @@
   color: var(--muted);
   font-size: 13px;
   text-align: center;
-}
-
-/* ---- The dials: each place's digit, once cracked ---- */
-
-.cd-dials {
-  display: flex;
-  gap: 6px;
-}
-
-.cd-dial {
-  display: grid;
-  place-items: center;
-  width: calc(var(--tile) * 0.62);
-  aspect-ratio: 1;
-  border: 2px solid #4a4652;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #3b3842, #18171c 70%);
-  color: var(--dusk);
-  font-size: calc(var(--tile) * 0.3);
-  font-weight: 800;
-  transition:
-    color 0.3s,
-    border-color 0.3s,
-    box-shadow 0.3s;
-}
-
-.cd-dial.cracked {
-  border-color: var(--gold);
-  color: var(--gold);
-  box-shadow: 0 0 12px rgb(216 191 122 / 35%);
 }
 
 /* ---- The board ---- */
