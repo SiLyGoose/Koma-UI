@@ -69,7 +69,8 @@ const MODES: readonly RaidMode[] = ['normal', 'hard'];
 /** Raid Info: what the boss does, and how its raid goes. */
 function infoOf(boss: BossDef): string[] {
   const solo = Math.round(((boss.stages.solo[0]?.hp ?? 1) / (boss.stages.room[0]?.hp ?? 1)) * 100);
-  const lineup = 'With others, the host brings up to 4 heroes, everyone else up to 3, 8 in all. Single player, up to 7: 4 in the Main Team, whose skills are yours to use, and 3 in the Sub Team, who fight on Auto.';
+  const alone = isDragon(boss.id) ? 8 : 7;
+  const lineup = `With others, the host brings up to 4 heroes, everyone else up to 3, 8 in all. Single player, up to ${alone}: ${MAIN_TEAM} in the Main Team, whose skills are yours to use, and ${alone - MAIN_TEAM} in the Sub Team, who fight on Auto.`;
   if (isDragon(boss.id)) {
     const normal = boss.normal ? stagesOf(boss.normal) : 0;
     return [
