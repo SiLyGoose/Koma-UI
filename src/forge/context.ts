@@ -12,9 +12,8 @@ export interface ForgeUi {
   menuFor: HTMLElement;
   modes: HTMLElement;
   forge: HTMLElement;
-  /** Back to the menu, and the mode's name in it. */
+  /** Back to the menu (it says Forge). */
   back: HTMLButtonElement;
-  modeName: HTMLElement;
   anvil: HTMLElement;
   server: HTMLSelectElement;
   hint: HTMLElement;
@@ -75,7 +74,6 @@ export function createContext(root: HTMLElement): ForgeContext {
       modes: $('forge-modes'),
       forge: $('forge'),
       back: $<HTMLButtonElement>('back'),
-      modeName: $('mode-name'),
       anvil: root.querySelector('.anvil') as HTMLElement,
       server: $<HTMLSelectElement>('server'),
       hint: $('hint'),
