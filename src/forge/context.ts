@@ -2,6 +2,7 @@ import { armoryFilter, armoryGrid, type ArmoryFilter, type ArmoryGrid, equippedI
 import type { HeroCopy, HeroesView } from '../shared/heroes';
 import type { ForgeMode } from './modes';
 import type { Busy } from '../shared/ui';
+import { backArrow } from '../shared/ui/back/back';
 import { currentMe, currentServer } from '../site/session';
 
 /** The forge's elements, found once in its root. */
@@ -12,7 +13,7 @@ export interface ForgeUi {
   menuFor: HTMLElement;
   modes: HTMLElement;
   forge: HTMLElement;
-  /** Back to the menu (it says Forge). */
+  /** Back to the menu: King's Raid's back arrow. */
   back: HTMLButtonElement;
   anvil: HTMLElement;
   server: HTMLSelectElement;
@@ -73,7 +74,7 @@ export function createContext(root: HTMLElement): ForgeContext {
       menuFor: $('forge-menu-for'),
       modes: $('forge-modes'),
       forge: $('forge'),
-      back: $<HTMLButtonElement>('back'),
+      back: backArrow($<HTMLButtonElement>('back')),
       anvil: root.querySelector('.anvil') as HTMLElement,
       server: $<HTMLSelectElement>('server'),
       hint: $('hint'),

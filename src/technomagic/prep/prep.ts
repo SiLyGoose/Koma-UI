@@ -1,6 +1,7 @@
 import { inLandscape, onLandscape } from '../../shared/ui/landscape/landscape';
 import { className, FACE, heroCard, heroCut } from '../../shared/heroes';
 import { levelPopup } from '../../shared/ui/level/level';
+import { backArrow } from '../../shared/ui/back/back';
 import type { BossDef } from '../sim/bosses/boss';
 import { isDragon } from '../sim/bosses';
 import { HEROES } from '../sim/heroes';
@@ -66,13 +67,6 @@ const TEAMS = [
   { sub: false, name: 'Main Team' },
   { sub: true, name: 'Sub Team' },
 ] as const;
-
-/** King's Raid's back arrow: a thick arrow, silver-white fading to grey down it, in a dark edge with a light line inside. */
-const BACK_ARROW = `<svg viewBox="0 0 64 44" aria-hidden="true">
-  <defs><linearGradient id="tm-back-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="0.55" stop-color="#e4e4e4"/><stop offset="1" stop-color="#9a9a9a"/></linearGradient></defs>
-  <path d="M4 22 L26 3 L26 13 L60 13 L60 31 L26 31 L26 41 Z" fill="url(#tm-back-fill)" stroke="#2a2118" stroke-width="3.5" stroke-linejoin="round"/>
-  <path d="M10 22 L23 10.5 L23 16 L57 16" fill="none" stroke="rgba(255,255,255,0.9)" stroke-width="1.5" stroke-linejoin="round"/>
-</svg>`;
 
 /** The least it is scaled to; past that it scrolls. */
 const MIN_FIT = 0.4;
@@ -214,10 +208,9 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
   const bossName = byId('prep-boss');
   // King's Raid's way back, in the title's place on a phone on its side (the site's bar, with its own, is hidden there:
   // ./prep.css): the same as the bar's.
-  const back = el('button', 'tm-prep-back');
+  const back = backArrow(el('button', 'tm-prep-back'));
   back.type = 'button';
   back.setAttribute('aria-label', 'Back to the games');
-  back.innerHTML = BACK_ARROW;
   back.addEventListener('click', () => document.querySelector<HTMLElement>('.frame > .top .back')?.click());
   byId('prep-title').before(back);
 
