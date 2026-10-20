@@ -10,7 +10,7 @@ import type { ClientMessage, CodedleEnded, CodedleLive, CodedleMark, CodedleRefu
 /*
  * Codedle, as Wordle: the vault is locked with a code of digits, and the first to guess it takes what's inside. It is a
  * random event in Discord (the bot's events/games/codedle.ts); this page plays the same game. The link (from the event's
- * Play on the site, or the front page) carries the player's token (t) and the bot's WebSocket address (s) after the #.
+ * Play on the site, through the front page, which has no card for it) carries the player's token (t) and the bot's WebSocket address (s) after the #.
  *
  * Wordle's board, but ours: as many guesses as they'll pay for (each costs its fee, into the vault), so the board grows
  * and scrolls; a keypad of digits, each lit by the best its guesses have shown; and everyone guessing the one code at once, against the clock. Guessing opens a
@@ -20,7 +20,7 @@ import type { ClientMessage, CodedleEnded, CodedleLive, CodedleMark, CodedleRefu
  */
 
 const ERRORS: Record<string, [string, string]> = {
-  bad_token: ['This link has run out', 'Open Codedle again from the games page or from the event in Discord for a new one.'],
+  bad_token: ['This link has run out', 'Open Codedle again from the event in Discord for a new one.'],
   replaced: ['Opened somewhere else', 'Codedle is open in another tab or window. Only one can play at a time.'],
   bad_message: ['Disconnected', 'The bot could not understand this page. Try reloading.'],
 };
@@ -388,10 +388,10 @@ setInterval(renderClock, 250);
 
 if (watching) {
   setConn('Not watchable', 'bad');
-  showMessage("Codedle isn't watched", 'Everyone in the server guesses the same code: open Codedle from the games page to join in.');
+  showMessage("Codedle isn't watched", 'Everyone in the server guesses the same code: press Play on the site on the Codedle in Discord to join in.');
 } else if (!token || !server) {
   setConn('No link', 'bad');
-  showMessage('Open this from the games page', "Log in on the games page and pick Codedle, or press Play on the site on a Codedle in Discord.");
+  showMessage('Open this from Discord', 'Press Play on the site on a Codedle in Discord.');
 } else {
   const link = token;
   state.socket = gameSocket<ServerMessage, ClientMessage>({ server, hello: () => ({ t: 'hello', token: link }), receive });

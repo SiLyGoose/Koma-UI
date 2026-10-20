@@ -230,43 +230,6 @@
   background: var(--panel) url('/minesweeper/cover.webp') center / cover no-repeat;
 }
 
-/* Codedle: a guess's five tiles, its hint on each (no picture needed). */
-.codedle-art {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  background: radial-gradient(ellipse at 50% 40%, #2a2833, #121116);
-}
-
-.codedle-tile {
-  display: grid;
-  place-items: center;
-  width: 34px;
-  aspect-ratio: 1;
-  border: 2px solid #4a4652;
-  border-radius: 5px;
-  color: #fff;
-  font-size: 18px;
-  font-weight: 800;
-}
-
-.codedle-tile.hit {
-  border-color: transparent;
-  background: #4f9a62;
-}
-
-.codedle-tile.near {
-  border-color: transparent;
-  background: #c39b2f;
-}
-
-.codedle-tile.miss {
-  border-color: transparent;
-  background: #34323b;
-  color: #9a9ba9;
-}
-
 /* Poker: two hole cards and a chip on green felt (no picture needed). */
 .poker-art {
   position: relative;
