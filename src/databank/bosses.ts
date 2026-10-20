@@ -11,7 +11,7 @@ import { DRAGONS, isDragon, TM_BOSSES } from '../technomagic/sim/bosses';
 import { bossIn, scaleAt, stagesOf, type BossDef } from '../technomagic/sim/bosses/boss';
 import { RAID_TIME } from '../technomagic/sim/rules';
 import { bossById, raidBossById, type DatabankContext } from './context';
-import { RECOMMENDED } from './recommended';
+import { OTHER_HEROES, RECOMMENDED, recommendedIn } from './recommended';
 import { className, FACE, heroCut } from '../shared/heroes';
 import { HEROES } from '../technomagic/sim/heroes';
 import type { DatabankBoss, DatabankItem, DatabankRewards, RaidLevel } from './types';
@@ -171,17 +171,21 @@ export function itemCard(item: DatabankItem): HTMLButtonElement {
 /**
  * A hero recommended against a raid's boss, as King's Raid's own Raid Info has them (its small hero portrait, HeroPortraitSmall):
  * its icon in the gold square frame, its class's tag and the kind of damage it deals over its top left, a thumbs-up over its top
- * right for one King's Raid picked, and its name under it. It opens the hero in the databank's heroes. None for a hero the raid doesn't have.
+ * right for one King's Raid picked, and its name under it; `why` it was picked, when it has one, on hovering it. One the raid has
+ * opens the hero in the databank's heroes; one it doesn't (./recommended.ts OTHER_HEROES) looks the same, its icon King's Raid's.
  */
-export function recommendedCard(id: string, kr: boolean): HTMLElement[] {
-  const hero = HEROES.find((one) => one.id === id);
+export function recommendedCard(id: string, kr: boolean, why?: string): HTMLElement[] {
+  const ours = HEROES.find((one) => one.id === id);
+  const other = OTHER_HEROES[id];
+  const hero = ours ? { name: ours.name, class: ours.class, deals: ours.stats.deals } : other;
   if (!hero) return [];
-  const card = el('button', 'db-recommended-card');
-  card.type = 'button';
-  card.title = `${hero.name}${kr ? ': King’s Raid’s own pick' : ''}`;
+  const card = ours ? el('button', 'db-recommended-card') : el('div', 'db-recommended-card');
+  if (card instanceof HTMLButtonElement) card.type = 'button';
+  card.title = `${hero.name}${kr ? ': King’s Raid’s own pick' : why ? `: ${why}` : ''}`;
   const square = el('span', 'db-recommended-square');
   const face = el('span', 'db-recommended-face', hero.name.slice(0, 1));
-  void heroCut(hero.id, FACE, 120).then((src) => {
+  const picture = ours ? heroCut(id, FACE, 120) : Promise.resolve(`/kr/hero-icons/${id}.webp`);
+  void picture.then((src) => {
     if (!src) return;
     const img = el('img');
     img.src = src;
@@ -200,11 +204,11 @@ export function recommendedCard(id: string, kr: boolean): HTMLElement[] {
     face,
     el('span', 'db-recommended-frame'),
     mark('db-recommended-class', `/kr/ui/class-${hero.class}.webp`, className(hero.class)),
-    mark('db-recommended-deals', `/kr/ui/deals-${hero.stats.deals}.webp`, hero.stats.deals === 'magical' ? 'Magic' : 'Physical'),
+    mark('db-recommended-deals', `/kr/ui/deals-${hero.deals}.webp`, hero.deals === 'magical' ? 'Magic' : 'Physical'),
   );
   if (kr) square.append(mark('db-recommended-kr', '/kr/ui/thumbs-up.webp', 'King’s Raid’s pick'));
   card.append(square, el('span', 'db-recommended-name', hero.name));
-  card.addEventListener('click', () => go(`/databank/heroes/#${encodeURIComponent(hero.id)}`));
+  if (ours) card.addEventListener('click', () => go(`/databank/heroes/#${encodeURIComponent(id)}`));
   return [card];
 }
 
@@ -282,12 +286,16 @@ function renderRaidBoss(ctx: DatabankContext, picked: BossDef): void {
   for (const attack of boss.attacks) attacks.appendChild(el('li')).append(attack.label);
   ui.bossBody.append(label('Attacks'), attacks);
 
-  // The heroes recommended against it (./recommended.ts): King's Raid's own picks first, then those the raid's sim found best.
-  const recommended = RECOMMENDED[boss.id];
-  if (recommended && recommended.heroes.length > 0) {
+  // The heroes recommended against it in the mode picked (./recommended.ts), the raid's or not: King's Raid's own picks first,
+  // then those picked for how their skills fare against its.
+  const normal = boss !== picked;
+  const recommended = recommendedIn(boss.id, normal ? 'normal' : 'hard');
+  if (recommended.heroes.length > 0) {
+    const why = RECOMMENDED[boss.id]?.picks ?? {};
     const grid = el('div', 'db-recommended');
-    grid.append(...recommended.heroes.flatMap((id) => recommendedCard(id, recommended.kr.includes(id))));
-    const note = recommended.kr.length > 0 ? 'Thumbs up: King’s Raid’s own picks for its Hard Dragon Raid. The rest fared best against it in the raid’s simulated fights.' : 'The heroes that fared best against it in the raid’s simulated fights.';
+    grid.append(...recommended.heroes.flatMap((id) => recommendedCard(id, recommended.kr.includes(id), why[id])));
+    const rest = 'picked for how their skills fare against its (hover over one to see why)';
+    const note = recommended.kr.length > 0 ? `Thumbs up: King’s Raid’s own picks for its ${normal ? 'Normal' : 'Hard'} Dragon Raid. The rest were ${rest}.` : `Heroes ${rest}.`;
     ui.bossBody.append(label('Recommended heroes'), grid, el('p', 'detail-note', note));
   }
 

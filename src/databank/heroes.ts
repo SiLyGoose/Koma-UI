@@ -9,7 +9,8 @@ import type { BossDef } from '../technomagic/sim/bosses/boss';
 import type { HeroDef } from '../technomagic/sim/heroes/kit';
 import { label, portrait, raidOf, recommendedCard } from './bosses';
 import { heroById, heroesShown, type DatabankContext } from './context';
-import { RECOMMENDED, TEAMMATES } from './recommended';
+import { recommendedIn } from './recommended';
+import { TEAMMATES } from './teammates';
 import type { DatabankItem } from './types';
 
 /*
@@ -94,9 +95,11 @@ function areaCard(boss: BossDef, kr: boolean): HTMLButtonElement {
  * (also the shop's buy box's, ../hero-shop/).
  */
 export function areasOf(id: string): HTMLElement {
-  const areas = BOSSES.filter((boss) => RECOMMENDED[boss.id]?.heroes.includes(id));
+  // (A dragon's in either of its modes.)
+  const lists = (boss: BossDef) => [recommendedIn(boss.id, 'hard'), recommendedIn(boss.id, 'normal')];
+  const areas = BOSSES.filter((boss) => lists(boss).some((list) => list.heroes.includes(id)));
   const grid = el('div', 'db-areas');
-  if (areas.length > 0) grid.append(...areas.map((boss) => areaCard(boss, RECOMMENDED[boss.id]?.kr.includes(id) ?? false)));
+  if (areas.length > 0) grid.append(...areas.map((boss) => areaCard(boss, lists(boss).some((list) => list.kr.includes(id)))));
   else {
     const spacer = el('span', 'db-areas-spacer');
     spacer.setAttribute('aria-hidden', 'true');

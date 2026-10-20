@@ -1,7 +1,7 @@
 import markup from './hero-shop.html?raw';
 import { areasOf } from '../databank/heroes';
 import { label, recommendedCard } from '../databank/bosses';
-import { TEAMMATES } from '../databank/recommended';
+import { TEAMMATES } from '../databank/teammates';
 import { skillBrief } from '../heroes/briefs';
 import { skillRows } from '../heroes/render';
 import { className, heroCard, heroPicture, type HeroView, type HeroesView } from '../shared/heroes';

@@ -224,7 +224,8 @@
  * A raid's boss: the heroes recommended against it (./bosses.ts recommendedCard), as King's Raid's Raid Info has them (its small
  * hero portrait, in its units: 210 square): the hero's icon (192 across) in the gold square frame (Common_Hero_Frame_Small,
  * 9-sliced, its corners 50 across), its class's tag (64, top left), the kind of damage it deals (40, beside it), a thumbs-up
- * (76, top right) for King's Raid's own picks, and its name under it. Each opens the hero in the databank's heroes.
+ * (76, top right) for King's Raid's own picks, and its name under it. Each the raid has opens the hero in the databank's
+ * heroes; one it doesn't (a div) only shows why it was picked, on hovering it.
  */
 .db-recommended {
   display: grid;
@@ -248,6 +249,10 @@
   color: var(--ink, #3d3045);
   font: inherit;
   cursor: pointer;
+}
+
+div.db-recommended-card {
+  cursor: default;
 }
 
 .db-recommended-square {
