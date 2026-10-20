@@ -116,13 +116,13 @@ const uniqueGear = (ctx: DatabankContext, id: string): DatabankItem[] =>
 
 /**
  * One of them, as its skills are drawn under it (../heroes/render.ts skillRows): its picture (it opens the item in the hero
- * items), its name and which it is, and what it does at its top stars (a treasure: as the main one).
+ * items), its name and which it is, and what it does at its top stars: a weapon its ATK first, a treasure (as the main one) its HP.
  */
 function uniqueRow(item: DatabankItem): HTMLElement {
   const top = item.effects.length;
   const lines = item.effects[top - 1] ?? [];
   const ut = item.uniqueTreasure;
-  const row = el('li', 'skill');
+  const row = el('li', 'skill db-unique');
   const icon = el('button', 'skill-icon db-unique-icon');
   icon.type = 'button';
   icon.title = `See ${item.name} in the hero items`;
@@ -133,7 +133,9 @@ function uniqueRow(item: DatabankItem): HTMLElement {
   head.append(el('h3', 'skill-name', item.name), el('span', 'skill-tag', `${ut ? `UT${ut.skill} · ${ut.skill === 4 ? 'Passive' : `Skill ${ut.skill}`}` : 'Unique Weapon'} · T10 · ★${top}`));
   const words = el('div', 'skill-words');
   words.append(head);
-  for (const line of ut ? treasureParts(lines).main : uniqueWeaponEffect(lines)) words.appendChild(el('p', 'skill-text')).append(...skillText(line));
+  // (A weapon's ATK as the bot says it, "Unique weapon: +96,209 ATK": its number alone.)
+  const atk = ut ? [] : lines.flatMap((line) => /^Unique weapon: (.+)$/.exec(line)?.[1] ?? []);
+  for (const line of ut ? treasureParts(lines).main : [...atk, ...uniqueWeaponEffect(lines)]) words.appendChild(el('p', 'skill-text')).append(...skillText(line));
   row.append(icon, words);
   return row;
 }
