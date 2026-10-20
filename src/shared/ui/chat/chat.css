@@ -113,6 +113,13 @@
   overflow-wrap: anywhere;
 }
 
+/* When it was said (hh:mm), before the name. */
+.chat-line time {
+  color: var(--dusk);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
 .chat-line b {
   color: var(--petal);
 }

@@ -267,7 +267,11 @@ export function chatBox({ mount, send, you, colour, canSay = true }: ChatOptions
     const li = document.createElement('li');
     li.className = 'chat-line';
     if (line.id === you()) li.classList.add('mine');
-    li.title = new Date(line.at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    // When it was said, hh:mm, before who said it.
+    const said = new Date(line.at);
+    const time = document.createElement('time');
+    time.dateTime = said.toISOString();
+    time.textContent = `${String(said.getHours()).padStart(2, '0')}:${String(said.getMinutes()).padStart(2, '0')}`;
     const name = document.createElement('b');
     name.textContent = line.name;
     const shade = colour?.(line.id);
@@ -288,10 +292,10 @@ export function chatBox({ mount, send, you, colour, canSay = true }: ChatOptions
       if (found) linked = { link, picture: found };
     }
     text.append(line.text.slice(from));
-    li.append(name, ' ', text);
+    li.append(time, ' ', name, ' ', text);
     // Its picture: the one said with it (pasted, or the bot's reading of a link to a GIF's page), or the one its words link to.
-    const said = line.image && SAID_IMAGE.test(line.image) ? line.image : null;
-    if (said) li.append(pictureFor(said, said.startsWith('data:') ? null : said));
+    const image = line.image && SAID_IMAGE.test(line.image) ? line.image : null;
+    if (image) li.append(pictureFor(image, image.startsWith('data:') ? null : image));
     else if (linked) li.append(pictureFor(linked.picture, linked.link));
     list.append(li);
     while (list.childElementCount > KEEP) list.firstElementChild?.remove();
