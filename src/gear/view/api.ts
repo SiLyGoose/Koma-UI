@@ -19,7 +19,9 @@ export function failed(ctx: GearContext, res: { status: number; error: string },
           ? 'Your gear was changing somewhere else. Try again.'
           : res.error === 'nothing_to_sell'
             ? 'None of those can be sold any more. Take another look and try again.'
-            : what,
+            : res.error === 'too_poor'
+              ? "You don't have enough zeiucoins for that."
+              : what,
     true,
   );
 }
@@ -89,6 +91,9 @@ export const unequipEverything = (ctx: GearContext): Promise<unknown> =>
   change(ctx, 'unequip-all', '/api/gear/unequip-all', {}, 'Could not unequip everything. Try again.');
 export const switchTo = (ctx: GearContext, loadout: number): Promise<unknown> =>
   change(ctx, 'loadout', '/api/gear/loadout', { loadout }, 'Could not switch loadouts. Try again.');
+/** Unlocks loadout `loadout` (their next one) for its price in zeiucoins. */
+export const unlockLoadout = (ctx: GearContext, loadout: number): Promise<unknown> =>
+  change(ctx, `unlock:${loadout}`, '/api/gear/loadout/unlock', { loadout }, 'Could not unlock that loadout. Try again.');
 /** The longest name a loadout takes (the bot's LOADOUTS.maxNameLength). */
 export const LOADOUT_NAME_MAX = 24;
 

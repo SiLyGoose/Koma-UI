@@ -70,6 +70,8 @@ export interface GearContext {
   selling: Set<string> | null;
   /** The loadout being named in the menu (null when none is): its number, what's typed so far, and why the bot wouldn't have it. */
   renaming: { number: number; value: string; error: string | null } | null;
+  /** The locked loadout whose unlock is being confirmed in the menu (its price asked about), or null. */
+  unlocking: number | null;
 }
 
 export function createContext(root: HTMLElement, host: GearHost): GearContext {
@@ -125,6 +127,7 @@ export function createContext(root: HTMLElement, host: GearHost): GearContext {
     loads: 0,
     selling: null,
     renaming: null,
+    unlocking: null,
   };
 }
 

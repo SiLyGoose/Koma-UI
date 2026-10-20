@@ -3,7 +3,7 @@ import type { GearCopy, GearRefine, GearView, StatRow } from '../../protocol/gea
 import type { MainStat } from '../../protocol/items';
 
 /** A member's gear as the bot says it (../../protocol/gear.ts). */
-export type { GearCopy, GearLoadout, GearRefine, GearView, RefineBlock, StatRow, StatSection } from '../../protocol/gear';
+export type { GearCopy, GearLoadout, GearLockedLoadout, GearRefine, GearView, RefineBlock, StatRow, StatSection } from '../../protocol/gear';
 
 
 /*

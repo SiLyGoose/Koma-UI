@@ -224,3 +224,64 @@
   filter: grayscale(1) brightness(0.7);
   opacity: 0.45;
 }
+
+/*
+ * A loadout not unlocked yet (foot.ts's lockedRow): under a line, its lock, its name and its price in zeiucoins;
+ * greyed out when it isn't the next one or they can't pay for it. Asking to pay: the price, a tick and a cross.
+ */
+.loadout-row.locked {
+  min-height: 44px;
+}
+
+.loadout-row:not(.locked) + .loadout-row.locked {
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid var(--line);
+}
+
+.loadout-unlock:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.loadout-lock {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+}
+
+.loadout-lock svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+.loadout-price {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 4px;
+  color: var(--gold);
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.loadout-coin {
+  width: 16px;
+  height: 16px;
+}
+
+.loadout-ask {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  min-width: 0;
+  padding: 8px 6px 8px 16px;
+  color: var(--text);
+  font-size: 14px;
+}
