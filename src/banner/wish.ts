@@ -1,4 +1,4 @@
-import { art, el, heroGear, heroMarks, isTmPiece, itemIcons, krStars, shownName, SLOT_NAME, tierMark, utTier, uwTier } from '../shared/items';
+import { art, el, heroGear, heroMarks, isTmPiece, itemIcons, krStars, shownName, SLOT_NAME, tierMark, uniqueTier } from '../shared/items';
 import { sleep } from '../shared/util';
 import type { ApiResult } from '../site/session';
 import type { BannerContext } from './context';
@@ -205,7 +205,7 @@ function reveal(pull: BannerPull): HTMLElement {
 
   const text = el('div', 'wish-text');
   // (A unique weapon's or treasure's tier is its own, in place of its stars.)
-  const row = pull.uniqueWeapon ? uwTier() : pull.uniqueTreasure ? utTier() : tierMark(pull.stars);
+  const row = pull.uniqueWeapon || pull.uniqueTreasure ? uniqueTier() : tierMark(pull.stars);
   [...row.children].forEach((star, i) => (star as HTMLElement).style.setProperty('--i', String(i)));
   text.append(el('p', 'wish-slot', SLOT_NAME[pull.slot]), el('h2', 'wish-name', shownName(pull)), row);
   text.append(pull.isNew ? el('p', 'wish-new', 'New!') : el('p', 'wish-owned', `You have ${pull.count}`));

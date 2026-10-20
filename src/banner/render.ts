@@ -1,5 +1,5 @@
 import { coin, points } from '../shared/util';
-import { art, el, kindName, rich, tierMark, utMarks, utTier, uwMarks, uwTier } from '../shared/items';
+import { art, el, kindName, rich, tierMark, uniqueTier, utMarks, utTier, uwMarks, uwTier } from '../shared/items';
 import { working } from '../shared/ui';
 import { timeLeft, type Banner, type Featured } from './banners';
 import { canAfford, price, type BannerContext } from './context';
@@ -41,7 +41,7 @@ function featured(box: HTMLElement, item: Featured, etc: boolean): void {
   plate.dataset.stars = String(item.stars);
   const name = el('span', 'banner-plate-name', item.name);
   if (etc) name.append(el('small', '', ' etc.'));
-  plate.append(el('span', 'banner-up', 'UP!'), name, item.uniqueWeapon ? uwTier() : item.uniqueTreasure ? utTier() : tierMark(item.stars));
+  plate.append(el('span', 'banner-up', 'UP!'), name, item.uniqueWeapon || item.uniqueTreasure ? uniqueTier() : tierMark(item.stars));
   box.replaceChildren(face, plate);
 }
 
@@ -92,7 +92,7 @@ function renderPick(ctx: BannerContext, choices: readonly GuaranteeChoice[], pic
       face.append(art(choice.itemId, choice.slot));
       const name = el('span', 'banner-pick-name', choice.name);
       if (choice.mine) name.append(el('small', 'banner-pick-mine', 'Yours'));
-      option.append(face, name, choice.uniqueWeapon ? uwTier() : choice.uniqueTreasure ? utTier() : tierMark(choice.stars));
+      option.append(face, name, choice.uniqueWeapon || choice.uniqueTreasure ? uniqueTier() : tierMark(choice.stars));
     } else {
       face.textContent = '?';
       option.append(face, el('span', 'banner-pick-name', noneLabel(id, choices)));

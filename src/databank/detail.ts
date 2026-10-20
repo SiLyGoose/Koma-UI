@@ -1,4 +1,4 @@
-import { art, effectSection, el, itemDetailsClosed, kindName, mainStatText, rich, tierMark, tmTier, treasureParts, treasureSection, utTier, uwTier } from '../shared/items';
+import { art, effectSection, el, itemDetailsClosed, kindName, mainStatText, rich, tierMark, tmTier, treasureParts, treasureSection, uniqueTier } from '../shared/items';
 import { skillText } from '../shared/heroes';
 import { go } from '../site/nav';
 import { SKILLS } from '../technomagic/sim/skills';
@@ -108,7 +108,7 @@ export function renderDetail(ctx: DatabankContext): void {
   const title = el('div', 'detail-title');
   const name = el('h3', '', item.name);
   // Under the name, its category, then its stars (as the gear page's item panel); TechnoMagic gear and a unique weapon, their tiers of their own.
-  title.append(name, el('p', 'detail-meta db-kind', kindName(item)), item.source === 'technomagic' ? tmTier() : item.uniqueTreasure ? utTier() : item.source === 'heroBanner' ? uwTier() : tierMark(item.stars));
+  title.append(name, el('p', 'detail-meta db-kind', kindName(item)), item.source === 'technomagic' ? tmTier() : item.uniqueTreasure || item.source === 'heroBanner' ? uniqueTier() : tierMark(item.stars));
   // A class item says whose it is; TechnoMagic gear, its set (three pieces on a hero give its effect, for the hero's class: its effects say it too).
   if (item.class) title.append(classTag(item.class, className(ctx, item.class)));
   if (item.set) {

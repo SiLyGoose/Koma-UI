@@ -215,17 +215,27 @@ export function utTier(): HTMLElement {
   return tier;
 }
 
-/** A unique treasure's marks: a unique weapon's (uwMarks), its tab "UT" (styles/uw.css). */
+/**
+ * A unique weapon's or treasure's tier where its stars would be (an item's panel, a banner's plate, a pull): T10, King's Raid's
+ * top, in their crimson (styles/uw.css). (Their own groups, the filters' and lists', are UW and UT: uwTier, utTier.)
+ */
+export function uniqueTier(): HTMLElement {
+  const tier = el('span', 'uw-tier', 'T10');
+  tier.setAttribute('aria-label', 'Tier 10');
+  return tier;
+}
+
+/** A unique treasure's marks: a unique weapon's (uwMarks), its tab saying it is a treasure (styles/uw.css). */
 export const utMarks = (hero: string): HTMLElement[] => uwMarks(hero, true);
 
 /**
- * A unique weapon's marks, as TechnoMagic gear's (tmMarks) but in crimson: a "UW" tab over its top left corner, and
- * over its top right one its hero's face (styles/uw.css, for a card with these in it). A unique treasure's (`treasure`),
- * the same, its tab "UT".
+ * A unique weapon's marks, as TechnoMagic gear's (tmMarks) but in crimson: a tab with its tier, T10 (King's Raid's top),
+ * over its top left corner, and over its top right one its hero's face (styles/uw.css, for a card with these in it). A
+ * unique treasure's (`treasure`), the same.
  */
 export function uwMarks(hero: string, treasure = false): HTMLElement[] {
-  const tag = el('span', treasure ? 'item-uw item-ut' : 'item-uw', treasure ? 'UT' : 'UW');
-  tag.setAttribute('aria-label', treasure ? 'Unique treasure' : 'Unique weapon');
+  const tag = el('span', treasure ? 'item-uw item-ut' : 'item-uw', 'T10');
+  tag.setAttribute('aria-label', treasure ? 'Unique treasure, tier 10' : 'Unique weapon, tier 10');
   const tab = el('span', 'item-uw-hero');
   const name = hero
     .split('-')
@@ -325,10 +335,12 @@ export function itemFace(copy: { level: number; maxLevel?: number; itemId: strin
 }
 
 /** A hero's gear's marks (itemFace): a unique weapon's or unique treasure's, a TechnoMagic piece's, a dragon set's piece's tier, or none. */
-export function heroMarks(copy: { itemId: string; uniqueWeapon?: string | null; uniqueTreasure?: Treasure; itemClass?: string | null; class?: string | null }): HTMLElement[] {
+export function heroMarks(copy: { itemId: string; uniqueWeapon?: string | null; uniqueTreasure?: Treasure; itemClass?: string | null; class?: string | null; part?: string | null }): HTMLElement[] {
   if (copy.uniqueWeapon) return uwMarks(copy.uniqueWeapon);
   if (copy.uniqueTreasure) return utMarks(copy.uniqueTreasure.hero);
   if (isTmPiece(copy.itemId)) return tmMarks(copy.itemClass ?? copy.class);
+  // (An artifact: T10, King's Raid's top, as the unique weapons and treasures.)
+  if (copy.part === 'artifact') return [dragonTierMark(10)];
   const tier = dragonTier(copy.itemId);
   return tier === null ? [] : [dragonTierMark(tier)];
 }

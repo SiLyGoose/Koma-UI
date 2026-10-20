@@ -1,4 +1,4 @@
-import { el, treasureParts, uniqueWeaponEffect } from '../shared/items';
+import { art, el, treasureParts, uniqueWeaponEffect } from '../shared/items';
 import { BUST, classBadge, className, FACE, heroCut, heroPicture, skillText } from '../shared/heroes';
 import { closeButton } from '../shared/ui';
 import { skillRows } from '../heroes/render';
@@ -7,7 +7,7 @@ import { BOSSES } from '../technomagic/sim/bosses';
 import { KR_HEROES } from '../technomagic/sim/heroes/kr';
 import type { BossDef } from '../technomagic/sim/bosses/boss';
 import type { HeroDef } from '../technomagic/sim/heroes/kit';
-import { itemCard, label, portrait, raidOf, recommendedCard } from './bosses';
+import { label, portrait, raidOf, recommendedCard } from './bosses';
 import { heroById, heroesShown, type DatabankContext } from './context';
 import { RECOMMENDED, TEAMMATES } from './recommended';
 import type { DatabankItem } from './types';
@@ -114,17 +114,27 @@ const uniqueGear = (ctx: DatabankContext, id: string): DatabankItem[] =>
     .filter((item) => item.uniqueWeapon === id || item.uniqueTreasure?.hero === id)
     .sort((a, b) => (a.uniqueTreasure?.skill ?? 0) - (b.uniqueTreasure?.skill ?? 0));
 
-/** One of them: its card (it opens the item in the hero items), and beside it what it does at its top stars (a treasure: as the main one). */
+/**
+ * One of them, as its skills are drawn under it (../heroes/render.ts skillRows): its picture (it opens the item in the hero
+ * items), its name and which it is, and what it does at its top stars (a treasure: as the main one).
+ */
 function uniqueRow(item: DatabankItem): HTMLElement {
   const top = item.effects.length;
   const lines = item.effects[top - 1] ?? [];
   const ut = item.uniqueTreasure;
-  const kind = ut ? `Unique Treasure ${ut.skill} · ${ut.skill === 4 ? 'Passive' : `Skill ${ut.skill}`}` : 'Unique Weapon';
-  const row = el('div', 'db-class-item db-hero-unique');
-  const about = el('div', 'db-class-item-about');
-  about.append(el('strong', '', item.name), el('small', '', `${kind} · at ★${top}`));
-  for (const line of ut ? treasureParts(lines).main : uniqueWeaponEffect(lines)) about.appendChild(el('span', 'db-skill-text')).append(...skillText(line));
-  row.append(itemCard(item), about);
+  const row = el('li', 'skill');
+  const icon = el('button', 'skill-icon db-unique-icon');
+  icon.type = 'button';
+  icon.title = `See ${item.name} in the hero items`;
+  icon.setAttribute('aria-label', icon.title);
+  icon.append(art(item.id, item.slot));
+  icon.addEventListener('click', () => go(`/databank/items/#${encodeURIComponent(item.id)}`));
+  const head = el('div', 'skill-head');
+  head.append(el('h3', 'skill-name', item.name), el('span', 'skill-tag', `${ut ? `UT${ut.skill} · ${ut.skill === 4 ? 'Passive' : `Skill ${ut.skill}`}` : 'Unique Weapon'} · T10 · ★${top}`));
+  const words = el('div', 'skill-words');
+  words.append(head);
+  for (const line of ut ? treasureParts(lines).main : uniqueWeaponEffect(lines)) words.appendChild(el('p', 'skill-text')).append(...skillText(line));
+  row.append(icon, words);
   return row;
 }
 
@@ -215,7 +225,11 @@ function renderHero(ctx: DatabankContext): void {
 
   // Its unique weapon and treasures, right over its skills (whose UT each is).
   const unique = uniqueGear(ctx, hero.id);
-  if (unique.length > 0) ui.heroBody.append(label('Unique Weapon & Treasures'), ...unique.map(uniqueRow));
+  if (unique.length > 0) {
+    const list = el('ol', 'skills-list');
+    list.append(...unique.map(uniqueRow));
+    ui.heroBody.append(label('Unique Weapon & Treasures'), list);
+  }
 
   const skills = skillRows(hero.id, ctx.databank?.heroes?.find((one) => one.id === hero.id)?.abilities ?? []);
   if (skills.length > 0) {
