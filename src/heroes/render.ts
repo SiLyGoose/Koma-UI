@@ -10,6 +10,7 @@ import { FORGE_MODES, heroCan } from '../forge/modes';
 import { heroStats } from './stats';
 import { ESSENCE_NAME, essencePicture, heroPerks, spent, TRANSCEND_MAX, TRANSCEND_POINTS, type EssenceId, type Perk, type TranscendTier } from './transcend';
 import { GEM_EMOJI } from '../forge/anvil/gem';
+import { essenceSources } from './essences';
 
 /*
  * Draws the heroes page from what the bot said (ctx.view): the roster of heroes, the one shown on the stage
@@ -758,7 +759,7 @@ function renderTranscend(ctx: HeroesContext, act: HeroActions): void {
  * At the top of the Stats tab: what transcending is for (more Transcendence Points), then what the hero's next level costs (how far it is, the stars beside its class
  * banner say): each of its class's hero essences, then komaGems, each with how many they have (short in red; for someone
  * else's, only the cost), the komaGems in a box of their own (as King's Raid sets its Stone of Infinity apart), and Transcend
- * beside them. Nothing at T5.
+ * beside them; an essence pressed, where it comes from under them (./essences.ts). Nothing at T5.
  */
 function renderAscend(ctx: HeroesContext, act: HeroActions): void {
   const { ui, view } = ctx;
@@ -774,25 +775,40 @@ function renderAscend(ctx: HeroesContext, act: HeroActions): void {
   const essences = el('div', 'ascend-essences');
   const gems = el('div', 'ascend-gems');
   let short = false;
-  const cost = (into: HTMLElement, picture: HTMLElement, name: string, have: number, need: number): void => {
+  const cost = (into: HTMLElement, picture: HTMLElement, name: string, have: number, need: number, tag: 'div' | 'button' = 'div'): HTMLElement => {
     const lacking = yours && have < need;
     short ||= lacking;
-    const item = el('div', `ascend-cost${lacking ? ' short' : ''}`);
+    const item = el(tag, `ascend-cost${lacking ? ' short' : ''}`);
     item.title = name;
     item.append(picture, el('span', 'ascend-count', yours ? `${have.toLocaleString('en-US')}/${need}` : `×${need}`));
     into.append(item);
+    return item;
   };
-  for (const [id, need] of Object.entries(next.essences) as [EssenceId, number][]) {
+  // Each essence pressed: where it comes from, under the costs (./essences.ts); pressed again, or another's, put away.
+  const kinds = Object.entries(next.essences) as [EssenceId, number][];
+  if (ctx.essence && !kinds.some(([id]) => id === ctx.essence)) ctx.essence = null;
+  for (const [id, need] of kinds) {
     const picture = el('img', 'ascend-icon');
     picture.src = essencePicture(id);
     picture.alt = `${ESSENCE_NAME[id]} essence`;
-    cost(essences, picture, `${ESSENCE_NAME[id]} essence`, view.essences?.[id] ?? 0, need);
+    const item = cost(essences, picture, `${ESSENCE_NAME[id]} essence: where it comes from`, view.essences?.[id] ?? 0, need, 'button') as HTMLButtonElement;
+    item.type = 'button';
+    item.setAttribute('aria-expanded', String(ctx.essence === id));
+    item.setAttribute('aria-controls', 'essence-sources');
+    item.dataset.essence = id;
+    item.addEventListener('click', () => {
+      ctx.essence = ctx.essence === id ? null : id;
+      renderAscend(ctx, act);
+      // (Drawn anew: the same one keeps the focus.)
+      ui.ascend.querySelector<HTMLElement>(`[data-essence="${id}"]`)?.focus();
+    });
   }
   const gem = el('span', 'ascend-icon ascend-gem');
   gem.append(rich(GEM_EMOJI));
   cost(gems, gem, 'komaGems', view.gems ?? 0, next.gems);
   costs.append(essences, gems);
   ui.ascend.append(el('p', 'ascend-hint', 'Transcend to unlock more Transcendence Points (TP).'), costs);
+  if (ctx.essence) ui.ascend.append(essenceSources(ctx, ctx.essence, mine(ctx) ? (view.essences?.[ctx.essence] ?? 0) : null, () => renderAscend(ctx, act)));
   if (!hero.owned) {
     ui.ascend.append(el('p', 'ascend-note', notRecruited(ctx, hero.name, 'transcend them')));
     return;

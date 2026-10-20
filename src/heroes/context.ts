@@ -1,6 +1,6 @@
 import { armoryFilter, armoryGrid, type ArmoryFilter, type ArmoryGrid, type ItemType, type StarChoice, TM_UNSORTED, type TmSort } from '../shared/items';
 import { HERO_SLOT_PART, HERO_SLOTS, type HeroView, type HeroCopy, type HeroSlot, type HeroesView } from '../shared/heroes';
-import { SIDE_SLOTS } from '../protocol/heroes';
+import { SIDE_SLOTS, type EssenceId } from '../protocol/heroes';
 import type { Busy } from '../shared/ui';
 import type { ApiResult } from '../site/session';
 
@@ -102,6 +102,8 @@ export interface HeroesContext {
   tab: 'stats' | 'gear' | 'skills' | 'transcend';
   /** The transcendence perk whose words show (its id), if any. */
   perk: string | null;
+  /** The hero essence whose sources show under the Stats tab's Transcend costs (./essences.ts), if any. */
+  essence: EssenceId | null;
   /** The copy shown over the hero, if any. */
   picked: string | null;
   /** The Gear tab shows their runes, to put in the picked piece (its Runes), in place of the cards. */
@@ -188,6 +190,7 @@ export function createContext(root: HTMLElement, host: HeroesHost): HeroesContex
     query: '',
     tab: 'stats',
     perk: null,
+    essence: null,
     picked: null,
     runes: false,
     busy: null,
