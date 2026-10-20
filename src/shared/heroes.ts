@@ -263,8 +263,8 @@ const IS_STATE = / (?:[Ss]tate|[Mm]ode)$/;
 
 /**
  * A skill's words, as King's Raid marks them: its numbers (20%, 12,000, 0.5) and what's in brackets ([Darkened Power]) each in
- * a colour of their own, and the name of a state its hero goes into in another ("[Dark Lord] state", "Fury state", "Stealth
- * mode": its name, not the word), as is what's in brackets that is one of its states elsewhere in them ("[Dark Lord]"): the
+ * a colour of their own, and the name of a state its hero goes into in another, always in brackets ("[Dark Lord] state",
+ * "[Fury] state", "[Stealth] mode": its name, not the word), as is what's in brackets that is one of its states elsewhere in them ("[Dark Lord]"): the
  * heroes page's Skills tab, the raid's popups. Its chance stats' points as percentages.
  */
 export function skillText(text: string): (string | HTMLElement)[] {
@@ -276,8 +276,10 @@ export function skillText(text: string): (string | HTMLElement)[] {
   let at = 0;
   for (const { 0: part, index } of marked) {
     if (index > at) out.push(words.slice(at, index));
+    // (A state's name in brackets, as King's Raid's own are, though they don't have it so: "Fury state" says "[Fury] state".)
     const state = IS_STATE.exec(part);
-    if (state) out.push(el('b', 'skill-state', part.slice(0, state.index)), part.slice(state.index));
+    const name = state && part.slice(0, state.index);
+    if (state && name) out.push(el('b', 'skill-state', name.startsWith('[') ? name : `[${name.replace(/^'(.*)'$/, '$1')}]`), part.slice(state.index));
     else out.push(el('b', states.has(part) ? 'skill-state' : part.startsWith('[') ? 'skill-effect' : 'skill-number', part));
     at = index + part.length;
   }
