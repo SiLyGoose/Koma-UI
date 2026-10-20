@@ -4,6 +4,8 @@ import type { RaidShopItem, RaidShopView } from './types';
 /** The Raid Gear tab's elements, found once in its root. */
 export interface RaidShopUi {
   server: HTMLSelectElement;
+  powder: HTMLElement;
+  craft: HTMLButtonElement;
   gems: HTMLElement;
   strip: HTMLElement;
   timer: HTMLElement;
@@ -29,7 +31,7 @@ export interface RaidShopContext {
   ui: RaidShopUi;
   view: RaidShopView | null;
   asking: Asking | null;
-  /** A buy or a refresh on its way (the box's button: 'confirm'): the cards wait for it. */
+  /** A buy or a refresh on its way (the box's button: 'confirm'), or a craft ('craft'): the cards wait for it. */
   busy: Busy | null;
 }
 
@@ -38,6 +40,8 @@ export function createContext(root: HTMLElement): RaidShopContext {
   return {
     ui: {
       server: $<HTMLSelectElement>('#server'),
+      powder: $('#powder'),
+      craft: $<HTMLButtonElement>('#craft'),
       gems: $('#gems'),
       strip: $('#strip'),
       timer: $('#timer'),

@@ -3,7 +3,7 @@ import { API, busyWith, dropdown, fillServers, wheelSideways } from '../shared/u
 import type { ShopTab } from '../shop/tab';
 import { api, currentMe, currentServer, loadMe, logOut, prefetchFor, setServer } from '../site/session';
 import { createContext, status, type Asking, type RaidShopContext } from './context';
-import { render, renderAsk, renderTimer } from './render';
+import { craftable, render, renderAsk, renderTimer } from './render';
 import type { RaidShopView } from './types';
 
 /*
@@ -12,7 +12,8 @@ import type { RaidShopView } from './types';
  * asks to buy a copy of it for their komaGems (what raid wins pay) in the server picked; they can buy as
  * many copies as they can pay for, to refine in the forge (../forge/). The shelf changes with the raid's
  * week, and a few times a week they can pay komaGems for a new one of their own (each dearer than the
- * last). Logged-in members only.
+ * last). Beside their komaGems, their gear powder (what selling hero gear pays): Craft makes every whole 1,000 of it a komaGem
+ * (the bot's sell.powderPerGem). Logged-in members only.
  */
 
 /** A shield, on the shop's rail. */
@@ -50,6 +51,8 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     if (pressed && item) ask({ kind: 'buy', item }, pressed);
   });
   ui.refresh.addEventListener('click', () => ask({ kind: 'refresh' }, ui.refresh));
+  // Craft: nothing to lose (gear powder does nothing else), so no asking first.
+  ui.craft.addEventListener('click', () => void craft(ctx));
 
   // The box: its button, or Cancel (or Escape, or a click outside it).
   const closeAsk = (): void => {
@@ -124,6 +127,31 @@ async function load(ctx: RaidShopContext): Promise<void> {
   ctx.view = res.data;
   status(ctx, null);
   render(ctx);
+}
+
+/** Crafts as many komaGems as their gear powder makes, and draws the tab as it is after. */
+async function craft(ctx: RaidShopContext): Promise<void> {
+  const server = currentServer();
+  const count = ctx.view ? (craftable(ctx.view) ?? 0) : 0;
+  if (ctx.busy || !server || count === 0) return;
+  ctx.busy = busyWith('craft');
+  status(ctx, null);
+  render(ctx);
+  const res = await api<RaidShopView>('/api/raid-shop/craft', { method: 'POST', body: JSON.stringify({ guild: server, count }) });
+  ctx.busy = null;
+  // It made komaGems (or the amounts shown were old): the header's balances follow.
+  void loadMe(true);
+  if (!res.ok) {
+    render(ctx);
+    if (res.error === 'too_poor') {
+      await load(ctx);
+      return status(ctx, "You don't have that much Gear Powder any more.", true);
+    }
+    return failed(ctx, res, 'Could not craft komaGems. Try again.');
+  }
+  ctx.view = res.data;
+  render(ctx);
+  status(ctx, `Crafted ${count.toLocaleString()} komaGem${count === 1 ? '' : 's'}.`);
 }
 
 /** Does what the box asked about (buys the item, or refreshes the shelf), and draws the tab as it is after. */

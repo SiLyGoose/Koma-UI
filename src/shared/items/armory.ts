@@ -1,5 +1,5 @@
 import { type Busy, doneMark, working } from '../ui';
-import { coin, points } from '../util';
+import { coin, points, powder } from '../util';
 import { armoryOrder, type TmSort } from './gear';
 import { dragonTier, el, hasLevels, heroGear, itemFace, type ItemType, ITEM_TYPE_NAME, kindName, levelLabel, lockBadge, mainStatLine, rich, shownName, type Slot, type Stars, tierOf, typeOf } from './items';
 import type { HeroPart } from '../../protocol/heroes';
@@ -31,6 +31,8 @@ export interface ArmoryCopy {
   locked?: boolean;
   /** What selling it pays: null when it's never sold (worn, in a loadout, on a hero, locked); left out by a bot from before selling. */
   sell?: number | null;
+  /** Hero gear: what selling it pays is gear powder, not zeiucoins. */
+  sellPowder?: boolean;
   /** What selling it pays though it's locked, where a sale can take locked ones too (the heroes page's): null or left out otherwise. */
   sellLocked?: number | null;
   effects: string[];
@@ -255,20 +257,30 @@ export const priceOf = (copy: ArmoryCopy, unlocked = false): number | null =>
 
 /**
  * How many copies are picked to sell (of those that still can be; locked ones too with `unlocked`), what they sell for
- * together, their ids, and how many of them are locked.
+ * together (`total` zeiucoins, and hero gear's `powder`), their ids, and how many of them are locked.
  */
-export function saleOf(copies: readonly ArmoryCopy[], selling: ReadonlySet<string> | null, unlocked = false): { count: number; total: number; ids: string[]; locked: number } {
+export function saleOf(copies: readonly ArmoryCopy[], selling: ReadonlySet<string> | null, unlocked = false): { count: number; total: number; powder: number; ids: string[]; locked: number } {
   const ids: string[] = [];
   let total = 0;
+  let powder = 0;
   let locked = 0;
   for (const copy of copies) {
     const price = priceOf(copy, unlocked);
     if (!selling?.has(copy.id) || price === null) continue;
     ids.push(copy.id);
-    total += price;
+    if (copy.sellPowder) powder += price;
+    else total += price;
     if (typeof copy.sell !== 'number') locked++;
   }
-  return { count: ids.length, total, ids, locked };
+  return { count: ids.length, total, powder, ids, locked };
+}
+
+/** What a sale pays, as amounts each with its picture after it: zeiucoins, gear powder or both (none of either: 0 zeiucoins). */
+function worth(total: number, gearPowder: number): (Node | string)[] {
+  const out: (Node | string)[] = [];
+  if (total > 0 || gearPowder === 0) out.push(`${points(total)} `, coin('coin', 'zeiucoins'));
+  if (gearPowder > 0) out.push(`${out.length > 0 ? ' + ' : ''}${points(gearPowder)} `, powder('coin powder'));
+  return out;
 }
 
 /** Drops from `selling` what can't be sold any more (sold, put on or locked meanwhile; locked ones kept with `unlocked`). */
@@ -283,10 +295,10 @@ export function pruneSale(copies: readonly ArmoryCopy[], selling: Set<string>, u
  * heroes page, where a locked one is still a reason to start picking).
  */
 export function drawSell(sell: HTMLButtonElement, cancel: HTMLElement, copies: readonly ArmoryCopy[], selling: ReadonlySet<string> | null, busy: Busy | null, shown: boolean, unlocked: boolean | null = null): void {
-  const { count, total } = saleOf(copies, selling, unlocked === true);
+  const { count, total, powder: gearPowder } = saleOf(copies, selling, unlocked === true);
   sell.hidden = !shown || copies.some((copy) => copy.sell === undefined);
   sell.textContent = '';
-  if (selling && count > 0) sell.append(`Sell ${count} · ${points(total)}`, coin('coin', 'zeiucoins'));
+  if (selling && count > 0) sell.append(`Sell ${count} · `, ...worth(total, gearPowder));
   else sell.append(selling ? 'Select items' : 'Sell');
   sell.disabled = selling ? count === 0 : !copies.some((copy) => priceOf(copy, unlocked !== null) !== null);
   working(sell, busy, 'sell');
@@ -295,15 +307,15 @@ export function drawSell(sell: HTMLButtonElement, cancel: HTMLElement, copies: r
 }
 
 /**
- * Asks (in the page's sell-confirm dialog) to confirm selling `count` copies for `total`, saying how many of them are
- * `locked` (in its .sell-confirm-locked, where it has one).
+ * Asks (in the page's sell-confirm dialog) to confirm selling `count` copies for `total` zeiucoins and `gearPowder` (hero
+ * gear's), saying how many of them are `locked` (in its .sell-confirm-locked, where it has one).
  */
-export function askSale(dialog: HTMLDialogElement, count: number, total: number, locked = 0): void {
+export function askSale(dialog: HTMLDialogElement, count: number, total: number, locked = 0, gearPowder = 0): void {
   if (count === 0) return;
   (dialog.querySelector('h3') as HTMLElement).textContent = `Sell ${count} item${count === 1 ? '' : 's'}?`;
   const amount = dialog.querySelector('.sell-confirm-total') as HTMLElement;
   amount.textContent = '';
-  amount.append(`+${points(total)} `, coin('coin', 'zeiucoins'));
+  amount.append('+', ...worth(total, gearPowder));
   const lockedNote = dialog.querySelector<HTMLElement>('.sell-confirm-locked');
   if (lockedNote) {
     lockedNote.hidden = locked === 0;
@@ -322,12 +334,17 @@ export function wireSaleDialog(dialog: HTMLDialogElement, confirmed: () => void)
   });
 }
 
-/** What a sale came to, in the page's status line. */
-export function saleSaid(status: HTMLElement, sold: { count: number; earned: number }): void {
+/** What a sale came to, in the page's status line (hero gear's gear powder too, and what it crafts). */
+export function saleSaid(status: HTMLElement, sold: { count: number; earned: number; powder?: number }): void {
   status.hidden = false;
   status.classList.remove('bad');
   status.textContent = '';
-  status.append(`Sold ${sold.count} item${sold.count === 1 ? '' : 's'} for ${points(sold.earned)} `, coin('coin', 'zeiucoins'));
+  status.append(`Sold ${sold.count} item${sold.count === 1 ? '' : 's'} for `, ...worth(sold.earned, sold.powder ?? 0));
+  if ((sold.powder ?? 0) > 0) {
+    const shop = el('a', '', 'Raid Gear shop');
+    shop.href = '/shop/raid/';
+    status.append(' (craft komaGems from it in the ', shop, ')');
+  }
 }
 
 /** Under a copy's rank while picking copies to sell: what it sells for (nothing, when it can't be sold; a locked one's with `unlocked`). */
@@ -335,7 +352,7 @@ export function sellsFor(copy: ArmoryCopy, unlocked = false): HTMLElement[] {
   const value = priceOf(copy, unlocked);
   if (value === null) return [];
   const price = el('span', 'detail-mw detail-sells', `Sells for ${points(value)} `);
-  price.append(coin('coin', 'zeiucoins'));
+  price.append(copy.sellPowder ? powder('coin powder') : coin('coin', 'zeiucoins'));
   return [price];
 }
 

@@ -65,7 +65,7 @@ function rulesOf(boss: BossDef): string[] {
       `Its CC Gauge: no stun holds a dragon, but your heroes' stuns wear the gauge down (it fills again soon after); empty, it is Down for ${DOWN} seconds, its breath cut short.`,
       `Two modes, King's Raid's: Normal, its Normal Dragon Raid (${normal} stages, the first far easier than Hard's, the last harder than any), and Hard, its Hard Dragon Raid (${stagesOf(boss)} stages). Each stage has more health and defense and hits harder.`,
       `Heroes that fall stay down. Beat it within ${clockOf(boss)}, before its rage wipes the party. Single player, it has ${solo}% of the health.`,
-      `${lineup(9, 8)} A win gives every player pieces of the dragon's own gear set, runes, zeiucoins, hero essences of the dragon's two kinds and komaGems, more at each stage, and twice the komaGems the first time they beat a stage; a Normal stage as tough as one of Hard's pays as that one does. There is no daily limit.`,
+      `${lineup(9, 8)} A win gives every player pieces of the dragon's own gear set, runes, zeiucoins and hero essences of the dragon's two kinds, more at each stage, and komaGems the first time they beat a stage; a Normal stage as tough as one of Hard's pays as that one does. There is no daily limit.`,
       'The host picks the mode and the stage in Raid Settings: each stage after the first opens once they have beaten the one before it, each dragon and mode apart.',
     ];
   }

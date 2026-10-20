@@ -821,5 +821,5 @@ function renderAscend(ctx: HeroesContext, act: HeroActions): void {
   working(action, ctx.busy, 'transcend');
   action.addEventListener('click', () => act.transcend());
   costs.append(action);
-  if (short) ui.ascend.append(el('p', 'ascend-note', 'The Dragon Raid gives hero essences, and the Weekly Boss gives them with komaGems.'));
+  if (short) ui.ascend.append(el('p', 'ascend-note', 'The Dragon Raid gives hero essences, and komaGems the first time you beat a stage; the Weekly Boss gives both. Selling hero gear gives Gear Powder, which crafts komaGems in the Raid Gear shop.'));
 }

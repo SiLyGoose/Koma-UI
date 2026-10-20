@@ -56,6 +56,39 @@
   padding-left: 10px;
 }
 
+/* Gear powder first, Craft, then the komaGems: only the first pushed to the right. */
+.raidshop-powder ~ .raidshop-purse {
+  margin-left: 0;
+}
+
+.raidshop-powder-icon {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
+
+.raidshop-craft {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  padding: 4px 12px;
+  font-size: 14px;
+}
+
+.raidshop-craft[hidden] {
+  display: none;
+}
+
+.raidshop-craft[aria-disabled='true'] {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.raidshop-craft .emoji {
+  width: 18px;
+  height: 18px;
+}
+
 /* ------------------------------------------------------------------ the strip */
 
 /* One line at any width: what it says gets shorter on a phone rather than wrapping. */
@@ -271,6 +304,13 @@
   .raidshop-page {
     gap: 10px;
     padding: calc(var(--shop-inset-top, 0px) + 12px) 12px 20px;
+  }
+
+  /* The server picker, gear powder, Craft and the komaGems: onto a second line where they don't fit on one. */
+  .raidshop-top {
+    flex-wrap: wrap;
+    row-gap: 6px;
+    gap: 8px;
   }
 
   .raidshop-strip {

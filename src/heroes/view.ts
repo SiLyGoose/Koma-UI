@@ -356,8 +356,8 @@ function wire(ctx: HeroesContext, act: HeroActions): () => void {
   // Sell: to start picking copies, then (with some picked) to confirm the sale; Cancel stops picking.
   ui.sell.addEventListener('click', () => {
     if (!ctx.selling) return pickToSell(ctx, act, true);
-    const { count, total, locked } = saleOf(ctx.view?.copies ?? [], ctx.selling, ctx.sellLocked);
-    askSale(ui.sellConfirm, count, total, locked);
+    const { count, total, locked, powder } = saleOf(ctx.view?.copies ?? [], ctx.selling, ctx.sellLocked);
+    askSale(ui.sellConfirm, count, total, locked, powder);
   });
   ui.sellCancel.addEventListener('click', () => pickToSell(ctx, act, false));
   // Select shown: every copy the filter and search show that can be sold, picked (all of them picked already: unpicked).

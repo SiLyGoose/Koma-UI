@@ -8,7 +8,7 @@ import { KEPT } from './assets';
 
 /*
  * A fight over, over the field (the page's #result): won or lost, and then what this player got, as tiles: the points
- * the win paid them, the hero essences and komaGems (the Dragon Raid's: twice the komaGems the first time at a stage), and each piece of gear they found (the Dragon Raid's are raid items,
+ * the win paid them, the hero essences and komaGems (the Dragon Raid's; komaGems only the first time at a stage), and each piece of gear they found (the Dragon Raid's are raid items,
  * not TechnoMagic gear). A click on a piece opens its details over the screen (what it
  * is, its potentials, its set's effect and its additional skill); a click outside them, their ✕ or Escape goes back.
  * Under those, what everyone else found (their pieces open the same way), and the way on: run it again, back to getting
@@ -55,7 +55,7 @@ export interface ResultShown {
   points: number;
   /** The hero essences the win gave this player, so many of each kind (none: no tiles). */
   essences?: Readonly<Record<string, number>>;
-  /** The komaGems the win gave this player (none: no tile), and whether it was their first win at its stage (doubled). */
+  /** The komaGems the win gave this player (none: no tile), and whether it was their first win at its stage (what pays them). */
   gems?: number;
   firstClear?: boolean;
   /** The gear this player found: TechnoMagic gear, or (the Dragon Raid's) raid items. */
@@ -199,15 +199,15 @@ export function makeResult(root: HTMLElement): Result {
     return tile;
   }
 
-  /** The komaGems the win gave, as a tile beside the essences (`first`: the first time at its stage, so twice as many). */
+  /** The komaGems the win gave, as a tile beside the essences (`first`: the first time at its stage, said under it). */
   function gemsTile(amount: number, first: boolean): HTMLElement {
     const tile = el('div', 'tm-tile tm-tile-points');
     const face = el('span', 'tm-points-face tm-gems-face');
     face.append(rich(GEM_EMOJI));
     tile.append(face, el('span', 'tm-tile-name', `×${points(amount)} komaGems`));
     if (first) {
-      tile.title = 'First clear: twice the komaGems';
-      tile.append(el('span', 'tm-tile-first', 'First clear ×2'));
+      tile.title = 'First clear: komaGems come only the first time a stage is beaten';
+      tile.append(el('span', 'tm-tile-first', 'First clear'));
     }
     return tile;
   }

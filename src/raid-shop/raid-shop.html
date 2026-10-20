@@ -2,7 +2,12 @@
 <section class="raidshop-page">
   <div class="raidshop-top">
     <select id="server" class="server-pick" aria-label="Server" hidden></select>
-    <!-- Their komaGems, in the Outfits tab's purse (../outfits/outfits.css). -->
+    <!--
+      Their gear powder (what selling hero gear pays, King's Raid's Magic Powder), and Craft: every whole 1,000 of it made
+      into komaGems at once (render.ts). Then their komaGems, each in the Outfits tab's purse (../outfits/outfits.css).
+    -->
+    <span id="powder" class="outfits-purse raidshop-purse raidshop-powder" hidden></span>
+    <button type="button" id="craft" class="action secondary raidshop-craft" hidden></button>
     <span id="gems" class="outfits-purse raidshop-purse" title="komaGems" hidden></span>
   </div>
 
