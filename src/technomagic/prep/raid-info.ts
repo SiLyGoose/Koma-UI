@@ -1,5 +1,6 @@
 import './raid-info.css';
 import { bossSkills } from '../../shared/boss-skills';
+import { bossRewards, dragonTierAt } from '../../shared/raid-rewards/boss-gear';
 import { raidRewards } from '../../shared/raid-rewards/raid-rewards';
 import { recommendedCard } from '../../shared/recommended-card/recommended-card';
 import { DRAGON_LIST, raidCard, TM_LIST } from '../../shared/raids';
@@ -14,7 +15,8 @@ import type { RaidMode } from '../../protocol/technomagic';
  * on the left (King's Raid's portrait of it in its monster frame, where the game turns its model; its name over it, and the
  * raid's mode and stage in red above that), and on the right three tabs. More Info: its Characteristics (how to beat it,
  * in the game's words for the raid's boss, then how the raid goes) and the Recommended Heroes in the mode being played. Skill Info: its skills, a row each, alternately shaded, each with its icon and what it does
- * (../../shared/boss-skills.ts). Rewards: what a win gives. Its ✕, the dark round it and Escape close it.
+ * (../../shared/boss-skills.ts). Rewards: what a win gives, its gear as each kind of the boss's set it drops (as the databank's,
+ * ../../shared/raid-rewards/boss-gear.ts: a click shows a sample piece, of the tier the stage being played drops). Its ✕, the dark round it and Escape close it.
  */
 
 export interface RaidInfo {
@@ -144,8 +146,7 @@ export function raidInfo(boss: BossDef, rules: readonly string[]): RaidInfo {
 
   (panes.get('skills') as HTMLElement).append(skillRows(boss));
   const rewards = card?.rewards ?? [];
-  if (rewards.length > 0) (panes.get('rewards') as HTMLElement).append(raidRewards(rewards, (dragon ? DRAGON_LIST : TM_LIST).rewardNote));
-  else buttons.find(({ tab }) => tab === 'rewards')?.button.remove();
+  if (rewards.length === 0) buttons.find(({ tab }) => tab === 'rewards')?.button.remove();
 
   win.append(title, left, side, close);
 
@@ -172,8 +173,9 @@ export function raidInfo(boss: BossDef, rules: readonly string[]): RaidInfo {
   }
   window.addEventListener('resize', fit);
 
-  /** The mode its recommended heroes are for (null: none yet). */
+  /** The mode its recommended heroes are for, and the tier of gear its rewards are for (null: none yet). */
   let shown: RaidMode | null = null;
+  let tier: number | null = null;
   const api: RaidInfo = {
     root,
     open() {
@@ -187,6 +189,11 @@ export function raidInfo(boss: BossDef, rules: readonly string[]): RaidInfo {
     },
     show(mode, at) {
       prefix.textContent = boss.normal ? `${mode === 'normal' ? 'Normal' : 'Hard'} · Stage ${at}` : `Stage ${at}`;
+      const dropping = dragonTierAt(at, mode === 'normal');
+      if (rewards.length > 0 && dropping !== tier) {
+        tier = dropping;
+        (panes.get('rewards') as HTMLElement).replaceChildren(raidRewards(bossRewards(boss.id, rewards, tier), (dragon ? DRAGON_LIST : TM_LIST).rewardNote));
+      }
       if (mode === shown) return;
       shown = mode;
       const picks = recommendedIn(boss.id, dragon && mode === 'normal' ? 'normal' : 'hard');
@@ -202,7 +209,8 @@ export function raidInfo(boss: BossDef, rules: readonly string[]): RaidInfo {
     if (event.target === root || event.target === stage) api.close();
   });
   document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && !root.hidden) api.close();
+    // (Not while a popup over it is open, a gear sample: Escape closes that one.)
+    if (event.key === 'Escape' && !root.hidden && !document.querySelector('dialog[open]')) api.close();
   });
   return api;
 }
