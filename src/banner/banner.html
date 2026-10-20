@@ -46,7 +46,7 @@
 
     <div class="banner-foot">
       <div class="banner-links">
-        <button type="button" id="details-open" class="banner-link">Details</button>
+        <button type="button" id="details-open" class="banner-link banner-records-open" aria-haspopup="dialog">Details &amp; History</button>
       </div>
       <div class="banner-buttons">
         <button type="button" id="pull-one" class="banner-pull">
@@ -61,13 +61,34 @@
     </div>
   </div>
 
-  <!-- Details: each tier's odds and how pity works. -->
-  <div id="details" class="banner-details" role="dialog" aria-modal="true" aria-labelledby="details-title" tabindex="-1" hidden>
-    <div class="banner-details-box">
-      <h2 id="details-title">Details</h2>
-      <ul id="rates" class="banner-rates" aria-label="Odds"></ul>
-      <p id="details-pity" class="banner-details-text"></p>
-      <p id="guarantee" class="banner-details-text" hidden></p>
+  <!-- Details and History, a tab each: each tier's odds and how pity works; their pulls, a banner's at a time, a page at a time (Star Rail's Warp Records). -->
+  <div id="details" class="banner-details" role="dialog" aria-modal="true" aria-label="Details and history" tabindex="-1" hidden>
+    <div class="banner-details-box banner-records-box">
+      <div class="banner-records-tabs" role="tablist" aria-label="Details and history">
+        <button type="button" id="details-tab" class="banner-records-tab" role="tab" aria-selected="true" aria-controls="details-panel">Details</button>
+        <button type="button" id="history-tab" class="banner-records-tab" role="tab" aria-selected="false" aria-controls="history-panel">History</button>
+      </div>
+      <div id="details-panel" class="banner-records-panel" role="tabpanel" aria-labelledby="details-tab">
+        <ul id="rates" class="banner-rates" aria-label="Odds"></ul>
+        <p id="details-pity" class="banner-details-text"></p>
+        <p id="guarantee" class="banner-details-text" hidden></p>
+      </div>
+      <div id="history-panel" class="banner-records-panel" role="tabpanel" aria-labelledby="history-tab" hidden>
+        <!-- Which banner's pulls: the one showing, at first. -->
+        <div id="history-banners" class="banner-history-banners" role="radiogroup" aria-label="Banner"></div>
+        <table class="banner-history">
+          <thead>
+            <tr><th scope="col">Item Type</th><th scope="col">Item Name</th><th scope="col">Time</th></tr>
+          </thead>
+          <tbody id="history-rows"></tbody>
+        </table>
+        <p id="history-note" class="banner-details-text banner-history-note" hidden></p>
+        <div class="banner-history-pages">
+          <button type="button" id="history-prev" class="banner-history-turn" aria-label="Newer pulls">‹</button>
+          <span id="history-page" class="banner-history-page"></span>
+          <button type="button" id="history-next" class="banner-history-turn" aria-label="Older pulls">›</button>
+        </div>
+      </div>
       <button type="button" id="details-close" class="banner-link">Close</button>
     </div>
   </div>

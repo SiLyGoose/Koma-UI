@@ -1,6 +1,6 @@
 import type { Busy } from '../shared/ui';
 import { STANDARD, type Banner } from './banners';
-import type { BannerView } from './types';
+import type { BannerView, PullHistory } from './types';
 
 /** The banner page's elements, found once in its root. */
 export interface BannerUi {
@@ -25,6 +25,16 @@ export interface BannerUi {
   detailsOpen: HTMLButtonElement;
   details: HTMLElement;
   detailsClose: HTMLButtonElement;
+  detailsTab: HTMLButtonElement;
+  historyTab: HTMLButtonElement;
+  detailsPanel: HTMLElement;
+  historyPanel: HTMLElement;
+  historyBanners: HTMLElement;
+  historyRows: HTMLElement;
+  historyNote: HTMLElement;
+  historyPrev: HTMLButtonElement;
+  historyNext: HTMLButtonElement;
+  historyPage: HTMLElement;
   rates: HTMLElement;
   detailsPity: HTMLElement;
   guarantee: HTMLElement;
@@ -58,6 +68,11 @@ export interface BannerContext {
   busy: Busy | null;
   /** Ends the wish playing (if any) at once: the page is going. */
   endWish: (() => void) | null;
+  /**
+   * The History tab: the banner whose pulls it shows and the page asked for; that page as the bot gave it (null: none
+   * yet), whether it is on its way, and why it couldn't be had (null: it could).
+   */
+  history: { banner: Banner['id']; page: number; data: PullHistory | null; loading: boolean; error: string | null };
 }
 
 export function createContext(root: HTMLElement): BannerContext {
@@ -85,6 +100,16 @@ export function createContext(root: HTMLElement): BannerContext {
       detailsOpen: $<HTMLButtonElement>('details-open'),
       details: $('details'),
       detailsClose: $<HTMLButtonElement>('details-close'),
+      detailsTab: $<HTMLButtonElement>('details-tab'),
+      historyTab: $<HTMLButtonElement>('history-tab'),
+      detailsPanel: $('details-panel'),
+      historyPanel: $('history-panel'),
+      historyBanners: $('history-banners'),
+      historyRows: $('history-rows'),
+      historyNote: $('history-note'),
+      historyPrev: $<HTMLButtonElement>('history-prev'),
+      historyNext: $<HTMLButtonElement>('history-next'),
+      historyPage: $('history-page'),
       rates: $('rates'),
       detailsPity: $('details-pity'),
       guarantee: $('guarantee'),
@@ -109,6 +134,7 @@ export function createContext(root: HTMLElement): BannerContext {
     views: {},
     busy: null,
     endWish: null,
+    history: { banner: STANDARD.id, page: 1, data: null, loading: false, error: null },
   };
 }
 

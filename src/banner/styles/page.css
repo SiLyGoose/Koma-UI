@@ -769,6 +769,204 @@
   line-height: 1.5;
 }
 
+/*
+ * Details & History: a tab each along the box's top (the one shown inked in), Details as it was, and History as Star Rail's
+ * Warp Records: the banners to pick from, a table of a page of pulls (each name in its tier's colour, the top tiers'
+ * bold), and the page between its arrows. The box keeps its size from page to page (a page's rows always all drawn).
+ */
+.banner-records-box {
+  width: min(560px, 100%);
+}
+
+.banner-records-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 30px;
+  background: var(--cream-2);
+}
+
+.banner-records-tab {
+  flex: 1;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 30px;
+  background: transparent;
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.banner-records-tab[aria-selected='true'] {
+  background: var(--ink);
+  color: var(--cream);
+}
+
+.banner-records-tab:focus-visible,
+.banner-history-banner:focus-visible,
+.banner-history-turn:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.banner-records-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.banner-records-panel[hidden] {
+  display: none;
+}
+
+.banner-history-banners {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.banner-history-banner {
+  padding: 5px 14px;
+  border: 1px solid rgb(59 52 68 / 25%);
+  border-radius: 30px;
+  background: transparent;
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.banner-history-banner[aria-checked='true'] {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--cream);
+}
+
+.banner-history {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  table-layout: fixed;
+}
+
+.banner-history[aria-busy='true'] tbody {
+  opacity: 0.55;
+}
+
+.banner-history th {
+  padding: 0 6px 8px;
+  border-bottom: 1px solid rgb(59 52 68 / 30%);
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.banner-history th:first-child {
+  width: 22%;
+}
+
+.banner-history th:last-child {
+  width: 30%;
+}
+
+.banner-history td {
+  height: 38px;
+  padding: 4px 6px;
+  border-bottom: 1px dotted rgb(59 52 68 / 20%);
+  vertical-align: middle;
+}
+
+.banner-history-kind {
+  color: var(--ink-soft);
+}
+
+.banner-history-name {
+  overflow-wrap: anywhere;
+}
+
+.banner-history-name > span:first-child {
+  margin-right: 6px;
+}
+
+/* The top two tiers' names in their colour, as Star Rail's 4- and 5-star pulls are. */
+.banner-history-row[data-stars='3'] .banner-history-name > span:first-child,
+.banner-history-row[data-stars='4'] .banner-history-name > span:first-child {
+  color: color-mix(in srgb, var(--tier) 78%, #000);
+  font-weight: 700;
+}
+
+.banner-history-name .tier-mark {
+  vertical-align: 1px;
+}
+
+.banner-history-tag {
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--cream-2);
+  color: var(--ink-soft);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.banner-history-time {
+  color: var(--ink-soft);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* (The date and the time each kept whole: on a narrow box the time goes under the date.) */
+.banner-history-time span {
+  display: inline-block;
+}
+
+.banner-history-note {
+  text-align: center;
+}
+
+.banner-history-note.bad {
+  color: #b3261e;
+}
+
+.banner-history-pages {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  justify-content: center;
+}
+
+.banner-history-turn {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--cream-2);
+  color: var(--ink);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.banner-history-turn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.banner-history-page {
+  min-width: 4em;
+  color: var(--ink-soft);
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
 /* The guarantee's pick: a row for each item it can give (its picture, name and stars), the one picked framed in its tier's colour and ticked. */
 .banner-picks {
   display: grid;
@@ -1077,6 +1275,34 @@
 
   .banner-link {
     padding: 9px 14px;
+  }
+
+  /* (Its two words over each other, beside the pull buttons.) */
+  .banner-records-open {
+    max-width: 7.5em;
+    padding-block: 6px;
+    font-size: 13px;
+    line-height: 1.2;
+  }
+
+  .banner-records-box {
+    padding: 18px 14px;
+  }
+
+  .banner-history {
+    font-size: 13px;
+  }
+
+  .banner-history th:first-child {
+    width: 24%;
+  }
+
+  .banner-history th:last-child {
+    width: 28%;
+  }
+
+  .banner-history-time {
+    font-size: 12px;
   }
 
   .banner-buttons {

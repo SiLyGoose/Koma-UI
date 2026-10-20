@@ -1,9 +1,9 @@
 import { coin, points } from '../shared/util';
-import { art, el, rich, tierMark, utMarks, utTier, uwMarks, uwTier } from '../shared/items';
+import { art, el, kindName, rich, tierMark, utMarks, utTier, uwMarks, uwTier } from '../shared/items';
 import { working } from '../shared/ui';
-import { timeLeft, type Featured } from './banners';
+import { timeLeft, type Banner, type Featured } from './banners';
 import { canAfford, price, type BannerContext } from './context';
-import type { BannerView, Stars } from './types';
+import type { BannerView, PullRecord, Stars } from './types';
 
 /** komaTokens, as the bot writes them (its constants/core.ts TOKEN_EMOJI). */
 const TOKEN_EMOJI = '<:zeiutoken:1552921364489572362>';
@@ -88,6 +88,75 @@ function renderPick(ctx: BannerContext, choices: NonNullable<BannerView['choices
     }
     ui.pickList.append(option);
   }
+}
+
+/** The banners History can show the pulls of, in its order: every one, open now or not. */
+const HISTORY_BANNERS: readonly { id: Banner['id']; name: string }[] = [
+  { id: 'standard', name: 'Standard' },
+  { id: 'hero', name: 'Hero Item' },
+  { id: 'limited', name: 'Limited' },
+];
+
+/** When a pull was, as Star Rail's Warp Records write it ("2026-10-19 18:23:05"), the date and the time each kept whole. */
+function pulledAt(ms: number): HTMLElement {
+  const at = new Date(ms);
+  const two = (n: number): string => String(n).padStart(2, '0');
+  const cell = el('td', 'banner-history-time');
+  cell.append(
+    el('span', '', `${at.getFullYear()}-${two(at.getMonth() + 1)}-${two(at.getDate())}`),
+    ' ',
+    el('span', '', `${two(at.getHours())}:${two(at.getMinutes())}:${two(at.getSeconds())}`),
+  );
+  return cell;
+}
+
+/** A pull's row: what kind of thing it is, its name in its tier's colour (and its tier; given on top for nothing, saying so), and when. */
+function historyRow(pull: PullRecord): HTMLElement {
+  const row = el('tr', 'banner-history-row');
+  row.dataset.stars = String(pull.stars);
+  const kind = pull.grant === 'ticket' ? 'Ticket' : pull.grant === 'rune' ? 'Rune' : kindName(pull);
+  const name = el('td', 'banner-history-name');
+  name.append(el('span', '', pull.name), tierMark(pull.stars));
+  if (pull.bonus) name.append(el('small', 'banner-history-tag', 'Bonus'));
+  if (pull.removed) name.append(el('small', 'banner-history-tag', 'Gone'));
+  row.append(el('td', 'banner-history-kind', kind), name, pulledAt(pull.at));
+  return row;
+}
+
+/**
+ * History as `ctx.history` has it: the banners to pick from (the one shown picked), a page of pulls (always as many rows
+ * as a page holds, so the box keeps its size), what to say when there are none or they couldn't be had, and the page.
+ */
+export function renderHistory(ctx: BannerContext): void {
+  const { ui, history } = ctx;
+  ui.historyBanners.replaceChildren(
+    ...HISTORY_BANNERS.map(({ id, name }) => {
+      const option = el('button', 'banner-history-banner', name);
+      option.type = 'button';
+      option.setAttribute('role', 'radio');
+      option.setAttribute('aria-checked', String(id === history.banner));
+      option.dataset.banner = id;
+      return option;
+    }),
+  );
+  const { data, loading, error } = history;
+  const pulls = data?.pulls ?? [];
+  const rows = pulls.map(historyRow);
+  for (let i = rows.length; i < (data?.perPage ?? 6); i++) {
+    const blank = el('tr', 'banner-history-row blank');
+    blank.append(el('td'), el('td'), el('td'));
+    rows.push(blank);
+  }
+  ui.historyRows.replaceChildren(...rows);
+  ui.historyRows.closest('table')?.setAttribute('aria-busy', String(loading));
+  const note = error ?? (!data && loading ? 'Loading…' : data && data.total === 0 ? 'No pulls on this banner yet.' : null);
+  ui.historyNote.hidden = note === null;
+  ui.historyNote.textContent = note ?? '';
+  ui.historyNote.classList.toggle('bad', error !== null);
+  const pages = data?.pages ?? 1;
+  ui.historyPage.textContent = `${history.page} / ${pages}`;
+  ui.historyPrev.disabled = loading || history.page <= 1;
+  ui.historyNext.disabled = loading || history.page >= pages;
 }
 
 /** Draws the banner as `ctx.view` has it: the banner's card, their wallet and pity, the odds and what each button costs. */

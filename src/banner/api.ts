@@ -2,8 +2,8 @@ import { busyWith } from '../shared/ui';
 import { api, currentServer, loadMe, logOut } from '../site/session';
 import { bannersFor, STANDARD, type Banner } from './banners';
 import { status, type BannerContext } from './context';
-import { render } from './render';
-import type { BannerResult, BannerView } from './types';
+import { render, renderHistory } from './render';
+import type { BannerResult, BannerView, PullHistory } from './types';
 import { playWish } from './wish';
 
 /** Says why asking the bot didn't work (or, for a login that ran out, logs out). */
@@ -45,6 +45,27 @@ export async function loadBanner(ctx: BannerContext): Promise<void> {
       if (other.ok && currentServer() === server && ctx.view === res.data) ctx.views[banner.id] = other.data;
     });
   }
+}
+
+const historyPath = (server: string, banner: Banner['id'], page: number): string =>
+  `/api/gacha/history?guild=${encodeURIComponent(server)}&banner=${banner}&page=${page}`;
+
+/** Shows a page of their pulls on a banner in History (1: the newest), as the bot has it now. The page shown stays till it comes. */
+export async function loadHistory(ctx: BannerContext, banner: Banner['id'], page: number): Promise<void> {
+  const server = currentServer();
+  if (!server) return;
+  // (Another banner: its first page's rows aren't the last one's, so none are shown meanwhile.)
+  const data = banner === ctx.history.banner ? ctx.history.data : null;
+  ctx.history = { banner, page, data, loading: true, error: null };
+  renderHistory(ctx);
+  const res = await api<PullHistory>(historyPath(server, banner, page));
+  // Another page or banner asked for meanwhile: that one's answer is the one shown.
+  if (ctx.history.banner !== banner || ctx.history.page !== page) return;
+  if (!res.ok && res.status === 401) return logOut();
+  ctx.history = res.ok
+    ? { banner, page: res.data.page, data: res.data, loading: false, error: null }
+    : { banner, page, data, loading: false, error: res.status === 404 ? 'Pull history isn’t open yet.' : 'Could not load your pulls. Try again.' };
+  renderHistory(ctx);
 }
 
 /** Shows another banner (its tab picked): at once from the view kept of it, or by asking the bot when there is none. */

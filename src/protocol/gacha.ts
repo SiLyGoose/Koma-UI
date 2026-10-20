@@ -1,7 +1,8 @@
 // Copied from the bot's src/protocol/ by scripts/sync.mjs: change it there, then `yarn sync`.
+import type { HeroPart } from './heroes';
 import type { BannerId, Slot, Stars } from './items';
 
-/* The gacha's banners on the site: what the bot's GET /api/gacha, POST /api/gacha/pull and /pick say. */
+/* The gacha's banners on the site: what the bot's GET /api/gacha, GET /api/gacha/history, POST /api/gacha/pull and /pick say. */
 
 /** An item a banner shows off. */
 export interface BannerItem {
@@ -125,4 +126,36 @@ export interface BannerResult {
   /** komaTokens spent. */
   tokensUsed: number;
   view: BannerView;
+}
+
+/** One item pulled, as a member's pull history has it. */
+export interface PullRecord {
+  itemId: string;
+  name: string;
+  stars: Stars;
+  slot: Slot;
+  /** Hero gear: the part of a hero it is (an accessory's slot is the treasure's). Null: not hero gear. */
+  part: HeroPart | null;
+  /** Not gear but what it gives: a unique weapon or treasure ticket (picked in the mailbox), or a rune. Null: gear. */
+  grant: 'ticket' | 'rune' | null;
+  /** King's Raid's icon for it (as BannerPull's); null: its own picture. */
+  icon: string | null;
+  /** Given on top of a pull for nothing (Pot of Greed). */
+  bonus: boolean;
+  /** An item no longer in the game (its name is its id). */
+  removed: boolean;
+  /** When it was pulled (ms since the epoch). */
+  at: number;
+}
+
+/** GET /api/gacha/history: a page of a member's pulls on a banner, the newest first. */
+export interface PullHistory {
+  banner: BannerId;
+  /** This page (1: the newest pulls), how many there are (at least 1), and how many pulls a page shows. */
+  page: number;
+  pages: number;
+  perPage: number;
+  /** Their pulls on the banner in all. */
+  total: number;
+  pulls: PullRecord[];
 }

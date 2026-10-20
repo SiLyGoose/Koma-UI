@@ -2,7 +2,7 @@ import markup from './banner.html?raw';
 import { API, dropdown, fillServers } from '../shared/ui';
 import type { ShopTab } from '../shop/tab';
 import { currentMe, currentServer, loadMe, prefetchFor, setServer } from '../site/session';
-import { failed, loadBanner, pickBanner, pickGuaranteed, pull } from './api';
+import { failed, loadBanner, loadHistory, pickBanner, pickGuaranteed, pull } from './api';
 import { createContext, status, type BannerContext } from './context';
 import { render } from './render';
 
@@ -43,15 +43,45 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     pickBanner(ctx, banner);
   });
 
-  // Details: open from its button, closed by Close, a click outside its box, or Escape.
+  // Details & History: open from its button (on the tab last shown), closed by Close, a click outside its box, or Escape.
+  // History shows the banner showing's pulls at first, the newest page; afresh each time it is shown.
+  const showTab = (history: boolean): void => {
+    ui.detailsTab.setAttribute('aria-selected', String(!history));
+    ui.historyTab.setAttribute('aria-selected', String(history));
+    ui.detailsTab.tabIndex = history ? -1 : 0;
+    ui.historyTab.tabIndex = history ? 0 : -1;
+    ui.detailsPanel.hidden = history;
+    ui.historyPanel.hidden = !history;
+    if (history) void loadHistory(ctx, ctx.history.banner, 1);
+  };
   const closeDetails = (): void => {
     ui.details.hidden = true;
     ui.detailsOpen.focus();
   };
   ui.detailsOpen.addEventListener('click', () => {
     ui.details.hidden = false;
+    ctx.history.banner = ctx.banner.id;
+    ctx.history.data = null;
+    showTab(!ui.historyPanel.hidden);
     ui.details.focus();
   });
+  ui.detailsTab.addEventListener('click', () => showTab(false));
+  ui.historyTab.addEventListener('click', () => showTab(true));
+  // (The tabs as a tablist: the arrow keys go from one to the other.)
+  for (const tab of [ui.detailsTab, ui.historyTab]) {
+    tab.addEventListener('keydown', (e) => {
+      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+      const history = tab === ui.detailsTab;
+      showTab(history);
+      (history ? ui.historyTab : ui.detailsTab).focus();
+    });
+  }
+  ui.historyBanners.addEventListener('click', (e) => {
+    const id = (e.target as HTMLElement).closest<HTMLElement>('[data-banner]')?.dataset.banner as typeof ctx.history.banner | undefined;
+    if (id && id !== ctx.history.banner) void loadHistory(ctx, id, 1);
+  });
+  ui.historyPrev.addEventListener('click', () => void loadHistory(ctx, ctx.history.banner, ctx.history.page - 1));
+  ui.historyNext.addEventListener('click', () => void loadHistory(ctx, ctx.history.banner, ctx.history.page + 1));
   ui.detailsClose.addEventListener('click', closeDetails);
   ui.details.addEventListener('click', (e) => {
     if (e.target === ui.details) closeDetails();
