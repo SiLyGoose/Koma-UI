@@ -142,8 +142,11 @@ const SECOND = Math.round(1 / TICK);
 const FAN = 0.6;
 /** How far short of where it stands (along the field) a hero begins turning toward it, to arrive there and wait for the rest. */
 const NEAR = 6;
-/** A raid of more than one wave: how long the heroes run on to the next (seconds; ../fight/view.ts runs them as long). */
-export const RUN_ON = 3;
+/**
+ * A raid of more than one wave: how long the heroes run on to the next (seconds; ../fight/view.ts runs them as long, the map
+ * moving on as their run up to the boss has them go: flat out, then braking, as fast along the field as they ran then).
+ */
+export const RUN_ON = 5;
 /** A raid of more than one wave: how long the boss takes flying off the field (the dragons' Phase clip) before the heroes run on. */
 export const FLY_OFF = 4;
 /** Where a wave's minions stand: about this far along the field (before the boss), as its wave has them, closer together (the field is narrower here). */

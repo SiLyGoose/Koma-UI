@@ -152,6 +152,10 @@ export function marchLeft(k: number): number {
   const t = 1 - k;
   return t < BRAKE ? (t * t) / (BRAKE * (2 - BRAKE)) : (2 * t - BRAKE) / (2 - BRAKE);
 }
+/** And how fast they are running then: a share of flat out (1 until they brake, down to 0 as they stop). */
+export function marchPace(k: number): number {
+  return Math.min(1, (1 - k) / BRAKE);
+}
 
 /** With Boss auto on: the wait between the boss's attacks. The wait between a hero's attacks, where King's Raid's playtest doesn't say (./heroes/kr.ts). */
 export const AUTO_WAIT = 1.1;

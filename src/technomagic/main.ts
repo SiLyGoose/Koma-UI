@@ -266,8 +266,11 @@ async function start(): Promise<void> {
   const banners = makeBanners(stage);
   // The minions of its raid's waves, their models and clips read now (a raid of one wave: none).
   const minions = makeMinions(stage.scene, bossView.look.assets, kr);
-  // The map moved on to the next wave's platform, its own effects with it.
-  const shift = (dx: number): void => kr.shift(dx);
+  // The map moved on to the next wave's platform, what stands on it with it (its own effects, a minion still falling and where one broke).
+  const shift = (dx: number): void => {
+    kr.shift(dx);
+    minions.shift(dx);
+  };
   const slide = (seconds: number): void => stage.slide(seconds, shift);
 
   /** Every body read so far (each skin of each hero read, and as they look with their unique weapons once that's wanted), for a fight to take from. */

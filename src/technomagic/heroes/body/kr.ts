@@ -2,6 +2,7 @@ import { AnimationClip, AnimationMixer, LoopOnce, LoopRepeat, type AnimationActi
 import { animationFile, type HeroAssets, type KrAnimations, type KrMove } from '../../assets';
 import { fitted, inPlace, loadKrClip, topOf } from '../../engine/kr-clips';
 import type { Motion, Timeline } from '../../sim/motion';
+import { marchPace } from '../../sim/rules';
 import type { HeroMove } from '../moves';
 import { ENTER, heightOf, RED, redden, runOf, type Hero, type Stood } from './hero';
 import { BIPED } from './skeletons';
@@ -16,6 +17,8 @@ import { BIPED } from './skeletons';
 /** How long one clip takes to give way to the next, and the end of a move to its idle. */
 const BLEND = 0.15;
 const RETURN = 0.3;
+/** Running on to a raid's next wave, braking: how slow (a share of flat out) it runs before it stands. */
+const STRIDING = 0.3;
 
 /**
  * A hero's clips, each move's fitted to the fight's timing: its takes (played in turn, each time it is begun), each a
@@ -196,7 +199,7 @@ export function krHero({ root, body, models: parts, rig, materials, floating }: 
     | { what: 'hurt'; t: number }
     | { what: 'end'; actions: AnimationAction[]; t: number; length: number; then: AnimationAction[] | null }
     | { what: 'held' }
-    | { what: 'jog'; left: number }
+    | { what: 'jog'; left: number; seconds: number }
     | null = null;
   let runIn = ENTER;
   let returning = false;
@@ -204,7 +207,7 @@ export function krHero({ root, body, models: parts, rig, materials, floating }: 
   return {
     root,
     jog(seconds) {
-      doing = { what: 'jog', left: seconds };
+      doing = { what: 'jog', left: seconds, seconds };
     },
     enter(lasts) {
       runIn = runOf(lasts);
@@ -267,9 +270,11 @@ export function krHero({ root, body, models: parts, rig, materials, floating }: 
           doing = { what: 'held' };
         }
       } else if (doing?.what === 'jog') {
+        // (Its strides slowing as the map does, braking: standing once they would hardly be strides.)
         doing.left -= dt;
-        show(run, 1.25);
-        if (doing.left <= 0) {
+        const pace = marchPace(1 - doing.left / doing.seconds);
+        if (pace > STRIDING) show(run, 1.25 * pace);
+        if (doing.left <= 0 || pace <= STRIDING) {
           doing = null;
           returning = true;
         }

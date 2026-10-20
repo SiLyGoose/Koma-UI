@@ -21,6 +21,7 @@ import {
   type BufferGeometry,
   type Object3D,
 } from 'three';
+import { marchLeft } from '../sim/rules';
 import { loadKrMap } from './kr-map';
 import { struggling } from './memory';
 
@@ -246,11 +247,10 @@ export function makeStage(canvas: HTMLCanvasElement): Stage {
   /** The map moved on by `dt` seconds of its move on to the next platform (if it is moving). */
   const slideOn = (dt: number): void => {
     if (!sliding || !mapAt) return;
-    // (Eased: slow to start and to stop, as the heroes do.)
+    // (As the heroes run: flat out from the first, braking to a stop at the last, as on their run up to the boss.)
     const was = sliding.left;
     sliding.left = Math.max(0, sliding.left - dt);
-    const along = (k: number): number => k * k * (3 - 2 * k);
-    const step = mapAt.next * (along(1 - sliding.left / sliding.seconds) - along(1 - was / sliding.seconds));
+    const step = mapAt.next * (marchLeft(1 - was / sliding.seconds) - marchLeft(1 - sliding.left / sliding.seconds));
     mapAt.map.position.x += step;
     slid += step;
     sliding.moved(step * Math.cos(mapAt.turn));

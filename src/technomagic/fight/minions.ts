@@ -29,6 +29,8 @@ export interface Minions {
   hit(foe: number): void;
   daze(foe: number, seconds: number): void;
   down(foe: number): void;
+  /** Those still on the field (falling) move along it by `dx`, as the map does moving on to the next wave's platform. */
+  shift(dx: number): void;
   /** Over a minion's head (for its health and the numbers off it), put in `into`; null for one not on the field. */
   head(foe: number, into: Vector3): Vector3 | null;
   update(dt: number): void;
@@ -155,9 +157,18 @@ export function makeMinions(scene: Scene, boss: BossAssets, kr: KrEffects): Mini
       const body = bodies.get(foe);
       if (!body) return;
       effect(foe, 'down', true);
+      // (One with no falling of its own, the ice pillars: gone at once, its effect there as it breaks.)
+      if (!body.actions.has('Dead')) {
+        scene.remove(body.root);
+        bodies.delete(foe);
+        return;
+      }
       play(body, 'Dead', true);
       body.back = 0;
       body.gone = GONE;
+    },
+    shift(dx) {
+      for (const body of bodies.values()) body.root.position.x += dx;
     },
     head(foe, into) {
       const body = bodies.get(foe);

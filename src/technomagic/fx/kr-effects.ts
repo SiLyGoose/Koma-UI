@@ -35,7 +35,7 @@ export interface KrEffects {
   play(code: string, where: KrWhere): () => void;
   /** These go on all the while (a map's own: its fog, its sparks), each begun again as it ends or is taken off. */
   ambient(effects: readonly { code: string; at: Vector3; rotation: Quaternion; scale: number }[]): void;
-  /** What the map has of its own moves along the field by `dx` (as the map does). */
+  /** What the map has of its own, and every one played at a place on the field (a minion's breaking), moves along it by `dx` (as the map does). */
   shift(dx: number): void;
   update(dt: number): void;
   /** Takes every one off (the fight is done with). */
@@ -106,10 +106,9 @@ export function makeKrEffects(scene: Object3D, camera: Camera): KrEffects {
       for (const effect of effects) read(effect.code);
     },
     shift(dx) {
-      for (const one of always) {
-        one.at.x += dx;
-        if (one.fx) one.fx.position.x += dx;
-      }
+      for (const one of always) one.at.x += dx;
+      // (Not one hung on someone: it goes where they go.)
+      for (const fx of playing) if (fx.parent === scene) fx.position.x += dx;
     },
     update(dt) {
       for (const one of always) if (!one.fx || !playing.has(one.fx)) one.fx = start(one.code, { at: one.at, rotation: one.rotation, scale: one.scale, lasts: Infinity });
