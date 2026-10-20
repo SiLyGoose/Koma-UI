@@ -1,5 +1,5 @@
 import { el, statBlocks } from '../shared/items';
-import { BUST, classBadge, className, FACE, heroCut } from '../shared/heroes';
+import { BUST, classBadge, className, FACE, heroCut, heroPicture } from '../shared/heroes';
 import { skillRows } from '../heroes/render';
 import { heroStats } from '../heroes/stats';
 import type { HeroDef } from '../technomagic/sim/heroes/kit';
@@ -24,6 +24,41 @@ function picture(hero: HeroDef, frame: typeof FACE, width: number, className: st
     img.alt = '';
     img.draggable = false;
     box.replaceChildren(img);
+  });
+  return box;
+}
+
+/** The hero's whole picture, big in the middle of the screen over a darkened page; a click anywhere (or Esc) closes it. */
+function showPicture(name: string, src: string): void {
+  let dialog = document.querySelector<HTMLDialogElement>('dialog.db-hero-zoom');
+  if (!dialog) {
+    dialog = el('dialog', 'db-hero-zoom');
+    dialog.addEventListener('click', () => dialog?.close());
+    document.body.append(dialog);
+  }
+  const img = el('img');
+  img.src = src;
+  img.alt = name;
+  img.draggable = false;
+  dialog.setAttribute('aria-label', name);
+  dialog.replaceChildren(img);
+  dialog.showModal();
+}
+
+/** The picked hero's bust, which shows its whole picture when clicked (where it has one). */
+function bust(hero: HeroDef): HTMLElement {
+  const box = picture(hero, BUST, 200, 'db-hero-picture');
+  const whole = heroPicture(hero.id);
+  if (!whole) return box;
+  box.classList.add('db-hero-picture-zoom');
+  box.tabIndex = 0;
+  box.setAttribute('role', 'button');
+  box.setAttribute('aria-label', `See ${hero.name}'s picture`);
+  box.addEventListener('click', () => showPicture(hero.name, whole.src));
+  box.addEventListener('keydown', (event) => {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    event.preventDefault();
+    showPicture(hero.name, whole.src);
   });
   return box;
 }
@@ -95,7 +130,7 @@ function renderHero(ctx: DatabankContext): void {
   badge.addEventListener('error', () => badge.remove(), { once: true });
   kind.append(badge, `${className(hero.class)} · TechnoMagic Raid`);
   title.append(el('h3', '', hero.name), kind);
-  head.append(picture(hero, BUST, 200, 'db-hero-picture'), title);
+  head.append(bust(hero), title);
   ui.heroBody.append(head);
 
   // Its stats with no gear on (the class row is in its head).
