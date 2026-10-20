@@ -13,9 +13,8 @@ import { CURVE, curved, HERO_LEVEL, reachAt, share, strike, type DamageType, typ
 import { RAID_TIME } from '../technomagic/sim/rules';
 import { bossSkills, type BossSkills } from '../shared/boss-skills';
 import { bossById, raidBossById, type DatabankContext } from './context';
-import { OTHER_HEROES, RECOMMENDED, recommendedIn } from './recommended';
-import { className, FACE, heroCut } from '../shared/heroes';
-import { HEROES } from '../technomagic/sim/heroes';
+import { RECOMMENDED, recommendedIn } from './recommended';
+import { recommendedCard as heroCard } from '../shared/recommended-card/recommended-card';
 import type { DatabankBoss, DatabankItem, DatabankRewards, RaidLevel } from './types';
 
 /*
@@ -178,49 +177,9 @@ export function itemCard(item: DatabankItem): HTMLButtonElement {
   return card;
 }
 
-/**
- * A hero recommended against a raid's boss, as King's Raid's own Raid Info has them (its small hero portrait, HeroPortraitSmall):
- * its icon in the gold square frame, its class's tag and the kind of damage it deals over its top left, a thumbs-up over its top
- * right for one King's Raid picked, and its name under it; `why` it was picked, when it has one, on hovering it. One the raid has
- * opens the hero in the databank's heroes; one it doesn't (./recommended.ts OTHER_HEROES) looks the same, its icon King's Raid's.
- */
-export function recommendedCard(id: string, kr: boolean, why?: string): HTMLElement[] {
-  const ours = HEROES.find((one) => one.id === id);
-  const other = OTHER_HEROES[id];
-  const hero = ours ? { name: ours.name, class: ours.class, deals: ours.stats.deals } : other;
-  if (!hero) return [];
-  const card = ours ? el('button', 'db-recommended-card') : el('div', 'db-recommended-card');
-  if (card instanceof HTMLButtonElement) card.type = 'button';
-  card.title = `${hero.name}${kr ? ': King’s Raid’s own pick' : why ? `: ${why}` : ''}`;
-  const square = el('span', 'db-recommended-square');
-  const face = el('span', 'db-recommended-face', hero.name.slice(0, 1));
-  const picture = ours ? heroCut(id, FACE, 120) : Promise.resolve(`/kr/hero-icons/${id}.webp`);
-  void picture.then((src) => {
-    if (!src) return;
-    const img = el('img');
-    img.src = src;
-    img.alt = '';
-    img.draggable = false;
-    face.replaceChildren(img);
-  });
-  const mark = (className: string, src: string, alt: string): HTMLImageElement => {
-    const img = el('img', className);
-    img.src = src;
-    img.alt = alt;
-    img.draggable = false;
-    return img;
-  };
-  square.append(
-    face,
-    el('span', 'db-recommended-frame'),
-    mark('db-recommended-class', `/kr/ui/class-${hero.class}.webp`, className(hero.class)),
-    mark('db-recommended-deals', `/kr/ui/deals-${hero.deals}.webp`, hero.deals === 'magical' ? 'Magic' : 'Physical'),
-  );
-  if (kr) square.append(mark('db-recommended-kr', '/kr/ui/thumbs-up.webp', 'King’s Raid’s pick'));
-  card.append(square, el('span', 'db-recommended-name', hero.name));
-  if (ours) card.addEventListener('click', () => go(`/databank/heroes/#${encodeURIComponent(id)}`));
-  return [card];
-}
+/** A recommended hero's card (../shared/recommended-card/), opening the hero in the databank's heroes. */
+export const recommendedCard = (id: string, kr: boolean, why?: string): HTMLElement[] =>
+  heroCard(id, kr, why, (hero) => go(`/databank/heroes/#${encodeURIComponent(hero)}`));
 
 /** A kind of damage, as the heroes' sheets say it. */
 const KIND: Readonly<Record<DamageType, string>> = { physical: 'Physical', magical: 'Magic' };

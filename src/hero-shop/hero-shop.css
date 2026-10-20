@@ -221,7 +221,7 @@
   color: var(--muted);
 }
 
-.hero-buy-box .db-recommended-card {
+.hero-buy-box .rec-card {
   color: var(--text);
 }
 
@@ -401,7 +401,7 @@
     grid-auto-flow: column;
   }
 
-  .hero-buy-info .db-recommended-square {
+  .hero-buy-info .rec-square {
     width: 100%;
   }
 

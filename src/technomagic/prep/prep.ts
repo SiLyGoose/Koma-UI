@@ -5,12 +5,11 @@ import { stagesOf, type BossDef } from '../sim/bosses/boss';
 import { DOWN } from '../sim/bosses/gauge';
 import { RAID_TIME } from '../sim/rules';
 import { isDragon } from '../sim/bosses';
-import { DRAGON_LIST, raidCard, TM_LIST } from '../../shared/raids';
-import { raidRewards } from '../../shared/raid-rewards/raid-rewards';
 import { HEROES } from '../sim/heroes';
 import { nearer } from '../sim/heroes/kit';
 import { el } from '../hud/dom';
 import { movePopup } from './move';
+import { raidInfo } from './raid-info';
 import { nameTips } from '../hud/tip';
 import { play } from '../sfx';
 import type { PickView, PlayerView, RaidMode, RoomState } from '../../protocol/technomagic';
@@ -66,15 +65,14 @@ const clockOf = (boss: BossDef): string => {
 const MODE_NAMES: Readonly<Record<RaidMode, string>> = { normal: 'Normal', hard: 'Hard' };
 const MODES: readonly RaidMode[] = ['normal', 'hard'];
 
-/** Raid Info: what the boss does, and how its raid goes. */
-function infoOf(boss: BossDef): string[] {
+/** Raid Info's Characteristics after the game's tip (./raid-info.ts): how the boss's raid goes. */
+function rulesOf(boss: BossDef): string[] {
   const solo = Math.round(((boss.stages.solo[0]?.hp ?? 1) / (boss.stages.room[0]?.hp ?? 1)) * 100);
   const lineup = (all: number, alone: number): string =>
     `With others, the host brings up to 4 heroes, everyone else up to 3, ${all} in all. Single player, up to ${alone}: 4 in the Main Team, whose skills are yours to use, and ${alone - 4} in the Sub Team, who fight on Auto.`;
   if (isDragon(boss.id)) {
     const normal = boss.normal ? stagesOf(boss.normal) : 0;
     return [
-      raidCard(boss.id)?.about ?? boss.name,
       `Its CC Gauge: no stun holds a dragon, but your heroes' stuns wear the gauge down (it fills again soon after); empty, it is Down for ${DOWN} seconds, its breath cut short.`,
       `Two modes, King's Raid's: Normal, its Normal Dragon Raid (${normal} stages, the first far easier than Hard's, the last harder than any), and Hard, its Hard Dragon Raid (${stagesOf(boss)} stages). Each stage has more health and defense and hits harder.`,
       `Heroes that fall stay down. Beat it within ${clockOf(boss)}, before its rage wipes the party. Single player, it has ${solo}% of the health.`,
@@ -83,8 +81,7 @@ function infoOf(boss: BossDef): string[] {
     ];
   }
   return [
-    `${boss.name}: a chimera of three heads that spits venom. Its blows are magical, and nothing slows it; it heals itself all the while.`,
-    `Every 150 blows, the hero that has dealt the most is shut in the swamp for a while. Its Swamp Destroyer knocks every hero down. No stun holds it, but stuns wear its CC Gauge down (it fills again soon after); empty, it is Down for ${DOWN} seconds.`,
+    `Its Swamp Destroyer knocks every hero down. No stun holds it, but stuns wear its CC Gauge down (it fills again soon after); empty, it is Down for ${DOWN} seconds.`,
     `Heroes that fall stay down. Beat it within ${clockOf(boss)}, before its rage wipes the party. Each stage, it has more health and hits harder; single player, it has ${solo}% of the health.`,
     `${lineup(8, 7)} A win gives each player TechnoMagic gear and zeiucoins.`,
     'The host picks the stage: each after the first opens once they have beaten the one before it.',
@@ -228,10 +225,10 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
     moving.open(state.bosses.find((boss) => boss.id === id)?.name ?? id, others, host);
   }
 
-  // Raid Info: what the boss does, then what a win gives (as the front page's Raid List draws it).
-  const rewards = raidCard(boss.id)?.rewards ?? [];
-  byId('prep-info').append(...infoOf(boss).map((line) => el('p', '', line)));
-  if (rewards.length > 0) byId('prep-info').append(raidRewards(rewards, (isDragon(boss.id) ? DRAGON_LIST : TM_LIST).rewardNote));
+  // Raid Info, King's Raid's window (beside the screen too, as Raid Settings is).
+  const info = raidInfo(boss, rulesOf(boss));
+  root.after(info.root);
+  byId('prep-info').addEventListener('click', () => info.open());
   const bossName = byId('prep-boss');
 
   ready.addEventListener('click', () => act.ready(ready.getAttribute('aria-pressed') !== 'true'));
@@ -326,13 +323,6 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
   // Again once the font is in, its words a little wider and taller than the fallback's.
   void document.fonts.ready.then(fit);
 
-  // Raid Info closes on a press anywhere else.
-  document.addEventListener('pointerdown', (event) => {
-    for (const box of root.querySelectorAll<HTMLDetailsElement>('details[open]')) {
-      if (!box.contains(event.target as Node)) box.open = false;
-    }
-  });
-
   /** Raid Settings, while it is open: a dragon's mode, and the stage picked (anyone but the host only sees the room's), between its arrows. */
   function drawSettings(): void {
     if (!state || picked === null) return;
@@ -403,6 +393,7 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
     const owner = (id: string): PlayerView | undefined => state?.players.find((player) => player.id === id);
 
     level.textContent = state.boss.normal === undefined ? `· Stage ${state.stage}` : `· ${MODE_NAMES[state.mode]} · Stage ${state.stage}`;
+    info.show(state.mode, state.stage);
     // The boss; the Dragon Raid's, each of its dragons, this room's pressed (another: to its room).
     if (state.bosses.length > 1) {
       bossName.replaceChildren(

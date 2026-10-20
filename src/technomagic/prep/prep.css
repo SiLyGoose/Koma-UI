@@ -686,8 +686,7 @@ button.tm-prep-manage {
 }
 
 .tm-prep-actions {
-  /* Raid Info's box is placed by it. At the bottom of the panel. */
-  position: relative;
+  /* At the bottom of the panel. */
   margin-top: auto;
   display: flex;
   flex-wrap: wrap;
@@ -709,38 +708,6 @@ button.tm-prep-manage {
 .tm-prep-actions .action {
   min-height: 48px;
   padding: 0 14px;
-}
-
-.tm-prep-info summary {
-  list-style: none;
-  cursor: pointer;
-}
-
-.tm-prep-info summary::-webkit-details-marker {
-  display: none;
-}
-
-/*
- * Raid Info's box: up over the panel from its row of buttons, as wide as the row (not wider than the
- * panel, so it never makes the screen any wider), and no taller than most of the screen: past that it scrolls.
- */
-.tm-prep-info-box {
-  position: absolute;
-  inset: auto 0 calc(100% + 6px);
-  z-index: 2;
-  max-height: 70cqh;
-  overflow-y: auto;
-  padding: 10px 12px;
-  border: 1px solid var(--gold-dim);
-  border-radius: 10px;
-  background: #140d16;
-  font-size: 13px;
-  line-height: 1.45;
-}
-
-/* (Its own lines: not the rewards', which keep their spacing.) */
-.tm-prep-info-box > p {
-  margin: 0 0 6px;
 }
 
 /* A phone: the lineup in two rows, the panels one under another. */

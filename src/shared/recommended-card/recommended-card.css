@@ -1,0 +1,113 @@
+/*
+ * A recommended hero (./recommended-card.ts), as King's Raid's Raid Info has them (its small hero portrait, in its units: 210
+ * square): the hero's icon (192 across) in the gold square frame (Common_Hero_Frame_Small, 9-sliced, its corners 50 across), its
+ * class's tag (64, top left), the kind of damage it deals (40, beside it), a thumbs-up (76, top right) for King's Raid's own
+ * picks, and its name under it. One that opens the hero is a button; one that doesn't (a div) only shows why it was picked, on
+ * hovering it. Its name is the colour of the words round it; each page lays the cards out.
+ */
+
+.rec-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+div.rec-card {
+  cursor: default;
+}
+
+.rec-square {
+  position: relative;
+  display: block;
+  width: min(100%, 96px);
+  aspect-ratio: 1;
+  transition: transform 120ms ease, filter 120ms ease;
+}
+
+.rec-card:hover .rec-square {
+  filter: brightness(1.08);
+  transform: translateY(-2px);
+}
+
+.rec-card:focus-visible {
+  outline: none;
+}
+
+.rec-card:focus-visible .rec-square {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.rec-face {
+  position: absolute;
+  inset: 3.81% 4.29% 4.76%;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 40%, #5a2f72, #1d1626);
+  color: #f1e3b4;
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.rec-face img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.rec-frame {
+  position: absolute;
+  inset: 0;
+  border: 0 solid transparent;
+  border-image: url('/kr/ui/hero-frame-small.webp') 50 / 23.81%;
+  pointer-events: none;
+}
+
+.rec-class,
+.rec-deals,
+.rec-kr {
+  position: absolute;
+  height: auto;
+  aspect-ratio: 1;
+  pointer-events: none;
+}
+
+.rec-class {
+  top: 4.76%;
+  left: 4.76%;
+  width: 30.48%;
+}
+
+.rec-deals {
+  top: 8.1%;
+  left: 31.9%;
+  width: 19.05%;
+}
+
+.rec-kr {
+  top: -0.48%;
+  left: 64.29%;
+  width: 36.19%;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 45%));
+}
+
+.rec-name {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

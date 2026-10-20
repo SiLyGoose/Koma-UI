@@ -1,0 +1,570 @@
+/*
+ * Raid Info (./raid-info.ts), as King's Raid's RaidInfo window is made: laid out in the game's own units (its window 1650 by
+ * 1000, everything where the prefab puts it) and scaled to fit (--ri-scale). Its pictures are the game's, cut from its
+ * atlases to public/kr/ui/raid-info/ and 9-sliced as it slices them (the borders below are its sprites'). Its words' colours,
+ * sizes and outlines are its labels'. Upright and narrow (.tall), its parts go one under another.
+ */
+
+.ri {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  overflow: hidden auto;
+  /* (Outside_ClickClose: black at half.) */
+  background: rgb(0 0 0 / 50%);
+  font-family: Poppins, 'Segoe UI', system-ui, -apple-system, sans-serif;
+  animation: ri-in 0.15s ease-out;
+}
+
+.ri[hidden] {
+  display: none;
+}
+
+@keyframes ri-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.ri-stage {
+  position: relative;
+  margin: 16px 0;
+}
+
+/* The window, centred in the room left for its title (1744 by 1010). */
+.ri-window {
+  --outline: #000;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1650px;
+  height: 1000px;
+  box-sizing: border-box;
+  border: solid transparent;
+  border-width: 40px 60px;
+  border-image: url('/kr/ui/raid-info/bg.webp') 40 60 fill / 40px 60px;
+  transform: scale(var(--ri-scale, 1)) translate(47px, 5px);
+  transform-origin: 0 0;
+}
+
+/* Words outlined all round (NGUI's Outline8), in --outline. */
+.ri-title h2,
+.ri-tab span,
+.ri-name p,
+.ri-heading,
+.ri-skill-name,
+.ri-skill-type,
+.ri-skill-about {
+  filter: drop-shadow(2px 0 0 var(--outline)) drop-shadow(-2px 0 0 var(--outline)) drop-shadow(0 2px 0 var(--outline)) drop-shadow(0 -2px 0 var(--outline));
+}
+
+/* A label's colour fading to 70% of it at its foot (NGUI's gradient, white to #b2b2b2, times its colour). */
+.ri-title h2,
+.ri-tab span,
+.ri-name-text,
+.ri-skill-name {
+  background: linear-gradient(var(--top), var(--foot));
+  background-clip: text;
+  color: transparent;
+}
+
+/* Spr_Raid_Title: across the top, past the window on both sides. */
+.ri-title {
+  position: absolute;
+  top: -41px;
+  left: -92px;
+  width: 1744px;
+  height: 134px;
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  border: solid transparent;
+  border-width: 0 400px;
+  border-image: url('/kr/ui/raid-info/title.webp') 0 400 fill / 0 400px;
+}
+
+.ri-title h2 {
+  --top: #cfbc92;
+  --foot: #918466;
+  margin: -20px 0 0 -30px;
+  font-size: 40px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Button_Exit. */
+.ri-close {
+  position: absolute;
+  top: -16px;
+  left: 1493px;
+  width: 75px;
+  height: 75px;
+  padding: 0;
+  border: 0;
+  background: url('/kr/ui/raid-info/close.webp') center / contain no-repeat;
+  cursor: pointer;
+  transition: transform 0.05s;
+}
+
+.ri-close:active {
+  transform: scale(0.9);
+}
+
+.ri-close:focus-visible,
+.ri-tab:focus-visible {
+  outline: 3px solid #f2d27a;
+  outline-offset: 2px;
+}
+
+/* The boss: where the game turns its model (Texture_3DPreview), in its frame (Sprite_Frame). */
+.ri-boss {
+  position: absolute;
+  top: 76px;
+  left: -9px;
+  width: 812px;
+  height: 866px;
+}
+
+.ri-boss-view {
+  position: absolute;
+  inset: 26px 31px 32px 27px;
+  overflow: hidden;
+  background: #0d0b10;
+}
+
+/* (Its portrait, as tall as the view; the same, blurred and darkened, filling the rest.) */
+.ri-boss-view::before {
+  content: '';
+  position: absolute;
+  inset: -40px;
+  background: var(--art) center / cover;
+  filter: blur(26px) brightness(0.45) saturate(1.2);
+}
+
+.ri-boss-art {
+  position: relative;
+  display: block;
+  height: 100%;
+  margin: 0 auto;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent);
+}
+
+.ri-boss-frame {
+  position: absolute;
+  inset: 0;
+  border: solid transparent;
+  border-width: 90px 0;
+  border-image: url('/kr/ui/raid-info/monster-frame.webp') 90 0 fill / 90px 0;
+  pointer-events: none;
+}
+
+/* Sprite_NameBox: its name (white, 42), and over it the raid's mode and stage (red, 32), on black fading out to the right. */
+.ri-name {
+  position: absolute;
+  top: 38px;
+  left: 27px;
+  width: 668px;
+  height: 98px;
+  padding-left: 22px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: linear-gradient(90deg, rgb(0 0 0 / 85%), rgb(0 0 0 / 55%) 55%, transparent);
+}
+
+.ri-name p {
+  margin: 0;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.ri-name-prefix {
+  --outline: #15120f;
+  color: #ff8b8b;
+  font-size: 30px;
+  font-weight: 700;
+}
+
+.ri-name-prefix:empty {
+  display: none;
+}
+
+.ri-name-text {
+  --top: #fff;
+  --foot: #b2b2b2;
+  font-size: 42px;
+  font-weight: 700;
+}
+
+/* The right: the tabs on their ornament (Sprite_Tab_Bg), the panel under them. */
+.ri-side {
+  position: absolute;
+  top: 105px;
+  left: 781px;
+  width: 756px;
+  height: 821px;
+}
+
+.ri-tabs {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  width: 756px;
+  height: 103px;
+  display: flex;
+  gap: 2px;
+  padding-left: 46px;
+  box-sizing: border-box;
+}
+
+.ri-tabs::before {
+  content: '';
+  position: absolute;
+  inset: 5px 0 0;
+  z-index: -1;
+  border: solid transparent;
+  border-width: 0 250px;
+  border-image: url('/kr/ui/raid-info/tabs-deco.webp') 0 250 fill / 0 250px;
+}
+
+/* Each tab: Common_Button7 (Disable), and lit (Emphasis) when it is the one picked. */
+.ri-tab {
+  --top: #f7eee5;
+  --foot: #ada6a0;
+  position: relative;
+  flex: none;
+  width: 220px;
+  height: 100px;
+  padding: 0;
+  border: solid transparent;
+  border-width: 0 80px;
+  border-image: url('/kr/ui/raid-info/tab.webp') 0 80 fill / 0 80px;
+  background: none;
+  font: inherit;
+  font-size: 32px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+/* (Its words across the whole button, past its borders.) */
+.ri-tab span {
+  display: block;
+  margin: 0 -80px;
+}
+
+.ri-tab[aria-selected='true'] {
+  border-width: 0 70px;
+  border-image: url('/kr/ui/raid-info/tab-on.webp') 0 70 fill / 0 70px;
+}
+
+.ri-tab[aria-selected='true'] span {
+  margin: 0 -70px;
+}
+
+/* Sprite_InfoBg: the dark slot every tab's page is on. */
+.ri-panel {
+  position: absolute;
+  top: 71px;
+  left: 6px;
+  width: 746px;
+  height: 750px;
+}
+
+.ri-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 60px solid transparent;
+  border-image: url('/kr/ui/raid-info/panel.webp') 60 fill / 60px;
+}
+
+.ri-pane {
+  position: absolute;
+}
+
+.ri-pane[hidden] {
+  display: none;
+}
+
+/* More Info, on its parchment (RaidInfo_Desc_Bg): its boxes one under another, Characteristics taking what is left. */
+.ri-pane-info {
+  inset: 8px 11px 2px 15px;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 40px 32px 22px;
+  box-sizing: border-box;
+}
+
+.ri-pane-info::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border: solid transparent;
+  border-width: 0 150px;
+  border-image: url('/kr/ui/raid-info/parchment.webp') 0 150 fill / 0 150px;
+}
+
+/* A box: its heading on the ornament over it (RaidInfo_Title_Small), its words dark brown. */
+.ri-section {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  box-sizing: border-box;
+  border: solid transparent;
+  border-width: 50px 260px 10px;
+  border-image: url('/kr/ui/raid-info/heading.webp') 50 260 10 fill / 50px 260px 10px;
+}
+
+.ri-section[hidden] {
+  display: none;
+}
+
+.ri-heading {
+  --outline: #5e4e36;
+  margin: -50px -260px 0;
+  height: 46px;
+  color: #f7ecd6;
+  font-size: 29px;
+  font-weight: 700;
+  line-height: 46px;
+  text-align: center;
+}
+
+.ri-section-body {
+  margin: 0 -240px;
+  min-height: 0;
+  color: #452705;
+  font-size: 25px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.ri-race {
+  flex: none;
+  height: 100px;
+}
+
+.ri-race .ri-section-body {
+  text-align: center;
+}
+
+/* Characteristics: the game's tip, then the raid's ways, scrolling in its box. */
+.ri-traits {
+  flex: 1 1 286px;
+}
+
+.ri-traits .ri-section-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 2px 14px 6px 4px;
+  scrollbar-color: #8a6a33 transparent;
+  scrollbar-width: thin;
+}
+
+.ri-traits p {
+  margin: 0 0 12px;
+}
+
+.ri-traits .ri-tactic {
+  font-weight: 600;
+}
+
+/* The heroes, four across, King's Raid's small hero portraits; names in the parchment's ink. */
+.ri-heroes {
+  flex: none;
+}
+
+.ri-heroes .ri-section-body {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px 14px;
+  padding: 2px 40px 4px;
+}
+
+.ri-heroes .rec-card {
+  gap: 2px;
+}
+
+.ri-heroes .rec-square {
+  width: 80px;
+}
+
+.ri-heroes .rec-name {
+  max-width: 140px;
+  font-size: 19px;
+  line-height: 1.2;
+}
+
+/* Skill Info: a row each (RaidSkillComponent), alternately shaded, scrolling in the slot. */
+.ri-pane-skills {
+  inset: 19px 18px 11px 16px;
+  overflow-y: auto;
+  scrollbar-color: #6b5a3b transparent;
+  scrollbar-width: thin;
+}
+
+.ri-skills {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ri-skill {
+  display: grid;
+  grid-template-columns: 128px minmax(0, 1fr);
+  grid-template-rows: auto 1fr;
+  column-gap: 22px;
+  min-height: 220px;
+  padding: 18px 26px 22px 19px;
+  box-sizing: border-box;
+  background: #242435;
+}
+
+.ri-skill:nth-child(even) {
+  background: #1f1f2b;
+}
+
+/* Its icon in its slot (Common_Slot). */
+.ri-skill-slot {
+  grid-row: 1 / 3;
+  display: grid;
+  place-items: center;
+  width: 128px;
+  height: 128px;
+  box-sizing: border-box;
+  border: 20px solid transparent;
+  border-image: url('/kr/ui/raid-info/skill-slot.webp') 20 fill / 20px;
+}
+
+.ri-skill-slot img {
+  width: 115px;
+  height: 115px;
+  margin: -20px;
+  object-fit: contain;
+}
+
+.ri-skill-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ri-skill-name {
+  --top: #ffffb8;
+  --foot: #b29b7e;
+  font-size: 33px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.ri-skill-type {
+  flex: none;
+  color: #ffb300;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.ri-skill-about {
+  margin: 6px 0 0;
+  color: #ffffc4;
+  font-size: 25px;
+  line-height: 1.4;
+}
+
+.ri-skill-about:empty {
+  display: none;
+}
+
+/* Rewards: what a win gives (../../shared/raid-rewards/), as large as the game's icons, in the slot. */
+.ri-pane-rewards {
+  inset: 26px 34px;
+  overflow-y: auto;
+  zoom: 2.1;
+}
+
+.ri-pane-rewards .raid-rewards {
+  margin: 0;
+}
+
+.ri-pane-rewards .raid-rewards-label {
+  display: none;
+}
+
+.ri-pane-rewards .raid-reward-name {
+  color: #e9dcc0;
+}
+
+.ri-pane-rewards .raid-rewards-note {
+  margin-top: 12px;
+  color: #cbbfa6;
+  line-height: 1.45;
+}
+
+/*
+ * Upright and narrow (a phone held up): the boss over the tabs, the window as tall as they need (840 across, scaled to the
+ * screen's width), and the page scrolling past it.
+ */
+.ri.tall {
+  place-items: start center;
+}
+
+.ri.tall .ri-window {
+  width: 840px;
+  height: auto;
+  padding-bottom: 0;
+  transform: scale(var(--ri-scale, 1)) translate(0, 41px);
+}
+
+.ri.tall .ri-title {
+  left: -120px;
+  width: 960px;
+}
+
+.ri.tall .ri-close {
+  left: 680px;
+}
+
+.ri.tall .ri-boss,
+.ri.tall .ri-side {
+  position: relative;
+  top: auto;
+  left: auto;
+}
+
+.ri.tall .ri-boss {
+  height: 700px;
+  margin: 60px -46px 0;
+}
+
+.ri.tall .ri-side {
+  margin: 10px -18px 20px;
+}
+
+/* (Its words larger, for a screen that small.) */
+.ri.tall .ri-section-body,
+.ri.tall .ri-skill-about {
+  font-size: 31px;
+}
+
+.ri.tall .ri-heading,
+.ri.tall .ri-skill-name {
+  font-size: 36px;
+}
+
+.ri.tall .ri-heroes .rec-name {
+  font-size: 24px;
+}
+
+.ri.tall .ri-race {
+  height: 110px;
+}
