@@ -1,13 +1,12 @@
 import { closeButton } from '../shared/ui/close/close';
-import { raidRewards } from '../shared/raid-rewards/raid-rewards';
 import { raidBanner, type RaidCard, type RaidList as RaidSetup, type UpcomingCard } from '../shared/raids';
 import type { RaidRooms } from './raid-rooms';
 
 /*
  * A raid's Raid List, as King's Raid has it: the TechnoMagic Raid's and the Dragon Raid's Play on the front page open
  * theirs over the page (../shared/raids.ts says what is in each). A banner for each boss (its head, its name and its
- * raid's), and beside it Raid Info (what it does and what a win gives, sliding open under its banner: one boss's at a time,
- * another's closing it), Single Player (straight into a room of the player's own) and Multiplayer (Find Raid and Create Raid
+ * raid's), and beside it Raid Info (King's Raid's window, over the list: ../technomagic/prep/raid-info.ts, read only once
+ * one is asked for, so the front page reads none of the raid's own code before), Single Player (straight into a room of the player's own) and Multiplayer (Find Raid and Create Raid
  * over the list: ./raid-rooms.ts). A boss still to come is under the others, its banner greyed and "Upcoming" in place of
  * its buttons. A press outside it, its ✕ or Escape closes it (Multiplayer first, when it is open).
  */
@@ -43,17 +42,6 @@ export function makeRaidList(root: HTMLElement, raid: RaidSetup, single: (boss: 
   head.append(title, close);
   const tip = el('p', 'raid-list-tip', raid.tip);
   const rows = el('ol', 'raid-list-rows');
-  /** Each boss's Raid Info, opened or closed: one at a time is open. */
-  const infos: { button: HTMLButtonElement; box: HTMLElement }[] = [];
-  const showInfo = (open: HTMLElement | null): void => {
-    for (const { button, box } of infos) {
-      const shown = box === open;
-      box.classList.toggle('open', shown);
-      box.inert = !shown;
-      box.setAttribute('aria-hidden', String(!shown));
-      button.setAttribute('aria-expanded', String(shown));
-    }
-  };
   rows.append(...raid.cards.map(row), ...(raid.upcoming ?? []).map(soon));
   panel.append(head, tip, rows);
   shade.append(panel);
@@ -80,28 +68,22 @@ export function makeRaidList(root: HTMLElement, raid: RaidSetup, single: (boss: 
     return item;
   }
 
-  /** A boss's banner and its buttons, with its Raid Info under them (closed to begin with). */
+  /** A boss's banner and its buttons. */
   function row(card: RaidCard): HTMLLIElement {
     const item = el('li', 'raid-row');
     item.dataset.boss = card.id;
     const banner = bannerOf(card);
 
-    // (Its words in a box of their own, which the outer one slides open round: ./hub.css.)
-    const info = el('div', 'raid-row-info');
-    info.id = `raid-info-${card.id}`;
-    info.inert = true;
-    info.setAttribute('aria-hidden', 'true');
-    const words = el('div', 'raid-row-info-body');
-    words.append(el('p', '', card.about), el('p', 'raid-row-lair', `Fought in ${card.lair}.`), raidRewards(card.rewards, raid.rewardNote));
-    info.append(words);
-
     const buttons = el('div', 'raid-row-actions');
     const infoButton = el('button', 'raid-action info', 'Raid Info');
     infoButton.type = 'button';
-    infoButton.setAttribute('aria-expanded', 'false');
-    infoButton.setAttribute('aria-controls', info.id);
-    infos.push({ button: infoButton, box: info });
-    infoButton.addEventListener('click', () => showInfo(info.classList.contains('open') ? null : info));
+    infoButton.setAttribute('aria-haspopup', 'dialog');
+    infoButton.addEventListener('click', () => {
+      infoButton.disabled = true;
+      void import('../technomagic/prep/raid-info')
+        .then(({ openRaidInfo }) => openRaidInfo(card.id))
+        .finally(() => (infoButton.disabled = false));
+    });
     const alone = el('button', 'raid-action single', 'Single Player');
     alone.type = 'button';
     alone.addEventListener('click', () => single(card.id, alone));
@@ -109,7 +91,7 @@ export function makeRaidList(root: HTMLElement, raid: RaidSetup, single: (boss: 
     together.type = 'button';
     together.addEventListener('click', () => rooms.open(card));
     buttons.append(infoButton, alone, together);
-    item.append(banner, buttons, info);
+    item.append(banner, buttons);
     return item;
   }
 
@@ -141,7 +123,6 @@ export function makeRaidList(root: HTMLElement, raid: RaidSetup, single: (boss: 
     close() {
       shade.hidden = true;
       rooms.close();
-      showInfo(null);
       document.removeEventListener('keydown', onKey);
     },
   };

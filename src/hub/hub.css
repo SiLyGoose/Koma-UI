@@ -460,12 +460,11 @@
   overflow-y: auto;
 }
 
-/* A dragon: its banner, its buttons, and its Raid Info under them when opened. */
+/* A dragon: its banner, and its buttons beside it (under it, on a phone). */
 .raid-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  /* (No gap between its rows: a closed Raid Info takes no room. Its words keep their own distance.) */
   gap: 0 14px;
   padding: 8px 12px 8px 8px;
   border: 2px solid #5d4a2c;
@@ -601,67 +600,12 @@
   background: linear-gradient(180deg, #f2c64f, #c48a12);
 }
 
-.raid-action.info[aria-expanded='true'] {
-  background: linear-gradient(180deg, #c48a12, #f2c64f);
-}
-
 .raid-action.single {
   background: linear-gradient(180deg, #5fe08c, #1f9a52);
 }
 
 .raid-action.multi {
   background: linear-gradient(180deg, #5fd6f6, #1590c4);
-}
-
-.raid-row-info {
-  grid-column: 1 / -1;
-  /* Slides open: its one row grows from nothing to its words' height, and they fade and drop in. */
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-.raid-row-info.open {
-  grid-template-rows: 1fr;
-}
-
-.raid-row-info-body {
-  min-height: 0;
-  overflow: hidden;
-  padding: 0 6px;
-  color: var(--text);
-  font-size: 14px;
-  line-height: 1.45;
-  opacity: 0;
-  translate: 0 -6px;
-  transition:
-    opacity 0.22s ease,
-    translate 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-.raid-row-info.open .raid-row-info-body {
-  opacity: 1;
-  translate: 0 0;
-  transition-delay: 0.06s;
-}
-
-.raid-row-info-body p:first-child {
-  margin-top: 12px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .raid-row-info,
-  .raid-row-info-body {
-    transition: none;
-  }
-}
-
-.raid-row-info p {
-  margin: 0 0 6px;
-}
-
-.raid-row-lair {
-  color: var(--muted);
 }
 
 @media (max-width: 640px) {
