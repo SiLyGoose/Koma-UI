@@ -1,6 +1,7 @@
 import { armoryFilter, type ItemType, type StarChoice } from '../shared/items';
 import { BOSSES } from '../technomagic/sim/bosses';
 import type { BossDef } from '../technomagic/sim/bosses/boss';
+import { byName, heroFilter, heroShown, NO_HERO_FILTER, type Filtered, type HeroChoice } from '../shared/ui/hero-filter/hero-filter';
 import { HEROES } from '../technomagic/sim/heroes';
 import type { HeroDef } from '../technomagic/sim/heroes/kit';
 import type { Databank, DatabankBoss, DatabankItem, Owned, RaidClass, RaidWeekView } from './types';
@@ -51,6 +52,8 @@ function findUi(root: HTMLElement) {
     classInfo: $('class-info'),
     classBody: $('class-body'),
     heroes: $('db-heroes'),
+    /** The heroes' Filter: the class, the kind of damage, and Show owned (when logged in). */
+    heroFilter: heroFilter($('hero-filter')),
     heroList: $('hero-list'),
     heroCount: $('hero-count'),
     heroInfo: $('hero-info'),
@@ -87,6 +90,10 @@ export interface DatabankContext {
   cls: string | null;
   /** The hero shown. */
   hero: string | null;
+  /** What the heroes' Filter picks (Show owned: null when not logged in). */
+  heroChoice: HeroChoice;
+  /** The heroes they own in the server picked; null when not logged in. */
+  ownedHeroes: Set<string> | null;
   /** How the raid stands in the server picked: null when not logged in (or the bot doesn't say). */
   week: RaidWeekView | null;
 }
@@ -111,7 +118,9 @@ export function createContext(root: HTMLElement): DatabankContext {
     bossStage: 1,
     bossMode: 'hard',
     cls: null,
-    hero: HEROES[0]?.id ?? null,
+    hero: null,
+    heroChoice: { ...NO_HERO_FILTER, owned: null },
+    ownedHeroes: null,
     week: null,
   };
 }
@@ -145,3 +154,9 @@ export const bossById = (ctx: DatabankContext, id: string | null): DatabankBoss 
 
 /** A TechnoMagic Raid hero (the raid's own, not the bot's). */
 export const heroById = (id: string | null): HeroDef | undefined => (id ? HEROES.find((hero) => hero.id === id) : undefined);
+
+/** A hero as the heroes' Filter goes by it: its class, the kind of damage it deals, and whether they own it. */
+export const filtered = (ctx: DatabankContext, hero: HeroDef): Filtered => ({ name: hero.name, class: hero.class, deals: hero.stats.deals, owned: ctx.ownedHeroes?.has(hero.id) ?? false });
+
+/** The heroes the Filter leaves, A to Z. */
+export const heroesShown = (ctx: DatabankContext): HeroDef[] => HEROES.filter((hero) => heroShown(ctx.heroChoice, filtered(ctx, hero))).sort(byName);

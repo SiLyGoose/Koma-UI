@@ -2,14 +2,16 @@ import markup from './hero-shop.html?raw';
 import { classBadge, className, heroCut, SHOP_BUST, type HeroView, type HeroesView } from '../shared/heroes';
 import { el } from '../shared/items';
 import { API, busyWith, dropdown, fillServers, working, type Busy } from '../shared/ui';
+import { byName, heroFilter, heroShown, NO_HERO_FILTER, type HeroChoice, type HeroFilter } from '../shared/ui/hero-filter/hero-filter';
 import { coin, points } from '../shared/util';
 import type { ShopTab } from '../shop/tab';
 import { api, currentMe, currentServer, loadMe, logOut, prefetchFor, setServer } from '../site/session';
 
 /*
  * The shop's Heroes tab (../shop/page.ts): a card for each of the TechnoMagic Raid's heroes (the bot's
- * /api/heroes), as the Outfits tab's are (its cards and buy box), with the hero's picture, its class, and at
- * the bottom its price, or that it's theirs. Pressing one they don't have asks to buy it, for their
+ * /api/heroes), A to Z, as the Outfits tab's are (its cards and buy box), with the hero's picture, its class, and at
+ * the bottom its price, or that it's theirs. The Filter picks a class and a kind of damage, and leaves out the heroes
+ * they own until Show owned is on. Pressing one they don't have asks to buy it, for their
  * zeiucoins in the server picked; once theirs, it's geared on the heroes page (../heroes/), where they're
  * sent. Logged-in members only.
  */
@@ -24,6 +26,9 @@ interface Ui {
   server: HTMLSelectElement;
   balance: HTMLElement;
   status: HTMLElement;
+  tools: HTMLElement;
+  filter: HeroFilter;
+  empty: HTMLElement;
   list: HTMLElement;
   buy: HTMLElement;
   buyPicture: HTMLImageElement;
@@ -39,6 +44,8 @@ interface Context {
   buying: HeroView | null;
   /** A buy on its way (its button: 'buy'). */
   busy: Busy | null;
+  /** What the Filter picks. */
+  choice: HeroChoice;
 }
 
 function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void } {
@@ -48,6 +55,9 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
       server: $<HTMLSelectElement>('#server'),
       balance: $('#balance'),
       status: $('#status'),
+      tools: $('#tools'),
+      filter: heroFilter($('#hero-filter')),
+      empty: $('#empty'),
       list: $('#heroes'),
       buy: $('#buy'),
       buyPicture: $<HTMLImageElement>('#buy-picture'),
@@ -58,8 +68,13 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     view: null,
     buying: null,
     busy: null,
+    choice: NO_HERO_FILTER,
   };
   const { ui } = ctx;
+  ui.filter.onChange((choice) => {
+    ctx.choice = choice;
+    render(ctx);
+  });
   const serverPicker = dropdown(ui.server);
   ui.server.addEventListener('change', () => {
     setServer(ui.server.value);
@@ -92,7 +107,13 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     if (e.key === 'Escape') closeBuy();
   });
 
-  return { drawn: start(ctx), unmount: () => serverPicker.destroy() };
+  return {
+    drawn: start(ctx),
+    unmount: () => {
+      serverPicker.destroy();
+      ui.filter.destroy();
+    },
+  };
 }
 
 function status(ctx: Context, text: string | null, bad = false): void {
@@ -212,9 +233,21 @@ function render(ctx: Context): void {
   const { ui, view } = ctx;
   ui.balance.hidden = !view;
   ui.list.hidden = !view;
+  ui.empty.hidden = true;
   if (!view) return;
   ui.balance.replaceChildren(...price(view.balance));
-  ui.list.replaceChildren(...view.heroes.map((hero) => card(ctx, hero)));
+  // The Damage group once the bot says what each deals (one from before that doesn't).
+  ui.filter.show(ctx.choice, view.heroes.some((hero) => hero.deals));
+  const shown = view.heroes.filter((hero) => heroShown(ctx.choice, hero)).sort(byName);
+  // The cards after the Filter's row, which stays (so a choice in it keeps its focus).
+  while (ui.list.lastChild && ui.list.lastChild !== ui.tools) ui.list.lastChild.remove();
+  ui.list.append(...shown.map((hero) => card(ctx, hero)));
+  if (shown.length === 0 && view.heroes.length > 0) {
+    // Only those they own left out, or the class and damage too.
+    const owned = view.heroes.some((hero) => heroShown({ ...ctx.choice, owned: true }, hero));
+    ui.empty.textContent = owned ? 'You own every hero here: turn on Show owned in the Filter to see them.' : 'No heroes match these filters.';
+    ui.empty.hidden = false;
+  }
   if (ctx.buying) renderBuy(ctx);
 }
 

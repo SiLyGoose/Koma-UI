@@ -6,7 +6,8 @@
 
 /*
  * Its cards in the middle of the panel, as many to a line as fit, a line after the first starting at the left of
- * them (not in the middle): columns as wide as a card, those with nothing in them taking no room.
+ * them (not in the middle): columns as wide as a card, as many as fit (the Filter's row across them all keeps them
+ * where they are when it leaves fewer cards).
  */
 @media (min-width: 761px) {
   .hero-shop .outfits-row {
@@ -76,4 +77,15 @@
   .hero-card-picture {
     transition: none;
   }
+}
+
+/*
+ * The Filter: a row of its own across the cards' grid, at its right, so it ends where the rightmost card does (and stays
+ * there as the Filter leaves fewer). Closer to the cards than they are to each other.
+ */
+.hero-shop-tools {
+  display: flex;
+  grid-column: 1 / -1;
+  justify-content: flex-end;
+  margin-bottom: -8px;
 }

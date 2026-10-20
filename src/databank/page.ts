@@ -2,7 +2,8 @@ import markup from './databank.html?raw';
 import { API } from '../shared/ui';
 import type { Page } from '../site/page';
 import { prefetchFor } from '../site/session';
-import { bossById, classById, createContext, heroById, itemById, itemsOfKind, kindOf, raidBossById, status, type DatabankContext, type View } from './context';
+import { heroShown, NO_HERO_FILTER } from '../shared/ui/hero-filter/hero-filter';
+import { bossById, classById, createContext, filtered, heroById, itemById, itemsOfKind, kindOf, raidBossById, status, type DatabankContext, type View } from './context';
 import { wireControls } from './controls';
 import { loadDatabank } from './load';
 import { loadMember } from './owned';
@@ -19,7 +20,7 @@ import { render } from './render';
  * this week's in the server picked and how far its difficulty is unlocked (week.ts); and the TechnoMagic Raid's bosses and
  * the Dragon Raid's dragons, what each does and what each stage makes of it (bosses.ts). /databank/classes/ is the raid classes: what each does in a raid, and its class
  * items (classes.ts). /databank/heroes/ is the TechnoMagic Raid's heroes: their stats with no gear, and
- * their skills (heroes.ts). A #hash opens one item, boss, class or hero. Going between them swaps them in place.
+ * their skills (heroes.ts), A to Z, as the Filter picks them (logged in, those they own only with Show owned on). A #hash opens one item, boss, class or hero. Going between them swaps them in place.
  *
  * Its parts share one DatabankContext (./context.ts): render.ts draws the one showing; for the items,
  * list.ts (as filter.ts picks them) and detail.ts (the panel); owned.ts loads what goes by the server
@@ -35,7 +36,7 @@ export const databankPage: Page = {
   // The databank (./load.ts: unchanged since the last visit, nothing is downloaded), and, logged in, what they own and how the raid stands (./owned.ts).
   prefetch: () => {
     if (API) void loadDatabank();
-    prefetchFor((guild) => `/api/gear?guild=${guild}`, (guild) => `/api/raid/week?guild=${guild}`);
+    prefetchFor((guild) => `/api/gear?guild=${guild}`, (guild) => `/api/heroes?guild=${guild}`, (guild) => `/api/raid/week?guild=${guild}`);
   },
 };
 
@@ -120,7 +121,12 @@ function place(ctx: DatabankContext, url: URL): void {
   }
   if (view === 'bosses' && boss) ctx.boss = boss.id;
   if (view === 'classes') ctx.cls = classById(ctx, wanted)?.id ?? ctx.cls;
-  if (view === 'heroes') ctx.hero = heroById(wanted)?.id ?? ctx.hero;
+  if (view === 'heroes') {
+    const hero = heroById(wanted);
+    if (hero) ctx.hero = hero.id;
+    // A hero named that the heroes' Filter leaves out: the Filter cleared, so it's in the list.
+    if (hero && !heroShown(ctx.heroChoice, filtered(ctx, hero))) ctx.heroChoice = { ...NO_HERO_FILTER, owned: ctx.heroChoice.owned === null ? null : true };
+  }
   // On narrow screens the item's sheet is only up for one that was asked for.
   ctx.sheetOpen = view === 'items' && item !== undefined;
 }

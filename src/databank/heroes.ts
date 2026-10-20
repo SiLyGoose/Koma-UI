@@ -2,13 +2,13 @@ import { el, statBlocks } from '../shared/items';
 import { BUST, classBadge, className, FACE, heroCut } from '../shared/heroes';
 import { skillRows } from '../heroes/render';
 import { heroStats } from '../heroes/stats';
-import { HEROES } from '../technomagic/sim/heroes';
 import type { HeroDef } from '../technomagic/sim/heroes/kit';
 import { label } from './bosses';
-import { heroById, type DatabankContext } from './context';
+import { heroById, heroesShown, type DatabankContext } from './context';
 
 /*
- * The TechnoMagic Raid's heroes: a card for each down the side (its face and name), and the one picked
+ * The TechnoMagic Raid's heroes: a card for each down the side (its face and name), A to Z, as the Filter picks
+ * them (../shared/ui/hero-filter/: a class, a kind of damage, and logged in, those they own only with Show owned on), and the one picked
  * beside them on parchment, in the bosses' frames: its picture, name and class, its stats in the raid as its
  * class has them (before any gear: the heroes page, ../heroes/, has them with it), and its skills in King's
  * Raid's own words. The raid itself knows them (../technomagic/heroes/), so this needs nothing from the bot.
@@ -33,14 +33,19 @@ export function renderHeroes(ctx: DatabankContext): void {
   renderHero(ctx);
 }
 
-/** A card for each hero; picking one shows it. */
+/** A card for each hero the Filter leaves; picking one shows it. */
 function renderHeroList(ctx: DatabankContext): void {
   const { ui } = ctx;
-  // Drawn again only for another pick, so its pictures don't flicker.
-  if (ui.heroList.dataset.picked !== ctx.hero) {
-    ui.heroList.dataset.picked = ctx.hero ?? '';
+  const shown = heroesShown(ctx);
+  // The one shown is one of those (the first, the Filter having left out the one that was; none: none).
+  if (!shown.some((hero) => hero.id === ctx.hero)) ctx.hero = shown[0]?.id ?? null;
+  ui.heroFilter.show(ctx.heroChoice, true);
+  // Drawn again only for another pick or other heroes, so its pictures don't flicker.
+  const drawn = `${ctx.hero ?? ''} ${shown.map((hero) => hero.id).join(',')}`;
+  if (ui.heroList.dataset.drawn !== drawn) {
+    ui.heroList.dataset.drawn = drawn;
     ui.heroList.replaceChildren(
-      ...HEROES.map((hero) => {
+      ...shown.map((hero) => {
         const card = el('button', 'db-class-card db-hero-card');
         card.type = 'button';
         card.classList.toggle('picked', hero.id === ctx.hero);
@@ -64,7 +69,10 @@ function renderHeroList(ctx: DatabankContext): void {
     if (at.left < box.left || at.right > box.right) ui.heroList.scrollLeft += at.left - box.left - 4;
     if (at.top < box.top || at.bottom > box.bottom) ui.heroList.scrollTop += at.top - box.top - 4;
   }
-  ui.heroCount.textContent = `${HEROES.length} ${HEROES.length === 1 ? 'hero' : 'heroes'}`;
+  // None left: only those they own left out (Show owned would bring them back), or the class and damage too.
+  const owned = shown.length === 0 && heroesShown({ ...ctx, heroChoice: { ...ctx.heroChoice, owned: true } }).length > 0;
+  ui.heroCount.textContent =
+    shown.length > 0 ? `${shown.length} ${shown.length === 1 ? 'hero' : 'heroes'}` : owned ? 'You own every hero here: turn on Show owned in the Filter' : 'No heroes match these filters';
 }
 
 /** The hero picked. */

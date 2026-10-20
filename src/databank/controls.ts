@@ -25,6 +25,11 @@ export function wireControls(ctx: DatabankContext): () => void {
     void loadServer(ctx).then(() => render(ctx));
   });
 
+  ui.heroFilter.onChange((choice) => {
+    ctx.heroChoice = choice;
+    render(ctx);
+  });
+
   ui.filter.onChange((choice) => {
     ctx.slotFilter = choice.slot;
     ctx.starFilter = choice.stars;
@@ -48,5 +53,6 @@ export function wireControls(ctx: DatabankContext): () => void {
     narrow.removeEventListener('change', onNarrow);
     serverPicker.destroy();
     ui.filter.destroy();
+    ui.heroFilter.destroy();
   };
 }

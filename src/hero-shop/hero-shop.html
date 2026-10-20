@@ -8,8 +8,15 @@
 
   <p id="status" class="status outfits-status" hidden></p>
 
-  <!-- A card for each hero (page.ts): its picture and class badge, its name, and at the bottom its price, or that it's theirs. -->
-  <div id="heroes" class="outfits-row"></div>
+  <!--
+    A card for each hero the Filter leaves, A to Z (page.ts): its picture and class badge, its name, and at the bottom its price, or that it's theirs.
+    Above them, in the cards' own grid (so it ends where the rightmost card does), the Filter (src/shared/ui/hero-filter/ fills it in):
+    the class, the kind of damage, and Show owned.
+  -->
+  <div id="heroes" class="outfits-row">
+    <div id="tools" class="hero-shop-tools"><div id="hero-filter" class="armory-filter"></div></div>
+  </div>
+  <p id="empty" class="status outfits-status" hidden></p>
 
   <!-- Buying one: what it costs (in red when it's more than they have). Not a <dialog>, as the Outfits tab's isn't. -->
   <div id="buy" class="outfits-buy" role="dialog" aria-modal="true" aria-labelledby="buy-title" tabindex="-1" hidden>

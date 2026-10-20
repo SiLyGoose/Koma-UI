@@ -1,5 +1,6 @@
 import { BOSSES, DRAGONS, TM_BOSSES } from './bosses';
 import { bossIn, stagesOf, type BossDef } from './bosses/boss';
+import type { DamageType } from './combat/damage';
 import type { Input } from './events';
 import { makeSim } from './fight';
 import { HEROES } from './heroes';
@@ -114,6 +115,8 @@ export interface TmHero {
   id: string;
   name: string;
   class: string;
+  /** The kind of damage its blows deal. */
+  deals: DamageType;
   skins: number;
   /** Its three skills, then its passive: as the heroes page says them (King's Raid's words, with the fight's numbers). */
   skills: TmHeroSkill[];
@@ -148,6 +151,7 @@ export const TM_HEROES: readonly TmHero[] = HEROES.map((hero) => ({
   id: hero.id,
   name: hero.name,
   class: hero.class,
+  deals: hero.stats.deals,
   skins: hero.skins.length,
   skills: [
     ...hero.abilities.map(({ name, cost, cooldown, tag, words, about }) => ({ name, cost, cooldown, tag: tag ?? null, text: words ?? about ?? '' })),

@@ -83,3 +83,9 @@
     transform: translateY(-44px);
   }
 }
+
+/* The heroes' Filter (../../shared/ui/hero-filter/), at the right above their cards. */
+.db-hero-tools {
+  justify-content: flex-end;
+  margin: 4px 0 10px;
+}
