@@ -147,6 +147,11 @@
   font-weight: 700;
 }
 
+.tm-tip .skill-own {
+  color: #d595ff;
+  font-weight: 700;
+}
+
 /* A square's: its picture, its name, how long it has left or how many; under them what it does. */
 .tm-tip-head {
   display: flex;

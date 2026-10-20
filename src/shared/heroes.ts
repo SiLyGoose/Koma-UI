@@ -257,15 +257,16 @@ const NOT_NAMED = String.raw`(?:When|While|During|If|In|Into|Upon|After|Before|U
 const NAMED = String.raw`\b(?!${NOT_NAMED})[A-Z][\w-]*`;
 /** A hero's state (or mode), by its name: "[Dark Lord] state", "'God of Lightning' state", "Fury state", "Siege Weapon mode". */
 const STATE = String.raw`(?:\[[^\]]+\]|'[^']+'|${NAMED}(?: ${NAMED})*) (?:[Ss]tate|[Mm]ode)\b`;
-/** What a skill's words mark: a state, what's in brackets, a number. */
-const MARKED = new RegExp(String.raw`${STATE}|\[[^\]]+\]|\d+(?:,\d{3})*(?:\.\d+)?%?`, 'g');
+/** What a skill's words mark: what is its hero's own (*Charge*: Discord's italics), a state, what's in brackets, a number. */
+const MARKED = new RegExp(String.raw`\*[^*]+\*|${STATE}|\[[^\]]+\]|\d+(?:,\d{3})*(?:\.\d+)?%?`, 'g');
 const IS_STATE = / (?:[Ss]tate|[Mm]ode)$/;
 
 /**
  * A skill's words, as King's Raid marks them: its numbers (20%, 12,000, 0.5) and what's in brackets ([Darkened Power]) each in
  * a colour of their own, and the name of a state its hero goes into in another, always in brackets ("[Dark Lord] state",
- * "[Fury] state", "[Stealth] mode": its name, not the word), as is what's in brackets that is one of its states elsewhere in them ("[Dark Lord]"): the
- * heroes page's Skills tab, the raid's popups. Its chance stats' points as percentages.
+ * "[Fury] state", "[Stealth] mode": its name, not the word), as is what's in brackets that is one of its states elsewhere in them
+ * ("[Dark Lord]"); and what is its hero's alone (a stack, a mark only it has: "*Charge*", between asterisks) in another, without
+ * them: the heroes page's Skills tab, the raid's popups. Its chance stats' points as percentages.
  */
 export function skillText(text: string): (string | HTMLElement)[] {
   const words = chancesAsPercent(text);
@@ -279,7 +280,8 @@ export function skillText(text: string): (string | HTMLElement)[] {
     // (A state's name in brackets, as King's Raid's own are, though they don't have it so: "Fury state" says "[Fury] state".)
     const state = IS_STATE.exec(part);
     const name = state && part.slice(0, state.index);
-    if (state && name) out.push(el('b', 'skill-state', name.startsWith('[') ? name : `[${name.replace(/^'(.*)'$/, '$1')}]`), part.slice(state.index));
+    if (part.startsWith('*')) out.push(el('b', 'skill-own', part.slice(1, -1)));
+    else if (state && name) out.push(el('b', 'skill-state', name.startsWith('[') ? name : `[${name.replace(/^'(.*)'$/, '$1')}]`), part.slice(state.index));
     else out.push(el('b', states.has(part) ? 'skill-state' : part.startsWith('[') ? 'skill-effect' : 'skill-number', part));
     at = index + part.length;
   }

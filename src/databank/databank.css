@@ -48,6 +48,11 @@
   font-weight: 700;
 }
 
+.db-skill-text .skill-own {
+  color: #8a3fb0;
+  font-weight: 700;
+}
+
 .databank .detail .armory-plaque {
   display: none;
 }

@@ -497,6 +497,12 @@
   font-weight: 700;
 }
 
+/* What is its hero's alone (a stack, a mark only it has: Annette's Charge): purple. */
+.skill-own {
+  color: #8a3fb0;
+  font-weight: 700;
+}
+
 /*
  * The Transcend tab: on the Stats tab's parchment, the TP left in its top corner, then a row for each tier, its name
  * beside its perks (King's Raid's red-brown), five across (Transcend 3's four). A perk not learned is greyed; one learned lit and framed in gold;
