@@ -357,9 +357,10 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
    */
   function slot(pick: PickView | undefined, owner: PlayerView | undefined, mine: boolean): HTMLElement {
     const item = el('li', pick ? 'tm-slot filled' : 'tm-slot');
-    // Whose it is, over the card (blank over an empty one, to keep the row's cards in line).
+    // Whose it is, over the card (blank over an empty one, to keep the row's cards in line). Single player, none: they're all theirs.
     const frame = el('div', 'tm-slot-frame');
-    item.append(el('span', 'tm-slot-owner', pick ? `${owner?.number ?? '?'}P` : ''), frame);
+    if (!state?.solo) item.append(el('span', 'tm-slot-owner', pick ? `${owner?.number ?? '?'}P` : ''));
+    item.append(frame);
     if (!pick) return item;
     const hero = heroNamed(pick.hero);
     const card = el(mine ? 'button' : 'div', 'tm-slot-card');
@@ -512,8 +513,8 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
         row.append(status);
         return row;
       }),
-      // The places still open for other raiders.
-      ...Array.from({ length: Math.max(0, ROOM_PLAYERS - joined) }, (_, i) => {
+      // The places still open for other raiders (single player, none: nobody else gets in).
+      ...Array.from({ length: state.solo ? 0 : Math.max(0, ROOM_PLAYERS - joined) }, (_, i) => {
         const row = el('li', 'tm-prep-player open');
         row.append(el('b', 'tm-prep-player-no', `${joined + i + 1}P`), el('span', 'tm-prep-player-name', 'Waiting for a raider…'));
         return row;
