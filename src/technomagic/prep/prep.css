@@ -99,7 +99,8 @@
  * The lineup: a card for every slot, in a gold-framed row (wrapping on a narrow screen). It takes all the height the top and
  * the panels along the bottom leave (a third of the screen, as King's Raid has them: .tm-prep-bottom), never less than 150px
  * (past that, a phone's screen is scaled down: ./prep.ts fit()), and each card is as tall as that leaves it (cqh: the lineup's,
- * less --inside, its padding and the 1P over the card), no wider than its share of the row. Each as King's Raid's lineup cards
+ * less --inside, its padding and the 1P over the card), no wider than its share of the row (cqi: less --across, its padding,
+ * and the gaps). The cards a set gap apart, the room left over to either side. Each as King's Raid's lineup cards
  * are: its hero portrait (its frame 338 by 732) cut short at the bottom, to 338 by 608 (.tm-slot-frame). A short window has the
  * screen laid out taller and scaled down (.zoom, below), so it keeps these shares.
  */
@@ -108,13 +109,16 @@
   /* A team's tab, over its half alone (.tm-team-tab). */
   --tab: 34px;
   --inside: 56px;
+  --across: 24px;
+  --gap: 12px;
   flex: 1 1 0;
   min-height: 150px;
   container-type: size;
   display: grid;
-  grid-template-columns: repeat(var(--slots, 9), minmax(0, 1fr));
+  grid-template-columns: repeat(var(--slots, 9), auto);
+  justify-content: center;
   align-content: center;
-  gap: 8px;
+  gap: var(--gap);
   margin: 0;
   padding: 12px;
   list-style: none;
@@ -130,6 +134,8 @@
  */
 .tm-lineup.teams {
   --inside: calc(var(--tab) + 24px);
+  /* Both halves' padding, and the line between. */
+  --across: 52px;
   grid-template-columns: minmax(0, 4fr) minmax(0, 3fr);
   align-content: stretch;
   gap: 0;
@@ -209,9 +215,10 @@
 .tm-team-slots {
   flex: 1;
   display: grid;
-  grid-template-columns: repeat(var(--slots, 4), minmax(0, 1fr));
+  grid-template-columns: repeat(var(--slots, 4), auto);
+  justify-content: center;
   align-content: center;
-  gap: 8px;
+  gap: var(--gap);
   margin: 0;
   padding: 12px;
   list-style: none;
@@ -247,8 +254,7 @@
 .tm-slot-frame {
   --art: 10.06cqi 9.17cqi 10.06cqi 9.47cqi;
   position: relative;
-  width: min(100%, calc((100cqh - var(--inside)) * var(--ratio)));
-  margin: 0 auto;
+  width: min(calc((100cqi - var(--across) - (var(--all, 8) - 1) * var(--gap)) / var(--all, 8)), calc((100cqh - var(--inside)) * var(--ratio)));
   /* Its width sizes the card's place (cqi, above). */
   container-type: inline-size;
   aspect-ratio: 338 / 608;
@@ -754,9 +760,12 @@ button.tm-prep-manage {
     padding: 8px;
   }
 
+  .tm-prep:not(.fit) .tm-team-slots {
+    grid-template-columns: repeat(var(--slots, 4), minmax(0, 1fr));
+  }
+
   .tm-prep:not(.fit) .tm-slot-frame {
     width: auto;
-    margin: 0;
   }
 
   .tm-prep:not(.fit) .tm-prep-bottom {
@@ -828,11 +837,13 @@ button.tm-prep-manage {
 .tm-prep.fit .tm-lineup {
   --tab: 28px;
   --inside: 38px;
+  --gap: 8px;
   padding: 8px 12px;
 }
 
 .tm-prep.fit .tm-lineup.teams {
   --inside: calc(var(--tab) + 16px);
+  --across: 36px;
   padding: 0;
 }
 
