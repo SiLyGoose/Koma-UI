@@ -137,7 +137,7 @@
   --tab: 34px;
   --inside: 56px;
   --across: 24px;
-  --gap: 12px;
+  --gap: 8px;
   flex: 1 1 0;
   min-height: 150px;
   container-type: size;
@@ -868,7 +868,7 @@ button.tm-prep-manage {
   --tab: 28px;
   /* Its padding, and a small 1P over each card (.tm-slot-owner, below). */
   --inside: 27px;
-  --gap: 8px;
+  --gap: 4px;
   padding: 4px 12px;
 }
 
