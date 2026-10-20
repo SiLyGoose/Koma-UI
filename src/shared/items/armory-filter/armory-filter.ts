@@ -112,15 +112,14 @@ export function armoryFilter(box: HTMLElement): ArmoryFilter {
   // Focusable, so a click on its words (not themselves focusable) keeps the focus in it rather than dropping it.
   panel.tabIndex = -1;
   panel.hidden = true;
-  // All across the top, then the types in pairs; and Any across the top,
-  // then the tiers in pairs.
-  const types = group('Type', ...TYPES.map(([slot, name]) => option('radio', 'slot', slot, name, slot === 'all')));
-  const tiers = group('Tier', ...TIERS.map((n) => (n === 'all' ? option('radio', 'stars', 'all', 'Any', true) : option('radio', 'stars', String(n), n === 'tm' ? tmTier() : n === 'uw' ? uwTier() : n === 'ut' ? utTier() : tierMark(n)))));
+  // The types in pairs, All first; the tiers in pairs, Any first.
+  const types = group('Type', ...TYPES.map(([slot, name]) => option('radio', 'slot', slot, name)));
+  const tiers = group('Tier', ...TIERS.map((n) => (n === 'all' ? option('radio', 'stars', 'all', 'Any') : option('radio', 'stars', String(n), n === 'tm' ? tmTier() : n === 'uw' ? uwTier() : n === 'ut' ? utTier() : tierMark(n)))));
   const owned = option('checkbox', 'owned', 'owned', 'Owned only', true);
   const refineable = option('checkbox', 'refineable', 'refineable', 'Refineable', true);
   const heroGear = option('checkbox', 'hero-gear', 'hero-gear', 'Hero gear', true);
   const only = group('Show', owned, refineable, heroGear);
-  // The classes come from the page (setClasses): Any across the top, then each with its badge.
+  // The classes come from the page (setClasses): Any first, then each with its badge.
   const classes = group('Class');
   const classOptions = classes.querySelector('.armory-filter-options') as HTMLElement;
   let offered = 0;
@@ -291,7 +290,7 @@ export function armoryFilter(box: HTMLElement): ArmoryFilter {
     setClasses(list) {
       offered = list.length;
       classOptions.replaceChildren(
-        option('radio', 'class', 'all', 'Any', true),
+        option('radio', 'class', 'all', 'Any'),
         ...list.map(({ id: cls, name }) => {
           const label = el('span', 'armory-filter-class');
           const badge = el('img');

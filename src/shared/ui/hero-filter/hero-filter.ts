@@ -109,10 +109,10 @@ export function heroFilter(box: HTMLElement): HeroFilter {
   // Focusable, so a click on its words (not themselves focusable) keeps the focus in it rather than dropping it.
   panel.tabIndex = -1;
   panel.hidden = true;
-  // Any across the top, then the classes in pairs, each with its badge.
+  // The classes in pairs, Any first, each with its badge.
   const classes = group(
     'Class',
-    option('radio', 'class', 'all', 'Any', true),
+    option('radio', 'class', 'all', 'Any'),
     ...HERO_CLASSES.map(({ id: cls, name }) => {
       const label = el('span', 'armory-filter-class');
       const mark = el('img');
@@ -123,8 +123,8 @@ export function heroFilter(box: HTMLElement): HeroFilter {
       return option('radio', 'class', cls, label);
     }),
   );
-  const lines = group('Position', ...LINES.map(([line, name]) => option('radio', 'line', line, name, line === 'all')));
-  const damage = group('Damage', ...DAMAGE.map(([deals, name]) => option('radio', 'deals', deals, name, deals === 'all')));
+  const lines = group('Position', ...LINES.map(([line, name]) => option('radio', 'line', line, name)));
+  const damage = group('Damage', ...DAMAGE.map(([deals, name]) => option('radio', 'deals', deals, name)));
   const owned = option('checkbox', 'owned', 'owned', 'Show owned', true);
   const show = group('Show', owned);
   const clear = el('button', 'armory-filter-clear action secondary', 'Clear filters');
