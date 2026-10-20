@@ -1,5 +1,6 @@
 import { el, statBlocks } from '../shared/items';
 import { BUST, classBadge, className, FACE, heroCut, heroPicture } from '../shared/heroes';
+import { closeButton } from '../shared/ui';
 import { skillRows } from '../heroes/render';
 import { heroStats } from '../heroes/stats';
 import type { HeroDef } from '../technomagic/sim/heroes/kit';
@@ -40,9 +41,8 @@ function showPicture(name: string, src: string): void {
   img.src = src;
   img.alt = name;
   img.draggable = false;
-  const close = el('button', 'db-hero-zoom-close', '✕');
-  close.type = 'button';
-  close.setAttribute('aria-label', 'Close');
+  const close = closeButton();
+  close.classList.add('db-hero-zoom-close');
   dialog.setAttribute('aria-label', name);
   dialog.replaceChildren(img, close);
   dialog.showModal();

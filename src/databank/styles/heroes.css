@@ -79,30 +79,14 @@
   animation: db-hero-zoom-in 0.2s ease-out;
 }
 
-/* Its way out, in the screen's top right (a click anywhere closes it too). */
+/* Its way out, the site's X (../../shared/ui/close/), in the screen's top right, pale over the dark (a click anywhere closes it too). */
 .db-hero-zoom-close {
-  position: fixed;
-  top: 16px;
-  right: 16px;
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  padding: 0;
-  border: 2px solid #8a7a4c;
-  border-radius: 50%;
-  background: rgb(29 22 38 / 85%);
-  color: #f1e3b4;
-  font-size: 18px;
-  line-height: 1;
-  cursor: pointer;
-}
+  --close-size: 44px;
+  --close-ink: #f1e3b4;
 
-.db-hero-zoom-close:hover,
-.db-hero-zoom-close:focus-visible {
-  border-color: #f1e3b4;
-  background: #5a2f72;
-  outline: none;
+  position: fixed;
+  top: 12px;
+  right: 12px;
 }
 
 @keyframes db-hero-zoom-in {
