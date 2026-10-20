@@ -359,7 +359,7 @@ function renderAbout(ui: Ui, hero: HeroView): void {
   badge.src = `/kr/ui/badge-${hero.class}.webp`;
   badge.alt = '';
   const line = KR_HEROES[hero.id]?.stand.line;
-  ui.buyKind.replaceChildren(badge, [className(hero.class), line && `${LINE_NAME[line]} line`, hero.deals === 'magical' ? 'Magical' : 'Physical'].filter(Boolean).join(' · '));
+  ui.buyKind.replaceChildren(badge, [className(hero.class), line && `${LINE_NAME[line]} line`, hero.deals === 'magical' ? 'Magic' : 'Physical'].filter(Boolean).join(' · '));
 
   ui.buyInfo.textContent = '';
   ui.buyInfo.append(label('Recommended areas of battle'), areasOf(hero.id));

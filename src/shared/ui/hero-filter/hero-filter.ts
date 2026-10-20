@@ -7,7 +7,7 @@ import { el } from '../../items';
 /*
  * The heroes' filter (the databank's Heroes, the shop's Heroes tab): a Filter button, as the armories' is
  * (../../items/armory-filter/, whose look it has), with how many filters are on, and its panel under it: the class (Any,
- * then each with its badge), the line it stands in (Any, Front, Middle, Back: King's Raid's, the raid's KR_HEROES), the kind of damage it deals (Any, Physical, Magical: offered once the page knows it) and,
+ * then each with its badge), the line it stands in (Any, Front, Middle, Back: King's Raid's, the raid's KR_HEROES), the kind of damage it deals (Any, Physical, Magic: offered once the page knows it) and,
  * logged in, Show owned (off: the heroes they own are left out). A choice applies at once and the panel stays open for the
  * next; a click outside it, Escape or tabbing away closes it. Its markup is a box in the page (`<div class="armory-filter">`),
  * which this fills. The heroes it leaves are listed by name (byName).
@@ -64,7 +64,7 @@ const LINES: readonly [Line | 'all', string][] = [
 const DAMAGE: readonly [DamageChoice | 'all', string][] = [
   ['all', 'Any'],
   ['physical', 'Physical'],
-  ['magical', 'Magical'],
+  ['magical', 'Magic'],
 ];
 
 let count = 0;

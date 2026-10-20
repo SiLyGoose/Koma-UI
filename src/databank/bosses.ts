@@ -200,7 +200,7 @@ export function recommendedCard(id: string, kr: boolean): HTMLElement[] {
     face,
     el('span', 'db-recommended-frame'),
     mark('db-recommended-class', `/kr/ui/class-${hero.class}.webp`, className(hero.class)),
-    mark('db-recommended-deals', `/kr/ui/deals-${hero.stats.deals}.webp`, hero.stats.deals === 'magical' ? 'Magical' : 'Physical'),
+    mark('db-recommended-deals', `/kr/ui/deals-${hero.stats.deals}.webp`, hero.stats.deals === 'magical' ? 'Magic' : 'Physical'),
   );
   if (kr) square.append(mark('db-recommended-kr', '/kr/ui/thumbs-up.webp', 'King’s Raid’s pick'));
   card.append(square, el('span', 'db-recommended-name', hero.name));
@@ -266,7 +266,7 @@ function renderRaidBoss(ctx: DatabankContext, picked: BossDef): void {
   defense.append(
     stat('P. DEF', points(Math.round(boss.stats.physical * (room.defense ?? 1)))),
     stat('M. DEF', points(Math.round(boss.stats.magical * (room.defense ?? 1)))),
-    stat('Deals', boss.stats.deals === 'magical' ? 'Magical' : 'Physical'),
+    stat('Deals', boss.stats.deals === 'magical' ? 'Magic' : 'Physical'),
   );
   const time = boss.time ?? RAID_TIME;
   ui.bossBody.append(

@@ -385,7 +385,7 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
       tag.alt = className(hero.class);
       tag.src = `/kr/ui/class-${hero.class}.webp`;
       const deals = el('img', 'tm-slot-deals');
-      deals.alt = hero.stats.deals === 'magical' ? 'Magical' : 'Physical';
+      deals.alt = hero.stats.deals === 'magical' ? 'Magic' : 'Physical';
       deals.src = `/kr/ui/deals-${hero.stats.deals}.webp`;
       card.append(tag, deals);
     }

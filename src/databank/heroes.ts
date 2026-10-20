@@ -209,7 +209,7 @@ function renderHero(ctx: DatabankContext): void {
   const mark = el('img');
   mark.src = `/kr/ui/deals-${hero.stats.deals}.webp`;
   mark.alt = '';
-  deals.append(mark, `${hero.stats.deals === 'magical' ? 'Magical' : 'Physical'} damage`);
+  deals.append(mark, `${hero.stats.deals === 'magical' ? 'Magic' : 'Physical'} damage`);
   title.append(el('h3', '', hero.name), kind, deals);
   head.append(bust(hero), title);
   ui.heroBody.append(head);
