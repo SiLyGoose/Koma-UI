@@ -18,8 +18,6 @@ export interface Featured {
   uniqueTreasure?: { hero: string; skill: number } | null;
 }
 
-const percent = (share: number): string => `${Math.round(share * 1000) / 10}%`;
-
 export interface Banner {
   /** What the bot calls it (`banner` on its requests). */
   id: 'standard' | 'limited' | 'hero';
@@ -78,9 +76,6 @@ export function heroBanner(hero: HeroBanner | undefined): Banner | null {
   const [first] = weapons;
   const second = treasures[0] ?? weapons[1] ?? first;
   if (!first || !second || !hero) return null;
-  const share = hero.weaponShare ?? 1;
-  // (How often a unique weapon comes with stars: ★1 and up, King's Raid's; a new one's 0★.)
-  const refined = (hero.weaponLevels ?? []).slice(1).map((chance, i) => `★${i + 1} ${percent(chance)}`);
   return {
     id: 'hero',
     kind: 'Hero Item Wish',
@@ -88,8 +83,8 @@ export function heroBanner(hero: HeroBanner | undefined): Banner | null {
     name: ['Hero', 'Item'],
     blurb:
       treasures.length > 0
-        ? `Every T${first.stars} here is a hero's own, as in King's Raid's Treasure Summon: a unique weapon ${percent(share)} of the time, a unique treasure ${percent(1 - share)}, each of its kind as likely. Only its own hero wears it.${refined.length > 0 ? ` Each comes at 0★, a unique weapon now and then with stars (${refined.join(', ')}).` : ''} Below it, King's Raid's All-In-One Summon's kinds: artifacts and Unique Weapon or Treasure Tickets (to your mailbox, to pick), dragon sets' gear, and Mysterious Runes.`
-        : `Every T${first.stars} here is a hero's unique weapon (${weapons.map((item) => item.name).join(', ')}), each as likely, and only its own hero wields it.`,
+        ? "Every hero's unique weapons and treasures can fall here. Only its own hero wears each one."
+        : "Every hero's unique weapon can fall here. Only its own hero wields each one.",
     featured: [first, second],
     ends: null,
   };
