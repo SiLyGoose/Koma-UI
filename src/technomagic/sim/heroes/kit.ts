@@ -102,6 +102,8 @@ export interface HeroPart {
   lit?(): boolean;
   /** Auto: whether this skill's moment has come (false: Auto saves its mana for it, but waits to use it). */
   ripe?(index: number): boolean;
+  /** Auto: whether this skill waits for now (true: Auto neither uses it nor saves its mana for it: what it waits on isn't that mana). */
+  waits?(index: number): boolean;
   /** What its skills have given it for now: squares on its card. */
   buffs?(): Buff[];
   /** What its skills have left on the boss that only it keeps count of: marks under the boss's health. */

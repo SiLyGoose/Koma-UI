@@ -274,8 +274,9 @@ export const FALLEN_FREY: HeroDef = {
         } else darkening = 0;
       },
       lit: () => stacks > 0,
-      // Auto saves Heaven's Vengeance for Darkened Power (it comes once her mana is full).
-      ripe: (index) => index !== 2 || stacks > 0,
+      // Auto leaves Heaven's Vengeance be till Darkened Power (it comes once her mana is full, so saving for it would only
+      // hold back her other skills till then).
+      waits: (index) => index === 2 && stacks === 0,
       buffs: () => (stacks > 0 ? [{ ...DARKENED, count: stacks }] : []),
     };
   },

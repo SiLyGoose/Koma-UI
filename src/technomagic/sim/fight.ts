@@ -616,21 +616,23 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
   /**
    * Auto: the skill a hero uses now (null: none yet: it attacks meanwhile). Of the skills it wants (a heal once an ally
    * is hurt or bears something it can clear, one that keeps a status up once that runs out, any other always), it goes
-   * for the one it has gone longest without whose cooldown is over (the dearer, where alike), or else the one whose
-   * cooldown ends soonest, and saves its mana for it; another it uses meanwhile only if that still has its mana once it
-   * can be used, by what the hero gains a second lately. One whose moment its hero says hasn't come is saved for, not
-   * used. At full mana, rather than waste what it gains, the one it has gone longest without that it can use.
+   * for the one it has gone longest without whose cooldown is over (the cheaper, where alike: at the start, when it has
+   * used none, the one it has the mana for soonest, rather than nothing for as long as the dearest takes), or else the
+   * one whose cooldown ends soonest, and saves its mana for it; another it uses meanwhile only if that still has its mana
+   * once it can be used, by what the hero gains a second lately. One whose moment its hero says hasn't come is saved for,
+   * not used (or, one its hero says waits, neither). At full mana, rather than waste what it gains, the one it has gone
+   * longest without that it can use.
    */
   function autoSkill(on: Fighter): number | null {
     // (Nothing it could use now: nothing to pick yet.)
     if (!on.abilities.some((_, index) => sim.ready(on, index))) return null;
     const wait = (index: number): number => on.cooldowns[index] as number;
     const last = (index: number): number => on.lastUsed[index] ?? -Infinity;
-    // Longest without first, then the dearer, then the later in its slots.
+    // Longest without first, then the cheaper, then the earlier in its slots.
     const slots = on.abilities
       .map((_, index) => ({ index, ability: sim.slot(on, index) }))
       .filter((one): one is { index: number; ability: Ability } => one.ability !== null && wanted(on, one.index, one.ability))
-      .sort((a, b) => (last(a.index) === last(b.index) ? 0 : last(a.index) < last(b.index) ? -1 : 1) || b.ability.cost - a.ability.cost || b.index - a.index);
+      .sort((a, b) => (last(a.index) === last(b.index) ? 0 : last(a.index) < last(b.index) ? -1 : 1) || a.ability.cost - b.ability.cost || a.index - b.index);
     const ripe = (index: number): boolean => on.part.ripe?.(index) ?? true;
     const usable = ({ index }: { index: number }): boolean => ripe(index) && sim.ready(on, index);
     const target = slots.find((slot) => wait(slot.index) <= 0) ?? slots.reduce<(typeof slots)[number] | undefined>((soonest, slot) => (!soonest || wait(slot.index) < wait(soonest.index) ? slot : soonest), undefined);
@@ -648,9 +650,11 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
 
   /**
    * Auto: whether `on`'s skill in slot `index` is wanted now (a heal once an ally is hurt or bears something it can clear, or
-   * whenever it is the only one of its skills off cooldown; one that keeps a status up once it runs out).
+   * whenever it is the only one of its skills off cooldown; one that keeps a status up once it runs out; not one its hero
+   * says waits).
    */
   function wanted(on: Fighter, index: number, ability: Ability): boolean {
+    if (on.part.waits?.(index)) return false;
     const allies = field.filter((ally) => ally.hp > 0 && !away(ally.statuses));
     const alone = (on.cooldowns[index] as number) <= 0 && on.abilities.every((_, other) => other === index || sim.slot(on, other) === null || (on.cooldowns[other] as number) > 0);
     if (ability.auto?.heals && !alone && !allies.some((ally) => ally.hp < ally.stats.hp * AUTO.hurt || ally.statuses.some((status) => status.shown.harmful === true && !status.binds && !status.away))) return false;
