@@ -11,6 +11,7 @@ import { DRAGONS, isDragon, TM_BOSSES } from '../technomagic/sim/bosses';
 import { bossIn, scaleAt, stagesOf, type BossDef } from '../technomagic/sim/bosses/boss';
 import { CURVE, curved, HERO_LEVEL, reachAt, share, strike, type DamageType, type Defenses } from '../technomagic/sim/combat/damage';
 import { RAID_TIME } from '../technomagic/sim/rules';
+import { bossSkills, type BossSkills } from '../shared/boss-skills';
 import { bossById, raidBossById, type DatabankContext } from './context';
 import { OTHER_HEROES, RECOMMENDED, recommendedIn } from './recommended';
 import { className, FACE, heroCut } from '../shared/heroes';
@@ -219,9 +220,8 @@ const KIND: Readonly<Record<DamageType, string>> = { physical: 'Physical', magic
 /** How many times as much of one kind's blows must get through for the boss to be weak to it: less, and it stands both alike. */
 const WEAK = 1.1;
 
-/** The chance `target` blocks a blow of a kind, and what its Tough takes off one (shares), as the fight's strike has them. */
+/** The chance `target` blocks a blow of a kind, as the fight's strike has it. */
 const blockChance = (type: DamageType, target: Defenses): number => share(curved(CURVE.chance, target.block[type]));
-const toughCut = (type: DamageType, target: Defenses): number => share(curved(CURVE.pen, target.tough?.[type] ?? 0));
 
 /**
  * The share of a blow of a kind `target` takes on the whole, from a hero without DEF Penetration or ACC: the fight's own blow
@@ -240,11 +240,13 @@ function lands(type: DamageType, target: Defenses): number {
 
 /**
  * What a raid's boss is weak to at a stage (its DEF so many times its stage 1's: `defense`): the kind of damage more of a blow
- * of gets through its dodge, DEF, block and Tough, as the fight has them, with how much of each kind's blow lands and why.
+ * of gets through its dodge, DEF, block and Tough, and what it takes more or less of for good (../shared/boss-skills.ts
+ * `takes`), as the fight has them; its icon (both, when neither) and its name.
  */
-function weakness(boss: BossDef, defense: number): HTMLElement[] {
+function weakness(boss: BossDef, defense: number): HTMLElement {
   const stands = { ...boss.stats, physical: boss.stats.physical * defense, magical: boss.stats.magical * defense };
-  const landing = { physical: lands('physical', stands), magical: lands('magical', stands) };
+  const takes = bossSkills(boss.id)?.takes ?? {};
+  const landing = { physical: lands('physical', stands) * (takes.physical ?? 1), magical: lands('magical', stands) * (takes.magical ?? 1) };
   const weak: DamageType | null = landing.physical >= landing.magical * WEAK ? 'physical' : landing.magical >= landing.physical * WEAK ? 'magical' : null;
 
   const verdict = el('div', 'db-weak');
@@ -255,23 +257,31 @@ function weakness(boss: BossDef, defense: number): HTMLElement[] {
     icon.draggable = false;
     verdict.append(icon);
   }
-  verdict.append(el('b', '', weak ? `${KIND[weak]} damage` : 'Neither: physical and magic damage fare alike'));
-  const numbers = el('div', 'db-stats');
-  numbers.append(stat('A physical blow lands', percent(landing.physical)), stat('A magic blow lands', percent(landing.magical)));
+  verdict.append(el('b', '', weak ? KIND[weak] : 'Neither'));
+  return verdict;
+}
 
-  // Why: what it has against the other kind more than against this one.
-  let why = 'Bring heroes of either kind.';
-  if (weak) {
-    const other: DamageType = weak === 'physical' ? 'magical' : 'physical';
-    const reasons: string[] = [];
-    if (stands[other] > stands[weak]) reasons.push(`has ${percent(stands[other] / stands[weak] - 1)} more ${other === 'physical' ? 'P.DEF' : 'M.DEF'}`);
-    const block = blockChance(other, stands) - blockChance(weak, stands);
-    if (block > 0) reasons.push(`blocks ${percent(block)} of ${KIND[other].toLowerCase()} blows`);
-    const tough = toughCut(other, stands) - toughCut(weak, stands);
-    if (tough > 0) reasons.push(`takes ${percent(tough)} off every ${KIND[other].toLowerCase()} blow (its Tough)`);
-    why = `Bring heroes who deal ${KIND[weak].toLowerCase()} damage: it ${reasons.join(', ') || 'stands it worse'}.`;
-  }
-  return [verdict, numbers, el('p', 'detail-note', `${why} How much of a blow's damage lands at this stage, on the whole (before a hero's DEF Penetration).`)];
+/** How many columns `count` buttons go in, all alike: as many as fill every row (4 to 6), else 5. */
+const columnsFor = (count: number): number => [5, 4, 6].find((n) => count % n === 0) ?? 5;
+
+/** A raid boss's skills (../shared/boss-skills.ts), a row each: its icon, its name and what it does; and its plain attacks, under the kind of damage they deal. */
+function skillList(skills: BossSkills, deals: DamageType): HTMLElement {
+  const list = el('ul', 'db-skills');
+  const row = (src: string, name: string, about: string, passive: boolean): void => {
+    const item = list.appendChild(el('li', 'db-skill'));
+    const icon = el('img', 'db-skill-icon');
+    icon.src = src;
+    icon.alt = '';
+    icon.draggable = false;
+    const text = el('div', 'db-skill-text');
+    text.append(el('b', '', name));
+    if (passive) text.append(el('span', 'db-skill-tag', 'Passive'));
+    text.append(el('p', '', about));
+    item.append(icon, text);
+  };
+  for (const skill of skills.skills) row(skill.icon, skill.name, skill.about, skill.attacks.length === 0);
+  row(`/kr/ui/deals-${deals}.webp`, 'Attack', skills.basic.about, false);
+  return list;
 }
 
 /** A raid's boss picked (the TechnoMagic Raid's, or a dragon), at the stage picked (a dragon's, in the mode picked): as the raid has it. */
@@ -297,7 +307,8 @@ function renderRaidBoss(ctx: DatabankContext, picked: BossDef): void {
   if (card) ui.bossBody.append(el('p', 'db-boss-text', card.about));
 
   // A dragon's modes (King's Raid's Normal and Hard Dragon Raids), each its own stages.
-  const modes = el('div', 'db-levels');
+  const modes = el('div', 'db-levels db-levels-even');
+  modes.style.setProperty('--columns', '2');
   modes.setAttribute('aria-label', 'Mode');
   for (const [mode, name] of [['normal', 'Normal'], ['hard', 'Hard']] as const) {
     const button = el('button', 'action choice db-level', name);
@@ -312,7 +323,8 @@ function renderRaidBoss(ctx: DatabankContext, picked: BossDef): void {
   if (picked.normal) ui.bossBody.append(label('Mode'), modes);
 
   // The stage picker, and what that stage makes of it: its health with others and alone, its defense and its level.
-  const levels = el('div', 'db-levels');
+  const levels = el('div', 'db-levels db-levels-even');
+  levels.style.setProperty('--columns', String(columnsFor(stages)));
   levels.setAttribute('aria-label', 'Stage');
   for (let s = 1; s <= stages; s++) {
     const button = el('button', 'action choice db-level', `Stage ${s}`);
@@ -342,13 +354,8 @@ function renderRaidBoss(ctx: DatabankContext, picked: BossDef): void {
     defense,
     el('p', 'detail-note', `Beat it within ${Math.floor(time / 60)}:${String(time % 60).padStart(2, '0')}, before its rage wipes the party. Heroes that fall stay down. Each stage opens once the one before it is beaten.`),
     label('Weak to'),
-    ...weakness(boss, room.defense ?? 1),
+    weakness(boss, room.defense ?? 1),
   );
-
-  // Its attacks, a row each.
-  const attacks = el('ul', 'detail-effects');
-  for (const attack of boss.attacks) attacks.appendChild(el('li')).append(attack.label);
-  ui.bossBody.append(label('Attacks'), attacks);
 
   // The heroes recommended against it in the mode picked (./recommended.ts), the raid's or not: King's Raid's own picks first,
   // then those picked for how their skills fare against its.
@@ -362,6 +369,10 @@ function renderRaidBoss(ctx: DatabankContext, picked: BossDef): void {
     const note = recommended.kr.length > 0 ? `Thumbs up: King’s Raid’s own picks for its ${normal ? 'Normal' : 'Hard'} Dragon Raid. The rest were ${rest}.` : `Heroes ${rest}.`;
     ui.bossBody.append(label('Recommended heroes'), grid, el('p', 'detail-note', note));
   }
+
+  // Its skills, each with King's Raid's icon and what it does; then its plain attacks.
+  const skills = bossSkills(boss.id);
+  if (skills) ui.bossBody.append(label('Skills'), skillList(skills, boss.stats.deals));
 
   // What a win gives (as the raid's own Raid Info has it).
   if (card && card.rewards.length > 0) ui.bossBody.append(raidRewards(card.rewards, (dragon ? DRAGON_LIST : TM_LIST).rewardNote));

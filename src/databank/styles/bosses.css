@@ -155,6 +155,76 @@
   margin-bottom: 10px;
 }
 
+/* A raid boss's stages (and a dragon's modes): every column as wide as the others, as many as the code says (--columns). */
+.db-boss-info .db-levels-even {
+  display: grid;
+  grid-template-columns: repeat(var(--columns, 5), minmax(0, 1fr));
+}
+
+.db-levels-even .db-level {
+  min-width: 0;
+  padding: 0 4px;
+  white-space: nowrap;
+}
+
+/* On a phone, five across: "Stage 10" a little smaller, to keep clear of its edges. */
+@media (max-width: 480px) {
+  .db-levels-even .db-level {
+    padding: 0 2px;
+    font-size: 11.5px;
+  }
+}
+
+/* A raid boss's skills: King's Raid's icon for each, its name (a passive's tagged) and what it does beside it. */
+.db-skills {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+}
+
+.db-skill {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  padding: 10px 12px;
+  border: 1px solid var(--parchment-edge);
+  border-radius: 10px;
+  background: #fffaf0;
+  color: var(--ink);
+}
+
+.db-skill-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+}
+
+.db-skill-text b {
+  font-size: 15px;
+}
+
+.db-skill-tag {
+  margin-left: 8px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgb(107 90 58 / 14%);
+  color: #6b5a3a;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  vertical-align: 2px;
+}
+
+.db-skill-text p {
+  margin: 3px 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
 /* A level the server picked hasn't unlocked: there to look at, its words greyed and its edge dashed. */
 .db-level.locked:not([aria-pressed='true']) {
   border-style: dashed;
