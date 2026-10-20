@@ -1,21 +1,25 @@
-import { equippedIds, itemPicked, tierOf } from '../../shared/items';
+import { equippedIds, itemIcons, itemPicked, tierOf, type GearCopy } from '../../shared/items';
 import { mine, type GearContext } from './context';
 import { renderDetail } from './detail';
 import { renderFoot } from './foot';
+import { loadKrIcons } from './icons';
 
 /** The armory (../../shared/items/armory.ts): every copy shown (by the filter, the stars and the search), then blanks to fill out the last row. */
 export function renderGrid(ctx: GearContext): void {
   const { gear, ui, selling, filter, stars, query, viewing } = ctx;
   if (!gear) return;
   const equipped = equippedIds(gear);
+  // (Gear only heroes wear, only with Hero gear on, or its own tier picked.)
+  const hidden = (c: GearCopy): boolean => !ctx.heroGear && typeof tierOf(c) !== 'number' && stars !== tierOf(c);
+  // King's Raid's hero gear shown: its pictures, once they're known (then it's drawn again).
+  if (gear.copies.some((c) => c.part !== null && !itemIcons.has(c.itemId) && !hidden(c))) loadKrIcons(() => renderGrid(ctx));
   ui.grid.draw({
     copies: gear.copies,
     slot: filter,
     stars,
     query,
     sort: ctx.sort,
-    // (Gear only heroes wear, only with Hero gear on, or its own tier picked.)
-    hidden: (c) => !ctx.heroGear && typeof tierOf(c) !== 'number' && stars !== tierOf(c),
+    hidden,
     // Worn, or saved in any of their loadouts.
     look: (copy) => ({ tag: equipped.has(copy.id) ? { text: 'Equipped' } : copy.hero ? { text: `On ${copy.hero}` } : null }),
     picked: ctx.picked,
