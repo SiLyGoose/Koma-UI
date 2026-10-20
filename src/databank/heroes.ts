@@ -200,15 +200,15 @@ function renderHero(ctx: DatabankContext): void {
   badge.alt = '';
   // One the site has no picture of shows only its name.
   badge.addEventListener('error', () => badge.remove(), { once: true });
-  kind.append(badge, className(hero.class));
-  // Under its class, the kind of damage it deals (with King's Raid's mark of it) and its position.
+  // Its position to the right of its class; under them, the kind of damage it deals (with King's Raid's mark of it).
+  const line = KR_HEROES[hero.id]?.stand.line;
+  kind.append(badge, className(hero.class), ...(line ? [el('span', 'db-hero-line', `· ${POSITIONS[line]} position`)] : []));
   const deals = el('p', 'detail-meta db-kind db-hero-class');
   const mark = el('img');
   mark.src = `/kr/ui/deals-${hero.stats.deals}.webp`;
   mark.alt = '';
   deals.append(mark, `${hero.stats.deals === 'magical' ? 'Magical' : 'Physical'} damage`);
-  const line = KR_HEROES[hero.id]?.stand.line;
-  title.append(el('h3', '', hero.name), kind, deals, ...(line ? [el('p', 'detail-meta db-kind db-hero-line', `${POSITIONS[line]} position`)] : []));
+  title.append(el('h3', '', hero.name), kind, deals);
   head.append(bust(hero), title);
   ui.heroBody.append(head);
 
