@@ -2,7 +2,7 @@ import { art, drawSell, el, forgeLink, hasLevels, heroFrame, heroMarks, isTmPiec
 import { classBadge, className, FACE, HERO_PART_NAME, HERO_SLOT_KIND, HERO_SLOT_PART, HERO_SLOT_TYPE, HERO_SLOTS, heroCut, heroPicture, optionPips, skillText, STAGE_ZOOM, type HeroView, type HeroCopy, type HeroSlot } from '../shared/heroes';
 import { built } from '../shared/built';
 import { working } from '../shared/ui';
-import { canTrade, copyById, heroShown, mine, slotFor, slotOf, type HeroesContext } from './context';
+import { canTrade, copyById, heroShown, mine, slotFor, slotOf, slotsFor, type HeroesContext } from './context';
 import { SIDE_SLOTS } from '../protocol/heroes';
 import { heroSkills } from './skills';
 import type { HeroOption, HeroRune, HeroRuneStack, HeroSkillView } from '../protocol/heroes';
@@ -266,7 +266,10 @@ function renderTotals(ctx: HeroesContext): void {
   for (const line of perkEffects) ui.perkEffects.appendChild(el('li')).append(rich(line));
 }
 
-/** The gear a hero can wear (../shared/items/armory.ts): every copy shown (by the filter, the stars, the class and the search), then blanks to fill out the last row. */
+/**
+ * The gear a hero can wear (../shared/items/armory.ts): every copy shown (by the filter, the stars, the class and the search), then blanks to fill out the last row.
+ * A slot pressed (not while picking copies to sell): only what the hero shown can wear in it, and what works on it (and what's in it now).
+ */
 function renderGrid(ctx: HeroesContext, act: HeroActions): void {
   const { ui, view, filter, stars, cls, sort, query } = ctx;
   if (!view) return;
@@ -278,13 +281,15 @@ function renderGrid(ctx: HeroesContext, act: HeroActions): void {
   ui.runeList.hidden = !piece;
   ui.armoryTitle.textContent = piece ? 'Runes' : mine(ctx) ? `${hero?.name ?? 'Hero'}'s Gear` : `${ctx.viewing?.name}'s Hero Gear`;
   if (piece) return renderRunes(ctx, act, piece);
+  const into = !ctx.selling && ctx.target && filter === HERO_SLOT_TYPE[ctx.target] ? ctx.target : null;
+  const wearable = (copy: HeroCopy): boolean => !into || copy.id === hero?.equipped[into] || (slotsFor(copy).includes(into) && worksOn(copy, hero) && wieldable(copy, hero));
   ui.grid.draw({
     copies: view.copies,
     slot: filter,
     stars,
     query,
     sort,
-    matches: (copy) => cls === 'all' || copy.class === null || copy.class === cls,
+    matches: (copy) => (cls === 'all' || copy.class === null || copy.class === cls) && wearable(copy),
     look: (copy) => {
       const onThis = copy.hero !== null && copy.hero === hero?.id;
       const other = copy.hero !== null && !onThis ? view.heroes.find((one) => one.id === copy.hero) : undefined;
