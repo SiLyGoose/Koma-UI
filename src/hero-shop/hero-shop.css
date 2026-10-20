@@ -159,16 +159,13 @@
 }
 
 /*
- * The buy box: on parchment, as the databank's heroes are (../databank/: its labels, the bosses' and teammates' cards, the
- * heroes page's skills, all made for it). The hero's card at the left, beside it what it is, the bosses it's recommended
- * against and its teammates; its skills across the whole box under them; its price and the buttons at the bottom.
+ * The buy box: dark, as the Outfits tab's is, with the databank's hero's parts in it (../databank/: its labels, the bosses'
+ * and teammates' cards, the heroes page's skills), their parchment colours made light here. The hero's card at the left,
+ * beside it what it is, the bosses it's recommended against and its teammates; its skills across the whole box under
+ * them; its price and the buttons at the bottom.
  */
 .hero-shop .hero-buy-box {
-  /* The gear pages' parchment and ink (../shared/items/styles/page.css): the shop isn't one of them. */
-  --parchment: #f3ecd8;
-  --parchment-2: #e6dabb;
-  --ink: #3b3444;
-  --focus: var(--ink);
+  --rule: rgb(216 191 122 / 28%);
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -176,15 +173,6 @@
   max-height: calc(100dvh - 32px);
   padding: 20px 22px 18px;
   overflow-y: auto;
-  border-color: #b8924a;
-  background:
-    radial-gradient(ellipse at 50% 0%, #fbf6e7, transparent 70%),
-    linear-gradient(180deg, var(--parchment), var(--parchment-2));
-  box-shadow:
-    inset 0 0 0 1px #cbbd97,
-    inset 0 0 24px rgb(120 96 50 / 30%),
-    0 20px 40px rgb(0 0 0 / 55%);
-  color: var(--ink);
   text-align: left;
 }
 
@@ -215,7 +203,7 @@
   object-position: center top;
 }
 
-.hero-shop .hero-buy-box h3 {
+.hero-shop .hero-buy-about h3 {
   margin: 0;
   font-size: 22px;
 }
@@ -226,7 +214,7 @@
   gap: 8px;
   align-items: center;
   margin: 4px 0 0;
-  color: #6b5a3a;
+  color: var(--muted);
   font-size: 14px;
   font-weight: 600;
 }
@@ -240,7 +228,40 @@
 .hero-buy-box .db-label {
   margin: 14px 0 8px;
   padding-bottom: 4px;
-  border-bottom: 1px solid #cbbd97;
+  border-bottom: 1px solid var(--rule);
+  color: var(--gold);
+}
+
+.hero-buy-box .db-recommended-card {
+  color: var(--text);
+}
+
+/* The skills (../heroes/heroes.css), light on the dark. */
+.hero-buy-box .skill:nth-child(odd) {
+  background: rgb(255 255 255 / 4%);
+}
+
+/* (Its own size, not the Outfits box's h3.) */
+.hero-shop .hero-buy-box .skill-name {
+  margin: 0;
+  color: var(--text);
+  font-size: 15px;
+}
+
+.hero-buy-box .skill-tag {
+  color: var(--gold);
+}
+
+.hero-buy-box .skill-text {
+  color: #b9b3c4;
+}
+
+.hero-buy-box .skill-number {
+  color: #6cb8f0;
+}
+
+.hero-buy-box .skill-effect {
+  color: #a6d64a;
 }
 
 .hero-buy-skills .db-label {
@@ -262,11 +283,7 @@
   align-items: center;
   justify-content: space-between;
   padding-top: 12px;
-  border-top: 1px solid #cbbd97;
-}
-
-.hero-shop .hero-buy-end .outfits-buy-price {
-  color: #8a5a00;
+  border-top: 1px solid var(--rule);
 }
 
 .hero-shop .hero-buy-end .outfits-buy-foot {
