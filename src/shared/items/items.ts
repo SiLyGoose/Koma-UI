@@ -158,12 +158,19 @@ export function dragonTierMark(n: number): HTMLElement {
   return mark;
 }
 
-/** The members' own gear's tier as its card's frame: King's Raid's grade frame of its tier's colour (styles/tier.css), over the card's edge. */
-export function tierFrame(n: number): HTMLElement {
+/**
+ * An item's card's frame: King's Raid's grade frame of its tier's colour (styles/tier.css), over the card's edge: the members'
+ * own gear's by its tier (1 to 4), a hero's gear's red, gold or crimson (heroFrame).
+ */
+export function tierFrame(n: number | 'tm' | 'uw'): HTMLElement {
   const frame = el('span', 'tier-frame');
   frame.dataset.tier = String(n);
   return frame;
 }
+
+/** A hero's gear's frame, as the members' gear's (tierFrame): crimson for a unique weapon or treasure, gold for a TechnoMagic piece, red for the rest. */
+export const heroFrame = (copy: { itemId: string; uniqueWeapon?: string | null; uniqueTreasure?: Treasure }): HTMLElement =>
+  tierFrame(copy.uniqueWeapon || copy.uniqueTreasure ? 'uw' : isTmPiece(copy.itemId) ? 'tm' : 4);
 
 /**
  * TechnoMagic gear's marks, as King's Raid draws its TM gear: a "TM" tab over its top left corner, and over its
@@ -306,14 +313,14 @@ export function runeMarks(runes: readonly SocketRune[] | undefined): HTMLElement
 /**
  * What's on a copy's card, whatever the card is (an armory button, the anvil's, the details'): its picture, its level as
  * King's Raid's stars (krStars; none with the one level: hasLevels), and what kind it is: the members' own gear its tier
- * (T1 to T4, and King's Raid's grade frame) and the parchment's curl; a hero's gear its marks (a TechnoMagic piece's stars blue), a unique weapon's or unique treasure's with its hero, a
+ * (T1 to T4, and King's Raid's grade frame) and the parchment's curl; a hero's gear its frame (heroFrame) and marks (a TechnoMagic piece's stars blue), a unique weapon's or unique treasure's with its hero, a
  * TechnoMagic piece's with its class (`itemClass`, or `class` as the heroes page has it), a dragon set's piece's its tier, none for
  * an artifact, and its rune sockets (runeMarks). `lazy`: a card in a long list (art).
  */
 export function itemFace(copy: { level: number; maxLevel?: number; itemId: string; slot: Slot; stars: number; heroOnly?: boolean; uniqueWeapon?: string | null; uniqueTreasure?: Treasure; itemClass?: string | null; class?: string | null; runes?: readonly SocketRune[] }, lazy = false): HTMLElement[] {
   const picture = art(copy.itemId, copy.slot, lazy);
   const level = hasLevels(copy) ? [krStars(copy.level, copy.level, isTmPiece(copy.itemId))] : [];
-  if (heroGear(copy)) return [picture, ...heroMarks(copy), ...runeMarks(copy.runes), ...level];
+  if (heroGear(copy)) return [heroFrame(copy), picture, ...heroMarks(copy), ...runeMarks(copy.runes), ...level];
   return [tierFrame(copy.stars), tierMark(copy.stars), picture, ...level, el('span', 'item-curl')];
 }
 

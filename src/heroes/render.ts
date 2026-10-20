@@ -1,4 +1,4 @@
-import { art, drawSell, el, forgeLink, hasLevels, heroMarks, isTmPiece, itemDetailsClosed, krStars, levelLabel, itemPicked, lockToggle, priceOf, pruneSale, replacesNote, rich, runeMarks, sellsFor, showDetail, shownName, statBlocks, tmMarks, tmSections, treasureParts, treasureSection, uniqueWeaponEffect, utMarks, uwMarks } from '../shared/items';
+import { art, drawSell, el, forgeLink, hasLevels, heroFrame, heroMarks, isTmPiece, itemDetailsClosed, krStars, levelLabel, itemPicked, lockToggle, priceOf, pruneSale, replacesNote, rich, runeMarks, sellsFor, showDetail, shownName, statBlocks, tmMarks, tmSections, treasureParts, treasureSection, uniqueWeaponEffect, utMarks, uwMarks } from '../shared/items';
 import { classBadge, className, FACE, HERO_PART_NAME, HERO_SLOT_KIND, HERO_SLOT_PART, HERO_SLOT_TYPE, HERO_SLOTS, heroCut, heroPicture, optionPips, skillText, STAGE_ZOOM, type HeroView, type HeroCopy, type HeroSlot } from '../shared/heroes';
 import { built } from '../shared/built';
 import { working } from '../shared/ui';
@@ -243,8 +243,8 @@ function renderSlots(ctx: HeroesContext): void {
     button.setAttribute('aria-label', copy ? `${slotName(slot)}: ${shownName(copy)}` : `${slotName(slot)}: empty`);
     const frame = el('span', 'slot-frame');
     frame.append(art(copy?.itemId ?? null, kind));
-    // (A hero's gear: its marks (a unique weapon's or treasure's, a TechnoMagic piece's), its rune sockets and its stars, King's Raid's.)
-    if (copy) frame.append(...heroMarks(copy), ...runeMarks(copy.runes), krStars(copy.level, copy.level, isTmPiece(copy.itemId)));
+    // (A hero's gear: its frame, its marks (a unique weapon's or treasure's, a TechnoMagic piece's), its rune sockets and its stars, King's Raid's.)
+    if (copy) frame.append(heroFrame(copy), ...heroMarks(copy), ...runeMarks(copy.runes), krStars(copy.level, copy.level, isTmPiece(copy.itemId)));
     button.append(frame, el('span', 'slot-name', slotName(slot)));
   }
 }

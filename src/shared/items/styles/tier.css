@@ -60,26 +60,28 @@
   container-type: inline-size;
 }
 
-/* Framed: inside the tier's frame, against its inner edge (the frame's coloured band is 2/50 of the card: below). */
+/* Framed: inside the tier's frame, against its inner edge (the frame's coloured band is 1.5/49 of the card: below). */
 .item:has(> .tier-frame) > .tier-mark,
 .slot-frame:has(> .tier-frame) > .tier-mark {
-  top: calc(100% * 2 / 50);
-  left: calc(100% * 2 / 50);
+  top: calc(100% * 1.5 / 49);
+  left: calc(100% * 1.5 / 49);
 }
 
 /*
  * Its card's frame: King's Raid's grade frame in its tier's colour (its Equip_Grade 2, 3, 4 and 7: green, cyan, magenta,
- * red, as the tiers' colours), laid over the card's edge (its inside is clear), the card's own coloured edge giving way.
+ * red, as the tiers' colours), laid over the card's edge (its inside is clear), the card's own coloured edge giving way. A
+ * hero's gear wears it too (items.ts heroFrame): the red one, or gold for TechnoMagic gear and crimson for a unique weapon
+ * or treasure (tier-frame-tm and -uw: the red one recoloured, as tm.css's and uw.css's borders).
  * The frame's pictures are 64px: 3px clear, a black line and a grey band (to 6px in), then the tier's colour (3px, its
- * first a dark line). Drawn 64/50 as big, so the tier's bright colour is the card's outer edge, the black, grey and dark
- * line cut off (and the card's picture never shows outside it).
+ * first a dark line). Drawn 64/49 as big, so the tier's bright colour is the card's outer edge, thin, the black, grey and
+ * dark line cut off (and the card's picture never shows outside it).
  */
 .tier-frame {
   position: absolute;
   z-index: 1;
   inset: 0;
   border-radius: inherit;
-  background: url('/kr/ui/tier-frame-1.webp') center / calc(100% * 64 / 50) calc(100% * 64 / 50) no-repeat;
+  background: url('/kr/ui/tier-frame-1.webp') center / calc(100% * 64 / 49) calc(100% * 64 / 49) no-repeat;
   pointer-events: none;
 }
 
@@ -95,8 +97,19 @@
   background-image: url('/kr/ui/tier-frame-4.webp');
 }
 
+.tier-frame[data-tier='tm'] {
+  background-image: url('/kr/ui/tier-frame-tm.webp');
+}
+
+.tier-frame[data-tier='uw'] {
+  background-image: url('/kr/ui/tier-frame-uw.webp');
+}
+
 /* (No edge of its own at all: the frame is its edge, out to the card's full size, as big as an unframed card's.) */
 .item:has(> .tier-frame),
 .slot-frame:has(> .tier-frame) {
   border-width: 0;
+  /* (So TechnoMagic gear's and the unique weapons' tabs still stand as far out past it: tm.css, uw.css.) */
+  --tm-border: 0px;
+  --uw-border: 0px;
 }
