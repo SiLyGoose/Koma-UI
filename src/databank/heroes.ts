@@ -28,7 +28,7 @@ function picture(hero: HeroDef, frame: typeof FACE, width: number, className: st
   return box;
 }
 
-/** The hero's whole picture, big in the middle of the screen over a darkened page; a click anywhere (or Esc) closes it. */
+/** The hero's whole picture, big in the middle of the screen over a darkened page; its ✕, a click anywhere or Esc closes it. */
 function showPicture(name: string, src: string): void {
   let dialog = document.querySelector<HTMLDialogElement>('dialog.db-hero-zoom');
   if (!dialog) {
@@ -40,8 +40,11 @@ function showPicture(name: string, src: string): void {
   img.src = src;
   img.alt = name;
   img.draggable = false;
+  const close = el('button', 'db-hero-zoom-close', '✕');
+  close.type = 'button';
+  close.setAttribute('aria-label', 'Close');
   dialog.setAttribute('aria-label', name);
-  dialog.replaceChildren(img);
+  dialog.replaceChildren(img, close);
   dialog.showModal();
 }
 
