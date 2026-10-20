@@ -943,6 +943,18 @@ button.tm-prep-manage {
   white-space: nowrap;
 }
 
+/* Forcing the start: how many are ready under its words, so the row still fits. */
+.tm-prep.fit .tm-prep-actions #prep-start {
+  min-width: 0;
+  flex-direction: column;
+  gap: 0;
+  line-height: 1.1;
+}
+
+.tm-prep.fit .tm-prep-start-count {
+  font-size: 10px;
+}
+
 /* Raid Settings: a dragon's modes, a tab each over the stage (the raid's pressed). */
 .tm-mode-pick {
   flex-shrink: 0;
