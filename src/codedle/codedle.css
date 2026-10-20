@@ -371,6 +371,12 @@
   text-transform: uppercase;
 }
 
+/* Guessing not open yet: the keypad dimmed (a press says when it opens). */
+.cd-keys[aria-disabled='true'] .cd-key {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 /* ---- With none going: the vault shut, and how the last ended ---- */
 
 .cd-idle {

@@ -13,7 +13,8 @@ import type { ClientMessage, CodedleEnded, CodedleLive, CodedleMark, CodedleRefu
  * Play on the site, or the front page) carries the player's token (t) and the bot's WebSocket address (s) after the #.
  *
  * Wordle's board, but ours: as many guesses as they'll pay for (each costs its fee, into the vault), so the board grows
- * and scrolls; a keypad of digits, each lit by the best its guesses have shown; and everyone guessing the one code at once, against the clock. Only their own guesses are
+ * and scrolls; a keypad of digits, each lit by the best its guesses have shown; and everyone guessing the one code at once, against the clock. Guessing opens a
+ * few minutes after the vault is announced (the clock counts down to it), so everyone has time to get here. Only their own guesses are
  * shown while the vault is locked; once it opens (or time runs out), the code, who cracked it, and everyone's guesses.
  * The bot holds the code and scores every guess: nothing here gives it away.
  */
@@ -58,6 +59,12 @@ const coins = (n: number): string => `${n.toLocaleString('en-US')} zeiucoins`;
 function amount(into: HTMLElement, n: number): void {
   into.replaceChildren(n.toLocaleString('en-US'), coin('cd-coin'));
 }
+
+/** Seconds as the clock shows them (m:ss). */
+const clockText = (seconds: number): string => `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
+
+/** Whether `live` is still waiting for guessing to open (a bot without the wait opens at once). */
+const waiting = (live: CodedleLive): boolean => Date.now() < (live.opensAt ?? 0);
 
 const state = {
   socket: null as GameSocket<ClientMessage> | null,
@@ -153,7 +160,7 @@ function renderLive(game: CodedleState, live: CodedleLive): void {
   amount(ui.prize, live.prize);
   if (live.guessCost > 0) amount(ui.cost, live.guessCost);
   else ui.cost.textContent = 'Free';
-  ui.crowd.textContent = live.guesses === 0 ? 'No guesses yet. Be the first to try the lock.' : `${live.guesses.toLocaleString('en-US')} ${live.guesses === 1 ? 'guess' : 'guesses'} by ${live.guessers} ${live.guessers === 1 ? 'player' : 'players'} so far`;
+  ui.crowd.textContent = waiting(live) ? 'Guessing opens soon. Get ready: everyone starts at once.' : live.guesses === 0 ? 'No guesses yet. Be the first to try the lock.' : `${live.guesses.toLocaleString('en-US')} ${live.guesses === 1 ? 'guess' : 'guesses'} by ${live.guessers} ${live.guessers === 1 ? 'player' : 'players'} so far`;
 
   // The board: their guesses (the new ones turned over), the one being typed, then empty rows.
   const fresh = live.mine.length > state.shown;
@@ -239,16 +246,35 @@ function render(): void {
   renderClock();
 }
 
-/** The time left on the clock (or, with none going, nothing to count). */
+/** Whether the clock was counting down to guessing opening, when it was last drawn. */
+let wasWaiting = false;
+
+/** The time left on the clock: until guessing opens, then until it closes (or, with none going, nothing to count). */
 function renderClock(): void {
   const live = state.game?.live;
+  const early = live ? waiting(live) : false;
+  // (The keys stay pressable, dimmed: a press says when it opens.)
+  ui.keys.setAttribute('aria-disabled', String(early));
+  // Guessing just opened: the rest of the page says so too.
+  if (wasWaiting && !early) {
+    wasWaiting = false;
+    return render();
+  }
+  wasWaiting = early;
   if (!live) {
     ui.clockLabel.textContent = 'Closes in';
     ui.clock.textContent = '–';
+    ui.clock.classList.remove('late');
+    return;
+  }
+  if (early) {
+    ui.clock.textContent = clockText(Math.ceil((live.opensAt - Date.now()) / 1000));
+    ui.clock.classList.remove('late');
+    ui.clockLabel.textContent = 'Opens in';
     return;
   }
   const left = Math.max(0, Math.ceil((live.endsAt - Date.now()) / 1000));
-  ui.clock.textContent = `${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}`;
+  ui.clock.textContent = clockText(left);
   ui.clock.classList.toggle('late', left <= 30);
   ui.clockLabel.textContent = left > 0 ? 'Closes in' : 'Closing…';
 }
@@ -277,6 +303,7 @@ function shake(): void {
 function press(key: string): void {
   const live = state.game?.live;
   if (!live || state.pending) return;
+  if (waiting(live)) return toast(`Not yet: guessing opens in ${clockText(Math.ceil((live.opensAt - Date.now()) / 1000))}.`);
   const length = state.game?.length ?? 0;
   if (/^\d$/.test(key)) {
     if (state.typed.length >= length) return;
@@ -299,6 +326,7 @@ function press(key: string): void {
 
 const REFUSED: Record<CodedleRefusal, (length: number, cost: number) => string> = {
   bad_guess: (length) => `A guess is ${length} digits.`,
+  early: () => "Not yet: guessing hasn't opened.",
   over: () => 'Too late: the vault just closed.',
   cant_afford: (_, cost) => `A guess costs ${coins(cost)}, and you don't have enough.`,
   failed: () => "Something went wrong: that guess wasn't counted (or charged). Try again.",
