@@ -424,7 +424,10 @@
   background: #24304f;
 }
 
+/* (Over the ring's foot, even while the ring is hovered: its brightening, a filter, would otherwise draw it over the pill.) */
 .banner-path-count {
+  position: relative;
+  z-index: 1;
   margin: -12px 0 0;
   padding: 2px 16px;
   border: 1px solid rgb(185 171 136 / 70%);
