@@ -2,12 +2,61 @@
  * The heroes recommended against each of the TechnoMagic Raid's bosses and the Dragon Raid's dragons, for the databank's
  * enemies (./bosses.ts). Written by KR-extracted/scripts/tm-recommend.mjs: King's Raid's own picks first (its hard Dragon Raid's,
  * those the raid has: `kr`), then the heroes whose parties fared best against it in the raid's sim, up to 4 in all.
+ * TEAMMATES: the rest of each hero's Main Team, for the databank's heroes (./heroes.ts): the heroes King's Raid recommends
+ * with it (`kr`), then one priest if none yet (no more otherwise) and those its parties fared best with in the sim.
  */
 
 export const RECOMMENDED: Readonly<Record<string, { kr: readonly string[]; heroes: readonly string[] }>> = {
-  galgoria: { kr: [], heroes: ['rehartna', 'laias', 'annette', 'fallen-frey'] },
+  galgoria: { kr: [], heroes: ['laias', 'fallen-frey', 'rehartna', 'annette'] },
   temeraire: { kr: ['morrah', 'gremory', 'laias'], heroes: ['morrah', 'gremory', 'laias', 'evan'] },
   scalaxia: { kr: ['loman', 'yanne', 'estelle'], heroes: ['loman', 'yanne', 'estelle', 'laias'] },
   zyrrkinoth: { kr: ['glenwys', 'erze'], heroes: ['glenwys', 'erze', 'evan', 'fallen-frey'] },
   armarta: { kr: ['shea'], heroes: ['shea', 'fallen-frey', 'evan', 'lucias'] },
+};
+
+export const TEAMMATES: Readonly<Record<string, { kr: readonly string[]; heroes: readonly string[] }>> = {
+  kirze: { kr: ['lakrak'], heroes: ['lakrak', 'fallen-frey', 'klaus'] },
+  klaus: { kr: ['gau', 'lakrak'], heroes: ['gau', 'lakrak', 'laias'] },
+  'fallen-frey': { kr: [], heroes: ['annette', 'klaus', 'loman'] },
+  gremory: { kr: ['laias', 'morrah', 'valance'], heroes: ['laias', 'morrah', 'valance'] },
+  annette: { kr: ['gau', 'aselica', 'naila'], heroes: ['gau', 'aselica', 'naila'] },
+  morrah: { kr: ['laias', 'tanya', 'gremory'], heroes: ['laias', 'tanya', 'gremory'] },
+  laias: { kr: ['rehartna', 'glenwys', 'morrah'], heroes: ['rehartna', 'glenwys', 'morrah'] },
+  seria: { kr: [], heroes: ['laias', 'annette', 'klaus'] },
+  ezekiel: { kr: [], heroes: ['laias', 'annette', 'estelle'] },
+  lorraine: { kr: ['gau', 'laias', 'evan'], heroes: ['gau', 'laias', 'evan'] },
+  valance: { kr: ['gremory', 'isolet'], heroes: ['gremory', 'isolet', 'laias'] },
+  lucikiel: { kr: [], heroes: ['laias', 'annette', 'klaus'] },
+  selene: { kr: ['lakrak'], heroes: ['lakrak', 'laias', 'annette'] },
+  crow: { kr: [], heroes: ['fallen-frey', 'annette', 'klaus'] },
+  oddy: { kr: [], heroes: ['evan', 'klaus', 'annette'] },
+  phillop: { kr: [], heroes: ['evan', 'estelle', 'annette'] },
+  naila: { kr: ['annette', 'gau'], heroes: ['annette', 'gau', 'laias'] },
+  yanne: { kr: ['laias', 'estelle', 'loman'], heroes: ['laias', 'estelle', 'loman'] },
+  neraxis: { kr: [], heroes: ['laias', 'annette', 'estelle'] },
+  erze: { kr: ['glenwys'], heroes: ['glenwys', 'fallen-frey', 'annette'] },
+  loman: { kr: ['estelle', 'yanne'], heroes: ['estelle', 'yanne', 'fallen-frey'] },
+  gau: { kr: ['annette', 'lorraine', 'laias'], heroes: ['annette', 'lorraine', 'laias'] },
+  tanya: { kr: ['morrah'], heroes: ['morrah', 'laias', 'annette'] },
+  'rebel-klaus': { kr: [], heroes: ['fallen-frey', 'annette', 'klaus'] },
+  'dark-lord-kasel': { kr: [], heroes: ['fallen-frey', 'klaus', 'annette'] },
+  theo: { kr: ['annette', 'aselica'], heroes: ['annette', 'aselica', 'laias'] },
+  priscilla: { kr: [], heroes: ['fallen-frey', 'annette', 'klaus'] },
+  glenwys: { kr: ['rehartna', 'laias', 'aselica'], heroes: ['rehartna', 'laias', 'aselica'] },
+  chase: { kr: [], heroes: ['evan', 'annette', 'estelle'] },
+  aselica: { kr: ['rehartna', 'annette', 'glenwys'], heroes: ['rehartna', 'annette', 'glenwys'] },
+  lakrak: { kr: ['rehartna', 'klaus', 'kirze'], heroes: ['rehartna', 'klaus', 'kirze'] },
+  miruru: { kr: [], heroes: ['fallen-frey', 'annette', 'klaus'] },
+  mirianne: { kr: [], heroes: ['fallen-frey', 'annette', 'estelle'] },
+  kara: { kr: [], heroes: ['fallen-frey', 'annette', 'klaus'] },
+  zafir: { kr: ['annette'], heroes: ['annette', 'laias', 'klaus'] },
+  pansirone: { kr: [], heroes: ['laias', 'klaus', 'annette'] },
+  isolet: { kr: ['valance', 'gremory'], heroes: ['valance', 'gremory', 'laias'] },
+  lilia: { kr: [], heroes: ['fallen-frey', 'klaus', 'annette'] },
+  lucias: { kr: [], heroes: ['annette', 'klaus', 'aselica'] },
+  rehartna: { kr: ['glenwys', 'laias', 'aselica'], heroes: ['glenwys', 'laias', 'aselica'] },
+  shea: { kr: [], heroes: ['klaus', 'annette', 'estelle'] },
+  lavril: { kr: [], heroes: ['annette', 'klaus', 'estelle'] },
+  evan: { kr: ['lorraine', 'gau'], heroes: ['lorraine', 'gau', 'aselica'] },
+  estelle: { kr: ['loman', 'yanne'], heroes: ['loman', 'yanne', 'laias'] },
 };

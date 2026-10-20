@@ -107,7 +107,7 @@ export function renderBosses(ctx: DatabankContext): void {
 }
 
 /** A raid boss's portrait (King's Raid's: public/kr/bosses/<id>/portrait.webp). */
-const portrait = (boss: BossDef, className: string): HTMLImageElement => {
+export const portrait = (boss: BossDef, className: string): HTMLImageElement => {
   const img = el('img', className);
   img.src = `${import.meta.env.BASE_URL}kr/bosses/${boss.id}/portrait.webp`;
   img.alt = '';
@@ -116,7 +116,7 @@ const portrait = (boss: BossDef, className: string): HTMLImageElement => {
 };
 
 /** Which raid an enemy is of, as its card's tag says it. */
-const raidOf = (id: string): string => (isDragon(id) ? 'Dragon Raid' : raidBossById(id) ? 'TechnoMagic Raid' : 'Weekly Boss');
+export const raidOf = (id: string): string => (isDragon(id) ? 'Dragon Raid' : raidBossById(id) ? 'TechnoMagic Raid' : 'Weekly Boss');
 
 /** A card for each enemy (the Weekly Bosses, then the TechnoMagic Raid's bosses, then the Dragon Raid's dragons); picking one shows it. */
 function renderBossList(ctx: DatabankContext): void {
@@ -173,7 +173,7 @@ export function itemCard(item: DatabankItem): HTMLButtonElement {
  * its icon in the gold square frame, its class's tag and the kind of damage it deals over its top left, a thumbs-up over its top
  * right for one King's Raid picked, and its name under it. It opens the hero in the databank's heroes. None for a hero the raid doesn't have.
  */
-function recommendedCard(id: string, kr: boolean): HTMLElement[] {
+export function recommendedCard(id: string, kr: boolean): HTMLElement[] {
   const hero = HEROES.find((one) => one.id === id);
   if (!hero) return [];
   const card = el('button', 'db-recommended-card');

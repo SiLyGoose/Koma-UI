@@ -1,6 +1,6 @@
 /*
  * The databank's heroes (../heroes.ts): the classes' cards and frames (./classes.css, ./bosses.css), each
- * card with the hero's face for a badge, and the one picked with its bust. Its stats and skills are the
+ * card with the hero's face for a badge, and the one picked with its bust. Its recommended bosses are the enemies' cards and its teammates their recommended heroes (./bosses.css); its skills are the
  * heroes page's own (../../gear/styles/armory.css, ../../heroes/heroes.css).
  */
 
@@ -144,4 +144,27 @@
 .db-hero-tools {
   justify-content: flex-end;
   margin: 4px 0 10px;
+}
+
+/* The raids' bosses the hero is recommended against: the enemies' cards (./bosses.css), as many across as fit. */
+.db-areas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.db-areas + .detail-note {
+  margin-top: 10px;
+}
+
+/* King's Raid's own pick: its thumbs-up (the recommended heroes' own) over the card's top left. */
+.db-area-card img.db-area-kr {
+  position: absolute;
+  top: 4px;
+  left: 6px;
+  z-index: 1;
+  width: 34px;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 60%));
 }

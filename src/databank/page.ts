@@ -19,7 +19,7 @@ import { render } from './render';
  * the Weekly Bosses, what each does and what each difficulty level makes of it, like `raid stats`, and logged in, which is
  * this week's in the server picked and how far its difficulty is unlocked (week.ts); and the TechnoMagic Raid's bosses and
  * the Dragon Raid's dragons, what each does and what each stage makes of it (bosses.ts). /databank/classes/ is the raid classes: what each does in a raid, and its class
- * items (classes.ts). /databank/heroes/ is the TechnoMagic Raid's heroes: their stats with no gear, and
+ * items (classes.ts). /databank/heroes/ is the TechnoMagic Raid's heroes: the bosses each is recommended against, its best teammates, and
  * their skills (heroes.ts), A to Z, as the Filter picks them (logged in, those they own only with Show owned on). A #hash opens one item, boss, class or hero. Going between them swaps them in place.
  *
  * Its parts share one DatabankContext (./context.ts): render.ts draws the one showing; for the items,

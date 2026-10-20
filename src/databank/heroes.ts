@@ -1,18 +1,21 @@
-import { el, statBlocks } from '../shared/items';
+import { el } from '../shared/items';
 import { BUST, classBadge, className, FACE, heroCut, heroPicture } from '../shared/heroes';
 import { closeButton } from '../shared/ui';
 import { skillRows } from '../heroes/render';
-import { heroStats } from '../heroes/stats';
+import { go } from '../site/nav';
+import { BOSSES } from '../technomagic/sim/bosses';
+import type { BossDef } from '../technomagic/sim/bosses/boss';
 import type { HeroDef } from '../technomagic/sim/heroes/kit';
-import { label } from './bosses';
+import { label, portrait, raidOf, recommendedCard } from './bosses';
 import { heroById, heroesShown, type DatabankContext } from './context';
+import { RECOMMENDED, TEAMMATES } from './recommended';
 
 /*
  * The TechnoMagic Raid's heroes: a card for each down the side (its face and name), A to Z, as the Filter picks
  * them (../shared/ui/hero-filter/: a class, a kind of damage, and logged in, those they own only with Show owned on), and the one picked
- * beside them on parchment, in the bosses' frames: its picture, name and class, its stats in the raid as its
- * class has them (before any gear: the heroes page, ../heroes/, has them with it), and its skills in King's
- * Raid's own words. The raid itself knows them (../technomagic/heroes/), so this needs nothing from the bot.
+ * beside them on parchment, in the bosses' frames: its picture, name and class, the raids' bosses it's recommended against
+ * and its best teammates (./recommended.ts), and its skills in King's Raid's own words. The raid itself knows them
+ * (../technomagic/heroes/), so this needs nothing from the bot.
  */
 
 /** A face or bust of a hero, put in `img` once it's cut (its initial in `box` until then, or for good where its picture isn't served). */
@@ -64,6 +67,23 @@ function bust(hero: HeroDef): HTMLElement {
     showPicture(hero.name, whole.src);
   });
   return box;
+}
+
+/** A boss the hero is recommended against, as the enemies' list has it: it opens the boss there. */
+function areaCard(boss: BossDef, kr: boolean): HTMLButtonElement {
+  const card = el('button', 'db-boss-card db-area-card');
+  card.type = 'button';
+  card.append(portrait(boss, 'db-boss-portrait'), el('span', 'db-boss-card-name', boss.name), el('span', 'db-boss-card-kind', raidOf(boss.id)));
+  card.title = `${boss.name}${kr ? ': King’s Raid’s own pick' : ''}`;
+  if (kr) {
+    const thumb = el('img', 'db-area-kr');
+    thumb.src = '/kr/ui/thumbs-up.webp';
+    thumb.alt = 'King’s Raid’s pick';
+    thumb.draggable = false;
+    card.append(thumb);
+  }
+  card.addEventListener('click', () => go(`/databank/bosses/#${encodeURIComponent(boss.id)}`));
+  return card;
 }
 
 export function renderHeroes(ctx: DatabankContext): void {
@@ -131,14 +151,33 @@ function renderHero(ctx: DatabankContext): void {
   badge.alt = '';
   // One the site has no picture of shows only its name.
   badge.addEventListener('error', () => badge.remove(), { once: true });
-  kind.append(badge, `${className(hero.class)} · TechnoMagic Raid`);
+  kind.append(badge, className(hero.class));
   title.append(el('h3', '', hero.name), kind);
   head.append(bust(hero), title);
   ui.heroBody.append(head);
 
-  // Its stats with no gear on (the class row is in its head).
-  const stats = heroStats({ class: hero.class }).filter((section) => section.title !== 'Hero');
-  if (stats.length > 0) ui.heroBody.append(label('Stats'), el('p', 'db-boss-note', 'With no gear on: the heroes page has them with yours.'), ...statBlocks(stats));
+  // The raids' bosses it's recommended against (./recommended.ts), if any.
+  const areas = BOSSES.filter((boss) => RECOMMENDED[boss.id]?.heroes.includes(hero.id));
+  if (areas.length > 0) {
+    const grid = el('div', 'db-areas');
+    const kr = areas.filter((boss) => RECOMMENDED[boss.id]?.kr.includes(hero.id));
+    grid.append(...areas.map((boss) => areaCard(boss, kr.includes(boss))));
+    const note = kr.length > 0 ? 'Thumbs up: King’s Raid’s own picks for its Hard Dragon Raid. The rest: where its parties fared best in the raid’s simulated fights.' : 'Where its parties fared best in the raid’s simulated fights.';
+    ui.heroBody.append(label('Recommended areas of battle'), grid, el('p', 'detail-note', note));
+  }
+
+  // The rest of its Main Team: the heroes King's Raid recommends with it, then a priest and those its parties fared best with in the raid's sim.
+  const mates = TEAMMATES[hero.id];
+  if (mates && mates.heroes.length > 0) {
+    const grid = el('div', 'db-recommended');
+    grid.append(...mates.heroes.flatMap((id) => recommendedCard(id, mates.kr.includes(id))));
+    // In the raid's fights a priest helps any party, and a second one does less than none.
+    const priests = hero.class === 'priest' ? 'no other priest' : 'one priest';
+    const sim = `${priests} and the heroes ${hero.name}’s parties fared best with in the raid’s simulated fights`;
+    const kr = `Thumbs up: heroes King’s Raid recommends together with ${hero.name}.`;
+    const note = mates.kr.length === mates.heroes.length ? kr : mates.kr.length > 0 ? `${kr} The rest: ${sim}.` : `A Main Team with ${hero.name}: ${sim}.`;
+    ui.heroBody.append(label('Recommended teammates'), grid, el('p', 'detail-note', note));
+  }
 
   const skills = skillRows(hero.id, ctx.databank?.heroes?.find((one) => one.id === hero.id)?.abilities ?? []);
   if (skills.length > 0) {
