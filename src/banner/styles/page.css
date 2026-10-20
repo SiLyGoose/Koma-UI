@@ -876,8 +876,8 @@
 }
 
 .banner-history td {
-  height: 38px;
-  padding: 4px 6px;
+  height: 52px;
+  padding: 8px 6px;
   border-bottom: 1px dotted rgb(59 52 68 / 20%);
   vertical-align: middle;
 }
@@ -886,23 +886,31 @@
   color: var(--ink-soft);
 }
 
+/* Its tier in a column of its own at the cell's start (every row's in line), its name beside it. */
 .banner-history-name {
   overflow-wrap: anywhere;
 }
 
-.banner-history-name > span:first-child {
-  margin-right: 6px;
+/* (Every tier's mark as wide, T1's narrow 1 too, so the names all start in line.) */
+.banner-history-name .tier-mark {
+  float: left;
+  box-sizing: border-box;
+  width: 3.6em;
+  margin-right: 8px;
+  padding: 0;
+  text-align: center;
+}
+
+.banner-history-words {
+  display: block;
+  overflow: hidden;
 }
 
 /* The top two tiers' names in their colour, as Star Rail's 4- and 5-star pulls are. */
-.banner-history-row[data-stars='3'] .banner-history-name > span:first-child,
-.banner-history-row[data-stars='4'] .banner-history-name > span:first-child {
+.banner-history-row[data-stars='3'] .banner-history-item,
+.banner-history-row[data-stars='4'] .banner-history-item {
   color: color-mix(in srgb, var(--tier) 78%, #000);
   font-weight: 700;
-}
-
-.banner-history-name .tier-mark {
-  vertical-align: 1px;
 }
 
 .banner-history-tag {

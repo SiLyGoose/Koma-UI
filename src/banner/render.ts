@@ -110,15 +110,18 @@ function pulledAt(ms: number): HTMLElement {
   return cell;
 }
 
-/** A pull's row: what kind of thing it is, its name in its tier's colour (and its tier; given on top for nothing, saying so), and when. */
+/** A pull's row: what kind of thing it is, its tier and its name in its tier's colour (given on top for nothing, saying so), and when. */
 function historyRow(pull: PullRecord): HTMLElement {
   const row = el('tr', 'banner-history-row');
   row.dataset.stars = String(pull.stars);
   const kind = pull.grant === 'ticket' ? 'Ticket' : pull.grant === 'rune' ? 'Rune' : kindName(pull);
+  // (Its tier first, so every row's is in the same place, its name beside it.)
   const name = el('td', 'banner-history-name');
-  name.append(el('span', '', pull.name), tierMark(pull.stars));
-  if (pull.bonus) name.append(el('small', 'banner-history-tag', 'Bonus'));
-  if (pull.removed) name.append(el('small', 'banner-history-tag', 'Gone'));
+  const words = el('span', 'banner-history-words');
+  words.append(el('span', 'banner-history-item', pull.name));
+  if (pull.bonus) words.append(el('small', 'banner-history-tag', 'Bonus'));
+  if (pull.removed) words.append(el('small', 'banner-history-tag', 'Gone'));
+  name.append(tierMark(pull.stars), words);
   row.append(el('td', 'banner-history-kind', kind), name, pulledAt(pull.at));
   return row;
 }
