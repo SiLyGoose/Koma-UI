@@ -14,8 +14,8 @@ const NONE_FOR: Readonly<Record<HeroMode, string>> = {
 
 /**
  * The armory (../shared/items/armory.ts): every copy shown (by the filter, the stars and the search), greyed out when it can't go on
- * the anvil now, then blanks to fill out the last row. Under Refineable, only what can be refined, and
- * with one of those on the anvil, it and the spares it can use up (which may not be refineable themselves).
+ * the anvil now, then blanks to fill out the last row. Under Refineable, only what can be refined. With a copy on the anvil,
+ * only that item's copies, whatever the Filter and the search say: it, the spares it can use up, and the rest of it greyed out.
  */
 export function renderGrid(ctx: ForgeContext): void {
   if (ctx.mode && ctx.mode !== 'refine') return renderHeroGrid(ctx, ctx.mode);
@@ -29,10 +29,10 @@ export function renderGrid(ctx: ForgeContext): void {
   const equipped = equippedIds(gear);
   ui.grid.draw({
     copies: gear.copies,
-    slot: filter,
-    stars,
-    query,
-    matches: (c) => !refineable || refineable.has(c.id) || c.id === picked || (usable?.has(c.id) ?? false),
+    slot: target ? 'all' : filter,
+    stars: target ? 'all' : stars,
+    query: target ? '' : query,
+    matches: (c) => (target ? c.itemId === target.itemId : !refineable || refineable.has(c.id)),
     look: (copy) => {
       const isTarget = copy.id === picked;
       const isMaterial = copy.id === material;
@@ -45,7 +45,7 @@ export function renderGrid(ctx: ForgeContext): void {
         over: isTarget ? [el('span', 'item-selected', plan === 'refine' ? (heroGear(copy) ? 'Awakening' : 'Refining') : 'Selected')] : [],
       };
     },
-    first: refineable?.size === 0 && gear.copies.length > 0 ? 'Nothing can be refined yet: a refine uses up a spare copy of the same gear.' : null,
+    first: !target && refineable?.size === 0 && gear.copies.length > 0 ? 'Nothing can be refined yet: a refine uses up a spare copy of the same gear.' : null,
     none: "You don't own any gear yet. Pull some with Koma's gacha in Discord.",
     onPick: (copy) => (usable?.has(copy.id) ? pickMaterial(ctx, copy) : pick(ctx, copy)),
     ownSound: false,
