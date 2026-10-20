@@ -1,4 +1,4 @@
-import { art, drawSell, el, forgeLink, hasLevels, heroMarks, isTmPiece, itemDetailsClosed, krStars, levelLabel, itemPicked, lockToggle, priceOf, pruneSale, replacesNote, rich, runeMarks, sellsFor, showDetail, shownName, statBlocks, tmMarks, tmSections, treasureParts, treasureSection, utMarks, uwMarks } from '../shared/items';
+import { art, drawSell, el, forgeLink, hasLevels, heroMarks, isTmPiece, itemDetailsClosed, krStars, levelLabel, itemPicked, lockToggle, priceOf, pruneSale, replacesNote, rich, runeMarks, sellsFor, showDetail, shownName, statBlocks, tmMarks, tmSections, treasureParts, treasureSection, uniqueWeaponEffect, utMarks, uwMarks } from '../shared/items';
 import { classBadge, className, FACE, HERO_PART_NAME, HERO_SLOT_KIND, HERO_SLOT_PART, HERO_SLOT_TYPE, HERO_SLOTS, heroCut, heroPicture, optionPips, skillText, STAGE_ZOOM, type HeroView, type HeroCopy, type HeroSlot } from '../shared/heroes';
 import { built } from '../shared/built';
 import { working } from '../shared/ui';
@@ -467,14 +467,16 @@ function renderDetail(ctx: HeroesContext, act: HeroActions): void {
 
   // (A unique treasure: its options as its effects, and what it gives as the main treasure apart, lit while it is this hero's.)
   const ut = copy.uniqueTreasure ? treasureParts(copy.effects) : null;
-  showDetail(ui.detail, ut ? { ...copy, effects: ut.options } : copy, {
+  // (A unique weapon: its own effect alone, as its Unique Effect; its runes' are in its Runes, below.)
+  const uw = copy.uniqueWeapon ? uniqueWeaponEffect(copy.effects) : null;
+  showDetail(ui.detail, ut ? { ...copy, effects: ut.options } : uw ? { ...copy, effects: uw } : copy, {
     onClose: () => {
       itemDetailsClosed();
       ctx.picked = null;
       ctx.runes = false;
       renderPick(ctx, act);
     },
-    label: ut ? 'Options' : 'On a hero',
+    label: ut ? 'Options' : uw ? 'Unique Effect' : 'On a hero',
     none: NONE,
     effectsOff: !fits,
     sections: [
@@ -570,7 +572,9 @@ function runeSection(ctx: HeroesContext, copy: HeroCopy): HTMLElement[] {
         const icon = el('img', 'kr-rune-icon');
         icon.src = `/kr/items/${rune.icon}.webp`;
         icon.alt = '';
-        row.append(icon, el('span', 'kr-rune-name', `${rune.name}: ${rune.lines.join(', ')}`));
+        // (What it gives, its name left to its Runes list.)
+        icon.title = rune.name;
+        row.append(icon, el('span', 'kr-rune-name', rune.lines.join(', ')));
         return row;
       }
       // (Their runes to put in: its Runes, below, lists them in the cards' place.)

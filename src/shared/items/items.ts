@@ -379,6 +379,13 @@ export function treasureParts(lines: readonly string[]): { options: string[]; ma
 }
 
 /**
+ * A unique weapon's own effect from its lines as the bot says them ("Klaus only, ★3: Every 3rd skill…"), without whose and
+ * its stars (its card and its notes say those); its runes' lines left out, its Runes section saying them.
+ */
+export const uniqueWeaponEffect = (lines: readonly string[]): string[] =>
+  lines.filter((line) => /^.+? only, ★\d+: /.test(line)).map((line) => line.replace(/^.+? only, ★\d+: /, ''));
+
+/**
  * What a unique treasure gives as its hero's main treasure, set apart as a TechnoMagic copy's effects are: lit while it is
  * (`on`), greyed while it isn't. `line`: how each line is drawn (Discord's way, rich, unless the page says).
  */
