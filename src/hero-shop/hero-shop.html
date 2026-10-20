@@ -9,13 +9,12 @@
   <p id="status" class="status outfits-status" hidden></p>
 
   <!--
-    A card for each hero the Filter leaves, A to Z (page.ts): its picture and class badge, its name, and at the bottom its price, or that it's theirs.
-    Above them, in the cards' own grid (so it starts where the leftmost card does), the Filter (src/shared/ui/hero-filter/ fills it in):
-    the class, the line it stands in, the kind of damage, and Show owned.
+    The Filter (src/shared/ui/hero-filter/ fills it in: the class, the line it stands in, the kind of damage, and Show owned), at the
+    left over the cards; then a card for each hero it leaves, A to Z, in a row that scrolls sideways (page.ts): its picture and class
+    badge, its name, and at the bottom its price, or that it's theirs.
   -->
-  <div id="heroes" class="outfits-row">
-    <div id="tools" class="hero-shop-tools"><div id="hero-filter" class="armory-filter"></div></div>
-  </div>
+  <div id="tools" class="hero-shop-tools"><div id="hero-filter" class="armory-filter"></div></div>
+  <div id="heroes" class="outfits-row"></div>
   <p id="empty" class="status outfits-status" hidden></p>
 
   <!--

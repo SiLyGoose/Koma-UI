@@ -13,23 +13,6 @@
   --edge: 3px;
 }
 
-/*
- * Its cards in the middle of the panel, as many to a line as fit, a line after the first starting at the left of
- * them (not in the middle): columns as wide as a card, as many as fit (the Filter's row across them all keeps them
- * where they are when it leaves fewer cards), from the top down.
- */
-@media (min-width: 761px) {
-  .hero-shop .outfits-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, var(--card-width));
-  }
-}
-
-/* At the top of the panel, however few lines of them there are. */
-.hero-shop .outfits-row {
-  align-content: start;
-}
-
 .hero-shop .hero-card {
   --frame: var(--cream);
   min-width: 0;
@@ -359,14 +342,20 @@
 }
 
 /*
- * The Filter: a row of its own across the cards' grid, at its left, so it starts where the leftmost card does (its panel
- * hanging from there). Closer to the cards than they are to each other.
+ * The Filter: over the cards' row at its left, where the first card starts (its panel hanging from there), outside the row
+ * so it stays put as the row scrolls.
  */
 .hero-shop-tools {
+  position: relative;
+  z-index: 5;
   display: flex;
-  grid-column: 1 / -1;
   justify-content: flex-start;
-  margin-bottom: -8px;
+  margin: 0 14px -12px;
+}
+
+/* Room in the row for the frames' scrolls, which stick out past the cards. */
+.hero-shop .outfits-row {
+  padding: 14px 14px 18px;
 }
 
 .hero-shop-tools .armory-filter-panel {

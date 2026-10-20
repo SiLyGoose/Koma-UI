@@ -6,7 +6,7 @@ import { skillBrief } from '../heroes/briefs';
 import { skillRows } from '../heroes/render';
 import { className, heroCard, type HeroView, type HeroesView } from '../shared/heroes';
 import { el } from '../shared/items';
-import { API, busyWith, dropdown, fillServers, working, type Busy } from '../shared/ui';
+import { API, busyWith, dropdown, fillServers, wheelSideways, working, type Busy } from '../shared/ui';
 import { byName, heroFilter, heroShown, NO_HERO_FILTER, type HeroChoice, type HeroFilter } from '../shared/ui/hero-filter/hero-filter';
 import { coin, points } from '../shared/util';
 import type { ShopTab } from '../shop/tab';
@@ -34,7 +34,6 @@ interface Ui {
   server: HTMLSelectElement;
   balance: HTMLElement;
   status: HTMLElement;
-  tools: HTMLElement;
   filter: HeroFilter;
   empty: HTMLElement;
   list: HTMLElement;
@@ -68,7 +67,6 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
       server: $<HTMLSelectElement>('#server'),
       balance: $('#balance'),
       status: $('#status'),
-      tools: $('#tools'),
       filter: heroFilter($('#hero-filter')),
       empty: $('#empty'),
       list: $('#heroes'),
@@ -91,6 +89,8 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
   ui.filter.onChange((choice) => {
     ctx.choice = choice;
     render(ctx);
+    // Other heroes: their row from its start.
+    ui.list.scrollLeft = 0;
   });
   const serverPicker = dropdown(ui.server);
   ui.server.addEventListener('change', () => {
@@ -98,6 +98,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     void load(ctx);
   });
 
+  wheelSideways(ui.list);
   ui.list.addEventListener('click', (e) => {
     const id = (e.target as HTMLElement).closest<HTMLElement>('[data-hero]')?.dataset.hero;
     const hero = ctx.view?.heroes.find((one) => one.id === id);
@@ -257,9 +258,7 @@ function render(ctx: Context): void {
   // The Damage group once the bot says what each deals (one from before that doesn't).
   ui.filter.show(ctx.choice, view.heroes.some((hero) => hero.deals));
   const shown = view.heroes.filter((hero) => heroShown(ctx.choice, hero)).sort(byName);
-  // The cards after the Filter's row, which stays (so a choice in it keeps its focus).
-  while (ui.list.lastChild && ui.list.lastChild !== ui.tools) ui.list.lastChild.remove();
-  ui.list.append(...shown.map((hero) => card(ctx, hero)));
+  ui.list.replaceChildren(...shown.map((hero) => card(ctx, hero)));
   if (shown.length === 0 && view.heroes.length > 0) {
     // Only those they own left out, or the class and damage too.
     const owned = view.heroes.some((hero) => heroShown({ ...ctx.choice, owned: true }, hero));

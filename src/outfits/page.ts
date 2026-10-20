@@ -1,5 +1,5 @@
 import markup from './outfits.html?raw';
-import { API, busyWith, dropdown, fillServers } from '../shared/ui';
+import { API, busyWith, dropdown, fillServers, wheelSideways } from '../shared/ui';
 import type { ShopTab } from '../shop/tab';
 import type { OutfitView, OutfitsView } from '../shared/outfits';
 import { api, currentMe, currentServer, loadMe, logOut, prefetchFor, setServer } from '../site/session';
@@ -28,6 +28,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     void load(ctx);
   });
 
+  wheelSideways(ui.list);
   ui.list.addEventListener('click', (e) => {
     const id = (e.target as HTMLElement).closest<HTMLElement>('[data-outfit]')?.dataset.outfit;
     const outfit = ctx.view?.outfits.find((o) => o.id === id);

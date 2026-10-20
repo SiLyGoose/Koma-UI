@@ -1,5 +1,5 @@
 import markup from './raid-shop.html?raw';
-import { API, busyWith, dropdown, fillServers } from '../shared/ui';
+import { API, busyWith, dropdown, fillServers, wheelSideways } from '../shared/ui';
 import type { ShopTab } from '../shop/tab';
 import { api, currentMe, currentServer, loadMe, logOut, prefetchFor, setServer } from '../site/session';
 import { createContext, status, type Asking, type RaidShopContext } from './context';
@@ -42,6 +42,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     ui.ask.hidden = false;
     ui.ask.focus();
   };
+  wheelSideways(ui.shelf);
   // A tile's card or its price button: both ask to buy its item.
   ui.shelf.addEventListener('click', (e) => {
     const pressed = (e.target as HTMLElement).closest<HTMLElement>('button');

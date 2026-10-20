@@ -84,14 +84,24 @@
   font-weight: 600;
 }
 
-/* The cards, in the middle of what's left of the panel. */
+/*
+ * The cards, in a row from the left that scrolls sideways (a mouse's wheel too: ../shared/ui/sideways/), as King's Raid's
+ * shops have them. Room round them for a card lifted (hovered) and its shadow, and the scrollbar under them.
+ */
 .outfits-row {
   display: flex;
-  flex: 1;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: clamp(14px, 2vw, 28px);
-  align-content: center;
-  justify-content: center;
+  align-items: flex-start;
+  min-width: 0;
+  padding: 10px 8px 16px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+}
+
+.outfits-row > * {
+  flex: none;
 }
 
 .outfits-row[hidden] {
@@ -365,20 +375,13 @@
     font-size: 14px;
   }
 
-  /* Two columns, the pair in the middle: a last card on its own stays in the left one. */
+  /* Still a row sideways, its cards a size down. */
+  .outfits-page {
+    --card-width: 150px;
+  }
+
   .outfits-row {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 200px));
     gap: 10px;
-    align-content: start;
-  }
-
-  .outfits-row[hidden] {
-    display: none;
-  }
-
-  .outfit-card {
-    width: auto;
   }
 
   .outfit-name {
