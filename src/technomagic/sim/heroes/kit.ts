@@ -100,8 +100,8 @@ export interface HeroPart {
   blow?(skill: boolean): void;
   /** Its card glows. */
   lit?(): boolean;
-  /** Auto: whether this skill's moment has come (false: Auto may still pick it, but once it has the mana waits to use it). */
-  ripe?(index: number): boolean;
+  /** Auto: whether this skill's moment is now (true: Auto picks it, if it can be used, before any other). */
+  now?(index: number): boolean;
   /** Auto: whether this skill waits for now (true: Auto doesn't pick it, and lets it go if it had). */
   waits?(index: number): boolean;
   /** What its skills have given it for now: squares on its card. */
