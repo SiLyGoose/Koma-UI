@@ -147,9 +147,20 @@
 }
 
 /* The raids' bosses the hero is recommended against: the enemies' cards (./bosses.css), as many across as fit. */
-/* None: a line saying so, under the label. */
+/* None: a line saying so, across a row held as tall as a card's (an unseen one: the cards' own shape and frame). */
+.db-areas-spacer {
+  grid-row: 1;
+  grid-column: 1;
+  aspect-ratio: 16 / 9;
+  border: 2px solid transparent;
+  visibility: hidden;
+}
+
 .db-areas-none {
-  margin-top: 0;
+  grid-row: 1;
+  grid-column: 1 / -1;
+  align-self: center;
+  margin: 0;
 }
 
 .db-areas {

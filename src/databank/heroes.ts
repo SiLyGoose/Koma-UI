@@ -88,13 +88,18 @@ function areaCard(boss: BossDef, kr: boolean): HTMLButtonElement {
 
 /**
  * The raids' bosses a hero is recommended against (./recommended.ts), their cards as many across as fit; with none, a line
- * saying so (also the shop's buy box's, ../hero-shop/).
+ * saying so, in a row as tall as their cards' (an unseen card holds it open), so the hero's other parts stay where they'd be
+ * (also the shop's buy box's, ../hero-shop/).
  */
 export function areasOf(id: string): HTMLElement {
   const areas = BOSSES.filter((boss) => RECOMMENDED[boss.id]?.heroes.includes(id));
-  if (areas.length === 0) return el('p', 'db-boss-note db-areas-none', 'Not recommended against any of the raids’ bosses.');
   const grid = el('div', 'db-areas');
-  grid.append(...areas.map((boss) => areaCard(boss, RECOMMENDED[boss.id]?.kr.includes(id) ?? false)));
+  if (areas.length > 0) grid.append(...areas.map((boss) => areaCard(boss, RECOMMENDED[boss.id]?.kr.includes(id) ?? false)));
+  else {
+    const spacer = el('span', 'db-areas-spacer');
+    spacer.setAttribute('aria-hidden', 'true');
+    grid.append(spacer, el('p', 'db-boss-note db-areas-none', 'Not recommended against any of the raids’ bosses.'));
+  }
   return grid;
 }
 
