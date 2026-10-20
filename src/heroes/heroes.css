@@ -491,6 +491,12 @@
   font-weight: 700;
 }
 
+/* A state its hero goes into ("[Dark Lord] state", "Fury state", "Stealth mode"): orange. */
+.skill-state {
+  color: #c25a00;
+  font-weight: 700;
+}
+
 /*
  * The Transcend tab: on the Stats tab's parchment, the TP left in its top corner, then a row for each tier, its name
  * beside its perks (King's Raid's red-brown), five across (Transcend 3's four). A perk not learned is greyed; one learned lit and framed in gold;

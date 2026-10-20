@@ -251,12 +251,36 @@ export function chancesAsPercent(text: string): string {
   return changed ? out.replace(ONLY_GAINS, (_, gains: string, points: string) => `${gains} ${asPercent(points)}`) : out;
 }
 
-/** A skill's words, as King's Raid marks them: its numbers (20%, 12,000, 0.5) and what's in brackets ([Darkened Power]) each in a colour of their own (the heroes page's Skills tab, the raid's popups), its chance stats' points as percentages. */
+/** What starts a sentence or clause before a state's name, never part of it ("During Fury state": Fury's). */
+const NOT_NAMED = String.raw`(?:When|While|During|If|In|Into|Upon|After|Before|Under|Once|The|A|An|And|Or|Its|His|Her|Their|Enters?|Turns?|Returns?)\b`;
+/** A capitalised word of a state's name. */
+const NAMED = String.raw`\b(?!${NOT_NAMED})[A-Z][\w-]*`;
+/** A hero's state (or mode), by its name: "[Dark Lord] state", "'God of Lightning' state", "Fury state", "Siege Weapon mode". */
+const STATE = String.raw`(?:\[[^\]]+\]|'[^']+'|${NAMED}(?: ${NAMED})*) (?:[Ss]tate|[Mm]ode)\b`;
+/** What a skill's words mark: a state, what's in brackets, a number. */
+const MARKED = new RegExp(String.raw`${STATE}|\[[^\]]+\]|\d+(?:,\d{3})*(?:\.\d+)?%?`, 'g');
+const IS_STATE = / (?:[Ss]tate|[Mm]ode)$/;
+
+/**
+ * A skill's words, as King's Raid marks them: its numbers (20%, 12,000, 0.5) and what's in brackets ([Darkened Power]) each in
+ * a colour of their own, and a state its hero goes into ("[Dark Lord] state", "Fury state", "Stealth mode") in another, as is
+ * what's in brackets that is one of its states elsewhere in them ("[Dark Lord]"): the heroes page's Skills tab, the raid's
+ * popups. Its chance stats' points as percentages.
+ */
 export function skillText(text: string): (string | HTMLElement)[] {
-  return chancesAsPercent(text)
-    .split(/(\[[^\]]+\]|\d+(?:,\d{3})*(?:\.\d+)?%?)/)
-    .filter(Boolean)
-    .map((part) => (part.startsWith('[') ? el('b', 'skill-effect', part) : /^\d/.test(part) ? el('b', 'skill-number', part) : part));
+  const words = chancesAsPercent(text);
+  const marked = [...words.matchAll(MARKED)];
+  // (The bracketed names of its states, for each time they're named.)
+  const states = new Set(marked.flatMap(([part]) => (IS_STATE.test(part) && part.startsWith('[') ? [part.slice(0, part.indexOf(']') + 1)] : [])));
+  const out: (string | HTMLElement)[] = [];
+  let at = 0;
+  for (const { 0: part, index } of marked) {
+    if (index > at) out.push(words.slice(at, index));
+    out.push(el('b', IS_STATE.test(part) || states.has(part) ? 'skill-state' : part.startsWith('[') ? 'skill-effect' : 'skill-number', part));
+    at = index + part.length;
+  }
+  if (at < words.length) out.push(words.slice(at));
+  return out;
 }
 
 /**

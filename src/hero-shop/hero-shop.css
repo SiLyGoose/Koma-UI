@@ -253,6 +253,10 @@
   color: #a6d64a;
 }
 
+.hero-buy-box .skill-state {
+  color: #ffa04a;
+}
+
 .hero-buy-skills .db-label {
   margin-top: 0;
 }
