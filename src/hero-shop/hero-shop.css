@@ -455,7 +455,24 @@
   position: relative;
   z-index: 5;
   display: flex;
+  gap: 10px;
   justify-content: flex-start;
+}
+
+/* Beside the Filter, on bigger screens: Front, Middle and Back, the one picked tinted (page.ts). */
+.hero-shop-lines {
+  display: flex;
+  gap: 6px;
+}
+
+.hero-shop-lines .action {
+  padding: 0 16px;
+}
+
+@media (max-width: 760px) {
+  .hero-shop-lines {
+    display: none;
+  }
 }
 
 @media (max-width: 760px) {
