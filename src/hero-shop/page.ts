@@ -125,7 +125,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     ui.buy.focus({ preventScroll: true });
   });
 
-  // Bigger screens: the hero's card, pressed, shows its whole picture over the whole box (its X, a click on it or Escape puts it away).
+  // The hero's card (on phones, its headshot), pressed, shows its whole picture over the whole box (its X, a click on it or Escape puts it away).
   const figure = ui.buyPicture.parentElement as HTMLElement;
   figure.tabIndex = 0;
   figure.setAttribute('role', 'button');
@@ -140,7 +140,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
   ui.buyBox.append(zoom);
   const showWhole = (on: boolean, focus = true): void => {
     const hero = ctx.buying;
-    if (on && (!hero || !WIDE.matches)) return;
+    if (on && !hero) return;
     if (on && hero) {
       whole.src = heroPicture(hero.id)?.src ?? heroCard(hero.id) ?? '';
       whole.alt = hero.name;
@@ -335,9 +335,6 @@ function renderBuy(ctx: Context): void {
   ui.buyConfirm.disabled = left < 0;
   working(ui.buyConfirm, ctx.busy, 'buy');
 }
-
-/** Screens the buy box's card shows the hero's whole picture on, pressed (hero-shop.css: on phones it's a headshot). */
-const WIDE = window.matchMedia('(min-width: 601px)');
 
 const LINE_NAME = { front: 'Front', middle: 'Middle', back: 'Back' } as const;
 

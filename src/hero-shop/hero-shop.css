@@ -160,18 +160,19 @@
   text-align: left;
 }
 
+/* The card as tall as what's beside it (as tall as itself at least: then it's cut a little at its sides, not its top). */
 .hero-buy-top {
   display: grid;
   grid-template-columns: 150px minmax(0, 1fr);
   gap: 20px;
-  align-items: start;
+  align-items: stretch;
 }
 
 .hero-shop .hero-buy-figure {
   width: 100%;
   height: auto;
+  min-height: calc(150px * 382 / 168);
   margin: 0;
-  aspect-ratio: 168 / 382;
   padding: 0;
   overflow: hidden;
   border-color: var(--cream);
@@ -261,18 +262,16 @@
 }
 
 /*
- * Bigger screens: the card, pressed, shows the hero's whole picture over the whole box, from its top (the box held there
- * meanwhile), on its dark; its X, a click on it or Escape puts it away (page.ts).
+ * The card (on phones, its headshot), pressed, shows the hero's whole picture over the whole box, from its top (the box
+ * held there meanwhile), on its dark; its X, a click on it or Escape puts it away (page.ts).
  */
-@media (min-width: 601px) {
-  .hero-shop .hero-buy-figure {
-    cursor: zoom-in;
-    transition: filter 0.15s ease;
-  }
+.hero-shop .hero-buy-figure {
+  cursor: zoom-in;
+  transition: filter 0.15s ease;
+}
 
-  .hero-shop .hero-buy-figure:hover {
-    filter: brightness(1.1);
-  }
+.hero-shop .hero-buy-figure:hover {
+  filter: brightness(1.1);
 }
 
 .hero-shop .hero-buy-box.zoomed {
@@ -363,6 +362,8 @@
 
   .hero-shop .hero-buy-figure {
     grid-row: 1 / span 2;
+    align-self: center;
+    min-height: 0;
     aspect-ratio: 1;
   }
 
