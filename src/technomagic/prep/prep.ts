@@ -1,9 +1,7 @@
 import { inLandscape, onLandscape } from '../../shared/ui/landscape/landscape';
 import { className, FACE, heroCard, heroCut } from '../../shared/heroes';
 import { levelPopup } from '../../shared/ui/level/level';
-import { stagesOf, type BossDef } from '../sim/bosses/boss';
-import { DOWN } from '../sim/bosses/gauge';
-import { RAID_TIME } from '../sim/rules';
+import type { BossDef } from '../sim/bosses/boss';
 import { isDragon } from '../sim/bosses';
 import { HEROES } from '../sim/heroes';
 import { nearer } from '../sim/heroes/kit';
@@ -56,38 +54,9 @@ export interface Prep {
   hide(): void;
 }
 
-/** How long a boss's raid lasts, as its timer shows it (3:00). */
-const clockOf = (boss: BossDef): string => {
-  const time = boss.time ?? RAID_TIME;
-  return `${Math.floor(time / 60)}:${String(time % 60).padStart(2, '0')}`;
-};
-
 /** The names of a dragon's modes, as Raid Settings has them. */
 const MODE_NAMES: Readonly<Record<RaidMode, string>> = { normal: 'Normal', hard: 'Hard' };
 const MODES: readonly RaidMode[] = ['normal', 'hard'];
-
-/** Raid Info's Characteristics after the game's tip (./raid-info.ts): how the boss's raid goes. */
-function rulesOf(boss: BossDef): string[] {
-  const solo = Math.round(((boss.stages.solo[0]?.hp ?? 1) / (boss.stages.room[0]?.hp ?? 1)) * 100);
-  const lineup = (all: number, alone: number): string =>
-    `With others, the host brings up to 4 heroes, everyone else up to 3, ${all} in all. Single player, up to ${alone}: 4 in the Main Team, whose skills are yours to use, and ${alone - 4} in the Sub Team, who fight on Auto.`;
-  if (isDragon(boss.id)) {
-    const normal = boss.normal ? stagesOf(boss.normal) : 0;
-    return [
-      `Its CC Gauge: no stun holds a dragon, but your heroes' stuns wear the gauge down (it fills again soon after); empty, it is Down for ${DOWN} seconds, its breath cut short.`,
-      `Two modes, King's Raid's: Normal, its Normal Dragon Raid (${normal} stages, the first far easier than Hard's, the last harder than any), and Hard, its Hard Dragon Raid (${stagesOf(boss)} stages). Each stage has more health and defense and hits harder.`,
-      `Heroes that fall stay down. Beat it within ${clockOf(boss)}, before its rage wipes the party. Single player, it has ${solo}% of the health.`,
-      `${lineup(9, 8)} A win gives every player pieces of the dragon's own gear set, runes, zeiucoins and hero essences of the dragon's two kinds, more at each stage; a Normal stage as tough as one of Hard's pays as that one does. There is no daily limit.`,
-      'The host picks the mode and the stage in Raid Settings: each stage after the first opens once they have beaten the one before it, each dragon and mode apart.',
-    ];
-  }
-  return [
-    `Its Swamp Destroyer knocks every hero down. No stun holds it, but stuns wear its CC Gauge down (it fills again soon after); empty, it is Down for ${DOWN} seconds.`,
-    `Heroes that fall stay down. Beat it within ${clockOf(boss)}, before its rage wipes the party. Each stage, it has more health and hits harder; single player, it has ${solo}% of the health.`,
-    `${lineup(8, 7)} A win gives each player TechnoMagic gear and zeiucoins.`,
-    'The host picks the stage: each after the first opens once they have beaten the one before it.',
-  ];
-}
 
 /** How many players a room takes (1P to 4P). */
 const ROOM_PLAYERS = 4;
@@ -239,7 +208,7 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
   }
 
   // Raid Info, King's Raid's window (beside the screen too, as Raid Settings is).
-  const info = raidInfo(boss, rulesOf(boss));
+  const info = raidInfo(boss);
   root.after(info.root);
   byId('prep-info').addEventListener('click', () => info.open());
   const bossName = byId('prep-boss');

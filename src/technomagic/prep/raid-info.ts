@@ -114,7 +114,7 @@ function skillRows(boss: BossDef): HTMLElement {
   return list;
 }
 
-export function raidInfo(boss: BossDef, rules: readonly string[] = rulesOf(boss)): RaidInfo {
+export function raidInfo(boss: BossDef): RaidInfo {
   const card = raidCard(boss.id);
   const dragon = isDragon(boss.id);
 
@@ -177,7 +177,7 @@ export function raidInfo(boss: BossDef, rules: readonly string[] = rulesOf(boss)
   const info = panes.get('info') as HTMLElement;
   const [traits, traitsBody] = section('Characteristics', 'ri-traits');
   if (card) traitsBody.append(el('p', 'ri-tactic', card.tactic));
-  traitsBody.append(...rules.map((line) => el('p', '', line)));
+  traitsBody.append(...rulesOf(boss).map((line) => el('p', '', line)));
   const [heroes, heroesBody] = section('Recommended Heroes', 'ri-heroes');
   info.append(traits, heroes);
 
