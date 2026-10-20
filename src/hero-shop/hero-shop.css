@@ -296,14 +296,38 @@
     padding: 16px 14px 14px;
   }
 
-  /* Its card over what it is, as wide as the box: a square of it round the hero's head, a headshot (the cards' heads sit in their top half). */
+  /*
+   * A headshot (a square of its card round the hero's head: the cards' heads sit in their top half) with its name and
+   * what it is beside it, and the bosses and teammates across the box under them.
+   */
   .hero-buy-top {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 14px;
+    grid-template-columns: 84px minmax(0, 1fr);
+    gap: 0 14px;
+    align-items: center;
+  }
+
+  .hero-buy-about {
+    display: contents;
   }
 
   .hero-shop .hero-buy-figure {
+    grid-row: 1 / span 2;
     aspect-ratio: 1;
+  }
+
+  .hero-shop .hero-buy-about h3 {
+    grid-column: 2;
+    align-self: end;
+  }
+
+  .hero-buy-kind {
+    grid-column: 2;
+    align-self: start;
+    flex-wrap: wrap;
+  }
+
+  .hero-buy-info {
+    grid-column: 1 / -1;
   }
 
   .hero-buy-picture {
