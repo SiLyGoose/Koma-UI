@@ -342,20 +342,52 @@
 }
 
 /*
- * The Filter: over the cards' row at its left, where the first card starts (its panel hanging from there), outside the row
- * so it stays put as the row scrolls.
+ * The Filter and the cards. On bigger screens, one grid in the middle of the panel, from the top down: columns as wide as a
+ * card, as many as fit, a line after the first starting at the left of them; the Filter a row of its own across them at
+ * their left (so it starts where the leftmost card does, and stays there as it leaves fewer), closer to the cards than they
+ * are to each other. The cards' own box (#heroes) isn't drawn: they're the grid's. On phones, the Filter over a row of the
+ * cards that scrolls sideways (../outfits/outfits.css), outside it so it stays put as the row scrolls.
  */
+@media (min-width: 761px) {
+  .hero-shop-cards {
+    display: grid;
+    flex: 1;
+    grid-template-columns: repeat(auto-fit, var(--card-width));
+    gap: clamp(14px, 2vw, 28px);
+    align-content: start;
+    justify-content: center;
+  }
+
+  .hero-shop-cards > .outfits-row {
+    display: contents;
+  }
+
+  .hero-shop-cards > .outfits-row[hidden] {
+    display: none;
+  }
+
+  .hero-shop-tools {
+    grid-column: 1 / -1;
+    margin-bottom: -8px;
+  }
+}
+
 .hero-shop-tools {
   position: relative;
   z-index: 5;
   display: flex;
   justify-content: flex-start;
-  margin: 0 14px -12px;
 }
 
-/* Room in the row for the frames' scrolls, which stick out past the cards. */
-.hero-shop .outfits-row {
-  padding: 14px 14px 18px;
+@media (max-width: 760px) {
+  .hero-shop-tools {
+    margin: 0 14px -12px;
+  }
+
+  /* Room in the row for the frames' scrolls, which stick out past the cards. */
+  .hero-shop .outfits-row {
+    padding: 14px 14px 18px;
+  }
 }
 
 .hero-shop-tools .armory-filter-panel {

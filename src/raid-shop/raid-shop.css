@@ -128,21 +128,12 @@
 
 /* ------------------------------------------------------------------ the shelf */
 
-/* A row from the left that scrolls sideways (a mouse's wheel too: ../shared/ui/sideways/), as the shop's other tabs. */
+/* Six across, from the left, as many rows as it takes (on phones, a row that scrolls sideways: below). */
 .raidshop-shelf {
-  --ware-width: clamp(150px, 14vw, 210px);
-  display: flex;
-  flex-wrap: nowrap;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: clamp(8px, 1vw, 14px);
-  min-width: 0;
-  padding: 4px 2px 14px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  overscroll-behavior-x: contain;
-}
-
-.raidshop-shelf > .raid-ware {
-  flex: 0 0 var(--ware-width);
+  align-content: start;
 }
 
 .raidshop-shelf[hidden] {
@@ -150,6 +141,7 @@
 }
 
 .raidshop-empty {
+  grid-column: 1 / -1;
   flex: 1;
   margin: 0;
   color: var(--muted);
@@ -268,7 +260,13 @@
 
 /* ------------------------------------------------------------------ narrower screens */
 
-/* Phones: two across, a size down, and the strip's words shorter so it stays on one line. */
+@media (max-width: 1280px) {
+  .raidshop-shelf {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* Phones: the shelf a row sideways, a size down, and the strip's words shorter so it stays on one line. */
 @media (max-width: 760px) {
   .raidshop-page {
     gap: 10px;
@@ -305,8 +303,19 @@
     padding: 0 12px;
   }
 
+  /* A row from the left that scrolls sideways (a mouse's wheel too: ../shared/ui/sideways/), as the shop's other tabs. */
   .raidshop-shelf {
-    --ware-width: 140px;
+    display: flex;
+    flex-wrap: nowrap;
+    min-width: 0;
+    padding: 4px 2px 14px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+  }
+
+  .raidshop-shelf > .raid-ware {
+    flex: 0 0 140px;
   }
 
   .raid-ware {
