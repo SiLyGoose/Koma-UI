@@ -39,6 +39,8 @@ interface Ui {
   empty: HTMLElement;
   list: HTMLElement;
   buy: HTMLElement;
+  /** The box in it, which scrolls when the hero says more than fits. */
+  buyBox: HTMLElement;
   buyPicture: HTMLImageElement;
   buyTitle: HTMLElement;
   buyKind: HTMLElement;
@@ -71,6 +73,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
       empty: $('#empty'),
       list: $('#heroes'),
       buy: $('#buy'),
+      buyBox: $('.hero-buy-box'),
       buyPicture: $<HTMLImageElement>('#buy-picture'),
       buyTitle: $('#buy-title'),
       buyKind: $('#buy-kind'),
@@ -102,7 +105,10 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     ctx.buying = hero;
     renderBuy(ctx);
     ui.buy.hidden = false;
-    ui.buy.focus();
+    // Each hero's from its top, not where the last one's was scrolled to.
+    ui.buy.scrollTop = 0;
+    ui.buyBox.scrollTop = 0;
+    ui.buy.focus({ preventScroll: true });
   });
 
   // The buy box: Buy, or Cancel (or Escape, or a click outside it). Closed, it gives the focus back to the card.
