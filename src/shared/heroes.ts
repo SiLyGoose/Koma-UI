@@ -59,7 +59,7 @@ interface Fit {
 /**
  * How much of a hero's picture to show round its face, in face sizes: `wide` across and `tall` down,
  * the face's top `above` down from the top, each hero as `fit` has it (by id). A face for a portrait
- * (the heroes page's roster: each face filling about as much of it as Fallen Frey's), a bust for the databank's hero and the shop's cards.
+ * (the heroes page's roster: each face filling about as much of it as Fallen Frey's), a bust for the databank's hero.
  */
 interface Frame {
   wide: number;
@@ -122,54 +122,6 @@ export const STAGE_ZOOM: Readonly<Record<string, number>> = {
 export const TAB_FACE: Frame = { ...FACE };
 export const BUST: Frame = { wide: 3.4, tall: 4.6, above: 0.45 };
 /**
- * The shop's cards: a bust, each hero's face framed as Gremory's and Fallen Frey's are (their own face squares, as
- * they are): its eye line a quarter of the card's width down, in the middle across, eye to chin about a tenth of its width.
- */
-export const SHOP_BUST: Frame = { ...BUST, fit: {
-    kirze: { zoom: 1.24, x: -0.11, y: 0.27 },
-    klaus: { zoom: 1, x: -0.01, y: 0.13 },
-    annette: { zoom: 1.15, x: 0.02, y: 0.23 },
-    morrah: { zoom: 1.33, x: -0.09, y: 0.12 },
-    laias: { zoom: 1.64, x: -0.04, y: 0.18 },
-    seria: { zoom: 1.04, x: 0, y: 0.27 },
-    ezekiel: { zoom: 1.6, x: 0.4, y: -0.25 },
-    lorraine: { zoom: 1.03, x: 0.02, y: 0.09 },
-    valance: { zoom: 1.45, x: -0.14, y: 0.21 },
-    selene: { zoom: 1.5, x: 0.02, y: 0.22 },
-    crow: { zoom: 1.45, x: -0.05, y: 0.25 },
-    naila: { zoom: 1.5, x: -0.05, y: 0.18 },
-    neraxis: { zoom: 1.3, x: 0, y: 0 },
-    yanne: { zoom: 1.3, x: 0, y: 0 },
-    tanya: { zoom: 1, x: -0.2, y: 0 },
-    // Short ones (a red panda, a dwarf): set lower than the others, to fill the card down to their feet.
-    oddy: { zoom: 1.15, x: 0, y: -0.9 },
-    phillop: { zoom: 1.15, x: 0, y: -0.75 },
-    'rebel-klaus': { zoom: 1.4, x: 0.07, y: 0.12 },
-    'dark-lord-kasel': { zoom: 1.4, x: -0.1, y: 0.26 },
-    aselica: { zoom: 1.66, x: 0, y: 0.227 },
-    chase: { zoom: 1.75, x: -0.023, y: 0.051 },
-    estelle: { zoom: 1.07, x: 0, y: 0.194 },
-    isolet: { zoom: 1.17, x: -0.043, y: 0.243 },
-    evan: { zoom: 1.51, x: 0.087, y: 0.053 },
-    glenwys: { zoom: 2.09, x: -0.094, y: -0.052 },
-    kara: { zoom: 1.97, x: 0.1, y: 0.233 },
-    lakrak: { zoom: 1.51, x: 0.086, y: 0.052 },
-    lavril: { zoom: 1.56, x: 0.159, y: 0.157 },
-    lilia: { zoom: 1.49, x: 0.038, y: -0.062 },
-    lucias: { zoom: 1.68, x: 0.247, y: 0.273 },
-    mirianne: { zoom: 1.38, x: -0.242, y: 0.104 },
-    miruru: { zoom: 1.77, x: 0.14, y: 0.303 },
-    pansirone: { zoom: 1.48, x: 0.224, y: 0.109 },
-    priscilla: { zoom: 1.7, x: 0.121, y: 0.101 },
-    rehartna: { zoom: 1.56, x: 0.205, y: -0.009 },
-    shea: { zoom: 1.18, x: -0.065, y: 0.24 },
-    // His cape trails off to the right: set left of the middle, and lower, so he fills the card's empty left and bottom.
-    theo: { zoom: 1.5, x: 0.36, y: 0.075 },
-    zafir: { zoom: 1.5, x: -0.087, y: 0.041 },
-  },
-};
-
-/**
  * The frames the pages cut the heroes' pictures with, and how many pixels across each one's cuts are made as the site
  * is built (scripts/hero-cuts.mjs: the most any page asks of it). Each hero's is then a small picture of its own,
  * fetched in place of its whole picture (hundreds of KB, and cut in the page). A frame not here is cut in the page.
@@ -178,7 +130,6 @@ export const BUILT_CUTS: ReadonlyMap<Frame, number> = new Map([
   [FACE, 256],
   [TAB_FACE, 96],
   [BUST, 200],
-  [SHOP_BUST, 360],
 ]);
 
 /** Where a cut comes from: its hero's picture, the part of it taken (in its pixels; it may go off the picture, where the cut is left clear), and the cut's size. */

@@ -1,5 +1,5 @@
-// The heroes' faces and busts the site's pages show (src/shared/heroes.ts heroCut: the heroes page's roster, the shop's
-// cards, the databank, a unique weapon's corner, the TechnoMagic Raid's prep), cut as the site is built (`yarn build`
+// The heroes' faces and busts the site's pages show (src/shared/heroes.ts heroCut: the heroes page's roster, the
+// databank, a unique weapon's corner, the TechnoMagic Raid's prep), cut as the site is built (`yarn build`
 // runs this): each hero in each of BUILT_CUTS's frames, a small picture of its own in public/hero-cuts/ (not kept in
 // git), named by cutFile(). A page fetches that in place of the hero's whole picture, which it would otherwise fetch
 // and cut itself (as it does in `yarn dev`, and for any cut that isn't there). So nothing here stops a build: what

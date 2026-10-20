@@ -1,5 +1,5 @@
 import markup from './hero-shop.html?raw';
-import { classBadge, className, heroCut, SHOP_BUST, type HeroView, type HeroesView } from '../shared/heroes';
+import { classBadge, className, heroCard, type HeroView, type HeroesView } from '../shared/heroes';
 import { el } from '../shared/items';
 import { API, busyWith, dropdown, fillServers, working, type Busy } from '../shared/ui';
 import { byName, heroFilter, heroShown, NO_HERO_FILTER, type HeroChoice, type HeroFilter } from '../shared/ui/hero-filter/hero-filter';
@@ -184,16 +184,13 @@ async function buy(ctx: Context, hero: HeroView): Promise<void> {
 /** An amount of zeiucoins: the coin, then the number (`short`: in red, a price that's more than they have). */
 const price = (amount: number, short = false): HTMLElement[] => [coin('outfit-coin', 'zeiucoins'), el('span', short ? 'price-short' : '', points(amount))];
 
-/** A hero's bust in `img` once it's cut (hidden with none); `fallback` shows its initial instead. */
-function showBust(img: HTMLImageElement, id: string, fallback?: HTMLElement): void {
-  img.hidden = true;
-  void heroCut(id, SHOP_BUST, 360).then((src) => {
-    if (src) {
-      img.src = src;
-      img.hidden = false;
-      fallback?.remove();
-    }
-  });
+/** A hero's picture in `img`: King's Raid's own card of it, as its shop shows it (hidden with none); `fallback` shows its initial instead. */
+function showCard(img: HTMLImageElement, id: string, fallback?: HTMLElement): void {
+  const src = heroCard(id);
+  img.hidden = !src;
+  if (!src) return;
+  img.src = src;
+  fallback?.remove();
 }
 
 /** One hero's card: its picture and class badge, its name, and at the bottom its price or that it's theirs. */
@@ -211,7 +208,7 @@ function card(ctx: Context, hero: HeroView): HTMLButtonElement {
   picture.alt = '';
   picture.draggable = false;
   art.append(initial, picture);
-  showBust(picture, hero.id, initial);
+  showCard(picture, hero.id, initial);
   const badge = el('img', 'hero-card-class');
   badge.src = classBadge(hero.class);
   badge.alt = '';
@@ -256,7 +253,7 @@ function renderBuy(ctx: Context): void {
   const { ui, view, buying } = ctx;
   if (!view || !buying) return;
   const left = view.balance - buying.price;
-  showBust(ui.buyPicture, buying.id);
+  showCard(ui.buyPicture, buying.id);
   ui.buyTitle.textContent = `Buy ${buying.name}?`;
   ui.buyPrice.replaceChildren(...price(buying.price, left < 0));
   ui.buyPrice.title = `${points(buying.price)} zeiucoins (you have ${points(view.balance)})`;
