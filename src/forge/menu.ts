@@ -41,6 +41,7 @@ export function choose(ctx: ForgeContext, mode: ForgeMode): void {
   ctx.picked = canDo(ctx, mode, ctx.wanted) ? ctx.wanted : null;
   ctx.material = null;
   ctx.option = null;
+  ctx.keep = null;
   ctx.done = null;
   render(ctx);
   scrollTo({ top: 0 });
@@ -53,6 +54,7 @@ export function toMenu(ctx: ForgeContext): void {
   ctx.picked = null;
   ctx.material = null;
   ctx.option = null;
+  ctx.keep = null;
   ctx.done = null;
   render(ctx);
 }

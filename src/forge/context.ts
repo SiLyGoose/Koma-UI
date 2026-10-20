@@ -1,5 +1,5 @@
 import { armoryFilter, armoryGrid, type ArmoryFilter, type ArmoryGrid, equippedIds, forgePlan, type GearCopy, type GearView, type ItemType, type StarChoice } from '../shared/items';
-import type { HeroCopy, HeroesView } from '../shared/heroes';
+import type { HeroCopy, HeroesView, HeroKeep } from '../shared/heroes';
 import type { ForgeMode } from './modes';
 import type { Busy } from '../shared/ui';
 import { backArrow } from '../shared/ui/back/back';
@@ -46,6 +46,8 @@ export interface ForgeContext {
   heroes: HeroesView | null;
   /** Rerolling substats: which of the piece on the anvil's (its place), if one's picked. */
   option: number | null;
+  /** Rerolling an effect: which to keep, the piece on the anvil's effect or the one its reroll rolled, if one's picked. */
+  keep: HeroKeep | null;
   filter: ItemType | 'all';
   /** The star tier the armory shows (its Filter: ../shared/items/armory-filter/). */
   stars: StarChoice;
@@ -96,6 +98,7 @@ export function createContext(root: HTMLElement): ForgeContext {
     gear: null,
     heroes: null,
     option: null,
+    keep: null,
     filter: 'all',
     stars: 'all',
     refineable: false,

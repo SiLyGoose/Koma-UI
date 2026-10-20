@@ -2,7 +2,7 @@ import { cardPicture, HERO_ASSETS, iconPicture, portraitPicture, type Crop } fro
 import { el, type ItemType } from './items';
 
 /** The heroes as the bot says them (../protocol/heroes.ts). */
-export { HERO_PART_NAME, HERO_SLOT_PART, HERO_SLOTS, type HeroCopy, type HeroesView, type HeroPart, type HeroSlot, type HeroStat, type HeroView } from '../protocol/heroes';
+export { HERO_PART_NAME, HERO_SLOT_PART, HERO_SLOTS, type HeroCopy, type HeroesView, type HeroKeep, type HeroPart, type HeroSlot, type HeroStat, type HeroView } from '../protocol/heroes';
 import { HERO_SLOT_PART as PART_OF, HERO_SLOTS as SLOTS, type HeroSlot as Slot_ } from '../protocol/heroes';
 import type { Slot } from '../protocol/items';
 

@@ -127,3 +127,23 @@
 .forge-option-pick:disabled {
   cursor: default;
 }
+
+/* An effect rerolled: the one it has and the one rolled, tagged, to keep one. */
+.forge-keep-tag {
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.forge-keep-tag.old {
+  color: var(--petal);
+}
+
+.forge-keep-tag.new {
+  color: var(--green);
+}
+
+/* On the result, which doesn't close on a click while it asks. */
+.forge-result.choice {
+  cursor: default;
+}

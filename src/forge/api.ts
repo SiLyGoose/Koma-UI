@@ -1,5 +1,5 @@
 import { forgePlan, type GearView, heroGear, itemIcons, levelLabel, shownName } from '../shared/items';
-import type { HeroCopy, HeroesView } from '../shared/heroes';
+import type { HeroCopy, HeroesView, HeroKeep } from '../shared/heroes';
 import { busyWith } from '../shared/ui';
 import { sleep } from '../shared/util';
 import { curtain } from '../shared/transition';
@@ -10,7 +10,7 @@ import { compare } from './anvil/compare';
 import { choosing, copyById, heroCopyById, status, type ForgeContext } from './context';
 import { playAnimation } from './play-animation';
 import { render } from './render';
-import { showChange, showResult } from './result';
+import { closeResult, showChange, showEffectChoice, showResult } from './result';
 
 /** How long the heat behind the target builds before the cover wipes over (its brightest: forge.css's heat). */
 const HEAT_MS = 420;
@@ -30,6 +30,8 @@ export function failed(ctx: ForgeContext, res: { status: number; error: string }
             ? "You can't afford that."
             : res.error === 'no_gems'
               ? "You don't have enough komaGems for that."
+              : res.error === 'pending'
+                ? 'Keep one of its effects first: the one it has, or the one just rolled.'
               : ['no_duplicate', 'maxed', 'bad_material', 'no_option'].includes(res.error)
                 ? 'That changed in the meantime. Take another look and try again.'
                 : what,
@@ -94,6 +96,15 @@ export async function strikeHero(ctx: ForgeContext, mode: HeroMode): Promise<voi
     const rows = after ? compare(linesOf(copy, mode), linesOf(after, mode)) : [];
     const changed = rows.filter((row) => row.state !== 'same' && row.state !== 'gone').map((row) => (row.state === 'changed' ? row.changes.map((one) => `${one.from} » ${one.to}`).join(', ') : row.line));
     ctx.doneWell = true;
+    // An effect rerolled: the one rolled waits beside the one it has, for the member to keep one.
+    if (mode === 'effects' && after?.rerolled) {
+      ctx.done = null;
+      ctx.keep = null;
+      status(ctx, null);
+      render(ctx);
+      showEffectChoice(ctx, after, (which) => void keepEffect(ctx, which));
+      return res;
+    }
     ctx.done = mode === 'enhance' ? `Enhanced: ${changed.join(', ') || 'a substat went up a step'}.` : `Rerolled into ${changed.join(', ') || 'the same again'}.`;
     // (Rerolling: the substat picked stays picked, to roll it again.)
     status(ctx, null);
@@ -105,6 +116,34 @@ export async function strikeHero(ctx: ForgeContext, mode: HeroMode): Promise<voi
     renderAnvil(ctx);
     failed(ctx, res, mode === 'enhance' ? 'Could not enhance that. Try again.' : 'Could not reroll that. Try again.');
   }
+}
+
+/** The name of an additional effect's line ("Vigor: Increases…" is Vigor). */
+const effectName = (line: string | null): string => line?.split(':')[0] ?? 'no effect';
+
+/**
+ * Keeps the effect of the piece on the anvil (`which`: the one it has, or the one its reroll rolled: the bot's POST
+ * /api/heroes/keep), the result closed if it asked; the other one is gone.
+ */
+export async function keepEffect(ctx: ForgeContext, which: HeroKeep | null): Promise<void> {
+  const server = currentServer();
+  const copy = heroCopyById(ctx, ctx.picked);
+  if (ctx.busy || !server || !copy?.rerolled || which === null) return;
+  ctx.busy = busyWith('strike');
+  closeResult(ctx);
+  render(ctx);
+  const res = await api<HeroesView>('/api/heroes/keep', { method: 'POST', body: JSON.stringify({ guild: server, copy: copy.id, keep: which }) });
+  ctx.busy = null;
+  if (!res.ok) {
+    render(ctx);
+    return failed(ctx, res, 'Could not keep that effect. Try again.');
+  }
+  ctx.heroes = res.data;
+  ctx.keep = null;
+  ctx.doneWell = true;
+  ctx.done = which === 'new' ? `Took ${effectName(copy.rerolled)} in place of ${effectName(copy.additional)}.` : `Kept ${effectName(copy.additional)}.`;
+  status(ctx, null);
+  render(ctx);
 }
 
 /** Refines the copy on the anvil, using up the material picked. */

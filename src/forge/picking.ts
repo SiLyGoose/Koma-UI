@@ -7,6 +7,7 @@ export function pick(ctx: ForgeContext, copy: { id: string }): void {
   ctx.done = null;
   ctx.material = null;
   ctx.option = null;
+  ctx.keep = null;
   ctx.picked = ctx.picked === copy.id ? null : copy.id;
   render(ctx);
   if (ctx.picked) playAnimation(ctx.ui.target, 'placed', 'placed');
@@ -27,5 +28,6 @@ export function clear(ctx: ForgeContext): void {
   ctx.picked = null;
   ctx.material = null;
   ctx.option = null;
+  ctx.keep = null;
   ctx.done = null;
 }

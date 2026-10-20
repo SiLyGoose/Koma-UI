@@ -1,13 +1,14 @@
 import { wireSearch } from '../shared/items';
 import { dropdown } from '../shared/ui';
 import { setServer } from '../site/session';
-import { loadGear, loadHeroes, strikeAnvil, strikeHero } from './api';
-import type { ForgeContext } from './context';
+import { keepEffect, loadGear, loadHeroes, strikeAnvil, strikeHero } from './api';
+import { keeping } from './anvil/hero';
+import { heroCopyById, type ForgeContext } from './context';
 import { renderGrid } from './grid';
 import { toMenu } from './menu';
 import { clear } from './picking';
 import { render } from './render';
-import { closeResult, resultOpen } from './result';
+import { choosingEffect, closeResult, resultOpen } from './result';
 
 /** Hooks up everything that can be pressed. Returns what undoes it (the listeners outside the forge's root). */
 export function wireControls(ctx: ForgeContext): () => void {
@@ -36,8 +37,12 @@ export function wireControls(ctx: ForgeContext): () => void {
     renderGrid(ctx);
   });
 
-  // The anvil's button: the mode's (a refine, or a hero's gear's reroll or enhance).
-  ui.go.addEventListener('click', () => void (ctx.mode === 'refine' ? strikeAnvil(ctx) : ctx.mode ? strikeHero(ctx, ctx.mode) : undefined));
+  // The anvil's button: the mode's (a refine, or a hero's gear's reroll or enhance; an effect rerolled, the one picked kept).
+  ui.go.addEventListener('click', () => {
+    if (ctx.mode === 'refine') return void strikeAnvil(ctx);
+    if (!ctx.mode) return;
+    void (keeping(heroCopyById(ctx, ctx.picked), ctx.mode) ? keepEffect(ctx, ctx.keep) : strikeHero(ctx, ctx.mode));
+  });
 
   // Back to the menu (not while the anvil is busy).
   ui.back.addEventListener('click', () => {
@@ -56,13 +61,16 @@ export function wireControls(ctx: ForgeContext): () => void {
     render(ctx);
   });
 
-  // The result closes on a click anywhere.
-  ui.result.addEventListener('click', () => closeResult(ctx));
+  // The result closes on a click anywhere (not one asking which effect to keep: its buttons say).
+  ui.result.addEventListener('click', () => {
+    if (!choosingEffect(ctx)) closeResult(ctx);
+  });
 
-  // Escape, Enter or Space close the result; else Escape takes the copy off the anvil.
+  // Escape, Enter or Space close the result (one asking which effect to keep, Escape only: the anvil asks it again); else
+  // Escape takes the copy off the anvil.
   const onKey = (event: KeyboardEvent): void => {
     if (resultOpen(ctx)) {
-      if (event.key === 'Escape' || event.key === 'Enter' || event.key === ' ') {
+      if (event.key === 'Escape' || (!choosingEffect(ctx) && (event.key === 'Enter' || event.key === ' '))) {
         event.preventDefault();
         closeResult(ctx);
       }

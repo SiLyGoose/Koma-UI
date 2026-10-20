@@ -1,5 +1,6 @@
 import { sound } from '../shared/audio';
-import { type ArmoryCopy, el, type GearCopy, levelLabel, shownName } from '../shared/items';
+import { type ArmoryCopy, el, type GearCopy, levelLabel, rich, shownName } from '../shared/items';
+import type { HeroCopy, HeroKeep } from '../shared/heroes';
 import { card, compare, fillEffects } from './anvil';
 import type { EffectRow } from './anvil/compare';
 import type { ForgeContext } from './context';
@@ -19,6 +20,7 @@ export function showResult(ctx: ForgeContext, before: GearCopy, after: GearCopy,
   const title = el('h2', 'forge-result-title', success ? 'SUCCESS' : 'FAIL');
   title.id = 'result-title';
   ui.result.classList.toggle('fail', !success);
+  ui.result.classList.remove('choice');
   if (success) {
     const sub = el('p', 'forge-result-sub', `${shownName(after)} · ${levelLabel(before)} » ${levelLabel(after)}`);
     const burst = el('div', 'forge-result-burst');
@@ -50,7 +52,7 @@ export function showChange(ctx: ForgeContext, after: ArmoryCopy, sub: string, ro
   const box = el('div', 'forge-result-box');
   const title = el('h2', 'forge-result-title', 'SUCCESS');
   title.id = 'result-title';
-  ui.result.classList.remove('fail');
+  ui.result.classList.remove('fail', 'choice');
   const burst = el('div', 'forge-result-burst');
   burst.append(el('span', 'forge-result-rays'), el('span', 'forge-result-rays back'), el('span', 'forge-result-core'), card(after));
   const list = el('ul', 'forge-effects');
@@ -64,9 +66,54 @@ export function showChange(ctx: ForgeContext, after: ArmoryCopy, sub: string, ro
   ui.result.focus();
 }
 
+/**
+ * Shows what an effect's reroll rolled, as a change that worked, but with the effect it has and the one rolled each a button
+ * (`keep` is told which is picked): it stays open till one is (or Escape, the anvil still asking which).
+ */
+export function showEffectChoice(ctx: ForgeContext, copy: HeroCopy, keep: (which: HeroKeep) => void): void {
+  const { ui } = ctx;
+  const box = el('div', 'forge-result-box');
+  const title = el('h2', 'forge-result-title', 'SUCCESS');
+  title.id = 'result-title';
+  ui.result.classList.remove('fail');
+  ui.result.classList.add('choice');
+  const burst = el('div', 'forge-result-burst');
+  burst.append(el('span', 'forge-result-rays'), el('span', 'forge-result-rays back'), el('span', 'forge-result-core'), card(copy));
+  const list = el('ul', 'forge-effects');
+  const choices: { which: HeroKeep; tag: string; line: string | null }[] = [
+    { which: 'old', tag: 'Keep current', line: copy.additional },
+    { which: 'new', tag: 'Take new', line: copy.rerolled },
+  ];
+  for (const choice of choices) {
+    const row = el('li', 'forge-row forge-option');
+    const pick = el('button', 'forge-option-pick forge-keep');
+    pick.type = 'button';
+    const line = el('span', 'forge-line');
+    line.append(choice.line ? rich(choice.line) : 'No additional effect.');
+    pick.append(line, el('span', `forge-keep-tag ${choice.which}`, choice.tag));
+    pick.addEventListener('click', (event) => {
+      event.stopPropagation();
+      keep(choice.which);
+    });
+    row.append(pick);
+    list.append(row);
+  }
+  const panel = el('div', 'forge-result-panel');
+  panel.append(list);
+  box.append(title, el('p', 'forge-result-sub', `${shownName(copy)} · Effect rerolled`), burst, panel, el('p', 'forge-result-tap', 'Pick the effect to keep.'));
+  ui.result.replaceChildren(box);
+  succeeded();
+  ui.result.classList.add('on');
+  // (Not on a choice: an Enter out of habit picks nothing.)
+  ui.result.focus();
+}
+
+/** Whether the result open asks which effect to keep (it doesn't close on a click). */
+export const choosingEffect = (ctx: ForgeContext): boolean => ctx.ui.result.classList.contains('choice');
+
 export const resultOpen = (ctx: ForgeContext): boolean => ctx.ui.result.classList.contains('on');
 
 export function closeResult(ctx: ForgeContext): void {
-  ctx.ui.result.classList.remove('on');
+  ctx.ui.result.classList.remove('on', 'choice');
   ctx.ui.go.focus();
 }
