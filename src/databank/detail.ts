@@ -8,8 +8,8 @@ import type { ItemSource } from './types';
 
 /**
  * An effect line: a unique weapon's or treasure's effect ("Kirze only, ★5: …", or a main treasure's "★5: …") in its words as
- * the heroes page's skills have them (numbers and effects coloured, styles/), what's before its colon as it is; any other
- * line Discord's way.
+ * the heroes page's skills have them (numbers and effects coloured, styles/), whose it is before them ("Kirze only: ", its
+ * stars left out: the star picked says them); any other line Discord's way.
  */
 function effectLine(line: string): Node {
   const unique = /^(?:.+? only, )?★\d+: /.exec(line);
@@ -17,7 +17,9 @@ function effectLine(line: string): Node {
   const words = el('span', 'db-skill-text');
   words.append(...skillText(line.slice(unique[0].length)));
   const out = document.createDocumentFragment();
-  out.append(rich(unique[0]), words);
+  const whose = unique[0].replace(/,? ?★\d+: $/, '');
+  if (whose) out.append(rich(`${whose}: `));
+  out.append(words);
   return out;
 }
 

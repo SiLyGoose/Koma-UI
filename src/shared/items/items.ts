@@ -387,13 +387,14 @@ export function effectSection(label: string, body: string | Node, on?: boolean):
 
 /**
  * A unique treasure's lines as the bot says them, apart: its options (a copy's, or the databank's pool of them), and what
- * it gives as its hero's main treasure (its HP, then its effect, each without its "as main treasure").
+ * it gives as its hero's main treasure (its HP, then its effect, each without its "as main treasure" and its stars: the
+ * copy's own stars, or the star picked, say those).
  */
 export function treasureParts(lines: readonly string[]): { options: string[]; main: string[] } {
   const isMain = (line: string): boolean => /^As main treasure: |, as main treasure, /.test(line);
   return {
     options: lines.filter((line) => !isMain(line)),
-    main: lines.filter(isMain).map((line) => line.replace(/^As main treasure: /, '').replace(/^.+? only, as main treasure, /, '')),
+    main: lines.filter(isMain).map((line) => line.replace(/^As main treasure: /, '').replace(/^.+? only, as main treasure, /, '').replace(/^★\d+: /, '')),
   };
 }
 
