@@ -25,7 +25,8 @@ import type { PickView, PlayerView, RaidMode, RoomState } from '../../protocol/t
  * or takes it out), the room's chat, and who's in (the host's crown, who's ready), with Raid Info, Ready
  * (everyone but the host) and Start Battle (the host: in blue once everyone is ready, else on the plaque with how many
  * are, forcing the start). The Dragon Raid's Raid Settings has its dragons over the modes: pressing another goes against it.
- * On a phone on its side the site's bar is hidden, as a game's own screen has none (./prep.css). Alone (single player, or the only one in the raid),
+ * On a phone on its side the site's bar is hidden, as a game's own screen has none (./prep.css), and King's Raid's back
+ * arrow takes the title's place. Alone (single player, or the only one in the raid),
  * straight there; with others in the raid, a popup (./move.ts) asks the host whether to bring them along (the raid goes
  * against it, everyone with it) or go alone (leaving the raid to them), and anyone else whether to leave it to go alone.
  */
@@ -99,6 +100,13 @@ const TEAMS = [
   { sub: false, name: 'Main Team' },
   { sub: true, name: 'Sub Team' },
 ] as const;
+
+/** King's Raid's back arrow: a thick arrow, silver-white fading to grey down it, in a dark edge with a light line inside. */
+const BACK_ARROW = `<svg viewBox="0 0 64 44" aria-hidden="true">
+  <defs><linearGradient id="tm-back-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="0.55" stop-color="#e4e4e4"/><stop offset="1" stop-color="#9a9a9a"/></linearGradient></defs>
+  <path d="M4 22 L26 3 L26 13 L60 13 L60 31 L26 31 L26 41 Z" fill="url(#tm-back-fill)" stroke="#2a2118" stroke-width="3.5" stroke-linejoin="round"/>
+  <path d="M10 22 L23 10.5 L23 16 L57 16" fill="none" stroke="rgba(255,255,255,0.9)" stroke-width="1.5" stroke-linejoin="round"/>
+</svg>`;
 
 /** The least it is scaled to; past that it scrolls. */
 const MIN_FIT = 0.4;
@@ -238,6 +246,14 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
   byId('prep-info').append(...infoOf(boss).map((line) => el('p', '', line)));
   if (rewards.length > 0) byId('prep-info').append(raidRewards(rewards, (isDragon(boss.id) ? DRAGON_LIST : TM_LIST).rewardNote));
   const bossName = byId('prep-boss');
+  // King's Raid's way back, in the title's place on a phone on its side (the site's bar, with its own, is hidden there:
+  // ./prep.css): the same as the bar's.
+  const back = el('button', 'tm-prep-back');
+  back.type = 'button';
+  back.setAttribute('aria-label', 'Back to the games');
+  back.innerHTML = BACK_ARROW;
+  back.addEventListener('click', () => document.querySelector<HTMLElement>('.frame > .top .back')?.click());
+  byId('prep-title').before(back);
 
   ready.addEventListener('click', () => act.ready(ready.getAttribute('aria-pressed') !== 'true'));
   // Start Battle has its own sound (../sfx.ts), not the plain click's.

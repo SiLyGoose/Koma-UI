@@ -88,6 +88,33 @@
   filter: brightness(1.1);
 }
 
+/* King's Raid's way back (./prep.ts): only on a phone on its side, in the title's place (below). */
+.tm-prep-back {
+  display: none;
+  flex-shrink: 0;
+  width: 48px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.6));
+}
+
+.tm-prep-back svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.tm-prep-back:hover {
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.6)) brightness(1.1);
+}
+
+.tm-prep-back:active {
+  transform: translateY(1px);
+}
+
 /* Raid Settings: the Dragon Raid's dragons, over its modes. */
 .tm-boss-pick .tm-mode-tab {
   max-width: none;
@@ -809,10 +836,13 @@ button.tm-prep-manage {
   gap: 10px;
 }
 
+.tm-prep.fit .tm-prep-back {
+  display: block;
+}
+
+/* (King's Raid's way back in its place.) */
 .tm-prep.fit .tm-prep-title {
-  font-size: 16px;
-  font-weight: 700;
-  white-space: nowrap;
+  display: none;
 }
 
 .tm-prep.fit .tm-prep-boss {
@@ -836,9 +866,10 @@ button.tm-prep-manage {
 /* The lineup: less round it, and a shorter tab (--tab: its padding and line). */
 .tm-prep.fit .tm-lineup {
   --tab: 28px;
-  --inside: 38px;
+  /* Its padding, and a small 1P over each card (.tm-slot-owner, below). */
+  --inside: 27px;
   --gap: 8px;
-  padding: 8px 12px;
+  padding: 4px 12px;
 }
 
 .tm-prep.fit .tm-lineup.teams {
@@ -861,8 +892,12 @@ button.tm-prep-manage {
   font-size: 11px;
 }
 
+.tm-prep.fit .tm-slot {
+  gap: 2px;
+}
+
 .tm-prep.fit .tm-slot-owner {
-  font-size: 18px;
+  font-size: 15px;
   font-weight: 800;
 }
 
