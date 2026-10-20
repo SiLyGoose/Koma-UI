@@ -1,5 +1,5 @@
 import { art, drawSell, el, forgeLink, hasLevels, heroFrame, heroMarks, isTmPiece, itemDetailsClosed, krStars, levelLabel, itemPicked, lockToggle, priceOf, pruneSale, replacesNote, rich, runeMarks, sellsFor, showDetail, shownName, statBlocks, tmMarks, tmSections, treasureParts, treasureSection, uniqueWeaponEffect, utMarks, uwMarks } from '../shared/items';
-import { classBadge, className, FACE, HERO_PART_NAME, HERO_SLOT_KIND, HERO_SLOT_PART, HERO_SLOT_TYPE, HERO_SLOTS, heroCut, heroPicture, optionPips, skillText, STAGE_ZOOM, type HeroView, type HeroCopy, type HeroSlot } from '../shared/heroes';
+import { classBadge, className, FACE, HERO_PART_NAME, HERO_SLOT_KIND, HERO_SLOT_PART, HERO_SLOT_TYPE, HERO_SLOTS, heroCut, heroPicture, skillText, STAGE_ZOOM, type HeroView, type HeroCopy, type HeroSlot } from '../shared/heroes';
 import { built } from '../shared/built';
 import { working } from '../shared/ui';
 import { canTrade, copyById, heroShown, mine, slotFor, slotOf, slotsFor, type HeroesContext } from './context';
@@ -524,10 +524,10 @@ function sectionButton(ctx: HeroesContext, text: string, key: string, onClick: (
   return button;
 }
 
-/** One of a King's Raid piece's options in its details: its line and its steps (greyed where the piece does nothing). */
+/** One of a King's Raid piece's options in its details: its line (greyed where the piece does nothing). How far it has rolled is the forge's. */
 function optionRow(option: HeroOption, on: boolean): HTMLElement {
   const row = el('div', `kr-option${on ? '' : ' off'}`);
-  row.append(el('span', 'kr-option-line', option.line), optionPips(option));
+  row.append(el('span', 'kr-option-line', option.line));
   return row;
 }
 

@@ -290,8 +290,8 @@ export function skillText(text: string): (string | HTMLElement)[] {
 }
 
 /**
- * A King's Raid option's steps (its pips, the heroes page's heroes.css), one lit for each it has gone up of `steps`: the heroes
- * page's details and the forge's substats.
+ * A King's Raid option's steps (its pips, the heroes page's heroes.css), one lit for each it has gone up of `steps`: the
+ * forge's substats.
  */
 export function optionPips(option: { step: number; steps: number }): HTMLElement {
   const pips = el('span', 'kr-pips');
