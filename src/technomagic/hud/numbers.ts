@@ -16,16 +16,43 @@ export interface Popup {
   kind: NumberKind;
   at: Vector3;
   magical?: boolean;
+  /** Whom it comes off (a hero, the boss, one of its minions, or the boss's own healing): the same for each number on one body. */
+  on: string;
 }
 
 /** The numbers coming off whoever is hit or healed: each rises and fades by itself (../styles/numbers.css). */
 export interface Numbers {
   /** A number at this spot on the field's picture (CSS pixels from its top left). */
-  show(x: number, y: number, amount: number, kind: NumberKind, magical?: boolean): void;
+  show(x: number, y: number, popup: Popup): void;
+  /** None on the field (a new fight). */
+  clear(): void;
 }
 
 /** How far either way a number may start from its spot, so blows close together don't cover each other. */
 const SPREAD = 22;
+
+/** The most numbers on the field at once (with 7–9 heroes on the boss, more only cover each other and slow the page). */
+const MOST = 40;
+
+/** Numbers of one kind on one body: added together (a frame's own, as one number). */
+const same = (a: Popup, b: Popup): boolean => a.on === b.on && a.kind === b.kind && !a.magical === !b.magical;
+
+/** A frame's numbers, those of a kind on one body as one: their amounts added, where the first was. */
+export function together(popups: Popup[]): Popup[] {
+  const kept: Popup[] = [];
+  for (const popup of popups) {
+    const of = kept.find((other) => same(other, popup));
+    if (of) of.amount += popup.amount;
+    else kept.push(popup);
+  }
+  return kept;
+}
+
+/** What a number says (at least 1; a heal's with a plus). */
+const said = (amount: number, kind: NumberKind): string => {
+  const shown = Math.max(1, Math.round(amount));
+  return kind === 'heal' ? `+${shown}` : `${shown}`;
+};
 
 /** King's Raid's words: each picture's name in public/kr/damage/, and its size (px). */
 const WORDS = {
@@ -52,12 +79,33 @@ function layered(className: string, text: string): HTMLSpanElement {
   return span;
 }
 
+/** A number on the field: what it came from, and its value's text (none for a word alone). */
+interface Shown {
+  popup: Popup;
+  element: HTMLElement;
+  value: HTMLSpanElement | null;
+}
+
 /** The numbers, put in `parent`. */
 export function makeNumbers(parent: HTMLElement): Numbers {
+  /** Those on the field, oldest first. */
+  const live: Shown[] = [];
   return {
-    show(x, y, amount, kind, magical = false) {
-      const shown = Math.max(1, Math.round(amount));
+    show(x, y, popup) {
+      const { kind, magical = false } = popup;
+      if (live.length >= MOST) {
+        // Full: added to the newest of its kind still coming off that body, or else the oldest goes.
+        let of: Shown | undefined;
+        for (let i = live.length - 1; i >= 0 && !of; i--) if (same(live[i]!.popup, popup)) of = live[i];
+        if (of) {
+          of.popup.amount += popup.amount;
+          if (of.value) of.value.textContent = of.value.dataset.text = said(of.popup.amount, kind);
+          return;
+        }
+        live.shift()?.element.remove();
+      }
       const number = el('div', `tm-number ${kind}`);
+      let value: HTMLSpanElement | null = null;
       if (kind === 'dodged') number.append(word(WORDS.miss, 'tm-number-only', 'Miss'));
       else if (kind === 'immune') number.append(word(magical ? WORDS.magical : WORDS.physical, 'tm-number-only', magical ? 'Magic Immune' : 'Physical Immune'));
       else {
@@ -71,12 +119,26 @@ export function makeNumbers(parent: HTMLElement): Numbers {
           label.append(shield, word(WORDS.block, '', 'Block'));
           number.append(label);
         }
-        number.append(layered('tm-number-value', kind === 'heal' ? `+${shown}` : `${shown}`));
+        value = layered('tm-number-value', said(popup.amount, kind));
+        number.append(value);
       }
       number.style.left = `${x + (Math.random() * 2 - 1) * SPREAD}px`;
       number.style.top = `${y + (Math.random() * 2 - 1) * SPREAD * 0.5}px`;
-      number.addEventListener('animationend', () => number.remove(), { once: true });
+      const shown: Shown = { popup, element: number, value };
+      number.addEventListener(
+        'animationend',
+        () => {
+          number.remove();
+          live.splice(live.indexOf(shown), 1);
+        },
+        { once: true },
+      );
+      live.push(shown);
       parent.append(number);
+    },
+    clear() {
+      live.length = 0;
+      parent.replaceChildren();
     },
   };
 }

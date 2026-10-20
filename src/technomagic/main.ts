@@ -33,7 +33,7 @@ import { makeCard } from './hud/card';
 import { el } from './hud/dom';
 import { leavePopup } from './hud/leave';
 import { makeMeter } from './hud/meter';
-import { makeNumbers } from './hud/numbers';
+import { makeNumbers, together } from './hud/numbers';
 import { makeCastBar } from './hud/cast';
 import { makeOverhead, type Overhead } from './hud/overhead';
 import { makeBanners } from './hud/banners';
@@ -378,7 +378,7 @@ async function start(): Promise<void> {
     party.replaceChildren();
     overheads.replaceChildren();
     meterAt.replaceChildren();
-    numbersAt.replaceChildren();
+    numbers.clear();
     const bodies: Hero[] = entries.map((entrant) => entrant.hero);
     const view = makeFightView({ scene: stage.scene, sim, bodies, boss, bossLook: bossView!.look, bossFx: bossView!.fx, effects, kr, magic, props, banners, minions, slide });
     banners.play('start');
@@ -1018,10 +1018,10 @@ async function start(): Promise<void> {
     if (!lock) deathlessButton.setAttribute('aria-pressed', String(sim.deathless));
     playing.draw();
 
-    // What each blow took and each heal gave, coming off whom it was.
-    for (const { amount, kind, at: from, magical } of view.numbers.splice(0)) {
-      const spot = stage.project(from);
-      numbers.show(spot.x, spot.y, amount, kind, magical);
+    // What each blow took and each heal gave, coming off whom it was (a frame's of a kind on one body, as one).
+    for (const popup of together(view.numbers.splice(0))) {
+      const spot = stage.project(popup.at);
+      numbers.show(spot.x, spot.y, popup);
     }
 
     // The boss's health, and what is the matter with it.

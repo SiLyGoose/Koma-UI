@@ -395,7 +395,7 @@ export function makeFightView({
             // (On a minion: over its head.)
             const minion = event.on === 'boss' && event.foe ? minions.head(event.foe, new Vector3()) : null;
             const where = minion ?? (event.on === 'boss' ? bossHit.clone().setY(bossHit.y + (event.mend ? 1.4 : 0.6)) : body(event.on).head(new Vector3()));
-            numbers.push({ amount: event.amount, kind: event.type, at: where, ...(event.magical && { magical: true }) });
+            numbers.push({ amount: event.amount, kind: event.type, at: where, on: `${event.on} ${event.foe ?? ''} ${event.mend ? 'mend' : ''}`, ...(event.magical && { magical: true }) });
             if (event.type === 'heal' && event.on !== 'boss' && on.has(event.on)) signs.healed(event.on, body(event.on).place(over).setY(0.1));
             break;
           }
