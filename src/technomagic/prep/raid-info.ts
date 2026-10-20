@@ -12,9 +12,8 @@ import type { RaidMode } from '../../protocol/technomagic';
 /*
  * Raid Info, as King's Raid's own window has it (its RaidInfo prefab, ./raid-info.css): its title across the top, the boss
  * on the left (King's Raid's portrait of it in its monster frame, where the game turns its model; its name over it, and the
- * raid's mode and stage in red above that), and on the right three tabs. More Info: its Race, its Characteristics (how to
- * beat it, in the game's words for the raid's boss, then how the raid goes) and the Recommended Heroes in the mode being
- * played. Skill Info: its skills, a row each, alternately shaded, each with its icon and what it does
+ * raid's mode and stage in red above that), and on the right three tabs. More Info: its Characteristics (how to beat it,
+ * in the game's words for the raid's boss, then how the raid goes) and the Recommended Heroes in the mode being played. Skill Info: its skills, a row each, alternately shaded, each with its icon and what it does
  * (../../shared/boss-skills.ts). Rewards: what a win gives. Its ✕, the dark round it and Escape close it.
  */
 
@@ -135,15 +134,13 @@ export function raidInfo(boss: BossDef, rules: readonly string[]): RaidInfo {
   });
   side.append(tabs, panel);
 
-  // More Info, on its parchment: Race, Characteristics, Recommended Heroes.
+  // More Info, on its parchment: Characteristics, Recommended Heroes.
   const info = panes.get('info') as HTMLElement;
-  const [race, raceBody] = section('Race', 'ri-race');
-  raceBody.textContent = card?.race ?? '';
   const [traits, traitsBody] = section('Characteristics', 'ri-traits');
   if (card) traitsBody.append(el('p', 'ri-tactic', card.tactic));
   traitsBody.append(...rules.map((line) => el('p', '', line)));
   const [heroes, heroesBody] = section('Recommended Heroes', 'ri-heroes');
-  info.append(race, traits, heroes);
+  info.append(traits, heroes);
 
   (panes.get('skills') as HTMLElement).append(skillRows(boss));
   const rewards = card?.rewards ?? [];

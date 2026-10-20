@@ -348,18 +348,9 @@
   line-height: 1.5;
 }
 
-.ri-race {
-  flex: none;
-  height: 100px;
-}
-
-.ri-race .ri-section-body {
-  text-align: center;
-}
-
 /* Characteristics: the game's tip, then the raid's ways, scrolling in its box. */
 .ri-traits {
-  flex: 1 1 286px;
+  flex: 1 1 386px;
 }
 
 .ri-traits .ri-section-body {
@@ -500,6 +491,11 @@
   display: none;
 }
 
+/* (Closer together than elsewhere: the game's grid, 140 apart for icons of 120.) */
+.ri-pane-rewards .raid-rewards-list {
+  gap: 6px 0;
+}
+
 .ri-pane-rewards .raid-reward-name {
   color: #e9dcc0;
 }
@@ -563,8 +559,4 @@
 
 .ri.tall .ri-heroes .rec-name {
   font-size: 24px;
-}
-
-.ri.tall .ri-race {
-  height: 110px;
 }
