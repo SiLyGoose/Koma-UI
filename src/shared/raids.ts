@@ -96,7 +96,7 @@ export const DRAGON_LIST: RaidList = {
       title: 'Black Dragon',
       lair: 'Ashen Nox, the Black Sun',
       about:
-        'Armarta, the ancient black dragon. Its blows are magical. Its Black Flame Breath leaves the Dark Flames (they burn, and cut healing), its Stone Gaze turns whoever has dealt the most to stone, and after three of its skills its Ashen Eclipse hits those in its flames the hardest.',
+        'Armarta, the ancient black dragon. Its blows are physical. Its Black Flame Breath leaves the Dark Flames (they burn, and cut healing), its Stone Gaze turns whoever has dealt the most to stone, and after three of its skills its Ashen Eclipse hits those in its flames the hardest.',
       rewards: [POINTS, { kind: 'essence', id: 'harmony' }, { kind: 'essence', id: null }, HERO_GEAR],
     },
   ],
