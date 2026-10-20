@@ -149,6 +149,7 @@
  */
 .hero-shop .hero-buy-box {
   --rule: rgb(216 191 122 / 28%);
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -259,6 +260,73 @@
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
 }
 
+/*
+ * Bigger screens: the card, pressed, shows the hero's whole picture over the whole box, from its top (the box held there
+ * meanwhile), on its dark; its X, a click on it or Escape puts it away (page.ts).
+ */
+@media (min-width: 601px) {
+  .hero-shop .hero-buy-figure {
+    cursor: zoom-in;
+    transition: filter 0.15s ease;
+  }
+
+  .hero-shop .hero-buy-figure:hover {
+    filter: brightness(1.1);
+  }
+}
+
+.hero-shop .hero-buy-box.zoomed {
+  overflow: hidden;
+}
+
+.hero-buy-zoom {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  border-radius: inherit;
+  background:
+    radial-gradient(ellipse 60% 70% at 50% 45%, rgb(216 191 122 / 12%), transparent 70%),
+    linear-gradient(180deg, #1b1a20, #111014);
+  cursor: zoom-out;
+  animation: hero-buy-zoom-in 0.18s ease-out;
+}
+
+.hero-buy-zoom[hidden] {
+  display: none;
+}
+
+.hero-buy-zoom img {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 30px rgb(0 0 0 / 60%));
+}
+
+.hero-buy-zoom-close {
+  --close-size: 40px;
+  --close-ink: #f1e3b4;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+@keyframes hero-buy-zoom-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-buy-zoom {
+    animation: none;
+  }
+}
+
 /* Its price, then Cancel and Buy, at the bottom. */
 .hero-buy-end {
   display: flex;
@@ -311,6 +379,17 @@
 
   .hero-buy-info {
     grid-column: 1 / -1;
+  }
+
+  /* The teammates across the whole box, each as wide as its share. */
+  .hero-buy-info .db-recommended {
+    grid-template-columns: none;
+    grid-auto-columns: minmax(0, 1fr);
+    grid-auto-flow: column;
+  }
+
+  .hero-buy-info .db-recommended-square {
+    width: 100%;
   }
 
   .hero-buy-picture {

@@ -4,9 +4,9 @@ import { label, recommendedCard } from '../databank/bosses';
 import { RECOMMENDED, TEAMMATES } from '../databank/recommended';
 import { skillBrief } from '../heroes/briefs';
 import { skillRows } from '../heroes/render';
-import { className, heroCard, type HeroView, type HeroesView } from '../shared/heroes';
+import { className, heroCard, heroPicture, type HeroView, type HeroesView } from '../shared/heroes';
 import { el } from '../shared/items';
-import { API, busyWith, dropdown, fillServers, wheelSideways, working, type Busy } from '../shared/ui';
+import { API, busyWith, closeButton, dropdown, fillServers, wheelSideways, working, type Busy } from '../shared/ui';
 import { byName, heroFilter, heroShown, NO_HERO_FILTER, type HeroChoice, type HeroFilter } from '../shared/ui/hero-filter/hero-filter';
 import { coin, points } from '../shared/util';
 import type { ShopTab } from '../shop/tab';
@@ -104,6 +104,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     const hero = ctx.view?.heroes.find((one) => one.id === id);
     if (!hero || ctx.busy || hero.owned) return;
     ctx.buying = hero;
+    figure.setAttribute('aria-label', `See ${hero.name}'s picture`);
     renderBuy(ctx);
     ui.buy.hidden = false;
     // Each hero's from its top, not where the last one's was scrolled to.
@@ -112,9 +113,43 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     ui.buy.focus({ preventScroll: true });
   });
 
+  // Bigger screens: the hero's card, pressed, shows its whole picture over the whole box (its X, a click on it or Escape puts it away).
+  const figure = ui.buyPicture.parentElement as HTMLElement;
+  figure.tabIndex = 0;
+  figure.setAttribute('role', 'button');
+  const zoom = el('div', 'hero-buy-zoom');
+  zoom.hidden = true;
+  const whole = el('img');
+  whole.alt = '';
+  whole.draggable = false;
+  const shut = closeButton('Back');
+  shut.classList.add('hero-buy-zoom-close');
+  zoom.append(whole, shut);
+  ui.buyBox.append(zoom);
+  const showWhole = (on: boolean, focus = true): void => {
+    const hero = ctx.buying;
+    if (on && (!hero || !WIDE.matches)) return;
+    if (on && hero) {
+      whole.src = heroPicture(hero.id)?.src ?? heroCard(hero.id) ?? '';
+      whole.alt = hero.name;
+      ui.buyBox.scrollTop = 0;
+    }
+    zoom.hidden = !on;
+    ui.buyBox.classList.toggle('zoomed', on);
+    if (focus) (on ? shut : figure).focus({ preventScroll: true });
+  };
+  figure.addEventListener('click', () => showWhole(true));
+  figure.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    e.preventDefault();
+    showWhole(true);
+  });
+  zoom.addEventListener('click', () => showWhole(false));
+
   // The buy box: Buy, or Cancel (or Escape, or a click outside it). Closed, it gives the focus back to the card.
   const closeBuy = (): void => {
     if (ui.buy.hidden) return;
+    showWhole(false, false);
     ui.buy.hidden = true;
     ui.list.querySelector<HTMLElement>(`[data-hero="${ctx.buying?.id}"]`)?.focus();
     ctx.buying = null;
@@ -125,7 +160,10 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     else if (action === 'cancel' || e.target === ui.buy) closeBuy();
   });
   ui.buy.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeBuy();
+    if (e.key !== 'Escape') return;
+    // Its whole picture first, then the box.
+    if (!zoom.hidden) showWhole(false);
+    else closeBuy();
   });
 
   return {
@@ -284,6 +322,9 @@ function renderBuy(ctx: Context): void {
   ui.buyConfirm.disabled = left < 0;
   working(ui.buyConfirm, ctx.busy, 'buy');
 }
+
+/** Screens the buy box's card shows the hero's whole picture on, pressed (hero-shop.css: on phones it's a headshot). */
+const WIDE = window.matchMedia('(min-width: 601px)');
 
 const LINE_NAME = { front: 'Front', middle: 'Middle', back: 'Back' } as const;
 
