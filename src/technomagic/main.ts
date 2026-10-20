@@ -924,7 +924,7 @@ async function start(): Promise<void> {
         points: paid,
         essences,
         gems,
-        firstClear: over.firstClear?.[you] === true,
+        firstClears: over.firstClears?.[you] ?? 0,
         raid: DRAGON ? 'dragon' : 'technomagic',
         mine,
         others,

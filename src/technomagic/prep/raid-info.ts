@@ -66,7 +66,7 @@ function rulesOf(boss: BossDef): string[] {
       `Two modes, King's Raid's: Normal, its Normal Dragon Raid (${normal} stages, the first far easier than Hard's, the last harder than any), and Hard, its Hard Dragon Raid (${stagesOf(boss)} stages). Each stage has more health and defense and hits harder.`,
       `Heroes that fall stay down. Beat it within ${clockOf(boss)}, before its rage wipes the party. Single player, it has ${solo}% of the health.`,
       `${lineup(9, 8)} A win gives every player pieces of the dragon's own gear set, runes, zeiucoins and hero essences of the dragon's two kinds, more at each stage, and komaGems the first time they beat a stage; a Normal stage as tough as one of Hard's pays as that one does. There is no daily limit.`,
-      'The host picks the mode and the stage in Raid Settings: each stage after the first opens once they have beaten the one before it, each dragon and mode apart.',
+      'The host picks the mode and the stage in Raid Settings: each stage after the first opens once they have beaten the one before it, each dragon and mode apart. A win clears every stage under it too: carried to a stage, a player has those before it opened, and their komaGems.',
     ];
   }
   return [

@@ -55,9 +55,9 @@ export interface ResultShown {
   points: number;
   /** The hero essences the win gave this player, so many of each kind (none: no tiles). */
   essences?: Readonly<Record<string, number>>;
-  /** The komaGems the win gave this player (none: no tile), and whether it was their first win at its stage (what pays them). */
+  /** The komaGems the win gave this player (none: no tile), and how many stages it cleared for them for the first time (what pays them). */
   gems?: number;
-  firstClear?: boolean;
+  firstClears?: number;
   /** The gear this player found: TechnoMagic gear, or (the Dragon Raid's) raid items. */
   raid?: RaidKind;
   mine: readonly DropView[];
@@ -199,15 +199,15 @@ export function makeResult(root: HTMLElement): Result {
     return tile;
   }
 
-  /** The komaGems the win gave, as a tile beside the essences (`first`: the first time at its stage, said under it). */
-  function gemsTile(amount: number, first: boolean): HTMLElement {
+  /** The komaGems the win gave, as a tile beside the essences, with the stages it cleared for the first time under it (`first`). */
+  function gemsTile(amount: number, first: number): HTMLElement {
     const tile = el('div', 'tm-tile tm-tile-points');
     const face = el('span', 'tm-points-face tm-gems-face');
     face.append(rich(GEM_EMOJI));
     tile.append(face, el('span', 'tm-tile-name', `×${points(amount)} komaGems`));
-    if (first) {
-      tile.title = 'First clear: komaGems come only the first time a stage is beaten';
-      tile.append(el('span', 'tm-tile-first', 'First clear'));
+    if (first > 0) {
+      tile.title = first === 1 ? 'First clear: komaGems come only the first time a stage is cleared' : `${first} first clears: a win clears every stage under it too, and each pays komaGems once`;
+      tile.append(el('span', 'tm-tile-first', first === 1 ? 'First clear' : `${first} first clears`));
     }
     return tile;
   }
@@ -238,7 +238,7 @@ export function makeResult(root: HTMLElement): Result {
       rewards.replaceChildren(
         ...(shown.points > 0 ? [pointsTile(shown.points)] : []),
         ...essences.map(([id, amount]) => essenceTile(id, amount)),
-        ...((shown.gems ?? 0) > 0 ? [gemsTile(shown.gems ?? 0, shown.firstClear === true)] : []),
+        ...((shown.gems ?? 0) > 0 ? [gemsTile(shown.gems ?? 0, shown.firstClears ?? 0)] : []),
         ...shown.mine.map((drop) => gearTile(drop)),
       );
       rewards.hidden = rewards.childElementCount === 0;
