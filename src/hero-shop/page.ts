@@ -18,7 +18,7 @@ import type { Line } from '../technomagic/sim/rules';
  * The shop's Heroes tab (../shop/page.ts): a card for each of the TechnoMagic Raid's heroes (the bot's
  * /api/heroes), A to Z, as the Outfits tab's are (its cards and buy box), with the hero's picture, its class, and at
  * the bottom its price, or that it's theirs. The Filter picks a class, a line and a kind of damage, and leaves out the heroes
- * they own until Show owned is on; on bigger screens Front, Middle and Back beside it pick the line at a press (again: any). Pressing one they don't have asks to buy it, for their
+ * they own until Show owned is on; Front, Middle and Back beside it pick the line at a press (again: any). Pressing one they don't have asks to buy it, for their
  * zeiucoins in the server picked, with what the databank says of it (../databank/heroes.ts: the bosses it's recommended
  * against, its teammates) and its skills in a line each (../heroes/briefs.ts); once theirs, it's geared on the heroes page (../heroes/), where they're
  * sent. Logged-in members only.
@@ -35,7 +35,7 @@ interface Ui {
   balance: HTMLElement;
   status: HTMLElement;
   filter: HeroFilter;
-  /** Front, Middle and Back, beside the Filter (bigger screens). */
+  /** Front, Middle and Back, beside the Filter. */
   lines: HTMLButtonElement[];
   empty: HTMLElement;
   list: HTMLElement;

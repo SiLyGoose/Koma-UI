@@ -464,7 +464,7 @@
   justify-content: flex-start;
 }
 
-/* Beside the Filter, on bigger screens: Front, Middle and Back, the one picked tinted (page.ts). */
+/* Beside the Filter: Front, Middle and Back, the one picked tinted (page.ts). */
 .hero-shop-lines {
   display: flex;
   gap: 6px;
@@ -474,31 +474,56 @@
   padding: 0 16px;
 }
 
+/* Phones: across the rest of the Filter's line, each as wide as the others. */
 @media (max-width: 760px) {
   .hero-shop-lines {
-    display: none;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .hero-shop-lines .action {
+    flex: 1;
+    min-width: 0;
+    padding: 0 6px;
+  }
+}
+
+/* The narrowest phones: their words a size down, so "Middle" still fits beside a Filter showing a count. */
+@media (max-width: 400px) {
+  .hero-shop-lines .action {
+    padding: 0 4px;
+    font-size: 13px;
   }
 }
 
 @media (max-width: 760px) {
-  /* The Filter, then the cards' row taking the rest of the panel (../outfits/outfits.css), its cards in the middle of it. */
+  /*
+   * The Filter and the cards' row together in the middle of the rest of the panel, a little space between them. Each card as
+   * big as that room lets it be (168 by 382, under the Filter: about 100px with their margins and the row's), but small
+   * enough that at least 2.2 of them show across the row (its padding 14px a side, 10px between cards). The cards measure
+   * this box (container units), not the row, which is only as tall as they are.
+   */
   .hero-shop-cards {
     display: flex;
     flex: 1;
     flex-direction: column;
+    justify-content: center;
     min-height: 0;
+    container-type: size;
   }
 
+  /* Clear of the plaque over it. */
   .hero-shop-tools {
-    margin: 0 14px -12px;
+    gap: 6px;
+    margin: 14px 14px 6px;
   }
 
-  /*
-   * Room in the row for the frames' scrolls, which stick out past the cards; each card as big as the row's height lets it
-   * be (168 by 382), but small enough that at least 2.2 of them show across it.
-   */
+  /* Room in the row for the frames' scrolls, which stick out past the cards. */
   .hero-shop .outfits-row {
-    --card-width: min(calc((100cqw + 10px) / 2.2 - 10px), calc(100cqh * 168 / 382));
+    --card-width: min(calc((100cqw - 18px) / 2.2 - 10px), calc((100cqh - 100px) * 168 / 382));
+    container-type: normal;
+    flex: none;
+    min-height: 0;
     padding: 14px 14px 18px;
   }
 }
