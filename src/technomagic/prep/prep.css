@@ -701,6 +701,12 @@ button.tm-prep-manage {
   flex: 1;
 }
 
+/* Forcing the start (not everyone ready): how many are, beside its words. */
+.tm-prep-start-count {
+  color: var(--ink-dim);
+  font-size: 13px;
+}
+
 /* Raid Info and Ready as tall as Start Battle (a large button), and all a little narrower, to stay on one row. */
 .tm-prep-actions .action {
   min-height: 48px;

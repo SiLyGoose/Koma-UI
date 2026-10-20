@@ -11,6 +11,9 @@ import { DRAGONS, isDragon, TM_BOSSES } from '../technomagic/sim/bosses';
 import { scaleAt, stagesOf, type BossDef } from '../technomagic/sim/bosses/boss';
 import { RAID_TIME } from '../technomagic/sim/rules';
 import { bossById, raidBossById, type DatabankContext } from './context';
+import { RECOMMENDED } from './recommended';
+import { className, FACE, heroCut } from '../shared/heroes';
+import { HEROES } from '../technomagic/sim/heroes';
 import type { DatabankBoss, DatabankItem, DatabankRewards, RaidLevel } from './types';
 
 /*
@@ -165,6 +168,46 @@ export function itemCard(item: DatabankItem): HTMLButtonElement {
   return card;
 }
 
+/**
+ * A hero recommended against a raid's boss, as King's Raid's own Raid Info has them (its small hero portrait, HeroPortraitSmall):
+ * its icon in the gold square frame, its class's tag and the kind of damage it deals over its top left, a thumbs-up over its top
+ * right for one King's Raid picked, and its name under it. It opens the hero in the databank's heroes. None for a hero the raid doesn't have.
+ */
+function recommendedCard(id: string, kr: boolean): HTMLElement[] {
+  const hero = HEROES.find((one) => one.id === id);
+  if (!hero) return [];
+  const card = el('button', 'db-recommended-card');
+  card.type = 'button';
+  card.title = `${hero.name}${kr ? ': King’s Raid’s own pick' : ''}`;
+  const square = el('span', 'db-recommended-square');
+  const face = el('span', 'db-recommended-face', hero.name.slice(0, 1));
+  void heroCut(hero.id, FACE, 120).then((src) => {
+    if (!src) return;
+    const img = el('img');
+    img.src = src;
+    img.alt = '';
+    img.draggable = false;
+    face.replaceChildren(img);
+  });
+  const mark = (className: string, src: string, alt: string): HTMLImageElement => {
+    const img = el('img', className);
+    img.src = src;
+    img.alt = alt;
+    img.draggable = false;
+    return img;
+  };
+  square.append(
+    face,
+    el('span', 'db-recommended-frame'),
+    mark('db-recommended-class', `/kr/ui/class-${hero.class}.webp`, className(hero.class)),
+    mark('db-recommended-deals', `/kr/ui/deals-${hero.stats.deals}.webp`, hero.stats.deals === 'magical' ? 'Magical' : 'Physical'),
+  );
+  if (kr) square.append(mark('db-recommended-kr', '/kr/ui/thumbs-up.webp', 'King’s Raid’s pick'));
+  card.append(square, el('span', 'db-recommended-name', hero.name));
+  card.addEventListener('click', () => go(`/databank/heroes/#${encodeURIComponent(hero.id)}`));
+  return [card];
+}
+
 /** A raid's boss picked (the TechnoMagic Raid's, or a dragon), at the stage picked: as the raid has it. */
 function renderRaidBoss(ctx: DatabankContext, boss: BossDef): void {
   const { ui } = ctx;
@@ -222,6 +265,15 @@ function renderRaidBoss(ctx: DatabankContext, boss: BossDef): void {
   const attacks = el('ul', 'detail-effects');
   for (const attack of boss.attacks) attacks.appendChild(el('li')).append(attack.label);
   ui.bossBody.append(label('Attacks'), attacks);
+
+  // The heroes recommended against it (./recommended.ts): King's Raid's own picks first, then those the raid's sim found best.
+  const recommended = RECOMMENDED[boss.id];
+  if (recommended && recommended.heroes.length > 0) {
+    const grid = el('div', 'db-recommended');
+    grid.append(...recommended.heroes.flatMap((id) => recommendedCard(id, recommended.kr.includes(id))));
+    const note = recommended.kr.length > 0 ? 'Thumbs up: King’s Raid’s own picks for its Hard Dragon Raid. The rest fared best against it in the raid’s simulated fights.' : 'The heroes that fared best against it in the raid’s simulated fights.';
+    ui.bossBody.append(label('Recommended heroes'), grid, el('p', 'detail-note', note));
+  }
 
   // What a win gives (as the raid's own Raid Info has it).
   if (card && card.rewards.length > 0) ui.bossBody.append(raidRewards(card.rewards, (dragon ? DRAGON_LIST : TM_LIST).rewardNote));

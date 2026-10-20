@@ -579,6 +579,26 @@ body.tm-ended :is(#actions, #hint) {
   outline-offset: 3px;
 }
 
+/* Run Again's count of who is in for the next fight, after its name. */
+.tm-act-note {
+  font-size: 0.8em;
+  opacity: 0.75;
+}
+
+/* In already, waiting for the rest: its ring dimmed, not pressable. */
+.tm-result.staged .tm-act:disabled {
+  cursor: default;
+}
+
+.tm-result.staged .tm-act:disabled .tm-act-ring {
+  transform: none;
+  filter: drop-shadow(0 3px 6px rgb(0 0 0 / 65%)) grayscale(0.6) brightness(0.7);
+}
+
+.tm-result.staged .tm-act:disabled .tm-act-label {
+  color: #f3ead2;
+}
+
 /* A phone on its side: short, so the buttons a size down. */
 :where(.ls-landscape) .tm-result.staged .tm-act-ring {
   width: 50px;

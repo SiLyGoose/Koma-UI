@@ -22,7 +22,8 @@ import type { PickView, PlayerView, RoomState } from '../../protocol/technomagic
  * and the Sub Team (on Auto for the whole fight), each with its tab over it: a hero picked goes into the one whose tab is
  * pressed, and one picked into the other already is moved over. Along the bottom: the heroes this player owns (pressing one puts it in,
  * or takes it out), the room's chat, and who's in (the host's crown, who's ready), with Raid Info, Ready
- * (everyone but the host) and Start Battle (the host, once everyone is ready). The Dragon Raid's has its dragons along the
+ * (everyone but the host) and Start Battle (the host: in blue once everyone is ready, else on the plaque with how many
+ * are, forcing the start). The Dragon Raid's has its dragons along the
  * top in place of the boss's name: pressing another goes against it. Alone (single player, or the only one in the raid),
  * straight there; with others in the raid, a popup (./move.ts) asks the host whether to bring them along (the raid goes
  * against it, everyone with it) or go alone (leaving the raid to them), and anyone else whether to leave it to go alone.
@@ -34,7 +35,8 @@ export interface PrepActions {
   unpick(hero: string): void;
   ready(on: boolean): void;
   stage(stage: number): void;
-  begin(): void;
+  /** Starts the fight: `force`d, without waiting for everyone to be ready. */
+  begin(force: boolean): void;
   /**
    * Goes against another of the raid's bosses (the Dragon Raid's: another dragon): `bring`, the raid with everyone in it
    * (the host's), else alone (single player, a room of their own against it; with others, out of the raid into a new one).
@@ -202,9 +204,11 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
   ready.addEventListener('click', () => act.ready(ready.getAttribute('aria-pressed') !== 'true'));
   // Start Battle has its own sound (../sfx.ts), not the plain click's.
   start.dataset.sfx = 'own';
+  /** Not everyone ready with a hero in: Start Battle forces the start. */
+  let forced = false;
   start.addEventListener('click', () => {
     play('start');
-    act.begin();
+    act.begin(forced);
   });
   // Raid Settings: the stage stepped between the arrows, and taken on Confirm (only the host's).
   const closeSettings = (): void => {
@@ -490,8 +494,15 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
     start.hidden = !host;
     const waiting = state.players.filter((player) => !player.host && !player.ready);
     const empty = state.players.filter((player) => !state?.lineup.some((pick) => pick.owner === player.id));
-    start.disabled = waiting.length > 0 || empty.length > 0;
-    start.title = empty.length > 0 ? `${empty.map((player) => player.name).join(', ')}: no hero in yet` : waiting.length > 0 ? `Waiting for ${waiting.map((player) => player.name).join(', ')}` : '';
+    // Everyone ready with a hero in: Start Battle in blue. Otherwise the host can force it, on the plaque, with how many are
+    // ready (whoever has no hero in sits that fight out).
+    forced = state.lineup.length > 0 && (waiting.length > 0 || empty.length > 0);
+    const names = (some: readonly PlayerView[]): string => some.map((player) => player.name).join(', ');
+    start.classList.toggle('main', !forced);
+    start.classList.toggle('secondary', forced);
+    start.replaceChildren('Start Battle', ...(forced ? [el('span', 'tm-prep-start-count', `${state.players.length - waiting.length}/${state.players.length} Ready`)] : []));
+    start.disabled = state.lineup.length === 0;
+    start.title = forced ? [waiting.length > 0 && `Not ready: ${names(waiting)}`, empty.length > 0 && `No hero in, sitting it out: ${names(empty)}`, 'Press to start anyway'].filter(Boolean).join('. ') : state.lineup.length === 0 ? 'Put a hero in first' : '';
     named();
   }
 

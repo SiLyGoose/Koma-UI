@@ -22,6 +22,11 @@ export interface ResultAction {
   icon: ResultIcon;
   /** The site's main button (the rest are its dark ones). */
   main?: boolean;
+  /** Small, after its name (how many are in for running it again). */
+  note?: string;
+  /** Pressed already: shown, not pressable. */
+  disabled?: boolean;
+  title?: string;
   run: () => void;
 }
 
@@ -59,6 +64,8 @@ export interface ResultShown {
 
 export interface Result {
   show(shown: ResultShown): void;
+  /** The ways on drawn again, the rest as it is (the room changed: who is in for running it again). */
+  actions(actions: readonly ResultAction[]): void;
   hide(): void;
 }
 
@@ -188,6 +195,22 @@ export function makeResult(root: HTMLElement): Result {
     return tile;
   }
 
+  function drawActions(list: readonly ResultAction[]): void {
+    actions.replaceChildren(
+      ...list.map(({ label, icon, main, note, disabled, title, run }) => {
+        const button = el('button', `action tm-act ${main ? 'main' : 'secondary'}`);
+        button.type = 'button';
+        button.disabled = disabled === true;
+        if (title) button.title = title;
+        const name = el('span', 'tm-act-label', label);
+        if (note) name.append(' ', el('span', 'tm-act-note', note));
+        button.append(name, ring(icon));
+        button.addEventListener('click', run);
+        return button;
+      }),
+    );
+  }
+
   return {
     show(shown) {
       closeDetail();
@@ -212,17 +235,10 @@ export function makeResult(root: HTMLElement): Result {
       );
       others.hidden = shown.others.length === 0;
       root.classList.toggle('rewarding', root.classList.contains('staged') && !(rewards.hidden && others.hidden));
-      actions.replaceChildren(
-        ...shown.actions.map(({ label, icon, main, run }) => {
-          const button = el('button', `action tm-act ${main ? 'main' : 'secondary'}`);
-          button.type = 'button';
-          button.append(el('span', 'tm-act-label', label), ring(icon));
-          button.addEventListener('click', run);
-          return button;
-        }),
-      );
+      drawActions(shown.actions);
       root.hidden = false;
     },
+    actions: drawActions,
     hide() {
       closeDetail();
       root.classList.remove('rewarding');

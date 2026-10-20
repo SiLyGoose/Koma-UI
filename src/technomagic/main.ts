@@ -43,7 +43,7 @@ import { cutFace, cutHead, readPortrait } from './hud/portrait';
 import { makeTimer } from './hud/timer';
 import { makePrep } from './prep/prep';
 import { managePopup } from './manage/popup';
-import { makeResult } from './result';
+import { makeResult, type ResultAction } from './result';
 import { installSounds, play as playSound } from './sfx';
 import type { AnswerCode, ClientMessage, ErrorCode, FightStart, OverView, RoomState, ServerMessage, TurnInput } from '../protocol/technomagic';
 import { HERO_TURN, makeSim, SECTION, SECTIONS, SIM_VERSION, TICK, type Input, type Sim } from './sim';
@@ -632,7 +632,7 @@ async function start(): Promise<void> {
       unpick: (hero) => send({ t: 'unpick', hero }),
       ready: (on) => send({ t: 'ready', on }),
       stage: (n) => send({ t: 'stage', stage: n }),
-      begin: () => send({ t: 'begin' }),
+      begin: (force) => send({ t: 'begin', ...(force && { force }) }),
       // Another dragon: the raid taken against it (the page goes once the bot says so), or this page again alone, in a
       // room of their own against it (single player) or out of the raid into a new one.
       boss: (id, bring) => {
@@ -869,6 +869,8 @@ async function start(): Promise<void> {
           stage.cover(state.phase === 'prep');
           if (state.phase !== 'fight') leaving.close();
           if (state.phase === 'over' && state.over && !game) showOver(state.over);
+          // Who is in for running it again, as it changes.
+          if (state.phase === 'over' && shownOver && !left) results.actions(overActions());
           return;
         }
         case 'fight':
@@ -917,21 +919,24 @@ async function start(): Promise<void> {
         raid: DRAGON ? 'dragon' : 'technomagic',
         mine,
         others,
-        actions: [
-          // The host's starts the next fight (once everyone else is ready); anyone else's says they're ready for it.
-          {
-            label: 'Run Again',
-            icon: 'again',
-            main: true,
-            run: () => {
-              results.hide();
-              send({ t: 'again' });
-            },
-          },
-          { label: 'Raid Prep', icon: 'prep', run: () => send({ t: 'back' }) },
-          { label: 'Games', icon: 'games', run: () => leave() },
-        ],
+        actions: overActions(),
       });
+    }
+
+    /**
+     * The ways on from a fight over. Run Again says this player is in for the next fight, which the bot starts once everyone
+     * is, straight from here (with others, how many are beside it); in, they wait for the rest, and the host can force it.
+     */
+    function overActions(): ResultAction[] {
+      const players = state?.players ?? [];
+      const me = players.find((player) => player.id === state?.you);
+      const note = players.length > 1 ? `${players.filter((player) => player.ready).length}/${players.length} Ready` : undefined;
+      const again: ResultAction = !me?.ready
+        ? { label: 'Run Again', icon: 'again', main: true, note, run: () => send({ t: 'again' }) }
+        : me.host
+          ? { label: 'Force Start', icon: 'again', note, title: 'Start the next fight without waiting for everyone (whoever has no hero in sits it out)', run: () => send({ t: 'begin', force: true }) }
+          : { label: 'Waiting', icon: 'again', note, disabled: true, title: 'You’re in: the next fight starts once everyone is', run: () => {} };
+      return [again, { label: 'Raid Prep', icon: 'prep', run: () => send({ t: 'back' }) }, { label: 'Games', icon: 'games', run: () => leave() }];
     }
     onOver = () => {
       if (state?.over) showOver(state.over);

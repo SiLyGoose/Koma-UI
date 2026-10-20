@@ -221,6 +221,124 @@
 }
 
 /*
+ * A raid's boss: the heroes recommended against it (./bosses.ts recommendedCard), as King's Raid's Raid Info has them (its small
+ * hero portrait, in its units: 210 square): the hero's icon (192 across) in the gold square frame (Common_Hero_Frame_Small,
+ * 9-sliced, its corners 50 across), its class's tag (64, top left), the kind of damage it deals (40, beside it), a thumbs-up
+ * (76, top right) for King's Raid's own picks, and its name under it. Each opens the hero in the databank's heroes.
+ */
+.db-recommended {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  gap: 12px 10px;
+}
+
+.db-recommended + .detail-note {
+  margin-top: 10px;
+}
+
+.db-recommended-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink, #3d3045);
+  font: inherit;
+  cursor: pointer;
+}
+
+.db-recommended-square {
+  position: relative;
+  display: block;
+  width: min(100%, 96px);
+  aspect-ratio: 1;
+  transition: transform 120ms ease, filter 120ms ease;
+}
+
+.db-recommended-card:hover .db-recommended-square {
+  filter: brightness(1.08);
+  transform: translateY(-2px);
+}
+
+.db-recommended-card:focus-visible {
+  outline: none;
+}
+
+.db-recommended-card:focus-visible .db-recommended-square {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.db-recommended-face {
+  position: absolute;
+  inset: 3.81% 4.29% 4.76%;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 40%, #5a2f72, #1d1626);
+  color: #f1e3b4;
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.db-recommended-face img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.db-recommended-frame {
+  position: absolute;
+  inset: 0;
+  border: 0 solid transparent;
+  border-image: url('/kr/ui/hero-frame-small.webp') 50 / 23.81%;
+  pointer-events: none;
+}
+
+.db-recommended-class,
+.db-recommended-deals,
+.db-recommended-kr {
+  position: absolute;
+  height: auto;
+  aspect-ratio: 1;
+  pointer-events: none;
+}
+
+.db-recommended-class {
+  top: 4.76%;
+  left: 4.76%;
+  width: 30.48%;
+}
+
+.db-recommended-deals {
+  top: 8.1%;
+  left: 31.9%;
+  width: 19.05%;
+}
+
+.db-recommended-kr {
+  top: -0.48%;
+  left: 64.29%;
+  width: 36.19%;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 45%));
+}
+
+.db-recommended-name {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/*
  * Wide screens: the cards' frame and the boss's side by side, as tall as each other (the page's panels'
  * height), the cards and the boss's sheet each scrolling inside its own.
  */
