@@ -102,6 +102,14 @@ const TEAMS = [
 /** The least it is scaled to; past that it scrolls. */
 const MIN_FIT = 0.4;
 
+/**
+ * On a computer, the height the screen is laid out at, at least: in a shorter window it is scaled down into it, as King's
+ * Raid scales its own, so the lineup keeps its share (./prep.css) with room for who's in under it. Not on a screen narrower than
+ * PHONE, whose panels go one under another and scroll.
+ */
+const TALL = 780;
+const PHONE = 760;
+
 const byId = (id: string): HTMLElement => document.getElementById(id) as HTMLElement;
 const heroNamed = (id: string) => HEROES.find((hero) => hero.id === id);
 
@@ -274,15 +282,18 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
 
   /**
    * On a phone on its side: the screen laid out as large as it needs (the field's size over the scale) and
-   * scaled down by as little as lets it fit the field, found by halving the gap a few times.
+   * scaled down by as little as lets it fit the field, found by halving the gap a few times. In a computer's window
+   * shorter than TALL: laid out TALL and scaled down into it (and further, the same way, if that is still too much).
    */
   function fit(): void {
     const field = root.parentElement;
     // (A phone or tablet on its side, or the page turned for it: ../../shared/ui/landscape.)
     const on = !root.hidden && inLandscape() && field !== null;
+    const short = !root.hidden && !on && field !== null && field.clientHeight < TALL && field.clientWidth > PHONE;
     root.classList.toggle('fit', on);
+    root.classList.toggle('zoom', short);
     root.classList.remove('scaled');
-    if (!on) {
+    if (!on && !short) {
       root.style.removeProperty('width');
       root.style.removeProperty('height');
       root.style.removeProperty('--fit');
@@ -294,11 +305,11 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
       root.style.height = `${height / scale}px`;
       return root.scrollHeight <= root.clientHeight;
     };
-    let scale = 1;
-    if (!fits(1)) {
+    let scale = short ? height / TALL : 1;
+    if (!fits(scale)) {
       root.classList.add('scaled');
       let low = MIN_FIT;
-      let high = 1;
+      let high = scale;
       for (let i = 0; i < 8; i++) {
         const mid = (low + high) / 2;
         if (fits(mid)) low = mid;

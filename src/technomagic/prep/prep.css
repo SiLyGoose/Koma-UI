@@ -122,13 +122,15 @@
 
 /*
  * The lineup: a card for every slot, in a gold-framed row (wrapping on a narrow screen). Each card as wide as
- * its share of the row, but no taller than the screen has room for once everything else is in (about 500px:
- * the top, the lineup's frame and the panels along the bottom), and never smaller than 44px across. Each as King's Raid's
- * hero portrait is shaped (its frame, 338 by 732: .tm-slot-frame).
+ * its share of the row, but no taller than the screen has room for once everything else is in (--room: the top and the
+ * lineup's frame, about 135px, and the panels along the bottom, a third of the screen as King's Raid has them, never less
+ * than who's in needs), and never smaller than 44px across. Each as King's Raid's hero portrait is shaped (its frame,
+ * 338 by 732: .tm-slot-frame). A short window has the screen laid out taller and scaled down (.zoom, below), so it keeps these shares.
  */
 .tm-lineup {
   --ratio: calc(338 / 732);
-  --card: max(44px, calc((100cqh - 500px) * var(--ratio)));
+  --room: calc(100cqh - 135px - max(250px, 34cqh));
+  --card: max(44px, calc(var(--room) * var(--ratio)));
   /* A team's tab, over its half alone (.tm-team-tab). */
   --tab: 34px;
   display: grid;
@@ -150,7 +152,7 @@
  * (the 60px is the screen's padding and the lineup's frame), less the tab's height, so the lineup is as tall alone as in a room.
  */
 .tm-lineup.teams {
-  --card: calc(max(44px, min(calc((100cqh - 500px) * var(--ratio)), calc((100cqi - 60px - 7 * 8px) / 8))) - var(--tab) * var(--ratio));
+  --card: calc(max(44px, min(calc(var(--room) * var(--ratio)), calc((100cqi - 60px - 7 * 8px) / 8))) - var(--tab) * var(--ratio));
   grid-template-columns: minmax(0, 4fr) minmax(0, 3fr);
   gap: 0;
   padding: 0;
@@ -257,12 +259,13 @@
 /*
  * A slot's card, as King's Raid's hero portrait (its HeroPortrait prefab, in its units): its frame 338 by 732, the slot's
  * whole box (the silver one, Normal: 9-sliced, its corners 110, 100, 160 and 100 across as they are); in it the hero's
- * card (288 by 660: from 26 in on the left, 24 on the right, 39 down from the top and 33 up from the bottom, as below),
+ * card, its edges under the middle of the frame's silver bars (they are 28 to 37 in on the left, 26 to 35 on the right,
+ * 29 to 38 at the top and the bottom), so none of it shows past them: 32 in on the left, 31 on the right, 34 at the top and the bottom,
  * its class's tag (44 across, on the frame's emblem), the kind of damage it deals (44 across, beside it), and its name over a
  * shade at the bottom. An empty slot: the card's place, dark.
  */
 .tm-slot-frame {
-  --art: 5.33% 7.1% 4.51% 7.69%;
+  --art: 4.64% 9.17% 4.64% 9.47%;
   position: relative;
   aspect-ratio: 338 / 732;
 }
@@ -481,8 +484,8 @@ button.tm-prep-manage {
 
 .tm-prep-hero-list {
   display: grid;
-  /* Three to a row; on a wide screen, as many more as fit. */
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  /* As many to a row as fit, about 100px across (King's Raid's five, on a computer). */
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
   /* Each row as tall as its squares: left auto, the rows would shrink to fit the panel rather than scroll. */
   grid-auto-rows: max-content;
   gap: 8px;
@@ -502,12 +505,6 @@ button.tm-prep-manage {
   flex: 1;
   min-height: 0;
   contain: size;
-}
-
-@media (min-width: 1400px) {
-  .tm-prep-hero-list {
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-  }
 }
 
 .tm-prep-hero {
@@ -773,14 +770,19 @@ button.tm-prep-manage {
 
 /*
  * A phone (or tablet) on its side (.fit, put on by ./prep.ts): the whole screen laid out larger than the
- * field and scaled down into it (--fit), so it fits without scrolling, in its desktop layout.
+ * field and scaled down into it (--fit), so it fits without scrolling, in its desktop layout. A computer's short window
+ * (.zoom) too: laid out as tall as King's Raid's proportions need, and scaled down into it.
  */
-.tm-prep.fit {
+.tm-prep.fit,
+.tm-prep.zoom {
   inset: 0 auto auto 0;
-  gap: 10px;
-  padding: 12px 16px;
   transform: scale(var(--fit, 1));
   transform-origin: 0 0;
+}
+
+.tm-prep.fit {
+  gap: 10px;
+  padding: 12px 16px;
 }
 
 .tm-prep.fit .tm-lineup {
