@@ -5,7 +5,7 @@ import { working } from '../shared/ui';
 import { canTrade, copyById, heroShown, mine, slotFor, slotOf, slotsFor, type HeroesContext } from './context';
 import { SIDE_SLOTS } from '../protocol/heroes';
 import { heroSkills } from './skills';
-import type { HeroOption, HeroRune, HeroRuneStack, HeroSkillView } from '../protocol/heroes';
+import type { HeroRune, HeroRuneStack, HeroSkillView } from '../protocol/heroes';
 import { FORGE_MODES, heroCan } from '../forge/modes';
 import { heroStats } from './stats';
 import { ESSENCE_NAME, essencePicture, heroPerks, spent, TRANSCEND_MAX, TRANSCEND_POINTS, type EssenceId, type Perk, type TranscendTier } from './transcend';
@@ -524,13 +524,6 @@ function sectionButton(ctx: HeroesContext, text: string, key: string, onClick: (
   return button;
 }
 
-/** One of a King's Raid piece's options in its details: its line (greyed where the piece does nothing). How far it has rolled is the forge's. */
-function optionRow(option: HeroOption, on: boolean): HTMLElement {
-  const row = el('div', `kr-option${on ? '' : ' off'}`);
-  row.append(el('span', 'kr-option-line', option.line));
-  return row;
-}
-
 /** A section of a King's Raid piece's: its title, then its rows. */
 function krSection(title: string, rows: HTMLElement[], className = ''): HTMLElement {
   const section = el('section', `kr-section ${className}`.trim());
@@ -539,13 +532,12 @@ function krSection(title: string, rows: HTMLElement[], className = ''): HTMLElem
 }
 
 /**
- * King's Raid's gear's parts in the detail, under its effects: its options (each its step), its unique option (its
+ * King's Raid's gear's parts in the detail, under its effects (its options are among those): its unique option (its
  * additional skill) and its set's bonuses (lit while on; picked to equip, `pieces`: lit too where equipping it would turn
- * them on, with a tag saying so). Rerolling and enhancing them is the forge's (its Upgrade).
+ * them on, with a tag saying so). Its options' steps, rerolling and enhancing them are the forge's (its Upgrade).
  */
 function krSections(copy: HeroCopy, fits: boolean, pieces: { now: number; equipped: number } | null = null): HTMLElement[] {
   const out: HTMLElement[] = [];
-  if (copy.options.length > 0) out.push(krSection('Options', copy.options.map((option) => optionRow(option, fits))));
   if (copy.additional) {
     const row = el('div', `kr-option${copy.additionalActive ? '' : ' off'}`);
     row.append(rich(copy.additional));
