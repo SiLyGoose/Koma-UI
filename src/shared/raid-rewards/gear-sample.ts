@@ -10,8 +10,7 @@ import type { KrOptionData, KrPieceData, KrSetData } from '../../technomagic/sim
  * A sample of a kind of gear a raid's boss drops (./boss-gear.ts: clicking one in its rewards, the databank's or a raid's
  * Raid Info): one piece of it as King's Raid's gear is (../../technomagic/sim/gear/kr-data.ts, read only once one is asked
  * for: it is big), in a popup over the page (./gear-sample.css, its own colours, whatever page it is on): its card, name,
- * part and tier, its main stat from 0★ to 5★, a copy's options rolled at random (rolled again on asking) with all it can roll
- * folded under them, a TechnoMagic piece's unique option, its set's bonuses and its rune sockets. Its card is the armories'
+ * part and tier, its main stat from 0★ to 5★, the options a copy can roll (folded away), a TechnoMagic piece's unique option, its set's bonuses and its rune sockets. Its card is the armories'
  * (../items/items.css, which the page loads).
  */
 
@@ -71,27 +70,6 @@ const amount = (stat: string, value: number): string => (STAT[stat]?.points ? `+
 /** A stat's line, like "Crit +150" (none: a stat the pages don't name). */
 const line = (stat: string, value: number): string | null => (STAT[stat] ? `${STAT[stat].name} ${amount(stat, value)}` : null);
 
-/** An option's value at its step: so far between its least and most, in King's Raid's whole thousandths (the bot's optionValue). */
-function optionValue(option: KrOptionData, step: number): number {
-  const min = Math.round(option.min * 1000);
-  const max = Math.round(option.max * 1000);
-  return option.steps > 0 ? (min + Math.floor(((max - min) * step) / option.steps)) / 1000 : min / 1000;
-}
-
-/** A copy's options, as one drops with them (the bot's rollKrOptions): `count` different stats of its pool's, by their weights, each at a step at random. */
-function rollOptions(pool: readonly KrOptionData[], count: number): { option: KrOptionData; step: number }[] {
-  const out: { option: KrOptionData; step: number }[] = [];
-  const open = [...pool];
-  while (out.length < count && open.length > 0) {
-    const total = open.reduce((sum, option) => sum + Math.max(1, option.weight), 0);
-    let at = Math.random() * total;
-    const i = Math.max(0, open.findIndex((option) => (at -= Math.max(1, option.weight)) < 0));
-    const [option] = open.splice(i, 1) as [KrOptionData];
-    out.push({ option, step: Math.floor(Math.random() * (option.steps + 1)) });
-  }
-  return out;
-}
-
 /** A list, a row each (lines of the bot's markdown). */
 function rows(lines: readonly (string | Node)[]): HTMLUListElement {
   const list = el('ul', 'gear-sample-list');
@@ -113,25 +91,10 @@ function folded(summary: string, lines: readonly string[]): HTMLElement {
   return box;
 }
 
-/** A sample copy's options, a line each, with a button rolling them again; then every option it can roll, each with how little and how much, folded away. */
+/** Every option a copy can roll, each with how little and how much, folded away. */
 function options(pool: readonly KrOptionData[], count: number): HTMLElement[] {
-  const list = el('ul', 'gear-sample-list');
-  const roll = (): void => {
-    list.replaceChildren(
-      ...rollOptions(pool, count).map(({ option, step }) => {
-        const row = el('li');
-        row.append(line(option.stat, optionValue(option, step)) ?? option.stat);
-        if (option.steps > 0) row.append(el('span', 'gear-sample-step', ` (step ${step} of ${option.steps})`));
-        return row;
-      }),
-    );
-  };
-  roll();
-  const again = el('button', 'gear-sample-roll', 'Roll again');
-  again.type = 'button';
-  again.addEventListener('click', roll);
   const ranges = pool.flatMap((option) => (STAT[option.stat] ? [`**${STAT[option.stat]?.name}** ${amount(option.stat, option.min)} to ${amount(option.stat, option.max)}`] : []));
-  return [list, again, folded(`Each copy rolls ${count} of ${pool.length} options, at random, each a different one.`, ranges)];
+  return [folded(`Each copy rolls ${count} of ${pool.length} options, at random, each a different one.`, ranges)];
 }
 
 /** A set's bonuses, a line each: a dragon set's 2-piece and 4-piece stats, a TechnoMagic set's 4-piece skill for `heroClass`. */

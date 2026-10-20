@@ -140,28 +140,6 @@
   background: var(--star-4);
 }
 
-.gear-sample-step {
-  color: #6b6272;
-  font-size: 12px;
-}
-
-.gear-sample-roll {
-  margin-top: 6px;
-  padding: 4px 12px;
-  border: 1px solid #8a7d5c;
-  border-radius: 8px;
-  background: #3b3444;
-  color: #f3ecd8;
-  font: inherit;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.gear-sample-roll:hover {
-  background: #4d4558;
-}
-
 .gear-sample-fold {
   margin-top: 8px;
   color: #5a5262;
