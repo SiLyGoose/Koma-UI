@@ -908,10 +908,11 @@ async function start(): Promise<void> {
       const mine = over.drops[you] ?? [];
       const paid = over.points[you] ?? 0;
       const essences = over.essences?.[you] ?? {};
+      const gems = over.gems?.[you] ?? 0;
       const others = Object.entries(over.drops).flatMap(([who, drops]) => (who !== you && drops.length > 0 ? [{ who: name(who), drops }] : []));
       const text =
         over.result === 'won'
-          ? mine.length > 0 || paid > 0
+          ? mine.length > 0 || paid > 0 || gems > 0
             ? DRAGON
               ? `Found in ${def.name}’s lair:`
               : 'Found in the swamp:'
@@ -922,6 +923,8 @@ async function start(): Promise<void> {
         text,
         points: paid,
         essences,
+        gems,
+        firstClear: over.firstClear?.[you] === true,
         raid: DRAGON ? 'dragon' : 'technomagic',
         mine,
         others,

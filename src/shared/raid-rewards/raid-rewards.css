@@ -68,6 +68,12 @@
   height: 38px;
 }
 
+/* The komaGem, the size of the coin. */
+.raid-reward-face.reward-gems .raid-reward-art {
+  width: 40px;
+  height: 40px;
+}
+
 /* An essence's picture fills its icon (inside its 2px frame), as on the result screen. */
 .raid-reward-face.reward-essence .raid-reward-art {
   width: 60px;

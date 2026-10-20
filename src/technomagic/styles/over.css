@@ -105,6 +105,20 @@
   height: auto;
 }
 
+/* The komaGems: the gem as the coin is drawn, and under the amount, a first clear's doubling in gold. */
+.tm-gems-face .emoji {
+  width: 56%;
+  height: auto;
+}
+
+.tm-tile-first {
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--gold);
+  text-align: center;
+}
+
 /* An essence's tile is its picture, edge to edge. */
 .tm-essence-face {
   overflow: hidden;

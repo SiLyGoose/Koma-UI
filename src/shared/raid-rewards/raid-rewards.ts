@@ -3,9 +3,11 @@ import { built } from '../built';
 import { coin } from '../util/coin';
 import { ANY_CLASS, itemFace } from '../items/items';
 import type { RaidReward } from '../raids';
+import { rich } from '../items/items';
+import { GEM_EMOJI } from '../../forge/anvil/gem';
 
 /*
- * What a win against a boss gives (../raids.ts), as icons (./raid-rewards.css): zeiucoins, essences (one rolled: a ?), and
+ * What a win against a boss gives (../raids.ts), as icons (./raid-rewards.css): zeiucoins, komaGems, essences (one rolled: a ?), and
  * gear (its slot's icon; TechnoMagic gear as the armories' TM card; a kind of a set's gear as King's Raid's icon for it). In
  * the front page's Raid List (../../hub/raid-list.ts), in a raid's Raid Info (../../technomagic/prep/prep.ts) and in the
  * databank's raid bosses (../../databank/bosses.ts).
@@ -44,6 +46,12 @@ const icon = (reward: RaidReward | GearKind): [HTMLElement, string, string] => {
       return [image(`/kr/items/${reward.icon}.webp`), reward.name, 'piece'];
     case 'points':
       return [coin('raid-reward-art', ''), 'zeiucoins', 'points'];
+    case 'gems': {
+      // (The bot's emoji for them, as the raid shop draws them.)
+      const gem = rich(GEM_EMOJI).firstChild as HTMLImageElement;
+      gem.className = 'raid-reward-art';
+      return [gem, 'komaGems', 'gems'];
+    }
     case 'essence':
       return reward.id === null
         ? [el('span', 'raid-reward-any', '?'), 'Any essence', 'essence']
