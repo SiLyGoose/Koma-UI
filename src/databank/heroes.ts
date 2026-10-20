@@ -69,8 +69,8 @@ function bust(hero: HeroDef): HTMLElement {
   return box;
 }
 
-/** A boss the hero is recommended against, as the enemies' list has it: it opens the boss there. */
-function areaCard(boss: BossDef, kr: boolean): HTMLButtonElement {
+/** A boss the hero is recommended against, as the enemies' list has it: it opens the boss there (also the shop's buy box's, ../hero-shop/). */
+export function areaCard(boss: BossDef, kr: boolean): HTMLButtonElement {
   const card = el('button', 'db-boss-card db-area-card');
   card.type = 'button';
   card.append(portrait(boss, 'db-boss-portrait'), el('span', 'db-boss-card-name', boss.name), el('span', 'db-boss-card-kind', raidOf(boss.id)));

@@ -1,4 +1,9 @@
 import markup from './hero-shop.html?raw';
+import { areaCard } from '../databank/heroes';
+import { label, recommendedCard } from '../databank/bosses';
+import { RECOMMENDED, TEAMMATES } from '../databank/recommended';
+import { skillBrief } from '../heroes/briefs';
+import { skillRows } from '../heroes/render';
 import { className, heroCard, type HeroView, type HeroesView } from '../shared/heroes';
 import { el } from '../shared/items';
 import { API, busyWith, dropdown, fillServers, working, type Busy } from '../shared/ui';
@@ -6,13 +11,16 @@ import { byName, heroFilter, heroShown, NO_HERO_FILTER, type HeroChoice, type He
 import { coin, points } from '../shared/util';
 import type { ShopTab } from '../shop/tab';
 import { api, currentMe, currentServer, loadMe, logOut, prefetchFor, setServer } from '../site/session';
+import { BOSSES } from '../technomagic/sim/bosses';
+import { KR_HEROES } from '../technomagic/sim/heroes/kr';
 
 /*
  * The shop's Heroes tab (../shop/page.ts): a card for each of the TechnoMagic Raid's heroes (the bot's
  * /api/heroes), A to Z, as the Outfits tab's are (its cards and buy box), with the hero's picture, its class, and at
  * the bottom its price, or that it's theirs. The Filter picks a class and a kind of damage, and leaves out the heroes
  * they own until Show owned is on. Pressing one they don't have asks to buy it, for their
- * zeiucoins in the server picked; once theirs, it's geared on the heroes page (../heroes/), where they're
+ * zeiucoins in the server picked, with what the databank says of it (../databank/heroes.ts: the bosses it's recommended
+ * against, its teammates) and its skills in a line each (../heroes/briefs.ts); once theirs, it's geared on the heroes page (../heroes/), where they're
  * sent. Logged-in members only.
  */
 
@@ -33,6 +41,9 @@ interface Ui {
   buy: HTMLElement;
   buyPicture: HTMLImageElement;
   buyTitle: HTMLElement;
+  buyKind: HTMLElement;
+  buyInfo: HTMLElement;
+  buySkills: HTMLElement;
   buyPrice: HTMLElement;
   buyConfirm: HTMLButtonElement;
 }
@@ -62,6 +73,9 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
       buy: $('#buy'),
       buyPicture: $<HTMLImageElement>('#buy-picture'),
       buyTitle: $('#buy-title'),
+      buyKind: $('#buy-kind'),
+      buyInfo: $('#buy-info'),
+      buySkills: $('#buy-skills'),
       buyPrice: $('#buy-price'),
       buyConfirm: $<HTMLButtonElement>('[data-buy="confirm"]'),
     },
@@ -256,8 +270,48 @@ function renderBuy(ctx: Context): void {
   const left = view.balance - buying.price;
   showCard(ui.buyPicture, buying.id);
   ui.buyTitle.textContent = `Buy ${buying.name}?`;
+  if (ui.buy.dataset.hero !== buying.id) {
+    ui.buy.dataset.hero = buying.id;
+    renderAbout(ui, buying);
+  }
   ui.buyPrice.replaceChildren(...price(buying.price, left < 0));
   ui.buyPrice.title = `${points(buying.price)} zeiucoins (you have ${points(view.balance)})`;
   ui.buyConfirm.disabled = left < 0;
   working(ui.buyConfirm, ctx.busy, 'buy');
+}
+
+const LINE_NAME = { front: 'Front', middle: 'Middle', back: 'Back' } as const;
+
+/**
+ * What the buy box says of a hero, as the databank's heroes do: its class, line and kind of damage, the raids' bosses it's
+ * recommended against and its teammates (King's Raid's own picks thumbed up), and its skills, each in a line.
+ */
+function renderAbout(ui: Ui, hero: HeroView): void {
+  const badge = el('img');
+  badge.src = `/kr/ui/badge-${hero.class}.webp`;
+  badge.alt = '';
+  const line = KR_HEROES[hero.id]?.stand.line;
+  ui.buyKind.replaceChildren(badge, [className(hero.class), line && `${LINE_NAME[line]} line`, hero.deals === 'magical' ? 'Magical' : 'Physical'].filter(Boolean).join(' · '));
+
+  ui.buyInfo.textContent = '';
+  const areas = BOSSES.filter((boss) => RECOMMENDED[boss.id]?.heroes.includes(hero.id));
+  if (areas.length > 0) {
+    const grid = el('div', 'db-areas');
+    grid.append(...areas.map((boss) => areaCard(boss, RECOMMENDED[boss.id]?.kr.includes(hero.id) ?? false)));
+    ui.buyInfo.append(label('Recommended areas of battle'), grid);
+  }
+  const mates = TEAMMATES[hero.id];
+  if (mates && mates.heroes.length > 0) {
+    const grid = el('div', 'db-recommended');
+    grid.append(...mates.heroes.flatMap((id) => recommendedCard(id, mates.kr.includes(id))));
+    ui.buyInfo.append(label('Recommended teammates'), grid);
+  }
+
+  const skills = skillRows(
+    hero.id,
+    hero.abilities.map((skill, i) => ({ ...skill, text: skillBrief(hero.id, i, skill.text) })),
+  );
+  const list = el('ol', 'skills-list');
+  list.append(...skills);
+  ui.buySkills.replaceChildren(...(skills.length > 0 ? [label('Skills'), list] : []));
 }

@@ -18,15 +18,28 @@
   </div>
   <p id="empty" class="status outfits-status" hidden></p>
 
-  <!-- Buying one: what it costs (in red when it's more than they have). Not a <dialog>, as the Outfits tab's isn't. -->
+  <!--
+    Buying one (page.ts renderBuy): its card, and beside it its name, class, line and kind of damage, the raids' bosses it's recommended
+    against and its teammates (as the databank's heroes have them); its skills in a line each across the whole box under them; then what
+    it costs (in red when it's more than they have). Not a <dialog>, as the Outfits tab's isn't.
+  -->
   <div id="buy" class="outfits-buy" role="dialog" aria-modal="true" aria-labelledby="buy-title" tabindex="-1" hidden>
-    <div class="outfits-buy-box">
-      <div class="outfits-buy-figure hero-buy-figure"><img id="buy-picture" class="hero-buy-picture" alt="" hidden /></div>
-      <h3 id="buy-title"></h3>
-      <p id="buy-price" class="outfits-buy-price"></p>
-      <div class="outfits-buy-foot">
-        <button type="button" class="action secondary" data-buy="cancel">Cancel</button>
-        <button type="button" class="action main" data-buy="confirm">Buy</button>
+    <div class="outfits-buy-box hero-buy-box">
+      <div class="hero-buy-top">
+        <div class="outfits-buy-figure hero-buy-figure"><img id="buy-picture" class="hero-buy-picture" alt="" hidden /></div>
+        <div class="hero-buy-about">
+          <h3 id="buy-title"></h3>
+          <p id="buy-kind" class="hero-buy-kind"></p>
+          <div id="buy-info" class="hero-buy-info"></div>
+        </div>
+      </div>
+      <div id="buy-skills" class="hero-buy-skills"></div>
+      <div class="hero-buy-end">
+        <p id="buy-price" class="outfits-buy-price"></p>
+        <div class="outfits-buy-foot">
+          <button type="button" class="action secondary" data-buy="cancel">Cancel</button>
+          <button type="button" class="action main" data-buy="confirm">Buy</button>
+        </div>
       </div>
     </div>
   </div>
