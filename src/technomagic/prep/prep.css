@@ -138,6 +138,8 @@
   --inside: 56px;
   --across: 24px;
   --gap: 8px;
+  /* A card's width (.tm-slot-frame), worked out where it is used, in the lineup's cqi and cqh. */
+  --card: min(calc((100cqi - var(--across) - (var(--all, 8) - 1) * var(--gap)) / var(--all, 8)), calc((100cqh - var(--inside)) * var(--ratio)));
   flex: 1 1 0;
   min-height: 150px;
   container-type: size;
@@ -281,7 +283,7 @@
 .tm-slot-frame {
   --art: 10.06cqi 9.17cqi 10.06cqi 9.47cqi;
   position: relative;
-  width: min(calc((100cqi - var(--across) - (var(--all, 8) - 1) * var(--gap)) / var(--all, 8)), calc((100cqh - var(--inside)) * var(--ratio)));
+  width: var(--card);
   /* Its width sizes the card's place (cqi, above). */
   container-type: inline-size;
   aspect-ratio: 338 / 608;
@@ -788,8 +790,8 @@ button.tm-prep-manage {
 }
 
 .tm-prep.fit {
-  gap: 8px;
-  padding: 8px 12px 10px;
+  gap: 6px;
+  padding: 6px 12px 8px;
 }
 
 /* The site's bar hidden, as a game's own screen has none: the field gets its height. */
@@ -830,23 +832,34 @@ button.tm-prep-manage {
   font-weight: 700;
 }
 
-/* The lineup: less round it, and a shorter tab (--tab: its padding and line). */
+/*
+ * The lineup: less round it, and a shorter tab (--tab: its padding and line). Its cards larger than the room left them: the
+ * lineup at least 200px tall, the screen scaled down a little more for it (./prep.ts fit()). Nothing between the cards' boxes,
+ * and each over its frame's clear edges (beside its silver bars: 8% of its width on the left, 7.4% on the right) so the frames show 4px apart.
+ */
 .tm-prep.fit .tm-lineup {
   --tab: 28px;
   /* Its padding, and a small 1P over each card (.tm-slot-owner, below). */
-  --inside: 23px;
-  --gap: 4px;
-  padding: 4px 12px;
+  --inside: 19px;
+  --gap: 0px;
+  /* Its share of the row is the card and its margins (.tm-slot-frame, below): 84.61% of it, and 4px. */
+  --card: min(calc(((100cqi - var(--across)) / var(--all, 8) - 4px) / 0.8461), calc((100cqh - var(--inside)) * var(--ratio)));
+  min-height: 200px;
+  padding: 2px 12px;
 }
 
 .tm-prep.fit .tm-lineup.teams {
-  --inside: calc(var(--tab) + 16px);
+  --inside: calc(var(--tab) + 8px);
   --across: 36px;
   padding: 0;
 }
 
 .tm-prep.fit .tm-team-slots {
-  padding: 8px;
+  padding: 4px 8px;
+}
+
+.tm-prep.fit .tm-slot-frame {
+  margin-inline: calc(2px - 0.0770 * var(--card));
 }
 
 .tm-prep.fit .tm-team-tab {
