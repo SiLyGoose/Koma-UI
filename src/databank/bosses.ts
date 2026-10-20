@@ -9,6 +9,7 @@ import { DRAGON_LIST, raidCard, TM_LIST } from '../shared/raids';
 import { raidRewards } from '../shared/raid-rewards/raid-rewards';
 import { DRAGONS, isDragon, TM_BOSSES } from '../technomagic/sim/bosses';
 import { bossIn, scaleAt, stagesOf, type BossDef } from '../technomagic/sim/bosses/boss';
+import { CURVE, curved, HERO_LEVEL, reachAt, share, strike, type DamageType, type Defenses } from '../technomagic/sim/combat/damage';
 import { RAID_TIME } from '../technomagic/sim/rules';
 import { bossById, raidBossById, type DatabankContext } from './context';
 import { OTHER_HEROES, RECOMMENDED, recommendedIn } from './recommended';
@@ -212,6 +213,67 @@ export function recommendedCard(id: string, kr: boolean, why?: string): HTMLElem
   return [card];
 }
 
+/** A kind of damage, as the heroes' sheets say it. */
+const KIND: Readonly<Record<DamageType, string>> = { physical: 'Physical', magical: 'Magic' };
+
+/** How many times as much of one kind's blows must get through for the boss to be weak to it: less, and it stands both alike. */
+const WEAK = 1.1;
+
+/** The chance `target` blocks a blow of a kind, and what its Tough takes off one (shares), as the fight's strike has them. */
+const blockChance = (type: DamageType, target: Defenses): number => share(curved(CURVE.chance, target.block[type]));
+const toughCut = (type: DamageType, target: Defenses): number => share(curved(CURVE.pen, target.tough?.[type] ?? 0));
+
+/**
+ * The share of a blow of a kind `target` takes on the whole, from a hero without DEF Penetration or ACC: the fight's own blow
+ * (sim/combat/damage.ts strike), not dodged and blocked or not, each at its chance.
+ */
+function lands(type: DamageType, target: Defenses): number {
+  const reach = reachAt(HERO_LEVEL);
+  // (strike rolls for its dodge, then its block: 1 is never under a chance, 0 under any.)
+  const blow = (blocked: boolean): number => {
+    const rolls = [1, blocked ? 0 : 1];
+    return strike(1, type, target, 0, reach, () => rolls.shift() ?? 1).taken;
+  };
+  const block = blockChance(type, target);
+  return (1 - share(curved(CURVE.chance, target.dodge[type]))) * ((1 - block) * blow(false) + block * blow(true));
+}
+
+/**
+ * What a raid's boss is weak to at a stage (its DEF so many times its stage 1's: `defense`): the kind of damage more of a blow
+ * of gets through its dodge, DEF, block and Tough, as the fight has them, with how much of each kind's blow lands and why.
+ */
+function weakness(boss: BossDef, defense: number): HTMLElement[] {
+  const stands = { ...boss.stats, physical: boss.stats.physical * defense, magical: boss.stats.magical * defense };
+  const landing = { physical: lands('physical', stands), magical: lands('magical', stands) };
+  const weak: DamageType | null = landing.physical >= landing.magical * WEAK ? 'physical' : landing.magical >= landing.physical * WEAK ? 'magical' : null;
+
+  const verdict = el('div', 'db-weak');
+  for (const kind of weak ? [weak] : (['physical', 'magical'] as const)) {
+    const icon = el('img', 'db-weak-icon');
+    icon.src = `/kr/ui/deals-${kind}.webp`;
+    icon.alt = '';
+    icon.draggable = false;
+    verdict.append(icon);
+  }
+  verdict.append(el('b', '', weak ? `${KIND[weak]} damage` : 'Neither: physical and magic damage fare alike'));
+  const numbers = el('div', 'db-stats');
+  numbers.append(stat('A physical blow lands', percent(landing.physical)), stat('A magic blow lands', percent(landing.magical)));
+
+  // Why: what it has against the other kind more than against this one.
+  let why = 'Bring heroes of either kind.';
+  if (weak) {
+    const other: DamageType = weak === 'physical' ? 'magical' : 'physical';
+    const reasons: string[] = [];
+    if (stands[other] > stands[weak]) reasons.push(`has ${percent(stands[other] / stands[weak] - 1)} more ${other === 'physical' ? 'P.DEF' : 'M.DEF'}`);
+    const block = blockChance(other, stands) - blockChance(weak, stands);
+    if (block > 0) reasons.push(`blocks ${percent(block)} of ${KIND[other].toLowerCase()} blows`);
+    const tough = toughCut(other, stands) - toughCut(weak, stands);
+    if (tough > 0) reasons.push(`takes ${percent(tough)} off every ${KIND[other].toLowerCase()} blow (its Tough)`);
+    why = `Bring heroes who deal ${KIND[weak].toLowerCase()} damage: it ${reasons.join(', ') || 'stands it worse'}.`;
+  }
+  return [verdict, numbers, el('p', 'detail-note', `${why} How much of a blow's damage lands at this stage, on the whole (before a hero's DEF Penetration).`)];
+}
+
 /** A raid's boss picked (the TechnoMagic Raid's, or a dragon), at the stage picked (a dragon's, in the mode picked): as the raid has it. */
 function renderRaidBoss(ctx: DatabankContext, picked: BossDef): void {
   const { ui } = ctx;
@@ -279,6 +341,8 @@ function renderRaidBoss(ctx: DatabankContext, picked: BossDef): void {
     health,
     defense,
     el('p', 'detail-note', `Beat it within ${Math.floor(time / 60)}:${String(time % 60).padStart(2, '0')}, before its rage wipes the party. Heroes that fall stay down. Each stage opens once the one before it is beaten.`),
+    label('Weak to'),
+    ...weakness(boss, room.defense ?? 1),
   );
 
   // Its attacks, a row each.
