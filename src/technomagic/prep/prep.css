@@ -258,7 +258,7 @@
  * A slot's card, as King's Raid's hero portrait (its HeroPortrait prefab, in its units): its frame 338 by 732, the slot's
  * whole box (the silver one, Normal: 9-sliced, its corners 110, 100, 160 and 100 across as they are); in it the hero's
  * card (288 by 660: from 26 in on the left, 24 on the right, 39 down from the top and 33 up from the bottom, as below),
- * its class's tag (55 across, on the frame's emblem), the kind of damage it deals (44 across, beside it), and its name over a
+ * its class's tag (44 across, on the frame's emblem), the kind of damage it deals (44 across, beside it), and its name over a
  * shade at the bottom. An empty slot: the card's place, dark.
  */
 .tm-slot-frame {
@@ -331,10 +331,11 @@ button.tm-slot-card:hover {
   aspect-ratio: 1;
 }
 
+/* Over the emblem's own disc (42 across, its middle 69.5 in and 72.5 down), just inside its silver ring: the tag's disc fills it. */
 .tm-slot-class {
-  top: 6.49%;
-  left: 13.46%;
-  width: 16.27%;
+  top: 6.9%;
+  left: 14.05%;
+  width: 13.02%;
 }
 
 .tm-slot-deals {
