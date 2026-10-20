@@ -4,6 +4,7 @@ import { fromTreasure, treasure } from '../treasures';
 import { pct, skillArt, type Buff } from '../shown';
 import { bookDmg, CLASS_STATS, dmg, type HeroDef, type Passive } from './kit';
 import { CODED } from './moves';
+import { ELICIPIRA } from '../unique';
 
 /*
  * Kirze's skills, as the game has them (what each costs and how long before it can be used again are
@@ -197,7 +198,8 @@ export const KIRZE: HeroDef = {
             const { blows } = curse;
             curse = null;
             fight.cue(self, 'curse');
-            fight.hit(self, FLOWER.end + FLOWER.each * blows, false);
+            // (Her unique weapon: each stack the harder.)
+            fight.hit(self, FLOWER.end + FLOWER.each * blows * (self.unique ? 1 + ELICIPIRA.crystals : 1), false);
           }
         }
       },

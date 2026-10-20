@@ -981,6 +981,8 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     if (!reach) return 0;
     if (attacking === by) return reach.attack;
     const skill = landing?.by === by ? by.doing?.skill : undefined;
+    // (Kirze's unique weapon: Bloom, Crimson Flower! the wider.)
+    if (skill === 2 && by.id === 'kirze' && by.unique) return ELICIPIRA.reach;
     return skill === undefined ? 0 : (reach.skills[skill] ?? 0);
   }
 

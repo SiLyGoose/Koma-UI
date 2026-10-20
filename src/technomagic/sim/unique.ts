@@ -9,7 +9,8 @@ import { fine, pct, type Buff } from './shown';
  * - Klaus, The Guardian, Exian: every third skill he uses, every ally's P.DEF and ATK are higher for a while (the ATK of
  *   the ally with the highest ATK twice over).
  * - Kirze, Judgment Edge, Elicipira: each of her blows (her attack's and her skills') may deal more, a share
- *   of her ATK, twice over against a boss. (The game's also widens Bloom, Crimson Flower!: there's only the boss.)
+ *   of her ATK, twice over against a boss; her curse's burst is the harder for each stack of [Arcane Crystal Energy], and
+ *   Bloom, Crimson Flower! lands on every enemy. (Her part does the burst: ./heroes/kirze.ts; the fight, the reach.)
  * - Fallen Frey, Angel's Despair, Rosmerta: each skill she uses heals the two allies with the highest ATK (her too, if
  *   she is one), and they see past more of the boss's defense for a while; and Dark Lord Kasel, with her, is quicker.
  * - Gremory, Gateway to Purgatory, Pigritia: she is quicker; each time she sleeps she is healed and her mana
@@ -104,7 +105,12 @@ import { fine, pct, type Buff } from './shown';
 /** Each weapon's numbers at its stars, 0★ to 5★ (the index is its stars: King's Raid's, kingsraid.shodyra.com's). */
 /** Every so many skills of his: every ally's P.DEF and ATK higher (shares) for `lasts` seconds, the ATK `top` times that for the ally with the highest ATK. */
 export const EXIAN = { name: 'The Guardian, Exian', every: 3, lasts: 15, defense: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25], atk: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25], top: 2 };
-export const ELICIPIRA = { name: 'Judgment Edge, Elicipira', chance: 0.04, boss: 2, blow: [5000, 6000, 7200, 8600, 10000, 12500] };
+/**
+ * Kirze's: the chance a blow has, its blow more (at ATK), the more against a boss; how much more each stack of [Arcane Crystal
+ * Energy] makes her curse's burst (King's Raid's says only that it amplifies them: this raid's own), and how far about its
+ * target [Bloom, Crimson Flower!] lands with it (every enemy: King's Raid's says only that it greatly widens it).
+ */
+export const ELICIPIRA = { name: 'Judgment Edge, Elicipira', chance: 0.04, boss: 2, blow: [5000, 6000, 7200, 8600, 10000, 12500], crystals: 0.5, reach: Infinity };
 /**
  * How many allies it reaches (those with the highest ATK), how long, and its heal (a share of her ATK) and penetration; and
  * Dark Lord Kasel's ATK Spd (points), with her. Its 5★ is King's Raid's as the user has it (140%, +200); below that,
@@ -235,7 +241,7 @@ const ABOUT: Readonly<Record<string, (tier: number) => string>> = {
   klaus: (tier) =>
     `After using own active Skill ${EXIAN.every} times, increases all allies' P.DEF by ${fine(atTier(EXIAN.defense, tier))} and ATK by ${fine(atTier(EXIAN.atk, tier))} for ${EXIAN.lasts} sec. The ATK Boost effect multiplies by ${EXIAN.top} for the ally with the highest ATK.`,
   kirze: (tier) =>
-    `Normal and Skill attacks have a ${fine(ELICIPIRA.chance)} chance to deal additional M.DMG equal to ${fine(atTier(ELICIPIRA.blow, tier) / 1000)} of ATK. DMG is increased by ${ELICIPIRA.boss} times against Bosses.`,
+    `Amplifies the power of *Arcane Crystals*: each stack of [Arcane Crystal Energy] deals ${fine(ELICIPIRA.crystals)} more DMG. Greatly increases the effect range of [Bloom, Crimson Flower!], reaching all enemies. Normal and Skill attacks have a ${fine(ELICIPIRA.chance)} chance to deal additional M.DMG equal to ${fine(atTier(ELICIPIRA.blow, tier) / 1000)} of ATK. DMG is increased by ${ELICIPIRA.boss} times against Bosses.`,
   'fallen-frey': (tier) =>
     `Upon using a Skill, heals HP of ${ROSMERTA.allies} allies with the highest ATK equal to ${fine(atTier(ROSMERTA.heal, tier))} of Fallen Frey's ATK and increases DEF Penetration by ${atTier(ROSMERTA.pen, tier)} for ${ROSMERTA.lasts} sec. If [Dark Lord Kasel] is an ally, increases ATK Spd of [Dark Lord Kasel] by ${atTier(ROSMERTA.kasel, tier)}.`,
   gremory: (tier) =>
