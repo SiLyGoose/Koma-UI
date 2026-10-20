@@ -834,7 +834,7 @@ button.tm-prep-manage {
 .tm-prep.fit .tm-lineup {
   --tab: 28px;
   /* Its padding, and a small 1P over each card (.tm-slot-owner, below). */
-  --inside: 27px;
+  --inside: 23px;
   --gap: 4px;
   padding: 4px 12px;
 }
@@ -860,12 +860,14 @@ button.tm-prep-manage {
 }
 
 .tm-prep.fit .tm-slot {
-  gap: 2px;
+  gap: 0;
 }
 
 .tm-prep.fit .tm-slot-owner {
   font-size: 15px;
   font-weight: 800;
+  /* The frame's picture starts a little way down its box: 4px between the 1P and it, as it shows. */
+  margin-bottom: -4px;
 }
 
 /* The panels: side by side, as on a computer (however narrow the window), and as short as a third of the screen allows. */
