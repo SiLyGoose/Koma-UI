@@ -1,26 +1,33 @@
 /*
  * The shop's Heroes tab (page.ts): the Outfits tab's page and buy box (../outfits/outfits.css), with cards as King's
  * Raid's shop has them (its Special Shop's Heroes): tall and narrow, the hero's own card of the game filling it from the
- * top down and fading to dark under its name and price, in a thin cream frame with the game's curl in two corners
- * (public/kr/ui/shop-corner.webp, BanPick_HeroFrameEdge01) and the class's badge in the top one.
+ * top down and fading to dark under its name and price, in a thin cream frame with the game's scrolls in two corners
+ * (public/kr/ui/shop-corner-*.webp) and the class's badge in the top one.
  */
 
 /* Its cards as tall as King's Raid's (168 by 382): as many as fit, as big as the screen's height leaves room for. */
 .hero-shop {
   --card-width: clamp(150px, min(15vw, (100dvh - 250px) * 0.44), 220px);
   --cream: #eadfc6;
+  /* Its frame's width (the scrolls are placed from outside it: a card's own corner is inside it). */
+  --edge: 3px;
 }
 
 /*
  * Its cards in the middle of the panel, as many to a line as fit, a line after the first starting at the left of
  * them (not in the middle): columns as wide as a card, as many as fit (the Filter's row across them all keeps them
- * where they are when it leaves fewer cards).
+ * where they are when it leaves fewer cards), from the top down.
  */
 @media (min-width: 761px) {
   .hero-shop .outfits-row {
     display: grid;
     grid-template-columns: repeat(auto-fit, var(--card-width));
   }
+}
+
+/* At the top of the panel, however few lines of them there are. */
+.hero-shop .outfits-row {
+  align-content: start;
 }
 
 .hero-shop .hero-card {
@@ -30,7 +37,7 @@
   justify-content: flex-end;
   /* (Its curls stick out past its frame.) */
   overflow: visible;
-  border: 2px solid var(--frame);
+  border: var(--edge) solid var(--frame);
   border-radius: 3px;
   background: #0a1b20;
   box-shadow:
@@ -46,30 +53,33 @@
     0 14px 28px rgb(0 0 0 / 55%);
 }
 
-/* The game's curl, on the frame's top left corner (under the class's badge) and its bottom right. */
+/*
+ * The frame's scrolls, King's Raid's: round the class's badge in the top left corner, and curled in the bottom right
+ * (cut from a screenshot of its shop, 165 by 382 to a card: placed as they are there, their border lines on the card's).
+ */
 .hero-shop .hero-card::before,
 .hero-shop .hero-card::after {
   z-index: 3;
-  width: 15%;
   height: auto;
-  aspect-ratio: 1;
-  background: url('/kr/ui/shop-corner.webp') center / contain no-repeat;
-  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 60%));
+  background: center / 100% 100% no-repeat;
   rotate: none;
 }
 
 .hero-shop .hero-card::before {
-  top: -6px;
-  left: -6px;
-  width: 34%;
-  scale: 1 -1;
+  top: calc(-2.1% - var(--edge));
+  left: calc(-4.85% - var(--edge));
+  width: 47.3%;
+  aspect-ratio: 78 / 92;
+  background-image: url('/kr/ui/shop-corner-top.webp');
 }
 
 .hero-shop .hero-card::after {
   top: auto;
-  right: -4px;
-  bottom: -4px;
-  scale: -1 1;
+  right: calc(-4.85% - var(--edge));
+  bottom: calc(-1.6% - var(--edge));
+  width: 36.4%;
+  aspect-ratio: 60 / 62;
+  background-image: url('/kr/ui/shop-corner-bottom.webp');
 }
 
 /* The picture, the whole card: the bottom of it cut off (as the game's frames cut it), dark under the name and price. */
@@ -112,16 +122,15 @@
   font-weight: 800;
 }
 
-/* The class's badge, in the top corner's curl. */
+/* The class's badge, in the top corner's scroll (in the hole left for it). */
 .hero-card-class {
   position: absolute;
-  top: 3.5%;
-  left: 5%;
+  top: calc(0.8% - var(--edge));
+  left: calc(2.5% - var(--edge));
   z-index: 4;
-  width: 22%;
+  width: 26.5%;
   height: auto;
-  border-radius: 50%;
-  box-shadow: 0 0 0 2px var(--cream), 0 1px 4px rgb(0 0 0 / 70%);
+  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 60%));
 }
 
 /* Its name, pale blue on a glow; then its price (or that it's theirs), over the dark. */
@@ -178,12 +187,17 @@
 }
 
 /*
- * The Filter: a row of its own across the cards' grid, at its right, so it ends where the rightmost card does (and stays
- * there as the Filter leaves fewer). Closer to the cards than they are to each other.
+ * The Filter: a row of its own across the cards' grid, at its left, so it starts where the leftmost card does (its panel
+ * hanging from there). Closer to the cards than they are to each other.
  */
 .hero-shop-tools {
   display: flex;
   grid-column: 1 / -1;
-  justify-content: flex-end;
+  justify-content: flex-start;
   margin-bottom: -8px;
+}
+
+.hero-shop-tools .armory-filter-panel {
+  right: auto;
+  left: 0;
 }

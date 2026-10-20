@@ -155,8 +155,8 @@ export const bossById = (ctx: DatabankContext, id: string | null): DatabankBoss 
 /** A TechnoMagic Raid hero (the raid's own, not the bot's). */
 export const heroById = (id: string | null): HeroDef | undefined => (id ? HEROES.find((hero) => hero.id === id) : undefined);
 
-/** A hero as the heroes' Filter goes by it: its class, the kind of damage it deals, and whether they own it. */
-export const filtered = (ctx: DatabankContext, hero: HeroDef): Filtered => ({ name: hero.name, class: hero.class, deals: hero.stats.deals, owned: ctx.ownedHeroes?.has(hero.id) ?? false });
+/** A hero as the heroes' Filter goes by it: its id (for its line), its class, the kind of damage it deals, and whether they own it. */
+export const filtered = (ctx: DatabankContext, hero: HeroDef): Filtered => ({ id: hero.id, name: hero.name, class: hero.class, deals: hero.stats.deals, owned: ctx.ownedHeroes?.has(hero.id) ?? false });
 
 /** The heroes the Filter leaves, A to Z. */
 export const heroesShown = (ctx: DatabankContext): HeroDef[] => HEROES.filter((hero) => heroShown(ctx.heroChoice, filtered(ctx, hero))).sort(byName);

@@ -1,11 +1,13 @@
 import '../../items/armory-filter/armory-filter.css';
+import { KR_HEROES } from '../../../technomagic/sim/heroes/kr';
+import type { Line } from '../../../technomagic/sim/rules';
 import { HERO_CLASSES } from '../../heroes';
 import { el } from '../../items';
 
 /*
  * The heroes' filter (the databank's Heroes, the shop's Heroes tab): a Filter button, as the armories' is
  * (../../items/armory-filter/, whose look it has), with how many filters are on, and its panel under it: the class (Any,
- * then each with its badge), the kind of damage it deals (Any, Physical, Magical: offered once the page knows it) and,
+ * then each with its badge), the line it stands in (Any, Front, Middle, Back: King's Raid's, the raid's KR_HEROES), the kind of damage it deals (Any, Physical, Magical: offered once the page knows it) and,
  * logged in, Show owned (off: the heroes they own are left out). A choice applies at once and the panel stays open for the
  * next; a click outside it, Escape or tabbing away closes it. Its markup is a box in the page (`<div class="armory-filter">`),
  * which this fills. The heroes it leaves are listed by name (byName).
@@ -16,16 +18,18 @@ export type DamageChoice = 'physical' | 'magical';
 /** What the filter picks. */
 export interface HeroChoice {
   cls: string | 'all';
+  line: Line | 'all';
   deals: DamageChoice | 'all';
   /** The heroes they own shown too; null where it isn't offered (logged out). */
   owned: boolean | null;
 }
 
-/** As the filter starts: every class, either kind of damage, and the heroes they own left out. */
-export const NO_HERO_FILTER: HeroChoice = { cls: 'all', deals: 'all', owned: false };
+/** As the filter starts: every class and line, either kind of damage, and the heroes they own left out. */
+export const NO_HERO_FILTER: HeroChoice = { cls: 'all', line: 'all', deals: 'all', owned: false };
 
-/** What the filter goes by in a hero: its class, the kind of damage it deals (unknown: either), and whether it's theirs (unknown: not). */
+/** What the filter goes by in a hero: its id (its line, by KR_HEROES: unknown, any), its class, the kind of damage it deals (unknown: either), and whether it's theirs (unknown: not). */
 export interface Filtered {
+  id: string;
   name: string;
   class: string;
   deals?: DamageChoice | null;
@@ -34,7 +38,9 @@ export interface Filtered {
 
 /** Whether `hero` is shown under `choice`. */
 export const heroShown = (choice: HeroChoice, hero: Filtered): boolean =>
-  (choice.cls === 'all' || hero.class === choice.cls) && (choice.deals === 'all' || !hero.deals || hero.deals === choice.deals) && (choice.owned !== false || !hero.owned);
+  (choice.cls === 'all' || hero.class === choice.cls) &&
+  (choice.line === 'all' || (KR_HEROES[hero.id]?.stand.line ?? choice.line) === choice.line) &&
+  (choice.deals === 'all' || !hero.deals || hero.deals === choice.deals) && (choice.owned !== false || !hero.owned);
 
 /** Heroes by name, A to Z. */
 export const byName = (a: { name: string }, b: { name: string }): number => a.name.localeCompare(b.name);
@@ -47,6 +53,13 @@ export interface HeroFilter {
   /** Stops listening to the page (a page going away). */
   destroy(): void;
 }
+
+const LINES: readonly [Line | 'all', string][] = [
+  ['all', 'Any'],
+  ['front', 'Front'],
+  ['middle', 'Middle'],
+  ['back', 'Back'],
+];
 
 const DAMAGE: readonly [DamageChoice | 'all', string][] = [
   ['all', 'Any'],
@@ -110,12 +123,13 @@ export function heroFilter(box: HTMLElement): HeroFilter {
       return option('radio', 'class', cls, label);
     }),
   );
+  const lines = group('Position', ...LINES.map(([line, name]) => option('radio', 'line', line, name, line === 'all')));
   const damage = group('Damage', ...DAMAGE.map(([deals, name]) => option('radio', 'deals', deals, name, deals === 'all')));
   const owned = option('checkbox', 'owned', 'owned', 'Show owned', true);
   const show = group('Show', owned);
   const clear = el('button', 'armory-filter-clear action secondary', 'Clear filters');
   clear.type = 'button';
-  panel.append(classes, damage, show, clear);
+  panel.append(classes, lines, damage, show, clear);
   box.append(button, panel);
 
   const input = (name: string, value: string): HTMLInputElement | null => panel.querySelector<HTMLInputElement>(`input[name="${id}-${name}"][value="${value}"]`);
@@ -123,13 +137,15 @@ export function heroFilter(box: HTMLElement): HeroFilter {
   /** Draws `current`: the choices checked, the groups offered, and how many are on. */
   function draw(): void {
     const cls = input('class', current.cls);
+    const line = input('line', current.line);
     const deals = input('deals', current.deals);
     if (cls) cls.checked = true;
+    if (line) line.checked = true;
     if (deals) deals.checked = true;
     damage.hidden = !offersDeals;
     show.hidden = current.owned === null;
     (input('owned', 'owned') as HTMLInputElement).checked = current.owned === true;
-    const on = Number(current.cls !== 'all') + Number(offersDeals && current.deals !== 'all') + Number(current.owned === true);
+    const on = Number(current.cls !== 'all') + Number(current.line !== 'all') + Number(offersDeals && current.deals !== 'all') + Number(current.owned === true);
     badge.textContent = String(on);
     badge.hidden = on === 0;
     clear.hidden = on === 0;
@@ -146,6 +162,7 @@ export function heroFilter(box: HTMLElement): HeroFilter {
     const picked = (name: string): string | undefined => panel.querySelector<HTMLInputElement>(`input[name="${id}-${name}"]:checked`)?.value;
     choose({
       cls: picked('class') ?? 'all',
+      line: (picked('line') ?? 'all') as Line | 'all',
       deals: (picked('deals') ?? 'all') as DamageChoice | 'all',
       owned: current.owned === null ? null : picked('owned') !== undefined,
     });
