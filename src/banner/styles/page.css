@@ -1009,6 +1009,47 @@
   padding: 2px;
 }
 
+/*
+ * Its scrollbar, the armory sheet's (../../shared/items/styles/armory.css) and the mailbox's: a rounded pill in the
+ * parchment's edge colour, clear of the corners, no track, no arrows. Chrome and Safari draw it from the
+ * ::-webkit-scrollbar parts; they would ignore those if the standard properties were set too, so those are only for
+ * Firefox, which has no such parts.
+ */
+.banner-picks::-webkit-scrollbar {
+  width: 14px;
+}
+
+.banner-picks::-webkit-scrollbar-track,
+.banner-picks::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+.banner-picks::-webkit-scrollbar-track {
+  margin-block: 6px;
+}
+
+.banner-picks::-webkit-scrollbar-button {
+  display: none;
+}
+
+.banner-picks::-webkit-scrollbar-thumb {
+  min-height: 48px;
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: var(--parchment-edge, #cbb98f) padding-box;
+}
+
+.banner-picks::-webkit-scrollbar-thumb:hover {
+  background-color: #9c8c66;
+}
+
+@supports not selector(::-webkit-scrollbar) {
+  .banner-picks {
+    scrollbar-width: thin;
+    scrollbar-color: var(--parchment-edge, #cbb98f) transparent;
+  }
+}
+
 .banner-pick {
   display: flex;
   gap: 12px;
