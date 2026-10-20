@@ -75,6 +75,13 @@
   object-fit: cover;
 }
 
+/* So does King's Raid's icon for a kind of gear (its own backdrop drawn in). */
+.raid-reward-face.reward-piece .raid-reward-art {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+}
+
 .raid-reward-any {
   color: var(--gold);
   font-size: 30px;
