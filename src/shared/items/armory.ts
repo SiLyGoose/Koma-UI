@@ -1,7 +1,7 @@
 import { type Busy, doneMark, working } from '../ui';
 import { coin, points, powder } from '../util';
 import { armoryOrder, type TmSort } from './gear';
-import { dragonTier, el, hasLevels, heroGear, itemFace, type ItemType, ITEM_TYPE_NAME, kindName, levelLabel, lockBadge, mainStatLine, rich, shownName, type Slot, type Stars, tierOf, typeOf } from './items';
+import { dragonTier, el, hasLevels, heroGear, itemFace, itemIcons, type ItemType, ITEM_TYPE_NAME, kindName, levelLabel, lockBadge, mainStatLine, rich, shownName, type Slot, type Stars, tierOf, typeOf } from './items';
 import type { HeroPart } from '../../protocol/heroes';
 import type { MainStat } from '../../protocol/items';
 import { matchesStars, type StarChoice } from './armory-filter/armory-filter';
@@ -203,6 +203,8 @@ const contentOf = (copy: ArmoryCopy, look: CardLook, ownSound: boolean): string 
   JSON.stringify([
     copy.id,
     copy.itemId,
+    // (Its picture: a hero gear's icon, once the bot has said it.)
+    itemIcons.get(copy.itemId) ?? null,
     copy.name,
     copy.stars,
     copy.slot,
