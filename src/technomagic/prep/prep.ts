@@ -69,7 +69,9 @@ const MODES: readonly RaidMode[] = ['normal', 'hard'];
 /** Raid Info: what the boss does, and how its raid goes. */
 function infoOf(boss: BossDef): string[] {
   const solo = Math.round(((boss.stages.solo[0]?.hp ?? 1) / (boss.stages.room[0]?.hp ?? 1)) * 100);
-  const lineup = 'With others, the host brings up to 4 heroes, everyone else up to 3, 8 in all. Single player, up to 7: 4 in the Main Team, whose skills are yours to use, and 3 in the Sub Team, who fight on Auto.';
+  // Single player brings a full Sub Team against a dragon (8 heroes), one fewer in a TechnoMagic Raid (7): as the bot has it (its raids' soloSlots).
+  const sub = isDragon(boss.id) ? 4 : 3;
+  const lineup = `With others, the host brings up to 4 heroes, everyone else up to 3, 8 in all. Single player, up to ${MAIN_TEAM + sub}: ${MAIN_TEAM} in the Main Team, whose skills are yours to use, and ${sub} in the Sub Team, who fight on Auto.`;
   if (isDragon(boss.id)) {
     const normal = boss.normal ? stagesOf(boss.normal) : 0;
     return [
