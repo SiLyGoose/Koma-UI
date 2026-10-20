@@ -1277,14 +1277,6 @@
     padding: 9px 14px;
   }
 
-  /* (Its two words over each other, beside the pull buttons.) */
-  .banner-records-open {
-    max-width: 7.5em;
-    padding-block: 6px;
-    font-size: 13px;
-    line-height: 1.2;
-  }
-
   .banner-records-box {
     padding: 18px 14px;
   }

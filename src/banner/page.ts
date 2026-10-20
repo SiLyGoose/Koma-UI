@@ -43,7 +43,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     pickBanner(ctx, banner);
   });
 
-  // Details & History: open from its button (on the tab last shown), closed by Close, a click outside its box, or Escape.
+  // Details (with History): open from its button (on the tab last shown), closed by Close, a click outside its box, or Escape.
   // History shows the banner showing's pulls at first, the newest page; afresh each time it is shown.
   const showTab = (history: boolean): void => {
     ui.detailsTab.setAttribute('aria-selected', String(!history));
