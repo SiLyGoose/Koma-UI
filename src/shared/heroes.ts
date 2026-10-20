@@ -89,7 +89,7 @@ export const FACE: Frame = { wide: 1.7, tall: 1.7, above: 0.35, fit: {
     gau: { zoom: 1.9, x: 0.05, y: -0.05 },
     tanya: { zoom: 1.7, x: 0.16, y: 0 },
     'rebel-klaus': { zoom: 1.8, x: 0.07, y: 0.1 },
-    'dark-lord-kasel': { zoom: 1.5, x: -0.1, y: 0.38 },
+    'dark-lord-kasel': { zoom: 1.8, x: 0.03, y: 0.14 },
   },
 };
 /** The heroes page's stage: a hero's whole picture this many times as tall as the stage, where its face is small in it (by id). */
@@ -117,6 +117,7 @@ export const STAGE_ZOOM: Readonly<Record<string, number>> = {
   gau: 1.55,
   tanya: 1.5,
   'rebel-klaus': 2,
+  'dark-lord-kasel': 1.5,
 };
 /** A face as small as a unique weapon's or treasure's corner tab shows it (about 30px across): FACE's, cut small (BUILT_CUTS). */
 export const TAB_FACE: Frame = { ...FACE };
