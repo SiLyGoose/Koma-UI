@@ -9,5 +9,5 @@
  */
 export const HEROES_DEAL = 0.71;
 export const HEROES_HP = 0.78;
-/** The heroes of a raid fought with others here (alone: 7). */
+/** The heroes of the TechnoMagic Raid fought with others here (alone: 7); a dragon's are dragon/common.ts DRAGON_PARTY. */
 export const PARTY = 8;

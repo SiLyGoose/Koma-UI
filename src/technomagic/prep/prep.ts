@@ -69,7 +69,8 @@ const MODES: readonly RaidMode[] = ['normal', 'hard'];
 /** Raid Info: what the boss does, and how its raid goes. */
 function infoOf(boss: BossDef): string[] {
   const solo = Math.round(((boss.stages.solo[0]?.hp ?? 1) / (boss.stages.room[0]?.hp ?? 1)) * 100);
-  const lineup = 'With others, the host brings up to 4 heroes, everyone else up to 3, 8 in all. Single player, up to 7: 4 in the Main Team, whose skills are yours to use, and 3 in the Sub Team, who fight on Auto.';
+  const lineup = (all: number, alone: number): string =>
+    `With others, the host brings up to 4 heroes, everyone else up to 3, ${all} in all. Single player, up to ${alone}: 4 in the Main Team, whose skills are yours to use, and ${alone - 4} in the Sub Team, who fight on Auto.`;
   if (isDragon(boss.id)) {
     const normal = boss.normal ? stagesOf(boss.normal) : 0;
     return [
@@ -77,7 +78,7 @@ function infoOf(boss: BossDef): string[] {
       `Its CC Gauge: no stun holds a dragon, but your heroes' stuns wear the gauge down (it fills again soon after); empty, it is Down for ${DOWN} seconds, its breath cut short.`,
       `Two modes, King's Raid's: Normal, its Normal Dragon Raid (${normal} stages, the first far easier than Hard's, the last harder than any), and Hard, its Hard Dragon Raid (${stagesOf(boss)} stages). Each stage has more health and defense and hits harder.`,
       `Heroes that fall stay down. Beat it within ${clockOf(boss)}, before its rage wipes the party. Single player, it has ${solo}% of the health.`,
-      `${lineup} A win gives every player hero gear (raid items), zeiucoins and hero essences of the dragon's two kinds, more at each stage; a Normal stage as tough as one of Hard's pays as that one does. There is no daily limit.`,
+      `${lineup(9, 8)} A win gives every player pieces of the dragon's own gear set, runes, zeiucoins and hero essences of the dragon's two kinds, more at each stage; a Normal stage as tough as one of Hard's pays as that one does. There is no daily limit.`,
       'The host picks the mode and the stage in Raid Settings: each stage after the first opens once they have beaten the one before it, each dragon and mode apart.',
     ];
   }
@@ -85,7 +86,7 @@ function infoOf(boss: BossDef): string[] {
     `${boss.name}: a chimera of three heads that spits venom. Its blows are magical, and nothing slows it; it heals itself all the while.`,
     `Every 150 blows, the hero that has dealt the most is shut in the swamp for a while. Its Swamp Destroyer knocks every hero down. No stun holds it, but stuns wear its CC Gauge down (it fills again soon after); empty, it is Down for ${DOWN} seconds.`,
     `Heroes that fall stay down. Beat it within ${clockOf(boss)}, before its rage wipes the party. Each stage, it has more health and hits harder; single player, it has ${solo}% of the health.`,
-    `${lineup} A win gives each player TechnoMagic gear and zeiucoins.`,
+    `${lineup(8, 7)} A win gives each player TechnoMagic gear and zeiucoins.`,
     'The host picks the stage: each after the first opens once they have beaten the one before it.',
   ];
 }

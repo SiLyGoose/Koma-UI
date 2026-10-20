@@ -7,7 +7,7 @@ import { MINIONS } from './minions';
 import { NORMAL_STAGES, NORMAL_WAVES } from './normal';
 import { WAVES, type WaveMinion } from './waves';
 import { DRAGON_GAUGE, NORMAL_DRAGON_GAUGE, withGauge, type GaugeSize } from '../gauge';
-import { HEROES_DEAL, HEROES_HP, PARTY } from '../playtest';
+import { HEROES_DEAL, HEROES_HP } from '../playtest';
 
 /*
  * What every dragon has, as King's Raid's Dragon Raid has it:
@@ -27,8 +27,8 @@ import { HEROES_DEAL, HEROES_HP, PARTY } from '../playtest';
  * each its creature's stats at the stage's level, times its MonsterTierTable entry (KR-extracted/scripts/boss-stats.mjs). All
  * four are alike, but Temeraire's ATK (KR_ATK × FIRE_ATK) and that the higher of Temeraire's and Scalaxia's DEF (P.DEF and
  * M.DEF) is HIGH_DEF times the other. Its health is the game's for its party of KR_PARTY, as much less as the heroes here deal
- * (../playtest.ts) and as much more as there are of them; how hard it hits, the game's (its skills' shares of KR_ATK: ./moves.ts),
- * as much less as the heroes here have less health. Alone (7 heroes), its health is as much less again.
+ * (../playtest.ts) and as much more as there are of them (DRAGON_PARTY); how hard it hits, the game's (its skills' shares of KR_ATK: ./moves.ts),
+ * as much less as the heroes here have less health. Alone (SOLO heroes), its health is as much less again.
  */
 const KR_HP = [931_159_153, 1_120_206_503, 1_347_633_837, 1_950_395_922, 3_900_791_843, 4_560_670_244, 5_725_394_959, 7_635_313_815, 9_271_452_032, 15_491_771_741];
 export const KR_ATK = [1_898_512, 2_284_691, 2_748_592, 3_977_565, 7_955_939, 11_434_363, 13_797_120, 28_289_856, 34_351_968, 65_045_376];
@@ -37,12 +37,14 @@ const KR_LEVEL = [77, 81, 85, 93, 108, 110, 110, 115, 115, 120];
 export const FIRE_ATK = 1_763_309 / 1_898_512;
 const HIGH_DEF = 132_660 / 92_822;
 const KR_PARTY = 9;
-const SOLO = 7;
+/** The heroes a dragon is fought by here, with others (as the game's Dragon Raid: the bot's DRAGON_ROOM) and alone. */
+export const DRAGON_PARTY = 9;
+const SOLO = 8;
 /** The Normal Dragon Raid's party (its MainSquardCount), which its dragons' health is for. */
 const KR_NORMAL_PARTY = 6;
 
 /** A dragon's health and defense at stage 1, for its stats: its lower defense, and its higher. */
-export const FIRST = { hp: ((KR_HP[0] as number) * HEROES_DEAL * PARTY) / KR_PARTY, def: KR_DEF[0] as number, high: (KR_DEF[0] as number) * HIGH_DEF };
+export const FIRST = { hp: ((KR_HP[0] as number) * HEROES_DEAL * DRAGON_PARTY) / KR_PARTY, def: KR_DEF[0] as number, high: (KR_DEF[0] as number) * HIGH_DEF };
 
 /** A dragon's stages, fought with others and alone (`atk`: its ATK, of the others'). */
 export function dragonStages({ atk = 1 }: { atk?: number } = {}): { room: BossScale[]; solo: BossScale[] } {
@@ -53,7 +55,7 @@ export function dragonStages({ atk = 1 }: { atk?: number } = {}): { room: BossSc
       defense: (KR_DEF[i] as number) / (KR_DEF[0] as number),
       level: KR_LEVEL[i] as number,
     }));
-  return { room: scales(1), solo: scales(SOLO / PARTY) };
+  return { room: scales(1), solo: scales(SOLO / DRAGON_PARTY) };
 }
 
 /**
@@ -81,7 +83,7 @@ export interface DragonMode {
 export function normalDragon(hard: BossDef, leaves: number, part: (fight: Fight, mode: DragonMode) => BossPart): BossDef {
   const own = NORMAL_STAGES[hard.id];
   if (!own) throw new Error(`${hard.name} has no Normal stages`);
-  const first = ((own.hp[0] as number) * HEROES_DEAL * PARTY) / KR_NORMAL_PARTY;
+  const first = ((own.hp[0] as number) * HEROES_DEAL * DRAGON_PARTY) / KR_NORMAL_PARTY;
   const scales = (times: number): BossScale[] =>
     own.hp.map((hp, i) => ({
       hp: (hp / (own.hp[0] as number)) * times,
@@ -95,7 +97,7 @@ export function normalDragon(hard: BossDef, leaves: number, part: (fight: Fight,
   return {
     ...rest,
     stats: { ...hard.stats, hp: first, physical: own.pdef[0] as number, magical: own.def[0] as number },
-    stages: { room: scales(1), solo: scales(SOLO / PARTY) },
+    stages: { room: scales(1), solo: scales(SOLO / DRAGON_PARTY) },
     ...(waves.length > 0 && { waves: { at: (stage: number) => waves[stage - 1] ?? [], party: KR_NORMAL_PARTY, leaves, lands: { share: 0, blow: 0.2 * (KR_ATK[0] as number), knock: 1.5 } } }),
     join: (fight) => part(fight, mode),
   };
@@ -206,7 +208,7 @@ export const dragonWaves = (id: string): NonNullable<BossDef['waves']> => ({ at:
  * of: ./minions.ts) as much less as the heroes here have less health; its defenses the game's; and the rest as the hard dragons' (OPEN).
  */
 export function minionOf(minion: WaveMinion, solo: boolean, party: number = KR_PARTY): { hp: number; atk: number; stats: BossStats } {
-  const hp = ((minion.hp * HEROES_DEAL * PARTY) / party) * (solo ? SOLO / PARTY : 1);
+  const hp = ((minion.hp * HEROES_DEAL * DRAGON_PARTY) / party) * (solo ? SOLO / DRAGON_PARTY : 1);
   return { hp, atk: minion.atk * HEROES_HP, stats: { hp, deals: MINIONS[minion.kind].deals, magical: minion.def[0], physical: minion.def[1], ...OPEN } };
 }
 
