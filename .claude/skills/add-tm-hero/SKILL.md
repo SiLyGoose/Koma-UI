@@ -71,6 +71,11 @@ node tm-new-hero.mjs <id> --only=crop
 Look at `.shots/<id>-portrait.png`, which has a grid. Then run it again with `--crop=x,y,size --head=x,y,size` and look
 at `.shots/<id>-crop.png`, until the crop holds its head and hair and the face square its face, eyes in the middle.
 
+**Its perk pictures:** its own transcendence perks need 10 pictures in `public/technomagic/transcend/<id>/`, shodyra's files
+as they are (`https://kingsraid.shodyra.com/static/images/<n>/`, curl with a browser User-Agent): `s1-Light.png` …
+`s4-Dark.png` saved as `s1-light.png` … `s4-dark.png`, and `hero-light.png` / `hero-dark.png` as `t5-light.png` /
+`t5-dark.png`. Without them the Transcend tab shows empty frames.
+
 ## 5. Checks (all of them, before committing)
 
 - **The fight:** `node tm-check-sim.mjs <id ...> --perks`. Nothing should throw, and it should use every skill. Damage
