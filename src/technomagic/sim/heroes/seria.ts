@@ -257,7 +257,7 @@ export const SERIA: HeroDef = {
         if (candle > 0) candle--;
       },
       lit: () => moonlight > 0,
-      // Auto saves Red Moon Blade for Moonlight.
+      // Auto, having picked Red Moon Blade, keeps it for Moonlight.
       ripe: (index) => index !== 2 || moonlight > 0,
       buffs: () => (moonlight > 0 ? [{ ...MOONLIGHT, left: moonlight }] : []),
     };

@@ -265,7 +265,7 @@ export const KARA: HeroDef = {
         mode();
       },
       // (Auto keeps her in the [Siege Weapon] once she is one.)
-      ripe: (index) => !(siege && index === 2),
+      waits: (index) => siege && index === 2,
       tick(dt) {
         if (focusLeft > 0) {
           focusLeft -= dt;

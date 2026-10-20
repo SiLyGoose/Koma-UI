@@ -270,11 +270,7 @@ export const PANSIRONE: HeroDef = {
         lettered = [];
         // A Present For You!'s cooldown: its slot free while Now D.I.E! is in it, then what is left of its own.
         presentLeft = Math.max(0, presentLeft - dt);
-        if (dying > 0) {
-          self.cooldowns[0] = 0;
-          // (Auto goes for it while it is hers: its slot as though never used.)
-          self.lastUsed[0] = -Infinity;
-        }
+        if (dying > 0) self.cooldowns[0] = 0;
         else self.cooldowns[0] = Math.max(self.cooldowns[0] ?? 0, presentLeft);
         // Transcend 5's Dark: for so long into the fight, her ATK higher every so often (up to its most).
         if (self.perks.has('t5-dark') && heating < PERKS.dark.until) {

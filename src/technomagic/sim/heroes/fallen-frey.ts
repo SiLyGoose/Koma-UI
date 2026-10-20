@@ -99,7 +99,6 @@ export const FALLEN_FREY: HeroDef = {
   abilities: [
     {
       name: 'Light of Doom',
-      auto: { heals: true },
       about: 'Heals the ally with the lowest health and those near it, then the light bursts on the boss.',
       words:
         `Heals ${healed('priest', LIGHT.heal, bookHeal('fallen-frey', 0))} HP of the ally with the lowest HP and nearby allies and increases Heal Rate by 20% for 10 sec. Afterward, explodes the area around the target and deals ${dmg('priest', LIGHT.blast, bookDmg('fallen-frey', 0))} M.DMG to enemies in range, reducing their Heal Rate by 20% for 10 sec. If this Skill is used with 1 or more stacks of [Darkened Power], consumes 1 stack and dispels positive effects of all enemies within range.`,

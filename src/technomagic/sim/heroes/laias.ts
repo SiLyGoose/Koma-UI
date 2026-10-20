@@ -89,7 +89,6 @@ export const LAIAS: HeroDef = {
   abilities: [
     {
       name: 'Healing Droplets',
-      auto: { heals: true },
       about: `Heals every ally, and for ${DROPLETS.lasts} seconds healing reaches them ${pct(DROPLETS.heals)} more (${DROPLETS.lowTimes} times that for one at ${pct(DROPLETS.low)} of its health or less).`,
       words: `Heals ${healed('priest', DROPLETS.heal, bookHeal('laias', 0))} HP of all allies and increases Heal Rate by ${pct(DROPLETS.heals)} for ${DROPLETS.lasts} sec. If the target's HP is ${pct(DROPLETS.low)} or below, Heal Rate increases by ${DROPLETS.lowTimes} times.`,
       icon: '💧',

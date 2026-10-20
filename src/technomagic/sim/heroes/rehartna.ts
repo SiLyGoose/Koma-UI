@@ -80,7 +80,6 @@ export const REHARTNA: HeroDef = {
     },
     {
       name: 'Crystal Clear, Matimaruma!',
-      auto: { heals: true },
       about: `The ally with the lowest HP healed, and a shield on it for ${CRYSTAL.lasts} seconds (immune to CC); while it holds, every second its allies healed and their DEF higher, the boss struck and slowed.`,
       words: `Immediately heals HP of the ally with the lowest HP by ${healed('priest', CRYSTAL.heal, bookHeal('rehartna', 1))}, creating a shield that absorbs ${healed('priest', CRYSTAL.shield, bookHeal('rehartna', 1))} DMG and grants immunity to CC for ${CRYSTAL.lasts} sec. While the shield is active, heals HP of all allies near the target by ${healed('priest', CRYSTAL.each, bookHeal('rehartna', 1))} every sec, and increases All DEF by ${num(CRYSTAL.defense)}. Enemies take ${dmg('priest', CRYSTAL.blow, bookDmg('rehartna', 1))} DMG and have their ATK Spd reduced by ${CRYSTAL.slow}.`,
       icon: '💎',

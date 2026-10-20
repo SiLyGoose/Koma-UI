@@ -101,7 +101,6 @@ export const ANNETTE: HeroDef = {
     },
     {
       name: 'Emergency Treatment',
-      auto: { heals: true },
       about: `Clears what the boss has left on every ally (not what holds one down or shuts one away) and heals them over ${TREATMENT.lasts} seconds, and they stand being knocked down better meanwhile. [Overcharged]: they are also ${pct(share(TREATMENT.crit))} likelier to land a critical blow, deal ${pct(TREATMENT.dmg)} more, and can’t be knocked down.`,
       words: `Dispels negative effects of all allies and heals a total of ${healed('mechanic', TREATMENT.heal, bookHeal('annette', 1))} HP for ${TREATMENT.lasts} sec while increasing CC Resistance by ${TREATMENT.resist}. While Overcharged, all allies' Crit Chance is increased by ${TREATMENT.crit} and DMG dealt to Non-Hero enemies by ${pct(TREATMENT.dmg)} and gains immunity to CC. Upon use, the amount of Charge gained is increased by 30%.`,
       icon: '🩹',

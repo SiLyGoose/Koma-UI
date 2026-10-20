@@ -107,7 +107,6 @@ export const ASELICA: HeroDef = {
     },
     {
       name: 'Judgment of the Sun',
-      auto: { heals: true },
       about: `Eight blows, each lowering the boss's M.DEF for ${JUDGMENT.lasts} seconds, and eight heals for her allies, their P.DEF higher; then a blow that knocks the boss down for ${JUDGMENT.down} seconds, and a great heal.`,
       words: `Takes position and focuses to heal HP of nearby allies 8 times for a total of ${healed('knight', JUDGMENT.heal * 8, bookHeal('aselica', 2))} + ${pct(JUDGMENT.healDefense * 8 * JUDGMENT.books)} of Aselica's P.DEF and increase their P.DEF by ${num(Math.round(JUDGMENT.guard * JUDGMENT.books))} for ${JUDGMENT.lasts} sec. Enemies within range take a total of ${dmg('knight', JUDGMENT.blow * 8, bookDmg('aselica', 2))} M.DMG over 8 times and have their M.DEF reduced by ${num(JUDGMENT.defense)} for ${JUDGMENT.lasts} sec. At the end of casting, heals HP of allies within range by ${healed('knight', JUDGMENT.lastHeal, bookHeal('aselica', 2))} + ${pct(JUDGMENT.lastHp * JUDGMENT.books)} of Aselica's Max HP, deals ${dmg('knight', JUDGMENT.last, bookDmg('aselica', 2))} M.DMG to enemies, and knocks them down for ${JUDGMENT.down} sec.`,
       icon: '⚖️',

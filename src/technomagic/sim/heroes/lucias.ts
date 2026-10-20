@@ -71,7 +71,6 @@ export const LUCIAS: HeroDef = {
   abilities: [
     {
       name: 'Path of Blessings',
-      auto: { heals: true },
       about: `Heals the ${PATH.allies} allies with the lowest HP; they take ${pct(1 - PATH.taken)} less physical damage for ${PATH.lasts} seconds.`,
       words: `Heals ${PATH.allies} allies with the lowest HP by ${healed('priest', PATH.heal, bookHeal('lucias', 0))} and targets take ${pct(1 - PATH.taken)} reduced P.DMG for ${PATH.lasts} sec.`,
       icon: '🙏',

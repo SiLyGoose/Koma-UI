@@ -95,7 +95,6 @@ export const LAVRIL: HeroDef = {
     },
     {
       name: 'Bear Up...!',
-      auto: { heals: true },
       about: `The ally with the highest ATK healed, then healed every second for ${BEAR.lasts} seconds, its ATK ${pct(BEAR.atk)} and crit DMG ${pct(BEAR.critDamage)} higher meanwhile. For ${BEAR.after} seconds after, You Scare Me...! in its place.`,
       words: `Heals HP of an ally with the highest ATK by ${healed('priest', BEAR.heal, bookHeal('lavril', 1))}, heals HP by ${healed('priest', BEAR.each, bookHeal('lavril', 1))} every 1 sec for ${BEAR.lasts} sec, and increases ATK and Crit DMG of the ally by ${pct(BEAR.atk)} and ${pct(BEAR.critDamage)} + ${pct(BEAR.share)} of Lavril's Crit DMG respectively for ${BEAR.lasts} sec. After Skill use, [You Scare Me...!] can be used within ${BEAR.after} sec.`,
       icon: '🧸',
@@ -241,11 +240,7 @@ export const LAVRIL: HeroDef = {
         if (scaring > 0) scaring -= dt;
         // Bear Up...!'s own cooldown: its slot free while You Scare Me...! is in it, then what is left of its own.
         bearCooldown = Math.max(0, bearCooldown - dt);
-        if (scaring > 0) {
-          self.cooldowns[1] = 0;
-          // (Auto goes for it while it is hers: its slot as though never used.)
-          self.lastUsed[1] = -Infinity;
-        }
+        if (scaring > 0) self.cooldowns[1] = 0;
         else self.cooldowns[1] = Math.max(self.cooldowns[1] ?? 0, bearCooldown);
         // As the fight begins: the [Soul Link] (Tear of Soul: more ATK, and healing; its Light: more to Non-Hero enemies; its Dark: less taken; her unique weapon: her ally's crit DMG).
         if (!linked && fight.field.includes(self) && self.hp > 0) {

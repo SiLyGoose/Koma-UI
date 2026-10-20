@@ -114,7 +114,6 @@ export const EVAN: HeroDef = {
   abilities: [
     {
       name: 'Purification of Life',
-      auto: { heals: true },
       about: `Every ally healed; for ${PURIFY.lasts} seconds healing reaches them ${pct(PURIFY.heals)} more.`,
       words: `Heals HP of all allies by ${healed('priest', PURIFY.heal, bookHeal('evan', 0))} and increases Heal Rate of healed allies by ${pct(PURIFY.heals)} for ${PURIFY.lasts} sec.`,
       icon: '⚗️',

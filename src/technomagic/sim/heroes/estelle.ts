@@ -88,7 +88,6 @@ export const ESTELLE: HeroDef = {
   abilities: [
     {
       name: 'Blow, Tailwind!!',
-      auto: { heals: true },
       about: `What the boss left on every ally cleared, every ally healed, and [Tailwind] for ${TAILWIND.lasts} seconds (immune to CC). Turns into Blow, Headwind!!.`,
       words: `Dispels negative effects from all allies, heals their HP by ${healed('archer', TAILWIND.heal, bookHeal('estelle', 0))}, and grants [Tailwind] that lasts for ${TAILWIND.lasts} sec. For the duration of [Tailwind], the affected ally gains immunity to CC. After use, changes the Skill to [Blow, Headwind!!].\nWhen used during [Adventure Guide] state, the duration of [Tailwind] increases by ${GUIDE.longer} sec.`,
       icon: '🍃',

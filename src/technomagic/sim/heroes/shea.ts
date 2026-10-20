@@ -69,7 +69,6 @@ export const SHEA: HeroDef = {
   abilities: [
     {
       name: 'Green Nature’s Melody',
-      auto: { heals: true },
       about: `For ${MELODY.lasts} seconds: every ally healed eight times, and taking ${pct(MELODY.taken)} less (in [Trance]: healed twice as much, and ${pct(MELODY.tranced)} less).`,
       words: `Heals all allies' HP by a total of ${healed('priest', MELODY.heal * 8, bookHeal('shea', 0))} over 8 times, and reduces All DMG all allies take by ${pct(MELODY.taken)} for ${MELODY.lasts} sec. If used during [Trance] state, this Skill's Heal Rate increases by 100% and changes the DMG Reduction effect to ${pct(MELODY.tranced)}.`,
       icon: '🍃',

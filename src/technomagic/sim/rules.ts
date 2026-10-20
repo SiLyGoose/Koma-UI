@@ -162,11 +162,11 @@ export const AUTO_WAIT = 1.1;
 export const HERO_WAIT = 0.45;
 
 /**
- * A hero's Auto (./fight.ts autoSkill): an ally below this share of its max HP is hurt (a heal is wanted); a status
- * with less than this many seconds left is as good as gone (a skill that puts it up again is wanted); and over how
- * many seconds the mana a hero gains is counted, to know how soon it will have a skill's.
+ * A hero's Auto (./fight.ts autoSkill): how often it picks a skill, as King's Raid's does (every half second while it has
+ * none and isn't using one); and a status with less than this many seconds left is as good as gone (a skill that puts it
+ * up again is of use).
  */
-export const AUTO = { hurt: 0.7, spare: 1, income: 8 };
+export const AUTO = { every: 0.5, spare: 1 };
 
 /**
  * A hero's mana, as King's Raid's playtest has it: the crystals of its mana bar and the mana in each (a skill costs whole
