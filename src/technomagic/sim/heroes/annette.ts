@@ -284,7 +284,7 @@ export const ANNETTE: HeroDef = {
             const top = on.reduce<Fighter | null>((best, ally) => (!best || ally.stats.atk > best.stats.atk ? ally : best), null);
             for (const ally of on) {
               const k = ally === top ? RASCAL.top : 1;
-              put(ally.statuses, { name: RASCAL_UP.name, left: over, deals: 1 + RASCAL.dmg * k, takes: 1 - RASCAL.taken * k, shown: RASCAL_UP });
+              put(ally.statuses, { name: RASCAL_UP.name, left: over, deals: 1 + atTier(RASCAL.dmg, tier) * k, takes: 1 - atTier(RASCAL.taken, tier) * k, shown: RASCAL_UP });
             }
           }
         }

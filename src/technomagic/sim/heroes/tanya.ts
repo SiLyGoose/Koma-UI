@@ -158,10 +158,11 @@ export const TANYA: HeroDef = {
     let bleeding = 0;
     const tier = self.unique?.tier ?? null;
 
-    /** In Stealth for a while: her crit chance higher (and with her unique weapon, her crit damage); her dodge (dodge, below). */
+    /** In Stealth for a while: her crit chance higher; her dodge (dodge, below). With her unique weapon, her crit damage higher for a while as she goes into it. */
     const hide = (): void => {
       stealth = STEALTH.lasts;
-      put(self.statuses, { name: STEALTHED.name, left: STEALTH.lasts, crit: share(STEALTH.crit), ...(tier !== null && { critDamage: atTier(CAETHASIS.critDamage, tier) }), shown: STEALTHED });
+      put(self.statuses, { name: STEALTHED.name, left: STEALTH.lasts, crit: share(STEALTH.crit), shown: STEALTHED });
+      if (tier !== null) put(self.statuses, { name: CAETHASIS_UP.name, left: CAETHASIS.boosted, critDamage: atTier(CAETHASIS.critDamage, tier), shown: CAETHASIS_UP });
       fight.cue(self, 'stealth');
     };
     /** Her Stealth spent. */
@@ -251,7 +252,6 @@ export const TANYA: HeroDef = {
       untouched: () => untouched > 0,
       dodge: () => (stealth > 0 ? STEALTH.dodge : 0),
       lit: () => stealth > 0,
-      buffs: () => (tier !== null && stealth > 0 ? [{ ...CAETHASIS_UP, left: stealth }] : []),
       marks: (): Mark[] => (bleeds.length > 0 ? [{ text: `${BLED} ×${bleeds.length}`, tone: 'curse', art: stateArt('Bleeding'), count: `×${bleeds.length}` }] : []),
     };
   },

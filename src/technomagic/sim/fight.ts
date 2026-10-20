@@ -14,7 +14,7 @@ import { grown, SET_UP, setOf, type SetEffect } from './sets';
 import { stateArt, type Art, type Buff, type Mark, type Tone } from './shown';
 import { CHAMPION_UP, DESPERATION_UP, MENDING_UP, SKILL, skilledCritDamage, skilledStats, skillsOf, SURGE_UP, type SkillId } from './skills';
 import type { Fight, Fighter, Foe, GearBonus, GearStat } from './types';
-import { atTier, ELICIPIRA, EXIAN, EXIAN_UP, ROSMERTA, ROSMERTA_UP, uniqueName, uniqueOf } from './unique';
+import { atTier, ELICIPIRA, EXIAN, EXIAN_UP, ROSMERTA, ROSMERTA_KASEL, ROSMERTA_UP, uniqueName, uniqueOf } from './unique';
 import { auraTotal, moveDmg, moveHeals, moveMarks, moveWhole, perkedStats, perksOf, tweaked, withPerks, type PerkDef, type SkillMark, type SkillStatus } from './perks';
 import { treasureOf } from './treasures';
 import { minionOf } from './bosses/dragon/common';
@@ -750,20 +750,24 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     const unique = fighter.unique;
     if (!unique) return;
     unique.casts++;
+    // (The allies standing in the fight, the highest ATK first: a tie in the field's order.)
+    const byAtk = (): Fighter[] => field.filter((ally) => ally.hp > 0 && !away(ally.statuses)).sort((a, b) => b.stats.atk - a.stats.atk);
     if (fighter.id === 'klaus' && unique.casts % EXIAN.every === 0) {
-      const boost = 1 + atTier(EXIAN.boost, unique.tier);
-      put(fighter.statuses, { name: EXIAN_UP.name, left: EXIAN.lasts, deals: boost, defends: boost, shown: EXIAN_UP });
+      // Every ally's P.DEF and ATK higher for a while; the ATK twice as much for the ally with the highest ATK.
+      const allies = byAtk();
+      for (const ally of allies) {
+        const atk = atTier(EXIAN.atk, unique.tier) * (ally === allies[0] ? EXIAN.top : 1);
+        put(ally.statuses, { name: EXIAN_UP.name, left: EXIAN.lasts, atk, defends: { physical: 1 + atTier(EXIAN.defense, unique.tier) }, shown: EXIAN_UP });
+      }
     } else if (fighter.id === 'fallen-frey') {
-      // The allies with the highest ATK (her among them, if she is one; a tie in the field's order): healed by a share of her
-      // ATK (a heal's numbers are at ATK), and seeing past more of the boss's defense for a while.
-      const top = field
-        .filter((ally) => ally.hp > 0 && !away(ally.statuses))
-        .sort((a, b) => b.stats.atk - a.stats.atk)
-        .slice(0, ROSMERTA.allies);
-      for (const ally of top) {
+      // The allies with the highest ATK (her among them, if she is one): healed by a share of her ATK (a heal's numbers are at
+      // ATK), and seeing past more of the boss's defense for a while; and Dark Lord Kasel, with her, quicker as long.
+      for (const ally of byAtk().slice(0, ROSMERTA.allies)) {
         sim.heal(ally, atTier(ROSMERTA.heal, unique.tier) * ATK, fighter);
         put(ally.statuses, { name: ROSMERTA_UP.name, left: ROSMERTA.lasts, pen: atTier(ROSMERTA.pen, unique.tier), shown: ROSMERTA_UP });
       }
+      for (const kasel of byAtk().filter((ally) => ally.id === 'dark-lord-kasel'))
+        put(kasel.statuses, { name: ROSMERTA_KASEL.name, left: ROSMERTA.lasts, speed: atTier(ROSMERTA.kasel, unique.tier), shown: ROSMERTA_KASEL });
     }
   }
 
@@ -1220,6 +1224,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     hit(by, amount, counted = true, pierce = 0, whole = false) {
       return hitting(by, amount, counted, pierce, whole);
     },
+    on: as,
     heal(fighter, amount, by) {
       if (fighter.hp <= 0) return;
       // (The more for its Recovery: its gear's, and what the sets on the field give every ally.)

@@ -5,7 +5,7 @@ import { fromTreasure, treasure, wearsTreasure } from '../treasures';
 import { MAX_MANA, SECTION } from '../rules';
 import { fine, pct, skillArt, type Buff } from '../shown';
 import type { Fighter } from '../types';
-import { CORBEAU, CORBEAU_UP } from '../unique';
+import { atTier, CORBEAU, CORBEAU_UP } from '../unique';
 import { bookDmg, bookHeal, CLASS_STATS, dmg, healed, type HeroDef, type Passive } from './kit';
 import { CODED } from './moves';
 
@@ -285,9 +285,9 @@ export const VALANCE: HeroDef = {
             name: CORBEAU_UP.name,
             left: Infinity,
             count: pieces,
-            deals: (1 + CORBEAU.atk) * (pieces >= 4 ? 1 + CORBEAU.dmg : 1),
-            ...(pieces >= 2 ? { defends: 1 + CORBEAU.defense } : {}),
-            ...(pieces >= 3 ? { takes: 1 / (1 + CORBEAU.hp) } : {}),
+            deals: (1 + atTier(CORBEAU.atk, self.unique.tier)) * (pieces >= 4 ? 1 + atTier(CORBEAU.dmg, self.unique.tier) : 1),
+            ...(pieces >= 2 ? { defends: 1 + atTier(CORBEAU.defense, self.unique.tier) } : {}),
+            ...(pieces >= 3 ? { takes: 1 / (1 + atTier(CORBEAU.hp, self.unique.tier)) } : {}),
             shown: CORBEAU_UP,
           });
         }

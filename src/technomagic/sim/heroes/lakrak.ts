@@ -17,8 +17,8 @@ import { attackStarts, bookDmg, CLASS_STATS, dmg, type HeroDef, type Passive, pl
  *   [Explosive Substance].
  * His passive, Load Cannon: now and then his attack fires a shell that stuns the boss; and as each skill of his ends, a
  * chance of an [Experiment] success, his next skill enhanced (an enhanced one tries none).
- * His unique weapon (../unique.ts) is worked here too: each part of his attack may gain him a stack of Gunpowder (up to 7),
- * each his ATK, attack speed and DMG to Non-Hero enemies higher.
+ * His unique weapon (../unique.ts) is worked here too: an [Experiment] likelier to succeed, and each success a stack (up to
+ * 4), each his ATK, attack speed and DMG to Non-Hero enemies higher.
  * What is drawn for each, and what his body does, are King's Raid's own (../../assets/heroes/lakrak.ts).
  *
  * His own perks (../perks.ts) are King's Raid's. Rapid Fire's Dark (the boss's mana) and Glue Bomb's Dark (its target)
@@ -131,12 +131,12 @@ export const LAKRAK: HeroDef = {
   join(fight, self) {
     const tier = self.unique?.tier ?? null;
     const starts = attackStarts('lakrak');
-    /** His next skill enhanced; whether the skill going is; Glue Bomb's bombs, and how long each has yet; whether his first shell is still to come (Bada Boom Cannonball); his unique weapon's Gunpowder. */
+    /** His next skill enhanced; whether the skill going is; Glue Bomb's bombs, and how long each has yet; whether his first shell is still to come (Bada Boom Cannonball); his unique weapon's stacks. */
     let success = false;
     let enhanced = false;
     let bombs: number[] = [];
     let first = wearsTreasure(self, 3);
-    let gunpowder = 0;
+    let stacks = 0;
     /** A skill of his going (its [Experiment] comes as it ends). */
     let skilling = false;
 
@@ -151,7 +151,7 @@ export const LAKRAK: HeroDef = {
 
     return {
       lands: {
-        // His attack; on each part of it, now and then a shell (its Light: likelier, a longer stun; Bada Boom Cannonball: the first certain); with his unique weapon, now and then a stack of Gunpowder.
+        // His attack; on each part of it, now and then a shell (its Light: likelier, a longer stun; Bada Boom Cannonball: the first certain).
         attack(part) {
           fight.hit(self, fight.basic);
           if (!starts.has(part)) return;
@@ -160,10 +160,6 @@ export const LAKRAK: HeroDef = {
             first = false;
             fight.hit(self, CANNON.blow);
             fight.stun(CANNON.stun + (self.perks.has('s4-light') ? PERKS.stun : 0), { by: self });
-          }
-          if (tier !== null && gunpowder < MK1.most && fight.roll() < MK1.chance) {
-            gunpowder++;
-            put(self.statuses, { name: MK1_UP.name, left: Infinity, count: gunpowder, atk: atTier(MK1.atk, tier) * gunpowder, speed: atTier(MK1.speed, tier) * gunpowder, deals: 1 + atTier(MK1.boss, tier) * gunpowder, shown: MK1_UP });
           }
         },
         // A blow that stuns the boss, and a blow more on a Non-Hero enemy; a critical one gains him mana. A success: no cooldown.
@@ -203,11 +199,16 @@ export const LAKRAK: HeroDef = {
           for (const left of bombs) if (left <= 0) burst();
           bombs = bombs.filter((left) => left > 0);
         }
-        // A skill of his over (not an enhanced one): an [Experiment] (its Dark: mana on a success; Transcend 5's Dark: quicker, and CC ACC).
+        // A skill of his over (not an enhanced one): an [Experiment], likelier with his unique weapon (its Dark: mana on a success;
+        // Transcend 5's Dark: quicker, and CC ACC; his unique weapon: a stack more).
         if (!skilling || self.doing?.skill !== undefined) return;
         skilling = false;
-        if (enhanced || fight.roll() >= CANNON.success) return;
+        if (enhanced || fight.roll() >= CANNON.success + (tier !== null ? atTier(MK1.success, tier) : 0)) return;
         success = true;
+        if (tier !== null) {
+          stacks = Math.min(MK1.most, stacks + 1);
+          put(self.statuses, { name: MK1_UP.name, left: Infinity, count: stacks, atk: atTier(MK1.atk, tier) * stacks, speed: atTier(MK1.speed, tier) * stacks, deals: 1 + atTier(MK1.boss, tier) * stacks, shown: MK1_UP });
+        }
         put(self.statuses, { name: SUCCESS.name, left: Infinity, shown: SUCCESS });
         if (self.perks.has('s4-dark')) self.mana = Math.min(MAX_MANA, self.mana + PERKS.mana);
         if (self.perks.has('t5-dark')) put(self.statuses, { name: EXPERIMENTED.name, left: PERKS.dark.lasts, speed: PERKS.dark.speed, accuracy: PERKS.dark.accuracy, shown: EXPERIMENTED });

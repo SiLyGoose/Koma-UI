@@ -212,7 +212,7 @@ export const LORRAINE: HeroDef = {
           fight.foe.statuses.splice(fight.foe.statuses.findIndex((status) => status.name === POISONED), 1);
           return;
         }
-        // Her unique weapon: every 7 seconds, with the boss poisoned, a blow that leaves it taking more magical damage for a while.
+        // Her unique weapon: every 7 seconds, with the boss poisoned, a blow that leaves its M.DEF lower and it taking more magical damage for a while.
         if (tier !== null && self.hp > 0) {
           roburu += dt;
           if (roburu >= ROBURU.every) {
@@ -220,7 +220,7 @@ export const LORRAINE: HeroDef = {
             if (count > 0) {
               fight.cue(self, 'roburu');
               fight.hit(self, atTier(ROBURU.blow, tier), false);
-              put(fight.foe.statuses, { name: ROBURU.name, left: ROBURU.lasts, takes: { magical: 1 + atTier(ROBURU.takes, tier) }, shown: 'curse' });
+              put(fight.foe.statuses, { name: ROBURU.name, left: ROBURU.lasts, defends: { magical: 1 - atTier(ROBURU.defense, tier) }, takes: { magical: 1 + atTier(ROBURU.takes, tier) }, shown: 'curse' });
             }
           }
         }

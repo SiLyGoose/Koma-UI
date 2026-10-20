@@ -4,7 +4,8 @@ import { said, t5Light } from '../perks';
 import { fromTreasure, treasure } from '../treasures';
 import { MAX_MANA } from '../rules';
 import { num, pct, skillArt, type Buff } from '../shown';
-import { SVELTA, SVELTA_UP } from '../unique';
+import { isDragon } from '../bosses';
+import { atTier, SVELTA, SVELTA_UP } from '../unique';
 import { bookDmg, CLASS_STATS, dmg, type HeroDef, indexed, type Passive } from './kit';
 
 /*
@@ -16,7 +17,8 @@ import { bookDmg, CLASS_STATS, dmg, type HeroDef, indexed, type Passive } from '
  *   meanwhile each blow of her attack takes 3% of her mana (none the more for it here: there is only the boss in its line).
  * Her passive, Dragon Slayer: her ATK and max HP higher.
  * What the game has each do more to a Dragon is nothing here: Galgoria is a chimera.
- * Her unique weapon (../unique.ts) is worked here too: a critical blow of hers deals more and gains her mana.
+ * Her unique weapon (../unique.ts) is worked here too: a critical blow of hers deals more and gains her mana (on a dragon, a
+ * blow more again and a stun).
  * What is drawn for each is ../../heroes/yanne/fx.ts; what her body does for each, and for her attack, ../../heroes/yanne/moves.ts.
  *
  * Her own perks (../perks.ts) are King's Raid's. Wipeout!'s Light always holds (there is only the boss). Dragon
@@ -147,13 +149,17 @@ export const YANNE: HeroDef = {
     let svelta = 0;
     const tier = self.unique?.tier ?? null;
 
-    /** A blow of hers: a critical one, with her unique weapon (no sooner than a moment after the last), a blow more and mana. */
+    /** A blow of hers: a critical one, with her unique weapon (no sooner than a moment after the last), a blow more and mana; on a dragon, a blow more again and a stun. */
     const shoot = (amount: number): boolean => {
       const critical = fight.hit(self, amount);
       if (critical && tier !== null && svelta <= 0) {
         svelta = SVELTA.every;
-        fight.hit(self, SVELTA.blow, false);
+        fight.hit(self, atTier(SVELTA.blow, tier), false);
         self.mana = Math.min(MAX_MANA, self.mana + SVELTA.mana);
+        if (isDragon(fight.foe.def.id)) {
+          fight.hit(self, atTier(SVELTA.dragon, tier), false);
+          fight.stun(SVELTA.stun, { by: self });
+        }
       }
       return critical;
     };

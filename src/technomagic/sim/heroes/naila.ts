@@ -3,7 +3,7 @@ import { put } from '../combat/status';
 import { said, t5Light } from '../perks';
 import { treasure, wearsTreasure } from '../treasures';
 import { nth, num, pct, skillArt, type Buff } from '../shown';
-import { atTier, BARORO } from '../unique';
+import { atTier, BARORO, BARORO_UP } from '../unique';
 import { bookDmg, CLASS_STATS, dmg, type HeroDef, indexed, type Passive } from './kit';
 import { CODED } from './moves';
 
@@ -16,8 +16,8 @@ import { CODED } from './moves';
  * - Dive Bomb: she flies up and strikes, more on a boss, and more again while she has it knocked down.
  * Her passive, Tornado Strike: now and then her 5th attack deals more, leaves the boss taking more physical damage for
  * a while, and knocks it down.
- * Her unique weapon (../unique.ts) is worked here too: a critical blow of hers leaves the boss losing health for a
- * while, and taking more physical damage meanwhile.
+ * Her unique weapon (../unique.ts) is worked here too: a critical blow of hers leaves its target taking more physical
+ * damage and with less CC resist for a while, and on the boss a stack on her, each her DMG higher.
  * What is drawn for each is ../../heroes/naila/fx.ts; what her body does for each, and for her attack, ../../heroes/naila/moves.ts.
  *
  * Her own perks (../perks.ts) are King's Raid's. Fierce Winds' Light always holds (there is only the boss), and its Dark
@@ -145,20 +145,24 @@ export const NAILA: HeroDef = {
   // Her animations: four blows, fist and foot (Ezekiel's fist fight), each an attack of hers.
   timing: { attack: [{ lands: [0.92, 1.52, 2.78, 3.62], until: 4.3 }] },
   join(fight, self) {
-    /** Her attacks toward Tornado Strike's next chance; how long she has the boss knocked down yet; Transcend 5's Dark's stacks; her unique weapon's blow on the boss, how long it lasts yet, and toward its next bite. */
+    /** Her attacks toward Tornado Strike's next chance; how long she has the boss knocked down yet; Transcend 5's Dark's stacks. */
     let attacks = 0;
     let downed = 0;
     let gusts = 0;
-    let baroro = 0;
-    let bitten = 0;
     const tier = self.unique?.tier ?? null;
 
-    /** A blow of hers: a critical one, with her unique weapon, leaves the boss losing health and taking more physical damage (begun again). */
+    /**
+     * A blow of hers: a critical one, with her unique weapon, leaves its target taking more physical damage and with less CC
+     * resist (begun again); on the boss, a stack more on her (up to so many, begun again), each her DMG higher.
+     */
     const strike = (amount: number): boolean => {
       const critical = fight.hit(self, amount);
       if (critical && tier !== null) {
-        baroro = BARORO.lasts;
-        put(fight.foe.statuses, { name: BARORO.name, left: BARORO.lasts, takes: { physical: 1 + atTier(BARORO.takes, tier) }, shown: 'curse' });
+        put(fight.foe.statuses, { name: BARORO.name, left: BARORO.lasts, takes: { physical: 1 + atTier(BARORO.takes, tier) }, resist: -atTier(BARORO.resist, tier), shown: 'curse' });
+        if (fight.foe === fight.boss) {
+          const stacks = Math.min(BARORO.most, (self.statuses.find((status) => status.name === BARORO_UP.name)?.count ?? 0) + 1);
+          put(self.statuses, { name: BARORO_UP.name, left: BARORO.lasts, count: stacks, deals: 1 + atTier(BARORO.boss, tier) * stacks, shown: BARORO_UP });
+        }
       }
       return critical;
     };
@@ -214,17 +218,6 @@ export const NAILA: HeroDef = {
       },
       tick(dt) {
         downed = Math.max(0, downed - dt);
-        // Her unique weapon's blow eats at the boss every second while it lasts.
-        if (baroro <= 0 || tier === null) {
-          bitten = 0;
-          return;
-        }
-        baroro -= dt;
-        bitten += dt;
-        if (bitten >= 1) {
-          bitten -= 1;
-          fight.hit(self, atTier(BARORO.blow, tier) / BARORO.lasts, false);
-        }
       },
       deals: () => 1 + PERKS.dodge.atk * gusts,
       speed: () => PERKS.dodge.speed * gusts,

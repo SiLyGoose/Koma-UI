@@ -226,6 +226,8 @@ export interface Fight {
   readonly stage: number;
   /** The fight's chances: a number from 0 up to 1 (./random.ts). Nothing in it is to use Math.random. */
   roll(): number;
+  /** `run` with `foe` the enemy in question (`foe`): what it hits, stuns or leaves something on is that one. */
+  on<T>(foe: Foe, run: () => T): T;
   /**
    * A hero's blow lands on the boss: `amount` in thousandths of the hero's ATK, as the game's shares have them (./combat/damage.ts), before the hero's own attack, its passive
    * and the boss's defense against the kind of damage it deals (seen past by its penetration, and `pierce`

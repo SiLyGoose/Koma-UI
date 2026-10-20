@@ -261,7 +261,7 @@ export const LAIAS: HeroDef = {
         const on = allies();
         for (const ally of on) {
           put(ally.statuses, { name: BLESSED.name, left: Infinity, defends: { magical: defense }, critResist: { magical: critResist }, shown: BLESSED });
-          if (tier !== null) put(ally.statuses, { name: ELTOIRRE_UP.name, left: Infinity, heals: 1 + atTier(ELTOIRRE.heals, tier), shown: ELTOIRRE_UP });
+          if (tier !== null) put(ally.statuses, { name: ELTOIRRE_UP.name, left: Infinity, heals: 1 + atTier(ELTOIRRE.heals, tier), bolsters: { magical: self.stats.atk * ELTOIRRE.defense }, shown: ELTOIRRE_UP });
         }
         // Tear of God Dragon: every ally's mana, every second.
         if (tear > 0) for (const ally of on) ally.mana = Math.min(MAX_MANA, ally.mana + tear * dt);

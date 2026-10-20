@@ -153,13 +153,20 @@ export const NERAXIS: HeroDef = {
     /** A blow of one of his skills. */
     const blow = (amount: number): boolean => fight.hit(self, amount * more());
 
-    /** His attack: a blow; every so many, with his unique weapon, a blow more, a stun, and the Storm of Neraxis on every ally. */
+    /** His attack: a blow; every so many, with his unique weapon, a blow more and a stun on so many enemies at random, and the Storm of Neraxis on every ally. */
     const attack = (amount: number): void => {
       fight.hit(self, amount);
       if (tier === null || ++blows < atTier(ACRAVITA.blows, tier)) return;
       blows = 0;
-      fight.hit(self, ACRAVITA.blow, false);
-      fight.stun(ACRAVITA.stun, { by: self });
+      const standing = fight.foes.filter((foe) => foe.hp > 0 && !foe.away);
+      for (let n = 0; n < ACRAVITA.enemies && standing.length > 0; n++) {
+        const [foe] = standing.splice(Math.floor(fight.roll() * standing.length), 1);
+        if (!foe) break;
+        fight.on(foe, () => {
+          fight.hit(self, ACRAVITA.blow, false);
+          fight.stun(ACRAVITA.stun, { by: self });
+        });
+      }
       storm = ACRAVITA.lasts;
       const share = atTier(ACRAVITA.defense, tier);
       for (const ally of fight.field) {
