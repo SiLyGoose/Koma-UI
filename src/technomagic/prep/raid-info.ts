@@ -72,8 +72,8 @@ function rulesOf(boss: BossDef): string[] {
   return [
     `Its Swamp Destroyer knocks every hero down. No stun holds it, but stuns wear its CC Gauge down (it fills again soon after); empty, it is Down for ${DOWN} seconds.`,
     `Heroes that fall stay down. Beat it within ${clockOf(boss)}, before its rage wipes the party. Each stage, it has more health and hits harder; single player, it has ${solo}% of the health.`,
-    `${lineup(8, 7)} A win gives each player TechnoMagic gear and zeiucoins.`,
-    'The host picks the stage: each after the first opens once they have beaten the one before it.',
+    `${lineup(8, 7)} A win gives each player TechnoMagic gear and zeiucoins, and komaGems the first time they clear a stage.`,
+    'The host picks the stage: each after the first opens once they have beaten the one before it. A win clears every stage under it too: carried to a stage, a player has those before it opened, and their komaGems.',
   ];
 }
 

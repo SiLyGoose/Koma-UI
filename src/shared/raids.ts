@@ -47,8 +47,8 @@ const GEMS: RaidReward = { kind: 'gems' };
 
 export const TM_LIST: RaidList = {
   game: 'technomagic',
-  tip: 'Every win gives TechnoMagic gear of the boss’s own set, runes and zeiucoins. There is no daily limit.',
-  rewardNote: 'TechnoMagic gear of its set (3 pieces at stages 1–3, 4 at 4–6, 5 at 7–8, each with its options and an additional effect), runes (better from the start than a dragon’s), and now and then an artifact.',
+  tip: 'Every win gives TechnoMagic gear of the boss’s own set, runes and zeiucoins, and komaGems the first time you clear a stage. There is no daily limit.',
+  rewardNote: 'TechnoMagic gear of its set (3 pieces at stages 1–3, 4 at 4–6, 5 at 7–8, each with its options and an additional effect), runes (better from the start than a dragon’s), and now and then an artifact. komaGems, the first time a stage is cleared: 5 at stages 1–3, 10 at 4–6, 20 at 7–8.',
   cards: [
     {
       id: 'galgoria',
@@ -59,7 +59,7 @@ export const TM_LIST: RaidList = {
         'Galgoria, a chimera of three heads that spits venom. Its blows are magical, nothing slows it, and it heals itself all the while. Every 150 blows the hero that has dealt the most is shut in the swamp, and its Swamp Destroyer knocks every hero down.',
       tactic:
         'As all of Galgoria’s attacks deal M.DMG and it recovers HP all the while, you should try using Heroes that have M.DEF-related spells and Heroes that reduce its healing. Since [Swamp Imprisonment] shuts away the Hero that has dealt the most DMG, your party should not rely on a single Hero. Also, since Galgoria takes 20% more P.DMG, you should form your party with Heroes that mainly deal P.DMG.',
-      rewards: [POINTS, { kind: 'tm', slot: 'weapon', name: 'Perseverance Set' }],
+      rewards: [POINTS, GEMS, { kind: 'tm', slot: 'weapon', name: 'Perseverance Set' }],
     },
   ],
   upcoming: [{ id: 'siegfried', name: 'Siegfried', title: 'TechnoMagic Raid' }],
