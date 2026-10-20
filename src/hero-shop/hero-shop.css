@@ -1,8 +1,15 @@
 /*
- * The shop's Heroes tab (page.ts): the Outfits tab's cards and buy box (../outfits/outfits.css), with a
- * hero's picture in place of a character (King's Raid's own card of it, filling the card above its name from the
- * top down, its bottom cut off as King's Raid's frames cut it) and its class's badge in the top corner.
+ * The shop's Heroes tab (page.ts): the Outfits tab's page and buy box (../outfits/outfits.css), with cards as King's
+ * Raid's shop has them (its Special Shop's Heroes): tall and narrow, the hero's own card of the game filling it from the
+ * top down and fading to dark under its name and price, in a thin cream frame with the game's curl in two corners
+ * (public/kr/ui/shop-corner.webp, BanPick_HeroFrameEdge01) and the class's badge in the top one.
  */
+
+/* Its cards as tall as King's Raid's (168 by 382): as many as fit, as big as the screen's height leaves room for. */
+.hero-shop {
+  --card-width: clamp(150px, min(15vw, (100dvh - 250px) * 0.44), 220px);
+  --cream: #eadfc6;
+}
 
 /*
  * Its cards in the middle of the panel, as many to a line as fit, a line after the first starting at the left of
@@ -16,11 +23,69 @@
   }
 }
 
+.hero-shop .hero-card {
+  --frame: var(--cream);
+  min-width: 0;
+  aspect-ratio: 168 / 382;
+  justify-content: flex-end;
+  /* (Its curls stick out past its frame.) */
+  overflow: visible;
+  border: 2px solid var(--frame);
+  border-radius: 3px;
+  background: #0a1b20;
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 70%),
+    0 10px 24px rgb(0 0 0 / 50%);
+}
+
+.hero-shop .hero-card:hover:not(:disabled, [data-state='owned']) {
+  --frame: #fff4dc;
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 70%),
+    0 0 14px rgb(255 236 190 / 35%),
+    0 14px 28px rgb(0 0 0 / 55%);
+}
+
+/* The game's curl, on the frame's top left corner (under the class's badge) and its bottom right. */
+.hero-shop .hero-card::before,
+.hero-shop .hero-card::after {
+  z-index: 3;
+  width: 15%;
+  height: auto;
+  aspect-ratio: 1;
+  background: url('/kr/ui/shop-corner.webp') center / contain no-repeat;
+  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 60%));
+  rotate: none;
+}
+
+.hero-shop .hero-card::before {
+  top: -6px;
+  left: -6px;
+  width: 34%;
+  scale: 1 -1;
+}
+
+.hero-shop .hero-card::after {
+  top: auto;
+  right: -4px;
+  bottom: -4px;
+  scale: -1 1;
+}
+
+/* The picture, the whole card: the bottom of it cut off (as the game's frames cut it), dark under the name and price. */
 .hero-card-art {
-  position: relative;
-  flex: 1;
-  min-height: 0;
+  position: absolute;
+  inset: 0;
   overflow: hidden;
+}
+
+.hero-card-art::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(180deg, transparent 52%, rgb(6 18 22 / 72%) 68%, rgb(4 13 16 / 96%) 84%);
+  pointer-events: none;
 }
 
 .hero-card-picture {
@@ -41,25 +106,58 @@
 .hero-card-initial {
   display: grid;
   place-items: center;
-  height: 100%;
+  height: 70%;
   color: rgb(255 244 214 / 70%);
   font-size: 64px;
   font-weight: 800;
 }
 
+/* The class's badge, in the top corner's curl. */
 .hero-card-class {
   position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: 2;
-  width: 34px;
-  height: 34px;
-  filter: drop-shadow(0 1px 3px rgb(0 0 0 / 70%));
+  top: 3.5%;
+  left: 5%;
+  z-index: 4;
+  width: 22%;
+  height: auto;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--cream), 0 1px 4px rgb(0 0 0 / 70%);
 }
 
-.hero-buy-figure {
+/* Its name, pale blue on a glow; then its price (or that it's theirs), over the dark. */
+.hero-shop .hero-card .outfit-name {
+  position: relative;
+  z-index: 2;
+  margin: 0 4px;
+  padding: 6px 4px;
+  background: radial-gradient(ellipse 58% 50% at 50% 55%, rgb(60 145 230 / 55%), transparent 75%);
+  color: #d9eeff;
+  font-size: clamp(16px, 1.4vw, 20px);
+  font-weight: 700;
+  text-shadow:
+    0 0 8px rgb(70 160 255 / 80%),
+    0 1px 2px rgb(0 0 0 / 80%);
+}
+
+.hero-shop .hero-card .outfit-foot {
+  position: relative;
+  z-index: 2;
+  min-height: 0;
+  padding: 2px 6px 12%;
+  border-top: 0;
+  background: none;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 80%);
+}
+
+.hero-shop .hero-buy-figure {
+  width: 120px;
+  height: auto;
+  aspect-ratio: 168 / 382;
   padding: 0;
   overflow: hidden;
+  border-color: var(--cream);
+  border-radius: 3px;
+  background: #0a1b20;
 }
 
 .hero-buy-picture {
