@@ -153,6 +153,11 @@
   gap: 10px;
 }
 
+/* Each filling its column (on narrow screens the enemies' own list has them narrower, to scroll sideways). */
+.db-areas .db-area-card {
+  width: 100%;
+}
+
 /* King's Raid's own pick: its thumbs-up (the recommended heroes' own) over the card's top left. */
 .db-area-card img.db-area-kr {
   position: absolute;
