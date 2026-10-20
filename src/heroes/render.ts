@@ -463,7 +463,10 @@ function renderDetail(ctx: HeroesContext, act: HeroActions): void {
     label: ut ? 'Options' : 'On a hero',
     none: NONE,
     effectsOff: !fits,
-    sections: ut ? treasureSection(ut.main, worn === 'treasure') : copy.krSet || copy.part === 'artifact' ? krSections(ctx, act, copy, fits, fits && equipInto ? setPieces(ctx, hero, copy, equipInto) : null) : tmSections(shown),
+    sections: [
+      ...(ut ? treasureSection(ut.main, worn === 'treasure') : copy.krSet || copy.part === 'artifact' ? krSections(copy, fits, fits && equipInto ? setPieces(ctx, hero, copy, equipInto) : null) : tmSections(shown)),
+      ...runeSection(ctx, act, copy),
+    ],
     notes,
     // Lock: theirs to toggle on the site (not while picking what to sell); else just shown when shut.
     corner: lockToggle(copy, ctx.busy, canTrade(ctx) && !ctx.selling ? (locked) => act.lock(copy, locked) : null),
@@ -515,12 +518,10 @@ function krSection(title: string, rows: HTMLElement[], className = ''): HTMLElem
 
 /**
  * King's Raid's gear's parts in the detail, under its effects: its options (each its step), its unique option (its
- * additional skill), its set's bonuses (lit while on; picked to equip, `pieces`: lit too where equipping it would turn
- * them on, with a tag saying so), and its rune sockets (a rune in each, to take out; their runes to put
- * in are its Runes, in the cards' place). Rerolling and enhancing them is the forge's (its Upgrade). Buttons only on their own copy.
+ * additional skill) and its set's bonuses (lit while on; picked to equip, `pieces`: lit too where equipping it would turn
+ * them on, with a tag saying so). Rerolling and enhancing them is the forge's (its Upgrade).
  */
-function krSections(ctx: HeroesContext, act: HeroActions, copy: HeroCopy, fits: boolean, pieces: { now: number; equipped: number } | null = null): HTMLElement[] {
-  const own = mine(ctx) && !ctx.selling;
+function krSections(copy: HeroCopy, fits: boolean, pieces: { now: number; equipped: number } | null = null): HTMLElement[] {
   const out: HTMLElement[] = [];
   if (copy.options.length > 0) out.push(krSection('Options', copy.options.map((option) => optionRow(option, fits))));
   if (copy.additional) {
@@ -538,6 +539,16 @@ function krSections(ctx: HeroesContext, act: HeroActions, copy: HeroCopy, fits: 
       return row;
     })));
   }
+  return out;
+}
+
+/**
+ * Any hero piece's rune sockets in the detail (a King's Raid piece's, a TechnoMagic one's, a unique weapon's): a rune in each,
+ * with what it gives, to take out; their runes to put in are its Runes, in the cards' place. Buttons only on their own copy.
+ */
+function runeSection(ctx: HeroesContext, act: HeroActions, copy: HeroCopy): HTMLElement[] {
+  const own = mine(ctx) && !ctx.selling;
+  const out: HTMLElement[] = [];
   if (copy.runes.length > 0) {
     const rows = copy.runes.map((rune, socket) => {
       const row = el('div', 'kr-socket');
