@@ -9,6 +9,7 @@ import { existsSync, mkdirSync, readdirSync, rmSync, statSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { BUILT_DIR, builtPath, isTexture, pictures, SMALL_FROM, smallPath, solidOf } from './built.mjs';
+import { makeBlur } from './blur.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const pub = resolve(root, 'public');
@@ -82,6 +83,15 @@ async function makeAll() {
     for (let job = jobs.shift(); job; job = jobs.shift()) await job();
   });
   await Promise.all(running);
+  // The items' pictures blurred, in one sheet (./blur.mjs).
+  try {
+    const blur = await makeBlur(sharp, pub, root);
+    for (const file of blur.files) wanted.add(file);
+    if (blur.made) made++;
+    else kept++;
+  } catch (error) {
+    console.warn(`pictures: the blurred items not made: ${error instanceof Error ? error.message : error}`);
+  }
   // The ones from before (a picture since gone or renamed): gone.
   const tidy = (dir) => {
     for (const entry of readdirSync(dir, { withFileTypes: true })) {

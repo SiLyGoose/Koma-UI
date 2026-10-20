@@ -4,6 +4,7 @@
  */
 
 import { built, hasItemArt } from '../built';
+import { blurWhileLoading, stopBlur } from './blur';
 import { HERO_PART_NAME, heroCut, type HeroPart, TAB_FACE } from '../heroes';
 import { points } from '../util';
 import type { MainStat, Slot } from '../../protocol/items';
@@ -65,11 +66,13 @@ const noArt = new Set<string>();
  * frame it's in, with the rest drawn over it. The sprites in ART, and the slot icon standing in for
  * a missing picture (`glyph`), stay small in the middle. An item with no picture there (the build says
  * which: ../built.ts) has its slot's icon without asking for one. `lazy`: one of a long list (an armory,
- * the databank), whose picture waits until it's scrolled near (and the page transition doesn't wait for it).
+ * the databank), whose picture waits until it's scrolled near (and the page transition doesn't wait for it). A full
+ * picture still loading shows blurred meanwhile (./blur.ts).
  */
 export function art(itemId: string | null, slot: Slot, lazy = false): HTMLElement {
   const box = el('span', 'art');
   const glyph = (): void => {
+    stopBlur(box);
     box.classList.remove('full');
     box.classList.add('glyph');
     const icon = el('img');
@@ -88,6 +91,7 @@ export function art(itemId: string | null, slot: Slot, lazy = false): HTMLElemen
     img.decoding = 'async';
     img.src = `/kr/items/${icon}.webp`;
     box.classList.add('full');
+    blurWhileLoading(box, img, img.getAttribute('src') ?? '');
     img.addEventListener('error', () => {
       noArt.add(itemId);
       img.remove();
@@ -105,8 +109,12 @@ export function art(itemId: string | null, slot: Slot, lazy = false): HTMLElemen
   img.draggable = false;
   if (lazy) img.loading = 'lazy';
   img.decoding = 'async';
-  img.src = sprite ?? built(`/gear/items/${ITEM_DIR[slot]}/${itemId}.png`);
-  if (!sprite) box.classList.add('full');
+  const address = `/gear/items/${ITEM_DIR[slot]}/${itemId}.png`;
+  img.src = sprite ?? built(address);
+  if (!sprite) {
+    box.classList.add('full');
+    blurWhileLoading(box, img, address);
+  }
   img.addEventListener('error', () => {
     noArt.add(itemId);
     img.remove();

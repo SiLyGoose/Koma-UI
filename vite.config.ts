@@ -2,7 +2,7 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { defineConfig, type Plugin } from 'vite';
 // @ts-expect-error: a plain script (no types), shared with scripts/pictures.mjs.
-import { BUILT_DIR, builtClipPath, builtPath, CLIP_FOLDER, clips as builtClips, FOLDERS, pictures as builtPictures, smallPath } from './scripts/built.mjs';
+import { BLUR_INDEX, BUILT_DIR, builtClipPath, builtPath, CLIP_FOLDER, clips as builtClips, FOLDERS, pictures as builtPictures, smallPath } from './scripts/built.mjs';
 
 /**
  * The page transitions' first half (src/shared/transition/head.*), inline at the end of every page's
@@ -52,6 +52,22 @@ function pictures(): Plugin {
   };
 }
 
+/**
+ * `virtual:blur` (src/shared/items/blur.ts asks for it once a picture is loading): the items' pictures blurred, as
+ * scripts/blur.mjs left them (its index: the sheet and what's where on it), or null where none was made (`yarn dev`
+ * before `node scripts/pictures.mjs`). A chunk of its own, so a page that never needs it never loads it.
+ */
+function blur(): Plugin {
+  const id = 'virtual:blur';
+  const resolved = `\0${id}`;
+  const index = resolve(import.meta.dirname, 'public', BLUR_INDEX as string);
+  return {
+    name: 'blur',
+    resolveId: (source) => (source === id ? resolved : null),
+    load: (loaded) => (loaded === resolved ? `export default ${existsSync(index) ? readFileSync(index, 'utf8') : 'null'};` : null),
+  };
+}
+
 // The front page (log in, pick a server and a game) is index.html. Each game is served at
 // /games/<name>/: its page lives at games/<name>/index.html, and the build keeps that path
 // (dist/games/<name>/index.html), with the shared assets under /assets. The site's own pages (the front page,
@@ -59,7 +75,7 @@ function pictures(): Plugin {
 // (src/site/main.ts; vercel.json sends /gear/, /heroes/, /forge/, /shop/…, /dressing-room/, /databank/… and /admin/ there, and the old
 // /banner/ to /shop/wish/).
 export default defineConfig({
-  plugins: [transitionHead(), pictures()],
+  plugins: [transitionHead(), pictures(), blur()],
   build: {
     rolldownOptions: {
       input: {

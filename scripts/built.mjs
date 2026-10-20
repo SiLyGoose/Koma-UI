@@ -12,6 +12,10 @@ export const FOLDERS = ['gear/items/', 'kr/heroes/', 'kr/bosses/', 'technomagic/
 /** Where built pictures go, under public/ (and so where the pages find them). */
 export const BUILT_DIR = 'built';
 
+/** The items' pictures blurred (./blur.mjs): their sheet's folder, and its index, under public/. */
+export const BLUR_DIR = `${BUILT_DIR}/blur`;
+export const BLUR_INDEX = `${BLUR_DIR}/index.json`;
+
 /** A texture's colour picture, by the name of either of its two (models.ts's colourOf: the two must say the same). */
 export const colourOf = (file) => file.replace('(AS)', '(RGB)').replace(/_AS(\.\w+)$/, '_D$1');
 /** A texture's (AS) picture, by its colour's name (the same name: it has none). models.ts's solidOf. */

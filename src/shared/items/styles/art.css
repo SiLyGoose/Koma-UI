@@ -13,6 +13,34 @@
   filter: drop-shadow(0 2px 0 rgb(0 0 0 / 25%));
 }
 
+/*
+ * A picture still loading (../blur.ts): its own blurred square of the sheet under it, filling the box, and the picture
+ * fading in over it once it's in. (Placed in its box only where nothing else places the box.)
+ */
+:where(.art.blur) {
+  position: relative;
+  overflow: hidden;
+}
+
+.art.blur::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--blur, none);
+  filter: blur(5px);
+  transform: scale(1.25);
+}
+
+.art.blur img {
+  position: relative;
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+
+.art.blur.loaded img {
+  opacity: 1;
+}
+
 /* A slot's icon standing in for an item's picture: smooth, not pixel art, a little smaller. */
 .art.glyph img {
   width: 78%;
