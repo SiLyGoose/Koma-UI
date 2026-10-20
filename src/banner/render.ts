@@ -3,7 +3,7 @@ import { art, el, kindName, rich, tierMark, utMarks, utTier, uwMarks, uwTier } f
 import { working } from '../shared/ui';
 import { timeLeft, type Banner, type Featured } from './banners';
 import { canAfford, price, type BannerContext } from './context';
-import type { BannerView, PullRecord, Stars } from './types';
+import type { BannerView, GuaranteeChoice, PullRecord, Stars } from './types';
 
 /** komaTokens, as the bot writes them (its constants/core.ts TOKEN_EMOJI). */
 const TOKEN_EMOJI = '<:zeiutoken:1552921364489572362>';
@@ -62,29 +62,40 @@ function renderTabs(ctx: BannerContext): void {
   }
 }
 
+/** What picking none means on a banner: any of their own treasures (standard), any featured item (limited), or no guarantee. */
+function noneLabel(banner: Banner['id'], choices: readonly GuaranteeChoice[]): string {
+  if (banner === 'limited') return 'Any of them';
+  return banner === 'standard' && choices.some((choice) => choice.mine) ? 'Any of your own' : 'None';
+}
+
 /**
- * The pick's options: each item the guarantee can give (its picture, name and stars), the one picked
- * checked, under "Any of them" when there's more than one to pick from.
+ * The pick's options: each item the guarantee can give (its picture, name and tier: a unique weapon's or treasure's
+ * own; their own treasures said so), the one picked checked, under what picking none means (on the limited banner
+ * only when there's more than one to pick from: one alone is the one it gives).
  */
-function renderPick(ctx: BannerContext, choices: NonNullable<BannerView['choices']>, picked: string | null): void {
+function renderPick(ctx: BannerContext, choices: readonly GuaranteeChoice[], picked: string | null): void {
   const { ui } = ctx;
   ui.pickList.textContent = '';
   if (!ctx.view) return;
-  for (const choice of choices.length > 1 ? [null, ...choices] : choices) {
+  const id = ctx.banner.id;
+  const lone = id === 'limited' && choices.length === 1;
+  for (const choice of lone ? choices : [null, ...choices]) {
     const option = el('button', 'banner-pick');
     option.type = 'button';
     option.setAttribute('role', 'radio');
-    option.setAttribute('aria-checked', String(choices.length === 1 || (choice?.itemId ?? null) === picked));
+    option.setAttribute('aria-checked', String(lone || (choice?.itemId ?? null) === picked));
     option.dataset.item = choice?.itemId ?? '';
     option.dataset.stars = String(choice?.stars ?? ctx.view.topStars);
     option.disabled = ctx.busy !== null;
     const face = el('span', 'banner-path-art banner-pick-art');
     if (choice) {
       face.append(art(choice.itemId, choice.slot));
-      option.append(face, el('span', 'banner-pick-name', choice.name), tierMark(choice.stars));
+      const name = el('span', 'banner-pick-name', choice.name);
+      if (choice.mine) name.append(el('small', 'banner-pick-mine', 'Yours'));
+      option.append(face, name, choice.uniqueWeapon ? uwTier() : choice.uniqueTreasure ? utTier() : tierMark(choice.stars));
     } else {
       face.textContent = '?';
-      option.append(face, el('span', 'banner-pick-name', 'Any of them'));
+      option.append(face, el('span', 'banner-pick-name', noneLabel(id, choices)));
     }
     ui.pickList.append(option);
   }
@@ -207,39 +218,48 @@ export function render(ctx: BannerContext): void {
         : `Unique treasures are ${top}. Each pull has a ${chance} chance at one.`;
     ui.detailsPity.textContent = 'Pity is off in this server: every pull has the same odds.';
   }
-  // Their own treasure: 1/1 when their next unique treasure is guaranteed to be it (their last was
-  // someone else's), 0/1 when it could be anyone's. On the limited banner the ring is its first
-  // featured item's: 1/1 when their next top-tier item there is guaranteed to be a featured one.
-  // Either way it's the item they picked for the guarantee to give, once they have (the ring opens the pick).
+  // The guarantee's ring: the item it is for (the one they picked; else their own treasure, or the limited banner's first
+  // featured item), 1/1 when their next top-tier item here is guaranteed to be it (their last one wasn't), 0/1 when it
+  // could be anything. With none (nothing picked on the Hero Item banner, no treasure of their own on the standard
+  // one), a "?" that asks for a pick. Either way the ring opens the pick.
   const choices = view.choices ?? [];
   const picked = choices.find((item) => item.itemId === view.pick) ?? null;
-  const shown = picked ?? (limited ? banner.featured[0] : (view.own ?? null));
-  ui.path.hidden = !shown;
-  ui.guarantee.hidden = !shown;
-  if (shown) {
-    const on = view.guaranteed ? 1 : 0;
-    ui.pathArt.replaceChildren(art(shown.itemId, shown.slot));
+  const shown = picked ?? (limited ? banner.featured[0] : hero ? null : (view.own ?? null));
+  const asks = !shown && choices.length > 0;
+  ui.path.hidden = !shown && !asks;
+  ui.guarantee.hidden = ui.path.hidden;
+  if (shown || asks) {
+    const on = shown && view.guaranteed ? 1 : 0;
+    if (shown) ui.pathArt.replaceChildren(art(shown.itemId, shown.slot));
+    else ui.pathArt.replaceChildren(el('span', 'banner-path-ask', '?'));
     ui.pathCount.replaceChildren(el('strong', '', String(on)), '/1');
     ui.pathRing.style.setProperty('--fill', String(on));
     ui.path.classList.toggle('on', on === 1);
+    // (Their own treasure on the standard banner, picked or not: any of their own counts, as it always has.)
+    const ownKind = !limited && !hero && (!picked || picked.mine === true);
     const one = picked ? ` ${picked.name}` : '';
-    const text = limited
-      ? view.guaranteed
-        ? `Your last ${top} from a limited banner wasn't a featured item, so your next one here is guaranteed to be${one} (1/1).`
-        : `Your next ${top} here is a featured item ${featuredChance} of the time (0/1). If it isn't, the one after it is guaranteed to be${one}.`
-      : `${shown.name} is your own treasure. ${
-          view.guaranteed
-            ? "Your last unique treasure was someone else's, so your next one is guaranteed to be yours (1/1)."
-            : "Your next unique treasure could be anyone's (0/1). If it isn't yours, the one after it is guaranteed to be."
-        }`;
-    ui.path.title = limited
-      ? text
-      : view.guaranteed
-        ? `Your next unique treasure is guaranteed to be ${shown.name}.`
-        : `Your next unique treasure could be anyone's. If it isn't ${shown.name}, the one after is.`;
-    ui.path.setAttribute('aria-label', `Guaranteed item: ${shown.name}, ${on}/1`);
+    const name = shown?.name ?? '';
+    const text = asks
+      ? hero
+        ? `Pick a unique weapon or unique treasure for the guarantee: once a ${top} here isn't it, your next one is guaranteed to be.`
+        : `Pick an exclusive treasure for the guarantee: once a unique treasure isn't it, your next one is guaranteed to be.`
+      : limited
+        ? view.guaranteed
+          ? `Your last ${top} from a limited banner wasn't a featured item, so your next one here is guaranteed to be${one} (1/1).`
+          : `Your next ${top} here is a featured item ${featuredChance} of the time (0/1). If it isn't, the one after it is guaranteed to be${one}.`
+        : ownKind
+          ? `${name} is your own treasure. ${
+              view.guaranteed
+                ? "Your last unique treasure was someone else's, so your next one is guaranteed to be yours (1/1)."
+                : "Your next unique treasure could be anyone's (0/1). If it isn't yours, the one after it is guaranteed to be."
+            }`
+          : view.guaranteed
+            ? `Your last ${top} here wasn't ${name}, so your next one is guaranteed to be it (1/1).`
+            : `Your next ${top} here could be anything (0/1). If it isn't ${name}, the one after it is guaranteed to be.`;
+    ui.path.title = text;
+    ui.path.setAttribute('aria-label', shown ? `Guaranteed item: ${shown.name}, ${on}/1` : 'Pick a guaranteed item');
     ui.guarantee.textContent = text;
-    ui.pickText.textContent = choices.length > 1 ? `${text} Pick the one the guarantee gives you.` : text;
+    ui.pickText.textContent = !asks && choices.length > 1 ? `${text} Pick the one the guarantee gives you.` : text;
   }
   renderPick(ctx, choices, picked?.itemId ?? null);
 

@@ -1003,6 +1003,10 @@
 .banner-picks {
   display: grid;
   gap: 8px;
+  /* (The Hero Item banner's every unique weapon and treasure: a list that scrolls.) */
+  max-height: min(52vh, 440px);
+  overflow-y: auto;
+  padding: 2px;
 }
 
 .banner-pick {
@@ -1056,6 +1060,29 @@
 .banner-pick-name {
   flex: 1;
   font-weight: 600;
+}
+
+/* Their own treasure, among everyone's. */
+.banner-pick-mine {
+  margin-left: 8px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--cream-2);
+  color: var(--ink-soft);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* The ring with nothing picked for it: a "?" asking for one. */
+.banner-path-ask {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  color: #e9eefc;
+  font-size: 1.6em;
+  font-weight: 800;
 }
 
 /* ------------------------------------------------------------------ smaller screens */
