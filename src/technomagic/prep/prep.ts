@@ -16,16 +16,17 @@ import { play } from '../sfx';
 import type { PickView, PlayerView, RaidMode, RoomState } from '../../protocol/technomagic';
 
 /*
- * Getting ready for a room's fight, as King's Raid has it: across the top the boss and the stage (the host
+ * Getting ready for a room's fight, as King's Raid has it: across the top the boss, its mode and the stage (the host
  * steps it up or down in Raid Settings, top right, where the room's link can be copied for others to join; a dragon's raid
  * there too goes between its Normal and Hard modes, at once, each with its own stages), then the lineup, a card for every slot (whose each hero is: 1P, 2P…; one of this
- * player's taken out by pressing it). Single player, the lineup is in two halves, the Main Team (whose skills are the player's to use)
+ * player's taken out by pressing it; single player, no 1P: they're all theirs). Single player, the lineup is in two halves, the Main Team (whose skills are the player's to use)
  * and the Sub Team (on Auto for the whole fight), each with its tab over it: a hero picked goes into the one whose tab is
  * pressed, and one picked into the other already is moved over. Along the bottom: the heroes this player owns (pressing one puts it in,
  * or takes it out), the room's chat, and who's in (the host's crown, who's ready), with Raid Info, Ready
  * (everyone but the host) and Start Battle (the host: in blue once everyone is ready, else on the plaque with how many
- * are, forcing the start). The Dragon Raid's has its dragons along the
- * top in place of the boss's name: pressing another goes against it. Alone (single player, or the only one in the raid),
+ * are, forcing the start). The Dragon Raid's Raid Settings has its dragons over the modes: pressing another goes against it.
+ * On a phone on its side the site's bar is hidden, as a game's own screen has none (./prep.css), and King's Raid's back
+ * arrow takes the title's place. Alone (single player, or the only one in the raid),
  * straight there; with others in the raid, a popup (./move.ts) asks the host whether to bring them along (the raid goes
  * against it, everyone with it) or go alone (leaving the raid to them), and anyone else whether to leave it to go alone.
  */
@@ -69,7 +70,8 @@ const MODES: readonly RaidMode[] = ['normal', 'hard'];
 /** Raid Info: what the boss does, and how its raid goes. */
 function infoOf(boss: BossDef): string[] {
   const solo = Math.round(((boss.stages.solo[0]?.hp ?? 1) / (boss.stages.room[0]?.hp ?? 1)) * 100);
-  const lineup = 'With others, the host brings up to 4 heroes, everyone else up to 3, 8 in all. Single player, up to 7: 4 in the Main Team, whose skills are yours to use, and 3 in the Sub Team, who fight on Auto.';
+  const alone = isDragon(boss.id) ? 8 : 7;
+  const lineup = `With others, the host brings up to 4 heroes, everyone else up to 3, 8 in all. Single player, up to ${alone}: ${MAIN_TEAM} in the Main Team, whose skills are yours to use, and ${alone - MAIN_TEAM} in the Sub Team, who fight on Auto.`;
   if (isDragon(boss.id)) {
     const normal = boss.normal ? stagesOf(boss.normal) : 0;
     return [
@@ -98,6 +100,13 @@ const TEAMS = [
   { sub: false, name: 'Main Team' },
   { sub: true, name: 'Sub Team' },
 ] as const;
+
+/** King's Raid's back arrow: a thick arrow, silver-white fading to grey down it, in a dark edge with a light line inside. */
+const BACK_ARROW = `<svg viewBox="0 0 64 44" aria-hidden="true">
+  <defs><linearGradient id="tm-back-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="0.55" stop-color="#e4e4e4"/><stop offset="1" stop-color="#9a9a9a"/></linearGradient></defs>
+  <path d="M4 22 L26 3 L26 13 L60 13 L60 31 L26 31 L26 41 Z" fill="url(#tm-back-fill)" stroke="#2a2118" stroke-width="3.5" stroke-linejoin="round"/>
+  <path d="M10 22 L23 10.5 L23 16 L57 16" fill="none" stroke="rgba(255,255,255,0.9)" stroke-width="1.5" stroke-linejoin="round"/>
+</svg>`;
 
 /** The least it is scaled to; past that it scrolls. */
 const MIN_FIT = 0.4;
@@ -192,6 +201,11 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
     return tab;
   });
   settings.down.parentElement?.before(modes);
+  // The Dragon Raid's: its dragons, a tab each over the modes (this room's pressed; another, a press away: pickBoss).
+  const bossPicks = el('div', 'tm-mode-pick tm-boss-pick');
+  bossPicks.setAttribute('role', 'group');
+  bossPicks.setAttribute('aria-label', 'Dragon');
+  modes.before(bossPicks);
   // The room's link, for others to join it (not in a room of the player's own: single player).
   const copyLink = el('button', 'tm-room-link', 'Copy Room Link');
   copyLink.type = 'button';
@@ -232,6 +246,14 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
   byId('prep-info').append(...infoOf(boss).map((line) => el('p', '', line)));
   if (rewards.length > 0) byId('prep-info').append(raidRewards(rewards, (isDragon(boss.id) ? DRAGON_LIST : TM_LIST).rewardNote));
   const bossName = byId('prep-boss');
+  // King's Raid's way back, in the title's place on a phone on its side (the site's bar, with its own, is hidden there:
+  // ./prep.css): the same as the bar's.
+  const back = el('button', 'tm-prep-back');
+  back.type = 'button';
+  back.setAttribute('aria-label', 'Back to the games');
+  back.innerHTML = BACK_ARROW;
+  back.addEventListener('click', () => document.querySelector<HTMLElement>('.frame > .top .back')?.click());
+  byId('prep-title').before(back);
 
   ready.addEventListener('click', () => act.ready(ready.getAttribute('aria-pressed') !== 'true'));
   // Start Battle has its own sound (../sfx.ts), not the plain click's.
@@ -338,6 +360,26 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
     const host = state.players.some((player) => player.id === state?.you && player.host);
     // The host can go up to the stage after the highest they have won.
     picked = host ? Math.min(Math.max(1, picked), state.unlocked) : state.stage;
+    bossPicks.hidden = state.bosses.length < 2;
+    // (The boss's name in its own box, but where the dragons' tabs say it.)
+    if (settings.bossName.parentElement) settings.bossName.parentElement.hidden = !bossPicks.hidden;
+    if (!bossPicks.hidden) {
+      bossPicks.replaceChildren(
+        ...state.bosses.map(({ id, name }) => {
+          const tab = el('button', 'tm-mode-tab', name);
+          tab.type = 'button';
+          const on = id === state?.boss.id;
+          tab.setAttribute('aria-pressed', String(on));
+          tab.title = on ? `${name}: this raid's` : `Go against ${name}`;
+          tab.addEventListener('click', () => {
+            if (on) return;
+            closeSettings();
+            pickBoss(id);
+          });
+          return tab;
+        }),
+      );
+    }
     modes.hidden = state.boss.normal === undefined;
     for (const tab of modeTabs) {
       const on = tab.dataset.mode === state.mode;
@@ -366,9 +408,10 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
    */
   function slot(pick: PickView | undefined, owner: PlayerView | undefined, mine: boolean): HTMLElement {
     const item = el('li', pick ? 'tm-slot filled' : 'tm-slot');
-    // Whose it is, over the card (blank over an empty one, to keep the row's cards in line).
+    // Whose it is, over the card (blank over an empty one, to keep the row's cards in line). Single player, none: they're all theirs.
     const frame = el('div', 'tm-slot-frame');
-    item.append(el('span', 'tm-slot-owner', pick ? `${owner?.number ?? '?'}P` : ''), frame);
+    if (!state?.solo) item.append(el('span', 'tm-slot-owner', pick ? `${owner?.number ?? '?'}P` : ''));
+    item.append(frame);
     if (!pick) return item;
     const hero = heroNamed(pick.hero);
     const card = el(mine ? 'button' : 'div', 'tm-slot-card');
@@ -402,19 +445,8 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
     const owner = (id: string): PlayerView | undefined => state?.players.find((player) => player.id === id);
 
     level.textContent = state.boss.normal === undefined ? `· Stage ${state.stage}` : `· ${MODE_NAMES[state.mode]} · Stage ${state.stage}`;
-    // The boss; the Dragon Raid's, each of its dragons, this room's pressed (another: to its room).
-    if (state.bosses.length > 1) {
-      bossName.replaceChildren(
-        ...state.bosses.map(({ id, name }) => {
-          const pick = el('button', 'tm-prep-boss-pick', name);
-          pick.type = 'button';
-          pick.setAttribute('aria-pressed', String(id === state?.boss.id));
-          pick.title = id === state?.boss.id ? `${name}: this raid's` : `Go against ${name}`;
-          pick.addEventListener('click', () => pickBoss(id));
-          return pick;
-        }),
-      );
-    } else bossName.textContent = state.boss.name;
+    // The boss (the Dragon Raid's other dragons are picked in Raid Settings).
+    bossName.textContent = state.boss.name;
     drawSettings();
     // As they stand on the field, facing the boss on the right: the front line rightmost, then the middle,
     // then the back; within a line, by class (the tank rightmost), then the first put in. The empty slots are to the left.
@@ -427,9 +459,12 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
     };
     const solo = state.solo;
     lineup.classList.toggle('teams', solo);
+    // How many cards in all, which each card's share of the lineup's width is of (./prep.css).
+    lineup.style.setProperty('--all', String(state.slots));
     if (solo) {
-      // Alone: the Main Team and the Sub Team, side by side, each under its tab.
+      // Alone: the Main Team and the Sub Team, side by side, each under its tab, each as wide as its share of the slots.
       lineup.style.removeProperty('--slots');
+      lineup.style.gridTemplateColumns = `minmax(0, ${MAIN_TEAM}fr) minmax(0, ${state.slots - MAIN_TEAM}fr)`;
       lineup.replaceChildren(
         ...TEAMS.map(({ sub, name }) => {
           const picks = state?.lineup.filter((pick) => (pick.sub === true) === sub) ?? [];
@@ -462,6 +497,7 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
         }),
       );
     } else {
+      lineup.style.removeProperty('grid-template-columns');
       lineup.style.setProperty('--slots', String(state.slots));
       lineup.replaceChildren(...slots(state.lineup, state.slots));
     }
@@ -520,10 +556,10 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
         row.append(status);
         return row;
       }),
-      // The places still open for other raiders.
+      // The places still open for other raiders (single player, locked: nobody else gets in).
       ...Array.from({ length: Math.max(0, ROOM_PLAYERS - joined) }, (_, i) => {
-        const row = el('li', 'tm-prep-player open');
-        row.append(el('b', 'tm-prep-player-no', `${joined + i + 1}P`), el('span', 'tm-prep-player-name', 'Waiting for a raider…'));
+        const row = el('li', state?.solo ? 'tm-prep-player open locked' : 'tm-prep-player open');
+        row.append(el('b', 'tm-prep-player-no', `${joined + i + 1}P`), el('span', 'tm-prep-player-name', state?.solo ? 'Locked' : 'Waiting for a raider…'));
         return row;
       }),
     );
