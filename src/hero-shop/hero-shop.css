@@ -481,6 +481,11 @@
 }
 
 @media (max-width: 760px) {
+  /* The Filter and the cards' row together in the middle of what's left of the panel, down. */
+  .hero-shop-cards {
+    margin-block: auto;
+  }
+
   .hero-shop-tools {
     margin: 0 14px -12px;
   }
