@@ -101,3 +101,17 @@
   color: var(--muted);
   font-size: 12px;
 }
+
+/* A kind of gear that clicks (the databank's: a sample of it). */
+button.raid-reward-face {
+  padding: 0;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+button.raid-reward-face:hover,
+button.raid-reward-face:focus-visible {
+  transform: scale(1.06);
+  box-shadow: 0 3px 10px rgb(0 0 0 / 40%), 0 0 0 2px var(--gold);
+  outline: none;
+}

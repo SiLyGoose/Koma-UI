@@ -5,7 +5,7 @@ import type { GearBonus } from './types';
 
 /*
  * The TechnoMagic Raids' gear sets, as King's Raid's CBT2 playtest has them (./gear/kr-data.ts): a hero wearing four of a
- * set's pieces (its Armor, Secondary Armor, Accessory and Orb: the bot says which set, if any, as the fight begins) has
+ * set's pieces (its Armor, Mantle, Accessory and Orb: the bot says which set, if any, as the fight begins) has
  * the set's skill for its class. One boss drops each: Galgoria Perseverance, Siegfried Hope, Ascalon Authority.
  * ./fight.ts applies them. (The dragon sets' bonuses are only stats: the bot adds them to what its gear gives.)
  *

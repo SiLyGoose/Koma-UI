@@ -5,8 +5,9 @@ import { API } from '../shared/ui';
 import { coin, points } from '../shared/util';
 import { go } from '../site/nav';
 import { currentMe, currentServer } from '../site/session';
-import { DRAGON_LIST, raidCard, TM_LIST, type RaidReward } from '../shared/raids';
-import { raidRewards, type GearKind } from '../shared/raid-rewards/raid-rewards';
+import { DRAGON_LIST, raidCard, TM_LIST } from '../shared/raids';
+import { raidRewards } from '../shared/raid-rewards/raid-rewards';
+import { bossRewards, dragonTierAt } from '../shared/raid-rewards/boss-gear';
 import { DRAGONS, isDragon, TM_BOSSES } from '../technomagic/sim/bosses';
 import { bossIn, scaleAt, stagesOf, type BossDef } from '../technomagic/sim/bosses/boss';
 import { CURVE, curved, HERO_LEVEL, reachAt, share, strike, type DamageType, type Defenses } from '../technomagic/sim/combat/damage';
@@ -251,41 +252,6 @@ function skillList(skills: BossSkills, deals: DamageType): HTMLElement {
   return list;
 }
 
-/**
- * The kinds of gear a raid's boss drops, of its own set (King's Raid's: a dragon's Legendary set, Galgoria's Perseverance),
- * each with King's Raid's icon for one of them (public/kr/items/): the knight's, the heavy armor's, the necklace.
- * Perseverance has no weapon (a hero's is its unique weapon).
- */
-const GEAR_KINDS: Readonly<Record<string, readonly GearKind[]>> = (() => {
-  const piece = (icon: string, name: string, piece: string): GearKind => ({ kind: 'piece', icon, name, piece });
-  const dragon = (n: number, set: string): GearKind[] => [
-    piece(`WEAPON_KNIGHT_6_5_${n}`, 'Weapon', `${set} weapons (one for each class)`),
-    piece(`ARMOR_HEAVY_6_5_${n}`, 'Armor', `${set} armor (light, medium or heavy)`),
-    piece(`GEAR_HEAVY_6_5_${n}`, 'Secondary Armor', `${set} secondary armor (light, medium or heavy)`),
-    piece(`ACCESSORY_NECKLACE_6_5_${n}`, 'Accessory', `${set} accessories (a necklace, earrings, a ring or a bracelet)`),
-    piece(`ORB_6_5_${n}`, 'Orb', `${set} Orb`),
-  ];
-  const tm = (n: number, set: string): GearKind[] => [
-    piece(`TECHNOMAGIC_KNIGHT_9_1_${n}`, 'Armor', `${set} armor (one for each class)`),
-    piece(`TECHNOMAGIC_KNIGHT_9_2_${n}`, 'Secondary Armor', `${set} secondary armor (one for each class)`),
-    piece(`TECHNOMAGIC_KNIGHT_9_5_${n}`, 'Accessory', `${set} accessories (a necklace, earrings, a ring or a bracelet, for each class)`),
-    piece(`TECHNOMAGIC_KNIGHT_9_7_${n}`, 'Orb', `${set} Orb (one for each class)`),
-  ];
-  return {
-    galgoria: tm(1, 'Perseverance'),
-    temeraire: dragon(1, 'Opportune Fire'),
-    scalaxia: dragon(2, 'Gritty Frost'),
-    zyrrkinoth: dragon(3, 'Unrelenting Poison'),
-    armarta: dragon(4, 'Swift Darkness'),
-  };
-})();
-
-/** What a win against a raid's boss gives, its gear as the kinds of its set's it drops (GEAR_KINDS) in its place. */
-const rewardsOf = (id: string, rewards: readonly RaidReward[]): (RaidReward | GearKind)[] => {
-  const kinds = GEAR_KINDS[id];
-  return kinds ? rewards.flatMap<RaidReward | GearKind>((reward) => (reward.kind === 'gear' || reward.kind === 'tm' ? kinds : [reward])) : [...rewards];
-};
-
 /** A raid's boss picked (the TechnoMagic Raid's, or a dragon), at the stage picked (a dragon's, in the mode picked): as the raid has it. */
 function renderRaidBoss(ctx: DatabankContext, picked: BossDef): void {
   const { ui } = ctx;
@@ -377,7 +343,7 @@ function renderRaidBoss(ctx: DatabankContext, picked: BossDef): void {
   if (skills) ui.bossBody.append(label('Skills'), skillList(skills, boss.stats.deals));
 
   // What a win gives (as the raid's own Raid Info has it), its gear as the kinds of it it drops.
-  if (card && card.rewards.length > 0) ui.bossBody.append(raidRewards(rewardsOf(boss.id, card.rewards), (dragon ? DRAGON_LIST : TM_LIST).rewardNote));
+  if (card && card.rewards.length > 0) ui.bossBody.append(raidRewards(bossRewards(boss.id, card.rewards, dragonTierAt(stage, boss !== picked)), (dragon ? DRAGON_LIST : TM_LIST).rewardNote));
 }
 
 /** The enemy picked: a Weekly Boss at the difficulty level picked, or a raid's boss (renderRaidBoss). */

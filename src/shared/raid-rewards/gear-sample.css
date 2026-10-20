@@ -1,0 +1,191 @@
+/*
+ * A sample of a kind of gear a raid's boss drops (./gear-sample.ts): a parchment sheet in the armories' dark frame (their
+ * colours, ../items/styles/page.css, set here: it is on any page), in the middle of the screen over the page darkened
+ * behind it; its card, name and tier across the top, its ✕ in the corner, and what's under them scrolling inside it when it
+ * runs longer than the screen.
+ */
+.gear-sample {
+  --ink: #3b3444;
+  --focus: #3b3444;
+  --star-4: #ff4a5a;
+  --picked: #d4a94f;
+
+  width: min(460px, calc(100vw - 32px));
+  max-width: none;
+  max-height: calc(100vh - 32px);
+  max-height: calc(100dvh - 32px);
+  padding: 0;
+  overflow: hidden;
+  border: 2px solid #4a4452;
+  border-radius: 14px;
+  background:
+    radial-gradient(ellipse at 20% 0%, rgb(216 191 122 / 8%), transparent 60%),
+    linear-gradient(180deg, #1b1a20, #111014);
+  box-shadow:
+    inset 0 0 0 4px #141318,
+    inset 0 0 0 5px rgb(216 191 122 / 35%),
+    0 12px 30px rgb(0 0 0 / 45%);
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.45;
+  text-align: left;
+}
+
+.gear-sample::backdrop {
+  background: rgb(0 0 0 / 65%);
+  backdrop-filter: blur(3px);
+}
+
+.gear-sample-panel {
+  max-height: calc(100vh - 48px);
+  max-height: calc(100dvh - 48px);
+  margin: 7px;
+  padding: 16px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-top: 3px solid var(--star-4);
+  border-radius: 8px;
+  background:
+    radial-gradient(ellipse at 50% 0%, #fbf6e7, transparent 70%),
+    linear-gradient(180deg, #f3ecd8, #e6dabb);
+  animation: gear-sample-in 0.18s ease-out;
+}
+
+.gear-sample-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+/* Its card, as the armories draw hero gear (../items/items.css), big and not a button. */
+.gear-sample .item.gear-sample-card {
+  flex-shrink: 0;
+  width: 88px;
+  cursor: default;
+}
+
+.gear-sample .item.gear-sample-card:hover {
+  transform: none;
+}
+
+.gear-sample-title {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+  min-width: 0;
+}
+
+.gear-sample-title h3 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.gear-sample-kind {
+  margin: 0;
+  color: #6b6272;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.gear-sample-close {
+  --close-ink: var(--ink);
+
+  flex-shrink: 0;
+  align-self: flex-start;
+  margin-left: auto;
+}
+
+.gear-sample-about {
+  margin: 12px 0 0;
+  color: #5a5262;
+  font-size: 13px;
+  font-style: italic;
+}
+
+.gear-sample-section {
+  margin-top: 12px;
+}
+
+.gear-sample-label {
+  margin: 0 0 2px;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.gear-sample-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.gear-sample-list li {
+  position: relative;
+  padding-left: 14px;
+}
+
+.gear-sample-list li::before {
+  content: '';
+  position: absolute;
+  top: 0.6em;
+  left: 2px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--star-4);
+}
+
+.gear-sample-step {
+  color: #6b6272;
+  font-size: 12px;
+}
+
+.gear-sample-roll {
+  margin-top: 6px;
+  padding: 4px 12px;
+  border: 1px solid #8a7d5c;
+  border-radius: 8px;
+  background: #3b3444;
+  color: #f3ecd8;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.gear-sample-roll:hover {
+  background: #4d4558;
+}
+
+.gear-sample-fold {
+  margin-top: 8px;
+  color: #5a5262;
+  font-size: 13px;
+}
+
+.gear-sample-fold summary {
+  color: #8a6420;
+  cursor: pointer;
+}
+
+.gear-sample-fold .gear-sample-list {
+  margin-top: 4px;
+}
+
+@keyframes gear-sample-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gear-sample-panel {
+    animation: none;
+  }
+}

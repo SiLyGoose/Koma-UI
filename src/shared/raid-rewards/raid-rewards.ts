@@ -11,12 +11,16 @@ import type { RaidReward } from '../raids';
  * databank's raid bosses (../../databank/bosses.ts).
  */
 
-/** A kind of gear a win gives (a set's armor, its orb…): King's Raid's icon for one (public/kr/items/<icon>.webp), the kind, and the piece it shows. */
+/**
+ * A kind of gear a win gives (a set's armor, its orb…): King's Raid's icon for one (public/kr/items/<icon>.webp), the kind,
+ * and the piece it shows; `open`, what clicking it does (none: it doesn't click).
+ */
 export interface GearKind {
   kind: 'piece';
   icon: string;
   name: string;
   piece: string;
+  open?: () => void;
 }
 
 const el = <K extends keyof HTMLElementTagNameMap>(tag: K, className = '', text?: string): HTMLElementTagNameMap[K] => {
@@ -71,7 +75,13 @@ export function raidRewards(rewards: readonly (RaidReward | GearKind)[], note: s
       item.title = reward.kind === 'piece' ? reward.piece : name;
       if (reward.kind === 'tm') item.append(tmCard(reward.slot), el('span', 'raid-reward-name', name));
       else {
-        const face = el('span', `raid-reward-face reward-${kind}`);
+        const open = reward.kind === 'piece' ? reward.open : undefined;
+        const face = el(open ? 'button' : 'span', `raid-reward-face reward-${kind}`);
+        if (open && face instanceof HTMLButtonElement) {
+          face.type = 'button';
+          face.setAttribute('aria-label', `${name}: see a sample`);
+          face.addEventListener('click', open);
+        }
         face.append(picture);
         item.append(face, el('span', 'raid-reward-name', name));
       }
