@@ -366,21 +366,20 @@
   }
 
   /*
-   * A row that scrolls sideways (a mouse's wheel too: ../shared/ui/sideways/), as King's Raid's shops have them, its cards a
-   * size down, in the middle of what's left of the panel (down, and across while they fit: past that, from the left). Room
-   * round them for a card lifted (pressed) and its shadow.
+   * A row that scrolls sideways (a mouse's wheel too: ../shared/ui/sideways/), as King's Raid's shops have them, taking the
+   * rest of the panel, its cards in the middle of it (down, and across while they fit: past that, from the left). Each card
+   * as big as the row's height lets it be (a card is 9 by 16), but small enough that at least 2.2 of them show across it.
+   * Room round them for a card lifted (pressed) and its shadow.
    */
-  .outfits-page {
-    --card-width: 150px;
-  }
-
   .outfits-row {
-    flex: none;
+    --card-width: min(calc((100cqw + 10px) / 2.2 - 10px), calc(100cqh * 9 / 16));
+    container-type: size;
+    flex: 1 1 0;
     flex-wrap: nowrap;
     gap: 10px;
-    align-items: flex-start;
+    align-items: center;
     justify-content: safe center;
-    margin-block: auto;
+    min-height: 220px;
     min-width: 0;
     padding: 10px 8px 16px;
     overflow-x: auto;

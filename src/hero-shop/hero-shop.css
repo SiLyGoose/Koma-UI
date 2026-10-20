@@ -481,17 +481,24 @@
 }
 
 @media (max-width: 760px) {
-  /* The Filter and the cards' row together in the middle of what's left of the panel, down. */
+  /* The Filter, then the cards' row taking the rest of the panel (../outfits/outfits.css), its cards in the middle of it. */
   .hero-shop-cards {
-    margin-block: auto;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
   }
 
   .hero-shop-tools {
     margin: 0 14px -12px;
   }
 
-  /* Room in the row for the frames' scrolls, which stick out past the cards. */
+  /*
+   * Room in the row for the frames' scrolls, which stick out past the cards; each card as big as the row's height lets it
+   * be (168 by 382), but small enough that at least 2.2 of them show across it.
+   */
   .hero-shop .outfits-row {
+    --card-width: min(calc((100cqw + 10px) / 2.2 - 10px), calc(100cqh * 168 / 382));
     padding: 14px 14px 18px;
   }
 }
