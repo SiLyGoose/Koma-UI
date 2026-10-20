@@ -529,10 +529,10 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
         row.append(status);
         return row;
       }),
-      // The places still open for other raiders (single player, none: nobody else gets in).
-      ...Array.from({ length: state.solo ? 0 : Math.max(0, ROOM_PLAYERS - joined) }, (_, i) => {
-        const row = el('li', 'tm-prep-player open');
-        row.append(el('b', 'tm-prep-player-no', `${joined + i + 1}P`), el('span', 'tm-prep-player-name', 'Waiting for a raider…'));
+      // The places still open for other raiders (single player, locked: nobody else gets in).
+      ...Array.from({ length: Math.max(0, ROOM_PLAYERS - joined) }, (_, i) => {
+        const row = el('li', state?.solo ? 'tm-prep-player open locked' : 'tm-prep-player open');
+        row.append(el('b', 'tm-prep-player-no', `${joined + i + 1}P`), el('span', 'tm-prep-player-name', state?.solo ? 'Locked' : 'Waiting for a raider…'));
         return row;
       }),
     );
