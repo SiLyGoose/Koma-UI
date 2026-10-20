@@ -181,7 +181,7 @@ export const SKILLS: readonly SkillDef[] = [
   { id: 'might', name: 'Might', tier: 'B', about: `Increases ATK by ${pct(SKILL.might.atk)}.` },
   { id: 'focus-1', name: 'First Focus', tier: 'B', about: `Reduces the first skill’s cooldown by ${pct(SKILL['focus-1'].cooldown)} ${every(SKILL['focus-1'].every)}.` },
   { id: 'physical-ward', name: 'Physical Ward', tier: 'B', about: `Reduces physical DMG taken by ${pct(SKILL['physical-ward'].taken)}, rising to ${pct(SKILL['physical-ward'].most)} over the first ${seconds(SKILL['physical-ward'].over)}.` },
-  { id: 'magical-ward', name: 'Magical Ward', tier: 'B', about: `Reduces magical DMG taken by ${pct(SKILL['magical-ward'].taken)}, rising to ${pct(SKILL['magical-ward'].most)} over the first ${seconds(SKILL['magical-ward'].over)}.` },
+  { id: 'magical-ward', name: 'Magical Ward', tier: 'B', about: `Reduces magic DMG taken by ${pct(SKILL['magical-ward'].taken)}, rising to ${pct(SKILL['magical-ward'].most)} over the first ${seconds(SKILL['magical-ward'].over)}.` },
   { id: 'bastion', name: 'Bastion', tier: 'B', about: `Increases DEF of all allies by ${pct(SKILL.bastion.defense)}.` },
   { id: 'ruthless', name: 'Ruthless', tier: 'B', about: `Increases crit DMG by ${pct(SKILL.ruthless.critDamage)}.` },
   { id: 'piercing', name: 'Piercing', tier: 'B', about: `Increases penetration by ${pct(share(SKILL.piercing.pen))}.` },

@@ -195,7 +195,7 @@ export const LUCIKIEL: HeroDef = {
         attack() {
           fight.hit(self, fight.basic);
         },
-        // Each blow leaves Shadow of Death (begun again): its Dark, the boss taking more magical damage besides.
+        // Each blow leaves Shadow of Death (begun again): its Dark, the boss taking more magic damage besides.
         storm() {
           fight.hit(self, STORM.blow);
           // (Emblem of Destruction: more M.DMG taken again.)

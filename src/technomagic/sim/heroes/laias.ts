@@ -21,7 +21,7 @@ import { bookDmg, bookHeal, CLASS_STATS, dmg, healed, type HeroDef, indexed, ind
  *   it down again.
  * Her passive, Blessing of the Water Dragon: she stands being knocked down far better; every ally has more M.DEF
  * and the boss's magic is less likely to land a critical blow on them; and each skill she uses has every ally take
- * less magical damage for a while.
+ * less magic damage for a while.
  * Her unique weapon (../unique.ts) is worked here too: healing reaches every ally the more, and every so
  * often the ally with the lowest health is healed.
  * What is drawn for each is ../../heroes/laias/fx.ts; what her body does for each, and for her attack, ../../heroes/laias/moves.ts.
@@ -64,7 +64,7 @@ const BLESSING: Passive = {
   control: 1,
   shown: {
     name: 'Blessing of the Water Dragon',
-    about: `Passive. +${WATER_DRAGON.resist} CC Resist for her; every ally has ${pct(WATER_DRAGON.defense - 1)} more M.DEF and ${WATER_DRAGON.critResist} M.Crit Resistance, and each skill she uses has every ally take ${pct(1 - WATER_DRAGON.taken)} less magical damage for ${WATER_DRAGON.lasts} seconds.`,
+    about: `Passive. +${WATER_DRAGON.resist} CC Resist for her; every ally has ${pct(WATER_DRAGON.defense - 1)} more M.DEF and ${WATER_DRAGON.critResist} M.Crit Resistance, and each skill she uses has every ally take ${pct(1 - WATER_DRAGON.taken)} less magic damage for ${WATER_DRAGON.lasts} seconds.`,
     icon: '🐉',
     art: art(3),
   },
@@ -72,7 +72,7 @@ const BLESSING: Passive = {
 };
 /** What her passive gives every ally while she is on the field, and each skill she uses for a while. */
 const BLESSED: Buff = { name: 'Blessing of the Water Dragon', about: 'More M.DEF, and the boss’s magic is less likely to land a critical blow.', icon: '🐉', art: art(3) };
-const WARDED: Buff = { name: 'Water Dragon’s Ward', about: `Takes ${pct(1 - WATER_DRAGON.taken)} less magical damage.`, icon: '💧', art: art(3) };
+const WARDED: Buff = { name: 'Water Dragon’s Ward', about: `Takes ${pct(1 - WATER_DRAGON.taken)} less magic damage.`, icon: '💧', art: art(3) };
 /** What Healing Droplets gives each ally, shown on its card with how long it has left. */
 const DROPLETS_UP: Buff = { name: 'Healing Droplets', about: 'Healing reaches it the more.', icon: '💧', art: art(0) };
 /** What Bubble Shield gives its ally: for its whole while, and more while the shield holds. */
@@ -229,7 +229,7 @@ export const LAIAS: HeroDef = {
           whirl = 0;
         },
       },
-      // Each skill she uses: every ally takes less magical damage for a while.
+      // Each skill she uses: every ally takes less magic damage for a while.
       used() {
         put(fight.party, { name: WARDED.name, left: WATER_DRAGON.lasts, takes: { magical: WATER_DRAGON.taken }, shown: WARDED });
       },

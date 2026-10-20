@@ -12,13 +12,13 @@ import { bookDmg, bookHeal, CLASS_STATS, dmg, healed, type HeroDef, indexed, ind
  * Annette's skills, as the game has them (what each costs, how long before it can be used again, how long what
  * it does lasts, and the shares are the game's; how hard each hits and how much it heals are not said there).
  * Rascal, her golem, does the work: each skill used while she is Overcharged does more.
- * - Blasting Ray: a ray into the boss, leaving it hitting less hard and taking more magical damage for a while;
+ * - Blasting Ray: a ray into the boss, leaving it hitting less hard and taking more magic damage for a while;
  *   Overcharged, a second ray, and the boss hits softer and takes more again.
  * - Emergency Treatment: clears what the boss has left on every ally (not what holds one down, or shuts one
  *   away) and heals them over a while, and they stand being knocked down better meanwhile; Overcharged, they
  *   are also more likely to land a critical blow, deal more, and can't be knocked down at all.
  * - Process of Elimination: a ball of energy that bursts on the boss; Overcharged, it bursts harder, stuns the
- *   boss and leaves it taking more magical damage.
+ *   boss and leaves it taking more magic damage.
  * Her passive, Charge: she gains a Charge every half second, and ten for each crystal of mana she spends; at a
  * hundred she is Overcharged for a while (her ATK higher, and each of her attacks takes a share off her skills'
  * cooldowns), and gains no Charge meanwhile.
@@ -91,7 +91,7 @@ export const ANNETTE: HeroDef = {
   abilities: [
     {
       name: 'Blasting Ray',
-      about: `Rascal fires a ray into the boss: for ${RAY.lasts} seconds it hits ${pct(RAY.weaker)} softer and takes ${pct(RAY.takes)} more magical damage. [Overcharged]: a second ray, and twice that.`,
+      about: `Rascal fires a ray into the boss: for ${RAY.lasts} seconds it hits ${pct(RAY.weaker)} softer and takes ${pct(RAY.takes)} more magic damage. [Overcharged]: a second ray, and twice that.`,
       words: `Attacks enemies in a straight line, dealing ${dmg('mechanic', RAY.blow, bookDmg('annette', 0))} M.DMG, reducing their ATK by ${pct(RAY.weaker)} and hit enemies take ${pct(RAY.takes)} increased M.DMG for ${RAY.lasts} sec. If the skill is used when in Overcharge state, deals ${dmg('mechanic', RAY.extra, bookDmg('annette', 0))} extra M.DMG, additionally reduces their ATK by ${pct(RAY.weaker)}, and hit enemies take ${pct(RAY.takes)} increased M.DMG. Upon use, the amount of Charge gained is increased by 30%.`,
       icon: '🔆',
       art: art(0),
@@ -112,7 +112,7 @@ export const ANNETTE: HeroDef = {
     },
     {
       name: 'Process of Elimination',
-      about: `A ball of energy that bursts on the boss. [Overcharged]: it bursts harder, stuns the boss for ${ELIMINATION.stun} seconds, and leaves it taking ${pct(ELIMINATION.takes)} more magical damage for ${ELIMINATION.lasts}.`,
+      about: `A ball of energy that bursts on the boss. [Overcharged]: it bursts harder, stuns the boss for ${ELIMINATION.stun} seconds, and leaves it taking ${pct(ELIMINATION.takes)} more magic damage for ${ELIMINATION.lasts}.`,
       words: `Fires an exploding energy ball to a random target and nearby enemies in range, dealing ${dmg('mechanic', ELIMINATION.blow, bookDmg('annette', 2))} M.DMG. When in Overcharge state, deals ${dmg('mechanic', ELIMINATION.over, bookDmg('annette', 2))} M.DMG, increases M.DMG enemies take by ${pct(ELIMINATION.takes)} for ${ELIMINATION.lasts} sec, and inflicts Stun for ${ELIMINATION.stun} sec upon explosion. Upon use, the amount of Charge gained is increased by 30%.`,
       icon: '💣',
       art: art(2),
@@ -204,7 +204,7 @@ export const ANNETTE: HeroDef = {
             self.cooldowns[i] = Math.max(0, (self.cooldowns[i] as number) - ability.cooldown * off);
           });
         },
-        // A ray into the boss (two, Overcharged): it hits less hard and takes more magical damage for a while.
+        // A ray into the boss (two, Overcharged): it hits less hard and takes more magic damage for a while.
         ray() {
           const more = overcharged.ray;
           fight.hit(self, RAY.blow);
@@ -231,11 +231,11 @@ export const ANNETTE: HeroDef = {
           treating = TREATMENT.lasts;
           treated = 0;
         },
-        // The ball bursts on the boss (Overcharged: harder, and it is stunned and takes more magical damage for a while).
+        // The ball bursts on the boss (Overcharged: harder, and it is stunned and takes more magic damage for a while).
         elimination() {
           const more = overcharged.elimination;
           fight.hit(self, more ? ELIMINATION.over : ELIMINATION.blow);
-          // (Its Dark: the boss takes more magical damage, Overcharged or not.)
+          // (Its Dark: the boss takes more magic damage, Overcharged or not.)
           const takes = (more ? ELIMINATION.takes : 0) + (self.perks.has('s3-dark') ? PERKS.eliminated : 0);
           if (takes > 0) put(fight.foe.statuses, { name: ELIMINATED, left: ELIMINATION.lasts, takes: { magical: 1 + takes }, shown: 'curse' });
           if (more) fight.stun(ELIMINATION.stun, { by: self });

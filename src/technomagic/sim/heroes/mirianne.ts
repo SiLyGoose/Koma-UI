@@ -11,7 +11,7 @@ import { bookDmg, bookHeal, CLASS_STATS, dmg, healed, type HeroDef, type Passive
  * Mirianne's skills, as King's Raid's playtest has them (stats/mirianne.md: how hard each hits and shields at its level 90,
  * and every number here, are its; its words are its own). She is an assassin whose blows are magical, the Servant of Blue.
  * - Target Lock On: three blows that stun the boss a moment, each harder on one under [Target Lock On]; the last puts it on
- *   for a while (more magical damage taken).
+ *   for a while (more magic damage taken).
  * - Restrain and Protect: a blow that stuns the boss; then a shield on her and the ally that has dealt the most (its books'
  *   half again), and their CC resist higher.
  * - Assassination: a great blow, and a blow more on a Non-Hero enemy; on a boss, then [Check & Guard]: Restrain and
@@ -25,7 +25,7 @@ import { bookDmg, bookHeal, CLASS_STATS, dmg, healed, type HeroDef, type Passive
  * Her own perks (../perks.ts) are King's Raid's. Target Lock On's Light (one enemy) always holds. Transcend 5's Dark
  * comes as a blow of hers beats a minion of the raid's waves.
  */
-/** Target Lock On: each of its three blows, its stun, and its blow more on one under [Target Lock On]; [Target Lock On]'s more magical damage taken, for how long. */
+/** Target Lock On: each of its three blows, its stun, and its blow more on one under [Target Lock On]; [Target Lock On]'s more magic damage taken, for how long. */
 const LOCK = { blow: played('assassin', 1148, 39_054), stun: 0.6, more: played('assassin', 689, 65_023), takes: 1.2, lasts: 10 };
 /** Restrain and Protect (and [Check & Guard]): its blow, its stun; its shield (its books', the fight's: ../fight.ts), for how long, and the CC resist it gives. */
 const RESTRAIN = { blow: played('assassin', 3572, 122_105), stun: 1.2, shield: playedHeal('assassin', 4516, 597_014), lasts: 6, resist: 600 };
@@ -72,7 +72,7 @@ export const MIRIANNE: HeroDef = {
   abilities: [
     {
       name: 'Target Lock On',
-      about: `Three blows that stun the boss for ${LOCK.stun} seconds, each harder on one under [Target Lock On]; the last puts it on for ${LOCK.lasts} seconds (${pct(LOCK.takes - 1)} more magical damage taken).`,
+      about: `Three blows that stun the boss for ${LOCK.stun} seconds, each harder on one under [Target Lock On]; the last puts it on for ${LOCK.lasts} seconds (${pct(LOCK.takes - 1)} more magic damage taken).`,
       words: `Attacks the enemy with the lowest M.DEF 3 times, dealing ${dmg('assassin', LOCK.blow, bookDmg('mirianne', 0))} M.DMG and stunning them for ${LOCK.stun}sec. If the target is under [Target Lock On], deals additional ${dmg('assassin', LOCK.more, bookDmg('mirianne', 0))} M.DMG. The final hit inflicts [Target Lock On] on the enemy for ${LOCK.lasts}sec.`,
       icon: '🎯',
       art: art(0),

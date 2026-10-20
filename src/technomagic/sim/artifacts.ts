@@ -31,7 +31,7 @@ type Whom = 'self' | 'allies' | 'top' | 'self-top';
  * - `timer`: every `every` seconds (first after that long): ATK Spd for `lasts` (on itself and `random` allies), crit resist
  *   for `lasts`, cooldowns shorter, healed a share of its ATK and its healing more (`most` times), its M.DEF a share of its
  *   ATK more (`most` times), healed a share of its max HP each second for `lasts`, Tough for every ally for `lasts` (and
- *   cleansed), or a magical blow on the boss, which then takes more for `lasts` (more again each time, `most` times);
+ *   cleansed), or a magic blow on the boss, which then takes more for `lasts` (more again each time, `most` times);
  * - `later`: after `after` seconds, the ally with the highest ATK (other than itself: `others`) for good;
  * - `onBasic`: as its attack lands, by `chance` (once in `wait` seconds at most): mana, or ATK and ATK Spd for `lasts`, or a blow;
  * - `onHurt`: as the boss's blow lands on it, by `chance` (once in `wait`): the boss takes more for `lasts`, or it nothing;
@@ -112,7 +112,7 @@ export const ARTIFACTS: Readonly<Record<string, ArtifactDef>> = {
   'artifact-1001': { allies: { atk: k(120, 140, 170, 210, 250, 300), critDamage: k(240, 280, 340, 420, 500, 600) } },
   // Earth Protection: at first, CC immune and DEF up.
   'artifact-24': { start: { on: 'self', lasts: [8, 10, 12, 14, 17, 20], defense: all(0.5), guards: true } },
-  // Infernal Whip: every 8 seconds a magical blow, and the boss takes more for a while (the more each time).
+  // Infernal Whip: every 8 seconds a magic blow, and the boss takes more for a while (the more each time).
   'artifact-44': { timer: { every: 8, lasts: 5, hit: [200, 240, 290, 350, 420, 500], weakness: k(100, 120, 140, 170, 210, 250), grows: k(4, 5, 6, 7, 8, 10), most: 25 } },
   // Golem's Fuel: more DMG to any enemy, less taken.
   'artifact-1002': { foes: k(100, 120, 140, 170, 210, 250), taken: k(-50, -60, -70, -85, -105, -125) },
@@ -156,7 +156,7 @@ export const ARTIFACTS: Readonly<Record<string, ArtifactDef>> = {
   'artifact-1': { onBasic: { chance: k(100, 120, 140, 170, 200, 250), wait: 1, mana: 1000 } },
   // Drinking Horn of Ancient Cow.
   'artifact-2': { onBasic: { chance: all(0.1), wait: 10, atk: k(100, 120, 140, 170, 200, 250), speed: [100, 120, 140, 170, 200, 250], lasts: 10 } },
-  // Dice of Magical Letters: its attack, now and then, a great magical blow.
+  // Dice of Magical Letters: its attack, now and then, a great magic blow.
   'artifact-3': { onBasic: { chance: all(0.03), wait: 1, hit: [4000, 4800, 5750, 6900, 8300, 10000] } },
   // Golden Cat Statue.
   'artifact-4': { start: { on: 'self', lasts: all(15), speed: [400, 480, 570, 690, 830, 1000] } },

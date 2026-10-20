@@ -18,7 +18,7 @@ import { bookDmg, bookHeal, CLASS_STATS, dmg, healed, type HeroDef, type Passive
  * Her passive, Curse of the Sun: each of her blows a stack of the curse on the boss; at 10, a blow that leaves it hitting
  * less hard. And each skill she uses gives every other ally the Blessing of the Angel: less physical damage taken, and a
  * share of her max HP healed every second.
- * Her unique weapon (../unique.ts) is worked here too: every 5 blows of her attack, the boss takes more magical damage for
+ * Her unique weapon (../unique.ts) is worked here too: every 5 blows of her attack, the boss takes more magic damage for
  * a while and is stunned a moment.
  * What is drawn for each, and what her body does, are King's Raid's own (../../assets/heroes/aselica.ts).
  *
@@ -46,13 +46,13 @@ const JUDGMENT = {
 };
 /** Curse of the Sun: how long each stack lasts, how many it takes, its blow, and the boss's ATK less, for how long; the Blessing of the Angel's less physical damage taken and heal every second (a share of her max HP), for how long. */
 const CURSE = { lasts: 10, needs: 10, blow: played('knight', 1828, 67_812), weaker: 0.3, weakLasts: 10, taken: 0.15, heal: 0.01, blessed: 5 };
-/** Her own perks' numbers: Sword of the Sun's Light's more magical damage taken; Blessing's Light's allies; Curse's Dark's stacks; Transcend 5's Dark's share of her P.DEF. */
+/** Her own perks' numbers: Sword of the Sun's Light's more magic damage taken; Blessing's Light's allies; Curse's Dark's stacks; Transcend 5's Dark's share of her P.DEF. */
 const PERKS = { takes: 1.25, lasts: 10, allies: 2, needs: 7, dark: 0.2 };
 
 /**
  * Her unique treasures' numbers (1★ to 5★: ../treasures.ts; King's Raid's own): Sword of the Sun's mana for each blow;
  * Blessing's less physical damage taken for its ally; Judgment's more P.DEF and M.DEF less; Curse's longer Blind and the
- * boss's more magical damage taken.
+ * boss's more magic damage taken.
  */
 const UT = {
   dawn: { mana: [200, 240, 290, 350, 420, 500] },
@@ -161,7 +161,7 @@ export const ASELICA: HeroDef = {
     const allies = (): Fighter[] => fight.field.filter((ally) => ally.hp > 0 && !away(ally.statuses));
     /** Judgment of the Sun's more (Guardian's Trumpet). */
     const trumpet = 1 + fromTreasure(self, 2, UT.trumpet.more);
-    /** Curse of the Sun: a stack on the boss; at its most, a blow, and the boss hitting less hard (Will of Light: and taking more magical damage). */
+    /** Curse of the Sun: a stack on the boss; at its most, a blow, and the boss hitting less hard (Will of Light: and taking more magic damage). */
     const curse = (): void => {
       cursed++;
       curseLeft = CURSE.lasts;
@@ -184,7 +184,7 @@ export const ASELICA: HeroDef = {
 
     return {
       lands: {
-        // Her attack; with her unique weapon, every 5th blow the boss taking more magical damage, and stunned a moment.
+        // Her attack; with her unique weapon, every 5th blow the boss taking more magic damage, and stunned a moment.
         attack() {
           strike(fight.basic);
           if (tier === null) return;

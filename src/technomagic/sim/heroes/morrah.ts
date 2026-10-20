@@ -16,12 +16,12 @@ import { bookDmg, CLASS_STATS, dmg, type HeroDef, indexed, type Passive } from '
  * again with each more.
  * - Burning Power: a blow that knocks the boss down and leaves 3 Flame on it; then for a while each blow of her
  *   attack deals more and leaves a Flame. Both are harder for each Flame on the boss.
- * - Hellfire: for a while every ally has more M.DEF and is likelier to block magical blows, and a Flame is left on the
+ * - Hellfire: for a while every ally has more M.DEF and is likelier to block magic blows, and a Flame is left on the
  *   boss every second.
  * - Lava Eruption: a blow that knocks the boss down, harder for each Flame on it.
  * Her passive, Fire Smash: when she blocks, a blow back that leaves 3 Flame on the boss.
  * Her unique weapon (../unique.ts) is worked here too: now and then a blow of her attack leaves the boss
- * hitting less hard and taking more magical damage, the more with her Flame stacked full on it.
+ * hitting less hard and taking more magic damage, the more with her Flame stacked full on it.
  * What is drawn for each is ../../heroes/morrah/fx.ts; what her body does for each, and for her attack, ../../heroes/morrah/moves.ts.
  *
  * Her own perks (../perks.ts) are King's Raid's. Hellfire's Dark deals DMG based on her M.DEF: every second while
@@ -46,7 +46,7 @@ const PERKS = { quicker: 200, block: 1.2, scorch: 1, drain: 0.4, harder: { defen
 
 /**
  * Her unique treasures' numbers (1★ to 5★: ../treasures.ts): Burning Power's DMG; Hellfire's less taken (points) and
- * M.Crit resist for a block of a magical blow while it lasts; Lava Eruption's DMG and less M.DEF on the boss; Fire Smash's
+ * M.Crit resist for a block of a magic blow while it lasts; Lava Eruption's DMG and less M.DEF on the boss; Fire Smash's
  * more Flame and slower boss (ATK Spd, points).
  */
 const UT = {
@@ -167,7 +167,7 @@ export const MORRAH: HeroDef = {
     const burn = (count: number): void => {
       const stacks = Math.min(most, flames() + count);
       put(fight.foe.statuses, { name: FLAMED, left: FLAME.lasts, count: stacks, heals: Math.max(0, 1 - FLAME.heals * stacks), shown: 'burn' });
-      // (Fire Smash's Dark: at full Flame, the boss takes more magical damage, as long as it.)
+      // (Fire Smash's Dark: at full Flame, the boss takes more magic damage, as long as it.)
       if (self.perks.has('s4-dark') && stacks >= FLAME.most) put(fight.foe.statuses, { name: SEARED, left: FLAME.lasts, takes: { magical: 1 + PERKS.full }, shown: 'burn' });
     };
     /** How much harder her skills are for the Flame on the boss. */
@@ -227,10 +227,10 @@ export const MORRAH: HeroDef = {
         const jewel = wearsTreasure(self, 3);
         burn(SMASH.flames + (jewel ? UT.jewel.flames : 0));
         if (jewel) fight.slow(fromTreasure(self, 3, UT.jewel.speed), UT.jewel.lasts);
-        // (Hatchling Leather Gloves: a magical blow blocked while her Hellfire lasts, she takes less and is crit less, as long as it.)
+        // (Hatchling Leather Gloves: a magic blow blocked while her Hellfire lasts, she takes less and is crit less, as long as it.)
         if (hellfire > 0 && wearsTreasure(self, 1) && fight.foe.def.stats.deals === 'magical') {
           const less = fromTreasure(self, 1, UT.gloves.less);
-          put(self.statuses, { name: 'Hatchling Leather Gloves', left: hellfire, takes: { magical: 1 - share(less) }, critResist: { magical: UT.gloves.critResist }, shown: { name: 'Hatchling Leather Gloves', about: `Takes ${pct(share(less))} less magical DMG, and is crit less.`, icon: '🧤', art: art(1) } });
+          put(self.statuses, { name: 'Hatchling Leather Gloves', left: hellfire, takes: { magical: 1 - share(less) }, critResist: { magical: UT.gloves.critResist }, shown: { name: 'Hatchling Leather Gloves', about: `Takes ${pct(share(less))} less magic DMG, and is crit less.`, icon: '🧤', art: art(1) } });
         }
         // (Its Light: more M.DEF for each block, up to 10.)
         if (self.perks.has('s4-light') && blocks < PERKS.harder.most) {

@@ -23,7 +23,7 @@ import { CODED } from './moves';
  * Her own perks (../perks.ts) are King's Raid's. Fierce Winds' Light always holds (there is only the boss), and its Dark
  * does nothing here (the boss is already the one with the highest ATK); Dive Bomb's Dark goes by whether its blow was
  * critical. Transcend 5's Light's P.Dodge does nothing here, nor what her Transcend 5's Dark comes of but for a
- * magical blow dodged.
+ * magic blow dodged.
  */
 // (How hard each of her skills hits is the King's Raid Index's, at her class's ATK: ./kit.ts's indexed.)
 const WINDS = { blow: indexed('warrior', 212_140) / CODED.winds.lands.length, boss: indexed('warrior', 158_995) / CODED.winds.lands.length, down: 3 };

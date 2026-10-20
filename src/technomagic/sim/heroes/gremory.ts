@@ -16,7 +16,7 @@ import { CODED } from './moves';
  *   each leaving it hitting less hard (Pochi's Mark, up to five times over).
  * - Puchi, knock them away!: a blow from behind that stuns the boss. (Its mark, Puchi's Mark, lowers a target's
  *   M.Block: left out, as no boss here blocks.)
- * - Pippi, wrap them!: ten blows, each leaving the boss taking more magical damage (Pippi's Mark, up to ten
+ * - Pippi, wrap them!: ten blows, each leaving the boss taking more magic damage (Pippi's Mark, up to ten
  *   times over); a blow on it with all ten deals more, through its defense.
  * - Eh, whatever. I'm gonna sleep.: she sleeps a while, taking less and not to be knocked down; her skills are
  *   unsealed, and she gains a Mana Charge (five at most), each making her ATK and all she deals higher.
@@ -129,7 +129,7 @@ export const GREMORY: HeroDef = {
     },
     {
       name: 'Pippi, wrap them!',
-      about: `${WRAPS} blows, each leaving [Pippi’s Mark]: the boss takes ${pct(PIPPI.takes)} more magical damage for each, for ${PIPPI.lasts} seconds (up to ${PIPPI.most}). With all ${PIPPI.most} on it, each blow deals more, through its defense. Sealed once used.`,
+      about: `${WRAPS} blows, each leaving [Pippi’s Mark]: the boss takes ${pct(PIPPI.takes)} more magic damage for each, for ${PIPPI.lasts} seconds (up to ${PIPPI.most}). With all ${PIPPI.most} on it, each blow deals more, through its defense. Sealed once used.`,
       words: `Deals a total of ${dmg('assassin', PIPPI.blow * WRAPS, bookDmg('gremory', 2))} M.DMG over ${WRAPS} times to the target and enemies within a large area around the target, inflicting [Pippi's Mark] on hit targets each hit. If this skill deals DMG to a target inflicted with ${PIPPI.most} stacks of [Pippi's Mark], each hit deals additional ${dmg('assassin', PIPPI.through, bookDmg('gremory', 2))} M.DMG that ignores DEF. [Pippi's Mark] increases M.DMG the target takes by ${pct(PIPPI.takes)} for ${PIPPI.lasts} sec, and it can be stacked up to max ${PIPPI.most} times. This skill is sealed after use.`,
       tag: 'Sealed after use',
       icon: '🎀',
@@ -204,7 +204,7 @@ export const GREMORY: HeroDef = {
           fight.hit(self, PUCHI.blow);
           fight.stun(PUCHI.stun, { by: self });
         },
-        // A wrap: the boss takes more magical damage for each (up to ten); with all ten on it, the blow deals more, through its defense.
+        // A wrap: the boss takes more magic damage for each (up to ten); with all ten on it, the blow deals more, through its defense.
         pippi() {
           // (Carrier Cage: for longer, and more for each.)
           const caged = wearsTreasure(self, 2);

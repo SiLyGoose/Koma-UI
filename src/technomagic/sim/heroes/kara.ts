@@ -40,7 +40,7 @@ const PERKS = { mana: 200, laser: 2, stun: 1, stacks: 2, most: 60, sooner: 0.03,
 
 /**
  * Her unique treasures' numbers (1★ to 5★: ../treasures.ts; King's Raid's own): Anti-personnel Laser's (and Siege Laser's)
- * more DMG and the boss's more magical damage taken; Wide-area Cannon's slowing and Focused Fire's share off its cooldown and
+ * more DMG and the boss's more magic damage taken; Wide-area Cannon's slowing and Focused Fire's share off its cooldown and
  * mana on a crit; the Siege Weapon's more DMG and the most its crits lower the boss's M.DEF; Essence's more DEF, and her crit DMG.
  */
 const UT = {

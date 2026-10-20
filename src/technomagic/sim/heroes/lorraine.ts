@@ -17,7 +17,7 @@ import { CODED } from './moves';
  * - Wrath of the Forest: a blow that knocks the boss down, harder for each Poison on it.
  * Her passive, Blade Leaf: now and then her attack sends three leaves at the boss besides, each leaving a Poison.
  * Her unique weapon (../unique.ts) is worked here too: every 7 seconds, with the boss poisoned, a blow that
- * leaves it taking more magical damage for a while.
+ * leaves it taking more magic damage for a while.
  * What is drawn for each is ../../heroes/lorraine/fx.ts; what her body does for each, and for her attack, ../../heroes/lorraine/moves.ts.
  *
  * Her own perks (../perks.ts) are King's Raid's, a shackle a stun as Tangled Vine's is. Wrath of the Forest's Dark does
@@ -212,7 +212,7 @@ export const LORRAINE: HeroDef = {
           fight.foe.statuses.splice(fight.foe.statuses.findIndex((status) => status.name === POISONED), 1);
           return;
         }
-        // Her unique weapon: every 7 seconds, with the boss poisoned, a blow that leaves its M.DEF lower and it taking more magical damage for a while.
+        // Her unique weapon: every 7 seconds, with the boss poisoned, a blow that leaves its M.DEF lower and it taking more magic damage for a while.
         if (tier !== null && self.hp > 0) {
           roburu += dt;
           if (roburu >= ROBURU.every) {

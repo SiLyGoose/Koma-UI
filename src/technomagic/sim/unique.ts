@@ -23,11 +23,11 @@ import { fine, pct, type Buff } from './shown';
  * - Seria, Executioner of Domains, Elsion: a critical blow of her skills deals more, leaves the boss healed less for a
  *   while, and her healed more (up to 5 times over). (Her part does it: ./heroes/seria.ts.)
  * - Morrah, Flame of Victory, Carprain: now and then a blow of her attack leaves the boss hitting less hard and
- *   taking more magical damage for a while, twice as much more with her Flame stacked full on it. (Her part does it: ./heroes/morrah.ts.)
+ *   taking more magic damage for a while, twice as much more with her Flame stacked full on it. (Her part does it: ./heroes/morrah.ts.)
  * - Ezekiel, Jailer of Despair, Barbatos: his Fury lasts longer, and while it does his critical blows are harder and
  *   he stands being knocked down better. (His part does it: ./heroes/ezekiel.ts.)
  * - Lorraine, World Tree's Will, Roburu: every 7 seconds, with her Poison on the boss, a blow that leaves its M.DEF lower
- *   and it taking more magical damage for a while. (Her part does it: ./heroes/lorraine.ts.)
+ *   and it taking more magic damage for a while. (Her part does it: ./heroes/lorraine.ts.)
  * - Valance, Wonder of Magos Le'Flamme, Corbeau Rose: every ally gains by the TechnoMagic gear it wears. (Her part does
  *   it: ./heroes/valance.ts.)
  * - Lucikiel, Form of Ultimate Destruction, Barbatos Gigante: every 10 of his blows a stack of Incarnation of Doom (up
@@ -68,7 +68,7 @@ import { fine, pct, type Buff } from './shown';
  *   that at 4), for good.
  * - Chase, Blood Lancer Monolith: his crit DMG higher; each part of his attack a blow of flame more that heals him (twice
  *   under [Remove Limit]).
- * - Aselica, Solar Halo, Ignisius: every 5 blows of her attack, the boss takes more magical damage for a while and is
+ * - Aselica, Solar Halo, Ignisius: every 5 blows of her attack, the boss takes more magic damage for a while and is
  *   stunned a moment.
  * - Lakrak, Lakrak MK-1: an [Experiment] likelier to succeed, and each success a stack (up to 4), each his ATK, attack
  *   speed and DMG to Non-Hero enemies higher.
@@ -128,7 +128,7 @@ export const PIGRITIA = {
 };
 /** How often it gives her a Charge and a share of her max mana (seconds), and what every ally deals more and takes less while she is Overcharged (`top` times that for the ally with the highest ATK). */
 export const RASCAL = { name: 'Crystallized Technomagic, Rascal', every: [1.5, 1.4, 1.3, 1.1, 0.9, 0.7], mana: 0.01, dmg: [0.02, 0.024, 0.029, 0.035, 0.042, 0.05], taken: [0.02, 0.024, 0.029, 0.035, 0.042, 0.05], top: 2 };
-/** The chance a blow of her attack has, how long what it leaves on the boss lasts (seconds), and how much less hard it hits and more magical damage it takes (`full` times that more with her Flame stacked full on it). */
+/** The chance a blow of her attack has, how long what it leaves on the boss lasts (seconds), and how much less hard it hits and more magic damage it takes (`full` times that more with her Flame stacked full on it). */
 export const CARPRAIN = { name: 'Flame of Victory, Carprain', chance: 0.2, lasts: 10, weaker: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25], full: 2 };
 /** A critical skill blow's blow more (at ATK), what it takes off the boss's heals for `lasts` seconds, and what each of its stacks (up to `most`, for `healed` seconds) adds to hers. */
 export const ELSION = { name: 'Executioner of Domains, Elsion', blow: [500, 600, 720, 860, 1030, 1250], unhealed: [0.24, 0.29, 0.35, 0.42, 0.5, 0.6], lasts: 5, heals: [0.04, 0.05, 0.06, 0.07, 0.09, 0.1], most: 5, healed: 20 };
@@ -136,7 +136,7 @@ export const ELSION = { name: 'Executioner of Domains, Elsion', blow: [500, 600,
 export const ELTOIRRE = { name: 'Flowing Circle, Eltoirre', heals: [0.08, 0.1, 0.12, 0.14, 0.17, 0.2], defense: 0.05, every: 5, mend: [1, 1.2, 1.4, 1.7, 2.1, 2.5] };
 /** How many seconds longer his Fury lasts, and what it adds to his crit damage (a share more) and CC resist (points) while it does. */
 export const BARBATOS = { name: 'Jailer of Despair, Barbatos', longer: [2, 3, 4, 5, 6, 7], critDamage: [0.8, 0.9, 1, 1.1, 1.2, 1.3], resist: [200, 240, 290, 350, 420, 500] };
-/** How often (seconds) it strikes a poisoned boss, how hard (at ATK), and how much lower its M.DEF and more magical damage it takes after, for `lasts` seconds. */
+/** How often (seconds) it strikes a poisoned boss, how hard (at ATK), and how much lower its M.DEF and more magic damage it takes after, for `lasts` seconds. */
 export const ROBURU = { name: 'World Tree’s Will, Roburu', every: 7, blow: [1000, 1200, 1400, 1700, 2100, 2500], defense: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25], takes: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25], lasts: 10 };
 
 /** How many blows gain him a stack, the most stacks, what each adds to his ATK (a share) and attack speed (points), and at the most his blows' blow more (at ATK, through the boss's defense). */
@@ -179,7 +179,7 @@ export const EXCILIUS = { name: 'Tumultuous Dance, Excilius', sooner: [1, 1.2, 1
 export const MAXITHEA = { name: 'The Counterattack, Maxithea', most: 4, atk: [0.01, 0.012, 0.014, 0.017, 0.02, 0.025], critDamage: [0.02, 0.024, 0.028, 0.034, 0.042, 0.05] };
 /** Chase's: crit DMG; its flame (a share of ATK), and the share of it that heals him. */
 export const MONOLITH = { name: 'Blood Lancer Monolith', critDamage: [0.2, 0.24, 0.28, 0.34, 0.42, 0.5], flame: [0.3, 0.36, 0.43, 0.52, 0.62, 0.75], heal: 0.2 };
-/** Aselica's: every how many blows; the boss's more magical damage taken, for how long; its stun. */
+/** Aselica's: every how many blows; the boss's more magic damage taken, for how long; its stun. */
 export const IGNISIUS = { name: 'Solar Halo, Ignisius', every: 5, takes: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5], lasts: 10, stun: 0.5 };
 /** Lakrak's: what it adds to an [Experiment]'s chance of success; on each success a stack, up to how many, each his ATK, attack speed and more to Non-Hero enemies. */
 export const MK1 = { name: 'Lakrak MK-1', success: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5], most: 4, atk: [0.06, 0.072, 0.086, 0.105, 0.125, 0.15], speed: [60, 72, 86, 105, 125, 150], boss: [0.06, 0.072, 0.086, 0.105, 0.125, 0.15] };

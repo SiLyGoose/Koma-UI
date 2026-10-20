@@ -11,7 +11,7 @@ import { attackStarts, bookDmg, CLASS_STATS, dmg, type HeroDef, type Passive, pl
  * here, are its; its words are the game's, kingsraid.shodyra.com's). He is a warrior whose blows are magical, the Knight of Loyalty.
  * - Final Crash: sixteen blows; each critical one raises his crit DMG for a while (up to 30 times), and may deal a blow
  *   more that stuns the boss a moment.
- * - God of Lightning: a spear of lightning that knocks the boss down, which then takes more magical damage for a while;
+ * - God of Lightning: a spear of lightning that knocks the boss down, which then takes more magic damage for a while;
  *   and he is the God of Lightning for a while: his ATK far higher (its books', too), and For Jane likelier.
  * - Lightning Explosion: five blows that stun the boss.
  * His passive, For Jane: now and then a part of his attack deals a blow more that stuns the boss a moment.
@@ -25,7 +25,7 @@ import { attackStarts, bookDmg, CLASS_STATS, dmg, type HeroDef, type Passive, pl
  */
 /** Final Crash: each of its blows; the crit DMG each critical one gives (a share, up to `most`, for `lasts` seconds), and the chance, blow and stun of its blow more. */
 const CRASH = { blow: played('warrior', 350, 13_302), critDamage: 0.03, most: 30, lasts: 10, chance: 0.3, more: played('warrior', 371, 13_945), stun: 0.3 };
-/** God of Lightning: its blow, and how long it knocks the boss down; the boss's more magical damage taken, and for how long; and the state's seconds, For Jane's chance more and ATK more (flat, its books' half again with it). */
+/** God of Lightning: its blow, and how long it knocks the boss down; the boss's more magic damage taken, and for how long; and the state's seconds, For Jane's chance more and ATK more (flat, its books' half again with it). */
 const THUNDER = { blow: played('warrior', 3932, 120_385), down: 2, takes: 1.5, marked: 10, lasts: 15, chance: 0.4, atk: 64_380, books: 1.5 };
 /** Lightning Explosion: each of its five blows, and how long the first stuns the boss. */
 const EXPLOSION = { blow: played('warrior', 1117, 39_914), stun: 3 };
@@ -81,7 +81,7 @@ export const THEO: HeroDef = {
     },
     {
       name: 'God of Lightning',
-      about: `A spear of lightning that knocks the boss down for ${THUNDER.down} seconds; it takes ${pct(THUNDER.takes - 1)} more magical damage for ${THUNDER.marked} seconds. He is the God of Lightning for ${THUNDER.lasts} seconds: his ATK far higher, and For Jane ${pct(THUNDER.chance)} likelier.`,
+      about: `A spear of lightning that knocks the boss down for ${THUNDER.down} seconds; it takes ${pct(THUNDER.takes - 1)} more magic damage for ${THUNDER.marked} seconds. He is the God of Lightning for ${THUNDER.lasts} seconds: his ATK far higher, and For Jane ${pct(THUNDER.chance)} likelier.`,
       words: `Upon casting, activates 'God of Lightning' and throws a spear of lightning at the enemy, dealing ${dmg('warrior', THUNDER.blow, bookDmg('theo', 1))} M.DMG and knocking them back. Hit enemy takes ${pct(THUNDER.takes - 1)} increased M.DMG for ${THUNDER.marked} sec. While in 'God of Lightning' state, increases activation chance of 'For Jane' by ${pct(THUNDER.chance)} and ATK by ${Math.round(THUNDER.atk * THUNDER.books).toLocaleString('en-US')} for ${THUNDER.lasts} sec.`,
       icon: '⚡',
       art: art(1),
@@ -168,7 +168,7 @@ export const THEO: HeroDef = {
             fight.stun(CRASH.stun, { by: self });
           }
         },
-        // The spear: the boss knocked down, and taking more magical damage for a while.
+        // The spear: the boss knocked down, and taking more magic damage for a while.
         thunder() {
           fight.hit(self, THUNDER.blow);
           fight.stun(THUNDER.down, { down: true, by: self });

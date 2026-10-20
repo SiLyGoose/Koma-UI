@@ -10,12 +10,12 @@ import { type Ability, bookDmg, bookHeal, CLASS_STATS, dmg, healed, type HeroDef
 /*
  * Lavril's skills, as King's Raid's playtest has them (stats/lavril.md: how hard each hits and heals at its level 90, and
  * every number here, are its; its words are its own). She is a priest whose blows are magical, the Lovely Evil Spirit.
- * - G-go Away!: a blow; the boss takes more magical damage and is likelier critically hit for a while, and [Lavril's
+ * - G-go Away!: a blow; the boss takes more magic damage and is likelier critically hit for a while, and [Lavril's
  *   Ectoplasm] on it, a blow every half second; each of their blows heals every ally a share of it.
  * - Bear Up...!: the ally with the highest ATK healed, then healed every second for a while, its ATK and crit DMG higher
- *   meanwhile. For a while after, You Scare Me...! in its place: a great blow, the boss slowed and taking more magical damage.
+ *   meanwhile. For a while after, You Scare Me...! in its place: a great blow, the boss slowed and taking more magic damage.
  * - Leave Me Alone...!: a blow and a spectral tornado for a while, its blows each leaving the boss hitting less hard and
- *   taking more magical damage (stacked up).
+ *   taking more magic damage (stacked up).
  * Her passive, Together Forever...: as the fight begins, a [Soul Link] with the ally with the highest ATK: both their ATK
  * (its books' half again) and penetration higher, mana every second, and more to Non-Hero enemies.
  * Her unique weapon (../unique.ts) is worked here too: each skill she uses, untouched for a moment (no more often than every
@@ -25,13 +25,13 @@ import { type Ability, bookDmg, bookHeal, CLASS_STATS, dmg, healed, type HeroDef
  * Her own perks (../perks.ts) are King's Raid's. G-go Away!'s Dark (one enemy) always holds. You Scare Me...!'s Light's dispel
  * does nothing here. A heal "of DMG dealt" is of the blow as her ATK has it (before the boss's defense).
  */
-/** G-go Away!: its blow; the boss's more magical damage taken and lower Crit Resistance, for how long; [Lavril's Ectoplasm]'s blow every so often, for how long; the share of each blow healed to every ally. */
+/** G-go Away!: its blow; the boss's more magic damage taken and lower Crit Resistance, for how long; [Lavril's Ectoplasm]'s blow every so often, for how long; the share of each blow healed to every ally. */
 const AWAY = { blow: played('priest', 2494, 124_894), takes: 1.25, critTaken: 300, lasts: 10, ecto: played('priest', 565, 19_523), every: 0.5, ectoLasts: 5, drain: 0.05 };
 /** Bear Up...!: its heal, its heal every second (for how long), and its ally's ATK and crit DMG more (and a share of hers); how long You Scare Me...! is hers after. */
 const BEAR = { heal: playedHeal('priest', 5290, 176_824), each: playedHeal('priest', 542, 19_523), lasts: 15, atk: 0.2, critDamage: 0.5, share: 0.15, after: 5 };
-/** You Scare Me...!: its blow; the boss's attack speed less (points) and more magical damage taken, for how long. */
+/** You Scare Me...!: its blow; the boss's attack speed less (points) and more magic damage taken, for how long. */
 const SCARE = { blow: played('priest', 4968, 163_739), slow: 250, takes: 1.25, lasts: 15 };
-/** Leave Me Alone...!: its blow; the tornado for how long, a blow every so often, each stack's less ATK and more magical damage taken (up to so many, for how long). */
+/** Leave Me Alone...!: its blow; the tornado for how long, a blow every so often, each stack's less ATK and more magic damage taken (up to so many, for how long). */
 const ALONE = { blow: played('priest', 1355, 38_194), lasts: 6, every: 0.5, tick: played('priest', 555, 31_756), share: 0.045, most: 10, marked: 5 };
 /** Together Forever...: her and her linked ally's ATK more (flat, its books' half again), penetration, mana every second, and more to Non-Hero enemies. */
 const LINK = { atk: 28_967, books: 1.5, pen: 300, mana: 150, boss: 0.08 };
@@ -41,7 +41,7 @@ const PERKS = { critTaken: 500, heals: 2, floor: 0.05, allies: 2, sooner: 8, bos
 /**
  * Her unique treasures' numbers (1★ to 5★: ../treasures.ts; King's Raid's own): G-go Away!'s more DMG and the boss healed
  * less; Bear Up's more healing and crit DMG, and You Scare Me's more DMG and M.DEF less; Leave Me Alone's more stacks and
- * more magical damage taken for each blow; Together's more ATK and healing for her linked ally.
+ * more magic damage taken for each blow; Together's more ATK and healing for her linked ally.
  */
 const UT = {
   tarot: { dmg: 0.5, heals: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5], lasts: 10 },
@@ -67,7 +67,7 @@ const VOID: Buff = { name: 'Void Soul', about: 'Untouched by the boss’s blows.
 /** You Scare Me...!: in Bear Up...!'s place for a while after it. */
 const YOU_SCARE_ME: Ability = {
   name: 'You Scare Me...!',
-  about: `A great blow; the boss's attack speed ${SCARE.slow} lower and ${pct(SCARE.takes - 1)} more magical damage taken for ${SCARE.lasts} seconds.`,
+  about: `A great blow; the boss's attack speed ${SCARE.slow} lower and ${pct(SCARE.takes - 1)} more magic damage taken for ${SCARE.lasts} seconds.`,
   words: `Deals ${dmg('priest', SCARE.blow, bookDmg('lavril', 1))} M.DMG to the enemy and reduces its ATK Spd by ${SCARE.slow} for ${SCARE.lasts} sec while increasing M.DMG it takes by ${pct(SCARE.takes - 1)}.`,
   icon: '😱',
   art: art(1),
@@ -85,7 +85,7 @@ export const LAVRIL: HeroDef = {
   abilities: [
     {
       name: 'G-go Away!',
-      about: `A blow; for ${AWAY.lasts} seconds the boss takes ${pct(AWAY.takes - 1)} more magical damage and is likelier critically hit, and [Lavril's Ectoplasm] on it for ${AWAY.ectoLasts}: a blow every ${AWAY.every} seconds. Each heals every ally ${pct(AWAY.drain)} of it.`,
+      about: `A blow; for ${AWAY.lasts} seconds the boss takes ${pct(AWAY.takes - 1)} more magic damage and is likelier critically hit, and [Lavril's Ectoplasm] on it for ${AWAY.ectoLasts}: a blow every ${AWAY.every} seconds. Each heals every ally ${pct(AWAY.drain)} of it.`,
       words: `Deals ${dmg('priest', AWAY.blow, bookDmg('lavril', 0))} M.DMG to the target, increasing M.DMG it takes by ${pct(AWAY.takes - 1)} and reduces its All Crit Resistance by ${AWAY.critTaken} for ${AWAY.lasts} sec. The hit target becomes affected by 'Lavril's Ectoplasm' for ${AWAY.ectoLasts} sec, taking ${dmg('priest', AWAY.ecto, bookDmg('lavril', 0))} M.DMG every ${AWAY.every} sec. Dealing DMG with this Skill heals HP of all allies by ${pct(AWAY.drain)} of DMG dealt. When the target is killed, resets this Skill's Cooldown and recovers self's Mana by 1 orb.`,
       icon: '👻',
       art: art(0),
@@ -106,7 +106,7 @@ export const LAVRIL: HeroDef = {
     },
     {
       name: 'Leave Me Alone...!',
-      about: `A blow and a spectral tornado for ${ALONE.lasts} seconds; each of its blows leaves the boss hitting ${pct(ALONE.share)} less hard and taking ${pct(ALONE.share)} more magical damage (up to ${ALONE.most} times).`,
+      about: `A blow and a spectral tornado for ${ALONE.lasts} seconds; each of its blows leaves the boss hitting ${pct(ALONE.share)} less hard and taking ${pct(ALONE.share)} more magic damage (up to ${ALONE.most} times).`,
       words: `Swirls a Spectral Tornado within a wide frontal range of self, dealing ${dmg('priest', ALONE.tick, bookDmg('lavril', 2))} M.DMG every ${ALONE.every} sec over ${ALONE.lasts} sec. Each hit reduces ATK of the target by ${pct(ALONE.share)} for ${ALONE.marked} sec, and increases M.DMG it takes by ${pct(ALONE.share)}. This effect can be stacked up to max ${ALONE.most} times.`,
       icon: '🌪️',
       art: art(2),
@@ -181,7 +181,7 @@ export const LAVRIL: HeroDef = {
         attack() {
           fight.hit(self, fight.basic);
         },
-        // A blow; the boss taking more magical damage and likelier critically hit (its Light: likelier); [Lavril's Ectoplasm] (tick).
+        // A blow; the boss taking more magic damage and likelier critically hit (its Light: likelier); [Lavril's Ectoplasm] (tick).
         shoo() {
           drain(AWAY.blow);
           put(fight.foe.statuses, { name: 'G-go Away!', left: AWAY.lasts, takes: { magical: AWAY.takes }, critTaken: self.perks.has('s1-light') ? PERKS.critTaken : AWAY.critTaken, shown: 'curse' });
@@ -203,7 +203,7 @@ export const LAVRIL: HeroDef = {
           bearTick = 0;
           scaring = BEAR.after;
         },
-        // A great blow; the boss slowed and taking more magical damage (Fairy's Scent: harder, and its M.DEF lower).
+        // A great blow; the boss slowed and taking more magic damage (Fairy's Scent: harder, and its M.DEF lower).
         scare() {
           fight.hit(self, SCARE.blow * (wearsTreasure(self, 1) ? 1 + UT.scent.dmg : 1));
           fight.slow(SCARE.slow, SCARE.lasts);
@@ -285,7 +285,7 @@ export const LAVRIL: HeroDef = {
           }
           if (self.perks.has('s2-light')) for (const ally of borne) if (ally.hp > 0 && ally.hp < ally.stats.hp * PERKS.floor) ally.hp = ally.stats.hp * PERKS.floor;
         }
-        // The tornado: a blow every so often, each the boss hitting less hard and taking more magical damage (Blessed Protection: more stacks, and more).
+        // The tornado: a blow every so often, each the boss hitting less hard and taking more magic damage (Blessed Protection: more stacks, and more).
         if (tornado > 0) {
           tornado -= dt;
           tornadoTick += dt;

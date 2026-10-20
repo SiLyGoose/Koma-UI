@@ -16,7 +16,7 @@ import { bookDmg, CLASS_STATS, dmg, type HeroDef, type Passive, played } from '.
  *   [Ignite], the [Blazing Storm]: harder blows, each leaving the boss healed less for long (stacked up).
  * Her passive, Quintessence of Technomagic: her attack speed fixed, crit DMG far higher (its books' more), and each skill she
  * uses gains her mana; each [Explosive Reaction] raises her ATK (up to 15 times), each [Blazing Storm] has every ally take
- * less magical damage (up to 3 times).
+ * less magic damage (up to 3 times).
  * Her unique weapon (../unique.ts) is worked here too: every 10 seconds the boss takes more physical damage for a while, and
  * her DMG is higher (up to 6 times).
  * What is drawn for each, and what her body does, are King's Raid's own (../../assets/heroes/isolet.ts).
@@ -31,7 +31,7 @@ const CAIENNE = { blow: played('wizard', 2550, 87_552), heals: 0.75, lasts: 7 };
 const DEVION = { blow: played('wizard', 1020, 34_545), freeze: 3, reaction: played('wizard', 857, 29_184) };
 /** Icarus: how long its storm lasts, a blow every so often, and the boss's ATK less for how long; the [Blazing Storm]'s blow, its healing less (a share each, up to `most`, for `healLasts`), and how long it is one. */
 const ICARUS = { lasts: 10, every: 0.5, blow: played('wizard', 585, 21_026), weaker: 0.85, weakLasts: 10, blazing: played('wizard', 1170, 42_060), heals: 0.015, most: 30, healLasts: 60, blazes: 9 };
-/** Quintessence: her crit DMG (its books' more), mana for each skill, each [Explosive Reaction]'s ATK (up to so many), and each [Blazing Storm]'s less magical damage for every ally (up to so many, no more often than so often). */
+/** Quintessence: her crit DMG (its books' more), mana for each skill, each [Explosive Reaction]'s ATK (up to so many), and each [Blazing Storm]'s less magic damage for every ally (up to so many, no more often than so often). */
 const ESSENCE = { critDamage: 1.5, mana: 1500, atk: 0.04, reactions: 15, taken: 0.07, storms: 3, every: 15 };
 /** Her own perks' numbers: Caienne's Light's more physical damage taken, and Dark's longer [Ignite]; Devion's Dark's more reaction; Icarus's Light, Dark's heal less; Quintessence's Light's more to Non-Hero enemies and Dark's healing; Transcend 5's Dark's more to bosses (and for every other ally with 6 or more). */
 const PERKS = { takes: 1.25, longer: 5, reaction: 1.6, heals: 0.025, boss: 0.01, healing: 0.1, dark: { own: 0.5, allies: 0.05, many: 6 } };
@@ -55,11 +55,11 @@ const ESSENCE_SHOWN: Passive = {
   crit: 0,
   control: 1,
   steady: true,
-  shown: { name: 'Quintessence of Technomagic', about: `Passive. Her attack speed fixed; +${pct(ESSENCE.critDamage)} crit DMG; ${ESSENCE.mana} mana for each skill. Each [Explosive Reaction] +${pct(ESSENCE.atk)} ATK (up to ${ESSENCE.reactions}); each [Blazing Storm], every ally takes ${pct(ESSENCE.taken)} less magical damage (up to ${ESSENCE.storms}).`, icon: '⚙️', art: art(3) },
+  shown: { name: 'Quintessence of Technomagic', about: `Passive. Her attack speed fixed; +${pct(ESSENCE.critDamage)} crit DMG; ${ESSENCE.mana} mana for each skill. Each [Explosive Reaction] +${pct(ESSENCE.atk)} ATK (up to ${ESSENCE.reactions}); each [Blazing Storm], every ally takes ${pct(ESSENCE.taken)} less magic damage (up to ${ESSENCE.storms}).`, icon: '⚙️', art: art(3) },
   words: `Isolet's ATK Spd is fixed to 1000 and she is not affected by Skill Cooldown Reduction effects, but she recovers ${ESSENCE.mana} Mana every time she uses a Skill, and increases her Crit DMG by ${pct(ESSENCE.critDamage)}.\nWhen she creates [Explosive Reaction], her ATK increases by ${pct(ESSENCE.atk)}. This effect can be stacked up to max ${ESSENCE.reactions} times and is irremovable.\nWhen she creates [Blazing Storm], M.DMG all allies take is reduced by ${pct(ESSENCE.taken)}. This effect can be stacked up to max ${ESSENCE.storms} times and is irremovable.`,
 };
 const REACTED: Buff = { name: 'Explosive Reaction', about: 'ATK higher for each.', icon: '💥', art: art(1) };
-const SHELTERED: Buff = { name: 'Blazing Storm', about: 'Takes less magical damage for each.', icon: '🌪️', art: art(2) };
+const SHELTERED: Buff = { name: 'Blazing Storm', about: 'Takes less magic damage for each.', icon: '🌪️', art: art(2) };
 const BOSSING: Buff = { name: 'Hope of Gray', about: 'Deals more to bosses.', icon: '⚙️', art: art(3) };
 
 export const ISOLET: HeroDef = {
@@ -154,7 +154,7 @@ export const ISOLET: HeroDef = {
       reactions = Math.min(mostReactions, reactions + 1);
       put(self.statuses, { name: REACTED.name, left: Infinity, count: reactions, atk: ESSENCE.atk * reactions, ...(self.perks.has('s4-light') && { deals: 1 + PERKS.boss * reactions }), shown: REACTED });
     };
-    /** A [Blazing Storm] made: every ally takes less magical damage (no more often than so often; Quintessence's Dark: their healing more). */
+    /** A [Blazing Storm] made: every ally takes less magic damage (no more often than so often; Quintessence's Dark: their healing more). */
     const shelter = (): void => {
       if (stormWait > 0) return;
       stormWait = ESSENCE.every;
