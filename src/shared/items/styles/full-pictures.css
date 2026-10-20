@@ -54,8 +54,8 @@
   pointer-events: none;
 }
 
-/* Everything else in the box sits over the picture. */
-.item:has(> .art.full) > :not(.art),
+/* Everything else in the box sits over the picture (its label, "On Kirze" or "Equipped", over the lock too: cards.css). */
+.item:has(> .art.full) > :not(.art, .item-tag),
 .slot-frame:has(> .art.full) > :not(.art) {
   z-index: 1;
 }
