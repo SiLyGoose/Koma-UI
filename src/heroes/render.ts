@@ -369,7 +369,7 @@ function renderRunes(ctx: HeroesContext, act: HeroActions, copy: HeroCopy): void
     const words = el('span', 'rune-words');
     words.append(el('span', 'rune-name', rune.name), el('span', 'rune-lines', ok ? rune.lines.join(', ') : `${rune.lines.join(', ')} · goes in ${rune.parts.map((part) => HERO_PART_NAME[part]).join(', ')}`));
     row.append(runePic(rune), words, el('span', 'rune-count', `×${rune.count}`));
-    if (ok && socket >= 0) row.append(sectionButton(ctx, empty >= 0 ? 'Put in' : 'Swap in', `rune:${copy.id}:${socket}`, () => act.rune(copy, socket, rune.id)));
+    if (ok && socket >= 0) row.append(sectionButton(ctx, empty >= 0 ? 'Put in' : 'Swap', `rune:${copy.id}:${socket}`, () => act.rune(copy, socket, rune.id)));
     rows.push(row);
   }
   ctx.ui.runeList.replaceChildren(...rows);
