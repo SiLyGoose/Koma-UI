@@ -481,7 +481,7 @@ function renderDetail(ctx: HeroesContext, act: HeroActions): void {
     effectsOff: !fits,
     sections: [
       ...(ut ? treasureSection(ut.main, worn === 'treasure') : copy.krSet || copy.part === 'artifact' ? krSections(copy, fits, fits && equipInto ? setPieces(ctx, hero, copy, equipInto) : null) : tmSections(shown)),
-      ...runeSection(ctx, copy),
+      ...runeSection(copy),
     ],
     notes,
     // Lock: theirs to toggle on the site (not while picking what to sell); else just shown when shut.
@@ -562,8 +562,7 @@ function krSections(copy: HeroCopy, fits: boolean, pieces: { now: number; equipp
  * Any hero piece's rune sockets in the detail (a King's Raid piece's, a TechnoMagic one's, a unique weapon's): a rune in each,
  * with what it gives. Putting them in and taking them out is its Runes, in the cards' place.
  */
-function runeSection(ctx: HeroesContext, copy: HeroCopy): HTMLElement[] {
-  const own = mine(ctx) && !ctx.selling;
+function runeSection(copy: HeroCopy): HTMLElement[] {
   const out: HTMLElement[] = [];
   if (copy.runes.length > 0) {
     const rows = copy.runes.map((rune) => {
@@ -578,7 +577,7 @@ function runeSection(ctx: HeroesContext, copy: HeroCopy): HTMLElement[] {
         return row;
       }
       // (Their runes to put in: its Runes, below, lists them in the cards' place.)
-      row.append(el('span', 'kr-rune-name muted', own ? 'Empty socket: press Runes to put one in' : 'Empty socket'));
+      row.append(el('span', 'kr-rune-name muted', 'Empty Socket'));
       return row;
     });
     out.push(krSection('Runes', rows));
