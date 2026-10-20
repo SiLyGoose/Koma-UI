@@ -52,7 +52,7 @@ function findUi(root: HTMLElement) {
     classInfo: $('class-info'),
     classBody: $('class-body'),
     heroes: $('db-heroes'),
-    /** The heroes' Filter: the class, the kind of damage, and Show owned (when logged in). */
+    /** The heroes' Filter: the class, the position and the kind of damage (every hero, owned or not: no Show owned). */
     heroFilter: heroFilter($('hero-filter')),
     heroList: $('hero-list'),
     heroCount: $('hero-count'),
@@ -90,10 +90,8 @@ export interface DatabankContext {
   cls: string | null;
   /** The hero shown. */
   hero: string | null;
-  /** What the heroes' Filter picks (Show owned: null when not logged in). */
+  /** What the heroes' Filter picks (Show owned always null: the databank has every hero). */
   heroChoice: HeroChoice;
-  /** The heroes they own in the server picked; null when not logged in. */
-  ownedHeroes: Set<string> | null;
   /** How the raid stands in the server picked: null when not logged in (or the bot doesn't say). */
   week: RaidWeekView | null;
 }
@@ -120,7 +118,6 @@ export function createContext(root: HTMLElement): DatabankContext {
     cls: null,
     hero: null,
     heroChoice: { ...NO_HERO_FILTER, owned: null },
-    ownedHeroes: null,
     week: null,
   };
 }
@@ -156,7 +153,7 @@ export const bossById = (ctx: DatabankContext, id: string | null): DatabankBoss 
 export const heroById = (id: string | null): HeroDef | undefined => (id ? HEROES.find((hero) => hero.id === id) : undefined);
 
 /** A hero as the heroes' Filter goes by it: its id (for its line), its class, the kind of damage it deals, and whether they own it. */
-export const filtered = (ctx: DatabankContext, hero: HeroDef): Filtered => ({ id: hero.id, name: hero.name, class: hero.class, deals: hero.stats.deals, owned: ctx.ownedHeroes?.has(hero.id) ?? false });
+export const filtered = (ctx: DatabankContext, hero: HeroDef): Filtered => ({ id: hero.id, name: hero.name, class: hero.class, deals: hero.stats.deals });
 
 /** The heroes the Filter leaves, A to Z. */
 export const heroesShown = (ctx: DatabankContext): HeroDef[] => HEROES.filter((hero) => heroShown(ctx.heroChoice, filtered(ctx, hero))).sort(byName);

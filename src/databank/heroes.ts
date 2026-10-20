@@ -12,7 +12,7 @@ import { RECOMMENDED, TEAMMATES } from './recommended';
 
 /*
  * The TechnoMagic Raid's heroes: a card for each down the side (its face and name), A to Z, as the Filter picks
- * them (../shared/ui/hero-filter/: a class, a kind of damage, and logged in, those they own only with Show owned on), and the one picked
+ * them (../shared/ui/hero-filter/: a class, a position, a kind of damage; every hero, owned or not, with no Show owned), and the one picked
  * beside them on parchment, in the bosses' frames: its picture, name and class, the raids' bosses it's recommended against
  * and its best teammates (./recommended.ts), and its skills in King's Raid's own words. The raid itself knows them
  * (../technomagic/heroes/), so this needs nothing from the bot.
@@ -127,10 +127,7 @@ function renderHeroList(ctx: DatabankContext): void {
     if (at.left < box.left || at.right > box.right) ui.heroList.scrollLeft += at.left - box.left - 4;
     if (at.top < box.top || at.bottom > box.bottom) ui.heroList.scrollTop += at.top - box.top - 4;
   }
-  // None left: only those they own left out (Show owned would bring them back), or the class and damage too.
-  const owned = shown.length === 0 && heroesShown({ ...ctx, heroChoice: { ...ctx.heroChoice, owned: true } }).length > 0;
-  ui.heroCount.textContent =
-    shown.length > 0 ? `${shown.length} ${shown.length === 1 ? 'hero' : 'heroes'}` : owned ? 'You own every hero here: turn on Show owned in the Filter' : 'No heroes match these filters';
+  ui.heroCount.textContent = shown.length > 0 ? `${shown.length} ${shown.length === 1 ? 'hero' : 'heroes'}` : 'No heroes match these filters';
 }
 
 /** The hero picked. */

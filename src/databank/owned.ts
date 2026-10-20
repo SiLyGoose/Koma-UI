@@ -1,4 +1,3 @@
-import type { HeroesView } from '../shared/heroes';
 import { fillServers } from '../shared/ui';
 import { api, currentMe, currentServer, hasSession, loadMe } from '../site/session';
 import type { DatabankContext } from './context';
@@ -25,19 +24,9 @@ export async function loadOwned(ctx: DatabankContext): Promise<void> {
   ctx.owned = owned;
 }
 
-/** The heroes they own in the server picked (the shop's /api/heroes); with none known, the heroes' Filter offers no Show owned. */
-export async function loadOwnedHeroes(ctx: DatabankContext): Promise<void> {
-  const server = currentServer();
-  if (!server) return;
-  const res = await api<HeroesView>(`/api/heroes?guild=${encodeURIComponent(server)}`);
-  ctx.ownedHeroes = res.ok ? new Set(res.data.heroes.filter((hero) => hero.owned).map((hero) => hero.id)) : null;
-  const shown = ctx.ownedHeroes !== null;
-  if (shown !== (ctx.heroChoice.owned !== null)) ctx.heroChoice = { ...ctx.heroChoice, owned: shown ? false : null };
-}
-
-/** What goes by the server picked: what they own there (items and heroes), and how its raid stands. */
+/** What goes by the server picked: the items they own there, and how its raid stands. */
 export async function loadServer(ctx: DatabankContext): Promise<void> {
-  await Promise.all([loadOwned(ctx), loadOwnedHeroes(ctx), loadWeek(ctx)]);
+  await Promise.all([loadOwned(ctx), loadWeek(ctx)]);
 }
 
 /** Logged in: the server picker, what they own, and how the raid stands in the server picked. Anyone else just gets the lists. */
