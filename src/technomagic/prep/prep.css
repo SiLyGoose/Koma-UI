@@ -787,6 +787,27 @@ button.tm-prep-manage {
 
 .tm-prep.fit .tm-lineup {
   padding: 8px 12px;
+  /* A phone's screen is short: the panels along the bottom get less of it (a row of heroes, who's in and the buttons), the lineup's cards the rest. */
+  --room: calc(100cqh - 120px - max(150px, 30cqh));
+}
+
+.tm-prep.fit .tm-prep-panel {
+  min-height: 0;
+}
+
+/* Its heroes in as many rows as the short panel has room for, each square as tall as its row, scrolling sideways. */
+.tm-prep.fit .tm-prep-hero-list {
+  grid-template-columns: none;
+  grid-template-rows: repeat(auto-fill, minmax(44px, 1fr));
+  grid-auto-flow: column;
+  grid-auto-columns: max-content;
+  grid-auto-rows: auto;
+  overflow: auto hidden;
+}
+
+.tm-prep.fit .tm-prep-hero {
+  height: 100%;
+  width: auto;
 }
 
 /* Scaled down, the cards a set size (135px tall): sized by the height, they would grow as fast as it is scaled. Alone, each team's, less the tab's height as above. */
