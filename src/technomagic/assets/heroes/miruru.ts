@@ -58,6 +58,8 @@ export const MIRURU_ASSETS: HeroAssets = {
       name: 'Miruru',
       // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
       icon: 'Miruru.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Miruru.webp',
       // Her artwork (the Drive folder's): her head in the crop (the meter's close-up is her face by itself).
       portrait: { file: 'Miruru.png', from: `${DRIVE}1zfZ0C8Tt_2SXtRWJk22q23JiMH1zaYYi`, crop: { x: 300, y: 60, size: 300 }, head: { x: 416, y: 200, size: 130 } },
       model: {

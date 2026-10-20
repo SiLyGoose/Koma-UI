@@ -77,6 +77,8 @@ export const SERIA_ASSETS: HeroAssets = {
       name: 'Seria',
       // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
       icon: 'Seria.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Seria.webp',
       // Her artwork, crouched with her sword drawn: her head in the crop (the meter's close-up is her face by itself).
       portrait: { file: 'Seria.png', from: `${DRIVE}1eTijd3ZY18qjl6KknmLWuOYgZQCwDCrN`, crop: { x: 605, y: 70, size: 200 }, head: { x: 655, y: 160, size: 120 } },
       model: {
@@ -95,6 +97,8 @@ export const SERIA_ASSETS: HeroAssets = {
       name: 'Seria_Christmas',
       // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
       icon: 'Seria_Christmas.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Seria_Christmas.webp',
       portrait: { file: 'Seria_Christmas.png', from: `${DRIVE}1zbsVdK__ytCQ-YxrIpRV_SNKRaDSqamX`, crop: { x: 345, y: 10, size: 200 }, head: { x: 400, y: 118, size: 115 } },
       model: {
         kind: 'parts',

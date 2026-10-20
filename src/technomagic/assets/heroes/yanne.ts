@@ -64,6 +64,8 @@ export const YANNE_ASSETS: HeroAssets = {
       name: 'Yanne',
       // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
       icon: 'Yanne.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Yanne.webp',
       // Her artwork (the King's Raid Index's): her head in the crop (the meter's close-up is her face by itself).
       portrait: { file: 'Yanne.png', from: 'https://raw.githubusercontent.com/IcyDipity/KingsRaidIndex/master/images/heroes/Yanne/Yanne.png', crop: { x: 315, y: 395, size: 160 }, head: { x: 355, y: 440, size: 95 } },
       model: {

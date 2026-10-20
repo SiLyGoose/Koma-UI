@@ -53,6 +53,8 @@ export const MIRIANNE_ASSETS: HeroAssets = {
       name: 'Mirianne',
       // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
       icon: 'Mirianne.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Mirianne.webp',
       // Her artwork (the Drive folder's): her head in the crop (the meter's close-up is her face by itself).
       portrait: { file: 'Mirianne.png', from: `${DRIVE}1IE9t1-E4WCBerDzM4s3D3KBE06m5bac2`, crop: { x: 455, y: 80, size: 190 }, head: { x: 454, y: 135, size: 110 } },
       model: {

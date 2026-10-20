@@ -60,6 +60,8 @@ export const ZAFIR_ASSETS: HeroAssets = {
       name: 'Zafir',
       // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
       icon: 'Zafir.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Zafir.webp',
       // His artwork (the Drive folder's): his head in the crop (the meter's close-up is his face by itself).
       portrait: { file: 'Zafir.png', from: `${DRIVE}1bHx3Dx5NwDGPf1xsxLyi4NfyYXz8COYH`, crop: { x: 470, y: 180, size: 230 }, head: { x: 499, y: 218, size: 125 } },
       model: {

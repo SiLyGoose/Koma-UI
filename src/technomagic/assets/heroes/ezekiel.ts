@@ -60,6 +60,8 @@ export const EZEKIEL_ASSETS: HeroAssets = {
       name: 'Ezekiel',
       // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
       icon: 'Ezekiel.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Ezekiel.webp',
       // His artwork, lunging with his demon arm flung out: his head in the crop (the meter's close-up is his face by itself).
       portrait: { file: 'Ezekiel.png', from: `${DRIVE}1YnvFZjPQRrM40MH0gZrBU_lYrFu6t1pR`, crop: { x: 320, y: 200, size: 190 }, head: { x: 350, y: 240, size: 120 } },
       model: {

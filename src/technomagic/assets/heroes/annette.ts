@@ -61,6 +61,8 @@ export const ANNETTE_ASSETS: HeroAssets = {
       name: 'Annette',
       // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
       icon: 'Annette.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Annette.webp',
       // Her artwork, Rascal held up over her head: her head in the middle of the crop (the meter’s close-up is her face by itself, under her ribbon).
       portrait: { file: 'Annette.png', crop: { x: 417, y: 420, size: 140 }, head: { x: 428, y: 458, size: 110 } },
       model: {
@@ -75,6 +77,8 @@ export const ANNETTE_ASSETS: HeroAssets = {
       name: 'Annette_Halloween',
       // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
       icon: 'Annette_Halloween.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Annette_Halloween.webp',
       // Her artwork as a black cat, a paw raised: her head and cat ears in the crop (the meter's close-up is her face by itself).
       portrait: { file: 'Annette_Halloween.png', from: `${DRIVE}1RuKDrkocmMXny4VDPyKN9rX_zQiTNyhE`, crop: { x: 220, y: 40, size: 320 }, head: { x: 262, y: 138, size: 210 } },
       model: {

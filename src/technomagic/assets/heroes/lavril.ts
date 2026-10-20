@@ -65,6 +65,8 @@ export const LAVRIL_ASSETS: HeroAssets = {
       name: 'Lavril',
       // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
       icon: 'Lavril.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Lavril.webp',
       // Her artwork (the Drive folder's): her head in the crop (the meter's close-up is her face by itself).
       portrait: { file: 'Lavril.png', from: `${DRIVE}1Q_WvLfg2OY851RjHqjr8l567dDUIr6Ua`, crop: { x: 358, y: 430, size: 220 }, head: { x: 435, y: 529, size: 120 } },
       model: {

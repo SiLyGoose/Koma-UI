@@ -64,6 +64,8 @@ export const NERAXIS_ASSETS: HeroAssets = {
       name: 'Neraxis',
       // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
       icon: 'Neraxis.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Neraxis.webp',
       // His artwork (the King's Raid Index's): his head and horns in the crop (the meter's close-up is his face by itself).
       portrait: { file: 'Neraxis.png', from: 'https://raw.githubusercontent.com/IcyDipity/KingsRaidIndex/master/images/heroes/Neraxis/Neraxis.png', crop: { x: 480, y: 220, size: 175 }, head: { x: 510, y: 265, size: 110 } },
       model: {

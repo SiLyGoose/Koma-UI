@@ -60,6 +60,8 @@ export const LAKRAK_ASSETS: HeroAssets = {
       name: 'Lakrak',
       // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
       icon: 'Lakrak.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Lakrak.webp',
       // His artwork (the Drive folder's): his head in the crop (the meter's close-up is his face by itself).
       portrait: { file: 'Lakrak.png', from: `${DRIVE}1EWspkiph8rG3vumj6zoQJ2_SNV_Su11b`, crop: { x: 420, y: 200, size: 290 }, head: { x: 480, y: 290, size: 170 } },
       model: {

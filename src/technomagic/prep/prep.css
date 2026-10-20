@@ -123,10 +123,12 @@
 /*
  * The lineup: a card for every slot, in a gold-framed row (wrapping on a narrow screen). Each card as wide as
  * its share of the row, but no taller than the screen has room for once everything else is in (about 500px:
- * the top, the lineup's frame and the panels along the bottom), and never smaller than 44px across.
+ * the top, the lineup's frame and the panels along the bottom), and never smaller than 44px across. Each as King's Raid's
+ * hero portrait is shaped (its frame, 338 by 732: .tm-slot-frame).
  */
 .tm-lineup {
-  --card: max(44px, calc((100cqh - 500px) * 9 / 16));
+  --ratio: calc(338 / 732);
+  --card: max(44px, calc((100cqh - 500px) * var(--ratio)));
   /* A team's tab, over its half alone (.tm-team-tab). */
   --tab: 34px;
   display: grid;
@@ -148,7 +150,7 @@
  * (the 60px is the screen's padding and the lineup's frame), less the tab's height, so the lineup is as tall alone as in a room.
  */
 .tm-lineup.teams {
-  --card: calc(max(44px, min(calc((100cqh - 500px) * 9 / 16), calc((100cqi - 60px - 7 * 8px) / 8))) - var(--tab) * 9 / 16);
+  --card: calc(max(44px, min(calc((100cqh - 500px) * var(--ratio)), calc((100cqi - 60px - 7 * 8px) / 8))) - var(--tab) * var(--ratio));
   grid-template-columns: minmax(0, 4fr) minmax(0, 3fr);
   gap: 0;
   padding: 0;
@@ -252,24 +254,37 @@
   min-width: 0;
 }
 
+/*
+ * A slot's card, as King's Raid's hero portrait (its HeroPortrait prefab, in its units): its frame 338 by 732, the slot's
+ * whole box (the silver one, Normal: 9-sliced, its corners 110, 100, 160 and 100 across as they are); in it the hero's
+ * card (288 by 660: from 26 in on the left, 24 on the right, 39 down from the top and 33 up from the bottom, as below),
+ * its class's tag (55 across, on the frame's emblem), the kind of damage it deals (44 across, beside it), and its name over a
+ * shade at the bottom. An empty slot: the card's place, dark.
+ */
 .tm-slot-frame {
-  aspect-ratio: 9 / 16;
-  border-radius: 8px;
+  --art: 5.33% 7.1% 4.51% 7.69%;
+  position: relative;
+  aspect-ratio: 338 / 732;
+}
+
+.tm-slot-frame::before {
+  content: '';
+  position: absolute;
+  inset: var(--art);
+  border-radius: 4px;
   background: linear-gradient(180deg, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.15));
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
 }
 
 .tm-slot-card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  height: 100%;
+  position: absolute;
+  inset: 0;
+  display: block;
+  /* Its width sizes its name (cqi, below). */
+  container-type: inline-size;
   padding: 0;
-  overflow: hidden;
-  border: 2px solid var(--gold);
-  border-radius: 8px;
-  background: linear-gradient(180deg, #4a3a5a, #1e1626);
+  border: 0;
+  background: none;
   color: inherit;
   font: inherit;
 }
@@ -282,20 +297,50 @@ button.tm-slot-card:hover {
   filter: brightness(1.12);
 }
 
-.tm-slot[data-player='1'] .tm-slot-card {
-  border-color: var(--p1);
+.tm-slot-art {
+  position: absolute;
+  inset: var(--art);
 }
 
-.tm-slot[data-player='2'] .tm-slot-card {
-  border-color: var(--p2);
+.tm-slot-art img {
+  object-position: top;
 }
 
-.tm-slot[data-player='3'] .tm-slot-card {
-  border-color: var(--p3);
+/* The shade its name is on (the game's, 144 high, from 566 down). */
+.tm-slot-art::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0;
+  height: 22%;
+  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.8) 60%);
+  pointer-events: none;
 }
 
-.tm-slot[data-player='4'] .tm-slot-card {
-  border-color: var(--p4);
+.tm-slot-border {
+  position: absolute;
+  inset: 0;
+  border: 0 solid transparent;
+  border-image: url('/kr/ui/hero-frame.webp') 160 100 100 110 / 21.86% 29.59% 13.66% 32.54%;
+  pointer-events: none;
+}
+
+.tm-slot-class,
+.tm-slot-deals {
+  position: absolute;
+  height: auto;
+  aspect-ratio: 1;
+}
+
+.tm-slot-class {
+  top: 6.49%;
+  left: 13.46%;
+  width: 16.27%;
+}
+
+.tm-slot-deals {
+  top: 6.83%;
+  left: 34.32%;
+  width: 13.02%;
 }
 
 .tm-slot-owner {
@@ -327,20 +372,19 @@ button.tm-slot-card:hover {
   color: var(--p4);
 }
 
-.tm-slot-face,
+.tm-slot-art,
 .tm-prep-hero-face {
-  position: relative;
   display: grid;
   place-items: center;
   overflow: hidden;
   background: #2b2236;
 }
 
-.tm-slot-face {
-  flex: 1;
+.tm-prep-hero-face {
+  position: relative;
 }
 
-.tm-slot-face img,
+.tm-slot-art img,
 .tm-prep-hero-face img {
   width: 100%;
   height: 100%;
@@ -353,25 +397,23 @@ button.tm-slot-card:hover {
   color: var(--ink-dim);
 }
 
-.tm-slot-class {
-  position: absolute;
-  top: 4px;
-  left: 4px;
-  width: clamp(24px, 36%, 52px);
-  height: auto;
-  aspect-ratio: 1;
-  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.8));
-}
-
+/* Its name, over the shade (the game's, about 638 down). */
 .tm-slot-name {
-  padding: 4px 2px;
-  background: rgba(0, 0, 0, 0.7);
-  font-size: 12px;
+  position: absolute;
+  top: 87.2%;
+  right: 9%;
+  left: 9%;
+  translate: 0 -50%;
+  font-size: clamp(10px, 11cqi, 16px);
   font-weight: 700;
+  line-height: 1.2;
   text-align: center;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-shadow:
+    0 0 2px #000,
+    0 1px 2px #000;
 }
 
 /* Along the bottom: the heroes, the chat, and who's in. */
@@ -738,13 +780,13 @@ button.tm-prep-manage {
   padding: 8px 12px;
 }
 
-/* Scaled down, the cards a set size: sized by the height, they would grow as fast as it is scaled. Alone, each team's, less the tab's height as above. */
+/* Scaled down, the cards a set size (135px tall): sized by the height, they would grow as fast as it is scaled. Alone, each team's, less the tab's height as above. */
 .tm-prep.fit.scaled .tm-lineup:not(.teams) {
-  grid-template-columns: repeat(var(--slots, 9), minmax(0, 76px));
+  grid-template-columns: repeat(var(--slots, 9), minmax(0, calc(135px * var(--ratio))));
 }
 
 .tm-prep.fit.scaled .tm-team-slots {
-  grid-template-columns: repeat(var(--slots, 4), minmax(0, calc(76px - var(--tab) * 9 / 16)));
+  grid-template-columns: repeat(var(--slots, 4), minmax(0, calc((135px - var(--tab)) * var(--ratio))));
 }
 
 .tm-prep.fit .tm-slot-owner {

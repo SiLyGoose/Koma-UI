@@ -59,6 +59,8 @@ export const CHASE_ASSETS: HeroAssets = {
       name: 'Chase',
       // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
       icon: 'Chase.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Chase.webp',
       // His artwork (the Drive folder's): his head in the crop (the meter's close-up is his face by itself).
       portrait: { file: 'Chase.png', from: `${DRIVE}1eqjv-gNXfErLArFpIeJ7TK_2WdKAWvEe`, crop: { x: 730, y: 240, size: 130 }, head: { x: 772, y: 278, size: 70 } },
       model: {

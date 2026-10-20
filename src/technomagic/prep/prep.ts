@@ -1,5 +1,5 @@
 import { inLandscape, onLandscape } from '../../shared/ui/landscape/landscape';
-import { classBadge, className, FACE, heroCut } from '../../shared/heroes';
+import { className, FACE, heroCard, heroCut } from '../../shared/heroes';
 import { levelPopup } from '../../shared/ui/level/level';
 import type { BossDef } from '../sim/bosses/boss';
 import { DOWN } from '../sim/bosses/gauge';
@@ -129,6 +129,24 @@ function portrait(id: string, className: string): HTMLElement {
   const letter = el('span', 'tm-face-letter', (heroNamed(id)?.name ?? id).slice(0, 1));
   box.append(img, letter);
   face(id, img, letter);
+  return box;
+}
+
+/** Each hero's card made so far, by which and its skin (as portraits are kept). */
+const cards = new Map<string, HTMLElement>();
+/** A hero's picture on its lineup card: King's Raid's own card of it, top to its width (its bottom cut off, as the game's); one with none, its face. */
+function cardArt(id: string, skin: number): HTMLElement {
+  const src = heroCard(id, skin);
+  if (!src) return portrait(id, 'tm-slot-art');
+  const key = `${id}:${skin}`;
+  const made = cards.get(key);
+  if (made) return made;
+  const box = el('span', 'tm-slot-art');
+  const img = el('img', '');
+  img.alt = '';
+  img.src = src;
+  box.append(img);
+  cards.set(key, box);
   return box;
 }
 
@@ -294,7 +312,10 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
     settings.note.textContent = `${host ? next : 'Only the host changes the stage. '}${stages}`;
   }
 
-  /** One slot of the lineup: a hero (whose, which) or empty. */
+  /**
+   * One slot of the lineup: a hero (whose, which) or empty. Its card as King's Raid's hero portraits are (its HeroPortrait):
+   * the hero's own card, its frame round it, its class's tag on the frame's emblem and the kind of damage it deals beside it, its name at the bottom.
+   */
   function slot(pick: PickView | undefined, owner: PlayerView | undefined, mine: boolean): HTMLElement {
     const item = el('li', pick ? 'tm-slot filled' : 'tm-slot');
     // Whose it is, over the card (blank over an empty one, to keep the row's cards in line).
@@ -310,10 +331,17 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
       card.addEventListener('click', () => act.unpick(pick.hero));
     }
     item.dataset.player = String(owner?.number ?? 0);
-    const badge = el('img', 'tm-slot-class');
-    badge.alt = hero ? className(hero.class) : '';
-    if (hero) badge.src = classBadge(hero.class);
-    card.append(portrait(pick.hero, 'tm-slot-face'), badge, el('span', 'tm-slot-name', hero?.name ?? pick.hero));
+    card.append(cardArt(pick.hero, pick.skin), el('span', 'tm-slot-border'));
+    if (hero) {
+      const tag = el('img', 'tm-slot-class');
+      tag.alt = className(hero.class);
+      tag.src = `/kr/ui/class-${hero.class}.webp`;
+      const deals = el('img', 'tm-slot-deals');
+      deals.alt = hero.stats.deals === 'magical' ? 'Magical' : 'Physical';
+      deals.src = `/kr/ui/deals-${hero.stats.deals}.webp`;
+      card.append(tag, deals);
+    }
+    card.append(el('span', 'tm-slot-name', hero?.name ?? pick.hero));
     frame.append(card);
     return item;
   }

@@ -61,6 +61,8 @@ export const SELENE_ASSETS: HeroAssets = {
       name: 'Selene',
       // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
       icon: 'Selene.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Selene.webp',
       // Her artwork (from the wiki, asked for as the PNG it was uploaded as), the wind about her: her head and crown in the crop (the meter's close-up is her face by itself).
       portrait: {
         file: 'Selene.png',

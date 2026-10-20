@@ -104,6 +104,8 @@ export interface SkinAssets {
   portrait?: Portrait;
   /** King's Raid's own icon of it (its face, square: a file under its hero's icons/), shown wherever its face is by itself. */
   icon?: string;
+  /** King's Raid's own card of it (the tall picture of it on its hero portraits: a file under its hero's cards/), shown on the raid's lineup. */
+  card?: string;
   model: PartsModel;
 }
 

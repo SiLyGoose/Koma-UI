@@ -57,6 +57,8 @@ export const LAIAS_ASSETS: HeroAssets = {
       name: 'Laias',
       // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
       icon: 'Laias.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Laias.webp',
       // Her artwork, floating with her tail curled under her: her head and crown in the crop (the meter's close-up is her face by itself).
       portrait: {
         file: 'Laias.png',

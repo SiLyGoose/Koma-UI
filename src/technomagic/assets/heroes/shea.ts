@@ -58,6 +58,8 @@ export const SHEA_ASSETS: HeroAssets = {
       name: 'Shea',
       // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
       icon: 'Shea.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Shea.webp',
       // Her artwork (the Drive folder's): her head in the crop (the meter's close-up is her face by itself).
       portrait: { file: 'Shea.png', from: `${DRIVE}1cWwVLe5S4J1X74SO8cnNEyeEL5vj6AS3`, crop: { x: 565, y: 40, size: 200 }, head: { x: 597, y: 105, size: 110 } },
       model: {

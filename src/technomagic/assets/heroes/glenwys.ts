@@ -60,6 +60,8 @@ export const GLENWYS_ASSETS: HeroAssets = {
       name: 'Glenwys',
       // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
       icon: 'Glenwys.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Glenwys.webp',
       // Her artwork (the Drive folder's): her head in the crop (the meter's close-up is her face by itself).
       portrait: { file: 'Glenwys.png', from: `${DRIVE}1QD77RE-P6pI6JUY_ux-dK6sJ-JNKTx16`, crop: { x: 340, y: 10, size: 160 }, head: { x: 374, y: 27, size: 85 } },
       model: {

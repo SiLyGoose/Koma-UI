@@ -60,6 +60,8 @@ export const CROW_ASSETS: HeroAssets = {
       name: 'Crow',
       // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
       icon: 'Crow.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Crow.webp',
       // His artwork (from the wiki, asked for as the PNG it was uploaded as), his gun at his side: his head in the crop (the meter's close-up is his face by itself).
       portrait: {
         file: 'Crow.png',

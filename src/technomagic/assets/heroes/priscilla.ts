@@ -60,6 +60,8 @@ export const PRISCILLA_ASSETS: HeroAssets = {
       name: 'Priscilla',
       // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
       icon: 'Priscilla.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Priscilla.webp',
       // Her artwork (the Drive folder's): her head in the crop (the meter's close-up is her face by itself).
       portrait: { file: 'Priscilla.png', from: `${DRIVE}1KZauebZeINLzSfYH5UJmujWwvTXMYbNo`, crop: { x: 410, y: 65, size: 190 }, head: { x: 458, y: 112, size: 100 } },
       model: {

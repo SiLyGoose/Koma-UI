@@ -1,4 +1,4 @@
-import { HERO_ASSETS, iconPicture, portraitPicture, type Crop } from '../technomagic/assets';
+import { cardPicture, HERO_ASSETS, iconPicture, portraitPicture, type Crop } from '../technomagic/assets';
 import { el, type ItemType } from './items';
 
 /** The heroes as the bot says them (../protocol/heroes.ts). */
@@ -37,6 +37,13 @@ export function heroPicture(id: string): { src: string; crop: Crop } | null {
   const assets = HERO_ASSETS.find((hero) => hero.folder === `heroes/${id}`);
   const portrait = assets?.skins[0]?.portrait;
   return assets && portrait ? { src: portraitPicture(assets, portrait), crop: portrait.crop } : null;
+}
+
+/** A hero's card in one of its skins (by its place among them; one it lacks: its default skin's), as King's Raid draws it on a portrait. Null when it has none. */
+export function heroCard(id: string, skin = 0): string | null {
+  const assets = HERO_ASSETS.find((hero) => hero.folder === `heroes/${id}`);
+  const look = assets?.skins[skin] ?? assets?.skins[0];
+  return (assets && look && cardPicture(assets, look)) ?? null;
 }
 
 /**
