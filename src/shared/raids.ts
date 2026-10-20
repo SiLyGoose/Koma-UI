@@ -62,7 +62,7 @@ export const TM_LIST: RaidList = {
 export const DRAGON_LIST: RaidList = {
   game: 'dragon',
   tip: 'Every win gives the dragon’s own set’s gear, runes, zeiucoins and its hero essences, more at each stage. There is no daily limit.',
-  rewardNote: 'Its set’s gear: T6 at stages 1–3, T7 at 4–7 and T8 at 8–10, more pieces at each stage; and runes, better from stage to stage. Every stage pays more.',
+  rewardNote: 'Hard: its set’s gear, T6 at stages 1–3, T7 at 4–7 and T8 at 8–10, more pieces at each stage; and runes, better from stage to stage. Normal: a T6 piece from stage 7, and from stage 13 as much as the Hard stage it is as tough as. Every stage pays more.',
   cards: [
     {
       id: 'temeraire',

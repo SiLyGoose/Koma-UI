@@ -78,10 +78,11 @@ export interface DatabankContext {
   level: number;
   /** Which items the list shows (view `items`). */
   itemKind: ItemKind;
-  /** The enemy shown (a Weekly Boss's id, or a raid boss's: raidBossById), the difficulty level a Weekly Boss's numbers are for, and the stage a raid boss's are. */
+  /** The enemy shown (a Weekly Boss's id, or a raid boss's: raidBossById), the difficulty level a Weekly Boss's numbers are for, and the stage a raid boss's are (a dragon's, in its mode: Normal or Hard). */
   boss: string | null;
   bossLevel: number;
   bossStage: number;
+  bossMode: 'normal' | 'hard';
   /** The raid class shown. */
   cls: string | null;
   /** The hero shown. */
@@ -108,6 +109,7 @@ export function createContext(root: HTMLElement): DatabankContext {
     boss: null,
     bossLevel: 1,
     bossStage: 1,
+    bossMode: 'hard',
     cls: null,
     hero: HEROES[0]?.id ?? null,
     week: null,

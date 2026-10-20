@@ -1,7 +1,7 @@
 import { inLandscape, onLandscape } from '../../shared/ui/landscape/landscape';
 import { className, FACE, heroCard, heroCut } from '../../shared/heroes';
 import { levelPopup } from '../../shared/ui/level/level';
-import type { BossDef } from '../sim/bosses/boss';
+import { stagesOf, type BossDef } from '../sim/bosses/boss';
 import { DOWN } from '../sim/bosses/gauge';
 import { RAID_TIME } from '../sim/rules';
 import { isDragon } from '../sim/bosses';
@@ -13,11 +13,12 @@ import { el } from '../hud/dom';
 import { movePopup } from './move';
 import { nameTips } from '../hud/tip';
 import { play } from '../sfx';
-import type { PickView, PlayerView, RoomState } from '../../protocol/technomagic';
+import type { PickView, PlayerView, RaidMode, RoomState } from '../../protocol/technomagic';
 
 /*
  * Getting ready for a room's fight, as King's Raid has it: across the top the boss and the stage (the host
- * steps it up or down in Raid Settings, top right, where the room's link can be copied for others to join), then the lineup, a card for every slot (whose each hero is: 1P, 2P…; one of this
+ * steps it up or down in Raid Settings, top right, where the room's link can be copied for others to join; a dragon's raid
+ * there too goes between its Normal and Hard modes, at once, each with its own stages), then the lineup, a card for every slot (whose each hero is: 1P, 2P…; one of this
  * player's taken out by pressing it). Single player, the lineup is in two halves, the Main Team (whose skills are the player's to use)
  * and the Sub Team (on Auto for the whole fight), each with its tab over it: a hero picked goes into the one whose tab is
  * pressed, and one picked into the other already is moved over. Along the bottom: the heroes this player owns (pressing one puts it in,
@@ -35,6 +36,8 @@ export interface PrepActions {
   unpick(hero: string): void;
   ready(on: boolean): void;
   stage(stage: number): void;
+  /** Takes the raid into the boss's other mode (a dragon's Normal or Hard: the host's). */
+  mode(mode: RaidMode): void;
   /** Starts the fight: `force`d, without waiting for everyone to be ready. */
   begin(force: boolean): void;
   /**
@@ -59,17 +62,23 @@ const clockOf = (boss: BossDef): string => {
   return `${Math.floor(time / 60)}:${String(time % 60).padStart(2, '0')}`;
 };
 
+/** The names of a dragon's modes, as Raid Settings has them. */
+const MODE_NAMES: Readonly<Record<RaidMode, string>> = { normal: 'Normal', hard: 'Hard' };
+const MODES: readonly RaidMode[] = ['normal', 'hard'];
+
 /** Raid Info: what the boss does, and how its raid goes. */
 function infoOf(boss: BossDef): string[] {
   const solo = Math.round(((boss.stages.solo[0]?.hp ?? 1) / (boss.stages.room[0]?.hp ?? 1)) * 100);
   const lineup = 'With others, the host brings up to 4 heroes, everyone else up to 3, 8 in all. Single player, up to 7: 4 in the Main Team, whose skills are yours to use, and 3 in the Sub Team, who fight on Auto.';
   if (isDragon(boss.id)) {
+    const normal = boss.normal ? stagesOf(boss.normal) : 0;
     return [
       raidCard(boss.id)?.about ?? boss.name,
       `Its CC Gauge: no stun holds a dragon, but your heroes' stuns wear the gauge down (it fills again soon after); empty, it is Down for ${DOWN} seconds, its breath cut short.`,
-      `Heroes that fall stay down. Beat it within ${clockOf(boss)}, before its rage wipes the party. Its stages are King's Raid's Hard Dragon Raid's: each has more health and defense and hits harder, and from stage 5 on far more; single player, it has ${solo}% of the health.`,
-      `${lineup} A win gives every player hero gear (raid items), zeiucoins and hero essences of the dragon's two kinds, more at each stage. There is no daily limit.`,
-      'The host picks the stage: each after the first opens once they have beaten the one before it, each dragon apart.',
+      `Two modes, King's Raid's: Normal, its Normal Dragon Raid (${normal} stages, the first far easier than Hard's, the last harder than any), and Hard, its Hard Dragon Raid (${stagesOf(boss)} stages). Each stage has more health and defense and hits harder.`,
+      `Heroes that fall stay down. Beat it within ${clockOf(boss)}, before its rage wipes the party. Single player, it has ${solo}% of the health.`,
+      `${lineup} A win gives every player hero gear (raid items), zeiucoins and hero essences of the dragon's two kinds, more at each stage; a Normal stage as tough as one of Hard's pays as that one does. There is no daily limit.`,
+      'The host picks the mode and the stage in Raid Settings: each stage after the first opens once they have beaten the one before it, each dragon and mode apart.',
     ];
   }
   return [
@@ -160,6 +169,21 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
   const level = byId('prep-level');
   const settings = levelPopup({ id: 'prep-settings-pop', title: 'Raid Settings', label: 'Stage', confirm: 'Confirm', down: 'Lower stage', up: 'Higher stage' });
   settings.picture.hidden = true;
+  // A dragon's: its two modes, a tab each over the stage (the host's press takes the raid into it at once).
+  const modes = el('div', 'tm-mode-pick');
+  modes.setAttribute('role', 'group');
+  modes.setAttribute('aria-label', 'Mode');
+  const modeTabs = MODES.map((mode) => {
+    const tab = el('button', 'tm-mode-tab', MODE_NAMES[mode]);
+    tab.type = 'button';
+    tab.dataset.mode = mode;
+    tab.addEventListener('click', () => {
+      if (state && mode !== state.mode) act.mode(mode);
+    });
+    modes.append(tab);
+    return tab;
+  });
+  settings.down.parentElement?.before(modes);
   // The room's link, for others to join it (not in a room of the player's own: single player).
   const copyLink = el('button', 'tm-room-link', 'Copy Room Link');
   copyLink.type = 'button';
@@ -297,12 +321,19 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
     }
   });
 
-  /** Raid Settings, while it is open: the stage picked (anyone but the host only sees the room's), between its arrows. */
+  /** Raid Settings, while it is open: a dragon's mode, and the stage picked (anyone but the host only sees the room's), between its arrows. */
   function drawSettings(): void {
     if (!state || picked === null) return;
     const host = state.players.some((player) => player.id === state?.you && player.host);
     // The host can go up to the stage after the highest they have won.
     picked = host ? Math.min(Math.max(1, picked), state.unlocked) : state.stage;
+    modes.hidden = state.boss.normal === undefined;
+    for (const tab of modeTabs) {
+      const on = tab.dataset.mode === state.mode;
+      tab.setAttribute('aria-pressed', String(on));
+      tab.disabled = !host && !on;
+      tab.title = on ? `${tab.textContent}: this raid's` : host ? `Go to ${tab.textContent}` : 'Only the host changes the mode';
+    }
     settings.bossName.textContent = state.boss.name;
     settings.number.textContent = String(picked);
     settings.down.disabled = !host || picked <= 1;
@@ -310,10 +341,12 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
     settings.confirm.hidden = !host;
     copyLink.hidden = state.link === null;
     const next = host && state.unlocked < state.stages ? `Win stage ${state.unlocked} to open stage ${state.unlocked + 1}. ` : '';
-    const stages = isDragon(state.boss.id)
-      ? 'Stages 1 to 5 are the same dragon; from stage 6 on it has more health and defense and hits harder. A win gives more at each stage.'
-      : 'Each stage, the boss has more health and hits harder; from stage 4 on it is harder on the heroes still, and a win gives more gear.';
-    settings.note.textContent = `${host ? next : 'Only the host changes the stage. '}${stages}`;
+    const stages = !isDragon(state.boss.id)
+      ? 'Each stage, the boss has more health and hits harder; from stage 4 on it is harder on the heroes still, and a win gives more gear.'
+      : state.mode === 'normal'
+        ? `King's Raid's Normal Dragon Raid: its first stages are far easier than Hard's. From stage 13 it is as tough as Hard's stages and pays as they do, and its last are harder than any.`
+        : `King's Raid's Hard Dragon Raid: each stage has more health and defense and hits harder, and from stage 5 on far more. A win gives more at each stage.`;
+    settings.note.textContent = `${host ? next : 'Only the host changes the mode and the stage. '}${stages}`;
   }
 
   /**
@@ -357,7 +390,7 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
     const mine = state.lineup.filter((pick) => pick.owner === state?.you);
     const owner = (id: string): PlayerView | undefined => state?.players.find((player) => player.id === id);
 
-    level.textContent = `· Stage ${state.stage}`;
+    level.textContent = state.boss.normal === undefined ? `· Stage ${state.stage}` : `· ${MODE_NAMES[state.mode]} · Stage ${state.stage}`;
     // The boss; the Dragon Raid's, each of its dragons, this room's pressed (another: to its room).
     if (state.bosses.length > 1) {
       bossName.replaceChildren(
@@ -516,6 +549,8 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
       // Alone: a hero put in that fills the team whose tab is pressed presses the other's, if it has room.
       const before = state ? inTeam(state, intoSub) : 0;
       if (next.solo && inTeam(next, intoSub) > before && inTeam(next, intoSub) >= teamSize(next, intoSub) && inTeam(next, !intoSub) < teamSize(next, !intoSub)) intoSub = !intoSub;
+      // Raid Settings open as the raid goes into another mode: its stage there picked.
+      if (picked !== null && state && next.mode !== state.mode) picked = next.stage;
       state = next;
       root.hidden = false;
       // Drawn anew, the Heroes List (and the screen) stay scrolled where they were.

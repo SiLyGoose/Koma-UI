@@ -807,6 +807,64 @@ button.tm-prep-manage {
   padding: 4px 10px;
 }
 
+/* Raid Settings: a dragon's modes, a tab each over the stage (the raid's pressed). */
+.tm-mode-pick {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 16px 20px 0;
+}
+
+.tm-mode-pick[hidden] {
+  display: none;
+}
+
+.tm-mode-tab {
+  flex: 1;
+  max-width: 150px;
+  padding: 9px 12px;
+  border: 2px solid rgba(216, 196, 140, 0.55);
+  border-radius: 8px;
+  background: linear-gradient(180deg, #3a3e4b, #262933);
+  color: rgba(243, 236, 220, 0.75);
+  font: inherit;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition: filter 0.12s ease, transform 0.08s ease;
+}
+
+.tm-mode-tab:hover:not(:disabled),
+.tm-mode-tab:focus-visible {
+  outline: none;
+  filter: brightness(1.2);
+}
+
+.tm-mode-tab:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.tm-mode-tab[aria-pressed='true'] {
+  border-color: #e9d18f;
+  background: linear-gradient(180deg, #3fa3ef 0%, #1f73c9 55%, #155aa3 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 3px 10px rgba(0, 0, 0, 0.45);
+  color: #fff;
+  text-shadow: 0 2px 3px rgba(0, 0, 0, 0.45);
+  cursor: default;
+}
+
+/* Hard, pressed: the red of King's Raid's Hard Dragon Raid. */
+.tm-mode-tab[data-mode='hard'][aria-pressed='true'] {
+  background: linear-gradient(180deg, #e2574c 0%, #b8322b 55%, #8f231e 100%);
+}
+
+.tm-mode-tab:disabled:not([aria-pressed='true']) {
+  opacity: 0.4;
+  cursor: default;
+}
+
 /* Raid Settings: the room's link, beside Confirm (alone in the row for anyone but the host). */
 #prep-settings-pop .level-actions {
   gap: 10px;

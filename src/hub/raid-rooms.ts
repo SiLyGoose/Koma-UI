@@ -171,7 +171,9 @@ export function makeRaidRooms(root: HTMLElement, act: RaidRoomsActions): RaidRoo
     face.alt = '';
     face.loading = 'lazy';
     const who = el('div', 'raid-room-who');
-    who.append(el('span', 'raid-room-host', `${room.host.name}’s raid`), el('span', 'raid-room-phase', `Stage ${room.stage} · ${PHASE[room.phase]}`));
+    // (A dragon's: its mode, Normal or Hard, before its stage.)
+    const mode = room.boss.normal === undefined ? '' : `${room.mode === 'normal' ? 'Normal' : 'Hard'} · `;
+    who.append(el('span', 'raid-room-host', `${room.host.name}’s raid`), el('span', 'raid-room-phase', `${mode}Stage ${room.stage} · ${PHASE[room.phase]}`));
     const seats = el('span', 'raid-room-seats');
     seats.setAttribute('aria-label', `${room.players} of ${room.most} in`);
     for (let i = 0; i < room.most; i++) seats.append(el('i', i < room.players ? 'taken' : ''));

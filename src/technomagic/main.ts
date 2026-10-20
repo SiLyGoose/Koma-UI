@@ -11,7 +11,7 @@ import { artPicture } from './art';
 import { built } from '../shared/built';
 import { iconPicture, portraitPicture, type SkinAssets } from './assets';
 import { bossNamed, DRAGONS, TM_BOSSES } from './sim/bosses';
-import { stagesOf, type BossDef } from './sim/bosses/boss';
+import { bossIn, stagesOf, type BossDef } from './sim/bosses/boss';
 import { BOSS_VIEWS } from './bosses/models';
 import { makeStage } from './engine/stage';
 import { Ahead } from './fight/ahead';
@@ -242,7 +242,9 @@ async function start(): Promise<void> {
   if (DRAGON) store.set(localStorage, DRAGON_KEY, def.id);
   const bossView = BOSS_VIEWS[def.id];
   if (!bossView) throw new Error(`${def.name} has no body`);
-  const stageNumber = Math.min(stagesOf(def), Math.max(1, Math.floor(Number(params.get('stage'))) || 1));
+  // Trying things out: the boss in the mode the address names (?mode=normal: a dragon's Normal mode), at its stage.
+  const tried = bossIn(def, params.get('mode') === 'normal' ? 'normal' : null);
+  const stageNumber = Math.min(stagesOf(tried), Math.max(1, Math.floor(Number(params.get('stage'))) || 1));
   const stage = makeStage(canvas);
   // What every fight has, at once: the boss, the effects and the shield (and the field dressed). The heroes are read as
   // they're wanted (read()). Whatever isn't on this computer is left out: the page goes on without it.
@@ -494,7 +496,7 @@ async function start(): Promise<void> {
     const entries = wielding ? entrants.map((entrant) => wielders?.find((one) => one.def === entrant.def && one.skin === entrant.skin) ?? entrant) : entrants;
     const kept = keptField();
     const first = kept.map((name) => entrants.findIndex((entrant) => entrant.skin.name === name)).filter((i) => i >= 0);
-    const sim = makeSim({ boss: def, heroes: entries.map((entrant) => ({ def: entrant.def, skin: skinOf(entrant), uw: wielding ? UNIQUE_TRIED : null })), seed: Math.floor(Math.random() * 2 ** 32), stage: Number(stagePicker.value) || stageNumber, raid: false, first, deathless: deathlessButton.getAttribute('aria-pressed') === 'true' });
+    const sim = makeSim({ boss: tried, heroes: entries.map((entrant) => ({ def: entrant.def, skin: skinOf(entrant), uw: wielding ? UNIQUE_TRIED : null })), seed: Math.floor(Math.random() * 2 ** 32), stage: Number(stagePicker.value) || stageNumber, raid: false, first, deathless: deathlessButton.getAttribute('aria-pressed') === 'true' });
     const input = (what: Input): void => sim.input(what);
     game = play(sim, entries, {
       mine: () => true,
@@ -538,7 +540,7 @@ async function start(): Promise<void> {
       uniqueButton.disabled = false;
     };
     actionsRow.hidden = false;
-    for (let n = 1; n <= stagesOf(def); n++) stagePicker.append(new Option(String(n), String(n), false, n === stageNumber));
+    for (let n = 1; n <= stagesOf(tried); n++) stagePicker.append(new Option(String(n), String(n), false, n === stageNumber));
     deathlessButton.hidden = false;
     deathlessButton.addEventListener('click', () => game?.sim.input({ kind: 'deathless' }));
     // Unique weapons: the fight begun again, every hero wielding its own (their models read the first time).
@@ -632,6 +634,7 @@ async function start(): Promise<void> {
       unpick: (hero) => send({ t: 'unpick', hero }),
       ready: (on) => send({ t: 'ready', on }),
       stage: (n) => send({ t: 'stage', stage: n }),
+      mode: (mode) => send({ t: 'mode', mode }),
       begin: (force) => send({ t: 'begin', ...(force && { force }) }),
       // Another dragon: the raid taken against it (the page goes once the bot says so), or this page again alone, in a
       // room of their own against it (single player) or out of the raid into a new one.
@@ -764,7 +767,7 @@ async function start(): Promise<void> {
       const bodies = await bodiesFor(start.heroes);
       if (lock !== mine) return;
       if (!bodies) return void showMessage('The models are missing', 'A hero in this fight isn’t on this computer.');
-      const sim = makeSim({ boss: def, heroes: start.heroes.map((hero, i) => ({ def: (bodies[i] as Entrant).def, skin: hero.skin, gear: hero.gear, set: hero.set, uw: hero.uw ?? null, ut: hero.ut ?? null, skills: hero.skills, perks: hero.perks, sub: hero.sub === true })), seed: start.seed, stage: start.stage, raid: true, solo: start.solo });
+      const sim = makeSim({ boss: bossIn(def, start.mode), heroes: start.heroes.map((hero, i) => ({ def: (bodies[i] as Entrant).def, skin: hero.skin, gear: hero.gear, set: hero.set, uw: hero.uw ?? null, ut: hero.ut ?? null, skills: hero.skills, perks: hero.perks, sub: hero.sub === true })), seed: start.seed, stage: start.stage, raid: true, solo: start.solo });
       const you = state?.you;
       // (Not the Sub Team's: they fight on Auto, with no cards.)
       const ours = (i: number): boolean => start.heroes[i]?.owner === you && start.heroes[i]?.sub !== true;

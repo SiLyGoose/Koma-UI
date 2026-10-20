@@ -8,7 +8,7 @@ import { currentMe, currentServer } from '../site/session';
 import { DRAGON_LIST, raidCard, TM_LIST } from '../shared/raids';
 import { raidRewards } from '../shared/raid-rewards/raid-rewards';
 import { DRAGONS, isDragon, TM_BOSSES } from '../technomagic/sim/bosses';
-import { scaleAt, stagesOf, type BossDef } from '../technomagic/sim/bosses/boss';
+import { bossIn, scaleAt, stagesOf, type BossDef } from '../technomagic/sim/bosses/boss';
 import { RAID_TIME } from '../technomagic/sim/rules';
 import { bossById, raidBossById, type DatabankContext } from './context';
 import { RECOMMENDED } from './recommended';
@@ -21,8 +21,8 @@ import type { DatabankBoss, DatabankItem, DatabankRewards, RaidLevel } from './t
  * tells it: its picture, the difficulty level to see it at (what that does to its HP and damage, what a win at it drops,
  * and how far the server has unlocked them), its moves, its phases and what beating it gives; logged in, this week's boss
  * in the server picked is marked. The TechnoMagic Raid's bosses and the Dragon Raid's dragons as the raid has them (its
- * sim's): King's Raid's portrait, what it does, the stage to see it at (its HP, with others and alone, its DEF and level),
- * its attacks and what a win gives.
+ * sim's): King's Raid's portrait, what it does, the stage to see it at (a dragon's in its Normal or Hard mode; its HP, with
+ * others and alone, its DEF and level), its attacks and what a win gives.
  */
 
 /** A multiplier, like "1.5×". */
@@ -208,12 +208,13 @@ function recommendedCard(id: string, kr: boolean): HTMLElement[] {
   return [card];
 }
 
-/** A raid's boss picked (the TechnoMagic Raid's, or a dragon), at the stage picked: as the raid has it. */
-function renderRaidBoss(ctx: DatabankContext, boss: BossDef): void {
+/** A raid's boss picked (the TechnoMagic Raid's, or a dragon), at the stage picked (a dragon's, in the mode picked): as the raid has it. */
+function renderRaidBoss(ctx: DatabankContext, picked: BossDef): void {
   const { ui } = ctx;
   ui.bossBody.textContent = '';
   ui.bossInfo.hidden = false;
-  ui.bossInfo.setAttribute('aria-label', boss.name);
+  ui.bossInfo.setAttribute('aria-label', picked.name);
+  const boss = bossIn(picked, ctx.bossMode);
   const card = raidCard(boss.id);
   const dragon = isDragon(boss.id);
   const stages = stagesOf(boss);
@@ -229,6 +230,21 @@ function renderRaidBoss(ctx: DatabankContext, boss: BossDef): void {
   ui.bossBody.append(head);
   if (card) ui.bossBody.append(el('p', 'db-boss-text', card.about));
 
+  // A dragon's modes (King's Raid's Normal and Hard Dragon Raids), each its own stages.
+  const modes = el('div', 'db-levels');
+  modes.setAttribute('aria-label', 'Mode');
+  for (const [mode, name] of [['normal', 'Normal'], ['hard', 'Hard']] as const) {
+    const button = el('button', 'action choice db-level', name);
+    button.type = 'button';
+    button.setAttribute('aria-pressed', String(boss === bossIn(picked, mode)));
+    button.addEventListener('click', () => {
+      ctx.bossMode = mode;
+      renderRaidBoss(ctx, picked);
+    });
+    modes.append(button);
+  }
+  if (picked.normal) ui.bossBody.append(label('Mode'), modes);
+
   // The stage picker, and what that stage makes of it: its health with others and alone, its defense and its level.
   const levels = el('div', 'db-levels');
   levels.setAttribute('aria-label', 'Stage');
@@ -238,7 +254,7 @@ function renderRaidBoss(ctx: DatabankContext, boss: BossDef): void {
     button.setAttribute('aria-pressed', String(s === stage));
     button.addEventListener('click', () => {
       ctx.bossStage = s;
-      renderRaidBoss(ctx, boss);
+      renderRaidBoss(ctx, picked);
     });
     levels.append(button);
   }
