@@ -1,5 +1,5 @@
 import markup from './hero-shop.html?raw';
-import { classBadge, className, heroCard, type HeroView, type HeroesView } from '../shared/heroes';
+import { className, heroCard, type HeroView, type HeroesView } from '../shared/heroes';
 import { el } from '../shared/items';
 import { API, busyWith, dropdown, fillServers, working, type Busy } from '../shared/ui';
 import { byName, heroFilter, heroShown, NO_HERO_FILTER, type HeroChoice, type HeroFilter } from '../shared/ui/hero-filter/hero-filter';
@@ -210,7 +210,8 @@ function card(ctx: Context, hero: HeroView): HTMLButtonElement {
   art.append(initial, picture);
   showCard(picture, hero.id, initial);
   const badge = el('img', 'hero-card-class');
-  badge.src = classBadge(hero.class);
+  // King's Raid's own (its shop's round badge, 128px: the gear page's is too small to stay sharp this big).
+  badge.src = `/kr/ui/badge-${hero.class}.webp`;
   badge.alt = '';
   badge.title = className(hero.class);
   art.append(badge);
