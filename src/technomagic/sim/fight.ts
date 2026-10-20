@@ -626,7 +626,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     // Longest without first, then the dearer, then the later in its slots.
     const slots = on.abilities
       .map((_, index) => ({ index, ability: sim.slot(on, index) }))
-      .filter((one): one is { index: number; ability: Ability } => one.ability !== null && wanted(one.ability))
+      .filter((one): one is { index: number; ability: Ability } => one.ability !== null && wanted(on, one.index, one.ability))
       .sort((a, b) => (last(a.index) === last(b.index) ? 0 : last(a.index) < last(b.index) ? -1 : 1) || b.ability.cost - a.ability.cost || b.index - a.index);
     const ripe = (index: number): boolean => on.part.ripe?.(index) ?? true;
     const usable = ({ index }: { index: number }): boolean => ripe(index) && sim.ready(on, index);
@@ -643,10 +643,14 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     return slots.find(usable)?.index ?? null;
   }
 
-  /** Auto: whether a skill is wanted now (a heal once an ally is hurt or bears something it can clear; one that keeps a status up once it runs out). */
-  function wanted(ability: Ability): boolean {
+  /**
+   * Auto: whether `on`'s skill in slot `index` is wanted now (a heal once an ally is hurt or bears something it can clear, or
+   * whenever it is the only one of its skills off cooldown; one that keeps a status up once it runs out).
+   */
+  function wanted(on: Fighter, index: number, ability: Ability): boolean {
     const allies = field.filter((ally) => ally.hp > 0 && !away(ally.statuses));
-    if (ability.auto?.heals && !allies.some((ally) => ally.hp < ally.stats.hp * AUTO.hurt || ally.statuses.some((status) => status.shown.harmful === true && !status.binds && !status.away))) return false;
+    const alone = (on.cooldowns[index] as number) <= 0 && on.abilities.every((_, other) => other === index || sim.slot(on, other) === null || (on.cooldowns[other] as number) > 0);
+    if (ability.auto?.heals && !alone && !allies.some((ally) => ally.hp < ally.stats.hp * AUTO.hurt || ally.statuses.some((status) => status.shown.harmful === true && !status.binds && !status.away))) return false;
     const keeps = ability.auto?.keeps;
     if (keeps && [party, ...allies.map((ally) => ally.statuses)].some((on) => on.some((status) => status.name === keeps && status.left > AUTO.spare))) return false;
     return true;

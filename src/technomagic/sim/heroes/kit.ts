@@ -29,7 +29,7 @@ export interface Ability {
   tag?: string;
   /**
    * What Auto makes of it (none: a blow, used whenever it can be): `heals` (wanted once an ally is hurt or bears
-   * something it can clear), `keeps` (it puts up a status of this name on the heroes: wanted once it runs out).
+   * something it can clear, or once every other skill of its hero's is on cooldown), `keeps` (it puts up a status of this name on the heroes: wanted once it runs out).
    */
   auto?: { heals?: true; keeps?: string };
   /** What stands for it where it has no picture (or the picture isn't on this computer). */
