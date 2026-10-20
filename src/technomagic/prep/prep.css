@@ -72,37 +72,6 @@
   font-weight: 800;
 }
 
-/* The Dragon Raid's dragons, in place of the boss's name: this room's lit, the others a press away. */
-.tm-prep-boss b:has(.tm-prep-boss-pick) {
-  display: inline-flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 6px;
-}
-
-.tm-prep-boss-pick {
-  padding: 3px 12px;
-  border: 1px solid var(--gold-dim);
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.35);
-  color: inherit;
-  font: inherit;
-  font-size: 15px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.tm-prep-boss-pick:hover {
-  border-color: var(--gold);
-}
-
-.tm-prep-boss-pick[aria-pressed='true'] {
-  border-color: var(--gold);
-  background: linear-gradient(180deg, #e2b85c, #a87a2c);
-  color: #2a1606;
-  cursor: default;
-}
-
 /* Top right: Raid Settings, which opens the raid's own popup to step the stage (../../shared/ui/level/). */
 .tm-prep-settings {
   margin-left: auto;
@@ -120,15 +89,22 @@
   filter: brightness(1.1);
 }
 
+/* Raid Settings: the Dragon Raid's dragons, over its modes. */
+.tm-boss-pick .tm-mode-tab {
+  max-width: none;
+  padding: 8px 6px;
+  font-size: 14px;
+}
+
 /*
  * The lineup: a card for every slot, in a gold-framed row (wrapping on a narrow screen). Each card as wide as
  * its share of the row, but no taller than the screen has room for once everything else is in (--room: the top and the
  * lineup's frame, about 135px, and the panels along the bottom, a third of the screen as King's Raid has them, never less
- * than who's in needs), and never smaller than 44px across. Each as King's Raid's hero portrait is shaped (its frame,
- * 338 by 732: .tm-slot-frame). A short window has the screen laid out taller and scaled down (.zoom, below), so it keeps these shares.
+ * than who's in needs), and never smaller than 44px across. Each as King's Raid's lineup cards are: its hero portrait
+ * (its frame 338 by 732) cut short at the bottom, to 338 by 608 (.tm-slot-frame). A short window has the screen laid out taller and scaled down (.zoom, below), so it keeps these shares.
  */
 .tm-lineup {
-  --ratio: calc(338 / 732);
+  --ratio: calc(338 / 608);
   --room: calc(100cqh - 135px - max(250px, 34cqh));
   --card: max(44px, calc(var(--room) * var(--ratio)));
   /* A team's tab, over its half alone (.tm-team-tab). */
@@ -148,7 +124,7 @@
 
 /*
  * Alone: the lineup in two halves, the Main Team and the Sub Team, side by side with a line between, each under its tab (../prep/prep.ts),
- * each half as wide as its share of the 7 slots. Every card the same size in both: as large as in a room's lineup of 8
+ * each half as wide as its share of the slots (./prep.ts sets it). Every card the same size in both: as large as in a room's lineup of 8
  * (the 60px is the screen's padding and the lineup's frame), less the tab's height, so the lineup is as tall alone as in a room.
  */
 .tm-lineup.teams {
@@ -262,12 +238,15 @@
  * card, its edges under the middle of the frame's silver bars (they are 28 to 37 in on the left, 26 to 35 on the right,
  * 29 to 38 at the top and the bottom), so none of it shows past them: 32 in on the left, 31 on the right, 34 at the top and the bottom,
  * its class's tag (44 across, on the frame's emblem), the kind of damage it deals (44 across, beside it), and its name over a
- * shade at the bottom. An empty slot: the card's place, dark.
+ * shade at the bottom. An empty slot: the card's place, dark. Cut short at the bottom as King's Raid's lineup's are (338 by 608),
+ * so everything is placed in its width (cqi: 100cqi is the 338), the frame's middle bars stretched to the height.
  */
 .tm-slot-frame {
-  --art: 4.64% 9.17% 4.64% 9.47%;
+  --art: 10.06cqi 9.17cqi 10.06cqi 9.47cqi;
   position: relative;
-  aspect-ratio: 338 / 732;
+  /* Its width sizes the card's place (cqi, above). */
+  container-type: inline-size;
+  aspect-ratio: 338 / 608;
 }
 
 .tm-slot-frame::before {
@@ -323,7 +302,7 @@ button.tm-slot-card:hover {
   position: absolute;
   inset: 0;
   border: 0 solid transparent;
-  border-image: url('/kr/ui/hero-frame.webp') 160 100 100 110 / 21.86% 29.59% 13.66% 32.54%;
+  border-image: url('/kr/ui/hero-frame.webp') 160 100 100 110 / 47.34cqi 29.59cqi 29.59cqi 32.54cqi;
   pointer-events: none;
 }
 
@@ -336,13 +315,13 @@ button.tm-slot-card:hover {
 
 /* Over the emblem's own disc (42 across, its middle 69.5 in and 72.5 down), just inside its silver ring: the tag's disc fills it. */
 .tm-slot-class {
-  top: 6.9%;
+  top: 14.94cqi;
   left: 14.05%;
   width: 13.02%;
 }
 
 .tm-slot-deals {
-  top: 6.83%;
+  top: 14.79cqi;
   left: 34.32%;
   width: 13.02%;
 }
@@ -404,10 +383,10 @@ button.tm-slot-card:hover {
 /* Its name, over the shade (the game's, about 638 down). */
 .tm-slot-name {
   position: absolute;
-  top: 87.2%;
+  bottom: 27.81cqi;
   right: 9%;
   left: 9%;
-  translate: 0 -50%;
+  translate: 0 50%;
   font-size: clamp(10px, 11cqi, 16px);
   font-weight: 700;
   line-height: 1.2;
@@ -748,18 +727,123 @@ button.tm-prep-manage {
 }
 
 .tm-prep.fit {
-  gap: 10px;
-  padding: 12px 16px;
+  gap: 8px;
+  padding: 8px 12px 10px;
 }
 
+/* The site's bar hidden, as a game's own screen has none: the field gets its height. */
+:where(.ls-landscape) .frame:has(.tm-prep:not([hidden])) > .top {
+  display: none;
+}
+
+/* The top in one line: the title, the boss and Raid Settings. */
+.tm-prep.fit .tm-prep-top {
+  flex-wrap: nowrap;
+  gap: 10px;
+}
+
+.tm-prep.fit .tm-prep-title {
+  font-size: 18px;
+  white-space: nowrap;
+}
+
+.tm-prep.fit .tm-prep-boss {
+  padding: 4px 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/*
+ * The lineup takes all the height the top and the panels leave (never less than 150px: past that it is all scaled down),
+ * and each card is as tall as it has room for (cqh: the lineup's), no wider than its share of the row.
+ */
 .tm-prep.fit .tm-lineup {
+  flex: 1 1 0;
+  min-height: 150px;
   padding: 8px 12px;
-  /* A phone's screen is short: the panels along the bottom get less of it (a row of heroes, who's in and the buttons), the lineup's cards the rest. */
-  --room: calc(100cqh - 120px - max(150px, 30cqh));
+  container-type: size;
+  grid-template-columns: repeat(var(--slots, 9), minmax(0, 1fr));
+  align-content: center;
+}
+
+.tm-prep.fit .tm-slot-frame {
+  /* Less the lineup's padding and the 1P over it. */
+  width: min(100%, calc((100cqh - 16px - 26px) * var(--ratio)));
+  margin: 0 auto;
+}
+
+.tm-prep.fit .tm-lineup.teams {
+  padding: 0;
+  align-content: stretch;
+}
+
+.tm-prep.fit .tm-team-slots {
+  flex: 1;
+  grid-template-columns: repeat(var(--slots, 4), minmax(0, 1fr));
+  align-content: center;
+  padding: 8px;
+}
+
+.tm-prep.fit .tm-lineup.teams .tm-slot-frame {
+  /* Less the team's tab and its padding (no 1P alone). */
+  width: min(100%, calc((100cqh - var(--tab) - 16px) * var(--ratio)));
 }
 
 .tm-prep.fit .tm-prep-panel {
   min-height: 0;
+}
+
+/* The panels along the bottom: as tall as who's in needs, and never less than a row of heroes. */
+.tm-prep.fit .tm-prep-bottom {
+  flex: 0 0 auto;
+  min-height: max(110px, 28cqh);
+}
+
+.tm-prep.fit .tm-prep-panel-title {
+  white-space: nowrap;
+}
+
+.tm-prep.fit .tm-prep-panel-head {
+  min-width: 0;
+}
+
+.tm-prep.fit .tm-prep-manage {
+  padding: 4px 8px;
+}
+
+/* Who's in, two to a row (the four places in two rows), short. */
+.tm-prep.fit .tm-prep-players {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.tm-prep.fit .tm-prep-player {
+  gap: 6px;
+  padding: 2px 8px;
+  font-size: 14px;
+}
+
+/* Alone, just them: the whole row. */
+.tm-prep.fit .tm-prep-player:only-child {
+  grid-column: 1 / -1;
+}
+
+.tm-prep.fit .tm-prep-player-no {
+  font-size: 15px;
+}
+
+/* Raid Info, Ready and Start Battle kept in one row, as short as the panel allows. */
+.tm-prep.fit .tm-prep-actions {
+  flex-wrap: nowrap;
+}
+
+.tm-prep.fit .tm-prep-actions .action {
+  min-height: 42px;
+  padding: 0 10px;
+  white-space: nowrap;
 }
 
 /* Its heroes in as many rows as the short panel has room for, each square as tall as its row, scrolling sideways. */
@@ -777,21 +861,13 @@ button.tm-prep-manage {
   width: auto;
 }
 
-/* Scaled down, the cards a set size (135px tall): sized by the height, they would grow as fast as it is scaled. Alone, each team's, less the tab's height as above. */
-.tm-prep.fit.scaled .tm-lineup:not(.teams) {
-  grid-template-columns: repeat(var(--slots, 9), minmax(0, calc(135px * var(--ratio))));
-}
-
-.tm-prep.fit.scaled .tm-team-slots {
-  grid-template-columns: repeat(var(--slots, 4), minmax(0, calc((135px - var(--tab)) * var(--ratio))));
-}
-
 .tm-prep.fit .tm-slot-owner {
   font-size: 22px;
 }
 
+/* The chat narrower than on a computer, for who's in, two to a row. */
 .tm-prep.fit .tm-prep-bottom {
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr) minmax(0, 1.4fr);
 }
 
 .tm-prep.fit .tm-prep-player {
