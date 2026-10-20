@@ -117,11 +117,13 @@ function historyRow(pull: PullRecord): HTMLElement {
   const kind = pull.grant === 'ticket' ? 'Ticket' : pull.grant === 'rune' ? 'Rune' : kindName(pull);
   // (Its tier first, so every row's is in the same place, its name beside it.)
   const name = el('td', 'banner-history-name');
+  const line = el('div', 'banner-history-line');
   const words = el('span', 'banner-history-words');
   words.append(el('span', 'banner-history-item', pull.name));
   if (pull.bonus) words.append(el('small', 'banner-history-tag', 'Bonus'));
   if (pull.removed) words.append(el('small', 'banner-history-tag', 'Gone'));
-  name.append(tierMark(pull.stars), words);
+  line.append(tierMark(pull.stars), words);
+  name.append(line);
   row.append(el('td', 'banner-history-kind', kind), name, pulledAt(pull.at));
   return row;
 }
