@@ -92,8 +92,6 @@ export const LUCIKIEL: HeroDef = {
   id: 'lucikiel',
   name: 'Lucikiel',
   class: 'wizard',
-  // In the frontline, for all he is a wizard: he fights with his claws.
-  line: 'front',
   skins: ['Lucikiel'],
   // A wizard (his blows magical, as a wizard's are): as his class stands.
   stats: { ...CLASS_STATS.wizard, deals: 'magical' },

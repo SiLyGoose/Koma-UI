@@ -81,8 +81,6 @@ export const TANYA: HeroDef = {
   id: 'tanya',
   name: 'Tanya',
   class: 'assassin',
-  // In the frontline, for all she is an assassin.
-  line: 'front',
   skins: ['Tanya'],
   // An assassin (her blows physical): as her class stands.
   stats: { ...CLASS_STATS.assassin, deals: 'physical' },

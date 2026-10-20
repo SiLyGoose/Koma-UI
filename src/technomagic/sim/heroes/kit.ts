@@ -111,11 +111,11 @@ export interface HeroPart {
 /** A hero's class, as the game has it. */
 export type HeroClass = 'knight' | 'warrior' | 'assassin' | 'archer' | 'mechanic' | 'wizard' | 'priest';
 
-/** Where each class usually stands: knights and warriors in the frontline, priests and wizards in the backline, the rest between. */
+/** Where each class usually stands (for a hero King's Raid's playtest hasn't): knights and warriors in the frontline, priests and wizards in the backline, the rest between. */
 const CLASS_LINES: Record<HeroClass, Line> = { knight: 'front', warrior: 'front', assassin: 'middle', archer: 'middle', mechanic: 'middle', wizard: 'back', priest: 'back' };
 
-/** Where a hero stands: its own line, if it has one, or its class's. */
-export const lineOf = (def: HeroDef): Line => def.line ?? CLASS_LINES[def.class];
+/** Where a hero stands: its own line, if it has one; or King's Raid's (its position: ./kr.ts); or its class's. */
+export const lineOf = (def: HeroDef): Line => def.line ?? KR_HEROES[def.id]?.stand.line ?? CLASS_LINES[def.class];
 
 const LINE_RANK: Record<Line, number> = { front: 0, middle: 1, back: 2 };
 const CLASS_RANK: Record<HeroClass, number> = { knight: 0, warrior: 1, assassin: 2, mechanic: 3, wizard: 4, archer: 5, priest: 6 };
@@ -238,7 +238,7 @@ export interface HeroDef {
   id: string;
   name: string;
   class: HeroClass;
-  /** Where it stands, when that isn't where its class usually does. */
+  /** Where it stands, when that isn't where King's Raid has it (./kr.ts stand), or the game hasn't it and its class doesn't usually stand there. */
   line?: Line;
   /** Its skins' names, its own first: each looks otherwise (../../assets/), and fights the same. */
   skins: readonly string[];

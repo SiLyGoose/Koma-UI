@@ -9,7 +9,7 @@ import { KR_HEROES } from './heroes/kr';
 import type { HeroMove } from './heroes/moves';
 import { motionOf } from './motion';
 import { seeded } from './random';
-import { AUTO, AUTO_WAIT, BLOW, BOSS_X, CLASS_BUFF, CRIT, formation, HERO_WAIT, HERO_X, MANA_PER_ATTACK, MARCH, MARCH_ABREAST, MARCH_FROM, marchLeft, MARCH_ROW, MANA_PER_HP_LOST, MANA_RATE, MAX_MANA, MOST, rage, RAGE_WIPE, RAID_TIME, REFORM, SECTION, TICK } from './rules';
+import { AUTO, AUTO_WAIT, BLOW, BOSS_REACH, BOSS_X, CLASS_BUFF, CRIT, formation, HERO_WAIT, HERO_X, MANA_PER_ATTACK, MARCH, MARCH_ABREAST, MARCH_FROM, marchLeft, MARCH_ROW, MANA_PER_HP_LOST, MANA_RATE, MAX_MANA, MOST, rage, RAGE_WIPE, RAID_TIME, REFORM, SECTION, TICK } from './rules';
 import { grown, SET_UP, setOf, type SetEffect } from './sets';
 import { stateArt, type Art, type Buff, type Mark, type Tone } from './shown';
 import { CHAMPION_UP, DESPERATION_UP, MENDING_UP, SKILL, skilledCritDamage, skilledStats, skillsOf, SURGE_UP, type SkillId } from './skills';
@@ -23,7 +23,7 @@ import { REACH } from './heroes/reach';
 
 /*
  * The fight, worked out with nothing drawn: a boss and the heroes, up to MOST of them on the field at once,
- * each where its class stands (the frontline nearest the boss, the backline furthest from it: ./rules.ts).
+ * each in its line, as King's Raid has it (the frontline nearest the boss, the backline furthest from it: ./rules.ts).
  * It keeps how everyone stands (health, mana, what is on them for a while), works out what each blow takes
  * (./combat/), and has each hero on the field attack by itself and use its skills. The boss goes for one
  * of them at a time, picked as each of its attacks begins. What each hero's skills do is the hero's own
@@ -148,6 +148,32 @@ export const RUN_ON = 3;
 export const FLY_OFF = 4;
 /** Where a wave's minions stand: about this far along the field (before the boss), as its wave has them, closer together (the field is narrower here). */
 const MINION_X = BOSS_X - 2.5;
+
+/** How far forward each line stands, for an enemy picking whom to go for. */
+const LINE_FORWARD = { front: 3, middle: 2, back: 1 } as const;
+/** A hero's width (metres) when King's Raid's playtest hasn't it: most of its heroes'. */
+const HERO_SIZE = 0.5;
+
+/**
+ * The hero of `from` an enemy at (`x`, `z`) goes for, as King's Raid's go for theirs (its playtest's
+ * BattleCreatureList.SortBySkillDistance): of those within its reach (`reach`, metres to a hero's edge), the one furthest
+ * forward: by its line, then its weight in it (./heroes/kr.ts stand), then the better of its defenses, then its index in the
+ * game's tables. None within it: the nearest (to its edge). Of two alike, the one that came onto the field first.
+ */
+function foremost(from: readonly Fighter[], x: number, z: number, reach: number): Fighter | null {
+  const edge = (on: Fighter): number => Math.hypot(on.x - x, on.z - z) - (KR_HEROES[on.id]?.stand.size ?? HERO_SIZE);
+  const within = from.filter((on) => edge(on) <= reach + 1e-9);
+  if (within.length === 0) return from.reduce<Fighter | null>((best, on) => (!best || edge(on) < edge(best) - 1e-9 ? on : best), null);
+  const rank = (on: Fighter): readonly number[] => {
+    const stand = KR_HEROES[on.id]?.stand;
+    return [LINE_FORWARD[lineOf(on.def)], stand?.weight ?? 0, Math.max(on.stats.physical, on.stats.magical), stand?.index ?? 0];
+  };
+  const ahead = (a: readonly number[], b: readonly number[]): boolean => {
+    const i = a.findIndex((n, k) => n !== b[k]);
+    return i >= 0 && (a[i] as number) > (b[i] as number);
+  };
+  return within.reduce((best, on) => (ahead(rank(on), rank(best)) ? on : best));
+}
 
 export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo = false, first = [], deathless: noDeaths = false }: SimOptions): Sim {
   const random = seeded(seed);
@@ -411,15 +437,13 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     return times === 1 ? def.stats : { ...def.stats, physical: def.stats.physical * times, magical: def.stats.magical * times };
   }
   /**
-   * The hero on the field the boss goes for (not one out of the fight): the one nearest it, as King's Raid's bosses go for
-   * theirs; one standing, if any is (null: there is none). Of two as near, the one that came onto the field first.
+   * The hero on the field the boss goes for (not one out of the fight): as King's Raid's bosses go for theirs (foremost);
+   * one standing, if any is (null: there is none).
    */
   const anyone = (): Fighter | null => {
     const there = field.filter((fighter) => !away(fighter.statuses));
     const up = there.filter((fighter) => fighter.hp > 0);
-    const from = up.length > 0 ? up : there;
-    const far = (fighter: Fighter): number => (fighter.x - BOSS_X) * (fighter.x - BOSS_X) + fighter.z * fighter.z;
-    return from.reduce<Fighter | null>((nearest, fighter) => (!nearest || far(fighter) < far(nearest) - 1e-9 ? fighter : nearest), null);
+    return foremost(up.length > 0 ? up : there, BOSS_X, 0, BOSS_REACH);
   };
   /** Each hero's artifact's hooks (./artifacts.ts), wearing one the fight has a use for. */
   const relics = new Map<Fighter, ArtifactHooks>();
@@ -1036,13 +1060,12 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
 
   /** The heroes an enemy can reach: on the field, standing, and in the fight. */
   const reachable = (): Fighter[] => field.filter((on) => on.hp > 0 && !away(on.statuses));
-  /** The hero a minion goes for: the nearest it, or (`random`) any. */
-  function heroFor(foe: Foe, random = false): Fighter | null {
+  /** The hero a minion goes for with `move`: as King's Raid's go for theirs (foremost, within the move's range), or (`random`) any. */
+  function heroFor(foe: Foe, move: MinionMove): Fighter | null {
     const can = reachable();
     if (can.length === 0) return null;
-    if (random) return can[Math.floor(roll() * can.length)] ?? null;
-    const far = (on: Fighter): number => (on.x - foe.x) * (on.x - foe.x) + (on.z - foe.z) * (on.z - foe.z);
-    return can.reduce((best, on) => (far(on) < far(best) - 1e-9 ? on : best));
+    if (move.random) return can[Math.floor(roll() * can.length)] ?? null;
+    return foremost(can, foe.x, foe.z, move.range ?? 0);
   }
 
   /** The minions' moves go on by `dt`: each fights by itself (./bosses/dragon/minions.ts). */
@@ -1070,7 +1093,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       if (!minion.doing && minion.rest <= 0) {
         const skill = minion.def.skill && minion.skill <= 0 ? minion.def.skill : null;
         const move = skill ?? minion.def.attack;
-        const target = heroFor(foe, move.random);
+        const target = heroFor(foe, move);
         if (!target) continue;
         if (skill) minion.skill = skill.cooldown;
         minion.doing = { move, t: 0, landed: 0, target };
@@ -1094,7 +1117,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
   /** A blow of a minion's move lands: on its target (or, gone, another), and every hero as far about it as it reaches; and what it leaves on each. */
   function minionBlow(foe: Foe, minion: Minion, doing: NonNullable<Minion['doing']>): void {
     const was = doing.target;
-    const target = was && was.hp > 0 && field.includes(was) && !away(was.statuses) ? was : heroFor(foe, doing.move.random);
+    const target = was && was.hp > 0 && field.includes(was) && !away(was.statuses) ? was : heroFor(foe, doing.move);
     if (!target) return;
     doing.target = target;
     const { reach, leaves } = doing.move;

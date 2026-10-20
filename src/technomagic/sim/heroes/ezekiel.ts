@@ -76,8 +76,6 @@ export const EZEKIEL: HeroDef = {
   id: 'ezekiel',
   name: 'Ezekiel',
   class: 'assassin',
-  // In the frontline, for all he is an assassin.
-  line: 'front',
   skins: ['Ezekiel'],
   // An assassin whose blows are magical (his demon arm's): as his class stands, otherwise.
   stats: { ...CLASS_STATS.assassin, deals: 'magical' },
