@@ -1,21 +1,23 @@
-import { el } from '../shared/items';
-import { BUST, classBadge, className, FACE, heroCut, heroPicture } from '../shared/heroes';
+import { el, treasureParts, uniqueWeaponEffect } from '../shared/items';
+import { BUST, classBadge, className, FACE, heroCut, heroPicture, skillText } from '../shared/heroes';
 import { closeButton } from '../shared/ui';
 import { skillRows } from '../heroes/render';
 import { go } from '../site/nav';
 import { BOSSES } from '../technomagic/sim/bosses';
+import { KR_HEROES } from '../technomagic/sim/heroes/kr';
 import type { BossDef } from '../technomagic/sim/bosses/boss';
 import type { HeroDef } from '../technomagic/sim/heroes/kit';
-import { label, portrait, raidOf, recommendedCard } from './bosses';
+import { itemCard, label, portrait, raidOf, recommendedCard } from './bosses';
 import { heroById, heroesShown, type DatabankContext } from './context';
 import { RECOMMENDED, TEAMMATES } from './recommended';
+import type { DatabankItem } from './types';
 
 /*
  * The TechnoMagic Raid's heroes: a card for each down the side (its face and name), A to Z, as the Filter picks
  * them (../shared/ui/hero-filter/: a class, a position, a kind of damage; every hero, owned or not, with no Show owned), and the one picked
- * beside them on parchment, in the bosses' frames: its picture, name and class, the raids' bosses it's recommended against
- * and its best teammates (./recommended.ts), and its skills in King's Raid's own words. The raid itself knows them
- * (../technomagic/heroes/), so this needs nothing from the bot.
+ * beside them on parchment, in the bosses' frames: its picture, name, class, the kind of damage it deals and its position,
+ * the raids' bosses it's recommended against and its best teammates (./recommended.ts), its unique weapon and treasures (the
+ * bot's items), and its skills in King's Raid's own words. The raid itself knows the rest (../technomagic/heroes/).
  */
 
 /** A face or bust of a hero, put in `img` once it's cut (its initial in `box` until then, or for good where its picture isn't served). */
@@ -103,6 +105,29 @@ export function areasOf(id: string): HTMLElement {
   return grid;
 }
 
+/** A position's name (King's Raid's lines, as the heroes' Filter has them). */
+const POSITIONS = { front: 'Front', middle: 'Middle', back: 'Back' } as const;
+
+/** The hero's unique weapon, then its unique treasures (UT1 to UT4: its skills' then its passive's), as the databank's items have them. */
+const uniqueGear = (ctx: DatabankContext, id: string): DatabankItem[] =>
+  (ctx.databank?.items ?? [])
+    .filter((item) => item.uniqueWeapon === id || item.uniqueTreasure?.hero === id)
+    .sort((a, b) => (a.uniqueTreasure?.skill ?? 0) - (b.uniqueTreasure?.skill ?? 0));
+
+/** One of them: its card (it opens the item in the hero items), and beside it what it does at its top stars (a treasure: as the main one). */
+function uniqueRow(item: DatabankItem): HTMLElement {
+  const top = item.effects.length;
+  const lines = item.effects[top - 1] ?? [];
+  const ut = item.uniqueTreasure;
+  const kind = ut ? `Unique Treasure ${ut.skill} · ${ut.skill === 4 ? 'Passive' : `Skill ${ut.skill}`}` : 'Unique Weapon';
+  const row = el('div', 'db-class-item db-hero-unique');
+  const about = el('div', 'db-class-item-about');
+  about.append(el('strong', '', item.name), el('small', '', `${kind} · at ★${top}`));
+  for (const line of ut ? treasureParts(lines).main : uniqueWeaponEffect(lines)) about.appendChild(el('span', 'db-skill-text')).append(...skillText(line));
+  row.append(itemCard(item), about);
+  return row;
+}
+
 export function renderHeroes(ctx: DatabankContext): void {
   renderHeroList(ctx);
   renderHero(ctx);
@@ -166,7 +191,14 @@ function renderHero(ctx: DatabankContext): void {
   // One the site has no picture of shows only its name.
   badge.addEventListener('error', () => badge.remove(), { once: true });
   kind.append(badge, className(hero.class));
-  title.append(el('h3', '', hero.name), kind);
+  // Under its class, the kind of damage it deals (with King's Raid's mark of it) and its position.
+  const deals = el('p', 'detail-meta db-kind db-hero-class');
+  const mark = el('img');
+  mark.src = `/kr/ui/deals-${hero.stats.deals}.webp`;
+  mark.alt = '';
+  deals.append(mark, `${hero.stats.deals === 'magical' ? 'Magical' : 'Physical'} damage`);
+  const line = KR_HEROES[hero.id]?.stand.line;
+  title.append(el('h3', '', hero.name), kind, deals, ...(line ? [el('p', 'detail-meta db-kind db-hero-line', `${POSITIONS[line]} position`)] : []));
   head.append(bust(hero), title);
   ui.heroBody.append(head);
 
@@ -180,6 +212,10 @@ function renderHero(ctx: DatabankContext): void {
     grid.append(...mates.heroes.flatMap((id) => recommendedCard(id, mates.kr.includes(id))));
     ui.heroBody.append(label('Recommended teammates'), grid);
   }
+
+  // Its unique weapon and treasures, right over its skills (whose UT each is).
+  const unique = uniqueGear(ctx, hero.id);
+  if (unique.length > 0) ui.heroBody.append(label('Unique Weapon & Treasures'), ...unique.map(uniqueRow));
 
   const skills = skillRows(hero.id, ctx.databank?.heroes?.find((one) => one.id === hero.id)?.abilities ?? []);
   if (skills.length > 0) {
