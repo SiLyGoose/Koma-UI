@@ -434,6 +434,8 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
     };
     const solo = state.solo;
     lineup.classList.toggle('teams', solo);
+    // How many cards in all, which each card's share of the lineup's width is of (./prep.css).
+    lineup.style.setProperty('--all', String(state.slots));
     if (solo) {
       // Alone: the Main Team and the Sub Team, side by side, each under its tab, each as wide as its share of the slots.
       lineup.style.removeProperty('--slots');
