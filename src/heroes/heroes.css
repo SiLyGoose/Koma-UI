@@ -954,3 +954,8 @@
   font-size: 13px;
   font-weight: 600;
 }
+
+/* A rune in the piece's sockets, over their own (render.ts's renderRunes): tinted gold, with Unequip in place of a count. */
+.rune-row.equipped {
+  background: rgb(240 200 110 / 16%);
+}

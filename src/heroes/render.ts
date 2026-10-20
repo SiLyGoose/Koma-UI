@@ -5,7 +5,7 @@ import { working } from '../shared/ui';
 import { canTrade, copyById, heroShown, mine, slotFor, slotOf, type HeroesContext } from './context';
 import { SIDE_SLOTS } from '../protocol/heroes';
 import { heroSkills } from './skills';
-import type { HeroOption, HeroRuneStack, HeroSkillView } from '../protocol/heroes';
+import type { HeroOption, HeroRune, HeroRuneStack, HeroSkillView } from '../protocol/heroes';
 import { FORGE_MODES, heroCan } from '../forge/modes';
 import { heroStats } from './stats';
 import { ESSENCE_NAME, essencePicture, heroPerks, spent, TRANSCEND_MAX, TRANSCEND_POINTS, type EssenceId, type Perk, type TranscendTier } from './transcend';
@@ -321,10 +321,21 @@ function runesFor(ctx: HeroesContext): HeroCopy | null {
   return copy && copy.runes.length > 0 ? copy : null;
 }
 
+/** A rune's picture in the Runes list: its icon, its kind's gem on its corner. */
+function runePic(rune: HeroRune): HTMLElement {
+  const pic = el('span', 'rune-pic');
+  const icon = el('img');
+  icon.src = `/kr/items/${rune.icon}.webp`;
+  icon.alt = '';
+  icon.loading = 'lazy';
+  pic.append(icon, el('span', `kr-rune ${rune.color}`));
+  return pic;
+}
+
 /**
- * Their runes in the cards' place, for `copy`: the ones that go in it first, each its icon (its kind's gem on it), name, what
- * it gives and how many, with Put in (into its first empty socket; a piece of one socket, full: Swap in, the one in it back to
- * them). The rest, greyed, say what they go in.
+ * Their runes in the cards' place, for `copy`: first the ones in its sockets, each with Unequip (back to them); then theirs,
+ * the ones that go in it first, each its icon (its kind's gem on it), name, what it gives and how many, with Put in (into its
+ * first empty socket; a piece of one socket, full: Swap in, the one in it back to them). The rest, greyed, say what they go in.
  */
 function renderRunes(ctx: HeroesContext, act: HeroActions, copy: HeroCopy): void {
   const runes = ctx.view?.runes ?? [];
@@ -339,22 +350,25 @@ function renderRunes(ctx: HeroesContext, act: HeroActions, copy: HeroCopy): void
     renderPick(ctx, act);
   });
   const head = el('div', 'rune-list-head');
-  head.append(el('p', 'rune-list-note', `${shownName(copy)}: ${filled} of ${copy.runes.length} socket${copy.runes.length === 1 ? '' : 's'} filled.${socket < 0 ? ' Take a rune out (in its details) to put another in.' : ''}`), back);
+  head.append(el('p', 'rune-list-note', `${shownName(copy)}: ${filled} of ${copy.runes.length} socket${copy.runes.length === 1 ? '' : 's'} filled.${socket < 0 ? ' Unequip one to put another in.' : ''}`), back);
   const rows: HTMLElement[] = [head];
+  // In its sockets: what each gives, and Unequip where the others say how many they have.
+  copy.runes.forEach((rune, i) => {
+    if (!rune) return;
+    const row = el('div', 'rune-row equipped');
+    const words = el('span', 'rune-words');
+    words.append(el('span', 'rune-name', rune.name), el('span', 'rune-lines', rune.lines.join(', ')));
+    row.append(runePic(rune), words, sectionButton(ctx, 'Unequip', `rune:${copy.id}:${i}`, () => act.rune(copy, i, null)));
+    rows.push(row);
+  });
   if (runes.length === 0) rows.push(el('p', 'rune-list-note muted', 'No runes yet.'));
   const fits = (rune: HeroRuneStack): boolean => rune.parts.includes(copy.part);
   for (const rune of [...runes.filter(fits), ...runes.filter((one) => !fits(one))]) {
     const ok = fits(rune);
     const row = el('div', `rune-row${ok ? '' : ' off'}`);
-    const pic = el('span', 'rune-pic');
-    const icon = el('img');
-    icon.src = `/kr/items/${rune.icon}.webp`;
-    icon.alt = '';
-    icon.loading = 'lazy';
-    pic.append(icon, el('span', `kr-rune ${rune.color}`));
     const words = el('span', 'rune-words');
     words.append(el('span', 'rune-name', rune.name), el('span', 'rune-lines', ok ? rune.lines.join(', ') : `${rune.lines.join(', ')} · goes in ${rune.parts.map((part) => HERO_PART_NAME[part]).join(', ')}`));
-    row.append(pic, words, el('span', 'rune-count', `×${rune.count}`));
+    row.append(runePic(rune), words, el('span', 'rune-count', `×${rune.count}`));
     if (ok && socket >= 0) row.append(sectionButton(ctx, empty >= 0 ? 'Put in' : 'Swap in', `rune:${copy.id}:${socket}`, () => act.rune(copy, socket, rune.id)));
     rows.push(row);
   }
@@ -465,7 +479,7 @@ function renderDetail(ctx: HeroesContext, act: HeroActions): void {
     effectsOff: !fits,
     sections: [
       ...(ut ? treasureSection(ut.main, worn === 'treasure') : copy.krSet || copy.part === 'artifact' ? krSections(copy, fits, fits && equipInto ? setPieces(ctx, hero, copy, equipInto) : null) : tmSections(shown)),
-      ...runeSection(ctx, act, copy),
+      ...runeSection(ctx, copy),
     ],
     notes,
     // Lock: theirs to toggle on the site (not while picking what to sell); else just shown when shut.
@@ -544,20 +558,19 @@ function krSections(copy: HeroCopy, fits: boolean, pieces: { now: number; equipp
 
 /**
  * Any hero piece's rune sockets in the detail (a King's Raid piece's, a TechnoMagic one's, a unique weapon's): a rune in each,
- * with what it gives, to take out; their runes to put in are its Runes, in the cards' place. Buttons only on their own copy.
+ * with what it gives. Putting them in and taking them out is its Runes, in the cards' place.
  */
-function runeSection(ctx: HeroesContext, act: HeroActions, copy: HeroCopy): HTMLElement[] {
+function runeSection(ctx: HeroesContext, copy: HeroCopy): HTMLElement[] {
   const own = mine(ctx) && !ctx.selling;
   const out: HTMLElement[] = [];
   if (copy.runes.length > 0) {
-    const rows = copy.runes.map((rune, socket) => {
+    const rows = copy.runes.map((rune) => {
       const row = el('div', 'kr-socket');
       if (rune) {
         const icon = el('img', 'kr-rune-icon');
         icon.src = `/kr/items/${rune.icon}.webp`;
         icon.alt = '';
         row.append(icon, el('span', 'kr-rune-name', `${rune.name}: ${rune.lines.join(', ')}`));
-        if (own) row.append(sectionButton(ctx, 'Take out', `rune:${copy.id}:${socket}`, () => act.rune(copy, socket, null)));
         return row;
       }
       // (Their runes to put in: its Runes, below, lists them in the cards' place.)
