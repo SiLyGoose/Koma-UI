@@ -153,10 +153,6 @@
   gap: 10px;
 }
 
-.db-areas + .detail-note {
-  margin-top: 10px;
-}
-
 /* King's Raid's own pick: its thumbs-up (the recommended heroes' own) over the card's top left. */
 .db-area-card img.db-area-kr {
   position: absolute;

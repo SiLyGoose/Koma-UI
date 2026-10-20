@@ -160,10 +160,8 @@ function renderHero(ctx: DatabankContext): void {
   const areas = BOSSES.filter((boss) => RECOMMENDED[boss.id]?.heroes.includes(hero.id));
   if (areas.length > 0) {
     const grid = el('div', 'db-areas');
-    const kr = areas.filter((boss) => RECOMMENDED[boss.id]?.kr.includes(hero.id));
-    grid.append(...areas.map((boss) => areaCard(boss, kr.includes(boss))));
-    const note = kr.length > 0 ? 'Thumbs up: King’s Raid’s own picks for its Hard Dragon Raid. The rest: where its parties fared best in the raid’s simulated fights.' : 'Where its parties fared best in the raid’s simulated fights.';
-    ui.heroBody.append(label('Recommended areas of battle'), grid, el('p', 'detail-note', note));
+    grid.append(...areas.map((boss) => areaCard(boss, RECOMMENDED[boss.id]?.kr.includes(hero.id) ?? false)));
+    ui.heroBody.append(label('Recommended areas of battle'), grid);
   }
 
   // The rest of its Main Team: the heroes King's Raid recommends with it, then a priest and those its parties fared best with in the raid's sim.
@@ -171,12 +169,7 @@ function renderHero(ctx: DatabankContext): void {
   if (mates && mates.heroes.length > 0) {
     const grid = el('div', 'db-recommended');
     grid.append(...mates.heroes.flatMap((id) => recommendedCard(id, mates.kr.includes(id))));
-    // In the raid's fights a priest helps any party, and a second one does less than none.
-    const priests = hero.class === 'priest' ? 'no other priest' : 'one priest';
-    const sim = `${priests} and the heroes ${hero.name}’s parties fared best with in the raid’s simulated fights`;
-    const kr = `Thumbs up: heroes King’s Raid recommends together with ${hero.name}.`;
-    const note = mates.kr.length === mates.heroes.length ? kr : mates.kr.length > 0 ? `${kr} The rest: ${sim}.` : `A Main Team with ${hero.name}: ${sim}.`;
-    ui.heroBody.append(label('Recommended teammates'), grid, el('p', 'detail-note', note));
+    ui.heroBody.append(label('Recommended teammates'), grid);
   }
 
   const skills = skillRows(hero.id, ctx.databank?.heroes?.find((one) => one.id === hero.id)?.abilities ?? []);
