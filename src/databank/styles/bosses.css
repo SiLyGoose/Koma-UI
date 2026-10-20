@@ -263,6 +263,19 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* A number with an icon before it (the kind of damage a raid boss deals). */
+.db-stat-with-icon {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.db-stat-icon {
+  width: 22px;
+  height: 22px;
+  flex: none;
+}
+
 /* What a raid's boss is weak to: the kind of damage's icon (both, when neither), and its name. */
 .db-weak {
   display: flex;

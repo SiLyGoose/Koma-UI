@@ -80,10 +80,18 @@ const picture = (boss: DatabankBoss, className: string): HTMLImageElement => {
 /** A heading over one part of a sheet (the boss's, and a class's: ./classes.ts). */
 export const label = (text: string): HTMLElement => el('p', 'db-label', text);
 
-/** A number with what it is over it. */
-function stat(name: string, value: string): HTMLElement {
+/** A number with what it is over it (and an icon before it: `icon`, its URL). */
+function stat(name: string, value: string, icon?: string): HTMLElement {
   const box = el('div', 'db-stat');
-  box.append(el('small', '', name), el('b', '', value));
+  const shown = el('b', icon ? 'db-stat-with-icon' : '', value);
+  if (icon) {
+    const img = el('img', 'db-stat-icon');
+    img.src = icon;
+    img.alt = '';
+    img.draggable = false;
+    shown.prepend(img);
+  }
+  box.append(el('small', '', name), shown);
   return box;
 }
 
@@ -344,7 +352,7 @@ function renderRaidBoss(ctx: DatabankContext, picked: BossDef): void {
   defense.append(
     stat('P. DEF', points(Math.round(boss.stats.physical * (room.defense ?? 1)))),
     stat('M. DEF', points(Math.round(boss.stats.magical * (room.defense ?? 1)))),
-    stat('Deals', boss.stats.deals === 'magical' ? 'Magic' : 'Physical'),
+    stat('Deals', boss.stats.deals === 'magical' ? 'Magic' : 'Physical', `/kr/ui/deals-${boss.stats.deals}.webp`),
   );
   const time = boss.time ?? RAID_TIME;
   ui.bossBody.append(
