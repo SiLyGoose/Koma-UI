@@ -147,6 +147,11 @@
 }
 
 /* The raids' bosses the hero is recommended against: the enemies' cards (./bosses.css), as many across as fit. */
+/* None: a line saying so, under the label. */
+.db-areas-none {
+  margin-top: 0;
+}
+
 .db-areas {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));

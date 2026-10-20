@@ -1,7 +1,7 @@
 import markup from './hero-shop.html?raw';
-import { areaCard } from '../databank/heroes';
+import { areasOf } from '../databank/heroes';
 import { label, recommendedCard } from '../databank/bosses';
-import { RECOMMENDED, TEAMMATES } from '../databank/recommended';
+import { TEAMMATES } from '../databank/recommended';
 import { skillBrief } from '../heroes/briefs';
 import { skillRows } from '../heroes/render';
 import { className, heroCard, heroPicture, type HeroView, type HeroesView } from '../shared/heroes';
@@ -11,7 +11,6 @@ import { byName, heroFilter, heroShown, NO_HERO_FILTER, type HeroChoice, type He
 import { coin, points } from '../shared/util';
 import type { ShopTab } from '../shop/tab';
 import { api, currentMe, currentServer, loadMe, logOut, prefetchFor, setServer } from '../site/session';
-import { BOSSES } from '../technomagic/sim/bosses';
 import { KR_HEROES } from '../technomagic/sim/heroes/kr';
 import type { Line } from '../technomagic/sim/rules';
 
@@ -363,12 +362,7 @@ function renderAbout(ui: Ui, hero: HeroView): void {
   ui.buyKind.replaceChildren(badge, [className(hero.class), line && `${LINE_NAME[line]} line`, hero.deals === 'magical' ? 'Magical' : 'Physical'].filter(Boolean).join(' · '));
 
   ui.buyInfo.textContent = '';
-  const areas = BOSSES.filter((boss) => RECOMMENDED[boss.id]?.heroes.includes(hero.id));
-  if (areas.length > 0) {
-    const grid = el('div', 'db-areas');
-    grid.append(...areas.map((boss) => areaCard(boss, RECOMMENDED[boss.id]?.kr.includes(hero.id) ?? false)));
-    ui.buyInfo.append(label('Recommended areas of battle'), grid);
-  }
+  ui.buyInfo.append(label('Recommended areas of battle'), areasOf(hero.id));
   const mates = TEAMMATES[hero.id];
   if (mates && mates.heroes.length > 0) {
     const grid = el('div', 'db-recommended');

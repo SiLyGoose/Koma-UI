@@ -217,6 +217,10 @@
   color: var(--gold);
 }
 
+.hero-buy-box .db-areas-none {
+  color: var(--muted);
+}
+
 .hero-buy-box .db-recommended-card {
   color: var(--text);
 }

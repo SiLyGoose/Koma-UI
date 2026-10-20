@@ -69,8 +69,8 @@ function bust(hero: HeroDef): HTMLElement {
   return box;
 }
 
-/** A boss the hero is recommended against, as the enemies' list has it: it opens the boss there (also the shop's buy box's, ../hero-shop/). */
-export function areaCard(boss: BossDef, kr: boolean): HTMLButtonElement {
+/** A boss the hero is recommended against, as the enemies' list has it: it opens the boss there. */
+function areaCard(boss: BossDef, kr: boolean): HTMLButtonElement {
   const card = el('button', 'db-boss-card db-area-card');
   card.type = 'button';
   card.append(portrait(boss, 'db-boss-portrait'), el('span', 'db-boss-card-name', boss.name), el('span', 'db-boss-card-kind', raidOf(boss.id)));
@@ -84,6 +84,18 @@ export function areaCard(boss: BossDef, kr: boolean): HTMLButtonElement {
   }
   card.addEventListener('click', () => go(`/databank/bosses/#${encodeURIComponent(boss.id)}`));
   return card;
+}
+
+/**
+ * The raids' bosses a hero is recommended against (./recommended.ts), their cards as many across as fit; with none, a line
+ * saying so (also the shop's buy box's, ../hero-shop/).
+ */
+export function areasOf(id: string): HTMLElement {
+  const areas = BOSSES.filter((boss) => RECOMMENDED[boss.id]?.heroes.includes(id));
+  if (areas.length === 0) return el('p', 'db-boss-note db-areas-none', 'Not recommended against any of the raids’ bosses.');
+  const grid = el('div', 'db-areas');
+  grid.append(...areas.map((boss) => areaCard(boss, RECOMMENDED[boss.id]?.kr.includes(id) ?? false)));
+  return grid;
 }
 
 export function renderHeroes(ctx: DatabankContext): void {
@@ -153,13 +165,8 @@ function renderHero(ctx: DatabankContext): void {
   head.append(bust(hero), title);
   ui.heroBody.append(head);
 
-  // The raids' bosses it's recommended against (./recommended.ts), if any.
-  const areas = BOSSES.filter((boss) => RECOMMENDED[boss.id]?.heroes.includes(hero.id));
-  if (areas.length > 0) {
-    const grid = el('div', 'db-areas');
-    grid.append(...areas.map((boss) => areaCard(boss, RECOMMENDED[boss.id]?.kr.includes(hero.id) ?? false)));
-    ui.heroBody.append(label('Recommended areas of battle'), grid);
-  }
+  // The raids' bosses it's recommended against (./recommended.ts), or that there are none.
+  ui.heroBody.append(label('Recommended areas of battle'), areasOf(hero.id));
 
   // The rest of its Main Team: the heroes King's Raid recommends with it, then a priest and those its parties fared best with in the raid's sim.
   const mates = TEAMMATES[hero.id];
