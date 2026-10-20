@@ -94,7 +94,7 @@ function folded(summary: string, lines: readonly string[]): HTMLElement {
 /** Every option a copy can roll, each with how little and how much, folded away. */
 function options(pool: readonly KrOptionData[], count: number): HTMLElement[] {
   const ranges = pool.flatMap((option) => (STAT[option.stat] ? [`**${STAT[option.stat]?.name}** ${amount(option.stat, option.min)} to ${amount(option.stat, option.max)}`] : []));
-  return [folded(`Each copy rolls ${count} of ${pool.length} options, at random, each a different one.`, ranges)];
+  return [folded(`Each copy rolls ${count} of these ${pool.length} options, at random; two can be the same.`, ranges)];
 }
 
 /** A set's bonuses, a line each: a dragon set's 2-piece and 4-piece stats, a TechnoMagic set's 4-piece skill for `heroClass`. */
