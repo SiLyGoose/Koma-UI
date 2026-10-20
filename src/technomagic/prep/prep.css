@@ -37,9 +37,8 @@
   display: none;
 }
 
-/* The top and the lineup never squeezed for the panels: alone, the lineup (overflow hidden) would shut to a line, and fit() would take that as fitting. */
-.tm-prep-top,
-.tm-lineup {
+/* The top never squeezed for the panels. */
+.tm-prep-top {
   flex-shrink: 0;
 }
 
@@ -97,21 +96,24 @@
 }
 
 /*
- * The lineup: a card for every slot, in a gold-framed row (wrapping on a narrow screen). Each card as wide as
- * its share of the row, but no taller than the screen has room for once everything else is in (--room: the top and the
- * lineup's frame, about 135px, and the panels along the bottom, a third of the screen as King's Raid has them, never less
- * than who's in needs), and never smaller than 44px across. Each as King's Raid's lineup cards are: its hero portrait
- * (its frame 338 by 732) cut short at the bottom, to 338 by 608 (.tm-slot-frame). A short window has the screen laid out taller and scaled down (.zoom, below), so it keeps these shares.
+ * The lineup: a card for every slot, in a gold-framed row (wrapping on a narrow screen). It takes all the height the top and
+ * the panels along the bottom leave (a third of the screen, as King's Raid has them: .tm-prep-bottom), never less than 150px
+ * (past that, a phone's screen is scaled down: ./prep.ts fit()), and each card is as tall as that leaves it (cqh: the lineup's,
+ * less --inside, its padding and the 1P over the card), no wider than its share of the row. Each as King's Raid's lineup cards
+ * are: its hero portrait (its frame 338 by 732) cut short at the bottom, to 338 by 608 (.tm-slot-frame). A short window has the
+ * screen laid out taller and scaled down (.zoom, below), so it keeps these shares.
  */
 .tm-lineup {
   --ratio: calc(338 / 608);
-  --room: calc(100cqh - 135px - max(250px, 34cqh));
-  --card: max(44px, calc(var(--room) * var(--ratio)));
   /* A team's tab, over its half alone (.tm-team-tab). */
   --tab: 34px;
+  --inside: 56px;
+  flex: 1 1 0;
+  min-height: 150px;
+  container-type: size;
   display: grid;
-  grid-template-columns: repeat(var(--slots, 9), minmax(0, var(--card)));
-  justify-content: center;
+  grid-template-columns: repeat(var(--slots, 9), minmax(0, 1fr));
+  align-content: center;
   gap: 8px;
   margin: 0;
   padding: 12px;
@@ -124,12 +126,12 @@
 
 /*
  * Alone: the lineup in two halves, the Main Team and the Sub Team, side by side with a line between, each under its tab (../prep/prep.ts),
- * each half as wide as its share of the slots (./prep.ts sets it). Every card the same size in both: as large as in a room's lineup of 8
- * (the 60px is the screen's padding and the lineup's frame), less the tab's height, so the lineup is as tall alone as in a room.
+ * each half as wide as its share of the slots (./prep.ts sets it). Every card the same size in both, less the tab's height (no 1P alone).
  */
 .tm-lineup.teams {
-  --card: calc(max(44px, min(calc(var(--room) * var(--ratio)), calc((100cqi - 60px - 7 * 8px) / 8))) - var(--tab) * var(--ratio));
+  --inside: calc(var(--tab) + 24px);
   grid-template-columns: minmax(0, 4fr) minmax(0, 3fr);
+  align-content: stretch;
   gap: 0;
   padding: 0;
   overflow: hidden;
@@ -205,9 +207,10 @@
 }
 
 .tm-team-slots {
+  flex: 1;
   display: grid;
-  grid-template-columns: repeat(var(--slots, 4), minmax(0, var(--card)));
-  justify-content: center;
+  grid-template-columns: repeat(var(--slots, 4), minmax(0, 1fr));
+  align-content: center;
   gap: 8px;
   margin: 0;
   padding: 12px;
@@ -244,6 +247,8 @@
 .tm-slot-frame {
   --art: 10.06cqi 9.17cqi 10.06cqi 9.47cqi;
   position: relative;
+  width: min(100%, calc((100cqh - var(--inside)) * var(--ratio)));
+  margin: 0 auto;
   /* Its width sizes the card's place (cqi, above). */
   container-type: inline-size;
   aspect-ratio: 338 / 608;
@@ -403,10 +408,11 @@ button.tm-slot-card:hover {
 .tm-prep-bottom {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr) minmax(0, 1fr);
-  /* As tall as what's left, and never shorter than a panel's contents (who's in, with its buttons). */
+  /* A third of the screen, as King's Raid has it, and never shorter than a panel's contents (who's in, with its buttons). */
   grid-template-rows: minmax(min-content, 1fr);
   gap: 12px;
-  flex: 1;
+  flex: 0 0 auto;
+  min-height: calc(100cqh / 3);
 }
 
 .tm-prep-panel {
@@ -605,6 +611,17 @@ button.tm-prep-manage {
   font-style: italic;
 }
 
+/* Single player: the other places locked, as King's Raid has them. */
+.tm-prep-player.locked {
+  opacity: 0.6;
+}
+
+.tm-prep-player.locked .tm-prep-player-name {
+  font-style: normal;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .tm-prep-player.you {
   box-shadow: inset 0 0 0 1px var(--gold);
 }
@@ -728,14 +745,22 @@ button.tm-prep-manage {
     padding: 10px 16px;
   }
 
-  .tm-lineup {
+  /* Upright, the page scrolls: the lineup as tall as its cards, each as wide as its share of the row. */
+  .tm-prep:not(.fit) .tm-lineup {
+    flex: none;
+    min-height: 0;
+    container-type: normal;
     grid-template-columns: repeat(5, minmax(0, 1fr));
     padding: 8px;
   }
 
-  /* Alone, each half's cards as large as it has room for. */
-  .tm-team-slots {
-    grid-template-columns: repeat(var(--slots, 4), minmax(0, 1fr));
+  .tm-prep:not(.fit) .tm-slot-frame {
+    width: auto;
+    margin: 0;
+  }
+
+  .tm-prep:not(.fit) .tm-prep-bottom {
+    min-height: 0;
   }
 
   .tm-slot-owner {
@@ -769,142 +794,138 @@ button.tm-prep-manage {
   display: none;
 }
 
-/* The top in one line: the title, the boss and Raid Settings. */
+/* The top in one line: the title, the boss and Raid Settings. Everything here a little smaller and lighter than on a computer. */
 .tm-prep.fit .tm-prep-top {
   flex-wrap: nowrap;
   gap: 10px;
 }
 
 .tm-prep.fit .tm-prep-title {
-  font-size: 18px;
+  font-size: 16px;
+  font-weight: 700;
   white-space: nowrap;
 }
 
 .tm-prep.fit .tm-prep-boss {
-  padding: 4px 12px;
+  padding: 3px 12px;
+  font-size: 15px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-/*
- * The lineup takes all the height the top and the panels leave (never less than 150px: past that it is all scaled down),
- * and each card is as tall as it has room for (cqh: the lineup's), no wider than its share of the row.
- */
-.tm-prep.fit .tm-lineup {
-  flex: 1 1 0;
-  min-height: 150px;
-  padding: 8px 12px;
-  container-type: size;
-  grid-template-columns: repeat(var(--slots, 9), minmax(0, 1fr));
-  align-content: center;
+.tm-prep.fit .tm-prep-boss b {
+  font-weight: 700;
 }
 
-.tm-prep.fit .tm-slot-frame {
-  /* Less the lineup's padding and the 1P over it. */
-  width: min(100%, calc((100cqh - 16px - 26px) * var(--ratio)));
-  margin: 0 auto;
+.tm-prep.fit .tm-prep-settings {
+  padding: 4px 12px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* The lineup: less round it, and a shorter tab (--tab: its padding and line). */
+.tm-prep.fit .tm-lineup {
+  --tab: 28px;
+  --inside: 38px;
+  padding: 8px 12px;
 }
 
 .tm-prep.fit .tm-lineup.teams {
+  --inside: calc(var(--tab) + 16px);
   padding: 0;
-  align-content: stretch;
 }
 
 .tm-prep.fit .tm-team-slots {
-  flex: 1;
-  grid-template-columns: repeat(var(--slots, 4), minmax(0, 1fr));
-  align-content: center;
   padding: 8px;
 }
 
-.tm-prep.fit .tm-lineup.teams .tm-slot-frame {
-  /* Less the team's tab and its padding (no 1P alone). */
-  width: min(100%, calc((100cqh - var(--tab) - 16px) * var(--ratio)));
+.tm-prep.fit .tm-team-tab {
+  padding: 3px 12px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.tm-prep.fit .tm-team-count {
+  font-size: 11px;
+}
+
+.tm-prep.fit .tm-slot-owner {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+/* The panels: side by side, as on a computer (however narrow the window), and as short as a third of the screen allows. */
+.tm-prep.fit .tm-prep-bottom {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr) minmax(0, 1fr);
+  gap: 8px;
 }
 
 .tm-prep.fit .tm-prep-panel {
   min-height: 0;
-}
-
-/* The panels along the bottom: as tall as who's in needs, and never less than a row of heroes. */
-.tm-prep.fit .tm-prep-bottom {
-  flex: 0 0 auto;
-  min-height: max(110px, 28cqh);
-}
-
-.tm-prep.fit .tm-prep-panel-title {
-  white-space: nowrap;
+  padding: 6px 8px;
 }
 
 .tm-prep.fit .tm-prep-panel-head {
   min-width: 0;
+  margin-bottom: 6px;
+}
+
+.tm-prep.fit .tm-prep-panel-title {
+  font-size: 13px;
+  white-space: nowrap;
 }
 
 .tm-prep.fit .tm-prep-manage {
-  padding: 4px 8px;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: 700;
 }
 
-/* Who's in, two to a row (the four places in two rows), short. */
+/* The Heroes List three to a row at most, scrolling down. */
+.tm-prep.fit .tm-prep-hero-list {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+/* Who's in, in short rows. */
 .tm-prep.fit .tm-prep-players {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 4px;
+  gap: 3px;
   margin-bottom: 6px;
 }
 
 .tm-prep.fit .tm-prep-player {
   gap: 6px;
-  padding: 2px 8px;
-  font-size: 14px;
-}
-
-/* Alone, just them: the whole row. */
-.tm-prep.fit .tm-prep-player:only-child {
-  grid-column: 1 / -1;
+  padding: 1px 8px;
+  font-size: 13px;
+  line-height: 18px;
 }
 
 .tm-prep.fit .tm-prep-player-no {
-  font-size: 15px;
+  font-size: 14px;
 }
 
-/* Raid Info, Ready and Start Battle kept in one row, as short as the panel allows. */
+.tm-prep.fit .tm-prep-player-name {
+  font-weight: 600;
+}
+
+.tm-prep.fit .tm-prep-player-heroes,
+.tm-prep.fit .tm-prep-player-ready {
+  font-size: 11px;
+}
+
+/* Raid Info, Ready and Start Battle in one row, short. */
 .tm-prep.fit .tm-prep-actions {
   flex-wrap: nowrap;
+  gap: 6px;
 }
 
 .tm-prep.fit .tm-prep-actions .action {
-  min-height: 42px;
+  min-height: 32px;
   padding: 0 10px;
+  font-size: 14px;
+  font-weight: 600;
   white-space: nowrap;
-}
-
-/* Its heroes in as many rows as the short panel has room for, each square as tall as its row, scrolling sideways. */
-.tm-prep.fit .tm-prep-hero-list {
-  grid-template-columns: none;
-  grid-template-rows: repeat(auto-fill, minmax(44px, 1fr));
-  grid-auto-flow: column;
-  grid-auto-columns: max-content;
-  grid-auto-rows: auto;
-  overflow: auto hidden;
-}
-
-.tm-prep.fit .tm-prep-hero {
-  height: 100%;
-  width: auto;
-}
-
-.tm-prep.fit .tm-slot-owner {
-  font-size: 22px;
-}
-
-/* The chat narrower than on a computer, for who's in, two to a row. */
-.tm-prep.fit .tm-prep-bottom {
-  grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr) minmax(0, 1.4fr);
-}
-
-.tm-prep.fit .tm-prep-player {
-  padding: 4px 10px;
 }
 
 /* Raid Settings: a dragon's modes, a tab each over the stage (the raid's pressed). */
