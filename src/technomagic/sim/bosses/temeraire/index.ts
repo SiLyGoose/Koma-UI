@@ -1,5 +1,5 @@
 import type { BossDef } from '../boss';
-import { DRAGON_TIME, dragonStages, restFor, FIRE_ATK, FIRST, OPEN, dragonWaves } from '../dragon/common';
+import { DRAGON_TIME, dragonStages, restFor, FIRE_ATK, FIRST, OPEN, dragonWaves, normalDragon } from '../dragon/common';
 import { MOVES, PLANS } from '../dragon/moves';
 import { temerairePart } from './skills';
 
@@ -8,7 +8,7 @@ import { temerairePart } from './skills';
  * attacks deal massive M.DMG, it shrugs off most P.DMG (the playtest's 900 P.Tough, where the game's tip has it blocking it all), and its Blessing of the Flame is worn away by heroes that hit often.
  * What its skills do is ./skills.ts; its body is the page's (../../../bosses/dragon/).
  */
-export const TEMERAIRE: BossDef = {
+const hard: BossDef = {
   id: 'temeraire',
   name: 'Temeraire',
   stats: { hp: FIRST.hp, deals: 'magical', physical: FIRST.high, magical: FIRST.def, ...OPEN, tough: { physical: 900, magical: 0 } },
@@ -30,3 +30,6 @@ export const TEMERAIRE: BossDef = {
   moves: MOVES,
   join: temerairePart,
 };
+
+/** It, its Hard mode, with its Normal mode (../dragon/common.ts normalDragon): flying off at half of its health (the playtest's OnHpRatio 500). */
+export const TEMERAIRE: BossDef = { ...hard, normal: normalDragon(hard, 0.5, temerairePart) };

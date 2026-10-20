@@ -4,8 +4,9 @@ import type { Buff } from '../../shown';
 import type { Fight, Fighter } from '../../types';
 import type { BossDef, BossPart, BossScale } from '../boss';
 import { MINIONS } from './minions';
+import { NORMAL_STAGES, NORMAL_WAVES } from './normal';
 import { WAVES, type WaveMinion } from './waves';
-import { DRAGON_GAUGE, withGauge } from '../gauge';
+import { DRAGON_GAUGE, NORMAL_DRAGON_GAUGE, withGauge, type GaugeSize } from '../gauge';
 import { HEROES_DEAL, HEROES_HP, PARTY } from '../playtest';
 
 /*
@@ -15,7 +16,8 @@ import { HEROES_DEAL, HEROES_HP, PARTY } from '../playtest';
  *   breath among it), and its gauge is full again as it gets up. "Trying to deplete the CC gauge before a dragon uses a
  *   powerful skill is the common strategy for all dragons" (the game's own tip).
  * - Its penetration, 400 points of every hero's defense (the playtest's PiercePower).
- * - Its stages, King's Raid's playtest's Hard Dragon Raid's (KR_HP, KR_DEF, KR_ATK, KR_LEVEL).
+ * - Its stages, King's Raid's playtest's Hard Dragon Raid's (KR_HP, KR_DEF, KR_ATK, KR_LEVEL); and its Normal mode, the
+ *   Normal Dragon Raid's (normalDragon).
  * And what its skills share: the heroes it can reach, a blow on each, what stacks on them for a while, and what eats at
  * them every second (a burn, poison).
  */
@@ -36,6 +38,8 @@ export const FIRE_ATK = 1_763_309 / 1_898_512;
 const HIGH_DEF = 132_660 / 92_822;
 const KR_PARTY = 9;
 const SOLO = 7;
+/** The Normal Dragon Raid's party (its MainSquardCount), which its dragons' health is for. */
+const KR_NORMAL_PARTY = 6;
 
 /** A dragon's health and defense at stage 1, for its stats: its lower defense, and its higher. */
 export const FIRST = { hp: ((KR_HP[0] as number) * HEROES_DEAL * PARTY) / KR_PARTY, def: KR_DEF[0] as number, high: (KR_DEF[0] as number) * HIGH_DEF };
@@ -59,6 +63,43 @@ export function dragonStages({ atk = 1 }: { atk?: number } = {}): { room: BossSc
 export const OPEN = { block: NONE, dodge: { physical: 150, magical: 150 }, pen: 400, acc: 250, crit: 250, resist: 0 };
 /** The Hard Dragon Raid's time: 3 minutes (the playtest's Raid_Hard). */
 export const DRAGON_TIME = 180;
+
+/** What a dragon's skills have of its mode: how big its CC Gauge is (../gauge.ts), and the share of its health its ultimate opens at. */
+export interface DragonMode {
+  gauge: GaugeSize;
+  ultimate: number;
+}
+
+/**
+ * A dragon's Normal mode (BossDef.normal), as King's Raid's playtest's Normal Dragon Raid has it (chapters 901 to 904:
+ * ./normal.ts): its own stats at each of its 20 stages, scaled to the heroes here as its Hard mode's are (its health the
+ * game's for its party of KR_NORMAL_PARTY), its P.DEF and M.DEF the game's (alike, in every Normal dragon); its waves, flying off at
+ * `leaves` of its health (the playtest's OnHpRatio: Scalaxia's 600, the rest's 500), and its landing a blow of 20% of its
+ * ATK that knocks the heroes down 1.5 seconds (its OnBeginPlaying(0, 3)); its CC Gauge the Normal Dragon Raid's, and its
+ * ultimate open from `leaves` too. Its skills are its Hard mode's: `part`, told its mode.
+ */
+export function normalDragon(hard: BossDef, leaves: number, part: (fight: Fight, mode: DragonMode) => BossPart): BossDef {
+  const own = NORMAL_STAGES[hard.id];
+  if (!own) throw new Error(`${hard.name} has no Normal stages`);
+  const first = ((own.hp[0] as number) * HEROES_DEAL * PARTY) / KR_NORMAL_PARTY;
+  const scales = (times: number): BossScale[] =>
+    own.hp.map((hp, i) => ({
+      hp: (hp / (own.hp[0] as number)) * times,
+      deals: HEROES_HP * ((own.atk[i] as number) / (KR_ATK[0] as number)),
+      defense: (own.def[i] as number) / (own.def[0] as number),
+      level: own.level[i] as number,
+    }));
+  const waves = NORMAL_WAVES[hard.id] ?? [];
+  const mode: DragonMode = { gauge: NORMAL_DRAGON_GAUGE, ultimate: leaves };
+  const { waves: _hard, normal: _normal, ...rest } = hard;
+  return {
+    ...rest,
+    stats: { ...hard.stats, hp: first, physical: own.pdef[0] as number, magical: own.def[0] as number },
+    stages: { room: scales(1), solo: scales(SOLO / PARTY) },
+    ...(waves.length > 0 && { waves: { at: (stage: number) => waves[stage - 1] ?? [], party: KR_NORMAL_PARTY, leaves, lands: { share: 0, blow: 0.2 * (KR_ATK[0] as number), knock: 1.5 } } }),
+    join: (fight) => part(fight, mode),
+  };
+}
 
 /** The heroes a dragon can reach: on the field, standing, and in the fight. */
 export const reachable = (fight: Fight): Fighter[] => fight.field.filter((fighter) => fighter.hp > 0 && !fighter.statuses.some((status) => status.away));
@@ -143,10 +184,12 @@ export function fraction(fight: Fight, heroes: readonly (Fighter | null)[], shar
   for (const fighter of heroes) if (fighter && fighter.hp > 0) fight.hurt(fighter, fighter.hp * share, false);
 }
 
-/** A dragon's ultimate is open once it is down to this share of its health (the playtest's OnHpRatio 700). */
+/** A dragon's ultimate is open once it is down to this share of its health (the Hard Dragon Raid's OnHpRatio 700). */
 export const ULTIMATE = 0.7;
-/** Whether a dragon's ultimate is open. */
-export const opened = (fight: Fight): boolean => fight.foe.hp <= fight.foe.maxHp * ULTIMATE;
+/** Whether a dragon's ultimate is open (at `at` of its health: none said, ULTIMATE). */
+export const opened = (fight: Fight, at: number = ULTIMATE): boolean => fight.foe.hp <= fight.foe.maxHp * at;
+/** A Hard dragon's mode: the Hard Dragon Raid's CC Gauge (../gauge.ts), its ultimate open at ULTIMATE. */
+export const HARD: DragonMode = { gauge: DRAGON_GAUGE, ultimate: ULTIMATE };
 /** How long a dragon rests after an attack: as long as makes its bite take its plain attack's time, `seconds` (the playtest's). */
 export const restFor = (seconds: number): number => seconds - 1.7;
 
@@ -159,13 +202,13 @@ export const dragonWaves = (id: string): NonNullable<BossDef['waves']> => ({ at:
 
 /**
  * A minion of a wave (./waves.ts) as the dragons are scaled: its health the game's as much less as the heroes here deal and
- * as much more as there are of them (alone, as much less again); its ATK (what its blows are shares of: ./minions.ts) as much
- * less as the heroes here have less health; its defenses the game's; and the rest as the hard dragons' (OPEN).
+ * as much more as there are of them than its raid's `party` (alone, as much less again); its ATK (what its blows are shares
+ * of: ./minions.ts) as much less as the heroes here have less health; its defenses the game's; and the rest as the hard dragons' (OPEN).
  */
-export function minionOf(minion: WaveMinion, solo: boolean): { hp: number; atk: number; stats: BossStats } {
-  const hp = ((minion.hp * HEROES_DEAL * PARTY) / KR_PARTY) * (solo ? SOLO / PARTY : 1);
+export function minionOf(minion: WaveMinion, solo: boolean, party: number = KR_PARTY): { hp: number; atk: number; stats: BossStats } {
+  const hp = ((minion.hp * HEROES_DEAL * PARTY) / party) * (solo ? SOLO / PARTY : 1);
   return { hp, atk: minion.atk * HEROES_HP, stats: { hp, deals: MINIONS[minion.kind].deals, magical: minion.def[0], physical: minion.def[1], ...OPEN } };
 }
 
-/** A dragon's part: its own (`own`), with its CC Gauge (../gauge.ts: the Hard Dragon Raid's). */
-export const withDragonGauge = (fight: Fight, own: BossPart): BossPart => withGauge(fight, own, DRAGON_GAUGE);
+/** A dragon's part: its own (`own`), with its CC Gauge (../gauge.ts: of `size`, none said the Hard Dragon Raid's). */
+export const withDragonGauge = (fight: Fight, own: BossPart, size: GaugeSize = DRAGON_GAUGE): BossPart => withGauge(fight, own, size);

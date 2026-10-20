@@ -2,7 +2,7 @@ import { put } from '../../combat/status';
 import { stateArt, type Buff, type Mark } from '../../shown';
 import type { Fight, Fighter } from '../../types';
 import type { BossPart } from '../boss';
-import { all, cooldowns, dot, fraction, lift, opened, single, withDragonGauge } from '../dragon/common';
+import { all, cooldowns, dot, fraction, lift, opened, single, withDragonGauge, HARD, type DragonMode } from '../dragon/common';
 import { INHALE } from '../dragon/moves';
 
 /*
@@ -30,7 +30,7 @@ const RAGE = 0.73;
 const FLAME = 'Blessing of the Flame';
 const BURN: Buff = { name: 'Burn', about: `Fire eats at it every second: ${Math.round(BREATH.burn * 100)}% of the breath's blow.`, icon: '🔥', art: stateArt('Burn'), harmful: true };
 
-export function temerairePart(fight: Fight): BossPart {
+export function temerairePart(fight: Fight, mode: DragonMode = HARD): BossPart {
   const { foe } = fight;
   const waits = cooldowns({ claw: [5, 3], sweep: [13, 8], breath: [25, 15], blessing: BLESSING.cooldown, eruption: [45, 30] });
   /** What of its flame is left (0: none on it), and how hard each hero's burn is. */
@@ -86,7 +86,7 @@ export function temerairePart(fight: Fight): BossPart {
     used: waits.used,
     // Its flame first, whenever it is out and may be called up again.
     next: () => (flame <= 0 && waits.ready('blessing') ? 'blessing' : null),
-    ready: (attack) => attack !== 'blessing' && waits.ready(attack) && (attack !== 'eruption' || opened(fight)),
+    ready: (attack) => attack !== 'blessing' && waits.ready(attack) && (attack !== 'eruption' || opened(fight, mode.ultimate)),
     tick(dt) {
       waits.tick(dt);
       burning(dt);
@@ -96,5 +96,5 @@ export function temerairePart(fight: Fight): BossPart {
       for (const fighter of fight.fighters) lift(fighter, BURN.name);
     },
     marks: (): Mark[] => [],
-  });
+  }, mode.gauge);
 }

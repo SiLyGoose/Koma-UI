@@ -1,5 +1,5 @@
 import type { BossDef } from '../boss';
-import { DRAGON_TIME, dragonStages, restFor, FIRST, OPEN } from '../dragon/common';
+import { DRAGON_TIME, dragonStages, restFor, FIRST, OPEN, normalDragon } from '../dragon/common';
 import { MOVES, PLANS } from '../dragon/moves';
 import { armartaPart } from './skills';
 
@@ -8,7 +8,7 @@ import { armartaPart } from './skills';
  * Raid, its Black Flame Breath leaves the Dark Flames, which eat at whoever it lands on; and its gaze turns a hero to
  * stone. Its blows are physical (as the playtest's). What its skills do is ./skills.ts; its body is the page's (../../../bosses/dragon/).
  */
-export const ARMARTA: BossDef = {
+const hard: BossDef = {
   id: 'armarta',
   name: 'Armarta',
   stats: { hp: FIRST.hp, deals: 'physical', physical: FIRST.def, magical: FIRST.def, ...OPEN },
@@ -29,3 +29,6 @@ export const ARMARTA: BossDef = {
   moves: MOVES,
   join: armartaPart,
 };
+
+/** It, its Hard mode, with its Normal mode (../dragon/common.ts normalDragon): its ultimate open at half of its health (the playtest's OnHpRatio 500). */
+export const ARMARTA: BossDef = { ...hard, normal: normalDragon(hard, 0.5, armartaPart) };

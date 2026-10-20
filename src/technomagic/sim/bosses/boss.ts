@@ -80,6 +80,12 @@ export interface BossScale {
 /** How many stages a boss has: the higher, the harder it is on the heroes (as its stages say). */
 export const stagesOf = (def: BossDef): number => def.stages.room.length;
 
+/** Which of a boss's modes a raid is against: the Dragon Raid's dragons have a Normal one besides (BossDef.normal); every boss, its Hard one (its own). */
+export type BossMode = 'normal' | 'hard';
+
+/** A boss as it is in `mode` (its Normal mode, where it has one; else, or none said, its own). */
+export const bossIn = (def: BossDef, mode?: BossMode | null): BossDef => (mode === 'normal' && def.normal) || def;
+
 /** A boss's scale at `stage` (1 to its last; past it, its last), alone or not. */
 export function scaleAt(def: BossDef, stage: number, solo: boolean): BossScale {
   const row = solo ? def.stages.solo : def.stages.room;
@@ -111,11 +117,17 @@ export interface BossDef {
   /** How long its raid lasts (seconds; none said: ../rules.ts RAID_TIME). */
   time?: number;
   /**
-   * A raid of more than one wave (the Hard Dragon Raid's): its waves past the first at a stage, each its minions; the share
-   * of its health it leaves the field at (the first wave over: it flies off); and as it comes back for the last, what its
-   * landing takes of every hero (a share of its health left) and how long it knocks them down.
+   * A raid of more than one wave (the Dragon Raid's): its waves past the first at a stage, each its minions, and how many
+   * heroes King's Raid's raid is for (`party`: their health is scaled from it, as the boss's is); the share of its health it
+   * leaves the field at (the first wave over: it flies off); and as it comes back for the last, what its landing takes of
+   * every hero (a share of its health left, and a blow, `blow`, as its moves' are: none said, none) and how long it knocks them down.
    */
-  waves?: { at(stage: number): readonly (readonly WaveMinion[])[]; leaves: number; lands: { share: number; knock: number } };
+  waves?: { at(stage: number): readonly (readonly WaveMinion[])[]; party?: number; leaves: number; lands: { share: number; blow?: number; knock: number } };
   /** Its part in a fight, when its skills do more than hurt whoever they land on: made once, as the fight begins. */
   join?(fight: Fight): BossPart;
+  /**
+   * Its Normal mode (a Dragon Raid's dragon: King's Raid's Normal Dragon Raid), the same boss with its own stats, stages,
+   * waves and part; it is then its Hard mode. None: it has only the one.
+   */
+  normal?: BossDef;
 }

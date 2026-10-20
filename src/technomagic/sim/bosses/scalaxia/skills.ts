@@ -3,7 +3,7 @@ import { put } from '../../combat/status';
 import { stateArt, type Buff } from '../../shown';
 import type { Fight, Fighter } from '../../types';
 import type { BossPart } from '../boss';
-import { addStacks, all, cooldowns, fraction, lift, opened, single, withDragonGauge } from '../dragon/common';
+import { addStacks, all, cooldowns, fraction, lift, opened, single, withDragonGauge, HARD, type DragonMode } from '../dragon/common';
 import { INHALE } from '../dragon/moves';
 
 /*
@@ -27,7 +27,7 @@ export const STORM = { mana: 1500, health: 0.42 };
 const FROSTED: Buff = { name: 'Frost', about: `At ${FROST.freezeAt} of it, Frozen.`, icon: '❄️', art: stateArt('1940'), harmful: true };
 const FROZEN: Buff = { name: 'Freeze', about: `Frozen: it can do nothing, and takes ${Math.round((FROST.takes - 1) * 100)}% more damage.`, icon: '🧊', art: stateArt('Frozen'), harmful: true };
 
-export function scalaxiaPart(fight: Fight): BossPart {
+export function scalaxiaPart(fight: Fight, mode: DragonMode = HARD): BossPart {
   // (Each skill's cooldown, and first wait, the playtest's: its Frost Hell's for its tail sweep.)
   const waits = cooldowns({ claw: [5, 3], sweep: [20, 18], smashes: [13, 8], breath: [25, 15], storm: [45, 30] });
 
@@ -80,7 +80,7 @@ export function scalaxiaPart(fight: Fight): BossPart {
       // Its storm calls up its pillars of ice.
       if (attack === 'storm') fight.cue(null, 'pillars');
     },
-    ready: (attack) => waits.ready(attack) && (attack !== 'storm' || opened(fight)),
+    ready: (attack) => waits.ready(attack) && (attack !== 'storm' || opened(fight, mode.ultimate)),
     tick: waits.tick,
     beaten() {
       for (const fighter of fight.fighters) {
@@ -88,5 +88,5 @@ export function scalaxiaPart(fight: Fight): BossPart {
         lift(fighter, FROZEN.name);
       }
     },
-  });
+  }, mode.gauge);
 }

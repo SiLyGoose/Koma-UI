@@ -1,5 +1,5 @@
 import { BOSSES, DRAGONS, TM_BOSSES } from './bosses';
-import { stagesOf } from './bosses/boss';
+import { bossIn, stagesOf, type BossDef } from './bosses/boss';
 import type { Input } from './events';
 import { makeSim } from './fight';
 import { HEROES } from './heroes';
@@ -29,8 +29,8 @@ export const STEP_SECONDS: number = TICK;
 export const MOST_TICKS: number = Math.ceil((MARCH + RAID_TIME + RAGE_WIPE) / TICK) + 1;
 /** The most inputs a raid is taken with (more than anyone presses in its time). */
 export const MOST_INPUTS = 20_000;
-/** The most stages any boss has (each boss's own: BossInfo.stages). */
-export const MOST_STAGE: number = Math.max(...BOSSES.map(stagesOf));
+/** The most stages any boss has, in either mode (each boss's own: BossInfo.stages, and its Normal mode's: BossInfo.normal). */
+export const MOST_STAGE: number = Math.max(...BOSSES.flatMap((boss) => [stagesOf(boss), ...(boss.normal ? [stagesOf(boss.normal)] : [])]));
 
 /**
  * A hero in a raid: its id, the index of its skin, what its gear gives it (the bot's HeroBonus), the TechnoMagic
@@ -81,13 +81,17 @@ export interface TmSkill {
 export const TM_SKILLS: readonly TmSkill[] = SKILLS.map(({ id, name, tier, about }) => ({ id, name, tier, about }));
 export const MOST_TM_SKILLS: number = MOST_SKILLS;
 
-/** A raid as the bot gave it to the pages: the boss, the seed, the stage, its heroes in order, and whether it is fought alone (the boss easier). */
+/**
+ * A raid as the bot gave it to the pages: the boss, the seed, the stage, its heroes in order, whether it is fought alone (the
+ * boss easier), and against which of the boss's modes (a dragon's Normal mode, or its Hard; none said: Hard, the only one most have).
+ */
 export interface Run {
   boss: string;
   seed: number;
   stage: number;
   heroes: readonly RunHero[];
   solo?: boolean;
+  mode?: BossMode;
 }
 
 /** How a raid played over went. */
@@ -153,15 +157,20 @@ export const TM_HEROES: readonly TmHero[] = HEROES.map((hero) => ({
 }));
 export const BOSS_IDS: readonly string[] = BOSSES.map((boss) => boss.id);
 
-/** A boss as the bot says it: its id, its name and how many stages it has. */
+/** Which of a boss's modes a raid is against (./bosses/boss.ts BossMode): a dragon's Normal mode, or its Hard. */
+export type BossMode = 'normal' | 'hard';
+
+/** A boss as the bot says it: its id, its name and how many stages it has (in its Hard mode); and, one with a Normal mode, how many that has. */
 export interface BossInfo {
   id: string;
   name: string;
   stages: number;
+  normal?: number;
 }
+const infoOf = (boss: BossDef): BossInfo => ({ id: boss.id, name: boss.name, stages: stagesOf(boss), ...(boss.normal && { normal: stagesOf(boss.normal) }) });
 /** The TechnoMagic Raid's bosses, and the Dragon Raid's dragons, in order. */
-export const TM_BOSS_INFO: readonly BossInfo[] = TM_BOSSES.map((boss) => ({ id: boss.id, name: boss.name, stages: stagesOf(boss) }));
-export const DRAGON_INFO: readonly BossInfo[] = DRAGONS.map((boss) => ({ id: boss.id, name: boss.name, stages: stagesOf(boss) }));
+export const TM_BOSS_INFO: readonly BossInfo[] = TM_BOSSES.map(infoOf);
+export const DRAGON_INFO: readonly BossInfo[] = DRAGONS.map(infoOf);
 
 /** A TechnoMagic set as the fight has it: its id, name and icon, and what it does for a hero of each class wearing three of its pieces (by class; one it does nothing for left out). */
 export interface TmSetInfo {
@@ -313,8 +322,10 @@ export interface LiveRaid {
 /** A raid ready to be fought (a string: why the run makes no sense). */
 export function startRaid(run: Run): LiveRaid | string {
   if (!Number.isInteger(run.seed)) return 'seed';
-  const boss = BOSSES.find((one) => one.id === run.boss);
-  if (!boss) return 'boss';
+  const found = BOSSES.find((one) => one.id === run.boss);
+  if (!found) return 'boss';
+  if (run.mode !== undefined && run.mode !== 'hard' && !(run.mode === 'normal' && found.normal)) return 'mode';
+  const boss = bossIn(found, run.mode);
   if (!whole(run.stage - 1, stagesOf(boss))) return 'stage';
   if (run.heroes.length === 0 || run.heroes.length > MOST) return 'heroes';
   const entries = [];

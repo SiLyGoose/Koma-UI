@@ -138,10 +138,14 @@ const DEF_MOST = 0.9;
 /** The level a hero fights at (its reach, for a boss's defense). */
 export const HERO_LEVEL = 100;
 /**
- * The most defense that counts against an attacker of each level from 70 (King's Raid's DefenceLevelTable): straight from
- * one of these levels to the next, and on past the last as from the one before.
+ * The most defense that counts against an attacker of each level from 30 (King's Raid's DefenceLevelTable, the Normal
+ * Dragon Raid's lowest stage's level): straight from one of these levels to the next, and on past the last as from the one before.
  */
 const REACH: readonly (readonly [level: number, most: number])[] = [
+  [30, 7_258],
+  [40, 13_287],
+  [50, 24_510],
+  [60, 74_200],
   [70, 155_459],
   [80, 196_561],
   [90, 198_457],

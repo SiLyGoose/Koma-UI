@@ -989,7 +989,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     /** How many have stood where each spot is so far (by where the wave has them). */
     const placed = new Map<string, number>();
     for (const one of list) {
-      const made = minionOf(one, solo);
+      const made = minionOf(one, solo, def.waves?.party);
       const kind = MINIONS[one.kind];
       let x = MINION_X + one.x * 0.5;
       let z = one.z * 0.45;
@@ -1023,10 +1023,11 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     if (wave === waves && boss.away && def.waves) {
       boss.away = false;
       events.push({ kind: 'boss-return' });
-      const { share, knock } = def.waves.lands;
+      const { share, blow, knock } = def.waves.lands;
       as(boss, () => {
         for (const on of reachable()) {
-          sim.hurt(on, on.hp * share, false);
+          if (share > 0) sim.hurt(on, on.hp * share, false);
+          if (blow) sim.hurt(on, blow);
           sim.knock(on, knock);
         }
       });

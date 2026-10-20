@@ -15,9 +15,10 @@ export interface GaugeSize {
   full: number;
   regen: number;
 }
-/** Galgoria's (chapter 10's), and the Hard Dragon Raid's (911 to 914's). */
+/** Galgoria's (chapter 10's), the Hard Dragon Raid's (911 to 914's) and the Normal Dragon Raid's (901 to 904's). */
 export const GALGORIA_GAUGE: GaugeSize = { full: 100_000, regen: 7_000 };
 export const DRAGON_GAUGE: GaugeSize = { full: 30_000, regen: 3_000 };
+export const NORMAL_DRAGON_GAUGE: GaugeSize = { full: 10_000, regen: 3_000 };
 
 /** What a second of a stun takes from it (a stun's or a knock down's CC power alike: the game's 1000 for each). */
 const PER = 1_000;

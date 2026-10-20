@@ -1,5 +1,5 @@
 import type { BossDef } from '../boss';
-import { DRAGON_TIME, dragonStages, restFor, FIRST, OPEN, dragonWaves } from '../dragon/common';
+import { DRAGON_TIME, dragonStages, restFor, FIRST, OPEN, dragonWaves, normalDragon } from '../dragon/common';
 import { MOVES, PLANS } from '../dragon/moves';
 import { scalaxiaPart } from './skills';
 
@@ -10,7 +10,7 @@ import { scalaxiaPart } from './skills';
  * for its 1000 M.Block power (368 more on its curve), 200 M.Tough, and 60% less M.DMG taken (./skills.ts). What its skills do
  * is ./skills.ts; its body is the page's (../../../bosses/dragon/), with the ice pillars its storm calls up.
  */
-export const SCALAXIA: BossDef = {
+const hard: BossDef = {
   id: 'scalaxia',
   name: 'Scalaxia',
   stats: { hp: FIRST.hp, deals: 'magical', physical: FIRST.def, magical: FIRST.high, ...OPEN, block: { physical: 0, magical: 1000 }, blockDef: { physical: 0, magical: 1 }, tough: { physical: 0, magical: 200 } },
@@ -32,3 +32,6 @@ export const SCALAXIA: BossDef = {
   moves: MOVES,
   join: scalaxiaPart,
 };
+
+/** It, its Hard mode, with its Normal mode (../dragon/common.ts normalDragon): flying off at 60% of its health (the playtest's OnHpRatio 600). */
+export const SCALAXIA: BossDef = { ...hard, normal: normalDragon(hard, 0.6, scalaxiaPart) };

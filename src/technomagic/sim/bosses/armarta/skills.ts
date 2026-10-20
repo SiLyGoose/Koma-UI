@@ -2,7 +2,7 @@ import { put, type Status } from '../../combat/status';
 import { stateArt, type Buff, type Mark } from '../../shown';
 import type { Fight, Fighter } from '../../types';
 import type { BossPart } from '../boss';
-import { all, cooldowns, dot, fraction, lift, opened, reachable, single, withDragonGauge } from '../dragon/common';
+import { all, cooldowns, dot, fraction, lift, opened, reachable, single, withDragonGauge, HARD, type DragonMode } from '../dragon/common';
 import { INHALE } from '../dragon/moves';
 
 /*
@@ -26,7 +26,7 @@ const DARK: Buff = { name: 'Dark Flames', about: `Black fire eats at it every se
 const STONE: Buff = { name: 'Petrified', about: 'Turned to stone by its gaze: it can do nothing.', icon: '🗿', art: stateArt('Stone'), harmful: true };
 const ASHEN = 'Ashen Nox';
 
-export function armartaPart(fight: Fight): BossPart {
+export function armartaPart(fight: Fight, mode: DragonMode = HARD): BossPart {
   const { foe } = fight;
   // (Each skill's cooldown, and first wait, the playtest's: its Dark Whip's for its sweep, Obsidian Spear's for its gaze, Dragon
   // Fury's for its eclipse, open once it is down to ULTIMATE of its health.)
@@ -85,7 +85,7 @@ export function armartaPart(fight: Fight): BossPart {
       dealt.set(by, (dealt.get(by) ?? 0) + amount);
     },
     used: waits.used,
-    ready: (attack) => waits.ready(attack) && (attack !== 'eclipse' || opened(fight)),
+    ready: (attack) => waits.ready(attack) && (attack !== 'eclipse' || opened(fight, mode.ultimate)),
     tick(dt) {
       waits.tick(dt);
       eating(dt);
@@ -100,5 +100,5 @@ export function armartaPart(fight: Fight): BossPart {
       }
     },
     marks: (): Mark[] => [],
-  });
+  }, mode.gauge);
 }
