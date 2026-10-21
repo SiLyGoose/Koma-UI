@@ -418,17 +418,25 @@ button.tm-slot-card:hover {
 }
 
 /*
- * Its stars (../../shared/ui/stars), inside its frame just over its name, sized by the picture (cqw, of the row as wide as
- * it), their glow softer than on a square.
+ * Its stars (../../shared/ui/stars), inside its frame under its name, along the picture's bottom, sized by the picture (cqw,
+ * of the row as wide as it), their glow softer than on a square; its name a little higher for them, its shade taller.
  */
 .tm-slot-card .hero-rank[data-on='card'] {
-  --star: 15cqw;
+  --star: 14cqw;
   right: 9.17cqi;
-  bottom: 35cqi;
+  bottom: 11cqi;
   left: 9.47cqi;
-  padding: 10% 0 0;
-  background: radial-gradient(ellipse 70% 80% at 50% 75%, rgb(92 170 255 / 45%), transparent 75%);
+  padding: 8% 0 0;
+  background: radial-gradient(ellipse 70% 80% at 50% 75%, rgb(92 170 255 / 40%), transparent 75%);
   pointer-events: none;
+}
+
+.tm-slot-card:has(.hero-rank) .tm-slot-name {
+  bottom: 34cqi;
+}
+
+.tm-slot-card:has(.hero-rank) .tm-slot-art::after {
+  height: 30%;
 }
 
 /* Along the bottom: the heroes, the chat, and who's in. */
