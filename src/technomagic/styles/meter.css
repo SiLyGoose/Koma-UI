@@ -39,10 +39,10 @@
   text-shadow: 0 0 3px #3fd25a, 0 0 1px #1c8a30;
 }
 
-/* Stop Repeat Battle: in the middle, a third of the way down the field, two streaks of light going round its edge as round a reserved skill's (./skills.css). */
+/* Stop Repeat Battle: in the middle, a quarter of the way down the field, two streaks of light going round its edge as round a reserved skill's (./skills.css). */
 .tm-repeat-stop {
   position: absolute;
-  top: 33%;
+  top: 25%;
   left: 50%;
   z-index: 3;
   translate: -50% -50%;
