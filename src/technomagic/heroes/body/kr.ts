@@ -17,8 +17,6 @@ import { BIPED } from './skeletons';
 /** How long one clip takes to give way to the next, and the end of a move to its idle. */
 const BLEND = 0.15;
 const RETURN = 0.3;
-/** Running on to a raid's next wave, braking: how slow (a share of flat out) it runs before it stands. */
-const STRIDING = 0.3;
 
 /**
  * A hero's clips, each move's fitted to the fight's timing: its takes (played in turn, each time it is begun), each a
@@ -270,11 +268,10 @@ export function krHero({ root, body, models: parts, rig, materials, floating }: 
           doing = { what: 'held' };
         }
       } else if (doing?.what === 'jog') {
-        // (Its strides slowing as the map does, braking: standing once they would hardly be strides.)
+        // (Its strides slowing as the map does, braking, till the map stands: none of it sliding under its feet.)
         doing.left -= dt;
-        const pace = marchPace(1 - doing.left / doing.seconds);
-        if (pace > STRIDING) show(run, 1.25 * pace);
-        if (doing.left <= 0 || pace <= STRIDING) {
+        show(run, 1.25 * marchPace(1 - Math.max(0, doing.left) / doing.seconds));
+        if (doing.left <= 0) {
           doing = null;
           returning = true;
         }

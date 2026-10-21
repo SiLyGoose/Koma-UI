@@ -259,6 +259,8 @@ export function makeFightView({
   let dark = 0;
   /** How much of a raid's run up to the boss has been drawn (seconds): kept smooth between the sim's steps, but never more than one from it. */
   let ran = 0;
+  /** A raid's run on to its next wave: how much of it is still to be drawn (seconds), the heroes running on the map's time, not their own. */
+  let runningOn = 0;
   /** How far behind the fight each body held still is, to catch up. */
   const behind = new Map<Who, number>();
   const stop = (who: Who): void => {
@@ -334,6 +336,7 @@ export function makeFightView({
       }
       const marched = Math.min(MARCH, sim.tick * TICK);
       ran = Math.min(MARCH, marched + TICK, Math.max(marched - TICK, ran + dt));
+      runningOn = Math.max(0, runningOn - dt);
       skillBlow = null;
       bossSkill = Math.max(0, bossSkill - dt);
       for (const event of sim.events.splice(0)) {
@@ -445,6 +448,7 @@ export function makeFightView({
           case 'wave':
             for (const who of on) if ((sim.fighters[who]?.hp ?? 0) > 0) body(who).jog?.(RUN_ON);
             slide(RUN_ON);
+            runningOn = RUN_ON;
             banners.play(event.wave === 2 ? 'stage2' : 'stage3');
             break;
           case 'foe-enter':
@@ -515,7 +519,8 @@ export function makeFightView({
           continue;
         }
         if (!lying) {
-          hero.update(now, sim.result ? 0 : moved * fighter.haste);
+          // (Running on: as the map moves past, so its strides keep pace with it whatever its attack speed.)
+          hero.update(now, sim.result ? 0 : runningOn > 0 ? dt : moved * fighter.haste);
           continue;
         }
         lying.over = Math.min(1, Math.max(0, lying.over + (down ? moved : -moved) / FALL.time));
