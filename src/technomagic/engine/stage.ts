@@ -21,7 +21,6 @@ import {
   type BufferGeometry,
   type Object3D,
 } from 'three';
-import { marchLeft } from '../sim/rules';
 import { loadKrMap } from './kr-map';
 import { struggling } from './memory';
 
@@ -101,8 +100,11 @@ export interface Stage {
   overlay: { scene: Scene; camera: OrthographicCamera };
   /** Puts the fight in `scenery`, in place of the plain field (once its pictures are read): the effects its map has of its own, where they are on the field. */
   dress(scenery: Scenery): Promise<readonly FieldEffect[]>;
-  /** Draws every frame, after `update` (the time in seconds, and since the last frame). */
-  start(update: (now: number, dt: number) => void): void;
+  /**
+   * Draws every frame, after `update` (the time in seconds, and since the last frame: no more than a frame's, however long
+   * it has been, and how long it has really been).
+   */
+  start(update: (now: number, dt: number, gap: number) => void): void;
   /** Whether the field is covered over (getting ready: ../prep/), so it isn't drawn meanwhile (`update` still is called). */
   cover(covered: boolean): void;
   /**
@@ -113,12 +115,11 @@ export interface Stage {
   /** Looks at `at` from close by, so much (`high`) of the field seen up and down; null: back to the field as a whole. */
   focus(target: { at: Vector3; high: number } | null): void;
   /**
-   * A raid of more than one wave: the map moves on by its `next` (the next platform comes to where the fight is) over so many
-   * seconds, `moved` told how far along the field (the field's units) each frame moves it (for what stands on it: its effects).
+   * A raid of more than one wave: the map moved on `platforms` from its first, each by its `next` (the next platform comes to
+   * where the fight is; part way: on the move between two), `moved` told how far along the field (the field's units) that
+   * moves it from where it was (for what stands on it: its effects). 0: back on its first.
    */
-  slide(seconds: number, moved: (dx: number) => void): void;
-  /** The map back on its first platform, a move on cut short (a fight begun again): `moved` told how far back it went. */
-  home(moved: (dx: number) => void): void;
+  moveOn(platforms: number, moved: (dx: number) => void): void;
   /** Moves the camera along the field: `by` across from where it stands (less than 0: to the left), looking the same way. */
   pan(by: number): void;
   /** Where a place on the field is on the page, from the canvas's top left (CSS pixels). */
@@ -150,9 +151,8 @@ export function makeStage(canvas: HTMLCanvasElement): Stage {
   let wide = FOV;
   /** What moves on the map (its glows, its fogs), each frame. */
   let mapTick: ((dt: number) => void) | null = null;
-  /** The map, how far it moves on to its next platform, and what is left of a move on (null: none). */
+  /** The map, how far it moves on to its next platform (null: none). */
   let mapAt: { map: Object3D; next: number; turn: number } | null = null;
-  let sliding: { left: number; seconds: number; moved: (dx: number) => void } | null = null;
   /** How far the map has moved on from its first platform (its own units). */
   let slid = 0;
   // How far along the field it is moved (pan()).
@@ -244,36 +244,18 @@ export function makeStage(canvas: HTMLCanvasElement): Stage {
     renderer.autoClear = true;
   };
 
-  /** The map moved on by `dt` seconds of its move on to the next platform (if it is moving). */
-  const slideOn = (dt: number): void => {
-    if (!sliding || !mapAt) return;
-    // (As the heroes run: flat out from the first, braking to a stop at the last, as on their run up to the boss.)
-    const was = sliding.left;
-    sliding.left = Math.max(0, sliding.left - dt);
-    const step = mapAt.next * (marchLeft(1 - was / sliding.seconds) - marchLeft(1 - sliding.left / sliding.seconds));
-    mapAt.map.position.x += step;
-    slid += step;
-    sliding.moved(step * Math.cos(mapAt.turn));
-    if (sliding.left <= 0) sliding = null;
-  };
-
   const seen = new Vector3();
   return {
     scene,
     camera,
     overlay: { scene: overlay, camera: flatUi },
-    slide(seconds, moved) {
+    moveOn(platforms, moved) {
       if (!mapAt) return;
-      // (One still moving on: there at once, so each wave's platform is moved on to.)
-      if (sliding) slideOn(sliding.left);
-      sliding = { left: seconds, seconds, moved };
-    },
-    home(moved) {
-      sliding = null;
-      if (!mapAt || slid === 0) return;
-      mapAt.map.position.x -= slid;
-      moved(-slid * Math.cos(mapAt.turn));
-      slid = 0;
+      const step = mapAt.next * platforms - slid;
+      if (step === 0) return;
+      mapAt.map.position.x += step;
+      slid += step;
+      moved(step * Math.cos(mapAt.turn));
     },
     focus(target) {
       close = target && { at: target.at.clone(), high: target.high };
@@ -420,9 +402,8 @@ export function makeStage(canvas: HTMLCanvasElement): Stage {
         // (A frame's time can be a moment before the time this was started at: never less than nothing.)
         const dt = Math.max(0, Math.min(0.064, gap));
         last = ms;
-        update(ms / 1000, dt);
+        update(ms / 1000, dt, Math.max(0, gap));
         mapTick?.(dt);
-        slideOn(dt);
         if (covered || gap > GAP) {
           since = ms;
           frames = slow = 0;

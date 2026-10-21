@@ -4,7 +4,7 @@ import { fitted, inPlace, loadKrClip, topOf } from '../../engine/kr-clips';
 import type { Motion, Timeline } from '../../sim/motion';
 import { marchPace } from '../../sim/rules';
 import type { HeroMove } from '../moves';
-import { ENTER, heightOf, RED, redden, runOf, type Hero, type Stood } from './hero';
+import { ENTER, heightOf, RED, redden, type Hero, type Stood } from './hero';
 import { BIPED } from './skeletons';
 
 /*
@@ -197,18 +197,22 @@ export function krHero({ root, body, models: parts, rig, materials, floating }: 
     | { what: 'hurt'; t: number }
     | { what: 'end'; actions: AnimationAction[]; t: number; length: number; then: AnimationAction[] | null }
     | { what: 'held' }
-    | { what: 'jog'; left: number; seconds: number }
+    | { what: 'stride'; share: number }
     | null = null;
-  let runIn = ENTER;
   let returning = false;
 
   return {
     root,
-    jog(seconds) {
-      doing = { what: 'jog', left: seconds, seconds };
+    stride(share) {
+      if (share !== null) {
+        if (doing?.what === 'stride') doing.share = share;
+        else doing = { what: 'stride', share };
+      } else if (doing?.what === 'stride') {
+        doing = null;
+        returning = true;
+      }
     },
-    enter(lasts) {
-      runIn = runOf(lasts);
+    enter() {
       doing = { what: 'enter', t: 0 };
     },
     start(move) {
@@ -228,7 +232,7 @@ export function krHero({ root, body, models: parts, rig, materials, floating }: 
       red = RED;
     },
     stagger() {
-      if (doing?.what === 'enter') return;
+      if (doing?.what === 'enter' || doing?.what === 'stride') return;
       red = RED;
       doing = hurt ? { what: 'hurt', t: 0 } : null;
       again = true;
@@ -267,20 +271,15 @@ export function krHero({ root, body, models: parts, rig, materials, floating }: 
           if (doing.then) show(doing.then);
           doing = { what: 'held' };
         }
-      } else if (doing?.what === 'jog') {
-        // (Its strides slowing as the map does, braking, till the map stands: none of it sliding under its feet.)
-        doing.left -= dt;
-        show(run, 1.25 * marchPace(1 - Math.max(0, doing.left) / doing.seconds));
-        if (doing.left <= 0) {
-          doing = null;
-          returning = true;
-        }
+      } else if (doing?.what === 'stride') {
+        // (Its strides slowing as the field's move does, braking, till it stands: none of it sliding under its feet.)
+        show(run, 1.25 * marchPace(doing.share));
       } else if (doing?.what === 'held') {
         // (Held as it ended: its last frame, or the pose after it going on.)
       } else if (doing?.what === 'enter') {
         doing.t += dt;
-        const k = Math.min(1, doing.t / runIn.time);
-        ahead = runIn.from * (1 - k) ** 1.6;
+        const k = Math.min(1, doing.t / ENTER.time);
+        ahead = ENTER.from * (1 - k) ** 1.6;
         show(k < 0.86 ? run : idle, 1.25);
         if (k >= 1) doing = null;
       } else {

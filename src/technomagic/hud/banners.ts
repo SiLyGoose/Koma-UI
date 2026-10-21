@@ -21,10 +21,14 @@ const CODES: Readonly<Record<Banner, string>> = {
 
 /** One wanted before it has been read is played once it is, this long after at most (seconds); later, it is let go. */
 const WAIT = 3;
+/** Moved on in steps no longer than a frame's (seconds), however long it has been: no more of it than the longest lasts. */
+const STEP = 0.064;
+const LONGEST = 5;
 
 export interface Banners {
   play(banner: Banner): void;
-  update(dt: number): void;
+  /** Moved on by `seconds`, as long as they really were (a page hardly drawn has one where it would be by now, or over). */
+  update(seconds: number): void;
 }
 
 export function makeBanners(stage: Stage): Banners {
@@ -44,13 +48,16 @@ export function makeBanners(stage: Stage): Banners {
         show(code);
       } else waiting = { code, left: WAIT };
     },
-    update(dt) {
-      if (waiting) {
-        waiting.left -= dt;
-        if (kr.ready(waiting.code)) show(waiting.code);
-        if (kr.ready(waiting.code) || waiting.left <= 0) waiting = null;
+    update(seconds) {
+      for (let left = Math.min(seconds, LONGEST); left > 0; left -= STEP) {
+        const dt = Math.min(left, STEP);
+        if (waiting) {
+          waiting.left -= dt;
+          if (kr.ready(waiting.code)) show(waiting.code);
+          if (kr.ready(waiting.code) || waiting.left <= 0) waiting = null;
+        }
+        kr.update(dt);
       }
-      kr.update(dt);
     },
   };
 }

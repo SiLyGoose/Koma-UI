@@ -68,18 +68,27 @@ const FADE = 0.2;
  */
 const FOLLOW = 0.85;
 
-/** What of the sim's events says what stands on the field (who is on it, the boss gone or back, the waves, the minions), not what is done there. */
-const STANDING = new Set<SimEvent['kind']>(['enter', 'leave', 'boss-leave', 'boss-return', 'wave', 'foe-enter', 'foe-down', 'end']);
+/** What of the sim's events says what stands on the field (who is on it, the boss gone or back, the minions), not what is done there. */
+const STANDING = new Set<SimEvent['kind']>(['enter', 'leave', 'boss-leave', 'boss-return', 'foe-enter', 'foe-down', 'end']);
 
 /**
- * The fight caught up all at once (a page joining it under way, or back after it was away): of what happened meanwhile,
- * only what says what stands on the field now, so it is drawn as it stands rather than every blow at once (a minion that
- * came and fell meanwhile, not at all).
+ * The fight caught up all at once (FightView.skip()): of what happened meanwhile, only what says what stands on the field
+ * now, so it is drawn as it stands rather than every blow at once (a minion that came and fell meanwhile, not at all; nor
+ * the boss flying off and back).
  */
-export function skim(events: SimEvent[]): void {
+function skim(events: SimEvent[]): void {
   const came = new Set(events.flatMap((event) => (event.kind === 'foe-enter' ? [event.foe] : [])));
   const gone = new Set(events.flatMap((event) => (event.kind === 'foe-down' && came.has(event.foe) ? [event.foe] : [])));
-  const kept = events.filter((event) => STANDING.has(event.kind) && !((event.kind === 'foe-enter' || event.kind === 'foe-down') && gone.has(event.foe)));
+  const back = new Set<SimEvent>();
+  let left: SimEvent | null = null;
+  for (const event of events) {
+    if (event.kind === 'boss-leave') left = event;
+    else if (event.kind === 'boss-return' && left) {
+      back.add(left).add(event);
+      left = null;
+    }
+  }
+  const kept = events.filter((event) => STANDING.has(event.kind) && !back.has(event) && !((event.kind === 'foe-enter' || event.kind === 'foe-down') && gone.has(event.foe)));
   events.splice(0, events.length, ...kept);
 }
 
@@ -112,6 +121,8 @@ export interface FightView {
   foeHead(foe: number, into: Vector3): Vector3 | null;
   /** Draws what the sim says has happened since last time, and moves everything on by `dt` seconds. */
   update(now: number, dt: number): void;
+  /** The fight caught up all at once (a page joining it under way, or back after it was away): what happened meanwhile, skimmed (skim()). */
+  skip(): void;
   /**
    * The fight over: these heroes (`who`) stand in a row about `at`, facing the camera, and strike their victory pose (`won`) or
    * their loss's; everyone else, and the boss, is taken off the field. Only they go on moving from then.
@@ -135,7 +146,7 @@ export function makeFightView({
   props,
   banners,
   minions,
-  slide,
+  moveOn,
 }: {
   scene: Scene;
   sim: Sim;
@@ -148,9 +159,9 @@ export function makeFightView({
   magic: Magic;
   props: Props;
   banners: Banners;
-  /** The minions of the boss's raid's waves (./minions.ts); and the map moved on to the next wave's platform, over so many seconds. */
+  /** The minions of the boss's raid's waves (./minions.ts); and the map moved on so many of its platforms from its first (part way: between two). */
   minions: Minions;
-  slide: (seconds: number) => void;
+  moveOn: (platforms: number) => void;
 }): FightView {
   const { stands, reach } = bossLook;
   const at = new Vector3();
@@ -257,10 +268,15 @@ export function makeFightView({
   let held = 0;
   let caster: Who | null = null;
   let dark = 0;
-  /** How much of a raid's run up to the boss has been drawn (seconds): kept smooth between the sim's steps, but never more than one from it. */
+  /**
+   * How much of a raid's run up to the boss has been drawn, and of its runs on to its waves (seconds, one after another,
+   * RUN_ON each): kept smooth between the sim's steps, but never more than one from it, so however late a frame is drawn
+   * (a page away, or hardly drawn), what moves along the field is where the fight has it.
+   */
   let ran = 0;
-  /** A raid's run on to its next wave: how much of it is still to be drawn (seconds), the heroes running on the map's time, not their own. */
-  let runningOn = 0;
+  let ranOn = 0;
+  /** How long each hero runs on the run up to the boss (seconds), till it is where it stands: those still running. */
+  const marches = new Map<number, number>();
   /** How far behind the fight each body held still is, to catch up. */
   const behind = new Map<Who, number>();
   const stop = (who: Who): void => {
@@ -336,7 +352,14 @@ export function makeFightView({
       }
       const marched = Math.min(MARCH, sim.tick * TICK);
       ran = Math.min(MARCH, marched + TICK, Math.max(marched - TICK, ran + dt));
-      runningOn = Math.max(0, runningOn - dt);
+      // The map moved on to each wave's platform as far as the fight has run there: the heroes running where they stand meanwhile.
+      const arrived = (sim.wave - 1) * RUN_ON;
+      const runOn = arrived - sim.moving;
+      ranOn = Math.min(arrived, runOn + TICK, Math.max(runOn - TICK, ranOn + dt));
+      const leg = Math.floor(ranOn / RUN_ON);
+      /** How far through its run on to the next wave the raid is (null: it isn't running on). */
+      const onward = ranOn < arrived ? ranOn / RUN_ON - leg : null;
+      moveOn(onward === null ? leg : leg + 1 - marchLeft(onward));
       skillBlow = null;
       bossSkill = Math.max(0, bossSkill - dt);
       for (const event of sim.events.splice(0)) {
@@ -347,7 +370,9 @@ export function makeFightView({
             hero.root.position.set(fighter.x, 0, fighter.z);
             scene.add(hero.root);
             on.add(event.who);
-            hero.enter(event.run);
+            // (On the raid's run up to the boss: running where it stands as the fight moves it, for as long as it runs.)
+            if (event.run !== undefined) marches.set(event.who, event.run);
+            else hero.enter();
             break;
           }
           case 'leave': {
@@ -446,9 +471,6 @@ export function makeFightView({
             boss.arrive?.();
             break;
           case 'wave':
-            for (const who of on) if ((sim.fighters[who]?.hp ?? 0) > 0) body(who).jog?.(RUN_ON);
-            slide(RUN_ON);
-            runningOn = RUN_ON;
             banners.play(event.wave === 2 ? 'stage2' : 'stage3');
             break;
           case 'foe-enter':
@@ -487,6 +509,11 @@ export function makeFightView({
         const moved = step(who, dt, holding);
         hero.root.position.x = fighter.x;
         hero.root.position.z = fighter.z;
+        // Running where it stands as the fight moves it: on its run up to the boss, or (standing) on to the next wave.
+        const march = marches.get(who);
+        if (march !== undefined && ran >= march) marches.delete(who);
+        const striding = march !== undefined && ran < march ? ran / march : fighter.hp > 0 ? onward : null;
+        hero.stride?.(striding);
         // What guards it: a shield, and what else has a look of its own.
         emblems.length = 0;
         for (const status of [...fighter.statuses, ...sim.party]) {
@@ -519,8 +546,8 @@ export function makeFightView({
           continue;
         }
         if (!lying) {
-          // (Running on: as the map moves past, so its strides keep pace with it whatever its attack speed.)
-          hero.update(now, sim.result ? 0 : runningOn > 0 ? dt : moved * fighter.haste);
+          // (Running where it stands: as the field moves past, so its strides keep pace with it whatever its attack speed.)
+          hero.update(now, sim.result ? 0 : striding !== null ? dt : moved * fighter.haste);
           continue;
         }
         lying.over = Math.min(1, Math.max(0, lying.over + (down ? moved : -moved) / FALL.time));
@@ -547,6 +574,9 @@ export function makeFightView({
       kr.update(dt);
       magic.update(dt);
       props.update(dt);
+    },
+    skip() {
+      skim(sim.events);
     },
     celebrate(who, won, at) {
       celebrating = who;

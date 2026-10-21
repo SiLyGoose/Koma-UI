@@ -65,9 +65,13 @@ export function sheathing(hero: Hero, { rig, models }: Stood, { sword, scabbard,
 
   return {
     ...hero,
-    enter(lasts) {
+    enter() {
       sheathe();
-      hero.enter(lasts);
+      hero.enter();
+    },
+    stride(share) {
+      if (share !== null && (drawn > 0 || hand)) sheathe();
+      hero.stride?.(share);
     },
     start(move) {
       // (Drawn already, from the move before: on with it. Being put away: drawn again, its hand going back to the hilt from where it is.)

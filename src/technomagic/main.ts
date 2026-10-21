@@ -17,7 +17,7 @@ import { makeStage } from './engine/stage';
 import { Ahead } from './fight/ahead';
 import { bossEffects, heroEffects } from './fight/kr-moves';
 import { readSounds } from './fight/sounds';
-import { makeFightView, SIGN_EFFECTS, skim, type FightView } from './fight/view';
+import { makeFightView, SIGN_EFFECTS, type FightView } from './fight/view';
 import { loadEffects } from './fx/effects';
 import { makeKrEffects } from './fx/kr-effects';
 import { makeMagic } from './fx/magic';
@@ -279,7 +279,7 @@ async function start(): Promise<void> {
     kr.shift(dx);
     minions.shift(dx);
   };
-  const slide = (seconds: number): void => stage.slide(seconds, shift);
+  const moveOn = (platforms: number): void => stage.moveOn(platforms, shift);
 
   /** Every body read so far (each skin of each hero read, and as they look with their unique weapons once that's wanted), for a fight to take from. */
   const pool: Entrant[] = [];
@@ -396,13 +396,13 @@ async function start(): Promise<void> {
     unstage();
     game?.view.clear();
     // (A raid of more than one wave: the map back on its first platform, wherever the last fight left it.)
-    stage.home(shift);
+    moveOn(0);
     party.replaceChildren();
     overheads.replaceChildren();
     meterAt.replaceChildren();
     numbers.clear();
     const bodies: Hero[] = entries.map((entrant) => entrant.hero);
-    const view = makeFightView({ scene: stage.scene, sim, bodies, boss, bossLook: bossView!.look, bossFx: bossView!.fx, effects, kr, magic, props, banners, minions, slide });
+    const view = makeFightView({ scene: stage.scene, sim, bodies, boss, bossLook: bossView!.look, bossFx: bossView!.fx, effects, kr, magic, props, banners, minions, moveOn });
     banners.play('start');
     playSound('battle');
     // (A raid of more than one wave: its first phase's banner after it, as the game's encounter has it.)
@@ -840,7 +840,7 @@ async function start(): Promise<void> {
       // Joined a fight long under way (or back to it after the page was away): straight to where it is (drawing only what stands on the field).
       if (mine.upTo - sim.tick > JUMP) {
         while (sim.tick < mine.upTo - LAG && !sim.result) stepRoom(sim, mine);
-        skim(sim.events);
+        game.view.skip();
       }
     }
 
@@ -1034,8 +1034,8 @@ async function start(): Promise<void> {
   if (token && server) room(token, server);
   else await practice();
 
-  stage.start((now, dt) => {
-    banners.update(dt);
+  stage.start((now, dt, gap) => {
+    banners.update(gap);
     const playing = game;
     if (!playing) {
       stage.dim(0, []);
@@ -1052,7 +1052,7 @@ async function start(): Promise<void> {
       if (behind > JUMP) {
         // Far behind (the page was away, a phone on another app): straight to where it is, drawing only what stands on the field.
         while (sim.tick < lock.upTo - LAG && !sim.result) stepLock(sim, lock);
-        skim(sim.events);
+        view.skip();
         playing.owed = 0;
       } else {
         if (behind > HURRY) steps = Math.max(steps, behind - LAG);

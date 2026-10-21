@@ -16,17 +16,19 @@ export const SCALE = 1.68;
 export const RED = 0.45;
 /** Running in: how long it takes, and from how far back. */
 export const ENTER = { time: RUNNING_IN, from: -7.5 };
-/** Running in for `lasts` seconds where the fight moves it (a raid's run up to the boss), from nowhere further back; or else as ENTER has it. */
-export const runOf = (lasts?: number): typeof ENTER => (lasts === undefined ? ENTER : { time: lasts, from: 0 });
 /** Fallen: how long it takes to go over onto its back (and to get up again, revived), and how far its feet are lifted lying there (so its back is on the floor, not in it). */
 export const FALL = { time: 0.55, lift: 0.22 };
 
 export interface Hero {
   root: Group;
-  /** Runs in from off the field to where it stands (or, `lasts` given, runs that many seconds as the fight moves it: runOf). */
-  enter(lasts?: number): void;
-  /** Runs where it stands for so many seconds (the field moving past it: a raid's run on to its next wave). */
-  jog?(seconds: number): void;
+  /** Runs in from off the field to where it stands. */
+  enter(): void;
+  /**
+   * Runs where it stands as the fight moves it along the field (a raid's run up to the boss, or on to its next wave),
+   * `share` (0 to 1) of the way through the run, slowing as it brakes at the end; null: it isn't. Said every frame, as the
+   * fight has it then (so a page drawn late, or back from being away, has it there at once).
+   */
+  stride?(share: number | null): void;
   /** Starts an attack or a skill (cutting short whatever it was doing: the sim says when). */
   start(move: HeroMove): void;
   /** Where its head is on the field, and where it stands (its feet, or under them when it is in the air): put in `into`. */

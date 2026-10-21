@@ -3,7 +3,7 @@ import type { Rig } from '../../engine/rig';
 import { sampler, type Sampler } from '../../engine/sampler';
 import { lengthOf } from '../../engine/track';
 import { flowing, MOVES, type HeroMove } from '../moves';
-import { ENTER, heightOf, holdShield, RED, redden, runOf, type Hero, type Stood } from './hero';
+import { ENTER, heightOf, holdShield, RED, redden, type Hero, type Stood } from './hero';
 import { REST, STILL, TURN, type Bends, type Pose } from './pose';
 import { KNEE, poseBody, poseLoose } from './posing';
 import { BIPED } from './skeletons';
@@ -165,9 +165,10 @@ export function posedHero({ root, body, middle, models, rig, hips, feet, blade, 
   let doing: { name: HeroMove | 'hit'; t: number } | null = null;
   let was = 0;
   let rush = 0;
-  /** How long it has been running in (null: it isn't). */
+  /** How long it has been running in (null: it isn't); running where it stands as the fight moves it, how far through (stride(); null: it isn't); and how long its legs have been striding, either way. */
   let running: number | null = null;
-  let runIn = ENTER;
+  let along: number | null = null;
+  let legs = 0;
   /** Loosing what is in its right hand: whether it is in its hand now, and whether the move playing has loosed it yet. */
   let nocked = true;
   let shot = false;
@@ -193,13 +194,22 @@ export function posedHero({ root, body, middle, models, rig, hips, feet, blade, 
 
   const hero: Hero = {
     root,
-    enter(lasts) {
-      runIn = runOf(lasts);
+    enter() {
       doing = null;
       stopPlaying();
       downed = false;
       running = 0;
+      legs = 0;
       runT = 0;
+    },
+    stride(share) {
+      if (share !== null && along === null) {
+        doing = null;
+        stopPlaying();
+        legs = 0;
+        runT = 0;
+      }
+      along = share;
     },
     start(move) {
       const own = animated[move];
@@ -228,7 +238,7 @@ export function posedHero({ root, body, middle, models, rig, hips, feet, blade, 
       red = RED;
     },
     stagger() {
-      if (running !== null) return;
+      if (running !== null || along !== null) return;
       red = RED;
       stopPlaying();
       carryOn();
@@ -274,22 +284,22 @@ export function posedHero({ root, body, middle, models, rig, hips, feet, blade, 
       const wandered = wander && { twist: wander.twist(step), lean: wander.lean(step), tip: wander.tip(step), look: wander.look(step), nod: wander.nod(step), sway: wander.sway(step), rate: wander.rate(step) };
       if (wandered) pose.hipX += wandered.sway * standing;
 
+      // How far through running in it is (or running where it stands, as the fight has it: from nowhere further back).
+      if (running !== null) running += dt;
+      const through = along ?? (running === null ? null : Math.min(1, running / ENTER.time));
+      const from = along === null ? ENTER.from : 0;
+      if (through !== null) legs += dt;
       // Seated or hovering, gliding in: only carried along the field, easing to a stop as it arrives.
-      if (running !== null && (seated || hovers)) {
-        running += dt;
-        const k = Math.min(1, running / runIn.time);
-        pose.ahead += runIn.from * (1 - k) ** 1.6;
-        pose.lean -= 0.12 * (1 - k);
-        if (k >= 1) running = null;
+      if (through !== null && (seated || hovers)) {
+        pose.ahead += from * (1 - through) ** 1.6;
+        pose.lean -= 0.12 * (1 - through);
       }
       // Running in: leaning into it, its legs striding and its blade trailing behind, easing into standing as it arrives.
-      if (running !== null && !hovers) {
-        running += dt;
-        const k = Math.min(1, running / runIn.time);
-        const still = k < 0.8 ? 0 : (k - 0.8) / 0.2;
+      if (through !== null && !hovers) {
+        const still = through < 0.8 ? 0 : (through - 0.8) / 0.2;
         const w = 1 - still * still * (3 - 2 * still);
-        const stride = running * STRIDES * TURN;
-        pose.ahead += runIn.from * (1 - k) ** 1.6;
+        const stride = legs * STRIDES * TURN;
+        pose.ahead += from * (1 - through) ** 1.6;
         pose.hipX -= rest.hipX * w;
         pose.tilt -= rest.tilt * w;
         // Long strides: each foot far out ahead, then far behind and kicked up as it comes through.
@@ -311,8 +321,8 @@ export function posedHero({ root, body, middle, models, rig, hips, feet, blade, 
         pose.bTurn += (3.4 - rest.bTurn) * w;
         pose.bUp += (-0.3 - rest.bUp) * w;
         striding = w;
-        if (k >= 1) running = null;
       } else striding = 0;
+      if (running !== null && running >= ENTER.time) running = null;
 
       poseBody(rig, BIPED, pose, hips, feet, blade, bends);
       // How fast it is moving along the field, smoothed: its hair and tail trail behind.
@@ -331,7 +341,7 @@ export function posedHero({ root, body, middle, models, rig, hips, feet, blade, 
 
       // Standing in its idle while it does nothing else: eased out of it quickly as a move begins, and back into it slowly after.
       // (Under a move played by its animations it goes on standing in it: they are eased in from it, and back out to it.)
-      const still = !doing && running === null;
+      const still = !doing && running === null && along === null;
       standing = still ? Math.min(1, standing + dt / RETURN) : Math.max(0, standing - dt / INTO);
       if (idling && idle) {
         idleT = (idleT + dt * (wandered ? (VARY.rate[0] + VARY.rate[1]) / 2 + wandered.rate : 1)) % idle.duration;
