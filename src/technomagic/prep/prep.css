@@ -445,6 +445,8 @@ button.tm-slot-card:hover {
   right: 9%;
   left: 9%;
   translate: 0 50%;
+  /* Room in it for its glow, which its overflow (hidden, for the … of a long name) would cut off. */
+  padding: 0.4em 4px;
   font-size: clamp(10px, 11cqi, 16px);
   font-weight: 700;
   line-height: 1.2;
@@ -466,10 +468,11 @@ button.tm-slot-card:hover {
 .tm-slot-card .hero-rank[data-on='card'] {
   --star: 14cqw;
   right: 9.17cqi;
-  bottom: 17cqi;
+  bottom: 11cqi;
   left: 9.47cqi;
-  padding: 8% 0 0;
-  background: radial-gradient(ellipse 70% 80% at 50% 75%, rgb(92 170 255 / 40%), transparent 75%);
+  /* (Room under them for their glow, which fades out inside it rather than ending on its edge.) */
+  padding: 8% 0 6cqi;
+  background: radial-gradient(ellipse 60% 50% at 50% 50%, rgb(92 170 255 / 40%), transparent);
   pointer-events: none;
 }
 
