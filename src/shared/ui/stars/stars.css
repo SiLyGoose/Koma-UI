@@ -63,6 +63,8 @@
   font-size: calc(var(--star) * 0.6);
   font-weight: 800;
   line-height: 1;
+  /* Its line cut to the digit (its top to its baseline), so the digit itself is in the disc's middle, not its line's (with more room over a digit than under it). */
+  text-box: trim-both cap alphabetic;
   translate: -50% -50%;
 }
 
