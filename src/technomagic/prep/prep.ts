@@ -362,9 +362,9 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
   }
 
   /**
-   * One slot of the lineup: a hero (whose, which) or empty. Its card as King's Raid's hero portraits are (its HeroPortrait):
-   * the hero's own card, its frame round it, its class's tag on the frame's emblem and the kind of damage it deals beside it, its name at the bottom
-   * and its stars over it (how far its owner has transcended it in the big middle one).
+   * One slot of the lineup: a hero (whose, which) or empty. Its card as the hero shop's (in the place of King's Raid's hero
+   * portrait, its HeroPortrait): the hero's own card, the shop's frame round it with its class's badge in the top scroll, the kind of damage it
+   * deals in the top right, its name at the bottom and its stars under it (how far its owner has transcended it in the big middle one).
    */
   function slot(pick: PickView | undefined, owner: PlayerView | undefined, mine: boolean): HTMLElement {
     const item = el('li', pick ? 'tm-slot filled' : 'tm-slot');
@@ -382,15 +382,18 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
       card.addEventListener('click', () => act.unpick(pick.hero));
     }
     item.dataset.player = String(owner?.number ?? 0);
-    card.append(cardArt(pick.hero, pick.skin), el('span', 'tm-slot-border'));
+    const border = el('span', 'tm-slot-border');
+    card.append(cardArt(pick.hero, pick.skin), border);
     if (hero) {
+      // (King's Raid's shop's badge, in the frame's scroll.)
       const tag = el('img', 'tm-slot-class');
       tag.alt = className(hero.class);
-      tag.src = `/kr/ui/class-${hero.class}.webp`;
+      tag.src = `/kr/ui/badge-${hero.class}.webp`;
+      border.append(tag);
       const deals = el('img', 'tm-slot-deals');
       deals.alt = hero.stats.deals === 'magical' ? 'Magic' : 'Physical';
       deals.src = `/kr/ui/deals-${hero.stats.deals}.webp`;
-      card.append(tag, deals);
+      card.append(deals);
     }
     card.append(heroStars(owner?.transcend?.[pick.hero] ?? 0, 'card'), el('span', 'tm-slot-name', hero?.name ?? pick.hero));
     frame.append(card);

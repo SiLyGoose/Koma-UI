@@ -250,13 +250,12 @@
 }
 
 /*
- * A slot's card, as King's Raid's hero portrait (its HeroPortrait prefab, in its units): its frame 338 by 732, the slot's
- * whole box (the silver one, Normal: 9-sliced, its corners 110, 100, 160 and 100 across as they are); in it the hero's
- * card, its edges under the middle of the frame's silver bars (they are 28 to 37 in on the left, 26 to 35 on the right,
- * 29 to 38 at the top and the bottom), so none of it shows past them: 32 in on the left, 31 on the right, 34 at the top and the bottom,
- * its class's tag (44 across, on the frame's emblem), the kind of damage it deals (44 across, beside it), and its name over a
- * shade at the bottom. An empty slot: the card's place, dark. Cut short at the bottom as King's Raid's lineup's are (338 by 608),
- * so everything is placed in its width (cqi: 100cqi is the 338), the frame's middle bars stretched to the height.
+ * A slot's card, in the place of King's Raid's hero portrait (its HeroPortrait prefab, in its units): 338 by 732, cut short
+ * at the bottom as King's Raid's lineup's are (338 by 608), so everything is placed in its width (cqi: 100cqi is the 338).
+ * In it, where the portrait's silver frame has the hero's card (32 in on the left, 31 on the right, 34 at the top and the
+ * bottom), the hero's card framed as the hero shop's are (../../hero-shop/hero-shop.css): a thin cream frame with King's
+ * Raid's scrolls in two corners, sticking out past it into the room round it, its class's badge in the top one; the kind of
+ * damage it deals in the top right; and its name and stars over the dark at the bottom. An empty slot: the card's place, dark.
  */
 .tm-slot-frame {
   --art: 10.06cqi 9.17cqi 10.06cqi 9.47cqi;
@@ -294,6 +293,7 @@ button.tm-slot-card {
 }
 
 button.tm-slot-card:hover {
+  --frame: #fff4dc;
   filter: brightness(1.12);
 }
 
@@ -306,22 +306,59 @@ button.tm-slot-card:hover {
   object-position: top;
 }
 
-/* The shade its name is on (the game's, 144 high, from 566 down). */
+/* Dark under its name and stars, as the hero shop's cards are. */
 .tm-slot-art::after {
   content: '';
   position: absolute;
-  inset: auto 0 0;
-  height: 22%;
-  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.8) 60%);
+  inset: 0;
+  background: linear-gradient(180deg, transparent 52%, rgb(6 18 22 / 72%) 70%, rgb(4 13 16 / 96%) 88%);
   pointer-events: none;
+}
+
+/*
+ * The hero shop's frame round the card (its --edge wide, its cream; paler on hovering it). Its scrolls are placed as the
+ * shop's are on its cards (in the card's width, W: 81.36cqi here), from outside the frame.
+ */
+.tm-slot-card {
+  --frame: #eadfc6;
+  --edge: clamp(2px, 1.2cqi, 3px);
 }
 
 .tm-slot-border {
   position: absolute;
-  inset: 0;
-  border: 0 solid transparent;
-  border-image: url('/kr/ui/hero-frame.webp') 160 100 100 110 / 47.34cqi 29.59cqi 29.59cqi 32.54cqi;
+  inset: var(--art);
+  border: var(--edge) solid var(--frame);
+  border-radius: 3px;
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 70%),
+    0 6px 14px rgb(0 0 0 / 45%);
   pointer-events: none;
+}
+
+.tm-slot-border::before,
+.tm-slot-border::after {
+  content: '';
+  position: absolute;
+  height: auto;
+  background: center / 100% 100% no-repeat;
+}
+
+/* Round the badge, top left: 4.85% of W out to the left and 4.78% up, 47.3% of W across. */
+.tm-slot-border::before {
+  top: calc(-3.89cqi - var(--edge));
+  left: calc(-3.95cqi - var(--edge));
+  width: 38.48cqi;
+  aspect-ratio: 78 / 92;
+  background-image: url('/kr/ui/shop-corner-top.webp');
+}
+
+/* Curled in the bottom right: 4.85% of W out and 3.64% down, 36.4% of W across. */
+.tm-slot-border::after {
+  right: calc(-3.95cqi - var(--edge));
+  bottom: calc(-2.96cqi - var(--edge));
+  width: 29.62cqi;
+  aspect-ratio: 60 / 62;
+  background-image: url('/kr/ui/shop-corner-bottom.webp');
 }
 
 .tm-slot-class,
@@ -331,17 +368,20 @@ button.tm-slot-card:hover {
   aspect-ratio: 1;
 }
 
-/* Over the emblem's own disc (42 across, its middle 69.5 in and 72.5 down), just inside its silver ring: the tag's disc fills it. */
+/* The class's badge (King's Raid's shop's), in the top scroll's hole: 2.5% of W in, 1.82% down, 26.5% across. */
 .tm-slot-class {
-  top: 14.94cqi;
-  left: 14.05%;
-  width: 13.02%;
+  top: calc(1.48cqi - var(--edge));
+  left: calc(2.03cqi - var(--edge));
+  width: 21.56cqi;
+  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 60%));
 }
 
+/* The kind of damage it deals, in the card's top right corner. */
 .tm-slot-deals {
-  top: 14.79cqi;
-  left: 34.32%;
-  width: 13.02%;
+  top: calc(10.06cqi + 3cqi);
+  right: calc(9.17cqi + 3cqi);
+  width: 12cqi;
+  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 70%));
 }
 
 .tm-slot-owner {
@@ -412,19 +452,21 @@ button.tm-slot-card:hover {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  /* Pale blue on a glow, as the hero shop's. */
+  color: #d9eeff;
   text-shadow:
-    0 0 2px #000,
-    0 1px 2px #000;
+    0 0 6px rgb(70 160 255 / 80%),
+    0 1px 2px rgb(0 0 0 / 80%);
 }
 
 /*
- * Its stars (../../shared/ui/stars), inside its frame under its name, along the picture's bottom, sized by the picture (cqw,
- * of the row as wide as it), their glow softer than on a square; its name a little higher for them, its shade taller.
+ * Its stars (../../shared/ui/stars), inside its frame under its name, clear of the frame's bottom, sized by the picture (cqw,
+ * of the row as wide as it), their glow softer than on a square; its name a little higher for them.
  */
 .tm-slot-card .hero-rank[data-on='card'] {
   --star: 14cqw;
   right: 9.17cqi;
-  bottom: 11cqi;
+  bottom: 17cqi;
   left: 9.47cqi;
   padding: 8% 0 0;
   background: radial-gradient(ellipse 70% 80% at 50% 75%, rgb(92 170 255 / 40%), transparent 75%);
@@ -432,11 +474,7 @@ button.tm-slot-card:hover {
 }
 
 .tm-slot-card:has(.hero-rank) .tm-slot-name {
-  bottom: 34cqi;
-}
-
-.tm-slot-card:has(.hero-rank) .tm-slot-art::after {
-  height: 30%;
+  bottom: 40cqi;
 }
 
 /* Along the bottom: the heroes, the chat, and who's in. */
