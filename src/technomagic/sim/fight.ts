@@ -359,6 +359,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       healed: 0,
       shielded: 0,
       mitigated: 0,
+      taken: 0,
       doing: null,
       haste: 1,
       x: 0,
@@ -1295,6 +1296,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
           warded > 0 ? 1 - Math.min(0.9, warded * (ward.taken + (ward.most - ward.taken) * Math.min(1, elapsed / ward.over))) : 1,
         ]);
       target.mitigated += Math.max(0, blow - dealt);
+      target.taken += dealt;
       // A shield on it takes what it can first; its health, the rest.
       const soaked = Math.min(target.shield, dealt);
       target.shield -= soaked;

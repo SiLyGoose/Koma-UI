@@ -374,6 +374,7 @@ async function start(): Promise<void> {
       dealt: fighter.dealt,
       healed: fighter.healed,
       mitigated: fighter.mitigated,
+      taken: fighter.taken,
       shielded: fighter.shielded,
     }));
   }

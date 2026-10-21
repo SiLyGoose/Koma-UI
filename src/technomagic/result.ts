@@ -13,7 +13,7 @@ import { KEPT } from './assets';
  * not TechnoMagic gear). A click on a piece opens its details over the screen (what it
  * is, its potentials, its set's effect and its additional skill); a click outside them, their ✕ or Escape goes back.
  * Under those, what everyone else found (their pieces open the same way), Battle Stats (a button opening, over the screen,
- * what each hero did in the fight: its damage dealt, healing given, damage its defense took off and shields given), and the
+ * what each hero did in the fight: its damage dealt, healing given, damage its defense took off, damage taken and shields given), and the
  * way on: run it again, back to getting ready, or back to the games. Staged (the heroes posing behind it: ../main.ts), what
  * was found shows first, over a dark screen, until a tap anywhere but on a piece; then Battle Stats and the way on.
  */
@@ -62,6 +62,7 @@ export interface ResultStat {
   dealt: number;
   healed: number;
   mitigated: number;
+  taken: number;
   shielded: number;
 }
 
@@ -71,6 +72,7 @@ const STATS = [
   { group: 'Support', key: 'healed', label: 'Healing Done', about: 'Healing its heals gave its allies and itself' },
   { group: 'Support', key: 'shielded', label: 'Amount Shielded', about: 'Shields it put on its allies and itself' },
   { group: 'Defense', key: 'mitigated', label: 'Damage Mitigated', about: 'Damage its defense took off the blows on it: its DEF, blocks, less damage taken, and blows dodged' },
+  { group: 'Defense', key: 'taken', label: 'Damage Taken', about: 'Damage the blows on it dealt, after its defense: on its shields and its health' },
 ] as const;
 type StatKey = (typeof STATS)[number]['key'];
 /** The stat charted (the last picked, this page's). */

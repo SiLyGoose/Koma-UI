@@ -165,12 +165,13 @@ export interface Fighter {
   rested: number;
   /**
    * This fight: what its blows have taken of the boss, what its heals have given the heroes and its shields put on them;
-   * and what of the blows on it its defense took off (its DEF, a block, less damage taken, and the whole of one dodged).
+   * what of the blows on it its defense took off (its DEF, a block, less damage taken, and the whole of one dodged), and what was left of them (on its shield or its health).
    */
   dealt: number;
   healed: number;
   shielded: number;
   mitigated: number;
+  taken: number;
   doing: Doing | null;
   /** How many times as fast everything it does goes, this step (its attack speed, and what is on it). */
   haste: number;
