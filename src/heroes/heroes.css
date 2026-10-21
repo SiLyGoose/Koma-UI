@@ -124,13 +124,12 @@
   outline-offset: 1px;
 }
 
-/* Right of the class banner, along the stage's top: its stars (render.ts heroStars). */
+/* Right of the class banner, along the stage's top: its stars, then +its transcendence (render.ts heroStars). */
 .hero-stars {
   position: absolute;
-  top: 8px;
+  top: 9px;
   left: 60px;
   z-index: 2;
-  width: 118px;
   pointer-events: none;
 }
 
@@ -139,34 +138,69 @@
 }
 
 /*
- * A hero's stars, King's Raid's (its cards' five gold stars, the middle one big), as wide as where they are put; how far
- * it is transcended in dark brown on the big one, as the game writes it.
+ * A hero's stars: King's Raid's gold star, toned to the pale gold its hero screens show, a dark edge round each; on a card,
+ * a transcended hero's middle one bigger, its transcendence in white on a dark disc in it.
  */
 .hero-rank {
-  position: relative;
-  display: block;
-  container-type: inline-size;
+  display: flex;
+  align-items: center;
   user-select: none;
   -webkit-user-select: none;
 }
 
-.hero-rank-stars {
-  display: block;
+.hero-rank-star {
+  position: relative;
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--star);
+  aspect-ratio: 100 / 97;
+}
+
+.hero-rank-star img {
   width: 100%;
-  height: auto;
-  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 60%));
+  height: 100%;
+  filter: saturate(0.55) brightness(1.12) drop-shadow(0 0 0.6px #3b2a12) drop-shadow(0 1px 1px rgb(0 0 0 / 55%));
+}
+
+.hero-rank[data-on='banner'] {
+  --star: 22px;
+  gap: 1px;
+}
+
+.hero-rank-plus {
+  margin-left: 4px;
+  color: #fff;
+  font-size: 21px;
+  font-weight: 800;
+  line-height: 1;
+  -webkit-text-stroke: 1px #4a4a4a;
+  paint-order: stroke fill;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 60%);
+}
+
+.hero-rank-star.big {
+  z-index: 1;
+  width: calc(var(--star) * 1.5);
+  margin-inline: calc(var(--star) * -0.18);
 }
 
 .hero-rank-level {
   position: absolute;
-  top: 52%;
+  top: 53%;
   left: 50%;
-  translate: -50% -50%;
-  color: #2e1a03;
-  font-size: 19cqw;
-  font-weight: 900;
+  display: grid;
+  place-items: center;
+  width: 46%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 40%, #4a3016, #1c1208 70%);
+  box-shadow: 0 0 0 1px rgb(255 226 150 / 55%);
+  color: #fff;
+  font-size: calc(var(--star) * 0.6);
+  font-weight: 800;
   line-height: 1;
-  text-shadow: 0 0 1px #fff3cf, 0 0 3px rgb(255 243 207 / 80%);
+  translate: -50% -50%;
 }
 
 /* Its whole picture, behind the slots and its name, cut off at the stage's edges and fading out at the bottom onto the floor. */
@@ -276,18 +310,23 @@
   pointer-events: none;
 }
 
-/* A hero of theirs in the roster: its stars along the bottom, its name over them. */
+/*
+ * A hero of theirs in the roster: its stars along the bottom, sized by the card (cqw, of the row as wide as it), its name
+ * over them.
+ */
 .roster-tile .hero-rank {
+  --star: 17cqw;
   position: absolute;
-  bottom: 3px;
-  left: 50%;
+  right: 0;
+  bottom: 4px;
+  left: 0;
   z-index: 2;
-  width: 80%;
-  translate: -50% 0;
+  justify-content: center;
+  container-type: inline-size;
 }
 
 .roster-tile:has(.hero-rank) .roster-name {
-  padding-bottom: calc(80% * 66 / 226 + 2px);
+  padding-bottom: 22%;
 }
 
 /* A hero in the roster that isn't theirs: greyed, a padlock in its corner. */

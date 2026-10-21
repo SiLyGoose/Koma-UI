@@ -178,7 +178,7 @@ function renderRoster(ctx: HeroesContext, act: HeroActions): void {
       badge.append(icon);
       tile.append(initial, face, badge, el('span', 'roster-name', hero.name));
       // (Theirs: its stars, as King's Raid's cards have them. Not yet: a padlock.)
-      tile.append(hero.owned ? heroStars(hero.transcend?.level ?? 0) : el('span', 'roster-lock', '🔒'));
+      tile.append(hero.owned ? heroStars(hero.transcend?.level ?? 0, 'card') : el('span', 'roster-lock', '🔒'));
       tile.addEventListener('click', () => act.pickHero(hero.id));
       return tile;
     }),
@@ -186,20 +186,28 @@ function renderRoster(ctx: HeroesContext, act: HeroActions): void {
 }
 
 /**
- * A hero's stars, as King's Raid's cards have them (its Portrait_Star5): five, every hero of theirs having them all, and how
- * far it is transcended (T1 to T5) on the big one in the middle (nothing there at T0).
+ * A hero's stars as King's Raid has them, five (every hero of theirs has them all; its star, Loading_Hero_Star), and how
+ * far it is transcended (T1 to T5): on a card in the roster, on a bigger middle star (nothing there at T0); beside the
+ * stage's banner, as +3 after them.
  */
-function heroStars(level: number): HTMLElement {
+function heroStars(level: number, where: 'card' | 'banner'): HTMLElement {
   const row = el('span', 'hero-rank');
+  row.dataset.on = where;
   row.setAttribute('role', 'img');
   row.setAttribute('aria-label', level > 0 ? `5 stars, Transcend ${level} of ${TRANSCEND_MAX}` : '5 stars');
   row.title = level > 0 ? `Transcend ${level}` : 'Not transcended';
-  const stars = el('img', 'hero-rank-stars');
-  stars.src = `${import.meta.env.BASE_URL}kr/ui/hero-stars.webp`;
-  stars.alt = '';
-  stars.draggable = false;
-  row.append(stars);
-  if (level > 0) row.append(el('span', 'hero-rank-level', String(level)));
+  for (let i = 0; i < 5; i++) {
+    const middle = where === 'card' && level > 0 && i === 2;
+    const star = el('span', middle ? 'hero-rank-star big' : 'hero-rank-star');
+    const img = el('img');
+    img.src = `${import.meta.env.BASE_URL}kr/ui/hero-star.webp`;
+    img.alt = '';
+    img.draggable = false;
+    star.append(img);
+    if (middle) star.append(el('span', 'hero-rank-level', String(level)));
+    row.append(star);
+  }
+  if (where === 'banner' && level > 0) row.append(el('span', 'hero-rank-plus', `+${level}`));
   return row;
 }
 
@@ -244,7 +252,7 @@ function renderStage(ctx: HeroesContext): void {
   ui.classIcon.title = `Class: ${className(hero.class)}`;
   // Its stars beside the banner, its transcendence in them: a hero of theirs (or someone else's) only.
   ui.stars.hidden = !hero.owned;
-  ui.stars.replaceChildren(...(hero.owned ? [heroStars(hero.transcend?.level ?? 0)] : []));
+  ui.stars.replaceChildren(...(hero.owned ? [heroStars(hero.transcend?.level ?? 0, 'banner')] : []));
   ui.buy.hidden = hero.owned || !mine(ctx);
   ui.buy.href = '/shop/heroes/';
   ui.statsTitle.textContent = `${hero.name}'s Stats`;
