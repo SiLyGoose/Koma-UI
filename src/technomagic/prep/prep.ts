@@ -22,7 +22,7 @@ import type { PickView, PlayerView, RaidMode, RoomState } from '../../protocol/t
  * pressed, and one picked into the other already is moved over. Along the bottom: the heroes this player owns (pressing one puts it in,
  * or takes it out), the room's chat, and who's in (the host's crown, who's ready), with Raid Info, Ready
  * (everyone but the host) and Start Battle (the host: in blue once everyone is ready, else on the plaque with how many
- * are, forcing the start). The Dragon Raid's Raid Settings has its dragons over the modes: pressing another goes against it.
+ * are, forcing the start), Auto Repeat over them (a boss beaten, in for the next fight straight from the result). The Dragon Raid's Raid Settings has its dragons over the modes: pressing another goes against it.
  * On a phone on its side the site's bar is hidden, as a game's own screen has none (./prep.css), and King's Raid's back
  * arrow takes the title's place. Alone (single player, or the only one in the raid),
  * straight there; with others in the raid, a popup (./move.ts) asks the host whether to bring them along (the raid goes
@@ -39,6 +39,8 @@ export interface PrepActions {
   mode(mode: RaidMode): void;
   /** Starts the fight: `force`d, without waiting for everyone to be ready. */
   begin(force: boolean): void;
+  /** Auto Repeat ticked (`on`) or not. */
+  repeat(on: boolean): void;
   /**
    * Goes against another of the raid's bosses (the Dragon Raid's: another dragon): `bring`, the raid with everyone in it
    * (the host's), else alone (single player, a room of their own against it; with others, out of the raid into a new one).
@@ -50,6 +52,8 @@ export interface Prep {
   /** Where the room's chat goes. */
   readonly chat: HTMLElement;
   show(state: RoomState): void;
+  /** Whether Auto Repeat is ticked. */
+  repeat(on: boolean): void;
   /** Says why something wasn't done (null: nothing to say). */
   note(text: string | null): void;
   hide(): void;
@@ -176,6 +180,7 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
   const noteAt = byId('prep-note');
   const ready = byId('prep-ready') as HTMLButtonElement;
   const start = byId('prep-start') as HTMLButtonElement;
+  const repeat = byId('prep-repeat') as HTMLInputElement;
   let state: RoomState | null = null;
   /** The stage picked in Raid Settings, until it is confirmed (null: the popup is closed). */
   let picked: number | null = null;
@@ -223,6 +228,7 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
     play('start');
     act.begin(forced);
   });
+  repeat.addEventListener('change', () => act.repeat(repeat.checked));
   // Raid Settings: the stage stepped between the arrows, and taken on Confirm (only the host's).
   const closeSettings = (): void => {
     settings.root.hidden = true;
@@ -560,6 +566,9 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
       fit();
       heroes.scrollTop = listAt;
       root.scrollTop = rootAt;
+    },
+    repeat(on) {
+      repeat.checked = on;
     },
     note(text) {
       noteAt.textContent = text ?? '';

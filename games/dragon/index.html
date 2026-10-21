@@ -18,6 +18,8 @@
         <div id="boss" class="tm-boss" hidden>
           <div class="tm-boss-bar"><i></i><b></b></div>
           <div class="tm-boss-gauge" hidden><i></i></div>
+          <!-- Auto Repeat on (in a room: ../../src/technomagic/main.ts): Stop Repeat Battle, which turns it off. -->
+          <button type="button" id="repeat-stop" class="tm-repeat-stop" hidden>Stop Repeat Battle</button>
           <div class="tm-marks"></div>
         </div>
         <!-- A health bar for each hero, over its head while it is on the field (../../src/technomagic/hud/overhead.ts puts them here). -->
@@ -52,6 +54,8 @@
             <section class="tm-prep-panel tm-prep-party" aria-label="Players">
               <ol id="prep-players" class="tm-prep-players"></ol>
               <p id="prep-note" class="tm-prep-note" role="status"></p>
+              <!-- Auto Repeat: a boss beaten, this player is in for the next fight straight from the result (../../src/technomagic/main.ts). -->
+              <label class="tm-prep-repeat"><input type="checkbox" id="prep-repeat" /> Auto Repeat</label>
               <div class="tm-prep-actions">
                 <button type="button" id="prep-info" class="action secondary" aria-haspopup="dialog">Raid Info</button>
                 <button type="button" id="prep-ready" class="action secondary" aria-pressed="false">Ready</button>

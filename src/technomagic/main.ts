@@ -66,7 +66,8 @@ import './technomagic.css';
  * and this page runs the same one from the same seed with everyone's presses as the bot relays them, never
  * going past the step the bot has reached (a step or two behind it, so it never has to wait). Each player
  * has a card for each of their own heroes along the bottom of the field (its health and mana, its three
- * skills, its Auto); everyone's heroes are on the field. The bot says how it ended, and what each found.
+ * skills, its Auto); everyone's heroes are on the field. The bot says how it ended, and what each found. With Auto
+ * Repeat ticked on getting ready, a win's result goes again by itself (Stop Repeat Battle, over the fight, ends that).
  * Only the lineup's heroes are read (every hero's models together are well over a hundred MB), each as it's
  * picked, so they're in by the time the fight begins.
  *
@@ -90,6 +91,8 @@ import './technomagic.css';
 const UNIQUE_TRIED = 5;
 /** Which heroes were on the field last when trying things out (their names, as a list), kept by this browser. */
 const FIELD_KEY = 'technomagic-field';
+/** Whether Auto Repeat is ticked (in a room), kept by this browser. */
+const REPEAT_KEY = 'technomagic-repeat';
 /** Heroes that couldn't be read: none (and why, in the console), so the page goes on without them. */
 const unread = (error: unknown): Entrant[] => {
   console.warn(error);
@@ -114,6 +117,8 @@ const JUMP = 90;
  */
 const OVER_WAIT = 2;
 const DRAIN = 0.5;
+/** Auto Repeat: how long a win's result is seen before this player is in for the next fight. */
+const REPEAT_WAIT = 3;
 
 /** Which raid this page is (its #app's data-raid): the TechnoMagic Raid's, or the Dragon Raid's; its name; and its bosses. */
 const DRAGON = (document.getElementById('app') as HTMLElement).dataset.raid === 'dragon';
@@ -187,6 +192,7 @@ const deathlessButton = document.getElementById('deathless') as HTMLButtonElemen
 const uniqueButton = document.getElementById('unique') as HTMLButtonElement;
 const stagePicker = document.getElementById('stage-pick') as HTMLSelectElement;
 const hint = document.getElementById('hint') as HTMLElement;
+const repeatStop = document.getElementById('repeat-stop') as HTMLButtonElement;
 const results = makeResult(document.getElementById('result') as HTMLElement);
 
 soundButton('technomagic-muted', setMuted);
@@ -639,6 +645,7 @@ async function start(): Promise<void> {
       stage: (n) => send({ t: 'stage', stage: n }),
       mode: (mode) => send({ t: 'mode', mode }),
       begin: (force) => send({ t: 'begin', ...(force && { force }) }),
+      repeat: (on) => setRepeat(on),
       // Another dragon: the raid taken against it (the page goes once the bot says so), or this page again alone, in a
       // room of their own against it (single player) or out of the raid into a new one.
       boss: (id, bring) => {
@@ -679,6 +686,7 @@ async function start(): Promise<void> {
       }
       if (!send({ t: 'quit' })) return 'Not connected to the raid right now. Try again in a moment.';
       left = true;
+      drawRepeat();
       if (!state.solo) socket?.finish();
       leaving.close();
       showLeft(state.solo);
@@ -688,6 +696,24 @@ async function start(): Promise<void> {
       if (state?.phase === 'fight' && !game?.sim.result && !left) return leaving.open(state.solo);
       games();
     };
+
+    // Auto Repeat (ticked on getting ready): a boss beaten, in for the next fight straight from the result (Run Again, a
+    // moment after it is shown). Over the fight (and a win's result) while it is on, Stop Repeat Battle turns it off.
+    let repeat = store.get(localStorage, REPEAT_KEY) === 'on';
+    let repeating: number | undefined;
+    function setRepeat(on: boolean): void {
+      repeat = on;
+      store.set(localStorage, REPEAT_KEY, on ? 'on' : null);
+      prep.repeat(on);
+      if (!on) clearTimeout(repeating);
+      drawRepeat();
+      if (state?.phase === 'over' && shownOver && !left) results.actions(overActions());
+    }
+    function drawRepeat(): void {
+      repeatStop.hidden = !repeat || left || state === null || state.phase === 'prep' || (state.phase === 'over' && state.over?.result !== 'won');
+    }
+    repeatStop.addEventListener('click', () => setRepeat(false));
+    prep.repeat(repeat);
 
     /** Their Defeat, having left: single player, back to getting ready (once the bot has ended the fight) or to the games; with others, to the games. */
     function showLeft(solo: boolean): void {
@@ -877,6 +903,7 @@ async function start(): Promise<void> {
           if (state.phase === 'over' && state.over && !game) showOver(state.over);
           // Who is in for running it again, as it changes.
           if (state.phase === 'over' && shownOver && !left) results.actions(overActions());
+          drawRepeat();
           return;
         }
         case 'fight':
@@ -930,6 +957,12 @@ async function start(): Promise<void> {
         others,
         actions: overActions(),
       });
+      if (over.result !== 'won' || !repeat) return;
+      clearTimeout(repeating);
+      repeating = window.setTimeout(() => {
+        const me = state?.players.find((player) => player.id === state?.you);
+        if (repeat && state?.phase === 'over' && shownOver === over && !left && !me?.ready) send({ t: 'again' });
+      }, REPEAT_WAIT * 1000);
     }
 
     /**
@@ -939,7 +972,7 @@ async function start(): Promise<void> {
     function overActions(): ResultAction[] {
       const players = state?.players ?? [];
       const me = players.find((player) => player.id === state?.you);
-      const note = players.length > 1 ? `${players.filter((player) => player.ready).length}/${players.length} Ready` : undefined;
+      const note = players.length > 1 ? `${players.filter((player) => player.ready).length}/${players.length} Ready` : repeat && shownOver?.result === 'won' ? 'Auto Repeat' : undefined;
       const again: ResultAction = !me?.ready
         ? { label: 'Run Again', icon: 'again', main: true, note, run: () => send({ t: 'again' }) }
         : me.host
