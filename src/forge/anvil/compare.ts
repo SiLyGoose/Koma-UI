@@ -12,11 +12,30 @@ const plain = (line: string): string => line.replace(/<a?:\w+:\d+>/g, '').replac
 const shape = (line: string): string => plain(line).replace(NUMBER, '#');
 const numbers = (line: string): string[] => plain(line).match(NUMBER) ?? [];
 
-/** One row under the anvil: an effect as it is now, and the numbers in it that change (or it's new, or it goes). */
+/** One row under the anvil: an effect as it is now, and the numbers in it that change (each with its place among them), as it will be (or it's new, or it goes). */
 export interface EffectRow {
   line: string;
-  changes: { from: string; to: string }[];
+  changes: { from: string; to: string; at: number }[];
+  next?: string;
   state: 'same' | 'changed' | 'new' | 'gone';
+}
+
+/**
+ * A line as its words and its numbers, each number with its place among them (to mark those that change); null: one with
+ * markup (emoji, bold…), which is only shown whole.
+ */
+export function pieces(line: string): { text: string; at: number | null }[] | null {
+  if (plain(line) !== line) return null;
+  const out: { text: string; at: number | null }[] = [];
+  let last = 0;
+  let at = 0;
+  for (const found of line.matchAll(NUMBER)) {
+    if (found.index > last) out.push({ text: line.slice(last, found.index), at: null });
+    out.push({ text: found[0], at: at++ });
+    last = found.index + found[0].length;
+  }
+  if (last < line.length) out.push({ text: line.slice(last), at: null });
+  return out;
 }
 
 /**
@@ -35,8 +54,8 @@ export function compare(before: readonly string[], after: readonly string[]): Ef
     const [old] = unused.splice(at, 1) as [string];
     const from = numbers(old);
     const to = numbers(line);
-    const changes = from.flatMap((n, i) => (n === to[i] ? [] : [{ from: n, to: to[i] ?? '' }]));
-    rows.push({ line: old, changes, state: changes.length ? 'changed' : 'same' });
+    const changes = from.flatMap((n, i) => (n === to[i] ? [] : [{ from: n, to: to[i] ?? '', at: i }]));
+    rows.push({ line: old, changes, next: line, state: changes.length ? 'changed' : 'same' });
   }
   for (const line of unused) rows.push({ line, changes: [], state: 'gone' });
   return rows;

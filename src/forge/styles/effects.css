@@ -66,6 +66,28 @@
   text-decoration: line-through;
 }
 
+/* A long line that changes: as it is (dimmed), and under it as it will be, the numbers that change bold in each. */
+.forge-row.long {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+}
+
+.forge-was {
+  color: var(--muted);
+}
+
+.forge-row.long .forge-from,
+.forge-row.long .forge-to {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.forge-next .forge-arrow {
+  margin-right: 8px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
 .forge-change {
   display: flex;
   flex-wrap: wrap;
