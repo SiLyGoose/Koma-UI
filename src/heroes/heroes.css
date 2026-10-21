@@ -20,6 +20,14 @@
   min-width: 0;
 }
 
+/* Behind the hero, King's Raid's Hero Info backdrop (its Hero3DPreviewBg1's "Background Gray"), darker toward the stage's edges. */
+.heroes-page .hero-stage {
+  background:
+    radial-gradient(ellipse 70% 65% at 50% 42%, transparent 45%, rgb(0 0 0 / 55%)),
+    url('/kr/ui/hero-view-bg.webp') center / cover,
+    #1d1c22;
+}
+
 .hero-stage {
   grid-template-areas: 'weapons figure armors';
   align-items: stretch;

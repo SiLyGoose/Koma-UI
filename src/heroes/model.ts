@@ -1,24 +1,81 @@
-import { type Material, Mesh, PerspectiveCamera, Scene, SRGBColorSpace, type Texture, Vector3, WebGLRenderer } from 'three';
-import type { Hero } from '../technomagic/heroes/body/hero';
+import {
+  BackSide,
+  FrontSide,
+  type Material,
+  Mesh,
+  MeshBasicMaterial,
+  NormalBlending,
+  type Object3D,
+  OrthographicCamera,
+  Scene,
+  SkinnedMesh,
+  SRGBColorSpace,
+  type Texture,
+  Vector2,
+  Vector3,
+  WebGLRenderer,
+  type WebGLProgramParametersWithUniforms,
+} from 'three';
+import { SCALE, type Hero } from '../technomagic/heroes/body/hero';
 import { loadHeroes } from '../technomagic/heroes/load';
 import { lookOf } from '../technomagic/heroes/looks';
 import { HEROES } from '../technomagic/sim/heroes';
 
 /*
- * The hero on the heroes page's stage as the TechnoMagic Raid has it (../technomagic/heroes/): its model,
- * standing in its idle and breathing, seen from the front from its head down to its thighs, behind its
- * slots. Read only when the page first shows a hero (three.js and the models are big), its default skin only, and only
- * the one shown kept (another shown, the last one's let go of: a hero's models are 2-18 MB).
- * Its models are under public/kr/: where one can't be read, show() says so and the
- * page keeps the hero's picture.
+ * The hero on the heroes page's stage as King's Raid's Hero Info shows it (its Hero3DViewPanel, zoomed in): its model
+ * standing in its idle (King's Raid's out-of-battle Idle, which the TechnoMagic Raid's heroes rest in too), facing the
+ * camera, seen straight on (an orthographic camera, looking a little down) from over its head down to its hips, around its
+ * head as its ClientCreatureTable says; drawn as its toon shader does (its edges darker, a blue rim light on them, a thin
+ * black outline round it). Read only when the page first shows a hero (three.js and the models are big), its default skin
+ * only, and only the one shown kept (another shown, the last one's let go of: a hero's models are 2-18 MB).
+ * Its models are under public/kr/: where one can't be read, show() says so and the page keeps the hero's picture.
  */
 
-/** How far it is turned from facing the camera (radians): a little to its left, as the game has it. */
-const TURN = 0.3;
-/** What shows, from this far over its head down to this far under it, in the models' units. */
-const ABOVE = 0.55;
-const BELOW = 1.3;
-const FOV = 22;
+/**
+ * How King's Raid frames each hero (ClientCreatureTable's HeroViewZoomInViewSize and HeroViewZoomInOffset, in its units):
+ * half the height shown, and where its middle is from the hero's head. Most are DEFAULT's; these, their own.
+ */
+const DEFAULT = { size: 0.55, offset: [0, -0.06] as const };
+const FRAMES: Readonly<Record<string, { size: number; offset: readonly [number, number] }>> = {
+  annette: { size: 0.55, offset: [0, 0] },
+  crow: { size: 0.55, offset: [0, -0.08] },
+  erze: { size: 0.52, offset: [0, -0.08] },
+  evan: { size: 0.53, offset: [0, -0.08] },
+  gau: { size: 0.75, offset: [0, -0.15] },
+  gremory: { size: 0.6, offset: [-0.02, -0.04] },
+  isolet: { size: 0.5, offset: [0, -0.08] },
+  laias: { size: 0.55, offset: [0, -0.08] },
+  lakrak: { size: 0.7, offset: [0, 0.03] },
+  lavril: { size: 0.5, offset: [0, -0.06] },
+  lilia: { size: 0.5, offset: [0, 0] },
+  loman: { size: 0.55, offset: [0, -0.08] },
+  lorraine: { size: 0.5, offset: [0, -0.08] },
+  lucias: { size: 0.55, offset: [0, -0.08] },
+  miruru: { size: 0.5, offset: [0, -0.02] },
+  morrah: { size: 0.55, offset: [0, -0.08] },
+  naila: { size: 0.53, offset: [0, -0.06] },
+  neraxis: { size: 0.5, offset: [0, -0.08] },
+  oddy: { size: 0.8, offset: [0, 0.02] },
+  phillop: { size: 0.8, offset: [0, -0.05] },
+  priscilla: { size: 0.5, offset: [0, -0.06] },
+  'rebel-klaus': { size: 0.62, offset: [0, -0.08] },
+  rehartna: { size: 0.48, offset: [0, -0.06] },
+  theo: { size: 0.55, offset: [0, -0.08] },
+  valance: { size: 0.53, offset: [0, -0.06] },
+  yanne: { size: 0.55, offset: [0, -0.03] },
+};
+/** How far down the camera looks (GameSetting Ui.Hero3dView.CameraAngle: 5°). */
+const LOOK_DOWN = (5 * Math.PI) / 180;
+
+/**
+ * Its toon shader (Vespa/ToonShading2, as a hero's materials set it): its colour times EMISSIVE + COLOR × (how much it
+ * faces the camera)^FALLOFF, so darker toward its edges; and the rim light the game sets for every hero (GameSharedSetting:
+ * its colour, and its direction on the view), as sharp as its materials have it.
+ */
+const TOON = { emissive: 0.5, color: 0.588, falloff: 0.3 };
+const RIM = { color: [0.669, 0.836, 1] as const, direction: new Vector3(-0.4, -0.4, 1).normalize(), shininess: 10 };
+/** Its outline: how wide (CSS pixels). */
+const OUTLINE = 1.2;
 
 export interface Showcase {
   /** Puts the hero with this id on the stage: false when it can't be read, or another was asked for meanwhile. */
@@ -32,7 +89,9 @@ export function makeShowcase(canvas: HTMLCanvasElement): Showcase {
   renderer.outputColorSpace = SRGBColorSpace;
   renderer.setClearColor(0x000000, 0);
   const scene = new Scene();
-  const camera = new PerspectiveCamera(FOV, 1, 0.1, 100);
+  const camera = new OrthographicCamera(-1, 1, 1, -1, 0.1, 100);
+  /** The outline's width on the view (both ways), as the canvas is sized. */
+  const outline = { value: new Vector2() };
   /** The one being read, by its id (asked again meanwhile: the same reading). */
   let reading: { id: string; hero: Promise<Hero | null> } | null = null;
   let shown: Hero | null = null;
@@ -42,13 +101,17 @@ export function makeShowcase(canvas: HTMLCanvasElement): Showcase {
   let gone = false;
   let last = performance.now();
 
-  /** Its default skin, moved as in the raid; null when that skin (or the hero) isn't on this computer. */
+  /** Its default skin, moved as in the raid, drawn as King's Raid draws it; null when that skin (or the hero) isn't on this computer. */
   const load = (id: string): Promise<Hero | null> => {
     if (reading?.id === id) return reading.hero;
     const def = HEROES.find((hero) => hero.id === id);
     const hero = def
       ? loadHeroes([def], { skin: 0 }).then(
-          (entrants) => (entrants.find((entrant) => entrant.skin === lookOf(def.id).assets.skins[0]) ?? entrants[0])?.hero ?? null,
+          (entrants) => {
+            const found = (entrants.find((entrant) => entrant.skin === lookOf(def.id).assets.skins[0]) ?? entrants[0])?.hero ?? null;
+            if (found) toon(found.root, outline);
+            return found;
+          },
           (error: unknown) => {
             console.warn(error);
             return null;
@@ -59,7 +122,7 @@ export function makeShowcase(canvas: HTMLCanvasElement): Showcase {
     return hero;
   };
 
-  /** Frames it: its head near the top, its thighs at the bottom, whatever the canvas's shape. */
+  /** Frames it as King's Raid does, whatever the canvas's shape: as tall a view round its head, as wide as the canvas lets it be. */
   const head = new Vector3();
   const fit = (): void => {
     const w = canvas.clientWidth;
@@ -67,14 +130,19 @@ export function makeShowcase(canvas: HTMLCanvasElement): Showcase {
     if (w === 0 || h === 0) return;
     renderer.setPixelRatio(Math.min(2, window.devicePixelRatio));
     renderer.setSize(w, h, false);
-    camera.aspect = w / h;
-    if (shown) {
+    outline.value.set((2 * OUTLINE) / w, (2 * OUTLINE) / h);
+    if (shown && shownId) {
+      const { size, offset } = FRAMES[shownId] ?? DEFAULT;
       shown.root.updateMatrixWorld(true);
       shown.head(head);
-      const middle = head.y + (ABOVE - BELOW) / 2;
-      const back = (ABOVE + BELOW) / 2 / Math.tan((FOV * Math.PI) / 360);
-      camera.position.set(head.x, middle, head.z + back);
-      camera.lookAt(head.x, middle, head.z);
+      const half = size * SCALE;
+      camera.top = half;
+      camera.bottom = -half;
+      camera.left = (-half * w) / h;
+      camera.right = (half * w) / h;
+      const at = new Vector3(head.x + offset[0] * SCALE, head.y + offset[1] * SCALE, head.z);
+      camera.position.set(at.x, at.y + Math.sin(LOOK_DOWN) * 20, at.z + Math.cos(LOOK_DOWN) * 20);
+      camera.lookAt(at);
     }
     camera.updateProjectionMatrix();
   };
@@ -105,7 +173,8 @@ export function makeShowcase(canvas: HTMLCanvasElement): Showcase {
       }
       shown = hero;
       shownId = id;
-      hero.root.rotation.y = TURN;
+      // (Facing the camera, as King's Raid turns it.)
+      hero.root.rotation.y = 0;
       scene.add(hero.root);
       // Stood as it rests before it is framed, so its head is where it will be.
       hero.update(performance.now() / 1000, 0);
@@ -124,6 +193,80 @@ export function makeShowcase(canvas: HTMLCanvasElement): Showcase {
       renderer.dispose();
     },
   };
+}
+
+/** The normal on the view (`kr_normal`), as the vertex shader has it: skinned, where it is. */
+const VIEW_NORMAL = /* glsl */ `
+#if defined ( USE_ENVMAP ) || defined ( USE_SKINNING )
+  vec3 kr_normal = normalize( transformedNormal );
+#else
+  vec3 kr_normal = normalize( normalMatrix * normal );
+#endif
+`;
+
+/**
+ * Each of its parts drawn as King's Raid's toon shader draws it (its own copy of its material: darker toward its edges, the
+ * rim light on them), and a black outline round each opaque one (its back faces, pushed out on the view by `outline`).
+ */
+function toon(root: Object3D, outline: { value: Vector2 }): void {
+  const meshes: Mesh[] = [];
+  root.traverse((part) => {
+    if (part instanceof Mesh) meshes.push(part);
+  });
+  for (const mesh of meshes) {
+    const materials = [mesh.material].flat() as Material[];
+    const shaded = materials.map((material) => (material instanceof MeshBasicMaterial && material.blending === NormalBlending ? toonOf(material) : material));
+    mesh.material = Array.isArray(mesh.material) ? shaded : (shaded[0] as Material);
+    // (Not round what is see-through or glows, a veil or an effect; nor round a part seen from both sides, like hair, whose
+    // back faces would be seen.)
+    if (materials.some((material) => material.transparent || material.blending !== NormalBlending || material.side !== FrontSide)) continue;
+    const lines = materials.map((material) => outlineOf(material as MeshBasicMaterial, outline));
+    const line = mesh instanceof SkinnedMesh ? new SkinnedMesh(mesh.geometry, lines) : new Mesh(mesh.geometry, lines);
+    if (line instanceof SkinnedMesh) line.bind((mesh as SkinnedMesh).skeleton, (mesh as SkinnedMesh).bindMatrix);
+    line.frustumCulled = false;
+    line.raycast = () => {};
+    mesh.add(line);
+  }
+}
+
+/** A part's material, drawn as the toon shader draws it. */
+function toonOf(material: MeshBasicMaterial): MeshBasicMaterial {
+  const shaded = material.clone();
+  shaded.customProgramCacheKey = () => 'kr-toon';
+  shaded.onBeforeCompile = (shader: WebGLProgramParametersWithUniforms) => {
+    const [r, g, b] = RIM.color;
+    const d = RIM.direction;
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', '#include <common>\nvarying vec3 vKrNormal;')
+      .replace('#include <fog_vertex>', `#include <fog_vertex>\n${VIEW_NORMAL}\n  vKrNormal = kr_normal;`);
+    shader.fragmentShader = shader.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec3 vKrNormal;').replace(
+      '#include <opaque_fragment>',
+      /* glsl */ `
+  vec3 krN = normalize( vKrNormal ) * ( gl_FrontFacing ? 1.0 : -1.0 );
+  outgoingLight *= ${TOON.emissive.toFixed(3)} + ${TOON.color.toFixed(3)} * pow( max( 0.0, krN.z ), ${TOON.falloff.toFixed(3)} );
+  vec3 krR = vec3( 0.0, 0.0, 1.0 ) - 2.0 * krN.z * krN;
+  outgoingLight += vec3( ${r.toFixed(3)}, ${g.toFixed(3)}, ${b.toFixed(3)} ) * pow( clamp( dot( vec3( ${d.x.toFixed(4)}, ${d.y.toFixed(4)}, ${d.z.toFixed(4)} ), krR ), 0.0, 1.0 ), ${RIM.shininess.toFixed(1)} );
+  #include <opaque_fragment>`,
+    );
+  };
+  return shaded;
+}
+
+/** A part's outline: its back faces in black (where its picture is solid), pushed out along their normals on the view. */
+function outlineOf(material: MeshBasicMaterial, outline: { value: Vector2 }): MeshBasicMaterial {
+  const line = new MeshBasicMaterial({ color: 0x000000, side: BackSide, map: material.map, alphaTest: Math.max(0.5, material.alphaTest) });
+  line.customProgramCacheKey = () => 'kr-outline';
+  line.onBeforeCompile = (shader: WebGLProgramParametersWithUniforms) => {
+    shader.uniforms.krOutline = outline;
+    shader.vertexShader = shader.vertexShader.replace('#include <common>', '#include <common>\nuniform vec2 krOutline;').replace(
+      '#include <project_vertex>',
+      /* glsl */ `#include <project_vertex>
+${VIEW_NORMAL}
+  vec2 krPush = ( projectionMatrix * vec4( kr_normal, 0.0 ) ).xy;
+  if ( dot( krPush, krPush ) > 0.0 ) gl_Position.xy += normalize( krPush ) * krOutline * gl_Position.w;`,
+    );
+  };
+  return line;
 }
 
 /** What a hero was drawn with, given back (its meshes' geometry, materials and their pictures). */
