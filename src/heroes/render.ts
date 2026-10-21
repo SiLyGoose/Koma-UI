@@ -475,7 +475,8 @@ function renderDetail(ctx: HeroesContext, act: HeroActions): void {
   const ut = copy.uniqueTreasure ? treasureParts(copy.effects) : null;
   // (A unique weapon: its own effect alone, as its Unique Effect; its runes' are in its Runes, below.)
   const uw = copy.uniqueWeapon ? uniqueWeaponEffect(copy.effects) : null;
-  showDetail(ui.detail, ut ? { ...copy, effects: ut.options } : uw ? { ...copy, effects: uw } : copy, {
+  // (Any other: its runes' lines left out of what it does on a hero too, its Runes saying them.)
+  showDetail(ui.detail, { ...copy, effects: ut ? ut.options : uw ? uw : withoutRunes(copy) }, {
     onClose: () => {
       itemDetailsClosed();
       ctx.picked = null;
@@ -554,6 +555,16 @@ function krSections(copy: HeroCopy, fits: boolean, pieces: { now: number; equipp
     })));
   }
   return out;
+}
+
+/** What a piece does on a hero without its runes' lines (the bot's effects end with them: one taken off for each, from the last). */
+function withoutRunes(copy: HeroCopy): string[] {
+  const effects = [...copy.effects];
+  for (const line of copy.runes.flatMap((rune) => rune?.lines ?? [])) {
+    const at = effects.lastIndexOf(line);
+    if (at >= 0) effects.splice(at, 1);
+  }
+  return effects;
 }
 
 /**
