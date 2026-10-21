@@ -35,10 +35,53 @@
   padding: 64px 14px 14px;
 }
 
-/* (Its three beside the right's last three, as King's Raid's.) */
+/* (Its three beside the right's last three, as King's Raid's; over them, its two buttons.) */
 .hero-weapons {
   grid-area: weapons;
   justify-content: flex-end;
+}
+
+/* Its Outfits and Loadouts buttons (King's Raid's own: Costume_HeroList_Button, Equip_Storage_Slot_Button), two to a slot's width, at the top. */
+.hero-shortcuts {
+  display: flex;
+  align-self: stretch;
+  gap: 4px;
+  margin-bottom: auto;
+}
+
+.hero-shortcut {
+  flex: 1;
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  background: center / contain no-repeat;
+  filter: drop-shadow(0 2px 3px rgb(0 0 0 / 55%));
+  cursor: pointer;
+  transition: filter 0.15s ease, transform 0.15s ease;
+}
+
+.hero-shortcut:hover,
+.hero-shortcut:focus-visible {
+  filter: drop-shadow(0 2px 3px rgb(0 0 0 / 55%)) brightness(1.15);
+  transform: translateY(-1px);
+}
+
+.hero-shortcut.outfits {
+  background-image: url('/kr/ui/hero-info/outfits.webp');
+}
+
+.hero-shortcut.loadouts {
+  background-image: url('/kr/ui/hero-info/loadouts.webp');
+}
+
+/* (Pressed: King's Raid's lit one.) */
+.hero-shortcut.loadouts:active {
+  background-image: url('/kr/ui/hero-info/loadouts-on.webp');
+}
+
+.heroes-page .gear.unowned .hero-shortcut {
+  opacity: 0.45;
+  pointer-events: none;
 }
 
 .hero-armors {
