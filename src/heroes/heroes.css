@@ -124,16 +124,13 @@
   outline-offset: 1px;
 }
 
-/* Right of the class banner, along the stage's top: a gold star for each level it is transcended, the rest dim. */
+/* Right of the class banner, along the stage's top: its stars (render.ts heroStars). */
 .hero-stars {
   position: absolute;
-  top: 10px;
-  left: 62px;
+  top: 8px;
+  left: 60px;
   z-index: 2;
-  display: flex;
-  gap: 1px;
-  font-size: 24px;
-  line-height: 1;
+  width: 118px;
   pointer-events: none;
 }
 
@@ -141,17 +138,35 @@
   display: none;
 }
 
-.hero-star {
-  color: rgb(239 227 191 / 22%);
-  text-shadow: 0 1px 2px rgb(0 0 0 / 70%);
+/*
+ * A hero's stars, King's Raid's (its cards' five gold stars, the middle one big), as wide as where they are put; how far
+ * it is transcended in dark brown on the big one, as the game writes it.
+ */
+.hero-rank {
+  position: relative;
+  display: block;
+  container-type: inline-size;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
-.hero-star.on {
-  color: #f6c739;
-  text-shadow:
-    0 0 1px #6b4300,
-    0 1px 0 #8a5a00,
-    0 0 8px rgb(246 199 57 / 45%);
+.hero-rank-stars {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 60%));
+}
+
+.hero-rank-level {
+  position: absolute;
+  top: 52%;
+  left: 50%;
+  translate: -50% -50%;
+  color: #2e1a03;
+  font-size: 19cqw;
+  font-weight: 900;
+  line-height: 1;
+  text-shadow: 0 0 1px #fff3cf, 0 0 3px rgb(255 243 207 / 80%);
 }
 
 /* Its whole picture, behind the slots and its name, cut off at the stage's edges and fading out at the bottom onto the floor. */
@@ -179,6 +194,33 @@
   height: calc(var(--zoom, 1) * 100%);
   translate: calc(var(--face, 0.5) * -100%) 0;
   animation: idle 2.4s ease-in-out infinite;
+}
+
+/*
+ * Its model (the site's page: render.ts showModel), filling the stage behind the slots; it fades in over its picture once
+ * read, the picture going.
+ */
+.hero-model {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.heroes-page .modelled .hero-model {
+  opacity: 1;
+}
+
+.heroes-page .modelled .hero-bust {
+  visibility: hidden;
+}
+
+/* Its name on a dark band fading out at its ends, easy to read over whatever is behind it. */
+.heroes-page .hero-name {
+  padding: 3px 30px 4px;
+  background: linear-gradient(90deg, transparent, rgb(6 6 10 / 72%) 22%, rgb(6 6 10 / 72%) 78%, transparent);
 }
 
 /* The slots and the name over it. */
@@ -224,6 +266,7 @@
 
 /* Not theirs yet: the hero and its slots greyed. */
 .heroes-page .gear.unowned .hero-bust,
+.heroes-page .gear.unowned .hero-model,
 .heroes-page .gear.unowned .hero-initial {
   filter: grayscale(1) brightness(0.55);
 }
@@ -231,6 +274,20 @@
 .heroes-page .gear.unowned .slot {
   opacity: 0.45;
   pointer-events: none;
+}
+
+/* A hero of theirs in the roster: its stars along the bottom, its name over them. */
+.roster-tile .hero-rank {
+  position: absolute;
+  bottom: 3px;
+  left: 50%;
+  z-index: 2;
+  width: 80%;
+  translate: -50% 0;
+}
+
+.roster-tile:has(.hero-rank) .roster-name {
+  padding-bottom: calc(80% * 66 / 226 + 2px);
 }
 
 /* A hero in the roster that isn't theirs: greyed, a padlock in its corner. */
@@ -992,6 +1049,14 @@ button.ascend-cost:focus-visible {
 @media (max-width: 479px) {
   .hero-stage {
     height: 430px;
+  }
+
+  /* Its name between the slots: on two lines where it doesn't fit on one, its band closer round it. */
+  .heroes-page .hero-name {
+    padding-inline: 10px;
+    overflow: visible;
+    white-space: normal;
+    line-height: 1.15;
   }
 
   .hero-subs {

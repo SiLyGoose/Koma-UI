@@ -3,6 +3,7 @@ import { HERO_SLOT_PART, HERO_SLOTS, type HeroView, type HeroCopy, type HeroSlot
 import { SIDE_SLOTS, type EssenceId } from '../protocol/heroes';
 import type { Busy } from '../shared/ui';
 import type { ApiResult } from '../site/session';
+import type { Showcase } from './model';
 
 /**
  * Where the page asks the bot, and who is asking: the site's login (./page.ts), or a game's link (the TechnoMagic
@@ -37,6 +38,8 @@ export interface HeroesUi {
   classIcon: HTMLElement;
   stars: HTMLElement;
   bust: HTMLImageElement;
+  /** Where the hero's model is drawn (the site's page only). */
+  model: HTMLCanvasElement;
   initial: HTMLElement;
   name: HTMLElement;
   buy: HTMLAnchorElement;
@@ -119,6 +122,8 @@ export interface HeroesContext {
   viewing: HeroMember | null;
   /** Counts the loads, so only the latest one is drawn (another member may be picked meanwhile). */
   loads: number;
+  /** What draws the hero's model on the stage, once one is first shown (null: not yet, or it can't be drawn here). */
+  showcase: Promise<Showcase | null> | null;
 }
 
 /** Someone in the list of whose heroes to look at (the bot's GET /api/heroes/members). */
@@ -143,6 +148,7 @@ export function createContext(root: HTMLElement, host: HeroesHost): HeroesContex
       classIcon: $('class-icon'),
       stars: $('hero-stars'),
       bust: $<HTMLImageElement>('hero-bust'),
+      model: $<HTMLCanvasElement>('hero-model'),
       initial: $('hero-initial'),
       name: $('hero-name'),
       buy: $<HTMLAnchorElement>('hero-buy'),
@@ -199,6 +205,7 @@ export function createContext(root: HTMLElement, host: HeroesHost): HeroesContex
     members: [],
     viewing: null,
     loads: 0,
+    showcase: null,
   };
 }
 

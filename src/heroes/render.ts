@@ -156,7 +156,7 @@ function renderRoster(ctx: HeroesContext, act: HeroActions): void {
   if (!view) return;
   const heroes = [...view.heroes].sort((a, b) => Number(b.owned) - Number(a.owned));
   // Drawn again only when it changes (not on every pick), so its pictures don't flicker.
-  const key = `${ctx.hero}|${heroes.map((hero) => `${hero.id}:${hero.owned}`).join(',')}`;
+  const key = `${ctx.hero}|${heroes.map((hero) => `${hero.id}:${hero.owned}:${hero.transcend?.level ?? 0}`).join(',')}`;
   if (ui.rosterList.dataset.key === key) return;
   ui.rosterList.dataset.key = key;
   ui.rosterList.replaceChildren(
@@ -177,34 +177,74 @@ function renderRoster(ctx: HeroesContext, act: HeroActions): void {
       badge.title = className(hero.class);
       badge.append(icon);
       tile.append(initial, face, badge, el('span', 'roster-name', hero.name));
-      if (!hero.owned) tile.append(el('span', 'roster-lock', '🔒'));
+      // (Theirs: its stars, as King's Raid's cards have them. Not yet: a padlock.)
+      tile.append(hero.owned ? heroStars(hero.transcend?.level ?? 0) : el('span', 'roster-lock', '🔒'));
       tile.addEventListener('click', () => act.pickHero(hero.id));
       return tile;
     }),
   );
 }
 
-/** The hero on the stage: its whole picture, name and class badge (and, not theirs yet, the way to the shop). */
+/**
+ * A hero's stars, as King's Raid's cards have them (its Portrait_Star5): five, every hero of theirs having them all, and how
+ * far it is transcended (T1 to T5) on the big one in the middle (nothing there at T0).
+ */
+function heroStars(level: number): HTMLElement {
+  const row = el('span', 'hero-rank');
+  row.setAttribute('role', 'img');
+  row.setAttribute('aria-label', level > 0 ? `5 stars, Transcend ${level} of ${TRANSCEND_MAX}` : '5 stars');
+  row.title = level > 0 ? `Transcend ${level}` : 'Not transcended';
+  const stars = el('img', 'hero-rank-stars');
+  stars.src = `${import.meta.env.BASE_URL}kr/ui/hero-stars.webp`;
+  stars.alt = '';
+  stars.draggable = false;
+  row.append(stars);
+  if (level > 0) row.append(el('span', 'hero-rank-level', String(level)));
+  return row;
+}
+
+/**
+ * The hero's model on the stage, as King's Raid shows a hero (the site's page only: the raid's Manage popup is over the
+ * raid's own drawing): its picture till it's read, and for good where it can't be (no WebGL, or not on this computer).
+ */
+function showModel(ctx: HeroesContext, id: string): void {
+  const { ui } = ctx;
+  if (!ctx.host.site || ui.model.dataset.hero === id) return;
+  ui.model.dataset.hero = id;
+  ui.page.classList.remove('modelled');
+  ctx.showcase ??= import('./model')
+    .then(({ makeShowcase }) => makeShowcase(ui.model))
+    .catch((error: unknown) => {
+      console.warn(error);
+      return null;
+    });
+  void ctx.showcase
+    .then((showcase) => showcase?.show(id) ?? false)
+    .catch((error: unknown) => {
+      console.warn(error);
+      return false;
+    })
+    .then((shown) => {
+      if (shown && ui.model.dataset.hero === id) ui.page.classList.add('modelled');
+    });
+}
+
+/** The hero on the stage: its whole picture (or model), name and class badge (and, not theirs yet, the way to the shop). */
 function renderStage(ctx: HeroesContext): void {
   const { ui } = ctx;
   const hero = heroShown(ctx);
   if (!hero) return;
   if (ui.bust.dataset.hero !== hero.id) showWhole(ui.bust, hero.id, ui.initial, hero.name.slice(0, 1));
+  showModel(ctx, hero.id);
   ui.name.textContent = hero.name;
   const icon = el('img');
   icon.src = classBadge(hero.class);
   icon.alt = '';
   ui.classIcon.replaceChildren(icon);
   ui.classIcon.title = `Class: ${className(hero.class)}`;
-  // Its transcendence beside the banner: a hero of theirs (or someone else's) only, from a bot that says it.
-  const level = hero.owned ? hero.transcend?.level : undefined;
-  ui.stars.hidden = level === undefined;
-  ui.stars.replaceChildren();
-  if (level !== undefined) {
-    ui.stars.setAttribute('aria-label', `Transcend ${level} of ${TRANSCEND_MAX}`);
-    ui.stars.title = `Transcend ${level}`;
-    for (let i = 1; i <= TRANSCEND_MAX; i++) ui.stars.append(el('span', `hero-star${i <= level ? ' on' : ''}`, '★'));
-  }
+  // Its stars beside the banner, its transcendence in them: a hero of theirs (or someone else's) only.
+  ui.stars.hidden = !hero.owned;
+  ui.stars.replaceChildren(...(hero.owned ? [heroStars(hero.transcend?.level ?? 0)] : []));
   ui.buy.hidden = hero.owned || !mine(ctx);
   ui.buy.href = '/shop/heroes/';
   ui.statsTitle.textContent = `${hero.name}'s Stats`;

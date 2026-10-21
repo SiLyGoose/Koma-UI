@@ -399,5 +399,6 @@ function wire(ctx: HeroesContext, act: HeroActions): () => void {
     memberPicker.destroy();
     ui.filter.destroy();
     ui.grid.destroy();
+    void ctx.showcase?.then((showcase) => showcase?.destroy());
   };
 }

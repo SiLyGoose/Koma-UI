@@ -19,10 +19,16 @@
       <div class="stage hero-stage">
         <!-- Hung from the stage's top-left corner: its class's badge. -->
         <span class="hero-ribbon" aria-hidden="true"><span id="class-icon" class="hero-ribbon-icon set"></span></span>
-        <!-- Beside it: how far the hero is transcended, a star lit for each level (none at T0, all five at T5), as King's Raid has it. -->
+        <!-- Beside it: its stars as King's Raid's cards have them, how far it is transcended (T1 to T5) in the big middle one. -->
         <span id="hero-stars" class="hero-stars" hidden></span>
-        <!-- Its whole picture, its face in the middle, across the stage behind the slots (cut off at the stage's edges). -->
-        <div class="hero-portrait" aria-hidden="true"><img id="hero-bust" class="hero-bust" alt="" hidden /></div>
+        <!--
+          Its whole picture, its face in the middle, across the stage behind the slots (cut off at the stage's edges); on the
+          site, its model over it once that's read (src/heroes/model.ts), as King's Raid shows a hero.
+        -->
+        <div class="hero-portrait" aria-hidden="true">
+          <img id="hero-bust" class="hero-bust" alt="" hidden />
+          <canvas id="hero-model" class="hero-model"></canvas>
+        </div>
         <div class="slot-col hero-weapons">
           <button type="button" class="slot" data-slot="weapon"></button>
           <button type="button" class="slot" data-slot="armor"></button>

@@ -1,4 +1,4 @@
-import { PerspectiveCamera, Scene, SRGBColorSpace, Vector3, WebGLRenderer } from 'three';
+import { type Material, Mesh, PerspectiveCamera, Scene, SRGBColorSpace, type Texture, Vector3, WebGLRenderer } from 'three';
 import type { Hero } from '../technomagic/heroes/body/hero';
 import { loadHeroes } from '../technomagic/heroes/load';
 import { lookOf } from '../technomagic/heroes/looks';
@@ -7,7 +7,8 @@ import { HEROES } from '../technomagic/sim/heroes';
 /*
  * The hero on the heroes page's stage as the TechnoMagic Raid has it (../technomagic/heroes/): its model,
  * standing in its idle and breathing, seen from the front from its head down to its thighs, behind its
- * slots. Read only when the page first shows a hero (three.js and the models are big), each hero once.
+ * slots. Read only when the page first shows a hero (three.js and the models are big), its default skin only, and only
+ * the one shown kept (another shown, the last one's let go of: a hero's models are 2-18 MB).
  * Its models are under public/kr/: where one can't be read, show() says so and the
  * page keeps the hero's picture.
  */
@@ -15,8 +16,8 @@ import { HEROES } from '../technomagic/sim/heroes';
 /** How far it is turned from facing the camera (radians): a little to its left, as the game has it. */
 const TURN = 0.3;
 /** What shows, from this far over its head down to this far under it, in the models' units. */
-const ABOVE = 0.4;
-const BELOW = 1.75;
+const ABOVE = 0.55;
+const BELOW = 1.3;
 const FOV = 22;
 
 export interface Showcase {
@@ -32,8 +33,10 @@ export function makeShowcase(canvas: HTMLCanvasElement): Showcase {
   renderer.setClearColor(0x000000, 0);
   const scene = new Scene();
   const camera = new PerspectiveCamera(FOV, 1, 0.1, 100);
-  const read = new Map<string, Promise<Hero | null>>();
+  /** The one being read, by its id (asked again meanwhile: the same reading). */
+  let reading: { id: string; hero: Promise<Hero | null> } | null = null;
   let shown: Hero | null = null;
+  let shownId: string | null = null;
   let asked: string | null = null;
   let frame = 0;
   let gone = false;
@@ -41,21 +44,19 @@ export function makeShowcase(canvas: HTMLCanvasElement): Showcase {
 
   /** Its default skin, moved as in the raid; null when that skin (or the hero) isn't on this computer. */
   const load = (id: string): Promise<Hero | null> => {
-    let reading = read.get(id);
-    if (!reading) {
-      const def = HEROES.find((hero) => hero.id === id);
-      reading = def
-        ? loadHeroes([def]).then(
-            (entrants) => (entrants.find((entrant) => entrant.skin === lookOf(def.id).assets.skins[0]) ?? entrants[0])?.hero ?? null,
-            (error: unknown) => {
-              console.warn(error);
-              return null;
-            },
-          )
-        : Promise.resolve(null);
-      read.set(id, reading);
-    }
-    return reading;
+    if (reading?.id === id) return reading.hero;
+    const def = HEROES.find((hero) => hero.id === id);
+    const hero = def
+      ? loadHeroes([def], { skin: 0 }).then(
+          (entrants) => (entrants.find((entrant) => entrant.skin === lookOf(def.id).assets.skins[0]) ?? entrants[0])?.hero ?? null,
+          (error: unknown) => {
+            console.warn(error);
+            return null;
+          },
+        )
+      : Promise.resolve(null);
+    reading = { id, hero };
+    return hero;
   };
 
   /** Frames it: its head near the top, its thighs at the bottom, whatever the canvas's shape. */
@@ -91,10 +92,19 @@ export function makeShowcase(canvas: HTMLCanvasElement): Showcase {
   return {
     async show(id) {
       asked = id;
+      if (shownId === id && shown) return true;
       const hero = await load(id);
-      if (gone || asked !== id || !hero) return false;
-      if (shown) scene.remove(shown.root);
+      if (gone || asked !== id || !hero) {
+        // (Read for nothing: another was asked for meanwhile.)
+        if (hero && hero !== shown) letGo(hero);
+        return false;
+      }
+      if (shown && shown !== hero) {
+        scene.remove(shown.root);
+        letGo(shown);
+      }
       shown = hero;
+      shownId = id;
       hero.root.rotation.y = TURN;
       scene.add(hero.root);
       // Stood as it rests before it is framed, so its head is where it will be.
@@ -110,7 +120,20 @@ export function makeShowcase(canvas: HTMLCanvasElement): Showcase {
       gone = true;
       cancelAnimationFrame(frame);
       sized.disconnect();
+      if (shown) letGo(shown);
       renderer.dispose();
     },
   };
+}
+
+/** What a hero was drawn with, given back (its meshes' geometry, materials and their pictures). */
+function letGo(hero: Hero): void {
+  hero.root.traverse((part) => {
+    if (!(part instanceof Mesh)) return;
+    part.geometry.dispose();
+    for (const material of [part.material].flat() as Material[]) {
+      for (const value of Object.values(material)) if ((value as Texture | null)?.isTexture) (value as Texture).dispose();
+      material.dispose();
+    }
+  });
 }
