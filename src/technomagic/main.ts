@@ -717,7 +717,8 @@ async function start(): Promise<void> {
     };
 
     // Auto Repeat (ticked on getting ready): a boss beaten, in for the next fight straight from the result (Run Again,
-    // REPEAT_WAIT after it is shown). Over the fight and its result while it is on, Stop Repeat Battle turns it off.
+    // REPEAT_WAIT after it is shown). Over the fight and its result while it is on, Stop Repeat Battle turns it off; not
+    // over a defeat, which doesn't go again (Run Again is pressed), so the button doesn't read as it carrying on.
     let repeat = store.get(localStorage, REPEAT_KEY) === 'on';
     let repeating: number | undefined;
     function setRepeat(on: boolean): void {
@@ -729,7 +730,7 @@ async function start(): Promise<void> {
       if (state?.phase === 'over' && shownOver && !left) results.actions(overActions());
     }
     function drawRepeat(): void {
-      repeatStop.hidden = !repeat || left || state === null || state.phase === 'prep';
+      repeatStop.hidden = !repeat || left || state === null || state.phase === 'prep' || (state.phase === 'over' && state.over?.result !== 'won');
     }
     repeatStop.addEventListener('click', () => setRepeat(false));
     prep.repeat(repeat);
