@@ -417,6 +417,20 @@ button.tm-slot-card:hover {
     0 1px 2px #000;
 }
 
+/*
+ * Its stars (../../shared/ui/stars), inside its frame just over its name, sized by the picture (cqw, of the row as wide as
+ * it), their glow softer than on a square.
+ */
+.tm-slot-card .hero-rank[data-on='card'] {
+  --star: 15cqw;
+  right: 9.17cqi;
+  bottom: 35cqi;
+  left: 9.47cqi;
+  padding: 10% 0 0;
+  background: radial-gradient(ellipse 70% 80% at 50% 75%, rgb(92 170 255 / 45%), transparent 75%);
+  pointer-events: none;
+}
+
 /* Along the bottom: the heroes, the chat, and who's in. */
 .tm-prep-bottom {
   display: grid;
@@ -548,7 +562,8 @@ button.tm-prep-manage {
 
 .tm-prep-hero-check {
   position: absolute;
-  top: 50%;
+  /* (A little over the middle, clear of its stars.) */
+  top: 42%;
   left: 50%;
   translate: -50% -50%;
   /* Half its square, up to 56px. */

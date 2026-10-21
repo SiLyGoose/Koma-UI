@@ -2,6 +2,7 @@ import { art, drawSell, el, forgeLink, hasLevels, heroFrame, heroMarks, isTmPiec
 import { classBadge, className, FACE, HERO_PART_NAME, HERO_SLOT_KIND, HERO_SLOT_PART, HERO_SLOT_TYPE, HERO_SLOTS, heroCut, heroPicture, skillText, STAGE_ZOOM, type HeroView, type HeroCopy, type HeroSlot } from '../shared/heroes';
 import { built } from '../shared/built';
 import { working } from '../shared/ui';
+import { heroStars } from '../shared/ui/stars/stars';
 import { canTrade, copyById, heroShown, mine, slotFor, slotOf, slotsFor, type HeroesContext } from './context';
 import { SIDE_SLOTS } from '../protocol/heroes';
 import { heroSkills } from './skills';
@@ -185,32 +186,6 @@ function renderRoster(ctx: HeroesContext, act: HeroActions): void {
       return tile;
     }),
   );
-}
-
-/**
- * A hero's stars as King's Raid has them, five (every hero of theirs has them all; its star, Loading_Hero_Star), and how
- * far it is transcended (T1 to T5): on a card in the roster, on a bigger middle star (nothing there at T0); beside the
- * stage's banner, as +3 after them.
- */
-function heroStars(level: number, where: 'card' | 'banner'): HTMLElement {
-  const row = el('span', 'hero-rank');
-  row.dataset.on = where;
-  row.setAttribute('role', 'img');
-  row.setAttribute('aria-label', level > 0 ? `5 stars, Transcend ${level} of ${TRANSCEND_MAX}` : '5 stars');
-  row.title = level > 0 ? `Transcend ${level}` : 'Not transcended';
-  for (let i = 0; i < 5; i++) {
-    const middle = where === 'card' && level > 0 && i === 2;
-    const star = el('span', middle ? 'hero-rank-star big' : 'hero-rank-star');
-    const img = el('img');
-    img.src = `${import.meta.env.BASE_URL}kr/ui/hero-star.webp`;
-    img.alt = '';
-    img.draggable = false;
-    star.append(img);
-    if (middle) star.append(el('span', 'hero-rank-level', String(level)));
-    row.append(star);
-  }
-  if (where === 'banner' && level > 0) row.append(el('span', 'hero-rank-plus', `+${level}`));
-  return row;
 }
 
 /**

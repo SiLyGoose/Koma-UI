@@ -2,6 +2,7 @@ import { inLandscape, onLandscape } from '../../shared/ui/landscape/landscape';
 import { className, FACE, heroCard, heroCut } from '../../shared/heroes';
 import { levelPopup } from '../../shared/ui/level/level';
 import { backArrow } from '../../shared/ui/back/back';
+import { heroStars } from '../../shared/ui/stars/stars';
 import type { BossDef } from '../sim/bosses/boss';
 import { isDragon } from '../sim/bosses';
 import { HEROES } from '../sim/heroes';
@@ -362,7 +363,8 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
 
   /**
    * One slot of the lineup: a hero (whose, which) or empty. Its card as King's Raid's hero portraits are (its HeroPortrait):
-   * the hero's own card, its frame round it, its class's tag on the frame's emblem and the kind of damage it deals beside it, its name at the bottom.
+   * the hero's own card, its frame round it, its class's tag on the frame's emblem and the kind of damage it deals beside it, its name at the bottom
+   * and its stars over it (how far its owner has transcended it in the big middle one).
    */
   function slot(pick: PickView | undefined, owner: PlayerView | undefined, mine: boolean): HTMLElement {
     const item = el('li', pick ? 'tm-slot filled' : 'tm-slot');
@@ -390,7 +392,7 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
       deals.src = `/kr/ui/deals-${hero.stats.deals}.webp`;
       card.append(tag, deals);
     }
-    card.append(el('span', 'tm-slot-name', hero?.name ?? pick.hero));
+    card.append(heroStars(owner?.transcend?.[pick.hero] ?? 0, 'card'), el('span', 'tm-slot-name', hero?.name ?? pick.hero));
     frame.append(card);
     return item;
   }
@@ -494,7 +496,8 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
           if (solo && picked) button.dataset.team = pick.sub ? 'sub' : 'main';
           button.dataset.name = hero.name;
           button.setAttribute('aria-label', elsewhere ? `Move ${hero.name} to the ${teamName}` : picked ? `Take ${hero.name} out` : taker ? `${hero.name}: in already, ${taker.number}P's` : `Put ${hero.name} in${solo ? ` the ${teamName}` : ''}`);
-          button.append(portrait(hero.id, 'tm-prep-hero-face'));
+          // (Its stars along the bottom, as the heroes page's roster has them.)
+          button.append(portrait(hero.id, 'tm-prep-hero-face'), heroStars(me?.transcend?.[hero.id] ?? 0, 'card'));
           if (picked) button.append(el('span', 'tm-prep-hero-check', solo ? (pick.sub ? 'S' : 'M') : '✓'));
           else if (taker) button.append(el('span', 'tm-prep-hero-check', `${taker.number}P`));
           button.addEventListener('click', () => (picked && !elsewhere ? act.unpick(hero.id) : act.pick(hero.id, into)));
