@@ -11,9 +11,10 @@ import { KEPT } from './assets';
  * the win paid them, the hero essences and komaGems (the Dragon Raid's; komaGems only the first time at a stage), and each piece of gear they found (the Dragon Raid's are raid items,
  * not TechnoMagic gear). A click on a piece opens its details over the screen (what it
  * is, its potentials, its set's effect and its additional skill); a click outside them, their ✕ or Escape goes back.
- * Under those, what everyone else found (their pieces open the same way), and the way on: run it again, back to getting
- * ready, or back to the games. Staged (the heroes posing behind it: ../main.ts), what was found shows first, over a dark
- * screen, until a tap anywhere but on a piece; then the way on.
+ * Under those, what everyone else found (their pieces open the same way), what each hero did in the fight (Battle Stats:
+ * its damage dealt, healing given, damage its defense took off and shields given), and the way on: run it again, back to
+ * getting ready, or back to the games. Staged (the heroes posing behind it: ../main.ts), what was found shows first, over a
+ * dark screen, until a tap anywhere but on a piece; then the stats and the way on.
  */
 
 /** One of the ways on, along the bottom. */
@@ -48,6 +49,31 @@ function ring(icon: ResultIcon): HTMLElement {
   return round;
 }
 
+/** What a hero did in the fight, for Battle Stats. */
+export interface ResultStat {
+  name: string;
+  /** Its picture (the meter's). */
+  face: string;
+  /** Whose it is, in a room with others (1P, 2P…); and whether it is this player's. */
+  tag?: string;
+  mine: boolean;
+  dealt: number;
+  healed: number;
+  mitigated: number;
+  shielded: number;
+}
+
+/** Battle Stats' columns: each a number every hero has, what heads it, and what it is. */
+const STAT_COLUMNS = [
+  { key: 'dealt', name: 'Damage', about: 'Damage dealt' },
+  { key: 'healed', name: 'Healing', about: 'Healing given' },
+  { key: 'mitigated', name: 'Mitigated', about: 'Damage its defense took off: its DEF, blocks, less damage taken, and blows dodged' },
+  { key: 'shielded', name: 'Shielded', about: 'Shields given' },
+] as const;
+
+/** A number in a few figures (12.3K, 4.56M): the whole of it on pointing at it. */
+const short = new Intl.NumberFormat('en-US', { notation: 'compact', maximumSignificantDigits: 3 });
+
 export interface ResultShown {
   title: string;
   text: string;
@@ -63,6 +89,8 @@ export interface ResultShown {
   mine: readonly DropView[];
   /** What everyone else found, by name (only those who found something). */
   others: readonly { who: string; drops: readonly DropView[] }[];
+  /** What each hero did in the fight (none: no Battle Stats). */
+  stats?: readonly ResultStat[];
   actions: readonly ResultAction[];
 }
 
@@ -94,6 +122,9 @@ export function makeResult(root: HTMLElement): Result {
   const detail = root.querySelector('.tm-loot') as HTMLElement;
   const tap = el('p', 'tm-tap', 'Tap to continue');
   actions.before(tap);
+  const stats = el('section', 'tm-stats');
+  stats.setAttribute('aria-label', 'Battle Stats');
+  tap.before(stats);
   // What was found shown over the dark (staged): a tap anywhere but on a piece, or on its details, goes on.
   root.addEventListener('click', (event) => {
     if (!root.classList.contains('rewarding') || (event.target as Element).closest('.tm-tile, .tm-loot')) return;
@@ -212,6 +243,44 @@ export function makeResult(root: HTMLElement): Result {
     return tile;
   }
 
+  /** Battle Stats: a row for each hero, the most damage first; the most of each column in gold. */
+  function drawStats(rows: readonly ResultStat[]): void {
+    stats.hidden = rows.length === 0;
+    if (stats.hidden) return stats.replaceChildren();
+    const most = Object.fromEntries(STAT_COLUMNS.map(({ key }) => [key, Math.max(...rows.map((row) => row[key]))]));
+    const table = el('table', 'tm-stats-table');
+    const head = table.createTHead().insertRow();
+    head.append(el('th', 'tm-stats-hero', 'Hero'));
+    for (const { name, about } of STAT_COLUMNS) {
+      const cell = el('th', '', name);
+      cell.title = about;
+      head.append(cell);
+    }
+    const body = table.createTBody();
+    for (const row of [...rows].sort((a, b) => b.dealt - a.dealt)) {
+      const line = body.insertRow();
+      if (row.mine) line.className = 'mine';
+      const hero = el('th', 'tm-stats-hero');
+      hero.scope = 'row';
+      const face = el('img', '');
+      face.src = row.face;
+      face.alt = '';
+      face.draggable = false;
+      const who = el('span', 'tm-stats-who');
+      who.append(face, el('span', 'tm-stats-name', row.name));
+      if (row.tag) who.append(el('span', 'tm-stats-tag', row.tag));
+      hero.append(who);
+      line.append(hero);
+      for (const { key, about } of STAT_COLUMNS) {
+        const value = row[key];
+        const cell = el('td', value > 0 && value === most[key] ? 'best' : '', value > 0 ? short.format(value) : '–');
+        cell.title = `${about}: ${points(Math.round(value))}`;
+        line.append(cell);
+      }
+    }
+    stats.replaceChildren(el('h3', 'tm-stats-title', 'Battle Stats'), table);
+  }
+
   function drawActions(list: readonly ResultAction[]): void {
     actions.replaceChildren(
       ...list.map(({ label, icon, main, note, disabled, title, run }) => {
@@ -252,6 +321,7 @@ export function makeResult(root: HTMLElement): Result {
         }),
       );
       others.hidden = shown.others.length === 0;
+      drawStats(shown.stats ?? []);
       root.classList.toggle('rewarding', root.classList.contains('staged') && !(rewards.hidden && others.hidden));
       drawActions(shown.actions);
       root.hidden = false;

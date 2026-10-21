@@ -43,7 +43,7 @@ import { cutFace, cutHead, readPortrait } from './hud/portrait';
 import { makeTimer } from './hud/timer';
 import { makePrep } from './prep/prep';
 import { managePopup } from './manage/popup';
-import { makeResult, type ResultAction } from './result';
+import { makeResult, type ResultAction, type ResultStat } from './result';
 import { installSounds, play as playSound } from './sfx';
 import type { AnswerCode, ClientMessage, ErrorCode, FightStart, OverView, RoomState, ServerMessage, TurnInput } from '../protocol/technomagic';
 import { HERO_TURN, makeSim, SECTION, SECTIONS, SIM_VERSION, TICK, type Input, type Sim } from './sim';
@@ -229,6 +229,8 @@ interface Game {
   view: FightView;
   /** The fighters this player has (by their index), in the fight's order: the first four stand in the row as it is over. */
   mine: readonly number[];
+  /** Each fighter's picture, as the meter has it. */
+  faces: readonly string[];
   /** A room's (null: trying things out). */
   lock: Lock | null;
   /** Seconds not yet stepped. */
@@ -362,6 +364,19 @@ async function start(): Promise<void> {
     clearTimeout(afterSting);
     afterSting = window.setTimeout(() => playSound(won ? 'victoryMusic' : 'loseMusic'), STING * 1000);
   }
+  /** What each hero did in the fight on the page, for its result's Battle Stats (`whose`: in a room, each one's tag and whether it is this player's; else all theirs). */
+  function statsOf(playing: Game | null, whose: (i: number) => Pick<ResultStat, 'tag' | 'mine'> = () => ({ mine: true })): ResultStat[] {
+    if (!playing) return [];
+    return playing.sim.fighters.map((fighter, i) => ({
+      name: fighter.name,
+      face: playing.faces[i] ?? '',
+      ...whose(i),
+      dealt: fighter.dealt,
+      healed: fighter.healed,
+      mitigated: fighter.mitigated,
+      shielded: fighter.shielded,
+    }));
+  }
   function unstage(): void {
     clearTimeout(afterSting);
     curtain.hide();
@@ -422,9 +437,10 @@ async function start(): Promise<void> {
     const castBar = makeCastBar(overheads);
     /** Every hero of this player's on Auto. */
     const allAuto = (): boolean => sim.fighters.every((fighter, i) => !controls.mine(i) || (controls.ahead?.auto(i) ?? fighter.auto));
+    const faces = sim.fighters.map((_, i) => heads.get((entries[i] as Entrant).skin) ?? (pictures[i] as string));
     const meter = makeMeter(
       meterAt,
-      sim.fighters.map((fighter, i) => ({ name: fighter.name, face: heads.get((entries[i] as Entrant).skin) ?? (pictures[i] as string) })),
+      sim.fighters.map((fighter, i) => ({ name: fighter.name, face: faces[i] as string })),
       () => controls.allAuto(),
     );
 
@@ -432,6 +448,7 @@ async function start(): Promise<void> {
       sim,
       view,
       mine: sim.fighters.map((_, i) => i).filter((i) => controls.mine(i)),
+      faces,
       lock,
       owed: 0,
       draw() {
@@ -480,7 +497,7 @@ async function start(): Promise<void> {
             effects,
           });
         });
-        meter.draw(allAuto(), sim.fighters.map((fighter) => ({ on: sim.field.includes(fighter), down: sim.field.includes(fighter) && fighter.hp <= 0, dealt: fighter.dealt, healed: fighter.healed })), sim.elapsed);
+        meter.draw(allAuto(), sim.fighters.map((fighter) => ({ on: sim.field.includes(fighter), down: sim.field.includes(fighter) && fighter.hp <= 0, dealt: fighter.dealt, healed: fighter.healed + fighter.shielded })), sim.elapsed);
       },
     };
   }
@@ -603,6 +620,7 @@ async function start(): Promise<void> {
         points: 0,
         mine: [],
         others: [],
+        stats: statsOf(game),
         actions: [
           {
             label: 'Again',
@@ -955,6 +973,11 @@ async function start(): Promise<void> {
         raid: DRAGON ? 'dragon' : 'technomagic',
         mine,
         others,
+        stats: statsOf(game, (i) => {
+          const owner = game?.lock?.start.heroes[i]?.owner;
+          const number = state?.solo ? undefined : state?.players.find((player) => player.id === owner)?.number;
+          return { ...(number !== undefined && { tag: `${number}P` }), mine: owner === you };
+        }),
         actions: overActions(),
       });
       if (over.result !== 'won' || !repeat) return;

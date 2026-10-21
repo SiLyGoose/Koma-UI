@@ -357,6 +357,8 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       rested: 0,
       dealt: 0,
       healed: 0,
+      shielded: 0,
+      mitigated: 0,
       doing: null,
       haste: 1,
       x: 0,
@@ -1218,7 +1220,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       const given = amount * byAttack(by) * healed(by) * (by ? 1 + SKILL.aegis.shield * has(by, 'aegis') : 1) * (boss.part.shielding?.() ?? 1);
       fighter.shield += given;
       fighter.shieldLeft = Math.max(fighter.shieldLeft, seconds);
-      if (by) by.healed += given;
+      if (by) by.shielded += given;
     },
     target: aimed,
     hurt(target, amount, blockable = true, kind) {
@@ -1262,8 +1264,10 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       // (A minion's blows are as hard as they are already: only the boss's go by its stage.)
       const staged = scaleAt(def, stage, solo);
       const scale = foe === boss ? staged : { ...staged, deals: 1 };
-      const { taken, blocked, dodged } = strike(amount * scale.deals * dealing(foe.statuses) * rage(clock - raidTime) * (critical ? CRIT : 1), type, blockable ? stands : { ...stands, block: NONE, dodge: NONE }, foe.def.stats.pen ?? 0, reachAt(scale.level), roll, foe.def.stats.acc ?? 0);
+      const blow = amount * scale.deals * dealing(foe.statuses) * rage(clock - raidTime) * (critical ? CRIT : 1);
+      const { taken, blocked, dodged } = strike(blow, type, blockable ? stands : { ...stands, block: NONE, dodge: NONE }, foe.def.stats.pen ?? 0, reachAt(scale.level), roll, foe.def.stats.acc ?? 0);
       if (dodged) {
+        target.mitigated += blow;
         target.nimble = 0;
         events.push({ kind: 'number', on: target.index, amount: 0, type: 'dodged' });
         target.part.dodged?.();
@@ -1290,6 +1294,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
           1 - Math.min(0.9, SKILL.steadfast.taken * target.stacks.steadfast * has(target, 'steadfast')),
           warded > 0 ? 1 - Math.min(0.9, warded * (ward.taken + (ward.most - ward.taken) * Math.min(1, elapsed / ward.over))) : 1,
         ]);
+      target.mitigated += Math.max(0, blow - dealt);
       // A shield on it takes what it can first; its health, the rest.
       const soaked = Math.min(target.shield, dealt);
       target.shield -= soaked;

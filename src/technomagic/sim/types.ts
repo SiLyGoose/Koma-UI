@@ -163,9 +163,14 @@ export interface Fighter {
   autoWait: number;
   /** How long it has been free (on the field). */
   rested: number;
-  /** What its blows have taken of the boss this fight, and what its heals and shields have given the heroes. */
+  /**
+   * This fight: what its blows have taken of the boss, what its heals have given the heroes and its shields put on them;
+   * and what of the blows on it its defense took off (its DEF, a block, less damage taken, and the whole of one dodged).
+   */
   dealt: number;
   healed: number;
+  shielded: number;
+  mitigated: number;
   doing: Doing | null;
   /** How many times as fast everything it does goes, this step (its attack speed, and what is on it). */
   haste: number;
