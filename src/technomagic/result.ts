@@ -11,10 +11,10 @@ import { KEPT } from './assets';
  * the win paid them, the hero essences and komaGems (the Dragon Raid's; komaGems only the first time at a stage), and each piece of gear they found (the Dragon Raid's are raid items,
  * not TechnoMagic gear). A click on a piece opens its details over the screen (what it
  * is, its potentials, its set's effect and its additional skill); a click outside them, their ✕ or Escape goes back.
- * Under those, what everyone else found (their pieces open the same way), what each hero did in the fight (Battle Stats:
- * its damage dealt, healing given, damage its defense took off and shields given), and the way on: run it again, back to
- * getting ready, or back to the games. Staged (the heroes posing behind it: ../main.ts), what was found shows first, over a
- * dark screen, until a tap anywhere but on a piece; then the stats and the way on.
+ * Under those, what everyone else found (their pieces open the same way), Battle Stats (a button opening, over the screen,
+ * what each hero did in the fight: its damage dealt, healing given, damage its defense took off and shields given), and the
+ * way on: run it again, back to getting ready, or back to the games. Staged (the heroes posing behind it: ../main.ts), what
+ * was found shows first, over a dark screen, until a tap anywhere but on a piece; then Battle Stats and the way on.
  */
 
 /** One of the ways on, along the bottom. */
@@ -32,10 +32,11 @@ export interface ResultAction {
   run: () => void;
 }
 
-export type ResultIcon = 'again' | 'prep' | 'games';
+export type ResultIcon = 'again' | 'prep' | 'games' | 'stats';
 
-/** Each way on's symbol, in gold as King's Raid's round buttons draw theirs: going again, back to getting ready (crossed swords), the games (a controller). */
+/** Each way on's symbol, in gold as King's Raid's round buttons draw theirs: going again, back to getting ready (crossed swords), the games (a controller); and Battle Stats' (bars). */
 const ICONS: Record<ResultIcon, string> = {
+  stats: '<line x1="18" x2="18" y1="20" y2="10"/><line x1="12" x2="12" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="14"/>',
   again: '<polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>',
   prep: '<polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/><line x1="13" x2="19" y1="19" y2="13"/><line x1="16" x2="20" y1="16" y2="20"/><line x1="19" x2="21" y1="21" y2="19"/><polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5"/><line x1="5" x2="9" y1="14" y2="18"/><line x1="7" x2="4" y1="17" y2="20"/><line x1="3" x2="5" y1="19" y2="21"/>',
   games: '<line x1="6" x2="10" y1="11" y2="11"/><line x1="8" x2="8" y1="9" y2="13"/><line x1="15" x2="15.01" y1="12" y2="12"/><line x1="18" x2="18.01" y1="10" y2="10"/><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"/>',
@@ -122,9 +123,18 @@ export function makeResult(root: HTMLElement): Result {
   const detail = root.querySelector('.tm-loot') as HTMLElement;
   const tap = el('p', 'tm-tap', 'Tap to continue');
   actions.before(tap);
-  const stats = el('section', 'tm-stats');
-  stats.setAttribute('aria-label', 'Battle Stats');
-  tap.before(stats);
+  // Battle Stats: a button (staged, King's Raid's round one in the bottom left corner) opening them in a popup over the
+  // screen, the window a piece's details open in (a click outside it, its ✕ or Escape closes it).
+  const statsOpen = el('button', 'action secondary tm-act tm-stats-open');
+  statsOpen.type = 'button';
+  statsOpen.setAttribute('aria-haspopup', 'dialog');
+  statsOpen.append(el('span', 'tm-act-label', 'Battle Stats'), ring('stats'));
+  tap.before(statsOpen);
+  const statsPop = el('div', 'tm-loot tm-stats-pop');
+  statsPop.hidden = true;
+  root.append(statsPop);
+  /** What each hero did in the fight shown. */
+  let statRows: readonly ResultStat[] = [];
   // What was found shown over the dark (staged): a tap anywhere but on a piece, or on its details, goes on.
   root.addEventListener('click', (event) => {
     if (!root.classList.contains('rewarding') || (event.target as Element).closest('.tm-tile, .tm-loot')) return;
@@ -138,15 +148,27 @@ export function makeResult(root: HTMLElement): Result {
     itemDetailsClosed();
   }
 
-  // Outside the details (on the dark around them), or Escape: back to the result.
+  function closeStats(): void {
+    if (statsPop.hidden) return;
+    statsPop.hidden = true;
+    statsPop.replaceChildren();
+    statsOpen.focus();
+  }
+
+  // Outside the details or Battle Stats (on the dark around them), or Escape: back to the result.
   detail.addEventListener('click', (event) => {
     if (event.target === detail) closeDetail();
   });
+  statsPop.addEventListener('click', (event) => {
+    if (event.target === statsPop) closeStats();
+  });
+  statsOpen.addEventListener('click', () => openStats());
   document.addEventListener('keydown', (event) => {
-    if (event.key !== 'Escape' || detail.hidden) return;
+    if (event.key !== 'Escape' || (detail.hidden && statsPop.hidden)) return;
     event.preventDefault();
     event.stopPropagation();
-    closeDetail();
+    if (!detail.hidden) closeDetail();
+    else closeStats();
   });
 
   /** Whether what was found is the Dragon Raid's (raid items), not TechnoMagic gear. */
@@ -243,10 +265,9 @@ export function makeResult(root: HTMLElement): Result {
     return tile;
   }
 
-  /** Battle Stats: a row for each hero, the most damage first; the most of each column in gold. */
-  function drawStats(rows: readonly ResultStat[]): void {
-    stats.hidden = rows.length === 0;
-    if (stats.hidden) return stats.replaceChildren();
+  /** Battle Stats, in their popup: a row for each hero, the most damage first; the most of each column in gold. */
+  function openStats(): void {
+    const rows = statRows;
     const most = Object.fromEntries(STAT_COLUMNS.map(({ key }) => [key, Math.max(...rows.map((row) => row[key]))]));
     const table = el('table', 'tm-stats-table');
     const head = table.createTHead().insertRow();
@@ -278,7 +299,23 @@ export function makeResult(root: HTMLElement): Result {
         line.append(cell);
       }
     }
-    stats.replaceChildren(el('h3', 'tm-stats-title', 'Battle Stats'), table);
+    const box = el('div', 'tm-loot-card tm-stats-card');
+    box.setAttribute('role', 'dialog');
+    box.setAttribute('aria-modal', 'true');
+    box.setAttribute('aria-label', 'Battle Stats');
+    const bar = el('div', 'tm-loot-bar');
+    const close = el('button', 'detail-close', '✕');
+    close.type = 'button';
+    close.setAttribute('aria-label', 'Close');
+    close.dataset.sfx = 'own';
+    close.addEventListener('click', closeStats);
+    bar.append(el('h3', '', 'Battle Stats'), close);
+    const scroll = el('div', 'tm-stats-body');
+    scroll.append(table);
+    box.append(bar, scroll);
+    statsPop.replaceChildren(box);
+    statsPop.hidden = false;
+    close.focus();
   }
 
   function drawActions(list: readonly ResultAction[]): void {
@@ -321,7 +358,9 @@ export function makeResult(root: HTMLElement): Result {
         }),
       );
       others.hidden = shown.others.length === 0;
-      drawStats(shown.stats ?? []);
+      closeStats();
+      statRows = shown.stats ?? [];
+      statsOpen.hidden = statRows.length === 0;
       root.classList.toggle('rewarding', root.classList.contains('staged') && !(rewards.hidden && others.hidden));
       drawActions(shown.actions);
       root.hidden = false;
@@ -329,6 +368,7 @@ export function makeResult(root: HTMLElement): Result {
     actions: drawActions,
     hide() {
       closeDetail();
+      closeStats();
       root.classList.remove('rewarding');
       root.hidden = true;
     },
