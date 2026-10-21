@@ -214,12 +214,12 @@ function heroStars(level: number, where: 'card' | 'banner'): HTMLElement {
 }
 
 /**
- * The hero's model on the stage, as King's Raid shows a hero (the site's page only: the raid's Manage popup is over the
- * raid's own drawing): its picture till it's read, and for good where it can't be (no WebGL, or not on this computer).
+ * The hero's model on the stage, as King's Raid shows a hero (on the site's page and in the raid's Manage popup, whose
+ * frame lets go of it on closing): its picture till it's read, and for good where it can't be (no WebGL, or not on this computer).
  */
 function showModel(ctx: HeroesContext, id: string): void {
   const { ui } = ctx;
-  if (!ctx.host.site || ui.model.dataset.hero === id) return;
+  if (ui.model.dataset.hero === id) return;
   ui.model.dataset.hero = id;
   ui.page.classList.remove('modelled');
   ctx.showcase ??= import('./model')

@@ -38,7 +38,7 @@ export interface HeroesUi {
   classIcon: HTMLElement;
   stars: HTMLElement;
   bust: HTMLImageElement;
-  /** Where the hero's model is drawn (the site's page only). */
+  /** Where the hero's model is drawn. */
   model: HTMLCanvasElement;
   initial: HTMLElement;
   name: HTMLElement;

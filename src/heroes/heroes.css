@@ -277,7 +277,7 @@
 }
 
 /*
- * Its model (the site's page: render.ts showModel), filling the stage behind the slots; it fades in over its picture once
+ * Its model (render.ts showModel), filling the stage behind the slots; it fades in over its picture once
  * read, the picture going.
  */
 .hero-model {
