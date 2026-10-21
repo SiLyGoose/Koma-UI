@@ -52,20 +52,31 @@
   position: absolute;
   top: 53%;
   left: 50%;
-  display: grid;
-  place-items: center;
   width: 46%;
   aspect-ratio: 1;
   border-radius: 50%;
   background: radial-gradient(circle at 50% 40%, #4a3016, #1c1208 70%);
   box-shadow: 0 0 0 1px rgb(255 226 150 / 55%);
-  color: #fff;
-  font-size: calc(var(--star) * 0.6);
-  font-weight: 800;
-  line-height: 1;
-  /* Its line cut to the digit (its top to its baseline), so the digit itself is in the disc's middle, not its line's (with more room over a digit than under it). */
-  text-box: trim-both cap alphabetic;
   translate: -50% -50%;
+}
+
+/*
+ * The digit, drawn in the disc (100 across) rather than set on a line: its baseline 0.365em under the middle, half a digit's
+ * height (Poppins's are 0.73em), so the digit itself is in the middle whatever a browser makes of a line's height (or of
+ * a font this small: one with a minimum font size draws it bigger, round the same middle).
+ */
+.hero-rank-level svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.hero-rank-level text {
+  fill: #fff;
+  font-size: 87px;
+  font-weight: 800;
+  text-anchor: middle;
 }
 
 /*

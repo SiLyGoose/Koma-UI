@@ -8,6 +8,13 @@ const el = <K extends keyof HTMLElementTagNameMap>(tag: K, className = '', text 
   return made;
 };
 
+/** How far it is transcended, on a disc in the big star (./stars.css). */
+function levelDisc(level: number): HTMLElement {
+  const disc = el('span', 'hero-rank-level');
+  disc.innerHTML = `<svg viewBox="0 0 100 100" aria-hidden="true"><text x="50" y="50" dy="0.365em">${level}</text></svg>`;
+  return disc;
+}
+
 /**
  * A hero's stars as King's Raid has them, five (every hero of theirs has them all; its star, Loading_Hero_Star), and how
  * far it is transcended (T1 to T5): on a card (the heroes page's roster, the raid's lineup and Heroes List), on a bigger
@@ -27,7 +34,7 @@ export function heroStars(level: number, where: 'card' | 'banner'): HTMLElement 
     img.alt = '';
     img.draggable = false;
     star.append(img);
-    if (middle) star.append(el('span', 'hero-rank-level', String(level)));
+    if (middle) star.append(levelDisc(level));
     row.append(star);
   }
   if (where === 'banner' && level > 0) row.append(el('span', 'hero-rank-plus', `+${level}`));

@@ -476,8 +476,10 @@ button.tm-slot-card:hover {
   pointer-events: none;
 }
 
+/* (In front of their glow, which reaches up behind it, so it doesn't tint it.) */
 .tm-slot-card:has(.hero-rank) .tm-slot-name {
   bottom: 40cqi;
+  z-index: 3;
 }
 
 /* Along the bottom: the heroes, the chat, and who's in. */
