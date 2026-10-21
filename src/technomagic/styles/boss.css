@@ -52,27 +52,6 @@
   transition: transform 0.2s ease-out;
 }
 
-/* Auto Repeat on: Stop Repeat Battle, a little under the health, in the frame of Auto (top left: ./meter.css) lit. */
-.tm-repeat-stop {
-  margin-top: 4px;
-  padding: 3px 14px;
-  border: 3px solid #fff4dc;
-  border-radius: 8px;
-  background: #3b2614;
-  box-shadow: 0 0 6px #f0b979, 0 0 2px #fff4dc, inset 0 0 4px rgb(240 185 121 / 55%);
-  color: #fff4dc;
-  font: 700 15px/1.2 Georgia, 'Times New Roman', serif;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  text-shadow: 0 1px 1px #000;
-  cursor: pointer;
-  pointer-events: auto;
-}
-
-.tm-repeat-stop[hidden] {
-  display: none;
-}
-
 .tm-boss-bar b {
   position: absolute;
   inset: 0;

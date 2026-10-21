@@ -12,8 +12,12 @@
   scrollbar-width: none;
 }
 
-/* As in King's Raid: a dark plate in a glowing cream frame, AUTO lit green while it's on; grey while it's off. */
-.tm-meter-auto {
+/*
+ * As in King's Raid: a dark plate in a glowing cream frame, AUTO lit green while it's on; grey while it's off. Stop Repeat
+ * Battle (Auto Repeat on) is drawn as Auto is lit.
+ */
+.tm-meter-auto,
+.tm-repeat-stop {
   padding: 3px 14px;
   border: 3px solid #77746e;
   border-radius: 8px;
@@ -26,12 +30,33 @@
   cursor: pointer;
 }
 
-.tm-meter-auto[aria-pressed='true'] {
+.tm-meter-auto[aria-pressed='true'],
+.tm-repeat-stop {
   border-color: #fff4dc;
   background: #3b2614;
   box-shadow: 0 0 6px #f0b979, 0 0 2px #fff4dc, inset 0 0 4px rgb(240 185 121 / 55%);
   color: #e6ffe2;
   text-shadow: 0 0 3px #3fd25a, 0 0 1px #1c8a30;
+}
+
+/* Stop Repeat Battle: in the middle, a third of the way down the field, two streaks of light going round its edge as round a reserved skill's (./skills.css). */
+.tm-repeat-stop {
+  position: absolute;
+  top: 33%;
+  left: 50%;
+  z-index: 3;
+  translate: -50% -50%;
+  white-space: nowrap;
+}
+
+.tm-repeat-stop[hidden] {
+  display: none;
+}
+
+.tm-repeat-stop .tm-lights {
+  display: block;
+  inset: -6px;
+  border-radius: 13px;
 }
 
 .tm-meter-tabs {

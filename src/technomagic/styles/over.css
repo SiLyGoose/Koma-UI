@@ -14,6 +14,10 @@
 @import '../../shared/items/styles/tier.css';
 @import '../../shared/items/styles/full-pictures.css';
 
+/* The Weekly Boss's More stats (and its popups' ✕), reused for Battle Stats. */
+@import '../../raid/styles/gear-popup.css';
+@import '../../raid/styles/more-stats.css';
+
 .tm-result {
   /* What the shared item cards (../../shared/items/styles/) draw with, as the gear page sets it. */
   --ink: #3b3444;
@@ -186,90 +190,92 @@
   display: none;
 }
 
-/* Its popup: a piece's details' window (.tm-loot), wider for its table: a row for each hero, its picture and name, then what it did (the most of each in gold). */
-.tm-stats-pop .tm-loot-card {
-  width: min(620px, 100%);
+/*
+ * Its popup: the Weekly Boss's More stats (../../raid/styles/more-stats.css), the stats down its left and every hero's bar
+ * on its right, over the result (and over a piece's details' dark). Each bar has its hero's name (and whose) over it, so a
+ * row is as tall as its picture.
+ */
+.tm-result .tm-stats-pop {
+  z-index: 3;
 }
 
-.tm-stats-body {
-  padding: 8px 16px 14px;
-  overflow-x: auto;
+.tm-stats-pop .rd-stats-body {
+  grid-template-columns: clamp(170px, 24%, 240px) minmax(0, 1fr);
 }
 
-.tm-stats-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-  font-variant-numeric: tabular-nums;
+.tm-stats-pop .rd-stats-chart {
+  --rd-face: 40px;
+  --rd-value-room: 60px;
 }
 
-.tm-stats-table thead th {
-  padding: 0 6px 4px;
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-align: right;
-  text-transform: uppercase;
-  white-space: nowrap;
-  cursor: help;
+.tm-stats-pop .rd-stats-rows {
+  gap: 10px;
 }
 
-.tm-stats-table td {
-  padding: 3px 6px;
-  font-weight: 700;
-  text-align: right;
-  white-space: nowrap;
-}
-
-.tm-stats-table td.best {
-  color: var(--gold);
-}
-
-.tm-stats-table tbody tr {
-  border-top: 1px solid rgb(255 255 255 / 8%);
-}
-
-.tm-stats-table thead .tm-stats-hero {
-  text-align: left;
-  cursor: default;
-}
-
-.tm-stats-table tbody .tm-stats-hero {
-  padding: 3px 6px 3px 0;
-  font-weight: 600;
-  text-align: left;
-}
-
-.tm-stats-who {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.tm-stats-hero img {
-  flex-shrink: 0;
-  width: 26px;
-  height: 26px;
-  border-radius: 4px;
-  object-fit: cover;
+.tm-stats-pop .rd-stats-face > img {
   background: rgb(0 0 0 / 35%);
 }
 
-.tm-stats-name {
+.tm-stats-line {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.tm-stats-who {
+  overflow: hidden;
+  color: rgb(255 255 255 / 80%);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* Whose it is (a room with others), small after its name. */
 .tm-stats-tag {
-  color: var(--muted);
+  color: rgb(255 255 255 / 50%);
   font-size: 11px;
-  font-weight: 700;
 }
 
-/* This player's heroes, their names in gold (another player's, as they are). */
-.tm-stats-table tr.mine .tm-stats-name {
-  color: #f2d28a;
+.tm-stats-pop .rd-stats-row.you .tm-stats-who {
+  color: #f0cf78;
+}
+
+.tm-stats-pop .rd-stats-bar {
+  height: 18px;
+}
+
+.tm-stats-pop .rd-stats-value {
+  font-size: 13px;
+}
+
+/* Narrow: the stats in a row over the chart, without their groups' headings. */
+@media (max-width: 700px) {
+  .tm-stats-pop {
+    padding: 12px;
+  }
+
+  .tm-stats-pop .rd-stats-body {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .tm-stats-pop .rd-stats-pick {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 6px;
+    padding: 12px 52px 10px 12px;
+    border-right: 0;
+    border-bottom: 2px solid rgba(185, 168, 119, 0.45);
+  }
+
+  .tm-stats-pop .rd-stats-group {
+    display: none;
+  }
+
+  .tm-stats-pop .rd-stats-chart {
+    padding: 12px 16px 12px 12px;
+  }
 }
 
 .tm-result-actions {
@@ -462,7 +468,7 @@
  * of a dark screen, "Tap to continue" under it (.rewarding: ../result.ts); then the heroes alone, and the way on in the
  * bottom right corner (King's Raid's round buttons).
  */
-body.tm-ended :is(#boss, #overheads, #numbers, #meter, #timer, #party) {
+body.tm-ended :is(#boss, #repeat-stop, #overheads, #numbers, #meter, #timer, #party) {
   visibility: hidden;
 }
 
@@ -729,35 +735,24 @@ body.tm-ended :is(#actions, #hint) {
   color: #f3ead2;
 }
 
-/* A phone on its side: short, so the buttons and Battle Stats' table a size down. */
-:where(.ls-landscape) .tm-stats-body {
-  padding: 4px 10px 8px;
+/*
+ * A phone on its side: short, so the buttons a size down, and Battle Stats nearly to the screen's edges, a size down
+ * (as the Weekly Boss's is on one: zoomed out, so all of it fits as it is on a computer).
+ */
+:where(.ls-landscape) .tm-stats-pop {
+  padding: 8px;
 }
 
-:where(.ls-landscape) .tm-stats-table {
-  font-size: 11px;
+:where(.ls-landscape) .tm-stats-pop .rd-stats-box {
+  zoom: 0.72;
+  width: min(1040px, calc((var(--ls-vw) - 16px) / 0.72));
+  min-height: 0;
+  max-height: calc((var(--ls-vh) - 16px) / 0.72);
 }
 
-:where(.ls-landscape) .tm-stats-table thead th {
-  padding: 0 4px 2px;
-  font-size: 9px;
-}
-
-:where(.ls-landscape) .tm-stats-table td {
-  padding: 1px 4px;
-}
-
-:where(.ls-landscape) .tm-stats-table tbody .tm-stats-hero {
-  padding: 1px 4px 1px 0;
-}
-
-:where(.ls-landscape) .tm-stats-who {
-  gap: 4px;
-}
-
-:where(.ls-landscape) .tm-stats-hero img {
-  width: 18px;
-  height: 18px;
+:where(.ls-landscape) .tm-stats-pop .rd-gear-close {
+  top: 6px;
+  right: 6px;
 }
 
 :where(.ls-landscape) .tm-result.staged .tm-act-ring {

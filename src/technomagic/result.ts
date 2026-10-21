@@ -4,6 +4,7 @@ import { built } from '../shared/built';
 import { el, itemDetailsClosed, itemFace, itemIcons, kindName, mainStatLine, shownName, tmSections, rich } from '../shared/items';
 import { ESSENCE_NAME, type EssenceId } from '../protocol/heroes';
 import type { DropView, RaidKind } from '../protocol/technomagic';
+import { niceScale } from '../raid/result/nice-scale';
 import { KEPT } from './assets';
 
 /*
@@ -64,13 +65,16 @@ export interface ResultStat {
   shielded: number;
 }
 
-/** Battle Stats' columns: each a number every hero has, what heads it, and what it is. */
-const STAT_COLUMNS = [
-  { key: 'dealt', name: 'Damage', about: 'Damage dealt' },
-  { key: 'healed', name: 'Healing', about: 'Healing given' },
-  { key: 'mitigated', name: 'Mitigated', about: 'Damage its defense took off: its DEF, blocks, less damage taken, and blows dodged' },
-  { key: 'shielded', name: 'Shielded', about: 'Shields given' },
+/** The stats Battle Stats can chart, in groups down its left (as the Weekly Boss's More stats has them), and what each is. */
+const STATS = [
+  { group: 'Offense', key: 'dealt', label: 'Damage Dealt', about: 'Damage its blows dealt' },
+  { group: 'Support', key: 'healed', label: 'Healing Done', about: 'Healing its heals gave its allies and itself' },
+  { group: 'Support', key: 'shielded', label: 'Amount Shielded', about: 'Shields it put on its allies and itself' },
+  { group: 'Defense', key: 'mitigated', label: 'Damage Mitigated', about: 'Damage its defense took off the blows on it: its DEF, blocks, less damage taken, and blows dodged' },
 ] as const;
+type StatKey = (typeof STATS)[number]['key'];
+/** The stat charted (the last picked, this page's). */
+let charted: StatKey = 'dealt';
 
 /** A number in a few figures (12.3K, 4.56M): the whole of it on pointing at it. */
 const short = new Intl.NumberFormat('en-US', { notation: 'compact', maximumSignificantDigits: 3 });
@@ -123,16 +127,61 @@ export function makeResult(root: HTMLElement): Result {
   const detail = root.querySelector('.tm-loot') as HTMLElement;
   const tap = el('p', 'tm-tap', 'Tap to continue');
   actions.before(tap);
-  // Battle Stats: a button (staged, King's Raid's round one in the bottom left corner) opening them in a popup over the
-  // screen, the window a piece's details open in (a click outside it, its ✕ or Escape closes it).
+  // Battle Stats: a button (staged, King's Raid's round one in the bottom left corner) opening them in a popup in the
+  // middle of the screen, the Weekly Boss's More stats (../raid/result/stats.ts): the stats to pick down its left, and
+  // on its right every hero's bar for the one picked, from its picture, against a scale. A click outside it, its ✕ or
+  // Escape closes it.
   const statsOpen = el('button', 'action secondary tm-act tm-stats-open');
   statsOpen.type = 'button';
   statsOpen.setAttribute('aria-haspopup', 'dialog');
   statsOpen.append(el('span', 'tm-act-label', 'Battle Stats'), ring('stats'));
   tap.before(statsOpen);
-  const statsPop = el('div', 'tm-loot tm-stats-pop');
+  const statsPop = el('div', 'rd-stats tm-stats-pop');
   statsPop.hidden = true;
+  statsPop.setAttribute('role', 'dialog');
+  statsPop.setAttribute('aria-modal', 'true');
+  statsPop.setAttribute('aria-label', 'Battle Stats');
+  const statsBox = el('div', 'rd-stats-box');
+  const statsBody = el('div', 'rd-stats-body');
+  const statsPick = el('div', 'rd-stats-pick');
+  statsPick.setAttribute('role', 'radiogroup');
+  statsPick.setAttribute('aria-label', 'Stat');
+  const chart = el('div', 'rd-stats-chart');
+  const chartTitle = el('h3', 'rd-stats-title');
+  const chartScroll = el('div', 'rd-stats-scroll');
+  const chartRows = el('div', 'rd-stats-rows');
+  const chartAxis = el('div', 'rd-stats-axis');
+  chartAxis.setAttribute('aria-hidden', 'true');
+  chartScroll.append(chartRows);
+  chart.append(chartTitle, chartScroll, chartAxis);
+  statsBody.append(statsPick, chart);
+  const statsClose = el('button', 'rd-gear-close', '✕');
+  statsClose.type = 'button';
+  statsClose.setAttribute('aria-label', 'Close');
+  statsClose.dataset.sfx = 'own';
+  statsBox.append(statsBody, statsClose);
+  statsPop.append(statsBox);
   root.append(statsPop);
+  // The choices: a radio for each stat, under its group's heading.
+  let group = '';
+  for (const stat of STATS) {
+    if (stat.group !== group) {
+      group = stat.group;
+      statsPick.append(el('p', 'rd-stats-group', group));
+    }
+    const label = el('label', 'rd-stats-option');
+    label.title = stat.about;
+    const input = el('input');
+    input.type = 'radio';
+    input.name = 'tm-stat';
+    input.value = stat.key;
+    input.addEventListener('change', () => {
+      charted = stat.key;
+      drawChart();
+    });
+    label.append(input, el('span', 'rd-stats-radio'), el('span', '', stat.label));
+    statsPick.append(label);
+  }
   /** What each hero did in the fight shown. */
   let statRows: readonly ResultStat[] = [];
   // What was found shown over the dark (staged): a tap anywhere but on a piece, or on its details, goes on.
@@ -151,9 +200,10 @@ export function makeResult(root: HTMLElement): Result {
   function closeStats(): void {
     if (statsPop.hidden) return;
     statsPop.hidden = true;
-    statsPop.replaceChildren();
+    itemDetailsClosed();
     statsOpen.focus();
   }
+  statsClose.addEventListener('click', closeStats);
 
   // Outside the details or Battle Stats (on the dark around them), or Escape: back to the result.
   detail.addEventListener('click', (event) => {
@@ -265,57 +315,60 @@ export function makeResult(root: HTMLElement): Result {
     return tile;
   }
 
-  /** Battle Stats, in their popup: a row for each hero, the most damage first; the most of each column in gold. */
+  /**
+   * The stat picked, charted: every hero in the fight's order, a bar each from its picture (its name and whose over it;
+   * this player's in gold) against a round scale, its lines down the bars and its numbers along the bottom.
+   */
+  function drawChart(): void {
+    for (const input of statsPick.querySelectorAll('input')) input.checked = input.value === charted;
+    const stat = STATS.find(({ key }) => key === charted) ?? STATS[0];
+    chartTitle.textContent = stat.label;
+    const { top, step } = niceScale(Math.max(0, ...statRows.map((row) => row[stat.key])));
+    const ticks = Array.from({ length: Math.round(top / step) + 1 }, (_, i) => i * step);
+    const grid = el('div', 'rd-stats-grid');
+    grid.setAttribute('aria-hidden', 'true');
+    for (const tick of ticks) {
+      const line = el('span');
+      line.style.left = `${(tick / top) * 100}%`;
+      grid.append(line);
+    }
+    chartRows.replaceChildren(
+      grid,
+      ...statRows.map((row) => {
+        const value = row[stat.key];
+        const line = el('div', `rd-stats-row${row.mine ? ' you' : ''}`);
+        line.title = `${row.name}${row.tag ? ` (${row.tag})` : ''}: ${points(Math.round(value))}`;
+        const face = el('span', 'rd-stats-face');
+        const picture = el('img', '');
+        picture.src = row.face;
+        picture.alt = '';
+        picture.draggable = false;
+        face.append(picture);
+        const who = el('span', 'tm-stats-who', row.name);
+        if (row.tag) who.append(' ', el('span', 'tm-stats-tag', row.tag));
+        const track = el('span', 'rd-stats-track');
+        const bar = el('span', 'rd-stats-bar');
+        bar.style.width = `${(value / top) * 100}%`;
+        track.append(bar, el('b', 'rd-stats-value', short.format(value)));
+        const words = el('span', 'tm-stats-line');
+        words.append(who, track);
+        line.append(face, words);
+        return line;
+      }),
+    );
+    chartAxis.replaceChildren(
+      ...ticks.map((tick) => {
+        const label = el('span', '', short.format(tick));
+        label.style.left = `${(tick / top) * 100}%`;
+        return label;
+      }),
+    );
+  }
+
   function openStats(): void {
-    const rows = statRows;
-    const most = Object.fromEntries(STAT_COLUMNS.map(({ key }) => [key, Math.max(...rows.map((row) => row[key]))]));
-    const table = el('table', 'tm-stats-table');
-    const head = table.createTHead().insertRow();
-    head.append(el('th', 'tm-stats-hero', 'Hero'));
-    for (const { name, about } of STAT_COLUMNS) {
-      const cell = el('th', '', name);
-      cell.title = about;
-      head.append(cell);
-    }
-    const body = table.createTBody();
-    for (const row of [...rows].sort((a, b) => b.dealt - a.dealt)) {
-      const line = body.insertRow();
-      if (row.mine) line.className = 'mine';
-      const hero = el('th', 'tm-stats-hero');
-      hero.scope = 'row';
-      const face = el('img', '');
-      face.src = row.face;
-      face.alt = '';
-      face.draggable = false;
-      const who = el('span', 'tm-stats-who');
-      who.append(face, el('span', 'tm-stats-name', row.name));
-      if (row.tag) who.append(el('span', 'tm-stats-tag', row.tag));
-      hero.append(who);
-      line.append(hero);
-      for (const { key, about } of STAT_COLUMNS) {
-        const value = row[key];
-        const cell = el('td', value > 0 && value === most[key] ? 'best' : '', value > 0 ? short.format(value) : '–');
-        cell.title = `${about}: ${points(Math.round(value))}`;
-        line.append(cell);
-      }
-    }
-    const box = el('div', 'tm-loot-card tm-stats-card');
-    box.setAttribute('role', 'dialog');
-    box.setAttribute('aria-modal', 'true');
-    box.setAttribute('aria-label', 'Battle Stats');
-    const bar = el('div', 'tm-loot-bar');
-    const close = el('button', 'detail-close', '✕');
-    close.type = 'button';
-    close.setAttribute('aria-label', 'Close');
-    close.dataset.sfx = 'own';
-    close.addEventListener('click', closeStats);
-    bar.append(el('h3', '', 'Battle Stats'), close);
-    const scroll = el('div', 'tm-stats-body');
-    scroll.append(table);
-    box.append(bar, scroll);
-    statsPop.replaceChildren(box);
+    drawChart();
     statsPop.hidden = false;
-    close.focus();
+    statsClose.focus();
   }
 
   function drawActions(list: readonly ResultAction[]): void {
