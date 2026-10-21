@@ -1,3 +1,4 @@
+import { itemIcons } from '../shared/items';
 import { api, type ApiResult } from '../site/session';
 import type { Databank } from './types';
 
@@ -25,6 +26,8 @@ export function loadDatabank(): Promise<ApiResult<Databank>> {
  * (Databank.pools), not with each of the hundred-odd items that have them. (A bot from before them sends none.)
  */
 function withPools(databank: Databank): Databank {
+  // (King's Raid's gear's pictures: its icons, as the bot says them.)
+  for (const item of databank.items) if (item.icon) itemIcons.set(item.id, item.icon);
   const pools: Partial<Databank['pools']> = databank.pools ?? {};
   return {
     ...databank,

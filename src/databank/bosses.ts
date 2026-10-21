@@ -13,7 +13,7 @@ import { bossIn, scaleAt, stagesOf, type BossDef } from '../technomagic/sim/boss
 import { CURVE, curved, HERO_LEVEL, reachAt, share, strike, type DamageType, type Defenses } from '../technomagic/sim/combat/damage';
 import { RAID_TIME } from '../technomagic/sim/rules';
 import { bossSkills, type BossSkills } from '../shared/boss-skills';
-import { bossById, raidBossById, type DatabankContext } from './context';
+import { bossById, raidBossById, tmGear, type DatabankContext } from './context';
 import { RECOMMENDED, recommendedIn } from './recommended';
 import { recommendedCard as heroCard } from '../shared/recommended-card/recommended-card';
 import type { DatabankBoss, DatabankItem, DatabankRewards, RaidLevel } from './types';
@@ -171,7 +171,7 @@ export function itemCard(item: DatabankItem): HTMLButtonElement {
   card.dataset.stars = String(item.stars);
   card.setAttribute('aria-label', `${item.name}, ${item.stars} stars: see it in the items`);
   // (TechnoMagic gear has no stars, but its marks.)
-  if (item.source === 'technomagic') card.append(art(item.id, item.slot, true), el('span', 'db-name', item.name), ...tmMarks(item.class));
+  if (tmGear(item)) card.append(art(item.id, item.slot, true), el('span', 'db-name', item.name), ...tmMarks(item.class));
   else card.append(tierMark(item.stars), art(item.id, item.slot, true), el('span', 'db-name', item.name), el('span', 'item-curl'));
   hoverSound(card, item.id);
   card.addEventListener('click', () => go(`/databank/items/#${encodeURIComponent(item.id)}`));

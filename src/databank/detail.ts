@@ -1,9 +1,9 @@
-import { art, effectSection, el, itemDetailsClosed, kindName, mainStatText, rich, tierMark, tmTier, treasureParts, treasureSection, uniqueTier } from '../shared/items';
+import { art, dragonTierMark, effectSection, el, itemDetailsClosed, kindName, mainStatText, rich, tierMark, tmTier, treasureParts, treasureSection, uniqueTier } from '../shared/items';
 import { skillText } from '../shared/heroes';
 import { go } from '../site/nav';
 import { SKILLS } from '../technomagic/sim/skills';
 import { classTag } from './class-tag';
-import { className, itemById, narrow, type DatabankContext } from './context';
+import { artifact, className, itemById, narrow, tmGear, type DatabankContext } from './context';
 import type { ItemSource } from './types';
 
 /**
@@ -110,7 +110,8 @@ export function renderDetail(ctx: DatabankContext): void {
   const title = el('div', 'detail-title');
   const name = el('h3', '', item.name);
   // Under the name, its category, then its stars (as the gear page's item panel); TechnoMagic gear and a unique weapon, their tiers of their own.
-  title.append(name, el('p', 'detail-meta db-kind', kindName(item)), item.source === 'technomagic' ? tmTier() : item.uniqueTreasure || item.source === 'heroBanner' ? uniqueTier() : tierMark(item.stars));
+  const tm = tmGear(item);
+  title.append(name, el('p', 'detail-meta db-kind', kindName(item)), artifact(item) ? dragonTierMark(10) : tm ? tmTier() : item.uniqueTreasure || item.source === 'heroBanner' ? uniqueTier() : tierMark(item.stars));
   // A class item says whose it is; TechnoMagic gear, its set (three pieces on a hero give its effect, for the hero's class: its effects say it too).
   if (item.class) title.append(classTag(item.class, className(ctx, item.class)));
   if (item.set) {
@@ -148,16 +149,16 @@ export function renderDetail(ctx: DatabankContext): void {
   if (lines.length === 0) effects.append(el('li', 'muted', 'No effects.'));
 
   // (TechnoMagic gear's effects are the potentials a copy can roll: folded away under a line, as its additional effect is.)
-  const tm = item.source === 'technomagic' && lines.length > 1;
+  const pool = tm && lines.length > 1;
   // (A unique treasure's: the options a copy can roll, folded away the same, then what it gives as its hero's main treasure.)
   const ut = item.uniqueTreasure ? treasureParts(lines) : null;
   // (TechnoMagic gear's main stat, in place of the level picker: a weapon's, or an armor's two, whichever its copy rolls.)
   const main = item.mainStats?.length ? [effectSection('Main Stat:', mainStatText(item.mainStats))] : [];
-  ui.detailBody.append(head, el('p', 'detail-desc', item.description), ...(item.source === 'technomagic' ? main : [levels]), ut ? effectSection('Potentials:', potentialList(ut.options)) : tm ? effectSection('Potentials:', potentialList(lines)) : effects);
+  ui.detailBody.append(head, el('p', 'detail-desc', item.description), ...(tm ? main : [levels]), ut ? effectSection('Potentials:', potentialList(ut.options)) : pool ? effectSection('Potentials:', potentialList(lines)) : effects);
   if (ut) ui.detailBody.append(...treasureSection(ut.main, undefined, effectLine));
   // TechnoMagic gear: its set effect, then its additional effect (one of them, at random), each apart under its effects (the potentials a copy can roll).
   if (item.set?.pieces && item.set.effect) ui.detailBody.append(effectSection(`${item.set.pieces}-set effect:`, item.set.effect));
-  if (item.source === 'technomagic') ui.detailBody.append(effectSection('Additional Effect:', skillList()));
+  if (tm) ui.detailBody.append(effectSection('Additional Effect:', skillList()));
   // Where it comes from, a box for each place (nothing from a bot that doesn't say).
   const sources = item.sources ?? (item.source ? [item.source] : []);
   if (sources.length > 0) {
@@ -176,7 +177,7 @@ export function renderDetail(ctx: DatabankContext): void {
   const mine = ctx.owned?.get(item.id);
   if (ctx.owned) {
     ui.detailOwned.hidden = false;
-    const best = item.source === 'technomagic' ? '' : `, the best at ★${mine?.best}`;
+    const best = tm ? '' : `, the best at ★${mine?.best}`;
     ui.detailOwned.textContent = mine ? `You own ${mine.count} ${mine.count === 1 ? 'copy' : 'copies'}${best}.` : "You don't own this one yet.";
   }
 }
