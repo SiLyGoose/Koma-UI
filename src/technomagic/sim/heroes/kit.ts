@@ -104,6 +104,13 @@ export interface HeroPart {
   now?(index: number): boolean;
   /** Auto: whether this skill waits for now (true: Auto doesn't pick it, and lets it go if it had). */
   waits?(index: number): boolean;
+  /** Auto, as King's Raid's skills say (DisableSkillUse, AutoUse): whether Auto may not pick this skill for now (as `waits`). */
+  autoOff?(index: number): boolean;
+  /**
+   * Auto, as King's Raid's skills say (SuppressSkillCheck, UsingSkillCheck): the only skills Auto picks from for now (null:
+   * any), its picks going on while the hero uses a skill.
+   */
+  autoOnly?(): readonly number[] | null;
   /** What its skills have given it for now: squares on its card. */
   buffs?(): Buff[];
   /** What its skills have left on the boss that only it keeps count of: marks under the boss's health. */

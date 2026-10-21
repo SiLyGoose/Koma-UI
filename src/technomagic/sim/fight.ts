@@ -610,24 +610,26 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
   }
 
   /**
-   * Auto, much as King's Raid's goes (BattleManagement.UpdateSkillAutoReserve): every AUTO.every seconds that a hero has
-   * nothing reserved and isn't using a skill, one of its skills at random (null: none). Unlike King's Raid's, only one it
-   * can use now (it never waits on one for its mana), and not one that would be wasted (wanted: a status it keeps up still
-   * is; its hero says it waits); one whose moment its hero says it is, before any other.
+   * Auto, as King's Raid's goes (BattleManagement.UpdateSkillAutoReserve): every AUTO.every seconds that a hero has
+   * nothing reserved and isn't using a skill (but while its skills say Auto picks only from some), one of its skills whose
+   * cooldown is over at random (null: none), whatever its mana (the hero attacks till it has it), nor one its skills say
+   * Auto may not pick. Unlike King's Raid's, not one that would be wasted (wanted: a status it keeps up still is; its hero
+   * says it waits); one whose moment its hero says it is, before any other.
    */
   function autoSkill(on: Fighter): number | null {
     const ready = on.abilities.flatMap((_, index) => {
       const ability = sim.slot(on, index);
-      return ability && sim.ready(on, index) && wanted(on, index, ability) ? [index] : [];
+      return ability && sim.reservable(on, index) && (on.cooldowns[index] as number) <= 0 && wanted(on, index, ability) ? [index] : [];
     });
     const now = ready.filter((index) => on.part.now?.(index));
     const from = now.length > 0 ? now : ready;
     return from.length > 0 ? (from[Math.floor(roll() * from.length)] as number) : null;
   }
 
-  /** Auto: whether `on`'s skill in slot `index` would be of use now (not one that keeps a status up while it still is, nor one its hero says waits). */
+  /** Auto: whether `on`'s skill in slot `index` may be picked now (not one its skills say not to, nor one that keeps a status up while it still is, nor one its hero says waits). */
   function wanted(on: Fighter, index: number, ability: Ability): boolean {
-    if (on.part.waits?.(index)) return false;
+    const only = on.part.autoOnly?.();
+    if ((only && !only.includes(index)) || on.part.autoOff?.(index) || on.part.waits?.(index)) return false;
     const allies = field.filter((ally) => ally.hp > 0 && !away(ally.statuses));
     const keeps = ability.auto?.keeps;
     if (keeps && [party, ...allies.map((ally) => ally.statuses)].some((on) => on.some((status) => status.name === keeps && status.left > AUTO.spare))) return false;
@@ -1552,12 +1554,13 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       // attacking (King's Raid's cuts the attack short); or else, free, its attack. (Not one that can do nothing for now.)
       for (const on of field) {
         on.rested = on.doing ? 0 : on.rested + dt;
-        // (On Auto: a pick every so often while it has none and isn't using a skill. What Auto picked is let go once it can't
-        // be used or be of use, or Auto is off.)
-        on.autoWait = on.doing?.skill !== undefined ? 0 : on.autoWait + dt;
+        // (On Auto: a pick every so often while it has none and isn't using a skill, or while its skills say Auto picks only
+        // from some. What Auto picked is let go once its cooldown has begun again or it may no longer be picked, or Auto is
+        // off; not for want of mana, which it waits for.)
+        on.autoWait = on.doing?.skill !== undefined && !on.part.autoOnly?.() ? 0 : on.autoWait + dt;
         if (on.reserved !== null && on.autoPicked) {
           const ability = sim.slot(on, on.reserved);
-          if (!on.auto || !ability || !sim.ready(on, on.reserved) || !wanted(on, on.reserved, ability)) {
+          if (!on.auto || !ability || (on.cooldowns[on.reserved] as number) > 0 || !wanted(on, on.reserved, ability)) {
             on.reserved = null;
             on.autoWait = 0;
           }

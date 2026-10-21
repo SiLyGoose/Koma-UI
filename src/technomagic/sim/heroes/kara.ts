@@ -264,8 +264,9 @@ export const KARA: HeroDef = {
         siege = !siege;
         mode();
       },
-      // (Auto keeps her in the [Siege Weapon] once she is one.)
-      waits: (index) => siege && index === 2,
+      // (Auto keeps her in the [Siege Weapon] once she is one, as King's Raid's does: there it picks only from her lasers and cannons, and not Release Siege Weapon.)
+      autoOnly: () => (siege ? [0, 1] : null),
+      autoOff: (index) => siege && index === 2,
       tick(dt) {
         if (focusLeft > 0) {
           focusLeft -= dt;

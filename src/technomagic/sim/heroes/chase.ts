@@ -81,7 +81,6 @@ export const CHASE: HeroDef = {
     },
     {
       name: 'Remove Limit',
-      auto: { keeps: UNLEASHED.name },
       about: `${pct(LIMIT.cost)} of his HP: what the boss has left on him cleared, and a blow. Then [Remove Limit] until his HP is under ${pct(LIMIT.floor)}: ${pct(LIMIT.drain)} of it lost every second, immune to CC, +${pct(LIMIT.critDamage)} crit DMG and +${LIMIT.speed} attack speed (growing, up to twice), and each part of his attack a blow more.`,
       words: `Upon activation, [Remove Limit] takes effect. When activated, consumes ${pct(LIMIT.cost)} of current HP to remove all negative effects from self and deal ${dmg('warrior', LIMIT.blow, bookDmg('chase', 1))} P.DMG to nearby enemies in range. While [Remove Limit] is activated, consumes ${pct(LIMIT.drain)} of current HP every 1 sec, gains immunity to CC, increases Crit DMG by ${pct(LIMIT.critDamage)} and ATK Spd by ${LIMIT.speed}, and enhances normal attacks. The HP consumption, Crit DMG and ATK Spd Boost grow stronger over time. This effect is irremovable, and is automatically deactivated when HP falls under ${pct(LIMIT.floor)}.`,
       icon: '🩸',
@@ -196,8 +195,9 @@ export const CHASE: HeroDef = {
           drink(blow, FURY.drain * heals);
         },
       },
-      // Risen, he can use no skill; under [Remove Limit], not Remove Limit again.
+      // Risen, he can use no skill; under [Remove Limit], not Remove Limit again (nor Auto pick it, as King's Raid's says).
       slot: (index) => (rising > 0 || (index === 1 && limit) ? null : (self.abilities[index] ?? null)),
+      autoOff: (index) => index === 1 && limit,
       // Brought down the first time: he rises (tick), left on 1 HP; risen, he goes no lower than so much of it.
       spared() {
         if (rising > 0) return true;
