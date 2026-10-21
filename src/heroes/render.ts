@@ -165,6 +165,8 @@ function renderRoster(ctx: HeroesContext, act: HeroActions): void {
       tile.type = 'button';
       tile.setAttribute('aria-current', String(hero.id === ctx.hero));
       tile.setAttribute('aria-label', `${hero.name}${hero.owned ? '' : ' (not recruited)'}`);
+      // (Its name not on it, as King's Raid's cards: on hovering it, and on the stage once picked.)
+      tile.title = hero.name;
       const face = el('img', 'roster-avatar');
       face.alt = '';
       face.hidden = true;
@@ -176,7 +178,7 @@ function renderRoster(ctx: HeroesContext, act: HeroActions): void {
       icon.alt = '';
       badge.title = className(hero.class);
       badge.append(icon);
-      tile.append(initial, face, badge, el('span', 'roster-name', hero.name));
+      tile.append(initial, face, badge);
       // (Theirs: its stars, as King's Raid's cards have them. Not yet: a padlock.)
       tile.append(hero.owned ? heroStars(hero.transcend?.level ?? 0, 'card') : el('span', 'roster-lock', '🔒'));
       tile.addEventListener('click', () => act.pickHero(hero.id));
@@ -294,7 +296,9 @@ function renderSlots(ctx: HeroesContext): void {
     frame.append(art(copy?.itemId ?? null, kind));
     // (A hero's gear: its frame, its marks (a unique weapon's or treasure's, a TechnoMagic piece's), its rune sockets and its stars, King's Raid's.)
     if (copy) frame.append(heroFrame(copy), ...heroMarks(copy), ...runeMarks(copy.runes), krStars(copy.level, copy.level, isTmPiece(copy.itemId)));
-    button.append(frame, el('span', 'slot-name', slotName(slot)));
+    // (No name under it, as King's Raid's: on hovering it.)
+    button.title = slotName(slot);
+    button.append(frame);
   }
 }
 

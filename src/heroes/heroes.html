@@ -9,7 +9,10 @@
       <div id="roster-list" class="roster-list"></div>
     </nav>
 
-    <!-- The hero: its picture, with its Weapon, Armor and Mantle on the left, its Accessory, Orb and treasure on the right, and its Artifact under it. -->
+    <!--
+      The hero: its picture (or model), as King's Raid's Hero Info has it (its Hero3DViewPanel): its Weapon, Armor and Mantle
+      down the left, its treasure, Accessory, Orb and Artifact down the right (the left's beside the right's last three).
+    -->
     <div class="hero">
       <!-- Whose heroes (theirs, or someone else's in the server, to look at), and the server. -->
       <div class="hero-top">
@@ -42,8 +45,6 @@
           <a id="hero-buy" class="hero-buy action main" href="/shop/heroes/" hidden>Recruit in the Shop</a>
         </div>
         <div class="slot-col hero-armors">
-          <button type="button" class="slot" data-slot="accessory"></button>
-          <button type="button" class="slot" data-slot="orb"></button>
           <!-- Its main treasure, and over its left edge a box for each of its three sub treasures (only its own unique treasures go in those). -->
           <div class="hero-main-treasure">
             <button type="button" class="slot" data-slot="treasure"></button>
@@ -53,8 +54,8 @@
               <button type="button" class="slot sub-box" data-slot="side3"></button>
             </div>
           </div>
-        </div>
-        <div class="hero-artifact">
+          <button type="button" class="slot" data-slot="accessory"></button>
+          <button type="button" class="slot" data-slot="orb"></button>
           <button type="button" class="slot" data-slot="artifact"></button>
         </div>
       </div>

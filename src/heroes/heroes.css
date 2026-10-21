@@ -21,32 +21,27 @@
 }
 
 .hero-stage {
-  grid-template-rows: minmax(0, 1fr) auto;
-  grid-template-areas:
-    'weapons figure armors'
-    'weapons artifact armors';
+  grid-template-areas: 'weapons figure armors';
+  align-items: stretch;
   height: 480px;
   padding: 64px 14px 14px;
 }
 
+/* (Its three beside the right's last three, as King's Raid's.) */
 .hero-weapons {
   grid-area: weapons;
+  justify-content: flex-end;
 }
 
 .hero-armors {
   grid-area: armors;
-}
-
-.hero-figure {
-  grid-area: figure;
   justify-content: flex-end;
 }
 
-.hero-artifact {
-  display: flex;
-  grid-area: artifact;
-  justify-content: center;
-  padding-top: 8px;
+/* Its name along the bottom, between the slots, as King's Raid's. */
+.hero-figure {
+  grid-area: figure;
+  justify-content: flex-end;
 }
 
 /* As wide as its own slot (not its column's widest), so its sub treasure boxes sit on its frame's left edge. */
@@ -251,16 +246,16 @@
   visibility: hidden;
 }
 
-/* Its name on a dark band fading out at its ends, easy to read over whatever is behind it. */
+/* Its name on a dark shade fading out all round it, easy to read over whatever is behind it. */
 .heroes-page .hero-name {
-  padding: 3px 30px 4px;
-  background: linear-gradient(90deg, transparent, rgb(6 6 10 / 72%) 22%, rgb(6 6 10 / 72%) 78%, transparent);
+  margin-block: -6px;
+  padding: 10px 46px;
+  background: radial-gradient(farthest-side, rgb(6 6 10 / 78%) 30%, rgb(6 6 10 / 45%) 65%, transparent);
 }
 
 /* The slots and the name over it. */
 .hero-stage > .slot-col,
-.hero-stage > .hero-figure,
-.hero-stage > .hero-artifact {
+.hero-stage > .hero-figure {
   position: relative;
   z-index: 1;
 }
@@ -311,22 +306,27 @@
 }
 
 /*
- * A hero of theirs in the roster: its stars along the bottom, sized by the card (cqw, of the row as wide as it), its name
- * over them.
+ * A hero of theirs in the roster: its stars along the bottom, sized by the card (cqw, of the row as wide as it), standing
+ * on it (the big middle one rising over the rest), on a shade with a soft blue glow under them so they show on any picture.
  */
 .roster-tile .hero-rank {
   --star: 17cqw;
   position: absolute;
   right: 0;
-  bottom: 4px;
+  bottom: 0;
   left: 0;
   z-index: 2;
+  align-items: flex-end;
   justify-content: center;
+  padding: 16% 0 4px;
+  background:
+    radial-gradient(ellipse 80% 85% at 50% 80%, rgb(92 170 255 / 70%), rgb(92 170 255 / 28%) 50%, transparent 80%),
+    linear-gradient(transparent, rgb(0 0 0 / 55%));
   container-type: inline-size;
 }
 
-.roster-tile:has(.hero-rank) .roster-name {
-  padding-bottom: 22%;
+.roster-tile .hero-rank-star img {
+  filter: saturate(0.55) brightness(1.12) drop-shadow(0 0 0.6px #3b2a12) drop-shadow(0 0 4px rgb(110 180 255 / 90%));
 }
 
 /* A hero in the roster that isn't theirs: greyed, a padlock in its corner. */
@@ -1092,7 +1092,7 @@ button.ascend-cost:focus-visible {
 
   /* Its name between the slots: on two lines where it doesn't fit on one, its band closer round it. */
   .heroes-page .hero-name {
-    padding-inline: 10px;
+    padding-inline: 18px;
     overflow: visible;
     white-space: normal;
     line-height: 1.15;
@@ -1129,7 +1129,7 @@ button.ascend-cost:focus-visible {
   }
 }
 
-/* King's Raid's slots: three a side, a little closer together. */
+/* King's Raid's slots: three and four a side, closer together, with no names under them. */
 .heroes-page .hero-stage .slot-col {
   gap: 10px;
 }

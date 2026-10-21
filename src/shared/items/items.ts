@@ -288,9 +288,9 @@ export const isTmPiece = (itemId: string): boolean => /^(perseverance|hope|autho
 export const levelLabel = (copy: { level: number }): string => `★${copy.level}`;
 
 /**
- * A copy's stars (its level), as King's Raid draws them on its gear (public/kr/ui/: its TechnoMagic_Equip_Star, even on all
- * sides): `level` lit, then (with `max`) the rest dark. Gold, but (`tm`) a TechnoMagic piece's own blue. A hero's gear at 0★
- * has none lit.
+ * A copy's stars (its level), as King's Raid draws its heroes' (public/kr/ui/hero-star.webp, its Loading_Hero_Star, as the
+ * heroes page's): `level` lit, then (with `max`) the rest dark. Gold, but (`tm`) a TechnoMagic piece's blue. A hero's gear
+ * at 0★ has none lit.
  */
 export function krStars(level: number, max = level, tm = false): HTMLElement {
   const row = el('span', 'kr-stars');
@@ -299,7 +299,7 @@ export function krStars(level: number, max = level, tm = false): HTMLElement {
   for (let i = 1; i <= max; i++) {
     const lit = i <= level;
     const star = el('img', `kr-star${lit ? '' : ' off'}${lit && tm ? ' tm' : ''}`);
-    star.src = `${import.meta.env.BASE_URL}kr/ui/star-${lit ? (tm ? 'tm' : 'on') : 'off'}.webp`;
+    star.src = `${import.meta.env.BASE_URL}kr/ui/hero-star.webp`;
     star.alt = '';
     star.draggable = false;
     row.append(star);
