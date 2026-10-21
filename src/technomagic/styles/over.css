@@ -468,7 +468,7 @@
  * of a dark screen, "Tap to continue" under it (.rewarding: ../result.ts); then the heroes alone, and the way on in the
  * bottom right corner (King's Raid's round buttons).
  */
-body.tm-ended :is(#boss, #repeat-stop, #overheads, #numbers, #meter, #timer, #party) {
+body.tm-ended :is(#boss, #overheads, #numbers, #meter, #timer, #party) {
   visibility: hidden;
 }
 

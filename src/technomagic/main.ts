@@ -118,7 +118,7 @@ const JUMP = 90;
 const OVER_WAIT = 2;
 const DRAIN = 0.5;
 /** Auto Repeat: how long a win's result is seen before this player is in for the next fight. */
-const REPEAT_WAIT = 3;
+const REPEAT_WAIT = 8;
 
 /** Which raid this page is (its #app's data-raid): the TechnoMagic Raid's, or the Dragon Raid's; its name; and its bosses. */
 const DRAGON = (document.getElementById('app') as HTMLElement).dataset.raid === 'dragon';
@@ -715,8 +715,8 @@ async function start(): Promise<void> {
       games();
     };
 
-    // Auto Repeat (ticked on getting ready): a boss beaten, in for the next fight straight from the result (Run Again, a
-    // moment after it is shown). Over the fight (and a win's result) while it is on, Stop Repeat Battle turns it off.
+    // Auto Repeat (ticked on getting ready): a boss beaten, in for the next fight straight from the result (Run Again,
+    // REPEAT_WAIT after it is shown). Over the fight and its result while it is on, Stop Repeat Battle turns it off.
     let repeat = store.get(localStorage, REPEAT_KEY) === 'on';
     let repeating: number | undefined;
     function setRepeat(on: boolean): void {
@@ -728,7 +728,7 @@ async function start(): Promise<void> {
       if (state?.phase === 'over' && shownOver && !left) results.actions(overActions());
     }
     function drawRepeat(): void {
-      repeatStop.hidden = !repeat || left || state === null || state.phase === 'prep' || (state.phase === 'over' && state.over?.result !== 'won');
+      repeatStop.hidden = !repeat || left || state === null || state.phase === 'prep';
     }
     repeatStop.addEventListener('click', () => setRepeat(false));
     prep.repeat(repeat);

@@ -39,17 +39,22 @@
   text-shadow: 0 0 3px #3fd25a, 0 0 1px #1c8a30;
 }
 
-/* Stop Repeat Battle: in the middle, a quarter of the way down the field, two streaks of light going round its edge as round a reserved skill's (./skills.css). */
+/*
+ * Stop Repeat Battle: in the middle, a fifth of the way down the field, two streaks of light going round its edge as round
+ * a reserved skill's (./skills.css). Over the fight's result too (./over.css's 40), though not over its Battle Stats or a
+ * piece's details, nor Leave raid's popup (./leave.css's 45).
+ */
 .tm-repeat-stop {
   position: absolute;
-  top: 25%;
+  top: 20%;
   left: 50%;
-  z-index: 3;
+  z-index: 41;
   translate: -50% -50%;
   white-space: nowrap;
 }
 
-.tm-repeat-stop[hidden] {
+.tm-repeat-stop[hidden],
+body:has(.tm-result :is(.tm-loot, .tm-stats-pop):not([hidden])) .tm-repeat-stop {
   display: none;
 }
 
