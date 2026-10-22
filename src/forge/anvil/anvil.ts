@@ -1,5 +1,6 @@
 import { type ArmoryCopy, el, forgePlan, type GearCopy, heroGear, type Plan, rich } from '../../shared/items';
 import { working } from '../../shared/ui';
+import { points } from '../../shared/util';
 import { card } from './card';
 import { compare, type EffectRow } from './compare';
 import { balance, choosing, copyById, type ForgeContext } from '../context';
@@ -61,12 +62,23 @@ export function showTarget(ctx: ForgeContext, copy: ArmoryCopy | undefined): voi
   ui.target.title = copy ? 'Take it off the anvil' : '';
 }
 
-/** What the copy on the anvil does now, against what it will do. */
+/** What the copy on the anvil does now (its main stat first), against what it will do. */
 function renderEffects(ctx: ForgeContext, copy: GearCopy | undefined, plan: Plan | null): void {
   ctx.ui.effects.textContent = '';
   if (!copy || !plan) return;
   let rows: EffectRow[];
   if (plan.kind === 'refine' && plan.refine.after) rows = compare(copy.effects, plan.refine.after);
   else rows = copy.effects.map((line) => ({ line, changes: [], state: 'same' }));
-  fillEffects(ctx.ui.effects, rows);
+  const main = mainRow(copy, plan);
+  fillEffects(ctx.ui.effects, main ? [main, ...rows] : rows);
+}
+
+/** Its main stat's row (a unique weapon's ATK, a unique treasure's HP: higher with its stars), as it will be after a refine; null: none. */
+function mainRow(copy: GearCopy, plan: Plan): EffectRow | null {
+  if (!copy.mainStat) return null;
+  const { name, value } = copy.mainStat;
+  const line = `**${name}** ${points(value)}`;
+  const after = plan.kind === 'refine' ? plan.refine.mainAfter : null;
+  if (!after || after.value === value) return { line, changes: [], state: 'same' };
+  return { line, changes: [{ from: points(value), to: points(after.value), at: 0 }], state: 'changed' };
 }
