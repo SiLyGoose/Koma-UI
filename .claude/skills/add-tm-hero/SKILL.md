@@ -86,6 +86,12 @@ as they are (`https://kingsraid.shodyra.com/static/images/<n>/`, curl with a bro
 - **The page:** with `yarn dev` running, `node tm-shots.mjs <id ...> --fight`. Look at `.shots/heroes.png` and at the
   fight screenshots. Things to catch:
   - **An orange or one-colour model:** its textures are the bundles' tinted copies (`python -I kr-tints.py --write <id>=<code>`).
+    It also looks in `Star05` and other `Star*` bundles, where Isolet's hair and hat were.
+  - **White eyes (or any part blank white):** its material got no picture. Either the colour half is missing (only
+    `…(AS).png` in its folder: take `…(RGB)` from the hero's bundles), or its file links the picture in a way three.js drops
+    (Priscilla's eyes). Name it in the model's `pictures`.
+  - **Something over its face:** a mesh the game keeps for its story scenes (Tanya's fox mask). Leave it out with the
+    model's `hidden`.
   - **Bald:** its `Hair_01` isn't in its parts.
   - **A weapon at its feet:** it belongs in a hand (`left`/`right`).
   - **Lying down or twisted:** its clips are another skin's. Miruru's rig starts at `Bone_Bip`, and kr-anims.py
