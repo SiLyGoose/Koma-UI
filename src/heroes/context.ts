@@ -64,9 +64,11 @@ export interface HeroesUi {
   salvage: HTMLButtonElement;
   sellCancel: HTMLButtonElement;
   sellConfirm: HTMLDialogElement;
-  /** Picking copies to sell: Select shown and Include locked. */
+  /** Picking copies to sell: Select shown, By rule (its dialog: ./salvage-rule.ts) and Include locked. */
   sellTools: HTMLElement;
   sellShown: HTMLButtonElement;
+  sellRule: HTMLButtonElement;
+  salvageRule: HTMLDialogElement;
   sellLocked: HTMLInputElement;
   stats: HTMLElement;
   statsTitle: HTMLElement;
@@ -173,6 +175,8 @@ export function createContext(root: HTMLElement, host: HeroesHost): HeroesContex
       sellConfirm: $<HTMLDialogElement>('sell-confirm'),
       sellTools: $('sell-tools'),
       sellShown: $<HTMLButtonElement>('sell-shown'),
+      sellRule: $<HTMLButtonElement>('sell-rule'),
+      salvageRule: $<HTMLDialogElement>('salvage-rule'),
       sellLocked: $<HTMLInputElement>('sell-locked'),
       stats: $('stats'),
       statsTitle: $('stats-title'),

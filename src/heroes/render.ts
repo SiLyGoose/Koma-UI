@@ -81,7 +81,8 @@ export function render(ctx: HeroesContext, act: HeroActions): void {
 
 /**
  * Sell and Cancel, and while picking copies to sell, Select shown (Unselect shown with every one shown that can be sold
- * picked) and Include locked (only with a locked one that could be sold).
+ * picked), By rule (with hero gear to salvage or a rule kept for drops: "· Auto" while one is) and Include locked (only
+ * with a locked one that could be sold).
  */
 function drawSale(ctx: HeroesContext): void {
   const { ui, view, selling } = ctx;
@@ -91,6 +92,11 @@ function drawSale(ctx: HeroesContext): void {
   const sellable = sellableShown(ctx);
   ui.sellShown.textContent = sellable.length > 0 && sellable.every((copy) => selling?.has(copy.id)) ? 'Unselect shown' : 'Select shown';
   ui.sellShown.disabled = sellable.length === 0 || ctx.busy !== null;
+  const auto = (view.autoSalvage ?? null) !== null;
+  ui.sellRule.hidden = view.autoSalvage === undefined || (!auto && !view.copies.some((copy) => copy.salvage !== undefined));
+  ui.sellRule.textContent = auto ? 'By rule · Auto' : 'By rule';
+  ui.sellRule.title = auto ? 'Drops your rule takes are salvaged as they drop' : '';
+  ui.sellRule.disabled = ctx.busy !== null;
   ui.sellLocked.checked = ctx.sellLocked;
   (ui.sellLocked.parentElement as HTMLElement).hidden = !view.copies.some((copy) => typeof copy.sellLocked === 'number');
 }

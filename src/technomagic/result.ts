@@ -1,4 +1,4 @@
-import { coin, points } from '../shared/util';
+import { coin, dust, points } from '../shared/util';
 import { GEM_EMOJI } from '../forge/anvil/gem';
 import { built } from '../shared/built';
 import { el, itemDetailsClosed, itemFace, itemIcons, kindName, mainStatLine, shownName, tmSections, rich } from '../shared/items';
@@ -259,10 +259,19 @@ export function makeResult(root: HTMLElement): Result {
       if (drop.potentials.length === 0) list.append(el('li', 'muted', 'No potentials.'));
       body.append(list, ...tmSections({ setEffect: drop.setEffect, additional: drop.skill }));
     }
-    const note = el('p', 'tm-loot-note', raid ? 'Wear it yourself on the Gear page, or put it on a hero on the ' : 'Only heroes wear TechnoMagic gear: put it on one on the ');
+    const salvaged = drop.salvaged !== undefined;
+    const note = el(
+      'p',
+      'tm-loot-note',
+      salvaged
+        ? `Salvaged as it dropped, for ${points(drop.salvaged ?? 0)} komaDust: your salvage rule takes it (Sell, then By rule, on the `
+        : raid
+          ? 'Wear it yourself on the Gear page, or put it on a hero on the '
+          : 'Only heroes wear TechnoMagic gear: put it on one on the ',
+    );
     const link = el('a', '', 'Heroes page');
     link.href = '/heroes/';
-    note.append(link, '.');
+    note.append(link, salvaged ? ').' : '.');
     body.append(note);
 
     box.append(bar, top, body);
@@ -271,12 +280,24 @@ export function makeResult(root: HTMLElement): Result {
     close.focus();
   }
 
-  /** A piece found, as a tile: its card and its name under it, opening its details. */
+  /**
+   * A piece found, as a tile: its card and its name under it, opening its details. One salvaged as it dropped (their
+   * salvage rule's): its card greyed and stamped Salvaged, and the komaDust it gave under its name.
+   */
   function gearTile(drop: DropView, small = false): HTMLElement {
-    const tile = el('button', `tm-tile${small ? ' small' : ''}`);
+    const salvaged = drop.salvaged !== undefined;
+    const tile = el('button', `tm-tile${small ? ' small' : ''}${salvaged ? ' salvaged' : ''}`);
     tile.type = 'button';
-    tile.title = `${shownName(drop)}: see its details`;
-    tile.append(card(drop, '', raid), el('span', 'tm-tile-name', shownName(drop)));
+    tile.title = salvaged ? `${shownName(drop)}: salvaged for ${points(drop.salvaged ?? 0)} komaDust as it dropped` : `${shownName(drop)}: see its details`;
+    const face = card(drop, '', raid);
+    if (salvaged) face.append(el('span', 'tm-salvaged-stamp', 'Salvaged'));
+    const name = el('span', 'tm-tile-name', shownName(drop));
+    if (salvaged) {
+      const gave = el('span', 'tm-tile-dust', `+${points(drop.salvaged ?? 0)} `);
+      gave.append(dust('tm-dust', 'komaDust'));
+      name.append(gave);
+    }
+    tile.append(face, name);
     tile.addEventListener('click', () => openDetail(drop));
     return tile;
   }

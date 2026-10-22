@@ -4,6 +4,7 @@ import type { HeroesSold } from '../protocol/heroes';
 import { busyWith, dropdown, fillServers } from '../shared/ui';
 import { createContext, heroShown, mine, status, type HeroesContext, type HeroesHost, type HeroMember } from './context';
 import { perkTip, render, renderPick, renderSearch, sellableShown, type HeroActions } from './render';
+import { salvageRuleDialog } from './salvage-rule';
 
 /** How long the search waits for typing to stop before the armory is drawn again. */
 const SEARCH_MS = 120;
@@ -385,10 +386,26 @@ function wire(ctx: HeroesContext, act: HeroActions): () => void {
     renderPick(ctx, act);
   });
   wireSaleDialog(ui.sellConfirm, (salvage) => void sell(ctx, act, salvage));
+  // By rule: the hero gear a salvage rule takes, picked (with those picked already); or the rule kept for their drops.
+  const rules = salvageRuleDialog(ui.salvageRule, ctx, {
+    pick(ids) {
+      const { selling } = ctx;
+      if (!selling) return;
+      for (const id of ids) selling.add(id);
+      ctx.picked = ids.at(-1) ?? ctx.picked;
+      renderPick(ctx, act);
+    },
+    save(rule) {
+      void change(ctx, act, 'auto-salvage', '/api/heroes/auto-salvage', { rule }, 'Could not save that rule. Try again.').then((done) => {
+        if (done) status(ctx, rule ? 'Drops your rule takes are salvaged as they drop, from now on.' : 'Drops are all kept again.');
+      });
+    },
+  });
+  ui.sellRule.addEventListener('click', () => rules.open());
 
   // Escape closes the picked copy, else stops picking copies to sell (the sale's confirmation closes itself).
   const onKey = (event: KeyboardEvent): void => {
-    if (event.key !== 'Escape' || ui.sellConfirm.open) return;
+    if (event.key !== 'Escape' || ui.sellConfirm.open || ui.salvageRule.open) return;
     if (ctx.picked) {
       itemDetailsClosed();
       ctx.picked = null;
@@ -401,6 +418,7 @@ function wire(ctx: HeroesContext, act: HeroActions): () => void {
     clearTimeout(typing);
     document.removeEventListener('keydown', onKey);
     if (ui.sellConfirm.open) ui.sellConfirm.close();
+    if (ui.salvageRule.open) ui.salvageRule.close();
     serverPicker.destroy();
     memberPicker.destroy();
     ui.filter.destroy();

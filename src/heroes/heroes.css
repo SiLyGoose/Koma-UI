@@ -1290,6 +1290,69 @@ button.ascend-cost:focus-visible {
   font-weight: 600;
 }
 
+/*
+ * Salvage by rule (salvage-rule.ts): the sale's dialog, wider, its choices as the Filter's (armory-filter.css) in a
+ * scrolling column, then what it picks, keeping it for drops, and its buttons. (Both classes: over .sell-confirm's own,
+ * whichever of their sheets comes last.)
+ */
+.sell-confirm.salvage-rule {
+  width: min(420px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  text-align: left;
+}
+
+.salvage-rule h3 {
+  text-align: center;
+}
+
+.salvage-rule-groups {
+  display: grid;
+  gap: 12px;
+  max-height: 46dvh;
+  overflow-y: auto;
+}
+
+.salvage-rule .stars .armory-filter-options {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.salvage-rule-count {
+  margin: 14px 0 0;
+  color: var(--gold);
+  font-size: 16px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.salvage-rule-count .coin {
+  width: 18px;
+  height: 18px;
+  vertical-align: -3px;
+}
+
+.salvage-rule-auto {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.salvage-rule-auto input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--sky);
+  cursor: pointer;
+}
+
+.salvage-rule .sell-confirm-note {
+  text-align: center;
+}
+
 /* A rune in the piece's sockets, over their own (render.ts's renderRunes): tinted gold, with Unequip in place of a count. */
 .rune-row.equipped {
   background: rgb(240 200 110 / 16%);

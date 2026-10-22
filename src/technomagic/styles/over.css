@@ -86,6 +86,39 @@
   overflow-wrap: anywhere;
 }
 
+/* A piece salvaged as it dropped (their salvage rule's): its card greyed, stamped across, and the komaDust it gave under its name. */
+.tm-tile.salvaged .item > :not(.tm-salvaged-stamp) {
+  filter: grayscale(0.85);
+  opacity: 0.6;
+}
+
+.tm-salvaged-stamp {
+  position: absolute;
+  inset: 50% 0 auto;
+  z-index: 2;
+  padding: 2px 0;
+  background: rgb(20 16 10 / 78%);
+  color: var(--gold);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-align: center;
+  text-transform: uppercase;
+  translate: 0 -50%;
+}
+
+.tm-tile-dust {
+  display: block;
+  color: var(--gold);
+  white-space: nowrap;
+}
+
+.tm-dust {
+  width: 14px;
+  height: 14px;
+  vertical-align: -3px;
+}
+
 /* The points: the coin on the armory's dark plaque, edged in gold, the amount under it. */
 .tm-tile-points {
   cursor: default;
