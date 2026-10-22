@@ -816,7 +816,7 @@ async function start(): Promise<void> {
       const bodies = await bodiesFor(start.heroes);
       if (lock !== mine) return;
       if (!bodies) return void showMessage('The models are missing', 'A hero in this fight isn’t on this computer.');
-      const sim = makeSim({ boss: bossIn(def, start.mode), heroes: start.heroes.map((hero, i) => ({ def: (bodies[i] as Entrant).def, skin: hero.skin, gear: hero.gear, set: hero.set, uw: hero.uw ?? null, ut: hero.ut ?? null, skills: hero.skills, perks: hero.perks, sub: hero.sub === true })), seed: start.seed, stage: start.stage, raid: true, solo: start.solo });
+      const sim = makeSim({ boss: bossIn(def, start.mode), heroes: start.heroes.map((hero, i) => ({ def: (bodies[i] as Entrant).def, skin: hero.skin, gear: hero.gear, set: hero.set, uw: hero.uw ?? null, ut: hero.ut ?? null, artifact: hero.artifact ?? null, skills: hero.skills, perks: hero.perks, sub: hero.sub === true })), seed: start.seed, stage: start.stage, raid: true, solo: start.solo });
       const you = state?.you;
       // (Not the Sub Team's: they fight on Auto, with no cards.)
       const ours = (i: number): boolean => start.heroes[i]?.owner === you && start.heroes[i]?.sub !== true;
