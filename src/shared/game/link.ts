@@ -8,24 +8,45 @@ import type { LinkRefresh } from '../../protocol/site';
  * the page can be pressed). The TechnoMagic Raid's has m=single when it was opened single player (a room
  * of the player's own) from the front page.
  *
+ * The token is taken out of the address as the page opens (the rest stays), so the address shown, copied or shared
+ * never carries it: the page keeps it in the tab's sessionStorage, by its path, with its refresh token, and a reload
+ * (or going back to it) opens with what's kept there.
+ *
  * Its token lasts a couple of hours (the bot's MINE_WEB.linkTtlMs), so an open page keeps it good (freshLink): as it
  * opens it trades it for a refresh token (POST /api/link/refresh), then that for a new token every so often and before
- * it connects again, so a page left open for long (its player away, the computer asleep) carries on. The newest token
- * goes in the address (a reload opens with it), and the refresh token in the tab's sessionStorage with the token it
- * goes with (a reload of this link only).
+ * it connects again, so a page left open for long (its player away, the computer asleep) carries on.
  */
 
-const params = new URLSearchParams(location.hash.slice(1));
-const watchToken = params.get('w');
+/** What the tab keeps of this page's link (sessionStorage): its token as it is now, whether it watches, and its refresh token. */
+interface Kept {
+  token: string;
+  watch: boolean;
+  refresh: string | null;
+}
 
-export const watching = watchToken !== null;
+const KEPT_KEY = `koma.link:${location.pathname}`;
+
+function readKept(): Kept | null {
+  try {
+    const kept = JSON.parse(store.get(sessionStorage, KEPT_KEY) ?? 'null') as Partial<Kept> | null;
+    if (!kept || typeof kept.token !== 'string' || typeof kept.watch !== 'boolean') return null;
+    return { token: kept.token, watch: kept.watch, refresh: typeof kept.refresh === 'string' ? kept.refresh : null };
+  } catch {
+    return null; // (Nothing kept, or not readable.)
+  }
+}
+
+const params = new URLSearchParams(location.hash.slice(1));
+/** The link's token in the address: just opened from Discord or the front page (null: a reload, it was taken out). */
+const given = params.get('t') ?? params.get('w');
+const kept = given === null ? readKept() : null;
+
+export const watching = given !== null ? params.get('t') === null : (kept?.watch ?? false);
 /** The token the page opened with (null: none): whether it has a link at all. The one to use is linkToken(). */
-export const token = params.get('t') ?? watchToken;
+export const token = given ?? kept?.token ?? null;
 export const server = params.get('s');
 export const single = params.get('m') === 'single';
 
-/** Where the refresh token is kept (sessionStorage), with the token it goes with. */
-const REFRESH_KEY = 'koma.linkRefresh';
 /** A token is renewed once it has less than this left (the bot's last two hours: every half hour or so). */
 const RENEW_BEFORE_MS = 90 * 60_000;
 /** How often an open page looks whether it's time. */
@@ -34,7 +55,7 @@ const CHECK_MS = 60_000;
 const ASK_MS = 8000;
 
 let current = token;
-let refresh: string | null = null;
+let refresh: string | null = kept?.refresh ?? null;
 /** When the token runs out (Date.now(), the page's own clock: it goes on while the computer sleeps), as far as the page knows: 0, not known (renewed at once). */
 let runsOut = 0;
 /** Neither the token nor the refresh token is taken any more: nothing more to try (its hello says the link has run out). */
@@ -44,11 +65,18 @@ let renewing: Promise<void> | null = null;
 /** The link's token as it is now (renewed as it goes: freshLink); empty with no link. */
 export const linkToken = (): string => current ?? '';
 
-try {
-  const saved = JSON.parse(store.get(sessionStorage, REFRESH_KEY) ?? 'null') as { link?: unknown; refresh?: unknown } | null;
-  if (saved && saved.link === current && typeof saved.refresh === 'string') refresh = saved.refresh;
-} catch {
-  // (Nothing kept, or not readable: the link's own token is traded.)
+/** Keeps the link as it is now, for a reload. */
+const keep = (): void => {
+  if (current) store.set(sessionStorage, KEPT_KEY, JSON.stringify({ token: current, watch: watching, refresh } satisfies Kept));
+};
+
+// Just opened: kept, and taken out of the address.
+if (given !== null) {
+  keep();
+  params.delete('t');
+  params.delete('w');
+  const rest = params.toString();
+  history.replaceState(history.state, '', `${location.pathname}${location.search}${rest ? `#${rest}` : ''}`);
 }
 
 /**
@@ -79,9 +107,7 @@ async function renew(): Promise<void> {
     current = got.token;
     refresh = got.refresh;
     runsOut = Date.now() + got.lastsMs;
-    params.set(watching ? 'w' : 't', got.token);
-    history.replaceState(history.state, '', `${location.pathname}${location.search}#${params}`);
-    store.set(sessionStorage, REFRESH_KEY, JSON.stringify({ link: got.token, refresh: got.refresh }));
+    keep();
     return;
   }
   dead = true;
