@@ -1193,7 +1193,8 @@ button.ascend-cost:focus-visible {
   width: 68px;
 }
 
-.heroes-page .ut-equipped .art {
+/* (Only the empty slot's mark: a picture fills its tile, as full-pictures.css has it.) */
+.heroes-page .ut-equipped .art:not(.full) {
   width: 64%;
   height: 64%;
 }
