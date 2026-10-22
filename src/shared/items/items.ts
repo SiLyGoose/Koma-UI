@@ -335,7 +335,7 @@ export function runeMarks(runes: readonly SocketRune[] | undefined): HTMLElement
  * TechnoMagic piece's with its class (`itemClass`, or `class` as the heroes page has it), a dragon set's piece's its tier, none for
  * an artifact, and its rune sockets (runeMarks). `lazy`: a card in a long list (art).
  */
-export function itemFace(copy: { level: number; maxLevel?: number; itemId: string; slot: Slot; stars: number; heroOnly?: boolean; uniqueWeapon?: string | null; uniqueTreasure?: Treasure; itemClass?: string | null; class?: string | null; runes?: readonly SocketRune[] }, lazy = false): HTMLElement[] {
+export function itemFace(copy: { level: number; maxLevel?: number; itemId: string; slot: Slot; stars: number; heroOnly?: boolean; uniqueWeapon?: string | null; uniqueTreasure?: Treasure; itemClass?: string | null; class?: string | null; part?: string | null; runes?: readonly SocketRune[] }, lazy = false): HTMLElement[] {
   const picture = art(copy.itemId, copy.slot, lazy);
   const level = hasLevels(copy) ? [krStars(copy.level, copy.level, isTmPiece(copy.itemId))] : [];
   if (heroGear(copy)) return [heroFrame(copy), picture, ...heroMarks(copy), ...runeMarks(copy.runes), ...level];
@@ -351,6 +351,21 @@ export function heroMarks(copy: { itemId: string; uniqueWeapon?: string | null; 
   if (copy.part === 'artifact') return [dragonTierMark(10)];
   const tier = dragonTier(copy.itemId);
   return tier === null ? [] : [dragonTierMark(tier)];
+}
+
+/**
+ * An item's tier where a page says it beside its name (a pull, a drop, a pull's history row): a hero's gear's as its
+ * card's marks have it (heroMarks: T10 for a unique weapon or treasure or an artifact, TM for a TechnoMagic piece, a dragon
+ * set's piece its own; null for any other), the members' own gear's T1 to T4 (tierMark). A hero's gear is one the bot says
+ * is (heroGear) or one with a hero's part.
+ */
+export function tierLabel(item: { itemId: string; stars: number; heroOnly?: boolean; uniqueWeapon?: string | null; uniqueTreasure?: Treasure; part?: string | null }): HTMLElement | null {
+  if (!heroGear(item) && !item.part) return tierMark(item.stars);
+  if (item.uniqueWeapon || item.uniqueTreasure) return uniqueTier();
+  if (item.part === 'artifact') return dragonTierMark(10);
+  if (isTmPiece(item.itemId)) return tmTier();
+  const tier = dragonTier(item.itemId);
+  return tier === null ? null : dragonTierMark(tier);
 }
 
 /**

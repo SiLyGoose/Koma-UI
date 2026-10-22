@@ -1,7 +1,7 @@
 import { coin, dust, points } from '../shared/util';
 import { GEM_EMOJI } from '../forge/anvil/gem';
 import { built } from '../shared/built';
-import { el, itemDetailsClosed, itemFace, itemIcons, kindName, mainStatLine, shownName, tmSections, rich } from '../shared/items';
+import { dragonTier, el, isTmPiece, itemDetailsClosed, itemFace, itemIcons, kindName, mainStatLine, shownName, tmSections, rich } from '../shared/items';
 import { ESSENCE_NAME, type EssenceId } from '../protocol/heroes';
 import type { DropView, RaidKind } from '../protocol/technomagic';
 import { niceScale } from '../raid/result/nice-scale';
@@ -110,13 +110,23 @@ export interface Result {
 
 const className = (id: string): string => `${id[0]?.toUpperCase()}${id.slice(1)}`;
 
-/** A piece of gear's card, as the armories draw TechnoMagic gear (never refined: no rank), or (`raid`) a raid item. */
+/** Whether a drop is a hero's gear: all of the TechnoMagic Raid's, and the Dragon Raid's that are a hero's part (its others are raid items). */
+const heroDrop = (drop: DropView, raid: boolean): boolean => !raid || drop.part !== null;
+
+/** A hero's gear's kind as its details say it: its tier (TechnoMagic, or a dragon set's piece's or an artifact's), then what it is. */
+function heroKind(drop: DropView): string {
+  const tier = isTmPiece(drop.itemId) ? 'TechnoMagic' : drop.part === 'artifact' ? 'T10' : dragonTier(drop.itemId);
+  return `${typeof tier === 'number' ? `T${tier}` : (tier ?? '')} ${kindName(drop)}`.trim();
+}
+
+/** A piece of gear's card, as the Heroes page draws a hero's gear (never refined: no rank), or (`raid`) the Dragon Raid's raid item. */
 function card(drop: DropView, extra = '', raid = false): HTMLElement {
   const face = el('span', `item ${extra}`.trim());
   face.dataset.stars = String(drop.stars);
   // (King's Raid's hero gear: its icon.)
   if (drop.icon) itemIcons.set(drop.itemId, drop.icon);
-  face.append(...itemFace({ level: 1, maxLevel: raid ? 5 : 1, itemId: drop.itemId, slot: drop.slot, stars: drop.stars, heroOnly: !raid, itemClass: drop.itemClass }));
+  const hero = heroDrop(drop, raid);
+  face.append(...itemFace({ level: 1, maxLevel: hero ? 1 : 5, itemId: drop.itemId, slot: drop.slot, stars: drop.stars, heroOnly: hero, itemClass: drop.itemClass, part: drop.part }));
   return face;
 }
 
@@ -245,14 +255,15 @@ export function makeResult(root: HTMLElement): Result {
     const top = el('div', 'tm-loot-top');
     const info = el('div', 'tm-loot-info');
     // (Never refined, so no rank: its main stat in its place, King's Raid's at 5★; none for a treasure.)
-    info.append(el('p', 'tm-loot-kind', `${raid ? `T${drop.stars} Raid` : 'TechnoMagic'} ${kindName(drop)}`), ...(drop.mainStat ? [mainStatLine(drop.mainStat, 'tm-loot-main')] : []));
+    const hero = heroDrop(drop, raid);
+    info.append(el('p', 'tm-loot-kind', !raid ? `TechnoMagic ${kindName(drop)}` : hero ? heroKind(drop) : `T${drop.stars} Raid ${kindName(drop)}`), ...(drop.mainStat ? [mainStatLine(drop.mainStat, 'tm-loot-main')] : []));
     if (drop.itemClass) info.append(el('p', 'tm-loot-class', `${className(drop.itemClass)} only`));
     top.append(card(drop, 'tm-loot-face', raid), info);
 
     const body = el('div', 'tm-loot-body');
     if (drop.description) body.append(el('p', 'detail-desc', drop.description));
     // (A raid item has no potentials, set or additional skill: what it does is its description.)
-    if (!raid) {
+    if (hero) {
       body.append(el('p', 'tm-loot-label', 'Potentials'));
       const list = el('ul', 'detail-effects');
       for (const line of drop.potentials) list.appendChild(el('li')).append(rich(line));
@@ -265,9 +276,11 @@ export function makeResult(root: HTMLElement): Result {
       'tm-loot-note',
       salvaged
         ? `Salvaged as it dropped, for ${points(drop.salvaged ?? 0)} komaDust: your salvage rule takes it (Sell, then By rule, on the `
-        : raid
+        : !hero
           ? 'Wear it yourself on the Gear page, or put it on a hero on the '
-          : 'Only heroes wear TechnoMagic gear: put it on one on the ',
+          : raid
+            ? 'Only heroes wear it: put it on one on the '
+            : 'Only heroes wear TechnoMagic gear: put it on one on the ',
     );
     const link = el('a', '', 'Heroes page');
     link.href = '/heroes/';

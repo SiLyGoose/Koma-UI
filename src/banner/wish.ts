@@ -1,4 +1,4 @@
-import { art, el, heroGear, heroMarks, isTmPiece, itemIcons, krStars, shownName, SLOT_NAME, tierMark, uniqueTier } from '../shared/items';
+import { art, el, heroFrame, heroGear, heroMarks, isTmPiece, itemIcons, krStars, shownName, SLOT_NAME, tierLabel, tierMark } from '../shared/items';
 import { sleep } from '../shared/util';
 import type { ApiResult } from '../site/session';
 import type { BannerContext } from './context';
@@ -204,10 +204,10 @@ function reveal(pull: BannerPull): HTMLElement {
   burst.append(el('span', 'wish-rays'), el('span', 'wish-rays back'), el('span', 'wish-core'), card(pull));
 
   const text = el('div', 'wish-text');
-  // (A unique weapon's or treasure's tier is its own, in place of its stars.)
-  const row = pull.uniqueWeapon || pull.uniqueTreasure ? uniqueTier() : tierMark(pull.stars);
-  [...row.children].forEach((star, i) => (star as HTMLElement).style.setProperty('--i', String(i)));
-  text.append(el('p', 'wish-slot', SLOT_NAME[pull.slot]), el('h2', 'wish-name', shownName(pull)), row);
+  // (A hero's gear's tier as the Heroes page's card says it (none for a piece with no tier of its own), not its stars.)
+  const row = tierLabel(pull);
+  if (row) [...row.children].forEach((star, i) => (star as HTMLElement).style.setProperty('--i', String(i)));
+  text.append(el('p', 'wish-slot', SLOT_NAME[pull.slot]), el('h2', 'wish-name', shownName(pull)), ...(row ? [row] : []));
   text.append(pull.isNew ? el('p', 'wish-new', 'New!') : el('p', 'wish-owned', `You have ${pull.count}`));
   if (pull.borrowed !== null) text.append(el('p', 'wish-note', `Made for someone else: it works at ${Math.round(pull.borrowed * 100)}% for you.`));
   if (pull.uniqueWeapon) text.append(el('p', 'wish-note', `A unique weapon: only its own hero wields it. Put it on them on the Heroes page.`));
@@ -239,8 +239,8 @@ function summary(pulls: readonly BannerPull[]): HTMLElement {
 function card(pull: BannerPull): HTMLElement {
   const face = el('span', 'item wish-card');
   face.dataset.stars = String(pull.stars);
-  // (A hero's gear: its marks and its stars, King's Raid's.)
-  if (heroGear(pull)) face.append(art(pull.itemId, pull.slot), ...heroMarks(pull), krStars(pull.level, pull.level, isTmPiece(pull.itemId)));
+  // (A hero's gear: its frame, its marks and its stars, King's Raid's, as the Heroes page draws it.)
+  if (heroGear(pull)) face.append(heroFrame(pull), art(pull.itemId, pull.slot), ...heroMarks(pull), krStars(pull.level, pull.level, isTmPiece(pull.itemId)));
   else face.append(art(pull.itemId, pull.slot), tierMark(pull.stars), el('span', 'item-curl'));
   return face;
 }

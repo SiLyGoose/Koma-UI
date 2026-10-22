@@ -1,5 +1,5 @@
 import { coin, points } from '../shared/util';
-import { art, el, kindName, rich, tierMark, uniqueTier, utMarks, utTier, uwMarks, uwTier } from '../shared/items';
+import { art, el, kindName, rich, tierLabel, tierMark, uniqueTier, utMarks, utTier, uwMarks, uwTier } from '../shared/items';
 import { working } from '../shared/ui';
 import { timeLeft, type Banner, type Featured } from './banners';
 import { canAfford, price, type BannerContext } from './context';
@@ -133,7 +133,9 @@ function historyRow(pull: PullRecord): HTMLElement {
   words.append(el('span', 'banner-history-item', pull.name));
   if (pull.bonus) words.append(el('small', 'banner-history-tag', 'Bonus'));
   if (pull.removed) words.append(el('small', 'banner-history-tag', 'Gone'));
-  line.append(tierMark(pull.stars), words);
+  // (A hero's gear's as the Heroes page's card says it, not its stars.)
+  const tier = tierLabel(pull);
+  line.append(...(tier ? [tier] : []), words);
   name.append(line);
   row.append(el('td', 'banner-history-kind', kind), name, pulledAt(pull.at));
   return row;
