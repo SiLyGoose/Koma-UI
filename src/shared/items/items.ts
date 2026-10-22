@@ -424,14 +424,14 @@ export const uniqueWeaponEffect = (lines: readonly string[]): string[] =>
   lines.filter((line) => /^.+? only, ★\d+: /.test(line)).map((line) => line.replace(/^.+? only, ★\d+: /, ''));
 
 /**
- * What a unique treasure gives as its hero's main treasure, set apart as a TechnoMagic copy's effects are: lit while it is
- * (`on`), greyed while it isn't. `line`: how each line is drawn (Discord's way, rich, unless the page says).
+ * A unique treasure's options, under its Unique Effect (what it gives as the main treasure, in the place a unique weapon's
+ * is): headed and listed as an item's effects are (showDetail's).
  */
-export function treasureSection(main: readonly string[], on?: boolean, line: (text: string) => Node = rich): HTMLElement[] {
-  if (main.length === 0) return [];
+export function optionsSection(options: readonly string[]): HTMLElement[] {
+  if (options.length === 0) return [];
   const list = el('ul', 'detail-effects');
-  for (const text of main) list.appendChild(el('li')).append(line(text));
-  return [effectSection('Main Treasure:', list, on)];
+  for (const text of options) list.appendChild(el('li')).append(rich(text));
+  return [el('p', 'detail-label detail-label-next', 'Options'), list];
 }
 
 /**

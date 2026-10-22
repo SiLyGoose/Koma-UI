@@ -1,4 +1,4 @@
-import { art, dragonTierMark, effectSection, el, itemDetailsClosed, kindName, mainStatText, rich, tierMark, tmTier, treasureParts, treasureSection, uniqueTier } from '../shared/items';
+import { art, dragonTierMark, effectSection, el, itemDetailsClosed, kindName, mainStatText, rich, tierMark, tmTier, treasureParts, uniqueTier } from '../shared/items';
 import { skillText } from '../shared/heroes';
 import { go } from '../site/nav';
 import { SKILLS } from '../technomagic/sim/skills';
@@ -144,18 +144,20 @@ export function renderDetail(ctx: DatabankContext): void {
   }
 
   const lines = item.effects[level - 1] ?? [];
+  // (A unique treasure's: what it gives as its hero's main treasure in its effects' place, as a unique weapon's is, then
+  // the options a copy can roll, folded away under a line.)
+  const ut = item.uniqueTreasure ? treasureParts(lines) : null;
+  const shown = ut ? ut.main : lines;
   const effects = el('ul', 'detail-effects');
-  for (const line of lines) effects.appendChild(el('li')).append(effectLine(line));
-  if (lines.length === 0) effects.append(el('li', 'muted', 'No effects.'));
+  for (const line of shown) effects.appendChild(el('li')).append(effectLine(line));
+  if (shown.length === 0) effects.append(el('li', 'muted', 'No effects.'));
 
   // (TechnoMagic gear's effects are the potentials a copy can roll: folded away under a line, as its additional effect is.)
   const pool = tm && lines.length > 1;
-  // (A unique treasure's: the options a copy can roll, folded away the same, then what it gives as its hero's main treasure.)
-  const ut = item.uniqueTreasure ? treasureParts(lines) : null;
   // (TechnoMagic gear's main stat, in place of the level picker: a weapon's, or an armor's two, whichever its copy rolls.)
   const main = item.mainStats?.length ? [effectSection('Main Stat:', mainStatText(item.mainStats))] : [];
-  ui.detailBody.append(head, el('p', 'detail-desc', item.description), ...(tm ? main : [levels]), ut ? effectSection('Potentials:', potentialList(ut.options)) : pool ? effectSection('Potentials:', potentialList(lines)) : effects);
-  if (ut) ui.detailBody.append(...treasureSection(ut.main, undefined, effectLine));
+  ui.detailBody.append(head, el('p', 'detail-desc', item.description), ...(tm ? main : [levels]), pool ? effectSection('Potentials:', potentialList(lines)) : effects);
+  if (ut) ui.detailBody.append(effectSection('Potentials:', potentialList(ut.options)));
   // TechnoMagic gear: its set effect, then its additional effect (one of them, at random), each apart under its effects (the potentials a copy can roll).
   if (item.set?.pieces && item.set.effect) ui.detailBody.append(effectSection(`${item.set.pieces}-set effect:`, item.set.effect));
   if (tm) ui.detailBody.append(effectSection('Additional Effect:', skillList()));

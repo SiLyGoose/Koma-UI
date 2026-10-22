@@ -1,4 +1,4 @@
-import { art, drawSell, el, forgeLink, hasLevels, heroFrame, heroMarks, isTmPiece, itemDetailsClosed, itemFace, krStars, levelLabel, itemPicked, lockToggle, priceOf, pruneSale, replacesNote, rich, runeMarks, sellsFor, showDetail, shownName, statBlocks, tmMarks, tmSections, treasureParts, treasureSection, uniqueWeaponEffect, utMarks, uwMarks } from '../shared/items';
+import { art, drawSell, el, forgeLink, hasLevels, heroFrame, heroMarks, isTmPiece, itemDetailsClosed, itemFace, krStars, levelLabel, itemPicked, lockToggle, optionsSection, priceOf, pruneSale, replacesNote, rich, runeMarks, sellsFor, showDetail, shownName, statBlocks, tmMarks, tmSections, treasureParts, uniqueWeaponEffect, utMarks, uwMarks } from '../shared/items';
 import { classBadge, className, FACE, HERO_PART_NAME, HERO_SLOT_KIND, HERO_SLOT_PART, HERO_SLOT_TYPE, HERO_SLOTS, heroCut, heroPicture, skillText, STAGE_ZOOM, type HeroView, type HeroCopy, type HeroSlot } from '../shared/heroes';
 import { built } from '../shared/built';
 import { working } from '../shared/ui';
@@ -443,6 +443,7 @@ function renderDetail(ctx: HeroesContext, act: HeroActions): void {
   const owner = ownerId ? view.heroes.find((one) => one.id === ownerId) : undefined;
   if (copy.uniqueWeapon && !wieldable(copy, hero)) notes.push(el('p', 'detail-note warn', `${owner?.name ?? 'Another hero'}’s unique weapon: only they can wield it.`));
   if (copy.uniqueTreasure && !wieldable(copy, hero)) notes.push(el('p', 'detail-note warn', `${owner?.name ?? 'Another hero'}’s unique treasure: only they can wear it.`));
+  if (copy.uniqueTreasure) notes.push(el('p', 'detail-note', 'Its Unique Effect works only as its hero’s Main Treasure; as a Sub Treasure, only its Options do.'));
 
   const worn = slotOf(hero, copy.id);
   // Where Equip would put it (none: it's worn, or can't be equipped here), for its set's bonuses it would turn on.
@@ -512,23 +513,24 @@ function renderDetail(ctx: HeroesContext, act: HeroActions): void {
     }
   }
 
-  // (A unique treasure: its options as its effects, and what it gives as the main treasure apart, lit while it is this hero's.)
+  // (A unique treasure: what it gives as the main treasure as its Unique Effect, as a unique weapon's is, greyed out while
+  // it is a sub treasure; its options under it.)
   const ut = copy.uniqueTreasure ? treasureParts(copy.effects) : null;
   // (A unique weapon: its own effect alone, as its Unique Effect; its runes' are in its Runes, below.)
   const uw = copy.uniqueWeapon ? uniqueWeaponEffect(copy.effects) : null;
   // (Any other: its runes' lines left out of what it does on a hero too, its Runes saying them.)
-  showDetail(ui.detail, { ...copy, effects: ut ? ut.options : uw ? uw : withoutRunes(copy) }, {
+  showDetail(ui.detail, { ...copy, effects: ut ? ut.main : uw ? uw : withoutRunes(copy) }, {
     onClose: () => {
       itemDetailsClosed();
       ctx.picked = null;
       ctx.runes = false;
       renderPick(ctx, act);
     },
-    label: ut ? 'Options' : uw ? 'Unique Effect' : 'On a hero',
+    label: ut || uw ? 'Unique Effect' : 'On a hero',
     none: NONE,
-    effectsOff: !fits,
+    effectsOff: !fits || (ut !== null && worn !== null && worn !== 'treasure'),
     sections: [
-      ...(ut ? treasureSection(ut.main, worn === 'treasure') : copy.krSet || copy.part === 'artifact' ? krSections(copy, fits, fits && equipInto ? setPieces(ctx, hero, copy, equipInto) : null) : tmSections(shown)),
+      ...(ut ? optionsSection(ut.options) : copy.krSet || copy.part === 'artifact' ? krSections(copy, fits, fits && equipInto ? setPieces(ctx, hero, copy, equipInto) : null) : tmSections(shown)),
       ...runeSection(copy),
     ],
     notes,

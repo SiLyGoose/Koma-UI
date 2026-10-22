@@ -193,6 +193,11 @@
   text-transform: uppercase;
 }
 
+/* A heading after another's list (a unique treasure's Options, under its Unique Effect): as far from it as a Runes heading is. */
+.detail-label.detail-label-next {
+  margin-top: 10px;
+}
+
 /* Under the effects, spaced off from them: the copy equipping it would take off. */
 .detail-replaces {
   margin: 28px 0 8px;

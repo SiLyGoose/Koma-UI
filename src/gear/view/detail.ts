@@ -1,4 +1,4 @@
-import { el, forgeLink, itemDetailsClosed, lockToggle, replacesNote, sellsFor, showDetail, tmSections, treasureParts, treasureSection, upgradeButton } from '../../shared/items';
+import { el, forgeLink, itemDetailsClosed, lockToggle, optionsSection, replacesNote, sellsFor, showDetail, tmSections, treasureParts, upgradeButton } from '../../shared/items';
 import { working } from '../../shared/ui';
 import { equip, setLocked, unequip } from './api';
 import { copyById, isWorn, mine, wearOnly, type GearContext } from './context';
@@ -53,13 +53,13 @@ export function renderDetail(ctx: GearContext): void {
   // (TechnoMagic gear's set effect and additional effect, each apart under them (its potentials are its effects): not
   // whether they are on, which goes by the hero wearing it, the heroes page's to say.)
   const { setEffect } = copy;
-  // (A unique treasure: its options as its effects, and what it gives as its hero's main treasure apart.)
+  // (A unique treasure: what it gives as its hero's main treasure as its Unique Effect, as a unique weapon's is; its options under it.)
   const ut = copy.uniqueTreasure ? treasureParts(copy.effects) : null;
-  showDetail(ui.detail, ut ? { ...copy, effects: ut.options } : copy, {
+  showDetail(ui.detail, ut ? { ...copy, effects: ut.main } : copy, {
     onClose: () => unpick(ctx),
-    label: ut ? 'Options' : 'Effects',
+    label: ut ? 'Unique Effect' : 'Effects',
     none: NONE,
-    sections: ut ? treasureSection(ut.main) : tmSections({ ...copy, setEffect: setEffect && { pieces: setEffect.pieces, text: setEffect.text }, additionalActive: undefined }),
+    sections: ut ? optionsSection(ut.options) : tmSections({ ...copy, setEffect: setEffect && { pieces: setEffect.pieces, text: setEffect.text }, additionalActive: undefined }),
     notes,
     // Lock: theirs to toggle on the gear page (not while picking what to sell); anyone else's, just shown when shut.
     corner: lockToggle(copy, ctx.busy, mine(ctx) && !wearOnly(ctx) && !selling ? (locked) => void setLocked(ctx, copy.id, locked) : null),
