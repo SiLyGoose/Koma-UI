@@ -61,6 +61,7 @@ export interface HeroesUi {
   runeList: HTMLElement;
   unequipAll: HTMLButtonElement;
   sell: HTMLButtonElement;
+  salvage: HTMLButtonElement;
   sellCancel: HTMLButtonElement;
   sellConfirm: HTMLDialogElement;
   /** Picking copies to sell: Select shown and Include locked. */
@@ -167,6 +168,7 @@ export function createContext(root: HTMLElement, host: HeroesHost): HeroesContex
       runeList: $('rune-list'),
       unequipAll: $<HTMLButtonElement>('unequip-all'),
       sell: $<HTMLButtonElement>('sell'),
+      salvage: $<HTMLButtonElement>('salvage'),
       sellCancel: $<HTMLButtonElement>('sell-cancel'),
       sellConfirm: $<HTMLDialogElement>('sell-confirm'),
       sellTools: $('sell-tools'),

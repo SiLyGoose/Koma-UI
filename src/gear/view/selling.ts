@@ -4,8 +4,8 @@ import type { GearContext } from './context';
 import { render } from './render';
 import type { GearSold } from '../../protocol/gear';
 
-/** How many copies are picked to sell, and what they sell for together (zeiucoins, and hero gear's gear powder). */
-export const sale = (ctx: GearContext): { count: number; total: number; powder: number; ids: string[] } => saleOf(ctx.gear?.copies ?? [], ctx.selling);
+/** How many copies are picked to sell, what they sell for together (zeiucoins), and what salvaging them gives (komaDust). */
+export const sale = (ctx: GearContext): ReturnType<typeof saleOf> => saleOf(ctx.gear?.copies ?? [], ctx.selling);
 
 /** Starts or stops picking copies to sell. */
 export function pickToSell(ctx: GearContext, on: boolean): void {
@@ -15,18 +15,18 @@ export function pickToSell(ctx: GearContext, on: boolean): void {
   render(ctx);
 }
 
-/** Asks to confirm selling what's picked. */
-export function confirmSale(ctx: GearContext): void {
-  const { count, total, powder } = sale(ctx);
-  askSale(ctx.ui.sellConfirm, count, total, 0, powder);
+/** Asks to confirm selling what's picked (`salvage`: salvaging it). */
+export function confirmSale(ctx: GearContext, salvage = false): void {
+  const { count, total, dust } = sale(ctx);
+  askSale(ctx.ui.sellConfirm, count, salvage ? dust : total, 0, salvage);
 }
 
-/** Sells what's picked, and says what it came to. */
-export async function sell(ctx: GearContext): Promise<void> {
+/** Sells what's picked (`salvage`: salvages it for komaDust), and says what it came to. */
+export async function sell(ctx: GearContext, salvage = false): Promise<void> {
   const copies = sale(ctx).ids;
   if (copies.length === 0) return;
-  const view = await change<GearSold>(ctx, 'sell', '/api/gear/sell', { copies }, 'Could not sell those. Try again.');
-  // It paid zeiucoins or gear powder (or whatever the refusal was, the balance may be old): the header's balance follows.
+  const view = await change<GearSold>(ctx, salvage ? 'salvage' : 'sell', '/api/gear/sell', { copies, ...(salvage && { salvage }) }, `Could not ${salvage ? 'salvage' : 'sell'} those. Try again.`);
+  // It paid zeiucoins or komaDust (or whatever the refusal was, the balance may be old): the header's balance follows.
   void ctx.host.loadMe(true);
   if (!view) return;
   ctx.selling = null;

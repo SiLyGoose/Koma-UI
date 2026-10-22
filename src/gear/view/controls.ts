@@ -56,8 +56,9 @@ export function wireControls(ctx: GearContext): () => void {
 
   ui.unequipAll.addEventListener('click', () => void unequipEverything(ctx));
   ui.sell.addEventListener('click', () => (ctx.selling ? confirmSale(ctx) : pickToSell(ctx, true)));
+  ui.salvage.addEventListener('click', () => confirmSale(ctx, true));
   ui.sellCancel.addEventListener('click', () => pickToSell(ctx, false));
-  wireSaleDialog(ui.sellConfirm, () => void sell(ctx));
+  wireSaleDialog(ui.sellConfirm, (salvage) => void sell(ctx, salvage));
   ui.loadoutButton.addEventListener('click', (event) => {
     event.stopPropagation();
     showMenu(ctx, ui.loadoutMenu.hidden);

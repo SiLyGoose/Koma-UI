@@ -86,7 +86,7 @@ export function render(ctx: HeroesContext, act: HeroActions): void {
 function drawSale(ctx: HeroesContext): void {
   const { ui, view, selling } = ctx;
   if (!view) return;
-  drawSell(ui.sell, ui.sellCancel, view.copies, selling, ctx.busy, canTrade(ctx), ctx.sellLocked);
+  drawSell(ui.sell, ui.salvage, ui.sellCancel, view.copies, selling, ctx.busy, canTrade(ctx), ctx.sellLocked);
   ui.sellTools.hidden = !canTrade(ctx) || selling === null;
   const sellable = sellableShown(ctx);
   ui.sellShown.textContent = sellable.length > 0 && sellable.every((copy) => selling?.has(copy.id)) ? 'Unselect shown' : 'Select shown';
@@ -899,5 +899,5 @@ function renderAscend(ctx: HeroesContext, act: HeroActions): void {
   working(action, ctx.busy, 'transcend');
   action.addEventListener('click', () => act.transcend());
   costs.append(action);
-  if (short) ui.ascend.append(el('p', 'ascend-note', 'The Dragon Raid gives hero essences, and komaGems the first time you beat a stage; the Weekly Boss gives both. Selling hero gear gives Gear Powder, which crafts komaGems in the Raid Gear shop.'));
+  if (short) ui.ascend.append(el('p', 'ascend-note', 'The Dragon Raid gives hero essences, and komaGems the first time you beat a stage; the Weekly Boss gives both. Salvaging hero gear gives komaDust, which crafts komaGems in the Raid Gear shop.'));
 }

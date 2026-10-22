@@ -1,5 +1,5 @@
 import { type Busy, doneMark, working } from '../ui';
-import { coin, points, powder } from '../util';
+import { coin, dust, points } from '../util';
 import { armoryOrder, type TmSort } from './gear';
 import { dragonTier, el, hasLevels, heroGear, itemFace, itemIcons, type ItemType, ITEM_TYPE_NAME, kindName, levelLabel, lockBadge, mainStatLine, rich, shownName, type Slot, type Stars, tierOf, typeOf } from './items';
 import type { HeroPart } from '../../protocol/heroes';
@@ -31,8 +31,8 @@ export interface ArmoryCopy {
   locked?: boolean;
   /** What selling it pays: null when it's never sold (worn, in a loadout, on a hero, locked); left out by a bot from before selling. */
   sell?: number | null;
-  /** Hero gear: what selling it pays is gear powder, not zeiucoins. */
-  sellPowder?: boolean;
+  /** Hero gear: the komaDust salvaging it gives, whenever it can be sold (sell, sellLocked); left out: it can't be salvaged. */
+  salvage?: number;
   /** What selling it pays though it's locked, where a sale can take locked ones too (the heroes page's): null or left out otherwise. */
   sellLocked?: number | null;
   effects: string[];
@@ -259,31 +259,31 @@ export const priceOf = (copy: ArmoryCopy, unlocked = false): number | null =>
 
 /**
  * How many copies are picked to sell (of those that still can be; locked ones too with `unlocked`), what they sell for
- * together (`total` zeiucoins, and hero gear's `powder`), their ids, and how many of them are locked.
+ * together (`total` zeiucoins), what salvaging them gives (`dust`, komaDust: hero gear's) and how many of them can be
+ * (`salvageable`), their ids, and how many of them are locked.
  */
-export function saleOf(copies: readonly ArmoryCopy[], selling: ReadonlySet<string> | null, unlocked = false): { count: number; total: number; powder: number; ids: string[]; locked: number } {
+export function saleOf(copies: readonly ArmoryCopy[], selling: ReadonlySet<string> | null, unlocked = false): { count: number; total: number; dust: number; salvageable: number; ids: string[]; locked: number } {
   const ids: string[] = [];
   let total = 0;
-  let powder = 0;
+  let dust = 0;
+  let salvageable = 0;
   let locked = 0;
   for (const copy of copies) {
     const price = priceOf(copy, unlocked);
     if (!selling?.has(copy.id) || price === null) continue;
     ids.push(copy.id);
-    if (copy.sellPowder) powder += price;
-    else total += price;
+    total += price;
+    if (copy.salvage !== undefined) {
+      dust += copy.salvage;
+      salvageable++;
+    }
     if (typeof copy.sell !== 'number') locked++;
   }
-  return { count: ids.length, total, powder, ids, locked };
+  return { count: ids.length, total, dust, salvageable, ids, locked };
 }
 
-/** What a sale pays, as amounts each with its picture after it: zeiucoins, gear powder or both (none of either: 0 zeiucoins). */
-function worth(total: number, gearPowder: number): (Node | string)[] {
-  const out: (Node | string)[] = [];
-  if (total > 0 || gearPowder === 0) out.push(`${points(total)} `, coin('coin', 'zeiucoins'));
-  if (gearPowder > 0) out.push(`${out.length > 0 ? ' + ' : ''}${points(gearPowder)} `, powder('coin powder'));
-  return out;
-}
+/** What a sale pays, its amount with its picture after it: zeiucoins, or (a salvage) komaDust. */
+const worth = (amount: number, salvage: boolean): (Node | string)[] => [`${points(amount)} `, salvage ? dust('coin powder') : coin('coin', 'zeiucoins')];
 
 /** Drops from `selling` what can't be sold any more (sold, put on or locked meanwhile; locked ones kept with `unlocked`). */
 export function pruneSale(copies: readonly ArmoryCopy[], selling: Set<string>, unlocked = false): void {
@@ -292,32 +292,45 @@ export function pruneSale(copies: readonly ArmoryCopy[], selling: Set<string>, u
 }
 
 /**
- * The armory's Sell (to start picking, then, with some picked, to confirm) and Cancel beside it. A bot from before selling
+ * The armory's Sell (to start picking, then, with some picked, to confirm) and Cancel beside it; while picking, Salvage too
+ * (hero gear for komaDust: only while every one picked is hero gear), where there is hero gear. A bot from before selling
  * prices nothing: no Sell. `unlocked`: locked ones are picked too; null where a sale never takes them (anywhere but the
  * heroes page, where a locked one is still a reason to start picking).
  */
-export function drawSell(sell: HTMLButtonElement, cancel: HTMLElement, copies: readonly ArmoryCopy[], selling: ReadonlySet<string> | null, busy: Busy | null, shown: boolean, unlocked: boolean | null = null): void {
-  const { count, total, powder: gearPowder } = saleOf(copies, selling, unlocked === true);
+export function drawSell(sell: HTMLButtonElement, salvage: HTMLButtonElement, cancel: HTMLElement, copies: readonly ArmoryCopy[], selling: ReadonlySet<string> | null, busy: Busy | null, shown: boolean, unlocked: boolean | null = null): void {
+  const { count, total, dust: salvaged, salvageable } = saleOf(copies, selling, unlocked === true);
   sell.hidden = !shown || copies.some((copy) => copy.sell === undefined);
   sell.textContent = '';
-  if (selling && count > 0) sell.append(`Sell ${count} · `, ...worth(total, gearPowder));
+  if (selling && count > 0) sell.append(`Sell ${count} · `, ...worth(total, false));
   else sell.append(selling ? 'Select items' : 'Sell');
   sell.disabled = selling ? count === 0 : !copies.some((copy) => priceOf(copy, unlocked !== null) !== null);
   working(sell, busy, 'sell');
   sell.classList.toggle('on', selling !== null);
+  salvage.hidden = sell.hidden || selling === null || !copies.some((copy) => copy.salvage !== undefined);
+  salvage.textContent = '';
+  const all = count > 0 && salvageable === count;
+  if (all) salvage.append(`Salvage ${count} · `, ...worth(salvaged, true));
+  else salvage.append('Salvage');
+  salvage.disabled = !all;
+  salvage.title = count > 0 && !all ? 'Only hero gear can be salvaged' : '';
+  working(salvage, busy, 'salvage');
   cancel.hidden = !shown || selling === null;
 }
 
 /**
- * Asks (in the page's sell-confirm dialog) to confirm selling `count` copies for `total` zeiucoins and `gearPowder` (hero
- * gear's), saying how many of them are `locked` (in its .sell-confirm-locked, where it has one).
+ * Asks (in the page's sell-confirm dialog) to confirm selling `count` copies for `amount` zeiucoins (`salvage`: salvaging
+ * them for `amount` komaDust), saying how many of them are `locked` (in its .sell-confirm-locked, where it has one).
  */
-export function askSale(dialog: HTMLDialogElement, count: number, total: number, locked = 0, gearPowder = 0): void {
+export function askSale(dialog: HTMLDialogElement, count: number, amount: number, locked = 0, salvage = false): void {
   if (count === 0) return;
-  (dialog.querySelector('h3') as HTMLElement).textContent = `Sell ${count} item${count === 1 ? '' : 's'}?`;
-  const amount = dialog.querySelector('.sell-confirm-total') as HTMLElement;
-  amount.textContent = '';
-  amount.append('+', ...worth(total, gearPowder));
+  const verb = salvage ? 'Salvage' : 'Sell';
+  dialog.dataset.salvage = String(salvage);
+  (dialog.querySelector('h3') as HTMLElement).textContent = `${verb} ${count} item${count === 1 ? '' : 's'}?`;
+  const total = dialog.querySelector('.sell-confirm-total') as HTMLElement;
+  total.textContent = '';
+  total.append('+', ...worth(amount, salvage));
+  (dialog.querySelector('.sell-confirm-note') as HTMLElement).textContent = `${salvage ? 'Salvaged' : 'Sold'} items are gone for good.`;
+  (dialog.querySelector('[data-sell="confirm"]') as HTMLElement).textContent = verb;
   const lockedNote = dialog.querySelector<HTMLElement>('.sell-confirm-locked');
   if (lockedNote) {
     lockedNote.hidden = locked === 0;
@@ -326,35 +339,40 @@ export function askSale(dialog: HTMLDialogElement, count: number, total: number,
   dialog.showModal();
 }
 
-/** The sell-confirm dialog's buttons (and a click on its backdrop, which cancels): `confirmed` on Sell. */
-export function wireSaleDialog(dialog: HTMLDialogElement, confirmed: () => void): void {
+/** The sell-confirm dialog's buttons (and a click on its backdrop, which cancels): `confirmed` on Sell or Salvage (`salvage`: which). */
+export function wireSaleDialog(dialog: HTMLDialogElement, confirmed: (salvage: boolean) => void): void {
   dialog.addEventListener('click', (event) => {
     const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-sell]');
     if (!button && event.target !== dialog) return;
     dialog.close();
-    if (button?.dataset.sell === 'confirm') confirmed();
+    if (button?.dataset.sell === 'confirm') confirmed(dialog.dataset.salvage === 'true');
   });
 }
 
-/** What a sale came to, in the page's status line (hero gear's gear powder too, and what it crafts). */
+/** What a sale came to, in the page's status line (a salvage's komaDust, and what it crafts). */
 export function saleSaid(status: HTMLElement, sold: { count: number; earned: number; powder?: number }): void {
   status.hidden = false;
   status.classList.remove('bad');
   status.textContent = '';
-  status.append(`Sold ${sold.count} item${sold.count === 1 ? '' : 's'} for `, ...worth(sold.earned, sold.powder ?? 0));
-  if ((sold.powder ?? 0) > 0) {
+  const salvaged = (sold.powder ?? 0) > 0;
+  status.append(`${salvaged ? 'Salvaged' : 'Sold'} ${sold.count} item${sold.count === 1 ? '' : 's'} for `, ...worth(salvaged ? (sold.powder ?? 0) : sold.earned, salvaged));
+  if (salvaged) {
     const shop = el('a', '', 'Raid Gear shop');
     shop.href = '/shop/raid/';
     status.append(' (craft komaGems from it in the ', shop, ')');
   }
 }
 
-/** Under a copy's rank while picking copies to sell: what it sells for (nothing, when it can't be sold; a locked one's with `unlocked`). */
+/**
+ * Under a copy's rank while picking copies to sell: what it sells for, and hero gear's what salvaging it gives (nothing,
+ * when it can't be sold; a locked one's with `unlocked`).
+ */
 export function sellsFor(copy: ArmoryCopy, unlocked = false): HTMLElement[] {
   const value = priceOf(copy, unlocked);
   if (value === null) return [];
-  const price = el('span', 'detail-mw detail-sells', `Sells for ${points(value)} `);
-  price.append(copy.sellPowder ? powder('coin powder') : coin('coin', 'zeiucoins'));
+  const price = el('span', 'detail-mw detail-sells', 'Sells for ');
+  price.append(...worth(value, false));
+  if (copy.salvage !== undefined) price.append(' · Salvages for ', ...worth(copy.salvage, true));
   return [price];
 }
 

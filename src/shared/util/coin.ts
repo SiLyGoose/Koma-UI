@@ -1,9 +1,9 @@
-/** Gear powder (King's Raid's Magic Powder: what selling hero gear pays), to go after an amount as the coin does. */
-export function powder(className = 'coin', alt = 'Gear Powder'): HTMLImageElement {
+/** komaDust (King's Raid's Magic Powder's picture: what salvaging hero gear gives), to go after an amount as the coin does. */
+export function dust(className = 'coin', alt = 'komaDust'): HTMLImageElement {
   const img = document.createElement('img');
   img.src = '/kr/ui/gear-powder.webp';
   img.alt = alt;
-  img.title = 'Gear Powder';
+  img.title = 'komaDust';
   img.className = className;
   return img;
 }

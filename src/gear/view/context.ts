@@ -27,6 +27,7 @@ export interface GearUi {
   loadoutMenu: HTMLElement;
   unequipAll: HTMLButtonElement;
   sell: HTMLButtonElement;
+  salvage: HTMLButtonElement;
   sellCancel: HTMLButtonElement;
   sellConfirm: HTMLDialogElement;
   armory: HTMLElement;
@@ -102,6 +103,7 @@ export function createContext(root: HTMLElement, host: GearHost): GearContext {
       loadoutMenu: $('loadout-menu'),
       unequipAll: $<HTMLButtonElement>('unequip-all'),
       sell: $<HTMLButtonElement>('sell'),
+      salvage: $<HTMLButtonElement>('salvage'),
       sellCancel: $<HTMLButtonElement>('sell-cancel'),
       sellConfirm: $<HTMLDialogElement>('sell-confirm'),
       armory: $('armory'),

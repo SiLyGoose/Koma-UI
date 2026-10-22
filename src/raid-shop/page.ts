@@ -12,7 +12,7 @@ import type { RaidShopView } from './types';
  * asks to buy a copy of it for their komaGems (what raid wins pay) in the server picked; they can buy as
  * many copies as they can pay for, to refine in the forge (../forge/). The shelf changes with the raid's
  * week, and a few times a week they can pay komaGems for a new one of their own (each dearer than the
- * last). Beside their komaGems, their gear powder (what selling hero gear pays): Craft makes every whole 1,000 of it a komaGem
+ * last). Beside their komaGems, their komaDust (what salvaging hero gear gives): Craft makes every whole 1,000 of it a komaGem
  * (the bot's sell.powderPerGem). Logged-in members only.
  */
 
@@ -51,7 +51,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     if (pressed && item) ask({ kind: 'buy', item }, pressed);
   });
   ui.refresh.addEventListener('click', () => ask({ kind: 'refresh' }, ui.refresh));
-  // Craft: nothing to lose (gear powder does nothing else), so no asking first.
+  // Craft: nothing to lose (komaDust does nothing else), so no asking first.
   ui.craft.addEventListener('click', () => void craft(ctx));
 
   // The box: its button, or Cancel (or Escape, or a click outside it).
@@ -129,7 +129,7 @@ async function load(ctx: RaidShopContext): Promise<void> {
   render(ctx);
 }
 
-/** Crafts as many komaGems as their gear powder makes, and draws the tab as it is after. */
+/** Crafts as many komaGems as their komaDust makes, and draws the tab as it is after. */
 async function craft(ctx: RaidShopContext): Promise<void> {
   const server = currentServer();
   const count = ctx.view ? (craftable(ctx.view) ?? 0) : 0;
@@ -145,7 +145,7 @@ async function craft(ctx: RaidShopContext): Promise<void> {
     render(ctx);
     if (res.error === 'too_poor') {
       await load(ctx);
-      return status(ctx, "You don't have that much Gear Powder any more.", true);
+      return status(ctx, "You don't have that much komaDust any more.", true);
     }
     return failed(ctx, res, 'Could not craft komaGems. Try again.');
   }

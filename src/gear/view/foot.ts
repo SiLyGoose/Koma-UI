@@ -30,8 +30,8 @@ export function renderFoot(ctx: GearContext): void {
   ui.unequipAll.disabled = SLOTS.every((slot) => !gear.equipped[slot]);
   working(ui.unequipAll, busy, 'unequip-all');
   ui.unequipAll.hidden = !mine(ctx) || selling !== null;
-  // Sell: to start picking, then (with some picked) to confirm.
-  drawSell(ui.sell, ui.sellCancel, gear.copies, selling, busy, mine(ctx) && !wearOnly(ctx));
+  // Sell: to start picking, then (with some picked) to confirm; Salvage beside it, hero gear's.
+  drawSell(ui.sell, ui.salvage, ui.sellCancel, gear.copies, selling, busy, mine(ctx) && !wearOnly(ctx));
   renderMenu(ctx);
 }
 

@@ -3,7 +3,7 @@
  * animation (replay.ts), waiting (sleep.ts) and keeping things in the browser (storage.ts).
  */
 
-export { coin, powder } from './coin';
+export { coin, dust } from './coin';
 export { points } from './format';
 export { replay } from './replay';
 export { sleep } from './sleep';

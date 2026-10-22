@@ -190,13 +190,14 @@ function pickToSell(ctx: HeroesContext, act: HeroActions, on: boolean): void {
   render(ctx, act);
 }
 
-/** Sells what's picked, and says what it came to. */
-async function sell(ctx: HeroesContext, act: HeroActions): Promise<void> {
+/** Sells what's picked (`salvage`: salvages it for komaDust), and says what it came to. */
+async function sell(ctx: HeroesContext, act: HeroActions, salvage = false): Promise<void> {
   const { ids: copies, locked } = saleOf(ctx.view?.copies ?? [], ctx.selling, ctx.sellLocked);
   if (copies.length === 0) return;
   // (Locked ones only sell when it says so.)
-  const view = await change<HeroesSold>(ctx, act, 'sell', '/api/heroes/sell', { copies, ...(locked > 0 ? { locked: true } : {}) }, 'Could not sell those. Try again.');
-  // It paid zeiucoins (or whatever the refusal was, the balance may be old): the header's balance follows.
+  const body = { copies, ...(locked > 0 && { locked: true }), ...(salvage && { salvage }) };
+  const view = await change<HeroesSold>(ctx, act, salvage ? 'salvage' : 'sell', '/api/heroes/sell', body, `Could not ${salvage ? 'salvage' : 'sell'} those. Try again.`);
+  // It paid zeiucoins or komaDust (or whatever the refusal was, the balance may be old): the header's balance follows.
   void ctx.host.loadMe(true);
   if (!view) return;
   ctx.selling = null;
@@ -356,8 +357,13 @@ function wire(ctx: HeroesContext, act: HeroActions): () => void {
   // Sell: to start picking copies, then (with some picked) to confirm the sale; Cancel stops picking.
   ui.sell.addEventListener('click', () => {
     if (!ctx.selling) return pickToSell(ctx, act, true);
-    const { count, total, locked, powder } = saleOf(ctx.view?.copies ?? [], ctx.selling, ctx.sellLocked);
-    askSale(ui.sellConfirm, count, total, locked, powder);
+    const { count, total, locked } = saleOf(ctx.view?.copies ?? [], ctx.selling, ctx.sellLocked);
+    askSale(ui.sellConfirm, count, total, locked);
+  });
+  // Salvage: what's picked (hero gear, all of it) for komaDust, once confirmed.
+  ui.salvage.addEventListener('click', () => {
+    const { count, dust, locked } = saleOf(ctx.view?.copies ?? [], ctx.selling, ctx.sellLocked);
+    askSale(ui.sellConfirm, count, dust, locked, true);
   });
   ui.sellCancel.addEventListener('click', () => pickToSell(ctx, act, false));
   // Select shown: every copy the filter and search show that can be sold, picked (all of them picked already: unpicked).
@@ -378,7 +384,7 @@ function wire(ctx: HeroesContext, act: HeroActions): () => void {
     if (ctx.picked && ctx.selling && !ctx.selling.has(ctx.picked)) ctx.picked = [...ctx.selling].at(-1) ?? null;
     renderPick(ctx, act);
   });
-  wireSaleDialog(ui.sellConfirm, () => void sell(ctx, act));
+  wireSaleDialog(ui.sellConfirm, (salvage) => void sell(ctx, act, salvage));
 
   // Escape closes the picked copy, else stops picking copies to sell (the sale's confirmation closes itself).
   const onKey = (event: KeyboardEvent): void => {

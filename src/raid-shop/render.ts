@@ -1,7 +1,7 @@
 import { GEM_EMOJI } from '../forge/anvil/gem';
 import { el, itemFace, rich, tierMark } from '../shared/items';
 import { working } from '../shared/ui';
-import { points, powder } from '../shared/util';
+import { dust, points } from '../shared/util';
 import type { RaidShopContext } from './context';
 import type { RaidShopItem, RaidShopView } from './types';
 
@@ -56,13 +56,13 @@ export function renderTimer(ctx: RaidShopContext): void {
   ui.timer.replaceChildren(...until(view.resetsAt).flatMap(([n, unit]) => [el('b', '', String(n).padStart(2, '0')), el('span', '', unit)]));
 }
 
-/** How many komaGems their gear powder crafts now (every whole `powderPerGem` of it), or null from a bot without gear powder. */
+/** How many komaGems their komaDust crafts now (every whole `powderPerGem` of it), or null from a bot without komaDust. */
 export const craftable = (view: RaidShopView): number | null =>
   view.powder === undefined || !view.powderPerGem ? null : Math.floor(view.powder / view.powderPerGem);
 
 /**
- * Their gear powder and Craft beside it: what it crafts now, the gem after the number (none yet: greyed, saying how much
- * crafts one). Hidden from a bot without gear powder.
+ * Their komaDust and Craft beside it: what it crafts now, the gem after the number (none yet: greyed, saying how much
+ * crafts one). Hidden from a bot without komaDust.
  */
 function renderPowder(ctx: RaidShopContext): void {
   const { ui, view } = ctx;
@@ -71,16 +71,16 @@ function renderPowder(ctx: RaidShopContext): void {
   ui.craft.hidden = crafts === null;
   if (!view || crafts === null) return;
   const per = points(view.powderPerGem ?? 0);
-  ui.powder.replaceChildren(powder('raidshop-powder-icon'), el('span', '', points(view.powder ?? 0)));
-  ui.powder.title = `Gear Powder: what selling hero gear pays. ${per} of it crafts a komaGem.`;
+  ui.powder.replaceChildren(dust('raidshop-powder-icon'), el('span', '', points(view.powder ?? 0)));
+  ui.powder.title = `komaDust: what salvaging hero gear gives. ${per} of it crafts a komaGem.`;
   ui.craft.replaceChildren('Craft', ...(crafts > 0 ? [' ', ...price(crafts)] : []));
   ui.craft.setAttribute('aria-disabled', String(crafts === 0));
-  ui.craft.setAttribute('aria-label', crafts > 0 ? `Craft ${points(crafts)} komaGem${crafts === 1 ? '' : 's'} from ${points(crafts * (view.powderPerGem ?? 0))} Gear Powder` : `Craft komaGems: ${per} Gear Powder crafts one`);
-  ui.craft.title = crafts > 0 ? `${per} Gear Powder crafts a komaGem` : `${per} Gear Powder crafts a komaGem: sell hero gear for it`;
+  ui.craft.setAttribute('aria-label', crafts > 0 ? `Craft ${points(crafts)} komaGem${crafts === 1 ? '' : 's'} from ${points(crafts * (view.powderPerGem ?? 0))} komaDust` : `Craft komaGems: ${per} komaDust crafts one`);
+  ui.craft.title = crafts > 0 ? `${per} komaDust crafts a komaGem` : `${per} komaDust crafts a komaGem: salvage hero gear for it`;
   working(ui.craft, ctx.busy, 'craft');
 }
 
-/** Draws the tab as `ctx.view` has it: their gear powder and komaGems, the strip (when the shelf changes, and refreshing it), and a tile for each item. */
+/** Draws the tab as `ctx.view` has it: their komaDust and komaGems, the strip (when the shelf changes, and refreshing it), and a tile for each item. */
 export function render(ctx: RaidShopContext): void {
   const { ui, view } = ctx;
   ui.gems.hidden = !view;
