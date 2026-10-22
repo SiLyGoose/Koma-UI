@@ -29,8 +29,11 @@ const numberOf = (code: string): number | null => {
   return m ? Number(m[1]) : null;
 };
 
-/** Every effect a hero's moves play (a projectile's not: it's never played). */
-export const heroEffects = (hero: HeroAssets): string[] => Object.values(hero.vfx ?? {}).flatMap((move) => [...(move.start ?? []), ...(move.land ?? [])].filter((code) => !flies(code)));
+/** Every effect a hero's moves play (a projectile's not: it's never played), and what its skills keep on a hero they guard. */
+export const heroEffects = (hero: HeroAssets): string[] => [
+  ...Object.values(hero.vfx ?? {}).flatMap((move) => [...(move.start ?? []), ...(move.land ?? [])].filter((code) => !flies(code))),
+  ...Object.values(hero.wards ?? {}),
+];
 
 /** Every effect a boss plays: its attacks', and its coming on the field. */
 export const bossEffects = (boss: BossAssets): string[] => {

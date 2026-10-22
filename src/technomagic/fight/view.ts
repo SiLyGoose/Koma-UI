@@ -9,7 +9,7 @@ import type { Minions } from './minions';
 import type { Magic } from '../fx/magic';
 import type { Props } from '../fx/props';
 import { makeSigns } from '../fx/signs';
-import { makeWards, type Emblem } from '../fx/wards';
+import { makeWards } from '../fx/wards';
 import { FALL, SCALE, type Hero } from '../heroes/body/hero';
 import { HERO_FX } from '../heroes/fx';
 import { lookOf } from '../heroes/looks';
@@ -37,7 +37,7 @@ export const SIGN_EFFECTS: readonly string[] = Object.values(KR_SIGNS);
 /*
  * The fight as it is drawn: the boss's body and each hero's on the field, doing what the sim (../sim/) says
  * they do, and what is drawn for each blow and skill (./fx.ts, each hero's fx.ts and the boss's), what is kept on a
- * hero while it is guarded (../fx/wards.ts), the signs of what comes on a fighter (../fx/signs.ts), and what is heard:
+ * hero while it is guarded (../fx/wards.ts, and a skill's own look: its hero's assets' wards), the signs of what comes on a fighter (../fx/signs.ts), and what is heard:
  * the heroes' blows and skills, the boss's attacks, and the raid's music (./sounds.ts). Nothing
  * here changes how the fight goes: it is told what happened (the sim's events) and shows it.
  */
@@ -232,10 +232,11 @@ export function makeFightView({
   };
   const fxOf = (who: number) => HERO_FX[(sim.fighters[who] as Sim['fighters'][number]).id];
   const wards = makeWards(scene, props);
-  /** The skills of the heroes in the fight that guard a hero with a look of their own: by the status's name, its look. */
-  const looks = new Map<string, Emblem>();
-  for (const fighter of sim.fighters)
-    for (const [status, name] of Object.entries(HERO_FX[fighter.id]?.wards ?? {})) looks.set(status, { hero: lookOf(fighter.id).assets, name });
+  /** The skills of the heroes in the fight that guard a hero with a look of their own: by the status's name, the game's effect kept on it. */
+  const looks = new Map<string, string>();
+  for (const fighter of sim.fighters) for (const [status, code] of Object.entries(lookOf(fighter.id).assets.wards ?? {})) looks.set(status, code);
+  /** Those on the heroes now (by the hero and the effect): what stops each, and whether it was kept this frame. */
+  const guarding = new Map<string, { stop: () => void; kept: boolean }>();
   /** The skills of the heroes in the fight that put the bubble on a hero as a shield does: by the status's name. */
   const bubbles = new Set(sim.fighters.flatMap((fighter) => HERO_FX[fighter.id]?.bubbles ?? []));
   /** What is heard: the heroes' blows and skills, the boss's attacks, and the raid's music. */
@@ -248,7 +249,6 @@ export function makeFightView({
     bossHit,
   );
   const krBoss = makeKrBoss(kr, bossLook.assets, boss.root, bodies);
-  const emblems: Emblem[] = [];
   // The signs of what comes on a fighter: the game's own (a hero's on it, the boss's where its blows land, bigger).
   const signs = makeSigns(effects, (who, sign) => {
     const code = KR_SIGNS[sign];
@@ -514,14 +514,18 @@ export function makeFightView({
         if (march !== undefined && ran >= march) marches.delete(who);
         const striding = march !== undefined && ran < march ? ran / march : fighter.hp > 0 ? onward : null;
         hero.stride?.(striding);
-        // What guards it: a shield, and what else has a look of its own.
-        emblems.length = 0;
-        for (const status of [...fighter.statuses, ...sim.party]) {
-          const look = looks.get(status.name);
-          if (look) emblems.push(look);
-        }
+        // What guards it: a shield, and what else has a look of its own (on as it comes on, once its effect is read).
+        if (fighter.hp > 0)
+          for (const status of [...fighter.statuses, ...sim.party]) {
+            const code = looks.get(status.name);
+            if (!code) continue;
+            const key = `${who}/${code}`;
+            const one = guarding.get(key);
+            if (one) one.kept = true;
+            else if (kr.ready(code)) guarding.set(key, { stop: kr.play(code, { on: hero.root, scale: SCALE, lasts: Infinity }), kept: true });
+          }
         const shielded = fighter.shield > 0 || fighter.statuses.some((status) => bubbles.has(status.name));
-        wards.keep(who, hero.place(at), heights[who] as number, shielded, fighter.hp > 0 ? emblems : []);
+        wards.keep(who, hero.place(at), heights[who] as number, shielded);
         if (fighter.hp > 0) signs.hero(who, [...fighter.statuses, ...sim.party], () => hero.head(over));
         // Hidden: see-through.
         const hidden = fighter.hp > 0 && fighter.statuses.some((status) => HIDING.has(status.name));
@@ -561,6 +565,14 @@ export function makeFightView({
         if (!down && lying.over <= 0) fallen.delete(who);
       }
       signs.boss(sim.boss.statuses, bossHit);
+      // Each look that wasn't kept this frame stops (its hero no longer guarded, or fallen).
+      for (const [key, one] of guarding) {
+        if (one.kept) one.kept = false;
+        else {
+          one.stop();
+          guarding.delete(key);
+        }
+      }
       wards.update(dt);
       signs.update(dt);
       effects.update(dt);
@@ -583,6 +595,7 @@ export function makeFightView({
       for (const one of on) if (!who.includes(one)) body(one).root.visible = false;
       boss.root.visible = false;
       wards.clear();
+      guarding.clear();
       signs.clear();
       kr.clear();
       who.forEach((one, i) => {
@@ -624,6 +637,7 @@ export function makeFightView({
       held = dark = bossSkill = 0;
       caster = null;
       wards.clear();
+      guarding.clear();
       signs.clear();
       props.clear();
       sounds.stop();

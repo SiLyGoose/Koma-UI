@@ -135,6 +135,11 @@ export interface HeroAssets {
    * (`land`: where it lands; a shot's, at it; a projectile's, not at all).
    */
   vfx?: Readonly<Record<string, { start?: readonly string[]; land?: readonly string[] }>>;
+  /**
+   * King's Raid's own effects kept on each hero while one of its skills guards it (../fx/kr-effects.ts: codes of
+   * public/kr/effects/kr/), by the status's name: on as it comes on, stopped as it goes.
+   */
+  wards?: Readonly<Record<string, string>>;
 }
 
 /**

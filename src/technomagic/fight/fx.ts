@@ -33,14 +33,12 @@ export interface FxScene {
 
 /**
  * What is drawn for a hero's moves as each part lands (`who` is the hero), and for what it cues (`targets`: whom it is on).
- * And what of its skills guards a hero with a look of its own (../fx/wards.ts): by the status's name, the prop of its
- * hero's (../assets/) held up before each hero it is on, for as long as it is on. And what of its skills puts the
- * bubble on a hero as a shield does (Erze's Soaking Blood, nothing touching her): by the status's name.
+ * And what of its skills puts the bubble on a hero as a shield does (../fx/wards.ts: Erze's Soaking Blood, nothing
+ * touching her): by the status's name. (A skill's look of its own kept on a hero, Klaus's Guardian Shield's, is its assets' wards.)
  */
 export interface HeroFx {
   lands?: Partial<Record<HeroMove, (fx: FxScene, who: number, part: number) => void>>;
   cues?: Readonly<Record<string, (fx: FxScene, who: number, targets: readonly number[]) => void>>;
-  wards?: Readonly<Record<string, string>>;
   bubbles?: readonly string[];
 }
 

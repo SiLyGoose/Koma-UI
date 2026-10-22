@@ -32,6 +32,4 @@ export const KLAUS_FX: HeroFx = {
       effects.play('impact', bossHit, 0, 0.7);
     },
   },
-  // Guardian Shield: his shield, glowing, held up before each hero while it lasts.
-  wards: { 'Guardian Shield': 'guardian' },
 };

@@ -24,8 +24,8 @@ export const KLAUS_ASSETS: HeroAssets = {
   name: 'Klaus',
   folder: 'heroes/klaus',
   skills: { from: 'https://kingsraid.shodyra.com/static/images/14/', files: ['s1.png', 's2.png', 's3.png', 's4.png'] },
-  // Guardian Shield's look: his own shield, held up before each hero it guards.
-  props: { guardian: 'Hero_Klaus_Vari05_Shield' },
+  // Guardian Shield's look: the game's own shields going round him as he raises it, kept round each hero it guards while it lasts.
+  wards: { 'Guardian Shield': 'Skill.Hero.Clause.Skill1.Loop' },
   // His unique weapon, wielded: Exian, his sword and shield.
   unique: { Hero_Klaus_Vari05_Shield: 'Hero_Klaus_Unique01_Shield', Hero_Klaus_Vari05_Sword: 'Hero_Klaus_Unique01_Sword' },
   // King's Raid's sounds (its Hit.Hero.Clause.* and BeginFireSkill.<skill> ones): as each blow of a move lands, a move's n-th part
@@ -47,7 +47,7 @@ export const KLAUS_ASSETS: HeroAssets = {
   vfx: {
     attack: { start: ['Skill.Hero.Clause.Attack1.3', 'Skill.Hero.Clause.Attack1.2'], land: ['Hit.Normal.SlashBig', 'Hit.Normal.StrikeBig'] },
     slam: { start: ['Skill.Hero.Clause.Re.Skill2.Casting', 'Skill.Hero.Clause.Re.Skill2.Mark'], land: ['Skill.Hero.Clause.Re.Skill2.Hit'] },
-    guard: { start: ['Skill.Hero.Clause.Skill1.CastingShield', 'Skill.Hero.Clause.Skill1.CastingParticle', 'Skill.Hero.Clause.Re.Skill1.Casting', 'Skill.Hero.Clause.Skill1.Loop'] },
+    guard: { start: ['Skill.Hero.Clause.Skill1.CastingShield', 'Skill.Hero.Clause.Skill1.CastingParticle', 'Skill.Hero.Clause.Re.Skill1.Casting'] },
     bash: { land: ['Common.HitImpact', 'Hit.Physical.02', 'Common.EarthQuake'] },
   },
   skins: [
