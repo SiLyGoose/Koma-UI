@@ -92,6 +92,17 @@ export interface PartsModel {
    * models, on the same layout), from that model's folder.
    */
   repaint?: { from: string; to: string };
+  /**
+   * Pictures its files name in a way three.js's loader drops (Priscilla's eyes: her body's file links its eyes' (AS)
+   * picture by a property three.js doesn't read, so they came out white): by material name, the picture, in the folder
+   * of the part whose material it is.
+   */
+  pictures?: Readonly<Record<string, string>>;
+  /**
+   * Meshes its files have that its look doesn't show, by name (Tanya's fox mask, which her file puts over her face, where
+   * her art has none), left out.
+   */
+  hidden?: readonly string[];
   /** King's Raid's own animations for it (../heroes/body/kr.ts): without them on this computer, it is moved by the poses written in code. */
   animations?: KrAnimations;
 }

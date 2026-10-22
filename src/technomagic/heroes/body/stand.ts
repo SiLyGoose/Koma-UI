@@ -27,7 +27,13 @@ function tipOf(held: Object3D, axis: 'x' | 'y'): Object3D {
 export async function standHero(owner: HeroAssets, model: PartsModel): Promise<Stood> {
   const hands = [model.left, model.right].filter((folder) => folder !== undefined);
   const folders = (names: readonly string[]): string[] => names.map((name) => modelFolder(owner, name));
-  const [parts, held, floats] = await Promise.all([loadModels(folders(model.parts), model.repaint && { ...model.repaint, at: modelFolder(owner, model.repaint.to) }), loadModels(folders(hands)), loadModels(folders(model.floating ? [model.floating.model] : []))]);
+  const [parts, held, floats] = await Promise.all([loadModels(folders(model.parts), model.repaint && { ...model.repaint, at: modelFolder(owner, model.repaint.to) }, model.pictures), loadModels(folders(hands)), loadModels(folders(model.floating ? [model.floating.model] : []))]);
+  // (What its files have that its look hasn't: Tanya's fox mask over her face.)
+  if (model.hidden) {
+    const gone: Object3D[] = [];
+    for (const part of parts) part.traverse((o) => void (model.hidden?.includes(o.name) && gone.push(o)));
+    for (const o of gone) o.removeFromParent();
+  }
   // Where the model's hips are as it stands: its hands are placed from them, and it turns about them.
   const hips = new Rig(parts).at('Bip001');
   const { root, body, middle } = hang(parts, hips.y);

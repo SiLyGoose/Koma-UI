@@ -68,6 +68,8 @@ export const PRISCILLA_ASSETS: HeroAssets = {
         kind: 'parts',
         animations: ANIMATIONS,
         parts: ['Hero_Priscilla_Vari05_Body', 'Hero_Priscilla_Vari05'],
+        // (Her eyes: her body's file links only their (AS) picture, in a way three.js drops.)
+        pictures: { Hero_Priscilla_Vari05_Eye: 'Hero_Priscilla_Eye_01_D(RGB).png' },
         // (In her left hand, where King's Raid's clips hang it: Point_hand_L.)
         left: 'Hero_Priscilla_Vari05_Weapon',
         offHand: 'held',

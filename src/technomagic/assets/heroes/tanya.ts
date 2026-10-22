@@ -1,7 +1,7 @@
 import type { HeroAssets, KrAnimations } from '../types.ts';
 
 /*
- * Tanya in her fifth look: her body (her hair and mask a part of it), and a katar on each fist (the same file in both
+ * Tanya in her fifth look: her body (her hair a part of it, and a fox mask, left out), and a katar on each fist (the same file in both
  * hands, held, not a shield). She is moved by King's Raid's own animations of her (ANIMATIONS:
  * ../../heroes/body/kr.ts).
  */
@@ -68,6 +68,8 @@ export const TANYA_ASSETS: HeroAssets = {
         kind: 'parts',
         animations: ANIMATIONS,
         parts: ['Hero_Tanya_Vari05_Mesh'],
+        // (Her fox mask, which her file puts over her face: her art shows her face bare.)
+        hidden: ['Hero_Tanya_Vari05_Mask'],
         left: 'Hero_Tanya_Vari05_Weapon',
         offHand: 'held',
         right: 'Hero_Tanya_Vari05_Weapon',

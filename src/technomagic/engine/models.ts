@@ -94,11 +94,14 @@ export const loadFbx = (folder: string): Promise<Group> => new FBXLoader(manager
  * The models in `folders`, in their order. A material with no texture of its own in its file (a face's
  * eyebrows, in the hair's) takes the one a material of the same name has in another of the folders. With
  * `repaint`, a texture whose name has `from` in it is the same picture of `to` instead, from the folder `at`.
+ * `pictures`: by material name, the picture a file names for it that three.js's loader drops (../assets/types.ts).
  */
-export async function loadModels(folders: readonly string[], repaint?: { from: string; to: string; at: string }): Promise<Group[]> {
+export async function loadModels(folders: readonly string[], repaint?: { from: string; to: string; at: string }, pictures?: Readonly<Record<string, string>>): Promise<Group[]> {
   const models = await Promise.all(folders.map(loadFbx));
 
-  // Where each material's texture is: the file names it by its picture's name.
+  // Where each material's texture is: the file names it by its picture's name (or `pictures` does, where three.js's loader
+  // drops the one its file names).
+  const pictureOf = (material: Material & { map?: Texture | null }): string | undefined => material.map?.name || pictures?.[material.name];
   const found = new Map<string, { folder: string; file: string }>();
   const each = (visit: (material: Material & { map?: Texture | null }, folder: string) => void): void => {
     models.forEach((model, i) =>
@@ -108,7 +111,8 @@ export async function loadModels(folders: readonly string[], repaint?: { from: s
     );
   };
   each((material, folder) => {
-    if (material.map?.name) found.set(material.name, { folder, file: colourOf(material.map.name) });
+    const picture = pictureOf(material);
+    if (picture) found.set(material.name, { folder, file: colourOf(picture) });
   });
 
   const drawn = new Map<string, Promise<MeshBasicMaterial>>();
@@ -136,7 +140,8 @@ export async function loadModels(folders: readonly string[], repaint?: { from: s
       waiting.push(
         Promise.all(
           materials.map((material) => {
-            const named = material.map?.name ? { folder: folders[i] as string, file: colourOf(material.map.name) } : found.get(material.name);
+            const picture = pictureOf(material);
+            const named = picture ? { folder: folders[i] as string, file: colourOf(picture) } : found.get(material.name);
             const own = repaint && named?.file.includes(repaint.from) ? { folder: repaint.at, file: named.file.replace(repaint.from, repaint.to) } : named;
             return draw(material.name, own?.folder ?? (folders[i] as string), own?.file);
           }),
