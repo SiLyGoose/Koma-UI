@@ -514,7 +514,7 @@ function renderDetail(ctx: HeroesContext, act: HeroActions): void {
     none: NONE,
     effectsOff: !fits,
     sections: [
-      ...(ut ? treasureSection(ut.main, worn === 'treasure') : copy.krSet || copy.part === 'artifact' ? krSections(copy, fits, fits && equipInto ? setPieces(ctx, hero, copy, equipInto) : null) : tmSections(shown)),
+      ...(ut ? [...treasureSection(ut.main, worn === 'treasure'), ...(worn === 'treasure' ? subTreasures(ctx, hero) : [])] : copy.krSet || copy.part === 'artifact' ? krSections(copy, fits, fits && equipInto ? setPieces(ctx, hero, copy, equipInto) : null) : tmSections(shown)),
       ...runeSection(copy),
     ],
     notes,
@@ -592,6 +592,35 @@ function withoutRunes(copy: HeroCopy): string[] {
     if (at >= 0) effects.splice(at, 1);
   }
   return effects;
+}
+
+/**
+ * Under a hero's main treasure's details, its sub treasures (none: nothing): each its picture and name, its options (what
+ * counts of it there), and what it would give as the main treasure, greyed (its HP and effect: the main one's alone count).
+ */
+function subTreasures(ctx: HeroesContext, hero: HeroView): HTMLElement[] {
+  const subs = SIDE_SLOTS.flatMap((slot) => {
+    const copy = copyById(ctx, hero.equipped[slot] ?? null);
+    return copy ? [{ slot, copy }] : [];
+  });
+  if (subs.length === 0) return [];
+  return [
+    krSection(
+      'Sub Treasures',
+      subs.map(({ slot, copy }) => {
+        const { options, main } = treasureParts(copy.effects);
+        const head = el('div', 'kr-socket');
+        const icon = el('span', 'ut-sub-icon');
+        icon.append(art(copy.itemId, HERO_SLOT_KIND[slot]));
+        head.append(icon, el('span', 'kr-rune-name', `${shownName(copy)}${hasLevels(copy) ? ` (${levelLabel(copy)})` : ''}`));
+        const list = el('ul', 'detail-effects');
+        for (const text of options.length > 0 ? options : [NONE]) list.appendChild(el('li')).append(rich(text));
+        const sub = el('div', 'ut-sub');
+        sub.append(head, list, ...treasureSection(main, false));
+        return sub;
+      }),
+    ),
+  ];
 }
 
 /**

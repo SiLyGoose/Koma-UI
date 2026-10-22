@@ -1176,6 +1176,24 @@ button.ascend-cost:focus-visible {
   min-width: 0;
 }
 
+/* A main treasure's sub treasures: each its picture and name, its options under them, then what it would give as the main one. */
+.ut-sub + .ut-sub {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+
+.ut-sub .detail-section {
+  margin-top: 6px;
+}
+
+.ut-sub-icon {
+  display: grid;
+  flex: none;
+  width: 36px;
+  height: 36px;
+}
+
 .kr-action {
   padding: 2px 10px;
   font-size: 12px;
