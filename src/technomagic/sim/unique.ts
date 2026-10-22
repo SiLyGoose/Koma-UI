@@ -212,7 +212,7 @@ export const NAAV = { name: 'Small Synthesized Darkness, Naav Gehen', mana: [400
 /** Estelle's: [Adventure Guide]'s more seconds; every ally's ATK meanwhile. */
 export const STOSMOS = { name: 'Chant of Tailwinds, Stosmos', longer: [1, 2, 3, 4, 5, 6], atk: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25] };
 /** Jane's: its blow every second (a share of ATK) on the enemies within so far, their ATK less a moment; the ally with the highest ATK's more to Non-Hero enemies; the [Coffin]'s mana (a share). */
-export const EREKURA = { name: 'Unchanging Mind, Erekura', blow: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25], reach: 6.6, weaker: [0.14, 0.17, 0.2, 0.24, 0.29, 0.35], boss: [0.06, 0.07, 0.08, 0.09, 0.1, 0.11], mana: 0.3 };
+export const EREKURA = { name: 'Unchanging Mind, Erekura', blow: [0.1, 0.12, 0.14, 0.17, 0.2, 0.25], reach: 6.6, weaker: [0.14, 0.17, 0.2, 0.24, 0.29, 0.35], boss: [0.06, 0.07, 0.08, 0.1, 0.12, 0.15], mana: 0.3 };
 
 /** What every ally gains by the TechnoMagic gear it wears: 1 piece, more ATK; 2, more defense; 3, more max HP (here: taking that much less); 4, more DMG. */
 export const CORBEAU = {
