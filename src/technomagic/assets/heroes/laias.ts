@@ -44,12 +44,15 @@ export const LAIAS_ASSETS: HeroAssets = {
     },
     victory: [{ clip: 'Laias-Vox_Victory_b', volume: 2.2, at: 0.89, own: true }],
   },
+  // Bubble Shield's look: the game's own water barrier, kept round the ally it shields while the shield holds (in the
+  // common shield's place).
+  wards: { Bubble: 'Skill.Hero.Ell.Skill2.HitLoop' },
   // King's Raid's own effects for its moves (../../fx/kr-effects.ts): as each begins, on it, and as each of its blows lands, where it
   // lands (KR-extracted/scripts/tm-vfx.mjs).
   vfx: {
     splash: { start: ['Skill.Hero.Ell.Attack1.Casting'], land: ['Skill.Hero.Ell.Attack1.Hit', 'Skill.Hero.Ell.Attack1.Projectile'] },
     droplets: { start: ['Skill.Hero.Ell.Skill1.Casting'], land: ['Skill.Hero.Ell.Skill1.Hit', 'Skill.Hero.Ell.Skill1.Projectile'] },
-    bubble: { start: ['Skill.Hero.Ell.Skill2.Casting'], land: ['Skill.Hero.Ell.Skill2.HitLoop', 'Skill.Hero.Ell.Skill2.Hit', 'Skill.Hero.Ell.Skill2.Projectile'] },
+    bubble: { start: ['Skill.Hero.Ell.Skill2.Casting'], land: ['Skill.Hero.Ell.Skill2.Hit', 'Skill.Hero.Ell.Skill2.Projectile'] },
     festival: { start: ['Skill.Hero.Ell.Skill3.Casting'], land: ['Skill.Hero.Ell.Re.Skill3.Hit'] },
   },
   skins: [

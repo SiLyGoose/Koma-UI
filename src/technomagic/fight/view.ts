@@ -515,16 +515,19 @@ export function makeFightView({
         const striding = march !== undefined && ran < march ? ran / march : fighter.hp > 0 ? onward : null;
         hero.stride?.(striding);
         // What guards it: a shield, and what else has a look of its own (on as it comes on, once its effect is read).
+        let ownLook = false;
         if (fighter.hp > 0)
           for (const status of [...fighter.statuses, ...sim.party]) {
             const code = looks.get(status.name);
             if (!code) continue;
+            ownLook ||= fighter.statuses.includes(status);
             const key = `${who}/${code}`;
             const one = guarding.get(key);
             if (one) one.kept = true;
             else if (kr.ready(code)) guarding.set(key, { stop: kr.play(code, { on: hero.root, scale: SCALE, lasts: Infinity }), kept: true });
           }
-        const shielded = fighter.shield > 0 || fighter.statuses.some((status) => bubbles.has(status.name));
+        // (Not the common bubble while a shield of its own look is on it: Laias's Bubble Shield.)
+        const shielded = !ownLook && (fighter.shield > 0 || fighter.statuses.some((status) => bubbles.has(status.name)));
         wards.keep(who, hero.place(at), heights[who] as number, shielded);
         if (fighter.hp > 0) signs.hero(who, [...fighter.statuses, ...sim.party], () => hero.head(over));
         // Hidden: see-through.
