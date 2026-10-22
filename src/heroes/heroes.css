@@ -1190,8 +1190,8 @@ button.ascend-cost:focus-visible {
 .ut-sub-icon {
   display: grid;
   flex: none;
-  width: 36px;
-  height: 36px;
+  width: 56px;
+  height: 56px;
 }
 
 .kr-action {
