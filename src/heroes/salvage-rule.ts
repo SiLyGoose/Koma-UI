@@ -9,7 +9,7 @@ import type { HeroesContext } from './context';
  * Salvage by rule, on the heroes page while picking copies to sell (its By rule): which hero gear to salvage, by its
  * tier (T6 to T9: the dragon sets' and the TechnoMagic sets'), its stars (at most), its part and the classes it is for
  * (none picked: any), as the bot's protocol/heroes.ts SalvageRule. Pick picks every piece it takes that can be salvaged
- * (never a locked one, one worn, in a loadout or on a hero, or one with a rune in it), for the armory's Salvage; and
+ * (never one worn, in a loadout or on a hero, or one with a rune in it; a locked one only with Include locked checked), for the armory's Salvage; and
  * kept with Save (Salvage drops like these), the TechnoMagic and Dragon Raids salvage the drops it takes as they drop.
  * Its markup is the page's <dialog id="salvage-rule">, which this fills.
  */
@@ -30,12 +30,15 @@ export function salvageMatches(rule: SalvageRule, piece: { tier: number | null; 
   return piece.classes.length > 0 && piece.classes.every((cls) => (rule.classes as readonly string[]).includes(cls));
 }
 
-/** The pieces `rule` picks among `copies`: hero gear it takes that can be salvaged as it is (not locked, kept or socketed). */
-export const rulePicks = (copies: readonly HeroCopy[], rule: SalvageRule): HeroCopy[] =>
+/**
+ * The pieces `rule` picks among `copies`: hero gear it takes that can be salvaged as it is (not kept or socketed; not
+ * locked either, but with `unlocked`: Include locked checked).
+ */
+export const rulePicks = (copies: readonly HeroCopy[], rule: SalvageRule, unlocked = false): HeroCopy[] =>
   copies.filter(
     (copy) =>
       copy.salvage !== undefined &&
-      priceOf(copy) !== null &&
+      priceOf(copy, unlocked) !== null &&
       !copy.runes.some((rune) => rune !== null) &&
       salvageMatches(rule, { tier: copy.krSet?.tier ?? null, stars: copy.level, part: copy.part, classes: copy.classes }),
   );
@@ -112,7 +115,7 @@ export function salvageRuleDialog(dialog: HTMLDialogElement, ctx: HeroesContext,
 
   /** How many pieces it picks and what they salvage for; Pick and Save as they can be pressed. */
   function draw(): void {
-    const picks = rulePicks(ctx.view?.copies ?? [], rule);
+    const picks = rulePicks(ctx.view?.copies ?? [], rule, ctx.sellLocked);
     const total = picks.reduce((sum, copy) => sum + (copy.salvage ?? 0), 0);
     count.textContent = '';
     if (picks.length === 0) count.append(rule.tiers.length === 0 ? 'Pick a tier.' : 'Nothing you have matches.');
@@ -133,7 +136,7 @@ export function salvageRuleDialog(dialog: HTMLDialogElement, ctx: HeroesContext,
     dialog.close();
     if (button?.dataset.rule === 'pick') {
       last = rule;
-      hooks.pick(rulePicks(ctx.view?.copies ?? [], rule).map((copy) => copy.id));
+      hooks.pick(rulePicks(ctx.view?.copies ?? [], rule, ctx.sellLocked).map((copy) => copy.id));
     } else if (button?.dataset.rule === 'save') {
       last = rule;
       hooks.save(wanted());
