@@ -62,6 +62,8 @@ export const REBEL_KLAUS_ASSETS: HeroAssets = {
       icon: 'Rebel_Klaus.webp',
       // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
       card: 'Rebel_Klaus.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Rebel_Klaus.webp',
       // His artwork, Galicta planted before him, its light swirling round him: his head and hair in the crop (the meter's close-up is his face by itself).
       portrait: { file: 'Rebel_Klaus.png', from: 'https://i.redd.it/hm3zimp0tuc81.png', crop: { x: 395, y: 110, size: 110 }, head: { x: 425, y: 150, size: 70 } },
       model: {

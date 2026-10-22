@@ -61,6 +61,8 @@ export const ODDY_ASSETS: HeroAssets = {
       icon: 'Oddy.webp',
       // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
       card: 'Oddy.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Oddy.webp',
       // His artwork (from the wiki, asked for as the PNG it was uploaded as), his clock overhead: his head, ears and goggles in the crop (the meter's close-up is his face by itself).
       portrait: {
         file: 'Oddy.png',

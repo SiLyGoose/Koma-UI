@@ -56,6 +56,8 @@ export const FALLEN_FREY_ASSETS: HeroAssets = {
       icon: 'Fallen_Frey.webp',
       // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
       card: 'Fallen_Frey.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Fallen_Frey.webp',
       // Her artwork, cut out of its white ground.
       portrait: { file: 'Fallen_Frey.png', crop: { x: 528, y: 72, size: 150 } },
       model: {

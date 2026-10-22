@@ -62,6 +62,8 @@ export const LILIA_ASSETS: HeroAssets = {
       icon: 'Lilia.webp',
       // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
       card: 'Lilia.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Lilia.webp',
       // Her artwork (the Drive folder's): her head in the crop (the meter's close-up is her face by itself).
       portrait: { file: 'Lilia.png', from: `${DRIVE}1hmEhGNDmnv-4X_YaXeKeWnBV6fuKjBxd`, crop: { x: 270, y: 90, size: 210 }, head: { x: 334, y: 131, size: 110 } },
       model: {

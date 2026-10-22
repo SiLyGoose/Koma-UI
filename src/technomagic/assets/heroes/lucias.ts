@@ -62,6 +62,8 @@ export const LUCIAS_ASSETS: HeroAssets = {
       icon: 'Lucias.webp',
       // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
       card: 'Lucias.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Lucias.webp',
       // His artwork (the Drive folder's): his head in the crop (the meter's close-up is his face by itself).
       portrait: { file: 'Lucias.png', from: `${DRIVE}19sqR7X1Zdogp9Vit4drpdT1sGWyqf0xN`, crop: { x: 453, y: 150, size: 150 }, head: { x: 514, y: 213, size: 80 } },
       model: {

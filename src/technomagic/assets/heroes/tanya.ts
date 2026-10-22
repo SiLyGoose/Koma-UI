@@ -62,6 +62,8 @@ export const TANYA_ASSETS: HeroAssets = {
       icon: 'Tanya.webp',
       // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
       card: 'Tanya.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Tanya.webp',
       // Her artwork (the King's Raid Index's), leaping with her katars out: her hooded head in the crop (the meter's close-up is her face by itself).
       portrait: { file: 'Tanya.png', from: 'https://raw.githubusercontent.com/IcyDipity/KingsRaidIndex/master/images/heroes/Tanya/Tanya.png', crop: { x: 575, y: 85, size: 170 }, head: { x: 610, y: 110, size: 105 } },
       model: {

@@ -62,6 +62,8 @@ export const ASELICA_ASSETS: HeroAssets = {
       icon: 'Aselica.webp',
       // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
       card: 'Aselica.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Aselica.webp',
       // Her artwork (the Drive folder's): her head in the crop (the meter's close-up is her face by itself).
       portrait: { file: 'Aselica.png', from: `${DRIVE}1FCusI3_ZxLmvjic7KYD57Lgo3RxMW_cA`, crop: { x: 462, y: 180, size: 180 }, head: { x: 505, y: 254, size: 95 } },
       model: {

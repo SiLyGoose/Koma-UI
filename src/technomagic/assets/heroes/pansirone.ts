@@ -67,6 +67,8 @@ export const PANSIRONE_ASSETS: HeroAssets = {
       icon: 'Pansirone.webp',
       // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
       card: 'Pansirone.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Pansirone.webp',
       // Her artwork (the Drive folder's): her head in the crop (the meter's close-up is her face by itself).
       portrait: { file: 'Pansirone.png', from: `${DRIVE}1QmODcik0Fjj3TCSq-e79gdszYYNWiAJ2`, crop: { x: 290, y: 10, size: 170 }, head: { x: 360, y: 52, size: 85 } },
       model: {

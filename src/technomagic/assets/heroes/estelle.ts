@@ -65,6 +65,8 @@ export const ESTELLE_ASSETS: HeroAssets = {
       icon: 'Estelle.webp',
       // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
       card: 'Estelle.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Estelle.webp',
       // Her artwork (krinfo.net's; the Drive folder has none of her): her head and cap in the crop (the meter's close-up is her face by itself).
       portrait: { file: 'Estelle.png', from: 'https://krinfo.net/kingsraid-data/assets/heroes/Estelle/cos/Basic.png', crop: { x: 440, y: 175, size: 140 }, head: { x: 470, y: 222, size: 84 } },
       model: {

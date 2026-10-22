@@ -43,12 +43,15 @@ export interface Card {
   draw(state: CardState): void;
 }
 
-/** A hero's card, its passives over its health, its mana bar in `sections`. `on` is told what is pressed: the hero (to put it on the field, or take it off), its Auto, an ability. */
-export function makeCard(name: string, face: string, abilities: readonly Ability[], passives: readonly Buff[], sections: number, on: { toggle(): void; auto(): void; use(index: number): void }): Card {
+/**
+ * A hero's card, its passives over its health, its mana bar in `sections`. `on` is told what is pressed: the hero (to put it on
+ * the field, or take it off), its Auto, an ability. `battle`: `face` is King's Raid's own battle portrait of it, drawn whole.
+ */
+export function makeCard(name: string, face: string, abilities: readonly Ability[], passives: readonly Buff[], sections: number, on: { toggle(): void; auto(): void; use(index: number): void }, battle = false): Card {
   const root = el('section', 'tm-card');
   root.setAttribute('aria-label', name);
 
-  const portrait = el('button', 'tm-face');
+  const portrait = el('button', battle ? 'tm-face battle' : 'tm-face');
   portrait.type = 'button';
   portrait.dataset.name = name;
   const picture = el('img', '');

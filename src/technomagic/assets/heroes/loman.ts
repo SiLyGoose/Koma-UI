@@ -64,6 +64,8 @@ export const LOMAN_ASSETS: HeroAssets = {
       icon: 'Loman.webp',
       // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
       card: 'Loman.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Loman.webp',
       // His artwork (the King's Raid Index's), his halberd planted beside him: his helmed head in the crop (the meter's close-up is his face by itself).
       portrait: { file: 'Loman.png', from: 'https://raw.githubusercontent.com/IcyDipity/KingsRaidIndex/master/images/heroes/Loman/Loman.png', crop: { x: 380, y: 240, size: 150 }, head: { x: 405, y: 280, size: 95 } },
       model: {

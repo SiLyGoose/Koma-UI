@@ -61,6 +61,8 @@ export const REHARTNA_ASSETS: HeroAssets = {
       icon: 'Rehartna.webp',
       // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
       card: 'Rehartna.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Rehartna.webp',
       // Her artwork (the Drive folder's): her head in the crop (the meter's close-up is her face by itself).
       portrait: { file: 'Rehartna.png', from: `${DRIVE}1QzkWSlvOQgaWy0fohkkFUpgF7F1dlI6N`, crop: { x: 285, y: 140, size: 220 }, head: { x: 395, y: 200, size: 100 } },
       model: {

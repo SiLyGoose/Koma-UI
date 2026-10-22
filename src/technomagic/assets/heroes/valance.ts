@@ -65,6 +65,8 @@ export const VALANCE_ASSETS: HeroAssets = {
       icon: 'Valance.webp',
       // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
       card: 'Valance.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Valance.webp',
       // Her artwork (from the wiki, asked for as the PNG it was uploaded as, not the WebP it is served as), her crossbow
       // flung out: her head and goggles in the crop (the meter's close-up is her face by itself).
       portrait: {

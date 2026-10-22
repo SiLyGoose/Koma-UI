@@ -58,6 +58,8 @@ export const DARK_LORD_KASEL_ASSETS: HeroAssets = {
       icon: 'Dark_Lord_Kasel.webp',
       // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
       card: 'Dark_Lord_Kasel.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Dark_Lord_Kasel.webp',
       // His artwork, darkness in his raised left hand (krinfo.net's, 1024×1024: the 214-pixel one it replaces was blurry on
       // the heroes page): his head and horns in the crop (the meter's close-up is his face by itself).
       portrait: { file: 'Dark_Lord_Kasel.png', from: 'https://krinfo.net/kingsraid-data/assets/heroes/Dark%20Lord%20Kasel/cos/Basic.png', crop: { x: 418, y: 18, size: 180 }, head: { x: 468, y: 88, size: 92 } },

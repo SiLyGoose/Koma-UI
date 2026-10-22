@@ -81,6 +81,20 @@
   filter: drop-shadow(0 2px 3px rgb(0 0 0 / 70%));
 }
 
+/*
+ * King's Raid's own battle portrait (its PartySlotComponent2's HeroTexture: 280 by 300 to its skills' 120), drawn whole as
+ * there: its foot behind the skills.
+ */
+.tm-face.battle {
+  width: calc(var(--skill) * 2.33);
+}
+
+.tm-face.battle img {
+  position: absolute;
+  bottom: calc(var(--skill) * 0.38);
+  left: 0;
+}
+
 .tm-top,
 .tm-skills {
   position: relative;

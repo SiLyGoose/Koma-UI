@@ -63,6 +63,8 @@ export const JANE_ASSETS: HeroAssets = {
       icon: 'Jane.webp',
       // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
       card: 'Jane.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Jane.webp',
       // Its artwork (the Drive folder's): its head in the crop (the meter's close-up is its face by itself).
       portrait: { file: 'Jane.png', from: `${DRIVE}17qqPX5asjcPaKUhcbO3fo-U0Er8aJTW4`, crop: { x: 150, y: 130, size: 320 }, head: { x: 212, y: 250, size: 160 } },
       model: {

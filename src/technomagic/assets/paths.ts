@@ -48,5 +48,8 @@ export const iconPicture = (hero: HeroAssets, skin: SkinAssets): string | null =
 /** The address of a skin's own card (King's Raid's: the tall picture of it), null for one with none. */
 export const cardPicture = (hero: HeroAssets, skin: SkinAssets): string | null => (skin.card ? `${LOCAL}/${hero.folder}/cards/${skin.card}` : null);
 
+/** The address of a skin's own battle portrait (King's Raid's: its head and shoulders on its card in a fight), null for one with none. */
+export const battlePicture = (hero: HeroAssets, skin: SkinAssets): string | null => (skin.battle ? `${LOCAL}/${hero.folder}/battle/${skin.battle}` : null);
+
 /** The address of a skin's picture. */
 export const portraitPicture = (hero: HeroAssets, portrait: Portrait): string => (portrait.from ? `${LOCAL}/${portraitFile(hero, portrait)}` : `${KEPT}/portraits/${portrait.file}`);

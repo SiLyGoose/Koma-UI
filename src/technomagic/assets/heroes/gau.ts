@@ -70,6 +70,8 @@ export const GAU_ASSETS: HeroAssets = {
       icon: 'Gau.webp',
       // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
       card: 'Gau.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Gau.webp',
       // His artwork (the King's Raid Index's): his head and mane in the crop (the meter's close-up is his face by itself).
       portrait: { file: 'Gau.png', from: 'https://raw.githubusercontent.com/IcyDipity/KingsRaidIndex/master/images/heroes/Gau/Gau.png', crop: { x: 490, y: 75, size: 180 }, head: { x: 520, y: 110, size: 120 } },
       model: {

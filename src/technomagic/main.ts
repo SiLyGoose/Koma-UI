@@ -9,7 +9,7 @@ import { navigate } from '../shared/transition';
 import { Group, Vector3 } from 'three';
 import { artPicture } from './art';
 import { built } from '../shared/built';
-import { iconPicture, portraitPicture, type SkinAssets } from './assets';
+import { battlePicture, iconPicture, portraitPicture, type SkinAssets } from './assets';
 import { bossNamed, DRAGONS, TM_BOSSES } from './sim/bosses';
 import { bossIn, stagesOf, type BossDef } from './sim/bosses/boss';
 import { BOSS_VIEWS } from './bosses/models';
@@ -285,6 +285,8 @@ async function start(): Promise<void> {
   const pool: Entrant[] = [];
   /** The skins' own pictures for their cards (null: none, or it can't be read: it is pictured as it stands, once it does). */
   const faces = new Map<SkinAssets, string | null>();
+  /** Which of those are the game's own battle portraits (drawn whole on the card, as King's Raid does), not cut from a skin's picture. */
+  const battles = new Set<string>();
   /** And for the meter, their faces close up (null: the card's picture there too). */
   const heads = new Map<SkinAssets, string | null>();
   const reads = new Map<string, Promise<Entrant[]>>();
@@ -313,12 +315,16 @@ async function start(): Promise<void> {
         await Promise.all(
           entrants.map(async ({ skin }) => {
             const { portrait } = skin;
-            // (Its picture read once for both: the built WebP, a fifth of the PNG's size.)
-            const picture = portrait ? await readPortrait(built(portraitPicture(assets, portrait))) : null;
-            const [face, head] = picture && portrait ? [cutFace(picture, portrait), cutHead(picture, portrait)] : [null, null];
-            faces.set(skin, face);
+            // Its card's picture: the game's own battle portrait of it, where it has one (read before the fight shows it).
+            const battle = battlePicture(assets, skin);
+            const fought = battle && (await readPortrait(battle)) ? battle : null;
+            if (fought) battles.add(fought);
+            const icon = iconPicture(assets, skin);
+            // (Its own picture read once for both cuts, where either is still wanted: the built WebP, a fifth of the PNG's size.)
+            const picture = portrait && !(fought && icon) ? await readPortrait(built(portraitPicture(assets, portrait))) : null;
+            faces.set(skin, fought ?? (picture && portrait ? cutFace(picture, portrait) : null));
             // (The meter's close-up: the game's own icon of it, where it has one.)
-            heads.set(skin, iconPicture(assets, skin) ?? head);
+            heads.set(skin, icon ?? (picture && portrait ? cutHead(picture, portrait) : null));
           }),
         );
         pool.push(...entrants);
@@ -422,11 +428,12 @@ async function start(): Promise<void> {
         ...(fighter.unique ? [uniqueBuff(fighter.id, fighter.unique.tier)] : []),
         ...skillBuffs(fighter.skills),
       ];
-      const card = makeCard(fighter.name, pictures[i] as string, fighter.abilities, passives, SECTIONS, {
+      const face = pictures[i] as string;
+      const card = makeCard(fighter.name, face, fighter.abilities, passives, SECTIONS, {
         toggle: () => controls.toggle?.(i),
         auto: () => controls.auto(i),
         use: (index) => controls.use(i, index),
-      });
+      }, battles.has(face));
       return card;
     });
     // Along the bottom as the lineup had them (../prep/prep.ts): the nearest the boss on the right, so the furthest back first.

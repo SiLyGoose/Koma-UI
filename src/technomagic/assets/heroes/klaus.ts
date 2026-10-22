@@ -57,6 +57,8 @@ export const KLAUS_ASSETS: HeroAssets = {
       icon: 'Klaus.webp',
       // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
       card: 'Klaus.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Klaus.webp',
       portrait: { file: 'Klaus.png', from: 'https://drive.google.com/uc?export=download&id=1bFANcAEYPRzphZmxGd79xgdvYFda-6ev', crop: { x: 612, y: 62, size: 160 } },
       model: {
         kind: 'parts',

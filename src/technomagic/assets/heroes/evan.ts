@@ -75,6 +75,8 @@ export const EVAN_ASSETS: HeroAssets = {
       icon: 'Evan.webp',
       // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
       card: 'Evan.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Evan.webp',
       // His artwork (the Drive folder's): his head in the crop (the meter's close-up is his face by itself).
       portrait: { file: 'Evan.png', from: `${DRIVE}1uOyLYC7d4wFKsAR0Yp-H5F6cNUoGvE3_`, crop: { x: 405, y: 140, size: 150 }, head: { x: 440, y: 172, size: 85 } },
       model: {

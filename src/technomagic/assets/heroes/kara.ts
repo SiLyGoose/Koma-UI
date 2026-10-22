@@ -78,6 +78,8 @@ export const KARA_ASSETS: HeroAssets = {
       icon: 'Kara.webp',
       // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
       card: 'Kara.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Kara.webp',
       // Her artwork (the Drive folder's): her head in the crop (the meter's close-up is her face by itself).
       portrait: { file: 'Kara.png', from: `${DRIVE}1KRkv1nEtfjCcAN_QFTdv07nMvvUz305I`, crop: { x: 455, y: 165, size: 170 }, head: { x: 509, y: 222, size: 95 } },
       model: {

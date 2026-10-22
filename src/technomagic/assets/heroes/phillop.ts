@@ -67,6 +67,8 @@ export const PHILLOP_ASSETS: HeroAssets = {
       icon: 'Phillop.webp',
       // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
       card: 'Phillop.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Phillop.webp',
       // His artwork (from the wiki, asked for as the PNG it was uploaded as), sitting by his barrels with a tankard: his head and helm in the crop (the meter's close-up is his face by itself).
       portrait: {
         file: 'Phillop.png',

@@ -62,6 +62,8 @@ export const ERZE_ASSETS: HeroAssets = {
       icon: 'Erze.webp',
       // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
       card: 'Erze.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Erze.webp',
       // Her artwork (the King's Raid Index's): her head in the crop (the meter's close-up is her face by itself).
       portrait: { file: 'Erze.png', from: 'https://raw.githubusercontent.com/IcyDipity/KingsRaidIndex/master/images/heroes/Erze/Erze.png', crop: { x: 455, y: 160, size: 190 }, head: { x: 535, y: 205, size: 105 } },
       model: { kind: 'parts', animations: ANIMATIONS, parts: ['Hero_Erze_Vari04_Body', 'Hero_Erze_Vari04_Hair'], right: 'Hero_Erze_Vari04_Weapon' },

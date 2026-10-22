@@ -64,6 +64,8 @@ export const THEO_ASSETS: HeroAssets = {
       icon: 'Theo.webp',
       // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
       card: 'Theo.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Theo.webp',
       // His artwork (the Drive folder's): his head in the crop (the meter's close-up is his face by itself).
       portrait: { file: 'Theo.png', from: `${DRIVE}1N3sVPE7w_7NWO-kD-uhOCFe4C0Qy6ikh`, crop: { x: 407, y: 225, size: 170 }, head: { x: 446, y: 275, size: 90 } },
       model: {

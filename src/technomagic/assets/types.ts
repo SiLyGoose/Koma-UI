@@ -117,6 +117,8 @@ export interface SkinAssets {
   icon?: string;
   /** King's Raid's own card of it (the tall picture of it on its hero portraits: a file under its hero's cards/), shown on the raid's lineup. */
   card?: string;
+  /** King's Raid's own battle portrait of it (its head and shoulders on its card in a fight: a file under its hero's battle/), shown on its card in the raid. */
+  battle?: string;
   model: PartsModel;
 }
 

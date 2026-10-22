@@ -62,6 +62,8 @@ export const MORRAH_ASSETS: HeroAssets = {
       icon: 'Morrah.webp',
       // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
       card: 'Morrah.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Morrah.webp',
       // Her artwork, leaping, her wings spread and Carprain's fire dragon over her: her head and horns in the crop (the meter’s close-up is her face by itself).
       portrait: { file: 'Morrah.png', crop: { x: 385, y: 214, size: 100 }, head: { x: 396, y: 236, size: 60 } },
       model: {
