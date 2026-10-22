@@ -1,5 +1,5 @@
 import { setConn } from '../shared/ui/frame/frame';
-import { gameSocket, type GameSocket, hideMessage, showMessage, watching } from '../shared/game';
+import { gameSocket, type GameSocket, hideMessage, linkToken, showMessage, watching } from '../shared/game';
 import { showWatchers, showWatching, watchAway, watchBack } from '../shared/ui';
 import { refusalText, showLobby } from './lobby';
 import { setBalance, showError } from './panel';
@@ -23,11 +23,11 @@ export function send(message: ClientMessage): boolean {
   return socket?.send(message) ?? false;
 }
 
-/** Connects to the bot at `server`, as `token` (to play, or to watch). */
-export function connect(server: string, token: string): void {
+/** Connects to the bot at `server`, as the link's token (as it is now: renewed as it goes), to play or to watch. */
+export function connect(server: string): void {
   socket = gameSocket<ServerMessage, ClientMessage>({
     server,
-    hello: () => (watching ? { t: 'watch', token } : { t: 'hello', token }),
+    hello: () => (watching ? { t: 'watch', token: linkToken() } : { t: 'hello', token: linkToken() }),
     receive,
     onDrop: () => {
       state.pending = null;

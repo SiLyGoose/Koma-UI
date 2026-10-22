@@ -2,7 +2,7 @@ import '../shared/style.css';
 import '../shared/ui/button/button.css';
 import { barSlot, setConn, soundButton } from '../shared/ui/frame/frame';
 import { setMuted } from '../shared/audio';
-import { gameSocket, server, showMessage, single, token, watching, type GameSocket } from '../shared/game';
+import { gameSocket, linkToken, server, showMessage, single, token, watching, type GameSocket } from '../shared/game';
 import { apiFromSocket, chatBox, startLive, store } from '../shared/ui';
 import { landscapeCover } from '../shared/ui/landscape/landscape';
 import { navigate } from '../shared/transition';
@@ -646,7 +646,7 @@ async function start(): Promise<void> {
 
   // ---- A room (the link's server) ----
 
-  function room(link: string, address: string): void {
+  function room(address: string): void {
     actionsRow.hidden = true;
     // The boss's effects, sounds and music, and every fight's signs, read while everyone gets ready (the heroes' as they're picked: read()).
     kr.read([...bossEffects(bossView!.look.assets), ...SIGN_EFFECTS]);
@@ -690,7 +690,7 @@ async function start(): Promise<void> {
     // Manage: the heroes page over the room, not the site's (which would take them out of it). A button in place of
     // the link: the page's links are caught before anything on them hears the click (../shared/transition/). Closed, the
     // bot reads their heroes again, so getting ready shows them as they are now (a hero transcended in it).
-    const manage = managePopup(document.getElementById('app') as HTMLElement, link, address, () => void send({ t: 'heroes' }));
+    const manage = managePopup(document.getElementById('app') as HTMLElement, linkToken, address, () => void send({ t: 'heroes' }));
     const manageLink = document.querySelector('.tm-prep-manage');
     if (manageLink) {
       const button = el('button', manageLink.className, manageLink.textContent ?? 'Manage');
@@ -1025,11 +1025,11 @@ async function start(): Promise<void> {
     // from another app most often, and it is made again, the fight taken up again from the bot's.)
     socket = gameSocket<ServerMessage, ClientMessage>({
       server: address,
-      hello: () => ({ t: 'hello', token: link, ...(single && { single }), boss: def.id, ...where() }),
+      hello: () => ({ t: 'hello', token: linkToken(), ...(single && { single }), boss: def.id, ...where() }),
       receive,
       steady: () => state?.phase === 'fight' && game !== null && game.sim.result === null,
     });
-    startLive({ mount: barSlot(), api: apiFromSocket(address), auth: () => `Game ${link}`, newTab: true });
+    startLive({ mount: barSlot(), api: apiFromSocket(address), auth: () => `Game ${linkToken()}`, newTab: true });
   }
 
   /** A room's fight, a step on (set by room()); the fight is over (shows the result); in a room, the result waiting to be shown. */
@@ -1040,7 +1040,7 @@ async function start(): Promise<void> {
   /** The fight over, before what it gave is shown: since when (the frame's time: from when the boss was at 0%), and the boss's health as it ended. */
   let ending: { sim: Sim; at: number; from: number } | null = null;
 
-  if (token && server) room(token, server);
+  if (token && server) room(server);
   else await practice();
 
   stage.start((now, dt, gap) => {

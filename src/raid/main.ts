@@ -8,7 +8,7 @@ import { connect } from './connection';
 import { wireActions } from './fight';
 import { wireGearPopup } from './gear/gear-popup';
 import { setUpLandscape } from './widgets';
-import { api, server, token } from './link';
+import { api, linkToken, server, token } from './link';
 import { showMessage } from './message';
 import { wireLevel, wirePrep } from './prep';
 import { wireLoot, wireResultSort, wireStats } from './result';
@@ -49,6 +49,6 @@ if (!token || !server) {
   setConn('No link', 'bad');
   showMessage('Open this from the games page', 'Log in on the games page and pick Weekly Boss, or use the Play on the web button on the raid in Discord.');
 } else {
-  connect(server, token);
-  startLive({ mount: barSlot(), api, auth: () => `Game ${token}`, newTab: true });
+  connect(server);
+  startLive({ mount: barSlot(), api, auth: () => `Game ${linkToken()}`, newTab: true });
 }

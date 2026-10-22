@@ -1,4 +1,5 @@
 import { setConn } from '../ui/frame/frame';
+import { freshLink } from './link';
 
 /** The longest wait between tries to reconnect. */
 const RETRY_MAX_MS = 5000;
@@ -37,7 +38,8 @@ export interface GameSocket<Out> {
  * A game's connection to the bot, shown in the title bar's pill. Dropped (a phone asleep, a network
  * blip, the bot restarting, which takes a moment), it keeps trying for as long as the page is open,
  * waiting longer each time, up to RETRY_MAX_MS between tries; the page shown again (back from another
- * app), at once. One that has gone quiet when it shouldn't (`steady`) is dropped and made again.
+ * app), at once. One that has gone quiet when it shouldn't (`steady`) is dropped and made again. Each connection waits for
+ * the link to be good for a while yet (./link.ts freshLink), so one made after hours away says hello with a renewed token.
  */
 export function gameSocket<In, Out>(options: GameSocketOptions<In, Out>): GameSocket<Out> {
   let socket: WebSocket | null = null;
@@ -47,6 +49,8 @@ export function gameSocket<In, Out>(options: GameSocketOptions<In, Out>): GameSo
   let retry = 0;
   /** When the bot was last heard from (or the page last shown again: performance.now()). */
   let heard = performance.now();
+  /** A connection on its way: waiting for the link to be renewed (`socket` is still null). */
+  let pending = false;
 
   function send(message: Out): boolean {
     if (socket?.readyState !== WebSocket.OPEN) return false;
@@ -58,6 +62,14 @@ export function gameSocket<In, Out>(options: GameSocketOptions<In, Out>): GameSo
     clearTimeout(retry);
     retry = 0;
     setConn(retries === 0 ? 'Connecting…' : 'Reconnecting…', '');
+    pending = true;
+    void freshLink().then(() => {
+      pending = false;
+      if (!finished) open();
+    });
+  }
+
+  function open(): void {
     const ws = new WebSocket(options.server);
     socket = ws;
     ws.addEventListener('open', () => {
@@ -103,7 +115,7 @@ export function gameSocket<In, Out>(options: GameSocketOptions<In, Out>): GameSo
   document.addEventListener('visibilitychange', () => {
     if (document.hidden || finished) return;
     heard = performance.now();
-    if (!socket) connect();
+    if (!socket && !pending) connect();
   });
   window.setInterval(() => {
     if (finished || document.hidden || socket?.readyState !== WebSocket.OPEN || !options.steady?.()) return;

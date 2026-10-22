@@ -1,6 +1,6 @@
 import '../shared/style.css';
 import { barSlot, setConn, soundButton } from '../shared/ui/frame/frame';
-import { server, showMessage, token, watching } from '../shared/game';
+import { linkToken, server, showMessage, token, watching } from '../shared/game';
 import { apiFromSocket, startLive } from '../shared/ui';
 import { setMuted } from '../shared/audio';
 import { resize } from './camera';
@@ -47,9 +47,9 @@ if (!token || !server) {
   void loadTextures();
   void loadKeysPicture();
   loadSounds();
-  connect(server, token);
+  connect(server);
   requestAnimationFrame(frame);
   // Who else is on the site, and a way to watch them (asked with this page's own link).
-  startLive({ mount: barSlot(), api: apiFromSocket(server), auth: () => `Game ${token}`, newTab: !watching });
-  state.leaderboard = startLeaderboard({ mount: document.querySelector('.pinecraft > .hud') as HTMLElement, api: apiFromSocket(server), auth: () => `Game ${token}`, you: () => linkUser });
+  startLive({ mount: barSlot(), api: apiFromSocket(server), auth: () => `Game ${linkToken()}`, newTab: !watching });
+  state.leaderboard = startLeaderboard({ mount: document.querySelector('.pinecraft > .hud') as HTMLElement, api: apiFromSocket(server), auth: () => `Game ${linkToken()}`, you: () => linkUser });
 }

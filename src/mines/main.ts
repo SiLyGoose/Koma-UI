@@ -1,6 +1,6 @@
 import '../shared/style.css';
 import { barSlot, setConn, soundButton } from '../shared/ui/frame/frame';
-import { server, showMessage, token, watching } from '../shared/game';
+import { linkToken, server, showMessage, token, watching } from '../shared/game';
 import { setMuted } from '../shared/audio';
 import { apiFromSocket, startLive } from '../shared/ui';
 import './mines.css';
@@ -60,7 +60,7 @@ if (!token || !server) {
   setConn('No link', 'bad');
   showMessage('Open this from the games page', 'Log in on the games page and pick Mines, or use the mine command in Discord.');
 } else {
-  connect(server, token);
+  connect(server);
   // Who else is on the site, and a way to watch them (asked with this page's own link).
-  startLive({ mount: barSlot(), api: apiFromSocket(server), auth: () => `Game ${token}`, newTab: !watching });
+  startLive({ mount: barSlot(), api: apiFromSocket(server), auth: () => `Game ${linkToken()}`, newTab: !watching });
 }

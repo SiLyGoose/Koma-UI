@@ -3,6 +3,6 @@
  * (message.ts) and the connection to the bot (socket.ts, which shows itself in the frame: games only).
  */
 
-export { server, single, token, watching } from './link';
+export { freshLink, linkToken, server, single, token, watching } from './link';
 export { hideMessage, showMessage } from './message';
 export { gameSocket, type GameSocket } from './socket';

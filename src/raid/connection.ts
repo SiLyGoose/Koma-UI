@@ -1,5 +1,5 @@
 import { setConn } from '../shared/ui/frame/frame';
-import { gameSocket, type GameSocket } from '../shared/game';
+import { gameSocket, type GameSocket, linkToken } from '../shared/game';
 import { firstPaint, showMessage } from './message';
 import { startAnswered } from './prep';
 import type { ClientMessage, ErrorCode, ServerMessage } from '../protocol/raid';
@@ -24,11 +24,11 @@ export function send(message: ClientMessage): boolean {
   return went;
 }
 
-/** Connects to the bot as `token`, at `server`. */
-export function connect(server: string, token: string): void {
+/** Connects to the bot at `server`, as the link's token (as it is now: renewed as it goes). */
+export function connect(server: string): void {
   socket = gameSocket<ServerMessage, ClientMessage>({
     server,
-    hello: () => ({ t: 'hello', token }),
+    hello: () => ({ t: 'hello', token: linkToken() }),
     receive,
     // Lost: let the page be seen (the pill says it's reconnecting).
     onDrop: firstPaint,

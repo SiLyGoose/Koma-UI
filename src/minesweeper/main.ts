@@ -1,7 +1,7 @@
 import '../shared/style.css';
 import './minesweeper.css';
 import { barSlot, setConn, soundButton } from '../shared/ui/frame/frame';
-import { gameSocket, server, showMessage, token, watching } from '../shared/game';
+import { gameSocket, linkToken, server, showMessage, token, watching } from '../shared/game';
 import { apiFromSocket, chatBox, startLive } from '../shared/ui';
 import { setMuted } from '../shared/audio';
 import { renderBest, wireBest } from './best';
@@ -107,12 +107,11 @@ if (watching) {
   setConn('No link', 'bad');
   showMessage('Open this from the games page', 'Log in on the games page and pick Minesweeper, or use the minesweeper command in Discord.');
 } else {
-  const link = token;
   state.socket = gameSocket<ServerMessage, ClientMessage>({
     server,
-    hello: () => ({ t: 'hello', token: link }),
+    hello: () => ({ t: 'hello', token: linkToken() }),
     receive,
     onDrop: clearCursors,
   });
-  startLive({ mount: barSlot(), api: apiFromSocket(server), auth: () => `Game ${token}`, newTab: true });
+  startLive({ mount: barSlot(), api: apiFromSocket(server), auth: () => `Game ${linkToken()}`, newTab: true });
 }

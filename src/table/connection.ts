@@ -1,6 +1,6 @@
 import { setConn } from '../shared/ui/frame/frame';
 import { points } from '../shared/util';
-import { gameSocket, hideMessage, showMessage } from '../shared/game';
+import { gameSocket, hideMessage, linkToken, showMessage } from '../shared/game';
 import { showWatchers, showWatching, watchAway, watchBack } from '../shared/ui';
 import { mySeat, showError, type TableContext } from './context';
 import type { BetRefusal, ClientMessage, ErrorCode, ServerMessage, TableState } from '../protocol/table';
@@ -13,11 +13,11 @@ export function send<S extends string, R, X>(ctx: TableContext<S, R, X>, message
   return ctx.socket?.send(message) ?? false;
 }
 
-/** Connects to the bot at `server`, as `token` (to play, or to watch). */
-export function connect<S extends string, R, X>(ctx: TableContext<S, R, X>, server: string, token: string): void {
+/** Connects to the bot at `server`, as the link's token (as it is now: renewed as it goes), to play or to watch. */
+export function connect<S extends string, R, X>(ctx: TableContext<S, R, X>, server: string): void {
   ctx.socket = gameSocket<ServerMessage<S, R, X>, ClientMessage<S>>({
     server,
-    hello: () => (ctx.watching ? { t: 'watch', token } : { t: 'hello', token }),
+    hello: () => (ctx.watching ? { t: 'watch', token: linkToken() } : { t: 'hello', token: linkToken() }),
     receive: (message) => receive(ctx, message),
     onOpen: () => {
       ctx.seq = 0;

@@ -1,7 +1,7 @@
 import '../shared/style.css';
 import './table.css';
 import { barSlot, setConn, soundButton } from '../shared/ui/frame/frame';
-import { server, showMessage, token, watching } from '../shared/game';
+import { linkToken, server, showMessage, token, watching } from '../shared/game';
 import { apiFromSocket, chatBox, startLive } from '../shared/ui';
 import { setMuted } from '../shared/audio';
 import { connect, send } from './connection';
@@ -71,7 +71,7 @@ export function startTable<S extends string, R, X = unknown>(game: TableGame<S, 
     setConn('No link', 'bad');
     showMessage('Open this from the games page', `Log in on the games page and pick ${game.title}, or use the ${game.name} command in Discord.`);
   } else {
-    connect(ctx, server, token);
-    startLive({ mount: barSlot(), api: apiFromSocket(server), auth: () => `Game ${token}`, newTab: !watching });
+    connect(ctx, server);
+    startLive({ mount: barSlot(), api: apiFromSocket(server), auth: () => `Game ${linkToken()}`, newTab: !watching });
   }
 }

@@ -1,7 +1,7 @@
 import '../shared/style.css';
 import './poker.css';
 import { barSlot, setConn, soundButton, titleExtra } from '../shared/ui/frame/frame';
-import { gameSocket, server, showMessage, token, watching } from '../shared/game';
+import { gameSocket, linkToken, server, showMessage, token, watching } from '../shared/game';
 import { apiFromSocket, chatBox, startLive } from '../shared/ui';
 import { setMuted } from '../shared/audio';
 import { points } from '../shared/util';
@@ -117,11 +117,10 @@ if (watching) {
   setConn('No link', 'bad');
   showMessage('Open this from the games page', 'Log in on the games page and pick Poker, or use the poker command in Discord.');
 } else {
-  const link = token;
   ctx.socket = gameSocket<ServerMessage, ClientMessage>({
     server,
-    hello: () => ({ t: 'hello', token: link }),
+    hello: () => ({ t: 'hello', token: linkToken() }),
     receive,
   });
-  startLive({ mount: barSlot(), api: apiFromSocket(server), auth: () => `Game ${token}`, newTab: true });
+  startLive({ mount: barSlot(), api: apiFromSocket(server), auth: () => `Game ${linkToken()}`, newTab: true });
 }

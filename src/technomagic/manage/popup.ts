@@ -20,8 +20,8 @@ export interface ManagePopup {
   close(): void;
 }
 
-/** The popup, put in `into`, for the room the link `token` (with the bot's socket `address`) plays in. */
-export function managePopup(into: HTMLElement, token: string, address: string, closed: () => void): ManagePopup {
+/** The popup, put in `into`, for the room the link (`token`: its token as it is now, renewed as it goes; with the bot's socket `address`) plays in. */
+export function managePopup(into: HTMLElement, token: () => string, address: string, closed: () => void): ManagePopup {
   const root = el('div', 'tm-manage');
   root.hidden = true;
   root.setAttribute('role', 'dialog');
@@ -73,7 +73,7 @@ export function managePopup(into: HTMLElement, token: string, address: string, c
 
   return {
     open() {
-      const hash = new URLSearchParams({ t: token, s: address });
+      const hash = new URLSearchParams({ t: token(), s: address });
       frame.src = `${import.meta.env.BASE_URL}games/technomagic/heroes/#${hash}`;
       root.hidden = false;
       layOut();

@@ -1,5 +1,5 @@
 import { popupClosed } from '../../shared/items';
-import { server, token } from '../link';
+import { linkToken, server, token } from '../link';
 import { popupShown } from '../widgets';
 import type { RaidView } from '../../protocol/raid';
 import { ui } from '../ui';
@@ -23,7 +23,7 @@ const GEAR_LAYOUT_HEIGHT = 640;
 export function openGear(v: RaidView, players: string[], userId: string, fought = false): void {
   if (!token || !server) return;
   const party = players.map((id) => ({ id, name: v.names[id] ?? 'Someone', avatar: v.avatars[id], you: id === v.you || undefined }));
-  const hash = new URLSearchParams({ t: token, s: server, p: JSON.stringify(party), w: userId, ...(fought ? { g: 'raid' } : {}) });
+  const hash = new URLSearchParams({ t: linkToken(), s: server, p: JSON.stringify(party), w: userId, ...(fought ? { g: 'raid' } : {}) });
   ui.gearFrame.src = `${import.meta.env.BASE_URL}games/raid/gear/#${hash}`;
   ui.gearPop.hidden = false;
   popupShown();
