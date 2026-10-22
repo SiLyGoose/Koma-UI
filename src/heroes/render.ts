@@ -310,13 +310,21 @@ function renderGrid(ctx: HeroesContext, act: HeroActions): void {
   if (piece) return renderRunes(ctx, act, piece);
   const into = !ctx.selling && ctx.target && filter === HERO_SLOT_TYPE[ctx.target] ? ctx.target : null;
   const wearable = (copy: HeroCopy): boolean => !into || copy.id === hero?.equipped[into] || (slotsFor(copy).includes(into) && worksOn(copy, hero) && wieldable(copy, hero));
+  // The Filter's class: King's Raid's gear by its classes, a unique weapon or treasure by its hero's, a class item by its class.
+  const ofClass = (copy: HeroCopy): boolean => {
+    if (cls === 'all') return true;
+    if (copy.classes.length > 0) return (copy.classes as readonly string[]).includes(cls);
+    const owner = copy.uniqueWeapon ?? copy.uniqueTreasure?.hero;
+    const ownerClass = owner ? view.heroes.find((one) => one.id === owner)?.class : undefined;
+    return ownerClass ? ownerClass === cls : copy.class === null || copy.class === cls;
+  };
   ui.grid.draw({
     copies: view.copies,
     slot: filter,
     stars,
     query,
     sort,
-    matches: (copy) => (cls === 'all' || copy.class === null || copy.class === cls) && wearable(copy),
+    matches: (copy) => ofClass(copy) && wearable(copy),
     look: (copy) => {
       const onThis = copy.hero !== null && copy.hero === hero?.id;
       const other = copy.hero !== null && !onThis ? view.heroes.find((one) => one.id === copy.hero) : undefined;
