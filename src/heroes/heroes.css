@@ -1183,8 +1183,8 @@ button.ascend-cost:focus-visible {
  */
 .heroes-page .ut-equipped {
   position: relative;
-  width: 240px;
-  height: 172px;
+  width: 300px;
+  height: 190px;
   margin: 0 auto;
 }
 
@@ -1201,22 +1201,22 @@ button.ascend-cost:focus-visible {
 
 .heroes-page .ut-equipped .item.ut-equipped-treasure {
   top: 0;
-  left: 76px;
+  left: 106px;
   width: 88px;
 }
 
 .heroes-page .ut-equipped .ut-equipped-side1 {
-  top: 62px;
+  top: 70px;
   left: 0;
 }
 
 .heroes-page .ut-equipped .ut-equipped-side2 {
-  top: 100px;
-  left: 86px;
+  top: 122px;
+  left: 116px;
 }
 
 .heroes-page .ut-equipped .ut-equipped-side3 {
-  top: 62px;
+  top: 70px;
   right: 0;
 }
 
