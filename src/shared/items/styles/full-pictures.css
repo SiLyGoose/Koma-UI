@@ -54,9 +54,15 @@
   pointer-events: none;
 }
 
-/* Everything else in the box sits over the picture (its label, "On Kirze" or "Equipped", over the lock too: cards.css). */
-.item:has(> .art.full) > :not(.art, .item-tag),
-.slot-frame:has(> .art.full) > :not(.art) {
+/*
+ * Everything else in the box sits over the picture (its label, "On Kirze" or "Equipped", over the lock too: cards.css):
+ * what comes after the picture, and what comes before it. (Not as `.item:has(> .art.full) > :not(.art)`: a :has() left of
+ * what anything can be has the browser style the whole page again for any change anywhere on it, every tap.)
+ */
+.item > .art.full ~ :not(.art, .item-tag),
+.item > :not(.art, .item-tag):has(~ .art.full),
+.slot-frame > .art.full ~ :not(.art),
+.slot-frame > :not(.art):has(~ .art.full) {
   z-index: 1;
 }
 

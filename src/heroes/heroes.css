@@ -227,8 +227,10 @@
   opacity: 1;
 }
 
+/* (Its bob stopped too: the browser moves it, hidden or not, by drawing the whole page again every frame.) */
 .heroes-page .modelled .hero-bust {
   visibility: hidden;
+  animation: none;
 }
 
 /* Its name on a dark shade fading out all round it, easy to read over whatever is behind it. */

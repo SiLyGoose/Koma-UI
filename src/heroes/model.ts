@@ -156,6 +156,23 @@ export function makeShowcase(canvas: HTMLCanvasElement): Showcase {
     renderer.render(scene, camera);
     frame = requestAnimationFrame(draw);
   };
+  // Drawn only while the stage is on the screen (scrolled past it, to a tab's perks or gear on a phone: not drawn for nothing).
+  let seen = true;
+  const start = (): void => {
+    if (frame || !seen || !shown || gone) return;
+    last = performance.now();
+    frame = requestAnimationFrame(draw);
+  };
+  const stop = (): void => {
+    cancelAnimationFrame(frame);
+    frame = 0;
+  };
+  const watched = new IntersectionObserver(([entry]) => {
+    seen = entry?.isIntersecting ?? true;
+    if (seen) start();
+    else stop();
+  });
+  watched.observe(canvas);
 
   return {
     async show(id) {
@@ -179,15 +196,13 @@ export function makeShowcase(canvas: HTMLCanvasElement): Showcase {
       // Stood as it rests before it is framed, so its head is where it will be.
       hero.update(performance.now() / 1000, 0);
       fit();
-      if (!frame) {
-        last = performance.now();
-        frame = requestAnimationFrame(draw);
-      }
+      start();
       return true;
     },
     destroy() {
       gone = true;
-      cancelAnimationFrame(frame);
+      stop();
+      watched.disconnect();
       sized.disconnect();
       if (shown) letGo(shown);
       renderer.dispose();
