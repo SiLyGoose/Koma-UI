@@ -123,11 +123,16 @@
   }
 }
 
+/*
+ * (Its cards never hold the sheet's scroll in place, the browser's scroll anchoring: they move about as the grid is drawn
+ * again, and it would scroll the sheet after whichever one it held. Left alone, the sheet stays where it was scrolled.)
+ */
 .armory-grid {
   position: relative;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
+  overflow-anchor: none;
 }
 
 @media (min-width: 520px) {

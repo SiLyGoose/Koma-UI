@@ -128,6 +128,8 @@ interface Card {
 export function armoryGrid<C extends ArmoryCopy>(element: HTMLElement): ArmoryGrid<C> {
   let last: ArmoryDraw<C> | null = null;
   let lastShown: readonly C[] = [];
+  // How many cards fit across: read where the page is laid out anyway (the resize observer's), not on every draw, where
+  // reading it would lay out the whole page there and then (hundreds of cards, a page just changed under them).
   let across = 0;
   const columns = (): number => getComputedStyle(element).gridTemplateColumns.split(' ').length || 4;
   /** By copy id. */
@@ -152,10 +154,7 @@ export function armoryGrid<C extends ArmoryCopy>(element: HTMLElement): ArmoryGr
   function draw(what: ArmoryDraw<C>): void {
     last = what;
     const { slot, stars, query, hidden, matches, look } = what;
-    // The sheet's scroll put back after: a grid much shorter for a moment would scroll it back to the top.
-    across = columns();
-    const sheet = element.parentElement as HTMLElement;
-    const scrolled = sheet.scrollTop;
+    if (!across) across = columns();
     element.classList.toggle('selling', !!what.selling);
     const ofSlot = armoryOrder(what.copies, what.sort).filter((c) => (slot === 'all' || typeOf(c) === slot) && !hidden?.(c));
     const shown = ofSlot.filter((c) => (matches?.(c) ?? true) && matchesStars(stars, tierOf(c)) && matchesSearch(query, { name: c.name, id: c.itemId, description: c.description }));
@@ -173,12 +172,14 @@ export function armoryGrid<C extends ArmoryCopy>(element: HTMLElement): ArmoryGr
     // The cards of copies gone (sold, or someone else's shown now) aren't kept.
     const ids = new Set(what.copies.map((copy) => copy.id));
     for (const id of cards.keys()) if (!ids.has(id)) cards.delete(id);
-    sheet.scrollTop = scrolled;
   }
 
   // Drawn again when as many cards don't fit across any more (the grid's width changed, not just the window's).
   const resized = new ResizeObserver(() => {
-    if (last && across && columns() !== across) draw(last);
+    const now = columns();
+    if (now === across) return;
+    across = now;
+    if (last) draw(last);
   });
   resized.observe(element);
   return { element, draw, shown: () => lastShown, destroy: () => resized.disconnect() };
