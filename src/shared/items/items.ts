@@ -353,9 +353,19 @@ export function heroMarks(copy: { itemId: string; uniqueWeapon?: string | null; 
   return tier === null ? [] : [dragonTierMark(tier)];
 }
 
-/** How an item ranks among the tiers, best highest: TechnoMagic gear above 4 stars, and the unique weapons, then the unique treasures, between them. */
-export const tierRank = (item: { stars: number; heroOnly?: boolean; uniqueWeapon?: string | null; uniqueTreasure?: Treasure }): number =>
-  item.uniqueWeapon ? 4.5 : item.uniqueTreasure ? 4.4 : item.heroOnly ? 5 : item.stars;
+/**
+ * A hero's gear's tier, as its card's marks say it (heroMarks): a unique weapon, a unique treasure or an artifact T10,
+ * a TechnoMagic piece T9, a dragon set's piece its own (T6 to T8); 0 for anything else.
+ */
+const heroTier = (item: { itemId: string; uniqueWeapon?: string | null; uniqueTreasure?: Treasure; part?: string | null }): number =>
+  item.uniqueWeapon || item.uniqueTreasure || item.part === 'artifact' ? 10 : isTmPiece(item.itemId) ? 9 : (dragonTier(item.itemId) ?? 0);
+
+/**
+ * How an item ranks among the tiers, best highest: a hero's gear above 4 stars, by its tier (heroTier; at T10 the unique
+ * weapons, then the unique treasures, then the artifacts), then the members' own gear by its stars.
+ */
+export const tierRank = (item: { itemId: string; stars: number; heroOnly?: boolean; uniqueWeapon?: string | null; uniqueTreasure?: Treasure; part?: string | null }): number =>
+  heroGear(item) ? 5 + heroTier(item) / 100 + (item.uniqueWeapon ? 0.002 : item.uniqueTreasure ? 0.001 : 0) : item.stars;
 
 /**
  * An effect line as Discord shows it: custom emoji (<:name:id>) become their pictures, **bold**,

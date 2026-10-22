@@ -23,6 +23,7 @@ interface Ordered {
   heroOnly?: boolean;
   uniqueWeapon?: string | null;
   uniqueTreasure?: { hero: string; skill: number } | null;
+  part?: string | null;
 }
 
 /**
@@ -40,12 +41,12 @@ export interface TmSort {
 export const TM_UNSORTED: TmSort = { main: null, potentials: [] };
 
 /**
- * The copies in the order the armories show them: by star tier (4 stars first), then by name, A to Z
+ * The copies in the order the armories show them: by tier, highest first (a hero's gear by its own: T10, T9, T8…; then 4 stars down), then by name, A to Z
  * (so an item's copies sit together), then each item's copies from the most refined down. Sorting TechnoMagic gear
  * (`sort`), its copies go by that, and the rest stay after them in this order.
  */
 export function armoryOrder<C extends Ordered>(copies: readonly C[], sort: TmSort = TM_UNSORTED): C[] {
-  // TechnoMagic gear first: a tier of its own, above 4 stars; then the unique weapons, then the unique treasures.
+  // A hero's gear first, its highest tier first (tierRank); then the members' own, 4 stars first.
   const tier = tierRank;
   const ordered = [...copies].sort(
     (a, b) =>
