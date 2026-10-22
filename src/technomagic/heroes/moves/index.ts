@@ -205,6 +205,9 @@ export const MOVES: Record<HeroMove | 'hit', Move> = {
   desert: CAST,
   spirit: CAST,
   sandstorm: CAST,
+  rites: CAST,
+  mark: CAST,
+  ruinday: CAST,
 };
 
 export { flowing, type Move } from './move';
