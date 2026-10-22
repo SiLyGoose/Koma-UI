@@ -178,7 +178,7 @@ export const KLAUS: HeroDef = {
         self.mana = Math.min(MAX_MANA, self.mana + VOW.mana);
         // (Mittens: healed, and his P.DEF higher a moment.)
         if (wearsTreasure(self, 3)) {
-          fight.heal(self, UT.mittens.heal * self.stats.hp);
+          fight.heal(self, UT.mittens.heal * self.stats.hp, undefined, self);
           put(self.statuses, { name: 'Mittens', left: UT.mittens.lasts, defends: { physical: 1 + fromTreasure(self, 3, UT.mittens.defends) }, shown: { name: 'Mittens', about: `P.DEF +${pct(fromTreasure(self, 3, UT.mittens.defends))}.`, icon: '🧤', art: art(3) } });
         }
       },

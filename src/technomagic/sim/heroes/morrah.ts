@@ -216,7 +216,7 @@ export const MORRAH: HeroDef = {
           fight.hit(self, ERUPTION.blow * fanning());
           fight.stun(ERUPTION.down, { down: true, by: self });
           // (Its Dark: what it dealt heals her a share.)
-          if (self.perks.has('s3-dark')) fight.heal(self, PERKS.drain * Math.max(0, before - fight.foe.hp));
+          if (self.perks.has('s3-dark')) fight.heal(self, PERKS.drain * Math.max(0, before - fight.foe.hp), undefined, self);
         },
       },
       // Blocked: a blow back, and 3 more Flame.

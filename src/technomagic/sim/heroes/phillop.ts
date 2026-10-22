@@ -205,7 +205,7 @@ export const PHILLOP: HeroDef = {
           const hammer = wearsTreasure(self, 2);
           const defense = INCARNATE.defense * (1 + fromTreasure(self, 2, UT.hammer.defense));
           put(self.statuses, { name: INCARNATION.name, left: INCARNATE.lasts, bolsters: { physical: defense, magical: defense }, ...(hammer && { pace: 1 + UT.hammer.speed / POINTS, crit: UT.hammer.crit / POINTS }), shown: INCARNATION });
-          fight.heal(self, INCARNATE.heal * self.stats.hp);
+          fight.heal(self, INCARNATE.heal * self.stats.hp, undefined, self);
           if (self.perks.has('s3-dark')) fight.stun(PERKS.stun, { by: self });
         },
       },

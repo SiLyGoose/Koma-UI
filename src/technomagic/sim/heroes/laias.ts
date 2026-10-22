@@ -221,7 +221,7 @@ export const LAIAS: HeroDef = {
           fight.hit(self, FESTIVAL.blow);
           fight.stun(FESTIVAL.down, { down: true, by: self });
           for (const ally of on) {
-            fight.heal(ally, ally.stats.hp * (FESTIVAL.heal + (self.perks.has('s3-dark') ? PERKS.festival : 0)));
+            fight.heal(ally, ally.stats.hp * (FESTIVAL.heal + (self.perks.has('s3-dark') ? PERKS.festival : 0)), undefined, self);
             if (ally !== self) ally.mana = Math.min(MAX_MANA, ally.mana + FESTIVAL.mana);
           }
           flowing = FESTIVAL.lasts;

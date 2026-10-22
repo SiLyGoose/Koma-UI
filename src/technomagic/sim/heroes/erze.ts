@@ -161,7 +161,7 @@ export const ERZE: HeroDef = {
       const before = self.dealt;
       const critical = fight.hit(self, amount, counted);
       const dealt = self.dealt - before;
-      if (steals > 0 && dealt > 0) fight.heal(self, dealt * steals);
+      if (steals > 0 && dealt > 0) fight.heal(self, dealt * steals, undefined, self);
       if (skill && dealt > 0 && tier !== null) {
         greed = Math.min(atTier(PERION.most, tier), greed + 1);
         greedLeft = PERION.lasts;

@@ -162,7 +162,7 @@ export const SHEA: HeroDef = {
           if (part === 0) {
             fight.cue(self, 'melody', on);
             for (const ally of on) {
-              if (self.perks.has('s1-light')) fight.heal(ally, ally.stats.hp * PERKS.heal);
+              if (self.perks.has('s1-light')) fight.heal(ally, ally.stats.hp * PERKS.heal, undefined, self);
               put(ally.statuses, {
                 name: SHELTERED.name,
                 left: MELODY.lasts,

@@ -155,7 +155,7 @@ export const GAU: HeroDef = {
     const strike = (amount: number, counted = true): boolean => {
       const before = self.dealt;
       const critical = fight.hit(self, amount, counted);
-      if (self.perks.has('s4-dark') && rage > 0) fight.heal(self, (self.dealt - before) * share(PERKS.fury.lifesteal * rage));
+      if (self.perks.has('s4-dark') && rage > 0) fight.heal(self, (self.dealt - before) * share(PERKS.fury.lifesteal * rage), undefined, self);
       return critical;
     };
     /** His attack: a blow, a stack of Enrage (all begun again); with his unique weapon, now and then a blow more and the boss frozen. */
@@ -213,7 +213,7 @@ export const GAU: HeroDef = {
         mending += dt;
         if (mending < 1) return;
         mending -= 1;
-        fight.heal(self, PERKS.mend.heal * self.stats.atk);
+        fight.heal(self, PERKS.mend.heal * self.stats.atk, undefined, self);
       },
       // What he takes: less with his unique weapon (his max HP higher), and (Transcend 5's Dark) the less the more he has lost; more for Enrage's Dark's stacks.
       takes() {

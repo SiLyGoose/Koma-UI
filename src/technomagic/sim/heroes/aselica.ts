@@ -225,7 +225,7 @@ export const ASELICA: HeroDef = {
             for (const ally of on.filter((one) => one !== self)) {
               // (Its share of her P.DEF is HP as it is: not by her attack.)
               fight.heal(ally, JUDGMENT.heal, self);
-              fight.heal(ally, JUDGMENT.healDefense * self.stats.physical * JUDGMENT.books);
+              fight.heal(ally, JUDGMENT.healDefense * self.stats.physical * JUDGMENT.books, undefined, self);
               put(ally.statuses, { name: GUARDED.name, left: JUDGMENT.lasts, bolsters: { physical: JUDGMENT.guard * JUDGMENT.books * trumpet }, shown: GUARDED });
             }
             return;
@@ -235,7 +235,7 @@ export const ASELICA: HeroDef = {
           fight.stun(JUDGMENT.down, { down: true, by: self });
           for (const ally of on) {
             fight.heal(ally, JUDGMENT.lastHeal, self);
-            fight.heal(ally, JUDGMENT.lastHp * self.stats.hp * JUDGMENT.books);
+            fight.heal(ally, JUDGMENT.lastHp * self.stats.hp * JUDGMENT.books, undefined, self);
           }
         },
       },
@@ -252,7 +252,7 @@ export const ASELICA: HeroDef = {
         mending += dt;
         if (mending >= 1) {
           mending -= 1;
-          for (const ally of fight.fighters) if (ally.statuses.some((status) => status.name === ANGEL.name)) fight.heal(ally, self.stats.hp * CURSE.heal);
+          for (const ally of fight.fighters) if (ally.statuses.some((status) => status.name === ANGEL.name)) fight.heal(ally, self.stats.hp * CURSE.heal, undefined, self);
         }
         // Transcend 5's Dark: as the fight begins, the ally with the highest ATK's P.DEF higher by a share of hers, for good.
         if (!sheltered && self.perks.has('t5-dark') && fight.field.includes(self)) {

@@ -237,7 +237,7 @@ export const GREMORY: HeroDef = {
         const critDamage = fromTreasure(self, 3, UT.fruit.critDamage) * charges;
         put(self.statuses, { name: CHARGED.name, left: Infinity, count: charges, deals: (1 + atk * charges) * (1 + CHARGE.dmg * charges), ...(critDamage > 0 && { critDamage }), shown: CHARGED });
         if (tier !== null) {
-          fight.heal(self, atTier(PIGRITIA.heal, tier) * self.stats.hp);
+          fight.heal(self, atTier(PIGRITIA.heal, tier) * self.stats.hp, undefined, self);
           filling = PIGRITIA.over;
         }
       },

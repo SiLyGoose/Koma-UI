@@ -242,8 +242,13 @@ export interface Fight {
   hit(by: Fighter, amount: number, counted?: boolean, pierce?: number, whole?: boolean): boolean;
   /** The blow of a hero's attack landing now, as King's Raid's playtest has it (thousandths of ATK: ./heroes/kr.ts); 0 while none is. */
   readonly basic: number;
-  /** A hero is given back `amount` of its health (not while it is down), less what is on it and the boss's skills take off; `by` is the hero whose heal it is (it gives as much more as its attack is over ATK, or less). */
-  heal(fighter: Fighter, amount: number, by?: Fighter): void;
+  /**
+   * A hero is given back `amount` of its health (not while it is down), less what is on it and the boss's skills take off;
+   * `by` is the hero whose heal it is (it gives as much more as its attack is over ATK, or less), or `from`, for a heal
+   * that isn't by its ATK (a share of max HP or DEF, or of damage dealt): either way, what it gives is counted as theirs
+   * (its healing done, HPS). How much it was given.
+   */
+  heal(fighter: Fighter, amount: number, by?: Fighter, from?: Fighter): number;
   /**
    * A hero is given a shield of `amount` (on top of any it has) for so many `seconds` (for good, when it
    * doesn't say): the boss's blows wear it away before its health (not while it is down). `by` is the hero whose shield it is (by its attack, as a heal).

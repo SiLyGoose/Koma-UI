@@ -476,9 +476,12 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
   const among = (id: SkillId): number => field.reduce((count, on) => count + (on.hp > 0 && !away(on.statuses) ? (on.skills[id] ?? 0) : 0), 0);
   /** What every ally gains, as this step began, from the perks of the heroes on the field and standing (./perks.ts's auras). */
   const auras = { atk: 0, crit: 0, critDamage: 0, speed: 0, pen: 0, acc: 0, accuracy: 0, resist: 0, mend: 0 };
+  /** The heroes whose Inner Peace the mend is, as this step began: its healing is theirs, shared evenly. */
+  let menders: Fighter[] = [];
   function aurasNow(): void {
-    const standing = field.filter((on) => on.hp > 0 && !away(on.statuses)).map((on) => on.perkDefs);
-    for (const key of Object.keys(auras) as (keyof typeof auras)[]) auras[key] = auraTotal(standing, key);
+    const standing = field.filter((on) => on.hp > 0 && !away(on.statuses));
+    for (const key of Object.keys(auras) as (keyof typeof auras)[]) auras[key] = auraTotal(standing.map((on) => on.perkDefs), key);
+    menders = standing.filter((on) => on.perkDefs.some((perk) => perk.allies?.mend));
   }
   /** Whether a hero's perk that waits between times (by its name) comes now: then it waits again, `again` seconds. */
   function perkDue(fighter: Fighter, name: string, again: number): boolean {
@@ -597,7 +600,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
   function usedWith(fighter: Fighter, skill: NonNullable<PerkDef['skill']>): void {
     const ability = fighter.abilities[skill.index];
     if (skill.mana) fighter.mana = Math.min(MAX_MANA, fighter.mana + skill.mana);
-    if (skill.heal) sim.heal(fighter, skill.heal * fighter.stats.hp);
+    if (skill.heal) sim.heal(fighter, skill.heal * fighter.stats.hp, undefined, fighter);
     const allies = field.filter((ally) => ally.hp > 0 && !away(ally.statuses));
     if (skill.cleanse) for (const ally of skill.cleanse === 'self' ? [fighter] : allies) ally.statuses = ally.statuses.filter((status) => status.shown.harmful !== true || status.binds === true);
     if (skill.dispel) dispel();
@@ -673,7 +676,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     }
     if (own.secondWind && !fighter.setDone.wind && fighter.hp < fighter.stats.hp * own.secondWind.below) {
       fighter.setDone.wind = true;
-      sim.heal(fighter, own.secondWind.heal * fighter.stats.hp);
+      sim.heal(fighter, own.secondWind.heal * fighter.stats.hp, undefined, fighter);
       fighter.stats.speed += own.secondWind.speed;
       put(fighter.statuses, { name: SET_UP.secondWind.name, left: Infinity, shown: SET_UP.secondWind });
     }
@@ -693,7 +696,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     if (!field.includes(fighter) || fighter.hp <= 0 || away(fighter.statuses)) return;
     const n = (id: SkillId): number => has(fighter, id);
     const full = fighter.mana >= MAX_MANA;
-    if (due(fighter, 'regeneration', SKILL.regeneration.every)) sim.heal(fighter, SKILL.regeneration.heal * n('regeneration') * fighter.stats.hp);
+    if (due(fighter, 'regeneration', SKILL.regeneration.every)) sim.heal(fighter, SKILL.regeneration.heal * n('regeneration') * fighter.stats.hp, undefined, fighter);
     if (due(fighter, 'mana-spring', SKILL['mana-spring'].every)) fighter.mana = Math.min(MAX_MANA, fighter.mana + SKILL['mana-spring'].mana * n('mana-spring'));
     for (const id of ['focus-1', 'focus-2', 'focus-3'] as const) {
       const { skill, cooldown, every } = SKILL[id];
@@ -720,7 +723,11 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     const wound = fighter.wound > 0 ? fighter.perkDefs.find((perk) => perk.wound)?.wound : undefined;
     if (wound && (tick + 1) % SECOND === 0) sim.hit(fighter, wound.each, false);
     if ((tick + 1) % SECOND !== 0 || !field.includes(fighter) || fighter.hp <= 0 || away(fighter.statuses)) return;
-    if (auras.mend > 0) sim.heal(fighter, auras.mend * fighter.stats.hp);
+    // (A share of its max HP, not by anyone's ATK: what it gives is counted as its givers' healing.)
+    if (auras.mend > 0) {
+      const given = sim.heal(fighter, auras.mend * fighter.stats.hp);
+      for (const by of menders) by.healed += given / menders.length;
+    }
     const nimble = fighter.perkDefs.find((perk) => perk.nimble)?.nimble;
     if (nimble) fighter.nimble = Math.min(nimble.most, fighter.nimble + 1);
   }
@@ -1207,13 +1214,15 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       return hitting(by, amount, counted, pierce, whole);
     },
     on: as,
-    heal(fighter, amount, by) {
-      if (fighter.hp <= 0) return;
+    heal(fighter, amount, by, from) {
+      if (fighter.hp <= 0) return 0;
       // (The more for its Recovery: its gear's, and what the sets on the field give every ally.)
       const given = Math.min(amount * byAttack(by) * healed(by) * healing(fighter.statuses, 1 + fighter.recovery + allied(fighter, 'recovery')) * (boss.part.healing?.() ?? 1), fighter.stats.hp - fighter.hp);
       fighter.hp += given;
-      if (by) by.healed += given;
+      const giver = by ?? from;
+      if (giver) giver.healed += given;
       if (given > 0) events.push({ kind: 'number', on: fighter.index, amount: given, type: 'heal' });
+      return given;
     },
     shield(fighter, amount, seconds = Infinity, by) {
       if (fighter.hp <= 0) return;
@@ -1273,7 +1282,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
         events.push({ kind: 'number', on: target.index, amount: 0, type: 'dodged' });
         target.part.dodged?.();
         // Mirage: a dodge mends it a little.
-        if (due(target, 'mirage', SKILL.mirage.wait)) sim.heal(target, SKILL.mirage.heal * has(target, 'mirage') * target.stats.hp);
+        if (due(target, 'mirage', SKILL.mirage.wait)) sim.heal(target, SKILL.mirage.heal * has(target, 'mirage') * target.stats.hp, undefined, target);
         relics.get(target)?.dodged();
         return 0;
       }
@@ -1686,7 +1695,8 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       dragon: DRAGON_IDS.has(def.id),
       roll,
       hit: (by, amount) => void sim.hit(by, amount, true),
-      heal: (on, amount) => sim.heal(on, amount),
+      // (Its wearer's healing.)
+      heal: (on, amount) => void sim.heal(on, amount, undefined, fighter),
       due: (on, name, again) => perkDue(on, name, again),
     });
     if (hooks) relics.set(fighter, hooks);

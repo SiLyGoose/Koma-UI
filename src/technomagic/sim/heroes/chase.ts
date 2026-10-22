@@ -143,7 +143,7 @@ export const CHASE: HeroDef = {
     let relentless = 0;
     let next = 0;
     /** A heal of a share of a blow (as his ATK has it). */
-    const drink = (blow: number, share: number): void => fight.heal(self, (blow / 1000) * self.stats.atk * share);
+    const drink = (blow: number, share: number): void => void fight.heal(self, (blow / 1000) * self.stats.atk * share, undefined, self);
     /** [Remove Limit] off: its state gone. */
     const off = (): void => {
       limit = false;
@@ -191,7 +191,7 @@ export const CHASE: HeroDef = {
           if (part === 0) fight.stun(FURY.down, { down: true, by: self });
           else if (part === 1) fight.stun(FURY.stun, { by: self });
           const heals = self.perks.has('s3-light') ? PERKS.heals : 1;
-          if (part === 0) fight.heal(self, self.stats.hp * FURY.heal * heals);
+          if (part === 0) fight.heal(self, self.stats.hp * FURY.heal * heals, undefined, self);
           drink(blow, FURY.drain * heals);
         },
       },
@@ -226,7 +226,7 @@ export const CHASE: HeroDef = {
         if (self.hp <= 0) return;
         if (rose) {
           rose = false;
-          fight.heal(self, self.stats.hp * HELL.floor);
+          fight.heal(self, self.stats.hp * HELL.floor, undefined, self);
         }
         // His passive: the more he is hurt, the higher his crit DMG and attack speed.
         const lost = 1 - self.hp / self.stats.hp;

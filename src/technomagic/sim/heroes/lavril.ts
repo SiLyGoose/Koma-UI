@@ -167,7 +167,7 @@ export const LAVRIL: HeroDef = {
     const drain = (amount: number): void => {
       const alive = fight.foe.hp > 0;
       fight.hit(self, amount);
-      for (const ally of allies()) fight.heal(ally, (amount / 1000) * self.stats.atk * AWAY.drain * (self.perks.has('s1-dark') ? PERKS.heals : 1));
+      for (const ally of allies()) fight.heal(ally, (amount / 1000) * self.stats.atk * AWAY.drain * (self.perks.has('s1-dark') ? PERKS.heals : 1), undefined, self);
       // (Beaten: its cooldown begun again, and a section of mana.)
       if (alive && fight.foe.hp <= 0) {
         self.cooldowns[0] = 0;
