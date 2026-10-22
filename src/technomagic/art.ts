@@ -50,6 +50,7 @@ const UNIQUE_PICTURES: Readonly<Record<string, string>> = {
   lavril: '/gear/items/weapons/void-soul-dunn-nemecia.png',
   evan: '/gear/items/weapons/small-synthesized-darkness-naav-gehen.png',
   estelle: '/gear/items/weapons/chant-of-tailwinds-stosmos.png',
+  jane: '/gear/items/weapons/unchanging-mind-erekura.png',
 };
 
 /** A hero's files, by its id (its folder under public/kr/heroes/). */
