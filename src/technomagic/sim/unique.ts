@@ -96,6 +96,8 @@ import { fine, pct, type Buff } from './shown';
  * - Evan, Small Synthesized Darkness, Naav Gehen: each skill he uses gains him mana, and for a moment every ally takes less
  *   physical damage and the boss more.
  * - Estelle, Chant of Tailwinds, Stosmos: [Adventure Guide] the longer, and every ally's ATK higher meanwhile.
+ * - Jane, Unchanging Mind, Erekura: every second a blow on the enemies near her, hitting less hard a moment; the ally with
+ *   the highest ATK (not her) deals more to Non-Hero enemies; and her [Coffin] fills a share of her mana.
  *   (Each of these, the hero's part does it: ./heroes/<hero>.ts.)
  *
  * The game's shares of ATK are as they are for damage (this raid's blows are counted in thousandths of them: ./combat/),
@@ -209,6 +211,8 @@ export const NEMECIA = { name: 'Void Soul, Dunn Nemecia', untouched: [1, 1.2, 1.
 export const NAAV = { name: 'Small Synthesized Darkness, Naav Gehen', mana: [400, 480, 580, 700, 840, 1000], taken: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25], takes: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25], lasts: 5 };
 /** Estelle's: [Adventure Guide]'s more seconds; every ally's ATK meanwhile. */
 export const STOSMOS = { name: 'Chant of Tailwinds, Stosmos', longer: [1, 2, 3, 4, 5, 6], atk: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25] };
+/** Jane's: its blow every second (a share of ATK) on the enemies within so far, their ATK less a moment; the ally with the highest ATK's more to Non-Hero enemies; the [Coffin]'s mana (a share). */
+export const EREKURA = { name: 'Unchanging Mind, Erekura', blow: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25], reach: 6.6, weaker: [0.14, 0.17, 0.2, 0.24, 0.29, 0.35], boss: [0.06, 0.07, 0.08, 0.09, 0.1, 0.11], mana: 0.3 };
 
 /** What every ally gains by the TechnoMagic gear it wears: 1 piece, more ATK; 2, more defense; 3, more max HP (here: taking that much less); 4, more DMG. */
 export const CORBEAU = {
@@ -325,8 +329,10 @@ const ABOUT: Readonly<Record<string, (tier: number) => string>> = {
     `Whenever Evan uses a Skill, recovers own Mana by ${atTier(NAAV.mana, tier)}, reduces P.DMG all allies take by ${fine(atTier(NAAV.taken, tier))} for ${NAAV.lasts} sec, and increases P.DMG all enemies take by ${fine(atTier(NAAV.takes, tier))} for ${NAAV.lasts} sec.`,
   estelle: (tier) =>
     `Increases the duration of [Adventure Guide] by ${atTier(STOSMOS.longer, tier)} sec, and ATK of all allies by ${fine(atTier(STOSMOS.atk, tier))} while Estelle is in [Adventure Guide] state.`,
+  jane: (tier) =>
+    `Deals M.DMG equal to ${fine(atTier(EREKURA.blow, tier))} of ATK to nearby enemies and reduces their ATK by ${fine(atTier(EREKURA.weaker, tier))} every sec. Additionally, increases DMG dealt against Non-Hero enemies of the ally with the highest ATK excluding self by ${fine(atTier(EREKURA.boss, tier))}. The DMG Boost effect is irremovable. When the Passive Skill is activated, recovers ${fine(EREKURA.mana)} of Mana.`,
 };
-const NAMES: Readonly<Record<string, string>> = { klaus: EXIAN.name, kirze: ELICIPIRA.name, 'fallen-frey': ROSMERTA.name, gremory: PIGRITIA.name, annette: RASCAL.name, morrah: CARPRAIN.name, laias: ELTOIRRE.name, seria: ELSION.name, ezekiel: BARBATOS.name, lorraine: ROBURU.name, valance: CORBEAU.name, lucikiel: GIGANTE.name, selene: NOTOS.name, crow: AKISTRA.name, oddy: TEMPODIANA.name, phillop: ATEIN.name, naila: BARORO.name, yanne: SVELTA.name, neraxis: ACRAVITA.name, erze: PERION.name, loman: GAIAMENES.name, gau: NUMINU.name, tanya: CAETHASIS.name, 'rebel-klaus': GALICTA.name, 'dark-lord-kasel': AEA.name, theo: LEGIOS.name, priscilla: EXCILIUS.name, glenwys: MAXITHEA.name, chase: MONOLITH.name, aselica: IGNISIUS.name, lakrak: MK1.name, miruru: LEVIATHAN.name, mirianne: RIVENTINA.name, kara: SHATTERER.name, zafir: ZARIES.name, pansirone: TERSIA.name, isolet: TERRAVION.name, lilia: CIELAMAHA.name, lucias: BENEDICIA.name, rehartna: NEW_ROAD.name, shea: SCHWANHEITE.name, lavril: NEMECIA.name, evan: NAAV.name, estelle: STOSMOS.name };
+const NAMES: Readonly<Record<string, string>> = { klaus: EXIAN.name, kirze: ELICIPIRA.name, 'fallen-frey': ROSMERTA.name, gremory: PIGRITIA.name, annette: RASCAL.name, morrah: CARPRAIN.name, laias: ELTOIRRE.name, seria: ELSION.name, ezekiel: BARBATOS.name, lorraine: ROBURU.name, valance: CORBEAU.name, lucikiel: GIGANTE.name, selene: NOTOS.name, crow: AKISTRA.name, oddy: TEMPODIANA.name, phillop: ATEIN.name, naila: BARORO.name, yanne: SVELTA.name, neraxis: ACRAVITA.name, erze: PERION.name, loman: GAIAMENES.name, gau: NUMINU.name, tanya: CAETHASIS.name, 'rebel-klaus': GALICTA.name, 'dark-lord-kasel': AEA.name, theo: LEGIOS.name, priscilla: EXCILIUS.name, glenwys: MAXITHEA.name, chase: MONOLITH.name, aselica: IGNISIUS.name, lakrak: MK1.name, miruru: LEVIATHAN.name, mirianne: RIVENTINA.name, kara: SHATTERER.name, zafir: ZARIES.name, pansirone: TERSIA.name, isolet: TERRAVION.name, lilia: CIELAMAHA.name, lucias: BENEDICIA.name, rehartna: NEW_ROAD.name, shea: SCHWANHEITE.name, lavril: NEMECIA.name, evan: NAAV.name, estelle: STOSMOS.name, jane: EREKURA.name };
 /** A hero's unique weapon's name (none: it has none here). */
 export const uniqueName = (hero: string): string | undefined => NAMES[hero];
 /** The heroes that have a unique weapon, by id. */
@@ -384,3 +390,4 @@ export const SCHWANHEITE_UP: Buff = { name: 'Charming Melody, Schwanheite', abou
 export const NEMECIA_UP: Buff = { name: 'Void Soul, Dunn Nemecia', about: 'Untouched a moment as she uses a skill.', icon: '👻', art: { uw: 'lavril' } };
 export const NAAV_UP: Buff = { name: 'Small Synthesized Darkness, Naav Gehen', about: 'Takes less physical damage.', icon: '🌑', art: { uw: 'evan' } };
 export const STOSMOS_UP: Buff = { name: 'Chant of Tailwinds, Stosmos', about: 'ATK higher.', icon: '🍃', art: { uw: 'estelle' } };
+export const EREKURA_UP: Buff = { name: 'Unchanging Mind, Erekura', about: 'Deals more to Non-Hero enemies.', icon: '⚰️', art: { uw: 'jane' } };

@@ -54,4 +54,5 @@ export const REACH: Readonly<Record<string, Reach>> = {
   aselica: { attack: 0, skills: [3, 0, 7] },
   lavril: { attack: 0, skills: [0, 0, 5] },
   zafir: { attack: 0, skills: [15, 0, 5] },
+  jane: { attack: 1.5, skills: [0, 0, 0] },
 };

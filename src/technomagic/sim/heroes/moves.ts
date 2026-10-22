@@ -175,7 +175,10 @@ export type HeroMove =
   | 'scare'
   | 'desert'
   | 'spirit'
-  | 'sandstorm';
+  | 'sandstorm'
+  | 'rites'
+  | 'mark'
+  | 'ruinday';
 
 /** `count` blows, the first `first` seconds in and each `every` after the last. */
 const every = (count: number, first: number, step: number): number[] => Array.from({ length: count }, (_, i) => first + i * step);
@@ -397,4 +400,8 @@ export const CODED: Readonly<Record<HeroMove | 'hit', Span>> = {
   desert: { lands: [1.5], until: 2.5 },
   spirit: { lands: [1.3], until: 2.5 },
   sandstorm: { lands: [1.9], until: 3.5 },
+  // Jane (King's Raid's own timings: its animations').
+  rites: { lands: [1.9], until: 4.5 },
+  mark: { lands: [0, 1.8, 2], until: 3.5 },
+  ruinday: { lands: [2.6], until: 5 },
 };
