@@ -135,6 +135,16 @@
   overflow-anchor: none;
 }
 
+/*
+ * A card scrolled out of the sheet isn't laid out or painted inside (hundreds of hero gear's, most of them out of sight):
+ * only its own square, its column's width by its aspect-ratio (cards.css), so the grid is as tall as ever. It is clipped
+ * to itself anyway, so nothing on it shows any differently once it's back in sight.
+ */
+.armory-grid > .item {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 100px;
+}
+
 @media (min-width: 520px) {
   .armory-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
