@@ -13,7 +13,7 @@ import { api, currentMe, currentServer, hasSession, loadMe, loggedIn, logIn, log
  * (its /api, at VITE_API_URL): this page sends the browser to the bot, which sends it to Discord,
  * which sends it back here with a code; the bot trades the code for a session, kept in this
  * browser (../site/session.ts). Picking a game asks the bot for a link to it, like the ones handed out
- * in Discord; the game is its own page. Codedle has no card here: its link in Discord (its event's) opens it straight away. The TechnoMagic Raid's and the Dragon Raid's Play open their Raid Lists
+ * in Discord; the game is its own page. The TechnoMagic Raid's and the Dragon Raid's Play open their Raid Lists
  * (./raid-list.ts): a boss, then Single Player (a room of their own, not said in Discord) or Multiplayer (./raid-rooms.ts:
  * Find Raid, the server's raids against it, or Create Raid, a new one, which the bot says in Discord was created).
  */
@@ -165,8 +165,6 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
       render();
     }
     const ofGame = ui.playButtons.filter((button) => button.dataset.play === game);
-    // A game with no card here (Codedle: only its link in Discord): straight to it, where the member can play it.
-    if (!ofGame[0]) return void (me.games.includes(game as Game) && openGame(game, mode ?? undefined, boss ?? null, null));
     // A raid: a raid's own link straight into it (or alone, into a room of their own); else the boss's Find Raid.
     const list = raidLists.get(game);
     if (list && ofGame[0] && (mode === 'single' || room)) return void openGame(game, mode ?? 'multi', boss ?? null, ofGame[0], room ?? undefined);
@@ -176,17 +174,15 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
 
   /**
    * Asks the bot for a link to `game` in the server picked and goes there (alone: `mode` single; against `boss`, a dragon;
-   * into raid `room`, or a new one: `new`), `button` saying it is opening meanwhile (no button: the status line).
+   * into raid `room`, or a new one: `new`), `button` saying it is opening meanwhile.
    */
-  async function openGame(game: string, mode: string | undefined, boss: string | null, button: HTMLButtonElement | null, room?: string): Promise<void> {
+  async function openGame(game: string, mode: string | undefined, boss: string | null, button: HTMLButtonElement, room?: string): Promise<void> {
     const server = currentServer();
     if (!server) return status('Pick a server first.', true);
-    const label = button?.textContent ?? '';
-    if (button) {
-      button.dataset.label = label;
-      button.disabled = true;
-      button.textContent = 'Opening…';
-    } else status('Opening…');
+    const label = button.textContent;
+    button.dataset.label = label;
+    button.disabled = true;
+    button.textContent = 'Opening…';
     const res = await api<{ url: string }>('/api/play', { method: 'POST', body: JSON.stringify({ guild: server, game }) });
     if (res.ok) {
       // Single player: the game's page asks the bot for a room of the player's own (see ../shared/game/link.ts).
@@ -194,10 +190,8 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
       navigate(mode === 'single' ? `${url}&m=single` : url);
       return;
     }
-    if (button) {
-      button.disabled = false;
-      button.textContent = label;
-    }
+    button.disabled = false;
+    button.textContent = label;
     if (res.status === 401) return logOut();
     status(res.error === 'not_member' ? "You don't seem to be in that server any more. Log out and in again to refresh it." : 'Could not open the game. Try again.', true);
   }
