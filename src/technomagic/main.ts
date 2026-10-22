@@ -681,8 +681,9 @@ async function start(): Promise<void> {
     }, def);
     const chat = chatBox({ mount: prep.chat, send, you: () => state?.you ?? null });
     // Manage: the heroes page over the room, not the site's (which would take them out of it). A button in place of
-    // the link: the page's links are caught before anything on them hears the click (../shared/transition/).
-    const manage = managePopup(document.getElementById('app') as HTMLElement, link, address);
+    // the link: the page's links are caught before anything on them hears the click (../shared/transition/). Closed, the
+    // bot reads their heroes again, so getting ready shows them as they are now (a hero transcended in it).
+    const manage = managePopup(document.getElementById('app') as HTMLElement, link, address, () => void send({ t: 'heroes' }));
     const manageLink = document.querySelector('.tm-prep-manage');
     if (manageLink) {
       const button = el('button', manageLink.className, manageLink.textContent ?? 'Manage');

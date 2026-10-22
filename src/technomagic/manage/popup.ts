@@ -4,7 +4,8 @@ import { el } from '../hud/dom';
 /*
  * Manage, in a room: the heroes page over the raid (./manage.ts, in a frame of its own), so the player gears their
  * heroes without leaving the room (going to the site's heroes page would take them out of it). Its ✕, the dark
- * around it, or Escape (here or in the frame) close it; so does the fight beginning.
+ * around it, or Escape (here or in the frame) close it; so does the fight beginning. Closed, `closed` is called (the
+ * prep screen then has the bot read their heroes again: one may have been transcended meanwhile).
  */
 
 /**
@@ -20,7 +21,7 @@ export interface ManagePopup {
 }
 
 /** The popup, put in `into`, for the room the link `token` (with the bot's socket `address`) plays in. */
-export function managePopup(into: HTMLElement, token: string, address: string): ManagePopup {
+export function managePopup(into: HTMLElement, token: string, address: string, closed: () => void): ManagePopup {
   const root = el('div', 'tm-manage');
   root.hidden = true;
   root.setAttribute('role', 'dialog');
@@ -54,6 +55,7 @@ export function managePopup(into: HTMLElement, token: string, address: string): 
     if (root.hidden) return;
     root.hidden = true;
     frame.src = 'about:blank';
+    closed();
   }
 
   closer.addEventListener('click', close);
