@@ -1,6 +1,7 @@
 import './mail.css';
-import type { MailAttachmentView, MailboxView, MailClaimed, MailHero, MailPickItem, MailTicketItem, MailTickets, MailView } from '../../../protocol/mail';
+import type { MailAttachmentView, MailboxView, MailClaimed, MailPickItem, MailView } from '../../../protocol/mail';
 import { coin } from '../../util/coin';
+import { loadUniqueSheet, pickUnique, uniqueEntries, uniquePicture as picture, type UniqueSheet } from './pick';
 
 /*
  * The mailbox, the Inbox in the profile's drop-down (../../../site/session.ts): how many mails wait (unread, or with rewards
@@ -32,40 +33,11 @@ const el = <K extends keyof HTMLElementTagNameMap>(tag: K, className = '', text?
 /** A ticket's kind, as its popup says it. */
 const TICKET = { uw: 'Unique Weapon', ut: 'Unique Treasure' } as const;
 
-/** The shared hero helpers (their faces, King's Raid's skill words): fetched with a ticket's popup, not with every page. */
-type HeroHelpers = typeof import('../../heroes');
-
-/** One of the items in a ticket's popup: its hero, which of its unique treasures (UT1 to UT4; none for a weapon), and the item. */
-interface Entry {
-  hero: MailHero;
-  skill?: number;
-  item: MailTicketItem;
-}
-
 /** A pick of a ticket: its hero (a unique treasure's, which of its four), and the item that is. */
 interface Picked {
   hero: string;
   skill?: number;
   item: MailPickItem;
-}
-
-/** Where the item pictures are (../../built.ts): fetched when the mailbox first opens, not with every page. */
-let pictures: Promise<typeof import('../../built')> | null = null;
-
-/** An item's picture (a unique weapon's or treasure's), in a box of `className`; empty until the pictures' list is in. */
-function picture(item: MailPickItem, className: string, lazy = false): HTMLElement {
-  const box = el('span', className);
-  void (pictures ??= import('../../built')).then(({ built, hasItemArt }) => {
-    const folder = hasItemArt('weapons', item.itemId) ? 'weapons' : hasItemArt('treasures', item.itemId) ? 'treasures' : null;
-    if (!folder) return;
-    const img = el('img');
-    img.alt = '';
-    img.decoding = 'async';
-    if (lazy) img.loading = 'lazy';
-    img.src = built(`/gear/items/${folder}/${item.itemId}.png`);
-    box.append(img);
-  });
-  return box;
 }
 
 /** The bot's komaGems and komaTokens emoji (its constants/core.ts GEM_EMOJI, TOKEN_EMOJI), by their Discord ids. */
@@ -116,17 +88,10 @@ export function mailbox(host: MailHost): Mailbox {
   /** A mail's tickets picked so far, being claimed (by its id; each by its attachment's index). */
   const picking = new Map<string, Map<number, MailPickItem>>();
   /** What a ticket's popup needs (the heroes and their items, the hero helpers): asked for once, with the first Claim of one. */
-  let ticketing: Promise<{ heroes: MailHero[]; helpers: HeroHelpers } | null> | null = null;
-  const loadTickets = (): Promise<{ heroes: MailHero[]; helpers: HeroHelpers } | null> =>
-    (ticketing ??= (async () => {
-      const q = query();
-      const [res, helpers] = await Promise.all([q ? host.api<MailTickets>(`/api/mail/tickets${q}`) : null, import('../../heroes')]);
-      if (!res?.ok) {
-        ticketing = null;
-        return null;
-      }
-      return { heroes: res.data.heroes, helpers };
-    })());
+  const loadTickets = (): Promise<UniqueSheet | null> => {
+    const server = host.server();
+    return server ? loadUniqueSheet(host.api, server) : Promise.resolve(null);
+  };
 
   const query = (): string | null => {
     const server = host.server();
@@ -201,127 +166,11 @@ export function mailbox(host: MailHost): Mailbox {
     draw();
   }
 
-  /**
-   * A ticket's popup, over the mailbox, as King's Raid's ticket: every item it can be on the left (an icon and a name each, a
-   * search over them), the one picked on the right (its picture and name, its hero, a new copy's main stat, its unique
-   * effect), and Confirm. `hero`: the one picked before (its first item picked at first). `step`: which popup of how many
-   * ("1 of 2"). The pick, or null if it was closed.
-   */
-  function choose(sheet: { heroes: MailHero[]; helpers: HeroHelpers }, of: 'uw' | 'ut', step: string, hero?: string): Promise<Picked | null> {
-    const { helpers } = sheet;
-    const entries: Entry[] = sheet.heroes.flatMap((one) =>
-      of === 'uw' ? (one.weapon ? [{ hero: one, item: one.weapon }] : []) : one.treasures.map((item, i) => ({ hero: one, skill: i + 1, item })),
-    );
-    const popup = el('dialog', 'mail-popup');
-    popup.setAttribute('aria-label', `${TICKET[of]} Ticket`);
-    const head = el('div', 'mail-popup-head');
-    head.append(el('h3', 'mail-popup-title', `${TICKET[of]} Ticket`));
-    if (step) head.append(el('span', 'mail-popup-step', step));
-    const close = el('button', 'mail-popup-close', '✕');
-    close.type = 'button';
-    close.setAttribute('aria-label', 'Close');
-    head.append(close);
-
-    // The left: every item, a row each.
-    const side = el('div', 'mail-popup-side');
-    // (The armory's search field.)
-    const search = el('input', 'armory-search mail-popup-search');
-    search.type = 'search';
-    search.autocomplete = 'off';
-    search.placeholder = 'Search heroes or items';
-    search.setAttribute('aria-label', 'Search heroes or items');
-    const list = el('ul', 'mail-popup-list');
-    side.append(search, list);
-    // The right: the one picked.
-    const detail = el('div', 'mail-popup-detail');
-    const confirm = el('button', 'mail-popup-confirm action main', 'Confirm');
-    confirm.type = 'button';
-
-    let chosen = entries.find((one) => one.hero.id === hero) ?? entries[0];
-    const rows = new Map<Entry, HTMLButtonElement>();
-    const show = (): void => {
-      for (const [entry, row] of rows) {
-        row.classList.toggle('on', entry === chosen);
-        row.setAttribute('aria-pressed', String(entry === chosen));
-      }
-      confirm.disabled = !chosen;
-      if (!chosen) return void detail.replaceChildren();
-      const { item, hero: owner } = chosen;
-      const top = el('div', 'mail-detail-top');
-      top.append(picture(item, 'mail-detail-pic'), el('strong', 'mail-detail-name', item.name));
-      const limit = el('div', 'mail-detail-limit');
-      const face = el('span', 'mail-detail-face');
-      void helpers.heroCut(owner.id, helpers.TAB_FACE, 96).then((src) => {
-        if (!src) return;
-        const img = el('img');
-        img.alt = '';
-        img.src = src;
-        face.append(img);
-      });
-      limit.append(el('span', 'mail-detail-label', 'Class Limit'), face, el('span', 'mail-detail-hero', chosen.skill ? `${owner.name} · UT${chosen.skill}` : owner.name));
-      const body = el('div', 'mail-detail-body');
-      if (item.main) {
-        const main = el('div', 'mail-detail-main');
-        main.append(el('span', '', item.main.name), el('span', '', `+${item.main.value.toLocaleString()}`));
-        body.append(main);
-      }
-      if (item.effect) {
-        const effect = el('p', 'mail-detail-effect');
-        effect.append(...helpers.skillText(item.effect));
-        body.append(el('h4', 'mail-detail-heading', 'Unique Option'), effect);
-      }
-      detail.replaceChildren(top, limit, body, confirm);
-    };
-    for (const entry of entries) {
-      const row = el('button', 'mail-option');
-      row.type = 'button';
-      const words = el('span', 'mail-option-words');
-      words.append(el('span', 'mail-option-name', entry.item.name), el('span', 'mail-option-hero', entry.skill ? `${entry.hero.name} · UT${entry.skill}` : entry.hero.name));
-      row.append(picture(entry.item, 'mail-option-pic', true), words);
-      row.addEventListener('click', () => {
-        chosen = entry;
-        show();
-      });
-      rows.set(entry, row);
-      const li = el('li');
-      li.append(row);
-      list.append(li);
-    }
-    search.addEventListener('input', () => {
-      const words = search.value.trim().toLowerCase();
-      for (const [entry, row] of rows) {
-        const li = row.parentElement;
-        if (li) li.hidden = words !== '' && !`${entry.item.name} ${entry.hero.name}`.toLowerCase().includes(words);
-      }
-    });
-    show();
-
-    const body = el('div', 'mail-popup-body');
-    body.append(side, detail);
-    popup.append(head, body);
-    document.body.append(popup);
-    popup.showModal();
-    // (The one picked at first in sight, not the search: on a phone, focusing it would pull its keyboard up.)
-    if (chosen) rows.get(chosen)?.scrollIntoView({ block: 'center' });
-    // (Without scrolling the one picked's side down to it.)
-    confirm.focus({ preventScroll: true });
-    return new Promise((resolve) => {
-      let picked: Picked | null = null;
-      close.addEventListener('click', () => popup.close());
-      confirm.addEventListener('click', () => {
-        if (!chosen) return;
-        picked = { hero: chosen.hero.id, ...(chosen.skill && { skill: chosen.skill }), item: chosen.item };
-        popup.close();
-      });
-      popup.addEventListener('click', (event) => {
-        if (event.target === popup) popup.close();
-      });
-      // (Closed any way, Escape too: cancelled, unless confirmed.)
-      popup.addEventListener('close', () => {
-        popup.remove();
-        resolve(picked);
-      });
-    });
+  /** A ticket's popup (./pick.ts): its kind's items, `hero`'s first (the one picked before). The pick, or null if it was closed. */
+  async function choose(sheet: UniqueSheet, of: 'uw' | 'ut', step: string, hero?: string): Promise<Picked | null> {
+    const entries = uniqueEntries(sheet, of);
+    const picked = await pickUnique(sheet, entries, { title: `${TICKET[of]} Ticket`, step, chosen: entries.find((one) => one.hero.id === hero) ?? entries[0] });
+    return picked && picked !== 'none' ? { hero: picked.hero.id, ...(picked.skill && { skill: picked.skill }), item: picked.item } : null;
   }
 
   function draw(): void {

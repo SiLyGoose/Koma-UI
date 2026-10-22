@@ -1,7 +1,8 @@
 import markup from './banner.html?raw';
 import { API, dropdown, fillServers } from '../shared/ui';
 import type { ShopTab } from '../shop/tab';
-import { currentMe, currentServer, loadMe, prefetchFor, setServer } from '../site/session';
+import { loadUniqueSheet, pickUnique, uniqueEntries } from '../shared/ui/mail/pick';
+import { api, currentMe, currentServer, loadMe, prefetchFor, setServer } from '../site/session';
 import { failed, loadBanner, loadHistory, pickBanner, pickGuaranteed, pull } from './api';
 import { createContext, status, type BannerContext } from './context';
 import { render } from './render';
@@ -96,8 +97,13 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     ui.path.focus();
   };
   ui.path.addEventListener('click', () => {
-    ui.pick.hidden = false;
-    ui.pick.focus();
+    void (async () => {
+      // The Hero Item banner's: King's Raid's ticket's popup, every hero's unique weapon and treasures (else, or with those
+      // not in, the list below).
+      if (ctx.banner.id === 'hero' && (await pickHeroItem(ctx))) return;
+      ui.pick.hidden = false;
+      ui.pick.focus();
+    })();
   });
   ui.pickClose.addEventListener('click', closePick);
   ui.pick.addEventListener('click', (e) => {
@@ -121,6 +127,32 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
       serverPicker.destroy();
     },
   };
+}
+
+/**
+ * The Hero Item banner's guarantee picked in the ticket's popup (../shared/ui/mail/pick.ts): each hero's unique weapon then
+ * its unique treasures, a search over them, the one picked's main stat and effect, and None (no guarantee) first. False
+ * when its items couldn't be read (the list in its place).
+ */
+async function pickHeroItem(ctx: BannerContext): Promise<boolean> {
+  const server = currentServer();
+  const view = ctx.view;
+  if (!server || !view || ctx.busy) return false;
+  const sheet = await loadUniqueSheet(api, server);
+  if (!sheet) return false;
+  const can = new Set((view.choices ?? []).map((choice) => choice.itemId));
+  const entries = uniqueEntries(sheet, 'both').filter((entry) => can.has(entry.item.itemId));
+  if (entries.length === 0) return false;
+  const picked = await pickUnique(sheet, entries, {
+    title: 'Guaranteed item',
+    note: ctx.ui.pickText.textContent ?? '',
+    chosen: entries.find((entry) => entry.item.itemId === view.pick) ?? null,
+    none: { label: 'None', text: 'No guaranteed item: your next unique weapon or treasure here could be any of them.' },
+  });
+  const item = picked === 'none' ? null : picked?.item.itemId;
+  if (picked && item !== view.pick) await pickGuaranteed(ctx, item ?? null);
+  ctx.ui.path.focus();
+  return true;
 }
 
 async function start(ctx: BannerContext): Promise<void> {
