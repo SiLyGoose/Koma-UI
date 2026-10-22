@@ -1176,22 +1176,57 @@ button.ascend-cost:focus-visible {
   min-width: 0;
 }
 
-/* A main treasure's sub treasures: each its picture and name, its options under them, then what it would give as the main one. */
-.ut-sub + .ut-sub {
-  margin-top: 10px;
-  padding-top: 8px;
-  border-top: 1px solid var(--line);
+/*
+ * A hero's unique treasures in the details, as King's Raid's Treasure Equipped: its main treasure big on top, its sub
+ * treasures under it in a V (the outer two beside its foot, the middle one under it), the one picked lit; an empty one a dim box. (.heroes-page: over the
+ * shared cards' look, linked after this in the built site.)
+ */
+.heroes-page .ut-equipped {
+  position: relative;
+  width: 240px;
+  height: 172px;
+  margin: 0 auto;
 }
 
-.ut-sub .detail-section {
-  margin-top: 6px;
+.heroes-page .ut-equipped .item {
+  position: absolute;
+  width: 68px;
 }
 
-.ut-sub-icon {
-  display: grid;
-  flex: none;
-  width: 56px;
-  height: 56px;
+.heroes-page .ut-equipped .art {
+  width: 64%;
+  height: 64%;
+}
+
+.heroes-page .ut-equipped .item.ut-equipped-treasure {
+  top: 0;
+  left: 76px;
+  width: 88px;
+}
+
+.heroes-page .ut-equipped .ut-equipped-side1 {
+  top: 62px;
+  left: 0;
+}
+
+.heroes-page .ut-equipped .ut-equipped-side2 {
+  top: 100px;
+  left: 86px;
+}
+
+.heroes-page .ut-equipped .ut-equipped-side3 {
+  top: 62px;
+  right: 0;
+}
+
+.heroes-page .ut-equipped .item.empty {
+  opacity: 0.45;
+  box-shadow: none;
+}
+
+.heroes-page .ut-equipped .item.picked {
+  outline: 3px solid var(--picked);
+  outline-offset: 2px;
 }
 
 .kr-action {

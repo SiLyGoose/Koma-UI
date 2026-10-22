@@ -452,6 +452,8 @@ export interface DetailParts {
   notes?: HTMLElement[];
   /** Beside its card, after its slot and rank (the lock). */
   corner?: HTMLElement | null;
+  /** In its card's place, its slot and rank under it (a hero's unique treasures: its main treasure with its sub treasures). */
+  card?: HTMLElement;
   /** Under its rank ("Sells for…", "Equipped"). */
   info?: HTMLElement[];
   /** Its buttons, under a line along the bottom (none: no line). */
@@ -489,7 +491,8 @@ export function showDetail(box: HTMLElement, copy: ArmoryCopy | undefined, parts
   if (copy.mainStat) info.append(mainStatLine(copy.mainStat));
   if (hasLevels(copy) && copy.level >= copy.maxLevel) kind.append(el('span', 'detail-max', 'MAX'));
   info.append(...(parts.info ?? []));
-  top.append(big, info);
+  top.append(parts.card ?? big, info);
+  if (parts.card) top.classList.add('stacked');
   if (parts.corner) top.append(parts.corner);
 
   const body = el('div', 'detail-body');

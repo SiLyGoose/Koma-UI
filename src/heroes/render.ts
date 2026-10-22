@@ -1,4 +1,4 @@
-import { art, drawSell, el, forgeLink, hasLevels, heroFrame, heroMarks, isTmPiece, itemDetailsClosed, krStars, levelLabel, itemPicked, lockToggle, priceOf, pruneSale, replacesNote, rich, runeMarks, sellsFor, showDetail, shownName, statBlocks, tmMarks, tmSections, treasureParts, treasureSection, uniqueWeaponEffect, utMarks, uwMarks } from '../shared/items';
+import { art, drawSell, el, forgeLink, hasLevels, heroFrame, heroMarks, isTmPiece, itemDetailsClosed, itemFace, krStars, levelLabel, itemPicked, lockToggle, priceOf, pruneSale, replacesNote, rich, runeMarks, sellsFor, showDetail, shownName, statBlocks, tmMarks, tmSections, treasureParts, treasureSection, uniqueWeaponEffect, utMarks, uwMarks } from '../shared/items';
 import { classBadge, className, FACE, HERO_PART_NAME, HERO_SLOT_KIND, HERO_SLOT_PART, HERO_SLOT_TYPE, HERO_SLOTS, heroCut, heroPicture, skillText, STAGE_ZOOM, type HeroView, type HeroCopy, type HeroSlot } from '../shared/heroes';
 import { built } from '../shared/built';
 import { working } from '../shared/ui';
@@ -514,12 +514,14 @@ function renderDetail(ctx: HeroesContext, act: HeroActions): void {
     none: NONE,
     effectsOff: !fits,
     sections: [
-      ...(ut ? [...treasureSection(ut.main, worn === 'treasure'), ...(worn === 'treasure' ? subTreasures(ctx, hero) : [])] : copy.krSet || copy.part === 'artifact' ? krSections(copy, fits, fits && equipInto ? setPieces(ctx, hero, copy, equipInto) : null) : tmSections(shown)),
+      ...(ut ? treasureSection(ut.main, worn === 'treasure') : copy.krSet || copy.part === 'artifact' ? krSections(copy, fits, fits && equipInto ? setPieces(ctx, hero, copy, equipInto) : null) : tmSections(shown)),
       ...runeSection(copy),
     ],
     notes,
     // Lock: theirs to toggle on the site (not while picking what to sell); else just shown when shut.
     corner: lockToggle(copy, ctx.busy, canTrade(ctx) && !ctx.selling ? (locked) => act.lock(copy, locked) : null),
+    // (One of this hero's unique treasures it wears: with the others, as King's Raid's Treasure Equipped.)
+    card: copy.uniqueTreasure && worn && (worn === 'treasure' || SIDE_SLOTS.includes(worn)) ? treasuresEquipped(ctx, act, hero, copy) : undefined,
     info: ctx.selling ? sellsFor(copy, ctx.sellLocked) : [],
     actions,
   });
@@ -595,32 +597,44 @@ function withoutRunes(copy: HeroCopy): string[] {
 }
 
 /**
- * Under a hero's main treasure's details, its sub treasures (none: nothing): each its picture and name, its options (what
- * counts of it there), and what it would give as the main treasure, greyed (its HP and effect: the main one's alone count).
+ * A hero's unique treasures, as King's Raid's Treasure Equipped has them, in the card's place of the one picked (its main
+ * treasure, or one of its sub treasures): its main treasure on top, its three sub treasure slots under it, each with its
+ * stars, the one picked lit. Pressed, a treasure's details; an empty sub treasure slot, what goes in it (as its box on the
+ * hero). None while the main treasure isn't a unique treasure (no sub treasures).
  */
-function subTreasures(ctx: HeroesContext, hero: HeroView): HTMLElement[] {
-  const subs = SIDE_SLOTS.flatMap((slot) => {
+function treasuresEquipped(ctx: HeroesContext, act: HeroActions, hero: HeroView, picked: HeroCopy): HTMLElement | undefined {
+  if (!copyById(ctx, hero.equipped.treasure ?? null)?.uniqueTreasure) return undefined;
+  const box = el('div', 'ut-equipped');
+  for (const slot of ['treasure', ...SIDE_SLOTS] as HeroSlot[]) {
     const copy = copyById(ctx, hero.equipped[slot] ?? null);
-    return copy ? [{ slot, copy }] : [];
-  });
-  if (subs.length === 0) return [];
-  return [
-    krSection(
-      'Sub Treasures',
-      subs.map(({ slot, copy }) => {
-        const { options, main } = treasureParts(copy.effects);
-        const head = el('div', 'kr-socket');
-        const icon = el('span', 'ut-sub-icon');
-        icon.append(art(copy.itemId, HERO_SLOT_KIND[slot]));
-        head.append(icon, el('span', 'kr-rune-name', `${shownName(copy)}${hasLevels(copy) ? ` (${levelLabel(copy)})` : ''}`));
-        const list = el('ul', 'detail-effects');
-        for (const text of options.length > 0 ? options : [NONE]) list.appendChild(el('li')).append(rich(text));
-        const sub = el('div', 'ut-sub');
-        sub.append(head, list, ...treasureSection(main, false));
-        return sub;
-      }),
-    ),
-  ];
+    const one = el('button', `item ut-equipped-${slot}${copy ? '' : ' empty'}${copy?.id === picked.id ? ' picked' : ''}`);
+    one.type = 'button';
+    one.setAttribute('aria-label', `${slotLabel(slot)}: ${copy ? shownName(copy) : 'empty'}`);
+    one.title = one.getAttribute('aria-label') as string;
+    if (copy) {
+      one.dataset.stars = String(copy.stars);
+      one.append(...itemFace(copy));
+    } else one.append(art(null, HERO_SLOT_KIND[slot]));
+    one.addEventListener('click', () => {
+      if (ctx.busy) return;
+      ctx.runes = false;
+      if (copy) {
+        if (copy.id === picked.id) return;
+        ctx.picked = copy.id;
+        return renderPick(ctx, act);
+      }
+      // (Empty: the list shows what goes in it, as its box on the hero does.)
+      ctx.target = slot;
+      ctx.filter = HERO_SLOT_TYPE[slot];
+      ctx.picked = null;
+      render(ctx, act);
+    });
+    box.append(one);
+  }
+  // (Across the details' top, in the middle of it.)
+  const row = el('div', 'ut-equipped-row');
+  row.append(box);
+  return row;
 }
 
 /**

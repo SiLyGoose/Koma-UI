@@ -45,6 +45,15 @@
   border-bottom: 2px solid var(--line);
 }
 
+/* Something in its card's place (a hero's unique treasures): across the top, its slot and rank (and its lock) under it. */
+.detail-top.stacked {
+  flex-wrap: wrap;
+}
+
+.detail-top.stacked > :first-child {
+  flex: 1 0 100%;
+}
+
 /* The copy's card, as in the armory but big and not a button. */
 .item.detail-card {
   flex-shrink: 0;
