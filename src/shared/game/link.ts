@@ -8,19 +8,21 @@ import type { LinkRefresh } from '../../protocol/site';
  * the page can be pressed). The TechnoMagic Raid's has m=single when it was opened single player (a room
  * of the player's own) from the front page.
  *
- * The token is taken out of the address as the page opens (the rest stays), so the address shown, copied or shared
- * never carries it: the page keeps it in the tab's sessionStorage, by its path, with its refresh token, and a reload
- * (or going back to it) opens with what's kept there.
+ * All of it is taken out of the address as the page opens, so the address shown, copied or shared is the page's alone
+ * (never its token): the page keeps the link in the tab's sessionStorage, by its path, with its refresh token, and a
+ * reload (or going back to it) opens with what's kept there.
  *
  * Its token lasts a couple of hours (the bot's MINE_WEB.linkTtlMs), so an open page keeps it good (freshLink): as it
  * opens it trades it for a refresh token (POST /api/link/refresh), then that for a new token every so often and before
  * it connects again, so a page left open for long (its player away, the computer asleep) carries on.
  */
 
-/** What the tab keeps of this page's link (sessionStorage): its token as it is now, whether it watches, and its refresh token. */
+/** What the tab keeps of this page's link (sessionStorage): its token as it is now, whether it watches, the bot's socket, single player, and its refresh token. */
 interface Kept {
   token: string;
   watch: boolean;
+  server: string | null;
+  single: boolean;
   refresh: string | null;
 }
 
@@ -30,7 +32,7 @@ function readKept(): Kept | null {
   try {
     const kept = JSON.parse(store.get(sessionStorage, KEPT_KEY) ?? 'null') as Partial<Kept> | null;
     if (!kept || typeof kept.token !== 'string' || typeof kept.watch !== 'boolean') return null;
-    return { token: kept.token, watch: kept.watch, refresh: typeof kept.refresh === 'string' ? kept.refresh : null };
+    return { token: kept.token, watch: kept.watch, server: typeof kept.server === 'string' ? kept.server : null, single: kept.single === true, refresh: typeof kept.refresh === 'string' ? kept.refresh : null };
   } catch {
     return null; // (Nothing kept, or not readable.)
   }
@@ -44,8 +46,8 @@ const kept = given === null ? readKept() : null;
 export const watching = given !== null ? params.get('t') === null : (kept?.watch ?? false);
 /** The token the page opened with (null: none): whether it has a link at all. The one to use is linkToken(). */
 export const token = given ?? kept?.token ?? null;
-export const server = params.get('s');
-export const single = params.get('m') === 'single';
+export const server = given !== null ? params.get('s') : (kept?.server ?? params.get('s'));
+export const single = given !== null ? params.get('m') === 'single' : (kept?.single ?? params.get('m') === 'single');
 
 /** A token is renewed once it has less than this left (the bot's last two hours: every half hour or so). */
 const RENEW_BEFORE_MS = 90 * 60_000;
@@ -67,14 +69,13 @@ export const linkToken = (): string => current ?? '';
 
 /** Keeps the link as it is now, for a reload. */
 const keep = (): void => {
-  if (current) store.set(sessionStorage, KEPT_KEY, JSON.stringify({ token: current, watch: watching, refresh } satisfies Kept));
+  if (current) store.set(sessionStorage, KEPT_KEY, JSON.stringify({ token: current, watch: watching, server, single, refresh } satisfies Kept));
 };
 
 // Just opened: kept, and taken out of the address.
 if (given !== null) {
   keep();
-  params.delete('t');
-  params.delete('w');
+  for (const key of ['t', 'w', 's', 'm']) params.delete(key);
   const rest = params.toString();
   history.replaceState(history.state, '', `${location.pathname}${location.search}${rest ? `#${rest}` : ''}`);
 }
