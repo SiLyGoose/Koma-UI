@@ -50,7 +50,8 @@ Use a hero alike as the pattern: Theo (a damage dealer), Rehartna (a buffer), As
 - **Max level skills:** books are maxed (`kr.ts` `books`), and the words show them through `bookDmg` / `bookHeal`.
 - **Damage:** `played(kind, ratio‰, flat)`. Heals and shields: `playedHeal(kind, ratio, flat)`.
 - **Heal books:** the fight applies a heal's or shield's books itself when it's given `by` (`bookShare`), so don't
-  multiply them in again. A heal that is a share of HP or DEF, or of damage dealt, is given without `by`.
+  multiply them in again. A heal that is a share of HP or DEF, or of damage dealt, is given without `by` but with
+  `from` (`fight.heal(ally, amount, undefined, self)`), or it won't count toward the hero's HPS and Healing Done.
 - **Flat ATK buffs** (`ModPower`): a share of the ally's ATK, `flat / ally.stats.atk`, worked out as it is put on.
 - **Other book effects:** books that do anything else (an ATK buff's ×1.5) are applied by hand.
 - **On each attack** (OnBaseAttack): once per attack part, through `attackStarts(id)`.
