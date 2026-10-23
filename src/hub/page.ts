@@ -21,7 +21,7 @@ import { api, currentMe, currentServer, hasSession, loadMe, loggedIn, logIn, log
 /**
  * A game to open once logged in: from a link like /?play=mines&guild=123 (the bot's buttons in Discord). A raid's has
  * &mode=multi, the Dragon Raid's &boss= too (a dragon): with &room= (a raid's own link), straight into that raid; without,
- * the boss's Find Raid.
+ * the boss's Find Raid. With &boss= alone (the heroes' essences, ../heroes/essences.ts): the Raid List, on that boss.
  */
 const PLAY_KEY = 'koma.playNext';
 const GAMES: readonly Game[] = ['mines', 'pinecraft', 'baccarat', 'roulette', 'poker', 'raid', 'minesweeper', 'technomagic', 'dragon', 'codedle'];
@@ -169,6 +169,8 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     const list = raidLists.get(game);
     if (list && ofGame[0] && (mode === 'single' || room)) return void openGame(game, mode ?? 'multi', boss ?? null, ofGame[0], room ?? undefined);
     if (list && mode === 'multi') return list.openRooms(boss ?? null);
+    // (A raid's link with only its boss, the heroes' essences': its Raid List, on that boss.)
+    if (list) return list.open(boss ?? null);
     (ofGame.find((button) => mode && button.dataset.mode === mode) ?? ofGame[0])?.click();
   }
 

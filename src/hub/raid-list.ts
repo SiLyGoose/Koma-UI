@@ -12,7 +12,8 @@ import type { RaidRooms } from './raid-rooms';
  */
 
 export interface RaidList {
-  open(): void;
+  /** Opens it (on `boss`, if it has it: its row in sight, its Single Player focused). */
+  open(boss?: string | null): void;
   /** Opens it, and over it Multiplayer for `boss` (null, or one it hasn't: its first). */
   openRooms(boss: string | null): void;
   close(): void;
@@ -110,10 +111,14 @@ export function makeRaidList(root: HTMLElement, raid: RaidSetup, single: (boss: 
   });
 
   const list: RaidList = {
-    open() {
+    open(boss) {
       shade.hidden = false;
       document.addEventListener('keydown', onKey);
-      (rows.querySelector('.raid-action.multi') as HTMLButtonElement | null)?.focus();
+      const picked = raid.cards.some((card) => card.id === boss) ? rows.querySelector<HTMLElement>(`.raid-row[data-boss="${boss}"]`) : null;
+      if (picked) {
+        picked.scrollIntoView({ block: 'nearest' });
+        (picked.querySelector('.raid-action.single') as HTMLButtonElement | null)?.focus();
+      } else (rows.querySelector('.raid-action.multi') as HTMLButtonElement | null)?.focus();
     },
     openRooms(boss) {
       list.open();

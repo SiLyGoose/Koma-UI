@@ -9,7 +9,8 @@ import type { HeroesContext } from './context';
  * tab's Transcend costs shows it under them. The Dragon Raid's dragons that give it (two kinds each, the site's raid list:
  * ../shared/raids.ts; Armarta's second rolled each win, so any of them now and then), and the Weekly Bosses that give it
  * with their komaGems (three kinds each, the bot's: its databank's rewards, asked for once, the first time one is pressed).
- * Each goes to its page in the databank's enemies (in the raid's Manage popup, in another tab: its host's go).
+ * A dragon's opens the Dragon Raid (the front page's Raid List, on that dragon), a Weekly Boss's its page in the databank's
+ * enemies (in the raid's Manage popup, in another tab: its host's go).
  */
 
 /** A Weekly Boss that gives some essence: its id, its name and emoji, and the kinds it gives. */
@@ -41,19 +42,27 @@ function weeklySources(ctx: HeroesContext): Promise<WeeklySource[] | null> {
   return weekly;
 }
 
-/** A box for one place it comes from: its picture, its name, which raid it is, and a line besides (if any); pressed, its page in the databank. */
-function sourceBox(ctx: HeroesContext, id: string, face: Node, name: string, raid: string, note?: string): HTMLButtonElement {
+/**
+ * A box for one place it comes from: its picture, its name, which raid it is, and a line besides (if any); pressed, `href`
+ * (a dragon's: the front page's Dragon Raid, its Raid List on it; a Weekly Boss's: its page in the databank's enemies).
+ */
+function sourceBox(ctx: HeroesContext, href: string, face: Node, name: string, raid: string, note?: string): HTMLButtonElement {
   const box = el('button', 'essence-source');
   box.type = 'button';
-  box.title = `${name} in the databank`;
+  box.title = raid === 'Dragon Raid' ? `Fight ${name} in the Dragon Raid` : `${name} in the databank`;
   const text = el('span', 'essence-source-text');
   text.append(el('span', 'essence-source-name', name));
   if (note) text.append(el('span', 'essence-source-note', note));
   box.append(el('span', 'essence-source-face'), text, el('span', 'essence-source-raid', raid));
   box.firstElementChild?.append(face);
-  box.addEventListener('click', () => ctx.host.go(`/databank/enemies/#${encodeURIComponent(id)}`));
+  box.addEventListener('click', () => ctx.host.go(href));
   return box;
 }
+
+/** A dragon's raid: the front page's link to it (../hub/page.ts), which opens its Raid List on that dragon. */
+const dragonRaid = (id: string): string => `/?${new URLSearchParams({ play: 'dragon', boss: id })}`;
+/** A Weekly Boss's page in the databank's enemies. */
+const enemyPage = (id: string): string => `/databank/enemies/#${encodeURIComponent(id)}`;
 
 /** A dragon's portrait (King's Raid's, as the databank's enemies have it). */
 const dragonFace = (id: string): HTMLImageElement => {
@@ -89,11 +98,11 @@ export function essenceSources(ctx: HeroesContext, id: EssenceId, have: number |
   // The dragons that always give it, then Armarta (its second kind, one rolled each win).
   for (const card of DRAGON_LIST.cards) {
     const kinds = card.rewards.flatMap((reward) => (reward.kind === 'essence' ? [reward.id] : []));
-    if (kinds.includes(id)) boxes.append(sourceBox(ctx, card.id, dragonFace(card.id), card.name, 'Dragon Raid', card.title));
+    if (kinds.includes(id)) boxes.append(sourceBox(ctx, dragonRaid(card.id), dragonFace(card.id), card.name, 'Dragon Raid', card.title));
   }
   for (const card of DRAGON_LIST.cards) {
     const kinds = card.rewards.flatMap((reward) => (reward.kind === 'essence' ? [reward.id] : []));
-    if (!kinds.includes(id) && kinds.includes(null)) boxes.append(sourceBox(ctx, card.id, dragonFace(card.id), card.name, 'Dragon Raid', 'Sometimes: one kind rolled each win'));
+    if (!kinds.includes(id) && kinds.includes(null)) boxes.append(sourceBox(ctx, dragonRaid(card.id), dragonFace(card.id), card.name, 'Dragon Raid', 'Sometimes: one kind rolled each win'));
   }
   const pending = el('p', 'essence-sources-wait', 'Looking up the Weekly Bosses…');
   boxes.append(pending);
@@ -109,7 +118,7 @@ export function essenceSources(ctx: HeroesContext, id: EssenceId, have: number |
       box.append(rich(emoji));
       return box;
     };
-    pending.replaceWith(...bosses.filter((boss) => boss.essences.includes(id)).map((boss) => sourceBox(ctx, boss.id, face(boss.emoji), boss.name, 'Weekly Boss', 'With komaGems')));
+    pending.replaceWith(...bosses.filter((boss) => boss.essences.includes(id)).map((boss) => sourceBox(ctx, enemyPage(boss.id), face(boss.emoji), boss.name, 'Weekly Boss', 'With komaGems')));
   });
   panel.append(head, el('p', 'essence-sources-label', 'Obtainable from'), boxes);
   return panel;
