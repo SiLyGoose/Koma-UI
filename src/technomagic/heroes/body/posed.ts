@@ -1,4 +1,5 @@
 import { Vector3, type AnimationClip, type Object3D } from 'three';
+import { mixColor } from '../../engine/models';
 import type { Rig } from '../../engine/rig';
 import { sampler, type Sampler } from '../../engine/sampler';
 import { lengthOf } from '../../engine/track';
@@ -237,6 +238,7 @@ export function posedHero({ root, body, middle, models, rig, hips, feet, blade, 
     hit() {
       red = RED;
     },
+    colour: (mix) => mixColor(materials, mix),
     stagger() {
       if (running !== null || along !== null) return;
       red = RED;

@@ -1,4 +1,4 @@
-import { Group, Vector3, type MeshBasicMaterial, type Object3D } from 'three';
+import { Group, Vector3, type MeshBasicMaterial, type Object3D, type Vector4 } from 'three';
 import { isMesh } from '../../engine/models';
 import type { Rig } from '../../engine/rig';
 import { ENTER as RUNNING_IN } from '../../sim/rules';
@@ -46,6 +46,8 @@ export interface Hero {
   muzzle?(into: Vector3): Vector3;
   /** Hit: red for a moment. It goes on with what it was doing. */
   hit(): void;
+  /** Drawn in King's Raid's colour mix (what a skill colours it with: ../../engine/models.ts mixColor()); (0, 0, 0, 0): as it is. */
+  colour(mix: Vector4): void;
   /** Staggered (stunned, thrown back): what it was doing is cut short. */
   stagger(): void;
   /** Fallen: what it was doing is cut short, and it stands at rest (the page lays it on the floor: ../../fight/view.ts), or (`falls`) it falls as its own animation has it. */

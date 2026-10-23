@@ -45,7 +45,7 @@ export const ARMARTA_ASSETS: BossAssets = {
     down: [{ clip: 'Raid_Dragon_04', volume: 2.6, own: true }],
     dead: [{ clip: 'Raid_Dragon_05', volume: 2.6, own: true }, { clip: 'FX-Dragon-Landing-01', volume: 1.6, at: 2.8 }],
   },
-  // King's Raid's own effects for it (KR-extracted/scripts/tm-boss-vfx.mjs): each attack's, as it begins and as its blows land on a hero.
+  // King's Raid's own effects for it (KR-extracted/scripts/tm-boss-vfx.mjs): each attack's, as it begins, flown from it, and as its blows land on a hero.
   vfx: {
     attacks: {
       bite: { start: ['Skill.Raid.Dragon.Black.Attack01'] },

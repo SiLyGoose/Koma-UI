@@ -1,6 +1,7 @@
 import { AnimationClip, AnimationMixer, LoopOnce, LoopRepeat, type AnimationAction, type Object3D } from 'three';
 import { animationFile, type HeroAssets, type KrAnimations, type KrMove } from '../../assets';
 import { fitted, inPlace, loadKrClip, topOf } from '../../engine/kr-clips';
+import { mixColor } from '../../engine/models';
 import type { Motion, Timeline } from '../../sim/motion';
 import { marchPace } from '../../sim/rules';
 import type { HeroMove } from '../moves';
@@ -231,6 +232,7 @@ export function krHero({ root, body, models: parts, rig, materials, floating }: 
     hit() {
       red = RED;
     },
+    colour: (mix) => mixColor(materials, mix),
     stagger() {
       if (doing?.what === 'enter' || doing?.what === 'stride') return;
       red = RED;

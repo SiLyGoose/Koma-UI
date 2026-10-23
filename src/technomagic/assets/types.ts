@@ -191,14 +191,26 @@ export interface BossAssets {
   minions?: Readonly<Record<string, { model: string; animations: string; clips?: readonly string[] }>>;
   /**
    * King's Raid's own effects for it (../fx/kr-effects.ts: codes of public/kr/effects/kr/): for each of its attacks, played
-   * on it as the attack begins (`start`) and on each hero as a blow of it lands (`hit`); and as it first comes on the field (`advent`).
+   * on it as the attack begins (`start`), flown from it to a hero as its body launches it (`fly`: Galgoria's spit, from a
+   * mouth), and on each hero as a blow of it lands (`hit`); and as it first comes on the field (`advent`).
    */
-  vfx?: { attacks: Readonly<Record<string, { start?: readonly string[]; hit?: readonly string[] }>>; advent?: readonly string[] };
+  vfx?: { attacks: Readonly<Record<string, { start?: readonly string[]; fly?: readonly string[]; hit?: readonly string[] }>>; advent?: readonly string[] };
   /**
-   * King's Raid's own effects kept on a hero while one of its skills has it (Galgoria's Swamp Imprisonment), by the
-   * status's name: on as it comes on, stopped as it goes.
+   * What King's Raid has on a hero while one of its skills does (Galgoria's Swamp Imprisonment), by the status's name: its
+   * own effect kept on it (../fx/kr-effects.ts: a code of public/kr/effects/kr/), and the colour it draws it in.
    */
-  wards?: Readonly<Record<string, string>>;
+  holds?: Readonly<Record<string, { effect?: string; tint?: KrTint }>>;
+}
+
+/**
+ * The colour King's Raid draws a fighter in (its skill script's Effect/CreatureColor, as its shaders mix it: rgb·(1 − a) +
+ * the colour): a gradient, its colour keys [time, r, g, b] and alpha keys [time, a] (times 0 to 1, blended between), gone
+ * through every `loop` seconds.
+ */
+export interface KrTint {
+  colors: readonly (readonly [number, number, number, number])[];
+  alphas: readonly (readonly [number, number])[];
+  loop: number;
 }
 
 /**

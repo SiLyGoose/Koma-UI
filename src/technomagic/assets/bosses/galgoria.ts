@@ -39,14 +39,17 @@ export const GALGORIA_ASSETS: BossAssets = {
     down: [{ clip: 'Mon-RaidTechGargoria_08', volume: 4, at: 0.005, own: true }],
     dead: [{ clip: 'Mon-RaidTechGargoria_10', volume: 4, at: 0.005, own: true }, { clip: 'Mon-Fall-01', volume: 4, at: 2.64 }],
   },
-  // What King's Raid keeps on the hero it shuts away (its skill script's, as Swamp Imprisonment's shackle begins: 3590044).
-  wards: { 'Swamp Imprisonment': 'Skill.Raid.Gargoria.Skill1.HitLoop' },
-  // King's Raid's own effects for it (KR-extracted/scripts/tm-boss-vfx.mjs): each attack's, as it begins and as its blows land on a hero.
+  // What King's Raid has on a hero while one of its skills does (KR-extracted/scripts/tm-boss-vfx.mjs, from its skill script): by the
+  // status's name, the effect kept on it and the colour it is drawn in.
+  holds: {
+    'Swamp Imprisonment': { effect: 'Skill.Raid.Gargoria.Skill1.HitLoop', tint: { colors: [[0,0.297,0.266,0.406],[0.994,0.298,0.272,0.387]], alphas: [[0,0.808],[1,1]], loop: 1 } },
+  },
+  // King's Raid's own effects for it (KR-extracted/scripts/tm-boss-vfx.mjs): each attack's, as it begins, flown from it, and as its blows land on a hero.
   vfx: {
     attacks: {
-      left: { start: ['Skill.Raid.Gargoria.Attack1.Casting2'], hit: ['Skill.Raid.Gargoria.Attack1.Hit'] },
-      centre: { start: ['Skill.Raid.Gargoria.Attack1.Casting1'], hit: ['Skill.Raid.Gargoria.Attack1.Hit'] },
-      right: { start: ['Skill.Raid.Gargoria.Attack1.Casting3'], hit: ['Skill.Raid.Gargoria.Attack1.Hit'] },
+      left: { start: ['Skill.Raid.Gargoria.Attack1.Casting2'], fly: ['Skill.Raid.Gargoria.Attack1.Projectile'], hit: ['Skill.Raid.Gargoria.Attack1.Hit'] },
+      centre: { start: ['Skill.Raid.Gargoria.Attack1.Casting1'], fly: ['Skill.Raid.Gargoria.Attack1.Projectile'], hit: ['Skill.Raid.Gargoria.Attack1.Hit'] },
+      right: { start: ['Skill.Raid.Gargoria.Attack1.Casting3'], fly: ['Skill.Raid.Gargoria.Attack1.Projectile'], hit: ['Skill.Raid.Gargoria.Attack1.Hit'] },
       destroyer: { start: ['Skill.Raid.Gargoria.Skill1.Casting'], hit: ['Skill.Raid.Gargoria.Skill1.Hit'] },
       swamp: { start: ['Skill.Raid.Gargoria.Skill2.Casting', 'Skill.Raid.Gargoria.Skill2.Loop'], hit: ['Skill.Raid.Gargoria.Skill2.Hit'] },
       explosion: { start: ['Skill.Raid.Gargoria.Skill3.Casting', 'Skill.Raid.Gargoria.Skill3.CastingLoop'], hit: ['Skill.Raid.Gargoria.Skill3.Hit01', 'Skill.Raid.Gargoria.Skill3.Hit02'] },

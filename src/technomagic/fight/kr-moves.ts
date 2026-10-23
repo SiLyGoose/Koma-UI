@@ -9,7 +9,8 @@ import { HERO_TURN } from '../sim';
  * move begins, on the hero (of those numbered, its attack's Casting1, 2…, one each time, in turn: one for each of the
  * game's clips it plays), and as each of its blows lands, where it lands (the boss), turned as the hero is; a shot's at the
  * hero. A blow with a projectile has it flown from the hero (what it holds, or its head) to where it lands, and the
- * rest played there as it gets there.
+ * rest played there as it gets there. And the boss's: as each of its attacks begins, its projectiles (flown from where
+ * its body says), and as its blows land on a hero.
  */
 
 /** The same effect again within this many seconds isn't played (a move's many blows landing close together). */
@@ -46,13 +47,17 @@ export const heroEffects = (hero: HeroAssets): string[] => [
   ...(hero.krFx ?? []),
 ];
 
-/** Every effect a boss plays: its attacks', its coming on the field, and what its skills keep on a hero. */
+/** Every effect a boss plays: its attacks' (and their projectiles), its coming on the field, and what its skills keep on a hero. */
 export const bossEffects = (boss: BossAssets): string[] => {
   const { attacks = {}, advent = [] } = boss.vfx ?? {};
-  return [...advent, ...Object.values(attacks).flatMap((attack) => [...(attack.start ?? []), ...(attack.hit ?? [])]), ...Object.values(boss.wards ?? {})];
+  return [
+    ...advent,
+    ...Object.values(attacks).flatMap((attack) => [...(attack.start ?? []), ...(attack.hit ?? []), ...(attack.fly ?? [])]),
+    ...Object.values(boss.holds ?? {}).flatMap((hold) => (hold.effect ? [hold.effect] : [])),
+  ];
 };
 
-/** A projectile on its way: what it flies on, from where to where, how long it has flown and takes, and what is played as it gets there. */
+/** A projectile on its way: what it flies on, from where to where, how long it has flown and takes, and what is played (and how big) as it gets there. */
 interface Flight {
   carrier: Object3D;
   from: Vector3;
@@ -60,6 +65,47 @@ interface Flight {
   t: number;
   time: number;
   then: readonly string[];
+  scale: number;
+}
+
+/** King's Raid's projectiles on their way, each on what it flies on. */
+interface Flights {
+  /** Flies `code` from one place to another in `time` seconds, turned `turn` radians about the upright and `scale` times as big; then plays `then` where it got to. */
+  fly(code: string, from: Vector3, to: Vector3, time: number, turn: number, scale: number, then?: readonly string[]): void;
+  update(dt: number): void;
+  clear(): void;
+}
+
+/** Projectiles flown in `scene`. */
+function makeFlights(kr: KrEffects, scene: Object3D): Flights {
+  const flights: Flight[] = [];
+  return {
+    fly(code, from, to, time, turn, scale, then = []) {
+      const carrier = new Object3D();
+      carrier.position.copy(from);
+      carrier.rotation.y = turn;
+      scene.add(carrier);
+      kr.play(code, { on: carrier, scale, lasts: time });
+      flights.push({ carrier, from: from.clone(), to: to.clone(), t: 0, time, then, scale });
+    },
+    update(dt) {
+      for (let i = flights.length - 1; i >= 0; i--) {
+        const flight = flights[i] as Flight;
+        const was = flight.t;
+        flight.t += dt;
+        flight.carrier.position.lerpVectors(flight.from, flight.to, Math.min(1, flight.t / flight.time));
+        if (was < flight.time && flight.t >= flight.time) for (const code of flight.then) kr.play(code, { at: flight.to, turn: HERO_TURN, scale: flight.scale });
+        if (flight.t >= flight.time + LINGER) {
+          flight.carrier.removeFromParent();
+          flights.splice(i, 1);
+        }
+      }
+    },
+    clear() {
+      for (const flight of flights) flight.carrier.removeFromParent();
+      flights.length = 0;
+    },
+  };
 }
 
 /** The effects of `heroes`' moves (by their index among the fighters; `bodies` theirs on the field), their blows landing at `target`; projectiles flown in `scene`. */
@@ -70,7 +116,7 @@ export function makeKrMoves(kr: KrEffects, heroes: readonly HeroAssets[], bodies
   const last = new Map<string, number>();
   /** How many projectiles each hero's move has flown (of several, each in turn). */
   const flown = new Map<string, number>();
-  const flights: Flight[] = [];
+  const flights = makeFlights(kr, scene);
   let now = 0;
   /** Plays a blow's effects where it lands (but a shot's, at the hero), each not again within APART of the last. */
   const hit = (who: number, body: Hero, codes: readonly string[], at: Vector3): void => {
@@ -111,36 +157,14 @@ export function makeKrMoves(kr: KrEffects, heroes: readonly HeroAssets[], bodies
       const n = flown.get(key) ?? 0;
       flown.set(key, n + 1);
       const from = body.muzzle?.(new Vector3()) ?? body.head(new Vector3());
-      const to = target.clone();
-      const time = Math.min(FLIGHT.most, Math.max(FLIGHT.least, from.distanceTo(to) / SPEED));
-      const carrier = new Object3D();
-      carrier.position.copy(from);
-      carrier.rotation.y = HERO_TURN;
-      scene.add(carrier);
-      kr.play(projectiles[n % projectiles.length] as string, { on: carrier, scale: SCALE, lasts: time });
+      const time = Math.min(FLIGHT.most, Math.max(FLIGHT.least, from.distanceTo(target) / SPEED));
       const rest = codes.filter((code) => !flies(code));
-      hit(who, body, rest.filter(shot), to);
-      flights.push({ carrier, from, to, t: 0, time, then: rest.filter((code) => !shot(code)) });
+      hit(who, body, rest.filter(shot), target);
+      flights.fly(projectiles[n % projectiles.length] as string, from, target, time, HERO_TURN, SCALE, rest.filter((code) => !shot(code)));
       return true;
     },
-    update(dt) {
-      for (let i = flights.length - 1; i >= 0; i--) {
-        const flight = flights[i] as Flight;
-        const was = flight.t;
-        flight.t += dt;
-        flight.carrier.position.lerpVectors(flight.from, flight.to, Math.min(1, flight.t / flight.time));
-        if (was < flight.time && flight.t >= flight.time)
-          for (const code of flight.then) kr.play(code, { at: flight.to, turn: HERO_TURN, scale: SCALE });
-        if (flight.t >= flight.time + LINGER) {
-          flight.carrier.removeFromParent();
-          flights.splice(i, 1);
-        }
-      }
-    },
-    clear() {
-      for (const flight of flights) flight.carrier.removeFromParent();
-      flights.length = 0;
-    },
+    update: (dt) => flights.update(dt),
+    clear: () => flights.clear(),
   };
 }
 
@@ -149,17 +173,26 @@ export interface KrBoss {
   use(attack: string): void;
   /** A blow of its (of the attack it began last) lands on a hero (`who`). */
   hurt(who: number): void;
-  /** Plays its coming on the field, once that has been read (unless it attacks first). */
-  update(): void;
+  /** Its attack's projectile (of the attack it began last: its vfx's fly) flown from `from` (a mouth) to `to` in `time` seconds: as its body launches it (Boss.launch). */
+  fly(from: Vector3, to: Vector3, time: number): void;
+  /** Plays its coming on the field, once that has been read (unless it attacks first); and moves its projectiles on (seconds). */
+  update(dt: number): void;
+  /** Takes its projectiles off (the fight is done with). */
+  clear(): void;
 }
 
-/** The effects of the boss's attacks (its asset file's `vfx`): on `root` as each begins, and on the heroes (`bodies`) its blows land on; and its coming on the field. */
-export function makeKrBoss(kr: KrEffects, boss: BossAssets, root: Object3D, bodies: readonly Hero[]): KrBoss {
+/**
+ * The effects of the boss's attacks (its asset file's `vfx`): on `root` as each begins, its projectiles flown in `scene`
+ * (as big as the game has them: its units are the game's), and on the heroes (`bodies`) its blows land on; and its
+ * coming on the field.
+ */
+export function makeKrBoss(kr: KrEffects, boss: BossAssets, root: Object3D, bodies: readonly Hero[], scene: Object3D): KrBoss {
   const { attacks = {}, advent = [] } = boss.vfx ?? {};
   kr.read(bossEffects(boss));
   let coming = advent.length > 0;
   let attack = '';
   const last = new Map<string, number>();
+  const flights = makeFlights(kr, scene);
   return {
     use(name) {
       attack = name;
@@ -177,10 +210,16 @@ export function makeKrBoss(kr: KrEffects, boss: BossAssets, root: Object3D, bodi
         kr.play(code, { on: body.root, scale: SCALE });
       }
     },
-    update() {
+    fly(from, to, time) {
+      // (Turned as the boss faces: toward the heroes.)
+      for (const code of attacks[attack]?.fly ?? []) flights.fly(code, from, to, time, HERO_TURN + Math.PI, 1);
+    },
+    update(dt) {
+      flights.update(dt);
       if (!coming || !advent.every((code) => kr.ready(code))) return;
       coming = false;
       for (const code of advent) kr.play(code, { on: root });
     },
+    clear: () => flights.clear(),
   };
 }

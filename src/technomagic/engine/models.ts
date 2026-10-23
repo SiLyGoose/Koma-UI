@@ -1,4 +1,4 @@
-import { CanvasTexture, DoubleSide, LoadingManager, MeshBasicMaterial, SRGBColorSpace, Texture, type Group, type Material, type Mesh } from 'three';
+import { CanvasTexture, DoubleSide, LoadingManager, MeshBasicMaterial, SRGBColorSpace, Texture, Vector4, type Group, type Material, type Mesh } from 'three';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
 import { built, builtSmall, texturesBuilt } from '../../shared/built';
 import { LOCAL } from '../assets';
@@ -155,12 +155,37 @@ export async function loadModels(folders: readonly string[], repaint?: { from: s
   return models;
 }
 
-/** Every material a model is drawn with (to tint it when it is hit). */
+/** Every material a model is drawn with (to tint it when it is hit, and colour it as a skill does: mixColor()). */
 export function materialsOf(models: readonly Group[]): MeshBasicMaterial[] {
   const all = new Set<MeshBasicMaterial>();
   for (const model of models)
     model.traverse((o) => {
       if (isMesh(o)) for (const material of [o.material].flat()) all.add(material as MeshBasicMaterial);
     });
+  for (const material of all) mixable(material);
   return [...all];
+}
+
+/** Each material's colour mix (mixColor()). */
+const mixes = new WeakMap<Material, { value: Vector4 }>();
+
+/**
+ * Lets a material be coloured as King's Raid's shaders colour a fighter (their _ColorMix: what a skill puts on it,
+ * Galgoria's Swamp Imprisonment): drawn rgb·(1 − a) + mix.rgb, in the picture's own colours (after they are made the
+ * screen's, as the game's are kept). Given as it is read, so it isn't compiled again mid-fight; none (0) till it is set.
+ */
+function mixable(material: MeshBasicMaterial): void {
+  if (mixes.has(material)) return;
+  const mix = { value: new Vector4(0, 0, 0, 0) };
+  mixes.set(material, mix);
+  material.onBeforeCompile = (shader) => {
+    shader.uniforms.colorMix = mix;
+    shader.fragmentShader = `uniform vec4 colorMix;\n${shader.fragmentShader.replace('#include <colorspace_fragment>', '#include <colorspace_fragment>\n\tgl_FragColor.rgb = gl_FragColor.rgb * (1.0 - colorMix.a) + colorMix.rgb;')}`;
+  };
+  material.needsUpdate = true;
+}
+
+/** Colours what a fighter is drawn with (its materialsOf()) by King's Raid's colour mix `mix` (rgb added, a how much of its own colour goes); (0, 0, 0, 0): its own. */
+export function mixColor(materials: readonly MeshBasicMaterial[], mix: Vector4): void {
+  for (const material of materials) mixes.get(material)?.value.copy(mix);
 }

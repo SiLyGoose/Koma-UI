@@ -10,8 +10,8 @@
 // renderer's alpha / colour / UV curves from the effect's definition) and its particle systems (CPU simulated: start
 // lifetime/speed/size/rotation/colour, rate and bursts, the common shapes, gravity, size/colour/rotation/velocity over
 // lifetime, force, limit velocity, texture sheets; drawn as billboards, stretched billboards, horizontal or vertical
-// billboards, or meshes). Not played: trails, sub-emitters, collision, noise (a little jitter only), dissolve and other
-// ShaderForge extras (drawn as the plain effect shader).
+// billboards, or meshes) and its trails (ribbons behind what moves: Trail). Not played: sub-emitters, collision, noise (a
+// little jitter only), dissolve and other ShaderForge extras (drawn as the plain effect shader).
 //
 // Colours are kept as the game had them (gamma: textures not decoded from sRGB, shader output not encoded), so additive
 // effects blend as they did in King's Raid.
@@ -104,6 +104,8 @@ void main() {
 function makeMaterial(asset, index, skinning = false) {
   const m = asset.def.materials[index];
   const [src, dst] = m.blend;
+  // Opaque (One, Zero: a model drawn as the heroes are, Gremory's servants): as solid as they are, hiding what is behind.
+  const opaque = src === 1 && dst === 0;
   const material = new ShaderMaterial({
     vertexShader: VERT,
     fragmentShader: FRAG,
@@ -112,12 +114,12 @@ function makeMaterial(asset, index, skinning = false) {
       tint: { value: new Vector4(...m.color) },
       power: { value: m.power },
       extraAlpha: { value: m.alpha },
-      premultiply: { value: src === 5 ? 0 : 1 },
+      premultiply: { value: src === 5 || opaque ? 0 : 1 },
       st: { value: new Vector4(...(m.st ?? [1, 1, 0, 0])) },
       rim: { value: m.rim ?? 1 },
     },
-    transparent: true,
-    depthWrite: false,
+    transparent: !opaque,
+    depthWrite: opaque,
     depthTest: m.depthTest,
     blending: CustomBlending,
     blendEquation: AddEquation,
@@ -484,6 +486,152 @@ function shapePoint(sh, p, d) {
   if (sh.sphericalDir) d.lerp(p.clone().normalize(), sh.sphericalDir).normalize();
 }
 
+// ---------- trails ----------
+
+const _tp = new Vector3(), _tf = new Vector3(), _ts = new Vector3(), _td = new Vector3(), _tc = [0, 0, 0, 0];
+
+/** SmoothTrail's curve between two control points (start, its handle, end, its handle) at t, its crease 0.3. */
+function alongCurve(a, ah, b, bh, t, out) {
+  const crease = 0.3, u = 1 - t, k = 1 - crease;
+  const w0 = u * u * u * k, w1 = 3 * u * u * t * crease, w2 = 3 * u * t * t * crease, w3 = t * t * t * k;
+  const sum = w0 + w1 + w2 + w3;
+  return out.set(a.x * w0 + ah.x * w1 + bh.x * w2 + b.x * w3, a.y * w0 + ah.y * w1 + bh.y * w2 + b.y * w3, a.z * w0 + ah.z * w1 + bh.z * w2 + b.z * w3).divideScalar(sum);
+}
+
+/**
+ * A trail behind a node as it moves (Pigeon Coop Toolkit's Better Trails, as the game has them: decompiled
+ * PigeonCoopToolkit.Effects.Trails): while it emits, a point where the node is each time it has moved minDistance (a
+ * smooth one's last point following the node meanwhile, and `between` points curved between each two); each point ages,
+ * and those older than `life` are gone. Drawn as a ribbon in the field's own space through them, turned to the camera,
+ * as wide as `size` times its size over life, coloured by its colour over life (both by a point's age, or along the trail
+ * when stretched to fit), its texture along it by time, distance or point. Stopped, what is left of it fades as it ages.
+ */
+class Trail {
+  constructor(spec, node, material, owner) {
+    this.spec = spec; this.node = node; this.owner = owner;
+    this.max = spec.kind === 'smooth' ? spec.maxPoints * (1 + spec.between) : spec.maxPoints;
+    /** The points it lays (a smooth one's control points): where, how old, and its forward (an overriding one's). */
+    this.points = [];
+    this.emitting = false;
+    this.last = new Vector3();
+    this.moved = 0;
+    /** How far along it the points gone off its end were (its texture laid along by distance). */
+    this.dropped = 0;
+    const n = this.max * 2;
+    this.geometry = new BufferGeometry();
+    this.geometry.setAttribute('position', new BufferAttribute(new Float32Array(n * 3), 3));
+    this.geometry.setAttribute('uv', new BufferAttribute(new Float32Array(n * 2), 2));
+    this.geometry.setAttribute('color', new BufferAttribute(new Float32Array(n * 4), 4));
+    const index = [];
+    for (let i = 0; i < this.max - 1; i++) index.push(2 * i, 2 * i + 1, 2 * i + 2, 2 * i + 2, 2 * i + 1, 2 * i + 3);
+    this.geometry.setIndex(index);
+    this.geometry.setDrawRange(0, 0);
+    this.mesh = new Mesh(this.geometry, material);
+    // (In the field's own space: its points are where the node was.)
+    this.mesh.matrixAutoUpdate = false;
+    this.mesh.matrixWorldAutoUpdate = false;
+    this.mesh.frustumCulled = false;
+  }
+
+  get alive() { return this.emitting || this.points.some((p) => p.age < this.spec.life); }
+
+  forward() {
+    const s = this.spec;
+    return s.forward ? (s.forwardRelative ? _tf.fromArray(s.forward).transformDirection(this.node.matrixWorld) : _tf.fromArray(s.forward).normalize()).clone() : null;
+  }
+
+  update(dt, camera, emit) {
+    const s = this.spec;
+    this.node.updateWorldMatrix(true, false);
+    const at = this.node.getWorldPosition(_tp);
+    if (emit && !this.emitting) {
+      // Begun (again): a new trail, from here.
+      this.points = s.kind === 'smooth' ? [{ p: at.clone(), age: 0, f: this.forward() }, { p: at.clone(), age: 0, f: this.forward() }] : [];
+      this.last.copy(at);
+      this.moved = 0;
+      this.dropped = 0;
+    }
+    this.emitting = emit;
+    if (emit) {
+      this.moved += at.distanceTo(this.last);
+      const cap = s.kind === 'smooth' ? s.maxPoints : this.max;
+      if (this.moved > 0 && this.moved >= s.minDistance) {
+        this.points.push({ p: at.clone(), age: 0, f: this.forward() });
+        this.moved = 0;
+        while (this.points.length > cap) {
+          this.dropped += this.points[0].p.distanceTo(this.points[1].p);
+          this.points.shift();
+        }
+      } else if (s.kind === 'smooth' && this.points.length) {
+        const head = this.points[this.points.length - 1];
+        head.p.copy(at);
+        if (s.forward) head.f = this.forward();
+      }
+      this.last.copy(at);
+    }
+    for (const p of this.points) p.age += dt;
+    this.draw(camera);
+  }
+
+  /** The points it is drawn through: a smooth one's control points with `between` more curved between each two. */
+  laid() {
+    const s = this.spec, cps = this.points;
+    if (s.kind !== 'smooth') return cps;
+    const out = [];
+    for (let i = 0; i < cps.length; i++) {
+      const a = cps[i];
+      out.push(a);
+      if (i >= cps.length - 1) continue;
+      const b = cps[i + 1];
+      const half = a.p.distanceTo(b.p) / 2;
+      const ah = a.p.clone().add((i === 0 ? b.p.clone().sub(a.p) : b.p.clone().sub(cps[i - 1].p)).normalize().multiplyScalar(half));
+      const bh = b.p.clone().add((i + 1 === cps.length - 1 ? a.p.clone().sub(b.p) : a.p.clone().sub(cps[i + 2].p)).normalize().multiplyScalar(half));
+      for (let j = 0; j < s.between; j++) {
+        const t = (j + 1) / (s.between + 1);
+        out.push({ p: alongCurve(a.p, ah, b.p, bh, t, new Vector3()), age: lerp(a.age, b.age, t), f: a.f && b.f ? a.f.clone().lerp(b.f, t) : null });
+      }
+    }
+    return out;
+  }
+
+  draw(camera) {
+    const s = this.spec;
+    const points = this.laid();
+    // The oldest go first: those still young enough are the last of them.
+    const first = points.findIndex((p) => p.age <= s.life);
+    const active = first < 0 ? 0 : points.length - first;
+    if (active < 2) { this.geometry.setDrawRange(0, 0); return; }
+    const pos = this.geometry.attributes.position.array, uv = this.geometry.attributes.uv.array, col = this.geometry.attributes.color.array;
+    const view = camera ? camera.getWorldDirection(new Vector3()) : new Vector3(0, 0, -1);
+    // (The game's metres, as big as the effect is drawn.)
+    const scale = Math.abs(this.owner.getWorldScale(_ts).x);
+    let dist = this.dropped;
+    for (let i = 1; i < first; i++) dist += points[i].p.distanceTo(points[i - 1].p);
+    for (let k = 0; k < active; k++) {
+      const i = first + k, p = points[i];
+      if (i > 0) dist += p.p.distanceTo(points[i - 1].p);
+      const toward = i < points.length - 1 ? _td.subVectors(points[i + 1].p, p.p) : _td.subVectors(p.p, points[i - 1].p);
+      const facing = s.forward ? (s.forwardRelative ? p.f ?? view : _tf.fromArray(s.forward).normalize()) : view;
+      // (Mirrored from the game's space: the other way round in the cross product, so its texture lies as there.)
+      const side = new Vector3().crossVectors(facing, toward.normalize()).normalize();
+      const life = p.age / s.life, along = 1 - k / active;
+      gradientAt(s.color, s.stretchColor ? along : life, _tc);
+      const width = (s.sizeOverLife ? sampleLut(s.sizeOverLife, s.stretchSize ? along : life) : 1) * s.size * scale;
+      for (let e = 0; e < 2; e++) {
+        const v = 2 * k + e;
+        const sign = e === 0 ? 1 : -1;
+        pos[v * 3] = p.p.x + side.x * width * sign; pos[v * 3 + 1] = p.p.y + side.y * width * sign; pos[v * 3 + 2] = p.p.z + side.z * width * sign;
+        let u = s.timeTex ? Math.min(Math.max(life, 0), 1) : s.tile > 0 ? dist / (s.tile * scale) : v / active / 2;
+        if (s.texRemap) u = sampleLut(s.texRemap, u);
+        uv[v * 2] = u; uv[v * 2 + 1] = e;
+        col[v * 4] = _tc[0]; col[v * 4 + 1] = _tc[1]; col[v * 4 + 2] = _tc[2]; col[v * 4 + 3] = _tc[3];
+      }
+    }
+    this.geometry.attributes.position.needsUpdate = this.geometry.attributes.uv.needsUpdate = this.geometry.attributes.color.needsUpdate = true;
+    this.geometry.setDrawRange(0, (active - 1) * 6);
+  }
+}
+
 // ---------- the effect ----------
 
 export class KrEffect extends Group {
@@ -519,6 +667,27 @@ export class KrEffect extends Group {
       });
       this.emitters.push({ pl, emitters, started: false, stopped: false });
     });
+    // Its trails: those placed of their own (laid while the placement lasts), and those on its models' nodes (while each shows).
+    this.trails = [];
+    const trailsOf = (inst, when) => {
+      for (const spec of inst.prefab.trails ?? []) {
+        const material = makeMaterial(asset, spec.mat ?? 0);
+        // (Turned to the camera: drawn whichever way round its points run.)
+        material.side = DoubleSide;
+        this.materials.push(material);
+        const trail = new Trail(spec, inst.nodes[spec.node], material, this);
+        trail.mesh.renderOrder = material.userData.order ?? 20;
+        this.add(trail.mesh);
+        this.trails.push({ when, trail });
+      }
+    };
+    (asset.def.trails ?? []).forEach((tl) => {
+      if (tl.prefab == null || !asset.def.prefabs[tl.prefab]) return;
+      const inst = buildPrefab(asset, tl.prefab, this.materials);
+      this.attach(tl, opts, this.models).add(inst.root);
+      trailsOf(inst, () => tl);
+    });
+    for (const model of this.models) if (model.inst) trailsOf(model.inst, () => model.m);
   }
 
   attach(pl, opts, models) {
@@ -583,6 +752,11 @@ export class KrEffect extends Group {
         if (e.particles.length || (group.started && !group.stopped && e.playing)) alive = true;
       }
     }
+    for (const { when, trail } of this.trails) {
+      const { begin, end } = when();
+      trail.update(dt, camera, !this.stopped && t >= begin && t <= end);
+      if (trail.alive) alive = true;
+    }
     // a ShaderForge material's own scroll (approximate: _USpeed/_VSpeed style speeds move the main texture)
     for (const mat of this.materials) {
       const sc = mat.userData.base?.scroll;
@@ -596,6 +770,8 @@ export class KrEffect extends Group {
 
   /** Ends an effect that runs until told (a status's loop, length 9999): models go now, emitters stop and their particles live out. */
   stop() {
+    // (Its trails stop laying points; what is left of them fades.)
+    this.stopped = true;
     for (const m of this.models) m.m = { ...m.m, end: Math.min(m.m.end, this.t) };
     for (const g of this.emitters) { g.stopped = true; g.emitters.forEach((e) => e.stop()); }
     this.asset = { ...this.asset, def: { ...this.asset.def, length: Math.min(this.asset.def.length, this.t) } };
@@ -609,5 +785,6 @@ export class KrEffect extends Group {
    */
   dispose() {
     for (const g of this.emitters) for (const e of g.emitters) e.geometry.dispose();
+    for (const { trail } of this.trails) trail.geometry.dispose();
   }
 }

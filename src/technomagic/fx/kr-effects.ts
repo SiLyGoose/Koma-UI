@@ -1,5 +1,5 @@
-import type { Camera, Object3D, Quaternion, Vector3 } from 'three';
-import { LOCAL } from '../assets';
+import type { Camera, Object3D, Quaternion, Vector3, Vector4 } from 'three';
+import { LOCAL, type KrTint } from '../assets';
 import { KrEffect, loadKrEffect, type KrEffectAsset } from './kr-vfx-player.js';
 
 /*
@@ -40,6 +40,22 @@ export interface KrEffects {
   update(dt: number): void;
   /** Takes every one off (the fight is done with). */
   clear(): void;
+}
+
+/** A gradient's keys at `t` (0 to 1): blended between the two either side, as the first before it and the last after it (Unity's). */
+const along = <K extends readonly number[]>(keys: readonly K[], t: number, at: number): number => {
+  const after = keys.findIndex((key) => (key[0] as number) >= t);
+  if (after <= 0) return ((after === 0 ? keys[0] : keys[keys.length - 1]) as K)[at] as number;
+  const a = keys[after - 1] as K;
+  const b = keys[after] as K;
+  const k = (t - (a[0] as number)) / ((b[0] as number) - (a[0] as number) || 1);
+  return (a[at] as number) + ((b[at] as number) - (a[at] as number)) * k;
+};
+
+/** The colour mix a King's Raid tint has `seconds` after it came on (it goes round every `loop`), put in `into` (rgb, a). */
+export function krTintAt(tint: KrTint, seconds: number, into: Vector4): Vector4 {
+  const t = (seconds % tint.loop) / tint.loop;
+  return into.set(along(tint.colors, t, 1), along(tint.colors, t, 2), along(tint.colors, t, 3), along(tint.alphas, t, 1));
 }
 
 /** A bone's name as the game has it, as our models have it (three.js's: spaces made underscores, some marks left out). */

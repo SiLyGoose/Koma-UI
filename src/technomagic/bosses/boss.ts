@@ -38,5 +38,10 @@ export interface Boss {
   reset?(): void;
   /** Where whoever it is fighting is, on the field (their chest): asked as it attacks, put in `into`. The page sets it. */
   target: (into: Vector3) => Vector3;
+  /**
+   * Launches its attack's projectile (King's Raid's own: its assets' vfx fly) from `from` to `to`, there in `time`
+   * seconds: as its body spits it (Galgoria's heads). The page sets it.
+   */
+  launch?: (from: Vector3, to: Vector3, time: number) => void;
   update(now: number, dt: number): void;
 }

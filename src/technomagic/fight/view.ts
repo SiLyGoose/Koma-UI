@@ -1,9 +1,9 @@
-import { Vector3, type Material, type Object3D, type Scene } from 'three';
+import { Vector3, Vector4, type Material, type Object3D, type Scene } from 'three';
 import type { Boss, BossLook } from '../bosses/boss';
 import { isMesh } from '../engine/models';
 import type { Effects } from '../fx/effects';
 import type { EffectName } from '../assets';
-import type { KrEffects } from '../fx/kr-effects';
+import { krTintAt, type KrEffects } from '../fx/kr-effects';
 import type { Banners } from '../hud/banners';
 import type { Minions } from './minions';
 import type { Magic } from '../fx/magic';
@@ -238,7 +238,16 @@ export function makeFightView({
   const looks = new Map<string, string>();
   for (const fighter of sim.fighters) for (const [status, code] of Object.entries(lookOf(fighter.id).assets.wards ?? {})) looks.set(status, code);
   // (And the boss's skills' that have a hero: Galgoria's Swamp Imprisonment.)
-  for (const [status, code] of Object.entries(bossLook.assets.wards ?? {})) looks.set(status, code);
+  for (const [status, { effect }] of Object.entries(bossLook.assets.holds ?? {})) if (effect) looks.set(status, effect);
+  /** The colours the boss's skills draw a hero in while they have it, by the status's name; and since when each hero has had its own (seconds, of `now`). */
+  const tints = new Map(Object.entries(bossLook.assets.holds ?? {}).flatMap(([status, { tint }]) => (tint ? [[status, tint] as const] : [])));
+  const tinted = new Map<number, number>();
+  const mixed = new Vector4(0, 0, 0, 0);
+  /** Every hero drawn in its own colours again. */
+  const untint = (): void => {
+    for (const who of tinted.keys()) body(who).colour(mixed.set(0, 0, 0, 0));
+    tinted.clear();
+  };
   /** Those on the heroes now (by the hero and the effect): what stops each, and whether it was kept this frame. */
   const guarding = new Map<string, { stop: () => void; kept: boolean }>();
   /** The skills of the heroes in the fight that put the bubble on a hero as a shield does: by the status's name. */
@@ -253,7 +262,9 @@ export function makeFightView({
     bossHit,
     scene,
   );
-  const krBoss = makeKrBoss(kr, bossLook.assets, boss.root, bodies);
+  const krBoss = makeKrBoss(kr, bossLook.assets, boss.root, bodies, scene);
+  // (Its body spits the game's own projectiles: Galgoria's heads.)
+  boss.launch = (from, to, time) => krBoss.fly(from, to, time);
   // The signs of what comes on a fighter: the game's own (a hero's on it, the boss's where its blows land, bigger).
   const signs = makeSigns(effects, (who, sign) => {
     const code = KR_SIGNS[sign];
@@ -531,6 +542,13 @@ export function makeFightView({
             if (one) one.kept = true;
             else if (kr.ready(code)) guarding.set(key, { stop: kr.play(code, { on: hero.root, scale: SCALE, lasts: Infinity }), kept: true });
           }
+        // The colour a boss's skill draws it in while it has it (Galgoria's Swamp Imprisonment), gone round from when it came on.
+        const tint = fighter.hp > 0 ? fighter.statuses.map((status) => tints.get(status.name)).find((one) => one !== undefined) : undefined;
+        if (tint) {
+          const since = tinted.get(who) ?? now;
+          tinted.set(who, since);
+          hero.colour(krTintAt(tint, now - since, mixed));
+        } else if (tinted.delete(who)) hero.colour(mixed.set(0, 0, 0, 0));
         // (Not the common bubble while a shield of its own look is on it: Laias's Bubble Shield.)
         const shielded = !ownLook && (fighter.shield > 0 || fighter.statuses.some((status) => bubbles.has(status.name)));
         wards.keep(who, hero.place(at), heights[who] as number, shielded);
@@ -585,7 +603,7 @@ export function makeFightView({
       signs.update(dt);
       effects.update(dt);
       krMoves.update(dt);
-      krBoss.update();
+      krBoss.update(dt);
       minions.update(dt);
       // (Its wind-up goes as fast as it does: slowed, slower.)
       if (charge) {
@@ -605,9 +623,11 @@ export function makeFightView({
       boss.root.visible = false;
       wards.clear();
       guarding.clear();
+      untint();
       signs.clear();
       kr.clear();
       krMoves.clear();
+      krBoss.clear();
       who.forEach((one, i) => {
         const hero = body(one);
         const { root } = hero;
@@ -648,11 +668,13 @@ export function makeFightView({
       caster = null;
       wards.clear();
       guarding.clear();
+      untint();
       signs.clear();
       props.clear();
       sounds.stop();
       kr.clear();
       krMoves.clear();
+      krBoss.clear();
     },
   };
 }

@@ -7,21 +7,20 @@ import type { Span } from '../../sim/motion';
 import type { Boss, BossLook } from '../boss';
 import { krBossMotion, loadKrBossClips } from '../kr';
 import { WASTELAND } from './scenery';
-import { makeVenom } from './venom';
 
 /*
  * Galgoria on the field: a chimera of three heads, each on a neck of six bones, with a tail behind. It is moved by King's
  * Raid's own animations for it (../kr.ts: its idle, each of its attacks, going down and getting up), each attack fitted to
  * how the fight has it go (../../sim/bosses/galgoria/attacks.ts: each of its skills is some of its heads' moves, one after
- * another). Its venom is drawn here, by its heads' moves as the fight times them: sprayed from a head's mouth at whoever
- * it is fighting (./venom.ts, through SPRAY of its spit), and splashing where it lands. It is only drawn: when it attacks,
- * is stunned or slowed, and what comes of each blow, is the fight's sim's (../../sim/bosses/galgoria/).
+ * another). Its spit is King's Raid's own (its assets' vfx fly), launched here by its heads' moves as the fight times
+ * them: from a head's mouth at whoever it is fighting as it spits (SPIT into it), there as its blow lands. It is only
+ * drawn: when it attacks, is stunned or slowed, and what comes of each blow, is the fight's sim's (../../sim/bosses/galgoria/).
  */
 
 /** Hit: white for this long, and shaken. */
 const FLINCH = 0.22;
-/** When in a head's spit its venom sprays (it takes a moment to get there). */
-const SPRAY = [0.6, 1.2] as const;
+/** When in a head's spit it spits (it takes a moment to get there: till the blow lands). */
+const SPIT = 0.6;
 
 /**
  * How the fight times each of its attacks: when its heads' blows land (each head's moves one after another, each
@@ -67,16 +66,13 @@ export async function loadGalgoria(scene: Scene, bright: Object3D): Promise<Boss
   root.add(body);
   const motion = krBossMotion(models, clips);
 
-  /** What each head is doing, and will do after it (its venom goes by these): a move of a skill (its name), and which of the skill's moves it is. */
-  const going = new Map<Head, { kind: Attack; skill: string; part: number; t: number; hit: boolean }[]>();
+  /** What each head is doing, and will do after it (its spit goes by these): a move of a skill (its name), which of the skill's moves it is, and whether it has spat. */
+  const going = new Map<Head, { kind: Attack; skill: string; part: number; t: number; hit: boolean; spat?: boolean }[]>();
   const materials = materialsOf(models);
   let flinch = 0;
   let slowed = { rate: 1, left: 0 };
   const mouth = new Vector3();
   const aim = new Vector3();
-  // (Its venom is drawn as light: kept bright when the field goes dark.)
-  const venom = makeVenom(bright);
-  const splashed = new Vector3();
   const tongue = (head: Head, into: Vector3): Vector3 => (models[0] as Object3D).localToWorld(into.copy(rig.at(`Bone_${head}_Tongue02`)));
 
   const boss: Boss = {
@@ -107,26 +103,23 @@ export async function loadGalgoria(scene: Scene, bright: Object3D): Promise<Boss
       motion.update(dt);
       slowed.left = Math.max(0, slowed.left - dt);
       const rate = slowed.left > 0 ? slowed.rate : 1;
-      // Its venom: from each head as its moves have it, where the game's animation has put that head now.
+      // Its spit: from each head as its moves have it, where the game's animation has put that head now.
       for (const head of HEADS) {
         const moves = going.get(head);
         const doing = moves?.[0];
         if (!moves || !doing) continue;
         doing.t += dt * rate;
         const move = MOVES[doing.kind];
-        if (doing.kind === 'spit' && doing.t >= SPRAY[0] && doing.t <= SPRAY[1]) venom.spray(tongue(head, mouth), boss.target(aim), dt);
-        if (move.hit !== null && !doing.hit && doing.t >= move.hit) {
-          // It lands: its venom splashes where its target is (or, come down into the swamp, where its mouth is).
-          doing.hit = true;
-          if (doing.kind === 'spit') venom.splash(boss.target(aim));
-          if (doing.kind === 'slam') venom.splash(tongue(head, splashed).setY(0.2));
+        if (doing.kind === 'spit' && move.hit !== null && !doing.spat && doing.t >= SPIT) {
+          doing.spat = true;
+          boss.launch?.(tongue(head, mouth), boss.target(aim), Math.max(0.05, (move.hit - doing.t) / rate));
         }
+        if (move.hit !== null && !doing.hit && doing.t >= move.hit) doing.hit = true;
         if (doing.t >= move.length) {
           moves.shift();
           if (moves.length === 0) going.delete(head);
         }
       }
-      venom.update(dt);
 
       flinch = Math.max(0, flinch - dt);
       const k = flinch / FLINCH;
