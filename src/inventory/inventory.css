@@ -135,6 +135,8 @@
   max-height: 60dvh;
   /* (The room around the slots: on the sheet, which doesn't scroll, so it stays as they scroll under it.) */
   padding: 12px;
+  /* (Less on the right, the scrollbar nearer the edge: the scroller's own padding makes it up, the slots where they'd be.) */
+  padding-right: 9px;
   overflow: hidden;
   border-radius: 6px;
   background: var(--inv-sheet);
@@ -146,6 +148,7 @@
 /* (Room only for a picked slot's ring and the keyboard's, which the scrolling would cut off.) */
 .inventory-page .inv-sheet .sheet-scroll {
   padding: 3px;
+  padding-right: 6px;
   margin-right: 0;
 }
 
