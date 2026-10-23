@@ -204,6 +204,9 @@ export function afterTyping<A extends unknown[]>(run: (...args: A) => void): { (
   return wait;
 }
 
+/** A stat by name, as a line says it without its amount (a King's Raid piece's or rune's "ATK +14%", a unique treasure's "+5% ATK Spd"). */
+export const statName = (line: string): string => line.replace(/^[+\-−]?[\d.,]+%?\s+/, '').replace(/\s+[+\-−]?[\d.,]+%?$/, '').trim() || line;
+
 /** A picture for a slot: an image filling it. */
 export function tileImage(src: string): HTMLImageElement {
   const img = el('img');

@@ -4,7 +4,7 @@ import { FORGE_MODES, heroCan } from '../../forge/modes';
 import { krSections, runeSection, withoutRunes } from '../../heroes/parts';
 import type { HeroCopy, HeroesView } from '../../protocol/heroes';
 import type { InventoryHost, InventoryTab, Source } from '../tab';
-import { afterTyping, detailAway } from './tiles';
+import { afterTyping, detailAway, statName } from './tiles';
 
 /*
  * The inventory's Player Gear and Hero Gear: every copy they own of one or the other, as the armories draw them (on parchment,
@@ -228,8 +228,6 @@ export const playerGearTab: InventoryTab = armoryTab<GearCopy, GearView>({
 /** What a hero copy's effects say with none. */
 const HERO_NONE = 'No effects on a hero.';
 
-/** An option's stat by name, as its line says it without its amount (a King's Raid piece's "ATK +14%", a unique treasure's "+5% ATK Spd"). */
-const substatName = (line: string): string => line.replace(/^[+\-−]?[\d.,]+%?\s+/, '').replace(/\s+[+\-−]?[\d.,]+%?$/, '').trim() || line;
 
 export const heroGearTab: InventoryTab = armoryTab<HeroCopy, HeroesView>({
   id: 'hero-gear',
@@ -253,7 +251,7 @@ export const heroGearTab: InventoryTab = armoryTab<HeroCopy, HeroesView>({
     const owner = copy.uniqueWeapon ?? copy.uniqueTreasure?.hero;
     return owner ? (view.heroes.find((hero) => hero.id === owner)?.name ?? owner) : '';
   },
-  substats: (copy) => copy.options.map((option) => substatName(option.line)),
+  substats: (copy) => copy.options.map((option) => statName(option.line)),
   detail(view, copy, close) {
     const on = copy.hero !== null ? view.heroes.find((hero) => hero.id === copy.hero) : undefined;
     const notes: HTMLElement[] = [el('p', 'detail-note', on ? `${on.name} wears this.` : 'No hero wears this.')];
