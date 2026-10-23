@@ -1,5 +1,6 @@
 import markup from './inventory.html?raw';
 import { API, dropdown, fillServers } from '../shared/ui';
+import { TICKETS_CLAIMED } from '../shared/ui/mail/mail';
 import type { Page } from '../site/page';
 import { api, currentMe, currentServer, loadMe, logOut, prefetchFor, setServer, type ApiResult } from '../site/session';
 import { craftTab } from './tabs/craft';
@@ -126,6 +127,13 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void; 
     return drawn;
   }
 
+  // Tickets claimed from the mailbox: the raid shop's answer (the tickets held) asked for again, and Others drawn again if it's shown.
+  const onTickets = (): void => {
+    known.delete('shop');
+    if (shown?.tab === othersTab) void show(othersTab);
+  };
+  window.addEventListener(TICKETS_CLAIMED, onTickets);
+
   serverSelect.addEventListener('change', () => {
     setServer(serverSelect.value);
     known = new Map();
@@ -148,6 +156,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void; 
   return {
     drawn: start(),
     unmount: () => {
+      window.removeEventListener(TICKETS_CLAIMED, onTickets);
       shown?.unmount();
       serverPicker.destroy();
     },

@@ -10,8 +10,8 @@ import { type Tile, tileGrid, tileImage } from './tiles';
 
 /*
  * The inventory's Others: what they have that isn't gear, a slot each (./tiles.ts), how many in its corner: zeiucoins (the
- * header's), komaTokens (the gacha's), komaGems, komaDust, the Unique Weapon and Unique Treasure Tickets crafted from it (the
- * raid shop's: picked, Use gives the hero's item they pick, ./tickets.ts) and the hero essences (the heroes page's); picked,
+ * header's), komaTokens (the gacha's), komaGems, komaDust, the Unique Weapon and Unique Treasure Tickets crafted from it or
+ * claimed from mail (the raid shop's: picked, Use gives the hero's item they pick, ./tickets.ts) and the hero essences (the heroes page's); picked,
  * where it comes from and what it's for. The slots fill in as the bot's answers they're in come (a dash where one
  * couldn't be had).
  */
@@ -87,7 +87,7 @@ export const othersTab: InventoryTab = {
         grade: 5,
         count,
         kind: 'Ticket',
-        about: `Crafted from komaDust in the Craft tab. Use it for a ${TICKET_NAME[of].toLowerCase()} of any hero’s, picked as you do.`,
+        about: `From mail, or crafted from komaDust in the Craft tab. Use it for a ${TICKET_NAME[of].toLowerCase()} of any hero’s, picked as you do.`,
         words: of === 'uw' ? 'uw selector' : 'ut selector',
         action: {
           label: 'Use',

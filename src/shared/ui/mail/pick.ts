@@ -3,8 +3,8 @@ import type { MailHero, MailPickItem, MailTicketItem, MailTickets } from '../../
 /*
  * The popup a unique weapon or unique treasure is picked in, as King's Raid's ticket has it: every item it can be on the
  * left (an icon and a name each, its hero's name under it, a search over them), the one picked on the right (its picture
- * and name, its hero, a new copy's main stat, its unique effect), and Confirm. The mailbox's tickets pick in it
- * (./mail.ts: a weapon or a treasure), and the Hero Item banner's guarantee (../../../banner/page.ts: either, each hero's
+ * and name, its hero, a new copy's main stat, its unique effect), and Confirm. The tickets pick in it, used in the
+ * Inventory's Others (../../../inventory/tabs/tickets.ts: a weapon or a treasure), and the Hero Item banner's guarantee (../../../banner/page.ts: either, each hero's
  * weapon then its treasures, a hero after another). Its look is mail.css's (on every page, with the mailbox).
  */
 

@@ -5,9 +5,9 @@ import type { RaidShopUsed, RaidShopView } from '../../protocol/raid-shop';
 import type { InventoryHost } from '../tab';
 
 /*
- * The Unique Weapon and Unique Treasure Tickets crafted from komaDust (./craft.ts), held in Others (./others.ts) until used:
- * Use opens the mailbox's ticket popup (../../shared/ui/mail/pick.ts: every hero's item of the ticket's kind), and the one
- * confirmed is theirs (the bot's POST /api/raid-shop/use, a new copy of it), the ticket spent.
+ * The Unique Weapon and Unique Treasure Tickets crafted from komaDust (./craft.ts) or claimed from mail, held in Others
+ * (./others.ts) until used: Use opens the ticket popup (../../shared/ui/mail/pick.ts: every hero's item of the ticket's
+ * kind), and the one confirmed is theirs (the bot's POST /api/raid-shop/use, a new copy of it), the ticket spent.
  */
 
 export type TicketKind = 'uw' | 'ut';
