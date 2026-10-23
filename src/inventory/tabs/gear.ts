@@ -4,6 +4,7 @@ import { FORGE_MODES, heroCan } from '../../forge/modes';
 import { krSections, runeSection, withoutRunes } from '../../heroes/parts';
 import type { HeroCopy, HeroesView } from '../../protocol/heroes';
 import type { InventoryHost, InventoryTab, Source } from '../tab';
+import { detailAway } from './tiles';
 
 /*
  * The inventory's Player Gear and Hero Gear: every copy they own of one or the other, as the armories draw them (on parchment,
@@ -108,6 +109,8 @@ function armoryTab<C extends ArmoryCopy, V>(spec: ArmoryTabSpec<C, V>): Inventor
         if (!copy) picked = null;
         box.classList.toggle('picking', !!copy);
         if (!copy) return showDetail(detail, undefined);
+        // (Over the side of the slots away from it, so it never covers what was picked.)
+        detailAway(box, gridBox, gridBox.querySelector('.item.picked'));
         const { shown: drawn, parts } = spec.detail(view, copy, close);
         showDetail(detail, drawn, parts);
       }

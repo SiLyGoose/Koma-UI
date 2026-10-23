@@ -58,8 +58,14 @@ export const othersTab: InventoryTab = {
         (id: EssenceId): Tile => ({
           id,
           name: `${ESSENCE_NAME[id]} Essence`,
-          // (As the heroes page's ../../heroes/transcend.ts essencePicture, without the raid's heroes it reads.)
-          picture: () => tileImage(built(`${KEPT}/transcend/essences/${id}.png`)),
+          // (As the heroes page's ../../heroes/transcend.ts essencePicture, without the raid's heroes it reads; its own purple
+          // edge cut off, the slot's frame in its place.)
+          picture: () => {
+            const img = tileImage(built(`${KEPT}/transcend/essences/${id}.png`));
+            img.className = 'inv-crop';
+            return img;
+          },
+          full: true,
           grade: 4,
           count: held[id],
           kind: 'Hero Essence',

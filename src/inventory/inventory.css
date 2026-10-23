@@ -4,7 +4,7 @@
  * a slot, Common_Box_Text_5 the bar): its name over it, its tabs across its top (the one open blue, Craft green), the tab
  * open under them. Player Gear and Hero Gear: a dark sheet of slots, the item cards in them (../shared/items/, their frames
  * King's Raid's grades), eight across on wide screens, and the cream bar under them with the search, the Filter and how many
- * there are; a picked one's details over the slots' right side (a sheet from the bottom on narrow screens, items.css). Runes
+ * there are; a picked one's details over the half of the slots away from it (a sheet from the bottom on narrow screens, items.css). Runes
  * and Others: slots the same way, how many in each one's corner. Craft: what to craft on the sheet, the one picked on the cream beside it.
  * Everything is under .inventory-page, so it outweighs the shared styles whichever order the build links them in.
  */
@@ -270,6 +270,14 @@
     box-shadow: -12px 0 30px rgb(0 0 0 / 55%);
     animation: inv-detail-in 0.18s ease-out;
   }
+
+  /* Picked from the right half of the slots: over the left half instead, so it never covers what was picked (tabs/tiles.ts detailAway). */
+  .inventory-page .inv-gear.detail-left > .detail {
+    right: auto;
+    left: 0;
+    box-shadow: 12px 0 30px rgb(0 0 0 / 55%);
+    animation-name: inv-detail-in-left;
+  }
 }
 
 /* Narrow screens: the details' sheet is the shared one (items.css), laid out as the gear page's. */
@@ -305,6 +313,13 @@
   }
 }
 
+@keyframes inv-detail-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .inventory-page .inv-gear > .detail {
     animation: none;
@@ -325,7 +340,7 @@
   border-width: 0;
 }
 
-/* Its picture in the middle, clear of the frame and the count. */
+/* Its picture in the middle, clear of the frame and the count (a coin, the bot's emoji). */
 .inventory-page .inv-tile-pic {
   position: absolute;
   inset: 12%;
@@ -334,15 +349,29 @@
 }
 
 .inventory-page .inv-tile-pic img,
-.inventory-page .inv-tile-pic .inv-other-pic,
-.inventory-page .inv-tile-pic .inv-rune-pic {
+.inventory-page .inv-tile-pic .inv-other-pic {
   width: 100%;
   height: 100%;
   object-fit: contain;
 }
 
-.inventory-page .inv-other-pic,
-.inventory-page .inv-rune-pic {
+/* A picture that fills the slot (a rune's, an essence's): out to just inside the frame's coloured edge, as the gear's do. */
+.inventory-page .inv-tile-pic.full {
+  inset: 3%;
+  overflow: hidden;
+  border-radius: 2px;
+}
+
+.inventory-page .inv-tile-pic.full img {
+  object-fit: cover;
+}
+
+/* An essence's picture has its own purple edge: cut off, the slot's frame in its place. */
+.inventory-page .inv-tile-pic .inv-crop {
+  transform: scale(1.14);
+}
+
+.inventory-page .inv-other-pic {
   position: relative;
   display: grid;
   place-items: center;
@@ -354,14 +383,6 @@
   width: 82%;
   height: 82%;
   object-fit: contain;
-}
-
-/* A rune's kind's gem, on its top left corner. */
-.inventory-page .inv-rune-pic > .kr-rune {
-  position: absolute;
-  top: -4%;
-  left: -4%;
-  width: 22%;
 }
 
 /* The frame: King's Raid's, of its grade's colour, drawn as the gear's (../shared/items/styles/tier.css: its dark edge cut off). */

@@ -1,11 +1,10 @@
-import { el } from '../../shared/items';
 import { HERO_PART_NAME, type HeroRuneStack } from '../../protocol/heroes';
 import type { InventoryTab } from '../tab';
 import { type Tile, tileGrid, tileImage } from './tiles';
 
 /*
  * The inventory's Runes: every rune they have that isn't socketed (the bot's /api/heroes), best first, a slot each (./tiles.ts):
- * its picture with its kind's gem on its corner, framed in its grade's colour, how many in its corner; picked, what it gives
+ * its picture filling it, framed in its grade's colour, how many in its corner; picked, what it gives
  * and the parts it goes in. Socketing one is the Heroes page's (a piece's Runes).
  */
 
@@ -15,11 +14,8 @@ function tile(rune: HeroRuneStack): Tile {
   return {
     id: rune.id,
     name: rune.name,
-    picture: () => {
-      const pic = el('span', 'inv-rune-pic');
-      pic.append(tileImage(`/kr/items/${rune.icon}.webp`), el('span', `kr-rune ${rune.color}`));
-      return pic;
-    },
+    picture: () => tileImage(`/kr/items/${rune.icon}.webp`),
+    full: true,
     grade: rune.grade,
     count: rune.count,
     kind: 'Rune',

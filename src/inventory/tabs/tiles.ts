@@ -4,9 +4,20 @@ import { points } from '../../shared/util';
 /*
  * The inventory's slots of things that aren't gear (Runes, Others), as King's Raid's inventory has them: a slot each, its
  * picture in a frame of its grade's colour (public/kr/ui/inventory/grade-<n>.webp, King's Raid's Equip_Grade frames), how
- * many they hold in its bottom right corner, blank slots down to the bottom of the sheet; picked, what it is over the slots'
- * right side (as the gear tabs' details: a sheet from the bottom on narrow screens).
+ * many they hold in its bottom right corner, blank slots down to the bottom of the sheet; picked, what it is over the side
+ * of the slots away from it (as the gear tabs' details: a sheet from the bottom on narrow screens).
  */
+
+/**
+ * Puts `box`'s details on the side of its slots away from `slot` (one on the right half: on the left), so they never cover
+ * what was picked (../inventory.css .detail-left).
+ */
+export function detailAway(box: HTMLElement, grid: HTMLElement, slot: Element | null): void {
+  if (!slot) return;
+  const at = slot.getBoundingClientRect();
+  const all = grid.getBoundingClientRect();
+  box.classList.toggle('detail-left', at.left + at.width / 2 > all.left + all.width / 2);
+}
 
 /** One slot's thing. */
 export interface Tile {
@@ -14,6 +25,8 @@ export interface Tile {
   name: string;
   /** Its picture. */
   picture(): Node;
+  /** Its picture fills the slot to its frame (a rune's, an essence's), rather than standing in the middle of it (a coin). */
+  full?: boolean;
   /** Its frame's grade (1 white to 6 orange), or null for a plain slot. */
   grade: number | null;
   /** How many they hold (null: not known yet; undefined: couldn't be had). */
@@ -61,7 +74,7 @@ export function tileGrid(box: HTMLElement, sheet: HTMLElement, grid: HTMLElement
     const button = el('button', 'item inv-tile');
     button.type = 'button';
     if (tile.grade !== null) button.dataset.grade = String(tile.grade);
-    const pic = el('span', 'inv-tile-pic');
+    const pic = el('span', tile.full ? 'inv-tile-pic full' : 'inv-tile-pic');
     pic.append(tile.picture());
     button.append(pic);
     if (tile.grade !== null) button.append(el('span', 'inv-tile-frame'));
@@ -75,6 +88,7 @@ export function tileGrid(box: HTMLElement, sheet: HTMLElement, grid: HTMLElement
     button.addEventListener('click', () => {
       const before = picked;
       picked = picked === tile.id ? null : tile.id;
+      if (picked) detailAway(box, grid, button);
       draw(tiles, query);
       itemPicked(before, picked);
     });
