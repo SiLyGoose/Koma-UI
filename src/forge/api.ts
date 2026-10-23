@@ -68,20 +68,20 @@ export async function loadHeroes(ctx: ForgeContext): Promise<void> {
 const linesOf = (copy: HeroCopy, mode: HeroMode): string[] => (mode === 'effects' ? (copy.additional ? [copy.additional] : []) : copy.options.map((option) => option.line));
 
 /**
- * Rerolls the substat picked, enhances one at random, or rerolls the effect of the piece on the anvil (the mode's: the bot's
+ * Rerolls the substat picked, enhances it (its amount rolled again), or rerolls the effect of the piece on the anvil (the mode's: the bot's
  * POST /api/heroes/reroll or /upgrade), with the anvil's heat and cover as a refine has, and shows what changed.
  */
 export async function strikeHero(ctx: ForgeContext, mode: HeroMode): Promise<void> {
   const server = currentServer();
   const copy = heroCopyById(ctx, ctx.picked);
-  const option = mode === 'reroll' ? ctx.option : mode === 'effects' ? 'unique' : null;
-  if (ctx.busy || !server || !copy || (mode === 'reroll' && option === null)) return;
+  const option = mode === 'effects' ? 'unique' : ctx.option;
+  if (ctx.busy || !server || !copy || option === null) return;
   ctx.busy = busyWith('strike');
   renderAnvil(ctx);
   playAnimation(ctx.ui.target, 'heat', 'heat');
   const request = api<HeroesView>(mode === 'enhance' ? '/api/heroes/upgrade' : '/api/heroes/reroll', {
     method: 'POST',
-    body: JSON.stringify({ guild: server, copy: copy.id, ...(option === null ? {} : { option }) }),
+    body: JSON.stringify({ guild: server, copy: copy.id, option }),
   });
   await sleep(HEAT_MS);
   const res = await curtain(async () => {
@@ -105,8 +105,8 @@ export async function strikeHero(ctx: ForgeContext, mode: HeroMode): Promise<voi
       showEffectChoice(ctx, after, (which) => void keepEffect(ctx, which));
       return res;
     }
-    ctx.done = mode === 'enhance' ? `Enhanced: ${changed.join(', ') || 'a substat went up a step'}.` : `Rerolled into ${changed.join(', ') || 'the same again'}.`;
-    // (Rerolling: the substat picked stays picked, to roll it again.)
+    ctx.done = mode === 'enhance' ? `Enhanced: ${changed.join(', ') || 'it rolled the same amount again'}.` : `Rerolled into ${changed.join(', ') || 'the same again'}.`;
+    // (Rerolling or enhancing: the substat picked stays picked, to roll it again.)
     status(ctx, null);
     render(ctx);
     if (after) showChange(ctx, after, mode === 'enhance' ? 'Substat enhanced' : mode === 'reroll' ? 'Substat rerolled' : 'Effect rerolled', rows);

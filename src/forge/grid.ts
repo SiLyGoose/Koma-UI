@@ -8,7 +8,7 @@ import { pick, pickMaterial } from './picking';
 /** With nothing a hero mode can be done to: why. */
 const NONE_FOR: Readonly<Record<HeroMode, string>> = {
   reroll: 'None of your hero gear has substats to reroll.',
-  enhance: 'None of your hero gear has a substat that can go higher.',
+  enhance: 'None of your hero gear has substats to enhance.',
   effects: 'None of your hero gear has an additional effect to reroll: TechnoMagic pieces do.',
 };
 
