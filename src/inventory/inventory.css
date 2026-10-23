@@ -139,6 +139,11 @@
     min-height: 0;
   }
 
+  /* Six cards across, as King's Raid's inventory has them (the grid counts its columns from here: ../shared/items/armory.ts). */
+  .inventory-page .inv-gear .armory-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
   .inventory-page .inv-gear > .detail {
     display: flex;
     flex-direction: column;
