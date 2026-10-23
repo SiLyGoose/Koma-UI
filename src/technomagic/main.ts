@@ -112,17 +112,22 @@ const HURRY = 10;
 const JUMP = 90;
 /**
  * A fight over: how long the boss is seen beaten (or the party fallen) before what it gave is shown; and, the bot saying it
- * was won while this page's fight has the boss still standing (it fell behind, or parted from the bot's), how long its
- * health takes to drain to nothing first, so it is never shown won with health left.
+ * was won while this page's fight has the boss still standing (it gave up getting back in step with the bot's: MOST_RESYNCS),
+ * how long its health takes to drain to nothing first, so it is never shown won with health left.
  */
 const OVER_WAIT = 2;
 const DRAIN = 0.5;
 /**
- * In a room, the result waiting: how long (seconds) this page's fight may go no further, short of where the bot's ended,
- * before it is ended there (the bot gives a page back, or parted, the whole fight; this is for should that not come); and
- * how long a page opened as a result is up waits for the fight before showing the result without it.
+ * In a room, this page's run of the fight out of step with the bot's (parted from it, getting no further short of where the
+ * bot's ended, or ended otherwise): Reconnecting… over the field while it is given the fight again and runs it from the start
+ * to where the bot's is. How long (seconds) it may get no further before that; how long it waits for the fight to come again
+ * before asking again (with the connection made again); and how many times a fight it asks before it is let be, ended where
+ * it is, its Battle Stats said to be short. And how long a page opened as a result is up waits for the fight before showing
+ * the result without it.
  */
-const STUCK = 5;
+const STUCK = 3;
+const RESYNC_WAIT = 4;
+const MOST_RESYNCS = 4;
 const NO_FIGHT_WAIT = 5;
 /** Auto Repeat: how long a win's result is seen before this player is in for the next fight. */
 const REPEAT_WAIT = 8;
@@ -671,6 +676,52 @@ async function start(): Promise<void> {
     let lock: Lock | null = null;
     let shownOver: OverView | null = null;
     const send = (message: ClientMessage): boolean => socket?.send(message) ?? false;
+
+    // This page's run of the fight out of step with the bot's: Reconnecting… over the field while it is given the fight again.
+    const syncing = el('p', 'tm-syncing', 'Reconnecting…');
+    syncing.setAttribute('role', 'status');
+    syncing.hidden = true;
+    repeatStop.after(syncing);
+    /** How many times this page has asked for each fight again (by its number). */
+    const resyncs = new Map<number, number>();
+    let resyncTimer = 0;
+    /**
+     * This page's run of fight `at` is out of step with the bot's (the bot's is the one that counts): it asks for it again,
+     * to run it from the start to where the bot's is (catchUp). Parted (`second`: where), the bot is told so; otherwise (it got
+     * no further, or ended otherwise than the bot's) the connection is made again, on which the bot gives it the whole fight.
+     * The fight not come again in RESYNC_WAIT, asked again; asked MOST_RESYNCS times, it is let be (`lost`).
+     */
+    function resync(at: Lock, second?: number): void {
+      if (at.resyncing || at.lost || lock !== at) return;
+      const times = (resyncs.get(at.start.no) ?? 0) + 1;
+      resyncs.set(at.start.no, times);
+      if (times > MOST_RESYNCS) {
+        at.lost = true;
+        syncing.hidden = true;
+        console.warn(`This page's fight is still out of step with the bot's after running it again from the bot's ${MOST_RESYNCS} times: what it draws may not be what happens.`);
+        return;
+      }
+      at.resyncing = true;
+      syncing.hidden = false;
+      if (second !== undefined) send({ t: 'parted', no: at.start.no, second });
+      else socket?.reconnect();
+      clearTimeout(resyncTimer);
+      resyncTimer = window.setTimeout(() => {
+        if (lock !== at || !at.resyncing) return;
+        at.resyncing = false;
+        resync(at);
+      }, RESYNC_WAIT * 1000);
+    }
+    /** Fight `at` given again from the bot's: straight to where the bot's is (drawing only what stands on the field), once its presses have come. */
+    function catchUp(at: Lock): void {
+      if (!at.catchUp || at.upTo === 0 || game?.lock !== at) return;
+      at.catchUp = false;
+      while (game.sim.tick < at.upTo - LAG && !game.sim.result) stepRoom(game.sim, at);
+      game.view.skip();
+      game.owed = 0;
+      if (lock === at && !at.resyncing) syncing.hidden = true;
+    }
+    resyncRoom = resync;
     const name = (id: string): string => state?.players.find((player) => player.id === id)?.name ?? 'Someone';
 
     const prep = makePrep({
@@ -833,10 +884,14 @@ async function start(): Promise<void> {
     async function fight(start: FightStart): Promise<void> {
       // (Given again a fight this page has drawn to its end already, back as its result is up: it stays as it is.)
       if (shownOver?.no === start.no || (game?.lock?.start.no === start.no && (overShown === game.sim || ending?.sim === game.sim))) return;
-      // The same fight again, from the bot's (this page back to it, or its run parted from the bot's): run again from the start.
+      // The same fight again, from the bot's (this page back to it, or its run out of step with the bot's): run again from the
+      // start, straight to where the bot's is.
       const again = lock?.start.no === start.no;
       const mine = new Lock(start);
+      mine.catchUp = again;
       lock = mine;
+      clearTimeout(resyncTimer);
+      if (!again) syncing.hidden = true;
       shownOver = null;
       results.hide();
       const bodies = await bodiesFor(start.heroes);
@@ -864,6 +919,7 @@ async function start(): Promise<void> {
         },
         ahead,
       }, mine, again);
+      catchUp(mine);
       // Joined a fight long under way (or back to it after the page was away): straight to where it is (drawing only what stands on the field).
       if (mine.upTo - sim.tick > JUMP) {
         while (sim.tick < mine.upTo - LAG && !sim.result) stepRoom(sim, mine);
@@ -882,20 +938,14 @@ async function start(): Promise<void> {
         const theirs = at.sums.get(at.checked + 1);
         if (theirs !== undefined && theirs !== sim.sums[at.checked] && !at.parted) {
           at.parted = true;
-          // The bot's is the one that counts: the first time, it gives this page the fight again (its start and every press so
-          // far), to run again from the start up to where the bot's is. Parting again with them all, it is let be (it would only
-          // part again): drawn to the bot's end as it can be, its Battle Stats said to be short.
-          const before = partedFights.has(at.start.no);
-          partedFights.add(at.start.no);
-          if (before) at.drifted = true;
-          console.warn(`This page's fight parted from the bot's at second ${at.checked + 1}: ${before ? 'again, after running it again from the bot’s; what it draws may not be what happens' : 'running it again from the bot’s'}.`);
-          send({ t: 'parted', no: at.start.no, second: at.checked + 1 });
+          // The bot's is the one that counts: it gives this page the fight again (its start and every press so far), to run again
+          // from the start up to where the bot's is.
+          console.warn(`This page's fight parted from the bot's at second ${at.checked + 1}: running it again from the bot’s.`);
+          resync(at, at.checked + 1);
         }
       }
     }
     stepLock = stepRoom;
-    /** The fights (by their number) whose run on this page has parted from the bot's: the bot gives one again only the first time. */
-    const partedFights = new Set<number>();
 
     function receive(message: ServerMessage): void {
       switch (message.t) {
@@ -938,6 +988,7 @@ async function start(): Promise<void> {
             left = false;
             backAfter = false;
             lock = null;
+            syncing.hidden = true;
             game?.view.clear();
             game = null;
             party.replaceChildren();
@@ -974,6 +1025,7 @@ async function start(): Promise<void> {
           lock.queue.push(...message.inputs);
           lock.upTo = Math.max(lock.upTo, message.upTo);
           for (const [second, sum] of message.sums) lock.sums.set(second, sum);
+          catchUp(lock);
           return;
         }
         case 'answer':
@@ -1020,7 +1072,7 @@ async function start(): Promise<void> {
           const number = state?.solo ? undefined : state?.players.find((player) => player.id === owner)?.number;
           return { ...(number !== undefined && { tag: `${number}P` }), mine: owner === you };
         }),
-        ...((game?.short || game?.lock?.drifted) && { statsNote: 'This page lost track of the fight, so these may not be all of it.' }),
+        ...((game?.short || game?.lock?.lost) && { statsNote: 'This page lost track of the fight, so these may not be all of it.' }),
         actions: overActions(),
       });
       if (over.result !== 'won' || !repeat) return;
@@ -1067,6 +1119,8 @@ async function start(): Promise<void> {
 
   /** A room's fight, a step on (set by room()); the fight is over (shows the result); in a room, the result waiting to be shown. */
   let stepLock: ((sim: Sim, lock: Lock) => void) | null = null;
+  /** A room's fight out of step with the bot's: given again from the bot's, to run to where it is (set by room()). */
+  let resyncRoom: (lock: Lock) => void = () => {};
   let onOver: (sim: Sim) => void = () => {};
   let overWaiting: () => OverView | null = () => null;
   let overShown: Sim | null = null;
@@ -1128,20 +1182,24 @@ async function start(): Promise<void> {
     // The boss's health, and what is the matter with it.
     bossBar.draw(sim.boss.hp / sim.boss.maxHp, sim.marks(), sim.gauge());
     timer.draw(sim.left, sim.wave, sim.waves);
-    // Over (in a room: once the bot has said what it gave, and this page has drawn the fight to where it ended; or as far
-    // as the bot took it, should this page's have parted from the bot's, or the bot's have failed: the bot's word is the one).
-    // Won, the boss is seen at 0% (drained there, should this page's fight still have it standing) and beaten for a moment
-    // (OVER_WAIT) before what it gave is shown; lost, the party fallen for as long.
-    // (In a room, this page's run of that fight is drawn to the step the bot's ended at, the bot giving it the fight again
-    // should it have been away meanwhile, or parted. Only should it get no further for STUCK seconds is it ended where it is.)
+    // Over (in a room: once the bot has said what it gave, and this page has drawn the fight to the step the bot's ended at,
+    // as the bot's ended: the bot's word is the one). Won, the boss is beaten for a moment (OVER_WAIT) before what it gave is
+    // shown; lost, the party fallen for as long.
+    // (In a room, this page's run of that fight out of step with the bot's, getting no further short of the bot's end for
+    // STUCK seconds or ended otherwise, is given the fight again from the bot's and run to where it is: resyncRoom. Only once
+    // it has been given it MOST_RESYNCS times (lost) is it ended where it is, the boss drained to 0% should the bot's have won.)
     const over = lock ? overWaiting() : null;
     let ended = sim.result !== null;
     if (lock) {
-      const atEnd = over !== null && over.no === lock.start.no && (sim.result !== null || sim.tick >= over.upTo);
-      const held = over !== null && !atEnd && sim.tick >= lock.upTo;
+      const ours = over !== null && over.no === lock.start.no;
+      const atEnd = ours && (sim.result !== null || sim.tick >= over.upTo);
+      const held = ours && !atEnd && sim.tick >= lock.upTo;
       if (!held) stuck = null;
       else if (stuck?.sim !== sim || stuck.tick !== sim.tick) stuck = { sim, tick: sim.tick, at: now };
-      ended = atEnd || (stuck !== null && now - stuck.at >= STUCK);
+      const stalled = stuck !== null && now - stuck.at >= STUCK;
+      const otherwise = atEnd && sim.result !== over.result;
+      if ((stalled || otherwise) && !lock.lost) resyncRoom(lock);
+      ended = (atEnd && (!otherwise || lock.lost)) || (stalled && lock.lost);
     }
     if (overShown !== sim && ended) {
       if (ending?.sim !== sim) {
@@ -1166,7 +1224,9 @@ async function start(): Promise<void> {
 
 /**
  * A room's fight as the bot tells it: which, up to which step, and what was pressed at which step (and its checksums, by second);
- * its checksums compared so far, whether one parted from the bot's (said once), and whether it did so run again from the bot's (drifted).
+ * its checksums compared so far, and whether one parted from the bot's (said once). `catchUp`: given again from the bot's (out of
+ * step with it), run straight to where the bot's is once its presses come; `resyncing`: out of step, waiting for it to come
+ * again; `lost`: asked for again MOST_RESYNCS times, let be.
  */
 class Lock {
   upTo = 0;
@@ -1174,7 +1234,9 @@ class Lock {
   sums = new Map<number, number>();
   checked = 0;
   parted = false;
-  drifted = false;
+  catchUp = false;
+  resyncing = false;
+  lost = false;
   constructor(readonly start: FightStart) {}
 }
 

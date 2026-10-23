@@ -30,6 +30,8 @@ export interface GameSocket<Out> {
   send(message: Out): boolean;
   /** Connected right now. */
   open(): boolean;
+  /** Gives up on the connection there is and makes another at once (the page has lost track of the game: the bot gives it all again on hello). */
+  reconnect(): void;
   /** Stops reconnecting (the bot said this page is done: a bad link, opened somewhere else). */
   finish(): void;
 }
@@ -126,6 +128,9 @@ export function gameSocket<In, Out>(options: GameSocketOptions<In, Out>): GameSo
   return {
     send,
     open: () => socket?.readyState === WebSocket.OPEN,
+    reconnect: () => {
+      if (!finished && !pending) redo();
+    },
     finish: () => {
       finished = true;
       clearTimeout(retry);

@@ -124,3 +124,47 @@
   border-radius: 6px;
   font: inherit;
 }
+
+/*
+ * Reconnecting…: in a room, this page's run of the fight out of step with the bot's, while it is given the fight again and
+ * runs it to where the bot's is (../main.ts resync). In the middle of the field, under the result (./over.css's 40).
+ */
+.tm-syncing {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  z-index: 39;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 8px 18px;
+  border-radius: 8px;
+  background: rgb(10 8 16 / 80%);
+  color: #fff;
+  font: 700 18px/1.2 Poppins, sans-serif;
+  text-shadow: 0 1px 2px #000;
+  translate: -50% -50%;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.tm-syncing[hidden] {
+  display: none;
+}
+
+.tm-syncing::before {
+  content: '';
+  width: 14px;
+  height: 14px;
+  border: 3px solid rgb(255 255 255 / 30%);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: tm-syncing 0.8s linear infinite;
+}
+
+@keyframes tm-syncing {
+  to {
+    rotate: 1turn;
+  }
+}
