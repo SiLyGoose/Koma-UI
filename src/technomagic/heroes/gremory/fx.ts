@@ -4,8 +4,8 @@ import type { HeroFx } from '../../fight/fx';
 /*
  * What is drawn for Gremory's attack and skills (what they do is ./index.ts). Her servants are King's Raid's own (their
  * effects, their bodies in them: her assets' krFx), at the boss's front on the floor, as their blows land (her moves are
- * written in code, timed as the game's are not: the game's have them come later than these land); her sleep is drawn
- * here (the game's has a picture its files go without).
+ * written in code, timed as the game's are not: the game's have them come later than these land). Her sleep's is the
+ * game's too, kept on her while she sleeps (her assets' wards).
  */
 
 /** Her colour: the violet of the gateway her servants come through. */
@@ -63,10 +63,6 @@ export const GREMORY_FX: HeroFx = {
       swarming.get(who)?.();
       swarming.delete(who);
       kr(`${PIPPI}.End`, { at: front(bossHit) });
-    },
-    // Lying down to sleep: a soft pool under her.
-    sleep({ magic, place }, who) {
-      magic.pool(place(who, at), VIOLET, 2.5, 2.5);
     },
   },
 };

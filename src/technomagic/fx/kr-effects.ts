@@ -11,7 +11,7 @@ import { KrEffect, loadKrEffect, type KrEffectAsset } from './kr-vfx-player.js';
 
 const FOLDER = `${LOCAL}/effects/kr/`;
 
-/** Where an effect is played: on someone (`on`: hung on them, its parts on their bones), or at a place, turned `turn` radians about the upright and `scale` times as big as the game has it. */
+/** Where an effect is played: on someone (`on`: hung on them, its parts on their bones; `at` then where on them, in their own axes), or at a place, turned `turn` radians about the upright and `scale` times as big as the game has it. */
 export interface KrWhere {
   on?: Object3D;
   at?: Vector3;
@@ -95,8 +95,10 @@ export function makeKrEffects(scene: Object3D, camera: Camera): KrEffects {
       return null;
     }
     const fx = new KrEffect(asset, { findNode: (name) => on?.getObjectByName(ours(name)) ?? null });
-    if (on) on.add(fx);
-    else {
+    if (on) {
+      on.add(fx);
+      if (at) fx.position.copy(at);
+    } else {
       if (at) fx.position.copy(at);
       if (rotation) fx.quaternion.copy(rotation);
       else fx.rotation.y = turn;

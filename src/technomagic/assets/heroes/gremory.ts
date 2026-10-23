@@ -51,6 +51,9 @@ export const GREMORY_ASSETS: HeroAssets = {
   // King's Raid's own effects of her servants at the boss, played by her fx (../../heroes/gremory/fx.ts): Pochi leaping on
   // it, biting, and going; Puchi's (the game's Poochi) blow; Pippi (Pippy) and its swarm circling it, and going.
   krFx: ['Skill.Hero.Gremory.Summon.Pochi.Jump', 'Skill.Hero.Gremory.Summon.Pochi.Loop', 'Skill.Hero.Gremory.Summon.Pochi.End', 'Skill.Hero.Gremory.Summon.Poochi.Hit', 'Skill.Hero.Gremory.Summon.Pippy.Loop', 'Skill.Hero.Gremory.Summon.Pippy.End'],
+  // King's Raid's own of her sleep (Eh, whatever. I'm gonna sleep.: its Skill4): her bubble while she sleeps, and its popping as she wakes.
+  wards: { Asleep: 'Skill.Hero.Gremory.Skill4.Loop' },
+  wardEnds: { Asleep: 'Skill.Hero.Gremory.Skill4.End' },
   // King's Raid's own effects for its moves (../../fx/kr-effects.ts): as each begins, on it, and as each of its blows lands, where it
   // lands (KR-extracted/scripts/tm-vfx.mjs).
   vfx: {

@@ -40,9 +40,9 @@ export const GALGORIA_ASSETS: BossAssets = {
     dead: [{ clip: 'Mon-RaidTechGargoria_10', volume: 4, at: 0.005, own: true }, { clip: 'Mon-Fall-01', volume: 4, at: 2.64 }],
   },
   // What King's Raid has on a hero while one of its skills does (KR-extracted/scripts/tm-boss-vfx.mjs, from its skill script): by the
-  // status's name, the effect kept on it and the colour it is drawn in.
+  // status's name, the effect kept on it (where, from its feet, and how big) and the colour it is drawn in.
   holds: {
-    'Swamp Imprisonment': { effect: 'Skill.Raid.Gargoria.Skill1.HitLoop', tint: { colors: [[0,0.297,0.266,0.406],[0.994,0.298,0.272,0.387]], alphas: [[0,0.808],[1,1]], loop: 1 } },
+    'Swamp Imprisonment': { effect: 'Skill.Raid.Gargoria.Skill1.HitLoop', at: [0,0.5,0], size: 0.7, tint: { colors: [[0,0.297,0.266,0.406],[0.994,0.298,0.272,0.387]], alphas: [[0,0.808],[1,1]], loop: 1 } },
   },
   // King's Raid's own effects for it (KR-extracted/scripts/tm-boss-vfx.mjs): each attack's, as it begins, flown from it, and as its blows land on a hero.
   vfx: {

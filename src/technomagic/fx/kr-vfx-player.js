@@ -20,6 +20,7 @@ import {
   Quaternion, ShaderMaterial, Skeleton, SkinnedMesh, Bone, TextureLoader, Vector3, Vector4, AddEquation,
   ZeroFactor, OneFactor, DstColorFactor, SrcColorFactor, OneMinusDstColorFactor, SrcAlphaFactor, OneMinusSrcColorFactor,
   DstAlphaFactor, OneMinusDstAlphaFactor, SrcAlphaSaturateFactor, OneMinusSrcAlphaFactor, RepeatWrapping, NoColorSpace,
+  DataTexture,
 } from 'three';
 
 const FACTORS = [ZeroFactor, OneFactor, DstColorFactor, SrcColorFactor, OneMinusDstColorFactor, SrcAlphaFactor,
@@ -101,6 +102,10 @@ void main() {
   gl_FragColor = vec4(premultiply > 0.5 ? rgb * a : rgb, a);
 }`;
 
+/** What a material with no picture of its own is drawn with: white, as Unity's effect shaders take a missing one (Gremory's sleep, plain particles drawn in their colour). */
+const WHITE = new DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1);
+WHITE.needsUpdate = true;
+
 function makeMaterial(asset, index, skinning = false) {
   const m = asset.def.materials[index];
   const [src, dst] = m.blend;
@@ -110,7 +115,7 @@ function makeMaterial(asset, index, skinning = false) {
     vertexShader: VERT,
     fragmentShader: FRAG,
     uniforms: {
-      map: { value: m.tex == null ? null : asset.textures[m.tex] },
+      map: { value: m.tex == null ? WHITE : asset.textures[m.tex] },
       tint: { value: new Vector4(...m.color) },
       power: { value: m.power },
       extraAlpha: { value: m.alpha },
@@ -273,9 +278,12 @@ class Emitter {
     this.pos = new Float32Array(max * perVerts * 3);
     this.uv = new Float32Array(max * perVerts * 2);
     this.col = new Float32Array(max * perVerts * 4);
+    // (Which way each faces: a material with a rim glow draws by it, Gremory's sleep bubble.)
+    this.nrm = new Float32Array(max * perVerts * 3);
     this.geometry.setAttribute('position', new BufferAttribute(this.pos, 3));
     this.geometry.setAttribute('uv', new BufferAttribute(this.uv, 2));
     this.geometry.setAttribute('color', new BufferAttribute(this.col, 4));
+    this.geometry.setAttribute('normal', new BufferAttribute(this.nrm, 3));
     const idx = new Uint32Array(max * perIdx);
     for (let p = 0; p < max; p++) {
       if (this.meshDef) this.meshDef.idx.forEach((v, k) => { idx[p * perIdx + k] = p * perVerts + v; });
@@ -411,6 +419,8 @@ class Emitter {
           this.pos.set([_w.x, _w.y, _w.z], (base + k) * 3);
           const uu = m.uv ? m.uv[k * 2] : 0, vv = m.uv ? m.uv[k * 2 + 1] : 0;
           this.uv.set([u0 + uu * us, v0 + vv * vs], (base + k) * 2);
+          if (m.nrm) { _w.fromArray(m.nrm, k * 3).transformDirection(_m); this.nrm.set([_w.x, _w.y, _w.z], (base + k) * 3); }
+          else this.nrm.set([fwd.x, fwd.y, fwd.z], (base + k) * 3);
         }
         continue;
       }
@@ -436,10 +446,11 @@ class Emitter {
       corners.forEach(([x, y, uu, vv], k) => {
         this.pos.set([at.x + a.x * x + b.x * y, at.y + a.y * x + b.y * y, at.z + a.z * x + b.z * y], (base + k) * 3);
         this.uv.set([u0 + uu * us, v0 + vv * vs], (base + k) * 2);
+        this.nrm.set([fwd.x, fwd.y, fwd.z], (base + k) * 3);
       });
     }
     this.geometry.setDrawRange(0, n * this.perIdx);
-    for (const name of ['position', 'uv', 'color']) this.geometry.attributes[name].needsUpdate = true;
+    for (const name of ['position', 'uv', 'color', 'normal']) this.geometry.attributes[name].needsUpdate = true;
   }
 }
 
@@ -522,6 +533,7 @@ class Trail {
     this.geometry.setAttribute('position', new BufferAttribute(new Float32Array(n * 3), 3));
     this.geometry.setAttribute('uv', new BufferAttribute(new Float32Array(n * 2), 2));
     this.geometry.setAttribute('color', new BufferAttribute(new Float32Array(n * 4), 4));
+    this.geometry.setAttribute('normal', new BufferAttribute(new Float32Array(n * 3), 3));
     const index = [];
     for (let i = 0; i < this.max - 1; i++) index.push(2 * i, 2 * i + 1, 2 * i + 2, 2 * i + 2, 2 * i + 1, 2 * i + 3);
     this.geometry.setIndex(index);
@@ -601,7 +613,7 @@ class Trail {
     const first = points.findIndex((p) => p.age <= s.life);
     const active = first < 0 ? 0 : points.length - first;
     if (active < 2) { this.geometry.setDrawRange(0, 0); return; }
-    const pos = this.geometry.attributes.position.array, uv = this.geometry.attributes.uv.array, col = this.geometry.attributes.color.array;
+    const pos = this.geometry.attributes.position.array, uv = this.geometry.attributes.uv.array, col = this.geometry.attributes.color.array, nrm = this.geometry.attributes.normal.array;
     const view = camera ? camera.getWorldDirection(new Vector3()) : new Vector3(0, 0, -1);
     // (The game's metres, as big as the effect is drawn.)
     const scale = Math.abs(this.owner.getWorldScale(_ts).x);
@@ -625,9 +637,11 @@ class Trail {
         if (s.texRemap) u = sampleLut(s.texRemap, u);
         uv[v * 2] = u; uv[v * 2 + 1] = e;
         col[v * 4] = _tc[0]; col[v * 4 + 1] = _tc[1]; col[v * 4 + 2] = _tc[2]; col[v * 4 + 3] = _tc[3];
+        // (Facing the camera, as the game gives it.)
+        nrm[v * 3] = -facing.x; nrm[v * 3 + 1] = -facing.y; nrm[v * 3 + 2] = -facing.z;
       }
     }
-    this.geometry.attributes.position.needsUpdate = this.geometry.attributes.uv.needsUpdate = this.geometry.attributes.color.needsUpdate = true;
+    this.geometry.attributes.position.needsUpdate = this.geometry.attributes.uv.needsUpdate = this.geometry.attributes.color.needsUpdate = this.geometry.attributes.normal.needsUpdate = true;
     this.geometry.setDrawRange(0, (active - 1) * 6);
   }
 }
@@ -659,6 +673,8 @@ export class KrEffect extends Group {
       holder.add(inst.root);
       const emitters = inst.prefab.emitters.map((spec) => {
         const material = makeMaterial(asset, spec.render?.mat ?? 0);
+        // (A quad whose picture was lost from the game's bundle as it was built: not drawn, rather than as a white square.)
+        if (spec.render?.lost) material.visible = false;
         this.materials.push(material);
         const e = new Emitter(asset, spec, inst.nodes[spec.node], material, this);
         e.mesh.renderOrder = material.userData.order ?? 20 + i;

@@ -234,11 +234,15 @@ export function makeFightView({
   };
   const fxOf = (who: number) => HERO_FX[(sim.fighters[who] as Sim['fighters'][number]).id];
   const wards = makeWards(scene, props);
-  /** The skills of the heroes in the fight that guard a hero with a look of their own: by the status's name, the game's effect kept on it. */
-  const looks = new Map<string, string>();
-  for (const fighter of sim.fighters) for (const [status, code] of Object.entries(lookOf(fighter.id).assets.wards ?? {})) looks.set(status, code);
-  // (And the boss's skills' that have a hero: Galgoria's Swamp Imprisonment.)
-  for (const [status, { effect }] of Object.entries(bossLook.assets.holds ?? {})) if (effect) looks.set(status, effect);
+  /** The skills of the heroes in the fight that guard a hero with a look of their own: by the status's name, the game's effect kept on it (where on it, and how big). */
+  const looks = new Map<string, { code: string; at?: Vector3; size: number; end?: string }>();
+  for (const fighter of sim.fighters) {
+    const { wards: own = {}, wardEnds = {} } = lookOf(fighter.id).assets;
+    for (const [status, code] of Object.entries(own)) looks.set(status, { code, size: 1, ...(wardEnds[status] && { end: wardEnds[status] }) });
+  }
+  // (And the boss's skills' that have a hero: Galgoria's Swamp Imprisonment, above its feet as the game has it.)
+  for (const [status, { effect, at: where, size = 1 }] of Object.entries(bossLook.assets.holds ?? {}))
+    if (effect) looks.set(status, { code: effect, size, ...(where && { at: new Vector3(...where).multiplyScalar(SCALE) }) });
   /** The colours the boss's skills draw a hero in while they have it, by the status's name; and since when each hero has had its own (seconds, of `now`). */
   const tints = new Map(Object.entries(bossLook.assets.holds ?? {}).flatMap(([status, { tint }]) => (tint ? [[status, tint] as const] : [])));
   const tinted = new Map<number, number>();
@@ -249,7 +253,7 @@ export function makeFightView({
     tinted.clear();
   };
   /** Those on the heroes now (by the hero and the effect): what stops each, and whether it was kept this frame. */
-  const guarding = new Map<string, { stop: () => void; kept: boolean }>();
+  const guarding = new Map<string, { stop: () => void; kept: boolean; who: number; end?: string }>();
   /** The skills of the heroes in the fight that put the bubble on a hero as a shield does: by the status's name. */
   const bubbles = new Set(sim.fighters.flatMap((fighter) => HERO_FX[fighter.id]?.bubbles ?? []));
   /** What is heard: the heroes' blows and skills, the boss's attacks, and the raid's music. */
@@ -534,13 +538,14 @@ export function makeFightView({
         let ownLook = false;
         if (fighter.hp > 0)
           for (const status of [...fighter.statuses, ...sim.party]) {
-            const code = looks.get(status.name);
-            if (!code) continue;
+            const look = looks.get(status.name);
+            if (!look) continue;
             ownLook ||= fighter.statuses.includes(status);
-            const key = `${who}/${code}`;
+            const key = `${who}/${look.code}`;
             const one = guarding.get(key);
             if (one) one.kept = true;
-            else if (kr.ready(code)) guarding.set(key, { stop: kr.play(code, { on: hero.root, scale: SCALE, lasts: Infinity }), kept: true });
+            else if (kr.ready(look.code))
+              guarding.set(key, { stop: kr.play(look.code, { on: hero.root, ...(look.at && { at: look.at }), scale: SCALE * look.size, lasts: Infinity }), kept: true, who, ...(look.end && { end: look.end }) });
           }
         // The colour a boss's skill draws it in while it has it (Galgoria's Swamp Imprisonment), gone round from when it came on.
         const tint = fighter.hp > 0 ? fighter.statuses.map((status) => tints.get(status.name)).find((one) => one !== undefined) : undefined;
@@ -591,12 +596,13 @@ export function makeFightView({
         if (!down && lying.over <= 0) fallen.delete(who);
       }
       signs.boss(sim.boss.statuses, bossHit);
-      // Each look that wasn't kept this frame stops (its hero no longer guarded, or fallen).
+      // Each look that wasn't kept this frame stops (its hero no longer guarded, or fallen); and, gone of itself, its own end plays.
       for (const [key, one] of guarding) {
         if (one.kept) one.kept = false;
         else {
           one.stop();
           guarding.delete(key);
+          if (one.end && (sim.fighters[one.who]?.hp ?? 0) > 0) kr.play(one.end, { on: body(one.who).root, scale: SCALE });
         }
       }
       wards.update(dt);

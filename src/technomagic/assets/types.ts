@@ -153,6 +153,8 @@ export interface HeroAssets {
    * public/kr/effects/kr/), by the status's name: on as it comes on, stopped as it goes.
    */
   wards?: Readonly<Record<string, string>>;
+  /** King's Raid's own effect played on the hero as one of those goes (by the status's name: Gremory's sleep's bubble popping as she wakes). */
+  wardEnds?: Readonly<Record<string, string>>;
   /** King's Raid's own effects its fx (its fx.ts) play themselves, part by part (Gremory's servants): read as the fight begins. */
   krFx?: readonly string[];
 }
@@ -197,9 +199,10 @@ export interface BossAssets {
   vfx?: { attacks: Readonly<Record<string, { start?: readonly string[]; fly?: readonly string[]; hit?: readonly string[] }>>; advent?: readonly string[] };
   /**
    * What King's Raid has on a hero while one of its skills does (Galgoria's Swamp Imprisonment), by the status's name: its
-   * own effect kept on it (../fx/kr-effects.ts: a code of public/kr/effects/kr/), and the colour it draws it in.
+   * own effect kept on it (../fx/kr-effects.ts: a code of public/kr/effects/kr/), where from its feet (`at`, the game's
+   * metres) and how big (`size`), and the colour it draws it in.
    */
-  holds?: Readonly<Record<string, { effect?: string; tint?: KrTint }>>;
+  holds?: Readonly<Record<string, { effect?: string; at?: readonly [number, number, number]; size?: number; tint?: KrTint }>>;
 }
 
 /**

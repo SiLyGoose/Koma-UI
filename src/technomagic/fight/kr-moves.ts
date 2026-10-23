@@ -44,6 +44,7 @@ const numberOf = (code: string): number | null => {
 export const heroEffects = (hero: HeroAssets): string[] => [
   ...Object.values(hero.vfx ?? {}).flatMap((move) => [...(move.start ?? []), ...(move.land ?? [])]),
   ...Object.values(hero.wards ?? {}),
+  ...Object.values(hero.wardEnds ?? {}),
   ...(hero.krFx ?? []),
 ];
 
