@@ -1,27 +1,30 @@
 import { NONE } from '../../combat/damage';
 import type { BossDef, BossScale } from '../boss';
-import { HEROES_DEAL, HEROES_HP, PARTY } from '../playtest';
+import { PARTY } from '../playtest';
 import { ATTACKS, KR_ATK, MOVES, PLANS } from './attacks';
 import { galgoriaPart } from './skills';
 
 /*
- * Its stages, King's Raid's playtest's Galgoria raid's (chapter 10's first 8 of 9), as the game builds it (KR-extracted/scripts/
- * boss-stats.mjs): its health (KR_HP), DEF (KR_DEF, and its Persistent Life Force's 60,000 more: LIFE_DEF), M.ATK
- * (./attacks.ts) and level. Its health is the game's for its party of KR_PARTY, as much less as the heroes here deal
- * (../playtest.ts) and as much more as there are of them; how hard it hits, the game's, as much less as the heroes here have
- * less health. Alone (as many heroes as the game's party), its health is as much less again.
+ * Its stages, King's Raid's own numbers, not made easier for the heroes here (who have no soul weapons yet). Its health with
+ * PARTY heroes: live King's Raid's Galgoria raid's at stages 1 to 5 (its table, from its players' guides on DC Inside's King's
+ * Raid gallery: 20 to 87.6 billion), 6 to 8 going on from stage 5 as the playtest's do (PLAYTEST_HP); alone (KR_PARTY heroes),
+ * as much less as there are fewer heroes. Its M.ATK (./attacks.ts: it hits with all of it), DEF (KR_DEF, and its Persistent
+ * Life Force's 60,000 more: LIFE_DEF) and level, King's Raid's playtest's Galgoria raid's (chapter 10's first 8 of 9), as the
+ * game builds them (KR-extracted/scripts/boss-stats.mjs).
  */
-const KR_HP = [14_184_543_765, 19_721_142_351, 26_463_862_400, 37_178_723_386, 49_825_627_800, 71_216_166_313, 86_139_389_687, 158_093_465_948];
+const LIVE_HP = [20e9, 26.9e9, 37.8e9, 50.7e9, 87.6e9];
+const PLAYTEST_HP = [14_184_543_765, 19_721_142_351, 26_463_862_400, 37_178_723_386, 49_825_627_800, 71_216_166_313, 86_139_389_687, 158_093_465_948];
+const LAST_LIVE = LIVE_HP.length - 1;
+const HP = PLAYTEST_HP.map((hp, i) => LIVE_HP[i] ?? ((LIVE_HP[LAST_LIVE] as number) * hp) / (PLAYTEST_HP[LAST_LIVE] as number));
 const KR_DEF = [53_269, 57_090, 68_670, 82_450, 116_318, 124_308, 164_065, 261_750];
 const LIFE_DEF = 60_000;
 const LEVEL = [88, 90, 95, 100, 108, 110, 116, 125];
 const KR_PARTY = 7;
-const HP = KR_HP.map((hp) => (hp * HEROES_DEAL * PARTY) / KR_PARTY);
 const DEF = KR_DEF.map((def) => def + LIFE_DEF);
 const scales = (times: number): BossScale[] =>
   HP.map((hp, i) => ({
     hp: (hp / (HP[0] as number)) * times,
-    deals: HEROES_HP * ((KR_ATK[i] as number) / (KR_ATK[0] as number)),
+    deals: (KR_ATK[i] as number) / (KR_ATK[0] as number),
     defense: (DEF[i] as number) / (DEF[0] as number),
     level: LEVEL[i] as number,
   }));

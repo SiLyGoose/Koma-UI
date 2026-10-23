@@ -1,6 +1,7 @@
 /*
- * How the TechnoMagic Raid's heroes stand to King's Raid's playtest's (CBT2), for the bosses' numbers: each boss's are the
+ * How the TechnoMagic Raid's heroes stand to King's Raid's playtest's (CBT2), for the dragons' numbers: each one's are the
  * playtest's own (its tables': KR-extracted/scripts/boss-stats.mjs), its health and how hard it hits scaled by these.
+ * (Galgoria's are King's Raid's own, not scaled: ./galgoria/index.ts.)
  *
  * A hero here has what a playtest hero has at level 100, 5★, Transcend 5 (../heroes/kit.ts), the same unique weapon,
  * TechnoMagic gear and unique treasures, the same perks, all its skills' books and the class buffs at their most (../rules.ts
