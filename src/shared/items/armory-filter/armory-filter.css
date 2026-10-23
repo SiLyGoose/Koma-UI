@@ -209,11 +209,6 @@ input[type='checkbox']:checked + .armory-filter-mark::after {
   margin-top: 6px;
 }
 
-/* Substats: its dropdown alone, under its legend. */
-.armory-filter-sort-row.armory-filter-substats {
-  grid-template-columns: minmax(0, 1fr);
-}
-
 .armory-filter-sort-row[hidden] {
   display: none;
 }

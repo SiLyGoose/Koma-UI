@@ -141,8 +141,10 @@ export function armoryFilter(box: HTMLElement, offer: FilterOffer = {}): ArmoryF
   const classOptions = classes.querySelector('.armory-filter-options') as HTMLElement;
   let offered = 0;
   // How TechnoMagic gear is sorted: a main stat (one) and potentials (any), each in the site's dropdown with its name
-  // beside it, offering what the page's copies have (setSorts).
+  // beside it, offering what the page's copies have (setSorts); and, under its main stat, the substats a copy must have,
+  // where the page offers them (up to SUBSTATS_MOST of them, the rest greyed once as many are picked: setSubstats).
   const sorts = el('fieldset', 'armory-filter-group');
+  const sortsLegend = el('legend', '', 'Sort TM gear');
   const sortRow = (name: string, text: string, multiple: boolean): { row: HTMLElement; select: HTMLSelectElement } => {
     const select = el('select', 'armory-filter-sort');
     select.id = `${id}-${name}`;
@@ -156,15 +158,9 @@ export function armoryFilter(box: HTMLElement, offer: FilterOffer = {}): ArmoryF
   const { row: mainRow, select: mainSelect } = sortRow('main', 'Main stat', false);
   const { row: potentialRow, select: potentialSelect } = sortRow('potentials', 'Potentials', true);
   potentialSelect.dataset.none = 'Any';
-  sorts.append(el('legend', '', 'Sort TM gear'), mainRow, potentialRow);
-  // The substats a copy must have (up to SUBSTATS_MOST of them, the rest greyed once as many are picked), in the site's
-  // dropdown under its legend alone (its name only for a screen reader), offering what the page's copies have (setSubstats).
-  const substats = el('fieldset', 'armory-filter-group');
   const { row: substatRow, select: substatSelect } = sortRow('substats', 'Substats', true);
-  substatRow.classList.add('armory-filter-substats');
-  (substatRow.firstElementChild as HTMLElement).hidden = true;
   substatSelect.dataset.none = `Any (up to ${SUBSTATS_MOST})`;
-  substats.append(el('legend', '', 'Substats'), substatRow);
+  sorts.append(sortsLegend, mainRow, substatRow, potentialRow);
   let substatsOffered: readonly string[] = [];
   let substatsShown = '';
   let stats: TmStats = { main: [], potentials: [] };
@@ -172,7 +168,7 @@ export function armoryFilter(box: HTMLElement, offer: FilterOffer = {}): ArmoryF
   let sortsShown = '';
   const clear = el('button', 'armory-filter-clear action secondary', 'Clear filters');
   clear.type = 'button';
-  panel.append(types, tiers, classes, only, substats, sorts, clear);
+  panel.append(types, tiers, classes, only, sorts, clear);
   box.append(button, panel);
   const mainPicker = dropdown(mainSelect);
   const potentialPicker = dropdown(potentialSelect);
@@ -198,8 +194,15 @@ export function armoryFilter(box: HTMLElement, offer: FilterOffer = {}): ArmoryF
       one.selected = chosen.includes(one.value);
       one.disabled = full && !one.selected;
     }
-    substats.hidden = current.substats == null || offered.length === 0;
+    substatRow.hidden = current.substats == null || offered.length === 0;
     substatPicker.refresh();
+    drawStatsGroup();
+  }
+
+  /** The group of the Sort and Substats: shown with any of its rows, called Stats where it has Substats. */
+  function drawStatsGroup(): void {
+    sorts.hidden = mainRow.hidden && potentialRow.hidden && substatRow.hidden;
+    sortsLegend.textContent = substatRow.hidden ? 'Sort TM gear' : 'Stats';
   }
 
   const input = (name: string, value: string): HTMLInputElement | null =>
@@ -226,9 +229,9 @@ export function armoryFilter(box: HTMLElement, offer: FilterOffer = {}): ArmoryF
     }
     mainSelect.value = chosen.main ?? '';
     for (const one of potentialSelect.options) one.selected = chosen.potentials.includes(one.value);
-    mainRow.hidden = main.length === 0;
-    potentialRow.hidden = potentials.length === 0;
-    sorts.hidden = current.sort === null || (mainRow.hidden && potentialRow.hidden);
+    mainRow.hidden = current.sort === null || main.length === 0;
+    potentialRow.hidden = current.sort === null || potentials.length === 0;
+    drawStatsGroup();
     mainPicker.refresh();
     potentialPicker.refresh();
   }
