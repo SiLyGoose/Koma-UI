@@ -1,4 +1,4 @@
-import { put, type Status } from '../../combat/status';
+import { healing, put, type Status } from '../../combat/status';
 import { stateArt, type Buff, type Mark } from '../../shown';
 import type { Fight, Fighter } from '../../types';
 import type { BossPart } from '../boss';
@@ -20,9 +20,10 @@ import { GALGORIA_GAUGE, withGauge } from '../gauge';
  * - Fatal Venom: once it has used its skills 3 times, venom on every hero (140%) that stays the rest of the fight, and
  *   stacks: less healing reaches each; and Galgoria hits harder for each time.
  * Its passive, Persistent Life Force: nothing slows its attacks, no hero's life steal takes anything from it, and it
- * gives itself back 0.393% of its health every second, 70% more than that (its healing) and from stage 4 on 120% more
- * (less while something on it cuts healing). From stage 4 on, 40% less healing reaches the heroes, and their shields
- * are 60% weaker. It takes 20% more physical damage.
+ * gives itself back 1% of its health every second (live King's Raid's; the playtest's is 0.4%), and its Heal Rate is 70%
+ * higher, from stage 4 on 120%: added up with what cuts its healing, as the game's Heal Rate is, so a cut takes off that
+ * first (1.7% a second, 2.2% from stage 4, with nothing on it). From stage 4 on, 40% less healing reaches the heroes, and
+ * their shields are 60% weaker. It takes 20% more physical damage.
  * What is drawn for them is ./fx.ts.
  */
 /** Its attack's share of its ATK. */
@@ -32,8 +33,8 @@ const DESTROYER = { venom: 0.55, share: 100 / 110, down: 3, cooldown: 10 };
 export const SWAMP = { lasts: 5, every: 1, mana: 0.6, deals: 1.4, cooldown: 17 };
 const EXPLOSION = { blow: 1.1, lasts: 10, deals: 0.5, crit: -0.5, cooldown: 18 };
 const FATAL = { blow: 1.4, after: 3, heals: 0.2, most: 5, deals: 0.14, mostOnIt: 10 };
-/** What it gives itself back a second, of its health, and how much more its healing gives it: from stage `from` on, `later`. */
-const LIFE_FORCE = { share: 0.00393, healing: 0.7, later: 1.2, from: 4 };
+/** What it gives itself back a second, of its health, and how much higher its Heal Rate is: from stage `from` on, `later`. */
+const LIFE_FORCE = { share: 0.01, healing: 0.7, later: 1.2, from: 4 };
 /** From stage 4 on: how much healing reaches the heroes, and how strong their shields are. */
 const STAGES = { from: 4, heals: 0.6, shields: 0.4 };
 /** How many times as much it takes of each kind of damage. */
@@ -77,6 +78,8 @@ function ownPart(fight: Fight): BossPart {
 
   /** Whether the fight is at stage 4 or past it. */
   const late = (): boolean => fight.stage >= STAGES.from;
+  /** Its own Heal Rate, as a share (added up with what is on it). */
+  const lifeForce = (): number => 1 + (fight.stage >= LIFE_FORCE.from ? LIFE_FORCE.later : LIFE_FORCE.healing);
   /** The heroes the boss can reach. */
   const reachable = (): Fighter[] => fight.field.filter((fighter) => fighter.hp > 0 && !fighter.statuses.some((status) => status.away));
 
@@ -179,7 +182,7 @@ function ownPart(fight: Fight): BossPart {
     },
     tick(dt) {
       for (const [attack, left] of cooldowns) cooldowns.set(attack, Math.max(0, left - dt));
-      fight.mend(foe.maxHp * LIFE_FORCE.share * (1 + (fight.stage >= LIFE_FORCE.from ? LIFE_FORCE.later : LIFE_FORCE.healing)) * dt);
+      fight.mend(foe.maxHp * LIFE_FORCE.share * dt, lifeForce());
       // The swamp's blow every so often while it lasts, on every hero standing in it.
       if (swamp > 0) {
         swamp -= dt;
@@ -202,8 +205,10 @@ function ownPart(fight: Fight): BossPart {
     unstolen: true,
     steady: true,
     marks(): Mark[] {
+      const heals = `${Number((LIFE_FORCE.share * healing(foe.statuses, lifeForce()) * 100).toPrecision(2))}%`;
       return [
-        { text: 'Persistent Life Force', tone: 'venom', art: stateArt('3590041') },
+        // (What it gives itself back a second now, of its health: less for what cuts its healing.)
+        { text: `Persistent Life Force ${heals}`, tone: 'venom', art: stateArt('3590041'), count: heals },
         { text: `Swamp Imprisonment ${hits}/${IMPRISONMENT.hits}`, tone: 'venom', art: stateArt('3590043'), count: `${hits}/${IMPRISONMENT.hits}` },
         { text: `Fatal Venom ${Math.min(used, FATAL.after)}/${FATAL.after}`, tone: 'venom', art: stateArt('3590040'), count: `${Math.min(used, FATAL.after)}/${FATAL.after}` },
       ];

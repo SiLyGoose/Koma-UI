@@ -1369,10 +1369,10 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       put(fighter.statuses, { name: KNOCKED.name, left: seconds * (1 - share(curved(CURVE.resist, fighter.stats.resist + resisting(fighter.statuses) + auras.resist))) * shorter, binds: true, shown: KNOCKED });
     },
     stagger,
-    mend(amount) {
+    mend(amount, ...more) {
       const foe = current();
       if (foe.hp <= 0) return;
-      const given = Math.min(amount * healing(foe.statuses), foe.maxHp - foe.hp);
+      const given = Math.min(amount * healing(foe.statuses, ...more), foe.maxHp - foe.hp);
       foe.hp += given;
       mended += given;
     },

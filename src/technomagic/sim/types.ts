@@ -267,8 +267,8 @@ export interface Fight {
   stagger(fighter: Fighter): void;
   /** A hero down is up again, with `share` of its health (a skill that revives: nothing else does). */
   revive(fighter: Fighter, share: number, by?: Fighter): void;
-  /** The boss is given back `amount` of its health, less what is on it (not while it is beaten). */
-  mend(amount: number): void;
+  /** The boss is given back `amount` of its health, as much more or less as what is on it and `more` (its own healing, added up with what is on it) say (not while it is beaten). */
+  mend(amount: number, ...more: number[]): void;
   /** The boss is stunned (or knocked `down`): for longer when it is `by` a hero's skill and its passive and gear say so. */
   stun(seconds: number, how?: { down?: boolean; by?: Fighter }): void;
   /** The boss's ATK Spd is so many points lower (King's Raid's: 300 has it attack at 70% of its speed) for so many seconds. */
