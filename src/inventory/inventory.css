@@ -172,27 +172,21 @@
   color: var(--inv-cream-ink);
 }
 
+/* The search: the site's dark field (../shared/style.css .armory-search), as the gear page's. */
 .inventory-page .inv-search {
   flex: 0 1 260px;
-  border-color: #b9a988;
-  background: #fffaf0;
-  color: var(--inv-cream-ink);
 }
 
-.inventory-page .inv-search::placeholder {
-  color: #9a8a70;
-}
-
-/* The runes' Stats (the site's dropdown), beside the search, as its field. */
+/* The runes' Stats (the site's dropdown), beside the search, dark as it is. */
 .inventory-page .inv-bar .dd-button.inv-stat-filter {
   min-width: 150px;
   max-width: 260px;
   min-height: 36px;
   padding: 0 12px;
-  border: 1px solid #b9a988;
+  border: 1px solid var(--line);
   border-radius: 8px;
-  background: #fffaf0;
-  color: var(--inv-cream-ink);
+  background: var(--panel-2);
+  color: var(--text);
 }
 
 /* The Filter's panel opens upwards, over the slots (it's in the bar under them). */
