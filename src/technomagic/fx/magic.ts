@@ -507,7 +507,7 @@ export function makeMagic(scene: Object3D): Magic {
         }
         if (t >= life) {
           scene.remove(field.root);
-          for (const mesh of [glow, circle, edge]) mesh.material.dispose();
+          // (Its materials let go of, not disposed: disposing the last one using a shader program deletes it, compiled again mid-fight as the next one draws. ./kr-vfx-player.js dispose().)
           fields.delete(field);
         }
       }
@@ -526,9 +526,7 @@ export function makeMagic(scene: Object3D): Magic {
         (cage.walls.uniforms.time as { value: number }).value = cage.t;
         if (cage.t >= cage.life) {
           scene.remove(cage.cage);
-          for (const { material } of cage.lit) material.dispose();
-          cage.dark.dispose();
-          cage.walls.dispose();
+          // (Its materials let go of, not disposed: as a field's, above.)
           cages.delete(cage);
         }
       }
@@ -542,7 +540,7 @@ export function makeMagic(scene: Object3D): Magic {
         pool.mesh.material.opacity = (0.75 + Math.sin(pool.t * 3) * 0.15) * fading;
         if (pool.t >= pool.life) {
           scene.remove(pool.mesh);
-          pool.mesh.material.dispose();
+          // (Its material let go of, not disposed: as a field's, above.)
           pools.delete(pool);
         }
       }
@@ -558,7 +556,7 @@ export function makeMagic(scene: Object3D): Magic {
         const tail = Math.min(1, Math.max(0, k - BOLT.trail));
         if (tail >= 1) {
           scene.remove(bolt.bolt);
-          for (const material of bolt.materials) material.dispose();
+          // (Its materials let go of, not disposed: as a field's, above.)
           bolts.delete(bolt);
           continue;
         }
@@ -585,7 +583,7 @@ export function makeMagic(scene: Object3D): Magic {
         for (const material of ray.materials) material.opacity = 0.95 * (1 - k) ** 0.6;
         if (k >= 1) {
           scene.remove(ray.ray);
-          for (const material of ray.materials) material.dispose();
+          // (Its materials let go of, not disposed: as a field's, above.)
           rays.delete(ray);
         }
       }
@@ -603,7 +601,7 @@ export function makeMagic(scene: Object3D): Magic {
         beam.mesh.material.opacity = 0.85 * (1 - k) ** 1.2;
         if (k >= 1) {
           scene.remove(beam.mesh);
-          beam.mesh.material.dispose();
+          // (Its material let go of, not disposed: as a field's, above.)
           beams.delete(beam);
         }
       }
@@ -614,7 +612,7 @@ export function makeMagic(scene: Object3D): Magic {
         ring.mesh.material.opacity = (1 - k) ** 1.5;
         if (k >= 1) {
           scene.remove(ring.mesh);
-          ring.mesh.material.dispose();
+          // (Its material let go of, not disposed: as a field's, above.)
           rings.delete(ring);
         }
       }
@@ -641,7 +639,7 @@ export function makeMagic(scene: Object3D): Magic {
         }
         if (k >= 1) {
           scene.remove(crystal.shard);
-          for (const material of crystal.materials) material.dispose();
+          // (Its materials let go of, not disposed: as a field's, above.)
           crystals.delete(crystal);
         }
       }

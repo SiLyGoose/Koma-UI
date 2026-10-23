@@ -4,7 +4,7 @@
 //   const asset = await loadKrEffect('converted/Effect.Common.HealBig.json', 'converted/');
 //   const fx = new KrEffect(asset, { findNode: (bone) => hero.getObjectByName(bone) });
 //   fx.position.copy(heroFeet); scene.add(fx);
-//   each frame: fx.update(dt, camera); if (fx.done) scene.remove(fx), fx.dispose();
+//   each frame: fx.update(dt, camera); if (fx.done) scene.remove(fx), fx.dispose(); (its geometry: see dispose())
 //
 // What it plays: the effect's models (meshes and rigidly skinned meshes moved by their legacy clip, with each
 // renderer's alpha / colour / UV curves from the effect's definition) and its particle systems (CPU simulated: start
@@ -601,8 +601,13 @@ export class KrEffect extends Group {
     this.asset = { ...this.asset, def: { ...this.asset.def, length: Math.min(this.asset.def.length, this.t) } };
   }
 
+  /**
+   * Frees its particles' geometry. Not its materials: all an effect's materials share a few shader programs, and disposing
+   * the last one using a program deletes it, so the next effect to use it (the same skill again, or every one in the next
+   * fight once a fight's are all taken off) compiles it again as it first draws, a stall mid-fight. Undisposed, a material
+   * is only JavaScript (its textures are its asset's, kept), let go of with the effect.
+   */
   dispose() {
-    for (const m of this.materials) m.dispose();
     for (const g of this.emitters) for (const e of g.emitters) e.geometry.dispose();
   }
 }

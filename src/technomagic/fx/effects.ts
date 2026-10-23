@@ -120,8 +120,8 @@ export async function loadEffects(scene: Object3D): Promise<Effects> {
         const left = 1 - effect.t / effect.length;
         for (const material of effect.materials) material.opacity = Math.min(1, Math.max(0, left / FADE));
         if (left <= 0) {
+          // (Its materials let go of, not disposed: disposing the last one using a shader program deletes it, compiled again mid-fight as the next one draws. ./kr-vfx-player.js dispose().)
           scene.remove(effect.root);
-          for (const material of effect.materials) material.dispose();
           playing.delete(effect);
         }
       }

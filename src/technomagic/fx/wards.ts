@@ -123,8 +123,8 @@ export function makeWards(scene: Scene, props: Props): Wards {
   }
 
   const remove = (key: string, ward: Ward): void => {
+    // (Its materials let go of, not disposed: disposing the last one using a shader program deletes it, compiled again mid-fight as the next one draws. ./kr-vfx-player.js dispose().)
     scene.remove(ward.root);
-    for (const { material } of ward.materials) material.dispose();
     wards.delete(key);
   };
 

@@ -131,6 +131,9 @@ export interface Stage {
 export function makeStage(canvas: HTMLCanvasElement): Stage {
   // (Smoothing the edges: not on a sharp screen, where they hardly show and it costs a phone the most.)
   const renderer = new WebGLRenderer({ canvas, antialias: window.devicePixelRatio < 2 });
+  // (A shader's errors asked for only in `yarn dev`: asking waits for it to be compiled there and then, a stall each time a
+  // new one first draws mid-fight; three.js's own advice for a site.)
+  renderer.debug.checkShaderErrors = import.meta.env.DEV;
   // The drawing lost (most often a phone out of memory; Safari reloads the page then): its textures read small the next time.
   canvas.addEventListener('webglcontextlost', struggling);
   renderer.outputColorSpace = SRGBColorSpace;
