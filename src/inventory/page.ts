@@ -9,7 +9,8 @@ import { runesTab } from './tabs/runes';
 import type { InventoryHost, InventoryTab, Source, Sources } from './tab';
 
 /*
- * The inventory, laid out as King's Raid's: its tabs across the top, the one picked under them. Player Gear (the members'
+ * The inventory, laid out as King's Raid's window (its tabs, slots and bar King's Raid's own: public/kr/ui/inventory/): its tabs
+ * across the top, the one picked under them. Player Gear (the members'
  * own gear) and Hero Gear (./tabs/gear.ts), each copy's card on parchment and its details beside them; Runes (./tabs/runes.ts),
  * the runes they have that aren't socketed; Others (./tabs/others.ts), their currencies; Craft (./tabs/craft.ts), making
  * things from komaDust. What's done with gear (wearing it, selling it, socketing runes) stays on the Player and Heroes pages:
@@ -88,11 +89,10 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void; 
   const buttons = TABS.map((tab) => {
     const button = document.createElement('button');
     button.type = 'button';
-    button.className = 'inv-tab action choice';
+    button.className = 'inv-tab';
     button.setAttribute('role', 'tab');
     button.dataset.tab = tab.id;
-    button.innerHTML = `<span class="inv-tab-icon" aria-hidden="true">${tab.icon}</span><span class="inv-tab-label"></span>`;
-    (button.querySelector('.inv-tab-label') as HTMLElement).textContent = tab.label;
+    button.textContent = tab.label;
     button.addEventListener('click', () => {
       if (tab === shown?.tab) return;
       history.replaceState(history.state, '', `/inventory/${tab.id}/`);

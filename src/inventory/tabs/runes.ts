@@ -9,8 +9,6 @@ import type { InventoryTab } from '../tab';
  * Heroes page's (a piece's Runes).
  */
 
-/** A gem, for Runes. */
-const ICON = '<svg viewBox="0 0 24 24"><path d="M12 2 20 8l-3 12H7L4 8z" fill="currentColor"/><path d="M12 2v18M4 8h16" stroke="rgb(0 0 0 / 35%)" stroke-width="1.5" fill="none"/></svg>';
 
 /** One stack's row. */
 function row(rune: HeroRuneStack): HTMLElement {
@@ -29,19 +27,17 @@ function row(rune: HeroRuneStack): HTMLElement {
 export const runesTab: InventoryTab = {
   id: 'runes',
   label: 'Runes',
-  icon: ICON,
   uses: ['heroes'],
   mount(root, host) {
     root.innerHTML = `
-      <div class="armory inv-list">
-        <div class="armory-plaque plaque"><span>Runes</span></div>
-        <div class="armory-tools">
-          <input class="armory-search" type="search" placeholder="Search runes" aria-label="Search runes" autocomplete="off" />
-        </div>
-        <div class="armory-sheet">
+      <div class="inv-list">
+        <div class="inv-sheet">
           <div class="sheet-scroll"><div class="inv-runes"></div></div>
         </div>
-        <p class="inv-count" aria-live="polite"></p>
+        <div class="inv-bar">
+          <input class="armory-search inv-search" type="search" placeholder="Search runes" aria-label="Search runes" autocomplete="off" />
+          <p class="inv-count" aria-live="polite"></p>
+        </div>
       </div>`;
     const list = root.querySelector('.inv-runes') as HTMLElement;
     const search = root.querySelector('.armory-search') as HTMLInputElement;

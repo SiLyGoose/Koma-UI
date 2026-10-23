@@ -86,6 +86,8 @@ export interface ArmoryDraw<C extends ArmoryCopy> {
   none: string;
   /** Said with nothing shown, before anything else (the forge's "Nothing can be refined yet"). */
   first?: string | null;
+  /** At least this many cells, blanks filling out the rest (the inventory's: as many as fill its sheet); left out, GRID_CELLS. */
+  least?: number;
   onPick: (copy: C) => void;
   /** False: a click on a card has the page's plain click sound (the forge's), not the item's own that `onPick` plays (../sfx.ts itemPicked). */
   ownSound?: boolean;
@@ -162,7 +164,7 @@ export function armoryGrid<C extends ArmoryCopy>(element: HTMLElement): ArmoryGr
     const ownSound = what.ownSound !== false;
     const nodes: HTMLElement[] = shown.map((copy) => cardFor(copy, withSale(copy, look(copy), what), ownSound, () => what.onPick(copy)));
     const row = (n: number): number => Math.ceil(n / across) * across;
-    const cells = Math.max(row(GRID_CELLS), row(shown.length));
+    const cells = Math.max(row(what.least ?? GRID_CELLS), row(shown.length));
     for (let i = 0; i < cells - shown.length; i++) nodes.push((blanks[i] ??= el('span', 'item blank')));
     if (shown.length === 0) {
       empty.textContent = what.first ?? (ofSlot.length > 0 ? 'No items match that.' : slot === 'all' ? what.none : `No ${ITEM_TYPE_NAME[slot].toLowerCase()} yet.`);

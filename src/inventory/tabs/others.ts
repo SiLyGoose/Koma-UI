@@ -12,8 +12,6 @@ import type { InventoryTab } from '../tab';
  * what it's for. Each tile fills in as the bot's answer it's in comes (a dash where it couldn't be had).
  */
 
-/** A pouch, for Others. */
-const ICON = '<svg viewBox="0 0 24 24"><path d="M9 3h6l-1.5 3h-3z" fill="currentColor"/><path d="M8.5 7h7c2.5 2 5.5 5.5 5.5 9a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5c0-3.5 3-7 5.5-9Z" fill="currentColor"/></svg>';
 
 /** komaTokens, as the bot writes them (its constants/core.ts TOKEN_EMOJI). */
 const TOKEN_EMOJI = '<:zeiutoken:1552921364489572362>';
@@ -48,13 +46,11 @@ function essenceImage(id: string): HTMLImageElement {
 export const othersTab: InventoryTab = {
   id: 'others',
   label: 'Others',
-  icon: ICON,
   uses: ['heroes', 'shop', 'gacha'],
   mount(root, host) {
     root.innerHTML = `
-      <div class="armory inv-list">
-        <div class="armory-plaque plaque"><span>Others</span></div>
-        <div class="armory-sheet">
+      <div class="inv-list">
+        <div class="inv-sheet">
           <div class="sheet-scroll">
             <h3 class="inv-group">Currencies</h3>
             <div class="inv-currencies" data-group="money"></div>

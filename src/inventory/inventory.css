@@ -1,32 +1,64 @@
 /*
- * The inventory (page.ts), on top of the shared item template (../shared/items/items.css, whose colours its .gear-page
- * sets): its tabs across the top as King's Raid's inventory has them, each one of the site's buttons for a choice
- * (../shared/ui/button/) with its picture in a gold ring, the server picker at the end of the row; under them the tab
- * picked, in the armory's dark frame with its parchment sheet. Player Gear and Hero Gear: the cards, the picked one's
- * details beside them (a sheet from the bottom on narrow screens, items.css). Runes and Others: a list on the sheet.
- * Craft: what to craft on the sheet, the one picked in a panel beside it. Everything is under .inventory-page, so it
- * outweighs the shared styles whichever order the build links them in.
+ * The inventory (page.ts), as King's Raid's inventory window, in the art of its own (public/kr/ui/inventory/, cut from the
+ * game's NGUI atlases: Common_Box_Text_4 the window, Common_Button_Tab_Disable / _Enable / _Enable_2 the tabs, Common_Slot
+ * a slot, Common_Box_Text_5 the bar): its name over it, its tabs across its top (the one open blue, Craft green), the tab
+ * open under them. Player Gear and Hero Gear: a dark sheet of slots, the item cards in them (../shared/items/, their frames
+ * King's Raid's grades), eight across on wide screens, and the cream bar under them with the search, the Filter and how many
+ * there are; a picked one's details over the slots' right side (a sheet from the bottom on narrow screens, items.css). Runes
+ * and Others: a list on the sheet. Craft: what to craft on the sheet, the one picked on the cream beside it.
+ * Everything is under .inventory-page, so it outweighs the shared styles whichever order the build links them in.
  */
 
 .inventory-page {
-  max-width: 1240px;
+  --inv-slot: #1d2631;
+  --inv-sheet: #141b24;
+  --inv-cream-ink: #4a3b28;
+  max-width: 1280px;
+}
+
+/* ------------------------------------------------------------------ head */
+
+.inventory-page .inv-head {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.inventory-page .inv-title {
+  margin: 0;
+  color: #fff;
+  font-size: 24px;
+  letter-spacing: 0.02em;
+  text-shadow: 0 2px 0 rgb(0 0 0 / 60%);
+}
+
+.inventory-page > .status {
+  margin: 0 0 12px;
+}
+
+/* ------------------------------------------------------------------ window */
+
+/* King's Raid's window: dark, gold at its corners (the picture's middle stretches, its corners don't). */
+.inventory-page .inv-window {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 18px 18px;
+  border: 0 solid transparent;
+  border-image: url('/kr/ui/inventory/window.webp') 50 60 fill / 25px 30px;
+  filter: drop-shadow(0 12px 24px rgb(0 0 0 / 45%));
 }
 
 /* ------------------------------------------------------------------ tabs */
 
-.inventory-page .inv-top {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  margin-bottom: 30px;
-}
-
 .inventory-page .inv-tabs {
   display: flex;
-  flex: 1 1 auto;
-  gap: 8px;
+  gap: 4px;
   min-width: 0;
-  padding: 4px 4px 10px;
+  padding: 2px 2px 0;
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -35,133 +67,210 @@
   display: none;
 }
 
+/*
+ * A tab: King's Raid's plate (its ends kept, its middle stretched to the name), grey; the one open blue, Craft green. Its
+ * name white with a dark edge, as the game's.
+ */
 .inventory-page .inv-tab {
-  position: relative;
   flex: none;
-  gap: 8px;
-  min-height: 48px;
-  padding: 6px 14px 6px 6px;
-  border-radius: 10px;
+  min-width: 128px;
+  height: 46px;
+  padding: 0 26px 3px;
+  border: 0 solid transparent;
+  border-image: url('/kr/ui/inventory/tab.webp') 0 80 fill / 0 42px;
+  background: none;
+  color: #c9ced6;
+  font: inherit;
   font-size: 15px;
+  font-weight: 700;
   letter-spacing: 0.02em;
+  text-shadow:
+    0 1px 0 #000,
+    0 0 3px rgb(0 0 0 / 80%);
+  white-space: nowrap;
+  cursor: pointer;
 }
 
-.inventory-page .inv-tab-icon {
-  display: grid;
-  flex: none;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #3a3742, #1c1b21);
+.inventory-page .inv-tab:not([aria-selected='true']) {
+  filter: brightness(0.82) saturate(0.85);
+}
+
+.inventory-page .inv-tab:hover {
+  color: #fff;
+  filter: none;
+}
+
+.inventory-page .inv-tab:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: -2px;
+}
+
+.inventory-page .inv-tab[aria-selected='true'] {
+  border-image-source: url('/kr/ui/inventory/tab-on.webp');
+  color: #fff;
+  text-shadow:
+    0 1px 0 #000,
+    0 0 8px rgb(110 200 255 / 90%);
+  filter: brightness(1.2) drop-shadow(0 0 6px rgb(90 180 255 / 60%));
+  cursor: default;
+}
+
+.inventory-page .inv-tab[data-tab='craft'] {
+  border-image-source: url('/kr/ui/inventory/tab-craft.webp');
+  color: #f4ffe6;
+}
+
+/* Craft open: lit, as the game lights its green tab. */
+.inventory-page .inv-tab[data-tab='craft'][aria-selected='true'] {
+  filter: brightness(1.15) drop-shadow(0 0 6px rgb(150 230 90 / 45%));
+}
+
+/* ------------------------------------------------------------------ the sheet */
+
+/* What a tab shows its things on: the window's dark, a shade darker, sunk in. */
+.inventory-page .inv-sheet {
+  display: flex;
+  flex-direction: column;
+  min-height: 240px;
+  max-height: 60dvh;
+  overflow: hidden;
+  border-radius: 6px;
+  background: var(--inv-sheet);
   box-shadow:
-    inset 0 0 0 2px rgb(216 191 122 / 45%),
-    0 2px 6px rgb(0 0 0 / 45%);
-  color: var(--gold);
+    inset 0 0 0 1px #2d3846,
+    inset 0 4px 16px rgb(0 0 0 / 55%);
 }
 
-.inventory-page .inv-tab-icon svg {
-  width: 18px;
-  height: 18px;
+.inventory-page .inv-sheet .sheet-scroll {
+  padding: 8px;
 }
 
-.inventory-page .inv-tab[aria-selected='true'] .inv-tab-icon {
-  box-shadow:
-    inset 0 0 0 2px var(--tint-edge),
-    0 2px 6px rgb(0 0 0 / 45%);
-  color: var(--tint-text);
+.inventory-page .inv-sheet .sheet-scroll::-webkit-scrollbar-thumb {
+  background-color: #3c4a5a;
 }
 
-/* The tab picked: a notch under it, pointing down at what it shows. */
-.inventory-page .inv-tab[aria-selected='true']::after {
-  content: '';
-  position: absolute;
-  bottom: -7px;
-  left: 50%;
-  width: 12px;
-  height: 12px;
-  border-right: 1px solid var(--tint-edge);
-  border-bottom: 1px solid var(--tint-edge);
-  background: var(--tint-flat);
-  translate: -50% 0;
-  rotate: 45deg;
+.inventory-page .inv-sheet .sheet-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: #52637a;
 }
 
-.inventory-page .inv-top .dd {
-  flex: none;
+@supports not selector(::-webkit-scrollbar) {
+  .inventory-page .inv-sheet .sheet-scroll {
+    scrollbar-color: #3c4a5a transparent;
+  }
 }
 
-.inventory-page > .status {
-  margin: -14px 0 24px;
+/* The cream bar under the sheet: King's Raid's, gold at its corners. */
+.inventory-page .inv-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 0 solid transparent;
+  border-image: url('/kr/ui/inventory/bar.webp') 50 60 fill / 18px 22px;
+  color: var(--inv-cream-ink);
 }
 
-/* What's under the frames: how many there are, and the like. */
+.inventory-page .inv-search {
+  flex: 0 1 260px;
+  border-color: #b9a988;
+  background: #fffaf0;
+  color: var(--inv-cream-ink);
+}
+
+.inventory-page .inv-search::placeholder {
+  color: #9a8a70;
+}
+
+/* The Filter's panel opens upwards, over the slots (it's in the bar under them). */
+.inventory-page .inv-bar .armory-filter-panel {
+  top: auto;
+  bottom: calc(100% + 6px);
+  left: 0;
+  right: auto;
+}
+
 .inventory-page .inv-count {
-  min-height: 1em;
-  margin: 10px 2px 0;
-  color: var(--muted);
+  margin: 0 0 0 auto;
   font-size: 13px;
+  font-weight: 700;
 }
 
 /* ------------------------------------------------------------------ gear */
 
-.inventory-page .inv-hint {
+.inventory-page .inv-gear,
+.inventory-page .inv-list {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.inventory-page .inv-sheet .armory-grid {
+  gap: 6px;
+}
+
+/* A slot: King's Raid's, dark, framed in a darker line; an item in it on the slot's dark, not on parchment. */
+.inventory-page .inv-sheet .item {
+  --item-lip: transparent;
+  --focus: var(--gold);
+  border-color: var(--tier, #3a4655);
+  border-radius: 4px;
+  background: linear-gradient(170deg, #2c3846, var(--inv-slot));
+}
+
+.inventory-page .inv-sheet .item.blank {
+  border: 0 solid transparent;
+  border-image: url('/kr/ui/inventory/slot.webp') 20 fill / 10px;
+  background: none;
+  box-shadow: none;
+  cursor: default;
+}
+
+.inventory-page .inv-sheet .item .item-curl {
   display: none;
 }
 
-/*
- * Wide screens: the cards and the picked one's details side by side, as tall as each other, filling the screen under the
- * tabs; with none picked, a line saying to pick one in the details' place.
- */
+.inventory-page .inv-sheet .item .item-level {
+  color: #fff;
+  text-shadow: 0 1px 2px #000;
+}
+
+.inventory-page .inv-sheet .item .art.glyph {
+  color: #c9ced6;
+}
+
+/* Wide screens: eight slots across, as the game's, filling the screen under the tabs; a picked one's details over the right of them. */
 @media (min-width: 900px) {
   .inventory-page .inv-gear,
+  .inventory-page .inv-list,
   .inventory-page .inv-craft {
-    display: grid;
-    grid-template-columns: minmax(0, 7fr) minmax(0, 4fr);
-    gap: 20px;
-    height: max(520px, calc(100dvh - 72px - 48px - 108px));
+    height: max(480px, calc(100dvh - 72px - 48px - 140px));
   }
 
-  .inventory-page .inv-list {
-    height: max(520px, calc(100dvh - 72px - 48px - 108px));
-    box-sizing: border-box;
+  .inventory-page .inv-sheet {
+    flex: 1 1 0;
+    max-height: none;
   }
 
-  .inventory-page .inv-gear > .armory,
-  .inventory-page .inv-craft > .armory,
-  .inventory-page .inv-list {
-    min-height: 0;
-  }
-
-  .inventory-page .inv-gear .armory-sheet,
-  .inventory-page .inv-craft .armory-sheet,
-  .inventory-page .inv-list .armory-sheet {
-    min-height: 0;
-  }
-
-  /* Six cards across, as King's Raid's inventory has them (the grid counts its columns from here: ../shared/items/armory.ts). */
   .inventory-page .inv-gear .armory-grid {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-columns: repeat(8, minmax(0, 1fr));
   }
 
   .inventory-page .inv-gear > .detail {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 64px;
+    z-index: 5;
     display: flex;
     flex-direction: column;
-    min-height: 0;
+    width: min(400px, 44%);
     padding: 0;
     overflow: hidden;
+    box-shadow: -12px 0 30px rgb(0 0 0 / 55%);
     animation: inv-detail-in 0.18s ease-out;
-  }
-
-  .inventory-page .inv-gear:not(.picking) > .inv-hint {
-    display: grid;
-    place-items: center;
-    margin: 0;
-    padding: 20px;
-    border: 1px dashed var(--line);
-    border-radius: 14px;
-    color: var(--muted);
-    text-align: center;
   }
 }
 
@@ -172,6 +281,19 @@
     flex-direction: column;
     padding: 0;
   }
+
+  .inventory-page .inv-window {
+    padding: 10px 10px 12px;
+    border-image-width: 18px 20px;
+  }
+
+  .inventory-page .inv-tab {
+    min-width: 0;
+    height: 40px;
+    padding: 0 20px 3px;
+    border-image-width: 0 36px;
+    font-size: 14px;
+  }
 }
 
 .inventory-page .inv-gear > .detail[hidden] {
@@ -181,7 +303,7 @@
 @keyframes inv-detail-in {
   from {
     opacity: 0;
-    transform: translateX(12px);
+    transform: translateX(16px);
   }
 }
 
@@ -194,27 +316,42 @@
 /* ------------------------------------------------------------------ runes */
 
 .inventory-page .inv-runes {
-  color: var(--ink);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+  gap: 6px;
+  color: #e8e8ef;
 }
 
-.inventory-page .inv-rune:first-child {
+/* A rune: in a slot of its own, its picture, what it gives and how many. */
+.inventory-page .inv-rune {
+  padding: 8px 12px 8px 8px;
   border-top: 0;
+  border-radius: 6px;
+  background: linear-gradient(170deg, #2c3846, var(--inv-slot));
+  box-shadow: inset 0 0 0 1px #3a4655;
+}
+
+.inventory-page .inv-rune .rune-pic {
+  width: 48px;
+  height: 48px;
 }
 
 .inventory-page .inv-rune .inv-rune-parts {
+  color: var(--muted);
   font-size: 12px;
-  opacity: 0.65;
 }
 
 .inventory-page .inv-runes .rune-list-note {
+  grid-column: 1 / -1;
   margin: 12px 4px;
+  color: var(--muted);
 }
 
 /* ------------------------------------------------------------------ others */
 
 .inventory-page .inv-group {
   margin: 4px 2px 10px;
-  color: var(--ink);
+  color: var(--gold);
   font-size: 13px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -226,23 +363,23 @@
 
 .inventory-page .inv-currencies {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr));
+  gap: 6px;
 }
 
-/* A tile: as the parchment's cards, a shade lighter than the sheet, edged in its ink. */
+/* A tile: a slot, as an item's: its picture in a slot of its own, its name and what it's for, and how many. */
 .inventory-page .inv-currency,
 .inventory-page .inv-recipe-tile {
   display: flex;
   gap: 12px;
   align-items: center;
   min-width: 0;
-  padding: 10px 12px;
+  padding: 8px 14px 8px 8px;
   border: 2px solid transparent;
-  border-radius: 10px;
-  background: linear-gradient(170deg, #fffaf0, #efe4c7);
-  box-shadow: 0 0 0 1px rgb(120 96 50 / 30%), 0 2px 4px rgb(120 96 50 / 18%);
-  color: var(--ink);
+  border-radius: 6px;
+  background: linear-gradient(170deg, #2c3846, var(--inv-slot));
+  box-shadow: inset 0 0 0 1px #3a4655;
+  color: #e8e8ef;
 }
 
 .inventory-page .inv-currency-pic,
@@ -250,8 +387,12 @@
   display: grid;
   flex: none;
   place-items: center;
-  width: 40px;
-  height: 40px;
+  width: 52px;
+  height: 52px;
+  padding: 8px;
+  box-sizing: border-box;
+  border: 0 solid transparent;
+  border-image: url('/kr/ui/inventory/slot.webp') 20 fill / 8px;
 }
 
 .inventory-page .inv-currency-pic img,
@@ -276,20 +417,23 @@
 }
 
 .inventory-page .inv-currency-about {
+  color: var(--muted);
   font-size: 12px;
   line-height: 1.35;
-  opacity: 0.75;
 }
 
+/* How many: white, edged dark, as the game's counts. */
 .inventory-page .inv-currency-amount {
   flex: none;
+  color: #fff;
   font-size: 18px;
   font-variant-numeric: tabular-nums;
   font-weight: 800;
+  text-shadow: 0 1px 0 #000;
 }
 
 .inventory-page .inv-currency.none .inv-currency-amount {
-  opacity: 0.45;
+  opacity: 0.4;
 }
 
 /* ------------------------------------------------------------------ craft */
@@ -297,7 +441,7 @@
 .inventory-page .inv-recipe-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 6px;
 }
 
 .inventory-page .inv-recipe-tile {
@@ -313,15 +457,15 @@
 
 .inventory-page .inv-recipe-tile[aria-selected='true'] {
   border-color: var(--picked);
-  box-shadow: inset 0 0 14px var(--picked-glow), 0 0 0 1px rgb(120 96 50 / 30%);
+  box-shadow: inset 0 0 14px var(--picked-glow);
 }
 
 .inventory-page .inv-recipe-cost {
   display: flex;
   gap: 4px;
   align-items: center;
+  color: var(--muted);
   font-size: 13px;
-  opacity: 0.8;
 }
 
 .inventory-page .inv-dust {
@@ -331,18 +475,17 @@
   vertical-align: -4px;
 }
 
-/* The recipe picked: in the site's dark panel, its picture big over what it takes. */
+/* The recipe picked: on the game's cream, its picture big over what it takes. */
 .inventory-page .inv-recipe {
   display: flex;
   flex-direction: column;
   gap: 14px;
   min-width: 0;
-  padding: 22px;
+  padding: 22px 26px;
   overflow-y: auto;
-  border-radius: 14px;
-  background: var(--frame-bg);
-  border: var(--frame-border);
-  box-shadow: var(--frame-shadow);
+  border: 0 solid transparent;
+  border-image: url('/kr/ui/inventory/bar.webp') 50 60 fill / 25px 30px;
+  color: var(--inv-cream-ink);
 }
 
 .inventory-page .inv-recipe-head {
@@ -350,28 +493,26 @@
   gap: 16px;
   align-items: center;
   padding-bottom: 14px;
-  border-bottom: 2px solid var(--line);
+  border-bottom: 2px solid rgb(120 96 50 / 30%);
 }
 
 .inventory-page .inv-recipe-pic.big {
-  width: 72px;
-  height: 72px;
-  padding: 8px;
-  border-radius: 12px;
-  background: linear-gradient(170deg, #fffaf0, #efe4c7);
-  box-sizing: border-box;
+  width: 84px;
+  height: 84px;
+  padding: 14px;
+  border-image-width: 12px;
 }
 
 .inventory-page .inv-recipe-title {
   margin: 0 0 4px;
-  color: var(--gold);
+  color: #3a2a14;
   font-size: 22px;
 }
 
 .inventory-page .inv-recipe-about,
 .inventory-page .inv-recipe-note {
   margin: 0;
-  color: var(--muted);
+  color: #6f5d43;
   font-size: 14px;
   line-height: 1.4;
 }
@@ -387,7 +528,7 @@
 
 .inventory-page .inv-recipe-total {
   padding-top: 12px;
-  border-top: 1px solid var(--line);
+  border-top: 1px solid rgb(120 96 50 / 30%);
 }
 
 .inventory-page .inv-amount {
@@ -404,23 +545,46 @@
   width: 96px;
   min-width: 0;
   padding: 8px 10px;
-  border: 1px solid var(--line);
+  border: 1px solid #b9a988;
   border-radius: 8px;
-  background: var(--panel-2);
-  color: var(--text);
+  background: #fffaf0;
+  color: var(--inv-cream-ink);
   font: inherit;
   font-variant-numeric: tabular-nums;
+  font-weight: 700;
   text-align: center;
 }
 
 .inventory-page .inv-amount-input:focus {
-  outline: 2px solid var(--gold);
+  outline: 2px solid var(--picked);
   outline-offset: 1px;
 }
 
-.inventory-page .inv-craft-go {
+/* Craft: King's Raid's orange, as its Sell. */
+.inventory-page .inv-recipe .action.inv-craft-go {
   align-self: flex-start;
   min-width: 200px;
+  border-color: #b8520a;
+  background: linear-gradient(180deg, #ffb347, #f07a12 55%, #d9600a);
+  color: #fff;
+  text-shadow: 0 1px 1px rgb(90 30 0 / 80%);
+}
+
+.inventory-page .inv-recipe .action.inv-craft-go:hover:not([aria-disabled='true']) {
+  background: linear-gradient(180deg, #ffc266, #f78a24 55%, #e06c12);
+}
+
+.inventory-page .inv-recipe .action.inv-craft-go[aria-disabled='true'] {
+  filter: grayscale(0.8);
+  opacity: 0.6;
+}
+
+@media (min-width: 900px) {
+  .inventory-page .inv-craft {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    gap: 14px;
+  }
 }
 
 /* Narrow screens: what to craft over the one picked. */
@@ -428,7 +592,12 @@
   .inventory-page .inv-craft {
     display: flex;
     flex-direction: column;
-    gap: 34px;
+    gap: 12px;
+  }
+
+  /* (Only as tall as its recipes.) */
+  .inventory-page .inv-craft > .inv-sheet {
+    min-height: 0;
   }
 
   .inventory-page .inv-craft-go {

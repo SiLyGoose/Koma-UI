@@ -12,8 +12,6 @@ import type { InventoryHost, InventoryTab } from '../tab';
  * /api/raid-shop/craft, every `powderPerGem` of it a komaGem); a recipe is one entry in RECIPES.
  */
 
-/** A hammer, for Craft. */
-const ICON = '<svg viewBox="0 0 24 24"><path d="M13.5 3.5 20.5 10.5 18 13l-2.2-2.2L7 19.6a1.9 1.9 0 0 1-2.6-2.6l8.8-8.8L11 6z" fill="currentColor"/></svg>';
 
 /** The most the bot makes in one go (its craft's `count`). */
 const MOST_AT_ONCE = 1000;
@@ -47,16 +45,12 @@ const RECIPES: readonly Recipe[] = [
 export const craftTab: InventoryTab = {
   id: 'craft',
   label: 'Craft',
-  icon: ICON,
   uses: ['shop'],
   mount(root, host) {
     root.innerHTML = `
       <div class="inv-craft">
-        <div class="armory inv-recipes">
-          <div class="armory-plaque plaque"><span>Craft</span></div>
-          <div class="armory-sheet">
-            <div class="sheet-scroll"><div class="inv-recipe-list" role="listbox" aria-label="What to craft"></div></div>
-          </div>
+        <div class="inv-sheet">
+          <div class="sheet-scroll"><div class="inv-recipe-list" role="listbox" aria-label="What to craft"></div></div>
         </div>
         <section class="inv-recipe" aria-live="polite"></section>
       </div>`;

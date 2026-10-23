@@ -12,19 +12,11 @@ import type { InventoryHost, InventoryTab, Source } from '../tab';
  * it on a hero), and to the forge (to upgrade it).
  */
 
-/** A crossed sword and shield, for Player Gear. */
-const PLAYER_ICON = '<svg viewBox="0 0 24 24"><path d="M19.5 2.5 21.5 4.5 11 15l-1.3-.2-.5-.5L9 13z" fill="currentColor"/><path d="M5.2 13.4 10.6 18.8 9.2 20.2 7.8 18.8 5.3 21.3a1.4 1.4 0 0 1-2-2l2.5-2.5-1.4-1.4z" fill="currentColor"/></svg>';
-/** A helmet, for Hero Gear. */
-const HERO_ICON = '<svg viewBox="0 0 24 24"><path d="M12 2a9 9 0 0 1 9 9v4.5l-2.5 1.5V22h-4v-6.5H18V11a6 6 0 0 0-12 0v4.5h3.5V22h-4v-5L3 15.5V11a9 9 0 0 1 9-9z" fill="currentColor"/><path d="M11 5h2v7.5h-2z" fill="currentColor"/></svg>';
-
 /** How one armory tab gets its copies and draws them. */
 interface ArmoryTabSpec<C extends ArmoryCopy, V> {
   id: string;
   label: string;
-  icon: string;
   source: Source;
-  /** Over the frame. */
-  title: string;
   /** What the bot says (the host's load). */
   load(host: InventoryHost): Promise<ApiResult<V>>;
   /** Said when it can't be loaded. */
@@ -41,32 +33,30 @@ function armoryTab<C extends ArmoryCopy, V>(spec: ArmoryTabSpec<C, V>): Inventor
   return {
     id: spec.id,
     label: spec.label,
-    icon: spec.icon,
-    uses: [spec.source],
+      uses: [spec.source],
     mount(root, host) {
+      // (As King's Raid's window: the slots, the bar under them with the search, the Filter and how many there are, and a
+      // picked one's details over the slots.)
       root.innerHTML = `
         <div class="inv-gear">
-          <div class="armory inv-armory">
-            <div class="armory-plaque plaque"><span class="inv-armory-title"></span></div>
-            <div class="armory-tools">
-              <input class="armory-search" type="search" placeholder="Search items" aria-label="Search items" autocomplete="off" />
-              <div class="armory-filter"></div>
-            </div>
-            <div class="armory-sheet">
-              <div class="sheet-scroll"><div class="armory-grid"></div></div>
-            </div>
+          <div class="inv-sheet">
+            <div class="sheet-scroll"><div class="armory-grid"></div></div>
+          </div>
+          <div class="inv-bar">
+            <input class="armory-search inv-search" type="search" placeholder="Search items" aria-label="Search items" autocomplete="off" />
+            <div class="armory-filter"></div>
             <p class="inv-count" aria-live="polite"></p>
           </div>
           <div class="detail" role="dialog" aria-label="Item" hidden></div>
-          <p class="inv-hint">Pick an item to see what it does.</p>
         </div>`;
       const box = root.querySelector('.inv-gear') as HTMLElement;
-      (root.querySelector('.inv-armory-title') as HTMLElement).textContent = spec.title;
       const search = root.querySelector('.armory-search') as HTMLInputElement;
       const filter = armoryFilter(root.querySelector('.armory-filter') as HTMLElement);
       const grid = armoryGrid<C>(root.querySelector('.armory-grid') as HTMLElement);
       const count = root.querySelector('.inv-count') as HTMLElement;
       const detail = root.querySelector('.detail') as HTMLElement;
+      const sheet = root.querySelector('.sheet-scroll') as HTMLElement;
+      const gridBox = root.querySelector('.armory-grid') as HTMLElement;
 
       let view: V | null = null;
       let slot: ItemType | 'all' = 'all';
@@ -82,6 +72,15 @@ function armoryTab<C extends ArmoryCopy, V>(spec: ArmoryTabSpec<C, V>): Inventor
         draw();
       };
 
+      /** As many slots as fill the sheet, as King's Raid's (rows of square slots down to its bottom, the last one cut off by it). */
+      function slots(): number {
+        const across = getComputedStyle(gridBox).gridTemplateColumns.split(' ').length || 4;
+        const gap = parseFloat(getComputedStyle(gridBox).rowGap) || 0;
+        const cell = (gridBox.clientWidth - gap * (across - 1)) / across;
+        const room = sheet.clientHeight - parseFloat(getComputedStyle(sheet).paddingTop) - parseFloat(getComputedStyle(sheet).paddingBottom);
+        return cell > 0 ? across * Math.max(1, Math.ceil((room + gap) / (cell + gap))) : 0;
+      }
+
       function draw(): void {
         if (!view) return;
         const all = copies();
@@ -94,6 +93,7 @@ function armoryTab<C extends ArmoryCopy, V>(spec: ArmoryTabSpec<C, V>): Inventor
           sort,
           look: (copy) => spec.look(view as V, copy),
           picked,
+          least: slots(),
           none: spec.none,
           onPick: (copy) => {
             const before = picked;
@@ -126,6 +126,15 @@ function armoryTab<C extends ArmoryCopy, V>(spec: ArmoryTabSpec<C, V>): Inventor
         if (e.key === 'Escape' && picked !== null && !(e.target instanceof HTMLInputElement)) close();
       };
       document.addEventListener('keydown', onKey);
+      // (The sheet taller or shorter: as many slots as fill it now.)
+      let rows = 0;
+      const resized = new ResizeObserver(() => {
+        const now = slots();
+        if (now === rows) return;
+        rows = now;
+        draw();
+      });
+      resized.observe(sheet);
 
       const drawn = spec.load(host).then((res) => {
         if (!res.ok) return host.failed(res, res.status === 404 ? `Nothing to show here yet.` : spec.failed);
@@ -138,6 +147,7 @@ function armoryTab<C extends ArmoryCopy, V>(spec: ArmoryTabSpec<C, V>): Inventor
         drawn,
         unmount: () => {
           document.removeEventListener('keydown', onKey);
+          resized.disconnect();
           filter.destroy();
           grid.destroy();
         },
@@ -166,9 +176,7 @@ const NONE = 'No effects.';
 export const playerGearTab: InventoryTab = armoryTab<GearCopy, GearView>({
   id: 'player-gear',
   label: 'Player Gear',
-  icon: PLAYER_ICON,
   source: 'gear',
-  title: 'Player Gear',
   load: (host) => host.load('gear'),
   failed: 'Could not load your gear.',
   // (Their own gear only: hero gear has a tab of its own.)
@@ -203,9 +211,7 @@ const HERO_NONE = 'No effects on a hero.';
 export const heroGearTab: InventoryTab = armoryTab<HeroCopy, HeroesView>({
   id: 'hero-gear',
   label: 'Hero Gear',
-  icon: HERO_ICON,
   source: 'heroes',
-  title: 'Hero Gear',
   load: (host) =>
     host.load('heroes').then((res) => {
       // (King's Raid's pieces: their pictures, as the bot says them.)

@@ -1,9 +1,12 @@
-<!-- The inventory (src/inventory/page.ts): its tabs across the top, the server picker beside them, the tab picked under them. Swapped into #view by src/site/main.ts. -->
+<!-- The inventory (src/inventory/page.ts), as King's Raid's window: its name and the server picker over it, its tabs across its top, the tab picked under them. Swapped into #view by src/site/main.ts. -->
 <main class="gear-page inventory-page">
-  <div class="inv-top">
-    <nav class="inv-tabs" role="tablist" aria-label="Inventory"></nav>
+  <div class="inv-head">
+    <h1 class="inv-title">Inventory</h1>
     <select id="inv-server" class="server-pick" aria-label="Server" hidden></select>
   </div>
   <p id="inv-status" class="status" hidden></p>
-  <div class="inv-panel" role="tabpanel"></div>
+  <div class="inv-window">
+    <nav class="inv-tabs" role="tablist" aria-label="Inventory"></nav>
+    <div class="inv-panel" role="tabpanel"></div>
+  </div>
 </main>

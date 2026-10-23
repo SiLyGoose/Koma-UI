@@ -39,8 +39,6 @@ export interface InventoryTab {
   /** Its path under /inventory/ (/inventory/runes/). */
   id: string;
   label: string;
-  /** Its picture on the bar: an inline SVG drawn in currentColor. */
-  icon: string;
   /** What it asks the bot for (for the page's prefetch, as the transition covers the page before). */
   uses: readonly Source[];
   /** Sets it up in `root` (the panel, emptied), as a site page does (../site/page.ts). */
