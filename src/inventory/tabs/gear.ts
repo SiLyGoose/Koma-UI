@@ -11,7 +11,7 @@ import { afterTyping, detailAway } from './tiles';
  * with the search and the Filter over them), and the one picked's details beside them (a sheet from the bottom on narrow
  * screens). What's done with a copy is its page's: the details link to the Player page (to wear it) or the Heroes page (to put
  * it on a hero), and to the forge (to upgrade it). The player gear's Filter offers only its weapons and armor at T1 to T4; the
- * hero gear's every part at T6 to T10 (and unique weapons and treasures), its substats, and its search their heroes' names too.
+ * hero gear's every part: unique weapons and treasures, then T10, TechnoMagic gear (the TechnoMagic sets' T9, and the old TechnoMagic gear) and T8 to T6, its substats, and its search their heroes' names too.
  */
 
 /** How one armory tab gets its copies and draws them. */
@@ -248,7 +248,7 @@ export const heroGearTab: InventoryTab = armoryTab<HeroCopy, HeroesView>({
     return { tag: on ? { text: `On ${on.name}`, className: 'elsewhere' } : null };
   },
   none: 'No hero gear yet. The Weekly Boss and the Dragon Raid drop it, the raid shop sells it, and the TechnoMagic Raid drops its own.',
-  offer: { tiers: [10, 9, 8, 7, 6, 'uw', 'ut'] },
+  offer: { tiers: ['uw', 'ut', 10, 'tm', 8, 7, 6] },
   words: (view, copy) => {
     const owner = copy.uniqueWeapon ?? copy.uniqueTreasure?.hero;
     return owner ? (view.heroes.find((hero) => hero.id === owner)?.name ?? owner) : '';

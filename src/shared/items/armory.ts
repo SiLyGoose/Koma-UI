@@ -1,7 +1,7 @@
 import { type Busy, doneMark, working } from '../ui';
 import { coin, dust, points } from '../util';
 import { armoryOrder, type TmSort } from './gear';
-import { dragonTier, el, hasLevels, heroGear, heroTier, itemFace, itemIcons, type ItemType, ITEM_TYPE_NAME, kindName, levelLabel, lockBadge, mainStatLine, rich, shownName, type Slot, type Stars, tierOf, typeOf } from './items';
+import { dragonTier, el, hasLevels, heroGear, heroTier, isTmPiece, itemFace, itemIcons, type ItemType, ITEM_TYPE_NAME, kindName, levelLabel, lockBadge, mainStatLine, rich, shownName, type Slot, type Stars, tierOf, typeOf } from './items';
 import type { HeroPart } from '../../protocol/heroes';
 import type { MainStat } from '../../protocol/items';
 import { matchesStars, type StarChoice } from './armory-filter/armory-filter';
@@ -120,9 +120,16 @@ export interface GridOptions {
 /** Drawing only the rows in sight (GridOptions.scroller): how many more are drawn either side, so a quick scroll doesn't show them empty. */
 const ROWS_AROUND = 3;
 
-/** Whether `copy` is of the tier picked: a hero's gear's T6 to T10 by its own (heroTier), anything else as matchesStars has it. */
-const ofTier = (choice: StarChoice, copy: ArmoryCopy): boolean =>
-  typeof choice === 'number' && choice >= 6 ? heroGear(copy) && heroTier(copy) === choice : matchesStars(choice, tierOf(copy));
+/**
+ * Whether `copy` is of the tier picked: a hero's gear's T6 to T10 by its own (heroTier); TechnoMagic gear a TechnoMagic set's
+ * piece or the old TechnoMagic gear (its one level), not any other hero's gear (which tierOf calls TechnoMagic too); anything
+ * else as matchesStars has it.
+ */
+const ofTier = (choice: StarChoice, copy: ArmoryCopy): boolean => {
+  if (typeof choice === 'number' && choice >= 6) return heroGear(copy) && heroTier(copy) === choice;
+  if (choice === 'tm') return tierOf(copy) === 'tm' && (isTmPiece(copy.itemId) || !hasLevels(copy));
+  return matchesStars(choice, tierOf(copy));
+};
 
 /** A copy's tier in words, for a screen reader. */
 const tierWords = (copy: ArmoryCopy): string => {
