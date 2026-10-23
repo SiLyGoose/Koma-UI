@@ -85,6 +85,11 @@ export function dropdown(select: HTMLSelectElement): Dropdown {
       const chosen = options[i]?.selected === true;
       li.classList.toggle('chosen', chosen);
       li.setAttribute('aria-selected', String(chosen));
+      // (An option switched off: greyed, and not picked.)
+      const off = options[i]?.disabled === true;
+      li.classList.toggle('off', off);
+      if (off) li.setAttribute('aria-disabled', 'true');
+      else li.removeAttribute('aria-disabled');
     });
     list.setAttribute('aria-multiselectable', String(select.multiple));
     const picked = [...select.selectedOptions].map((option) => option.textContent);
@@ -127,6 +132,7 @@ export function dropdown(select: HTMLSelectElement): Dropdown {
   function choose(value: string): void {
     // Picking many: picked or unpicked, and the list stays open for the next.
     const option = [...select.options].find((one) => one.value === value);
+    if (option?.disabled) return;
     if (select.multiple && option) {
       option.selected = !option.selected;
       refresh();

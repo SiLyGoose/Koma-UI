@@ -38,7 +38,7 @@ export interface ArmoryChoice {
   heroGear: boolean | null;
   /** How TechnoMagic gear is sorted; null where it isn't offered (anywhere but the gear and heroes pages). */
   sort: TmSort | null;
-  /** The substats a copy must all have (its options' stats); null or left out where it isn't offered (anywhere but the inventory's hero gear). */
+  /** The substats a copy must all have (its options' stats, up to four); null or left out where it isn't offered (anywhere but the inventory's hero gear). */
   substats?: readonly string[] | null;
 }
 
@@ -81,6 +81,9 @@ const TYPES: readonly [ItemType, string][] = [
 /** The types only heroes wear. */
 const HERO_TYPES: readonly (ItemType | 'all')[] = ['secondary', 'accessory', 'orb', 'artifact'];
 const TIERS: readonly Exclude<StarChoice, 'all'>[] = ['tm', 'uw', 'ut', 4, 3, 2, 1];
+
+/** The most substats a copy can be filtered by (a hero's gear's options: four at most). */
+const SUBSTATS_MOST = 4;
 
 let count = 0;
 
@@ -154,10 +157,13 @@ export function armoryFilter(box: HTMLElement, offer: FilterOffer = {}): ArmoryF
   const { row: potentialRow, select: potentialSelect } = sortRow('potentials', 'Potentials', true);
   potentialSelect.dataset.none = 'Any';
   sorts.append(el('legend', '', 'Sort TM gear'), mainRow, potentialRow);
-  // The substats a copy must have (any number of them), in the site's dropdown, offering what the page's copies have (setSubstats).
+  // The substats a copy must have (up to SUBSTATS_MOST of them, the rest greyed once as many are picked), in the site's
+  // dropdown under its legend alone (its name only for a screen reader), offering what the page's copies have (setSubstats).
   const substats = el('fieldset', 'armory-filter-group');
-  const { row: substatRow, select: substatSelect } = sortRow('substats', 'Has all of', true);
-  substatSelect.dataset.none = 'Any';
+  const { row: substatRow, select: substatSelect } = sortRow('substats', 'Substats', true);
+  substatRow.classList.add('armory-filter-substats');
+  (substatRow.firstElementChild as HTMLElement).hidden = true;
+  substatSelect.dataset.none = `Any (up to ${SUBSTATS_MOST})`;
   substats.append(el('legend', '', 'Substats'), substatRow);
   let substatsOffered: readonly string[] = [];
   let substatsShown = '';
@@ -187,7 +193,11 @@ export function armoryFilter(box: HTMLElement, offer: FilterOffer = {}): ArmoryF
         }),
       );
     }
-    for (const one of substatSelect.options) one.selected = chosen.includes(one.value);
+    const full = chosen.length >= SUBSTATS_MOST;
+    for (const one of substatSelect.options) {
+      one.selected = chosen.includes(one.value);
+      one.disabled = full && !one.selected;
+    }
     substats.hidden = current.substats == null || offered.length === 0;
     substatPicker.refresh();
   }
@@ -275,7 +285,7 @@ export function armoryFilter(box: HTMLElement, offer: FilterOffer = {}): ArmoryF
     choose({
       slot,
       stars: tier === 'all' || tier === 'tm' || tier === 'uw' || tier === 'ut' ? tier : (Number(tier) as StarChoice),
-      ...(current.substats != null && { substats: [...substatSelect.selectedOptions].map((one) => one.value) }),
+      ...(current.substats != null && { substats: [...substatSelect.selectedOptions].map((one) => one.value).slice(0, SUBSTATS_MOST) }),
       owned: current.owned === null ? null : picked('owned') !== undefined,
       refineable: current.refineable === null ? null : picked('refineable') !== undefined,
       cls: current.cls === null ? null : (picked('class') ?? 'all'),

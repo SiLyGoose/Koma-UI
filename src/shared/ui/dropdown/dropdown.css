@@ -109,6 +109,12 @@
   font-weight: 600;
 }
 
+/* Switched off (picking many: as many picked as can be): greyed, and not to be picked. */
+.dd-option.off {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 /* Picking many: a box before each, ticked in blue when picked (as the armories' filter's checkboxes). */
 .dd-list[aria-multiselectable='true'] .dd-option {
   position: relative;
