@@ -158,7 +158,7 @@ export function armoryFilter(box: HTMLElement, offer: FilterOffer = {}): ArmoryF
   const { row: mainRow, select: mainSelect } = sortRow('main', 'Main stat', false);
   const { row: potentialRow, select: potentialSelect } = sortRow('potentials', 'Potentials', true);
   potentialSelect.dataset.none = 'Any';
-  const { row: substatRow, select: substatSelect } = sortRow('substats', 'Substats', true);
+  const { row: substatRow, select: substatSelect } = sortRow('substats', 'Sub stats', true);
   substatSelect.dataset.none = `Any (up to ${SUBSTATS_MOST})`;
   sorts.append(sortsLegend, mainRow, substatRow, potentialRow);
   let substatsOffered: readonly string[] = [];
