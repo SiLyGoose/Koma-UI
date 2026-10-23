@@ -49,6 +49,8 @@ export const DARK_LORD_KASEL_ASSETS: HeroAssets = {
   // lands (KR-extracted/scripts/tm-vfx.mjs).
   vfx: {
     corrupt: { start: ['Skill.Hero.Kasel.DarkLord.Attack1-1', 'Skill.Hero.Kasel.DarkLord.Attack1.1', 'Skill.Hero.Kasel.DarkLord.Attack1-2', 'Skill.Hero.Kasel.DarkLord.Attack1.2', 'Skill.Hero.Kasel.DarkLord.Attack1.4', 'Skill.Hero.Kasel.DarkLord.Attack1.3', 'Skill.Hero.Kasel.DarkLord.Attack1.5'] },
+    judge: { start: ['Skill.Hero.Kasel.DarkLord.Skill1-1', 'Skill.Hero.Kasel.DarkLord.Skill1-2'] },
+    ruin: { start: ['Skill.Hero.Kasel.DarkLord.Skill2-2.Casting', 'Skill.Hero.Kasel.DarkLord.Skill2-1.Casting'], land: ['Skill.Hero.Kasel.DarkLord.Skill2-2.Projectile'] },
     advent: { start: ['Skill.Hero.Kasel.DarkLord.Skill3.Casting', 'Skill.Hero.Kasel.DarkLord.Skill3.Buff', 'Skill.Hero.Kasel.DarkLord.Skill3.End', 'Skill.Hero.Kasel.DarkLord.Skill3.Loop'] },
   },
   skins: [

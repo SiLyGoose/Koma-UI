@@ -48,6 +48,11 @@ export const MIRIANNE_ASSETS: HeroAssets = {
     },
     victory: [{ clip: 'Mirianne-Vox_Victory', volume: 2.2, own: true }, { clip: 'Attack-Action-01', volume: 1.4, at: 0.43 }, { clip: 'Attack-Action-01', volume: 1.4, at: 1.86 }, { clip: 'Attack-Action-02', volume: 1.5, at: 2.18 }],
   },
+  // King's Raid's own effects for its moves (../../fx/kr-effects.ts): as each begins, on it, and as each of its blows lands, where it
+  // lands (KR-extracted/scripts/tm-vfx.mjs).
+  vfx: {
+    lockon: { land: ['Skill.Hero.Mirianne.HitLoop'] },
+  },
   skins: [
     {
       name: 'Mirianne',

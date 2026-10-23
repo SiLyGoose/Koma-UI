@@ -52,7 +52,7 @@ export const LOMAN_ASSETS: HeroAssets = {
   // King's Raid's own effects for its moves (../../fx/kr-effects.ts): as each begins, on it, and as each of its blows lands, where it
   // lands (KR-extracted/scripts/tm-vfx.mjs).
   vfx: {
-    thrust: { start: ['Skill.Hero.Loman.Attack1.Casting1', 'Skill.Hero.Loman.Attack1.Casting3', 'Skill.Hero.Loman.Attack1.Casting4', 'Skill.Hero.Loman.Attack1.Casting2'] },
+    thrust: { start: ['Skill.Hero.Loman.Attack1.Casting1', 'Skill.Hero.Loman.Attack1.Casting3', 'Skill.Hero.Loman.Attack1.Casting4', 'Skill.Hero.Loman.Attack1.Casting2'], land: ['Skill.Hero.Loman.Hit'] },
     ground: { start: ['Skill.Hero.Loman.Skill1.Casting'], land: ['Hit.Normal.StrikeBig'] },
     shroud: { start: ['Skill.Hero.Loman.Skill2.Casting'], land: ['Skill.Hero.Loman.Skill2.HitLoop', 'Skill.Hero.Loman.Skill2.Hit'] },
     creed: { start: ['Skill.Hero.Loman.Skill3-1.Casting', 'Skill.Hero.Loman.Skill3-2.Casting', 'Skill.Hero.Loman.Skill3-3.Casting'] },

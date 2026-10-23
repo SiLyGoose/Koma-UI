@@ -39,6 +39,8 @@ export const GALGORIA_ASSETS: BossAssets = {
     down: [{ clip: 'Mon-RaidTechGargoria_08', volume: 4, at: 0.005, own: true }],
     dead: [{ clip: 'Mon-RaidTechGargoria_10', volume: 4, at: 0.005, own: true }, { clip: 'Mon-Fall-01', volume: 4, at: 2.64 }],
   },
+  // What King's Raid keeps on the hero it shuts away (its skill script's, as Swamp Imprisonment's shackle begins: 3590044).
+  wards: { 'Swamp Imprisonment': 'Skill.Raid.Gargoria.Skill1.HitLoop' },
   // King's Raid's own effects for it (KR-extracted/scripts/tm-boss-vfx.mjs): each attack's, as it begins and as its blows land on a hero.
   vfx: {
     attacks: {

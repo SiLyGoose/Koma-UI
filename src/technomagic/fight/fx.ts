@@ -29,6 +29,12 @@ export interface FxScene {
   floater(who: number, into: Vector3): Vector3;
   /** Where the far end of what is in a hero's right hand is (what it shoots comes from there; its head, for one holding nothing there): put in `into`. */
   muzzle(who: number, into: Vector3): Vector3;
+  /**
+   * Plays one of King's Raid's own effects (its code, of public/kr/effects/kr/; read beforehand: its owner's assets' krFx):
+   * on a hero (`who`: hung on it) or at a place on the field (`at`: turned as the heroes face); one that goes on until
+   * stopped, for `lasts` seconds. What stops it early.
+   */
+  kr(code: string, where: { who?: number; at?: Vector3; lasts?: number }): () => void;
 }
 
 /**

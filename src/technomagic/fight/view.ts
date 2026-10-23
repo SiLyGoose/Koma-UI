@@ -229,12 +229,16 @@ export function makeFightView({
     rightHand: (who, into) => body(who).rightHand(into),
     floater: (who, into) => body(who).floater?.(into) ?? body(who).head(into),
     muzzle: (who, into) => body(who).muzzle?.(into) ?? body(who).head(into),
+    kr: (code, { who, at: where, lasts }) =>
+      kr.play(code, { ...(who !== undefined ? { on: body(who).root } : { at: where, turn: HERO_TURN }), scale: SCALE, ...(lasts !== undefined && { lasts }) }),
   };
   const fxOf = (who: number) => HERO_FX[(sim.fighters[who] as Sim['fighters'][number]).id];
   const wards = makeWards(scene, props);
   /** The skills of the heroes in the fight that guard a hero with a look of their own: by the status's name, the game's effect kept on it. */
   const looks = new Map<string, string>();
   for (const fighter of sim.fighters) for (const [status, code] of Object.entries(lookOf(fighter.id).assets.wards ?? {})) looks.set(status, code);
+  // (And the boss's skills' that have a hero: Galgoria's Swamp Imprisonment.)
+  for (const [status, code] of Object.entries(bossLook.assets.wards ?? {})) looks.set(status, code);
   /** Those on the heroes now (by the hero and the effect): what stops each, and whether it was kept this frame. */
   const guarding = new Map<string, { stop: () => void; kept: boolean }>();
   /** The skills of the heroes in the fight that put the bubble on a hero as a shield does: by the status's name. */
@@ -247,6 +251,7 @@ export function makeFightView({
     sim.fighters.map((fighter) => lookOf(fighter.id).assets),
     bodies,
     bossHit,
+    scene,
   );
   const krBoss = makeKrBoss(kr, bossLook.assets, boss.root, bodies);
   // The signs of what comes on a fighter: the game's own (a hero's on it, the boss's where its blows land, bigger).
@@ -579,6 +584,7 @@ export function makeFightView({
       wards.update(dt);
       signs.update(dt);
       effects.update(dt);
+      krMoves.update(dt);
       krBoss.update();
       minions.update(dt);
       // (Its wind-up goes as fast as it does: slowed, slower.)
@@ -601,6 +607,7 @@ export function makeFightView({
       guarding.clear();
       signs.clear();
       kr.clear();
+      krMoves.clear();
       who.forEach((one, i) => {
         const hero = body(one);
         const { root } = hero;
@@ -645,6 +652,7 @@ export function makeFightView({
       props.clear();
       sounds.stop();
       kr.clear();
+      krMoves.clear();
     },
   };
 }

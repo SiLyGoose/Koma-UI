@@ -67,10 +67,10 @@ export const SERIA_ASSETS: HeroAssets = {
   // lands (KR-extracted/scripts/tm-vfx.mjs).
   vfx: {
     attack: { start: ['Skill.Hero.Seria.Attack1.Casting1', 'Skill.Hero.Seria.Attack1.Casting3', 'Skill.Hero.Seria.Attack1.Casting2'], land: ['Skill.Hero.Seria.Attack1.Hit'] },
-    petals: { start: ['Skill.Hero.Seria.Skill1-1.Casting', 'Skill.Hero.Seria.Skill1-2.Casting'] },
+    petals: { start: ['Skill.Hero.Seria.Skill1-1.Casting', 'Skill.Hero.Seria.Skill1-2.Casting'], land: ['Skill.Hero.Seria.Hit1', 'Skill.Hero.Seria.Hit2'] },
     scatter: { start: ['Skill.Hero.Seria.Skill2.Slash', 'Skill.Hero.Seria.Skill2.Casting'], land: ['Skill.Hero.Seria.Skill2.HitLoop', 'Skill.Hero.Seria.Skill2.Hit'] },
     moon: { start: ['Skill.Hero.Seria.Skill3.Casting1Loop', 'Skill.Hero.Seria.Skill3.Casting2', 'Skill.Hero.Seria.Skill3.Casting1', 'Skill.Hero.Seria.Skill3.Moon1', 'Skill.Hero.Seria.Skill3.Moon2', 'Skill.Hero.Seria.Skill3.Moon3', 'Skill.Hero.Seria.Skill3.Icon'] },
-    blossom: { start: ['Skill.Hero.Seria.Skill1-1.Casting', 'Skill.Hero.Seria.Skill1-2.Casting'] },
+    blossom: { start: ['Skill.Hero.Seria.Skill1-1.Casting', 'Skill.Hero.Seria.Skill1-2.Casting'], land: ['Skill.Hero.Seria.Hit1', 'Skill.Hero.Seria.Hit2'] },
   },
   skins: [
     {

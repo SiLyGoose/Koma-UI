@@ -53,7 +53,9 @@ export const EZEKIEL_ASSETS: HeroAssets = {
   // lands (KR-extracted/scripts/tm-vfx.mjs).
   vfx: {
     attack: { start: ['Skill.Hero.Ezekiel.Attack1-1.Casting.4', 'Skill.Hero.Ezekiel.Attack1-1.Casting.1', 'Skill.Hero.Ezekiel.Attack1-1.Casting.3', 'Skill.Hero.Ezekiel.Attack1-1.Casting.2', 'Skill.Hero.Ezekiel.Attack1-2.Casting.4', 'Skill.Hero.Ezekiel.Attack1-2.Casting.2', 'Skill.Hero.Ezekiel.Attack1-2.Casting.3', 'Skill.Hero.Ezekiel.Attack1-2.Casting.1'], land: ['Skill.Hero.Ezekiel.Attack1-1.Hit2', 'Skill.Hero.Ezekiel.Attack1-1.Hit1'] },
+    instinct: { start: ['Skill.Hero.Ezekiel.Skill1-2.Casting', 'Skill.Hero.Ezekiel.Skill1-1.Casting'] },
     despair: { start: ['Skill.Hero.Ezekiel.Skill2-1.Casting2', 'Skill.Hero.Ezekiel.Skill2-1.Casting1', 'Skill.Hero.Ezekiel.Skill2-2.Casting2', 'Skill.Hero.Ezekiel.Skill2-2.Casting1'] },
+    doom: { start: ['Skill.Hero.Ezekiel.Skill3-2.Casting', 'Skill.Hero.Ezekiel.Skill3-1.Casting'] },
   },
   skins: [
     {

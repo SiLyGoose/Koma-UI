@@ -145,7 +145,7 @@ export interface HeroAssets {
   /**
    * King's Raid's own effects for its moves, by the move (../fx/kr-effects.ts: codes of public/kr/effects/kr/): played on
    * it as the move begins (`start`: of those numbered, Casting1…, one each time, in turn), and as each of its blows lands
-   * (`land`: where it lands; a shot's, at it; a projectile's, not at all).
+   * (`land`: where it lands; a shot's, at it; a projectile's flown there from it, the rest as it gets there).
    */
   vfx?: Readonly<Record<string, { start?: readonly string[]; land?: readonly string[] }>>;
   /**
@@ -153,6 +153,8 @@ export interface HeroAssets {
    * public/kr/effects/kr/), by the status's name: on as it comes on, stopped as it goes.
    */
   wards?: Readonly<Record<string, string>>;
+  /** King's Raid's own effects its fx (its fx.ts) play themselves, part by part (Gremory's servants): read as the fight begins. */
+  krFx?: readonly string[];
 }
 
 /**
@@ -192,6 +194,11 @@ export interface BossAssets {
    * on it as the attack begins (`start`) and on each hero as a blow of it lands (`hit`); and as it first comes on the field (`advent`).
    */
   vfx?: { attacks: Readonly<Record<string, { start?: readonly string[]; hit?: readonly string[] }>>; advent?: readonly string[] };
+  /**
+   * King's Raid's own effects kept on a hero while one of its skills has it (Galgoria's Swamp Imprisonment), by the
+   * status's name: on as it comes on, stopped as it goes.
+   */
+  wards?: Readonly<Record<string, string>>;
 }
 
 /**
