@@ -6,12 +6,13 @@ import { heroStars } from '../shared/ui/stars/stars';
 import { canTrade, copyById, heroShown, mine, slotFor, slotOf, slotsFor, type HeroesContext } from './context';
 import { SIDE_SLOTS } from '../protocol/heroes';
 import { heroSkills } from './skills';
-import type { HeroRune, HeroRuneStack, HeroSkillView } from '../protocol/heroes';
+import type { HeroRuneStack, HeroSkillView } from '../protocol/heroes';
 import { FORGE_MODES, heroCan } from '../forge/modes';
 import { heroStats } from './stats';
 import { ESSENCE_NAME, essencePicture, heroPerks, spent, TRANSCEND_MAX, TRANSCEND_POINTS, type EssenceId, type Perk, type TranscendTier } from './transcend';
 import { GEM_EMOJI } from '../forge/anvil/gem';
 import { essenceSources } from './essences';
+import { krSections, runePic, runeSection, withoutRunes } from './parts';
 
 /*
  * Draws the heroes page from what the bot said (ctx.view): the roster of heroes, the one shown on the stage
@@ -368,17 +369,6 @@ function runesFor(ctx: HeroesContext): HeroCopy | null {
   return copy && copy.runes.length > 0 ? copy : null;
 }
 
-/** A rune's picture in the Runes list: its icon, its kind's gem on its corner. */
-function runePic(rune: HeroRune): HTMLElement {
-  const pic = el('span', 'rune-pic');
-  const icon = el('img');
-  icon.src = `/kr/items/${rune.icon}.webp`;
-  icon.alt = '';
-  icon.loading = 'lazy';
-  pic.append(icon, el('span', `kr-rune ${rune.color}`));
-  return pic;
-}
-
 /**
  * Their runes in the cards' place, for `copy`: first the ones in its sockets, each with Unequip (back to them); then theirs,
  * the ones that go in it first, each its icon (its kind's gem on it), name, what it gives and how many, with Put in (into its
@@ -570,48 +560,6 @@ function sectionButton(ctx: HeroesContext, text: string, key: string, onClick: (
   return button;
 }
 
-/** A section of a King's Raid piece's: its title, then its rows. */
-function krSection(title: string, rows: HTMLElement[], className = ''): HTMLElement {
-  const section = el('section', `kr-section ${className}`.trim());
-  section.append(el('h4', 'kr-section-title', title), ...rows);
-  return section;
-}
-
-/**
- * King's Raid's gear's parts in the detail, under its effects (its options are among those): its unique option (its
- * additional skill) and its set's bonuses (lit while on; picked to equip, `pieces`: lit too where equipping it would turn
- * them on, with a tag saying so). Its options' steps, rerolling and enhancing them are the forge's (its Upgrade).
- */
-function krSections(copy: HeroCopy, fits: boolean, pieces: { now: number; equipped: number } | null = null): HTMLElement[] {
-  const out: HTMLElement[] = [];
-  if (copy.additional) {
-    const row = el('div', `kr-option${copy.additionalActive ? '' : ' off'}`);
-    row.append(rich(copy.additional));
-    out.push(krSection('Unique Option', [row]));
-  }
-  if (copy.setBonuses.length > 0 && copy.krSet) {
-    out.push(krSection(`${copy.krSet.name} Set${copy.krSet.tier < 9 ? ` · T${copy.krSet.tier}` : ''}`, copy.setBonuses.map((bonus) => {
-      // (Picked to equip: on as this hero would have it, not as whoever wears it now.)
-      const on = pieces ? pieces.equipped >= bonus.pieces : bonus.active;
-      const gain = on && pieces !== null && pieces.now < bonus.pieces;
-      const row = el('p', `kr-bonus${on ? ' on' : ''}${gain ? ' gain' : ''}`, `${bonus.pieces} pieces: ${bonus.text}`);
-      if (gain) row.append(el('span', 'kr-bonus-tag', 'On equip'));
-      return row;
-    })));
-  }
-  return out;
-}
-
-/** What a piece does on a hero without its runes' lines (the bot's effects end with them: one taken off for each, from the last). */
-function withoutRunes(copy: HeroCopy): string[] {
-  const effects = [...copy.effects];
-  for (const line of copy.runes.flatMap((rune) => rune?.lines ?? [])) {
-    const at = effects.lastIndexOf(line);
-    if (at >= 0) effects.splice(at, 1);
-  }
-  return effects;
-}
-
 /**
  * A hero's unique treasures, as King's Raid's Treasure Equipped has them, in the card's place of the one picked (its main
  * treasure, or one of its sub treasures): its main treasure on top, its three sub treasure slots under it, each with its
@@ -651,33 +599,6 @@ function treasuresEquipped(ctx: HeroesContext, act: HeroActions, hero: HeroView,
   const row = el('div', 'ut-equipped-row');
   row.append(box);
   return row;
-}
-
-/**
- * Any hero piece's rune sockets in the detail (a King's Raid piece's, a TechnoMagic one's, a unique weapon's): a rune in each,
- * with what it gives. Putting them in and taking them out is its Runes, in the cards' place.
- */
-function runeSection(copy: HeroCopy): HTMLElement[] {
-  const out: HTMLElement[] = [];
-  if (copy.runes.length > 0) {
-    const rows = copy.runes.map((rune) => {
-      const row = el('div', 'kr-socket');
-      if (rune) {
-        const icon = el('img', 'kr-rune-icon');
-        icon.src = `/kr/items/${rune.icon}.webp`;
-        icon.alt = '';
-        // (What it gives, its name left to its Runes list.)
-        icon.title = rune.name;
-        row.append(icon, el('span', 'kr-rune-name', rune.lines.join(', ')));
-        return row;
-      }
-      // (Their runes to put in: its Runes, below, lists them in the cards' place.)
-      row.append(el('span', 'kr-rune-name muted', 'Empty Socket'));
-      return row;
-    });
-    out.push(krSection('Runes', rows));
-  }
-  return out;
 }
 
 /** The Stats tab: the hero's stats in the raid, with and without its gear. */
@@ -915,5 +836,5 @@ function renderAscend(ctx: HeroesContext, act: HeroActions): void {
   working(action, ctx.busy, 'transcend');
   action.addEventListener('click', () => act.transcend());
   costs.append(action);
-  if (short) ui.ascend.append(el('p', 'ascend-note', 'The Dragon Raid gives hero essences, and komaGems the first time you beat a stage; the Weekly Boss gives both. Salvaging hero gear gives komaDust, which crafts komaGems in the Raid Gear shop.'));
+  if (short) ui.ascend.append(el('p', 'ascend-note', 'The Dragon Raid gives hero essences, and komaGems the first time you beat a stage; the Weekly Boss gives both. Salvaging hero gear gives komaDust, which crafts komaGems in the Inventory’s Craft tab.'));
 }

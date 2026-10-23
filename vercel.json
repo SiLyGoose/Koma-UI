@@ -46,15 +46,39 @@
     {
       "source": "/banner/",
       "destination": "/shop/wish/"
+    },
+    {
+      "source": "/gear",
+      "destination": "/player/"
+    },
+    {
+      "source": "/gear/",
+      "destination": "/player/"
     }
   ],
   "rewrites": [
     {
-      "source": "/gear",
+      "source": "/player",
       "destination": "/index.html"
     },
     {
-      "source": "/gear/",
+      "source": "/player/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/inventory",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/inventory/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/inventory/:tab",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/inventory/:tab/",
       "destination": "/index.html"
     },
     {

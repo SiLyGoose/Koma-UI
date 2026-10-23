@@ -1,0 +1,9 @@
+<!-- The inventory (src/inventory/page.ts): its tabs across the top, the server picker beside them, the tab picked under them. Swapped into #view by src/site/main.ts. -->
+<main class="gear-page inventory-page">
+  <div class="inv-top">
+    <nav class="inv-tabs" role="tablist" aria-label="Inventory"></nav>
+    <select id="inv-server" class="server-pick" aria-label="Server" hidden></select>
+  </div>
+  <p id="inv-status" class="status" hidden></p>
+  <div class="inv-panel" role="tabpanel"></div>
+</main>

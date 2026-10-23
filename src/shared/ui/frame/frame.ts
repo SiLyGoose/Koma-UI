@@ -174,7 +174,8 @@ async function showProfile(): Promise<void> {
   if (!user) return;
   const profile = profileMenu(user, [
     { label: 'Games', icon: 'games', href: '/' },
-    { label: 'Gear', icon: 'gear', href: '/gear/' },
+    { label: 'Player', icon: 'player', href: '/player/' },
+    { label: 'Inventory', icon: 'gear', href: '/inventory/' },
     { label: 'Forge', icon: 'forge', href: '/forge/' },
     { label: 'Shop', icon: 'shop', href: '/shop/' },
     { label: 'Databank', icon: 'databank', href: '/databank/' },

@@ -184,7 +184,7 @@ async function spend(ctx: RaidShopContext, asking: Asking): Promise<void> {
   if (!item) return;
   status(ctx, `${item.name} is yours! Find it in your `);
   const gear = document.createElement('a');
-  gear.href = '/gear/';
-  gear.textContent = 'Gear';
+  gear.href = '/inventory/player-gear/';
+  gear.textContent = 'Inventory';
   ctx.ui.status.append(gear, '.');
 }

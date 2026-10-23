@@ -211,8 +211,9 @@ function renderHeader(): void {
       { label: 'Forge', icon: 'forge', href: '/forge/' },
       { label: 'Databank', icon: 'databank', href: '/databank/' },
       // On smaller screens the header's links are here instead.
-      { label: 'Gear', icon: 'gear', href: '/gear/', className: 'site-nav-item' },
+      { label: 'Player', icon: 'player', href: '/player/', className: 'site-nav-item' },
       { label: 'Heroes', icon: 'heroes', href: '/heroes/', className: 'site-nav-item' },
+      { label: 'Inventory', icon: 'gear', href: '/inventory/', className: 'site-nav-item' },
       { label: 'Shop', icon: 'shop', href: '/shop/', className: 'site-nav-item' },
       { label: 'My Servers', icon: 'servers', href: '/#play' },
       // The bot's settings (../admin/), for the bot admin only.

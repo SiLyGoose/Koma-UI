@@ -6,6 +6,7 @@ import '../shared/ui/close/close.css';
 import '../shared/items/items.css';
 import '../hub/hub.css';
 import '../gear/gear.css';
+import '../inventory/inventory.css';
 import '../databank/databank.css';
 import '../dressing/dressing.css';
 import '../forge/forge.css';
@@ -26,14 +27,14 @@ import type { Page } from './page';
 import { hasSession } from './session';
 
 /*
- * The site's pages (the front page, gear, the forge, the shop, the dressing room, the databank, the admin page) as one document: moving between them swaps the
+ * The site's pages (the front page, the player's gear, the heroes, the inventory, the forge, the shop, the dressing room, the databank, the admin page) as one document: moving between them swaps the
  * page under the header, through the transition's wipe (../shared/transition/), instead of loading a
  * new document, so the header, the login and the rest stay (./session.ts), and back and forward get the
  * wipe too (right to left going back). The games are pages of their own.
  *
  * Every page is its markup (an .html file beside it, a copy put in #view) and a module that sets it up
  * (./page.ts). A history entry's state holds its place in the history (`idx`), which tells back from
- * forward. A page with subpaths (the shop, a path for each tab; the databank, one for each section) shows another of its own in place.
+ * forward. A page with subpaths (the shop and the inventory, a path for each tab; the databank, one for each section) shows another of its own in place.
  * The front page comes with the router; every other page's module is read the first time it's gone to (the heroes
  * page's, the shop's and the databank's take in the TechnoMagic Raid's sim, which the front page has no use for).
  */
@@ -52,14 +53,18 @@ interface Route {
 const HUB: Route = { path: '', page: () => Promise.resolve(hubPage) };
 const ROUTES: readonly Route[] = [
   HUB,
-  { path: '/gear', needsLogin: true, page: () => import('../gear/page').then((m) => m.gearPage) },
+  { path: '/player', needsLogin: true, page: () => import('../gear/page').then((m) => m.gearPage) },
   { path: '/heroes', needsLogin: true, page: () => import('../heroes/page').then((m) => m.heroesPage) },
+  { path: '/inventory', needsLogin: true, subpaths: true, page: () => import('../inventory/page').then((m) => m.inventoryPage) },
   { path: '/forge', needsLogin: true, page: () => import('../forge/page').then((m) => m.forgePage) },
   { path: '/shop', needsLogin: true, subpaths: true, page: () => import('../shop/page').then((m) => m.shopPage) },
   { path: '/dressing-room', needsLogin: true, page: () => import('../dressing/page').then((m) => m.dressingPage) },
   { path: '/databank', subpaths: true, page: () => import('../databank/page').then((m) => m.databankPage) },
   { path: '/admin', needsLogin: true, page: () => import('../admin/page').then((m) => m.adminPage) },
 ];
+
+/** Pages that moved: their old paths, and where they are now (the gear page is the Player page). vercel.json redirects them too. */
+const MOVED: Readonly<Record<string, string>> = { '/gear': '/player/' };
 
 /** The address last opened as a new document because its page's module couldn't be read (reloadOnce). */
 const RELOAD_KEY = 'koma.reloaded';
@@ -108,6 +113,11 @@ async function show(url: URL): Promise<void> {
   // Held before anything is waited for, so the first page's reveal waits too.
   const release = holdReveal();
   const mine = ++asked;
+  const moved = MOVED[pagePath(url.pathname)];
+  if (moved) {
+    url = new URL(moved + url.search + url.hash, url);
+    history.replaceState(history.state, '', url);
+  }
   let route = routeAt(url.pathname) ?? HUB;
   // Only for someone logged in: the front page instead, which offers to log in.
   if (route.needsLogin && !hasSession()) {

@@ -1,0 +1,432 @@
+/*
+ * The inventory (page.ts), on top of the shared item template (../shared/items/items.css, whose colours its .gear-page
+ * sets): its tabs across the top as King's Raid's inventory has them, each one of the site's buttons for a choice
+ * (../shared/ui/button/) with its picture in a gold ring, the server picker at the end of the row; under them the tab
+ * picked, in the armory's dark frame with its parchment sheet. Player Gear and Hero Gear: the cards, the picked one's
+ * details beside them (a sheet from the bottom on narrow screens, items.css). Runes and Others: a list on the sheet.
+ * Craft: what to craft on the sheet, the one picked in a panel beside it. Everything is under .inventory-page, so it
+ * outweighs the shared styles whichever order the build links them in.
+ */
+
+.inventory-page {
+  max-width: 1240px;
+}
+
+/* ------------------------------------------------------------------ tabs */
+
+.inventory-page .inv-top {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.inventory-page .inv-tabs {
+  display: flex;
+  flex: 1 1 auto;
+  gap: 8px;
+  min-width: 0;
+  padding: 4px 4px 10px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.inventory-page .inv-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.inventory-page .inv-tab {
+  position: relative;
+  flex: none;
+  gap: 8px;
+  min-height: 48px;
+  padding: 6px 14px 6px 6px;
+  border-radius: 10px;
+  font-size: 15px;
+  letter-spacing: 0.02em;
+}
+
+.inventory-page .inv-tab-icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #3a3742, #1c1b21);
+  box-shadow:
+    inset 0 0 0 2px rgb(216 191 122 / 45%),
+    0 2px 6px rgb(0 0 0 / 45%);
+  color: var(--gold);
+}
+
+.inventory-page .inv-tab-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.inventory-page .inv-tab[aria-selected='true'] .inv-tab-icon {
+  box-shadow:
+    inset 0 0 0 2px var(--tint-edge),
+    0 2px 6px rgb(0 0 0 / 45%);
+  color: var(--tint-text);
+}
+
+/* The tab picked: a notch under it, pointing down at what it shows. */
+.inventory-page .inv-tab[aria-selected='true']::after {
+  content: '';
+  position: absolute;
+  bottom: -7px;
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  border-right: 1px solid var(--tint-edge);
+  border-bottom: 1px solid var(--tint-edge);
+  background: var(--tint-flat);
+  translate: -50% 0;
+  rotate: 45deg;
+}
+
+.inventory-page .inv-top .dd {
+  flex: none;
+}
+
+.inventory-page > .status {
+  margin: -14px 0 24px;
+}
+
+/* What's under the frames: how many there are, and the like. */
+.inventory-page .inv-count {
+  min-height: 1em;
+  margin: 10px 2px 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* ------------------------------------------------------------------ gear */
+
+.inventory-page .inv-hint {
+  display: none;
+}
+
+/*
+ * Wide screens: the cards and the picked one's details side by side, as tall as each other, filling the screen under the
+ * tabs; with none picked, a line saying to pick one in the details' place.
+ */
+@media (min-width: 900px) {
+  .inventory-page .inv-gear,
+  .inventory-page .inv-craft {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 4fr);
+    gap: 20px;
+    height: max(520px, calc(100dvh - 72px - 48px - 108px));
+  }
+
+  .inventory-page .inv-list {
+    height: max(520px, calc(100dvh - 72px - 48px - 108px));
+    box-sizing: border-box;
+  }
+
+  .inventory-page .inv-gear > .armory,
+  .inventory-page .inv-craft > .armory,
+  .inventory-page .inv-list {
+    min-height: 0;
+  }
+
+  .inventory-page .inv-gear .armory-sheet,
+  .inventory-page .inv-craft .armory-sheet,
+  .inventory-page .inv-list .armory-sheet {
+    min-height: 0;
+  }
+
+  .inventory-page .inv-gear > .detail {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    padding: 0;
+    overflow: hidden;
+    animation: inv-detail-in 0.18s ease-out;
+  }
+
+  .inventory-page .inv-gear:not(.picking) > .inv-hint {
+    display: grid;
+    place-items: center;
+    margin: 0;
+    padding: 20px;
+    border: 1px dashed var(--line);
+    border-radius: 14px;
+    color: var(--muted);
+    text-align: center;
+  }
+}
+
+/* Narrow screens: the details' sheet is the shared one (items.css), laid out as the gear page's. */
+@media (max-width: 899px) {
+  .inventory-page .inv-gear > .detail {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+  }
+}
+
+.inventory-page .inv-gear > .detail[hidden] {
+  display: none;
+}
+
+@keyframes inv-detail-in {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .inventory-page .inv-gear > .detail {
+    animation: none;
+  }
+}
+
+/* ------------------------------------------------------------------ runes */
+
+.inventory-page .inv-runes {
+  color: var(--ink);
+}
+
+.inventory-page .inv-rune:first-child {
+  border-top: 0;
+}
+
+.inventory-page .inv-rune .inv-rune-parts {
+  font-size: 12px;
+  opacity: 0.65;
+}
+
+.inventory-page .inv-runes .rune-list-note {
+  margin: 12px 4px;
+}
+
+/* ------------------------------------------------------------------ others */
+
+.inventory-page .inv-group {
+  margin: 4px 2px 10px;
+  color: var(--ink);
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.inventory-page .inv-currencies + .inv-group {
+  margin-top: 22px;
+}
+
+.inventory-page .inv-currencies {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: 10px;
+}
+
+/* A tile: as the parchment's cards, a shade lighter than the sheet, edged in its ink. */
+.inventory-page .inv-currency,
+.inventory-page .inv-recipe-tile {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  background: linear-gradient(170deg, #fffaf0, #efe4c7);
+  box-shadow: 0 0 0 1px rgb(120 96 50 / 30%), 0 2px 4px rgb(120 96 50 / 18%);
+  color: var(--ink);
+}
+
+.inventory-page .inv-currency-pic,
+.inventory-page .inv-recipe-pic {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+}
+
+.inventory-page .inv-currency-pic img,
+.inventory-page .inv-recipe-pic img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.inventory-page .inv-currency-words,
+.inventory-page .inv-recipe-words {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.inventory-page .inv-currency-name,
+.inventory-page .inv-recipe-name {
+  font-weight: 700;
+}
+
+.inventory-page .inv-currency-about {
+  font-size: 12px;
+  line-height: 1.35;
+  opacity: 0.75;
+}
+
+.inventory-page .inv-currency-amount {
+  flex: none;
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+}
+
+.inventory-page .inv-currency.none .inv-currency-amount {
+  opacity: 0.45;
+}
+
+/* ------------------------------------------------------------------ craft */
+
+.inventory-page .inv-recipe-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.inventory-page .inv-recipe-tile {
+  width: 100%;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.inventory-page .inv-recipe-tile:hover {
+  border-color: rgb(212 169 79 / 55%);
+}
+
+.inventory-page .inv-recipe-tile[aria-selected='true'] {
+  border-color: var(--picked);
+  box-shadow: inset 0 0 14px var(--picked-glow), 0 0 0 1px rgb(120 96 50 / 30%);
+}
+
+.inventory-page .inv-recipe-cost {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+.inventory-page .inv-dust {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  vertical-align: -4px;
+}
+
+/* The recipe picked: in the site's dark panel, its picture big over what it takes. */
+.inventory-page .inv-recipe {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+  padding: 22px;
+  overflow-y: auto;
+  border-radius: 14px;
+  background: var(--frame-bg);
+  border: var(--frame-border);
+  box-shadow: var(--frame-shadow);
+}
+
+.inventory-page .inv-recipe-head {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding-bottom: 14px;
+  border-bottom: 2px solid var(--line);
+}
+
+.inventory-page .inv-recipe-pic.big {
+  width: 72px;
+  height: 72px;
+  padding: 8px;
+  border-radius: 12px;
+  background: linear-gradient(170deg, #fffaf0, #efe4c7);
+  box-sizing: border-box;
+}
+
+.inventory-page .inv-recipe-title {
+  margin: 0 0 4px;
+  color: var(--gold);
+  font-size: 22px;
+}
+
+.inventory-page .inv-recipe-about,
+.inventory-page .inv-recipe-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.inventory-page .inv-recipe-have,
+.inventory-page .inv-recipe-total {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin: 0;
+}
+
+.inventory-page .inv-recipe-total {
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.inventory-page .inv-amount {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.inventory-page .inv-step {
+  min-width: 44px;
+}
+
+.inventory-page .inv-amount-input {
+  width: 96px;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-2);
+  color: var(--text);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.inventory-page .inv-amount-input:focus {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+
+.inventory-page .inv-craft-go {
+  align-self: flex-start;
+  min-width: 200px;
+}
+
+/* Narrow screens: what to craft over the one picked. */
+@media (max-width: 899px) {
+  .inventory-page .inv-craft {
+    display: flex;
+    flex-direction: column;
+    gap: 34px;
+  }
+
+  .inventory-page .inv-craft-go {
+    align-self: stretch;
+  }
+}

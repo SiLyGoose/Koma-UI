@@ -12,8 +12,9 @@ import './header.css';
  * Databank are in the profile's drop-down instead (../../../site/session.ts).
  */
 const LINKS: readonly { label: string; href: string; route: string }[] = [
-  { label: 'Gear', href: '/gear/', route: '/gear' },
+  { label: 'Player', href: '/player/', route: '/player' },
   { label: 'Heroes', href: '/heroes/', route: '/heroes' },
+  { label: 'Inventory', href: '/inventory/', route: '/inventory' },
   { label: 'Shop', href: '/shop/', route: '/shop' },
 ];
 

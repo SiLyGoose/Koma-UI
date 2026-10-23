@@ -358,9 +358,9 @@ export function saleSaid(status: HTMLElement, sold: { count: number; earned: num
   const salvaged = (sold.powder ?? 0) > 0;
   status.append(`${salvaged ? 'Salvaged' : 'Sold'} ${sold.count} item${sold.count === 1 ? '' : 's'} for `, ...worth(salvaged ? (sold.powder ?? 0) : sold.earned, salvaged));
   if (salvaged) {
-    const shop = el('a', '', 'Raid Gear shop');
-    shop.href = '/shop/raid/';
-    status.append(' (craft komaGems from it in the ', shop, ')');
+    const craft = el('a', '', 'Craft');
+    craft.href = '/inventory/craft/';
+    status.append(' (craft komaGems from it in the Inventory’s ', craft, ')');
   }
 }
 
