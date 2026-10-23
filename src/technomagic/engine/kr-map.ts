@@ -160,9 +160,10 @@ void main() {
 
 /**
  * Reads the map in `folder` (its pictures too). `grounded`: nothing of it under the floor is drawn (a flat map's, made for
- * the game's camera alone, that ours sees under).
+ * the game's camera alone, that ours sees under). `apron`: its floor carried on toward the camera, mirrored at its front
+ * edge as the game tiles it along the field (a floor no deeper than the game's camera sees: ours, further back, sees past it).
  */
-export async function loadKrMap(folder: string, grounded = false): Promise<KrMap> {
+export async function loadKrMap(folder: string, grounded = false, apron = false): Promise<KrMap> {
   const response = await fetch(`${folder}/map.json`);
   if (!response.ok) throw new Error(`The map in ${folder} isn't on this computer`);
   const file = (await response.json()) as KrMapFile;
@@ -252,6 +253,23 @@ export async function loadKrMap(folder: string, grounded = false): Promise<KrMap
     // (It is seen from inside, and its parts far from its middle: never left out.)
     mesh.frustumCulled = false;
     map.add(mesh);
+  }
+  if (apron) {
+    // The floor: what lies flat on the ground. Its front is toward the game's camera (-z).
+    const flat = map.children.filter((mesh): mesh is Mesh => {
+      if (!(mesh instanceof Mesh)) return false;
+      mesh.geometry.computeBoundingBox();
+      const box = mesh.geometry.boundingBox;
+      return box !== null && box.min.y > -0.5 && box.max.y < 0.5;
+    });
+    const front = Math.min(...flat.map((mesh) => mesh.geometry.boundingBox?.min.z ?? 0));
+    for (const mesh of flat) {
+      const mirrored = mesh.clone();
+      mirrored.name = `${mesh.name} (apron)`;
+      mirrored.scale.z = -1;
+      mirrored.position.z = 2 * front;
+      map.add(mirrored);
+    }
   }
   return {
     map,

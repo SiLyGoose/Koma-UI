@@ -81,7 +81,7 @@ export interface Scenery {
    * upright there (radians: the game sees its maps from the other side); and the colour of the floor beyond its own (its
    * floor is no deeper than the game's camera sees: ours sees further).
    */
-  map?: { folder: string; at: readonly [number, number, number]; turn: number; floor: number; camera?: { look: number; fov: number }; grounded?: boolean; next?: number };
+  map?: { folder: string; at: readonly [number, number, number]; turn: number; floor: number; camera?: { look: number; fov: number }; grounded?: boolean; apron?: boolean; next?: number };
 }
 
 /** An effect a map has of its own (fog, sparks, a portal's glow), where it is on the field. */
@@ -266,8 +266,8 @@ export function makeStage(canvas: HTMLCanvasElement): Stage {
     },
     async dress(scenery) {
       if (scenery.map) {
-        const { folder, at, turn, floor: beyond, camera: own, grounded } = scenery.map;
-        const read = await loadKrMap(folder, grounded).catch((error: unknown) => {
+        const { folder, at, turn, floor: beyond, camera: own, grounded, apron } = scenery.map;
+        const read = await loadKrMap(folder, grounded, apron).catch((error: unknown) => {
           console.warn(error);
           return null;
         });
