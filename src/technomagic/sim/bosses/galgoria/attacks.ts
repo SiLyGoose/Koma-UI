@@ -1,10 +1,10 @@
 import type { BossAttack, BossMove } from '../boss';
 
 /**
- * Its M.ATK at each stage, as King's Raid's playtest builds it (its Galgoria raid, chapter 10's stages 1 to 8: its stats at
+ * Its M.ATK at each stage, as King's Raid's playtest builds it (its Galgoria raid, chapter 10's stages 1 to 9: its stats at
  * the stage's level, times its MonsterTierTable entry: KR-extracted/scripts/boss-stats.mjs). Its blows are shares of it.
  */
-export const KR_ATK = [4_515_117, 5_942_354, 8_184_999, 9_373_382, 13_161_563, 19_055_025, 23_048_231, 39_699_242];
+export const KR_ATK = [4_515_117, 5_942_354, 8_184_999, 9_373_382, 13_161_563, 19_055_025, 23_048_231, 39_699_242, 69_801_164];
 /** What a blow takes: `of` its ATK at stage 1 (how much of that each skill's blow takes is ./skills.ts). */
 const share = (of: number): readonly [number, number] => [of * (KR_ATK[0] as number), of * (KR_ATK[0] as number)];
 
