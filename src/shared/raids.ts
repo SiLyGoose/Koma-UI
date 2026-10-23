@@ -48,7 +48,7 @@ const GEMS: RaidReward = { kind: 'gems' };
 export const TM_LIST: RaidList = {
   game: 'technomagic',
   tip: 'Every win gives TechnoMagic gear of the boss’s own set, runes and zeiucoins, and komaGems the first time you clear a stage. There is no daily limit.',
-  rewardNote: 'TechnoMagic gear of its set (3 pieces at stages 1–3, 4 at 4–6, 5 at 7–8, each with its options and an additional effect), runes (better from the start than a dragon’s), and now and then an artifact. komaGems, the first time a stage is cleared: 5 at stages 1–3, 10 at 4–6, 20 at 7–8.',
+  rewardNote: 'TechnoMagic gear of its set (1 piece at stages 1–4, 2 at 5–7, 3 at 8, each with its options and an additional effect), runes (better from the start than a dragon’s), and now and then an artifact. komaGems, the first time a stage is cleared: 5 at stages 1–3, 10 at 4–6, 20 at 7–8.',
   cards: [
     {
       id: 'galgoria',
