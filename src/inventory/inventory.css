@@ -133,6 +133,8 @@
   flex-direction: column;
   min-height: 240px;
   max-height: 60dvh;
+  /* (The room around the slots: on the sheet, which doesn't scroll, so it stays as they scroll under it.) */
+  padding: 12px;
   overflow: hidden;
   border-radius: 6px;
   background: var(--inv-sheet);
@@ -141,8 +143,10 @@
     inset 0 4px 16px rgb(0 0 0 / 55%);
 }
 
+/* (Room only for a picked slot's ring and the keyboard's, which the scrolling would cut off.) */
 .inventory-page .inv-sheet .sheet-scroll {
-  padding: 8px;
+  padding: 3px;
+  margin-right: 0;
 }
 
 .inventory-page .inv-sheet .sheet-scroll::-webkit-scrollbar-thumb {
@@ -214,7 +218,7 @@
 }
 
 .inventory-page .inv-sheet .armory-grid {
-  gap: 6px;
+  gap: 8px;
 }
 
 /* A slot: King's Raid's, dark, framed in a darker line; an item in it on the slot's dark, not on parchment. */
