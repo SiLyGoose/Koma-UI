@@ -712,16 +712,27 @@ async function start(): Promise<void> {
         resync(at);
       }, RESYNC_WAIT * 1000);
     }
-    /** Fight `at` given again from the bot's: straight to where the bot's is (drawing only what stands on the field), once its presses have come. */
+    /**
+     * Fight `at` given again from the bot's: straight to where the bot's is (drawing only what stands on the field), once its
+     * presses have come. Reconnecting… stays up until it is seen in step with the bot's going on from there (synced).
+     */
     function catchUp(at: Lock): void {
       if (!at.catchUp || at.upTo === 0 || game?.lock !== at) return;
       at.catchUp = false;
       while (game.sim.tick < at.upTo - LAG && !game.sim.result) stepRoom(game.sim, at);
       game.view.skip();
       game.owed = 0;
-      if (lock === at && !at.resyncing) syncing.hidden = true;
+      at.confirmAfter = game.sim.sums.length;
+      at.confirming = true;
+    }
+    /** Fight `at`, given again, in step with the bot's past where it caught up (a checksum the bot's, or ended as the bot's did): Reconnecting… goes. */
+    function synced(at: Lock): void {
+      if (!at.confirming || at.resyncing) return;
+      at.confirming = false;
+      if (lock === at) syncing.hidden = true;
     }
     resyncRoom = resync;
+    syncedRoom = synced;
     const name = (id: string): string => state?.players.find((player) => player.id === id)?.name ?? 'Someone';
 
     const prep = makePrep({
@@ -936,7 +947,10 @@ async function start(): Promise<void> {
       sim.step();
       for (; at.checked < sim.sums.length; at.checked++) {
         const theirs = at.sums.get(at.checked + 1);
-        if (theirs !== undefined && theirs !== sim.sums[at.checked] && !at.parted) {
+        if (theirs === undefined) continue;
+        if (theirs === sim.sums[at.checked]) {
+          if (at.checked >= at.confirmAfter) synced(at);
+        } else if (!at.parted) {
           at.parted = true;
           // The bot's is the one that counts: it gives this page the fight again (its start and every press so far), to run again
           // from the start up to where the bot's is.
@@ -1121,6 +1135,8 @@ async function start(): Promise<void> {
   let stepLock: ((sim: Sim, lock: Lock) => void) | null = null;
   /** A room's fight out of step with the bot's: given again from the bot's, to run to where it is (set by room()). */
   let resyncRoom: (lock: Lock) => void = () => {};
+  /** That fight, given again, seen in step with the bot's: Reconnecting… goes (set by room()). */
+  let syncedRoom: (lock: Lock) => void = () => {};
   let onOver: (sim: Sim) => void = () => {};
   let overWaiting: () => OverView | null = () => null;
   let overShown: Sim | null = null;
@@ -1200,6 +1216,7 @@ async function start(): Promise<void> {
       const otherwise = atEnd && sim.result !== over.result;
       if ((stalled || otherwise) && !lock.lost) resyncRoom(lock);
       ended = (atEnd && (!otherwise || lock.lost)) || (stalled && lock.lost);
+      if (atEnd && !otherwise) syncedRoom(lock);
     }
     if (overShown !== sim && ended) {
       if (ending?.sim !== sim) {
@@ -1225,8 +1242,9 @@ async function start(): Promise<void> {
 /**
  * A room's fight as the bot tells it: which, up to which step, and what was pressed at which step (and its checksums, by second);
  * its checksums compared so far, and whether one parted from the bot's (said once). `catchUp`: given again from the bot's (out of
- * step with it), run straight to where the bot's is once its presses come; `resyncing`: out of step, waiting for it to come
- * again; `lost`: asked for again MOST_RESYNCS times, let be.
+ * step with it), run straight to where the bot's is once its presses come; `confirming`: so run, Reconnecting… up until a
+ * checksum past the seconds it caught up through (`confirmAfter`) is the bot's; `resyncing`: out of step, waiting for it to
+ * come again; `lost`: asked for again MOST_RESYNCS times, let be.
  */
 class Lock {
   upTo = 0;
@@ -1235,6 +1253,8 @@ class Lock {
   checked = 0;
   parted = false;
   catchUp = false;
+  confirming = false;
+  confirmAfter = 0;
   resyncing = false;
   lost = false;
   constructor(readonly start: FightStart) {}
