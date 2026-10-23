@@ -1481,148 +1481,162 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       return hash >>> 0;
     },
     step() {
-      // What the player did before this step.
-      const now = pending;
-      pending = [];
-      for (const input of now) apply(input);
+      // (Over: no more steps.)
       if (result) return;
-      // A raid's run up to the boss: the heroes run in and nothing else happens (a skill reserved meanwhile waits for it to be
-      // over); arrived, they are free to fight.
-      if (tick < marching) {
-        tick++;
-        lineUp(tick / marching);
-        if (tick === marching) for (const on of field) on.doing = null;
-        if (tick % SECOND === 0) sums.push(sim.checksum());
-        return;
-      }
-      const dt = TICK;
-      elapsed += dt;
-      aurasNow();
-
-      // Boss auto: once the boss has rested, another attack: the one it must use next; or, as King's Raid's bosses do, the first of
-      // its skills that is ready, else its plain attack; or (a boss that doesn't say what its plain attack is) one it may, at random.
-      idle = bossBusy() ? 0 : idle + dt;
-      if (bossAuto && !boss.away && moving <= 0 && idle >= (def.rest ?? AUTO_WAIT)) {
-        const forced = boss.part.next?.() ?? null;
-        const may = def.attacks.filter((one) => boss.part.ready?.(one.name) ?? true);
-        const basic = def.basic;
-        const skill = basic ? may.find((one) => !basic.includes(one.name))?.name : undefined;
-        const plain = basic ? basic[Math.floor(roll() * basic.length)] : (may[Math.floor(roll() * may.length)] ?? def.attacks[0])?.name;
-        bossUse(forced ?? skill ?? plain ?? '');
-      }
-
-      for (const fighter of fighters) {
-        // (Slower while something on it, or on every hero, holds its mana back.)
-        // (Faster for what the sets on the field give every ally.)
-        fighter.mana = Math.min(MAX_MANA, fighter.mana + fighter.manaRegen * dt * filling([...fighter.statuses, ...party], 1 + allied(fighter, 'mana')));
-        fighter.cooldowns = fighter.cooldowns.map((left) => Math.max(0, left - dt));
-        // What another hero gave it runs down: its shield, once its time is up, is gone.
-        wear(fighter.statuses, dt);
-        fighter.shieldLeft = Math.max(0, fighter.shieldLeft - dt);
-        if (fighter.shieldLeft <= 0) fighter.shield = 0;
-        skillTick(fighter, dt);
-        perkTick(fighter, dt);
-        setTick(fighter);
-        relics.get(fighter)?.tick(dt);
-        noting(passiveArt(fighter), () => asFighter(fighter, () => fighter.part.tick?.(dt)));
-        // Hope's wizard's: the ally who has dealt the most, once its time has come, deals more for good.
-        const top = setEffect(fighter).top;
-        if (top && elapsed >= top.after && elapsed - dt < top.after && field.includes(fighter) && fighter.hp > 0) {
-          const most = field.reduce<Fighter | null>((best, on) => (on.hp > 0 && (!best || on.dealt > best.dealt) ? on : best), null);
-          if (most) put(most.statuses, { name: `${SET_UP.top.name} ${fighter.index}`, left: Infinity, deals: 1 + top.dmg, shown: SET_UP.top });
-        }
-        if (result) return;
-      }
-      // What is on the boss and on the heroes for a while runs down.
-      for (const foe of foes) {
-        foe.slowed = Math.max(0, foe.slowed - dt);
-        foe.stunned = Math.max(0, foe.stunned - dt);
-        wear(foe.statuses, dt);
-      }
-      wear(party, dt);
-      if (!deathless) clock += dt;
-      as(boss, () => boss.part.tick?.(dt));
-      if (result) return;
-      // What the boss has given itself back, shown once a second rather than a number every step.
-      mendShown += dt;
-      if (mendShown >= 1) {
-        if (mended >= 1) events.push({ kind: 'number', on: 'boss', amount: mended, type: 'heal', mend: true });
-        mended = 0;
-        mendShown = 0;
-      }
-
-      // The boss flying off, then the heroes running on to the next wave: nothing else happens meanwhile; it gone, they
-      // set off; arrived, what is there comes onto the field.
-      if (lifting > 0 || moving > 0) {
-        if (lifting > 0) {
-          lifting = Math.max(0, lifting - dt);
-          if (lifting <= 0) nextWave();
-        } else {
-          moving = Math.max(0, moving - dt);
-          if (moving <= 0) arrive();
-        }
+      const from = tick;
+      stepOn();
+      // A step that ends the fight (the boss beaten, or given up) is one too, as one that doesn't: a page runs its fight to
+      // the step the bot's has got to, so it takes the step that ends it as well.
+      if (tick === from) {
         tick++;
         if (tick % SECOND === 0) sums.push(sim.checksum());
-        return;
       }
-
-      // Each hero on the field: the skill it was told to use (or, on Auto, the one Auto picked), as soon as it is free or only
-      // attacking (King's Raid's cuts the attack short); or else, free, its attack. (Not one that can do nothing for now.)
-      for (const on of field) {
-        on.rested = on.doing ? 0 : on.rested + dt;
-        // (On Auto: a pick every so often while it has none and isn't using a skill, or while its skills say Auto picks only
-        // from some. What Auto picked is let go once its cooldown has begun again or it may no longer be picked, or Auto is
-        // off; not for want of mana, which it waits for.)
-        on.autoWait = on.doing?.skill !== undefined && !on.part.autoOnly?.() ? 0 : on.autoWait + dt;
-        if (on.reserved !== null && on.autoPicked) {
-          const ability = sim.slot(on, on.reserved);
-          if (!on.auto || !ability || (on.cooldowns[on.reserved] as number) > 0 || !wanted(on, on.reserved, ability)) {
-            on.reserved = null;
-            on.autoWait = 0;
-          }
-        }
-        if (on.auto && on.reserved === null && on.autoWait >= AUTO.every) {
-          on.reserved = autoSkill(on);
-          on.autoPicked = true;
-          on.autoWait = 0;
-        }
-        // (A skill pressed while it can do nothing waits for it; and one pressed short of mana waits for the mana, the hero
-        // attacking meanwhile.)
-        if (on.reserved !== null && !sim.reservable(on, on.reserved) && !bound(on.statuses)) on.reserved = null;
-        if (on.hp > 0 && !bound(on.statuses)) {
-          if (on.reserved !== null && use(on, on.reserved)) on.reserved = null;
-          else if (!on.doing && on.rested >= (KR_HEROES[on.id]?.wait ?? HERO_WAIT) && targetOf(on)) begin(on, on.attack, null);
-        }
-      }
-
-      // The boss has just begun an attack (or been stunned): whom it goes for, this time.
-      const busy = bossBusy();
-      if (busy && !was) aim = anyone();
-      was = busy;
-      bossAdvance(dt);
-      if (result) return;
-      minionsAdvance(dt);
-      if (result) return;
-      // Each hero's move goes on (quickened by its attack speed, its own skills and what is on it), and each over to its spot.
-      const reform = Math.min(1, dt * REFORM);
-      for (const on of field) {
-        // (Its attack speed, all of it with what is on it and what quickens it, on King's Raid's curve: 1000 points as quick as it
-        // comes, never slower than SLOWEST. One whose passive has it steady: as it comes, whatever its attack speed or what is on it.)
-        const speed = (on.stats.speed + auras.speed + allied(on, 'speed') + adding(on.statuses, 'speed') + (on.part.speed?.() ?? 0)) * pacing(on.statuses, on.part.pace?.() ?? 1);
-        on.haste = on.def.passive?.steady ? 1 : Math.max(SLOWEST, curved(CURVE.speed, speed)) / POINTS;
-        advance(on, dt * on.haste);
-        if (result) return;
-        const [x, z] = spots.get(on) as readonly [number, number];
-        on.x += (x - on.x) * reform;
-        on.z += (z - on.z) * reform;
-      }
-
-      // Every hero on the field down, or wiped by the boss's rage: lost.
-      if (!deathless && ((field.length > 0 && field.every((on) => on.hp <= 0)) || clock >= raidTime + RAGE_WIPE)) end('lost');
-      tick++;
-      if (tick % SECOND === 0) sums.push(sim.checksum());
     },
   };
+
+  /** One step on (sim.step): it may end the fight partway, without moving the step on. */
+  function stepOn(): void {
+    // What the player did before this step.
+    const now = pending;
+    pending = [];
+    for (const input of now) apply(input);
+    if (result) return;
+    // A raid's run up to the boss: the heroes run in and nothing else happens (a skill reserved meanwhile waits for it to be
+    // over); arrived, they are free to fight.
+    if (tick < marching) {
+      tick++;
+      lineUp(tick / marching);
+      if (tick === marching) for (const on of field) on.doing = null;
+      if (tick % SECOND === 0) sums.push(sim.checksum());
+      return;
+    }
+    const dt = TICK;
+    elapsed += dt;
+    aurasNow();
+
+    // Boss auto: once the boss has rested, another attack: the one it must use next; or, as King's Raid's bosses do, the first of
+    // its skills that is ready, else its plain attack; or (a boss that doesn't say what its plain attack is) one it may, at random.
+    idle = bossBusy() ? 0 : idle + dt;
+    if (bossAuto && !boss.away && moving <= 0 && idle >= (def.rest ?? AUTO_WAIT)) {
+      const forced = boss.part.next?.() ?? null;
+      const may = def.attacks.filter((one) => boss.part.ready?.(one.name) ?? true);
+      const basic = def.basic;
+      const skill = basic ? may.find((one) => !basic.includes(one.name))?.name : undefined;
+      const plain = basic ? basic[Math.floor(roll() * basic.length)] : (may[Math.floor(roll() * may.length)] ?? def.attacks[0])?.name;
+      bossUse(forced ?? skill ?? plain ?? '');
+    }
+
+    for (const fighter of fighters) {
+      // (Slower while something on it, or on every hero, holds its mana back.)
+      // (Faster for what the sets on the field give every ally.)
+      fighter.mana = Math.min(MAX_MANA, fighter.mana + fighter.manaRegen * dt * filling([...fighter.statuses, ...party], 1 + allied(fighter, 'mana')));
+      fighter.cooldowns = fighter.cooldowns.map((left) => Math.max(0, left - dt));
+      // What another hero gave it runs down: its shield, once its time is up, is gone.
+      wear(fighter.statuses, dt);
+      fighter.shieldLeft = Math.max(0, fighter.shieldLeft - dt);
+      if (fighter.shieldLeft <= 0) fighter.shield = 0;
+      skillTick(fighter, dt);
+      perkTick(fighter, dt);
+      setTick(fighter);
+      relics.get(fighter)?.tick(dt);
+      noting(passiveArt(fighter), () => asFighter(fighter, () => fighter.part.tick?.(dt)));
+      // Hope's wizard's: the ally who has dealt the most, once its time has come, deals more for good.
+      const top = setEffect(fighter).top;
+      if (top && elapsed >= top.after && elapsed - dt < top.after && field.includes(fighter) && fighter.hp > 0) {
+        const most = field.reduce<Fighter | null>((best, on) => (on.hp > 0 && (!best || on.dealt > best.dealt) ? on : best), null);
+        if (most) put(most.statuses, { name: `${SET_UP.top.name} ${fighter.index}`, left: Infinity, deals: 1 + top.dmg, shown: SET_UP.top });
+      }
+      if (result) return;
+    }
+    // What is on the boss and on the heroes for a while runs down.
+    for (const foe of foes) {
+      foe.slowed = Math.max(0, foe.slowed - dt);
+      foe.stunned = Math.max(0, foe.stunned - dt);
+      wear(foe.statuses, dt);
+    }
+    wear(party, dt);
+    if (!deathless) clock += dt;
+    as(boss, () => boss.part.tick?.(dt));
+    if (result) return;
+    // What the boss has given itself back, shown once a second rather than a number every step.
+    mendShown += dt;
+    if (mendShown >= 1) {
+      if (mended >= 1) events.push({ kind: 'number', on: 'boss', amount: mended, type: 'heal', mend: true });
+      mended = 0;
+      mendShown = 0;
+    }
+
+    // The boss flying off, then the heroes running on to the next wave: nothing else happens meanwhile; it gone, they
+    // set off; arrived, what is there comes onto the field.
+    if (lifting > 0 || moving > 0) {
+      if (lifting > 0) {
+        lifting = Math.max(0, lifting - dt);
+        if (lifting <= 0) nextWave();
+      } else {
+        moving = Math.max(0, moving - dt);
+        if (moving <= 0) arrive();
+      }
+      tick++;
+      if (tick % SECOND === 0) sums.push(sim.checksum());
+      return;
+    }
+
+    // Each hero on the field: the skill it was told to use (or, on Auto, the one Auto picked), as soon as it is free or only
+    // attacking (King's Raid's cuts the attack short); or else, free, its attack. (Not one that can do nothing for now.)
+    for (const on of field) {
+      on.rested = on.doing ? 0 : on.rested + dt;
+      // (On Auto: a pick every so often while it has none and isn't using a skill, or while its skills say Auto picks only
+      // from some. What Auto picked is let go once its cooldown has begun again or it may no longer be picked, or Auto is
+      // off; not for want of mana, which it waits for.)
+      on.autoWait = on.doing?.skill !== undefined && !on.part.autoOnly?.() ? 0 : on.autoWait + dt;
+      if (on.reserved !== null && on.autoPicked) {
+        const ability = sim.slot(on, on.reserved);
+        if (!on.auto || !ability || (on.cooldowns[on.reserved] as number) > 0 || !wanted(on, on.reserved, ability)) {
+          on.reserved = null;
+          on.autoWait = 0;
+        }
+      }
+      if (on.auto && on.reserved === null && on.autoWait >= AUTO.every) {
+        on.reserved = autoSkill(on);
+        on.autoPicked = true;
+        on.autoWait = 0;
+      }
+      // (A skill pressed while it can do nothing waits for it; and one pressed short of mana waits for the mana, the hero
+      // attacking meanwhile.)
+      if (on.reserved !== null && !sim.reservable(on, on.reserved) && !bound(on.statuses)) on.reserved = null;
+      if (on.hp > 0 && !bound(on.statuses)) {
+        if (on.reserved !== null && use(on, on.reserved)) on.reserved = null;
+        else if (!on.doing && on.rested >= (KR_HEROES[on.id]?.wait ?? HERO_WAIT) && targetOf(on)) begin(on, on.attack, null);
+      }
+    }
+
+    // The boss has just begun an attack (or been stunned): whom it goes for, this time.
+    const busy = bossBusy();
+    if (busy && !was) aim = anyone();
+    was = busy;
+    bossAdvance(dt);
+    if (result) return;
+    minionsAdvance(dt);
+    if (result) return;
+    // Each hero's move goes on (quickened by its attack speed, its own skills and what is on it), and each over to its spot.
+    const reform = Math.min(1, dt * REFORM);
+    for (const on of field) {
+      // (Its attack speed, all of it with what is on it and what quickens it, on King's Raid's curve: 1000 points as quick as it
+      // comes, never slower than SLOWEST. One whose passive has it steady: as it comes, whatever its attack speed or what is on it.)
+      const speed = (on.stats.speed + auras.speed + allied(on, 'speed') + adding(on.statuses, 'speed') + (on.part.speed?.() ?? 0)) * pacing(on.statuses, on.part.pace?.() ?? 1);
+      on.haste = on.def.passive?.steady ? 1 : Math.max(SLOWEST, curved(CURVE.speed, speed)) / POINTS;
+      advance(on, dt * on.haste);
+      if (result) return;
+      const [x, z] = spots.get(on) as readonly [number, number];
+      on.x += (x - on.x) * reform;
+      on.z += (z - on.z) * reform;
+    }
+
+    // Every hero on the field down, or wiped by the boss's rage: lost.
+    if (!deathless && ((field.length > 0 && field.every((on) => on.hp <= 0)) || clock >= raidTime + RAGE_WIPE)) end('lost');
+    tick++;
+    if (tick % SECOND === 0) sums.push(sim.checksum());
+  }
 
   /** An input, as it counts (one that makes no sense, or only does when trying things out, in a raid: none). */
   function apply(input: Input): void {
