@@ -3,18 +3,24 @@ import { el, rich } from '../../shared/items';
 import { busyWith, type Busy, working } from '../../shared/ui';
 import { dust, points } from '../../shared/util';
 import { api, type ApiResult, loadMe } from '../../site/session';
-import type { RaidShopView } from '../../protocol/raid-shop';
+import type { CraftRecipe, RaidShopView } from '../../protocol/raid-shop';
 import type { InventoryHost, InventoryTab } from '../tab';
+import { TICKET_NAME, ticketPicture } from './tickets';
 
 /*
  * The inventory's Craft: what komaDust (what salvaging hero gear gives) can be made into, down the left, and the one picked
- * beside them: what one takes, what they have, how many to make (−, +, Max) and Craft. Only komaGems so far (the bot's POST
- * /api/raid-shop/craft, every `powderPerGem` of it a komaGem); a recipe is one entry in RECIPES.
+ * beside them: what one takes, what they have, how many to make (−, +, Max) and Craft. komaGems (every `powderPerGem` of it
+ * one), and Unique Weapon and Unique Treasure Tickets (every `powderPerSelector`, 10,000: one, held in Others until used:
+ * ./tickets.ts), all the bot's POST /api/raid-shop/craft; a recipe is one entry in RECIPES.
  */
 
 
 /** The most the bot makes in one go (its craft's `count`). */
 const MOST_AT_ONCE = 1000;
+
+/** The bot's craft (POST /api/raid-shop/craft) of `count` of `recipe`. */
+const craftOf = (host: InventoryHost, count: number, recipe: CraftRecipe): Promise<ApiResult<RaidShopView>> =>
+  api<RaidShopView>('/api/raid-shop/craft', { method: 'POST', body: JSON.stringify({ guild: host.server(), count, recipe }) });
 
 /** Something komaDust can be made into. */
 interface Recipe {
@@ -38,8 +44,19 @@ const RECIPES: readonly Recipe[] = [
     picture: () => rich(GEM_EMOJI),
     about: 'Spent in the Raid Gear shop, on transcending heroes and on rerolling TechnoMagic gear’s additional skill.',
     per: (shop) => shop.powderPerGem ?? null,
-    craft: (host, count) => api<RaidShopView>('/api/raid-shop/craft', { method: 'POST', body: JSON.stringify({ guild: host.server(), count }) }),
+    craft: (host, count) => craftOf(host, count, 'gem'),
   },
+  ...(['uw', 'ut'] as const).map(
+    (of): Recipe => ({
+      id: `${of}-selector`,
+      name: `${TICKET_NAME[of]} Ticket`,
+      plural: `${TICKET_NAME[of]} Tickets`,
+      picture: () => ticketPicture(of),
+      about: `A ${TICKET_NAME[of].toLowerCase()} of any hero’s, picked as you use it in the Others tab.`,
+      per: (shop) => shop.powderPerSelector ?? null,
+      craft: (host, count) => craftOf(host, count, of),
+    }),
+  ),
 ];
 
 export const craftTab: InventoryTab = {
@@ -194,7 +211,7 @@ export const craftTab: InventoryTab = {
       void host.load('heroes', true);
       count = 1;
       draw();
-      host.status(`Crafted ${points(n)} ${n === 1 ? recipe.name : recipe.plural}.`);
+      host.status(`Crafted ${points(n)} ${n === 1 ? recipe.name : recipe.plural}.${recipe.id === 'komagem' ? '' : ` Use ${n === 1 ? 'it' : 'them'} in the Others tab.`}`);
     }
 
     async function load(fresh = false): Promise<void> {

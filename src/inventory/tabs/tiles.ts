@@ -40,6 +40,8 @@ export interface Tile {
   note?: string;
   /** Searched besides its name. */
   words?: string;
+  /** A button under its details that does something with one (a ticket's Use), off while `off` says why. */
+  action?: { label: string; run(button: HTMLButtonElement): void; off?: string };
 }
 
 export interface TileGrid {
@@ -131,6 +133,15 @@ export function tileGrid(box: HTMLElement, sheet: HTMLElement, grid: HTMLElement
       body.append(el('p', 'detail-label', 'Effects'), list);
     }
     if (tile.note) body.append(el('p', 'detail-note', tile.note));
+    const { action } = tile;
+    if (action) {
+      const use = el('button', 'action main inv-tile-action', action.label);
+      use.type = 'button';
+      use.disabled = action.off !== undefined;
+      if (action.off) use.title = action.off;
+      use.addEventListener('click', () => action.run(use));
+      body.append(use);
+    }
     const scroll = el('div', 'detail-scroll');
     scroll.append(bar, top, body);
     detail.append(scroll);

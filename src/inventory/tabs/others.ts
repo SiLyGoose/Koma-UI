@@ -5,12 +5,14 @@ import { el, rich } from '../../shared/items';
 import { coin, dust } from '../../shared/util';
 import { KEPT } from '../../technomagic/assets/paths';
 import type { InventoryTab } from '../tab';
+import { TICKET_NAME, ticketPicture, useTicket, type TicketKind } from './tickets';
 import { type Tile, tileGrid, tileImage } from './tiles';
 
 /*
  * The inventory's Others: what they have that isn't gear, a slot each (./tiles.ts), how many in its corner: zeiucoins (the
- * header's), komaTokens (the gacha's), komaGems, komaDust and the hero essences (the heroes page's and the raid shop's);
- * picked, where it comes from and what it's for. The slots fill in as the bot's answers they're in come (a dash where one
+ * header's), komaTokens (the gacha's), komaGems, komaDust, the Unique Weapon and Unique Treasure Tickets crafted from it (the
+ * raid shop's: picked, Use gives the hero's item they pick, ./tickets.ts) and the hero essences (the heroes page's); picked,
+ * where it comes from and what it's for. The slots fill in as the bot's answers they're in come (a dash where one
  * couldn't be had).
  */
 
@@ -48,12 +50,13 @@ export const othersTab: InventoryTab = {
     );
 
     /** How many of each they hold (null: not known yet; undefined: couldn't be had). */
-    const held: Record<string, number | null | undefined> = { zeiucoins: host.balance() ?? undefined, tokens: null, gems: null, dust: null, ...Object.fromEntries(ESSENCES.map((id) => [id, null])) };
+    const held: Record<string, number | null | undefined> = { zeiucoins: host.balance() ?? undefined, tokens: null, gems: null, dust: null, uw: null, ut: null, ...Object.fromEntries(ESSENCES.map((id) => [id, null])) };
     const tiles = (): Tile[] => [
       { id: 'zeiucoins', name: 'zeiucoins', picture: boxed(() => coin('', '')), grade: 5, count: held.zeiucoins, kind: 'Currency', about: 'Claimed, won and earned in the games. Pulls, outfits and the forge spend them.' },
       { id: 'tokens', name: 'komaTokens', picture: boxed(() => rich(TOKEN_EMOJI)), grade: 4, count: held.tokens, kind: 'Currency', about: 'Each pays for one Wish pull, before any zeiucoins.' },
       { id: 'gems', name: 'komaGems', picture: boxed(() => rich(GEM_EMOJI)), grade: 3, count: held.gems, kind: 'Currency', about: 'From the Weekly Boss, Dragon Raid first clears and crafting. The Raid Gear shop and transcending heroes spend them.' },
-      { id: 'dust', name: 'komaDust', picture: boxed(() => dust('', '')), grade: 2, count: held.dust, kind: 'Material', about: 'From salvaging hero gear. Craft komaGems from it in the Craft tab.' },
+      { id: 'dust', name: 'komaDust', picture: boxed(() => dust('', '')), grade: 2, count: held.dust, kind: 'Material', about: 'From salvaging hero gear. Craft komaGems and Unique Weapon and Unique Treasure Tickets from it in the Craft tab.' },
+      ...(['uw', 'ut'] as const).map((of): Tile => ticket(of)),
       ...ESSENCES.map(
         (id: EssenceId): Tile => ({
           id,
@@ -73,6 +76,33 @@ export const othersTab: InventoryTab = {
         }),
       ),
     ];
+    /** A ticket's slot: picked, Use (one held) picks the hero's item it gives. */
+    const ticket = (of: TicketKind): Tile => {
+      const count = held[of];
+      return {
+        id: of,
+        name: `${TICKET_NAME[of]} Ticket`,
+        picture: () => ticketPicture(of),
+        full: true,
+        grade: 5,
+        count,
+        kind: 'Ticket',
+        about: `Crafted from komaDust in the Craft tab. Use it for a ${TICKET_NAME[of].toLowerCase()} of any hero’s, picked as you do.`,
+        words: of === 'uw' ? 'uw selector' : 'ut selector',
+        action: {
+          label: 'Use',
+          ...(typeof count !== 'number' || count < 1 ? { off: 'You have none: craft one from komaDust in the Craft tab.' } : {}),
+          run: (button) =>
+            void useTicket(host, of, button).then((shop) => {
+              if (!shop) return;
+              held.dust = shop.powder;
+              held.uw = shop.selectors?.uw;
+              held.ut = shop.selectors?.ut;
+              draw();
+            }),
+        },
+      };
+    };
     const draw = (): void => grid.draw(tiles());
     draw();
 
@@ -83,6 +113,8 @@ export const othersTab: InventoryTab = {
     });
     const shop = host.load('shop').then((res) => {
       held.dust = res.ok ? res.data.powder : undefined;
+      held.uw = res.ok ? res.data.selectors?.uw : undefined;
+      held.ut = res.ok ? res.data.selectors?.ut : undefined;
       draw();
     });
     const gacha = host.load('gacha').then((res) => {
