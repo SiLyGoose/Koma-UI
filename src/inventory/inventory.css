@@ -5,7 +5,7 @@
  * open under them. Player Gear and Hero Gear: a dark sheet of slots, the item cards in them (../shared/items/, their frames
  * King's Raid's grades), eight across on wide screens, and the cream bar under them with the search, the Filter and how many
  * there are; a picked one's details over the slots' right side (a sheet from the bottom on narrow screens, items.css). Runes
- * and Others: a list on the sheet. Craft: what to craft on the sheet, the one picked on the cream beside it.
+ * and Others: slots the same way, how many in each one's corner. Craft: what to craft on the sheet, the one picked on the cream beside it.
  * Everything is under .inventory-page, so it outweighs the shared styles whichever order the build links them in.
  */
 
@@ -199,8 +199,7 @@
 
 /* ------------------------------------------------------------------ gear */
 
-.inventory-page .inv-gear,
-.inventory-page .inv-list {
+.inventory-page .inv-gear {
   position: relative;
   display: flex;
   flex-direction: column;
@@ -244,7 +243,6 @@
 /* Wide screens: eight slots across, as the game's, filling the screen under the tabs; a picked one's details over the right of them. */
 @media (min-width: 900px) {
   .inventory-page .inv-gear,
-  .inventory-page .inv-list,
   .inventory-page .inv-craft {
     height: max(480px, calc(100dvh - 72px - 48px - 140px));
   }
@@ -313,62 +311,131 @@
   }
 }
 
-/* ------------------------------------------------------------------ runes */
+/* ------------------------------------------------------------------ slots (Runes, Others: ./tabs/tiles.ts) */
 
-.inventory-page .inv-runes {
+/* Its grade's colour (King's Raid's Equip_Grade frames): the frame's, and the details' top edge. */
+.inventory-page [data-grade='1'] { --tier: #f2f2f2; }
+.inventory-page [data-grade='2'] { --tier: #35e03f; }
+.inventory-page [data-grade='3'] { --tier: #2fd8ff; }
+.inventory-page [data-grade='4'] { --tier: #e43cff; }
+.inventory-page [data-grade='5'] { --tier: #ffe04a; }
+.inventory-page [data-grade='6'] { --tier: #ff8a1e; }
+
+.inventory-page .inv-tile[data-grade] {
+  border-width: 0;
+}
+
+/* Its picture in the middle, clear of the frame and the count. */
+.inventory-page .inv-tile-pic {
+  position: absolute;
+  inset: 12%;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
-  gap: 6px;
-  color: #e8e8ef;
+  place-items: center;
 }
 
-/* A rune: in a slot of its own, its picture, what it gives and how many. */
-.inventory-page .inv-rune {
-  padding: 8px 12px 8px 8px;
-  border-top: 0;
-  border-radius: 6px;
-  background: linear-gradient(170deg, #2c3846, var(--inv-slot));
-  box-shadow: inset 0 0 0 1px #3a4655;
+.inventory-page .inv-tile-pic img,
+.inventory-page .inv-tile-pic .inv-other-pic,
+.inventory-page .inv-tile-pic .inv-rune-pic {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
-.inventory-page .inv-rune .rune-pic {
-  width: 48px;
-  height: 48px;
-}
-
-.inventory-page .inv-rune .inv-rune-parts {
-  color: var(--muted);
-  font-size: 12px;
-}
-
-.inventory-page .inv-runes .rune-list-note {
-  grid-column: 1 / -1;
-  margin: 12px 4px;
-  color: var(--muted);
-}
-
-/* ------------------------------------------------------------------ others */
-
-.inventory-page .inv-group {
-  margin: 4px 2px 10px;
-  color: var(--gold);
-  font-size: 13px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.inventory-page .inv-currencies + .inv-group {
-  margin-top: 22px;
-}
-
-.inventory-page .inv-currencies {
+.inventory-page .inv-other-pic,
+.inventory-page .inv-rune-pic {
+  position: relative;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr));
-  gap: 6px;
+  place-items: center;
 }
 
-/* A tile: a slot, as an item's: its picture in a slot of its own, its name and what it's for, and how many. */
-.inventory-page .inv-currency,
+/* (komaGems and komaTokens are the bot's Discord emoji: as big as the slot's other pictures.) */
+.inventory-page .inv-other-pic > img,
+.inventory-page .inv-other-pic .emoji {
+  width: 82%;
+  height: 82%;
+  object-fit: contain;
+}
+
+/* A rune's kind's gem, on its top left corner. */
+.inventory-page .inv-rune-pic > .kr-rune {
+  position: absolute;
+  top: -4%;
+  left: -4%;
+  width: 22%;
+}
+
+/* The frame: King's Raid's, of its grade's colour, drawn as the gear's (../shared/items/styles/tier.css: its dark edge cut off). */
+.inventory-page .inv-tile-frame {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  border-radius: inherit;
+  background: url('/kr/ui/inventory/grade-1.webp') center / calc(100% * 64 / 49) calc(100% * 64 / 49) no-repeat;
+  pointer-events: none;
+}
+
+.inventory-page [data-grade='2'] > .inv-tile-frame { background-image: url('/kr/ui/inventory/grade-2.webp'); }
+.inventory-page [data-grade='3'] > .inv-tile-frame { background-image: url('/kr/ui/inventory/grade-3.webp'); }
+.inventory-page [data-grade='4'] > .inv-tile-frame { background-image: url('/kr/ui/inventory/grade-4.webp'); }
+.inventory-page [data-grade='5'] > .inv-tile-frame { background-image: url('/kr/ui/inventory/grade-5.webp'); }
+.inventory-page [data-grade='6'] > .inv-tile-frame { background-image: url('/kr/ui/inventory/grade-6.webp'); }
+
+/* How many: in the bottom right corner, white edged black, as the game's. */
+.inventory-page .inv-tile-count {
+  position: absolute;
+  z-index: 2;
+  right: 9%;
+  bottom: 6%;
+  color: #fff;
+  font-size: clamp(12px, 1.4vw, 18px);
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  line-height: 1;
+  text-shadow:
+    -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+    1px 1px 0 #000,
+    0 2px 3px rgb(0 0 0 / 70%);
+}
+
+.inventory-page .inv-tile.none .inv-tile-pic {
+  opacity: 0.4;
+  filter: grayscale(0.7);
+}
+
+.inventory-page .inv-tile.picked {
+  box-shadow: inset 0 0 0 2px var(--picked), inset 0 0 14px 5px var(--picked-glow);
+}
+
+/* In the details: big, and not a button. */
+.inventory-page .detail .inv-tile {
+  cursor: default;
+  opacity: 1;
+  filter: none;
+}
+
+.inventory-page .detail .inv-tile-count {
+  font-size: 18px;
+}
+
+.inventory-page .inv-held {
+  margin: 4px 0 0;
+  color: var(--muted);
+}
+
+.inventory-page .inv-held b {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* (Others' bar has only a line.) */
+.inventory-page .inv-bar > .inv-count:only-child {
+  margin: 0;
+  font-weight: 600;
+}
+
+/* A recipe's tile (Craft): a slot, its picture in a slot of its own, its name and what one takes. */
 .inventory-page .inv-recipe-tile {
   display: flex;
   gap: 12px;
@@ -382,7 +449,6 @@
   color: #e8e8ef;
 }
 
-.inventory-page .inv-currency-pic,
 .inventory-page .inv-recipe-pic {
   display: grid;
   flex: none;
@@ -395,14 +461,12 @@
   border-image: url('/kr/ui/inventory/slot.webp') 20 fill / 8px;
 }
 
-.inventory-page .inv-currency-pic img,
 .inventory-page .inv-recipe-pic img {
   width: 100%;
   height: 100%;
   object-fit: contain;
 }
 
-.inventory-page .inv-currency-words,
 .inventory-page .inv-recipe-words {
   display: flex;
   flex: 1 1 auto;
@@ -411,29 +475,8 @@
   min-width: 0;
 }
 
-.inventory-page .inv-currency-name,
 .inventory-page .inv-recipe-name {
   font-weight: 700;
-}
-
-.inventory-page .inv-currency-about {
-  color: var(--muted);
-  font-size: 12px;
-  line-height: 1.35;
-}
-
-/* How many: white, edged dark, as the game's counts. */
-.inventory-page .inv-currency-amount {
-  flex: none;
-  color: #fff;
-  font-size: 18px;
-  font-variant-numeric: tabular-nums;
-  font-weight: 800;
-  text-shadow: 0 1px 0 #000;
-}
-
-.inventory-page .inv-currency.none .inv-currency-amount {
-  opacity: 0.4;
 }
 
 /* ------------------------------------------------------------------ craft */

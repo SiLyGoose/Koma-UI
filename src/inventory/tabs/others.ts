@@ -1,47 +1,28 @@
 import { GEM_EMOJI } from '../../forge/anvil/gem';
-import { ESSENCE_NAME, ESSENCES } from '../../protocol/heroes';
+import { ESSENCE_NAME, ESSENCES, type EssenceId } from '../../protocol/heroes';
 import { built } from '../../shared/built';
 import { el, rich } from '../../shared/items';
-import { coin, dust, points } from '../../shared/util';
+import { coin, dust } from '../../shared/util';
 import { KEPT } from '../../technomagic/assets/paths';
 import type { InventoryTab } from '../tab';
+import { type Tile, tileGrid, tileImage } from './tiles';
 
 /*
- * The inventory's Others: what they have that isn't gear, a tile each on parchment: zeiucoins (the header's), komaTokens (the
- * gacha's), komaGems, komaDust and the hero essences (the heroes page's and the raid shop's), each with where it comes from and
- * what it's for. Each tile fills in as the bot's answer it's in comes (a dash where it couldn't be had).
+ * The inventory's Others: what they have that isn't gear, a slot each (./tiles.ts), how many in its corner: zeiucoins (the
+ * header's), komaTokens (the gacha's), komaGems, komaDust and the hero essences (the heroes page's and the raid shop's);
+ * picked, where it comes from and what it's for. The slots fill in as the bot's answers they're in come (a dash where one
+ * couldn't be had).
  */
-
 
 /** komaTokens, as the bot writes them (its constants/core.ts TOKEN_EMOJI). */
 const TOKEN_EMOJI = '<:zeiutoken:1552921364489572362>';
 
-/** One tile: its picture, name, amount (null: not known yet; undefined: couldn't be had) and a line on it. */
-function tile(picture: Node, name: string, about: string): { box: HTMLElement; set(amount: number | null | undefined): void } {
-  const box = el('div', 'inv-currency');
-  const pic = el('span', 'inv-currency-pic');
-  pic.append(picture);
-  const amount = el('span', 'inv-currency-amount', '…');
-  const words = el('span', 'inv-currency-words');
-  words.append(el('span', 'inv-currency-name', name), el('span', 'inv-currency-about', about));
-  box.append(pic, words, amount);
-  return {
-    box,
-    set(n) {
-      amount.textContent = n === null ? '…' : n === undefined ? '—' : points(n);
-      box.classList.toggle('none', n === 0);
-    },
-  };
-}
-
-/** An essence's picture (as the heroes page's ../../heroes/transcend.ts essencePicture, without the raid's heroes it reads). */
-function essenceImage(id: string): HTMLImageElement {
-  const img = el('img');
-  img.src = built(`${KEPT}/transcend/essences/${id}.png`);
-  img.alt = '';
-  img.loading = 'lazy';
-  return img;
-}
+/** A picture made by `make`, in a box that fills its slot. */
+const boxed = (make: () => Node): (() => Node) => () => {
+  const box = el('span', 'inv-other-pic');
+  box.append(make());
+  return box;
+};
 
 export const othersTab: InventoryTab = {
   id: 'others',
@@ -49,40 +30,59 @@ export const othersTab: InventoryTab = {
   uses: ['heroes', 'shop', 'gacha'],
   mount(root, host) {
     root.innerHTML = `
-      <div class="inv-list">
+      <div class="inv-gear inv-tiles">
         <div class="inv-sheet">
-          <div class="sheet-scroll">
-            <h3 class="inv-group">Currencies</h3>
-            <div class="inv-currencies" data-group="money"></div>
-            <h3 class="inv-group">Hero Essences</h3>
-            <div class="inv-currencies" data-group="essences"></div>
-          </div>
+          <div class="sheet-scroll"><div class="armory-grid"></div></div>
         </div>
+        <div class="inv-bar">
+          <p class="inv-count">Currencies and hero essences. Pick one to see where it comes from.</p>
+        </div>
+        <div class="detail" role="dialog" aria-label="Item" hidden></div>
       </div>`;
-    const money = root.querySelector('[data-group="money"]') as HTMLElement;
-    const essenceBox = root.querySelector('[data-group="essences"]') as HTMLElement;
+    const grid = tileGrid(
+      root.querySelector('.inv-gear') as HTMLElement,
+      root.querySelector('.sheet-scroll') as HTMLElement,
+      root.querySelector('.armory-grid') as HTMLElement,
+      root.querySelector('.detail') as HTMLElement,
+      'Nothing here yet.',
+    );
 
-    const coins = tile(coin('inv-currency-img', ''), 'zeiucoins', 'Claimed, won and earned in the games. Pulls, outfits and the forge spend them.');
-    const tokens = tile(rich(TOKEN_EMOJI), 'komaTokens', 'Each pays for one Wish pull, before any zeiucoins.');
-    const gems = tile(rich(GEM_EMOJI), 'komaGems', 'From the Weekly Boss, Dragon Raid first clears and crafting. The Raid Gear shop and transcending spend them.');
-    const powder = tile(dust('inv-currency-img', ''), 'komaDust', 'From salvaging hero gear. Craft komaGems from it.');
-    money.append(coins.box, tokens.box, gems.box, powder.box);
-    const essences = ESSENCES.map((id) => {
-      const one = tile(essenceImage(id), `${ESSENCE_NAME[id]} Essence`, 'From the Weekly Boss and the Dragon Raid. Transcending heroes spends it.');
-      essenceBox.append(one.box);
-      return [id, one] as const;
-    });
-
-    coins.set(host.balance() ?? undefined);
-    for (const one of [tokens, gems, powder]) one.set(null);
-    for (const [, one] of essences) one.set(null);
+    /** How many of each they hold (null: not known yet; undefined: couldn't be had). */
+    const held: Record<string, number | null | undefined> = { zeiucoins: host.balance() ?? undefined, tokens: null, gems: null, dust: null, ...Object.fromEntries(ESSENCES.map((id) => [id, null])) };
+    const tiles = (): Tile[] => [
+      { id: 'zeiucoins', name: 'zeiucoins', picture: boxed(() => coin('', '')), grade: 5, count: held.zeiucoins, kind: 'Currency', about: 'Claimed, won and earned in the games. Pulls, outfits and the forge spend them.' },
+      { id: 'tokens', name: 'komaTokens', picture: boxed(() => rich(TOKEN_EMOJI)), grade: 4, count: held.tokens, kind: 'Currency', about: 'Each pays for one Wish pull, before any zeiucoins.' },
+      { id: 'gems', name: 'komaGems', picture: boxed(() => rich(GEM_EMOJI)), grade: 3, count: held.gems, kind: 'Currency', about: 'From the Weekly Boss, Dragon Raid first clears and crafting. The Raid Gear shop and transcending heroes spend them.' },
+      { id: 'dust', name: 'komaDust', picture: boxed(() => dust('', '')), grade: 2, count: held.dust, kind: 'Material', about: 'From salvaging hero gear. Craft komaGems from it in the Craft tab.' },
+      ...ESSENCES.map(
+        (id: EssenceId): Tile => ({
+          id,
+          name: `${ESSENCE_NAME[id]} Essence`,
+          // (As the heroes page's ../../heroes/transcend.ts essencePicture, without the raid's heroes it reads.)
+          picture: () => tileImage(built(`${KEPT}/transcend/essences/${id}.png`)),
+          grade: 4,
+          count: held[id],
+          kind: 'Hero Essence',
+          about: 'From the Weekly Boss and the Dragon Raid. Transcending heroes spends it.',
+        }),
+      ),
+    ];
+    const draw = (): void => grid.draw(tiles());
+    draw();
 
     const heroes = host.load('heroes').then((res) => {
-      gems.set(res.ok ? res.data.gems : undefined);
-      for (const [id, one] of essences) one.set(res.ok ? (res.data.essences[id] ?? 0) : undefined);
+      held.gems = res.ok ? res.data.gems : undefined;
+      for (const id of ESSENCES) held[id] = res.ok ? (res.data.essences[id] ?? 0) : undefined;
+      draw();
     });
-    const shop = host.load('shop').then((res) => powder.set(res.ok ? res.data.powder : undefined));
-    const gacha = host.load('gacha').then((res) => tokens.set(res.ok ? res.data.tokens : undefined));
-    return { drawn: Promise.all([heroes, shop, gacha]).then(() => undefined), unmount: () => undefined };
+    const shop = host.load('shop').then((res) => {
+      held.dust = res.ok ? res.data.powder : undefined;
+      draw();
+    });
+    const gacha = host.load('gacha').then((res) => {
+      held.tokens = res.ok ? res.data.tokens : undefined;
+      draw();
+    });
+    return { drawn: Promise.all([heroes, shop, gacha]).then(() => undefined), unmount: () => grid.destroy() };
   },
 };
