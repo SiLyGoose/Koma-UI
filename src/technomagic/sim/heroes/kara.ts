@@ -20,8 +20,9 @@ import { type Ability, bookDmg, CLASS_STATS, dmg, type HeroDef, type Passive, pl
  * What is drawn for each, and what her body does, are King's Raid's own (../../assets/heroes/kara.ts).
  *
  * Her own perks (../perks.ts) are King's Raid's. Release Siege Weapon's Light and Essence's Light (one enemy) always hold.
- * Anti-personnel Laser's Dark (the boss's mana) and Optical Lens's Siege Laser blocks ignored do nothing here. Her perks of
- * Anti-personnel Laser and Wide-area Cannon are Siege Laser's and Focused Fire's too, as their words say.
+ * Anti-personnel Laser's Dark (the boss's mana) does nothing here; Optical Lens has Siege Laser's blow pass the boss's blocks
+ * (Scalaxia blocks magic). Her perks of Anti-personnel Laser and Wide-area Cannon are Siege Laser's and Focused Fire's too,
+ * as their words say.
  */
 /** Anti-personnel Laser: each of its four blows, how long each knocks the boss back; its last blow and how long it knocks the boss down. */
 const LASER = { blow: played('mechanic', 1205, 40_774), back: 0.5, last: played('mechanic', 2410, 81_548), down: 3 };
@@ -49,6 +50,9 @@ const UT = {
   power: { dmg: 0.5, defense: 0.01, most: [20, 24, 29, 35, 42, 50] },
   drawing: { more: 0.5, critDamage: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5] },
 };
+
+/** Optical Lens's Siege Laser on the boss, for its one blow: none of its blocks (Scalaxia blocks magic). */
+const LENS_MARK = 'Optical Lens - MF002: Siege Laser';
 
 const art = skillArt('kara');
 
@@ -143,13 +147,14 @@ export const KARA: HeroDef = {
     })),
     treasure('Recording Device KARA-00XX', (k) => ({
       words: `[Wide-area Cannon] Increases DMG by ${pct(UT.recorder.dmg)} and reduces ATK Spd of the target by ${k(UT.recorder.slow)} for ${UT.recorder.lasts} sec. [Focused Fire] Reduces Cooldown by ${pct(k(UT.recorder.sooner))} upon a Crit Hit and recovers ${UT.recorder.mana} Mana.`,
-      skill: { index: 1, dmg: 1 + UT.recorder.dmg, slow: { points: k(UT.recorder.slow), lasts: UT.recorder.lasts } },
+      // (Its slow is Wide-area Cannon's own, put on as its first blow lands: a slow of the skill's slot would be Focused Fire's too.)
+      skill: { index: 1, dmg: 1 + UT.recorder.dmg },
     })),
     treasure('Ancient Power Source', (k) => ({
       words: `[Release Siege Weapon] Increases DMG by ${pct(UT.power.dmg)} and decreases the target's M.DEF by ${pct(UT.power.defense)} upon a Crit Hit. M.DEF Reduction Effect can be stacked up to ${k(UT.power.most)} times.`,
     })),
     treasure('Drawing of Ancient Research', (k) => ({
-      words: `[Essence of Technomagic] Increases ATK and DEF boost by ${pct(UT.drawing.more)}. Crit DMG of self is increased by ${pct(k(UT.drawing.critDamage))}.`,
+      words: `[Essence of Technomagic] Increases DEF Boost by ${pct(UT.drawing.more)} and own Crit DMG by ${pct(k(UT.drawing.critDamage))}.`,
       bonus: { critDamage: k(UT.drawing.critDamage) },
     })),
   ],
@@ -219,7 +224,7 @@ export const KARA: HeroDef = {
           for (let i = 0; i < 2; i++) {
             const critical = strike(SIEGE.blow * powered * (self.perks.has('s3-light') ? 2 : 1));
             if (!critical) continue;
-            if (self.perks.has('s3-dark')) self.cooldowns = self.cooldowns.map((left, j) => Math.max(0, left - (self.abilities[j]?.cooldown ?? 0) * PERKS.sooner));
+            if (self.perks.has('s3-dark')) self.cooldowns = self.cooldowns.map((left, j) => Math.max(0, left - ((siege ? siegeSkills[j] : self.abilities[j])?.cooldown ?? 0) * PERKS.sooner));
             if (wearsTreasure(self, 2) && lowered < fromTreasure(self, 2, UT.power.most)) {
               lowered++;
               put(fight.foe.statuses, { name: 'Ancient Power Source', left: Infinity, count: lowered, defends: { magical: 1 - UT.power.defense * lowered }, shown: 'curse' });
@@ -232,18 +237,22 @@ export const KARA: HeroDef = {
           fight.stun(part < 4 ? LASER.back : LASER.down, { down: true, by: self });
           if (critical && self.perks.has('s1-light')) self.mana = Math.min(MAX_MANA, self.mana + PERKS.mana);
         },
-        // Four blows that stun the boss (its Light: longer).
-        barrage() {
+        // Four blows that stun the boss (its Light: longer; Recording Device: its attacks slowed, as the first lands).
+        barrage(part) {
           strike(CANNON.blow);
           fight.stun(CANNON.stun + (self.perks.has('s2-light') ? PERKS.stun : 0), { by: self });
+          if (part === 0 && wearsTreasure(self, 1)) fight.slow(fromTreasure(self, 1, UT.recorder.slow), UT.recorder.lasts);
         },
-        // A great blow, its crits harder (Anti-personnel Laser's Light: harder still; Optical Lens: harder).
+        // A great blow, its crits harder (Anti-personnel Laser's Light: harder still; Optical Lens: harder, and past the boss's blocks).
         sieglaser() {
+          const lens = wearsTreasure(self, 0);
           put(self.statuses, { name: 'Siege Laser', left: 0.01, critDamage: SIEGE_LASER.critDamage, shown: SIEGED });
+          if (lens) put(fight.foe.statuses, { name: LENS_MARK, left: 0.01, blocks: { physical: -Infinity, magical: -Infinity }, shown: 'curse' });
           strike(SIEGE_LASER.blow * (self.perks.has('s1-light') ? PERKS.laser : 1) * (1 + fromTreasure(self, 0, UT.lens.dmg)));
           self.statuses = self.statuses.filter((status) => status.name !== 'Siege Laser');
+          if (lens) fight.foe.statuses = fight.foe.statuses.filter((status) => status.name !== LENS_MARK);
         },
-        // Three blows, each a stack of Focused Fire (its Light: two), each stack every blow harder (Recording Device: a critical one, its cooldown shorter and mana).
+        // Three blows, each a stack of Focused Fire (its Light: two), each stack every blow harder (Recording Device: a critical one, a share of its cooldown off and mana).
         focused() {
           for (let i = 0; i < FOCUSED.each; i++) {
             const critical = strike(FOCUSED.blow + FOCUSED.stack * focused);
@@ -251,7 +260,7 @@ export const KARA: HeroDef = {
             focusLeft = FOCUSED.lasts;
             put(fight.foe.statuses, { name: 'Focused Fire', left: FOCUSED.lasts, count: focused, shown: 'curse' });
             if (critical && wearsTreasure(self, 1)) {
-              self.cooldowns[1] = (self.cooldowns[1] ?? 0) * (1 - fromTreasure(self, 1, UT.recorder.sooner));
+              self.cooldowns[1] = Math.max(0, (self.cooldowns[1] ?? 0) - (siegeSkills[1]?.cooldown ?? 0) * fromTreasure(self, 1, UT.recorder.sooner));
               self.mana = Math.min(MAX_MANA, self.mana + UT.recorder.mana);
             }
           }

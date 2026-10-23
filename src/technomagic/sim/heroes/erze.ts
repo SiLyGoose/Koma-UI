@@ -23,8 +23,9 @@ import { type Ability, bookDmg, CLASS_STATS, dmg, type HeroDef, indexed, type Pa
  * Her unique weapon (../unique.ts) is worked here too: each blow of her skills a stack, each her ATK and attack speed higher.
  * What is drawn for each is ../../heroes/erze/fx.ts; what her body does for each, and for her attack, ../../heroes/erze/moves.ts.
  *
- * Her own perks (../perks.ts) are King's Raid's. Life Drinker's Dark does nothing here (it is for an enemy killed), nor
- * its Light's more max HP for one: only its smaller cut to her max HP.
+ * Her own perks (../perks.ts) and unique treasures are live King's Raid's, as krinfo has them (its legacy). Life Drinker's
+ * Dark does nothing here (it is for an enemy killed), nor its Light's more max HP for one: only its smaller cut to her max
+ * HP. (Sweet Blood's Dark is irremovable as the game says: it is hers alone to keep count of, nothing can take it.)
  */
 // (How hard each of her skills hits is the King's Raid Index's, at her class's ATK: ./kit.ts's indexed.)
 /** Sweet Blood: its blow, the share of what it deals she steals, how much shorter its cooldown is for the hit; its stacks, and the blows more at the most. */
@@ -35,8 +36,8 @@ const SOAK = { lasts: 5, after: 5, most: 6, blow: indexed('assassin', 76_974), p
 const LIBERATION = { lasts: 10, every: 1, blow: indexed('assassin', 40_404) };
 /** Life Drinker: her max HP lower by this share once it has spared her. */
 const DRINKER = { cut: 0.4 };
-/** Her own perks' numbers: Sweet Blood's Light and Dark, Soaking Blood's Light, Blood Liberation's Light, Life Drinker's Light, and Transcend 5's Dark. */
-const PERKS = { mana: 150, sweeter: { more: 0.1, most: 30 }, stun: 3, liberated: 75, cut: 0.33, last: 0.25 };
+/** Her own perks' numbers: Sweet Blood's Light and Dark, Soaking Blood's Light, Blood Liberation's Light, Life Drinker's Light, and Transcend 5's Dark (what it steals, and her ATK for each stack of Sweet Blood). */
+const PERKS = { mana: 150, sweeter: { more: 0.1, most: 30 }, stun: 3, liberated: 150, cut: 0.33, last: { steals: 0.25, atk: 0.1 } };
 
 /**
  * Her unique treasures' numbers (1★ to 5★: ../treasures.ts): Sweet Blood's cheaper and more P.DMG taken for each blow (up
@@ -66,7 +67,7 @@ const LIFE_DRINKER: Passive = {
   },
   words: `Increases ATK by 4212 and Max HP by 21076 upon killing an enemy. Stacks up to max 50. Upon taking fatal DMG, casts [Soaking Blood], and decreases Max HP by ${pct(DRINKER.cut)}. This effect is not applied when [Soaking Blood] is in cooldown. This skill consumes all Mana upon activation.`,
 };
-/** Sweet Blood's stacks, Soaking Blood on her: shown on her card. */
+/** Sweet Blood's stacks (Transcend 5's Dark: her ATK higher for each), Soaking Blood on her: shown on her card. */
 const SWEETENED: Buff = { name: 'Sweet Blood', about: `At ${SWEET.most}, [Sweet Blood] strikes more.`, icon: '🩸', art: art(0) };
 const SOAKED: Buff = { name: 'Soaking Blood', about: 'Nothing touches her, and she can’t be knocked down.', icon: '🛡️', art: art(1) };
 const LIBERATED: Buff = { name: 'Blood Liberation', about: 'Blows every second.', icon: '🌹', art: art(2) };
@@ -131,15 +132,15 @@ export const ERZE: HeroDef = {
   ],
   perks: {
     's1-light': { words: `Recovers ${PERKS.mana} Mana every hit.` },
-    's1-dark': { words: `Each use increases DMG by ${pct(PERKS.sweeter.more)}. Stacks ${PERKS.sweeter.most} times max.` },
+    's1-dark': { words: `Each use increases DMG by ${pct(PERKS.sweeter.more)}. This effect can be stacked up to max ${PERKS.sweeter.most} times and is irremovable.` },
     's2-light': { words: `Stuns the target for ${PERKS.stun} sec upon hit.` },
     's2-dark': said({ skill: { index: 1, cost: -1 } }, ({ skill }) => `Mana cost is reduced by ${-skill.cost}.`),
-    's3-light': { words: `Recovers ${PERKS.liberated} Mana every hit.` },
+    's3-light': { words: `Changes Mana Recovery per hit to ${PERKS.liberated}.` },
     's3-dark': said({ skill: { index: 2, cost: 1, dmg: 2 } }, ({ skill }) => `Mana cost is increased by ${skill.cost} orb but DMG is boosted by ${pct(skill.dmg - 1)}.`),
     's4-light': { words: `Increases Max HP by 100% upon killing an enemy and changes the Max HP reduction after auto-casting [Soaking Blood] to ${pct(PERKS.cut)}.` },
     's4-dark': { words: 'Increases ATK by 200% upon killing an enemy, but Max HP boost does not apply.' },
     't5-light': t5Light({ crit: 100 }, ({ crit }) => `Crit Chance +${crit}`),
-    't5-dark': { words: `Steals HP equal to ${pct(PERKS.last)} of DMG dealt by the final normal attack and gains 1 stack of [Sweet Blood].` },
+    't5-dark': { words: `Lifesteals HP equal to ${pct(PERKS.last.steals)} of DMG dealt by the final normal attack and gains 1 stacks of [Sweet Blood]. Increases ATK by ${pct(PERKS.last.atk)} per stack of [Sweet Blood].` },
   },
   attack: 'drain',
   join(fight, self) {
@@ -156,6 +157,12 @@ export const ERZE: HeroDef = {
     let greedLeft = 0;
     const tier = self.unique?.tier ?? null;
 
+    /** Sweet Blood's stacks now so many: on her (Transcend 5's Dark: her ATK higher for each). */
+    const sweeten = (to: number): void => {
+      sweet = to;
+      if (sweet <= 0) self.statuses = self.statuses.filter((status) => status.name !== SWEETENED.name);
+      else put(self.statuses, { name: SWEETENED.name, left: Infinity, count: sweet, ...(self.perks.has('t5-dark') && { atk: PERKS.last.atk * sweet }), shown: SWEETENED });
+    };
     /** A blow of hers that steals a share of what it deals (none: none), and (a skill's) a stack of her unique weapon's. */
     const drink = (amount: number, steals: number, skill: boolean, counted = true): boolean => {
       const before = self.dealt;
@@ -182,8 +189,8 @@ export const ERZE: HeroDef = {
     const attack = (amount: number): void => {
       // (Transcend 5's Dark: the last blow of her attack, its only one, steals HP, and a stack of Sweet Blood.)
       const final = self.perks.has('t5-dark');
-      drink(amount, final ? PERKS.last : 0, false);
-      if (final) sweet = Math.min(SWEET.most, sweet + 1);
+      drink(amount, final ? PERKS.last.steals : 0, false);
+      if (final) sweeten(Math.min(SWEET.most, sweet + 1));
       if (soakStacks > 0 && soaking > 0) soakStacks = Math.min(SOAK.most, soakStacks + 1);
     };
 
@@ -207,7 +214,7 @@ export const ERZE: HeroDef = {
             if (self.perks.has('s1-light')) self.mana = Math.min(MAX_MANA, self.mana + PERKS.mana);
             self.cooldowns[0] = Math.max(0, (self.cooldowns[0] ?? 0) - SWEET.sooner);
           }
-          sweet = full ? 0 : sweet + 1;
+          sweeten(full ? 0 : sweet + 1);
         },
         soak,
         // Blood Liberation: begun (its blows come every second, of themselves).
@@ -265,7 +272,6 @@ export const ERZE: HeroDef = {
         return true;
       },
       lit: () => sweet >= SWEET.most,
-      buffs: () => [...(sweet > 0 ? [{ ...SWEETENED, count: sweet }] : [])],
       marks: (): Mark[] => (soakStacks > 0 && soaking > 0 ? [{ text: `Soaking Blood ×${soakStacks} ${Math.ceil(soaking)}s`, tone: 'curse', art: art(1), count: `×${soakStacks}` }] : []),
     };
   },

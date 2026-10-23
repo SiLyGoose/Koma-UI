@@ -21,8 +21,10 @@ import { CODED } from './moves';
  * raises their ATK for a while.
  * What is drawn for each is ../../heroes/oddy/fx.ts; what her body does for each, and for her attack, ../../heroes/oddy/moves.ts.
  *
- * Her own perks (../perks.ts) are King's Raid's. Time Fragments' Light does nothing here (there is only the boss to
- * hit), nor Time Distortion's Dark (there are never 5 enemies). Its Light fills every ally's mana.
+ * Her own perks (../perks.ts) are King's Raid's. Time Fragments' Light and Time Distortion's Dark are for many
+ * enemies: against the boss alone they do nothing, but in a Dragon Raid's wave of minions each blow of Time Fragments
+ * strikes another at random too, and with 5 or more standing Time Distortion hits twice as hard and leaves each of them
+ * taking more. Time Distortion's Light fills every ally's mana.
  */
 // (How hard each of her skills hits is the King's Raid Index's, at her class's ATK: ./kit.ts's indexed.)
 const FRACTURE = { blow: indexed('mechanic', 76_654), petrify: 3 };
@@ -32,8 +34,12 @@ const FRAGMENTS = { hits: CODED.fragments.lands.length, blow: indexed('mechanic'
 const DISTORTION = { blow: indexed('mechanic', 317_788), speed: 250, lasts: 15, cooldowns: 0.5 };
 /** Clock Magic: how many of her attacks after a skill deal more, how much (at ATK), their chance to petrify the boss (for `petrify` seconds), and how often at most. */
 const CLOCK = { attacks: 2, blow: indexed('mechanic', 174_785), chance: 0.3, petrify: 3, every: 1 };
-/** Her own perks' numbers: Time Fragments' Dark (its cooldown less for each attack), Clock Magic's more attacks and chance, and Transcend 5's Dark (every so often, so many allies' cooldowns less). */
-const PERKS = { fragments: 1, attacks: 3, chance: 0.4, ticking: { every: 10, allies: 4, less: 1 } };
+/**
+ * Her own perks' numbers: Time Fragments' Light (how many enemies each blow strikes) and Dark (its cooldown less for each
+ * attack), Time Distortion's Dark (with so many enemies, its DMG and what each it hits takes, for a while), Clock Magic's
+ * more attacks and chance, and Transcend 5's Dark (every so often, so many allies' cooldowns less).
+ */
+const PERKS = { targets: 2, fragments: 1, crowd: { many: 5, dmg: 2, takes: 1.5, lasts: 10 }, attacks: 3, chance: 0.4, ticking: { every: 10, allies: 4, less: 1 } };
 
 /**
  * Her unique treasures' numbers (1★ to 5★: ../treasures.ts): the mana Time Fracture would take (the boss has none); Time
@@ -127,13 +133,13 @@ export const ODDY: HeroDef = {
   perks: {
     's1-light': said({ skill: { index: 0, dmg: 1.4 } }, ({ skill }) => `DMG is increased by ${pct(skill.dmg - 1)}.`),
     's1-dark': said({ skill: { index: 0, cooldown: -1.5 } }, ({ skill }) => `Cooldown is reduced by ${-skill.cooldown} sec.`),
-    's2-light': { words: 'Target changes to 2 random enemies.' },
+    's2-light': { words: `Target changes to ${PERKS.targets} random enemies.` },
     's2-dark': { words: `While in cooldown, auto-attacks will reduce the cooldown of 'Time Fragments' by ${PERKS.fragments} sec.` },
     's3-light': said({ skill: { index: 2, cost: 2 } }, ({ skill }) => `Increases Mana Cost by ${skill.cost} and fully recovers Mana for all allies.`),
-    's3-dark': { words: 'When there are 5 or more enemies, increases DMG by 100%. Hit Enemies take extra 50% DMG for 10 sec.' },
+    's3-dark': { words: `When there are ${PERKS.crowd.many} or more enemies, increases DMG by ${pct(PERKS.crowd.dmg - 1)}. Hit Enemies take extra ${pct(PERKS.crowd.takes - 1)} DMG for ${PERKS.crowd.lasts} sec.` },
     's4-light': { words: `Changes the instances of gaining extra DMG from using the skill to ${PERKS.attacks} times.` },
     's4-dark': { words: `Changes the chance to Petrify to ${pct(PERKS.chance)}.` },
-    't5-light': t5Light({ speed: 100 }, ({ speed }) => `ATK.Spd +${speed}`),
+    't5-light': t5Light({ speed: 100 }, ({ speed }) => `ATK Spd +${speed}`),
     't5-dark': { words: `Every ${PERKS.ticking.every} sec, any skills on cooldown for ${PERKS.ticking.allies} random allies have their cooldowns reduced by ${PERKS.ticking.less} sec.` },
   },
   attack: 'chime',
@@ -148,8 +154,9 @@ export const ODDY: HeroDef = {
     const attacks = self.perks.has('s4-light') ? PERKS.attacks : CLOCK.attacks;
     const chance = self.perks.has('s4-dark') ? PERKS.chance : CLOCK.chance;
 
-    /** The heroes on the field and standing. */
+    /** The heroes on the field and standing; the enemies standing. */
     const allies = () => fight.field.filter((ally) => ally.hp > 0);
+    const standing = () => fight.foes.filter((foe) => foe.hp > 0 && !foe.away);
 
     return {
       lands: {
@@ -172,12 +179,21 @@ export const ODDY: HeroDef = {
           fight.hit(self, FRACTURE.blow);
           fight.stun(FRACTURE.petrify, { by: self });
         },
+        // A blow (its Light: on another enemy at random too, when there is one).
         fragments() {
           fight.hit(self, FRAGMENTS.blow);
+          if (!self.perks.has('s2-light')) return;
+          const others = standing().filter((foe) => foe !== fight.foe);
+          for (let n = 1; n < PERKS.targets && others.length > 0; n++) {
+            const [other] = others.splice(Math.floor(fight.roll() * others.length), 1);
+            if (other) fight.on(other, () => fight.hit(self, FRAGMENTS.blow));
+          }
         },
-        // A blow; every ally quicker, and what is left of their cooldowns halved (not hers for it); with her unique weapon, less again, and their ATK higher.
+        // A blow (its Dark: with many enemies, twice as hard, and each taking more after); every ally quicker, and what is left of their cooldowns halved (not hers for it); with her unique weapon, less again, and their ATK higher.
         distortion() {
-          fight.hit(self, DISTORTION.blow);
+          const crowd = self.perks.has('s3-dark') && standing().length >= PERKS.crowd.many;
+          fight.hit(self, DISTORTION.blow * (crowd ? PERKS.crowd.dmg : 1));
+          if (crowd) for (const foe of standing()) fight.on(foe, () => put(fight.foe.statuses, { name: 'Time Distortion', left: PERKS.crowd.lasts, takes: PERKS.crowd.takes, shown: 'curse' }));
           const less = tier === null ? 0 : atTier(TEMPODIANA.cooldown, tier);
           for (const ally of allies()) {
             put(ally.statuses, { name: DISTORTED.name, left: DISTORTION.lasts, pace: 1 + share(DISTORTION.speed), shown: DISTORTED });

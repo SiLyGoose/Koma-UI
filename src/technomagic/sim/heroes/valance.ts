@@ -1,4 +1,3 @@
-import { share } from '../combat/damage';
 import { away, put, type Status } from '../combat/status';
 import { said, t5Light } from '../perks';
 import { fromTreasure, treasure, wearsTreasure } from '../treasures';
@@ -25,10 +24,10 @@ import { CODED } from './moves';
  * Her unique weapon (../unique.ts) is worked here too: every ally gains by the TechnoMagic gear it wears.
  * What is drawn for each is ../../heroes/valance/fx.ts; what her body does for each, and for her attack, ../../heroes/valance/moves.ts.
  *
- * Her own perks (../perks.ts) are King's Raid's. Ultimate Laser Cannon's Light does nothing here: there is nothing on
- * the boss to dispel. What her passive's give, and Transcend 5's Dark, last while she is on the field, as it does;
- * Transcend 5's Dark stacks once for each piece of TechnoMagic gear she wears. Transcend 5's Light's ATK Spd +10% is
- * 100 points (1000: 100%).
+ * Her own perks (../perks.ts) and unique treasures are live King's Raid's, as krinfo has them (its legacy). Ultimate
+ * Laser Cannon's Light dispels what helps the boss as the cannon is used. What her passive's give, and Transcend 5's
+ * Dark, last while she is on the field, as it does; Transcend 5's Dark stacks once for each piece of TechnoMagic gear
+ * she wears, and its less taken adds up with her passive's Light's, as King's Raid's DMG Reduction does.
  */
 // (How hard each of his skills hits: the King's Raid Index hasn't him, so ×2.91 what it was, as the other mechanics' went to theirs from it; how much each heals, ×0.69, likewise.)
 const HOLOGRAM = { lasts: 15, atk: 0.2, crit: 0.2, heal: 13_840, cooldown: 0.2 };
@@ -39,9 +38,10 @@ const CANNON = { blow: 11_640, stun: 3, lasers: CODED.cannon.lands.length - 1, l
 const AWAKENING = { defense: 1.2, mana: 1.3, atk: 0.1, boss: 0.15 };
 /**
  * Her own perks' numbers: how many allies her Hologram is on, and its crit DMG; the field's less taken and attack speed
- * (points); her passive's less taken and more to the boss; and Transcend 5's Dark's for each piece of TechnoMagic gear.
+ * (points); her passive's less taken (a share off) and more to the boss; and Transcend 5's Dark's for each piece of
+ * TechnoMagic gear.
  */
-const PERKS = { holograms: 2, critDamage: 0.5, fieldTaken: 0.75, fieldSpeed: 300, taken: 0.7, boss: 0.15, piece: 0.025 };
+const PERKS = { holograms: 2, critDamage: 0.5, fieldTaken: 0.75, fieldSpeed: 300, taken: 0.3, boss: 0.15, piece: 0.025 };
 
 /**
  * Her unique treasures' numbers (1★ to 5★: ../treasures.ts): the Hologram's more DMG to the boss and its more cooldown
@@ -50,7 +50,7 @@ const PERKS = { holograms: 2, critDamage: 0.5, fieldTaken: 0.75, fieldSpeed: 300
  */
 const UT = {
   device: { dmg: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25], cooldown: 0.5 },
-  tea: { block: [200, 240, 280, 340, 420, 500] },
+  tea: { block: [200, 240, 290, 350, 420, 500] },
   sincerity: { cooldown: [2, 3, 4, 5, 6, 7], most: 10 },
   failure: { heals: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25] },
 };
@@ -126,7 +126,7 @@ export const VALANCE: HeroDef = {
   passive: AWAKENED,
   treasures: [
     treasure('Formula Input Device', (k) => ({
-      words: `[Hologram] The effect additionally increases DMG dealt to Non-Hero enemies by ${pct(k(UT.device.dmg))} and the target's Cooldown Reduction by ${pct(UT.device.cooldown)}.`,
+      words: `[Prototype - VA] [Hologram] The effect additionally increases DMG dealt to Non-Hero enemies by ${pct(k(UT.device.dmg))} and the target's Cooldown Reduction by ${pct(UT.device.cooldown)}.`,
     })),
     treasure('A Moment of Tea', (k) => ({
       words: `[Absolute Protection Field - LA] Dispels negative effects from self upon use. For the duration of [Violet Force Field], increases the target's All Block Chance by ${k(UT.tea.block)}.`,
@@ -145,14 +145,13 @@ export const VALANCE: HeroDef = {
     's1-dark': { words: `[Hologram] additionally increases Crit DMG by ${pct(PERKS.critDamage)}.` },
     's2-light': { words: `[Violet Force Field] additionally reduces DMG taken by ${pct(1 - PERKS.fieldTaken)}.` },
     's2-dark': { words: `[Violet Force Field] additionally increases ATK Spd by ${PERKS.fieldSpeed}.` },
-    's3-light': { words: 'Dispels positive effects from the hit target.' },
+    's3-light': said({ skill: { index: 2, dispel: true } }, () => 'Dispels positive effects from the hit target.'),
     's3-dark': said({ skill: { index: 2, cost: -1 } }, ({ skill }) => `Reduces Mana Cost by ${-skill.cost}.`),
-    's4-light': { words: `Reduces DMG all allies take by ${pct(1 - PERKS.taken)} in Technomagic Kingdom.` },
+    's4-light': { words: `Reduces DMG all allies take by ${pct(PERKS.taken)} in Technomagic Kingdom.` },
     's4-dark': { words: `Additionally increases all allies' DMG dealt to Bosses by ${pct(PERKS.boss)} in Technomagic Kingdom.` },
-    // (Its ATK Spd +10%, as the game says it: 100 points, 10 to 1%.)
-    't5-light': t5Light({ speed: 100 }, ({ speed }) => `ATK Spd +${pct(share(speed))}`),
+    't5-light': t5Light({ speed: 100 }, ({ speed }) => `ATK Spd +${speed}`),
     't5-dark': {
-      words: `Reduces all DMG all allies take by ${fine(PERKS.piece)} and increases All DMG all enemies take by ${fine(PERKS.piece)}. This effect can be stacked up to the number of Technomagic Gear equipped to self.`,
+      words: `Reduces All DMG all allies take by ${fine(PERKS.piece)} and increases All DMG all enemies take by ${fine(PERKS.piece)}. This effect can be stacked up to the number of Technomagic Gear equipped to self.`,
     },
   },
   attack: 'bolt',
@@ -183,7 +182,7 @@ export const VALANCE: HeroDef = {
     const tmPieces = (ally: Fighter): number => Object.values(ally.skills).reduce((sum: number, n) => sum + (n ?? 0), 0);
     /** What her passive gives every ally, with her perks: less taken (its Light, and Transcend 5's Dark), and more to the boss (its Dark). */
     const pieces = self.perks.has('t5-dark') ? tmPieces(self) : 0;
-    const taken = (self.perks.has('s4-light') ? PERKS.taken : 1) * (1 - PERKS.piece * pieces);
+    const taken = 1 - (self.perks.has('s4-light') ? PERKS.taken : 0) - PERKS.piece * pieces;
     const boss = AWAKENING.boss + (self.perks.has('s4-dark') ? PERKS.boss : 0);
 
     return {
@@ -219,7 +218,7 @@ export const VALANCE: HeroDef = {
           // (Its Light: less taken; its Dark: quicker.)
           // (A Moment of Tea: their block higher.)
           const tea = fromTreasure(self, 1, UT.tea.block);
-          const more = { ...(self.perks.has('s2-light') && { takes: PERKS.fieldTaken }), ...(self.perks.has('s2-dark') && { pace: 1 + share(PERKS.fieldSpeed) }), ...(tea > 0 && { blocks: { physical: tea, magical: tea } }) };
+          const more = { ...(self.perks.has('s2-light') && { takes: PERKS.fieldTaken }), ...(self.perks.has('s2-dark') && { speed: PERKS.fieldSpeed }), ...(tea > 0 && { blocks: { physical: tea, magical: tea } }) };
           for (const ally of on) put(ally.statuses, { name: FIELDED.name, left: FIELD.lasts, defends: FIELD.defense, ...more, guards: true, shown: FIELDED });
           field = FIELD.lasts;
           fieldTick = 0;

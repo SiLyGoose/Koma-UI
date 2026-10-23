@@ -22,8 +22,8 @@ import { bookDmg, bookHeal, CLASS_STATS, dmg, healed, type HeroDef, type Passive
  * What is drawn for each, and what her body does, are King's Raid's own (../../assets/heroes/mirianne.ts; the playtest has
  * no effects of hers).
  *
- * Her own perks (../perks.ts) are King's Raid's. Target Lock On's Light (one enemy) always holds. Transcend 5's Dark
- * comes as a blow of hers beats a minion of the raid's waves.
+ * Her own perks (../perks.ts) and unique treasures are live King's Raid's, as krinfo has them (its legacy). Target Lock On's
+ * Light (one enemy) always holds. Transcend 5's Dark comes as a blow of hers beats a minion of the raid's waves.
  */
 /** Target Lock On: each of its three blows, its stun, and its blow more on one under [Target Lock On]; [Target Lock On]'s more magic damage taken, for how long. */
 const LOCK = { blow: played('assassin', 1148, 39_054), stun: 0.6, more: played('assassin', 689, 65_023), takes: 1.2, lasts: 10 };
@@ -33,8 +33,8 @@ const RESTRAIN = { blow: played('assassin', 3572, 122_105), stun: 1.2, shield: p
 const ASSASSIN = { blow: played('assassin', 5703, 195_069), boss: played('assassin', 8554, 292_499) };
 /** Target Eliminated: her ATK more (flat, its books' half again) while an enemy is under [Target Lock On]. */
 const ELIMINATED = { atk: 52_573, books: 1.5 };
-/** Her own perks' numbers: Target Lock On's Dark's longer stun; Restrain's Dark's longer stuns; Assassination's Light's stun; Target Eliminated's Light's crit chance and Dark's less taken; Transcend 5's Dark's share off her cooldowns. */
-const PERKS = { lock: 0.6, restrain: 1.2, guard: 2, stun: 1, crit: 300, taken: 0.12, sooner: 0.5 };
+/** Her own perks' numbers: Target Lock On's Dark's longer stun; Restrain's Dark's longer stuns (its own and [Check & Guard]'s); Assassination's Light's stun; Target Eliminated's Light's crit chance and Dark's less taken; Transcend 5's Dark's share off her cooldowns. */
+const PERKS = { lock: 1, restrain: 2, stun: 1, crit: 400, taken: 0.3, sooner: 0.5 };
 
 /**
  * Her unique treasures' numbers (1★ to 5★: ../treasures.ts; King's Raid's own): Target Lock On's more DMG and lower M.Crit
@@ -123,11 +123,12 @@ export const MIRIANNE: HeroDef = {
     's1-light': said({ skill: { index: 0, dmg: 2 } }, ({ skill }) => `When there is 1 enemy, DMG is boosted by ${pct(skill.dmg - 1)}.`),
     's1-dark': { words: `Stun duration is increased by ${PERKS.lock} sec.` },
     's2-light': said({ skill: { index: 1, steady: true } }, () => 'Gain CC immunity while using said skill.'),
-    's2-dark': { words: `Stun duration is increased by ${PERKS.restrain} sec ([Check & Guard]: ${PERKS.guard} sec).` },
-    's3-light': { words: `Dispels target's positive effects and inflicts Stun for ${PERKS.stun} sec.` },
+    's2-dark': { words: `Stun duration is increased by ${PERKS.restrain} sec.` },
+    // (What helps the boss is gone as she uses it; its stun, as her blow lands.)
+    's3-light': said({ skill: { index: 2, dispel: true } }, () => `Dispels target's positive effects and inflicts Stun for ${PERKS.stun} sec.`),
     's3-dark': said({ skill: { index: 2, dmg: 1.4 } }, ({ skill }) => `DMG is increased by ${pct(skill.dmg - 1)}.`),
-    's4-light': { words: `When there is an enemy affected by 'Target Lock On', Crit Chance is increased by ${PERKS.crit}.` },
-    's4-dark': { words: `When there is an enemy affected by 'Target Lock On', DMG taken is reduced by ${pct(PERKS.taken)}.` },
+    's4-light': { words: `When there is an enemy inflicted by 'Target Lock On', Crit Chance is increased by ${PERKS.crit}.` },
+    's4-dark': { words: `Receives ${pct(PERKS.taken)} reduced DMG when enemy is inflicted by 'Target Lock On'.` },
     't5-light': t5Light({ critDamage: 0.2 }, ({ critDamage }) => `Crit DMG +${pct(critDamage)}`),
     't5-dark': { words: `Upon killing an enemy, all skill cooldown is reduced by ${pct(PERKS.sooner)}, and recovers 1 orb of mana.` },
   },
@@ -159,9 +160,9 @@ export const MIRIANNE: HeroDef = {
       return critical;
     };
     /** Restrain and Protect's (and [Check & Guard]'s) blow and stun (its Dark: longer). */
-    const restrain = (longer: number): void => {
+    const restrain = (): void => {
       strike(RESTRAIN.blow);
-      fight.stun(RESTRAIN.stun + (self.perks.has('s2-dark') ? longer : 0), { by: self });
+      fight.stun(RESTRAIN.stun + (self.perks.has('s2-dark') ? PERKS.restrain : 0), { by: self });
     };
     /** Her allies on the field, standing and in the fight (her too). */
     const allies = (): Fighter[] => fight.field.filter((ally) => ally.hp > 0 && !away(ally.statuses));
@@ -180,7 +181,7 @@ export const MIRIANNE: HeroDef = {
         },
         // A blow that stuns the boss; a shield on her and the ally that has dealt the most, their CC resist higher.
         restrain() {
-          restrain(PERKS.restrain);
+          restrain();
           const top = allies().filter((ally) => ally !== self).sort((a, b) => b.dealt - a.dealt)[0];
           const on = top ? [self, top] : [self];
           fight.cue(self, 'restrain', on);
@@ -189,16 +190,16 @@ export const MIRIANNE: HeroDef = {
             put(ally.statuses, { name: GUARD.name, left: RESTRAIN.lasts, resist: RESTRAIN.resist, shown: GUARD });
           }
         },
-        // A great blow, and a blow more on a Non-Hero enemy (its Light: a stun; Magic Powder of Lightning: a critical one, ATK); on a boss, [Check & Guard].
+        // A great blow, and a blow more on a Non-Hero enemy (its Light: a stun; Magic Powder of Lightning: a critical one of them, ATK); on a boss, [Check & Guard].
         assassinate(part) {
           if (part > 0) {
-            if (fight.foe === fight.boss) restrain(PERKS.guard);
+            if (fight.foe === fight.boss) restrain();
             return;
           }
           const critical = strike(ASSASSIN.blow);
-          strike(ASSASSIN.boss);
+          const more = strike(ASSASSIN.boss);
           if (self.perks.has('s3-light')) fight.stun(PERKS.stun, { by: self });
-          if (critical && wearsTreasure(self, 2)) put(self.statuses, { name: POWDER.name, left: UT.powder.lasts, atk: fromTreasure(self, 2, UT.powder.atk), shown: POWDER });
+          if ((critical || more) && wearsTreasure(self, 2)) put(self.statuses, { name: POWDER.name, left: UT.powder.lasts, atk: fromTreasure(self, 2, UT.powder.atk), shown: POWDER });
         },
       },
       tick(dt) {

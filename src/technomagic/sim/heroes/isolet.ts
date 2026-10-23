@@ -2,7 +2,7 @@ import { away, put } from '../combat/status';
 import { said, t5Light } from '../perks';
 import { MAX_MANA } from '../rules';
 import { fromTreasure, treasure, wearsTreasure } from '../treasures';
-import { pct, skillArt, type Buff } from '../shown';
+import { fine, pct, skillArt, type Buff } from '../shown';
 import { atTier, TERRAVION, TERRAVION_UP } from '../unique';
 import { bookDmg, CLASS_STATS, dmg, type HeroDef, type Passive, played } from './kit';
 
@@ -21,8 +21,9 @@ import { bookDmg, CLASS_STATS, dmg, type HeroDef, type Passive, played } from '.
  * her DMG is higher (up to 6 times).
  * What is drawn for each, and what her body does, are King's Raid's own (../../assets/heroes/isolet.ts).
  *
- * Her own perks (../perks.ts) are King's Raid's. Devion's Light (the boss's mana) does nothing here. Transcend 5's Dark's
- * one enemy holds while the boss stands alone.
+ * Her own perks (../perks.ts) and unique treasures are live King's Raid's, as krinfo has them (its legacy). Devion's Light
+ * (the boss's mana) does nothing here, nor Card of Peace's [Explosive Reaction] past blocks (nothing here blocks a physical
+ * blow). Transcend 5's Dark's one enemy holds while the boss stands alone.
  */
 const IGNITE = 'Ignite';
 /** Devouring Flame: its blow; [Ignite]'s healing less, for how long. */
@@ -43,9 +44,9 @@ const PERKS = { takes: 1.25, longer: 5, reaction: 1.6, heals: 0.025, boss: 0.01,
  */
 const UT = {
   certificate: { heals: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25] },
-  card: { dmg: [0.2, 0.24, 0.28, 0.35, 0.42, 0.5] },
+  card: { dmg: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5] },
   bracelet: { slow: 300, takes: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25], lasts: 5 },
-  compass: { reactions: 5, storms: 1, critDamage: [0.2, 0.24, 0.28, 0.35, 0.42, 0.5] },
+  compass: { reactions: 5, storms: 1, critDamage: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5] },
 };
 
 const art = skillArt('isolet');
@@ -103,16 +104,16 @@ export const ISOLET: HeroDef = {
   ],
   passive: ESSENCE_SHOWN,
   treasures: [
-    treasure('With Association Certificate', (k) => ({
-      words: `[Devouring Flame Caienne] Dispels positive effects from enemies within range and additionally reduces their Heal Rate by ${pct(k(UT.certificate.heals))} upon inflicted [Ignite].`,
+    treasure('Witch Association Certificate', (k) => ({
+      words: `[Devouring Flame – Caienne] Dispels positive effects from enemies within range and additionally reduces their Heal Rate by ${pct(k(UT.certificate.heals))} upon inflicting [Ignite].`,
       skill: { index: 0, dispel: true },
     })),
     treasure('Card of Peace: Serenity', (k) => ({
-      words: `[Frost of Absolute Zero - Devion] Increases DMG by ${pct(k(UT.card.dmg))} and the additional DMG from [Explosive Reaction] ignores the target's Block effects`,
+      words: `[Frost of Absolute Zero – Devion] Increases DMG by ${pct(k(UT.card.dmg))} and the additional DMG from [Explosive Reaction] ignores the target's Block effects.`,
       skill: { index: 1, dmg: 1 + k(UT.card.dmg) },
     })),
     treasure('Bracelet of Wishes', (k) => ({
-      words: `[Raging Storm - Icarus] Reduces ATK Spd of enemies within range by ${UT.bracelet.slow} for the duration and increases P.DMG the enemies hit with [Blazing Storm] take by ${pct(k(UT.bracelet.takes))} for ${UT.bracelet.lasts} sec.`,
+      words: `[Raging Storm – Icarus] Reduces ATK Spd of enemies within range by ${UT.bracelet.slow} for the duration and increases P.DMG the enemies hit with [Blazing Storm] take by ${pct(k(UT.bracelet.takes))} for ${UT.bracelet.lasts} sec.`,
     })),
     treasure('Celestial Compass', (k) => ({
       words: `[Quintessence of Technomagic] Increases the max number of stacks of [Explosive Reaction] by ${UT.compass.reactions} and the max number of stacks of [Blazing Storm] by ${UT.compass.storms}. Increases Crit DMG by ${pct(k(UT.compass.critDamage))}.`,
@@ -125,7 +126,7 @@ export const ISOLET: HeroDef = {
     's2-light': { words: 'Each hit reduces enemy’s Mana by 200.' },
     's2-dark': { words: `Increases DMG of [Explosive Reaction] by ${pct(PERKS.reaction - 1)} instead of freezing enemies.` },
     's3-light': said({ skill: { index: 2, cost: -1 } }, ({ skill }) => `Reduces Mana Cost by ${-skill.cost}.`),
-    's3-dark': { words: `Changes the Heal Rate Reduction effect of [Blazing Storm] to ${pct(PERKS.heals)}.` },
+    's3-dark': { words: `Changes the Heal Rate Reduction effect of [Blazing Storm] to ${fine(PERKS.heals)}.` },
     's4-light': { words: `Additionally increases DMG dealt to non-Hero enemies by ${pct(PERKS.boss)} upon creating [Explosive Reaction].` },
     's4-dark': { words: `Additionally increases Heal Rate by ${pct(PERKS.healing)} upon creating [Blazing Storm].` },
     't5-light': t5Light({ crit: 100 }, ({ crit }) => `Crit Chance +${crit}`),

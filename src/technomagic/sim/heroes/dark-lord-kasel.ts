@@ -21,10 +21,12 @@ import { type Ability, bookDmg, CLASS_STATS, dmg, type HeroDef, type Passive } f
  * many times over), and may deal a blow more.
  * What is drawn for each is ../../heroes/dark-lord-kasel/fx.ts; what his body does for each, and for his attack, ../../heroes/dark-lord-kasel/moves.ts.
  *
- * His own perks (../perks.ts) are King's Raid's. Judgment Blade's Dark (the boss kept from mana the longer) does nothing
- * here: it has none. Doom's Dark stuns rather than knocking the boss down: it is stunned as long. Advent of the Dark
- * Lord's Light's P.Block does nothing: Galgoria deals only magic. One Fallen to Darkness's Dark (2 stacks more with one
- * enemy) always holds.
+ * His own perks (../perks.ts) and unique treasures are live King's Raid's, as krinfo has them (its legacy). Judgment
+ * Blade's Dark (the boss kept from mana the longer) does nothing here: it has none. Doom's Dark stuns rather than knocking
+ * the boss down: it is stunned as long. Advent of the Dark Lord's Light's P.Block is only for a physical blow (Galgoria's
+ * are magic; a dragon's, Armarta's and Zyrrkinoth's, and its minions' are not). One Fallen to Darkness's Dark (2 stacks
+ * more with one enemy) always holds. Transcend 5's Dark's more DMG is to the boss only (not its minions). Faint
+ * Lifeforce's pulling 2 enemies does nothing: there is one.
  */
 // (How hard each of his skills hits: the King's Raid Index hasn't him, so ×3.34 what it was, as the other warriors' went to theirs from it.)
 /** Judgment Blade: its two blows, and in the [Dark Lord] state its blow more and how long that knocks the boss down. */
@@ -35,16 +37,16 @@ const RUIN = { blow: 5010, down: 3, lord: 10_020 };
 const ADVENT = { blow: 10_020, lasts: 20, blowMore: 2000, atk: 0.01, pen: 10 };
 /** One Fallen to Darkness: his ATK more (a share), the stacks each skill needs, the most, and what each blow of his attack gives. */
 const FALLEN = { atk: 0.25, needs: [5, 15, 25], most: 40, each: 1 };
-/** His own perks' numbers: Judgment Blade's Light, Doom's Light, Advent's Dark, One Fallen to Darkness's Light and Dark, and Transcend 5's Dark. */
-const PERKS = { judge: { needs: 10, dmg: 1.8 }, doom: { takes: 1.3, lasts: 10 }, attack: 1.5, start: 10, more: 2, dark: { atk: 0.01, dmg: 0.01, lasts: 20, most: 30 } };
+/** His own perks' numbers: Judgment Blade's Light, Doom's Light, Advent's Light (P.Block, points) and Dark, One Fallen to Darkness's Light and Dark, and Transcend 5's Dark. */
+const PERKS = { judge: { needs: 10, dmg: 1.8 }, doom: { takes: 1.3, lasts: 10 }, block: 400, attack: 1.5, start: 10, more: 2, dark: { atk: 0.01, dmg: 0.01, lasts: 20, most: 30 } };
 
 /**
- * His unique treasures' numbers (1★ to 5★: ../treasures.ts; King's Raid's own, its 3★ 34% among them): Judgment Blade's
+ * His unique treasures' numbers (0★ to 5★: ../treasures.ts; live King's Raid's own): Judgment Blade's
  * DMG; Doom's DMG; the [Dark Lord] state's more DMG to the boss and crit DMG; and One Fallen to Darkness's more [Dark
  * Energy] at most, and the chance of a stack more for each blow of his attack.
  */
 const UT = {
-  authority: { dmg: [0.2, 0.24, 0.29, 0.34, 0.42, 0.5] },
+  authority: { dmg: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5] },
   lifeforce: { dmg: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5], pulled: 2 },
   portrait: { dmg: [0.12, 0.14, 0.17, 0.21, 0.25, 0.3], critDamage: 0.8 },
   tear: { most: [60, 64, 69, 75, 82, 90], chance: 0.35 },
@@ -67,7 +69,7 @@ const ONE_FALLEN: Passive = {
 /** His [Dark Energy]; the [Dark Lord] state; Transcend 5's Dark's stacks. */
 const ENERGY: Buff = { name: 'Dark Energy', about: 'What his skills need.', icon: '🌑', art: art(3) };
 const LORD: Buff = { name: 'Dark Lord', about: 'ATK and penetration higher, skills enhanced, immune to CC, and his attack deals more.', icon: '😈', art: art(2) };
-const DARKENED: Buff = { name: 'Darkness', about: 'ATK and DMG on the boss higher for each.', icon: '🖤', art: art(3) };
+const DARKENED: Buff = { name: 'Darkness', about: 'ATK and DMG to the boss higher for each.', icon: '🖤', art: art(3) };
 
 export const DARK_LORD_KASEL: HeroDef = {
   id: 'dark-lord-kasel',
@@ -118,7 +120,7 @@ export const DARK_LORD_KASEL: HeroDef = {
       skill: { index: 0, dmg: 1 + k(UT.authority.dmg), dispel: true },
     })),
     treasure('Faint Lifeforce', (k) => ({
-      words: `[Doom] Increases DMG by ${pct(k(UT.lifeforce.dmg))} and changes the number of pulled enemies to ${UT.lifeforce.pulled} during [Dark Lord] state.`,
+      words: `[Doom] Increases DMG by ${pct(k(UT.lifeforce.dmg))}, and changes the number of pulled enemies to ${UT.lifeforce.pulled} during [Dark Lord] state.`,
       skill: { index: 1, dmg: 1 + k(UT.lifeforce.dmg) },
     })),
     treasure('Traveler’s Portrait', (k) => ({
@@ -130,14 +132,14 @@ export const DARK_LORD_KASEL: HeroDef = {
   ],
   attack: 'corrupt',
   perks: {
-    's1-light': said({ skill: { index: 0, dmg: PERKS.judge.dmg } }, ({ skill }) => `Increases number of Dark Energy stacks required for use by ${PERKS.judge.needs} and increases DMG by ${pct(skill.dmg - 1)}.`),
-    's1-dark': { words: 'Increases the duration of disabling Mana recovery by 2 sec.' },
+    's1-light': said({ skill: { index: 0, dmg: PERKS.judge.dmg } }, ({ skill }) => `Increases the number of required Dark Energy stacks for use by ${PERKS.judge.needs} and increases DMG by ${pct(skill.dmg - 1)}.`),
+    's1-dark': { words: 'Increases the duration of disabling Mana Recovery by 2 sec.' },
     's2-light': said(
       { skill: { index: 1, mark: { name: 'Doom', takes: { physical: PERKS.doom.takes }, lasts: PERKS.doom.lasts } } },
       ({ skill }) => `Increases P.DMG the hit targets take by ${pct(PERKS.doom.takes - 1)} for ${skill.mark.lasts} sec.`,
     ),
     's2-dark': { words: 'Inflicts Stun on enemies instead of knocking them away.' },
-    's3-light': { words: 'Increases P.Block Chance by 400 for the duration of Skill.' },
+    's3-light': { words: `Increases P.Block Chance by ${PERKS.block} for the duration of Skill.` },
     's3-dark': { words: `Increases DMG of normal attacks by ${pct(PERKS.attack - 1)} for the duration of Skill.` },
     's4-light': { words: `At the beginning of each battle, gains ${PERKS.start} stacks of [Dark Energy].` },
     's4-dark': { words: `When there is 1 enemy, gains ${PERKS.more} additional stacks of [Dark Energy].` },
@@ -155,6 +157,8 @@ export const DARK_LORD_KASEL: HeroDef = {
     const tier = self.unique?.tier ?? null;
     // (Twisted Tear: more [Dark Energy] at most.)
     const most = fromTreasure(self, 3, UT.tear.most, FALLEN.most);
+    // (Traveler's Portrait: more to Non-Hero enemies in the [Dark Lord] state.)
+    const portraitDmg = fromTreasure(self, 2, UT.portrait.dmg);
     const needs = (index: number): number => (FALLEN.needs[index] ?? 0) + (index === 0 && self.perks.has('s1-light') ? PERKS.judge.needs : 0);
 
     /** His [Dark Energy] on his card (it can't be dispelled). */
@@ -171,7 +175,7 @@ export const DARK_LORD_KASEL: HeroDef = {
 
     return {
       lands: {
-        // A blow of his attack: [Dark Energy] (its Dark: more); in the [Dark Lord] state a blow more (its Dark: harder). Transcend 5's Dark: a stack more of it.
+        // A blow of his attack: [Dark Energy] (its Dark: more); in the [Dark Lord] state a blow more (its Dark: harder). Transcend 5's Dark: a stack more of it (its ATK; its DMG to the boss is `deals`).
         corrupt() {
           const harder = lord > 0 && self.perks.has('s3-dark') ? PERKS.attack : 1;
           strike(fight.basic * harder);
@@ -183,7 +187,7 @@ export const DARK_LORD_KASEL: HeroDef = {
           if (self.perks.has('t5-dark')) {
             dark = Math.min(PERKS.dark.most, dark + 1);
             darkLeft = PERKS.dark.lasts;
-            put(self.statuses, { name: DARKENED.name, left: PERKS.dark.lasts, count: dark, deals: (1 + PERKS.dark.atk * dark) * (1 + PERKS.dark.dmg * dark), shown: DARKENED });
+            put(self.statuses, { name: DARKENED.name, left: PERKS.dark.lasts, count: dark, atk: PERKS.dark.atk * dark, shown: DARKENED });
           }
         },
         // Two blows; in the [Dark Lord] state a third, that knocks the boss down.
@@ -214,9 +218,15 @@ export const DARK_LORD_KASEL: HeroDef = {
         energy = 0;
         shown();
         lord = ADVENT.lasts;
-        // (Traveler's Portrait: more to the boss, and crit DMG, meanwhile.)
-        const portrait = wearsTreasure(self, 2);
-        put(self.statuses, { name: LORD.name, left: ADVENT.lasts, deals: (1 + ADVENT.atk * spent) * (1 + fromTreasure(self, 2, UT.portrait.dmg)), ...(portrait && { critDamage: UT.portrait.critDamage }), shown: LORD });
+        // (Traveler's Portrait: crit DMG meanwhile, its DMG to Non-Hero enemies in `deals`. Its Light: P.Block meanwhile.)
+        put(self.statuses, {
+          name: LORD.name,
+          left: ADVENT.lasts,
+          deals: 1 + ADVENT.atk * spent,
+          ...(wearsTreasure(self, 2) && { critDamage: UT.portrait.critDamage }),
+          ...(self.perks.has('s3-light') && { blocks: { physical: PERKS.block } }),
+          shown: LORD,
+        });
       },
       tick(dt) {
         // No mana: his bar stays empty.
@@ -228,6 +238,8 @@ export const DARK_LORD_KASEL: HeroDef = {
         }
         if (!fight.foe.statuses.some((status) => status.name === AEA.name)) unhealed = 0;
       },
+      // Transcend 5's Dark: more to the boss (not its minions) for each stack; Traveler's Portrait: more to any of them in the [Dark Lord] state (each added to the other, as DMG adds up, not multiplied in).
+      deals: () => 1 + (dark > 0 && fight.foe.kind === 'boss' ? PERKS.dark.dmg * dark : 0) + (lord > 0 ? portraitDmg : 0),
       // The [Dark Lord] state: immune to CC.
       guards: () => lord > 0,
       lit: () => lord > 0,

@@ -1,8 +1,9 @@
+import { POINTS } from '../combat/damage';
 import { away, put } from '../combat/status';
 import { t5Light } from '../perks';
 import { MAX_MANA, SECTION } from '../rules';
 import { fromTreasure, treasure, wearsTreasure } from '../treasures';
-import { pct, skillArt, type Buff } from '../shown';
+import { fine, pct, skillArt, type Buff } from '../shown';
 import type { Fighter } from '../types';
 import { atTier, STOSMOS, STOSMOS_UP } from '../unique';
 import { type Ability, attackStarts, bookDmg, bookHeal, CLASS_STATS, dmg, healed, type HeroDef, lineOf, type Passive, played, playedHeal } from './kit';
@@ -21,9 +22,10 @@ import { type Ability, attackStarts, bookDmg, bookHeal, CLASS_STATS, dmg, healed
  * Her unique weapon (../unique.ts) is worked here too: [Adventure Guide] the longer, and every ally's ATK higher meanwhile.
  * What is drawn for each, and what her body does, are King's Raid's own (../../assets/heroes/estelle.ts).
  *
- * Her own perks (../perks.ts) are King's Raid's. Wake-Up Call's Dark (what helps the boss gone), Smile Badge's Silence and
- * Second Homeland's mana off the boss do nothing here. Transcend 5's Dark's mana for each attack is every ally's mana filling
- * faster here. Blow, Tailwind!! and Blow, Headwind!! have cooldowns of their own (King's Raid's are skills apart).
+ * Her own perks (../perks.ts) and unique treasures are live King's Raid's, as krinfo has them (its legacy). Wake-Up Call's
+ * Dark takes what helps the boss off it (what has it deal more). Smile Badge's Silence and Second Homeland's mana off the
+ * boss do nothing here. Transcend 5's Dark's Mana Recovery/Attack (300 points: 30% more) is every ally's mana filling that
+ * much faster here. Blow, Tailwind!! and Blow, Headwind!! have cooldowns of their own (King's Raid's are skills apart).
  */
 /** Blow, Tailwind!!: its heal; [Tailwind] for how long. */
 const TAILWIND = { heal: playedHeal('archer', 2433, 86_483), lasts: 10 };
@@ -35,8 +37,8 @@ const WAKE = { critDamage: 0.5, blow: played('archer', 2572, 91_844), weaker: 0.
 const CHEER = { lasts: 10, speed: 200, taken: 0.8, heal: playedHeal('archer', 598, 21_026) };
 /** I'm the Adventure Guide!!: her attack speed (its books' more); [Accompany] for each part of her attack and each skill, how many it takes; the mana it gives every ally; [Adventure Guide] for how long, and how much longer each effect lasts meanwhile. */
 const GUIDE = { speed: 350, attack: 1, skill: 5, needs: 30, mana: SECTION, lasts: 15, longer: 5 };
-/** Her own perks' numbers: Tailwind's Light's P.Block, Headwind's Dark's P.DEF less; Wake-Up's Light's allies; Cheering's Light's and Dark's more to Non-Hero enemies; Guide's Light's mana and Dark's more taken, for how long; Transcend 5's Dark's mana. */
-const PERKS = { block: 300, defense: 0.7, allies: 2, boss: 0.15, mana: 2 * SECTION, takes: 1.2, takesLasts: 10, dark: 1.3 };
+/** Her own perks' numbers: Tailwind's Light's P.Block, Headwind's Dark's P.DEF less; Wake-Up's Light's allies; Cheering's Light's and Dark's more to Non-Hero enemies; Guide's Light's mana and Dark's more taken, for how long; Transcend 5's Dark's Mana Recovery/Attack (points). */
+const PERKS = { block: 300, defense: 0.7, allies: 2, boss: 0.15, mana: 2 * SECTION, takes: 1.2, takesLasts: 10, dark: 300 };
 
 /**
  * Her unique treasures' numbers (1★ to 5★: ../treasures.ts; King's Raid's own): Tailwind's lower cost and every ally's dodge,
@@ -121,16 +123,15 @@ export const ESTELLE: HeroDef = {
   passive: GUIDE_SHOWN,
   treasures: [
     treasure('Smile Badge', (k) => ({
-      words: `[Blow, Tailwind!!] Reduces Mana Cost by 1, and [Tailwind] additionally increases All Dodge Chance of all allies by ${k(UT.badge.dodge)}. [Blow, Headwind!!] Silences the hit targets for 3 sec, and [Headwind] additionally reduces the target's DMG dealt to heroes by ${pct(k(UT.badge.weaker))}.`,
+      words: `[Blow, Tailwind!!] Reduces Mana Cost by 1, and [Tailwind] additionally increases All Dodge Chance of all allies by ${k(UT.badge.dodge)}.\n[Blow, Headwind!!] Silences the hit targets for 3 sec, and [Headwind] additionally reduces the target's DMG dealt to Heroes by ${pct(k(UT.badge.weaker))}.`,
       skill: { index: 0, cost: -1 },
     })),
     treasure('Estelle’s Trip Memoir VI', (k) => ({
-      words: `[Here's a Wake-Up Call!!] Reduces Cooldown by ${UT.memoir.cooldown} sec, and [Cheer] additionally increases DMG dealt to Bosses by ${pct(k(UT.memoir.boss))}.`,
+      words: `[Here's a Wake-Up Call!!] Reduces Cooldown by ${UT.memoir.cooldown} sec, and [Cheer] additionally increases DMG dealt to Bosses by ${fine(k(UT.memoir.boss))}.`,
       skill: { index: 1, cooldown: -UT.memoir.cooldown },
     })),
     treasure('Whistle of Hundred Tones', (k) => ({
       words: `[It's Cheering Time!!] Increases Heal Rate by ${pct(k(UT.whistle.heals))}, and all effects become irremovable.`,
-      skill: { index: 2, heals: 1 + k(UT.whistle.heals) },
     })),
     treasure('Second Homeland', (k) => ({
       words: `[I'm the Adventure Guide!!] [Adventure Guide] becomes irremovable. Normal attacks have a ${pct(k(UT.homeland.chance))} chance of reducing the target's Mana by 400 for the duration of Skill. This effect is activated only once every 3 sec.`,
@@ -145,8 +146,8 @@ export const ESTELLE: HeroDef = {
     's3-dark': { words: `Increases ranged Heroes' DMG dealt to Non-Hero enemies by ${pct(PERKS.boss)} for the duration of Skill.` },
     's4-light': { words: `Increases Mana Recovery by ${pct(PERKS.mana / GUIDE.mana - 1)}.` },
     's4-dark': { words: `Dealing normal attacks during [Adventure Guide] state increases P.DMG the target takes by ${pct(PERKS.takes - 1)} for ${PERKS.takesLasts} sec.` },
-    't5-light': t5Light({ speed: 100 }, ({ speed }) => `ATK.Spd +${speed}`),
-    't5-dark': { words: `Increases Mana Recovery per attack of all allies by ${pct(PERKS.dark - 1)}. This effect is irremovable.` },
+    't5-light': t5Light({ speed: 100 }, ({ speed }) => `ATK Spd +${speed}`),
+    't5-dark': { words: `Increases Mana Recovery/Attack of all allies by ${PERKS.dark}. This effect is irremovable.` },
   },
   join(fight, self) {
     const tier = self.unique?.tier ?? null;
@@ -220,7 +221,7 @@ export const ESTELLE: HeroDef = {
             shown: 'curse',
           });
         },
-        // [Cheer] on the ally (its Light: 2) with the highest ATK (Trip Memoir: more to bosses); then a blow and [Discouragement].
+        // [Cheer] on the ally (its Light: 2) with the highest ATK (Trip Memoir: more to bosses); then a blow and [Discouragement] (its Dark: what helps the boss gone).
         wakeup(part) {
           if (part === 0) {
             const others = allies().filter((ally) => ally !== self);
@@ -230,6 +231,11 @@ export const ESTELLE: HeroDef = {
             return;
           }
           fight.hit(self, WAKE.blow);
+          // (Its Dark: what helps the boss is dispelled, what has it deal more, as [Discouragement] goes on.)
+          if (self.perks.has('s2-dark')) {
+            const on = fight.foe.statuses;
+            for (let i = on.length - 1; i >= 0; i--) if ((on[i]?.deals ?? 1) > 1) on.splice(i, 1);
+          }
           put(fight.foe.statuses, { name: 'Discouragement', left: lasting(WAKE.lasts), deals: WAKE.weaker, shown: 'curse' });
         },
         // Every ally quicker and taking less (its Light: the melee more to Non-Hero enemies; its Dark: the ranged); healed every second (tick).
@@ -255,7 +261,7 @@ export const ESTELLE: HeroDef = {
         // Transcend 5's Dark: every ally's mana the faster, for good.
         if (!filled && self.perks.has('t5-dark') && fight.field.includes(self)) {
           filled = true;
-          for (const ally of fight.fighters) put(ally.statuses, { name: FILLED.name, left: Infinity, mana: PERKS.dark, shown: FILLED });
+          for (const ally of fight.fighters) put(ally.statuses, { name: FILLED.name, left: Infinity, mana: 1 + PERKS.dark / POINTS, shown: FILLED });
         }
         // Her first skill turned (as the next moment comes, its cooldown begun): each form's cooldown its own.
         if (turning) {
@@ -268,13 +274,13 @@ export const ESTELLE: HeroDef = {
         if (headwind) tailCooldown = Math.max(0, tailCooldown - dt);
         else headCooldown = Math.max(0, headCooldown - dt);
         if (guide > 0) guide -= dt;
-        // It's Cheering Time!!: every ally healed every second.
+        // It's Cheering Time!!: every ally healed every second (Whistle of Hundred Tones: the more).
         if (cheering > 0) {
           cheering -= dt;
           cheerTick += dt;
           if (cheerTick >= 1) {
             cheerTick -= 1;
-            for (const ally of allies()) fight.heal(ally, CHEER.heal, self);
+            for (const ally of allies()) fight.heal(ally, CHEER.heal * (1 + fromTreasure(self, 2, UT.whistle.heals)), self);
           }
         }
       },

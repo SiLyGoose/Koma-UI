@@ -127,7 +127,7 @@ export const ASELICA: HeroDef = {
       skill: { index: 1, cost: -1 },
     })),
     treasure('Guardian’s Trumpet', (k) => ({
-      words: `[Judgment of the Sun] Gains Immunity to CC while in use, and increases P.DEF Boost and M.DEF Reduction by ${pct(k(UT.trumpet.more))}.`,
+      words: `[Judgment of the Sun] While in use, gains immunity to CC. Additionally, increases P.DEF Boost and M.DEF Reduction by ${pct(k(UT.trumpet.more))}.`,
       skill: { index: 2, steady: true },
     })),
     treasure('Will of Light', (k) => ({

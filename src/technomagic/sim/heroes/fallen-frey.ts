@@ -25,9 +25,11 @@ import { CODED } from './moves';
  * what is on the boss, or on her allies, and there is nothing in this fight that can be dispelled yet.)
  * What is drawn for each is ../../heroes/fallen-frey/fx.ts; what her body does for each, and for her attack, ../../heroes/fallen-frey/moves.ts.
  *
- * Her own perks (../perks.ts) are King's Raid's. Heaven's Vengeance's Dark does nothing here (the boss has no mana to
- * take). What hers give in attack speed is a pace, as Blessing of Doom's is; and what they give at the beginning of a
- * battle, she gives as the fight begins (its only battle).
+ * Her own perks (../perks.ts) and unique treasures are live King's Raid's, as krinfo has them (its legacy). Heaven's
+ * Vengeance's Dark does nothing here (the boss has no mana to take). What hers give in attack speed is points of it, as
+ * gear's is (not a pace, as Blessing of Doom's is); and what they give at the beginning of a battle, she gives as the
+ * fight begins (its only battle). Where krinfo has a number as "???" (Blessing of Doom's Dark's block, Transcend 5's
+ * Dark's attack speed), it is the one the game's older words had.
  */
 // (How hard each of her skills hits: the King's Raid Index hasn't her, so ×4.81 what it was, as the other priests' went to theirs from it; how much each heals, ×2.45, and shields, ×2.08, likewise.)
 const LIGHT = { heal: 612_050, near: 3.6, blast: 24_050 };
@@ -37,11 +39,11 @@ const VENGEANCE = { hits: CODED.vengeance.lands.length, blow: 4810, pierce: 500,
 // The game's 400 mana a second, and its books' 200 more (the playtest's), of its 1000 to a section.
 const TAINTED = { taken: 1.15, mana: 0.6 * SECTION, every: 1, most: 2 };
 /**
- * Her own perks' numbers: what Light of Doom leaves on the boss and its more healing, Blessing of Doom's block, the
- * Blessing of the Fallen Angel's and the Bond's (attack speed in points, ATK a share of hers), and Transcend 5's Dark's.
+ * Her own perks' numbers: what Light of Doom leaves on the boss and its more healing (a share), Blessing of Doom's block, the Blessing of the Fallen
+ * Angel's and the Bond's (attack speed in points, ATK a share of hers), and Transcend 5's Dark's.
  */
 const PERKS = {
-  light: { takes: 1.2, lasts: 10, heals: 2 },
+  light: { takes: 1.2, lasts: 10, heals: 1 },
   block: 400,
   blessing: { takes: 0.9, defends: 1.2 },
   bond: { speed: 200, atk: 0.07 },
@@ -59,7 +61,7 @@ const UT = {
   dream: { dmg: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5] },
   allure: { mana: 0.5, atk: [0.08, 0.1, 0.12, 0.14, 0.17, 0.2], kasel: 3 },
 };
-/** What Ring of Allure gives Dark Lord Kasel on top of what every ally has of it, while she is on the field and standing. */
+/** What Ring of Allure gives Dark Lord Kasel on top of what every ally has of it (twice as much ATK again), while she is on the field and standing. */
 const ALLURED = 'Ring of Allure';
 
 const art = skillArt('fallen-frey');
@@ -149,7 +151,7 @@ export const FALLEN_FREY: HeroDef = {
   ],
   perks: {
     's1-light': { words: `Increases All DMG the hit enemies take by ${pct(PERKS.light.takes - 1)} for ${PERKS.light.lasts} sec.` },
-    's1-dark': said({ skill: { index: 0, cost: 1 } }, ({ skill }) => `Increases Mana Cost by ${skill.cost} and Heal Rate by ${pct(PERKS.light.heals - 1)}.`),
+    's1-dark': said({ skill: { index: 0, cost: 1, heals: 1 + PERKS.light.heals } }, ({ skill }) => `Increases Mana Cost by ${skill.cost} and Heal Rate by ${pct(skill.heals - 1)}.`),
     's2-light': { words: 'Changes the target of shield to all allies.' },
     's2-dark': { words: `Increases All Block Chance of shielded allies by ${PERKS.block}.` },
     's3-light': said({ skill: { index: 2, dmg: 1.4 } }, ({ skill }) => `Increases DMG by ${pct(skill.dmg - 1)}.`),
@@ -197,9 +199,9 @@ export const FALLEN_FREY: HeroDef = {
     if (self.perks.has('s4-light')) for (const ally of others) put(ally.statuses, { name: FALLEN_BLESSING.name, left: Infinity, takes: PERKS.blessing.takes, defends: PERKS.blessing.defends, shown: FALLEN_BLESSING });
     if (strongest && self.perks.has('s4-dark')) {
       strongest.stats.atk += PERKS.bond.atk * self.stats.atk;
-      put(strongest.statuses, { name: FALLEN_BOND.name, left: Infinity, pace: 1 + share(PERKS.bond.speed), shown: FALLEN_BOND });
+      put(strongest.statuses, { name: FALLEN_BOND.name, left: Infinity, speed: PERKS.bond.speed, shown: FALLEN_BOND });
     }
-    if (strongest && self.perks.has('t5-dark')) put(strongest.statuses, { name: FALLEN_FAVOUR.name, left: PERKS.favour.lasts, pace: 1 + share(PERKS.favour.speed), deals: PERKS.favour.deals, shown: FALLEN_FAVOUR });
+    if (strongest && self.perks.has('t5-dark')) put(strongest.statuses, { name: FALLEN_FAVOUR.name, left: PERKS.favour.lasts, speed: PERKS.favour.speed, deals: PERKS.favour.deals, shown: FALLEN_FAVOUR });
     // Ring of Allure: Dark Lord Kasel's ATK three times as much higher (every ally's is its aura: ../perks.ts).
     const allure = fromTreasure(self, 3, UT.allure.atk);
     const kasel = allure > 0 ? others.find((ally) => ally.id === 'dark-lord-kasel') : undefined;
@@ -224,7 +226,7 @@ export const FALLEN_FREY: HeroDef = {
               return Math.sqrt(x * x + z * z) <= LIGHT.near;
             });
             fight.cue(self, 'light', near);
-            for (const ally of near) fight.heal(ally, LIGHT.heal * (self.perks.has('s1-dark') ? PERKS.light.heals : 1), self);
+            for (const ally of near) fight.heal(ally, LIGHT.heal, self);
             return;
           }
           fight.hit(self, LIGHT.blast);
@@ -239,7 +241,7 @@ export const FALLEN_FREY: HeroDef = {
           fight.cue(self, 'blessing', allies);
           // (Broken Angel's Egg: for longer, and their ATK higher meanwhile.)
           const lasts = BLESSING.lasts + fromTreasure(self, 1, UT.egg.longer);
-          const egg = wearsTreasure(self, 1) ? { deals: 1 + UT.egg.atk } : {};
+          const egg = wearsTreasure(self, 1) ? { atk: UT.egg.atk } : {};
           for (const ally of allies) {
             fight.shield(ally, BLESSING.shield, lasts, self);
             put(ally.statuses, { name: BLESSED.name, left: lasts, pace: 1 + share(BLESSING.speed), ...block, ...egg, shown: BLESSED });
@@ -261,7 +263,7 @@ export const FALLEN_FREY: HeroDef = {
         if (kasel) {
           const there = self.hp > 0 && fight.field.includes(self);
           const on = kasel.statuses.some((status) => status.name === ALLURED);
-          if (there && !on) put(kasel.statuses, { name: ALLURED, left: Infinity, deals: (1 + allure * UT.allure.kasel) / (1 + allure), shown: allured });
+          if (there && !on) put(kasel.statuses, { name: ALLURED, left: Infinity, atk: allure * (UT.allure.kasel - 1), shown: allured });
           else if (!there && on) kasel.statuses = kasel.statuses.filter((status) => status.name !== ALLURED);
         }
         if (self.mana >= MAX_MANA && stacks < TAINTED.most) {

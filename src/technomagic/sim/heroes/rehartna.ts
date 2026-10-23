@@ -2,7 +2,7 @@ import { away, put } from '../combat/status';
 import { said, t5Light } from '../perks';
 import { MAX_MANA } from '../rules';
 import { fromTreasure, treasure, wearsTreasure } from '../treasures';
-import { num, pct, skillArt, type Buff } from '../shown';
+import { fine, num, pct, skillArt, type Buff } from '../shown';
 import type { Fighter } from '../types';
 import { atTier, NEW_ROAD, NEW_ROAD_UP } from '../unique';
 import { bookDmg, bookHeal, CLASS_STATS, dmg, healed, type HeroDef, type Passive, played, playedHeal } from './kit';
@@ -21,8 +21,9 @@ import { bookDmg, bookHeal, CLASS_STATS, dmg, healed, type HeroDef, type Passive
  * and they take less for a while.
  * What is drawn for each, and what her body does, are King's Raid's own (../../assets/heroes/rehartna.ts).
  *
- * Her own perks (../perks.ts) are King's Raid's. Ultrasonic Wave's Light (what helps the boss gone) and Classified
- * Resistance Document's mana off the boss do nothing here.
+ * Her own perks (../perks.ts) and unique treasures are live King's Raid's, as krinfo has them (its legacy). Ultrasonic
+ * Wave's Dark leaves the boss's penetration lower, which its blows don't go by yet. Classified Resistance Document's mana
+ * off the boss does nothing here.
  */
 /** Ultrasonic Wave: each of its four blows, how long each stuns; the boss's ATK less, for how long. */
 const WAVE = { blow: played('priest', 972, 39_054), stun: 3, weaker: 0.75, lasts: 10 };
@@ -36,11 +37,12 @@ const MARCH = { heal: playedHeal('priest', 2574, 116_310), heals: 0.1, most: 3 }
 const PERKS = { pen: 250, penLasts: 10, takes: 1.25, allies: 6, mana: 1000, critDamage: 0.12, dark: { share: 0.03, most: 10, allies: 4 } };
 
 /**
- * Her unique treasures' numbers (1★ to 5★: ../treasures.ts; King's Raid's own): Crystal Clear's Crit Resistance and mana for
- * its allies; Weapon's more seconds off every cooldown, and immunity to CC; March's most stacks, and each's more to bosses.
+ * Her unique treasures' numbers (1★ to 5★: ../treasures.ts; King's Raid's own): Ultrasonic Wave's mana off the boss for
+ * each blow; Crystal Clear's Crit Resistance and mana for its allies; Weapon's more seconds off every cooldown, and
+ * immunity to CC; March's most stacks, and each's more to bosses.
  */
 const UT = {
-  document: {},
+  document: { mana: [140, 170, 210, 250, 300, 360] },
   generator: { critResist: [100, 120, 140, 170, 210, 250], mana: 150 },
   medley: { sooner: [1, 1.2, 1.4, 1.7, 2.1, 2.5], immune: 5 },
   dragon: { most: 6, boss: [0.03, 0.036, 0.043, 0.052, 0.062, 0.075] },
@@ -101,22 +103,22 @@ export const REHARTNA: HeroDef = {
   ],
   passive: MARCH_SHOWN,
   treasures: [
-    treasure('Classified Resistance Document', () => ({
-      words: "[Release! Ultrasonic Wave!] Rehartna becomes immune to CC while in use. Each hit reduces enemy's Mana by 360",
+    treasure('Classified Resistance Document', (k) => ({
+      words: `[Release! Ultrasonic Wave!] Rehartna becomes immune to CC while in use. Each hit reduces enemy's Mana by ${k(UT.document.mana)}.`,
       skill: { index: 0, steady: true },
     })),
-    treasure('Ultrasound Wave Generator', (k) => ({
+    treasure('Ultrasonic Wave Generator', (k) => ({
       words: `[Crystal Clear, Matimaruma!] Increases Crit Resistance of allies within range by ${k(UT.generator.critResist)} and recovers their Mana by ${UT.generator.mana} every sec.`,
     })),
     treasure('Medley Sheet', (k) => ({
-      words: `[You've Never Seen a Weapon Like This!] Reduces Cooldown of all Skills by an additional ${k(UT.medley.sooner)} sec, and grants immunity to CC to the target for ${UT.medley.immune} sec.`,
+      words: `[You've Never Seen a Weapon Like This!] Reduces Cooldown of all active Skills by an additional ${k(UT.medley.sooner)} sec, and grants immunity to CC to the target for ${UT.medley.immune} sec.`,
     })),
     treasure('Dragon Drawing', (k) => ({
-      words: `[Battle March Melody] Max number of stacks increases to ${UT.dragon.most} times and each stack increases DMG dealt to Bosses by ${pct(k(UT.dragon.boss))}`,
+      words: `[Battle March Melody] Max number of stacks increases to ${UT.dragon.most} times and each stack increases DMG dealt to Bosses by ${fine(k(UT.dragon.boss))}.`,
     })),
   ],
   perks: {
-    's1-light': said({ skill: { index: 0, cost: 1 } }, ({ skill }) => `Increases Mana Cost by ${skill.cost} and dispels positive effects from the target.`),
+    's1-light': said({ skill: { index: 0, cost: 1, dispel: true } }, ({ skill }) => `Increases Mana Cost by ${skill.cost} and dispels positive effects from the target.`),
     's1-dark': { words: `Reduces DEF Penetration of the hit target by ${PERKS.pen} for ${PERKS.penLasts} sec.` },
     's2-light': said({ skill: { index: 1, cost: -1 } }, ({ skill }) => `Reduces Mana Cost by ${-skill.cost}.`),
     's2-dark': { words: `For the duration of Skill, enemies within range take ${pct(PERKS.takes - 1)} increased P.DMG.` },
@@ -227,14 +229,17 @@ export const REHARTNA: HeroDef = {
           }
           if (self.perks.has('s4-light')) self.mana = Math.min(MAX_MANA, self.mana + PERKS.mana);
         }
-        // Crystal Clear: while its shield holds, its ally immune to CC; every second its allies healed and their DEF higher a moment, the boss struck and slowed (its Dark: taking more; Ultrasound Wave Generator: Crit Resistance and mana).
+        // Crystal Clear: while its shield holds, its ally immune to CC (its Dark: the boss taking more physical damage meanwhile); every second its allies healed and their DEF higher a moment, the boss struck and slowed (Ultrasonic Wave Generator: Crit Resistance and mana).
         if (crystal) {
           crystalLeft -= dt;
           if (crystalLeft <= 0 || crystal.shield <= 0 || crystal.hp <= 0) {
             crystal.statuses = crystal.statuses.filter((status) => status.name !== CRYSTALLINE.name);
+            const at = fight.foe.statuses.findIndex((status) => status.name === 'Crystal Clear');
+            if (at >= 0) fight.foe.statuses.splice(at, 1);
             crystal = null;
           } else {
             put(crystal.statuses, { name: CRYSTALLINE.name, left: crystalLeft, guards: true, shown: CRYSTALLINE });
+            if (self.perks.has('s2-dark')) put(fight.foe.statuses, { name: 'Crystal Clear', left: crystalLeft, takes: { physical: PERKS.takes }, shown: 'curse' });
             crystalTick += dt;
             if (crystalTick >= 1) {
               crystalTick -= 1;
@@ -245,7 +250,6 @@ export const REHARTNA: HeroDef = {
               }
               fight.hit(self, CRYSTAL.blow);
               fight.slow(CRYSTAL.slow, 1);
-              if (self.perks.has('s2-dark')) put(fight.foe.statuses, { name: 'Crystal Clear', left: 1, takes: { physical: PERKS.takes }, shown: 'curse' });
             }
           }
         }

@@ -21,9 +21,9 @@ import { type Ability, bookDmg, CLASS_STATS, dmg, type HeroDef, type Passive, pl
  * DEF and the blaze's damage (up to 20 times).
  * What is drawn for each, and what her body does, are King's Raid's own (../../assets/heroes/pansirone.ts).
  *
- * Her own perks (../perks.ts) are King's Raid's. Cruel Delight's Light (the blaze irremovable) does nothing here: nothing
- * removes it. Don't You Dare Run!'s Dark has its blows on 3 enemies: here, with one, on the boss. Her blaze burns the
- * enemy it was set on while that is the one in question.
+ * Her own perks (../perks.ts) and unique treasures are live King's Raid's, as krinfo has them (its legacy). Cruel
+ * Delight's Light (the blaze irremovable) does nothing here: nothing removes it. Don't You Dare Run!'s Dark has its blows
+ * on 3 enemies: here, with one, on the boss. Her blaze burns the enemy it was set on while that is the one in question.
  */
 const BLAZE = 'Eternal Blaze';
 /** A Present For You!: its blow; [Eternal Blaze]'s blow every second (its books' half again), how long, and the boss's healing less; how long Now D.I.E! is hers after. */
@@ -119,11 +119,12 @@ export const PANSIRONE: HeroDef = {
   passive: DELIGHT_SHOWN,
   treasures: [
     treasure('Incomprehensible Framed Painting', (k) => ({
-      words: `[A Present For You!] Reduces Mana Cost by 1. [Now D.I.E!] Increases DMG by ${pct(k(UT.painting.dmg))}`,
+      words: `[A Present For You!] Reduces Mana Cost by 1.
+[Now D.I.E!] Increases DMG by ${pct(k(UT.painting.dmg))}.`,
       skill: { index: 0, cost: -1 },
     })),
     treasure('Special Fuel Tank', (k) => ({
-      words: `[The Thrill! How Exciting!] Upon using the Skill, dispels negative effects and gains immunity to CC for ${k(UT.tank.immune)} sec upon activation.`,
+      words: `[The Thrill! How Exciting!!] Upon using the Skill, dispels negative effects from self and gains immunity to CC for ${k(UT.tank.immune)} sec upon activation.`,
       skill: { index: 1, cleanse: 'self' },
     })),
     treasure('Elemental’s Cottage', (k) => ({
@@ -131,7 +132,7 @@ export const PANSIRONE: HeroDef = {
       skill: { index: 2, dmg: 1 + UT.cottage.dmg },
     })),
     treasure('Letter of Appointment: Hound Unit Leader', (k) => ({
-      words: `[Cruel Delight] Increases Crit DMG by ${pct(UT.letter.critDamage)}, and reduces self's Cooldown of all Skills by ${k(UT.letter.sooner)} sec.`,
+      words: `[Cruel Delight] Increases Crit DMG by ${pct(UT.letter.critDamage)}, and reduces self's Cooldown of all active Skills by ${k(UT.letter.sooner)} sec.`,
       bonus: { critDamage: UT.letter.critDamage },
     })),
   ],
@@ -161,7 +162,7 @@ export const PANSIRONE: HeroDef = {
     let heating = 0;
     let heatNext = 0;
     let holding = 0;
-    /** A Present For You!'s own cooldown, kept apart while Now D.I.E! is in its place (that slot free meanwhile); the skills just used, for Letter of Appointment. */
+    /** A Present For You!'s own cooldown, kept apart while Now D.I.E! is in its place (that slot free meanwhile); the skills just used, for Letter of Appointment (not Now D.I.E!: it has none, and its slot's is A Present For You!'s). */
     let presentLeft = 0;
     let lettered: number[] = [];
     /** Her abilities' ATK: Cruel Delight's and The Thrill!'s, shares of her own as the fight begins. */
@@ -220,13 +221,14 @@ export const PANSIRONE: HeroDef = {
           const immune = fromTreasure(self, 1, UT.tank.immune);
           if (immune > 0) put(self.statuses, { name: 'Special Fuel Tank', left: immune, guards: true, shown: THRILLED });
         },
-        // Ten blows, each harder than the last (its Light: the first stuns; Elemental's Cottage: crit DMG for each).
+        // Ten blows, each harder than the last (its Light: the first stuns; Elemental's Cottage: crit DMG for each, its stacks gone once it has run out).
         dare(part) {
           if (part === 0) dared = 0;
           strike(DARE.blow * (1 + DARE.more * dared));
           dared++;
           if (part === 0 && self.perks.has('s3-light')) fight.stun(PERKS.stun, { by: self });
           if (wearsTreasure(self, 2)) {
+            if (!self.statuses.some((status) => status.name === COTTAGE.name)) cottage = 0;
             cottage = Math.min(UT.cottage.most, cottage + 1);
             put(self.statuses, { name: COTTAGE.name, left: UT.cottage.lasts, count: cottage, critDamage: fromTreasure(self, 2, UT.cottage.critDamage) * cottage, shown: COTTAGE });
           }
@@ -235,7 +237,7 @@ export const PANSIRONE: HeroDef = {
       // Now D.I.E! in A Present For You!'s place while it is hers (its Dark: steady while it goes).
       slot: (index) => (index === 0 && dying > 0 ? NOW_DIE : (self.abilities[index] ?? null)),
       used(index, ability) {
-        lettered.push(index);
+        if (ability.move !== 'die') lettered.push(index);
         if (ability.move === 'present') presentLeft = ability.cooldown;
         if (ability.move === 'die') {
           dying = 0;

@@ -24,8 +24,10 @@ import { CODED } from './moves';
  * damage higher while she is in Stealth.
  * What is drawn for each is ../../heroes/tanya/fx.ts; what her body does for each, and for her attack, ../../heroes/tanya/moves.ts.
  *
- * Her own perks (../perks.ts) are King's Raid's. Target Sighted's Dark does nothing here (Galgoria has no crit
- * resistance to lower), nor Silent Ambush's Dark (no silence). Blade Tornado's Light always holds (there is only the boss).
+ * Her own perks (../perks.ts) and unique treasures are live King's Raid's, as krinfo has them (its legacy). Target
+ * Sighted's Dark lowers the boss's P.Crit Resistance (its blows likelier critical), but makes nothing of it a Priest (the
+ * boss has no class); Blade Tornado's Light, and Needle of Silence's mana off the target, do nothing here (the boss has no
+ * mana), nor Silent Ambush's Dark (no silence).
  */
 // (How hard each of her skills hits is the King's Raid Index's, at her class's ATK: ./kit.ts's indexed.)
 /** Stealth: how long, her crit chance and dodge (points) more meanwhile. */
@@ -40,8 +42,8 @@ const BLEED = { each: 470, lasts: 5 };
 const WHISPER = { blow: indexed('assassin', 841_890) / (CODED.whisper.lands.length - 1), last: indexed('assassin', 264_085) };
 /** Silent Ambush: a critical blow of a skill deals more (at ATK); on the boss, a blow more through its defense. */
 const AMBUSH = { blow: indexed('assassin', 61_307), boss: indexed('assassin', 42_824), speed: 200, slowed: 10 };
-/** Her own perks' numbers: Target Sighted's Light, Blade Tornado's Dark, Silent Ambush's Light, and Transcend 5's Dark. */
-const PERKS = { heals: 0.7, mana: 200, boss: 2, stealth: { chance: 0.15, more: 1.5 } };
+/** Her own perks' numbers: Target Sighted's Light and Dark (the boss's P.Crit Resistance lower, points, for `lasts` seconds), Blade Tornado's Dark, Silent Ambush's Light, and Transcend 5's Dark. */
+const PERKS = { heals: 0.7, critTaken: 250, lasts: 10, mana: 200, boss: 2, stealth: { chance: 0.15, more: 1.5 } };
 
 /**
  * Her unique treasures' numbers (1★ to 5★: ../treasures.ts): Target Sighted's DMG and mana; Blade Tornado's DMG and the
@@ -127,7 +129,7 @@ export const TANYA: HeroDef = {
       skill: { index: 1, dmg: 1 + k(UT.mask.dmg), critCooldown: UT.mask.cooldown },
     })),
     treasure('Dagger of Silence', (k) => ({
-      words: `[Whisper of Death] DMG is increased by ${pct(k(UT.dagger.dmg))} and upon use, immediately gains Stealth. If used in Stealth mode, ATK is increased by ${pct(UT.dagger.atk)} for ${UT.dagger.lasts} sec.`,
+      words: `[Whisper of Death] Increases DMG by ${pct(k(UT.dagger.dmg))}. Upon use, immediately gains Stealth. If used during Stealth state, increases ATK by ${pct(UT.dagger.atk)} for ${UT.dagger.lasts} sec.`,
       skill: { index: 2, dmg: 1 + k(UT.dagger.dmg) },
     })),
     treasure('Needle of Silence', (k) => ({
@@ -136,11 +138,14 @@ export const TANYA: HeroDef = {
   ],
   perks: {
     's1-light': { words: `Reduces the target's Heal Rate by ${pct(1 - PERKS.heals)}.` },
-    's1-dark': { words: "For 10 sec, target's P.Crit resistance is reduced by 250." },
-    's2-light': said({ skill: { index: 1, dmg: 2 } }, ({ skill }) => `If there is 1 enemy, DMG is increased by ${pct(skill.dmg - 1)}.`),
+    's1-dark': said(
+      { skill: { index: 0, mark: { name: 'Target Sighted (crit)', lasts: PERKS.lasts, critTaken: { physical: PERKS.critTaken } } } },
+      ({ skill }) => `Changes the target to Priest, and reduces target's P.Crit Resistance by ${PERKS.critTaken} for ${skill.mark.lasts} sec.`,
+    ),
+    's2-light': { words: "Each hit reduces the target's Mana by 300." },
     's2-dark': { words: `Recovers ${PERKS.mana} mana upon a Crit hit.` },
     's3-light': said({ skill: { index: 2, cost: 1, dmg: 2 } }, ({ skill }) => `Mana cost is increased by ${skill.cost} orb but DMG is boosted by ${pct(skill.dmg - 1)}.`),
-    's3-dark': said({ skill: { index: 2, cooldown: -5 } }, ({ skill }) => `Cooldown is reduced by ${-skill.cooldown} sec.`),
+    's3-dark': said({ skill: { index: 2, cost: -1 } }, ({ skill }) => `Reduces Mana Cost by ${-skill.cost}.`),
     's4-light': { words: `Increases additional DMG against non-Hero enemies by ${pct(PERKS.boss - 1)}.` },
     's4-dark': { words: 'Increases Silence duration by 0.5 sec.' },
     't5-light': t5Light({ critDamage: 0.2 }, ({ critDamage }) => `Crit DMG +${pct(critDamage)}`),
@@ -223,7 +228,7 @@ export const TANYA: HeroDef = {
       // Dagger of Silence: Whisper of Death used in Stealth, her ATK higher a while; and Stealth at once.
       used(index) {
         if (index !== 2 || !wearsTreasure(self, 2)) return;
-        if (stealth > 0) put(self.statuses, { name: 'Dagger of Silence', left: UT.dagger.lasts, deals: 1 + UT.dagger.atk, shown: { name: 'Dagger of Silence', about: `ATK ${pct(UT.dagger.atk)} higher.`, icon: '🗡️', art: art(2) } });
+        if (stealth > 0) put(self.statuses, { name: 'Dagger of Silence', left: UT.dagger.lasts, atk: UT.dagger.atk, shown: { name: 'Dagger of Silence', about: `ATK ${pct(UT.dagger.atk)} higher.`, icon: '🗡️', art: art(2) } });
         hide();
       },
       tick(dt) {

@@ -21,8 +21,10 @@ import { attackStarts, bookDmg, bookHeal, CLASS_STATS, dmg, healed, type HeroDef
  * damage, is quicker and deals more to Non-Hero enemies.
  * What is drawn for each, and what his body does, are King's Raid's own (../../assets/heroes/lucias.ts).
  *
- * His own perks (../perks.ts) are King's Raid's. Zone of Faith's Dark (what helps the boss gone) and Stigmata's Light (its
- * ACC) do nothing here. Every ally is within his zone: the field is small.
+ * His own perks (../perks.ts) and unique treasures are live King's Raid's, as krinfo has them (its legacy). Stigmata's Light
+ * leaves the boss's ACC lower, which its blows don't go by yet. Dice of Remembrance's mana off the boss, and Guidance of
+ * Morning Star's Stigmata that can't be dispelled (nothing here dispels a hero's), do nothing here. Every ally is within
+ * his zone, and the boss too: the field is small.
  */
 /** Path of Blessings: how many allies, its heal, and the physical damage less they take, for how long. */
 const PATH = { allies: 4, heal: playedHeal('priest', 5293, 205_365), taken: 0.8, lasts: 7 };
@@ -32,16 +34,16 @@ const ZONE = { lasts: 6, atk: 58_585, heal: playedHeal('priest', 820, 38_194), b
 const STIGMATA = { lasts: 15, dodge: 250, atk: 33_259, books: 1.5, blow: played('priest', 700, 32_399), blows: 4, takes: 1.25, marked: 5 };
 /** Holy Sacrifice: the share of his current HP each of the two skills costs; each heal's heal more, and DEF it gives (flat), for how long. */
 const SACRIFICE = { cost: 0.2, heal: playedHeal('priest', 656, 30_470), defense: 4_075, lasts: 10 };
-/** His own perks' numbers: Path's Dark's mana; Zone's Light's mana every second; Holy Sacrifice's Light's more healing; Transcend 5's Dark's mana, for how long. */
-const PERKS = { mana: 500, zoneMana: 200, heals: 1.4, regen: 4, regenLasts: 3 };
+/** His own perks' numbers: Path's Dark's mana; Zone's Light's mana every second; Stigmata's Light's ACC less on the boss, for how long; Holy Sacrifice's Light's more healing; Transcend 5's Dark's mana, for how long. */
+const PERKS = { mana: 500, zoneMana: 200, acc: 150, accLasts: 5, heals: 1.4, regen: 4, regenLasts: 3 };
 
 /**
- * His unique treasures' numbers (1★ to 5★: ../treasures.ts; King's Raid's own): Path's shorter cooldown; Zone's lower cost;
- * Stigmata's shorter cooldown; Holy Sacrifice's more DEF and the ATK it gives its allies, for a while.
+ * His unique treasures' numbers (1★ to 5★: ../treasures.ts; King's Raid's own): Path's shorter cooldown; Zone's mana off the
+ * boss every second; Stigmata's shorter cooldown; Holy Sacrifice's more DEF and the ATK it gives its allies, for a while.
  */
 const UT = {
   book: { cooldown: [0.12, 0.14, 0.17, 0.21, 0.25, 0.3] },
-  dice: {},
+  dice: { mana: [200, 240, 290, 350, 420, 500] },
   star: { cooldown: [0.12, 0.14, 0.17, 0.21, 0.25, 0.3] },
   sword: { defense: 0.5, atk: [0.08, 0.1, 0.12, 0.14, 0.17, 0.2], lasts: 5 },
 };
@@ -107,8 +109,8 @@ export const LUCIAS: HeroDef = {
       words: `[Path of Blessings] Reduces Mana Cost by 1 and Cooldown by ${pct(k(UT.book.cooldown))}.`,
       skill: { index: 0, cost: -1, cooldownShare: 1 - k(UT.book.cooldown) },
     })),
-    treasure('Dice of Remembrance', () => ({
-      words: '[Zone of Faith] Reduces Mana Cost by 1, and reduces Mana of enemies within range by 500 per sec.',
+    treasure('Dice of Remembrance', (k) => ({
+      words: `[Zone of Faith] Reduces Mana Cost by 1, and reduces Mana of enemies within range by ${k(UT.dice.mana)} per sec.`,
       skill: { index: 1, cost: -1 },
     })),
     treasure('Guidance of Morning Star', (k) => ({
@@ -122,9 +124,9 @@ export const LUCIAS: HeroDef = {
   perks: {
     's1-light': { words: 'Changes the targets to all allies.' },
     's1-dark': { words: `Recovers target's Mana by ${PERKS.mana}.` },
-    's2-light': { words: `Recovers ${PERKS.zoneMana} Mana for allies within range for 1 sec.` },
+    's2-light': { words: `Recovers Mana for allies within range by ${PERKS.zoneMana} per sec.` },
     's2-dark': { words: 'Continuously dispels positive effects from enemies within range.' },
-    's3-light': { words: 'Additional P.DMG from [Stigmata] decreases the target’s ACC by 150 for 5 sec.' },
+    's3-light': { words: `Additional P.DMG from [Stigmata] decreases the target's ACC by ${PERKS.acc} for ${PERKS.accLasts} sec.` },
     's3-dark': said({ skill: { index: 2, steady: true } }, () => 'Gains immunity to CC for the duration of skill.'),
     's4-light': { words: `Increases Heal Rate by ${pct(PERKS.heals - 1)}.` },
     's4-dark': { words: 'No longer consumes HP.' },
@@ -142,7 +144,7 @@ export const LUCIAS: HeroDef = {
     /** His allies on the field, standing and in the fight (him too). */
     const allies = (): Fighter[] => fight.field.filter((ally) => ally.hp > 0 && !away(ally.statuses));
     const sword = wearsTreasure(self, 3);
-    /** A heal of Path's or Zone's: and Holy Sacrifice's (its Light: more; Sword of Sacrifice: more DEF, and ATK a while). */
+    /** A heal of Path's or Zone's: and Holy Sacrifice's (its Light: more, on Holy Sacrifice's own heal alone, as the game's perk raises only that one; Sword of Sacrifice: more DEF, and ATK a while). */
     const bless = (ally: Fighter, amount: number): void => {
       fight.heal(ally, amount, self);
       fight.heal(ally, SACRIFICE.heal * (self.perks.has('s4-light') ? PERKS.heals : 1), self);
@@ -157,12 +159,13 @@ export const LUCIAS: HeroDef = {
 
     return {
       lands: {
-        // His attack; under Stigmata, each part of it four blows more, the boss taking more physical damage.
+        // His attack; under Stigmata, each part of it four blows more, the boss taking more physical damage (its Light: its ACC lower).
         attack(part) {
           fight.hit(self, fight.basic);
           if (stigmata <= 0 || !starts.has(part)) return;
           for (let i = 0; i < STIGMATA.blows; i++) fight.hit(self, STIGMATA.blow);
           put(fight.foe.statuses, { name: STIGMA.name, left: STIGMATA.marked, takes: { physical: STIGMATA.takes }, shown: 'curse' });
+          if (self.perks.has('s3-light')) put(fight.foe.statuses, { name: 'Stigmata’s Blindness', left: PERKS.accLasts, acc: -PERKS.acc, shown: 'curse' });
         },
         // The allies with the lowest HP (its Light: all of them) healed, and taking less physical damage (its Dark: mana).
         path() {
@@ -193,7 +196,7 @@ export const LUCIAS: HeroDef = {
       },
       tick(dt) {
         if (stigmata > 0) stigmata -= dt;
-        // Zone of Faith: every ally's ATK higher and cleared; every second each healed (its Light: mana), and the boss struck and stunned.
+        // Zone of Faith: every ally's ATK higher and cleared (its Dark: what helps the boss gone, as the fight's dispels have it); every second each healed (its Light: mana), and the boss struck and stunned.
         if (zone > 0) {
           zone -= dt;
           zoneTick += dt;
@@ -201,6 +204,10 @@ export const LUCIAS: HeroDef = {
           for (const ally of on) {
             put(ally.statuses, { name: FAITH.name, left: Math.max(0.3, zone), atk: ZONE.atk / ally.stats.atk, shown: FAITH });
             ally.statuses = ally.statuses.filter((status) => status.shown.harmful !== true || status.binds === true);
+          }
+          if (self.perks.has('s2-dark')) {
+            const helps = fight.foe.statuses;
+            for (let i = helps.length - 1; i >= 0; i--) if ((helps[i]?.deals ?? 1) > 1) helps.splice(i, 1);
           }
           if (zoneTick >= 1) {
             zoneTick -= 1;

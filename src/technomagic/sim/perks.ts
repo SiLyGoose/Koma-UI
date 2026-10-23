@@ -261,14 +261,18 @@ export const perksOf = (ids: readonly string[] | null | undefined, def: HeroDef)
 /** Every ally's from `wearers` heroes with an aura: the first's, and each other's `again`. */
 export const auraOf = (one: Aura, wearers: number): number => (wearers > 0 ? one.first + one.again * (wearers - 1) : 0);
 
-/** What a hero's perks make of its skills' moves (by the move each skill is): how many times as hard their blows are, which go through all the boss's defense, and what each leaves on the boss as its first blow lands. */
+/**
+ * What a hero's perks make of its skills' moves (by the move each skill is): how many times as hard their blows are (each
+ * perk's share added up, as King's Raid adds its skill-power shares, not times one another), which go through all the boss's
+ * defense, and what each leaves on the boss as its first blow lands.
+ */
 export function moveDmg(def: HeroDef, perks: ReadonlyMap<string, PerkDef>): Partial<Record<HeroMove, number>> {
   const out: Partial<Record<HeroMove, number>> = {};
   for (const perk of perks.values()) {
     const ability = perk.skill?.dmg !== undefined ? def.abilities[perk.skill.index] : undefined;
-    if (ability) out[ability.move] = (out[ability.move] ?? 1) * (perk.skill?.dmg ?? 1);
+    if (ability) out[ability.move] = (out[ability.move] ?? 1) + (perk.skill?.dmg ?? 1) - 1;
     // (One for every skill: each of them.)
-    if (perk.allSkills) for (const { move } of def.abilities) out[move] = (out[move] ?? 1) * perk.allSkills.dmg;
+    if (perk.allSkills) for (const { move } of def.abilities) out[move] = (out[move] ?? 1) + perk.allSkills.dmg - 1;
   }
   return out;
 }
@@ -277,12 +281,12 @@ export function moveWhole(def: HeroDef, perks: ReadonlyMap<string, PerkDef>): Se
   return new Set([...perks.values()].flatMap((perk) => (perk.skill?.whole ? [def.abilities[perk.skill.index]?.move].filter((move) => move !== undefined) : [])));
 }
 
-/** What a hero's perks make of its skills' heals and shields (by the move each skill is): how many times as much they give. */
+/** What a hero's perks make of its skills' heals and shields (by the move each skill is): how many times as much they give (their shares added up). */
 export function moveHeals(def: HeroDef, perks: ReadonlyMap<string, PerkDef>): Partial<Record<HeroMove, number>> {
   const out: Partial<Record<HeroMove, number>> = {};
   for (const perk of perks.values()) {
     const ability = perk.skill?.heals !== undefined ? def.abilities[perk.skill.index] : undefined;
-    if (ability) out[ability.move] = (out[ability.move] ?? 1) * (perk.skill?.heals ?? 1);
+    if (ability) out[ability.move] = (out[ability.move] ?? 1) + (perk.skill?.heals ?? 1) - 1;
   }
   return out;
 }

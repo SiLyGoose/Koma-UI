@@ -1,4 +1,4 @@
-import { POINTS, share } from '../combat/damage';
+import { POINTS } from '../combat/damage';
 import { away, bolstering, defending, put } from '../combat/status';
 import { said, t5Light } from '../perks';
 import { fromTreasure, treasure, wearsTreasure } from '../treasures';
@@ -24,9 +24,10 @@ import { bookDmg, CLASS_STATS, dmg, type HeroDef, indexed, type Passive } from '
  * hitting less hard and taking more magic damage, the more with her Flame stacked full on it.
  * What is drawn for each is ../../heroes/morrah/fx.ts; what her body does for each, and for her attack, ../../heroes/morrah/moves.ts.
  *
- * Her own perks (../perks.ts) are King's Raid's. Hellfire's Dark deals DMG based on her M.DEF: every second while
- * Hellfire lasts, a blow as hard as her M.DEF is then (Hellfire's own among it), as the game measures a blow by ATK. Fire Smash's Dark counts 100 Flame or more.
- * What Burning Power's Light gives in attack speed is a pace.
+ * Her own perks (../perks.ts) and unique treasures are live King's Raid's, as krinfo has them (its legacy). Hellfire's
+ * Dark deals DMG based on her M.DEF: every second while Hellfire lasts, a blow as hard as her M.DEF is then (Hellfire's
+ * own among it), as the game measures a blow by ATK. Fire Smash's Dark counts 100 Flame or more. What Burning Power's
+ * Light gives in attack speed is points of it, as gear's is; Hatchling Leather Gloves' DMG reduction is Tough (points).
  */
 // (How hard each of her skills hits is the King's Raid Index's, at her class's ATK: ./kit.ts's indexed.)
 const CLEAVE = { blow: BLOW, burning: indexed('knight', 11_763) };
@@ -45,7 +46,7 @@ const FLAME = { most: 100, lasts: 10, each: 10, every: 1, more: 0.02, heals: 0.0
 const PERKS = { quicker: 200, block: 1.2, scorch: 1, drain: 0.4, harder: { defense: 0.05, most: 10 }, full: 0.4, flame: { each: 2, most: 120 } };
 
 /**
- * Her unique treasures' numbers (1★ to 5★: ../treasures.ts): Burning Power's DMG; Hellfire's less taken (points) and
+ * Her unique treasures' numbers (1★ to 5★: ../treasures.ts): Burning Power's DMG; Hellfire's Tough (points) and
  * M.Crit resist for a block of a magic blow while it lasts; Lava Eruption's DMG and less M.DEF on the boss; Fire Smash's
  * more Flame and slower boss (ATK Spd, points).
  */
@@ -127,7 +128,7 @@ export const MORRAH: HeroDef = {
       words: `[Hellfire] Upon blocking target's M.ATK during the skill's duration, DMG reduction is increased by ${k(UT.gloves.less)} and M.Crit resistance is increased by ${UT.gloves.critResist}.`,
     })),
     treasure('Hellish Sealing Stone', (k) => ({
-      words: `[Lava Eruption] DMG is increased by ${pct(k(UT.stone.dmg))} and target's M.DEF is decreased by ${pct(UT.stone.defends)} for ${UT.stone.lasts} sec.`,
+      words: `[Lava Eruption] Increases DMG by ${pct(k(UT.stone.dmg))}, and reduces the target's M.DEF by ${pct(UT.stone.defends)} for ${UT.stone.lasts} sec.`,
       skill: { index: 2, dmg: 1 + k(UT.stone.dmg), mark: { name: 'Hellish Sealing Stone', defends: { magical: 1 - UT.stone.defends }, lasts: UT.stone.lasts } },
     })),
     treasure('Jewel of Inferno', (k) => ({
@@ -135,15 +136,15 @@ export const MORRAH: HeroDef = {
     })),
   ],
   perks: {
-    's1-light': { words: `ATK Spd is increased by ${PERKS.quicker} for ${BURNING.lasts} sec.` },
+    's1-light': { words: `ATK Spd. is increased by ${PERKS.quicker} for ${BURNING.lasts} sec.` },
     's1-dark': said({ skill: { index: 0, cooldownShare: 0.94 } }, ({ skill }) => `Reduces cooldown by ${pct(1 - skill.cooldownShare)} per each enemy hit.`),
     's2-light': { words: `M.Block rate is boosted by ${pct(PERKS.block - 1)}.` },
-    's2-dark': { words: 'While Hellfire is active, deals DMG based on own M.DEF to nearby enemies.' },
+    's2-dark': { words: 'While Hellfire is active, deal DMG based on own M.DEF to nearby enemies.' },
     's3-light': said({ skill: { index: 2, dmg: 1.4 } }, ({ skill }) => `DMG is increased by ${pct(skill.dmg - 1)}.`),
     's3-dark': { words: `Heals HP equal to ${pct(PERKS.drain)} of DMG dealt.` },
     's4-light': { words: `Increases own M.DEF by ${pct(PERKS.harder.defense)} per each block. Max stack is ${PERKS.harder.most}.` },
     's4-dark': { words: `Target with over ${FLAME.most} stacks of Flame takes ${pct(PERKS.full)} increased M.DMG.` },
-    't5-light': t5Light({ blockMagical: 200 }, ({ blockMagical }) => `M.Block +${blockMagical}`),
+    't5-light': t5Light({ blockMagical: 200 }, ({ blockMagical }) => `M. Block +${blockMagical}`),
     't5-dark': { words: `Flame stack DMG is increased by ${pct(PERKS.flame.each - 1)}, and max stack number is changed to ${PERKS.flame.most}.` },
   },
   attack: 'cleave',
@@ -198,7 +199,7 @@ export const MORRAH: HeroDef = {
           fight.stun(BURNING.down, { down: true, by: self });
           burn(BURNING.flames);
           burning = BURNING.lasts;
-          if (self.perks.has('s1-light')) put(self.statuses, { name: QUICKENED.name, left: BURNING.lasts, pace: 1 + share(PERKS.quicker), shown: QUICKENED });
+          if (self.perks.has('s1-light')) put(self.statuses, { name: QUICKENED.name, left: BURNING.lasts, speed: PERKS.quicker, shown: QUICKENED });
         },
         // The fire goes up round every ally: more M.DEF and M.Block for a while, and a Flame on the boss every second meanwhile.
         hellfire() {
@@ -227,10 +228,10 @@ export const MORRAH: HeroDef = {
         const jewel = wearsTreasure(self, 3);
         burn(SMASH.flames + (jewel ? UT.jewel.flames : 0));
         if (jewel) fight.slow(fromTreasure(self, 3, UT.jewel.speed), UT.jewel.lasts);
-        // (Hatchling Leather Gloves: a magic blow blocked while her Hellfire lasts, she takes less and is crit less, as long as it.)
+        // (Hatchling Leather Gloves: a magic blow blocked while her Hellfire lasts, she is tougher and crit less, as long as it.)
         if (hellfire > 0 && wearsTreasure(self, 1) && fight.foe.def.stats.deals === 'magical') {
           const less = fromTreasure(self, 1, UT.gloves.less);
-          put(self.statuses, { name: 'Hatchling Leather Gloves', left: hellfire, takes: { magical: 1 - share(less) }, critResist: { magical: UT.gloves.critResist }, shown: { name: 'Hatchling Leather Gloves', about: `Takes ${pct(share(less))} less magic DMG, and is crit less.`, icon: '🧤', art: art(1) } });
+          put(self.statuses, { name: 'Hatchling Leather Gloves', left: hellfire, tough: less, critResist: { magical: UT.gloves.critResist }, shown: { name: 'Hatchling Leather Gloves', about: `+${less} Tough, and is crit less by magic.`, icon: '🧤', art: art(1) } });
         }
         // (Its Light: more M.DEF for each block, up to 10.)
         if (self.perks.has('s4-light') && blocks < PERKS.harder.most) {

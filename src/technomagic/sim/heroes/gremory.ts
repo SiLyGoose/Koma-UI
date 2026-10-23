@@ -15,7 +15,7 @@ import { CODED } from './moves';
  * - Pochi, bite them!: five bites on the boss, each harder for her Mana Charge (and harder again on a boss),
  *   each leaving it hitting less hard (Pochi's Mark, up to five times over).
  * - Puchi, knock them away!: a blow from behind that stuns the boss. (Its mark, Puchi's Mark, lowers a target's
- *   M.Block: left out, as no boss here blocks.)
+ *   M.Block by 500 for 12 seconds: left out, but for its Light's.)
  * - Pippi, wrap them!: ten blows, each leaving the boss taking more magic damage (Pippi's Mark, up to ten
  *   times over); a blow on it with all ten deals more, through its defense.
  * - Eh, whatever. I'm gonna sleep.: she sleeps a while, taking less and not to be knocked down; her skills are
@@ -25,8 +25,10 @@ import { CODED } from './moves';
  * fills her mana, and makes her Mana Charge give her more ATK.
  * What is drawn for each is ../../heroes/gremory/fx.ts; what her body does for each, and for her attack, ../../heroes/gremory/moves.ts.
  *
- * Her own perks (../perks.ts) are King's Raid's. Puchi's two do nothing here: its mark's M.Block (left out, as above),
- * and knocking the boss away (it can't be: it is stunned, as ever). Her sleep's Light makes its less taken a fifth more.
+ * Her own perks (../perks.ts) and unique treasures are live King's Raid's, as krinfo has them (its legacy). Puchi's Light
+ * leaves the boss with no M.Block at all for as long as its mark lasts (Scalaxia blocks magic); its Dark does nothing
+ * here (knocking the boss away: it can't be, and it is stunned, as ever). Her sleep's Light makes its less taken a fifth
+ * more, and Sinful Fruit's another fifth (added up).
  */
 // (How hard each of her skills hits: the King's Raid Index hasn't her, so ×3.14 what it was, as the other assassins' went to theirs from it.)
 const POCHI = { bite: 5650, boss: 3770, more: 0.15, bossMore: 0.3, weaker: 0.06, most: 5, lasts: 15 };
@@ -35,8 +37,8 @@ const PIPPI = { blow: 4710, through: 3140, pierce: 500, takes: 0.05, most: 10, l
 const SLEEP = { taken: 0.6 };
 // (Its DMG for each, the playtest's 2% and its books' 3% more.)
 const CHARGE = { most: 5, atk: 0.1, dmg: 0.05 };
-/** Her own perks' numbers: Pochi's Mark's less M.DEF for each, and her sleep's more less taken. */
-const PERKS = { softer: 0.06, sleepier: 1.2 };
+/** Her own perks' numbers: Pochi's Mark's less M.DEF for each, Puchi's Mark's (how long it lasts), and her sleep's more less taken. */
+const PERKS = { softer: 0.06, unblocked: 12, sleepier: 1.2 };
 
 /** Eh, whatever. I'm gonna sleep.: how long she lies asleep (her move written in code has her wake as it ends). */
 export const ASLEEP = 3;
@@ -89,6 +91,7 @@ const WRAPS = CODED.pippi.lands.length;
 /** What her skills leave on the boss. */
 const POCHI_MARK = 'Pochi’s Mark';
 const PIPPI_MARK = 'Pippi’s Mark';
+const PUCHI_MARK = 'Puchi’s Mark';
 
 /** One more of a mark on the boss (up to `most`), begun again: how many it now has. */
 function mark(on: Status<Tone>[], name: string, most: number, lasts: number, made: (count: number) => Partial<Status<Tone>>): number {
@@ -146,20 +149,20 @@ export const GREMORY: HeroDef = {
       skill: { index: 0, dmg: 1 + k(UT.pillow.dmg) },
     })),
     treasure('Yum Yum Treats', (k) => ({
-      words: `[Puchi, Knock them away!] Increases CC Acc by ${k(UT.treats.accuracy)} for the duration of Skill, and dispels positive effects from the target.`,
+      words: `[Puchi, knock them away!] Increases CC ACC by ${k(UT.treats.accuracy)} for the duration of Skill, and dispels positive effects from the target.`,
       skill: { index: 1, dispel: true, self: { name: 'Yum Yum Treats', lasts: UT.treats.lasts, accuracy: k(UT.treats.accuracy) } },
     })),
     treasure('Carrier Cage', (k) => ({
-      words: `[Pippi, wrap them!] Increases the duration of [Pippi's Mark] by ${UT.cage.longer} sec and M.DMG Boost effect by ${Math.round(k(UT.cage.takes) * 1000) / 10}%.`,
+      words: `[Pippi, wrap them!] Increases the duration of [Pippi's Mark] by ${UT.cage.longer} sec and the M.DMG Boost effect by ${Math.round(k(UT.cage.takes) * 1000) / 10}%.`,
     })),
     treasure('Sinful Fruit: Hot & Spicy', (k) => ({
       words: `[Eh, whatever. I'm gonna sleep.] Increases the DMG Reduction effect by ${pct(UT.fruit.sleepier - 1)} for the duration of Skill, and [Mana Charge] additionally increases Crit DMG by ${Math.round(k(UT.fruit.critDamage) * 1000) / 10}%.`,
     })),
   ],
   perks: {
-    's1-light': { words: 'When there is 1 enemy, additional M.DMG dealt to bosses ignores DEF.' },
+    's1-light': { words: 'When there is 1 enemy, additional M.DMG dealt to Bosses ignores DEF.' },
     's1-dark': { words: `[Pochi's Mark] additionally reduces M.DEF by ${pct(PERKS.softer)}.` },
-    's2-light': { words: "The M.Block Chance Reduction effect of [Puchi's Mark] will fix the M.Block Chance to 0 instead." },
+    's2-light': { words: "The M.Block Chance Reduction effect of [Puchi's Mark] will fix M.Block Chance to 0 instead." },
     's2-dark': { words: 'Knocks the target away instead of inflicting Stun.' },
     's3-light': said({ skill: { index: 2, cost: -1 } }, ({ skill }) => `Reduces Mana Cost by ${-skill.cost}.`),
     's3-dark': said({ skill: { index: 2, cost: 1, dmg: 2 } }, ({ skill }) => `Increases Mana Cost by ${skill.cost} and DMG by ${pct(skill.dmg - 1)}.`),
@@ -203,6 +206,8 @@ export const GREMORY: HeroDef = {
         puchi() {
           fight.hit(self, PUCHI.blow);
           fight.stun(PUCHI.stun, { by: self });
+          // (Its Light: Puchi's Mark leaves the boss no M.Block at all.)
+          if (self.perks.has('s2-light')) put(fight.foe.statuses, { name: PUCHI_MARK, left: PERKS.unblocked, blocks: { magical: -Infinity }, shown: 'curse' });
         },
         // A wrap: the boss takes more magic damage for each (up to ten); with all ten on it, the blow deals more, through its defense.
         pippi() {
@@ -231,7 +236,7 @@ export const GREMORY: HeroDef = {
         charges = Math.min(CHARGE.most, charges + 1);
         // (Sinful Fruit: less taken again, and crit DMG for each Mana Charge.)
         const fruit = wearsTreasure(self, 3);
-        const sleepier = (self.perks.has('s4-light') ? PERKS.sleepier : 1) * (fruit ? UT.fruit.sleepier : 1);
+        const sleepier = 1 + (self.perks.has('s4-light') ? PERKS.sleepier - 1 : 0) + (fruit ? UT.fruit.sleepier - 1 : 0);
         put(self.statuses, { name: SLEEPING.name, left: ASLEEP, takes: Math.max(0, 1 - (1 - SLEEP.taken) * sleepier), guards: true, shown: SLEEPING });
         const atk = CHARGE.atk + (tier === null ? 0 : atTier(PIGRITIA.charge, tier));
         const critDamage = fromTreasure(self, 3, UT.fruit.critDamage) * charges;

@@ -2,7 +2,7 @@ import { put } from '../combat/status';
 import { said, t5Light } from '../perks';
 import { MAX_MANA } from '../rules';
 import { fromTreasure, treasure, wearsTreasure } from '../treasures';
-import { pct, skillArt, type Buff } from '../shown';
+import { fine, pct, skillArt, type Buff } from '../shown';
 import { atTier, LEGIOS, LEGIOS_UP } from '../unique';
 import { attackStarts, bookDmg, CLASS_STATS, dmg, type HeroDef, type Passive, played } from './kit';
 
@@ -19,20 +19,20 @@ import { attackStarts, bookDmg, CLASS_STATS, dmg, type HeroDef, type Passive, pl
  * Legios for a while (his attack speed, crit DMG and penetration higher), stacking none meanwhile.
  * What is drawn for each, and what his body does, are King's Raid's own (../../assets/heroes/theo.ts).
  *
- * His own perks (../perks.ts) are King's Raid's. Final Crash's Light (one enemy) always holds. God of Lightning's Dark
- * doubles its ATK and has him take more meanwhile. Fur Decoration of Sable's taking what helps the boss off it does
- * nothing: nothing helps it.
+ * His own perks (../perks.ts) and unique treasures are live King's Raid's, as krinfo has them (its legacy). Final Crash's
+ * Light (one enemy) always holds. God of Lightning's Dark adds to its ATK Boost (as its books do: King's Raid adds them up). Fur Decoration of Sable's taking what helps the
+ * boss off it takes what has it deal more.
  */
 /** Final Crash: each of its blows; the crit DMG each critical one gives (a share, up to `most`, for `lasts` seconds), and the chance, blow and stun of its blow more. */
 const CRASH = { blow: played('warrior', 350, 13_302), critDamage: 0.03, most: 30, lasts: 10, chance: 0.3, more: played('warrior', 371, 13_945), stun: 0.3 };
-/** God of Lightning: its blow, and how long it knocks the boss down; the boss's more magic damage taken, and for how long; and the state's seconds, For Jane's chance more and ATK more (flat, its books' half again with it). */
+/** God of Lightning: its blow, and how long it knocks the boss down; the boss's more magic damage taken, and for how long; and the state's seconds, For Jane's chance more and ATK more (flat, its books' half again added to it). */
 const THUNDER = { blow: played('warrior', 3932, 120_385), down: 2, takes: 1.5, marked: 10, lasts: 15, chance: 0.4, atk: 64_380, books: 1.5 };
 /** Lightning Explosion: each of its five blows, and how long the first stuns the boss. */
 const EXPLOSION = { blow: played('warrior', 1117, 39_914), stun: 3 };
 /** For Jane: its chance on each part of his attack, its blow, and how long it stuns the boss. */
 const JANE = { chance: 0.2, blow: played('warrior', 1716, 75_753), stun: 0.7 };
-/** His own perks' numbers: God of Lightning's Dark's ATK more and what he takes more; Lightning Explosion's and For Jane's Dark's longer stuns; Transcend 5's Dark's ATK, for how long, and how often at most. */
-const PERKS = { thunder: { atk: 2, taken: 1.3 }, stun: 1, jane: 0.2, dark: { atk: 0.5, lasts: 15, every: 20 } };
+/** His own perks' numbers: God of Lightning's Dark's ATK more; Lightning Explosion's Dark's longer stun; For Jane's Light's more DMG and Dark's longer stun; Transcend 5's Dark's ATK, for how long, and how often at most. */
+const PERKS = { thunder: 1, stun: 1, jane: { dmg: 1.4, stun: 0.2 }, dark: { atk: 0.5, lasts: 15, every: 20 } };
 
 /**
  * His unique treasures' numbers (1★ to 5★: ../treasures.ts; King's Raid's own): Final Crash's chance to take what helps
@@ -107,7 +107,7 @@ export const THEO: HeroDef = {
       skill: { index: 0, cleanse: 'self' },
     })),
     treasure('God of Lightning’s Necklace', (k) => ({
-      words: `[God of Lightning] ATK Spd is increased by ${UT.necklace.speed} for the duration of skill, and the activation chance of 'For Jane' is increased by an additional ${pct(k(UT.necklace.chance))}.`,
+      words: `[God of Lightning] ATK Spd is increased by ${UT.necklace.speed} for the duration of skill, and the activation chance of 'For Jane' is increased by an additional ${fine(k(UT.necklace.chance))}.`,
     })),
     treasure('Essence of Red Lightning', (k) => ({
       words: `[Lightning Explosion] Skill cooldown is reduced by ${pct(UT.essence.cooldown)} and upon attack, deals ${pct(k(UT.essence.blow))} of ATK as extra M.DMG.`,
@@ -121,13 +121,13 @@ export const THEO: HeroDef = {
     's1-light': said({ skill: { index: 0, dmg: 2 } }, ({ skill }) => `If there is 1 enemy, DMG is increased by ${pct(skill.dmg - 1)}.`),
     's1-dark': said({ skill: { index: 0, cooldown: -2 } }, ({ skill }) => `Cooldown is reduced by ${-skill.cooldown} sec.`),
     's2-light': said({ skill: { index: 1, cost: -1 } }, ({ skill }) => `Mana cost is reduced by ${-skill.cost}.`),
-    's2-dark': { words: `DMG taken while in Lightning God state is increased by ${pct(PERKS.thunder.taken - 1)} but ATK increase rate is increased by ${pct(PERKS.thunder.atk - 1)}.` },
+    's2-dark': { words: `Increases ATK Boost by ${pct(PERKS.thunder)} during God of Lightning state.` },
     's3-light': said({ skill: { index: 2, dmg: 1.4 } }, ({ skill }) => `DMG is increased by ${pct(skill.dmg - 1)}.`),
     's3-dark': { words: `Stun duration is increased by ${PERKS.stun} sec.` },
-    's4-light': { words: 'DMG is increased by 40%.' },
-    's4-dark': { words: `Stun duration is increased by ${PERKS.jane} sec.` },
+    's4-light': { words: `DMG is increased by ${pct(PERKS.jane.dmg - 1)}.` },
+    's4-dark': { words: `Stun duration is increased by ${PERKS.jane.stun} sec.` },
     't5-light': t5Light({ crit: 100 }, ({ crit }) => `Crit Chance +${crit}`),
-    't5-dark': { words: `When mana is full, ATK is increased by ${pct(PERKS.dark.atk)} for ${PERKS.dark.lasts} sec. This effect only activates once every ${PERKS.dark.every} sec.` },
+    't5-dark': { words: `At full Mana, increases ATK by ${pct(PERKS.dark.atk)} for ${PERKS.dark.lasts} sec. This effect only activates once every ${PERKS.dark.every} sec.` },
   },
   join(fight, self) {
     /** Final Crash's crit DMG stacks, and how long they last yet; how long the God of Lightning state lasts yet; Transcend 5's Dark's wait; his unique weapon's Lightning, and how long Lightning Bolt, Legios lasts yet. */
@@ -139,8 +139,8 @@ export const THEO: HeroDef = {
     let legios = 0;
     const tier = self.unique?.tier ?? null;
     const starts = attackStarts('theo');
-    // (God of Lightning's ATK: a share of his own, as the fight begins; its Dark: twice it.)
-    const godAtk = (THUNDER.atk * THUNDER.books * (self.perks.has('s2-dark') ? PERKS.thunder.atk : 1)) / self.stats.atk;
+    // (God of Lightning's ATK: a share of his own, as the fight begins; its Dark's ATK Boost added to its books', as King's Raid adds them.)
+    const godAtk = (THUNDER.atk * (THUNDER.books + (self.perks.has('s2-dark') ? PERKS.thunder : 0))) / self.stats.atk;
     // (Another Funeral Doll: quicker for a while as the fight begins.)
     if (wearsTreasure(self, 3)) put(self.statuses, { name: DOLL.name, left: UT.doll.lasts, speed: UT.doll.speed, shown: DOLL });
 
@@ -154,12 +154,19 @@ export const THEO: HeroDef = {
         attack(part) {
           fight.hit(self, fight.basic);
           if (!starts.has(part) || fight.roll() >= janeChance()) return;
-          fight.hit(self, JANE.blow * (self.perks.has('s4-light') ? 1.4 : 1));
-          fight.stun(JANE.stun + (self.perks.has('s4-dark') ? PERKS.jane : 0), { by: self });
+          fight.hit(self, JANE.blow * (self.perks.has('s4-light') ? PERKS.jane.dmg : 1));
+          fight.stun(JANE.stun + (self.perks.has('s4-dark') ? PERKS.jane.stun : 0), { by: self });
         },
-        // Each critical blow raises his crit DMG, and may deal a blow more that stuns the boss a moment.
+        // Each critical blow raises his crit DMG, and may deal a blow more that stuns the boss a moment. Fur Decoration of
+        // Sable: each blow may take what helps the boss off it (what has it deal more).
         crash() {
-          if (!fight.hit(self, CRASH.blow)) return;
+          const critical = fight.hit(self, CRASH.blow);
+          const sable = fromTreasure(self, 0, UT.sable.chance);
+          if (sable > 0 && fight.roll() < sable) {
+            const { statuses } = fight.foe;
+            for (let i = statuses.length - 1; i >= 0; i--) if ((statuses[i]?.deals ?? 1) > 1) statuses.splice(i, 1);
+          }
+          if (!critical) return;
           crashed = Math.min(CRASH.most, crashed + 1);
           crashLeft = CRASH.lasts;
           put(self.statuses, { name: CRASHING.name, left: CRASH.lasts, count: crashed, critDamage: CRASH.critDamage * crashed, shown: CRASHING });
@@ -184,10 +191,10 @@ export const THEO: HeroDef = {
       },
       used(index) {
         if (index !== 1) return;
-        // God of Lightning: the state (its Dark: him taking more meanwhile; God of Lightning's Necklace: quicker meanwhile).
+        // God of Lightning: the state (its Dark: its ATK twice over, godAtk; God of Lightning's Necklace: quicker meanwhile).
         god = THUNDER.lasts;
         const necklace = wearsTreasure(self, 1) ? { speed: UT.necklace.speed } : {};
-        put(self.statuses, { name: GOD.name, left: THUNDER.lasts, atk: godAtk, ...(self.perks.has('s2-dark') && { takes: PERKS.thunder.taken }), ...necklace, shown: GOD });
+        put(self.statuses, { name: GOD.name, left: THUNDER.lasts, atk: godAtk, ...necklace, shown: GOD });
       },
       // His unique weapon: each blow of his a stack of Lightning (none while Legios is on); at 50, Lightning Bolt, Legios.
       blow() {

@@ -19,8 +19,9 @@ import { bookDmg, CLASS_STATS, dmg, type HeroDef, indexed, indexedHeal, type Pas
  * physical damage, and his M.DEF higher for a while.
  * What is drawn for each is ../../heroes/loman/fx.ts; what his body does for each, and for his attack, ../../heroes/loman/moves.ts.
  *
- * His own perks (../perks.ts) are King's Raid's. Knight's Creed's Light always holds (there is only the boss). The Last
- * Gatekeeper's Dark does nothing here (Galgoria is steady).
+ * His own perks (../perks.ts) and unique treasures are live King's Raid's, as krinfo has them (its legacy). Knight's
+ * Creed's Light always holds (there is only the boss). The Last Gatekeeper's Dark slows what can be slowed (not
+ * Galgoria, nor any boss that is steady).
  */
 // (How hard each of his skills hits, and how much each shields, is the King's Raid Index's, at his class's ATK: ./kit.ts's indexed and indexedHeal.)
 /** Cut Ground: its blow, how long the boss is down, and how much more physical damage it takes for `lasts` seconds. */
@@ -31,8 +32,8 @@ const SHROUD = { absorbs: 315_448, shield: indexedHeal('knight', 315_448), lasts
 const CREED = { blow: indexed('knight', 102_676) / 2, stun: 1.5, last: indexed('knight', 242_634), lastStun: 5, mark: indexed('knight', 95_532), lasts: 15, every: 0.5 };
 /** The Last Gatekeeper: Endurance a second, and for a block (no sooner than `every` after the last); at `most`, its blow (through the boss's defense), and the boss's ATK lower for `lasts` seconds. */
 const GATEKEEPER = { each: 1, every: 0.2, most: 20, blow: indexed('knight', 70_202), weaker: 0.2, lasts: 10 };
-/** His own perks' numbers: Cut Ground's Dark, Shrouding Creed's Dark, The Last Gatekeeper's Light, and Transcend 5's Dark. */
-const PERKS = { weakness: 0.25, longer: 5, each: 1, ward: { block: 200, defense: 0.1, lasts: 5, every: 5 } };
+/** His own perks' numbers: Cut Ground's Dark, Shrouding Creed's Dark, The Last Gatekeeper's Light and Dark (the boss's ATK Spd lower, points), and Transcend 5's Dark. */
+const PERKS = { weakness: 0.25, longer: 5, each: 1, slower: { speed: 200, lasts: 10 }, ward: { block: 200, defense: 0.1, lasts: 5, every: 5 } };
 
 /**
  * His unique treasures' numbers (1★ to 5★: ../treasures.ts): Cut Ground's less P.Block and CC resist on the boss (points);
@@ -122,7 +123,7 @@ export const LOMAN: HeroDef = {
       skill: { index: 1, cost: UT.doll.cost, allyMana: k(UT.doll.mana) },
     })),
     treasure('Sea of Invocation', (k) => ({
-      words: `[Knight's Creed] Reduces Cooldown by ${pct(UT.sea.cooldown)}, and increases P.Weakness of the target by ${pct(k(UT.sea.takes))} for ${UT.sea.lasts} seconds.`,
+      words: `[Knight's Creed] Reduces Cooldown by ${pct(UT.sea.cooldown)} and increases P.DMG the target takes by ${pct(k(UT.sea.takes))} for ${UT.sea.lasts} sec.`,
       skill: { index: 2, cooldownShare: 1 - UT.sea.cooldown, mark: { name: 'Sea of Invocation', takes: { physical: 1 + k(UT.sea.takes) }, lasts: UT.sea.lasts } },
     })),
     treasure('Father’s Shield', (k) => ({
@@ -137,8 +138,8 @@ export const LOMAN: HeroDef = {
     's2-dark': { words: `The shield lasts ${PERKS.longer} seconds longer.` },
     's3-light': said({ skill: { index: 2, dmg: 2 } }, ({ skill }) => `When there is 1 enemy, DMG is boosted by ${pct(skill.dmg - 1)}.`),
     's3-dark': { words: 'While in use, gains immunity to CC.' },
-    's4-light': { words: "Increases the number of 'Endurance' stacked every second by 1." },
-    's4-dark': { words: 'Decreases ATK Spd of the affected enemy by 200 for 10 sec.' },
+    's4-light': { words: `Increases the number of 'Endurance' stacked every sec by ${PERKS.each}.` },
+    's4-dark': { words: `Decreases ATK Spd of the affected enemy by ${PERKS.slower.speed} for ${PERKS.slower.lasts} sec.` },
     't5-light': t5Light({ blockMagical: 200 }, ({ blockMagical }) => `M. Block +${blockMagical}`),
     't5-dark': { words: `Upon successfully blocking M.DMG, all allies have their M.Block increased by ${PERKS.ward.block} and M.DEF by ${pct(PERKS.ward.defense)} of Loman's M.DEF for ${PERKS.ward.lasts} sec. This effect is activated only once every ${PERKS.ward.every} seconds.` },
   },
@@ -162,7 +163,7 @@ export const LOMAN: HeroDef = {
       endurance = 0;
       fight.hit(self, GATEKEEPER.blow, true, 0, true);
       put(fight.foe.statuses, { name: GATE, left: GATEKEEPER.lasts, deals: 1 - GATEKEEPER.weaker, shown: 'curse' });
-      if (self.perks.has('s4-dark')) fight.slow(200, GATEKEEPER.lasts);
+      if (self.perks.has('s4-dark')) fight.slow(PERKS.slower.speed, PERKS.slower.lasts);
       fight.cue(self, 'gatekeeper');
     };
 

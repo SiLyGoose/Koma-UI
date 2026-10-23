@@ -21,8 +21,10 @@ import { attackStarts, bookDmg, CLASS_STATS, dmg, type HeroDef, type Passive, pl
  * 4), each his ATK, attack speed and DMG to Non-Hero enemies higher.
  * What is drawn for each, and what his body does, are King's Raid's own (../../assets/heroes/lakrak.ts).
  *
- * His own perks (../perks.ts) are King's Raid's. Rapid Fire's Dark (the boss's mana) and Glue Bomb's Dark (its target)
- * do nothing here: the boss has no mana, and is the only one. Smoke Bomb's dispel and Blind do nothing to the boss.
+ * His own perks (../perks.ts) and unique treasures are live King's Raid's, as krinfo has them (its legacy). Rapid Fire's
+ * Dark and Bada Boom Cannonball's mana (the boss's) and Glue Bomb's Dark (its target) do nothing here: the boss has no
+ * mana, and is the only one. Smoke Bomb's dispel and Blind (and so its Dark's and Special Gas Mask's longer Blind) do
+ * nothing to the boss.
  */
 /** Rapid Fire: its blow, how long it stuns, its blow more on a Non-Hero enemy, and the mana a critical one gains him. */
 const RAPID = { blow: played('mechanic', 3554, 158_587), stun: 1, boss: played('mechanic', 1854, 72_747), mana: 250 };
@@ -32,18 +34,18 @@ const SMOKE = { blow: played('mechanic', 2135, 95_067), stun: 0.5, takes: 1.2, l
 const GLUE = { after: 3, blow: played('mechanic', 7552, 321_900), stun: 1, more: played('mechanic', 4775, 214_809) };
 /** Load Cannon: its chance on each part of his attack, its blow, and how long it stuns; an [Experiment]'s chance of success. */
 const CANNON = { chance: 0.15, blow: played('mechanic', 1663, 74_033), stun: 1, success: 0.5 };
-/** His own perks' numbers: Rapid Fire's Light's DMG; Load Cannon's Light's chance and longer stun, and Dark's mana on a success; Transcend 5's Dark's attack speed and CC ACC on a success, for how long. */
-const PERKS = { chance: 0.25, stun: 0.5, mana: 500, dark: { speed: 120, accuracy: 150, lasts: 10 } };
+/** His own perks' numbers: Load Cannon's Light's chance and longer stun, and Dark's mana on a success; Transcend 5's Dark's attack speed and CC ACC (points) on a success, for how long. */
+const PERKS = { chance: 0.25, stun: 1, mana: 500, dark: { speed: 300, accuracy: 300, lasts: 10 } };
 
 /**
- * His unique treasures' numbers (1★ to 5★: ../treasures.ts; King's Raid's own): Rapid Fire's more DMG and the boss's more
- * physical damage taken; Smoke Bomb's shorter cooldown and longer Blind; Glue Bomb's more DMG and mana on a critical blow;
+ * His unique treasures' numbers (0★ to 5★: ../treasures.ts; King's Raid's own): Rapid Fire's more DMG and mana on a critical
+ * blow; Smoke Bomb's shorter cooldown and longer Blind; Glue Bomb's more DMG and the boss's Heal Rate cut, for how long;
  * Load Cannon's mana off the boss, and its first shot certain.
  */
 const UT = {
-  cudgel: { dmg: 0.5, takes: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25], lasts: 10 },
+  cudgel: { dmg: 0.5, mana: [200, 240, 290, 350, 420, 500] },
   mask: { cooldown: 0.3, blind: [1, 1.2, 1.4, 1.7, 2.1, 2.5] },
-  gunpowder: { dmg: 0.5, mana: [200, 240, 290, 350, 420, 500] },
+  gunpowder: { dmg: 0.5, unhealed: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5], lasts: 7 },
   cannonball: { mana: [400, 480, 580, 700, 840, 1000] },
 };
 
@@ -58,6 +60,8 @@ const CANNON_SHOWN: Passive = {
 };
 const SUCCESS: Buff = { name: 'Experiment Success!', about: 'His next skill enhanced.', icon: '🧪', art: art(3) };
 const EXPLOSIVE = 'Explosive Substance';
+/** Goblincraft Special High-Density Gunpowder's Heal Rate cut on the boss. */
+const GUNPOWDER = 'Goblincraft Special High-Density Gunpowder';
 const EXPERIMENTED: Buff = { name: 'Experimenter', about: 'Attack speed and CC ACC higher.', icon: '🧪', art: art(3) };
 
 export const LAKRAK: HeroDef = {
@@ -101,15 +105,15 @@ export const LAKRAK: HeroDef = {
   passive: CANNON_SHOWN,
   treasures: [
     treasure('Cudgel Bullet', (k) => ({
-      words: `[Rapid Fire] Increases DMG by ${pct(UT.cudgel.dmg)}, and increases P.DMG target receives by ${pct(k(UT.cudgel.takes))} for ${UT.cudgel.lasts} sec.`,
-      skill: { index: 0, dmg: 1 + UT.cudgel.dmg, mark: { name: 'Cudgel Bullet', lasts: UT.cudgel.lasts, takes: { physical: 1 + k(UT.cudgel.takes) } } },
+      words: `[Rapid Fire] Increases DMG by ${pct(UT.cudgel.dmg)}, and recovers ${k(UT.cudgel.mana)} Mana upon a Critical Hit.`,
+      skill: { index: 0, dmg: 1 + UT.cudgel.dmg },
     })),
     treasure('Special Gas Mask', (k) => ({
-      words: `[Smoke Bomb] Reduces Cooldown by ${pct(UT.mask.cooldown)} and increases blind duration by ${k(UT.mask.blind)} sec.`,
+      words: `[Smoke Bomb] Reduces Cooldown by ${pct(UT.mask.cooldown)} and increases the duration of Blind by ${k(UT.mask.blind)} sec.`,
       skill: { index: 1, cooldownShare: 1 - UT.mask.cooldown },
     })),
     treasure('Goblincraft Special High-Density Gunpowder', (k) => ({
-      words: `[Glue Bomb] DMG is increased by ${pct(UT.gunpowder.dmg)}, and upon Crit Hit, recovers ${k(UT.gunpowder.mana)} mana.`,
+      words: `[Glue Bomb] Increases DMG by ${pct(UT.gunpowder.dmg)} and reduces the Heal Rate of the hit target by ${pct(k(UT.gunpowder.unhealed))} for ${UT.gunpowder.lasts} sec.`,
       skill: { index: 2, dmg: 1 + UT.gunpowder.dmg },
     })),
     treasure('Bada Boom Cannonball', (k) => ({
@@ -117,16 +121,16 @@ export const LAKRAK: HeroDef = {
     })),
   ],
   perks: {
-    's1-light': said({ skill: { index: 0, dmg: 1.5 } }, ({ skill }) => `Damage increases by ${pct(skill.dmg - 1)}.`),
-    's1-dark': { words: "Reduces the target's Mana by 700." },
-    's2-light': said({ skill: { index: 1, cost: -1 } }, ({ skill }) => `Mana cost is reduced by ${-skill.cost}.`),
-    's2-dark': { words: 'Increases the duration of Blind by 1 sec.' },
-    's3-light': said({ skill: { index: 2, cost: 2 } }, ({ skill }) => `Mana cost increases by ${skill.cost}, and the number of bomb placements is changed to 2.`),
+    's1-light': said({ skill: { index: 0, dmg: 1.4 } }, ({ skill }) => `Increases DMG by ${pct(skill.dmg - 1)}.`),
+    's1-dark': { words: 'Reduces the Mana of hit target by 700.' },
+    's2-light': said({ skill: { index: 1, cost: -1 } }, ({ skill }) => `Reduces Mana Cost by ${-skill.cost}.`),
+    's2-dark': { words: 'Increases the duration of Blind by 2 sec.' },
+    's3-light': said({ skill: { index: 2, cost: 1 } }, ({ skill }) => `Increases Mana Cost by ${skill.cost}, and attaches the bomb on a random enemy twice.`),
     's3-dark': { words: 'Changes the target to the enemy with the highest ATK.' },
-    's4-light': { words: `Shell activation chance increases by ${pct(PERKS.chance - CANNON.chance)}, and stun duration increases by ${PERKS.stun} sec.` },
-    's4-dark': { words: `On [Experiment] success, restores ${PERKS.mana} Mana.` },
+    's4-light': { words: `Increases the activation chance of the bomb by ${pct(PERKS.chance - CANNON.chance)} and the duration of Stun by ${PERKS.stun} sec.` },
+    's4-dark': { words: `Upon a successful experiment, recovers ${PERKS.mana} Mana.` },
     't5-light': t5Light({ critDamage: 0.2 }, ({ critDamage }) => `Crit DMG +${pct(critDamage)}`),
-    't5-dark': { words: `On [Experiment] success, increases Attack Speed by ${pct(PERKS.dark.speed / 1000)} and Status Ailment Accuracy by ${PERKS.dark.accuracy} for ${PERKS.dark.lasts} sec.` },
+    't5-dark': { words: `Each successful experiment increases own ATK Spd by ${PERKS.dark.speed} and CC ACC by ${PERKS.dark.accuracy} for ${PERKS.dark.lasts} sec.` },
   },
   join(fight, self) {
     const tier = self.unique?.tier ?? null;
@@ -140,13 +144,13 @@ export const LAKRAK: HeroDef = {
     /** A skill of his going (its [Experiment] comes as it ends). */
     let skilling = false;
 
-    /** A bomb bursts: on the boss, harder on [Explosive Substance] (Goblincraft Gunpowder: a critical one, mana). */
+    /** A bomb bursts: on the boss, harder on [Explosive Substance] (Goblincraft Gunpowder: its healing cut for a while). */
     const burst = (): void => {
-      const critical = fight.hit(self, GLUE.blow);
+      fight.hit(self, GLUE.blow);
       fight.stun(GLUE.stun, { by: self });
       if (fight.foe.statuses.some((status) => status.name === EXPLOSIVE)) fight.hit(self, GLUE.more);
-      const mana = fromTreasure(self, 2, UT.gunpowder.mana);
-      if (critical && mana > 0) self.mana = Math.min(MAX_MANA, self.mana + mana);
+      const unhealed = fromTreasure(self, 2, UT.gunpowder.unhealed);
+      if (unhealed > 0) put(fight.foe.statuses, { name: GUNPOWDER, left: UT.gunpowder.lasts, heals: 1 - unhealed, shown: 'curse' });
     };
 
     return {
@@ -162,12 +166,12 @@ export const LAKRAK: HeroDef = {
             fight.stun(CANNON.stun + (self.perks.has('s4-light') ? PERKS.stun : 0), { by: self });
           }
         },
-        // A blow that stuns the boss, and a blow more on a Non-Hero enemy; a critical one gains him mana. A success: no cooldown.
+        // A blow that stuns the boss, and a blow more on a Non-Hero enemy; a critical one gains him mana (Cudgel Bullet: more). A success: no cooldown.
         rapid() {
           const critical = fight.hit(self, RAPID.blow);
           fight.hit(self, RAPID.boss);
           fight.stun(RAPID.stun, { by: self });
-          if (critical) self.mana = Math.min(MAX_MANA, self.mana + RAPID.mana);
+          if (critical) self.mana = Math.min(MAX_MANA, self.mana + RAPID.mana + fromTreasure(self, 0, UT.cudgel.mana));
           if (enhanced) self.cooldowns[0] = 0;
         },
         // A blow that stuns the boss a moment, and [Explosive Substance] on it.

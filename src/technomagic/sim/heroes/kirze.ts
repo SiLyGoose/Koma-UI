@@ -1,5 +1,5 @@
 import { share } from '../combat/damage';
-import { put } from '../combat/status';
+import { away, put } from '../combat/status';
 import { said, t5Light } from '../perks';
 import { fromTreasure, treasure } from '../treasures';
 import { pct, skillArt, type Buff } from '../shown';
@@ -35,8 +35,8 @@ const DEEDS = { atk: 0.2, crit: 200, control: 0.3 };
 const PERKS = { slower: 300, stacks: 2, awakeDmg: 1.2, opening: 20, openingDmg: 1.25, critDamage: 0.4, pen: 150, attacks: 100 };
 
 /**
- * Her unique treasures' numbers (1★ to 5★: ../treasures.ts): Blade of Judgment's DMG; Crystal Haze's attack speed
- * (points) and every ally's penetration; Crimson Flower's shorter cooldown and the chance of 3 stacks more; End to
+ * Her unique treasures' numbers (1★ to 5★: ../treasures.ts): Blade of Judgment's DMG; Crystal Haze's more attack
+ * speed (points) and penetration, every ally's; Crimson Flower's shorter cooldown and the chance of 3 stacks more; End to
  * Evil Deeds!'s crit chance and its longer stuns.
  */
 const UT = {
@@ -63,6 +63,8 @@ const EVIL_DEEDS: Passive = {
 };
 /** What Crystal Haze gives her for a while: shown beside her passive, with how long it has left. */
 const AWAKENING: Buff = { name: 'Arcane Crystal Awakening', about: `Quickened, and a shockwave goes out from her every ${HAZE.every} seconds.`, icon: '💠', art: art(1) };
+/** Remnant of Hobby: what every ally has of it while Crystal Haze lasts. */
+const HOBBY: Buff = { name: 'Remnant of Hobby', about: `ATK Spd higher and DEF Penetration +${UT.hobby.pen} while Kirze's [Arcane Crystal Awakening] lasts.`, icon: '💠', art: art(1) };
 /** Transcend 5's Dark, twice over once she has attacked the boss enough: what more it gives her then. */
 const DOUBLED: Buff = { name: 'Transcend 5 Dark', about: `Crit DMG +${pct(PERKS.critDamage)} and DEF Penetration +${PERKS.pen} more: she has attacked the boss ${PERKS.attacks} times.`, icon: '🌑', art: art(3) };
 
@@ -112,11 +114,11 @@ export const KIRZE: HeroDef = {
       skill: { index: 0, dmg: 1 + k(UT.lotus.dmg), cost: UT.lotus.cost },
     })),
     treasure('Remnant of Hobby', (k) => ({
-      words: `[Disperse, Crystal Haze!] Increases ATK Spd by an additional ${k(UT.hobby.speed)} and increases penetration of all allies by ${UT.hobby.pen} for the duration of the skill.`,
-      skill: { index: 1, party: { name: 'Remnant of Hobby', lasts: HAZE.lasts, pen: UT.hobby.pen } },
+      words: `[Disperse, Crystal Haze!] Increases ATK Spd by an additional ${k(UT.hobby.speed)} and increases DEF Penetration of all allies by ${UT.hobby.pen} for the duration of Skill.`,
+      // (Every ally's, as [Arcane Crystal Awakening]'s is: what it gives is put on them as the skill lands, in join.)
     })),
     treasure('Reminiscence of Escape', (k) => ({
-      words: `[Bloom, Crimson Flower!] Decreases Cooldown by ${pct(UT.escape.cooldown)}, and gaining 1 stack of [Arcane Crystal Energy] has a ${pct(k(UT.escape.chance))} chance to add ${UT.escape.more} additional stacks.`,
+      words: `[Bloom, Crimson Flower!] Reduces Cooldown by ${pct(UT.escape.cooldown)}, and upon gaining a stack of [Arcane Crystal Energy], there is a ${pct(k(UT.escape.chance))} chance to gain ${UT.escape.more} additional stacks.`,
       skill: { index: 2, cooldownShare: 1 - UT.escape.cooldown },
     })),
     // (Her stuns' more is her passive's: the treasure's added to it, over it.)
@@ -171,6 +173,9 @@ export const KIRZE: HeroDef = {
           fight.stun(HAZE.stun, { by: self });
           awake = HAZE.lasts;
           wave = HAZE.every;
+          // (Remnant of Hobby: every ally standing its more ATK Spd, and DEF Penetration, while it lasts.)
+          const hobby = fromTreasure(self, 1, UT.hobby.speed);
+          if (hobby > 0) for (const ally of fight.field.filter((one) => one.hp > 0 && !away(one.statuses))) put(ally.statuses, { name: HOBBY.name, left: HAZE.lasts, speed: hobby, pen: UT.hobby.pen, shown: HOBBY });
         },
         // Crystals up in a line to the boss; then they burst, and the boss is cursed.
         flower(part) {
@@ -215,8 +220,6 @@ export const KIRZE: HeroDef = {
       },
       pace: () => (awake > 0 ? HAZE.quicker : 1),
       deals: () => (awake > 0 && self.perks.has('s2-dark') ? PERKS.awakeDmg : 1) * (opening > 0 ? PERKS.openingDmg : 1),
-      // (And Remnant of Hobby's more while she is quickened.)
-      speed: () => (awake > 0 ? fromTreasure(self, 1, UT.hobby.speed) : 0),
       // Transcend 5's Dark: once she has attacked the boss enough, its crit DMG and penetration twice over.
       blow() {
         if (!self.perks.has('t5-dark') || attacks >= PERKS.attacks) return;

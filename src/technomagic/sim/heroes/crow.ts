@@ -24,7 +24,7 @@ import { CODED } from './moves';
  * What is drawn for each is ../../heroes/crow/fx.ts; what his body does for each, and for his attack, ../../heroes/crow/moves.ts.
  *
  * His own perks (../perks.ts) are King's Raid's: Hunting Preparation's Light leaves the boss taking more from every
- * hero, from his first blow on. His passive's mana is the game's 300 a second (of its 1000 to a section), besides what
+ * hero, from his first blow on it (the boss only: not a Dragon Raid's minions). His passive's mana is the game's 300 a second (of its 1000 to a section), besides what
  * he recovers as every hero does (all that Hunting Preparation's Dark, and his gear, raise).
  */
 // (How hard each of his skills hits is the King's Raid Index's, at his class's ATK: ./kit.ts's indexed.)
@@ -37,8 +37,8 @@ const GODS = { blow: indexed('mechanic', 165_718), each: indexed('mechanic', 529
 const FANG = { lasts: 40, most: 100 };
 /** Hunting Preparation: his ATK (added to his class's, as the game has it), crit DMG more, and mana a second. */
 const HUNTING = { atk: 25_288, critDamage: 0.8, mana: 300 };
-/** His own perks' numbers: Target will be Eliminated.'s mana for each blow, and the freezing area's more chance. */
-const PERKS = { mana: 30, chance: 0.3 };
+/** His own perks' numbers: Target will be Eliminated.'s mana for each blow, the freezing area's more chance, and what the boss takes for Hunting Preparation's Light. */
+const PERKS = { mana: 30, chance: 0.3, boss: 1.15 };
 
 /**
  * His unique treasures' numbers (1★ to 5★: ../treasures.ts): Target will be Eliminated.'s shorter cooldown and the mana it
@@ -137,8 +137,8 @@ export const CROW: HeroDef = {
     's2-dark': { words: `Freezing chance of the Freezing Area increases by ${pct(PERKS.chance)}.` },
     's3-light': said({ skill: { index: 2, cooldown: 10, dmg: 2 } }, ({ skill }) => `Increases Cooldown by ${skill.cooldown} sec and DMG by ${pct(skill.dmg - 1)}.`),
     's3-dark': said({ skill: { index: 2, cost: -1 } }, ({ skill }) => `Reduces Mana Cost by ${-skill.cost}.`),
-    's4-light': said({ mark: { name: 'Hunting Preparation', takes: 1.15, lasts: Infinity } }, ({ mark }) => `Boss monster takes ${pct(mark.takes - 1)} increased DMG.`),
-    's4-dark': said({ bonus: { manaRegen: 0.4 } }, ({ bonus }) => `Mana recovery increases by ${pct(bonus.manaRegen)}.`),
+    's4-light': { words: `Boss monster takes ${pct(PERKS.boss - 1)} increased DMG.` },
+    's4-dark': said({ bonus: { manaRegen: 0.4 } }, ({ bonus }) => `Increases Mana Recovery by ${pct(bonus.manaRegen)}.`),
     't5-light': t5Light({ critDamage: 0.2 }, ({ critDamage }) => `Crit DMG +${pct(critDamage)}`),
     't5-dark': said({ allSkills: { cost: 1, dmg: 1.75 } }, ({ allSkills }) => `Increases Mana Cost of all skills by ${allSkills.cost} and DMG by ${pct(allSkills.dmg - 1)}.`),
   },
@@ -218,6 +218,10 @@ export const CROW: HeroDef = {
           fight.hit(self, STRUGGLE.chill, false);
           if (fight.roll() < STRUGGLE.chance + (self.perks.has('s2-dark') ? PERKS.chance : 0)) freeze(STRUGGLE.chilled);
         }
+      },
+      // Hunting Preparation's Light: a blow of his on the boss (not on a minion) leaves it taking more from every hero.
+      blow() {
+        if (self.perks.has('s4-light') && fight.foe === fight.boss) put(fight.boss.statuses, { name: 'Hunting Preparation', left: Infinity, takes: PERKS.boss, shown: 'curse' });
       },
       guards: () => self.doing?.move === 'eliminate' && self.perks.has('s1-dark'),
       lit: () => fangs() >= FANG.most,

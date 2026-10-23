@@ -26,9 +26,11 @@ import { bookDmg, bookHeal, CLASS_STATS, dmg, healed, type HeroDef, indexed, ind
  * often the ally with the lowest health is healed.
  * What is drawn for each is ../../heroes/laias/fx.ts; what her body does for each, and for her attack, ../../heroes/laias/moves.ts.
  *
- * Her own perks (../perks.ts) are King's Raid's. Healing Droplets' Light makes its heal 40% more; its Dark's M.Crit
- * Resistance lasts as its Heal Rate does. Festival of the Flow's Dark heals every ally another 15% of its max HP.
- * Transcend 5's Dark's mana is the game's 350 of its 1000 to a section.
+ * Her own perks (../perks.ts) and unique treasures are live King's Raid's, as krinfo has them (its legacy). Healing
+ * Droplets' Light makes its heal 40% more; its Dark's M. Crit Resistance lasts as its Heal Rate does. Festival of the
+ * Flow's Dark (its whirlpools at the enemy with the highest ATK) does nothing here: there is only the boss for them; nor
+ * her passive's Dark (its DMG Reduction irremovable): nothing here takes it off. Transcend 5's Dark's mana is the game's
+ * 350 of its 1000 to a section.
  */
 // (How hard each of her skills hits, and how much each heals and shields, is the King's Raid Index's, at her class's ATK: ./kit.ts's indexed and indexedHeal.)
 // (Its 25% Heal Rate, 1.5 times for an ally at half its health or less, as the game has it.)
@@ -38,11 +40,11 @@ const FESTIVAL = { blow: indexed('priest', 210_084), down: 3, heal: 0.15, mana: 
 // (Her 500 CC Resist and every ally's 250 M.Crit Resistance, as the game has them: points.)
 const WATER_DRAGON = { resist: 500, defense: 1.1, critResist: 250, taken: 0.75, lasts: 5 };
 /**
- * Her own perks' numbers: Healing Droplets' more healing and its M.Crit Resistance (points), the whirlpools' quicker
- * coming, Festival of the Flow's more heal, her passive's more M.DEF (a share more of it) and M.Crit Resistance, her more
- * CC Resist, and Transcend 5's Dark's mana for every ally (how often).
+ * Her own perks' numbers: Healing Droplets' more healing and its M. Crit Resistance (points), the whirlpools' quicker
+ * coming, her passive's more M.DEF (a share more of it) and M. Crit Resistance, and Transcend 5's Dark's mana for every
+ * ally (how often).
  */
-const PERKS = { heals: 1.4, critResist: 250, whirl: 3, festival: 0.15, defense: 1.2, critResistMore: 150, resist: 400, mana: { each: 0.35 * SECTION, every: 3 } };
+const PERKS = { heals: 1.4, critResist: 250, whirl: 3, defense: 1.2, critResistMore: 150, mana: { each: 0.35 * SECTION, every: 3 } };
 
 /**
  * Her unique treasures' numbers (1★ to 5★: ../treasures.ts): Healing Droplets' more healing and every ally's M.Block
@@ -130,7 +132,7 @@ export const LAIAS: HeroDef = {
     })),
     // (One enemy: its whirlpools have only the boss to target.)
     treasure('Papyrus of the Flow', (k) => ({
-      words: `[Festival of the Flow] Whirlpool effect targets 2 enemies and all allies recover additional ${k(UT.papyrus.mana)} mana.`,
+      words: `[Festival of the Flow] The Whirlpool effect targets 2 enemies and all allies recover ${k(UT.papyrus.mana)} additional Mana.`,
       skill: { index: 2, allyMana: k(UT.papyrus.mana) },
     })),
     treasure('Tear of God Dragon', (k) => ({
@@ -139,14 +141,16 @@ export const LAIAS: HeroDef = {
   ],
   perks: {
     's1-light': { words: `Heal rate is increased by ${pct(PERKS.heals - 1)}.` },
-    's1-dark': { words: `Upon healing, M.Crit Resistance rises by ${pct(share(PERKS.critResist))}.` },
+    's1-dark': { words: `Upon healing, M. Crit Resistance rises by ${pct(share(PERKS.critResist))}.` },
     's2-light': { words: 'Changes the target to the ally with the highest ATK.' },
     's2-dark': said({ skill: { index: 1, cost: -1 } }, ({ skill }) => `Mana cost is reduced by ${-skill.cost}.`),
     's3-light': { words: `DMG effect occurs every ${PERKS.whirl} sec.` },
-    's3-dark': { words: `Heals all allies by ${pct(PERKS.festival)} of their max HP.` },
-    's4-light': { words: `M.DEF increase rate increases by ${pct(PERKS.defense - 1)}, and M.Crit Resistance increases by ${PERKS.critResistMore}.` },
-    's4-dark': said({ bonus: { resist: PERKS.resist } }, ({ bonus }) => `Increases self CC Resist by ${bonus.resist}.`),
-    't5-light': t5Light({ blockMagical: 200 }, ({ blockMagical }) => `M.Block +${blockMagical}`),
+    // (One enemy: its whirlpools have only the boss to target.)
+    's3-dark': { words: 'Changes the target of the whirlpool to the enemy with the highest ATK.' },
+    's4-light': { words: `M.DEF increase rate increases by ${pct(PERKS.defense - 1)}, and M. Crit Resistance increases by ${PERKS.critResistMore}` },
+    // (Nothing here takes her passive's DMG Reduction off.)
+    's4-dark': { words: 'The DMG Reduction effect becomes irremovable.' },
+    't5-light': t5Light({ blockMagical: 200 }, ({ blockMagical }) => `M. Block +${blockMagical}`),
     't5-dark': { words: `Recovers ${PERKS.mana.each} Mana of all allies every ${PERKS.mana.every} sec.` },
   },
   attack: 'splash',
@@ -221,7 +225,7 @@ export const LAIAS: HeroDef = {
           fight.hit(self, FESTIVAL.blow);
           fight.stun(FESTIVAL.down, { down: true, by: self });
           for (const ally of on) {
-            fight.heal(ally, ally.stats.hp * (FESTIVAL.heal + (self.perks.has('s3-dark') ? PERKS.festival : 0)), undefined, self);
+            fight.heal(ally, ally.stats.hp * FESTIVAL.heal, undefined, self);
             if (ally !== self) ally.mana = Math.min(MAX_MANA, ally.mana + FESTIVAL.mana);
           }
           flowing = FESTIVAL.lasts;

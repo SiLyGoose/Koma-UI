@@ -26,10 +26,11 @@ import { bookDmg, bookHeal, CLASS_STATS, dmg, healed, type HeroDef, indexed, ind
  * and a little mana, and while she is Overcharged every ally deals more and takes less.
  * What is drawn for each is ../../heroes/annette/fx.ts; what her body does for each, and for her attack, ../../heroes/annette/moves.ts.
  *
- * Her own perks (../perks.ts) are King's Raid's. Process of Elimination's Dark doesn't say for how long: as long as it
- * leaves the boss so Overcharged (10 seconds), Overcharged or not (and both, Overcharged). What Charge's Light adds, it
- * adds to Overcharge's ATK; Transcend 5's Dark's ATK for every ally (a share of hers) is so much more DMG, and its
- * attack speed a pace.
+ * Her own perks (../perks.ts) and unique treasures are live King's Raid's, as krinfo has them (its legacy). Emergency
+ * Treatment's Light (its heal irremovable) does nothing here: nothing removes it. Process of Elimination's Dark doesn't say
+ * for how long: as long as it leaves the boss so Overcharged (10 seconds), Overcharged or not (and both, Overcharged).
+ * Charge's Light gives Overcharge's ATK to every ally too, for as long as hers; Transcend 5's Dark's ATK for every ally
+ * is a share of hers.
  */
 // (How hard each of her skills hits, and how much each heals, is the King's Raid Index's, at her class's ATK: ./kit.ts's indexed and indexedHeal.)
 const RAY = { blow: indexed('mechanic', 207_192), extra: indexed('mechanic', 207_192), weaker: 0.15, takes: 0.25, lasts: 10 };
@@ -39,8 +40,11 @@ const ELIMINATION = { blow: indexed('mechanic', 552_663), over: indexed('mechani
 const CHARGE = { every: 0.5, perCrystal: 10, full: 100, lasts: 15, atk: 0.3, cooldown: 0.1 };
 /** Her books' (King's Raid's playtest's): more Charge as each skill is used (unless she is Overcharged), and Overcharged, ATK Spd (points). */
 const BOOKS = { charge: [6, 6, 9], speed: 250 };
-/** Her own perks' numbers: more Charge from a skill, Process of Elimination's mark, Overcharge's more ATK and longer, and Transcend 5's Dark's for every ally (attack speed in points, ATK a share of hers). */
-const PERKS = { charge: 1.4, eliminated: 0.25, overAtk: 1.4, overLonger: 3, allies: { speed: 200, atk: 0.05 } };
+/**
+ * Her own perks' numbers: more Charge from a skill, Process of Elimination's mark, Overcharge longer and what each attack
+ * takes off her skills' cooldowns then, and Transcend 5's Dark's for every ally (attack speed in points, ATK a share of hers).
+ */
+const PERKS = { charge: 1.4, eliminated: 0.25, overLonger: 5, cooldown: 0.12, allies: { speed: 200, atk: 0.05 } };
 
 /**
  * Her unique treasures' numbers (1★ to 5★: ../treasures.ts): Blasting Ray's crit chance off the boss (points) and the
@@ -70,8 +74,10 @@ const CHARGING: Passive = {
 };
 /** Her Charge: shown beside her passive, with how many she has. */
 const CHARGED: Buff = { name: 'Charge', about: `At ${CHARGE.full} she is [Overcharged].`, icon: '⚡', art: art(0) };
-/** Overcharged: shown on her card, with how long it has left. */
-const OVERCHARGED: Buff = { name: 'Overcharge', about: `${pct(CHARGE.atk)} higher ATK; each attack takes ${pct(CHARGE.cooldown)} off her skills’ cooldowns; her skills do more.`, icon: '🔋', art: art(3) };
+/** Overcharged: shown on her card, with how long it has left (and what each attack takes off her skills' cooldowns, with her perks and treasure). */
+const overchargeShown = (off: number): Buff => ({ name: 'Overcharge', about: `${pct(CHARGE.atk)} higher ATK; each attack takes ${pct(off)} off her skills’ cooldowns; her skills do more.`, icon: '🔋', art: art(3) });
+/** What Charge's Light gives every other ally while she is Overcharged: her Overcharge's ATK. */
+const BOOSTED: Buff = { name: 'Overcharge (ATK Boost)', about: `ATK ${pct(CHARGE.atk)} higher, as Annette’s Overcharged.`, icon: '🔋', art: art(3) };
 /** What Transcend 5's Dark gives every ally while she is Overcharged. */
 const ROUSED: Buff = { name: 'Overcharge (allies)', about: `Quicker, and its ATK higher by ${pct(PERKS.allies.atk)} of Annette’s.`, icon: '⚡', art: art(3) };
 /** What Emergency Treatment gives each ally: shown on its card, with how long it has left. */
@@ -145,14 +151,14 @@ export const ANNETTE: HeroDef = {
       ({ skill: { mark } }) => `Target takes ${pct(mark.takes.magical - 1)} increased M.DMG for ${mark.lasts} sec.`,
     ),
     's1-dark': { words: `Charge amount is boosted by ${pct(PERKS.charge - 1)} upon use.` },
-    's2-light': said({ skill: { index: 1, cooldown: -3 } }, ({ skill }) => `Cooldown is reduced by ${-skill.cooldown} sec.`),
+    's2-light': { words: 'The heal effect becomes irremovable.' },
     's2-dark': { words: `Charge amount is boosted by ${pct(PERKS.charge - 1)} upon use.` },
     's3-light': said({ skill: { index: 2, dmg: 1.4 } }, ({ skill }) => `DMG is increased by ${pct(skill.dmg - 1)}.`),
     's3-dark': { words: `Target takes ${pct(PERKS.eliminated)} increased M.DMG.` },
-    's4-light': { words: `ATK boost is increased by ${pct(PERKS.overAtk - 1)}.` },
-    's4-dark': { words: `Overcharge duration is increased by ${PERKS.overLonger} sec.` },
+    's4-light': { words: 'Applies the ATK Boost effect to all allies.' },
+    's4-dark': { words: `Increases the duration of [Overcharge] by ${PERKS.overLonger} sec. Upon normal attack, changes the Cooldown Reduction effect of all Skills to ${pct(PERKS.cooldown)}.` },
     't5-light': t5Light({ speed: 100 }, ({ speed }) => `ATK Spd +${speed}`),
-    't5-dark': { words: `When Overcharge activates, increases all allies' ATK Spd by ${PERKS.allies.speed}, and increases the ATK of all allies by ${pct(PERKS.allies.atk)} of Annette's ATK.` },
+    't5-dark': { words: `Increases all allies' ATK Spd by ${PERKS.allies.speed} and ATK by ${pct(PERKS.allies.atk)} of Annette's ATK for the duration of [Overcharge].` },
   },
   attack: 'zap',
   join(fight, self) {
@@ -167,6 +173,9 @@ export const ANNETTE: HeroDef = {
     let treating = 0;
     let treated = 0;
     const tier = self.unique?.tier ?? null;
+    /** What each attack takes off her skills' cooldowns while she is Overcharged (Charge's Dark: so much in place of it; High Performance Battery: more), and her card saying so. */
+    const off = (self.perks.has('s4-dark') ? PERKS.cooldown : CHARGE.cooldown) + (wearsTreasure(self, 3) ? UT.battery.cooldown : 0);
+    const shown = overchargeShown(off);
 
     /** She is on the field, standing and in the fight. */
     const there = (): boolean => fight.field.includes(self) && self.hp > 0 && !away(self.statuses);
@@ -178,10 +187,14 @@ export const ANNETTE: HeroDef = {
       if (charge < CHARGE.full || over > 0) return;
       charge = 0;
       over = CHARGE.lasts + (self.perks.has('s4-dark') ? PERKS.overLonger : 0);
-      put(self.statuses, { name: OVERCHARGED.name, left: over, deals: 1 + CHARGE.atk * (self.perks.has('s4-light') ? PERKS.overAtk : 1), pace: 1 + share(BOOKS.speed), shown: OVERCHARGED });
-      // Transcend 5's Dark: every ally quicker, and its ATK higher by a share of hers (so much more DMG), while it lasts.
+      put(self.statuses, { name: shown.name, left: over, deals: 1 + CHARGE.atk, pace: 1 + share(BOOKS.speed), shown });
+      // Charge's Light: every other ally's ATK higher by as much, while it lasts.
+      if (self.perks.has('s4-light')) {
+        for (const ally of allies()) if (ally !== self) put(ally.statuses, { name: BOOSTED.name, left: over, atk: CHARGE.atk, shown: BOOSTED });
+      }
+      // Transcend 5's Dark: every ally quicker, and its ATK higher by a share of hers, while it lasts.
       if (self.perks.has('t5-dark')) {
-        for (const ally of allies()) put(ally.statuses, { name: ROUSED.name, left: over, pace: 1 + share(PERKS.allies.speed), deals: 1 + (PERKS.allies.atk * self.stats.atk) / ally.stats.atk, shown: ROUSED });
+        for (const ally of allies()) put(ally.statuses, { name: ROUSED.name, left: over, speed: PERKS.allies.speed, atk: (PERKS.allies.atk * self.stats.atk) / ally.stats.atk, shown: ROUSED });
       }
     };
 
@@ -197,8 +210,6 @@ export const ANNETTE: HeroDef = {
           // (Code of Annihilation: Charge for each, even Overcharged.)
           if (wearsTreasure(self, 2)) gain(UT.code.charge);
           if (over <= 0) return;
-          // (High Performance Battery: more off them.)
-          const off = CHARGE.cooldown + (wearsTreasure(self, 3) ? UT.battery.cooldown : 0);
           self.abilities.forEach((ability, i) => {
             self.cooldowns[i] = Math.max(0, (self.cooldowns[i] as number) - ability.cooldown * off);
           });

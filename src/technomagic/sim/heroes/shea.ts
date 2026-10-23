@@ -21,7 +21,8 @@ import { bookDmg, bookHeal, CLASS_STATS, dmg, healed, type HeroDef, type Passive
  * a share off her cooldowns and gains her mana.
  * What is drawn for each, and what her body does, are King's Raid's own (../../assets/heroes/shea.ts).
  *
- * Her own perks (../perks.ts) are King's Raid's. Fairy's Crown's Silence does nothing to the boss.
+ * Her own perks (../perks.ts) and unique treasures are live King's Raid's, as krinfo has them (its legacy). Fairy's Crown's
+ * Silence does nothing to the boss.
  */
 /** Green Nature's Melody: each of its eight heals; every ally's DMG taken less meanwhile (in [Trance], more); how long. */
 const MELODY = { heal: playedHeal('priest', 800, 32_616), taken: 0.35, tranced: 0.7, lasts: 8 };
@@ -42,7 +43,7 @@ const UT = {
   flower: { heals: 0.5, resist: [100, 120, 140, 170, 210, 250] },
   windy: { acc: 250, mana: [160, 190, 230, 270, 330, 400] },
   crown: { critDamage: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5] },
-  mira: { atk: 0.2, speed: [100, 120, 140, 170, 210, 250] },
+  mira: { atk: 0.2, speed: [200, 240, 290, 350, 420, 500] },
 };
 
 const art = skillArt('shea');

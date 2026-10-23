@@ -2,7 +2,7 @@ import { put } from '../combat/status';
 import { said, t5Light } from '../perks';
 import { MAX_MANA } from '../rules';
 import { fromTreasure, treasure, wearsTreasure } from '../treasures';
-import { pct, skillArt, type Buff } from '../shown';
+import { fine, pct, skillArt, type Buff } from '../shown';
 import { atTier, MONOLITH, MONOLITH_UP } from '../unique';
 import { attackStarts, bookDmg, CLASS_STATS, dmg, type HeroDef, type Passive, played } from './kit';
 
@@ -21,8 +21,9 @@ import { attackStarts, bookDmg, CLASS_STATS, dmg, type HeroDef, type Passive, pl
  * more that heals him (twice under [Remove Limit]).
  * What is drawn for each, and what his body does, are King's Raid's own (../../assets/heroes/chase.ts).
  *
- * His own perks (../perks.ts) are King's Raid's. Remember This in Hell's Dark knocks the boss down as he rises. A heal "of
- * DMG dealt" is of the blow as his ATK has it (before the boss's defense).
+ * His own perks (../perks.ts) and unique treasures are live King's Raid's, as krinfo has them (its legacy). Remember This
+ * in Hell's Dark knocks the boss down as he rises. A heal "of DMG dealt" is of the blow as his ATK has it (before the
+ * boss's defense).
  */
 /** I'll Break You!: its blow and how long it knocks the boss back; its blow more and how long it stuns. */
 const BREAK = { blow: played('warrior', 3220, 109_655), back: 1, more: played('warrior', 1240, 42_060), stun: 4 };
@@ -32,19 +33,23 @@ const LIMIT = { cost: 0.1, blow: played('warrior', 3336, 114_590), drain: 0.025,
 const FURY = { blow: played('warrior', 2150, 74_033), down: 4, more: played('warrior', 1072, 36_265), stun: 5, heal: 0.03, drain: 0.25 };
 /** Remember This in Hell: his max HP and crit chance (its books' half again, twice over), ACC and CC ACC; crit DMG and attack speed at no HP; and rising: for how long, at least how much HP, his crit DMG and attack speed. */
 const HELL = { hp: 0.2, crit: 250, acc: 100, accuracy: 100, critDamage: 1, speed: 400, rise: 5.2, floor: 0.05, risenCrit: 0.4, risenSpeed: 400 };
-/** His own perks' numbers: Remove Limit's Light's stun and Dark's most heal rate and least taken; Burn's Light's heals; Remember's Light's ATK and Dark's knock down; Transcend 5's Dark's DMG every second, and how many at most. */
-const PERKS = { stun: 2, dark: 0.4, heals: 2, risenAtk: 0.5, down: 3, every: { dmg: 0.01, most: 60 } };
+/**
+ * His own perks' numbers: I'll Break You!'s Dark's more taken and for how long; Remove Limit's Light's stun and Dark's
+ * heal rate more and less taken for each share of his HP lost (`hp`); Burn's Light's heals; Remember's Light's ATK and
+ * Dark's knock down; Transcend 5's Dark's DMG every second, and how many at most.
+ */
+const PERKS = { takes: 1.25, lasts: 10, stun: 2, dark: { each: 0.004, hp: 0.01 }, heals: 2, risenAtk: 0.5, down: 3, every: { dmg: 0.01, most: 60 } };
 
 /**
  * His unique treasures' numbers (1★ to 5★: ../treasures.ts; King's Raid's own): I'll Break You!'s mana for each blow;
- * Remove Limit's blow every second (a share of ATK) and more Recovery; Burn's more DMG; Remember's longer rising, and how
- * long it is immune to CC.
+ * Remove Limit's blow every second (a share of ATK) and more Heal Rate; Burn's more DMG; Remember's more DMG to and less
+ * from Non-Hero enemies.
  */
 const UT = {
   sin: { mana: [200, 240, 290, 350, 420, 500] },
-  handkerchief: { blow: [0.4, 0.48, 0.58, 0.7, 0.84, 1], recovery: 0.3 },
+  handkerchief: { blow: [0.4, 0.48, 0.58, 0.7, 0.84, 1], heals: 0.3 },
   pauldron: { dmg: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5] },
-  sensor: { longer: 1, immune: [20, 1.5, 2, 2.5, 3, 3.5] },
+  sensor: { dmg: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25], taken: 0.2 },
 };
 
 const art = skillArt('chase');
@@ -107,21 +112,26 @@ export const CHASE: HeroDef = {
       skill: { index: 0, steady: true },
     })),
     treasure('Handkerchief of Loyalty', (k) => ({
-      words: `[Remove Limit] For the skill's duration, deals P.DMG by ${pct(k(UT.handkerchief.blow))} ATK every second to nearby enemies and increases Recovery by ${pct(UT.handkerchief.recovery)}.`,
+      words: `[Remove Limit] Deals P.DMG equal to ${pct(k(UT.handkerchief.blow))} of ATK to nearby enemies every sec and increases Heal Rate by ${pct(UT.handkerchief.heals)} for the duration of Skill.`,
     })),
     treasure('Unrelenting Pauldron', (k) => ({
       words: `[Burn, Spear of Fury] Reduces Mana Cost by 1 and increases DMG by ${pct(k(UT.pauldron.dmg))}.`,
       skill: { index: 2, cost: -1, dmg: 1 + k(UT.pauldron.dmg) },
     })),
     treasure('Biometric Sensor - Type. 0', (k) => ({
-      words: `[Remember This in Hell] Increases the duration of resurrection by ${UT.sensor.longer} sec, and gains immunity to CC for ${k(UT.sensor.immune)} sec upon resurrection.`,
+      words: `[Remember This in Hell] Increases DMG dealt to Non-Hero targets by ${pct(k(UT.sensor.dmg))} and reduces DMG taken from Non-Hero enemies by ${pct(UT.sensor.taken)}.`,
+      dmg: 1 + k(UT.sensor.dmg),
+      taken: 1 - UT.sensor.taken,
     })),
   ],
   perks: {
     's1-light': said({ skill: { index: 0, cost: -1 } }, ({ skill }) => `Reduces Mana Cost by ${-skill.cost}.`),
-    's1-dark': said({ skill: { index: 0, mark: { name: 'I’ll Break You!', lasts: 10, takes: { physical: 1.25 } } } }, ({ skill }) => `The inflicted target takes 25% more P.DMG for ${skill.mark.lasts} seconds.`),
+    's1-dark': said(
+      { skill: { index: 0, mark: { name: 'I’ll Break You!', lasts: PERKS.lasts, takes: { physical: PERKS.takes } } } },
+      ({ skill }) => `The inflicted target takes ${pct(skill.mark.takes.physical - 1)} more P.DMG for ${skill.mark.lasts} seconds.`,
+    ),
     's2-light': { words: `Enemies hit are stunned for ${PERKS.stun} sec.` },
-    's2-dark': { words: `The more HP is lost for the duration of Skill, the more Heal Rate increases and All DMG taken is reduced (up to ${pct(PERKS.dark)}).` },
+    's2-dark': { words: `Whenever HP drops by ${pct(PERKS.dark.hp)} for the duration of Skill, increases Heal Rate by ${fine(PERKS.dark.each)} and reduces All DMG taken by ${fine(PERKS.dark.each)}.` },
     's3-light': said({ skill: { index: 2, cost: 1 } }, ({ skill }) => `Increases Mana Cost by ${skill.cost} and Heal Rate by ${pct(PERKS.heals - 1)}.`),
     's3-dark': said({ skill: { index: 2, cleanse: 'self' } }, () => 'Upon use, dispels negative effects from self.'),
     's4-light': { words: `Upon the activation of resurrection, increases ATK by ${pct(PERKS.risenAtk)}.` },
@@ -203,7 +213,7 @@ export const CHASE: HeroDef = {
         if (rising > 0) return true;
         if (risen) return false;
         risen = true;
-        rising = HELL.rise + (wearsTreasure(self, 3) ? UT.sensor.longer : 0);
+        rising = HELL.rise;
         off();
         rose = true;
         if (self.perks.has('s4-dark')) fight.stun(PERKS.down, { down: true, by: self });
@@ -231,13 +241,13 @@ export const CHASE: HeroDef = {
         // His passive: the more he is hurt, the higher his crit DMG and attack speed.
         const lost = 1 - self.hp / self.stats.hp;
         put(self.statuses, { name: HURT.name, left: Infinity, critDamage: HELL.critDamage * lost, speed: HELL.speed * lost, shown: HURT });
-        // [Remove Limit]: HP lost every second (never below its floor: it ends there), its crit DMG and attack speed growing; its Dark: the more lost, the more healing and the less taken; Handkerchief of Loyalty: a blow every second, and more Recovery.
+        // [Remove Limit]: HP lost every second (never below its floor: it ends there), its crit DMG and attack speed growing; its Dark: for each 1% of his HP lost, more healing and less taken; Handkerchief of Loyalty: a blow every second, and more healing.
         if (limit) {
           limitFor += dt;
           drain += dt;
           const steps = Math.min(LIMIT.steps, Math.floor(limitFor / LIMIT.every));
           const grown = 1 + LIMIT.growth * steps;
-          const dark = self.perks.has('s2-dark') ? PERKS.dark * lost : 0;
+          const dark = self.perks.has('s2-dark') ? PERKS.dark.each * Math.floor(lost / PERKS.dark.hp + 1e-9) : 0;
           put(self.statuses, {
             name: UNLEASHED.name,
             left: Infinity,
@@ -245,7 +255,7 @@ export const CHASE: HeroDef = {
             speed: LIMIT.speed * grown,
             guards: true,
             ...(dark > 0 && { heals: 1 + dark, takes: 1 - dark }),
-            ...(wearsTreasure(self, 1) && { heals: 1 + dark + UT.handkerchief.recovery }),
+            ...(wearsTreasure(self, 1) && { heals: 1 + dark + UT.handkerchief.heals }),
             shown: UNLEASHED,
           });
           if (drain >= 1) {

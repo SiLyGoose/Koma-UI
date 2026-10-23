@@ -2,7 +2,7 @@ import { put } from '../combat/status';
 import { said, t5Light } from '../perks';
 import { MAX_MANA } from '../rules';
 import { fromTreasure, treasure, wearsTreasure } from '../treasures';
-import { pct, skillArt, type Buff } from '../shown';
+import { fine, pct, skillArt, type Buff } from '../shown';
 import { atTier, LEVIATHAN } from '../unique';
 import { attackStarts, bookDmg, CLASS_STATS, dmg, type HeroDef, type Passive, played } from './kit';
 
@@ -18,7 +18,8 @@ import { attackStarts, bookDmg, CLASS_STATS, dmg, type HeroDef, type Passive, pl
  * boss taking more physical damage for a while.
  * What is drawn for each, and what her body does, are King's Raid's own (../../assets/heroes/miruru.ts).
  *
- * Her own perks (../perks.ts) are King's Raid's. Baaaam!'s Light (one enemy) always holds.
+ * Her own perks (../perks.ts) and unique treasures are live King's Raid's (krinfo's legacy). Boooooom!'s Dark (its chance
+ * 80%) does nothing here: her Boooooom! is the playtest's, which fires every time (live King's Raid's, 60% of the time).
  */
 /** Baaaam!: its blow, and how long it knocks the boss back. */
 const BAAM = { blow: played('mechanic', 3000, 178_118), back: 1 };
@@ -28,11 +29,11 @@ const ROLL = { blow: played('mechanic', 2000, 89_055), down: 1, takes: 0.08, mos
 const PIRATES = { blow: played('mechanic', 1220, 54_293), boss: played('mechanic', 1482, 66_092), slow: 120, lasts: 8 };
 /** Boooooom!: its shell, and the ATK each gives (a share, up to `most`, for `lasts` seconds). */
 const BOOM = { blow: played('mechanic', 561, 25_101), atk: 0.005, most: 100, lasts: 10 };
-/** Her own perks' numbers: Baaaam!'s Dark's ATK, for how long; Roll Over's Dark's share off its cooldown for each blow; Miruru Pirates!'s Light's DMG, and its Dark's (and Boooooom!'s) less DMG for twice the blows, and the Dark's slowing; Boooooom!'s Light's stun chance; Transcend 5's Dark's stacks, and [Rampage]'s attack speed and ATK, for how long. */
-const PERKS = { atk: 0.5, atkLasts: 4, sooner: 0.08, pirates: 1.2, halved: 0.7, slow: 400, slowLasts: 10, stun: { chance: 0.15, lasts: 1 }, dark: { needs: 50, speed: 480, atk: 0.25, lasts: 10 } };
+/** Her own perks' numbers: Baaaam!'s Dark's ATK, for how long; Miruru Pirates!'s Dark's stun (in place of its slowing); Boooooom!'s Light's ATK for each critical blow (up to `most`, for `lasts` seconds); Transcend 5's Dark's stacks, and [Rampage]'s attack speed (points) and ATK, for how long (King's Raid doesn't say: 10 seconds here). */
+const PERKS = { atk: 0.35, atkLasts: 10, stun: 3, crit: { atk: 0.005, most: 100, lasts: 10 }, dark: { needs: 50, speed: 800, atk: 0.2, lasts: 10 } };
 
 /**
- * Her unique treasures' numbers (1★ to 5★: ../treasures.ts; King's Raid's own): Baaaam!'s lower P.Crit Resistance on the
+ * Her unique treasures' numbers (0★ to 5★: ../treasures.ts; live King's Raid's): Baaaam!'s lower P.Crit Resistance on the
  * boss; Roll Over's more DMG for each use (up to 10) and mana on a critical blow; Miruru Pirates!'s more DMG and shorter
  * cooldown; Boooooom!'s more DMG and attack speed as it fires.
  */
@@ -54,6 +55,7 @@ const BOOM_SHOWN: Passive = {
 };
 const BOOMED: Buff = { name: 'Boooooom!', about: 'ATK higher for each.', icon: '💥', art: art(3) };
 const FIRED: Buff = { name: 'Baaaam!', about: 'ATK higher.', icon: '💥', art: art(0) };
+const CRITS: Buff = { name: 'Boooooom! (Light)', about: 'ATK higher for each critical blow.', icon: '🎯', art: art(3) };
 const KEG: Buff = { name: 'Turtle Gunpowder Keg', about: 'Attack speed higher.', icon: '🛢️', art: art(3) };
 const SEXTANT: Buff = { name: 'Pirate King’s Sextant', about: 'Roll Over deals more for each.', icon: '🧭', art: art(1) };
 const RAMPAGE: Buff = { name: 'Rampage', about: 'Attack speed and ATK higher.', icon: '🏴‍☠️', art: art(3) };
@@ -103,10 +105,10 @@ export const MIRURU: HeroDef = {
       skill: { index: 0, steady: true, mark: { name: 'Coin of the Deep', lasts: UT.coin.lasts, critTaken: { physical: k(UT.coin.critTaken) } } },
     })),
     treasure('Pirate King’s Sextant', (k) => ({
-      words: `[Roll Over] increases DMG by ${pct(k(UT.sextant.dmg))} on every use and recovers ${UT.sextant.mana} MP upon a Crit Hit. This effect stacks up to max ${UT.sextant.most} times.`,
+      words: `[Roll Over] increases DMG by ${fine(k(UT.sextant.dmg))} on every use and recovers ${UT.sextant.mana} MP upon a Crit Hit. This effect stacks up to max ${UT.sextant.most} times.`,
     })),
     treasure('Miruru Cannonball', (k) => ({
-      words: `[Miruru Pirates!] DMG is increased by ${pct(UT.cannonball.dmg)}, and skill cooldown is reduced by ${pct(k(UT.cannonball.cooldown))}.`,
+      words: `[Miruru Pirates!] Increases DMG by ${pct(UT.cannonball.dmg)} and reduces Cooldown by ${pct(k(UT.cannonball.cooldown))}.`,
       skill: { index: 2, dmg: 1 + UT.cannonball.dmg, cooldownShare: 1 - k(UT.cannonball.cooldown) },
     })),
     treasure('Turtle Gunpowder Keg', (k) => ({
@@ -114,33 +116,42 @@ export const MIRURU: HeroDef = {
     })),
   ],
   perks: {
-    's1-light': said({ skill: { index: 0, dmg: 2 } }, ({ skill }) => `If there is only 1 enemy, damage dealt is increased by ${pct(skill.dmg - 1)}.`),
-    's1-dark': { words: `Attack increases by ${pct(PERKS.atk)} for ${PERKS.atkLasts} sec.` },
-    's2-light': said({ skill: { index: 1, dmg: 1.5 } }, ({ skill }) => `Damage increases by ${pct(skill.dmg - 1)}.`),
-    's2-dark': { words: `For each enemy hit, cooldown is reduced by ${pct(PERKS.sooner)}.` },
-    's3-light': said({ skill: { index: 2, dmg: PERKS.pirates } }, ({ skill }) => `Damage dealt is increased by ${pct(skill.dmg - 1)}, and skill range is increased.`),
-    's3-dark': { words: `Damage dealt is reduced by ${pct(1 - PERKS.halved)}, but the number of hits is doubled.` },
-    's4-light': { words: `Has a ${pct(PERKS.stun.chance)} chance to stun the target for ${PERKS.stun.lasts} sec.` },
-    's4-dark': { words: `Damage dealt is reduced by ${pct(1 - PERKS.halved)}, but the number of hits is doubled.` },
+    's1-light': said({ skill: { index: 0, mark: { name: 'Baaaam! (Light)', lasts: 10, takes: { physical: 1.25 } } } }, ({ skill: { mark } }) => `Increase P.DMG that the target takes by ${pct(mark.takes.physical - 1)} for ${mark.lasts} sec.`),
+    's1-dark': { words: `Upon activation, ATK is increased by ${pct(PERKS.atk)} for ${PERKS.atkLasts} sec.` },
+    's2-light': said({ skill: { index: 1, dmg: 1.4 } }, ({ skill }) => `DMG is increased by ${pct(skill.dmg - 1)}.`),
+    // (One enemy: once for each use.)
+    's2-dark': said({ skill: { index: 1, cooldownShare: 0.92 } }, ({ skill }) => `For each enemy that takes DMG, reduce cooldown by ${pct(1 - skill.cooldownShare)}.`),
+    's3-light': said({ skill: { index: 2, dmg: 1.2 } }, ({ skill }) => `Increases DMG by ${pct(skill.dmg - 1)} and deals DMG to enemies within a wider range.`),
+    's3-dark': { words: `Removes ATK Spd debuff effect and adds a ${PERKS.stun} sec Stun.` },
+    's4-light': { words: `Increases ATK by ${fine(PERKS.crit.atk)} for ${PERKS.crit.lasts} seconds upon a Crit Hit. This effect can be stacked up to max ${PERKS.crit.most} times.` },
+    // (Her Boooooom! fires every time here: nothing for a likelier one to do.)
+    's4-dark': { words: 'Activation chance changes to 80%.' },
     't5-light': t5Light({ crit: 100 }, ({ crit }) => `Crit Chance +${crit}`),
-    't5-dark': { words: `On hit, gains [Darkness] stacks equal to the number of enemies struck. When [Darkness] reaches ${PERKS.dark.needs} stacks, all [Darkness] is removed and you enter [Rampage] for ${PERKS.dark.lasts} sec, increasing Attack Speed by ${pct(PERKS.dark.speed / 1000)} and Attack by ${pct(PERKS.dark.atk)}.` },
+    't5-dark': { words: `Miruru stacks Darkness depending on the number of enemies she hits. When she reaches ${PERKS.dark.needs} stacks, she goes berserk, boosting her Atk Spd by ${PERKS.dark.speed} and her ATK by ${pct(PERKS.dark.atk)}.` },
   },
   join(fight, self) {
     const tier = self.unique?.tier ?? null;
     const starts = attackStarts('miruru');
-    /** Boooooom!'s stacks, and how long they last yet; Roll Over's stacks on the boss, and how long they last yet; Pirate King's Sextant's uses; Transcend 5's Dark's [Darkness]. */
+    /** Boooooom!'s stacks, and how long they last yet (and its Light's); Roll Over's stacks on the boss, and how long they last yet; Pirate King's Sextant's uses; Transcend 5's Dark's [Darkness]. */
     let boomed = 0;
     let boomLeft = 0;
+    let crits = 0;
+    let critsLeft = 0;
     let rolled = 0;
     let rollLeft = 0;
     let uses = 0;
     let darkness = 0;
     const keg = wearsTreasure(self, 3);
 
-    /** A blow of hers (Transcend 5's Dark: a stack of [Darkness]; at 50, [Rampage]). */
-    const strike = (amount: number, counted = true): boolean => {
+    /** A blow of hers (`apart`: one of its own, not more of one that landed with it; Transcend 5's Dark: a stack of [Darkness], at 50 [Rampage]; Boooooom!'s Light: critical, her ATK a little higher). */
+    const strike = (amount: number, counted = true, apart = true): boolean => {
       const critical = fight.hit(self, amount, counted);
-      if (self.perks.has('t5-dark')) {
+      if (critical && self.perks.has('s4-light')) {
+        crits = Math.min(PERKS.crit.most, crits + 1);
+        critsLeft = PERKS.crit.lasts;
+        put(self.statuses, { name: CRITS.name, left: PERKS.crit.lasts, count: crits, atk: PERKS.crit.atk * crits, shown: CRITS });
+      }
+      if (apart && self.perks.has('t5-dark')) {
         darkness++;
         if (darkness >= PERKS.dark.needs) {
           darkness = 0;
@@ -149,16 +160,12 @@ export const MIRURU: HeroDef = {
       }
       return critical;
     };
-    /** Boooooom!: a shell (its Dark: two, each less; its Light: now and then a stun; Turtle Gunpowder Keg: harder, and quicker; her unique weapon: now and then a blow more, and the boss taking more physical damage), and her ATK a little higher. */
+    /** Boooooom!: a shell (Turtle Gunpowder Keg: harder, and quicker; her unique weapon: now and then a blow more, and the boss taking more physical damage), and her ATK a little higher. */
     const boom = (): void => {
-      const shells = self.perks.has('s4-dark') ? 2 : 1;
-      for (let i = 0; i < shells; i++) {
-        strike(BOOM.blow * (self.perks.has('s4-dark') ? PERKS.halved : 1) * (keg ? 1 + UT.keg.dmg : 1), false);
-        if (self.perks.has('s4-light') && fight.roll() < PERKS.stun.chance) fight.stun(PERKS.stun.lasts, { by: self });
-        if (tier !== null && fight.roll() < LEVIATHAN.chance) {
-          strike(atTier(LEVIATHAN.blow, tier) * 1000, false);
-          put(fight.foe.statuses, { name: 'Ultimate Weapon, Leviathan', left: LEVIATHAN.lasts, takes: { physical: 1 + atTier(LEVIATHAN.takes, tier) }, shown: 'curse' });
-        }
+      strike(BOOM.blow * (keg ? 1 + UT.keg.dmg : 1), false);
+      if (tier !== null && fight.roll() < LEVIATHAN.chance) {
+        strike(atTier(LEVIATHAN.blow, tier) * 1000, false);
+        put(fight.foe.statuses, { name: 'Ultimate Weapon, Leviathan', left: LEVIATHAN.lasts, takes: { physical: 1 + atTier(LEVIATHAN.takes, tier) }, shown: 'curse' });
       }
       boomed = Math.min(BOOM.most, boomed + 1);
       boomLeft = BOOM.lasts;
@@ -180,8 +187,8 @@ export const MIRURU: HeroDef = {
           if (self.perks.has('s1-dark')) put(self.statuses, { name: FIRED.name, left: PERKS.atkLasts, atk: PERKS.atk, shown: FIRED });
           boom();
         },
-        // Three blows, each knocking the boss down and leaving it taking more physical damage (its Dark: each off its cooldown;
-        // Pirate King's Sextant: harder for each use, and mana on a critical one).
+        // Three blows, each knocking the boss down and leaving it taking more physical damage (Pirate King's Sextant: harder
+        // for each use, and mana on a critical one).
         roll() {
           const sextant = 1 + fromTreasure(self, 1, UT.sextant.dmg) * uses;
           const critical = strike(ROLL.blow * sextant);
@@ -189,17 +196,13 @@ export const MIRURU: HeroDef = {
           rolled = Math.min(ROLL.most, rolled + 1);
           rollLeft = ROLL.lasts;
           put(fight.foe.statuses, { name: 'Roll Over', left: ROLL.lasts, count: rolled, takes: { physical: 1 + ROLL.takes * rolled }, shown: 'curse' });
-          if (self.perks.has('s2-dark')) self.cooldowns[1] = (self.cooldowns[1] ?? 0) * (1 - PERKS.sooner);
           if (critical && wearsTreasure(self, 1)) self.mana = Math.min(MAX_MANA, self.mana + UT.sextant.mana);
         },
-        // Five blows (its Dark: ten, each less, and the boss slowed more), each slowing the boss's attacks, and a blow more on a Non-Hero enemy.
+        // Five blows, each slowing the boss's attacks (its Dark: stunning it instead), and more on a Non-Hero enemy.
         pirates() {
-          const dark = self.perks.has('s3-dark');
-          for (let i = 0; i < (dark ? 2 : 1); i++) {
-            strike(PIRATES.blow * (dark ? PERKS.halved : 1));
-            strike(PIRATES.boss * (dark ? PERKS.halved : 1));
-          }
-          if (dark) fight.slow(PERKS.slow, PERKS.slowLasts);
+          strike(PIRATES.blow);
+          strike(PIRATES.boss, true, false);
+          if (self.perks.has('s3-dark')) fight.stun(PERKS.stun, { by: self });
           else fight.slow(PIRATES.slow, PIRATES.lasts);
         },
       },
@@ -212,6 +215,10 @@ export const MIRURU: HeroDef = {
         if (boomLeft > 0) {
           boomLeft -= dt;
           if (boomLeft <= 0) boomed = 0;
+        }
+        if (critsLeft > 0) {
+          critsLeft -= dt;
+          if (critsLeft <= 0) crits = 0;
         }
         if (rollLeft > 0) {
           rollLeft -= dt;

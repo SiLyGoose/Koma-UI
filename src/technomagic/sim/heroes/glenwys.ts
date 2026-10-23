@@ -1,7 +1,7 @@
 import { away, put } from '../combat/status';
 import { said, t5Light } from '../perks';
 import { fromTreasure, treasure, wearsTreasure } from '../treasures';
-import { num, pct, skillArt, type Buff } from '../shown';
+import { fine, num, pct, skillArt, type Buff } from '../shown';
 import type { Fighter } from '../types';
 import { atTier, MAXITHEA, MAXITHEA_UP } from '../unique';
 import { bookDmg, CLASS_STATS, dmg, type HeroDef, type Passive, played } from './kit';
@@ -20,8 +20,9 @@ import { bookDmg, CLASS_STATS, dmg, type HeroDef, type Passive, played } from '.
  * times; twice that at 4), for the rest of the fight.
  * What is drawn for each, and what her body does, are King's Raid's own (../../assets/heroes/glenwys.ts).
  *
- * Her own perks (../perks.ts) are King's Raid's. That Is It's Light has its blows on a Non-Hero enemy go through all its
- * DEF. Alpha Leader Badge's share off her cooldowns is off all of them, as each critical blow of That Is It lands.
+ * Her own perks (../perks.ts) and unique treasures are live King's Raid's, as krinfo has them (its legacy). That Is It's
+ * Light has all its blows on a Non-Hero enemy (the boss, its minions) go through all its DEF. Alpha Leader Badge's share
+ * off her cooldowns is off all of them, as each critical blow of That Is It lands.
  */
 /** That Is It: each of its seven blows, the boss's physical damage taken more for each (up to `most`, for `lasts` seconds), and each one's blow more on a Non-Hero enemy. */
 const THAT = { blow: played('knight', 255, 10_730), takes: 0.04, most: 7, lasts: 10, boss: played('knight', 530, 23_606) };
@@ -31,8 +32,8 @@ const HAND = { blow: played('knight', 450, 17_168), stun: 1, last: played('knigh
 const COUNTER = { defense: 9_227, atk: 20_383, books: 1.5, lasts: 20, blow: played('knight', 4440, 163_739), down: 3 };
 /** Pride of Imperial Knights: every ally's ATK more (flat, its books' half again); as the fight begins, more to and less from Non-Hero enemies, for how long. */
 const PRIDE = { atk: 7_507, books: 1.5, dealt: 0.1, taken: 0.1, lasts: 20 };
-/** Her own perks' numbers: That Is It's Dark's slowing; I Will Not Stay My Hand's Light's more taken and Dark's longer stuns; Time For Counterattack's Light's P.Crit Resistance and Dark's more; Pride's Light's and Dark's 20%; Transcend 5's Dark's share of her DEF as every ally's ATK. */
-const PERKS = { slow: 250, lasts: 10, takes: 1.25, stun: 0.5, critTaken: 250, counter: 2, pride: 0.2, dark: 0.08 };
+/** Her own perks' numbers: That Is It's Dark's slowing; I Will Not Stay My Hand's Light's more taken and Dark's longer stuns; Time For Counterattack's Light's P.Crit Resistance and Dark's ATK and DEF Boost more; Pride's Light's and Dark's 20%; Transcend 5's Dark's share of her DEF as every ally's ATK. */
+const PERKS = { slow: 250, lasts: 10, takes: 1.25, stun: 0.5, critTaken: 250, counter: 1, pride: 0.2, dark: 0.08 };
 
 /**
  * Her unique treasures' numbers (1★ to 5★: ../treasures.ts; King's Raid's own): That Is It's more DMG and the share off her
@@ -103,7 +104,7 @@ export const GLENWYS: HeroDef = {
   passive: PRIDE_SHOWN,
   treasures: [
     treasure('Alpha Leader Badge', (k) => ({
-      words: `[That Is it] Increases DMG by ${pct(UT.badge.dmg)} and reduces Cooldown by ${pct(k(UT.badge.sooner))} on upon a Critical Hit.`,
+      words: `[That Is it] Increases DMG by ${pct(UT.badge.dmg)} and reduces Cooldown by ${fine(k(UT.badge.sooner))} upon a Critical Hit.`,
       skill: { index: 0, dmg: 1 + UT.badge.dmg },
     })),
     treasure('Praise of Dandelion', (k) => ({
@@ -119,12 +120,12 @@ export const GLENWYS: HeroDef = {
     })),
   ],
   perks: {
-    's1-light': said({ skill: { index: 0, cost: 1 } }, ({ skill }) => `Mana Cost increases by ${skill.cost}. DMG dealt to Non-Hero enemies now ignores DEF.`),
+    's1-light': said({ skill: { index: 0, cost: 1, whole: true } }, ({ skill }) => `Mana Cost increases by ${skill.cost}. DMG dealt to Non-Hero enemies now ignores DEF.`),
     's1-dark': said({ skill: { index: 0, slow: { points: PERKS.slow, lasts: PERKS.lasts } } }, ({ skill }) => `Reduces target's ATK Spd by ${skill.slow.points} for ${skill.slow.lasts} sec.`),
     's2-light': said({ skill: { index: 1, mark: { name: 'I Will Not Stay My Hand', lasts: PERKS.lasts, takes: { physical: PERKS.takes } } } }, ({ skill }) => `Increases the amount of P.DMG that a target takes by ${pct(PERKS.takes - 1)} for ${skill.mark.lasts} sec.`),
     's2-dark': { words: `The duration of Stun increases by ${PERKS.stun} sec.` },
     's3-light': said({ skill: { index: 2, mark: { name: 'Time For Counterattack', lasts: PERKS.lasts, critTaken: { physical: PERKS.critTaken } } } }, ({ skill }) => `Reduces target's P.Crit Resistance by ${PERKS.critTaken} for ${skill.mark.lasts} sec.`),
-    's3-dark': said({ skill: { index: 2, cost: 1 } }, ({ skill }) => `Mana Cost is increases by ${skill.cost} and the amount of ATK and DEF boost increases by ${pct(PERKS.counter - 1)}.`),
+    's3-dark': said({ skill: { index: 2, cost: 1 } }, ({ skill }) => `Mana Cost is increases by ${skill.cost} and the amount of ATK and DEF boost increases by ${pct(PERKS.counter)}.`),
     's4-light': { words: `DMG effect dealt to Non-Hero enemies is now ${pct(PERKS.pride)}.` },
     's4-dark': { words: `DMG effect received from Non-Hero enemies is now ${pct(PERKS.pride)}.` },
     't5-light': t5Light({ defense: 0.1 }, ({ defense }) => `All DEF + ${pct(defense)}`),
@@ -139,17 +140,17 @@ export const GLENWYS: HeroDef = {
     let begun = false;
     /** Her allies on the field, standing and in the fight (her too). */
     const allies = (): Fighter[] => fight.field.filter((ally) => ally.hp > 0 && !away(ally.statuses));
-    /** Pride's ATK for every ally (Golden Glory: more); Time For Counterattack's (its Dark, Ballas Ruby: more). */
-    const pride = PRIDE.atk * PRIDE.books * (wearsTreasure(self, 3) ? 1 + UT.glory.atk : 1);
-    const counterMore = COUNTER.books * (self.perks.has('s3-dark') ? PERKS.counter : 1) * (wearsTreasure(self, 2) ? 1 + UT.ruby.more : 1);
+    /** Pride's ATK for every ally (Golden Glory: more); Time For Counterattack's (its Dark, Ballas Ruby: more). Each Boost is added to its books', as King's Raid adds them up, not multiplied in. */
+    const pride = PRIDE.atk * (PRIDE.books + (wearsTreasure(self, 3) ? UT.glory.atk : 0));
+    const counterMore = COUNTER.books + (self.perks.has('s3-dark') ? PERKS.counter : 0) + (wearsTreasure(self, 2) ? UT.ruby.more : 0);
 
     return {
       lands: {
         // Seven blows, each leaving the boss taking more physical damage, and each another against a Non-Hero enemy (its
-        // Light: through all its DEF). Alpha Leader Badge: a critical one takes time off her cooldowns.
+        // Light: all of them through all its DEF, `whole`). Alpha Leader Badge: a critical one takes time off her cooldowns.
         finisher() {
           const critical = fight.hit(self, THAT.blow);
-          fight.hit(self, THAT.boss, true, 0, self.perks.has('s1-light'));
+          fight.hit(self, THAT.boss);
           marked = Math.min(THAT.most, marked + 1);
           markLeft = THAT.lasts;
           put(fight.foe.statuses, { name: 'That Is It', left: THAT.lasts, count: marked, takes: { physical: 1 + THAT.takes * marked }, shown: 'curse' });

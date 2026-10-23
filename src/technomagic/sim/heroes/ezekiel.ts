@@ -24,8 +24,9 @@ import { bookDmg, CLASS_STATS, dmg, type HeroDef, indexed, type Passive } from '
  * blows are harder and he stands being knocked down better.
  * What is drawn for each is ../../heroes/ezekiel/fx.ts; what his body does for each, and for his attack, ../../heroes/ezekiel/moves.ts.
  *
- * His own perks (../perks.ts) are King's Raid's. Strike of Doom's Light has him not to be knocked down while he
- * strikes (what the boss does to a hero to hold it). What gives him ATK gives him so much more DMG, as Fury does.
+ * His own perks (../perks.ts) and unique treasures are live King's Raid's, as krinfo has them (its legacy). Strike of
+ * Doom's Light has him not to be knocked down while he strikes (what the boss does to a hero to hold it). Destructive
+ * Instinct's Dark's ATK adds up with his other ATK, as King's Raid's does (Fury's gives him so much more DMG).
  */
 // (How hard each of his skills hits is the King's Raid Index's, at his class's ATK: ./kit.ts's indexed.)
 const CLAW = { blow: BLOW * 1.2, fury: 2 };
@@ -34,8 +35,8 @@ const INSTINCT = { swipe: indexed('assassin', 130_014), strike: indexed('assassi
 const DESPAIR = { blow: indexed('assassin', 270_214), speed: 300, slowed: 5, stun: 3, lasts: 10, cost: 0.1 };
 const DOOM = { blow: indexed('assassin', 294_746), stun: 3, fury: 3, cost: 0.2 };
 const CURSED = { most: 3, blow: indexed('assassin', 220_255), down: 3, lasts: 10, atk: 0.3 };
-/** His own perks' numbers: Destructive Instinct's Dark's ATK after it (how long), Fury's more Heal Rate, and less taken for each stack of Cursed Blood. */
-const PERKS = { atk: 1.4, atkFor: 5, heals: 1.5, taken: 0.12 };
+/** His own perks' numbers: Destructive Instinct's Dark's ATK after it (a share more; how long), Fury's more Heal Rate, and less taken for each stack of Cursed Blood. */
+const PERKS = { atk: 0.4, atkFor: 10, heals: 1.5, taken: 0.12 };
 
 /**
  * His unique treasures' numbers (1★ to 5★: ../treasures.ts): Destructive Instinct's heal and more M.DMG taken; Dawning
@@ -70,7 +71,9 @@ const FURY: Buff = { name: 'Fury', about: `ATK ${pct(CURSED.atk)} higher, his at
 /** What Dawning Despair in Fury gives him for a while. */
 const QUICKENED: Buff = { name: 'Dawning Despair', about: 'His attacks quickened.', icon: '💨', art: art(1) };
 /** What Destructive Instinct's Dark gives him after it. */
-const INSTINCT_UP: Buff = { name: 'Destructive Instinct', about: `ATK ${pct(PERKS.atk - 1)} higher.`, icon: '🌀', art: art(0) };
+const INSTINCT_UP: Buff = { name: 'Destructive Instinct', about: `ATK ${pct(PERKS.atk)} higher.`, icon: '🌀', art: art(0) };
+/** What Wild Beast's Choker gives him after Dawning Despair. */
+const CHOKER: Buff = { name: 'Wild Beast’s Choker', about: 'ATK Spd higher.', icon: '💨', art: art(1) };
 
 export const EZEKIEL: HeroDef = {
   id: 'ezekiel',
@@ -119,7 +122,8 @@ export const EZEKIEL: HeroDef = {
     })),
     treasure('Wild Beast’s Choker', (k) => ({
       words: `[Dawning Despair] Gains Immunity to CC for the skill's duration and increases ATK Spd by ${k(UT.choker.speed)} for ${UT.choker.lasts} sec.`,
-      skill: { index: 1, steady: true, self: { name: 'Wild Beast’s Choker', lasts: UT.choker.lasts, pace: 1 + share(k(UT.choker.speed)) } },
+      // (Its ATK Spd, in points as the game's: used.)
+      skill: { index: 1, steady: true },
     })),
     treasure('Sealing Binds', (k) => ({
       words: `[Strike of Doom] DMG is increased by ${pct(k(UT.binds.dmg))} and gains ${UT.binds.stacks} additional stack of Cursed Blood after using the skill.`,
@@ -130,10 +134,10 @@ export const EZEKIEL: HeroDef = {
     })),
   ],
   perks: {
-    's1-light': said({ skill: { index: 0, dmg: 1.4 } }, ({ skill }) => `DMG is increased by ${pct(skill.dmg - 1)}.`),
-    's1-dark': { words: `After activation, ATK is increased by ${pct(PERKS.atk - 1)} for ${PERKS.atkFor} sec.` },
+    's1-light': said({ skill: { index: 0, dmg: 1.4 } }, ({ skill }) => `Increases DMG by ${pct(skill.dmg - 1)}.`),
+    's1-dark': { words: `After Skill use, increases ATK by ${pct(PERKS.atk)} for ${PERKS.atkFor} sec.` },
     's2-light': said({ skill: { index: 1, cost: -1 } }, ({ skill }) => `Mana cost is reduced by ${-skill.cost}.`),
-    's2-dark': { words: 'When activated during Fury state, ignores target DEF.' },
+    's2-dark': { words: "When activated during Fury state, ignores target's DEF." },
     's3-light': { words: 'Becomes immune to CC during activation.' },
     's3-dark': said({ skill: { index: 2, dmg: 2 } }, ({ skill }) => `If there is 1 enemy, DMG is increased by ${pct(skill.dmg - 1)}.`),
     's4-light': { words: `When in Fury state, heal rate is increased by ${pct(PERKS.heals - 1)}.` },
@@ -196,7 +200,7 @@ export const EZEKIEL: HeroDef = {
           }
           fight.hit(self, INSTINCT.strike * times);
           fight.stun(INSTINCT.down, { down: true, by: self });
-          if (self.perks.has('s1-dark')) put(self.statuses, { name: INSTINCT_UP.name, left: PERKS.atkFor, deals: PERKS.atk, shown: INSTINCT_UP });
+          if (self.perks.has('s1-dark')) put(self.statuses, { name: INSTINCT_UP.name, left: PERKS.atkFor, atk: PERKS.atk, shown: INSTINCT_UP });
         },
         // A dash and a blow: the boss's attacks slowed (in Fury, it is also stunned, and his own attacks quickened).
         despair() {
@@ -216,6 +220,9 @@ export const EZEKIEL: HeroDef = {
       used(_index, ability) {
         const move = ability.move;
         if (move !== 'instinct' && move !== 'despair' && move !== 'doom') return;
+        // (Wild Beast's Choker: Dawning Despair quickens him a while.)
+        const choker = move === 'despair' ? fromTreasure(self, 1, UT.choker.speed) : 0;
+        if (choker > 0) put(self.statuses, { name: CHOKER.name, left: UT.choker.lasts, speed: choker, shown: CHOKER });
         furious[move] = fury > 0;
         if (fury > 0) {
           bleed(move === 'instinct' ? INSTINCT.cost : move === 'despair' ? DESPAIR.cost : DOOM.cost);

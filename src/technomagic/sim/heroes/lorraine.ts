@@ -1,7 +1,7 @@
 import { put } from '../combat/status';
 import { said, t5Light } from '../perks';
 import { fromTreasure, treasure, wearsTreasure } from '../treasures';
-import { pct, skillArt } from '../shown';
+import { pct, skillArt, type Buff } from '../shown';
 import { atTier, ROBURU } from '../unique';
 import { bookDmg, CLASS_STATS, dmg, type HeroDef, indexed, type Passive } from './kit';
 import { CODED } from './moves';
@@ -20,9 +20,12 @@ import { CODED } from './moves';
  * leaves it taking more magic damage for a while.
  * What is drawn for each is ../../heroes/lorraine/fx.ts; what her body does for each, and for her attack, ../../heroes/lorraine/moves.ts.
  *
- * Her own perks (../perks.ts) are King's Raid's, a shackle a stun as Tangled Vine's is. Wrath of the Forest's Dark does
- * nothing here: there is nothing on the boss to dispel. Blade Leaf's Dark is for the leaves, its hit enemies; Tangled
- * Vine's Light makes its blow after harder too, and its Dark has that (its final explosion) stun.
+ * Her own perks (../perks.ts) and unique treasures are live King's Raid's, as krinfo has them (its legacy), though her
+ * skills are still the older ones: live King's Raid's Lorraine has Seed of Belladonna where Tangled Vine is and Poison
+ * where Blade Leaf is, and their perks and treasures are on these. Thornbush Forest's Light and Deadly Belladonna's
+ * drain take mana the boss hasn't: they do nothing here. Tangled Vine's Light makes its blow after harder too; its Dark
+ * has only her own CC on the boss last longer (the vine's shackle, the forest's knockdown), as no other hero's can be from
+ * here. Blade Leaf's (Poison's) Dark is against the boss, not a minion.
  */
 // (How hard each of her skills hits is the King's Raid Index's, at her class's ATK: ./kit.ts's indexed.)
 // (As many blows as its move has.)
@@ -32,13 +35,17 @@ const WRATH = { blow: indexed('wizard', 359_928), down: 3, more: 0.2 };
 const LEAF = { chance: 0.3, times: 3, blow: indexed('wizard', 50_538) };
 /** The most Poison on the boss, how long it lasts once the last was left, how hard each eats at it every second, and what each takes off the boss's heals. */
 const POISON = { most: 5, lasts: 20, each: indexed('wizard', 271_720) / 20, every: 1, heals: 0.1 };
-/** Her own perks' numbers: Thornbush Forest's shackle at full Poison, Tangled Vine's more DMG and its stun after, more Poison at most, Blade Leaf's shackle (its chance), and Transcend 5's Dark's Thornbush Forest (how often, its chance). */
-const PERKS = { hits: 1, full: 5, shackle: 3, vine: 1.4, after: 2, most: 6, leaf: { chance: 0.2, shackle: 2 }, forest: { every: 5, chance: 0.3 } };
+/**
+ * Her own perks' numbers: Tangled Vine's more DMG, and its CC on the boss longer (how much, how long); the boss's ATK lower
+ * for each Poison; her Poison's DMG on a boss; and Transcend 5's Dark's, as each battle begins: her skills' cooldowns
+ * shorter (a share of each), and her DMG higher for a while (each stack's, the most stacks).
+ */
+const PERKS = { vine: 1.4, longer: { cc: 0.3, lasts: 5 }, weaker: 0.05, boss: 3, dark: { cooldown: 0.3, dmg: 0.2, lasts: 90, most: 5 } };
 
 /**
  * Her unique treasures' numbers (1★ to 5★: ../treasures.ts): Thornbush Forest's DMG and shorter cooldown; Tangled Vine's
  * cheaper, the mana it would drain (the boss has none) and her own mana; Wrath of the Forest's DMG and, on a critical blow
- * at full Poison, the share off her skills' cooldowns; and Blade Leaf's more M.DMG taken (as long as its Poison).
+ * at full Poison, the share off her skills' cooldowns; and her Poison's more M.DMG taken (as long as it is on).
  */
 const UT = {
   book: { dmg: 0.5, cooldown: [1.2, 1.4, 1.7, 2.1, 2.5, 3] },
@@ -56,8 +63,12 @@ const BLADE_LEAF: Passive = {
   shown: { name: 'Blade Leaf', about: `Passive. Her attack has a ${pct(LEAF.chance)} chance to send ${LEAF.times} leaves at the boss besides, each leaving a [Poison] on it (up to ${POISON.most}).`, icon: '🍃', art: art(3) },
   words: `When dealing a normal attack, attacks a random enemy ${LEAF.times} times with a ${pct(LEAF.chance)} chance of inflicting ${dmg('wizard', LEAF.blow, bookDmg('lorraine', 3))} M.DMG and 1 stack of Poison for ${POISON.lasts} seconds. Poison inflicts a total of ${dmg('wizard', POISON.each * POISON.lasts, bookDmg('lorraine', 3))} M.DMG over ${POISON.lasts} seconds, reduces Heal Rate, and can be stacked up to max ${POISON.most} times. If Lorraine dies, Poison effects on enemies will disappear.`,
 };
-/** What her skills leave on the boss. */
+/** What her skills leave on the boss; Terrarium of Circulation's, with it; and Tangled Vine's Dark's, CC on it longer. */
 const POISONED = 'Poison';
+const TERRARIUM = 'Terrarium of Circulation';
+const HELD = 'Tangled Vine';
+/** Transcend 5's Dark: what it gives her as each battle begins. */
+const GROWTH: Buff = { name: 'Transcend 5 Dark', about: `DMG to the boss and its minions +${pct(PERKS.dark.dmg)} for each stack (up to ${PERKS.dark.most}).`, icon: '🌱', art: art(3) };
 
 export const LORRAINE: HeroDef = {
   id: 'lorraine',
@@ -101,32 +112,34 @@ export const LORRAINE: HeroDef = {
   passive: BLADE_LEAF,
   treasures: [
     treasure('Book of Life', (k) => ({
-      words: `[Thornbush Forest] DMG is increased by ${pct(UT.book.dmg)} and Cooldown is reduced by ${k(UT.book.cooldown)} sec.`,
+      words: `[Thornbush Forest] Increases DMG by ${pct(UT.book.dmg)} and reduces Cooldown by ${k(UT.book.cooldown)} sec.`,
       skill: { index: 0, dmg: 1 + UT.book.dmg, cooldown: -k(UT.book.cooldown) },
     })),
     treasure('Deadly Belladonna', (k) => ({
-      words: `[Tangled Vine] Reduces Mana Cost by ${-UT.belladonna.cost} and drains ${k(UT.belladonna.drain)} MP from the affected enemy that took the DMG, and recovers own Mana by ${k(UT.belladonna.mana)}.`,
+      words: `[Tangled Vine] Reduces Mana Cost by ${-UT.belladonna.cost}, Mana of hit enemies by ${k(UT.belladonna.drain)}, and recovers own Mana by ${k(UT.belladonna.mana)}.`,
       skill: { index: 1, cost: UT.belladonna.cost, mana: k(UT.belladonna.mana) },
     })),
     treasure('Root of the World Tree', (k) => ({
-      words: `[Wrath of the Forest] DMG is increased by ${pct(k(UT.root.dmg))}. Upon Crit Hit on enemies with over ${UT.root.poison} stacks of Poison, skill cooldown is reduced by ${pct(UT.root.cooldown)}.`,
+      words: `[Wrath of the Forest] Increases DMG by ${pct(k(UT.root.dmg))}. Upon a Crit Hit on enemies with ${UT.root.poison} or more stacks of Poison, reduces Cooldown by ${pct(UT.root.cooldown)}.`,
       skill: { index: 2, dmg: 1 + k(UT.root.dmg) },
     })),
     treasure('Terrarium of Circulation', (k) => ({
-      words: `[Blade Leaf] Posion effect will become irremovable, and increases M.DMG the target takes by ${pct(k(UT.terrarium.takes))} for the duration of the skill.`,
+      words: `[Blade Leaf] Poison effect becomes irremovable and for the duration of Poison, target takes ${pct(k(UT.terrarium.takes))} increased M.DMG.`,
     })),
   ],
   perks: {
-    's1-light': { words: `Hit count is increased by ${PERKS.hits}.` },
-    's1-dark': { words: `Enemies with ${PERKS.full} or more stacks of Poison are shackled for ${PERKS.shackle} sec upon hit.` },
-    's2-light': said({ skill: { index: 1, dmg: PERKS.vine } }, ({ skill }) => `DMG is increased by ${pct(skill.dmg - 1)}.`),
-    's2-dark': { words: `Enemies hit by the final explosion effect are stunned for ${PERKS.after} sec.` },
+    's1-light': { words: 'Reduces Mana of the hit target by 250. If the target is a boss, reduces Mana by 500.' },
+    's1-dark': said({ skill: { index: 0, critMana: 250 } }, ({ skill }) => `Recovers ${skill.critMana} Mana upon Critical Hit.`),
+    's2-light': said({ skill: { index: 1, dmg: PERKS.vine } }, ({ skill }) => `Increases DMG by ${pct(skill.dmg - 1)}.`),
+    's2-dark': { words: `Increases the duration of the CC inflicted upon hit enemies by ${pct(PERKS.longer.cc)} for ${PERKS.longer.lasts} sec.` },
     's3-light': said({ skill: { index: 2, cost: 1, dmg: 2 } }, ({ skill }) => `Mana cost is increased by ${skill.cost} orb but DMG is boosted by ${pct(skill.dmg - 1)}.`),
-    's3-dark': { words: 'Enemies with 5 or more stacks of Poison lose their positive effects.' },
-    's4-light': { words: `Poison stack maximum is changed to ${PERKS.most}.` },
-    's4-dark': { words: `There is a ${pct(PERKS.leaf.chance)} chance that hit enemies are shackled for ${PERKS.leaf.shackle} sec.` },
+    's3-dark': said({ skill: { index: 2, cost: 1, dispel: true } }, ({ skill }) => `Increases Mana Cost by ${skill.cost} and dispels positive effects of enemies within range.`),
+    's4-light': { words: `Reduces target's ATK by ${pct(PERKS.weaker)} per stack of Poison.` },
+    's4-dark': { words: `If the target is a boss, increases DMG of Poison by x${PERKS.boss}.` },
     't5-light': t5Light({ crit: 100 }, ({ crit }) => `Crit Chance +${crit}`),
-    't5-dark': { words: `Every ${PERKS.forest.every} sec, targets all enemies and attacks with 'Thornbush Forest' with ${pct(PERKS.forest.chance)} chance on each enemy.` },
+    't5-dark': {
+      words: `At the beginning of each battle, immediately reduces self's Cooldown of all active Skills by ${pct(PERKS.dark.cooldown)} and increases DMG dealt to Non-Hero enemies by ${pct(PERKS.dark.dmg)} for ${PERKS.dark.lasts} sec. DMG Boost effect can be stacked up to max ${PERKS.dark.most} times and is irremovable.`,
+    },
   },
   attack: 'lash',
   join(fight, self) {
@@ -135,25 +148,25 @@ export const LORRAINE: HeroDef = {
     let bitten = 0;
     let roburu = 0;
     const tier = self.unique?.tier ?? null;
-    /** Her perks: the most Poison there can be (Blade Leaf's Light); and toward Transcend 5's Dark's next Thornbush Forest. */
-    const most = self.perks.has('s4-light') ? PERKS.most : POISON.most;
-    let forest = 0;
+    /** The battle Transcend 5's Dark was last given for (0: none yet). */
+    let wave = 0;
 
     /** How many Poison are on the boss. */
     const poisons = (): number => fight.foe.statuses.find((status) => status.name === POISONED)?.count ?? 0;
-    /** So many more Poison on the boss (up to the most), all of it begun again: what heals it heals it less for each. */
+    /**
+     * So many more Poison on the boss (up to the most), all of it begun again: what heals it heals it less for each (and
+     * with Blade Leaf's Light, its ATK lower for each). Terrarium of Circulation: more M.DMG taken, as long as it.
+     */
     const poison = (count: number): void => {
-      const stacks = Math.min(most, poisons() + count);
-      put(fight.foe.statuses, { name: POISONED, left: POISON.lasts, count: stacks, heals: Math.max(0, 1 - POISON.heals * stacks), shown: 'venom' });
+      const stacks = Math.min(POISON.most, poisons() + count);
+      put(fight.foe.statuses, { name: POISONED, left: POISON.lasts, count: stacks, heals: Math.max(0, 1 - POISON.heals * stacks), ...(self.perks.has('s4-light') && { deals: 1 - PERKS.weaker * stacks }), shown: 'venom' });
+      const terrarium = fromTreasure(self, 3, UT.terrarium.takes);
+      if (terrarium > 0) put(fight.foe.statuses, { name: TERRARIUM, left: POISON.lasts, takes: { magical: 1 + terrarium }, shown: 'venom' });
     };
+    /** Her CC on the boss, so many seconds of it: longer while Tangled Vine's Dark is on it. */
+    const held = (seconds: number): number => seconds * (fight.foe.statuses.some((status) => status.name === HELD) ? 1 + PERKS.longer.cc : 1);
     /** The Lorraines in the fight (there may be two: it is the same Poison), and whether any is standing. */
     const lorraines = () => fight.fighters.filter((one) => one.id === self.id);
-    /** A blow of Thornbush Forest: a Poison (and with its Dark, at full Poison, the boss shackled). */
-    const thorn = (): void => {
-      fight.hit(self, THORNS.blow);
-      poison(1);
-      if (self.perks.has('s1-dark') && poisons() >= PERKS.full) fight.stun(PERKS.shackle, { by: self });
-    };
 
     return {
       lands: {
@@ -166,22 +179,19 @@ export const LORRAINE: HeroDef = {
           fight.cue(self, 'leaf');
           fight.hit(self, fight.basic + LEAF.blow * LEAF.times);
           poison(LEAF.times);
-          // (Terrarium of Circulation: more M.DMG taken, as long as its Poison.)
-          const terrarium = fromTreasure(self, 3, UT.terrarium.takes);
-          if (terrarium > 0) put(fight.foe.statuses, { name: 'Terrarium of Circulation', left: POISON.lasts, takes: { magical: 1 + terrarium }, shown: 'venom' });
-          // (Its Dark: now and then the boss shackled.)
-          if (self.perks.has('s4-dark') && fight.roll() < PERKS.leaf.chance) fight.stun(PERKS.leaf.shackle, { by: self });
         },
-        // Each of three blows leaves a Poison (its Light: a fourth, with the third).
-        thornbush(part) {
-          thorn();
-          if (part === THORNS.hits - 1 && self.perks.has('s1-light')) for (let i = 0; i < PERKS.hits; i++) thorn();
+        // Each of three blows leaves a Poison.
+        thornbush() {
+          fight.hit(self, THORNS.blow);
+          poison(1);
         },
         // The vine: a blow, 2 Poison, and the boss shackled (as a stun: it can do nothing); its blow after comes in a moment.
+        // (Its Dark: CC on the boss longer for a while, this shackle with it.)
         vine() {
           fight.hit(self, VINE.blow);
           poison(VINE.poison);
-          fight.stun(VINE.shackle, { by: self });
+          if (self.perks.has('s2-dark')) put(fight.foe.statuses, { name: HELD, left: PERKS.longer.lasts, shown: 'curse' });
+          fight.stun(held(VINE.shackle), { by: self });
           vine = VINE.after;
         },
         // The forest bursts up under the boss, harder for each Poison on it: it is knocked down.
@@ -193,7 +203,7 @@ export const LORRAINE: HeroDef = {
               self.cooldowns[i] = Math.max(0, (self.cooldowns[i] as number) - ability.cooldown * UT.root.cooldown);
             });
           }
-          fight.stun(WRATH.down, { down: true, by: self });
+          fight.stun(held(WRATH.down), { down: true, by: self });
         },
       },
       tick(dt) {
@@ -203,13 +213,24 @@ export const LORRAINE: HeroDef = {
           if (vine <= 0) {
             fight.cue(self, 'vine');
             fight.hit(self, VINE.each * poisons() * (self.perks.has('s2-light') ? PERKS.vine : 1), false);
-            if (self.perks.has('s2-dark')) fight.stun(PERKS.after, { by: self });
           }
         }
+        // Transcend 5's Dark: as each battle begins, her skills' cooldowns shorter, and a stack more of her DMG higher for a while.
+        if (self.perks.has('t5-dark') && fight.wave !== wave && fight.field.includes(self) && self.hp > 0) {
+          wave = fight.wave;
+          self.abilities.forEach((ability, i) => {
+            self.cooldowns[i] = Math.max(0, (self.cooldowns[i] as number) - ability.cooldown * PERKS.dark.cooldown);
+          });
+          const stacks = Math.min(PERKS.dark.most, (self.statuses.find((status) => status.name === GROWTH.name)?.count ?? 0) + 1);
+          put(self.statuses, { name: GROWTH.name, left: PERKS.dark.lasts, count: stacks, deals: 1 + PERKS.dark.dmg * stacks, shown: GROWTH });
+        }
         const count = poisons();
-        // With no Lorraine standing, her Poison is gone.
+        // With no Lorraine standing, her Poison is gone (and Terrarium of Circulation's with it).
         if (count > 0 && lorraines().every((one) => one.hp <= 0)) {
-          fight.foe.statuses.splice(fight.foe.statuses.findIndex((status) => status.name === POISONED), 1);
+          for (const name of [POISONED, TERRARIUM]) {
+            const at = fight.foe.statuses.findIndex((status) => status.name === name);
+            if (at >= 0) fight.foe.statuses.splice(at, 1);
+          }
           return;
         }
         // Her unique weapon: every 7 seconds, with the boss poisoned, a blow that leaves its M.DEF lower and it taking more magic damage for a while.
@@ -224,18 +245,8 @@ export const LORRAINE: HeroDef = {
             }
           }
         }
-        // Transcend 5's Dark: every so often, now and then a Thornbush Forest of her own.
-        if (self.perks.has('t5-dark') && self.hp > 0 && fight.field.includes(self)) {
-          forest += dt;
-          if (forest >= PERKS.forest.every) {
-            forest -= PERKS.forest.every;
-            if (fight.roll() < PERKS.forest.chance) {
-              fight.cue(self, 'thornbush');
-              for (let i = 0; i < THORNS.hits; i++) thorn();
-            }
-          }
-        }
         // Her Poison eats at the boss every second (the first Lorraine's, where there are two), each stack of it a blow of its own (counted as one).
+        // (Blade Leaf's Dark: three times as hard on a boss.)
         if (count <= 0 || lorraines()[0] !== self) {
           bitten = 0;
           return;
@@ -243,10 +254,10 @@ export const LORRAINE: HeroDef = {
         bitten += dt;
         if (bitten >= POISON.every) {
           bitten -= POISON.every;
-          fight.hit(self, POISON.each * count, false);
+          fight.hit(self, POISON.each * count * (self.perks.has('s4-dark') && fight.foe === fight.boss ? PERKS.boss : 1), false);
         }
       },
-      lit: () => poisons() >= most,
+      lit: () => poisons() >= POISON.most,
     };
   },
 };

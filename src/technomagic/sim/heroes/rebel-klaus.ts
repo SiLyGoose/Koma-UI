@@ -1,4 +1,4 @@
-import { share } from '../combat/damage';
+import { CURVE, curved, share } from '../combat/damage';
 import { piercing, put, type Status } from '../combat/status';
 import { said, t5Light } from '../perks';
 import { fromTreasure, treasure, wearsTreasure } from '../treasures';
@@ -22,8 +22,9 @@ import { bookDmg, CLASS_STATS, dmg, type HeroDef, type Passive } from './kit';
  * of his HP but stacks his DMG higher for a while.
  * What is drawn for each is ../../heroes/rebel-klaus/fx.ts; what his body does for each, and for his attack, ../../heroes/rebel-klaus/moves.ts.
  *
- * His own perks (../perks.ts) are King's Raid's. Transcend 5's Dark stacks once a battle: there is one here, so it is
- * once. Determined Strike's Light (more with one enemy) always holds: there is only the boss.
+ * His own perks (../perks.ts) and unique treasures are live King's Raid's, as krinfo has them (its legacy; it calls him
+ * Rebel Clause, his words here Rebel Klaus). Transcend 5's Dark stacks once a battle: there is one here, so it is once.
+ * Determined Strike's Light (more with one enemy) always holds: there is only the boss.
  */
 // (How hard each of his skills hits: the King's Raid Index hasn't him, so ×3.34 what it was, as the other warriors' went to theirs from it.)
 /** Determined Strike: its blow, the blow more against a boss, and how long it stuns. */
@@ -40,7 +41,7 @@ const PERKS = { alone: 2, stun: 1, critDamage: 0.5, mana: 100, exposed: 0.5, bos
 /**
  * His unique treasures' numbers (1★ to 5★: ../treasures.ts): Determined Strike's cheaper and more of its blow against a
  * boss; Indomitable Will's longer and his ATK meanwhile; Perish.'s shorter cooldown and its stun for each blow; and Power of
- * Galicta's CC resist (points), and the penetration it would take off the boss (it has none).
+ * Galicta's CC resist (points), and the penetration it takes off the boss while [Curse of Galicta] is on it.
  */
 const UT = {
   cloak: { cost: -1, boss: [0.4, 0.48, 0.58, 0.7, 0.84, 1] },
@@ -65,6 +66,8 @@ const POWER_OF_GALICTA: Passive = {
 };
 /** [Indomitable Will] on him; Galicta's DMG stacks on him. */
 const WILLED: Buff = { name: 'Indomitable Will', about: `ATK Spd +${WILL.speed}, and held down ${pct(WILL.held)} as long.`, icon: '🔥', art: art(1) };
+/** Everlasting Protection: while [Curse of Galicta] is on the boss, every ally's defense about as much more as the boss's penetration less makes it. */
+const PROTECTED: Buff = { name: 'Everlasting Protection', about: `The boss’s DEF Penetration ${UT.protection.pen} lower: every ally’s DEF counts for more against it.`, icon: '🛡️', art: art(3) };
 const GALICTA_STACKS: Buff = { name: 'Adversary of the Goddess, Galicta', about: 'DMG higher for each.', icon: '⚔️', art: { uw: 'rebel-klaus' } };
 /** What his attack leaves on the boss. */
 const CURSE = 'Curse of Galicta';
@@ -122,16 +125,16 @@ export const REBEL_KLAUS: HeroDef = {
       skill: { index: 2, cooldown: -k(UT.mittens.cooldown) },
     })),
     treasure('Everlasting Protection', (k) => ({
-      words: `[Power of Galicta] Increases CC Resist by ${k(UT.protection.resist)}, and reduces the targets DEF Penetration by ${UT.protection.pen} for the duration of [Curse of Galicta].`,
+      words: `[Power of Galicta] Increases CC Resist by ${k(UT.protection.resist)}, and reduces the target’s DEF Penetration by ${UT.protection.pen} for the duration of [Curse of Galicta].`,
       bonus: { resist: k(UT.protection.resist) },
     })),
   ],
   attack: 'rend',
   perks: {
-    's1-light': said({ skill: { index: 0, dmg: PERKS.alone } }, ({ skill }) => `Increases DMG by ${pct(skill.dmg - 1)} when there is one enemy.`),
+    's1-light': said({ skill: { index: 0, dmg: PERKS.alone } }, ({ skill }) => `Increases DMG by ${pct(skill.dmg - 1)} when there is 1 enemy.`),
     's1-dark': { words: `Increases the duration of Stun by ${PERKS.stun} sec.` },
     's2-light': { words: `Increases Crit DMG by ${pct(PERKS.critDamage)} while in [Indomitable Will] state.` },
-    's2-dark': { words: 'Upon using the skill, dispels all negative effects from self.' },
+    's2-dark': { words: 'Upon using the Skill, dispels all negative effects from self.' },
     's3-light': { words: `Recovers own Mana by ${PERKS.mana} each hit.` },
     's3-dark': { words: 'Gains immunity to CC while in use.' },
     's4-light': { words: `Additionally reduces the target's P.DEF by ${pct(PERKS.exposed)} for the duration of [Curse of Galicta].` },
@@ -161,7 +164,20 @@ export const REBEL_KLAUS: HeroDef = {
       // (Irreversible Hatred: for longer, and his ATK higher meanwhile.)
       const hatred = wearsTreasure(self, 1);
       willed = WILL.lasts + (hatred ? UT.hatred.longer : 0);
-      put(self.statuses, { name: WILLED.name, left: willed, ...(self.perks.has('s2-light') && { critDamage: PERKS.critDamage }), ...(hatred && { deals: 1 + fromTreasure(self, 1, UT.hatred.atk) }), shown: WILLED });
+      put(self.statuses, { name: WILLED.name, left: willed, ...(self.perks.has('s2-light') && { critDamage: PERKS.critDamage }), ...(hatred && { atk: fromTreasure(self, 1, UT.hatred.atk) }), shown: WILLED });
+    };
+    /**
+     * Everlasting Protection: the boss's penetration lower while the curse is on it. (The fight reads a boss's penetration
+     * as it stands, so here every ally's defense is as much more as that would make it count: for as long as the curse.
+     * Only near it: the fight adds this share to the others that make a hero's defense more, not on top of them, so with
+     * any other it is a little less than King's Raid's; and it is on every hero, so a minion's blows meanwhile count it too.
+     * A minion cursed gives none, so the boss's blows never count a minion's curse.)
+     */
+    const protect = (): void => {
+      if (fight.foe !== fight.boss) return;
+      const pen = fight.boss.def.stats.pen ?? 0;
+      const through = (points: number): number => 1 - share(curved(CURVE.pen, points));
+      put(fight.party, { name: PROTECTED.name, left: GALICTA_POWER.lasts, defends: through(Math.max(0, pen - UT.protection.pen)) / through(pen), shown: PROTECTED });
     };
     /** His attack: a blow; unless the boss bears the curse, a blow more and the curse on it (its Light: its P.DEF lower meanwhile). Its Dark: a blow more against a Non-Hero. */
     const rend = (): void => {
@@ -169,6 +185,7 @@ export const REBEL_KLAUS: HeroDef = {
       if (!fight.foe.statuses.some((status) => status.name === CURSE)) {
         strike(GALICTA_POWER.blow, false);
         put(fight.foe.statuses, { name: CURSE, left: GALICTA_POWER.lasts, ...(self.perks.has('s4-light') && { defends: { physical: 1 - PERKS.exposed } }), shown: 'curse' });
+        if (wearsTreasure(self, 3)) protect();
       }
       if (self.perks.has('s4-dark')) strike(PERKS.boss, false);
     };
@@ -193,14 +210,14 @@ export const REBEL_KLAUS: HeroDef = {
           strike(WILL.blow);
           will();
         },
-        // A blow of the barrage (its Light: mana each); the last knocks the boss down.
+        // A blow of the barrage (its Light: mana each, the last's too); the last knocks the boss down.
         perish(part) {
           const last = part === (self.motion.moves.perish.parts[0]?.lands.length ?? 1) - 1;
           strike(last ? PERISH.last : PERISH.blow);
           // (Old Mittens: each blow stuns the boss.)
           if (wearsTreasure(self, 2)) fight.stun(UT.mittens.stun, { by: self });
           if (last) fight.stun(PERISH.down, { down: true, by: self });
-          else if (self.perks.has('s3-light')) self.mana = Math.min(MAX_MANA, self.mana + PERKS.mana);
+          if (self.perks.has('s3-light')) self.mana = Math.min(MAX_MANA, self.mana + PERKS.mana);
         },
       },
       // His unique weapon: each skill he uses costs him a share of his HP, and stacks his DMG higher for a while.

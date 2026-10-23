@@ -18,8 +18,8 @@ import { bookDmg, CLASS_STATS, dmg, type HeroDef, indexed, type Passive } from '
  * What is drawn for each is ../../heroes/phillop/fx.ts; what his body does for each, and for his attack, ../../heroes/phillop/moves.ts.
  *
  * His own perks (../perks.ts) are King's Raid's: what is a share of his max HP deals that much (as so many thousandths
- * of his ATK). Collision's Dark always holds once (there is only the boss), and Destroy Armor's Dark has nothing on the
- * boss to dispel: only its more P.DMG taken.
+ * of his ATK). Collision's Dark always holds once (there is only the boss), and Destroy Armor's Dark dispels what helps
+ * the boss (what has it deal more, as every dispel here does), besides its more P.DMG taken.
  */
 // (How hard each of his skills hits is the King's Raid Index's, at his class's ATK: ./kit.ts's indexed.)
 const COLLISION = { blow: indexed('knight', 87_446), down: 3 };
@@ -108,7 +108,7 @@ export const PHILLOP: HeroDef = {
   passive: DESTROY_ARMOR,
   treasures: [
     treasure('Mad Dragon Shield Decoration', (k) => ({
-      words: `[Collision] Reduces the target's CC Resist by ${UT.decoration.resist} and P.Block chance by ${k(UT.decoration.block)} for ${UT.decoration.lasts} sec.`,
+      words: `[Collision] Reduces the target's CC Resist by ${UT.decoration.resist} and P.Block Chance by ${k(UT.decoration.block)} for ${UT.decoration.lasts} sec.`,
       skill: { index: 0, mark: { name: 'Mad Dragon Shield Decoration', resist: -UT.decoration.resist, blocks: { physical: -k(UT.decoration.block) }, lasts: UT.decoration.lasts } },
     })),
     treasure('Dwarfish Capricorn Helmet', (k) => ({
@@ -116,7 +116,7 @@ export const PHILLOP: HeroDef = {
       skill: { index: 1, cost: UT.helmet.cost, mark: { name: 'Dwarfish Capricorn Helmet', critTaken: { physical: k(UT.helmet.critResist) }, lasts: UT.helmet.lasts } },
     })),
     treasure('Dwarven Ceremonial Hammer', (k) => ({
-      words: `[Earth Incarnate] For the duration of skill, ATK Spd and Crit chance is increased by ${UT.hammer.speed}, and DEF boost is increased by ${pct(k(UT.hammer.defense))}.`,
+      words: `[Earth Incarnate] Increases own ATK Spd and Crit Chance by ${UT.hammer.speed}, and DEF Boost by ${pct(k(UT.hammer.defense))} for the duration of Skill.`,
     })),
     treasure('Hammer of Titan', (k) => ({
       words: `[Destroy Armor] Upon attack, reduces the target's ATK by ${pct(UT.titan.weaker)} and each stack reduces its Heal Rate by ${Math.round(k(UT.titan.heals) * 1000) / 10}%.`,
@@ -173,6 +173,9 @@ export const PHILLOP: HeroDef = {
       if (self.perks.has('s4-light') && broken >= ARMOR.most) fight.hit(self, ofHp(PERKS.broken), false);
       if (self.perks.has('s4-dark') && exposed <= 0) {
         exposed = PERKS.exposed.every;
+        // (What helps the boss is dispelled: what has it deal more.)
+        const on = fight.foe.statuses;
+        for (let i = on.length - 1; i >= 0; i--) if ((on[i]?.deals ?? 1) > 1) on.splice(i, 1);
         put(fight.foe.statuses, { name: EXPOSED, left: PERKS.exposed.lasts, takes: { physical: PERKS.exposed.takes }, shown: 'curse' });
       }
       // (Transcend 5's Dark: now and then a stun and a blow more.)

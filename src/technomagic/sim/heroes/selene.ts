@@ -21,8 +21,10 @@ import { CODED } from './moves';
  * attack shoots an arrow more.
  * What is drawn for each is ../../heroes/selene/fx.ts; what her body does for each, and for her attack, ../../heroes/selene/moves.ts.
  *
- * Her own perks (../perks.ts) are King's Raid's. Rush's Light always holds (there is only the boss). Moonlight Flash's
- * Dark does nothing here (the boss doesn't block), nor Moonlight Arrow's (there is nowhere further to reach).
+ * Her own perks (../perks.ts) and unique treasures are live King's Raid's, as krinfo has them (its legacy). Rush's Light
+ * always holds (the fight takes it as the only enemy, a dragon's minions or not). Moonlight Flash's Dark does nothing
+ * here (no boss blocks a physical blow).
+ * Moonlight Arrow's Dark stacks once a battle (each wave of a raid's): fewer than ten here, so its more to bosses never comes.
  */
 // (How hard each of her skills hits is the King's Raid Index's, at her class's ATK: ./kit.ts's indexed.)
 // (As many arrows as its move has.)
@@ -32,8 +34,11 @@ const RUSH = { arrows: CODED.rush.lands.length, blow: indexed('archer', 112_278)
 const FLASH = { most: indexed('archer', 657_142), down: 3, boss: indexed('archer', 657_142) / 2 };
 /** Moonlight Arrow: her ATK and crit chance (points) more for each stack, for `lasts` seconds, up to `most`. */
 const MOON = { atk: 5056, crit: 100, lasts: 10, most: 3, critDamage: 0.1 };
-/** Her own perks' numbers: Arrow Rain's stun (its chance), Rush's flinch, and Moonlight Arrow's most stacks. */
-const PERKS = { stun: { chance: 0.2, lasts: 2 }, flinch: 0.5, most: 5 };
+/**
+ * Her own perks' numbers: Arrow Rain's stun (its chance), Moonlight Arrow's most stacks, and its Dark's ATK for each
+ * battle begun (up to so many), and its more DMG to bosses once she has them all.
+ */
+const PERKS = { stun: { chance: 0.5, lasts: 1 }, most: 5, battle: { atk: 0.05, most: 10, boss: 1.2 } };
 
 /**
  * Her unique treasures' numbers (1★ to 5★: ../treasures.ts): Arrow Rain's cheaper and shorter cooldown; Rush's DMG and
@@ -63,6 +68,8 @@ const MOONLIGHT_ARROW: Passive = {
 };
 /** Moonlight Arrow's stacks: shown on her card. */
 const MOONLIT: Buff = { name: 'Moonlight Arrow', about: 'ATK and crit chance higher for each.', icon: '🌙', art: art(3) };
+/** Moonlight Arrow's Dark: its stacks, one for each battle begun, shown on her card. */
+const BATTLED: Buff = { name: 'Moonlight Arrow Dark', about: `ATK ${pct(PERKS.battle.atk)} higher for each battle begun; with ${PERKS.battle.most}, more DMG to bosses.`, icon: '🌙', art: art(3) };
 
 export const SELENE: HeroDef = {
   id: 'selene',
@@ -114,7 +121,7 @@ export const SELENE: HeroDef = {
       skill: { index: 1, dmg: 1 + k(UT.seal.dmg) },
     })),
     treasure('Silver Arrow', (k) => ({
-      words: `[Moonlight Flash] DMG is increased by ${pct(k(UT.silver.dmg))} and target takes ${pct(UT.silver.takes)} additional P.DMG for ${UT.silver.lasts} sec.`,
+      words: `[Moonlight Flash] Increases DMG by ${pct(k(UT.silver.dmg))}, and P.DMG the target takes by ${pct(UT.silver.takes)} for ${UT.silver.lasts} sec.`,
       skill: { index: 2, dmg: 1 + k(UT.silver.dmg), mark: { name: 'Silver Arrow', takes: { physical: 1 + UT.silver.takes }, lasts: UT.silver.lasts } },
     })),
     treasure('Circlet of Wind', (k) => ({
@@ -124,13 +131,15 @@ export const SELENE: HeroDef = {
   ],
   perks: {
     's1-light': said({ skill: { index: 0, dmg: 1.4 } }, ({ skill }) => `DMG is increased by ${pct(skill.dmg - 1)}.`),
-    's1-dark': { words: `There is a ${pct(PERKS.stun.chance)} chance to inflict Stun for ${PERKS.stun.lasts} sec.` },
+    's1-dark': { words: `Inflicts Stun on the hit enemy for ${PERKS.stun.lasts} sec with a ${pct(PERKS.stun.chance)} chance.` },
     's2-light': said({ skill: { index: 1, whole: true } }, () => 'Ignores DEF when there is only 1 enemy.'),
-    's2-dark': { words: `Makes the enemy flinch for ${PERKS.flinch} sec.` },
-    's3-light': said({ skill: { index: 2, cooldown: -3 } }, ({ skill }) => `Reduces cooldown by ${-skill.cooldown} sec.`),
+    's2-dark': said({ skill: { index: 1, cost: -1 } }, ({ skill }) => `Reduces Mana Cost by ${-skill.cost}.`),
+    's3-light': said({ skill: { index: 2, cost: -1 } }, ({ skill }) => `Reduces Mana Cost by ${-skill.cost}.`),
     's3-dark': { words: 'Ignores enemy Block.' },
     's4-light': { words: `Max stack number is changed to ${PERKS.most}.` },
-    's4-dark': { words: 'Auto attack range is boosted by 20%.' },
+    's4-dark': {
+      words: `At the beginning of each battle, increases ATK by ${pct(PERKS.battle.atk)}. This effect can be stacked up to max ${PERKS.battle.most} times. Upon gaining ${PERKS.battle.most} stacks, increases DMG dealt to bosses by ${pct(PERKS.battle.boss - 1)}. This effect is irremovable.`,
+    },
     't5-light': t5Light({ critDamage: 0.2 }, ({ critDamage }) => `Crit DMG +${pct(critDamage)}`),
     't5-dark': said({ bonus: { crit: -300, critDamage: 1.5 } }, ({ bonus }) => `Reduces own Crit Chance by ${-bonus.crit} and increases Crit DMG by ${pct(bonus.critDamage)}.`),
   },
@@ -146,11 +155,13 @@ export const SELENE: HeroDef = {
     },
   },
   join(fight, self) {
-    /** Moonlight Arrow's stacks (its Light: more of them), and how long they last yet; how long her unique weapon quickens her yet. */
+    /** Moonlight Arrow's stacks (its Light: more of them), and how long they last yet; how long her unique weapon quickens her yet; its Dark's stacks, and the wave it last stacked. */
     const most = self.perks.has('s4-light') ? PERKS.most : MOON.most;
     let moon = 0;
     let moonLeft = 0;
     let notos = 0;
+    let battles = 0;
+    let wave = 0;
     const tier = self.unique?.tier ?? null;
 
     /** A blow of hers: a critical one, with her unique weapon, quickens her for a while. */
@@ -184,15 +195,14 @@ export const SELENE: HeroDef = {
         // Her attack: an arrow, as written in code; or as her animation for it has it.
         arrow: () => loose(fight.basic),
         attack: () => loose(fight.basic),
-        // Each arrow (its Dark: now and then the boss stunned).
+        // Each arrow (its Dark: now and then the enemy it hits stunned).
         rain() {
           shoot(RAIN.blow);
           if (self.perks.has('s1-dark') && fight.roll() < PERKS.stun.chance) fight.stun(PERKS.stun.lasts, { by: self });
         },
-        // Each arrow (its Dark: the boss flinching).
+        // Each arrow.
         rush() {
           shoot(RUSH.blow);
-          if (self.perks.has('s2-dark')) fight.stun(PERKS.flinch, { by: self });
         },
         // The harder the more of the boss's health is left; it is knocked down; and a blow more through its defense.
         flash() {
@@ -202,6 +212,12 @@ export const SELENE: HeroDef = {
         },
       },
       tick(dt) {
+        // Moonlight Arrow's Dark: as each battle begins, her ATK higher (up to so many times, for good).
+        if (self.perks.has('s4-dark') && fight.wave !== wave && fight.field.includes(self) && self.hp > 0) {
+          wave = fight.wave;
+          battles = Math.min(PERKS.battle.most, battles + 1);
+          put(self.statuses, { name: BATTLED.name, left: Infinity, count: battles, atk: PERKS.battle.atk * battles, shown: BATTLED });
+        }
         notos = Math.max(0, notos - dt);
         if (moonLeft > 0) {
           moonLeft -= dt;
@@ -209,6 +225,8 @@ export const SELENE: HeroDef = {
         }
       },
       speed: () => (notos > 0 && tier !== null ? atTier(NOTOS.speed, tier) : 0),
+      // (And with all its stacks, more to bosses: not to a dragon's minions.)
+      deals: () => (battles >= PERKS.battle.most && fight.foe === fight.boss ? PERKS.battle.boss : 1),
       lit: () => moon >= most,
       buffs: () => (notos > 0 ? [{ ...NOTOS_UP, left: notos }] : []),
     };

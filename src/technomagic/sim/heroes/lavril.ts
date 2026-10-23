@@ -2,7 +2,7 @@ import { away, put } from '../combat/status';
 import { said, t5Light } from '../perks';
 import { MAX_MANA, SECTION } from '../rules';
 import { fromTreasure, treasure, wearsTreasure } from '../treasures';
-import { num, pct, skillArt, type Buff } from '../shown';
+import { fine, num, pct, skillArt, type Buff } from '../shown';
 import type { Fighter } from '../types';
 import { atTier, NEMECIA, NEMECIA_UP } from '../unique';
 import { type Ability, bookDmg, bookHeal, CLASS_STATS, dmg, healed, type HeroDef, type Passive, played, playedHeal } from './kit';
@@ -22,8 +22,10 @@ import { type Ability, bookDmg, bookHeal, CLASS_STATS, dmg, healed, type HeroDef
  * 10 seconds); and her linked ally's crit DMG higher.
  * What is drawn for each, and what her body does, are King's Raid's own (../../assets/heroes/lavril.ts).
  *
- * Her own perks (../perks.ts) are King's Raid's. G-go Away!'s Dark (one enemy) always holds. You Scare Me...!'s Light's dispel
- * does nothing here. A heal "of DMG dealt" is of the blow as her ATK has it (before the boss's defense).
+ * Her own perks (../perks.ts) and unique treasures are live King's Raid's, as krinfo has them (its legacy). G-go Away!'s Dark
+ * (only 1 enemy) holds while the boss stands alone (not while a Dragon Raid's minions stand with it). You Scare Me...!'s
+ * Light takes what helps the boss off it (what has it deal more); its Dark's second target is none here. A heal "of DMG
+ * dealt" is of the blow as her ATK has it (before the boss's defense).
  */
 /** G-go Away!: its blow; the boss's more magic damage taken and lower Crit Resistance, for how long; [Lavril's Ectoplasm]'s blow every so often, for how long; the share of each blow healed to every ally. */
 const AWAY = { blow: played('priest', 2494, 124_894), takes: 1.25, critTaken: 300, lasts: 10, ecto: played('priest', 565, 19_523), every: 0.5, ectoLasts: 5, drain: 0.05 };
@@ -35,8 +37,8 @@ const SCARE = { blow: played('priest', 4968, 163_739), slow: 250, takes: 1.25, l
 const ALONE = { blow: played('priest', 1355, 38_194), lasts: 6, every: 0.5, tick: played('priest', 555, 31_756), share: 0.045, most: 10, marked: 5 };
 /** Together Forever...: her and her linked ally's ATK more (flat, its books' half again), penetration, mana every second, and more to Non-Hero enemies. */
 const LINK = { atk: 28_967, books: 1.5, pen: 300, mana: 150, boss: 0.08 };
-/** Her own perks' numbers: G-go Away!'s Light's Crit Resistance and Dark's healing; Bear Up's Light's least HP, Dark's allies; Leave Me Alone's Light's shorter cooldown; Together's Light's more to Non-Hero enemies and Dark's less taken; Transcend 5's Dark's ATK for her linked ally, up to how many. */
-const PERKS = { critTaken: 500, heals: 2, floor: 0.05, allies: 2, sooner: 8, boss: 0.12, taken: 0.2, dark: { atk: 0.03, most: 20 } };
+/** Her own perks' numbers: G-go Away!'s Light's Crit Resistance and Dark's healing; Bear Up's Light's least HP, Dark's allies; Leave Me Alone's Light's shorter cooldown (a share); Together's Light's more to Non-Hero enemies and Dark's less taken; Transcend 5's Dark's ATK for her linked ally, up to how many. */
+const PERKS = { critTaken: 500, heals: 2, floor: 0.05, allies: 2, sooner: 0.3, boss: 0.12, taken: 0.2, dark: { atk: 0.03, most: 20 } };
 
 /**
  * Her unique treasures' numbers (1★ to 5★: ../treasures.ts; King's Raid's own): G-go Away!'s more DMG and the boss healed
@@ -121,11 +123,11 @@ export const LAVRIL: HeroDef = {
       skill: { index: 0, dmg: 1 + UT.tarot.dmg, mark: { name: 'Tarot Card of the Moon', lasts: UT.tarot.lasts, heals: 1 - k(UT.tarot.heals) } },
     })),
     treasure('Fairy’s Scent', (k) => ({
-      words: `[Bear Up...!] Increases Heal Rate by ${pct(UT.scent.heals)} and Crit DMG by ${pct(k(UT.scent.critDamage))}. [You Scare Me...!] Increases DMG by ${pct(UT.scent.dmg)} and reduces target's M.DEF by ${pct(k(UT.scent.defense))}.`,
+      words: `[Bear Up...!] Increases Heal Rate by ${pct(UT.scent.heals)} and Crit DMG by ${pct(k(UT.scent.critDamage))}.\n[You Scare Me...!] Increases DMG by ${pct(UT.scent.dmg)} and reduces target's M.DEF by ${pct(k(UT.scent.defense))}.`,
       skill: { index: 1, heals: 1 + UT.scent.heals },
     })),
     treasure('Blessed Protection', (k) => ({
-      words: `[Leave Me Alone...!] Increases the max stack of the effect by ${UT.protection.most} and each hit increases M.DMG the target receives by ${pct(k(UT.protection.takes))}.`,
+      words: `[Leave Me Alone...!] Increases the max stack of the effect by ${UT.protection.most} and each hit increases M.DMG the target takes by ${fine(k(UT.protection.takes))}.`,
     })),
     treasure('Tear of Soul', (k) => ({
       words: `[Together Forever…] Increases ATK boost by ${pct(UT.tear.atk)}. Allies under Soul Link have their Heal Rate increased by ${pct(k(UT.tear.heals))}.`,
@@ -136,7 +138,7 @@ export const LAVRIL: HeroDef = {
     's1-dark': { words: `Increases Heal Rate by ${pct(PERKS.heals - 1)} when there is only 1 enemy.` },
     's2-light': { words: `[Bear Up...!] Keeps target's HP from going below ${pct(PERKS.floor)} for the duration of skill.\n[You Scare Me...!] Dispels positive effects from the target.` },
     's2-dark': { words: '[Bear Up...!] - Increases the number of targets by 1.\n[You Scare Me...!] - Increases the number of targets by 1.' },
-    's3-light': said({ skill: { index: 2, cooldown: -PERKS.sooner } }, ({ skill }) => `Reduces Cooldown by ${-skill.cooldown} sec.`),
+    's3-light': said({ skill: { index: 2, cooldownShare: 1 - PERKS.sooner } }, ({ skill }) => `Reduces Cooldown by ${pct(1 - skill.cooldownShare)}.`),
     's3-dark': said({ skill: { index: 2, cost: -1 } }, ({ skill }) => `Reduces Mana Cost by ${-skill.cost}.`),
     's4-light': { words: `Changes the DMG Boost effect against Non-Hero enemies of Lavril and the ally bound to 'Soul Link' to ${pct(PERKS.boss)}.` },
     's4-dark': { words: `Reduces DMG taken of self and the ally bound to Soul Link by ${pct(PERKS.taken)}.` },
@@ -163,11 +165,12 @@ export const LAVRIL: HeroDef = {
     /** Her allies on the field, standing and in the fight (her too). */
     const allies = (): Fighter[] => fight.field.filter((ally) => ally.hp > 0 && !away(ally.statuses));
     const most = ALONE.most + (wearsTreasure(self, 2) ? UT.protection.most : 0);
-    /** A blow of G-go Away!'s (or its Ectoplasm's): every ally healed a share of it (its Dark: twice). */
+    /** A blow of G-go Away!'s (or its Ectoplasm's): every ally healed a share of it (its Dark: twice, while only 1 enemy stands). */
     const drain = (amount: number): void => {
       const alive = fight.foe.hp > 0;
       fight.hit(self, amount);
-      for (const ally of allies()) fight.heal(ally, (amount / 1000) * self.stats.atk * AWAY.drain * (self.perks.has('s1-dark') ? PERKS.heals : 1), undefined, self);
+      const single = self.perks.has('s1-dark') && fight.foes.filter((foe) => foe.hp > 0 && !foe.away).length === 1;
+      for (const ally of allies()) fight.heal(ally, (amount / 1000) * self.stats.atk * AWAY.drain * (single ? PERKS.heals : 1), undefined, self);
       // (Beaten: its cooldown begun again, and a section of mana.)
       if (alive && fight.foe.hp <= 0) {
         self.cooldowns[0] = 0;
@@ -202,9 +205,14 @@ export const LAVRIL: HeroDef = {
           bearTick = 0;
           scaring = BEAR.after;
         },
-        // A great blow; the boss slowed and taking more magic damage (Fairy's Scent: harder, and its M.DEF lower).
+        // A great blow; the boss slowed and taking more magic damage (Fairy's Scent: harder, and its M.DEF lower; its Light: what helps the boss gone).
         scare() {
           fight.hit(self, SCARE.blow * (wearsTreasure(self, 1) ? 1 + UT.scent.dmg : 1));
+          if (self.perks.has('s2-light')) {
+            // (What helps the boss is dispelled: what has it deal more.)
+            const on = fight.foe.statuses;
+            for (let i = on.length - 1; i >= 0; i--) if ((on[i]?.deals ?? 1) > 1) on.splice(i, 1);
+          }
           fight.slow(SCARE.slow, SCARE.lasts);
           put(fight.foe.statuses, { name: YOU_SCARE_ME.name, left: SCARE.lasts, takes: { magical: SCARE.takes }, ...(wearsTreasure(self, 1) && { defends: { magical: 1 - fromTreasure(self, 1, UT.scent.defense) } }), shown: 'curse' });
         },
@@ -270,13 +278,13 @@ export const LAVRIL: HeroDef = {
             drain(AWAY.ecto);
           }
         }
-        // Bear Up...!: its allies healed every second (its Light: their HP held up meanwhile).
+        // Bear Up...!: its allies healed every second (Fairy's Scent: its Heal Rate higher for these too; its Light: their HP held up meanwhile).
         if (bearLeft > 0) {
           bearLeft -= dt;
           bearTick += dt;
           if (bearTick >= 1) {
             bearTick -= 1;
-            for (const ally of borne) fight.heal(ally, BEAR.each, self);
+            for (const ally of borne) fight.heal(ally, BEAR.each * (wearsTreasure(self, 1) ? 1 + UT.scent.heals : 1), self);
           }
           if (self.perks.has('s2-light')) for (const ally of borne) if (ally.hp > 0 && ally.hp < ally.stats.hp * PERKS.floor) ally.hp = ally.stats.hp * PERKS.floor;
         }

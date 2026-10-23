@@ -9,8 +9,8 @@ import { bookDmg, bookHeal, CLASS_STATS, dmg, healed, type HeroDef, indexed, ind
 
 /*
  * Jane's skills, as the King's Raid Index (kingsraid.netlify.app) has them: the live game's Jane before she was reworked (how
- * hard each hits and heals, at her class's ATK, its perks and its unique weapon are the Index's; what each costs and how long
- * before it can be used again, the live game's). She is a knight whose blows are magical, the Alabaster Corpse.
+ * hard each hits and heals, at her class's ATK, and its unique weapon are the Index's; what each costs and how long before it
+ * can be used again, the live game's). She is a knight whose blows are magical, the Alabaster Corpse.
  * - Funeral Rites: a blow on the enemies about her target that stuns them.
  * - Mark of Death: a Mark on every enemy for 30 seconds: a blow every second, and 25% more magic damage taken.
  * - Day of Ruin: for 15 seconds, a blow every second on every enemy (the harder on a marked one), all it deals healing her;
@@ -21,9 +21,11 @@ import { bookDmg, bookHeal, CLASS_STATS, dmg, healed, type HeroDef, indexed, ind
  * moment; and the coffin fills a share of her mana.
  * What is drawn for each, and what her body does, are King's Raid's own (../../assets/heroes/jane.ts).
  *
- * Her own perks (../perks.ts) are the Index's. Funeral Rites' Dark's pull does nothing here (bosses aren't moved), nor
- * Mark of Death's Dark (nothing removes what is on the boss). The Index doesn't say how much Day of Ruin's blow is the more
- * on a marked enemy (here: as King's Raid's playtest has it, its share of ATK again).
+ * Her own perks (../perks.ts) and unique treasures are live King's Raid's, as krinfo has them (its legacy). Funeral Rites'
+ * Dark's pull does nothing here (bosses aren't moved), nor Mark of Death's Dark (nothing removes what is on the boss). Rest
+ * in Peace's Light takes what helps the enemies off them (what has them deal more). Transcend 5's Dark doesn't say how long
+ * it lasts (here: 20 seconds, begun again with each blow). The Index doesn't say how much Day of Ruin's blow is the more on a
+ * marked enemy (here: as King's Raid's playtest has it, its share of ATK again).
  */
 const MARK = 'Mark of Death';
 /** Funeral Rites: its blow, how far about its target, and how long it stuns. */
@@ -34,13 +36,13 @@ const DEATH = { lasts: 30, tick: indexed('knight', 93_150 / 30), takes: 1.25 };
 const RUIN = { lasts: 15, tick: indexed('knight', 36_690), marked: played('knight', 814) / played('knight', 814, 22_746), drinks: 1, mana: 0.01 };
 /** Rest in Peace: the coffin, how long, its heal (and a share of her max HP, its books' half again). */
 const REST = { lasts: 5, heal: indexedHeal('knight', 411_702), hp: 0.06, books: 1.5 };
-/** Her own perks' numbers: Funeral Rites' Light's more magic damage taken, for how long; Mark of Death's Light's while; Day of Ruin's Dark's chance to stun, for how long; Rest in Peace's Light's blow every second (a share of her max HP), how far about her, and its Dark's stun; Transcend 5's Dark's ATK and healing for each blow, up to how many, for how long. */
-const PERKS = { takes: 1.25, lasts: 10, markLasts: 10, chance: 0.1, ruinStun: 1, burn: 0.05, reach: 6.6, stun: 2, dark: { each: 0.01, most: 50, lasts: 20 } };
+/** Her own perks' numbers: Funeral Rites' Light's more magic damage taken, for how long; Mark of Death's Light's while; Rest in Peace's Dark's stun; Transcend 5's Dark's ATK and healing for each blow, up to how many, for how long. */
+const PERKS = { takes: 1.25, lasts: 10, markLasts: 10, stun: 2, dark: { each: 0.01, most: 50, lasts: 20 } };
 
 /**
  * Her unique treasures' numbers (1★ to 5★: ../treasures.ts; King's Raid's own): Funeral Rites' CC resist and M.Block less on
  * its target; Mark of Death's ATK and crit DMG for each marked enemy killed (up to 8); Day of Ruin's DMG and its targets' M.DEF
- * less for each of its blows (up to 10); Rest in Peace's less damage taken after the coffin.
+ * less for each of its blows (up to 10); Rest in Peace's less damage taken from the coffin on.
  */
 const UT = {
   doll: { resist: 250, block: [200, 240, 290, 350, 420, 500], lasts: 10 },
@@ -118,7 +120,7 @@ export const JANE: HeroDef = {
       words: `[Mark of Death] Increases ATK by ${pct(UT.cushion.atk)} and Crit DMG by ${pct(k(UT.cushion.critDamage))} for ${UT.cushion.lasts} sec when the marked enemy dies. This effect stacks up to ${UT.cushion.most} times.`,
     })),
     treasure('Flowers of a Forgotten Dukedom', (k) => ({
-      words: `[Day of Ruin] DMG is increased by ${pct(k(UT.flowers.dmg))} and with every DMG dealt, target's M.DEF is reduced by ${pct(UT.flowers.defense)} for ${UT.flowers.lasts} sec. This effect can be stacked max ${UT.flowers.most} times.`,
+      words: `[Day of Ruin] Increases DMG by ${pct(k(UT.flowers.dmg))}. Dealing DMG reduces target's M.DEF by ${pct(UT.flowers.defense)} for ${UT.flowers.lasts} sec. This effect can be stacked up to max ${UT.flowers.most} times.`,
       skill: { index: 2, dmg: 1 + k(UT.flowers.dmg) },
     })),
     treasure('First Friend Doll', (k) => ({
@@ -129,10 +131,10 @@ export const JANE: HeroDef = {
     's1-light': said({ skill: { index: 0, mark: { name: 'Funeral Rites', lasts: PERKS.lasts, takes: { magical: PERKS.takes } } } }, ({ skill }) => `Target takes ${pct(PERKS.takes - 1)} increased M.DMG for ${skill.mark.lasts} sec.`),
     's1-dark': said({ skill: { index: 0, cost: 1 } }, ({ skill }) => `In exchange for ${skill.cost} additional Mana Cost, the skill has a 100% chance to draw the target in.`),
     's2-light': said({ skill: { index: 1, dmg: 3.5 } }, ({ skill }) => `Duration is reduced to ${PERKS.markLasts} sec and DMG is boosted by ${pct(skill.dmg - 1)}.`),
-    's2-dark': { words: 'Engraved Mark is not dispelled when negative effects are dispelled.' },
+    's2-dark': { words: 'Engraved Mark is not be dispelled when negative effects are dispelled.' },
     's3-light': said({ skill: { index: 2, dmg: 1.4 } }, ({ skill }) => `DMG is increased by ${pct(skill.dmg - 1)}.`),
-    's3-dark': { words: `Has a ${pct(PERKS.chance)} chance to Stun enemies for ${PERKS.ruinStun} sec.` },
-    's4-light': { words: `While inside the Coffin, deal DMG worth ${pct(PERKS.burn)} of max HP to nearby enemies.` },
+    's3-dark': said({ skill: { index: 2, cleanse: 'allies' } }, () => 'Upon use, dispels negative effects of all allies.'),
+    's4-light': { words: 'Upon activation, dispels positive effects of all enemies.' },
     's4-dark': { words: `Upon activation, stun all enemies for ${PERKS.stun} sec.` },
     't5-light': t5Light({ blockMagical: 200 }, ({ blockMagical }) => `M. Block +${blockMagical}`),
     't5-dark': { words: `Each hit of Jane's attacks increase her ATK and Recovery Rate by ${pct(PERKS.dark.each)} each. (Maximum stack number is ${PERKS.dark.most})` },
@@ -145,9 +147,8 @@ export const JANE: HeroDef = {
     let ruin = 0;
     let ruining = 0;
     const flowers = new Map<Foe, number>();
-    /** The coffin: how long it has yet (0: not in it), toward its Light's next blow; whether it has been used. */
+    /** The coffin: how long it has yet (0: not in it); whether it has been used. */
     let coffin = 0;
-    let burning = 0;
     let buried = false;
     /** Death-imbued Cushion's stacks; Transcend 5's Dark's; toward her unique weapon's next blow. */
     let cushion = 0;
@@ -167,15 +168,19 @@ export const JANE: HeroDef = {
       const dealt = self.dealt - before;
       if (drinks > 0 && dealt > 0) fight.heal(self, dealt * drinks, undefined, self);
     };
-    /** Rest in Peace's coffin: healed; nothing touches her and she does nothing for a while; her allies cleansed (First Friend Doll), the enemies stunned (its Dark); her unique weapon's mana. */
+    /** Rest in Peace's coffin: healed; nothing touches her and she does nothing for a while; her allies cleansed and she taking less a while (First Friend Doll), what helps the enemies gone (its Light), the enemies stunned (its Dark); her unique weapon's mana. */
     const bury = (): void => {
       buried = true;
       coffin = REST.lasts;
-      burning = 0;
       put(self.statuses, { name: COFFIN.name, left: REST.lasts, binds: true, guards: true, shown: COFFIN });
       fight.heal(self, REST.heal, self);
       fight.heal(self, REST.hp * self.stats.hp * REST.books, undefined, self);
-      if (wearsTreasure(self, 3)) for (const ally of allies()) ally.statuses = ally.statuses.filter((status) => status.shown.harmful !== true || status.binds === true);
+      if (wearsTreasure(self, 3)) {
+        for (const ally of allies()) ally.statuses = ally.statuses.filter((status) => status.shown.harmful !== true || status.binds === true);
+        put(self.statuses, { name: FRIEND.name, left: UT.friend.lasts, takes: 1 - fromTreasure(self, 3, UT.friend.taken), shown: FRIEND });
+      }
+      // (What helps an enemy is dispelled: what has it deal more.)
+      if (self.perks.has('s4-light')) for (const foe of standing()) for (let i = foe.statuses.length - 1; i >= 0; i--) if ((foe.statuses[i]?.deals ?? 1) > 1) foe.statuses.splice(i, 1);
       if (self.perks.has('s4-dark')) for (const foe of standing()) fight.on(foe, () => fight.stun(PERKS.stun, { by: self }));
       if (tier !== null) self.mana = Math.min(MAX_MANA, self.mana + MAX_MANA * EREKURA.mana);
       fight.cue(self, 'coffin');
@@ -223,16 +228,7 @@ export const JANE: HeroDef = {
       untouched: () => coffin > 0,
       guards: () => ruin > 0,
       tick(dt) {
-        // The coffin: its Light, every second a blow on the enemies near her (a share of her max HP, as thousandths of her ATK); then First Friend Doll's less taken.
-        if (coffin > 0) {
-          coffin -= dt;
-          burning += dt;
-          if (burning >= 1) {
-            burning -= 1;
-            if (self.perks.has('s4-light')) for (const foe of near(fight.foe, PERKS.reach)) strike(foe, (1000 * PERKS.burn * self.stats.hp) / self.stats.atk);
-          }
-          if (coffin <= 0 && wearsTreasure(self, 3)) put(self.statuses, { name: FRIEND.name, left: UT.friend.lasts, takes: 1 - fromTreasure(self, 3, UT.friend.taken), shown: FRIEND });
-        }
+        if (coffin > 0) coffin -= dt;
         if (self.hp <= 0) return;
         // The Mark: a blow every second on each enemy it is on; a marked enemy beaten, Death-imbued Cushion's stack.
         for (const [foe, mark] of marked) {
@@ -254,7 +250,7 @@ export const JANE: HeroDef = {
         }
         if (cushion > 0 && !self.statuses.some((status) => status.name === CUSHION.name)) cushion = 0;
         if (devoted > 0 && !self.statuses.some((status) => status.name === DEVOTED.name)) devoted = 0;
-        // Day of Ruin: a blow every second on every enemy (the more on a marked one), healing her, and its book's mana (its Dark: now and then a stun); Flowers of a Forgotten Dukedom: each its M.DEF lower.
+        // Day of Ruin: a blow every second on every enemy (the more on a marked one), healing her, and its book's mana; Flowers of a Forgotten Dukedom: each its M.DEF lower.
         if (ruin > 0) {
           ruin -= dt;
           ruining += dt;
@@ -263,7 +259,6 @@ export const JANE: HeroDef = {
             for (const foe of standing()) {
               strike(foe, RUIN.tick * (marked.has(foe) ? 1 + RUIN.marked : 1) * (self.moveDmg.ruinday ?? 1), RUIN.drinks);
               self.mana = Math.min(MAX_MANA, self.mana + MAX_MANA * RUIN.mana);
-              if (self.perks.has('s3-dark') && fight.roll() < PERKS.chance) fight.on(foe, () => fight.stun(PERKS.ruinStun, { by: self }));
               if (!wearsTreasure(self, 2)) continue;
               const count = Math.min(UT.flowers.most, (flowers.get(foe) ?? 0) + 1);
               flowers.set(foe, count);

@@ -939,6 +939,8 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
         strikeFoe(foe, by, atTier(ELICIPIRA.blow, by.unique.tier) * ELICIPIRA.boss, false, 0, false);
         attacking = was;
       }
+      // (Brought down already, by what came of the blow: a blow of its hero's own, from its part.)
+      if (foe.away || result) return critical;
       if (foe.hp > 0) {
         // (A raid of more than one wave: the boss down to its share, it flies off.)
         if (foe === boss && wave === 1 && waves > 1 && def.waves && foe.hp <= foe.maxHp * def.waves.leaves) bossLeave();
@@ -975,6 +977,8 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
 
   /** An enemy beaten: the boss, won; a minion, off the field (and its wave, once no other stands, over). */
   function beaten(foe: Foe): void {
+    // (Once only: a hero's blow that brings it down from inside another's, as Yanne's and Lucikiel's do, already has.)
+    if (foe.away || result) return;
     if (foe === boss) {
       as(boss, () => sim.stun(1, { down: true }));
       boss.part.beaten?.();
@@ -1275,7 +1279,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       const staged = scaleAt(def, stage, solo);
       const scale = foe === boss ? staged : { ...staged, deals: 1 };
       const blow = amount * scale.deals * dealing(foe.statuses) * rage(clock - raidTime) * (critical ? CRIT : 1);
-      const { taken, blocked, dodged } = strike(blow, type, blockable ? stands : { ...stands, block: NONE, dodge: NONE }, foe.def.stats.pen ?? 0, reachAt(scale.level), roll, foe.def.stats.acc ?? 0);
+      const { taken, blocked, dodged } = strike(blow, type, blockable ? stands : { ...stands, block: NONE, dodge: NONE }, Math.max(0, (foe.def.stats.pen ?? 0) + piercing(foe.statuses)), reachAt(scale.level), roll, foe.def.stats.acc ?? 0);
       if (dodged) {
         target.mitigated += blow;
         target.nimble = 0;

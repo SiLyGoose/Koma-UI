@@ -22,8 +22,9 @@ import { type Ability, bookDmg, bookHeal, CLASS_STATS, dmg, healed, type HeroDef
  * less physical damage and the boss more.
  * What is drawn for each, and what his body does, are King's Raid's own (../../assets/heroes/evan.ts).
  *
- * His own perks (../perks.ts) are King's Raid's. Rampage's Dark (the boss's mana) does nothing here. Each form's skills have
- * cooldowns of their own (King's Raid's are skills apart).
+ * His own perks (../perks.ts) and unique treasures are live King's Raid's, as krinfo has them (its legacy). Rampage's Dark
+ * (the boss's mana) does nothing here. Each form's skills have cooldowns of their own (King's Raid's are skills apart); the
+ * forms share his slots, so what a treasure does as one of its skills is used is done here, by the skill.
  */
 /** Purification of Life: its heal, and healing more for its allies (a share), for how long. */
 const PURIFY = { heal: playedHeal('priest', 4326, 148_074), heals: 0.25, lasts: 15 };
@@ -146,16 +147,16 @@ export const EVAN: HeroDef = {
   passive: ALCHEMY_SHOWN,
   treasures: [
     treasure('Rough Edged Rune Stone', (k) => ({
-      words: `[Purification of Life] Increases Heal Rate by ${pct(UT.stone.heals)} and reduces P.DMG healed allies take by ${pct(k(UT.stone.taken))} for ${UT.stone.lasts} sec. [Uproar of Naav Gehen] Increases DMG by ${pct(UT.stone.dmg)} and reduces enemy's Heal Rate by ${pct(k(UT.stone.unhealed))} for ${UT.stone.lasts} sec.`,
+      words: `[Purification of Life] Increases Heal Rate by ${pct(UT.stone.heals)} and reduces P.DMG healed allies take by ${pct(k(UT.stone.taken))} for ${UT.stone.lasts} sec.\n[Uproar of Naav Gehen] Increases DMG by ${pct(UT.stone.dmg)} and reduces enemy's Heal Rate by ${pct(k(UT.stone.unhealed))} for ${UT.stone.lasts} sec.`,
       skill: { index: 0, heals: 1 + UT.stone.heals },
     })),
     treasure('Evan’s All-Purpose Bag', (k) => ({
-      words: `[Magic Circle of Life] Reduces Mana Cost by 1 and increases ATK of allies within the range of the magic circle by ${pct(k(UT.bag.atk))}. [Naav Gehen of Gluttony] Reduces Cooldown by ${UT.bag.cooldown} sec and reduces ATK Spd of enemies within the range of the magic circle by ${k(UT.bag.slow)}.`,
+      words: `[Magic Circle of Life] Reduces Mana Cost by 1 and increases ATK of allies within the range of the magic circle by ${pct(k(UT.bag.atk))}.\n[Naav Gehen of Gluttony] Reduces Cooldown by ${UT.bag.cooldown} sec and reduces ATK Spd of enemies within the range of the magic circle by ${k(UT.bag.slow)}.`,
       skill: { index: 1, cost: -1 },
     })),
     treasure('Navigating Dowsing Pendulum', (k) => ({
-      words: `[Origin of Life] Upon use, dispels negative effects from self and increaes shield by ${pct(k(UT.pendulum.shield))}. [Rampage of Naav Gehen] While using the Skill, Evan gains immunity to CC, and the last hit reduces enemy's All Block Chance by ${k(UT.pendulum.block)} for ${UT.pendulum.lasts} sec.`,
-      skill: { index: 2, cleanse: 'self', heals: 1 + k(UT.pendulum.shield) },
+      words: `[Origin of Life] Upon use, dispels negative effects from self and increases shield by ${pct(k(UT.pendulum.shield))}.\n[Rampage of Naav Gehen] While using the Skill, Evan gains immunity to CC, and the last hit reduces enemy's All Block Chance by ${k(UT.pendulum.block)} for ${UT.pendulum.lasts} sec.`,
+      skill: { index: 2, heals: 1 + k(UT.pendulum.shield) },
     })),
     treasure('Naav’s First Flask', (k) => ({
       words: `[Alchemy of Green] Changes the duration of the P.DMG Reduction effect to ${UT.flask.lasts} sec, and whenever Evan uses a Skill, increases P.DMG all enemies take by ${pct(k(UT.flask.takes))} for ${UT.flask.marked} sec.`,
@@ -235,10 +236,11 @@ export const EVAN: HeroDef = {
           for (const ally of on) fight.shield(ally, self.perks.has('s3-light') ? ORIGIN.half : ORIGIN.shield, ORIGIN.lasts, self);
           shielded = on;
         },
-        // A blow; the boss taking more physical damage (its Dark: longer; Rune Stone: harder, and the boss healed less).
+        // A blow; the boss taking more physical damage (its Dark: longer; Rune Stone: harder, and the boss healed less for a while of its own).
         uproar() {
           fight.hit(self, UPROAR.blow * (wearsTreasure(self, 0) ? 1 + UT.stone.dmg : 1));
-          put(fight.foe.statuses, { name: 'Uproar of Naav Gehen', left: self.perks.has('s1-dark') ? PERKS.longer : UPROAR.lasts, takes: { physical: UPROAR.takes }, ...(wearsTreasure(self, 0) && { heals: 1 - fromTreasure(self, 0, UT.stone.unhealed) }), shown: 'curse' });
+          put(fight.foe.statuses, { name: 'Uproar of Naav Gehen', left: self.perks.has('s1-dark') ? PERKS.longer : UPROAR.lasts, takes: { physical: UPROAR.takes }, shown: 'curse' });
+          if (wearsTreasure(self, 0)) put(fight.foe.statuses, { name: 'Rough Edged Rune Stone', left: UT.stone.lasts, heals: 1 - fromTreasure(self, 0, UT.stone.unhealed), shown: 'curse' });
         },
         // A blow and the circle (tick).
         gluttony() {
@@ -256,16 +258,18 @@ export const EVAN: HeroDef = {
       },
       // His dark form's skills in his skills' places.
       slot: (index) => (dark ? (darkSkills[index] ?? null) : (self.abilities[index] ?? null)),
-      used() {
+      used(_index, ability) {
         // Turned as the next moment comes (once the fight has its cooldown begun).
         turning = true;
+        // Dowsing Pendulum: Origin of Life used, what the boss left on him cleared.
+        if (ability.move === 'origin' && wearsTreasure(self, 2)) self.statuses = self.statuses.filter((status) => status.shown.harmful !== true || status.binds === true);
         // His unique weapon: mana, and for a moment every ally takes less physical damage and the boss more (Naav's First Flask: the boss more again).
         if (tier !== null) {
           self.mana = Math.min(MAX_MANA, self.mana + atTier(NAAV.mana, tier));
           put(fight.party, { name: NAAV_UP.name, left: NAAV.lasts, takes: { physical: 1 - atTier(NAAV.taken, tier) }, shown: NAAV_UP });
           put(fight.boss.statuses, { name: NAAV_UP.name, left: NAAV.lasts, takes: { physical: 1 + atTier(NAAV.takes, tier) }, shown: 'curse' });
         }
-        if (wearsTreasure(self, 3)) put(fight.boss.statuses, { name: 'Naav’s First Flask', left: UT.flask.marked, takes: { physical: 1 + fromTreasure(self, 3, UT.flask.takes) }, shown: 'curse' });
+        if (wearsTreasure(self, 3)) for (const foe of fight.foes) if (foe.hp > 0 && !foe.away) put(foe.statuses, { name: 'Naav’s First Flask', left: UT.flask.marked, takes: { physical: 1 + fromTreasure(self, 3, UT.flask.takes) }, shown: 'curse' });
       },
       tick(dt) {
         if (turning) {
@@ -318,6 +322,8 @@ export const EVAN: HeroDef = {
           put(ally.statuses, { name: ORIGINAL.name, left: 0.2, guards: true, shown: ORIGINAL });
         }
       },
+      // Dowsing Pendulum: nothing knocks him down while he uses Rampage of Naav Gehen.
+      guards: () => wearsTreasure(self, 2) && self.doing?.move === 'rampage',
       lit: () => dark,
     };
   },

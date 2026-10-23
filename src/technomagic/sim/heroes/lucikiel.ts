@@ -9,7 +9,7 @@ import { CODED } from './moves';
 /*
  * Lucikiel's skills, as the game has them (what each costs, how long before it can be used again, how long what it
  * does lasts, and the shares are the game's; how hard each hits, and how big his shield is, are not said there). He is
- * newer than kingsraid.shodyra.com's own pages for its heroes: his words, and his perks', are its hero list's.
+ * newer than kingsraid.shodyra.com's own pages for its heroes: his skills' words are its hero list's.
  * - Death Storm: three blows that leave Shadow of Death on the boss: it eats at the boss every second, and leaves it
  *   healed less, for 10 seconds.
  * - Annihilation Wave: a blow that stuns the boss, and a blow that draws it in (there is only it: nothing more). Used,
@@ -22,9 +22,10 @@ import { CODED } from './moves';
  * each his ATK and attack speed higher; at 10, each blow of his deals more through the boss's defense.
  * What is drawn for each is ../../heroes/lucikiel/fx.ts; what his body does for each, and for his attack, ../../heroes/lucikiel/moves.ts.
  *
- * His own perks (../perks.ts) are King's Raid's. Death Storm's Light does nothing here (nothing takes what is on the
- * boss off it), nor Doomsday's Dark (the boss has no mana to take). Annihilation Wave's Light makes the Surge cheaper
- * too: it is the same slot.
+ * His own perks (../perks.ts) and unique treasures are live King's Raid's, as krinfo has them (its legacy). Death
+ * Storm's Light does nothing here (nothing takes what is on the boss off it), nor Doomsday's Dark (the boss has no mana
+ * to take). Annihilation Wave's Light makes the Surge cheaper too: it is the same slot. Shadow of Death's more M.DMG
+ * taken, its Dark's and Emblem of Destruction's, adds up, as King's Raid's does.
  */
 // (How hard each of his skills hits: the King's Raid Index hasn't him, so ×2.61 what it was, as the other wizards' went to theirs from it; his shield, ×1.61, as the shields it has went, no wizard's among them.)
 // (As many blows as its move has.)
@@ -38,8 +39,8 @@ const DOOMSDAY = { hits: CODED.doomsday.lands.length, blow: 2090, last: 10_440, 
 const PAIN = { lasts: 10, blow: 1040 };
 /** His passive: what he takes, how long what knocks him down holds him, and his shield's size and how long it lasts. */
 const ARMOR = { taken: 0.75, held: 0.5, shield: 322_000, lasts: 6 };
-/** His own perks' numbers: Shadow of Death's more M.DMG taken, Armor of the Demon God's Dark's less taken besides, and Transcend 5's Dark (more DMG every so often, up to so many times). */
-const PERKS = { shadow: 1.25, taken: 0.15, doom: { dmg: 0.05, every: 6, most: 10 } };
+/** His own perks' numbers: Shadow of Death's more M.DMG taken (a share), Armor of the Demon God's Dark's less taken besides, and Transcend 5's Dark (more DMG every so often, up to so many times). */
+const PERKS = { shadow: 0.25, taken: 0.15, doom: { dmg: 0.05, every: 6, most: 10 } };
 
 /**
  * His unique treasures' numbers (1★ to 5★: ../treasures.ts): Death Storm's shorter cooldown and Shadow of Death's more
@@ -48,7 +49,7 @@ const PERKS = { shadow: 1.25, taken: 0.15, doom: { dmg: 0.05, every: 6, most: 10
  */
 const UT = {
   emblem: { cooldown: -3, takes: [0.12, 0.14, 0.17, 0.21, 0.25, 0.3] },
-  strap: { wave: [300, 360, 430, 520, 630, 750], surge: [300, 480, 580, 700, 840, 1000], lasts: 2 },
+  strap: { wave: [300, 360, 430, 520, 630, 750], surge: [400, 480, 580, 700, 840, 1000], lasts: 2 },
   horns: { dmg: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5] },
   earrings: { shield: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5] },
 };
@@ -130,12 +131,12 @@ export const LUCIKIEL: HeroDef = {
   passive: ARMOR_OF_THE_DEMON_GOD,
   treasures: [
     treasure('Emblem of Destruction', (k) => ({
-      words: `[Death Storm] Reduces Cooldown by ${-UT.emblem.cooldown} sec and [Shadow of Death] additionally increases M.DMG take by ${pct(k(UT.emblem.takes))}`,
+      words: `[Death Storm] Reduces Cooldown by ${-UT.emblem.cooldown} sec and [Shadow of Death] additionally increases M.DMG taken by ${pct(k(UT.emblem.takes))}.`,
       skill: { index: 0, cooldown: UT.emblem.cooldown },
     })),
     // (The Wave and the Surge are one slot: what it dispels is both's.)
     treasure('Dark Blue Leather Strap', (k) => ({
-      words: `[Annihilation Wave] Dispels positive effects from hit targets and increases CC ACC by ${k(UT.strap.wave)} for the duration of Skill. [Annihilation Surge] Dispels positive effects from hit targets and increases CC ACC by ${k(UT.strap.surge)} for the duration of Skill.`,
+      words: `[Annihilation Wave] Dispels positive effects from the target, and increases CC ACC by ${k(UT.strap.wave)} for the duration of Skill. [Annihilation Surge] Dispels positive effects from the target, and increases CC ACC by ${k(UT.strap.surge)} for the duration of Skill.`,
       skill: { index: 1, dispel: true },
     })),
     treasure('Horns of a Random Demon', (k) => ({
@@ -146,10 +147,10 @@ export const LUCIKIEL: HeroDef = {
     })),
   ],
   perks: {
-    's1-light': { words: '[Shadow of Death] Becomes irremovable.' },
-    's1-dark': { words: `[Shadow of Death] additionally increases M.DMG taken by ${pct(PERKS.shadow - 1)}.` },
+    's1-light': { words: '[Shadow of Death] becomes irremovable.' },
+    's1-dark': { words: `[Shadow of Death] additionally increases M.DMG taken by ${pct(PERKS.shadow)}.` },
     's2-light': said({ skill: { index: 1, cost: -1 } }, ({ skill }) => `Reduces Mana Cost by ${-skill.cost}.`),
-    's2-dark': { words: 'At the beginning of the first battle, changes the skill to [Annihilation Surge].' },
+    's2-dark': { words: 'At the beginning of the first battle, changes the Skill to [Annihilation Surge].' },
     's3-light': said({ skill: { index: 2, cooldown: -7 } }, ({ skill }) => `Reduces Cooldown by ${-skill.cooldown} sec.`),
     's3-dark': { words: "Each hit reduces the hit target's Mana by 200." },
     's4-light': { words: 'At the beginning of each battle, creates [Authority of the Demon God].' },
@@ -199,7 +200,7 @@ export const LUCIKIEL: HeroDef = {
         storm() {
           fight.hit(self, STORM.blow);
           // (Emblem of Destruction: more M.DMG taken again.)
-          const shadow = (self.perks.has('s1-dark') ? PERKS.shadow : 1) * (1 + fromTreasure(self, 0, UT.emblem.takes));
+          const shadow = 1 + (self.perks.has('s1-dark') ? PERKS.shadow : 0) + fromTreasure(self, 0, UT.emblem.takes);
           put(fight.foe.statuses, { name: SHADOW_OF_DEATH, left: SHADOW.lasts, heals: SHADOW.heals, ...(shadow > 1 && { takes: { magical: shadow } }), shown: 'curse' });
         },
         wave(part) {
