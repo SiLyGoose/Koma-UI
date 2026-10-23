@@ -4,7 +4,7 @@ import { FORGE_MODES, heroCan } from '../../forge/modes';
 import { krSections, runeSection, withoutRunes } from '../../heroes/parts';
 import type { HeroCopy, HeroesView } from '../../protocol/heroes';
 import type { InventoryHost, InventoryTab, Source } from '../tab';
-import { detailAway } from './tiles';
+import { afterTyping, detailAway } from './tiles';
 
 /*
  * The inventory's Player Gear and Hero Gear: every copy they own of one or the other, as the armories draw them (on parchment,
@@ -53,10 +53,11 @@ function armoryTab<C extends ArmoryCopy, V>(spec: ArmoryTabSpec<C, V>): Inventor
       const box = root.querySelector('.inv-gear') as HTMLElement;
       const search = root.querySelector('.armory-search') as HTMLInputElement;
       const filter = armoryFilter(root.querySelector('.armory-filter') as HTMLElement);
-      const grid = armoryGrid<C>(root.querySelector('.armory-grid') as HTMLElement);
+      const sheet = root.querySelector('.sheet-scroll') as HTMLElement;
+      // (Only the rows in sight drawn: hero gear runs to thousands.)
+      const grid = armoryGrid<C>(root.querySelector('.armory-grid') as HTMLElement, { scroller: sheet });
       const count = root.querySelector('.inv-count') as HTMLElement;
       const detail = root.querySelector('.detail') as HTMLElement;
-      const sheet = root.querySelector('.sheet-scroll') as HTMLElement;
       const gridBox = root.querySelector('.armory-grid') as HTMLElement;
 
       let view: V | null = null;
@@ -121,10 +122,11 @@ function armoryTab<C extends ArmoryCopy, V>(spec: ArmoryTabSpec<C, V>): Inventor
         sort = choice.sort ?? TM_UNSORTED;
         draw();
       });
-      wireSearch(search, (asked) => {
+      const searched = afterTyping((asked: string) => {
         query = asked;
         draw();
       });
+      wireSearch(search, searched);
       const onKey = (e: KeyboardEvent): void => {
         if (e.key === 'Escape' && picked !== null && !(e.target instanceof HTMLInputElement)) close();
       };
@@ -151,6 +153,7 @@ function armoryTab<C extends ArmoryCopy, V>(spec: ArmoryTabSpec<C, V>): Inventor
         unmount: () => {
           document.removeEventListener('keydown', onKey);
           resized.disconnect();
+          searched.cancel();
           filter.destroy();
           grid.destroy();
         },

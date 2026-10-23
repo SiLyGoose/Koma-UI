@@ -1,6 +1,6 @@
 import { HERO_PART_NAME, type HeroRuneStack } from '../../protocol/heroes';
 import type { InventoryTab } from '../tab';
-import { type Tile, tileGrid, tileImage } from './tiles';
+import { afterTyping, type Tile, tileGrid, tileImage } from './tiles';
 
 /*
  * The inventory's Runes: every rune they have that isn't socketed (the bot's /api/heroes), best first, a slot each (./tiles.ts):
@@ -51,7 +51,8 @@ export const runesTab: InventoryTab = {
       'No runes yet. The TechnoMagic Raid and the Dragon Raid drop them.',
     );
     let tiles: Tile[] = [];
-    search.addEventListener('input', () => grid.draw(tiles, search.value.trim().toLowerCase()));
+    const searched = afterTyping(() => grid.draw(tiles, search.value.trim().toLowerCase()));
+    search.addEventListener('input', () => searched());
 
     const drawn = host.load('heroes').then((res) => {
       if (!res.ok) return host.failed(res, 'Could not load your runes.');
@@ -61,6 +62,12 @@ export const runesTab: InventoryTab = {
       grid.draw(tiles, search.value.trim().toLowerCase());
     });
     grid.draw([]);
-    return { drawn, unmount: () => grid.destroy() };
+    return {
+      drawn,
+      unmount: () => {
+        searched.cancel();
+        grid.destroy();
+      },
+    };
   },
 };

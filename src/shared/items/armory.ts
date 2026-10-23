@@ -105,6 +105,19 @@ export interface ArmoryGrid<C extends ArmoryCopy> {
 /** The armory always shows at least this many cells (rounded up to a full row), and fills out its last row. */
 const GRID_CELLS = 12;
 
+/** How an armory's grid is drawn. */
+export interface GridOptions {
+  /**
+   * Only the rows in sight in `scroller` (the box the grid scrolls in) are drawn, and a few either side, the rest left as room
+   * of their height: for an armory of thousands of copies (the inventory's), where drawing every card makes opening it, picking
+   * one and searching slow. Its cards are squares (cards.css), so where each row is is known without drawing it.
+   */
+  scroller?: HTMLElement;
+}
+
+/** Drawing only the rows in sight (GridOptions.scroller): how many more are drawn either side, so a quick scroll doesn't show them empty. */
+const ROWS_AROUND = 3;
+
 /** A copy's tier in words, for a screen reader. */
 const tierWords = (copy: ArmoryCopy): string => {
   const tier = tierOf(copy);
@@ -127,7 +140,8 @@ interface Card {
  * already drawn is kept and shown again (with its picture, already in) unless what's on it changed: a pick, the search
  * or a filter only moves cards and sets their state, rather than drawing hundreds again.
  */
-export function armoryGrid<C extends ArmoryCopy>(element: HTMLElement): ArmoryGrid<C> {
+export function armoryGrid<C extends ArmoryCopy>(element: HTMLElement, options: GridOptions = {}): ArmoryGrid<C> {
+  const { scroller } = options;
   let last: ArmoryDraw<C> | null = null;
   let lastShown: readonly C[] = [];
   // How many cards fit across: read where the page is laid out anyway (the resize observer's), not on every draw, where
@@ -153,6 +167,75 @@ export function armoryGrid<C extends ArmoryCopy>(element: HTMLElement): ArmoryGr
     return kept.button;
   }
 
+  /** The last draw's cells, for drawing the rows in sight again as it scrolls (GridOptions.scroller): its copies, then how many blanks. */
+  let laid: { shown: readonly C[]; cells: number; what: ArmoryDraw<C>; ownSound: boolean } | null = null;
+  /** The rows drawn now (from, to), so a scroll within them draws nothing. */
+  let drawn: [number, number] = [-1, -1];
+
+  /** `copy`'s card as the draw `what` has it. */
+  const cardOf = (copy: C, what: ArmoryDraw<C>, ownSound: boolean): HTMLButtonElement =>
+    cardFor(copy, withSale(copy, what.look(copy), what), ownSound, () => what.onPick(copy));
+
+  /**
+   * Where the grid is, for drawing the rows in sight (GridOptions.scroller): a row's height (a card's side and the gap under
+   * it), where the grid starts in what the scroller scrolls, how far it's scrolled and how tall it is. Read only where the page
+   * is laid out anyway (its resize observer, a scroll's frame), never in a draw (the gear page's armory's rule: one read there
+   * lays out the whole page then and there). Null until first read.
+   */
+  let at: { rowH: number; top: number; scrolled: number; height: number } | null = null;
+  function measure(): void {
+    if (!scroller) return;
+    const style = getComputedStyle(element);
+    across = style.gridTemplateColumns.split(' ').length || across || 4;
+    const side = (element.clientWidth - (parseFloat(style.columnGap) || 0) * (across - 1)) / across;
+    at = {
+      rowH: side + (parseFloat(style.rowGap) || 0),
+      top: element.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop,
+      scrolled: scroller.scrollTop,
+      height: scroller.clientHeight,
+    };
+  }
+
+  /**
+   * Draws the rows of the last draw in sight in the scroller (and ROWS_AROUND either side), the rest as room above and below
+   * them; `force`: even when they're the rows drawn already (the draw changed). Not measured yet (the first draw, before the
+   * page is laid out): its first rows, the resize observer drawing the right ones once it is.
+   */
+  function drawRows(force: boolean): void {
+    if (!laid || !scroller) return;
+    const { shown, cells, what, ownSound } = laid;
+    const rows = Math.ceil(cells / across);
+    const rowH = at?.rowH ?? 0;
+    let from = 0;
+    let to = Math.min(rows, 12);
+    if (at && rowH > 0) {
+      from = Math.max(0, Math.floor((at.scrolled - at.top) / rowH) - ROWS_AROUND);
+      to = Math.min(rows, Math.ceil((at.scrolled + at.height - at.top) / rowH) + ROWS_AROUND);
+    }
+    if (!force && from === drawn[0] && to === drawn[1]) return;
+    drawn = [from, to];
+    const nodes: HTMLElement[] = [];
+    for (let i = from * across; i < Math.min(cells, to * across); i++) {
+      const copy = shown[i];
+      nodes.push(copy ? cardOf(copy, what, ownSound) : (blanks[i - shown.length] ??= el('span', 'item blank')));
+    }
+    if (shown.length === 0) nodes.push(empty);
+    element.style.paddingTop = `${from * rowH}px`;
+    element.style.paddingBottom = `${(rows - to) * rowH}px`;
+    place(element, nodes);
+  }
+
+  /** Scrolled: the rows in sight now, once a frame. */
+  let queued = 0;
+  const onScroll = (): void => {
+    if (!queued) queued = requestAnimationFrame(() => {
+      queued = 0;
+      measure();
+      drawRows(false);
+    });
+  };
+  scroller?.addEventListener('scroll', onScroll, { passive: true });
+
   function draw(what: ArmoryDraw<C>): void {
     last = what;
     const { slot, stars, query, hidden, matches, look } = what;
@@ -162,6 +245,14 @@ export function armoryGrid<C extends ArmoryCopy>(element: HTMLElement): ArmoryGr
     const shown = ofSlot.filter((c) => (matches?.(c) ?? true) && matchesStars(stars, tierOf(c)) && matchesSearch(query, { name: c.name, id: c.itemId, description: c.description }));
     lastShown = shown;
     const ownSound = what.ownSound !== false;
+    if (scroller) {
+      const row = (n: number): number => Math.ceil(n / across) * across;
+      if (shown.length === 0) empty.textContent = what.first ?? (ofSlot.length > 0 ? 'No items match that.' : slot === 'all' ? what.none : `No ${ITEM_TYPE_NAME[slot].toLowerCase()} yet.`);
+      laid = { shown, cells: Math.max(row(what.least ?? GRID_CELLS), row(shown.length)), what, ownSound };
+      drawRows(true);
+      forget(what);
+      return;
+    }
     const nodes: HTMLElement[] = shown.map((copy) => cardFor(copy, withSale(copy, look(copy), what), ownSound, () => what.onPick(copy)));
     const row = (n: number): number => Math.ceil(n / across) * across;
     const cells = Math.max(row(what.least ?? GRID_CELLS), row(shown.length));
@@ -171,20 +262,41 @@ export function armoryGrid<C extends ArmoryCopy>(element: HTMLElement): ArmoryGr
       nodes.push(empty);
     }
     place(element, nodes);
-    // The cards of copies gone (sold, or someone else's shown now) aren't kept.
+    forget(what);
+  }
+
+  /** The cards of copies gone (sold, or someone else's shown now) aren't kept. */
+  function forget(what: ArmoryDraw<C>): void {
     const ids = new Set(what.copies.map((copy) => copy.id));
     for (const id of cards.keys()) if (!ids.has(id)) cards.delete(id);
   }
 
-  // Drawn again when as many cards don't fit across any more (the grid's width changed, not just the window's).
+  // Drawn again when as many cards don't fit across any more (the grid's width changed, not just the window's); drawing the rows
+  // in sight, whenever the grid or the scroller changes size (a row's height, how many rows are in sight).
   const resized = new ResizeObserver(() => {
+    if (scroller) {
+      measure();
+      if (last) draw(last);
+      return;
+    }
     const now = columns();
     if (now === across) return;
     across = now;
     if (last) draw(last);
   });
-  resized.observe(element);
-  return { element, draw, shown: () => lastShown, destroy: () => resized.disconnect() };
+  // (Drawing the rows in sight, the grid's whole height, room and all: not the rows drawn, which change as it scrolls.)
+  resized.observe(element, scroller ? { box: 'border-box' } : undefined);
+  if (scroller) resized.observe(scroller);
+  return {
+    element,
+    draw,
+    shown: () => lastShown,
+    destroy: () => {
+      resized.disconnect();
+      scroller?.removeEventListener('scroll', onScroll);
+      cancelAnimationFrame(queued);
+    },
+  };
 }
 
 /** Puts `nodes` in `parent` in that order (and nothing else), moving only what isn't already where it goes. */

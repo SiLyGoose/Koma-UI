@@ -179,6 +179,20 @@ export function tileGrid(box: HTMLElement, sheet: HTMLElement, grid: HTMLElement
   };
 }
 
+/** How long the search waits after the last key before it searches (a key each, among thousands, would stutter). */
+const TYPING_MS = 150;
+
+/** `run`, once typing has stopped for TYPING_MS; `cancel` stops one waiting (the tab going away). */
+export function afterTyping<A extends unknown[]>(run: (...args: A) => void): { (...args: A): void; cancel(): void } {
+  let timer = 0;
+  const wait = (...args: A): void => {
+    window.clearTimeout(timer);
+    timer = window.setTimeout(() => run(...args), TYPING_MS);
+  };
+  wait.cancel = (): void => window.clearTimeout(timer);
+  return wait;
+}
+
 /** A picture for a slot: an image filling it. */
 export function tileImage(src: string): HTMLImageElement {
   const img = el('img');
