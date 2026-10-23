@@ -3,7 +3,7 @@
  * game's NGUI atlases: Common_Box_Text_4 the window, Common_Button_Tab_Disable / _Enable / _Enable_2 the tabs, Common_Slot
  * a slot, Common_Box_Text_5 the bar): its name over it, its tabs across its top (the one open blue, Craft green), the tab
  * open under them. Player Gear and Hero Gear: a dark sheet of slots, the item cards in them (../shared/items/, their frames
- * King's Raid's grades), eight across on wide screens, and the cream bar under them with the search, the Filter and how many
+ * King's Raid's grades), eight across on wide screens, and the site's dark bar under them with the search, the Filter and how many
  * there are; a picked one's details over the half of the slots away from it (a sheet from the bottom on narrow screens, items.css). Runes
  * and Others: slots the same way, how many in each one's corner. Craft: what to craft on the sheet, the one picked on the cream beside it.
  * Everything is under .inventory-page, so it outweighs the shared styles whichever order the build links them in.
@@ -159,7 +159,7 @@
   }
 }
 
-/* The cream bar under the sheet: King's Raid's, gold at its corners. */
+/* The bar under the sheet: one of the site's dark panels, its search, Filter and how many items. */
 .inventory-page .inv-bar {
   display: flex;
   flex-wrap: wrap;
@@ -167,9 +167,10 @@
   align-items: center;
   min-height: 44px;
   padding: 8px 12px;
-  border: 0 solid transparent;
-  border-image: url('/kr/ui/inventory/bar.webp') 50 60 fill / 18px 22px;
-  color: var(--inv-cream-ink);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  color: var(--text);
 }
 
 /* The search: the site's dark field (../shared/style.css .armory-search), as the gear page's. */
