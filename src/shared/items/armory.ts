@@ -1,7 +1,7 @@
 import { type Busy, doneMark, working } from '../ui';
 import { coin, dust, points } from '../util';
 import { armoryOrder, type TmSort } from './gear';
-import { dragonTier, el, hasLevels, heroGear, itemFace, itemIcons, type ItemType, ITEM_TYPE_NAME, kindName, levelLabel, lockBadge, mainStatLine, rich, shownName, type Slot, type Stars, tierOf, typeOf } from './items';
+import { dragonTier, el, hasLevels, heroGear, heroTier, itemFace, itemIcons, type ItemType, ITEM_TYPE_NAME, kindName, levelLabel, lockBadge, mainStatLine, rich, shownName, type Slot, type Stars, tierOf, typeOf } from './items';
 import type { HeroPart } from '../../protocol/heroes';
 import type { MainStat } from '../../protocol/items';
 import { matchesStars, type StarChoice } from './armory-filter/armory-filter';
@@ -69,6 +69,8 @@ export interface ArmoryDraw<C extends ArmoryCopy> {
   stars: StarChoice;
   /** The search, trimmed and lowercased. */
   query: string;
+  /** What else a copy is searched by (the inventory's: a unique weapon's or treasure's hero's name). */
+  words?: (copy: C) => string;
   /** How TechnoMagic gear is sorted (the Filter's Sort): left out, in the armory's own order. */
   sort?: TmSort;
   /** Left out as if it weren't there (the gear page's gear only heroes wear, until its Filter shows it). */
@@ -117,6 +119,10 @@ export interface GridOptions {
 
 /** Drawing only the rows in sight (GridOptions.scroller): how many more are drawn either side, so a quick scroll doesn't show them empty. */
 const ROWS_AROUND = 3;
+
+/** Whether `copy` is of the tier picked: a hero's gear's T6 to T10 by its own (heroTier), anything else as matchesStars has it. */
+const ofTier = (choice: StarChoice, copy: ArmoryCopy): boolean =>
+  typeof choice === 'number' && choice >= 6 ? heroGear(copy) && heroTier(copy) === choice : matchesStars(choice, tierOf(copy));
 
 /** A copy's tier in words, for a screen reader. */
 const tierWords = (copy: ArmoryCopy): string => {
@@ -238,11 +244,11 @@ export function armoryGrid<C extends ArmoryCopy>(element: HTMLElement, options: 
 
   function draw(what: ArmoryDraw<C>): void {
     last = what;
-    const { slot, stars, query, hidden, matches, look } = what;
+    const { slot, stars, query, hidden, matches, look, words } = what;
     if (!across) across = columns();
     element.classList.toggle('selling', !!what.selling);
     const ofSlot = armoryOrder(what.copies, what.sort).filter((c) => (slot === 'all' || typeOf(c) === slot) && !hidden?.(c));
-    const shown = ofSlot.filter((c) => (matches?.(c) ?? true) && matchesStars(stars, tierOf(c)) && matchesSearch(query, { name: c.name, id: c.itemId, description: c.description }));
+    const shown = ofSlot.filter((c) => (matches?.(c) ?? true) && ofTier(stars, c) && matchesSearch(query, { name: c.name, id: c.itemId, description: words ? `${c.description} ${words(c)}` : c.description }));
     lastShown = shown;
     const ownSound = what.ownSound !== false;
     if (scroller) {

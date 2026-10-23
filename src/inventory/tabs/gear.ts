@@ -1,4 +1,4 @@
-import { armoryFilter, armoryGrid, type ArmoryCopy, type CardLook, type DetailParts, el, equippedIds, forgeLink, heroGear, itemDetailsClosed, itemIcons, itemPicked, type ItemType, lockToggle, optionsSection, showDetail, type StarChoice, TM_UNSORTED, tmSections, type TmSort, treasureParts, uniqueWeaponEffect, upgradeButton, wireSearch, type GearCopy, type GearView } from '../../shared/items';
+import { armoryFilter, armoryGrid, type ArmoryCopy, type CardLook, type DetailParts, el, type FilterOffer, equippedIds, forgeLink, heroGear, itemDetailsClosed, itemIcons, itemPicked, type ItemType, lockToggle, optionsSection, showDetail, type StarChoice, TM_UNSORTED, tmSections, type TmSort, treasureParts, uniqueWeaponEffect, upgradeButton, wireSearch, type GearCopy, type GearView } from '../../shared/items';
 import type { ApiResult } from '../../site/session';
 import { FORGE_MODES, heroCan } from '../../forge/modes';
 import { krSections, runeSection, withoutRunes } from '../../heroes/parts';
@@ -10,7 +10,8 @@ import { afterTyping, detailAway } from './tiles';
  * The inventory's Player Gear and Hero Gear: every copy they own of one or the other, as the armories draw them (on parchment,
  * with the search and the Filter over them), and the one picked's details beside them (a sheet from the bottom on narrow
  * screens). What's done with a copy is its page's: the details link to the Player page (to wear it) or the Heroes page (to put
- * it on a hero), and to the forge (to upgrade it).
+ * it on a hero), and to the forge (to upgrade it). The player gear's Filter offers only its weapons and armor at T1 to T4; the
+ * hero gear's every part at T6 to T10 (and unique weapons and treasures), its substats, and its search their heroes' names too.
  */
 
 /** How one armory tab gets its copies and draws them. */
@@ -28,6 +29,12 @@ interface ArmoryTabSpec<C extends ArmoryCopy, V> {
   none: string;
   /** The picked copy's details: what showDetail draws it as, and the parts around it. */
   detail(view: V, copy: C, close: () => void): { shown: C; parts: DetailParts };
+  /** The types and tiers its Filter offers. */
+  offer: FilterOffer;
+  /** What else a copy is searched by (a unique weapon's or treasure's hero's name). */
+  words?(view: V, copy: C): string;
+  /** A copy's substats by name, for the Filter's Substats (left out: it offers none). */
+  substats?(copy: C): readonly string[];
 }
 
 function armoryTab<C extends ArmoryCopy, V>(spec: ArmoryTabSpec<C, V>): InventoryTab {
@@ -52,7 +59,7 @@ function armoryTab<C extends ArmoryCopy, V>(spec: ArmoryTabSpec<C, V>): Inventor
         </div>`;
       const box = root.querySelector('.inv-gear') as HTMLElement;
       const search = root.querySelector('.armory-search') as HTMLInputElement;
-      const filter = armoryFilter(root.querySelector('.armory-filter') as HTMLElement);
+      const filter = armoryFilter(root.querySelector('.armory-filter') as HTMLElement, spec.offer);
       const sheet = root.querySelector('.sheet-scroll') as HTMLElement;
       // (Only the rows in sight drawn: hero gear runs to thousands.)
       const grid = armoryGrid<C>(root.querySelector('.armory-grid') as HTMLElement, { scroller: sheet });
@@ -64,6 +71,7 @@ function armoryTab<C extends ArmoryCopy, V>(spec: ArmoryTabSpec<C, V>): Inventor
       let slot: ItemType | 'all' = 'all';
       let stars: StarChoice = 'all';
       let sort: TmSort = TM_UNSORTED;
+      let substats: readonly string[] = [];
       let query = '';
       let picked: string | null = null;
 
@@ -86,13 +94,16 @@ function armoryTab<C extends ArmoryCopy, V>(spec: ArmoryTabSpec<C, V>): Inventor
       function draw(): void {
         if (!view) return;
         const all = copies();
-        filter.show({ slot, stars, owned: null, refineable: null, cls: null, heroGear: null, sort });
+        filter.show({ slot, stars, owned: null, refineable: null, cls: null, heroGear: null, sort, substats: spec.substats ? substats : null });
+        const of = spec.substats;
         grid.draw({
           copies: all,
           slot,
           stars,
           query,
           sort,
+          ...(spec.words && { words: (copy: C) => spec.words?.(view as V, copy) ?? '' }),
+          ...(of && substats.length > 0 && { matches: (copy: C) => substats.every((name) => of(copy).includes(name)) }),
           look: (copy) => spec.look(view as V, copy),
           picked,
           least: slots(),
@@ -120,6 +131,7 @@ function armoryTab<C extends ArmoryCopy, V>(spec: ArmoryTabSpec<C, V>): Inventor
         slot = choice.slot;
         stars = choice.stars;
         sort = choice.sort ?? TM_UNSORTED;
+        substats = choice.substats ?? [];
         draw();
       });
       const searched = afterTyping((asked: string) => {
@@ -145,6 +157,7 @@ function armoryTab<C extends ArmoryCopy, V>(spec: ArmoryTabSpec<C, V>): Inventor
         if (!res.ok) return host.failed(res, res.status === 404 ? `Nothing to show here yet.` : spec.failed);
         view = res.data;
         filter.setSorts(copies());
+        if (spec.substats) filter.setSubstats([...new Set(copies().flatMap(spec.substats))]);
         draw();
       });
 
@@ -189,6 +202,7 @@ export const playerGearTab: InventoryTab = armoryTab<GearCopy, GearView>({
   copies: (gear) => gear.copies.filter((copy) => !heroGear(copy)),
   look: (gear, copy) => ({ tag: equippedIds(gear).has(copy.id) ? { text: 'Equipped' } : null }),
   none: "You don't own any gear yet. Pull some with Koma's gacha in Discord.",
+  offer: { types: ['weapon', 'armor'], tiers: [4, 3, 2, 1] },
   detail(gear, copy, close) {
     const worn = gear.equipped[copy.slot] === copy.id;
     const notes: HTMLElement[] = [];
@@ -214,6 +228,9 @@ export const playerGearTab: InventoryTab = armoryTab<GearCopy, GearView>({
 /** What a hero copy's effects say with none. */
 const HERO_NONE = 'No effects on a hero.';
 
+/** An option's stat by name, as its line says it without its amount (a King's Raid piece's "ATK +14%", a unique treasure's "+5% ATK Spd"). */
+const substatName = (line: string): string => line.replace(/^[+\-−]?[\d.,]+%?\s+/, '').replace(/\s+[+\-−]?[\d.,]+%?$/, '').trim() || line;
+
 export const heroGearTab: InventoryTab = armoryTab<HeroCopy, HeroesView>({
   id: 'hero-gear',
   label: 'Hero Gear',
@@ -231,6 +248,12 @@ export const heroGearTab: InventoryTab = armoryTab<HeroCopy, HeroesView>({
     return { tag: on ? { text: `On ${on.name}`, className: 'elsewhere' } : null };
   },
   none: 'No hero gear yet. The Weekly Boss and the Dragon Raid drop it, the raid shop sells it, and the TechnoMagic Raid drops its own.',
+  offer: { tiers: [10, 9, 8, 7, 6, 'uw', 'ut'] },
+  words: (view, copy) => {
+    const owner = copy.uniqueWeapon ?? copy.uniqueTreasure?.hero;
+    return owner ? (view.heroes.find((hero) => hero.id === owner)?.name ?? owner) : '';
+  },
+  substats: (copy) => copy.options.map((option) => substatName(option.line)),
   detail(view, copy, close) {
     const on = copy.hero !== null ? view.heroes.find((hero) => hero.id === copy.hero) : undefined;
     const notes: HTMLElement[] = [el('p', 'detail-note', on ? `${on.name} wears this.` : 'No hero wears this.')];

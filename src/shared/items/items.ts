@@ -372,7 +372,7 @@ export function tierLabel(item: { itemId: string; stars: number; heroOnly?: bool
  * A hero's gear's tier, as its card's marks say it (heroMarks): a unique weapon, a unique treasure or an artifact T10,
  * a TechnoMagic piece T9, a dragon set's piece its own (T6 to T8); 0 for anything else.
  */
-const heroTier = (item: { itemId: string; uniqueWeapon?: string | null; uniqueTreasure?: Treasure; part?: string | null }): number =>
+export const heroTier = (item: { itemId: string; uniqueWeapon?: string | null; uniqueTreasure?: Treasure; part?: string | null }): number =>
   item.uniqueWeapon || item.uniqueTreasure || item.part === 'artifact' ? 10 : isTmPiece(item.itemId) ? 9 : (dragonTier(item.itemId) ?? 0);
 
 /**

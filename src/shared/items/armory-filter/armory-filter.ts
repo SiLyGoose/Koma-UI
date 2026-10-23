@@ -1,7 +1,7 @@
 import './armory-filter.css';
 import { dropdown } from '../../ui';
 import { TM_UNSORTED, tmStats, type TmSort, type TmStats } from '../gear';
-import { el, type ItemType, tierMark, tmTier, utTier, uwTier } from '../items';
+import { dragonTierMark, el, type ItemType, tierMark, tmTier, utTier, uwTier } from '../items';
 
 /*
  * The armories' filter (the gear page's, the forge's, the databank's): a Filter button beside the search,
@@ -11,12 +11,15 @@ import { el, type ItemType, tierMark, tmTier, utTier, uwTier } from '../items';
  * Owned only (the databank's), Refineable (the forge's) and Hero gear (the gear page's: TechnoMagic gear and unique
  * weapons, which only heroes wear, hidden until it is on), then, where the page offers it, how TechnoMagic gear is sorted
  * (the gear page's and the heroes page's: by a main stat and by any of the potentials its copies have, each in the site's
- * dropdown). A choice
+ * dropdown), and, where the page offers it, the substats a copy must have (the inventory's hero gear: its options' stats).
+ * A page can offer only some of the types and tiers (the inventory's: its player gear's weapons and armor at T1 to T4, its
+ * hero gear's T6 to T10). A choice
  * applies at once and the panel stays open for the next; a click outside it, Escape or tabbing away closes it. Its
  * markup is a box in the page (`<div id="armory-filter" class="armory-filter">`), which this fills.
  */
 
-export type StarChoice = 1 | 2 | 3 | 4 | 'tm' | 'uw' | 'ut' | 'all';
+/** A tier: the members' own gear's 1 to 4, a hero's gear's 6 to 10 (../items.ts heroTier), or TechnoMagic gear, a unique weapon or treasure. */
+export type StarChoice = 1 | 2 | 3 | 4 | 6 | 7 | 8 | 9 | 10 | 'tm' | 'uw' | 'ut' | 'all';
 
 /** Whether an item of a tier (../items.ts tierOf: its stars, or TechnoMagic gear's, a unique weapon's or a unique treasure's own) is shown under `choice`. */
 export const matchesStars = (choice: StarChoice, tier: number | 'tm' | 'uw' | 'ut'): boolean => choice === 'all' || choice === tier;
@@ -35,6 +38,14 @@ export interface ArmoryChoice {
   heroGear: boolean | null;
   /** How TechnoMagic gear is sorted; null where it isn't offered (anywhere but the gear and heroes pages). */
   sort: TmSort | null;
+  /** The substats a copy must all have (its options' stats); null or left out where it isn't offered (anywhere but the inventory's hero gear). */
+  substats?: readonly string[] | null;
+}
+
+/** What a page's filter offers: its types and its tiers, in order (left out: all of them; All and Any always first). */
+export interface FilterOffer {
+  types?: readonly ItemType[];
+  tiers?: readonly Exclude<StarChoice, 'all'>[];
 }
 
 /** A raid class the filter offers: its picture is public/gear/classes/<id>.png. */
@@ -52,12 +63,13 @@ export interface ArmoryFilter {
   setClasses(classes: readonly ClassChoice[]): void;
   /** What its Sort offers: the stats the TechnoMagic copies among `copies` have (the page's, each time it has them). */
   setSorts(copies: Parameters<typeof tmStats>[0]): void;
+  /** What its Substats offers (the stats the page's copies have), where it offers them. */
+  setSubstats(stats: readonly string[]): void;
   /** Stops listening to the page (a page going away). */
   destroy(): void;
 }
 
-const TYPES: readonly [ItemType | 'all', string][] = [
-  ['all', 'All'],
+const TYPES: readonly [ItemType, string][] = [
   ['weapon', 'Weapons'],
   ['armor', 'Armor'],
   ['secondary', 'Mantles'],
@@ -68,11 +80,11 @@ const TYPES: readonly [ItemType | 'all', string][] = [
 ];
 /** The types only heroes wear. */
 const HERO_TYPES: readonly (ItemType | 'all')[] = ['secondary', 'accessory', 'orb', 'artifact'];
-const TIERS: readonly StarChoice[] = ['all', 'tm', 'uw', 'ut', 4, 3, 2, 1];
+const TIERS: readonly Exclude<StarChoice, 'all'>[] = ['tm', 'uw', 'ut', 4, 3, 2, 1];
 
 let count = 0;
 
-export function armoryFilter(box: HTMLElement): ArmoryFilter {
+export function armoryFilter(box: HTMLElement, offer: FilterOffer = {}): ArmoryFilter {
   const id = `armory-filter-${++count}`;
   let current: ArmoryChoice = { slot: 'all', stars: 'all', owned: null, refineable: null, cls: null, heroGear: null, sort: null };
   let listener: ((choice: ArmoryChoice) => void) | null = null;
@@ -113,8 +125,10 @@ export function armoryFilter(box: HTMLElement): ArmoryFilter {
   panel.tabIndex = -1;
   panel.hidden = true;
   // The types in pairs, All first; the tiers in pairs, Any first.
-  const types = group('Type', ...TYPES.map(([slot, name]) => option('radio', 'slot', slot, name)));
-  const tiers = group('Tier', ...TIERS.map((n) => (n === 'all' ? option('radio', 'stars', 'all', 'Any') : option('radio', 'stars', String(n), n === 'tm' ? tmTier() : n === 'uw' ? uwTier() : n === 'ut' ? utTier() : tierMark(n)))));
+  const typesOffered = offer.types ? TYPES.filter(([slot]) => offer.types?.includes(slot)) : TYPES;
+  const types = group('Type', option('radio', 'slot', 'all', 'All'), ...typesOffered.map(([slot, name]) => option('radio', 'slot', slot, name)));
+  const tierMarkOf = (n: Exclude<StarChoice, 'all'>): HTMLElement => (n === 'tm' ? tmTier() : n === 'uw' ? uwTier() : n === 'ut' ? utTier() : n >= 6 ? dragonTierMark(n) : tierMark(n));
+  const tiers = group('Tier', option('radio', 'stars', 'all', 'Any'), ...(offer.tiers ?? TIERS).map((n) => option('radio', 'stars', String(n), tierMarkOf(n))));
   const owned = option('checkbox', 'owned', 'owned', 'Owned only', true);
   const refineable = option('checkbox', 'refineable', 'refineable', 'Refineable', true);
   const heroGear = option('checkbox', 'hero-gear', 'hero-gear', 'Hero gear', true);
@@ -140,15 +154,43 @@ export function armoryFilter(box: HTMLElement): ArmoryFilter {
   const { row: potentialRow, select: potentialSelect } = sortRow('potentials', 'Potentials', true);
   potentialSelect.dataset.none = 'Any';
   sorts.append(el('legend', '', 'Sort TM gear'), mainRow, potentialRow);
+  // The substats a copy must have (any number of them), in the site's dropdown, offering what the page's copies have (setSubstats).
+  const substats = el('fieldset', 'armory-filter-group');
+  const { row: substatRow, select: substatSelect } = sortRow('substats', 'Has all of', true);
+  substatSelect.dataset.none = 'Any';
+  substats.append(el('legend', '', 'Substats'), substatRow);
+  let substatsOffered: readonly string[] = [];
+  let substatsShown = '';
   let stats: TmStats = { main: [], potentials: [] };
   /** The stats the dropdowns have (drawSorts), as JSON. */
   let sortsShown = '';
   const clear = el('button', 'armory-filter-clear action secondary', 'Clear filters');
   clear.type = 'button';
-  panel.append(types, tiers, classes, only, sorts, clear);
+  panel.append(types, tiers, classes, only, substats, sorts, clear);
   box.append(button, panel);
   const mainPicker = dropdown(mainSelect);
   const potentialPicker = dropdown(potentialSelect);
+  const substatPicker = dropdown(substatSelect);
+
+  /** The Substats' dropdown: the stats offered, with those chosen even if no copy has them now; hidden where not offered. */
+  function drawSubstats(): void {
+    const chosen = current.substats ?? [];
+    const offered = [...new Set([...substatsOffered, ...chosen])].sort((a, b) => a.localeCompare(b));
+    const shown = JSON.stringify(offered);
+    if (shown !== substatsShown) {
+      substatsShown = shown;
+      substatSelect.replaceChildren(
+        ...offered.map((name) => {
+          const one = el('option', '', name);
+          one.value = name;
+          return one;
+        }),
+      );
+    }
+    for (const one of substatSelect.options) one.selected = chosen.includes(one.value);
+    substats.hidden = current.substats == null || offered.length === 0;
+    substatPicker.refresh();
+  }
 
   const input = (name: string, value: string): HTMLInputElement | null =>
     panel.querySelector<HTMLInputElement>(`input[name="${id}-${name}"][value="${value}"]`);
@@ -198,6 +240,7 @@ export function armoryFilter(box: HTMLElement): ArmoryFilter {
     (input('refineable', 'refineable') as HTMLInputElement).checked = current.refineable === true;
     (input('hero-gear', 'hero-gear') as HTMLInputElement).checked = current.heroGear === true;
     drawSorts();
+    drawSubstats();
     const on =
       Number(current.slot !== 'all') +
       Number(current.stars !== 'all') +
@@ -206,7 +249,8 @@ export function armoryFilter(box: HTMLElement): ArmoryFilter {
       Number(current.cls !== null && current.cls !== 'all') +
       Number(current.heroGear === true) +
       Number(current.sort !== null && current.sort.main !== null) +
-      Number(current.sort !== null && current.sort.potentials.length > 0);
+      Number(current.sort !== null && current.sort.potentials.length > 0) +
+      Number((current.substats?.length ?? 0) > 0);
     badge.textContent = String(on);
     badge.hidden = on === 0;
     clear.hidden = on === 0;
@@ -231,6 +275,7 @@ export function armoryFilter(box: HTMLElement): ArmoryFilter {
     choose({
       slot,
       stars: tier === 'all' || tier === 'tm' || tier === 'uw' || tier === 'ut' ? tier : (Number(tier) as StarChoice),
+      ...(current.substats != null && { substats: [...substatSelect.selectedOptions].map((one) => one.value) }),
       owned: current.owned === null ? null : picked('owned') !== undefined,
       refineable: current.refineable === null ? null : picked('refineable') !== undefined,
       cls: current.cls === null ? null : (picked('class') ?? 'all'),
@@ -247,6 +292,7 @@ export function armoryFilter(box: HTMLElement): ArmoryFilter {
       cls: current.cls === null ? null : 'all',
       heroGear: current.heroGear === null ? null : false,
       sort: current.sort === null ? null : TM_UNSORTED,
+      ...(current.substats != null && { substats: [] }),
     });
     // The button it was goes away with nothing left to clear: the focus goes to the first choice.
     panel.querySelector<HTMLInputElement>('input:checked')?.focus();
@@ -307,10 +353,15 @@ export function armoryFilter(box: HTMLElement): ArmoryFilter {
       stats = tmStats(copies);
       drawSorts();
     },
+    setSubstats(list) {
+      substatsOffered = list;
+      drawSubstats();
+    },
     destroy() {
       document.removeEventListener('pointerdown', outside);
       mainPicker.destroy();
       potentialPicker.destroy();
+      substatPicker.destroy();
     },
   };
 }

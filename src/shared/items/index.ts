@@ -11,4 +11,4 @@ export { armoryOrder, equippedIds, forgePlan, type GearCopy, type GearLockedLoad
 export { matchesSearch } from './search';
 export { statBlocks } from './stats';
 export { hoverSound, itemDetailsClosed, itemPicked, popupClosed } from './sfx';
-export { armoryFilter, matchesStars, type ArmoryChoice, type ArmoryFilter, type ClassChoice, type StarChoice } from './armory-filter/armory-filter';
+export { armoryFilter, matchesStars, type ArmoryChoice, type ArmoryFilter, type ClassChoice, type FilterOffer, type StarChoice } from './armory-filter/armory-filter';
