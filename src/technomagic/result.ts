@@ -98,6 +98,8 @@ export interface ResultShown {
   others: readonly { who: string; drops: readonly DropView[] }[];
   /** What each hero did in the fight (none: no Battle Stats). */
   stats?: readonly ResultStat[];
+  /** Said under Battle Stats' title: why they may not be all of the fight (none: they are). */
+  statsNote?: string;
   actions: readonly ResultAction[];
 }
 
@@ -160,12 +162,14 @@ export function makeResult(root: HTMLElement): Result {
   statsPick.setAttribute('aria-label', 'Stat');
   const chart = el('div', 'rd-stats-chart');
   const chartTitle = el('h3', 'rd-stats-title');
+  const chartNote = el('p', 'tm-stats-note');
+  chartNote.hidden = true;
   const chartScroll = el('div', 'rd-stats-scroll');
   const chartRows = el('div', 'rd-stats-rows');
   const chartAxis = el('div', 'rd-stats-axis');
   chartAxis.setAttribute('aria-hidden', 'true');
   chartScroll.append(chartRows);
-  chart.append(chartTitle, chartScroll, chartAxis);
+  chart.append(chartTitle, chartNote, chartScroll, chartAxis);
   statsBody.append(statsPick, chart);
   const statsClose = el('button', 'rd-gear-close', '✕');
   statsClose.type = 'button';
@@ -449,6 +453,8 @@ export function makeResult(root: HTMLElement): Result {
       others.hidden = shown.others.length === 0;
       closeStats();
       statRows = shown.stats ?? [];
+      chartNote.textContent = shown.statsNote ?? '';
+      chartNote.hidden = !shown.statsNote;
       statsOpen.hidden = statRows.length === 0;
       root.classList.toggle('rewarding', root.classList.contains('staged') && !(rewards.hidden && others.hidden));
       drawActions(shown.actions);

@@ -245,6 +245,15 @@
   gap: 10px;
 }
 
+/* Why they may not be all of the fight (this page's run of it parted from the bot's): small, under the title. */
+.tm-stats-note {
+  flex: none;
+  margin: -6px 0 12px;
+  color: rgb(255 255 255 / 60%);
+  font-size: 12px;
+  text-align: center;
+}
+
 .tm-stats-pop .rd-stats-face > img {
   background: rgb(0 0 0 / 35%);
 }

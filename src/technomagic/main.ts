@@ -117,6 +117,13 @@ const JUMP = 90;
  */
 const OVER_WAIT = 2;
 const DRAIN = 0.5;
+/**
+ * In a room, the result waiting: how long (seconds) this page's fight may go no further, short of where the bot's ended,
+ * before it is ended there (the bot gives a page back, or parted, the whole fight; this is for should that not come); and
+ * how long a page opened as a result is up waits for the fight before showing the result without it.
+ */
+const STUCK = 5;
+const NO_FIGHT_WAIT = 5;
 /** Auto Repeat: how long a win's result is seen before this player is in for the next fight. */
 const REPEAT_WAIT = 8;
 
@@ -235,6 +242,8 @@ interface Game {
   lock: Lock | null;
   /** Seconds not yet stepped. */
   owed: number;
+  /** A room's that didn't end as the bot's did (drained to its end, or ended where it got to): its Battle Stats aren't all of the fight. */
+  short?: boolean;
   draw(): void;
 }
 
@@ -397,8 +406,11 @@ async function start(): Promise<void> {
     unstage();
   };
 
-  /** Puts a fight on the page (in place of the one there was): `entries` are its heroes' bodies, in the sim's order. */
-  function play(sim: Sim, entries: readonly Entrant[], controls: Controls, lock: Lock | null): Game {
+  /**
+   * Puts a fight on the page (in place of the one there was): `entries` are its heroes' bodies, in the sim's order. `again`:
+   * the same fight run again from the bot's (the page back, or parted from it), so no fanfare as it begins.
+   */
+  function play(sim: Sim, entries: readonly Entrant[], controls: Controls, lock: Lock | null, again = false): Game {
     unstage();
     game?.view.clear();
     // (A raid of more than one wave: the map back on its first platform, wherever the last fight left it.)
@@ -409,11 +421,13 @@ async function start(): Promise<void> {
     numbers.clear();
     const bodies: Hero[] = entries.map((entrant) => entrant.hero);
     const view = makeFightView({ scene: stage.scene, sim, bodies, boss, bossLook: bossView!.look, bossFx: bossView!.fx, effects, kr, magic, props, banners, minions, moveOn });
-    banners.play('start');
-    playSound('battle');
+    if (!again) {
+      banners.play('start');
+      playSound('battle');
+    }
     // (A raid of more than one wave: its first phase's banner after it, as the game's encounter has it.)
     clearTimeout(phaseBanner);
-    if (sim.waves > 1) phaseBanner = window.setTimeout(() => banners.play('stage1'), PHASE_AFTER * 1000);
+    if (sim.waves > 1 && !again) phaseBanner = window.setTimeout(() => banners.play('stage1'), PHASE_AFTER * 1000);
     // Each hero, for its card and the meter: its own picture, or with none a picture of its head and shoulders as it stands.
     const pictures = entries.map((entrant, i) => pictureOf(entrant, view, i));
     const cards = sim.fighters.map((fighter, i) => {
@@ -817,6 +831,10 @@ async function start(): Promise<void> {
     }
 
     async function fight(start: FightStart): Promise<void> {
+      // (Given again a fight this page has drawn to its end already, back as its result is up: it stays as it is.)
+      if (shownOver?.no === start.no || (game?.lock?.start.no === start.no && (overShown === game.sim || ending?.sim === game.sim))) return;
+      // The same fight again, from the bot's (this page back to it, or its run parted from the bot's): run again from the start.
+      const again = lock?.start.no === start.no;
       const mine = new Lock(start);
       lock = mine;
       shownOver = null;
@@ -845,7 +863,7 @@ async function start(): Promise<void> {
           send({ t: 'auto-all' });
         },
         ahead,
-      }, mine);
+      }, mine, again);
       // Joined a fight long under way (or back to it after the page was away): straight to where it is (drawing only what stands on the field).
       if (mine.upTo - sim.tick > JUMP) {
         while (sim.tick < mine.upTo - LAG && !sim.result) stepRoom(sim, mine);
@@ -864,13 +882,20 @@ async function start(): Promise<void> {
         const theirs = at.sums.get(at.checked + 1);
         if (theirs !== undefined && theirs !== sim.sums[at.checked] && !at.parted) {
           at.parted = true;
-          console.warn(`This page's fight parted from the bot's at second ${at.checked + 1}: what it draws may not be what happens.`);
-          // (The bot notes it: the same sim, seed and presses should never part.)
+          // The bot's is the one that counts: the first time, it gives this page the fight again (its start and every press so
+          // far), to run again from the start up to where the bot's is. Parting again with them all, it is let be (it would only
+          // part again): drawn to the bot's end as it can be, its Battle Stats said to be short.
+          const before = partedFights.has(at.start.no);
+          partedFights.add(at.start.no);
+          if (before) at.drifted = true;
+          console.warn(`This page's fight parted from the bot's at second ${at.checked + 1}: ${before ? 'again, after running it again from the bot’s; what it draws may not be what happens' : 'running it again from the bot’s'}.`);
           send({ t: 'parted', no: at.start.no, second: at.checked + 1 });
         }
       }
     }
     stepLock = stepRoom;
+    /** The fights (by their number) whose run on this page has parted from the bot's: the bot gives one again only the first time. */
+    const partedFights = new Set<number>();
 
     function receive(message: ServerMessage): void {
       switch (message.t) {
@@ -928,7 +953,14 @@ async function start(): Promise<void> {
           // (The field isn't drawn under getting ready: it can't be seen, and a phone has the heroes being read meanwhile.)
           stage.cover(state.phase === 'prep');
           if (state.phase !== 'fight') leaving.close();
-          if (state.phase === 'over' && state.over && !game) showOver(state.over);
+          // (Over with no fight on the page, opened as the result is up: the bot gives it the fight, to draw it to its end and
+          // what each hero did; should that not come, the result as it is.)
+          if (state.phase === 'over' && state.over && !game) {
+            const over = state.over;
+            window.setTimeout(() => {
+              if (!game && state?.over === over) showOver(over);
+            }, NO_FIGHT_WAIT * 1000);
+          }
           // Who is in for running it again, as it changes.
           if (state.phase === 'over' && shownOver && !left) results.actions(overActions());
           drawRepeat();
@@ -988,6 +1020,7 @@ async function start(): Promise<void> {
           const number = state?.solo ? undefined : state?.players.find((player) => player.id === owner)?.number;
           return { ...(number !== undefined && { tag: `${number}P` }), mine: owner === you };
         }),
+        ...((game?.short || game?.lock?.drifted) && { statsNote: 'This page lost track of the fight, so these may not be all of it.' }),
         actions: overActions(),
       });
       if (over.result !== 'won' || !repeat) return;
@@ -1039,6 +1072,8 @@ async function start(): Promise<void> {
   let overShown: Sim | null = null;
   /** The fight over, before what it gave is shown: since when (the frame's time: from when the boss was at 0%), and the boss's health as it ended. */
   let ending: { sim: Sim; at: number; from: number } | null = null;
+  /** In a room, the result waiting while this page's fight goes no further, short of the bot's end: since when (the frame's time), and at which step. */
+  let stuck: { sim: Sim; tick: number; at: number } | null = null;
 
   if (token && server) room(server);
   else await practice();
@@ -1097,10 +1132,24 @@ async function start(): Promise<void> {
     // as the bot took it, should this page's have parted from the bot's, or the bot's have failed: the bot's word is the one).
     // Won, the boss is seen at 0% (drained there, should this page's fight still have it standing) and beaten for a moment
     // (OVER_WAIT) before what it gave is shown; lost, the party fallen for as long.
-    const ended = lock ? overWaiting() !== null && (sim.result !== null || sim.tick >= lock.upTo) : sim.result !== null;
+    // (In a room, this page's run of that fight is drawn to the step the bot's ended at, the bot giving it the fight again
+    // should it have been away meanwhile, or parted. Only should it get no further for STUCK seconds is it ended where it is.)
+    const over = lock ? overWaiting() : null;
+    let ended = sim.result !== null;
+    if (lock) {
+      const atEnd = over !== null && over.no === lock.start.no && (sim.result !== null || sim.tick >= over.upTo);
+      const held = over !== null && !atEnd && sim.tick >= lock.upTo;
+      if (!held) stuck = null;
+      else if (stuck?.sim !== sim || stuck.tick !== sim.tick) stuck = { sim, tick: sim.tick, at: now };
+      ended = atEnd || (stuck !== null && now - stuck.at >= STUCK);
+    }
     if (overShown !== sim && ended) {
-      if (ending?.sim !== sim) ending = { sim, at: now, from: sim.boss.hp };
-      const won = lock ? overWaiting()?.result === 'won' : sim.result === 'won';
+      if (ending?.sim !== sim) {
+        ending = { sim, at: now, from: sim.boss.hp };
+        // (Ended otherwise than the bot's, or not at all: what this page drew isn't all of the fight.)
+        if (lock && sim.result !== over?.result) playing.short = true;
+      }
+      const won = lock ? over?.result === 'won' : sim.result === 'won';
       if (won && sim.boss.hp > 0) {
         sim.boss.hp = Math.max(0, sim.boss.hp - (ending.from * dt) / DRAIN);
         ending.at = now;
@@ -1115,13 +1164,17 @@ async function start(): Promise<void> {
   });
 }
 
-/** A room's fight as the bot tells it: which, up to which step, and what was pressed at which step (and its checksums, by second); its checksums compared so far, and whether one parted from the bot's (said once). */
+/**
+ * A room's fight as the bot tells it: which, up to which step, and what was pressed at which step (and its checksums, by second);
+ * its checksums compared so far, whether one parted from the bot's (said once), and whether it did so run again from the bot's (drifted).
+ */
 class Lock {
   upTo = 0;
   queue: TurnInput[] = [];
   sums = new Map<number, number>();
   checked = 0;
   parted = false;
+  drifted = false;
   constructor(readonly start: FightStart) {}
 }
 
