@@ -1,5 +1,5 @@
 import type { Buff } from '../sim/shown';
-import { square } from './buff';
+import { buffRow } from './buff';
 import { el } from './dom';
 
 /**
@@ -30,8 +30,8 @@ export function makeOverhead(parent: HTMLElement, ally = false, foe = false): Ov
   parent.append(root);
   /** The most shield on it since it last had none: the line's whole length. */
   let most = 0;
-  /** The squares shown, as last drawn: drawn again only when they change. */
-  let shown = '';
+  /** Its squares, drawn again only when they change (their sweeps each time). */
+  const drawBuffs = buffRow(buffs);
   return {
     draw(x, y, share, shield, on) {
       root.hidden = false;
@@ -40,11 +40,7 @@ export function makeOverhead(parent: HTMLElement, ally = false, foe = false): Ov
       most = shield > 0 ? Math.max(most, shield) : 0;
       track.hidden = most <= 0;
       if (most > 0) line.style.width = `${(shield / most) * 100}%`;
-      const showing = on.map((buff) => `${buff.name}:${Math.ceil(buff.left ?? 0)}:${buff.count ?? ''}`).join('|');
-      if (showing !== shown) {
-        shown = showing;
-        buffs.replaceChildren(...on.map(square));
-      }
+      drawBuffs(on);
     },
     hide() {
       root.hidden = true;

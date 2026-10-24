@@ -1,12 +1,13 @@
 import { artPicture } from '../art';
 import type { Mark } from '../sim/shown';
+import { setSweep, sweepLayer, sweepTimes } from './buff';
 import { el } from './dom';
 import { pointTips } from './tip';
 
 /*
  * The boss's health across the top of the field, a dragon's CC gauge in orange just under it, and under them what is the
- * matter with it (its marks: ../sim/shown.ts), as King's Raid shows them: a square of each one's icon, its seconds (or
- * count) in the corner, what it is when pointed at; said in words where it has no picture.
+ * matter with it (its marks: ../sim/shown.ts), as King's Raid shows them: a square of each one's icon, its sweep over it while
+ * it runs out (./buff.ts) or how many are stacked up in its corner, what it is when pointed at; said in words where it has no picture.
  */
 
 export interface BossBar {
@@ -14,10 +15,13 @@ export interface BossBar {
   draw(share: number, marks: readonly Mark[], gauge: number | null): void;
 }
 
-/** What each square drawn is of, for its popup. */
+/** What each square drawn is of, for its popup (the latest it was drawn as). */
 const OF = new WeakMap<Element, Mark>();
 
-/** A mark: its square (its picture edged in its tone, its count in the corner), or its words. */
+/** A mark, whatever its seconds and stacks are now: its tone and its words, their numbers left out. */
+const markKey = (mark: Mark): string => `${mark.tone}:${mark.text.replace(/\d[\d.,]*/g, '#')}`;
+
+/** A mark: its square (its picture edged in its tone, its sweep over it or its stacks in the corner), or its words. */
 function markOf(mark: Mark): HTMLElement {
   const picture = artPicture(mark.art);
   if (!picture) return el('span', `tm-mark ${mark.tone}`, mark.text);
@@ -31,6 +35,7 @@ function markOf(mark: Mark): HTMLElement {
   image.src = picture;
   made.append(image);
   if (mark.count) made.append(el('b', '', mark.count));
+  else if (mark.left !== undefined) made.append(sweepLayer());
   return made;
 }
 
@@ -62,6 +67,8 @@ export function makeBossBar(root: HTMLElement, name: string, deals: string): Bos
   // A square pointed at with a mouse: what it is, over it.
   const pointed = pointTips(row, '.tm-mark-square', markTip);
   let marked = '';
+  let squares: HTMLElement[] = [];
+  const times = sweepTimes();
   return {
     draw(share, marks, gauge) {
       root.hidden = false;
@@ -74,11 +81,20 @@ export function makeBossBar(root: HTMLElement, name: string, deals: string): Bos
         const full = String(Math.ceil(gauge * 100));
         if (meter.getAttribute('aria-valuenow') !== full) meter.setAttribute('aria-valuenow', full);
       }
-      const said = marks.map(({ text }) => text).join('|');
-      if (said === marked) return;
-      marked = said;
-      row.replaceChildren(...marks.map(markOf));
-      pointed();
+      // (Drawn again only when which marks there are, or their stacks, change; their sweeps turned each time.)
+      const said = marks.map((mark) => `${markKey(mark)}:${mark.count ?? ''}`).join('|');
+      if (said !== marked) {
+        marked = said;
+        squares = marks.map(markOf);
+        row.replaceChildren(...squares);
+        pointed();
+      }
+      marks.forEach((mark, i) => {
+        const made = squares[i];
+        if (!made) return;
+        if (OF.has(made)) OF.set(made, mark);
+        if (!mark.count && mark.left !== undefined) setSweep(made, times(markKey(mark), mark.left));
+      });
     },
   };
 }

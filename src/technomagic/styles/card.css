@@ -185,7 +185,22 @@
   object-fit: cover;
 }
 
-/* The seconds it has left. */
+/*
+ * A square that runs out (a hero's buff's, a boss's mark's: hud/buff.ts): from its middle a line round clockwise from the
+ * top, --done of the way as its time runs, the part it has passed darkened.
+ */
+.tm-sweep {
+  position: absolute;
+  inset: 0;
+  background: conic-gradient(
+    rgb(0 0 0 / 62%) 0deg var(--done, 0deg),
+    rgb(255 236 190 / 95%) var(--done, 0deg) calc(var(--done, 0deg) + 5deg),
+    transparent calc(var(--done, 0deg) + 5deg)
+  );
+  pointer-events: none;
+}
+
+/* How many are stacked up. */
 .tm-buff b {
   position: absolute;
   inset: auto 1px 0 auto;

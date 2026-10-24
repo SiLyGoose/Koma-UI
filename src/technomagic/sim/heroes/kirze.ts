@@ -228,7 +228,7 @@ export const KIRZE: HeroDef = {
       },
       lit: () => awake > 0,
       buffs: () => (awake > 0 ? [{ ...AWAKENING, left: awake }] : []),
-      marks: () => (curse ? [{ text: `Curse ${Math.ceil(curse.left)} · ${curse.blows} blows`, tone: 'curse', art: art(2), count: String(Math.ceil(curse.left)) }] : []),
+      marks: () => (curse ? [{ text: `Curse ${Math.ceil(curse.left)} · ${curse.blows} blows`, tone: 'curse', art: art(2), left: curse.left }] : []),
     };
   },
 };

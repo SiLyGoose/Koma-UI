@@ -250,7 +250,7 @@ export const LOMAN: HeroDef = {
       guards: () => self.perks.has('s3-dark') && self.doing?.move === 'creed',
       lit: () => marked > 0,
       buffs: () => (endurance > 0 ? [{ ...ENDURANCE, count: endurance }] : []),
-      marks: (): Mark[] => (marked > 0 ? [{ text: `Mark of Creed ${Math.ceil(marked)}s`, tone: 'curse', art: art(2), count: String(Math.ceil(marked)) }] : []),
+      marks: (): Mark[] => (marked > 0 ? [{ text: `Mark of Creed ${Math.ceil(marked)}s`, tone: 'curse', art: art(2), left: marked }] : []),
     };
   },
 };

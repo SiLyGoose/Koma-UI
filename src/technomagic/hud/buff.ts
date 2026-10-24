@@ -3,10 +3,38 @@ import { artPicture } from '../art';
 import type { Buff } from '../sim/shown';
 import { el } from './dom';
 
-/* A Buff (../sim/shown.ts) as a small square over a hero's health. */
+/*
+ * A Buff (../sim/shown.ts) as a small square over a hero's health: one stacked up has how many in its corner; one that runs
+ * out has its sweep over it (King's Raid's cooldown wipe): from its middle a line goes round clockwise from the top as its time
+ * runs, the part it has passed darkened.
+ */
 
-/** What each square drawn is of, for its popup. */
+/** What each square drawn is of, for its popup (the latest it was drawn as). */
 const OF = new WeakMap<Element, Buff>();
+
+/** A square's sweep, over its picture (its --done the share of its time run: card.css .tm-sweep). */
+export const sweepLayer = (): HTMLElement => el('i', 'tm-sweep');
+
+/** Turns a square's sweep to `done` (0 to 1) of its time run. */
+export function setSweep(made: Element, done: number): void {
+  const layer = made.querySelector<HTMLElement>('.tm-sweep');
+  const turn = `${(Math.min(1, Math.max(0, done)) * 360).toFixed(1)}deg`;
+  if (layer && layer.style.getPropertyValue('--done') !== turn) layer.style.setProperty('--done', turn);
+}
+
+/**
+ * How much of their time the timed squares have run (0 to 1), each by its key. Their whole time isn't said, so it's the most
+ * one had left since it came on, or since it was put on again (more left than it had).
+ */
+export function sweepTimes(): (key: string, left: number) => number {
+  const seen = new Map<string, { full: number; last: number }>();
+  return (key, left) => {
+    const had = seen.get(key);
+    const full = !had || left > had.last + 0.05 ? Math.max(left, 0.001) : had.full;
+    seen.set(key, { full, last: left });
+    return 1 - left / full;
+  };
+}
 
 /** A buff's square. */
 export function square(buff: Buff): HTMLElement {
@@ -14,21 +42,47 @@ export function square(buff: Buff): HTMLElement {
   OF.set(made, buff);
   made.setAttribute('role', 'img');
   made.setAttribute('aria-label', buff.about ? `${buff.name}: ${buff.about}` : buff.name);
-  made.textContent = buff.icon;
-  // The number in its corner: how many are stacked, or else the seconds it has left.
-  const number = buff.count ?? (buff.left === undefined ? undefined : Math.ceil(buff.left));
+  const glyph = document.createTextNode(buff.icon);
+  made.append(glyph);
   const image = artPicture(buff.art);
   if (image) {
     const picture = el('img', '');
     picture.alt = '';
     picture.draggable = false;
     // Not there: its icon stays.
-    picture.addEventListener('load', () => made.replaceChildren(picture, ...(number === undefined ? [] : [el('b', '', String(number))])));
+    picture.addEventListener('load', () => glyph.isConnected && glyph.replaceWith(picture));
     picture.src = image;
-    if (picture.complete && picture.naturalWidth > 0) made.replaceChildren(picture);
+    if (picture.complete && picture.naturalWidth > 0) glyph.replaceWith(picture);
   }
-  if (number !== undefined) made.append(el('b', '', String(number)));
+  // How many are stacked up in its corner; else, one that runs out, its sweep.
+  if (buff.count !== undefined) made.append(el('b', '', String(buff.count)));
+  else if (buff.left !== undefined) made.append(sweepLayer());
   return made;
+}
+
+/**
+ * A row of buffs' squares in `box`: drawn again only when which are on (or how many are stacked) changes (`after`: then),
+ * and each time every timed one's sweep turned, and what its popup says brought up to date.
+ */
+export function buffRow(box: HTMLElement, after?: () => void): (effects: readonly Buff[]) => void {
+  let shown = '';
+  let squares: HTMLElement[] = [];
+  const times = sweepTimes();
+  return (effects) => {
+    const showing = effects.map((buff) => `${buff.name}:${buff.count ?? ''}:${buff.left === undefined ? '' : 'timed'}`).join('|');
+    if (showing !== shown) {
+      shown = showing;
+      squares = effects.map(square);
+      box.replaceChildren(...squares);
+      after?.();
+    }
+    effects.forEach((buff, i) => {
+      const made = squares[i];
+      if (!made) return;
+      OF.set(made, buff);
+      if (buff.count === undefined && buff.left !== undefined) setSweep(made, times(buff.name, buff.left));
+    });
+  };
 }
 
 /** What a square's popup says (../hud/tip.ts): its picture (or its icon) and its name, how long it has left or how many are stacked, and what it does. */

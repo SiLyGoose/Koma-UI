@@ -272,7 +272,7 @@ export const ERZE: HeroDef = {
         return true;
       },
       lit: () => sweet >= SWEET.most,
-      marks: (): Mark[] => (soakStacks > 0 && soaking > 0 ? [{ text: `Soaking Blood ×${soakStacks} ${Math.ceil(soaking)}s`, tone: 'curse', art: art(1), count: `×${soakStacks}` }] : []),
+      marks: (): Mark[] => (soakStacks > 0 && soaking > 0 ? [{ text: `Soaking Blood ×${soakStacks} ${Math.ceil(soaking)}s`, tone: 'curse', art: art(1), count: String(soakStacks) }] : []),
     };
   },
 };

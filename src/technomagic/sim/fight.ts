@@ -1432,19 +1432,22 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       const foe = boss;
       const marks: Mark[] = [];
       if (foe.hp <= 0) marks.push({ text: 'Beaten', tone: 'down' });
-      else if (foe.stunned > 0) marks.push({ text: `Stunned ${Math.ceil(foe.stunned)}`, tone: 'stun', art: stateArt('Stun'), count: String(Math.ceil(foe.stunned)) });
-      if (foe.slowed > 0) marks.push({ text: `Slowed ${Math.ceil(foe.slowed)}`, tone: 'slow', art: stateArt('SpeedDown'), count: String(Math.ceil(foe.slowed)) });
+      else if (foe.stunned > 0) marks.push({ text: `Stunned ${Math.ceil(foe.stunned)}`, tone: 'stun', art: stateArt('Stun'), left: foe.stunned });
+      if (foe.slowed > 0) marks.push({ text: `Slowed ${Math.ceil(foe.slowed)}`, tone: 'slow', art: stateArt('SpeedDown'), left: foe.slowed });
       if (foe.hp > 0 && clock > raidTime) {
         const times = rage(clock - raidTime);
         const shown = `×${times < 10 ? times.toFixed(1) : Math.round(times).toLocaleString('en-US')}`;
         marks.push({ text: `Enraged ${shown}`, tone: 'rage', art: stateArt('AttackUp'), count: shown });
       }
-      // (One for the rest of the fight says how many are stacked in it, in place of the seconds it has left; one that stacks for a while, both.)
+      // (One that stacks, or lasts the rest of the fight, says how many are stacked in it in its corner; one that only runs out,
+      // the seconds it has left as its sweep. Its words say both.)
       // Its picture: the skill's (or passive's) of the hero whose it is, by its name; else King's Raid's icon for its kind.
       for (const status of foe.statuses) {
-        const stacked = status.count !== undefined && Number.isFinite(status.left) ? ` ×${status.count}` : '';
-        const count = Number.isFinite(status.left) ? String(Math.ceil(status.left)) : `×${status.count ?? 1}`;
-        marks.push({ text: `${status.name}${stacked} ${count}`, tone: status.shown, art: statusArt(status), count });
+        const timed = Number.isFinite(status.left);
+        const stacked = status.count !== undefined && timed ? ` ×${status.count}` : '';
+        const said = timed ? String(Math.ceil(status.left)) : `×${status.count ?? 1}`;
+        const corner = status.count !== undefined || !timed ? { count: String(status.count ?? 1) } : { left: status.left };
+        marks.push({ text: `${status.name}${stacked} ${said}`, tone: status.shown, art: statusArt(status), ...corner });
       }
       marks.push(...(foe.part.marks?.() ?? []));
       for (const fighter of fighters) marks.push(...(fighter.part.marks?.() ?? []));

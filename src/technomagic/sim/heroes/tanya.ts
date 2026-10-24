@@ -257,7 +257,7 @@ export const TANYA: HeroDef = {
       untouched: () => untouched > 0,
       dodge: () => (stealth > 0 ? STEALTH.dodge : 0),
       lit: () => stealth > 0,
-      marks: (): Mark[] => (bleeds.length > 0 ? [{ text: `${BLED} ×${bleeds.length}`, tone: 'curse', art: stateArt('Bleeding'), count: `×${bleeds.length}` }] : []),
+      marks: (): Mark[] => (bleeds.length > 0 ? [{ text: `${BLED} ×${bleeds.length}`, tone: 'curse', art: stateArt('Bleeding'), count: String(bleeds.length) }] : []),
     };
   },
 };

@@ -282,7 +282,7 @@ export const JANE: HeroDef = {
       lit: () => ruin > 0,
       marks: (): Mark[] => {
         const on = marked.get(fight.foe);
-        return on ? [{ text: `Mark of Death ${Math.ceil(on.left)}s`, tone: 'curse', art: art(1) }] : [];
+        return on ? [{ text: `Mark of Death ${Math.ceil(on.left)}s`, tone: 'curse', art: art(1), left: on.left }] : [];
       },
     };
   },

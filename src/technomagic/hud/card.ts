@@ -1,7 +1,7 @@
 import { artPicture } from '../art';
 import type { Ability } from '../sim/heroes/kit';
 import type { Buff } from '../sim/shown';
-import { about, buffTip, square } from './buff';
+import { about, buffRow, buffTip, square } from './buff';
 import { el } from './dom';
 import { holdTip, nameTips, pointTips } from './tip';
 
@@ -83,9 +83,9 @@ export function makeCard(name: string, face: string, abilities: readonly Ability
   const buffs = el('div', 'tm-buffs');
   const timed = el('span', 'tm-timed');
   buffs.append(...passives.map(square), timed);
-  let shown = '';
   // A square pointed at with a mouse: what it is, over it.
   const pointed = pointTips(buffs, '.tm-buff', buffTip);
+  const drawTimed = buffRow(timed, pointed);
   const bars = el('div', 'tm-bars');
   bars.append(buffs, health, power);
   const top = el('div', 'tm-top');
@@ -156,12 +156,7 @@ export function makeCard(name: string, face: string, abilities: readonly Ability
       if (portrait.getAttribute('aria-label') !== says) portrait.setAttribute('aria-label', says);
       root.classList.toggle('down', state.hp <= 0);
       root.classList.toggle('awake', state.awake);
-      const showing = state.effects.map((buff) => `${buff.name}:${Math.ceil(buff.left ?? 0)}:${buff.count ?? ''}`).join('|');
-      if (showing !== shown) {
-        shown = showing;
-        timed.replaceChildren(...state.effects.map(square));
-        pointed();
-      }
+      drawTimed(state.effects);
       hp.style.transform = `scaleX(${Math.max(0, state.hp / state.maxHp)})`;
       cells.forEach(({ cell, fill }, i) => {
         const part = Math.min(1, Math.max(0, state.mana - i));

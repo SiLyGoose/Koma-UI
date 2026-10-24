@@ -38,14 +38,16 @@ export interface Buff {
 export type Tone = 'stun' | 'down' | 'slow' | 'curse' | 'venom' | 'burn' | 'rage';
 
 /**
- * What is the matter with the boss, under its health: a square of its picture with `count` in its corner (how long it
- * has left, or how many), `text` saying all of it when pointed at; said in words, if it has no picture.
+ * What is the matter with the boss, under its health: a square of its picture, `text` saying all of it when pointed at; said
+ * in words, if it has no picture. In its corner `count`: how many are stacked up (or how much: a share); or, one that runs
+ * out, `left` seconds, drawn as a sweep round its square.
  */
 export interface Mark {
   text: string;
   tone: Tone;
   art?: Art;
   count?: string;
+  left?: number;
 }
 
 /** A share as a whole percentage (0.25: "25%"). */

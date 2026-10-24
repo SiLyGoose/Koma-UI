@@ -209,8 +209,8 @@ function ownPart(fight: Fight): BossPart {
       return [
         // (What it gives itself back a second now, of its health: less for what cuts its healing.)
         { text: `Persistent Life Force ${heals}`, tone: 'venom', art: stateArt('3590041'), count: heals },
-        { text: `Swamp Imprisonment ${hits}/${IMPRISONMENT.hits}`, tone: 'venom', art: stateArt('3590043'), count: `${hits}/${IMPRISONMENT.hits}` },
-        { text: `Fatal Venom ${Math.min(used, FATAL.after)}/${FATAL.after}`, tone: 'venom', art: stateArt('3590040'), count: `${Math.min(used, FATAL.after)}/${FATAL.after}` },
+        { text: `Swamp Imprisonment ${hits}/${IMPRISONMENT.hits}`, tone: 'venom', art: stateArt('3590043'), count: String(hits) },
+        { text: `Fatal Venom ${Math.min(used, FATAL.after)}/${FATAL.after}`, tone: 'venom', art: stateArt('3590040'), count: String(Math.min(used, FATAL.after)) },
       ];
     },
   };
