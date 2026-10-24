@@ -11,7 +11,7 @@
 // lifetime/speed/size/rotation/colour, rate and bursts, the common shapes, gravity, size/colour/rotation/velocity over
 // lifetime, force, limit velocity, texture sheets; drawn as billboards, stretched billboards, horizontal or vertical
 // billboards, or meshes) and its trails (ribbons behind what moves: Trail). Not played: sub-emitters, collision, noise (a
-// little jitter only), dissolve and other ShaderForge extras (drawn as the plain effect shader).
+// little jitter only) and other ShaderForge extras (drawn as the plain effect shader, but for its dissolve).
 //
 // Colours are kept as the game had them (gamma: textures not decoded from sRGB, shader output not encoded), so additive
 // effects blend as they did in King's Raid.
@@ -68,12 +68,15 @@ const VERT = /* glsl */ `
 #include <skinning_pars_vertex>
 attribute vec4 color;
 varying vec2 vUv;
+varying vec2 vDissolveUv;
 varying vec4 vColor;
 varying float vRim;
 uniform vec4 st;
+uniform vec4 dissolveSt;
 uniform float rim;
 void main() {
   vUv = uv * st.xy + st.zw;
+  vDissolveUv = uv * dissolveSt.xy + dissolveSt.zw;
   vColor = color;
   vec3 transformed = position;
   #include <skinbase_vertex>
@@ -92,13 +95,20 @@ uniform vec4 tint;
 uniform float power;
 uniform float extraAlpha;
 uniform float premultiply;
+uniform sampler2D dissolveMap;
 varying vec2 vUv;
+varying vec2 vDissolveUv;
 varying vec4 vColor;
 varying float vRim;
 void main() {
   vec4 t = texture2D(map, vUv);
   vec3 rgb = t.rgb * tint.rgb * vColor.rgb * power * vRim;
   float a = clamp(t.a * tint.a * vColor.a * extraAlpha * vRim, 0.0, 1.0);
+  #ifdef USE_DISSOLVE
+  // (ShaderForge's dissolve: eaten away by its picture as its alpha falls.)
+  float d = 1.0 - texture2D(dissolveMap, vDissolveUv).r;
+  a *= smoothstep(d - 0.2, d, tint.a * vColor.a);
+  #endif
   gl_FragColor = vec4(premultiply > 0.5 ? rgb * a : rgb, a);
 }`;
 
@@ -122,6 +132,8 @@ function makeMaterial(asset, index, skinning = false) {
       premultiply: { value: src === 5 || opaque ? 0 : 1 },
       st: { value: new Vector4(...(m.st ?? [1, 1, 0, 0])) },
       rim: { value: m.rim ?? 1 },
+      dissolveMap: { value: m.dissolve ? asset.textures[m.dissolve.tex] : WHITE },
+      dissolveSt: { value: new Vector4(...(m.dissolve?.st ?? [1, 1, 0, 0])) },
     },
     transparent: !opaque,
     depthWrite: opaque,
@@ -135,7 +147,8 @@ function makeMaterial(asset, index, skinning = false) {
   material.defines = {};
   if (skinning) material.defines.USE_SKINNING = '';
   if (m.rim != null && !skinning) material.defines.USE_RIM = '';
-  material.userData.base = { color: [...m.color], st: [...(m.st ?? [1, 1, 0, 0])], scroll: m.scroll };
+  if (m.dissolve) material.defines.USE_DISSOLVE = '';
+  material.userData.base = { color: [...m.color], st: [...(m.st ?? [1, 1, 0, 0])], dissolveSt: [...(m.dissolve?.st ?? [1, 1, 0, 0])], scroll: m.scroll };
   // One in an earlier queue than the fighters' (a map's own: its smoke behind its far rim): drawn among the map's layers,
   // in its queue's place (../engine/kr-map.ts), before the fighters.
   if (m.queue != null && m.queue < 2500) {
@@ -773,13 +786,19 @@ export class KrEffect extends Group {
       trail.update(dt, camera, !this.stopped && t >= begin && t <= end);
       if (trail.alive) alive = true;
     }
-    // a ShaderForge material's own scroll (approximate: _USpeed/_VSpeed style speeds move the main texture)
+    // a ShaderForge material's own scroll (approximate: _USpeed/_VSpeed style speeds move the main texture, _Dissolve_ ones
+    // its dissolve's, or the main texture where it has none)
     for (const mat of this.materials) {
       const sc = mat.userData.base?.scroll;
       if (!sc) continue;
-      const us = sc._Main_USpeed ?? sc._USpeed ?? sc._Dissolve_USpeed ?? 0, vs = sc._Main_VSpeed ?? sc._VSpeed ?? sc._Dissolve_VSpeed ?? 0;
+      const dissolves = mat.defines.USE_DISSOLVE != null;
+      const us = sc._Main_USpeed ?? sc._USpeed ?? (dissolves ? 0 : sc._Dissolve_USpeed) ?? 0, vs = sc._Main_VSpeed ?? sc._VSpeed ?? (dissolves ? 0 : sc._Dissolve_VSpeed) ?? 0;
       mat.uniforms.st.value.z = mat.userData.base.st[2] + us * t;
       mat.uniforms.st.value.w = mat.userData.base.st[3] + vs * t;
+      if (dissolves) {
+        mat.uniforms.dissolveSt.value.z = mat.userData.base.dissolveSt[2] + (sc._Dissolve_USpeed ?? 0) * t;
+        mat.uniforms.dissolveSt.value.w = mat.userData.base.dissolveSt[3] + (sc._Dissolve_VSpeed ?? 0) * t;
+      }
     }
     if (t > this.asset.def.length && !alive) this.done = true;
   }
