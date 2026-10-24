@@ -1,5 +1,5 @@
 import { points } from '../../shared/util';
-import { type GearCopy, hasLevels, heroGear, levelLabel, type Plan, shownName, stoneName } from '../../shared/items';
+import { type GearCopy, hasLevels, heroGear, levelLabel, type Plan, shownName, stoneCount, stoneName } from '../../shared/items';
 import { balance, choosing, copyById, type ForgeContext } from '../context';
 
 /** The line over the slots: how the anvil works, what's in the way, or what was just done. */
@@ -19,7 +19,7 @@ export function hintFor(ctx: ForgeContext, copy: GearCopy | undefined, plan: Pla
       // (A TechnoMagic piece: its class's Upgrade Stones in place of a spare, King's Raid's.)
       const { stones } = refine;
       if (stones && stones.have < stones.need) {
-        return { text: `You need ${points(stones.need - stones.have)} more ${stoneName(stones.class, true)} to ${verb} it. The TechnoMagic Raid drops them from stage 7.`, tone: 'bad' };
+        return { text: `You need ${stoneCount(stones.class, stones.need - stones.have).replace(' ', ' more ')} to ${verb} it. The TechnoMagic Raid drops them from stage 7.`, tone: 'bad' };
       }
       if (!stones && (refine.blocked === 'no_duplicate' || choosing(ctx)?.size === 0)) return { text: `You need another ${shownName(copy)} to use up as material.`, tone: 'bad' };
       const have = balance(ctx);

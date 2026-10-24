@@ -1,7 +1,7 @@
 import { coin, dust, points } from '../shared/util';
 import { GEM_EMOJI } from '../forge/anvil/gem';
 import { built } from '../shared/built';
-import { dragonTier, el, isTmPiece, itemDetailsClosed, itemFace, itemIcons, kindName, mainStatLine, shownName, stoneIcon, stoneName, tmSections, rich } from '../shared/items';
+import { dragonTier, el, isTmPiece, itemDetailsClosed, itemFace, itemIcons, kindName, mainStatLine, shownName, stoneCount, stoneIcon, stoneName, tmSections, rich } from '../shared/items';
 import { ESSENCE_NAME, type EssenceId } from '../protocol/heroes';
 import type { DropView, RaidKind } from '../protocol/technomagic';
 import { niceScale } from '../raid/result/nice-scale';
@@ -281,7 +281,7 @@ export function makeResult(root: HTMLElement): Result {
       'p',
       'tm-loot-note',
       salvaged
-        ? `Salvaged as it dropped, for ${points(drop.salvaged ?? 0)} komaDust${drop.salvagedStones && drop.itemClass ? ` and ${points(drop.salvagedStones)} ${stoneName(drop.itemClass, true)}` : ''}: your salvage rule takes it (Sell, then By rule, on the `
+        ? `Salvaged as it dropped, for ${salvagedFor(drop)}: your salvage rule takes it (Sell, then By rule, on the `
         : !hero
           ? 'Wear it yourself on the Gear page, or put it on a hero on the '
           : raid
@@ -299,6 +299,12 @@ export function makeResult(root: HTMLElement): Result {
     close.focus();
   }
 
+  /** What a drop salvaged as it dropped gave: its komaDust, or a TechnoMagic piece's Upgrade Stones (King's Raid's). */
+  function salvagedFor(drop: DropView): string {
+    if (drop.salvagedStones !== undefined && drop.itemClass) return stoneCount(drop.itemClass, drop.salvagedStones);
+    return `${points(drop.salvaged ?? 0)} komaDust`;
+  }
+
   /**
    * A piece found, as a tile: its card and its name under it, opening its details. One salvaged as it dropped (their
    * salvage rule's): its card greyed and stamped Salvaged, and the komaDust it gave under its name.
@@ -307,13 +313,15 @@ export function makeResult(root: HTMLElement): Result {
     const salvaged = drop.salvaged !== undefined;
     const tile = el('button', `tm-tile${small ? ' small' : ''}${salvaged ? ' salvaged' : ''}`);
     tile.type = 'button';
-    tile.title = salvaged ? `${shownName(drop)}: salvaged for ${points(drop.salvaged ?? 0)} komaDust as it dropped` : `${shownName(drop)}: see its details`;
+    tile.title = salvaged ? `${shownName(drop)}: salvaged for ${salvagedFor(drop)} as it dropped` : `${shownName(drop)}: see its details`;
     const face = card(drop, '', raid);
     if (salvaged) face.append(el('span', 'tm-salvaged-stamp', 'Salvaged'));
     const name = el('span', 'tm-tile-name', shownName(drop));
     if (salvaged) {
-      const gave = el('span', 'tm-tile-dust', `+${points(drop.salvaged ?? 0)} `);
-      gave.append(dust('tm-dust', 'komaDust'));
+      // (A TechnoMagic piece's Upgrade Stones in place of komaDust.)
+      const stones = drop.salvagedStones !== undefined && drop.itemClass;
+      const gave = el('span', 'tm-tile-dust', `+${points(stones ? (drop.salvagedStones ?? 0) : (drop.salvaged ?? 0))} `);
+      gave.append(stones ? stoneIcon(drop.itemClass ?? '', 'tm-dust') : dust('tm-dust', 'komaDust'));
       name.append(gave);
     }
     tile.append(face, name);

@@ -9,6 +9,10 @@ import { el } from './items';
 /** A class's stones' name, King's Raid's: "Technomagic Gear Upgrade Stone (Warrior)"; `short`: "Upgrade Stones (Warrior)". */
 export const stoneName = (cls: string, short = false): string => `${short ? 'Upgrade Stones' : 'Technomagic Gear Upgrade Stone'} (${cls.charAt(0).toUpperCase()}${cls.slice(1)})`;
 
+/** So many of a class's stones, in a few words: "1 Upgrade Stone (Knight)", "3 Upgrade Stones (Knight)". */
+export const stoneCount = (cls: string, count: number): string =>
+  `${count.toLocaleString('en-US')} Upgrade Stone${count === 1 ? '' : 's'} (${cls.charAt(0).toUpperCase()}${cls.slice(1)})`;
+
 /** A class's stones' picture. */
 export const stonePicture = (cls: string): string => `/kr/items/TECHNOMAGIC_UPGRADE_${cls.toUpperCase()}.webp`;
 

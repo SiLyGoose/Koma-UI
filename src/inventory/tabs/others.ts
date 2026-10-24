@@ -57,7 +57,7 @@ export const othersTab: InventoryTab = {
       { id: 'zeiucoins', name: 'zeiucoins', picture: boxed(() => coin('', '')), grade: 5, count: held.zeiucoins, kind: 'Currency', about: 'Claimed, won and earned in the games. Pulls, outfits and the forge spend them.' },
       { id: 'tokens', name: 'komaTokens', picture: boxed(() => rich(TOKEN_EMOJI)), grade: 4, count: held.tokens, kind: 'Currency', about: 'Each pays for one Wish pull, before any zeiucoins.' },
       { id: 'gems', name: 'komaGems', picture: boxed(() => rich(GEM_EMOJI)), grade: 3, count: held.gems, kind: 'Currency', about: 'From the Weekly Boss, Dragon Raid first clears and crafting. The Raid Gear shop and transcending heroes spend them.' },
-      { id: 'dust', name: 'komaDust', picture: boxed(() => dust('', '')), grade: 2, count: held.dust, kind: 'Material', about: 'From salvaging hero gear. Craft komaGems and Unique Weapon and Unique Treasure Tickets from it in the Craft tab.' },
+      { id: 'dust', name: 'komaDust', picture: boxed(() => dust('', '')), grade: 2, count: held.dust, kind: 'Material', about: 'From salvaging hero gear (but TechnoMagic gear, which gives Upgrade Stones). Craft komaGems and Unique Weapon and Unique Treasure Tickets from it in the Craft tab.' },
       ...(['uw', 'ut'] as const).map((of): Tile => ticket(of)),
       ...ESSENCES.map(
         (id: EssenceId): Tile => ({

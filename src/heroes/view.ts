@@ -363,8 +363,8 @@ function wire(ctx: HeroesContext, act: HeroActions): () => void {
   });
   // Salvage: what's picked (hero gear, all of it) for komaDust, once confirmed.
   ui.salvage.addEventListener('click', () => {
-    const { count, dust, locked } = saleOf(ctx.view?.copies ?? [], ctx.selling, ctx.sellLocked);
-    askSale(ui.sellConfirm, count, dust, locked, true);
+    const { count, dust, stones, locked } = saleOf(ctx.view?.copies ?? [], ctx.selling, ctx.sellLocked);
+    askSale(ui.sellConfirm, count, dust, locked, true, stones);
   });
   ui.sellCancel.addEventListener('click', () => pickToSell(ctx, act, false));
   // Select shown: every copy the filter and search show that can be sold, picked (all of them picked already: unpicked).

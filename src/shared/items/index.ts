@@ -9,7 +9,7 @@ export { ANY_CLASS, art, dragonTier, dragonTierMark, effectSection, el, hasLevel
 export { armoryGrid, askSale, drawSell, effectList, forgeLink, lockToggle, upgradeButton, priceOf, pruneSale, replacesNote, saleOf, saleSaid, sellsFor, showDetail, wireSaleDialog, wireSearch, type ArmoryCopy, type ArmoryDraw, type ArmoryGrid, type CardLook, type DetailParts } from './armory';
 export { armoryOrder, equippedIds, forgePlan, type GearCopy, type GearLockedLoadout, type GearView, type Plan, type ShownStatSection, type StatSection, TM_UNSORTED, type TmSort } from './gear';
 export { matchesSearch } from './search';
-export { stoneIcon, stoneName, stonePicture } from './stones';
+export { stoneCount, stoneIcon, stoneName, stonePicture } from './stones';
 export { statBlocks } from './stats';
 export { hoverSound, itemDetailsClosed, itemPicked, popupClosed } from './sfx';
 export { armoryFilter, matchesStars, type ArmoryChoice, type ArmoryFilter, type ClassChoice, type FilterOffer, type StarChoice } from './armory-filter/armory-filter';
