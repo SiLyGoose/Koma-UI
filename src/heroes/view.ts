@@ -1,4 +1,4 @@
-import { askSale, itemDetailsClosed, itemIcons, itemPicked, pruneSale, saleOf, saleSaid, TM_UNSORTED, wireSaleDialog, wireSearch } from '../shared/items';
+import { askSale, itemDetailsClosed, itemIcons, itemPicked, pruneSale, saleOf, saleSaid, sellInTurns, TM_UNSORTED, wireSaleDialog, wireSearch } from '../shared/items';
 import { HERO_CLASSES, HERO_SLOT_TYPE, type HeroCopy, type HeroSlot, type HeroesView } from '../shared/heroes';
 import type { HeroesSold } from '../protocol/heroes';
 import { RUNE_KEEP_PRICE, type RuneBroken } from '../protocol/runes';
@@ -197,16 +197,18 @@ function pickToSell(ctx: HeroesContext, act: HeroActions, on: boolean): void {
 async function sell(ctx: HeroesContext, act: HeroActions, salvage = false): Promise<void> {
   const { ids: copies, locked } = saleOf(ctx.view?.copies ?? [], ctx.selling, ctx.sellLocked);
   if (copies.length === 0) return;
-  // (Locked ones only sell when it says so.)
-  const body = { copies, ...(locked > 0 && { locked: true }), ...(salvage && { salvage }) };
-  const view = await change<HeroesSold>(ctx, act, salvage ? 'salvage' : 'sell', '/api/heroes/sell', body, `Could not ${salvage ? 'salvage' : 'sell'} those. Try again.`);
+  // (Locked ones only sell when it says so; a big sale in turns, the bot's at most SALE_TURN each.)
+  const { sold, stopped } = await sellInTurns(copies, async (turn) => {
+    const body = { copies: turn, ...(locked > 0 && { locked: true }), ...(salvage && { salvage }) };
+    return (await change<HeroesSold>(ctx, act, salvage ? 'salvage' : 'sell', '/api/heroes/sell', body, `Could not ${salvage ? 'salvage' : 'sell'} those. Try again.`))?.sold ?? null;
+  });
   // It paid zeiucoins or komaDust (or whatever the refusal was, the balance may be old): the header's balance follows.
   void ctx.host.loadMe(true);
-  if (!view) return;
+  if (!sold) return;
   ctx.selling = null;
   ctx.sellLocked = false;
   render(ctx, act);
-  saleSaid(ctx.ui.status, view.sold);
+  saleSaid(ctx.ui.status, sold, stopped);
 }
 
 function actions(ctx: HeroesContext): HeroActions {

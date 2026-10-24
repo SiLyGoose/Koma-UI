@@ -1,4 +1,4 @@
-import { armoryFilter, armoryGrid, askSale, type ArmoryCopy, type CardLook, type DetailParts, drawSell, el, type FilterOffer, equippedIds, forgeLink, heroGear, itemDetailsClosed, itemIcons, itemPicked, type ItemType, lockToggle, optionsSection, priceOf, pruneSale, saleOf, saleSaid, showDetail, type StarChoice, TM_UNSORTED, tmSections, type TmSort, treasureParts, uniqueWeaponEffect, upgradeButton, wireSaleDialog, wireSearch, type GearCopy } from '../../shared/items';
+import { armoryFilter, armoryGrid, askSale, type ArmoryCopy, type CardLook, type DetailParts, drawSell, el, type FilterOffer, equippedIds, forgeLink, heroGear, itemDetailsClosed, itemIcons, itemPicked, type ItemType, lockToggle, optionsSection, priceOf, pruneSale, saleOf, saleSaid, sellInTurns, showDetail, type StarChoice, TM_UNSORTED, tmSections, type TmSort, treasureParts, uniqueWeaponEffect, upgradeButton, wireSaleDialog, wireSearch, type GearCopy } from '../../shared/items';
 import { busyWith, type Busy } from '../../shared/ui';
 import type { ApiResult } from '../../site/session';
 import { FORGE_MODES, heroCan } from '../../forge/modes';
@@ -281,16 +281,18 @@ function armoryTab<C extends ArmoryCopy, K extends Source, V extends Sources[K] 
       async function sell(salvage: boolean): Promise<void> {
         const { ids, locked } = saleOf(copies(), selling, sellLocked);
         if (ids.length === 0) return;
-        // (Locked ones only sell when it says so.)
-        const body = { copies: ids, ...(locked > 0 && { locked: true }), ...(salvage && { salvage }) };
-        const sold = await change<V & { sold: GearSale }>(salvage ? 'salvage' : 'sell', spec.sell, body, `Could not ${salvage ? 'salvage' : 'sell'} those. Try again.`);
+        // (Locked ones only sell when it says so; a big sale in turns, the bot's at most SALE_TURN each.)
+        const { sold, stopped } = await sellInTurns(ids, async (turn) => {
+          const body = { copies: turn, ...(locked > 0 && { locked: true }), ...(salvage && { salvage }) };
+          return (await change<V & { sold: GearSale }>(salvage ? 'salvage' : 'sell', spec.sell, body, `Could not ${salvage ? 'salvage' : 'sell'} those. Try again.`))?.sold ?? null;
+        });
         // It paid zeiucoins or komaDust (or whatever the refusal was, the balance may be old): the header's balance follows.
         host.refreshBalance();
         if (!sold) return;
         selling = null;
         sellLocked = false;
         draw();
-        saleSaid(host.status(''), sold.sold);
+        saleSaid(host.status(''), sold, stopped);
       }
 
       // Sell: to start picking copies, then (with some picked) to confirm the sale; Salvage, what's picked for komaDust; Cancel stops picking.

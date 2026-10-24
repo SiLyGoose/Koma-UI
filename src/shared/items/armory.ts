@@ -550,8 +550,44 @@ export function wireSaleDialog(dialog: HTMLDialogElement, confirmed: (salvage: b
   });
 }
 
+/** What a sale came to: how many, the points it paid, the komaDust, and a TechnoMagic piece's Upgrade Stones and Boss Crystals. */
+export interface SaleDone {
+  count: number;
+  earned: number;
+  powder?: number;
+  stones?: Partial<Record<string, number>>;
+  crystals?: Partial<Record<string, number>>;
+}
+
+/**
+ * The most copies one sale asks the bot for: it takes at most 1,000 a request (its SELL_MAX, and 32 KB a body), so a bigger
+ * sale goes in turns of this many, one after another (sellInTurns).
+ */
+export const SALE_TURN = 400;
+
+/** Two sales' worth, added up. */
+function addSales(a: SaleDone, b: SaleDone): SaleDone {
+  const add = (x: Partial<Record<string, number>> = {}, y: Partial<Record<string, number>> = {}): Partial<Record<string, number>> =>
+    Object.fromEntries([...new Set([...Object.keys(x), ...Object.keys(y)])].map((key) => [key, (x[key] ?? 0) + (y[key] ?? 0)]));
+  return { count: a.count + b.count, earned: a.earned + b.earned, powder: (a.powder ?? 0) + (b.powder ?? 0), stones: add(a.stones, b.stones), crystals: add(a.crystals, b.crystals) };
+}
+
+/**
+ * Sells `ids` in turns of SALE_TURN, one after another (`turn` sells one turn's: what it came to, or null when it didn't go
+ * through, which stops the rest). What went through, all told (null: none did), and whether the rest were stopped.
+ */
+export async function sellInTurns(ids: readonly string[], turn: (ids: string[]) => Promise<SaleDone | null>): Promise<{ sold: SaleDone | null; stopped: boolean }> {
+  let sold: SaleDone | null = null;
+  for (let at = 0; at < ids.length; at += SALE_TURN) {
+    const done = await turn(ids.slice(at, at + SALE_TURN));
+    if (!done) return { sold, stopped: true };
+    sold = sold ? addSales(sold, done) : done;
+  }
+  return { sold, stopped: false };
+}
+
 /** What a sale came to, in the page's status line (a salvage's komaDust, and what it crafts; its TechnoMagic pieces' Upgrade Stones). */
-export function saleSaid(status: HTMLElement, sold: { count: number; earned: number; powder?: number; stones?: Partial<Record<string, number>>; crystals?: Partial<Record<string, number>> }): void {
+export function saleSaid(status: HTMLElement, sold: SaleDone, stopped = false): void {
   status.hidden = false;
   status.classList.remove('bad');
   status.textContent = '';
@@ -565,6 +601,8 @@ export function saleSaid(status: HTMLElement, sold: { count: number; earned: num
     craft.href = '/inventory/craft/';
     status.append(' (craft komaGems from it in the Inventory’s ', craft, ')');
   }
+  // (A sale in turns that stopped partway: the rest of it wasn't sold, and is still theirs.)
+  if (stopped) status.append(' The rest couldn’t be: try again.');
 }
 
 /**

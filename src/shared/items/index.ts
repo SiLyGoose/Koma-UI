@@ -6,7 +6,7 @@
  */
 
 export { ANY_CLASS, art, dragonTier, dragonTierMark, effectSection, el, hasLevels, heroFrame, heroGear, heroMarks, isTmPiece, itemFace, itemIcons, type ItemType, ITEM_TYPE_NAME, kindName, krStars, levelLabel, lockBadge, mainStatLine, mainStatText, optionsSection, rich, runeMarks, shownName, type Slot, SLOT_NAME, tierFrame, tierLabel, tierMark, tierOf, tierRank, tmMarks, tmSections, tmTier, treasureParts, typeOf, uniqueTier, uniqueWeaponEffect, utMarks, utTier, uwMarks, uwTier } from './items';
-export { armoryGrid, askSale, rewardChips, type Reward, drawSell, effectList, forgeLink, lockToggle, upgradeButton, priceOf, pruneSale, replacesNote, saleOf, saleSaid, sellsFor, showDetail, wireSaleDialog, wireSearch, type ArmoryCopy, type ArmoryDraw, type ArmoryGrid, type CardLook, type DetailParts } from './armory';
+export { armoryGrid, askSale, rewardChips, type Reward, sellInTurns, type SaleDone, drawSell, effectList, forgeLink, lockToggle, upgradeButton, priceOf, pruneSale, replacesNote, saleOf, saleSaid, sellsFor, showDetail, wireSaleDialog, wireSearch, type ArmoryCopy, type ArmoryDraw, type ArmoryGrid, type CardLook, type DetailParts } from './armory';
 export { armoryOrder, equippedIds, forgePlan, type GearCopy, type GearLockedLoadout, type GearView, type Plan, type ShownStatSection, type StatSection, TM_UNSORTED, type TmSort } from './gear';
 export { matchesSearch } from './search';
 export { crystalCount, crystalIcon, crystalName, crystalPicture, stoneCount, stoneIcon, stoneName, stonePicture } from './stones';

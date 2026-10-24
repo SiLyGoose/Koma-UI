@@ -1,4 +1,4 @@
-import { askSale, saleOf, saleSaid } from '../../shared/items';
+import { askSale, saleOf, saleSaid, sellInTurns } from '../../shared/items';
 import { change } from './api';
 import type { GearContext } from './context';
 import { render } from './render';
@@ -25,11 +25,14 @@ export function confirmSale(ctx: GearContext, salvage = false): void {
 export async function sell(ctx: GearContext, salvage = false): Promise<void> {
   const copies = sale(ctx).ids;
   if (copies.length === 0) return;
-  const view = await change<GearSold>(ctx, salvage ? 'salvage' : 'sell', '/api/gear/sell', { copies, ...(salvage && { salvage }) }, `Could not ${salvage ? 'salvage' : 'sell'} those. Try again.`);
+  // (A big sale in turns, the bot's at most SALE_TURN each.)
+  const { sold, stopped } = await sellInTurns(copies, async (turn) =>
+    (await change<GearSold>(ctx, salvage ? 'salvage' : 'sell', '/api/gear/sell', { copies: turn, ...(salvage && { salvage }) }, `Could not ${salvage ? 'salvage' : 'sell'} those. Try again.`))?.sold ?? null,
+  );
   // It paid zeiucoins or komaDust (or whatever the refusal was, the balance may be old): the header's balance follows.
   void ctx.host.loadMe(true);
-  if (!view) return;
+  if (!sold) return;
   ctx.selling = null;
   render(ctx);
-  if (view.sold) saleSaid(ctx.ui.status, view.sold);
+  saleSaid(ctx.ui.status, sold, stopped);
 }
