@@ -1,6 +1,6 @@
 import { HERO_PART_NAME, type HeroesView, type HeroRuneStack } from '../../protocol/heroes';
 import { RUNE_BOXES, RUNE_FRAGMENTS, RUNE_SELL_POINTS, RUNES_AT_ONCE, type RuneBox, type RunesCrafted, type RunesSold } from '../../protocol/runes';
-import { el } from '../../shared/items';
+import { el, type Reward, rewardChips } from '../../shared/items';
 import { fragmentIcon } from '../../shared/items/fragments';
 import { type Busy, busyWith, dropdown, working } from '../../shared/ui';
 import { coin, points } from '../../shared/util';
@@ -32,6 +32,10 @@ const breaksInto = (grade: number, count: number): number => (RUNE_FRAGMENTS[gra
 
 /** An amount and its money: "1,950 (coin)" or "150 (fragment)". */
 const worth = (amount: number, disassemble: boolean): (Node | string)[] => [`${points(amount)} `, disassemble ? fragmentIcon() : coin('coin', 'zeiucoins')];
+
+/** What a sale gives, as pictures (a chip: its picture and how many): zeiucoins, or (disassembling) Rune Fragments. */
+const gives = (amount: number, disassemble: boolean, small = false): HTMLElement =>
+  rewardChips(disassemble ? { more: [{ picture: fragmentIcon('reward-icon'), count: amount, name: 'Rune Fragments' } satisfies Reward] } : { points: amount }, small);
 
 /** −, how many, + and Max, for `count` of at most `max` (`set` takes the new one). */
 function amountRow(count: number, max: number, off: boolean, set: (n: number) => void, label: string): HTMLElement {
@@ -158,12 +162,12 @@ export const runesTab: InventoryTab = {
       };
       const sell = el('button', 'action secondary inv-rune-go');
       sell.type = 'button';
-      sell.append(`Sell ${points(n)} · `, ...worth(sellsFor(rune.grade, n), false));
+      sell.append(`Sell ${points(n)}`);
       working(sell, busy, `sell:${rune.id}`);
       sell.addEventListener('click', () => ask({ [rune.id]: n }, n, sellsFor(rune.grade, n), false, `sell:${rune.id}`));
       const breakUp = el('button', 'action main inv-rune-go');
       breakUp.type = 'button';
-      breakUp.append(`Disassemble ${points(n)} · `, ...worth(breaksInto(rune.grade, n), true));
+      breakUp.append(`Disassemble ${points(n)}`);
       working(breakUp, busy, `disassemble:${rune.id}`);
       breakUp.addEventListener('click', () => ask({ [rune.id]: n }, n, breaksInto(rune.grade, n), true, `disassemble:${rune.id}`));
       const buttons = el('div', 'inv-rune-buttons');
@@ -231,7 +235,7 @@ export const runesTab: InventoryTab = {
       const verb = disassemble ? 'Disassemble' : 'Sell';
       (confirm.querySelector('h3') as HTMLElement).textContent = `${verb} ${points(n)} rune${n === 1 ? '' : 's'}?`;
       const total = confirm.querySelector('.sell-confirm-total') as HTMLElement;
-      total.replaceChildren('+', ...worth(amount, disassemble));
+      total.replaceChildren(gives(amount, disassemble));
       (confirm.querySelector('.sell-confirm-note') as HTMLElement).textContent = `${disassemble ? 'Disassembled' : 'Sold'} runes are gone for good.`;
       (confirm.querySelector('[data-sell="confirm"]') as HTMLElement).textContent = verb;
       confirmed = () => void sell(picked, disassemble, key);
@@ -265,7 +269,7 @@ export const runesTab: InventoryTab = {
       draw();
       const said = host.status(null);
       said.hidden = false;
-      said.append(`${disassemble ? 'Disassembled' : 'Sold'} ${points(runeSale.runes)} rune${runeSale.runes === 1 ? '' : 's'} ${disassemble ? 'into' : 'for'} `, ...worth(disassemble ? runeSale.fragments : runeSale.points, disassemble), disassemble ? ' Rune Fragments.' : '.');
+      said.append(`${disassemble ? 'Disassembled' : 'Sold'} ${points(runeSale.runes)} rune${runeSale.runes === 1 ? '' : 's'} ${disassemble ? 'into' : 'for'} `, gives(disassemble ? runeSale.fragments : runeSale.points, disassemble, true));
     }
 
     // By grade: a box for each grade they have runes of (shown), how many, what they'd come to.
@@ -312,8 +316,8 @@ export const runesTab: InventoryTab = {
       );
       const picks = batchPicks();
       batchSum.replaceChildren(picks.n === 0 ? 'Pick a grade.' : `${points(picks.n)} rune${picks.n === 1 ? '' : 's'}`);
-      batchSell.replaceChildren(...(picks.n > 0 ? [`Sell · `, ...worth(picks.points, false)] : ['Sell']));
-      batchBreak.replaceChildren(...(picks.n > 0 ? [`Disassemble · `, ...worth(picks.fragments, true)] : ['Disassemble']));
+      batchSell.textContent = picks.n > 0 ? `Sell ${points(picks.n)}` : 'Sell';
+      batchBreak.textContent = picks.n > 0 ? `Disassemble ${points(picks.n)}` : 'Disassemble';
       batchSell.disabled = batchBreak.disabled = picks.n === 0 || busy !== null;
     }
     batchButton.addEventListener('click', () => {
@@ -329,7 +333,8 @@ export const runesTab: InventoryTab = {
       const picks = batchPicks();
       if (!button || button.dataset.batch === 'cancel' || picks.n === 0) return;
       const disassemble = button.dataset.batch === 'disassemble';
-      void sell(picks.picked, disassemble, disassemble ? 'disassemble:batch' : 'sell:batch');
+      // (Asked first, as any sale: what it gives, in pictures.)
+      ask(picks.picked, picks.n, disassemble ? picks.fragments : picks.points, disassemble, disassemble ? 'disassemble:batch' : 'sell:batch');
     });
 
     // Craft: a Mysterious Rune picked, how many, and what they take.
