@@ -42,12 +42,16 @@ export interface Tile {
   words?: string;
   /** A button under its details that does something with one (a ticket's Use), off while `off` says why. */
   action?: { label: string; run(button: HTMLButtonElement): void; off?: string };
-  /** Under its details (and `action`): more that does something with it (a rune's how many, Sell and Disassemble), made as they show. */
+  /** Under its details (and `action`): more that does something with it (a rune's how many to sell), made as they show. */
   controls?: () => Node;
+  /** Picked to sell, how many of it (left out: not picked): its slot ticked, as the gear tabs', and "3/5" in its corner for some of them. */
+  selling?: number;
 }
 
 export interface TileGrid {
   draw(tiles: readonly Tile[], query?: string): void;
+  /** Shows `id`'s details (null: none), as pressing its slot does. */
+  pick(id: string | null): void;
   destroy(): void;
 }
 
@@ -58,8 +62,11 @@ function short(n: number): string {
   return `${Math.floor((n / d) * 10) / 10}${unit}`;
 }
 
-/** The grid in `sheet` (its .sheet-scroll), the details in `detail`; `box` is ringed .picking while one shows. */
-export function tileGrid(box: HTMLElement, sheet: HTMLElement, grid: HTMLElement, detail: HTMLElement, none: string): TileGrid {
+/**
+ * The grid in `sheet` (its .sheet-scroll), the details in `detail`; `box` is ringed .picking while one shows. A slot pressed
+ * shows its details, unless `onPress` takes it (true: picking what to sell, the tab's own).
+ */
+export function tileGrid(box: HTMLElement, sheet: HTMLElement, grid: HTMLElement, detail: HTMLElement, none: string, onPress?: (tile: Tile) => boolean): TileGrid {
   let tiles: readonly Tile[] = [];
   let query = '';
   let picked: string | null = null;
@@ -77,19 +84,26 @@ export function tileGrid(box: HTMLElement, sheet: HTMLElement, grid: HTMLElement
   function slot(tile: Tile): HTMLButtonElement {
     const button = el('button', 'item inv-tile');
     button.type = 'button';
+    button.dataset.id = tile.id;
     if (tile.grade !== null) button.dataset.grade = String(tile.grade);
     const pic = el('span', tile.full ? 'inv-tile-pic full' : 'inv-tile-pic');
     pic.append(tile.picture());
     button.append(pic);
     if (tile.grade !== null) button.append(el('span', 'inv-tile-frame'));
-    const count = tile.count === null ? '…' : tile.count === undefined ? '—' : short(tile.count);
+    const count = tile.count === null ? '…' : tile.count === undefined ? '—' : tile.selling !== undefined && tile.selling < tile.count ? `${short(tile.selling)}/${short(tile.count)}` : short(tile.count);
     const label = el('span', 'inv-tile-count', count);
     if (typeof tile.count === 'number') label.title = points(tile.count);
     button.append(label);
     button.classList.toggle('none', tile.count === 0);
     button.classList.toggle('picked', tile.id === picked);
+    // (Picked to sell: the gear tabs' tick over it, ../inventory.css.)
+    if (tile.selling !== undefined) {
+      button.classList.add('to-sell');
+      button.append(el('span', 'item-check', '✓'));
+    }
     button.setAttribute('aria-label', `${tile.name}: ${typeof tile.count === 'number' ? points(tile.count) : 'not known'}`);
     button.addEventListener('click', () => {
+      if (onPress?.(tile)) return;
       const before = picked;
       picked = picked === tile.id ? null : tile.id;
       if (picked) detailAway(box, grid, button);
@@ -120,7 +134,8 @@ export function tileGrid(box: HTMLElement, sheet: HTMLElement, grid: HTMLElement
     const big = slot(tile);
     big.disabled = true;
     big.classList.add('detail-card');
-    big.classList.remove('picked');
+    big.classList.remove('picked', 'to-sell');
+    big.querySelector('.item-check')?.remove();
     const info = el('div', 'detail-info');
     const held = el('p', 'inv-held');
     held.append('Held: ', el('b', '', typeof tile.count === 'number' ? points(tile.count) : '—'));
@@ -183,12 +198,24 @@ export function tileGrid(box: HTMLElement, sheet: HTMLElement, grid: HTMLElement
     draw(tiles, query);
   });
   resized.observe(sheet);
+  // (The bar under the slots taller, as picking what to sell adds a row: the details end above it, ../inventory.css.)
+  const bar = box.querySelector<HTMLElement>('.inv-bar');
+  const barSized = new ResizeObserver(() => box.style.setProperty('--inv-bar-h', `${bar?.offsetHeight ?? 54}px`));
+  if (bar) barSized.observe(bar);
 
   return {
     draw,
+    pick(id) {
+      const before = picked;
+      picked = id;
+      if (id) detailAway(box, grid, [...grid.querySelectorAll<HTMLElement>('.inv-tile')].find((one) => one.dataset.id === id) ?? null);
+      draw(tiles, query);
+      if (before !== id) itemPicked(before, id);
+    },
     destroy: () => {
       document.removeEventListener('keydown', onKey);
       resized.disconnect();
+      barSized.disconnect();
     },
   };
 }

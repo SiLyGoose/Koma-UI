@@ -314,7 +314,8 @@
     position: absolute;
     top: 0;
     right: 0;
-    bottom: 64px;
+    /* Above the bar (its height measured by tabs/tiles.ts on the Runes and Others; one row elsewhere). */
+    bottom: calc(var(--inv-bar-h, 54px) + 10px);
     z-index: 5;
     display: flex;
     flex-direction: column;
@@ -793,9 +794,9 @@
 /* ------------------------------------------------------------------ runes */
 
 /*
- * The Runes' (tabs/runes.ts) Rune Fragments in the bar, after how many runes; a picked rune's sale under its details (how
- * many, then Sell and Disassemble); and its dialogs: the sale asked first, By grade (a box for each grade) and Craft (the
- * Mysterious Runes, one picked, how many).
+ * The Runes' (tabs/runes.ts) Rune Fragments in the bar, after how many runes; a rune picked to sell, how many of it under its
+ * details (its slot ticked as the gear tabs', how many in its corner over the tick); and its dialogs: the sale asked first,
+ * By grade (a box for each grade) and Craft (the Mysterious Runes, one picked, how many).
  */
 .inventory-page .inv-frags {
   display: flex;
@@ -808,8 +809,7 @@
 }
 
 .inventory-page .frag-icon,
-.inventory-page .inv-rune-dialog .coin,
-.inventory-page .inv-rune-go .coin {
+.inventory-page .inv-rune-dialog .coin {
   width: 20px;
   height: 20px;
   vertical-align: -4px;
@@ -831,17 +831,8 @@
   margin: 0;
 }
 
-.inventory-page .inv-rune-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.inventory-page .inv-rune-go {
-  flex: 1 1 140px;
-  gap: 4px;
-  min-height: 38px;
-  white-space: nowrap;
+.inventory-page .inv-tile.to-sell .inv-tile-count {
+  z-index: 3;
 }
 
 .inventory-page .inv-rune-sale .inv-amount-input {

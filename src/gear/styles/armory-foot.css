@@ -57,34 +57,41 @@
 }
 
 /*
- * What a sale gives, as pictures (armory.ts rewardChips): a chip each, its picture and how many; in the sale's dialog big,
- * in the line after it small.
+ * What a sale gives, as pictures (armory.ts rewardChips): in the sale's dialog a tile each, as the raid's result has its
+ * drops (../../technomagic/styles/over.css .tm-tile-points): its picture on the gold-edged plaque, how many under it; in the
+ * line after it small, a chip each, its picture and how many beside it.
  */
 .reward-chips {
   display: inline-flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 12px;
   justify-content: center;
   vertical-align: middle;
 }
 
 .reward-chip {
   display: inline-flex;
+  flex-direction: column;
   gap: 6px;
   align-items: center;
-  padding: 4px 12px 4px 6px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: rgb(255 255 255 / 6%);
+  width: 84px;
   color: var(--gold);
-  font-size: 18px;
+  font-size: 15px;
   font-weight: 800;
+  line-height: 1.2;
   font-variant-numeric: tabular-nums;
 }
 
 .reward-chip .reward-icon {
-  width: 32px;
-  height: 32px;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  box-sizing: border-box;
+  padding: 12%;
+  border: 2px solid var(--gold);
+  border-radius: 6px;
+  background: radial-gradient(circle at 50% 38%, rgb(216 191 122 / 30%), transparent 68%), var(--plaque);
+  box-shadow: inset 0 0 14px 4px rgb(216 191 122 / 25%);
   object-fit: contain;
 }
 
@@ -93,14 +100,24 @@
 }
 
 .reward-chips.small .reward-chip {
+  flex-direction: row;
   gap: 3px;
+  width: auto;
   padding: 1px 8px 1px 3px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 6%);
   font-size: 13px;
 }
 
 .reward-chips.small .reward-chip .reward-icon {
   width: 20px;
   height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
 }
 
 .reward-none {

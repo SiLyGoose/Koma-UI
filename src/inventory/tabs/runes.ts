@@ -3,18 +3,19 @@ import { RUNE_BOXES, RUNE_FRAGMENTS, RUNE_SELL_POINTS, RUNES_AT_ONCE, type RuneB
 import { el, type Reward, rewardChips } from '../../shared/items';
 import { fragmentIcon } from '../../shared/items/fragments';
 import { type Busy, busyWith, dropdown, working } from '../../shared/ui';
-import { coin, points } from '../../shared/util';
-import type { InventoryHost, InventoryTab } from '../tab';
+import { points } from '../../shared/util';
+import type { InventoryTab } from '../tab';
 import { afterTyping, statName, type Tile, tileGrid, tileImage } from './tiles';
 
 /*
  * The inventory's Runes: every rune they have that isn't socketed (the bot's /api/heroes), best first (the dual-stat ones, King's
  * Raid's Velkazar runes, before any other: the top runes there are), a slot each (./tiles.ts): its picture filling it, framed in
- * its grade's colour, how many in its corner; picked, what it gives and the parts it goes in, and how many of it to sell for
- * zeiucoins or disassemble into Rune Fragments (the bot's /api/runes/sell: half King's Raid's, protocol/runes.ts). Its Stats
- * (the site's dropdown, in the bar) shows only those with any of the stats picked. By grade sells or disassembles every rune
- * shown of the grades picked; Craft makes Mysterious Runes (a rune of their grade) from the fragments. Socketing one is the
- * Heroes page's (a piece's Runes).
+ * its grade's colour, how many in its corner; picked, what it gives and the parts it goes in. Its Stats (the site's dropdown,
+ * in the bar) shows only those with any of the stats picked. Sold as the gear tabs' items are (./gear.ts): Sell starts
+ * picking, a rune pressed picks all of it (ticked; on wide screens its details, the last one picked's, say how many of it), Select shown and
+ * By grade pick many, then Sell or Disassemble (for zeiucoins, or Rune Fragments: the bot's /api/runes/sell, half King's
+ * Raid's, protocol/runes.ts) asks first, what it gives in pictures. Craft makes Mysterious Runes (a rune of their grade) from
+ * the fragments. Socketing one is the Heroes page's (a piece's Runes).
  */
 
 /** A rune's grades' names (the bot's data/kr-gear.ts RUNE_GRADE; its Ancient and Velkazar runes are both 5). */
@@ -26,16 +27,15 @@ const dual = (rune: HeroRuneStack): boolean => rune.lines.length > 1;
 /** The runes best first: the dual-stat ones, then the rest, each as the bot has them (by grade). */
 const bestFirst = (runes: readonly HeroRuneStack[]): HeroRuneStack[] => [...runes.filter(dual), ...runes.filter((rune) => !dual(rune))];
 
-/** What `count` of a rune of `grade` sell for, or disassemble into. */
-const sellsFor = (grade: number, count: number): number => (RUNE_SELL_POINTS[grade] ?? 0) * count;
-const breaksInto = (grade: number, count: number): number => (RUNE_FRAGMENTS[grade] ?? 0) * count;
+/** An amount of Rune Fragments: "150 (fragment)". */
+const worth = (amount: number): (Node | string)[] => [`${points(amount)} `, fragmentIcon()];
 
-/** An amount and its money: "1,950 (coin)" or "150 (fragment)". */
-const worth = (amount: number, disassemble: boolean): (Node | string)[] => [`${points(amount)} `, disassemble ? fragmentIcon() : coin('coin', 'zeiucoins')];
-
-/** What a sale gives, as pictures (a chip: its picture and how many): zeiucoins, or (disassembling) Rune Fragments. */
+/** What a sale gives, as pictures (a tile: its picture and how many; `small`, a chip): zeiucoins, or (disassembling) Rune Fragments. */
 const gives = (amount: number, disassemble: boolean, small = false): HTMLElement =>
   rewardChips(disassemble ? { more: [{ picture: fragmentIcon('reward-icon'), count: amount, name: 'Rune Fragments' } satisfies Reward] } : { points: amount }, small);
+
+/** Wide screens, where a rune picked to sell shows its details beside the slots (on narrow ones they'd be a sheet over the bar's Sell). */
+const WIDE = '(min-width: 900px)';
 
 /** −, how many, + and Max, for `count` of at most `max` (`set` takes the new one). */
 function amountRow(count: number, max: number, off: boolean, set: (n: number) => void, label: string): HTMLElement {
@@ -79,8 +79,14 @@ export const runesTab: InventoryTab = {
           <p class="inv-count" aria-live="polite"></p>
           <p class="inv-frags" title="Rune Fragments: disassembling runes gives them, Craft makes runes from them"></p>
           <div class="inv-sell">
-            <button type="button" class="action secondary armory-action" data-runes="batch">By grade</button>
-            <button type="button" class="action main armory-action" data-runes="craft">Craft</button>
+            <button type="button" class="armory-action action secondary sell" data-sale="sell">Sell</button>
+            <button type="button" class="armory-action action secondary sell on" data-sale="disassemble" hidden>Disassemble</button>
+            <button type="button" class="armory-action action secondary" data-sale="cancel" hidden>Cancel</button>
+            <button type="button" class="armory-action action main" data-runes="craft">Craft</button>
+          </div>
+          <div class="sell-tools inv-sell-tools" hidden>
+            <button type="button" class="armory-action action secondary" data-sale="shown">Select shown</button>
+            <button type="button" class="armory-action action secondary" data-sale="grade">By grade</button>
           </div>
         </div>
         <div class="detail" role="dialog" aria-label="Rune" hidden></div>
@@ -93,15 +99,14 @@ export const runesTab: InventoryTab = {
             <button type="button" class="action main" data-sell="confirm"></button>
           </div>
         </dialog>
-        <dialog class="sell-confirm inv-rune-dialog inv-rune-batch" aria-label="Sell or disassemble by grade">
-          <h3>Sell or disassemble by grade</h3>
+        <dialog class="sell-confirm inv-rune-dialog inv-rune-batch" aria-label="Pick by grade">
+          <h3>Pick by grade</h3>
           <div class="inv-rune-grades armory-filter-options"></div>
           <p class="inv-rune-sum"></p>
-          <p class="sell-confirm-note">Of the runes the search and Stats show. Sold and disassembled runes are gone for good.</p>
+          <p class="sell-confirm-note">Picks every rune of the grades ticked that the search and Stats show, with those picked already.</p>
           <div class="sell-confirm-foot">
             <button type="button" class="action secondary" data-batch="cancel">Cancel</button>
-            <button type="button" class="action secondary" data-batch="sell"></button>
-            <button type="button" class="action main" data-batch="disassemble"></button>
+            <button type="button" class="action main" data-batch="pick"></button>
           </div>
         </dialog>
         <dialog class="sell-confirm inv-rune-dialog inv-rune-craft" aria-label="Craft runes">
@@ -120,29 +125,51 @@ export const runesTab: InventoryTab = {
     const search = $<HTMLInputElement>('.armory-search');
     const count = $('.inv-count');
     const frags = $('.inv-frags');
-    const batchButton = $<HTMLButtonElement>('[data-runes="batch"]');
+    const detail = $('.detail');
+    const saleButton = (name: string): HTMLButtonElement => $<HTMLButtonElement>(`[data-sale="${name}"]`);
+    const sellButton = saleButton('sell');
+    const breakButton = saleButton('disassemble');
+    const cancelButton = saleButton('cancel');
+    const shownButton = saleButton('shown');
+    const gradeButton = saleButton('grade');
+    const tools = $('.inv-sell-tools');
     const craftButton = $<HTMLButtonElement>('[data-runes="craft"]');
     const confirm = $<HTMLDialogElement>('.inv-rune-confirm');
     const batch = $<HTMLDialogElement>('.inv-rune-batch');
     const craft = $<HTMLDialogElement>('.inv-rune-craft');
+    let runes: HeroRuneStack[] = [];
+    /** Their Rune Fragments (null: not known yet). */
+    let fragments: number | null = null;
+    /** Picking runes to sell: how many of each (null when not); and the one picked last, whose details show. */
+    let selling: Map<string, number> | null = null;
+    let last: string | null = null;
+    let busy: Busy | null = null;
+    /** Whether the confirm dialog's sale disassembles. */
+    let disassembling = false;
+
     const grid = tileGrid(
       $('.inv-gear'),
       $('.sheet-scroll'),
       $('.armory-grid'),
-      $('.detail'),
+      detail,
       'No runes yet. The TechnoMagic Raid and the Dragon Raid drop them, and Craft makes them from Rune Fragments.',
+      (tile) => {
+        // Picking what to sell: all of a rune picked (its details shown, on wide screens) or let go (the one picked before it shown).
+        if (!selling) return false;
+        if (selling.delete(tile.id)) {
+          if (last === tile.id) last = [...selling.keys()].at(-1) ?? null;
+        } else {
+          selling.set(tile.id, tile.count ?? 1);
+          last = tile.id;
+        }
+        draw();
+        grid.pick(matchMedia(WIDE).matches ? last : null);
+        return true;
+      },
     );
     const stats = $<HTMLSelectElement>('.inv-stat-filter');
     stats.id = 'inv-rune-stats';
     const statPicker = dropdown(stats);
-    let runes: HeroRuneStack[] = [];
-    /** Their Rune Fragments (null: not known yet). */
-    let fragments: number | null = null;
-    /** How many of each rune its details would sell or disassemble. */
-    const amounts = new Map<string, number>();
-    let busy: Busy | null = null;
-    /** What the confirm dialog's button does. */
-    let confirmed: (() => void) | null = null;
 
     /** The runes the Stats leaves (any of those picked; none picked: all), as the search finds them too. */
     function shownRunes(): HeroRuneStack[] {
@@ -152,33 +179,39 @@ export const runesTab: InventoryTab = {
       return kept.filter((rune) => words.every((word) => `${rune.name} ${rune.lines.join(' ')} ${rune.parts.map((part) => HERO_PART_NAME[part]).join(' ')}`.toLowerCase().includes(word)));
     }
 
-    /** A rune's details' sale: how many, then Sell and Disassemble (each asked first). */
-    function saleControls(rune: HeroRuneStack): HTMLElement {
+    /** What's picked to sell: how many of each rune, how many all told, and what they sell for or disassemble into. */
+    function sale(): { picked: Record<string, number>; n: number; points: number; fragments: number } {
+      const picked: Record<string, number> = {};
+      let n = 0;
+      let paid = 0;
+      let broken = 0;
+      for (const [id, k] of selling ?? []) {
+        const rune = runes.find((one) => one.id === id);
+        if (!rune || k < 1) continue;
+        picked[id] = k;
+        n += k;
+        paid += (RUNE_SELL_POINTS[rune.grade] ?? 0) * k;
+        broken += (RUNE_FRAGMENTS[rune.grade] ?? 0) * k;
+      }
+      return { picked, n, points: paid, fragments: broken };
+    }
+
+    /** A rune picked to sell, in its details: how many of it go (all of it, as picked). */
+    function sellingControls(rune: HeroRuneStack): HTMLElement {
       const box = el('div', 'inv-rune-sale');
-      const n = Math.max(1, Math.min(amounts.get(rune.id) ?? 1, rune.count));
+      const n = selling?.get(rune.id) ?? rune.count;
       const set = (to: number): void => {
-        amounts.set(rune.id, Math.max(1, Math.min(to, rune.count)));
+        selling?.set(rune.id, Math.max(1, Math.min(to, rune.count)));
         draw();
       };
-      const sell = el('button', 'action secondary inv-rune-go');
-      sell.type = 'button';
-      sell.append(`Sell ${points(n)}`);
-      working(sell, busy, `sell:${rune.id}`);
-      sell.addEventListener('click', () => ask({ [rune.id]: n }, n, sellsFor(rune.grade, n), false, `sell:${rune.id}`));
-      const breakUp = el('button', 'action main inv-rune-go');
-      breakUp.type = 'button';
-      breakUp.append(`Disassemble ${points(n)}`);
-      working(breakUp, busy, `disassemble:${rune.id}`);
-      breakUp.addEventListener('click', () => ask({ [rune.id]: n }, n, breaksInto(rune.grade, n), true, `disassemble:${rune.id}`));
-      const buttons = el('div', 'inv-rune-buttons');
-      buttons.append(sell, breakUp);
-      box.append(el('p', 'detail-label', 'Sell or disassemble'), amountRow(n, rune.count, busy !== null, set, `How many ${rune.name}`), buttons);
+      box.append(el('p', 'detail-label', `Selling ${points(n)} of ${points(rune.count)}`), amountRow(n, rune.count, busy !== null, set, `How many ${rune.name} to sell`));
       return box;
     }
 
-    /** A rune's slot. */
+    /** A rune's slot (picked to sell: ticked, with how many of it in its corner). */
     function tile(rune: HeroRuneStack): Tile {
       const parts = rune.parts.map((part) => HERO_PART_NAME[part]).join(', ');
+      const picked = selling?.get(rune.id);
       return {
         id: rune.id,
         name: rune.name,
@@ -190,10 +223,14 @@ export const runesTab: InventoryTab = {
         about: `Goes in ${parts}. Socket it on the Heroes page. Sells for ${points(RUNE_SELL_POINTS[rune.grade] ?? 0)} zeiucoins, disassembles into ${points(RUNE_FRAGMENTS[rune.grade] ?? 0)} Rune Fragments.`,
         lines: rune.lines,
         words: `${rune.lines.join(' ')} ${parts}`,
-        controls: () => saleControls(rune),
+        ...(picked !== undefined && { selling: picked, controls: () => sellingControls(rune) }),
       };
     }
 
+    /**
+     * How many runes and their fragments; Sell (to start picking, then with some picked "Sell 5"), Disassemble and Cancel
+     * while picking (as the gear tabs' Sell, Salvage and Cancel), and Select shown and By grade under them; Craft otherwise.
+     */
     function drawBar(): void {
       const shown = shownRunes();
       const total = runes.reduce((sum, rune) => sum + rune.count, 0);
@@ -201,8 +238,21 @@ export const runesTab: InventoryTab = {
       count.textContent = total === 0 ? '' : `${of !== total ? `${of.toLocaleString()} of ` : ''}${total.toLocaleString()} rune${total === 1 ? '' : 's'} not socketed`;
       frags.textContent = '';
       frags.append(fragmentIcon(), fragments === null ? '…' : points(fragments));
-      batchButton.disabled = of === 0;
+      const { n } = sale();
+      sellButton.textContent = !selling ? 'Sell' : n > 0 ? `Sell ${points(n)}` : 'Select runes';
+      sellButton.disabled = selling ? n === 0 : total === 0;
+      sellButton.classList.toggle('on', selling !== null);
+      working(sellButton, busy, 'sell');
+      breakButton.hidden = cancelButton.hidden = tools.hidden = selling === null;
+      breakButton.textContent = n > 0 ? `Disassemble ${points(n)}` : 'Disassemble';
+      breakButton.disabled = n === 0;
+      working(breakButton, busy, 'disassemble');
+      craftButton.hidden = selling !== null;
       working(craftButton, busy, 'craft');
+      const all = shown.length > 0 && shown.every((rune) => selling?.get(rune.id) === rune.count);
+      shownButton.textContent = all ? 'Unselect shown' : 'Select shown';
+      shownButton.disabled = shown.length === 0 || busy !== null;
+      gradeButton.disabled = shown.length === 0 || busy !== null;
     }
 
     /** The runes the Stats leaves, drawn by the search. */
@@ -218,41 +268,50 @@ export const runesTab: InventoryTab = {
     search.addEventListener('input', () => searched());
     stats.addEventListener('change', draw);
 
-    /** Takes the heroes' answer (theirs after a change): their runes and fragments. */
+    /** Takes the heroes' answer (theirs after a change): their runes and fragments (those picked to sell, as many as are left). */
     function take(view: HeroesView): void {
       runes = bestFirst(view.runes);
       fragments = view.runeFragments ?? 0;
-      for (const [id, n] of amounts) {
+      for (const [id, n] of selling ?? []) {
         const left = runes.find((rune) => rune.id === id)?.count ?? 0;
-        if (left === 0) amounts.delete(id);
-        else amounts.set(id, Math.min(n, left));
+        if (left === 0) selling?.delete(id);
+        else selling?.set(id, Math.min(n, left));
       }
+      if (last && !selling?.has(last)) last = null;
     }
 
-    /** Asks to sell (or disassemble) `picked` (how many of each), `n` runes for `amount`, then does. */
-    function ask(picked: Record<string, number>, n: number, amount: number, disassemble: boolean, key: string): void {
-      if (busy) return;
+    /** Starts or stops picking runes to sell (the details closed). */
+    function pickToSell(on: boolean): void {
+      selling = on ? new Map() : null;
+      last = null;
+      grid.pick(null);
+      draw();
+    }
+
+    /** Asks (in the confirm dialog) to sell or disassemble what's picked: how many, and what it gives in pictures. */
+    function ask(disassemble: boolean): void {
+      const { n, points: paid, fragments: broken } = sale();
+      if (busy || n === 0) return;
+      disassembling = disassemble;
       const verb = disassemble ? 'Disassemble' : 'Sell';
       (confirm.querySelector('h3') as HTMLElement).textContent = `${verb} ${points(n)} rune${n === 1 ? '' : 's'}?`;
-      const total = confirm.querySelector('.sell-confirm-total') as HTMLElement;
-      total.replaceChildren(gives(amount, disassemble));
+      (confirm.querySelector('.sell-confirm-total') as HTMLElement).replaceChildren(gives(disassemble ? broken : paid, disassemble));
       (confirm.querySelector('.sell-confirm-note') as HTMLElement).textContent = `${disassemble ? 'Disassembled' : 'Sold'} runes are gone for good.`;
       (confirm.querySelector('[data-sell="confirm"]') as HTMLElement).textContent = verb;
-      confirmed = () => void sell(picked, disassemble, key);
       confirm.showModal();
     }
     confirm.addEventListener('click', (event) => {
       const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-sell]');
       if (!button && event.target !== confirm) return;
       confirm.close();
-      const then = confirmed;
-      confirmed = null;
-      if (button?.dataset.sell === 'confirm') then?.();
+      if (button?.dataset.sell === 'confirm') void sell(disassembling);
     });
 
-    async function sell(picked: Record<string, number>, disassemble: boolean, key: string): Promise<void> {
-      if (busy) return;
-      busy = busyWith(key);
+    /** Sells (or disassembles) what's picked, and says what it came to. */
+    async function sell(disassemble: boolean): Promise<void> {
+      const { picked, n } = sale();
+      if (busy || n === 0) return;
+      busy = busyWith(disassemble ? 'disassemble' : 'sell');
       host.status(null);
       draw();
       const res = await host.post<RunesSold>('/api/runes/sell', { runes: picked, ...(disassemble && { disassemble }) });
@@ -266,33 +325,38 @@ export const runesTab: InventoryTab = {
       const { runeSale, ...view } = res.data;
       host.keep('heroes', view);
       take(view);
-      draw();
-      const said = host.status(null);
-      said.hidden = false;
+      pickToSell(false);
+      const said = host.status('');
       said.append(`${disassemble ? 'Disassembled' : 'Sold'} ${points(runeSale.runes)} rune${runeSale.runes === 1 ? '' : 's'} ${disassemble ? 'into' : 'for'} `, gives(disassemble ? runeSale.fragments : runeSale.points, disassemble, true));
     }
 
-    // By grade: a box for each grade they have runes of (shown), how many, what they'd come to.
+    // Sell: to start picking runes, then (with some picked) to confirm the sale; Disassemble, what's picked for fragments; Cancel stops picking.
+    sellButton.addEventListener('click', () => (selling ? ask(false) : pickToSell(true)));
+    breakButton.addEventListener('click', () => ask(true));
+    cancelButton.addEventListener('click', () => pickToSell(false));
+    // Select shown: all of every rune the search and Stats show (all of them picked already: let go).
+    shownButton.addEventListener('click', () => {
+      if (!selling) return;
+      const shown = shownRunes();
+      if (shown.every((rune) => selling?.get(rune.id) === rune.count)) for (const rune of shown) selling.delete(rune.id);
+      else for (const rune of shown) selling.set(rune.id, rune.count);
+      if (last && !selling.has(last)) last = null;
+      draw();
+      grid.pick(matchMedia(WIDE).matches ? last : null);
+    });
+    // Escape stops picking runes to sell (a rune's details, or a dialog, close first by themselves).
+    const onKey = (e: KeyboardEvent): void => {
+      if (e.key === 'Escape' && selling && detail.hidden && !(e.target instanceof HTMLInputElement) && !confirm.open && !batch.open && !craft.open) pickToSell(false);
+    };
+    document.addEventListener('keydown', onKey, true);
+
+    // By grade: a box for each grade of the runes shown, how many; Pick adds all of them to those picked.
     const grades = batch.querySelector('.inv-rune-grades') as HTMLElement;
     const batchSum = batch.querySelector('.inv-rune-sum') as HTMLElement;
-    const batchSell = batch.querySelector('[data-batch="sell"]') as HTMLButtonElement;
-    const batchBreak = batch.querySelector('[data-batch="disassemble"]') as HTMLButtonElement;
+    const batchPick = batch.querySelector('[data-batch="pick"]') as HTMLButtonElement;
     const pickedGrades = new Set<number>();
-    /** The runes By grade takes: those shown of the grades picked, how many of each, and what they come to. */
-    function batchPicks(): { picked: Record<string, number>; n: number; points: number; fragments: number } {
-      const picked: Record<string, number> = {};
-      let n = 0;
-      let paid = 0;
-      let broken = 0;
-      for (const rune of shownRunes()) {
-        if (!pickedGrades.has(rune.grade)) continue;
-        picked[rune.id] = rune.count;
-        n += rune.count;
-        paid += sellsFor(rune.grade, rune.count);
-        broken += breaksInto(rune.grade, rune.count);
-      }
-      return { picked, n, points: paid, fragments: broken };
-    }
+    /** The runes By grade picks: those shown of the grades ticked. */
+    const gradePicks = (): HeroRuneStack[] => shownRunes().filter((rune) => pickedGrades.has(rune.grade));
     function drawBatch(): void {
       const shown = shownRunes();
       const have = [1, 2, 3, 4, 5, 6].map((grade) => [grade, shown.filter((rune) => rune.grade === grade).reduce((sum, rune) => sum + rune.count, 0)] as const);
@@ -314,13 +378,12 @@ export const runesTab: InventoryTab = {
           return [row];
         }),
       );
-      const picks = batchPicks();
-      batchSum.replaceChildren(picks.n === 0 ? 'Pick a grade.' : `${points(picks.n)} rune${picks.n === 1 ? '' : 's'}`);
-      batchSell.textContent = picks.n > 0 ? `Sell ${points(picks.n)}` : 'Sell';
-      batchBreak.textContent = picks.n > 0 ? `Disassemble ${points(picks.n)}` : 'Disassemble';
-      batchSell.disabled = batchBreak.disabled = picks.n === 0 || busy !== null;
+      const n = gradePicks().reduce((sum, rune) => sum + rune.count, 0);
+      batchSum.textContent = n === 0 ? 'Tick a grade.' : `${points(n)} rune${n === 1 ? '' : 's'} match`;
+      batchPick.textContent = n > 0 ? `Pick ${points(n)}` : 'Pick';
+      batchPick.disabled = n === 0;
     }
-    batchButton.addEventListener('click', () => {
+    gradeButton.addEventListener('click', () => {
       pickedGrades.clear();
       drawBatch();
       batch.showModal();
@@ -330,11 +393,9 @@ export const runesTab: InventoryTab = {
       if (!button && event.target !== batch) return;
       if (button?.disabled) return;
       batch.close();
-      const picks = batchPicks();
-      if (!button || button.dataset.batch === 'cancel' || picks.n === 0) return;
-      const disassemble = button.dataset.batch === 'disassemble';
-      // (Asked first, as any sale: what it gives, in pictures.)
-      ask(picks.picked, picks.n, disassemble ? picks.fragments : picks.points, disassemble, disassemble ? 'disassemble:batch' : 'sell:batch');
+      if (button?.dataset.batch !== 'pick' || !selling) return;
+      for (const rune of gradePicks()) selling.set(rune.id, rune.count);
+      draw();
     });
 
     // Craft: a Mysterious Rune picked, how many, and what they take.
@@ -360,7 +421,7 @@ export const runesTab: InventoryTab = {
           pic.append(tileImage(`/kr/items/${one.icon}.webp`));
           const words = el('span', 'inv-rune-box-words');
           const cost = el('span', 'inv-rune-box-cost');
-          cost.append(...worth(one.fragments, true), ' each');
+          cost.append(...worth(one.fragments), ' each');
           words.append(el('span', 'inv-rune-box-name', one.name), el('span', 'inv-rune-box-about', `${/^[AEIOU]/.test(GRADE_NAME[one.grade] ?? '') || one.id === 'ancient' ? 'An' : 'A'} ${one.id === 'ancient' ? 'Ancient' : GRADE_NAME[one.grade]} rune, any as likely`), cost);
           row.append(pic, words);
           row.addEventListener('click', () => {
@@ -379,7 +440,7 @@ export const runesTab: InventoryTab = {
           drawCraft();
         }, 'How many to craft'),
       );
-      craftSum.replaceChildren(...(max === 0 ? [`Not enough Rune Fragments: one takes ${points(box.fragments)}. Disassemble runes for them.`] : ['Uses ', ...worth(making * box.fragments, true), ` for ${points(making)}`]));
+      craftSum.replaceChildren(...(max === 0 ? [`Not enough Rune Fragments: one takes ${points(box.fragments)}. Disassemble runes for them.`] : ['Uses ', ...worth(making * box.fragments), ` for ${points(making)}`]));
       craftGo.textContent = max === 0 ? 'Craft' : `Craft ${points(making)}`;
       craftGo.disabled = max === 0;
       working(craftGo, busy, 'craft');
@@ -449,6 +510,7 @@ export const runesTab: InventoryTab = {
     return {
       drawn: load(),
       unmount: () => {
+        document.removeEventListener('keydown', onKey, true);
         searched.cancel();
         statPicker.destroy();
         grid.destroy();
