@@ -586,23 +586,54 @@ export async function sellInTurns(ids: readonly string[], turn: (ids: string[]) 
   return { sold, stopped: false };
 }
 
-/** What a sale came to, in the page's status line (a salvage's komaDust, and what it crafts; its TechnoMagic pieces' Upgrade Stones). */
+/**
+ * What a sale came to, in a popup over the page (the sale's confirmation's look: ../../gear/styles/armory-foot.css): what it
+ * was ("Sold 4 items"), what it gave (rewardChips, as its confirmation drew them) and any `notes` under them. OK, a click
+ * beside it or Escape closes it, and it goes.
+ */
+export function salePopup(title: string, gave: HTMLElement, notes: readonly (Node | string)[] = []): HTMLDialogElement {
+  const dialog = el('dialog', 'sell-confirm sale-done');
+  dialog.setAttribute('aria-label', title);
+  const total = el('p', 'sell-confirm-total');
+  total.append(gave);
+  const note = el('p', 'sell-confirm-note');
+  note.append(...notes);
+  const foot = el('div', 'sell-confirm-foot');
+  const ok = el('button', 'action main', 'OK');
+  ok.type = 'button';
+  foot.append(ok);
+  dialog.append(el('h3', '', title), total, ...(notes.length > 0 ? [note] : [el('span', 'sale-done-gap')]), foot);
+  dialog.addEventListener('click', (event) => {
+    // (OK, or its backdrop: the dialog itself, outside its box.)
+    if (event.target === ok || event.target === dialog) dialog.close();
+  });
+  dialog.addEventListener('close', () => dialog.remove());
+  document.body.append(dialog);
+  dialog.showModal();
+  ok.focus();
+  return dialog;
+}
+
+/**
+ * What a sale came to, in a popup (salePopup): how many it sold or salvaged, what it gave (zeiucoins; a salvage's komaDust,
+ * and its TechnoMagic pieces' Upgrade Stones and Boss Crystals), and the page's status line cleared.
+ */
 export function saleSaid(status: HTMLElement, sold: SaleDone, stopped = false): void {
-  status.hidden = false;
+  status.hidden = true;
   status.classList.remove('bad');
   status.textContent = '';
-  // (A salvage: komaDust, and a TechnoMagic piece's Upgrade Stones in its place, King's Raid's.)
   const counts = (of: Partial<Record<string, number>> | undefined): Record<string, number> => Object.fromEntries(Object.entries(of ?? {}).map(([id, count]) => [id, count ?? 0]));
   const extras = { stones: counts(sold.stones), crystals: counts(sold.crystals) };
   const salvaged = (sold.powder ?? 0) > 0 || [...Object.values(extras.stones), ...Object.values(extras.crystals)].some((count) => count > 0);
-  status.append(`${salvaged ? 'Salvaged' : 'Sold'} ${sold.count} item${sold.count === 1 ? '' : 's'} for `, rewardChips(salvaged ? { dust: sold.powder ?? 0, ...extras } : { points: sold.earned }, true));
+  const notes: (Node | string)[] = [];
   if ((sold.powder ?? 0) > 0) {
     const craft = el('a', '', 'Craft');
     craft.href = '/inventory/craft/';
-    status.append(' (craft komaGems from it in the Inventory’s ', craft, ')');
+    notes.push('Craft komaGems from komaDust in the Inventory’s ', craft, ' tab.');
   }
   // (A sale in turns that stopped partway: the rest of it wasn't sold, and is still theirs.)
-  if (stopped) status.append(' The rest couldn’t be: try again.');
+  if (stopped) notes.push(`${notes.length > 0 ? ' ' : ''}The rest couldn’t be ${salvaged ? 'salvaged' : 'sold'}: try again.`);
+  salePopup(`${salvaged ? 'Salvaged' : 'Sold'} ${points(sold.count)} item${sold.count === 1 ? '' : 's'}`, rewardChips(salvaged ? { dust: sold.powder ?? 0, ...extras } : { points: sold.earned }), notes);
 }
 
 /**

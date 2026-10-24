@@ -1,6 +1,6 @@
 import { HERO_PART_NAME, type HeroesView, type HeroRuneStack } from '../../protocol/heroes';
 import { RUNE_FRAGMENTS, RUNE_SELL_POINTS, type RunesSold } from '../../protocol/runes';
-import { el, type Reward, rewardChips } from '../../shared/items';
+import { el, type Reward, rewardChips, salePopup } from '../../shared/items';
 import { fragmentIcon } from '../../shared/items/fragments';
 import { type Busy, busyWith, dropdown, working } from '../../shared/ui';
 import { points } from '../../shared/util';
@@ -299,8 +299,9 @@ export const runesTab: InventoryTab = {
       host.keep('heroes', view);
       take(view);
       pickToSell(false);
-      const said = host.status('');
-      said.append(`${disassemble ? 'Disassembled' : 'Sold'} ${points(runeSale.runes)} rune${runeSale.runes === 1 ? '' : 's'} ${disassemble ? 'into' : 'for'} `, gives(disassemble ? runeSale.fragments : runeSale.points, disassemble, true));
+      // (What it came to, in a popup: as the gear tabs' sales.)
+      host.status(null);
+      salePopup(`${disassemble ? 'Disassembled' : 'Sold'} ${points(runeSale.runes)} rune${runeSale.runes === 1 ? '' : 's'}`, gives(disassemble ? runeSale.fragments : runeSale.points, disassemble));
     }
 
     // Sell: to start picking runes, then (with some picked) to confirm the sale; Disassemble, what's picked for fragments; Cancel stops picking.

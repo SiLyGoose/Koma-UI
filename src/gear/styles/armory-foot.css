@@ -151,6 +151,12 @@
   font-weight: 700;
 }
 
+/* A sale done (armory.ts salePopup): with no note, its OK as far under what it gave as the confirmation's buttons are. */
+.sale-done-gap {
+  display: block;
+  height: 18px;
+}
+
 .sell-confirm-note {
   margin: 8px 0 18px;
   color: var(--muted);
