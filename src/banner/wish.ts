@@ -212,8 +212,8 @@ function reveal(pull: BannerPull): HTMLElement {
   if (pull.borrowed !== null) text.append(el('p', 'wish-note', `Made for someone else: it works at ${Math.round(pull.borrowed * 100)}% for you.`));
   if (pull.uniqueWeapon) text.append(el('p', 'wish-note', `A unique weapon: only its own hero wields it. Put it on them on the Heroes page.`));
   if (pull.uniqueTreasure) text.append(el('p', 'wish-note', `A unique treasure: only its own hero wears it, as its main treasure for its effect, or as a sub treasure for its options. Put it on them on the Heroes page.`));
-  // (More than one star (a hero's gear) or refined, as it was pulled: King's Raid's now and then.)
-  if ((pull.level ?? 1) > 1) text.append(el('p', 'wish-note', heroGear(pull) ? `It came at ★${pull.level}!` : `It came at ★${pull.level}!`));
+  // (Above the stars a new copy has, as it was pulled: King's Raid's now and then. A hero's gear starts at 0★, the members' own at 1★.)
+  if ((pull.level ?? 1) > (heroGear(pull) ? 0 : 1)) text.append(el('p', 'wish-note', `It came at ★${pull.level}!`));
 
   box.append(burst, text, el('p', 'wish-tap', 'Click to continue'));
   return box;

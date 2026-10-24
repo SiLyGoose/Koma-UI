@@ -29,7 +29,8 @@ export function hintFor(ctx: ForgeContext, copy: GearCopy | undefined, plan: Pla
       if (stones) return { text: `Uses ${points(stones.need)} of your ${points(stones.have)} ${stoneName(stones.class, true)}${copy.reclaimed ? ' (a Reclaimed piece takes half as many again)' : ''}.` };
       const spare = copyById(ctx, ctx.material);
       if (!spare) return { text: `Pick a spare ${shownName(copy)} from your armory to use up as material.` };
-      if (spare.level > 1) return { text: `This spare is ${levelLabel(spare)}: its stars are lost when it's used up.`, tone: 'bad' };
+      // (Above a new copy's stars: a hero's gear starts at 0★, the members' own at 1★.)
+      if (spare.level > (heroGear(spare) ? 0 : 1)) return { text: `This spare is ${levelLabel(spare)}: its stars are lost when it's used up.`, tone: 'bad' };
       return { text: 'The same gear as the target is used up as material.' };
     }
   }
