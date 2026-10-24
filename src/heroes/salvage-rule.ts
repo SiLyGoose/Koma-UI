@@ -50,7 +50,7 @@ export interface SalvageRuleHooks {
 }
 
 /** Fills and wires the page's Salvage by rule dialog; `open` shows it, starting from the rule kept (or the last one used). */
-export function salvageRuleDialog(dialog: HTMLDialogElement, ctx: HeroesContext, hooks: SalvageRuleHooks): { open(): void } {
+export function salvageRuleDialog(dialog: HTMLDialogElement, ctx: Pick<HeroesContext, 'view' | 'sellLocked'>, hooks: SalvageRuleHooks): { open(): void } {
   /** The last rule picked by, for the next time it opens (with none kept). */
   let last: SalvageRule | null = null;
   let rule: SalvageRule = FIRST_RULE;

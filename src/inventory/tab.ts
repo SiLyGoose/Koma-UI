@@ -26,6 +26,12 @@ export interface InventoryHost {
   load<K extends Source>(what: K, fresh?: boolean): Promise<ApiResult<Sources[K]>>;
   /** Keeps `data` as what the bot says of `what` now (a change's answer), so the other tabs show it too. */
   keep<K extends Source>(what: K, data: Sources[K]): void;
+  /** Lets go of what the bot said of `what` (changed by another's change: hero gear sold is gone from the gear's copies too), asked for again by the next tab that wants it. */
+  forget(what: Source): void;
+  /** Sends a change to the bot (POST `path`, with the server picked): its answer. */
+  post<T>(path: string, body: Record<string, unknown>): Promise<ApiResult<T>>;
+  /** Asks again for their zeiucoins (the header's), after a change paid or took some. */
+  refreshBalance(): void;
   /** Their zeiucoins in the server picked (the header's), or null when not known. */
   balance(): number | null;
   /** The line under the tabs: `text` (null hides it), in red when `bad`. */

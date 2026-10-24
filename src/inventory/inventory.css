@@ -3,8 +3,8 @@
  * game's NGUI atlases: Common_Box_Text_4 the window, Common_Button_Tab_Disable / _Enable / _Enable_2 the tabs, Common_Slot
  * a slot, Common_Box_Text_5 the bar): its name over it, its tabs across its top (the one open blue, Craft green), the tab
  * open under them. Player Gear and Hero Gear: a dark sheet of slots, the item cards in them (../shared/items/, their frames
- * King's Raid's grades), eight across on wide screens, and the site's dark bar under them with the search, the Filter and how many
- * there are; a picked one's details over the half of the slots away from it (a sheet from the bottom on narrow screens, items.css). Runes
+ * King's Raid's grades), eight across on wide screens, and the site's dark bar under them with the search, the Filter, how many
+ * there are and Sell; a picked one's details over the half of the slots away from it (a sheet from the bottom on narrow screens, items.css). Runes
  * and Others: slots the same way, how many in each one's corner. Craft: what to craft on the sheet, the one picked on the cream beside it.
  * Everything is under .inventory-page, so it outweighs the shared styles whichever order the build links them in.
  */
@@ -209,6 +209,28 @@
   margin: 0 0 0 auto;
   font-size: 13px;
   font-weight: 700;
+}
+
+/* Sell, Salvage and Cancel after how many items (tabs/gear.ts), as tall as the search; picking what to sell, its tools on a row of their own. */
+.inventory-page .inv-sell {
+  display: flex;
+  gap: 8px;
+}
+
+.inventory-page .inv-bar .armory-action {
+  min-height: 36px;
+  padding: 0 14px;
+  font-size: 14px;
+}
+
+.inventory-page .inv-bar .inv-sell-tools {
+  flex: 1 0 100%;
+  margin: 0;
+}
+
+/* Picked to sell: the sale's red ring (../gear/styles/armory-foot.css), over the slot's own frame. */
+.inventory-page .inv-sheet .item.to-sell {
+  border-color: var(--red);
 }
 
 /* ------------------------------------------------------------------ gear */

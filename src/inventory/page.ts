@@ -14,8 +14,8 @@ import type { InventoryHost, InventoryTab, Source, Sources } from './tab';
  * across the top, the one picked under them. Player Gear (the members'
  * own gear) and Hero Gear (./tabs/gear.ts), each copy's card on parchment and its details beside them; Runes (./tabs/runes.ts),
  * the runes they have that aren't socketed; Others (./tabs/others.ts), their currencies; Craft (./tabs/craft.ts), making
- * things from komaDust. What's done with gear (wearing it, selling it, socketing runes) stays on the Player and Heroes pages:
- * the details link there. Each tab has its own path (/inventory/player-gear/, …; /inventory/ is the first), so a link can
+ * things from komaDust. Gear is locked, unlocked, sold and salvaged here too (as the Player and Heroes pages do it); wearing
+ * it and socketing runes stay on those pages, the details linking there. Each tab has its own path (/inventory/player-gear/, …; /inventory/ is the first), so a link can
  * open one; picking another swaps it in place, and the address follows without a new history entry (as the shop's tabs).
  * What the bot says is asked for once a server, whichever tab asks first, and kept while the page is open.
  */
@@ -79,6 +79,11 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void; 
     keep(what, data) {
       known.set(what, Promise.resolve({ ok: true, data }));
     },
+    forget(what) {
+      known.delete(what);
+    },
+    post: (path, body) => api(path, { method: 'POST', body: JSON.stringify({ guild: host.server(), ...body }) }),
+    refreshBalance: () => void loadMe(true),
     balance: () => currentMe()?.servers.find((s) => s.id === currentServer())?.balance ?? null,
     status,
     failed(res, what) {
