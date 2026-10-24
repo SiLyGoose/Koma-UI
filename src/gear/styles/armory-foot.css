@@ -56,6 +56,57 @@
   font-weight: 800;
 }
 
+/*
+ * What a sale gives, as pictures (armory.ts rewardChips): a chip each, its picture and how many; in the sale's dialog big,
+ * in the line after it small.
+ */
+.reward-chips {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  vertical-align: middle;
+}
+
+.reward-chip {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  padding: 4px 12px 4px 6px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 6%);
+  color: var(--gold);
+  font-size: 18px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.reward-chip .reward-icon {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.reward-chips.small {
+  gap: 4px;
+}
+
+.reward-chips.small .reward-chip {
+  gap: 3px;
+  padding: 1px 8px 1px 3px;
+  font-size: 13px;
+}
+
+.reward-chips.small .reward-chip .reward-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.reward-none {
+  color: var(--muted);
+}
+
 /* Selling what's picked: how many, for how much, then Cancel or Sell. */
 .sell-confirm {
   width: min(340px, calc(100vw - 32px));

@@ -6,7 +6,7 @@ import type { HeroPart } from '../../protocol/heroes';
 import type { MainStat } from '../../protocol/items';
 import { matchesStars, type StarChoice } from './armory-filter/armory-filter';
 import { padlock } from './padlock';
-import { crystalCount, stoneCount } from './stones';
+import { crystalCount, crystalIcon, crystalName, stoneCount, stoneIcon, stoneName } from './stones';
 import { matchesSearch } from './search';
 import { hoverSound } from './sfx';
 
@@ -424,6 +424,38 @@ export function saleOf(
   return { count: ids.length, total, dust, stones, crystals, salvageable, ids, locked };
 }
 
+/** One thing a sale gives, as its chip shows it: its picture, how many, and its name (said on pointing at it). */
+export interface Reward {
+  picture: Node;
+  count: number;
+  name: string;
+}
+
+/**
+ * What a sale gives, as pictures: a chip each, its picture and how many (zeiucoins, komaDust, a class's Upgrade Stones, a set's
+ * Boss Crystals, and any `more`, as a rune sale's fragments), its name said on pointing at it. `small`: in a line of words.
+ */
+export function rewardChips({ points: paid = 0, dust: dustAmount = 0, stones = {}, crystals = {}, more = [] }: { points?: number; dust?: number; more?: readonly Reward[] } & SalvageExtras, small = false): HTMLElement {
+  const rewards: Reward[] = [
+    ...(paid > 0 ? [{ picture: coin('reward-icon', ''), count: paid, name: 'zeiucoins' }] : []),
+    ...(dustAmount > 0 ? [{ picture: dust('reward-icon', ''), count: dustAmount, name: 'komaDust' }] : []),
+    ...Object.entries(stones).filter(([, count]) => count > 0).map(([cls, count]) => ({ picture: stoneIcon(cls, 'reward-icon'), count, name: stoneName(cls) })),
+    ...Object.entries(crystals).filter(([, count]) => count > 0).map(([set, count]) => ({ picture: crystalIcon(set, 'reward-icon'), count, name: crystalName(set) })),
+    ...more.filter((one) => one.count > 0),
+  ];
+  const box = el('span', `reward-chips${small ? ' small' : ''}`);
+  for (const { picture, count, name } of rewards) {
+    const chip = el('span', 'reward-chip');
+    chip.title = `${points(count)} ${name}`;
+    chip.setAttribute('aria-label', `${points(count)} ${name}`);
+    if (picture instanceof HTMLImageElement) picture.alt = '';
+    chip.append(picture, el('span', 'reward-count', `×${points(count)}`));
+    box.append(chip);
+  }
+  if (rewards.length === 0) box.append(el('span', 'reward-none', 'nothing'));
+  return box;
+}
+
 /** What a salvage gives besides komaDust: its TechnoMagic pieces' Upgrade Stones, by class, and Boss Crystals, by set. */
 export interface SalvageExtras {
   stones?: Readonly<Record<string, number>>;
@@ -467,10 +499,10 @@ export function pruneSale(copies: readonly ArmoryCopy[], selling: Set<string>, u
  * heroes page, where a locked one is still a reason to start picking).
  */
 export function drawSell(sell: HTMLButtonElement, salvage: HTMLButtonElement, cancel: HTMLElement, copies: readonly ArmoryCopy[], selling: ReadonlySet<string> | null, busy: Busy | null, shown: boolean, unlocked: boolean | null = null): void {
-  const { count, total, dust: salvaged, stones, crystals, salvageable } = saleOf(copies, selling, unlocked === true);
+  const { count, salvageable } = saleOf(copies, selling, unlocked === true);
   sell.hidden = !shown || copies.some((copy) => copy.sell === undefined);
   sell.textContent = '';
-  if (selling && count > 0) sell.append(`Sell ${count} · `, ...worth(total, false));
+  if (selling && count > 0) sell.append(`Sell ${count}`);
   else sell.append(selling ? 'Select items' : 'Sell');
   sell.disabled = selling ? count === 0 : !copies.some((copy) => priceOf(copy, unlocked !== null) !== null);
   working(sell, busy, 'sell');
@@ -478,7 +510,7 @@ export function drawSell(sell: HTMLButtonElement, salvage: HTMLButtonElement, ca
   salvage.hidden = sell.hidden || selling === null || !copies.some((copy) => copy.salvage !== undefined);
   salvage.textContent = '';
   const all = count > 0 && salvageable === count;
-  if (all) salvage.append(`Salvage ${count} · `, ...salvageWorth(salvaged, { stones, crystals }, true));
+  if (all) salvage.append(`Salvage ${count}`);
   else salvage.append('Salvage');
   salvage.disabled = !all;
   salvage.title = count > 0 && !all ? 'Only hero gear can be salvaged' : '';
@@ -497,7 +529,7 @@ export function askSale(dialog: HTMLDialogElement, count: number, amount: number
   (dialog.querySelector('h3') as HTMLElement).textContent = `${verb} ${count} item${count === 1 ? '' : 's'}?`;
   const total = dialog.querySelector('.sell-confirm-total') as HTMLElement;
   total.textContent = '';
-  total.append('+', ...(salvage ? salvageWorth(amount, extras) : worth(amount, false)));
+  total.append(rewardChips(salvage ? { dust: amount, ...extras } : { points: amount }));
   (dialog.querySelector('.sell-confirm-note') as HTMLElement).textContent = `${salvage ? 'Salvaged' : 'Sold'} items are gone for good.`;
   (dialog.querySelector('[data-sell="confirm"]') as HTMLElement).textContent = verb;
   const lockedNote = dialog.querySelector<HTMLElement>('.sell-confirm-locked');
@@ -527,7 +559,7 @@ export function saleSaid(status: HTMLElement, sold: { count: number; earned: num
   const counts = (of: Partial<Record<string, number>> | undefined): Record<string, number> => Object.fromEntries(Object.entries(of ?? {}).map(([id, count]) => [id, count ?? 0]));
   const extras = { stones: counts(sold.stones), crystals: counts(sold.crystals) };
   const salvaged = (sold.powder ?? 0) > 0 || [...Object.values(extras.stones), ...Object.values(extras.crystals)].some((count) => count > 0);
-  status.append(`${salvaged ? 'Salvaged' : 'Sold'} ${sold.count} item${sold.count === 1 ? '' : 's'} for `, ...(salvaged ? salvageWorth(sold.powder ?? 0, extras) : worth(sold.earned, false)));
+  status.append(`${salvaged ? 'Salvaged' : 'Sold'} ${sold.count} item${sold.count === 1 ? '' : 's'} for `, rewardChips(salvaged ? { dust: sold.powder ?? 0, ...extras } : { points: sold.earned }, true));
   if ((sold.powder ?? 0) > 0) {
     const craft = el('a', '', 'Craft');
     craft.href = '/inventory/craft/';
