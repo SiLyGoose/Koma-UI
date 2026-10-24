@@ -1,9 +1,12 @@
 import { GEM_EMOJI } from '../../forge/anvil/gem';
-import { el, rich } from '../../shared/items';
+import { crystalCount, crystalIcon, crystalName, el, rich } from '../../shared/items';
+import { HERO_CLASSES } from '../../shared/heroes';
 import { busyWith, type Busy, working } from '../../shared/ui';
-import { dust, points } from '../../shared/util';
+import { coin, dust, points } from '../../shared/util';
 import { api, type ApiResult, loadMe } from '../../site/session';
 import type { CraftRecipe, RaidShopView } from '../../protocol/raid-shop';
+import { HERO_PART_NAME, type HeroesCrafted, type HeroesView, type HeroPart, TM_CRAFT_PARTS, TM_CRAFT_PRICES, type TmCraftKind } from '../../protocol/heroes';
+import type { TmSetId } from '../../protocol/items';
 import type { InventoryHost, InventoryTab } from '../tab';
 import { TICKET_NAME, ticketPicture } from './tickets';
 
@@ -11,7 +14,9 @@ import { TICKET_NAME, ticketPicture } from './tickets';
  * The inventory's Craft: what komaDust (what salvaging hero gear gives) can be made into, down the left, and the one picked
  * beside them: what one takes, what they have, how many to make (−, +, Max) and Craft. komaGems (every `powderPerGem` of it
  * one), and Unique Weapon and Unique Treasure Tickets (every `powderPerSelector`, 10,000: one, held in Others until used:
- * ./tickets.ts), all the bot's POST /api/raid-shop/craft; a recipe is one entry in RECIPES.
+ * ./tickets.ts), all the bot's POST /api/raid-shop/craft; a recipe is one entry in RECIPES. Under them, TechnoMagic gear, a
+ * set each (King's Raid's Valance's Workshop): a piece of it for its boss's Boss Crystals and zeiucoins, any of its pieces, any
+ * class's of a part picked, or a class's part picked (the bot's POST /api/heroes/craft), one at a time.
  */
 
 
@@ -35,6 +40,20 @@ interface Recipe {
   /** Makes `count`, answering the raid shop as it is after. */
   craft(host: InventoryHost, count: number): Promise<ApiResult<RaidShopView>>;
 }
+
+/** The TechnoMagic sets, each crafted with its boss's Boss Crystals, and what each is called here. */
+const TM_SETS: readonly { id: TmSetId; name: string }[] = [
+  { id: 'perseverance', name: 'Perseverance Gear' },
+  { id: 'hope', name: 'Hope Gear' },
+  { id: 'authority', name: 'Authority Gear' },
+];
+
+/** The three ways to craft one, as the panel offers them. */
+const TM_WAYS: readonly { kind: TmCraftKind; name: string; about: string }[] = [
+  { kind: 'any', name: 'Any piece', about: 'Any class, any part.' },
+  { kind: 'part', name: 'A part', about: 'Any class’s, of the part you pick.' },
+  { kind: 'exact', name: 'A class’s part', about: 'The class and part you pick.' },
+];
 
 const RECIPES: readonly Recipe[] = [
   {
@@ -62,7 +81,7 @@ const RECIPES: readonly Recipe[] = [
 export const craftTab: InventoryTab = {
   id: 'craft',
   label: 'Craft',
-  uses: ['shop'],
+  uses: ['shop', 'heroes'],
   mount(root, host) {
     root.innerHTML = `
       <div class="inv-craft">
@@ -75,9 +94,16 @@ export const craftTab: InventoryTab = {
     const panel = root.querySelector('.inv-recipe') as HTMLElement;
 
     let shop: RaidShopView | null = null;
-    let picked: Recipe = RECIPES[0] as Recipe;
+    /** Their heroes' view: their Boss Crystals and zeiucoins (TechnoMagic gear's crafting). */
+    let heroes: HeroesView | null = null;
+    /** A komaDust recipe, or a TechnoMagic set. */
+    let picked: Recipe | TmSetId = RECIPES[0] as Recipe;
     let count = 1;
     let busy: Busy | null = null;
+    /** TechnoMagic gear: the way picked, its part and its class. */
+    let way: TmCraftKind = 'any';
+    let part: HeroPart = 'armor';
+    let cls = HERO_CLASSES[0]?.id ?? 'knight';
 
     const have = (): number => shop?.powder ?? 0;
     /** The most of `recipe` they can make now (0: none; null: the bot can't make it). */
@@ -85,6 +111,26 @@ export const craftTab: InventoryTab = {
       const per = shop ? recipe.per(shop) : null;
       return per ? Math.min(MOST_AT_ONCE, Math.floor(have() / per)) : null;
     };
+
+    /** A TechnoMagic set's tile in the list: its boss's crystal, and how many they have. */
+    function tmTile(set: (typeof TM_SETS)[number]): HTMLButtonElement {
+      const button = el('button', 'inv-recipe-tile');
+      button.type = 'button';
+      button.setAttribute('role', 'option');
+      button.setAttribute('aria-selected', String(picked === set.id));
+      const pic = el('span', 'inv-recipe-pic');
+      pic.append(crystalIcon(set.id));
+      const words = el('span', 'inv-recipe-words');
+      const cost = el('span', 'inv-recipe-cost', heroes ? `${points(heroes.crystals?.[set.id] ?? 0)} ${crystalName(set.id).replace('Crystal', 'Crystals')}` : '…');
+      words.append(el('span', 'inv-recipe-name', set.name), cost);
+      button.append(pic, words);
+      button.addEventListener('click', () => {
+        if (picked === set.id) return;
+        picked = set.id;
+        draw();
+      });
+      return button;
+    }
 
     function drawList(): void {
       list.replaceChildren(
@@ -110,6 +156,8 @@ export const craftTab: InventoryTab = {
           });
           return button;
         }),
+        el('p', 'inv-recipe-group', 'TechnoMagic Gear'),
+        ...TM_SETS.map(tmTile),
       );
     }
 
@@ -125,7 +173,106 @@ export const craftTab: InventoryTab = {
       return button;
     }
 
+    /** A row of choices (the way, a part, a class), the one picked lit; picking one draws the panel again. */
+    function choices<T extends string>(label: string, options: readonly { id: T; name: string; about?: string }[], on: T, pick: (id: T) => void): HTMLElement {
+      const row = el('div', 'inv-tm-choices');
+      row.setAttribute('role', 'radiogroup');
+      row.setAttribute('aria-label', label);
+      for (const option of options) {
+        const button = el('button', `action secondary inv-tm-choice${option.id === on ? ' on' : ''}`);
+        button.type = 'button';
+        button.setAttribute('role', 'radio');
+        button.setAttribute('aria-checked', String(option.id === on));
+        button.append(el('span', 'inv-tm-choice-name', option.name));
+        if (option.about) button.append(el('span', 'inv-tm-choice-about', option.about));
+        button.disabled = busy !== null;
+        button.addEventListener('click', () => {
+          pick(option.id);
+          draw();
+        });
+        row.append(button);
+      }
+      return row;
+    }
+
+    /** A TechnoMagic set picked: its three ways (each its price), the part and class where the way takes them, and Craft. */
+    function drawTm(set: (typeof TM_SETS)[number]): void {
+      const head = el('div', 'inv-recipe-head');
+      const pic = el('span', 'inv-recipe-pic big');
+      pic.append(crystalIcon(set.id));
+      const titles = el('div');
+      titles.append(
+        el('h2', 'inv-recipe-title', set.name),
+        el('p', 'inv-recipe-about', `A piece of the ${set.name.replace(' Gear', '')} set, for ${crystalName(set.id).replace('Crystal', 'Crystals')} and zeiucoins (King’s Raid’s Valance’s Workshop). Its substats and additional effect are rolled as a drop’s, and now and then it comes Reclaimed.`),
+      );
+      head.append(pic, titles);
+      if (!heroes) {
+        panel.replaceChildren(head, el('p', 'inv-recipe-note', 'Loading…'));
+        return;
+      }
+      const crystals = heroes.crystals?.[set.id] ?? 0;
+      const balance = host.balance() ?? heroes.balance;
+      const owned = el('p', 'inv-recipe-have');
+      owned.append('You have ', crystalIcon(set.id, 'inv-dust'), el('b', '', points(crystals)), ` ${crystalName(set.id).replace('Crystal', 'Crystals')} and `, coin('inv-dust', ''), el('b', '', points(balance)), ' zeiucoins');
+
+      const ways = choices(
+        'How to craft it',
+        TM_WAYS.map(({ kind, name, about }) => ({ id: kind, name, about: `${about} ${points(TM_CRAFT_PRICES[kind].crystals)} crystals + ${points(TM_CRAFT_PRICES[kind].points)} zeiucoins` })),
+        way,
+        (kind) => {
+          way = kind;
+        },
+      );
+      const parts = way === 'any' ? [] : [el('p', 'inv-tm-label', 'Part'), choices('Part', TM_CRAFT_PARTS.map((id) => ({ id, name: HERO_PART_NAME[id] })), part, (id) => (part = id))];
+      const classes = way === 'exact' ? [el('p', 'inv-tm-label', 'Class'), choices('Class', HERO_CLASSES, cls, (id) => (cls = id))] : [];
+
+      const price = TM_CRAFT_PRICES[way];
+      const shortCrystals = crystals < price.crystals;
+      const shortPoints = balance < price.points;
+      const total = el('p', 'inv-recipe-total');
+      total.append('Uses ', crystalIcon(set.id, 'inv-dust'), el('b', '', points(price.crystals)), ` ${crystalName(set.id).replace('Crystal', 'Crystals')} and `, coin('inv-dust', ''), el('b', '', points(price.points)), ' zeiucoins');
+      const go = el('button', 'action main inv-craft-go', shortCrystals ? 'Not enough crystals' : shortPoints ? 'Not enough zeiucoins' : 'Craft');
+      go.type = 'button';
+      if (shortCrystals || shortPoints) go.setAttribute('aria-disabled', 'true');
+      working(go, busy, `craft:${set.id}`);
+      go.addEventListener('click', () => void craftTm(set));
+      const note = shortCrystals
+        ? [el('p', 'inv-recipe-note', `You need ${crystalCount(set.id, price.crystals - crystals).replace(' ', ' more ')}: its boss’s TechnoMagic Raid drops them (more the higher the stage), and salvaging the set’s gear gives them.`)]
+        : [];
+      panel.replaceChildren(head, owned, el('p', 'inv-tm-label', 'Craft'), ways, ...parts, ...classes, total, go, ...note);
+    }
+
+    /** Crafts a piece of `set` as picked, and says what came. */
+    async function craftTm(set: (typeof TM_SETS)[number]): Promise<void> {
+      const price = TM_CRAFT_PRICES[way];
+      if (busy || !heroes || (heroes.crystals?.[set.id] ?? 0) < price.crystals || (host.balance() ?? heroes.balance) < price.points) return;
+      busy = busyWith(`craft:${set.id}`);
+      host.status(null);
+      draw();
+      const res = await host.post<HeroesCrafted>('/api/heroes/craft', { set: set.id, kind: way, ...(way !== 'any' && { part }), ...(way === 'exact' && { class: cls }) });
+      busy = null;
+      // (It cost zeiucoins: the header's follow.)
+      host.refreshBalance();
+      if (!res.ok) {
+        if (res.status === 0 || res.error === 'no_crystals' || res.error === 'too_poor') await loadHeroes(true);
+        else draw();
+        return host.failed(res, res.error === 'no_crystals' ? 'You don’t have that many crystals any more.' : res.error === 'too_poor' ? 'You don’t have that many zeiucoins any more.' : 'Could not craft that. Try again.');
+      }
+      const { crafted, ...view } = res.data;
+      heroes = view;
+      host.keep('heroes', view);
+      // (The gear's copies have the hero gear too.)
+      host.forget('gear');
+      draw();
+      host.status(`Crafted ${crafted.name}. It’s in Hero Gear.`);
+    }
+
     function drawPanel(): void {
+      if (typeof picked === 'string') {
+        const set = TM_SETS.find((one) => one.id === picked);
+        if (set) return drawTm(set);
+        picked = RECIPES[0] as Recipe;
+      }
       const recipe = picked;
       const per = shop ? recipe.per(shop) : null;
       const max = most(recipe) ?? 0;
@@ -214,6 +361,13 @@ export const craftTab: InventoryTab = {
       host.status(`Crafted ${points(n)} ${n === 1 ? recipe.name : recipe.plural}.${recipe.id === 'komagem' ? '' : ` Use ${n === 1 ? 'it' : 'them'} in the Others tab.`}`);
     }
 
+    /** Their heroes' view (their Boss Crystals), for TechnoMagic gear. */
+    async function loadHeroes(fresh = false): Promise<void> {
+      const res = await host.load('heroes', fresh);
+      heroes = res.ok ? res.data : null;
+      draw();
+    }
+
     async function load(fresh = false): Promise<void> {
       const res = await host.load('shop', fresh);
       if (!res.ok) {
@@ -225,6 +379,6 @@ export const craftTab: InventoryTab = {
     }
 
     draw();
-    return { drawn: load(), unmount: () => undefined };
+    return { drawn: Promise.all([load(), loadHeroes()]).then(() => undefined), unmount: () => undefined };
   },
 };

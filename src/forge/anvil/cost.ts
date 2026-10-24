@@ -1,5 +1,5 @@
 import { coin, points } from '../../shared/util';
-import { el, type Plan, rich } from '../../shared/items';
+import { crystalIcon, crystalName, el, type Plan, rich } from '../../shared/items';
 import { balance, type ForgeContext } from '../context';
 import { GEM_EMOJI } from './gem';
 
@@ -10,13 +10,18 @@ export function renderCost(ctx: ForgeContext, plan: Plan | null): void {
   showPrice(ctx, cost, have, 'zeiucoins', plan?.kind === 'refine' && (plan.refine.blocked === 'too_poor' || (have !== null && have < cost)));
 }
 
-/** The price in the corner: `cost` in zeiucoins or komaGems (`have` of them), in red when it's more than they have (`short`). */
-export function showPrice(ctx: ForgeContext, cost: number, have: number | null, unit: 'zeiucoins' | 'komaGems', short = have !== null && have < cost): void {
+/** What a price is paid in: zeiucoins, komaGems, or a TechnoMagic set's Boss Crystals (`crystals:<set>`). */
+export type PriceUnit = 'zeiucoins' | 'komaGems' | `crystals:${string}`;
+
+/** The price in the corner: `cost` in zeiucoins, komaGems or Boss Crystals (`have` of them), in red when it's more than they have (`short`). */
+export function showPrice(ctx: ForgeContext, cost: number, have: number | null, unit: PriceUnit, short = have !== null && have < cost): void {
   const { ui } = ctx;
   ui.cost.textContent = '';
-  const icon = unit === 'zeiucoins' ? coin('anvil-cost-icon', 'zeiucoins') : el('span', 'anvil-cost-icon');
+  const set = unit.startsWith('crystals:') ? unit.slice('crystals:'.length) : null;
+  const icon = unit === 'zeiucoins' ? coin('anvil-cost-icon', 'zeiucoins') : set ? crystalIcon(set, 'anvil-cost-icon') : el('span', 'anvil-cost-icon');
   if (unit === 'komaGems') icon.append(rich(GEM_EMOJI));
   ui.cost.append(icon, el('span', 'anvil-cost-amount', points(cost)));
-  ui.cost.title = cost && have !== null ? `${points(cost)} ${unit} (you have ${points(have)})` : '';
+  const named = set ? crystalName(set) : unit;
+  ui.cost.title = cost && have !== null ? `${points(cost)} ${named} (you have ${points(have)})` : '';
   ui.cost.classList.toggle('bad', short);
 }

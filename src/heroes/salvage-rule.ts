@@ -1,4 +1,4 @@
-import { el, priceOf, stoneCount } from '../shared/items';
+import { crystalCount, el, priceOf, stoneCount } from '../shared/items';
 import { HERO_CLASSES, type HeroCopy } from '../shared/heroes';
 import { HERO_PART_NAME, SALVAGE_PARTS, SALVAGE_STARS_MAX, SALVAGE_TIERS, type HeroPart, type SalvageRule } from '../protocol/heroes';
 import type { RaidClassId } from '../protocol/raid';
@@ -117,15 +117,20 @@ export function salvageRuleDialog(dialog: HTMLDialogElement, ctx: Pick<HeroesCon
   function draw(): void {
     const picks = rulePicks(ctx.view?.copies ?? [], rule, ctx.sellLocked);
     const total = picks.reduce((sum, copy) => sum + (copy.salvage ?? 0), 0);
-    // (A TechnoMagic piece's: its class's Upgrade Stones, no komaDust.)
+    // (A TechnoMagic piece's: its class's Upgrade Stones and its set's Boss Crystals, no komaDust.)
     const stones = new Map<string, number>();
-    for (const { salvageStones } of picks) if (salvageStones) stones.set(salvageStones.class, (stones.get(salvageStones.class) ?? 0) + salvageStones.count);
+    const crystals = new Map<string, number>();
+    for (const { salvageStones, salvageCrystals } of picks) {
+      if (salvageStones) stones.set(salvageStones.class, (stones.get(salvageStones.class) ?? 0) + salvageStones.count);
+      if (salvageCrystals) crystals.set(salvageCrystals.set, (crystals.get(salvageCrystals.set) ?? 0) + salvageCrystals.count);
+    }
     count.textContent = '';
     if (picks.length === 0) count.append(rule.tiers.length === 0 ? 'Pick a tier.' : 'Nothing you have matches.');
     else {
       count.append(`${picks.length} piece${picks.length === 1 ? '' : 's'} match`);
       if (total > 0 || stones.size === 0) count.append(` · ${points(total)} `, dust('coin powder'));
       if (stones.size > 0) count.append(` · ${[...stones].map(([cls, n]) => stoneCount(cls, n)).join(', ')}`);
+      if (crystals.size > 0) count.append(` · ${[...crystals].map(([set, n]) => crystalCount(set, n)).join(', ')}`);
     }
     pick.textContent = picks.length > 0 ? `Pick ${picks.length}` : 'Pick';
     pick.disabled = picks.length === 0;

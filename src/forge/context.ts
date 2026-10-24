@@ -128,6 +128,9 @@ export const balance = (ctx: ForgeContext): number | null => ctx.gear?.balance ?
 /** Their komaGems (what rerolling an effect costs), once their hero gear is loaded. */
 export const gems = (ctx: ForgeContext): number | null => ctx.heroes?.gems ?? null;
 
+/** Their Boss Crystals of TechnoMagic `set` (what rerolling its pieces' substats costs), once their hero gear is loaded. */
+export const crystals = (ctx: ForgeContext, set: string): number | null => (ctx.heroes ? (ctx.heroes.crystals?.[set as keyof NonNullable<HeroesView['crystals']>] ?? 0) : null);
+
 /**
  * The spares a refine of `copy` can use up: their other copies of the item that aren't worn, saved in
  * a loadout or locked (as the bot's refinePlan allows).

@@ -17,8 +17,8 @@ export function pickToSell(ctx: GearContext, on: boolean): void {
 
 /** Asks to confirm selling what's picked (`salvage`: salvaging it). */
 export function confirmSale(ctx: GearContext, salvage = false): void {
-  const { count, total, dust, stones } = sale(ctx);
-  askSale(ctx.ui.sellConfirm, count, salvage ? dust : total, 0, salvage, stones);
+  const { count, total, dust, stones, crystals } = sale(ctx);
+  askSale(ctx.ui.sellConfirm, count, salvage ? dust : total, 0, salvage, { stones, crystals });
 }
 
 /** Sells what's picked (`salvage`: salvages it for komaDust), and says what it came to. */

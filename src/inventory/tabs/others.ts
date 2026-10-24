@@ -1,8 +1,11 @@
 import { GEM_EMOJI } from '../../forge/anvil/gem';
 import { ESSENCE_NAME, ESSENCES, type EssenceId } from '../../protocol/heroes';
 import { built } from '../../shared/built';
-import { el, rich, stoneName, stonePicture } from '../../shared/items';
+import { crystalName, crystalPicture, el, rich, stoneName, stonePicture } from '../../shared/items';
 import { RAID_CLASS_IDS } from '../../protocol/raid';
+
+/** The TechnoMagic sets, each its boss's Boss Crystals. */
+const TM_SETS = ['perseverance', 'hope', 'authority'] as const;
 import { coin, dust } from '../../shared/util';
 import { KEPT } from '../../technomagic/assets/paths';
 import type { InventoryTab } from '../tab';
@@ -39,7 +42,7 @@ export const othersTab: InventoryTab = {
           <div class="sheet-scroll"><div class="armory-grid"></div></div>
         </div>
         <div class="inv-bar">
-          <p class="inv-count">Currencies, hero essences and Upgrade Stones. Pick one to see where it comes from.</p>
+          <p class="inv-count">Currencies, hero essences, Boss Crystals and Upgrade Stones. Pick one to see where it comes from.</p>
         </div>
         <div class="detail" role="dialog" aria-label="Item" hidden></div>
       </div>`;
@@ -52,7 +55,7 @@ export const othersTab: InventoryTab = {
     );
 
     /** How many of each they hold (null: not known yet; undefined: couldn't be had). */
-    const held: Record<string, number | null | undefined> = { zeiucoins: host.balance() ?? undefined, tokens: null, gems: null, dust: null, uw: null, ut: null, ...Object.fromEntries(ESSENCES.map((id) => [id, null])), ...Object.fromEntries(RAID_CLASS_IDS.map((cls) => [`stone-${cls}`, null])) };
+    const held: Record<string, number | null | undefined> = { zeiucoins: host.balance() ?? undefined, tokens: null, gems: null, dust: null, uw: null, ut: null, ...Object.fromEntries(ESSENCES.map((id) => [id, null])), ...Object.fromEntries(RAID_CLASS_IDS.map((cls) => [`stone-${cls}`, null])), ...Object.fromEntries(TM_SETS.map((set) => [`crystal-${set}`, null])) };
     const tiles = (): Tile[] => [
       { id: 'zeiucoins', name: 'zeiucoins', picture: boxed(() => coin('', '')), grade: 5, count: held.zeiucoins, kind: 'Currency', about: 'Claimed, won and earned in the games. Pulls, outfits and the forge spend them.' },
       { id: 'tokens', name: 'komaTokens', picture: boxed(() => rich(TOKEN_EMOJI)), grade: 4, count: held.tokens, kind: 'Currency', about: 'Each pays for one Wish pull, before any zeiucoins.' },
@@ -75,6 +78,20 @@ export const othersTab: InventoryTab = {
           count: held[id],
           kind: 'Hero Essence',
           about: 'From the Weekly Boss and the Dragon Raid. Transcending heroes spends it.',
+        }),
+      ),
+      // (King's Raid's Boss Crystals, a TechnoMagic set each: its boss's.)
+      ...TM_SETS.map(
+        (set): Tile => ({
+          id: `crystal-${set}`,
+          name: crystalName(set),
+          picture: () => tileImage(crystalPicture(set)),
+          full: true,
+          grade: 5,
+          count: held[`crystal-${set}`],
+          kind: 'Material',
+          words: 'boss crystal technomagic',
+          about: `From its boss's TechnoMagic Raid wins (more the higher the stage) and salvaging its set's TechnoMagic gear (100 a piece, 200 a Reclaimed one). Crafts that gear in the Craft tab, and the forge spends 300 rerolling one of its pieces' substats.`,
         }),
       ),
       // (King's Raid's, a class each: what awakens that class's TechnoMagic pieces, in place of a spare copy.)
@@ -126,6 +143,7 @@ export const othersTab: InventoryTab = {
       held.gems = res.ok ? res.data.gems : undefined;
       for (const id of ESSENCES) held[id] = res.ok ? (res.data.essences[id] ?? 0) : undefined;
       for (const cls of RAID_CLASS_IDS) held[`stone-${cls}`] = res.ok ? (res.data.stones?.[cls] ?? 0) : undefined;
+      for (const set of TM_SETS) held[`crystal-${set}`] = res.ok ? (res.data.crystals?.[set] ?? 0) : undefined;
       draw();
     });
     const shop = host.load('shop').then((res) => {

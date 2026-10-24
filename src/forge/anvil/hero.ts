@@ -1,12 +1,12 @@
-import { el, rich } from '../../shared/items';
+import { crystalCount, el, rich } from '../../shared/items';
 import { type HeroCopy, type HeroKeep, optionPips } from '../../shared/heroes';
 import { working } from '../../shared/ui';
 import { points } from '../../shared/util';
-import { balance, gems, heroCopyById, type ForgeContext } from '../context';
+import { balance, crystals, gems, heroCopyById, type ForgeContext } from '../context';
 import { FORGE_MODES, type ForgeMode } from '../modes';
 import { render } from '../render';
 import { showHint, showTarget } from './anvil';
-import { showPrice } from './cost';
+import { type PriceUnit, showPrice } from './cost';
 
 /** The menu's modes for a hero's gear (not refining). */
 export type HeroMode = Exclude<ForgeMode, 'refine'>;
@@ -15,10 +15,13 @@ export type HeroMode = Exclude<ForgeMode, 'refine'>;
 const picksOption = (mode: HeroMode): boolean => mode === 'reroll' || mode === 'enhance';
 
 /** What a mode costs for `copy` (rerolling: the substat picked's, else what any costs), and in what; null: it can't be done to it. */
-export function priceOf(copy: HeroCopy, mode: HeroMode, option: number | null): { cost: number; unit: 'zeiucoins' | 'komaGems' } | null {
+export function priceOf(copy: HeroCopy, mode: HeroMode, option: number | null): { cost: number; unit: PriceUnit } | null {
   switch (mode) {
     case 'reroll':
-      return copy.reroll === null || copy.options.length === 0 ? null : { cost: (option !== null ? copy.options[option]?.price : undefined) ?? copy.reroll, unit: 'zeiucoins' };
+      // (A TechnoMagic piece's: its set's Boss Crystals, King's Raid's.)
+      return copy.reroll === null || copy.options.length === 0
+        ? null
+        : { cost: (option !== null ? copy.options[option]?.price : undefined) ?? copy.reroll, unit: copy.rerollCrystals ? `crystals:${copy.rerollCrystals}` : 'zeiucoins' };
     case 'enhance':
       return copy.upgrade === null ? null : { cost: copy.upgrade, unit: 'zeiucoins' };
     case 'effects':
@@ -31,7 +34,7 @@ export const keeping = (copy: HeroCopy | undefined, mode: HeroMode): copy is Her
 
 /**
  * The anvil for a hero's gear: the hint, the piece on it, its substats (rerolling or enhancing: each a button, the one picked) or
- * its effect, the price (zeiucoins; an effect's, komaGems) and the mode's button. Nothing is used up, so no Materials and no odds.
+ * its effect, the price (zeiucoins; an effect's, komaGems; a TechnoMagic piece's substats', its set's Boss Crystals) and the mode's button. Nothing is used up, so no Materials and no odds.
  * An effect rerolled and not yet kept: its effect and the one rolled, each a button, and Keep Effect for the one picked.
  */
 export function renderHeroAnvil(ctx: ForgeContext, mode: HeroMode): void {
@@ -50,7 +53,7 @@ export function renderHeroAnvil(ctx: ForgeContext, mode: HeroMode): void {
     return;
   }
   const price = copy ? priceOf(copy, mode, ctx.option) : null;
-  const have = price?.unit === 'komaGems' ? gems(ctx) : balance(ctx);
+  const have = price?.unit === 'komaGems' ? gems(ctx) : price?.unit.startsWith('crystals:') ? crystals(ctx, price.unit.slice('crystals:'.length)) : balance(ctx);
   const short = !!price && have !== null && have < price.cost;
   showHint(ctx, heroHint(ctx, mode, copy, price, have));
   showTarget(ctx, copy);
@@ -74,7 +77,12 @@ function heroHint(ctx: ForgeContext, mode: HeroMode, copy: HeroCopy | undefined,
     if (mode === 'enhance') return { text: 'This piece has no substats to enhance.', tone: 'bad' };
     return { text: 'This piece has no additional effect to reroll.', tone: 'bad' };
   }
-  if (have !== null && have < price.cost) return { text: `You need ${points(price.cost - have)} more ${price.unit} to do that.`, tone: 'bad' };
+  if (have !== null && have < price.cost) {
+    if (price.unit.startsWith('crystals:')) {
+      return { text: `You need ${crystalCount(price.unit.slice('crystals:'.length), price.cost - have).replace(' ', ' more ')} to do that: its boss's TechnoMagic Raid drops them, and salvaging its set's gear gives them.`, tone: 'bad' };
+    }
+    return { text: `You need ${points(price.cost - have)} more ${price.unit} to do that.`, tone: 'bad' };
+  }
   if (mode === 'reroll') return { text: ctx.option === null ? 'Pick the substat to reroll, below.' : 'The substat picked is rolled again: a new one takes its place, at random.' };
   if (mode === 'enhance') return { text: ctx.option === null ? 'Pick the substat to enhance, below.' : 'The substat picked keeps its stat and rolls its amount again, anywhere in its range: it may go down.' };
   return { text: 'Its additional effect is rolled again, at random: then keep the new one or the one it has.' };

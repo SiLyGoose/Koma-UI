@@ -6,7 +6,7 @@ import type { HeroPart } from '../../protocol/heroes';
 import type { MainStat } from '../../protocol/items';
 import { matchesStars, type StarChoice } from './armory-filter/armory-filter';
 import { padlock } from './padlock';
-import { stoneCount } from './stones';
+import { crystalCount, stoneCount } from './stones';
 import { matchesSearch } from './search';
 import { hoverSound } from './sfx';
 
@@ -36,6 +36,8 @@ export interface ArmoryCopy {
   salvage?: number;
   /** A TechnoMagic piece: the Upgrade Stones of its class salvaging it gives, in place of komaDust (King's Raid's). */
   salvageStones?: { class: string; count: number };
+  /** And the Boss Crystals of its set. */
+  salvageCrystals?: { set: string; count: number };
   /** What selling it pays though it's locked, where a sale can take locked ones too (the heroes page's): null or left out otherwise. */
   sellLocked?: number | null;
   effects: string[];
@@ -391,13 +393,19 @@ export const priceOf = (copy: ArmoryCopy, unlocked = false): number | null =>
 /**
  * How many copies are picked to sell (of those that still can be; locked ones too with `unlocked`), what they sell for
  * together (`total` zeiucoins), what salvaging them gives (`dust`, komaDust: hero gear's; `stones`, a TechnoMagic piece's
- * Upgrade Stones, by class) and how many of them can be (`salvageable`), their ids, and how many of them are locked.
+ * Upgrade Stones, by class, and `crystals`, its Boss Crystals, by set) and how many of them can be (`salvageable`), their ids, and
+ * how many of them are locked.
  */
-export function saleOf(copies: readonly ArmoryCopy[], selling: ReadonlySet<string> | null, unlocked = false): { count: number; total: number; dust: number; stones: Record<string, number>; salvageable: number; ids: string[]; locked: number } {
+export function saleOf(
+  copies: readonly ArmoryCopy[],
+  selling: ReadonlySet<string> | null,
+  unlocked = false,
+): { count: number; total: number; dust: number; stones: Record<string, number>; crystals: Record<string, number>; salvageable: number; ids: string[]; locked: number } {
   const ids: string[] = [];
   let total = 0;
   let dust = 0;
   const stones: Record<string, number> = {};
+  const crystals: Record<string, number> = {};
   let salvageable = 0;
   let locked = 0;
   for (const copy of copies) {
@@ -410,23 +418,36 @@ export function saleOf(copies: readonly ArmoryCopy[], selling: ReadonlySet<strin
       salvageable++;
     }
     if (copy.salvageStones) stones[copy.salvageStones.class] = (stones[copy.salvageStones.class] ?? 0) + copy.salvageStones.count;
+    if (copy.salvageCrystals) crystals[copy.salvageCrystals.set] = (crystals[copy.salvageCrystals.set] ?? 0) + copy.salvageCrystals.count;
     if (typeof copy.sell !== 'number') locked++;
   }
-  return { count: ids.length, total, dust, stones, salvageable, ids, locked };
+  return { count: ids.length, total, dust, stones, crystals, salvageable, ids, locked };
+}
+
+/** What a salvage gives besides komaDust: its TechnoMagic pieces' Upgrade Stones, by class, and Boss Crystals, by set. */
+export interface SalvageExtras {
+  stones?: Readonly<Record<string, number>>;
+  crystals?: Readonly<Record<string, number>>;
 }
 
 /**
  * What a salvage gives, in words and pictures: its komaDust (left out with none, but for nothing at all) and its TechnoMagic
- * pieces' Upgrade Stones (`short`: "3 Upgrade Stones" all told, for a button; else each class's by name).
+ * pieces' Upgrade Stones and Boss Crystals (`short`: "3 Upgrade Stones + 300 Crystals" all told, for a button; else each kind by name).
  */
-function salvageWorth(dustAmount: number, stones: Readonly<Record<string, number>>, short = false): (Node | string)[] {
-  const kinds = Object.entries(stones).filter(([, count]) => count > 0);
-  const out: (Node | string)[] = dustAmount > 0 || kinds.length === 0 ? worth(dustAmount, true) : [];
-  if (kinds.length === 0) return out;
+function salvageWorth(dustAmount: number, { stones = {}, crystals = {} }: SalvageExtras, short = false): (Node | string)[] {
+  const stoneKinds = Object.entries(stones).filter(([, count]) => count > 0);
+  const crystalKinds = Object.entries(crystals).filter(([, count]) => count > 0);
+  const out: (Node | string)[] = dustAmount > 0 || (stoneKinds.length === 0 && crystalKinds.length === 0) ? worth(dustAmount, true) : [];
+  const sum = (kinds: [string, number][]): number => kinds.reduce((all, [, count]) => all + count, 0);
+  const parts: string[] = short
+    ? [
+        ...(stoneKinds.length > 0 ? [`${points(sum(stoneKinds))} Upgrade Stone${sum(stoneKinds) === 1 ? '' : 's'}`] : []),
+        ...(crystalKinds.length > 0 ? [`${points(sum(crystalKinds))} Crystal${sum(crystalKinds) === 1 ? '' : 's'}`] : []),
+      ]
+    : [...stoneKinds.map(([cls, count]) => stoneCount(cls, count)), ...crystalKinds.map(([set, count]) => crystalCount(set, count))];
+  if (parts.length === 0) return out;
   if (out.length > 0) out.push(' + ');
-  const all = kinds.reduce((sum, [, count]) => sum + count, 0);
-  if (short) out.push(`${points(all)} Upgrade Stone${all === 1 ? '' : 's'}`);
-  else out.push(kinds.map(([cls, count]) => stoneCount(cls, count)).join(', '));
+  out.push(parts.join(short ? ' + ' : ', '));
   return out;
 }
 
@@ -446,7 +467,7 @@ export function pruneSale(copies: readonly ArmoryCopy[], selling: Set<string>, u
  * heroes page, where a locked one is still a reason to start picking).
  */
 export function drawSell(sell: HTMLButtonElement, salvage: HTMLButtonElement, cancel: HTMLElement, copies: readonly ArmoryCopy[], selling: ReadonlySet<string> | null, busy: Busy | null, shown: boolean, unlocked: boolean | null = null): void {
-  const { count, total, dust: salvaged, stones, salvageable } = saleOf(copies, selling, unlocked === true);
+  const { count, total, dust: salvaged, stones, crystals, salvageable } = saleOf(copies, selling, unlocked === true);
   sell.hidden = !shown || copies.some((copy) => copy.sell === undefined);
   sell.textContent = '';
   if (selling && count > 0) sell.append(`Sell ${count} · `, ...worth(total, false));
@@ -457,7 +478,7 @@ export function drawSell(sell: HTMLButtonElement, salvage: HTMLButtonElement, ca
   salvage.hidden = sell.hidden || selling === null || !copies.some((copy) => copy.salvage !== undefined);
   salvage.textContent = '';
   const all = count > 0 && salvageable === count;
-  if (all) salvage.append(`Salvage ${count} · `, ...salvageWorth(salvaged, stones, true));
+  if (all) salvage.append(`Salvage ${count} · `, ...salvageWorth(salvaged, { stones, crystals }, true));
   else salvage.append('Salvage');
   salvage.disabled = !all;
   salvage.title = count > 0 && !all ? 'Only hero gear can be salvaged' : '';
@@ -469,14 +490,14 @@ export function drawSell(sell: HTMLButtonElement, salvage: HTMLButtonElement, ca
  * Asks (in the page's sell-confirm dialog) to confirm selling `count` copies for `amount` zeiucoins (`salvage`: salvaging
  * them for `amount` komaDust), saying how many of them are `locked` (in its .sell-confirm-locked, where it has one).
  */
-export function askSale(dialog: HTMLDialogElement, count: number, amount: number, locked = 0, salvage = false, stones: Readonly<Record<string, number>> = {}): void {
+export function askSale(dialog: HTMLDialogElement, count: number, amount: number, locked = 0, salvage = false, extras: SalvageExtras = {}): void {
   if (count === 0) return;
   const verb = salvage ? 'Salvage' : 'Sell';
   dialog.dataset.salvage = String(salvage);
   (dialog.querySelector('h3') as HTMLElement).textContent = `${verb} ${count} item${count === 1 ? '' : 's'}?`;
   const total = dialog.querySelector('.sell-confirm-total') as HTMLElement;
   total.textContent = '';
-  total.append('+', ...(salvage ? salvageWorth(amount, stones) : worth(amount, false)));
+  total.append('+', ...(salvage ? salvageWorth(amount, extras) : worth(amount, false)));
   (dialog.querySelector('.sell-confirm-note') as HTMLElement).textContent = `${salvage ? 'Salvaged' : 'Sold'} items are gone for good.`;
   (dialog.querySelector('[data-sell="confirm"]') as HTMLElement).textContent = verb;
   const lockedNote = dialog.querySelector<HTMLElement>('.sell-confirm-locked');
@@ -498,14 +519,15 @@ export function wireSaleDialog(dialog: HTMLDialogElement, confirmed: (salvage: b
 }
 
 /** What a sale came to, in the page's status line (a salvage's komaDust, and what it crafts; its TechnoMagic pieces' Upgrade Stones). */
-export function saleSaid(status: HTMLElement, sold: { count: number; earned: number; powder?: number; stones?: Partial<Record<string, number>> }): void {
+export function saleSaid(status: HTMLElement, sold: { count: number; earned: number; powder?: number; stones?: Partial<Record<string, number>>; crystals?: Partial<Record<string, number>> }): void {
   status.hidden = false;
   status.classList.remove('bad');
   status.textContent = '';
   // (A salvage: komaDust, and a TechnoMagic piece's Upgrade Stones in its place, King's Raid's.)
-  const stones = Object.fromEntries(Object.entries(sold.stones ?? {}).map(([cls, count]) => [cls, count ?? 0]));
-  const salvaged = (sold.powder ?? 0) > 0 || Object.values(stones).some((count) => count > 0);
-  status.append(`${salvaged ? 'Salvaged' : 'Sold'} ${sold.count} item${sold.count === 1 ? '' : 's'} for `, ...(salvaged ? salvageWorth(sold.powder ?? 0, stones) : worth(sold.earned, false)));
+  const counts = (of: Partial<Record<string, number>> | undefined): Record<string, number> => Object.fromEntries(Object.entries(of ?? {}).map(([id, count]) => [id, count ?? 0]));
+  const extras = { stones: counts(sold.stones), crystals: counts(sold.crystals) };
+  const salvaged = (sold.powder ?? 0) > 0 || [...Object.values(extras.stones), ...Object.values(extras.crystals)].some((count) => count > 0);
+  status.append(`${salvaged ? 'Salvaged' : 'Sold'} ${sold.count} item${sold.count === 1 ? '' : 's'} for `, ...(salvaged ? salvageWorth(sold.powder ?? 0, extras) : worth(sold.earned, false)));
   if ((sold.powder ?? 0) > 0) {
     const craft = el('a', '', 'Craft');
     craft.href = '/inventory/craft/';
@@ -522,7 +544,14 @@ export function sellsFor(copy: ArmoryCopy, unlocked = false): HTMLElement[] {
   if (value === null) return [];
   const price = el('span', 'detail-mw detail-sells', 'Sells for ');
   price.append(...worth(value, false));
-  if (copy.salvage !== undefined) price.append(' · Salvages for ', ...salvageWorth(copy.salvage, copy.salvageStones ? { [copy.salvageStones.class]: copy.salvageStones.count } : {}));
+  if (copy.salvage !== undefined)
+    price.append(
+      ' · Salvages for ',
+      ...salvageWorth(copy.salvage, {
+        ...(copy.salvageStones && { stones: { [copy.salvageStones.class]: copy.salvageStones.count } }),
+        ...(copy.salvageCrystals && { crystals: { [copy.salvageCrystals.set]: copy.salvageCrystals.count } }),
+      }),
+    );
   return [price];
 }
 

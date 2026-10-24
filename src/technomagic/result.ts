@@ -1,7 +1,7 @@
 import { coin, dust, points } from '../shared/util';
 import { GEM_EMOJI } from '../forge/anvil/gem';
 import { built } from '../shared/built';
-import { dragonTier, el, isTmPiece, itemDetailsClosed, itemFace, itemIcons, kindName, mainStatLine, shownName, stoneCount, stoneIcon, stoneName, tmSections, rich } from '../shared/items';
+import { dragonTier, el, isTmPiece, itemDetailsClosed, itemFace, itemIcons, kindName, mainStatLine, shownName, crystalCount, crystalIcon, crystalName, stoneCount, stoneIcon, stoneName, tmSections, rich } from '../shared/items';
 import { ESSENCE_NAME, type EssenceId } from '../protocol/heroes';
 import type { DropView, RaidKind } from '../protocol/technomagic';
 import { niceScale } from '../raid/result/nice-scale';
@@ -93,6 +93,8 @@ export interface ResultShown {
   firstClears?: number;
   /** The Technomagic Gear Upgrade Stones the win gave this player (a TechnoMagic Raid win from stage 7): their class, and how many (none: no tile). */
   stones?: { class: string; count: number };
+  /** The Boss Crystals the win gave this player (its boss's: by its set), and how many (none: no tile). */
+  crystals?: { set: string; count: number };
   /** The gear this player found: TechnoMagic gear, or (the Dragon Raid's) raid items. */
   raid?: RaidKind;
   mine: readonly DropView[];
@@ -301,7 +303,9 @@ export function makeResult(root: HTMLElement): Result {
 
   /** What a drop salvaged as it dropped gave: its komaDust, or a TechnoMagic piece's Upgrade Stones (King's Raid's). */
   function salvagedFor(drop: DropView): string {
-    if (drop.salvagedStones !== undefined && drop.itemClass) return stoneCount(drop.itemClass, drop.salvagedStones);
+    if (drop.salvagedStones !== undefined && drop.itemClass) {
+      return [stoneCount(drop.itemClass, drop.salvagedStones), ...(drop.salvagedCrystals ? [crystalCount(drop.salvagedCrystals.set, drop.salvagedCrystals.count)] : [])].join(' and ');
+    }
     return `${points(drop.salvaged ?? 0)} komaDust`;
   }
 
@@ -349,6 +353,16 @@ export function makeResult(root: HTMLElement): Result {
     picture.alt = '';
     face.append(picture);
     tile.append(face, el('span', 'tm-tile-name', `${ESSENCE_NAME[id as EssenceId] ?? id} ×${points(amount)}`));
+    return tile;
+  }
+
+  /** The Boss Crystals the win gave (its boss's), as a tile beside the points: their picture, and how many. */
+  function crystalsTile(crystals: { set: string; count: number }): HTMLElement {
+    const tile = el('div', 'tm-tile tm-tile-points');
+    tile.title = `${crystalName(crystals.set)}: crafts its set's TechnoMagic gear (the Inventory's Craft) and rerolls its options (the forge)`;
+    const face = el('span', 'tm-points-face tm-essence-face');
+    face.append(crystalIcon(crystals.set, 'tm-essence-art'));
+    tile.append(face, el('span', 'tm-tile-name', `${crystalName(crystals.set)} ×${points(crystals.count)}`));
     return tile;
   }
 
@@ -457,6 +471,7 @@ export function makeResult(root: HTMLElement): Result {
       rewards.replaceChildren(
         ...(shown.points > 0 ? [pointsTile(shown.points)] : []),
         ...essences.map(([id, amount]) => essenceTile(id, amount)),
+        ...(shown.crystals && shown.crystals.count > 0 ? [crystalsTile(shown.crystals)] : []),
         ...(shown.stones && shown.stones.count > 0 ? [stonesTile(shown.stones)] : []),
         ...((shown.gems ?? 0) > 0 ? [gemsTile(shown.gems ?? 0, shown.firstClears ?? 0)] : []),
         ...shown.mine.map((drop) => gearTile(drop)),

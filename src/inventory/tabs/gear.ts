@@ -300,8 +300,8 @@ function armoryTab<C extends ArmoryCopy, K extends Source, V extends Sources[K] 
         askSale(confirm, count, total, locked);
       });
       salvageButton.addEventListener('click', () => {
-        const { count, dust, stones, locked } = saleOf(copies(), selling, sellLocked);
-        askSale(confirm, count, dust, locked, true, stones);
+        const { count, dust, stones, crystals, locked } = saleOf(copies(), selling, sellLocked);
+        askSale(confirm, count, dust, locked, true, { stones, crystals });
       });
       cancelButton.addEventListener('click', () => pickToSell(false));
       // Select shown: every copy the search and Filter show that can be sold (all of them picked already: let go).

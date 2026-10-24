@@ -680,6 +680,53 @@
   outline-offset: 1px;
 }
 
+/* The list's TechnoMagic Gear: its name over its sets' tiles. */
+.inventory-page .inv-recipe-group {
+  margin: 10px 4px 2px;
+  color: #c9ced6;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* TechnoMagic gear's choices (tabs/craft.ts): the way to craft it, its part and its class, a row of buttons each, the one picked lit. */
+.inventory-page .inv-tm-label {
+  margin: 0 0 -6px;
+  color: #6f5d43;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.inventory-page .inv-tm-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.inventory-page .inv-recipe .action.inv-tm-choice {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-height: 36px;
+  padding: 6px 12px;
+  text-align: left;
+}
+
+.inventory-page .inv-recipe .action.inv-tm-choice.on {
+  border-color: var(--gold);
+  box-shadow: inset 0 0 0 1px rgb(216 191 122 / 55%);
+  color: var(--gold);
+}
+
+.inventory-page .inv-tm-choice-about {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
 /* Craft: King's Raid's orange, as its Sell. */
 .inventory-page .inv-recipe .action.inv-craft-go {
   align-self: flex-start;
