@@ -5,7 +5,7 @@
  */
 
 /** A number in an effect line, with its sign and % if it has them: "+12%", "3", "1,500", "-0.5%". */
-const NUMBER = /[+-]?\d[\d,]*(?:\.\d+)?%?/g;
+export const NUMBER = /[+-]?\d[\d,]*(?:\.\d+)?%?/g;
 /** An effect line's words without its emoji (whose ids are numbers too) or Discord's markup. */
 const plain = (line: string): string => line.replace(/<a?:\w+:\d+>/g, '').replace(/[*`]/g, '');
 /** A line with its numbers blanked: two lines with the same shape are the same effect at different strengths. */
@@ -18,24 +18,6 @@ export interface EffectRow {
   changes: { from: string; to: string; at: number }[];
   next?: string;
   state: 'same' | 'changed' | 'new' | 'gone';
-}
-
-/**
- * A line as its words and its numbers, each number with its place among them (to mark those that change); null: one with
- * markup (emoji, bold…), which is only shown whole.
- */
-export function pieces(line: string): { text: string; at: number | null }[] | null {
-  if (plain(line) !== line) return null;
-  const out: { text: string; at: number | null }[] = [];
-  let last = 0;
-  let at = 0;
-  for (const found of line.matchAll(NUMBER)) {
-    if (found.index > last) out.push({ text: line.slice(last, found.index), at: null });
-    out.push({ text: found[0], at: at++ });
-    last = found.index + found[0].length;
-  }
-  if (last < line.length) out.push({ text: line.slice(last), at: null });
-  return out;
 }
 
 /**
