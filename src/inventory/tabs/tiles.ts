@@ -42,6 +42,8 @@ export interface Tile {
   words?: string;
   /** A button under its details that does something with one (a ticket's Use), off while `off` says why. */
   action?: { label: string; run(button: HTMLButtonElement): void; off?: string };
+  /** Under its details (and `action`): more that does something with it (a rune's how many, Sell and Disassemble), made as they show. */
+  controls?: () => Node;
 }
 
 export interface TileGrid {
@@ -142,6 +144,7 @@ export function tileGrid(box: HTMLElement, sheet: HTMLElement, grid: HTMLElement
       use.addEventListener('click', () => action.run(use));
       body.append(use);
     }
+    if (tile.controls) body.append(tile.controls());
     const scroll = el('div', 'detail-scroll');
     scroll.append(bar, top, body);
     detail.append(scroll);

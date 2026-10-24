@@ -1,6 +1,8 @@
 import { askSale, itemDetailsClosed, itemIcons, itemPicked, pruneSale, saleOf, saleSaid, TM_UNSORTED, wireSaleDialog, wireSearch } from '../shared/items';
 import { HERO_CLASSES, HERO_SLOT_TYPE, type HeroCopy, type HeroSlot, type HeroesView } from '../shared/heroes';
 import type { HeroesSold } from '../protocol/heroes';
+import { RUNE_KEEP_PRICE, type RuneBroken } from '../protocol/runes';
+import { fragmentCount } from '../shared/items/fragments';
 import { busyWith, dropdown, fillServers } from '../shared/ui';
 import { createContext, heroShown, mine, status, type HeroesContext, type HeroesHost, type HeroMember } from './context';
 import { perkTip, render, renderPick, renderSearch, sellableShown, type HeroActions } from './render';
@@ -243,9 +245,20 @@ function actions(ctx: HeroesContext): HeroActions {
       if (hero) void change(ctx, act, 'transcend', '/api/heroes/transcend', { hero }, 'Could not transcend this hero. Try again.');
     },
     rune(copy: HeroCopy, socket: number, rune: string | null) {
+      // (Taking one out, or swapping one in over it, keeps it for RUNE_KEEP_PRICE zeiucoins: the header's balance follows.)
+      const paid = rune === null || copy.runes[socket] != null;
       void change(ctx, act, `rune:${copy.id}:${socket}`, '/api/heroes/rune', { copy: copy.id, socket, rune }, rune ? 'Could not put that rune in. Try again.' : 'Could not take that rune out. Try again.', {
         no_rune: rune ? 'You have none of that rune left.' : 'That socket is empty.',
         wrong_part: 'That rune doesn’t go in this piece.',
+        too_poor: `Keeping a rune you take out costs ${RUNE_KEEP_PRICE} zeiucoins. Disassemble it instead for Rune Fragments.`,
+      }).then(() => {
+        if (paid) void ctx.host.loadMe(true);
+      });
+    },
+    breakRune(copy: HeroCopy, socket: number) {
+      const rune = copy.runes[socket];
+      void change<RuneBroken>(ctx, act, `break:${copy.id}:${socket}`, '/api/runes/break', { copy: copy.id, socket }, 'Could not disassemble that rune. Try again.', { no_rune: 'That socket is empty.' }).then((done) => {
+        if (done) status(ctx, `Disassembled ${rune?.name ?? 'the rune'} into ${fragmentCount(done.fragments)}.`);
       });
     },
     lock(copy: HeroCopy, locked: boolean) {

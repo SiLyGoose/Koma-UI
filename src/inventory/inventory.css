@@ -228,9 +228,27 @@
   margin: 0;
 }
 
-/* Picked to sell: the sale's red ring (../gear/styles/armory-foot.css), over the slot's own frame. */
+/*
+ * Picked to sell: as the raid's lineup has a hero picked (../technomagic/prep/prep.css), its slot gold, its card dark under a
+ * big gold tick (over the sale's small red one, ../gear/styles/armory-foot.css).
+ */
 .inventory-page .inv-sheet .item.to-sell {
-  border-color: var(--red);
+  border-color: var(--gold);
+  box-shadow: inset 0 0 0 1px rgb(216 191 122 / 55%);
+}
+
+.inventory-page .inv-sheet .item .item-check {
+  inset: 0;
+  width: auto;
+  height: auto;
+  border-radius: inherit;
+  background: rgb(0 0 0 / 45%);
+  color: #ffd25a;
+  font-size: clamp(28px, 45cqi, 52px);
+  font-weight: 900;
+  line-height: 1;
+  text-shadow: 0 2px 4px #000;
+  pointer-events: none;
 }
 
 /* ------------------------------------------------------------------ gear */
@@ -770,4 +788,183 @@
   .inventory-page .inv-craft-go {
     align-self: stretch;
   }
+}
+
+/* ------------------------------------------------------------------ runes */
+
+/*
+ * The Runes' (tabs/runes.ts) Rune Fragments in the bar, after how many runes; a picked rune's sale under its details (how
+ * many, then Sell and Disassemble); and its dialogs: the sale asked first, By grade (a box for each grade) and Craft (the
+ * Mysterious Runes, one picked, how many).
+ */
+.inventory-page .inv-frags {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin: 0;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.inventory-page .frag-icon,
+.inventory-page .inv-rune-dialog .coin,
+.inventory-page .inv-rune-go .coin {
+  width: 20px;
+  height: 20px;
+  vertical-align: -4px;
+}
+
+.inventory-page .sell-confirm .frag-icon {
+  width: 26px;
+  height: 26px;
+  vertical-align: -5px;
+}
+
+.inventory-page .inv-rune-sale {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.inventory-page .inv-rune-sale .detail-label {
+  margin: 0;
+}
+
+.inventory-page .inv-rune-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.inventory-page .inv-rune-go {
+  flex: 1 1 140px;
+  gap: 4px;
+  min-height: 38px;
+  white-space: nowrap;
+}
+
+.inventory-page .inv-rune-sale .inv-amount-input {
+  border-color: var(--line);
+  background: var(--panel-2);
+  color: var(--text);
+}
+
+.inventory-page .sell-confirm.inv-rune-dialog {
+  width: min(440px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+}
+
+.inventory-page .inv-rune-grades {
+  margin: 4px 0 0;
+  text-align: left;
+}
+
+.inventory-page .inv-rune-sum,
+.inventory-page .inv-rune-have {
+  margin: 14px 0 0;
+  color: var(--gold);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.inventory-page .inv-rune-have {
+  margin: 0 0 12px;
+  color: var(--text);
+  font-size: 14px;
+}
+
+/* By grade's three buttons: Sell and Disassemble with their amounts, a row of their own on a narrow dialog. */
+.inventory-page .inv-rune-dialog .sell-confirm-foot {
+  flex-wrap: wrap;
+}
+
+.inventory-page .inv-rune-dialog .sell-confirm-foot .action {
+  flex: 1 1 auto;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.inventory-page .inv-rune-boxes {
+  display: grid;
+  gap: 6px;
+  max-height: 44dvh;
+  overflow-y: auto;
+  text-align: left;
+}
+
+.inventory-page .inv-rune-box {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 6px 10px 6px 6px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-2);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.inventory-page .inv-rune-box[aria-checked='true'] {
+  border-color: var(--gold);
+  box-shadow: inset 0 0 0 1px rgb(216 191 122 / 55%);
+}
+
+.inventory-page .inv-rune-box-pic {
+  flex: none;
+  width: 48px;
+  height: 48px;
+}
+
+.inventory-page .inv-rune-box-pic img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.inventory-page .inv-rune-box-words {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.inventory-page .inv-rune-box-name {
+  font-weight: 700;
+}
+
+.inventory-page .inv-rune-box-about {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.inventory-page .inv-rune-box-cost {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.inventory-page .inv-rune-box-cost .frag-icon {
+  width: 16px;
+  height: 16px;
+  vertical-align: -3px;
+}
+
+.inventory-page .inv-rune-amount .inv-amount {
+  justify-content: center;
+  margin-top: 12px;
+}
+
+.inventory-page .inv-rune-amount .inv-amount-input {
+  border-color: var(--line);
+  background: var(--panel);
+  color: var(--text);
+}
+
+.inventory-page .status .frag-icon,
+.inventory-page .status .coin {
+  width: 18px;
+  height: 18px;
+  vertical-align: -4px;
 }

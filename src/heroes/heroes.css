@@ -435,6 +435,23 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* A rune in a socket: Take out (for zeiucoins) and Disassemble (for Rune Fragments), side by side; their money beside the price. */
+.rune-buttons {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.rune-row .kr-action .coin,
+.rune-row .kr-action .frag-icon {
+  width: 14px;
+  height: 14px;
+  margin-left: 2px;
+  vertical-align: -2px;
+}
+
 /* Under its Active Effects, its perks': as their title, a step smaller. */
 .heroes-page .totals h3 {
   margin: 12px 0 6px;
