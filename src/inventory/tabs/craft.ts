@@ -7,6 +7,8 @@ import { api, type ApiResult, loadMe } from '../../site/session';
 import type { CraftRecipe, RaidShopView } from '../../protocol/raid-shop';
 import { HERO_PART_NAME, type HeroesCrafted, type HeroesView, type HeroPart, TM_CRAFT_PARTS, TM_CRAFT_PRICES, type TmCraftKind } from '../../protocol/heroes';
 import type { TmSetId } from '../../protocol/items';
+import { RUNE_BOXES, type RuneBox, type RunesCrafted } from '../../protocol/runes';
+import { fragmentIcon } from '../../shared/items/fragments';
 import type { InventoryHost, InventoryTab } from '../tab';
 import { TICKET_NAME, ticketPicture } from './tickets';
 
@@ -16,7 +18,9 @@ import { TICKET_NAME, ticketPicture } from './tickets';
  * one), and Unique Weapon and Unique Treasure Tickets (every `powderPerSelector`, 10,000: one, held in Others until used:
  * ./tickets.ts), all the bot's POST /api/raid-shop/craft; a recipe is one entry in RECIPES. Under them, TechnoMagic gear, a
  * set each (King's Raid's Valance's Workshop): a piece of it for its boss's Boss Crystals and zeiucoins, any of its pieces, any
- * class's of a part picked, or a class's part picked (the bot's POST /api/heroes/craft), one at a time.
+ * class's of a part picked, or a class's part picked (the bot's POST /api/heroes/craft), one at a time. Under those, Runes:
+ * King's Raid's Mysterious Runes, each a rune of its grade (any as likely), for Rune Fragments (what runes disassemble into),
+ * as many at once as komaDust's (the bot's POST /api/runes/craft).
  */
 
 
@@ -47,6 +51,21 @@ const TM_SETS: readonly { id: TmSetId; name: string }[] = [
   { id: 'hope', name: 'Hope Gear' },
   { id: 'authority', name: 'Authority Gear' },
 ];
+
+/** A Mysterious Rune's picture (King's Raid's PACKAGE_RUNE_*). */
+function runeBoxPicture(box: RuneBox): HTMLImageElement {
+  const img = el('img');
+  img.src = `/kr/items/${box.icon}.webp`;
+  img.alt = '';
+  img.draggable = false;
+  return img;
+}
+
+/** What a Mysterious Rune gives: "An Uncommon rune, …" (its grade's name, from its own). */
+const runeBoxAbout = (box: RuneBox): string => {
+  const grade = box.name.split(': ').at(-1)?.trim() ?? '';
+  return `${/^[AEIOU]/.test(grade) ? 'An' : 'A'} ${grade} rune, any of them as likely. It goes to your Runes.`;
+};
 
 /** The three ways to craft one, as the panel offers them. */
 const TM_WAYS: readonly { kind: TmCraftKind; name: string; about: string }[] = [
@@ -96,8 +115,8 @@ export const craftTab: InventoryTab = {
     let shop: RaidShopView | null = null;
     /** Their heroes' view: their Boss Crystals and zeiucoins (TechnoMagic gear's crafting). */
     let heroes: HeroesView | null = null;
-    /** A komaDust recipe, or a TechnoMagic set. */
-    let picked: Recipe | TmSetId = RECIPES[0] as Recipe;
+    /** A komaDust recipe, a TechnoMagic set, or a Mysterious Rune. */
+    let picked: Recipe | TmSetId | RuneBox = RECIPES[0] as Recipe;
     let count = 1;
     let busy: Busy | null = null;
     /** TechnoMagic gear: the way picked, its part and its class. */
@@ -111,6 +130,32 @@ export const craftTab: InventoryTab = {
       const per = shop ? recipe.per(shop) : null;
       return per ? Math.min(MOST_AT_ONCE, Math.floor(have() / per)) : null;
     };
+
+    /** Their Rune Fragments (0 while their heroes' view isn't known), and the most of `box` they make (at most MOST_AT_ONCE). */
+    const fragments = (): number => heroes?.runeFragments ?? 0;
+    const mostRunes = (box: RuneBox): number => Math.min(MOST_AT_ONCE, Math.floor(fragments() / box.fragments));
+
+    /** A Mysterious Rune's tile in the list: its picture, and the fragments one takes. */
+    function runeTile(box: RuneBox): HTMLButtonElement {
+      const button = el('button', 'inv-recipe-tile');
+      button.type = 'button';
+      button.setAttribute('role', 'option');
+      button.setAttribute('aria-selected', String(picked === box));
+      const pic = el('span', 'inv-recipe-pic');
+      pic.append(runeBoxPicture(box));
+      const words = el('span', 'inv-recipe-words');
+      const cost = el('span', 'inv-recipe-cost');
+      cost.append(fragmentIcon('inv-dust'), el('span', '', `${points(box.fragments)} each`));
+      words.append(el('span', 'inv-recipe-name', box.name), cost);
+      button.append(pic, words);
+      button.addEventListener('click', () => {
+        if (picked === box) return;
+        picked = box;
+        count = 1;
+        draw();
+      });
+      return button;
+    }
 
     /** A TechnoMagic set's tile in the list: its boss's crystal, and how many they have. */
     function tmTile(set: (typeof TM_SETS)[number]): HTMLButtonElement {
@@ -158,6 +203,8 @@ export const craftTab: InventoryTab = {
         }),
         el('p', 'inv-recipe-group', 'TechnoMagic Gear'),
         ...TM_SETS.map(tmTile),
+        el('p', 'inv-recipe-group', 'Runes'),
+        ...RUNE_BOXES.map(runeTile),
       );
     }
 
@@ -171,6 +218,87 @@ export const craftTab: InventoryTab = {
         draw();
       });
       return button;
+    }
+
+    /** How many to make: −, the number, + and Max (`max` of them; none: all of it off). */
+    function amountRow(max: number): HTMLElement {
+      const amount = el('div', 'inv-amount');
+      const input = el('input', 'inv-amount-input');
+      input.type = 'number';
+      input.min = '1';
+      input.max = String(Math.max(1, max));
+      input.value = String(count);
+      input.setAttribute('aria-label', 'How many to craft');
+      input.disabled = max === 0 || busy !== null;
+      input.addEventListener('change', () => {
+        const n = Math.floor(Number(input.value));
+        count = Number.isFinite(n) ? n : 1;
+        draw();
+      });
+      const locked = max === 0 || busy !== null;
+      amount.append(
+        stepper('−', 'One fewer', () => count - 1, locked || count <= 1),
+        input,
+        stepper('+', 'One more', () => count + 1, locked || count >= max),
+        stepper('Max', `As many as you can (${points(max)})`, () => max, locked || count >= max),
+      );
+      return amount;
+    }
+
+    /** A Mysterious Rune picked: what one takes, their Rune Fragments, how many, and Craft. */
+    function drawRune(box: RuneBox): void {
+      const max = mostRunes(box);
+      count = Math.max(1, Math.min(count, Math.max(1, max)));
+      const head = el('div', 'inv-recipe-head');
+      const pic = el('span', 'inv-recipe-pic big');
+      pic.append(runeBoxPicture(box));
+      const titles = el('div');
+      titles.append(el('h2', 'inv-recipe-title', box.name), el('p', 'inv-recipe-about', runeBoxAbout(box)));
+      head.append(pic, titles);
+      if (!heroes) {
+        panel.replaceChildren(head, el('p', 'inv-recipe-note', 'Loading…'));
+        return;
+      }
+      const each = el('p', 'inv-recipe-have');
+      each.append('One takes ', fragmentIcon('inv-dust'), el('b', '', points(box.fragments)), ' Rune Fragments');
+      const owned = el('p', 'inv-recipe-have');
+      owned.append('You have ', fragmentIcon('inv-dust'), el('b', '', points(fragments())), ' Rune Fragments');
+      const total = el('p', 'inv-recipe-total');
+      total.append('Uses ', fragmentIcon('inv-dust'), el('b', '', points(count * box.fragments)), ` Rune Fragments for ${points(count)}`);
+      const go = el('button', 'action main inv-craft-go', max === 0 ? 'Not enough Rune Fragments' : `Craft ${points(count)}`);
+      go.type = 'button';
+      if (max === 0) go.setAttribute('aria-disabled', 'true');
+      working(go, busy, `craft:${box.id}`);
+      go.addEventListener('click', () => void craftRunes(box, count));
+      const note = max === 0 ? [el('p', 'inv-recipe-note', `Disassemble runes for Rune Fragments (the Runes tab: Sell, then Disassemble): ${points(box.fragments)} of them craft one.`)] : [];
+      panel.replaceChildren(head, each, owned, amountRow(max), total, go, ...note);
+    }
+
+    /** Crafts `n` of a Mysterious Rune, and says which runes they gave. */
+    async function craftRunes(box: RuneBox, n: number): Promise<void> {
+      if (busy || n < 1 || n > mostRunes(box)) return;
+      busy = busyWith(`craft:${box.id}`);
+      host.status(null);
+      draw();
+      const res = await host.post<RunesCrafted>('/api/runes/craft', { box: box.id, count: n });
+      busy = null;
+      if (!res.ok) {
+        if (res.status === 0 || res.error === 'no_fragments' || res.error === 'busy') await loadHeroes(true);
+        else draw();
+        return res.error === 'no_fragments' ? void host.status('You don’t have that many Rune Fragments any more.', true) : host.failed(res, 'Could not craft those runes. Try again.');
+      }
+      const { crafted, ...view } = res.data;
+      heroes = view;
+      host.keep('heroes', view);
+      count = 1;
+      draw();
+      // What each gave, by name (the same one more than once: how many).
+      const got = new Map<string, number>();
+      for (const id of crafted) {
+        const name = view.runes.find((rune) => rune.id === id)?.name ?? id;
+        got.set(name, (got.get(name) ?? 0) + 1);
+      }
+      host.status(`Crafted ${points(n)} ${box.name}: ${[...got].map(([name, k]) => (k > 1 ? `${name} ×${k}` : name)).join(', ')}. They’re in Runes.`);
     }
 
     /** A row of choices (the way, a part, a class), the one picked lit; picking one draws the panel again. */
@@ -273,6 +401,7 @@ export const craftTab: InventoryTab = {
         if (set) return drawTm(set);
         picked = RECIPES[0] as Recipe;
       }
+      if ('fragments' in picked) return drawRune(picked);
       const recipe = picked;
       const per = shop ? recipe.per(shop) : null;
       const max = most(recipe) ?? 0;
@@ -298,26 +427,7 @@ export const craftTab: InventoryTab = {
       const each = el('p', 'inv-recipe-have');
       each.append('One takes ', dust('inv-dust', ''), el('b', '', points(per)), ' komaDust');
 
-      const amount = el('div', 'inv-amount');
-      const input = el('input', 'inv-amount-input');
-      input.type = 'number';
-      input.min = '1';
-      input.max = String(Math.max(1, max));
-      input.value = String(count);
-      input.setAttribute('aria-label', 'How many to craft');
-      input.disabled = max === 0 || busy !== null;
-      input.addEventListener('change', () => {
-        const n = Math.floor(Number(input.value));
-        count = Number.isFinite(n) ? n : 1;
-        draw();
-      });
-      const locked = max === 0 || busy !== null;
-      amount.append(
-        stepper('−', 'One fewer', () => count - 1, locked || count <= 1),
-        input,
-        stepper('+', 'One more', () => count + 1, locked || count >= max),
-        stepper('Max', `As many as you can (${points(max)})`, () => max, locked || count >= max),
-      );
+      const amount = amountRow(max);
 
       const total = el('p', 'inv-recipe-total');
       total.append('Uses ', dust('inv-dust', ''), el('b', '', points(count * per)), ` komaDust for ${points(count)} ${count === 1 ? recipe.name : recipe.plural}`);

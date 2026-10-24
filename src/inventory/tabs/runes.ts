@@ -1,5 +1,5 @@
 import { HERO_PART_NAME, type HeroesView, type HeroRuneStack } from '../../protocol/heroes';
-import { RUNE_BOXES, RUNE_FRAGMENTS, RUNE_SELL_POINTS, RUNES_AT_ONCE, type RuneBox, type RunesCrafted, type RunesSold } from '../../protocol/runes';
+import { RUNE_FRAGMENTS, RUNE_SELL_POINTS, type RunesSold } from '../../protocol/runes';
 import { el, type Reward, rewardChips } from '../../shared/items';
 import { fragmentIcon } from '../../shared/items/fragments';
 import { type Busy, busyWith, dropdown, working } from '../../shared/ui';
@@ -14,8 +14,8 @@ import { afterTyping, statName, type Tile, tileGrid, tileImage } from './tiles';
  * in the bar) shows only those with any of the stats picked. Sold as the gear tabs' items are (./gear.ts): Sell starts
  * picking, a rune pressed picks all of it (ticked; on wide screens its details, the last one picked's, say how many of it), Select shown and
  * By grade pick many, then Sell or Disassemble (for zeiucoins, or Rune Fragments: the bot's /api/runes/sell, half King's
- * Raid's, protocol/runes.ts) asks first, what it gives in pictures. Craft makes Mysterious Runes (a rune of their grade) from
- * the fragments. Socketing one is the Heroes page's (a piece's Runes).
+ * Raid's, protocol/runes.ts) asks first, what it gives in pictures. The fragments are in Others, and the Craft tab makes
+ * Mysterious Runes (a rune of their grade) from them. Socketing one is the Heroes page's (a piece's Runes).
  */
 
 /** A rune's grades' names (the bot's data/kr-gear.ts RUNE_GRADE; its Ancient and Velkazar runes are both 5). */
@@ -26,9 +26,6 @@ const dual = (rune: HeroRuneStack): boolean => rune.lines.length > 1;
 
 /** The runes best first: the dual-stat ones, then the rest, each as the bot has them (by grade). */
 const bestFirst = (runes: readonly HeroRuneStack[]): HeroRuneStack[] => [...runes.filter(dual), ...runes.filter((rune) => !dual(rune))];
-
-/** An amount of Rune Fragments: "150 (fragment)". */
-const worth = (amount: number): (Node | string)[] => [`${points(amount)} `, fragmentIcon()];
 
 /** What a sale gives, as pictures (a tile: its picture and how many; `small`, a chip): zeiucoins, or (disassembling) Rune Fragments. */
 const gives = (amount: number, disassemble: boolean, small = false): HTMLElement =>
@@ -77,12 +74,10 @@ export const runesTab: InventoryTab = {
           <input class="armory-search inv-search" type="search" placeholder="Search runes" aria-label="Search runes" autocomplete="off" />
           <select class="inv-stat-filter" multiple aria-label="Stats" data-none="All stats"></select>
           <p class="inv-count" aria-live="polite"></p>
-          <p class="inv-frags" title="Rune Fragments: disassembling runes gives them, Craft makes runes from them"></p>
           <div class="inv-sell">
             <button type="button" class="armory-action action secondary sell" data-sale="sell">Sell</button>
             <button type="button" class="armory-action action secondary sell on" data-sale="disassemble" hidden>Disassemble</button>
             <button type="button" class="armory-action action secondary" data-sale="cancel" hidden>Cancel</button>
-            <button type="button" class="armory-action action main" data-runes="craft">Craft</button>
           </div>
           <div class="sell-tools inv-sell-tools" hidden>
             <button type="button" class="armory-action action secondary" data-sale="shown">Select shown</button>
@@ -109,22 +104,10 @@ export const runesTab: InventoryTab = {
             <button type="button" class="action main" data-batch="pick"></button>
           </div>
         </dialog>
-        <dialog class="sell-confirm inv-rune-dialog inv-rune-craft" aria-label="Craft runes">
-          <h3>Craft runes</h3>
-          <p class="inv-rune-have"></p>
-          <div class="inv-rune-boxes" role="radiogroup" aria-label="What to craft"></div>
-          <div class="inv-rune-amount"></div>
-          <p class="inv-rune-sum"></p>
-          <div class="sell-confirm-foot">
-            <button type="button" class="action secondary" data-craft="close">Close</button>
-            <button type="button" class="action main" data-craft="go"></button>
-          </div>
-        </dialog>
       </div>`;
     const $ = <T extends HTMLElement>(selector: string): T => root.querySelector(selector) as T;
     const search = $<HTMLInputElement>('.armory-search');
     const count = $('.inv-count');
-    const frags = $('.inv-frags');
     const detail = $('.detail');
     const saleButton = (name: string): HTMLButtonElement => $<HTMLButtonElement>(`[data-sale="${name}"]`);
     const sellButton = saleButton('sell');
@@ -133,13 +116,9 @@ export const runesTab: InventoryTab = {
     const shownButton = saleButton('shown');
     const gradeButton = saleButton('grade');
     const tools = $('.inv-sell-tools');
-    const craftButton = $<HTMLButtonElement>('[data-runes="craft"]');
     const confirm = $<HTMLDialogElement>('.inv-rune-confirm');
     const batch = $<HTMLDialogElement>('.inv-rune-batch');
-    const craft = $<HTMLDialogElement>('.inv-rune-craft');
     let runes: HeroRuneStack[] = [];
-    /** Their Rune Fragments (null: not known yet). */
-    let fragments: number | null = null;
     /** Picking runes to sell: how many of each (null when not); and the one picked last, whose details show. */
     let selling: Map<string, number> | null = null;
     let last: string | null = null;
@@ -152,7 +131,7 @@ export const runesTab: InventoryTab = {
       $('.sheet-scroll'),
       $('.armory-grid'),
       detail,
-      'No runes yet. The TechnoMagic Raid and the Dragon Raid drop them, and Craft makes them from Rune Fragments.',
+      'No runes yet. The TechnoMagic Raid and the Dragon Raid drop them, and the Craft tab makes them from Rune Fragments.',
       (tile) => {
         // Picking what to sell: all of a rune picked (its details shown, on wide screens) or let go (the one picked before it shown).
         if (!selling) return false;
@@ -228,16 +207,14 @@ export const runesTab: InventoryTab = {
     }
 
     /**
-     * How many runes and their fragments; Sell (to start picking, then with some picked "Sell 5"), Disassemble and Cancel
-     * while picking (as the gear tabs' Sell, Salvage and Cancel), and Select shown and By grade under them; Craft otherwise.
+     * How many runes; Sell (to start picking, then with some picked "Sell 5"), Disassemble and Cancel while picking (as the
+     * gear tabs' Sell, Salvage and Cancel), and Select shown and By grade under them.
      */
     function drawBar(): void {
       const shown = shownRunes();
       const total = runes.reduce((sum, rune) => sum + rune.count, 0);
       const of = shown.reduce((sum, rune) => sum + rune.count, 0);
       count.textContent = total === 0 ? '' : `${of !== total ? `${of.toLocaleString()} of ` : ''}${total.toLocaleString()} rune${total === 1 ? '' : 's'} not socketed`;
-      frags.textContent = '';
-      frags.append(fragmentIcon(), fragments === null ? '…' : points(fragments));
       const { n } = sale();
       sellButton.textContent = !selling ? 'Sell' : n > 0 ? `Sell ${points(n)}` : 'Select runes';
       sellButton.disabled = selling ? n === 0 : total === 0;
@@ -247,8 +224,6 @@ export const runesTab: InventoryTab = {
       breakButton.textContent = n > 0 ? `Disassemble ${points(n)}` : 'Disassemble';
       breakButton.disabled = n === 0;
       working(breakButton, busy, 'disassemble');
-      craftButton.hidden = selling !== null;
-      working(craftButton, busy, 'craft');
       const all = shown.length > 0 && shown.every((rune) => selling?.get(rune.id) === rune.count);
       shownButton.textContent = all ? 'Unselect shown' : 'Select shown';
       shownButton.disabled = shown.length === 0 || busy !== null;
@@ -262,16 +237,14 @@ export const runesTab: InventoryTab = {
       grid.draw(shown.map(tile), search.value.trim().toLowerCase());
       drawBar();
       if (batch.open) drawBatch();
-      if (craft.open) drawCraft();
     }
     const searched = afterTyping(draw);
     search.addEventListener('input', () => searched());
     stats.addEventListener('change', draw);
 
-    /** Takes the heroes' answer (theirs after a change): their runes and fragments (those picked to sell, as many as are left). */
+    /** Takes the heroes' answer (theirs after a change): their runes (those picked to sell, as many as are left). */
     function take(view: HeroesView): void {
       runes = bestFirst(view.runes);
-      fragments = view.runeFragments ?? 0;
       for (const [id, n] of selling ?? []) {
         const left = runes.find((rune) => rune.id === id)?.count ?? 0;
         if (left === 0) selling?.delete(id);
@@ -346,7 +319,7 @@ export const runesTab: InventoryTab = {
     });
     // Escape stops picking runes to sell (a rune's details, or a dialog, close first by themselves).
     const onKey = (e: KeyboardEvent): void => {
-      if (e.key === 'Escape' && selling && detail.hidden && !(e.target instanceof HTMLInputElement) && !confirm.open && !batch.open && !craft.open) pickToSell(false);
+      if (e.key === 'Escape' && selling && detail.hidden && !(e.target instanceof HTMLInputElement) && !confirm.open && !batch.open) pickToSell(false);
     };
     document.addEventListener('keydown', onKey, true);
 
@@ -397,93 +370,6 @@ export const runesTab: InventoryTab = {
       for (const rune of gradePicks()) selling.set(rune.id, rune.count);
       draw();
     });
-
-    // Craft: a Mysterious Rune picked, how many, and what they take.
-    const boxes = craft.querySelector('.inv-rune-boxes') as HTMLElement;
-    const craftHave = craft.querySelector('.inv-rune-have') as HTMLElement;
-    const craftAmount = craft.querySelector('.inv-rune-amount') as HTMLElement;
-    const craftSum = craft.querySelector('.inv-rune-sum') as HTMLElement;
-    const craftGo = craft.querySelector('[data-craft="go"]') as HTMLButtonElement;
-    let box: RuneBox = RUNE_BOXES[0] as RuneBox;
-    let making = 1;
-    /** The most of `of` their fragments make (at most what the bot makes at once). */
-    const most = (of: RuneBox): number => Math.min(RUNES_AT_ONCE, Math.floor((fragments ?? 0) / of.fragments));
-    function drawCraft(): void {
-      craftHave.replaceChildren('You have ', fragmentIcon(), ` ${fragments === null ? '…' : points(fragments)} Rune Fragments`);
-      boxes.replaceChildren(
-        ...RUNE_BOXES.map((one) => {
-          const row = el('button', 'inv-rune-box');
-          row.type = 'button';
-          row.setAttribute('role', 'radio');
-          row.setAttribute('aria-checked', String(one === box));
-          row.dataset.grade = String(one.grade);
-          const pic = el('span', 'inv-rune-box-pic');
-          pic.append(tileImage(`/kr/items/${one.icon}.webp`));
-          const words = el('span', 'inv-rune-box-words');
-          const cost = el('span', 'inv-rune-box-cost');
-          cost.append(...worth(one.fragments), ' each');
-          words.append(el('span', 'inv-rune-box-name', one.name), el('span', 'inv-rune-box-about', `${/^[AEIOU]/.test(GRADE_NAME[one.grade] ?? '') || one.id === 'ancient' ? 'An' : 'A'} ${one.id === 'ancient' ? 'Ancient' : GRADE_NAME[one.grade]} rune, any as likely`), cost);
-          row.append(pic, words);
-          row.addEventListener('click', () => {
-            box = one;
-            making = 1;
-            drawCraft();
-          });
-          return row;
-        }),
-      );
-      const max = most(box);
-      making = Math.max(1, Math.min(making, Math.max(1, max)));
-      craftAmount.replaceChildren(
-        amountRow(making, max, max === 0 || busy !== null, (n) => {
-          making = Math.max(1, Math.min(n, Math.max(1, max)));
-          drawCraft();
-        }, 'How many to craft'),
-      );
-      craftSum.replaceChildren(...(max === 0 ? [`Not enough Rune Fragments: one takes ${points(box.fragments)}. Disassemble runes for them.`] : ['Uses ', ...worth(making * box.fragments), ` for ${points(making)}`]));
-      craftGo.textContent = max === 0 ? 'Craft' : `Craft ${points(making)}`;
-      craftGo.disabled = max === 0;
-      working(craftGo, busy, 'craft');
-    }
-    craftButton.addEventListener('click', () => {
-      making = 1;
-      drawCraft();
-      craft.showModal();
-    });
-    craft.addEventListener('click', (event) => {
-      const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-craft]');
-      if (!button && event.target !== craft) return;
-      if (!button || button.dataset.craft === 'close') return craft.close();
-      if (button.dataset.craft === 'go' && !button.disabled) void make(box, making);
-    });
-
-    async function make(of: RuneBox, n: number): Promise<void> {
-      if (busy || n < 1 || n > most(of)) return;
-      busy = busyWith('craft');
-      host.status(null);
-      drawCraft();
-      drawBar();
-      const res = await host.post<RunesCrafted>('/api/runes/craft', { box: of.id, count: n });
-      busy = null;
-      if (!res.ok) {
-        if (res.error === 'no_fragments' || res.error === 'busy') await load(true);
-        else draw();
-        return res.error === 'no_fragments' ? void host.status('You don’t have that many Rune Fragments any more.', true) : host.failed(res, 'Could not craft those runes. Try again.');
-      }
-      const { crafted, ...view } = res.data;
-      host.keep('heroes', view);
-      take(view);
-      making = 1;
-      draw();
-      craft.close();
-      // What each gave, by name (the same one more than once: how many).
-      const got = new Map<string, number>();
-      for (const id of crafted) {
-        const name = runes.find((rune) => rune.id === id)?.name ?? id;
-        got.set(name, (got.get(name) ?? 0) + 1);
-      }
-      host.status(`Crafted ${points(n)} ${of.name}: ${[...got].map(([name, k]) => (k > 1 ? `${name} ×${k}` : name)).join(', ')}.`);
-    }
 
     async function load(fresh = false): Promise<void> {
       const res = await host.load('heroes', fresh);

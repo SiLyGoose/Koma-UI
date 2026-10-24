@@ -15,7 +15,8 @@ import { type Tile, tileGrid, tileImage } from './tiles';
 /*
  * The inventory's Others: what they have that isn't gear, a slot each (./tiles.ts), how many in its corner: zeiucoins (the
  * header's), komaTokens (the gacha's), komaGems, komaDust, the Unique Weapon and Unique Treasure Tickets crafted from it or
- * claimed from mail (the raid shop's: picked, Use gives the hero's item they pick, ./tickets.ts), the hero essences and the Technomagic
+ * claimed from mail (the raid shop's: picked, Use gives the hero's item they pick, ./tickets.ts), Rune Fragments (what runes
+ * disassemble into, crafting Mysterious Runes in the Craft tab), the hero essences and the Technomagic
  * Gear Upgrade Stones, a slot for each class's (the heroes page's: ../../shared/items/stones.ts); picked,
  * where it comes from and what it's for. The slots fill in as the bot's answers they're in come (a dash where one
  * couldn't be had).
@@ -42,7 +43,7 @@ export const othersTab: InventoryTab = {
           <div class="sheet-scroll"><div class="armory-grid"></div></div>
         </div>
         <div class="inv-bar">
-          <p class="inv-count">Currencies, hero essences, Boss Crystals and Upgrade Stones. Pick one to see where it comes from.</p>
+          <p class="inv-count">Currencies, Rune Fragments, hero essences, Boss Crystals and Upgrade Stones. Pick one to see where it comes from.</p>
         </div>
         <div class="detail" role="dialog" aria-label="Item" hidden></div>
       </div>`;
@@ -55,12 +56,14 @@ export const othersTab: InventoryTab = {
     );
 
     /** How many of each they hold (null: not known yet; undefined: couldn't be had). */
-    const held: Record<string, number | null | undefined> = { zeiucoins: host.balance() ?? undefined, tokens: null, gems: null, dust: null, uw: null, ut: null, ...Object.fromEntries(ESSENCES.map((id) => [id, null])), ...Object.fromEntries(RAID_CLASS_IDS.map((cls) => [`stone-${cls}`, null])), ...Object.fromEntries(TM_SETS.map((set) => [`crystal-${set}`, null])) };
+    const held: Record<string, number | null | undefined> = { zeiucoins: host.balance() ?? undefined, tokens: null, gems: null, dust: null, fragments: null, uw: null, ut: null, ...Object.fromEntries(ESSENCES.map((id) => [id, null])), ...Object.fromEntries(RAID_CLASS_IDS.map((cls) => [`stone-${cls}`, null])), ...Object.fromEntries(TM_SETS.map((set) => [`crystal-${set}`, null])) };
     const tiles = (): Tile[] => [
       { id: 'zeiucoins', name: 'zeiucoins', picture: boxed(() => coin('', '')), grade: 5, count: held.zeiucoins, kind: 'Currency', about: 'Claimed, won and earned in the games. Pulls, outfits and the forge spend them.' },
       { id: 'tokens', name: 'komaTokens', picture: boxed(() => rich(TOKEN_EMOJI)), grade: 4, count: held.tokens, kind: 'Currency', about: 'Each pays for one Wish pull, before any zeiucoins.' },
       { id: 'gems', name: 'komaGems', picture: boxed(() => rich(GEM_EMOJI)), grade: 3, count: held.gems, kind: 'Currency', about: 'From the Weekly Boss, Dragon Raid first clears and crafting. The Raid Gear shop and transcending heroes spend them.' },
       { id: 'dust', name: 'komaDust', picture: boxed(() => dust('', '')), grade: 2, count: held.dust, kind: 'Material', about: 'From salvaging hero gear (but TechnoMagic gear, which gives Upgrade Stones). Craft komaGems and Unique Weapon and Unique Treasure Tickets from it in the Craft tab.' },
+      // (King's Raid's: what disassembling a rune gives, and what Mysterious Runes are crafted from.)
+      { id: 'fragments', name: 'Rune Fragment', picture: () => tileImage('/kr/items/RUNE_FRAGMENT.webp'), full: true, grade: 3, count: held.fragments, kind: 'Material', words: 'rune fragments', about: 'From disassembling runes: in the Runes tab (Sell, then Disassemble), or one in a piece’s socket on the Heroes page. Craft Mysterious Runes from them in the Craft tab.' },
       ...(['uw', 'ut'] as const).map((of): Tile => ticket(of)),
       ...ESSENCES.map(
         (id: EssenceId): Tile => ({
@@ -141,6 +144,7 @@ export const othersTab: InventoryTab = {
 
     const heroes = host.load('heroes').then((res) => {
       held.gems = res.ok ? res.data.gems : undefined;
+      held.fragments = res.ok ? (res.data.runeFragments ?? 0) : undefined;
       for (const id of ESSENCES) held[id] = res.ok ? (res.data.essences[id] ?? 0) : undefined;
       for (const cls of RAID_CLASS_IDS) held[`stone-${cls}`] = res.ok ? (res.data.stones?.[cls] ?? 0) : undefined;
       for (const set of TM_SETS) held[`crystal-${set}`] = res.ok ? (res.data.crystals?.[set] ?? 0) : undefined;
