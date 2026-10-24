@@ -2,14 +2,49 @@
  * A phone (or tablet) on its side: everything over the field a size down, so the fight shows between it,
  * but nothing pressed in a fight smaller than about 32px (a skill) or 10px of words (a card's Auto).
  */
-/* The heroes' cards (./card.css): their skills about 36px on a phone (32 to 40), the head over each card lower. */
+/*
+ * The heroes' cards (./card.css): their skills about 40px on a phone (36 to 46), closer together than on a computer (and
+ * their rows closer), the head over each card lower.
+ */
 :where(.ls-landscape) .tm-party {
-  --skill: clamp(32px, min(calc(var(--ls-vw) * 0.047), calc(var(--ls-vh) * 0.086)), 40px);
+  --skill: clamp(36px, min(calc(var(--ls-vw) * 0.054), calc(var(--ls-vh) * 0.1)), 46px);
   bottom: 6px;
+  gap: 6px calc(var(--skill) * 0.4);
+}
+
+/* Trying things out: four cards' room, with their gaps as narrow as here. */
+:where(.ls-landscape) .tm-party.browse {
+  width: min(calc(var(--skill) * (4 * 3.24 + 3 * 0.4 + 0.5) + 20px), 100% - 20px);
 }
 
 :where(.ls-landscape) .tm-card {
+  gap: calc(var(--skill) * 0.05);
   padding-top: var(--skill);
+}
+
+:where(.ls-landscape) .tm-top {
+  gap: calc(var(--skill) * 0.05);
+}
+
+/* What a hero has on it, bigger than on a computer (a third more), with hardly a gap between: five still to a row on a card. */
+:where(.ls-landscape) .tm-buffs {
+  gap: 1px;
+}
+
+:where(.ls-landscape) .tm-buff {
+  width: calc(var(--skill) * 0.42);
+  height: calc(var(--skill) * 0.42);
+  font-size: calc(var(--skill) * 0.25);
+  line-height: calc(var(--skill) * 0.4);
+}
+
+:where(.ls-landscape) .tm-buff b {
+  font-size: max(9px, calc(var(--skill) * 0.2));
+}
+
+:where(.ls-landscape) .tm-bars > .tm-buffs {
+  width: calc(var(--skill) * 0.42 * 5 + 1px * 4);
+  height: calc(var(--skill) * 0.42);
 }
 
 :where(.ls-landscape) .tm-skill {
