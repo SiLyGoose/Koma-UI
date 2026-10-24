@@ -281,7 +281,7 @@ export function makeResult(root: HTMLElement): Result {
       'p',
       'tm-loot-note',
       salvaged
-        ? `Salvaged as it dropped, for ${points(drop.salvaged ?? 0)} komaDust: your salvage rule takes it (Sell, then By rule, on the `
+        ? `Salvaged as it dropped, for ${points(drop.salvaged ?? 0)} komaDust${drop.salvagedStones && drop.itemClass ? ` and ${points(drop.salvagedStones)} ${stoneName(drop.itemClass, true)}` : ''}: your salvage rule takes it (Sell, then By rule, on the `
         : !hero
           ? 'Wear it yourself on the Gear page, or put it on a hero on the '
           : raid

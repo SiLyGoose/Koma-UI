@@ -6,6 +6,7 @@ import type { HeroPart } from '../../protocol/heroes';
 import type { MainStat } from '../../protocol/items';
 import { matchesStars, type StarChoice } from './armory-filter/armory-filter';
 import { padlock } from './padlock';
+import { stoneName } from './stones';
 import { matchesSearch } from './search';
 import { hoverSound } from './sfx';
 
@@ -477,13 +478,16 @@ export function wireSaleDialog(dialog: HTMLDialogElement, confirmed: (salvage: b
   });
 }
 
-/** What a sale came to, in the page's status line (a salvage's komaDust, and what it crafts). */
-export function saleSaid(status: HTMLElement, sold: { count: number; earned: number; powder?: number }): void {
+/** What a sale came to, in the page's status line (a salvage's komaDust, and what it crafts; its TechnoMagic pieces' Upgrade Stones). */
+export function saleSaid(status: HTMLElement, sold: { count: number; earned: number; powder?: number; stones?: Partial<Record<string, number>> }): void {
   status.hidden = false;
   status.classList.remove('bad');
   status.textContent = '';
   const salvaged = (sold.powder ?? 0) > 0;
   status.append(`${salvaged ? 'Salvaged' : 'Sold'} ${sold.count} item${sold.count === 1 ? '' : 's'} for `, ...worth(salvaged ? (sold.powder ?? 0) : sold.earned, salvaged));
+  // (King's Raid's: a TechnoMagic piece salvaged gives Upgrade Stones of its class too.)
+  const stones = Object.entries(sold.stones ?? {}).filter(([, count]) => (count ?? 0) > 0);
+  if (stones.length > 0) status.append(` and ${stones.map(([cls, count]) => `${points(count ?? 0)} ${stoneName(cls, true)}`).join(', ')}`);
   if (salvaged) {
     const craft = el('a', '', 'Craft');
     craft.href = '/inventory/craft/';

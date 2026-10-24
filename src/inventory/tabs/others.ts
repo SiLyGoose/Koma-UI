@@ -88,7 +88,7 @@ export const othersTab: InventoryTab = {
           count: held[`stone-${cls}`],
           kind: 'Material',
           words: 'upgrade stone technomagic',
-          about: `From TechnoMagic Raid wins at stage 7 and up, of a class you brought. The forge spends them awakening a TechnoMagic piece of this class: 10, 20, 40, 80 and 160 for ★1 to ★5 (a Reclaimed piece half as many again).`,
+          about: `From TechnoMagic Raid wins at stage 7 and up (of a class you brought), and salvaging TechnoMagic gear of this class (1 a piece, 2 a Reclaimed one). The forge spends them awakening a TechnoMagic piece of this class: 10, 20, 40, 80 and 160 for ★1 to ★5 (a Reclaimed piece half as many again).`,
         }),
       ),
     ];
