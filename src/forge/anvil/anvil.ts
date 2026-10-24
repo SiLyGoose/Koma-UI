@@ -1,4 +1,4 @@
-import { type ArmoryCopy, el, forgePlan, type GearCopy, heroGear, type Plan, rich } from '../../shared/items';
+import { type ArmoryCopy, el, forgePlan, type GearCopy, heroGear, type Plan, rich, stoneIcon, stoneName } from '../../shared/items';
 import { working } from '../../shared/ui';
 import { points } from '../../shared/util';
 import { card } from './card';
@@ -24,12 +24,14 @@ export function renderAnvil(ctx: ForgeContext): void {
   const plan = copy ? forgePlan(copy) : null;
   showHint(ctx, hintFor(ctx, copy, plan));
   showTarget(ctx, copy);
-  // What it uses up: the spare picked for a refine (the slot waiting for one until then).
-  const spare = plan?.kind === 'refine' ? copyById(ctx, ctx.material) : undefined;
-  ui.material.replaceChildren(spare ? card(spare) : el('span', 'anvil-empty'));
-  ui.material.classList.toggle('filled', !!spare);
-  ui.material.classList.toggle('waiting', !spare && !!choosing(ctx)?.size);
-  ui.material.title = spare ? 'Take it off the anvil' : '';
+  // What it uses up: the spare picked for a refine (the slot waiting for one until then), or a TechnoMagic piece's Upgrade
+  // Stones, how many it takes over how many they have.
+  const stones = plan?.kind === 'refine' ? (plan.refine.stones ?? null) : null;
+  const spare = plan?.kind === 'refine' && !stones ? copyById(ctx, ctx.material) : undefined;
+  ui.material.replaceChildren(stones ? stoneSlot(stones) : spare ? card(spare) : el('span', 'anvil-empty'));
+  ui.material.classList.toggle('filled', !!spare || !!stones);
+  ui.material.classList.toggle('waiting', !spare && !stones && !!choosing(ctx)?.size);
+  ui.material.title = spare ? 'Take it off the anvil' : stones ? `${stones.need} ${stoneName(stones.class)} (you have ${stones.have})` : '';
 
   ui.rate.textContent = `${SUCCESS_RATE}%`;
   ui.bonus.textContent = `+${FAILURE_BONUS}%`;
@@ -41,7 +43,16 @@ export function renderAnvil(ctx: ForgeContext): void {
   ui.go.textContent = copy && heroGear(copy) ? 'Awaken Gear' : 'Refine Gear';
   working(ui.go, ctx.busy, 'strike');
   ui.go.disabled =
-    plan?.kind !== 'refine' || plan.refine.blocked !== null || plan.refine.cost === null || (have !== null && have < plan.refine.cost) || !spare;
+    plan?.kind !== 'refine' || plan.refine.blocked !== null || plan.refine.cost === null || (have !== null && have < plan.refine.cost) || (!spare && !stones);
+}
+
+/** A TechnoMagic piece's Upgrade Stones in the Materials slot: their picture, and how many it takes over how many they have (in red when short). */
+function stoneSlot(stones: { class: string; need: number; have: number }): HTMLElement {
+  const box = el('span', 'anvil-stones');
+  const count = el('span', 'anvil-stones-count', `${stones.have.toLocaleString()} / ${stones.need.toLocaleString()}`);
+  count.classList.toggle('bad', stones.have < stones.need);
+  box.append(stoneIcon(stones.class, 'anvil-stones-icon'), count);
+  return box;
 }
 
 /** The line over the slots (hint.ts), green or red by its tone. */

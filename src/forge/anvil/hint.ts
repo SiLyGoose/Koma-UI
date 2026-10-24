@@ -1,5 +1,5 @@
 import { points } from '../../shared/util';
-import { type GearCopy, hasLevels, heroGear, levelLabel, type Plan, shownName } from '../../shared/items';
+import { type GearCopy, hasLevels, heroGear, levelLabel, type Plan, shownName, stoneName } from '../../shared/items';
 import { balance, choosing, copyById, type ForgeContext } from '../context';
 
 /** The line over the slots: how the anvil works, what's in the way, or what was just done. */
@@ -16,11 +16,17 @@ export function hintFor(ctx: ForgeContext, copy: GearCopy | undefined, plan: Pla
       const { refine } = plan;
       // (A hero's gear is awakened, King's Raid's, raising its stars.)
       const verb = heroGear(copy) ? 'awaken' : 'refine';
-      if (refine.blocked === 'no_duplicate' || choosing(ctx)?.size === 0) return { text: `You need another ${shownName(copy)} to use up as material.`, tone: 'bad' };
+      // (A TechnoMagic piece: its class's Upgrade Stones in place of a spare, King's Raid's.)
+      const { stones } = refine;
+      if (stones && stones.have < stones.need) {
+        return { text: `You need ${points(stones.need - stones.have)} more ${stoneName(stones.class, true)} to ${verb} it. The TechnoMagic Raid drops them from stage 7.`, tone: 'bad' };
+      }
+      if (!stones && (refine.blocked === 'no_duplicate' || choosing(ctx)?.size === 0)) return { text: `You need another ${shownName(copy)} to use up as material.`, tone: 'bad' };
       const have = balance(ctx);
       if (refine.blocked === 'too_poor' || (have !== null && refine.cost !== null && have < refine.cost)) {
         return { text: `You need ${points((refine.cost ?? 0) - (have ?? 0))} more zeiucoins to ${verb} it.`, tone: 'bad' };
       }
+      if (stones) return { text: `Uses ${points(stones.need)} of your ${points(stones.have)} ${stoneName(stones.class, true)}${copy.reclaimed ? ' (a Reclaimed piece takes half as many again)' : ''}.` };
       const spare = copyById(ctx, ctx.material);
       if (!spare) return { text: `Pick a spare ${shownName(copy)} from your armory to use up as material.` };
       if (spare.level > 1) return { text: `This spare is ${levelLabel(spare)}: its stars are lost when it's used up.`, tone: 'bad' };

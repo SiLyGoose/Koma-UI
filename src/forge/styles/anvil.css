@@ -130,6 +130,44 @@
   }
 }
 
+/* A TechnoMagic piece's Upgrade Stones in the Materials slot (anvil.ts): their picture, how many it takes over how many they have under it. */
+.anvil-stones {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.anvil-stones-icon {
+  width: 88%;
+  height: 88%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.anvil-stones-count {
+  position: absolute;
+  right: 2px;
+  bottom: 0;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: rgb(10 8 14 / 82%);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  text-shadow: 0 1px 2px #000;
+}
+
+.anvil-stones-count.bad {
+  color: var(--red);
+}
+
+/* The stones aren't taken off the anvil: no pointer over them. */
+#material.filled:has(> .anvil-stones) {
+  cursor: default;
+}
+
 .anvil-frame .item {
   width: 100%;
   cursor: inherit;

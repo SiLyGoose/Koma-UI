@@ -1,7 +1,7 @@
 import { coin, dust, points } from '../shared/util';
 import { GEM_EMOJI } from '../forge/anvil/gem';
 import { built } from '../shared/built';
-import { dragonTier, el, isTmPiece, itemDetailsClosed, itemFace, itemIcons, kindName, mainStatLine, shownName, tmSections, rich } from '../shared/items';
+import { dragonTier, el, isTmPiece, itemDetailsClosed, itemFace, itemIcons, kindName, mainStatLine, shownName, stoneIcon, stoneName, tmSections, rich } from '../shared/items';
 import { ESSENCE_NAME, type EssenceId } from '../protocol/heroes';
 import type { DropView, RaidKind } from '../protocol/technomagic';
 import { niceScale } from '../raid/result/nice-scale';
@@ -91,6 +91,8 @@ export interface ResultShown {
   /** The komaGems the win gave this player (none: no tile), and how many stages it cleared for them for the first time (what pays them). */
   gems?: number;
   firstClears?: number;
+  /** The Technomagic Gear Upgrade Stones the win gave this player (a TechnoMagic Raid win from stage 7): their class, and how many (none: no tile). */
+  stones?: { class: string; count: number };
   /** The gear this player found: TechnoMagic gear, or (the Dragon Raid's) raid items. */
   raid?: RaidKind;
   mine: readonly DropView[];
@@ -342,6 +344,16 @@ export function makeResult(root: HTMLElement): Result {
     return tile;
   }
 
+  /** The Upgrade Stones the win gave (all of one class), as a tile beside the points: their picture, and how many. */
+  function stonesTile(stones: { class: string; count: number }): HTMLElement {
+    const tile = el('div', 'tm-tile tm-tile-points');
+    tile.title = `${stoneName(stones.class)}: the forge spends them awakening a TechnoMagic piece of its class`;
+    const face = el('span', 'tm-points-face tm-essence-face');
+    face.append(stoneIcon(stones.class, 'tm-essence-art'));
+    tile.append(face, el('span', 'tm-tile-name', `${stoneName(stones.class, true)} ×${points(stones.count)}`));
+    return tile;
+  }
+
   /** The komaGems the win gave, as a tile beside the essences, with the stages it cleared for the first time under it (`first`). */
   function gemsTile(amount: number, first: number): HTMLElement {
     const tile = el('div', 'tm-tile tm-tile-points');
@@ -437,6 +449,7 @@ export function makeResult(root: HTMLElement): Result {
       rewards.replaceChildren(
         ...(shown.points > 0 ? [pointsTile(shown.points)] : []),
         ...essences.map(([id, amount]) => essenceTile(id, amount)),
+        ...(shown.stones && shown.stones.count > 0 ? [stonesTile(shown.stones)] : []),
         ...((shown.gems ?? 0) > 0 ? [gemsTile(shown.gems ?? 0, shown.firstClears ?? 0)] : []),
         ...shown.mine.map((drop) => gearTile(drop)),
       );

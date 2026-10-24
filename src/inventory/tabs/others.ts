@@ -1,7 +1,8 @@
 import { GEM_EMOJI } from '../../forge/anvil/gem';
 import { ESSENCE_NAME, ESSENCES, type EssenceId } from '../../protocol/heroes';
 import { built } from '../../shared/built';
-import { el, rich } from '../../shared/items';
+import { el, rich, stoneName, stonePicture } from '../../shared/items';
+import { RAID_CLASS_IDS } from '../../protocol/raid';
 import { coin, dust } from '../../shared/util';
 import { KEPT } from '../../technomagic/assets/paths';
 import type { InventoryTab } from '../tab';
@@ -11,7 +12,8 @@ import { type Tile, tileGrid, tileImage } from './tiles';
 /*
  * The inventory's Others: what they have that isn't gear, a slot each (./tiles.ts), how many in its corner: zeiucoins (the
  * header's), komaTokens (the gacha's), komaGems, komaDust, the Unique Weapon and Unique Treasure Tickets crafted from it or
- * claimed from mail (the raid shop's: picked, Use gives the hero's item they pick, ./tickets.ts) and the hero essences (the heroes page's); picked,
+ * claimed from mail (the raid shop's: picked, Use gives the hero's item they pick, ./tickets.ts), the hero essences and the Technomagic
+ * Gear Upgrade Stones, a slot for each class's (the heroes page's: ../../shared/items/stones.ts); picked,
  * where it comes from and what it's for. The slots fill in as the bot's answers they're in come (a dash where one
  * couldn't be had).
  */
@@ -37,7 +39,7 @@ export const othersTab: InventoryTab = {
           <div class="sheet-scroll"><div class="armory-grid"></div></div>
         </div>
         <div class="inv-bar">
-          <p class="inv-count">Currencies and hero essences. Pick one to see where it comes from.</p>
+          <p class="inv-count">Currencies, hero essences and Upgrade Stones. Pick one to see where it comes from.</p>
         </div>
         <div class="detail" role="dialog" aria-label="Item" hidden></div>
       </div>`;
@@ -50,7 +52,7 @@ export const othersTab: InventoryTab = {
     );
 
     /** How many of each they hold (null: not known yet; undefined: couldn't be had). */
-    const held: Record<string, number | null | undefined> = { zeiucoins: host.balance() ?? undefined, tokens: null, gems: null, dust: null, uw: null, ut: null, ...Object.fromEntries(ESSENCES.map((id) => [id, null])) };
+    const held: Record<string, number | null | undefined> = { zeiucoins: host.balance() ?? undefined, tokens: null, gems: null, dust: null, uw: null, ut: null, ...Object.fromEntries(ESSENCES.map((id) => [id, null])), ...Object.fromEntries(RAID_CLASS_IDS.map((cls) => [`stone-${cls}`, null])) };
     const tiles = (): Tile[] => [
       { id: 'zeiucoins', name: 'zeiucoins', picture: boxed(() => coin('', '')), grade: 5, count: held.zeiucoins, kind: 'Currency', about: 'Claimed, won and earned in the games. Pulls, outfits and the forge spend them.' },
       { id: 'tokens', name: 'komaTokens', picture: boxed(() => rich(TOKEN_EMOJI)), grade: 4, count: held.tokens, kind: 'Currency', about: 'Each pays for one Wish pull, before any zeiucoins.' },
@@ -73,6 +75,20 @@ export const othersTab: InventoryTab = {
           count: held[id],
           kind: 'Hero Essence',
           about: 'From the Weekly Boss and the Dragon Raid. Transcending heroes spends it.',
+        }),
+      ),
+      // (King's Raid's, a class each: what awakens that class's TechnoMagic pieces, in place of a spare copy.)
+      ...RAID_CLASS_IDS.map(
+        (cls): Tile => ({
+          id: `stone-${cls}`,
+          name: stoneName(cls),
+          picture: () => tileImage(stonePicture(cls)),
+          full: true,
+          grade: 4,
+          count: held[`stone-${cls}`],
+          kind: 'Material',
+          words: 'upgrade stone technomagic',
+          about: `From TechnoMagic Raid wins at stage 7 and up, of a class you brought. The forge spends them awakening a TechnoMagic piece of this class: 10, 20, 40, 80 and 160 for ★1 to ★5 (a Reclaimed piece half as many again).`,
         }),
       ),
     ];
@@ -109,6 +125,7 @@ export const othersTab: InventoryTab = {
     const heroes = host.load('heroes').then((res) => {
       held.gems = res.ok ? res.data.gems : undefined;
       for (const id of ESSENCES) held[id] = res.ok ? (res.data.essences[id] ?? 0) : undefined;
+      for (const cls of RAID_CLASS_IDS) held[`stone-${cls}`] = res.ok ? (res.data.stones?.[cls] ?? 0) : undefined;
       draw();
     });
     const shop = host.load('shop').then((res) => {

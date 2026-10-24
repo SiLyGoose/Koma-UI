@@ -134,14 +134,16 @@ export const gems = (ctx: ForgeContext): number | null => ctx.heroes?.gems ?? nu
  */
 function materialsFor(ctx: ForgeContext, copy: GearCopy): GearCopy[] {
   const { gear } = ctx;
-  if (!gear) return [];
+  // (A TechnoMagic piece takes its class's Upgrade Stones, no spare.)
+  if (!gear || copy.refine.stones) return [];
   const kept = equippedIds(gear);
   return gear.copies.filter((c) => c.itemId === copy.itemId && c.id !== copy.id && !kept.has(c.id) && !c.locked);
 }
 
 /**
  * The copies that can be refined: below their top level, with a spare to use up (as materialsFor counts
- * them). Whether they can pay for it isn't counted: that goes by their zeiucoins, not by the copy.
+ * them), or a TechnoMagic piece (its stones: the anvil says how many it takes). Whether they can pay for it isn't counted:
+ * that goes by their zeiucoins, not by the copy.
  */
 export function refineableIds(ctx: ForgeContext): Set<string> {
   const { gear } = ctx;
@@ -155,7 +157,8 @@ export function refineableIds(ctx: ForgeContext): Set<string> {
   for (const c of gear.copies) {
     const plan = forgePlan(c);
     // A spare other than itself.
-    if (plan.kind === 'refine' && plan.refine.blocked !== 'no_duplicate' && (spares.get(c.itemId) ?? 0) > Number(spare(c))) ids.add(c.id);
+    if (plan.kind === 'refine' && plan.refine.stones) ids.add(c.id);
+    else if (plan.kind === 'refine' && plan.refine.blocked !== 'no_duplicate' && (spares.get(c.itemId) ?? 0) > Number(spare(c))) ids.add(c.id);
   }
   return ids;
 }

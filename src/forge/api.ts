@@ -30,6 +30,8 @@ export function failed(ctx: ForgeContext, res: { status: number; error: string }
             ? "You can't afford that."
             : res.error === 'no_gems'
               ? "You don't have enough komaGems for that."
+            : res.error === 'no_stones'
+              ? "You don't have enough Upgrade Stones for that."
               : res.error === 'pending'
                 ? 'Keep one of its effects first: the one it has, or the one just rolled.'
               : ['no_duplicate', 'maxed', 'bad_material', 'no_option'].includes(res.error)
