@@ -43,7 +43,7 @@
   margin-top: 16px;
 }
 
-/* A mode: its name, and under it what it does. */
+/* A mode: its name, and under it what it does (wrapping on a phone, not past the button: the site's buttons don't wrap). */
 .forge-mode.action {
   flex-direction: column;
   align-items: flex-start;
@@ -51,6 +51,7 @@
   min-height: 62px;
   padding: 10px 18px;
   text-align: left;
+  white-space: normal;
 }
 
 .forge-mode-name {
