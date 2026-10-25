@@ -46,7 +46,7 @@ export interface ForgeContext {
   heroes: HeroesView | null;
   /** Rerolling substats: which of the piece on the anvil's (its place), if one's picked. */
   option: number | null;
-  /** Rerolling an effect: which to keep, the piece on the anvil's effect or the one its reroll rolled, if one's picked. */
+  /** An effect or substat rerolled: which to keep, the piece on the anvil's or the one its reroll rolled, if one's picked. */
   keep: HeroKeep | null;
   filter: ItemType | 'all';
   /** The star tier the armory shows (its Filter: ../shared/items/armory-filter/). */

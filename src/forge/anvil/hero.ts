@@ -29,25 +29,60 @@ export function priceOf(copy: HeroCopy, mode: HeroMode, option: number | null): 
   }
 }
 
-/** Whether the piece's effect was rerolled and waits for the member to keep the new one or the one it has (nothing to pay). */
-export const keeping = (copy: HeroCopy | undefined, mode: HeroMode): copy is HeroCopy => mode === 'effects' && !!copy?.rerolled;
+/** One side of a reroll waiting to be kept: its line (an effect's: null, none), and a substat's steps. */
+export interface KeepLine {
+  line: string | null;
+  option?: { step: number; steps: number };
+}
+
+/** A reroll waiting to be kept: what was rerolled, the one the piece has and the one rolled. */
+export interface KeepChoice {
+  what: 'effect' | 'substat';
+  old: KeepLine;
+  new: KeepLine;
+}
+
+/**
+ * The piece's effect (the effects mode) or one of its substats (rerolling or enhancing) rerolled and waiting for the member to keep
+ * the new one or the one it has (King's Raid's Reforge; nothing to pay); null: none waits.
+ */
+export function keepChoice(copy: HeroCopy | undefined, mode: HeroMode): KeepChoice | null {
+  if (!copy) return null;
+  if (mode === 'effects') return copy.rerolled ? { what: 'effect', old: { line: copy.additional }, new: { line: copy.rerolled } } : null;
+  const rolled = copy.rerolledOption;
+  const old = rolled ? copy.options[rolled.index] : undefined;
+  return rolled && old ? { what: 'substat', old: { line: old.line, option: old }, new: { line: rolled.line, option: rolled } } : null;
+}
+
+/** Whether the piece has a reroll waiting to be kept, in this mode. */
+export const keeping = (copy: HeroCopy | undefined, mode: HeroMode): boolean => keepChoice(copy, mode) !== null;
+
+/** A side of a reroll waiting, as a choice shows it: its line (an effect's, rich) and a substat's pips. */
+export function keepLine(choice: KeepChoice, side: KeepLine): HTMLElement[] {
+  const line = el('span', 'forge-line');
+  line.append(side.line ? (choice.what === 'effect' ? rich(side.line) : side.line) : 'No additional effect.');
+  return side.option ? [line, optionPips(side.option)] : [line];
+}
 
 /**
  * The anvil for a hero's gear: the hint, the piece on it, its substats (rerolling or enhancing: each a button, the one picked) or
  * its effect, the price (zeiucoins; an effect's, komaGems; a TechnoMagic piece's substats', its set's Boss Crystals) and the mode's button. Nothing is used up, so no Materials and no odds.
- * An effect rerolled and not yet kept: its effect and the one rolled, each a button, and Keep Effect for the one picked.
+ * An effect or substat rerolled and not yet kept: the one it has and the one rolled, each a button, and Keep for the one picked.
  */
 export function renderHeroAnvil(ctx: ForgeContext, mode: HeroMode): void {
   const { ui } = ctx;
   const copy = heroCopyById(ctx, ctx.picked);
   if (ctx.option !== null && (!copy || ctx.option >= copy.options.length)) ctx.option = null;
-  if (!keeping(copy, mode)) ctx.keep = null;
+  const waiting = keepChoice(copy, mode);
+  if (!waiting) ctx.keep = null;
   else {
-    showHint(ctx, ctx.done ? { text: ctx.done, tone: ctx.doneWell ? 'good' : 'bad' } : { text: ctx.keep === null ? 'Pick the effect to keep: the one it has, or the one just rolled.' : 'The other one is gone for good.' });
+    showHint(ctx, ctx.done ? { text: ctx.done, tone: ctx.doneWell ? 'good' : 'bad' } : { text: ctx.keep === null ? `Pick the ${waiting.what} to keep: the one it has, or the one just rolled.` : 'The other one is gone for good.' });
     showTarget(ctx, copy);
-    renderKeep(ctx, copy);
-    showPrice(ctx, 0, gems(ctx), 'komaGems', false);
-    ui.go.textContent = 'Keep Effect';
+    renderKeep(ctx, waiting);
+    // (Nothing to pay, in what the mode costs.)
+    const unit = copy ? priceOf(copy, mode, null)?.unit : undefined;
+    showPrice(ctx, 0, unit === 'komaGems' ? gems(ctx) : unit?.startsWith('crystals:') ? crystals(ctx, unit.slice('crystals:'.length)) : balance(ctx), unit ?? 'zeiucoins', false);
+    ui.go.textContent = waiting.what === 'effect' ? 'Keep Effect' : 'Keep Substat';
     working(ui.go, ctx.busy, 'strike');
     ui.go.disabled = ctx.keep === null;
     return;
@@ -83,18 +118,18 @@ function heroHint(ctx: ForgeContext, mode: HeroMode, copy: HeroCopy | undefined,
     }
     return { text: `You need ${points(price.cost - have)} more ${price.unit} to do that.`, tone: 'bad' };
   }
-  if (mode === 'reroll') return { text: ctx.option === null ? 'Pick the substat to reroll, below.' : 'The substat picked is rolled again: a new one takes its place, at random.' };
+  if (mode === 'reroll') return { text: ctx.option === null ? 'Pick the substat to reroll, below.' : 'The substat picked is rolled again, at random: then keep the new one or the one it has.' };
   if (mode === 'enhance') return { text: ctx.option === null ? 'Pick the substat to enhance, below.' : 'The substat picked keeps its stat and rolls its amount again, anywhere in its range: it may go down.' };
   return { text: 'Its additional effect is rolled again, at random: then keep the new one or the one it has.' };
 }
 
-/** Under the slots, an effect rerolled: the one it has and the one rolled, each a button (the one picked is kept). */
-function renderKeep(ctx: ForgeContext, copy: HeroCopy): void {
+/** Under the slots, an effect or substat rerolled: the one it has and the one rolled, each a button (the one picked is kept). */
+function renderKeep(ctx: ForgeContext, waiting: KeepChoice): void {
   const { ui } = ctx;
   ui.effects.textContent = '';
-  const choices: { keep: HeroKeep; tag: string; line: string | null }[] = [
-    { keep: 'old', tag: 'Current', line: copy.additional },
-    { keep: 'new', tag: 'New', line: copy.rerolled },
+  const choices: { keep: HeroKeep; tag: string; side: KeepLine }[] = [
+    { keep: 'old', tag: 'Current', side: waiting.old },
+    { keep: 'new', tag: 'New', side: waiting.new },
   ];
   for (const choice of choices) {
     const row = el('li', 'forge-row forge-option');
@@ -102,9 +137,7 @@ function renderKeep(ctx: ForgeContext, copy: HeroCopy): void {
     pick.type = 'button';
     pick.setAttribute('aria-pressed', String(ctx.keep === choice.keep));
     pick.disabled = !!ctx.busy;
-    const line = el('span', 'forge-line');
-    line.append(choice.line ? rich(choice.line) : 'No additional effect.');
-    pick.append(line, el('span', `forge-keep-tag ${choice.keep}`, choice.tag));
+    pick.append(...keepLine(waiting, choice.side), el('span', `forge-keep-tag ${choice.keep}`, choice.tag));
     pick.addEventListener('click', () => {
       ctx.done = null;
       ctx.keep = ctx.keep === choice.keep ? null : choice.keep;
