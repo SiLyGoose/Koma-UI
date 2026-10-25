@@ -3,7 +3,7 @@ import type { HeroCopy } from '../shared/heroes';
 
 /**
  * What the forge does, picked from its menu: refine a copy (a hero's gear: awaken it), or, to a hero's gear, reroll one of
- * its substats (King's Raid's options), enhance one (its amount rolled again), or reroll its effect (TechnoMagic gear's additional skill).
+ * its substats (King's Raid's options), reroll one's value (its amount rolled again), or reroll its effect (TechnoMagic gear's additional skill).
  */
 export type ForgeMode = 'refine' | 'reroll' | 'enhance' | 'effects';
 
@@ -11,7 +11,7 @@ export type ForgeMode = 'refine' | 'reroll' | 'enhance' | 'effects';
 export const FORGE_MODES: readonly { id: ForgeMode; name: string; about: string; go: string }[] = [
   { id: 'refine', name: 'Refine Gear', about: 'Raise a piece a star, using up a spare copy of it.', go: 'Refine Gear' },
   { id: 'reroll', name: 'Reroll Substats', about: 'Roll one of a hero gear piece’s substats again.', go: 'Reroll Substat' },
-  { id: 'enhance', name: 'Enhance Substats', about: 'Roll one of its substats’ amounts again, anywhere in its range.', go: 'Enhance Substat' },
+  { id: 'enhance', name: 'Reroll Values', about: 'Roll one of its substats’ amounts again, anywhere in its range.', go: 'Reroll Value' },
   { id: 'effects', name: 'Reroll Effects', about: 'Roll a TechnoMagic piece’s additional effect again.', go: 'Reroll Effect' },
 ];
 

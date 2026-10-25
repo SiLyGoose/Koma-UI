@@ -8,7 +8,7 @@ import { wireControls } from './controls';
 
 /*
  * The forge: first its menu (menu.ts), a column of what it does (modes.ts): Refine Gear, and for a hero's gear Reroll
- * Substats, Enhance Substats and Reroll Effects (TechnoMagic gear's additional effect: anvil/hero.ts, on GET /api/heroes).
+ * Substats, Reroll Values and Reroll Effects (TechnoMagic gear's additional effect: anvil/hero.ts, on GET /api/heroes).
  * Picked, the member's armory on the right, the anvil on the left, Back to the menu over it. Picking a copy puts it on the
  * anvil as the target, and the armory greys out everything that can't be its material; for a refine,
  * the member picks the spare copy to use up from what's left. Under them: the odds, what it does now

@@ -110,16 +110,16 @@ export async function strikeHero(ctx: ForgeContext, mode: HeroMode): Promise<voi
       showKeepChoice(ctx, after, waiting, (which) => void keepRolled(ctx, which));
       return res;
     }
-    ctx.done = mode === 'enhance' ? `Enhanced: ${changed.join(', ') || 'it rolled the same amount again'}.` : `Rerolled into ${changed.join(', ') || 'the same again'}.`;
+    ctx.done = mode === 'enhance' ? `Value rerolled: ${changed.join(', ') || 'it rolled the same amount again'}.` : `Rerolled into ${changed.join(', ') || 'the same again'}.`;
     // (Rerolling or enhancing: the substat picked stays picked, to roll it again.)
     status(ctx, null);
     render(ctx);
-    if (after) showChange(ctx, after, mode === 'enhance' ? 'Substat enhanced' : mode === 'reroll' ? 'Substat rerolled' : 'Effect rerolled', rows);
+    if (after) showChange(ctx, after, mode === 'enhance' ? 'Value rerolled' : mode === 'reroll' ? 'Substat rerolled' : 'Effect rerolled', rows);
     return res;
-  }, mode === 'enhance' ? 'Enhancing…' : 'Rerolling…');
+  }, 'Rerolling…');
   if (!res.ok) {
     renderAnvil(ctx);
-    failed(ctx, res, mode === 'enhance' ? 'Could not enhance that. Try again.' : 'Could not reroll that. Try again.');
+    failed(ctx, res, mode === 'enhance' ? 'Could not reroll that value. Try again.' : 'Could not reroll that. Try again.');
   }
 }
 

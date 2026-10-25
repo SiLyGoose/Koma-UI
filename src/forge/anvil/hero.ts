@@ -109,7 +109,7 @@ function heroHint(ctx: ForgeContext, mode: HeroMode, copy: HeroCopy | undefined,
   }
   if (!price) {
     if (mode === 'reroll') return { text: 'This piece has no substats to reroll.', tone: 'bad' };
-    if (mode === 'enhance') return { text: 'This piece has no substats to enhance.', tone: 'bad' };
+    if (mode === 'enhance') return { text: 'This piece has no substat values to reroll.', tone: 'bad' };
     return { text: 'This piece has no additional effect to reroll.', tone: 'bad' };
   }
   if (have !== null && have < price.cost) {
@@ -119,7 +119,7 @@ function heroHint(ctx: ForgeContext, mode: HeroMode, copy: HeroCopy | undefined,
     return { text: `You need ${points(price.cost - have)} more ${price.unit} to do that.`, tone: 'bad' };
   }
   if (mode === 'reroll') return { text: ctx.option === null ? 'Pick the substat to reroll, below.' : 'The substat picked is rolled again, at random: then keep the new one or the one it has.' };
-  if (mode === 'enhance') return { text: ctx.option === null ? 'Pick the substat to enhance, below.' : 'The substat picked keeps its stat and rolls its amount again, anywhere in its range: it may go down.' };
+  if (mode === 'enhance') return { text: ctx.option === null ? 'Pick the substat whose value to reroll, below.' : 'The substat picked keeps its stat and rolls its amount again, anywhere in its range: it may go down.' };
   return { text: 'Its additional effect is rolled again, at random: then keep the new one or the one it has.' };
 }
 
