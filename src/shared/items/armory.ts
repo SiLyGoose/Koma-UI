@@ -1,6 +1,6 @@
 import { type Busy, doneMark, working } from '../ui';
 import { coin, dust, points } from '../util';
-import { armoryOrder, type TmSort } from './gear';
+import { armoryOrder, tmMainOf, type TmSort } from './gear';
 import { dragonTier, el, hasLevels, heroGear, heroTier, isTmPiece, itemFace, itemIcons, type ItemType, ITEM_TYPE_NAME, kindName, levelLabel, lockBadge, mainStatLine, rich, shownName, type Slot, type Stars, tierOf, typeOf } from './items';
 import type { HeroPart } from '../../protocol/heroes';
 import type { MainStat } from '../../protocol/items';
@@ -76,7 +76,7 @@ export interface ArmoryDraw<C extends ArmoryCopy> {
   query: string;
   /** What else a copy is searched by (the inventory's: a unique weapon's or treasure's hero's name). */
   words?: (copy: C) => string;
-  /** How TechnoMagic gear is sorted (the Filter's Sort): left out, in the armory's own order. */
+  /** How TechnoMagic gear is sorted (the Filter's Sort; a main stat picked shows only the copies with it): left out, in the armory's own order. */
   sort?: TmSort;
   /** Left out as if it weren't there (the gear page's gear only heroes wear, until its Filter shows it). */
   hidden?: (copy: C) => boolean;
@@ -260,7 +260,7 @@ export function armoryGrid<C extends ArmoryCopy>(element: HTMLElement, options: 
     if (!across) across = columns();
     element.classList.toggle('selling', !!what.selling);
     const ofSlot = armoryOrder(what.copies, what.sort).filter((c) => (slot === 'all' || typeOf(c) === slot) && !hidden?.(c));
-    const shown = ofSlot.filter((c) => (matches?.(c) ?? true) && ofTier(stars, c) && matchesSearch(query, { name: c.name, id: c.itemId, description: words ? `${c.description} ${words(c)}` : c.description }));
+    const shown = ofSlot.filter((c) => (matches?.(c) ?? true) && tmMainOf(c, what.sort) && ofTier(stars, c) && matchesSearch(query, { name: c.name, id: c.itemId, description: words ? `${c.description} ${words(c)}` : c.description }));
     lastShown = shown;
     const ownSound = what.ownSound !== false;
     if (scroller) {

@@ -28,13 +28,18 @@ interface Ordered {
 
 /**
  * How the armories sort TechnoMagic gear (their Filter's Sort), each part left out when it's empty: by a main stat
- * (`main`: its name, as a copy's `mainStat` has it, like "P. DEF"), the copies with it first, the most first; then by
+ * (`main`: its name, as a copy's `mainStat` has it, like "P. DEF"), only the copies with it shown (tmMainOf), the most first; then by
  * potentials (`potentials`: their names, as a copy's effect lines have them, like "ATK"), the copies with more of them
  * first, then those with more of them all told (their percents added up).
  */
 export interface TmSort {
   main: string | null;
   potentials: readonly string[];
+}
+
+/** Whether a copy is shown by `sort`'s main stat: it has that main stat (every copy, with none picked). */
+export function tmMainOf(copy: Ordered, sort: TmSort | undefined): boolean {
+  return !sort || sort.main === null || copy.mainStat?.name === sort.main;
 }
 
 /** TechnoMagic gear in the armories' own order. */
