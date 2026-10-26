@@ -1,6 +1,6 @@
 import type { Buff } from '../sim/shown';
 import { buffRow } from './buff';
-import { el } from './dom';
+import { el, put, shown } from './dom';
 
 /**
  * A hero's health over its head, while it is on the field: a row of small squares for what it has on
@@ -34,16 +34,16 @@ export function makeOverhead(parent: HTMLElement, ally = false, foe = false): Ov
   const drawBuffs = buffRow(buffs);
   return {
     draw(x, y, share, shield, on) {
-      root.hidden = false;
+      shown(root, true);
       root.style.transform = `translate(${x}px, ${y}px) translate(-50%, -100%)`;
-      fill.style.transform = `scaleX(${Math.max(0, share)})`;
+      put(fill, 'transform', `scaleX(${Math.max(0, share)})`);
       most = shield > 0 ? Math.max(most, shield) : 0;
-      track.hidden = most <= 0;
-      if (most > 0) line.style.width = `${(shield / most) * 100}%`;
+      shown(track, most > 0);
+      if (most > 0) put(line, 'width', `${(shield / most) * 100}%`);
       drawBuffs(on);
     },
     hide() {
-      root.hidden = true;
+      shown(root, false);
     },
   };
 }

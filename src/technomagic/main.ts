@@ -30,7 +30,7 @@ import { lookOf } from './heroes/looks';
 import { makeActions } from './hud/actions';
 import { makeBossBar } from './hud/boss-bar';
 import { makeCard } from './hud/card';
-import { el } from './hud/dom';
+import { attr, el } from './hud/dom';
 import { leavePopup } from './hud/leave';
 import { makeMeter } from './hud/meter';
 import { makeNumbers, together } from './hud/numbers';
@@ -1190,7 +1190,7 @@ async function start(): Promise<void> {
     stage.pan(view.pan);
     stage.dim(view.dark, view.lit ? [view.lit, bright] : [bright]);
     actions?.draw(sim.bossAuto);
-    if (!lock) deathlessButton.setAttribute('aria-pressed', String(sim.deathless));
+    if (!lock) attr(deathlessButton, 'aria-pressed', String(sim.deathless));
     playing.draw();
 
     // What each blow took and each heal gave, coming off whom it was (a frame's of a kind on one body, as one).

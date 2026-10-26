@@ -189,9 +189,16 @@ export function makeStage(canvas: HTMLCanvasElement): Stage {
   const flatUi = new OrthographicCamera(-UI_HIGH / 2, UI_HIGH / 2, UI_HIGH / 2, -UI_HIGH / 2, -1000, 1000);
   flatUi.rotation.y = Math.PI;
   flatUi.updateMatrixWorld();
+  /**
+   * The canvas's size (CSS pixels) as last measured, for project(): measured only here, as it changes. Asked for there, every
+   * frame between the health bars it places, the browser would lay the page out again for each (Firefox most slowly).
+   */
+  const size = { w: 0, h: 0 };
   const fit = (): void => {
     const w = canvas.clientWidth;
     const h = canvas.clientHeight;
+    size.w = w;
+    size.h = h;
     if (w === 0 || h === 0) return;
     renderer.setPixelRatio(Math.min(sharpest, window.devicePixelRatio));
     renderer.setSize(w, h, false);
@@ -341,7 +348,7 @@ export function makeStage(canvas: HTMLCanvasElement): Stage {
     project(at) {
       camera.updateMatrixWorld();
       seen.copy(at).project(camera);
-      return { x: (seen.x * 0.5 + 0.5) * canvas.clientWidth, y: (-seen.y * 0.5 + 0.5) * canvas.clientHeight };
+      return { x: (seen.x * 0.5 + 0.5) * size.w, y: (-seen.y * 0.5 + 0.5) * size.h };
     },
     portrait(model, at, turn) {
       const SIZE = 320;

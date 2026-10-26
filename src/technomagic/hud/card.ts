@@ -2,7 +2,7 @@ import { artPicture } from '../art';
 import type { Ability } from '../sim/heroes/kit';
 import type { Buff } from '../sim/shown';
 import { about, buffRow, buffTip, square } from './buff';
-import { el } from './dom';
+import { attr, el, flag, put } from './dom';
 import { holdTip, nameTips, pointTips } from './tip';
 
 /*
@@ -151,20 +151,20 @@ export function makeCard(name: string, face: string, abilities: readonly Ability
   return {
     root,
     draw(state) {
-      root.classList.toggle('picked', state.picked);
-      const says = `${name}: ${state.picked ? 'take off' : 'put on'} the field`;
-      if (portrait.getAttribute('aria-label') !== says) portrait.setAttribute('aria-label', says);
-      root.classList.toggle('down', state.hp <= 0);
-      root.classList.toggle('awake', state.awake);
+      // (Each written only when it changes: drawn every frame, for every card.)
+      flag(root, 'picked', state.picked);
+      attr(portrait, 'aria-label', `${name}: ${state.picked ? 'take off' : 'put on'} the field`);
+      flag(root, 'down', state.hp <= 0);
+      flag(root, 'awake', state.awake);
       drawTimed(state.effects);
-      hp.style.transform = `scaleX(${Math.max(0, state.hp / state.maxHp)})`;
+      put(hp, 'transform', `scaleX(${Math.max(0, state.hp / state.maxHp)})`);
       cells.forEach(({ cell, fill }, i) => {
         const part = Math.min(1, Math.max(0, state.mana - i));
-        fill.style.transform = `scaleX(${part})`;
-        cell.classList.toggle('full', part >= 1);
+        put(fill, 'transform', `scaleX(${part})`);
+        flag(cell, 'full', part >= 1);
       });
-      power.setAttribute('aria-label', `${Math.floor(state.mana)} of ${state.maxMana} mana`);
-      auto.setAttribute('aria-pressed', String(state.auto));
+      attr(power, 'aria-label', `${Math.floor(state.mana)} of ${state.maxMana} mana`);
+      attr(auto, 'aria-pressed', String(state.auto));
       slots.forEach(({ slot, wait, ability, hold }, i) => {
         if (!ability) return;
         const now = state.slots[i] === undefined ? ability : state.slots[i];
@@ -173,12 +173,12 @@ export function makeCard(name: string, face: string, abilities: readonly Ability
         const left = state.cooldowns[i] ?? 0;
         const text = sealed ? '🔒' : left > 0 ? String(Math.ceil(left)) : '';
         if (wait.textContent !== text) wait.textContent = text;
-        slot.classList.toggle('sealed', sealed);
-        slot.classList.toggle('waiting', !sealed && left > 0);
-        slot.classList.toggle('reserved', state.reserved === i);
-        slot.classList.toggle('casting', state.casting !== null && state.casting !== i);
-        slot.classList.toggle('short', !sealed && left <= 0 && state.mana < (now ?? ability).cost);
-        slot.setAttribute('aria-disabled', String(!state.picked || state.hp <= 0));
+        flag(slot, 'sealed', sealed);
+        flag(slot, 'waiting', !sealed && left > 0);
+        flag(slot, 'reserved', state.reserved === i);
+        flag(slot, 'casting', state.casting !== null && state.casting !== i);
+        flag(slot, 'short', !sealed && left <= 0 && state.mana < (now ?? ability).cost);
+        attr(slot, 'aria-disabled', String(!state.picked || state.hp <= 0));
       });
     },
   };

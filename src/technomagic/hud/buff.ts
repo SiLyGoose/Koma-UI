@@ -17,10 +17,23 @@ export const sweepLayer = (): HTMLElement => el('i', 'tm-sweep');
 
 /** Turns a square's sweep to `done` (0 to 1) of its time run. */
 export function setSweep(made: Element, done: number): void {
-  const layer = made.querySelector<HTMLElement>('.tm-sweep');
-  const turn = `${(Math.min(1, Math.max(0, done)) * 360).toFixed(1)}deg`;
-  if (layer && layer.style.getPropertyValue('--done') !== turn) layer.style.setProperty('--done', turn);
+  // (Its sweep found once: turned every frame, for every square.)
+  let layer = SWEEPS.get(made);
+  if (layer === undefined) SWEEPS.set(made, (layer = made.querySelector<HTMLElement>('.tm-sweep')));
+  // (In steps of STEP degrees: finer can't be seen on a square that small, and each step styles it again.)
+  const turn = `${Math.round((Math.min(1, Math.max(0, done)) * 360) / STEP) * STEP}deg`;
+  if (layer && TURNED.get(layer) !== turn) {
+    TURNED.set(layer, turn);
+    layer.style.setProperty('--done', turn);
+  }
 }
+
+/** How far a sweep turns at a time (degrees). */
+const STEP = 3;
+
+/** Each square's sweep (null: it has none), and how far each sweep was last turned. */
+const SWEEPS = new WeakMap<Element, HTMLElement | null>();
+const TURNED = new WeakMap<HTMLElement, string>();
 
 /**
  * How much of their time the timed squares have run (0 to 1), each by its key. Their whole time isn't said, so it's the most

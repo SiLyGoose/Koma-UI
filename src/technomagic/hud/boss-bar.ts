@@ -1,7 +1,7 @@
 import { artPicture } from '../art';
 import type { Mark } from '../sim/shown';
 import { setSweep, sweepLayer, sweepTimes } from './buff';
-import { el } from './dom';
+import { el, put, shown } from './dom';
 import { pointTips } from './tip';
 
 /*
@@ -71,13 +71,13 @@ export function makeBossBar(root: HTMLElement, name: string, deals: string): Bos
   const times = sweepTimes();
   return {
     draw(share, marks, gauge) {
-      root.hidden = false;
-      fill.style.transform = `scaleX(${Math.max(0, share)})`;
+      shown(root, true);
+      put(fill, 'transform', `scaleX(${Math.max(0, share)})`);
       const percent = `${Math.ceil(share * 100)}%`;
       if (words.textContent !== percent) words.textContent = percent;
-      meter.hidden = gauge === null;
+      shown(meter, gauge !== null);
       if (gauge !== null) {
-        gaugeFill.style.transform = `scaleX(${Math.max(0, gauge)})`;
+        put(gaugeFill, 'transform', `scaleX(${Math.max(0, gauge)})`);
         const full = String(Math.ceil(gauge * 100));
         if (meter.getAttribute('aria-valuenow') !== full) meter.setAttribute('aria-valuenow', full);
       }

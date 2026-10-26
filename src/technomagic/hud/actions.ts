@@ -1,5 +1,5 @@
 import type { BossAttack } from '../sim/bosses/boss';
-import { el } from './dom';
+import { attr, el } from './dom';
 
 /*
  * The boss's attacks under the field, for trying things out: a button for each attack the boss has, and
@@ -27,7 +27,7 @@ export function makeActions(row: HTMLElement, auto: HTMLButtonElement, attacks: 
   auto.onclick = toggle;
   return {
     draw(on) {
-      auto.setAttribute('aria-pressed', String(on));
+      attr(auto, 'aria-pressed', String(on));
     },
     remove() {
       for (const button of buttons) button.remove();

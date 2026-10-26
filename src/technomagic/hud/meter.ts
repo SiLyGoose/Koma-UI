@@ -1,4 +1,4 @@
-import { el } from './dom';
+import { attr, el, put as style, shown as show } from './dom';
 
 /*
  * The top left of the field: Auto, which uses every hero's skills for it, and under it the meter: each
@@ -24,7 +24,9 @@ export interface Meter {
 /** How often the meter is drawn again: numbers that change every frame can't be read. */
 const EVERY = 0.25;
 
-const said = (n: number): string => Math.round(n).toLocaleString('en-US');
+// (One formatter for every number: toLocaleString makes one each time it is called.)
+const GROUPED = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
+const said = (n: number): string => GROUPED.format(Math.round(n));
 
 /** Puts `text` in `node`, unless it says that already. */
 const put = (node: HTMLElement, text: string): void => {
@@ -84,13 +86,13 @@ export function makeMeter(root: HTMLElement, heroes: readonly { name: string; fa
 
   return {
     draw(on, given, elapsed) {
-      button.setAttribute('aria-pressed', String(on));
+      attr(button, 'aria-pressed', String(on));
       // (Drawn now and then, and at once when its tab is changed.)
       wait -= elapsed - last;
       last = elapsed;
       if (wait > 0) return;
       wait = EVERY;
-      for (const { which, pick } of buttons) pick.setAttribute('aria-selected', String(which === tab));
+      for (const { which, pick } of buttons) attr(pick, 'aria-selected', String(which === tab));
 
       const of = (row: MeterRow): number => (tab === 'dps' ? row.dealt : row.healed);
       const most = Math.max(1, ...given.map(of));
@@ -99,15 +101,15 @@ export function makeMeter(root: HTMLElement, heroes: readonly { name: string; fa
       order.forEach((i, place) => {
         const row = given[i] as MeterRow;
         const shown = rows[i] as (typeof rows)[number];
-        shown.row.hidden = !row.on && of(row) <= 0;
-        shown.row.style.order = String(place);
+        show(shown.row, row.on || of(row) > 0);
+        style(shown.row, 'order', String(place));
         // Fallen: its picture and its bar go grey.
         shown.row.classList.toggle('down', row.down);
         // (Written only when they change: a text written again is laid out again, every frame.)
         put(shown.label, tab === 'dps' ? 'Dps' : 'Hps');
         put(shown.value, said(of(row) / Math.max(1, elapsed)));
         put(shown.total, said(of(row)));
-        shown.fill.style.transform = `scaleX(${of(row) / most})`;
+        style(shown.fill, 'transform', `scaleX(${of(row) / most})`);
         if (shown.fill.className !== tab) shown.fill.className = tab;
       });
     },

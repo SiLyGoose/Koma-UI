@@ -1,4 +1,4 @@
-import { el } from './dom';
+import { el, shown } from './dom';
 
 /**
  * The boss winding up a skill, over its head, as King's Raid shows it: the skill's name, and under it a red bar filling
@@ -21,13 +21,13 @@ export function makeCastBar(parent: HTMLElement): CastBar {
   parent.append(root);
   return {
     draw(x, y, said, share) {
-      root.hidden = false;
+      shown(root, true);
       root.style.transform = `translate(${x}px, ${y}px) translate(-50%, -100%)`;
       if (name.textContent !== said) name.textContent = said;
       fill.style.transform = `scaleX(${Math.max(0, Math.min(1, share))})`;
     },
     hide() {
-      root.hidden = true;
+      shown(root, false);
     },
   };
 }
