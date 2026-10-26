@@ -24,6 +24,7 @@ import { GAU_FX } from './gau/fx';
 import { TANYA_FX } from './tanya/fx';
 import { REBEL_KLAUS_FX } from './rebel-klaus/fx';
 import { DARK_LORD_KASEL_FX } from './dark-lord-kasel/fx';
+import { ISOLET_FX } from './isolet/fx';
 
 /** What is drawn for each hero's moves, by its id (../sim/heroes/ lists what they do). */
-export const HERO_FX: Readonly<Record<string, HeroFx>> = { kirze: KIRZE_FX, klaus: KLAUS_FX, 'fallen-frey': FALLEN_FREY_FX, gremory: GREMORY_FX, annette: ANNETTE_FX, morrah: MORRAH_FX, laias: LAIAS_FX, seria: SERIA_FX, ezekiel: EZEKIEL_FX, lorraine: LORRAINE_FX, valance: VALANCE_FX, lucikiel: LUCIKIEL_FX, selene: SELENE_FX, crow: CROW_FX, oddy: ODDY_FX, phillop: PHILLOP_FX, naila: NAILA_FX, yanne: YANNE_FX, neraxis: NERAXIS_FX, erze: ERZE_FX, loman: LOMAN_FX, gau: GAU_FX, tanya: TANYA_FX, 'rebel-klaus': REBEL_KLAUS_FX, 'dark-lord-kasel': DARK_LORD_KASEL_FX };
+export const HERO_FX: Readonly<Record<string, HeroFx>> = { kirze: KIRZE_FX, klaus: KLAUS_FX, 'fallen-frey': FALLEN_FREY_FX, gremory: GREMORY_FX, annette: ANNETTE_FX, morrah: MORRAH_FX, laias: LAIAS_FX, seria: SERIA_FX, ezekiel: EZEKIEL_FX, lorraine: LORRAINE_FX, valance: VALANCE_FX, lucikiel: LUCIKIEL_FX, selene: SELENE_FX, crow: CROW_FX, oddy: ODDY_FX, phillop: PHILLOP_FX, naila: NAILA_FX, yanne: YANNE_FX, neraxis: NERAXIS_FX, erze: ERZE_FX, loman: LOMAN_FX, gau: GAU_FX, tanya: TANYA_FX, 'rebel-klaus': REBEL_KLAUS_FX, 'dark-lord-kasel': DARK_LORD_KASEL_FX, isolet: ISOLET_FX };

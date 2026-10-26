@@ -3,6 +3,7 @@ import type { Effects } from '../fx/effects';
 import type { Magic } from '../fx/magic';
 import type { Props } from '../fx/props';
 import type { HeroMove } from '../heroes/moves';
+import type { Status } from '../sim/combat/status';
 
 /*
  * What is drawn for what happens in the fight: each hero's (its `fx.ts`) and each boss's, by what the
@@ -46,6 +47,12 @@ export interface HeroFx {
   lands?: Partial<Record<HeroMove, (fx: FxScene, who: number, part: number) => void>>;
   cues?: Readonly<Record<string, (fx: FxScene, who: number, targets: readonly number[]) => void>>;
   bubbles?: readonly string[];
+  /**
+   * Drawn every frame for each hero on the field, from where the fight is (not timed on its own: a page away comes back to
+   * it as the fight has it): whether a skill of its own is going (its `lit`), and what is on the enemies; `kept` is its own,
+   * for this fight (what it has playing).
+   */
+  each?: (fx: FxScene, who: number, seen: { lit: boolean; foes: readonly Status<unknown>[] }, kept: Record<string, unknown>) => void;
 }
 
 /** What is drawn for what a boss cues (`targets`: whom it is on). */

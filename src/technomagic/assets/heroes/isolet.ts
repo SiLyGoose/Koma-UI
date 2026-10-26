@@ -46,13 +46,15 @@ export const ISOLET_ASSETS: HeroAssets = {
     victory: [{ clip: 'Isolet-Vox_Victory', volume: 3, at: 0.227, own: true }, { clip: 'Idle-Gear-01', volume: 2.8, at: 0.426 }, { clip: 'Texture-17', volume: 2.8, at: 1.606 }, { clip: 'Texture-18', volume: 2.8, at: 3.046 }, { clip: 'Idle-Metal-01', volume: 2.8, at: 3.8 }],
   },
   // King's Raid's own effects for its moves (../../fx/kr-effects.ts): as each begins, on it, and as each of its blows lands, where it
-  // lands (KR-extracted/scripts/tm-vfx.mjs).
+  // lands (KR-extracted/scripts/tm-vfx.mjs; Icarus's split by hand: only its Casting is on her, its storm at the enemy is krFx).
   vfx: {
     attack: { start: ['Skill.Hero.Isolet.Attack1.Casting'], land: ['Skill.Hero.Isolet.Attack1.Hit', 'Skill.Hero.Isolet.Attack1.Projectile'] },
     caienne: { start: ['Skill.Hero.Isolet.Skill1.Casting'], land: ['Skill.Hero.Isolet.Skill1.FireHitLoop', 'Skill.Hero.Isolet.Skill1.Hit'] },
     devion: { start: ['Skill.Hero.Isolet.Skill2.Casting'], land: ['Skill.Hero.Isolet.Skill2.HitLoop', 'Skill.Hero.Isolet.Skill2.Hit2', 'Skill.Hero.Isolet.Skill2.Hit', 'Skill.Hero.Isolet.Skill2.HitEnd', 'Skill.Hero.Isolet.Skill2.HitCasting'] },
-    icarus: { start: ['Skill.Hero.Isolet.Skill3.Tornado.Casting', 'Skill.Hero.Isolet.Skill3.Casting', 'Skill.Hero.Isolet.Skill3.FireTornado.Casting', 'Skill.Hero.Isolet.Skill3.FireTornado.End', 'Skill.Hero.Isolet.Skill3.Tornado.Loop', 'Skill.Hero.Isolet.Skill3.FireTornado.Loop', 'Skill.Hero.Isolet.Skill3.Tornado.End'] },
+    icarus: { start: ['Skill.Hero.Isolet.Skill3.Casting'] },
   },
+  // Her storm, raised where the enemy stands while it rages (../../heroes/isolet/fx.ts), as King's Raid's skill script has it.
+  krFx: ['Skill.Hero.Isolet.Skill3.Tornado.Casting', 'Skill.Hero.Isolet.Skill3.Tornado.Loop', 'Skill.Hero.Isolet.Skill3.Tornado.End', 'Skill.Hero.Isolet.Skill3.FireTornado.Casting', 'Skill.Hero.Isolet.Skill3.FireTornado.Loop', 'Skill.Hero.Isolet.Skill3.FireTornado.End'],
   skins: [
     {
       name: 'Isolet',

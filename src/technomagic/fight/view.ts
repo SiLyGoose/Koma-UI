@@ -256,6 +256,8 @@ export function makeFightView({
   const guarding = new Map<string, { stop: () => void; kept: boolean; who: number; end?: string }>();
   /** The skills of the heroes in the fight that put the bubble on a hero as a shield does: by the status's name. */
   const bubbles = new Set(sim.fighters.flatMap((fighter) => HERO_FX[fighter.id]?.bubbles ?? []));
+  /** What each hero's own fx keep for this fight (HeroFx.each), by the hero. */
+  const ownFx: Record<string, unknown>[] = [];
   /** What is heard: the heroes' blows and skills, the boss's attacks, and the raid's music. */
   const sounds = makeFightSounds(sim.fighters.map((fighter) => lookOf(fighter.id).assets), bossLook.assets);
   /** King's Raid's own effects for the heroes' moves. */
@@ -554,6 +556,9 @@ export function makeFightView({
           tinted.set(who, since);
           hero.colour(krTintAt(tint, now - since, mixed));
         } else if (tinted.delete(who)) hero.colour(mixed.set(0, 0, 0, 0));
+        // What its own fx draw from where the fight is (Isolet's storm, at the boss while it rages).
+        const each = fxOf(who)?.each;
+        if (each) each(fx, who, { lit: fighter.part.lit?.() ?? false, foes: sim.foes.flatMap((foe) => foe.statuses) }, (ownFx[who] ??= {}));
         // (Not the common bubble while a shield of its own look is on it: Laias's Bubble Shield.)
         const shielded = !ownLook && (fighter.shield > 0 || fighter.statuses.some((status) => bubbles.has(status.name)));
         wards.keep(who, hero.place(at), heights[who] as number, shielded);
