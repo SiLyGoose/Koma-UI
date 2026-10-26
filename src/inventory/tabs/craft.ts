@@ -5,7 +5,7 @@ import { busyWith, type Busy, working } from '../../shared/ui';
 import { coin, dust, points } from '../../shared/util';
 import { api, type ApiResult, loadMe } from '../../site/session';
 import type { CraftRecipe, RaidShopView } from '../../protocol/raid-shop';
-import { HERO_PART_NAME, type HeroesCrafted, type HeroesView, type HeroPart, TM_CRAFT_PARTS, type TmCraftKind } from '../../protocol/heroes';
+import { HERO_PART_NAME, type HeroesCrafted, type HeroesView, type HeroPart, TM_ACCESSORIES, TM_ACCESSORY_NAME, TM_CRAFT_PARTS, type TmAccessory, type TmCraftKind } from '../../protocol/heroes';
 import type { TmSetId } from '../../protocol/items';
 import { RUNE_BOXES, type RuneBox, type RunesCrafted } from '../../protocol/runes';
 import { fragmentIcon } from '../../shared/items/fragments';
@@ -22,7 +22,8 @@ import { type Tile, tileDetail, tileSlot } from './tiles';
  * one), and Unique Weapon and Unique Treasure Tickets (every `powderPerSelector` one, held in Others until used:
  * ./tickets.ts), all the bot's POST /api/raid-shop/craft; a recipe is one entry in RECIPES. Under them, TechnoMagic gear, a
  * set each (King's Raid's Valance's Workshop): a piece of it for its boss's Boss Crystals and zeiucoins, any of its pieces, any
- * class's of a part picked, or a class's part picked (the bot's POST /api/heroes/craft), one at a time. Under those, Runes:
+ * class's of a part picked, or a class's part picked, an accessory any of its four kinds or the one picked (the bot's POST
+ * /api/heroes/craft), one at a time. Under those, Runes:
  * King's Raid's Mysterious Runes, each a rune of its grade (any as likely), for Rune Fragments (what runes disassemble into),
  * as many at once as komaDust's (the bot's POST /api/runes/craft). Every price is the bot's setting: the raid shop's view says
  * komaDust's, the heroes' view (`craft`) the rest. What a craft made is then shown over the page as a fight's rewards are
@@ -144,6 +145,8 @@ export const craftTab: InventoryTab = {
     /** TechnoMagic gear: the way picked, its part and its class. */
     let way: TmCraftKind = 'any';
     let part: HeroPart = 'armor';
+    /** An accessory: the kind picked ('any': any of the four). */
+    let accessory: TmAccessory | 'any' = 'any';
     let cls = HERO_CLASSES[0]?.id ?? 'knight';
     /** What a craft made, shown over the page (null: nothing). */
     let shown: Reveal | null = null;
@@ -409,6 +412,11 @@ export const craftTab: InventoryTab = {
         },
       );
       const parts = way === 'any' ? [] : [el('p', 'inv-tm-label', 'Part'), choices('Part', TM_CRAFT_PARTS.map((id) => ({ id, name: HERO_PART_NAME[id] })), part, (id) => (part = id))];
+      // (An accessory: any of its four kinds, or the one picked.)
+      const kinds =
+        way !== 'any' && part === 'accessory'
+          ? [el('p', 'inv-tm-label', 'Accessory'), choices('Accessory', [{ id: 'any' as const, name: 'Any' }, ...TM_ACCESSORIES.map((id) => ({ id, name: TM_ACCESSORY_NAME[id] }))], accessory, (id) => (accessory = id))]
+          : [];
       const classes = way === 'exact' ? [el('p', 'inv-tm-label', 'Class'), choices('Class', HERO_CLASSES, cls, (id) => (cls = id))] : [];
 
       const price = prices[way];
@@ -424,7 +432,7 @@ export const craftTab: InventoryTab = {
       const note = shortCrystals
         ? [el('p', 'inv-recipe-note', `You need ${crystalCount(set.id, price.crystals - crystals).replace(' ', ' more ')}: its boss’s TechnoMagic Raid drops them (more the higher the stage), and salvaging the set’s gear gives them.`)]
         : [];
-      panel.replaceChildren(head, owned, el('p', 'inv-tm-label', 'Craft'), ways, ...parts, ...classes, total, go, ...note);
+      panel.replaceChildren(head, owned, el('p', 'inv-tm-label', 'Craft'), ways, ...parts, ...kinds, ...classes, total, go, ...note);
     }
 
     /** Crafts a piece of `set` as picked, and says what came. */
@@ -434,7 +442,7 @@ export const craftTab: InventoryTab = {
       busy = busyWith(`craft:${set.id}`);
       host.status(null);
       draw();
-      const res = await host.post<HeroesCrafted>('/api/heroes/craft', { set: set.id, kind: way, ...(way !== 'any' && { part }), ...(way === 'exact' && { class: cls }) });
+      const res = await host.post<HeroesCrafted>('/api/heroes/craft', { set: set.id, kind: way, ...(way !== 'any' && { part }), ...(way === 'exact' && { class: cls }), ...(way !== 'any' && part === 'accessory' && accessory !== 'any' && { accessory }) });
       busy = null;
       // (It cost zeiucoins: the header's follow.)
       host.refreshBalance();
