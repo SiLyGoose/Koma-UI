@@ -20,6 +20,30 @@
   box-shadow: inset 0 0 0 1px var(--plaque-line);
 }
 
+.anvil-cost-part {
+  display: flex;
+  flex: 1 1 0;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+/* A price in two parts (a TechnoMagic effect's komaGem and Boss Crystals): as wide as both take, never less than one. */
+.anvil-cost.split {
+  flex: 0 0 auto;
+  min-width: 44%;
+}
+
+.anvil-cost.split .anvil-cost-part {
+  flex: 1 0 auto;
+  gap: 6px;
+}
+
+.anvil-cost-part + .anvil-cost-part {
+  padding-left: 10px;
+  border-left: 1px solid var(--plaque-line);
+}
+
 .anvil-cost-icon {
   flex-shrink: 0;
   width: 26px;
@@ -43,7 +67,7 @@
   white-space: nowrap;
 }
 
-.anvil-cost.bad .anvil-cost-amount {
+.anvil-cost-part.bad .anvil-cost-amount {
   color: var(--red);
 }
 

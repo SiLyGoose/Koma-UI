@@ -7,21 +7,35 @@ import { GEM_EMOJI } from './gem';
 export function renderCost(ctx: ForgeContext, plan: Plan | null): void {
   const cost = plan?.kind === 'refine' ? (plan.refine.cost ?? 0) : 0;
   const have = balance(ctx);
-  showPrice(ctx, cost, have, 'zeiucoins', plan?.kind === 'refine' && (plan.refine.blocked === 'too_poor' || (have !== null && have < cost)));
+  showPrice(ctx, [{ cost, have, unit: 'zeiucoins', short: plan?.kind === 'refine' && (plan.refine.blocked === 'too_poor' || (have !== null && have < cost)) }]);
 }
 
 /** What a price is paid in: zeiucoins, komaGems, or a TechnoMagic set's Boss Crystals (`crystals:<set>`). */
 export type PriceUnit = 'zeiucoins' | 'komaGems' | `crystals:${string}`;
 
-/** The price in the corner: `cost` in zeiucoins, komaGems or Boss Crystals (`have` of them), in red when it's more than they have (`short`). */
-export function showPrice(ctx: ForgeContext, cost: number, have: number | null, unit: PriceUnit, short = have !== null && have < cost): void {
+/** A part of the price in the corner: `cost` in zeiucoins, komaGems or Boss Crystals (`have` of them), `short` when it's more than they have. */
+export interface PriceShown {
+  cost: number;
+  have: number | null;
+  unit: PriceUnit;
+  short: boolean;
+}
+
+/** The price in the corner, each of its parts (a TechnoMagic effect's: komaGems and Boss Crystals) in red when they're short of it. */
+export function showPrice(ctx: ForgeContext, parts: readonly PriceShown[]): void {
   const { ui } = ctx;
   ui.cost.textContent = '';
-  const set = unit.startsWith('crystals:') ? unit.slice('crystals:'.length) : null;
-  const icon = unit === 'zeiucoins' ? coin('anvil-cost-icon', 'zeiucoins') : set ? crystalIcon(set, 'anvil-cost-icon') : el('span', 'anvil-cost-icon');
-  if (unit === 'komaGems') icon.append(rich(GEM_EMOJI));
-  ui.cost.append(icon, el('span', 'anvil-cost-amount', points(cost)));
-  const named = set ? crystalName(set) : unit;
-  ui.cost.title = cost && have !== null ? `${points(cost)} ${named} (you have ${points(have)})` : '';
-  ui.cost.classList.toggle('bad', short);
+  const titles: string[] = [];
+  for (const { cost, have, unit, short } of parts) {
+    const set = unit.startsWith('crystals:') ? unit.slice('crystals:'.length) : null;
+    const icon = unit === 'zeiucoins' ? coin('anvil-cost-icon', 'zeiucoins') : set ? crystalIcon(set, 'anvil-cost-icon') : el('span', 'anvil-cost-icon');
+    if (unit === 'komaGems') icon.append(rich(GEM_EMOJI));
+    const part = el('span', 'anvil-cost-part');
+    part.classList.toggle('bad', short);
+    part.append(icon, el('span', 'anvil-cost-amount', points(cost)));
+    ui.cost.append(part);
+    if (cost && have !== null) titles.push(`${points(cost)} ${set ? crystalName(set) : unit} (you have ${points(have)})`);
+  }
+  ui.cost.title = titles.join(' and ');
+  ui.cost.classList.toggle('split', parts.length > 1);
 }
