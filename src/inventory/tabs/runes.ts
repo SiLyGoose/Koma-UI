@@ -60,6 +60,23 @@ function amountRow(count: number, max: number, off: boolean, set: (n: number) =>
   return row;
 }
 
+/** A rune's slot: its picture, how many they have, what it gives and the parts it goes in. */
+export function runeTile(rune: HeroRuneStack): Tile {
+  const parts = rune.parts.map((part) => HERO_PART_NAME[part]).join(', ');
+  return {
+    id: rune.id,
+    name: rune.name,
+    picture: () => tileImage(`/kr/items/${rune.icon}.webp`),
+    full: true,
+    grade: rune.grade,
+    count: rune.count,
+    kind: 'Rune',
+    about: `Goes in ${parts}. Socket it on the Heroes page. Sells for ${points(RUNE_SELL_POINTS[rune.grade] ?? 0)} zeiucoins, disassembles into ${points(RUNE_FRAGMENTS[rune.grade] ?? 0)} Rune Fragments.`,
+    lines: rune.lines,
+    words: `${rune.lines.join(' ')} ${parts}`,
+  };
+}
+
 export const runesTab: InventoryTab = {
   id: 'runes',
   label: 'Runes',
@@ -189,21 +206,8 @@ export const runesTab: InventoryTab = {
 
     /** A rune's slot (picked to sell: ticked, with how many of it in its corner). */
     function tile(rune: HeroRuneStack): Tile {
-      const parts = rune.parts.map((part) => HERO_PART_NAME[part]).join(', ');
       const picked = selling?.get(rune.id);
-      return {
-        id: rune.id,
-        name: rune.name,
-        picture: () => tileImage(`/kr/items/${rune.icon}.webp`),
-        full: true,
-        grade: rune.grade,
-        count: rune.count,
-        kind: 'Rune',
-        about: `Goes in ${parts}. Socket it on the Heroes page. Sells for ${points(RUNE_SELL_POINTS[rune.grade] ?? 0)} zeiucoins, disassembles into ${points(RUNE_FRAGMENTS[rune.grade] ?? 0)} Rune Fragments.`,
-        lines: rune.lines,
-        words: `${rune.lines.join(' ')} ${parts}`,
-        ...(picked !== undefined && { selling: picked, controls: () => sellingControls(rune) }),
-      };
+      return { ...runeTile(rune), ...(picked !== undefined && { selling: picked, controls: () => sellingControls(rune) }) };
     }
 
     /**

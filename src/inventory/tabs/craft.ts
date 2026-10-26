@@ -1,5 +1,5 @@
 import { GEM_EMOJI } from '../../forge/anvil/gem';
-import { crystalCount, crystalIcon, crystalName, el, rich } from '../../shared/items';
+import { crystalCount, crystalIcon, crystalName, el, itemFace, itemIcons, rich, showDetail } from '../../shared/items';
 import { HERO_CLASSES } from '../../shared/heroes';
 import { busyWith, type Busy, working } from '../../shared/ui';
 import { coin, dust, points } from '../../shared/util';
@@ -10,7 +10,11 @@ import type { TmSetId } from '../../protocol/items';
 import { RUNE_BOXES, type RuneBox, type RunesCrafted } from '../../protocol/runes';
 import { fragmentIcon } from '../../shared/items/fragments';
 import type { InventoryHost, InventoryTab } from '../tab';
+import { heroCopyDetail } from './gear';
+import { reveal, type Reveal, type Revealed } from './reveal';
+import { runeTile } from './runes';
 import { TICKET_NAME, ticketPicture } from './tickets';
+import { type Tile, tileDetail, tileSlot } from './tiles';
 
 /*
  * The inventory's Craft: what komaDust (what salvaging hero gear gives) can be made into, down the left, and the one picked
@@ -21,7 +25,8 @@ import { TICKET_NAME, ticketPicture } from './tickets';
  * class's of a part picked, or a class's part picked (the bot's POST /api/heroes/craft), one at a time. Under those, Runes:
  * King's Raid's Mysterious Runes, each a rune of its grade (any as likely), for Rune Fragments (what runes disassemble into),
  * as many at once as komaDust's (the bot's POST /api/runes/craft). Every price is the bot's setting: the raid shop's view says
- * komaDust's, the heroes' view (`craft`) the rest.
+ * komaDust's, the heroes' view (`craft`) the rest. What a craft made is then shown over the page as a fight's rewards are
+ * (./reveal.ts): a tile each, pressed for its details, a tap anywhere else going on.
  */
 
 
@@ -44,6 +49,10 @@ interface Recipe {
   per(shop: RaidShopView): number | null;
   /** Makes `count`, answering the raid shop as it is after. */
   craft(host: InventoryHost, count: number): Promise<ApiResult<RaidShopView>>;
+  /** Its slot when made, as Others has it (./others.ts): its picture, its frame's grade, whether the picture fills it, what it is. */
+  slot: Pick<Tile, 'picture' | 'grade' | 'full' | 'kind'>;
+  /** How many they hold (null: not known). */
+  held(shop: RaidShopView, heroes: HeroesView | null): number | null;
 }
 
 /** The TechnoMagic sets, each crafted with its boss's Boss Crystals, and what each is called here. */
@@ -84,6 +93,16 @@ const RECIPES: readonly Recipe[] = [
     about: 'Spent in the Raid Gear shop, on transcending heroes and on rerolling TechnoMagic gear’s additional skill.',
     per: (shop) => shop.powderPerGem ?? null,
     craft: (host, count) => craftOf(host, count, 'gem'),
+    slot: {
+      picture: () => {
+        const box = el('span', 'inv-other-pic');
+        box.append(rich(GEM_EMOJI));
+        return box;
+      },
+      grade: 3,
+      kind: 'Currency',
+    },
+    held: (_, heroes) => heroes?.gems ?? null,
   },
   ...(['uw', 'ut'] as const).map(
     (of): Recipe => ({
@@ -94,6 +113,8 @@ const RECIPES: readonly Recipe[] = [
       about: `A ${TICKET_NAME[of].toLowerCase()} of any hero’s, picked as you use it in the Others tab.`,
       per: (shop) => shop.powderPerSelector ?? null,
       craft: (host, count) => craftOf(host, count, of),
+      slot: { picture: () => ticketPicture(of), grade: 5, full: true, kind: 'Ticket' },
+      held: (shop) => shop.selectors?.[of] ?? null,
     }),
   ),
 ];
@@ -124,6 +145,18 @@ export const craftTab: InventoryTab = {
     let way: TmCraftKind = 'any';
     let part: HeroPart = 'armor';
     let cls = HERO_CLASSES[0]?.id ?? 'knight';
+    /** What a craft made, shown over the page (null: nothing). */
+    let shown: Reveal | null = null;
+    /** The tab gone (what a craft still under way made isn't shown over another). */
+    let gone = false;
+
+    /** Shows what a craft made over the page (./reveal.ts), the one shown before gone. */
+    function show(items: readonly Revealed[]): void {
+      shown?.close();
+      if (gone || items.length === 0) return;
+      const page = (root.closest('.inventory-page') as HTMLElement | null) ?? document.body;
+      shown = reveal(page, items, 'Crafted', () => (shown = null));
+    }
 
     const have = (): number => shop?.powder ?? 0;
     /** The most of `recipe` they can make now (0: none; null: the bot can't make it). */
@@ -142,7 +175,7 @@ export const craftTab: InventoryTab = {
     };
 
     /** A Mysterious Rune's tile in the list: its picture, and the fragments one takes. */
-    function runeTile(box: RuneBox): HTMLButtonElement {
+    function boxTile(box: RuneBox): HTMLButtonElement {
       const button = el('button', 'inv-recipe-tile');
       button.type = 'button';
       button.setAttribute('role', 'option');
@@ -212,7 +245,7 @@ export const craftTab: InventoryTab = {
         el('p', 'inv-recipe-group', 'TechnoMagic Gear'),
         ...TM_SETS.map(tmTile),
         el('p', 'inv-recipe-group', 'Runes'),
-        ...RUNE_BOXES.map(runeTile),
+        ...RUNE_BOXES.map(boxTile),
       );
     }
 
@@ -305,13 +338,19 @@ export const craftTab: InventoryTab = {
       host.keep('heroes', view);
       count = 1;
       draw();
-      // What each gave, by name (the same one more than once: how many).
+      // What each gave (the same one more than once: how many), a tile each, its count in its corner what was made.
       const got = new Map<string, number>();
-      for (const id of crafted) {
-        const name = view.runes.find((rune) => rune.id === id)?.name ?? id;
-        got.set(name, (got.get(name) ?? 0) + 1);
-      }
-      host.status(`Crafted ${points(n)} ${box.name}: ${[...got].map(([name, k]) => (k > 1 ? `${name} ×${k}` : name)).join(', ')}. They’re in Runes.`);
+      for (const id of crafted) got.set(id, (got.get(id) ?? 0) + 1);
+      const nameOf = (id: string): string => view.runes.find((rune) => rune.id === id)?.name ?? id;
+      host.status(`Crafted ${points(n)} ${box.name}: ${[...got].map(([id, k]) => (k > 1 ? `${nameOf(id)} ×${k}` : nameOf(id))).join(', ')}. They’re in Runes.`);
+      show(
+        [...got].flatMap(([id, k]): Revealed[] => {
+          const rune = view.runes.find((one) => one.id === id);
+          if (!rune) return [];
+          const tile = runeTile(rune);
+          return [{ id, name: rune.name, face: () => tileSlot({ ...tile, count: k }), detail: (into, close) => tileDetail(into, tile, close) }];
+        }),
+      );
     }
 
     /** A row of choices (the way, a part, a class), the one picked lit; picking one draws the panel again. */
@@ -411,6 +450,26 @@ export const craftTab: InventoryTab = {
       host.forget('gear');
       draw();
       host.status(`Crafted ${crafted.name}. It’s in Hero Gear.`);
+      // (Its card as the Hero Gear tab draws it, and its details as that tab's.)
+      const copy = view.copies.find((one) => one.id === crafted.copy);
+      if (!copy) return;
+      if (copy.icon) itemIcons.set(copy.itemId, copy.icon);
+      show([
+        {
+          id: copy.id,
+          name: crafted.name,
+          face: () => {
+            const card = el('span', 'item');
+            card.dataset.stars = String(copy.stars);
+            card.append(...itemFace(copy));
+            return card;
+          },
+          detail: (into, close) => {
+            const { shown: drawn, parts } = heroCopyDetail(view, copy, close);
+            showDetail(into, drawn, parts);
+          },
+        },
+      ]);
     }
 
     function drawPanel(): void {
@@ -482,11 +541,17 @@ export const craftTab: InventoryTab = {
       }
       shop = res.data;
       host.keep('shop', res.data);
-      // (komaGems: the heroes page's answer says them too, so it's asked for again.)
-      void host.load('heroes', true);
+      // (komaGems: the heroes page's answer says them too, so it's asked for again, and what's shown waits for it.)
+      const fresh = host.load('heroes', true).then((again) => {
+        if (again.ok) heroes = again.data;
+      });
       count = 1;
       draw();
       host.status(`Crafted ${points(n)} ${n === 1 ? recipe.name : recipe.plural}.${recipe.id === 'komagem' ? '' : ` Use ${n === 1 ? 'it' : 'them'} in the Others tab.`}`);
+      if (recipe.id === 'komagem') await fresh;
+      const now = shop;
+      const tile: Tile = { id: recipe.id, name: n === 1 ? recipe.name : recipe.plural, ...recipe.slot, count: recipe.held(now, heroes), about: recipe.about };
+      show([{ id: recipe.id, name: tile.name, face: () => tileSlot({ ...tile, count: n }), detail: (into, close) => tileDetail(into, tile, close) }]);
     }
 
     /** Their heroes' view (their Boss Crystals), for TechnoMagic gear. */
@@ -507,6 +572,10 @@ export const craftTab: InventoryTab = {
     }
 
     draw();
-    return { drawn: Promise.all([load(), loadHeroes()]).then(() => undefined), unmount: () => undefined };
+    return { drawn: Promise.all([load(), loadHeroes()]).then(() => undefined), unmount: () => {
+        gone = true;
+        shown?.close();
+      },
+    };
   },
 };

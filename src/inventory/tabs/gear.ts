@@ -457,6 +457,32 @@ export const playerGearTab: InventoryTab = armoryTab<GearCopy, 'gear'>({
 const HERO_NONE = 'No effects on a hero.';
 
 
+/** A hero copy's details, as the Hero Gear tab and the Craft tab's reveal (./reveal.ts) show it: who wears it, what it does, and links to the forge and the Heroes page. */
+export function heroCopyDetail(view: HeroesView, copy: HeroCopy, close: () => void): { shown: HeroCopy; parts: DetailParts } {
+  const on = copy.hero !== null ? view.heroes.find((hero) => hero.id === copy.hero) : undefined;
+  const notes: HTMLElement[] = [el('p', 'detail-note', on ? `${on.name} wears this.` : 'No hero wears this.')];
+  const ownerId = copy.uniqueWeapon ?? copy.uniqueTreasure?.hero;
+  const owner = ownerId ? view.heroes.find((hero) => hero.id === ownerId) : undefined;
+  if (copy.uniqueWeapon) notes.push(el('p', 'detail-note', `${owner?.name ?? 'Another hero'}’s unique weapon: only they can wield it.`));
+  if (copy.uniqueTreasure) notes.push(el('p', 'detail-note', `${owner?.name ?? 'Another hero'}’s unique treasure: its Unique Effect works only as their Main Treasure; as a Sub Treasure, only its Options do.`));
+  // (As the heroes page draws it: a unique treasure's main effect and options apart, a unique weapon's own effect alone, anything
+  // else without its runes' lines, which its Runes say.)
+  const ut = copy.uniqueTreasure ? treasureParts(copy.effects) : null;
+  const uw = copy.uniqueWeapon ? uniqueWeaponEffect(copy.effects) : null;
+  const upgrade = FORGE_MODES.some((mode) => heroCan(copy, mode.id)) ? linkButton(copy.level < copy.maxLevel ? 'Upgrade' : 'Forge', forgeLink(copy)) : null;
+  return {
+    shown: { ...copy, effects: ut ? ut.main : uw ? uw : withoutRunes(copy) },
+    parts: {
+      onClose: close,
+      label: ut || uw ? 'Unique Effect' : 'On a hero',
+      none: HERO_NONE,
+      sections: [...(ut ? optionsSection(ut.options) : copy.krSet || copy.part === 'artifact' ? krSections(copy, true) : tmSections(copy)), ...runeSection(copy)],
+      notes,
+      actions: [...(upgrade ? [upgrade] : []), linkButton(on ? 'On the Heroes page' : 'Equip on the Heroes page', '/heroes/', !on)],
+    },
+  };
+}
+
 export const heroGearTab: InventoryTab = armoryTab<HeroCopy, 'heroes'>({
   id: 'hero-gear',
   label: 'Hero Gear',
@@ -485,28 +511,5 @@ export const heroGearTab: InventoryTab = armoryTab<HeroCopy, 'heroes'>({
     return owner ? (view.heroes.find((hero) => hero.id === owner)?.name ?? owner) : '';
   },
   substats: (copy) => copy.options.map((option) => statName(option.line)),
-  detail(view, copy, close) {
-    const on = copy.hero !== null ? view.heroes.find((hero) => hero.id === copy.hero) : undefined;
-    const notes: HTMLElement[] = [el('p', 'detail-note', on ? `${on.name} wears this.` : 'No hero wears this.')];
-    const ownerId = copy.uniqueWeapon ?? copy.uniqueTreasure?.hero;
-    const owner = ownerId ? view.heroes.find((hero) => hero.id === ownerId) : undefined;
-    if (copy.uniqueWeapon) notes.push(el('p', 'detail-note', `${owner?.name ?? 'Another hero'}’s unique weapon: only they can wield it.`));
-    if (copy.uniqueTreasure) notes.push(el('p', 'detail-note', `${owner?.name ?? 'Another hero'}’s unique treasure: its Unique Effect works only as their Main Treasure; as a Sub Treasure, only its Options do.`));
-    // (As the heroes page draws it: a unique treasure's main effect and options apart, a unique weapon's own effect alone, anything
-    // else without its runes' lines, which its Runes say.)
-    const ut = copy.uniqueTreasure ? treasureParts(copy.effects) : null;
-    const uw = copy.uniqueWeapon ? uniqueWeaponEffect(copy.effects) : null;
-    const upgrade = FORGE_MODES.some((mode) => heroCan(copy, mode.id)) ? linkButton(copy.level < copy.maxLevel ? 'Upgrade' : 'Forge', forgeLink(copy)) : null;
-    return {
-      shown: { ...copy, effects: ut ? ut.main : uw ? uw : withoutRunes(copy) },
-      parts: {
-        onClose: close,
-        label: ut || uw ? 'Unique Effect' : 'On a hero',
-        none: HERO_NONE,
-        sections: [...(ut ? optionsSection(ut.options) : copy.krSet || copy.part === 'artifact' ? krSections(copy, true) : tmSections(copy)), ...runeSection(copy)],
-        notes,
-        actions: [...(upgrade ? [upgrade] : []), linkButton(on ? 'On the Heroes page' : 'Equip on the Heroes page', '/heroes/', !on)],
-      },
-    };
-  },
+  detail: heroCopyDetail,
 });

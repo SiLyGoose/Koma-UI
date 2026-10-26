@@ -264,8 +264,8 @@
   gap: 8px;
 }
 
-/* A slot: King's Raid's, dark, framed in a darker line; an item in it on the slot's dark, not on parchment. */
-.inventory-page .inv-sheet .item {
+/* A slot: King's Raid's, dark, framed in a darker line; an item in it on the slot's dark, not on parchment (what was crafted too, tabs/reveal.ts). */
+.inventory-page :is(.inv-sheet, .inv-reveal-tiles) .item {
   --item-lip: transparent;
   --focus: var(--gold);
   border-color: var(--tier, #3a4655);
@@ -281,16 +281,16 @@
   cursor: default;
 }
 
-.inventory-page .inv-sheet .item .item-curl {
+.inventory-page :is(.inv-sheet, .inv-reveal-tiles) .item .item-curl {
   display: none;
 }
 
-.inventory-page .inv-sheet .item .item-level {
+.inventory-page :is(.inv-sheet, .inv-reveal-tiles) .item .item-level {
   color: #fff;
   text-shadow: 0 1px 2px #000;
 }
 
-.inventory-page .inv-sheet .item .art.glyph {
+.inventory-page :is(.inv-sheet, .inv-reveal-tiles) .item .art.glyph {
   color: #c9ced6;
 }
 
@@ -836,4 +836,173 @@
 
 .inventory-page .inv-rune-dialog .sell-confirm-foot .action {
   flex: 1 1 auto;
+}
+
+/* ------------------------------------------------------------------ what was crafted (tabs/reveal.ts) */
+
+/*
+ * As a fight's rewards are shown (../technomagic/styles/over.css, staged): the page darkened, a band across its middle
+ * under "Crafted" in gold, a tile for each thing made (its slot, its name under it), "Tap to continue" blinking under the
+ * band; a tile's details over it all, on a dark of their own.
+ */
+.inventory-page .inv-reveal {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  padding: 16px;
+  background: rgb(4 3 10 / 74%);
+  cursor: pointer;
+  animation: fade-in 0.3s both;
+}
+
+.inventory-page .inv-reveal-band {
+  position: relative;
+  width: min(920px, 100%);
+  padding: 30px 22px 16px;
+  box-sizing: border-box;
+  background: linear-gradient(90deg, transparent, rgb(12 9 22 / 82%) 14%, rgb(12 9 22 / 82%) 86%, transparent);
+  border-top: 1px solid rgb(216 191 122 / 45%);
+  border-bottom: 1px solid rgb(216 191 122 / 45%);
+  animation: inv-reveal-rise 0.5s 0.15s both;
+}
+
+.inventory-page .inv-reveal-head {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  margin: 0;
+  translate: -50% 0;
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+/* (Many runes at once: the band scrolls inside itself.) */
+.inventory-page .inv-reveal-tiles {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px;
+  max-height: calc(100dvh - 180px);
+  /* (Room for a card's frame and its lift on hover, which the scrolling would cut off.) */
+  padding: 6px 4px;
+  overflow-y: auto;
+}
+
+.inventory-page .inv-reveal-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 92px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #f3ead2;
+  font: inherit;
+  cursor: pointer;
+}
+
+.inventory-page .inv-reveal-tile .item {
+  width: 100%;
+  pointer-events: none;
+  transition: transform 0.12s ease;
+}
+
+.inventory-page .inv-reveal-tile:hover .item,
+.inventory-page .inv-reveal-tile:focus-visible .item {
+  transform: translateY(-2px);
+}
+
+.inventory-page .inv-reveal-tile:focus-visible {
+  outline: none;
+}
+
+.inventory-page .inv-reveal-tile:focus-visible .item {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.inventory-page .inv-reveal-tile .inv-tile-count {
+  font-size: 18px;
+}
+
+.inventory-page .inv-reveal-name {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: center;
+  text-shadow: 0 1px 2px #000;
+  overflow-wrap: anywhere;
+}
+
+.inventory-page .inv-reveal-tap {
+  margin: 0;
+  color: #efe6cf;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 4px #000;
+  animation:
+    inv-reveal-rise 0.5s 0.5s both,
+    inv-reveal-blink 1.6s 1s ease-in-out infinite;
+}
+
+/* A tile's details: in the middle, over a dark of their own (on narrow screens too, not the sheet from the bottom). */
+.inventory-page .inv-reveal-detail {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 12px;
+  background: rgb(0 0 0 / 55%);
+  cursor: default;
+  animation: fade-in 0.15s ease-out;
+}
+
+.inventory-page .inv-reveal-detail[hidden] {
+  display: none;
+}
+
+.inventory-page .inv-reveal-detail > .detail {
+  position: relative;
+  inset: auto;
+  display: flex;
+  flex-direction: column;
+  width: min(420px, 100%);
+  height: auto;
+  max-height: calc(100dvh - 24px);
+  padding: 0;
+  overflow: hidden;
+  border-radius: var(--radius);
+  box-shadow: 0 12px 36px rgb(0 0 0 / 60%);
+  text-align: left;
+  animation: none;
+}
+
+@keyframes inv-reveal-rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+@keyframes inv-reveal-blink {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .inventory-page :is(.inv-reveal, .inv-reveal-band, .inv-reveal-tap, .inv-reveal-detail) {
+    animation: none;
+  }
 }

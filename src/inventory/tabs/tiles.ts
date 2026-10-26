@@ -62,6 +62,80 @@ function short(n: number): string {
   return `${Math.floor((n / d) * 10) / 10}${unit}`;
 }
 
+/** A thing's slot: its picture in its grade's frame, how many in its corner (picked to sell: ticked, "3/5" for some of it). */
+export function tileSlot(tile: Tile): HTMLButtonElement {
+  const button = el('button', 'item inv-tile');
+  button.type = 'button';
+  button.dataset.id = tile.id;
+  if (tile.grade !== null) button.dataset.grade = String(tile.grade);
+  const pic = el('span', tile.full ? 'inv-tile-pic full' : 'inv-tile-pic');
+  pic.append(tile.picture());
+  button.append(pic);
+  if (tile.grade !== null) button.append(el('span', 'inv-tile-frame'));
+  const count = tile.count === null ? '…' : tile.count === undefined ? '—' : tile.selling !== undefined && tile.selling < tile.count ? `${short(tile.selling)}/${short(tile.count)}` : short(tile.count);
+  const label = el('span', 'inv-tile-count', count);
+  if (typeof tile.count === 'number') label.title = points(tile.count);
+  button.append(label);
+  button.classList.toggle('none', tile.count === 0);
+  // (Picked to sell: the gear tabs' tick over it, ../inventory.css.)
+  if (tile.selling !== undefined) {
+    button.classList.add('to-sell');
+    button.append(el('span', 'item-check', '✓'));
+  }
+  button.setAttribute('aria-label', `${tile.name}: ${typeof tile.count === 'number' ? points(tile.count) : 'not known'}`);
+  return button;
+}
+
+/** A thing's details in `detail` (emptied first): its name and ✕ (`close`), its slot big, how many they hold, what it is and does. */
+export function tileDetail(detail: HTMLElement, tile: Tile, close: () => void): void {
+  detail.textContent = '';
+  if (tile.grade !== null) detail.dataset.grade = String(tile.grade);
+  else delete detail.dataset.grade;
+  detail.setAttribute('aria-label', tile.name);
+
+  const bar = el('div', 'detail-bar');
+  const shut = el('button', 'detail-close', '✕');
+  shut.type = 'button';
+  shut.setAttribute('aria-label', 'Close');
+  shut.dataset.sfx = 'own';
+  shut.addEventListener('click', close);
+  bar.append(el('h3', '', tile.name), shut);
+
+  const top = el('div', 'detail-top');
+  const big = tileSlot(tile);
+  big.disabled = true;
+  big.classList.add('detail-card');
+  big.classList.remove('to-sell');
+  big.querySelector('.item-check')?.remove();
+  const info = el('div', 'detail-info');
+  const held = el('p', 'inv-held');
+  held.append('Held: ', el('b', '', typeof tile.count === 'number' ? points(tile.count) : '—'));
+  info.append(el('p', 'detail-kind', tile.kind), held);
+  top.append(big, info);
+
+  const body = el('div', 'detail-body');
+  body.append(el('p', 'detail-desc', tile.about));
+  if (tile.lines?.length) {
+    const list = el('ul', 'detail-effects');
+    for (const line of tile.lines) list.append(el('li', '', line));
+    body.append(el('p', 'detail-label', 'Effects'), list);
+  }
+  if (tile.note) body.append(el('p', 'detail-note', tile.note));
+  const { action } = tile;
+  if (action) {
+    const use = el('button', 'action main inv-tile-action', action.label);
+    use.type = 'button';
+    use.disabled = action.off !== undefined;
+    if (action.off) use.title = action.off;
+    use.addEventListener('click', () => action.run(use));
+    body.append(use);
+  }
+  if (tile.controls) body.append(tile.controls());
+  const scroll = el('div', 'detail-scroll');
+  scroll.append(bar, top, body);
+  detail.append(scroll);
+}
+
 /**
  * The grid in `sheet` (its .sheet-scroll), the details in `detail`; `box` is ringed .picking while one shows. A slot pressed
  * shows its details, unless `onPress` takes it (true: picking what to sell, the tab's own).
@@ -82,26 +156,8 @@ export function tileGrid(box: HTMLElement, sheet: HTMLElement, grid: HTMLElement
   }
 
   function slot(tile: Tile): HTMLButtonElement {
-    const button = el('button', 'item inv-tile');
-    button.type = 'button';
-    button.dataset.id = tile.id;
-    if (tile.grade !== null) button.dataset.grade = String(tile.grade);
-    const pic = el('span', tile.full ? 'inv-tile-pic full' : 'inv-tile-pic');
-    pic.append(tile.picture());
-    button.append(pic);
-    if (tile.grade !== null) button.append(el('span', 'inv-tile-frame'));
-    const count = tile.count === null ? '…' : tile.count === undefined ? '—' : tile.selling !== undefined && tile.selling < tile.count ? `${short(tile.selling)}/${short(tile.count)}` : short(tile.count);
-    const label = el('span', 'inv-tile-count', count);
-    if (typeof tile.count === 'number') label.title = points(tile.count);
-    button.append(label);
-    button.classList.toggle('none', tile.count === 0);
+    const button = tileSlot(tile);
     button.classList.toggle('picked', tile.id === picked);
-    // (Picked to sell: the gear tabs' tick over it, ../inventory.css.)
-    if (tile.selling !== undefined) {
-      button.classList.add('to-sell');
-      button.append(el('span', 'item-check', '✓'));
-    }
-    button.setAttribute('aria-label', `${tile.name}: ${typeof tile.count === 'number' ? points(tile.count) : 'not known'}`);
     button.addEventListener('click', () => {
       if (onPress?.(tile)) return;
       const before = picked;
@@ -117,52 +173,7 @@ export function tileGrid(box: HTMLElement, sheet: HTMLElement, grid: HTMLElement
     box.classList.toggle('picking', !!tile);
     detail.hidden = !tile;
     detail.textContent = '';
-    if (!tile) return;
-    if (tile.grade !== null) detail.dataset.grade = String(tile.grade);
-    else delete detail.dataset.grade;
-    detail.setAttribute('aria-label', tile.name);
-
-    const bar = el('div', 'detail-bar');
-    const close = el('button', 'detail-close', '✕');
-    close.type = 'button';
-    close.setAttribute('aria-label', 'Close');
-    close.dataset.sfx = 'own';
-    close.addEventListener('click', unpick);
-    bar.append(el('h3', '', tile.name), close);
-
-    const top = el('div', 'detail-top');
-    const big = slot(tile);
-    big.disabled = true;
-    big.classList.add('detail-card');
-    big.classList.remove('picked', 'to-sell');
-    big.querySelector('.item-check')?.remove();
-    const info = el('div', 'detail-info');
-    const held = el('p', 'inv-held');
-    held.append('Held: ', el('b', '', typeof tile.count === 'number' ? points(tile.count) : '—'));
-    info.append(el('p', 'detail-kind', tile.kind), held);
-    top.append(big, info);
-
-    const body = el('div', 'detail-body');
-    body.append(el('p', 'detail-desc', tile.about));
-    if (tile.lines?.length) {
-      const list = el('ul', 'detail-effects');
-      for (const line of tile.lines) list.append(el('li', '', line));
-      body.append(el('p', 'detail-label', 'Effects'), list);
-    }
-    if (tile.note) body.append(el('p', 'detail-note', tile.note));
-    const { action } = tile;
-    if (action) {
-      const use = el('button', 'action main inv-tile-action', action.label);
-      use.type = 'button';
-      use.disabled = action.off !== undefined;
-      if (action.off) use.title = action.off;
-      use.addEventListener('click', () => action.run(use));
-      body.append(use);
-    }
-    if (tile.controls) body.append(tile.controls());
-    const scroll = el('div', 'detail-scroll');
-    scroll.append(bar, top, body);
-    detail.append(scroll);
+    if (tile) tileDetail(detail, tile, unpick);
   }
 
   function unpick(): void {
