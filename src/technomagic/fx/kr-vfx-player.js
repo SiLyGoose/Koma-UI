@@ -463,7 +463,22 @@ class Emitter {
       });
     }
     this.geometry.setDrawRange(0, n * this.perIdx);
-    for (const name of ['position', 'uv', 'color', 'normal']) this.geometry.attributes[name].needsUpdate = true;
+    sendLive(this.geometry, n * this.perVerts);
+  }
+}
+
+/**
+ * Sends the GPU only the first `vertices` of a geometry's buffers (those drawn), not the whole of them: they are made for
+ * the most there could be (an emitter's 400 particles, a mesh particle's every vertex), and sent whole every frame that was
+ * megabytes a frame, which Firefox copies over to its GPU process. None drawn: nothing sent.
+ */
+function sendLive(geometry, vertices) {
+  if (vertices <= 0) return;
+  for (const name of ['position', 'uv', 'color', 'normal']) {
+    const attribute = geometry.attributes[name];
+    attribute.clearUpdateRanges();
+    attribute.addUpdateRange(0, vertices * attribute.itemSize);
+    attribute.needsUpdate = true;
   }
 }
 
@@ -654,7 +669,7 @@ class Trail {
         nrm[v * 3] = -facing.x; nrm[v * 3 + 1] = -facing.y; nrm[v * 3 + 2] = -facing.z;
       }
     }
-    this.geometry.attributes.position.needsUpdate = this.geometry.attributes.uv.needsUpdate = this.geometry.attributes.color.needsUpdate = this.geometry.attributes.normal.needsUpdate = true;
+    sendLive(this.geometry, active * 2);
     this.geometry.setDrawRange(0, (active - 1) * 6);
   }
 }
