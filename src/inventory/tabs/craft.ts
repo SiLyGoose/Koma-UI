@@ -5,7 +5,7 @@ import { busyWith, type Busy, working } from '../../shared/ui';
 import { coin, dust, points } from '../../shared/util';
 import { api, type ApiResult, loadMe } from '../../site/session';
 import type { CraftRecipe, RaidShopView } from '../../protocol/raid-shop';
-import { HERO_PART_NAME, type HeroesCrafted, type HeroesView, type HeroPart, TM_CRAFT_PARTS, TM_CRAFT_PRICES, type TmCraftKind } from '../../protocol/heroes';
+import { HERO_PART_NAME, type HeroesCrafted, type HeroesView, type HeroPart, TM_CRAFT_PARTS, type TmCraftKind } from '../../protocol/heroes';
 import type { TmSetId } from '../../protocol/items';
 import { RUNE_BOXES, type RuneBox, type RunesCrafted } from '../../protocol/runes';
 import { fragmentIcon } from '../../shared/items/fragments';
@@ -15,12 +15,13 @@ import { TICKET_NAME, ticketPicture } from './tickets';
 /*
  * The inventory's Craft: what komaDust (what salvaging hero gear gives) can be made into, down the left, and the one picked
  * beside them: what one takes, what they have, how many to make (−, +, Max) and Craft. komaGems (every `powderPerGem` of it
- * one), and Unique Weapon and Unique Treasure Tickets (every `powderPerSelector`, 10,000: one, held in Others until used:
+ * one), and Unique Weapon and Unique Treasure Tickets (every `powderPerSelector` one, held in Others until used:
  * ./tickets.ts), all the bot's POST /api/raid-shop/craft; a recipe is one entry in RECIPES. Under them, TechnoMagic gear, a
  * set each (King's Raid's Valance's Workshop): a piece of it for its boss's Boss Crystals and zeiucoins, any of its pieces, any
  * class's of a part picked, or a class's part picked (the bot's POST /api/heroes/craft), one at a time. Under those, Runes:
  * King's Raid's Mysterious Runes, each a rune of its grade (any as likely), for Rune Fragments (what runes disassemble into),
- * as many at once as komaDust's (the bot's POST /api/runes/craft).
+ * as many at once as komaDust's (the bot's POST /api/runes/craft). Every price is the bot's setting: the raid shop's view says
+ * komaDust's, the heroes' view (`craft`) the rest.
  */
 
 
@@ -133,7 +134,12 @@ export const craftTab: InventoryTab = {
 
     /** Their Rune Fragments (0 while their heroes' view isn't known), and the most of `box` they make (at most MOST_AT_ONCE). */
     const fragments = (): number => heroes?.runeFragments ?? 0;
-    const mostRunes = (box: RuneBox): number => Math.min(MOST_AT_ONCE, Math.floor(fragments() / box.fragments));
+    /** What one of `box` takes in Rune Fragments (null: not known yet, or a bot from before it was a setting). */
+    const runePrice = (box: RuneBox): number | null => heroes?.craft?.runes[box.id] ?? null;
+    const mostRunes = (box: RuneBox): number => {
+      const per = runePrice(box);
+      return per ? Math.min(MOST_AT_ONCE, Math.floor(fragments() / per)) : 0;
+    };
 
     /** A Mysterious Rune's tile in the list: its picture, and the fragments one takes. */
     function runeTile(box: RuneBox): HTMLButtonElement {
@@ -145,7 +151,9 @@ export const craftTab: InventoryTab = {
       pic.append(runeBoxPicture(box));
       const words = el('span', 'inv-recipe-words');
       const cost = el('span', 'inv-recipe-cost');
-      cost.append(fragmentIcon('inv-dust'), el('span', '', `${points(box.fragments)} each`));
+      const per = runePrice(box);
+      if (per) cost.append(fragmentIcon('inv-dust'), el('span', '', `${points(per)} each`));
+      else cost.textContent = heroes ? 'Not offered yet' : '…';
       words.append(el('span', 'inv-recipe-name', box.name), cost);
       button.append(pic, words);
       button.addEventListener('click', () => {
@@ -259,18 +267,23 @@ export const craftTab: InventoryTab = {
         panel.replaceChildren(head, el('p', 'inv-recipe-note', 'Loading…'));
         return;
       }
+      const per = runePrice(box);
+      if (!per) {
+        panel.replaceChildren(head, el('p', 'inv-recipe-note', 'The bot can’t craft this yet.'));
+        return;
+      }
       const each = el('p', 'inv-recipe-have');
-      each.append('One takes ', fragmentIcon('inv-dust'), el('b', '', points(box.fragments)), ' Rune Fragments');
+      each.append('One takes ', fragmentIcon('inv-dust'), el('b', '', points(per)), ' Rune Fragments');
       const owned = el('p', 'inv-recipe-have');
       owned.append('You have ', fragmentIcon('inv-dust'), el('b', '', points(fragments())), ' Rune Fragments');
       const total = el('p', 'inv-recipe-total');
-      total.append('Uses ', fragmentIcon('inv-dust'), el('b', '', points(count * box.fragments)), ` Rune Fragments for ${points(count)}`);
+      total.append('Uses ', fragmentIcon('inv-dust'), el('b', '', points(count * per)), ` Rune Fragments for ${points(count)}`);
       const go = el('button', 'action main inv-craft-go', max === 0 ? 'Not enough Rune Fragments' : `Craft ${points(count)}`);
       go.type = 'button';
       if (max === 0) go.setAttribute('aria-disabled', 'true');
       working(go, busy, `craft:${box.id}`);
       go.addEventListener('click', () => void craftRunes(box, count));
-      const note = max === 0 ? [el('p', 'inv-recipe-note', `Disassemble runes for Rune Fragments (the Runes tab: Sell, then Disassemble): ${points(box.fragments)} of them craft one.`)] : [];
+      const note = max === 0 ? [el('p', 'inv-recipe-note', `Disassemble runes for Rune Fragments (the Runes tab: Sell, then Disassemble): ${points(per)} of them craft one.`)] : [];
       panel.replaceChildren(head, each, owned, amountRow(max), total, go, ...note);
     }
 
@@ -338,6 +351,11 @@ export const craftTab: InventoryTab = {
         panel.replaceChildren(head, el('p', 'inv-recipe-note', 'Loading…'));
         return;
       }
+      const prices = heroes.craft?.tm;
+      if (!prices) {
+        panel.replaceChildren(head, el('p', 'inv-recipe-note', 'The bot can’t craft this yet.'));
+        return;
+      }
       const crystals = heroes.crystals?.[set.id] ?? 0;
       const balance = host.balance() ?? heroes.balance;
       const owned = el('p', 'inv-recipe-have');
@@ -345,7 +363,7 @@ export const craftTab: InventoryTab = {
 
       const ways = choices(
         'How to craft it',
-        TM_WAYS.map(({ kind, name, about }) => ({ id: kind, name, about: `${about} ${points(TM_CRAFT_PRICES[kind].crystals)} crystals + ${points(TM_CRAFT_PRICES[kind].points)} zeiucoins` })),
+        TM_WAYS.map(({ kind, name, about }) => ({ id: kind, name, about: `${about} ${points(prices[kind].crystals)} crystals + ${points(prices[kind].points)} zeiucoins` })),
         way,
         (kind) => {
           way = kind;
@@ -354,7 +372,7 @@ export const craftTab: InventoryTab = {
       const parts = way === 'any' ? [] : [el('p', 'inv-tm-label', 'Part'), choices('Part', TM_CRAFT_PARTS.map((id) => ({ id, name: HERO_PART_NAME[id] })), part, (id) => (part = id))];
       const classes = way === 'exact' ? [el('p', 'inv-tm-label', 'Class'), choices('Class', HERO_CLASSES, cls, (id) => (cls = id))] : [];
 
-      const price = TM_CRAFT_PRICES[way];
+      const price = prices[way];
       const shortCrystals = crystals < price.crystals;
       const shortPoints = balance < price.points;
       const total = el('p', 'inv-recipe-total');
@@ -372,8 +390,8 @@ export const craftTab: InventoryTab = {
 
     /** Crafts a piece of `set` as picked, and says what came. */
     async function craftTm(set: (typeof TM_SETS)[number]): Promise<void> {
-      const price = TM_CRAFT_PRICES[way];
-      if (busy || !heroes || (heroes.crystals?.[set.id] ?? 0) < price.crystals || (host.balance() ?? heroes.balance) < price.points) return;
+      const price = heroes?.craft?.tm[way];
+      if (busy || !heroes || !price || (heroes.crystals?.[set.id] ?? 0) < price.crystals || (host.balance() ?? heroes.balance) < price.points) return;
       busy = busyWith(`craft:${set.id}`);
       host.status(null);
       draw();
@@ -401,7 +419,7 @@ export const craftTab: InventoryTab = {
         if (set) return drawTm(set);
         picked = RECIPES[0] as Recipe;
       }
-      if ('fragments' in picked) return drawRune(picked);
+      if ('grade' in picked) return drawRune(picked);
       const recipe = picked;
       const per = shop ? recipe.per(shop) : null;
       const max = most(recipe) ?? 0;
