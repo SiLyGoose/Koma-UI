@@ -42,6 +42,8 @@ function refusalText(r: Refusal): string {
       return 'That seat was just taken.';
     case 'not_now':
       return "That can't be done right now.";
+    case 'bot_limit':
+      return `You've won ${points(r.limit)} off the bots today, the most you can. Bots are back tomorrow.`;
     case 'failed':
       return 'Something went wrong. Try again.';
   }

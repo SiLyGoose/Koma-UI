@@ -6,7 +6,8 @@ import type { PokerMove, PokerState } from '../protocol/poker';
  * What this page's player can do. Not sitting: pick how many chips to sit down with (from the
  * table's buy-in range, up to their balance) and sit down (or press an empty seat). Sitting: on
  * their turn Fold, Check or Call, and Bet or Raise to an amount (the slider, or a share of the pot)
- * or go All in; F, C and R do the same from the keyboard. Any time: stand up, or add a bot.
+ * or go All in; F, C and R do the same from the keyboard. Any time: stand up, or add a bot (until
+ * they've won the day's most off the bots, which the page says).
  */
 
 const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T;
@@ -30,6 +31,7 @@ const ui = {
   myChips: $('my-chips'),
   balance: $('balance'),
   bot: $<HTMLButtonElement>('bot-button'),
+  botNote: $('bot-note'),
   stand: $<HTMLButtonElement>('stand-button'),
 };
 
@@ -126,6 +128,10 @@ export function renderControls(ctx: PokerContext): void {
   const inHand = me?.inHand && !me.folded && state.hand && !state.hand.result;
   ui.stand.textContent = inHand ? 'Stand up (fold)' : 'Stand up';
   ui.bot.hidden = !state.canAddBot;
+  // Won the most they can off the bots today: the bots sit out of their hands.
+  const bots = state.botWinnings;
+  ui.botNote.hidden = !bots || bots.won < bots.limit;
+  if (bots && bots.won >= bots.limit) ui.botNote.textContent = `🤖 You've won ${points(bots.won)} off the bots today, the most you can: they sit out of your hands until tomorrow.`;
 }
 
 /** Makes a move, if it's this player's turn. */
