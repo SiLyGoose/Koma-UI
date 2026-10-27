@@ -9,7 +9,7 @@ import { HERO_PART_NAME, type HeroesCrafted, type HeroesView, type HeroPart, TM_
 import type { TmSetId } from '../../protocol/items';
 import { RUNE_BOXES, type RuneBox, type RunesCrafted } from '../../protocol/runes';
 import { fragmentIcon } from '../../shared/items/fragments';
-import { SCROLL_NAME, scrollCount, scrollPicture } from '../../shared/items/scroll';
+import { SCROLL_NAME, scrollCount, scrollPicture, scrollsName } from '../../shared/items/scroll';
 import type { InventoryHost, InventoryTab } from '../tab';
 import { heroCopyDetail } from './gear';
 import { reveal, type Reveal, type Revealed } from './reveal';
@@ -24,7 +24,7 @@ import { type Tile, tileDetail, tileSlot } from './tiles';
  * ./tickets.ts), all the bot's POST /api/raid-shop/craft; a recipe is one entry in RECIPES. Under them, TechnoMagic gear, a
  * set each (King's Raid's Valance's Workshop): a piece of it for its boss's Boss Crystals and zeiucoins, any of its pieces, any
  * class's of a part picked, or a class's part picked, an accessory any of its four kinds or the one picked (the bot's POST
- * /api/heroes/craft), one at a time. Then a Transcendence Scroll (+5 TP for a hero, used on its Transcend tab), for any one
+ * /api/heroes/craft), one at a time. Then a Transcendence Attribute Point (+5 TP for a hero, used on its Transcend tab), for any one
  * boss's Boss Crystals, picked, as many at once as komaDust's (the bot's POST /api/heroes/craft-scroll). Under those, Runes:
  * King's Raid's Mysterious Runes, each a rune of its grade (any as likely), for Rune Fragments (what runes disassemble into),
  * as many at once as komaDust's (the bot's POST /api/runes/craft). Every price is the bot's setting: the raid shop's view says
@@ -80,11 +80,11 @@ const runeBoxAbout = (box: RuneBox): string => {
   return `${/^[AEIOU]/.test(grade) ? 'An' : 'A'} ${grade} rune, any of them as likely. It goes to your Runes.`;
 };
 
-/** The Transcendence Scroll picked in the list. */
+/** The Transcendence Attribute Point picked in the list. */
 const SCROLL = 'tp-scroll';
 
-/** What a Transcendence Scroll does, as its panel and its slot say it. */
-const SCROLL_ABOUT = `Gives a hero ${TP_SCROLL_POINTS} more TP for good, on top of what transcending gives it, up to ${TP_SCROLL_MOST} more (${TP_SCROLL_MOST / TP_SCROLL_POINTS} scrolls). Use it on the hero’s Transcend tab on the Heroes page.`;
+/** What a Transcendence Attribute Point does, as its panel and its slot say it. */
+const SCROLL_ABOUT = `Gives a hero ${TP_SCROLL_POINTS} more TP for good, on top of what transcending gives it, up to ${TP_SCROLL_MOST} more (${TP_SCROLL_MOST / TP_SCROLL_POINTS} of them). Use it on the hero’s Transcend tab on the Heroes page.`;
 
 /** The three ways to craft one, as the panel offers them. */
 const TM_WAYS: readonly { kind: TmCraftKind; name: string; about: string }[] = [
@@ -146,7 +146,7 @@ export const craftTab: InventoryTab = {
     let shop: RaidShopView | null = null;
     /** Their heroes' view: their Boss Crystals and zeiucoins (TechnoMagic gear's crafting). */
     let heroes: HeroesView | null = null;
-    /** A komaDust recipe, a TechnoMagic set, the Transcendence Scroll, or a Mysterious Rune. */
+    /** A komaDust recipe, a TechnoMagic set, the Transcendence Attribute Point, or a Mysterious Rune. */
     let picked: Recipe | TmSetId | typeof SCROLL | RuneBox = RECIPES[0] as Recipe;
     let count = 1;
     let busy: Busy | null = null;
@@ -156,7 +156,7 @@ export const craftTab: InventoryTab = {
     /** An accessory: the kind picked ('any': any of the four). */
     let accessory: TmAccessory | 'any' = 'any';
     let cls = HERO_CLASSES[0]?.id ?? 'knight';
-    /** The Transcendence Scroll: the boss whose crystals pay (null: the one they have most of). */
+    /** The Transcendence Attribute Point: the boss whose crystals pay (null: the one they have most of). */
     let scrollSet: TmSetId | null = null;
     /** What a craft made, shown over the page (null: nothing). */
     let shown: Reveal | null = null;
@@ -231,7 +231,7 @@ export const craftTab: InventoryTab = {
       return button;
     }
 
-    /** The boss whose crystals pay for a Transcendence Scroll: the one picked, or the one they have most of. */
+    /** The boss whose crystals pay for a Transcendence Attribute Point: the one picked, or the one they have most of. */
     const payingSet = (): TmSetId => scrollSet ?? TM_SETS.reduce((best, set) => ((heroes?.crystals?.[set.id] ?? 0) > (heroes?.crystals?.[best] ?? 0) ? set.id : best), TM_SETS[0]?.id ?? 'perseverance');
     /** What one scroll takes in Boss Crystals (null: not known yet, or a bot from before them), and the most they make of `set`'s. */
     const scrollPrice = (): number | null => heroes?.craft?.tpScroll ?? null;
@@ -240,7 +240,7 @@ export const craftTab: InventoryTab = {
       return per ? Math.min(MOST_AT_ONCE, Math.floor((heroes?.crystals?.[set] ?? 0) / per)) : 0;
     };
 
-    /** The Transcendence Scroll's tile in the list: its picture, and the crystals one takes. */
+    /** The Transcendence Attribute Point's tile in the list: its picture, and the crystals one takes. */
     function scrollTile(): HTMLButtonElement {
       const button = el('button', 'inv-recipe-tile');
       button.type = 'button';
@@ -250,7 +250,7 @@ export const craftTab: InventoryTab = {
       pic.append(scrollPicture());
       const words = el('span', 'inv-recipe-words');
       const per = scrollPrice();
-      const cost = el('span', 'inv-recipe-cost', per ? `${points(per)} Boss Crystals each` : heroes ? 'Not offered yet' : '…');
+      const cost = el('span', 'inv-recipe-cost', per ? `${points(per)} Boss Crystals` : heroes ? 'Not offered yet' : '…');
       words.append(el('span', 'inv-recipe-name', SCROLL_NAME), cost);
       button.append(pic, words);
       button.addEventListener('click', () => {
@@ -262,7 +262,7 @@ export const craftTab: InventoryTab = {
       return button;
     }
 
-    /** The Transcendence Scroll picked: what one takes, whose crystals pay (each boss's, how many they have), how many, and Craft. */
+    /** The Transcendence Attribute Point picked: what one takes, whose crystals pay (each boss's, how many they have), how many, and Craft. */
     function drawScroll(): void {
       const head = el('div', 'inv-recipe-head');
       const pic = el('span', 'inv-recipe-pic big');
@@ -285,7 +285,7 @@ export const craftTab: InventoryTab = {
       const each = el('p', 'inv-recipe-have');
       each.append('One takes ', el('b', '', points(per)), ' Boss Crystals, any one boss’s');
       const owned = el('p', 'inv-recipe-have');
-      owned.append('You have ', scrollPicture('inv-dust', true), el('b', '', points(heroes.tpScrolls ?? 0)), ` ${SCROLL_NAME}s`);
+      owned.append('You have ', scrollPicture('inv-dust', true), el('b', '', points(heroes.tpScrolls ?? 0)), ` ${scrollsName(heroes.tpScrolls ?? 0)}`);
       // (Each boss's crystals, how many they have: the one picked pays.)
       const crystals = choices(
         'Pay with',
@@ -304,7 +304,7 @@ export const craftTab: InventoryTab = {
       panel.replaceChildren(head, each, owned, el('p', 'inv-tm-label', 'Pay with'), crystals, amountRow(max), total, go, ...note);
     }
 
-    /** Crafts `n` Transcendence Scrolls from `set`'s crystals, and shows them. */
+    /** Crafts `n` Transcendence Attribute Points from `set`'s crystals, and shows them. */
     async function craftScrolls(set: TmSetId, n: number): Promise<void> {
       if (busy || n < 1 || n > mostScrolls(set)) return;
       busy = busyWith(`craft:${SCROLL}`);
@@ -315,15 +315,15 @@ export const craftTab: InventoryTab = {
       if (!res.ok) {
         if (res.status === 0 || res.error === 'no_crystals') await loadHeroes(true);
         else draw();
-        return res.error === 'no_crystals' ? void host.status('You don’t have that many crystals any more.', true) : host.failed(res, 'Could not craft those scrolls. Try again.');
+        return res.error === 'no_crystals' ? void host.status('You don’t have that many crystals any more.', true) : host.failed(res, 'Could not craft those. Try again.');
       }
       heroes = res.data;
       host.keep('heroes', res.data);
       count = 1;
       draw();
       host.status(`Crafted ${scrollCount(n)}. Use ${n === 1 ? 'it' : 'them'} on a hero’s Transcend tab on the Heroes page.`);
-      const tile: Tile = { id: SCROLL, name: SCROLL_NAME, picture: () => scrollPicture(), grade: 5, full: true, kind: 'Scroll', count: res.data.tpScrolls ?? null, about: SCROLL_ABOUT };
-      show([{ id: SCROLL, name: n === 1 ? SCROLL_NAME : `${SCROLL_NAME}s`, face: () => tileSlot({ ...tile, count: n }), detail: (into, close) => tileDetail(into, tile, close) }]);
+      const tile: Tile = { id: SCROLL, name: SCROLL_NAME, picture: () => scrollPicture(), grade: 5, full: true, kind: 'Material', count: res.data.tpScrolls ?? null, about: SCROLL_ABOUT };
+      show([{ id: SCROLL, name: scrollsName(n), face: () => tileSlot({ ...tile, count: n }), detail: (into, close) => tileDetail(into, tile, close) }]);
     }
 
     function drawList(): void {

@@ -7,7 +7,7 @@ import { canTrade, copyById, heroShown, mine, slotFor, slotOf, slotsFor, type He
 import { SIDE_SLOTS, TP_SCROLL_MOST, TP_SCROLL_POINTS } from '../protocol/heroes';
 import { RUNE_FRAGMENTS, RUNE_KEEP_PRICE } from '../protocol/runes';
 import { fragmentIcon } from '../shared/items/fragments';
-import { SCROLL_NAME, scrollPicture } from '../shared/items/scroll';
+import { scrollPicture, scrollsName } from '../shared/items/scroll';
 import { coin, points } from '../shared/util';
 import { heroSkills } from './skills';
 import type { HeroRuneStack, HeroSkillView } from '../protocol/heroes';
@@ -32,7 +32,7 @@ export interface HeroActions {
   perks(perks: string[], key: string): void;
   /** Transcends the hero shown a level. */
   transcend(): void;
-  /** Uses one of their Transcendence Scrolls on the hero shown (more TP). */
+  /** Uses one of their Transcendence Attribute Points on the hero shown (more TP). */
   scroll(): void;
   /** Locks or unlocks a copy. */
   lock(copy: HeroCopy, locked: boolean): void;
@@ -795,7 +795,7 @@ function renderTranscend(ctx: HeroesContext, act: HeroActions): void {
 }
 
 /**
- * Under the TP: what Transcendence Scrolls gave the hero (of the most they give), and, for their own hero, how many they hold
+ * Under the TP: what Transcendence Attribute Points gave the hero (of the most they give), and, for their own hero, how many they hold
  * and Use one. Hidden for a bot from before them.
  */
 function renderScrolls(ctx: HeroesContext, act: HeroActions, hero: HeroView): void {
@@ -805,7 +805,7 @@ function renderScrolls(ctx: HeroesContext, act: HeroActions, hero: HeroView): vo
   ui.tpScrolls.hidden = given === undefined;
   if (given === undefined) return;
   const line = el('div', 'tp-scrolls-line');
-  line.append(scrollPicture('tp-scrolls-pic'), el('span', 'tp-scrolls-given', `Scrolls +${given}/${TP_SCROLL_MOST} TP`));
+  line.append(scrollPicture('tp-scrolls-pic'), el('span', 'tp-scrolls-given', `Attribute Points +${given}/${TP_SCROLL_MOST} TP`));
   ui.tpScrolls.append(line);
   if (!mine(ctx) || !hero.owned) return;
   const held = view?.tpScrolls ?? 0;
@@ -813,13 +813,13 @@ function renderScrolls(ctx: HeroesContext, act: HeroActions, hero: HeroView): vo
   const use = el('button', 'tp-scrolls-use action secondary', full ? 'All used' : `Use one (${held} held)`);
   use.type = 'button';
   use.disabled = full || held < 1;
-  use.title = full ? `${hero.name} has all ${TP_SCROLL_MOST} TP scrolls give.` : `+${TP_SCROLL_POINTS} TP for ${hero.name}, for good`;
+  use.title = full ? `${hero.name} has all ${TP_SCROLL_MOST} TP these give.` : `+${TP_SCROLL_POINTS} TP for ${hero.name}, for good`;
   working(use, ctx.busy, 'scroll');
   use.addEventListener('click', () => act.scroll());
   line.append(use);
   if (!full && held < 1) {
     const price = view?.craft?.tpScroll;
-    ui.tpScrolls.append(el('p', 'tp-scrolls-note', `Craft ${SCROLL_NAME}s from Boss Crystals${price ? ` (${points(price)} of any one boss’s)` : ''} in the Inventory’s Craft tab.`));
+    ui.tpScrolls.append(el('p', 'tp-scrolls-note', `Craft ${scrollsName(2)} from Boss Crystals${price ? ` (${points(price)} of any one boss’s)` : ''} in the Inventory’s Craft tab.`));
   }
 }
 

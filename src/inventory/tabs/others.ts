@@ -16,7 +16,7 @@ import { type Tile, tileGrid, tileImage } from './tiles';
 /*
  * The inventory's Others: what they have that isn't gear, a slot each (./tiles.ts), how many in its corner: zeiucoins (the
  * header's), komaTokens (the gacha's), komaGems, komaDust, the Unique Weapon and Unique Treasure Tickets crafted from it or
- * claimed from mail (the raid shop's: picked, Use gives the hero's item they pick, ./tickets.ts), Transcendence Scrolls
+ * claimed from mail (the raid shop's: picked, Use gives the hero's item they pick, ./tickets.ts), Transcendence Attribute Points
  * (crafted from Boss Crystals, used on a hero's Transcend tab), Rune Fragments (what runes
  * disassemble into, crafting Mysterious Runes in the Craft tab), the hero essences and the Technomagic
  * Gear Upgrade Stones, a slot for each class's (the heroes page's: ../../shared/items/stones.ts); picked,
@@ -67,7 +67,7 @@ export const othersTab: InventoryTab = {
       // (King's Raid's: what disassembling a rune gives, and what Mysterious Runes are crafted from.)
       { id: 'fragments', name: 'Rune Fragment', picture: () => tileImage('/kr/items/RUNE_FRAGMENT.webp'), full: true, grade: 3, count: held.fragments, kind: 'Material', words: 'rune fragments', about: 'From disassembling runes: in the Runes tab (Sell, then Disassemble), or one in a piece’s socket on the Heroes page. Craft Mysterious Runes from them in the Craft tab.' },
       ...(['uw', 'ut'] as const).map((of): Tile => ticket(of)),
-      { id: 'scrolls', name: SCROLL_NAME, picture: () => scrollPicture(), full: true, grade: 5, count: held.scrolls, kind: 'Scroll', words: 'tp transcend', about: 'Crafted from Boss Crystals (any one boss’s) in the Craft tab. Use it on a hero’s Transcend tab on the Heroes page: 5 more TP for that hero, up to 15 more (95 TP at Transcend 5).' },
+      { id: 'scrolls', name: SCROLL_NAME, picture: () => scrollPicture(), full: true, grade: 5, count: held.scrolls, kind: 'Material', words: 'tp transcend attribute point scroll', about: 'Crafted from Boss Crystals (any one boss’s) in the Craft tab. Use it on a hero’s Transcend tab on the Heroes page: 5 more TP for that hero, up to 15 more (95 TP at Transcend 5).' },
       ...ESSENCES.map(
         (id: EssenceId): Tile => ({
           id,

@@ -249,9 +249,9 @@ function actions(ctx: HeroesContext): HeroActions {
     scroll() {
       const hero = ctx.hero;
       if (hero)
-        void change(ctx, act, 'scroll', '/api/heroes/scroll', { hero }, 'Could not use a Transcendence Scroll. Try again.', {
-          no_scroll: 'You have no Transcendence Scrolls left: craft them from Boss Crystals in the Inventory’s Craft tab.',
-          scrolls_maxed: 'This hero has all the TP scrolls give.',
+        void change(ctx, act, 'scroll', '/api/heroes/scroll', { hero }, 'Could not use a Transcendence Attribute Point. Try again.', {
+          no_scroll: 'You have no Transcendence Attribute Points left: craft them from Boss Crystals in the Inventory’s Craft tab.',
+          scrolls_maxed: 'This hero has all the TP these give.',
         });
     },
     rune(copy: HeroCopy, socket: number, rune: string | null) {
