@@ -551,16 +551,18 @@
   place-items: center;
   width: 52px;
   height: 52px;
-  padding: 8px;
+  padding: 2px;
   box-sizing: border-box;
   border: 0 solid transparent;
   border-image: url('/kr/ui/inventory/slot.webp') 20 fill / 8px;
 }
 
+/* Its picture fills it, out to just inside the frame's coloured edge, as a full one in Others does. */
 .inventory-page .inv-recipe-pic img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  border-radius: 2px;
+  object-fit: cover;
 }
 
 .inventory-page .inv-recipe-words {
@@ -638,7 +640,7 @@
 .inventory-page .inv-recipe-pic.big {
   width: 84px;
   height: 84px;
-  padding: 14px;
+  padding: 3px;
   border-image-width: 12px;
 }
 

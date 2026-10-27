@@ -58,12 +58,21 @@ interface Recipe {
   held(shop: RaidShopView, heroes: HeroesView | null): number | null;
 }
 
-/** The TechnoMagic sets, each crafted with its boss's Boss Crystals, and what each is called here. */
-const TM_SETS: readonly { id: TmSetId; name: string }[] = [
-  { id: 'perseverance', name: 'Perseverance Gear' },
-  { id: 'hope', name: 'Hope Gear' },
-  { id: 'authority', name: 'Authority Gear' },
+/** The TechnoMagic sets, each crafted with its boss's Boss Crystals, what each is called here, and its picture: a piece of it (King's Raid's icon for its knight's armor). */
+const TM_SETS: readonly { id: TmSetId; name: string; icon: string }[] = [
+  { id: 'perseverance', name: 'Perseverance Gear', icon: 'TECHNOMAGIC_KNIGHT_9_1_1' },
+  { id: 'hope', name: 'Hope Gear', icon: 'TECHNOMAGIC_KNIGHT_9_1_2' },
+  { id: 'authority', name: 'Authority Gear', icon: 'TECHNOMAGIC_KNIGHT_9_1_3' },
 ];
+
+/** A TechnoMagic set's picture (TM_SETS' icon). */
+function tmSetPicture(set: (typeof TM_SETS)[number]): HTMLImageElement {
+  const img = el('img');
+  img.src = `/kr/items/${set.icon}.webp`;
+  img.alt = '';
+  img.draggable = false;
+  return img;
+}
 
 /** A Mysterious Rune's picture (King's Raid's PACKAGE_RUNE_*). */
 function runeBoxPicture(box: RuneBox): HTMLImageElement {
@@ -211,14 +220,14 @@ export const craftTab: InventoryTab = {
       return button;
     }
 
-    /** A TechnoMagic set's tile in the list: its boss's crystal, and how many they have. */
+    /** A TechnoMagic set's tile in the list: a piece of it, and how many of its boss's crystals they have. */
     function tmTile(set: (typeof TM_SETS)[number]): HTMLButtonElement {
       const button = el('button', 'inv-recipe-tile');
       button.type = 'button';
       button.setAttribute('role', 'option');
       button.setAttribute('aria-selected', String(picked === set.id));
       const pic = el('span', 'inv-recipe-pic');
-      pic.append(crystalIcon(set.id));
+      pic.append(tmSetPicture(set));
       const words = el('span', 'inv-recipe-words');
       const cost = el('span', 'inv-recipe-cost', heroes ? `${points(heroes.crystals?.[set.id] ?? 0)} ${crystalName(set.id).replace('Crystal', 'Crystals')}` : '…');
       words.append(el('span', 'inv-recipe-name', set.name), cost);
@@ -489,7 +498,7 @@ export const craftTab: InventoryTab = {
     function drawTm(set: (typeof TM_SETS)[number]): void {
       const head = el('div', 'inv-recipe-head');
       const pic = el('span', 'inv-recipe-pic big');
-      pic.append(crystalIcon(set.id));
+      pic.append(tmSetPicture(set));
       const titles = el('div');
       titles.append(
         el('h2', 'inv-recipe-title', set.name),
