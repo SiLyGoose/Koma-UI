@@ -6,11 +6,11 @@ import { GALGORIA_GAUGE, withGauge } from '../gauge';
 
 /*
  * What Galgoria's skills do, as the game has them (its raid's skill list, from its players' guides on DC Inside's King's
- * Raid gallery, with how hard each hits, Swamp Destroyer's share of health, Fatal Venom's numbers and how much more the
- * heroes deal while one is imprisoned from King's Raid's playtest: its skills' shares of its ATK, as ./attacks.ts has it):
+ * Raid gallery, with how hard each hits, Swamp Destroyer's share of health, Fatal Venom's numbers and how much higher the
+ * heroes' ATK is while one is imprisoned from King's Raid's playtest: its skills' shares of its ATK, as ./attacks.ts has it):
  * - Its attack: a head's venom at whoever it is going for (330%).
  * - Swamp Imprisonment: once the heroes have landed 150 blows, the one that has dealt the most since the last is held
- *   in the swamp for 8 seconds, doing nothing; every other hero deals more meanwhile. Held, it is still hit, healed and
+ *   in the swamp for 8 seconds, doing nothing; every other hero's ATK is 70% higher meanwhile. Held, it is still hit, healed and
  *   helped as ever, but not knocked down (the playtest's Gargoria_Shackle: it can't move, attack or use a skill, and is
  *   proof against CC; it can still be aimed at and hurt by either side). Whoever is held comes out as the next is.
  * - Swamp Destroyer: each head's venom in turn on whoever it is going for (55% each), then all three down into the swamp:
@@ -30,7 +30,7 @@ import { GALGORIA_GAUGE, withGauge } from '../gauge';
  */
 /** Its attack's share of its ATK. */
 const HEAD = 3.3;
-export const IMPRISONMENT = { hits: 150, lasts: 8, deals: 1.7 };
+export const IMPRISONMENT = { hits: 150, lasts: 8, atk: 0.7 };
 const DESTROYER = { venom: 0.55, share: 100 / 110, down: 3, cooldown: 10 };
 export const SWAMP = { lasts: 5, every: 1, mana: 0.6, deals: 1.4, cooldown: 17 };
 const EXPLOSION = { blow: 1.1, lasts: 10, deals: 0.5, crit: -0.5, cooldown: 18 };
@@ -43,7 +43,7 @@ const STAGES = { from: 4, heals: 0.6, shields: 0.4 };
 const TAKEN = { physical: 1.2 };
 
 const IMPRISONED: Buff = { name: 'Swamp Imprisonment', about: 'Held in the swamp: it can do nothing (and can’t be knocked down), but the boss still hits it.', icon: '🪤', art: stateArt('3590043'), harmful: true };
-const UNBOUND: Buff = { name: 'Swamp Imprisonment (free)', about: `An ally is shut away: ${Math.round((IMPRISONMENT.deals - 1) * 100)}% more damage dealt meanwhile.`, icon: '🗡️', art: stateArt('AttackUp') };
+const UNBOUND: Buff = { name: 'Swamp Imprisonment (free)', about: `An ally is held: ATK ${Math.round(IMPRISONMENT.atk * 100)}% higher meanwhile.`, icon: '🗡️', art: stateArt('AttackUp') };
 const POISONED: Buff = { name: 'Poisonous Swamp', about: `Hurt every second; mana fills ${Math.round((1 - SWAMP.mana) * 100)}% slower, and ATK is ${Math.round((SWAMP.deals - 1) * 100)}% higher.`, icon: '🫧', art: stateArt('3590020'), harmful: true };
 const WEAKENED: Buff = { name: 'Poisonous Explosion', about: `Hits ${Math.round((1 - EXPLOSION.deals) * 100)}% softer.`, icon: '💥', art: stateArt('3590030'), harmful: true };
 const DULLED: Buff = { name: 'Poisonous Explosion (crit)', about: `${Math.round(-EXPLOSION.crit * 1000)} less crit chance.`, icon: '💥', art: stateArt('3590030'), harmful: true };
@@ -85,7 +85,7 @@ function ownPart(fight: Fight): BossPart {
   /** The heroes the boss can reach. */
   const reachable = (): Fighter[] => fight.field.filter((fighter) => fighter.hp > 0 && !fighter.statuses.some((status) => status.away));
 
-  /** The hero that has dealt the most since the last is held in the swamp (whoever was, let out); every other hero deals more meanwhile. */
+  /** The hero that has dealt the most since the last is held in the swamp (whoever was, let out); every other hero's ATK is higher meanwhile. */
   function imprison(): void {
     const heroes = reachable();
     for (const fighter of heroes) fighter.statuses = fighter.statuses.filter((status) => status.name !== IMPRISONED.name);
@@ -96,7 +96,7 @@ function ownPart(fight: Fight): BossPart {
     top.reserved = null;
     top.statuses = top.statuses.filter((status) => status.name !== UNBOUND.name);
     put(top.statuses, { name: IMPRISONED.name, left: IMPRISONMENT.lasts, binds: true, guards: true, shown: IMPRISONED });
-    for (const other of rest) put(other.statuses, { name: UNBOUND.name, left: IMPRISONMENT.lasts, deals: IMPRISONMENT.deals, shown: UNBOUND });
+    for (const other of rest) put(other.statuses, { name: UNBOUND.name, left: IMPRISONMENT.lasts, atk: IMPRISONMENT.atk, shown: UNBOUND });
     fight.cue(null, 'imprison', [top]);
     shut.add(top);
   }
