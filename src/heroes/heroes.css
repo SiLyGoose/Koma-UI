@@ -610,7 +610,7 @@
   text-shadow: 0 1px 1px rgb(0 0 0 / 60%);
 }
 
-/* The TP Transcendence Attribute Points gave the hero, and Use one (their own). */
+/* The TP Transcendence Attribute Points gave the hero. */
 .tp-scrolls {
   margin: -4px 4px 8px;
 }
@@ -635,10 +635,29 @@
   height: 26px;
 }
 
-.tp-scrolls-use {
-  min-height: 0;
-  padding: 4px 10px;
-  font-size: 12px;
+/* Uses one on the hero (their own, short of the most, while they hold any): to the right of the TP, the item's green and gold. */
+.tp-add {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 2px solid #e2c26a;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #b6dc4c, #5d8a1c);
+  color: #fff;
+  font: 900 18px/1 Arial, sans-serif;
+  text-shadow: 0 1px 1px rgb(0 0 0 / 50%);
+  cursor: pointer;
+}
+
+.tp-add:hover {
+  filter: brightness(1.12);
+}
+
+.tp-add.working {
+  cursor: progress;
+  opacity: 0.6;
 }
 
 .tp-scrolls-note {
