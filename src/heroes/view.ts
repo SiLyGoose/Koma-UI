@@ -409,6 +409,13 @@ function wire(ctx: HeroesContext, act: HeroActions): () => void {
     renderPick(ctx, act);
   });
   wireSaleDialog(ui.sellConfirm, (salvage) => void sell(ctx, act, salvage));
+  // Using a Transcendence Attribute Point, asked by its + (Cancel, or a click on the backdrop, closes it).
+  ui.tpConfirm.addEventListener('click', (event) => {
+    const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-tp]');
+    if (!button && event.target !== ui.tpConfirm) return;
+    ui.tpConfirm.close();
+    if (button?.dataset.tp === 'confirm') act.scroll();
+  });
   // By rule: the hero gear a salvage rule takes, picked (with those picked already); or the rule kept for their drops.
   const rules = salvageRuleDialog(ui.salvageRule, ctx, {
     pick(ids) {
@@ -428,7 +435,7 @@ function wire(ctx: HeroesContext, act: HeroActions): () => void {
 
   // Escape closes the picked copy, else stops picking copies to sell (the sale's confirmation closes itself).
   const onKey = (event: KeyboardEvent): void => {
-    if (event.key !== 'Escape' || ui.sellConfirm.open || ui.salvageRule.open) return;
+    if (event.key !== 'Escape' || ui.sellConfirm.open || ui.salvageRule.open || ui.tpConfirm.open) return;
     if (ctx.picked) {
       itemDetailsClosed();
       ctx.picked = null;
@@ -441,6 +448,7 @@ function wire(ctx: HeroesContext, act: HeroActions): () => void {
     clearTimeout(typing);
     document.removeEventListener('keydown', onKey);
     if (ui.sellConfirm.open) ui.sellConfirm.close();
+    if (ui.tpConfirm.open) ui.tpConfirm.close();
     if (ui.salvageRule.open) ui.salvageRule.close();
     serverPicker.destroy();
     memberPicker.destroy();

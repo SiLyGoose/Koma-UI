@@ -610,15 +610,6 @@
   text-shadow: 0 1px 1px rgb(0 0 0 / 60%);
 }
 
-/* Under the TP, with none held: where to craft Transcendence Attribute Points. */
-.tp-scrolls {
-  margin: -4px 4px 8px;
-}
-
-.tp-scrolls[hidden] {
-  display: none;
-}
-
 /* Uses one on the hero (their own, short of the most, while they hold any): to the right of the TP, the item's green and gold. */
 .tp-add {
   display: grid;
@@ -644,11 +635,19 @@
   opacity: 0.6;
 }
 
-.tp-scrolls-note {
-  margin: 4px 0 0;
-  color: #6b5a72;
-  font-size: 12px;
-  text-align: right;
+/* Asking before using one: its coin beside what it gives. */
+.tp-confirm-what {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 0 0;
+}
+
+.tp-confirm-pic {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 4px;
 }
 
 .perk-rows {

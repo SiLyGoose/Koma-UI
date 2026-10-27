@@ -64,6 +64,8 @@ export interface HeroesUi {
   salvage: HTMLButtonElement;
   sellCancel: HTMLButtonElement;
   sellConfirm: HTMLDialogElement;
+  /** Asks before using a Transcendence Attribute Point on the hero shown (./render.ts askScroll). */
+  tpConfirm: HTMLDialogElement;
   /** Picking copies to sell: Select shown, By rule (its dialog: ./salvage-rule.ts) and Include locked. */
   sellTools: HTMLElement;
   sellShown: HTMLButtonElement;
@@ -80,7 +82,6 @@ export interface HeroesUi {
   transcend: HTMLElement;
   transcendTitle: HTMLElement;
   tpLeft: HTMLElement;
-  tpScrolls: HTMLElement;
   perkRows: HTMLElement;
   perkInfo: HTMLElement;
   resetPerks: HTMLButtonElement;
@@ -174,6 +175,7 @@ export function createContext(root: HTMLElement, host: HeroesHost): HeroesContex
       salvage: $<HTMLButtonElement>('salvage'),
       sellCancel: $<HTMLButtonElement>('sell-cancel'),
       sellConfirm: $<HTMLDialogElement>('sell-confirm'),
+      tpConfirm: $<HTMLDialogElement>('tp-confirm'),
       sellTools: $('sell-tools'),
       sellShown: $<HTMLButtonElement>('sell-shown'),
       sellRule: $<HTMLButtonElement>('sell-rule'),
@@ -189,7 +191,6 @@ export function createContext(root: HTMLElement, host: HeroesHost): HeroesContex
       transcend: $('transcend'),
       transcendTitle: $('transcend-title'),
       tpLeft: $('tp-left'),
-      tpScrolls: $('tp-scrolls'),
       perkRows: $('perk-rows'),
       perkInfo: $('perk-info'),
       resetPerks: $<HTMLButtonElement>('reset-perks'),

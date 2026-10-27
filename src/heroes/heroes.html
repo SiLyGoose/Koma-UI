@@ -145,6 +145,17 @@
       </div>
     </dialog>
 
+    <!-- Using a Transcendence Attribute Point on the hero shown (its + beside the TP): what it gives, and Cancel or Use. -->
+    <dialog id="tp-confirm" class="sell-confirm tp-confirm" aria-labelledby="tp-confirm-title">
+      <h3 id="tp-confirm-title"></h3>
+      <p class="tp-confirm-what"></p>
+      <p class="sell-confirm-note">A used one can't be taken back.</p>
+      <div class="sell-confirm-foot">
+        <button type="button" class="action secondary" data-tp="cancel">Cancel</button>
+        <button type="button" class="action main" data-tp="confirm">Use</button>
+      </div>
+    </dialog>
+
     <!--
       Stats: first what the hero's next transcendence level costs (its class's three hero essences and komaGems) and what
       transcends it; then its stats in the TechnoMagic Raid, with and without its gear.
@@ -179,8 +190,6 @@
       <div class="armory-sheet">
         <div class="sheet-scroll">
           <p class="tp"><span class="tp-badge" aria-hidden="true">TP</span><span id="tp-left" class="tp-left"></span></p>
-          <!-- With none held, where to craft Transcendence Attribute Points (their own hero's +, to use one, goes beside the TP above). -->
-          <div id="tp-scrolls" class="tp-scrolls" hidden></div>
           <div id="perk-rows" class="perk-rows"></div>
           <div id="perk-info" class="perk-info" aria-live="polite"></div>
         </div>
