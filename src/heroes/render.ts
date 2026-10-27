@@ -7,7 +7,7 @@ import { canTrade, copyById, heroShown, mine, slotFor, slotOf, slotsFor, type He
 import { SIDE_SLOTS, TP_SCROLL_MOST, TP_SCROLL_POINTS } from '../protocol/heroes';
 import { RUNE_FRAGMENTS, RUNE_KEEP_PRICE } from '../protocol/runes';
 import { fragmentIcon } from '../shared/items/fragments';
-import { SCROLL_NAME, scrollPicture } from '../shared/items/scroll';
+import { SCROLL_NAME } from '../shared/items/scroll';
 import { coin, points } from '../shared/util';
 import { heroSkills } from './skills';
 import type { HeroRuneStack, HeroSkillView } from '../protocol/heroes';
@@ -810,19 +810,19 @@ function renderScrolls(ctx: HeroesContext, act: HeroActions, hero: HeroView): vo
   add.setAttribute('aria-label', add.title);
   working(add, ctx.busy, 'scroll');
   add.addEventListener('click', () => {
-    if (!ctx.busy) askScroll(ctx, hero, held);
+    if (!ctx.busy) askScroll(ctx, hero);
   });
   ui.tpLeft.after(add);
 }
 
-/** Asks whether to use one of the `held` Transcendence Attribute Points on `hero`: its TP before and after, and how many they keep (Use: ./view.ts). */
-function askScroll(ctx: HeroesContext, hero: HeroView, held: number): void {
+/** Asks whether to use one of their Transcendence Attribute Points on `hero`: its TP before and after (Use: ./view.ts). */
+function askScroll(ctx: HeroesContext, hero: HeroView): void {
   const dialog = ctx.ui.tpConfirm;
   const now = hero.transcend?.points ?? TRANSCEND_POINTS;
   (dialog.querySelector('h3') as HTMLElement).textContent = `Use a ${SCROLL_NAME} on ${hero.name}?`;
   const what = dialog.querySelector('.tp-confirm-what') as HTMLElement;
   what.textContent = '';
-  what.append(scrollPicture('tp-confirm-pic'), el('span', '', `${hero.name}’s TP goes from ${now} to ${now + TP_SCROLL_POINTS}. You have ${held}; ${held - 1} left after.`));
+  what.append(el('b', 'tp-confirm-hero', `${hero.name}’s`), ' TP goes from ', el('b', 'tp-confirm-tp', String(now)), ' to ', el('b', 'tp-confirm-tp', String(now + TP_SCROLL_POINTS)), '.');
   dialog.showModal();
 }
 

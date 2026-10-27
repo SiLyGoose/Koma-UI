@@ -635,19 +635,18 @@
   opacity: 0.6;
 }
 
-/* Asking before using one: its coin beside what it gives. */
+/* Asking before using one: the hero's name in gold, its TP before and after in the TP badge's blue. */
 .tp-confirm-what {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 8px 0 0;
+  margin: 0 0 18px;
+  font-size: 15px;
 }
 
-.tp-confirm-pic {
-  flex: none;
-  width: 44px;
-  height: 44px;
-  border-radius: 4px;
+.tp-confirm-hero {
+  color: var(--gold);
+}
+
+.tp-confirm-tp {
+  color: #6cc0f5;
 }
 
 .perk-rows {
