@@ -9,8 +9,10 @@ import { GALGORIA_GAUGE, withGauge } from '../gauge';
  * Raid gallery, with how hard each hits, Swamp Destroyer's share of health, Fatal Venom's numbers and how much more the
  * heroes deal while one is imprisoned from King's Raid's playtest: its skills' shares of its ATK, as ./attacks.ts has it):
  * - Its attack: a head's venom at whoever it is going for (330%).
- * - Swamp Imprisonment: once the heroes have landed 150 blows, the one that has dealt the most since the last is shut
- *   away in the swamp for 8 seconds: not to be hit, and doing nothing; every other hero deals more meanwhile.
+ * - Swamp Imprisonment: once the heroes have landed 150 blows, the one that has dealt the most since the last is held
+ *   in the swamp for 8 seconds, doing nothing; every other hero deals more meanwhile. Held, it is still hit, healed and
+ *   helped as ever, but not knocked down (the playtest's Gargoria_Shackle: it can't move, attack or use a skill, and is
+ *   proof against CC; it can still be aimed at and hurt by either side). Whoever is held comes out as the next is.
  * - Swamp Destroyer: each head's venom in turn on whoever it is going for (55% each), then all three down into the swamp:
  *   every hero is hurt by a share of the health it has left (the playtest's 100/110 of it), and knocked down for 3 seconds.
  * - Poisonous Swamp: a swamp under the heroes for 5 seconds that hurts them every second; while they stand in it their
@@ -40,7 +42,7 @@ const STAGES = { from: 4, heals: 0.6, shields: 0.4 };
 /** How many times as much it takes of each kind of damage. */
 const TAKEN = { physical: 1.2 };
 
-const IMPRISONED: Buff = { name: 'Swamp Imprisonment', about: 'Shut away in the swamp: it can do nothing, and the boss can’t reach it.', icon: '🪤', art: stateArt('3590043'), harmful: true };
+const IMPRISONED: Buff = { name: 'Swamp Imprisonment', about: 'Held in the swamp: it can do nothing (and can’t be knocked down), but the boss still hits it.', icon: '🪤', art: stateArt('3590043'), harmful: true };
 const UNBOUND: Buff = { name: 'Swamp Imprisonment (free)', about: `An ally is shut away: ${Math.round((IMPRISONMENT.deals - 1) * 100)}% more damage dealt meanwhile.`, icon: '🗡️', art: stateArt('AttackUp') };
 const POISONED: Buff = { name: 'Poisonous Swamp', about: `Hurt every second; mana fills ${Math.round((1 - SWAMP.mana) * 100)}% slower, and ATK is ${Math.round((SWAMP.deals - 1) * 100)}% higher.`, icon: '🫧', art: stateArt('3590020'), harmful: true };
 const WEAKENED: Buff = { name: 'Poisonous Explosion', about: `Hits ${Math.round((1 - EXPLOSION.deals) * 100)}% softer.`, icon: '💥', art: stateArt('3590030'), harmful: true };
@@ -83,14 +85,17 @@ function ownPart(fight: Fight): BossPart {
   /** The heroes the boss can reach. */
   const reachable = (): Fighter[] => fight.field.filter((fighter) => fighter.hp > 0 && !fighter.statuses.some((status) => status.away));
 
-  /** The hero that has dealt the most since the last is shut away in the swamp; every other hero deals more meanwhile. */
+  /** The hero that has dealt the most since the last is held in the swamp (whoever was, let out); every other hero deals more meanwhile. */
   function imprison(): void {
-    const [top, ...rest] = reachable().sort((a, b) => (dealt.get(b) ?? 0) - (dealt.get(a) ?? 0));
+    const heroes = reachable();
+    for (const fighter of heroes) fighter.statuses = fighter.statuses.filter((status) => status.name !== IMPRISONED.name);
+    const [top, ...rest] = heroes.sort((a, b) => (dealt.get(b) ?? 0) - (dealt.get(a) ?? 0));
     dealt.clear();
     if (!top) return;
     fight.stagger(top);
     top.reserved = null;
-    put(top.statuses, { name: IMPRISONED.name, left: IMPRISONMENT.lasts, away: true, shown: IMPRISONED });
+    top.statuses = top.statuses.filter((status) => status.name !== UNBOUND.name);
+    put(top.statuses, { name: IMPRISONED.name, left: IMPRISONMENT.lasts, binds: true, guards: true, shown: IMPRISONED });
     for (const other of rest) put(other.statuses, { name: UNBOUND.name, left: IMPRISONMENT.lasts, deals: IMPRISONMENT.deals, shown: UNBOUND });
     fight.cue(null, 'imprison', [top]);
     shut.add(top);

@@ -54,7 +54,7 @@ export interface Status<Shown> {
   critTaken?: number | Partial<Record<DamageType, number>>;
   /** Taken off how likely the blows on its bearer are to be critical (points): of every kind, or of each kind it names. */
   critResist?: number | Partial<Record<DamageType, number>>;
-  /** Its bearer can do nothing while it is on (knocked down); and is out of the fight altogether, not to be aimed at (imprisoned). */
+  /** Its bearer can do nothing while it is on (knocked down, imprisoned); and is out of the fight altogether, not to be aimed at. */
   binds?: boolean;
   away?: boolean;
   /** Its bearer can't be knocked down while it is on. */
