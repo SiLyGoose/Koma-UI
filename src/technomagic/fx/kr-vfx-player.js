@@ -58,7 +58,8 @@ export function makeAsset(def, textures) {
     }
     return g;
   });
-  return { def, textures, geometries };
+  // (`free`: the materials its effects done with gave back, by makeMaterial()'s key.)
+  return { def, textures, geometries, free: new Map() };
 }
 
 // ---------- the effect shader ----------
@@ -116,7 +117,42 @@ void main() {
 const WHITE = new DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1);
 WHITE.needsUpdate = true;
 
-function makeMaterial(asset, index, skinning = false) {
+/**
+ * A material of the asset's (`index`), for a skinned mesh, or (`double`) drawn from both sides (a trail): one an effect of
+ * it done with gave back (release()), set as it was made, else a new one. Never disposed, and never let go of either:
+ * three.js keeps every ShaderMaterial it has drawn (its shader cache) until it is disposed, and disposing the last one
+ * using a shader program deletes it, compiled again as the next one draws (a stall mid-fight). So each effect's are
+ * given back for the next to use, and an effect makes no more than the most of it ever on the field at once.
+ */
+function makeMaterial(asset, index, skinning = false, double = false) {
+  const key = `${index}/${skinning ? 1 : 0}/${double ? 1 : 0}`;
+  const kept = asset.free.get(key)?.pop();
+  if (kept) {
+    const { base } = kept.userData;
+    kept.uniforms.tint.value.fromArray(base.color);
+    kept.uniforms.st.value.fromArray(base.st);
+    kept.uniforms.dissolveSt.value.fromArray(base.dissolveSt);
+    kept.visible = true;
+    return kept;
+  }
+  const material = newMaterial(asset, index, skinning);
+  // (Turned to the camera: drawn whichever way round its points run.)
+  if (double) material.side = DoubleSide;
+  material.userData.key = key;
+  return material;
+}
+
+/** Gives an effect's materials back to its asset, for the next effect of it (makeMaterial()). */
+function release(asset, materials) {
+  for (const material of materials) {
+    const { key } = material.userData;
+    let free = asset.free.get(key);
+    if (!free) asset.free.set(key, (free = []));
+    free.push(material);
+  }
+}
+
+function newMaterial(asset, index, skinning) {
   const m = asset.def.materials[index];
   const [src, dst] = m.blend;
   // Opaque (One, Zero: a model drawn as the heroes are, Gremory's servants): as solid as they are, hiding what is behind.
@@ -682,6 +718,8 @@ export class KrEffect extends Group {
     super();
     this.asset = asset; this.t = 0; this.done = false;
     this.materials = [];
+    // (Its placements put on the caster's bones, not on it: taken off them with it, dispose().)
+    this.away = [];
     this.models = asset.def.models.map((m, i) => {
       const inst = asset.def.prefabs[m.prefab] ? buildPrefab(asset, m.prefab, this.materials) : null;
       const holder = this.attach(m, opts, null);
@@ -715,9 +753,8 @@ export class KrEffect extends Group {
     this.trails = [];
     const trailsOf = (inst, when) => {
       for (const spec of inst.prefab.trails ?? []) {
-        const material = makeMaterial(asset, spec.mat ?? 0);
         // (Turned to the camera: drawn whichever way round its points run.)
-        material.side = DoubleSide;
+        const material = makeMaterial(asset, spec.mat ?? 0, false, true);
         this.materials.push(material);
         const trail = new Trail(spec, inst.nodes[spec.node], material, this);
         trail.mesh.renderOrder = material.userData.order ?? 20;
@@ -740,7 +777,10 @@ export class KrEffect extends Group {
     let parent = this;
     if (pl.attach === 'EffectModel' && models) {
       for (const m of models) { const o = m.inst?.root.getObjectByName(pl.target); if (o) { parent = o; break; } }
-    } else if (pl.attach === 'NodeFind' && opts.findNode) parent = opts.findNode(pl.target) ?? this;
+    } else if (pl.attach === 'NodeFind' && opts.findNode) {
+      parent = opts.findNode(pl.target) ?? this;
+      if (parent !== this) this.away.push(holder);
+    }
     parent.add(holder);
     return holder;
   }
@@ -828,12 +868,15 @@ export class KrEffect extends Group {
   }
 
   /**
-   * Frees its particles' geometry. Not its materials: all an effect's materials share a few shader programs, and disposing
-   * the last one using a program deletes it, so the next effect to use it (the same skill again, or every one in the next
-   * fight once a fight's are all taken off) compiles it again as it first draws, a stall mid-fight. Undisposed, a material
-   * is only JavaScript (its textures are its asset's, kept), let go of with the effect.
+   * Done with (taken off the field first): frees its particles' geometry, takes what it put on the caster's bones off them
+   * (left there, they stayed on its body for good, more every skill), and gives its materials back to its asset for the next
+   * effect of it (makeMaterial(): not disposed, nor let go of, as three.js would keep them).
    */
   dispose() {
+    if (this.disposed) return;
+    this.disposed = true;
+    for (const holder of this.away) holder.removeFromParent();
+    release(this.asset, this.materials);
     for (const g of this.emitters) for (const e of g.emitters) e.geometry.dispose();
     for (const { trail } of this.trails) trail.geometry.dispose();
   }

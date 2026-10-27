@@ -86,8 +86,20 @@ function dial(): CanvasTexture {
   return new CanvasTexture(canvas);
 }
 
+/**
+ * The walls' materials of the cages gone, for the next to use: a ShaderMaterial is kept by three.js once drawn until it is
+ * disposed, and disposing it deletes its shader program (compiled again as the next one draws), so neither.
+ */
+const freeWalls: ShaderMaterial[] = [];
+
 /** A cage's walls: see-through, brightest up by its ring and glowing at its foot, broad soft streaks of light round it (its pillars, hardly there), and ripples rising up it. */
 function wallMaterial(colour: number): ShaderMaterial {
+  const kept = freeWalls.pop();
+  if (kept) {
+    (kept.uniforms.colour as { value: Color }).value.set(colour);
+    (kept.uniforms.opacity as { value: number }).value = 0;
+    return kept;
+  }
   return new ShaderMaterial({
     uniforms: { colour: { value: new Color(colour) }, opacity: { value: 0 }, time: { value: 0 } },
     vertexShader: /* glsl */ `
@@ -526,8 +538,9 @@ export function makeMagic(scene: Object3D): Magic {
         (cage.walls.uniforms.time as { value: number }).value = cage.t;
         if (cage.t >= cage.life) {
           scene.remove(cage.cage);
-          // (Its materials let go of, not disposed: as a field's, above.)
+          // (Its materials let go of, not disposed: as a field's, above; but its walls' given back, for the next: freeWalls.)
           cages.delete(cage);
+          freeWalls.push(cage.walls);
         }
       }
       // A pool: out over the floor, a slow churn while it lies there, and faded at the end.

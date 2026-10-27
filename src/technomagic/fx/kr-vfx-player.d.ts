@@ -16,5 +16,6 @@ export class KrEffect extends Group {
   update(dt: number, camera: Camera | null): void;
   /** Ends one that goes on until told: its models now, its particles living out. */
   stop(): void;
+  /** Done with, once taken out of the scene: its materials given back to its asset for the next playing of it. */
   dispose(): void;
 }

@@ -31,6 +31,8 @@ const FADE = { up: 0.35, down: 0.4 };
 interface Ward {
   root: Group;
   materials: { material: Material; most: number }[];
+  /** Its bubble's (one of materials'), given back as it goes. */
+  bubble: ShaderMaterial;
   /** How far up it is (0: gone, 1: all there), and how long it has been on. */
   shown: number;
   t: number;
@@ -39,8 +41,16 @@ interface Ward {
   place(at: Vector3, shown: number, t: number): void;
 }
 
+/**
+ * The bubbles' materials gone with them, for the next to use: never disposed (that deletes their shader program, compiled
+ * again as the next one draws), nor let go of (three.js keeps every ShaderMaterial it has drawn until it is disposed).
+ */
+const freeBubbles: ShaderMaterial[] = [];
+
 /** A see-through bubble, lit most at its rim (as a ball of glass catches the light). */
 function bubbleMaterial(): ShaderMaterial {
+  const kept = freeBubbles.pop();
+  if (kept) return kept;
   return new ShaderMaterial({
     uniforms: { colour: { value: new Color(BUBBLE.colour) }, opacity: { value: 1 } },
     vertexShader: /* glsl */ `
@@ -71,8 +81,14 @@ function bubbleMaterial(): ShaderMaterial {
 
 const ease = (k: number): number => 1 - (1 - k) * (1 - k);
 
-export function makeWards(scene: Scene, props: Props): Wards {
-  const wards = new Map<string, Ward>();
+/**
+ * The ring on the floor's pictures (its colour, and how solid each part is) and the ball, made once for every fight: made
+ * again for each, they were never let go of (three.js keeps a geometry it has drawn until it is disposed), a little more
+ * memory every fight of a raid on repeat.
+ */
+let shared: { ring: { map: Texture; alphaMap: Texture }; ball: SphereGeometry } | null = null;
+function sharedParts(): NonNullable<typeof shared> {
+  if (shared) return shared;
   const folder = effectFolder(EFFECTS.shield);
   const pictures = new TextureLoader();
   const picture = (file: string): Texture => {
@@ -80,12 +96,16 @@ export function makeWards(scene: Scene, props: Props): Wards {
     map.colorSpace = SRGBColorSpace;
     return map;
   };
-  // The ring on the floor: its colour picture, how solid each part is by its other.
-  const ring = props.shield ? { map: picture('Common_Shield01(Color).png'), alphaMap: picture('Common_Shield01(Alpha).png') } : null;
-  const ball = new SphereGeometry(BUBBLE.radius, 48, 32);
+  shared = { ring: { map: picture('Common_Shield01(Color).png'), alphaMap: picture('Common_Shield01(Alpha).png') }, ball: new SphereGeometry(BUBBLE.radius, 48, 32) };
+  return shared;
+}
+
+export function makeWards(scene: Scene, props: Props): Wards {
+  const wards = new Map<string, Ward>();
 
   function bubble(tall: number): Ward | null {
-    if (!props.shield || !ring) return null;
+    if (!props.shield) return null;
+    const { ring, ball } = sharedParts();
     const fit = (tall + BUBBLE.headroom) / (BUBBLE.high + BUBBLE.radius);
     const root = new Group();
     // The file's ring on the floor (its dome left out: a ball in its place).
@@ -108,6 +128,7 @@ export function makeWards(scene: Scene, props: Props): Wards {
     return {
       root,
       materials,
+      bubble: bubbled.material,
       shown: 0,
       t: 0,
       kept: true,
@@ -123,9 +144,10 @@ export function makeWards(scene: Scene, props: Props): Wards {
   }
 
   const remove = (key: string, ward: Ward): void => {
-    // (Its materials let go of, not disposed: disposing the last one using a shader program deletes it, compiled again mid-fight as the next one draws. ./kr-vfx-player.js dispose().)
+    // (Its ring's materials let go of; its bubble's given back, for the next: freeBubbles.)
     scene.remove(ward.root);
     wards.delete(key);
+    freeBubbles.push(ward.bubble);
   };
 
   const keepOne = (key: string, make: () => Ward | null, at: Vector3): void => {
