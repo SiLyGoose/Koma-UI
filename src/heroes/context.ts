@@ -80,6 +80,7 @@ export interface HeroesUi {
   transcend: HTMLElement;
   transcendTitle: HTMLElement;
   tpLeft: HTMLElement;
+  tpScrolls: HTMLElement;
   perkRows: HTMLElement;
   perkInfo: HTMLElement;
   resetPerks: HTMLButtonElement;
@@ -188,6 +189,7 @@ export function createContext(root: HTMLElement, host: HeroesHost): HeroesContex
       transcend: $('transcend'),
       transcendTitle: $('transcend-title'),
       tpLeft: $('tp-left'),
+      tpScrolls: $('tp-scrolls'),
       perkRows: $('perk-rows'),
       perkInfo: $('perk-info'),
       resetPerks: $<HTMLButtonElement>('reset-perks'),

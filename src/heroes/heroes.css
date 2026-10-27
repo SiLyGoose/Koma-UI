@@ -610,6 +610,44 @@
   text-shadow: 0 1px 1px rgb(0 0 0 / 60%);
 }
 
+/* The TP Transcendence Scrolls gave the hero, and Use one (their own). */
+.tp-scrolls {
+  margin: -4px 4px 8px;
+}
+
+.tp-scrolls[hidden] {
+  display: none;
+}
+
+.tp-scrolls-line {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  color: #3d3045;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.tp-scrolls-pic {
+  width: 26px;
+  height: 26px;
+}
+
+.tp-scrolls-use {
+  min-height: 0;
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
+.tp-scrolls-note {
+  margin: 4px 0 0;
+  color: #6b5a72;
+  font-size: 12px;
+  text-align: right;
+}
+
 .perk-rows {
   display: grid;
   gap: 6px;

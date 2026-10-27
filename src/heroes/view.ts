@@ -246,6 +246,14 @@ function actions(ctx: HeroesContext): HeroActions {
       const hero = ctx.hero;
       if (hero) void change(ctx, act, 'transcend', '/api/heroes/transcend', { hero }, 'Could not transcend this hero. Try again.');
     },
+    scroll() {
+      const hero = ctx.hero;
+      if (hero)
+        void change(ctx, act, 'scroll', '/api/heroes/scroll', { hero }, 'Could not use a Transcendence Scroll. Try again.', {
+          no_scroll: 'You have no Transcendence Scrolls left: craft them from Boss Crystals in the Inventory’s Craft tab.',
+          scrolls_maxed: 'This hero has all the TP scrolls give.',
+        });
+    },
     rune(copy: HeroCopy, socket: number, rune: string | null) {
       // (Taking one out, or swapping one in over it, keeps it for RUNE_KEEP_PRICE zeiucoins: the header's balance follows.)
       const paid = rune === null || copy.runes[socket] != null;
