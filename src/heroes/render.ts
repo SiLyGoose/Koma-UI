@@ -7,7 +7,7 @@ import { canTrade, copyById, heroShown, mine, slotFor, slotOf, slotsFor, type He
 import { SIDE_SLOTS, TP_SCROLL_MOST, TP_SCROLL_POINTS } from '../protocol/heroes';
 import { RUNE_FRAGMENTS, RUNE_KEEP_PRICE } from '../protocol/runes';
 import { fragmentIcon } from '../shared/items/fragments';
-import { SCROLL_NAME, scrollPicture, scrollsName } from '../shared/items/scroll';
+import { SCROLL_NAME, scrollsName } from '../shared/items/scroll';
 import { coin, points } from '../shared/util';
 import { heroSkills } from './skills';
 import type { HeroRuneStack, HeroSkillView } from '../protocol/heroes';
@@ -795,23 +795,17 @@ function renderTranscend(ctx: HeroesContext, act: HeroActions): void {
 }
 
 /**
- * Under the TP: what Transcendence Attribute Points gave the hero (of the most they give); and, for their own hero still short
- * of the most, a + to the right of the TP that uses one while they hold any, or where to craft them while they hold none.
- * Nothing for a bot from before them.
+ * For their own hero short of the most Transcendence Attribute Points give: a + to the right of the TP that uses one while they
+ * hold any, or, under the TP, where to craft them while they hold none. Nothing for a bot from before them.
  */
 function renderScrolls(ctx: HeroesContext, act: HeroActions, hero: HeroView): void {
   const { ui, view } = ctx;
   const given = hero.transcend?.scrolls;
   ui.tpScrolls.textContent = '';
-  ui.tpScrolls.hidden = given === undefined;
+  ui.tpScrolls.hidden = true;
   ui.tpLeft.parentElement?.querySelector('.tp-add')?.remove();
-  if (given === undefined) return;
-  const line = el('div', 'tp-scrolls-line');
-  line.append(scrollPicture('tp-scrolls-pic'), el('span', 'tp-scrolls-given', `Attribute Points +${given}/${TP_SCROLL_MOST} TP`));
-  ui.tpScrolls.append(line);
-  if (!mine(ctx) || !hero.owned) return;
+  if (given === undefined || given >= TP_SCROLL_MOST || !mine(ctx) || !hero.owned) return;
   const held = view?.tpScrolls ?? 0;
-  if (given >= TP_SCROLL_MOST) return;
   if (held > 0) {
     const add = el('button', 'tp-add', '+');
     add.type = 'button';
@@ -822,6 +816,7 @@ function renderScrolls(ctx: HeroesContext, act: HeroActions, hero: HeroView): vo
     ui.tpLeft.after(add);
   } else {
     const price = view?.craft?.tpScroll;
+    ui.tpScrolls.hidden = false;
     ui.tpScrolls.append(el('p', 'tp-scrolls-note', `Craft ${scrollsName(2)} from Boss Crystals${price ? ` (${points(price)} of any one boss’s)` : ''} in the Inventory’s Craft tab.`));
   }
 }
