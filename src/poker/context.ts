@@ -24,6 +24,8 @@ export interface PokerContext {
   raiseTouched: boolean;
   /** The chips to sit down with. */
   sitChips: number;
+  /** They asked to go back to the tables (← Tables): the table list coming next isn't a dropped connection's. */
+  leaving: boolean;
 }
 
 export const newContext = (): PokerContext => ({
@@ -40,6 +42,7 @@ export const newContext = (): PokerContext => ({
   raiseTo: 0,
   raiseTouched: false,
   sitChips: 0,
+  leaving: false,
 });
 
 /** This page's player's seat, or null while they aren't sitting. */

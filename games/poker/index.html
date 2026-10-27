@@ -10,7 +10,31 @@
   </head>
   <body>
     <main id="app" class="frame pk" data-title="♠️ Poker">
-      <div class="pk-layout">
+      <!-- The server's tables, before joining one: Find Table and Create Table, as the Dragon Raid's Multiplayer has them (../../src/poker/lobby.ts). -->
+      <section class="pk-lobby" id="lobby" aria-labelledby="lobby-title" hidden>
+        <header class="pk-lobby-head"><h2 id="lobby-title">Poker Tables</h2></header>
+        <div class="pk-lobby-body">
+          <div class="pk-lobby-tabs" role="tablist" aria-orientation="vertical">
+            <button type="button" class="pk-lobby-tab" id="lobby-tab-find" role="tab" aria-controls="lobby-find"><span aria-hidden="true">🔍</span><span>Find Table</span></button>
+            <button type="button" class="pk-lobby-tab" id="lobby-tab-create" role="tab" aria-controls="lobby-create"><span aria-hidden="true">♠️</span><span>Create Table</span></button>
+          </div>
+          <div class="pk-lobby-pane" id="lobby-find" role="tabpanel" aria-labelledby="lobby-tab-find">
+            <div class="pk-lobby-bar">
+              <p class="pk-lobby-says">Tables in this server</p>
+              <button type="button" class="pk-button" id="lobby-refresh">Refresh</button>
+            </div>
+            <ol class="pk-lobby-list" id="lobby-list"></ol>
+            <div class="pk-lobby-empty" id="lobby-empty" hidden></div>
+          </div>
+          <div class="pk-lobby-pane" id="lobby-create" role="tabpanel" aria-labelledby="lobby-tab-create" hidden>
+            <p class="pk-lobby-create-says">Open a new table of your own. Others in the server find it under Find Table. Add bots to fill its seats meanwhile: whenever someone joins, a bot gets up for them once the hand it's in is over.</p>
+            <button type="button" class="pk-button primary pk-lobby-create" id="lobby-create-button">Create Table</button>
+          </div>
+        </div>
+        <p class="pk-error" id="lobby-error" hidden></p>
+      </section>
+
+      <div class="pk-layout" id="layout" hidden>
         <!-- The table: the felt with the board and the pot in the middle, and the eight seats round it (../../src/poker/seats.ts). -->
         <section class="pk-table" id="table" aria-label="The table">
           <div class="pk-felt">
@@ -68,6 +92,7 @@
               <div><span>Balance</span><b id="balance">–</b></div>
             </div>
             <div class="pk-bar-buttons">
+              <button type="button" class="pk-button" id="leave-button" hidden>← Tables</button>
               <button type="button" class="pk-button" id="bot-button" hidden>🤖 Add bot</button>
               <button type="button" class="pk-button" id="stand-button" hidden>Stand up</button>
             </div>
@@ -80,7 +105,7 @@
         <section class="pk-chat" id="chat"></section>
       </div>
 
-      <p class="hint">Sit down with chips from your balance · Blinds go round the table · Add bots to fill empty seats · Stand up to take your chips back to your balance</p>
+      <p class="hint" id="hint" hidden>Sit down with chips from your balance · Blinds go round the table · Add bots to fill empty seats · Stand up to take your chips back to your balance</p>
     </main>
 
     <script type="module" src="/src/poker/main.ts"></script>

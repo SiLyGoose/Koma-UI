@@ -7,7 +7,9 @@ import type { PokerMove, PokerState } from '../protocol/poker';
  * table's buy-in range, up to their balance) and sit down (or press an empty seat). Sitting: on
  * their turn Fold, Check or Call, and Bet or Raise to an amount (the slider, or a share of the pot)
  * or go All in; F, C and R do the same from the keyboard. Any time: stand up, or add a bot (until
- * they've won the day's most off the bots, which the page says).
+ * they've won the day's most off the bots, which the page says). Not sitting, ← Tables goes back to
+ * the server's tables (lobby.ts). Joined with every seat taken (a bot's, which gets up for them once
+ * its hand is over), they watch until one is free.
  */
 
 const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T;
@@ -33,6 +35,7 @@ const ui = {
   bot: $<HTMLButtonElement>('bot-button'),
   botNote: $('bot-note'),
   stand: $<HTMLButtonElement>('stand-button'),
+  leave: $<HTMLButtonElement>('leave-button'),
 };
 
 const clamp = (n: number, lo: number, hi: number): number => Math.max(lo, Math.min(hi, Math.round(n)));
@@ -88,8 +91,9 @@ export function renderControls(ctx: PokerContext): void {
   ui.sit.hidden = me !== null;
   if (!me) {
     const range = sitRange(state);
+    const free = state.seats.some((s) => s === null);
     ui.sitBalance.textContent = points(state.balance);
-    ui.sitButton.disabled = range === null;
+    ui.sitButton.disabled = range === null || !free;
     ui.sitSlider.disabled = range === null;
     ui.sitInput.disabled = range === null;
     if (range) {
@@ -103,7 +107,10 @@ export function renderControls(ctx: PokerContext): void {
     } else {
       ui.sitRange.textContent = `You need at least ${points(state.buyIn.min)} to sit down`;
     }
+    // Every seat taken: they watch until one's free (a bot's gets up for them once its hand is over).
+    if (range && !free) ui.sitRange.textContent = state.seats.some((s) => s?.bot) ? 'Watching: a bot gets up for you once this hand is over' : 'Watching: every seat is taken';
   }
+  ui.leave.hidden = me !== null;
 
   // Moves.
   ui.moves.hidden = me === null;
@@ -203,6 +210,10 @@ export function wireControls(ctx: PokerContext): void {
   ui.bot.addEventListener('click', () => {
     showError(null);
     send(ctx, { t: 'bot', add: true });
+  });
+  ui.leave.addEventListener('click', () => {
+    showError(null);
+    ctx.leaving = send(ctx, { t: 'leave' });
   });
 
   // F, C and R on the keyboard (not while typing an amount).
