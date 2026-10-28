@@ -34,7 +34,7 @@ export interface ArmoryCopy {
   sell?: number | null;
   /** Hero gear: the komaDust salvaging it gives, whenever it can be sold (sell, sellLocked); left out: it can't be salvaged. */
   salvage?: number;
-  /** A TechnoMagic piece: the Upgrade Stones of its class salvaging it gives, in place of komaDust (King's Raid's). */
+  /** A TechnoMagic piece: the Upgrade Stones of its class salvaging it gives besides its komaDust (King's Raid's). */
   salvageStones?: { class: string; count: number };
   /** And the Boss Crystals of its set. */
   salvageCrystals?: { set: string; count: number };

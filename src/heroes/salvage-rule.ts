@@ -117,7 +117,7 @@ export function salvageRuleDialog(dialog: HTMLDialogElement, ctx: Pick<HeroesCon
   function draw(): void {
     const picks = rulePicks(ctx.view?.copies ?? [], rule, ctx.sellLocked);
     const total = picks.reduce((sum, copy) => sum + (copy.salvage ?? 0), 0);
-    // (A TechnoMagic piece's: its class's Upgrade Stones and its set's Boss Crystals, no komaDust.)
+    // (A TechnoMagic piece's: its class's Upgrade Stones and its set's Boss Crystals, besides its komaDust.)
     const stones = new Map<string, number>();
     const crystals = new Map<string, number>();
     for (const { salvageStones, salvageCrystals } of picks) {

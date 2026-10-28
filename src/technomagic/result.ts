@@ -301,12 +301,13 @@ export function makeResult(root: HTMLElement): Result {
     close.focus();
   }
 
-  /** What a drop salvaged as it dropped gave: its komaDust, or a TechnoMagic piece's Upgrade Stones (King's Raid's). */
+  /** What a drop salvaged as it dropped gave: its komaDust, and a TechnoMagic piece's Upgrade Stones and Boss Crystals (King's Raid's). */
   function salvagedFor(drop: DropView): string {
-    if (drop.salvagedStones !== undefined && drop.itemClass) {
-      return [stoneCount(drop.itemClass, drop.salvagedStones), ...(drop.salvagedCrystals ? [crystalCount(drop.salvagedCrystals.set, drop.salvagedCrystals.count)] : [])].join(' and ');
-    }
-    return `${points(drop.salvaged ?? 0)} komaDust`;
+    const dustPart = drop.salvaged || drop.salvagedStones === undefined ? [`${points(drop.salvaged ?? 0)} komaDust`] : [];
+    const stonePart = drop.salvagedStones !== undefined && drop.itemClass ? [stoneCount(drop.itemClass, drop.salvagedStones)] : [];
+    const crystalPart = drop.salvagedCrystals ? [crystalCount(drop.salvagedCrystals.set, drop.salvagedCrystals.count)] : [];
+    const parts = [...dustPart, ...stonePart, ...crystalPart];
+    return parts.length > 1 ? `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}` : (parts[0] ?? '');
   }
 
   /**
@@ -322,10 +323,11 @@ export function makeResult(root: HTMLElement): Result {
     if (salvaged) face.append(el('span', 'tm-salvaged-stamp', 'Salvaged'));
     const name = el('span', 'tm-tile-name', shownName(drop));
     if (salvaged) {
-      // (A TechnoMagic piece's Upgrade Stones in place of komaDust.)
+      // (A TechnoMagic piece's Upgrade Stones after its komaDust.)
       const stones = drop.salvagedStones !== undefined && drop.itemClass;
-      const gave = el('span', 'tm-tile-dust', `+${points(stones ? (drop.salvagedStones ?? 0) : (drop.salvaged ?? 0))} `);
-      gave.append(stones ? stoneIcon(drop.itemClass ?? '', 'tm-dust') : dust('tm-dust', 'komaDust'));
+      const gave = el('span', 'tm-tile-dust');
+      if (drop.salvaged || !stones) gave.append(`+${points(drop.salvaged ?? 0)} `, dust('tm-dust', 'komaDust'));
+      if (stones) gave.append(`${drop.salvaged ? ' ' : ''}+${points(drop.salvagedStones ?? 0)} `, stoneIcon(drop.itemClass ?? '', 'tm-dust'));
       name.append(gave);
     }
     tile.append(face, name);
