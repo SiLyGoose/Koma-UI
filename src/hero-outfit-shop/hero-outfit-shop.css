@@ -8,9 +8,9 @@
  */
 
 /*
- * Front, Middle and Back, then Owned Heroes, each as wide as its words: beside the Filter, in one row. On phones that row
- * scrolls sideways (its scrollbar hidden) in the rest of the Filter's line, the Filter staying put (its panel isn't cut off
- * by the row's scrolling).
+ * The Filter, Front, Middle and Back, then Owned Heroes, each as wide as its words, in one row. On phones that row scrolls
+ * sideways (its scrollbar hidden), the Filter with it; its panel hangs from the bar the row is in (../hero-shop/hero-shop.css's
+ * .hero-shop-tools, at its left), not from the Filter, so the row's scrolling doesn't cut it off.
  */
 .hos-chips {
   display: flex;
@@ -29,6 +29,10 @@
     min-width: 0;
     overflow-x: auto;
     overscroll-behavior-x: contain;
+  }
+
+  .hos-chips .armory-filter {
+    position: static;
   }
 
   .hero-outfit-shop .hero-shop-lines {
