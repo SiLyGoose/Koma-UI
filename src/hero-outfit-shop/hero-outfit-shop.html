@@ -10,14 +10,17 @@
 
   <!--
     As the Heroes tab: the Filter (src/shared/ui/hero-filter/: class, line, damage; every hero shown, theirs too), beside it Front,
-    Middle and Back, and Owned heroes (only theirs); then a card for each hero with outfits it leaves, A to Z (page.ts). Pressing one
+    Middle and Back, and Owned Heroes (only theirs); then a card for each hero with outfits it leaves, A to Z (page.ts). Pressing one
     opens its drawer (page.ts placeDrawer): its outfits, under its row with a caret up to it (on phones, beside it in the row, which
     scrolls sideways, with a caret back to it).
   -->
   <div class="hero-shop-cards">
     <div id="tools" class="hero-shop-tools">
       <div id="hero-filter" class="armory-filter"></div>
-      <div id="lines" class="hero-shop-lines" role="group" aria-label="Position"></div>
+      <!-- Front, Middle and Back, then Owned Heroes (page.ts): on phones one row that scrolls sideways beside the Filter. -->
+      <div id="chips" class="hos-chips no-scrollbar">
+        <div id="lines" class="hero-shop-lines" role="group" aria-label="Position"></div>
+      </div>
     </div>
     <div id="heroes" class="outfits-row"></div>
   </div>

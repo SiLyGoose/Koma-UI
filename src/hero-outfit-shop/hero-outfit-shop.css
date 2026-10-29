@@ -7,10 +7,40 @@
  * Equipped in its teal).
  */
 
-/* Owned heroes, after Front, Middle and Back: "Owned" by itself on phones, where the four share the Filter's line equally. */
+/*
+ * Front, Middle and Back, then Owned Heroes, each as wide as its words: beside the Filter, in one row. On phones that row
+ * scrolls sideways (its scrollbar hidden) in the rest of the Filter's line, the Filter staying put (its panel isn't cut off
+ * by the row's scrolling).
+ */
+.hos-chips {
+  display: flex;
+  gap: 10px;
+}
+
+.hos-owned {
+  flex: none;
+  padding: 0 16px;
+}
+
 @media (max-width: 760px) {
-  .hos-owned-more {
-    display: none;
+  .hos-chips {
+    flex: 1;
+    gap: 6px;
+    min-width: 0;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+  }
+
+  .hero-outfit-shop .hero-shop-lines {
+    flex: none;
+  }
+
+  .hero-outfit-shop .hero-shop-lines .action,
+  .hos-owned {
+    flex: none;
+    padding: 0 14px;
+    font-size: inherit;
+    white-space: nowrap;
   }
 }
 

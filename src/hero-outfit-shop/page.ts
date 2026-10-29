@@ -14,7 +14,7 @@ import type { Line } from '../technomagic/sim/rules';
 /*
  * The shop's Hero Outfits tab (../shop/page.ts): the heroes with outfits (King's Raid's costumes: the bot's /api/hero-outfits,
  * ../shared/hero-outfits.ts) as the Heroes tab lists them (../hero-shop/: its cards, A to Z, its Filter, Front, Middle and
- * Back), every hero shown, theirs too, and Owned heroes beside the lines to show only theirs; at the bottom of each card how
+ * Back), every hero shown, theirs too, and Owned Heroes beside the lines to show only theirs; at the bottom of each card how
  * many of its outfits are theirs. Pressing one opens its drawer, its outfits in it (each its tall King's Raid card, its name,
  * and its price, or that it's theirs or on it): under the hero's row, a caret up to it, on bigger screens; on phones in the
  * row, which scrolls sideways, beside the hero, pushing the rest along. Pressing it again (or Escape) closes it. Pressing an
@@ -30,7 +30,7 @@ export const heroOutfitShopTab: ShopTab = { id: 'hero-outfits', label: 'Hero Out
 /** The screens the heroes are a row that scrolls sideways on (hero-shop.css), the drawer beside the hero, not under its row. */
 const PHONE = '(max-width: 760px)';
 
-/** The Filter as it starts here: every class, line and kind of damage, and every hero (its Show owned not offered: Owned heroes is). */
+/** The Filter as it starts here: every class, line and kind of damage, and every hero (its Show owned not offered: Owned Heroes is). */
 const EVERY_HERO: HeroChoice = { cls: 'all', line: 'all', deals: 'all', owned: null };
 
 /** A hero with outfits, as the Filter and its card go by it. */
@@ -49,7 +49,7 @@ interface Ui {
   filter: HeroFilter;
   /** Front, Middle and Back, beside the Filter. */
   lines: HTMLButtonElement[];
-  /** Owned heroes, after them. */
+  /** Owned Heroes, after them. */
   owned: HTMLButtonElement;
   cards: HTMLElement;
   list: HTMLElement;
@@ -71,7 +71,7 @@ interface Context {
   view: HeroOutfitsView | null;
   /** What the Filter picks. */
   choice: HeroChoice;
-  /** Only their heroes (Owned heroes pressed). */
+  /** Only their heroes (Owned Heroes pressed). */
   ownedOnly: boolean;
   /** The hero whose drawer is open. */
   open: string | null;
@@ -89,8 +89,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
   const owned = el('button', 'action choice hos-owned');
   owned.type = 'button';
   owned.setAttribute('aria-pressed', 'false');
-  // ("Owned" on the narrowest phones: hero-outfit-shop.css.)
-  owned.append(el('span', 'hos-owned-word', 'Owned'), el('span', 'hos-owned-more', ' heroes'));
+  owned.textContent = 'Owned Heroes';
   const drawer = el('div', 'hos-drawer');
   drawer.id = 'hos-drawer';
   drawer.setAttribute('role', 'region');
@@ -123,7 +122,9 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     busy: null,
   };
   const { ui } = ctx;
-  lines.append(owned);
+  // (After the lines, in the row that scrolls sideways on phones: hero-outfit-shop.css.)
+  lines.after(owned);
+  wheelSideways($('#chips'));
 
   const choose = (choice: HeroChoice): void => {
     ctx.choice = choice;
@@ -401,7 +402,7 @@ function openDrawer(ctx: Context, hero: string | null): void {
   else ctx.ui.drawer.scrollIntoView({ behavior, block: 'nearest' });
 }
 
-/** Draws the tab as `ctx.view` has it: their zeiucoins, a card for each hero the Filter (and Owned heroes) leaves, and the open one's drawer. */
+/** Draws the tab as `ctx.view` has it: their zeiucoins, a card for each hero the Filter (and Owned Heroes) leaves, and the open one's drawer. */
 function render(ctx: Context): void {
   const { ui, view } = ctx;
   for (const button of ui.lines) button.setAttribute('aria-pressed', String(button.dataset.line === ctx.choice.line));
