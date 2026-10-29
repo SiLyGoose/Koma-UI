@@ -283,12 +283,13 @@ const priceOf = (ctx: Context, look: HeroLook): number => ctx.view?.outfits.find
 /** An amount of zeiucoins: the coin, then the number (`short`: in red, a price that's more than they have). */
 const price = (amount: number, short = false): HTMLElement[] => [coin('outfit-coin', 'zeiucoins'), el('span', short ? 'price-short' : '', points(amount))];
 
-/** What a row or the foot says of a look: on, theirs, or its price (its own look, the hero not theirs: nothing). */
+/** What a row or the foot says of a look: on, theirs, or its price (its own look, the hero not theirs: nothing; one the bot doesn't sell yet, a newer one than it knows: that it isn't on sale). */
 function stateLine(box: HTMLElement, ctx: Context, look: HeroLook, state: LookState): void {
   box.dataset.state = state;
   if (state === 'worn') box.replaceChildren(el('span', 'ho-check', '✓'), el('span', '', 'Equipped'));
   else if (state === 'owned') box.replaceChildren(el('span', '', 'Owned'));
   else if (look.skin === 0) box.replaceChildren();
+  else if (ctx.view && !ctx.view.outfits.some((one) => one.id === look.id)) box.replaceChildren(el('span', '', 'Not on sale'));
   else box.replaceChildren(...price(priceOf(ctx, look), state === 'short'));
 }
 
@@ -345,7 +346,7 @@ function render(ctx: Context): void {
   const state = stateOf(ctx, picked);
   ui.name.textContent = picked.title;
   stateLine(ui.state, ctx, picked, state);
-  if (state === 'locked') ui.state.textContent = view.heroes.includes(ctx.hero) ? '' : `Recruit ${name} to wear it`;
+  if (state === 'locked' && !view.heroes.includes(ctx.hero)) ui.state.textContent = `Recruit ${name} to wear it`;
   // Equip: theirs, not on (on: said, not pressed); Buy: theirs to buy; neither, the hero not theirs: to the shop.
   ui.equip.hidden = state !== 'owned' && state !== 'worn';
   ui.equip.disabled = state === 'worn';
