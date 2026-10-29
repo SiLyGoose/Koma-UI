@@ -249,6 +249,13 @@ export const YANNE_ASSETS: HeroAssets = {
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Yanne_Legend.webp',
       title: 'Prey-Searching Claw Yanne',
+      // King's Raid's own effects of this look, for its moves instead of its hero's (KR-extracted/scripts/tm-vfx.mjs --look=Legend).
+      vfx: {
+        attack: { start: ['Skill.Hero.YanneCos22Legend.Attack1-2.Casting', 'Skill.Hero.YanneCos22Legend.Attack1-1.Casting'], land: ['Skill.Hero.YanneCos22Legend.Attack1-1.Projectile', 'Skill.Hero.YanneCos22Legend.Attack1-1.Hit', 'Skill.Hero.YanneCos22Legend.Attack1-2.Hit', 'Skill.Hero.YanneCos22Legend.Attack1-2.Projectile'] },
+        focus: { start: ['Skill.Hero.YanneCos22Legend.Skill1-2.Casting.Body', 'Skill.Hero.YanneCos22Legend.Skill1-1.Loop', 'Skill.Hero.YanneCos22Legend.Skill1-1.Casting', 'Skill.Hero.YanneCos22Legend.Skill1-2.Casting.Hand', 'Skill.Hero.YanneCos22Legend.Skill1-2.Breath'], land: ['Skill.Hero.YanneCos22Legend.Skill1-1.Shot'] },
+        wipeout: { start: ['Skill.Hero.YanneCos22Legend.Skill2.Target', 'Skill.Hero.YanneCos22Legend.Skill2-1.Casting'], land: ['Skill.Hero.YanneCos22Legend.Skill2-1.Hit', 'Skill.Hero.YanneCos22Legend.Skill2-1.Projectile'] },
+        unleash: { start: ['Skill.Hero.YanneCos22Legend.Skill3.Casting', 'Skill.Hero.YanneCos22Legend.Skill3.Loop'] },
+      },
       model: {
         kind: 'parts',
         animations: LEGEND_ANIMATIONS,

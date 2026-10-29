@@ -123,6 +123,13 @@ export const LUCIKIEL_ASSETS: HeroAssets = {
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Lucikiel_Legend.webp',
       title: 'Cruel Empress of Destruction Lucikiel',
+      // King's Raid's own effects of this look, for its moves instead of its hero's (KR-extracted/scripts/tm-vfx.mjs --look=Legend).
+      vfx: {
+        attack: { start: ['Skill.Hero.ZLucikielCos21Legend.Attack1.Casting2', 'Skill.Hero.ZLucikielCos21Legend.Attack1.Casting3', 'Skill.Hero.ZLucikielCos21Legend.Attack1.Casting1'] },
+        storm: { start: ['Skill.Hero.ZLucikielCos21Legend.Skill1.Casting'] },
+        wave: { start: ['Skill.Hero.ZLucikielCos21Legend.Skill2.Casting.2', 'Skill.Hero.ZLucikielCos21Legend.Skill2.Casting.1'] },
+        doomsday: { start: ['Skill.Hero.ZLucikielCos21Legend.Skill3.Casting'] },
+      },
       model: {
         kind: 'parts',
         animations: LEGEND_ANIMATIONS,

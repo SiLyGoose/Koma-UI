@@ -195,6 +195,13 @@ export const MIRURU_ASSETS: HeroAssets = {
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Miruru_Legend.webp',
       title: 'Return of the Legendary Pirate Miruru',
+      // King's Raid's own effects of this look, for its moves instead of its hero's (KR-extracted/scripts/tm-vfx.mjs --look=Legend).
+      vfx: {
+        attack: { land: ['Skill.Hero.MiruruCos22Legend.Attack1.Shot', 'Skill.Hero.MiruruCos22Legend.Attack1.Hit', 'Skill.Hero.MiruruCos22Legend.Attack1.Projectile'] },
+        baam: { start: ['Skill.Hero.MiruruCos22Legend.Skill1.Chain', 'Skill.Hero.MiruruCos22Legend.Skill1.Hook', 'Skill.Hero.MiruruCos22Legend.Skill1.Casting'], land: ['Skill.Hero.MiruruCos22Legend.Skill1.Hit'] },
+        pirates: { start: ['Skill.Hero.MiruruCos22Legend.Skill2.Casting'], land: ['Skill.Hero.MiruruCos22Legend.Skill2.Hit', 'Skill.Hero.MiruruCos22Legend.Skill2.Projectile'] },
+        roll: { land: ['Skill.Hero.MiruruCos22Legend.Attack1.Shot', 'Skill.Hero.MiruruCos22Legend.Attack1.Hit', 'Skill.Hero.MiruruCos22Legend.Attack1.Projectile'] },
+      },
       model: {
         kind: 'parts',
         animations: LEGEND_ANIMATIONS,

@@ -16,7 +16,7 @@ import { bossIn, stagesOf, type BossDef } from './sim/bosses/boss';
 import { BOSS_VIEWS } from './bosses/models';
 import { makeStage } from './engine/stage';
 import { Ahead } from './fight/ahead';
-import { bossEffects, heroEffects } from './fight/kr-moves';
+import { bossEffects, heroEffects, inSkin } from './fight/kr-moves';
 import { readSounds } from './fight/sounds';
 import { makeFightView, SIGN_EFFECTS, type FightView } from './fight/view';
 import { loadEffects } from './fx/effects';
@@ -326,7 +326,8 @@ async function start(): Promise<void> {
       });
       reading = Promise.all([loadHeroes([hero], { skin }).catch(unread), props.read(assets), Promise.all(pictures)]).then(async ([entrants]) => {
         // Its effects and sounds next (once its body is in: it can't fight without that, but can without these), so the fight begins with them.
-        kr.read(heroEffects(assets));
+        // (And its look's own, where one read has them: a Legend Costume's.)
+        kr.read([...heroEffects(assets), ...entrants.flatMap(({ skin }) => (skin.vfx ? heroEffects(inSkin(assets, skin.name)) : []))]);
         readSounds({ hero: assets });
         await Promise.all(
           entrants.map(async ({ skin }) => {

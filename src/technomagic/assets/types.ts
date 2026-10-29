@@ -124,6 +124,8 @@ export interface SkinAssets {
   card?: string;
   /** King's Raid's own battle portrait of it (its head and shoulders on its card in a fight: a file under its hero's battle/), shown on its card in the raid. */
   battle?: string;
+  /** King's Raid's own effects of its look (a Legend Costume's), for its moves instead of its hero's `vfx` (as those are). */
+  vfx?: HeroAssets['vfx'];
   model: PartsModel;
 }
 

@@ -40,6 +40,12 @@ const numberOf = (code: string): number | null => {
   return m ? Number(m[1]) : null;
 };
 
+/** A hero's files as its skin `skin` (by its name) has them: that look's own effects for its moves, where it has its own. */
+export const inSkin = (hero: HeroAssets, skin: string | undefined): HeroAssets => {
+  const vfx = hero.skins.find((one) => one.name === skin)?.vfx;
+  return vfx ? { ...hero, vfx } : hero;
+};
+
 /** Every effect a hero's moves play, what its skills keep on a hero they guard, and what its fx play themselves. */
 export const heroEffects = (hero: HeroAssets): string[] => [
   ...Object.values(hero.vfx ?? {}).flatMap((move) => [...(move.start ?? []), ...(move.land ?? [])]),

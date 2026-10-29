@@ -17,7 +17,7 @@ import type { Popup } from '../hud/numbers';
 import { HERO_TURN, HERO_X, MARCH, MARCH_FROM, marchLeft, RUN_ON, TICK, type Sim, type SimEvent } from '../sim';
 import type { BossDef } from '../sim/bosses/boss';
 import { COMMON_FX, type BossFx, type FxScene } from './fx';
-import { makeKrBoss, makeKrMoves } from './kr-moves';
+import { inSkin, makeKrBoss, makeKrMoves } from './kr-moves';
 import { makeFightSounds } from './sounds';
 
 /** The game's own sign for each of the page's (../fx/signs.ts), and how big the boss's are drawn. */
@@ -260,10 +260,10 @@ export function makeFightView({
   const ownFx: Record<string, unknown>[] = [];
   /** What is heard: the heroes' blows and skills, the boss's attacks, and the raid's music. */
   const sounds = makeFightSounds(sim.fighters.map((fighter) => lookOf(fighter.id).assets), bossLook.assets);
-  /** King's Raid's own effects for the heroes' moves. */
+  /** King's Raid's own effects for the heroes' moves (a look's own, a Legend Costume's, for a hero in it). */
   const krMoves = makeKrMoves(
     kr,
-    sim.fighters.map((fighter) => lookOf(fighter.id).assets),
+    sim.fighters.map((fighter) => inSkin(lookOf(fighter.id).assets, fighter.name)),
     bodies,
     bossHit,
     scene,
