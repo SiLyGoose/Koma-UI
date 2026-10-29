@@ -1,0 +1,42 @@
+/*
+ * The auras of the costume skins (Glory League's Glaring Honor tiers): the shells over a costume's body and weapon whose light
+ * flows over it, by the name of the material King's Raid draws them with (./models.ts draws a mesh with one of them so). Made
+ * by KR-extracted/scripts/tm-auras.mjs from the playtest's model bundles.
+ *
+ * 'mask' is King's Raid's Vespa/ShaderForge/Addtive_Aura_Mask: added onto what is behind it, its colour × (its main picture,
+ * its place moved by its noise's red) × its strength × (its tile's red) × its strength × its mask, each picture scrolling at
+ * its `speed` (a turn of the picture a second) and `scale`d. 'flow' is an Amplify shader the playtest's bundles lack: its
+ * colour picture scrolling, moved by its noise, times its colour and strength, added.
+ */
+
+/** A picture of an aura's: its file (under public/kr/), how many times it repeats across, where it starts, how fast it scrolls, and how strong it is. */
+export interface AuraPicture {
+  file: string;
+  scale: readonly number[];
+  offset: readonly number[];
+  speed: readonly number[];
+  str: number;
+}
+
+export interface Aura {
+  kind: 'mask' | 'flow';
+  main: AuraPicture;
+  tile?: AuraPicture;
+  noise?: AuraPicture;
+  mask?: AuraPicture;
+  color: readonly number[];
+  extra: number;
+}
+
+export const AURAS: Readonly<Record<string, Aura>> = {
+  "Hero_Annette_Cos21GloryLeague_BodyFX": {"kind":"flow","main":{"file":"heroes/annette/models/Hero_Annette_Cos21GloryLeague2_Body/Hero_Annette_Cos21GloryLeague_BodyFX.png","scale":[1,1],"offset":[0,0],"speed":[0.35,-0.5],"str":1},"noise":{"file":"heroes/annette/models/Hero_Annette_Cos21GloryLeague2_Body/Hero_Annette_Cos21GloryLeague_BodyFX(Noise).png","scale":[1,1],"offset":[0,0],"speed":[0.2,0.2],"str":0.1},"color":[0,0.915,1,1],"extra":1},
+  "Hero_Lavril_Cos20GloryLeague_Body_Effect2": {"kind":"mask","main":{"file":"heroes/lavril/models/Hero_Lavril_Cos20GloryLeague2_Body/Hero_Lavril_Cos20GloryLeague2_FX(Main).png","scale":[1.1,1.1],"offset":[0,0],"speed":[-0.04,0.04],"str":1.8},"tile":{"file":"heroes/lavril/models/Hero_Lavril_Cos20GloryLeague2_Body/Hero_Lavril_Cos20GloryLeague2_FX(Tile).png","scale":[2,2],"offset":[0,0],"speed":[0.05,-0.02],"str":1.8},"noise":{"file":"heroes/lavril/models/Hero_Lavril_Cos20GloryLeague2_Body/Hero_Lavril_Cos20GloryLeague2_FX(Noise).png","scale":[1,1],"offset":[0,0],"speed":[0.05,0.05],"str":0.25},"mask":{"file":"heroes/lavril/models/Hero_Lavril_Cos20GloryLeague2_Body/Hero_Lavril_Cos20GloryLeague2_FX(Mask).png","scale":[1,1],"offset":[0,0],"speed":[0,0],"str":1},"color":[1,0.781,0.524,1],"extra":1},
+  "Hero_Lavril_Cos20GloryLeague2_Weapon_FX": {"kind":"mask","main":{"file":"heroes/lavril/models/Hero_Lavril_Cos20GloryLeague2_Weapon/Hero_Lavril_Cos20GloryLeague2_Weapon_FX(Main).png","scale":[1.1,1.1],"offset":[0,0],"speed":[-0.04,0.04],"str":1.8},"tile":{"file":"heroes/lavril/models/Hero_Lavril_Cos20GloryLeague2_Weapon/Hero_Lavril_Cos20GloryLeague2_Weapon_FX(Tile).png","scale":[2,2],"offset":[0,0],"speed":[0.05,-0.02],"str":1.8},"noise":{"file":"heroes/lavril/models/Hero_Lavril_Cos20GloryLeague2_Weapon/Hero_Lavril_Cos20GloryLeague2_Weapon_FX(Noise).png","scale":[1,1],"offset":[0,0],"speed":[0.05,0.05],"str":0.25},"mask":{"file":"heroes/lavril/models/Hero_Lavril_Cos20GloryLeague2_Weapon/Hero_Lavril_Cos20GloryLeague2_Weapon_FX(Mask).png","scale":[1,1],"offset":[0,0],"speed":[0,0],"str":1},"color":[1,0.781,0.524,1],"extra":1},
+  "Hero_Loman_Cos20GloryLeague_Body_Effect2": {"kind":"mask","main":{"file":"heroes/loman/models/Hero_Loman_Cos20GloryLeague2_Body/Hero_Loman_Cos20GloryLeague_Body_FX(Main).png","scale":[0.3,0.3],"offset":[0,0],"speed":[-0.04,0.04],"str":3},"tile":{"file":"heroes/loman/models/Hero_Loman_Cos20GloryLeague2_Body/Hero_Loman_Cos20GloryLeague_Body_FX(Tile).png","scale":[1.5,1.5],"offset":[0,0],"speed":[-0.03,-0.02],"str":1},"noise":{"file":"heroes/loman/models/Hero_Loman_Cos20GloryLeague2_Body/Hero_Loman_Cos20GloryLeague_Body_FX(Noise).png","scale":[1,1],"offset":[0,0],"speed":[-0.03,0.02],"str":0.25},"mask":{"file":"heroes/loman/models/Hero_Loman_Cos20GloryLeague2_Body/Hero_Loman_Cos20GloryLeague_Body_Effect(Alpha).png","scale":[1,1],"offset":[0,0],"speed":[0,0],"str":1},"color":[1,0.781,0.524,1],"extra":1},
+  "Hero_Loman_Cos20GloryLeague2_Weapon_FX": {"kind":"mask","main":{"file":"heroes/loman/models/Hero_Loman_Cos20GloryLeague2_Weapon/Hero_Loman_Cos20GloryLeague2_Weapon_FX(Main).png","scale":[0.5,0.5],"offset":[0,0],"speed":[-0.04,0.04],"str":2},"tile":{"file":"heroes/loman/models/Hero_Loman_Cos20GloryLeague2_Weapon/Hero_Loman_Cos20GloryLeague2_Weapon_FX(Tile).png","scale":[2,2],"offset":[0,0],"speed":[0.05,-0.02],"str":2},"noise":{"file":"heroes/loman/models/Hero_Loman_Cos20GloryLeague2_Weapon/Hero_Loman_Cos20GloryLeague2_Weapon_FX(Noise).png","scale":[1,1],"offset":[0,0],"speed":[0.02,0.05],"str":0.25},"mask":{"file":"heroes/loman/models/Hero_Loman_Cos20GloryLeague2_Weapon/Hero_Loman_Cos20GloryLeague2_Weapon_FX(Mask).png","scale":[1,1],"offset":[0,0],"speed":[0,0],"str":1},"color":[1,0.781,0.524,1],"extra":1},
+  "Hero_Lucias_Cos21GloryLeague_BodyFX1": {"kind":"flow","main":{"file":"heroes/lucias/models/Hero_Lucias_Cos21GloryLeague2_Body/Hero_Lucias_Cos21GloryLeague_BodyFX1.png","scale":[1,1],"offset":[0,0],"speed":[0.2,0],"str":1},"noise":{"file":"heroes/lucias/models/Hero_Lucias_Cos21GloryLeague2_Body/Hero_Lucias_Cos21GloryLeague_BodyFX1(Noise).png","scale":[1,1],"offset":[0,0],"speed":[0.1,0.1],"str":0.1},"color":[0,0.915,1,1],"extra":1},
+  "Hero_Lucias_Cos21GloryLeague_BodyFX2": {"kind":"flow","main":{"file":"heroes/lucias/models/Hero_Lucias_Cos21GloryLeague2_Body/Hero_Lucias_Cos21GloryLeague_BodyFX1.png","scale":[1,1],"offset":[0,0],"speed":[0.2,0],"str":1},"color":[0,0.915,1,1],"extra":1},
+  "Hero_Seria_Cos20GloryLeague_AC_Effect2": {"kind":"mask","main":{"file":"heroes/seria/models/Hero_Seria_Cos20GloryLeague2_Hair/Hero_Seria_Cos20GloryLeague_AC_Effect2(Main).png","scale":[0.3,0.5],"offset":[0,0],"speed":[-0.04,0.04],"str":1.7},"tile":{"file":"heroes/seria/models/Hero_Seria_Cos20GloryLeague2_Hair/Hero_Seria_Cos20GloryLeague_AC_Effect2(Tile).png","scale":[2,2],"offset":[0,0],"speed":[0.02,-0.02],"str":1.7},"noise":{"file":"heroes/seria/models/Hero_Seria_Cos20GloryLeague2_Hair/Hero_Seria_Cos20GloryLeague_AC_Effect2(Noise).png","scale":[1,1],"offset":[0,0],"speed":[0.02,-0.03],"str":0.3},"mask":{"file":"heroes/seria/models/Hero_Seria_Cos20GloryLeague2_Hair/Hero_Seria_Cos20GloryLeague_AC_Effect2(Mask).png","scale":[1,1],"offset":[0,0],"speed":[0,0],"str":1},"color":[1,0.781,0.524,1],"extra":1},
+  "Hero_Seria_Cos20GloryLeague_Body_Effect2": {"kind":"mask","main":{"file":"heroes/seria/models/Hero_Seria_Cos20GloryLeague2_Body/Hero_Seria_Cos20GloryLeague2_Body_FX(Main).png","scale":[0.3,0.5],"offset":[0,0],"speed":[-0.04,0.04],"str":1.8},"tile":{"file":"heroes/seria/models/Hero_Seria_Cos20GloryLeague2_Body/Hero_Seria_Cos20GloryLeague2_Body_FX(Tile).png","scale":[2,2],"offset":[0,0],"speed":[0.02,-0.02],"str":1.8},"noise":{"file":"heroes/seria/models/Hero_Seria_Cos20GloryLeague2_Body/Hero_Seria_Cos20GloryLeague2_Body_FX(Noise).png","scale":[1,1],"offset":[0,0],"speed":[0.02,-0.03],"str":0.25},"mask":{"file":"heroes/seria/models/Hero_Seria_Cos20GloryLeague2_Body/Hero_Seria_Cos20GloryLeague2_Body_FX(Mask).png","scale":[1,1],"offset":[0,0],"speed":[0,0],"str":1},"color":[1,0.781,0.524,1],"extra":1},
+  "Hero_Seria_Cos20GloryLeague2_Weapon_FX": {"kind":"mask","main":{"file":"heroes/seria/models/Hero_Seria_Cos20GloryLeague2_Weapon_B/Hero_Seria_Cos20GloryLeague2_Weapon_FX(Main).png","scale":[0.3,1],"offset":[0,0],"speed":[-0.04,0.04],"str":1.8},"tile":{"file":"heroes/seria/models/Hero_Seria_Cos20GloryLeague2_Weapon_B/Hero_Seria_Cos20GloryLeague2_Weapon_FX(Tile).png","scale":[2,2],"offset":[0,0],"speed":[0.03,-0.02],"str":1.8},"noise":{"file":"heroes/seria/models/Hero_Seria_Cos20GloryLeague2_Weapon_B/Hero_Seria_Cos20GloryLeague2_Weapon_FX(Noise).png","scale":[1,1],"offset":[0,0],"speed":[0.02,-0.03],"str":0.25},"mask":{"file":"heroes/seria/models/Hero_Seria_Cos20GloryLeague2_Weapon_B/Hero_Seria_Cos20GloryLeague2_Weapon_FX(Mask).png","scale":[1,1],"offset":[0,0],"speed":[0,0],"str":1},"color":[1,0.781,0.524,1],"extra":1},
+};
