@@ -11,7 +11,7 @@ import { el } from '../hud/dom';
  * room of their own (prep's Background Battle: askBatch, in the Raid Settings' box, a −/+ for how many, what it costs);
  * while it runs they can't fight in a room, and the page shows it instead (showBatch): where it fights, how many runs are
  * over of how many, won and lost, what it has cost, when the run being fought ends, and Stop (asked first: the run being
- * fought is given up). Over, why, and the way back to the raid.
+ * fought is given up), and Games, to the games hub (they go on meanwhile). Over, why, and the way back to the raid or the hub.
  */
 
 /** The page's way to the bot's background raids, with the raid's link. */
@@ -223,11 +223,17 @@ export function showBatch(into: HTMLElement, api: BatchApi, raidName: string): v
   const actions = el('div', 'level-actions tm-batch-actions');
   const stop = el('button', 'tm-batch-stop', 'Stop');
   stop.type = 'button';
-  const back = el('button', 'level-confirm', `Back to the ${raidName}`);
+  const back = el('button', 'level-confirm', 'Back to Raid');
+  back.title = `Back to the ${raidName}`;
   back.type = 'button';
   back.hidden = true;
-  actions.append(stop, back);
-  box.append(where, count, bar, tally, next, said, note, actions);
+  // To the games hub, the raids going on meanwhile (a link: the site's loading screen takes it there).
+  const home = el('a', 'tm-batch-home', 'Games') as HTMLAnchorElement;
+  home.href = '/';
+  actions.append(home, stop, back);
+  const asked = el('p', 'tm-batch-asked', 'Stop now? The raid being fought pays nothing.');
+  asked.hidden = true;
+  box.append(where, count, bar, tally, next, said, note, asked, actions);
 
   let view: TmBatchesView | null = null;
   /** The bot's clock less this page's: the countdown by the bot's. */
@@ -257,8 +263,9 @@ export function showBatch(into: HTMLElement, api: BatchApi, raidName: string): v
     if (running) next.textContent = ends ? `Raid ${batch.done + 1} ends in ${clock(ends - (Date.now() + skew))}` : 'The next raid is starting…';
     said.textContent = running ? 'Your heroes are fighting. You can close this page: the raids go on, and the results come by mail.' : `${ENDED[batch.end ?? 'finished']} The results are in your mail.`;
     stop.hidden = !running;
-    stop.textContent = confirming ? 'Stop now? The raid being fought pays nothing' : 'Stop';
-    stop.classList.toggle('confirming', confirming);
+    // Asked first: what it does over the buttons, and Stop saying Yes.
+    asked.hidden = !running || !confirming;
+    stop.textContent = confirming ? 'Yes, Stop' : 'Stop';
     back.hidden = running;
   };
 
