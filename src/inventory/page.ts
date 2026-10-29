@@ -136,9 +136,10 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void; 
     return drawn;
   }
 
-  // Tickets claimed from the mailbox: the raid shop's answer (the tickets held) asked for again, and Others drawn again if it's shown.
+  // Tickets or Dispatch Battle Loot claimed from the mailbox: the raid shop's answer (the tickets held) and the heroes' (the boxes) asked for again, and Others drawn again if it's shown.
   const onTickets = (): void => {
     known.delete('shop');
+    known.delete('heroes');
     if (shown?.tab === othersTab) void show(othersTab);
   };
   window.addEventListener(TICKETS_CLAIMED, onTickets);

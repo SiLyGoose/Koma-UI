@@ -513,6 +513,29 @@
   opacity: 0.6;
 }
 
+/* A loot box's Open 10 and Open All, side by side (./tabs/loot.ts): Open 10 the steel blue of a lesser choice. */
+.inventory-page .detail .inv-loot-open {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.inventory-page .detail .inv-loot-open .action.inv-tile-action {
+  flex: 1 1 0;
+  min-width: 0;
+  margin-top: 0;
+}
+
+.inventory-page .detail .inv-loot-open .action.secondary.inv-tile-action {
+  border-color: #2c5a86;
+  background: linear-gradient(180deg, #6fa8dc, #3c78b4 55%, #2d6299);
+  text-shadow: 0 1px 1px rgb(10 30 60 / 80%);
+}
+
+.inventory-page .detail .inv-loot-open .action.secondary.inv-tile-action:hover:not(:disabled) {
+  background: linear-gradient(180deg, #82b6e4, #4a86c0 55%, #3870a8);
+}
+
 /* (Others' bar has only a line.) */
 .inventory-page .inv-bar > .inv-count:only-child {
   margin: 0;

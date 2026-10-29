@@ -7,7 +7,8 @@ import { el } from '../hud/dom';
 /*
  * Background raids on the raid's page (the bot's /api/tm-batches: its services/tm-batches.ts): a batch of up to 200 runs
  * against the room's boss, at its stage and mode, with this player's lineup, fought by the bot on Auto while they're away,
- * each as long as it would take played, each paid as it ends, and a mail with every result once it's over. Started from a
+ * each as long as it would take played, each win giving a King's Raid Dispatch Battle Loot (opened in the Inventory's
+ * Others), and a mail with how they went and the boxes once it's over. Started from a
  * room of their own (prep's Background Battle: askBatch, in the Raid Settings' box, a −/+ for how many, what it costs);
  * while it runs they can't fight in a room, and the page shows it instead (showBatch): where it fights, how many runs are
  * over of how many, won and lost, what it has cost, when the run being fought ends, and Stop (asked first: the run being
@@ -103,7 +104,7 @@ function popup(into: HTMLElement, title: string, onClose: () => void, closable =
 export function askBatch(into: HTMLElement, where: string, view: TmBatchesView, start: (count: number) => Promise<string | null>): void {
   let count = Math.max(1, Math.min(view.most, Math.floor(view.balance / Math.max(1, view.price)) || 1));
   const { box, close } = popup(into, 'Background Battle', () => {});
-  const about = el('p', 'tm-batch-about', `Fight ${where} on Auto while you’re away. Each raid takes as long as it would played, pays as it ends, and costs ${points(view.price)} zeiucoins as it begins. Your results come by mail.`);
+  const about = el('p', 'tm-batch-about', `Fight ${where} on Auto while you’re away. Each raid takes as long as it would played and costs ${points(view.price)} zeiucoins as it begins. Each win gives a Dispatch Battle Loot: they come by mail with your results, to open in your Inventory’s Others.`);
   const pick = el('div', 'level-pick');
   const down = el('button', 'level-step');
   down.type = 'button';
@@ -261,7 +262,7 @@ export function showBatch(into: HTMLElement, api: BatchApi, raidName: string): v
     const ends = batch.current?.endsAt;
     next.hidden = !running;
     if (running) next.textContent = ends ? `Raid ${batch.done + 1} ends in ${clock(ends - (Date.now() + skew))}` : 'The next raid is starting…';
-    said.textContent = running ? 'Your heroes are fighting. You can close this page: the raids go on, and the results come by mail.' : `${ENDED[batch.end ?? 'finished']} The results are in your mail.`;
+    said.textContent = running ? 'Your heroes are fighting. You can close this page: the raids go on, and the results and loot come by mail.' : `${ENDED[batch.end ?? 'finished']} The results and loot are in your mail.`;
     stop.hidden = !running;
     // Asked first: what it does over the buttons, and Stop saying Yes.
     asked.hidden = !running || !confirming;

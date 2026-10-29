@@ -50,7 +50,7 @@ const CLAIM_ERRORS: Record<string, string> = {
   not_found: 'That mail is gone.',
 };
 
-/** Said on `window` once a claim gave tickets (they're in the Inventory's Others: ../../../inventory/page.ts asks again). */
+/** Said on `window` once a claim gave tickets or Dispatch Battle Loot (they're in the Inventory's Others: ../../../inventory/page.ts asks again). */
 export const TICKETS_CLAIMED = 'mail-tickets-claimed';
 
 /** The mailbox's badges, for the profile button and the Inbox (each kept up to date), and what opens it. */
@@ -76,8 +76,9 @@ export function mailbox(host: MailHost): Mailbox {
   let view: MailboxView | null = null;
   let busy = false;
   let note = '';
-  /** How many tickets the last claim gave: the note links to the Inventory's Others, where they are. */
+  /** How many tickets the last claim gave, and Dispatch Battle Loot (a background raid's): the note links to the Inventory's Others, where they are. */
   let tickets = 0;
+  let boxes = 0;
 
   const query = (): string | null => {
     const server = host.server();
@@ -112,6 +113,7 @@ export function mailbox(host: MailHost): Mailbox {
     if (busy) return;
     note = '';
     tickets = 0;
+    boxes = 0;
     busy = true;
     draw();
     const done = await post<MailClaimed>('/api/mail/claim', { id: mail.id });
@@ -122,9 +124,10 @@ export function mailbox(host: MailHost): Mailbox {
       showCount(done.unread);
       note = done.given.length > 0 ? `Claimed: ${done.given.join(', ')}.` : 'Claimed.';
       tickets = mail.attachments.filter((one) => one.selector).length;
+      boxes = mail.attachments.filter((one) => one.box).length;
       host.changed?.();
-      // (The inventory, open behind it: its tickets asked for again.)
-      if (tickets > 0) window.dispatchEvent(new Event(TICKETS_CLAIMED));
+      // (The inventory, open behind it: its tickets and boxes asked for again.)
+      if (tickets > 0 || boxes > 0) window.dispatchEvent(new Event(TICKETS_CLAIMED));
     }
     draw();
   }
@@ -141,11 +144,11 @@ export function mailbox(host: MailHost): Mailbox {
     dialog.append(head);
     if (note) {
       const line = el('p', 'mailbox-note', note);
-      if (tickets > 0) {
+      if (tickets > 0 || boxes > 0) {
         const link = el('a', '', 'Others');
         link.href = '/inventory/others/';
         link.addEventListener('click', () => dialog.close());
-        line.append(` Use ${tickets === 1 ? 'it' : 'them'} in your Inventory’s `, link, ' tab.');
+        line.append(` ${boxes > 0 ? 'Open' : 'Use'} ${tickets + boxes === 1 && !boxes ? 'it' : 'them'} in your Inventory’s `, link, ' tab.');
       }
       dialog.append(line);
     }
