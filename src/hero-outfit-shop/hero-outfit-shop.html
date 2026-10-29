@@ -1,5 +1,5 @@
-<!-- The heroes' outfits for sale (src/hero-outfit-shop/page.ts): a card for each, its King's Raid card, its name and its price. The shop's Hero Outfits tab, swapped into its panel by src/shop/page.ts. Laid out as the Outfits tab (its outfits.css). -->
-<section class="outfits-page hero-outfit-shop">
+<!-- The heroes' outfits for sale (src/hero-outfit-shop/page.ts): the heroes as the Heroes tab has them, and under the one pressed its outfits. The shop's Hero Outfits tab, swapped into its panel by src/shop/page.ts. Laid out as the Heroes tab (its hero-shop.css), which is laid out as the Outfits tab (outfits.css). -->
+<section class="outfits-page hero-shop hero-outfit-shop">
   <div class="outfits-bar">
     <select id="server" class="server-pick" aria-label="Server" hidden></select>
     <h2 class="outfits-title plaque">Hero Outfits</h2>
@@ -8,11 +8,19 @@
 
   <p id="status" class="status outfits-status" hidden></p>
 
-  <!-- Whose outfits: their heroes' (to begin with), every hero's, or one hero's. Then a card for each it leaves (page.ts). -->
-  <div class="hos-tools">
-    <select id="hero" class="hos-hero-pick" aria-label="Hero"></select>
+  <!--
+    As the Heroes tab: the Filter (src/shared/ui/hero-filter/: class, line, damage; every hero shown, theirs too), beside it Front,
+    Middle and Back, and Owned heroes (only theirs); then a card for each hero with outfits it leaves, A to Z (page.ts). Pressing one
+    opens its drawer (page.ts placeDrawer): its outfits, under its row with a caret up to it (on phones, beside it in the row, which
+    scrolls sideways, with a caret back to it).
+  -->
+  <div class="hero-shop-cards">
+    <div id="tools" class="hero-shop-tools">
+      <div id="hero-filter" class="armory-filter"></div>
+      <div id="lines" class="hero-shop-lines" role="group" aria-label="Position"></div>
+    </div>
+    <div id="heroes" class="outfits-row"></div>
   </div>
-  <div id="outfits" class="outfits-row hos-row"></div>
   <p id="empty" class="status outfits-status" hidden></p>
 
   <!--

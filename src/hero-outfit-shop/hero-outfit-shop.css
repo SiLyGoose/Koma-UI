@@ -1,20 +1,190 @@
 /*
- * The shop's Hero Outfits tab (page.ts), laid out as the Outfits tab (../outfits/outfits.css: its bar, its row of cards that
- * scrolls sideways, its buy box): the hero picker over the row, and each card King's Raid's costume card (its PayShopCostume:
- * the outfit's tall card filling it, its name over it at the top, its price or state at the bottom, Owned in King's Raid's
- * blue, Equipped in its teal).
+ * The shop's Hero Outfits tab (page.ts): the Heroes tab's page, Filter and hero cards (../hero-shop/hero-shop.css, on the
+ * Outfits tab's, ../outfits/outfits.css), and the open hero's drawer. On bigger screens the drawer is a row of the cards'
+ * grid of its own under the hero's, its caret up to the hero's middle; on phones it's in the cards' row beside the hero, as
+ * tall as the cards, its caret back to the hero. In it, each outfit King's Raid's costume card (its PayShopCostume: the
+ * outfit's tall card filling it, its name over it at the top, its price or state at the bottom, Owned in King's Raid's blue,
+ * Equipped in its teal).
  */
-.hos-tools {
-  display: flex;
-  justify-content: center;
+
+/* Owned heroes, after Front, Middle and Back: "Owned" by itself on the narrowest phones. */
+@media (max-width: 400px) {
+  .hos-owned-more {
+    display: none;
+  }
 }
 
-.hos-hero-pick {
-  min-width: 12rem;
+/* A hero whose drawer is open: its frame lit, as one pointed at. */
+.hero-outfit-shop .hero-card[aria-expanded='true'] {
+  --frame: #ffd98a;
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 70%),
+    0 0 18px rgb(255 214 120 / 45%),
+    0 14px 28px rgb(0 0 0 / 55%);
 }
+
+/* How many of its outfits there are (and of theirs, are theirs), where the Heroes tab has its price. */
+.hos-count {
+  color: #f4ead2;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* ------------------------------------------------------------------ the drawer */
+
+.hos-drawer {
+  --drawer-line: rgb(216 191 122 / 45%);
+  --drawer-bg: #15141b;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 16px 16px;
+  border: 1px solid var(--drawer-line);
+  border-radius: 12px;
+  background:
+    radial-gradient(ellipse at 20% 0%, rgb(216 191 122 / 8%), transparent 60%),
+    var(--drawer-bg);
+  box-shadow: 0 14px 30px rgb(0 0 0 / 50%);
+  animation: hos-drawer-in 0.18s ease-out;
+}
+
+/* Its caret: a square turned on its point, half over its edge, in its colours (up to the hero on bigger screens). */
+.hos-drawer::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: var(--caret-x, 50%);
+  width: 14px;
+  height: 14px;
+  border: solid var(--drawer-line);
+  border-width: 1px 0 0 1px;
+  background: var(--drawer-bg);
+  translate: -50% 0;
+  rotate: 45deg;
+}
+
+.hos-drawer-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  align-items: baseline;
+}
+
+.hos-drawer-title {
+  margin: 0;
+  color: #efe3bf;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.hos-drawer-count {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.hos-drawer-room {
+  margin-left: auto;
+  align-self: center;
+}
+
+.hos-drawer-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+@keyframes hos-drawer-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+/* Bigger screens: a row of the grid of its own, under the hero's row (its cards the grid's: ../hero-shop/hero-shop.css). */
+@media (min-width: 761px) {
+  .hero-outfit-shop .hos-drawer {
+    grid-column: 1 / -1;
+    margin-top: -4px;
+  }
+}
+
+/* Phones: in the row, beside the hero, as tall as the cards; its outfits a row in it, its caret on its left, back to the hero. */
+@media (max-width: 760px) {
+  .hero-outfit-shop .hos-drawer {
+    flex: none;
+    height: calc(var(--card-width) * 382 / 168);
+    margin-left: 4px;
+    padding: 10px 12px 12px;
+    animation-name: hos-drawer-in-side;
+  }
+
+  /* Scrolled to as its drawer opens (page.ts openDrawer): the row's own room kept before it, for its frame's scrolls. */
+  .hero-outfit-shop .hero-card {
+    scroll-margin-inline: 14px;
+  }
+
+  .hero-outfit-shop .hos-drawer::before {
+    top: 50%;
+    left: -8px;
+    border-width: 0 0 1px 1px;
+    translate: 0 -50%;
+  }
+
+  .hos-drawer-head {
+    flex-wrap: nowrap;
+    gap: 10px;
+  }
+
+  .hos-drawer-title {
+    font-size: 15px;
+    white-space: nowrap;
+  }
+
+  .hos-drawer-count {
+    display: none;
+  }
+
+  /* Beside its title (at the drawer's far end, as wide as its outfits, it would be off the screen). */
+  .hos-drawer-room {
+    margin-left: 0;
+    padding-inline: 12px;
+    font-size: 13px;
+  }
+
+  .hos-drawer-list {
+    flex: 1;
+    flex-wrap: nowrap;
+    gap: 10px;
+    min-height: 0;
+  }
+
+  /* Each as tall as the room left in it, as wide as that makes it. */
+  .hos-drawer-list .hos-card {
+    width: auto;
+    height: 100%;
+  }
+}
+
+@keyframes hos-drawer-in-side {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hos-drawer {
+    animation: none;
+  }
+}
+
+/* ------------------------------------------------------------------ an outfit's card */
 
 .hos-card {
   /* King's Raid's card: 330 by 718. */
+  flex: none;
+  width: clamp(120px, 11vw, 160px);
   aspect-ratio: 330 / 718;
 }
 
@@ -44,10 +214,10 @@
   position: relative;
   z-index: 1;
   margin: 0;
-  padding: 14px 10px 26px;
+  padding: 12px 8px 22px;
   background: linear-gradient(180deg, rgb(10 12 28 / 88%), rgb(10 12 28 / 60%) 60%, transparent);
   color: #fff7e9;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.25;
   text-shadow: 0 1px 2px rgb(0 0 0 / 80%);
 }
@@ -72,7 +242,9 @@
   filter: saturate(0.75) brightness(0.8);
 }
 
-/* The buy box, wide enough for its three buttons in a row; its picture the outfit's card, standing; whose it is under its name. */
+/* ------------------------------------------------------------------ the buy box */
+
+/* Wide enough for its three buttons in a row; its picture the outfit's card, standing; whose it is under its name. */
 .hos-buy-box {
   width: min(420px, 100%);
 }

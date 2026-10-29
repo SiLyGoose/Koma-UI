@@ -1,4 +1,5 @@
 import markup from './hero-shop.html?raw';
+import { heroShopCard, LINE_NAME, lineButtons, showCard } from './card';
 import { areasOf } from '../databank/heroes';
 import { label, recommendedCard } from '../databank/bosses';
 import { TEAMMATES } from '../databank/teammates';
@@ -254,46 +255,12 @@ async function buy(ctx: Context, hero: HeroView): Promise<void> {
 /** An amount of zeiucoins: the coin, then the number (`short`: in red, a price that's more than they have). */
 const price = (amount: number, short = false): HTMLElement[] => [coin('outfit-coin', 'zeiucoins'), el('span', short ? 'price-short' : '', points(amount))];
 
-/** A hero's picture in `img`: King's Raid's own card of it, as its shop shows it (hidden with none); `fallback` shows its initial instead. */
-function showCard(img: HTMLImageElement, id: string, fallback?: HTMLElement): void {
-  const src = heroCard(id);
-  img.hidden = !src;
-  if (!src) return;
-  img.src = src;
-  fallback?.remove();
-}
-
-/** One hero's card: its picture and class badge, its name, and at the bottom its price or that it's theirs. */
+/** One hero's card (./card.ts): at the bottom its price, or that it's theirs. */
 function card(ctx: Context, hero: HeroView): HTMLButtonElement {
   const state = hero.owned ? 'owned' : hero.price <= (ctx.view?.balance ?? 0) ? 'buy' : 'short';
-  const button = el('button', 'outfit-card hero-card');
-  button.type = 'button';
-  button.dataset.hero = hero.id;
-  button.dataset.state = state;
+  const foot = state === 'owned' ? [el('span', 'outfit-check', '✓'), el('span', '', 'Owned')] : price(hero.price);
+  const button = heroShopCard(hero, state, foot, state === 'owned' ? `${hero.name}: owned` : `${hero.name}, ${className(hero.class)}: ${points(hero.price)} zeiucoins`);
   if (state === 'owned') button.setAttribute('aria-disabled', 'true');
-
-  const art = el('span', 'hero-card-art');
-  const initial = el('span', 'hero-card-initial', hero.name.slice(0, 1));
-  const picture = el('img', 'hero-card-picture');
-  picture.alt = '';
-  picture.draggable = false;
-  art.append(initial, picture);
-  showCard(picture, hero.id, initial);
-  const badge = el('img', 'hero-card-class');
-  // King's Raid's own (its shop's round badge, 128px: the gear page's is too small to stay sharp this big).
-  badge.src = `/kr/ui/badge-${hero.class}.webp`;
-  badge.alt = '';
-  badge.title = className(hero.class);
-  art.append(badge);
-
-  const name = el('span', 'outfit-name', hero.name);
-
-  const foot = el('span', 'outfit-foot');
-  if (state === 'owned') foot.append(el('span', 'outfit-check', '✓'), el('span', '', 'Owned'));
-  else foot.append(...price(hero.price));
-
-  button.append(art, name, foot);
-  button.setAttribute('aria-label', state === 'owned' ? `${hero.name}: owned` : `${hero.name}, ${className(hero.class)}: ${points(hero.price)} zeiucoins`);
   return button;
 }
 
@@ -333,21 +300,6 @@ function renderBuy(ctx: Context): void {
   ui.buyPrice.title = `${points(buying.price)} zeiucoins (you have ${points(view.balance)})`;
   ui.buyConfirm.disabled = left < 0;
   working(ui.buyConfirm, ctx.busy, 'buy');
-}
-
-const LINE_NAME = { front: 'Front', middle: 'Middle', back: 'Back' } as const;
-
-/** Front, Middle and Back in `box`, each a choice (render: the one picked pressed). */
-function lineButtons(box: HTMLElement): HTMLButtonElement[] {
-  const buttons = (Object.keys(LINE_NAME) as Line[]).map((line) => {
-    const button = el('button', 'action choice', LINE_NAME[line]);
-    button.type = 'button';
-    button.dataset.line = line;
-    button.setAttribute('aria-pressed', 'false');
-    return button;
-  });
-  box.append(...buttons);
-  return buttons;
 }
 
 /**

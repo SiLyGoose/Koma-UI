@@ -205,8 +205,13 @@
   margin: 0 6px 10px 4px;
 }
 
+/* The site's dropdown (the server picker's pill), as wide as the longest hero's name ("Dark Lord Kasel") with no ellipsis. */
+.ho-list-head .dd:has(> .ho-hero-pick) {
+  flex: none;
+}
+
 .ho-hero-pick {
-  min-width: 0;
+  min-width: 11.5em;
 }
 
 .ho-list-title {
