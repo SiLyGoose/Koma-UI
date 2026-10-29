@@ -80,6 +80,13 @@ export const KIRZE_ASSETS: HeroAssets = {
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Kirze_Glory.webp',
       title: 'Kirze of Honor (Brilliance of the Azure Sky)',
+      // King's Raid's own effects of its Glory League costume, for its moves instead of its hero's (KR-extracted/scripts/tm-glory-vfx.mjs).
+      vfx: {
+        attack: { start: ['Skill.Hero.KirzeCos20GloryLeague.Attack1.Casting1', 'Skill.Hero.KirzeCos20GloryLeague.Attack1.Casting2', 'Skill.Hero.KirzeCos20GloryLeague.Attack1.Casting3'], land: ['Skill.Hero.KirzeCos20GloryLeague.Attack1.Hit'] },
+        judgment: { start: ['Skill.Hero.KirzeCos20GloryLeague.Skill1.Casting'] },
+        haze: { start: ['Skill.Hero.KirzeCos20GloryLeague.Skill2.Casting'], land: ['Skill.Hero.Kirze.Skill2.HitLoop03', 'Skill.Hero.KirzeCos20GloryLeague.Skill2.HitLoop02', 'Skill.Hero.KirzeCos20GloryLeague.Skill2.HitLoop01.Hit', 'Skill.Hero.Kirze.Skill2.Hit', 'Skill.Hero.KirzeCos20GloryLeague.Skill2.HitLoop01'] },
+        flower: { start: ['Skill.Hero.KirzeCos20GloryLeague.Skill3.Casting2', 'Skill.Hero.KirzeCos20GloryLeague.Skill3.Casting1', 'Skill.Hero.KirzeCos20GloryLeague.Skill3.Loop'], land: ['Skill.Hero.KirzeCos20GloryLeague.Skill3.Hit'] },
+      },
       portrait: { file: 'Kirze_Glory.png', crop: { x: 356, y: 112, size: 135 }, head: { x: 362, y: 140, size: 85 } },
       model: {
         kind: 'parts',
@@ -187,6 +194,13 @@ export const KIRZE_ASSETS: HeroAssets = {
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Kirze_Glory2.webp',
       title: 'Kirze of Glaring Honor (Brilliance of the Azure Sky)',
+      // King's Raid's own effects of its Glory League costume, for its moves instead of its hero's (KR-extracted/scripts/tm-glory-vfx.mjs).
+      vfx: {
+        attack: { start: ['Skill.Hero.KirzeCos20GloryLeague.Attack1.Casting1', 'Skill.Hero.KirzeCos20GloryLeague.Attack1.Casting2', 'Skill.Hero.KirzeCos20GloryLeague.Attack1.Casting3'], land: ['Skill.Hero.KirzeCos20GloryLeague.Attack1.Hit'] },
+        judgment: { start: ['Skill.Hero.KirzeCos20GloryLeague.Skill1.Casting'] },
+        haze: { start: ['Skill.Hero.KirzeCos20GloryLeague.Skill2.Casting'], land: ['Skill.Hero.Kirze.Skill2.HitLoop03', 'Skill.Hero.KirzeCos20GloryLeague.Skill2.HitLoop02', 'Skill.Hero.KirzeCos20GloryLeague.Skill2.HitLoop01.Hit', 'Skill.Hero.Kirze.Skill2.Hit', 'Skill.Hero.KirzeCos20GloryLeague.Skill2.HitLoop01'] },
+        flower: { start: ['Skill.Hero.KirzeCos20GloryLeague.Skill3.Casting2', 'Skill.Hero.KirzeCos20GloryLeague.Skill3.Casting1', 'Skill.Hero.KirzeCos20GloryLeague.Skill3.Loop'], land: ['Skill.Hero.KirzeCos20GloryLeague.Skill3.Hit'] },
+      },
       // What King's Raid keeps on it all the while.
       wears: ['Skill.Hero.KirzeCos20GloryLeague.Cos20GloryLeagueLight'],
       model: {

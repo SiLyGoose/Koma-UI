@@ -173,6 +173,13 @@ export const CROW_ASSETS: HeroAssets = {
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Crow_Glory.webp',
       title: 'Crow of Honor',
+      // King's Raid's own effects of its Glory League costume, for its moves instead of its hero's (KR-extracted/scripts/tm-glory-vfx.mjs).
+      vfx: {
+        snipe: { start: ['Skill.Hero.Crow.Attack1.Casting', 'Skill.Hero.CrowCos19GloryLeague.Attack1.Casting2'], land: ['Skill.Hero.CrowCos19GloryLeague.Attack1.Projectile2', 'Skill.Hero.CrowCos19GloryLeague.Attack1.Hit', 'Skill.Hero.CrowCos19GloryLeague.Attack1.Projectile'] },
+        eliminate: { start: ['Skill.Hero.CrowCos19GloryLeague.Skill1.Casting1', 'Skill.Hero.CrowCos19GloryLeague.Skill1.CastingLoop', 'Skill.Hero.Crow.Skill1.Casting2'] },
+        struggle: { start: ['Skill.Hero.CrowCos19GloryLeague.Skill2.Casting'], land: ['Skill.Hero.CrowCos19GloryLeague.Skill2.Projectile2', 'Skill.Hero.Crow.Skill2.Projectile', 'Skill.Hero.CrowCos19GloryLeague.Skill2.HitLoop', 'Skill.Hero.CrowCos19GloryLeague.Skill2.Hit'] },
+        gods: { start: ['Skill.Hero.Crow.Skill3.Casting', 'Skill.Hero.Crow.Skill3.CastingLoop2', 'Skill.Hero.CrowCos19GloryLeague.Skill3.CastingLoop'], land: ['Skill.Hero.CrowCos19GloryLeague.Skill3.Projectile1', 'Skill.Hero.CrowCos19GloryLeague.Skill3.Projectile2', 'Skill.Hero.CrowCos19GloryLeague.Skill3.Projectile3'] },
+      },
       model: {
         kind: 'parts',
         animations: ANIMATIONS,
@@ -275,6 +282,13 @@ export const CROW_ASSETS: HeroAssets = {
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Crow_Glory2.webp',
       title: 'Crow of Brilliant Honor',
+      // King's Raid's own effects of its Glory League costume, for its moves instead of its hero's (KR-extracted/scripts/tm-glory-vfx.mjs).
+      vfx: {
+        snipe: { start: ['Skill.Hero.Crow.Attack1.Casting', 'Skill.Hero.CrowCos19GloryLeague.Attack1.Casting2'], land: ['Skill.Hero.CrowCos19GloryLeague.Attack1.Projectile2', 'Skill.Hero.CrowCos19GloryLeague.Attack1.Hit', 'Skill.Hero.CrowCos19GloryLeague.Attack1.Projectile'] },
+        eliminate: { start: ['Skill.Hero.CrowCos19GloryLeague.Skill1.Casting1', 'Skill.Hero.CrowCos19GloryLeague.Skill1.CastingLoop', 'Skill.Hero.Crow.Skill1.Casting2'] },
+        struggle: { start: ['Skill.Hero.CrowCos19GloryLeague.Skill2.Casting'], land: ['Skill.Hero.CrowCos19GloryLeague.Skill2.Projectile2', 'Skill.Hero.Crow.Skill2.Projectile', 'Skill.Hero.CrowCos19GloryLeague.Skill2.HitLoop', 'Skill.Hero.CrowCos19GloryLeague.Skill2.Hit'] },
+        gods: { start: ['Skill.Hero.Crow.Skill3.Casting', 'Skill.Hero.Crow.Skill3.CastingLoop2', 'Skill.Hero.CrowCos19GloryLeague.Skill3.CastingLoop'], land: ['Skill.Hero.CrowCos19GloryLeague.Skill3.Projectile1', 'Skill.Hero.CrowCos19GloryLeague.Skill3.Projectile2', 'Skill.Hero.CrowCos19GloryLeague.Skill3.Projectile3'] },
+      },
       // What King's Raid keeps on it all the while.
       wears: ['Skill.Hero.CrowCos19GloryLeague.Cos19GloryLeagueParts'],
       model: {
@@ -294,6 +308,13 @@ export const CROW_ASSETS: HeroAssets = {
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Crow_Glory3.webp',
       title: 'Crow of Glaring Honor',
+      // King's Raid's own effects of its Glory League costume, for its moves instead of its hero's (KR-extracted/scripts/tm-glory-vfx.mjs).
+      vfx: {
+        snipe: { start: ['Skill.Hero.Crow.Attack1.Casting', 'Skill.Hero.CrowCos19GloryLeague.Attack1.Casting2'], land: ['Skill.Hero.CrowCos19GloryLeague.Attack1.Projectile2', 'Skill.Hero.CrowCos19GloryLeague.Attack1.Hit', 'Skill.Hero.CrowCos19GloryLeague.Attack1.Projectile'] },
+        eliminate: { start: ['Skill.Hero.CrowCos19GloryLeague.Skill1.Casting1', 'Skill.Hero.CrowCos19GloryLeague.Skill1.CastingLoop', 'Skill.Hero.Crow.Skill1.Casting2'] },
+        struggle: { start: ['Skill.Hero.CrowCos19GloryLeague.Skill2.Casting'], land: ['Skill.Hero.CrowCos19GloryLeague.Skill2.Projectile2', 'Skill.Hero.Crow.Skill2.Projectile', 'Skill.Hero.CrowCos19GloryLeague.Skill2.HitLoop', 'Skill.Hero.CrowCos19GloryLeague.Skill2.Hit'] },
+        gods: { start: ['Skill.Hero.Crow.Skill3.Casting', 'Skill.Hero.Crow.Skill3.CastingLoop2', 'Skill.Hero.CrowCos19GloryLeague.Skill3.CastingLoop'], land: ['Skill.Hero.CrowCos19GloryLeague.Skill3.Projectile1', 'Skill.Hero.CrowCos19GloryLeague.Skill3.Projectile2', 'Skill.Hero.CrowCos19GloryLeague.Skill3.Projectile3'] },
+      },
       // What King's Raid keeps on it all the while.
       wears: ['Skill.Hero.CrowCos19GloryLeague.Cos19GloryLeagueLight', 'Skill.Hero.CrowCos19GloryLeague.Cos19GloryLeagueParts'],
       model: {
@@ -313,6 +334,13 @@ export const CROW_ASSETS: HeroAssets = {
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Crow_Glory4.webp',
       title: 'Crow of Eternal Honor',
+      // King's Raid's own effects of its Glory League costume, for its moves instead of its hero's (KR-extracted/scripts/tm-glory-vfx.mjs).
+      vfx: {
+        snipe: { start: ['Skill.Hero.Crow.Attack1.Casting', 'Skill.Hero.CrowCos19GloryLeague.Attack1.Casting2'], land: ['Skill.Hero.CrowCos19GloryLeague.Attack1.Projectile2', 'Skill.Hero.CrowCos19GloryLeague.Attack1.Hit', 'Skill.Hero.CrowCos19GloryLeague.Attack1.Projectile'] },
+        eliminate: { start: ['Skill.Hero.CrowCos19GloryLeague.Skill1.Casting1', 'Skill.Hero.CrowCos19GloryLeague.Skill1.CastingLoop', 'Skill.Hero.Crow.Skill1.Casting2'] },
+        struggle: { start: ['Skill.Hero.CrowCos19GloryLeague.Skill2.Casting'], land: ['Skill.Hero.CrowCos19GloryLeague.Skill2.Projectile2', 'Skill.Hero.Crow.Skill2.Projectile', 'Skill.Hero.CrowCos19GloryLeague.Skill2.HitLoop', 'Skill.Hero.CrowCos19GloryLeague.Skill2.Hit'] },
+        gods: { start: ['Skill.Hero.Crow.Skill3.Casting', 'Skill.Hero.Crow.Skill3.CastingLoop2', 'Skill.Hero.CrowCos19GloryLeague.Skill3.CastingLoop'], land: ['Skill.Hero.CrowCos19GloryLeague.Skill3.Projectile1', 'Skill.Hero.CrowCos19GloryLeague.Skill3.Projectile2', 'Skill.Hero.CrowCos19GloryLeague.Skill3.Projectile3'] },
+      },
       // What King's Raid keeps on it all the while.
       wears: ['Skill.Hero.CrowCos19GloryLeague.Cos19GloryLeagueLight', 'Skill.Hero.CrowCos19GloryLeague.Cos19GloryLeagueParts', 'Skill.Hero.CrowCos19GloryLeague.Cos19GloryLeagueWeapon'],
       model: {

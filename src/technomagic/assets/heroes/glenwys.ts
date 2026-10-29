@@ -123,6 +123,13 @@ export const GLENWYS_ASSETS: HeroAssets = {
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Glenwys_Glory.webp',
       title: 'Glenwys of Honor (Light of the Blue Night Sky)',
+      // King's Raid's own effects of its Glory League costume, for its moves instead of its hero's (KR-extracted/scripts/tm-glory-vfx.mjs).
+      vfx: {
+        attack: { start: ['Skill.Hero.GlenwysCos19GloryLeague.Attack1.Casting1', 'Skill.Hero.GlenwysCos19GloryLeague.Attack1.Casting2', 'Skill.Hero.GlenwysCos19GloryLeague.Attack1.Casting3'], land: ['Skill.Hero.GlenwysCos19GloryLeague.Attack1.Hit'] },
+        finisher: { start: ['Skill.Hero.GlenwysCos19GloryLeague.Skill1.Casting'], land: ['Skill.Hero.GlenwysCos19GloryLeague.Skill1.Hit'] },
+        unstayed: { start: ['Skill.Hero.GlenwysCos19GloryLeague.Skill2.Casting'], land: ['Skill.Hero.GlenwysCos19GloryLeague.Skill2.Hit'] },
+        counter: { start: ['Skill.Hero.GlenwysCos19GloryLeague.Skill3.Casting', 'Skill.Hero.GlenwysCos19GloryLeague.Skill3.Shield'] },
+      },
       model: {
         kind: 'parts',
         animations: ANIMATIONS,
@@ -199,6 +206,13 @@ export const GLENWYS_ASSETS: HeroAssets = {
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Glenwys_Glory2.webp',
       title: 'Glenwys of Glaring Honor (Light of the Blue Night Sky)',
+      // King's Raid's own effects of its Glory League costume, for its moves instead of its hero's (KR-extracted/scripts/tm-glory-vfx.mjs).
+      vfx: {
+        attack: { start: ['Skill.Hero.GlenwysCos19GloryLeague.Attack1.Casting1', 'Skill.Hero.GlenwysCos19GloryLeague.Attack1.Casting2', 'Skill.Hero.GlenwysCos19GloryLeague.Attack1.Casting3'], land: ['Skill.Hero.GlenwysCos19GloryLeague.Attack1.Hit'] },
+        finisher: { start: ['Skill.Hero.GlenwysCos19GloryLeague.Skill1.Casting'], land: ['Skill.Hero.GlenwysCos19GloryLeague.Skill1.Hit'] },
+        unstayed: { start: ['Skill.Hero.GlenwysCos19GloryLeague.Skill2.Casting'], land: ['Skill.Hero.GlenwysCos19GloryLeague.Skill2.Hit'] },
+        counter: { start: ['Skill.Hero.GlenwysCos19GloryLeague.Skill3.Casting', 'Skill.Hero.GlenwysCos19GloryLeague.Skill3.Shield'] },
+      },
       // What King's Raid keeps on it all the while.
       wears: ['Skill.Hero.GlenwysCos19GloryLeague.Cos19GloryLeagueLight', 'Skill.Hero.GlenwysCos19GloryLeague.Cos19GloryLeagueParts'],
       model: {

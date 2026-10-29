@@ -162,6 +162,13 @@ export const ERZE_ASSETS: HeroAssets = {
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Erze_Glory.webp',
       title: 'Erze of Honor (Eminence of Elegance)',
+      // King's Raid's own effects of its Glory League costume, for its moves instead of its hero's (KR-extracted/scripts/tm-glory-vfx.mjs).
+      vfx: {
+        drain: { start: ['Skill.Hero.ErzeCos21GloryLeague.Attack1.Casting.2', 'Skill.Hero.ErzeCos21GloryLeague.Attack1.Casting.3', 'Skill.Hero.ErzeCos21GloryLeague.Attack1.Casting.1'], land: ['Skill.Hero.ErzeCos21GloryLeague.Attack1.Hit1', 'Skill.Hero.ErzeCos21GloryLeague.Attack1.Hit2'] },
+        sweet: { start: ['Skill.Hero.ErzeCos21GloryLeague.Skill1.Casting'], land: ['Skill.Hero.ErzeCos21GloryLeague.Skill1.Projectile', 'Skill.Hero.ErzeCos21GloryLeague.Skill1.ProjectileHit', 'Skill.Hero.ErzeCos21GloryLeague.Skill1.Hit'] },
+        soak: { start: ['Skill.Hero.ErzeCos21GloryLeague.Skill2.Casting', 'Skill.Hero.ErzeCos21GloryLeague.Skill2.Loop', 'Skill.Hero.ErzeCos21GloryLeague.Skill2.Buff'] },
+        liberation: { start: ['Skill.Hero.ErzeCos21GloryLeague.Skill3.Casting'], land: ['Skill.Hero.ErzeCos21GloryLeague.Skill3.Projectile', 'Skill.Hero.ErzeCos21GloryLeague.Skill3.ProjectileHit'] },
+      },
       model: { kind: 'parts', animations: ANIMATIONS, parts: ['Hero_Erze_Cos21GloryLeague_Body', 'Hero_Erze_Cos21GloryLeague_Hair'], right: 'Hero_Erze_Cos21GloryLeague_Weapon' },
     },
     // King's Raid's Fallen costume (tm-costumes.mjs).
@@ -186,6 +193,13 @@ export const ERZE_ASSETS: HeroAssets = {
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Erze_Glory2.webp',
       title: 'Erze of Glaring Honor (Eminence of Elegance)',
+      // King's Raid's own effects of its Glory League costume, for its moves instead of its hero's (KR-extracted/scripts/tm-glory-vfx.mjs).
+      vfx: {
+        drain: { start: ['Skill.Hero.ErzeCos21GloryLeague.Attack1.Casting.2', 'Skill.Hero.ErzeCos21GloryLeague.Attack1.Casting.3', 'Skill.Hero.ErzeCos21GloryLeague.Attack1.Casting.1'], land: ['Skill.Hero.ErzeCos21GloryLeague.Attack1.Hit1', 'Skill.Hero.ErzeCos21GloryLeague.Attack1.Hit2'] },
+        sweet: { start: ['Skill.Hero.ErzeCos21GloryLeague.Skill1.Casting'], land: ['Skill.Hero.ErzeCos21GloryLeague.Skill1.Projectile', 'Skill.Hero.ErzeCos21GloryLeague.Skill1.ProjectileHit', 'Skill.Hero.ErzeCos21GloryLeague.Skill1.Hit'] },
+        soak: { start: ['Skill.Hero.ErzeCos21GloryLeague.Skill2.Casting', 'Skill.Hero.ErzeCos21GloryLeague.Skill2.Loop', 'Skill.Hero.ErzeCos21GloryLeague.Skill2.Buff'] },
+        liberation: { start: ['Skill.Hero.ErzeCos21GloryLeague.Skill3.Casting'], land: ['Skill.Hero.ErzeCos21GloryLeague.Skill3.Projectile', 'Skill.Hero.ErzeCos21GloryLeague.Skill3.ProjectileHit'] },
+      },
       // What King's Raid keeps on it all the while.
       wears: ['Skill.Hero.ErzeCos21GloryLeague.Body'],
       model: { kind: 'parts', animations: ANIMATIONS, parts: ['Hero_Erze_Cos21GloryLeague_Body', 'Hero_Erze_Cos21GloryLeague_Hair'], right: 'Hero_Erze_Cos21GloryLeague_Weapon' },

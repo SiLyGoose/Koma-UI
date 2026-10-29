@@ -149,6 +149,13 @@ export const SHEA_ASSETS: HeroAssets = {
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Shea_Glory.webp',
       title: 'Shea of Honor (Light of the Blue Night Sky)',
+      // King's Raid's own effects of its Glory League costume, for its moves instead of its hero's (KR-extracted/scripts/tm-glory-vfx.mjs).
+      vfx: {
+        attack: { start: ['Skill.Hero.SheaCos19GloryLeague.Attack1.Casting'], land: ['Skill.Hero.SheaCos19GloryLeague.Attack1.Projectile', 'Skill.Hero.SheaCos19GloryLeague.Attack1.Hit'] },
+        melody: { start: ['Skill.Hero.Shea.Skill1.Wave', 'Skill.Hero.SheaCos19GloryLeague.Skill1.Casting', 'Skill.Hero.SheaCos19GloryLeague.Skill1.Loop'], land: ['Skill.Hero.Shea.Skill1.HitLoop'] },
+        song: { start: ['Skill.Hero.SheaCos19GloryLeague.Skill2.Loop', 'Skill.Hero.SheaCos19GloryLeague.Skill2.Casting', 'Skill.Hero.Shea.Skill2.Wave'], land: ['Skill.Hero.Shea.Skill2.HitLoop'] },
+        passion: { start: ['Skill.Hero.SheaCos19GloryLeague.Skill3.Casting', 'Skill.Hero.Shea.Skill3.Wave', 'Skill.Hero.SheaCos19GloryLeague.Skill3.Loop'], land: ['Skill.Hero.Shea.Skill3.HitLoop'] },
+      },
       model: {
         kind: 'parts',
         animations: ANIMATIONS,
@@ -200,6 +207,13 @@ export const SHEA_ASSETS: HeroAssets = {
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Shea_Glory2.webp',
       title: 'Shea of Glaring Honor (Light of the Blue Night Sky)',
+      // King's Raid's own effects of its Glory League costume, for its moves instead of its hero's (KR-extracted/scripts/tm-glory-vfx.mjs).
+      vfx: {
+        attack: { start: ['Skill.Hero.SheaCos19GloryLeague.Attack1.Casting'], land: ['Skill.Hero.SheaCos19GloryLeague.Attack1.Projectile', 'Skill.Hero.SheaCos19GloryLeague.Attack1.Hit'] },
+        melody: { start: ['Skill.Hero.Shea.Skill1.Wave', 'Skill.Hero.SheaCos19GloryLeague.Skill1.Casting', 'Skill.Hero.SheaCos19GloryLeague.Skill1.Loop'], land: ['Skill.Hero.Shea.Skill1.HitLoop'] },
+        song: { start: ['Skill.Hero.SheaCos19GloryLeague.Skill2.Loop', 'Skill.Hero.SheaCos19GloryLeague.Skill2.Casting', 'Skill.Hero.Shea.Skill2.Wave'], land: ['Skill.Hero.Shea.Skill2.HitLoop'] },
+        passion: { start: ['Skill.Hero.SheaCos19GloryLeague.Skill3.Casting', 'Skill.Hero.Shea.Skill3.Wave', 'Skill.Hero.SheaCos19GloryLeague.Skill3.Loop'], land: ['Skill.Hero.Shea.Skill3.HitLoop'] },
+      },
       // What King's Raid keeps on it all the while.
       wears: ['Skill.Hero.SheaCos19GloryLeague.Cos19GloryLeagueLight', 'Skill.Hero.SheaCos19GloryLeague.Cos19GloryLeagueParts'],
       model: {

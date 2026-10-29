@@ -168,6 +168,13 @@ export const LILIA_ASSETS: HeroAssets = {
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Lilia_Glory.webp',
       title: 'Lilia of Honor (Brilliance of the Azure Sky)',
+      // King's Raid's own effects of its Glory League costume, for its moves instead of its hero's (KR-extracted/scripts/tm-glory-vfx.mjs).
+      vfx: {
+        attack: { start: ['Skill.Hero.LiliaCos20GloryLeague.Attack1.Casting'], land: ['Skill.Hero.LiliaCos20GloryLeague.Attack1.Hit', 'Skill.Hero.LiliaCos20GloryLeague.Attack1.Projectile'] },
+        tempest: { start: ['Skill.Hero.LiliaCos20GloryLeague.Skill1.Casting'], land: ['Skill.Hero.LiliaCos20GloryLeague.Skill1.Hit', 'Skill.Hero.LiliaCos20GloryLeague.Skill1.HitLoop'] },
+        oasis: { start: ['Skill.Hero.LiliaCos20GloryLeague.Skill2.Casting'], land: ['Skill.Hero.LiliaCos20GloryLeague.Skill2.Hit', 'Skill.Hero.LiliaCos20GloryLeague.Skill2.HitLoop'] },
+        cataract: { start: ['Skill.Hero.Lilia.Skill3.Casting2', 'Skill.Hero.LiliaCos20GloryLeague.Skill3.Casting1', 'Skill.Hero.LiliaCos20GloryLeague.Skill3.CastingLoop1', 'Skill.Hero.LiliaCos20GloryLeague.Skill3.CastingLoop2'], land: ['Skill.Hero.LiliaCos20GloryLeague.Skill3.Projectile1', 'Skill.Hero.LiliaCos20GloryLeague.Skill3.Hit', 'Skill.Hero.LiliaCos20GloryLeague.Skill3.Projectile2', 'Skill.Hero.LiliaCos20GloryLeague.Skill3.CastingLoop2Hit'] },
+      },
       model: {
         kind: 'parts',
         animations: ANIMATIONS,
@@ -202,6 +209,13 @@ export const LILIA_ASSETS: HeroAssets = {
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Lilia_Glory2.webp',
       title: 'Lilia of Glaring Honor (Brilliance of the Azure Sky)',
+      // King's Raid's own effects of its Glory League costume, for its moves instead of its hero's (KR-extracted/scripts/tm-glory-vfx.mjs).
+      vfx: {
+        attack: { start: ['Skill.Hero.LiliaCos20GloryLeague.Attack1.Casting'], land: ['Skill.Hero.LiliaCos20GloryLeague.Attack1.Hit', 'Skill.Hero.LiliaCos20GloryLeague.Attack1.Projectile'] },
+        tempest: { start: ['Skill.Hero.LiliaCos20GloryLeague.Skill1.Casting'], land: ['Skill.Hero.LiliaCos20GloryLeague.Skill1.Hit', 'Skill.Hero.LiliaCos20GloryLeague.Skill1.HitLoop'] },
+        oasis: { start: ['Skill.Hero.LiliaCos20GloryLeague.Skill2.Casting'], land: ['Skill.Hero.LiliaCos20GloryLeague.Skill2.Hit', 'Skill.Hero.LiliaCos20GloryLeague.Skill2.HitLoop'] },
+        cataract: { start: ['Skill.Hero.Lilia.Skill3.Casting2', 'Skill.Hero.LiliaCos20GloryLeague.Skill3.Casting1', 'Skill.Hero.LiliaCos20GloryLeague.Skill3.CastingLoop1', 'Skill.Hero.LiliaCos20GloryLeague.Skill3.CastingLoop2'], land: ['Skill.Hero.LiliaCos20GloryLeague.Skill3.Projectile1', 'Skill.Hero.LiliaCos20GloryLeague.Skill3.Hit', 'Skill.Hero.LiliaCos20GloryLeague.Skill3.Projectile2', 'Skill.Hero.LiliaCos20GloryLeague.Skill3.CastingLoop2Hit'] },
+      },
       // What King's Raid keeps on it all the while.
       wears: ['Skill.Hero.LiliaCos20GloryLeague.Cos20GloryLeagueLight'],
       model: {

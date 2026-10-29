@@ -210,6 +210,14 @@ export const SERIA_ASSETS: HeroAssets = {
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Seria_Glory.webp',
       title: 'Seria of Honor (Call of Dawn)',
+      // King's Raid's own effects of its Glory League costume, for its moves instead of its hero's (KR-extracted/scripts/tm-glory-vfx.mjs).
+      vfx: {
+        attack: { start: ['Skill.Hero.SeriaCos20GloryLeague.Attack1.Casting1', 'Skill.Hero.SeriaCos20GloryLeague.Attack1.Casting3', 'Skill.Hero.SeriaCos20GloryLeague.Attack1.Casting2'], land: ['Skill.Hero.SeriaCos20GloryLeague.Attack1.Hit'] },
+        petals: { start: ['Skill.Hero.SeriaCos20GloryLeague.Skill1-1.Casting', 'Skill.Hero.SeriaCos20GloryLeague.Skill1-2.Casting'], land: ['Skill.Hero.SeriaCos20GloryLeague.Hit1', 'Skill.Hero.SeriaCos20GloryLeague.Hit2'] },
+        scatter: { start: ['Skill.Hero.SeriaCos20GloryLeague.Skill2.Slash', 'Skill.Hero.SeriaCos20GloryLeague.Skill2.Casting'], land: ['Skill.Hero.SeriaCos20GloryLeague.Skill2.HitLoop', 'Skill.Hero.SeriaCos20GloryLeague.Skill2.Hit'] },
+        moon: { start: ['Skill.Hero.Seria.Skill3.Casting1Loop', 'Skill.Hero.SeriaCos20GloryLeague.Skill3.Casting2', 'Skill.Hero.SeriaCos20GloryLeague.Skill3.Casting1', 'Skill.Hero.SeriaCos20GloryLeague.Skill3.Moon1', 'Skill.Hero.SeriaCos20GloryLeague.Skill3.Moon2', 'Skill.Hero.SeriaCos20GloryLeague.Skill3.Moon3', 'Skill.Hero.Seria.Skill3.Icon'] },
+        blossom: { start: ['Skill.Hero.SeriaCos20GloryLeague.Skill1-1.Casting', 'Skill.Hero.SeriaCos20GloryLeague.Skill1-2.Casting'], land: ['Skill.Hero.SeriaCos20GloryLeague.Hit1', 'Skill.Hero.SeriaCos20GloryLeague.Hit2'] },
+      },
       model: {
         kind: 'parts',
         animations: ANIMATIONS,
@@ -231,6 +239,14 @@ export const SERIA_ASSETS: HeroAssets = {
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Seria_Glory2.webp',
       title: 'Seria of Glaring Honor (Call of Dawn)',
+      // King's Raid's own effects of its Glory League costume, for its moves instead of its hero's (KR-extracted/scripts/tm-glory-vfx.mjs).
+      vfx: {
+        attack: { start: ['Skill.Hero.SeriaCos20GloryLeague.Attack1.Casting1', 'Skill.Hero.SeriaCos20GloryLeague.Attack1.Casting3', 'Skill.Hero.SeriaCos20GloryLeague.Attack1.Casting2'], land: ['Skill.Hero.SeriaCos20GloryLeague.Attack1.Hit'] },
+        petals: { start: ['Skill.Hero.SeriaCos20GloryLeague.Skill1-1.Casting', 'Skill.Hero.SeriaCos20GloryLeague.Skill1-2.Casting'], land: ['Skill.Hero.SeriaCos20GloryLeague.Hit1', 'Skill.Hero.SeriaCos20GloryLeague.Hit2'] },
+        scatter: { start: ['Skill.Hero.SeriaCos20GloryLeague.Skill2.Slash', 'Skill.Hero.SeriaCos20GloryLeague.Skill2.Casting'], land: ['Skill.Hero.SeriaCos20GloryLeague.Skill2.HitLoop', 'Skill.Hero.SeriaCos20GloryLeague.Skill2.Hit'] },
+        moon: { start: ['Skill.Hero.Seria.Skill3.Casting1Loop', 'Skill.Hero.SeriaCos20GloryLeague.Skill3.Casting2', 'Skill.Hero.SeriaCos20GloryLeague.Skill3.Casting1', 'Skill.Hero.SeriaCos20GloryLeague.Skill3.Moon1', 'Skill.Hero.SeriaCos20GloryLeague.Skill3.Moon2', 'Skill.Hero.SeriaCos20GloryLeague.Skill3.Moon3', 'Skill.Hero.Seria.Skill3.Icon'] },
+        blossom: { start: ['Skill.Hero.SeriaCos20GloryLeague.Skill1-1.Casting', 'Skill.Hero.SeriaCos20GloryLeague.Skill1-2.Casting'], land: ['Skill.Hero.SeriaCos20GloryLeague.Hit1', 'Skill.Hero.SeriaCos20GloryLeague.Hit2'] },
+      },
       model: {
         kind: 'parts',
         animations: ANIMATIONS,

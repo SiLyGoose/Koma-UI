@@ -200,6 +200,10 @@ export const MIRIANNE_ASSETS: HeroAssets = {
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Mirianne_Glory.webp',
       title: 'Mirianne of Honor',
+      // King's Raid's own effects of its Glory League costume, for its moves instead of its hero's (KR-extracted/scripts/tm-glory-vfx.mjs).
+      vfx: {
+        lockon: { land: ['Skill.Hero.Mirianne19GloryLeague.HitLoop'] },
+      },
       model: {
         kind: 'parts',
         animations: ANIMATIONS,
@@ -268,6 +272,10 @@ export const MIRIANNE_ASSETS: HeroAssets = {
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Mirianne_Glory2.webp',
       title: 'Mirianne of Brilliant Honor',
+      // King's Raid's own effects of its Glory League costume, for its moves instead of its hero's (KR-extracted/scripts/tm-glory-vfx.mjs).
+      vfx: {
+        lockon: { land: ['Skill.Hero.Mirianne19GloryLeague.HitLoop'] },
+      },
       // What King's Raid keeps on it all the while.
       wears: ['Skill.Hero.Mirianne19GloryLeague.Cos19GloryLeagueParts'],
       model: {
@@ -287,6 +295,10 @@ export const MIRIANNE_ASSETS: HeroAssets = {
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Mirianne_Glory3.webp',
       title: 'Mirianne of Glaring Honor',
+      // King's Raid's own effects of its Glory League costume, for its moves instead of its hero's (KR-extracted/scripts/tm-glory-vfx.mjs).
+      vfx: {
+        lockon: { land: ['Skill.Hero.Mirianne19GloryLeague.HitLoop'] },
+      },
       // What King's Raid keeps on it all the while.
       wears: ['Skill.Hero.Mirianne19GloryLeague.Cos19GloryLeagueLight', 'Skill.Hero.Mirianne19GloryLeague.Cos19GloryLeagueParts'],
       model: {
@@ -306,6 +318,10 @@ export const MIRIANNE_ASSETS: HeroAssets = {
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Mirianne_Glory4.webp',
       title: 'Mirianne of Eternal Honor',
+      // King's Raid's own effects of its Glory League costume, for its moves instead of its hero's (KR-extracted/scripts/tm-glory-vfx.mjs).
+      vfx: {
+        lockon: { land: ['Skill.Hero.Mirianne19GloryLeague.HitLoop'] },
+      },
       // What King's Raid keeps on it all the while.
       wears: ['Skill.Hero.Mirianne19GloryLeague.Cos19GloryLeagueLight', 'Skill.Hero.Mirianne19GloryLeague.Cos19GloryLeagueParts', 'Skill.Hero.Mirianne19GloryLeague.Cos19GloryLeagueWeapon'],
       model: {

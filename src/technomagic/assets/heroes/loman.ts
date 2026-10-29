@@ -158,6 +158,13 @@ export const LOMAN_ASSETS: HeroAssets = {
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Loman_Glory.webp',
       title: 'Loman of Honor (Call of Dawn)',
+      // King's Raid's own effects of its Glory League costume, for its moves instead of its hero's (KR-extracted/scripts/tm-glory-vfx.mjs).
+      vfx: {
+        thrust: { start: ['Skill.Hero.LomanCos20GloryLeague.Attack1.Casting1', 'Skill.Hero.LomanCos20GloryLeague.Attack1.Casting3', 'Skill.Hero.LomanCos20GloryLeague.Attack1.Casting4', 'Skill.Hero.LomanCos20GloryLeague.Attack1.Casting2'], land: ['Skill.Hero.LomanCos20GloryLeague.Hit'] },
+        ground: { start: ['Skill.Hero.LomanCos20GloryLeague.Skill1.Casting'], land: ['Hit.Normal.StrikeBig'] },
+        shroud: { start: ['Skill.Hero.LomanCos20GloryLeague.Skill2.Casting'], land: ['Skill.Hero.Loman.Skill2.HitLoop', 'Skill.Hero.Loman.Skill2.Hit'] },
+        creed: { start: ['Skill.Hero.LomanCos20GloryLeague.Skill3-1.Casting', 'Skill.Hero.LomanCos20GloryLeague.Skill3-2.Casting', 'Skill.Hero.LomanCos20GloryLeague.Skill3-3.Casting'] },
+      },
       model: {
         kind: 'parts',
         animations: ANIMATIONS,
@@ -176,6 +183,13 @@ export const LOMAN_ASSETS: HeroAssets = {
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Loman_Glory2.webp',
       title: 'Loman of Glaring Honor (Call of Dawn)',
+      // King's Raid's own effects of its Glory League costume, for its moves instead of its hero's (KR-extracted/scripts/tm-glory-vfx.mjs).
+      vfx: {
+        thrust: { start: ['Skill.Hero.LomanCos20GloryLeague.Attack1.Casting1', 'Skill.Hero.LomanCos20GloryLeague.Attack1.Casting3', 'Skill.Hero.LomanCos20GloryLeague.Attack1.Casting4', 'Skill.Hero.LomanCos20GloryLeague.Attack1.Casting2'], land: ['Skill.Hero.LomanCos20GloryLeague.Hit'] },
+        ground: { start: ['Skill.Hero.LomanCos20GloryLeague.Skill1.Casting'], land: ['Hit.Normal.StrikeBig'] },
+        shroud: { start: ['Skill.Hero.LomanCos20GloryLeague.Skill2.Casting'], land: ['Skill.Hero.Loman.Skill2.HitLoop', 'Skill.Hero.Loman.Skill2.Hit'] },
+        creed: { start: ['Skill.Hero.LomanCos20GloryLeague.Skill3-1.Casting', 'Skill.Hero.LomanCos20GloryLeague.Skill3-2.Casting', 'Skill.Hero.LomanCos20GloryLeague.Skill3-3.Casting'] },
+      },
       model: {
         kind: 'parts',
         animations: ANIMATIONS,

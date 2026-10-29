@@ -182,6 +182,16 @@ export const EVAN_ASSETS: HeroAssets = {
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Evan_Glory.webp',
       title: 'Evan of Honor (Mythic Divine Beast)',
+      // King's Raid's own effects of its Glory League costume, for its moves instead of its hero's (KR-extracted/scripts/tm-glory-vfx.mjs).
+      vfx: {
+        attack: { start: ['Skill.Hero.EvanCos21GloryLeague.Attack1-2.Casting'], land: ['Skill.Hero.EvanCos21GloryLeague.Attack1-2.Projectile'] },
+        purify: { start: ['Skill.Hero.EvanCos21GloryLeague.Skill1-1.Buff', 'Skill.Hero.EvanCos21GloryLeague.Skill1-1.BuffEnd', 'Skill.Hero.EvanCos21GloryLeague.Skill1-1.Casting'] },
+        circle: { start: ['Skill.Hero.EvanCos21GloryLeague.Skill2-1.Loop', 'Skill.Hero.EvanCos21GloryLeague.Skill2-1.Casting', 'Skill.Hero.EvanCos21GloryLeague.Skill2-1.Buff'] },
+        origin: { start: ['Skill.Hero.EvanCos21GloryLeague.Skill3-1.Casting', 'Skill.Hero.EvanCos21GloryLeague.Skill3-1.Buff'] },
+        uproar: { start: ['Skill.Hero.EvanCos21GloryLeague.Skill1-2.Casting', 'Skill.Hero.EvanCos21GloryLeague.Skill1-2.Debuff'] },
+        gluttony: { start: ['Skill.Hero.EvanCos21GloryLeague.Skill2-2.Casting', 'Skill.Hero.EvanCos21GloryLeague.Skill2-2.Loop'], land: ['Skill.Hero.EvanCos21GloryLeague.Skill2-2.Hit'] },
+        rampage: { start: ['Skill.Hero.EvanCos21GloryLeague.Skill3-2.Casting'], land: ['Skill.Hero.EvanCos21GloryLeague.Skill3-2.Hit'] },
+      },
       model: {
         kind: 'parts',
         animations: ANIMATIONS,
@@ -199,6 +209,16 @@ export const EVAN_ASSETS: HeroAssets = {
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Evan_Glory2.webp',
       title: 'Evan of Glaring Honor (Pure Mythic Divine Beast)',
+      // King's Raid's own effects of its Glory League costume, for its moves instead of its hero's (KR-extracted/scripts/tm-glory-vfx.mjs).
+      vfx: {
+        attack: { start: ['Skill.Hero.EvanCos21GloryLeague.Attack1-2.Casting'], land: ['Skill.Hero.EvanCos21GloryLeague.Attack1-2.Projectile'] },
+        purify: { start: ['Skill.Hero.EvanCos21GloryLeague.Skill1-1.Buff', 'Skill.Hero.EvanCos21GloryLeague.Skill1-1.BuffEnd', 'Skill.Hero.EvanCos21GloryLeague.Skill1-1.Casting'] },
+        circle: { start: ['Skill.Hero.EvanCos21GloryLeague.Skill2-1.Loop', 'Skill.Hero.EvanCos21GloryLeague.Skill2-1.Casting', 'Skill.Hero.EvanCos21GloryLeague.Skill2-1.Buff'] },
+        origin: { start: ['Skill.Hero.EvanCos21GloryLeague.Skill3-1.Casting', 'Skill.Hero.EvanCos21GloryLeague.Skill3-1.Buff'] },
+        uproar: { start: ['Skill.Hero.EvanCos21GloryLeague.Skill1-2.Casting', 'Skill.Hero.EvanCos21GloryLeague.Skill1-2.Debuff'] },
+        gluttony: { start: ['Skill.Hero.EvanCos21GloryLeague.Skill2-2.Casting', 'Skill.Hero.EvanCos21GloryLeague.Skill2-2.Loop'], land: ['Skill.Hero.EvanCos21GloryLeague.Skill2-2.Hit'] },
+        rampage: { start: ['Skill.Hero.EvanCos21GloryLeague.Skill3-2.Casting'], land: ['Skill.Hero.EvanCos21GloryLeague.Skill3-2.Hit'] },
+      },
       // What King's Raid keeps on it all the while (tm-glory.mjs).
       wears: ['Skill.Hero.EvanCos21GloryLeague.Cos21GloryLeagueLight', 'Skill.Hero.EvanCos21GloryLeague.Cos21GloryLeagueParts'],
       model: {

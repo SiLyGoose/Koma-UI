@@ -151,6 +151,14 @@ export const LAVRIL_ASSETS: HeroAssets = {
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Lavril_Glory.webp',
       title: 'Lavril of Honor (Call of Dawn)',
+      // King's Raid's own effects of its Glory League costume, for its moves instead of its hero's (KR-extracted/scripts/tm-glory-vfx.mjs).
+      vfx: {
+        attack: { start: ['Skill.Hero.LavrilCos20GloryLeague.Attack1.Casting'], land: ['Skill.Hero.LavrilCos20GloryLeague.Attack1.Projectile', 'Skill.Hero.LavrilCos20GloryLeague.Attack1.Hit'] },
+        shoo: { start: ['Skill.Hero.LavrilCos20GloryLeague.Skill1.Casting', 'Skill.Hero.LavrilCos20GloryLeague.Skill1.Loop'], land: ['Skill.Hero.LavrilCos20GloryLeague.Skill1.Projectile', 'Skill.Hero.LavrilCos20GloryLeague.Skill1.Hit'] },
+        bear: { start: ['Skill.Hero.LavrilCos20GloryLeague.Skill2-1.Casting', 'Skill.Hero.LavrilCos20GloryLeague.Skill2-1.Loop'], land: ['Skill.Hero.LavrilCos20GloryLeague.Skill2-1.Projectile', 'Skill.Hero.LavrilCos20GloryLeague.Skill2-1.Hit'] },
+        scare: { start: ['Skill.Hero.LavrilCos20GloryLeague.Skill2-2.Casting', 'Skill.Hero.Lavril.Skill2-2.Debuff', 'Skill.Hero.LavrilCos20GloryLeague.Skill2-2.Loop'], land: ['Skill.Hero.LavrilCos20GloryLeague.Skill2-2.Hit', 'Skill.Hero.LavrilCos20GloryLeague.Skill2-2.Projectile'] },
+        alone: { start: ['Skill.Hero.LavrilCos20GloryLeague.Skill3.Loop', 'Skill.Hero.LavrilCos20GloryLeague.Skill3.Casting'], land: ['Skill.Hero.LavrilCos20GloryLeague.Skill3.Projectile'] },
+      },
       model: {
         kind: 'parts',
         animations: ANIMATIONS,
@@ -167,6 +175,14 @@ export const LAVRIL_ASSETS: HeroAssets = {
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Lavril_Glory2.webp',
       title: 'Lavril of Glaring Honor (Call of Dawn)',
+      // King's Raid's own effects of its Glory League costume, for its moves instead of its hero's (KR-extracted/scripts/tm-glory-vfx.mjs).
+      vfx: {
+        attack: { start: ['Skill.Hero.LavrilCos20GloryLeague.Attack1.Casting'], land: ['Skill.Hero.LavrilCos20GloryLeague.Attack1.Projectile', 'Skill.Hero.LavrilCos20GloryLeague.Attack1.Hit'] },
+        shoo: { start: ['Skill.Hero.LavrilCos20GloryLeague.Skill1.Casting', 'Skill.Hero.LavrilCos20GloryLeague.Skill1.Loop'], land: ['Skill.Hero.LavrilCos20GloryLeague.Skill1.Projectile', 'Skill.Hero.LavrilCos20GloryLeague.Skill1.Hit'] },
+        bear: { start: ['Skill.Hero.LavrilCos20GloryLeague.Skill2-1.Casting', 'Skill.Hero.LavrilCos20GloryLeague.Skill2-1.Loop'], land: ['Skill.Hero.LavrilCos20GloryLeague.Skill2-1.Projectile', 'Skill.Hero.LavrilCos20GloryLeague.Skill2-1.Hit'] },
+        scare: { start: ['Skill.Hero.LavrilCos20GloryLeague.Skill2-2.Casting', 'Skill.Hero.Lavril.Skill2-2.Debuff', 'Skill.Hero.LavrilCos20GloryLeague.Skill2-2.Loop'], land: ['Skill.Hero.LavrilCos20GloryLeague.Skill2-2.Hit', 'Skill.Hero.LavrilCos20GloryLeague.Skill2-2.Projectile'] },
+        alone: { start: ['Skill.Hero.LavrilCos20GloryLeague.Skill3.Loop', 'Skill.Hero.LavrilCos20GloryLeague.Skill3.Casting'], land: ['Skill.Hero.LavrilCos20GloryLeague.Skill3.Projectile'] },
+      },
       model: {
         kind: 'parts',
         animations: ANIMATIONS,

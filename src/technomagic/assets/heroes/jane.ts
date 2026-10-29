@@ -221,6 +221,13 @@ export const JANE_ASSETS: HeroAssets = {
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Jane_Glory.webp',
       title: 'Jane of Honor',
+      // King's Raid's own effects of its Glory League costume, for its moves instead of its hero's (KR-extracted/scripts/tm-glory-vfx.mjs).
+      vfx: {
+        attack: { start: ['Skill.Hero.JaneCos18GloryLeague.Attack1.3', 'Skill.Hero.JaneCos18GloryLeague.Attack1.2', 'Skill.Hero.JaneCos18GloryLeague.Attack1.1'], land: ['Hit.Normal.StrikeBig'] },
+        rites: { start: ['Skill.Hero.JaneCos18GloryLeague.Skill1.Casting'], land: ['Skill.Hero.JaneCos18GloryLeague.Skill1.Hit'] },
+        mark: { start: ['Skill.Hero.JaneCos18GloryLeague.Skill2.Mark', 'Skill.Hero.JaneCos18GloryLeague.Skill2.Casting'], land: ['Skill.Hero.JaneCos18GloryLeague.Skill2.Hit'] },
+        ruinday: { start: ['Skill.Hero.JaneCos18GloryLeague.Skill3.Casting'], land: ['Skill.Hero.Jane.Skill3.Hit'] },
+      },
       model: {
         kind: 'parts',
         animations: ANIMATIONS,
@@ -272,6 +279,13 @@ export const JANE_ASSETS: HeroAssets = {
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Jane_Glory2.webp',
       title: 'Jane of Brilliant Honor',
+      // King's Raid's own effects of its Glory League costume, for its moves instead of its hero's (KR-extracted/scripts/tm-glory-vfx.mjs).
+      vfx: {
+        attack: { start: ['Skill.Hero.JaneCos18GloryLeague.Attack1.3', 'Skill.Hero.JaneCos18GloryLeague.Attack1.2', 'Skill.Hero.JaneCos18GloryLeague.Attack1.1'], land: ['Hit.Normal.StrikeBig'] },
+        rites: { start: ['Skill.Hero.JaneCos18GloryLeague.Skill1.Casting'], land: ['Skill.Hero.JaneCos18GloryLeague.Skill1.Hit'] },
+        mark: { start: ['Skill.Hero.JaneCos18GloryLeague.Skill2.Mark', 'Skill.Hero.JaneCos18GloryLeague.Skill2.Casting'], land: ['Skill.Hero.JaneCos18GloryLeague.Skill2.Hit'] },
+        ruinday: { start: ['Skill.Hero.JaneCos18GloryLeague.Skill3.Casting'], land: ['Skill.Hero.Jane.Skill3.Hit'] },
+      },
       // What King's Raid keeps on it all the while.
       wears: ['Skill.Hero.JaneCos18GloryLeague.Cos18GloryLeague'],
       model: {
@@ -291,6 +305,13 @@ export const JANE_ASSETS: HeroAssets = {
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Jane_Glory3.webp',
       title: 'Champion Jane of Honor',
+      // King's Raid's own effects of its Glory League costume, for its moves instead of its hero's (KR-extracted/scripts/tm-glory-vfx.mjs).
+      vfx: {
+        attack: { start: ['Skill.Hero.JaneCos18GloryLeague.Attack1.3', 'Skill.Hero.JaneCos18GloryLeague.Attack1.2', 'Skill.Hero.JaneCos18GloryLeague.Attack1.1'], land: ['Hit.Normal.StrikeBig'] },
+        rites: { start: ['Skill.Hero.JaneCos18GloryLeague.Skill1.Casting'], land: ['Skill.Hero.JaneCos18GloryLeague.Skill1.Hit'] },
+        mark: { start: ['Skill.Hero.JaneCos18GloryLeague.Skill2.Mark', 'Skill.Hero.JaneCos18GloryLeague.Skill2.Casting'], land: ['Skill.Hero.JaneCos18GloryLeague.Skill2.Hit'] },
+        ruinday: { start: ['Skill.Hero.JaneCos18GloryLeague.Skill3.Casting'], land: ['Skill.Hero.Jane.Skill3.Hit'] },
+      },
       // What King's Raid keeps on it all the while.
       wears: ['Skill.Hero.JaneCos18GloryLeague.Cos18GloryLeague', 'Skill.Hero.JaneCos18GloryLeague.Cos18GloryLeagueLight'],
       model: {

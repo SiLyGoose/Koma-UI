@@ -187,6 +187,13 @@ export const THEO_ASSETS: HeroAssets = {
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Theo_Glory.webp',
       title: 'Theo of Honor',
+      // King's Raid's own effects of its Glory League costume, for its moves instead of its hero's (KR-extracted/scripts/tm-glory-vfx.mjs).
+      vfx: {
+        attack: { start: ['Skill.Hero.Theo19GloryLeague.Attack1.Casting1'], land: ['Skill.Hero.Theo19GloryLeague.Attack1.Hit'] },
+        crash: { start: ['Skill.Hero.Theo19GloryLeague.Skill1.Casting'] },
+        thunder: { start: ['Skill.Hero.Theo19GloryLeague.Skill2.Casting'], land: ['Skill.Hero.Theo19GloryLeague.Skill2.HitLoop2', 'Skill.Hero.Theo19GloryLeague.Skill2.Hit', 'Skill.Hero.Theo19GloryLeague.Skill2.HitLoop', 'Skill.Hero.Theo19GloryLeague.Skill2.Projectile'] },
+        explosion: { start: ['Skill.Hero.Theo19GloryLeague.Skill3.Casting'], land: ['Skill.Hero.Theo19GloryLeague.Skill3.Hit'] },
+      },
       model: {
         kind: 'parts',
         animations: ANIMATIONS,
@@ -255,6 +262,13 @@ export const THEO_ASSETS: HeroAssets = {
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Theo_Glory2.webp',
       title: 'Theo of Brilliant Honor',
+      // King's Raid's own effects of its Glory League costume, for its moves instead of its hero's (KR-extracted/scripts/tm-glory-vfx.mjs).
+      vfx: {
+        attack: { start: ['Skill.Hero.Theo19GloryLeague.Attack1.Casting1'], land: ['Skill.Hero.Theo19GloryLeague.Attack1.Hit'] },
+        crash: { start: ['Skill.Hero.Theo19GloryLeague.Skill1.Casting'] },
+        thunder: { start: ['Skill.Hero.Theo19GloryLeague.Skill2.Casting'], land: ['Skill.Hero.Theo19GloryLeague.Skill2.HitLoop2', 'Skill.Hero.Theo19GloryLeague.Skill2.Hit', 'Skill.Hero.Theo19GloryLeague.Skill2.HitLoop', 'Skill.Hero.Theo19GloryLeague.Skill2.Projectile'] },
+        explosion: { start: ['Skill.Hero.Theo19GloryLeague.Skill3.Casting'], land: ['Skill.Hero.Theo19GloryLeague.Skill3.Hit'] },
+      },
       // What King's Raid keeps on it all the while.
       wears: ['Skill.Hero.TheoCos19GloryLeague.Cos19GloryLeagueLight2'],
       model: {
@@ -274,6 +288,13 @@ export const THEO_ASSETS: HeroAssets = {
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Theo_Glory3.webp',
       title: 'Theo of Glaring Honor',
+      // King's Raid's own effects of its Glory League costume, for its moves instead of its hero's (KR-extracted/scripts/tm-glory-vfx.mjs).
+      vfx: {
+        attack: { start: ['Skill.Hero.Theo19GloryLeague.Attack1.Casting1'], land: ['Skill.Hero.Theo19GloryLeague.Attack1.Hit'] },
+        crash: { start: ['Skill.Hero.Theo19GloryLeague.Skill1.Casting'] },
+        thunder: { start: ['Skill.Hero.Theo19GloryLeague.Skill2.Casting'], land: ['Skill.Hero.Theo19GloryLeague.Skill2.HitLoop2', 'Skill.Hero.Theo19GloryLeague.Skill2.Hit', 'Skill.Hero.Theo19GloryLeague.Skill2.HitLoop', 'Skill.Hero.Theo19GloryLeague.Skill2.Projectile'] },
+        explosion: { start: ['Skill.Hero.Theo19GloryLeague.Skill3.Casting'], land: ['Skill.Hero.Theo19GloryLeague.Skill3.Hit'] },
+      },
       // What King's Raid keeps on it all the while.
       wears: ['Skill.Hero.TheoCos19GloryLeague.Cos19GloryLeagueLight1', 'Skill.Hero.TheoCos19GloryLeague.Cos19GloryLeagueLight2'],
       model: {
@@ -293,6 +314,13 @@ export const THEO_ASSETS: HeroAssets = {
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Theo_Glory4.webp',
       title: 'Theo of Eternal Honor',
+      // King's Raid's own effects of its Glory League costume, for its moves instead of its hero's (KR-extracted/scripts/tm-glory-vfx.mjs).
+      vfx: {
+        attack: { start: ['Skill.Hero.Theo19GloryLeague.Attack1.Casting1'], land: ['Skill.Hero.Theo19GloryLeague.Attack1.Hit'] },
+        crash: { start: ['Skill.Hero.Theo19GloryLeague.Skill1.Casting'] },
+        thunder: { start: ['Skill.Hero.Theo19GloryLeague.Skill2.Casting'], land: ['Skill.Hero.Theo19GloryLeague.Skill2.HitLoop2', 'Skill.Hero.Theo19GloryLeague.Skill2.Hit', 'Skill.Hero.Theo19GloryLeague.Skill2.HitLoop', 'Skill.Hero.Theo19GloryLeague.Skill2.Projectile'] },
+        explosion: { start: ['Skill.Hero.Theo19GloryLeague.Skill3.Casting'], land: ['Skill.Hero.Theo19GloryLeague.Skill3.Hit'] },
+      },
       // What King's Raid keeps on it all the while.
       wears: ['Skill.Hero.TheoCos19GloryLeague.Cos19GloryLeagueLight1', 'Skill.Hero.TheoCos19GloryLeague.Cos19GloryLeagueLight2'],
       model: {

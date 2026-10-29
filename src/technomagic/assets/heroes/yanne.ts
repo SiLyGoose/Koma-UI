@@ -256,6 +256,8 @@ export const YANNE_ASSETS: HeroAssets = {
         wipeout: { start: ['Skill.Hero.YanneCos22Legend.Skill2.Target', 'Skill.Hero.YanneCos22Legend.Skill2-1.Casting'], land: ['Skill.Hero.YanneCos22Legend.Skill2-1.Hit', 'Skill.Hero.YanneCos22Legend.Skill2-1.Projectile'] },
         unleash: { start: ['Skill.Hero.YanneCos22Legend.Skill3.Casting', 'Skill.Hero.YanneCos22Legend.Skill3.Loop'] },
       },
+      // What King's Raid keeps on it all the while (its hair's glow: its model's SelfEffectList "Always" one).
+      wears: ['Skill.Hero.YanneCos22Legend.Hair'],
       model: {
         kind: 'parts',
         animations: LEGEND_ANIMATIONS,

@@ -173,6 +173,13 @@ export const LAIAS_ASSETS: HeroAssets = {
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Laias_Glory.webp',
       title: 'Laias of Honor',
+      // King's Raid's own effects of its Glory League costume, for its moves instead of its hero's (KR-extracted/scripts/tm-glory-vfx.mjs).
+      vfx: {
+        splash: { start: ['Skill.Hero.EllCos18GloryLeague.Attack1.Casting'], land: ['Skill.Hero.EllCos18GloryLeague.Attack1.Hit', 'Skill.Hero.EllCos18GloryLeague.Attack1.Projectile'] },
+        droplets: { start: ['Skill.Hero.EllCos18GloryLeague.Skill1.Casting'], land: ['Skill.Hero.EllCos18GloryLeague.Skill1.Hit', 'Skill.Hero.EllCos18GloryLeague.Skill1.Projectile'] },
+        bubble: { start: ['Skill.Hero.EllCos18GloryLeague.Skill2.Casting'], land: ['Skill.Hero.EllCos18GloryLeague.Skill2.Hit', 'Skill.Hero.Ell.Skill2.Projectile'] },
+        festival: { start: ['Skill.Hero.EllCos18GloryLeague.Skill3.Casting'], land: ['Skill.Hero.Ell.Re.Skill3.Hit'] },
+      },
       model: {
         kind: 'parts',
         animations: ANIMATIONS,
@@ -258,6 +265,13 @@ export const LAIAS_ASSETS: HeroAssets = {
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Laias_Glory2.webp',
       title: 'Laias of Brilliant Honor',
+      // King's Raid's own effects of its Glory League costume, for its moves instead of its hero's (KR-extracted/scripts/tm-glory-vfx.mjs).
+      vfx: {
+        splash: { start: ['Skill.Hero.EllCos18GloryLeague.Attack1.Casting'], land: ['Skill.Hero.EllCos18GloryLeague.Attack1.Hit', 'Skill.Hero.EllCos18GloryLeague.Attack1.Projectile'] },
+        droplets: { start: ['Skill.Hero.EllCos18GloryLeague.Skill1.Casting'], land: ['Skill.Hero.EllCos18GloryLeague.Skill1.Hit', 'Skill.Hero.EllCos18GloryLeague.Skill1.Projectile'] },
+        bubble: { start: ['Skill.Hero.EllCos18GloryLeague.Skill2.Casting'], land: ['Skill.Hero.EllCos18GloryLeague.Skill2.Hit', 'Skill.Hero.Ell.Skill2.Projectile'] },
+        festival: { start: ['Skill.Hero.EllCos18GloryLeague.Skill3.Casting'], land: ['Skill.Hero.Ell.Re.Skill3.Hit'] },
+      },
       // What King's Raid keeps on it all the while.
       wears: ['Skill.Hero.EllCos18GloryLeague.Cos18GloryLeague'],
       model: {
@@ -277,6 +291,13 @@ export const LAIAS_ASSETS: HeroAssets = {
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Laias_Glory3.webp',
       title: 'Champion Laias of Honor',
+      // King's Raid's own effects of its Glory League costume, for its moves instead of its hero's (KR-extracted/scripts/tm-glory-vfx.mjs).
+      vfx: {
+        splash: { start: ['Skill.Hero.EllCos18GloryLeague.Attack1.Casting'], land: ['Skill.Hero.EllCos18GloryLeague.Attack1.Hit', 'Skill.Hero.EllCos18GloryLeague.Attack1.Projectile'] },
+        droplets: { start: ['Skill.Hero.EllCos18GloryLeague.Skill1.Casting'], land: ['Skill.Hero.EllCos18GloryLeague.Skill1.Hit', 'Skill.Hero.EllCos18GloryLeague.Skill1.Projectile'] },
+        bubble: { start: ['Skill.Hero.EllCos18GloryLeague.Skill2.Casting'], land: ['Skill.Hero.EllCos18GloryLeague.Skill2.Hit', 'Skill.Hero.Ell.Skill2.Projectile'] },
+        festival: { start: ['Skill.Hero.EllCos18GloryLeague.Skill3.Casting'], land: ['Skill.Hero.Ell.Re.Skill3.Hit'] },
+      },
       // What King's Raid keeps on it all the while.
       wears: ['Skill.Hero.EllCos18GloryLeague.Cos18GloryLeague', 'Skill.Hero.EllCos18GloryLeague.Cos18GloryLeagueLight'],
       model: {

@@ -239,6 +239,13 @@ export const ANNETTE_ASSETS: HeroAssets = {
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Annette_Glory.webp',
       title: 'Annette of Honor (Blooming Blue Flame)',
+      // King's Raid's own effects of its Glory League costume, for its moves instead of its hero's (KR-extracted/scripts/tm-glory-vfx.mjs).
+      vfx: {
+        zap: { start: ['Skill.Hero.AnnetteCos21GloryLeague.Attack1.Casting'], land: ['Skill.Hero.AnnetteCos21GloryLeague.Attack1.Projectile', 'Skill.Hero.AnnetteCos21GloryLeague.Attack1.Hit'] },
+        ray: { start: ['Skill.Hero.AnnetteCos21GloryLeague.Skill1.Casting'] },
+        treatment: { start: ['Skill.Hero.AnnetteCos21GloryLeague.Skill2.Loop', 'Skill.Hero.AnnetteCos21GloryLeague.Skill2.Casting'], land: ['Skill.Hero.Annette.Skill2.Hit'] },
+        elimination: { start: ['Skill.Hero.AnnetteCos21GloryLeague.Skill3.Casting'], land: ['Skill.Hero.AnnetteCos21GloryLeague.Skill3.Hit', 'Skill.Hero.AnnetteCos21GloryLeague.Skill3.Projectile', 'Common.Shock'] },
+      },
       model: {
         kind: 'parts',
         animations: ANIMATIONS,
@@ -256,6 +263,13 @@ export const ANNETTE_ASSETS: HeroAssets = {
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Annette_Glory2.webp',
       title: 'Annette of Glaring Honor (Blooming Blue Flame)',
+      // King's Raid's own effects of its Glory League costume, for its moves instead of its hero's (KR-extracted/scripts/tm-glory-vfx.mjs).
+      vfx: {
+        zap: { start: ['Skill.Hero.AnnetteCos21GloryLeague.Attack1.Casting'], land: ['Skill.Hero.AnnetteCos21GloryLeague.Attack1.Projectile', 'Skill.Hero.AnnetteCos21GloryLeague.Attack1.Hit'] },
+        ray: { start: ['Skill.Hero.AnnetteCos21GloryLeague.Skill1.Casting'] },
+        treatment: { start: ['Skill.Hero.AnnetteCos21GloryLeague.Skill2.Loop', 'Skill.Hero.AnnetteCos21GloryLeague.Skill2.Casting'], land: ['Skill.Hero.Annette.Skill2.Hit'] },
+        elimination: { start: ['Skill.Hero.AnnetteCos21GloryLeague.Skill3.Casting'], land: ['Skill.Hero.AnnetteCos21GloryLeague.Skill3.Hit', 'Skill.Hero.AnnetteCos21GloryLeague.Skill3.Projectile', 'Common.Shock'] },
+      },
       model: {
         kind: 'parts',
         animations: ANIMATIONS,
