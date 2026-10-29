@@ -15,7 +15,7 @@ import type { Showcase } from '../heroes/model';
  * and, on a dark band, whether it's on, theirs, or its price; along the bottom the one picked's name and what it costs,
  * and Equip (theirs), Buy (not yet: for their zeiucoins, asked first), or, a hero they don't own, the way to recruit it.
  * Any look can be picked, to try it on. The hero is the address's (?hero=, the heroes page's Outfits button; ?outfit=, the
- * shop's Try On, picks one of its looks), picked again from all of them at the top. What each wears is the bot's (/api/hero-outfits), and the raid fights it in that.
+ * shop's Try On, picks one of its looks, and ?from=shop sends Back to the shop), picked again from all of them over the list. What each wears is the bot's (/api/hero-outfits), and the raid fights it in that.
  * Logged-in members only.
  */
 
@@ -29,6 +29,7 @@ interface Ui {
   status: HTMLElement;
   room: HTMLElement;
   card: HTMLImageElement;
+  loading: HTMLElement;
   model: HTMLCanvasElement;
   list: HTMLElement;
   name: HTMLElement;
@@ -48,6 +49,8 @@ interface Context {
   view: HeroOutfitsView | null;
   /** The hero whose outfits these are. */
   hero: string;
+  /** They came from the shop's Hero Outfits tab (its Try On: ?from=shop): Back goes there, not to the heroes page. */
+  fromShop: boolean;
   /** The look picked (its skin's name): the one it wears, to begin with. */
   picked: string | null;
   /** A buy or an equip on its way (its button: 'buy', 'equip'). */
@@ -69,6 +72,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void; 
       status: $('status'),
       room: $('room'),
       card: $('card'),
+      loading: $('loading'),
       model: $('model'),
       list: $('list'),
       name: $('name'),
@@ -84,6 +88,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void; 
     },
     view: null,
     hero: heroAt(new URL(location.href)),
+    fromShop: new URL(location.href).searchParams.get('from') === 'shop',
     // (The shop's Try On names the outfit.)
     picked: new URL(location.href).searchParams.get('outfit'),
     busy: null,
@@ -107,7 +112,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void; 
   ctx.heroPicker = heroPicker;
   ui.hero.addEventListener('change', () => {
     pickHero(ctx, ui.hero.value);
-    history.replaceState(history.state, '', `/hero-outfits/?hero=${encodeURIComponent(ctx.hero)}`);
+    history.replaceState(history.state, '', `/hero-outfits/?hero=${encodeURIComponent(ctx.hero)}${ctx.fromShop ? '&from=shop' : ''}`);
   });
   const serverPicker = dropdown(ui.server);
   ui.server.addEventListener('change', () => {
@@ -179,12 +184,12 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void; 
       void ctx.showcase?.then((showcase) => showcase?.destroy());
     },
     navigate: (url) => {
+      ctx.fromShop = url.searchParams.get('from') === 'shop';
       pickHero(ctx, heroAt(url));
       const outfit = url.searchParams.get('outfit');
-      if (outfit && outfit !== ctx.picked) {
-        ctx.picked = outfit;
-        render(ctx);
-      }
+      if (outfit) ctx.picked = outfit;
+      // (Back's way, and the look named, drawn.)
+      render(ctx);
     },
   };
 }
@@ -321,7 +326,9 @@ function render(ctx: Context): void {
     ui.hero.value = ctx.hero;
     ctx.heroPicker?.refresh();
   }
-  ui.back.href = `/heroes/?hero=${encodeURIComponent(ctx.hero)}`;
+  // Back to the shop's tab (whence Try On sent them), or to the hero on the heroes page.
+  ui.back.href = ctx.fromShop ? '/shop/hero-outfits/' : `/heroes/?hero=${encodeURIComponent(ctx.hero)}`;
+  ui.back.setAttribute('aria-label', ctx.fromShop ? 'Back to Hero Outfits' : 'Back to Heroes');
   document.title = `${name}'s Outfits · Komaverse`;
   ui.balance.hidden = !view;
   ui.room.hidden = !view || looks.length === 0;
@@ -350,15 +357,23 @@ function render(ctx: Context): void {
   if (!ui.confirm.hidden) renderConfirm(ctx);
 }
 
-/** The look picked on the stage: its model (read once three.js is), its card till then and where it can't be. */
+/** How long a look may take to read before the loading sprite shows (one read before, or nearly: none, so it doesn't flash). */
+const LOADING_AFTER_MS = 150;
+
+/**
+ * The look picked on the stage: its model (read once three.js is); meanwhile the stage empty (the look before gone), the
+ * loading sprite in it should that take a moment; its card where its model can't be read.
+ */
 function showLook(ctx: Context, look: HeroLook): void {
   const { ui } = ctx;
   const key = `${look.hero}:${look.skin}`;
   if (ui.model.dataset.look === key) return;
   ui.model.dataset.look = key;
-  ui.room.classList.remove('modelled');
-  ui.card.hidden = !look.card;
-  if (look.card) ui.card.src = look.card;
+  ui.room.classList.add('reading');
+  ui.card.hidden = true;
+  const loading = setTimeout(() => {
+    if (ui.model.dataset.look === key) ui.loading.hidden = false;
+  }, LOADING_AFTER_MS);
   ctx.showcase ??= import('../heroes/model')
     .then(({ makeShowcase }) => makeShowcase(ui.model, { whole: true }))
     .catch((error: unknown) => {
@@ -372,7 +387,15 @@ function showLook(ctx: Context, look: HeroLook): void {
       return false;
     })
     .then((shown) => {
-      if (shown && ui.model.dataset.look === key) ui.room.classList.add('modelled');
+      // (Another picked meanwhile: that one's to show.)
+      if (ui.model.dataset.look !== key) return;
+      clearTimeout(loading);
+      ui.loading.hidden = true;
+      // (Its model can't be read: the stage kept empty of the one before.)
+      ui.room.classList.toggle('reading', !shown);
+      // Its model can't be read (no WebGL, or not on this computer): its card in its place.
+      ui.card.hidden = shown || !look.card;
+      if (!shown && look.card) ui.card.src = look.card;
     });
 }
 

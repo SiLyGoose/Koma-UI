@@ -295,7 +295,8 @@ function renderBuy(ctx: Context): void {
   ui.buyPrice.title = `${points(buying.price)} zeiucoins (you have ${points(view.balance)})`;
   // Try it on (or, theirs, put it on) in its hero's outfit room.
   ui.buyTry.textContent = theirs ? 'Go to Outfits' : 'Try On';
-  ui.buyTry.href = `/hero-outfits/?hero=${encodeURIComponent(buying.hero)}&outfit=${encodeURIComponent(buying.id)}`;
+  // (?from=shop: its Back comes back here.)
+  ui.buyTry.href = `/hero-outfits/?hero=${encodeURIComponent(buying.hero)}&outfit=${encodeURIComponent(buying.id)}&from=shop`;
   ui.buyConfirm.hidden = theirs || state === 'locked';
   ui.buyConfirm.disabled = state === 'short';
   ui.buyRecruit.hidden = state !== 'locked';

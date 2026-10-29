@@ -1,12 +1,11 @@
 <!-- A hero's outfit room (src/hero-outfits/page.ts), as King's Raid's Costume screen: the hero standing whole, its outfits down the left, the one picked's name and Equip (or Buy) along the bottom. Swapped into #view by src/site/main.ts. -->
 <main class="ho-page">
   <div class="ho-bar">
+    <!-- Back where they came from: the shop's Hero Outfits tab (its Try On: ?from=shop), else the hero on the heroes page. -->
     <a id="back" class="ho-back action secondary icon" href="/heroes/" aria-label="Back to Heroes">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 5 3.5 12l7 7v-4.5H20v-5h-9.5z" /></svg>
     </a>
     <h1 class="ho-title">Outfits</h1>
-    <!-- Whose outfits: the hero's, picked from all of them (King's Raid's Select Hero). -->
-    <select id="hero" class="ho-hero-pick" aria-label="Hero" hidden></select>
     <select id="server" class="server-pick" aria-label="Server" hidden></select>
     <p class="ho-wallet"><span id="balance" class="outfits-purse" title="zeiucoins" hidden></span></p>
   </div>
@@ -14,16 +13,28 @@
   <p id="status" class="status ho-status" hidden></p>
 
   <div id="room" class="ho-room" hidden>
-    <!-- The hero, whole, in the outfit picked (src/heroes/model.ts): turned by dragging it. Its card till its model is read, or where it can't be. -->
+    <!--
+      The hero, whole, in the outfit picked (src/heroes/model.ts): turned by dragging it. Till its model is read, the site's loading
+      sprite bouncing over "Loading…"; its card, where its model can't be read.
+    -->
     <section class="ho-stage" aria-live="polite">
       <img id="card" class="ho-card" alt="" hidden />
+      <div id="loading" class="ho-loading" hidden>
+        <span class="ho-loading-sprite" aria-hidden="true"></span>
+        <span class="ho-loading-shadow" aria-hidden="true"></span>
+        <p class="ho-loading-text">Loading…</p>
+      </div>
       <canvas id="model" class="ho-model" aria-label="The hero in the outfit picked: drag to turn it"></canvas>
       <div class="ho-floor" aria-hidden="true"></div>
     </section>
 
     <!-- Its looks (render.ts): its own first, then its outfits, each a row with its picture, its name, and whether it's on, theirs, or its price. -->
     <section class="ho-list-panel" aria-labelledby="list-title">
-      <h2 id="list-title" class="ho-list-title">Costume</h2>
+      <!-- Its name, and at the right whose outfits: the hero's, picked from all of them (King's Raid's Select Hero). -->
+      <div class="ho-list-head">
+        <h2 id="list-title" class="ho-list-title">Costume</h2>
+        <select id="hero" class="ho-hero-pick" aria-label="Hero" hidden></select>
+      </div>
       <div id="list" class="ho-list" role="listbox" aria-labelledby="list-title"></div>
     </section>
 
