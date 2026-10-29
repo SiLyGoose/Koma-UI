@@ -248,5 +248,43 @@ export const LAIAS_ASSETS: HeroAssets = {
         right: 'Hero_Ell_Cos21Summer_Weapon',
       },
     },
+    // Its Glory League costume's Brilliant Honor tier: the same model, wearing its effects (tm-glory.mjs).
+    {
+      name: 'Laias_Glory2',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Laias_Glory2.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Laias_Glory2.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Laias_Glory2.webp',
+      title: 'Laias of Brilliant Honor',
+      // What King's Raid keeps on it all the while.
+      wears: ['Skill.Hero.EllCos18GloryLeague.Cos18GloryLeague'],
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Ell_Cos18GloryLeague_Body', 'Hero_Ell_Cos18GloryLeague_Hair'],
+        right: 'Hero_Ell_Cos18GloryLeague_Weapon',
+      },
+    },
+    // Its Glory League costume's Honor tier: the same model, wearing its effects (tm-glory.mjs).
+    {
+      name: 'Laias_Glory3',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Laias_Glory3.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Laias_Glory3.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Laias_Glory3.webp',
+      title: 'Champion Laias of Honor',
+      // What King's Raid keeps on it all the while.
+      wears: ['Skill.Hero.EllCos18GloryLeague.Cos18GloryLeague', 'Skill.Hero.EllCos18GloryLeague.Cos18GloryLeagueLight'],
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Ell_Cos18GloryLeague_Body', 'Hero_Ell_Cos18GloryLeague_Hair'],
+        right: 'Hero_Ell_Cos18GloryLeague_Weapon',
+      },
+    },
   ],
 };

@@ -46,6 +46,9 @@ export const inSkin = (hero: HeroAssets, skin: string | undefined): HeroAssets =
   return vfx ? { ...hero, vfx } : hero;
 };
 
+/** The effects a hero's skin `skin` (by its name) wears all the while (SkinAssets.wears). */
+export const wornBy = (hero: HeroAssets, skin: string | undefined): readonly string[] => hero.skins.find((one) => one.name === skin)?.wears ?? [];
+
 /** Every effect a hero's moves play, what its skills keep on a hero they guard, and what its fx play themselves. */
 export const heroEffects = (hero: HeroAssets): string[] => [
   ...Object.values(hero.vfx ?? {}).flatMap((move) => [...(move.start ?? []), ...(move.land ?? [])]),
@@ -115,10 +118,17 @@ function makeFlights(kr: KrEffects, scene: Object3D): Flights {
   };
 }
 
-/** The effects of `heroes`' moves (by their index among the fighters; `bodies` theirs on the field), their blows landing at `target`; projectiles flown in `scene`. */
-export function makeKrMoves(kr: KrEffects, heroes: readonly HeroAssets[], bodies: readonly Hero[], target: Vector3, scene: Object3D): KrMoves {
+/**
+ * The effects of `heroes`' moves (by their index among the fighters; `bodies` theirs on the field), their blows landing at
+ * `target`; projectiles flown in `scene`. And what each wears all the while (`worn`, by the same index: its skin's), on it
+ * from when it has been read till the fight is done with.
+ */
+export function makeKrMoves(kr: KrEffects, heroes: readonly HeroAssets[], bodies: readonly Hero[], target: Vector3, scene: Object3D, worn: readonly (readonly string[])[] = []): KrMoves {
   // Read as the fight begins (the fight's heroes' alone), unless they were already (in a room, as each was picked).
-  kr.read(heroes.flatMap(heroEffects));
+  kr.read([...heroes.flatMap(heroEffects), ...worn.flat()]);
+  /** What each hero wears not on it yet (by its index): put on as it's read. */
+  const toWear = worn.map((codes) => new Set(codes));
+  const wearing: (() => void)[] = [];
   const begun = new Map<string, number>();
   const last = new Map<string, number>();
   /** How many projectiles each hero's move has flown (of several, each in turn). */
@@ -170,8 +180,23 @@ export function makeKrMoves(kr: KrEffects, heroes: readonly HeroAssets[], bodies
       flights.fly(projectiles[n % projectiles.length] as string, from, target, time, HERO_TURN, SCALE, rest.filter((code) => !shot(code)));
       return true;
     },
-    update: (dt) => flights.update(dt),
-    clear: () => flights.clear(),
+    update(dt) {
+      flights.update(dt);
+      toWear.forEach((codes, who) => {
+        const body = bodies[who];
+        if (!body) return;
+        for (const code of codes)
+          if (kr.ready(code)) {
+            wearing.push(kr.play(code, { on: body.root, scale: SCALE, lasts: Infinity }));
+            codes.delete(code);
+          }
+      });
+    },
+    clear() {
+      flights.clear();
+      for (const stop of wearing.splice(0)) stop();
+      for (const codes of toWear) codes.clear();
+    },
   };
 }
 

@@ -126,6 +126,11 @@ export interface SkinAssets {
   battle?: string;
   /** King's Raid's own effects of its look (a Legend Costume's), for its moves instead of its hero's `vfx` (as those are). */
   vfx?: HeroAssets['vfx'];
+  /**
+   * King's Raid's own effects it wears all the while (a Glory League tier's light and floating parts, the creature's
+   * SelfEffectList "Always" ones: KR-extracted/scripts/tm-glory.mjs), each hung on its body's bones.
+   */
+  wears?: readonly string[];
   model: PartsModel;
 }
 

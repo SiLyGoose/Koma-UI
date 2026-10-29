@@ -189,5 +189,26 @@ export const GLENWYS_ASSETS: HeroAssets = {
         blade: 'y',
       },
     },
+    // Its Glory League costume's Glaring Honor tier: the same model, wearing its effects (tm-glory.mjs).
+    {
+      name: 'Glenwys_Glory2',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Glenwys_Glory2.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Glenwys_Glory2.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Glenwys_Glory2.webp',
+      title: 'Glenwys of Glaring Honor (Light of the Blue Night Sky)',
+      // What King's Raid keeps on it all the while.
+      wears: ['Skill.Hero.GlenwysCos19GloryLeague.Cos19GloryLeagueLight', 'Skill.Hero.GlenwysCos19GloryLeague.Cos19GloryLeagueParts'],
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Glenwys_Cos20GloryLeague_Body', 'Hero_Glenwys_Hair_01'],
+        left: 'Hero_Glenwys_Cos20GloryLeague_Shield',
+        right: 'Hero_Glenwys_Cos20GloryLeague_Gunblade',
+        blade: 'y',
+      },
+    },
   ],
 };

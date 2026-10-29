@@ -1,4 +1,4 @@
-import { CanvasTexture, CustomBlending, DoubleSide, FrontSide, LoadingManager, MeshBasicMaterial, NoColorSpace, OneFactor, RepeatWrapping, SRGBColorSpace, Texture, Vector2, Vector3, Vector4, type Group, type Material, type Mesh } from 'three';
+import { CanvasTexture, CustomBlending, DoubleSide, FrontSide, LoadingManager, MeshBasicMaterial, NoColorSpace, OneFactor, RepeatWrapping, SRGBColorSpace, Texture, Vector2, Vector3, Vector4, ZeroFactor, type Group, type Material, type Mesh } from 'three';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
 import { built, builtSmall, texturesBuilt } from '../../shared/built';
 import { LOCAL } from '../assets';
@@ -129,7 +129,7 @@ const placeOf = (one: AuraPicture | undefined): { st: Vector4; move: Vector3 } =
  */
 async function auraMaterial(name: string, aura: Aura): Promise<MeshBasicMaterial> {
   const [main, tile, noise, mask] = await Promise.all([aura.main, aura.tile, aura.noise, aura.mask].map((one) => (one ? auraPicture(one.file) : Promise.resolve(null))));
-  const material = new MeshBasicMaterial({ name, map: main, side: FrontSide, transparent: true, depthWrite: false, blending: CustomBlending, blendSrc: OneFactor, blendDst: OneFactor });
+  const material = new MeshBasicMaterial({ name, map: main, side: FrontSide, transparent: true, depthWrite: false, blending: CustomBlending, blendSrc: OneFactor, blendDst: OneFactor, blendSrcAlpha: ZeroFactor, blendDstAlpha: OneFactor });
   const uniforms = {
     auraTime,
     auraKind: { value: aura.kind === 'mask' ? 0 : 1 },

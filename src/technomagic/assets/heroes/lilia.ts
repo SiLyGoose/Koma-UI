@@ -192,5 +192,24 @@ export const LILIA_ASSETS: HeroAssets = {
         right: 'Hero_Lilia_Cos21Wedding_Weapon',
       },
     },
+    // Its Glory League costume's Glaring Honor tier: the same model, wearing its effects (tm-glory.mjs).
+    {
+      name: 'Lilia_Glory2',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Lilia_Glory2.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Lilia_Glory2.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Lilia_Glory2.webp',
+      title: 'Lilia of Glaring Honor (Brilliance of the Azure Sky)',
+      // What King's Raid keeps on it all the while.
+      wears: ['Skill.Hero.LiliaCos20GloryLeague.Cos20GloryLeagueLight'],
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Lilia_Cos20GloryLeague_Body', 'Hero_Lilia_Cos20GloryLeague_Hair'],
+        right: 'Hero_Lilia_Cos20GloryLeague_Weapon',
+      },
+    },
   ],
 };

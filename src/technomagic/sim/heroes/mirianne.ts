@@ -66,7 +66,7 @@ export const MIRIANNE: HeroDef = {
   id: 'mirianne',
   name: 'Mirianne',
   class: 'assassin',
-  skins: ['Mirianne', 'Mirianne_Frozen', 'Mirianne_Wedding', 'Mirianne_Summer', 'Mirianne_Maid', 'Mirianne_Christmas', 'Mirianne_UserPick', 'Mirianne_UserPick1', 'Mirianne_Glory', 'Mirianne_School', 'Mirianne_Summer21', 'Mirianne_Halloween'],
+  skins: ['Mirianne', 'Mirianne_Frozen', 'Mirianne_Wedding', 'Mirianne_Summer', 'Mirianne_Maid', 'Mirianne_Christmas', 'Mirianne_UserPick', 'Mirianne_UserPick1', 'Mirianne_Glory', 'Mirianne_School', 'Mirianne_Summer21', 'Mirianne_Halloween', 'Mirianne_Glory2', 'Mirianne_Glory3', 'Mirianne_Glory4'],
   // An assassin whose blows are magical: as her class stands, otherwise.
   stats: { ...CLASS_STATS.assassin, deals: 'magical' },
   abilities: [

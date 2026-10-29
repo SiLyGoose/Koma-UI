@@ -76,7 +76,7 @@ export const ERZE: HeroDef = {
   id: 'erze',
   name: 'Erze',
   class: 'assassin',
-  skins: ['Erze', 'Erze_Maid', 'Erze_NewYear', 'Erze_Wedding', 'Erze_Summer', 'Erze_Job', 'Erze_School', 'Erze_DailyLook', 'Erze_Glory', 'Erze_Fallen'],
+  skins: ['Erze', 'Erze_Maid', 'Erze_NewYear', 'Erze_Wedding', 'Erze_Summer', 'Erze_Job', 'Erze_School', 'Erze_DailyLook', 'Erze_Glory', 'Erze_Fallen', 'Erze_Glory2'],
   // An assassin (her blows physical): as her class stands.
   stats: { ...CLASS_STATS.assassin, deals: 'physical' },
   abilities: [

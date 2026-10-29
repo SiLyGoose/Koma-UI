@@ -176,5 +176,24 @@ export const KIRZE_ASSETS: HeroAssets = {
         offHand: 'held',
       },
     },
+    // Its Glory League costume's Glaring Honor tier: the same model, wearing its effects (tm-glory.mjs).
+    {
+      name: 'Kirze_Glory2',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Kirze_Glory2.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Kirze_Glory2.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Kirze_Glory2.webp',
+      title: 'Kirze of Glaring Honor (Brilliance of the Azure Sky)',
+      // What King's Raid keeps on it all the while.
+      wears: ['Skill.Hero.KirzeCos20GloryLeague.Cos20GloryLeagueLight'],
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Kirze_Cos20GloryLeague_Body', 'Hero_Kirze_Cos20GloryLeague_Hair'],
+        right: 'Hero_Kirze_Cos20GloryLeague_Weapon',
+      },
+    },
   ],
 };

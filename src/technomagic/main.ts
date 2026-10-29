@@ -326,8 +326,8 @@ async function start(): Promise<void> {
       });
       reading = Promise.all([loadHeroes([hero], { skin }).catch(unread), props.read(assets), Promise.all(pictures)]).then(async ([entrants]) => {
         // Its effects and sounds next (once its body is in: it can't fight without that, but can without these), so the fight begins with them.
-        // (And its look's own, where one read has them: a Legend Costume's.)
-        kr.read([...heroEffects(assets), ...entrants.flatMap(({ skin }) => (skin.vfx ? heroEffects(inSkin(assets, skin.name)) : []))]);
+        // (And its look's own, where one read has them: a Legend Costume's; and what a look wears all the while.)
+        kr.read([...heroEffects(assets), ...entrants.flatMap(({ skin }) => [...(skin.vfx ? heroEffects(inSkin(assets, skin.name)) : []), ...(skin.wears ?? [])])]);
         readSounds({ hero: assets });
         await Promise.all(
           entrants.map(async ({ skin }) => {

@@ -245,5 +245,62 @@ export const THEO_ASSETS: HeroAssets = {
         right: 'Hero_Theo_Cos21Fallen_Weapon',
       },
     },
+    // Its Glory League costume's Brilliant Honor tier: the same model, wearing its effects (tm-glory.mjs).
+    {
+      name: 'Theo_Glory2',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Theo_Glory2.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Theo_Glory2.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Theo_Glory2.webp',
+      title: 'Theo of Brilliant Honor',
+      // What King's Raid keeps on it all the while.
+      wears: ['Skill.Hero.TheoCos19GloryLeague.Cos19GloryLeagueLight2'],
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Theo_Cos19GloryLeague_Body', 'Hero_Theo_Hair_01'],
+        right: 'Hero_Theo_Cos19GloryLeague_Weapon',
+      },
+    },
+    // Its Glory League costume's Glaring Honor tier: the same model, wearing its effects (tm-glory.mjs).
+    {
+      name: 'Theo_Glory3',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Theo_Glory3.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Theo_Glory3.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Theo_Glory3.webp',
+      title: 'Theo of Glaring Honor',
+      // What King's Raid keeps on it all the while.
+      wears: ['Skill.Hero.TheoCos19GloryLeague.Cos19GloryLeagueLight1', 'Skill.Hero.TheoCos19GloryLeague.Cos19GloryLeagueLight2'],
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Theo_Cos19GloryLeague_Body', 'Hero_Theo_Hair_01'],
+        right: 'Hero_Theo_Cos19GloryLeague_Weapon',
+      },
+    },
+    // Its Glory League costume's Eternal Honor tier: the same model, wearing its effects (tm-glory.mjs).
+    {
+      name: 'Theo_Glory4',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Theo_Glory4.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Theo_Glory4.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Theo_Glory4.webp',
+      title: 'Theo of Eternal Honor',
+      // What King's Raid keeps on it all the while.
+      wears: ['Skill.Hero.TheoCos19GloryLeague.Cos19GloryLeagueLight1', 'Skill.Hero.TheoCos19GloryLeague.Cos19GloryLeagueLight2'],
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Theo_Cos19GloryLeague_Body', 'Hero_Theo_Hair_01'],
+        right: 'Hero_Theo_Cos19GloryLeague_Weapon',
+      },
+    },
   ],
 };

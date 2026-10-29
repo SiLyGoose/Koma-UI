@@ -67,7 +67,7 @@ export const GLENWYS: HeroDef = {
   id: 'glenwys',
   name: 'Glenwys',
   class: 'knight',
-  skins: ['Glenwys', 'Glenwys_Summer', 'Glenwys_Halloween', 'Glenwys_Glory', 'Glenwys_Dessert', 'Glenwys_Christmas', 'Glenwys_Fallen'],
+  skins: ['Glenwys', 'Glenwys_Summer', 'Glenwys_Halloween', 'Glenwys_Glory', 'Glenwys_Dessert', 'Glenwys_Christmas', 'Glenwys_Fallen', 'Glenwys_Glory2'],
   stats: { ...CLASS_STATS.knight, deals: 'physical' },
   abilities: [
     {

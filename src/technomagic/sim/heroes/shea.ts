@@ -65,7 +65,7 @@ export const SHEA: HeroDef = {
   id: 'shea',
   name: 'Shea',
   class: 'priest',
-  skins: ['Shea', 'Shea_Wedding', 'Shea_Summer', 'Shea_Halloween', 'Shea_Job', 'Shea_Glory', 'Shea_Christmas', 'Shea_DailyLook'],
+  skins: ['Shea', 'Shea_Wedding', 'Shea_Summer', 'Shea_Halloween', 'Shea_Job', 'Shea_Glory', 'Shea_Christmas', 'Shea_DailyLook', 'Shea_Glory2'],
   stats: { ...CLASS_STATS.priest, deals: 'magical' },
   abilities: [
     {

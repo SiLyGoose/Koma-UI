@@ -178,6 +178,10 @@ function newMaterial(asset, index, skinning) {
     blendEquation: AddEquation,
     blendSrc: FACTORS[src] ?? SrcAlphaFactor,
     blendDst: FACTORS[dst] ?? OneMinusSrcAlphaFactor,
+    // (Over a see-through canvas, the heroes page's: light added leaves what is behind it as see-through as it was; one
+    // laid over covers it as much as it is opaque. The raid's canvas has no alpha of its own: the same there.)
+    blendSrcAlpha: dst === 1 ? ZeroFactor : OneFactor,
+    blendDstAlpha: dst === 1 ? OneFactor : OneMinusSrcAlphaFactor,
     side: m.cull === 2 ? FrontSide : m.cull === 1 ? BackSide : DoubleSide,
   });
   material.defines = {};

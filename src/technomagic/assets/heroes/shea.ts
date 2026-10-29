@@ -190,5 +190,24 @@ export const SHEA_ASSETS: HeroAssets = {
         right: 'Hero_Shea_Cos21DailyLook_Weapon',
       },
     },
+    // Its Glory League costume's Glaring Honor tier: the same model, wearing its effects (tm-glory.mjs).
+    {
+      name: 'Shea_Glory2',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Shea_Glory2.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Shea_Glory2.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Shea_Glory2.webp',
+      title: 'Shea of Glaring Honor (Light of the Blue Night Sky)',
+      // What King's Raid keeps on it all the while.
+      wears: ['Skill.Hero.SheaCos19GloryLeague.Cos19GloryLeagueLight', 'Skill.Hero.SheaCos19GloryLeague.Cos19GloryLeagueParts'],
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Shea_Cos20GloryLeague_Body', 'Hero_Shea_Cos20GloryLeague_Hair'],
+        right: 'Hero_Shea_Cos20GloryLeague_Weapon',
+      },
+    },
   ],
 };

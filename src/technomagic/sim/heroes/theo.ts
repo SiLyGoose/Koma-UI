@@ -65,7 +65,7 @@ export const THEO: HeroDef = {
   id: 'theo',
   name: 'Theo',
   class: 'warrior',
-  skins: ['Theo', 'Theo_Idol', 'Theo_Christmas', 'Theo_School', 'Theo_Wedding', 'Theo_Story', 'Theo_Summer', 'Theo_Glory', 'Theo_UserPick', 'Theo_Dessert', 'Theo_Fallen'],
+  skins: ['Theo', 'Theo_Idol', 'Theo_Christmas', 'Theo_School', 'Theo_Wedding', 'Theo_Story', 'Theo_Summer', 'Theo_Glory', 'Theo_UserPick', 'Theo_Dessert', 'Theo_Fallen', 'Theo_Glory2', 'Theo_Glory3', 'Theo_Glory4'],
   // A warrior whose blows are magical: as his class stands, otherwise.
   stats: { ...CLASS_STATS.warrior, deals: 'magical' },
   abilities: [

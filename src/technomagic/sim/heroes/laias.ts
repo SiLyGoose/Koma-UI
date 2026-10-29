@@ -85,7 +85,7 @@ export const LAIAS: HeroDef = {
   id: 'laias',
   name: 'Laias',
   class: 'priest',
-  skins: ['Laias', 'Laias_School', 'Laias_Summer', 'Laias_Summer2', 'Laias_Halloween', 'Laias_Idol', 'Laias_Glory', 'Laias_Maid', 'Laias_Wedding', 'Laias_Dessert', 'Laias_Summer21'],
+  skins: ['Laias', 'Laias_School', 'Laias_Summer', 'Laias_Summer2', 'Laias_Halloween', 'Laias_Idol', 'Laias_Glory', 'Laias_Maid', 'Laias_Wedding', 'Laias_Dessert', 'Laias_Summer21', 'Laias_Glory2', 'Laias_Glory3'],
   // A priestess whose blows are magical, who stands being knocked down far better (her passive): as her class stands, otherwise.
   stats: { ...CLASS_STATS.priest, deals: 'magical', resist: CLASS_STATS.priest.resist + WATER_DRAGON.resist },
   abilities: [

@@ -16,6 +16,7 @@ import {
   WebGLRenderer,
   type WebGLProgramParametersWithUniforms,
 } from 'three';
+import type { KrEffects } from '../technomagic/fx/kr-effects';
 import { SCALE, type Hero } from '../technomagic/heroes/body/hero';
 import { loadHeroes } from '../technomagic/heroes/load';
 import { lookOf } from '../technomagic/heroes/looks';
@@ -29,7 +30,9 @@ import { HEROES } from '../technomagic/sim/heroes';
  * black outline round it). Read only when the page first shows a hero (three.js and the models are big), in the skin asked
  * for (the outfit it wears), and only the one shown kept (another shown, the last one's let go of: a hero's models are 2-18 MB).
  * The outfit room (../hero-outfits/) shows it `whole`, from its head to its feet, and turns it as it is dragged.
- * Its models are under public/kr/: where one can't be read, show() says so and the page keeps the hero's picture.
+ * Its models are under public/kr/: where one can't be read, show() says so and the page keeps the hero's picture. What its
+ * look wears all the while (SkinAssets.wears: a Glory League tier's light) is on it as in the raid, King's Raid's effects
+ * read only for a look that has some.
  */
 
 /**
@@ -106,6 +109,15 @@ export function makeShowcase(canvas: HTMLCanvasElement, { whole = false }: { who
   let frame = 0;
   let gone = false;
   let last = performance.now();
+  /** King's Raid's effects (made the first time a look wears some), and what the one shown wears not on it yet. */
+  let kr: Promise<KrEffects> | null = null;
+  let krMade: KrEffects | null = null;
+  const toWear = new Set<string>();
+  /** Takes what the one shown wears off it (before it's let go of: on its bones). */
+  const unwear = (): void => {
+    toWear.clear();
+    krMade?.clear();
+  };
 
   /** It in skin `skin`, moved as in the raid, drawn as King's Raid draws it; null when that skin (or the hero) isn't on this computer. */
   const load = (id: string, skin: number): Promise<Hero | null> => {
@@ -162,6 +174,14 @@ export function makeShowcase(canvas: HTMLCanvasElement, { whole = false }: { who
     const dt = Math.max(0, Math.min(0.064, (ms - last) / 1000));
     last = ms;
     shown?.update(ms / 1000, dt);
+    if (krMade && shown) {
+      for (const code of toWear)
+        if (krMade.ready(code)) {
+          krMade.play(code, { on: shown.root, scale: SCALE, lasts: Infinity });
+          toWear.delete(code);
+        }
+      krMade.update(dt);
+    }
     renderer.render(scene, camera);
     frame = requestAnimationFrame(draw);
   };
@@ -195,6 +215,7 @@ export function makeShowcase(canvas: HTMLCanvasElement, { whole = false }: { who
         return false;
       }
       if (shown && shown !== hero) {
+        unwear();
         scene.remove(shown.root);
         letGo(shown);
       }
@@ -203,6 +224,12 @@ export function makeShowcase(canvas: HTMLCanvasElement, { whole = false }: { who
       // (Facing the camera, as King's Raid turns it.)
       hero.root.rotation.y = 0;
       scene.add(hero.root);
+      const wears = lookOf(id).assets.skins[skin]?.wears ?? [];
+      if (wears.length) {
+        kr ??= import('../technomagic/fx/kr-effects').then(({ makeKrEffects }) => (krMade = makeKrEffects(scene, camera)));
+        for (const code of wears) toWear.add(code);
+        void kr.then((made) => made.read(wears));
+      }
       // Stood as it rests before it is framed, so its head is where it will be.
       hero.update(performance.now() / 1000, 0);
       fit();
@@ -217,6 +244,7 @@ export function makeShowcase(canvas: HTMLCanvasElement, { whole = false }: { who
       stop();
       watched.disconnect();
       sized.disconnect();
+      unwear();
       if (shown) letGo(shown);
       renderer.dispose();
     },

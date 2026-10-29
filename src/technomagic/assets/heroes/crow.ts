@@ -265,5 +265,62 @@ export const CROW_ASSETS: HeroAssets = {
         right: 'Hero_Crow_Cos21Fallen_Weapon',
       },
     },
+    // Its Glory League costume's Brilliant Honor tier: the same model, wearing its effects (tm-glory.mjs).
+    {
+      name: 'Crow_Glory2',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Crow_Glory2.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Crow_Glory2.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Crow_Glory2.webp',
+      title: 'Crow of Brilliant Honor',
+      // What King's Raid keeps on it all the while.
+      wears: ['Skill.Hero.CrowCos19GloryLeague.Cos19GloryLeagueParts'],
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Crow_Cos19GloryLeague_Body', 'Hero_Crow_Hair_01'],
+        right: 'Hero_Crow_Cos19GloryLeague_Weapon',
+      },
+    },
+    // Its Glory League costume's Glaring Honor tier: the same model, wearing its effects (tm-glory.mjs).
+    {
+      name: 'Crow_Glory3',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Crow_Glory3.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Crow_Glory3.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Crow_Glory3.webp',
+      title: 'Crow of Glaring Honor',
+      // What King's Raid keeps on it all the while.
+      wears: ['Skill.Hero.CrowCos19GloryLeague.Cos19GloryLeagueLight', 'Skill.Hero.CrowCos19GloryLeague.Cos19GloryLeagueParts'],
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Crow_Cos19GloryLeague_Body', 'Hero_Crow_Hair_01'],
+        right: 'Hero_Crow_Cos19GloryLeague_Weapon',
+      },
+    },
+    // Its Glory League costume's Eternal Honor tier: the same model, wearing its effects (tm-glory.mjs).
+    {
+      name: 'Crow_Glory4',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Crow_Glory4.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Crow_Glory4.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Crow_Glory4.webp',
+      title: 'Crow of Eternal Honor',
+      // What King's Raid keeps on it all the while.
+      wears: ['Skill.Hero.CrowCos19GloryLeague.Cos19GloryLeagueLight', 'Skill.Hero.CrowCos19GloryLeague.Cos19GloryLeagueParts', 'Skill.Hero.CrowCos19GloryLeague.Cos19GloryLeagueWeapon'],
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Crow_Cos19GloryLeague_Body', 'Hero_Crow_Hair_01'],
+        right: 'Hero_Crow_Cos19GloryLeague_Weapon',
+      },
+    },
   ],
 };

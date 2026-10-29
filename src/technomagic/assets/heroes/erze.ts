@@ -176,5 +176,19 @@ export const ERZE_ASSETS: HeroAssets = {
       title: 'Corrupted Innocence Erze',
       model: { kind: 'parts', animations: ANIMATIONS, parts: ['Hero_Erze_Cos21Fallen_Body', 'Hero_Erze_Cos21Fallen_Hair'], right: 'Hero_Erze_Cos21Fallen_weapon' },
     },
+    // Its Glory League costume's Glaring Honor tier: the same model, wearing its effects (tm-glory.mjs).
+    {
+      name: 'Erze_Glory2',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Erze_Glory2.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Erze_Glory2.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Erze_Glory2.webp',
+      title: 'Erze of Glaring Honor (Eminence of Elegance)',
+      // What King's Raid keeps on it all the while.
+      wears: ['Skill.Hero.ErzeCos21GloryLeague.Body'],
+      model: { kind: 'parts', animations: ANIMATIONS, parts: ['Hero_Erze_Cos21GloryLeague_Body', 'Hero_Erze_Cos21GloryLeague_Hair'], right: 'Hero_Erze_Cos21GloryLeague_Weapon' },
+    },
   ],
 };

@@ -199,6 +199,8 @@ export const EVAN_ASSETS: HeroAssets = {
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Evan_Glory2.webp',
       title: 'Evan of Glaring Honor (Pure Mythic Divine Beast)',
+      // What King's Raid keeps on it all the while (tm-glory.mjs).
+      wears: ['Skill.Hero.EvanCos21GloryLeague.Cos21GloryLeagueLight', 'Skill.Hero.EvanCos21GloryLeague.Cos21GloryLeagueParts'],
       model: {
         kind: 'parts',
         animations: ANIMATIONS,

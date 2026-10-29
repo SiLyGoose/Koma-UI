@@ -258,5 +258,62 @@ export const MIRIANNE_ASSETS: HeroAssets = {
         right: 'Hero_Mirianne_Cos21Halloween_Handle',
       },
     },
+    // Its Glory League costume's Brilliant Honor tier: the same model, wearing its effects (tm-glory.mjs).
+    {
+      name: 'Mirianne_Glory2',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Mirianne_Glory2.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Mirianne_Glory2.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Mirianne_Glory2.webp',
+      title: 'Mirianne of Brilliant Honor',
+      // What King's Raid keeps on it all the while.
+      wears: ['Skill.Hero.Mirianne19GloryLeague.Cos19GloryLeagueParts'],
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Mirianne_Cos19GloryLeague_Body', 'Hero_Mirianne_Cos19GloryLeague_Hair', 'Hero_Mirianne_Cos19GloryLeague_Weapon'],
+        right: 'Hero_Mirianne_Vari05_Handle',
+      },
+    },
+    // Its Glory League costume's Glaring Honor tier: the same model, wearing its effects (tm-glory.mjs).
+    {
+      name: 'Mirianne_Glory3',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Mirianne_Glory3.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Mirianne_Glory3.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Mirianne_Glory3.webp',
+      title: 'Mirianne of Glaring Honor',
+      // What King's Raid keeps on it all the while.
+      wears: ['Skill.Hero.Mirianne19GloryLeague.Cos19GloryLeagueLight', 'Skill.Hero.Mirianne19GloryLeague.Cos19GloryLeagueParts'],
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Mirianne_Cos19GloryLeague_Body', 'Hero_Mirianne_Cos19GloryLeague_Hair', 'Hero_Mirianne_Cos19GloryLeague_Weapon'],
+        right: 'Hero_Mirianne_Vari05_Handle',
+      },
+    },
+    // Its Glory League costume's Eternal Honor tier: the same model, wearing its effects (tm-glory.mjs).
+    {
+      name: 'Mirianne_Glory4',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Mirianne_Glory4.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Mirianne_Glory4.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Mirianne_Glory4.webp',
+      title: 'Mirianne of Eternal Honor',
+      // What King's Raid keeps on it all the while.
+      wears: ['Skill.Hero.Mirianne19GloryLeague.Cos19GloryLeagueLight', 'Skill.Hero.Mirianne19GloryLeague.Cos19GloryLeagueParts', 'Skill.Hero.Mirianne19GloryLeague.Cos19GloryLeagueWeapon'],
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Mirianne_Cos19GloryLeague_Body', 'Hero_Mirianne_Cos19GloryLeague_Hair', 'Hero_Mirianne_Cos19GloryLeague_Weapon'],
+        right: 'Hero_Mirianne_Vari05_Handle',
+      },
+    },
   ],
 };
