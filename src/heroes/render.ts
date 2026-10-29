@@ -5,7 +5,7 @@ import { skinOf } from '../shared/hero-outfits';
 import { working } from '../shared/ui';
 import { heroStars } from '../shared/ui/stars/stars';
 import { canTrade, copyById, heroShown, mine, slotFor, slotOf, slotsFor, type HeroesContext } from './context';
-import { SIDE_SLOTS, TP_SCROLL_MOST, TP_SCROLL_POINTS } from '../protocol/heroes';
+import { PERK_PAGES_MAX, SIDE_SLOTS, TP_SCROLL_MOST, TP_SCROLL_POINTS } from '../protocol/heroes';
 import { RUNE_FRAGMENTS, RUNE_KEEP_PRICE } from '../protocol/runes';
 import { fragmentIcon } from '../shared/items/fragments';
 import { SCROLL_NAME } from '../shared/items/scroll';
@@ -35,6 +35,10 @@ export interface HeroActions {
   transcend(): void;
   /** Uses one of their Transcendence Attribute Points on the hero shown (more TP). */
   scroll(): void;
+  /** Puts the hero shown's perk page `page` in use. */
+  perkPage(page: number): void;
+  /** Buys the hero shown its perk page `page` (its next), and puts it in use. */
+  buyPerkPage(page: number): void;
   /** Locks or unlocks a copy. */
   lock(copy: HeroCopy, locked: boolean): void;
   /** Puts one of their runes in a copy's socket (null: takes the one in it out, kept for RUNE_KEEP_PRICE zeiucoins). */
@@ -706,15 +710,17 @@ export function perkTip(ctx: HeroesContext, cell: Element): Node[] | null {
 const perkTag = (perk: Perk): string => `Transcend ${perk.tier}${perk.side ? ` · ${perk.side === 'light' ? 'Light' : 'Dark'}` : ''}`;
 
 /**
- * The Transcend tab: the TP left, a row of perks for each tier (the ones learned lit and framed in gold, the rest
- * greyed), and under them the words of the one picked, with Learn or Remove (their own hero's only); Reset Perks under it all.
+ * The Transcend tab: its perk pages and the TP left, a row of perks for each tier (the ones learned lit and framed in gold, the rest
+ * greyed), and under them the words of the one picked, with Learn or Remove (their own hero's only, on the page in use); Reset Perks under it all.
  */
 function renderTranscend(ctx: HeroesContext, act: HeroActions): void {
   const { ui } = ctx;
   const hero = heroShown(ctx);
   if (!hero) return;
   const perks = heroPerks(hero.id, hero.class);
-  const learned = hero.perks ?? [];
+  const page = renderPerkPages(ctx, act, hero);
+  // (Someone else's page picked: its perks, to look at.)
+  const learned = (page !== hero.perkPages?.active ? hero.perkPages?.pages[page - 1] : null) ?? hero.perks ?? [];
   const level = hero.transcend?.level ?? TRANSCEND_MAX;
   const points = hero.transcend?.points ?? TRANSCEND_POINTS;
   const left = points - spent(perks, learned);
@@ -799,6 +805,62 @@ function renderTranscend(ctx: HeroesContext, act: HeroActions): void {
   ui.resetPerks.hidden = !mine(ctx);
   ui.resetPerks.disabled = !hero.owned || learned.length === 0;
   working(ui.resetPerks, ctx.busy, 'reset-perks');
+}
+
+/**
+ * Left of the TP, King's Raid's perk pages: a button for each page the hero has (the one shown lit; their own hero's puts
+ * one in use, someone else's shows it), then for their own a + for the next one (asking before it buys it: askPerkPage) and
+ * greyed ones past it; someone else's, its pages not bought greyed. None for a hero not recruited (or a bot from before them).
+ * The page shown.
+ */
+function renderPerkPages(ctx: HeroesContext, act: HeroActions, hero: HeroView): number {
+  const { ui } = ctx;
+  const pages = hero.perkPages;
+  ui.perkPages.hidden = !pages || !hero.owned;
+  ui.perkPages.textContent = '';
+  if (!pages || !hero.owned) return pages?.active ?? 1;
+  const owned = pages.pages.length;
+  const shown = !mine(ctx) && ctx.perkPage !== null && ctx.perkPage <= owned ? ctx.perkPage : pages.active;
+  for (let page = 1; page <= PERK_PAGES_MAX; page++) {
+    const button = el('button', 'perk-page', String(page));
+    button.type = 'button';
+    if (page <= owned) {
+      button.classList.toggle('on', page === shown);
+      button.setAttribute('aria-pressed', String(page === shown));
+      button.title = `Perk page ${page}${page === pages.active ? ' (in use)' : ''}`;
+      working(button, ctx.busy, `perk-page:${page}`);
+      button.addEventListener('click', () => {
+        if (page === shown || ctx.busy) return;
+        if (mine(ctx)) return act.perkPage(page);
+        ctx.perkPage = page;
+        renderTranscend(ctx, act);
+      });
+    } else if (mine(ctx)) {
+      // (Only the next one can be bought, on the site: King's Raid's buys them in order.)
+      const price = page === owned + 1 ? pages.next : null;
+      button.textContent = '+';
+      button.classList.add('add');
+      button.disabled = price === null || !ctx.host.site;
+      button.title = price === null ? `Activate perk page ${owned + 1} first` : ctx.host.site ? `Activate perk page ${page}: ${points(price)} zeiucoins` : 'Perk pages are activated on the site';
+      working(button, ctx.busy, `perk-page:${page}`);
+      button.addEventListener('click', () => {
+        if (price !== null && !ctx.busy) askPerkPage(ctx, hero, page, price);
+      });
+    } else button.disabled = true;
+    button.setAttribute('aria-label', button.title);
+    ui.perkPages.append(button);
+  }
+  return shown;
+}
+
+/** Asks whether to buy `hero` its perk page `page` for `price` zeiucoins, as King's Raid does (Activate: ./view.ts). */
+function askPerkPage(ctx: HeroesContext, hero: HeroView, page: number, price: number): void {
+  const dialog = ctx.ui.perkPageConfirm;
+  dialog.dataset.page = String(page);
+  const what = dialog.querySelector('.perk-page-confirm-what') as HTMLElement;
+  what.textContent = '';
+  what.append(el('b', 'tp-confirm-hero', `${hero.name}’s`), ` Transcend Perk page ${page} will be activated, for `, el('b', 'perk-page-price', points(price)), ' ', coin('coin', 'zeiucoins'), '. It starts with no perks learned.');
+  dialog.showModal();
 }
 
 /**

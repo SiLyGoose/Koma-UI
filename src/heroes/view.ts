@@ -224,6 +224,7 @@ function actions(ctx: HeroesContext): HeroActions {
       ctx.runes = false;
       ctx.target = null;
       ctx.perk = null;
+      ctx.perkPage = null;
       const address = new URL(location.href);
       address.searchParams.set('hero', id);
       history.replaceState(history.state, '', address);
@@ -255,6 +256,25 @@ function actions(ctx: HeroesContext): HeroActions {
           no_scroll: 'You have no Transcendence Attribute Points left: craft them from Boss Crystals in the Inventory’s Craft tab.',
           scrolls_maxed: 'This hero has all the TP these give.',
         });
+    },
+    perkPage(page: number) {
+      const hero = ctx.hero;
+      if (hero)
+        void change(ctx, act, `perk-page:${page}`, '/api/heroes/perk-page', { hero, page }, 'Could not switch perk pages. Try again.', {
+          locked: 'Activate that perk page first.',
+          busy: 'This hero’s perk pages changed meanwhile. Try again.',
+        });
+    },
+    buyPerkPage(page: number) {
+      const hero = ctx.hero;
+      if (!hero) return;
+      void change(ctx, act, `perk-page:${page}`, '/api/heroes/perk-page/buy', { hero, page }, 'Could not activate that perk page. Try again.', {
+        too_poor: 'Not enough zeiucoins for that perk page.',
+        owned: 'This hero has that perk page already.',
+        maxed: 'This hero has every perk page.',
+        locked: 'Activate the perk pages before it first.',
+        busy: 'This hero’s perk pages changed meanwhile. Try again.',
+      }).then(() => void ctx.host.loadMe(true));
     },
     rune(copy: HeroCopy, socket: number, rune: string | null) {
       // (Taking one out, or swapping one in over it, keeps it for RUNE_KEEP_PRICE zeiucoins: the header's balance follows.)
@@ -303,6 +323,7 @@ function wire(ctx: HeroesContext, act: HeroActions): () => void {
   const memberPicker = dropdown(ui.member);
   ui.member.addEventListener('change', () => {
     ctx.viewing = ctx.members.find((m) => !m.you && m.userId === ui.member.value) ?? null;
+    ctx.perkPage = null;
     ctx.picked = null;
     ctx.runes = false;
     ctx.target = null;
@@ -418,6 +439,13 @@ function wire(ctx: HeroesContext, act: HeroActions): () => void {
     ui.tpConfirm.close();
     if (button?.dataset.tp === 'confirm') act.scroll();
   });
+  // Buying a perk page, asked by its + (Cancel, or a click on the backdrop, closes it).
+  ui.perkPageConfirm.addEventListener('click', (event) => {
+    const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-page]');
+    if (!button && event.target !== ui.perkPageConfirm) return;
+    ui.perkPageConfirm.close();
+    if (button?.dataset.page === 'confirm') act.buyPerkPage(Number(ui.perkPageConfirm.dataset.page));
+  });
   // By rule: the hero gear a salvage rule takes, picked (with those picked already); or the rule kept for their drops.
   const rules = salvageRuleDialog(ui.salvageRule, ctx, {
     pick(ids) {
@@ -437,7 +465,7 @@ function wire(ctx: HeroesContext, act: HeroActions): () => void {
 
   // Escape closes the picked copy, else stops picking copies to sell (the sale's confirmation closes itself).
   const onKey = (event: KeyboardEvent): void => {
-    if (event.key !== 'Escape' || ui.sellConfirm.open || ui.salvageRule.open || ui.tpConfirm.open) return;
+    if (event.key !== 'Escape' || ui.sellConfirm.open || ui.salvageRule.open || ui.tpConfirm.open || ui.perkPageConfirm.open) return;
     if (ctx.picked) {
       itemDetailsClosed();
       ctx.picked = null;
@@ -451,6 +479,7 @@ function wire(ctx: HeroesContext, act: HeroActions): () => void {
     document.removeEventListener('keydown', onKey);
     if (ui.sellConfirm.open) ui.sellConfirm.close();
     if (ui.tpConfirm.open) ui.tpConfirm.close();
+    if (ui.perkPageConfirm.open) ui.perkPageConfirm.close();
     if (ui.salvageRule.open) ui.salvageRule.close();
     serverPicker.destroy();
     memberPicker.destroy();

@@ -581,16 +581,78 @@
 }
 
 /*
- * The Transcend tab: on the Stats tab's parchment, the TP left in its top corner, then a row for each tier, its name
+ * The Transcend tab: on the Stats tab's parchment, its perk pages and the TP left along its top, then a row for each tier, its name
  * beside its perks (King's Raid's red-brown), five across (Transcend 3's four). A perk not learned is greyed; one learned lit and framed in gold;
  * the one whose words show ringed. Each says its cost in its corner, over the number some of the game's pictures have there.
  */
+/* Its perk pages on the left, the TP on the right. */
+.tp-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 4px 8px;
+}
+
+/*
+ * King's Raid's perk pages (public/kr/ui/perk-pages/: its Mission_Button sprites, 9-sliced): navy, the one shown lighter;
+ * the + buying the next one gold; one not to be had yet grey.
+ */
+.perk-pages {
+  display: flex;
+  gap: 6px;
+}
+
+.perk-pages[hidden] {
+  display: none;
+}
+
+.perk-page {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 2px solid transparent;
+  border-image: url('/kr/ui/perk-pages/page.webp') 20 fill / 10px;
+  background: none;
+  color: #fff;
+  font: 800 16px/1 Arial, sans-serif;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 60%);
+  cursor: pointer;
+}
+
+.perk-page:hover:not(:disabled, .on) {
+  filter: brightness(1.15);
+}
+
+.perk-page.on {
+  border-image-source: url('/kr/ui/perk-pages/page-on.webp');
+  color: #ffe9a8;
+  cursor: default;
+}
+
+.perk-page.add {
+  border-image-source: url('/kr/ui/perk-pages/page-add.webp');
+  font-size: 22px;
+}
+
+.perk-page:disabled {
+  border-image-source: url('/kr/ui/perk-pages/page-off.webp');
+  color: #a6a6a6;
+  cursor: default;
+}
+
+.perk-page.working {
+  cursor: progress;
+  opacity: 0.6;
+}
+
 .tp {
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: 6px;
-  margin: 6px 4px 8px;
+  margin: 0 0 0 auto;
   color: #3d3045;
   font-size: 16px;
   font-weight: 800;
@@ -648,6 +710,22 @@
 
 .tp-confirm-tp {
   color: #6cc0f5;
+}
+
+/* Asking before buying a perk page: its price in gold. */
+.perk-page-confirm-what {
+  margin: 0 0 18px;
+  font-size: 15px;
+}
+
+.perk-page-confirm-what .coin {
+  width: 16px;
+  height: 16px;
+  vertical-align: -3px;
+}
+
+.perk-page-price {
+  color: var(--gold);
 }
 
 .perk-rows {

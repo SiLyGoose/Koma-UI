@@ -68,6 +68,8 @@ export interface HeroesUi {
   sellConfirm: HTMLDialogElement;
   /** Asks before using a Transcendence Attribute Point on the hero shown (./render.ts askScroll). */
   tpConfirm: HTMLDialogElement;
+  /** Asks before buying the hero shown its next perk page (./render.ts askPerkPage). */
+  perkPageConfirm: HTMLDialogElement;
   /** Picking copies to sell: Select shown, By rule (its dialog: ./salvage-rule.ts) and Include locked. */
   sellTools: HTMLElement;
   sellShown: HTMLButtonElement;
@@ -84,6 +86,7 @@ export interface HeroesUi {
   transcend: HTMLElement;
   transcendTitle: HTMLElement;
   tpLeft: HTMLElement;
+  perkPages: HTMLElement;
   perkRows: HTMLElement;
   perkInfo: HTMLElement;
   resetPerks: HTMLButtonElement;
@@ -112,6 +115,8 @@ export interface HeroesContext {
   tab: 'stats' | 'gear' | 'skills' | 'transcend';
   /** The transcendence perk whose words show (its id), if any. */
   perk: string | null;
+  /** Someone else's hero: the perk page shown (null: the one it uses). Their own always show the one in use. */
+  perkPage: number | null;
   /** The hero essence whose sources show under the Stats tab's Transcend costs (./essences.ts), if any. */
   essence: EssenceId | null;
   /** The copy shown over the hero, if any. */
@@ -179,6 +184,7 @@ export function createContext(root: HTMLElement, host: HeroesHost): HeroesContex
       sellCancel: $<HTMLButtonElement>('sell-cancel'),
       sellConfirm: $<HTMLDialogElement>('sell-confirm'),
       tpConfirm: $<HTMLDialogElement>('tp-confirm'),
+      perkPageConfirm: $<HTMLDialogElement>('perk-page-confirm'),
       sellTools: $('sell-tools'),
       sellShown: $<HTMLButtonElement>('sell-shown'),
       sellRule: $<HTMLButtonElement>('sell-rule'),
@@ -194,6 +200,7 @@ export function createContext(root: HTMLElement, host: HeroesHost): HeroesContex
       transcend: $('transcend'),
       transcendTitle: $('transcend-title'),
       tpLeft: $('tp-left'),
+      perkPages: $('perk-pages'),
       perkRows: $('perk-rows'),
       perkInfo: $('perk-info'),
       resetPerks: $<HTMLButtonElement>('reset-perks'),
@@ -208,6 +215,7 @@ export function createContext(root: HTMLElement, host: HeroesHost): HeroesContex
     query: '',
     tab: 'stats',
     perk: null,
+    perkPage: null,
     essence: null,
     picked: null,
     runes: false,

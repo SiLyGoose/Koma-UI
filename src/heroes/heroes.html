@@ -155,6 +155,16 @@
       </div>
     </dialog>
 
+    <!-- Buying the hero shown its next perk page (its + on the Transcend tab), as King's Raid asks: which page, its price, and Cancel or Activate. -->
+    <dialog id="perk-page-confirm" class="sell-confirm perk-page-confirm" aria-labelledby="perk-page-confirm-title">
+      <h3 id="perk-page-confirm-title">Notice</h3>
+      <p class="perk-page-confirm-what"></p>
+      <div class="sell-confirm-foot">
+        <button type="button" class="action secondary" data-page="cancel">Cancel</button>
+        <button type="button" class="action main" data-page="confirm">Activate</button>
+      </div>
+    </dialog>
+
     <!--
       Stats: first what the hero's next transcendence level costs (its class's three hero essences and komaGems) and what
       transcends it; then its stats in the TechnoMagic Raid, with and without its gear.
@@ -181,14 +191,17 @@
 
     <!--
       Transcend: the hero's transcendence perks (src/heroes/transcend.ts), a row for each tier as King's Raid has them (a tier
-      past how far it is transcended locked), the TP left over them. Picking one says what it does under them, with what learns
-      it (or forgets it); Reset Perks forgets them all.
+      past how far it is transcended locked), its perk pages (1 to 3) and the TP left over them. Picking one says what it does
+      under them, with what learns it (or forgets it); Reset Perks forgets those of the page in use.
     -->
     <div id="transcend" class="armory stats transcend off" role="tabpanel">
       <div class="armory-plaque plaque"><span id="transcend-title">Transcendence Perks</span></div>
       <div class="armory-sheet">
         <div class="sheet-scroll">
-          <p class="tp"><span class="tp-badge" aria-hidden="true">TP</span><span id="tp-left" class="tp-left"></span></p>
+          <div class="tp-row">
+            <div id="perk-pages" class="perk-pages" role="group" aria-label="Transcend Perk pages"></div>
+            <p class="tp"><span class="tp-badge" aria-hidden="true">TP</span><span id="tp-left" class="tp-left"></span></p>
+          </div>
           <div id="perk-rows" class="perk-rows"></div>
           <div id="perk-info" class="perk-info" aria-live="polite"></div>
         </div>
