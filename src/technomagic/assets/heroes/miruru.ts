@@ -8,6 +8,25 @@ import type { HeroAssets, KrAnimations } from '../types.ts';
 const DRIVE = 'https://drive.google.com/uc?export=download&id=';
 
 /**
+ * King's Raid's own animations for its Legend look (its skins of that look are moved by them: ../../heroes/body/kr.ts): as
+ * ANIMATIONS, but the look's own clips (KR-extracted/scripts/tm-anims.mjs --look=Legend).
+ */
+const LEGEND_ANIMATIONS = {
+  idle: 'Legend/Idle',
+  run: 'Legend/Run',
+  hurt: 'Legend/Damage',
+  victory: 'Legend/Victory',
+  lose: 'Legend/Lose',
+  dead: 'Legend/Dead',
+  attack: [{ clips: ['Legend/Attack1'], hits: [0.9] }],
+  skills: {
+    baam: { clips: ['Legend/Skill1'], hits: [1.6] },
+    pirates: { clips: ['Legend/Skill2'], hits: [1.6, 1.9, 2.2, 2.5, 2.8] },
+    roll: { clips: ['Legend/Attack1'], hits: [1.2] },
+  },
+} as const satisfies KrAnimations;
+
+/**
  * King's Raid's own animations (its skins of the game's files are moved by them: ../../heroes/body/kr.ts): its basic attack's
  * chain, and each skill's clips, with when its blows land in them as the game's timelines have them (KR-extracted/scripts/tm-anims.mjs).
  */
@@ -164,6 +183,23 @@ export const MIRURU_ASSETS: HeroAssets = {
         kind: 'parts',
         animations: ANIMATIONS,
         parts: ['Hero_Miruru_Cos20Wedding_Body', 'Hero_Miruru_Cos20Wedding_Hair', 'Hero_Miruru_Cos20Wedding_Weapon'],
+      },
+    },
+    // King's Raid's Legend costume (its models made from the game's bundles: KR-extracted/scripts/kr-models.py).
+    {
+      name: 'Miruru_Legend',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Miruru_Legend.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Miruru_Legend.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Miruru_Legend.webp',
+      title: 'Return of the Legendary Pirate Miruru',
+      model: {
+        kind: 'parts',
+        animations: LEGEND_ANIMATIONS,
+        // (No cannon: the game hides her weapon in all of this look's moves.)
+        parts: ['Hero_Miruru_Cos22Legend_Body', 'Hero_Miruru_Cos22Legend_Hair'],
       },
     },
   ],

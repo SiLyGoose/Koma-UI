@@ -93,7 +93,7 @@ export const LUCIKIEL: HeroDef = {
   id: 'lucikiel',
   name: 'Lucikiel',
   class: 'wizard',
-  skins: ['Lucikiel', 'Lucikiel_Advance'],
+  skins: ['Lucikiel', 'Lucikiel_Advance', 'Lucikiel_Legend'],
   // A wizard (his blows magical, as a wizard's are): as his class stands.
   stats: { ...CLASS_STATS.wizard, deals: 'magical' },
   abilities: [

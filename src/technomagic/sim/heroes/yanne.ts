@@ -91,7 +91,7 @@ export const YANNE: HeroDef = {
   id: 'yanne',
   name: 'Yanne',
   class: 'archer',
-  skins: ['Yanne', 'Yanne_Halloween', 'Yanne_Christmas', 'Yanne_NewYear', 'Yanne_School', 'Yanne_Summer', 'Yanne_Summer19', 'Yanne_Wedding'],
+  skins: ['Yanne', 'Yanne_Halloween', 'Yanne_Christmas', 'Yanne_NewYear', 'Yanne_School', 'Yanne_Summer', 'Yanne_Summer19', 'Yanne_Wedding', 'Yanne_Legend'],
   // An archer (her blows physical), with Dragon Slayer's ATK and max HP.
   stats: { ...CLASS_STATS.archer, atk: CLASS_STATS.archer.atk + SLAYER.atk, hp: Math.round(CLASS_STATS.archer.hp * (1 + SLAYER.hp)), deals: 'physical' },
   abilities: [

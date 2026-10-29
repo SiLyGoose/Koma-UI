@@ -12,6 +12,25 @@ const GRIPS = { L: { at: [0.051, 0.031, 0], turn: [-2.222, 0.732, 0.474] } } as 
 
 
 /**
+ * King's Raid's own animations for its Legend look (its skins of that look are moved by them: ../../heroes/body/kr.ts): as
+ * ANIMATIONS, but the look's own clips (KR-extracted/scripts/tm-anims.mjs --look=Legend).
+ */
+const LEGEND_ANIMATIONS = {
+  idle: 'Legend/Idle',
+  run: 'Legend/Run',
+  hurt: 'Legend/Damage',
+  victory: 'Legend/Victory',
+  lose: 'Legend/Lose',
+  dead: 'Legend/Dead',
+  attack: [{ clips: ['Legend/Attack1'], hits: [1.2] }],
+  skills: {
+    focus: { clips: ['Legend/Skill1-1', 'Legend/Skill1-2', 'Legend/Skill1-2', 'Legend/Skill1-2', 'Legend/Skill1-3'], hits: [0.6, 1.5, 2.4, 3.1, 3.3] },
+    wipeout: { clips: ['Legend/Skill2'], hits: [1.8] },
+    unleash: { clips: ['Legend/Skill3'], hits: [1] },
+  },
+} as const satisfies KrAnimations;
+
+/**
  * King's Raid's own animations (its skins of the game's files are moved by them: ../../heroes/body/kr.ts): its basic attack's
  * chain, and each skill's clips, with when its blows land in them as the game's timelines have them (KR-extracted/scripts/tm-anims.mjs).
  */
@@ -218,6 +237,23 @@ export const YANNE_ASSETS: HeroAssets = {
         offHand: 'held',
         right: 'Hero_Yanne_Cos20Wedding_Arrow',
         grips: GRIPS,
+      },
+    },
+    // King's Raid's Legend costume (its models made from the game's bundles: KR-extracted/scripts/kr-models.py).
+    {
+      name: 'Yanne_Legend',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Yanne_Legend.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Yanne_Legend.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Yanne_Legend.webp',
+      title: 'Prey-Searching Claw Yanne',
+      model: {
+        kind: 'parts',
+        animations: LEGEND_ANIMATIONS,
+        // (No bow: the game hides her weapons in all of this look's moves.)
+        parts: ['Hero_Yanne_Cos22Legend_Body', 'Hero_Yanne_Cos22Legend_Hair'],
       },
     },
   ],

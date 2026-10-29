@@ -26,6 +26,8 @@ const sources = (
     join(downloads, 'Characters Other/Creature Boss and Other'),
     join(downloads, 'Characters Other/Creature Monster'),
     join(downloads, 'Maps, Items, Other/Other'),
+    // (The costumes after that export, made from the game's bundles: KR-extracted/scripts/kr-models.py.)
+    join(downloads, 'KR-extracted/models'),
   ]
 ).filter(Boolean);
 const out = resolve(import.meta.dirname, '../public/kr');

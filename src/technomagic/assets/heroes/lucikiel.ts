@@ -9,6 +9,25 @@ import type { HeroAssets, KrAnimations } from '../types.ts';
 
 
 /**
+ * King's Raid's own animations for its Legend look (its skins of that look are moved by them: ../../heroes/body/kr.ts): as
+ * ANIMATIONS, but the look's own clips (KR-extracted/scripts/tm-anims.mjs --look=Legend).
+ */
+const LEGEND_ANIMATIONS = {
+  idle: 'Legend/Idle',
+  run: 'Legend/Run',
+  hurt: 'Legend/Damage',
+  victory: 'Legend/Victory',
+  lose: 'Legend/Lose',
+  dead: 'Legend/Dead',
+  attack: [{ clips: ['Legend/Attack1-1'], hits: [0.3] }, { clips: ['Legend/Attack1-2'], hits: [0.4, 1.2] }, { clips: ['Legend/Attack1-3'], hits: [0.5] }],
+  skills: {
+    storm: { clips: ['Legend/Skill1'], hits: [0.4, 0.8, 2] },
+    wave: { clips: ['Legend/Skill2'], hits: [0.5, 2.1] },
+    doomsday: { clips: ['Legend/Skill3'], hits: [0.6, 0.8, 1, 1.2, 1.4, 1.6, 1.8, 2, 2.2, 2.4] },
+  },
+} as const satisfies KrAnimations;
+
+/**
  * King's Raid's own animations (its skins of the game's files are moved by them: ../../heroes/body/kr.ts): its basic attack's
  * chain, and each skill's clips, with when its blows land in them as the game's timelines have them (KR-extracted/scripts/tm-anims.mjs).
  */
@@ -92,6 +111,22 @@ export const LUCIKIEL_ASSETS: HeroAssets = {
         kind: 'parts',
         animations: ANIMATIONS,
         parts: ['Hero_ZLucikiel_Cos21Advance_Body', 'Hero_ZLucikiel_Hair_01', 'Hero_Lucikiel_Vari04_Weapon'],
+      },
+    },
+    // King's Raid's Legend costume (its models made from the game's bundles: KR-extracted/scripts/kr-models.py).
+    {
+      name: 'Lucikiel_Legend',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Lucikiel_Legend.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Lucikiel_Legend.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Lucikiel_Legend.webp',
+      title: 'Cruel Empress of Destruction Lucikiel',
+      model: {
+        kind: 'parts',
+        animations: LEGEND_ANIMATIONS,
+        parts: ['Hero_ZLucikiel_Cos21Legend_Body', 'Hero_ZLucikiel_Cos21Legend_Hair', 'Hero_ZLucikiel_Cos21Legend_Weapon_L', 'Hero_ZLucikiel_Cos21Legend_Weapon_R'],
       },
     },
   ],
