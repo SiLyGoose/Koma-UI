@@ -1,0 +1,182 @@
+/*
+ * Background raids (background.ts): asking how many (the Raid Settings' box, its −/+ and Start: ../../shared/ui/level/), and
+ * the panel over the page while they're fought: where, how many are over of how many (a bar), won and lost, when the one
+ * being fought ends, and Stop (red, asked first) or, over, the way back to the raid.
+ */
+
+.tm-batch-pop {
+  z-index: 60;
+}
+
+.tm-batch-box {
+  width: min(460px, calc(100vw - 32px));
+}
+
+.tm-batch-about {
+  margin: 14px 24px 0;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 14px;
+  line-height: 1.45;
+  text-align: center;
+}
+
+/* 1, 10, 50, 100, Max: under the −/+. */
+.tm-batch-quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  margin: 12px 20px 0;
+}
+
+.tm-batch-chip {
+  padding: 6px 12px;
+  border: 1px solid rgba(233, 219, 170, 0.45);
+  border-radius: 999px;
+  background: rgba(10, 10, 14, 0.55);
+  color: #f1e3b4;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tm-batch-chip:hover,
+.tm-batch-chip:focus-visible {
+  outline: none;
+  border-color: #d8c48c;
+  filter: brightness(1.15);
+}
+
+.tm-batch-cost {
+  margin: 14px 24px 0;
+  color: #f3ecdc;
+  font-size: 15px;
+  text-align: center;
+}
+
+.tm-batch-short {
+  color: #ff9a8a;
+}
+
+.tm-batch-have {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.tm-batch-warn {
+  margin: 10px 24px 0;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 13px;
+  text-align: center;
+}
+
+/* ------------------------------------------------------------------ the panel */
+
+.tm-batch-where {
+  margin: 16px 24px 0;
+  color: #f1e3b4;
+  font-size: 18px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.tm-batch-count {
+  margin: 10px 24px 0;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.tm-batch-count b {
+  color: #fff;
+  font-size: 30px;
+}
+
+.tm-batch-bar {
+  height: 12px;
+  margin: 10px 24px 0;
+  overflow: hidden;
+  border: 1px solid rgba(233, 219, 170, 0.45);
+  border-radius: 999px;
+  background: rgba(10, 10, 14, 0.6);
+}
+
+.tm-batch-fill {
+  width: 0;
+  height: 100%;
+  background: linear-gradient(90deg, #c99a3c, #f2d27a);
+  transition: width 0.4s ease;
+}
+
+.tm-batch-tally {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  justify-content: center;
+  margin: 12px 24px 0;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.tm-batch-won {
+  color: #9be7a8;
+}
+
+.tm-batch-lost {
+  color: #ff9a8a;
+}
+
+.tm-batch-next {
+  margin: 12px 24px 0;
+  color: #f3ecdc;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.tm-batch-next[hidden] {
+  display: none;
+}
+
+.tm-batch-said {
+  margin: 10px 24px 0;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.tm-batch-actions [hidden] {
+  display: none;
+}
+
+/* Stop: red, as Leave Battle's Leave; asking first, its words say what it does. */
+.tm-batch-stop {
+  flex: 1;
+  padding: 14px 18px;
+  border: 2px solid #d8c48c;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #e0574b 0%, #b8302a 55%, #8f201c 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 4px 14px rgba(0, 0, 0, 0.5);
+  color: #fff;
+  font: inherit;
+  font-size: 20px;
+  font-weight: 700;
+  text-shadow: 0 2px 3px rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+}
+
+.tm-batch-stop.confirming {
+  font-size: 15px;
+}
+
+.tm-batch-stop:hover:not(:disabled) {
+  filter: brightness(1.12);
+}
+
+.tm-batch-stop:disabled {
+  opacity: 0.6;
+  cursor: default;
+}

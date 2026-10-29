@@ -8,6 +8,7 @@ import { landscapeCover } from '../shared/ui/landscape/landscape';
 import { navigate } from '../shared/transition';
 import { Group, Vector3 } from 'three';
 import { artPicture } from './art';
+import { askBatch, batchApi, showBatch } from './background/background';
 import { built } from '../shared/built';
 import { battlePicture, iconPicture, portraitPicture, type SkinAssets } from './assets';
 import { bossNamed, DRAGONS, TM_BOSSES } from './sim/bosses';
@@ -177,6 +178,7 @@ const ERRORS: Record<ErrorCode, [string, string]> = {
   bad_message: ['Disconnected', 'The bot could not understand this page. Try reloading.'],
   full: ['The raid is full', 'As many people as can are already in this raid. Find or create another from the games page.'],
   gone: ['This raid is over', 'Everyone has left it. Find or create another from the games page.'],
+  background: ['Your background raids are being fought', 'You can join a raid once they’re over, or stopped.'],
 };
 
 const ANSWERS: Record<AnswerCode, string> = {
@@ -735,6 +737,30 @@ async function start(): Promise<void> {
     syncedRoom = synced;
     const name = (id: string): string => state?.players.find((player) => player.id === id)?.name ?? 'Someone';
 
+    // Background raids (./background/): their batch, asked about with the raid's link.
+    const batches = batchApi(apiFromSocket(address), linkToken);
+    const app = document.getElementById('app') as HTMLElement;
+    /** Background Battle, alone in prep: how many raids asked (their batch running already: shown), and started with this room's boss, stage, mode and their lineup. */
+    async function askBackground(): Promise<void> {
+      const at = state;
+      if (!at?.solo) return;
+      const res = await batches.view();
+      if (!res.ok) return prep.note('The bot can’t be reached. Try again.');
+      if (res.data.batch?.state === 'running') return showBatch(app, batches, RAID_NAME);
+      const where = DRAGON ? `${at.boss.name}, ${at.mode === 'normal' ? 'Normal' : 'Hard'} ${at.stage}` : `${at.boss.name}, stage ${at.stage}`;
+      askBatch(app, where, res.data, async (count) => {
+        const now = state;
+        if (!now?.solo || now.phase !== 'prep') return 'failed';
+        const heroes = now.lineup.filter((pick) => pick.owner === now.you).map((pick) => ({ id: pick.hero, ...(pick.sub && { sub: true }) }));
+        const started = await batches.start({ raid: DRAGON ? 'dragon' : 'technomagic', boss: now.boss.id, mode: now.mode, stage: now.stage, heroes, count });
+        if (!started.ok) return started.error;
+        // (The bot sends this page away from the room too: no raid's room for them till it's over.)
+        socket?.finish();
+        showBatch(app, batches, RAID_NAME);
+        return null;
+      });
+    }
+
     const prep = makePrep({
       pick(hero, sub) {
         // In the outfit it wears: the bot's word (its skin in the lineup, read as the lineup comes: below).
@@ -746,6 +772,7 @@ async function start(): Promise<void> {
       mode: (mode) => send({ t: 'mode', mode }),
       begin: (force) => send({ t: 'begin', ...(force && { force }) }),
       repeat: (on) => setRepeat(on),
+      background: () => void askBackground(),
       // Another dragon: the raid taken against it (the page goes once the bot says so), or this page again alone, in a
       // room of their own against it (single player) or out of the raid into a new one.
       boss: (id, bring) => {
@@ -963,6 +990,12 @@ async function start(): Promise<void> {
       switch (message.t) {
         case 'error': {
           socket?.finish();
+          // Their background raids being fought: those shown, in the room's place.
+          if (message.code === 'background') {
+            setConn('Background raids', 'bad');
+            showBatch(document.getElementById('app') as HTMLElement, batchApi(apiFromSocket(address), linkToken), RAID_NAME);
+            return;
+          }
           const [title, text] = ERRORS[message.code] ?? ERRORS.bad_message;
           showMessage(title, text);
           setConn('Disconnected', 'bad');

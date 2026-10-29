@@ -42,6 +42,8 @@ export interface PrepActions {
   begin(force: boolean): void;
   /** Auto Repeat ticked (`on`) or not. */
   repeat(on: boolean): void;
+  /** Alone: Background Battle, the lineup fought on Auto in the background (../background/). */
+  background(): void;
   /**
    * Goes against another of the raid's bosses (the Dragon Raid's: another dragon): `bring`, the raid with everyone in it
    * (the host's), else alone (single player, a room of their own against it; with others, out of the raid into a new one).
@@ -180,6 +182,7 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
   root.after(settings.root);
   const noteAt = byId('prep-note');
   const ready = byId('prep-ready') as HTMLButtonElement;
+  const background = byId('prep-background') as HTMLButtonElement;
   const start = byId('prep-start') as HTMLButtonElement;
   const repeat = byId('prep-repeat') as HTMLInputElement;
   let state: RoomState | null = null;
@@ -221,6 +224,7 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
   byId('prep-title').before(back);
 
   ready.addEventListener('click', () => act.ready(ready.getAttribute('aria-pressed') !== 'true'));
+  background.addEventListener('click', () => act.background());
   // Start Battle has its own sound (../sfx.ts), not the plain click's.
   start.dataset.sfx = 'own';
   /** Not everyone ready with a hero in: Start Battle forces the start. */
@@ -530,6 +534,10 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
     );
 
     ready.hidden = host;
+    // Alone: Background Battle, once the Main Team has a hero in.
+    background.hidden = !state.solo;
+    background.disabled = !state.lineup.some((pick) => !pick.sub);
+    background.title = background.disabled ? 'Put a hero in the Main Team first' : 'Fight this raid on Auto while you’re away, up to 200 times';
     const isReady = me?.ready === true && !host;
     ready.setAttribute('aria-pressed', String(isReady));
     ready.textContent = isReady ? 'Ready ✓' : 'Ready';
