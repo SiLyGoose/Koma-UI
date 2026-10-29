@@ -252,7 +252,7 @@ export const TANYA: HeroDef = {
         bleeding += dt;
         if (bleeding < 1) return;
         bleeding -= 1;
-        fight.hit(self, BLEED.each * bleeds.length, false);
+        fight.continuous(self, BLEED.each * bleeds.length);
       },
       untouched: () => untouched > 0,
       dodge: () => (stealth > 0 ? STEALTH.dodge : 0),

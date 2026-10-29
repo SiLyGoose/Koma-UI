@@ -136,7 +136,7 @@ export interface Fighter {
    * up (Momentum's stacks and Steadfast's); and seconds until each that waits between times may again.
    */
   readonly skills: Readonly<Partial<Record<SkillId, number>>>;
-  readonly stacks: { momentum: number; steadfast: number };
+  readonly stacks: { momentum: number; steadfast: number; bloodlust: number; bulwark: number };
   readonly waits: Partial<Record<SkillId, number>>;
   /** How long each of its moves takes and when its blows land (./motion.ts); and the move it attacks with. */
   readonly motion: Motion;
@@ -240,6 +240,8 @@ export interface Fight {
    * Returns whether it landed, and was critical. One `whole` goes through all the boss's defense.
    */
   hit(by: Fighter, amount: number, counted?: boolean, pierce?: number, whole?: boolean): boolean;
+  /** A blow of continuous DMG (King's Raid's: a Poison's, a Bleed's, a Flame's every second), as `hit`'s not counted: the harder for its hero's Corrosion. */
+  continuous(by: Fighter, amount: number): boolean;
   /** The blow of a hero's attack landing now, as King's Raid's playtest has it (thousandths of ATK: ./heroes/kr.ts); 0 while none is. */
   readonly basic: number;
   /**

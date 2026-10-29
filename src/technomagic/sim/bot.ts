@@ -258,7 +258,7 @@ export const KR_POOLS: Readonly<Record<string, readonly KrOptionData[]>> = POOLS
 export const KR_REFINE: { readonly atk: readonly number[]; readonly hp: readonly number[]; readonly def: readonly number[] } = REFINE;
 export const KR_SETS: Readonly<Record<string, KrSetData>> = SETS;
 export const KR_RUNES: readonly KrRuneData[] = RUNES;
-/** The TechnoMagic gear's unique options (King's Raid's 47), by number: the additional skill each is (null: none), and King's Raid's words and numbers. */
+/** The TechnoMagic gear's unique options (King's Raid's 47), by number: the additional skill each is, and King's Raid's words and numbers. */
 export const KR_UNIQUE: readonly { n: number; skill: string | null; text: string; params: readonly string[] }[] = UNIQUE;
 
 /** An artifact the fight has a use for (./artifacts.ts): its id, KR code and name, icon, and what it does at R1 to R5 in King's Raid's words. */

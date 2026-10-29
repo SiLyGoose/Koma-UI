@@ -5,7 +5,7 @@ import { geared } from '../technomagic/sim/gear';
 import { ownAuras, perkedStats, perksOf, withPerks } from '../technomagic/sim/perks';
 import { KR_HEROES } from '../technomagic/sim/heroes/kr';
 import { CLASS_BUFF, CRIT, MANA_PER_ATTACK, MANA_RATE } from '../technomagic/sim/rules';
-import { SKILL, skilledCritDamage, skilledStats, skillsOf, type SkillId } from '../technomagic/sim/skills';
+import { foeSkills, SKILL, skilledCritDamage, skilledStats, skillsOf, type SkillId } from '../technomagic/sim/skills';
 import { HEROES } from '../technomagic/sim/heroes';
 import { CLASS_STATS, lineOf, type HeroClass } from '../technomagic/sim/heroes/kit';
 import type { Line } from '../technomagic/sim/rules';
@@ -70,18 +70,20 @@ export function heroStats(hero: Pick<HeroView, 'class'> & Partial<Pick<HeroView,
   given.hp = (given.hp ?? 0) + CLASS_BUFF.hp;
   const bonus = (stat: HeroStat): number => given[stat] ?? 0;
   // (Its additional effects: on its own stats, as the fight has them from the start; and what it gives every ally, itself
-  // among them, and Mana Spring's mana, as much a second as it gives every few.)
+  // among them, with what those that count enemies give as a fight begins (the boss alone), and Mana Spring's mana, as much
+  // a second as it gives every few.)
   const skills = skillsOf(hero.skills);
   const n = (id: SkillId): number => skills[id] ?? 0;
   const gear = skilledStats(perkedStats(geared({ ...base, deals: 'physical' }, given), perks), skills);
+  const foes = foeSkills(skills, 1);
   const allies = {
-    atk: 1 + SKILL['war-cry'].atk * n('war-cry') + (auras.atk ?? 0),
+    atk: 1 + SKILL['war-cry'].atk * n('war-cry') + (auras.atk ?? 0) + foes.atk,
     crit: auras.crit ?? 0,
     critDamage: SKILL.whetstone.critDamage * n('whetstone') + (auras.critDamage ?? 0),
     speed: auras.speed ?? 0,
     accuracy: auras.accuracy ?? 0,
     resist: auras.resist ?? 0,
-    defense: 1 + SKILL.bastion.defense * n('bastion'),
+    defense: 1 + SKILL.bastion.defense * n('bastion') + foes.defense,
   };
   const spring = (SKILL['mana-spring'].mana / SKILL['mana-spring'].every) * n('mana-spring');
   return [

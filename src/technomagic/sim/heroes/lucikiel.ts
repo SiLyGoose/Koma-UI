@@ -256,7 +256,7 @@ export const LUCIKIEL: HeroDef = {
         bitten += dt;
         if (bitten >= SHADOW.every) {
           bitten -= SHADOW.every;
-          fight.hit(self, SHADOW.each, false);
+          fight.continuous(self, SHADOW.each);
         }
       },
       // (Armor of the Demon God's Dark: less taken besides, of what it already takes off.)

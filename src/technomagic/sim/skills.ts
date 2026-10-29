@@ -7,10 +7,11 @@ import { every, fine, pct, seconds, stateArt, type Buff } from './shown';
  * the pieces it wears (the bot says which as the fight begins). Two pieces with the same skill have it twice
  * over: so much more, though what has a wait between times still waits as long. ./fight.ts applies them.
  *
- * They are King's Raid's additional gear skills (Trilobite's TM gear tier list, by its tiers), the ones this
- * raid has a use for: none that count enemies, kills or battles past the first, raise skill levels or a soul
- * weapon's uses, or touch kinds of damage the fight hasn't got. "When there is 1 enemy" is always so here:
- * there is only the boss. A "skill" is a hero's first, second or third, and "mana at 100%" is a full bar.
+ * They are King's Raid's additional gear skills, all 47 of its TechnoMagic gear's unique options (Trilobite's TM gear
+ * tier list, by its tiers; the eight it hasn't, the raid's own pick: Bulwark to Crowd Guard). Those that count enemies
+ * count the ones standing on the field as it goes (the boss alone, but a wave's minions with it, or without it). A
+ * "skill" is a hero's first, second or third, "mana at 100%" is a full bar, "DMG that ignores DEF" is a blow `whole`
+ * (Fight.hit), and "Continuous DMG" is what a Poison, a Bleed, a Flame or a Mortal Wound deals as it goes on (Fight.continuous).
  */
 
 export type SkillId =
@@ -47,17 +48,25 @@ export type SkillId =
   | 'precision'
   | 'guard'
   | 'parry'
+  | 'bulwark'
   // C tier
   | 'lone-foe'
   | 'lone-guard'
   | 'armor'
   | 'mana-spring'
+  | 'sunder'
+  | 'corrosion'
+  | 'onslaught'
+  | 'phalanx'
   // F tier
   | 'surge'
   | 'desperation'
   | 'mending'
   | 'iron-wall'
-  | 'tenacity';
+  | 'tenacity'
+  | 'bloodlust'
+  | 'crowd-foe'
+  | 'crowd-guard';
 
 /** Each skill's numbers (shares: 0.25 is 25%; points: 1000 is 100%; seconds). */
 export const SKILL = {
@@ -100,6 +109,14 @@ export const SKILL = {
   mending: { heal: 0.25, lasts: 5, wait: 10 },
   'iron-wall': { block: 150, more: 200, lasts: 10 },
   tenacity: { control: 0.15 },
+  bulwark: { block: 20, most: 20, wait: 2 },
+  sunder: { dmg: 0.25 },
+  corrosion: { dmg: 0.2 },
+  onslaught: { atk: 0.06 },
+  phalanx: { defense: 0.07 },
+  bloodlust: { atk: 0.02, most: 25 },
+  'crowd-foe': { atk: 0.35, enemies: 3 },
+  'crowd-guard': { defense: 0.45, enemies: 3 },
 } as const satisfies Record<SkillId, Record<string, number | string>>;
 
 export interface SkillDef {
@@ -154,6 +171,14 @@ const STATE: Readonly<Record<SkillId, string>> = {
   mending: 'Shield',
   'iron-wall': 'DefenseUp',
   tenacity: 'ImmuneCc',
+  bulwark: 'DefenseUp',
+  sunder: 'AttackUp',
+  corrosion: 'AttackUp',
+  onslaught: 'AttackUp',
+  phalanx: 'DefenseUp',
+  bloodlust: 'AttackUp',
+  'crowd-foe': 'AttackUp',
+  'crowd-guard': 'DefenseUp',
 };
 
 /** Every additional skill, in the tier list's order. */
@@ -188,15 +213,23 @@ export const SKILLS: readonly SkillDef[] = [
   { id: 'precision', name: 'Precision', tier: 'B', about: `Increases crit chance by ${pct(share(SKILL.precision.crit))}.` },
   { id: 'guard', name: 'Guard', tier: 'B', about: `Increases block by ${pct(share(SKILL.guard.block))}.` },
   { id: 'parry', name: 'Parry', tier: 'B', about: `On blocking, recovers ${SKILL.parry.mana} mana (once ${every(SKILL.parry.wait)}).` },
+  { id: 'bulwark', name: 'Bulwark', tier: 'B', about: `Each block increases block by ${pct(share(SKILL.bulwark.block))} (up to ${SKILL.bulwark.most} times, once ${every(SKILL.bulwark.wait)}).` },
   { id: 'lone-foe', name: 'Lone Foe', tier: 'C', about: `With one enemy, increases ATK by ${pct(SKILL['lone-foe'].atk)}.` },
   { id: 'lone-guard', name: 'Lone Guard', tier: 'C', about: `With one enemy, increases DEF by ${pct(SKILL['lone-guard'].defense)}.` },
   { id: 'armor', name: 'Armor', tier: 'C', about: `Increases DEF by ${pct(SKILL.armor.defense)}.` },
   { id: 'mana-spring', name: 'Mana Spring', tier: 'C', about: `Recovers ${SKILL['mana-spring'].mana} mana ${every(SKILL['mana-spring'].every)}.` },
+  { id: 'sunder', name: 'Sunder', tier: 'C', about: `Increases DMG that ignores DEF by ${pct(SKILL.sunder.dmg)}.` },
+  { id: 'corrosion', name: 'Corrosion', tier: 'C', about: `Increases continuous DMG (Poison, Bleed, Flame and the like) by ${pct(SKILL.corrosion.dmg)}.` },
+  { id: 'onslaught', name: 'Onslaught', tier: 'C', about: `Increases ATK by ${pct(SKILL.onslaught.atk)} for each enemy on the field.` },
+  { id: 'phalanx', name: 'Phalanx', tier: 'C', about: `Increases DEF by ${pct(SKILL.phalanx.defense)} for each enemy on the field.` },
   { id: 'surge', name: 'Surge', tier: 'F', about: `With mana at 100%, increases DMG dealt by ${pct(SKILL.surge.dmg)} for ${seconds(SKILL.surge.lasts)} (once ${every(SKILL.surge.wait)}).` },
   { id: 'desperation', name: 'Desperation', tier: 'F', about: `With HP below ${pct(SKILL.desperation.below)}, increases ATK by ${pct(SKILL.desperation.atk)} for ${seconds(SKILL.desperation.lasts)} (once ${every(SKILL.desperation.wait)}).` },
   { id: 'mending', name: 'Mending', tier: 'F', about: `Using a skill increases the heals and shields it gives by ${pct(SKILL.mending.heal)} for ${seconds(SKILL.mending.lasts)} (once ${every(SKILL.mending.wait)}).` },
   { id: 'iron-wall', name: 'Iron Wall', tier: 'F', about: `Increases block by ${pct(share(SKILL['iron-wall'].block))}, and by ${pct(share(SKILL['iron-wall'].more))} more for the first ${seconds(SKILL['iron-wall'].lasts)}.` },
   { id: 'tenacity', name: 'Tenacity', tier: 'F', about: `Reduces how long it is knocked down by ${pct(SKILL.tenacity.control)}.` },
+  { id: 'bloodlust', name: 'Bloodlust', tier: 'F', about: `Each enemy it brings down increases ATK by ${pct(SKILL.bloodlust.atk)} (up to ${SKILL.bloodlust.most} times).` },
+  { id: 'crowd-foe', name: 'Crowd Foe', tier: 'F', about: `With ${SKILL['crowd-foe'].enemies} enemies or more, increases ATK by ${pct(SKILL['crowd-foe'].atk)}.` },
+  { id: 'crowd-guard', name: 'Crowd Guard', tier: 'F', about: `With ${SKILL['crowd-guard'].enemies} enemies or more, increases DEF by ${pct(SKILL['crowd-guard'].defense)}.` },
 ];
 
 export const SKILL_IDS: readonly SkillId[] = SKILLS.map((skill) => skill.id);
@@ -219,13 +252,14 @@ export function skillsOf(list: readonly unknown[] | null | undefined): Partial<R
 /**
  * What a hero's additional skills (`skills`: how many of each) do to its own stats from the start of a fight, done to
  * `stats` (shares of ATK and defense added up, as gear's are; Overdrive fixes its attack speed): ./fight.ts fights with
- * them, and the heroes page shows them. What they do only now and then, or to every ally, ./fight.ts does as it goes.
+ * them, and the heroes page shows them. What they do only now and then, to every ally, or by how many enemies there are
+ * (foeSkills), ./fight.ts does as it goes.
  */
 export function skilledStats(stats: HeroStats, skills: Partial<Record<SkillId, number>>): HeroStats {
   const n = (id: SkillId): number => skills[id] ?? 0;
   stats.hp *= 1 + SKILL.vitality.hp * n('vitality');
-  stats.atk *= Math.max(0, 1 + SKILL.berserk.atk * n('berserk') + SKILL.fortress.atk * n('fortress') + SKILL.overdrive.atk * n('overdrive') + SKILL['warm-up'].atk * n('warm-up') + SKILL.might.atk * n('might') + SKILL['lone-foe'].atk * n('lone-foe'));
-  const sturdier = Math.max(0, 1 + SKILL.berserk.defense * n('berserk') + SKILL.fortress.defense * n('fortress') + SKILL['lone-guard'].defense * n('lone-guard') + SKILL.armor.defense * n('armor'));
+  stats.atk *= Math.max(0, 1 + SKILL.berserk.atk * n('berserk') + SKILL.fortress.atk * n('fortress') + SKILL.overdrive.atk * n('overdrive') + SKILL['warm-up'].atk * n('warm-up') + SKILL.might.atk * n('might'));
+  const sturdier = Math.max(0, 1 + SKILL.berserk.defense * n('berserk') + SKILL.fortress.defense * n('fortress') + SKILL.armor.defense * n('armor'));
   stats.physical *= sturdier;
   stats.magical *= sturdier;
   stats.crit += SKILL.precision.crit * n('precision');
@@ -236,6 +270,21 @@ export function skilledStats(stats: HeroStats, skills: Partial<Record<SkillId, n
   stats.block = { physical: stats.block.physical + block, magical: stats.block.magical + block };
   stats.dodge = { physical: stats.dodge.physical + dodge, magical: stats.dodge.magical + dodge };
   return stats;
+}
+
+/**
+ * What a hero's additional skills that count enemies give it with `enemies` on the field: shares of ATK and DEF (Lone Foe,
+ * Crowd Foe and Onslaught; Lone Guard, Crowd Guard and Phalanx). ./fight.ts adds them as the fight goes; the heroes page,
+ * as a fight begins (the boss alone).
+ */
+export function foeSkills(skills: Partial<Record<SkillId, number>>, enemies: number): { atk: number; defense: number } {
+  const n = (id: SkillId): number => skills[id] ?? 0;
+  const lone = enemies === 1 ? 1 : 0;
+  const crowd = enemies >= SKILL['crowd-foe'].enemies ? 1 : 0;
+  return {
+    atk: SKILL['lone-foe'].atk * n('lone-foe') * lone + SKILL['crowd-foe'].atk * n('crowd-foe') * crowd + SKILL.onslaught.atk * n('onslaught') * enemies,
+    defense: SKILL['lone-guard'].defense * n('lone-guard') * lone + SKILL['crowd-guard'].defense * n('crowd-guard') * (enemies >= SKILL['crowd-guard'].enemies ? 1 : 0) + SKILL.phalanx.defense * n('phalanx') * enemies,
+  };
 }
 
 /** How much harder a hero's critical blows are for its own additional skills (Ruthless). */

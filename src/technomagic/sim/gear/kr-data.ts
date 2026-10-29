@@ -523,12 +523,12 @@ export const KR_SETS: Record<string, KrSetData> = {
   }
 };
 
-/** TechnoMagic gear's unique options (KR's 47), by number: the fight's additional skill each is (null: none), and KR's words and numbers. */
+/** TechnoMagic gear's unique options (KR's 47), by number: the fight's additional skill each is, and KR's words and numbers. */
 export const KR_UNIQUE: readonly { n: number; skill: string | null; text: string; params: readonly string[] }[] = [
   {"n":1,"skill":"lone-foe","text":"Increases ATK by 35% when there is 1 enemy.","params":["1","35"]},
   {"n":2,"skill":"lone-guard","text":"Increases DEF by 45% when there is 1 enemy.","params":["1","45"]},
-  {"n":3,"skill":null,"text":"Increases ATK by 35% when there are 3 enemies.","params":["3","35"]},
-  {"n":4,"skill":null,"text":"Increases DEF by 45% when there are 3 enemies.","params":["3","45"]},
+  {"n":3,"skill":"crowd-foe","text":"Increases ATK by 35% when there are 3 enemies.","params":["3","35"]},
+  {"n":4,"skill":"crowd-guard","text":"Increases DEF by 45% when there are 3 enemies.","params":["3","45"]},
   {"n":5,"skill":"desperation","text":"Increases ATK by 50% for 10 sec when HP falls below 30%. This effect activates only once every 10 sec.","params":["30","10","50","10"]},
   {"n":6,"skill":"vigor","text":"Increases own DMG dealt to enemies by 25% when HP is above 95%.","params":["95","25"]},
   {"n":7,"skill":"surge","text":"Increases DMG dealt to enemies by 15% for 10 sec when Mana is at 100%. This effect activates only once every 15 sec.","params":["100","10","15","15"]},
@@ -538,18 +538,18 @@ export const KR_UNIQUE: readonly { n: number; skill: string | null; text: string
   {"n":11,"skill":"focus-3","text":"Reduces Cooldown of 3rd Skill by 10% every 10 sec.","params":["10","3","10"]},
   {"n":12,"skill":"momentum","text":"Upon every Skill use, increases ATK by 2%. This effect can be stacked up to max 20 times.","params":["2","20"]},
   {"n":13,"skill":"steadfast","text":"Upon every Skill use, takes 3% reduced DMG. This effect can be stacked up to max 8 times.","params":["3","8"]},
-  {"n":14,"skill":null,"text":"Upon blocking the enemy’s attack, increases All Block by 20. This effect can be stacked up to max 20 times and activates only once every 2 sec.","params":["20","20","2"]},
+  {"n":14,"skill":"bulwark","text":"Upon blocking the enemy’s attack, increases All Block by 20. This effect can be stacked up to max 20 times and activates only once every 2 sec.","params":["20","20","2"]},
   {"n":15,"skill":"physical-ward","text":"Takes 20% reduced P.DMG. This effect can increase up to 30% over 10 sec.","params":["20","10","30"]},
   {"n":16,"skill":"magical-ward","text":"Takes 20% reduced M.DMG. This effect can increase up to 30% over 10 sec.","params":["20","10","30"]},
   {"n":17,"skill":"persistence","text":"Increases DMG dealt to enemies by 3% every 15 sec. This effect can be stacked up to max 12 times.","params":["15","3","12"]},
   {"n":18,"skill":"parry","text":"Upon blocking an enemy attack, recovers 200 Mana. This effect activates only once every 1 sec.","params":["200","1"]},
   {"n":19,"skill":"mending","text":"Upon Skill use, increases Heal Rate by 25% for 5 sec. This effect activates only once every 10 sec.","params":["5","25","10"]},
-  {"n":20,"skill":null,"text":"Increases DMG of [DMG that ignores DEF] by 25%.","params":["25"]},
-  {"n":21,"skill":null,"text":"Increases DMG of [Continuous DMG] by 20%.","params":["20"]},
-  {"n":22,"skill":null,"text":"Upon killing an enemy, increases ATK by 2%. This effect can be stacked up to max 25 times.","params":["2","25"]},
+  {"n":20,"skill":"sunder","text":"Increases DMG of [DMG that ignores DEF] by 25%.","params":["25"]},
+  {"n":21,"skill":"corrosion","text":"Increases DMG of [Continuous DMG] by 20%.","params":["20"]},
+  {"n":22,"skill":"bloodlust","text":"Upon killing an enemy, increases ATK by 2%. This effect can be stacked up to max 25 times.","params":["2","25"]},
   {"n":23,"skill":"warm-up","text":"At the beginning of each battle, increases ATK by 5%. This effect can be stacked up to max 15 times.","params":["5","15"]},
-  {"n":24,"skill":null,"text":"Increases DEF by 7% per 1 enemy.","params":["1","7"]},
-  {"n":25,"skill":null,"text":"Increases ATK by 6% per 1 enemy.","params":["1","6"]},
+  {"n":24,"skill":"phalanx","text":"Increases DEF by 7% per 1 enemy.","params":["1","7"]},
+  {"n":25,"skill":"onslaught","text":"Increases ATK by 6% per 1 enemy.","params":["1","6"]},
   {"n":26,"skill":"war-cry","text":"Increases ATK of all allies by 5%.","params":["5"]},
   {"n":27,"skill":"whetstone","text":"Increases Crit DMG of all allies by 10%.","params":["10"]},
   {"n":28,"skill":"bastion","text":"Increases All DEF of all allies by 7%.","params":["7"]},

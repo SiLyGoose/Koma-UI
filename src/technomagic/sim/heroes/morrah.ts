@@ -266,7 +266,7 @@ export const MORRAH: HeroDef = {
         if (burnt >= FLAME.every) {
           burnt -= FLAME.every;
           fight.cue(self, 'flame');
-          fight.hit(self, each * count, false);
+          fight.continuous(self, each * count);
         }
       },
       lit: () => burning > 0,

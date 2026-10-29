@@ -254,7 +254,7 @@ export const LORRAINE: HeroDef = {
         bitten += dt;
         if (bitten >= POISON.every) {
           bitten -= POISON.every;
-          fight.hit(self, POISON.each * count * (self.perks.has('s4-dark') && fight.foe === fight.boss ? PERKS.boss : 1), false);
+          fight.continuous(self, POISON.each * count * (self.perks.has('s4-dark') && fight.foe === fight.boss ? PERKS.boss : 1));
         }
       },
       lit: () => poisons() >= POISON.most,
