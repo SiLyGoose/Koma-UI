@@ -78,5 +78,175 @@ export const CROW_ASSETS: HeroAssets = {
         right: 'Hero_Crow_Vari04_Weapon',
       },
     },
+    // King's Raid's Wedding costume (tm-costumes.mjs).
+    {
+      name: 'Crow_Wedding',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Crow_Wedding.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Crow_Wedding.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Crow_Wedding.webp',
+      title: 'Beautiful Memories Crow',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Crow_Cos18Wedding_Body', 'Hero_Crow_Hair_01'],
+        right: 'Hero_Crow_Cos18Wedding_Weapon',
+      },
+    },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Crow_Summer',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Crow_Summer.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Crow_Summer.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Crow_Summer.webp',
+      title: 'Beachside Crow',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Crow_Cos18Summer_Body', 'Hero_Crow_Hair_01'],
+        right: 'Hero_Crow_Cos18Summer_Weapon',
+      },
+    },
+    // King's Raid's Halloween costume (tm-costumes.mjs).
+    {
+      name: 'Crow_Halloween',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Crow_Halloween.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Crow_Halloween.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Crow_Halloween.webp',
+      title: 'Demon Hunter Crow',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Crow_Cos18Halloween_Body', 'Hero_Crow_Hair_01'],
+        right: 'Hero_Crow_Cos18Halloween_Weapon',
+      },
+    },
+    // King's Raid's Story costume (tm-costumes.mjs).
+    {
+      name: 'Crow_Story',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Crow_Story.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Crow_Story.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Crow_Story.webp',
+      title: 'Shadow Hound Crow',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Crow_Substory01_Body', 'Hero_Crow_Hair_01'],
+        right: 'Hero_Crow_Substory01_Weapon',
+      },
+    },
+    // King's Raid's NewYear costume (tm-costumes.mjs).
+    {
+      name: 'Crow_NewYear',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Crow_NewYear.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Crow_NewYear.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Crow_NewYear.webp',
+      title: 'Admiral Crow',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Crow_Cos19NewYear_Body', 'Hero_Crow_Hair_01'],
+        right: 'Hero_Crow_Cos19NewYear_Weapon',
+      },
+    },
+    // King's Raid's Glory costume (tm-costumes.mjs).
+    {
+      name: 'Crow_Glory',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Crow_Glory.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Crow_Glory.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Crow_Glory.webp',
+      title: 'Crow of Honor',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Crow_Cos19GloryLeague_Body', 'Hero_Crow_Hair_01'],
+        right: 'Hero_Crow_Cos19GloryLeague_Weapon',
+      },
+    },
+    // King's Raid's Job costume (tm-costumes.mjs).
+    {
+      name: 'Crow_Job',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Crow_Job.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Crow_Job.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Crow_Job.webp',
+      title: 'Special Strike Force Crow',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Crow_Cos19Job_Body', 'Hero_Crow_Cos19Job_Hair'],
+        right: 'Hero_Crow_Cos19Job_Weapon',
+      },
+    },
+    // King's Raid's Christmas costume (tm-costumes.mjs).
+    {
+      name: 'Crow_Christmas',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Crow_Christmas.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Crow_Christmas.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Crow_Christmas.webp',
+      title: 'Christmas of a Father Crow',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Crow_Cos19Christmas_Body', 'Hero_Crow_Hair_01'],
+        right: 'Hero_Crow_Cos19Christmas_Weapon',
+      },
+    },
+    // King's Raid's School costume (tm-costumes.mjs).
+    {
+      name: 'Crow_School',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Crow_School.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Crow_School.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Crow_School.webp',
+      title: 'Art Teacher Crow',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Crow_Cos20SL_Body', 'Hero_Crow_Hair_01'],
+        right: 'Hero_Crow_Cos20SL_Weapon',
+      },
+    },
+    // King's Raid's DailyLook costume (tm-costumes.mjs).
+    {
+      name: 'Crow_DailyLook',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Crow_DailyLook.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Crow_DailyLook.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Crow_DailyLook.webp',
+      title: 'Black Rider Crow',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Crow_Cos21DailyLook_Body', 'Hero_Crow_Hair_01'],
+        right: 'Hero_Crow_Cos21DailyLook_Weapon',
+      },
+    },
   ],
 };

@@ -77,5 +77,113 @@ export const PRISCILLA_ASSETS: HeroAssets = {
         offHand: 'held',
       },
     },
+    // King's Raid's Halloween costume (tm-costumes.mjs).
+    {
+      name: 'Priscilla_Halloween',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Priscilla_Halloween.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Priscilla_Halloween.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Priscilla_Halloween.webp',
+      title: 'Lady Priscilla',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Priscilla_Cos17Halloween_Body', 'Hero_Priscilla_Cos17Halloween'],
+        left: 'Hero_Priscilla_Cos17Halloween_Weapon',
+        offHand: 'held',
+      },
+    },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Priscilla_Summer',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Priscilla_Summer.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Priscilla_Summer.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Priscilla_Summer.webp',
+      title: 'Beachside Priscilla',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Priscilla_Cos17Summer_Body', 'Hero_Priscilla_Vari05'],
+        left: 'Hero_Priscilla_Cos17Summer_Weapon',
+        offHand: 'held',
+      },
+    },
+    // King's Raid's NewYear costume (tm-costumes.mjs).
+    {
+      name: 'Priscilla_NewYear',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Priscilla_NewYear.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Priscilla_NewYear.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Priscilla_NewYear.webp',
+      title: 'Chut Tai Priscilla',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Priscilla_Cos18NewYear_Body', 'Hero_Priscilla_Cos18NewYear'],
+        left: 'Hero_Priscilla_Cos18NewYear_Weapon',
+        offHand: 'held',
+      },
+    },
+    // King's Raid's Wedding costume (tm-costumes.mjs).
+    {
+      name: 'Priscilla_Wedding',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Priscilla_Wedding.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Priscilla_Wedding.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Priscilla_Wedding.webp',
+      title: 'The Eternal Pledge Priscilla',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Priscilla_Cos18Wedding_Body', 'Hero_Priscilla_Cos18Wedding'],
+        left: 'Hero_Priscilla_Cos18Wedding_Weapon',
+        offHand: 'held',
+      },
+    },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Priscilla_Summer19',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Priscilla_Summer19.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Priscilla_Summer19.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Priscilla_Summer19.webp',
+      title: 'Beachside Priscilla',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Priscilla_Cos19Summer_Body', 'Hero_Priscilla_Cos19Summer_Hair'],
+        left: 'Hero_Priscilla_Cos19Summer_Weapon',
+        offHand: 'held',
+      },
+    },
+    // King's Raid's School costume (tm-costumes.mjs).
+    {
+      name: 'Priscilla_School',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Priscilla_School.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Priscilla_School.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Priscilla_School.webp',
+      title: 'Basketball Team Priscilla',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Priscilla_Cos20SL_Body', 'Hero_Priscilla_Cos20SL_Hair'],
+        left: 'Hero_Priscilla_Cos20SL_Weapon',
+        offHand: 'held',
+      },
+    },
   ],
 };

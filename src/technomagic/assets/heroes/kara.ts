@@ -88,5 +88,101 @@ export const KARA_ASSETS: HeroAssets = {
         parts: ['Hero_Kara_Vari05_Body', 'Hero_Kara_Vari05', 'Hero_Kara_Vari05_Weapon'],
       },
     },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Kara_Summer',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Kara_Summer.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Kara_Summer.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Kara_Summer.webp',
+      title: 'Beachside Kara',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Kara_Cos18Summer_Body', 'Hero_Kara_Cos18Summer', 'Hero_Kara_Cos18Summer_Weapon'],
+      },
+    },
+    // King's Raid's Wedding costume (tm-costumes.mjs).
+    {
+      name: 'Kara_Wedding',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Kara_Wedding.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Kara_Wedding.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Kara_Wedding.webp',
+      title: 'Doll with Happiness Kara',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Kara_Cos18Wedding_Body', 'Hero_Kara_Cos18Wedding', 'Hero_Kara_Cos18Wedding_Weapon'],
+      },
+    },
+    // King's Raid's Maid costume (tm-costumes.mjs).
+    {
+      name: 'Kara_Maid',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Kara_Maid.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Kara_Maid.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Kara_Maid.webp',
+      title: 'Maid Kara',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Kara_Cos18Maid_Body', 'Hero_Kara_Cos18Maid', 'Hero_Kara_Cos18Maid_Weapon'],
+      },
+    },
+    // King's Raid's UserPick costume (tm-costumes.mjs).
+    {
+      name: 'Kara_UserPick',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Kara_UserPick.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Kara_UserPick.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Kara_UserPick.webp',
+      title: 'Space Age Kara',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Kara_Cos19UserPick_Body', 'Hero_Kara_Cos19Userpick', 'Hero_Kara_Cos19UserPick_Weapon'],
+      },
+    },
+    // King's Raid's Halloween costume (tm-costumes.mjs).
+    {
+      name: 'Kara_Halloween',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Kara_Halloween.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Kara_Halloween.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Kara_Halloween.webp',
+      title: 'Ghostbuster Kara',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Kara_Cos19Halloween_Body', 'Hero_Kara_Cos19Halloween_Hair', 'Hero_Kara_Cos19Halloween_Weapon'],
+      },
+    },
+    // King's Raid's Christmas costume (tm-costumes.mjs).
+    {
+      name: 'Kara_Christmas',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Kara_Christmas.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Kara_Christmas.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Kara_Christmas.webp',
+      title: 'Technomagic Present Kara',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Kara_Cos20Christmas_Body', 'Hero_Kara_Cos20Christmas_Hair', 'Hero_Kara_Cos20Christmas_Weapon'],
+      },
+    },
   ],
 };

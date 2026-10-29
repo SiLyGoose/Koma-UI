@@ -77,7 +77,7 @@ export const KLAUS: HeroDef = {
   id: 'klaus',
   name: 'Klaus',
   class: 'knight',
-  skins: ['Klaus'],
+  skins: ['Klaus', 'Klaus_School', 'Klaus_Summer', 'Klaus_Idol', 'Klaus_Frozen', 'Klaus_Maid', 'Klaus_NewYear', 'Klaus_Summer19', 'Klaus_Wedding'],
   // A knight whose blows are physical: as his class stands, otherwise (he blocks a good third of the blows that come at him).
   stats: { ...CLASS_STATS.knight, deals: 'physical' },
   abilities: [

@@ -72,7 +72,7 @@ export const KIRZE: HeroDef = {
   id: 'kirze',
   name: 'Kirze',
   class: 'warrior',
-  skins: ['Kirze', 'Kirze_Glory'],
+  skins: ['Kirze', 'Kirze_Glory', 'Kirze_Summer', 'Kirze_Job', 'Kirze_Halloween', 'Kirze_Christmas'],
   // A warrior whose blows are magical: as her class stands, otherwise.
   stats: { ...CLASS_STATS.warrior, deals: 'magical' },
   abilities: [

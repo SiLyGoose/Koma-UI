@@ -73,5 +73,73 @@ export const REHARTNA_ASSETS: HeroAssets = {
         right: 'Hero_Rehartna_Vari05_Weapon',
       },
     },
+    // King's Raid's Job costume (tm-costumes.mjs).
+    {
+      name: 'Rehartna_Job',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Rehartna_Job.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Rehartna_Job.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Rehartna_Job.webp',
+      title: 'Orchestra Rehartna',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Rehartna_Cos19Job_Body', 'Hero_Rehartna_Cos19Job_Hair'],
+        right: 'Hero_Rehartna_Cos19Job_Weapon',
+      },
+    },
+    // King's Raid's Christmas costume (tm-costumes.mjs).
+    {
+      name: 'Rehartna_Christmas',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Rehartna_Christmas.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Rehartna_Christmas.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Rehartna_Christmas.webp',
+      title: 'Christmas of the Messenger Rehartna',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Rehartna_Cos19Christmas_Body', 'Hero_Rehartna_Cos19Christmas_Hair'],
+        right: 'Hero_Rehartna_Cos19Christmas_Weapon',
+      },
+    },
+    // King's Raid's Wedding costume (tm-costumes.mjs).
+    {
+      name: 'Rehartna_Wedding',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Rehartna_Wedding.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Rehartna_Wedding.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Rehartna_Wedding.webp',
+      title: 'Serenade of Happiness Rehartna',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Rehartna_Cos20Wedding_Body', 'Hero_Rehartna_Cos20Wedding_Hair'],
+        right: 'Hero_Rehartna_Cos20Wedding_Weapon',
+      },
+    },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Rehartna_Summer',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Rehartna_Summer.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Rehartna_Summer.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Rehartna_Summer.webp',
+      title: 'Beachside Rehartna',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Rehartna_Cos20Summer_Body', 'Hero_Rehartna_Cos20Summer_Hair'],
+        right: 'Hero_Rehartna_Cos20Summer_Weapon',
+      },
+    },
   ],
 };

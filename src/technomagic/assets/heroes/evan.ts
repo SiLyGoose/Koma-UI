@@ -87,5 +87,90 @@ export const EVAN_ASSETS: HeroAssets = {
         right: 'Hero_Evan_Vari05_Weapon',
       },
     },
+    // King's Raid's Wedding costume (tm-costumes.mjs).
+    {
+      name: 'Evan_Wedding',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Evan_Wedding.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Evan_Wedding.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Evan_Wedding.webp',
+      title: 'Benevolent Forest Evan',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Evan_Cos20Wedding_Body', 'Hero_Evan_Hair01'],
+        right: 'Hero_Evan_Cos20Wedding_Weapon',
+      },
+    },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Evan_Summer',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Evan_Summer.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Evan_Summer.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Evan_Summer.webp',
+      title: 'Beachside Evan',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Evan_Cos20Summer_Body', 'Hero_Evan_Cos20Summer_Hair'],
+        right: 'Hero_Evan_Cos20Summer_Weapon',
+      },
+    },
+    // King's Raid's Christmas costume (tm-costumes.mjs).
+    {
+      name: 'Evan_Christmas',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Evan_Christmas.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Evan_Christmas.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Evan_Christmas.webp',
+      title: 'Forest of Snow Evan',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Evan_Cos20Christmas_Body', 'Hero_Evan_Cos20Christmas_Hair'],
+        right: 'Hero_Evan_Cos20Christmas_Weapon',
+      },
+    },
+    // King's Raid's DailyLook costume (tm-costumes.mjs).
+    {
+      name: 'Evan_DailyLook',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Evan_DailyLook.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Evan_DailyLook.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Evan_DailyLook.webp',
+      title: 'Warmth of Holidays Evan',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Evan_Cos21DailyLook1_Body', 'Hero_Evan_Hair01'],
+        right: 'Hero_Evan_Cos21DailyLook_Weapon',
+      },
+    },
+    // King's Raid's DailyLook costume (tm-costumes.mjs).
+    {
+      name: 'Evan_DailyLook2',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Evan_DailyLook2.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Evan_DailyLook2.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Evan_DailyLook2.webp',
+      title: 'Warmth of Holidays Evan',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Evan_Cos21DailyLook2_Body', 'Hero_Evan_Hair01'],
+        right: 'Hero_Evan_Cos21DailyLook_Weapon',
+      },
+    },
   ],
 };

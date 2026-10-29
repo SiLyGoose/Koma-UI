@@ -74,5 +74,73 @@ export const LAKRAK_ASSETS: HeroAssets = {
         right: 'Lakrak_Vari05_Weapon',
       },
     },
+    // King's Raid's Halloween costume (tm-costumes.mjs).
+    {
+      name: 'Lakrak_Halloween',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Lakrak_Halloween.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Lakrak_Halloween.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Lakrak_Halloween.webp',
+      title: 'Clown Lakrak',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Lakrak_Cos17Halloween_Mesh'],
+        right: 'Hero_Lakrak_Cos17Halloween_Weapon',
+      },
+    },
+    // King's Raid's Frozen costume (tm-costumes.mjs).
+    {
+      name: 'Lakrak_Frozen',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Lakrak_Frozen.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Lakrak_Frozen.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Lakrak_Frozen.webp',
+      title: 'Ice Demon Lakrak',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Lakrak_Cos18Frozen_Mesh'],
+        right: 'Hero_Lakrak_Cos18Frozen_Weapon',
+      },
+    },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Lakrak_Summer',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Lakrak_Summer.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Lakrak_Summer.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Lakrak_Summer.webp',
+      title: 'Beachside Lakrak',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Lakrak_Cos18Summer_Mesh'],
+        right: 'Hero_Lakrak_Cos18Summer_Weapon',
+      },
+    },
+    // King's Raid's Job costume (tm-costumes.mjs).
+    {
+      name: 'Lakrak_Job',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Lakrak_Job.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Lakrak_Job.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Lakrak_Job.webp',
+      title: 'Miner Lakrak',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Lakrak_Cos19Job_Mesh'],
+        right: 'Hero_Lakrak_Cos19Job_Weapon',
+      },
+    },
   ],
 };

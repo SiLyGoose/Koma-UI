@@ -1,0 +1,36 @@
+<!-- The heroes' outfits for sale (src/hero-outfit-shop/page.ts): a card for each, its King's Raid card, its name and its price. The shop's Hero Outfits tab, swapped into its panel by src/shop/page.ts. Laid out as the Outfits tab (its outfits.css). -->
+<section class="outfits-page hero-outfit-shop">
+  <div class="outfits-bar">
+    <select id="server" class="server-pick" aria-label="Server" hidden></select>
+    <h2 class="outfits-title plaque">Hero Outfits</h2>
+    <p class="outfits-wallet"><span id="balance" class="outfits-purse" title="zeiucoins" hidden></span></p>
+  </div>
+
+  <p id="status" class="status outfits-status" hidden></p>
+
+  <!-- Whose outfits: their heroes' (to begin with), every hero's, or one hero's. Then a card for each it leaves (page.ts). -->
+  <div class="hos-tools">
+    <select id="hero" class="hos-hero-pick" aria-label="Hero"></select>
+  </div>
+  <div id="outfits" class="outfits-row hos-row"></div>
+  <p id="empty" class="status outfits-status" hidden></p>
+
+  <!--
+    Buying one: its card, its name and whose it is, and what it costs (in red when it's more than they have); Try On in its hero's
+    outfit room (src/hero-outfits/), and Buy, or for a hero they don't own, the way to recruit it.
+  -->
+  <div id="buy" class="outfits-buy" role="dialog" aria-modal="true" aria-labelledby="buy-title" tabindex="-1" hidden>
+    <div class="outfits-buy-box hos-buy-box">
+      <div class="outfits-buy-figure hos-buy-figure"><img id="buy-card" class="hos-buy-card" alt="" /></div>
+      <h3 id="buy-title"></h3>
+      <p id="buy-hero" class="hos-buy-hero"></p>
+      <p id="buy-price" class="outfits-buy-price"></p>
+      <div class="outfits-buy-foot">
+        <button type="button" class="action secondary" data-buy="cancel">Cancel</button>
+        <a id="buy-try" class="action secondary" href="/hero-outfits/">Try On</a>
+        <button type="button" class="action main" data-buy="confirm">Buy</button>
+        <a id="buy-recruit" class="action main" href="/shop/heroes/" hidden>Recruit Hero</a>
+      </div>
+    </div>
+  </div>
+</section>

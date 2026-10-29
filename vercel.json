@@ -118,6 +118,14 @@
       "destination": "/index.html"
     },
     {
+      "source": "/hero-outfits",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/hero-outfits/",
+      "destination": "/index.html"
+    },
+    {
       "source": "/dressing-room/",
       "destination": "/index.html"
     },

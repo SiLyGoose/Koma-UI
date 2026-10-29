@@ -68,7 +68,7 @@ export const LAKRAK: HeroDef = {
   id: 'lakrak',
   name: 'Lakrak',
   class: 'mechanic',
-  skins: ['Lakrak'],
+  skins: ['Lakrak', 'Lakrak_Halloween', 'Lakrak_Frozen', 'Lakrak_Summer', 'Lakrak_Job'],
   stats: { ...CLASS_STATS.mechanic, deals: 'physical' },
   abilities: [
     {

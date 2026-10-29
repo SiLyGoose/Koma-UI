@@ -65,7 +65,7 @@ export const LILIA: HeroDef = {
   id: 'lilia',
   name: 'Lilia',
   class: 'wizard',
-  skins: ['Lilia'],
+  skins: ['Lilia', 'Lilia_Summer', 'Lilia_Halloween', 'Lilia_Maid', 'Lilia_Christmas', 'Lilia_UserPick', 'Lilia_Glory'],
   // A wizard whose blows are physical: her passive's crit chance.
   stats: { ...CLASS_STATS.wizard, deals: 'physical', crit: CLASS_STATS.wizard.crit + PURIFICATION.crit },
   abilities: [

@@ -103,6 +103,7 @@ export const SERIA_ASSETS: HeroAssets = {
       card: 'Seria_Christmas.webp',
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Seria_Christmas.webp',
+      title: 'Christmas of an Exorcist Seria',
       portrait: { file: 'Seria_Christmas.png', from: `${DRIVE}1zbsVdK__ytCQ-YxrIpRV_SNKRaDSqamX`, crop: { x: 345, y: 10, size: 200 }, head: { x: 400, y: 118, size: 115 } },
       model: {
         kind: 'parts',
@@ -110,6 +111,132 @@ export const SERIA_ASSETS: HeroAssets = {
         parts: ['Hero_Seria_Cos19Christmas_Body', 'Hero_Seria_Cos19Christmas_Hair'],
         left: 'Hero_Seria_Cos19Christmas_Weapon_B',
         right: 'Hero_Seria_Cos19Christmas_Weapon_A',
+        offHand: 'held',
+        blade: 'y',
+        grips: GRIPS,
+      },
+    },
+    // King's Raid's NewYear costume (tm-costumes.mjs).
+    {
+      name: 'Seria_NewYear',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Seria_NewYear.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Seria_NewYear.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Seria_NewYear.webp',
+      title: 'Priestess Seria',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Seria_Cos19NewYear_Body', 'Hero_Seria_Hair_01'],
+        left: 'Hero_Seria_Cos19NewYear_WeaponB',
+        right: 'Hero_Seria_Cos19NewYear_WeaponA',
+        offHand: 'held',
+        blade: 'y',
+        grips: GRIPS,
+      },
+    },
+    // King's Raid's Wedding costume (tm-costumes.mjs).
+    {
+      name: 'Seria_Wedding',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Seria_Wedding.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Seria_Wedding.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Seria_Wedding.webp',
+      title: 'A Resting Sword Seria',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Seria_Cos19Wedding_Body', 'Hero_Seria_Cos19Wedding_Hair'],
+        left: 'Hero_Seria_Cos19Wedding_WeaponB',
+        right: 'Hero_Seria_Cos19Wedding_WeaponA',
+        offHand: 'held',
+        blade: 'y',
+        grips: GRIPS,
+      },
+    },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Seria_Summer',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Seria_Summer.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Seria_Summer.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Seria_Summer.webp',
+      title: 'Beachside Seria',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Seria_Cos19Summer_Body', 'Hero_Seria_Hair_01'],
+        left: 'Hero_Seria_Cos19Summer_Weapon_B',
+        right: 'Hero_Seria_Cos19Summer_Weapon_A',
+        offHand: 'held',
+        blade: 'y',
+        grips: GRIPS,
+      },
+    },
+    // King's Raid's School costume (tm-costumes.mjs).
+    {
+      name: 'Seria_School',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Seria_School.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Seria_School.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Seria_School.webp',
+      title: 'Kendo Club Seria',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Seria_Cos20SL_Body', 'Hero_Seria_Hair_01'],
+        left: 'Hero_Seria_Cos20SL_Weapon_B',
+        right: 'Hero_Seria_Cos20SL_Weapon_A',
+        offHand: 'held',
+        blade: 'y',
+        grips: GRIPS,
+      },
+    },
+    // King's Raid's Glory costume (tm-costumes.mjs).
+    {
+      name: 'Seria_Glory',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Seria_Glory.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Seria_Glory.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Seria_Glory.webp',
+      title: 'Seria of Honor (Call of Dawn)',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Seria_Cos20GloryLeague1_Body', 'Hero_Seria_Cos20GloryLeague1_Hair'],
+        left: 'Hero_Seria_Cos20GloryLeague1_Weapon_B',
+        right: 'Hero_Seria_Cos20GloryLeague1_Weapon_A',
+        offHand: 'held',
+        blade: 'y',
+        grips: GRIPS,
+      },
+    },
+    // King's Raid's Glory costume (tm-costumes.mjs).
+    {
+      name: 'Seria_Glory2',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Seria_Glory2.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Seria_Glory2.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Seria_Glory2.webp',
+      title: 'Seria of Glaring Honor (Call of Dawn)',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Seria_Cos20GloryLeague2_Body', 'Hero_Seria_Cos20GloryLeague2_Hair'],
+        left: 'Hero_Seria_Cos20GloryLeague2_Weapon_B',
+        right: 'Hero_Seria_Cos20GloryLeague2_Weapon_A',
         offHand: 'held',
         blade: 'y',
         grips: GRIPS,

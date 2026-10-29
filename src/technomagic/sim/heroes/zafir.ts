@@ -69,7 +69,7 @@ export const ZAFIR: HeroDef = {
   id: 'zafir',
   name: 'Zafir',
   class: 'archer',
-  skins: ['Zafir'],
+  skins: ['Zafir', 'Zafir_Summer', 'Zafir_Wedding', 'Zafir_Halloween', 'Zafir_Casual', 'Zafir_School'],
   stats: { ...CLASS_STATS.archer, deals: 'physical' },
   abilities: [
     {

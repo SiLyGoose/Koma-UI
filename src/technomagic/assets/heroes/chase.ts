@@ -72,5 +72,90 @@ export const CHASE_ASSETS: HeroAssets = {
         right: 'Hero_Chase_Vari05_Weapon',
       },
     },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Chase_Summer',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Chase_Summer.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Chase_Summer.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Chase_Summer.webp',
+      title: 'Beachside Chase',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Chase_Cos18Summer_Body', 'Hero_Chase_Hair_01'],
+        right: 'Hero_Chase_Cos18Summer_Weapon',
+      },
+    },
+    // King's Raid's Wedding costume (tm-costumes.mjs).
+    {
+      name: 'Chase_Wedding',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Chase_Wedding.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Chase_Wedding.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Chase_Wedding.webp',
+      title: 'Silver Courage Chase',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Chase_Cos18Wedding_Body', 'Hero_Chase_Hair_01'],
+        right: 'Hero_Chase_Cos18Wedding_Weapon',
+      },
+    },
+    // King's Raid's Halloween costume (tm-costumes.mjs).
+    {
+      name: 'Chase_Halloween',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Chase_Halloween.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Chase_Halloween.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Chase_Halloween.webp',
+      title: 'Dark Knight Chase',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Chase_Cos18Halloween_Body', 'Hero_Chase_Cos18Halloween_Hair'],
+        right: 'Hero_Chase_Cos18Halloween_Weapon',
+      },
+    },
+    // King's Raid's UserPick costume (tm-costumes.mjs).
+    {
+      name: 'Chase_UserPick',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Chase_UserPick.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Chase_UserPick.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Chase_UserPick.webp',
+      title: 'Relaxing Day Chase',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Chase_Cos19UserPick_Body', 'Hero_Chase_Hair_01'],
+        right: 'Hero_Chase_Cos19UserPick_Weapon',
+      },
+    },
+    // King's Raid's School costume (tm-costumes.mjs).
+    {
+      name: 'Chase_School',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Chase_School.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Chase_School.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Chase_School.webp',
+      title: 'Band Member Chase',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Chase_Cos20SL_Body', 'Hero_Chase_Cos20SL_Hair'],
+        right: 'Hero_Chase_Cos20SL_Weapon',
+      },
+    },
   ],
 };

@@ -110,7 +110,7 @@ export const EVAN: HeroDef = {
   id: 'evan',
   name: 'Evan',
   class: 'priest',
-  skins: ['Evan'],
+  skins: ['Evan', 'Evan_Wedding', 'Evan_Summer', 'Evan_Christmas', 'Evan_DailyLook', 'Evan_DailyLook2'],
   stats: { ...CLASS_STATS.priest, deals: 'physical' },
   abilities: [
     {

@@ -13,7 +13,9 @@ import '../forge/forge.css';
 import '../banner/banner.css';
 import '../outfits/outfits.css';
 import '../hero-shop/hero-shop.css';
+import '../hero-outfit-shop/hero-outfit-shop.css';
 import '../heroes/heroes.css';
+import '../hero-outfits/hero-outfits.css';
 import '../raid-shop/raid-shop.css';
 import '../shop/shop.css';
 import '../admin/admin.css';
@@ -27,7 +29,7 @@ import type { Page } from './page';
 import { hasSession } from './session';
 
 /*
- * The site's pages (the front page, the player's gear, the heroes, the inventory, the forge, the shop, the dressing room, the databank, the admin page) as one document: moving between them swaps the
+ * The site's pages (the front page, the player's gear, the heroes, a hero's outfit room, the inventory, the forge, the shop, the dressing room, the databank, the admin page) as one document: moving between them swaps the
  * page under the header, through the transition's wipe (../shared/transition/), instead of loading a
  * new document, so the header, the login and the rest stay (./session.ts), and back and forward get the
  * wipe too (right to left going back). The games are pages of their own.
@@ -59,6 +61,7 @@ const ROUTES: readonly Route[] = [
   { path: '/forge', needsLogin: true, page: () => import('../forge/page').then((m) => m.forgePage) },
   { path: '/shop', needsLogin: true, subpaths: true, page: () => import('../shop/page').then((m) => m.shopPage) },
   { path: '/dressing-room', needsLogin: true, page: () => import('../dressing/page').then((m) => m.dressingPage) },
+  { path: '/hero-outfits', needsLogin: true, page: () => import('../hero-outfits/page').then((m) => m.heroOutfitsPage) },
   { path: '/databank', subpaths: true, page: () => import('../databank/page').then((m) => m.databankPage) },
   { path: '/admin', needsLogin: true, page: () => import('../admin/page').then((m) => m.adminPage) },
 ];

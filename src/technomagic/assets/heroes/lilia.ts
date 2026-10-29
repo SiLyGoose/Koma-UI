@@ -73,5 +73,107 @@ export const LILIA_ASSETS: HeroAssets = {
         right: 'Hero_Lilia_Vari05_Weapon',
       },
     },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Lilia_Summer',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Lilia_Summer.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Lilia_Summer.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Lilia_Summer.webp',
+      title: 'Beachside Lilia',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Lilia_Cos18Summer_Body', 'Hero_Lilia_Cos18Summer_Hair'],
+        right: 'Hero_Lilia_Cos18Summer_Weapon',
+      },
+    },
+    // King's Raid's Halloween costume (tm-costumes.mjs).
+    {
+      name: 'Lilia_Halloween',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Lilia_Halloween.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Lilia_Halloween.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Lilia_Halloween.webp',
+      title: 'Cheshire Cat Lilia',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Lilia_Cos18Halloween_Body', 'Hero_Lilia_Cos18Halloween_Hair'],
+        right: 'Hero_Lilia_Cos18Halloween_Weapon',
+      },
+    },
+    // King's Raid's Maid costume (tm-costumes.mjs).
+    {
+      name: 'Lilia_Maid',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Lilia_Maid.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Lilia_Maid.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Lilia_Maid.webp',
+      title: 'Maid Lilia',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Lilia_Cos18Maid_Body', 'Hero_Lilia_Cos18Maid_Hair'],
+        right: 'Hero_Lilia_Cos18Maid_Weapon',
+      },
+    },
+    // King's Raid's Christmas costume (tm-costumes.mjs).
+    {
+      name: 'Lilia_Christmas',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Lilia_Christmas.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Lilia_Christmas.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Lilia_Christmas.webp',
+      title: 'Caroler Lilia',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Lilia_Cos18Christmas_Body', 'Hero_Lilia_Cos18Christmas_Hair'],
+        right: 'Hero_Lilia_Cos18Christmas_Weapon',
+      },
+    },
+    // King's Raid's UserPick costume (tm-costumes.mjs).
+    {
+      name: 'Lilia_UserPick',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Lilia_UserPick.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Lilia_UserPick.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Lilia_UserPick.webp',
+      title: 'Cradle of Dragons Lilia',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Lilia_Cos19UserPick_Body', 'Hero_Lilia_Hair_01'],
+        right: 'Hero_Lilia_Cos19UserPick_Weapon',
+      },
+    },
+    // King's Raid's Glory costume (tm-costumes.mjs).
+    {
+      name: 'Lilia_Glory',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Lilia_Glory.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Lilia_Glory.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Lilia_Glory.webp',
+      title: 'Lilia of Honor (Brilliance of the Azure Sky)',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Lilia_Cos20GloryLeague_Body', 'Hero_Lilia_Cos20GloryLeague_Hair'],
+        right: 'Hero_Lilia_Cos20GloryLeague_Weapon',
+      },
+    },
   ],
 };

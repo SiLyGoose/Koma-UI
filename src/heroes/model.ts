@@ -26,8 +26,9 @@ import { HEROES } from '../technomagic/sim/heroes';
  * standing in its idle (King's Raid's out-of-battle Idle, which the TechnoMagic Raid's heroes rest in too), facing the
  * camera, seen straight on (an orthographic camera, looking a little down) from over its head down to its hips, around its
  * head as its ClientCreatureTable says; drawn as its toon shader does (its edges darker, a blue rim light on them, a thin
- * black outline round it). Read only when the page first shows a hero (three.js and the models are big), its default skin
- * only, and only the one shown kept (another shown, the last one's let go of: a hero's models are 2-18 MB).
+ * black outline round it). Read only when the page first shows a hero (three.js and the models are big), in the skin asked
+ * for (the outfit it wears), and only the one shown kept (another shown, the last one's let go of: a hero's models are 2-18 MB).
+ * The outfit room (../hero-outfits/) shows it `whole`, from its head to its feet, and turns it as it is dragged.
  * Its models are under public/kr/: where one can't be read, show() says so and the page keeps the hero's picture.
  */
 
@@ -64,6 +65,8 @@ const FRAMES: Readonly<Record<string, { size: number; offset: readonly [number, 
   valance: { size: 0.53, offset: [0, -0.06] },
   yanne: { size: 0.55, offset: [0, -0.03] },
 };
+/** Shown whole: half the height shown, in its own heights (a little room over its head and under its feet); its middle, its own. */
+const WHOLE = { size: 0.68, offset: [0, 0] as const };
 /** How far down the camera looks (GameSetting Ui.Hero3dView.CameraAngle: 5°). */
 const LOOK_DOWN = (5 * Math.PI) / 180;
 
@@ -78,13 +81,16 @@ const RIM = { color: [0.669, 0.836, 1] as const, direction: new Vector3(-0.4, -0
 const OUTLINE = 1.2;
 
 export interface Showcase {
-  /** Puts the hero with this id on the stage: false when it can't be read, or another was asked for meanwhile. */
-  show(id: string): Promise<boolean>;
+  /** Puts the hero with this id on the stage, in skin `skin` (its own look: 0): false when it can't be read, or another was asked for meanwhile. */
+  show(id: string, skin?: number): Promise<boolean>;
+  /** Turns the one shown about its middle, by `by` radians (to its left). */
+  turn(by: number): void;
   /** Stops drawing, and lets go of what it was drawn with. */
   destroy(): void;
 }
 
-export function makeShowcase(canvas: HTMLCanvasElement): Showcase {
+/** Shown `whole`: its head to its feet, with a little round it (the outfit room's), not King's Raid's Hero Info's close-up. */
+export function makeShowcase(canvas: HTMLCanvasElement, { whole = false }: { whole?: boolean } = {}): Showcase {
   const renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true });
   renderer.outputColorSpace = SRGBColorSpace;
   renderer.setClearColor(0x000000, 0);
@@ -92,7 +98,7 @@ export function makeShowcase(canvas: HTMLCanvasElement): Showcase {
   const camera = new OrthographicCamera(-1, 1, 1, -1, 0.1, 100);
   /** The outline's width on the view (both ways), as the canvas is sized. */
   const outline = { value: new Vector2() };
-  /** The one being read, by its id (asked again meanwhile: the same reading). */
+  /** The one being read, by its id and skin (`<id>:<skin>`; asked again meanwhile: the same reading). */
   let reading: { id: string; hero: Promise<Hero | null> } | null = null;
   let shown: Hero | null = null;
   let shownId: string | null = null;
@@ -101,14 +107,15 @@ export function makeShowcase(canvas: HTMLCanvasElement): Showcase {
   let gone = false;
   let last = performance.now();
 
-  /** Its default skin, moved as in the raid, drawn as King's Raid draws it; null when that skin (or the hero) isn't on this computer. */
-  const load = (id: string): Promise<Hero | null> => {
-    if (reading?.id === id) return reading.hero;
+  /** It in skin `skin`, moved as in the raid, drawn as King's Raid draws it; null when that skin (or the hero) isn't on this computer. */
+  const load = (id: string, skin: number): Promise<Hero | null> => {
+    const key = `${id}:${skin}`;
+    if (reading?.id === key) return reading.hero;
     const def = HEROES.find((hero) => hero.id === id);
     const hero = def
-      ? loadHeroes([def], { skin: 0 }).then(
+      ? loadHeroes([def], { skin }).then(
           (entrants) => {
-            const found = (entrants.find((entrant) => entrant.skin === lookOf(def.id).assets.skins[0]) ?? entrants[0])?.hero ?? null;
+            const found = (entrants.find((entrant) => entrant.skin === lookOf(def.id).assets.skins[skin]) ?? entrants[0])?.hero ?? null;
             if (found) toon(found.root, outline);
             return found;
           },
@@ -118,7 +125,7 @@ export function makeShowcase(canvas: HTMLCanvasElement): Showcase {
           },
         )
       : Promise.resolve(null);
-    reading = { id, hero };
+    reading = { id: key, hero };
     return hero;
   };
 
@@ -132,10 +139,12 @@ export function makeShowcase(canvas: HTMLCanvasElement): Showcase {
     renderer.setSize(w, h, false);
     outline.value.set((2 * OUTLINE) / w, (2 * OUTLINE) / h);
     if (shown && shownId) {
-      const { size, offset } = FRAMES[shownId] ?? DEFAULT;
+      const { size, offset } = whole ? WHOLE : (FRAMES[shownId.split(':')[0] as string] ?? DEFAULT);
       shown.root.updateMatrixWorld(true);
       shown.head(head);
-      const half = size * SCALE;
+      // (Whole: as tall a view as its head is high, its middle a little over halfway up it, from the floor under it.)
+      const half = whole ? head.y * size : size * SCALE;
+      if (whole) head.y *= 0.56;
       camera.top = half;
       camera.bottom = -half;
       camera.left = (-half * w) / h;
@@ -175,11 +184,12 @@ export function makeShowcase(canvas: HTMLCanvasElement): Showcase {
   watched.observe(canvas);
 
   return {
-    async show(id) {
-      asked = id;
-      if (shownId === id && shown) return true;
-      const hero = await load(id);
-      if (gone || asked !== id || !hero) {
+    async show(id, skin = 0) {
+      const key = `${id}:${skin}`;
+      asked = key;
+      if (shownId === key && shown) return true;
+      const hero = await load(id, skin);
+      if (gone || asked !== key || !hero) {
         // (Read for nothing: another was asked for meanwhile.)
         if (hero && hero !== shown) letGo(hero);
         return false;
@@ -189,7 +199,7 @@ export function makeShowcase(canvas: HTMLCanvasElement): Showcase {
         letGo(shown);
       }
       shown = hero;
-      shownId = id;
+      shownId = key;
       // (Facing the camera, as King's Raid turns it.)
       hero.root.rotation.y = 0;
       scene.add(hero.root);
@@ -198,6 +208,9 @@ export function makeShowcase(canvas: HTMLCanvasElement): Showcase {
       fit();
       start();
       return true;
+    },
+    turn(by) {
+      if (shown) shown.root.rotation.y += by;
     },
     destroy() {
       gone = true;

@@ -1,0 +1,56 @@
+<!-- A hero's outfit room (src/hero-outfits/page.ts), as King's Raid's Costume screen: the hero standing whole, its outfits down the left, the one picked's name and Equip (or Buy) along the bottom. Swapped into #view by src/site/main.ts. -->
+<main class="ho-page">
+  <div class="ho-bar">
+    <a id="back" class="ho-back action secondary icon" href="/heroes/" aria-label="Back to Heroes">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 5 3.5 12l7 7v-4.5H20v-5h-9.5z" /></svg>
+    </a>
+    <h1 class="ho-title">Outfits</h1>
+    <!-- Whose outfits: the hero's, picked from all of them (King's Raid's Select Hero). -->
+    <select id="hero" class="ho-hero-pick" aria-label="Hero" hidden></select>
+    <select id="server" class="server-pick" aria-label="Server" hidden></select>
+    <p class="ho-wallet"><span id="balance" class="outfits-purse" title="zeiucoins" hidden></span></p>
+  </div>
+
+  <p id="status" class="status ho-status" hidden></p>
+
+  <div id="room" class="ho-room" hidden>
+    <!-- The hero, whole, in the outfit picked (src/heroes/model.ts): turned by dragging it. Its card till its model is read, or where it can't be. -->
+    <section class="ho-stage" aria-live="polite">
+      <img id="card" class="ho-card" alt="" hidden />
+      <canvas id="model" class="ho-model" aria-label="The hero in the outfit picked: drag to turn it"></canvas>
+      <div class="ho-floor" aria-hidden="true"></div>
+    </section>
+
+    <!-- Its looks (render.ts): its own first, then its outfits, each a row with its picture, its name, and whether it's on, theirs, or its price. -->
+    <section class="ho-list-panel" aria-labelledby="list-title">
+      <h2 id="list-title" class="ho-list-title">Costume</h2>
+      <div id="list" class="ho-list" role="listbox" aria-labelledby="list-title"></div>
+    </section>
+
+    <!-- The one picked: its name, what it costs or that it's theirs (or on), and Equip, Buy, or the way to the hero. -->
+    <section class="ho-foot">
+      <div class="ho-info">
+        <h2 id="name" class="ho-name"></h2>
+        <p id="state" class="ho-state"></p>
+      </div>
+      <div class="ho-actions">
+        <button type="button" id="equip" class="action main large">Equip</button>
+        <button type="button" id="buy" class="action main large" hidden>Buy</button>
+        <a id="recruit" class="action secondary large" href="/shop/heroes/" hidden>Recruit Hero</a>
+      </div>
+    </section>
+  </div>
+
+  <!-- Buying the one picked: its card, its name, and what it costs (in red when it's more than they have). -->
+  <div id="confirm" class="outfits-buy" role="dialog" aria-modal="true" aria-labelledby="confirm-title" tabindex="-1" hidden>
+    <div class="outfits-buy-box ho-buy-box">
+      <div class="outfits-buy-figure ho-buy-figure"><img id="confirm-card" class="ho-buy-card" alt="" /></div>
+      <h3 id="confirm-title"></h3>
+      <p id="confirm-price" class="outfits-buy-price"></p>
+      <div class="outfits-buy-foot">
+        <button type="button" class="action secondary" data-confirm="cancel">Cancel</button>
+        <button type="button" class="action main" data-confirm="buy">Buy</button>
+      </div>
+    </div>
+  </div>
+</main>

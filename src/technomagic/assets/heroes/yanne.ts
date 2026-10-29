@@ -80,5 +80,145 @@ export const YANNE_ASSETS: HeroAssets = {
         grips: GRIPS,
       },
     },
+    // King's Raid's Halloween costume (tm-costumes.mjs).
+    {
+      name: 'Yanne_Halloween',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Yanne_Halloween.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Yanne_Halloween.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Yanne_Halloween.webp',
+      title: 'March Hare Yanne',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Yanne_Cos17Halloween_Body', 'Hero_Yanne_Cos17Halloween_Hair'],
+        left: 'Hero_Yanne_Cos17Halloween_Weapon',
+        offHand: 'held',
+        right: 'Hero_Yanne_Arrow',
+        grips: GRIPS,
+      },
+    },
+    // King's Raid's Christmas costume (tm-costumes.mjs).
+    {
+      name: 'Yanne_Christmas',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Yanne_Christmas.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Yanne_Christmas.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Yanne_Christmas.webp',
+      title: 'Rudolph Yanne',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Yanne_Cos17Christmas_Body', 'Hero_Yanne_Cos17Christmas_Hair'],
+        left: 'Hero_Yanne_Cos17Christmas_Weapon',
+        offHand: 'held',
+        right: 'Hero_Yanne_Arrow',
+        grips: GRIPS,
+      },
+    },
+    // King's Raid's NewYear costume (tm-costumes.mjs).
+    {
+      name: 'Yanne_NewYear',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Yanne_NewYear.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Yanne_NewYear.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Yanne_NewYear.webp',
+      title: 'Native American Yanne',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Yanne_Cos18NewYear_Body', 'Hero_Yanne_Cos18NewYear_Hair'],
+        left: 'Hero_Yanne_Cos18NewYear_Weapon',
+        offHand: 'held',
+        right: 'Hero_Yanne_Arrow',
+        grips: GRIPS,
+      },
+    },
+    // King's Raid's School costume (tm-costumes.mjs).
+    {
+      name: 'Yanne_School',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Yanne_School.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Yanne_School.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Yanne_School.webp',
+      title: 'Delinquent Yanne',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Yanne_Cos18SL_Body', 'Hero_Yanne_Cos18SL_Hair'],
+        left: 'Hero_Yanne_Cos18SL_Weapon',
+        offHand: 'held',
+        right: 'Hero_Yanne_Arrow',
+        grips: GRIPS,
+      },
+    },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Yanne_Summer',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Yanne_Summer.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Yanne_Summer.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Yanne_Summer.webp',
+      title: 'Beachside Yanne',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Yanne_Cos18Summer_Body', 'Hero_Yanne_Vari04_Hair'],
+        left: 'Hero_Yanne_Cos18Summer_Weapon',
+        offHand: 'held',
+        right: 'Hero_Yanne_Cos18Summer_Arrow',
+        grips: GRIPS,
+      },
+    },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Yanne_Summer19',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Yanne_Summer19.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Yanne_Summer19.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Yanne_Summer19.webp',
+      title: 'Beachside Yanne',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Yanne_Cos19Summer_Body', 'Hero_Yanne_Cos19Summer_Hair'],
+        left: 'Hero_Yanne_Cos19Summer_Weapon',
+        offHand: 'held',
+        right: 'Hero_Yanne_Cos19Summer_Arrow',
+        grips: GRIPS,
+      },
+    },
+    // King's Raid's Wedding costume (tm-costumes.mjs).
+    {
+      name: 'Yanne_Wedding',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Yanne_Wedding.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Yanne_Wedding.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Yanne_Wedding.webp',
+      title: 'Captivating Passion Yanne',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Yanne_Cos20Wedding_Body', 'Hero_Yanne_Cos20Wedding_Hair'],
+        left: 'Hero_Yanne_Cos20Wedding_Weapon',
+        offHand: 'held',
+        right: 'Hero_Yanne_Cos20Wedding_Arrow',
+        grips: GRIPS,
+      },
+    },
   ],
 };

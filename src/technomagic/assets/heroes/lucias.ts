@@ -74,5 +74,124 @@ export const LUCIAS_ASSETS: HeroAssets = {
         right: 'Hero_Lucias_Vari05_Weapon',
       },
     },
+    // King's Raid's Christmas costume (tm-costumes.mjs).
+    {
+      name: 'Lucias_Christmas',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Lucias_Christmas.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Lucias_Christmas.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Lucias_Christmas.webp',
+      title: 'Caroler Lucias',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Lucias_Cos18Christmas_Body', 'Hero_Lucias_Cos18Christmas_Hair'],
+        right: 'Hero_Lucias_Cos18Christmas_Weapon',
+      },
+    },
+    // King's Raid's Wedding costume (tm-costumes.mjs).
+    {
+      name: 'Lucias_Wedding',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Lucias_Wedding.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Lucias_Wedding.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Lucias_Wedding.webp',
+      title: 'Noble Grace Lucias',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Lucias_Cos19Wedding_Body', 'Hero_Lucias_Hair_01'],
+        right: 'Hero_Lucias_Cos19Wedding_Weapon',
+      },
+    },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Lucias_Summer',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Lucias_Summer.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Lucias_Summer.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Lucias_Summer.webp',
+      title: 'Beachside Lucias',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Lucias_Cos19Summer_Body', 'Hero_Lucias_Hair_01'],
+        right: 'Hero_Lucias_Cos19Summer_Weapon',
+      },
+    },
+    // King's Raid's School costume (tm-costumes.mjs).
+    {
+      name: 'Lucias_School',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Lucias_School.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Lucias_School.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Lucias_School.webp',
+      title: 'High School Lucias',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Lucias_Cos20SL_Body', 'Hero_Lucias_Hair_01'],
+        right: 'Hero_Lucias_Cos20SL_Weapon',
+      },
+    },
+    // King's Raid's Glory costume (tm-costumes.mjs).
+    {
+      name: 'Lucias_Glory',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Lucias_Glory.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Lucias_Glory.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Lucias_Glory.webp',
+      title: 'Lucias of Honor (Blooming Blue Flame)',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Lucias_Cos21GloryLeague_Body', 'Hero_Lucias_Hair_01'],
+        right: 'Hero_Lucias_Cos21GloryLeague_Weapon',
+      },
+    },
+    // King's Raid's Glory costume (tm-costumes.mjs).
+    {
+      name: 'Lucias_Glory2',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Lucias_Glory2.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Lucias_Glory2.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Lucias_Glory2.webp',
+      title: 'Lucias of Glaring Honor (Blooming Blue Flame)',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Lucias_Cos21GloryLeague2_Body', 'Hero_Lucias_Hair_01'],
+        right: 'Hero_Lucias_Cos21GloryLeague_Weapon',
+      },
+    },
+    // King's Raid's DailyLook costume (tm-costumes.mjs).
+    {
+      name: 'Lucias_DailyLook',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Lucias_DailyLook.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Lucias_DailyLook.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Lucias_DailyLook.webp',
+      title: 'Savage Saint Lucias',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Lucias_Cos21DailyLook_Body', 'Hero_Lucias_Hair_01'],
+        right: 'Hero_Lucias_Cos21DailyLook_Weapon',
+      },
+    },
   ],
 };

@@ -68,5 +68,89 @@ export const ERZE_ASSETS: HeroAssets = {
       portrait: { file: 'Erze.png', from: 'https://raw.githubusercontent.com/IcyDipity/KingsRaidIndex/master/images/heroes/Erze/Erze.png', crop: { x: 455, y: 160, size: 190 }, head: { x: 535, y: 205, size: 105 } },
       model: { kind: 'parts', animations: ANIMATIONS, parts: ['Hero_Erze_Vari04_Body', 'Hero_Erze_Vari04_Hair'], right: 'Hero_Erze_Vari04_Weapon' },
     },
+    // King's Raid's Maid costume (tm-costumes.mjs).
+    {
+      name: 'Erze_Maid',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Erze_Maid.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Erze_Maid.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Erze_Maid.webp',
+      title: 'Maid Erze',
+      model: { kind: 'parts', animations: ANIMATIONS, parts: ['Hero_Erze_Cos18Maid_Body', 'Hero_Erze_Cos18Maid_Hair'], right: 'Hero_Erze_Cos18Maid_Weapon' },
+    },
+    // King's Raid's NewYear costume (tm-costumes.mjs).
+    {
+      name: 'Erze_NewYear',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Erze_NewYear.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Erze_NewYear.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Erze_NewYear.webp',
+      title: 'Pharaoh Erze',
+      model: { kind: 'parts', animations: ANIMATIONS, parts: ['Hero_Erze_Cos19NewYear_Body', 'Hero_Erze_Cos19NewYear_Hair'], right: 'Hero_Erze_Cos19NewYear_Weapon' },
+    },
+    // King's Raid's Wedding costume (tm-costumes.mjs).
+    {
+      name: 'Erze_Wedding',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Erze_Wedding.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Erze_Wedding.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Erze_Wedding.webp',
+      title: 'The Blood Oath Erze',
+      model: { kind: 'parts', animations: ANIMATIONS, parts: ['Hero_Erze_Cos19Wedding_Body', 'Hero_Erze_Cos19Wedding_Hair'], right: 'Hero_Erze_Cos19Wedding_Weapon' },
+    },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Erze_Summer',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Erze_Summer.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Erze_Summer.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Erze_Summer.webp',
+      title: 'Beachside Erze',
+      model: { kind: 'parts', animations: ANIMATIONS, parts: ['Hero_Erze_Cos19Summer_Body', 'Hero_Erze_Cos19Summer_Hair'], right: 'Hero_Erze_Cos19Summer_Weapon' },
+    },
+    // King's Raid's Job costume (tm-costumes.mjs).
+    {
+      name: 'Erze_Job',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Erze_Job.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Erze_Job.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Erze_Job.webp',
+      title: 'Dancer Erze',
+      model: { kind: 'parts', animations: ANIMATIONS, parts: ['Hero_Erze_Cos19Job_Body', 'Hero_Erze_Cos19Job_Hair'], right: 'Hero_Erze_Cos19Job_Weapon' },
+    },
+    // King's Raid's School costume (tm-costumes.mjs).
+    {
+      name: 'Erze_School',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Erze_School.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Erze_School.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Erze_School.webp',
+      title: 'High School Erze',
+      model: { kind: 'parts', animations: ANIMATIONS, parts: ['Hero_Erze_Cos20SL_Body', 'Hero_Erze_Vari04_Hair'], right: 'Hero_Erze_Cos20SL_Weapon' },
+    },
+    // King's Raid's DailyLook costume (tm-costumes.mjs).
+    {
+      name: 'Erze_DailyLook',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Erze_DailyLook.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Erze_DailyLook.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Erze_DailyLook.webp',
+      title: 'Free-Spirited Blood Erze',
+      model: { kind: 'parts', animations: ANIMATIONS, parts: ['Hero_Erze_Cos21DailyLook_Body', 'Hero_Erze_Cos21Dailylook_Hair'], right: 'Hero_Erze_Cos21DailyLook_Weapon' },
+    },
   ],
 };

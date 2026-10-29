@@ -82,5 +82,145 @@ export const SELENE_ASSETS: HeroAssets = {
         grips: { L: { at: [0.071, 0.02, -0.002], turn: [-2.02, 0.87, 0.164] } },
       },
     },
+    // King's Raid's School costume (tm-costumes.mjs).
+    {
+      name: 'Selene_School',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Selene_School.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Selene_School.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Selene_School.webp',
+      title: 'Student Pres. Selene',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Selene_Cos16SL_Body', 'Hero_Selene_Cos16SL_Hair'],
+        left: 'Hero_Selene_Cos16SL_Weapon',
+        offHand: 'held',
+        right: 'Hero_Selene_Vari03_Arrow',
+        grips: { L: { at: [0.071, 0.02, -0.002], turn: [-2.02, 0.87, 0.164] } },
+      },
+    },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Selene_Summer',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Selene_Summer.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Selene_Summer.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Selene_Summer.webp',
+      title: 'Beachside Selene',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Selene_Cos17Summer_Body', 'Hero_Selene_Cos17Summer_Hair'],
+        left: 'Hero_Selene_Cos17Summer_Weapon',
+        offHand: 'held',
+        right: 'Hero_Selene_Cos17Summer_Arrow',
+        grips: { L: { at: [0.071, 0.02, -0.002], turn: [-2.02, 0.87, 0.164] } },
+      },
+    },
+    // King's Raid's Idol costume (tm-costumes.mjs).
+    {
+      name: 'Selene_Idol',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Selene_Idol.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Selene_Idol.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Selene_Idol.webp',
+      title: 'Love Hearts Selene',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Selene_Cos17Idol_Body', 'Hero_Selene_Cos17Idol_Hair'],
+        left: 'Hero_Selene_Cos17Idol_Weapon',
+        offHand: 'held',
+        right: 'Hero_Selene_Vari03_Arrow',
+        grips: { L: { at: [0.071, 0.02, -0.002], turn: [-2.02, 0.87, 0.164] } },
+      },
+    },
+    // King's Raid's Frozen costume (tm-costumes.mjs).
+    {
+      name: 'Selene_Frozen',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Selene_Frozen.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Selene_Frozen.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Selene_Frozen.webp',
+      title: 'Snow Princess Selene',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Selene_Cos18Frozen_Body', 'Hero_Selene_Cos18Frozen_Hair'],
+        left: 'Hero_Selene_Cos18Frozen_Weapon',
+        offHand: 'held',
+        right: 'Hero_Selene_Cos18Frozen_Arrow',
+        grips: { L: { at: [0.071, 0.02, -0.002], turn: [-2.02, 0.87, 0.164] } },
+      },
+    },
+    // King's Raid's Christmas costume (tm-costumes.mjs).
+    {
+      name: 'Selene_Christmas',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Selene_Christmas.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Selene_Christmas.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Selene_Christmas.webp',
+      title: 'Santa Selene',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Selene_Cos18Christmas_Body', 'Hero_Selene_Cos18Christmas_Hair'],
+        left: 'Hero_Selene_Cos18Christmas_Weapon',
+        offHand: 'held',
+        right: 'Hero_Selene_Vari03_Arrow',
+        grips: { L: { at: [0.071, 0.02, -0.002], turn: [-2.02, 0.87, 0.164] } },
+      },
+    },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Selene_Summer19',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Selene_Summer19.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Selene_Summer19.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Selene_Summer19.webp',
+      title: 'Beachside Selene',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Selene_Cos19Summer_Body', 'Hero_Selene_Cos19Summer_Hair'],
+        left: 'Hero_Selene_Cos19Summer_Weapon',
+        offHand: 'held',
+        right: 'Hero_Selene_Cos19Summer_Arrow',
+        grips: { L: { at: [0.071, 0.02, -0.002], turn: [-2.02, 0.87, 0.164] } },
+      },
+    },
+    // King's Raid's Dessert costume (tm-costumes.mjs).
+    {
+      name: 'Selene_Dessert',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Selene_Dessert.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Selene_Dessert.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Selene_Dessert.webp',
+      title: 'Lemon Pudding Dreams Selene',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Selene_Cos20Dessert_Body', 'Hero_Selene_Cos20Dessert_Hair'],
+        left: 'Hero_Selene_Cos20Dessert_Weapon',
+        offHand: 'held',
+        right: 'Hero_Selene_Cos20Dessert_Arrow',
+        grips: { L: { at: [0.071, 0.02, -0.002], turn: [-2.02, 0.87, 0.164] } },
+      },
+    },
   ],
 };

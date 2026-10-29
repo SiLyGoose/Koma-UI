@@ -83,5 +83,100 @@ export const GAU_ASSETS: HeroAssets = {
         grips: GRIPS,
       },
     },
+    // King's Raid's School costume (tm-costumes.mjs).
+    {
+      name: 'Gau_School',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Gau_School.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Gau_School.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Gau_School.webp',
+      title: 'Disciplinary Gau',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Gau_Cos16SL_Mesh'],
+        right: 'Hero_Gau_Cos16SL_Weapon',
+        blade: 'y',
+        grips: GRIPS,
+      },
+    },
+    // King's Raid's Halloween costume (tm-costumes.mjs).
+    {
+      name: 'Gau_Halloween',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Gau_Halloween.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Gau_Halloween.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Gau_Halloween.webp',
+      title: 'Frankenstein Gau',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Gau_Cos17Halloween_Mesh'],
+        right: 'Hero_Gau_Cos17Halloween_Weapon',
+        blade: 'y',
+        grips: GRIPS,
+      },
+    },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Gau_Summer',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Gau_Summer.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Gau_Summer.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Gau_Summer.webp',
+      title: 'Beachside Gau',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Gau_Cos18Summer_Mesh'],
+        right: 'Hero_Gau_Cos18Summer_Weapon',
+        blade: 'y',
+        grips: GRIPS,
+      },
+    },
+    // King's Raid's Wedding costume (tm-costumes.mjs).
+    {
+      name: 'Gau_Wedding',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Gau_Wedding.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Gau_Wedding.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Gau_Wedding.webp',
+      title: 'Warm Heart Gau',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Gau_Cos19Wedding_Mesh'],
+        right: 'Hero_Gau_Cos19Wedding_Weapon',
+        blade: 'y',
+        grips: GRIPS,
+      },
+    },
+    // King's Raid's Christmas costume (tm-costumes.mjs).
+    {
+      name: 'Gau_Christmas',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Gau_Christmas.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Gau_Christmas.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Gau_Christmas.webp',
+      title: 'Christmas of a Gentleman Gau',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Gau_Cos19Christmas_Mesh'],
+        right: 'Hero_Gau_Cos19Christmas_Weapon',
+        blade: 'y',
+        grips: GRIPS,
+      },
+    },
   ],
 };

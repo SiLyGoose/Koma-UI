@@ -78,5 +78,23 @@ export const ESTELLE_ASSETS: HeroAssets = {
         offHand: 'held',
       },
     },
+    // King's Raid's Advance costume (tm-costumes.mjs).
+    {
+      name: 'Estelle_Advance',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Estelle_Advance.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Estelle_Advance.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Estelle_Advance.webp',
+      title: 'Hymn for the Raiders Estelle',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Estelle_Cos21Advance_Body', 'Hero_Estelle_Cos21Advance_Hair'],
+        left: 'Hero_Estelle_Cos21Advance_Weapon',
+        offHand: 'held',
+      },
+    },
   ],
 };

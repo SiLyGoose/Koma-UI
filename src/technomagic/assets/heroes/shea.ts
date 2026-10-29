@@ -71,5 +71,124 @@ export const SHEA_ASSETS: HeroAssets = {
         right: 'Hero_Shea_Vari05_Weapon',
       },
     },
+    // King's Raid's Wedding costume (tm-costumes.mjs).
+    {
+      name: 'Shea_Wedding',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Shea_Wedding.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Shea_Wedding.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Shea_Wedding.webp',
+      title: 'Whispers of the Fairies Shea',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Shea_Cos18Wedding_Body', 'Hero_Shea_Cos18Wedding_Hair'],
+        right: 'Hero_Shea_Cos18Wedding_Weapon',
+      },
+    },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Shea_Summer',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Shea_Summer.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Shea_Summer.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Shea_Summer.webp',
+      title: 'Beachside Shea',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Shea_Cos18Summer_Body', 'Hero_Shea_Cos18Summer_Hair'],
+        right: 'Hero_Shea_Cos18Summer_Weapon',
+      },
+    },
+    // King's Raid's Halloween costume (tm-costumes.mjs).
+    {
+      name: 'Shea_Halloween',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Shea_Halloween.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Shea_Halloween.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Shea_Halloween.webp',
+      title: 'Witch Shea',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Shea_Cos18Halloween_Body', 'Hero_Shea_Cos18Halloween_Hair'],
+        right: 'Hero_Shea_Cos18Halloween_Weapon',
+      },
+    },
+    // King's Raid's Job costume (tm-costumes.mjs).
+    {
+      name: 'Shea_Job',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Shea_Job.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Shea_Job.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Shea_Job.webp',
+      title: 'DJ Shea',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Shea_Cos19Job_Body', 'Hero_Shea_Cos19Job_Hair'],
+        right: 'Hero_Shea_Cos19Job_Weapon',
+      },
+    },
+    // King's Raid's Glory costume (tm-costumes.mjs).
+    {
+      name: 'Shea_Glory',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Shea_Glory.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Shea_Glory.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Shea_Glory.webp',
+      title: 'Shea of Honor (Light of the Blue Night Sky)',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Shea_Cos20GloryLeague_Body', 'Hero_Shea_Cos20GloryLeague_Hair'],
+        right: 'Hero_Shea_Cos20GloryLeague_Weapon',
+      },
+    },
+    // King's Raid's Christmas costume (tm-costumes.mjs).
+    {
+      name: 'Shea_Christmas',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Shea_Christmas.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Shea_Christmas.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Shea_Christmas.webp',
+      title: 'Song of the Silent Night Shea',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Shea_Cos20Christmas_Body', 'Hero_Shea_Cos20Christmas_Hair'],
+        right: 'Hero_Shea_Cos20Christmas_Weapon',
+      },
+    },
+    // King's Raid's DailyLook costume (tm-costumes.mjs).
+    {
+      name: 'Shea_DailyLook',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Shea_DailyLook.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Shea_DailyLook.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Shea_DailyLook.webp',
+      title: 'Melody of Holidays Shea',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Shea_Cos21DailyLook_Body', 'Hero_Shea_Cos21DailyLook_Hair'],
+        right: 'Hero_Shea_Cos21DailyLook_Weapon',
+      },
+    },
   ],
 };

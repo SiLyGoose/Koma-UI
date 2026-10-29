@@ -77,5 +77,119 @@ export const TANYA_ASSETS: HeroAssets = {
         right: 'Hero_Tanya_Vari05_Weapon',
       },
     },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Tanya_Summer',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Tanya_Summer.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Tanya_Summer.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Tanya_Summer.webp',
+      title: 'Beachside Tanya',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Tanya_Cos17Summer_Body', 'Hero_Tanya_Cos17Summer_Hair'],
+        left: 'Hero_Tanya_Cos17Summer_Weapon',
+        offHand: 'held',
+        right: 'Hero_Tanya_Cos17Summer_Weapon',
+      },
+    },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Tanya_Summer2',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Tanya_Summer2.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Tanya_Summer2.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Tanya_Summer2.webp',
+      title: 'Beachside Tanya',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Tanya_Cos17Summer02_Body', 'Hero_Tanya_Cos17Summer02_Hair'],
+        left: 'Hero_Tanya_Cos17Summer02_Weapon',
+        offHand: 'held',
+        right: 'Hero_Tanya_Cos17Summer02_Weapon',
+      },
+    },
+    // King's Raid's Halloween costume (tm-costumes.mjs).
+    {
+      name: 'Tanya_Halloween',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Tanya_Halloween.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Tanya_Halloween.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Tanya_Halloween.webp',
+      title: 'R.R. Hood Tanya',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Tanya_Cos17Halloween_Body', 'Hero_Tanya_Hair_01'],
+        left: 'Hero_Tanya_Cos17Halloween_Weapon',
+        offHand: 'held',
+        right: 'Hero_Tanya_Cos17Halloween_Weapon',
+      },
+    },
+    // King's Raid's School costume (tm-costumes.mjs).
+    {
+      name: 'Tanya_School',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Tanya_School.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Tanya_School.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Tanya_School.webp',
+      title: 'Band Member Tanya',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Tanya_Cos18SL_Body', 'Hero_Tanya_Cos18SL_Hair'],
+        left: 'Hero_Tanya_Cos18SL_Weapon',
+        offHand: 'held',
+        right: 'Hero_Tanya_Cos18SL_Weapon',
+      },
+    },
+    // King's Raid's Wedding costume (tm-costumes.mjs).
+    {
+      name: 'Tanya_Wedding',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Tanya_Wedding.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Tanya_Wedding.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Tanya_Wedding.webp',
+      title: 'Beautiful Silence Tanya',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Tanya_Cos18Wedding_Body', 'Hero_Tanya_Cos18Wedding_Hair'],
+        left: 'Hero_Tanya_Cos18Wedding_Weapon',
+        offHand: 'held',
+        right: 'Hero_Tanya_Cos18Wedding_Weapon',
+      },
+    },
+    // King's Raid's DailyLook costume (tm-costumes.mjs).
+    {
+      name: 'Tanya_DailyLook',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Tanya_DailyLook.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Tanya_DailyLook.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Tanya_DailyLook.webp',
+      title: 'Business Suit Tanya',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Tanya_Cos21DailyLook_Body', 'Hero_Tanya_Hair_01'],
+        left: 'Hero_Tanya_Cos21DailyLook_Weapon',
+        offHand: 'held',
+        right: 'Hero_Tanya_Cos21DailyLook_Weapon',
+      },
+    },
   ],
 };

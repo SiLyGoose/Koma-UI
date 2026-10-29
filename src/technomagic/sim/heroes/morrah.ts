@@ -81,7 +81,7 @@ export const MORRAH: HeroDef = {
   id: 'morrah',
   name: 'Morrah',
   class: 'knight',
-  skins: ['Morrah'],
+  skins: ['Morrah', 'Morrah_School', 'Morrah_Summer', 'Morrah_NewYear', 'Morrah_Wedding', 'Morrah_Halloween', 'Morrah_Summer20', 'Morrah_DailyLook'],
   // A knight whose blows are magical: as her class stands, otherwise (King's Raid's own; what makes her stand magic best
   // is Hellfire).
   stats: { ...CLASS_STATS.knight, deals: 'magical' },

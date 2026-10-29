@@ -76,5 +76,131 @@ export const LOMAN_ASSETS: HeroAssets = {
         blade: 'y',
       },
     },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Loman_Summer',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Loman_Summer.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Loman_Summer.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Loman_Summer.webp',
+      title: 'Beachside Loman',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Loman_Cos18Summer_Body', 'Hero_Loman_Vari04_Hair'],
+        right: 'Hero_Loman_Cos18Summer_Weapon',
+        blade: 'y',
+      },
+    },
+    // King's Raid's Maid costume (tm-costumes.mjs).
+    {
+      name: 'Loman_Maid',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Loman_Maid.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Loman_Maid.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Loman_Maid.webp',
+      title: 'Butler Loman',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Loman_Cos18Maid_Body', 'Hero_Loman_Cos18Maid_Hair'],
+        right: 'Hero_Loman_Cos18Maid_Weapon',
+        blade: 'y',
+      },
+    },
+    // King's Raid's NewYear costume (tm-costumes.mjs).
+    {
+      name: 'Loman_NewYear',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Loman_NewYear.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Loman_NewYear.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Loman_NewYear.webp',
+      title: 'General of the Guards Loman',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Loman_Cos19NewYear_Body', 'Hero_Loman_Cos19NewYear_Hair'],
+        right: 'Hero_Loman_Cos19NewYear_Weapon',
+        blade: 'y',
+      },
+    },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Loman_Summer19',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Loman_Summer19.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Loman_Summer19.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Loman_Summer19.webp',
+      title: 'Beachside Loman',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Loman_Cos19Summer_Body', 'Hero_Loman_Cos19Summer_Hair'],
+        right: 'Hero_Loman_Cos19Summer_Weapon',
+        blade: 'y',
+      },
+    },
+    // King's Raid's Glory costume (tm-costumes.mjs).
+    {
+      name: 'Loman_Glory',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Loman_Glory.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Loman_Glory.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Loman_Glory.webp',
+      title: 'Loman of Honor (Call of Dawn)',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Loman_Cos20GloryLeague1_Body', 'Hero_Loman_Hair_05'],
+        right: 'Hero_Loman_Cos20GloryLeague1_Weapon',
+        blade: 'y',
+      },
+    },
+    // King's Raid's Glory costume (tm-costumes.mjs).
+    {
+      name: 'Loman_Glory2',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Loman_Glory2.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Loman_Glory2.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Loman_Glory2.webp',
+      title: 'Loman of Glaring Honor (Call of Dawn)',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Loman_Cos20GloryLeague2_Body', 'Hero_Loman_Hair_05'],
+        right: 'Hero_Loman_Cos20GloryLeague2_Weapon',
+        blade: 'y',
+      },
+    },
+    // King's Raid's Halloween costume (tm-costumes.mjs).
+    {
+      name: 'Loman_Halloween',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Loman_Halloween.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Loman_Halloween.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Loman_Halloween.webp',
+      title: 'Dark Knight Loman',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Loman_Cos20Halloween_Body', 'Hero_Loman_Cos20Halloween_Hair'],
+        right: 'Hero_Loman_Cos20Halloween_Weapon',
+        blade: 'y',
+      },
+    },
   ],
 };

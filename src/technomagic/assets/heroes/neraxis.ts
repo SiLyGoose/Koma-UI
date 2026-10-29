@@ -79,5 +79,100 @@ export const NERAXIS_ASSETS: HeroAssets = {
         grips: GRIPS,
       },
     },
+    // King's Raid's Maid costume (tm-costumes.mjs).
+    {
+      name: 'Neraxis_Maid',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Neraxis_Maid.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Neraxis_Maid.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Neraxis_Maid.webp',
+      title: 'Butler Neraxis',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Neraxis_Cos18Maid_Body', 'Hero_Neraxis_Hair_01'],
+        left: 'Hero_Neraxis_Cos18Maid_Weapon',
+        offHand: 'held',
+        grips: GRIPS,
+      },
+    },
+    // King's Raid's Christmas costume (tm-costumes.mjs).
+    {
+      name: 'Neraxis_Christmas',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Neraxis_Christmas.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Neraxis_Christmas.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Neraxis_Christmas.webp',
+      title: 'Caroler Neraxis',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Neraxis_Cos18Christmas_Body', 'Hero_Neraxis_Cos18Christmas_Hair'],
+        left: 'Hero_Neraxis_Cos18Christmas_Weapon',
+        offHand: 'held',
+        grips: GRIPS,
+      },
+    },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Neraxis_Summer',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Neraxis_Summer.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Neraxis_Summer.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Neraxis_Summer.webp',
+      title: 'Beachside Neraxis',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Neraxis_Cos19Summer_Body', 'Hero_Neraxis_Hair_01'],
+        left: 'Hero_Neraxis_Cos19Summer_Weapon',
+        offHand: 'held',
+        grips: GRIPS,
+      },
+    },
+    // King's Raid's Dessert costume (tm-costumes.mjs).
+    {
+      name: 'Neraxis_Dessert',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Neraxis_Dessert.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Neraxis_Dessert.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Neraxis_Dessert.webp',
+      title: 'Donut Dreams Neraxis',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Neraxis_Cos20Dessert_Body', 'Hero_Neraxis_Cos20Dessert_Hair'],
+        left: 'Hero_Neraxis_Cos20Dessert_Weapon',
+        offHand: 'held',
+        grips: GRIPS,
+      },
+    },
+    // King's Raid's Halloween costume (tm-costumes.mjs).
+    {
+      name: 'Neraxis_Halloween',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Neraxis_Halloween.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Neraxis_Halloween.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Neraxis_Halloween.webp',
+      title: 'Gentleman of the Dark Neraxis',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Neraxis_Cos20Halloween_Body', 'Hero_Neraxis_Cos20Halloween_Hair'],
+        left: 'Hero_Neraxis_Cos20Halloween_Weapon',
+        offHand: 'held',
+        grips: GRIPS,
+      },
+    },
   ],
 };

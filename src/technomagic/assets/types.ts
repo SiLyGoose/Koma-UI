@@ -111,6 +111,11 @@ export interface PartsModel {
 export interface SkinAssets {
   /** What it is known by: the hero's own name for its default skin. */
   name: string;
+  /**
+   * What King's Raid calls it, for a costume (its outfit on the site: the shop's Hero Outfits tab, the outfit room): "Princess
+   * of Hearts Kirze" (KR-extracted/scripts/tm-costumes.mjs). None: its default skin, known by its hero's name.
+   */
+  title?: string;
   /** With none it is pictured as it stands on the field. */
   portrait?: Portrait;
   /** King's Raid's own icon of it (its face, square: a file under its hero's icons/), shown wherever its face is by itself. */

@@ -118,6 +118,8 @@ export interface TmHero {
   /** The kind of damage its blows deal. */
   deals: DamageType;
   skins: number;
+  /** Its skins' names, by their index (its own first): the others are its outfits, bought and worn on the site. */
+  outfits: string[];
   /** Its three skills, then its passive: as the heroes page says them (King's Raid's words, with the fight's numbers). */
   skills: TmHeroSkill[];
   /** Its four unique treasures' names (UT1 to UT4: its skills', then its passive's). */
@@ -153,6 +155,7 @@ export const TM_HEROES: readonly TmHero[] = HEROES.map((hero) => ({
   class: hero.class,
   deals: hero.stats.deals,
   skins: hero.skins.length,
+  outfits: [...hero.skins],
   skills: [
     ...hero.abilities.map(({ name, cost, cooldown, tag, words, about }) => ({ name, cost, cooldown, tag: tag ?? null, text: words ?? about ?? '' })),
     ...(hero.passive ? [{ name: hero.passive.shown.name, cost: null, cooldown: null, tag: hero.passive.tag ?? null, text: hero.passive.words ?? hero.passive.shown.about ?? '' }] : []),

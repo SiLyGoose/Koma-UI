@@ -72,7 +72,7 @@ export const NERAXIS: HeroDef = {
   id: 'neraxis',
   name: 'Neraxis',
   class: 'knight',
-  skins: ['Neraxis'],
+  skins: ['Neraxis', 'Neraxis_Maid', 'Neraxis_Christmas', 'Neraxis_Summer', 'Neraxis_Dessert', 'Neraxis_Halloween'],
   // A knight whose blows are magical, with Black Dragon Hide's defense.
   stats: { ...CLASS_STATS.knight, physical: CLASS_STATS.knight.physical + HIDE.defense, magical: CLASS_STATS.knight.magical + HIDE.defense, deals: 'magical' },
   abilities: [

@@ -77,5 +77,90 @@ export const ODDY_ASSETS: HeroAssets = {
         right: 'Hero_Oddy_Vari05_Weapon',
       },
     },
+    // King's Raid's Halloween costume (tm-costumes.mjs).
+    {
+      name: 'Oddy_Halloween',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Oddy_Halloween.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Oddy_Halloween.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Oddy_Halloween.webp',
+      title: 'Vampire Oddy',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Oddy_Cos17Halloween_Mesh'],
+        right: 'Hero_Oddy_Cos17Halloween_Weapon',
+      },
+    },
+    // King's Raid's School costume (tm-costumes.mjs).
+    {
+      name: 'Oddy_School',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Oddy_School.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Oddy_School.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Oddy_School.webp',
+      title: 'Nutritionist Oddy',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Oddy_Cos18SL_Mesh'],
+        right: 'Hero_Oddy_Cos18SL_Weapon',
+      },
+    },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Oddy_Summer',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Oddy_Summer.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Oddy_Summer.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Oddy_Summer.webp',
+      title: 'Beachside Oddy',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Oddy_Cos18Summer_Mesh'],
+        right: 'Hero_Oddy_Cos18Summer_Weapon',
+      },
+    },
+    // King's Raid's NewYear costume (tm-costumes.mjs).
+    {
+      name: 'Oddy_NewYear',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Oddy_NewYear.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Oddy_NewYear.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Oddy_NewYear.webp',
+      title: 'Mariachi Oddy',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Oddy_Cos19NewYear_Mesh'],
+        right: 'Hero_Oddy_Cos19NewYear_Weapon',
+      },
+    },
+    // King's Raid's Christmas costume (tm-costumes.mjs).
+    {
+      name: 'Oddy_Christmas',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Oddy_Christmas.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Oddy_Christmas.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Oddy_Christmas.webp',
+      title: 'Christmas of a Divine Animal Oddy',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Oddy_Cos19Christmas_Mesh'],
+        right: 'Hero_Oddy_Cos19Christmas_Weapon_Mesh',
+      },
+    },
   ],
 };

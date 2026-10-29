@@ -79,6 +79,7 @@ export const KIRZE_ASSETS: HeroAssets = {
       card: 'Kirze_Glory.webp',
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Kirze_Glory.webp',
+      title: 'Kirze of Honor (Brilliance of the Azure Sky)',
       portrait: { file: 'Kirze_Glory.png', crop: { x: 356, y: 112, size: 135 }, head: { x: 362, y: 140, size: 85 } },
       model: {
         kind: 'parts',
@@ -87,6 +88,73 @@ export const KIRZE_ASSETS: HeroAssets = {
         right: 'Hero_Kirze_Cos20GloryLeague_Weapon',
       },
     },
-
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Kirze_Summer',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Kirze_Summer.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Kirze_Summer.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Kirze_Summer.webp',
+      title: 'Beachside Kirze',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Kirze_Cos19Summer_Body', 'Hero_Kirze_Vari05_Hair'],
+        right: 'Hero_Kirze_Cos19_Summer_Weapon',
+      },
+    },
+    // King's Raid's Job costume (tm-costumes.mjs).
+    {
+      name: 'Kirze_Job',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Kirze_Job.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Kirze_Job.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Kirze_Job.webp',
+      title: 'Hairdresser Kirze',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Kirze_Cos19Job_Body', 'Hero_Kirze_Cos19Job_Hair'],
+        right: 'Hero_Kirze_Cos19_Job_Weapon',
+      },
+    },
+    // King's Raid's Halloween costume (tm-costumes.mjs).
+    {
+      name: 'Kirze_Halloween',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Kirze_Halloween.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Kirze_Halloween.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Kirze_Halloween.webp',
+      title: 'Princess of Hearts Kirze',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Kirze_Cos20Halloween_Body', 'Hero_Kirze_Cos20Halloween_Hair'],
+        right: 'Hero_Kirze_Cos20Halloween_Weapon',
+      },
+    },
+    // King's Raid's Christmas costume (tm-costumes.mjs).
+    {
+      name: 'Kirze_Christmas',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Kirze_Christmas.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Kirze_Christmas.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Kirze_Christmas.webp',
+      title: 'White Season Cat Kirze',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Kirze_Cos20Christmas_Body', 'Hero_Kirze_Cos20Christmas_Hair'],
+        right: 'Hero_Kirze_Cos20Christmas_Weapon',
+      },
+    },
   ],
 };

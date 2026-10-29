@@ -69,7 +69,7 @@ export const PHILLOP: HeroDef = {
   id: 'phillop',
   name: 'Phillop',
   class: 'knight',
-  skins: ['Phillop'],
+  skins: ['Phillop', 'Phillop_School', 'Phillop_Christmas', 'Phillop_Summer', 'Phillop_Halloween'],
   // A knight (his blows physical): as his class stands.
   stats: { ...CLASS_STATS.knight, deals: 'physical' },
   abilities: [

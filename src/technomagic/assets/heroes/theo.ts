@@ -75,5 +75,158 @@ export const THEO_ASSETS: HeroAssets = {
         right: 'Hero_Theo_Vari05_Weapon',
       },
     },
+    // King's Raid's Idol costume (tm-costumes.mjs).
+    {
+      name: 'Theo_Idol',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Theo_Idol.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Theo_Idol.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Theo_Idol.webp',
+      title: 'Halcyon Knights Theo',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Theo_Cos17Idol_Body', 'Hero_Theo_Cos17Idol_Hair'],
+        right: 'Hero_Theo_Cos17Idol_Weapon',
+      },
+    },
+    // King's Raid's Christmas costume (tm-costumes.mjs).
+    {
+      name: 'Theo_Christmas',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Theo_Christmas.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Theo_Christmas.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Theo_Christmas.webp',
+      title: 'Nutcracker Theo',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Theo_Cos17Christmas_Body', 'Hero_Theo_Cos17Christmas_Hair'],
+        right: 'Hero_Theo_Cos17Christmas_Weapon',
+      },
+    },
+    // King's Raid's School costume (tm-costumes.mjs).
+    {
+      name: 'Theo_School',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Theo_School.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Theo_School.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Theo_School.webp',
+      title: 'Clerk Theo',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Theo_Cos18SL_Body', 'Hero_Theo_Cos18SL_Hair'],
+        right: 'Hero_Theo_Cos18SL_Weapon',
+      },
+    },
+    // King's Raid's Wedding costume (tm-costumes.mjs).
+    {
+      name: 'Theo_Wedding',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Theo_Wedding.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Theo_Wedding.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Theo_Wedding.webp',
+      title: 'Spear of Devotion Theo',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Theo_Cos18Wedding_Body', 'Hero_Theo_Hair_01'],
+        right: 'Hero_Theo_Cos18Wedding_Weapon',
+      },
+    },
+    // King's Raid's Story costume (tm-costumes.mjs).
+    {
+      name: 'Theo_Story',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Theo_Story.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Theo_Story.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Theo_Story.webp',
+      title: 'Knight of Lightning Theo',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Theo_Substory01_Body', 'Hero_Theo_Substory01_Hair'],
+        right: 'Hero_Theo_Substory01_Weapon',
+      },
+    },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Theo_Summer',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Theo_Summer.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Theo_Summer.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Theo_Summer.webp',
+      title: 'Beachside Theo',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Theo_Cos18Summer_Body', 'Hero_Theo_Cos18Summer_Hair'],
+        right: 'Hero_Theo_Cos18Summer_Weapon',
+      },
+    },
+    // King's Raid's Glory costume (tm-costumes.mjs).
+    {
+      name: 'Theo_Glory',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Theo_Glory.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Theo_Glory.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Theo_Glory.webp',
+      title: 'Theo of Honor',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Theo_Cos19GloryLeague_Body', 'Hero_Theo_Hair_01'],
+        right: 'Hero_Theo_Cos19GloryLeague_Weapon',
+      },
+    },
+    // King's Raid's UserPick costume (tm-costumes.mjs).
+    {
+      name: 'Theo_UserPick',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Theo_UserPick.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Theo_UserPick.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Theo_UserPick.webp',
+      title: 'Peaceful Days Theo',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Theo_Cos19UserPick_Body', 'Hero_Theo_Cos19UserPick_Hair'],
+        right: 'Hero_Theo_Cos19UserPick_Weapon',
+      },
+    },
+    // King's Raid's Dessert costume (tm-costumes.mjs).
+    {
+      name: 'Theo_Dessert',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Theo_Dessert.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Theo_Dessert.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Theo_Dessert.webp',
+      title: 'Chocolate Macarons Cake Dreams Theo',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Theo_Cos20Dessert_Body', 'Hero_Theo_Cos20Dessert_Hair'],
+        right: 'Hero_Theo_Cos20Dessert_Weapon',
+      },
+    },
   ],
 };

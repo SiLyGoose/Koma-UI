@@ -88,7 +88,7 @@ export const SERIA: HeroDef = {
   id: 'seria',
   name: 'Seria',
   class: 'warrior',
-  skins: ['Seria', 'Seria_Christmas'],
+  skins: ['Seria', 'Seria_Christmas', 'Seria_NewYear', 'Seria_Wedding', 'Seria_Summer', 'Seria_School', 'Seria_Glory', 'Seria_Glory2'],
   // A warrior whose blows are magical, her ATK higher for her passive: as her class stands, otherwise.
   stats: { ...CLASS_STATS.warrior, atk: CLASS_STATS.warrior.atk + WITCH.atk, deals: 'magical' },
   abilities: [

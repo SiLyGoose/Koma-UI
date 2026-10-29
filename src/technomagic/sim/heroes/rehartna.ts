@@ -67,7 +67,7 @@ export const REHARTNA: HeroDef = {
   id: 'rehartna',
   name: 'Rehartna',
   class: 'priest',
-  skins: ['Rehartna'],
+  skins: ['Rehartna', 'Rehartna_Job', 'Rehartna_Christmas', 'Rehartna_Wedding', 'Rehartna_Summer'],
   stats: { ...CLASS_STATS.priest, deals: 'physical' },
   abilities: [
     {

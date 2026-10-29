@@ -69,5 +69,23 @@ export const FALLEN_FREY_ASSETS: HeroAssets = {
         offHand: 'held',
       },
     },
+    // King's Raid's Advance costume (tm-costumes.mjs).
+    {
+      name: 'Fallen_Frey_Advance',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Fallen_Frey_Advance.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Fallen_Frey_Advance.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Fallen_Frey_Advance.webp',
+      title: 'Devotee of Nightmare Fallen Frey',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Frey_Fallen_Cos20Advance_Body', 'Hero_Frey_Fallen_Cos20Advance_Hair'],
+        left: 'Hero_Frey_Fallen_Cos20Advance_Weapon',
+        offHand: 'held',
+      },
+    },
   ],
 };

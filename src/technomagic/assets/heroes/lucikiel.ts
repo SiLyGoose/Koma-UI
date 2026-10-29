@@ -78,5 +78,21 @@ export const LUCIKIEL_ASSETS: HeroAssets = {
         parts: ['Hero_Lucikiel_Vari04_Mesh', 'Hero_Lucikiel_Vari04_Weapon'],
       },
     },
+    // King's Raid's Advance costume (tm-costumes.mjs).
+    {
+      name: 'Lucikiel_Advance',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Lucikiel_Advance.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Lucikiel_Advance.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Lucikiel_Advance.webp',
+      title: 'Grandeur of Destruction Lucikiel',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_ZLucikiel_Cos21Advance_Body', 'Hero_ZLucikiel_Hair_01', 'Hero_Lucikiel_Vari04_Weapon'],
+      },
+    },
   ],
 };

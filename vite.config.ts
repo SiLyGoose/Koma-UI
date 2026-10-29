@@ -71,8 +71,8 @@ function blur(): Plugin {
 // The front page (log in, pick a server and a game) is index.html. Each game is served at
 // /games/<name>/: its page lives at games/<name>/index.html, and the build keeps that path
 // (dist/games/<name>/index.html), with the shared assets under /assets. The site's own pages (the front page,
-// /player/, /heroes/, /inventory/ with its tabs, /forge/, /shop/ with its tabs, /dressing-room/, /databank/ with its sections and /admin/) are all index.html, which swaps between them
-// (src/site/main.ts; vercel.json sends /player/, /heroes/, /inventory/…, /forge/, /shop/…, /dressing-room/, /databank/… and /admin/ there, and the old
+// /player/, /heroes/, /hero-outfits/, /inventory/ with its tabs, /forge/, /shop/ with its tabs, /dressing-room/, /databank/ with its sections and /admin/) are all index.html, which swaps between them
+// (src/site/main.ts; vercel.json sends /player/, /heroes/, /hero-outfits/, /inventory/…, /forge/, /shop/…, /dressing-room/, /databank/… and /admin/ there, and the old
 // /banner/ to /shop/wish/ and /gear/ to /player/).
 export default defineConfig({
   plugins: [transitionHead(), pictures(), blur()],

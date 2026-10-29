@@ -76,7 +76,7 @@ export const ODDY: HeroDef = {
   id: 'oddy',
   name: 'Oddy',
   class: 'mechanic',
-  skins: ['Oddy'],
+  skins: ['Oddy', 'Oddy_Halloween', 'Oddy_School', 'Oddy_Summer', 'Oddy_NewYear', 'Oddy_Christmas'],
   // A mechanic whose blows are magical (her clock's): as her class stands, otherwise.
   stats: { ...CLASS_STATS.mechanic, deals: 'magical' },
   abilities: [

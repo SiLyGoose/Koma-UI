@@ -64,7 +64,7 @@ export const MIRURU: HeroDef = {
   id: 'miruru',
   name: 'Miruru',
   class: 'mechanic',
-  skins: ['Miruru'],
+  skins: ['Miruru', 'Miruru_School', 'Miruru_Summer', 'Miruru_Christmas', 'Miruru_NewYear', 'Miruru_Halloween', 'Miruru_Wedding'],
   stats: { ...CLASS_STATS.mechanic, deals: 'physical' },
   abilities: [
     {

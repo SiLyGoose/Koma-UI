@@ -84,7 +84,7 @@ export const ESTELLE: HeroDef = {
   id: 'estelle',
   name: 'Estelle',
   class: 'archer',
-  skins: ['Estelle'],
+  skins: ['Estelle', 'Estelle_Advance'],
   // An archer: her passive's attack speed.
   stats: { ...CLASS_STATS.archer, deals: 'physical', speed: CLASS_STATS.archer.speed + GUIDE.speed },
   abilities: [

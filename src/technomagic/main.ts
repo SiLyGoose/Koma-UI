@@ -737,9 +737,7 @@ async function start(): Promise<void> {
 
     const prep = makePrep({
       pick(hero, sub) {
-        // In its own skin (the first), read now for the fight.
-        const def = HEROES.find((one) => one.id === hero);
-        if (def) void read(def, 0);
+        // In the outfit it wears: the bot's word (its skin in the lineup, read as the lineup comes: below).
         send({ t: 'pick', hero, skin: 0, ...(sub && { sub }) });
       },
       unpick: (hero) => send({ t: 'unpick', hero }),

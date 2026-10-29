@@ -93,6 +93,7 @@ export const GREMORY_ASSETS: HeroAssets = {
       card: 'Gremory_DailyLook.webp',
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Gremory_DailyLook.webp',
+      title: 'Pajama Party Gremory',
       // Her artwork in her hoodie, sitting on her cube (the King's Raid wiki's: `format=original` has it send the PNG, not a WebP):
       // her hood and horns in the crop, her face by itself the meter's close-up.
       portrait: {

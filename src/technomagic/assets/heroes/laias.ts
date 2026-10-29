@@ -78,5 +78,158 @@ export const LAIAS_ASSETS: HeroAssets = {
         right: 'Hero_Ell_Vari05_Weapon',
       },
     },
+    // King's Raid's School costume (tm-costumes.mjs).
+    {
+      name: 'Laias_School',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Laias_School.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Laias_School.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Laias_School.webp',
+      title: 'Nurse Laias',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Ell_Cos16SL_Body', 'Hero_Ell_Cos16SL_Hair'],
+        right: 'Hero_Ell_Cos16SL_Weapon',
+      },
+    },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Laias_Summer',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Laias_Summer.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Laias_Summer.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Laias_Summer.webp',
+      title: 'Beachside Laias',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Ell_Cos17Summer_Body', 'Hero_Ell_Cos17Summer_Hair'],
+        right: 'Hero_Ell_Cos17Summer_Weapon',
+      },
+    },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Laias_Summer2',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Laias_Summer2.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Laias_Summer2.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Laias_Summer2.webp',
+      title: 'Beachside Laias',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Ell_Cos17Summer02_Body', 'Hero_Ell_Cos17Summer02_Hair'],
+        right: 'Hero_Ell_Cos17Summer02_Weapon',
+      },
+    },
+    // King's Raid's Halloween costume (tm-costumes.mjs).
+    {
+      name: 'Laias_Halloween',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Laias_Halloween.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Laias_Halloween.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Laias_Halloween.webp',
+      title: 'Jiangshi Laias',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Ell_Cos17Halloween_Body', 'Hero_Ell_Cos17Halloween_Hair'],
+        right: 'Hero_Ell_Cos17Halloween_Weapon',
+      },
+    },
+    // King's Raid's Idol costume (tm-costumes.mjs).
+    {
+      name: 'Laias_Idol',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Laias_Idol.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Laias_Idol.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Laias_Idol.webp',
+      title: 'Love Hearts Laias',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Ell_Cos17Idol_Body', 'Hero_Ell_Cos17Idol_Hair'],
+        right: 'Hero_Ell_Cos17Idol_Weapon',
+      },
+    },
+    // King's Raid's Glory costume (tm-costumes.mjs).
+    {
+      name: 'Laias_Glory',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Laias_Glory.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Laias_Glory.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Laias_Glory.webp',
+      title: 'Laias of Honor',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Ell_Cos18GloryLeague_Body', 'Hero_Ell_Cos18GloryLeague_Hair'],
+        right: 'Hero_Ell_Cos18GloryLeague_Weapon',
+      },
+    },
+    // King's Raid's Maid costume (tm-costumes.mjs).
+    {
+      name: 'Laias_Maid',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Laias_Maid.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Laias_Maid.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Laias_Maid.webp',
+      title: 'Maid Laias',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Ell_Cos18Maid_Body', 'Hero_Ell_Cos18Maid_Hair'],
+        right: 'Hero_Ell_Cos18Maid_Weapon',
+      },
+    },
+    // King's Raid's Wedding costume (tm-costumes.mjs).
+    {
+      name: 'Laias_Wedding',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Laias_Wedding.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Laias_Wedding.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Laias_Wedding.webp',
+      title: 'Embrace of the Waves Laias',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Ell_Cos19Wedding_Body', 'Hero_Ell_Cos19Wedding_Hair'],
+        right: 'Hero_Ell_Cos19Wedding_Weapon',
+      },
+    },
+    // King's Raid's Dessert costume (tm-costumes.mjs).
+    {
+      name: 'Laias_Dessert',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Laias_Dessert.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Laias_Dessert.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Laias_Dessert.webp',
+      title: 'Candy Ice Cream Dreams Laias',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Ell_Cos20Dessert_Body', 'Hero_Ell_Cos20Dessert_Hair'],
+        right: 'Hero_Ell_Cos20Dessert_Weapon',
+      },
+    },
   ],
 };

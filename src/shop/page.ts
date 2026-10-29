@@ -2,6 +2,7 @@ import markup from './shop.html?raw';
 import { wishTab } from '../banner/page';
 import { heroShopTab } from '../hero-shop/page';
 import { outfitsTab } from '../outfits/page';
+import { heroOutfitShopTab } from '../hero-outfit-shop/page';
 import { raidShopTab } from '../raid-shop/page';
 import type { Page } from '../site/page';
 import type { ShopTab } from './tab';
@@ -10,13 +11,13 @@ import type { ShopTab } from './tab';
  * The shop, laid out as King's Raid's: a tab for each thing to get down the left (across the top on
  * phones), the one picked filling the rest. Wish (../banner/) pulls from the gacha; Outfits
  * (../outfits/) buys the characters to be drawn as; Heroes (../hero-shop/) buys the TechnoMagic Raid's
- * heroes; Raid Gear (../raid-shop/) buys raid items with komaGems. Each tab has its own path (/shop/wish/,
- * /shop/outfits/, /shop/heroes/, /shop/raid/; /shop/ is the first),
+ * heroes; Hero Outfits (../hero-outfit-shop/) buys their King's Raid costumes; Raid Gear (../raid-shop/) buys raid items with
+ * komaGems. Each tab has its own path (/shop/wish/, /shop/outfits/, /shop/heroes/, /shop/hero-outfits/, /shop/raid/; /shop/ is the first),
  * so a link can open one; picking another swaps it in place, and
  * the address follows without a new history entry (back leaves the shop).
  */
 
-const TABS: readonly ShopTab[] = [wishTab, outfitsTab, heroShopTab, raidShopTab];
+const TABS: readonly ShopTab[] = [wishTab, outfitsTab, heroShopTab, heroOutfitShopTab, raidShopTab];
 
 /** The tab for a path under /shop/ (the first for /shop/ itself, or one there isn't). */
 const tabAt = (path: string): ShopTab => TABS.find((tab) => path.replace(/\/+$/, '') === `/shop/${tab.id}`) ?? (TABS[0] as ShopTab);

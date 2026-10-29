@@ -70,5 +70,157 @@ export const KLAUS_ASSETS: HeroAssets = {
         blade: 'y',
       },
     },
+    // King's Raid's School costume (tm-costumes.mjs).
+    {
+      name: 'Klaus_School',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Klaus_School.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Klaus_School.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Klaus_School.webp',
+      title: 'Student Council Klaus',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Clause_Cos16SL_Body', 'Hero_Clause_Hair_05'],
+        left: 'Hero_Clause_Cos16SL_Shield',
+        right: 'Hero_Clause_Cos16SL_Sword',
+        blade: 'y',
+      },
+    },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Klaus_Summer',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Klaus_Summer.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Klaus_Summer.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Klaus_Summer.webp',
+      title: 'Beachside Klaus',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Clause_Cos17Summer_Body', 'Hero_Clause_Hair_05'],
+        left: 'Hero_Clause_Cos17Summer_Shield',
+        right: 'Hero_Clause_Cos17Summer_Sword',
+        blade: 'y',
+      },
+    },
+    // King's Raid's Idol costume (tm-costumes.mjs).
+    {
+      name: 'Klaus_Idol',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Klaus_Idol.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Klaus_Idol.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Klaus_Idol.webp',
+      title: 'Halcyon Knights Klaus',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Clause_Cos17Idol_Body', 'Hero_Clause_Hair_05'],
+        left: 'Hero_Clause_Cos17Idol_Shield',
+        right: 'Hero_Clause_Cos17Idol_Sword',
+        blade: 'y',
+      },
+    },
+    // King's Raid's Frozen costume (tm-costumes.mjs).
+    {
+      name: 'Klaus_Frozen',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Klaus_Frozen.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Klaus_Frozen.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Klaus_Frozen.webp',
+      title: 'Ice Knight Klaus',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Clause_Cos18Frozen_Body', 'Hero_Clause_Hair_05'],
+        left: 'Hero_Clause_Cos18Frozen_Shield',
+        right: 'Hero_Clause_Cos18Frozen_Sword',
+        blade: 'y',
+      },
+    },
+    // King's Raid's Maid costume (tm-costumes.mjs).
+    {
+      name: 'Klaus_Maid',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Klaus_Maid.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Klaus_Maid.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Klaus_Maid.webp',
+      title: 'Butler Klaus',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Clause_Cos18Maid_Body', 'Hero_Clause_Hair_05'],
+        left: 'Hero_Clause_Cos18Maid_Shield',
+        right: 'Hero_Clause_Cos18Maid_Sword',
+        blade: 'y',
+      },
+    },
+    // King's Raid's NewYear costume (tm-costumes.mjs).
+    {
+      name: 'Klaus_NewYear',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Klaus_NewYear.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Klaus_NewYear.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Klaus_NewYear.webp',
+      title: 'Centurion Klaus',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Clause_Cos19NewYear_Body', 'Hero_Clause_Cos19NewYear'],
+        left: 'Hero_Clause_Cos19NewYear_Shield',
+        right: 'Hero_Clause_Cos19NewYear_Sword',
+        blade: 'y',
+      },
+    },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Klaus_Summer19',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Klaus_Summer19.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Klaus_Summer19.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Klaus_Summer19.webp',
+      title: 'Beachside Klaus',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Clause_Cos19Summer_Body', 'Hero_Clause_Hair_05'],
+        left: 'Hero_Clause_Cos19Summer_Shield',
+        right: 'Hero_Clause_Cos19Summer_Sword',
+        blade: 'y',
+      },
+    },
+    // King's Raid's Wedding costume (tm-costumes.mjs).
+    {
+      name: 'Klaus_Wedding',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Klaus_Wedding.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Klaus_Wedding.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Klaus_Wedding.webp',
+      title: 'Unbreakable Vow of Trust Klaus',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Clause_Cos20Wedding_Body', 'Hero_Clause_Hair_05'],
+        left: 'Hero_Clause_Cos20Wedding_Shield',
+        right: 'Hero_Clause_Cos20Wedding_Sword',
+        blade: 'y',
+      },
+    },
   ],
 };

@@ -76,7 +76,7 @@ export const REBEL_KLAUS: HeroDef = {
   id: 'rebel-klaus',
   name: 'Rebel Klaus',
   class: 'warrior',
-  skins: ['Rebel Klaus'],
+  skins: ['Rebel Klaus', 'Rebel_Klaus_Advance'],
   // A warrior (his blows physical): as his class stands.
   stats: { ...CLASS_STATS.warrior, deals: 'physical' },
   abilities: [

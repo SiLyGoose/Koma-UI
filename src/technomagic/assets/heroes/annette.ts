@@ -83,6 +83,7 @@ export const ANNETTE_ASSETS: HeroAssets = {
       card: 'Annette_Halloween.webp',
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Annette_Halloween.webp',
+      title: 'Cheshire Cat Annette',
       // Her artwork as a black cat, a paw raised: her head and cat ears in the crop (the meter's close-up is her face by itself).
       portrait: { file: 'Annette_Halloween.png', from: `${DRIVE}1RuKDrkocmMXny4VDPyKN9rX_zQiTNyhE`, crop: { x: 220, y: 40, size: 320 }, head: { x: 262, y: 138, size: 210 } },
       model: {
@@ -90,6 +91,176 @@ export const ANNETTE_ASSETS: HeroAssets = {
         animations: ANIMATIONS,
         parts: ['Hero_Annette_Cos17Halloween_Body', 'Hero_Annette_Cos17Halloween_Hair'],
         right: 'Hero_Annette_Cos17Halloween_Weapon',
+      },
+    },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Annette_Summer',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Annette_Summer.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Annette_Summer.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Annette_Summer.webp',
+      title: 'Beachside Annette',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Annette_Cos17Summer_Body', 'Hero_Annette_Cos17Summer_Hair'],
+        right: 'Hero_Annette_Cos17Summer_Weapon',
+      },
+    },
+    // King's Raid's Idol costume (tm-costumes.mjs).
+    {
+      name: 'Annette_Idol',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Annette_Idol.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Annette_Idol.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Annette_Idol.webp',
+      title: 'Twinkle Pure Annette',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Annette_Cos17Idol_Body', 'Hero_Annette_Cos17Idol_Hair'],
+        right: 'Hero_Annette_Cos17Idol_Weapon',
+      },
+    },
+    // King's Raid's School costume (tm-costumes.mjs).
+    {
+      name: 'Annette_School',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Annette_School.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Annette_School.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Annette_School.webp',
+      title: 'Science Club Annette',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Annette_Cos18SL_Body', 'Hero_Annette_Cos18SL_Hair'],
+        right: 'Hero_Annette_Cos18SL_Weapon',
+      },
+    },
+    // King's Raid's Maid costume (tm-costumes.mjs).
+    {
+      name: 'Annette_Maid',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Annette_Maid.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Annette_Maid.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Annette_Maid.webp',
+      title: 'Maid Annette',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Annette_Cos18Maid1_Body', 'Hero_Annette_Cos18Maid1_Hair'],
+        right: 'Hero_Annette_Cos18Maid_Weapon',
+      },
+    },
+    // King's Raid's Maid costume (tm-costumes.mjs).
+    {
+      name: 'Annette_Maid2',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Annette_Maid2.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Annette_Maid2.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Annette_Maid2.webp',
+      title: 'Maid Annette',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Annette_Cos18Maid2_Body', 'Hero_Annette_Cos18Maid1_Hair'],
+        right: 'Hero_Annette_Cos18Maid_Weapon',
+      },
+    },
+    // King's Raid's UserPick costume (tm-costumes.mjs).
+    {
+      name: 'Annette_UserPick',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Annette_UserPick.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Annette_UserPick.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Annette_UserPick.webp',
+      title: 'Space Age Annette',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Annette_Cos19UserPick_Body', 'Hero_Annette_Cos19UserPick_Hair'],
+        right: 'Hero_Annette_Cos19UserPick_Weapon',
+      },
+    },
+    // King's Raid's Dessert costume (tm-costumes.mjs).
+    {
+      name: 'Annette_Dessert',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Annette_Dessert.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Annette_Dessert.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Annette_Dessert.webp',
+      title: 'Mint Chocolate Chip Muffin Dreams Annette',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Annette_Cos20Desssert2_Body', 'Hero_Annette_Vari05_Hair'],
+        right: 'Hero_Annette_Cos20Desssert_Weapon',
+      },
+    },
+    // King's Raid's Dessert costume (tm-costumes.mjs).
+    {
+      name: 'Annette_Dessert1',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Annette_Dessert1.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Annette_Dessert1.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Annette_Dessert1.webp',
+      title: 'Mint Chocolate Chip Muffins Dreams Annette',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Annette_Cos20Desssert1_Body', 'Hero_Annette_Vari05_Hair'],
+        right: 'Hero_Annette_Cos20Desssert_Weapon',
+      },
+    },
+    // King's Raid's Glory costume (tm-costumes.mjs).
+    {
+      name: 'Annette_Glory',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Annette_Glory.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Annette_Glory.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Annette_Glory.webp',
+      title: 'Annette of Honor (Blooming Blue Flame)',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Annette_Cos21GloryLeague_Body', 'Hero_Annette_Hair_04'],
+        right: 'Hero_Annette_Cos21GloryLeague_Weapon',
+      },
+    },
+    // King's Raid's Glory costume (tm-costumes.mjs).
+    {
+      name: 'Annette_Glory2',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Annette_Glory2.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Annette_Glory2.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Annette_Glory2.webp',
+      title: 'Annette of Glaring Honor (Blooming Blue Flame)',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Annette_Cos21GloryLeague2_Body', 'Hero_Annette_Hair_04'],
+        right: 'Hero_Annette_Cos21GloryLeague_Weapon',
       },
     },
   ],

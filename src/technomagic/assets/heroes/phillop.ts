@@ -86,5 +86,85 @@ export const PHILLOP_ASSETS: HeroAssets = {
         grips: GRIPS,
       },
     },
+    // King's Raid's School costume (tm-costumes.mjs).
+    {
+      name: 'Phillop_School',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Phillop_School.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Phillop_School.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Phillop_School.webp',
+      title: 'Vice-Principal Phillop',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Phillop_Cos16SL_Mesh'],
+        left: 'Hero_Phillop_Cos16SL_Shield',
+        right: 'Hero_Phillop_Cos16SL_Axe',
+        blade: 'y',
+        grips: GRIPS,
+      },
+    },
+    // King's Raid's Christmas costume (tm-costumes.mjs).
+    {
+      name: 'Phillop_Christmas',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Phillop_Christmas.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Phillop_Christmas.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Phillop_Christmas.webp',
+      title: 'Santa Phillop',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Phillop_Cos17Christmas_Mesh'],
+        left: 'Hero_Phillop_Cos17Christmas_Shield',
+        right: 'Hero_Phillop_Cos17Christmas_Axe',
+        blade: 'y',
+        grips: GRIPS,
+      },
+    },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Phillop_Summer',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Phillop_Summer.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Phillop_Summer.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Phillop_Summer.webp',
+      title: 'Beachside Phillop',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Phillop_Cos18Summer_Mesh'],
+        left: 'Hero_Phillop_Cos18Summer_Shield',
+        right: 'Hero_Phillop_Cos18Summer_Axe',
+        blade: 'y',
+        grips: GRIPS,
+      },
+    },
+    // King's Raid's Halloween costume (tm-costumes.mjs).
+    {
+      name: 'Phillop_Halloween',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Phillop_Halloween.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Phillop_Halloween.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Phillop_Halloween.webp',
+      title: 'Pumpkin Head Phillop',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Phillop_Cos18Halloween_Mesh'],
+        left: 'Hero_Phillop_Cos18Halloween_Shield',
+        right: 'Hero_Phillop_Cos18Halloween_Axe',
+        blade: 'y',
+        grips: GRIPS,
+      },
+    },
   ],
 };

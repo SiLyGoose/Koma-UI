@@ -71,5 +71,158 @@ export const MIRIANNE_ASSETS: HeroAssets = {
         right: 'Hero_Mirianne_Vari05_Handle',
       },
     },
+    // King's Raid's Frozen costume (tm-costumes.mjs).
+    {
+      name: 'Mirianne_Frozen',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Mirianne_Frozen.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Mirianne_Frozen.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Mirianne_Frozen.webp',
+      title: 'Ice Assassin Mirianne',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Mirianne_Cos18Frozen_Body', 'Hero_Mirianne_Vari05_Hair', 'Hero_Mirianne_Cos18Frozen_Weapon'],
+        right: 'Hero_Mirianne_Cos18Frozen_Handle',
+      },
+    },
+    // King's Raid's Wedding costume (tm-costumes.mjs).
+    {
+      name: 'Mirianne_Wedding',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Mirianne_Wedding.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Mirianne_Wedding.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Mirianne_Wedding.webp',
+      title: 'Pure Heart Mirianne',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Mirianne_Cos18Wedding_Body', 'Hero_Mirianne_Cos18Wedding_Hair', 'Hero_Mirianne_Cos18Wedding_Weapon'],
+        right: 'Hero_Mirianne_Vari05_Handle',
+      },
+    },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Mirianne_Summer',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Mirianne_Summer.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Mirianne_Summer.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Mirianne_Summer.webp',
+      title: 'Beachside Mirianne',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Mirianne_Cos18Summer_Body', 'Hero_Mirianne_Cos18Summer_Hair', 'Hero_Mirianne_Cos18Summer_Weapon'],
+        right: 'Hero_Mirianne_Vari05_Handle',
+      },
+    },
+    // King's Raid's Maid costume (tm-costumes.mjs).
+    {
+      name: 'Mirianne_Maid',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Mirianne_Maid.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Mirianne_Maid.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Mirianne_Maid.webp',
+      title: 'Butler Mirianne',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Mirianne_Cos18Maid_Body', 'Hero_Mirianne_Vari05_Hair', 'Hero_Mirianne_Cos18Maid_Weapon'],
+        right: 'Hero_Mirianne_Cos18Maid_Handle',
+      },
+    },
+    // King's Raid's Christmas costume (tm-costumes.mjs).
+    {
+      name: 'Mirianne_Christmas',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Mirianne_Christmas.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Mirianne_Christmas.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Mirianne_Christmas.webp',
+      title: 'Rudolph Mirianne',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Mirianne_Cos18Christmas_Body', 'Hero_Mirianne_Cos18Christmas_Hair', 'Hero_Mirianne_Cos18Christmas_Weapon'],
+        right: 'Hero_Mirianne_Cos18Christmas_Handle',
+      },
+    },
+    // King's Raid's UserPick costume (tm-costumes.mjs).
+    {
+      name: 'Mirianne_UserPick',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Mirianne_UserPick.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Mirianne_UserPick.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Mirianne_UserPick.webp',
+      title: "Sunflower's Scent Mirianne",
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Mirianne_Cos19UserPick02_Body', 'Hero_Mirianne_Cos19UserPick02_Hair', 'Hero_Mirianne_Cos19UserPick02_Weapon'],
+        right: 'Hero_Mirianne_Vari05_Handle',
+      },
+    },
+    // King's Raid's UserPick costume (tm-costumes.mjs).
+    {
+      name: 'Mirianne_UserPick1',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Mirianne_UserPick1.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Mirianne_UserPick1.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Mirianne_UserPick1.webp',
+      title: 'Fallen Mirianne',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Mirianne_Cos19UserPick01_Body', 'Hero_Mirianne_Cos19UserPick01_Hair', 'Hero_Mirianne_Cos19UserPick01_Weapon'],
+        right: 'Hero_Mirianne_Vari05_Handle',
+      },
+    },
+    // King's Raid's Glory costume (tm-costumes.mjs).
+    {
+      name: 'Mirianne_Glory',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Mirianne_Glory.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Mirianne_Glory.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Mirianne_Glory.webp',
+      title: 'Mirianne of Honor',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Mirianne_Cos19GloryLeague_Body', 'Hero_Mirianne_Cos19GloryLeague_Hair', 'Hero_Mirianne_Cos19GloryLeague_Weapon'],
+        right: 'Hero_Mirianne_Vari05_Handle',
+      },
+    },
+    // King's Raid's School costume (tm-costumes.mjs).
+    {
+      name: 'Mirianne_School',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Mirianne_School.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Mirianne_School.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Mirianne_School.webp',
+      title: 'Secretary Mirianne',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Mirianne_Cos20SL_Body', 'Hero_Mirianne_Cos20SL_Hair', 'Hero_Mirianne_Cos20SL_Weapon'],
+        right: 'Hero_Mirianne_Vari05_Handle',
+      },
+    },
   ],
 };

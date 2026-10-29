@@ -84,7 +84,7 @@ export const NAILA: HeroDef = {
   id: 'naila',
   name: 'Naila',
   class: 'warrior',
-  skins: ['Naila'],
+  skins: ['Naila', 'Naila_School', 'Naila_Summer', 'Naila_Frozen', 'Naila_Wedding', 'Naila_Christmas', 'Naila_Halloween'],
   // A warrior (her blows physical): as her class stands.
   stats: { ...CLASS_STATS.warrior, deals: 'physical' },
   abilities: [

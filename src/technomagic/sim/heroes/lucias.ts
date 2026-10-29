@@ -68,7 +68,7 @@ export const LUCIAS: HeroDef = {
   id: 'lucias',
   name: 'Lucias',
   class: 'priest',
-  skins: ['Lucias'],
+  skins: ['Lucias', 'Lucias_Christmas', 'Lucias_Wedding', 'Lucias_Summer', 'Lucias_School', 'Lucias_Glory', 'Lucias_Glory2', 'Lucias_DailyLook'],
   stats: { ...CLASS_STATS.priest, deals: 'physical' },
   abilities: [
     {

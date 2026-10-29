@@ -104,7 +104,7 @@ export const KARA: HeroDef = {
   id: 'kara',
   name: 'Kara',
   class: 'mechanic',
-  skins: ['Kara'],
+  skins: ['Kara', 'Kara_Summer', 'Kara_Wedding', 'Kara_Maid', 'Kara_UserPick', 'Kara_Halloween', 'Kara_Christmas'],
   // A mechanic whose blows are magical: as her class stands, otherwise.
   stats: { ...CLASS_STATS.mechanic, deals: 'magical' },
   abilities: [

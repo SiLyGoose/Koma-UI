@@ -77,5 +77,117 @@ export const LAVRIL_ASSETS: HeroAssets = {
         parts: ['Hero_Lavril_Vari05_Body', 'Hero_Lavril_Vari05_Hair', 'Hero_Lavril_Vari05_Weapon'],
       },
     },
+    // King's Raid's NewYear costume (tm-costumes.mjs).
+    {
+      name: 'Lavril_NewYear',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Lavril_NewYear.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Lavril_NewYear.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Lavril_NewYear.webp',
+      title: 'Hanbok Lavril',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Lavril_Cos19NewYear_Body', 'Hero_Lavril_Cos19NewYear_Hair', 'Hero_Lavril_Cos19NewYear_Weapon'],
+      },
+    },
+    // King's Raid's UserPick costume (tm-costumes.mjs).
+    {
+      name: 'Lavril_UserPick',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Lavril_UserPick.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Lavril_UserPick.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Lavril_UserPick.webp',
+      title: 'Night of Carrot-filled Dreams Lavril',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Lavril_Cos19UserPick_Body', 'Hero_Lavril_Cos19UserPick_Hair', 'Hero_Lavril_Cos19UserPick_Weapon'],
+      },
+    },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Lavril_Summer',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Lavril_Summer.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Lavril_Summer.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Lavril_Summer.webp',
+      title: 'Beachside Lavril',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Lavril_Cos19Summer_Body', 'Hero_Lavril_Cos19Summer_Hair', 'Hero_Lavril_Cos19Summer_Weapon'],
+      },
+    },
+    // King's Raid's Christmas costume (tm-costumes.mjs).
+    {
+      name: 'Lavril_Christmas',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Lavril_Christmas.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Lavril_Christmas.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Lavril_Christmas.webp',
+      title: 'Christmas of a Ghost Lavril',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Lavril_Cos19Christmas_Body', 'Hero_Lavril_Cos19Christmas_Hair', 'Hero_Lavril_Cos19Christmas_Weapon'],
+      },
+    },
+    // King's Raid's Glory costume (tm-costumes.mjs).
+    {
+      name: 'Lavril_Glory',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Lavril_Glory.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Lavril_Glory.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Lavril_Glory.webp',
+      title: 'Lavril of Honor (Call of Dawn)',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Lavril_Cos20GloryLeague1_Body', 'Hero_Lavril_Cos20GloryLeague_Hair', 'Hero_Lavril_Cos20GloryLeague1_Weapon'],
+      },
+    },
+    // King's Raid's Glory costume (tm-costumes.mjs).
+    {
+      name: 'Lavril_Glory2',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Lavril_Glory2.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Lavril_Glory2.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Lavril_Glory2.webp',
+      title: 'Lavril of Glaring Honor (Call of Dawn)',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Lavril_Cos20GloryLeague2_Body', 'Hero_Lavril_Cos20GloryLeague_Hair', 'Hero_Lavril_Cos20GloryLeague2_Weapon'],
+      },
+    },
+    // King's Raid's Halloween costume (tm-costumes.mjs).
+    {
+      name: 'Lavril_Halloween',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Lavril_Halloween.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Lavril_Halloween.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Lavril_Halloween.webp',
+      title: 'Ghost of Halloween Night Lavril',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Lavril_Cos20Halloween_Body', 'Hero_Lavril_Cos20Halloween_Hair', 'Hero_Lavril_Cos20Halloween_Weapon'],
+      },
+    },
   ],
 };

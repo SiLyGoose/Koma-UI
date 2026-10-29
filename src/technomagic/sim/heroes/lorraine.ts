@@ -74,7 +74,7 @@ export const LORRAINE: HeroDef = {
   id: 'lorraine',
   name: 'Lorraine',
   class: 'wizard',
-  skins: ['Lorraine', 'Lorraine_Christmas'],
+  skins: ['Lorraine', 'Lorraine_Christmas', 'Lorraine_School', 'Lorraine_Summer', 'Lorraine_Frozen', 'Lorraine_Summer19', 'Lorraine_Dessert'],
   // A wizard (her blows magical, as a wizard's are): as her class stands.
   stats: { ...CLASS_STATS.wizard, deals: 'magical' },
   abilities: [

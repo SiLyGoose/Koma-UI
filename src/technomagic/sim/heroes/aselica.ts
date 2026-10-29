@@ -81,7 +81,7 @@ export const ASELICA: HeroDef = {
   id: 'aselica',
   name: 'Aselica',
   class: 'knight',
-  skins: ['Aselica'],
+  skins: ['Aselica', 'Aselica_Wedding', 'Aselica_Summer', 'Aselica_Halloween', 'Aselica_Casual', 'Aselica_School', 'Aselica_Christmas'],
   // A knight whose blows are magical: as her class stands, otherwise.
   stats: { ...CLASS_STATS.knight, deals: 'magical' },
   abilities: [

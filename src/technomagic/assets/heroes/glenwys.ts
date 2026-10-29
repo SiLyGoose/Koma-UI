@@ -75,5 +75,100 @@ export const GLENWYS_ASSETS: HeroAssets = {
         blade: 'y',
       },
     },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Glenwys_Summer',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Glenwys_Summer.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Glenwys_Summer.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Glenwys_Summer.webp',
+      title: 'Beachside Glenwys',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Glenwys_Cos19Summer_Body', 'Hero_Glenwys_Cos19Summer_Hair'],
+        left: 'Hero_Glenwys_Cos19Summer_Shield',
+        right: 'Hero_Glenwys_Cos19Summer_Gunblade',
+        blade: 'y',
+      },
+    },
+    // King's Raid's Halloween costume (tm-costumes.mjs).
+    {
+      name: 'Glenwys_Halloween',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Glenwys_Halloween.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Glenwys_Halloween.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Glenwys_Halloween.webp',
+      title: 'Dark Knight Glenwys',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Glenwys_Cos19Halloween_Body', 'Hero_Glenwys_Cos19Halloween_Hair'],
+        left: 'Hero_Glenwys_Cos19Halloween_Shield',
+        right: 'Hero_Glenwys_Cos19Halloween_Gunblade',
+        blade: 'y',
+      },
+    },
+    // King's Raid's Glory costume (tm-costumes.mjs).
+    {
+      name: 'Glenwys_Glory',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Glenwys_Glory.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Glenwys_Glory.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Glenwys_Glory.webp',
+      title: 'Glenwys of Honor (Light of the Blue Night Sky)',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Glenwys_Cos20GloryLeague_Body', 'Hero_Glenwys_Hair_01'],
+        left: 'Hero_Glenwys_Cos20GloryLeague_Shield',
+        right: 'Hero_Glenwys_Cos20GloryLeague_Gunblade',
+        blade: 'y',
+      },
+    },
+    // King's Raid's Dessert costume (tm-costumes.mjs).
+    {
+      name: 'Glenwys_Dessert',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Glenwys_Dessert.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Glenwys_Dessert.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Glenwys_Dessert.webp',
+      title: 'Blueberry Pie Dreams Glenwys',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Glenwys_Cos20Dessert_Body', 'Hero_Glenwys_Cos20Dessert_Hair'],
+        left: 'Hero_Glenwys_Cos20Dessert_Weapon_Shield',
+        right: 'Hero_Glenwys_Cos20Dessert_Weapon_Gunblade',
+        blade: 'y',
+      },
+    },
+    // King's Raid's Christmas costume (tm-costumes.mjs).
+    {
+      name: 'Glenwys_Christmas',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Glenwys_Christmas.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Glenwys_Christmas.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Glenwys_Christmas.webp',
+      title: 'Guardian of the White Night Glenwys',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Glenwys_Cos20Christmas_Body', 'Hero_Glenwys_Cos20Christmas_Hair'],
+        left: 'Hero_Glenwys_Cos20Christmas_Weapon_Shield',
+        right: 'Hero_Glenwys_Cos20Christmas_Weapon_Gunblade',
+        blade: 'y',
+      },
+    },
   ],
 };

@@ -43,6 +43,8 @@ export interface HeroesUi {
   initial: HTMLElement;
   name: HTMLElement;
   buy: HTMLAnchorElement;
+  /** Its Outfits button: to its outfit room (../hero-outfits/). */
+  outfits: HTMLAnchorElement;
   slots: HTMLButtonElement[];
   totals: HTMLElement;
   perkEffects: HTMLElement;
@@ -157,6 +159,7 @@ export function createContext(root: HTMLElement, host: HeroesHost): HeroesContex
       initial: $('hero-initial'),
       name: $('hero-name'),
       buy: $<HTMLAnchorElement>('hero-buy'),
+      outfits: $<HTMLAnchorElement>('hero-outfits'),
       slots: [...root.querySelectorAll<HTMLButtonElement>('.slot')],
       totals: $('totals'),
       perkEffects: $('perk-effects'),

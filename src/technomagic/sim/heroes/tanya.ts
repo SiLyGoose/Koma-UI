@@ -83,7 +83,7 @@ export const TANYA: HeroDef = {
   id: 'tanya',
   name: 'Tanya',
   class: 'assassin',
-  skins: ['Tanya'],
+  skins: ['Tanya', 'Tanya_Summer', 'Tanya_Summer2', 'Tanya_Halloween', 'Tanya_School', 'Tanya_Wedding', 'Tanya_DailyLook'],
   // An assassin (her blows physical): as her class stands.
   stats: { ...CLASS_STATS.assassin, deals: 'physical' },
   abilities: [

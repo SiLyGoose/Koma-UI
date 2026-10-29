@@ -73,5 +73,23 @@ export const DARK_LORD_KASEL_ASSETS: HeroAssets = {
         blade: 'y',
       },
     },
+    // King's Raid's Advance costume (tm-costumes.mjs).
+    {
+      name: 'Dark_Lord_Kasel_Advance',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Dark_Lord_Kasel_Advance.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Dark_Lord_Kasel_Advance.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Dark_Lord_Kasel_Advance.webp',
+      title: 'Black Wings Nightmare Dark Lord Kasel',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Kasel_DarkLord_Cos20Advance_Body', 'Hero_Kasel_DarkLord_Cos20Advance_Hair'],
+        right: 'Hero_Kasel_DarkLord_Cos20Advance_Weapon',
+        blade: 'y',
+      },
+    },
   ],
 };

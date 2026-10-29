@@ -69,7 +69,7 @@ export const GAU: HeroDef = {
   id: 'gau',
   name: 'Gau',
   class: 'warrior',
-  skins: ['Gau'],
+  skins: ['Gau', 'Gau_School', 'Gau_Halloween', 'Gau_Summer', 'Gau_Wedding', 'Gau_Christmas'],
   // A warrior (his blows physical): as his class stands.
   stats: { ...CLASS_STATS.warrior, deals: 'physical' },
   abilities: [

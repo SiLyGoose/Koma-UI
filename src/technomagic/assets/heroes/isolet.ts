@@ -75,5 +75,59 @@ export const ISOLET_ASSETS: HeroAssets = {
         offHand: 'held',
       },
     },
+    // King's Raid's Advance costume (tm-costumes.mjs).
+    {
+      name: 'Isolet_Advance',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Isolet_Advance.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Isolet_Advance.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Isolet_Advance.webp',
+      title: 'Veil of Truth Isolet',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Isolet_Cos20Advance_Body', 'Hero_Isolet_Cos20Advance_Hair'],
+        left: 'Hero_Isolet_Cos20Advance_Weapon',
+        offHand: 'held',
+      },
+    },
+    // King's Raid's Christmas costume (tm-costumes.mjs).
+    {
+      name: 'Isolet_Christmas',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Isolet_Christmas.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Isolet_Christmas.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Isolet_Christmas.webp',
+      title: 'Santa of Destiny Isolet',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Isolet_Cos20Christmas_Body', 'Hero_Isolet_Cos20Christmas_Hair'],
+        left: 'Hero_Isolet_Cos20Christmas_Weapon',
+        offHand: 'held',
+      },
+    },
+    // King's Raid's DailyLook costume (tm-costumes.mjs).
+    {
+      name: 'Isolet_DailyLook',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Isolet_DailyLook.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Isolet_DailyLook.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Isolet_DailyLook.webp',
+      title: 'Business Suit Isolet',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Isolet_Cos21DailyLook_Body', 'Hero_Isolet_Vari05_Hair'],
+        left: 'Hero_Isolet_Cos21DailyLook_Weapon',
+        offHand: 'held',
+      },
+    },
   ],
 };

@@ -75,5 +75,119 @@ export const ASELICA_ASSETS: HeroAssets = {
         blade: 'y',
       },
     },
+    // King's Raid's Wedding costume (tm-costumes.mjs).
+    {
+      name: 'Aselica_Wedding',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Aselica_Wedding.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Aselica_Wedding.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Aselica_Wedding.webp',
+      title: 'The Holy Vow Aselica',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Aselica_Cos18Wedding_Body', 'Hero_Aselica_Cos18Wedding_Hair'],
+        left: 'Hero_Aselica_Cos18Wedding_Shield',
+        right: 'Hero_Aselica_Cos18Wedding_Sword',
+        blade: 'y',
+      },
+    },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Aselica_Summer',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Aselica_Summer.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Aselica_Summer.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Aselica_Summer.webp',
+      title: 'Beachside Aselica',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Aselica_Cos18Summer_Body', 'Hero_Aselica_Cos18Summer_Hair'],
+        left: 'Hero_Aselica_Cos18Summer_Shield',
+        right: 'Hero_Aselica_Cos18Summer_Sword',
+        blade: 'y',
+      },
+    },
+    // King's Raid's Halloween costume (tm-costumes.mjs).
+    {
+      name: 'Aselica_Halloween',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Aselica_Halloween.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Aselica_Halloween.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Aselica_Halloween.webp',
+      title: 'Fallen Angel Aselica',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Aselica_Cos18Halloween_Body', 'Hero_Aselica_Vari05_Hair'],
+        left: 'Hero_Aselica_Cos18Halloween_Shield',
+        right: 'Hero_Aselica_Cos18Halloween_Sword',
+        blade: 'y',
+      },
+    },
+    // King's Raid's Casual costume (tm-costumes.mjs).
+    {
+      name: 'Aselica_Casual',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Aselica_Casual.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Aselica_Casual.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Aselica_Casual.webp',
+      title: 'Angel’s Day of Rest Aselica',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Aselica_Cos19Casual_Body', 'Hero_Aselica_Cos19Casual_Hair'],
+        left: 'Hero_Aselica_Cos19Casual_Shield',
+        right: 'Hero_Aselica_Cos19Casual_Sword',
+        blade: 'y',
+      },
+    },
+    // King's Raid's School costume (tm-costumes.mjs).
+    {
+      name: 'Aselica_School',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Aselica_School.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Aselica_School.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Aselica_School.webp',
+      title: 'Band Member Aselica',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Aselica_Cos20SL_Body', 'Hero_Aselica_Cos20SL_Hair'],
+        left: 'Hero_Aselica_Cos20SL_Shield',
+        right: 'Hero_Aselica_Cos20SL_Sword',
+        blade: 'y',
+      },
+    },
+    // King's Raid's Christmas costume (tm-costumes.mjs).
+    {
+      name: 'Aselica_Christmas',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Aselica_Christmas.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Aselica_Christmas.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Aselica_Christmas.webp',
+      title: 'Jingle Bell Wings Aselica',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Aselica_Cos20Christmas_Body', 'Hero_Aselica_Cos20Christmas_Hair'],
+        left: 'Hero_Aselica_Cos20Christmas_Shield',
+        right: 'Hero_Aselica_Cos20Christmas_Sword',
+        blade: 'y',
+      },
+    },
   ],
 };

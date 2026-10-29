@@ -82,7 +82,7 @@ export const PANSIRONE: HeroDef = {
   id: 'pansirone',
   name: 'Pansirone',
   class: 'mechanic',
-  skins: ['Pansirone'],
+  skins: ['Pansirone', 'Pansirone_Christmas', 'Pansirone_Wedding', 'Pansirone_Summer', 'Pansirone_DailyLook', 'Pansirone_April'],
   stats: { ...CLASS_STATS.mechanic, deals: 'physical' },
   abilities: [
     {

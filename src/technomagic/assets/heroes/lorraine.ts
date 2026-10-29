@@ -97,6 +97,7 @@ export const LORRAINE_ASSETS: HeroAssets = {
       card: 'Lorraine_Christmas.webp',
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Lorraine_Christmas.webp',
+      title: 'Santa Lorraine',
       // Her artwork, lying on a great cushion: her face is small in it.
       portrait: { file: 'Lorraine_Christmas.png', from: `${DRIVE}1m5CYTgPvIgBnDivY3QCu6mi524mV3Uie`, crop: { x: 335, y: 25, size: 140 }, head: { x: 360, y: 82, size: 75 } },
       model: {
@@ -104,6 +105,96 @@ export const LORRAINE_ASSETS: HeroAssets = {
         animations: ANIMATIONS,
         parts: ['Hero_Lorraine_Cos18Christmas_Body', 'Hero_Lorraine_Cos18Christmas_Hair'],
         right: 'Hero_Lorraine_Cos18Christmas_Weapon',
+        blade: 'y',
+      },
+    },
+    // King's Raid's School costume (tm-costumes.mjs).
+    {
+      name: 'Lorraine_School',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Lorraine_School.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Lorraine_School.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Lorraine_School.webp',
+      title: 'Professor Lorraine',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Lorraine_Cos16SL_Body', 'Hero_Lorraine_Cos16SL_Hair'],
+        right: 'Hero_Lorraine_Cos16SL_Weapon',
+        blade: 'y',
+      },
+    },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Lorraine_Summer',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Lorraine_Summer.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Lorraine_Summer.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Lorraine_Summer.webp',
+      title: 'Beachside Lorraine',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Lorraine_Cos17Summer_Body', 'Hero_Lorraine_Cos17Summer_Hair'],
+        right: 'Hero_Lorraine_Cos17Summer_Weapon',
+        blade: 'y',
+      },
+    },
+    // King's Raid's Frozen costume (tm-costumes.mjs).
+    {
+      name: 'Lorraine_Frozen',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Lorraine_Frozen.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Lorraine_Frozen.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Lorraine_Frozen.webp',
+      title: 'Snow Sage Lorraine',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Lorraine_Cos18Frozen_Body', 'Hero_Lorraine_Cos18Frozen_Hair'],
+        right: 'Hero_Lorraine_Cos18Frozen_Weapon',
+        blade: 'y',
+      },
+    },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Lorraine_Summer19',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Lorraine_Summer19.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Lorraine_Summer19.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Lorraine_Summer19.webp',
+      title: 'Beachside Lorraine',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Lorraine_Cos19Summer_Body', 'Hero_Lorraine_Cos19Summer_Hair'],
+        right: 'Hero_Lorraine_Cos19Summer_Weapon',
+        blade: 'y',
+      },
+    },
+    // King's Raid's Dessert costume (tm-costumes.mjs).
+    {
+      name: 'Lorraine_Dessert',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Lorraine_Dessert.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Lorraine_Dessert.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Lorraine_Dessert.webp',
+      title: 'Mont Blanc Dreams Lorraine',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Lorraine_Cos20Dessert_Body', 'Hero_Lorraine_Cos20Dessert_Hair'],
+        right: 'Hero_Lorraine_Cos20Dessert_Weapon',
         blade: 'y',
       },
     },

@@ -74,5 +74,85 @@ export const EZEKIEL_ASSETS: HeroAssets = {
         parts: ['Hero_Ezekiel_Vari05_Mesh', 'Hero_Ezekiel_Vari05_Weapon', 'Hero_Ezekiel_Vari05_Arm'],
       },
     },
+    // King's Raid's School costume (tm-costumes.mjs).
+    {
+      name: 'Ezekiel_School',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Ezekiel_School.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Ezekiel_School.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Ezekiel_School.webp',
+      title: 'Troublemaker Ezekiel',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Ezekiel_Cos18SL_Mesh', 'Hero_Ezekiel_Cos18SL_Weapon', 'Hero_Ezekiel_Cos18SL_Arm'],
+      },
+    },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Ezekiel_Summer',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Ezekiel_Summer.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Ezekiel_Summer.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Ezekiel_Summer.webp',
+      title: 'Beachside Ezekiel',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Ezekiel_Cos18Summer_Mesh', 'Hero_Ezekiel_Cos18Summer_Weapon', 'Hero_Ezekiel_Cos18Summer_Arm'],
+      },
+    },
+    // King's Raid's Halloween costume (tm-costumes.mjs).
+    {
+      name: 'Ezekiel_Halloween',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Ezekiel_Halloween.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Ezekiel_Halloween.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Ezekiel_Halloween.webp',
+      title: 'Cheshire Cat Ezekiel',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Ezekiel_Cos18Halloween_Mesh', 'Hero_Ezekiel_Cos18Halloween_Weapon', 'Hero_Ezekiel_Cos18Halloween_Arm'],
+      },
+    },
+    // King's Raid's Wedding costume (tm-costumes.mjs).
+    {
+      name: 'Ezekiel_Wedding',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Ezekiel_Wedding.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Ezekiel_Wedding.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Ezekiel_Wedding.webp',
+      title: 'Love, the Curse Breaker Ezekiel',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Ezekiel_Cos19Wedding_Mesh', 'Hero_Ezekiel_Cos19Wedding_Weapon', 'Hero_Ezekiel_Cos19Wedding_Arm'],
+      },
+    },
+    // King's Raid's Christmas costume (tm-costumes.mjs).
+    {
+      name: 'Ezekiel_Christmas',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Ezekiel_Christmas.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Ezekiel_Christmas.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Ezekiel_Christmas.webp',
+      title: 'Christmas of the Half-Demon Ezekiel',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Ezekiel_Cos19Christmas_Mesh', 'Hero_Ezekiel_Cos19Christmas_Weapon', 'Hero_Ezekiel_Cos19Christmas_Arm'],
+      },
+    },
   ],
 };

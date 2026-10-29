@@ -1,6 +1,7 @@
 import { art, drawSell, el, forgeLink, hasLevels, heroFrame, heroMarks, isTmPiece, itemDetailsClosed, itemFace, krStars, levelLabel, itemPicked, lockToggle, optionsSection, priceOf, pruneSale, replacesNote, rich, runeMarks, sellsFor, showDetail, shownName, statBlocks, tmMarks, tmSections, treasureParts, uniqueWeaponEffect, utMarks, uwMarks } from '../shared/items';
 import { classBadge, className, FACE, HERO_PART_NAME, HERO_SLOT_KIND, HERO_SLOT_PART, HERO_SLOT_TYPE, HERO_SLOTS, heroCut, heroPicture, skillText, STAGE_ZOOM, type HeroView, type HeroCopy, type HeroSlot } from '../shared/heroes';
 import { built } from '../shared/built';
+import { skinOf } from '../shared/hero-outfits';
 import { working } from '../shared/ui';
 import { heroStars } from '../shared/ui/stars/stars';
 import { canTrade, copyById, heroShown, mine, slotFor, slotOf, slotsFor, type HeroesContext } from './context';
@@ -207,10 +208,11 @@ function renderRoster(ctx: HeroesContext, act: HeroActions): void {
  * The hero's model on the stage, as King's Raid shows a hero (on the site's page and in the raid's Manage popup, whose
  * frame lets go of it on closing): its picture till it's read, and for good where it can't be (no WebGL, or not on this computer).
  */
-function showModel(ctx: HeroesContext, id: string): void {
+function showModel(ctx: HeroesContext, id: string, skin: number): void {
   const { ui } = ctx;
-  if (ui.model.dataset.hero === id) return;
-  ui.model.dataset.hero = id;
+  const key = `${id}:${skin}`;
+  if (ui.model.dataset.hero === key) return;
+  ui.model.dataset.hero = key;
   ui.page.classList.remove('modelled');
   ctx.showcase ??= import('./model')
     .then(({ makeShowcase }) => makeShowcase(ui.model))
@@ -219,13 +221,13 @@ function showModel(ctx: HeroesContext, id: string): void {
       return null;
     });
   void ctx.showcase
-    .then((showcase) => showcase?.show(id) ?? false)
+    .then((showcase) => showcase?.show(id, skin) ?? false)
     .catch((error: unknown) => {
       console.warn(error);
       return false;
     })
     .then((shown) => {
-      if (shown && ui.model.dataset.hero === id) ui.page.classList.add('modelled');
+      if (shown && ui.model.dataset.hero === key) ui.page.classList.add('modelled');
     });
 }
 
@@ -235,7 +237,8 @@ function renderStage(ctx: HeroesContext): void {
   const hero = heroShown(ctx);
   if (!hero) return;
   if (ui.bust.dataset.hero !== hero.id) showWhole(ui.bust, hero.id, ui.initial, hero.name.slice(0, 1));
-  showModel(ctx, hero.id);
+  // (In the outfit it wears.)
+  showModel(ctx, hero.id, skinOf(hero.id, hero.outfit));
   ui.name.textContent = hero.name;
   const icon = el('img');
   icon.src = classBadge(hero.class);
@@ -247,6 +250,10 @@ function renderStage(ctx: HeroesContext): void {
   ui.stars.replaceChildren(...(hero.owned ? [heroStars(hero.transcend?.level ?? 0, 'banner')] : []));
   ui.buy.hidden = hero.owned || !mine(ctx);
   ui.buy.href = '/shop/heroes/';
+  // Its outfits: theirs to dress (or try on) in its outfit room; from the raid's Manage popup, in a tab of its own.
+  ui.outfits.hidden = !mine(ctx);
+  ui.outfits.href = `/hero-outfits/?hero=${encodeURIComponent(hero.id)}`;
+  if (!ctx.host.site) ui.outfits.target = '_blank';
   ui.statsTitle.textContent = `${hero.name}'s Stats`;
   ui.skillsTitle.textContent = `${hero.name}'s Skills`;
   ui.transcendTitle.textContent = `${hero.name}'s Transcendence`;

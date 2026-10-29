@@ -75,5 +75,138 @@ export const MORRAH_ASSETS: HeroAssets = {
         blade: 'y',
       },
     },
+    // King's Raid's School costume (tm-costumes.mjs).
+    {
+      name: 'Morrah_School',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Morrah_School.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Morrah_School.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Morrah_School.webp',
+      title: 'Punk Style Morrah',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Morrah_Cos16SL_Body', 'Hero_Morrah_Cos16SL_Hair'],
+        left: 'Hero_Morrah_Cos16SL_Shield',
+        right: 'Hero_Morrah_Cos16SL_Sword',
+        blade: 'y',
+      },
+    },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Morrah_Summer',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Morrah_Summer.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Morrah_Summer.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Morrah_Summer.webp',
+      title: 'Beachside Morrah',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Morrah_Cos17Summer_Body', 'Hero_Morrah_Vari05_Hair'],
+        left: 'Hero_Morrah_Cos17Summer_Shield',
+        right: 'Hero_Morrah_Cos17Summer_Sword',
+        blade: 'y',
+      },
+    },
+    // King's Raid's NewYear costume (tm-costumes.mjs).
+    {
+      name: 'Morrah_NewYear',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Morrah_NewYear.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Morrah_NewYear.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Morrah_NewYear.webp',
+      title: 'Tunica Morrah',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Morrah_Cos18NewYear_Body', 'Hero_Morrah_Vari05_Hair'],
+        left: 'Hero_Morrah_Cos18NewYear_Shield',
+        right: 'Hero_Morrah_Cos18NewYear_Sword',
+        blade: 'y',
+      },
+    },
+    // King's Raid's Wedding costume (tm-costumes.mjs).
+    {
+      name: 'Morrah_Wedding',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Morrah_Wedding.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Morrah_Wedding.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Morrah_Wedding.webp',
+      title: 'Flame of Eternity Morrah',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Morrah_Cos19Wedding_Body', 'Hero_Morrah_Cos19Wedding_Hair'],
+        left: 'Hero_Morrah_Cos19Wedding_Shield',
+        right: 'Hero_Morrah_Cos19Wedding_Sword',
+        blade: 'y',
+      },
+    },
+    // King's Raid's Halloween costume (tm-costumes.mjs).
+    {
+      name: 'Morrah_Halloween',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Morrah_Halloween.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Morrah_Halloween.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Morrah_Halloween.webp',
+      title: 'Little Demon Morrah',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Morrah_Cos19Halloween_Body', 'Hero_Morrah_Cos19Halloween_Hair'],
+        left: 'Hero_Morrah_Cos19Halloween_Shield',
+        right: 'Hero_Morrah_Cos19Halloween_Sword',
+        blade: 'y',
+      },
+    },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Morrah_Summer20',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Morrah_Summer20.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Morrah_Summer20.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Morrah_Summer20.webp',
+      title: 'Beachside Morrah',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Morrah_Cos20Summer_Body', 'Hero_Morrah_Cos20Summer_Hair'],
+        left: 'Hero_Morrah_Cos20Summer_Shield',
+        right: 'Hero_Morrah_Cos20Summer_Sword',
+        blade: 'y',
+      },
+    },
+    // King's Raid's DailyLook costume (tm-costumes.mjs).
+    {
+      name: 'Morrah_DailyLook',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Morrah_DailyLook.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Morrah_DailyLook.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Morrah_DailyLook.webp',
+      title: 'Demonic Punk Morrah',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Morrah_Cos21Dailylook_Body', 'Hero_Morrah_Vari05_Hair'],
+        left: 'Hero_Morrah_Cos21DailyLook_Shield',
+        right: 'Hero_Morrah_Cos21DailyLook_Sword',
+        blade: 'y',
+      },
+    },
   ],
 };

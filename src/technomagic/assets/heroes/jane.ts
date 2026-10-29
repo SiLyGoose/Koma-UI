@@ -75,5 +75,175 @@ export const JANE_ASSETS: HeroAssets = {
         right: 'Hero_Jane_Vari05_Weapon',
       },
     },
+    // King's Raid's School costume (tm-costumes.mjs).
+    {
+      name: 'Jane_School',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Jane_School.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Jane_School.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Jane_School.webp',
+      title: 'Sailor Uniform Jane',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Jane_Cos16SL_Body', 'Hero_Jane_Cos16SL_Hair'],
+        right: 'Hero_Jane_Cos16SL_Weapon',
+      },
+    },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Jane_Summer',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Jane_Summer.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Jane_Summer.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Jane_Summer.webp',
+      title: 'Beachside Jane',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Jane_Cos17Summer01_Body', 'Hero_Jane_Cos17Summer01_Hair'],
+        right: 'Hero_Jane_Cos17Summer_Weapon',
+      },
+    },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Jane_Summer2',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Jane_Summer2.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Jane_Summer2.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Jane_Summer2.webp',
+      title: 'Beachside Jane',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Jane_Cos17Summer02_Body', 'Hero_Jane_Cos17Summer01_Hair'],
+        right: 'Hero_Jane_Cos17Summer02_Weapon',
+      },
+    },
+    // King's Raid's Halloween costume (tm-costumes.mjs).
+    {
+      name: 'Jane_Halloween',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Jane_Halloween.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Jane_Halloween.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Jane_Halloween.webp',
+      title: 'Mummy Jane',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Jane_Cos17Halloween_Body', 'Hero_Jane_Vari05_Hair'],
+        right: 'Hero_Jane_Cos17Halloween_Weapon',
+      },
+    },
+    // King's Raid's Idol costume (tm-costumes.mjs).
+    {
+      name: 'Jane_Idol',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Jane_Idol.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Jane_Idol.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Jane_Idol.webp',
+      title: 'Twinkle Pure Jane',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Jane_Cos17Idol_Body', 'Hero_Jane_Cos17Idol_Hair'],
+        right: 'Hero_Jane_Cos17Idol_Weapon',
+      },
+    },
+    // King's Raid's Christmas costume (tm-costumes.mjs).
+    {
+      name: 'Jane_Christmas',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Jane_Christmas.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Jane_Christmas.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Jane_Christmas.webp',
+      title: 'Santa Jane',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Jane_Cos17Christmas_Body', 'Hero_Jane_Cos17Christmas_Hair'],
+        right: 'Hero_Jane_Cos17Christmas_Weapon',
+      },
+    },
+    // King's Raid's NewYear costume (tm-costumes.mjs).
+    {
+      name: 'Jane_NewYear',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Jane_NewYear.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Jane_NewYear.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Jane_NewYear.webp',
+      title: 'Hanbok Jane',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Jane_Cos18NewYear_Body', 'Hero_Jane_Cos18NewYear_Hair'],
+        right: 'Hero_Jane_Cos18NewYear_Weapon',
+      },
+    },
+    // King's Raid's Wedding costume (tm-costumes.mjs).
+    {
+      name: 'Jane_Wedding',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Jane_Wedding.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Jane_Wedding.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Jane_Wedding.webp',
+      title: 'Love Beyond Death Jane',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Jane_Cos18Wedding_Body', 'Hero_Jane_Cos18Wedding_Hair'],
+        right: 'Hero_Jane_Cos18Wedding_Weapon',
+      },
+    },
+    // King's Raid's Glory costume (tm-costumes.mjs).
+    {
+      name: 'Jane_Glory',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Jane_Glory.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Jane_Glory.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Jane_Glory.webp',
+      title: 'Jane of Honor',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Jane_Cos18GloryLeague_Body', 'Hero_Jane_Cos18GloryLeague_Hair'],
+        right: 'Hero_Jane_Cos18GloryLeague_Weapon',
+      },
+    },
+    // King's Raid's Casual costume (tm-costumes.mjs).
+    {
+      name: 'Jane_Casual',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Jane_Casual.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Jane_Casual.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Jane_Casual.webp',
+      title: 'Midsummer Travel Jane',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Jane_Cos19Casual_Body', 'Hero_Jane_Cos19Casual_Hair'],
+        right: 'Hero_Jane_Cos19Casual_Weapon',
+      },
+    },
   ],
 };

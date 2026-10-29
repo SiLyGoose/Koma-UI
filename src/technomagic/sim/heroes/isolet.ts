@@ -67,7 +67,7 @@ export const ISOLET: HeroDef = {
   id: 'isolet',
   name: 'Isolet',
   class: 'wizard',
-  skins: ['Isolet'],
+  skins: ['Isolet', 'Isolet_Advance', 'Isolet_Christmas', 'Isolet_DailyLook'],
   // A wizard whose blows are physical: her passive's crit DMG.
   stats: { ...CLASS_STATS.wizard, deals: 'physical', critDamage: CLASS_STATS.wizard.critDamage + ESSENCE.critDamage },
   abilities: [

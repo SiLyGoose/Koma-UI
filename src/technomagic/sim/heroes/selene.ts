@@ -75,7 +75,7 @@ export const SELENE: HeroDef = {
   id: 'selene',
   name: 'Selene',
   class: 'archer',
-  skins: ['Selene'],
+  skins: ['Selene', 'Selene_School', 'Selene_Summer', 'Selene_Idol', 'Selene_Frozen', 'Selene_Christmas', 'Selene_Summer19', 'Selene_Dessert'],
   // An archer (her blows physical): as her class stands.
   stats: { ...CLASS_STATS.archer, deals: 'physical' },
   abilities: [

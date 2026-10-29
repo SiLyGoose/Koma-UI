@@ -76,5 +76,101 @@ export const NAILA_ASSETS: HeroAssets = {
         parts: ['Hero_Naila_Vari05_Body', 'Hero_Naila_Vari05_Hair', 'Hero_Naila_Vari05_Weapon'],
       },
     },
+    // King's Raid's School costume (tm-costumes.mjs).
+    {
+      name: 'Naila_School',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Naila_School.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Naila_School.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Naila_School.webp',
+      title: 'Catpunch Naila',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Naila_Cos16SL_Body', 'Hero_Naila_Cos16SL_Hair', 'Hero_Naila_Cos16SL_Weapon'],
+      },
+    },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Naila_Summer',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Naila_Summer.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Naila_Summer.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Naila_Summer.webp',
+      title: 'Beachside Naila',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Naila_Cos17Summer_Body', 'Hero_Naila_Cos17Summer_Hair', 'Hero_Naila_Cos17Summer_Weapon'],
+      },
+    },
+    // King's Raid's Frozen costume (tm-costumes.mjs).
+    {
+      name: 'Naila_Frozen',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Naila_Frozen.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Naila_Frozen.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Naila_Frozen.webp',
+      title: 'Wing of Northern Wind Naila',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Naila_Cos18Frozen_Body', 'Hero_Naila_Cos18Frozen_Hair', 'Hero_Naila_Cos18Frozen_Weapon'],
+      },
+    },
+    // King's Raid's Wedding costume (tm-costumes.mjs).
+    {
+      name: 'Naila_Wedding',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Naila_Wedding.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Naila_Wedding.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Naila_Wedding.webp',
+      title: 'Breath of Spring Breeze Naila',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Naila_Cos19Wedding_Body', 'Hero_Naila_Cos19Wedding_Hair', 'Hero_Naila_Cos19Wedding_Weapon'],
+      },
+    },
+    // King's Raid's Christmas costume (tm-costumes.mjs).
+    {
+      name: 'Naila_Christmas',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Naila_Christmas.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Naila_Christmas.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Naila_Christmas.webp',
+      title: 'Christmas of a Harpy Naila',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Naila_Cos19Christmas_Body', 'Hero_Naila_Cos19Christmas_Hair', 'Hero_Naila_Cos19Christmas_Weapon'],
+      },
+    },
+    // King's Raid's Halloween costume (tm-costumes.mjs).
+    {
+      name: 'Naila_Halloween',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Naila_Halloween.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Naila_Halloween.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Naila_Halloween.webp',
+      title: 'Wing of the Night Naila',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Naila_Cos20Halloween_Body', 'Hero_Naila_Cos20Halloween_Hair', 'Hero_Naila_Cos20Halloween_Weapon'],
+      },
+    },
   ],
 };

@@ -75,5 +75,95 @@ export const ZAFIR_ASSETS: HeroAssets = {
         offHand: 'held',
       },
     },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Zafir_Summer',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Zafir_Summer.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Zafir_Summer.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Zafir_Summer.webp',
+      title: 'Beachside Zafir',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Zafir_Cos18Summer_Body', 'Hero_Zafir_Cos18Summer_Hair'],
+        left: 'Hero_Zafir_Cos18Summer_Weapon',
+        offHand: 'held',
+      },
+    },
+    // King's Raid's Wedding costume (tm-costumes.mjs).
+    {
+      name: 'Zafir_Wedding',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Zafir_Wedding.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Zafir_Wedding.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Zafir_Wedding.webp',
+      title: 'Breath of Warm Sand Zafir',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Zafir_Cos18Wedding_Body', 'Hero_Zafir_Vari05_Hair'],
+        left: 'Hero_Zafir_Cos18Wedding_Weapon',
+        offHand: 'held',
+      },
+    },
+    // King's Raid's Halloween costume (tm-costumes.mjs).
+    {
+      name: 'Zafir_Halloween',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Zafir_Halloween.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Zafir_Halloween.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Zafir_Halloween.webp',
+      title: 'Evangelist of Love Zafir',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Zafir_Cos18Halloween_Body', 'Hero_Zafir_Cos18Halloween_Hair'],
+        left: 'Hero_Zafir_Cos18Halloween_Weapon',
+        offHand: 'held',
+      },
+    },
+    // King's Raid's Casual costume (tm-costumes.mjs).
+    {
+      name: 'Zafir_Casual',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Zafir_Casual.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Zafir_Casual.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Zafir_Casual.webp',
+      title: 'Prince’s Dignity Zafir',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Zafir_Cos19Casual_Body', 'Hero_Zafir_Cos19Casual_Hair'],
+        left: 'Hero_Zafir_Cos19Casual_Weapon',
+        offHand: 'held',
+      },
+    },
+    // King's Raid's School costume (tm-costumes.mjs).
+    {
+      name: 'Zafir_School',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Zafir_School.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Zafir_School.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Zafir_School.webp',
+      title: 'Band Member Zafir',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Zafir_Cos20SL_Body', 'Hero_Zafir_Cos20SL_Hair'],
+        left: 'Hero_Zafir_Cos20SL_Weapon',
+        offHand: 'held',
+      },
+    },
   ],
 };

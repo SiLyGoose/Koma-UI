@@ -74,5 +74,23 @@ export const REBEL_KLAUS_ASSETS: HeroAssets = {
         blade: 'y',
       },
     },
+    // King's Raid's Advance costume (tm-costumes.mjs).
+    {
+      name: 'Rebel_Klaus_Advance',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Rebel_Klaus_Advance.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Rebel_Klaus_Advance.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Rebel_Klaus_Advance.webp',
+      title: 'What If Rebel Klaus',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Clause_Traitor_Cos20Advance_Body', 'Hero_Clause_Traitor_Hair_01'],
+        right: 'Hero_Clause_Traitor_Cos20Advance_Weapon',
+        blade: 'y',
+      },
+    },
   ],
 };

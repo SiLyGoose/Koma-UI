@@ -78,5 +78,90 @@ export const PANSIRONE_ASSETS: HeroAssets = {
         right: 'Hero_Pancironne_Vari05_Weapon',
       },
     },
+    // King's Raid's Christmas costume (tm-costumes.mjs).
+    {
+      name: 'Pansirone_Christmas',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Pansirone_Christmas.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Pansirone_Christmas.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Pansirone_Christmas.webp',
+      title: 'Christmas of Playing With Fire Pansirone',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Pancironne_Cos19Christmas_Body', 'Hero_Pancironne_Cos19Christmas_Hair'],
+        right: 'Hero_Pancironne_Cos19Christmas_Weapon',
+      },
+    },
+    // King's Raid's Wedding costume (tm-costumes.mjs).
+    {
+      name: 'Pansirone_Wedding',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Pansirone_Wedding.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Pansirone_Wedding.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Pansirone_Wedding.webp',
+      title: 'Blazing Fire Fantasy Pansirone',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Pancironne_Cos20Wedding_Body', 'Hero_Pancironne_Cos20Wedding_Hair'],
+        right: 'Hero_Pancironne_Cos20Wedding_Weapon',
+      },
+    },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Pansirone_Summer',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Pansirone_Summer.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Pansirone_Summer.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Pansirone_Summer.webp',
+      title: 'Beachside Pansirone',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Pancironne_Cos20Summer_Body', 'Hero_Pancironne_Cos20Summer_Hair'],
+        right: 'Hero_Pancironne_Cos20Summer_Weapon',
+      },
+    },
+    // King's Raid's DailyLook costume (tm-costumes.mjs).
+    {
+      name: 'Pansirone_DailyLook',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Pansirone_DailyLook.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Pansirone_DailyLook.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Pansirone_DailyLook.webp',
+      title: 'Pink Sensation Pansirone',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Pancironne_Cos21DailyLook_Body', 'Hero_Pancironne_Cos21DailyLook_Hair'],
+        right: 'Hero_Pancironne_Cos21DailyLook_Weapon',
+      },
+    },
+    // King's Raid's April costume (tm-costumes.mjs).
+    {
+      name: 'Pansirone_April',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Pansirone_April.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Pansirone_April.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Pansirone_April.webp',
+      title: 'Trigger Happy Pansirone',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Pancironne_Cos20April_Body', 'Hero_Pancironne_Cos20April_Hair'],
+        right: 'Hero_Pancironne_Cos20April_Weapon',
+      },
+    },
   ],
 };

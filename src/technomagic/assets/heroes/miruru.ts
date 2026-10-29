@@ -70,5 +70,101 @@ export const MIRURU_ASSETS: HeroAssets = {
         parts: ['Hero_Miruru_Vari05_Body', 'Hero_Miruru_Vari05_Hair', 'Hero_Miruru_Vari05_Weapon'],
       },
     },
+    // King's Raid's School costume (tm-costumes.mjs).
+    {
+      name: 'Miruru_School',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Miruru_School.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Miruru_School.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Miruru_School.webp',
+      title: 'Grade School Miruru',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Miruru_Cos16SL_Body', 'Hero_Miruru_Cos16SL_Hair', 'Hero_Miruru_Cos16SL_Weapon'],
+      },
+    },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Miruru_Summer',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Miruru_Summer.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Miruru_Summer.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Miruru_Summer.webp',
+      title: 'Beachside Miruru',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Miruru_Cos17Summer_Body', 'Hero_Miruru_Cos17Summer_Hair', 'Hero_Miruru_Cos17Summer_Weapon'],
+      },
+    },
+    // King's Raid's Christmas costume (tm-costumes.mjs).
+    {
+      name: 'Miruru_Christmas',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Miruru_Christmas.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Miruru_Christmas.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Miruru_Christmas.webp',
+      title: 'Santa Miruru',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Miruru_Cos17Christmas_Body', 'Hero_Miruru_Cos17Christmas_Hair', 'Hero_Miruru_Cos17Christmas_Weapon'],
+      },
+    },
+    // King's Raid's NewYear costume (tm-costumes.mjs).
+    {
+      name: 'Miruru_NewYear',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Miruru_NewYear.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Miruru_NewYear.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Miruru_NewYear.webp',
+      title: 'Viking Miruru',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Miruru_Cos19NewYear_Body', 'Hero_Miruru_Cos19NewYear_Hair', 'Hero_Miruru_Cos19NewYear_Weapon'],
+      },
+    },
+    // King's Raid's Halloween costume (tm-costumes.mjs).
+    {
+      name: 'Miruru_Halloween',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Miruru_Halloween.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Miruru_Halloween.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Miruru_Halloween.webp',
+      title: 'Little Pumpkin Witch Miruru',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Miruru_Cos19Halloween_Body', 'Hero_Miruru_Cos19Halloween_Hair', 'Hero_Miruru_Cos19Halloween_Weapon'],
+      },
+    },
+    // King's Raid's Wedding costume (tm-costumes.mjs).
+    {
+      name: 'Miruru_Wedding',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Miruru_Wedding.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Miruru_Wedding.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Miruru_Wedding.webp',
+      title: 'Heart Stealer Miruru',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Miruru_Cos20Wedding_Body', 'Hero_Miruru_Cos20Wedding_Hair', 'Hero_Miruru_Cos20Wedding_Weapon'],
+      },
+    },
   ],
 };

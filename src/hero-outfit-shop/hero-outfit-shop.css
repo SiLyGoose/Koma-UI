@@ -1,0 +1,100 @@
+/*
+ * The shop's Hero Outfits tab (page.ts), laid out as the Outfits tab (../outfits/outfits.css: its bar, its row of cards that
+ * scrolls sideways, its buy box): the hero picker over the row, and each card King's Raid's costume card (its PayShopCostume:
+ * the outfit's tall card filling it, its name over it at the top, its price or state at the bottom, Owned in King's Raid's
+ * blue, Equipped in its teal).
+ */
+.hos-tools {
+  display: flex;
+  justify-content: center;
+}
+
+.hos-hero-pick {
+  min-width: 12rem;
+}
+
+.hos-card {
+  /* King's Raid's card: 330 by 718. */
+  aspect-ratio: 330 / 718;
+}
+
+.hos-card-art {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.hos-card-picture {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 20%;
+}
+
+.hos-card-initial {
+  color: rgb(255 255 255 / 25%);
+  font-size: 64px;
+  font-weight: 800;
+}
+
+/* Its name at the top, over a dark fade; its state at the bottom, over the card. */
+.hos-card .hos-card-name {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  padding: 14px 10px 26px;
+  background: linear-gradient(180deg, rgb(10 12 28 / 88%), rgb(10 12 28 / 60%) 60%, transparent);
+  color: #fff7e9;
+  font-size: 14px;
+  line-height: 1.25;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 80%);
+}
+
+.hos-card .outfit-foot {
+  position: relative;
+  z-index: 1;
+  margin-top: auto;
+}
+
+.hos-card[data-state='owned'] .outfit-foot {
+  background: rgb(104 129 176 / 92%);
+  color: #daebff;
+}
+
+.hos-card[data-state='worn'] .outfit-foot {
+  background: rgb(104 176 172 / 92%);
+  color: #edfffc;
+}
+
+.hos-card[data-state='locked'] .hos-card-picture {
+  filter: saturate(0.75) brightness(0.8);
+}
+
+/* The buy box, wide enough for its three buttons in a row; its picture the outfit's card, standing; whose it is under its name. */
+.hos-buy-box {
+  width: min(420px, 100%);
+}
+
+.hos-buy-figure {
+  height: 240px;
+  padding-bottom: 0;
+}
+
+.hos-buy-card {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.hos-buy-hero {
+  margin: -6px 0 10px;
+  color: #c9bfa4;
+  font-size: 14px;
+  text-align: center;
+}
+
+.hos-buy-box .outfits-buy-foot [hidden] {
+  display: none;
+}
