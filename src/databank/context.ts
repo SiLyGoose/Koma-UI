@@ -130,14 +130,16 @@ export function status(ctx: DatabankContext, text: string | null, bad = false): 
 
 export const itemById = (ctx: DatabankContext, id: string | null): DatabankItem | undefined => (id ? ctx.databank?.items.find((item) => item.id === id) : undefined);
 
-/** Whether an item is a hero's gear (a unique weapon or treasure), not the members' own. */
-export const heroItem = (item: DatabankItem): boolean => item.uniqueWeapon !== null || item.uniqueTreasure !== null || artifact(item);
-/** King's Raid's artifacts (T10): a TechnoMagic Raid's drop, but not its old gear. */
+/** Whether an item is a hero's gear (a unique weapon or treasure, an artifact, a TechnoMagic piece), not the members' own. */
+export const heroItem = (item: DatabankItem): boolean => item.uniqueWeapon !== null || item.uniqueTreasure !== null || artifact(item) || tmGear(item);
+/** King's Raid's artifacts (T10): a TechnoMagic Raid's drop, but not its gear. */
 export const artifact = (item: DatabankItem): boolean => item.part === 'artifact';
-/** The old TechnoMagic gear (from before King's Raid's). */
+/** TechnoMagic gear: King's Raid's sets' pieces, and the old gear from before them. */
 export const tmGear = (item: DatabankItem): boolean => item.source === 'technomagic' && !artifact(item);
+/** King's Raid's TechnoMagic sets' pieces (with King's Raid's icon, which the old gear has none of). */
+export const tmPiece = (item: DatabankItem): boolean => tmGear(item) && item.icon !== undefined;
 /** The old TechnoMagic gear: no raid drops it any more, so the databank leaves it out. */
-const retired = tmGear;
+const retired = (item: DatabankItem): boolean => tmGear(item) && !tmPiece(item);
 /** An item's kind (its list). */
 export const kindOf = (item: DatabankItem): ItemKind => (heroItem(item) ? 'hero' : 'player');
 /** The items of a kind, in the databank's order. */

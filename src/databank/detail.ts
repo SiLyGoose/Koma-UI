@@ -1,9 +1,10 @@
 import { art, dragonTierMark, effectSection, el, itemDetailsClosed, kindName, mainStatText, rich, tierMark, tmTier, treasureParts, uniqueTier } from '../shared/items';
 import { skillText } from '../shared/heroes';
 import { go } from '../site/nav';
+import { pieceFacts } from '../shared/raid-rewards/gear-sample';
 import { SKILLS } from '../technomagic/sim/skills';
 import { classTag } from './class-tag';
-import { artifact, className, itemById, narrow, tmGear, type DatabankContext } from './context';
+import { artifact, className, itemById, narrow, tmGear, tmPiece, type DatabankContext } from './context';
 import type { ItemSource } from './types';
 
 /**
@@ -94,6 +95,31 @@ function potentialList(lines: string[]): HTMLElement {
   return box;
 }
 
+/**
+ * What a copy of a TechnoMagic set's piece has (King's Raid's data, read the first time: ../shared/raid-rewards/gear-sample.ts):
+ * its main stat from 0★ to 5★, the options it rolls (folded away), its additional effect (one of them, at random) and its rune
+ * sockets, put in its place once read, if it's still the piece shown.
+ */
+function pieceSlot(ctx: DatabankContext, id: string): HTMLElement {
+  const slot = el('div', 'db-piece');
+  void pieceFacts(id).then((facts) => {
+    if (!facts || ctx.picked !== id || !slot.isConnected) return;
+    const parts = [effectSection('Main Stat:', facts.main)];
+    if (facts.options) {
+      const box = el('details', 'detail-note db-skills');
+      box.append(el('summary', '', facts.options.summary));
+      const list = el('ul', 'detail-effects');
+      for (const line of facts.options.lines) list.appendChild(el('li')).append(rich(line));
+      box.append(list);
+      parts.push(effectSection('Options:', box));
+    }
+    if (facts.unique) parts.push(effectSection('Additional Effect:', skillList()));
+    if (facts.runes > 0) parts.push(effectSection('Runes:', `${facts.runes} rune socket${facts.runes === 1 ? '' : 's'}`));
+    slot.replaceChildren(...parts);
+  });
+  return slot;
+}
+
 /** The panel: the item picked, what it does at the level picked, and what they own of it. */
 export function renderDetail(ctx: DatabankContext): void {
   const { ui, databank, level } = ctx;
@@ -117,7 +143,7 @@ export function renderDetail(ctx: DatabankContext): void {
   if (item.set) {
     const set = el('p', 'detail-meta db-set', `${item.set.name} set · ${item.set.boss[0]?.toUpperCase()}${item.set.boss.slice(1)}`);
     const effect = item.class ? item.set.effects[item.class] : undefined;
-    set.title = `Three of its weapons and armors on a hero: ${effect ?? 'nothing for its class'}`;
+    set.title = `${item.set.pieces} pieces of it on a hero: ${effect ?? 'nothing for its class'}`;
     title.append(set);
   }
   const close = el('button', 'detail-close', '✕');
@@ -156,11 +182,14 @@ export function renderDetail(ctx: DatabankContext): void {
   const pool = tm && lines.length > 1;
   // (TechnoMagic gear's main stat, in place of the level picker: a weapon's, or an armor's two, whichever its copy rolls.)
   const main = item.mainStats?.length ? [effectSection('Main Stat:', mainStatText(item.mainStats))] : [];
-  ui.detailBody.append(head, el('p', 'detail-desc', item.description), ...(tm ? main : [levels]), pool ? effectSection('Potentials:', potentialList(lines)) : effects);
+  ui.detailBody.append(head, el('p', 'detail-desc', item.description), ...(tm ? main : [levels]), ...(tmPiece(item) ? [] : [pool ? effectSection('Potentials:', potentialList(lines)) : effects]));
   if (ut) ui.detailBody.append(effectSection('Potentials:', potentialList(ut.options)));
   // TechnoMagic gear: its set effect, then its additional effect (one of them, at random), each apart under its effects (the potentials a copy can roll).
+  // (A TechnoMagic set's piece: what a copy has, from King's Raid's data, in its effects' place: put in once it's read.)
+  const facts = tmPiece(item) ? pieceSlot(ctx, item.id) : null;
+  if (facts) ui.detailBody.append(facts);
   if (item.set?.pieces && item.set.effect) ui.detailBody.append(effectSection(`${item.set.pieces}-set effect:`, item.set.effect));
-  if (tm) ui.detailBody.append(effectSection('Additional Effect:', skillList()));
+  if (tm && !facts) ui.detailBody.append(effectSection('Additional Effect:', skillList()));
   // Where it comes from, a box for each place (nothing from a bot that doesn't say).
   const sources = item.sources ?? (item.source ? [item.source] : []);
   if (sources.length > 0) {

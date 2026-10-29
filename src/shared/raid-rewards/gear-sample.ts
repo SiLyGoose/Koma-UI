@@ -91,10 +91,31 @@ function folded(summary: string, lines: readonly string[]): HTMLElement {
   return box;
 }
 
-/** Every option a copy can roll, each with how little and how much, folded away. */
-function options(pool: readonly KrOptionData[], count: number): HTMLElement[] {
-  const ranges = pool.flatMap((option) => (STAT[option.stat] ? [`**${STAT[option.stat]?.name}** ${amount(option.stat, option.min)} to ${amount(option.stat, option.max)}`] : []));
-  return [folded(`Each copy rolls ${count} of these ${pool.length} options, at random; two can be the same.`, ranges)];
+/** The options a copy of a piece can roll: a line saying how many, and each with how little and how much (null: none). */
+function optionLines(pool: readonly KrOptionData[], count: number): { summary: string; lines: string[] } | null {
+  if (pool.length === 0 || count === 0) return null;
+  const lines = pool.flatMap((option) => (STAT[option.stat] ? [`**${STAT[option.stat]?.name}** ${amount(option.stat, option.min)} to ${amount(option.stat, option.max)}`] : []));
+  return { summary: `Each copy rolls ${count} of these ${pool.length} options, at random; two can be the same.`, lines };
+}
+
+/** A piece's main stat, from 0★ to its most stars (awakened with duplicates). */
+function mainLine(piece: KrPieceData, refine: KrData['KR_REFINE']): string {
+  const [stat, base] = piece.main;
+  const factors = stat === 'atk' ? refine.atk : stat === 'hp' ? refine.hp : refine.def;
+  const top = factors.length - 1;
+  const at = (stars: number): string => points(Math.floor((base * (factors[stars] ?? 0)) / 1000));
+  return `**${MAIN_NAME[stat] ?? stat}** ${at(0)} at 0★, ${at(top)} at ${top}★ (awakened with duplicates)`;
+}
+
+/**
+ * What a copy of a piece of King's Raid's gear has, by its id (the databank's item details: ../../databank/detail.ts): its
+ * main stat from 0★ to 5★, the options it rolls, whether it has a unique option, and its rune sockets (null: no such piece).
+ */
+export async function pieceFacts(id: string): Promise<{ main: string; options: { summary: string; lines: string[] } | null; unique: boolean; runes: number } | null> {
+  const [{ KR_PIECES, KR_POOLS, KR_REFINE }] = await krData();
+  const piece = KR_PIECES.find((one) => one.id === id);
+  if (!piece) return null;
+  return { main: mainLine(piece, KR_REFINE), options: optionLines(KR_POOLS[piece.pool] ?? [], piece.options), unique: piece.unique === true, runes: piece.runes };
 }
 
 /** A set's bonuses, a line each: a dragon set's 2-piece and 4-piece stats, a TechnoMagic set's 4-piece skill for `heroClass`. */
@@ -158,13 +179,9 @@ export async function showGearSample(pick: SamplePick, tier: number): Promise<vo
   close.addEventListener('click', () => dialog.close());
   head.append(card, title, close);
 
-  const [stat, base] = piece.main;
-  const factors = stat === 'atk' ? KR_REFINE.atk : stat === 'hp' ? KR_REFINE.hp : KR_REFINE.def;
-  const top = factors.length - 1;
-  const at = (stars: number): string => points(Math.floor((base * (factors[stars] ?? 0)) / 1000));
-  const pool = KR_POOLS[piece.pool] ?? [];
-  const parts: HTMLElement[] = [section('Main Stat', `**${MAIN_NAME[stat] ?? stat}** ${at(0)} at 0★, ${at(top)} at ${top}★ (awakened with duplicates)`)];
-  if (pool.length > 0 && piece.options > 0) parts.push(section('Options', ...options(pool, piece.options)));
+  const options = optionLines(KR_POOLS[piece.pool] ?? [], piece.options);
+  const parts: HTMLElement[] = [section('Main Stat', mainLine(piece, KR_REFINE))];
+  if (options) parts.push(section('Options', folded(options.summary, options.lines)));
   if (piece.unique) parts.push(section('Unique Option', folded(`Each copy comes with one of ${SKILLS.length} additional skills, at random.`, SKILLS.map((skill) => `**${skill.name}** (${skill.tier}): ${skill.about}`))));
   if (set) parts.push(section(`${set.name} Set`, rows(setBonuses(set, heroClass))));
   if (piece.runes > 0) parts.push(section('Runes', `${piece.runes} rune socket${piece.runes === 1 ? '' : 's'}`));
