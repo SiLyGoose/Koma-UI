@@ -75,10 +75,8 @@ export function mailbox(host: MailHost): Mailbox {
   document.body.append(dialog);
   let view: MailboxView | null = null;
   let busy = false;
+  /** Why the last claim didn't go through (a claim that did says nothing). */
   let note = '';
-  /** How many tickets the last claim gave, and Dispatch Battle Loot (a background raid's): the note links to the Inventory's Others, where they are. */
-  let tickets = 0;
-  let boxes = 0;
 
   const query = (): string | null => {
     const server = host.server();
@@ -112,8 +110,6 @@ export function mailbox(host: MailHost): Mailbox {
   async function claim(mail: MailView): Promise<void> {
     if (busy) return;
     note = '';
-    tickets = 0;
-    boxes = 0;
     busy = true;
     draw();
     const done = await post<MailClaimed>('/api/mail/claim', { id: mail.id });
@@ -122,12 +118,9 @@ export function mailbox(host: MailHost): Mailbox {
     else {
       view = done;
       showCount(done.unread);
-      note = done.given.length > 0 ? `Claimed: ${done.given.join(', ')}.` : 'Claimed.';
-      tickets = mail.attachments.filter((one) => one.selector).length;
-      boxes = mail.attachments.filter((one) => one.box).length;
       host.changed?.();
       // (The inventory, open behind it: its tickets and boxes asked for again.)
-      if (tickets > 0 || boxes > 0) window.dispatchEvent(new Event(TICKETS_CLAIMED));
+      if (mail.attachments.some((one) => one.selector || one.box)) window.dispatchEvent(new Event(TICKETS_CLAIMED));
     }
     draw();
   }
@@ -142,16 +135,7 @@ export function mailbox(host: MailHost): Mailbox {
     close.addEventListener('click', () => dialog.close());
     head.append(close);
     dialog.append(head);
-    if (note) {
-      const line = el('p', 'mailbox-note', note);
-      if (tickets > 0 || boxes > 0) {
-        const link = el('a', '', 'Others');
-        link.href = '/inventory/others/';
-        link.addEventListener('click', () => dialog.close());
-        line.append(` ${boxes > 0 ? 'Open' : 'Use'} ${tickets + boxes === 1 && !boxes ? 'it' : 'them'} in your Inventory’s `, link, ' tab.');
-      }
-      dialog.append(line);
-    }
+    if (note) dialog.append(el('p', 'mailbox-note', note));
     const list = el('ul', 'mailbox-list');
     for (const mail of view?.mail ?? []) {
       const item = el('li', `mail${mail.claimed ? ' claimed' : ''}${mail.read ? '' : ' unread'}`);

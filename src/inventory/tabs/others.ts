@@ -7,7 +7,7 @@ import { SCROLL_NAME, scrollPicture } from '../../shared/items/scroll';
 
 /** The TechnoMagic sets, each its boss's Boss Crystals. */
 const TM_SETS = ['perseverance', 'hope', 'authority'] as const;
-import { coin, dust, points } from '../../shared/util';
+import { coin, dust } from '../../shared/util';
 import { KEPT } from '../../technomagic/assets/paths';
 import type { InventoryTab } from '../tab';
 import type { HeroesView, LootBoxStack } from '../../protocol/heroes';
@@ -190,8 +190,6 @@ export const othersTab: InventoryTab = {
       if (opened.dust > 0 && typeof held.dust === 'number') held.dust += opened.dust;
       fromHeroes(view);
       draw();
-      // (All of them opened: said so; else ./loot.ts said how many.)
-      if (opened.count === count) host.status(`Opened ${points(opened.count)} ${box.name}.${opened.copies.length > 0 ? ' The gear is in Hero Gear.' : ''}`);
       shown?.close();
       const items = lootRevealed(view, opened, (id) => tiles().find((tile) => tile.id === id) ?? null);
       if (gone || items.length === 0) return;

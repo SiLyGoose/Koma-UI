@@ -340,9 +340,7 @@ function armoryTab<C extends ArmoryCopy, K extends Source, V extends Sources[K] 
               draw();
             },
             save(rule) {
-              void change('auto-salvage', '/api/heroes/auto-salvage', { rule }, 'Could not save that rule. Try again.').then((done) => {
-                if (done) host.status(rule ? 'Drops your rule takes are salvaged as they drop, from now on.' : 'Drops are all kept again.');
-              });
+              void change('auto-salvage', '/api/heroes/auto-salvage', { rule }, 'Could not save that rule. Try again.');
             },
           },
         );

@@ -330,7 +330,6 @@ export const craftTab: InventoryTab = {
       host.keep('heroes', res.data);
       count = 1;
       draw();
-      host.status(`Crafted ${scrollCount(n)}. Use ${n === 1 ? 'it' : 'them'} on a hero’s Transcend tab on the Heroes page.`);
       const tile: Tile = { id: SCROLL, name: SCROLL_NAME, picture: () => scrollPicture(), grade: 5, full: true, kind: 'Material', count: res.data.tpScrolls ?? null, about: SCROLL_ABOUT };
       show([{ id: SCROLL, name: scrollsName(n), face: () => tileSlot({ ...tile, count: n }), detail: (into, close) => tileDetail(into, tile, close) }]);
     }
@@ -461,7 +460,6 @@ export const craftTab: InventoryTab = {
       const got = new Map<string, number>();
       for (const id of crafted) got.set(id, (got.get(id) ?? 0) + 1);
       const nameOf = (id: string): string => view.runes.find((rune) => rune.id === id)?.name ?? id;
-      host.status(`Crafted ${points(n)} ${box.name}: ${[...got].map(([id, k]) => (k > 1 ? `${nameOf(id)} ×${k}` : nameOf(id))).join(', ')}. They’re in Runes.`);
       show(
         [...got].flatMap(([id, k]): Revealed[] => {
           const rune = view.runes.find((one) => one.id === id);
@@ -573,7 +571,6 @@ export const craftTab: InventoryTab = {
       // (The gear's copies have the hero gear too.)
       host.forget('gear');
       draw();
-      host.status(`Crafted ${crafted.name}. It’s in Hero Gear.`);
       // (Its card as the Hero Gear tab draws it, and its details as that tab's.)
       const copy = view.copies.find((one) => one.id === crafted.copy);
       if (!copy) return;
@@ -672,7 +669,6 @@ export const craftTab: InventoryTab = {
       });
       count = 1;
       draw();
-      host.status(`Crafted ${points(n)} ${n === 1 ? recipe.name : recipe.plural}.${recipe.id === 'komagem' ? '' : ` Use ${n === 1 ? 'it' : 'them'} in the Others tab.`}`);
       if (recipe.id === 'komagem') await fresh;
       const now = shop;
       const tile: Tile = { id: recipe.id, name: n === 1 ? recipe.name : recipe.plural, ...recipe.slot, count: recipe.held(now, heroes), about: recipe.about };

@@ -588,8 +588,8 @@ export async function sellInTurns(ids: readonly string[], turn: (ids: string[]) 
 
 /**
  * What a sale came to, in a popup over the page (the sale's confirmation's look: ../../gear/styles/armory-foot.css): what it
- * was ("Sold 4 items"), what it gave (rewardChips, as its confirmation drew them) and any `notes` under them. OK, a click
- * beside it or Escape closes it, and it goes.
+ * gave (rewardChips, as its confirmation drew them) and any `notes` under them, with no title on it (what it was, "Sold 4
+ * items", is only its label). OK, a click beside it or Escape closes it, and it goes.
  */
 export function salePopup(title: string, gave: HTMLElement, notes: readonly (Node | string)[] = []): HTMLDialogElement {
   const dialog = el('dialog', 'sell-confirm sale-done');
@@ -602,7 +602,7 @@ export function salePopup(title: string, gave: HTMLElement, notes: readonly (Nod
   const ok = el('button', 'action main', 'OK');
   ok.type = 'button';
   foot.append(ok);
-  dialog.append(el('h3', '', title), total, ...(notes.length > 0 ? [note] : [el('span', 'sale-done-gap')]), foot);
+  dialog.append(total,...(notes.length > 0 ? [note] : [el('span', 'sale-done-gap')]), foot);
   dialog.addEventListener('click', (event) => {
     // (OK, or its backdrop: the dialog itself, outside its box.)
     if (event.target === ok || event.target === dialog) dialog.close();
@@ -615,7 +615,7 @@ export function salePopup(title: string, gave: HTMLElement, notes: readonly (Nod
 }
 
 /**
- * What a sale came to, in a popup (salePopup): how many it sold or salvaged, what it gave (zeiucoins; a salvage's komaDust,
+ * What a sale came to, in a popup (salePopup): what it gave (zeiucoins; a salvage's komaDust,
  * and its TechnoMagic pieces' Upgrade Stones and Boss Crystals), and the page's status line cleared.
  */
 export function saleSaid(status: HTMLElement, sold: SaleDone, stopped = false): void {

@@ -56,12 +56,6 @@
   color: var(--muted, #aaa);
 }
 
-/* (Claimed tickets: the Inventory's Others, where they are.) */
-.mailbox-note a {
-  color: var(--gold);
-  font-weight: 600;
-}
-
 .mailbox-list {
   display: flex;
   flex-direction: column;

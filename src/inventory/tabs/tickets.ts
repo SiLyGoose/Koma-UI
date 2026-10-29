@@ -61,11 +61,10 @@ export async function useTicket(host: InventoryHost, of: TicketKind, button: HTM
     host.failed(res, 'Could not use the ticket. Try again.');
     return null;
   }
-  const { given, ...shop } = res.data;
+  const { given: _given, ...shop } = res.data;
   host.keep('shop', shop);
   // (The new copy: the gear tabs' and the heroes page's answers say it, so they're asked for again.)
   void host.load('gear', true);
   void host.load('heroes', true);
-  host.status(`You got ${given}.`);
   return shop;
 }
