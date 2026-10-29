@@ -202,5 +202,23 @@ export const LOMAN_ASSETS: HeroAssets = {
         blade: 'y',
       },
     },
+    // King's Raid's Christmas costume (tm-costumes.mjs).
+    {
+      name: 'Loman_Christmas',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Loman_Christmas.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Loman_Christmas.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Loman_Christmas.webp',
+      title: 'Silent Night, Silent Mouth Loman',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Loman_Cos21Christmas_Body', 'Hero_Loman_Cos21Christmas_Hair'],
+        right: 'Hero_Loman_Cos21Christmas_Weapon',
+        blade: 'y',
+      },
+    },
   ],
 };

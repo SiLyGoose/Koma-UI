@@ -224,5 +224,39 @@ export const MIRIANNE_ASSETS: HeroAssets = {
         right: 'Hero_Mirianne_Vari05_Handle',
       },
     },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Mirianne_Summer21',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Mirianne_Summer21.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Mirianne_Summer21.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Mirianne_Summer21.webp',
+      title: 'Beachside Mirianne',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Mirianne_Cos21Summer_Body', 'Hero_Mirianne_Hair_01', 'Hero_Mirianne_Cos21Summer_Weapon'],
+        right: 'Hero_Mirianne_Vari05_Handle',
+      },
+    },
+    // King's Raid's Halloween costume (tm-costumes.mjs).
+    {
+      name: 'Mirianne_Halloween',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Mirianne_Halloween.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Mirianne_Halloween.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Mirianne_Halloween.webp',
+      title: 'Swift Treatster Mirianne',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Mirianne_Cos21Halloween_Body', 'Hero_Mirianne_Cos21Halloween_Hair', 'Hero_Mirianne_Cos21Halloween_Weapon'],
+        right: 'Hero_Mirianne_Cos21Halloween_Handle',
+      },
+    },
   ],
 };

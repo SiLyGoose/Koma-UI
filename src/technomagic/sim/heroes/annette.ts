@@ -91,7 +91,7 @@ export const ANNETTE: HeroDef = {
   id: 'annette',
   name: 'Annette',
   class: 'mechanic',
-  skins: ['Annette', 'Annette_Halloween', 'Annette_Summer', 'Annette_Idol', 'Annette_School', 'Annette_Maid', 'Annette_Maid2', 'Annette_UserPick', 'Annette_Dessert', 'Annette_Dessert1', 'Annette_Glory', 'Annette_Glory2'],
+  skins: ['Annette', 'Annette_Halloween', 'Annette_Summer', 'Annette_Idol', 'Annette_School', 'Annette_Maid', 'Annette_Maid2', 'Annette_UserPick', 'Annette_Dessert', 'Annette_Dessert1', 'Annette_Glory', 'Annette_Glory2', 'Annette_Christmas'],
   // A mechanic whose blows are magical (Rascal's): as her class stands, otherwise.
   stats: { ...CLASS_STATS.mechanic, deals: 'magical' },
   abilities: [

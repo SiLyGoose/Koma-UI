@@ -70,7 +70,7 @@ export const CHASE: HeroDef = {
   id: 'chase',
   name: 'Chase',
   class: 'warrior',
-  skins: ['Chase', 'Chase_Summer', 'Chase_Wedding', 'Chase_Halloween', 'Chase_UserPick', 'Chase_School'],
+  skins: ['Chase', 'Chase_Summer', 'Chase_Wedding', 'Chase_Halloween', 'Chase_UserPick', 'Chase_School', 'Chase_Wedding21'],
   // A warrior: his passive's max HP, crit chance and ACC.
   stats: { ...CLASS_STATS.warrior, deals: 'physical', hp: CLASS_STATS.warrior.hp * (1 + HELL.hp), crit: CLASS_STATS.warrior.crit + HELL.crit, acc: CLASS_STATS.warrior.acc + HELL.acc },
   abilities: [

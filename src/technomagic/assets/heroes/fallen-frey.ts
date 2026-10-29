@@ -87,5 +87,23 @@ export const FALLEN_FREY_ASSETS: HeroAssets = {
         offHand: 'held',
       },
     },
+    // King's Raid's Ash costume (tm-costumes.mjs).
+    {
+      name: 'Fallen_Frey_Ash',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Fallen_Frey_Ash.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Fallen_Frey_Ash.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Fallen_Frey_Ash.webp',
+      title: 'Forsaken Faith Fallen Frey',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Frey_Fallen_Cos21Ash_Body', 'Hero_Frey_Fallen_Hair04'],
+        left: 'Hero_Frey_Fallen_Cos21Ash_Weapon',
+        offHand: 'held',
+      },
+    },
   ],
 };

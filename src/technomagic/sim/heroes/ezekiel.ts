@@ -79,7 +79,7 @@ export const EZEKIEL: HeroDef = {
   id: 'ezekiel',
   name: 'Ezekiel',
   class: 'assassin',
-  skins: ['Ezekiel', 'Ezekiel_School', 'Ezekiel_Summer', 'Ezekiel_Halloween', 'Ezekiel_Wedding', 'Ezekiel_Christmas'],
+  skins: ['Ezekiel', 'Ezekiel_School', 'Ezekiel_Summer', 'Ezekiel_Halloween', 'Ezekiel_Wedding', 'Ezekiel_Christmas', 'Ezekiel_Christmas19', 'Ezekiel_Wedding21'],
   // An assassin whose blows are magical (his demon arm's): as his class stands, otherwise.
   stats: { ...CLASS_STATS.assassin, deals: 'magical' },
   abilities: [

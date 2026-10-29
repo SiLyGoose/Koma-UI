@@ -129,5 +129,59 @@ export const ISOLET_ASSETS: HeroAssets = {
         offHand: 'held',
       },
     },
+    // King's Raid's Wedding costume (tm-costumes.mjs).
+    {
+      name: 'Isolet_Wedding',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Isolet_Wedding.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Isolet_Wedding.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Isolet_Wedding.webp',
+      title: 'Truthfully Shared Promise Isolet',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Isolet_Cos21Wedding_Body', 'Hero_Isolet_Cos21Wedding_Hair'],
+        left: 'Hero_Isolet_Cos21Wedding_Weapon',
+        offHand: 'held',
+      },
+    },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Isolet_Summer',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Isolet_Summer.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Isolet_Summer.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Isolet_Summer.webp',
+      title: 'Beachside Isolet',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Isolet_Cos21Summer_Body', 'Hero_Isolet_Cos21Summer_Hair'],
+        left: 'Hero_Isolet_Cos21Summer_Weapon',
+        offHand: 'held',
+      },
+    },
+    // King's Raid's Halloween costume (tm-costumes.mjs).
+    {
+      name: 'Isolet_Halloween',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Isolet_Halloween.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Isolet_Halloween.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Isolet_Halloween.webp',
+      title: 'Elegant and Quaint Prank Isolet',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Isolet_Cos21Halloween_Body', 'Hero_Isolet_Cos21Halloween_Hair'],
+        left: 'Hero_Isolet_Cos21Halloween_Weapon',
+        offHand: 'held',
+      },
+    },
   ],
 };

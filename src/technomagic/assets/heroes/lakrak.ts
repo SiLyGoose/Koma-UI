@@ -142,5 +142,22 @@ export const LAKRAK_ASSETS: HeroAssets = {
         right: 'Hero_Lakrak_Cos19Job_Weapon',
       },
     },
+    // King's Raid's Fallen costume (tm-costumes.mjs).
+    {
+      name: 'Lakrak_Fallen',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Lakrak_Fallen.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Lakrak_Fallen.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Lakrak_Fallen.webp',
+      title: 'Corrupted Patience Lakrak',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Lakrak_Cos21Fallen_Body', 'Hero_Lakrak_Cos21Fallen_Hair'],
+        right: 'Lakrak_Vari05_Weapon',
+      },
+    },
   ],
 };

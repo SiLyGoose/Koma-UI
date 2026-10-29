@@ -157,5 +157,22 @@ export const CHASE_ASSETS: HeroAssets = {
         right: 'Hero_Chase_Cos20SL_Weapon',
       },
     },
+    // King's Raid's Wedding costume (tm-costumes.mjs).
+    {
+      name: 'Chase_Wedding21',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Chase_Wedding21.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Chase_Wedding21.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Chase_Wedding21.webp',
+      title: 'Proof of Unchanging Pledge Chase',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Chase_Cos21Wedding_Body', 'Hero_Chase_Hair_01'],
+        right: 'Hero_Chase_Vari05_Weapon',
+      },
+    },
   ],
 };

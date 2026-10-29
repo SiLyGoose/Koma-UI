@@ -172,5 +172,39 @@ export const EVAN_ASSETS: HeroAssets = {
         right: 'Hero_Evan_Cos21DailyLook_Weapon',
       },
     },
+    // King's Raid's Glory costume (tm-costumes.mjs).
+    {
+      name: 'Evan_Glory',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Evan_Glory.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Evan_Glory.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Evan_Glory.webp',
+      title: 'Evan of Honor (Mythic Divine Beast)',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Evan_Cos21GloryLeague_Body', 'Hero_Evan_Hair_02'],
+        right: 'Hero_Evan_Cos21GloryLeagueWeapon',
+      },
+    },
+    // King's Raid's Glory costume (tm-costumes.mjs).
+    {
+      name: 'Evan_Glory2',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Evan_Glory2.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Evan_Glory2.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Evan_Glory2.webp',
+      title: 'Evan of Glaring Honor (Pure Mythic Divine Beast)',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Evan_Cos21GloryLeague2_Body', 'Hero_Evan_Hair_02'],
+        right: 'Hero_Evan_Cos21GloryLeagueWeapon',
+      },
+    },
   ],
 };

@@ -184,5 +184,21 @@ export const KARA_ASSETS: HeroAssets = {
         parts: ['Hero_Kara_Cos20Christmas_Body', 'Hero_Kara_Cos20Christmas_Hair', 'Hero_Kara_Cos20Christmas_Weapon'],
       },
     },
+    // King's Raid's Fallen costume (tm-costumes.mjs).
+    {
+      name: 'Kara_Fallen',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Kara_Fallen.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Kara_Fallen.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Kara_Fallen.webp',
+      title: 'Corrupted Kindness Kara',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Kara_Cos21Fallen_Body', 'Hero_Kara_Cos21Fallen_Hair', 'Hero_Kara_Cos21Fallen_Weapon'],
+      },
+    },
   ],
 };

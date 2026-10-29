@@ -189,5 +189,21 @@ export const LAVRIL_ASSETS: HeroAssets = {
         parts: ['Hero_Lavril_Cos20Halloween_Body', 'Hero_Lavril_Cos20Halloween_Hair', 'Hero_Lavril_Cos20Halloween_Weapon'],
       },
     },
+    // King's Raid's Wedding costume (tm-costumes.mjs).
+    {
+      name: 'Lavril_Wedding',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Lavril_Wedding.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Lavril_Wedding.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Lavril_Wedding.webp',
+      title: 'Adorable Petit Dégagé Lavril',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Lavril_Cos21Wedding_Body', 'Hero_Lavril_Cos21Wedding_Hair', 'Hero_Lavril_Cos21Wedding_Weapon'],
+      },
+    },
   ],
 };

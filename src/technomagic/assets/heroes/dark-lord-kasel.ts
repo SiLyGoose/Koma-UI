@@ -91,5 +91,23 @@ export const DARK_LORD_KASEL_ASSETS: HeroAssets = {
         blade: 'y',
       },
     },
+    // King's Raid's Ash costume (tm-costumes.mjs).
+    {
+      name: 'Dark_Lord_Kasel_Ash',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Dark_Lord_Kasel_Ash.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Dark_Lord_Kasel_Ash.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Dark_Lord_Kasel_Ash.webp',
+      title: 'Faded Purity Dark Lord Kasel',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Kasel_DarkLord_Cos21Ash_Body', 'Hero_Kasel_DarkLord_Hair_04'],
+        right: 'Hero_Kasel_DarkLord_Cos21Ash_Weapon',
+        blade: 'y',
+      },
+    },
   ],
 };

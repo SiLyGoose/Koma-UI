@@ -104,7 +104,7 @@ export const GREMORY: HeroDef = {
   id: 'gremory',
   name: 'Gremory',
   class: 'assassin',
-  skins: ['Gremory', 'Gremory_DailyLook'],
+  skins: ['Gremory', 'Gremory_DailyLook', 'Gremory_Summer'],
   // An assassin whose blows are magical: as her class stands, otherwise.
   stats: { ...CLASS_STATS.assassin, deals: 'magical' },
   abilities: [

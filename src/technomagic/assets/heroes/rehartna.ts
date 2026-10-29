@@ -141,5 +141,22 @@ export const REHARTNA_ASSETS: HeroAssets = {
         right: 'Hero_Rehartna_Cos20Summer_Weapon',
       },
     },
+    // King's Raid's Halloween costume (tm-costumes.mjs).
+    {
+      name: 'Rehartna_Halloween',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Rehartna_Halloween.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Rehartna_Halloween.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Rehartna_Halloween.webp',
+      title: 'Mischievous Muse-Devil Rehartna',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Rehartna_Cos21Halloween_Body', 'Hero_Rehartna_Cos21Halloween_Hair'],
+        right: 'Hero_Rehartna_Cos21Halloween_Weapon',
+      },
+    },
   ],
 };

@@ -109,5 +109,22 @@ export const GREMORY_ASSETS: HeroAssets = {
         floating: { model: 'Hero_Gremory_Cos21DailyLook_Weapon', ...CUBE },
       },
     },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Gremory_Summer',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Gremory_Summer.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Gremory_Summer.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Gremory_Summer.webp',
+      title: 'Beachside Gremory',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Gremory_Cos21Summer_Body', 'Hero_Gremory_Cos21Summer_Hair'],
+        floating: { model: 'Hero_Gremory_Cos21Summer_Weapon', ...CUBE },
+      },
+    },
   ],
 };

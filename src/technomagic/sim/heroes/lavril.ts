@@ -82,7 +82,7 @@ export const LAVRIL: HeroDef = {
   id: 'lavril',
   name: 'Lavril',
   class: 'priest',
-  skins: ['Lavril', 'Lavril_NewYear', 'Lavril_UserPick', 'Lavril_Summer', 'Lavril_Christmas', 'Lavril_Glory', 'Lavril_Glory2', 'Lavril_Halloween'],
+  skins: ['Lavril', 'Lavril_NewYear', 'Lavril_UserPick', 'Lavril_Summer', 'Lavril_Christmas', 'Lavril_Glory', 'Lavril_Glory2', 'Lavril_Halloween', 'Lavril_Wedding'],
   stats: { ...CLASS_STATS.priest, deals: 'magical' },
   abilities: [
     {

@@ -156,5 +156,25 @@ export const KIRZE_ASSETS: HeroAssets = {
         right: 'Hero_Kirze_Cos20Christmas_Weapon',
       },
     },
+    // King's Raid's Wedding costume (tm-costumes.mjs).
+    {
+      name: 'Kirze_Wedding',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Kirze_Wedding.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Kirze_Wedding.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Kirze_Wedding.webp',
+      title: 'Purehearted Glamour Kirze',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Kirze_Cos21Wedding_Body', 'Hero_Kirze_Cos21Wedding_Hair'],
+        // (Her weapons in her hands, as the game hangs them: Weapon_R on Point_Hand_R, Weapon_L on Point_Hand_L; its Weapon is an empty mark.)
+        right: 'Hero_Kirze_Cos21Wedding_Weapon_R',
+        left: 'Hero_Kirze_Cos21Wedding_Weapon_L',
+        offHand: 'held',
+      },
+    },
   ],
 };

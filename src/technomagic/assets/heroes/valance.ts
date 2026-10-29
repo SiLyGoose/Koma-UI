@@ -84,5 +84,24 @@ export const VALANCE_ASSETS: HeroAssets = {
         heldStill: ['R'],
       },
     },
+    // King's Raid's Christmas costume (tm-costumes.mjs).
+    {
+      name: 'Valance_Christmas',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Valance_Christmas.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Valance_Christmas.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Valance_Christmas.webp',
+      title: 'Shy Christmas Gift Valance',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Valance_Cos21Christmas_Body', 'Hero_Valance_Cos21Christmas_Hair'],
+        right: 'Hero_Valance_Cos21Christmas_Weapon',
+        grips: { R: GRIP },
+        heldStill: ['R'],
+      },
+    },
   ],
 };

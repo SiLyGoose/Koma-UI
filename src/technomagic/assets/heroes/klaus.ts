@@ -222,5 +222,24 @@ export const KLAUS_ASSETS: HeroAssets = {
         blade: 'y',
       },
     },
+    // King's Raid's Thanks costume (tm-costumes.mjs).
+    {
+      name: 'Klaus_Thanks',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Klaus_Thanks.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Klaus_Thanks.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Klaus_Thanks.webp',
+      title: 'Sincere Resolve Klaus',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Clause_Cos21Thanks_Body', 'Hero_Clause_Hair_01'],
+        left: 'Hero_Clause_Cos21Thanks_Shield',
+        right: 'Hero_Clause_Cos21Thanks_Sword',
+        blade: 'y',
+      },
+    },
   ],
 };

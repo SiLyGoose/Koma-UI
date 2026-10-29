@@ -242,5 +242,47 @@ export const SERIA_ASSETS: HeroAssets = {
         grips: GRIPS,
       },
     },
+    // King's Raid's Fallen costume (tm-costumes.mjs).
+    {
+      name: 'Seria_Fallen',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Seria_Fallen.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Seria_Fallen.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Seria_Fallen.webp',
+      title: 'Corrupted Diligence Seria',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Seria_Cos21Fallen_Body', 'Hero_Seria_Cos21Fallen_Hair'],
+        left: 'Hero_Seria_Cos21Fallen_Weapon_B',
+        right: 'Hero_Seria_Cos21Fallen_Weapon_A',
+        offHand: 'held',
+        blade: 'y',
+        grips: GRIPS,
+      },
+    },
+    // King's Raid's Halloween costume (tm-costumes.mjs).
+    {
+      name: 'Seria_Halloween',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Seria_Halloween.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Seria_Halloween.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Seria_Halloween.webp',
+      title: 'Candy for the One Seria',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Seria_Cos21Halloween_Body', 'Hero_Seria_Cos21Halloween_Hair'],
+        left: 'Hero_Seria_Cos21Halloween_Weapon_B',
+        right: 'Hero_Seria_Cos21Halloween_Weapon_A',
+        offHand: 'held',
+        blade: 'y',
+        grips: GRIPS,
+      },
+    },
   ],
 };

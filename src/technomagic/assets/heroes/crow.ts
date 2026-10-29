@@ -248,5 +248,22 @@ export const CROW_ASSETS: HeroAssets = {
         right: 'Hero_Crow_Cos21DailyLook_Weapon',
       },
     },
+    // King's Raid's Fallen costume (tm-costumes.mjs).
+    {
+      name: 'Crow_Fallen',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Crow_Fallen.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Crow_Fallen.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Crow_Fallen.webp',
+      title: 'Corrupted Moderation Crow',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Crow_Cos21Fallen_Body', 'Hero_Crow_Hair_02'],
+        right: 'Hero_Crow_Cos21Fallen_Weapon',
+      },
+    },
   ],
 };

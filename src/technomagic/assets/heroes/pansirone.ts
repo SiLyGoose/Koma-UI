@@ -163,5 +163,39 @@ export const PANSIRONE_ASSETS: HeroAssets = {
         right: 'Hero_Pancironne_Cos20April_Weapon',
       },
     },
+    // King's Raid's Enquete costume (tm-costumes.mjs).
+    {
+      name: 'Pansirone_Enquete',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Pansirone_Enquete.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Pansirone_Enquete.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Pansirone_Enquete.webp',
+      title: 'Cosmos of White Flame Pansirone',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Pancironne_Cos21Enquete_Body', 'Hero_Pancironne_Cos21Enquete_Hair'],
+        right: 'Hero_Pancironne_Cos21Enquete_Weapon',
+      },
+    },
+    // King's Raid's Halloween costume (tm-costumes.mjs).
+    {
+      name: 'Pansirone_Halloween',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Pansirone_Halloween.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Pansirone_Halloween.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Pansirone_Halloween.webp',
+      title: 'Whimsical Clown Pansirone',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Pancironne_Cos21Halloween_Body', 'Hero_Pancironne_Cos21Halloween_Hair'],
+        right: 'Hero_Pancironne_Cos21Halloween_Weapon',
+      },
+    },
   ],
 };

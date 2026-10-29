@@ -96,5 +96,59 @@ export const ESTELLE_ASSETS: HeroAssets = {
         offHand: 'held',
       },
     },
+    // King's Raid's Wedding costume (tm-costumes.mjs).
+    {
+      name: 'Estelle_Wedding',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Estelle_Wedding.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Estelle_Wedding.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Estelle_Wedding.webp',
+      title: 'Gentle Refreshing Spring Breeze Estelle',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Estelle_Cos21Wedding_Body', 'Hero_Estelle_Cos21Wedding_Hair'],
+        left: 'Hero_Estelle_Cos21Wedding_Weapon',
+        offHand: 'held',
+      },
+    },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Estelle_Summer',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Estelle_Summer.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Estelle_Summer.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Estelle_Summer.webp',
+      title: 'Beachside Estelle',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Estelle_Cos21Summer_Body', 'Hero_Estelle_Cos21Summer_Hair'],
+        left: 'Hero_Estelle_Cos21Summer_Weapon',
+        offHand: 'held',
+      },
+    },
+    // King's Raid's Christmas costume (tm-costumes.mjs).
+    {
+      name: 'Estelle_Christmas',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Estelle_Christmas.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Estelle_Christmas.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Estelle_Christmas.webp',
+      title: 'My Turn to Receive Gifts Estelle',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Estelle_Cos21Christmas_Body', 'Hero_Estelle_Cos21Christmas_Hair'],
+        left: 'Hero_Estelle_Cos21Christmas_Weapon',
+        offHand: 'held',
+      },
+    },
   ],
 };

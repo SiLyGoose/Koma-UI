@@ -154,5 +154,37 @@ export const EZEKIEL_ASSETS: HeroAssets = {
         parts: ['Hero_Ezekiel_Cos19Christmas_Mesh', 'Hero_Ezekiel_Cos19Christmas_Weapon', 'Hero_Ezekiel_Cos19Christmas_Arm'],
       },
     },
+    // King's Raid's Christmas costume (tm-costumes.mjs).
+    {
+      name: 'Ezekiel_Christmas19',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Ezekiel_Christmas19.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Ezekiel_Christmas19.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Ezekiel_Christmas19.webp',
+      title: 'Christmas of the Half-Demon Ezekiel',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Ezekiel_Cos19Christmas_Body', 'Hero_Ezekiel_Cos19Christmas_Hair', 'Hero_Ezekiel_Cos19Christmas_Weapon', 'Hero_Ezekiel_Cos19Christmas_Arm'],
+      },
+    },
+    // King's Raid's Wedding costume (tm-costumes.mjs).
+    {
+      name: 'Ezekiel_Wedding21',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Ezekiel_Wedding21.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Ezekiel_Wedding21.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Ezekiel_Wedding21.webp',
+      title: 'Hidden Delicate Sincerity Ezekiel',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Ezekiel_Cos21Wedding_Body', 'Hero_Ezekiel_Cos21Wedding_Hair', 'Hero_Ezekiel_Cos21Wedding_Weapon'],
+      },
+    },
   ],
 };

@@ -263,5 +263,22 @@ export const ANNETTE_ASSETS: HeroAssets = {
         right: 'Hero_Annette_Cos21GloryLeague_Weapon',
       },
     },
+    // King's Raid's Christmas costume (tm-costumes.mjs).
+    {
+      name: 'Annette_Christmas',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Annette_Christmas.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Annette_Christmas.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Annette_Christmas.webp',
+      title: 'Christmas Express Delivery Annette',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Annette_Cos21Christmas_Body', 'Hero_Annette_Cos21Christmas_Hair'],
+        right: 'Hero_Annette_Cos21Christmas_Weapon',
+      },
+    },
   ],
 };

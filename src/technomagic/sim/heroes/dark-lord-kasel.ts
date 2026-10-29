@@ -75,7 +75,7 @@ export const DARK_LORD_KASEL: HeroDef = {
   id: 'dark-lord-kasel',
   name: 'Dark Lord Kasel',
   class: 'warrior',
-  skins: ['Dark Lord Kasel', 'Dark_Lord_Kasel_Advance'],
+  skins: ['Dark Lord Kasel', 'Dark_Lord_Kasel_Advance', 'Dark_Lord_Kasel_Ash'],
   // A warrior (his blows physical): as his class stands.
   stats: { ...CLASS_STATS.warrior, deals: 'physical' },
   abilities: [

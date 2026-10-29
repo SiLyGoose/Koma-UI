@@ -76,7 +76,7 @@ export const CROW: HeroDef = {
   id: 'crow',
   name: 'Crow',
   class: 'mechanic',
-  skins: ['Crow', 'Crow_Wedding', 'Crow_Summer', 'Crow_Halloween', 'Crow_Story', 'Crow_NewYear', 'Crow_Glory', 'Crow_Job', 'Crow_Christmas', 'Crow_School', 'Crow_DailyLook'],
+  skins: ['Crow', 'Crow_Wedding', 'Crow_Summer', 'Crow_Halloween', 'Crow_Story', 'Crow_NewYear', 'Crow_Glory', 'Crow_Job', 'Crow_Christmas', 'Crow_School', 'Crow_DailyLook', 'Crow_Fallen'],
   // A mechanic (his blows physical), his ATK and crit DMG higher for his passive: as his class stands, otherwise.
   stats: { ...CLASS_STATS.mechanic, atk: CLASS_STATS.mechanic.atk + HUNTING.atk, critDamage: CLASS_STATS.mechanic.critDamage + HUNTING.critDamage, deals: 'physical' },
   abilities: [

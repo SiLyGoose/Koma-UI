@@ -75,7 +75,7 @@ export const LOMAN: HeroDef = {
   id: 'loman',
   name: 'Loman',
   class: 'knight',
-  skins: ['Loman', 'Loman_Summer', 'Loman_Maid', 'Loman_NewYear', 'Loman_Summer19', 'Loman_Glory', 'Loman_Glory2', 'Loman_Halloween'],
+  skins: ['Loman', 'Loman_Summer', 'Loman_Maid', 'Loman_NewYear', 'Loman_Summer19', 'Loman_Glory', 'Loman_Glory2', 'Loman_Halloween', 'Loman_Christmas'],
   // A knight (his blows physical): as his class stands.
   stats: { ...CLASS_STATS.knight, deals: 'physical' },
   abilities: [

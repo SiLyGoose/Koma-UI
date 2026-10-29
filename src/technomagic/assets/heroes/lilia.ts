@@ -175,5 +175,22 @@ export const LILIA_ASSETS: HeroAssets = {
         right: 'Hero_Lilia_Cos20GloryLeague_Weapon',
       },
     },
+    // King's Raid's Wedding costume (tm-costumes.mjs).
+    {
+      name: 'Lilia_Wedding',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Lilia_Wedding.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Lilia_Wedding.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Lilia_Wedding.webp',
+      title: 'Coy Water Spray Lilia',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Lilia_Cos21Wedding_Body', 'Hero_Lilia_Cos21Wedding_Hair'],
+        right: 'Hero_Lilia_Cos21Wedding_Weapon',
+      },
+    },
   ],
 };

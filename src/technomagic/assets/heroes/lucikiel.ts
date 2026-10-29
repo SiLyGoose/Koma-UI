@@ -136,5 +136,53 @@ export const LUCIKIEL_ASSETS: HeroAssets = {
         parts: ['Hero_ZLucikiel_Cos21Legend_Body', 'Hero_ZLucikiel_Cos21Legend_Hair', 'Hero_ZLucikiel_Cos21Legend_Weapon_L', 'Hero_ZLucikiel_Cos21Legend_Weapon_R'],
       },
     },
+    // King's Raid's Wedding costume (tm-costumes.mjs).
+    {
+      name: 'Lucikiel_Wedding',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Lucikiel_Wedding.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Lucikiel_Wedding.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Lucikiel_Wedding.webp',
+      title: 'Sweet Morning of Honeymoon Lucikiel',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_ZLucikiel_Cos21Wedding_Body', 'Hero_ZLucikiel_Hair_01', 'Hero_ZLucikiel_Cos21Wedding_Weapon_L', 'Hero_ZLucikiel_Cos21Wedding_Weapon_R'],
+      },
+    },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Lucikiel_Summer',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Lucikiel_Summer.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Lucikiel_Summer.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Lucikiel_Summer.webp',
+      title: 'Beachside Lucikiel',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_ZLucikiel_Cos21Summer_Body', 'Hero_ZLucikiel_Hair_01', 'Hero_Lucikiel_Vari04_Weapon'],
+      },
+    },
+    // King's Raid's Halloween costume (tm-costumes.mjs).
+    {
+      name: 'Lucikiel_Halloween',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Lucikiel_Halloween.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Lucikiel_Halloween.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Lucikiel_Halloween.webp',
+      title: 'It’s Not Like I Expected Treat Lucikiel',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_ZLucikiel_Cos21Halloween_Body', 'Hero_ZLucikiel_Hair_01', 'Hero_ZLucikiel_Cos21Halloween_Weapon_L', 'Hero_ZLucikiel_Cos21Halloween_Weapon_R'],
+      },
+    },
   ],
 };

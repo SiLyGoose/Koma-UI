@@ -193,5 +193,39 @@ export const LUCIAS_ASSETS: HeroAssets = {
         right: 'Hero_Lucias_Cos21DailyLook_Weapon',
       },
     },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Lucias_Summer21',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Lucias_Summer21.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Lucias_Summer21.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Lucias_Summer21.webp',
+      title: 'Beachside Lucias',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Lucias_Cos21Summer_Body', 'Hero_Lucias_Cos21Summer_Hair'],
+        right: 'Hero_Lucias_Cos21Summer_Weapon',
+      },
+    },
+    // King's Raid's Halloween costume (tm-costumes.mjs).
+    {
+      name: 'Lucias_Halloween',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Lucias_Halloween.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Lucias_Halloween.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Lucias_Halloween.webp',
+      title: 'Candy Over Pranks Lucias',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Lucias_Cos21Halloween_Body', 'Hero_Lucias_Cos21Halloween_Hair'],
+        right: 'Hero_Lucias_Cos21Halloween_Weapon',
+      },
+    },
   ],
 };

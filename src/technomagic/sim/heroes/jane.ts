@@ -75,7 +75,7 @@ export const JANE: HeroDef = {
   id: 'jane',
   name: 'Jane',
   class: 'knight',
-  skins: ['Jane', 'Jane_School', 'Jane_Summer', 'Jane_Summer2', 'Jane_Halloween', 'Jane_Idol', 'Jane_Christmas', 'Jane_NewYear', 'Jane_Wedding', 'Jane_Glory', 'Jane_Casual'],
+  skins: ['Jane', 'Jane_School', 'Jane_Summer', 'Jane_Summer2', 'Jane_Halloween', 'Jane_Idol', 'Jane_Christmas', 'Jane_NewYear', 'Jane_Wedding', 'Jane_Glory', 'Jane_Casual', 'Jane_Wedding21'],
   // A knight whose blows are magical: as her class stands, otherwise.
   stats: { ...CLASS_STATS.knight, deals: 'magical' },
   abilities: [

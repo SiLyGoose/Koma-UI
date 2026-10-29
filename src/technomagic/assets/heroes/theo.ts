@@ -228,5 +228,22 @@ export const THEO_ASSETS: HeroAssets = {
         right: 'Hero_Theo_Cos20Dessert_Weapon',
       },
     },
+    // King's Raid's Fallen costume (tm-costumes.mjs).
+    {
+      name: 'Theo_Fallen',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Theo_Fallen.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Theo_Fallen.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Theo_Fallen.webp',
+      title: 'Corrupted Humility Theo',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Theo_Cos21Fallen_Body', 'Hero_Theo_Cos21Fallen_Hair'],
+        right: 'Hero_Theo_Cos21Fallen_Weapon',
+      },
+    },
   ],
 };

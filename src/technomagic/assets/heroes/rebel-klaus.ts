@@ -92,5 +92,23 @@ export const REBEL_KLAUS_ASSETS: HeroAssets = {
         blade: 'y',
       },
     },
+    // King's Raid's Ash costume (tm-costumes.mjs).
+    {
+      name: 'Rebel_Klaus_Ash',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Rebel_Klaus_Ash.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Rebel_Klaus_Ash.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Rebel_Klaus_Ash.webp',
+      title: 'Broken Promise Rebel Klaus',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Clause_Traitor_Cos21Ash_Body', 'Hero_Clause_Traitor_Hair_02'],
+        right: 'Hero_Clause_Traitor_Cos21Ash_Weapon',
+        blade: 'y',
+      },
+    },
   ],
 };

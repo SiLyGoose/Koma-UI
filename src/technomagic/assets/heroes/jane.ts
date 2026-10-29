@@ -245,5 +245,22 @@ export const JANE_ASSETS: HeroAssets = {
         right: 'Hero_Jane_Cos19Casual_Weapon',
       },
     },
+    // King's Raid's Wedding costume (tm-costumes.mjs).
+    {
+      name: 'Jane_Wedding21',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Jane_Wedding21.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Jane_Wedding21.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Jane_Wedding21.webp',
+      title: 'Wavelike Love Jane',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Jane_Cos21Wedding_Body', 'Hero_Jane_Cos21Wedding_Hair'],
+        right: 'Hero_Jane_Cos21Wedding_Weapon',
+      },
+    },
   ],
 };

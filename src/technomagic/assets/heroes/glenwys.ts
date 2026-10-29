@@ -170,5 +170,24 @@ export const GLENWYS_ASSETS: HeroAssets = {
         blade: 'y',
       },
     },
+    // King's Raid's Fallen costume (tm-costumes.mjs).
+    {
+      name: 'Glenwys_Fallen',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Glenwys_Fallen.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Glenwys_Fallen.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Glenwys_Fallen.webp',
+      title: 'Corrupted Sincerity Glenwys',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Glenwys_Cos21Fallen_Body', 'Hero_Glenwys_Cos21Fallen_Hair'],
+        left: 'Hero_Glenwys_Cos21Fallen_Shield',
+        right: 'Hero_Glenwys_Cos21Fallen_Gunblade',
+        blade: 'y',
+      },
+    },
   ],
 };

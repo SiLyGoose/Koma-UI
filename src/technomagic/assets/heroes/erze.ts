@@ -152,5 +152,29 @@ export const ERZE_ASSETS: HeroAssets = {
       title: 'Free-Spirited Blood Erze',
       model: { kind: 'parts', animations: ANIMATIONS, parts: ['Hero_Erze_Cos21DailyLook_Body', 'Hero_Erze_Cos21Dailylook_Hair'], right: 'Hero_Erze_Cos21DailyLook_Weapon' },
     },
+    // King's Raid's Glory costume (tm-costumes.mjs).
+    {
+      name: 'Erze_Glory',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Erze_Glory.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Erze_Glory.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Erze_Glory.webp',
+      title: 'Erze of Honor (Eminence of Elegance)',
+      model: { kind: 'parts', animations: ANIMATIONS, parts: ['Hero_Erze_Cos21GloryLeague_Body', 'Hero_Erze_Cos21GloryLeague_Hair'], right: 'Hero_Erze_Cos21GloryLeague_Weapon' },
+    },
+    // King's Raid's Fallen costume (tm-costumes.mjs).
+    {
+      name: 'Erze_Fallen',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Erze_Fallen.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Erze_Fallen.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Erze_Fallen.webp',
+      title: 'Corrupted Innocence Erze',
+      model: { kind: 'parts', animations: ANIMATIONS, parts: ['Hero_Erze_Cos21Fallen_Body', 'Hero_Erze_Cos21Fallen_Hair'], right: 'Hero_Erze_Cos21Fallen_weapon' },
+    },
   ],
 };

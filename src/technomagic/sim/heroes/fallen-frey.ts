@@ -95,7 +95,7 @@ export const FALLEN_FREY: HeroDef = {
   id: 'fallen-frey',
   name: 'Fallen Frey',
   class: 'priest',
-  skins: ['Fallen Frey', 'Fallen_Frey_Advance'],
+  skins: ['Fallen Frey', 'Fallen_Frey_Advance', 'Fallen_Frey_Ash'],
   // A priestess whose blows are magical: as her class stands, otherwise (her heals and shields go by her attack).
   stats: { ...CLASS_STATS.priest, deals: 'magical' },
   abilities: [

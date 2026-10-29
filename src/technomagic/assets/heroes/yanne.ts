@@ -263,5 +263,25 @@ export const YANNE_ASSETS: HeroAssets = {
         parts: ['Hero_Yanne_Cos22Legend_Body', 'Hero_Yanne_Cos22Legend_Hair'],
       },
     },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Yanne_Summer21',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Yanne_Summer21.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Yanne_Summer21.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Yanne_Summer21.webp',
+      title: 'Beachside Yanne',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Yanne_Cos21Summer_Body', 'Hero_Yanne_Cos21Summer_Hair'],
+        left: 'Hero_Yanne_Cos21Summer_Weapon',
+        offHand: 'held',
+        right: 'Hero_Yanne_Cos21Summer_Arrow',
+        grips: GRIPS,
+      },
+    },
   ],
 };

@@ -231,5 +231,22 @@ export const LAIAS_ASSETS: HeroAssets = {
         right: 'Hero_Ell_Cos20Dessert_Weapon',
       },
     },
+    // King's Raid's Summer costume (tm-costumes.mjs).
+    {
+      name: 'Laias_Summer21',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Laias_Summer21.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Laias_Summer21.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Laias_Summer21.webp',
+      title: 'Beachside Laias',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Ell_Cos21Summer_Body', 'Hero_Ell_Cos21Summer_Hair'],
+        right: 'Hero_Ell_Cos21Summer_Weapon',
+      },
+    },
   ],
 };
