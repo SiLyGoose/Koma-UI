@@ -1,5 +1,5 @@
 import { forgePlan, type GearView, heroGear, itemIcons, levelLabel, shownName } from '../shared/items';
-import type { HeroCopy, HeroesView, HeroKeep } from '../shared/heroes';
+import { noteWorn, type HeroCopy, type HeroesView, type HeroKeep } from '../shared/heroes';
 import { busyWith } from '../shared/ui';
 import { sleep } from '../shared/util';
 import { curtain } from '../shared/transition';
@@ -62,6 +62,8 @@ export async function loadHeroes(ctx: ForgeContext): Promise<void> {
   const res = await api<HeroesView>(`/api/heroes?guild=${encodeURIComponent(server)}`);
   if (!res.ok) return failed(ctx, res, 'Could not load your hero gear.');
   ctx.heroes = res.data;
+  // (Their heroes' faces in the outfits they wear.)
+  noteWorn(res.data);
   // (King's Raid's hero gear's pictures: its icons, as the bot says them; the heroes page's too.)
   for (const copy of res.data.copies) if (copy.icon) itemIcons.set(copy.itemId, copy.icon);
   if (ctx.mode && ctx.mode !== 'refine' && !heroCopyById(ctx, ctx.picked)) ctx.picked = null;

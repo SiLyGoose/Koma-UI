@@ -1,4 +1,6 @@
 import { battlePicture, cardPicture, HERO_ASSETS, iconPicture, type HeroAssets, type SkinAssets } from '../technomagic/assets';
+import { setWorn } from './heroes';
+import type { HeroOutfitsView } from '../protocol/hero-outfits';
 
 /** The heroes' outfits as the bot says them (../protocol/hero-outfits.ts). */
 export type { HeroOutfitsView, HeroOutfitView } from '../protocol/hero-outfits';
@@ -45,6 +47,11 @@ export function heroLooks(hero: string): HeroLook[] {
 /** One of a hero's looks by its skin's name (an outfit's id), or null. */
 export function heroLook(hero: string, id: string): HeroLook | null {
   return heroLooks(hero).find((look) => look.id === id) ?? null;
+}
+
+/** What their heroes wear, as the bot's hero outfits say it: their faces (../shared/heroes.ts heroCut) in it. */
+export function noteWornOutfits(view: HeroOutfitsView): void {
+  setWorn(Object.fromEntries(Object.entries(view.worn).map(([hero, outfit]) => [hero, skinOf(hero, outfit)])));
 }
 
 /** The skin a hero's worn outfit is (its place among its skins): its own look's (0) for none, or one the site doesn't know. */

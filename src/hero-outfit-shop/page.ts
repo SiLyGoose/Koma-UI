@@ -1,7 +1,7 @@
 import markup from './hero-outfit-shop.html?raw';
 import { heroShopCard, lineButtons } from '../hero-shop/card';
 import { className } from '../shared/heroes';
-import { heroLook, type HeroLook, type HeroOutfitsView, type HeroOutfitView } from '../shared/hero-outfits';
+import { heroLook, type HeroLook, type HeroOutfitsView, type HeroOutfitView, noteWornOutfits } from '../shared/hero-outfits';
 import { el } from '../shared/items';
 import { API, busyWith, dropdown, fillServers, wheelSideways, working, type Busy } from '../shared/ui';
 import { byName, heroFilter, heroShown, type HeroChoice, type HeroFilter } from '../shared/ui/hero-filter/hero-filter';
@@ -252,6 +252,7 @@ async function load(ctx: Context): Promise<void> {
   const res = await api<HeroOutfitsView>(`/api/hero-outfits?guild=${encodeURIComponent(server)}`);
   if (!res.ok) return failed(ctx, res, 'Could not load the outfits.');
   ctx.view = res.data;
+  noteWornOutfits(res.data);
   status(ctx, null);
   render(ctx);
 }
@@ -272,6 +273,7 @@ async function buy(ctx: Context, outfit: HeroOutfitView): Promise<void> {
     return failed(ctx, res, 'Could not buy that. Try again.');
   }
   ctx.view = res.data;
+  noteWornOutfits(res.data);
   render(ctx);
 }
 

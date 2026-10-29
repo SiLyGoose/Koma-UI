@@ -1,5 +1,5 @@
 import { inLandscape, onLandscape } from '../../shared/ui/landscape/landscape';
-import { className, FACE, heroCard, heroCut } from '../../shared/heroes';
+import { className, FACE, heroCard, heroCut, setWorn, wornSkin } from '../../shared/heroes';
 import { levelPopup } from '../../shared/ui/level/level';
 import { backArrow } from '../../shared/ui/back/back';
 import { heroStars } from '../../shared/ui/stars/stars';
@@ -97,11 +97,12 @@ function nearerPick(a: PickView, b: PickView): number {
   return nearer(defA, defB);
 }
 
-/** Each hero's face, cut once. */
+/** Each hero's face, in the outfit it wears (../../shared/heroes.ts wornSkin), cut once. */
 const faces = new Map<string, Promise<string | null>>();
 function face(id: string, img: HTMLImageElement, fallback: HTMLElement): void {
-  if (!faces.has(id)) faces.set(id, heroCut(id, FACE, 256));
-  void faces.get(id)?.then((src) => {
+  const key = `${id}:${wornSkin(id)}`;
+  if (!faces.has(key)) faces.set(key, heroCut(id, FACE, 256));
+  void faces.get(key)?.then((src) => {
     if (!src) return;
     img.src = src;
     img.hidden = false;
@@ -566,6 +567,8 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
   return {
     chat: byId('prep-chat'),
     show(next) {
+      // (Their heroes' faces in the outfits they wear, as the bot says.)
+      setWorn(next.players.find((player) => player.id === next.you)?.outfits ?? {});
       // Alone: a hero put in that fills the team whose tab is pressed presses the other's, if it has room.
       const before = state ? inTeam(state, intoSub) : 0;
       if (next.solo && inTeam(next, intoSub) > before && inTeam(next, intoSub) >= teamSize(next, intoSub) && inTeam(next, !intoSub) < teamSize(next, !intoSub)) intoSub = !intoSub;

@@ -32,6 +32,32 @@ export const classBadge = (id: string): string => `/gear/classes/${id}_default.p
 /** Every class, in the raid's order (what the heroes page's armory filter offers). */
 export const HERO_CLASSES: readonly { id: string; name: string }[] = Object.entries(CLASS_NAME).map(([id, name]) => ({ id, name }));
 
+/**
+ * The outfit each hero wears (its skin's place among its skins), as the page last heard it from the bot: its face by itself
+ * (heroCut's square frames, King's Raid's icon) shows it in it. A hero not in it is in its own look.
+ */
+const worn = new Map<string, number>();
+
+/** The skin a hero's face is shown in: the outfit it wears (0: its own look). */
+export const wornSkin = (id: string): number => worn.get(id) ?? 0;
+
+/** What the bot says each hero wears, by its skin's place among its skins (one not said: its own look); every one before forgotten. */
+export function setWorn(skins: Readonly<Record<string, number>>): void {
+  worn.clear();
+  for (const [id, skin] of Object.entries(skins)) if (skin > 0) worn.set(id, skin);
+}
+
+/** What their heroes wear, as the bot's heroes say it (HeroView.outfit: the name of the skin each is in). */
+export function noteWorn(view: { heroes: readonly { id: string; outfit?: string }[] }): void {
+  const skins: Record<string, number> = {};
+  for (const hero of view.heroes) {
+    const assets = HERO_ASSETS.find((one) => one.folder === `heroes/${hero.id}`);
+    const skin = hero.outfit && assets ? assets.skins.findIndex((one) => one.name === hero.outfit) : 0;
+    if (skin > 0) skins[hero.id] = skin;
+  }
+  setWorn(skins);
+}
+
 /** A hero's picture (its default skin's): the whole picture, and the square of it that is its face. Null when the raid has none for it. */
 export function heroPicture(id: string): { src: string; crop: Crop } | null {
   const assets = HERO_ASSETS.find((hero) => hero.folder === `heroes/${id}`);
@@ -172,10 +198,11 @@ const cuts = new Map<string, Promise<string | null>>();
  * BUILT_CUTS has it, whatever is asked); null when it has none, or it can't be read.
  */
 export function heroCut(id: string, frame: Frame, width = 256): Promise<string | null> {
-  // A face by itself (a square frame): King's Raid's own icon of it, where it has one.
+  // A face by itself (a square frame): King's Raid's own icon of it, in the outfit it wears, where it has one.
   if (frame.wide === frame.tall) {
     const assets = HERO_ASSETS.find((hero) => hero.folder === `heroes/${id}`);
-    const icon = assets?.skins[0] && iconPicture(assets, assets.skins[0]);
+    const skin = assets && (assets.skins[wornSkin(id)] ?? assets.skins[0]);
+    const icon = assets && skin && (iconPicture(assets, skin) ?? (skin !== assets.skins[0] && assets.skins[0] ? iconPicture(assets, assets.skins[0]) : null));
     if (icon) return Promise.resolve(icon);
   }
   const fit = frame.fit?.[id];

@@ -1,5 +1,5 @@
 import { askSale, itemDetailsClosed, itemIcons, itemPicked, pruneSale, saleOf, saleSaid, sellInTurns, TM_UNSORTED, wireSaleDialog, wireSearch } from '../shared/items';
-import { HERO_CLASSES, HERO_SLOT_TYPE, type HeroCopy, type HeroSlot, type HeroesView } from '../shared/heroes';
+import { HERO_CLASSES, HERO_SLOT_TYPE, noteWorn, type HeroCopy, type HeroSlot, type HeroesView } from '../shared/heroes';
 import type { HeroesSold } from '../protocol/heroes';
 import { RUNE_KEEP_PRICE, type RuneBroken } from '../protocol/runes';
 import { fragmentCount } from '../shared/items/fragments';
@@ -151,6 +151,8 @@ function fillMembers(ctx: HeroesContext): void {
 /** Takes the bot's word on their heroes, keeping the hero shown (the address's, else their first, else the first). */
 function show(ctx: HeroesContext, act: HeroActions, view: HeroesView): void {
   ctx.view = view;
+  // (Their faces in the outfits they wear.)
+  noteWorn(view);
   // (King's Raid's hero gear's pictures: its icons, as the bot says them.)
   for (const copy of view.copies) if (copy.icon) itemIcons.set(copy.itemId, copy.icon);
   const asked = new URLSearchParams(location.search).get('hero');

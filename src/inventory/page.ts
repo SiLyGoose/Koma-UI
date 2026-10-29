@@ -1,5 +1,6 @@
 import markup from './inventory.html?raw';
 import { API, dropdown, fillServers } from '../shared/ui';
+import { noteWorn } from '../shared/heroes';
 import { TICKETS_CLAIMED } from '../shared/ui/mail/mail';
 import type { Page } from '../site/page';
 import { api, currentMe, currentServer, loadMe, logOut, prefetchFor, setServer, type ApiResult } from '../site/session';
@@ -71,12 +72,15 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void; 
         const asked = answer;
         void asked.then((res) => {
           if (!res.ok && known.get(what) === asked) known.delete(what);
+          // (Their heroes: their faces in the outfits they wear, before a tab draws them.)
+          if (res.ok && what === 'heroes') noteWorn(res.data as Sources['heroes']);
         });
         known.set(what, answer);
       }
       return answer as Promise<ApiResult<Sources[K]>>;
     },
     keep(what, data) {
+      if (what === 'heroes') noteWorn(data as Sources['heroes']);
       known.set(what, Promise.resolve({ ok: true, data }));
     },
     forget(what) {
