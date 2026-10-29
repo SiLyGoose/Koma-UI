@@ -19,19 +19,7 @@
 /* ------------------------------------------------------------------ head */
 
 .inventory-page .inv-head {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  justify-content: space-between;
   margin-bottom: 12px;
-}
-
-.inventory-page .inv-title {
-  margin: 0;
-  color: #fff;
-  font-size: 24px;
-  letter-spacing: 0.02em;
-  text-shadow: 0 2px 0 rgb(0 0 0 / 60%);
 }
 
 .inventory-page > .status {

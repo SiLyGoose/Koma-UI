@@ -3,6 +3,7 @@ import '../shared/style.css';
 import '../shared/ui/header/header.css';
 import '../shared/ui/button/button.css';
 import '../shared/ui/close/close.css';
+import '../shared/ui/page-bar/page-bar.css';
 import '../shared/items/items.css';
 import '../hub/hub.css';
 import '../gear/gear.css';

@@ -1,13 +1,16 @@
 <!-- A hero's outfit room (src/hero-outfits/page.ts), as King's Raid's Costume screen: the hero standing whole, its outfits down the left, the one picked's name and Equip (or Buy) along the bottom. Swapped into #view by src/site/main.ts. -->
 <main class="ho-page">
-  <div class="ho-bar">
-    <!-- Back where they came from: the shop's Hero Outfits tab (its Try On: ?from=shop), else the hero on the heroes page. -->
-    <a id="back" class="ho-back action secondary icon" href="/heroes/" aria-label="Back to Heroes">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 5 3.5 12l7 7v-4.5H20v-5h-9.5z" /></svg>
-    </a>
-    <h1 class="ho-title">Outfits</h1>
-    <select id="server" class="server-pick" aria-label="Server" hidden></select>
-    <p class="ho-wallet"><span id="balance" class="outfits-purse" title="zeiucoins" hidden></span></p>
+  <!-- The site's page bar (../shared/ui/page-bar/): back and the server at its left, its name in the middle, the balance at its right. -->
+  <div class="page-bar">
+    <div class="page-bar-left">
+      <!-- Back where they came from: the shop's Hero Outfits tab (its Try On: ?from=shop), else the hero on the heroes page. -->
+      <a id="back" class="action secondary icon" href="/heroes/" aria-label="Back to Heroes">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 5 3.5 12l7 7v-4.5H20v-5h-9.5z" /></svg>
+      </a>
+      <select id="server" class="server-pick" aria-label="Server" hidden></select>
+    </div>
+    <h1 class="page-bar-title">Outfits</h1>
+    <p class="page-bar-right"><span id="balance" class="outfits-purse" title="zeiucoins" hidden></span></p>
   </div>
 
   <p id="status" class="status ho-status" hidden></p>

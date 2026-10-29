@@ -1,11 +1,15 @@
 <!-- The dressing room (src/dressing/page.ts): every outfit down the left, the one picked standing on the right, to put on. Swapped into #view by src/site/main.ts. -->
 <main class="dressing-page">
-  <div class="dressing-bar">
-    <a class="dressing-back action secondary icon" href="/player/" aria-label="Back to Player">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 5 3.5 12l7 7v-4.5H20v-5h-9.5z" /></svg>
-    </a>
-    <h1 class="dressing-title">Dressing Room</h1>
-    <select id="server" class="server-pick" aria-label="Server" hidden></select>
+  <!-- The site's page bar (../shared/ui/page-bar/): back and the server at its left, its name in the middle. -->
+  <div class="page-bar">
+    <div class="page-bar-left">
+      <a class="action secondary icon" href="/player/" aria-label="Back to Player">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 5 3.5 12l7 7v-4.5H20v-5h-9.5z" /></svg>
+      </a>
+      <select id="server" class="server-pick" aria-label="Server" hidden></select>
+    </div>
+    <h1 class="page-bar-title">Dressing Room</h1>
+    <div class="page-bar-right"></div>
   </div>
 
   <p id="status" class="status dressing-status" hidden></p>

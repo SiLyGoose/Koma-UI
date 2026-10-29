@@ -1,0 +1,69 @@
+/*
+ * The bar across the top of a page (the outfit room, the dressing room, the inventory): the site's standard.
+ *
+ *   .page-bar-left   the back arrow (where it has one), then the server picker, at its left
+ *   .page-bar-title  the page's name, in the middle of the bar (of the page, not of what's left between the sides)
+ *   .page-bar-right  its balances (zeiucoins, komaGems…), at its right
+ *
+ * Either side may be empty (kept, so the name stays in the middle). On phones the name goes over the two sides.
+ */
+.page-bar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  grid-template-areas: 'left title right';
+  gap: 10px 12px;
+  align-items: center;
+}
+
+.page-bar-left,
+.page-bar-right {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  min-width: 0;
+}
+
+.page-bar-left {
+  grid-area: left;
+  justify-content: flex-start;
+}
+
+.page-bar-right {
+  grid-area: right;
+  justify-content: flex-end;
+}
+
+/* (The site's balances, and what they sit in, have no margins of their own here.) */
+.page-bar-right > * {
+  margin: 0;
+}
+
+.page-bar-title {
+  grid-area: title;
+  margin: 0;
+  color: #efe3bf;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  text-align: center;
+  white-space: nowrap;
+  text-shadow: 0 2px 6px rgb(0 0 0 / 50%);
+}
+
+.page-bar-left svg {
+  fill: currentColor;
+}
+
+@media (max-width: 600px) {
+  .page-bar {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'title title'
+      'left right';
+  }
+
+  .page-bar-title {
+    font-size: 20px;
+  }
+}
