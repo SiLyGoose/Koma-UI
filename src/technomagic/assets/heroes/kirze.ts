@@ -120,6 +120,9 @@ export const KIRZE_ASSETS: HeroAssets = {
         animations: ANIMATIONS,
         parts: ['Hero_Kirze_Cos19Job_Body', 'Hero_Kirze_Cos19Job_Hair'],
         right: 'Hero_Kirze_Cos19_Job_Weapon',
+        // (Her body's file has a mark of its own by the name of what she holds (Point_Dummy, at her feet): taken out, so her
+        // clips move her scissors, not it.)
+        hidden: ['Point_Dummy'],
       },
     },
     // King's Raid's Halloween costume (tm-costumes.mjs).
@@ -170,10 +173,8 @@ export const KIRZE_ASSETS: HeroAssets = {
         kind: 'parts',
         animations: ANIMATIONS,
         parts: ['Hero_Kirze_Cos21Wedding_Body', 'Hero_Kirze_Cos21Wedding_Hair'],
-        // (Her weapons in her hands, as the game hangs them: Weapon_R on Point_Hand_R, Weapon_L on Point_Hand_L; its Weapon is an empty mark.)
-        right: 'Hero_Kirze_Cos21Wedding_Weapon_R',
-        left: 'Hero_Kirze_Cos21Wedding_Weapon_L',
-        offHand: 'held',
+        // Her two blades joined as one, in her right hand, as her own (they also come apart in the game, one for each hand, for some moves: _Weapon_L and _R).
+        right: 'Hero_Kirze_Cos21Wedding_Weapon',
       },
     },
     // Its Glory League costume's Glaring Honor tier: the same model, wearing its effects (tm-glory.mjs).
