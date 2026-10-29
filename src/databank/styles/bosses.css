@@ -276,7 +276,7 @@
   flex: none;
 }
 
-/* What a raid's boss is weak to: the kind of damage's icon (both, when neither), and its name. */
+/* What a raid's boss is weak to: the kind of damage's icon (a gray one struck through, when neither), and its name. */
 .db-weak {
   display: flex;
   gap: 8px;

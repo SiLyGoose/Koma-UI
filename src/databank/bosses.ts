@@ -209,7 +209,7 @@ function lands(type: DamageType, target: Defenses): number {
 /**
  * What a raid's boss is weak to at a stage (its DEF so many times its stage 1's: `defense`): the kind of damage more of a blow
  * of gets through its dodge, DEF, block and Tough, and what it takes more or less of for good (../shared/boss-skills.ts
- * `takes`), as the fight has them; its icon (both, when neither) and its name.
+ * `takes`), as the fight has them; its icon (when neither, a gray one struck through: deals-none.webp) and its name (N/A).
  */
 function weakness(boss: BossDef, defense: number): HTMLElement {
   const stands = { ...boss.stats, physical: boss.stats.physical * defense, magical: boss.stats.magical * defense };
@@ -218,14 +218,11 @@ function weakness(boss: BossDef, defense: number): HTMLElement {
   const weak: DamageType | null = landing.physical >= landing.magical * WEAK ? 'physical' : landing.magical >= landing.physical * WEAK ? 'magical' : null;
 
   const verdict = el('div', 'db-weak');
-  for (const kind of weak ? [weak] : (['physical', 'magical'] as const)) {
-    const icon = el('img', 'db-weak-icon');
-    icon.src = `/kr/ui/deals-${kind}.webp`;
-    icon.alt = '';
-    icon.draggable = false;
-    verdict.append(icon);
-  }
-  verdict.append(el('b', '', weak ? KIND[weak] : 'Neither'));
+  const icon = el('img', 'db-weak-icon');
+  icon.src = `/kr/ui/deals-${weak ?? 'none'}.webp`;
+  icon.alt = '';
+  icon.draggable = false;
+  verdict.append(icon, el('b', '', weak ? KIND[weak] : 'N/A'));
   return verdict;
 }
 
