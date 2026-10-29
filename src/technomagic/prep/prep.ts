@@ -110,11 +110,11 @@ function face(id: string, img: HTMLImageElement, fallback: HTMLElement): void {
   });
 }
 
-/** Each hero's picture made so far, by where it goes (its class) and whose: the same one again on every redraw, already showing its face rather than flashing its letter. */
+/** Each hero's picture made so far, by where it goes (its class), whose and the outfit it wears: the same one again on every redraw, already showing its face rather than flashing its letter; another outfit put on, a new one. */
 const portraits = new Map<string, HTMLElement>();
 /** A hero's picture: its face, with its name's first letter until (or unless) there is one. */
 function portrait(id: string, className: string): HTMLElement {
-  const key = `${className}:${id}`;
+  const key = `${className}:${id}:${wornSkin(id)}`;
   const made = portraits.get(key);
   if (made) return made;
   const box = el('span', className);
