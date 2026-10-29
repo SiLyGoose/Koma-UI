@@ -28,7 +28,7 @@ const scales = (times: number): BossScale[] =>
 
 /**
  * Galgoria: a chimera of three heads that spits venom. Its blows are magical. It neither blocks nor dodges, and takes
- * 20% more physical damage (./skills.ts). Its health and defenses are the playtest's (HP, DEF), so heroes wear it down
+ * physical and magic damage alike. Its health and defenses are the playtest's (HP, DEF), so heroes wear it down
  * best with penetration, and with what cuts its healing (it gives itself back its health all the while: ./skills.ts).
  * How its attacks go is ./attacks.ts, and what its skills do ./skills.ts; what is drawn for them is
  * ../../../bosses/galgoria/fx.ts, and its body ../../../bosses/galgoria/model.ts.

@@ -31,7 +31,7 @@ export interface BossSkills {
   basic: { attacks: readonly string[]; about: string };
   /**
    * How many times as much of each kind of damage it takes for good, past its defenses (its part's `taken` in the sim:
-   * Galgoria's TAKEN, Scalaxia's): none said, as much.
+   * Scalaxia's): none said, as much.
    */
   takes?: Partial<Record<DamageType, number>>;
 }
@@ -52,10 +52,9 @@ export const BOSS_SKILLS: Readonly<Record<string, BossSkills>> = {
       { name: 'Poisonous Explosion', icon: icon('galgoria', 3590030), attacks: ['explosion'], about: 'Attacks all enemies 2 times, dealing M.DMG. The first attack reduces their ATK by 50% for 10 sec, the second their Crit Chance by 500 for 10 sec.' },
       { name: 'Fatal Venom', icon: icon('galgoria', 3590040), attacks: ['fatal'], about: 'After using a skill 3 times, attacks all enemies, dealing M.DMG. Hit enemies’ Heal Rate is permanently reduced by 20% (up to 5 times), and Galgoria’s ATK is permanently increased.' },
       { name: 'Swamp Imprisonment', icon: icon('galgoria', 3590043), attacks: [], about: `Each time the heroes land ${IMPRISONMENT.hits} hits, the one that has dealt the most is held in the swamp for ${IMPRISONMENT.lasts} sec: it can’t act or be knocked down (but is still hit), and every other hero’s ATK is ${pct(IMPRISONMENT.atk)} higher meanwhile.` },
-      { name: 'Persistent Life Force', icon: icon('galgoria', 3590041), attacks: [], about: 'Immune to Attack Speed reduction and Lifesteal. Recovers 1% of its HP every sec, with its Heal Rate increased by 70% (120% from stage 4): 1.7% a sec (2.2%) before Heal Rate reductions. From stage 4, heroes’ healing is reduced by 40% and their shields by 60%. Takes 20% more P.DMG.' },
+      { name: 'Persistent Life Force', icon: icon('galgoria', 3590041), attacks: [], about: 'Immune to Attack Speed reduction and Lifesteal. Recovers 1% of its HP every sec, with its Heal Rate increased by 70% (120% from stage 4): 1.7% a sec (2.2%) before Heal Rate reductions. From stage 4, heroes’ healing is reduced by 40% and their shields by 60%.' },
     ],
     basic: { attacks: ['left', 'centre', 'right'], about: 'Each head spits venom at the enemy it is after, dealing M.DMG.' },
-    takes: { physical: 1.2 },
   },
   temeraire: {
     skills: [
