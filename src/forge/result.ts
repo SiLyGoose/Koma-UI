@@ -1,7 +1,7 @@
 import { sound } from '../shared/audio';
 import { type ArmoryCopy, el, type GearCopy, levelLabel, shownName } from '../shared/items';
 import type { HeroCopy, HeroKeep } from '../shared/heroes';
-import { type KeepChoice, type KeepLine, keepLine } from './anvil/hero';
+import { type KeepChoice, type KeepLine, keepLine, newBadge } from './anvil/hero';
 import { card, compare, fillEffects } from './anvil';
 import type { EffectRow } from './anvil/compare';
 import type { ForgeContext } from './context';
@@ -80,7 +80,7 @@ export function showKeepChoice(ctx: ForgeContext, copy: HeroCopy, waiting: KeepC
   ui.result.classList.add('choice');
   const burst = el('div', 'forge-result-burst');
   burst.append(el('span', 'forge-result-rays'), el('span', 'forge-result-rays back'), el('span', 'forge-result-core'), card(copy));
-  const list = el('ul', 'forge-effects');
+  const list = el('ul', 'forge-effects forge-keeps');
   const choices: { which: HeroKeep; tag: string; side: KeepLine }[] = [
     { which: 'old', tag: 'Keep current', side: waiting.old },
     { which: 'new', tag: 'Take new', side: waiting.new },
@@ -90,6 +90,7 @@ export function showKeepChoice(ctx: ForgeContext, copy: HeroCopy, waiting: KeepC
     const pick = el('button', 'forge-option-pick forge-keep');
     pick.type = 'button';
     pick.append(...keepLine(waiting, choice.side), el('span', `forge-keep-tag ${choice.which}`, choice.tag));
+    if (choice.which === 'new') pick.prepend(newBadge());
     pick.addEventListener('click', (event) => {
       event.stopPropagation();
       keep(choice.which);

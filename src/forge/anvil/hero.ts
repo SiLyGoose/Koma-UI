@@ -78,6 +78,13 @@ export function keepLine(choice: KeepChoice, side: KeepLine): HTMLElement[] {
   return side.option ? [line, optionPips(side.option)] : [line];
 }
 
+/** The NEW ribbon across the top left of the one just rolled (its tag already says so to a screen reader). */
+export function newBadge(): HTMLElement {
+  const badge = el('span', 'forge-keep-new', 'NEW');
+  badge.setAttribute('aria-hidden', 'true');
+  return badge;
+}
+
 /**
  * The anvil for a hero's gear: the hint, the piece on it, its substats (rerolling or enhancing: each a button, the one picked) or
  * its effect, the price (zeiucoins; an effect's, komaGems and its set's Boss Crystals; a TechnoMagic piece's substats', its set's Boss Crystals) and the mode's button. Nothing is used up, so no Materials and no odds.
@@ -144,6 +151,7 @@ function heroHint(ctx: ForgeContext, mode: HeroMode, copy: HeroCopy | undefined,
 function renderKeep(ctx: ForgeContext, waiting: KeepChoice): void {
   const { ui } = ctx;
   ui.effects.textContent = '';
+  ui.effects.classList.add('forge-keeps');
   const choices: { keep: HeroKeep; tag: string; side: KeepLine }[] = [
     { keep: 'old', tag: 'Current', side: waiting.old },
     { keep: 'new', tag: 'New', side: waiting.new },
@@ -155,6 +163,7 @@ function renderKeep(ctx: ForgeContext, waiting: KeepChoice): void {
     pick.setAttribute('aria-pressed', String(ctx.keep === choice.keep));
     pick.disabled = !!ctx.busy;
     pick.append(...keepLine(waiting, choice.side), el('span', `forge-keep-tag ${choice.keep}`, choice.tag));
+    if (choice.keep === 'new') pick.prepend(newBadge());
     pick.addEventListener('click', () => {
       ctx.done = null;
       ctx.keep = ctx.keep === choice.keep ? null : choice.keep;
@@ -172,6 +181,7 @@ function renderKeep(ctx: ForgeContext, waiting: KeepChoice): void {
 function renderRows(ctx: ForgeContext, mode: HeroMode, copy: HeroCopy | undefined): void {
   const { ui } = ctx;
   ui.effects.textContent = '';
+  ui.effects.classList.remove('forge-keeps');
   if (!copy) return;
   if (mode === 'effects') {
     const row = el('li', 'forge-row');

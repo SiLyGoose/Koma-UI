@@ -144,6 +144,51 @@
   color: var(--green);
 }
 
+/*
+ * The two side by side, the one it has on the left, a wide gap between so a click can't land on the wrong one; where there's
+ * no room for both (a phone), one over the other, the one rolled under.
+ */
+.forge-effects.forge-keeps {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
+  gap: 18px 32px;
+}
+
+.forge-keeps .forge-option-pick {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  height: 100%;
+  padding: 16px 14px 12px 30px;
+  overflow: hidden;
+}
+
+/* Its tag at the foot, both lined up whatever their lines' length. */
+.forge-keeps .forge-keep-tag {
+  margin-top: auto;
+  align-self: flex-end;
+}
+
+/* NEW: a little ribbon across the top left corner of the one rolled, glowing. */
+.forge-keep-new {
+  position: absolute;
+  top: 7px;
+  left: -19px;
+  width: 66px;
+  padding: 1px 0;
+  background: linear-gradient(180deg, #c4f5d2, var(--green));
+  box-shadow: 0 0 8px rgb(143 230 170 / 70%), 0 0 2px rgb(143 230 170 / 90%);
+  color: #0e2414;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 12px;
+  letter-spacing: 0.1em;
+  text-align: center;
+  transform: rotate(-45deg);
+  pointer-events: none;
+}
+
 /* On the result, which doesn't close on a click while it asks. */
 .forge-result.choice {
   cursor: default;

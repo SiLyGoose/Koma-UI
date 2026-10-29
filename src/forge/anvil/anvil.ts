@@ -76,6 +76,7 @@ export function showTarget(ctx: ForgeContext, copy: ArmoryCopy | undefined): voi
 /** What the copy on the anvil does now (its main stat first), against what it will do. */
 function renderEffects(ctx: ForgeContext, copy: GearCopy | undefined, plan: Plan | null): void {
   ctx.ui.effects.textContent = '';
+  ctx.ui.effects.classList.remove('forge-keeps');
   if (!copy || !plan) return;
   let rows: EffectRow[];
   if (plan.kind === 'refine' && plan.refine.after) rows = compare(copy.effects, plan.refine.after);
