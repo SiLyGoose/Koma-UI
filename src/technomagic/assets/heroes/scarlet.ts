@@ -270,7 +270,7 @@ export const SCARLET_ASSETS: HeroAssets = {
         honor: { start: ['Skill.Hero.ScarletCos19GloryLague.Re.Skill3.Casting'] },
       },
       // What King's Raid keeps on it all the while.
-      wears: ['Skill.Hero.ScarletCos19GloryLague.Cos19GloryLeague', 'Skill.Hero.ScarletCos19GloryLague.Light'],
+      wears: ['Skill.Hero.ScarletCos19GloryLague.Cos19GloryLeague', 'Skill.Hero.ScarletCos19GloryLague.Light', 'Skill.Hero.ScarletCos19GloryLague.Weapon'],
       model: {
         kind: 'parts',
         animations: ANIMATIONS,

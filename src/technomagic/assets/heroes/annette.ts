@@ -263,6 +263,8 @@ export const ANNETTE_ASSETS: HeroAssets = {
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Annette_Glory2.webp',
       title: 'Annette of Glaring Honor (Blooming Blue Flame)',
+      // What King's Raid keeps on it all the while (its weapon's: tm-glory.mjs).
+      wears: ['Skill.Hero.AnnetteCos21GloryLeague.Cos21GloryLeagueWeapon'],
       // King's Raid's own effects of its Glory League costume, for its moves instead of its hero's (KR-extracted/scripts/tm-glory-vfx.mjs).
       vfx: {
         zap: { start: ['Skill.Hero.AnnetteCos21GloryLeague.Attack1.Casting'], land: ['Skill.Hero.AnnetteCos21GloryLeague.Attack1.Projectile', 'Skill.Hero.AnnetteCos21GloryLeague.Attack1.Hit'] },

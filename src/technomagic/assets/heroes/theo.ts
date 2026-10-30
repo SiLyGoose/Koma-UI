@@ -349,7 +349,7 @@ export const THEO_ASSETS: HeroAssets = {
         explosion: { start: ['Skill.Hero.Theo19GloryLeague.Skill3.Casting'], land: ['Skill.Hero.Theo19GloryLeague.Skill3.Hit'] },
       },
       // What King's Raid keeps on it all the while.
-      wears: ['Skill.Hero.TheoCos19GloryLeague.Cos19GloryLeagueLight1', 'Skill.Hero.TheoCos19GloryLeague.Cos19GloryLeagueLight2'],
+      wears: ['Skill.Hero.TheoCos19GloryLeague.Cos19GloryLeagueLight1', 'Skill.Hero.TheoCos19GloryLeague.Cos19GloryLeagueLight2', 'Skill.Hero.TheoCos19GloryLeague.Cos19GloryLeagueWeapon'],
       model: {
         kind: 'parts',
         animations: ANIMATIONS,

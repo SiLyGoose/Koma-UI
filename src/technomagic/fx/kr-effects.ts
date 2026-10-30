@@ -58,8 +58,11 @@ export function krTintAt(tint: KrTint, seconds: number, into: Vector4): Vector4 
   return into.set(along(tint.colors, t, 1), along(tint.colors, t, 2), along(tint.colors, t, 3), along(tint.alphas, t, 1));
 }
 
-/** A bone's name as the game has it, as our models have it (three.js's: spaces made underscores, some marks left out). */
-const ours = (name: string): string => name.replace(/\s/g, '_').replace(/[[\].:/]/g, '');
+/** The heroes' pivots the game hangs effects on, as the bones they are (its PivotList: Weapon01Point is the right hand's point). */
+const PIVOTS: Readonly<Record<string, string>> = { Weapon01Point: 'Point_Hand_R', Weapon1Point: 'Point_Hand_R' };
+
+/** A bone's name as the game has it (or a pivot's), as our models have it (three.js's: spaces made underscores, some marks left out). */
+const ours = (name: string): string => (PIVOTS[name] ?? name).replace(/\s/g, '_').replace(/[[\].:/]/g, '');
 
 /** Effects played in `scene` (the field's light: kept bright when it goes dark) and seen by `camera`. */
 export function makeKrEffects(scene: Object3D, camera: Camera): KrEffects {

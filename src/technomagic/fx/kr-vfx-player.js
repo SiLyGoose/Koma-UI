@@ -784,6 +784,11 @@ export class KrEffect extends Group {
     } else if (pl.attach === 'NodeFind' && opts.findNode) {
       parent = opts.findNode(pl.target) ?? this;
       if (parent !== this) this.away.push(holder);
+    } else if (pl.attach === 'Pivot' && pl.target && opts.findNode) {
+      // (One of the caster's pivots, by name: Scarlet's Glory League sword's light on Weapon01Point, her right hand. One it
+      // hasn't stays on the effect's root, as an unnamed pivot does.)
+      parent = opts.findNode(pl.target) ?? this;
+      if (parent !== this) this.away.push(holder);
     }
     parent.add(holder);
     return holder;

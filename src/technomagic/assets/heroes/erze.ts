@@ -162,6 +162,8 @@ export const ERZE_ASSETS: HeroAssets = {
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Erze_Glory.webp',
       title: 'Erze of Honor (Eminence of Elegance)',
+      // What King's Raid keeps on it all the while (its weapon's: tm-glory.mjs).
+      wears: ['Skill.Hero.ErzeCos21GloryLeague.VictoryIdle'],
       // King's Raid's own effects of its Glory League costume, for its moves instead of its hero's (KR-extracted/scripts/tm-glory-vfx.mjs).
       vfx: {
         drain: { start: ['Skill.Hero.ErzeCos21GloryLeague.Attack1.Casting.2', 'Skill.Hero.ErzeCos21GloryLeague.Attack1.Casting.3', 'Skill.Hero.ErzeCos21GloryLeague.Attack1.Casting.1'], land: ['Skill.Hero.ErzeCos21GloryLeague.Attack1.Hit1', 'Skill.Hero.ErzeCos21GloryLeague.Attack1.Hit2'] },
@@ -201,7 +203,7 @@ export const ERZE_ASSETS: HeroAssets = {
         liberation: { start: ['Skill.Hero.ErzeCos21GloryLeague.Skill3.Casting'], land: ['Skill.Hero.ErzeCos21GloryLeague.Skill3.Projectile', 'Skill.Hero.ErzeCos21GloryLeague.Skill3.ProjectileHit'] },
       },
       // What King's Raid keeps on it all the while.
-      wears: ['Skill.Hero.ErzeCos21GloryLeague.Body'],
+      wears: ['Skill.Hero.ErzeCos21GloryLeague.Body', 'Skill.Hero.ErzeCos21GloryLeague.Cos21GloryLeagueWeapon'],
       model: { kind: 'parts', animations: ANIMATIONS, parts: ['Hero_Erze_Cos21GloryLeague_Body', 'Hero_Erze_Cos21GloryLeague_Hair'], right: 'Hero_Erze_Cos21GloryLeague_Weapon' },
     },
   ],

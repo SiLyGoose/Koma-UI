@@ -220,7 +220,7 @@ export const EVAN_ASSETS: HeroAssets = {
         rampage: { start: ['Skill.Hero.EvanCos21GloryLeague.Skill3-2.Casting'], land: ['Skill.Hero.EvanCos21GloryLeague.Skill3-2.Hit'] },
       },
       // What King's Raid keeps on it all the while (tm-glory.mjs).
-      wears: ['Skill.Hero.EvanCos21GloryLeague.Cos21GloryLeagueLight', 'Skill.Hero.EvanCos21GloryLeague.Cos21GloryLeagueParts'],
+      wears: ['Skill.Hero.EvanCos21GloryLeague.Cos21GloryLeagueLight', 'Skill.Hero.EvanCos21GloryLeague.Cos21GloryLeagueParts', 'Skill.Hero.EvanCos21GloryLeague.Cos21GloryLeagueWeapon'],
       model: {
         kind: 'parts',
         animations: ANIMATIONS,

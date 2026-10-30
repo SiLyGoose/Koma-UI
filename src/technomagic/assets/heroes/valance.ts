@@ -94,6 +94,8 @@ export const VALANCE_ASSETS: HeroAssets = {
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Valance_Christmas.webp',
       title: 'Shy Christmas Gift Valance',
+      // What King's Raid keeps on it all the while (its weapon's laser, on every weapon of hers with one).
+      wears: ['Skill.Hero.Valance.Idle'],
       model: {
         kind: 'parts',
         animations: ANIMATIONS,
@@ -113,6 +115,8 @@ export const VALANCE_ASSETS: HeroAssets = {
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Valance_Advance.webp',
       title: 'Afternoon in the Academy Valance',
+      // What King's Raid keeps on it all the while (its weapon's laser, on every weapon of hers with one).
+      wears: ['Skill.Hero.Valance.Idle'],
       model: {
         kind: 'parts',
         animations: ANIMATIONS,
@@ -132,6 +136,8 @@ export const VALANCE_ASSETS: HeroAssets = {
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Valance_Advance2.webp',
       title: 'Afternoon in the Academy Valance',
+      // What King's Raid keeps on it all the while (its weapon's laser, on every weapon of hers with one).
+      wears: ['Skill.Hero.Valance.Idle'],
       model: {
         kind: 'parts',
         animations: ANIMATIONS,

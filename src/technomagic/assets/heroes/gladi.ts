@@ -177,7 +177,7 @@ export const GLADI_ASSETS: HeroAssets = {
         punch: { start: ['Skill.Hero.GladiCos20GloryLeague.Skill3.Casting'], land: ['Hit.Physical.03'] },
       },
       // What King's Raid keeps on it all the while (tm-glory.mjs).
-      wears: ['Skill.Hero.GladiCos20GloryLeague.Body'],
+      wears: ['Skill.Hero.GladiCos20GloryLeague.Body', 'Skill.Hero.GladiCos20GloryLeague.Weapon'],
       model: {
         kind: 'parts',
         animations: ANIMATIONS,
