@@ -1517,7 +1517,7 @@ button.ascend-cost:focus-visible {
 /*
  * The Loadouts panel (loadouts.ts): their loadouts in a grid of King's Raid's Mission_Button tiles (as the perk pages):
  * navy, the one picked the site's sky blue, a locked one grey with its padlock; its number in the corner, its name along
- * the bottom, the face of the hero shown on one it wears pieces of. Its own scroll, so the one picked stays in sight under it.
+ * the bottom, the face of the hero shown on one it wears pieces of; each square. Its own scroll, so the one picked stays in sight under it.
  */
 .loadout-slots {
   display: grid;
@@ -1529,10 +1529,10 @@ button.ascend-cost:focus-visible {
   overflow-y: auto;
 }
 
-/* (Narrow: three rows' worth, so the one picked is in sight under them.) */
+/* (Narrow: two rows' worth, so the one picked is in sight under them.) */
 @media (max-width: 899px) {
   .loadout-slots {
-    max-height: 186px;
+    max-height: 230px;
   }
 }
 
@@ -1541,7 +1541,7 @@ button.ascend-cost:focus-visible {
   display: flex;
   align-items: flex-end;
   min-width: 0;
-  height: 54px;
+  aspect-ratio: 1;
   padding: 4px 6px;
   border: 2px solid transparent;
   border-image: url('/kr/ui/perk-pages/page.webp') 20 fill / 10px;
