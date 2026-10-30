@@ -88,7 +88,7 @@ export const VALANCE: HeroDef = {
   id: 'valance',
   name: 'Valance',
   class: 'mechanic',
-  skins: ['Valance', 'Valance_Christmas'],
+  skins: ['Valance', 'Valance_Christmas', 'Valance_Advance', 'Valance_Advance2'],
   // A mechanic whose blows are physical (her lasers'): as her class stands.
   stats: { ...CLASS_STATS.mechanic, deals: 'physical' },
   abilities: [

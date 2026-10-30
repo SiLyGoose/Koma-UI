@@ -69,7 +69,7 @@ export const PRISCILLA: HeroDef = {
   id: 'priscilla',
   name: 'Priscilla',
   class: 'warrior',
-  skins: ['Priscilla', 'Priscilla_Halloween', 'Priscilla_Summer', 'Priscilla_NewYear', 'Priscilla_Wedding', 'Priscilla_Summer19', 'Priscilla_School'],
+  skins: ['Priscilla', 'Priscilla_Halloween', 'Priscilla_Summer', 'Priscilla_NewYear', 'Priscilla_Wedding', 'Priscilla_Summer19', 'Priscilla_School', 'Priscilla_Story'],
   // A warrior; her passive's penetration and crit DMG (its ATK is her part's: a share of her own as the fight begins).
   stats: { ...CLASS_STATS.warrior, deals: 'physical', pen: CLASS_STATS.warrior.pen + MASTERY.pen, critDamage: CLASS_STATS.warrior.critDamage + MASTERY.critDamage },
   abilities: [

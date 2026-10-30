@@ -126,5 +126,39 @@ export const GREMORY_ASSETS: HeroAssets = {
         floating: { model: 'Hero_Gremory_Cos21Summer_Weapon', ...CUBE },
       },
     },
+    // King's Raid's Advance costume (tm-costumes.mjs).
+    {
+      name: 'Gremory_Advance',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Gremory_Advance.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Gremory_Advance.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Gremory_Advance.webp',
+      title: 'Snore Mode Gremory',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Gremory_Vari05_Hood', 'Hero_Gremory_Vari05_Hood_Hair'],
+        floating: { model: 'Hero_Gremory_Vari05_Weapon', ...CUBE },
+      },
+    },
+    // King's Raid's Advance costume (tm-costumes.mjs).
+    {
+      name: 'Gremory_Advance2',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Gremory_Advance2.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Gremory_Advance2.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Gremory_Advance2.webp',
+      title: 'Snore Mode Gremory',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Gremory_Vari05_HoodOpen', 'Hero_Gremory_Vari05_HoodOpen_Hair'],
+        floating: { model: 'Hero_Gremory_Vari05_Weapon', ...CUBE },
+      },
+    },
   ],
 };

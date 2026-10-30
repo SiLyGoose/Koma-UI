@@ -103,5 +103,43 @@ export const VALANCE_ASSETS: HeroAssets = {
         heldStill: ['R'],
       },
     },
+    // King's Raid's Advance costume (tm-costumes.mjs).
+    {
+      name: 'Valance_Advance',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Valance_Advance.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Valance_Advance.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Valance_Advance.webp',
+      title: 'Afternoon in the Academy Valance',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Valance_Cos21Advence_Body', 'Hero_Valance_Hair_02'],
+        right: 'Hero_Valance_Cos21Advence_Weapon',
+        grips: { R: GRIP },
+        heldStill: ['R'],
+      },
+    },
+    // King's Raid's Advance costume (tm-costumes.mjs).
+    {
+      name: 'Valance_Advance2',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Valance_Advance2.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Valance_Advance2.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Valance_Advance2.webp',
+      title: 'Afternoon in the Academy Valance',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Valance_Cos21Advence_Body2', 'Hero_Valance_Hair_02'],
+        right: 'Hero_Valance_Cos21Advence_Weapon',
+        grips: { R: GRIP },
+        heldStill: ['R'],
+      },
+    },
   ],
 };

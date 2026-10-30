@@ -185,5 +185,23 @@ export const PRISCILLA_ASSETS: HeroAssets = {
         offHand: 'held',
       },
     },
+    // King's Raid's Story costume (tm-costumes.mjs).
+    {
+      name: 'Priscilla_Story',
+      // King's Raid's own icon of it (KR-extracted/scripts/tm-icons.mjs).
+      icon: 'Priscilla_Story.webp',
+      // King's Raid's own card of it (KR-extracted/scripts/tm-icons.mjs).
+      card: 'Priscilla_Story.webp',
+      // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
+      battle: 'Priscilla_Story.webp',
+      title: 'The Storm of War, Priscilla',
+      model: {
+        kind: 'parts',
+        animations: ANIMATIONS,
+        parts: ['Hero_Priscilla_Cos18Substory01_Body', 'Hero_Priscilla_Cos18Substory01'],
+        left: 'Hero_Priscilla_Substory01_Weapon',
+        offHand: 'held',
+      },
+    },
   ],
 };
