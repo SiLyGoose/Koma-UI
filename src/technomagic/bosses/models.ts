@@ -5,6 +5,8 @@ import { ARMARTA_FX, ARMARTA_LOOK, loadArmarta } from './armarta';
 import { GALGORIA_FX } from './galgoria/fx';
 import { GALGORIA_LOOK, loadGalgoria } from './galgoria/model';
 import { loadScalaxia, SCALAXIA_FX, SCALAXIA_LOOK } from './scalaxia';
+import { SIEGFRIED_FX } from './siegfried/fx';
+import { loadSiegfried, SIEGFRIED_LOOK } from './siegfried/model';
 import { loadTemeraire, TEMERAIRE_FX, TEMERAIRE_LOOK } from './temeraire';
 import { loadZyrrkinoth, ZYRRKINOTH_FX, ZYRRKINOTH_LOOK } from './zyrrkinoth';
 
@@ -14,6 +16,7 @@ import { loadZyrrkinoth, ZYRRKINOTH_FX, ZYRRKINOTH_LOOK } from './zyrrkinoth';
  */
 export const BOSS_VIEWS: Readonly<Record<string, { look: BossLook; load(scene: Scene, bright: Object3D): Promise<Boss>; fx: BossFx }>> = {
   galgoria: { look: GALGORIA_LOOK, load: loadGalgoria, fx: GALGORIA_FX },
+  siegfried: { look: SIEGFRIED_LOOK, load: loadSiegfried, fx: SIEGFRIED_FX },
   temeraire: { look: TEMERAIRE_LOOK, load: loadTemeraire, fx: TEMERAIRE_FX },
   scalaxia: { look: SCALAXIA_LOOK, load: loadScalaxia, fx: SCALAXIA_FX },
   zyrrkinoth: { look: ZYRRKINOTH_LOOK, load: loadZyrrkinoth, fx: ZYRRKINOTH_FX },

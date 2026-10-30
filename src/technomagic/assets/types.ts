@@ -211,16 +211,34 @@ export interface BossAssets {
   minions?: Readonly<Record<string, { model: string; animations: string; clips?: readonly string[] }>>;
   /**
    * King's Raid's own effects for it (../fx/kr-effects.ts: codes of public/kr/effects/kr/): for each of its attacks, played
-   * on it as the attack begins (`start`), flown from it to a hero as its body launches it (`fly`: Galgoria's spit, from a
+   * on it as the attack begins (`start`) and so far into it (`later`), flown from it to a hero as its body launches it (`fly`: Galgoria's spit, from a
    * mouth), and on each hero as a blow of it lands (`hit`); and as it first comes on the field (`advent`).
    */
-  vfx?: { attacks: Readonly<Record<string, { start?: readonly string[]; fly?: readonly string[]; hit?: readonly string[] }>>; advent?: readonly string[] };
+  vfx?: {
+    attacks: Readonly<Record<string, { start?: readonly string[]; later?: readonly KrLater[]; fly?: readonly string[]; hit?: readonly string[] }>>;
+    advent?: readonly string[];
+    /**
+     * What is kept on it while something of its own is on it (by the status's name, and how many of it at least: none said,
+     * one): Siegfried's sword's light once he has risen, and more once he has risen twice. Played on it, until that is gone.
+     */
+    kept?: readonly { status: string; count?: number; effects: readonly string[] }[];
+  };
   /**
    * What King's Raid has on a hero while one of its skills does (Galgoria's Swamp Imprisonment), by the status's name: its
    * own effect kept on it (../fx/kr-effects.ts: a code of public/kr/effects/kr/), where from its feet (`at`, the game's
    * metres) and how big (`size`), and the colour it draws it in.
    */
   holds?: Readonly<Record<string, { effect?: string; at?: readonly [number, number, number]; size?: number; tint?: KrTint }>>;
+}
+
+/**
+ * An effect of an attack's played on the boss so far into it (`at`, seconds, as the fight times the attack), for `lasts`
+ * seconds if it goes on until stopped (a loop): Siegfried's swords falling through his storm, and its end.
+ */
+export interface KrLater {
+  at: number;
+  code: string;
+  lasts?: number;
 }
 
 /**

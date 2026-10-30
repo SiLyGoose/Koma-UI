@@ -42,8 +42,12 @@ export interface BossPart {
    * instead (null, or no seconds: nothing does; a dragon's CC gauge has taken it). None said: as it comes.
    */
   controlled?(seconds: number, down: boolean): { seconds: number; down: boolean } | null;
+  /** A blow would beat it: whether it is spared instead (left on what health it has, as King's Raid's EscapeDeath: Siegfried's Divine Power). */
+  spared?(): boolean;
   /** It has been beaten. */
   beaten?(): void;
+  /** A blow of its has landed on a hero (not one dodged, nor one the hero was immune to), and whether the hero blocked it. */
+  landed?(on: Fighter, blocked: boolean): void;
   /** How many times as much healing reaches the heroes, and how many times as strong a shield on one is. */
   healing?(): number;
   shielding?(): number;
@@ -51,6 +55,10 @@ export interface BossPart {
   steady?: boolean;
   /** How many times as much it takes of each kind of damage (none said: as much as it is dealt). */
   taken?: Partial<Record<DamageType, number>>;
+  /** How many times as much a hero's attack's blows (not its skills') deal it (none said: as much as they would). */
+  attackTaken?: number;
+  /** Nothing lowers its DEF: what the heroes' skills leave on it to cut its defense does nothing (King's Raid's OverrideStat to its base). */
+  fixedDefense?: boolean;
   /** Taken off how likely a hero's blow on it is to be critical (points): its Crit Resistance. */
   critResist?: number;
   /** No hero's life steal takes anything from it. */

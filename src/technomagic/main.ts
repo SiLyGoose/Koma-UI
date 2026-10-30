@@ -359,7 +359,7 @@ async function start(): Promise<void> {
   };
   const skinOf = (entrant: Entrant): number => Math.max(0, lookOf(entrant.def.id).assets.skins.indexOf(entrant.skin));
 
-  const bossBar = makeBossBar(document.getElementById('boss') as HTMLElement, def.name, def.stats.deals);
+  const bossBar = makeBossBar(document.getElementById('boss') as HTMLElement, def.name, def.stats.deals, bossView?.look.gauge);
   const numbers = makeNumbers(numbersAt);
   let game: Game | null = null;
   /** The room's way out (in a room: set below). */

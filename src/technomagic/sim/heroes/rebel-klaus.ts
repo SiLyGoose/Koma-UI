@@ -17,7 +17,7 @@ import { bookDmg, CLASS_STATS, dmg, type HeroDef, type Passive } from './kit';
  * - Perish.: blows on the boss one after another, and a last that knocks it down.
  * His passive, Power of Galicta: his crit chance higher; with 1000 penetration or more, all his blows go through the
  * boss's defense; and a blow of his attack deals a blow more and leaves [Curse of Galicta] on the boss for a while (not
- * the blow more while it is on). (The game's has him not affected by Block: Galgoria blocks nothing.)
+ * the blow more while it is on); and no block of the boss's touches his blows (Siegfried's).
  * His unique weapon (../unique.ts) is worked here too: his penetration higher, and each skill he uses costs him a share
  * of his HP but stacks his DMG higher for a while.
  * What is drawn for each is ../../heroes/rebel-klaus/fx.ts; what his body does for each, and for his attack, ../../heroes/rebel-klaus/moves.ts.
@@ -56,9 +56,10 @@ const POWER_OF_GALICTA: Passive = {
   attack: 1,
   crit: share(GALICTA_POWER.crit),
   control: 1,
+  unblocked: true,
   shown: {
     name: 'Power of Galicta',
-    about: `Passive. +${GALICTA_POWER.crit} crit chance; with ${num(GALICTA_POWER.whole)} penetration or more, his blows go through all of the boss’s defense. A blow of his attack deals a blow more and leaves [Curse of Galicta] on the boss for ${GALICTA_POWER.lasts} seconds (not the blow more while it is on).`,
+    about: `Passive. No block touches his blows. +${GALICTA_POWER.crit} crit chance; with ${num(GALICTA_POWER.whole)} penetration or more, his blows go through all of the boss’s defense. A blow of his attack deals a blow more and leaves [Curse of Galicta] on the boss for ${GALICTA_POWER.lasts} seconds (not the blow more while it is on).`,
     icon: '🗡️',
     art: art(3),
   },

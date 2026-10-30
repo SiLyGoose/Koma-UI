@@ -59,10 +59,11 @@ export const heroEffects = (hero: HeroAssets): string[] => [
 
 /** Every effect a boss plays: its attacks' (and their projectiles), its coming on the field, and what its skills keep on a hero. */
 export const bossEffects = (boss: BossAssets): string[] => {
-  const { attacks = {}, advent = [] } = boss.vfx ?? {};
+  const { attacks = {}, advent = [], kept = [] } = boss.vfx ?? {};
   return [
     ...advent,
-    ...Object.values(attacks).flatMap((attack) => [...(attack.start ?? []), ...(attack.hit ?? []), ...(attack.fly ?? [])]),
+    ...kept.flatMap((one) => one.effects),
+    ...Object.values(attacks).flatMap((attack) => [...(attack.start ?? []), ...(attack.later ?? []).map((one) => one.code), ...(attack.hit ?? []), ...(attack.fly ?? [])]),
     ...Object.values(boss.holds ?? {}).flatMap((hold) => (hold.effect ? [hold.effect] : [])),
   ];
 };
@@ -203,13 +204,17 @@ export function makeKrMoves(kr: KrEffects, heroes: readonly HeroAssets[], bodies
 export interface KrBoss {
   /** The boss begins an attack (by its name). */
   use(attack: string): void;
+  /** What it was doing is cut short (stunned, knocked down): what of its attack was still to play doesn't. */
+  cut(): void;
   /** A blow of its (of the attack it began last) lands on a hero (`who`). */
   hurt(who: number): void;
   /** Its attack's projectile (of the attack it began last: its vfx's fly) flown from `from` (a mouth) to `to` in `time` seconds: as its body launches it (Boss.launch). */
   fly(from: Vector3, to: Vector3, time: number): void;
   /** Plays its coming on the field, once that has been read (unless it attacks first); and moves its projectiles on (seconds). */
   update(dt: number): void;
-  /** Takes its projectiles off (the fight is done with). */
+  /** What is on it now (its statuses): what its vfx keep on it while each is, begun or stopped to match (drawn from the fight's state, not timed). */
+  keep(on: readonly { name: string; count?: number }[]): void;
+  /** Takes its projectiles off, and what is kept on it (the fight is done with). */
   clear(): void;
 }
 
@@ -219,8 +224,13 @@ export interface KrBoss {
  * coming on the field.
  */
 export function makeKrBoss(kr: KrEffects, boss: BossAssets, root: Object3D, bodies: readonly Hero[], scene: Object3D): KrBoss {
-  const { attacks = {}, advent = [] } = boss.vfx ?? {};
+  const { attacks = {}, advent = [], kept = [] } = boss.vfx ?? {};
   kr.read(bossEffects(boss));
+  /** What of the attack it began last is still to play, and how long until each does (seconds); and what stops what of it is playing. */
+  let later: { left: number; code: string; lasts?: number }[] = [];
+  let playing: (() => void)[] = [];
+  /** What of `kept` is on it now: what stops each (by its place in `kept`). */
+  const keeping = new Map<number, (() => void)[]>();
   let coming = advent.length > 0;
   let attack = '';
   const last = new Map<string, number>();
@@ -229,7 +239,16 @@ export function makeKrBoss(kr: KrEffects, boss: BossAssets, root: Object3D, bodi
     use(name) {
       attack = name;
       coming = false;
+      // (What the last attack had still to play, cut short with it.)
+      for (const stop of playing) stop();
+      playing = [];
+      later = (attacks[name]?.later ?? []).map((one) => ({ left: one.at, code: one.code, ...(one.lasts !== undefined && { lasts: one.lasts }) }));
       for (const code of attacks[name]?.start ?? []) kr.play(code, { on: root });
+    },
+    cut() {
+      for (const stop of playing) stop();
+      playing = [];
+      later = [];
     },
     hurt(who) {
       const body = bodies[who];
@@ -248,10 +267,36 @@ export function makeKrBoss(kr: KrEffects, boss: BossAssets, root: Object3D, bodi
     },
     update(dt) {
       flights.update(dt);
+      for (const one of later) {
+        one.left -= dt;
+        if (one.left <= 0) playing.push(kr.play(one.code, { on: root, ...(one.lasts !== undefined && { lasts: one.lasts }) }));
+      }
+      later = later.filter((one) => one.left > 0);
       if (!coming || !advent.every((code) => kr.ready(code))) return;
       coming = false;
       for (const code of advent) kr.play(code, { on: root });
     },
-    clear: () => flights.clear(),
+    keep(on) {
+      kept.forEach((one, i) => {
+        const wanted = on.some((status) => status.name === one.status && (status.count ?? 1) >= (one.count ?? 1));
+        const going = keeping.get(i);
+        if (wanted && !going) {
+          // (Not read yet: begun once it has been.)
+          if (!one.effects.every((code) => kr.ready(code))) return;
+          keeping.set(i, one.effects.map((code) => kr.play(code, { on: root, lasts: Infinity })));
+        } else if (!wanted && going) {
+          for (const stop of going) stop();
+          keeping.delete(i);
+        }
+      });
+    },
+    clear() {
+      flights.clear();
+      for (const stop of playing) stop();
+      playing = [];
+      later = [];
+      for (const stops of keeping.values()) for (const stop of stops) stop();
+      keeping.clear();
+    },
   };
 }

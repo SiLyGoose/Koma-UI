@@ -1,7 +1,7 @@
 import { alliesFrom, artifactBuff, artifactHooks, artifactOf, artifactStats, at, type ArtifactHooks } from './artifacts';
 import { scaleAt, stagesOf, type BossDef, type BossPart } from './bosses/boss';
 import { ATK, CURVE, curved, HERO_LEVEL, NONE, POINTS, reachAt, share, SLOWEST, strike } from './combat/damage';
-import { accurate, adding, amplified, away, blocking, bolstering, bound, critDamaging, critResisting, critTaking, critting, dealing, deals, defending, defends, dodging, filling, healing, pacing, piercing, put, resisting, stacked, takes, wear, type Status } from './combat/status';
+import { accurate, adding, amplified, away, blocking, bolstering, bound, critDamaging, critResisting, critTaking, critting, dealing, deals, defending, defends, dodging, filling, healing, pacing, piercing, put, resisting, sealed, stacked, takes, wear, type Status } from './combat/status';
 import type { Input, Logged, Result, SimEvent } from './events';
 import { geared } from './gear';
 import { lineOf, nearer, NO_PASSIVE, type Ability, type HeroDef } from './heroes/kit';
@@ -888,9 +888,13 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       const lower = { physical: blocking(foe.statuses, 'physical'), magical: blocking(foe.statuses, 'magical') };
       // (And more or less of a dodge for what is on it: Phillop's Destroy Armor's book.)
       const dodge = { physical: Math.max(0, plain.dodge.physical + dodging(foe.statuses, 'physical')), magical: Math.max(0, plain.dodge.magical + dodging(foe.statuses, 'magical')) };
-      const stood = { ...plain, dodge, block: { physical: Math.max(0, plain.block.physical + lower.physical), magical: Math.max(0, plain.block.magical + lower.magical) } };
+      // (None at all for a hero no block touches: Rebel Klaus's.)
+      const unblocked = by.def.passive?.unblocked === true;
+      const stood = { ...plain, dodge, block: unblocked ? NONE : { physical: Math.max(0, plain.block.physical + lower.physical), magical: Math.max(0, plain.block.magical + lower.magical) } };
       const through = whole || (landing?.by === by && by.moveWhole.has(landing.move));
-      const against = through ? { ...stood, physical: 0, magical: 0 } : { ...stood, physical: stood.physical * defending(foe.statuses, 'physical'), magical: stood.magical * defending(foe.statuses, 'magical') };
+      // (Not lowered at all on one whose DEF nothing lowers: Siegfried's.)
+      const fixed = foe.part.fixedDefense === true;
+      const against = through ? { ...stood, physical: 0, magical: 0 } : fixed ? stood : { ...stood, physical: stood.physical * defending(foe.statuses, 'physical'), magical: stood.magical * defending(foe.statuses, 'magical') };
       // (Its skill's power: its books and its perks for the skill, added up. Then its DMG, all that makes it more, and what is on the
       // boss that has it take more, added up: King's Raid's damage amplifiers.)
       // (And DMG past DEF, the more for its set (Authority's assassin's) and its Sunder; and continuous DMG, for its Corrosion.)
@@ -908,11 +912,13 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       relics.get(by)?.blow();
       // Its perks that mark the boss as its blows land (Vital Detection, Experienced Fighter, Special Bullet): after this one.
       const marking = by.perkDefs.filter((perk) => perk.mark && (perk.mark.every === undefined || perkDue(by, perk.mark.name, perk.mark.every)));
-      // (And more or less by the boss's own: Scalaxia's less magic damage.) Deathless: all of it, and the boss whole again once it would be beaten.
-      const struck = taken * (foe.part.taken?.[type] ?? 1);
+      // (And more or less by the boss's own: Scalaxia's less magic damage; and its attack's blows, Siegfried's more.) Deathless: all of it, and the boss whole again once it would be beaten.
+      const struck = taken * (foe.part.taken?.[type] ?? 1) * (attacking === by ? (foe.part.attackTaken ?? 1) : 1);
       const dealt = deathless && foe === boss ? struck : Math.min(foe.hp, struck);
       foe.hp -= dealt;
       if (deathless && foe === boss && foe.hp <= 0) foe.hp = foe.maxHp;
+      // (A boss its part spares as it would be beaten is left on its last: Siegfried's Divine Power.)
+      if (foe === boss && foe.hp <= 0 && as(boss, () => foe.part.spared?.() === true)) foe.hp = Math.max(foe.hp, 1);
       by.dealt += dealt;
       // (Shown as King's Raid's: a crit over a block, and a skill's blow apart from its attack's and its passive's.)
       const skill = landing?.by === by && by.doing?.skill !== undefined;
@@ -1371,6 +1377,8 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
         const onBlock = setEffect(target).onBlock;
         if (onBlock && target.hp > 0 && perkDue(target, 'set-block', onBlock.wait)) target.cooldowns = target.cooldowns.map((left) => Math.max(0, left - onBlock.cooldown));
       }
+      // (What comes of it for the boss whose blow it was: Siegfried's mana, and the shield he breaks.)
+      if (foe === boss) boss.part.landed?.(target, blocked);
       return dealt;
     },
     revive(fighter, share, by) {
@@ -1446,6 +1454,12 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       const minion = minions.get(foe);
       if (minion?.def.skill) minion.skill = Math.max(0, minion.skill) + seconds;
     },
+    force(attack) {
+      if (boss.away || result) return;
+      going.clear();
+      boss.stunned = 0;
+      bossUse(attack);
+    },
     cue(who, name, targets = []) {
       events.push({ kind: 'cue', who: who?.index ?? null, name, targets: targets.map((one) => one.index) });
     },
@@ -1453,7 +1467,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       return sim.reservable(fighter, index) && (fighter.cooldowns[index] as number) <= 0 && fighter.mana >= (sim.slot(fighter, index) as Ability).cost * SECTION;
     },
     reservable(fighter, index) {
-      return sim.slot(fighter, index) !== null && field.includes(fighter) && fighter.hp > 0 && !bound(fighter.statuses);
+      return sim.slot(fighter, index) !== null && field.includes(fighter) && fighter.hp > 0 && !bound(fighter.statuses) && !sealed(fighter.statuses);
     },
     slot(fighter, index) {
       if (index < 0 || index >= fighter.abilities.length) return null;
@@ -1564,7 +1578,10 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       const may = def.attacks.filter((one) => boss.part.ready?.(one.name) ?? true);
       const basic = def.basic;
       const skill = basic ? may.find((one) => !basic.includes(one.name))?.name : undefined;
-      const plain = basic ? basic[Math.floor(roll() * basic.length)] : (may[Math.floor(roll() * may.length)] ?? def.attacks[0])?.name;
+      // (Of its plain attacks, those it may now: Siegfried's, by how often he has risen again.)
+      const plains = basic?.filter((name) => boss.part.ready?.(name) ?? true);
+      const pool = plains && plains.length > 0 ? plains : basic;
+      const plain = pool ? pool[Math.floor(roll() * pool.length)] : (may[Math.floor(roll() * may.length)] ?? def.attacks[0])?.name;
       bossUse(forced ?? skill ?? plain ?? '');
     }
 

@@ -453,6 +453,9 @@
 
 .raid-list-rows {
   display: grid;
+  /* Every row's banner and buttons in the same two columns (each row a subgrid of them), so a boss still to come's
+     "Upcoming" is as wide as the buttons are in the others. */
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 14px;
   margin: 0;
   padding: 16px;
@@ -460,10 +463,11 @@
   overflow-y: auto;
 }
 
-/* A dragon: its banner, and its buttons beside it (under it, on a phone). */
+/* A boss: its banner, and its buttons beside it (under it, on a phone). */
 .raid-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
   align-items: center;
   gap: 0 14px;
   padding: 8px 12px 8px 8px;
@@ -508,7 +512,11 @@
   background: radial-gradient(ellipse at 22% 50%, rgb(120 230 140 / 28%), transparent 65%), #0d120f;
 }
 
-/* A boss still to come: greyed, with "Upcoming" where its buttons will be. */
+:is(.raid-row[data-boss='ascalon'] .raid-row-banner, .raid-row-banner[data-boss='ascalon']) {
+  background: radial-gradient(ellipse at 22% 50%, rgb(255 214 120 / 30%), transparent 65%), #14110b;
+}
+
+/* A boss still to come: greyed, with "Upcoming" where its buttons will be, as wide and as tall as they are. */
 .raid-row.upcoming .raid-row-art {
   filter: grayscale(0.85) brightness(0.75);
 }
@@ -520,7 +528,6 @@
 .raid-row-soon {
   display: grid;
   place-items: center;
-  min-width: 304px;
   min-height: 64px;
   padding: 8px 14px;
   box-sizing: border-box;
@@ -618,12 +625,9 @@
   }
 
   .raid-list-rows {
+    grid-template-columns: minmax(0, 1fr);
     padding: 10px;
     gap: 10px;
-  }
-
-  .raid-row {
-    grid-template-columns: minmax(0, 1fr);
   }
 
   .raid-row-actions,
@@ -632,7 +636,6 @@
   }
 
   .raid-row-soon {
-    min-width: 0;
     min-height: 48px;
   }
 

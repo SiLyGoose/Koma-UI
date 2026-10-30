@@ -52,6 +52,11 @@
   transition: transform 0.2s ease-out;
 }
 
+/* Siegfried's mana in its place: blue, as King's Raid's mana bars are. */
+.tm-boss-gauge.mana i {
+  background: linear-gradient(180deg, #6fc8ff, #1f6fd6);
+}
+
 .tm-boss-bar b {
   position: absolute;
   inset: 0;

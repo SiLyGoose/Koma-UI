@@ -10,6 +10,7 @@ import type { DamageType } from '../technomagic/sim/combat/damage';
 import { ECLIPSE } from '../technomagic/sim/bosses/armarta/skills';
 import { IMPRISONMENT, SWAMP } from '../technomagic/sim/bosses/galgoria/skills';
 import { STORM } from '../technomagic/sim/bosses/scalaxia/skills';
+import { DAWN, DEF_CUT, MAGIC_TAKEN, MANA_BLOCKED, MANA_HIT, MANA_RATE, RAMPAGE, RISE, STORM as BLADES, STRIKE, SWORD } from '../technomagic/sim/bosses/siegfried/skills';
 import { BLESSING } from '../technomagic/sim/bosses/temeraire/skills';
 import { SCALES } from '../technomagic/sim/bosses/zyrrkinoth/skills';
 import { ULTIMATE } from '../technomagic/sim/bosses/dragon/common';
@@ -55,6 +56,17 @@ export const BOSS_SKILLS: Readonly<Record<string, BossSkills>> = {
       { name: 'Persistent Life Force', icon: icon('galgoria', 3590041), attacks: [], about: 'Immune to Attack Speed reduction and Lifesteal. Recovers 1% of its HP every sec, with its Heal Rate increased by 70% (120% from stage 4): 1.7% a sec (2.2%) before Heal Rate reductions. From stage 4, heroes’ healing is reduced by 40% and their shields by 60%.' },
     ],
     basic: { attacks: ['left', 'centre', 'right'], about: 'Each head spits venom at the enemy it is after, dealing M.DMG.' },
+  },
+  siegfried: {
+    skills: [
+      { name: 'Divine Strike', icon: icon('siegfried', 3591010), attacks: ['strike'], about: `Charges energy and swings his sword, dealing P.DMG to frontal enemies in a straight line. Afterward, attacks them again and knocks them down for ${STRIKE.down} sec. Targets hit have their DEF reduced by ${DEF_CUT[0]?.toLocaleString('en-US')} permanently (up to ${STRIKE.most} times); the reduction grows with the stage, to ${DEF_CUT[DEF_CUT.length - 1]?.toLocaleString('en-US')} at stage ${DEF_CUT.length}.` },
+      { name: 'Divine Storm of Blades', icon: icon('siegfried', 3591020), attacks: ['storm'], about: `Summons small swords of light, dealing P.DMG to all enemies 20 times; each hit recovers ${BLADES.mana} of the target’s Mana. Afterward, deals P.DMG to all enemies with the divine sword of light: a target whose Mana is full has all its Skills sealed for ${BLADES.seal} sec. Afterward, Siegfried loses power and falls for ${BLADES.fall} sec, taking ${pct(BLADES.taken)} more DMG meanwhile.` },
+      { name: 'Divine Power', icon: icon('siegfried', 3591030), attacks: ['rise'], about: `Upon taking fatal DMG, Siegfried is granted Divine Power: negative effects on him are dispelled, his HP is fully recovered and his ATK permanently increased by ${pct(RISE.atk)}. Activated only ${RISE.times} times in the battle; each time, his Max HP increases by ${pct(RISE.hp)} and his divine sword grows, widening his normal attacks (${SWORD.join(' m, ')} m about him). The HP Recovery is not affected by Heal Rate Reduction effects.` },
+      { name: 'Divine Rampage', icon: icon('siegfried', 3591040), attacks: [], about: `Not affected by changes in DEF and ATK Spd. His Divine Power increases All Block Chance by ${pct(1)}, and his Mana recovers ${MANA_RATE[0]} every sec (${MANA_RATE[MANA_RATE.length - 1]} at stage ${MANA_RATE.length}). If his Mana is fully charged, his DEF Penetration is greatly increased (+${RAMPAGE.pen}) for ${RAMPAGE.lasts} sec, again as long as it stays full. Takes ${pct(MAGIC_TAKEN)} more M.DMG.` },
+      { name: 'Distorted Dawn', icon: icon('siegfried', 3591042), attacks: [], about: `Siegfried recovers ${MANA_HIT[0]} Mana each hit (${MANA_HIT[MANA_HIT.length - 1]} at stage ${MANA_HIT.length}), but if his attack is blocked, his Mana is reduced by ${MANA_BLOCKED}, and all of his attacks destroy the target’s Shield. From stage ${DAWN.from}, All Block Chance is increased by a further ${pct(DAWN.block / 1000)}, his normal attacks deal ${pct(DAWN.attack)} more DMG, but he also takes ${pct(DAWN.taken)} more DMG from normal attacks, and his ATK is ${pct(DAWN.weak)} lower for the first ${DAWN.weakFor} sec.` },
+    ],
+    basic: { attacks: ['slash', 'slash2', 'slash3'], about: 'Swings his sword 3 times at the enemy he is after, dealing P.DMG to it and to those about it (wider with each Divine Power).' },
+    takes: { magical: 1 + MAGIC_TAKEN },
   },
   temeraire: {
     skills: [

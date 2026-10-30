@@ -61,8 +61,19 @@ export const TM_LIST: RaidList = {
         'As all of Galgoria’s attacks deal M.DMG and it recovers HP all the while, you should try using Heroes that have M.DEF-related spells and Heroes that reduce its healing. Since [Swamp Imprisonment] shuts away the Hero that has dealt the most DMG, your party should not rely on a single Hero.',
       rewards: [POINTS, GEMS, { kind: 'tm', slot: 'weapon', name: 'Perseverance Set' }],
     },
+    {
+      id: 'siegfried',
+      name: 'Siegfried',
+      title: 'TechnoMagic Raid',
+      lair: 'the sanctuary of Serineu',
+      about:
+        'Siegfried, the King of Dawn, corrupted. His blows are physical and break shields, he blocks every kind of blow, and nothing slows him or lowers his DEF. As he would be beaten he rises again, twice, whole and stronger, his sword reaching further each time; his mana full, his blows see through DEF.',
+      tactic:
+        'Distorted Dawn, Siegfried can revive 2 times if he is close to death. Every time he comes back from death, the power within his sword becomes stronger. In his final state, the aura of his sword becomes so big that it even threatens the Heroes in the backline, so make sure to protect your Heroes located in the back! Oh, and all of Siegfried’s attacks destroy Shields and become even stronger when his Mana is full! Make sure his Mana doesn’t reach the max capacity!',
+      rewards: [POINTS, GEMS, { kind: 'tm', slot: 'weapon', name: 'Hope Set' }],
+    },
   ],
-  upcoming: [{ id: 'siegfried', name: 'Siegfried', title: 'TechnoMagic Raid' }],
+  upcoming: [{ id: 'ascalon', name: 'Ascalon', title: 'TechnoMagic Raid' }],
 };
 
 export const DRAGON_LIST: RaidList = {

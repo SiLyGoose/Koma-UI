@@ -2,11 +2,12 @@ import { ARMARTA } from './armarta';
 import type { BossDef } from './boss';
 import { GALGORIA } from './galgoria';
 import { SCALAXIA } from './scalaxia';
+import { SIEGFRIED } from './siegfried';
 import { TEMERAIRE } from './temeraire';
 import { ZYRRKINOTH } from './zyrrkinoth';
 
 /** The bosses of the TechnoMagic Raid there are so far: the first is the one fought unless another is asked for. */
-export const TM_BOSSES: readonly BossDef[] = [GALGORIA];
+export const TM_BOSSES: readonly BossDef[] = [GALGORIA, SIEGFRIED];
 /** The Dragon Raid's dragons, as King's Raid has them: Fire, Frost, Poison and Black. */
 export const DRAGONS: readonly BossDef[] = [TEMERAIRE, SCALAXIA, ZYRRKINOTH, ARMARTA];
 /** Every boss there is. */

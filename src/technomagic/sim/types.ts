@@ -193,8 +193,8 @@ export interface Foe {
   /** What its skills do beyond hurting whoever they land on. */
   part: BossPart;
   hp: number;
-  /** Its health whole (its own, or less for a raid fought alone). */
-  readonly maxHp: number;
+  /** Its health whole (its own, or less for a raid fought alone; more once a skill of its has it so: Siegfried's Divine Power). */
+  maxHp: number;
   /** How long it is stunned for yet, and its attacks slowed (to `slowRate` of their speed). */
   stunned: number;
   slowed: number;
@@ -280,6 +280,11 @@ export interface Fight {
    * skill ready as much as one not: as its part keeps them (BossPart.delay); a minion's, its skill's.
    */
   delay(seconds: number): void;
+  /**
+   * The boss begins `attack` now, whatever it was doing (that cut short, and a stun or a fall on it over), on Auto or not:
+   * a skill of its own that comes of itself (Siegfried's Divine Power, as it would be beaten).
+   */
+  force(attack: string): void;
   /** Something for the page to draw that the fight's own events don't say: `name` is the hero's (or with `who` null, the boss's) own, and `targets` whom it is on. */
   cue(who: Fighter | null, name: string, targets?: readonly Fighter[]): void;
 }

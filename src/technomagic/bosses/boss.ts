@@ -17,6 +17,8 @@ export interface BossLook {
   skills?: readonly string[];
   /** Where it is fought (without, a plain field). */
   scenery?: Scenery;
+  /** What the bar under its health is (the fight's gauge()): its CC gauge (none said), or its mana (Siegfried's, as King's Raid shows it). */
+  gauge?: 'cc' | 'mana';
 }
 
 /** The boss's body on the field: drawn doing what the sim says it does. */

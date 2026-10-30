@@ -50,9 +50,10 @@ function markTip(made: Element): Node[] | null {
 
 /**
  * `root` holds the bar (its fill an <i>, its words a <b>), the gauge's (its fill an <i>) and the marks' row. `name` is the
- * boss's, and `deals` the kind of damage its blows are.
+ * boss's, `deals` the kind of damage its blows are, and `gauge` what the bar under its health is: its CC gauge, or its mana
+ * (Siegfried's, in blue, as King's Raid shows it).
  */
-export function makeBossBar(root: HTMLElement, name: string, deals: string): BossBar {
+export function makeBossBar(root: HTMLElement, name: string, deals: string, gauge: 'cc' | 'mana' = 'cc'): BossBar {
   const fill = root.querySelector('.tm-boss-bar i') as HTMLElement;
   const words = root.querySelector('.tm-boss-bar b') as HTMLElement;
   const meter = root.querySelector('.tm-boss-gauge') as HTMLElement;
@@ -61,7 +62,8 @@ export function makeBossBar(root: HTMLElement, name: string, deals: string): Bos
   root.setAttribute('role', 'group');
   root.setAttribute('aria-label', `${name}: its blows are ${deals}`);
   meter.setAttribute('role', 'meter');
-  meter.setAttribute('aria-label', 'CC Gauge');
+  meter.setAttribute('aria-label', gauge === 'mana' ? 'Mana' : 'CC Gauge');
+  meter.classList.toggle('mana', gauge === 'mana');
   meter.setAttribute('aria-valuemin', '0');
   meter.setAttribute('aria-valuemax', '100');
   // A square pointed at with a mouse: what it is, over it.

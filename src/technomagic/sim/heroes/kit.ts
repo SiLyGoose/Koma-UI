@@ -53,6 +53,8 @@ export interface Passive {
   /** What knocks it down holds it this many times as long (1 when it doesn't say); and (`steady`) nothing changes how fast it moves: neither its attack speed nor what is on it. */
   held?: number;
   steady?: boolean;
+  /** No block of the boss's touches its blows (Rebel Klaus's Power of Galicta: not affected by Block stats). */
+  unblocked?: boolean;
   shown: Buff;
   /** King's Raid's words for it, as an Ability's are; and what its tag says, where not "Passive". */
   words?: string;

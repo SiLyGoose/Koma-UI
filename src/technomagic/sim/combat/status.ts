@@ -59,6 +59,8 @@ export interface Status<Shown> {
   away?: boolean;
   /** Its bearer can't be knocked down while it is on. */
   guards?: boolean;
+  /** Its bearer's skills are sealed while it is on: it still attacks, but can use none of them (Siegfried's Divine Storm of Blades). */
+  seals?: boolean;
   /** How many are stacked up in it. */
   count?: number;
   shown: Shown;
@@ -211,3 +213,4 @@ export function blocking(on: readonly Status<unknown>[], type: DamageType): numb
 /** A bearer of these can do nothing; is out of the fight altogether. */
 export const bound = (on: readonly Status<unknown>[]): boolean => on.some((status) => status.binds || status.away);
 export const away = (on: readonly Status<unknown>[]): boolean => on.some((status) => status.away);
+export const sealed = (on: readonly Status<unknown>[]): boolean => on.some((status) => status.seals);

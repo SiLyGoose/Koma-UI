@@ -1,7 +1,7 @@
 /*
  * The heroes recommended against each of the TechnoMagic Raid's bosses and the Dragon Raid's dragons, for the databank's
  * enemies (./bosses.ts), out of every hero King's Raid has had, the raid's or not. Written by KR-extracted/scripts/tm-picks.mjs:
- * King's Raid's own picks first (`kr`: its Hard Dragon Raid's, and `normal` its Normal one's; Galgoria has none), then
+ * King's Raid's own picks first (`kr`: its Hard Dragon Raid's, and `normal` its Normal one's; the TechnoMagic Raid's bosses have none), then
  * `picks`, chosen for what their skills do against the boss's, each with why, up to 8 in all (recommendedIn).
  * OTHER_HEROES: those the raid doesn't have, as King's Raid has them (their icons in public/kr/hero-icons/).
  */
@@ -27,6 +27,20 @@ export const RECOMMENDED: Readonly<Record<string, Recommended>> = {
       tanya: 'Deals P.DMG, and Blade Tornado from Stealth cuts its healing by 70%.',
       rehartna: 'Gives the party mana and shortens its cooldowns while Poisonous Swamp slows their mana.',
       arch: 'Arbiter makes the party immune to M.DMG for a while, through its venom.',
+    },
+  },
+  siegfried: {
+    kr: [],
+    normal: null,
+    picks: {
+      hilda: 'Deals M.DMG, which he takes 30% more of; Void Frenzy’s attacks ignore his Block, and Void Whirlwind drains his Mana.',
+      gremory: 'Deals M.DMG; Puchi’s Mark lowers his M.Block Chance and Pippi’s Mark raises the M.DMG he takes.',
+      annette: 'Deals M.DMG, raises the M.DMG he takes and lowers his ATK, and Emergency Treatment clears Divine Strike’s DEF cut from the party.',
+      lavril: 'Raises the M.DMG he takes stack by stack and lowers his ATK, and heals the party as she deals M.DMG.',
+      klaus: 'Guardian Shield raises the party’s P.Block, and every blow of his they block drains his Mana before it fills.',
+      valance: 'Absolute Protection Field keeps the party free of Divine Strike’s knock down and healed without shields, and raises the DMG Bosses take.',
+      isaiah: 'Deals M.DMG, Touch of Mercy lowers his ATK, and Offering of Atonement makes the party invincible through Divine Storm of Blades.',
+      kirze: 'Deals M.DMG, which he takes 30% more of, in many hits from the frontline.',
     },
   },
   temeraire: {
@@ -94,14 +108,9 @@ export const OTHER_HEROES: Readonly<Record<string, OtherHero>> = {
   kaulah: { name: 'Kaulah', class: 'priest', deals: 'magical' },
   epis: { name: 'Epis', class: 'assassin', deals: 'magical' },
   rephy: { name: 'Rephy', class: 'priest', deals: 'magical' },
-  jane: { name: 'Jane', class: 'knight', deals: 'magical' },
   luna: { name: 'Luna', class: 'archer', deals: 'magical' },
   arch: { name: 'Arch', class: 'archer', deals: 'magical' },
   mediana: { name: 'Mediana', class: 'priest', deals: 'physical' },
   ophelia: { name: 'Ophelia', class: 'wizard', deals: 'magical' },
   laudia: { name: 'Laudia', class: 'assassin', deals: 'magical' },
-  cecilia: { name: 'Cecilia', class: 'mechanic', deals: 'physical' },
-  shakmeh: { name: 'Shakmeh', class: 'knight', deals: 'physical' },
-  gladi: { name: 'Gladi', class: 'assassin', deals: 'physical' },
-  isaiah: { name: 'Isaiah', class: 'priest', deals: 'magical' },
 };

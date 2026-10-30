@@ -477,6 +477,7 @@ export function makeFightView({
           case 'boss-daze':
             charge = null;
             boss.daze(event.seconds, event.down);
+            krBoss.cut();
             if (event.down) sounds.down();
             signs.dazed(bossHit);
             break;
@@ -602,6 +603,8 @@ export function makeFightView({
         if (!down && lying.over <= 0) fallen.delete(who);
       }
       signs.boss(sim.boss.statuses, bossHit);
+      // What the boss keeps on it for what is on it (Siegfried's sword's light, once he has risen).
+      krBoss.keep(sim.boss.statuses);
       // Each look that wasn't kept this frame stops (its hero no longer guarded, or fallen); and, gone of itself, its own end plays.
       for (const [key, one] of guarding) {
         if (one.kept) one.kept = false;
