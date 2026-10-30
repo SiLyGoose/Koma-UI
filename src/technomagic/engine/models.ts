@@ -218,11 +218,12 @@ export async function loadModels(folders: readonly string[], repaint?: { from: s
   });
 
   const drawn = new Map<string, Promise<MeshBasicMaterial>>();
-  const draw = (name: string, folder: string, file: string | undefined): Promise<MeshBasicMaterial> => {
-    const key = `${folder}/${file}/${name}`;
+  const draw = (name: string, folder: string, file: string | undefined, model: string): Promise<MeshBasicMaterial> => {
+    // A costume's aura: as King's Raid draws it (its model's own, where its body, hair and weapon each have one of the name).
+    const own = AURAS[`${name}@${model.split('/').pop()}`];
+    const aura = own ?? AURAS[name];
+    const key = aura ? `${own ? model : ''}/${name}` : `${folder}/${file}/${name}`;
     let made = drawn.get(key);
-    // A costume's aura: as King's Raid draws it.
-    const aura = AURAS[name];
     if (!made && aura) {
       made = auraMaterial(name, aura);
       drawn.set(key, made);
@@ -251,7 +252,7 @@ export async function loadModels(folders: readonly string[], repaint?: { from: s
             const picture = pictureOf(material);
             const named = picture ? { folder: folders[i] as string, file: colourOf(picture) } : found.get(material.name);
             const own = repaint && named?.file.includes(repaint.from) ? { folder: repaint.at, file: named.file.replace(repaint.from, repaint.to) } : named;
-            return draw(material.name, own?.folder ?? (folders[i] as string), own?.file);
+            return draw(material.name, own?.folder ?? (folders[i] as string), own?.file, folders[i] as string);
           }),
         ).then((made) => {
           o.material = Array.isArray(o.material) ? made : (made[0] as MeshBasicMaterial);
