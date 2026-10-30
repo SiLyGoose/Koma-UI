@@ -594,7 +594,7 @@
 }
 
 /*
- * King's Raid's perk pages (public/kr/ui/perk-pages/: its Mission_Button sprites, 9-sliced): navy, the one shown lighter;
+ * King's Raid's perk pages (public/kr/ui/perk-pages/: its Mission_Button sprites, 9-sliced): navy, the one shown sky blue;
  * the + buying the next one gold; one not to be had yet grey.
  */
 .perk-pages {
@@ -625,9 +625,17 @@
   filter: brightness(1.15);
 }
 
+/* (The one in use: the site's sky blue, its main buttons' gradient, so it reads at a glance.) */
 .perk-page.on {
-  border-image-source: url('/kr/ui/perk-pages/page-on.webp');
-  color: #ffe9a8;
+  border: 2px solid var(--sky-edge);
+  border-image: none;
+  border-radius: 6px;
+  background: var(--sky-fill);
+  box-shadow:
+    inset 0 0 0 1px rgb(8 36 74 / 85%),
+    inset 0 -2px 0 rgb(170 235 255 / 30%);
+  color: #fff;
+  text-shadow: 0 1px 2px rgb(0 45 95 / 80%);
   cursor: default;
 }
 
