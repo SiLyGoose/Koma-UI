@@ -1,3 +1,4 @@
+import type { DamageType } from './combat/damage';
 import { put, type Status } from './combat/status';
 import { KR_ARTIFACTS } from './gear/kr-data';
 import { MAX_MANA } from './rules';
@@ -6,10 +7,13 @@ import type { Fighter, Foe, GearBonus, GearStat } from './types';
 
 /*
  * The artifacts, as King's Raid's CBT2 playtest has them (./gear/kr-data.ts: SkillTable's numbers at each of its stars, 0★
- * to 5★): a hero wears one, in its artifact slot (the bot says which, and its stars, as the fight begins). Those
- * that do something in a raid against one boss: not those that count enemies past one, kills, Heroes (the Arena's) or
- * other races than the dragons' (KR's masks: no boss here is of theirs), nor those on enemies' mana or skills, which no
- * boss here has. ./fight.ts calls on an artifact's hooks (artifactHooks) as the fight goes.
+ * to 5★): a hero wears one, in its artifact slot (the bot says which, and its stars, as the fight begins). Every one but
+ * KR's race masks (no enemy here is of theirs: the TechnoMagic bosses are Angels, the dragons and their minions Dragons).
+ * What one does to an enemy's crowd control (silence, petrify, knock down or away) is a stun as the fight has them (a boss's
+ * CC gauge takes it, Siegfried shrugs it off, a minion is held; a minion's silence, its skill held back), and to its
+ * mana, only a boss that has some (Siegfried's). Those only against Heroes or in the Arena are worn, but do nothing here
+ * (Crystal Music Box, Tome of Black Magic), as in King's Raid. ./fight.ts calls on an artifact's hooks (artifactHooks) as
+ * the fight goes.
  */
 
 /** A number at each of its stars, 0★ to 5★ (the index is the stars). */
@@ -41,7 +45,29 @@ type Whom = 'self' | 'allies' | 'top' | 'self-top';
  * - `low`: while its health is `below` or less, ATK, ATK Spd and Tough; `rescue`: the first time its health falls below
  *   `below`, healed a share of its max HP, and cleansed; `undying`: its health won't fall below `floor` at first;
  * - `onDodge`: each dodge, ATK more, `most` times; `blows`: every `count` blows, ATK and crit for `lasts`; `fullMana`: with its
- *   mana full (once in `wait`), crit and ACC for `lasts`.
+ *   mana full (once in `wait`), crit and ACC for `lasts`;
+ * - `aura`: every `every` seconds (first after that long), a blow on the enemy it is fighting of so much of its ATK (`hit`)
+ *   or its max HP (`maxHp`; `once`: only the first time), and that enemy healed less (`recovery`) for `lasts`;
+ * - `chain`: every so many seconds (by its stars), a random enemy's good effects gone, and silenced for `silence`;
+ * - `counter`: hit (once in `wait`), a blow back on whoever hit it (`hit`), slowed (`slow` points) for `slowFor`, and
+ *   petrified (`stone` seconds) `stoneAt` seconds later;
+ * - `dot`: as its attack lands (`basic`: its normal attack's only; once in `wait` at most), a blow every `tick` seconds for
+ *   `lasts`, `amount` each, through all DEF (`whole`); `shared`: one on an enemy of every ally's (another's takes its place);
+ * - `roar`: hit with its health `below` or less (once in `wait`): a blow (`hit`), the enemy knocked down for `down`, its ATK
+ *   (`atk`) and ATK Spd (`slow`) lower for `lasts`;
+ * - `hits`: every `count` times it is hurt (by `kind` only, once in a tenth of a second at most), `shield`: cleansed and a
+ *   shield of so much of its ATK for `lasts` (guarded, counting none meanwhile); `heal`: a random ally healed so much of its
+ *   ATK and its ATK more (`atk`) for `lasts`; `weaken`: the two strongest enemies dealing heroes less for `lasts` (once in `wait`);
+ * - `sword`: each second, `cost` of its health for a stack (`most`), each DMG and crit DMG `each` more; no lifesteal; below
+ *   `below` of its health, none of it (its stacks gone);
+ * - `radiance`: at first and every `every` seconds, Radiance for `lasts`: still on as it ends, it is cleansed and takes
+ *   `taken` less for `lasts`; taken off before, `random` enemies' good effects gone, knocked away `away` and mana less (`mana`);
+ * - `bond`: as each wave begins, a random enemy's skills' cooldowns so many seconds longer;
+ * - `sap`: its attack, by `chance` (once in `wait`), the enemy's mana less (`mana`);
+ * - `breath`: the two allies with the highest ATK besides itself deal enemies `dmg` more; every so many seconds (`every`, by
+ *   its stars) every ally healed `heal` of its max HP (`alone` times as much with one enemy standing);
+ * - `engraving`: every `every` seconds, every ally's DEF (`defense`) and max HP (`hp`) more, `most` stacks.
+ *   (`breath` and `engraving` don't stack between allies, King's Raid's: only the best of them, by its stars, does.)
  */
 export interface ArtifactDef {
   own?: Partial<Record<GearStat, Tiers>>;
@@ -99,6 +125,18 @@ export interface ArtifactDef {
   onDodge?: { atk: Tiers; most: number };
   blows?: { count: number; atk: Tiers; crit: Tiers; lasts: number };
   fullMana?: { wait: number; crit: Tiers; acc: Tiers; lasts: number };
+  aura?: { every: number; hit?: Tiers; maxHp?: Tiers; once?: true; recovery?: Tiers; lasts?: number };
+  chain?: { every: Tiers; silence: Tiers };
+  counter?: { wait: number; hit: Tiers; slow: Tiers; slowFor: number; stoneAt: number; stone: Tiers };
+  dot?: { basic?: true; wait: number; tick: number; lasts: number; amount: Tiers; whole?: true; shared?: true };
+  roar?: { below: number; wait: number; hit: number; down: number; atk: Tiers; slow: Tiers; lasts: number };
+  hits?: { count: number; kind?: DamageType; lasts: number; wait?: number; shield?: Tiers; heal?: Tiers; atk?: Tiers; weaken?: Tiers };
+  sword?: { cost: Tiers; each: number; most: Tiers; below: number };
+  radiance?: { every: number; lasts: number; taken: Tiers; random: number; away: number; mana: Tiers };
+  bond?: Tiers;
+  sap?: { chance: Tiers; wait: number; mana: Tiers };
+  breath?: { dmg: Tiers; every: Tiers; heal: number; alone: number };
+  engraving?: { every: number; defense: Tiers; hp: Tiers; most: number };
 }
 
 /** The same at every refinement. */
@@ -255,6 +293,42 @@ export const ARTIFACTS: Readonly<Record<string, ArtifactDef>> = {
   'artifact-60': { start: { on: 'self', lasts: all(30), foes: k(200, 240, 280, 340, 420, 500), manaEach: [200, 240, 280, 340, 420, 500] } },
   // Perfume of the Queen: every third time it is knocked down, ATK Spd for a while.
   'artifact-64': { onKnock: { wait: all(0), count: 3, speed: all(500), lasts: [4, 4.8, 5.8, 7, 8.4, 10] } },
+  // Solar Stone: every second a blow about it, and the enemy healed less for a while.
+  'artifact-31': { aura: { every: 1, hit: [200, 240, 290, 350, 420, 500], recovery: k(-300, -360, -430, -520, -620, -750), lasts: 5 } },
+  // Cross Pumpkin Head: its max HP; a second in, a blow of a share of it (the playtest's goes once: it turns itself off).
+  'artifact-51': { own: { hp: k(200, 240, 290, 350, 420, 500) }, aura: { every: 1, maxHp: all(0.02), once: true } },
+  // Sealed Chain of Ancient God: now and then, a random enemy's good effects gone, and silenced.
+  'artifact-12': { chain: { every: [20, 19, 18, 17, 16, 15], silence: [3, 3.5, 4, 4.5, 5, 6] } },
+  // Abyssal Eye: hit, a magic blow back, the enemy slowed, then petrified (the playtest's 1.3 seconds on).
+  'artifact-501': { counter: { wait: 30, hit: [500, 600, 720, 860, 1050, 1250], slow: [400, 480, 580, 700, 840, 1000], slowFor: 1.5, stoneAt: 1.3, stone: [2, 2.4, 2.9, 3.5, 4, 5] } },
+  // Abyssal Nail Ornament: its attack, a blow through all DEF every half second for 10 seconds.
+  'artifact-503': { dot: { wait: 20, tick: 0.5, lasts: 10, amount: [40, 48, 58, 70, 84, 100], whole: true } },
+  // Roaring Tiger Statue: low on health and hit, a blow about it, the enemy knocked down (the playtest's 3 seconds) and weaker.
+  'artifact-8': { roar: { below: 0.35, wait: 30, hit: 1000, down: 3, atk: k(-140, -160, -200, -240, -290, -350), slow: [140, 160, 200, 240, 290, 350], lasts: 10 } },
+  // Insignia of Iron Conviction: every 50 magic blows taken, cleansed and a shield.
+  'artifact-28': { hits: { count: 50, kind: 'magical', lasts: 5, shield: k(4800, 5800, 6900, 8300, 10000, 12000) } },
+  // Otherworldly Sword: its health for DMG and crit DMG, growing; no lifesteal.
+  'artifact-517': { sword: { cost: k(40, 48, 57, 69, 83, 100), each: 0.005, most: [50, 60, 70, 80, 90, 100], below: 0.25 } },
+  // Juno's Special Vitality Stew: its normal attack, continuous DMG for 5 seconds (one on an enemy of every ally's).
+  'artifact-512': { dot: { basic: true, wait: 0, tick: 0.5, lasts: 5, amount: [200, 240, 290, 350, 420, 500], shared: true } },
+  // Otherworldly Radiance: every 15 seconds, Radiance; kept, cleansed and taking less.
+  'artifact-519': { radiance: { every: 15, lasts: 4, taken: k(200, 240, 290, 350, 420, 500), random: 2, away: 3, mana: [800, 1000, 1200, 1400, 1700, 2000] } },
+  // Otherworldly Helm: its max HP; every third blow taken, the strongest enemies dealing heroes less for a while.
+  'artifact-518': { own: { hp: k(200, 240, 290, 350, 420, 500) }, hits: { count: 3, wait: 30, lasts: 5, weaken: k(500, 550, 600, 650, 700, 750) } },
+  // Infernal Bond: as each wave begins, a random enemy's skills later.
+  'artifact-45': { bond: [2.5, 3, 3.5, 4, 5, 6] },
+  // Crystal Music Box: only on Heroes (both its DMG and what it takes more of): nothing here.
+  'artifact-65': {},
+  // Abyssal Breath: the two strongest allies besides itself deal more; every ally healed now and then (twice over with one enemy).
+  'artifact-524': { breath: { dmg: k(50, 60, 72, 86, 104, 125), every: [10, 9, 8, 7, 6, 5], heal: 0.025, alone: 2 } },
+  // Solenis' Engraving: every 10 seconds, every ally's DEF and max HP more, 12 times at most.
+  'artifact-1003': { engraving: { every: 10, defense: k(20, 24, 28, 34, 42, 50), hp: k(10, 12, 14, 17, 21, 25), most: 12 } },
+  // Tome of Black Magic: only in the Arena: nothing here.
+  'artifact-33': {},
+  // Sorcerous Black Dagger: its attack, now and then, the enemy's mana less.
+  'artifact-29': { sap: { chance: k(100, 120, 140, 160, 180, 200), wait: 6, mana: [600, 700, 800, 1000, 1200, 1500] } },
+  // Vase of Sacrifice: every 50 blows taken, a random ally healed and its ATK more for a while.
+  'artifact-37': { hits: { count: 50, lasts: 10, heal: k(2000, 2400, 2900, 3500, 4200, 5000), atk: k(300, 360, 430, 510, 630, 750) } },
 };
 
 /** Its name, and what it does at each of its stars (0★ to 5★), in King's Raid's words. */
@@ -286,34 +360,54 @@ export interface ArtifactFight {
   elapsed(): number;
   field(): readonly Fighter[];
   boss(): Foe;
+  /** The enemy in question (as a blow lands on a hero, whose it is); the one a hero is fighting; every enemy standing. */
+  foe(): Foe;
+  aim(by: Fighter): Foe;
+  foes(): readonly Foe[];
+  /** `run` with `foe` the enemy in question. */
+  on(foe: Foe, run: () => void): void;
   /** Whether the boss is a dragon (King's Raid's Dragon race). */
   dragon: boolean;
   roll(): number;
+  /** A blow on the enemy in question (thousandths of its ATK): counted; continuous DMG; through all its DEF (not counted). */
   hit(by: Fighter, amount: number): void;
+  continuous(by: Fighter, amount: number): void;
+  whole(by: Fighter, amount: number): void;
   heal(fighter: Fighter, amount: number): void;
+  shield(fighter: Fighter, amount: number, seconds: number): void;
+  /** On the enemy in question: stunned (`down`: knocked down) by a hero; slowed; its skills later; its good effects gone; its mana less. */
+  stun(by: Fighter, seconds: number, down?: boolean): void;
+  slow(points: number, seconds: number): void;
+  delay(seconds: number): void;
+  dispel(): void;
+  drain(mana: number): void;
   /** Whether a wait of a hero's by its name is over: then it waits again, `again` seconds. */
   due(fighter: Fighter, name: string, again: number): boolean;
 }
 
 /**
  * What an artifact does as the fight goes, for the hero wearing it: its DMG (to `foe`) and what it takes, as the fight
- * works them out; and what comes of the fight beginning, a step's time passing, its attack landing, any blow of its
- * landing, being hit, being knocked down (false: it isn't), dodging; and its health not falling below some at first.
+ * works them out; and what comes of the fight beginning, a wave beginning, a step's time passing, its attack landing, any
+ * blow of its landing, being hurt (by a kind of damage), being knocked down (false: it isn't), dodging; its health not
+ * falling below some at first; and whether its lifesteal works.
  */
 export interface ArtifactHooks {
   deals(foe: Foe): number;
   taken(): number;
   begin(): void;
+  wave(): void;
   tick(dt: number): void;
   basic(): void;
   blow(): void;
-  hurt(): void;
+  hurt(type: DamageType): void;
   knocked(): boolean;
   dodged(): void;
   /** Whether its DEF is none for now (Nail Ornament of the Deep's, at first). */
   noDef(): boolean;
   /** The least its health may fall to (0: none). */
   floor(): number;
+  /** Whether its lifesteal heals it (Otherworldly Sword's: not). */
+  steals(): boolean;
 }
 
 /** What every ally gains of an artifact's `allies`, from every hero on the field wearing one: the highest of each. */
@@ -332,7 +426,7 @@ const SHOWN = (worn: NonNullable<ReturnType<typeof artifactOf>>): Buff => ({ ...
 export function artifactHooks(self: Fighter, fight: ArtifactFight): ArtifactHooks | null {
   const worn = self.artifact;
   if (!worn) return null;
-  const { def, tier } = worn;
+  const { def, tier, id } = worn;
   const t = (tiers: Tiers | undefined): number => at(tiers, tier);
   const shown = SHOWN(worn);
   const name = `artifact ${self.index}`;
@@ -343,6 +437,22 @@ export function artifactHooks(self: Fighter, fight: ArtifactFight): ArtifactHook
   let rescued = false;
   let manaEach = 0;
   let manaFor = 0;
+  // (Its continuous blows on enemies; whom it petrifies, and when; the blows it has taken toward its `hits`, and how long
+  // its shield guards it yet; its sword's stacks, and the next second's; its Radiance, and how long yet; its engraving's
+  // stacks, and the max HP it has given each ally; whether its once-only aura has gone; a wave begun, not seen to yet.)
+  const dots: { foe: Foe; next: number; left: number; status: Status<Tone> }[] = [];
+  let stoneOn: Foe | null = null;
+  let stoneIn = 0;
+  let hurts = 0;
+  let guardFor = 0;
+  let edge = 0;
+  let swordIn = 1;
+  let radiant: Status<Buff> | null = null;
+  let radiantFor = 0;
+  let engraved = 0;
+  const grown = new Map<Fighter, number>();
+  let auraDone = false;
+  let waveBegun = true;
   /** A status of its artifact's on `on`, for `lasts` seconds. */
   const give = (on: Status<Buff>[], lasts: number, does: Omit<Status<Buff>, 'name' | 'left' | 'shown'>, as = name): void => put(on, { name: as, left: lasts, ...does, shown });
   /**
@@ -350,6 +460,16 @@ export function artifactHooks(self: Fighter, fight: ArtifactFight): ArtifactHook
    * whoever wears it (King's Raid's: the same artifact's on the boss don't stack between allies).
    */
   const curse = (lasts: number, does: Omit<Status<Tone>, 'name' | 'left' | 'shown'>, as = `${worn.id} on the boss`): void => put(fight.boss().statuses, { name: as, left: lasts, ...does, shown: 'curse' });
+  /** The same on any enemy; what was put on it. */
+  const mark = (foe: Foe, lasts: number, does: Omit<Status<Tone>, 'name' | 'left' | 'shown'>, as = `${worn.id} on the boss`): Status<Tone> => {
+    const status: Status<Tone> = { name: as, left: lasts, ...does, shown: 'curse' };
+    put(foe.statuses, status);
+    return status;
+  };
+  /** Every harmful effect on a hero gone (not one that holds it: a knock down's). */
+  const cleanse = (on: Fighter): void => {
+    on.statuses = on.statuses.filter((status) => status.shown.harmful !== true || status.binds === true);
+  };
   const standing = (): Fighter[] => fight.field().filter((on) => on.hp > 0);
   const top = (others: boolean): Fighter | null =>
     standing().reduce<Fighter | null>((best, on) => (others && on === self ? best : !best || on.stats.atk > best.stats.atk ? on : best), null);
@@ -361,17 +481,56 @@ export function artifactHooks(self: Fighter, fight: ArtifactFight): ArtifactHook
   };
   const earlyOn = (): boolean => def.start !== undefined && fight.elapsed() < t(def.start.lasts);
   /** `n` of `from` at random, each once (by the fight's chances, so the bot's and every page's fight pick the same). */
-  const picked = (from: Fighter[], n: number): Fighter[] => {
+  const picked = <T>(from: readonly T[], n: number): T[] => {
     const left = [...from];
-    const out: Fighter[] = [];
+    const out: T[] = [];
     while (out.length < n && left.length > 0) out.push(...left.splice(Math.floor(fight.roll() * left.length), 1));
     return out;
   };
+  /** Whether its `breath` or `engraving` is the one on the field: no other hero standing wears it at more stars (or as many, before it). */
+  const leads = (): boolean => standing().every((on) => on === self || on.artifact?.id !== worn.id || on.artifact.tier < tier || (on.artifact.tier === tier && on.index > self.index));
+  /** An enemy silenced: a boss, as the fight's stuns have it (its CC gauge takes it); a minion, its skill held back. */
+  const silence = (foe: Foe, seconds: number): void => fight.on(foe, () => (foe === fight.boss() ? fight.stun(self, seconds) : fight.delay(seconds)));
+  /** Its continuous blows begin on `foe` (`shared`: in place of another ally's; its own, begun again). */
+  function dotOn(foe: Foe): void {
+    const dot = def.dot;
+    if (!dot || foe.hp <= 0 || foe.away) return;
+    const as = dot.shared ? `${id} dot` : `${name} dot`;
+    const mine = dots.find((one) => one.foe === foe && foe.statuses.includes(one.status));
+    if (mine) {
+      if (!dot.shared) return;
+      mine.left = dot.lasts;
+      mine.status = mark(foe, dot.lasts + dot.tick / 2, {}, as);
+      return;
+    }
+    if (!fight.due(self, `${name} dot`, dot.wait)) return;
+    dots.push({ foe, next: dot.tick, left: dot.lasts, status: mark(foe, dot.lasts + dot.tick / 2, {}, as) });
+  }
+  /** Radiance on it, for so long. */
+  function shine(radiance: NonNullable<ArtifactDef['radiance']>): void {
+    radiant = { name: `${name} radiance`, left: radiance.lasts + 1, shown };
+    put(self.statuses, radiant);
+    radiantFor = radiance.lasts;
+  }
+  /** As a wave begins (the first as the fight does): a random enemy's skills later; the two strongest allies' DMG more. */
+  function waveStart(): void {
+    if (def.bond) {
+      const foe = picked(fight.foes(), 1)[0];
+      if (foe) fight.on(foe, () => fight.delay(t(def.bond)));
+    }
+    if (def.breath && leads()) {
+      const strongest = standing()
+        .filter((on) => on !== self)
+        .sort((a, b) => b.stats.atk - a.stats.atk || a.index - b.index)
+        .slice(0, 2);
+      for (const on of strongest) give(on.statuses, Infinity, { deals: 1 + t(def.breath.dmg) }, id);
+    }
+  }
   return {
     deals(foe) {
       const early = earlyOn() ? def.start : undefined;
       const boss = foe === fight.boss();
-      return 1 + t(def.dmg) + t(def.foes) + t(early?.foes) + (boss ? t(def.boss) + t(early?.boss) : 0) + (fight.dragon ? t(def.dragon) : 0);
+      return 1 + t(def.dmg) + t(def.foes) + t(early?.foes) + (boss ? t(def.boss) + t(early?.boss) : 0) + (fight.dragon ? t(def.dragon) : 0) + (def.sword ? def.sword.each * edge : 0);
     },
     taken() {
       const early = earlyOn() ? def.start : undefined;
@@ -406,10 +565,117 @@ export function artifactHooks(self: Fighter, fight: ArtifactFight): ArtifactHook
       if (def.bossAtk) curse(t(def.bossAtk.lasts), { deals: 1 + t(def.bossAtk.atk) });
       if (def.bossHeal) curse(Infinity, { heals: 1 + t(def.bossHeal) }, `${worn.id} heals`);
       if (def.timer) self.perkWaits[name] = def.timer.every;
+      // (Those that come round every so often: first after that long. Radiance comes at once.)
+      if (def.aura) self.perkWaits[`${name} aura`] = def.aura.every;
+      if (def.chain) self.perkWaits[`${name} chain`] = t(def.chain.every);
+      if (def.breath) self.perkWaits[`${name} breath`] = t(def.breath.every);
+      if (def.engraving) self.perkWaits[`${name} engraving`] = def.engraving.every;
+    },
+    wave() {
+      waveBegun = true;
     },
     tick(dt) {
       const timer = def.timer;
       const up = self.hp > 0 && fight.field().includes(self);
+      // (A wave begun: seen to once it is on the field.)
+      if (waveBegun && up) {
+        waveBegun = false;
+        waveStart();
+      }
+      guardFor = Math.max(0, guardFor - dt);
+      const aura = def.aura;
+      if (aura && up && !auraDone && fight.due(self, `${name} aura`, aura.every)) {
+        auraDone = aura.once === true;
+        const foe = fight.aim(self);
+        // (A share of its max HP: as so much of its ATK.)
+        fight.on(foe, () => fight.hit(self, aura.maxHp ? (t(aura.maxHp) * self.stats.hp * 1000) / Math.max(1, self.stats.atk) : t(aura.hit)));
+        if (aura.recovery) mark(foe, aura.lasts ?? 0, { heals: 1 + t(aura.recovery) });
+      }
+      const chain = def.chain;
+      if (chain && up && fight.due(self, `${name} chain`, t(chain.every))) {
+        const foe = picked(fight.foes(), 1)[0];
+        if (foe) {
+          fight.on(foe, () => fight.dispel());
+          silence(foe, t(chain.silence));
+        }
+      }
+      // (Petrified as its slow on the enemy ends.)
+      if (stoneOn && (stoneIn -= dt) <= 0) {
+        const foe = stoneOn;
+        stoneOn = null;
+        fight.on(foe, () => fight.stun(self, t(def.counter?.stone)));
+      }
+      // (Its continuous blows, each on its time; one taken off its enemy, or another ally's in its place, goes no further.)
+      const dot = def.dot;
+      for (let i = dots.length - 1; dot && i >= 0; i--) {
+        const one = dots[i] as (typeof dots)[number];
+        if (one.foe.hp <= 0 || one.foe.away || !one.foe.statuses.includes(one.status)) {
+          dots.splice(i, 1);
+          continue;
+        }
+        one.next -= dt;
+        while (one.next <= 1e-9 && one.left > 1e-9) {
+          one.next += dot.tick;
+          one.left -= dot.tick;
+          fight.on(one.foe, () => (dot.whole ? fight.whole(self, t(dot.amount)) : fight.continuous(self, t(dot.amount))));
+        }
+        if (one.left <= 1e-9) dots.splice(i, 1);
+      }
+      // (Its sword: a share of its health each second for a stack; below its share, none of it.)
+      const sword = def.sword;
+      if (sword && up) {
+        if (self.hp < self.stats.hp * sword.below) {
+          if (edge > 0) self.statuses = self.statuses.filter((status) => status.name !== `${name} sword`);
+          edge = 0;
+          swordIn = 1;
+        } else if ((swordIn -= dt) <= 0) {
+          swordIn += 1;
+          self.hp -= self.hp * t(sword.cost);
+          edge = Math.min(t(sword.most), edge + 1);
+          give(self.statuses, Infinity, { critDamage: sword.each * edge, count: edge }, `${name} sword`);
+        }
+      }
+      // (Its Radiance: kept to its end, it is cleansed and takes less; taken off before, the enemies have it.)
+      const radiance = def.radiance;
+      if (radiance && up) {
+        if (radiantFor <= 0 && fight.due(self, `${name} radiance`, radiance.every)) shine(radiance);
+        else if (radiantFor > 0) {
+          const kept = radiant !== null && self.statuses.includes(radiant);
+          radiantFor = kept ? radiantFor - dt : 0;
+          if (!kept) {
+            for (const foe of picked(fight.foes(), radiance.random)) {
+              fight.on(foe, () => {
+                fight.dispel();
+                fight.stun(self, radiance.away);
+                fight.drain(t(radiance.mana));
+              });
+            }
+          } else if (radiantFor <= 0) {
+            self.statuses = self.statuses.filter((status) => status !== radiant);
+            cleanse(self);
+            give(self.statuses, radiance.lasts, { takes: 1 - t(radiance.taken) }, `${name} kept`);
+          }
+        }
+      }
+      // (Every ally's DEF and max HP, a stack more each time: its health as much more as its max HP.)
+      const engraving = def.engraving;
+      if (engraving && up && fight.due(self, `${name} engraving`, engraving.every) && leads()) {
+        engraved = Math.min(engraving.most, engraved + 1);
+        for (const on of standing()) {
+          give(on.statuses, Infinity, { defends: 1 + t(engraving.defense) * engraved, count: engraved }, worn.id);
+          const added = grown.get(on) ?? 0;
+          const more = (on.stats.hp - added) * t(engraving.hp) * engraved - added;
+          on.stats.hp += more;
+          on.hp += more;
+          grown.set(on, added + more);
+        }
+      }
+      // (Every ally healed a share of its max HP: twice over with one enemy standing.)
+      const breath = def.breath;
+      if (breath && up && fight.due(self, `${name} breath`, t(breath.every)) && leads()) {
+        const times = fight.foes().length === 1 ? breath.alone : 1;
+        for (const on of standing()) fight.heal(on, breath.heal * times * on.stats.hp);
+      }
       // (Its mana each second: drained, or given for a while.)
       if (def.drain && up) self.mana = Math.max(0, self.mana + t(def.drain) * dt);
       if (manaFor > 0 && up) {
@@ -465,6 +731,12 @@ export function artifactHooks(self: Fighter, fight: ArtifactFight): ArtifactHook
       if (full && up && self.mana >= MAX_MANA && fight.due(self, `${name} full`, full.wait)) give(self.statuses, full.lasts, { critPoints: t(full.crit), acc: t(full.acc) });
     },
     basic() {
+      const sap = def.sap;
+      if (sap && fight.roll() < t(sap.chance) && fight.due(self, `${name} sap`, sap.wait)) {
+        const foe = fight.aim(self);
+        fight.on(foe, () => fight.drain(t(sap.mana)));
+      }
+      if (def.dot?.basic) dotOn(fight.aim(self));
       const on = def.onBasic;
       if (!on || fight.roll() >= t(on.chance) || !fight.due(self, `${name} attack`, on.wait)) return;
       if (on.mana) self.mana = Math.min(MAX_MANA, self.mana + on.mana);
@@ -472,6 +744,7 @@ export function artifactHooks(self: Fighter, fight: ArtifactFight): ArtifactHook
       if (on.hit) fight.hit(self, t(on.hit));
     },
     blow() {
+      if (def.dot && !def.dot.basic) dotOn(fight.foe());
       const blows = def.blows;
       if (!blows) return;
       struck++;
@@ -480,11 +753,55 @@ export function artifactHooks(self: Fighter, fight: ArtifactFight): ArtifactHook
         give(self.statuses, blows.lasts, { atk: t(blows.atk), critPoints: t(blows.crit) }, `${name} blows`);
       }
     },
-    hurt() {
+    hurt(type) {
+      if (self.hp <= 0) return;
       const on = def.onHurt;
-      if (!on || self.hp <= 0 || fight.roll() >= on.chance || !fight.due(self, `${name} hurt`, t(on.wait))) return;
-      if (on.invulnerable) give(self.statuses, t(on.lasts), { takes: 0 });
-      if (on.weakness) curse(t(on.lasts), { takes: 1 + t(on.weakness) });
+      if (on && fight.roll() < on.chance && fight.due(self, `${name} hurt`, t(on.wait))) {
+        if (on.invulnerable) give(self.statuses, t(on.lasts), { takes: 0 });
+        if (on.weakness) curse(t(on.lasts), { takes: 1 + t(on.weakness) });
+      }
+      // (Whose blow it was: a blow back, slowed, and petrified once its slow is nearly over.)
+      const counter = def.counter;
+      if (counter && fight.due(self, `${name} counter`, counter.wait)) {
+        const foe = fight.foe();
+        fight.on(foe, () => {
+          fight.hit(self, t(counter.hit));
+          fight.slow(t(counter.slow), counter.slowFor);
+        });
+        stoneOn = foe;
+        stoneIn = counter.stoneAt;
+      }
+      const roar = def.roar;
+      if (roar && self.hp <= self.stats.hp * roar.below && fight.due(self, `${name} roar`, roar.wait)) {
+        const foe = fight.foe();
+        fight.on(foe, () => {
+          fight.hit(self, roar.hit);
+          fight.stun(self, roar.down, true);
+          fight.slow(t(roar.slow), roar.lasts);
+        });
+        mark(foe, roar.lasts, { deals: 1 + t(roar.atk) });
+      }
+      // (Counted toward its `hits`: of its kind only, once in a tenth of a second; none while its shield guards it.)
+      const hits = def.hits;
+      if (hits && guardFor <= 0 && (!hits.kind || (hits.kind === type && fight.due(self, `${name} hits`, 0.1)))) {
+        hurts++;
+        if (hurts >= hits.count && (hits.wait === undefined || fight.due(self, `${name} hits wait`, hits.wait))) {
+          hurts = 0;
+          if (hits.shield) {
+            cleanse(self);
+            fight.shield(self, t(hits.shield) * self.stats.atk, hits.lasts);
+            give(self.statuses, hits.lasts, { guards: true }, `${name} shield`);
+            guardFor = hits.lasts;
+          }
+          const ally = hits.heal ? picked(standing(), 1)[0] : undefined;
+          if (ally) {
+            fight.heal(ally, t(hits.heal) * self.stats.atk);
+            give(ally.statuses, hits.lasts, { atk: t(hits.atk) }, `${name} ally`);
+          }
+          // (The boss first, as the strongest; then the next enemy standing.)
+          if (hits.weaken) for (const foe of [...fight.foes()].sort((a, b) => Number(b === fight.boss()) - Number(a === fight.boss())).slice(0, 2)) mark(foe, hits.lasts, { deals: 1 - t(hits.weaken) }, `${worn.id} weaken`);
+        }
+      }
     },
     knocked() {
       const on = def.onKnock;
@@ -520,6 +837,9 @@ export function artifactHooks(self: Fighter, fight: ArtifactFight): ArtifactHook
     },
     floor() {
       return def.undying && fight.elapsed() < t(def.undying.lasts) ? def.undying.floor * self.stats.hp : 0;
+    },
+    steals() {
+      return def.sword === undefined;
     },
   };
 }

@@ -931,7 +931,8 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
         put(foe.statuses, { name: wound.name ?? 'Mortal Wound', left: wound.wound.lasts, heals: wound.wound.heals, shown: 'curse' });
       }
       // Lifesteal: a share of what it dealt heals it (less what the boss's skills take off healing).
-      if (by.lifesteal > 0 && by.hp > 0 && !foe.part.unstolen) {
+      // (Not with its artifact having none: Otherworldly Sword's.)
+      if (by.lifesteal > 0 && by.hp > 0 && !foe.part.unstolen && relics.get(by)?.steals() !== false) {
         const stolen = Math.min(dealt * share(curved(CURVE.chance, by.lifesteal)) * healing([...by.statuses, ...party]) * (boss.part.healing?.() ?? 1), by.stats.hp - by.hp);
         if (stolen > 0) by.hp += stolen;
       }
@@ -1080,6 +1081,8 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
         }
       });
     }
+    // (What the heroes' artifacts do as a wave begins.)
+    for (const hooks of relics.values()) hooks.wave();
   }
 
   /** The heroes an enemy can reach: on the field, standing, and in the fight. */
@@ -1362,7 +1365,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       // (The more for its gear's mana on taking damage.)
       target.mana = Math.min(MAX_MANA, target.mana + (MANA_PER_HP_LOST * (1 + target.manaDamage) * lost) / target.stats.hp);
       if (dealt > 0) for (const fighter of fighters) fighter.part.hurt?.(target);
-      if (dealt > 0) relics.get(target)?.hurt();
+      if (dealt > 0) relics.get(target)?.hurt(type);
       // Its perks that come of being hit: Vengeful Curse (on the boss), and Deception (once it has taken something).
       for (const perk of target.perkDefs) {
         if (perk.curse && perkDue(target, perk.name ?? perk.words, perk.curse.every)) put(foe.statuses, { name: perk.name ?? 'Curse', art: stateArt('AttackDown'), left: perk.curse.lasts, deals: perk.curse.deals, shown: 'curse' });
@@ -1765,11 +1768,24 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       elapsed: () => elapsed,
       field: () => field,
       boss: () => boss,
+      foe: current,
+      aim: (by) => targetOf(by) ?? current(),
+      foes: standing,
+      on: (foe, run) => void as(foe, run),
       dragon: DRAGON_IDS.has(def.id),
       roll,
       hit: (by, amount) => void sim.hit(by, amount, true),
-      // (Its wearer's healing.)
+      continuous: (by, amount) => void sim.continuous(by, amount),
+      whole: (by, amount) => void sim.hit(by, amount, false, 0, true),
+      // (Its wearer's healing, and shield.)
       heal: (on, amount) => void sim.heal(on, amount, undefined, fighter),
+      shield: (on, amount, seconds) => sim.shield(on, amount, seconds),
+      stun: (by, seconds, down = false) => sim.stun(seconds, { down, by }),
+      slow: (points, seconds) => sim.slow(points, seconds),
+      delay: (seconds) => sim.delay(seconds),
+      dispel,
+      // (Only an enemy that has mana: Siegfried.)
+      drain: (mana) => current().part.drain?.(mana),
       due: (on, name, again) => perkDue(on, name, again),
     });
     if (hooks) relics.set(fighter, hooks);

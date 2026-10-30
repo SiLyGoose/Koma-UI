@@ -254,6 +254,9 @@ export function siegfriedPart(fight: Fight): BossPart {
     steady: true,
     // (The bar under his health: his mana, as King's Raid's shows it for him.)
     gauge: () => mana / MAX_MANA,
+    drain: (amount) => {
+      mana = Math.max(0, mana - amount);
+    },
     marks(): Mark[] {
       return [
         { text: `Divine Power: rises ${RISE.times - lives} more time${RISE.times - lives === 1 ? '' : 's'}`, tone: RAGE, art: stateArt('3591030'), count: String(RISE.times - lives) },

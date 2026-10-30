@@ -74,6 +74,8 @@ export interface BossPart {
   marks?(): Mark[];
   /** How full its CC gauge is (0 to 1), for the bar under its health (none said: it has none). */
   gauge?(): number;
+  /** A hero takes so much of its mana (a boss that has mana: Siegfried's; none said: it has none). */
+  drain?(mana: number): void;
 }
 
 /**
