@@ -176,6 +176,13 @@ export const SHAMILLA_ASSETS: HeroAssets = {
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Shamilla_Glory.webp',
       title: 'Shamilla of Honor (Ascending Arabesque)',
+      // King's Raid's own effects of its Glory League costume, for its moves instead of its hero's (KR-extracted/scripts/tm-glory-vfx.mjs).
+      vfx: {
+        attack: { start: ['Skill.Hero.ShamillaCos21GloryLeague.Attack1.Casting'], land: ['Skill.Hero.ShamillaCos21GloryLeague.Attack1.Projectile', 'Skill.Hero.ShamillaCos21GloryLeague.Attack1.Hit'] },
+        petrify: { start: ['Skill.Hero.ShamillaCos21GloryLeague.Skill1.Casting', 'Skill.Hero.ShamillaCos21GloryLeague.Skill1.Loop'], land: ['Skill.Hero.ShamillaCos21GloryLeague.Skill1.Hit', 'Skill.Hero.ShamillaCos21GloryLeague.Skill1.Projectile', 'Common.Stone'] },
+        timecurse: { start: ['Skill.Hero.ShamillaCos21GloryLeague.Skill2.Casting'], land: ['Skill.Hero.ShamillaCos21GloryLeague.Skill2.Hit', 'Common.CooldownIncrease'] },
+        pain: { start: ['Skill.Hero.ShamillaCos21GloryLeague.Skill3.Casting'], land: ['Skill.Hero.ShamillaCos21GloryLeague.Skill3.Projectile', 'Skill.Hero.ShamillaCos21GloryLeague.Skill3.HitLoop'] },
+      },
       model: {
         kind: 'parts',
         animations: ANIMATIONS,
@@ -194,6 +201,13 @@ export const SHAMILLA_ASSETS: HeroAssets = {
       // King's Raid's own battle portrait of it (KR-extracted/scripts/tm-icons.mjs).
       battle: 'Shamilla_Glory2.webp',
       title: 'Shamilla of Glaring Honor (Gracefully Ascending Arabesque)',
+      // King's Raid's own effects of its Glory League costume, for its moves instead of its hero's (KR-extracted/scripts/tm-glory-vfx.mjs).
+      vfx: {
+        attack: { start: ['Skill.Hero.ShamillaCos21GloryLeague.Attack1.Casting'], land: ['Skill.Hero.ShamillaCos21GloryLeague.Attack1.Projectile', 'Skill.Hero.ShamillaCos21GloryLeague.Attack1.Hit'] },
+        petrify: { start: ['Skill.Hero.ShamillaCos21GloryLeague.Skill1.Casting', 'Skill.Hero.ShamillaCos21GloryLeague.Skill1.Loop'], land: ['Skill.Hero.ShamillaCos21GloryLeague.Skill1.Hit', 'Skill.Hero.ShamillaCos21GloryLeague.Skill1.Projectile', 'Common.Stone'] },
+        timecurse: { start: ['Skill.Hero.ShamillaCos21GloryLeague.Skill2.Casting'], land: ['Skill.Hero.ShamillaCos21GloryLeague.Skill2.Hit', 'Common.CooldownIncrease'] },
+        pain: { start: ['Skill.Hero.ShamillaCos21GloryLeague.Skill3.Casting'], land: ['Skill.Hero.ShamillaCos21GloryLeague.Skill3.Projectile', 'Skill.Hero.ShamillaCos21GloryLeague.Skill3.HitLoop'] },
+      },
       // What King's Raid keeps on it all the while.
       wears: ['Skill.Hero.ShamillaCos21GloryLeague.Body'],
       model: {
