@@ -261,7 +261,7 @@ export const SHAKMEH: HeroDef = {
       words: `When there is 1 enemy, changes Heal Rate proportional to Max HP to ${fine(PERKS.heal)}.`,
     },
     // (Transcend 5's Light's HP: its own 15% and this one's 10% more.)
-    "t5-light": t5Light({ hp: 0.25 }, ({ hp }) => `HP +${pct(hp - 0.15)}`),
+    "t5-light": t5Light({ hp: 0.1 }, ({ hp }) => `HP +${pct(hp)}`),
     "t5-dark": {
       words: `Increases ATK of 1 ally with the highest ATK by ${fine(PERKS.dark.atk)} of own Max HP and takes ${pct(PERKS.dark.share)} of All DMG dealt to the target instead. This effect is irremovable, and when Shakmeh takes DMG of the ally instead, that DMG is reduced by ${pct(PERKS.dark.less)}. The ATK Boost rate is reduced to half in the Arena.`,
     },

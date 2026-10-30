@@ -156,8 +156,7 @@ export const ISAIAH: HeroDef = {
     's3-dark': { words: `Increases Heal Rate and DMG of [Field of Atonement] by ${pct(PERKS.field - 1)} and ${pct(PERKS.field - 1)} respectively.` },
     's4-light': { words: `[Baptism of the Goddess] effect granted to the ally with the highest ATK additionally increases Crit DMG by ${pct(PERKS.critDamage)}.` },
     's4-dark': { words: 'At the beginning of the first battle, gains 1 stack of *[Sin]*.' },
-    // (Her 10% more HP on top of everyone's 15%: `more` takes the place of the 15%.)
-    't5-light': t5Light({ hp: 0.25 }, ({ hp }) => `HP + ${pct(hp - 0.15)}`),
+    't5-light': t5Light({ hp: 0.1 }, ({ hp }) => `HP + ${pct(hp)}`),
     't5-dark': { words: `Increases Toughness by ${PERKS.dark.tough} and Heal Rate by ${pct(PERKS.dark.heals)}.` },
   },
   join(fight, self) {

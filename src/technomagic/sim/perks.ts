@@ -372,8 +372,11 @@ export function perkStats(perks: Iterable<PerkDef>): { bonus: GearBonus; atkFrom
 /** What every hero's Transcend 5 Light gives: ATK, DEF and HP so much more. */
 const T5_LIGHT = 0.15;
 
-/** A hero's Transcend 5 Light: ATK, DEF and HP +15%, and `more` of its own (as gear gives it), which `says` puts in words. */
+/**
+ * A hero's Transcend 5 Light: ATK, DEF and HP +15%, and `more` of its own (as gear gives it), which `says` puts in words.
+ * Its own ATK, DEF or HP is on top of the 15% (Evan's HP +10%: +25% in all).
+ */
 export const t5Light = <M extends GearBonus>(more: M, says: (more: M) => string): PerkDef => ({
   words: `ATK, DEF, HP +${pct(T5_LIGHT)} / ${says(more)}`,
-  bonus: { atk: T5_LIGHT, defense: T5_LIGHT, hp: T5_LIGHT, ...more },
+  bonus: { ...more, atk: T5_LIGHT + (more.atk ?? 0), defense: T5_LIGHT + (more.defense ?? 0), hp: T5_LIGHT + (more.hp ?? 0) },
 });
