@@ -60,6 +60,8 @@ export interface BossPart {
   /** Boss auto: an attack it must use next, before any other (null: none); and whether it may pick an attack now (none said: any, always). */
   next?(): string | null;
   ready?(attack: string): boolean;
+  /** Its skills' cooldowns are so many seconds longer, a skill ready as much as one not (a hero's: Fight.delay). None said: nothing delays them. */
+  delay?(seconds: number): void;
   /** What it has going for it that only it keeps count of: marks under its health. */
   marks?(): Mark[];
   /** How full its CC gauge is (0 to 1), for the bar under its health (none said: it has none). */

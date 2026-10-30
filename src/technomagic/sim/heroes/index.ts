@@ -44,6 +44,17 @@ import { LAVRIL } from './lavril';
 import { EVAN } from './evan';
 import { ESTELLE } from './estelle';
 import { JANE } from './jane';
+import { SHAKMEH } from './shakmeh';
+import { ISAIAH } from './isaiah';
+import { GLADI } from './gladi';
+import { CECILIA } from './cecilia';
+import { ROI } from './roi';
+import { LEWISIA } from './lewisia';
+import { RICARDO } from './ricardo';
+import { SHAMILLA } from './shamilla';
+import { SCARLET } from './scarlet';
+import { TALISHA } from './talisha';
+import { HILDA } from './hilda';
 
 /** The heroes there are, in the order of their cards. */
-export const HEROES: readonly HeroDef[] = [KIRZE, KLAUS, FALLEN_FREY, GREMORY, ANNETTE, MORRAH, LAIAS, SERIA, EZEKIEL, LORRAINE, VALANCE, LUCIKIEL, SELENE, CROW, ODDY, PHILLOP, NAILA, YANNE, NERAXIS, ERZE, LOMAN, GAU, TANYA, REBEL_KLAUS, DARK_LORD_KASEL, THEO, PRISCILLA, GLENWYS, CHASE, ASELICA, LAKRAK, MIRURU, MIRIANNE, KARA, ZAFIR, PANSIRONE, ISOLET, LILIA, LUCIAS, REHARTNA, SHEA, LAVRIL, EVAN, ESTELLE, JANE];
+export const HEROES: readonly HeroDef[] = [KIRZE, KLAUS, FALLEN_FREY, GREMORY, ANNETTE, MORRAH, LAIAS, SERIA, EZEKIEL, LORRAINE, VALANCE, LUCIKIEL, SELENE, CROW, ODDY, PHILLOP, NAILA, YANNE, NERAXIS, ERZE, LOMAN, GAU, TANYA, REBEL_KLAUS, DARK_LORD_KASEL, THEO, PRISCILLA, GLENWYS, CHASE, ASELICA, LAKRAK, MIRURU, MIRIANNE, KARA, ZAFIR, PANSIRONE, ISOLET, LILIA, LUCIAS, REHARTNA, SHEA, LAVRIL, EVAN, ESTELLE, JANE, SHAKMEH, ISAIAH, GLADI, CECILIA, ROI, LEWISIA, RICARDO, SHAMILLA, SCARLET, TALISHA, HILDA];

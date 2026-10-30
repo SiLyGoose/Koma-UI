@@ -98,6 +98,24 @@ import { fine, pct, type Buff } from './shown';
  * - Estelle, Chant of Tailwinds, Stosmos: [Adventure Guide] the longer, and every ally's ATK higher meanwhile.
  * - Jane, Unchanging Mind, Erekura: every second a blow on the enemies near her, hitting less hard a moment; and her coffin
  *   fills a share of her mana.
+ * - Cecilia, Supersonic Tempest, Gigantix: she is quicker; each of her blows a stack of Explosion and a chance to stun its
+ *   target; at 100, Gigantix explodes: quicker still and likelier to dodge, for good.
+ * - Scarlet, Blade of Conviction, White Belona: her DMG higher for each of her skills on cooldown.
+ * - Isaiah, Bladebound Faith, Ezaias: each skill she uses heals her a share of her max HP over a few seconds, and each of her
+ *   blows leaves the boss taking more for a while.
+ * - Lewisia, Scarlet Ruler, Dominicia: while her HP is over half, her ATK higher; under it, she takes less.
+ * - Shamilla, Wings of Corruption, Apoliox: every so often [The Vessel of Curses], and her ATK higher for a while.
+ * - Gladi, Beast Fist, Mastra: each critical blow of his raises his crit DMG for a while (up to 7 times over).
+ * - Roi, Specter's Breath, Redeal: each part of his attack may deal a blow more and leave a stack of Bleed on its target (the
+ *   King's Raid Index's: the Roi before his rework).
+ * - Shakmeh, Encroaching Darkness, Leifende: each part of his attack heals him a little and gives a stack of [Demon Beast]; at
+ *   10, every enemy takes more physical damage for a while, and he is quicker and healed more (every other ally half as much).
+ * - Ricardo, Light of Judgment, Theoria: another ally hurt, now and then a shield on it (it can't be knocked down while it
+ *   lasts), no sooner than 5 seconds after the last.
+ * - Talisha, Colorful Splendor, Diogemme: her ATK higher; each of her blows leaves its target hitting less hard for a
+ *   while, and a boss taking more.
+ * - Hilda, Dreams of an Artificial God, Innocentia: her ATK higher and healing reaching her more, twice as much while she is
+ *   [Transcendent].
  *   (Each of these, the hero's part does it: ./heroes/<hero>.ts.)
  *
  * The game's shares of ATK are as they are for damage (this raid's blows are counted in thousandths of them: ./combat/),
@@ -213,8 +231,30 @@ export const NAAV = { name: 'Small Synthesized Darkness, Naav Gehen', mana: [400
 export const STOSMOS = { name: 'Chant of Tailwinds, Stosmos', longer: [1, 2, 3, 4, 5, 6], atk: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25] };
 /** Jane's: its blow every second (a share of ATK) on the enemies within so far, their ATK less a moment; the coffin's mana (a share). */
 export const EREKURA = { name: 'Unchanging Mind, Erekura', blow: [0.1, 0.12, 0.14, 0.17, 0.2, 0.25], reach: 6.6, weaker: [0.14, 0.17, 0.2, 0.24, 0.29, 0.35], mana: 0.3 };
+/** Talisha's: her ATK; each blow's target's ATK less, and a boss's more DMG taken, for how long. */
+export const DIOGEMME = { name: 'Colorful Splendor, Diogemme', atk: [0.12, 0.14, 0.17, 0.21, 0.25, 0.3], weaker: [0.12, 0.14, 0.17, 0.21, 0.25, 0.3], takes: [0.12, 0.14, 0.17, 0.21, 0.25, 0.3], lasts: 5 };
+/** Hilda's: her ATK and healing received; both while [Transcendent]. */
+export const INNOCENTIA = { name: 'Dreams of an Artificial God, Innocentia', atk: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25], heals: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25], transcendent: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5] };
+/** Shakmeh's: each part of his attack's heal (a share of his max HP) and [Demon Beast] (at `stacks`: every enemy's more P.DMG taken, his ATK Spd and more healing received, for `lasts` seconds; every other ally's `allies` of his). */
+/** Ricardo's: another ally hurt, the chance of a shield on it (a share of his ATK), for `lasts` seconds (none knocks it down meanwhile), no sooner than `every` seconds after the last. */
+export const THEORIA = { name: 'Light of Judgment, Theoria', chance: [0.1, 0.12, 0.14, 0.17, 0.2, 0.25], shield: [3.2, 3.84, 4.6, 5.52, 6.6, 8], lasts: 5, every: 5 };
+export const LEIFENDE = { name: 'Encroaching Darkness, Leifende', heal: 0.005, stacks: 10, lasts: 15, takes: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5], speed: [120, 140, 170, 210, 250, 300], heals: [0.12, 0.14, 0.17, 0.21, 0.25, 0.3], allies: 0.5 };
+/** Isaiah's: the share of her max HP healed over how many seconds, as each skill is used; the boss's more taken from her blows, for how long. */
+export const EZAIAS = { name: 'Bladebound Faith, Ezaias', heal: [0.04, 0.048, 0.056, 0.068, 0.084, 0.1], over: 4, takes: [0.08, 0.096, 0.112, 0.136, 0.168, 0.2], lasts: 8 };
+/** Lewisia's: over what share of her HP her ATK is higher (a share), and under it, the share less she takes. */
+export const DOMINICIA = { name: 'Scarlet Ruler, Dominicia', at: 0.5, atk: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5], taken: [0.1, 0.12, 0.14, 0.17, 0.21, 0.25] };
+/** Shamilla's: every how many seconds [The Vessel of Curses]; her ATK more, for how long. */
+export const APOLIOX = { name: 'Wings of Corruption, Apoliox', every: [20, 18, 16, 14, 12, 10], atk: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5], lasts: 10 };
+/** Gladi's: each critical blow's crit DMG more (a share), for how long, up to how many. */
+export const MASTRA = { name: 'Beast Fist, Mastra', critDamage: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5], lasts: 5, most: 7 };
+/** Roi's (the King's Raid Index's): the chance each part of his attack has, and its blow more (at ATK) as it leaves a stack of Bleed. */
+export const REDEAL = { name: 'Specter’s Breath, Redeal', chance: [0.25, 0.28, 0.31, 0.34, 0.37, 0.4], blow: [500, 600, 720, 860, 1030, 1250] };
 
 /** What every ally gains by the TechnoMagic gear it wears: 1 piece, more ATK; 2, more defense; 3, more max HP (here: taking that much less); 4, more DMG. */
+/** Its attack speed (points); each blow's chance to stun the target, for how long; the Explosion stacks that make Gigantix explode, and then its attack speed and dodge (points, for good). */
+export const GIGANTIX = { name: 'Supersonic Tempest, Gigantix', speed: [100, 120, 140, 170, 210, 250], chance: 0.03, stun: 4, stacks: 100, burst: [100, 120, 140, 170, 210, 250] };
+/** Her DMG more (a share) for each of her skills on cooldown. The King's Raid Index's (her Scarlet before the remaster, whose [Blessing of the Kings] it hadn't). */
+export const BELONA = { name: 'Blade of Conviction, White Belona', dmg: [0.08, 0.1, 0.12, 0.14, 0.17, 0.2] };
 export const CORBEAU = {
   name: 'Wonder of Magos Le’Flamme, Corbeau Rose',
   atk: [0.06, 0.072, 0.086, 0.104, 0.126, 0.15],
@@ -331,8 +371,26 @@ const ABOUT: Readonly<Record<string, (tier: number) => string>> = {
     `Increases the duration of [Adventure Guide] by ${atTier(STOSMOS.longer, tier)} sec, and ATK of all allies by ${fine(atTier(STOSMOS.atk, tier))} while Estelle is in [Adventure Guide] state.`,
   jane: (tier) =>
     `Per every sec, deals ${fine(atTier(EREKURA.blow, tier))} of ATK as M.DMG to nearby enemies, and reduces their ATK by ${fine(atTier(EREKURA.weaker, tier))}. When the passive skill is activated, recovers ${fine(EREKURA.mana)} of mana.`,
+  talisha: (tier) =>
+    `Increases own ATK by ${fine(atTier(DIOGEMME.atk, tier))}. Normal and Skill attacks reduce the target's ATK by ${fine(atTier(DIOGEMME.weaker, tier))} for ${DIOGEMME.lasts} sec. If the target is a Boss, increases All DMG it takes by ${fine(atTier(DIOGEMME.takes, tier))}. The All DMG taken Boost effect is irremovable.`,
+  hilda: (tier) =>
+    `Increases own ATK by ${fine(atTier(INNOCENTIA.atk, tier))} and Heal Rate by ${fine(atTier(INNOCENTIA.heals, tier))}. Upon entering [Transcendent] state, changes ATK Boost to ${fine(atTier(INNOCENTIA.transcendent, tier))} and Heal Rate Boost to ${fine(atTier(INNOCENTIA.transcendent, tier))}.`,
+  shakmeh: (tier) =>
+    `Dealing DMG to an enemy with a normal attack heals own HP equal to ${fine(LEIFENDE.heal)} of Max HP and grants an irremovable stack of *[Demon Beast]* upon self. *[Demon Beast]* can be stacked up to max ${LEIFENDE.stacks} times. At max stacks, increases P.DMG all enemies take by ${fine(atTier(LEIFENDE.takes, tier))} for ${LEIFENDE.lasts} sec and consumes all stacks to enter into an irremovable state of *[Demon Beast of Darkness]* for ${LEIFENDE.lasts} sec, increasing own ATK Spd by ${atTier(LEIFENDE.speed, tier)} and Heal Rate by ${fine(atTier(LEIFENDE.heals, tier))}. During the *[Demon Beast of Darkness]* state, Shakmeh does not gain *[Demon Beast]* stacks, and all allies receive half of the ATK Spd and Heal Rate Boost effects gained by Shakmeh.`,
+  ricardo: (tier) =>
+    `When an ally other than the caster takes DMG, there is a ${fine(atTier(THEORIA.chance, tier))} chance that a shield is cast upon them to absorb DMG equal to ${fine(atTier(THEORIA.shield, tier))} of ATK for ${THEORIA.lasts} sec while granting immunity to CC. This effect does not trigger more than once in ${THEORIA.every} sec.`,
+  cecilia: (tier) =>
+    `Increases ATK Spd by ${atTier(GIGANTIX.speed, tier)}. Normal and Skill attacks grant a stack of *Explosion* on self and have a ${fine(GIGANTIX.chance)} chance of stunning the target for ${GIGANTIX.stun} sec. Upon gaining ${GIGANTIX.stacks} *Explosion* stacks, Gigantix explodes, increasing ATK Spd and All Dodge Chance by ${atTier(GIGANTIX.burst, tier)}. This effect is irremovable.`,
+  scarlet: (tier) => `Per every skill in cooldown, DMG is increased by ${fine(atTier(BELONA.dmg, tier))}.`,
+  lewisia: (tier) =>
+    `If HP is over ${fine(DOMINICIA.at)}, ATK is increased by ${fine(atTier(DOMINICIA.atk, tier))}. If HP is under ${fine(DOMINICIA.at)}, takes ${fine(atTier(DOMINICIA.taken, tier))} reduced DMG.`,
+  isaiah: (tier) =>
+    `Upon every Skill use, heals own HP equal to ${fine(atTier(EZAIAS.heal, tier))} of Max HP over ${EZAIAS.over} sec. Normal and Skill attacks increase All DMG the hit target takes by ${fine(atTier(EZAIAS.takes, tier))} for ${EZAIAS.lasts} sec.`,
+  shamilla: (tier) => `Every ${atTier(APOLIOX.every, tier)} sec, gains *'The Vessel of Curses'* and increases ATK by ${fine(atTier(APOLIOX.atk, tier))} for ${APOLIOX.lasts} sec.`,
+  gladi: (tier) => `Upon a Crit Hit, Crit. DMG is increased by ${fine(atTier(MASTRA.critDamage, tier))} for ${MASTRA.lasts} sec. This effect can be stacked up to ${MASTRA.most} times max.`,
+  roi: (tier) => `Each auto attack has a ${fine(atTier(REDEAL.chance, tier))} chance of inflicting 1 stack of *Bleed*, and dealing ${fine(atTier(REDEAL.blow, tier) / 1000)} of ATK as extra DMG.`,
 };
-const NAMES: Readonly<Record<string, string>> = { klaus: EXIAN.name, kirze: ELICIPIRA.name, 'fallen-frey': ROSMERTA.name, gremory: PIGRITIA.name, annette: RASCAL.name, morrah: CARPRAIN.name, laias: ELTOIRRE.name, seria: ELSION.name, ezekiel: BARBATOS.name, lorraine: ROBURU.name, valance: CORBEAU.name, lucikiel: GIGANTE.name, selene: NOTOS.name, crow: AKISTRA.name, oddy: TEMPODIANA.name, phillop: ATEIN.name, naila: BARORO.name, yanne: SVELTA.name, neraxis: ACRAVITA.name, erze: PERION.name, loman: GAIAMENES.name, gau: NUMINU.name, tanya: CAETHASIS.name, 'rebel-klaus': GALICTA.name, 'dark-lord-kasel': AEA.name, theo: LEGIOS.name, priscilla: EXCILIUS.name, glenwys: MAXITHEA.name, chase: MONOLITH.name, aselica: IGNISIUS.name, lakrak: MK1.name, miruru: LEVIATHAN.name, mirianne: RIVENTINA.name, kara: SHATTERER.name, zafir: ZARIES.name, pansirone: TERSIA.name, isolet: TERRAVION.name, lilia: CIELAMAHA.name, lucias: BENEDICIA.name, rehartna: NEW_ROAD.name, shea: SCHWANHEITE.name, lavril: NEMECIA.name, evan: NAAV.name, estelle: STOSMOS.name, jane: EREKURA.name };
+const NAMES: Readonly<Record<string, string>> = { klaus: EXIAN.name, kirze: ELICIPIRA.name, 'fallen-frey': ROSMERTA.name, gremory: PIGRITIA.name, annette: RASCAL.name, morrah: CARPRAIN.name, laias: ELTOIRRE.name, seria: ELSION.name, ezekiel: BARBATOS.name, lorraine: ROBURU.name, valance: CORBEAU.name, lucikiel: GIGANTE.name, selene: NOTOS.name, crow: AKISTRA.name, oddy: TEMPODIANA.name, phillop: ATEIN.name, naila: BARORO.name, yanne: SVELTA.name, neraxis: ACRAVITA.name, erze: PERION.name, loman: GAIAMENES.name, gau: NUMINU.name, tanya: CAETHASIS.name, 'rebel-klaus': GALICTA.name, 'dark-lord-kasel': AEA.name, theo: LEGIOS.name, priscilla: EXCILIUS.name, glenwys: MAXITHEA.name, chase: MONOLITH.name, aselica: IGNISIUS.name, lakrak: MK1.name, miruru: LEVIATHAN.name, mirianne: RIVENTINA.name, kara: SHATTERER.name, zafir: ZARIES.name, pansirone: TERSIA.name, isolet: TERRAVION.name, lilia: CIELAMAHA.name, lucias: BENEDICIA.name, rehartna: NEW_ROAD.name, shea: SCHWANHEITE.name, lavril: NEMECIA.name, evan: NAAV.name, estelle: STOSMOS.name, jane: EREKURA.name, talisha: DIOGEMME.name, hilda: INNOCENTIA.name, shakmeh: LEIFENDE.name, ricardo: THEORIA.name, cecilia: GIGANTIX.name, scarlet: BELONA.name, isaiah: EZAIAS.name, lewisia: DOMINICIA.name, shamilla: APOLIOX.name, gladi: MASTRA.name, roi: REDEAL.name };
 /** A hero's unique weapon's name (none: it has none here). */
 export const uniqueName = (hero: string): string | undefined => NAMES[hero];
 /** The heroes that have a unique weapon, by id. */
@@ -389,4 +447,14 @@ export const NEW_ROAD_UP: Buff = { name: 'Anthem of a New Road, Matimaruma', abo
 export const SCHWANHEITE_UP: Buff = { name: 'Charming Melody, Schwanheite', about: 'CC resist higher.', icon: '🎶', art: { uw: 'shea' } };
 export const NEMECIA_UP: Buff = { name: 'Void Soul, Dunn Nemecia', about: 'Untouched a moment as she uses a skill.', icon: '👻', art: { uw: 'lavril' } };
 export const NAAV_UP: Buff = { name: 'Small Synthesized Darkness, Naav Gehen', about: 'Takes less physical damage.', icon: '🌑', art: { uw: 'evan' } };
-export const STOSMOS_UP: Buff = { name: 'Chant of Tailwinds, Stosmos', about: 'ATK higher.', icon: '🍃', art: { uw: 'estelle' } };
+export const DIOGEMME_UP: Buff = { name: 'Colorful Splendor, Diogemme', about: 'ATK higher.', icon: '💎', art: { uw: 'talisha' } };
+export const INNOCENTIA_UP: Buff = { name: 'Dreams of an Artificial God, Innocentia', about: 'ATK higher, and healing reaches her more (twice as much while [Transcendent]).', icon: '🌙', art: { uw: 'hilda' } };
+export const BELONA_UP: Buff = { name: 'Blade of Conviction, White Belona', about: 'DMG higher for each skill on cooldown.', icon: '🗡️', art: { uw: 'scarlet' } };
+export const GIGANTIX_UP: Buff = { name: 'Supersonic Tempest, Gigantix', about: 'Quicker; once Gigantix explodes, quicker still and likelier to dodge.', icon: '👢', art: { uw: 'cecilia' } };
+export const THEORIA_UP: Buff = { name: 'Light of Judgment, Theoria', about: 'A shield: it can’t be knocked down while it lasts.', icon: '🛡️', art: { uw: 'ricardo' } };
+export const LEIFENDE_UP: Buff = { name: 'Demon Beast of Darkness', about: 'Attack speed higher, and healed more.', icon: '🐺', art: { uw: 'shakmeh' } };
+export const STOSMOS_UP: Buff ={ name: 'Chant of Tailwinds, Stosmos', about: 'ATK higher.', icon: '🍃', art: { uw: 'estelle' } };
+export const EZAIAS_UP: Buff = { name: 'Bladebound Faith, Ezaias', about: 'Healed every second.', icon: '🗡️', art: { uw: 'isaiah' } };
+export const DOMINICIA_UP: Buff = { name: 'Scarlet Ruler, Dominicia', about: 'ATK higher while her HP is over half; under it, takes less.', icon: '🩸', art: { uw: 'lewisia' } };
+export const APOLIOX_UP: Buff = { name: 'Wings of Corruption, Apoliox', about: 'ATK higher.', icon: '🪽', art: { uw: 'shamilla' } };
+export const MASTRA_UP: Buff = { name: 'Beast Fist, Mastra', about: 'Crit DMG higher for each.', icon: '👊', art: { uw: 'gladi' } };

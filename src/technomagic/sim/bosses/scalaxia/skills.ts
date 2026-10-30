@@ -82,6 +82,7 @@ export function scalaxiaPart(fight: Fight, mode: DragonMode = HARD): BossPart {
     },
     ready: (attack) => waits.ready(attack) && (attack !== 'storm' || opened(fight, mode.ultimate)),
     tick: waits.tick,
+    delay: waits.delay,
     beaten() {
       for (const fighter of fight.fighters) {
         lift(fighter, FROSTED.name);

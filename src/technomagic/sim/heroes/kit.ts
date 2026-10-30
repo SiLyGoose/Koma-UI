@@ -71,6 +71,13 @@ export interface HeroPart {
    * that its skills have turned into, or null (sealed: it can't be used). Missing: always its own.
    */
   slot?(index: number): Ability | null;
+  /**
+   * The move its attack is for now, when its skills have turned its attack into another (Talisha's in [Luberry], Hilda's
+   * [Transcendent]): begun in its own's place, timed as that move is (../motion.ts: as written in code, ./moves.ts, which
+   * its animations are fitted to), and counted as its attack (mana, OnBaseAttack, its attack's reach); its blows are its
+   * part's own (`lands`: the fight's King's Raid blow, `basic`, is only its own attack's, 0 for this). Missing: always its own (Fighter.attack).
+   */
+  attack?(): HeroMove;
   /** It has used what is in one of its skill slots (as the move begins). */
   used?(index: number, ability: Ability): void;
   /** Every frame, on the field or off it. */

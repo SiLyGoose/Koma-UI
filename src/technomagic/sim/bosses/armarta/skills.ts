@@ -85,6 +85,7 @@ export function armartaPart(fight: Fight, mode: DragonMode = HARD): BossPart {
       dealt.set(by, (dealt.get(by) ?? 0) + amount);
     },
     used: waits.used,
+    delay: waits.delay,
     ready: (attack) => waits.ready(attack) && (attack !== 'eclipse' || opened(fight, mode.ultimate)),
     tick(dt) {
       waits.tick(dt);

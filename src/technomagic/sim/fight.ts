@@ -13,7 +13,7 @@ import { AUTO, AUTO_WAIT, BLOW, BOSS_REACH, BOSS_X, CLASS_BUFF, CRIT, formation,
 import { grown, SET_UP, setOf, type SetEffect } from './sets';
 import { stateArt, type Art, type Buff, type Mark, type Tone } from './shown';
 import { CHAMPION_UP, DESPERATION_UP, foeSkills, MENDING_UP, SKILL, skilledCritDamage, skilledStats, skillsOf, SURGE_UP, type SkillId } from './skills';
-import type { Fight, Fighter, Foe, GearBonus, GearStat } from './types';
+import type { Doing, Fight, Fighter, Foe, GearBonus, GearStat } from './types';
 import { atTier, ELICIPIRA, EXIAN, EXIAN_UP, ROSMERTA, ROSMERTA_KASEL, ROSMERTA_UP, uniqueName, uniqueOf } from './unique';
 import { auraTotal, moveDmg, moveHeals, moveMarks, moveWhole, perkedStats, perksOf, tweaked, withPerks, type PerkDef, type SkillMark, type SkillStatus } from './perks';
 import { treasureOf } from './treasures';
@@ -567,10 +567,16 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     events.push({ kind: 'start', who: fighter.index, move, skill: skill !== null });
   }
 
+  /**
+   * Whether what a hero is doing is its attack: a move begun as its attack, whichever that was (its own, or what its skills
+   * had turned its attack into: HeroPart.attack, Talisha's in [Luberry]), not a skill, nor its flinch or entrance.
+   */
+  const attackMove = (doing: Doing): boolean => doing.skill === undefined && doing.move !== 'hit' && doing.move !== 'enter';
+
   /** Whether a hero is free for a skill: doing nothing, or only its attack (which the skill cuts short, as King's Raid's does; not another skill, nor its flinch or entrance). */
   function cuttable(fighter: Fighter): boolean {
     const { doing } = fighter;
-    return !doing || (doing.move === fighter.attack && doing.skill === undefined);
+    return !doing || attackMove(doing);
   }
 
   /** A hero uses a skill (true if it did: it must be free, or only attacking). */
@@ -790,7 +796,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
         const index = last ? 4 : doing.blows - 1;
         events.push({ kind: 'land', who: fighter.index, move, part: index });
         // (hit() is told whose attack is landing; and its parts are told how hard King's Raid's blow is: sim.basic.)
-        attacking = move === fighter.attack ? fighter : null;
+        attacking = attackMove(doing) ? fighter : null;
         basic = attacking ? (part.blows?.[doing.landed - 1] ?? 0) : 0;
         landing = { by: fighter, move };
         // Each part of its attack gains it mana, as its first blow lands (King's Raid's: once a part of its attack is under way).
@@ -1429,6 +1435,17 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       foe.slowed = seconds;
       if (foe === boss) events.push({ kind: 'boss-slow', rate, seconds });
     },
+    delay(seconds) {
+      // (The boss's, as its part keeps them; a minion's skill's, from now if it was ready.)
+      const foe = current();
+      if (foe.away || foe.hp <= 0) return;
+      if (foe === boss) {
+        foe.part.delay?.(seconds);
+        return;
+      }
+      const minion = minions.get(foe);
+      if (minion?.def.skill) minion.skill = Math.max(0, minion.skill) + seconds;
+    },
     cue(who, name, targets = []) {
       events.push({ kind: 'cue', who: who?.index ?? null, name, targets: targets.map((one) => one.index) });
     },
@@ -1631,7 +1648,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       if (on.reserved !== null && !sim.reservable(on, on.reserved) && !bound(on.statuses)) on.reserved = null;
       if (on.hp > 0 && !bound(on.statuses)) {
         if (on.reserved !== null && use(on, on.reserved)) on.reserved = null;
-        else if (!on.doing && on.rested >= (KR_HEROES[on.id]?.wait ?? HERO_WAIT) && targetOf(on)) begin(on, on.attack, null);
+        else if (!on.doing && on.rested >= (KR_HEROES[on.id]?.wait ?? HERO_WAIT) && targetOf(on)) begin(on, on.part.attack?.() ?? on.attack, null);
       }
     }
 

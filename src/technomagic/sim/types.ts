@@ -275,6 +275,11 @@ export interface Fight {
   stun(seconds: number, how?: { down?: boolean; by?: Fighter }): void;
   /** The boss's ATK Spd is so many points lower (King's Raid's: 300 has it attack at 70% of its speed) for so many seconds. */
   slow(points: number, seconds: number): void;
+  /**
+   * The boss's skills' cooldowns are so many seconds longer (King's Raid's ModActiveCooltime: Shamilla's Curse of Time), a
+   * skill ready as much as one not: as its part keeps them (BossPart.delay); a minion's, its skill's.
+   */
+  delay(seconds: number): void;
   /** Something for the page to draw that the fight's own events don't say: `name` is the hero's (or with `who` null, the boss's) own, and `targets` whom it is on. */
   cue(who: Fighter | null, name: string, targets?: readonly Fighter[]): void;
 }

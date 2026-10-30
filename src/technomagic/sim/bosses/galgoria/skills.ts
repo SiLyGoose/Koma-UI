@@ -173,6 +173,10 @@ function ownPart(fight: Fight): BossPart {
     next: () => (used >= FATAL.after ? 'fatal' : null),
     // Boss auto: a skill once its cooldown is over; Fatal Venom only of itself (next).
     ready: (attack) => attack !== 'fatal' && (cooldowns.get(attack) ?? 0) <= 0,
+    // Delayed (a hero's Fight.delay): each skill's cooldown longer, one ready too.
+    delay(seconds) {
+      for (const attack of Object.keys(COOLDOWNS)) cooldowns.set(attack, (cooldowns.get(attack) ?? 0) + seconds);
+    },
     // Beaten: whole again, it starts over (nothing is at stake here). Its venom goes with it.
     beaten() {
       hits = 0;

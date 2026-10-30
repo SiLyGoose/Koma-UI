@@ -161,9 +161,10 @@ export function dot(fight: Fight, name: string, each: (fighter: Fighter) => numb
 
 /**
  * Its skills' cooldowns (seconds), each begun as it is used and run down every step; and, as King's Raid's (InitialCoolTimeMs),
- * how long each waits as the fight begins: [cooldown, first], or just its cooldown (ready from the start).
+ * how long each waits as the fight begins: [cooldown, first], or just its cooldown (ready from the start). Delayed (a hero's
+ * Fight.delay), each is so many seconds longer, one ready too.
  */
-export function cooldowns(of: Readonly<Record<string, number | readonly [number, number]>>): { used(attack: string): void; ready(attack: string): boolean; tick(dt: number): void } {
+export function cooldowns(of: Readonly<Record<string, number | readonly [number, number]>>): { used(attack: string): void; ready(attack: string): boolean; tick(dt: number): void; delay(seconds: number): void } {
   const length = (one: number | readonly [number, number]): number => (typeof one === 'number' ? one : one[0]);
   const left = new Map<string, number>(Object.entries(of).flatMap(([attack, one]) => (typeof one === 'number' ? [] : [[attack, one[1]] as const])));
   return {
@@ -174,6 +175,9 @@ export function cooldowns(of: Readonly<Record<string, number | readonly [number,
     ready: (attack) => (left.get(attack) ?? 0) <= 0,
     tick(dt) {
       for (const [attack, wait] of left) left.set(attack, Math.max(0, wait - dt));
+    },
+    delay(seconds) {
+      for (const attack of Object.keys(of)) left.set(attack, (left.get(attack) ?? 0) + seconds);
     },
   };
 }

@@ -76,6 +76,7 @@ export function zyrrkinothPart(fight: Fight, mode: DragonMode = HARD): BossPart 
     taken,
     steady: true,
     used: waits.used,
+    delay: waits.delay,
     ready: waits.ready,
     tick(dt) {
       waits.tick(dt);

@@ -178,7 +178,47 @@ export type HeroMove =
   | 'sandstorm'
   | 'rites'
   | 'mark'
-  | 'ruinday';
+  | 'ruinday'
+  | 'hatred'
+  | 'grudge'
+  | 'dread'
+  | 'salvation'
+  | 'mercy'
+  | 'atonement'
+  | 'embrace'
+  | 'quick'
+  | 'wargod'
+  | 'punch'
+  | 'outta'
+  | 'potential'
+  | 'watah'
+  | 'merciless'
+  | 'curtain'
+  | 'bladeclaw'
+  | 'orb'
+  | 'bloodzone'
+  | 'banquet'
+  | 'destruction'
+  | 'protection'
+  | 'divine'
+  | 'petrify'
+  | 'timecurse'
+  | 'pain'
+  | 'halt'
+  | 'justice'
+  | 'honor'
+  | 'radiance'
+  | 'splendor'
+  | 'resonance'
+  | 'dance'
+  | 'bloom'
+  | 'luberry'
+  | 'redshot'
+  | 'whirlwind'
+  | 'transcend'
+  | 'voidstrike'
+  | 'untranscend'
+  | 'voidattack';
 
 /** `count` blows, the first `first` seconds in and each `every` after the last. */
 const every = (count: number, first: number, step: number): number[] => Array.from({ length: count }, (_, i) => first + i * step);
@@ -404,4 +444,55 @@ export const CODED: Readonly<Record<HeroMove | 'hit', Span>> = {
   rites: { lands: [1.9], until: 4.5 },
   mark: { lands: [0, 1.8, 2], until: 3.5 },
   ruinday: { lands: [2.6], until: 5 },
+  // Shakmeh (King's Raid's own timings: its animations').
+  hatred: { lands: [1.3, 1.5, 1.7, 1.9, 2.1], until: 3.4 },
+  grudge: { lands: [2], until: 3 },
+  dread: { lands: [2.7], until: 3.8 },
+  // Isaiah (King's Raid's own timings: its animations').
+  salvation: { lands: [1.8], until: 3.6 },
+  mercy: { lands: [0.6, 1.3], until: 2.7 },
+  atonement: { lands: [0, 1.8, 2.5], until: 3.9 },
+  embrace: { lands: [0.6, 2.2], until: 2.6 },
+  // Gladi (King's Raid's own timings: its animations').
+  quick: { lands: [1.2, 1.4, 1.6, 1.7, 1.8, 1.9, 2.2], until: 2.9 },
+  wargod: { lands: [1], until: 1.6 },
+  punch: { lands: [2], until: 2.8 },
+  // Cecilia (King's Raid's own timings: its animations').
+  outta: { lands: [0.7, 1.3, 2.3, 2.901, 3.2], until: 4.2 },
+  potential: { lands: [1.9], until: 2.9 },
+  watah: { lands: [0.7, 1, 1.3, 1.6, 1.9, 2.2, 3.3, 5.9], until: 7.5 },
+  // Roi (King's Raid's own timings: its animations').
+  merciless: { lands: [0.8, 1.1, 1.2, 1.433, 1.533, 1.767, 2.367], until: 2.9 },
+  curtain: { lands: [0.5, 1, 1.1, 1.2, 1.3, 1.5, 1.9], until: 2.33 },
+  bladeclaw: { lands: [0.967], until: 1.63 },
+  // Lewisia (King's Raid's own timings: its animations').
+  orb: { lands: [2.1], until: 3.2 },
+  bloodzone: { lands: [2], until: 3 },
+  banquet: { lands: [3, 3.2, 3.4], until: 4.6 },
+  // Ricardo (King's Raid's own timings: its animations').
+  destruction: { lands: [1.8], until: 3.1 },
+  protection: { lands: [1.4], until: 2.6 },
+  divine: { lands: [1, 1.7, 3], until: 4.3 },
+  // Shamilla (King's Raid's own timings: its animations').
+  petrify: { lands: [1.6], until: 2.4 },
+  timecurse: { lands: [1.7], until: 2.7 },
+  pain: { lands: [2.4], until: 4.1 },
+  // Scarlet (King's Raid's own timings: its animations').
+  halt: { lands: [1.7], until: 2.8 },
+  justice: { lands: [1.3], until: 2.6 },
+  honor: { lands: [0.4, 0.7, 2.6, 2.9], until: 3.4 },
+  // Talisha (King's Raid's own timings: its animations').
+  radiance: { lands: [2.8], until: 3.9 },
+  splendor: { lands: [3.5], until: 5.2 },
+  resonance: { lands: [1.7], until: 2.8 },
+  dance: { lands: [2.5, 2.6, 2.7, 2.8, 2.9, 3, 3.1, 3.2, 3.3], until: 3.9 },
+  bloom: { lands: [3.5], until: 5.2 },
+  luberry: { lands: [1.7], until: 2.8 },
+  redshot: { lands: [0.5, 0.6, 0.7, 1.3, 1.4, 1.5], until: 2.4 },
+  // Hilda (King's Raid's own timings: its animations').
+  whirlwind: { lands: [2.3, 2.6, 2.9, 3.2, 3.5, 3.8, 4.1, 4.4, 4.7, 5, 5.3, 5.6], until: 6.8 },
+  transcend: { lands: [1.6], until: 3.4 },
+  voidstrike: { lands: [2.3], until: 4.1 },
+  untranscend: { lands: [], until: 1.1 },
+  voidattack: { lands: [0.3, 0.9, 2, 2.6, 3.4, 3.9, 4.5, 5, 6], until: 7 },
 };

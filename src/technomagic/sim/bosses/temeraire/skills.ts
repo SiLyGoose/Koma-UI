@@ -84,6 +84,7 @@ export function temerairePart(fight: Fight, mode: DragonMode = HARD): BossPart {
       if (flame > 0) kindle(flame - 1);
     },
     used: waits.used,
+    delay: waits.delay,
     // Its flame first, whenever it is out and may be called up again.
     next: () => (flame <= 0 && waits.ready('blessing') ? 'blessing' : null),
     ready: (attack) => attack !== 'blessing' && waits.ready(attack) && (attack !== 'eruption' || opened(fight, mode.ultimate)),
