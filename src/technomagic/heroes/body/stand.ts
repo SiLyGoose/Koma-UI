@@ -23,6 +23,19 @@ function tipOf(held: Object3D, axis: 'x' | 'y'): Object3D {
   return tip;
 }
 
+/**
+ * The other hand's mark, where it is at this hand (`hand`, this side's bone) and this one has none: Shea's file marks her right
+ * hand Point_Hand_L, as the game's own pivot list has it (Bip001 R Hand/Point_Hand_L).
+ */
+function misnamed(part: Object3D, side: 'L' | 'R', hand: Object3D | undefined): Object3D | undefined {
+  const other = side === 'L' ? 'R' : 'L';
+  const mark = part.getObjectByName(`Point_Hand_${other}`) ?? part.getObjectByName(`Point_hand_${other}`);
+  const otherHand = part.getObjectByName(`Bip001_${other}_Hand`);
+  if (!mark || !hand || !otherHand) return undefined;
+  const at = mark.getWorldPosition(new Vector3());
+  return at.distanceTo(hand.getWorldPosition(new Vector3())) < at.distanceTo(otherHand.getWorldPosition(new Vector3())) ? mark : undefined;
+}
+
 /** A skin of the game's own files, stood on the field: its parts on their skeleton, and what it holds in its hands. `owner` is the hero whose it is. */
 export async function standHero(owner: HeroAssets, model: PartsModel): Promise<Stood> {
   const hands = [model.left, model.right].filter((folder) => folder !== undefined);
@@ -40,7 +53,14 @@ export async function standHero(owner: HeroAssets, model: PartsModel): Promise<S
 
   // What is held comes straight in the hand, as King's Raid hangs it (its recipe's ResetRotation: the turn its file's top
   // has, the export's from 3ds Max, undone): else what runs along the file's z (a staff, a spear) lies flat.
-  for (const model of held) for (const top of model.children) top.rotation.set(0, 0, 0);
+  // (A file whose top has no turn has it a level down, on its mesh and its first bone: Isolet's Santa staff.)
+  const exported = (o: Object3D): boolean => Math.abs(o.rotation.x + Math.PI / 2) < 0.01 && Math.abs(o.rotation.y) < 0.01 && Math.abs(o.rotation.z) < 0.01;
+  for (const model of held)
+    for (const top of model.children) {
+      const turned = top.rotation.x !== 0 || top.rotation.y !== 0 || top.rotation.z !== 0;
+      top.rotation.set(0, 0, 0);
+      if (!turned) for (const below of top.children) if (exported(below)) below.rotation.set(0, 0, 0);
+    }
 
   // A weapon goes where the body's file marks the hand it is for. The mark stands by itself in the
   // file: it is hung on the hand's bone here, so the weapon goes with the arm.
@@ -54,8 +74,8 @@ export async function standHero(owner: HeroAssets, model: PartsModel): Promise<S
     const side = model.left !== undefined && i === 0 ? 'L' : 'R';
     for (const part of parts) {
       // (Some files spell the mark with a small h; some mark only one, at the right hand, as Point_Weapon: Lorraine's.)
-      const point = part.getObjectByName(`Point_Hand_${side}`) ?? part.getObjectByName(`Point_hand_${side}`) ?? (side === 'R' ? part.getObjectByName('Point_Weapon') : undefined);
       const hand = part.getObjectByName(`Bip001_${side}_Hand`);
+      const point = part.getObjectByName(`Point_Hand_${side}`) ?? part.getObjectByName(`Point_hand_${side}`) ?? (side === 'R' ? part.getObjectByName('Point_Weapon') : undefined) ?? misnamed(part, side, hand);
       if (!point) continue;
       if (hand) hand.attach(point);
       // Held as its skin says, where its file's mark is not in its hand.
