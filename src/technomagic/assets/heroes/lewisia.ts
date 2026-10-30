@@ -7,6 +7,48 @@ import type { HeroAssets, KrAnimations, PartsModel } from '../types.ts';
 
 const DRIVE = 'https://drive.google.com/uc?export=download&id=';
 
+/** Her staff turned end over end in her hand, its head up (as the user knows her; her Vari05 look's own clips hold it head down, Vari03's up). */
+const HEAD_UP = { R: [Math.PI, 0, 0] } as const satisfies PartsModel['heldTurn'];
+
+/**
+ * King's Raid's own animations for its Vari03 look (its skins of that look are moved by them: ../../heroes/body/kr.ts): as
+ * ANIMATIONS, but the look's own clips (KR-extracted/scripts/tm-anims.mjs --look=Vari03).
+ */
+const VARI03_ANIMATIONS = {
+  idle: 'Vari03/Idle',
+  run: 'Vari03/Run',
+  hurt: 'Vari03/Damage',
+  victory: 'Vari03/Victory',
+  lose: 'Vari03/Lose',
+  dead: 'Vari03/Dead',
+  attack: [{ clips: ['Vari03/Attack1'], hits: [1] }],
+  skills: {
+    orb: { clips: ['Vari03/Skill1'], hits: [2.1] },
+    bloodzone: { clips: ['Vari03/Skill2'], hits: [2] },
+    banquet: { clips: ['Vari03/Skill3'], hits: [3, 3.2, 3.4] },
+  },
+} as const satisfies KrAnimations;
+
+/**
+ * King's Raid's own animations for its Vari04 look (its skins of that look are moved by them: ../../heroes/body/kr.ts): as
+ * ANIMATIONS, but the look's own clips (KR-extracted/scripts/tm-anims.mjs --look=Vari04).
+ */
+const VARI04_ANIMATIONS = {
+  idle: 'Vari04/Idle',
+  run: 'Vari04/Run',
+  hurt: 'Vari04/Damage',
+  victory: 'Vari04/Victory',
+  victoryIdle: 'Vari04/VictoryIdol',
+  lose: 'Vari04/Lose',
+  dead: 'Vari04/Dead',
+  attack: [{ clips: ['Vari04/Attack1'], hits: [1] }],
+  skills: {
+    orb: { clips: ['Vari04/Skill1'], hits: [2.1] },
+    bloodzone: { clips: ['Vari04/Skill2'], hits: [2] },
+    banquet: { clips: ['Vari04/Skill3'], hits: [3, 3.2, 3.4] },
+  },
+} as const satisfies KrAnimations;
+
 /**
  * King's Raid's own animations (its skins of the game's files are moved by them: ../../heroes/body/kr.ts): its basic attack's
  * chain, and each skill's clips, with when its blows land in them as the game's timelines have them (KR-extracted/scripts/tm-anims.mjs).
@@ -16,7 +58,6 @@ const ANIMATIONS = {
   run: 'Run',
   hurt: 'Damage',
   victory: 'Victory',
-  victoryIdle: 'VictoryIdol',
   lose: 'Lose',
   dead: 'Dead',
   attack: [{ clips: ['Attack1'], hits: [1] }],
@@ -26,9 +67,6 @@ const ANIMATIONS = {
     banquet: { clips: ['Skill3'], hits: [3, 3.2, 3.4] },
   },
 } as const satisfies KrAnimations;
-
-/** Her staff turned end over end in her hand, its head up (as the user knows her; the game's own clips hold it head down). */
-const HEAD_UP = { R: [Math.PI, 0, 0] } as const satisfies PartsModel['heldTurn'];
 
 export const LEWISIA_ASSETS: HeroAssets = {
   name: 'Lewisia',
@@ -86,10 +124,9 @@ export const LEWISIA_ASSETS: HeroAssets = {
       title: 'Twinkle Pure Lewisia',
       model: {
         kind: 'parts',
-        animations: ANIMATIONS,
+        animations: VARI04_ANIMATIONS,
         parts: ['Hero_Lewsia_Vari04_Cos17Idol_Body', 'Hero_Lewsia_Vari04_Cos17Idol_Hair'],
         right: 'Hero_Lewsia_Vari04_Cos17Idol_Weapon',
-        heldTurn: HEAD_UP,
       },
     },
     // King's Raid's Summer costume (tm-costumes.mjs).
@@ -104,10 +141,9 @@ export const LEWISIA_ASSETS: HeroAssets = {
       title: 'Beachside Lewisia(3Star)',
       model: {
         kind: 'parts',
-        animations: ANIMATIONS,
+        animations: VARI03_ANIMATIONS,
         parts: ['Hero_Lewsia_Vari03_Cos17Summer_Body', 'Hero_Lewsia_Vari03_Cos17Summer_Hair'],
         right: 'Hero_Lewsia_Vari03_Cos17Summer_Weapon',
-        heldTurn: HEAD_UP,
       },
     },
     // King's Raid's Summer costume (tm-costumes.mjs).
@@ -122,10 +158,9 @@ export const LEWISIA_ASSETS: HeroAssets = {
       title: 'Beachside Lewisia(4Star)',
       model: {
         kind: 'parts',
-        animations: ANIMATIONS,
+        animations: VARI04_ANIMATIONS,
         parts: ['Hero_Lewsia_Vari04_Cos17Summer_Body', 'Hero_Lewsia_Vari04_Cos17Summer_Hair'],
         right: 'Hero_Lewsia_Vari04_Cos17Summer_Weapon',
-        heldTurn: HEAD_UP,
       },
     },
     // King's Raid's Summer costume (tm-costumes.mjs).
@@ -176,10 +211,9 @@ export const LEWISIA_ASSETS: HeroAssets = {
       title: 'Snow Queen Lewisia',
       model: {
         kind: 'parts',
-        animations: ANIMATIONS,
+        animations: VARI03_ANIMATIONS,
         parts: ['Hero_Lewsia_Vari03_Cos18Frozen_Body', 'Hero_Lewsia_Vari03_Cos18Ice_Hair'],
         right: 'Hero_Lewsia_Vari03_Cos18Frozen_Weapon',
-        heldTurn: HEAD_UP,
       },
     },
     // King's Raid's Wedding costume (tm-costumes.mjs).
@@ -212,10 +246,9 @@ export const LEWISIA_ASSETS: HeroAssets = {
       title: 'Magical Vampire Lewisia',
       model: {
         kind: 'parts',
-        animations: ANIMATIONS,
+        animations: VARI04_ANIMATIONS,
         parts: ['Hero_Lewsia_Vari04_Cos19Halloween_Body', 'Hero_Lewsia_Vari04_Cos19Halloween_Hair'],
         right: 'Hero_Lewsia_Vari04_Cos19HalloweenWeapon',
-        heldTurn: HEAD_UP,
       },
     },
     // King's Raid's Wedding costume (tm-costumes.mjs).
@@ -230,10 +263,9 @@ export const LEWISIA_ASSETS: HeroAssets = {
       title: 'Bud of Blessings Lewisia',
       model: {
         kind: 'parts',
-        animations: ANIMATIONS,
+        animations: VARI03_ANIMATIONS,
         parts: ['Hero_Lewsia_Vari03_Cos20Wedding_Body', 'Hero_Lewsia_Vari03_Cos20Wedding_Hair'],
         right: 'Hero_Lewsia_Vari03_Cos20Wedding_Weapon',
-        heldTurn: HEAD_UP,
       },
     },
   ],
