@@ -45,6 +45,8 @@ export interface HeroesUi {
   buy: HTMLAnchorElement;
   /** Its Outfits button: to its outfit room (../hero-outfits/). */
   outfits: HTMLAnchorElement;
+  /** Its Loadouts button: the Loadouts panel, open or shut (./loadouts.ts). */
+  loadoutsButton: HTMLButtonElement;
   slots: HTMLButtonElement[];
   totals: HTMLElement;
   perkEffects: HTMLElement;
@@ -90,6 +92,18 @@ export interface HeroesUi {
   perkRows: HTMLElement;
   perkInfo: HTMLElement;
   resetPerks: HTMLButtonElement;
+  /** The Loadouts panel (./loadouts.ts): their loadouts, the one picked's number, name and pieces, and its Reset, Save and Equip. */
+  loadouts: HTMLElement;
+  loadoutList: HTMLElement;
+  loadoutNumber: HTMLElement;
+  loadoutName: HTMLInputElement;
+  loadoutPieces: HTMLElement;
+  loadoutNote: HTMLElement;
+  loadoutReset: HTMLButtonElement;
+  loadoutSave: HTMLButtonElement;
+  loadoutEquip: HTMLButtonElement;
+  /** Asks before a loadout's Save or Reset, or buying the next one (./loadouts.ts askLoadout). */
+  loadoutConfirm: HTMLDialogElement;
 }
 
 /** Everything the mounted page knows. */
@@ -111,8 +125,12 @@ export interface HeroesContext {
   /** How the armory sorts TechnoMagic gear (its Filter's Sort): by a main stat and by potentials, or in its own order. */
   sort: TmSort;
   query: string;
-  /** What the panel beside the hero shows. */
-  tab: 'stats' | 'gear' | 'skills' | 'transcend';
+  /** What the panel beside the hero shows (its Loadouts button's panel: 'loadouts'). */
+  tab: 'stats' | 'gear' | 'skills' | 'transcend' | 'loadouts';
+  /** The tab shown before the Loadouts panel was opened, to go back to as it shuts. */
+  tabBefore: 'stats' | 'gear' | 'skills' | 'transcend';
+  /** The gear loadout picked in the Loadouts panel (its number; null: the first the hero shown wears a piece of, else 1). */
+  loadout: number | null;
   /** The transcendence perk whose words show (its id), if any. */
   perk: string | null;
   /** Someone else's hero: the perk page shown (null: the one it uses). Their own always show the one in use. */
@@ -165,6 +183,7 @@ export function createContext(root: HTMLElement, host: HeroesHost): HeroesContex
       name: $('hero-name'),
       buy: $<HTMLAnchorElement>('hero-buy'),
       outfits: $<HTMLAnchorElement>('hero-outfits'),
+      loadoutsButton: $<HTMLButtonElement>('hero-loadouts'),
       slots: [...root.querySelectorAll<HTMLButtonElement>('.slot')],
       totals: $('totals'),
       perkEffects: $('perk-effects'),
@@ -204,6 +223,16 @@ export function createContext(root: HTMLElement, host: HeroesHost): HeroesContex
       perkRows: $('perk-rows'),
       perkInfo: $('perk-info'),
       resetPerks: $<HTMLButtonElement>('reset-perks'),
+      loadouts: $('loadouts'),
+      loadoutList: $('loadout-list'),
+      loadoutNumber: $('loadout-number'),
+      loadoutName: $<HTMLInputElement>('loadout-name'),
+      loadoutPieces: $('loadout-pieces'),
+      loadoutNote: $('loadout-note'),
+      loadoutReset: $<HTMLButtonElement>('loadout-reset'),
+      loadoutSave: $<HTMLButtonElement>('loadout-save'),
+      loadoutEquip: $<HTMLButtonElement>('loadout-equip'),
+      loadoutConfirm: $<HTMLDialogElement>('loadout-confirm'),
     },
     view: null,
     hero: null,
@@ -214,6 +243,8 @@ export function createContext(root: HTMLElement, host: HeroesHost): HeroesContex
     sort: TM_UNSORTED,
     query: '',
     tab: 'stats',
+    tabBefore: 'stats',
+    loadout: null,
     perk: null,
     perkPage: null,
     essence: null,

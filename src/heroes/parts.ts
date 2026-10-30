@@ -1,11 +1,20 @@
-import { el, rich } from '../shared/items';
+import { art, el, heroFrame, heroMarks, isTmPiece, krStars, rich, runeMarks } from '../shared/items';
+import type { Slot } from '../protocol/items';
 import type { HeroCopy, HeroRune } from '../protocol/heroes';
 
 /*
  * The parts of a hero piece's details the heroes page draws (./render.ts) and the inventory's Hero Gear (../inventory/tabs/gear.ts)
  * too: a King's Raid piece's unique option and set bonuses, its rune sockets, what it does without its runes' lines, and a
- * rune's picture.
+ * rune's picture; and a slot's frame with what's in it (the stage's slots, and a gear loadout's: ./loadouts.ts).
  */
+
+/** A slot's frame (`kind`, its kind of item: its empty picture): its piece's picture, frame, marks, rune sockets and stars, King's Raid's. */
+export function slotFrame(copy: HeroCopy | undefined, kind: Slot): HTMLElement {
+  const frame = el('span', 'slot-frame');
+  frame.append(art(copy?.itemId ?? null, kind));
+  if (copy) frame.append(heroFrame(copy), ...heroMarks(copy), ...runeMarks(copy.runes), krStars(copy.level, copy.level, isTmPiece(copy.itemId)));
+  return frame;
+}
 
 /** A rune's picture in the Runes list: its icon, its kind's gem on its corner. */
 export function runePic(rune: HeroRune): HTMLElement {

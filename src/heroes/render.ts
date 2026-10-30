@@ -1,4 +1,4 @@
-import { art, drawSell, el, forgeLink, hasLevels, heroFrame, heroMarks, isTmPiece, itemDetailsClosed, itemFace, krStars, levelLabel, itemPicked, lockToggle, optionsSection, priceOf, pruneSale, replacesNote, rich, runeMarks, sellsFor, showDetail, shownName, statBlocks, tmMarks, tmSections, treasureParts, uniqueWeaponEffect, utMarks, uwMarks } from '../shared/items';
+import { art, drawSell, el, forgeLink, hasLevels, itemDetailsClosed, itemFace, levelLabel, itemPicked, lockToggle, optionsSection, priceOf, pruneSale, replacesNote, rich, sellsFor, showDetail, shownName, statBlocks, tmMarks, tmSections, treasureParts, uniqueWeaponEffect, utMarks, uwMarks } from '../shared/items';
 import { classBadge, className, FACE, HERO_PART_NAME, HERO_SLOT_KIND, HERO_SLOT_PART, HERO_SLOT_TYPE, HERO_SLOTS, heroCut, heroPicture, skillText, STAGE_ZOOM, type HeroView, type HeroCopy, type HeroSlot } from '../shared/heroes';
 import { built } from '../shared/built';
 import { skinOf } from '../shared/hero-outfits';
@@ -17,7 +17,8 @@ import { heroStats } from './stats';
 import { ESSENCE_NAME, essencePicture, heroPerks, spent, TRANSCEND_MAX, TRANSCEND_POINTS, type EssenceId, type Perk, type TranscendTier } from './transcend';
 import { GEM_EMOJI } from '../forge/anvil/gem';
 import { essenceSources } from './essences';
-import { krSections, runePic, runeSection, withoutRunes } from './parts';
+import { krSections, runePic, runeSection, slotFrame, withoutRunes } from './parts';
+import { renderLoadouts } from './loadouts';
 
 /*
  * Draws the heroes page from what the bot said (ctx.view): the roster of heroes, the one shown on the stage
@@ -45,6 +46,18 @@ export interface HeroActions {
   rune(copy: HeroCopy, socket: number, rune: string | null): void;
   /** Disassembles the rune in a copy's socket where it is, into Rune Fragments. */
   breakRune(copy: HeroCopy, socket: number): void;
+  /** Puts gear loadout `number` on the hero shown (./loadouts.ts). */
+  loadoutEquip(number: number): void;
+  /** Saves what the hero shown wears into gear loadout `number`. */
+  loadoutSave(number: number): void;
+  /** Empties gear loadout `number`. */
+  loadoutReset(number: number): void;
+  /** Names gear loadout `number` (empty: no name). */
+  loadoutName(number: number, name: string): void;
+  /** Buys their next gear loadout. */
+  loadoutBuy(): void;
+  /** Draws the page again (something picked changed). */
+  redraw(): void;
 }
 
 /** Narrow screens, where the details are a sheet over the bottom of the page (../shared/items/styles/detail.css). */
@@ -81,10 +94,12 @@ export function render(ctx: HeroesContext, act: HeroActions): void {
   renderAscend(ctx, act);
   renderSkills(ctx);
   renderTranscend(ctx, act);
+  renderLoadouts(ctx, act);
   ui.armory.classList.toggle('off', ctx.tab !== 'gear');
   ui.stats.classList.toggle('off', ctx.tab !== 'stats');
   ui.skills.classList.toggle('off', ctx.tab !== 'skills');
   ui.transcend.classList.toggle('off', ctx.tab !== 'transcend');
+  ui.loadouts.classList.toggle('off', ctx.tab !== 'loadouts');
   for (const tab of ui.views) tab.setAttribute('aria-selected', String(tab.dataset.view === ctx.tab));
   // Someone else's heroes are only to look at. Sell: to start picking, then (with some picked) to confirm.
   ui.unequipAll.hidden = !mine(ctx) || ctx.selling !== null;
@@ -293,13 +308,9 @@ function renderSlots(ctx: HeroesContext): void {
     else delete button.dataset.sfx;
     button.classList.toggle('filtered', ctx.target === slot && ctx.filter === type);
     button.setAttribute('aria-label', copy ? `${slotName(slot)}: ${shownName(copy)}` : `${slotName(slot)}: empty`);
-    const frame = el('span', 'slot-frame');
-    frame.append(art(copy?.itemId ?? null, kind));
-    // (A hero's gear: its frame, its marks (a unique weapon's or treasure's, a TechnoMagic piece's), its rune sockets and its stars, King's Raid's.)
-    if (copy) frame.append(heroFrame(copy), ...heroMarks(copy), ...runeMarks(copy.runes), krStars(copy.level, copy.level, isTmPiece(copy.itemId)));
     // (No name under it, as King's Raid's: on hovering it.)
     button.title = slotName(slot);
-    button.append(frame);
+    button.append(slotFrame(copy, kind));
   }
 }
 

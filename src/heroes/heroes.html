@@ -33,10 +33,10 @@
           <canvas id="hero-model" class="hero-model"></canvas>
         </div>
         <div class="slot-col hero-weapons">
-          <!-- Over its Weapon, beside its treasure, as King's Raid's Hero Info has them: its outfits (its outfit room, src/hero-outfits/) and its gear loadouts (not working yet). -->
+          <!-- Over its Weapon, beside its treasure, as King's Raid's Hero Info has them: its outfits (its outfit room, src/hero-outfits/) and the gear loadouts (the Loadouts panel, ./loadouts.ts). -->
           <div class="hero-shortcuts">
             <a id="hero-outfits" class="hero-shortcut outfits" href="/hero-outfits/" title="Outfits" aria-label="Outfits"></a>
-            <button type="button" class="hero-shortcut loadouts" title="Loadouts (coming soon)" aria-label="Loadouts (coming soon)"></button>
+            <button type="button" id="hero-loadouts" class="hero-shortcut loadouts" title="Loadouts" aria-label="Loadouts" aria-controls="loadouts" aria-pressed="false"></button>
           </div>
           <button type="button" class="slot" data-slot="weapon"></button>
           <button type="button" class="slot" data-slot="armor"></button>
@@ -145,6 +145,16 @@
       </div>
     </dialog>
 
+    <!-- A hero gear loadout's Save, Reset, or buying the next one, asked first as King's Raid does (./loadouts.ts askLoadout): what it does, and Cancel or do it. -->
+    <dialog id="loadout-confirm" class="sell-confirm loadout-confirm" aria-labelledby="loadout-confirm-title">
+      <h3 id="loadout-confirm-title">Notice</h3>
+      <p class="loadout-confirm-what"></p>
+      <div class="sell-confirm-foot">
+        <button type="button" class="action secondary" data-loadout="cancel">Cancel</button>
+        <button type="button" class="action main" data-loadout="confirm"></button>
+      </div>
+    </dialog>
+
     <!-- Using a Transcendence Attribute Point on the hero shown (its + beside the TP): its TP before and after, and Cancel or Use. -->
     <dialog id="tp-confirm" class="sell-confirm tp-confirm" aria-labelledby="tp-confirm-title">
       <h3 id="tp-confirm-title"></h3>
@@ -208,6 +218,34 @@
       </div>
       <div class="armory-foot">
         <button type="button" id="reset-perks" class="armory-action action secondary danger">Reset Perks</button>
+      </div>
+    </div>
+
+    <!--
+      Loadouts (its Loadouts button over the Weapon): King's Raid's Gear Custom (./loadouts.ts). Their numbered loadouts (the
+      member's, for every hero; those not bought yet locked, the next one bought by pressing one), the one picked's name and
+      the Armor, Mantle, Accessory, Orb and Artifact it keeps; Equip puts them on the hero shown, Save keeps what it wears
+      there in it, Reset empties it.
+    -->
+    <div id="loadouts" class="armory stats loadouts off" role="tabpanel">
+      <div class="armory-plaque plaque"><span>Gear Loadouts</span></div>
+      <div class="armory-sheet">
+        <div class="sheet-scroll">
+          <div id="loadout-list" class="loadout-slots" role="group" aria-label="Loadouts"></div>
+          <section class="loadout-shown" aria-label="Loadout picked">
+            <div class="loadout-head">
+              <span id="loadout-number" class="loadout-number"></span>
+              <input id="loadout-name" class="loadout-name" type="text" autocomplete="off" spellcheck="false" aria-label="Loadout name" />
+            </div>
+            <div id="loadout-pieces" class="loadout-pieces"></div>
+            <p id="loadout-note" class="loadout-note"></p>
+          </section>
+        </div>
+      </div>
+      <div class="armory-foot">
+        <button type="button" id="loadout-reset" class="armory-action action secondary danger">Reset</button>
+        <button type="button" id="loadout-save" class="armory-action action secondary">Save</button>
+        <button type="button" id="loadout-equip" class="armory-action action main">Equip</button>
       </div>
     </div>
   </section>

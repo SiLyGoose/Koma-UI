@@ -1502,3 +1502,230 @@ button.ascend-cost:focus-visible {
 .rune-row.equipped {
   background: rgb(240 200 110 / 16%);
 }
+
+/* ------------------------------------------------------------------ loadouts */
+
+/* Its Loadouts button while its panel is open: King's Raid's lit one. */
+.hero-shortcut.loadouts.on {
+  background-image: url('/kr/ui/hero-info/loadouts-on.webp');
+}
+
+.hero-shortcut[hidden] {
+  display: none;
+}
+
+/*
+ * The Loadouts panel (loadouts.ts): their loadouts in a grid of King's Raid's Mission_Button tiles (as the perk pages):
+ * navy, the one picked the site's sky blue, a locked one grey with its padlock; its number in the corner, its name along
+ * the bottom, the face of the hero shown on one it wears pieces of. Its own scroll, so the one picked stays in sight under it.
+ */
+.loadout-slots {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(78px, 1fr));
+  gap: 6px;
+  max-height: min(52vh, 364px);
+  margin: 6px 4px 10px;
+  padding: 2px 6px 2px 0;
+  overflow-y: auto;
+}
+
+/* (Narrow: three rows' worth, so the one picked is in sight under them.) */
+@media (max-width: 899px) {
+  .loadout-slots {
+    max-height: 186px;
+  }
+}
+
+.loadout-slot {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  min-width: 0;
+  height: 54px;
+  padding: 4px 6px;
+  border: 2px solid transparent;
+  border-image: url('/kr/ui/perk-pages/page.webp') 20 fill / 10px;
+  background: none;
+  color: #fff;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 60%);
+  cursor: pointer;
+}
+
+.loadout-slot:hover:not(:disabled, .on) {
+  filter: brightness(1.15);
+}
+
+.loadout-slot.on {
+  border: 2px solid var(--sky-edge);
+  border-image: none;
+  border-radius: 6px;
+  background: var(--sky-fill);
+  box-shadow:
+    inset 0 0 0 1px rgb(8 36 74 / 85%),
+    inset 0 -2px 0 rgb(170 235 255 / 30%);
+  text-shadow: 0 1px 2px rgb(0 45 95 / 80%);
+  cursor: default;
+}
+
+.loadout-slot-number {
+  position: absolute;
+  top: 3px;
+  left: 6px;
+  font: 800 15px/1 Arial, sans-serif;
+}
+
+.loadout-slot-name {
+  overflow: hidden;
+  width: 100%;
+  font-size: 10px;
+  font-weight: 700;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.loadout-slot.empty .loadout-slot-name {
+  opacity: 0.7;
+}
+
+.loadout-slot-face {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 24px;
+  height: 24px;
+  border: 1px solid rgb(255 255 255 / 70%);
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.loadout-slot.locked {
+  align-items: center;
+  justify-content: center;
+  border-image-source: url('/kr/ui/perk-pages/page-off.webp');
+  color: #a6a6a6;
+}
+
+.loadout-slot.locked:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.loadout-slot.working {
+  cursor: progress;
+  opacity: 0.6;
+}
+
+.loadout-slot-lock {
+  font-size: 18px;
+}
+
+/* The loadout picked: its number and name (typed in place) over its five pieces, as the stage's slots, a word on them under. */
+.loadout-shown {
+  margin: 0 4px;
+  padding-top: 10px;
+  border-top: 1px solid var(--parchment-edge);
+}
+
+.loadout-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.loadout-number {
+  display: grid;
+  place-items: center;
+  min-width: 30px;
+  height: 30px;
+  border: 2px solid var(--sky-edge);
+  border-radius: 6px;
+  background: var(--sky-fill);
+  color: #fff;
+  font: 800 15px/1 Arial, sans-serif;
+  text-shadow: 0 1px 2px rgb(0 45 95 / 80%);
+}
+
+.loadout-name {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 10px;
+  border: 1px solid var(--parchment-edge);
+  border-radius: 6px;
+  background: rgb(255 255 255 / 45%);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 700;
+}
+
+.loadout-name::placeholder {
+  color: #8a7d66;
+}
+
+.loadout-name:focus {
+  border-color: var(--picked);
+  outline: none;
+  background: rgb(255 255 255 / 70%);
+}
+
+.loadout-pieces {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 12px 0 6px;
+}
+
+.loadout-piece .slot-frame {
+  width: 64px;
+  height: 64px;
+}
+
+.loadout-piece .slot-name {
+  color: #6b5a3a;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.loadout-piece:disabled {
+  cursor: default;
+}
+
+.loadout-piece:disabled .slot-frame {
+  transform: none;
+}
+
+/* (A piece the hero shown can't wear: greyed, as King's Raid's.) */
+.loadout-piece.unfit .slot-frame {
+  filter: grayscale(1) brightness(0.75);
+}
+
+.loadout-piece-face {
+  position: absolute;
+  top: -9px;
+  left: calc(50% - 12px);
+  z-index: 2;
+  width: 24px;
+  height: 24px;
+  border: 1px solid #fff;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 50%);
+}
+
+.loadout-note {
+  margin: 4px 0 0;
+  color: #6b5a3a;
+  font-size: 12px;
+  text-align: center;
+}
+
+.loadout-confirm-what {
+  text-align: center;
+}
+
+.loadout-confirm-what .coin {
+  width: 16px;
+  height: 16px;
+  vertical-align: -3px;
+}

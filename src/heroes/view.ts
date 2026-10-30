@@ -7,6 +7,8 @@ import { busyWith, dropdown, fillServers } from '../shared/ui';
 import { createContext, heroShown, mine, status, type HeroesContext, type HeroesHost, type HeroMember } from './context';
 import { perkTip, render, renderPick, renderSearch, sellableShown, type HeroActions } from './render';
 import { salvageRuleDialog } from './salvage-rule';
+import { askLoadout, type LoadoutAsk } from './loadouts';
+import { HERO_LOADOUTS } from '../protocol/heroes';
 
 /** How long the search waits for typing to stop before the armory is drawn again. */
 const SEARCH_MS = 120;
@@ -213,10 +215,24 @@ async function sell(ctx: HeroesContext, act: HeroActions, salvage = false): Prom
   saleSaid(ctx.ui.status, sold, stopped);
 }
 
+/** What the bot's refusals of a gear loadout change mean (protocol/heroes.ts HeroLoadoutError). */
+const LOADOUT_SAID: Partial<Record<string, string>> = {
+  locked: 'Buy that loadout first.',
+  nothing_worn: 'This hero wears none of the gear a loadout keeps (Armor, Mantle, Accessory, Orb, Artifact).',
+  empty: 'That loadout is empty.',
+  wrong_class: 'Nothing in that loadout works on this hero.',
+  too_long: `A loadout’s name is ${HERO_LOADOUTS.maxNameLength} characters at most.`,
+  bad_name: 'A loadout’s name can only have letters, numbers, spaces and a little punctuation.',
+  maxed: 'You have every loadout already.',
+  too_poor: 'Not enough zeiucoins for another loadout.',
+  busy: 'Your heroes’ gear changed meanwhile. Try again.',
+};
+
 function actions(ctx: HeroesContext): HeroActions {
   const act: HeroActions = {
     pickHero(id) {
       if (id === ctx.hero) return;
+      // (The Loadouts panel keeps the loadout picked, as King's Raid's: to put it on this hero.)
       ctx.hero = id;
       // The armory shows what works on its class.
       ctx.cls = heroShown(ctx)?.class ?? 'all';
@@ -293,6 +309,33 @@ function actions(ctx: HeroesContext): HeroActions {
         if (done) status(ctx, `Disassembled ${rune?.name ?? 'the rune'} into ${fragmentCount(done.fragments)}.`);
       });
     },
+    loadoutEquip(number: number) {
+      const hero = ctx.hero;
+      if (hero) void change(ctx, act, 'loadout-equip', '/api/heroes/loadout/equip', { hero, loadout: number }, 'Could not put that loadout on. Try again.', LOADOUT_SAID);
+    },
+    loadoutSave(number: number) {
+      const hero = ctx.hero;
+      if (hero) void change(ctx, act, 'loadout-save', '/api/heroes/loadout/save', { hero, loadout: number }, 'Could not save that loadout. Try again.', LOADOUT_SAID);
+    },
+    loadoutReset(number: number) {
+      void change(ctx, act, 'loadout-reset', '/api/heroes/loadout/reset', { loadout: number }, 'Could not reset that loadout. Try again.', LOADOUT_SAID);
+    },
+    loadoutName(number: number, name: string) {
+      void change(ctx, act, 'loadout-name', '/api/heroes/loadout/name', { loadout: number, name }, 'Could not rename that loadout. Try again.', LOADOUT_SAID);
+    },
+    loadoutBuy() {
+      void change(ctx, act, 'loadout-buy', '/api/heroes/loadout/buy', {}, 'Could not buy another loadout. Try again.', LOADOUT_SAID).then((done) => {
+        // (The one bought, picked; and the header's zeiucoins follow.)
+        if (done?.loadouts) {
+          ctx.loadout = done.loadouts.slots.length;
+          render(ctx, act);
+        }
+        void ctx.host.loadMe(true);
+      });
+    },
+    redraw() {
+      render(ctx, act);
+    },
     lock(copy: HeroCopy, locked: boolean) {
       void change(ctx, act, `lock:${copy.id}`, '/api/heroes/lock', { copy: copy.id, locked }, locked ? 'Could not lock that. Try again.' : 'Could not unlock that. Try again.', {
         not_found: "That item isn't yours any more.",
@@ -346,6 +389,54 @@ function wire(ctx: HeroesContext, act: HeroActions): () => void {
     ctx.query = query;
     clearTimeout(typing);
     typing = setTimeout(() => renderSearch(ctx, act), SEARCH_MS);
+  });
+
+  // Loadouts (over the Weapon): its panel in place of the tab shown, picked on the loadout the hero wears; again, back to that tab.
+  ui.loadoutsButton.addEventListener('click', () => {
+    if (ctx.tab === 'loadouts') ctx.tab = ctx.tabBefore;
+    else {
+      ctx.tabBefore = ctx.tab;
+      ctx.tab = 'loadouts';
+      ctx.loadout = null;
+      ctx.picked = null;
+      ctx.runes = false;
+      ctx.selling = null;
+    }
+    render(ctx, act);
+  });
+  // A loadout's name, sent as it's left (or Enter pressed) when it changed; Escape puts it back.
+  ui.loadoutName.addEventListener('change', () => {
+    const loadout = ctx.view?.loadouts?.slots.find((one) => one.number === ctx.loadout);
+    if (loadout && ui.loadoutName.value.trim() !== (loadout.name ?? '')) act.loadoutName(loadout.number, ui.loadoutName.value);
+  });
+  ui.loadoutName.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') ui.loadoutName.blur();
+    if (event.key === 'Escape') {
+      event.stopPropagation();
+      ui.loadoutName.value = ctx.view?.loadouts?.slots.find((one) => one.number === ctx.loadout)?.name ?? '';
+      ui.loadoutName.blur();
+    }
+  });
+  ui.loadoutEquip.addEventListener('click', () => {
+    if (ctx.loadout !== null && !ctx.busy) act.loadoutEquip(ctx.loadout);
+  });
+  ui.loadoutSave.addEventListener('click', () => {
+    if (ctx.loadout !== null && !ctx.busy) askLoadout(ctx, 'save', ctx.loadout);
+  });
+  ui.loadoutReset.addEventListener('click', () => {
+    if (ctx.loadout !== null && !ctx.busy) askLoadout(ctx, 'reset', ctx.loadout);
+  });
+  // Save, Reset or buying one, once asked (Cancel, or a click on the backdrop, closes it).
+  ui.loadoutConfirm.addEventListener('click', (event) => {
+    const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-loadout]');
+    if (!button && event.target !== ui.loadoutConfirm) return;
+    ui.loadoutConfirm.close();
+    if (button?.dataset.loadout !== 'confirm') return;
+    const number = Number(ui.loadoutConfirm.dataset.loadout);
+    const ask = ui.loadoutConfirm.dataset.ask as LoadoutAsk;
+    if (ask === 'save') act.loadoutSave(number);
+    else if (ask === 'reset') act.loadoutReset(number);
+    else act.loadoutBuy();
   });
 
   for (const tab of ui.views) {
@@ -465,7 +556,7 @@ function wire(ctx: HeroesContext, act: HeroActions): () => void {
 
   // Escape closes the picked copy, else stops picking copies to sell (the sale's confirmation closes itself).
   const onKey = (event: KeyboardEvent): void => {
-    if (event.key !== 'Escape' || ui.sellConfirm.open || ui.salvageRule.open || ui.tpConfirm.open || ui.perkPageConfirm.open) return;
+    if (event.key !== 'Escape' || ui.sellConfirm.open || ui.salvageRule.open || ui.tpConfirm.open || ui.perkPageConfirm.open || ui.loadoutConfirm.open) return;
     if (ctx.picked) {
       itemDetailsClosed();
       ctx.picked = null;
@@ -480,6 +571,7 @@ function wire(ctx: HeroesContext, act: HeroActions): () => void {
     if (ui.sellConfirm.open) ui.sellConfirm.close();
     if (ui.tpConfirm.open) ui.tpConfirm.close();
     if (ui.perkPageConfirm.open) ui.perkPageConfirm.close();
+    if (ui.loadoutConfirm.open) ui.loadoutConfirm.close();
     if (ui.salvageRule.open) ui.salvageRule.close();
     serverPicker.destroy();
     memberPicker.destroy();
