@@ -14,7 +14,7 @@ import type { HeroActions } from './render';
  * Armor, Mantle, Accessory, Orb and Artifact. The one picked shows its number, its name (typed in place) and its pieces (one the
  * hero shown can't wear greyed; one another hero wears with that hero's face on it; pressing one shows what it is); Equip puts
  * them on the hero shown (off whoever wears them), Save keeps what the hero shown wears there in it, Reset empties it. A loadout
- * any of whose pieces the hero shown wears has its face on it. Only their own heroes have it.
+ * one of their heroes wears has that hero's headshot for its picture. Only their own heroes have it.
  */
 
 /** A loadout's name as shown: the one they gave it, else "Loadout <number>". */
@@ -23,6 +23,18 @@ export const loadoutName = (loadout: Pick<HeroLoadoutView, 'number' | 'name'>): 
 /** Whether `hero` wears any of a loadout's pieces, in its slot (King's Raid's IsEquippedItemExist). */
 const wornBy = (loadout: HeroLoadoutView, hero: HeroView | undefined): boolean =>
   !!hero?.owned && HERO_LOADOUT_SLOTS.some((slot) => !!loadout.pieces[slot] && hero.equipped[slot] === loadout.pieces[slot]);
+
+/** The hero wearing a loadout: of those wearing any of its pieces (in its slots), the one wearing most, the hero shown first (none: nobody). */
+function wearerOf(ctx: HeroesContext, loadout: HeroLoadoutView): HeroView | undefined {
+  const shown = heroShown(ctx);
+  let best: { hero: HeroView; count: number } | undefined;
+  for (const hero of ctx.view?.heroes ?? []) {
+    if (!hero.owned) continue;
+    const count = HERO_LOADOUT_SLOTS.filter((slot) => !!loadout.pieces[slot] && hero.equipped[slot] === loadout.pieces[slot]).length;
+    if (count > 0 && (!best || count > best.count || (count === best.count && hero.id === shown?.id))) best = { hero, count };
+  }
+  return best?.hero;
+}
 
 /** Whether a copy does anything on `hero`: King's Raid's gear only on its classes. */
 const fitsHero = (copy: HeroCopy, hero: HeroView | undefined): boolean => (copy.classes.length > 0 ? !!hero && copy.classes.includes(hero.class) : copy.class === null || copy.class === hero?.class);
@@ -52,12 +64,11 @@ export function renderLoadouts(ctx: HeroesContext, act: HeroActions): void {
   renderPicked(ctx, act);
 }
 
-/** Every loadout, in order: theirs (picked framed; a face for the hero shown when it wears any of its pieces), then the locked ones. */
+/** Every loadout, in order: theirs (picked framed; one a hero wears, that hero's headshot behind it), then the locked ones. */
 function renderList(ctx: HeroesContext, act: HeroActions): void {
   const { ui, view } = ctx;
   const loadouts = view?.loadouts;
   if (!loadouts) return;
-  const hero = heroShown(ctx);
   const owned = loadouts.slots.length;
   const tiles: HTMLElement[] = [];
   for (let number = 1; number <= HERO_LOADOUTS.most; number++) {
@@ -72,7 +83,12 @@ function renderList(ctx: HeroesContext, act: HeroActions): void {
       tile.setAttribute('aria-pressed', String(on));
       tile.title = loadoutName(loadout);
       tile.append(el('span', 'loadout-slot-name', loadoutName(loadout)));
-      if (hero && wornBy(loadout, hero)) tile.append(face(hero.id, hero.name, 'loadout-slot-face'));
+      const wearer = wearerOf(ctx, loadout);
+      if (wearer) {
+        tile.classList.add('worn');
+        tile.prepend(face(wearer.id, wearer.name, 'loadout-slot-face', 192));
+        tile.title += ` (worn by ${wearer.name})`;
+      }
       tile.addEventListener('click', () => {
         if (ctx.loadout === loadout.number) return;
         ctx.loadout = loadout.number;
@@ -159,13 +175,13 @@ function renderPicked(ctx: HeroesContext, act: HeroActions): void {
   working(ui.loadoutReset, ctx.busy, 'loadout-reset');
 }
 
-/** A hero's face, small: on a loadout the hero shown wears pieces of, or on a piece another hero wears. */
-function face(id: string, name: string, className: string): HTMLElement {
+/** A hero's face (`width` wide): behind a loadout a hero wears, or small on a piece another hero wears. */
+function face(id: string, name: string, className: string, width = 96): HTMLElement {
   const img = el('img', className);
   img.alt = '';
   img.title = name;
   img.hidden = true;
-  void heroCut(id, FACE, 96).then((src) => {
+  void heroCut(id, FACE, width).then((src) => {
     if (!src) return;
     img.src = src;
     img.hidden = false;
