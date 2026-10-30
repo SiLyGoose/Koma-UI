@@ -51,6 +51,17 @@ const UNIQUE_PICTURES: Readonly<Record<string, string>> = {
   evan: '/gear/items/weapons/small-synthesized-darkness-naav-gehen.png',
   estelle: '/gear/items/weapons/chant-of-tailwinds-stosmos.png',
   jane: '/gear/items/weapons/unchanging-mind-erekura.png',
+  shakmeh: '/gear/items/weapons/encroaching-darkness-leifende.png',
+  isaiah: '/gear/items/weapons/bladebound-faith-ezaias.png',
+  gladi: '/gear/items/weapons/beast-fist-mastra.png',
+  cecilia: '/gear/items/weapons/supersonic-tempest-gigantix.png',
+  roi: '/gear/items/weapons/specters-breath-redeal.png',
+  lewisia: '/gear/items/weapons/scarlet-ruler-dominicia.png',
+  ricardo: '/gear/items/weapons/light-of-judgment-theoria.png',
+  shamilla: '/gear/items/weapons/wings-of-corruption-apoliox.png',
+  scarlet: '/gear/items/weapons/blade-of-conviction-white-belona.png',
+  talisha: '/gear/items/weapons/color-splendor-diogemme.png',
+  hilda: '/gear/items/weapons/dream-of-an-artifical-god-innocentia.png',
 };
 
 /** A hero's files, by its id (its folder under public/kr/heroes/). */
