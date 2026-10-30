@@ -164,6 +164,8 @@ export const LUCIAS_ASSETS: HeroAssets = {
         animations: ANIMATIONS,
         parts: ['Hero_Lucias_Cos21GloryLeague_Body', 'Hero_Lucias_Hair_01'],
         right: 'Hero_Lucias_Cos21GloryLeague_Weapon',
+        // (Its banner: its weapon's picture, cut out by the banner's mask; the file names the mask as its colour.)
+        pictures: { Hero_Lucias_Cos21GloryLeague_Weapon_Effect: 'Hero_Lucias_Cos21GloryLeague_Weapon_Banner(RGB).png' },
       },
     },
     // King's Raid's Glory costume (tm-costumes.mjs).
@@ -188,6 +190,8 @@ export const LUCIAS_ASSETS: HeroAssets = {
         animations: ANIMATIONS,
         parts: ['Hero_Lucias_Cos21GloryLeague2_Body', 'Hero_Lucias_Hair_01'],
         right: 'Hero_Lucias_Cos21GloryLeague_Weapon',
+        // (Its banner: its weapon's picture, cut out by the banner's mask; the file names the mask as its colour.)
+        pictures: { Hero_Lucias_Cos21GloryLeague_Weapon_Effect: 'Hero_Lucias_Cos21GloryLeague_Weapon_Banner(RGB).png' },
       },
     },
     // King's Raid's DailyLook costume (tm-costumes.mjs).

@@ -27,7 +27,7 @@ function tipOf(held: Object3D, axis: 'x' | 'y'): Object3D {
 export async function standHero(owner: HeroAssets, model: PartsModel): Promise<Stood> {
   const hands = [model.left, model.right].filter((folder) => folder !== undefined);
   const folders = (names: readonly string[]): string[] => names.map((name) => modelFolder(owner, name));
-  const [parts, held, floats] = await Promise.all([loadModels(folders(model.parts), model.repaint && { ...model.repaint, at: modelFolder(owner, model.repaint.to) }, model.pictures), loadModels(folders(hands)), loadModels(folders(model.floating ? [model.floating.model] : []))]);
+  const [parts, held, floats] = await Promise.all([loadModels(folders(model.parts), model.repaint && { ...model.repaint, at: modelFolder(owner, model.repaint.to) }, model.pictures), loadModels(folders(hands), undefined, model.pictures), loadModels(folders(model.floating ? [model.floating.model] : []), undefined, model.pictures)]);
   // (What its files have that its look hasn't: Tanya's fox mask over her face.)
   if (model.hidden) {
     const gone: Object3D[] = [];

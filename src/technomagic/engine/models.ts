@@ -202,8 +202,8 @@ export async function loadModels(folders: readonly string[], repaint?: { from: s
   const models = await Promise.all(folders.map(loadFbx));
 
   // Where each material's texture is: the file names it by its picture's name (or `pictures` does, where three.js's loader
-  // drops the one its file names).
-  const pictureOf = (material: Material & { map?: Texture | null }): string | undefined => material.map?.name || pictures?.[material.name];
+  // drops the one its file names, or it names the wrong one).
+  const pictureOf = (material: Material & { map?: Texture | null }): string | undefined => pictures?.[material.name] ?? (material.map?.name || undefined);
   const found = new Map<string, { folder: string; file: string }>();
   const each = (visit: (material: Material & { map?: Texture | null }, folder: string) => void): void => {
     models.forEach((model, i) =>
