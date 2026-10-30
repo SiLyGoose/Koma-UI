@@ -38,6 +38,10 @@ export async function standHero(owner: HeroAssets, model: PartsModel): Promise<S
   const hips = new Rig(parts).at('Bip001');
   const { root, body, middle } = hang(parts, hips.y);
 
+  // What is held comes straight in the hand, as King's Raid hangs it (its recipe's ResetRotation: the turn its file's top
+  // has, the export's from 3ds Max, undone): else what runs along the file's z (a staff, a spear) lies flat.
+  for (const model of held) for (const top of model.children) top.rotation.set(0, 0, 0);
+
   // A weapon goes where the body's file marks the hand it is for. The mark stands by itself in the
   // file: it is hung on the hand's bone here, so the weapon goes with the arm.
   body.updateMatrixWorld(true);
@@ -60,6 +64,8 @@ export async function standHero(owner: HeroAssets, model: PartsModel): Promise<S
         point.position.set(...grip.at);
         point.rotation.set(...grip.turn);
       }
+      const turn = model.heldTurn?.[side];
+      if (turn) (held[i] as Object3D).rotation.set(...turn);
       point.add(held[i] as Object3D);
       // What is on its left arm is a shield (unless its skin says it is only held): flat, its face along the file's own z.
       if (side === 'L' && model.offHand !== 'held') shield = { mark: point.name, face: new Vector3(0, 0, -1) };

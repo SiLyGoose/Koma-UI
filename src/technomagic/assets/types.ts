@@ -81,6 +81,11 @@ export interface PartsModel {
    */
   heldStill?: readonly ('L' | 'R')[];
   /**
+   * What is held turned in its hand, by the side (L, R): about x, y and z, in that order, in radians, from how King's Raid
+   * hangs it (Lewisia's staff, head up: the game's own clips hold it head down).
+   */
+  heldTurn?: { L?: readonly [number, number, number]; R?: readonly [number, number, number] };
+  /**
    * What floats beside it, in no hand (a body whose file marks no hand to hold it): `at` where, in its model's
    * own lengths from the floor under it (x to its left, y up, z ahead), `size` times as big as it comes. It
    * goes along with it and up with it, but is kept upright whatever it does.
@@ -94,8 +99,9 @@ export interface PartsModel {
   repaint?: { from: string; to: string };
   /**
    * Pictures its files name in a way three.js's loader drops (Priscilla's eyes: her body's file links its eyes' (AS)
-   * picture by a property three.js doesn't read, so they came out white): by material name, the picture, in the folder
-   * of the part whose material it is.
+   * picture by a property three.js doesn't read, so they came out white), or name the wrong one (Lucias's Glory League
+   * banner: its file names its mask as its colour): by material name, the picture, in the folder of the part whose
+   * material it is. It wins over what the file names.
    */
   pictures?: Readonly<Record<string, string>>;
   /**

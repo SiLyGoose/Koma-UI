@@ -1,4 +1,4 @@
-import type { HeroAssets, KrAnimations } from '../types.ts';
+import type { HeroAssets, KrAnimations, PartsModel } from '../types.ts';
 
 /*
  * Lewisia, The Royal Vermilion Blood (Hero_Lewsia_Vari05…): as King's Raid's own model has it, moved by King's Raid's
@@ -26,6 +26,9 @@ const ANIMATIONS = {
     banquet: { clips: ['Skill3'], hits: [3, 3.2, 3.4] },
   },
 } as const satisfies KrAnimations;
+
+/** Her staff turned end over end in her hand, its head up (as the user knows her; the game's own clips hold it head down). */
+const HEAD_UP = { R: [Math.PI, 0, 0] } as const satisfies PartsModel['heldTurn'];
 
 export const LEWISIA_ASSETS: HeroAssets = {
   name: 'Lewisia',
@@ -68,6 +71,7 @@ export const LEWISIA_ASSETS: HeroAssets = {
         parts: ['Hero_Lewsia_Vari05_Body', 'Hero_Lewsia_Vari05_Hair'],
         // (In its right hand, where King's Raid hangs it: Point_Hand_R.)
         right: 'Hero_Lewsia_Vari05_Weapon',
+        heldTurn: HEAD_UP,
       },
     },
     // King's Raid's Idol costume (tm-costumes.mjs).
@@ -85,6 +89,7 @@ export const LEWISIA_ASSETS: HeroAssets = {
         animations: ANIMATIONS,
         parts: ['Hero_Lewsia_Vari04_Cos17Idol_Body', 'Hero_Lewsia_Vari04_Cos17Idol_Hair'],
         right: 'Hero_Lewsia_Vari04_Cos17Idol_Weapon',
+        heldTurn: HEAD_UP,
       },
     },
     // King's Raid's Summer costume (tm-costumes.mjs).
@@ -102,6 +107,7 @@ export const LEWISIA_ASSETS: HeroAssets = {
         animations: ANIMATIONS,
         parts: ['Hero_Lewsia_Vari03_Cos17Summer_Body', 'Hero_Lewsia_Vari03_Cos17Summer_Hair'],
         right: 'Hero_Lewsia_Vari03_Cos17Summer_Weapon',
+        heldTurn: HEAD_UP,
       },
     },
     // King's Raid's Summer costume (tm-costumes.mjs).
@@ -119,6 +125,7 @@ export const LEWISIA_ASSETS: HeroAssets = {
         animations: ANIMATIONS,
         parts: ['Hero_Lewsia_Vari04_Cos17Summer_Body', 'Hero_Lewsia_Vari04_Cos17Summer_Hair'],
         right: 'Hero_Lewsia_Vari04_Cos17Summer_Weapon',
+        heldTurn: HEAD_UP,
       },
     },
     // King's Raid's Summer costume (tm-costumes.mjs).
@@ -136,6 +143,7 @@ export const LEWISIA_ASSETS: HeroAssets = {
         animations: ANIMATIONS,
         parts: ['Hero_Lewsia_Vari05_Cos17Summer_Body', 'Hero_Lewsia_Vari05_Cos17Summer_Hair'],
         right: 'Hero_Lewsia_Vari05_Cos17Summer_Weapon',
+        heldTurn: HEAD_UP,
       },
     },
     // King's Raid's Christmas costume (tm-costumes.mjs).
@@ -153,6 +161,7 @@ export const LEWISIA_ASSETS: HeroAssets = {
         animations: ANIMATIONS,
         parts: ['Hero_Lewsia_Vari05_Cos17Christmas_Body', 'Hero_Lewsia_Vari05_Cos17Christmas_Hair'],
         right: 'Hero_Lewsia_Vari05_Cos17Christmas_Weapon',
+        heldTurn: HEAD_UP,
       },
     },
     // King's Raid's Frozen costume (tm-costumes.mjs).
@@ -170,6 +179,7 @@ export const LEWISIA_ASSETS: HeroAssets = {
         animations: ANIMATIONS,
         parts: ['Hero_Lewsia_Vari03_Cos18Frozen_Body', 'Hero_Lewsia_Vari03_Cos18Ice_Hair'],
         right: 'Hero_Lewsia_Vari03_Cos18Frozen_Weapon',
+        heldTurn: HEAD_UP,
       },
     },
     // King's Raid's Wedding costume (tm-costumes.mjs).
@@ -187,6 +197,7 @@ export const LEWISIA_ASSETS: HeroAssets = {
         animations: ANIMATIONS,
         parts: ['Hero_Lewsia_Vari05_Cos18Wedding_Body', 'Hero_Lewsia_Vari05_Cos18Wedding_Hair'],
         right: 'Hero_Lewsia_Vari05_Cos18Wedding_Weapon',
+        heldTurn: HEAD_UP,
       },
     },
     // King's Raid's Halloween costume (tm-costumes.mjs).
@@ -204,6 +215,7 @@ export const LEWISIA_ASSETS: HeroAssets = {
         animations: ANIMATIONS,
         parts: ['Hero_Lewsia_Vari04_Cos19Halloween_Body', 'Hero_Lewsia_Vari04_Cos19Halloween_Hair'],
         right: 'Hero_Lewsia_Vari04_Cos19HalloweenWeapon',
+        heldTurn: HEAD_UP,
       },
     },
     // King's Raid's Wedding costume (tm-costumes.mjs).
@@ -221,6 +233,7 @@ export const LEWISIA_ASSETS: HeroAssets = {
         animations: ANIMATIONS,
         parts: ['Hero_Lewsia_Vari03_Cos20Wedding_Body', 'Hero_Lewsia_Vari03_Cos20Wedding_Hair'],
         right: 'Hero_Lewsia_Vari03_Cos20Wedding_Weapon',
+        heldTurn: HEAD_UP,
       },
     },
   ],
