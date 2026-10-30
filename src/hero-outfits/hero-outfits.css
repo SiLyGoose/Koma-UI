@@ -152,7 +152,8 @@
 /* The floor it stands on: a lit oval under its feet. */
 .ho-floor {
   position: absolute;
-  bottom: 3%;
+  /* (Its middle where the hero's feet are: 4% up the stage, ../heroes/model.ts WHOLE.floor.) */
+  bottom: calc(4% - 23px);
   left: 50%;
   width: min(60%, 340px);
   height: 46px;

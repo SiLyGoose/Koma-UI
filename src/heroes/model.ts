@@ -29,7 +29,8 @@ import { HEROES } from '../technomagic/sim/heroes';
  * head as its ClientCreatureTable says; drawn as its toon shader does (its edges darker, a blue rim light on them, a thin
  * black outline round it). Read only when the page first shows a hero (three.js and the models are big), in the skin asked
  * for (the outfit it wears), and only the one shown kept (another shown, the last one's let go of: a hero's models are 2-18 MB).
- * The outfit room (../hero-outfits/) shows it `whole`, from its head to its feet, and turns it as it is dragged.
+ * The outfit room (../hero-outfits/) shows it `whole`, from its head to its feet, every hero to one scale (a grown one 70% of
+ * the view's height: WHOLE), and turns it as it is dragged.
  * Its models are under public/kr/: where one can't be read, show() says so and the page keeps the hero's picture. What its
  * look wears all the while (SkinAssets.wears: a Glory League tier's light) is on it as in the raid, King's Raid's effects
  * read only for a look that has some.
@@ -68,8 +69,12 @@ const FRAMES: Readonly<Record<string, { size: number; offset: readonly [number, 
   valance: { size: 0.53, offset: [0, -0.06] },
   yanne: { size: 0.55, offset: [0, -0.03] },
 };
-/** Shown whole: half the height shown, in its own heights (a little room over its head and under its feet); its middle, its own. */
-const WHOLE = { size: 0.68, offset: [0, 0] as const };
+/**
+ * Shown whole, every hero to one scale: a grown one (ADULT tall, the field's lengths: Kirze 2.81, Seria 2.84, Isaiah 2.88) is
+ * TALL of the view's height, and the rest as tall as they are beside it (Lilia, Lavril and Oddy a child's height; Klaus,
+ * Loman and Gau taller), all standing on one floor, FLOOR of the way up the view.
+ */
+const WHOLE = { adult: 2.85, tall: 0.7, floor: 0.04 };
 /** How far down the camera looks (GameSetting Ui.Hero3dView.CameraAngle: 5°). */
 const LOOK_DOWN = (5 * Math.PI) / 180;
 
@@ -92,7 +97,7 @@ export interface Showcase {
   destroy(): void;
 }
 
-/** Shown `whole`: its head to its feet, with a little round it (the outfit room's), not King's Raid's Hero Info's close-up. */
+/** Shown `whole`: its head to its feet, every hero to one scale (the outfit room's: WHOLE), not King's Raid's Hero Info's close-up. */
 export function makeShowcase(canvas: HTMLCanvasElement, { whole = false }: { whole?: boolean } = {}): Showcase {
   const renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true });
   renderer.outputColorSpace = SRGBColorSpace;
@@ -151,12 +156,12 @@ export function makeShowcase(canvas: HTMLCanvasElement, { whole = false }: { who
     renderer.setSize(w, h, false);
     outline.value.set((2 * OUTLINE) / w, (2 * OUTLINE) / h);
     if (shown && shownId) {
-      const { size, offset } = whole ? WHOLE : (FRAMES[shownId.split(':')[0] as string] ?? DEFAULT);
+      const { size, offset } = whole ? { size: WHOLE.adult / WHOLE.tall / 2, offset: [0, 0] as const } : (FRAMES[shownId.split(':')[0] as string] ?? DEFAULT);
       shown.root.updateMatrixWorld(true);
       shown.head(head);
-      // (Whole: as tall a view as its head is high, its middle a little over halfway up it, from the floor under it.)
-      const half = whole ? head.y * size : size * SCALE;
-      if (whole) head.y *= 0.56;
+      // (Whole: the same view for every hero, its floor under its feet, the view's middle as far over it as the floor is under it.)
+      const half = whole ? size : size * SCALE;
+      if (whole) head.y = shown.place(new Vector3()).y + half - WHOLE.floor * 2 * half;
       camera.top = half;
       camera.bottom = -half;
       camera.left = (-half * w) / h;
