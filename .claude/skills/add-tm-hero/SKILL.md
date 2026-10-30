@@ -93,7 +93,10 @@ All its King's Raid costumes with models, as skins (the shop sells them: memory 
 - `tm-glory.mjs` (higher Glory League tiers), `tm-glory-vfx.mjs --write`, `tm-vfx.mjs <Patch> <repo> no-hero --write`,
   `node scripts/kr-assets.mjs`, then tm-icons (restore Kirze_Glory's icon and card after). Revert what tm-glory reorders in
   other heroes' files.
-- `tm-shots.mjs <id>:all --front` to look at them.
+- **Glaring Honor auras** (the light flowing over a Glory League body, hair or weapon): `node tm-auras.mjs <Assetbundle dir>
+  <Koma-UI>` reads all the TM heroes' bundles and rewrites `engine/auras.ts`. A shell left out ("its picture is not among the
+  models") needs its pictures taken from its bundle into the model's folder (Hilda's Effect_Wave01/02 and Noise).
+- `tm-shots.mjs <id>:all --front` to look at them (`--close` for the auras, on a dark ground).
 
 **Its perk pictures:** its own transcendence perks need 10 pictures in `public/technomagic/transcend/<id>/`, shodyra's files
 as they are (`https://kingsraid.shodyra.com/static/images/<n>/`, curl with a browser User-Agent): `s1-Light.png` …
