@@ -16,13 +16,23 @@ for all of them before the next: the generators are quicker run once for many.
   "zaafir" Zafir). The game's internal names differ now and then: Pansirone is `Pancironne`, Laias `Ell`, Klaus
   `Clause`. Say which you took in the end.
 - **Its line in `roster.mjs`** (its header explains each field):
-  - `index`: its creature index in the playtest's tables. Look the name up in `KR-extracted/loc-en.json`
-    (`CREATURE_NAME_<index>`), or check the bundles' `Creature_Hero_<code>_*` names.
+  - `index`: its creature index in the playtest's tables. loc-en.json's keys are hashes: read CreatureTable
+    (`jit-table.mjs`) and look each row's `CREATURE_NAME_<Index>` up through `loc.mjs` `hashKey` (its `CodeName` is
+    `Hero.<code>`: Lewisia's is `Lewsia`).
   - `shodyra`: kingsraid.shodyra.com/info/<n>.
   - `creature`: its code, and any of `tree` / `bundle` / `hit` / `effect` / `icon` that differ from it.
   - `skills`: its three skills' moves, short lower-case names that are new to `sim/heroes/moves.ts`.
-  - `extras`: alternate skills sharing a slot, as `[move, KR skill index, slot]` (Kara's siege skills, Evan's other form).
-- **No skins/costumes** unless the user names them: only its default look.
+  - `extras`: alternate skills sharing a slot, as `[move, KR skill index, slot]` (Kara's siege skills, Evan's other form);
+    and another form's attack, a move of its own (Talisha's `redshot`, Hilda's `voidattack`: the hero's part says which
+    is its attack for now, `HeroPart.attack`).
+  - `attacks` (its attack chain's length, where the game numbers another form's after it: Hilda's 3), `clips` (a skill's
+    clips where the script names none or the next numbered isn't its own: Hilda's Skill2, Roi's Skill1-1) and `vfx` (a
+    move's effects by hand, where tm-vfx.mjs can't tell whose: Talisha's two forms, Scarlet's remastered ones).
+- **Its model from the bundles** when the Heroes-001 export hasn't it (Isaiah): `python -I kr-models.py
+  C:/Users/simon/Downloads/KR-extracted/models <its Star5/Star0 bundles, its Creature_Object_<x>Unique_*> -- <parts>`;
+  tm-new-hero reads that folder too.
+- **Its outfits always** (the user, 2026-10-29: a new hero comes with its costumes, UT, UW and all its effects and sounds):
+  step 4b.
 
 ## 2. Run the tool
 
@@ -56,8 +66,8 @@ Use a hero alike as the pattern: Theo (a damage dealer), Rehartna (a buffer), As
 - **Other book effects:** books that do anything else (an ATK buff's ×1.5) are applied by hand.
 - **On each attack** (OnBaseAttack): once per attack part, through `attackStarts(id)`.
 - **Non-Hero parts:** keep "Non-Hero" damage separate in both the words and the numbers, since PvP is planned.
-- **Skills sharing a slot:** while an alternate skill is offered, set `self.lastUsed[slot] = -Infinity`, or Auto never
-  picks it. Keep the other skill's cooldown apart.
+- **Skills sharing a slot:** as Kara's and Evan's parts do (`slot()` saying what the slot holds, and each skill's
+  cooldown kept apart in `used()`).
 - **Its UW:** in `sim/unique.ts`, a constant with its tiers, its `ABOUT` words, its `NAMES` entry, and a `*_UP` buff when it
   shows one.
 - **Registering it:** `node tm-new-hero.mjs <id> --only=register` again, which puts it in `sim/heroes/index.ts`.
@@ -71,6 +81,19 @@ node tm-new-hero.mjs <id> --only=crop
 
 Look at `.shots/<id>-portrait.png`, which has a grid. Then run it again with `--crop=x,y,size --head=x,y,size` and look
 at `.shots/<id>-crop.png`, until the crop holds its head and hair and the face square its face, eyes in the middle.
+
+### 4b. Its outfits
+
+All its King's Raid costumes with models, as skins (the shop sells them: memory hero-outfits). After its sim file is there:
+- Its 2021+ costumes aren't in Heroes-001: list its `Creature_Hero_<code>_Cos21*` / `_Hair_Cos*` bundles' prefabs
+  (`kr-models.py C:/x <bundle>`) and convert the missing ones into KR-extracted/models.
+- `node tm-costumes.mjs <TableJit> <Koma-UI> --pack=<BundlePack Creature json> --only=<ids>` (`--dry` first): the game's
+  own recipe (its ModelList body, HairList hair, WeaponList weapons). Without `--only` it also turns up costumes of older
+  heroes (Gremory, Valance, Priscilla) not added yet: leave those unless asked.
+- `tm-glory.mjs` (higher Glory League tiers), `tm-glory-vfx.mjs --write`, `tm-vfx.mjs <Patch> <repo> no-hero --write`,
+  `node scripts/kr-assets.mjs`, then tm-icons (restore Kirze_Glory's icon and card after). Revert what tm-glory reorders in
+  other heroes' files.
+- `tm-shots.mjs <id>:all --front` to look at them.
 
 **Its perk pictures:** its own transcendence perks need 10 pictures in `public/technomagic/transcend/<id>/`, shodyra's files
 as they are (`https://kingsraid.shodyra.com/static/images/<n>/`, curl with a browser User-Agent): `s1-Light.png` …
@@ -87,7 +110,9 @@ as they are (`https://kingsraid.shodyra.com/static/images/<n>/`, curl with a bro
 - **The page:** with `yarn dev` running, `node tm-shots.mjs <id ...> --fight`. Look at `.shots/heroes.png` and at the
   fight screenshots. Things to catch:
   - **An orange or one-colour model:** its textures are the bundles' tinted copies (`python -I kr-tints.py --write <id>=<code>`).
-    It also looks in `Star05` and other `Star*` bundles, where Isolet's hair and hat were.
+    It also looks in `Star05` and other `Star*` bundles, where Isolet's hair and hat were. When it finds none (Shakmeh's
+    body, Shamilla's hair: in `Hair_Cos*` bundles kr-tints doesn't read), export the part with kr-models.py and compare
+    mean colours: either copy may be the tinted one (kr-models picks one of the twins too).
   - **White eyes (or any part blank white):** its material got no picture. Either the colour half is missing (only
     `…(AS).png` in its folder: take `…(RGB)` from the hero's bundles), or its file links the picture in a way three.js drops
     (Priscilla's eyes). Name it in the model's `pictures`.

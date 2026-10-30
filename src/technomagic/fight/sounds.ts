@@ -108,7 +108,8 @@ export function makeFightSounds(heroes: readonly HeroAssets[], boss: BossAssets)
     },
     start(who, move, skill) {
       const hero = heroes[who];
-      if (hero && skill) hear(hero, hero.sounds?.casts?.[move], VOLUME);
+      // (A skill's; or an attack its skills have turned into a move of its own: Talisha's shots in [Luberry], ../sim/heroes/kit.ts HeroPart.attack.)
+      if (hero && (skill || move !== 'attack')) hear(hero, hero.sounds?.casts?.[move], VOLUME);
     },
     use(name) {
       attack = name;
