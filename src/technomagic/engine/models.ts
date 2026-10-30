@@ -1,16 +1,18 @@
-import { CanvasTexture, CustomBlending, DoubleSide, FrontSide, LoadingManager, MeshBasicMaterial, NoColorSpace, OneFactor, RepeatWrapping, SRGBColorSpace, Texture, Vector2, Vector3, Vector4, ZeroFactor, type Group, type Material, type Mesh } from 'three';
+import { CanvasTexture, CustomBlending, DoubleSide, DstAlphaFactor, DstColorFactor, FrontSide, LoadingManager, MeshBasicMaterial, NoColorSpace, OneFactor, OneMinusDstAlphaFactor, OneMinusDstColorFactor, OneMinusSrcAlphaFactor, OneMinusSrcColorFactor, RepeatWrapping, SRGBColorSpace, SrcAlphaFactor, SrcAlphaSaturateFactor, SrcColorFactor, Texture, Vector2, Vector3, Vector4, ZeroFactor, type BlendingDstFactor, type Group, type Material, type Mesh } from 'three';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
 import { built, builtSmall, texturesBuilt } from '../../shared/built';
 import { LOCAL } from '../assets';
 import { lowMemory } from './memory';
 import { AURAS, type Aura, type AuraPicture } from './auras';
+import { LAYERS, type Layer } from './layers';
 
 /*
  * Loads the models (../assets/ names them): each folder's .fbx, drawn with its textures. A texture comes as two
  * pictures, "…_D(RGB).png" (the colour) and "…_D(AS).png" (its red is how solid each part is), put
  * together here into one; some heroes' files name them "…_D.png" and "…_AS.png". The colour already has
  * its shading painted in, so it is drawn as it is, unlit. A costume's aura (./auras.ts: the shells whose light flows over Glory League's
- * Glaring Honor tiers) is drawn as King's Raid's shader draws it: auraMaterial().
+ * Glaring Honor tiers) is drawn as King's Raid's shader draws it: auraMaterial(); a see-through layer (./layers.ts: an
+ * "…Effect" material, a costume's glowing pieces) blended as its shader blends it: layerMaterial().
  */
 
 const ROOT = LOCAL;
@@ -113,6 +115,56 @@ function auraPicture(file: string): Promise<Texture> {
     auraPictures.set(file, made);
   }
   return made;
+}
+
+/** Unity's blend factors (its BlendMode's numbers), as three.js's. */
+const FACTORS = [ZeroFactor, OneFactor, DstColorFactor, SrcColorFactor, OneMinusDstColorFactor, SrcAlphaFactor, OneMinusSrcColorFactor, DstAlphaFactor, OneMinusDstAlphaFactor, SrcAlphaSaturateFactor, OneMinusSrcAlphaFactor] as const;
+
+/** A picture as it is, its colour kept where it's see-through (not put together on a canvas, which loses it there). */
+const asItIs = (url: string, colorSpace: typeof SRGBColorSpace | typeof NoColorSpace): Promise<Texture> =>
+  picture(url.split('/').map(encodeURIComponent).join('/')).then((image) => {
+    const texture = new Texture(image);
+    texture.colorSpace = colorSpace;
+    texture.needsUpdate = true;
+    return texture;
+  });
+
+/**
+ * A see-through layer, as Vespa's Effect2 shaders draw it (./layers.ts): its colour × its colour and strength, its alpha × its
+ * own, blended as it says (mostly One, OneMinusSrcAlpha: its colour added in full where it's see-through, so it glows), not
+ * hiding what is drawn after it. Its picture as it is (once built, the one with both; else the colour and its (AS) apart).
+ */
+async function layerMaterial(name: string, layer: Layer, folder: string, file: string | undefined): Promise<MeshBasicMaterial> {
+  let map: Texture | null = null;
+  let alphaMap: Texture | null = null;
+  if (file) {
+    const own = `${ROOT}/${folder}/${file}`;
+    const small = lowMemory() ? builtSmall(own) : null;
+    map = texturesBuilt(own) ? await asItIs((small ?? built(own)), SRGBColorSpace).catch(() => null) : null;
+    if (!map) {
+      map = await asItIs(own, SRGBColorSpace).catch(() => null);
+      if (solidOf(file) !== file) alphaMap = await asItIs(`${ROOT}/${folder}/${solidOf(file)}`, NoColorSpace).catch(() => null);
+    }
+  }
+  const [r = 1, g = 1, b = 1, a = 1] = layer.color;
+  const material = new MeshBasicMaterial({
+    name,
+    map,
+    alphaMap,
+    side: DoubleSide,
+    transparent: true,
+    depthWrite: false,
+    opacity: layer.alpha * a,
+    blending: CustomBlending,
+    blendSrc: FACTORS[layer.blend[0]] ?? OneFactor,
+    // (SrcAlphaSaturate is a source's alone: never a destination's.)
+    blendDst: (FACTORS[layer.blend[1]] ?? OneMinusSrcAlphaFactor) as BlendingDstFactor,
+    // (Not making a see-through canvas opaque: the heroes page's.)
+    blendSrcAlpha: ZeroFactor,
+    blendDstAlpha: OneFactor,
+  });
+  material.color.setRGB(r * layer.power, g * layer.power, b * layer.power);
+  return material;
 }
 
 /** A picture's place on the mesh, as the shader takes it: its repeat and start (x, y, z, w), and its scroll a second and strength (x, y, z). */
@@ -222,10 +274,17 @@ export async function loadModels(folders: readonly string[], repaint?: { from: s
     // A costume's aura: as King's Raid draws it (its model's own, where its body, hair and weapon each have one of the name).
     const own = AURAS[`${name}@${model.split('/').pop()}`];
     const aura = own ?? AURAS[name];
-    const key = aura ? `${own ? model : ''}/${name}` : `${folder}/${file}/${name}`;
+    // A see-through layer: as its shader blends it (one drawn solid, as the rest are).
+    const layer = aura ? undefined : (LAYERS[`${name}@${model.split('/').pop()}`] ?? LAYERS[name]);
+    const blended = layer && layer.blend[1] !== 0 ? layer : undefined;
+    const key = aura ? `${own ? model : ''}/${name}` : `${blended ? `${model}|` : ''}${folder}/${file}/${name}`;
     let made = drawn.get(key);
     if (!made && aura) {
       made = auraMaterial(name, aura);
+      drawn.set(key, made);
+    }
+    if (!made && blended) {
+      made = layerMaterial(name, blended, folder, file);
       drawn.set(key, made);
     }
     if (!made) {
