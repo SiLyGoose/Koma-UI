@@ -1280,8 +1280,9 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     heal(fighter, amount, by, from) {
       if (fighter.hp <= 0) return 0;
       // (The more for its Recovery: its gear's, and what the sets on the field give every ally.)
-      const given = Math.min(amount * byAttack(by) * healed(by) * healing([...fighter.statuses, ...party], 1 + fighter.recovery + allied(fighter, 'recovery')) * (boss.part.healing?.() ?? 1), fighter.stats.hp - fighter.hp);
-      fighter.hp += given;
+      const given = amount * byAttack(by) * healed(by) * healing([...fighter.statuses, ...party], 1 + fighter.recovery + allied(fighter, 'recovery')) * (boss.part.healing?.() ?? 1);
+      // (Its health goes up only to its max, but the whole heal is counted and shown: its giver's HPS isn't less for an ally at full.)
+      fighter.hp = Math.min(fighter.stats.hp, fighter.hp + given);
       const giver = by ?? from;
       if (giver) giver.healed += given;
       if (given > 0) events.push({ kind: 'number', on: fighter.index, amount: given, type: 'heal' });

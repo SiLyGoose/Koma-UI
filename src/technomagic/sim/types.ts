@@ -249,7 +249,7 @@ export interface Fight {
    * A hero is given back `amount` of its health (not while it is down), less what is on it and the boss's skills take off;
    * `by` is the hero whose heal it is (it gives as much more as its attack is over ATK, or less), or `from`, for a heal
    * that isn't by its ATK (a share of max HP or DEF, or of damage dealt): either way, what it gives is counted as theirs
-   * (its healing done, HPS). How much it was given.
+   * (its healing done, HPS), all of it, though its health goes up only to its max. How much it was given.
    */
   heal(fighter: Fighter, amount: number, by?: Fighter, from?: Fighter): number;
   /**
