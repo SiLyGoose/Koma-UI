@@ -8,7 +8,10 @@ import { KR_ATK } from './common';
  * body moves for each is the page's (../../../bosses/dragon/tracks.ts, drawn to fit these).
  */
 
-export type DragonMove = 'bite' | 'claw' | 'sweep' | 'smash' | 'inhale' | 'breath' | 'roar' | 'rise' | 'storm' | 'land' | 'gaze';
+export type DragonMove = 'bite' | 'claw' | 'sweep' | 'smash' | 'inhale' | 'breath' | 'roar' | 'rise' | 'storm' | 'land' | 'gaze' | PoisonMove;
+
+/** Zyrrkinoth's own moves: its Poison Cloud's and its Poisoned Lands' (the playtest's 441330, and 441340 to 441343). */
+type PoisonMove = 'call' | 'spit' | 'linger' | 'soar' | 'aloft' | 'hover' | 'pour' | 'hang' | 'slam';
 
 /** Its one part: all its moves are its body's. */
 export const BODY = 'D';
@@ -43,6 +46,19 @@ export const MOVES: Readonly<Record<DragonMove, BossMove>> = {
   land: { length: 1.3, hit: 0.85, hurts: share(2) },
   // Its eyes on one hero (Armarta's Stone Gaze).
   gaze: { length: 1.8, hit: 1.1 },
+  // Zyrrkinoth's Poison Cloud (6 seconds): its Slimes called up 0.5 seconds in, then two blows of 150% on one hero, at 3 and 3.2.
+  call: { length: 3, hit: 0.5 },
+  spit: { length: 0.2, hit: 0, hurts: share(1.5) },
+  linger: { length: 2.6, hit: null },
+  // Zyrrkinoth's Poisoned Lands (9.8 seconds): up on its wings, their blast 1.6 seconds in (no ATK of its own: a share of each
+  // hero's health); 1 second unseen in the air (its debuffs gone); five blows of 250% over the field, 0.3 to 0.7 seconds into
+  // the next; and down again, its landing 1.3 seconds into its last 2.5 (a share of each hero's health again).
+  soar: { length: 5.3, hit: 1.6 },
+  aloft: { length: 1, hit: 0 },
+  hover: { length: 0.3, hit: null },
+  pour: { length: 0.1, hit: 0, hurts: share(2.5) },
+  hang: { length: 0.2, hit: null },
+  slam: { length: 2.5, hit: 1.3 },
 };
 
 /** Its moves in each of its attacks, by the attack's name: each after the last is done. */
@@ -74,6 +90,13 @@ export const PLANS: Readonly<Record<string, Plan>> = {
     ['land', BODY, 0],
   ],
   gaze: [['gaze', BODY, 0]],
+  cloud: [
+    ['call', BODY, 0],
+    ['spit', BODY, 0],
+    ['spit', BODY, 0],
+    ['linger', BODY, 0],
+  ],
+  lands: [['soar', BODY, 0], ['aloft', BODY, 0], ['hover', BODY, 0], ...Array.from({ length: 5 }, () => ['pour', BODY, 0] as const), ['hang', BODY, 0], ['slam', BODY, 0]],
 };
 
 /** How many of a breath's moves come before its first blow (the breathing in). */

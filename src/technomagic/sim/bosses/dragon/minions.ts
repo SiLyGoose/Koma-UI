@@ -9,7 +9,7 @@ import { stateArt, type Buff } from '../../shown';
  * (metres: 0 its target alone, Infinity every hero); and what it leaves on whoever it lands on.
  */
 
-export type MinionKind = 'hatchling-fire' | 'hatchling-ice' | 'hatchling-poison' | 'hatchling-black' | 'ice-pillar' | 'wyrm' | 'wyrmling';
+export type MinionKind = 'hatchling-fire' | 'hatchling-ice' | 'hatchling-poison' | 'hatchling-black' | 'ice-pillar' | 'wyrm' | 'wyrmling' | 'slime';
 
 /** What a blow leaves on a hero: frozen (can do nothing, as knocked down), its attacks slowed, its damage lowered (stacking, for the rest of the fight). */
 export type Leaves = { freeze: number } | { slow: Buff & { pace: number; lasts: number } } | { weaken: Buff & { each: number; most: number } };
@@ -39,8 +39,12 @@ export interface MinionDef {
   rest: number;
   /** Its skill: used as soon as it is ready, `cooldown` seconds after it last was (the first, `first` seconds in). */
   skill?: MinionMove & { cooldown: number; first: number };
-  /** Left standing this long (seconds), it lays the heroes low: every one of them takes `share` of its health, nothing blocks it. */
-  fuse?: { after: number; share: number };
+  /**
+   * Left standing this long (seconds), it lays the heroes low: every one of them takes `share` of its health, nothing blocks
+   * it; or (`blast`) every hero within `reach` of it (metres, to the hero's edge) takes `share` of its ATK, of its kind; and
+   * (`dies`) it is gone with it.
+   */
+  fuse?: { after: number; share?: number; blast?: { share: number; reach: number; deals: DamageType }; dies?: boolean };
 }
 
 /** A hatchling: its bite, and every 8 seconds its four blows in front of it (the ice one's slowing whoever they land on). */
@@ -72,6 +76,20 @@ export const MINIONS: Readonly<Record<MinionKind, MinionDef>> = {
     attack: { length: 4, lands: [4], share: 0.1, reach: 0, random: true, leaves: { freeze: 1.5 } },
     rest: 0,
     fuse: { after: 20, share: 10 },
+  },
+  // Zyrrkinoth's Slime (its Poison Cloud's): as it comes, it swells for 10 seconds (its skill, nothing else meanwhile: the
+  // playtest's 4403110, acting 10 s), then bursts, 4800% of its ATK on every hero within 4 m (4403111's GetMagicalDamageR),
+  // and is gone (its 999999% on itself). Its attack does nothing (4403100 has no operations); its dash (4403120) never
+  // comes before it bursts.
+  slime: {
+    name: 'Slime',
+    deals: 'magical',
+    size: 0.75,
+    steady: true,
+    attack: { length: 1.3, lands: [], share: 0, reach: 0 },
+    rest: 0,
+    skill: { cooldown: Infinity, first: 0, length: 10, lands: [], share: 0, reach: 0, range: Infinity },
+    fuse: { after: 10, blast: { share: 48, reach: 4, deals: 'magical' }, dies: true },
   },
   // From afar: its spit, then its venom on every hero, by turns.
   wyrm: {

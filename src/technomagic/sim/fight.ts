@@ -19,6 +19,7 @@ import { auraTotal, moveDmg, moveHeals, moveMarks, moveWhole, perkedStats, perks
 import { treasureOf } from './treasures';
 import { minionOf } from './bosses/dragon/common';
 import { MINIONS, type MinionDef, type MinionMove } from './bosses/dragon/minions';
+import type { WaveMinion } from './bosses/dragon/waves';
 import { REACH } from './heroes/reach';
 
 /*
@@ -167,8 +168,11 @@ const HERO_SIZE = 0.5;
  * forward: by its line, then its weight in it (./heroes/kr.ts stand), then the better of its defenses, then its index in the
  * game's tables. None within it: the nearest (to its edge). Of two alike, the one that came onto the field first.
  */
+/** How far a hero's edge is from a spot on the field (metres). */
+const edgeTo = (on: Fighter, x: number, z: number): number => Math.hypot(on.x - x, on.z - z) - (KR_HEROES[on.id]?.stand.size ?? HERO_SIZE);
+
 function foremost(from: readonly Fighter[], x: number, z: number, reach: number): Fighter | null {
-  const edge = (on: Fighter): number => Math.hypot(on.x - x, on.z - z) - (KR_HEROES[on.id]?.stand.size ?? HERO_SIZE);
+  const edge = (on: Fighter): number => edgeTo(on, x, z);
   const within = from.filter((on) => edge(on) <= reach + 1e-9);
   if (within.length === 0) return from.reduce<Fighter | null>((best, on) => (!best || edge(on) < edge(best) - 1e-9 ? on : best), null);
   const rank = (on: Fighter): readonly number[] => {
@@ -1010,7 +1014,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
   }
 
   /** An enemy beaten: the boss, won; a minion, off the field (and its wave, once no other stands, over). */
-  function beaten(foe: Foe): void {
+  function beaten(foe: Foe, blast = false): void {
     // (Once only: a hero's blow that brings it down from inside another's, as Yanne's and Lucikiel's do, already has.)
     if (foe.away || result) return;
     if (foe === boss) {
@@ -1021,7 +1025,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     }
     foe.away = true;
     minions.delete(foe);
-    events.push({ kind: 'foe-down', foe: foe.index });
+    events.push({ kind: 'foe-down', foe: foe.index, ...(blast && { blast: true }) });
     if (boss.away && wave < waves && standing().length === 0) nextWave();
   }
 
@@ -1045,14 +1049,36 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     events.push({ kind: 'wave', wave, of: waves });
   }
 
+  /** A minion comes onto the field (one of a wave's, or one the boss calls up: Fight.summon), where it stands, as strong as the dragons' are scaled (minionOf). */
+  function enter(one: WaveMinion, x: number, z: number): void {
+    const made = minionOf(one, solo, def.waves?.party);
+    const kind = MINIONS[one.kind];
+    const foe: Foe = {
+      index: foes.length,
+      kind: one.kind,
+      def: { id: one.kind, name: kind.name, stats: made.stats },
+      part: { lands: {}, ...(kind.steady && { steady: true }) },
+      hp: made.hp,
+      maxHp: made.hp,
+      stunned: 0,
+      slowed: 0,
+      slowRate: 1,
+      statuses: [],
+      x,
+      z,
+      away: false,
+    };
+    foes.push(foe);
+    minions.set(foe, { def: kind, atk: made.atk, doing: null, rest: 0, skill: kind.skill?.first ?? 0, life: 0, fused: false });
+    events.push({ kind: 'foe-enter', foe: foe.index, minion: one.kind, x, z });
+  }
+
   /** Arrived at a wave: its minions come onto the field, and at the last, the boss comes back, its landing on the heroes. */
   function arrive(): void {
     const list = later[wave - 2] ?? [];
     /** How many have stood where each spot is so far (by where the wave has them). */
     const placed = new Map<string, number>();
     for (const one of list) {
-      const made = minionOf(one, solo, def.waves?.party);
-      const kind = MINIONS[one.kind];
       let x = MINION_X + one.x * 0.5;
       let z = one.z * 0.45;
       // (Several where one stands: the rest round it, each a turn further on.)
@@ -1063,24 +1089,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
         x += Math.cos((before * Math.PI * 2) / 5) * 1.8;
         z += Math.sin((before * Math.PI * 2) / 5) * 1.8;
       }
-      const foe: Foe = {
-        index: foes.length,
-        kind: one.kind,
-        def: { id: one.kind, name: kind.name, stats: made.stats },
-        part: { lands: {}, ...(kind.steady && { steady: true }) },
-        hp: made.hp,
-        maxHp: made.hp,
-        stunned: 0,
-        slowed: 0,
-        slowRate: 1,
-        statuses: [],
-        x,
-        z,
-        away: false,
-      };
-      foes.push(foe);
-      minions.set(foe, { def: kind, atk: made.atk, doing: null, rest: 0, skill: kind.skill?.first ?? 0, life: 0, fused: false });
-      events.push({ kind: 'foe-enter', foe: foe.index, minion: one.kind, x, z });
+      enter(one, x, z);
     }
     if (wave === waves && boss.away && def.waves) {
       boss.away = false;
@@ -1115,13 +1124,19 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       minion.life += dt;
       const fuse = minion.def.fuse;
       if (fuse && !minion.fused && minion.life >= fuse.after) {
-        // Left standing too long: it lays every hero low.
+        // Left standing too long: it lays every hero low; or bursts on those about it (and, gone with it, falls as it does).
         minion.fused = true;
-        events.push({ kind: 'foe-use', foe: foe.index, move: 'skill' });
+        const { share, blast } = fuse;
+        if (!fuse.dies) events.push({ kind: 'foe-use', foe: foe.index, move: 'skill' });
         as(foe, () => {
-          for (const on of reachable()) sim.hurt(on, on.stats.hp * fuse.share, false);
+          if (share) for (const on of reachable()) sim.hurt(on, on.stats.hp * share, false);
+          if (blast) for (const on of reachable()) if (edgeTo(on, foe.x, foe.z) <= blast.reach + 1e-9) sim.hurt(on, blast.share * minion.atk, true, blast.deals);
         });
         if (result) return;
+        if (fuse.dies) {
+          foe.hp = 0;
+          beaten(foe, true);
+        }
         continue;
       }
       if (foe.stunned > 0) {
@@ -1469,6 +1484,13 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       }
       const minion = minions.get(foe);
       if (minion?.def.skill) minion.skill = Math.max(0, minion.skill) + seconds;
+    },
+    summon(one, count, within) {
+      if (result) return;
+      // (Anywhere within `within` of the boss, as King's Raid's SpawnCreature puts them: its own random offset either way.)
+      for (let i = 0; i < count; i++) enter(one, boss.x + (roll() * 2 - 1) * within, boss.z + (roll() * 2 - 1) * within);
+      // (The heroes look again for the nearest to go for.)
+      aims.clear();
     },
     force(attack) {
       if (boss.away || result) return;

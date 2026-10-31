@@ -62,6 +62,7 @@ export type SimEvent =
   /** An enemy not the boss begins a move (its plain attack, or its skill); is stunned; is beaten. */
   | { kind: 'foe-use'; foe: number; move: 'attack' | 'skill' }
   | { kind: 'foe-daze'; foe: number; seconds: number }
-  | { kind: 'foe-down'; foe: number }
+  /** (Beaten by bursting, `blast`: Zyrrkinoth's Slimes.) */
+  | { kind: 'foe-down'; foe: number; blast?: boolean }
   /** The fight is over. */
   | { kind: 'end'; result: Result };

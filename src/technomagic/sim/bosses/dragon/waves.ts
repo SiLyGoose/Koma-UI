@@ -55,3 +55,17 @@ export const WAVES: Readonly<Record<string, readonly (readonly (readonly WaveMin
   ],
   armarta: [],
 };
+
+/** The Slimes Zyrrkinoth's Poison Cloud calls up, at each of its stages (1 to 10): at its own level, star and tier, at 7.8% (its SpawnCreature's statRatio 78). */
+export const SLIMES: readonly WaveMinion[] = [
+  { kind: 'slime', x: 0, z: 0, hp: 60525104, atk: 211611, def: [5170, 5170] },
+  { kind: 'slime', x: 0, z: 0, hp: 72813181, atk: 254552, def: [6220, 6220] },
+  { kind: 'slime', x: 0, z: 0, hp: 87596440, atk: 306271, def: [7487, 7487] },
+  { kind: 'slime', x: 0, z: 0, hp: 126775253, atk: 443241, def: [10835, 10835] },
+  { kind: 'slime', x: 0, z: 0, hp: 253551228, atk: 886545, def: [21677, 21677] },
+  { kind: 'slime', x: 0, z: 0, hp: 296443950, atk: 1274067, def: [28100, 28100] },
+  { kind: 'slime', x: 0, z: 0, hp: 372151155, atk: 1537336, def: [34585, 34585] },
+  { kind: 'slime', x: 0, z: 0, hp: 496295227, atk: 3152460, def: [57198, 57198] },
+  { kind: 'slime', x: 0, z: 0, hp: 602644175, atk: 3827988, def: [69455, 69455] },
+  { kind: 'slime', x: 0, z: 0, hp: 1006964613, atk: 7247955, def: [123529, 123529] },
+];

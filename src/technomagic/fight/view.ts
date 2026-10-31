@@ -511,7 +511,7 @@ export function makeFightView({
             break;
           case 'foe-down':
             sounds.minion(foeKinds.get(event.foe) ?? '', 'down');
-            minions.down(event.foe);
+            minions.down(event.foe, event.blast);
             break;
           case 'end':
             sounds.end(event.result === 'won');

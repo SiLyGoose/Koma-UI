@@ -91,3 +91,27 @@ export const NORMAL_WAVES: Readonly<Record<string, readonly (readonly (readonly 
   ],
   armarta: [],
 };
+
+/** The Slimes Zyrrkinoth's Poison Cloud calls up in its Normal mode, at each of its stages (1 to 20), as ./waves.ts SLIMES. */
+export const NORMAL_SLIMES: readonly WaveMinion[] = [
+  { kind: 'slime', x: 0, z: 0, hp: 172487, atk: 1557, def: [59, 59] },
+  { kind: 'slime', x: 0, z: 0, hp: 232106, atk: 2096, def: [83, 83] },
+  { kind: 'slime', x: 0, z: 0, hp: 367673, atk: 3325, def: [149, 149] },
+  { kind: 'slime', x: 0, z: 0, hp: 504534, atk: 4560, def: [198, 198] },
+  { kind: 'slime', x: 0, z: 0, hp: 1177894, atk: 10654, def: [403, 403] },
+  { kind: 'slime', x: 0, z: 0, hp: 1616440, atk: 14617, def: [544, 544] },
+  { kind: 'slime', x: 0, z: 0, hp: 2745913, atk: 31253, def: [713, 713] },
+  { kind: 'slime', x: 0, z: 0, hp: 5629173, atk: 46580, def: [1063, 1063] },
+  { kind: 'slime', x: 0, z: 0, hp: 10492806, atk: 86857, def: [1985, 1985] },
+  { kind: 'slime', x: 0, z: 0, hp: 14154295, atk: 161128, def: [3680, 3680] },
+  { kind: 'slime', x: 0, z: 0, hp: 23728169, atk: 290277, def: [3414, 3414] },
+  { kind: 'slime', x: 0, z: 0, hp: 33546466, atk: 410450, def: [4826, 4826] },
+  { kind: 'slime', x: 0, z: 0, hp: 72252665, atk: 883936, def: [10393, 10393] },
+  { kind: 'slime', x: 0, z: 0, hp: 118792644, atk: 1453271, def: [17091, 17091] },
+  { kind: 'slime', x: 0, z: 0, hp: 177766812, atk: 2174894, def: [25576, 25576] },
+  { kind: 'slime', x: 0, z: 0, hp: 303554737, atk: 3713960, def: [36047, 36047] },
+  { kind: 'slime', x: 0, z: 0, hp: 463582588, atk: 5671766, def: [50040, 50040] },
+  { kind: 'slime', x: 0, z: 0, hp: 657087786, atk: 8039488, def: [70927, 70927] },
+  { kind: 'slime', x: 0, z: 0, hp: 730097560, atk: 8932764, def: [78808, 78808] },
+  { kind: 'slime', x: 0, z: 0, hp: 876117048, atk: 10719317, def: [94569, 94569] },
+];

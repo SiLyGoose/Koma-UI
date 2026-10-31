@@ -22,11 +22,14 @@ const hard: BossDef = {
   attacks: [
     { name: 'bite', label: 'Bite' },
     { name: 'claw', label: 'Claw' },
-    { name: 'sweep', label: 'Tail Sweep' },
     { name: 'smashes', label: 'Tail Lash' },
     { name: 'breath', label: 'Venomous Breath' },
+    // (Their pattern alarms: King's Raid's BossWarningTable 10–12, the image one, for 3 seconds; and 13–15
+    // (RAID_WARNING_GREEN_DREGON_4), for 3 seconds; each cut short as its CC gauge breaks.)
+    { name: 'cloud', label: 'Poison Cloud', warning: { image: 'warning', lasts: 3, breaks: true } },
+    { name: 'lands', label: 'Poisoned Lands', warning: { text: 'Zyrrkinoth starts to flap its wings powerfully.', colour: '#ff8200', lasts: 3, breaks: true } },
   ],
-  plans: { bite: PLANS.bite!, claw: PLANS.claw!, sweep: PLANS.sweep!, smashes: PLANS.smashes!, breath: PLANS.breath! },
+  plans: { bite: PLANS.bite!, claw: PLANS.claw!, smashes: PLANS.smashes!, breath: PLANS.breath!, cloud: PLANS.cloud!, lands: PLANS.lands! },
   moves: MOVES,
   join: zyrrkinothPart,
 };

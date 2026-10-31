@@ -28,7 +28,8 @@ export interface Minions {
   use(foe: number, move: 'attack' | 'skill'): void;
   hit(foe: number): void;
   daze(foe: number, seconds: number): void;
-  down(foe: number): void;
+  /** Beaten (or `blast`: bursting, its burst's effect where it falls). */
+  down(foe: number, blast?: boolean): void;
   /** Those still on the field (falling) move along it by `dx`, as the map does moving on to the next wave's platform. */
   shift(dx: number): void;
   /** Over a minion's head (for its health and the numbers off it), put in `into`; null for one not on the field. */
@@ -67,7 +68,7 @@ export function makeMinions(scene: Scene, boss: BossAssets, kr: KrEffects): Mini
   /** Each one's kind, by its index. */
   const kindOf = new Map<number, string>();
   /** Plays its kind's effects of `what` on it (or, `at` it, where it is). */
-  const effect = (foe: number, what: 'attack' | 'skill' | 'down' | 'enter', at = false): void => {
+  const effect = (foe: number, what: 'attack' | 'skill' | 'down' | 'enter' | 'blast', at = false): void => {
     const body = bodies.get(foe);
     const codes = MINION_FX[kindOf.get(foe) ?? '']?.vfx[what] ?? [];
     if (!body) return;
@@ -153,10 +154,11 @@ export function makeMinions(scene: Scene, boss: BossAssets, kr: KrEffects): Mini
       play(body, 'Stun', false);
       body.back = seconds;
     },
-    down(foe) {
+    down(foe, blast = false) {
       const body = bodies.get(foe);
       if (!body) return;
       effect(foe, 'down', true);
+      if (blast) effect(foe, 'blast', true);
       // (One with no falling of its own, the ice pillars: gone at once, its effect there as it breaks.)
       if (!body.actions.has('Dead')) {
         scene.remove(body.root);

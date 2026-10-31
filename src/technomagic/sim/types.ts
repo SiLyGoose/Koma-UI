@@ -1,4 +1,5 @@
 import type { BossDef, BossPart } from './bosses/boss';
+import type { WaveMinion } from './bosses/dragon/waves';
 import type { DamageType, HeroStats, PerKind } from './combat/damage';
 import type { Status } from './combat/status';
 import type { Ability, HeroDef, HeroPart } from './heroes/kit';
@@ -285,6 +286,8 @@ export interface Fight {
    * a skill of its own that comes of itself (Siegfried's Divine Power, as it would be beaten).
    */
   force(attack: string): void;
+  /** `count` of a minion come onto the field, called up by the boss: anywhere within `within` metres of it (Zyrrkinoth's Slimes). */
+  summon(minion: WaveMinion, count: number, within: number): void;
   /** Something for the page to draw that the fight's own events don't say: `name` is the hero's (or with `who` null, the boss's) own, and `targets` whom it is on. */
   cue(who: Fighter | null, name: string, targets?: readonly Fighter[]): void;
 }
