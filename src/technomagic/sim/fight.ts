@@ -1,5 +1,5 @@
 import { alliesFrom, artifactBuff, artifactHooks, artifactOf, artifactStats, at, type ArtifactHooks } from './artifacts';
-import { scaleAt, stagesOf, type BossDef, type BossPart } from './bosses/boss';
+import { scaleAt, stagesOf, type BossDef, type BossPart, type Warning } from './bosses/boss';
 import { ATK, CURVE, curved, HERO_LEVEL, NONE, POINTS, reachAt, share, SLOWEST, strike } from './combat/damage';
 import { accurate, adding, amplified, away, blocking, bolstering, bound, critDamaging, critResisting, critTaking, critting, dealing, deals, defending, defends, dodging, filling, healing, pacing, piercing, put, resisting, sealed, stacked, takes, wear, type Status } from './combat/status';
 import type { Input, Logged, Result, SimEvent } from './events';
@@ -125,6 +125,10 @@ export interface Sim extends Fight {
   marks(): Mark[];
   /** How full the boss's CC gauge is (0 to 1), for the bar under its health (null: it has none). */
   gauge(): number | null;
+  /** The boss's pattern alarm across the top of the field (null: none now), with how long it stays yet. */
+  alarm(): (Warning & { left: number }) | null;
+  /** How many times its own size the boss is drawn now. */
+  size(): number;
   /** A number that sums up how the fight stands (two fights that stand the same have the same). */
   checksum(): number;
 }
@@ -425,6 +429,8 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
   let aim: Fighter | null = null;
   let was = false;
   const bossBusy = (): boolean => going.size > 0 || boss.stunned > 0;
+  /** The boss's pattern alarm up now (its attack's warning), and how long it stays yet. */
+  let warned: { warning: Warning; left: number } | null = null;
   /** The boss begins an attack: not while it is stunned, or while any part of it the attack needs is still at another. */
   function bossUse(attack: string): void {
     const plan = def.plans[attack] ?? [];
@@ -435,6 +441,8 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       going.set(by, moves);
     });
     events.push({ kind: 'boss-use', attack });
+    const warning = def.attacks.find((one) => one.name === attack)?.warning;
+    if (warning) warned = { warning, left: warning.lasts };
     as(boss, () => boss.part.used?.(attack));
   }
   /** The boss's stats as it stands the heroes' blows at this stage: its defenses so many times its own. */
@@ -906,6 +914,11 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       const { taken, blocked, dodged } = strike(amount * (atk / POINTS) * atkTimes(by) * power * more * (critical ? critTimes : 1), type, against, pen + auras.pen + pierce + piercing(by.statuses) + piercing(party), reachAt(HERO_LEVEL), roll, acc);
       if (dodged) {
         events.push({ kind: 'number', on: 'boss', foe: foe.index, amount: 0, type: 'dodged' });
+        return false;
+      }
+      // (One it is untouched by for now says so, as King's Raid's immune blows do: nothing comes of it.)
+      if (foe.part.untouched?.()) {
+        events.push({ kind: 'number', on: 'boss', foe: foe.index, amount: 0, type: 'immune', ...(type === 'magical' && { magical: true }) });
         return false;
       }
       events.push({ kind: 'boss-hit', foe: foe.index });
@@ -1506,6 +1519,8 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       return marks;
     },
     gauge: () => boss.part.gauge?.() ?? null,
+    alarm: () => (warned && boss.hp > 0 && !result ? { ...warned.warning, left: warned.left } : null),
+    size: () => boss.part.size?.() ?? 1,
     checksum() {
       const word = new DataView(new ArrayBuffer(8));
       let hash = 0x811c9dc5;
@@ -1572,6 +1587,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     const dt = TICK;
     elapsed += dt;
     aurasNow();
+    if (warned && (warned.left -= dt) <= 0) warned = null;
 
     // Boss auto: once the boss has rested, another attack: the one it must use next; or, as King's Raid's bosses do, the first of
     // its skills that is ready, else its plain attack; or (a boss that doesn't say what its plain attack is) one it may, at random.

@@ -80,6 +80,9 @@ export async function loadSiegfried(_scene: Scene, _bright: Object3D): Promise<B
       flinch = FLINCH;
     },
     reset: () => motion.reset(),
+    size(times) {
+      if (root.scale.x !== SIZE * times) root.scale.setScalar(SIZE * times);
+    },
     update(now, dt) {
       motion.update(dt);
       flinch = Math.max(0, flinch - dt);

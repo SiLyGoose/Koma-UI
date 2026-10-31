@@ -524,6 +524,7 @@ export function makeFightView({
       const holding = held > 0;
       held = Math.max(0, held - dt);
       if (!holding) dark = Math.max(0, dark - (dt * DARK) / LIGHTEN);
+      boss.size?.(sim.size());
       boss.update(now, step('boss', dt, holding));
       // Each hero on the field where the sim has it, moving as fast as it does (its attack speed, and what quickens it).
       // One fallen goes over onto its back and lies still there; revived, it gets up again.

@@ -29,6 +29,7 @@ import { nearer, type HeroDef } from './sim/heroes/kit';
 import { loadHeroes, type Entrant } from './heroes/load';
 import { lookOf } from './heroes/looks';
 import { makeActions } from './hud/actions';
+import { makeAlarm } from './hud/alarm';
 import { makeBossBar } from './hud/boss-bar';
 import { makeCard } from './hud/card';
 import { attr, el } from './hud/dom';
@@ -360,6 +361,7 @@ async function start(): Promise<void> {
   const skinOf = (entrant: Entrant): number => Math.max(0, lookOf(entrant.def.id).assets.skins.indexOf(entrant.skin));
 
   const bossBar = makeBossBar(document.getElementById('boss') as HTMLElement, def.name, def.stats.deals, bossView?.look.gauge);
+  const alarm = makeAlarm(document.getElementById('alarm') as HTMLElement);
   const numbers = makeNumbers(numbersAt);
   let game: Game | null = null;
   /** The room's way out (in a room: set below). */
@@ -1190,6 +1192,7 @@ async function start(): Promise<void> {
     if (!playing) {
       stage.dim(0, []);
       stage.pan(0);
+      alarm.draw(null);
       return;
     }
     const { sim, view, lock } = playing;
@@ -1233,6 +1236,8 @@ async function start(): Promise<void> {
 
     // The boss's health, and what is the matter with it.
     bossBar.draw(sim.boss.hp / sim.boss.maxHp, sim.marks(), sim.gauge());
+    // (And its pattern alarm, while it is up.)
+    alarm.draw(sim.alarm());
     timer.draw(sim.left, sim.wave, sim.waves);
     // Over (in a room: once the bot has said what it gave, and this page has drawn the fight to the step the bot's ended at,
     // as the bot's ended: the bot's word is the one). Won, the boss is beaten for a moment (OVER_WAIT) before what it gave is

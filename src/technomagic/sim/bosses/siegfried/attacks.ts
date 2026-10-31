@@ -62,5 +62,6 @@ export const ATTACKS: readonly BossAttack[] = [
   { name: 'slash3', label: 'Sword (third life)' },
   { name: 'strike', label: 'Divine Strike' },
   { name: 'storm', label: 'Divine Storm of Blades' },
-  { name: 'rise', label: 'Divine Power' },
+  // (Its pattern alarm, both times: King's Raid's BossWarningTable 102 and 103, RAID_WARNING_SIEGFRIED_1, for 3 seconds.)
+  { name: 'rise', label: 'Divine Power', warning: { text: 'Siegfried received Divine Power and has healed all of his HP.\nThe power of his sword becomes stronger.', colour: '#ff8200', lasts: 3 } },
 ];

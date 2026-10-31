@@ -45,5 +45,7 @@ export interface Boss {
    * seconds: as its body spits it (Galgoria's heads). The page sets it.
    */
   launch?: (from: Vector3, to: Vector3, time: number) => void;
+  /** Drawn so many times its own size (the fight's size(): Siegfried grown as he rises the second time). */
+  size?(times: number): void;
   update(now: number, dt: number): void;
 }

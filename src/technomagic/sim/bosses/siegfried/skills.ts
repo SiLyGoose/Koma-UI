@@ -18,9 +18,10 @@ import { MOVES } from './attacks';
  * - Divine Storm of Blades: twenty small swords of light on every hero (30% each), each giving whoever it lands on 400
  *   mana; then the divine sword of light on them all (300%): a hero with its mana full has all its skills sealed for 8.4
  *   seconds. Then he loses power and falls for 7 seconds, taking 30% more damage meanwhile.
- * - Divine Power: as a blow would beat him, he rises again instead (twice in the fight), whole: what is on him from the
- *   heroes gone, his health 30% higher for each time, and his ATK 30% higher; his sword's aura wider (above). Nothing that
- *   cuts healing touches it, and nothing hurts him while he rises.
+ * - Divine Power: as a blow would beat him, he rises again instead (twice in the fight): left on 1 HP, he rises for 2.2
+ *   seconds, nothing hurting him meanwhile (every blow on him immune), and 1.2 seconds in he is whole: what is on him from
+ *   the heroes gone, his health 30% higher for each time, and his ATK 30% higher; his sword's aura wider (above). Nothing
+ *   that cuts healing touches it. The second time he grows (GROW). Each time, his pattern alarm says so (./attacks.ts).
  * - Divine Rampage: nothing changes his ATK Spd, nor lowers his DEF; he blocks every kind of blow (BLOCK), and his mana
  *   fills (MANA_RATE a second at each stage). With it full, his blows see past 500 more points of a hero's defense, for 10
  *   seconds at a time, as long as it stays full.
@@ -43,6 +44,8 @@ export const DEF_CUT = [2_000, 2_000, 2_400, 2_800, 3_200, 3_600, 4_200, 5_000, 
 export const STORM = { mana: 400, seal: 8.4, fall: 7, taken: 0.3, cooldown: 21, first: 10 };
 /** Divine Power: how many times he rises, how much higher his health and ATK are each time. */
 export const RISE = { times: 2, hp: 0.3, atk: 0.3 };
+/** Rising the second time: how much bigger he grows, from how far into his rise, over how long (his script's CreatureScale, linear). */
+export const GROW = { life: 2, times: 1.2, from: 1, blend: 0.5 };
 /** His block (points), of every kind: his Divine Rampage's. */
 export const BLOCK = { base: 1_000 };
 /** His mana: what fills a second at each stage, and what a blow of his that lands gives him (one blocked takes MANA_BLOCKED). */
@@ -141,11 +144,11 @@ export function siegfriedPart(fight: Fight): BossPart {
     fall = false;
     fight.cue(null, 'fall');
   }
-  /** What he takes of each kind now: nothing as he rises, more as he lies fallen. */
+  /** What he takes of each kind now: more as he lies fallen. (Nothing as he rises: untouched.) */
   function settle(): void {
     const more = falling > 0 ? STORM.taken : 0;
-    taken.physical = rising > 0 ? 0 : 1 + more;
-    taken.magical = rising > 0 ? 0 : 1 + MAGIC_TAKEN + more;
+    taken.physical = 1 + more;
+    taken.magical = 1 + MAGIC_TAKEN + more;
   }
 
   return {
@@ -206,6 +209,14 @@ export function siegfriedPart(fight: Fight): BossPart {
       settle();
       fight.force('rise');
       return true;
+    },
+    // As he rises, King's Raid's SiegImmune1/2 on him: no kind of blow hurts him (Physical Immune, Magic Immune).
+    untouched: () => rising > 0,
+    // Rising the second time he grows (his script's CreatureScale: 1.2 times, over GROW.blend seconds from GROW.from in), and stays so.
+    size() {
+      if (lives < GROW.life) return 1;
+      const into = rising > 0 ? (MOVES.rise?.length ?? 0) - rising : Infinity;
+      return 1 + (GROW.times - 1) * Math.min(1, Math.max(0, (into - GROW.from) / GROW.blend));
     },
     // Each blow of his that lands: mana (less for one blocked), and the shield it lands on broken.
     landed(on, blocked) {

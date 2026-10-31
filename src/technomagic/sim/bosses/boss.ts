@@ -13,6 +13,15 @@ import type { Fight, Fighter } from '../types';
 export interface BossAttack {
   name: string;
   label: string;
+  /** What is said across the top of the field as it begins, for so many seconds, in its colour (King's Raid's BossWarningTable: its pattern alarm). */
+  warning?: Warning;
+}
+
+/** A boss's pattern alarm: its words, their colour (King's Raid's, from the words' own colour tag), and how long they stay (seconds). */
+export interface Warning {
+  text: string;
+  colour: string;
+  lasts: number;
 }
 
 /** One move of a part of the boss (a head's): how long it takes, when in it its blow lands (null: none), and what that takes, least to most, before its target's defense. */
@@ -44,6 +53,10 @@ export interface BossPart {
   controlled?(seconds: number, down: boolean): { seconds: number; down: boolean } | null;
   /** A blow would beat it: whether it is spared instead (left on what health it has, as King's Raid's EscapeDeath: Siegfried's Divine Power). */
   spared?(): boolean;
+  /** No hero's blow hurts it for now (each says Physical Immune or Magic Immune instead: Siegfried's as he rises). */
+  untouched?(): boolean;
+  /** How many times its own size it is drawn now (none said: its own; Siegfried's, grown as he rises the second time). */
+  size?(): number;
   /** It has been beaten. */
   beaten?(): void;
   /** A blow of its has landed on a hero (not one dodged, nor one the hero was immune to), and whether the hero blocked it. */

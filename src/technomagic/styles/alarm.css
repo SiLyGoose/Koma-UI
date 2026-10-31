@@ -1,0 +1,51 @@
+/*
+ * The boss's pattern alarm (../hud/alarm.ts), as King's Raid's PatternAlarm window has its text alarm on its 1920×1080
+ * screen: centred 300 px over the middle (22% down), its Box4(S) panel 650×82 at 1.5 times (51% across; its top and bottom
+ * edges, 20 px, kept and the rest stretched), its words 25 px at 1.5 times in their colour, shaded down to that colour times
+ * #db9705 (NGUI's gradient: --alarm-foot, worked out by ../hud/alarm.ts), with a faint dark edge (its Outline8, black at 39%).
+ */
+.tm-alarm {
+  position: absolute;
+  top: 22.2%;
+  left: 50%;
+  width: min(50.8%, 975px);
+  aspect-ratio: 975 / 123;
+  display: grid;
+  place-items: center;
+  container-type: inline-size;
+  border-style: solid;
+  border-image: url('/kr/ui/battle/alarm-box.webp') 20 0 fill / 24.4% 0 stretch;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.tm-alarm[hidden] {
+  display: none;
+}
+
+.tm-alarm p {
+  margin: 0;
+  width: 96%;
+  font-size: 3.05cqi;
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: center;
+  white-space: pre-line;
+  filter: drop-shadow(1px 0 0 rgb(0 0 0 / 0.39)) drop-shadow(-1px 0 0 rgb(0 0 0 / 0.39)) drop-shadow(0 1px 0 rgb(0 0 0 / 0.39)) drop-shadow(0 -1px 0 rgb(0 0 0 / 0.39));
+}
+
+/* Its words: each line shaded from top to bottom on its own (cloned per line). */
+.tm-alarm span {
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  color: transparent;
+  background-image: linear-gradient(180deg, var(--alarm, #ff8200), var(--alarm-foot, #db4d00));
+  background-clip: text;
+  -webkit-background-clip: text;
+}
+
+/* A phone on its side: the field is short, so a little lower (clear of the boss's health and marks) and wider. */
+:where(.ls-landscape) .tm-alarm {
+  top: 26%;
+  width: min(60%, 520px);
+}
