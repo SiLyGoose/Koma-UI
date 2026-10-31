@@ -44,6 +44,34 @@
   -webkit-background-clip: text;
 }
 
+/* The image alarm ("WARNING": ../hud/warning.ts): no panel nor words, its layers about the box's middle, as big as the box says. */
+.tm-alarm.image {
+  border: none;
+  border-image: none;
+}
+
+.tm-alarm.image p {
+  display: none;
+}
+
+.tm-warning {
+  position: absolute;
+  inset: 50% auto auto 50%;
+}
+
+.tm-warning[hidden] {
+  display: none;
+}
+
+.tm-warning-layer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  max-width: none;
+  user-select: none;
+}
+
 /* A phone on its side: the field is short, so a little lower (clear of the boss's health and marks) and wider. */
 :where(.ls-landscape) .tm-alarm {
   top: 26%;

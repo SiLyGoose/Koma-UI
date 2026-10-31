@@ -66,5 +66,6 @@ export const ATTACKS: readonly BossAttack[] = [
   { name: 'destroyer', label: 'Swamp Destroyer' },
   { name: 'swamp', label: 'Poisonous Swamp' },
   { name: 'explosion', label: 'Poisonous Explosion' },
-  { name: 'fatal', label: 'Fatal Venom' },
+  // (Its pattern alarm: King's Raid's BossWarningTable 101, the image one, "WARNING", for 2 seconds.)
+  { name: 'fatal', label: 'Fatal Venom', warning: { image: 'warning', lasts: 2 } },
 ];

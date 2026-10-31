@@ -1,10 +1,12 @@
 import type { Warning } from '../sim/bosses/boss';
-import { shown } from './dom';
+import { flag, shown } from './dom';
+import { makeWarning } from './warning';
 
 /*
- * The boss's pattern alarm across the top of the field, as King's Raid's PatternAlarm window shows one (its text alarm: its
- * Box4(S) panel, the words over it in their colour, shaded down to a darker one): up as long as the fight says (Fight.alarm),
- * gone once the boss is beaten. Its words are the game's BossWarningTable's (each boss's attacks' `warning`).
+ * The boss's pattern alarm across the top of the field, as King's Raid's PatternAlarm window shows one: its text alarm (its
+ * Box4(S) panel, the words over it in their colour, shaded down to a darker one), or its image alarm ("WARNING": ./warning.ts),
+ * drawn as far in as the fight is. Up as long as the fight says (Fight.alarm), gone once the boss is beaten. Which, and its
+ * words, are the game's BossWarningTable's (each boss's attacks' `warning`).
  */
 
 /** NGUI's gradient on its label, bottom (its top is white): its words' colour times this at their foot. */
@@ -18,19 +20,23 @@ function footOf(colour: string): string {
 }
 
 export interface Alarm {
-  /** The alarm up now (null: none). */
-  draw(warning: Warning | null): void;
+  /** The alarm up now, and how long it stays yet (null: none). */
+  draw(warning: (Warning & { left: number }) | null): void;
 }
 
-/** `root` holds the words (a <span> in a <p>: each of its lines shaded on its own); its look is ../styles/alarm.css. */
+/** `root` holds the words (a <span> in a <p>: each of its lines shaded on its own) and the picture's layers (a <div>); its look is ../styles/alarm.css. */
 export function makeAlarm(root: HTMLElement): Alarm {
   const words = root.querySelector('p span') as HTMLElement;
+  const picture = makeWarning(root.querySelector('.tm-warning') as HTMLElement);
   root.setAttribute('role', 'status');
   let said = '';
   return {
     draw(warning) {
       shown(root, warning !== null);
-      if (!warning) return;
+      const image = warning !== null && 'image' in warning;
+      flag(root, 'image', image);
+      picture.draw(image ? warning.lasts - warning.left : null);
+      if (!warning || !('text' in warning)) return;
       const now = `${warning.colour}|${warning.text}`;
       if (now === said) return;
       said = now;

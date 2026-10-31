@@ -1587,7 +1587,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     const dt = TICK;
     elapsed += dt;
     aurasNow();
-    if (warned && (warned.left -= dt) <= 0) warned = null;
+    if (warned && ((warned.left -= dt) <= 0 || (warned.warning.breaks && boss.part.gauge?.() === 0))) warned = null;
 
     // Boss auto: once the boss has rested, another attack: the one it must use next; or, as King's Raid's bosses do, the first of
     // its skills that is ready, else its plain attack; or (a boss that doesn't say what its plain attack is) one it may, at random.

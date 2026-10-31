@@ -17,12 +17,12 @@ export interface BossAttack {
   warning?: Warning;
 }
 
-/** A boss's pattern alarm: its words, their colour (King's Raid's, from the words' own colour tag), and how long they stay (seconds). */
-export interface Warning {
-  text: string;
-  colour: string;
-  lasts: number;
-}
+/**
+ * A boss's pattern alarm, as King's Raid's has it: its words and their colour (the words' own colour tag), or its picture
+ * ("WARNING", flown in); how long it stays (seconds), and whether its CC gauge breaking cuts it short (King's Raid's, unless
+ * the table says CantCancel).
+ */
+export type Warning = { lasts: number; breaks?: boolean } & ({ text: string; colour: string } | { image: 'warning' });
 
 /** One move of a part of the boss (a head's): how long it takes, when in it its blow lands (null: none), and what that takes, least to most, before its target's defense. */
 export interface BossMove {

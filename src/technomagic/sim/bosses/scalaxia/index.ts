@@ -26,7 +26,8 @@ const hard: BossDef = {
     { name: 'sweep', label: 'Tail Sweep' },
     { name: 'smashes', label: 'Tail Smash' },
     { name: 'breath', label: 'Frost Breath' },
-    { name: 'storm', label: 'Glacial Storm' },
+    // (Its pattern alarm: King's Raid's BossWarningTable 4–6 (RAID_WARNING_BLUE_DREGON_4), for 3 seconds, cut short as its CC gauge breaks.)
+    { name: 'storm', label: 'Glacial Storm', warning: { text: 'Scalaxia starts to flap its wings powerfully.', colour: '#ff8200', lasts: 3, breaks: true } },
   ],
   plans: { bite: PLANS.bite!, claw: PLANS.claw!, sweep: PLANS.sweep!, smashes: PLANS.smashes!, breath: PLANS.breath!, storm: PLANS.storm! },
   moves: MOVES,

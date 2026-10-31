@@ -24,7 +24,8 @@ const hard: BossDef = {
     { name: 'sweep', label: 'Tail Sweep' },
     { name: 'breath', label: 'Flame Breath' },
     { name: 'blessing', label: 'Blessing of the Flame' },
-    { name: 'eruption', label: 'Eruption' },
+    // (Its pattern alarm: King's Raid's BossWarningTable 1–3 (RAID_WARNING_RED_DREGON_4), for 3 seconds, cut short as its CC gauge breaks.)
+    { name: 'eruption', label: 'Eruption', warning: { text: 'Temeraire starts to flap its wings powerfully.', colour: '#ff8200', lasts: 3, breaks: true } },
   ],
   plans: { bite: PLANS.bite!, claw: PLANS.claw!, sweep: PLANS.sweep!, breath: PLANS.breath!, blessing: PLANS.roar!, eruption: PLANS.eclipse! },
   moves: MOVES,

@@ -23,7 +23,8 @@ const hard: BossDef = {
     { name: 'sweep', label: 'Tail Sweep' },
     { name: 'breath', label: 'Black Flame Breath' },
     { name: 'gaze', label: 'Stone Gaze' },
-    { name: 'eclipse', label: 'Ashen Eclipse' },
+    // (Its pattern alarm: King's Raid's BossWarningTable 16–18 (RAID_WARNING_BLACK_DREGON_4), for 3 seconds, cut short as its CC gauge breaks.)
+    { name: 'eclipse', label: 'Ashen Eclipse', warning: { text: 'Armarta starts to flap its wings powerfully.', colour: '#ff8200', lasts: 3, breaks: true } },
   ],
   plans: { bite: PLANS.bite!, claw: PLANS.claw!, sweep: PLANS.sweep!, breath: PLANS.breath!, gaze: PLANS.gaze!, eclipse: PLANS.eclipse! },
   moves: MOVES,
