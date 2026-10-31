@@ -58,7 +58,7 @@ export const TM_LIST: RaidList = {
       about:
         'Galgoria, a chimera of three heads that spits venom. Its blows are magical, nothing slows it, and it heals itself all the while. Every 150 blows the hero that has dealt the most is shut in the swamp, and its Swamp Destroyer knocks every hero down.',
       tactic:
-        'As all of Galgoria’s attacks deal M.DMG and it recovers HP all the while, you should try using Heroes that have M.DEF-related spells and Heroes that reduce its healing. Since [Swamp Imprisonment] shuts away the Hero that has dealt the most DMG, your party should not rely on a single Hero.',
+        'As all of Galgoria’s attacks deal M.DMG and it recovers HP all the while, you should try using Heroes that have M.DEF-related spells and Heroes that reduce its healing. Since [Swamp Imprisonment] shuts away the Hero that has dealt the most DMG, your party should not rely on a single Hero. Also, since Galgoria takes 20% more P.DMG, you should form your party with Heroes that mainly deal P.DMG.',
       rewards: [POINTS, GEMS, { kind: 'tm', slot: 'weapon', name: 'Perseverance Set' }],
     },
     {

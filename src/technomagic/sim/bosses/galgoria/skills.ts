@@ -25,7 +25,7 @@ import { GALGORIA_GAUGE, withGauge } from '../gauge';
  * gives itself back 1% of its health every second (live King's Raid's; the playtest's is 0.4%), and its Heal Rate is 70%
  * higher, from stage 4 on 120%: added up with what cuts its healing, as the game's Heal Rate is, so a cut takes off that
  * first (1.7% a second, 2.2% from stage 4, with nothing on it). From stage 4 on, 40% less healing reaches the heroes, and
- * their shields are 60% weaker. It takes physical and magic damage alike (the game's passive favours neither).
+ * their shields are 60% weaker. It takes 20% more physical damage (its stats', the playtest's PhysicalDefensePower -200).
  * What is drawn for them is ./fx.ts.
  */
 /** Its attack's share of its ATK. */
@@ -39,6 +39,8 @@ const FATAL = { blow: 1.4, after: 3, heals: 0.2, most: 5, deals: 0.14, mostOnIt:
 const LIFE_FORCE = { share: 0.01, healing: 0.7, later: 1.2, from: 4 };
 /** From stage 4 on: how much healing reaches the heroes, and how strong their shields are. */
 const STAGES = { from: 4, heals: 0.6, shields: 0.4 };
+/** The physical damage it takes more of (its stats'). */
+export const PHYSICAL_TAKEN = 0.2;
 
 const IMPRISONED: Buff = { name: 'Swamp Imprisonment', about: 'Held in the swamp: it can do nothing (and can’t be knocked down), but the boss still hits it.', icon: '🪤', art: stateArt('3590043'), harmful: true };
 const UNBOUND: Buff = { name: 'Swamp Imprisonment (free)', about: `An ally is held: ATK ${Math.round(IMPRISONMENT.atk * 100)}% higher meanwhile.`, icon: '🗡️', art: stateArt('AttackUp') };
@@ -208,6 +210,7 @@ function ownPart(fight: Fight): BossPart {
     },
     healing: () => (late() ? STAGES.heals : 1),
     shielding: () => (late() ? STAGES.shields : 1),
+    taken: { physical: 1 + PHYSICAL_TAKEN },
     unstolen: true,
     steady: true,
     marks(): Mark[] {

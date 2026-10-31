@@ -8,7 +8,7 @@
  */
 import type { DamageType } from '../technomagic/sim/combat/damage';
 import { ECLIPSE } from '../technomagic/sim/bosses/armarta/skills';
-import { IMPRISONMENT, SWAMP } from '../technomagic/sim/bosses/galgoria/skills';
+import { IMPRISONMENT, PHYSICAL_TAKEN, SWAMP } from '../technomagic/sim/bosses/galgoria/skills';
 import { STORM } from '../technomagic/sim/bosses/scalaxia/skills';
 import { DAWN, DEF_CUT, MAGIC_TAKEN, MANA_BLOCKED, MANA_HIT, MANA_RATE, RAMPAGE, RISE, STORM as BLADES, STRIKE, SWORD } from '../technomagic/sim/bosses/siegfried/skills';
 import { BLESSING } from '../technomagic/sim/bosses/temeraire/skills';
@@ -32,7 +32,7 @@ export interface BossSkills {
   basic: { attacks: readonly string[]; about: string };
   /**
    * How many times as much of each kind of damage it takes for good, past its defenses (its part's `taken` in the sim:
-   * Scalaxia's): none said, as much.
+   * Galgoria's, Siegfried's, Scalaxia's): none said, as much.
    */
   takes?: Partial<Record<DamageType, number>>;
 }
@@ -56,6 +56,7 @@ export const BOSS_SKILLS: Readonly<Record<string, BossSkills>> = {
       { name: 'Persistent Life Force', icon: icon('galgoria', 3590041), attacks: [], about: 'Immune to Attack Speed reduction and Lifesteal. Recovers 1% of its HP every sec, with its Heal Rate increased by 70% (120% from stage 4): 1.7% a sec (2.2%) before Heal Rate reductions. From stage 4, heroes’ healing is reduced by 40% and their shields by 60%.' },
     ],
     basic: { attacks: ['left', 'centre', 'right'], about: 'Each head spits venom at the enemy it is after, dealing M.DMG.' },
+    takes: { physical: 1 + PHYSICAL_TAKEN },
   },
   siegfried: {
     skills: [

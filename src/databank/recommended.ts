@@ -21,7 +21,7 @@ export const RECOMMENDED: Readonly<Record<string, Recommended>> = {
     picks: {
       laias: "Raises everyone's M.DEF and M.Block against its venom and heals the party; the best against it in the raid's simulated fights.",
       'fallen-frey': "Heals and shields through its venom while cutting its healing; among the best against it in the raid's simulated fights.",
-      shakmeh: 'Grudge cuts its healing, and Vessel of Dark Spirit raises the party’s M.DEF.',
+      shakmeh: 'Deals P.DMG, which it takes 20% more of; Grudge cuts its healing, and Vessel of Dark Spirit raises the party’s M.DEF.',
       isolet: 'Deals P.DMG, Ignite cuts its healing, and Blazing Storm lowers the M.DMG the party takes.',
       valance: 'Manipulated cuts its healing and raises all the DMG it takes; Absolute Protection Field keeps the party healed and free of CC.',
       tanya: 'Deals P.DMG, and Blade Tornado from Stealth cuts its healing by 70%.',

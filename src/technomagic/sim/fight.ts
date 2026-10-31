@@ -929,7 +929,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       relics.get(by)?.blow();
       // Its perks that mark the boss as its blows land (Vital Detection, Experienced Fighter, Special Bullet): after this one.
       const marking = by.perkDefs.filter((perk) => perk.mark && (perk.mark.every === undefined || perkDue(by, perk.mark.name, perk.mark.every)));
-      // (And more or less by the boss's own: Scalaxia's less magic damage; and its attack's blows, Siegfried's more.) Deathless: all of it, and the boss whole again once it would be beaten.
+      // (And more or less by the boss's own: Galgoria's more physical damage, Siegfried's more magic, Scalaxia's less magic; and its attack's blows, Siegfried's more.) Deathless: all of it, and the boss whole again once it would be beaten.
       const struck = taken * (foe.part.taken?.[type] ?? 1) * (attacking === by ? (foe.part.attackTaken ?? 1) : 1);
       const dealt = deathless && foe === boss ? struck : Math.min(foe.hp, struck);
       foe.hp -= dealt;
