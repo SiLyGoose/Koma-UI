@@ -95,8 +95,6 @@ const UNIQUE_TRIED = 5;
 const FIELD_KEY = 'technomagic-field';
 /** Whether Auto Repeat is ticked (in a room), kept by this browser. */
 const REPEAT_KEY = 'technomagic-repeat';
-/** Single player: the lineup last had against each boss (its heroes in order, and which are the Sub Team's), kept by this browser for each player. */
-const soloLineupKey = (you: string, raid: string, boss: string): string => `technomagic-solo-lineup:${you}:${raid}:${boss}`;
 /** Heroes that couldn't be read: none (and why, in the console), so the page goes on without them. */
 const unread = (error: unknown): Entrant[] => {
   console.warn(error);
@@ -683,34 +681,6 @@ async function start(): Promise<void> {
     let lock: Lock | null = null;
     let shownOver: OverView | null = null;
     const send = (message: ClientMessage): boolean => socket?.send(message) ?? false;
-    /** Single player: whether the lineup last had against this boss has been looked for (once, on first getting ready). */
-    let lineupRestored = false;
-    /**
-     * Single player, getting ready: their lineup kept as it changes; the room's first, empty, given the one they last had
-     * against this boss again (those of its heroes they still own, picked in its order, each into its team).
-     */
-    function keepLineup(at: RoomState): void {
-      if (!at.solo || at.phase !== 'prep') return;
-      const key = soloLineupKey(at.you, at.raid, at.boss.id);
-      const mine = at.lineup.filter((pick) => pick.owner === at.you);
-      if (!lineupRestored) {
-        lineupRestored = true;
-        if (mine.length === 0) {
-          let saved: unknown;
-          try {
-            saved = JSON.parse(store.get(localStorage, key) ?? '[]');
-          } catch {
-            saved = [];
-          }
-          const owned = new Set(at.players.find((player) => player.id === at.you)?.owned ?? []);
-          const picks = Array.isArray(saved) ? saved.filter((pick): pick is { hero: string; sub?: boolean } => typeof pick?.hero === 'string' && owned.has(pick.hero)) : [];
-          for (const pick of picks.slice(0, at.slots)) send({ t: 'pick', hero: pick.hero, skin: 0, ...(pick.sub && { sub: true }) });
-          // (Kept as it comes back, one pick at a time.)
-          if (picks.length > 0) return;
-        }
-      }
-      store.set(localStorage, key, JSON.stringify(mine.map((pick) => ({ hero: pick.hero, ...(pick.sub && { sub: true }) }))));
-    }
 
     // This page's run of the fight out of step with the bot's: Reconnecting… over the field while it is given the fight again.
     const syncing = el('p', 'tm-syncing', 'Reconnecting…');
@@ -1074,7 +1044,6 @@ async function start(): Promise<void> {
             meterAt.replaceChildren();
             results.hide();
             prep.show(state);
-            keepLineup(state);
           } else {
             prep.hide();
             // Their gear is taken as the fight begins: no more changing it.
