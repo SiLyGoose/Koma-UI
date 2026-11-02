@@ -10,6 +10,7 @@ const NONE_FOR: Readonly<Record<HeroMode, string>> = {
   reroll: 'None of your hero gear has substats to reroll.',
   enhance: 'None of your hero gear has substats whose values can be rerolled.',
   effects: 'None of your hero gear has an additional effect to reroll: TechnoMagic pieces do.',
+  restore: 'None of your hero gear can be restored: a TechnoMagic piece can once it is 5★, if it isn’t Reclaimed already.',
 };
 
 /**

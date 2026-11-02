@@ -128,6 +128,9 @@ export const balance = (ctx: ForgeContext): number | null => ctx.gear?.balance ?
 /** Their komaGems (what rerolling an effect costs, with its set's Boss Crystals), once their hero gear is loaded. */
 export const gems = (ctx: ForgeContext): number | null => ctx.heroes?.gems ?? null;
 
+/** Their Technomagic Experiment Reports (what restoring a 5★ TechnoMagic piece takes), once their hero gear is loaded. */
+export const reports = (ctx: ForgeContext): number | null => (ctx.heroes ? (ctx.heroes.reports ?? 0) : null);
+
 /** Their Boss Crystals of TechnoMagic `set` (what rerolling its pieces' substats costs, and their effects with a komaGem), once their hero gear is loaded. */
 export const crystals = (ctx: ForgeContext, set: string): number | null => (ctx.heroes ? (ctx.heroes.crystals?.[set as keyof NonNullable<HeroesView['crystals']>] ?? 0) : null);
 

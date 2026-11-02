@@ -27,7 +27,7 @@ const whereOf = (box: LootBoxStack): string => (box.raid === 'dragon' ? `${box.b
 const givesOf = (box: LootBoxStack): string =>
   box.raid === 'dragon'
     ? 'pieces of its dragon’s set, runes, zeiucoins and its hero essences'
-    : 'TechnoMagic gear of its boss’s set (now and then Reclaimed), runes, now and then an artifact, Boss Crystals, Upgrade Stones (from stage 7, of any class) and zeiucoins';
+    : 'TechnoMagic gear of its boss’s set (now and then Reclaimed), runes, now and then an artifact, Boss Crystals, Upgrade Stones (from stage 7, of any class), now and then Technomagic Experiment Reports (from stage 4) and zeiucoins';
 
 /** A box's slot: picked, its Open buttons (`controls`: made as its details show). */
 export function lootTile(box: LootBoxStack, controls: () => Node): Tile {
@@ -76,6 +76,7 @@ function merge(into: LootOpened, more: LootOpened): void {
   add(into.essences, more.essences);
   add(into.stones, more.stones);
   add(into.crystals, more.crystals);
+  if (more.reports) into.reports = (into.reports ?? 0) + more.reports;
   add(into.runes, more.runes);
   into.copies.push(...more.copies);
 }
@@ -152,6 +153,7 @@ export function lootRevealed(view: HeroesView, opened: LootOpened, tileOf: (id: 
     ...Object.entries(opened.essences).flatMap(([id, n]) => slot(id, n ?? 0)),
     ...Object.entries(opened.crystals).flatMap(([set, n]) => slot(`crystal-${set}`, n ?? 0)),
     ...Object.entries(opened.stones).flatMap(([cls, n]) => slot(`stone-${cls}`, n ?? 0)),
+    ...slot('reports', opened.reports ?? 0),
     ...slot('dust', opened.dust),
     ...runes,
     ...copies,

@@ -3,9 +3,10 @@ import type { HeroCopy } from '../shared/heroes';
 
 /**
  * What the forge does, picked from its menu: refine a copy (a hero's gear: awaken it), or, to a hero's gear, reroll one of
- * its substats (King's Raid's options), reroll one's value (its amount rolled again), or reroll its effect (TechnoMagic gear's additional skill).
+ * its substats (King's Raid's options), reroll one's value (its amount rolled again), reroll its effect (TechnoMagic gear's
+ * additional skill), or restore a 5★ TechnoMagic piece into a 0★ Reclaimed one (King's Raid's Technomagic Restoration).
  */
-export type ForgeMode = 'refine' | 'reroll' | 'enhance' | 'effects';
+export type ForgeMode = 'refine' | 'reroll' | 'enhance' | 'effects' | 'restore';
 
 /** The menu's buttons, in order: each mode's name, what it does, and its anvil's button. */
 export const FORGE_MODES: readonly { id: ForgeMode; name: string; about: string; go: string }[] = [
@@ -13,6 +14,7 @@ export const FORGE_MODES: readonly { id: ForgeMode; name: string; about: string;
   { id: 'reroll', name: 'Reroll Substats', about: 'Roll one of a hero gear piece’s substats again.', go: 'Reroll Substat' },
   { id: 'enhance', name: 'Reroll Values', about: 'Roll one of its substats’ amounts again, anywhere in its range.', go: 'Reroll Value' },
   { id: 'effects', name: 'Reroll Effects', about: 'Roll a TechnoMagic piece’s additional effect again.', go: 'Reroll Effect' },
+  { id: 'restore', name: 'Restore Gear', about: 'Turn a 5★ TechnoMagic piece into a 0★ Reclaimed one, its substats and effect kept.', go: 'Restore Gear' },
 ];
 
 /** Whether the forge can do `mode` to a hero's gear copy (as the heroes page has it): the bot's prices say what it can be done for. */
@@ -26,5 +28,7 @@ export function heroCan(copy: HeroCopy, mode: ForgeMode): boolean {
       return copy.upgrade !== null;
     case 'effects':
       return copy.rerollUnique !== null;
+    case 'restore':
+      return !!copy.restore;
   }
 }

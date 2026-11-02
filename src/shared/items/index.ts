@@ -10,6 +10,7 @@ export { armoryGrid, askSale, rewardChips, type Reward, salePopup, sellInTurns, 
 export { armoryOrder, equippedIds, forgePlan, type GearCopy, type GearLockedLoadout, type GearView, type Plan, type ShownStatSection, type StatSection, TM_UNSORTED, type TmSort } from './gear';
 export { matchesSearch } from './search';
 export { crystalCount, crystalIcon, crystalName, crystalPicture, stoneCount, stoneIcon, stoneName, stonePicture } from './stones';
+export { REPORT_ABOUT, REPORT_NAME, REPORT_PICTURE, reportCount, reportPicture, reportsName } from './reports';
 export { statBlocks } from './stats';
 export { hoverSound, itemDetailsClosed, itemPicked, popupClosed } from './sfx';
 export { armoryFilter, matchesStars, type ArmoryChoice, type ArmoryFilter, type ClassChoice, type FilterOffer, type StarChoice } from './armory-filter/armory-filter';

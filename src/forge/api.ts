@@ -5,7 +5,7 @@ import { sleep } from '../shared/util';
 import { curtain } from '../shared/transition';
 import { api, currentServer, loadMe, logOut } from '../site/session';
 import { renderAnvil } from './anvil';
-import { keepChoice, type HeroMode } from './anvil/hero';
+import { keepChoice, restoreRows, type HeroMode } from './anvil/hero';
 import { compare } from './anvil/compare';
 import { choosing, copyById, heroCopyById, status, type ForgeContext } from './context';
 import { playAnimation } from './play-animation';
@@ -34,9 +34,11 @@ export function failed(ctx: ForgeContext, res: { status: number; error: string }
               ? "You don't have enough Upgrade Stones for that."
             : res.error === 'no_crystals'
               ? "You don't have enough Boss Crystals for that."
+            : res.error === 'no_reports'
+              ? "You don't have enough Technomagic Experiment Reports for that."
               : res.error === 'pending'
                 ? 'Keep one first: the one it has, or the one just rolled.'
-              : ['no_duplicate', 'maxed', 'bad_material', 'no_option'].includes(res.error)
+              : ['no_duplicate', 'maxed', 'bad_material', 'no_option', 'not_restorable'].includes(res.error)
                 ? 'That changed in the meantime. Take another look and try again.'
                 : what,
     true,
@@ -122,6 +124,43 @@ export async function strikeHero(ctx: ForgeContext, mode: HeroMode): Promise<voi
   if (!res.ok) {
     renderAnvil(ctx);
     failed(ctx, res, mode === 'enhance' ? 'Could not reroll that value. Try again.' : 'Could not reroll that. Try again.');
+  }
+}
+
+/**
+ * Restores the 5★ TechnoMagic piece on the anvil into a 0★ Reclaimed one (King's Raid's Technomagic Restoration: the bot's POST
+ * /api/heroes/restore), with the anvil's heat and cover as a refine has, and shows its stars and main stat before against now.
+ */
+export async function restoreHero(ctx: ForgeContext): Promise<void> {
+  const server = currentServer();
+  const copy = heroCopyById(ctx, ctx.picked);
+  if (ctx.busy || !server || !copy?.restore) return;
+  ctx.busy = busyWith('strike');
+  renderAnvil(ctx);
+  playAnimation(ctx.ui.target, 'heat', 'heat');
+  const request = api<HeroesView>('/api/heroes/restore', { method: 'POST', body: JSON.stringify({ guild: server, copy: copy.id }) });
+  await sleep(HEAT_MS);
+  const res = await curtain(async () => {
+    const res = await request;
+    ctx.busy = null;
+    // It cost zeiucoins: the header's balances follow, and the gear's too.
+    void loadMe(true);
+    if (!res.ok) return res;
+    ctx.heroes = res.data;
+    void loadGear(ctx);
+    const after = heroCopyById(ctx, copy.id);
+    ctx.doneWell = true;
+    ctx.done = `${shownName(copy)} is now ${after ? shownName(after) : `Reclaimed ${copy.name}`}, at 0★. Awaken it again in Refine Gear.`;
+    // (Not restorable any more: off the anvil, which shows only what can be.)
+    ctx.picked = null;
+    status(ctx, null);
+    render(ctx);
+    if (after) showChange(ctx, after, 'Restored', restoreRows(copy.level, copy.mainStat, after.mainStat));
+    return res;
+  }, 'Restoring…');
+  if (!res.ok) {
+    renderAnvil(ctx);
+    failed(ctx, res, 'Could not restore that. Try again.');
   }
 }
 

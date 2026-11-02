@@ -1,12 +1,15 @@
-import { crystalCount, el, rich } from '../../shared/items';
+import { crystalCount, el, reportCount, rich } from '../../shared/items';
 import { type HeroCopy, type HeroKeep, optionPips } from '../../shared/heroes';
+import type { MainStat } from '../../protocol/items';
 import { working } from '../../shared/ui';
 import { points } from '../../shared/util';
-import { balance, crystals, gems, heroCopyById, type ForgeContext } from '../context';
+import { balance, crystals, gems, heroCopyById, reports, type ForgeContext } from '../context';
 import { FORGE_MODES, type ForgeMode } from '../modes';
 import { render } from '../render';
 import { showHint, showTarget } from './anvil';
+import type { EffectRow } from './compare';
 import { type PriceShown, type PriceUnit, showPrice } from './cost';
+import { fillEffects } from './effects';
 
 /** The menu's modes for a hero's gear (not refining). */
 export type HeroMode = Exclude<ForgeMode, 'refine'>;
@@ -36,12 +39,15 @@ export function priceOf(copy: HeroCopy, mode: HeroMode, option: number | null): 
     case 'effects':
       if (copy.rerollUnique === null) return null;
       return [{ cost: copy.rerollUnique, unit: 'komaGems' }, ...(copy.rerollCrystals && copy.rerollUniqueCrystals ? [{ cost: copy.rerollUniqueCrystals, unit: `crystals:${copy.rerollCrystals}` as const }] : [])];
+    case 'restore':
+      // (King's Raid's Technomagic Restoration: Technomagic Experiment Reports and its gold, a thousandth of it.)
+      return copy.restore ? [{ cost: copy.restore.reports, unit: 'reports' }, { cost: copy.restore.points, unit: 'zeiucoins' }] : null;
   }
 }
 
 /** How many they have of what a price is paid in (null: not loaded yet). */
 const haveOf = (ctx: ForgeContext, unit: PriceUnit): number | null =>
-  unit === 'komaGems' ? gems(ctx) : unit.startsWith('crystals:') ? crystals(ctx, unit.slice('crystals:'.length)) : balance(ctx);
+  unit === 'komaGems' ? gems(ctx) : unit === 'reports' ? reports(ctx) : unit.startsWith('crystals:') ? crystals(ctx, unit.slice('crystals:'.length)) : balance(ctx);
 
 /** One side of a reroll waiting to be kept: its line (an effect's: null, none), and a substat's steps. */
 export interface KeepLine {
@@ -61,7 +67,8 @@ export interface KeepChoice {
  * the new one or the one it has (King's Raid's Reforge; nothing to pay); null: none waits.
  */
 export function keepChoice(copy: HeroCopy | undefined, mode: HeroMode): KeepChoice | null {
-  if (!copy) return null;
+  // (Restoring keeps both as they are: nothing waits in it.)
+  if (!copy || mode === 'restore') return null;
   if (mode === 'effects') return copy.rerolled ? { what: 'effect', old: { line: copy.additional }, new: { line: copy.rerolled } } : null;
   const rolled = copy.rerolledOption;
   const old = rolled ? copy.options[rolled.index] : undefined;
@@ -129,14 +136,19 @@ function heroHint(ctx: ForgeContext, mode: HeroMode, copy: HeroCopy | undefined,
   if (!copy) {
     if (mode === 'reroll') return { text: 'Pick a piece of hero gear from your armory to reroll one of its substats.' };
     if (mode === 'enhance') return { text: 'Pick a piece of hero gear from your armory to roll one of its substats’ amounts again.' };
+    if (mode === 'restore') return { text: 'Pick a 5★ TechnoMagic piece from your armory to restore it into a Reclaimed one.' };
     return { text: 'Pick a TechnoMagic piece from your armory to reroll its additional effect.' };
   }
   if (!price) {
     if (mode === 'reroll') return { text: 'This piece has no substats to reroll.', tone: 'bad' };
     if (mode === 'enhance') return { text: 'This piece has no substat values to reroll.', tone: 'bad' };
+    if (mode === 'restore') return { text: 'Only a 5★ TechnoMagic piece that isn’t Reclaimed yet can be restored.', tone: 'bad' };
     return { text: 'This piece has no additional effect to reroll.', tone: 'bad' };
   }
   if (short && short.have !== null) {
+    if (short.unit === 'reports') {
+      return { text: `You need ${reportCount(short.cost - short.have).replace(' ', ' more ')} to do that: TechnoMagic Raid wins drop them now and then from stage 4, more often the higher the stage.`, tone: 'bad' };
+    }
     if (short.unit.startsWith('crystals:')) {
       return { text: `You need ${crystalCount(short.unit.slice('crystals:'.length), short.cost - short.have).replace(' ', ' more ')} to do that: its boss's TechnoMagic Raid drops them, and salvaging its set's gear gives them.`, tone: 'bad' };
     }
@@ -144,6 +156,7 @@ function heroHint(ctx: ForgeContext, mode: HeroMode, copy: HeroCopy | undefined,
   }
   if (mode === 'reroll') return { text: ctx.option === null ? 'Pick the substat to reroll, below.' : 'The substat picked is rolled again, at random: then keep the new one or the one it has.' };
   if (mode === 'enhance') return { text: ctx.option === null ? 'Pick the substat whose value to reroll, below.' : 'The substat picked keeps its stat and rolls its amount again, anywhere in its range: it may go down.' };
+  if (mode === 'restore') return { text: 'It comes back Reclaimed at 0★, its substats and additional effect kept: its main stat drops until you awaken it again, and ends 31.25% higher at 5★ (each star takes half as many Upgrade Stones again).' };
   return { text: 'Its additional effect is rolled again, at random: then keep the new one or the one it has.' };
 }
 
@@ -189,6 +202,8 @@ function renderRows(ctx: ForgeContext, mode: HeroMode, copy: HeroCopy | undefine
     ui.effects.append(row);
     return;
   }
+  // Restoring: its stars and main stat now against as it comes back (Reclaimed, 0★), then its substats and effect, both kept.
+  if (mode === 'restore') fillEffects(ui.effects, restoreRows(copy.level, copy.mainStat, copy.restore?.mainAfter ?? null));
   copy.options.forEach((option, i) => {
     const row = el('li', 'forge-row forge-option');
     const line = el('span', 'forge-line', option.line);
@@ -211,4 +226,22 @@ function renderRows(ctx: ForgeContext, mode: HeroMode, copy: HeroCopy | undefine
     ui.effects.append(row);
   });
   if (copy.options.length === 0) ui.effects.append(el('li', 'forge-row muted', 'No substats.'));
+  if (mode === 'restore' && copy.additional) {
+    const row = el('li', 'forge-row');
+    row.append(rich(copy.additional));
+    ui.effects.append(row);
+  }
+}
+
+/**
+ * A restoration's rows (King's Raid's Technomagic Restoration): its stars from `level` to 0★, and its main stat from `before` to
+ * `after` (Reclaimed at 0★: lower, until it's awakened again); the anvil's before it, the result's after.
+ */
+export function restoreRows(level: number, before: MainStat | null, after: MainStat | null): EffectRow[] {
+  const rows: EffectRow[] = [{ line: `**Stars** ${level}★`, changes: level === 0 ? [] : [{ from: String(level), to: '0', at: 0 }], state: level === 0 ? 'same' : 'changed' }];
+  if (before && after) {
+    const line = `**${before.name}** ${points(before.value)}`;
+    rows.push(before.value === after.value ? { line, changes: [], state: 'same' } : { line, changes: [{ from: points(before.value), to: points(after.value), at: 0 }], state: 'changed' });
+  }
+  return rows;
 }

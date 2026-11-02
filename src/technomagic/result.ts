@@ -1,7 +1,7 @@
 import { coin, dust, points } from '../shared/util';
 import { GEM_EMOJI } from '../forge/anvil/gem';
 import { built } from '../shared/built';
-import { dragonTier, el, isTmPiece, itemDetailsClosed, itemFace, itemIcons, kindName, mainStatLine, shownName, crystalCount, crystalIcon, crystalName, stoneCount, stoneIcon, stoneName, tmSections, rich } from '../shared/items';
+import { dragonTier, el, isTmPiece, itemDetailsClosed, itemFace, itemIcons, kindName, mainStatLine, shownName, crystalCount, crystalIcon, crystalName, stoneCount, stoneIcon, stoneName, tmSections, rich, reportPicture, reportsName } from '../shared/items';
 import { ESSENCE_NAME, type EssenceId } from '../protocol/heroes';
 import type { DropView, RaidKind } from '../protocol/technomagic';
 import { niceScale } from '../raid/result/nice-scale';
@@ -95,6 +95,8 @@ export interface ResultShown {
   stones?: { class: string; count: number };
   /** The Boss Crystals the win gave this player (its boss's: by its set), and how many (none: no tile). */
   crystals?: { set: string; count: number };
+  /** The Technomagic Experiment Reports the win gave this player (now and then, from stage 4; none: no tile). */
+  reports?: number;
   /** The gear this player found: TechnoMagic gear, or (the Dragon Raid's) raid items. */
   raid?: RaidKind;
   mine: readonly DropView[];
@@ -368,6 +370,16 @@ export function makeResult(root: HTMLElement): Result {
     return tile;
   }
 
+  /** The Technomagic Experiment Reports the win gave, as a tile beside the points: their picture, and how many. */
+  function reportsTile(count: number): HTMLElement {
+    const tile = el('div', 'tm-tile tm-tile-points');
+    tile.title = `${reportsName(count)}: the forge's Restore Gear spends 40 restoring a 5★ TechnoMagic piece into a Reclaimed one`;
+    const face = el('span', 'tm-points-face tm-essence-face');
+    face.append(reportPicture('tm-essence-art'));
+    tile.append(face, el('span', 'tm-tile-name', `${reportsName(count)} ×${points(count)}`));
+    return tile;
+  }
+
   /** The Upgrade Stones the win gave (all of one class), as a tile beside the points: their picture, and how many. */
   function stonesTile(stones: { class: string; count: number }): HTMLElement {
     const tile = el('div', 'tm-tile tm-tile-points');
@@ -475,6 +487,7 @@ export function makeResult(root: HTMLElement): Result {
         ...essences.map(([id, amount]) => essenceTile(id, amount)),
         ...(shown.crystals && shown.crystals.count > 0 ? [crystalsTile(shown.crystals)] : []),
         ...(shown.stones && shown.stones.count > 0 ? [stonesTile(shown.stones)] : []),
+        ...((shown.reports ?? 0) > 0 ? [reportsTile(shown.reports ?? 0)] : []),
         ...((shown.gems ?? 0) > 0 ? [gemsTile(shown.gems ?? 0, shown.firstClears ?? 0)] : []),
         ...shown.mine.map((drop) => gearTile(drop)),
       );

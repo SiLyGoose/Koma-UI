@@ -1,7 +1,7 @@
 import { wireSearch } from '../shared/items';
 import { dropdown } from '../shared/ui';
 import { setServer } from '../site/session';
-import { keepRolled, loadGear, loadHeroes, strikeAnvil, strikeHero } from './api';
+import { keepRolled, loadGear, loadHeroes, restoreHero, strikeAnvil, strikeHero } from './api';
 import { keeping } from './anvil/hero';
 import { heroCopyById, type ForgeContext } from './context';
 import { renderGrid } from './grid';
@@ -40,6 +40,7 @@ export function wireControls(ctx: ForgeContext): () => void {
   // The anvil's button: the mode's (a refine, or a hero's gear's reroll or enhance; an effect or substat rerolled, the one picked kept).
   ui.go.addEventListener('click', () => {
     if (ctx.mode === 'refine') return void strikeAnvil(ctx);
+    if (ctx.mode === 'restore') return void restoreHero(ctx);
     if (!ctx.mode) return;
     void (keeping(heroCopyById(ctx, ctx.picked), ctx.mode) ? keepRolled(ctx, ctx.keep) : strikeHero(ctx, ctx.mode));
   });

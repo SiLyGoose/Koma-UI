@@ -1,7 +1,7 @@
 import { GEM_EMOJI } from '../../forge/anvil/gem';
 import { ESSENCE_NAME, ESSENCES, type EssenceId } from '../../protocol/heroes';
 import { built } from '../../shared/built';
-import { crystalName, crystalPicture, el, rich, stoneName, stonePicture } from '../../shared/items';
+import { crystalName, crystalPicture, el, REPORT_ABOUT, REPORT_NAME, REPORT_PICTURE, rich, stoneName, stonePicture } from '../../shared/items';
 import { RAID_CLASS_IDS } from '../../protocol/raid';
 import { SCROLL_NAME, scrollPicture } from '../../shared/items/scroll';
 
@@ -49,7 +49,7 @@ export const othersTab: InventoryTab = {
           <div class="sheet-scroll"><div class="armory-grid"></div></div>
         </div>
         <div class="inv-bar">
-          <p class="inv-count">Currencies, tickets, loot boxes, Rune Fragments, hero essences, Boss Crystals and Upgrade Stones. Pick one to see where it comes from.</p>
+          <p class="inv-count">Currencies, tickets, loot boxes, Rune Fragments, hero essences, Boss Crystals, Upgrade Stones and Experiment Reports. Pick one to see where it comes from.</p>
         </div>
         <div class="detail" role="dialog" aria-label="Item" hidden></div>
       </div>`;
@@ -62,7 +62,7 @@ export const othersTab: InventoryTab = {
     );
 
     /** How many of each they hold (null: not known yet; undefined: couldn't be had). */
-    const held: Record<string, number | null | undefined> = { zeiucoins: host.balance() ?? undefined, tokens: null, gems: null, dust: null, fragments: null, uw: null, ut: null, scrolls: null, ...Object.fromEntries(ESSENCES.map((id) => [id, null])), ...Object.fromEntries(RAID_CLASS_IDS.map((cls) => [`stone-${cls}`, null])), ...Object.fromEntries(TM_SETS.map((set) => [`crystal-${set}`, null])) };
+    const held: Record<string, number | null | undefined> = { zeiucoins: host.balance() ?? undefined, tokens: null, gems: null, dust: null, fragments: null, uw: null, ut: null, scrolls: null, reports: null, ...Object.fromEntries(ESSENCES.map((id) => [id, null])), ...Object.fromEntries(RAID_CLASS_IDS.map((cls) => [`stone-${cls}`, null])), ...Object.fromEntries(TM_SETS.map((set) => [`crystal-${set}`, null])) };
     /** The Dispatch Battle Loot they hold (null: not known yet), the most opened at a time, the box being opened, and what opening showed. */
     let boxes: LootBoxStack[] | null = null;
     let openMost = 200;
@@ -125,6 +125,8 @@ export const othersTab: InventoryTab = {
           about: `From TechnoMagic Raid wins at stage 7 and up (of a class you brought; their Dispatch Battle Loot's, of any class), and salvaging TechnoMagic gear of this class (1 a piece, 2 a Reclaimed one). The forge spends them awakening a TechnoMagic piece of this class: 10, 20, 40, 80 and 160 for ★1 to ★5 (a Reclaimed piece half as many again).`,
         }),
       ),
+      // (King's Raid's: what Technomagic Restoration takes, a 5★ TechnoMagic piece into a 0★ Reclaimed one.)
+      { id: 'reports', name: REPORT_NAME, picture: () => tileImage(REPORT_PICTURE), full: true, grade: 5, count: held.reports, kind: 'Material', words: 'technomagic experiment report restore restoration reclaimed', about: REPORT_ABOUT },
     ];
     /** A ticket's slot: picked, Use (one held) picks the hero's item it gives. */
     const ticket = (of: TicketKind): Tile => {
@@ -160,6 +162,7 @@ export const othersTab: InventoryTab = {
       held.gems = view.gems;
       held.fragments = view.runeFragments ?? 0;
       held.scrolls = view.tpScrolls ?? 0;
+      held.reports = view.reports ?? 0;
       for (const id of ESSENCES) held[id] = view.essences[id] ?? 0;
       for (const cls of RAID_CLASS_IDS) held[`stone-${cls}`] = view.stones?.[cls] ?? 0;
       for (const set of TM_SETS) held[`crystal-${set}`] = view.crystals?.[set] ?? 0;
