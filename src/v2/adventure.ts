@@ -7,16 +7,31 @@ import { playGame } from '../site/play';
 import { api, currentMe, currentServer, hasSession, logOut } from '../site/session';
 
 /*
- * Adventure (the lobby's bottom-right Battle emblem): a window over the town, as King's Raid's full-screen windows are (its
- * Portal's backdrop, the top bar's back button with the window's name). On its left the kinds of battle (the TechnoMagic
- * Raid, the Dragon Raid, the Divine Punishment Raid, the Weekly Boss); on its right the bosses of the one picked, each on
- * its banner with what the front page's Raid List gives it (../hub/raid-list.ts): Raid Info, Single Player and
- * Multiplayer (Find Raid and Create Raid: ../hub/raid-rooms.ts, over it). The Divine Punishment Raid's Apocalypsion opens
- * its own game (games/punishment/), the Weekly Boss its fight. Laid out in King's Raid's units where it is its art
- * (--kr), and the screen's otherwise.
+ * Adventure (the lobby's bottom-right Battle emblem): King's Raid's Portal (its PortalRenewal window, from the playtest's
+ * prefab: Resources/Prefab2/Window/Portal/PortalRenewal), laid out where the prefab has its parts on the game's 1080-high
+ * screen and scaled to this one. On its left the Contents menu (PayShop's menu frame and dividers, four diamond buttons a
+ * row: ContentsMenuComponent, Portal_Content_Btn_Bg_01 with the content's gold icon and its name under it, the picked one
+ * lit by Portal_Select_Fous_01): the kinds of battle (the TechnoMagic Raid, the Dragon Raid, the Divine Punishment Raid,
+ * the Weekly Boss). On its right the picked one's name over its divider, and its bosses on the Portal's cards
+ * (PortalHalfComponent, PortalThirdComponent, PortalQuaterComponent: one, three or four a column, as the game picks them),
+ * each with its banner, name, what it does, and what the front page's Raid List gives it (../hub/raid-list.ts): Raid
+ * Info, Single Player and Multiplayer (Find Raid and Create Raid: ../hub/raid-rooms.ts, over it). The Divine Punishment
+ * Raid's Apocalypsion opens its own game (games/punishment/), the Weekly Boss its fight. Art: public/kr/ui/portal/.
  */
 
-const UI = `${import.meta.env.BASE_URL}kr/ui/lobby/`;
+const PORTAL = `${import.meta.env.BASE_URL}kr/ui/portal/`;
+
+/** The part of King's Raid's 2340x1080 screen the window takes (its menu and contents, and the back button over them). */
+const STAGE = { width: 2100, height: 1080 };
+
+/** The Portal's cards, by how many a column holds: their height (980 wide), their row, their picture (at the bottom left). */
+const CARDS = {
+  half: { height: 448, cell: 448, art: [720, 336] },
+  third: { height: 296, cell: 300, art: [720, 216] },
+  quater: { height: 224, cell: 220, art: [684, 148] },
+} as const;
+type CardSize = keyof typeof CARDS;
+const cardFor = (count: number): CardSize => (count <= 2 ? 'half' : count === 3 ? 'third' : 'quater');
 
 /** A boss on the right: a raid's card (with its buttons), one to come, or a battle opened as a whole. */
 type Boss =
@@ -26,12 +41,11 @@ type Boss =
 
 interface Kind {
   game: Game;
+  /** Its name over its bosses, and (`short`) under its diamond. */
   name: string;
-  /** Its picture on its tab. */
+  short: string;
+  /** Its gold icon in its diamond (public/kr/ui/portal/icon-<icon>.webp). */
   icon: string;
-  /** Its line on its tab, and over its bosses. */
-  line: string;
-  tip: string;
   bosses: readonly Boss[];
 }
 
@@ -92,25 +106,22 @@ export function makeAdventure(
     {
       game: 'technomagic',
       name: 'TechnoMagic Raid',
-      icon: 'raid',
-      line: 'Galgoria, Siegfried and Ascalon',
-      tip: TM_LIST.tip,
+      short: 'TechnoMagic Raid',
+      icon: 'technomagic',
       bosses: [...TM_LIST.cards.map((card): Boss => ({ kind: 'raid', card })), ...(TM_LIST.upcoming ?? []).map((card): Boss => ({ kind: 'soon', card }))],
     },
     {
       game: 'dragon',
       name: 'Dragon Raid',
+      short: 'Dragon Raid',
       icon: 'dragon',
-      line: "King's Raid's four dragons",
-      tip: DRAGON_LIST.tip,
       bosses: [...DRAGON_LIST.cards.map((card): Boss => ({ kind: 'raid', card })), ...(DRAGON_LIST.upcoming ?? []).map((card): Boss => ({ kind: 'soon', card }))],
     },
     {
       game: 'divine',
       name: 'Divine Punishment Raid',
+      short: 'Divine Punishment',
       icon: 'punishment',
-      line: 'Apocalypsion, at Infinite levels',
-      tip: "King's Raid's last raid: unlock her dungeons for a week, beat up to two of her guardian dragons to weaken her, then face her alone with your heroes.",
       bosses: apocalypsion
         ? [
             {
@@ -119,7 +130,7 @@ export function makeAdventure(
               name: apocalypsion.name,
               title: apocalypsion.title,
               art: raidBanner(apocalypsion.id),
-              text: apocalypsion.about,
+              text: `${apocalypsion.about} Unlock her dungeons for a week, and beat up to two of her guardian dragons to weaken her first.`,
               label: 'Enter',
               go: () => navigate('/games/punishment/#apocalypsion'),
             },
@@ -129,17 +140,16 @@ export function makeAdventure(
     {
       game: 'raid',
       name: 'Weekly Boss',
+      short: 'Weekly Boss',
       icon: 'weekly',
-      line: "This week's boss, turn by turn",
-      tip: "Team up against this week's boss, turn by turn: attack, guard, heal or support, with the raiders in Discord. Your first win of the week pays five times over.",
       bosses: [
         {
           kind: 'enter',
           id: 'weekly',
           name: 'Weekly Boss',
           title: 'This week',
-          art: `${UI}weekly.webp`,
-          text: 'The same fight as in Discord, so raiders here and there fight together.',
+          art: `${PORTAL}weekly-art.webp`,
+          text: "Team up against this week's boss, turn by turn: attack, guard, heal or support, with the raiders in Discord. Your first win of the week pays five times over.",
           label: 'Play',
           go: () => undefined,
         },
@@ -153,20 +163,27 @@ export function makeAdventure(
   window_.setAttribute('role', 'dialog');
   window_.setAttribute('aria-modal', 'true');
   window_.setAttribute('aria-label', 'Adventure');
-  window_.innerHTML = `<header class="v2-adv-bar"><button type="button" class="v2-adv-back" aria-label="Back to town"><span class="v2-kr-label">Adventure</span></button></header>
-    <div class="v2-adv-body">
-      <nav class="v2-adv-kinds" role="tablist" aria-label="Kind of battle"></nav>
-      <div class="v2-adv-panel" role="tabpanel">
-        <div class="v2-adv-head"><h2 class="v2-kr-label"></h2><p></p></div>
-        <ol class="v2-adv-bosses"></ol>
-      </div>
+  window_.innerHTML = `<div class="v2-adv-stage">
+      <button type="button" class="v2-adv-back" aria-label="Back to town"><img alt="" src="${PORTAL}back.webp" /><span class="v2-adv-back-label">Adventure</span></button>
+      <section class="v2-adv-menu" aria-label="Contents">
+        <h2 class="v2-adv-menu-title">Contents</h2>
+        <nav class="v2-adv-kinds" role="tablist" aria-label="Kind of battle"></nav>
+      </section>
+      <section class="v2-adv-contents" role="tabpanel">
+        <h2 class="v2-adv-contents-title"></h2>
+        <ol class="v2-adv-cards"></ol>
+      </section>
     </div>`;
   into.append(window_);
+  const stage = window_.querySelector('.v2-adv-stage') as HTMLElement;
   const tabs = window_.querySelector('.v2-adv-kinds') as HTMLElement;
-  const panel = window_.querySelector('.v2-adv-panel') as HTMLElement;
-  const heading = window_.querySelector('.v2-adv-head h2') as HTMLElement;
-  const tip = window_.querySelector('.v2-adv-head p') as HTMLElement;
-  const list = window_.querySelector('.v2-adv-bosses') as HTMLElement;
+  const heading = window_.querySelector('.v2-adv-contents-title') as HTMLElement;
+  const list = window_.querySelector('.v2-adv-cards') as HTMLElement;
+  // King's Raid's screen scaled to this one: the stage whole, as large as fits.
+  new ResizeObserver(() => {
+    const scale = Math.min(window_.clientWidth / STAGE.width, window_.clientHeight / STAGE.height);
+    stage.style.setProperty('--s', String(scale || 1));
+  }).observe(window_);
 
   const el = <K extends keyof HTMLElementTagNameMap>(tag: K, className = '', text?: string): HTMLElementTagNameMap[K] => {
     const node = document.createElement(tag);
@@ -175,27 +192,28 @@ export function makeAdventure(
     return node;
   };
 
-  /** A boss's banner: its picture, its raid's name and its own. */
-  function banner(art: string, title: string, name: string): HTMLElement {
-    const box = el('div', 'v2-adv-banner');
-    const picture = el('img');
-    picture.src = art;
-    picture.alt = '';
-    picture.loading = 'lazy';
-    const names = el('div', 'v2-adv-names');
-    names.append(el('span', 'v2-adv-title', title), el('span', 'v2-adv-name', name));
-    box.append(picture, names);
-    return box;
-  }
-
-  function bossItem(kind: Kind, boss: Boss): HTMLLIElement {
-    const item = el('li', `v2-adv-boss ${boss.kind}`);
-    const actions = el('div', 'v2-adv-actions');
+  /** A boss's card: the Portal's (its parchment, its frames, its deco), its picture at its bottom left, its name, what it does, its buttons. */
+  function card(kind: Kind, boss: Boss, size: CardSize): HTMLLIElement {
+    const item = el('li', `v2-adv-card ${size} ${boss.kind}`);
+    for (const part of ['bg', 'frame02', 'frame01', 'deco']) item.append(el('span', `v2-adv-card-${part}`));
+    const art = el('img', 'v2-adv-card-art');
+    art.alt = '';
+    art.loading = 'lazy';
+    const title = el('h3', 'v2-adv-card-title');
+    const about = el('p', 'v2-adv-card-about');
+    const actions = el('div', 'v2-adv-card-actions');
+    item.append(art, title, about, actions);
     if (boss.kind === 'soon') {
-      item.append(banner(raidBanner(boss.card.banner ?? boss.card.id), boss.card.title, boss.card.name), el('span', 'v2-adv-soon', 'Upcoming'));
+      art.src = raidBanner(boss.card.banner ?? boss.card.id);
+      title.textContent = boss.card.name;
+      about.textContent = boss.card.title;
+      actions.append(el('span', 'v2-adv-soon', 'Upcoming'));
       return item;
     }
     if (boss.kind === 'enter') {
+      art.src = boss.art;
+      title.textContent = boss.name;
+      about.textContent = boss.text;
       const go = el('button', 'raid-action single', boss.label);
       go.type = 'button';
       go.addEventListener('click', () => {
@@ -204,44 +222,42 @@ export function makeAdventure(
         boss.go();
       });
       actions.append(go);
-      item.append(banner(boss.art, boss.title, boss.name), el('p', 'v2-adv-about', boss.text), actions);
       return item;
     }
-    const { card } = boss;
+    const { card: raid } = boss;
+    art.src = raidBanner(raid.id);
+    title.textContent = raid.name;
+    about.textContent = raid.about;
     const info = el('button', 'raid-action info', 'Raid Info');
     info.type = 'button';
     info.setAttribute('aria-haspopup', 'dialog');
     info.addEventListener('click', () => {
       info.disabled = true;
       void import('../technomagic/prep/raid-info')
-        .then(({ openRaidInfo }) => openRaidInfo(card.id))
+        .then(({ openRaidInfo }) => openRaidInfo(raid.id))
         .finally(() => (info.disabled = false));
     });
     const alone = el('button', 'raid-action single', 'Single Player');
     alone.type = 'button';
-    alone.addEventListener('click', () => void openGame(kind.game, true, card.id, alone));
+    alone.addEventListener('click', () => void openGame(kind.game, true, raid.id, alone));
     const together = el('button', 'raid-action multi', 'Multiplayer');
     together.type = 'button';
     together.addEventListener('click', () => {
-      if (ready(kind.game)) rooms.get(kind.game)?.open(card);
+      if (ready(kind.game)) rooms.get(kind.game)?.open(raid);
     });
     actions.append(info, alone, together);
-    item.append(banner(raidBanner(card.id), card.title, card.name), el('p', 'v2-adv-about', card.about), actions);
     return item;
   }
 
   let picked = KINDS[0] as Kind;
+  // The Contents menu's diamonds (four a row, 212 apart).
   const tabButtons = KINDS.map((kind) => {
     const tab = el('button', 'v2-adv-kind');
     tab.type = 'button';
     tab.setAttribute('role', 'tab');
-    const icon = el('img');
-    icon.src = kind.icon === 'dragon' ? raidBanner('temeraire') : `${UI}${kind.icon}.webp`;
-    icon.alt = '';
-    icon.classList.toggle('banner', kind.icon === 'dragon');
-    const words = el('span', 'v2-adv-kind-words');
-    words.append(el('b', '', kind.name), el('span', '', kind.line));
-    tab.append(icon, words);
+    tab.setAttribute('aria-label', kind.name);
+    tab.innerHTML = `<span class="v2-adv-kind-diamond" aria-hidden="true"></span><img alt="" src="${PORTAL}icon-${kind.icon}.webp" /><span class="v2-adv-kind-focus" aria-hidden="true"></span><span class="v2-adv-kind-name"></span>`;
+    (tab.querySelector('.v2-adv-kind-name') as HTMLElement).textContent = kind.short;
     tab.addEventListener('click', () => pick(kind));
     tabs.append(tab);
     return { kind, tab };
@@ -254,9 +270,11 @@ export function makeAdventure(
       tab.setAttribute('aria-selected', String(k === kind));
     }
     heading.textContent = kind.name;
-    tip.textContent = kind.tip;
-    list.replaceChildren(...kind.bosses.map((boss) => bossItem(kind, boss)));
-    panel.scrollTop = 0;
+    const size = cardFor(kind.bosses.length);
+    list.dataset.size = size;
+    list.style.setProperty('--cell', `${CARDS[size].cell}px`);
+    list.replaceChildren(...kind.bosses.map((boss) => card(kind, boss, size)));
+    list.scrollTop = 0;
   }
 
   function render(): void {

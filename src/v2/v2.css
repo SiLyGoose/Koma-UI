@@ -933,283 +933,511 @@ html[data-shell='v2'] body {
   filter: brightness(1.2);
 }
 
-/* Adventure (./adventure.ts): a window over the town, as King's Raid's full-screen windows are: the Portal's backdrop,
-   the top bar's back button with its name; the kinds of battle down its left, the picked one's bosses on its right. */
+/* Adventure (./adventure.ts): King's Raid's Portal (PortalRenewal), its parts where the prefab has them. Its stage is 2100
+   by 1080 of the game's screen (x from 1150 left of its middle), scaled whole to this one (--s); inside it, the game's units. */
 .v2-adv {
   position: absolute;
   inset: 0;
   z-index: 40;
-  display: flex;
-  flex-direction: column;
-  background:
-    linear-gradient(rgb(12 10 8 / 55%), rgb(12 10 8 / 70%)),
-    url('/kr/ui/lobby/adventure-bg.webp') center / cover,
-    #2a241d;
+  overflow: hidden;
+  /* (Texture_BG: the Portal's backdrop tinted #435e96; Sprite_Vignetting_BG over it, black at 39%.) */
+  background: url('/kr/ui/lobby/adventure-bg.webp') center / cover, #435e96;
+  background-blend-mode: multiply;
   color: #ebded0;
+}
+
+.v2-adv::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-style: solid;
+  border-width: 25vh 25vw;
+  border-image: url('/kr/ui/portal/vignetting.webp') 100 fill / 25vh 25vw;
+  opacity: 0.39;
+  filter: brightness(0);
+  pointer-events: none;
 }
 
 .v2-adv[hidden] {
   display: none;
 }
 
-.v2-adv-bar {
-  flex: none;
-  display: flex;
-  align-items: center;
-  height: calc(110px * var(--kr, 1));
-  padding: 0 max(10px, env(safe-area-inset-right)) 0 max(10px, env(safe-area-inset-left));
-  background: linear-gradient(90deg, rgb(0 0 0 / 75%), rgb(0 0 0 / 0%) 60%);
+.v2-adv-stage {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 2100px;
+  height: 1080px;
+  transform: translate(-50%, -50%) scale(var(--s, 1));
 }
 
-/* The back button (Common_TopBar_Button_Back2: its arrow kept, stretched under the window's name). */
+/* Widget_ButtonTitle: Common_TopBar_Button_Back3 (77) and the window's name (45, gold). */
 .v2-adv-back {
+  position: absolute;
+  left: 29px;
+  top: 14px;
   display: flex;
+  gap: 14px;
   align-items: center;
-  height: 74px;
-  padding: 0 24px 0 4px;
-  border-style: solid;
-  border-width: 0 25px 0 67px;
-  border-image: url('/kr/ui/lobby/back.webp') 0 25 0 67 fill / 0 25px 0 67px;
+  padding: 0;
+  border: 0;
   background: none;
   font: inherit;
   cursor: pointer;
-  transform: scale(var(--kr, 1));
-  transform-origin: 0 50%;
 }
 
-.v2-adv-back .v2-kr-label {
-  background-image: linear-gradient(#fff, #d4c25d);
+.v2-adv-back img {
+  width: 77px;
+  height: 77px;
+}
+
+.v2-adv-back-label,
+.v2-adv-menu-title,
+.v2-adv-contents-title {
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-weight: 700;
+  white-space: nowrap;
+  filter: drop-shadow(0 2px 2px rgb(0 0 0 / 70%));
+}
+
+.v2-adv-back-label {
+  background-image: linear-gradient(#fffbe9, #c3b081);
   font-size: 45px;
+  line-height: 70px;
 }
 
 .v2-adv-back:hover,
 .v2-adv-back:focus-visible {
   outline: none;
-  filter: brightness(1.15);
+  filter: brightness(1.2);
 }
 
-.v2-adv-body {
-  flex: 1;
-  display: flex;
-  gap: 16px;
-  min-height: 0;
-  padding: 4px max(14px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
+/* The Contents menu (Widget_Menu: 810 by 980), on PayShop_Menu_Frame (980 by 989, #1e1c19 at 15%). */
+.v2-adv-menu {
+  position: absolute;
+  left: 27px;
+  top: 90px;
+  width: 810px;
+  height: 980px;
 }
 
-/* The kinds of battle, each a tab on Common's dark panel; the picked one edged in gold. */
+.v2-adv-menu::before {
+  content: '';
+  position: absolute;
+  left: -85px;
+  top: -4px;
+  width: 980px;
+  height: 989px;
+  border-style: solid;
+  border-width: 246px 0;
+  border-image: url('/kr/ui/portal/menu-frame.webp') 246 0 fill / 246px 0;
+  filter: brightness(0.12);
+  opacity: 0.15;
+}
+
+/* Its two dividers (PayShop_Gradation, #2f2f2f at 32%). */
+.v2-adv-menu::after,
+.v2-adv-kinds::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  width: 810px;
+  height: 15px;
+  border-style: solid;
+  border-width: 0 110px;
+  border-image: url('/kr/ui/portal/menu-divider.webp') 0 110 fill / 0 110px;
+  filter: brightness(0.18);
+  opacity: 0.32;
+}
+
+.v2-adv-menu::after {
+  top: 84px;
+}
+
+.v2-adv-kinds::before {
+  left: 23px;
+  top: 702px;
+}
+
+.v2-adv-menu-title {
+  position: absolute;
+  left: 11px;
+  top: 16px;
+  margin: 0;
+  background-image: linear-gradient(#f5ebd0, #9e8774);
+  font-size: 32px;
+  line-height: 60px;
+}
+
+/* Its diamonds (ContentsMenuComponent): four a row, 212 by 206 each, from 23 left of the menu. */
 .v2-adv-kinds {
-  flex: none;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  width: clamp(190px, 28%, 300px);
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  touch-action: pan-y;
+  position: absolute;
+  left: -23px;
+  top: 81px;
+  display: grid;
+  grid-template-columns: repeat(4, 212px);
+  grid-auto-rows: 206px;
 }
 
 .v2-adv-kind {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  width: 100%;
-  padding: 8px 12px 8px 8px;
-  border-style: solid;
-  border-width: 6px;
-  border-image: url('/kr/ui/lobby/popup-panel.webp') 10 fill / 6px;
+  position: relative;
+  width: 212px;
+  height: 206px;
+  padding: 0;
+  border: 0;
   background: none;
-  color: inherit;
   font: inherit;
-  text-align: left;
   cursor: pointer;
 }
 
+/* ContentsBg (Portal_Content_Btn_Bg_01, 164), its icon (108, 4 over its middle), ContentsSelect lit when picked. */
+.v2-adv-kind-diamond,
+.v2-adv-kind-focus {
+  position: absolute;
+  left: 24px;
+  top: 21px;
+  width: 164px;
+  height: 164px;
+  background: url('/kr/ui/portal/diamond.webp') center / 100% 100% no-repeat;
+}
+
+.v2-adv-kind-focus {
+  background-image: url('/kr/ui/portal/diamond-focus.webp');
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.v2-adv-kind.picked .v2-adv-kind-focus {
+  opacity: 1;
+}
+
 .v2-adv-kind img {
-  flex: none;
-  width: 58px;
-  height: 58px;
-  object-fit: contain;
+  position: absolute;
+  left: 52px;
+  top: 45px;
+  width: 108px;
+  height: 108px;
 }
 
-/* (A dragon's banner, for the Dragon Raid: its head in a ring.) */
-.v2-adv-kind img.banner {
-  border-radius: 50%;
-  object-fit: cover;
-  object-position: 30% 45%;
-  box-shadow: 0 0 0 2px #b8973f;
+/* MenuTitleLabel: 28, #e7dec9, 82 under its middle, 174 wide. */
+.v2-adv-kind-name {
+  position: absolute;
+  left: 19px;
+  top: 170px;
+  width: 174px;
+  color: #e7dec9;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 30px;
+  text-align: center;
+  text-shadow:
+    0 0 3px #000,
+    0 2px 3px #000;
 }
 
-.v2-adv-kind-words {
-  display: grid;
-  gap: 2px;
-  min-width: 0;
+.v2-adv-kind:hover .v2-adv-kind-diamond,
+.v2-adv-kind:focus-visible .v2-adv-kind-diamond {
+  filter: brightness(1.35);
 }
 
-.v2-adv-kind-words b {
-  font-size: 15.5px;
-}
-
-.v2-adv-kind-words span {
-  overflow: hidden;
-  color: #a79c8c;
-  font-size: 12px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.v2-adv-kind:hover,
 .v2-adv-kind:focus-visible {
   outline: none;
-  filter: brightness(1.18);
-}
-
-.v2-adv-kind.picked {
-  box-shadow:
-    0 0 0 2px var(--gold),
-    0 0 16px rgb(255 214 120 / 30%);
 }
 
 .v2-adv-kind.off {
-  opacity: 0.5;
+  opacity: 0.45;
 }
 
-.v2-adv-panel {
-  flex: 1;
-  min-width: 0;
+/* The contents (ContentsGroup: 960 by 980, around 434 right of the middle): its name (40, over a divider), its cards. */
+.v2-adv-contents-title {
+  position: absolute;
+  left: 896px;
+  top: 106px;
+  width: 1373px;
+  margin: 0;
+  background-image: linear-gradient(#f5ebd0, #9e8774);
+  font-size: 40px;
+  line-height: 48px;
+  text-align: center;
+}
+
+/* Sprite_Title_Divider_L and _R (PayShop_Soldout_Frame), meeting under its middle. */
+.v2-adv-contents::before,
+.v2-adv-contents::after {
+  content: '';
+  position: absolute;
+  top: 157px;
+  width: 176px;
+  height: 12px;
+  border-style: solid;
+  border-width: 0 12px 0 160px;
+  border-image: url('/kr/ui/portal/title-divider.webp') 0 12 0 160 fill / 0 12px 0 160px;
+}
+
+.v2-adv-contents::before {
+  left: 1406px;
+}
+
+.v2-adv-contents::after {
+  left: 1582px;
+  transform: scaleX(-1);
+}
+
+/* The cards (ContentsGridWidget: 980 wide, a column around 620 down), one a row of --cell. */
+.v2-adv-cards {
+  position: absolute;
+  left: 1091px;
+  top: 176px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 980px;
+  height: 896px;
+  margin: 0;
+  padding: 0;
   overflow-y: auto;
+  list-style: none;
   overscroll-behavior: contain;
   touch-action: pan-y;
 }
 
-.v2-adv-head h2 {
-  display: inline-block;
-  margin: 0;
-  font-size: 26px;
+.v2-adv-cards[data-size='half'] .v2-adv-card {
+  height: 448px;
 }
 
-/* Its line under the name, over a gold line (Line-(Yellow)). */
-.v2-adv-head p {
-  max-width: 720px;
-  margin: 4px 0 12px;
-  padding-bottom: 12px;
-  border-bottom: 4px solid transparent;
-  border-image: url('/kr/ui/lobby/line-gold.webp') 0 50 10 fill / 0 50px 4px;
-  color: #cfc2ae;
-  font-size: 13px;
+.v2-adv-cards[data-size='third'] .v2-adv-card {
+  height: 296px;
 }
 
-.v2-adv-bosses {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 12px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
+.v2-adv-cards[data-size='third'] .v2-adv-card + .v2-adv-card {
+  margin-top: 4px;
 }
 
-/* A boss: its banner (its head; its raid's name and its own over its foot), what it does, its buttons. */
-.v2-adv-boss {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 8px;
-  border-style: solid;
-  border-width: 6px;
-  border-image: url('/kr/ui/lobby/popup-panel.webp') 10 fill / 6px;
+.v2-adv-cards[data-size='quater'] .v2-adv-card {
+  height: 224px;
 }
 
-.v2-adv-banner {
+.v2-adv-cards[data-size='quater'] .v2-adv-card + .v2-adv-card {
+  margin-top: -4px;
+}
+
+/* A card (PortalHalfComponent, PortalThirdComponent, PortalQuaterComponent): its parchment (74 each end kept), its inner
+   line (32, at 68%), its gold frame (42), its silver deco (#d1c0bd at 16%). (Their sprites' ends meet: the game stretches
+   the column where they do across the middle; here the right end is a pixel short, so that column is the middle.) */
+.v2-adv-card {
   position: relative;
-  aspect-ratio: 2;
-  overflow: hidden;
-  border-radius: 6px;
-  background: radial-gradient(ellipse at 40% 40%, #3a3f52, #12141b);
+  flex: none;
+  width: 980px;
+  color: #342d22;
 }
 
-.v2-adv-banner img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.v2-adv-names {
+.v2-adv-card-bg,
+.v2-adv-card-frame01,
+.v2-adv-card-frame02,
+.v2-adv-card-deco {
   position: absolute;
-  inset: auto 0 0;
-  display: grid;
-  padding: 18px 10px 6px;
-  background: linear-gradient(transparent, rgb(0 0 0 / 75%));
-  text-shadow: 0 2px 6px rgb(0 0 0 / 80%);
+  pointer-events: none;
 }
 
-.v2-adv-title {
-  color: #7fe0d0;
-  font-size: 12.5px;
-  font-weight: 700;
+.v2-adv-card-bg,
+.v2-adv-card-frame01 {
+  inset: 0;
+  border-style: solid;
 }
 
-.v2-adv-name {
-  color: #fff;
-  font-size: 21px;
+.v2-adv-card-bg {
+  border-width: 0 74px;
+}
+
+.v2-adv-card-frame01 {
+  z-index: 2;
+  border-width: 0 42px;
+}
+
+.v2-adv-card-frame02 {
+  inset: 16px 15px;
+  border-style: solid;
+  border-width: 0 32px;
+  opacity: 0.68;
+}
+
+.v2-adv-card-deco {
+  opacity: 0.16;
+  background: center / 100% 100% no-repeat;
+}
+
+.v2-adv-card.half .v2-adv-card-bg {
+  border-image: url('/kr/ui/portal/half-bg.webp') 0 73 0 74 fill / 0 74px;
+}
+
+.v2-adv-card.half .v2-adv-card-frame01 {
+  border-image: url('/kr/ui/portal/half-frame01.webp') 0 41 0 42 fill / 0 42px;
+}
+
+.v2-adv-card.half .v2-adv-card-frame02 {
+  border-image: url('/kr/ui/portal/half-frame02.webp') 0 31 0 32 fill / 0 32px;
+}
+
+.v2-adv-card.half .v2-adv-card-deco {
+  left: 392px;
+  top: 10px;
+  width: 580px;
+  height: 428px;
+  background-image: url('/kr/ui/portal/half-deco.webp');
+}
+
+.v2-adv-card.third .v2-adv-card-bg {
+  border-image: url('/kr/ui/portal/third-bg.webp') 0 73 0 74 fill / 0 74px;
+}
+
+.v2-adv-card.third .v2-adv-card-frame01 {
+  border-image: url('/kr/ui/portal/third-frame01.webp') 0 41 0 42 fill / 0 42px;
+}
+
+.v2-adv-card.third .v2-adv-card-frame02 {
+  border-image: url('/kr/ui/portal/third-frame02.webp') 0 31 0 32 fill / 0 32px;
+}
+
+.v2-adv-card.third .v2-adv-card-deco {
+  right: 10px;
+  top: 10px;
+  width: 576px;
+  height: 276px;
+  background-image: url('/kr/ui/portal/third-deco.webp');
+}
+
+.v2-adv-card.quater .v2-adv-card-bg {
+  border-image: url('/kr/ui/portal/quater-bg.webp') 0 73 0 74 fill / 0 74px;
+}
+
+.v2-adv-card.quater .v2-adv-card-frame01 {
+  border-image: url('/kr/ui/portal/quater-frame01.webp') 0 41 0 42 fill / 0 42px;
+}
+
+.v2-adv-card.quater .v2-adv-card-frame02 {
+  border-image: url('/kr/ui/portal/quater-frame02.webp') 0 31 0 32 fill / 0 32px;
+}
+
+.v2-adv-card.quater .v2-adv-card-deco {
+  right: 10px;
+  top: 10px;
+  width: 528px;
+  height: 204px;
+  background-image: url('/kr/ui/portal/quater-deco.webp');
+}
+
+/* ContentsTexture: the boss's banner, at the card's bottom left (720 by 336, 720 by 216, 684 by 148), fading into the
+   card under its words. */
+.v2-adv-card-art {
+  position: absolute;
+  z-index: 1;
+  left: 10px;
+  bottom: 10px;
+  object-fit: cover;
+  object-position: 30% 40%;
+  mask-image: linear-gradient(90deg, #000 45%, transparent 82%);
+}
+
+.v2-adv-card.half .v2-adv-card-art {
+  width: 720px;
+  height: 336px;
+}
+
+.v2-adv-card.third .v2-adv-card-art {
+  bottom: 8px;
+  width: 720px;
+  height: 216px;
+}
+
+.v2-adv-card.quater .v2-adv-card-art {
+  width: 684px;
+  height: 148px;
+}
+
+/* ContentsTitleLabel: 32, #9b7846, at the top left. */
+.v2-adv-card-title {
+  position: absolute;
+  z-index: 3;
+  left: 34px;
+  top: 30px;
+  margin: 0;
+  color: #9b7846;
+  font-size: 32px;
   font-weight: 800;
-  line-height: 1.1;
+  line-height: 36px;
 }
 
-.v2-adv-about {
+.v2-adv-card.half .v2-adv-card-title {
+  top: 34px;
+}
+
+.v2-adv-card.quater .v2-adv-card-title {
+  top: 24px;
+}
+
+/* ContentsDescriptionLabel: 24, #342d22, on the right half. */
+.v2-adv-card-about {
+  position: absolute;
+  z-index: 3;
+  left: 520px;
+  right: 34px;
+  top: 30px;
   display: -webkit-box;
   margin: 0;
   overflow: hidden;
-  color: #b9ad9b;
-  font-size: 12.5px;
-  -webkit-line-clamp: 3;
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 30px;
   -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
 }
 
-.v2-adv-actions {
+.v2-adv-card.half .v2-adv-card-about {
+  top: 36px;
+  -webkit-line-clamp: 9;
+}
+
+.v2-adv-card.quater .v2-adv-card-about {
+  top: 22px;
+  -webkit-line-clamp: 3;
+}
+
+/* Its buttons, at its bottom right (where the game puts what it costs). */
+.v2-adv-card-actions {
+  position: absolute;
+  z-index: 3;
+  right: 30px;
+  bottom: 20px;
   display: flex;
-  gap: 6px;
-  margin-top: auto;
+  gap: 10px;
 }
 
-.v2-adv-actions .raid-action {
-  flex: 1;
-  min-width: 0;
-  min-height: 44px;
-  padding: 6px;
-  font-size: 13px;
+.v2-adv-card-actions .raid-action {
+  min-width: 140px;
+  min-height: 62px;
+  padding: 6px 14px;
+  border-radius: 14px;
+  font-size: 22px;
 }
 
-.v2-adv-boss.soon .v2-adv-banner {
-  filter: grayscale(1) brightness(0.6);
+.v2-adv-card.quater .v2-adv-card-actions {
+  bottom: 18px;
+}
+
+.v2-adv-card.quater .v2-adv-card-actions .raid-action {
+  min-height: 56px;
+}
+
+.v2-adv-card.soon .v2-adv-card-art {
+  filter: grayscale(1) brightness(0.7);
 }
 
 .v2-adv-soon {
-  align-self: center;
-  color: #a79c8c;
-  font-weight: 700;
+  color: #8e8e8e;
+  font-size: 30px;
+  font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-}
-
-/* A phone on its side: the kinds narrower, their lines left out. */
-@media (max-height: 500px) {
-  .v2-adv-kinds {
-    width: clamp(150px, 26%, 220px);
-  }
-
-  .v2-adv-kind img {
-    width: 40px;
-    height: 40px;
-  }
-
-  .v2-adv-kind-words span {
-    display: none;
-  }
-
-  .v2-adv-head h2 {
-    font-size: 20px;
-  }
-
-  .v2-adv-bosses {
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  }
 }
