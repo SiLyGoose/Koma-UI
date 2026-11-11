@@ -94,7 +94,13 @@ const profile = makeProfile(
     void pick.settle();
   },
 );
-const lobby = makeLobby(hud.element, (path) => go(path), hud.note);
+// (Adventure's window covers the town: not drawn under it; back to the town, drawn again unless a page covers it.)
+const lobby = makeLobby(
+  hud.element,
+  (path) => go(path),
+  hud.note,
+  (open) => (open ? town.pause() : !panel.showing() && town.resume()),
+);
 
 /** King's Raid's units on this screen (its lobby is laid out for a 1080-high screen): never under half. */
 const krScale = new ResizeObserver(() => hud.element.style.setProperty('--kr', String(Math.min(1, Math.max(0.5, app.clientHeight / 1080)))));
@@ -230,3 +236,4 @@ async function start(): Promise<void> {
   await apply(new URL(location.href));
 }
 void start().finally(release);
+
