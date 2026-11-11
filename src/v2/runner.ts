@@ -44,6 +44,8 @@ export interface Runner {
   place(node: string): void;
   /** Draws it where it is at `now`. */
   draw(now: number): void;
+  /** Which way it last headed on the map (a unit step), and whether it's on its way: as last drawn. */
+  heading(): { dx: number; dy: number; moving: boolean };
 }
 
 export function makeRunner(start: string): Runner {
@@ -57,6 +59,8 @@ export function makeRunner(start: string): Runner {
   let length = 0;
   let since = 0;
   let facing = 1;
+  /** Which way it heads (at first: towards the screen, as King's Raid's heroes face the camera). */
+  const headed = { dx: 0, dy: 1, moving: false };
   let done: (() => void) | null = null;
 
   const along = (now: number): number => Math.min(length, ((now - since) / 1000) * SPEED);
@@ -117,6 +121,8 @@ export function makeRunner(start: string): Runner {
   }
 
   function place(node: string): void {
+    headed.dx = 0;
+    headed.dy = 1;
     way = [NODES[node] as Point];
     nodes = [node];
     length = 0;
@@ -129,9 +135,15 @@ export function makeRunner(start: string): Runner {
   let shownFacing = 0;
   let shownRunning: boolean | null = null;
   function draw(now: number): void {
-    const { at: p, dx } = pointAlong(way, along(now));
+    const { at: p, dx, dy } = pointAlong(way, along(now));
     const moving = running(now);
     if (moving && Math.abs(dx) > 1) facing = dx < 0 ? -1 : 1;
+    const step = Math.hypot(dx, dy);
+    if (moving && step > 1) {
+      headed.dx = dx / step;
+      headed.dy = dy / step;
+    }
+    headed.moving = moving;
     // Only what changed is written (a frame's writes are what the browser has to redo).
     if (p.x !== shownX || p.y !== shownY) {
       element.style.transform = `translate3d(${p.x}px, ${p.y}px, 0)`;
@@ -154,5 +166,5 @@ export function makeRunner(start: string): Runner {
     }
   }
 
-  return { element, at, running, walkTo, place, draw };
+  return { element, at, running, walkTo, place, draw, heading: () => headed };
 }

@@ -269,7 +269,7 @@ const VIEW_NORMAL = /* glsl */ `
  * Each of its parts drawn as King's Raid's toon shader draws it (its own copy of its material: darker toward its edges, the
  * rim light on them), and a black outline round each opaque one (its back faces, pushed out on the view by `outline`).
  */
-function toon(root: Object3D, outline: { value: Vector2 }): void {
+export function toon(root: Object3D, outline: { value: Vector2 }): void {
   const meshes: Mesh[] = [];
   root.traverse((part) => {
     if (part instanceof Mesh) meshes.push(part);
@@ -331,7 +331,7 @@ ${VIEW_NORMAL}
 }
 
 /** What a hero was drawn with, given back (its meshes' geometry, materials and their pictures). */
-function letGo(hero: Hero): void {
+export function letGo(hero: Hero): void {
   hero.root.traverse((part) => {
     if (!(part instanceof Mesh)) return;
     part.geometry.dispose();

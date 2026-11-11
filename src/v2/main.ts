@@ -27,6 +27,7 @@ import { holdReveal, onSiteLink, swap, type Direction } from '../shared/transiti
 import { landscapeCover } from '../shared/ui/landscape/landscape';
 import { setGo, type GoOptions } from '../site/nav';
 import { hasSession, loadMe } from '../site/session';
+import { makeHeroPick, type WalkerChoice } from './hero-pick';
 import { makeHud } from './hud';
 import { makePanel } from './panel';
 import { oldPath, pageAt, pagePath, placeOf, PLACES, V2, v2Path, type Place } from './places';
@@ -48,8 +49,33 @@ installClickSounds();
 landscapeCover(document.body, { title: 'Turn your phone sideways', text: 'The town is played in landscape, filling the screen.' });
 
 const town = makeTown(app, arrived);
-const hud = makeHud(app, () => undefined);
+// (Another server: who walks there, of the heroes owned there.)
+const hud = makeHud(app, () => {
+  pick.render();
+  walkAs(pick.saved());
+  void pick.check();
+});
 const panel = makePanel(app);
+
+/**
+ * Who walks the town: the member's pick (./hero-pick.ts), their hero's model read once picked (./walker.ts, three.js:
+ * only then), the miner meanwhile and when it can't be read.
+ */
+let walking = '';
+function walkAs(choice: WalkerChoice | null): void {
+  const key = choice ? `${choice.id}:${choice.skin}` : '';
+  if (key === walking) return;
+  walking = key;
+  if (!choice) return town.setWalker(null);
+  void import('./walker')
+    .then(async ({ makeWalker }) => {
+      const walker = makeWalker();
+      if ((await walker.show(choice.id, choice.skin)) && walking === key) town.setWalker(walker);
+      else walker.destroy();
+    })
+    .catch((error: unknown) => console.warn(error));
+}
+const pick = makeHeroPick(hud.element.querySelector('.v2-hud-left') as HTMLElement, walkAs);
 
 // The way back to the town from a page, in a corner of it (a page's own back arrow does the same).
 const home = document.createElement('button');
@@ -169,6 +195,9 @@ async function start(): Promise<void> {
     const me = await loadMe(true);
     if (!me.ok && me.status !== 0) hud.note('Your login ran out. Log in again.', true);
     hud.render();
+    pick.render();
+    walkAs(pick.saved());
+    void pick.check();
   }
   await apply(new URL(location.href));
 }

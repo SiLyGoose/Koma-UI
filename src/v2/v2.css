@@ -75,7 +75,7 @@ html[data-shell='v2'] body {
   cursor: pointer;
 }
 
-/* A place's disc at its door (the game's node button): where the runner stops, under it. */
+/* A place's disc at its door (the game's node button): where the runner stops, under it. Still: nothing tappable moves. */
 .v2-disc {
   position: absolute;
   z-index: 1;
@@ -85,7 +85,6 @@ html[data-shell='v2'] body {
   background: center / contain no-repeat;
   cursor: pointer;
   filter: drop-shadow(0 0 10px rgb(120 255 230 / 45%));
-  animation: v2-disc 2.4s ease-in-out infinite;
 }
 
 .v2-disc.picked,
@@ -93,13 +92,34 @@ html[data-shell='v2'] body {
   filter: drop-shadow(0 0 16px rgb(255 236 150 / 95%)) brightness(1.15);
 }
 
-@keyframes v2-disc {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-8px);
+/* The town's flipbooks (./town-fx.ts): a window one frame wide, its strip of frames slid along it a frame at a time. */
+.v2-fx {
+  position: absolute;
+  z-index: 2;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.v2-fx.flip {
+  transform: scaleX(-1);
+}
+
+.v2-fx.glow {
+  mix-blend-mode: screen;
+}
+
+.v2-fx-strip {
+  display: block;
+  height: 100%;
+  background: 0 0 / 100% 100% no-repeat;
+  animation-name: v2-fx;
+  animation-iteration-count: infinite;
+  will-change: transform;
+}
+
+@keyframes v2-fx {
+  to {
+    transform: translateX(-100%);
   }
 }
 
@@ -150,6 +170,27 @@ html[data-shell='v2'] body {
 .v2-banner:focus-visible {
   outline: none;
   filter: drop-shadow(0 0 14px rgb(255 226 138 / 90%)) drop-shadow(0 6px 8px rgb(0 0 0 / 45%));
+}
+
+/* The member's hero walking instead of the miner (./walker.ts): its canvas, its feet at the runner's point. */
+.v2-runner.hero .v2-runner-art {
+  display: none;
+}
+
+.v2-walker {
+  position: absolute;
+  pointer-events: none;
+}
+
+.v2-runner.hero::before {
+  content: '';
+  position: absolute;
+  left: -38px;
+  top: -12px;
+  width: 76px;
+  height: 24px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(0 0 0 / 35%), rgb(0 0 0 / 0%));
 }
 
 /* The runner: its feet at its point, in front of what's further up the map. */
@@ -503,4 +544,116 @@ html[data-shell='v2'] body {
 
 .v2-table-suit.red {
   color: #b9333a;
+}
+
+/* Who walks the town (./hero-pick.ts): the button by the member's name, and the list of their heroes under it. */
+.v2-hero-button {
+  overflow: hidden;
+}
+
+.v2-hero-button img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.v2-hero-button.has-hero svg {
+  display: none;
+}
+
+.v2-heroes {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 20;
+  width: min(420px, calc(var(--ls-vw, 100vw) - 24px));
+  max-height: calc(var(--ls-vh, 100dvh) - 80px);
+  overflow: auto;
+  padding: 10px 12px 12px;
+  border: 1px solid var(--plaque-edge);
+  border-radius: 12px;
+  background: rgb(23 22 27 / 94%);
+  box-shadow: 0 10px 30px rgb(0 0 0 / 50%);
+  color: var(--plaque-text);
+  touch-action: pan-y;
+}
+
+.v2-heroes[hidden] {
+  display: none;
+}
+
+.v2-heroes-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.v2-heroes-close {
+  border: 0;
+  background: none;
+  color: inherit;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.v2-heroes-status {
+  margin: 0 0 8px;
+  opacity: 0.8;
+  font-size: 13px;
+}
+
+.v2-heroes-status[hidden] {
+  display: none;
+}
+
+.v2-heroes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  gap: 8px;
+}
+
+.v2-heroes-tile {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 6px 4px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: rgb(255 255 255 / 5%);
+  color: inherit;
+  font: inherit;
+  font-size: 11.5px;
+  cursor: pointer;
+}
+
+.v2-heroes-tile:hover,
+.v2-heroes-tile:focus-visible {
+  border-color: var(--plaque-edge);
+  outline: none;
+}
+
+.v2-heroes-tile.picked {
+  border-color: var(--gold);
+  background: rgb(255 214 120 / 12%);
+}
+
+.v2-heroes-tile img {
+  width: 56px;
+  height: 56px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: rgb(0 0 0 / 30%);
+}
+
+.v2-heroes-tile span {
+  overflow: hidden;
+  max-width: 100%;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.v2-heroes-miner {
+  background: url('/kr/town/discs/forge.webp') center / 70% no-repeat, rgb(0 0 0 / 30%) !important;
 }

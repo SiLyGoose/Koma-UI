@@ -1,6 +1,8 @@
 import { lowMemory } from '../technomagic/engine/memory';
 import { TOWN_LABELS } from './kr-town';
 import { makeRunner } from './runner';
+import { addTownFx } from './town-fx';
+import type { Walker } from './walker';
 import { NODES, PLACES, START, WORLD, type Place, type Point } from './places';
 
 /*
@@ -28,6 +30,8 @@ export interface Town {
   standAt(place: Place | null): void;
   /** Sends the runner to `place` (as a tap on it does). */
   goTo(place: Place): void;
+  /** The member's hero walking instead of the miner (null: the miner again; the one before let go of). */
+  setWalker(walker: Walker | null): void;
   /** Stops drawing (the town hidden under a page). */
   pause(): void;
   resume(): void;
@@ -48,6 +52,7 @@ export function makeTown(into: HTMLElement, arrive: (place: Place) => void): Tow
   // A device short of memory: the half-size picture (a quarter of the memory), stretched to the map's size.
   map.src = `${TOWN}${lowMemory() ? 'town2-half' : 'town2'}.webp`;
   world.append(map);
+  addTownFx(world);
 
   const marks = new Map<string, HTMLElement>();
   for (const place of PLACES) {
@@ -85,6 +90,18 @@ export function makeTown(into: HTMLElement, arrive: (place: Place) => void): Tow
   element.append(world);
   into.append(element);
 
+  let walker: Walker | null = null;
+  function setWalker(next: Walker | null): void {
+    if (walker === next) return;
+    walker?.destroy();
+    walker = next;
+    runner.element.classList.toggle('hero', !!walker);
+    if (!walker) return;
+    runner.element.append(walker.element);
+    walker.scaled(scale);
+    walker.draw(performance.now(), 0, runner.heading());
+  }
+
   // The view: the screen's size, the map's scale on it, and the map point at the middle of the screen.
   let width = 1;
   let height = 1;
@@ -120,6 +137,7 @@ export function makeTown(into: HTMLElement, arrive: (place: Place) => void): Tow
     scale = Math.max(height / VIEW_HEIGHT, width / WORLD.width, height / WORLD.height);
     // Banners no smaller on the screen than BANNER_MIN of their size in the map, however far the map is shrunk.
     world.style.setProperty('--v2-banner', String(Math.max(1, BANNER_MIN / scale)));
+    walker?.scaled(scale);
     place();
   });
   sized.observe(element);
@@ -132,6 +150,7 @@ export function makeTown(into: HTMLElement, arrive: (place: Place) => void): Tow
     const dt = last ? Math.min(0.1, (now - last) / 1000) : 0;
     last = now;
     runner.draw(now);
+    walker?.draw(now, dt, runner.heading());
     if (follow) {
       const target = clamp(runner.at(now));
       const k = 1 - Math.exp(-FOLLOW * dt);
@@ -230,5 +249,5 @@ export function makeTown(into: HTMLElement, arrive: (place: Place) => void): Tow
     goTo(to);
   });
 
-  return { element, standAt, goTo, pause, resume };
+  return { element, standAt, goTo, setWalker, pause, resume };
 }

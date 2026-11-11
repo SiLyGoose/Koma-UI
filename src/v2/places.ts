@@ -142,16 +142,16 @@ export function route(from: string, to: string): string[] {
 export const lengthOf = (points: readonly Point[]): number => points.reduce((sum, p, i) => (i ? sum + distance(points[i - 1] as Point, p) : 0), 0);
 
 /** The point `along` units into a way through `points` (its end past it), and which way it's heading there. */
-export function pointAlong(points: readonly Point[], along: number): { at: Point; dx: number } {
+export function pointAlong(points: readonly Point[], along: number): { at: Point; dx: number; dy: number } {
   for (let i = 1; i < points.length; i++) {
     const a = points[i - 1] as Point;
     const b = points[i] as Point;
     const d = distance(a, b);
     if (along <= d || i === points.length - 1) {
       const t = d ? Math.min(1, Math.max(0, along / d)) : 1;
-      return { at: { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t }, dx: b.x - a.x };
+      return { at: { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t }, dx: b.x - a.x, dy: b.y - a.y };
     }
     along -= d;
   }
-  return { at: points[0] ?? { x: 0, y: 0 }, dx: 0 };
+  return { at: points[0] ?? { x: 0, y: 0 }, dx: 0, dy: 0 };
 }

@@ -149,3 +149,19 @@ export const TOWN_LABELS: Readonly<Record<string, { x: number; y: number; banner
   pub: { x: 3276, y: 2014, banner: 1 },
   shop: { x: 931, y: 2019, banner: 1 },
 };
+
+/** The town's flipbooks (Effect_UI_TownSprite_*, public/kr/town/fx/<name>.webp: its frames in one strip): how many, a frame's
+ * size, and the box its picture fills in a frame (left, top, right, bottom). */
+export const TOWN_FX_SHEETS = {
+  Smoke: { file: 'smoke', frames: 8, cell: [64, 128], box: [7, 23, 60, 116] },
+  ForgeSmoke: { file: 'forgesmoke', frames: 7, cell: [128, 256], box: [11, 67, 113, 181] },
+  ForgeLight: { file: 'forgelight', frames: 4, cell: [128, 128], box: [29, 27, 98, 100] },
+  StreetLight: { file: 'streetlight', frames: 4, cell: [128, 128], box: [38, 21, 81, 101] },
+  RedFlag: { file: 'redflag', frames: 4, cell: [128, 128], box: [32, 41, 83, 93] },
+  Flag1: { file: 'flag1', frames: 4, cell: [128, 128], box: [57, 28, 83, 98] },
+  Flag2: { file: 'flag2', frames: 4, cell: [128, 128], box: [57, 28, 83, 98] },
+  Flag3: { file: 'flag3', frames: 4, cell: [128, 128], box: [58, 28, 84, 98] },
+  Campfire: { file: 'campfire', frames: 4, cell: [128, 128], box: [40, 32, 89, 92] },
+} as const;
+
+export type TownFxSheet = keyof typeof TOWN_FX_SHEETS;
