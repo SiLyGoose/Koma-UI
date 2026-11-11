@@ -1,6 +1,7 @@
 import { HERO_LEVEL, type BossStats, type DamageType } from '../combat/damage';
 import type { Mark } from '../shown';
 import type { WaveMinion } from './dragon/waves';
+import type { HeroClass } from '../heroes/kit';
 import type { Fight, Fighter } from '../types';
 
 /*
@@ -89,6 +90,8 @@ export interface BossPart {
   gauge?(): number;
   /** A hero takes so much of its mana (a boss that has mana: Siegfried's; none said: it has none). */
   drain?(mana: number): void;
+  /** The most a hero's blow takes of it, whatever it would have (King's Raid's SetDamage: Luciteron's Eye of Incineration, 1). None said: what it deals. */
+  cap?: number;
 }
 
 /**
@@ -146,8 +149,27 @@ export interface BossDef {
    * heroes King's Raid's raid is for (`party`: their health is scaled from it, as the boss's is); the share of its health it
    * leaves the field at (the first wave over: it flies off); and as it comes back for the last, what its landing takes of
    * every hero (a share of its health left, and a blow, `blow`, as its moves' are: none said, none) and how long it knocks them down.
+   * (A minion with its own numbers, King's Raid's unscaled: OwnMinion.)
    */
   waves?: { at(stage: number): readonly (readonly WaveMinion[])[]; party?: number; leaves: number; lands: { share: number; blow?: number; knock: number } };
+  /**
+   * Seconds of rage after its raid's time is up before the heroes have lost (none said: ../rules.ts RAGE_WIPE): King's Raid's
+   * BattleDefine ExtraTime (a karma dungeon's 10).
+   */
+  rage?: number;
+  /**
+   * Won by lasting its time out with a hero standing, not by beating it (Divine Punishment's Luciteron, of which no blow takes
+   * more than 1: BossPart.cap). No rage after its time.
+   */
+  outlast?: boolean;
+  /**
+   * A fight against two bosses, one after the other (Divine Punishment's Apocalypsion: Tersio, then Apocalypsion herself):
+   * at `at` of its health this one is gone (King's Raid's OnHpRatio skill's Die) and `def` comes in its place, with its own
+   * health, stats, attacks and part, the raid's time running on (the fight's second wave). None: it is the only one.
+   */
+  next?: { at: number; def: BossDef };
+  /** A karma dungeon (./divine/karma.ts): waves without end, the boss and minions of each as it has them. */
+  karma?: KarmaDef;
   /** Its part in a fight, when its skills do more than hurt whoever they land on: made once, as the fight begins. */
   join?(fight: Fight): BossPart;
   /**
@@ -155,4 +177,61 @@ export interface BossDef {
    * waves and part; it is then its Hard mode. None: it has only the one.
    */
   normal?: BossDef;
+}
+
+/**
+ * A karma dungeon, as King's Raid's Divine Punishment has it (./divine/karma.ts): wave after wave, without end until the raid's
+ * time (and its rage) is up or the heroes are wiped, each a fresh one of its stages' monsters (its four, round and round), the
+ * stronger the more waves have gone. After each wave the heroes pick one of three cards (or one is picked for them).
+ */
+export interface KarmaDef {
+  /**
+   * The `level`th wave (from 1): its boss as it is then (its own stats and part, grown for the wave), its minions and how many
+   * seconds into the wave each comes, and what its boss calls up every so often while it stands (none: nothing).
+   */
+  wave(level: number): KarmaWave;
+  /** The Karma Gauge: what the first wave is worth, and what each wave's worth is of the one before's (wave 2 on). */
+  gauge: { first: number; exponent(wave: number): number };
+  /** The least the gauge must reach for the run to count (King's Raid's: a Tier 1 Shard filled). */
+  least: number;
+  /** The most waves it is fought for: past about 30 its numbers are a wall, so this is only a bound on a run's length (../bot.ts). */
+  most: number;
+  /** The cards there are, and how long the heroes have to pick one (seconds; then one is picked for them). */
+  cards: readonly KarmaCard[];
+  pick: number;
+}
+
+/** A karma wave: its boss, its minions (each `after` seconds in), and what its boss calls up every `every` seconds while it stands. */
+export interface KarmaWave {
+  boss: BossDef;
+  minions: readonly { minion: WaveMinion; after: number }[];
+  summon?: { every: number; minions: readonly WaveMinion[] };
+}
+
+/**
+ * A karma card, as King's Raid's KarmaCardTable has it: its number, its group and how likely the group is to be offered,
+ * how likely it is within its group, how many times it may be taken (none said: any number), the classes it is for, King's
+ * Raid's words, and what it does for every hero of them (shares: ATK more, max HP more, DMG more, mana recovery more; and its
+ * skills' cooldowns so many seconds longer).
+ */
+export interface KarmaCard {
+  id: number;
+  group: number;
+  groupChance: number;
+  chance: number;
+  most?: number;
+  classes: readonly HeroClass[];
+  text: string;
+  does: { atk?: number; hp?: number; dmg?: number; mana?: number; cooldown?: number };
+}
+
+/**
+ * A minion whose numbers are King's Raid's own (Divine Punishment's: ./divine/), not scaled to the heroes here as the Dragon
+ * Raid's are (./dragon/common.ts minionOf): what it has besides a wave's minion (none said: the hard dragons' OPEN), and how
+ * many times as much of each kind of damage it takes (King's Raid's DefensePower: 300 is 0.7; none said: all).
+ */
+export interface OwnMinion extends WaveMinion {
+  own: true;
+  stats?: Partial<Omit<BossStats, 'hp' | 'deals' | 'physical' | 'magical'>>;
+  taken?: number;
 }

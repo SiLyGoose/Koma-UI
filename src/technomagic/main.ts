@@ -194,6 +194,12 @@ const ANSWERS: Record<AnswerCode, string> = {
   no_heroes: 'Everyone needs a hero in first.',
   locked: 'Win the stage before it first.',
   failed: 'That didn’t work. Try again.',
+  // (Divine Punishment's.)
+  not_open: 'Unlock that dungeon first.',
+  cleared: 'That one is beaten already this opening.',
+  not_allowed: 'Only two Dragons can be defeated in one opening.',
+  no_shards: 'You don’t have that many Shards.',
+  class_taken: 'A hero of that class is in already: only one of each.',
 };
 
 const canvas = document.getElementById('stage') as HTMLCanvasElement;

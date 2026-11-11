@@ -230,6 +230,8 @@ export interface Fight {
   readonly party: Status<Buff>[];
   /** The raid's stage (1 to the boss's last: stagesOf). */
   readonly stage: number;
+  /** Seconds since the heroes ran in. */
+  readonly elapsed: number;
   /** The fight's chances: a number from 0 up to 1 (./random.ts). Nothing in it is to use Math.random. */
   roll(): number;
   /** `run` with `foe` the enemy in question (`foe`): what it hits, stuns or leaves something on is that one. */

@@ -1,13 +1,16 @@
 import { BOSSES, DRAGONS, TM_BOSSES } from './bosses';
+import { DIVINE as DIVINE_DEFS, DIVINE_SIDES, divineFight, type DivineDef } from './bosses/divine';
+import { DIVINE_LEVELS as LEVELS } from './bosses/divine/levels';
 import { bossIn, stagesOf, type BossDef } from './bosses/boss';
 import type { DamageType } from './combat/damage';
 import type { Input } from './events';
-import { makeSim } from './fight';
+import { FLY_OFF, makeSim, RUN_ON } from './fight';
 import { HEROES } from './heroes';
 import { perkStats, perksOf } from './perks';
 import { MARCH, MOST, RAGE_WIPE, RAID_TIME, TICK } from './rules';
 import { ARTIFACTS } from './artifacts';
 import { KR_ARTIFACTS, KR_PIECES as PIECES, KR_POOLS as POOLS, KR_REFINE as REFINE, KR_RUNES as RUNES, KR_SETS as SETS, KR_UNIQUE as UNIQUE } from './gear/kr-data';
+import { KR_BLASPHEMY as BLASPHEMY } from './gear/blasphemy';
 import { SET_INFO, SET_PIECES } from './sets';
 import { MOST_SKILLS, SKILLS } from './skills';
 import { treasureAbout } from './treasures';
@@ -30,8 +33,11 @@ export const STEP_SECONDS: number = TICK;
 export const MOST_TICKS: number = Math.ceil((MARCH + RAID_TIME + RAGE_WIPE) / TICK) + 1;
 /** The most inputs a raid is taken with (more than anyone presses in its time). */
 export const MOST_INPUTS = 20_000;
-/** The most stages any boss has, in either mode (each boss's own: BossInfo.stages, and its Normal mode's: BossInfo.normal). */
-export const MOST_STAGE: number = Math.max(...BOSSES.flatMap((boss) => [stagesOf(boss), ...(boss.normal ? [stagesOf(boss.normal)] : [])]));
+/**
+ * The most stages any boss of the TechnoMagic Raid or the Dragon Raid has, in either mode (each boss's own: BossInfo.stages, and
+ * its Normal mode's: BossInfo.normal). Divine Punishment's levels are apart: DIVINE_LEVELS.
+ */
+export const MOST_STAGE: number = Math.max(...[...TM_BOSSES, ...DRAGONS].flatMap((boss) => [stagesOf(boss), ...(boss.normal ? [stagesOf(boss.normal)] : [])]));
 
 /**
  * A hero in a raid: its id, the index of its skin, what its gear gives it (the bot's HeroBonus), the TechnoMagic
@@ -53,6 +59,11 @@ export interface RunHero {
   ut?: { skill: number; tier: number } | null;
   /** Its artifact: which (KR_ARTIFACTS' id), at which tier (its refinement, 1 to 5); or none. */
   artifact?: { id: string; tier: number } | null;
+  /**
+   * For each Rune of Blasphemy it wears, the line for its class (KR_BLASPHEMY's lines' `skill`) and its rolled value (between the
+   * line's min and max): what it does in the fight (./blasphemy.ts). Its main option is in `gear`.
+   */
+  blasphemy?: readonly { skill: string; value: number }[] | null;
 }
 
 /**
@@ -93,6 +104,8 @@ export interface Run {
   heroes: readonly RunHero[];
   solo?: boolean;
   mode?: BossMode;
+  /** A Divine Punishment boss's run (one of DIVINE_INFO's: required for them, startRaid's 'divine' without it): see DivineRun. */
+  divine?: DivineRun;
 }
 
 /** How a raid played over went. */
@@ -108,6 +121,8 @@ export interface Replay {
   parted: number | null;
   /** What each hero's blows took of the boss, by its place in the run. */
   dealt: number[];
+  /** A karma dungeon's: the waves cleared and the Karma Gauge's points as it ended. */
+  karma?: KarmaOutcome;
 }
 
 /** A hero there is (the bot sells it, and the heroes page gears it): its id, its name, its class, and how many skins it has (its own first). */
@@ -278,26 +293,33 @@ export const TM_ARTIFACTS: readonly TmArtifactInfo[] = KR_ARTIFACTS.filter((one)
   text: (text ?? []).map((line) => line ?? ''),
 }));
 
-/** An input of the page's, as a raid takes it: a skill pressed, a hero's Auto, every hero's Auto, or leaving (with the step it came before). */
+/**
+ * An input of the page's, as a raid takes it: a skill pressed, a hero's Auto, every hero's Auto, leaving, or a karma dungeon's
+ * card picked (`card`: its place among the three offered) (with the step it came before).
+ */
 export interface RunInput {
   tick: number;
-  kind: 'skill' | 'auto' | 'all-auto' | 'leave';
+  kind: 'skill' | 'auto' | 'all-auto' | 'leave' | 'card';
   fighter?: number;
   skill?: number;
+  card?: 0 | 1 | 2;
 }
 
-const RAID_KINDS = new Set(['skill', 'auto', 'all-auto', 'leave']);
+const RAID_KINDS = new Set(['skill', 'auto', 'all-auto', 'leave', 'card']);
 const whole = (n: unknown, below: number): n is number => typeof n === 'number' && Number.isInteger(n) && n >= 0 && n < below;
 
-/** The page's inputs, as they are taken (null: something in them makes no sense). Only what a raid takes. */
-export function readInputs(raw: unknown, heroes: number): RunInput[] | null {
+/**
+ * The page's inputs, as they are taken (null: something in them makes no sense). Only what a raid takes, before step `most` (none
+ * said: MOST_TICKS; a Divine Punishment run's own: mostTicks).
+ */
+export function readInputs(raw: unknown, heroes: number, most: number = MOST_TICKS): RunInput[] | null {
   if (!Array.isArray(raw) || raw.length > MOST_INPUTS) return null;
   const inputs: RunInput[] = [];
   let last = 0;
   for (const one of raw as unknown[]) {
     if (typeof one !== 'object' || one === null) return null;
-    const { tick, kind, fighter, skill } = one as Record<string, unknown>;
-    if (!whole(tick, MOST_TICKS) || tick < last || typeof kind !== 'string' || !RAID_KINDS.has(kind)) return null;
+    const { tick, kind, fighter, skill, card } = one as Record<string, unknown>;
+    if (!whole(tick, most) || tick < last || typeof kind !== 'string' || !RAID_KINDS.has(kind)) return null;
     last = tick;
     if (kind === 'skill') {
       if (!whole(fighter, heroes) || !whole(skill, 16)) return null;
@@ -305,6 +327,9 @@ export function readInputs(raw: unknown, heroes: number): RunInput[] | null {
     } else if (kind === 'auto') {
       if (!whole(fighter, heroes)) return null;
       inputs.push({ tick, kind: 'auto', fighter });
+    } else if (kind === 'card') {
+      if (!whole(card, 3)) return null;
+      inputs.push({ tick, kind: 'card', card: card as 0 | 1 | 2 });
     } else inputs.push({ tick, kind: kind as RunInput['kind'] });
   }
   return inputs;
@@ -324,6 +349,8 @@ export interface LiveRaid {
   /** Whether each hero's Auto is on, and what each hero's blows have taken of the boss, by its place in the run. */
   autos(): boolean[];
   dealt(): number[];
+  /** A karma dungeon's waves cleared and Karma Gauge so far (null: the raid is none). */
+  karma(): KarmaOutcome | null;
 }
 
 /** A raid ready to be fought (a string: why the run makes no sense). */
@@ -332,9 +359,16 @@ export function startRaid(run: Run): LiveRaid | string {
   const found = BOSSES.find((one) => one.id === run.boss);
   if (!found) return 'boss';
   if (run.mode !== undefined && run.mode !== 'hard' && !(run.mode === 'normal' && found.normal)) return 'mode';
-  const boss = bossIn(found, run.mode);
+  const divine = DIVINE_DEFS.find((one) => one.def.id === found.id);
+  // (A Divine Punishment boss: its run as the bot gives it, read, and its fight as that has it.)
+  const fight = divine ? divineOf(divine, run) : null;
+  if (fight === 'divine') return 'divine';
+  const boss = fight ?? bossIn(found, run.mode);
   if (!whole(run.stage - 1, stagesOf(boss))) return 'stage';
   if (run.heroes.length === 0 || run.heroes.length > MOST) return 'heroes';
+  // (Divine Punishment's: King's Raid's 4 Main and 4 Sub; a karma dungeon's 3, one of a class at most. Fought alone.)
+  if (divine && run.heroes.length > (divine.kind === 'karma' ? KARMA_HEROES : DIVINE_HEROES)) return 'heroes';
+  const solo = run.solo === true || divine !== undefined;
   const entries = [];
   for (const hero of run.heroes) {
     const def = HEROES.find((one) => one.id === hero.id);
@@ -345,10 +379,13 @@ export function startRaid(run: Run): LiveRaid | string {
     const perks = Array.isArray(hero.perks) ? hero.perks.filter((id): id is string => typeof id === 'string') : [];
     const ut = hero.ut && typeof hero.ut.skill === 'number' && typeof hero.ut.tier === 'number' ? { skill: hero.ut.skill, tier: hero.ut.tier } : null;
     const artifact = hero.artifact && typeof hero.artifact.id === 'string' && typeof hero.artifact.tier === 'number' ? { id: hero.artifact.id, tier: hero.artifact.tier } : null;
-    entries.push({ def, skin: hero.skin, gear, set: typeof hero.set === 'string' ? hero.set : null, uw: typeof hero.uw === 'number' ? hero.uw : null, skills, sub: run.solo === true && hero.sub === true, perks, ut, artifact });
+    const blasphemy = Array.isArray(hero.blasphemy) ? hero.blasphemy.filter((one) => typeof one?.skill === 'string' && Number.isFinite(one.value)).map(({ skill, value }) => ({ skill, value })) : [];
+    entries.push({ def, skin: hero.skin, gear, set: typeof hero.set === 'string' ? hero.set : null, uw: typeof hero.uw === 'number' ? hero.uw : null, skills, sub: solo && hero.sub === true, perks, ut, artifact, blasphemy });
   }
-  const sim = makeSim({ boss, heroes: entries, seed: run.seed, stage: run.stage, raid: true, solo: run.solo === true });
+  if (divine?.kind === 'karma' && new Set(entries.map((one) => one.def.class)).size < entries.length) return 'heroes';
+  const sim = makeSim({ boss, heroes: entries, seed: run.seed, stage: run.stage, raid: true, solo });
   const heroes = entries.length;
+  const most = mostTicks(run);
   return {
     get tick() {
       return sim.tick;
@@ -360,7 +397,7 @@ export function startRaid(run: Run): LiveRaid | string {
       return sim.sums;
     },
     input(input) {
-      const read = readInputs([{ ...input, tick: 0 }], heroes);
+      const read = readInputs([{ ...input, tick: 0 }], heroes, most);
       if (!read?.[0]) return false;
       const { tick: _tick, ...valid } = read[0];
       sim.input(valid as Input);
@@ -372,6 +409,10 @@ export function startRaid(run: Run): LiveRaid | string {
     },
     autos: () => sim.fighters.map((fighter) => fighter.auto),
     dealt: () => sim.fighters.map((fighter) => fighter.dealt),
+    karma() {
+      const state = sim.karma();
+      return state ? { waves: state.cleared, gauge: state.gauge } : null;
+    },
   };
 }
 
@@ -381,10 +422,11 @@ const invalid = (reason: string): Replay => ({ result: 'invalid', reason, ticks:
 export function replay(run: Run, rawInputs: unknown, pageSums: readonly number[] = []): Replay {
   const raid = startRaid(run);
   if (typeof raid === 'string') return invalid(raid);
-  const inputs = readInputs(rawInputs, run.heroes.length);
+  const most = mostTicks(run);
+  const inputs = readInputs(rawInputs, run.heroes.length, most);
   if (!inputs) return invalid('inputs');
   let next = 0;
-  while (!raid.result && raid.tick < MOST_TICKS) {
+  while (!raid.result && raid.tick < most) {
     while (next < inputs.length && (inputs[next] as RunInput).tick === raid.tick) {
       const { tick: _tick, ...input } = inputs[next] as RunInput;
       raid.input(input);
@@ -394,5 +436,148 @@ export function replay(run: Run, rawInputs: unknown, pageSums: readonly number[]
   }
   const sums = [...raid.sums];
   const at = sums.findIndex((sum, i) => i < pageSums.length && pageSums[i] !== sum);
-  return { result: raid.result ?? 'lost', ticks: raid.tick, sums, parted: at < 0 ? null : at + 1, dealt: raid.dealt() };
+  const karma = raid.karma();
+  return { result: raid.result ?? 'lost', ticks: raid.tick, sums, parted: at < 0 ? null : at + 1, dealt: raid.dealt(), ...(karma && { karma }) };
 }
+
+/*
+ * King's Raid's Divine Punishment Raid (./bosses/divine/), as the bot has it: its bosses, fought alone, each run saying which
+ * group's it is, its Infinite level, the side bosses cleared in its opening (for a final boss) and the shards brought; the karma
+ * dungeons' outcome (waves cleared, the Karma Gauge) and what their gauge fills; and the Runes of Blasphemy.
+ */
+
+export type DivineGroup = 'apocalypsion' | 'solenis';
+/** A side boss (a dragon, a mid-boss), a group's final boss, or its karma dungeon. */
+export type DivineKind = 'side' | 'final' | 'karma';
+/** A Divine Punishment boss: its id (a Run's boss), name, group and kind, and how long its raid lasts (seconds: a karma dungeon's before its 10 of rage). */
+export interface DivineBossInfo {
+  id: string;
+  name: string;
+  group: DivineGroup;
+  kind: DivineKind;
+  time: number;
+}
+/** Every Divine Punishment boss: Apocalypsion's four dragons and her, Solenis' two mid-bosses and her, and the two karma dungeons. */
+export const DIVINE_INFO: readonly DivineBossInfo[] = DIVINE_DEFS.map(({ def, group, kind }) => ({ id: def.id, name: def.name, group, kind, time: def.time ?? RAID_TIME }));
+/** The highest Infinite level the sim has numbers for. */
+export const DIVINE_LEVELS: number = LEVELS;
+
+/**
+ * A Divine Punishment run: its group (the boss's); its Infinite level (a boss dungeon's, 1 to DIVINE_LEVELS: the Run's stage too;
+ * a karma dungeon has none); the side bosses cleared this opening (a final boss's: their ids, Apocalypsion's dragons two at most);
+ * the Full Shards brought (a boss dungeon's, of its group's: their tier and how many) and the Empty Shards (a karma dungeon's,
+ * tier 2 to 5: tier 1 is free and unlimited, as none).
+ */
+export interface DivineRun {
+  group: DivineGroup;
+  level?: number;
+  cleared?: readonly string[];
+  shard?: { tier: 1 | 2 | 3 | 4 | 5; count: number } | null;
+  empty?: { tier: 2 | 3 | 4 | 5; count: number } | null;
+}
+
+/** The heroes in a Divine Punishment boss dungeon (King's Raid's 4 Main and 4 Sub) and in a karma dungeon, at most. */
+const DIVINE_HEROES = 8;
+const KARMA_HEROES = 3;
+/** The most Full or Empty Shards a run is taken with (more than anyone has: a bound). */
+const MOST_SHARDS = 999;
+
+const tierOf = (n: unknown, from: number): boolean => typeof n === 'number' && Number.isInteger(n) && n >= from && n <= 5;
+const countOf = (n: unknown, least: number): boolean => typeof n === 'number' && Number.isInteger(n) && n >= least && n <= MOST_SHARDS;
+
+/** A Divine Punishment boss's fight as `run` has it ('divine': its run is missing, or makes no sense). */
+function divineOf(one: DivineDef, run: Run): BossDef | 'divine' {
+  const divine = run.divine as Partial<DivineRun> | undefined;
+  if (!divine || typeof divine !== 'object' || divine.group !== one.group) return 'divine';
+  if (one.kind !== 'karma' && (!whole((divine.level ?? 0) - 1, LEVELS) || divine.level !== run.stage)) return 'divine';
+  const sides = DIVINE_SIDES[one.group];
+  const cleared = divine.cleared ?? [];
+  if (!Array.isArray(cleared) || !cleared.every((id) => typeof id === 'string' && sides.includes(id))) return 'divine';
+  const known = one.kind === 'final' ? [...new Set(cleared as string[])] : [];
+  // (Apocalypsion's dragons: two at most cleared an opening.)
+  if (one.group === 'apocalypsion' && known.length > 2) return 'divine';
+  const { shard, empty } = divine;
+  if (shard !== undefined && shard !== null && (typeof shard !== 'object' || !tierOf(shard.tier, 1) || !countOf(shard.count, 1))) return 'divine';
+  if (empty !== undefined && empty !== null && (typeof empty !== 'object' || !tierOf(empty.tier, 2) || !countOf(empty.count, 0))) return 'divine';
+  return divineFight(one, known, one.kind !== 'karma' && shard ? { tier: shard.tier, count: shard.count } : null);
+}
+
+/**
+ * The most steps a run can take: MOST_TICKS for the TechnoMagic Raid and the Dragon Raid; a Divine Punishment boss's, its own
+ * time and rage (Armarta's 600 seconds, Luciteron's 120 and none), and a karma dungeon's with its card picks besides (the fight
+ * stands still while the heroes pick: as many as its most waves). Its inputs are read up to it (readInputs), and a replay goes on
+ * to it.
+ */
+export function mostTicks(run: Pick<Run, 'boss'>): number {
+  const found = DIVINE_DEFS.find((one) => one.def.id === run.boss)?.def;
+  if (!found) return MOST_TICKS;
+  const picks = found.karma ? found.karma.most * (found.karma.pick + 1) : 0;
+  // (And the boss's flight off and the heroes' run on to its next wave, which a fight ends only after; and a second more: the
+  // raid's clock is summed a step at a time, a hair short of its seconds.)
+  return Math.ceil((MARCH + (found.time ?? RAID_TIME) + (found.outlast ? 0 : (found.rage ?? RAGE_WIPE)) + picks + FLY_OFF + RUN_ON + 1) / TICK) + 1;
+}
+
+/** How a karma run went: the waves cleared, and the Karma Gauge's points. */
+export interface KarmaOutcome {
+  waves: number;
+  gauge: number;
+}
+
+/** What a karma run's gauge fills: the Empty Shards brought used up, and the Full Shards made, by tier. */
+export interface ShardFill {
+  empty: number;
+  full: Record<1 | 2 | 3 | 4 | 5, number>;
+}
+
+/** Each tier's Empty Shard's FlaskGauge (ShardFlaskItemTable, both groups alike): the gauge points that fill one. */
+export const SHARD_GAUGE: Readonly<Record<1 | 2 | 3 | 4 | 5, number>> = { 1: 500, 2: 1200, 3: 2200, 4: 4500, 5: 10_000 };
+
+/**
+ * What a karma run's gauge fills, as King's Raid's PunishmentHelper.GetFullFlask has it: the Empty Shards brought (a tier 2 to 5)
+ * first, as many as the gauge fills (floor(gauge / its FlaskGauge)) and no more than were brought; the rest into free Tier 1
+ * Shards, 500 each. As the game's: one brought that the gauge fills none of gives nothing at all, not even Tier 1 Shards (its
+ * `selectedFullFlaksCount <= 0` return; its AnyFlaskCollected counts that run as failed too).
+ */
+export function fillShards(gauge: number, empty: DivineRun['empty']): ShardFill {
+  const full: Record<1 | 2 | 3 | 4 | 5, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+  let left = Number.isFinite(gauge) ? Math.max(0, gauge) : 0;
+  let used = 0;
+  if (empty && tierOf(empty.tier, 2)) {
+    used = Math.min(Math.floor(left / SHARD_GAUGE[empty.tier]), Math.max(0, Math.floor(empty.count)));
+    if (used <= 0) return { empty: 0, full };
+    full[empty.tier] = used;
+    left -= used * SHARD_GAUGE[empty.tier];
+  }
+  full[1] = Math.floor(left / SHARD_GAUGE[1]);
+  return { empty: used, full };
+}
+
+/** A Rune of Blasphemy's extra skill for a class group: its id (RunHero.blasphemy's skill), its rolled value's range, and King's Raid's words, {v} for the value. */
+export interface BlasphemyLine {
+  skill: string;
+  min: number;
+  max: number;
+  text: string;
+}
+
+/**
+ * A Rune of Blasphemy (./gear/blasphemy.ts: King's Raid's PunishmentRuneTable): its id, KR code and name; the group whose Blood
+ * crafts it; its socket (a unique weapon's Doh, Laz, Geb; an armor's Oth; a secondary's Ans); its colour; the Legendary rune
+ * it is crafted from (KR_RUNES' id: its main option's stat); its main option (a gear stat, its share from min to max); its three
+ * lines (Warrior and Knight; Archer, Assassin and Mechanic; Wizard and Priest); its icon (its code: not cut yet).
+ */
+export interface BlasphemyRuneData {
+  id: string;
+  code: string;
+  name: string;
+  group: DivineGroup;
+  socket: 'doh' | 'laz' | 'geb' | 'oth' | 'ans';
+  color: string;
+  legend: string;
+  main: { stat: string; min: number; max: number };
+  lines: readonly [BlasphemyLine, BlasphemyLine, BlasphemyLine];
+  icon: string;
+}
+
+export const KR_BLASPHEMY: readonly BlasphemyRuneData[] = BLASPHEMY;
+

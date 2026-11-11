@@ -20,6 +20,8 @@ export interface Status<Shown> {
   deals?: number;
   /** Everything its bearer does goes this many times as fast (a hero's: its attack quickened). */
   pace?: number;
+  /** A hero bearing it's CC on an enemy lasts this many times as long (King's Raid's ModCcTimeR: a Full Shard's). */
+  control?: number;
   /** Healing reaches its bearer this many times as much. */
   heals?: number;
   /** Its bearer's mana fills this many times as fast. */
@@ -127,6 +129,8 @@ export const dealing = (on: readonly Status<unknown>[]): number => amplified(dea
 export const pacing = (on: readonly Status<unknown>[], ...and: readonly number[]): number => stacked([...on.map(({ pace }) => pace ?? 1), ...and]);
 /** How many times as much healing reaches a bearer of these (`and`: more of the kind, besides). */
 export const healing = (on: readonly Status<unknown>[], ...and: readonly number[]): number => stacked([...on.map(({ heals }) => heals ?? 1), ...and]);
+/** How many times as long a bearer of these's CC lasts. */
+export const controlling = (on: readonly Status<unknown>[]): number => stacked(on.map(({ control }) => control ?? 1));
 /** How many times as fast a bearer of these gains mana (`and`: more of the kind, besides). */
 export const filling = (on: readonly Status<unknown>[], ...and: readonly number[]): number => stacked([...on.map(({ mana }) => mana ?? 1), ...and]);
 

@@ -2,7 +2,7 @@ import { NONE, type BossStats } from '../../combat/damage';
 import { put, type Status } from '../../combat/status';
 import type { Buff } from '../../shown';
 import type { Fight, Fighter } from '../../types';
-import type { BossDef, BossPart, BossScale } from '../boss';
+import type { BossDef, BossPart, BossScale, OwnMinion } from '../boss';
 import { MINIONS } from './minions';
 import { NORMAL_STAGES, NORMAL_WAVES } from './normal';
 import { WAVES, type WaveMinion } from './waves';
@@ -214,6 +214,11 @@ export const dragonWaves = (id: string): NonNullable<BossDef['waves']> => ({ at:
 export function minionOf(minion: WaveMinion, solo: boolean, party: number = KR_PARTY): { hp: number; atk: number; stats: BossStats } {
   const hp = ((minion.hp * HEROES_DEAL * DRAGON_PARTY) / party) * (solo ? SOLO / DRAGON_PARTY : 1);
   return { hp, atk: minion.atk * HEROES_HP, stats: { hp, deals: MINIONS[minion.kind].deals, magical: minion.def[0], physical: minion.def[1], ...OPEN } };
+}
+
+/** A minion with King's Raid's own numbers (../boss.ts OwnMinion: Divine Punishment's), as they are: the rest as the hard dragons' (OPEN), or as it says. */
+export function ownMinion(minion: OwnMinion): { hp: number; atk: number; stats: BossStats } {
+  return { hp: minion.hp, atk: minion.atk, stats: { hp: minion.hp, deals: MINIONS[minion.kind].deals, magical: minion.def[0], physical: minion.def[1], ...OPEN, ...minion.stats } };
 }
 
 /** A dragon's part: its own (`own`), with its CC Gauge (../gauge.ts: of `size`, none said the Hard Dragon Raid's). */

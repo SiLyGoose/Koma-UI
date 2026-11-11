@@ -15,6 +15,8 @@ export type Input =
   | { kind: 'all-auto' }
   /** The player leaves the raid: lost. */
   | { kind: 'leave' }
+  /** A karma dungeon: one of the three cards offered is picked (by its place among them). */
+  | { kind: 'card'; card: number }
   /** Only when trying things out: a hero onto the field or off it, the boss set to an attack, Boss auto on or off, Deathless on or off, the raid's stage. */
   | { kind: 'toggle'; fighter: number }
   | { kind: 'boss'; attack: string }
@@ -64,5 +66,13 @@ export type SimEvent =
   | { kind: 'foe-daze'; foe: number; seconds: number }
   /** (Beaten by bursting, `blast`: Zyrrkinoth's Slimes.) */
   | { kind: 'foe-down'; foe: number; blast?: boolean }
+  /**
+   * A karma dungeon (./bosses/divine/karma.ts): its `wave`th wave comes; a wave cleared, three cards offered (by their numbers:
+   * KarmaCard.id) for `left` seconds; one picked (by its place among them, and its number; `auto`: picked for the heroes, their
+   * time up). The gauge as it stands: Sim.karma().
+   */
+  | { kind: 'karma-wave'; wave: number }
+  | { kind: 'karma-offer'; cards: number[]; left: number }
+  | { kind: 'karma-pick'; card: number; id: number; auto: boolean }
   /** The fight is over. */
   | { kind: 'end'; result: Result };

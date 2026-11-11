@@ -1,7 +1,8 @@
 import { alliesFrom, artifactBuff, artifactHooks, artifactOf, artifactStats, at, type ArtifactHooks } from './artifacts';
-import { scaleAt, stagesOf, type BossDef, type BossPart, type Warning } from './bosses/boss';
+import { scaleAt, stagesOf, type BossDef, type BossPart, type KarmaCard, type KarmaWave, type OwnMinion, type Warning } from './bosses/boss';
+import { blasphemyHooks, type BlasphemyHooks, type BlasphemyUse } from './blasphemy';
 import { ATK, CURVE, curved, HERO_LEVEL, NONE, POINTS, reachAt, share, SLOWEST, strike } from './combat/damage';
-import { accurate, adding, amplified, away, blocking, bolstering, bound, critDamaging, critResisting, critTaking, critting, dealing, deals, defending, defends, dodging, filling, healing, pacing, piercing, put, resisting, sealed, stacked, takes, wear, type Status } from './combat/status';
+import { accurate, adding, amplified, away, blocking, bolstering, bound, controlling, critDamaging, critResisting, critTaking, critting, dealing, deals, defending, defends, dodging, filling, healing, pacing, piercing, put, resisting, sealed, stacked, takes, wear, type Status } from './combat/status';
 import type { Input, Logged, Result, SimEvent } from './events';
 import { geared } from './gear';
 import { lineOf, nearer, NO_PASSIVE, type Ability, type HeroDef } from './heroes/kit';
@@ -17,7 +18,7 @@ import type { Doing, Fight, Fighter, Foe, GearBonus, GearStat } from './types';
 import { atTier, ELICIPIRA, EXIAN, EXIAN_UP, ROSMERTA, ROSMERTA_KASEL, ROSMERTA_UP, uniqueName, uniqueOf } from './unique';
 import { auraTotal, moveDmg, moveHeals, moveMarks, moveWhole, perkedStats, perksOf, tweaked, withPerks, type PerkDef, type SkillMark, type SkillStatus } from './perks';
 import { treasureOf } from './treasures';
-import { minionOf } from './bosses/dragon/common';
+import { minionOf, ownMinion } from './bosses/dragon/common';
 import { MINIONS, type MinionDef, type MinionMove } from './bosses/dragon/minions';
 import type { WaveMinion } from './bosses/dragon/waves';
 import { REACH } from './heroes/reach';
@@ -67,10 +68,15 @@ export interface Entry {
   ut?: { skill: number; tier: number } | null;
   /** Its artifact (./artifacts.ts): which (KR_ARTIFACTS' id), at which tier (R1 to R5). */
   artifact?: { id: string; tier: number } | null;
+  /** The extra skills of the Runes of Blasphemy it wears, for its class (./blasphemy.ts): each skill and its rolled value. */
+  blasphemy?: readonly BlasphemyUse[] | null;
 }
 
-/** The dragons' ids: King's Raid's Dragon race, for an artifact's DMG against one (./artifacts.ts). */
-const DRAGON_IDS: ReadonlySet<string> = new Set(['temeraire', 'scalaxia', 'zyrrkinoth', 'armarta']);
+/**
+ * The dragons' ids: King's Raid's Dragon race, for an artifact's DMG against one (./artifacts.ts). (And Divine Punishment's: its
+ * four, and Tersio and Apocalypsion's fight.)
+ */
+const DRAGON_IDS: ReadonlySet<string> = new Set(['temeraire', 'scalaxia', 'zyrrkinoth', 'armarta', 'dp-temeraire', 'dp-scalaxia', 'dp-zyrrkinoth', 'dp-armarta', 'apocalypsion']);
 
 /** The additional skills that come round again every so many seconds: each first comes once that long has gone. */
 const EVERY: readonly SkillId[] = ['regeneration', 'mana-spring', 'focus-1', 'focus-2', 'focus-3'];
@@ -132,8 +138,26 @@ export interface Sim extends Fight {
   size(): number;
   /** A number that sums up how the fight stands (two fights that stand the same have the same). */
   checksum(): number;
+  /** A karma dungeon, as it stands (null: the raid is none): see KarmaState. */
+  karma(): KarmaState | null;
 }
 
+/**
+ * A karma dungeon as it stands (./bosses/divine/karma.ts), for the page to draw: the wave it is on (from 1), the waves cleared,
+ * the Karma Gauge's points, the cards offered (their numbers: KarmaCard.id; null: none now) and the seconds left to pick one,
+ * and the cards taken so far (their numbers, in the order taken).
+ */
+export interface KarmaState {
+  wave: number;
+  cleared: number;
+  gauge: number;
+  offer: readonly number[] | null;
+  left: number;
+  taken: readonly number[];
+}
+
+/** What the karma cards a hero has taken give it (a karma dungeon's: ./bosses/divine/karma.ts). */
+const KARMA_BUFF: Buff = { name: 'Karma', about: 'What the karma cards taken give it.', icon: '🃏', art: stateArt('AttackUp') };
 /** What knocks a hero down: shown on its card, with how long it has left. */
 const KNOCKED: Buff = { name: 'Knocked down', about: 'Can do nothing until it is up.', icon: '💫', art: stateArt('Down'), harmful: true };
 
@@ -186,7 +210,12 @@ function foremost(from: readonly Fighter[], x: number, z: number, reach: number)
   return within.reduce((best, on) => (ahead(rank(on), rank(best)) ? on : best));
 }
 
-export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo = false, first = [], deathless: noDeaths = false }: SimOptions): Sim {
+export function makeSim({ boss: dungeon, heroes, seed, stage: firstStage, raid, solo = false, first = [], deathless: noDeaths = false }: SimOptions): Sim {
+  /**
+   * The boss on the field (and all that is known of it): the raid's own, or the one after it in the same fight (BossDef.next:
+   * Apocalypsion after Tersio), or a karma dungeon's wave's (BossDef.karma). Its time, rage and what wins it are the raid's.
+   */
+  let def: BossDef = dungeon;
   const random = seeded(seed);
   const roll = (): number => random.next();
   const events: SimEvent[] = [];
@@ -231,12 +260,17 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
 
   /** A raid of more than one wave (BossDef.waves): its waves past the first, as its stage has them as the fight begins; the wave it is on, and how many seconds are left of the heroes' run on to the next. */
   const later = def.waves?.at(Math.min(stagesOf(def), Math.max(1, Math.floor(firstStage) || 1))) ?? [];
-  const waves = 1 + later.length;
+  // (A fight against two bosses, one after the other: the second the second wave.)
+  const waves = 1 + later.length + (def.next ? 1 : 0);
   let wave = 1;
   let moving = 0;
   /** The boss flying off (the first wave over): seconds left until the heroes run on. */
   let lifting = 0;
-  /** Each minion on the field: what it is, its ATK, what it is doing (a move, and whom at), how long it rests yet, how long before its skill is ready, and how long it has stood. */
+  /**
+   * Each minion on the field: what it is, its ATK, what it is doing (a move, and whom at), how long it rests yet, how long before
+   * its skill is ready, and how long it has stood; and (a karma wave's) whether it is one of its wave's own, counted toward its
+   * gauge (not one its boss called up).
+   */
   interface Minion {
     def: MinionDef;
     atk: number;
@@ -245,6 +279,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     skill: number;
     life: number;
     fused: boolean;
+    counted: boolean;
   }
   const minions = new Map<Foe, Minion>();
   let tick = 0;
@@ -252,6 +287,28 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
   /** Seconds of the raid's time gone, against this boss; and how long its raid lasts. */
   let clock = 0;
   const raidTime = def.time ?? RAID_TIME;
+  /** How long the boss's rage lasts after it (then the heroes have lost). */
+  const rageTime = def.rage ?? RAGE_WIPE;
+  /**
+   * A karma dungeon (BossDef.karma): its waves (the one on now, from 1; those cleared), the current wave's own monsters, those of
+   * them beaten, those yet to come (with when) and how long it has gone; what its boss calls up and when next; the cards
+   * offered (their indices in its cards) and how long the heroes have yet to pick, the cards taken (their numbers, and how many
+   * times each), and what the cards give each hero (and each one's max HP as it came in).
+   */
+  const karma = dungeon.karma ?? null;
+  let karmaWave = 1;
+  let karmaCleared = 0;
+  let karmaMonsters = 0;
+  let karmaKills = 0;
+  let karmaComing: { minion: WaveMinion; after: number }[] = [];
+  let karmaFor = 0;
+  let karmaSummon: KarmaWave['summon'] | undefined;
+  let karmaSummonIn = 0;
+  let offer: number[] | null = null;
+  let offerLeft = 0;
+  const cardsTaken: number[] = [];
+  const takenCount = new Map<number, number>();
+  const cardGains = new Map<Fighter, { atk: number; hp: number; dmg: number; mana: number; cooldown: number; base: number }>();
   let stage = Math.min(stagesOf(def), Math.max(1, Math.floor(firstStage) || 1));
   let bossAuto = raid;
   let deathless = noDeaths && !raid;
@@ -465,6 +522,8 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
   };
   /** Each hero's artifact's hooks (./artifacts.ts), wearing one the fight has a use for. */
   const relics = new Map<Fighter, ArtifactHooks>();
+  /** Each hero's Runes of Blasphemy's hooks (./blasphemy.ts), wearing any. */
+  const blasphemies = new Map<Fighter, BlasphemyHooks>();
   /** Whom the boss is going for: another, should that one have left the field, or the fight. */
   const aimed = (): Fighter | null => {
     if (!aim || !field.includes(aim) || away(aim.statuses)) aim = anyone();
@@ -597,7 +656,9 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     if (!ability || !cuttable(fighter) || !sim.ready(fighter, index)) return false;
     begin(fighter, ability.move, index);
     for (const perk of fighter.perkDefs) if (perk.skill?.index === index) usedWith(fighter, perk.skill);
-    fighter.cooldowns[index] = ability.cooldown;
+    // (Longer for a karma card that says so.)
+    const longer = cardGains.get(fighter)?.cooldown;
+    fighter.cooldowns[index] = longer ? ability.cooldown + longer : ability.cooldown;
     fighter.mana -= ability.cost * SECTION;
     noting(ability.art ?? passiveArt(fighter), () => asFighter(fighter, () => fighter.part.used?.(index, ability)));
     uniqueCast(fighter);
@@ -815,6 +876,14 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
         if (attacking && doing.landed === 1) {
           fighter.mana = Math.min(MAX_MANA, fighter.mana + fighter.manaPerAttack);
           relics.get(fighter)?.basic();
+          // (And its Runes of Blasphemy's that come of its attack: ./blasphemy.ts.)
+          const runes = blasphemies.get(fighter);
+          if (runes) {
+            const was = attacking;
+            attacking = null;
+            runes.basic(targetOf(fighter));
+            attacking = was;
+          }
         }
         // (The enemy in question as it lands: the one it is fighting.)
         noting(fighter.abilities.find((one) => one.move === move)?.art ?? passiveArt(fighter), () => asFighter(fighter, () => {
@@ -930,7 +999,9 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       // Its perks that mark the boss as its blows land (Vital Detection, Experienced Fighter, Special Bullet): after this one.
       const marking = by.perkDefs.filter((perk) => perk.mark && (perk.mark.every === undefined || perkDue(by, perk.mark.name, perk.mark.every)));
       // (And more or less by the boss's own: Galgoria's more physical damage, Siegfried's more magic, Scalaxia's less magic; and its attack's blows, Siegfried's more.) Deathless: all of it, and the boss whole again once it would be beaten.
-      const struck = taken * (foe.part.taken?.[type] ?? 1) * (attacking === by ? (foe.part.attackTaken ?? 1) : 1);
+      const uncapped = taken * (foe.part.taken?.[type] ?? 1) * (attacking === by ? (foe.part.attackTaken ?? 1) : 1);
+      // (No more than its part lets a blow take: Luciteron's 1.)
+      const struck = foe.part.cap === undefined ? uncapped : Math.min(foe.part.cap, uncapped);
       const dealt = deathless && foe === boss ? struck : Math.min(foe.hp, struck);
       foe.hp -= dealt;
       if (deathless && foe === boss && foe.hp <= 0) foe.hp = foe.maxHp;
@@ -977,6 +1048,11 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       }
       // (Brought down already, by what came of the blow: a blow of its hero's own, from its part.)
       if (foe.away || result) return critical;
+      // (A boss with another after it, down to its share: the next comes in its place.)
+      if (foe === boss && def.next && foe.hp <= foe.maxHp * def.next.at) {
+        nextBoss();
+        return critical;
+      }
       if (foe.hp > 0) {
         // (A raid of more than one wave: the boss down to its share, it flies off.)
         if (foe === boss && wave === 1 && waves > 1 && def.waves && foe.hp <= foe.maxHp * def.waves.leaves) bossLeave();
@@ -986,6 +1062,31 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       if (has(by, 'bloodlust') > 0) by.stacks.bloodlust = Math.min(SKILL.bloodlust.most, by.stacks.bloodlust + 1);
       beaten(foe);
       return critical;
+  }
+
+  /**
+   * So much taken off an enemy as it is (`by`'s, not counted: a Rune of Blasphemy's reflection), whatever its defense: only no
+   * more than its part lets a blow take (Luciteron's 1), and nothing while it is untouched. As a blow's: the boss beaten, or on
+   * to the next, as it would be.
+   */
+  function harm(foe: Foe, by: Fighter, amount: number): void {
+    if (foe.hp <= 0 || foe.away || result || !(amount > 0) || foe.part.untouched?.()) return;
+    const capped = foe.part.cap === undefined ? amount : Math.min(foe.part.cap, amount);
+    const dealt = deathless && foe === boss ? capped : Math.min(foe.hp, capped);
+    foe.hp -= dealt;
+    if (deathless && foe === boss && foe.hp <= 0) foe.hp = foe.maxHp;
+    if (foe === boss && foe.hp <= 0 && as(boss, () => foe.part.spared?.() === true)) foe.hp = Math.max(foe.hp, 1);
+    by.dealt += dealt;
+    events.push({ kind: 'number', on: 'boss', foe: foe.index, amount: dealt, type: 'skill' });
+    if (foe === boss && def.next && foe.hp <= foe.maxHp * def.next.at) {
+      nextBoss();
+      return;
+    }
+    if (foe.hp > 0) {
+      if (foe === boss && wave === 1 && waves > 1 && def.waves && foe.hp <= foe.maxHp * def.waves.leaves) bossLeave();
+      return;
+    }
+    beaten(foe);
   }
 
   /**
@@ -1017,16 +1118,210 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
   function beaten(foe: Foe, blast = false): void {
     // (Once only: a hero's blow that brings it down from inside another's, as Yanne's and Lucikiel's do, already has.)
     if (foe.away || result) return;
+    // (A karma wave's boss is one of its monsters: off the field, the wave going on while others stand.)
+    if (foe === boss && karma) {
+      boss.part.beaten?.();
+      boss.away = true;
+      boss.stunned = 0;
+      going.clear();
+      warned = null;
+      events.push({ kind: 'foe-down', foe: 0 });
+      karmaDown(true);
+      return;
+    }
     if (foe === boss) {
       as(boss, () => sim.stun(1, { down: true }));
       boss.part.beaten?.();
       end('won');
       return;
     }
+    const counted = minions.get(foe)?.counted ?? true;
     foe.away = true;
     minions.delete(foe);
     events.push({ kind: 'foe-down', foe: foe.index, ...(blast && { blast: true }) });
     if (boss.away && wave < waves && standing().length === 0) nextWave();
+    if (karma) karmaDown(counted);
+  }
+
+  /**
+   * The boss on the field becomes `next` (another of the same fight's, or a karma wave's): whole, as its stage has it, nothing
+   * left on it, at nothing, and its part its own; the heroes look again for whom to fight. (The raid's time runs on.)
+   */
+  function become(next: BossDef): void {
+    def = next;
+    (boss as { def: Foe['def'] }).def = next;
+    boss.maxHp = next.stats.hp * scaleAt(next, stage, solo).hp;
+    boss.hp = boss.maxHp;
+    boss.away = false;
+    boss.stunned = 0;
+    boss.slowed = 0;
+    boss.slowRate = 1;
+    boss.statuses = [];
+    going.clear();
+    warned = null;
+    idle = 0;
+    aim = null;
+    was = false;
+    aims.clear();
+    boss.part = { lands: {} };
+    boss.part = as(boss, () => next.join?.(sim) as BossPart | undefined) ?? boss.part;
+  }
+
+  /** A fight against two bosses: the first is gone (its share of its health reached), and the next comes in its place, the fight's next wave. */
+  function nextBoss(): void {
+    const next = def.next?.def;
+    if (!next) return;
+    boss.part.beaten?.();
+    wave++;
+    events.push({ kind: 'boss-leave' });
+    events.push({ kind: 'wave', wave, of: waves });
+    become(next);
+    events.push({ kind: 'boss-return' });
+  }
+
+  /** A karma wave's monster beaten (one of its own: counted toward the gauge); none left standing nor to come, its wave cleared. */
+  function karmaDown(counted: boolean): void {
+    if (!karma) return;
+    if (counted) karmaKills++;
+    if (!boss.away || standing().length > 0 || karmaComing.length > 0) return;
+    karmaCleared++;
+    karmaKills = 0;
+    // (As many as it is fought for at most: the run is over.)
+    if (karmaCleared >= karma.most) {
+      end(karmaGauge() >= karma.least ? 'won' : 'lost');
+      return;
+    }
+    offer = dealCards();
+    offerLeft = karma.pick;
+    if (offer.length === 0) {
+      offer = null;
+      karmaNext();
+    } else events.push({ kind: 'karma-offer', cards: offer.map((i) => (karma.cards[i] as KarmaCard).id), left: offerLeft });
+  }
+
+  /** The Karma Gauge's points (PunishmentHelper.GetFlaskExp): the waves cleared, all their worth; the wave under way, its share for those of its own beaten. */
+  function karmaGauge(): number {
+    if (!karma) return 0;
+    const { first, exponent } = karma.gauge;
+    const each = karmaMonsters > 0 ? karmaKills / karmaMonsters : 0;
+    if (karmaCleared < 1) return first * each;
+    let total = first;
+    let worth = first;
+    for (let i = 2; i <= karmaCleared; i++) {
+      worth *= exponent(i);
+      total += worth;
+    }
+    worth *= exponent(karmaCleared + 1);
+    return total + worth * each;
+  }
+
+  /**
+   * Three cards (indices in the karma dungeon's cards) for the heroes to pick from, as King's Raid deals them: from groups with a
+   * card for a class among the heroes not taken as often as it may be, each group as likely as its GroupChance and three
+   * different ones, and in each a card as likely as its UniqueChance. (Fewer, should there be fewer groups.)
+   */
+  function dealCards(): number[] {
+    if (!karma) return [];
+    const classes = new Set(fighters.map((one) => one.def.class));
+    const open = karma.cards.flatMap((card, i) => (card.classes.some((one) => classes.has(one)) && (card.most === undefined || (takenCount.get(card.id) ?? 0) < card.most) ? [i] : []));
+    const groups: number[] = [];
+    for (const i of open) {
+      const group = (karma.cards[i] as KarmaCard).group;
+      if (!groups.includes(group)) groups.push(group);
+    }
+    const weighted = <T>(from: T[], weight: (one: T) => number): T | undefined => {
+      const total = from.reduce((sum, one) => sum + weight(one), 0);
+      let at = roll() * total;
+      for (const one of from) {
+        at -= weight(one);
+        if (at < 0) return one;
+      }
+      return from[from.length - 1];
+    };
+    const dealt: number[] = [];
+    while (dealt.length < 3 && groups.length > 0) {
+      const group = weighted(groups, (one) => (karma.cards[open.find((i) => (karma.cards[i] as KarmaCard).group === one) as number] as KarmaCard).groupChance) as number;
+      groups.splice(groups.indexOf(group), 1);
+      const card = weighted(
+        open.filter((i) => (karma.cards[i] as KarmaCard).group === group),
+        (i) => (karma.cards[i] as KarmaCard).chance,
+      );
+      if (card !== undefined) dealt.push(card);
+    }
+    return dealt;
+  }
+
+  /**
+   * A card of those offered is taken (by its place among them; `auto`: picked for the heroes): what it does, for every hero of its
+   * classes (ATK, DMG and mana recovery by a status of the cards' sum; max HP more or less, its health with it, by its max HP as it
+   * came in; its skills' cooldowns longer); then the next wave comes.
+   */
+  function pickCard(place: number, auto: boolean): void {
+    if (!karma || !offer) return;
+    const index = offer[Math.max(0, Math.min(offer.length - 1, place))] as number;
+    const card = karma.cards[index] as KarmaCard;
+    offer = null;
+    offerLeft = 0;
+    cardsTaken.push(card.id);
+    takenCount.set(card.id, (takenCount.get(card.id) ?? 0) + 1);
+    events.push({ kind: 'karma-pick', card: place, id: card.id, auto });
+    for (const on of fighters) {
+      if (!card.classes.includes(on.def.class)) continue;
+      const gains = cardGains.get(on) ?? { atk: 0, hp: 0, dmg: 0, mana: 0, cooldown: 0, base: on.stats.hp };
+      cardGains.set(on, gains);
+      gains.atk += card.does.atk ?? 0;
+      gains.dmg += card.does.dmg ?? 0;
+      gains.mana += card.does.mana ?? 0;
+      gains.cooldown += card.does.cooldown ?? 0;
+      if (card.does.hp) {
+        gains.hp += card.does.hp;
+        const ratio = on.stats.hp > 0 ? on.hp / on.stats.hp : 0;
+        on.stats.hp = Math.max(1, gains.base * (1 + gains.hp));
+        if (on.hp > 0) on.hp = Math.max(1, on.stats.hp * ratio);
+      }
+      put(on.statuses, { name: KARMA_BUFF.name, left: Infinity, atk: gains.atk, deals: 1 + gains.dmg, mana: Math.max(0, 1 + gains.mana), shown: KARMA_BUFF });
+    }
+    karmaNext();
+  }
+
+  /** On to a karma dungeon's next wave: its boss in the last's place, its own minions coming as they do. */
+  function karmaNext(): void {
+    if (!karma) return;
+    karmaWave++;
+    const next = karma.wave(karmaWave);
+    karmaBegin(next);
+    become(next.boss);
+  }
+
+  /** A karma wave begins (`next`): its own monsters (its boss and its minions), those to come, and what its boss calls up. */
+  function karmaBegin(next: KarmaWave): void {
+    karmaMonsters = 1 + next.minions.length;
+    karmaKills = 0;
+    karmaComing = next.minions.slice();
+    karmaFor = 0;
+    karmaSummon = next.summon;
+    karmaSummonIn = next.summon?.every ?? 0;
+    events.push({ kind: 'karma-wave', wave: karmaWave });
+  }
+
+  /** A karma wave's time passes: those of its minions due come; its boss, standing, calls up more every so often. */
+  function karmaTick(dt: number): void {
+    if (!karma || offer) return;
+    karmaFor += dt;
+    const due = karmaComing.filter((one) => one.after <= karmaFor + 1e-9);
+    if (due.length > 0) {
+      karmaComing = karmaComing.filter((one) => !due.includes(one));
+      for (const { minion } of due) enter(minion, BOSS_X + minion.x, minion.z);
+      aims.clear();
+    }
+    if (karmaSummon && !boss.away && boss.hp > 0) {
+      karmaSummonIn -= dt;
+      if (karmaSummonIn <= 0) {
+        karmaSummonIn += karmaSummon.every;
+        for (const minion of karmaSummon.minions) enter(minion, BOSS_X + minion.x, minion.z, false);
+        aims.clear();
+      }
+    }
   }
 
   /** The boss flies off the field (the first wave over): the heroes stand while it does (nothing else happens meanwhile), then move on. */
@@ -1050,14 +1345,16 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
   }
 
   /** A minion comes onto the field (one of a wave's, or one the boss calls up: Fight.summon), where it stands, as strong as the dragons' are scaled (minionOf). */
-  function enter(one: WaveMinion, x: number, z: number): void {
-    const made = minionOf(one, solo, def.waves?.party);
+  function enter(one: WaveMinion, x: number, z: number, counted = true): void {
+    // (One with King's Raid's own numbers as they are: Divine Punishment's.)
+    const own = 'own' in one && (one as OwnMinion).own === true ? (one as OwnMinion) : null;
+    const made = own ? ownMinion(own) : minionOf(one, solo, def.waves?.party);
     const kind = MINIONS[one.kind];
     const foe: Foe = {
       index: foes.length,
       kind: one.kind,
       def: { id: one.kind, name: kind.name, stats: made.stats },
-      part: { lands: {}, ...(kind.steady && { steady: true }) },
+      part: { lands: {}, ...(kind.steady && { steady: true }), ...(own?.taken !== undefined && { taken: { physical: own.taken, magical: own.taken } }) },
       hp: made.hp,
       maxHp: made.hp,
       stunned: 0,
@@ -1069,7 +1366,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       away: false,
     };
     foes.push(foe);
-    minions.set(foe, { def: kind, atk: made.atk, doing: null, rest: 0, skill: kind.skill?.first ?? 0, life: 0, fused: false });
+    minions.set(foe, { def: kind, atk: made.atk, doing: null, rest: 0, skill: kind.skill?.first ?? 0, life: 0, fused: false, counted });
     events.push({ kind: 'foe-enter', foe: foe.index, minion: one.kind, x, z });
   }
 
@@ -1282,7 +1579,10 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       // (The more for its Recovery: its gear's, and what the sets on the field give every ally.)
       const given = amount * byAttack(by) * healed(by) * healing([...fighter.statuses, ...party], 1 + fighter.recovery + allied(fighter, 'recovery')) * (boss.part.healing?.() ?? 1);
       // (Its health goes up only to its max, but the whole heal is counted and shown: its giver's HPS isn't less for an ally at full.)
+      const before = fighter.hp;
       fighter.hp = Math.min(fighter.stats.hp, fighter.hp + given);
+      // (What made up what it had lost, for its Runes of Blasphemy: ./blasphemy.ts.)
+      if (fighter.hp > before) blasphemies.get(fighter)?.healed(fighter.hp - before);
       const giver = by ?? from;
       if (giver) giver.healed += given;
       if (given > 0) events.push({ kind: 'number', on: fighter.index, amount: given, type: 'heal' });
@@ -1391,6 +1691,12 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
         target.doing = null;
         target.reserved = null;
       }
+      // (Its Runes of Blasphemy's that come of a blow, and of its fall: ./blasphemy.ts.)
+      const runes = blasphemies.get(target);
+      if (runes) {
+        if (dealt > 0) runes.hurt(dealt);
+        if (target.hp <= 0) runes.died();
+      }
       // (The more for its gear's mana on taking damage.)
       target.mana = Math.min(MAX_MANA, target.mana + (MANA_PER_HP_LOST * (1 + target.manaDamage) * lost) / target.stats.hp);
       if (dealt > 0) for (const fighter of fighters) fighter.part.hurt?.(target);
@@ -1448,7 +1754,8 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       const foe = current();
       if (foe.away || foe.hp <= 0) return;
       // (A hero's: the shorter for the boss's CC resist, less what the hero's accuracy sees past.)
-      const held = seconds * (by ? (by.def.passive?.control ?? 1) * by.controlTimes * (1 - share(curved(CURVE.resist, Math.max(0, foe.def.stats.resist + resisting(foe.statuses))) - curved(CURVE.accuracy, by.accuracy + auras.accuracy + accurate(by.statuses) + accurate(party)))) : 1);
+      // (And the longer for what is on it, or every hero, that has its CC last longer: a Full Shard's.)
+      const held = seconds * (by ? (by.def.passive?.control ?? 1) * by.controlTimes * controlling([...by.statuses, ...party]) * (1 - share(curved(CURVE.resist, Math.max(0, foe.def.stats.resist + resisting(foe.statuses))) - curved(CURVE.accuracy, by.accuracy + auras.accuracy + accurate(by.statuses) + accurate(party)))) : 1);
       // (A boss with a CC gauge takes it off that instead: only once it is empty is it held, knocked down. Not as it is beaten.)
       // (A minion nothing holds shrugs it off; another is held, what it was doing cut short.)
       if (foe !== boss) {
@@ -1575,8 +1882,17 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
         for (const left of fighter.cooldowns) mix(left);
       }
       for (const n of random.state()) mix(n);
+      // (A karma dungeon's: its waves, the gauge, and the cards offered and taken.)
+      if (karma) {
+        mix(karmaWave);
+        mix(karmaGauge());
+        mix(offer ? offer.length : -1);
+        mix(offerLeft);
+        mix(cardsTaken.length);
+      }
       return hash >>> 0;
     },
+    karma: () => (karma ? { wave: karmaWave, cleared: karmaCleared, gauge: karmaGauge(), offer: offer ? offer.map((i) => (karma.cards[i] as KarmaCard).id) : null, left: offer ? offerLeft : 0, taken: [...cardsTaken] } : null),
     step() {
       // (Over: no more steps.)
       if (result) return;
@@ -1604,6 +1920,15 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       tick++;
       lineUp(tick / marching);
       if (tick === marching) for (const on of field) on.doing = null;
+      if (tick % SECOND === 0) sums.push(sim.checksum());
+      return;
+    }
+    // A karma dungeon's cards offered: the fight stands still while the heroes pick (or, their time up, one is picked for them:
+    // the first or the second, at random, as King's Raid's).
+    if (offer) {
+      offerLeft = Math.max(0, offerLeft - TICK);
+      if (offerLeft <= 0) pickCard(Math.floor(roll() * 2), true);
+      tick++;
       if (tick % SECOND === 0) sums.push(sim.checksum());
       return;
     }
@@ -1640,6 +1965,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       perkTick(fighter, dt);
       setTick(fighter);
       relics.get(fighter)?.tick(dt);
+      blasphemies.get(fighter)?.tick(dt);
       noting(passiveArt(fighter), () => asFighter(fighter, () => fighter.part.tick?.(dt)));
       // Hope's wizard's: the ally who has dealt the most, once its time has come, deals more for good.
       const top = setEffect(fighter).top;
@@ -1719,6 +2045,7 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     if (result) return;
     minionsAdvance(dt);
     if (result) return;
+    if (karma) karmaTick(dt);
     // Each hero's move goes on (quickened by its attack speed, its own skills and what is on it), and each over to its spot.
     const reform = Math.min(1, dt * REFORM);
     for (const on of field) {
@@ -1733,8 +2060,10 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       on.z += (z - on.z) * reform;
     }
 
-    // Every hero on the field down, or wiped by the boss's rage: lost.
-    if (!deathless && ((field.length > 0 && field.every((on) => on.hp <= 0)) || clock >= raidTime + RAGE_WIPE)) end('lost');
+    // Every hero on the field down, or wiped by the boss's rage: lost (a karma dungeon's, won if its gauge has filled a shard). A
+    // boss lasted out (Luciteron), its time up with a hero standing: won.
+    if (!deathless && ((field.length > 0 && field.every((on) => on.hp <= 0)) || clock >= raidTime + rageTime)) end(karma && karmaGauge() >= karma.least ? 'won' : 'lost');
+    else if (!deathless && dungeon.outlast && clock >= raidTime) end('won');
     tick++;
     if (tick % SECOND === 0) sums.push(sim.checksum());
   }
@@ -1763,6 +2092,10 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
       }
       case 'leave':
         if (raid) end('lost');
+        return;
+      // (A karma dungeon's card, while three are offered.)
+      case 'card':
+        if (offer && Number.isInteger(input.card) && input.card >= 0 && input.card < offer.length) pickCard(input.card, false);
         return;
     }
     if (raid) return;
@@ -1830,6 +2163,30 @@ export function makeSim({ boss: def, heroes, seed, stage: firstStage, raid, solo
     if (hooks) relics.set(fighter, hooks);
   }
   for (const hooks of relics.values()) hooks.begin();
+  // Each hero's Runes of Blasphemy (./blasphemy.ts): what they do as the fight goes.
+  for (const fighter of fighters) {
+    const uses = heroes[fighter.index]?.blasphemy;
+    if (!uses || uses.length === 0) continue;
+    const hooks = blasphemyHooks(fighter, uses, {
+      roll,
+      allies: () => field.filter((on) => on.hp > 0 && !away(on.statuses)),
+      foes: standing,
+      aim: (by) => targetOf(by),
+      on: (foe, run) => void as(foe, run),
+      hit: (by, amount) => void sim.hit(by, amount, false),
+      harm,
+      stun: (by, seconds, down) => sim.stun(seconds, { down, by }),
+      heal: (on, amount, by, from) => void sim.heal(on, amount, by, from),
+      shield: (on, amount, seconds, by) => sim.shield(on, amount, seconds, by),
+      dispel,
+    });
+    if (hooks) blasphemies.set(fighter, hooks);
+  }
+  // A karma dungeon's first wave: its own monsters, those there from the start on the field.
+  if (karma) {
+    karmaBegin(karma.wave(1));
+    karmaTick(0);
+  }
   // A set's that comes round every so often (Hope's mechanic's) comes first after that long, as King's Raid's timers do.
   for (const fighter of fighters) {
     const tick = setEffect(fighter).tick;

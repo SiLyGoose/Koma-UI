@@ -9,7 +9,14 @@ import { stateArt, type Buff } from '../../shown';
  * (metres: 0 its target alone, Infinity every hero); and what it leaves on whoever it lands on.
  */
 
-export type MinionKind = 'hatchling-fire' | 'hatchling-ice' | 'hatchling-poison' | 'hatchling-black' | 'ice-pillar' | 'wyrm' | 'wyrmling' | 'slime';
+export type MinionKind = 'hatchling-fire' | 'hatchling-ice' | 'hatchling-poison' | 'hatchling-black' | 'ice-pillar' | 'wyrm' | 'wyrmling' | 'slime' | KarmaKind;
+
+/**
+ * Divine Punishment's karma dungeons' monsters besides their bosses (../divine/karma.ts): the Apocalypsion group's Draconians
+ * (Kauron, Moira, Theakel, Reuss: King's Raid's 61001 to 61004) and the Solenis group's golems (Guardian, Destroyer, Berserk,
+ * Mountain: 61006 to 61009).
+ */
+export type KarmaKind = 'kauron' | 'moira' | 'theakel' | 'reuss' | 'golem-guardian' | 'golem-destroyer' | 'golem-berserk' | 'golem-mountain';
 
 /** What a blow leaves on a hero: frozen (can do nothing, as knocked down), its attacks slowed, its damage lowered (stacking, for the rest of the fight). */
 export type Leaves = { freeze: number } | { slow: Buff & { pace: number; lasts: number } } | { weaken: Buff & { each: number; most: number } };
@@ -62,7 +69,34 @@ const SNOW = { slow: { name: 'Dragon Snow', about: 'Attack speed down.', icon: '
 /** The poison wyrm's venom: 1% less damage for every blow of it, up to 100, for the rest of the fight (the playtest's DragonAttackDown). */
 const VENOM = { weaken: { name: 'Wyrm Venom', about: 'Deals less damage for the rest of the fight.', icon: '🐍', art: stateArt('AttackDown'), harmful: true, each: 0.01, most: 100 } } as const;
 
+/**
+ * A karma monster, as a stand-in (King's Raid's kits: KR-extracted/briefs/divine-punishment/gen/kit-karma-*.md): its plain
+ * attack, `share` of its ATK on the hero it goes for within `range`, and its skill every `cooldown` seconds (`first` in), `skill`
+ * of its ATK on that hero and as far about it as `reach`, knocking down (`freeze`) as long as its says. Their ops' blows that go
+ * by their target's own M.ATK ($ByTargetMagicalAttack) are King's Raid's plain shares here (a first guess).
+ */
+const karmaMonster = (name: string, deals: DamageType, share: number, range: number, skill: { cooldown: number; first: number; share: number; reach: number; freeze?: number }): MinionDef => ({
+  name,
+  deals,
+  size: 0.9,
+  attack: { length: 2.4, lands: [0.9], share, reach: 0, range },
+  rest: 0.2,
+  skill: { cooldown: skill.cooldown, first: skill.first, length: 3, lands: [1.5], share: skill.share, reach: skill.reach, range, ...(skill.freeze && { leaves: { freeze: skill.freeze } }) },
+});
+
 export const MINIONS: Readonly<Record<MinionKind, MinionDef>> = {
+  // The karma monsters: Kauron (a lance, 300%; its fire shield and reflection not here), Moira (a mage from afar, 300%; every 6
+  // seconds 200% and a stun of 1.5 seconds, a first guess), Theakel (a spellblade, 320%; every 10 seconds 200%), Reuss (a
+  // warrior, 300%; every 12 seconds 100% and a stun); the golems: Guardian (280%; its shield not here), Destroyer (280%; every
+  // 13 seconds 200%), Berserk (270%; every 7 seconds 100%), Mountain (50%; every second 200% and knocked down 0.5 seconds).
+  kauron: karmaMonster('Kauron', 'magical', 3, 2, { cooldown: 12, first: 12, share: 1.5, reach: 0 }),
+  moira: karmaMonster('Moira', 'magical', 3, 12, { cooldown: 6, first: 6, share: 2, reach: 0, freeze: 1.5 }),
+  theakel: karmaMonster('Theakel', 'physical', 3.2, 2, { cooldown: 10, first: 10, share: 2, reach: 0 }),
+  reuss: karmaMonster('Reuss', 'physical', 3, 2, { cooldown: 12, first: 12, share: 1, reach: 2, freeze: 1.5 }),
+  'golem-guardian': karmaMonster('Guardian Golem', 'physical', 2.8, 2, { cooldown: 10, first: 5, share: 0, reach: 0 }),
+  'golem-destroyer': karmaMonster('Destroyer Golem', 'physical', 2.8, 2, { cooldown: 13, first: 9, share: 2, reach: 0 }),
+  'golem-berserk': karmaMonster('Berserk Golem', 'physical', 2.7, 2, { cooldown: 7, first: 8, share: 1, reach: 0 }),
+  'golem-mountain': karmaMonster('Mountain Golem', 'physical', 0.5, 2, { cooldown: 1, first: 1, share: 2, reach: 0, freeze: 0.5 }),
   'hatchling-fire': hatchling('Fire Hatchling'),
   'hatchling-ice': hatchling('Ice Hatchling', SNOW),
   'hatchling-poison': hatchling('Poison Hatchling'),
