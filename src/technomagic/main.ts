@@ -11,7 +11,8 @@ import { artPicture } from './art';
 import { askBatch, batchApi, showBatch } from './background/background';
 import { built } from '../shared/built';
 import { battlePicture, iconPicture, portraitPicture, type SkinAssets } from './assets';
-import { bossNamed, DRAGONS, TM_BOSSES } from './sim/bosses';
+import { bossNamed, DIVINE as DIVINE_BOSSES, DRAGONS, TM_BOSSES } from './sim/bosses';
+import { divineBoss, divineItems, divineNamed } from './divine';
 import { bossIn, stagesOf, type BossDef } from './sim/bosses/boss';
 import { BOSS_VIEWS } from './bosses/models';
 import { makeStage } from './engine/stage';
@@ -134,16 +135,28 @@ const NO_FIGHT_WAIT = 5;
 /** Auto Repeat: how long a win's result is seen before this player is in for the next fight. */
 const REPEAT_WAIT = 8;
 
-/** Which raid this page is (its #app's data-raid): the TechnoMagic Raid's, or the Dragon Raid's; its name; and its bosses. */
-const DRAGON = (document.getElementById('app') as HTMLElement).dataset.raid === 'dragon';
-const RAID_NAME = DRAGON ? 'Dragon Raid' : 'TechnoMagic Raid';
-const RAID_BOSSES: readonly BossDef[] = DRAGON ? DRAGONS : TM_BOSSES;
+/**
+ * Which raid this page is (its #app's data-raid): the TechnoMagic Raid's, the Dragon Raid's, or the Divine Punishment Raid's
+ * (games/divine/: fought alone, at the Infinite level its opening was unlocked at, entered from its map, ../divine/, which is
+ * where its way out goes); its name; its bosses; and where its way out goes.
+ */
+const RAID = (document.getElementById('app') as HTMLElement).dataset.raid;
+const DRAGON = RAID === 'dragon';
+const DIVINE_RAID = RAID === 'divine';
+const RAID_NAME = DRAGON ? 'Dragon Raid' : DIVINE_RAID ? 'Divine Punishment Raid' : 'TechnoMagic Raid';
+const RAID_BOSSES: readonly BossDef[] = DRAGON ? DRAGONS : DIVINE_RAID ? DIVINE_BOSSES : TM_BOSSES;
+const HOME = DIVINE_RAID ? '/divine/' : '/';
+/** Where the way out goes from a fight against `id`: the Divine Punishment Raid's, back to its group's map; else HOME. */
+const homeOf = (id: string): string => {
+  const group = DIVINE_RAID ? divineNamed(id)?.group : undefined;
+  return group ? `/divine/${group}/boss/` : HOME;
+};
 
 // A phone held upright: the raid is played on its side, so over everything, the words to turn it and the button that turns it.
 landscapeCover(document.getElementById('app') as HTMLElement, {
   title: 'Turn your phone sideways',
   text: `The ${RAID_NAME} is played in landscape.`,
-  back: { go: () => navigate('/', { back: true }) },
+  back: { go: () => navigate(HOME, { back: true }) },
 });
 
 /** The dragon last played here (this browser's), fought when the address names none. */
@@ -679,9 +692,14 @@ async function start(): Promise<void> {
   function room(address: string): void {
     actionsRow.hidden = true;
     // The boss's effects, sounds and music, and every fight's signs, read while everyone gets ready (the heroes' as they're picked: read()).
-    kr.read([...bossEffects(bossView!.look.assets), ...SIGN_EFFECTS]);
+    // (A fight against two, Divine Punishment's Tersio then Apocalypsion: the second's too, so she comes in with nothing to wait for.)
+    const after = def.next ? BOSS_VIEWS[def.next.def.id] : undefined;
+    kr.read([...bossEffects(bossView!.look.assets), ...(after ? bossEffects(after.look.assets) : []), ...SIGN_EFFECTS]);
     readSounds({ boss: bossView!.look.assets });
-    hint.textContent = `Each player uses their own heroes’ skills from their cards (or Auto, top left); everyone’s heroes are on the field (single player, the Sub Team fights on Auto, with no cards). Heroes that fall stay down: beat ${def.name} before its rage wipes the party.${DRAGON ? ' Your heroes’ stuns wear its CC Gauge down: empty, it is knocked down, and takes more damage.' : ''}`;
+    if (after) readSounds({ boss: after.look.assets });
+    hint.textContent = DIVINE_RAID
+      ? `Use your Main Team’s skills from their cards (or Auto, top left); the Sub Team fights on Auto, with no cards. Heroes that fall stay down: beat ${def.name} before the time runs out.`
+      : `Each player uses their own heroes’ skills from their cards (or Auto, top left); everyone’s heroes are on the field (single player, the Sub Team fights on Auto, with no cards). Heroes that fall stay down: beat ${def.name} before its rage wipes the party.${DRAGON ? ' Your heroes’ stuns wear its CC Gauge down: empty, it is knocked down, and takes more damage.' : ''}`;
     let socket: GameSocket<ClientMessage> | null = null;
     let state: RoomState | null = null;
     let lock: Lock | null = null;
@@ -795,6 +813,7 @@ async function start(): Promise<void> {
         socket?.finish();
         goToBoss(id, 'new');
       },
+      shard: (shard) => send({ t: 'divine', shard }),
     }, def);
     const chat = chatBox({ mount: prep.chat, send, you: () => state?.you ?? null });
     // Manage: the heroes page over the room, not the site's (which would take them out of it). A button in place of
@@ -815,7 +834,7 @@ async function start(): Promise<void> {
     /** They left the fight going on (its result, once it ends, isn't shown them); and (single player) once it is over, back to getting ready. */
     let left = false;
     let backAfter = false;
-    const games = (): void => navigate('/', { back: true });
+    const games = (): void => navigate(homeOf(def.id), { back: true });
     const leaving = leavePopup(document.getElementById('app') as HTMLElement, () => {
       if (state?.phase !== 'fight') {
         games();
@@ -837,7 +856,8 @@ async function start(): Promise<void> {
     // Auto Repeat (ticked on getting ready): a boss beaten, in for the next fight straight from the result (Run Again,
     // REPEAT_WAIT after it is shown). Over the fight and its result while it is on, Stop Repeat Battle turns it off; not
     // over a defeat, which doesn't go again (Run Again is pressed), so the button doesn't read as it carrying on.
-    let repeat = store.get(localStorage, REPEAT_KEY) === 'on';
+    // (Not the Divine Punishment Raid's: each of its fights is one of an opening, its side bosses once each.)
+    let repeat = !DIVINE_RAID && store.get(localStorage, REPEAT_KEY) === 'on';
     let repeating: number | undefined;
     function setRepeat(on: boolean): void {
       repeat = on;
@@ -942,7 +962,11 @@ async function start(): Promise<void> {
       const bodies = await bodiesFor(start.heroes);
       if (lock !== mine) return;
       if (!bodies) return void showMessage('The models are missing', 'A hero in this fight isn’t on this computer.');
-      const sim = makeSim({ boss: bossIn(def, start.mode), heroes: start.heroes.map((hero, i) => ({ def: (bodies[i] as Entrant).def, skin: hero.skin, gear: hero.gear, set: hero.set, uw: hero.uw ?? null, ut: hero.ut ?? null, artifact: hero.artifact ?? null, skills: hero.skills, perks: hero.perks, sub: hero.sub === true })), seed: start.seed, stage: start.stage, raid: true, solo: start.solo });
+      // (A Divine Punishment fight as the bot's run has it: its final boss as the side bosses cleared leave it, the Full Shards
+      // brought, the heroes' Runes of Blasphemy; fought alone.)
+      const divine = DIVINE_RAID ? divineNamed(def.id) : undefined;
+      const fought = divine ? divineBoss(divine, start.divine) : bossIn(def, start.mode);
+      const sim = makeSim({ boss: fought, heroes: start.heroes.map((hero, i) => ({ def: (bodies[i] as Entrant).def, skin: hero.skin, gear: hero.gear, set: hero.set, uw: hero.uw ?? null, ut: hero.ut ?? null, artifact: hero.artifact ?? null, skills: hero.skills, perks: hero.perks, sub: hero.sub === true, blasphemy: hero.blasphemy ?? [] })), seed: start.seed, stage: start.stage, raid: true, solo: start.solo || divine !== undefined });
       const you = state?.you;
       // (Not the Sub Team's: they fight on Auto, with no cards.)
       const ours = (i: number): boolean => start.heroes[i]?.owner === you && start.heroes[i]?.sub !== true;
@@ -1106,13 +1130,18 @@ async function start(): Promise<void> {
       const crystals = over.crystals?.[you];
       const reports = over.reports?.[you] ?? 0;
       const others = Object.entries(over.drops).flatMap(([who, drops]) => (who !== you && drops.length > 0 ? [{ who: name(who), drops }] : []));
+      const items = divineItems(over.divine?.[you]);
+      const closed = over.divine?.[you]?.closed === true;
+      const best = over.divine?.[you]?.best;
       const text =
         over.result === 'won'
-          ? mine.length > 0 || paid > 0 || gems > 0 || stones !== undefined || crystals !== undefined || reports > 0
-            ? DRAGON
-              ? `Found in ${def.name}’s lair:`
-              : 'Found in the swamp:'
-            : 'Nothing was found this time.'
+          ? DIVINE_RAID
+            ? `${def.name} is defeated.${closed ? ` The opening is closed${best ? `: your best is Lv. ${best.toLocaleString('en-US')}` : ''}.` : ''}${items.length > 0 || paid > 0 ? ' You got:' : ''}`
+            : mine.length > 0 || paid > 0 || gems > 0 || stones !== undefined || crystals !== undefined || reports > 0
+              ? DRAGON
+                ? `Found in ${def.name}’s lair:`
+                : 'Found in the swamp:'
+              : 'Nothing was found this time.'
           : 'The party fell. Gear your heroes up on the Heroes page and try again.';
       results.show({
         title: over.result === 'won' ? 'Victory' : 'Defeat',
@@ -1123,8 +1152,9 @@ async function start(): Promise<void> {
         ...(stones && { stones }),
         ...(crystals && { crystals }),
         ...(reports > 0 && { reports }),
+        ...(items.length > 0 && { items }),
         firstClears: over.firstClears?.[you] ?? 0,
-        raid: DRAGON ? 'dragon' : 'technomagic',
+        raid: DRAGON ? 'dragon' : DIVINE_RAID ? 'divine' : 'technomagic',
         mine,
         others,
         stats: statsOf(game, (i) => {
@@ -1148,6 +1178,11 @@ async function start(): Promise<void> {
      * is, straight from here (with others, how many are beside it); in, they wait for the rest, and the host can force it.
      */
     function overActions(): ResultAction[] {
+      // The Divine Punishment Raid's: back to its map (a boss beaten is beaten for the opening); lost, again or Raid Prep first.
+      if (DIVINE_RAID) {
+        const map: ResultAction = { label: 'Raid Map', icon: 'map', main: shownOver?.result === 'won', run: () => leave() };
+        return shownOver?.result === 'won' ? [map] : [{ label: 'Run Again', icon: 'again', main: true, run: () => send({ t: 'again' }) }, { label: 'Raid Prep', icon: 'prep', run: () => send({ t: 'back' }) }, map];
+      }
       const players = state?.players ?? [];
       const me = players.find((player) => player.id === state?.you);
       const note = players.length > 1 ? `${players.filter((player) => player.ready).length}/${players.length} Ready` : repeat && shownOver?.result === 'won' ? 'Auto Repeat' : undefined;

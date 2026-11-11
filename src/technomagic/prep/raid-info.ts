@@ -3,7 +3,7 @@ import { bossSkills } from '../../shared/boss-skills';
 import { bossRewards, dragonTierAt } from '../../shared/raid-rewards/boss-gear';
 import { raidRewards } from '../../shared/raid-rewards/raid-rewards';
 import { recommendedCard } from '../../shared/recommended-card/recommended-card';
-import { DRAGON_LIST, raidCard, TM_LIST } from '../../shared/raids';
+import { DIVINE_CARDS, DIVINE_PICKS, DRAGON_LIST, raidCard, TM_LIST } from '../../shared/raids';
 import { RECOMMENDED, recommendedIn } from '../../databank/recommended';
 import { el } from '../hud/dom';
 import { BOSSES, isDragon } from '../sim/bosses';
@@ -117,6 +117,9 @@ function skillRows(boss: BossDef): HTMLElement {
 export function raidInfo(boss: BossDef): RaidInfo {
   const card = raidCard(boss.id);
   const dragon = isDragon(boss.id);
+  // (A Divine Punishment dragon: its Dragon Raid one's portrait and recommended heroes, King's Raid's own for both.)
+  const divine = DIVINE_CARDS.find((one) => one.id === boss.id);
+  const look = divine?.look ?? boss.id;
 
   const root = el('div', 'ri');
   root.hidden = true;
@@ -140,7 +143,7 @@ export function raidInfo(boss: BossDef): RaidInfo {
   // The boss: its portrait in the monster frame, its name over it, and the mode and stage above that.
   const left = el('div', 'ri-boss');
   const view = el('div', 'ri-boss-view');
-  const art = `/kr/bosses/${boss.id}/portrait.webp`;
+  const art = `/kr/bosses/${look}/portrait.webp`;
   view.style.setProperty('--art', `url('${art}')`);
   const picture = el('img', 'ri-boss-art');
   picture.src = art;
@@ -229,7 +232,7 @@ export function raidInfo(boss: BossDef): RaidInfo {
       if (before instanceof HTMLElement && before.isConnected) before.focus();
     },
     show(mode, at) {
-      prefix.textContent = at === null ? '' : boss.normal ? `${mode === 'normal' ? 'Normal' : 'Hard'} · Stage ${at}` : `Stage ${at}`;
+      prefix.textContent = at === null ? '' : divine ? `Lv. ${at}` : boss.normal ? `${mode === 'normal' ? 'Normal' : 'Hard'} · Stage ${at}` : `Stage ${at}`;
       const dropping = dragonTierAt(at ?? 1, mode === 'normal');
       if (rewards.length > 0 && dropping !== tier) {
         tier = dropping;
@@ -237,8 +240,9 @@ export function raidInfo(boss: BossDef): RaidInfo {
       }
       if (mode === shown) return;
       shown = mode;
-      const picks = recommendedIn(boss.id, dragon && mode === 'normal' ? 'normal' : 'hard');
-      const why = RECOMMENDED[boss.id]?.picks ?? {};
+      const own = DIVINE_PICKS[boss.id];
+      const picks = own ? { heroes: [...own], kr: own } : recommendedIn(look, dragon && mode === 'normal' ? 'normal' : 'hard');
+      const why = RECOMMENDED[look]?.picks ?? {};
       heroesBody.replaceChildren(...picks.heroes.flatMap((id) => recommendedCard(id, picks.kr.includes(id), why[id])));
       heroes.hidden = picks.heroes.length === 0;
       if (!root.hidden) fit();

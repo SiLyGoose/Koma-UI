@@ -34,7 +34,7 @@ export type UpcomingCard = Pick<RaidCard, 'id' | 'name' | 'title'> & { banner?: 
 
 /** A raid's list: the game it opens, its line under the heading, the line under each boss's rewards, its bosses, and those to come. */
 export interface RaidList {
-  game: 'technomagic' | 'dragon' | 'divine';
+  game: 'technomagic' | 'dragon';
   tip: string;
   rewardNote: string;
   cards: readonly RaidCard[];
@@ -128,33 +128,46 @@ export const DRAGON_LIST: RaidList = {
 };
 
 /**
- * King's Raid's Divine Punishment Raid (the sim's sim/bosses/divine/, the bot's /api/divine): all of it still to come, each
- * fight by the sim's id. Apocalypsion's group (its four dragons, then Tersio and Apocalypsion, and Inpele's Karma Dungeon)
- * and Solenis' (Luciteron and Altigma, then Solenis, and Vhegort's Karma Dungeon). The dragons show their Dragon Raid banners;
- * Apocalypsion's and Solenis' are King's Raid's own lobby art (NguiAtlas_UI_PunishmentRaid_PunishmentRaidImage01), the
- * others rendered from their models.
+ * King's Raid's Divine Punishment Raid (the sim's sim/bosses/divine/, the bot's /api/divine), as its own page has it
+ * (../divine/: King's Raid's screens, not a Raid List): Apocalypsion's group for now, her four dragons (Divine Punishment's
+ * own, 60003 to 60006, on their Dragon Raid bodies) and her own dungeon (Tersio, then Apocalypsion), each by the sim's id. A
+ * dragon's tactic is King's Raid's for it (its PunishmentRaid row's HARDRAID_INFO_TIP_*: the Hard Dragon Raid's words); hers
+ * has none. `look`: the boss whose banner, portrait and recommended heroes it has (a dragon's Dragon Raid one).
  */
-export const DIVINE_LIST: RaidList = {
-  game: 'divine',
-  tip: 'King’s Raid’s last raid: Apocalypsion and Solenis, each behind the bosses of its group, and their endless Karma Dungeons. Coming soon.',
-  rewardNote: '',
-  cards: [],
-  upcoming: [
-    { id: 'dp-temeraire', name: 'Temeraire', title: 'Apocalypsion Dungeon', banner: 'temeraire' },
-    { id: 'dp-scalaxia', name: 'Scalaxia', title: 'Apocalypsion Dungeon', banner: 'scalaxia' },
-    { id: 'dp-zyrrkinoth', name: 'Zyrrkinoth', title: 'Apocalypsion Dungeon', banner: 'zyrrkinoth' },
-    { id: 'dp-armarta', name: 'Armarta', title: 'Apocalypsion Dungeon', banner: 'armarta' },
-    { id: 'apocalypsion', name: 'Apocalypsion', title: 'Apocalypsion Dungeon' },
-    { id: 'karma-apocalypsion', name: 'Inpele', title: 'Karma Dungeon' },
-    { id: 'luciteron', name: 'Luciteron', title: 'Solenis Dungeon' },
-    { id: 'altigma', name: 'Altigma', title: 'Solenis Dungeon' },
-    { id: 'solenis', name: 'Solenis', title: 'Solenis Dungeon' },
-    { id: 'karma-solenis', name: 'Vhegort', title: 'Karma Dungeon' },
-  ],
+export interface DivineCard extends RaidCard {
+  kind: 'side' | 'final';
+  look: string;
+}
+
+const dragonCard = (id: string, name: string, title: string, about: string): DivineCard => {
+  const of = DRAGON_LIST.cards.find((card) => card.id === id) as RaidCard;
+  return { ...of, id: `dp-${id}`, name, title, about, kind: 'side', look: id, rewards: [] };
 };
 
+export const DIVINE_CARDS: readonly DivineCard[] = [
+  dragonCard('temeraire', 'Temeraire', 'Guardian of Fire', 'Its blows magical, it blocks physical damage. While it lives, Apocalypsion deals 50% more DMG, with P.Block and P.Tough.'),
+  dragonCard('scalaxia', 'Scalaxia', 'Guardian of Ice', 'Its blows magical, each leaving Frost. While it lives, Apocalypsion has 50% more HP, with M.Block, M.Block DEF and M.Tough.'),
+  dragonCard('zyrrkinoth', 'Zyrrkinoth', 'Guardian of Poison', 'Its blows physical, each leaving Poison. While it lives, Apocalypsion has 50% more HP.'),
+  dragonCard('armarta', 'Armarta', 'Guardian of Darkness', 'Its blows physical, its Dark Flames burning. While it lives, Apocalypsion deals 50% more DMG.'),
+  {
+    id: 'apocalypsion',
+    name: 'Apocalypsion',
+    title: 'Calamity of Destruction',
+    lair: 'the ruins of Ashen Nox',
+    about:
+      'First Tersio, the Deranged Dragon, then, as he falls, Apocalypsion herself in his place, the time running on. All their blows are magical, nothing holds them, and every dragon left alive lends them its strength.',
+    tactic: '',
+    rewards: [],
+    kind: 'final',
+    look: 'apocalypsion',
+  },
+];
+
+/** King's Raid's recommended heroes for the Apocalypsion dungeon (PunishmentRaidTable 1005's: Yanne, Laias, Isaiah), where the databank's picks have none. */
+export const DIVINE_PICKS: Readonly<Record<string, readonly string[]>> = { apocalypsion: ['yanne', 'laias', 'isaiah'] };
+
 /** A boss's card, whichever raid it is in (none: no such boss). */
-export const raidCard = (id: string): RaidCard | undefined => [...TM_LIST.cards, ...DRAGON_LIST.cards].find((card) => card.id === id);
+export const raidCard = (id: string): RaidCard | undefined => [...TM_LIST.cards, ...DRAGON_LIST.cards, ...DIVINE_CARDS].find((card) => card.id === id);
 
 /** A boss's banner for the Raid List: its head, cut out (public/technomagic/banners/, rendered from its model). */
 export const raidBanner = (id: string): string => `/technomagic/banners/${id}.webp`;

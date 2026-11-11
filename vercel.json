@@ -146,6 +146,30 @@
       "destination": "/index.html"
     },
     {
+      "source": "/divine",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/divine/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/divine/:group",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/divine/:group/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/divine/:group/:dungeon",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/divine/:group/:dungeon/",
+      "destination": "/index.html"
+    },
+    {
       "source": "/admin",
       "destination": "/index.html"
     },

@@ -1,9 +1,10 @@
 import markup from './hub.html?raw';
 import { API, store } from '../shared/ui';
 import { navigate } from '../shared/transition';
-import { DIVINE_LIST, DRAGON_LIST, TM_LIST } from '../shared/raids';
+import { DRAGON_LIST, TM_LIST } from '../shared/raids';
 import { makeRaidList, type RaidList } from './raid-list';
 import { makeRaidRooms } from './raid-rooms';
+import { playGame } from '../site/play';
 import type { Lobbies } from '../protocol/technomagic';
 import type { Page } from '../site/page';
 import { api, currentMe, currentServer, hasSession, loadMe, loggedIn, logIn, logOut, setServer, takeLoginState, type Game, type Me } from '../site/session';
@@ -28,15 +29,6 @@ const GAMES: readonly Game[] = ['mines', 'pinecraft', 'baccarat', 'roulette', 'p
 
 const points = (n: number): string => n.toLocaleString('en-US');
 
-/** A game's link with what the page is to read from its address (before the #): the boss it is against (?boss=) and the raid (?room=), those there are. */
-function withQuery(url: string, query: { boss?: string | null; room?: string | null }): string {
-  const more = new URLSearchParams(Object.entries(query).filter((entry): entry is [string, string] => typeof entry[1] === 'string' && entry[1] !== '')).toString();
-  if (!more) return url;
-  const at = url.indexOf('#');
-  const [path, hash] = at < 0 ? [url, ''] : [url.slice(0, at), url.slice(at)];
-  return `${path}${path.includes('?') ? '&' : '?'}${more}${hash}`;
-}
-
 export const hubPage: Page = { title: 'Komaverse', icon: '🎮', markup, mount };
 
 function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void } {
@@ -53,7 +45,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
   // The raids' Raid Lists (by the game they open): a boss's Single Player opens the raid against it alone, its Multiplayer
   // finds a raid of the server's against it or creates one.
   const raidLists = new Map<string, RaidList>(
-    [TM_LIST, DRAGON_LIST, DIVINE_LIST].map((raid) => {
+    [TM_LIST, DRAGON_LIST].map((raid) => {
       const rooms = makeRaidRooms(root, {
         find: (boss) => findRaids(raid.game, boss),
         join: (boss, room, button) => void openGame(raid.game, 'multi', boss, button, room),
@@ -166,6 +158,9 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
       render();
     }
     const ofGame = ui.playButtons.filter((button) => button.dataset.play === game);
+    // (A game with a page of its own on the site, the Divine Punishment Raid's: that page.)
+    const page = ofGame[0]?.dataset.page;
+    if (page) return navigate(page);
     // A raid: a raid's own link straight into it (or alone, into a room of their own); else the boss's Find Raid.
     const list = raidLists.get(game);
     if (list && ofGame[0] && (mode === 'single' || room)) return void openGame(game, mode ?? 'multi', boss ?? null, ofGame[0], room ?? undefined);
@@ -186,26 +181,22 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     button.dataset.label = label;
     button.disabled = true;
     button.textContent = 'Opening…';
-    const res = await api<{ url: string }>('/api/play', { method: 'POST', body: JSON.stringify({ guild: server, game }) });
-    if (res.ok) {
-      // Single player: the game's page asks the bot for a room of the player's own (see ../shared/game/link.ts).
-      const url = withQuery(res.data.url, { boss, room: mode === 'single' ? null : room });
-      navigate(mode === 'single' ? `${url}&m=single` : url);
-      return;
-    }
+    const refused = await playGame(game, { single: mode === 'single', boss, ...(room && { room }) });
+    if (!refused) return;
     button.disabled = false;
     button.textContent = label;
-    if (res.status === 401) return logOut();
-    status(res.error === 'not_member' ? "You don't seem to be in that server any more. Log out and in again to refresh it." : 'Could not open the game. Try again.', true);
+    if (!hasSession()) return;
+    status(refused === 'not_member' ? "You don't seem to be in that server any more. Log out and in again to refresh it." : 'Could not open the game. Try again.', true);
   }
 
   ui.loginButton.addEventListener('click', logIn);
 
   for (const button of ui.playButtons) {
     button.addEventListener('click', async () => {
-      // A raid with a Raid List: it, to pick a boss first.
+      // A raid with a Raid List: it, to pick a boss first. One with a page of its own on the site (the Divine Punishment Raid's): that page.
       const list = raidLists.get(button.dataset.list ?? '');
       if (list) return list.open();
+      if (button.dataset.page) return navigate(button.dataset.page);
       if (!currentServer()) return;
       await openGame(button.dataset.play ?? '', button.dataset.mode, null, button);
     });

@@ -12,7 +12,8 @@ import { movePopup } from './move';
 import { raidInfo } from './raid-info';
 import { nameTips } from '../hud/tip';
 import { play } from '../sfx';
-import type { PickView, PlayerView, RaidMode, RoomState } from '../../protocol/technomagic';
+import type { DivineRoomView, PickView, PlayerView, RaidMode, RoomState } from '../../protocol/technomagic';
+import { shardIcon } from '../divine';
 
 /*
  * Getting ready for a room's fight, as King's Raid has it: across the top the boss, its mode and the stage (the host
@@ -49,6 +50,8 @@ export interface PrepActions {
    * (the host's), else alone (single player, a room of their own against it; with others, out of the raid into a new one).
    */
   boss(id: string, bring: boolean): void;
+  /** The Divine Punishment Raid: the Full Shards to bring (a tier of the group's, and how many; null: none). */
+  shard(pick: DivineRoomView['shard']): void;
 }
 
 export interface Prep {
@@ -74,6 +77,27 @@ const TEAMS = [
   { sub: false, name: 'Main Team' },
   { sub: true, name: 'Sub Team' },
 ] as const;
+
+/** Why a Divine Punishment dungeon can't be entered now (DivineRoomView.refusal). */
+const REFUSALS: Readonly<Record<NonNullable<DivineRoomView['refusal']>, string>> = {
+  not_open: 'Unlock the boss dungeons on the Divine Punishment map first.',
+  cleared: 'Beaten already this opening.',
+  not_allowed: 'Only two Dragons can be defeated in one opening.',
+};
+
+/** The Divine Punishment Raid's Full Shard tiers. */
+const TIERS = [1, 2, 3, 4, 5] as const;
+type Tier = (typeof TIERS)[number];
+/** What each tier's Full Shards do while they last (sim/bosses/divine/shards.ts), as King's Raid's shard says it: the Apocalypsion group's. */
+const SHARD_DOES: Readonly<Record<Tier, string>> = {
+  1: 'Heroes: ACC +100.',
+  2: 'Heroes: ACC +150. Tersio and Apocalypsion: max HP −10%.',
+  3: 'Heroes: ACC +250, their CC lasts 10% longer. Tersio and Apocalypsion: max HP −20%, 20% more DMG taken.',
+  4: 'Heroes: ACC +300, 15% more DMG, CC 20% longer. Tersio and Apocalypsion: max HP −30%, 30% more DMG taken, 15% less DMG dealt.',
+  5: 'Heroes: ACC +400, 30% more DMG, CC 30% longer, Crit +400. Tersio and Apocalypsion: max HP −40%, 40% more DMG taken, 30% less DMG dealt, Crit −400.',
+};
+/** How long each tier's Full Shards last, a shard (seconds: King's Raid's ShardItemTable Duration, times how many are brought). */
+const SHARD_SECONDS: Readonly<Record<Tier, number>> = { 1: 30, 2: 60, 3: 100, 4: 180, 5: 240 };
 
 /** The least it is scaled to; past that it scrolls. */
 const MIN_FIT = 0.4;
@@ -181,6 +205,21 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
   let copied: number | undefined;
   // Beside the screen rather than in it: scaled down on a phone (fit()), it would hold the popup in it.
   root.after(settings.root);
+  // The Divine Punishment Raid's: the Full Shards brought, in Raid Settings' place (its Infinite level is its opening's), picked
+  // in a popup as the stage is: a tab for None and each tier (its picture and how many they have), and how many between the arrows.
+  const shardButton = el('button', 'tm-prep-settings tm-prep-shard');
+  shardButton.type = 'button';
+  shardButton.hidden = true;
+  byId('prep-settings').after(shardButton);
+  const shards = levelPopup({ id: 'prep-shard-pop', title: 'Full Shard', label: '×', confirm: 'Confirm', down: 'Fewer shards', up: 'More shards' });
+  shards.picture.hidden = true;
+  const tierTabs = el('div', 'tm-mode-pick tm-shard-pick');
+  tierTabs.setAttribute('role', 'group');
+  tierTabs.setAttribute('aria-label', 'Tier');
+  shards.down.parentElement?.before(tierTabs);
+  root.after(shards.root);
+  /** The tier and count picked in it, until it is confirmed (null: the popup is closed; its tier null: none brought). */
+  let shardPick: { tier: Tier | null; count: number } | null = null;
   const noteAt = byId('prep-note');
   const ready = byId('prep-ready') as HTMLButtonElement;
   const background = byId('prep-background') as HTMLButtonElement;
@@ -271,6 +310,34 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
       closeSettings();
     },
     close: closeSettings,
+  });
+  const closeShards = (): void => {
+    shards.root.hidden = true;
+    shardPick = null;
+  };
+  shardButton.addEventListener('click', () => {
+    const divine = state?.divine;
+    if (!divine) return;
+    shardPick = divine.shard ? { tier: divine.shard.tier, count: divine.shard.count } : { tier: null, count: 0 };
+    drawShards();
+    shards.root.hidden = false;
+    shards.confirm.focus();
+  });
+  shards.bind({
+    step(by) {
+      if (!shardPick || shardPick.tier === null) return;
+      shardPick.count += by;
+      drawShards();
+    },
+    confirm() {
+      const divine = state?.divine;
+      if (divine && shardPick) {
+        const pick = shardPick.tier !== null && shardPick.count > 0 ? { tier: shardPick.tier, count: shardPick.count } : null;
+        if (pick?.tier !== divine.shard?.tier || pick?.count !== divine.shard?.count) act.shard(pick);
+      }
+      closeShards();
+    },
+    close: closeShards,
   });
 
   /**
@@ -366,6 +433,52 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
     settings.note.textContent = `${host ? next : 'Only the host changes the mode and the stage. '}${stages}`;
   }
 
+  /** The Full Shard popup, while it is open: a tab for None and each tier (how many they have of it), and how many of it between the arrows. */
+  function drawShards(): void {
+    const divine = state?.divine;
+    if (!divine || !shardPick) return;
+    const pick = shardPick;
+    const have = (tier: Tier): number => divine.full[String(tier) as keyof DivineRoomView['full']] ?? 0;
+    if (pick.tier !== null) pick.count = Math.min(Math.max(1, pick.count), have(pick.tier));
+    if (pick.tier !== null && pick.count < 1) pick.tier = null;
+    const none = el('button', 'tm-mode-tab', 'None');
+    none.type = 'button';
+    none.setAttribute('aria-pressed', String(pick.tier === null));
+    none.addEventListener('click', () => {
+      pick.tier = null;
+      pick.count = 0;
+      drawShards();
+    });
+    tierTabs.replaceChildren(
+      none,
+      ...TIERS.map((tier) => {
+        const tab = el('button', 'tm-mode-tab tm-shard-tab');
+        tab.type = 'button';
+        const art = el('img', 'tm-shard-art');
+        art.src = shardIcon(divine.group, true, tier);
+        art.alt = '';
+        tab.append(art, el('span', 'tm-shard-tier', `T${tier}`), el('span', 'tm-shard-have', `${have(tier)}`));
+        tab.title = `Tier ${tier} Full Shard: ${have(tier)} owned`;
+        tab.setAttribute('aria-pressed', String(pick.tier === tier));
+        tab.disabled = have(tier) === 0;
+        tab.addEventListener('click', () => {
+          pick.tier = tier;
+          pick.count = Math.max(1, pick.count);
+          drawShards();
+        });
+        return tab;
+      }),
+    );
+    shards.bossName.textContent = state?.boss.name ?? '';
+    shards.number.textContent = String(pick.tier === null ? 0 : pick.count);
+    shards.down.disabled = pick.tier === null || pick.count <= 1;
+    shards.up.disabled = pick.tier === null || pick.count >= have(pick.tier);
+    shards.note.textContent =
+      pick.tier === null
+        ? 'Bring Full Shards (filled in the Karma Dungeon) for a stronger party: the more of one tier, the longer they last.'
+        : `${SHARD_DOES[pick.tier]} For ${SHARD_SECONDS[pick.tier] * pick.count} seconds from the start (${SHARD_SECONDS[pick.tier]} a shard). Shards brought are used up as the battle begins.`;
+  }
+
   /**
    * One slot of the lineup: a hero (whose, which) or empty. Its card as the hero shop's (in the place of King's Raid's hero
    * portrait, its HeroPortrait): the hero's own card, the shop's frame round it with its class's badge in the top scroll, the kind of damage it
@@ -412,7 +525,20 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
     const mine = state.lineup.filter((pick) => pick.owner === state?.you);
     const owner = (id: string): PlayerView | undefined => state?.players.find((player) => player.id === id);
 
-    level.textContent = state.boss.normal === undefined ? `· Stage ${state.stage}` : `· ${MODE_NAMES[state.mode]} · Stage ${state.stage}`;
+    const divine = state.divine;
+    level.textContent = divine ? `· Lv. ${state.stage}` : state.boss.normal === undefined ? `· Stage ${state.stage}` : `· ${MODE_NAMES[state.mode]} · Stage ${state.stage}`;
+    // The Divine Punishment Raid's: its level is its opening's (no Raid Settings), the Full Shards brought in its place.
+    byId('prep-settings').hidden = divine !== undefined;
+    shardButton.hidden = divine === undefined;
+    if (divine) {
+      const art = el('img', 'tm-shard-art');
+      art.alt = '';
+      if (divine.shard) art.src = shardIcon(divine.group, true, divine.shard.tier);
+      shardButton.replaceChildren(...(divine.shard ? [art, `Full Shard T${divine.shard.tier} ×${divine.shard.count}`] : ['Full Shard']));
+      shardButton.title = divine.shard ? `Bringing ${divine.shard.count} Tier ${divine.shard.tier} Full Shards` : 'Bring Full Shards';
+      drawShards();
+    }
+    repeat.closest('label')?.toggleAttribute('hidden', divine !== undefined);
     info.show(state.mode, state.stage);
     // The boss (the Dragon Raid's other dragons are picked in Raid Settings).
     bossName.textContent = state.boss.name;
@@ -535,8 +661,8 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
     );
 
     ready.hidden = host;
-    // Alone: Background Battle, once the Main Team has a hero in.
-    background.hidden = !state.solo;
+    // Alone: Background Battle, once the Main Team has a hero in (not the Divine Punishment Raid's: each of its fights is one of an opening).
+    background.hidden = !state.solo || divine !== undefined;
     background.disabled = !state.lineup.some((pick) => !pick.sub);
     background.title = background.disabled ? 'Put a hero in the Main Team first' : 'Fight this raid on Auto while you’re away, up to 200 times';
     const isReady = me?.ready === true && !host;
@@ -555,7 +681,10 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
     start.classList.toggle('main', !forced);
     start.classList.toggle('secondary', forced);
     start.replaceChildren('Start Battle', ...(forced ? [el('span', 'tm-prep-start-count', `${state.players.length - waiting.length}/${state.players.length} Ready`)] : []));
-    start.disabled = state.lineup.length === 0;
+    // (A Divine Punishment dungeon that can't be entered now: why, in place of starting it.)
+    const refusal = divine?.refusal ?? null;
+    start.disabled = state.lineup.length === 0 || refusal !== null;
+    if (refusal) start.title = REFUSALS[refusal];
     start.title = forced ? [waiting.length > 0 && `Not ready: ${names(waiting)}`, empty.length > 0 && `No hero in, sitting it out: ${names(empty)}`, 'Press to start anyway'].filter(Boolean).join('. ') : state.lineup.length === 0 ? 'Put a hero in first' : '';
     named();
   }
@@ -593,6 +722,7 @@ export function makePrep(act: PrepActions, boss: BossDef): Prep {
     },
     hide() {
       closeSettings();
+      closeShards();
       moving.close();
       root.hidden = true;
       named();

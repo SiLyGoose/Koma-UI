@@ -1157,3 +1157,59 @@ button.tm-prep-manage {
 .tm-room-link[hidden] {
   display: none;
 }
+
+/*
+ * The Divine Punishment Raid's Full Shard, in Raid Settings' place (./prep.ts): its picture beside its tier and count; and in
+ * its popup, a tab for None and each tier, its picture over its tier and how many they have.
+ */
+.tm-prep-shard {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tm-prep-shard[hidden],
+.tm-prep-settings[hidden],
+.tm-prep-repeat[hidden] {
+  display: none;
+}
+
+.tm-prep-shard .tm-shard-art {
+  width: 22px;
+  height: 22px;
+  margin: -4px 0;
+  object-fit: contain;
+}
+
+.tm-shard-pick .tm-mode-tab {
+  max-width: none;
+  padding: 6px 4px;
+  font-size: 13px;
+}
+
+.tm-shard-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.tm-shard-tab .tm-shard-art {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+
+.tm-shard-tab:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.tm-shard-tier {
+  font-weight: 800;
+}
+
+.tm-shard-have {
+  font-size: 12px;
+  opacity: 0.8;
+}

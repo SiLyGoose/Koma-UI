@@ -1,0 +1,45 @@
+<!-- King's Raid's Divine Punishment Raid (src/divine/page.ts): its windows one after another, as the game has them. -->
+<section class="dp-page">
+  <!-- The site's page bar (../shared/ui/page-bar/): back (a window up) and the server at its left, the window's name in the middle, the balance at its right. -->
+  <div class="page-bar dp-bar">
+    <div class="page-bar-left">
+      <button type="button" id="back" class="action secondary icon" aria-label="Back">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 5 3.5 12l7 7v-4.5H20v-5h-9.5z" /></svg>
+      </button>
+      <select id="server" class="server-pick" aria-label="Server" hidden></select>
+    </div>
+    <h1 id="title" class="page-bar-title">Divine Punishment</h1>
+    <p class="page-bar-right"><span id="balance" class="outfits-purse" title="zeiucoins" hidden></span></p>
+  </div>
+
+  <p id="status" class="status dp-status" hidden></p>
+
+  <!--
+    Each window is King's Raid's 1920×1080 screen, scaled to the page's width (./divine.css: --u is one of the game's UI
+    units), its parts where the game's prefab puts them.
+  -->
+  <!-- (On a narrow screen, a window is wider than it, scrolled across: ./divine.css.) -->
+  <div id="windows" class="dp-windows">
+  <!-- PunishmentMainWindow: one group at a time between the goddess statues, its boss, the arrows to the others, and Enter. -->
+  <div id="groups" class="dp-stage dp-groups" hidden></div>
+
+  <!-- PunishDungeonTypeSelectWindow: the group's Karma Dungeon and Boss Dungeon cards. -->
+  <div id="types" class="dp-stage dp-types" hidden></div>
+
+  <!-- PunishmentRaidWindow: the group's map, its dragons' towers round her arena, each boss's portrait and name. -->
+  <div id="map" class="dp-stage dp-map" hidden></div>
+  </div>
+
+  <!-- PayShopMessage3ButtonPopup / MessagePopup: asking before something is done (or, with no Cancel, saying why it can't be). -->
+  <div id="ask" class="dp-ask" role="dialog" aria-modal="true" aria-labelledby="ask-title" tabindex="-1" hidden>
+    <div class="dp-ask-box">
+      <h3 id="ask-title" class="dp-ask-title"></h3>
+      <button type="button" class="dp-ask-close" data-ask="cancel" aria-label="Close"></button>
+      <p id="ask-text" class="dp-ask-text"></p>
+      <div class="dp-ask-foot">
+        <button type="button" id="ask-cancel" class="dp-button" data-ask="cancel">No</button>
+        <button type="button" class="dp-button emphasis" data-ask="confirm">Yes</button>
+      </div>
+    </div>
+  </div>
+</section>

@@ -33,10 +33,11 @@ export interface ResultAction {
   run: () => void;
 }
 
-export type ResultIcon = 'again' | 'prep' | 'games' | 'stats';
+export type ResultIcon = 'again' | 'prep' | 'games' | 'stats' | 'map';
 
 /** Each way on's symbol, in gold as King's Raid's round buttons draw theirs: going again, back to getting ready (crossed swords), the games (a controller); and Battle Stats' (bars). */
 const ICONS: Record<ResultIcon, string> = {
+  map: '<polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" x2="9" y1="3" y2="18"/><line x1="15" x2="15" y1="6" y2="21"/>',
   stats: '<line x1="18" x2="18" y1="20" y2="10"/><line x1="12" x2="12" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="14"/>',
   again: '<polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>',
   prep: '<polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/><line x1="13" x2="19" y1="19" y2="13"/><line x1="16" x2="20" y1="16" y2="20"/><line x1="19" x2="21" y1="21" y2="19"/><polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5"/><line x1="5" x2="9" y1="14" y2="18"/><line x1="7" x2="4" y1="17" y2="20"/><line x1="3" x2="5" y1="19" y2="21"/>',
@@ -81,6 +82,14 @@ let charted: StatKey = 'dealt';
 /** A number in a few figures (12.3K, 4.56M): the whole of it on pointing at it. */
 const short = new Intl.NumberFormat('en-US', { notation: 'compact', maximumSignificantDigits: 3 });
 
+/** Something a win gave, as a tile: its name, its picture (none: its name's first letter), how many, and what it is for. */
+export interface ShownItem {
+  name: string;
+  icon: string | null;
+  count: number;
+  about: string;
+}
+
 export interface ResultShown {
   title: string;
   text: string;
@@ -97,6 +106,8 @@ export interface ResultShown {
   crystals?: { set: string; count: number };
   /** The Technomagic Experiment Reports the win gave this player (now and then, from stage 4; none: no tile). */
   reports?: number;
+  /** Other things the win gave (the Divine Punishment Raid's Blood, fragments, shards and tickets: ./divine.ts), a tile each: its name, picture, how many and what it is for. */
+  items?: readonly ShownItem[];
   /** The gear this player found: TechnoMagic gear, or (the Dragon Raid's) raid items. */
   raid?: RaidKind;
   mine: readonly DropView[];
@@ -380,6 +391,21 @@ export function makeResult(root: HTMLElement): Result {
     return tile;
   }
 
+  /** Something else the win gave (ShownItem), as a tile beside the points: its picture, its name and how many. */
+  function itemTile(item: ShownItem): HTMLElement {
+    const tile = el('div', 'tm-tile tm-tile-points');
+    tile.title = `${item.name}: ${item.about}`;
+    const face = el('span', 'tm-points-face tm-essence-face');
+    if (item.icon) {
+      const art = el('img', 'tm-essence-art');
+      art.src = item.icon;
+      art.alt = '';
+      face.append(art);
+    } else face.append(el('span', 'tm-essence-art', item.name.slice(0, 1)));
+    tile.append(face, el('span', 'tm-tile-name', `${item.name} ×${points(item.count)}`));
+    return tile;
+  }
+
   /** The Upgrade Stones the win gave (all of one class), as a tile beside the points: their picture, and how many. */
   function stonesTile(stones: { class: string; count: number }): HTMLElement {
     const tile = el('div', 'tm-tile tm-tile-points');
@@ -488,6 +514,7 @@ export function makeResult(root: HTMLElement): Result {
         ...(shown.crystals && shown.crystals.count > 0 ? [crystalsTile(shown.crystals)] : []),
         ...(shown.stones && shown.stones.count > 0 ? [stonesTile(shown.stones)] : []),
         ...((shown.reports ?? 0) > 0 ? [reportsTile(shown.reports ?? 0)] : []),
+        ...(shown.items ?? []).filter((item) => item.count > 0).map(itemTile),
         ...((shown.gems ?? 0) > 0 ? [gemsTile(shown.gems ?? 0, shown.firstClears ?? 0)] : []),
         ...shown.mine.map((drop) => gearTile(drop)),
       );
