@@ -1,23 +1,26 @@
-import { townSvg } from './art';
+import { lowMemory } from '../technomagic/engine/memory';
+import { TOWN_LABELS } from './kr-town';
 import { makeRunner } from './runner';
 import { NODES, PLACES, START, WORLD, type Place, type Point } from './places';
 
 /*
- * The town map filling the screen: its picture (./art.ts), each place's sign over its building and its ring at the door,
- * and the runner (./runner.ts). The view follows the runner; a drag looks around (it follows again once the runner sets
- * off). Picking a place (its building, sign or ring) sends the runner there, and once it's at the door, `arrive` opens it.
- * Drawn only while it shows (pause/resume).
+ * The town map filling the screen: King's Raid's Orvelia (the playtest's WorldMap.Town2 picture, ./kr-town.ts), each
+ * place's disc at its building's door (the game's node buttons) and its name on the game's scroll banner where the game
+ * hangs it, and the runner (./runner.ts). The view follows the runner; a drag looks around (it follows again once the
+ * runner sets off). Picking a place (its building, banner or disc) sends the runner there along the game's roads, and
+ * once it's at the door, `arrive` opens it. Drawn only while it shows (pause/resume).
  */
 
-/** About how much of the map's height shows (in its units): less on a wide screen, as the map's width has to fill it. */
-const VIEW_HEIGHT = 1080;
+/** About how much of the map's height shows (in its pixels): less on a wide screen, as the map's width has to fill it. */
+const VIEW_HEIGHT = 1500;
 /** How far a press has to move to be a drag rather than a tap (screen pixels). */
 const DRAG_PX = 8;
 /** How quickly the view catches up with the runner (higher: sooner). */
 const FOLLOW = 5;
+/** The banners' smallest size on the screen, as a share of their size in the map (a phone's view is the map much shrunk). */
+const BANNER_MIN = 0.5;
 
-/** How tall each place's building is (map units over its door), for its sign to sit above it. */
-const HEIGHTS: Readonly<Record<string, number>> = { forge: 360, casino: 360, databank: 385, shop: 320, heroes: 320, inventory: 310, player: 370 };
+const TOWN = `${import.meta.env.BASE_URL}kr/town/`;
 
 export interface Town {
   element: HTMLElement;
@@ -37,26 +40,44 @@ export function makeTown(into: HTMLElement, arrive: (place: Place) => void): Tow
   world.className = 'v2-world';
   world.style.width = `${WORLD.width}px`;
   world.style.height = `${WORLD.height}px`;
-  world.innerHTML = townSvg();
+  const map = document.createElement('img');
+  map.className = 'v2-map';
+  map.alt = '';
+  map.draggable = false;
+  map.decoding = 'async';
+  // A device short of memory: the half-size picture (a quarter of the memory), stretched to the map's size.
+  map.src = `${TOWN}${lowMemory() ? 'town2-half' : 'town2'}.webp`;
+  world.append(map);
 
   const marks = new Map<string, HTMLElement>();
   for (const place of PLACES) {
-    const ring = document.createElement('span');
-    ring.className = 'v2-anchor';
-    ring.dataset.place = place.id;
-    ring.style.left = `${place.door.x}px`;
-    ring.style.top = `${place.door.y}px`;
-    const sign = document.createElement('button');
-    sign.type = 'button';
-    sign.className = 'v2-sign';
-    sign.dataset.place = place.id;
-    sign.style.left = `${place.door.x}px`;
-    sign.style.top = `${place.door.y - (HEIGHTS[place.id] ?? 320)}px`;
-    sign.innerHTML = `<span class="v2-sign-name"></span><span class="v2-sign-blurb"></span>`;
-    (sign.querySelector('.v2-sign-name') as HTMLElement).textContent = place.name;
-    (sign.querySelector('.v2-sign-blurb') as HTMLElement).textContent = place.blurb;
-    world.append(ring, sign);
-    marks.set(place.id, ring);
+    // The painted building: tapping it goes there.
+    const [left, top, right, bottom] = place.building;
+    const area = document.createElement('span');
+    area.className = 'v2-building';
+    area.dataset.place = place.id;
+    area.style.cssText = `left:${left}px;top:${top}px;width:${right - left}px;height:${bottom - top}px`;
+    // Its disc at the door, where the runner stops.
+    const disc = document.createElement('span');
+    disc.className = 'v2-disc';
+    disc.dataset.place = place.id;
+    disc.style.left = `${place.door.x}px`;
+    disc.style.top = `${place.door.y}px`;
+    disc.style.backgroundImage = `url("${TOWN}discs/${place.disc}.webp")`;
+    // Its name, on the game's banner where the game hangs it (or over the door).
+    const label = TOWN_LABELS[place.node] ?? { x: place.door.x, y: place.door.y - 260, banner: 1 };
+    const banner = document.createElement('button');
+    banner.type = 'button';
+    banner.className = `v2-banner v2-banner-${label.banner}`;
+    banner.dataset.place = place.id;
+    banner.title = place.blurb;
+    banner.style.left = `${label.x}px`;
+    banner.style.top = `${label.y}px`;
+    banner.innerHTML = '<span class="v2-banner-name"></span>';
+    (banner.querySelector('.v2-banner-name') as HTMLElement).textContent = place.name;
+    banner.setAttribute('aria-label', `${place.name}: ${place.blurb}`);
+    world.append(area, disc, banner);
+    marks.set(place.id, disc);
   }
 
   const runner = makeRunner(START);
@@ -97,8 +118,8 @@ export function makeTown(into: HTMLElement, arrive: (place: Place) => void): Tow
     width = Math.max(1, element.clientWidth);
     height = Math.max(1, element.clientHeight);
     scale = Math.max(height / VIEW_HEIGHT, width / WORLD.width, height / WORLD.height);
-    // Signs keep their size on the screen whatever the map's scale.
-    world.style.setProperty('--v2-inv', String(1 / scale));
+    // Banners no smaller on the screen than BANNER_MIN of their size in the map, however far the map is shrunk.
+    world.style.setProperty('--v2-banner', String(Math.max(1, BANNER_MIN / scale)));
     place();
   });
   sized.observe(element);
@@ -141,8 +162,8 @@ export function makeTown(into: HTMLElement, arrive: (place: Place) => void): Tow
   function goTo(to: Place): void {
     target = to;
     follow = true;
-    for (const [id, ring] of marks) ring.classList.toggle('picked', id === to.id);
-    runner.walkTo(to.id, performance.now(), () => {
+    for (const [id, disc] of marks) disc.classList.toggle('picked', id === to.id);
+    runner.walkTo(to.node, performance.now(), () => {
       marks.get(to.id)?.classList.remove('picked');
       if (target === to) arrive(to);
     });
@@ -150,8 +171,8 @@ export function makeTown(into: HTMLElement, arrive: (place: Place) => void): Tow
 
   function standAt(at: Place | null): void {
     target = null;
-    runner.place(at?.id ?? START);
-    for (const ring of marks.values()) ring.classList.remove('picked');
+    runner.place(at?.node ?? START);
+    for (const disc of marks.values()) disc.classList.remove('picked');
     const p = at?.door ?? (NODES[START] as Point);
     camera.x = p.x;
     camera.y = p.y;
@@ -199,7 +220,7 @@ export function makeTown(into: HTMLElement, arrive: (place: Place) => void): Tow
     if (press && e.pointerId === press.id) press = null;
     element.classList.remove('dragging');
   });
-  // The keyboard: a sign is a button.
+  // The keyboard: a banner is a button.
   element.addEventListener('keydown', (e) => {
     if (e.key !== 'Enter' && e.key !== ' ') return;
     const id = (e.target as Element | null)?.closest?.('[data-place]')?.getAttribute('data-place');

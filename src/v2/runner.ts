@@ -6,8 +6,8 @@ import { NODES, lengthOf, pointAlong, route, type Point } from './places';
  * where it should be, not where it was.
  */
 
-/** How fast it runs, in map units a second. */
-const SPEED = 520;
+/** How fast it runs, in map pixels a second (King's Raid's town: ScaleData.PlayerMoveSpeed). */
+const SPEED = 750;
 
 /** The runner's picture (its feet at the bottom middle): a little miner with a lamp on its helmet and a red scarf. */
 const FIGURE = `<svg class="v2-runner-art" viewBox="-40 -120 80 124" width="80" height="124" aria-hidden="true">

@@ -1,12 +1,14 @@
 import type { Page } from '../site/page';
+import { TOWN_NODES, TOWN_ROADS, TOWN_SIZE, type TownNode } from './kr-town';
 
 /*
- * What's in the town (./map.ts): the site's pages v2 can open over it, the places on the map that lead to them, and the
- * roads the runner walks between them (a graph of points in the map's own units: WORLD wide and high).
+ * What's in the town (./town.ts, King's Raid's Orvelia from the playtest: ./kr-town.ts): the site's pages v2 can open over
+ * it, the buildings on the map that lead to them, and the roads the runner walks between them (the game's own node graph,
+ * in the map picture's pixels).
  */
 
-/** The map's size, in its own units (its pictures are drawn in these). */
-export const WORLD = { width: 2400, height: 1350 } as const;
+/** The map's size, in its own units: King's Raid's town picture's pixels. */
+export const WORLD = TOWN_SIZE;
 
 export interface Point {
   x: number;
@@ -54,26 +56,35 @@ export function oldPath(path: string): string | null {
   return path.slice(V2.length) || '/';
 }
 
-/** A place on the map: its building, where its door is (a road's end, where the runner stops), and the page it opens. */
+/** A place on the map: the King's Raid building it is (its node, where the runner stops), and the page it opens. */
 export interface Place {
   id: string;
   name: string;
-  /** Under the name on its sign. */
+  /** What's inside (the banner's tooltip). */
   blurb: string;
   /** The page it opens (an old-site path). */
   path: string;
-  /** The road's end at its door: the graph's node of the same id. */
+  /** Its building's node in the town's graph (./kr-town.ts): its door, where the runner stops. */
+  node: TownNode;
+  /** Its disc (the game's node button, public/kr/town/discs/). */
+  disc: string;
+  /** The painted building, a box over it in map pixels (left, top, right, bottom): tapping it goes there too. */
+  building: readonly [number, number, number, number];
+  /** Its door (its node's point). */
   door: Point;
 }
 
+const place = (p: Omit<Place, 'door'>): Place => ({ ...p, door: TOWN_NODES[p.node] });
+
+/** The site's places, each in one of the town's buildings (the Arena and the Prison are free for now). */
 export const PLACES: readonly Place[] = [
-  { id: 'forge', name: 'Forge', blurb: 'Craft, enhance and salvage gear', path: '/forge', door: { x: 430, y: 760 } },
-  { id: 'casino', name: 'Casino', blurb: 'Baccarat, roulette, poker and the mine', path: '/casino', door: { x: 1960, y: 760 } },
-  { id: 'databank', name: 'Databank', blurb: 'Heroes, bosses, classes and the week', path: '/databank', door: { x: 1200, y: 470 } },
-  { id: 'shop', name: 'Shop', blurb: 'Heroes, outfits, raid goods and wishes', path: '/shop', door: { x: 680, y: 1090 } },
-  { id: 'heroes', name: 'Hall of Heroes', blurb: 'Your heroes and their gear', path: '/heroes', door: { x: 770, y: 470 } },
-  { id: 'inventory', name: 'Storehouse', blurb: 'Everything you own', path: '/inventory', door: { x: 1740, y: 1090 } },
-  { id: 'player', name: 'Armory', blurb: 'Your own gear', path: '/player', door: { x: 1640, y: 470 } },
+  place({ id: 'forge', name: 'Forge', blurb: 'Craft, enhance and salvage gear', path: '/forge', node: 'forge', disc: 'forge', building: [2160, 2420, 2780, 2900] }),
+  place({ id: 'casino', name: 'Casino', blurb: 'Baccarat, roulette, poker and the mine', path: '/casino', node: 'pub', disc: 'pub', building: [3000, 1860, 3720, 2400] }),
+  place({ id: 'databank', name: 'Databank', blurb: 'Heroes, bosses, classes and the week', path: '/databank', node: 'library', disc: 'library', building: [860, 280, 1560, 940] }),
+  place({ id: 'shop', name: 'Shop', blurb: 'Heroes, outfits, raid goods and wishes', path: '/shop', node: 'shop', disc: 'shop', building: [740, 2040, 1080, 2480] }),
+  place({ id: 'heroes', name: 'Hall of Heroes', blurb: 'Your heroes and their gear', path: '/heroes', node: 'honor', disc: 'honor', building: [1950, 860, 2500, 1200] }),
+  place({ id: 'inventory', name: 'Storehouse', blurb: 'Everything you own', path: '/inventory', node: 'guild', disc: 'guild', building: [1960, 1420, 2300, 1840] }),
+  place({ id: 'player', name: 'Armory', blurb: 'Your own gear', path: '/player', node: 'castle', disc: 'castle', building: [80, 960, 1380, 2000] }),
 ];
 
 /** The place whose page is at `path` (its tabs too), if any. */
@@ -82,49 +93,14 @@ export const placeOf = (path: string): Place | undefined => {
   return page && PLACES.find((place) => place.path === page.path);
 };
 
-/**
- * The roads' points: the places' doors (by their ids), the crossings, and the square's edge (north, south, west, east of
- * its fountain: the way across the square goes round it).
- */
-export const NODES: Readonly<Record<string, Point>> = {
-  ...Object.fromEntries(PLACES.map((place) => [place.id, place.door])),
-  north: { x: 1200, y: 595 },
-  south: { x: 1200, y: 885 },
-  west: { x: 1050, y: 740 },
-  east: { x: 1350, y: 740 },
-  forgeRoad: { x: 860, y: 740 },
-  casinoRoad: { x: 1540, y: 740 },
-  northwest: { x: 800, y: 610 },
-  northeast: { x: 1610, y: 610 },
-  southwest: { x: 880, y: 1060 },
-  southeast: { x: 1520, y: 1060 },
-};
+/** The roads' points: the buildings' doors and the waypoints between them (King's Raid's, ./kr-town.ts). */
+export const NODES: Readonly<Record<string, Point>> = TOWN_NODES;
 
-/** Where the runner stands when the town is first opened: the square, in front of the fountain. */
-export const START = 'south';
+/** Where the runner stands when the town is first opened: the square, by its statue. */
+export const START: TownNode = 'square';
 
 /** The roads: pairs of nodes, walked either way. */
-export const ROADS: readonly (readonly [string, string])[] = [
-  ['north', 'west'],
-  ['west', 'south'],
-  ['south', 'east'],
-  ['east', 'north'],
-  ['north', 'databank'],
-  ['west', 'forgeRoad'],
-  ['forgeRoad', 'forge'],
-  ['forgeRoad', 'northwest'],
-  ['northwest', 'heroes'],
-  ['northwest', 'north'],
-  ['east', 'casinoRoad'],
-  ['casinoRoad', 'casino'],
-  ['casinoRoad', 'northeast'],
-  ['northeast', 'player'],
-  ['northeast', 'north'],
-  ['south', 'southwest'],
-  ['southwest', 'shop'],
-  ['south', 'southeast'],
-  ['southeast', 'inventory'],
-];
+export const ROADS: readonly (readonly [string, string])[] = TOWN_ROADS;
 
 const distance = (a: Point, b: Point): number => Math.hypot(a.x - b.x, a.y - b.y);
 
