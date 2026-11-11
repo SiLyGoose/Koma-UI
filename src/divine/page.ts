@@ -196,7 +196,6 @@ export function mount(root: HTMLElement, frame: DivineFrame): void {
     title: frame.title,
     balance: frame.balance,
     status: $('status'),
-    windows: $('windows'),
     groups: $('groups'),
     types: $('types'),
     map: $('map'),
@@ -573,13 +572,9 @@ export function mount(root: HTMLElement, frame: DivineFrame): void {
     ui.balance.hidden = !view;
     if (view) ui.balance.replaceChildren(...price(view.balance));
     ui.title.textContent = screen.kind === 'map' ? '⚡ Boss Dungeon' : '⚡ Divine Punishment';
-    const before = ui.windows.dataset.shown;
-    ui.windows.dataset.shown = screen.kind;
     if (screen.kind === 'groups') drawGroups();
     else if (screen.kind === 'types') drawTypes(screen.group);
     else drawMap(screen.group);
-    // (Scrolled across on a narrow screen: a window newly shown starts at its middle.)
-    if (before !== screen.kind) ui.windows.scrollLeft = (ui.windows.scrollWidth - ui.windows.clientWidth) / 2;
   }
 
   /** PunishmentMainWindow: the group shown between the goddess statues, its boss over the portal, its names, the arrows and Enter. */

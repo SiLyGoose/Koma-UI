@@ -10,7 +10,8 @@
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  height: 100dvh;
+  /* (The page's height, sideways too: a phone's page turned by hand, ../shared/ui/landscape/.) */
+  height: var(--ls-vh);
   overflow: hidden;
   background: #000;
 }
@@ -112,20 +113,6 @@
 .dp-map {
   --s: max(var(--u), min(max(100cqw / 2513, 100cqh / 1082), 100cqw / 1900));
   background: linear-gradient(#23252c, #1a1b20 45%, #0b0b0e);
-}
-
-/* An upright phone: the window as wide as its parts can be read at, scrolled across (./page.ts starts it in the middle). */
-@media (max-width: 760px) and (orientation: portrait) {
-  .dp-windows {
-    justify-content: flex-start;
-    overflow-x: auto;
-    scrollbar-width: thin;
-  }
-
-  .dp-stage {
-    flex: none;
-    width: 820px;
-  }
 }
 
 .dp-stage[hidden],
@@ -812,7 +799,7 @@
 }
 
 .dp-rw-box {
-  --u: min(0.8px, (100vw - 24px) / 1500, (100dvh - 24px) / 1040);
+  --u: min(0.8px, (var(--ls-vw) - 24px) / 1500, (var(--ls-vh) - 24px) / 1040);
   position: relative;
   width: calc(1500 * var(--u));
   height: calc(1040 * var(--u));
