@@ -779,8 +779,11 @@
 
 /*
  * ---- The Reward List (PunishmentRaidRewardInfoPopup) ----
- * The game's 1500×1040 popup (Pet_Frame_BG_Image, PayShop_Frame in it), --u one of its units, as large as fits the screen; its
- * parts placed by ./page.ts at() from its middle, as the prefab has them. On a phone they flow one under another instead.
+ * The game's 1500×1040 popup (Pet_Frame_BG_Image, PayShop_Frame in it), every part where its prefab has it (placed by ./page.ts
+ * at() from its middle) and sized in its units (--u), the whole of it scaled as one to the screen, as King's Raid scales it:
+ * nothing flows or keeps a size of its own. Its two lists are the game's scroll grids: her Clear Reward a strip 800×154 of
+ * tiles at 0.8 (128 apart), the Dynamic Rewards a grid of 340×110 cells two a row, each a 300×100 card (Customizing_Back) with
+ * its dragon (94, at -98) and a strip 190 across of tiles at 0.52 (80.6 apart: two and a half in sight, the rest scrolled to).
  */
 
 .dp-rewards {
@@ -789,8 +792,6 @@
   z-index: 40;
   display: grid;
   place-items: center;
-  padding: 12px;
-  overflow: auto;
   background: rgb(0 0 0 / 70%);
 }
 
@@ -799,7 +800,7 @@
 }
 
 .dp-rw-box {
-  --u: min(0.8px, (var(--ls-vw) - 24px) / 1500, (var(--ls-vh) - 24px) / 1040);
+  --u: min(0.8px, (var(--ls-vw) - 8px) / 1500, (var(--ls-vh) - 8px) / 1040);
   position: relative;
   width: calc(1500 * var(--u));
   height: calc(1040 * var(--u));
@@ -814,8 +815,8 @@
 
 .dp-rw-box :is(h3, h4, p, span, button) {
   text-shadow:
-    0 0 2px #1a1008,
-    0 1px 2px #1a1008;
+    0 0 calc(2 * var(--u)) #1a1008,
+    0 calc(1 * var(--u)) calc(2 * var(--u)) #1a1008;
 }
 
 .dp-rw-frame {
@@ -837,7 +838,7 @@
   border: solid transparent;
   border-width: 0 calc(76 * var(--u));
   border-image: url('/kr/ui/divine/Pet_PopupTitleBG_Image.webp') 0 76 fill / 0 calc(76 * var(--u)) stretch;
-  font-size: max(16px, calc(35 * var(--u)));
+  font-size: calc(35 * var(--u));
   font-weight: 800;
   white-space: nowrap;
 }
@@ -845,8 +846,6 @@
 .dp-rw-close {
   width: calc(70 * var(--u));
   height: calc(70 * var(--u));
-  min-width: 30px;
-  min-height: 30px;
   padding: 0;
   border: 0;
   background: url('/kr/ui/divine/Btn_PayShop_Close.webp') center / contain no-repeat;
@@ -868,7 +867,7 @@
   pointer-events: none;
 }
 
-/* The level picker (CountInputField2): Min, Common_ArrowButton_Left, the number on Common_Box_2, Common_ArrowButton_Right, Max (Mission_Button_Normal). */
+/* The level picker (CountInputField2): Min at -374, Common_ArrowButton_Left at -274, the number on Common_Box_2 (450), the right arrow at 274, Max at 374. */
 .dp-rw-pick {
   display: flex;
   align-items: center;
@@ -880,12 +879,11 @@
   place-items: center;
   width: calc(450 * var(--u));
   height: calc(80 * var(--u));
-  min-height: 28px;
   box-sizing: border-box;
   border: solid transparent;
   border-width: calc(15 * var(--u));
   border-image: url('/kr/ui/divine/Common_Box_2.webp') 15 fill / calc(15 * var(--u)) stretch;
-  font-size: max(14px, calc(30 * var(--u)));
+  font-size: calc(30 * var(--u));
   font-variant-numeric: tabular-nums;
 }
 
@@ -902,8 +900,6 @@
 .dp-rw-step {
   width: calc(80 * var(--u));
   height: calc(80 * var(--u));
-  min-width: 28px;
-  min-height: 28px;
   background: url('/kr/ui/divine/Common_ArrowButton_Left.webp') center / contain no-repeat;
 }
 
@@ -916,14 +912,12 @@
   place-items: center;
   width: calc(100 * var(--u));
   height: calc(86 * var(--u));
-  min-width: 36px;
-  min-height: 30px;
   box-sizing: border-box;
   border: solid transparent;
   border-width: calc(20 * var(--u));
   border-image: url('/kr/ui/divine/Mission_Button_Normal.webp') 20 fill / calc(20 * var(--u)) stretch;
   background: none;
-  font-size: max(11px, calc(24 * var(--u)));
+  font-size: calc(24 * var(--u));
 }
 
 .dp-rw-step:hover:not(:disabled),
@@ -940,7 +934,7 @@
   cursor: default;
 }
 
-/* The boss (Texture_Boss) over the King's Raid watermark. */
+/* The boss (Texture_Boss, 688×738) over the King's Raid watermark (582×619). */
 .dp-rw-logo {
   width: calc(582 * var(--u));
   height: calc(619 * var(--u));
@@ -956,165 +950,161 @@
   pointer-events: none;
 }
 
+/* Clear Reward and Dynamic Rewards (Label_reward: 880 across, size 34, white to #b2b2b2). */
 .dp-rw-head {
+  width: calc(880 * var(--u));
   margin: 0;
   background: linear-gradient(#fff, #b2b2b2);
   background-clip: text;
   color: transparent;
-  font-size: max(15px, calc(34 * var(--u)));
+  font-size: calc(34 * var(--u));
   font-weight: 800;
+  text-align: center;
   white-space: nowrap;
-  filter: drop-shadow(0 1px 1px #000);
+  filter: drop-shadow(0 calc(1 * var(--u)) calc(1 * var(--u)) #000);
 }
 
 .dp-rw-box .dp-rw-head {
   text-shadow: none;
 }
 
-/* Its right side: Clear Reward, then Dynamic Rewards, down the frame from under the level picker to its foot (./page.ts). */
-.dp-rw-side {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-around;
-  gap: calc(14 * var(--u));
-  width: calc(840 * var(--u));
-  height: calc(680 * var(--u));
-  overflow-x: hidden;
-  overflow-y: auto;
-  scrollbar-width: thin;
-}
-
-.dp-rw-part {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: calc(10 * var(--u));
-}
-
-/* PayShop_Deco_Divider with a line each side (#d4c8b5). */
+/* PayShop_Deco_Divider (33×13) with a line each side (320×2, #d4c8b5). */
 .dp-rw-deco {
   width: calc(673 * var(--u));
   height: calc(13 * var(--u));
-  min-height: 7px;
   background:
-    url('/kr/ui/divine/PayShop_Deco_Divider.webp') center / auto 100% no-repeat,
-    linear-gradient(90deg, transparent, #d4c8b5 15% 85%, transparent) center / 100% max(1px, calc(2 * var(--u))) no-repeat;
+    url('/kr/ui/divine/PayShop_Deco_Divider.webp') center / calc(33 * var(--u)) 100% no-repeat,
+    linear-gradient(90deg, transparent, #d4c8b5 15% 85%, transparent) center / 100% calc(2 * var(--u)) no-repeat;
   opacity: 0.85;
 }
 
-/* Her Clear Reward: a row of item tiles (x0.8, up to 160 a cell). */
-.dp-rw-items {
-  display: grid;
-  grid-template-columns: repeat(var(--n, 5), minmax(0, calc(160 * var(--u))));
-  justify-content: center;
+/* A scroll grid's strip: its tiles in a row, in the middle while they fit, scrolled across once they don't. */
+.dp-rw-items,
+.dp-rw-card-items {
+  display: flex;
   align-items: center;
+  justify-content: safe center;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.dp-rw-items::-webkit-scrollbar,
+.dp-rw-card-items::-webkit-scrollbar {
+  display: none;
+}
+
+/* Her Clear Reward: 800×154, tiles at 0.8 of 128 in cells of 160. */
+.dp-rw-items {
+  --t: 0.8;
   width: calc(800 * var(--u));
   height: calc(154 * var(--u));
 }
 
+/* A reward's tile: its picture (128 at --t) in a cell (160, or the card's 155, at --t), its count over its corner. */
 .dp-rw-item {
   position: relative;
-  justify-self: center;
-  width: calc(102 * var(--u));
-  height: calc(102 * var(--u));
-  min-width: 34px;
-  min-height: 34px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: calc(var(--cell, 160) * var(--t) * var(--u));
+  height: calc(128 * var(--t) * var(--u));
 }
 
 .dp-rw-item-art {
-  display: block;
-  width: 100%;
-  height: 100%;
-  border-radius: calc(8 * var(--u));
-  box-shadow: 0 2px 6px rgb(0 0 0 / 50%);
+  width: calc(128 * var(--t) * var(--u));
+  height: calc(128 * var(--t) * var(--u));
+  border-radius: calc(10 * var(--t) * var(--u));
+  object-fit: contain;
+  box-shadow: 0 calc(2 * var(--u)) calc(5 * var(--u)) rgb(0 0 0 / 50%);
 }
 
 .dp-rw-item-art.blank {
   display: grid;
   place-items: center;
-  background: #2a2c38;
-  color: #9a9a9a;
+  background: #2a2733;
+  font-size: calc(48 * var(--t) * var(--u));
 }
 
 .dp-rw-box .dp-rw-count {
   position: absolute;
-  right: calc(4 * var(--u));
-  bottom: calc(3 * var(--u));
-  color: #fff;
-  font-size: max(11px, calc(24 * var(--u)));
+  right: calc((var(--cell, 160) - 128) / 2 * var(--t) * var(--u) + 4 * var(--t) * var(--u));
+  bottom: 0;
+  font-size: calc(30 * var(--t) * var(--u));
   font-weight: 800;
-  line-height: 1;
   font-variant-numeric: tabular-nums;
+  line-height: 1.1;
   text-shadow:
-    0 0 2px #000,
-    0 0 3px #000,
-    0 1px 2px #000;
+    0 0 calc(3 * var(--u)) #000,
+    0 0 calc(3 * var(--u)) #000,
+    0 0 calc(3 * var(--u)) #000;
 }
 
-/* A chance (a ratio row: the Unique Gear Ticket's), not a count. */
 .dp-rw-box .dp-rw-item.chance .dp-rw-count {
   color: #ffd76a;
 }
 
+/* Label_Info: 880 across, size 22, its two colours (#978d83, then #ff8102). */
 .dp-rw-caution {
-  width: calc(800 * var(--u));
+  width: calc(880 * var(--u));
   margin: 0;
-  font-size: max(11px, calc(22 * var(--u)));
+  font-size: calc(22 * var(--u));
   line-height: 1.3;
   text-align: center;
 }
 
 .dp-rw-box .dp-rw-caution span {
-  text-shadow: 0 1px 1px rgb(0 0 0 / 60%);
+  text-shadow: 0 calc(1 * var(--u)) calc(1 * var(--u)) rgb(0 0 0 / 60%);
 }
 
-/* Dynamic Rewards: a card per dragon, two a row (PunishmentRaidRewardSubComponent: Customizing_Back #eedec9, its picture, its rewards). */
+/* VarianceReward: 800×248, cells of 340×110 two a row. */
 .dp-rw-cards {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: calc(14 * var(--u)) calc(16 * var(--u));
+  grid-template-columns: repeat(2, calc(340 * var(--u)));
+  grid-auto-rows: calc(110 * var(--u));
+  justify-content: center;
+  align-content: start;
   width: calc(800 * var(--u));
+  height: calc(248 * var(--u));
+  overflow-y: auto;
+  scrollbar-width: none;
 }
 
+.dp-rw-cell {
+  display: grid;
+  place-items: center;
+}
+
+/* PunishmentRaidRewardSubComponent: 300×100 on Customizing_Back (#eedec9). */
 .dp-rw-card {
   position: relative;
-  display: flex;
-  align-items: center;
-  gap: calc(8 * var(--u));
-  height: calc(104 * var(--u));
-  min-height: 40px;
-  box-sizing: border-box;
-  padding: 0 calc(10 * var(--u));
+  width: calc(300 * var(--u));
+  height: calc(100 * var(--u));
   border-radius: calc(10 * var(--u));
   background: #eedec9;
-  box-shadow: 0 2px 5px rgb(0 0 0 / 45%);
+  box-shadow: 0 calc(2 * var(--u)) calc(5 * var(--u)) rgb(0 0 0 / 45%);
 }
 
+/* Texture_Monster: 94, at -98 from its middle. */
 .dp-rw-card-art {
-  flex: none;
+  position: absolute;
+  left: calc((150 - 98 - 47) * var(--u));
+  top: calc(3 * var(--u));
   width: calc(94 * var(--u));
   height: calc(94 * var(--u));
-  min-width: 36px;
-  min-height: 36px;
   object-fit: cover;
 }
 
+/* Its strip: 190×100 at 49 from its middle, tiles at 0.52 of 128 in cells of 155. */
 .dp-rw-card-items {
-  display: flex;
-  gap: calc(6 * var(--u));
-  min-width: 0;
-}
-
-.dp-rw-card .dp-rw-item {
-  width: calc(60 * var(--u));
-  height: calc(60 * var(--u));
-  min-width: 28px;
-  min-height: 28px;
-}
-
-.dp-rw-box .dp-rw-card .dp-rw-count {
-  font-size: max(10px, calc(18 * var(--u)));
+  --t: 0.52;
+  --cell: 155;
+  position: absolute;
+  left: calc((150 + 49 - 95) * var(--u));
+  top: 0;
+  width: calc(190 * var(--u));
+  height: calc(100 * var(--u));
+  justify-content: flex-start;
 }
 
 /* Cleared in this opening (ClearSprite #0000007b over it): its reward is no longer hers. */
@@ -1124,23 +1114,15 @@
   inset: 0;
   border-radius: inherit;
   background: rgb(0 0 0 / 48%);
+  pointer-events: none;
 }
 
 .dp-rw-note {
   margin: 0;
   color: #c5c5c5;
-  font-size: max(12px, calc(24 * var(--u)));
+  font-size: calc(24 * var(--u));
 }
 
 .dp-rw-note[hidden] {
   display: none;
-}
-
-/* A small screen (a phone on its side): the dragons' cards one a row, each wide enough for its tiles at a size that can be read. */
-@media (max-width: 900px), (max-height: 520px) {
-  .dp-rw-cards {
-    grid-template-columns: minmax(0, 1fr);
-    width: calc(560 * var(--u));
-    min-width: min(100%, 250px);
-  }
 }

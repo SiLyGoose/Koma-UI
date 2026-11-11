@@ -370,10 +370,10 @@ export function mount(root: HTMLElement, frame: DivineFrame): void {
     up: button('dp-rw-step right', null, 'Higher level'),
     max: button('dp-rw-end', 'Max', 'Highest level'),
     boss: at(picture('PunishmentRaid_Apocalypsion_Image', 'dp-rw-boss'), -390, -130),
-    clear: el('div', 'dp-rw-items'),
-    caution: el('p', 'dp-rw-caution'),
-    cards: el('div', 'dp-rw-cards'),
-    note: el('p', 'dp-rw-note'),
+    clear: at(el('div', 'dp-rw-items'), 300, 46),
+    caution: at(el('p', 'dp-rw-caution'), 300, -201),
+    cards: at(el('div', 'dp-rw-cards'), 300, -361),
+    note: at(el('p', 'dp-rw-note'), 300, -60),
   };
   {
     const title = at(el('h3', 'dp-rw-title', 'Reward List'), 0, 455);
@@ -382,11 +382,8 @@ export function mount(root: HTMLElement, frame: DivineFrame): void {
     // (The level picker, CountInputField2: Min at -374, the arrows at ±274, the number between, Max at 374.)
     const pick = at(el('div', 'dp-rw-pick'), 0, 323);
     pick.append(rw.min, rw.down, rw.level, rw.up, rw.max);
-    // Its right side, one column down the frame under the level picker (King's Raid's Clear Reward at 168, Dynamic Rewards at
-    // -121, its caution and cards under it): laid out one under another, so on a small screen, where its words and tiles keep
-    // a size that can be read, they push the rest down (and, at the last, scroll) rather than spill out of the frame.
-    const side = at(el('div', 'dp-rw-side'), 300, -115);
-    const deco = (): HTMLElement => el('span', 'dp-rw-deco');
+    // (Every part where King's Raid's prefab has it, the whole popup scaled as one to the screen, as the game's: nothing flows.)
+    const deco = (y: number): HTMLElement => at(el('span', 'dp-rw-deco'), 300, y);
     rw.root.hidden = true;
     rw.root.setAttribute('role', 'dialog');
     rw.root.setAttribute('aria-modal', 'true');
@@ -399,13 +396,15 @@ export function mount(root: HTMLElement, frame: DivineFrame): void {
       pick,
       at(el('span', 'dp-rw-logo'), -390, -130),
       rw.boss,
-      side,
+      at(el('h4', 'dp-rw-head', 'Clear Reward'), 300, 168),
+      deco(134),
+      rw.clear,
+      rw.note,
+      at(el('h4', 'dp-rw-head', 'Dynamic Rewards'), 300, -121),
+      deco(-157),
+      rw.caution,
+      rw.cards,
     );
-    const clearPart = el('div', 'dp-rw-part');
-    clearPart.append(el('h4', 'dp-rw-head', 'Clear Reward'), deco(), rw.clear);
-    const dynamicPart = el('div', 'dp-rw-part');
-    dynamicPart.append(el('h4', 'dp-rw-head', 'Dynamic Rewards'), deco(), rw.caution, rw.cards);
-    side.append(clearPart, rw.note, dynamicPart);
     rw.root.append(rw.box);
     root.append(rw.root);
   }
@@ -455,7 +454,6 @@ export function mount(root: HTMLElement, frame: DivineFrame): void {
       rw.cards.replaceChildren();
       return;
     }
-    rw.clear.style.setProperty('--n', String(Math.max(5, list.final.items.length)));
     rw.clear.replaceChildren(...list.final.items.map(rewardTile));
     // (A dragon cleared in this opening: King's Raid's ClearSprite over its card, its reward no longer hers.)
     const opening = openOf(group);
@@ -468,7 +466,10 @@ export function mount(root: HTMLElement, frame: DivineFrame): void {
         const items = el('div', 'dp-rw-card-items');
         items.append(...side.items.map(rewardTile));
         card.append(picture(MAP[side.id]?.picture ?? MAP[side.id]?.icon ?? '', 'dp-rw-card-art'), items);
-        return card;
+        // (Its cell, 340×110, the card in its middle: King's Raid's grid.)
+        const cell = el('div', 'dp-rw-cell');
+        cell.append(card);
+        return cell;
       }),
     );
   }
