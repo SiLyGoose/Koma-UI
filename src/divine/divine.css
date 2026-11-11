@@ -1,54 +1,129 @@
 /*
  * The Divine Punishment Raid's windows (./page.ts), as King's Raid's prefabs have them (public/kr/ui/divine/: their pictures).
- * Each window is the game's 1920×1080 screen (.dp-stage), as wide as the page or as fits under its bar, and --u is one of the
- * game's UI units on it: a part placed by ./page.ts at() stands at (--x, --y) from the middle (y up), as the prefab has it.
+ * Each window fills the frame under its bar (.dp-stage). --u is one of the game's UI units with its 1920×1080 screen kept whole
+ * inside it (its buttons and words), --s one with that screen covering it (its art: .dp-scene, the statues, the backdrop, the map
+ * and what stands on it). A part placed by ./page.ts at() stands at (--x, --y) from the middle (y up), as the prefab has it.
  * Its words never smaller than can be read (max(…px, …)), on a phone too.
  */
-.dp-page {
-  /* The site header's height (../shared/ui/header/header.css), so a window fills the screen under it, as the game's do. */
-  --header-h: 56px;
+/* The games' frame (../shared/ui/frame/), filling the screen: its bar, and under it the windows on black. */
+.dp-frame {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  max-width: 1600px;
-  min-height: calc(100dvh - var(--header-h));
-  margin: 0 auto;
-  padding: 16px clamp(16px, 3vw, 40px) 22px;
+  box-sizing: border-box;
+  height: 100dvh;
+  overflow: hidden;
+  background: #000;
 }
 
+/* The bar's ←, the page's own button (./main.ts), as the frame's link looks. */
+.dp-back {
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+/* The zeiucoins, on the frame's bar beside its sound button. */
+.dp-balance {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  margin-right: 10px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.dp-balance[hidden] {
+  display: none;
+}
+
+.dp-frame .outfit-coin {
+  width: 1.25em;
+  height: 1.25em;
+}
+
+.dp-frame .price-short {
+  color: #ff7b7b;
+}
+
+.dp-page {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* What's the matter (loading, logged out), over the top of the windows. */
 .dp-status {
+  position: absolute;
+  left: 50%;
+  top: 12px;
+  z-index: 20;
+  max-width: calc(100% - 32px);
   margin: 0;
+  padding: 8px 16px;
+  translate: -50% 0;
+  border-radius: 10px;
+  background: rgb(0 0 0 / 75%);
+  text-align: center;
+}
+
+/* The window shown, filling the frame under the bar. */
+.dp-windows {
+  position: relative;
+  flex: 1;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
 }
 
 .dp-stage {
   position: relative;
-  width: min(100%, (100dvh - var(--header-h) - 110px) * 16 / 9);
-  aspect-ratio: 16 / 9;
-  margin: 0 auto;
+  flex: 1;
+  min-width: 0;
   overflow: hidden;
-  border-radius: 10px;
   background: #000;
-  box-shadow: 0 8px 24px rgb(0 0 0 / 55%);
-  container-type: inline-size;
-  --u: calc(100cqw / 1920);
+  container-type: size;
+  --u: min(100cqw / 1920, 100cqh / 1080);
+  --s: var(--u);
   color: #fff;
   user-select: none;
 }
 
-.dp-windows {
-  min-width: 0;
+/* The art, and all that stands on it, at its window's --s. */
+.dp-scene {
+  --u: var(--s);
+}
+
+/* The main window: the goddess statues (2800×1554) covering the frame. */
+.dp-groups {
+  --s: max(var(--u), 100cqw / 2800, 100cqh / 1554);
+}
+
+/*
+ * The map: its backdrop (2513×1082) covering the frame, but never so large that a boss on it (1,900 across, its names and
+ * portraits) is cut off at the sides; on a taller screen than that, the sky above it and the rock below fade out of it.
+ */
+.dp-map {
+  --s: max(var(--u), min(max(100cqw / 2513, 100cqh / 1082), 100cqw / 1900));
+  background: linear-gradient(#23252c, #1a1b20 45%, #0b0b0e);
 }
 
 /* An upright phone: the window as wide as its parts can be read at, scrolled across (./page.ts starts it in the middle). */
-@media (max-width: 760px) {
+@media (max-width: 760px) and (orientation: portrait) {
   .dp-windows {
+    justify-content: flex-start;
     overflow-x: auto;
-    margin: 0 calc(-1 * clamp(16px, 3vw, 40px));
-    padding: 0 clamp(16px, 3vw, 40px) 8px;
     scrollbar-width: thin;
   }
 
   .dp-stage {
+    flex: none;
     width: 820px;
   }
 }
@@ -261,14 +336,6 @@
   text-align: center;
 }
 
-.dp-card-about {
-  left: calc(40 * var(--u));
-  right: calc(40 * var(--u));
-  top: calc((474 + 249 - 30) * var(--u));
-  font-size: max(10px, calc(24 * var(--u)));
-  text-align: center;
-}
-
 .dp-card-button {
   left: 50%;
   top: calc((474 + 426 - 47) * var(--u));
@@ -351,6 +418,8 @@
 .dp-map-backdrop {
   width: calc(2513 * var(--u));
   height: calc(1082 * var(--u));
+  /* (Its top and bottom edges fading into the frame's colours, should the frame be taller than it.) */
+  mask-image: linear-gradient(transparent, #000 4%, #000 96%, transparent);
 }
 
 /* A tower's light (its loop effect's picture, black where it is dark): added on, as the game draws it. */
@@ -697,4 +766,480 @@
 
 .dp-ask-foot .dp-button[hidden] {
   display: none;
+}
+
+/* ---- The Reward List's buttons: the Boss Dungeon card's two (220 wide, Reward List then Unlock or Enter), the map's bottom right ---- */
+
+.dp-card-button.half {
+  left: calc(50% + 120 * var(--u));
+  width: calc(220 * var(--u));
+  padding: 0 0.3em;
+  font-size: max(11px, calc(28 * var(--u)));
+  white-space: nowrap;
+}
+
+.dp-card-button.half.first {
+  left: calc(50% - 120 * var(--u));
+}
+
+.dp-map-rewards {
+  width: calc(416 * var(--u));
+  height: calc(94 * var(--u));
+  min-height: 30px;
+  font-size: max(13px, calc(32 * var(--u)));
+  white-space: nowrap;
+}
+
+/*
+ * ---- The Reward List (PunishmentRaidRewardInfoPopup) ----
+ * The game's 1500×1040 popup (Pet_Frame_BG_Image, PayShop_Frame in it), --u one of its units, as large as fits the screen; its
+ * parts placed by ./page.ts at() from its middle, as the prefab has them. On a phone they flow one under another instead.
+ */
+
+.dp-rewards {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 12px;
+  overflow: auto;
+  background: rgb(0 0 0 / 70%);
+}
+
+.dp-rewards[hidden] {
+  display: none;
+}
+
+.dp-rw-box {
+  --u: min(0.8px, (100vw - 24px) / 1500, (100dvh - 24px) / 1040);
+  position: relative;
+  width: calc(1500 * var(--u));
+  height: calc(1040 * var(--u));
+  box-sizing: border-box;
+  border: solid transparent;
+  border-width: calc(64 * var(--u));
+  /* (Its sprite is all corners, 64 a side of 128: cut a pixel in, so its edges have something to stretch.) */
+  border-image: url('/kr/ui/divine/Pet_Frame_BG_Image.webp') 63 fill / calc(64 * var(--u)) stretch;
+  color: #fff;
+  user-select: none;
+}
+
+.dp-rw-box :is(h3, h4, p, span, button) {
+  text-shadow:
+    0 0 2px #1a1008,
+    0 1px 2px #1a1008;
+}
+
+.dp-rw-frame {
+  width: calc(1470 * var(--u));
+  height: calc(896 * var(--u));
+  box-sizing: border-box;
+  border: solid transparent;
+  border-width: calc(46 * var(--u));
+  border-image: url('/kr/ui/divine/PayShop_Frame.webp') 46 fill / calc(46 * var(--u)) stretch;
+}
+
+.dp-rw-title {
+  display: grid;
+  place-items: center;
+  width: calc(1216 * var(--u));
+  height: calc(102 * var(--u));
+  box-sizing: border-box;
+  margin: 0;
+  border: solid transparent;
+  border-width: 0 calc(76 * var(--u));
+  border-image: url('/kr/ui/divine/Pet_PopupTitleBG_Image.webp') 0 76 fill / 0 calc(76 * var(--u)) stretch;
+  font-size: max(16px, calc(35 * var(--u)));
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.dp-rw-close {
+  width: calc(70 * var(--u));
+  height: calc(70 * var(--u));
+  min-width: 30px;
+  min-height: 30px;
+  padding: 0;
+  border: 0;
+  background: url('/kr/ui/divine/Btn_PayShop_Close.webp') center / contain no-repeat;
+  cursor: pointer;
+}
+
+.dp-rw-close:hover,
+.dp-rw-close:focus-visible {
+  outline: none;
+  filter: brightness(1.25);
+}
+
+/* PayShop_Shadow_Divider, turned to lie across under the level. */
+.dp-rw-shadow {
+  width: calc(12 * var(--u));
+  height: calc(1310 * var(--u));
+  background: url('/kr/ui/divine/PayShop_Shadow_Divider.webp') center / 100% 100%;
+  rotate: -90deg;
+  pointer-events: none;
+}
+
+/* The level picker (CountInputField2): Min, Common_ArrowButton_Left, the number on Common_Box_2, Common_ArrowButton_Right, Max (Mission_Button_Normal). */
+.dp-rw-pick {
+  display: flex;
+  align-items: center;
+  gap: calc(10 * var(--u));
+}
+
+.dp-rw-level {
+  display: grid;
+  place-items: center;
+  width: calc(450 * var(--u));
+  height: calc(80 * var(--u));
+  min-height: 28px;
+  box-sizing: border-box;
+  border: solid transparent;
+  border-width: calc(15 * var(--u));
+  border-image: url('/kr/ui/divine/Common_Box_2.webp') 15 fill / calc(15 * var(--u)) stretch;
+  font-size: max(14px, calc(30 * var(--u)));
+  font-variant-numeric: tabular-nums;
+}
+
+.dp-rw-step,
+.dp-rw-end {
+  flex: none;
+  padding: 0;
+  border: 0;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.dp-rw-step {
+  width: calc(80 * var(--u));
+  height: calc(80 * var(--u));
+  min-width: 28px;
+  min-height: 28px;
+  background: url('/kr/ui/divine/Common_ArrowButton_Left.webp') center / contain no-repeat;
+}
+
+.dp-rw-step.right {
+  background-image: url('/kr/ui/divine/Common_ArrowButton_Right.webp');
+}
+
+.dp-rw-end {
+  display: grid;
+  place-items: center;
+  width: calc(100 * var(--u));
+  height: calc(86 * var(--u));
+  min-width: 36px;
+  min-height: 30px;
+  box-sizing: border-box;
+  border: solid transparent;
+  border-width: calc(20 * var(--u));
+  border-image: url('/kr/ui/divine/Mission_Button_Normal.webp') 20 fill / calc(20 * var(--u)) stretch;
+  background: none;
+  font-size: max(11px, calc(24 * var(--u)));
+}
+
+.dp-rw-step:hover:not(:disabled),
+.dp-rw-end:hover:not(:disabled),
+.dp-rw-step:focus-visible,
+.dp-rw-end:focus-visible {
+  outline: none;
+  filter: brightness(1.2);
+}
+
+.dp-rw-step:disabled,
+.dp-rw-end:disabled {
+  filter: grayscale(1) brightness(0.55);
+  cursor: default;
+}
+
+/* The boss (Texture_Boss) over the King's Raid watermark. */
+.dp-rw-logo {
+  width: calc(582 * var(--u));
+  height: calc(619 * var(--u));
+  background: url('/kr/ui/divine/Bg_kingsRaid_Logo.webp') center / contain no-repeat;
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.dp-rw-boss {
+  width: calc(688 * var(--u));
+  height: calc(738 * var(--u));
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.dp-rw-head {
+  margin: 0;
+  background: linear-gradient(#fff, #b2b2b2);
+  background-clip: text;
+  color: transparent;
+  font-size: max(15px, calc(34 * var(--u)));
+  font-weight: 800;
+  white-space: nowrap;
+  filter: drop-shadow(0 1px 1px #000);
+}
+
+.dp-rw-box .dp-rw-head {
+  text-shadow: none;
+}
+
+/* PayShop_Deco_Divider with a line each side (#d4c8b5). */
+.dp-rw-deco {
+  width: calc(673 * var(--u));
+  height: calc(13 * var(--u));
+  min-height: 7px;
+  background:
+    url('/kr/ui/divine/PayShop_Deco_Divider.webp') center / auto 100% no-repeat,
+    linear-gradient(90deg, transparent, #d4c8b5 15% 85%, transparent) center / 100% max(1px, calc(2 * var(--u))) no-repeat;
+  opacity: 0.85;
+}
+
+/* Her Clear Reward: a row of item tiles (x0.8, up to 160 a cell). */
+.dp-rw-items {
+  display: grid;
+  grid-template-columns: repeat(var(--n, 5), minmax(0, calc(160 * var(--u))));
+  justify-content: center;
+  align-items: center;
+  width: calc(800 * var(--u));
+  height: calc(154 * var(--u));
+}
+
+.dp-rw-item {
+  position: relative;
+  justify-self: center;
+  width: calc(102 * var(--u));
+  height: calc(102 * var(--u));
+  min-width: 34px;
+  min-height: 34px;
+}
+
+.dp-rw-item-art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: calc(8 * var(--u));
+  box-shadow: 0 2px 6px rgb(0 0 0 / 50%);
+}
+
+.dp-rw-item-art.blank {
+  display: grid;
+  place-items: center;
+  background: #2a2c38;
+  color: #9a9a9a;
+}
+
+.dp-rw-box .dp-rw-count {
+  position: absolute;
+  right: calc(4 * var(--u));
+  bottom: calc(3 * var(--u));
+  color: #fff;
+  font-size: max(11px, calc(24 * var(--u)));
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  text-shadow:
+    0 0 2px #000,
+    0 0 3px #000,
+    0 1px 2px #000;
+}
+
+/* A chance (a ratio row: the Unique Gear Ticket's), not a count. */
+.dp-rw-box .dp-rw-item.chance .dp-rw-count {
+  color: #ffd76a;
+}
+
+.dp-rw-caution {
+  width: calc(800 * var(--u));
+  margin: 0;
+  font-size: max(11px, calc(22 * var(--u)));
+  line-height: 1.3;
+  text-align: center;
+}
+
+.dp-rw-box .dp-rw-caution span {
+  text-shadow: 0 1px 1px rgb(0 0 0 / 60%);
+}
+
+/* Dynamic Rewards: a card per dragon, two a row (PunishmentRaidRewardSubComponent: Customizing_Back #eedec9, its picture, its rewards). */
+.dp-rw-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: calc(14 * var(--u)) calc(16 * var(--u));
+  width: calc(800 * var(--u));
+}
+
+.dp-rw-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: calc(8 * var(--u));
+  height: calc(104 * var(--u));
+  min-height: 40px;
+  box-sizing: border-box;
+  padding: 0 calc(10 * var(--u));
+  border-radius: calc(10 * var(--u));
+  background: #eedec9;
+  box-shadow: 0 2px 5px rgb(0 0 0 / 45%);
+}
+
+.dp-rw-card-art {
+  flex: none;
+  width: calc(94 * var(--u));
+  height: calc(94 * var(--u));
+  min-width: 36px;
+  min-height: 36px;
+  object-fit: cover;
+}
+
+.dp-rw-card-items {
+  display: flex;
+  gap: calc(6 * var(--u));
+  min-width: 0;
+}
+
+.dp-rw-card .dp-rw-item {
+  width: calc(66 * var(--u));
+  height: calc(66 * var(--u));
+  min-width: 28px;
+  min-height: 28px;
+}
+
+.dp-rw-box .dp-rw-card .dp-rw-count {
+  font-size: max(10px, calc(18 * var(--u)));
+}
+
+/* Cleared in this opening (ClearSprite #0000007b over it): its reward is no longer hers. */
+.dp-rw-card.cleared::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgb(0 0 0 / 48%);
+}
+
+.dp-rw-note {
+  margin: 0;
+  color: #c5c5c5;
+  font-size: max(12px, calc(24 * var(--u)));
+}
+
+.dp-rw-note[hidden] {
+  display: none;
+}
+
+/* An upright phone: the parts one under another, as wide as the screen (the boss, faint, behind them). */
+@media (max-width: 760px) {
+  .dp-rewards {
+    place-items: start center;
+  }
+
+  .dp-rw-box {
+    --u: 0.45px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    max-width: 520px;
+    height: auto;
+    padding: 4px 0 6px;
+    border-width: 28px 18px;
+    border-image-width: 28px 18px;
+    overflow: hidden;
+  }
+
+  .dp-rw-box > .dp-at {
+    position: relative;
+    left: auto;
+    top: auto;
+    transform: none;
+  }
+
+  .dp-rw-frame,
+  .dp-rw-shadow,
+  .dp-rw-logo {
+    display: none;
+  }
+
+  .dp-rw-box > .dp-rw-boss {
+    position: absolute;
+    left: -14%;
+    bottom: 0;
+    width: 80%;
+    height: auto;
+    opacity: 0.2;
+  }
+
+  .dp-rw-box > .dp-rw-title {
+    width: calc(100% - 44px);
+    height: 44px;
+    border-width: 0 32px;
+    border-image-width: 0 32px;
+    margin-right: 44px;
+  }
+
+  .dp-rw-box > .dp-rw-close {
+    position: absolute;
+    right: 0;
+    top: 6px;
+  }
+
+  .dp-rw-pick {
+    gap: 6px;
+    width: 100%;
+  }
+
+  .dp-rw-level {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+  }
+
+  .dp-rw-items,
+  .dp-rw-caution,
+  .dp-rw-cards,
+  .dp-rw-deco {
+    width: 100%;
+  }
+
+  .dp-rw-items {
+    grid-template-columns: repeat(auto-fit, minmax(52px, 1fr));
+    height: auto;
+    row-gap: 10px;
+  }
+
+  .dp-rw-item {
+    width: 50px;
+    height: 50px;
+  }
+
+  .dp-rw-cards {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .dp-rw-card {
+    height: auto;
+    padding: 6px 8px;
+    gap: 8px;
+  }
+
+  .dp-rw-card-art {
+    width: 48px;
+    height: 48px;
+  }
+
+  .dp-rw-card-items {
+    gap: 6px;
+  }
+
+  .dp-rw-card .dp-rw-item {
+    width: 42px;
+    height: 42px;
+  }
+
+  .dp-rw-head {
+    margin-top: 6px;
+  }
 }

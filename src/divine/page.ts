@@ -1,31 +1,38 @@
-import markup from './divine.html?raw';
 import { el } from '../shared/items';
-import { API, busyWith, dropdown, fillServers, type Busy } from '../shared/ui';
+import { API, busyWith, type Busy } from '../shared/ui';
 import { levelPopup } from '../shared/ui/level/level';
 import { navigate } from '../shared/transition';
 import { coin, points } from '../shared/util';
 import { DIVINE_CARDS } from '../shared/raids';
-import type { Page } from '../site/page';
-import { playGame } from '../site/play';
-import { api, currentMe, currentServer, loadMe, logOut, prefetchFor, setServer } from '../site/session';
+import { api, currentMe, currentServer, hasSession, loadMe, playGame } from './bot';
 import { infiniteAtk, infiniteHp } from '../technomagic/sim/bosses/divine/levels';
-import type { DivineDungeonView, DivineError, DivineGroupId, DivineGroupView, DivineView } from '../protocol/divine';
+import { rewardItem } from '../technomagic/divine-items';
+import type { DivineDungeonView, DivineError, DivineGroupId, DivineGroupView, DivineRewardItem, DivineRewardsView, DivineView } from '../protocol/divine';
 
 /*
  * King's Raid's Divine Punishment Raid (the bot's /api/divine; its fights are the raid page's, games/divine/), its windows as
  * the game goes through them (NGame2.NUI.NManager/PunishManagment.cs), each the game's 1920×1080 screen with its parts where its
- * prefab has them (KR-extracted's dump of the CBT2 client: public/kr/ui/divine/ are its pictures), a path each:
- *   /divine/                  PunishmentMainWindow: a group at a time between the goddess statues (its boss, its arrows to the
+ * prefab has them (KR-extracted's dump of the CBT2 client: public/kr/ui/divine/ are its pictures), in the games' frame (./main.ts,
+ * games/punishment/), a hash each (kept in place: the browser's back leaves the game, as every game's does; the frame's ← goes a
+ * window up):
+ *   (none)                    PunishmentMainWindow: a group at a time between the goddess statues (its boss, its arrows to the
  *                             others: Solenis' still to come), and Enter
- *   /divine/<group>/          PunishmentDungeonTypeSelectWindow: its Karma Dungeon card (to come) and its Boss Dungeon card:
+ *   #<group>                  PunishmentDungeonTypeSelectWindow: its Boss Dungeon card (King's Raid's Karma Dungeon, and the
+ *                             Shards it fills, are left out for now):
  *                             locked, Unlock and its price (PunishmentLevelSelectPopup first: the Infinite level, 1 to the one
  *                             after their best, with what it adds to the bosses); unlocked, the time left, its clears, Enter
  *                             and Reset
- *   /divine/<group>/boss/     PunishmentRaidWindow: its map, the dragons' towers round her arena, a portrait and a name for each,
- *                             the level unlocked top left, and under her the Domain Skills the dragons alive lend her
+ *   #<group>/boss             PunishmentRaidWindow: its map, the dragons' towers round her arena, a portrait and a name for each,
+ *                             the level unlocked top left, and under her the Domain Skills (each lit, and its tower, once its
+ *                             dragon is defeated)
+ * Each window's art (the statues, the backdrop, the map and what stands on it) covers the whole frame (the `scene`, at --s); its
+ * buttons and words keep the game's screen inside it (at --u), never cut off.
+ * Both have King's Raid's Reward List (PunishmentRaidRewardInfoPopup: the bot's /api/divine/rewards), the Boss Dungeon card's
+ * beside its Unlock or Enter, the map's bottom right: a level picked (1 to five past their best), her Clear Reward, and each
+ * dragon's Dynamic Reward (what clearing it takes off hers), darkened once cleared in this opening.
  * An opening lasts 7 days, each dragon beaten once in it and two at most (each left alive lends her its strength), her win
  * closing it. A name pressed asks "This is …'s dungeon. Do you want to enter?" (she, with every dragon alive, "her power is at her
- * greatest"), then opens the raid page against it, alone (4 Main and 4 Sub heroes, Full Shards picked there). Its (?) opens Raid
+ * greatest"), then opens the raid page against it, alone (4 Main and 4 Sub heroes). Its (?) opens Raid
  * Info. Prices are King's Raid's Stamina numbers, in zeiucoins. Back goes a window up (from the groups, to the games).
  */
 
@@ -42,17 +49,20 @@ const GROUPS: readonly { id: DivineGroupId; name: string; title: string; picture
 /**
  * Each boss on the map (PunishmentRaidTable): its name there (EntryLocalKey: the dragons by kind), where its name stands and its
  * portrait (EntryPosition, PortraitPosition: the game's units from the screen's middle, y up), the side its portrait's line
- * runs to its tower (none: hers, a stem down to her name), its mini portrait, its tower's light (lit while it isn't beaten:
- * the game's UI.Punishment.Entry.*.Loop, at its tower's crystal) and its Domain Skill (PunishmentRaidTriggerTable: its colour,
- * and King's Raid's words for it).
+ * runs to its tower (none: hers, a stem down to her name), its mini portrait, its picture on the Reward List (ImagePath), its
+ * tower's light (lit while it isn't beaten: the game's UI.Punishment.Entry.*.Loop, at its tower's crystal) and its Domain Skill
+ * (PunishmentRaidTriggerTable: its colour, and King's Raid's words for it).
  */
-const MAP: Readonly<Record<string, { name: string; entry: [number, number]; portrait: [number, number]; line: 1 | -1 | null; icon: string; light: { picture: string; at: [number, number] }; domain?: { color: string; title: string; about: string } }>> = {
+const MAP: Readonly<
+  Record<string, { name: string; entry: [number, number]; portrait: [number, number]; line: 1 | -1 | null; icon: string; picture: string; light: { picture: string; at: [number, number] }; domain?: { color: string; title: string; about: string } }>
+> = {
   'dp-temeraire': {
     name: 'Fire Dragon',
     entry: [-370, 40],
     portrait: [-504, 260],
     line: 1,
     icon: 'Dragon_Fire',
+    picture: 'PunishmentRaid_DragonRed_Image',
     light: { picture: 'Punishment_Entry_Dragon_RedTowerLight', at: [-380, 250] },
     domain: { color: '#f60000', title: "Temeraire's Flame", about: "Uses Temeraire's Flame to greatly reduce enemy's P.DMG and deal massive DMG with [Blessing of the Flame]. This effect is deactivated upon defeating Temeraire." },
   },
@@ -62,6 +72,7 @@ const MAP: Readonly<Record<string, { name: string; entry: [number, number]; port
     portrait: [504, 260],
     line: -1,
     icon: 'Dragon_Ice',
+    picture: 'PunishmentRaid_DragonIce_Image',
     light: { picture: 'Punishment_Entry_Dragon_BlueTowerLight', at: [372, 250] },
     domain: { color: '#017df1', title: "Scalaxia's Chill", about: "Uses Scalaxia's Chill to greatly reduce enemy's M.DMG and inflict Frost continuously. This effect is deactivated upon defeating Scalaxia." },
   },
@@ -71,6 +82,7 @@ const MAP: Readonly<Record<string, { name: string; entry: [number, number]; port
     portrait: [-830, 0],
     line: 1,
     icon: 'Dragon_Poison',
+    picture: 'PunishmentRaid_DragonPoison_Image',
     light: { picture: 'Punishment_Entry_Dragon_GreenTowerLight', at: [-704, 76] },
     domain: { color: '#3af700', title: "Zyrrkinoth's Poison", about: "Uses Zyrrkinoth's Poison to reduce the enemy's Crit Chance and Heal Rate, and deal continuous DMG. This effect is deactivated upon defeating Zyrrkinoth." },
   },
@@ -80,10 +92,11 @@ const MAP: Readonly<Record<string, { name: string; entry: [number, number]; port
     portrait: [830, 0],
     line: -1,
     icon: 'Dragon_Black',
+    picture: 'PunishmentRaid_DragonBlack_Image',
     light: { picture: 'Punishment_Entry_Dragon_PurpleTowerLight', at: [700, 76] },
     domain: { color: '#8000f8', title: "Armarta's Storm", about: "Uses Armarta's Storm to continuously increase the target's Cooldown and inflict Stun. This effect is deactivated upon defeating Armarta." },
   },
-  apocalypsion: { name: 'Apocalypsion', entry: [0, -130], portrait: [0, 260], line: null, icon: 'Boss_Apocalypsion', light: { picture: 'Punishment_Entry_Center_TowerLight', at: [0, -20] } },
+  apocalypsion: { name: 'Apocalypsion', entry: [0, -130], portrait: [0, 260], line: null, icon: 'Boss_Apocalypsion', picture: 'PunishmentRaid_Apocalypsion_Image', light: { picture: 'Punishment_Entry_Center_TowerLight', at: [0, -20] } },
 };
 
 /** The map's line along its bottom (the group's guidance: Label_Info). */
@@ -92,6 +105,21 @@ const GUIDANCE: Readonly<Record<DivineGroupId, string>> = {
     'Apocalypsion is very powerful due to the surrounding Dragons. You can defeat the surrounding Dragons first to weaken her. However, doing so will reduce the rewards you receive upon defeating Apocalypsion. Up to 2 Dragons can be defeated at a time.',
   solenis: 'Each time a Mid-Boss is defeated, Solenis becomes stronger and the rewards increase.',
 };
+
+/** The Reward List's caution under Dynamic Rewards (King's Raid's, its two colours). */
+const CAUTION: Readonly<Record<DivineGroupId, [string, string][]>> = {
+  apocalypsion: [
+    ['#978d83', 'Whenever you clear each Dragon dungeon, '],
+    ['#ff8102', "Apocalypsion's dynamic rewards are reduced."],
+  ],
+  solenis: [
+    ['#ff8102', 'Reward of Solenis increases '],
+    ['#978d83', 'whenever each Mid-Boss is cleared.'],
+  ],
+};
+
+/** The Infinite levels the bot's rewards are tabled for (its DP_REWARD_LEVELS): the Reward List goes no further. */
+const REWARD_LEVELS = 110;
 
 /** How often the opening's time left is said again (King's Raid's counts the seconds). */
 const TICK_MS = 1000;
@@ -104,22 +132,14 @@ const ERRORS: Partial<Record<DivineError, string>> = {
   busy: 'Something else is being done for you right now. Try again in a moment.',
 };
 
-export const divinePage: Page = {
-  title: 'Divine Punishment · Komaverse',
-  icon: '⚡',
-  markup,
-  mount,
-  prefetch: () => prefetchFor((guild) => `/api/divine?guild=${guild}`),
-};
-
-/** The window a path is (a group this page hasn't yet: the main window, on it). */
-function screenAt(path: string): Screen {
-  const [group, kind] = path.replace(/^\/divine\/?/, '').split('/').filter(Boolean);
+/** The window an address's hash is (#apocalypsion, #apocalypsion/boss; a group this page hasn't yet: the main window, on it). */
+function screenAt(hash: string): Screen {
+  const [group, kind] = hash.replace(/^#\/?/, '').split('/').filter(Boolean);
   const known = GROUPS.find((one) => one.id === group);
   if (!known?.open) return { kind: 'groups', group: known?.id ?? null };
   return kind === 'boss' ? { kind: 'map', group: known.id } : { kind: 'types', group: known.id };
 }
-const pathOf = (screen: Screen): string => (screen.kind === 'groups' ? '/divine/' : `/divine/${screen.group}/${screen.kind === 'map' ? 'boss/' : ''}`);
+const hashOf = (screen: Screen): string => (screen.kind === 'groups' ? '' : `#${screen.group}${screen.kind === 'map' ? '/boss' : ''}`);
 
 /** What's left of an opening's 7 days, as King's Raid's GetRemainTimeTextAll says it. */
 function left(expires: string): string {
@@ -134,6 +154,12 @@ function left(expires: string): string {
     .filter(([n], i) => n > 0 || i === 3)
     .map(([n, word]) => `${n} ${word}${n === 1 ? '' : 's'}`)
     .join(' ');
+}
+
+/** Part of a window's art, scaled with it to cover the whole frame (./divine.css --s), not kept inside the game's screen. */
+function scene<T extends HTMLElement>(node: T): T {
+  node.classList.add('dp-scene');
+  return node;
 }
 
 /** An element at a place on a window: `x`, `y` in the game's units from its middle (y up). */
@@ -152,13 +178,23 @@ const picture = (name: string, className: string): HTMLImageElement => {
 };
 const price = (amount: number, short = false): HTMLElement[] => [coin('outfit-coin', 'zeiucoins'), el('span', short ? 'price-short' : '', points(amount))];
 
-function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void; navigate: (url: URL) => void } {
+/**
+ * The page in its game frame (./main.ts): `back` is the frame's ←, `title` its name and `balance` where the zeiucoins go in its
+ * bar; `conn` says how asking the bot went (and lifts the loading screen).
+ */
+export interface DivineFrame {
+  back: HTMLButtonElement;
+  title: HTMLElement;
+  balance: HTMLElement;
+  conn(text: string, kind: 'ok' | 'bad'): void;
+}
+
+export function mount(root: HTMLElement, frame: DivineFrame): void {
   const $ = <T extends HTMLElement>(id: string): T => root.querySelector(`#${id}`) as T;
   const ui = {
-    back: $<HTMLButtonElement>('back'),
-    server: $<HTMLSelectElement>('server'),
-    title: $('title'),
-    balance: $('balance'),
+    back: frame.back,
+    title: frame.title,
+    balance: frame.balance,
     status: $('status'),
     windows: $('windows'),
     groups: $('groups'),
@@ -171,16 +207,10 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void; 
     askConfirm: root.querySelector('[data-ask="confirm"]') as HTMLButtonElement,
   };
   let view: DivineView | null = null;
-  let screen = screenAt(location.pathname);
+  let screen = screenAt(location.hash);
   /** The group the main window shows. */
   let shown = GROUPS.findIndex((one) => one.id === (screen.group ?? 'apocalypsion'));
   let busy: Busy | null = null;
-
-  const serverPicker = dropdown(ui.server);
-  ui.server.addEventListener('change', () => {
-    setServer(ui.server.value);
-    void load();
-  });
 
   function status(text: string | null, bad = false): void {
     ui.status.hidden = text === null;
@@ -188,9 +218,16 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void; 
     ui.status.classList.toggle('bad', bad);
   }
 
-  /** Says why asking the bot didn't work (or, for a login that ran out, logs out). */
+  /** Not logged in (or the login ran out): to the front page, to log in. */
+  function loggedOut(): void {
+    status('Log in on the games page first, then open the Divine Punishment Raid from there.', true);
+    frame.conn('Logged out', 'bad');
+  }
+
+  /** Says why asking the bot didn't work (or, for a login that ran out, says to log in). */
   function failed(res: { status: number; error: string }, what: string): void {
-    if (res.status === 401) return logOut();
+    if (res.status === 401) return loggedOut();
+    frame.conn('Offline', 'bad');
     if (res.status === 0) return void load();
     status(res.error === 'not_member' ? "You don't seem to be in that server any more. Log out and in again to refresh it." : (ERRORS[res.error as DivineError] ?? what), true);
   }
@@ -202,6 +239,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void; 
     if (!res.ok) return failed(res, res.status === 404 ? 'The Divine Punishment Raid isn’t open yet.' : 'Could not load the Divine Punishment Raid.');
     view = res.data;
     status(null);
+    frame.conn('Connected', 'ok');
     draw();
   }
 
@@ -294,7 +332,6 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void; 
     status(null);
     const res = await api<DivineView>('/api/divine/open', { method: 'POST', body: JSON.stringify({ guild: server, group: group.id, type: 'boss', level }) });
     busy = null;
-    void loadMe(true);
     if (!res.ok) {
       if (res.error === 'already_open' || res.error === 'bad_level') await load();
       return failed(res, 'Could not unlock it. Try again.');
@@ -315,29 +352,227 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void; 
     draw();
   }
 
+  // ---- The Reward List (PunishmentRaidRewardInfoPopup): a level, her Clear Reward, each dragon's Dynamic Reward ----
+
+  /** A button of the popup's (its parts placed as the game's prefab has them, from the popup's middle, y up). */
+  const button = (className: string, text: string | null, label: string): HTMLButtonElement => {
+    const one = el('button', className, text ?? undefined);
+    one.type = 'button';
+    one.setAttribute('aria-label', label);
+    return one;
+  };
+  const rw = {
+    root: el('div', 'dp-rewards'),
+    box: el('div', 'dp-rw-box'),
+    close: at(button('dp-rw-close', null, 'Close'), 678, 455),
+    min: button('dp-rw-end', 'Min', 'Lowest level'),
+    down: button('dp-rw-step left', null, 'Lower level'),
+    level: el('span', 'dp-rw-level'),
+    up: button('dp-rw-step right', null, 'Higher level'),
+    max: button('dp-rw-end', 'Max', 'Highest level'),
+    boss: at(picture('PunishmentRaid_Apocalypsion_Image', 'dp-rw-boss'), -390, -130),
+    clear: at(el('div', 'dp-rw-items'), 300, 46),
+    caution: at(el('p', 'dp-rw-caution'), 300, -201),
+    cards: at(el('div', 'dp-rw-cards'), 300, -359),
+    note: at(el('p', 'dp-rw-note'), 300, -60),
+  };
+  {
+    const title = at(el('h3', 'dp-rw-title', 'Reward List'), 0, 455);
+    title.id = 'dp-rw-title';
+    rw.level.setAttribute('aria-live', 'polite');
+    // (The level picker, CountInputField2: Min at -374, the arrows at ±274, the number between, Max at 374.)
+    const pick = at(el('div', 'dp-rw-pick'), 0, 323);
+    pick.append(rw.min, rw.down, rw.level, rw.up, rw.max);
+    const deco = (y: number): HTMLElement => at(el('span', 'dp-rw-deco'), 300, y);
+    rw.root.hidden = true;
+    rw.root.setAttribute('role', 'dialog');
+    rw.root.setAttribute('aria-modal', 'true');
+    rw.root.setAttribute('aria-labelledby', title.id);
+    rw.box.append(
+      at(el('span', 'dp-rw-frame'), 0, -61),
+      title,
+      rw.close,
+      at(el('span', 'dp-rw-shadow'), 0, 236),
+      pick,
+      at(el('span', 'dp-rw-logo'), -390, -130),
+      rw.boss,
+      at(el('h4', 'dp-rw-head', 'Clear Reward'), 300, 168),
+      deco(134),
+      rw.clear,
+      at(el('h4', 'dp-rw-head', 'Dynamic Rewards'), 300, -121),
+      deco(-157),
+      rw.caution,
+      rw.cards,
+      rw.note,
+    );
+    rw.root.append(rw.box);
+    root.append(rw.root);
+  }
+  /** What the popup shows: its group, the level picked, the most it goes to, and the lists fetched (by level). */
+  let rewarding: { group: DivineGroupView; level: number; most: number; from: HTMLElement | null; lists: Map<number, DivineRewardsView> } | null = null;
+
+  /** One reward's tile: its picture and its count (a chance: its percent), its name and what it's for on hover. */
+  function rewardTile(item: DivineRewardItem): HTMLElement {
+    const known = rewardItem(item.key);
+    const chance = item.ratio !== undefined;
+    const tile = el('span', `dp-rw-item${chance ? ' chance' : ''}`);
+    if (known?.icon) {
+      const img = el('img', 'dp-rw-item-art');
+      img.src = known.icon;
+      img.alt = '';
+      img.draggable = false;
+      tile.append(img);
+    } else tile.append(el('span', 'dp-rw-item-art blank', '?'));
+    const pct = `${points(Math.round((item.ratio ?? 0) / 10))}%`;
+    tile.append(el('span', 'dp-rw-count', chance ? pct : points(item.count)));
+    const name = known?.name ?? item.key;
+    tile.title = `${chance ? `${name}: a ${pct} chance of one` : `${name} ×${points(item.count)}`}${known ? `\n${known.about}` : ''}`;
+    tile.setAttribute('role', 'img');
+    tile.setAttribute('aria-label', chance ? `${name}, ${pct} chance` : `${name} ×${points(item.count)}`);
+    return tile;
+  }
+
+  function drawRewards(): void {
+    if (!rewarding) return;
+    const { group, level, most, lists } = rewarding;
+    const one = GROUPS.find((g) => g.id === group.id);
+    rw.boss.src = `${ART}/${one?.picture ?? 'PunishmentRaid_Apocalypsion_Image'}.webp`;
+    rw.level.textContent = String(level);
+    rw.min.disabled = rw.down.disabled = level <= 1;
+    rw.max.disabled = rw.up.disabled = level >= most;
+    rw.caution.replaceChildren(
+      ...(CAUTION[group.id] ?? []).map(([color, text]) => {
+        const part = el('span', '', text);
+        part.style.color = color;
+        return part;
+      }),
+    );
+    const list = lists.get(level);
+    rw.note.hidden = !!list;
+    if (!list) {
+      rw.clear.replaceChildren();
+      rw.cards.replaceChildren();
+      return;
+    }
+    rw.clear.style.setProperty('--n', String(Math.max(5, list.final.items.length)));
+    rw.clear.replaceChildren(...list.final.items.map(rewardTile));
+    // (A dragon cleared in this opening: King's Raid's ClearSprite over its card, its reward no longer hers.)
+    const opening = openOf(group);
+    rw.cards.replaceChildren(
+      ...list.sides.map((side) => {
+        const cleared = !!opening?.cleared.includes(side.id);
+        const card = el('div', `dp-rw-card${cleared ? ' cleared' : ''}`);
+        const name = MAP[side.id]?.name ?? side.name;
+        card.title = cleared ? `${name} (${side.name}): cleared in this opening, so this is no longer part of ${list.final.name}'s reward` : `${name} (${side.name}): clearing it pays this, and takes it off ${list.final.name}'s reward`;
+        const items = el('div', 'dp-rw-card-items');
+        items.append(...side.items.map(rewardTile));
+        card.append(picture(MAP[side.id]?.picture ?? MAP[side.id]?.icon ?? '', 'dp-rw-card-art'), items);
+        return card;
+      }),
+    );
+  }
+
+  /** The list at the level picked, fetched if it isn't yet (pressed on meanwhile: kept, but only the level shown is drawn). */
+  async function fetchRewards(): Promise<void> {
+    const server = currentServer();
+    if (!rewarding || !server || rewarding.lists.has(rewarding.level)) return;
+    const asked = rewarding;
+    const level = asked.level;
+    rw.note.textContent = 'Loading…';
+    const res = await api<DivineRewardsView>(`/api/divine/rewards?guild=${encodeURIComponent(server)}&group=${asked.group.id}&level=${level}`);
+    if (rewarding !== asked) return;
+    if (!res.ok) {
+      if (res.status === 401) return loggedOut();
+      if (asked.level === level) rw.note.textContent = res.error === 'bad_level' ? 'That level isn’t on the list.' : 'Could not load the rewards. Try again.';
+      return;
+    }
+    asked.lists.set(level, res.data);
+    asked.most = res.data.most;
+    if (asked.level === level) drawRewards();
+  }
+
+  function stepRewards(to: number): void {
+    if (!rewarding) return;
+    rewarding.level = Math.min(Math.max(1, to), rewarding.most);
+    drawRewards();
+    void fetchRewards();
+  }
+
+  /** Opens the Reward List: at the opening's level while one is open, else the one after their best (King's Raid's), up to five past their best. */
+  function showRewards(group: DivineGroupView, from: HTMLElement): void {
+    const most = Math.max(1, Math.min(REWARD_LEVELS, group.best + 5));
+    const opening = openOf(group);
+    rewarding = { group, level: Math.min(most, opening ? opening.level : group.best + 1), most, from, lists: new Map() };
+    drawRewards();
+    rw.root.hidden = false;
+    rw.close.focus();
+    void fetchRewards();
+  }
+  const closeRewards = (): void => {
+    if (rw.root.hidden) return;
+    rw.root.hidden = true;
+    if (rewarding?.from?.isConnected) rewarding.from.focus();
+    rewarding = null;
+  };
+  rw.close.addEventListener('click', closeRewards);
+  rw.root.addEventListener('click', (e) => {
+    if (e.target === rw.root) closeRewards();
+  });
+  rw.min.addEventListener('click', () => stepRewards(1));
+  rw.down.addEventListener('click', () => stepRewards((rewarding?.level ?? 1) - 1));
+  rw.up.addEventListener('click', () => stepRewards((rewarding?.level ?? 1) + 1));
+  rw.max.addEventListener('click', () => stepRewards(rewarding?.most ?? 1));
+  rw.root.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeRewards();
+    else if (e.key === 'ArrowLeft' && !rw.down.disabled) stepRewards((rewarding?.level ?? 1) - 1);
+    else if (e.key === 'ArrowRight' && !rw.up.disabled) stepRewards((rewarding?.level ?? 1) + 1);
+    else return;
+    e.preventDefault();
+  });
+  /** A Reward List button (the Boss Dungeon card's, the map's). */
+  function rewardsButton(group: DivineGroupView | undefined, className: string): HTMLButtonElement {
+    const one = button(className, 'Reward List', 'Reward List');
+    one.disabled = !group;
+    if (group) one.addEventListener('click', () => showRewards(group, one));
+    return one;
+  }
+
   // ---- The windows ----
 
   const groupOf = (id: DivineGroupId): DivineGroupView | undefined => view?.groups.find((one) => one.id === id);
   const openOf = (group: DivineGroupView | undefined) => (group?.window?.open && Date.parse(group.window.expires) > Date.now() ? group.window : null);
 
+  /** To another window (its hash in the address, in place: the browser's back leaves the raid, as every game's does). */
+  function go(next: Screen): void {
+    closeAsk();
+    closeLevels();
+    closeRewards();
+    screen = next;
+    if (screen.group) shown = Math.max(0, GROUPS.findIndex((one) => one.id === screen.group));
+    history.replaceState(history.state, '', `${location.pathname}${location.search}${hashOf(screen)}`);
+    draw();
+  }
+
+  // The frame's ←: a window up (from the main window, out to the games, as the frame's own does).
   ui.back.addEventListener('click', () => {
     if (screen.kind === 'groups') return navigate('/', { back: true });
-    navigate(screen.kind === 'map' ? pathOf({ kind: 'types', group: screen.group }) : pathOf({ kind: 'groups', group: null }), { back: true });
+    go(screen.kind === 'map' ? { kind: 'types', group: screen.group } : { kind: 'groups', group: screen.group });
   });
 
   function draw(): void {
     // (The map with no opening: back to its card, whose Unlock opens one.)
     if (screen.kind === 'map' && view && !openOf(groupOf(screen.group))) {
       screen = { kind: 'types', group: screen.group };
-      history.replaceState(history.state, '', pathOf(screen));
+      history.replaceState(history.state, '', `${location.pathname}${location.search}${hashOf(screen)}`);
     }
     ui.groups.hidden = screen.kind !== 'groups';
     ui.types.hidden = screen.kind !== 'types';
     ui.map.hidden = screen.kind !== 'map';
     ui.back.setAttribute('aria-label', screen.kind === 'groups' ? 'Back to the games' : 'Back');
+    ui.back.title = screen.kind === 'groups' ? 'Back to the games' : 'Back';
     ui.balance.hidden = !view;
     if (view) ui.balance.replaceChildren(...price(view.balance));
-    ui.title.textContent = screen.kind === 'map' ? 'Boss Dungeon' : 'Divine Punishment';
+    ui.title.textContent = screen.kind === 'map' ? '⚡ Boss Dungeon' : '⚡ Divine Punishment';
     const before = ui.windows.dataset.shown;
     ui.windows.dataset.shown = screen.kind;
     if (screen.kind === 'groups') drawGroups();
@@ -352,9 +587,9 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void; 
     const one = GROUPS[shown] ?? (GROUPS[0] as (typeof GROUPS)[number]);
     const group = groupOf(one.id);
     const opening = openOf(group);
-    const glow = at(el('div', 'dp-portal'), 0, 60);
-    const boss = at(picture(one.picture, `dp-main-boss${one.open ? '' : ' soon'}`), 0, 40);
-    const statues = at(picture('Punishment_GoddessStatues', 'dp-statues'), 0, -13);
+    const glow = scene(at(el('div', 'dp-portal'), 0, 60));
+    const boss = scene(at(picture(one.picture, `dp-main-boss${one.open ? '' : ' soon'}`), 0, 40));
+    const statues = scene(at(picture('Punishment_GoddessStatues', 'dp-statues'), 0, -13));
     const shade = at(el('div', 'dp-main-shade'), 0, -429);
     const title = at(el('p', 'dp-main-title', one.title), 0, -377);
     const name = at(el('p', 'dp-main-name', one.name), 0, -453);
@@ -369,10 +604,11 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void; 
       });
       return button;
     };
-    const enter = at(el(one.open ? 'a' : 'button', 'dp-button dp-main-enter', 'Enter'), 708, -449);
-    if (enter instanceof HTMLAnchorElement) enter.href = pathOf({ kind: 'types', group: one.id });
+    const enter = at(el('button', 'dp-button dp-main-enter', 'Enter'), 708, -449);
+    enter.type = 'button';
+    if (one.open) enter.addEventListener('click', () => go({ kind: 'types', group: one.id }));
     else {
-      (enter as HTMLButtonElement).disabled = true;
+      enter.disabled = true;
       enter.title = `${one.name}: coming soon`;
     }
     const tags = [
@@ -383,29 +619,25 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void; 
   }
 
   /** A dungeon card of the type select (EventFrame_Main02 round its portrait, its name on a dark band). */
-  function card(kind: 'karma' | 'boss', x: number, portrait: string, name: string): HTMLElement {
+  function card(kind: 'boss', x: number, portrait: string, name: string): HTMLElement {
     const box = at(el('div', `dp-card dp-card-${kind}`), x, -36);
     box.append(picture(portrait, 'dp-card-art'), el('span', 'dp-card-frame'), el('span', 'dp-card-name', name));
     return box;
   }
 
-  /** PunishmentDungeonTypeSelectWindow: the Karma Dungeon (still to come) and the Boss Dungeon (locked: Unlock, its price; open: its time left, clears, Enter, Reset). */
+  /** PunishmentDungeonTypeSelectWindow: the Boss Dungeon (locked: Unlock, its price; open: its time left, clears, Enter, Reset). King's Raid's Karma Dungeon card is left out for now. */
   function drawTypes(id: DivineGroupId): void {
     const one = GROUPS.find((g) => g.id === id) ?? (GROUPS[0] as (typeof GROUPS)[number]);
     const group = groupOf(id);
     const opening = openOf(group);
 
-    const karma = card('karma', -300, 'PUNISHMENTRAID_KARMA_DUNGEON', `Karma Dungeon: ${one.name}`);
-    karma.classList.add('locked');
-    const karmaSoon = el('button', 'dp-button dp-card-button', 'Coming soon');
-    karmaSoon.type = 'button';
-    karmaSoon.disabled = true;
-    karma.append(el('span', 'dp-card-about', 'You can obtain Shards by gathering Karma energy.'), karmaSoon);
-
-    const boss = card('boss', 300, one.card, 'Boss Dungeon');
+    const boss = card('boss', 0, one.card, 'Boss Dungeon');
+    // (Its two buttons, King's Raid's: Reward List, then Unlock or Enter.)
+    const rewards = rewardsButton(group, 'dp-button dp-card-button half first');
     if (group && opening) {
-      const enter = el('a', 'dp-button dp-card-button', 'Enter');
-      enter.href = pathOf({ kind: 'map', group: id });
+      const enter = el('button', 'dp-button dp-card-button half', 'Enter');
+      enter.type = 'button';
+      enter.addEventListener('click', () => go({ kind: 'map', group: id }));
       const resetButton = el('button', 'dp-card-reset');
       resetButton.type = 'button';
       resetButton.setAttribute('aria-label', 'Reset');
@@ -413,25 +645,25 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void; 
       resetButton.addEventListener('click', () => ask('Reset', 'Progress will be reset to the pre-unlock state. Do you want to reset?', () => reset(group), resetButton));
       const timer = el('span', 'dp-card-time', left(opening.expires));
       timer.dataset.expires = opening.expires;
-      boss.append(el('span', 'dp-card-reset-label', 'Reset'), timer, el('span', 'dp-card-clears', `Clear count: ${points(opening.clears)}`), resetButton, enter);
+      boss.append(el('span', 'dp-card-reset-label', 'Reset'), timer, el('span', 'dp-card-clears', `Clear count: ${points(opening.clears)}`), resetButton, rewards, enter);
     } else {
       boss.classList.add('locked');
-      const unlockButton = el('button', 'dp-button dp-card-button', 'Unlock');
+      const unlockButton = el('button', 'dp-button dp-card-button half', 'Unlock');
       unlockButton.type = 'button';
       unlockButton.disabled = !group;
       if (group) unlockButton.addEventListener('click', () => pickLevel(group, unlockButton));
       const cost = el('span', 'dp-card-cost');
       if (group) cost.append(...price(group.price, view !== null && group.price > view.balance));
-      boss.append(cost, unlockButton);
+      boss.append(cost, rewards, unlockButton);
     }
-    ui.types.replaceChildren(karma, boss);
+    ui.types.replaceChildren(boss);
   }
 
   /** A boss's portrait on the map: its face in the rhombus frame, and its line to its tower (hers, a stem down to her name). Greyed once beaten. */
   function portraitOf(id: string, beaten: boolean, enter: () => void): HTMLElement {
     const spot = MAP[id];
     const final = spot?.line === null;
-    const box = at(el('button', `dp-portrait${final ? ' final' : ''}${beaten ? ' beaten' : ''}`), ...(spot?.portrait ?? [0, 0]));
+    const box = scene(at(el('button', `dp-portrait${final ? ' final' : ''}${beaten ? ' beaten' : ''}`), ...(spot?.portrait ?? [0, 0])));
     box.type = 'button';
     box.tabIndex = -1;
     box.setAttribute('aria-hidden', 'true');
@@ -447,7 +679,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void; 
     const spot = MAP[id];
     if (!spot) return [];
     const beaten = dungeon.refusal === 'cleared';
-    const label = at(el('button', `dp-entry${beaten ? ' beaten' : ''}`), ...spot.entry);
+    const label = scene(at(el('button', `dp-entry${beaten ? ' beaten' : ''}`), ...spot.entry));
     label.type = 'button';
     label.dataset.boss = id;
     label.dataset.state = dungeon.refusal ?? 'ready';
@@ -455,7 +687,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void; 
     label.title = beaten ? `${spot.name}: defeated this opening` : `Enter ${spot.name}'s dungeon`;
     const go = (): void => enter(id, spot.name, dungeon, group, label);
     label.addEventListener('click', go);
-    const info = at(el('button', 'dp-entry-info'), spot.entry[0] + 170, spot.entry[1]);
+    const info = scene(at(el('button', 'dp-entry-info'), spot.entry[0] + 170, spot.entry[1]));
     info.type = 'button';
     info.setAttribute('aria-label', `${spot.name}: Raid Info`);
     info.title = 'Raid Info';
@@ -463,17 +695,17 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void; 
     return [portraitOf(id, beaten, go), label, info];
   }
 
-  /** PunishmentRaidWindow: the map's backdrop, a light on each tower not yet beaten, each boss's portrait and name, the level top left, her Domain Skills, the guidance. */
+  /** PunishmentRaidWindow: the map's backdrop, a light on each tower whose boss is defeated this opening, each boss's portrait and name, the level top left, her Domain Skills, the guidance. */
   function drawMap(id: DivineGroupId): void {
     const group = groupOf(id);
     const opening = openOf(group);
     if (!group || !opening) return void ui.map.replaceChildren();
-    const backdrop = at(picture('Punishment_Entry_Background', 'dp-map-backdrop'), 0, 0);
+    const backdrop = scene(at(picture('Punishment_Entry_Background', 'dp-map-backdrop'), 0, 0));
     const dungeons = DIVINE_CARDS.flatMap((card) => {
       const dungeon = group.dungeons.find((one) => one.id === card.id);
       return dungeon && MAP[card.id] ? [{ id: card.id, dungeon }] : [];
     });
-    const lights = dungeons.filter(({ dungeon }) => dungeon.refusal !== 'cleared').map(({ id: boss }) => at(picture(MAP[boss]?.light.picture ?? '', 'dp-light'), ...(MAP[boss]?.light.at ?? [0, 0])));
+    const lights = dungeons.filter(({ dungeon }) => dungeon.refusal === 'cleared').map(({ id: boss }) => scene(at(picture(MAP[boss]?.light.picture ?? '', 'dp-light'), ...(MAP[boss]?.light.at ?? [0, 0]))));
     const vignette = el('span', 'dp-map-vignette');
 
     // Top left: the level unlocked (Label_Level, in red under its title).
@@ -481,14 +713,15 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void; 
     level.append(el('span', 'dp-map-level-title', 'Current Stage'), el('span', 'dp-map-level-line'), el('span', 'dp-map-level-number', points(opening.level)));
 
     // Under her name: the Domain Skills the dragons lend her, lit while each dragon lives.
-    const domain = at(el('div', 'dp-domain'), 0, -240);
+    const domain = scene(at(el('div', 'dp-domain'), 0, -240));
     domain.append(el('span', 'dp-domain-title', 'Domain Skill'));
     const icons = el('div', 'dp-domain-icons');
     for (const { id: boss, dungeon } of dungeons) {
       const skill = MAP[boss]?.domain;
       if (!skill) continue;
+      // (Lit once its dragon is defeated: the strength it lent her is gone.)
       const alive = dungeon.refusal !== 'cleared';
-      const icon = el('span', `dp-domain-icon${alive ? ' on' : ''}`);
+      const icon = el('span', `dp-domain-icon${alive ? '' : ' on'}`);
       icon.style.setProperty('--tint', skill.color);
       icon.title = `${skill.title}\n${skill.about}${alive ? '' : ' (Deactivated)'}`;
       icon.append(picture('Punishment_RaidIcon', 'dp-domain-art'));
@@ -497,10 +730,12 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void; 
     domain.append(icons);
 
     const guidance = at(el('p', 'dp-map-info', GUIDANCE[id]), -234, -449);
-    const timer = at(el('span', 'dp-map-time', `${left(opening.expires)} left`), 708, -449);
+    // Bottom right: Reward List (Btn_PayShop_Emphasis), the opening's time left above it.
+    const rewards = at(rewardsButton(group, 'dp-button emphasis dp-map-rewards'), 708, -449);
+    const timer = at(el('span', 'dp-map-time', `${left(opening.expires)} left`), 708, -366);
     timer.dataset.expires = opening.expires;
     timer.dataset.suffix = ' left';
-    ui.map.replaceChildren(backdrop, ...lights, vignette, level, ...dungeons.flatMap(({ id: boss, dungeon }) => entryOf(boss, dungeon, group)), domain, guidance, timer);
+    ui.map.replaceChildren(backdrop, ...lights, vignette, level, ...dungeons.flatMap(({ id: boss, dungeon }) => entryOf(boss, dungeon, group)), domain, guidance, timer, rewards);
   }
 
   /** A boss pressed: beaten, nothing; a third dragon, why not; else asked (she, with every dragon alive, warned), then into the raid page against it, alone. */
@@ -511,7 +746,8 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void; 
     const alive = group.dungeons.filter((one) => one.kind === 'side' && one.refusal !== 'cleared').length;
     const strongest = dungeon.kind === 'final' && alive === group.dungeons.filter((one) => one.kind === 'side').length;
     ask(name, strongest ? `${name}'s power is at her greatest. Do you wish to enter?` : `This is ${name}'s dungeon. Do you want to enter?`, async () => {
-      const refused = await playGame('divine', { single: true, boss: id });
+      const refused = await playGame('divine', id);
+      if (refused === 'logged_out') return loggedOut();
       if (refused) status(refused === 'not_member' ? "You don't seem to be in that server any more. Log out and in again to refresh it." : 'Could not open the raid. Try again.', true);
     }, from);
   }
@@ -533,26 +769,22 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void; 
     if (!API) return status('This site is not set up yet: VITE_API_URL (the bot’s address) is missing.', true);
     status('Loading…');
     draw();
+    if (!hasSession()) return loggedOut();
     const res = await loadMe();
     if (!res.ok) return failed(res, 'Could not load your servers.');
-    if (!currentServer()) return status('None of your servers have Koma in them yet.');
-    const me = currentMe();
-    if (me) fillServers(ui.server, me.servers, currentServer());
+    // (The server picked on the games page, as every game is played in one.)
+    const server = currentServer();
+    if (!server) {
+      frame.conn('No server', 'bad');
+      return status('Pick a server on the games page first.', true);
+    }
+    const name = currentMe()?.servers.find((one) => one.id === server)?.name;
+    if (name) frame.balance.title = `zeiucoins in ${name}`;
     await load();
   }
 
-  return {
-    drawn: start(),
-    unmount: () => {
-      window.clearInterval(tick);
-      serverPicker.destroy();
-    },
-    navigate(url) {
-      closeAsk();
-      closeLevels();
-      screen = screenAt(url.pathname);
-      if (screen.group) shown = Math.max(0, GROUPS.findIndex((one) => one.id === screen.group));
-      draw();
-    },
-  };
+  // Its hash changed by hand (or a link to a window of it): that window.
+  addEventListener('hashchange', () => go(screenAt(location.hash)));
+  void start();
+  void tick;
 }

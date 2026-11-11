@@ -1,20 +1,12 @@
 import { navigate } from '../shared/transition';
+import { withQuery } from './game-link';
 import { api, currentServer, logOut } from './session';
 
 /*
  * Opening a game from a site page: the bot hands out a link to it (POST /api/play, as its buttons in Discord do), and the
  * page goes there with what the game is to read from its address. The front page's Play buttons and Raid Lists
- * (../hub/page.ts) and the Divine Punishment Raid's map (../divine/page.ts) open the games this way.
+ * (../hub/page.ts) open the games this way (the Divine Punishment game's map has its own: ../divine/bot.ts).
  */
-
-/** A game's link with what the page is to read from its address (before the #): the boss it is against (?boss=) and the raid (?room=), those there are. */
-export function withQuery(url: string, query: { boss?: string | null; room?: string | null }): string {
-  const more = new URLSearchParams(Object.entries(query).filter((entry): entry is [string, string] => typeof entry[1] === 'string' && entry[1] !== '')).toString();
-  if (!more) return url;
-  const at = url.indexOf('#');
-  const [path, hash] = at < 0 ? [url, ''] : [url.slice(0, at), url.slice(at)];
-  return `${path}${path.includes('?') ? '&' : '?'}${more}${hash}`;
-}
 
 /** Why a game couldn't be opened (null: it is opening; the page goes). */
 export type PlayRefusal = 'no_server' | 'not_member' | 'failed';

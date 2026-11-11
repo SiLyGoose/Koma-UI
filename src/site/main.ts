@@ -18,7 +18,6 @@ import '../hero-outfit-shop/hero-outfit-shop.css';
 import '../heroes/heroes.css';
 import '../hero-outfits/hero-outfits.css';
 import '../raid-shop/raid-shop.css';
-import '../divine/divine.css';
 import '../shop/shop.css';
 import '../admin/admin.css';
 import { backdrop, siteHeader } from '../shared/ui';
@@ -64,7 +63,6 @@ const ROUTES: readonly Route[] = [
   { path: '/shop', needsLogin: true, subpaths: true, page: () => import('../shop/page').then((m) => m.shopPage) },
   { path: '/dressing-room', needsLogin: true, page: () => import('../dressing/page').then((m) => m.dressingPage) },
   { path: '/hero-outfits', needsLogin: true, page: () => import('../hero-outfits/page').then((m) => m.heroOutfitsPage) },
-  { path: '/divine', needsLogin: true, subpaths: true, page: () => import('../divine/page').then((m) => m.divinePage) },
   { path: '/databank', subpaths: true, page: () => import('../databank/page').then((m) => m.databankPage) },
   { path: '/admin', needsLogin: true, page: () => import('../admin/page').then((m) => m.adminPage) },
 ];
@@ -119,6 +117,11 @@ async function show(url: URL): Promise<void> {
   // Held before anything is waited for, so the first page's reveal waits too.
   const release = holdReveal();
   const mine = ++asked;
+  // (The Divine Punishment Raid was a page here, /divine/…: it is a game now, games/punishment/, opened as one.)
+  if (/^\/divine(\/|$)/.test(pagePath(url.pathname))) {
+    location.replace('/games/punishment/');
+    return;
+  }
   const moved = MOVED[pagePath(url.pathname)];
   if (moved) {
     url = new URL(moved + url.search + url.hash, url);

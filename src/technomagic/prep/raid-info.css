@@ -425,6 +425,21 @@
   background: #1f1f2b;
 }
 
+/* A fight against two: whose skills follow (Tersio's, Apocalypsion's, the Domain Skills). */
+.ri-skill-group {
+  padding: 14px 26px 10px;
+  background: #15151f;
+  color: #e9d18f;
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+/* One of King's Raid's the raid doesn't have yet: faded. */
+.ri-skill.missing {
+  opacity: 0.55;
+}
+
 /* Its icon in its slot (Common_Slot). */
 .ri-skill-slot {
   grid-row: 1 / 3;

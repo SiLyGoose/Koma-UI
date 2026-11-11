@@ -145,11 +145,11 @@ const DRAGON = RAID === 'dragon';
 const DIVINE_RAID = RAID === 'divine';
 const RAID_NAME = DRAGON ? 'Dragon Raid' : DIVINE_RAID ? 'Divine Punishment Raid' : 'TechnoMagic Raid';
 const RAID_BOSSES: readonly BossDef[] = DRAGON ? DRAGONS : DIVINE_RAID ? DIVINE_BOSSES : TM_BOSSES;
-const HOME = DIVINE_RAID ? '/divine/' : '/';
+const HOME = DIVINE_RAID ? '/games/punishment/' : '/';
 /** Where the way out goes from a fight against `id`: the Divine Punishment Raid's, back to its group's map; else HOME. */
 const homeOf = (id: string): string => {
   const group = DIVINE_RAID ? divineNamed(id)?.group : undefined;
-  return group ? `/divine/${group}/boss/` : HOME;
+  return group ? `/games/punishment/#${group}/boss` : HOME;
 };
 
 // A phone held upright: the raid is played on its side, so over everything, the words to turn it and the button that turns it.
@@ -593,7 +593,8 @@ async function start(): Promise<void> {
       },
     }, null);
     actions?.remove();
-    actions = makeActions(actionsRow, bossAutoButton, def.attacks, { use: (attack) => input({ kind: 'boss', attack }), toggle: () => input({ kind: 'boss-auto' }) });
+    // (The attacks of the boss on the field: a fight against two, the second's once it comes in.)
+    actions = makeActions(actionsRow, bossAutoButton, () => (sim.boss.def as BossDef).attacks, { use: (attack) => input({ kind: 'boss', attack }), toggle: () => input({ kind: 'boss-auto' }) });
     hint.textContent = 'Trying things out: each hero on the field attacks by itself; use its skills from its card (or its Auto), and set the boss attacking. The hero on a card puts it on the field, or takes it off (up to 9 at once); four cards show at a time, as in a raid: scroll them along (or turn the wheel over them) for the rest. With Deathless on, no one falls: a hero or the boss brought down is whole again, and the raid’s time stands still. With it off, heroes that fall stay down.';
   }
 
@@ -813,7 +814,6 @@ async function start(): Promise<void> {
         socket?.finish();
         goToBoss(id, 'new');
       },
-      shard: (shard) => send({ t: 'divine', shard }),
     }, def);
     const chat = chatBox({ mount: prep.chat, send, you: () => state?.you ?? null });
     // Manage: the heroes page over the room, not the site's (which would take them out of it). A button in place of

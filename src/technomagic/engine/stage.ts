@@ -81,8 +81,37 @@ export interface Scenery {
    * upright there (radians: the game sees its maps from the other side); and the colour of the floor beyond its own (its
    * floor is no deeper than the game's camera sees: ours sees further).
    */
-  map?: { folder: string; at: readonly [number, number, number]; turn: number; floor: number; camera?: { look: number; fov: number }; grounded?: boolean; apron?: boolean; next?: number | readonly [number, number, number]; cut?: readonly KrMapCut[] };
+  map?: { folder: string; at: readonly [number, number, number]; turn: number; floor: number; camera?: { look: number; fov: number }; grounded?: boolean; apron?: boolean; next?: number | readonly [number, number, number]; cut?: readonly KrMapCut[]; views?: readonly (FieldView | null)[] };
 }
+
+/**
+ * A camera of King's Raid's own for a platform of a map (`views`, by platform; null: ours, `camera`): a FieldCameraData of
+ * GameSetting's BattleView.CustomBattleCameraList, which a raid's wave can change to (Raid 1005's WaveGimmickValues: at
+ * Apocalypsion's wave, PunishmentMapView3). How far down it looks, how far it is turned about the upright from straight on
+ * (LookAngle, HorizonAngle: degrees), how wide it sees up and down (degrees), and the least height it stands at (MinHeight);
+ * and what it frames (the game's CameraStat.ExtractBounds): the box of each who fights there, each grown by `margin` and moved
+ * by `offset` (BoundsMargin, BoundsOffset: the game's units and axes), here the page's own field's (`bounds`: where the middle
+ * of each one's foot is and its size, in the field's units: the game's frames its fighters as they move, ours its field).
+ */
+export interface FieldView {
+  look: number;
+  horizon: number;
+  fov: number;
+  minHeight: number;
+  margin: readonly [number, number, number];
+  offset: readonly [number, number, number];
+  bounds: readonly { at: readonly [number, number, number]; size: readonly [number, number, number] }[];
+}
+
+/** How long the camera takes from one platform's to the next's (seconds: the game's FieldCameraDataChanger, linear over a second). */
+const VIEW_BLEND = 1;
+/**
+ * Where on the picture, from its foot to its top (-1 to 1), a camera of King's Raid's frames what it frames (the game: the whole
+ * screen; ours keeps the fight up off the heroes' cards and under the boss's health, as LOOK has it); and the game's screen's
+ * shape (16:9), as much as it frames across.
+ */
+const BAND: readonly [number, number] = [-0.2, 0.75];
+const SCREEN = 16 / 9;
 
 /** An effect a map has of its own (fog, sparks, a portal's glow), where it is on the field. */
 export interface FieldEffect {
@@ -118,7 +147,8 @@ export interface Stage {
    * A raid of more than one wave: the map moved on `platforms` from its first, each by its `next` (the next platform comes to
    * where the fight is; part way: on the move between two; a `next` of three, along the map and up and across it: Apocalypsion's
    * arena, below the bridge Tersio is fought on), `moved` told how far along the field (the field's units) that moves it from
-   * where it was (for what stands on it: its effects). 0: back on its first.
+   * where it was (for what stands on it: its effects). 0: back on its first. A platform with a camera of its own (its map's
+   * `views`): the camera goes over to it as the map comes there, over a second as the game's does (back on its first: at once).
    */
   moveOn(platforms: number, moved: (dx: number) => void): void;
   /** Moves the camera along the field: `by` across from where it stands (less than 0: to the left), looking the same way. */
@@ -165,16 +195,95 @@ export function makeStage(canvas: HTMLCanvasElement): Stage {
   const look = new Vector3();
   /** What it is looking at up close (focus()), or null. */
   let close: { at: Vector3; high: number } | null = null;
+  /** The map's cameras of King's Raid's own, by platform (null: ours), and the platform whose is seen. */
+  let views: readonly (FieldView | null)[] = [];
+  let viewing = 0;
+  /**
+   * Going over from one platform's camera to the next's: how it was turned then, how wide it saw, the point it looked at
+   * across from the middle of the field and how far that was, and how far over it is (0 to 1).
+   */
+  let blend: { turn: Quaternion; fov: number; at: Vector3; far: number; k: number } | null = null;
+  /** Where the camera's line of sight comes nearest the middle of the field (put in `at`), and how far along it that is. */
+  const middle = new Vector3();
+  const gaze = new Vector3();
+  const facing = (at: Vector3): number => {
+    gaze.set(0, 0, -1).applyQuaternion(camera.quaternion);
+    const far = middle.copy(LOOK).setX(LOOK.x + panned).sub(camera.position).dot(gaze);
+    at.copy(camera.position).addScaledVector(gaze, far);
+    return far;
+  };
+  const forward = new Vector3();
+  const right = new Vector3();
+  const upward = new Vector3();
+  const corner = new Vector3();
+  /**
+   * King's Raid's camera `view`, as the game places it (CameraStat): turned and tipped as it says, as far back and across as
+   * shows every box of its bounds (each one's corners on the floor and the middle of its top: how far back the camera must
+   * stand to see them all across, and up and down, and where), then raised to its least height along the way it looks.
+   */
+  const frame = (view: FieldView): void => {
+    const turn = (view.horizon * Math.PI) / 180;
+    const down = (view.look * Math.PI) / 180;
+    // (The game's axes have z away from its camera: here toward ours, as its maps are turned.)
+    forward.set(Math.cos(down) * Math.sin(turn), -Math.sin(down), -Math.cos(down) * Math.cos(turn));
+    right.set(Math.cos(turn), 0, Math.sin(turn));
+    upward.crossVectors(right, forward);
+    const tan = Math.tan((view.fov * Math.PI) / 360);
+    // (Across, as the game's screen frames it, 16:9: a page wider than that sees more either side, a narrower one as much as fits.)
+    const across = tan * Math.min(camera.aspect, SCREEN);
+    // (Up and down, what it frames is fitted in the BAND of the picture: a view as tall as that, its middle as far above the
+    // picture's, its points' heights measured along it.)
+    const tall = (tan * (BAND[1] - BAND[0])) / 2;
+    const above = (tan * (BAND[1] + BAND[0])) / 2;
+    const [mx, my, mz] = view.margin;
+    const [ox, oy, oz] = view.offset;
+    /** All the boxes', then one's. */
+    const all: Framing = { x: 0, y: 0, px: 0, py: 0, first: true };
+    const one: Framing = { x: 0, y: 0, px: 0, py: 0, first: true };
+    for (const { at, size } of view.bounds) {
+      const [x, y, z] = [at[0] + ox, at[1] + size[1] / 2 + oy, at[2] - oz];
+      const [ex, ey, ez] = [(size[0] + mx) / 2, (size[1] + my) / 2, (size[2] + mz) / 2];
+      one.first = true;
+      for (let i = 0; i < 5; i++) {
+        if (i < 4) corner.set(x + (i & 2 ? ex : -ex), y - ey, z + (i & 1 ? ez : -ez));
+        else corner.set(x, y + ey, z);
+        const back = -corner.dot(forward);
+        sees(one, back, corner.dot(right), corner.dot(upward) + above * back, across, tall);
+      }
+      sees(all, one.x, one.px, one.py, across, tall, one.y);
+    }
+    const away = Math.max(all.x, all.y);
+    camera.position.copy(right).multiplyScalar(all.px).addScaledVector(upward, all.py - above * away).addScaledVector(forward, -away);
+    camera.position.x += panned;
+    if (camera.position.y < view.minHeight && Math.abs(forward.y) > 0.01) camera.position.addScaledVector(forward, (view.minHeight - camera.position.y) / forward.y);
+    camera.lookAt(look.copy(camera.position).add(forward));
+    camera.fov = view.fov;
+  };
   const aim = (): void => {
+    camera.fov = wide;
+    const view = views[viewing];
     if (close) {
       const away = close.high / 2 / Math.tan((wide * Math.PI) / 360);
       camera.position.set(close.at.x, close.at.y + Math.sin(CLOSE_LOOK) * away, close.at.z + Math.cos(CLOSE_LOOK) * away);
       camera.lookAt(close.at);
-      return;
+    } else if (view) frame(view);
+    else {
+      look.copy(LOOK).setX(LOOK.x + panned);
+      camera.position.set(look.x, look.y + Math.sin(elevation) * back, look.z + Math.cos(elevation) * back);
+      camera.lookAt(look);
     }
-    look.copy(LOOK).setX(LOOK.x + panned);
-    camera.position.set(look.x, look.y + Math.sin(elevation) * back, look.z + Math.cos(elevation) * back);
-    camera.lookAt(look);
+    // (On its way from the last platform's, as far between the two as it has come: turned, looking at a point and from as far,
+    // round the field's middle, so the fight stays in sight on the way.)
+    if (blend && !close) {
+      const { turn, fov, at, k } = blend;
+      const far = facing(corner);
+      corner.lerpVectors(at, corner, k);
+      camera.quaternion.slerpQuaternions(turn, camera.quaternion, k);
+      gaze.set(0, 0, -1).applyQuaternion(camera.quaternion);
+      camera.position.copy(corner).addScaledVector(gaze, -(blend.far + (far - blend.far) * k));
+      camera.fov = fov + (camera.fov - fov) * k;
+    }
+    camera.updateProjectionMatrix();
   };
   let haze: Scenery['haze'] | undefined;
   const fog = (): void => {
@@ -262,6 +371,14 @@ export function makeStage(canvas: HTMLCanvasElement): Stage {
     camera,
     overlay: { scene: overlay, camera: flatUi },
     moveOn(platforms, moved) {
+      // (Its camera, should the platform it comes to have one of its own: from where the camera is, or back on its first at once.)
+      const now = Math.max(0, Math.min(views.length - 1, Math.round(platforms)));
+      if (views.length > 0 && now !== viewing) {
+        const at = new Vector3();
+        blend = now === 0 ? null : { turn: camera.quaternion.clone(), fov: camera.fov, far: facing(at), at, k: 0 };
+        viewing = now;
+        aim();
+      }
       if (!mapAt) return;
       step.copy(mapAt.next).multiplyScalar(platforms).sub(slid);
       if (step.lengthSq() === 0) return;
@@ -290,6 +407,7 @@ export function makeStage(canvas: HTMLCanvasElement): Stage {
           mapTick = read.update;
           const { next } = scenery.map;
           if (next) mapAt = { map: read.map, next: typeof next === 'number' ? new Vector3(next, 0, 0) : new Vector3(...next), turn };
+          views = scenery.map.views ?? [];
           // (Under it, and in front of its floor: drawn before the map, which is painted over it.)
           floor.material.color.set(beyond);
           floor.material.depthWrite = false;
@@ -417,6 +535,12 @@ export function makeStage(canvas: HTMLCanvasElement): Stage {
         last = ms;
         update(ms / 1000, dt, Math.max(0, gap));
         mapTick?.(dt);
+        // The camera on its way to a platform's own: a frame's way on (a long one, a hitch, no more), or there (the tab away meanwhile).
+        if (blend) {
+          blend.k = gap > GAP ? 1 : Math.min(1, blend.k + dt / VIEW_BLEND);
+          if (blend.k >= 1) blend = null;
+          aim();
+        }
         if (covered || gap > GAP) {
           since = ms;
           frames = slow = 0;
@@ -443,6 +567,38 @@ export function makeStage(canvas: HTMLCanvasElement): Stage {
       requestAnimationFrame(frame);
     },
   };
+}
+
+/** How far back a camera stands to see what it frames, across and up, and where (across, up), in its own axes (King's Raid's CameraStat). */
+interface Framing {
+  x: number;
+  y: number;
+  px: number;
+  py: number;
+  first: boolean;
+}
+
+/**
+ * `into` made to see as well what a camera at `hx`/`hy` back (across, up) and at `px`, `py` sees, its view `across` and `tall`
+ * wide (the tangents of half its angles): King's Raid's CameraStat.MergePoint/MergeStat. (The first: it alone.)
+ */
+function sees(into: Framing, hx: number, px: number, py: number, across: number, tall: number, hy = hx): void {
+  if (into.first) {
+    Object.assign(into, { x: hx, y: hy, px, py, first: false });
+    return;
+  }
+  [into.x, into.px] = depth(into.x, hx, across, into.px, px);
+  [into.y, into.py] = depth(into.y, hy, tall, into.py, py);
+}
+
+/** The game's CameraStat.CalculateDepth: how far back, and where, a camera sees both of two (each as far back and where), its view `tan` wide each side. */
+function depth(h1: number, h2: number, tan: number, p1: number, p2: number): [number, number] {
+  const apart = Math.abs(p1 - p2);
+  const further: [number, number] = h1 > h2 ? [h1, p1] : [h2, p2];
+  if (apart < 1e-6) return further;
+  const h = 0.5 * h1 + 0.5 * h2 + (0.5 * apart) / tan;
+  if (h <= h1 || h <= h2) return further;
+  return [h, p1 + (p2 - p1) * ((0.5 * (h2 - h1) * tan) / apart + 0.5)];
 }
 
 /** The sky behind the field: dusk, darkest at the top. */

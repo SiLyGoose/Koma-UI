@@ -54,6 +54,14 @@
     {
       "source": "/gear/",
       "destination": "/player/"
+    },
+    {
+      "source": "/divine",
+      "destination": "/games/punishment/"
+    },
+    {
+      "source": "/divine/:path*",
+      "destination": "/games/punishment/"
     }
   ],
   "rewrites": [
@@ -143,30 +151,6 @@
     },
     {
       "source": "/databank/:section/",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/divine",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/divine/",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/divine/:group",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/divine/:group/",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/divine/:group/:dungeon",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/divine/:group/:dungeon/",
       "destination": "/index.html"
     },
     {

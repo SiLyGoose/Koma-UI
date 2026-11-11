@@ -24,13 +24,17 @@ export interface BossSkill {
   about: string;
   /** The sim's attacks it is (none: always on it, a passive). */
   attacks: readonly string[];
+  /** In a fight against two (Divine Punishment's Tersio, then Apocalypsion), whose it is; or the Domain Skills (none: the raid's only boss's). */
+  of?: string;
+  /** One of King's Raid's the raid doesn't have yet: told, but not fought. */
+  missing?: boolean;
 }
 
 export interface BossSkills {
   /** Its skills, then its passives. */
   skills: readonly BossSkill[];
-  /** Its plain attacks: the sim's attacks, and what they do. */
-  basic: { attacks: readonly string[]; about: string };
+  /** Its plain attacks: the sim's attacks, and what they do (and, a fight against two, whose: told with that one's skills). */
+  basic: { attacks: readonly string[]; about: string; of?: string };
   /**
    * How many times as much of each kind of damage it takes for good, past its defenses (its part's `taken` in the sim:
    * Galgoria's, Siegfried's, Scalaxia's): none said, as much.
@@ -81,6 +85,33 @@ export const BOSS_SKILLS: Readonly<Record<string, BossSkills>> = {
     ],
     basic: { attacks: ['attack'], about: `Sweeps twice before him toward the enemy furthest off, dealing P.DMG, then strikes that enemy and those near it, dealing P.DMG and reducing their Mana by ${ATTACK.drain}.` },
   },
+  // Divine Punishment's Apocalypsion dungeon (../technomagic/sim/bosses/divine/apocalypsion.ts): Tersio, then Apocalypsion in his
+  // place at his 1%. King's Raid's names, icons (by its skill ids) and words, with the raid's numbers (its stand-ins for their kits);
+  // those of King's Raid's the raid hasn't yet told as such. Then the Domain Skills the dragons left alive lend them (./raids.ts).
+  apocalypsion: {
+    skills: [
+      { of: 'Tersio', name: 'Firstborn', icon: icon('tersio', 6000100), attacks: ['firstborn'], about: 'Tersio’s normal attacks deal M.DMG (90% of his ATK and 3% of the target’s Max HP), and the hit target deals 4% reduced DMG to enemies. This effect can be stacked up to max 10 times and is irremovable.' },
+      { of: 'Tersio', name: 'Deathly Dragon’s Breath', icon: icon('tersio', 6000110), attacks: ['breath'], about: 'Deals M.DMG to all enemies (330% of his ATK and 1.5% of their Max HP) that always hits, destroys their Shield and inflicts Stun for 2 sec. Every 28 sec, the first at 15 sec.' },
+      { of: 'Tersio', name: 'Overwhelming Annihilation', icon: icon('tersio', 6000120), attacks: ['annihilation'], about: 'Concentrates power for a while and fires a ray over the field 3 times, dealing M.DMG (200% of his ATK) to all enemies. Each hit reduces the target’s Mana by 500 and knocks it down for 1 sec. Every 28 sec, the first at 18 sec.' },
+      { of: 'Tersio', name: 'Death’s Door', icon: icon('tersio', 6000130), attacks: ['door'], about: 'Tersio summons spectral Dragons by opening a gateway to hell. They attack all enemies 6 times, dealing M.DMG (60% of his ATK), each hit increasing the M.DMG the target takes by 5%, up to 15 stacks. Every 32 sec, the first at 22 sec.' },
+      { of: 'Tersio', name: 'Lost Self', icon: icon('tersio', 6000150), attacks: [], about: 'At the beginning of the battle and every 15 sec, Tersio enters into the [Deathly Dragon] state for 15 sec, increasing his Crit Chance by 400 and his DMG dealt by 50%.' },
+      { of: 'Tersio', name: 'Hauled Into Hell', icon: icon('tersio', 6000151), attacks: [], about: 'Every 15 sec, deals M.DMG to the enemy with the highest M.DEF, removes it from battle for 8 sec and inflicts [Infernal Curse]: each stack reduces its Mana Recovery and ATK Spd by 10%. This effect is irremovable.' },
+      { of: 'Tersio', name: 'Complete Form', icon: icon('tersio', 6000160), attacks: [], about: 'Tersio is not affected by CC or changes in DEF. His All Crit Resistance is increased by 1000 and his attacks always hit.' },
+      { of: 'Tersio', name: 'Incarnation of Hell', icon: icon('tersio', 6000141), attacks: [], missing: true, about: 'When Tersio’s HP reaches 33.4%, [Power of Hatred] becomes activated and he concentrates all of his power to fly; if his enemies fail to deplete it with CC Skills, he annihilates them all. Not in this raid yet.' },
+      { of: 'Apocalypsion', name: 'Engraving Aura', icon: icon('apocalypsion', 6000210), attacks: ['aura'], about: 'Deals M.DMG (250% of her ATK) to all enemies 4 times, the first inflicting Stun for 1.5 sec. Apocalypsion heals 1.5% of her Max HP for each enemy hit, and deals 20% more DMG upon every use. Every 22 sec, the first at 15 sec.' },
+      { of: 'Apocalypsion', name: 'Shaking Earth', icon: icon('apocalypsion', 6000220), attacks: ['earth'], about: 'Deals M.DMG (200% of her ATK) to all enemies and destroys their Shield, reducing their Mana by 1,000 and inflicting Stun for 1.5 sec. Every 25 sec, the first at 20 sec.' },
+      { of: 'Apocalypsion', name: 'Invitation to the Abyss', icon: icon('apocalypsion', 6000230), attacks: ['abyss'], about: 'Deals M.DMG (300% of her ATK) to all enemies, inflicting Stun for 1.5 sec, then charges energy and deals M.DMG (500% of her ATK) to all enemies again. Every 33 sec, the first at 30 sec. Its [Abyssal Curse], [Judgment] and pull are not in this raid yet.' },
+      { of: 'Apocalypsion', name: 'Wrath of the Matriarch', icon: icon('apocalypsion', 6000250), attacks: [], about: 'Every 50 sec, increases the stage of [Wrath of the Matriarch]; the stages stack. Stage 1: Apocalypsion heals 2.5% of her Max HP every sec and takes 30% less DMG. Stage 2: she deals 25% more DMG. Stage 3 (DMG that ignores DEF) is not in this raid yet.' },
+      { of: 'Apocalypsion', name: 'Unblemished Form', icon: icon('apocalypsion', 6000260), attacks: [], about: 'Apocalypsion is not affected by CC or changes in DEF. Her attacks always hit and her Crit Chance is increased by 400.' },
+      { of: 'Apocalypsion', name: 'Destructive Demise', icon: icon('apocalypsion', 6000241), attacks: [], missing: true, about: 'When Apocalypsion’s HP reaches 1%, [Power of Hatred] becomes activated, summoning meteors; if her enemies fail to deplete it with CC Skills, a giant meteor annihilates them all. Not in this raid yet.' },
+      { of: 'Apocalypsion', name: 'Audience With the Matriarch', icon: icon('apocalypsion', 6000201), attacks: [], missing: true, about: 'When there are no enemies nearby upon her normal attack, Apocalypsion dispels all positive effects from an enemy and pulls it in front of her. Not in this raid yet.' },
+      { of: 'Domain Skills', name: 'Temeraire’s Flame', icon: '/kr/ui/divine/Dragon_Fire.webp', attacks: [], about: 'While Temeraire is not defeated this opening, Tersio and Apocalypsion deal 50% more DMG and gain P.Block +1000 and P.Tough +900.' },
+      { of: 'Domain Skills', name: 'Scalaxia’s Chill', icon: '/kr/ui/divine/Dragon_Ice.webp', attacks: [], about: 'While Scalaxia is not defeated this opening, Tersio and Apocalypsion have 50% more Max HP and gain M.Block +1000, M.Block DEF +100% and M.Tough +200.' },
+      { of: 'Domain Skills', name: 'Zyrrkinoth’s Poison', icon: '/kr/ui/divine/Dragon_Poison.webp', attacks: [], about: 'While Zyrrkinoth is not defeated this opening, Tersio and Apocalypsion have 50% more Max HP.' },
+      { of: 'Domain Skills', name: 'Armarta’s Storm', icon: '/kr/ui/divine/Dragon_Black.webp', attacks: [], about: 'While Armarta is not defeated this opening, Tersio and Apocalypsion deal 50% more DMG.' },
+    ],
+    basic: { of: 'Apocalypsion', attacks: ['strike'], about: 'Apocalypsion strikes the enemy she is after, dealing M.DMG (300% of her ATK and 4.5% of its Max HP).' },
+  },
   temeraire: {
     skills: [
       { name: 'Blessing of the Flame', icon: '/kr/states/RedFire3.webp', attacks: ['blessing'], about: `Attacks all enemies, dealing M.DMG, and gains [Blessing of the Flame]: its DMG is increased by ${pct(BLESSING.deals - 1)} and it takes ${pct(1 - BLESSING.physical)} less P.DMG, until the heroes land ${BLESSING.charges} hits on it. It begins the fight with it, and casts it again once it is gone.` },
@@ -120,5 +151,5 @@ export const BOSS_SKILLS: Readonly<Record<string, BossSkills>> = {
   },
 };
 
-/** A boss's skills (its Normal mode's are its Hard one's). */
-export const bossSkills = (id: string): BossSkills | null => BOSS_SKILLS[id] ?? null;
+/** A boss's skills (its Normal mode's are its Hard one's; a Divine Punishment dragon's, dp-<dragon>, its Dragon Raid one's). */
+export const bossSkills = (id: string): BossSkills | null => BOSS_SKILLS[id] ?? BOSS_SKILLS[id.replace(/^dp-/, '')] ?? null;

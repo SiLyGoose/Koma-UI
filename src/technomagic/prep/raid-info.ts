@@ -109,8 +109,24 @@ function skillRows(boss: BossDef): HTMLElement {
     for (const attack of boss.attacks) row(`/kr/ui/deals-${boss.stats.deals}.webp`, attack.label, '', false);
     return list;
   }
-  for (const skill of skills.skills) row(skill.icon, skill.name, skill.about, skill.attacks.length === 0);
-  row(`/kr/ui/deals-${boss.stats.deals}.webp`, 'Attack', skills.basic.about, false);
+  // (A fight against two: each one's under its name, its plain attack after its own; then the Domain Skills. One of King's
+  // Raid's the raid hasn't yet, faded.)
+  const basic = (): void => row(`/kr/ui/deals-${boss.stats.deals}.webp`, 'Attack', skills.basic.about, false);
+  let of: string | undefined;
+  let told = false;
+  for (const skill of skills.skills) {
+    if (skill.of !== of) {
+      if (!told && of !== undefined && of === skills.basic.of) {
+        basic();
+        told = true;
+      }
+      of = skill.of;
+      if (of) list.appendChild(el('li', 'ri-skill-group', of));
+    }
+    row(skill.icon, skill.name, skill.about, skill.attacks.length === 0);
+    if (skill.missing) list.lastElementChild?.classList.add('missing');
+  }
+  if (!told) basic();
   return list;
 }
 
