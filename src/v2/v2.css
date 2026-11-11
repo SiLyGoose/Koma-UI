@@ -152,18 +152,19 @@ html[data-shell='v2'] body {
   border-image-source: url('/kr/town/map-tag2.webp');
 }
 
+/* The name across the scroll's flat band: rows 5 to 54 of Map_tag (its ends curl down), 73 to 123 of Map_tag2 (they curl up). */
 .v2-banner-name {
-  margin: 0 -78px;
-  padding-top: 22px;
-  font-size: 36px;
+  height: 50px;
+  margin: 5px -78px 0;
+  font-size: 30px;
   font-weight: 700;
   letter-spacing: 0.02em;
-  line-height: 1;
+  line-height: 50px;
   text-shadow: 0 1px 0 rgb(255 240 200 / 60%);
 }
 
 .v2-banner-2 .v2-banner-name {
-  padding: 0 0 30px;
+  margin: 0 -78px 13px;
 }
 
 .v2-banner:hover,
@@ -349,8 +350,15 @@ html[data-shell='v2'] body {
   display: none;
 }
 
+/* The site's backdrop behind the page (the old site's is fixed behind the whole document: here, behind the page's layer). */
+.v2-panel > .backdrop {
+  position: absolute;
+  z-index: 0;
+}
+
 .v2-panel-view {
   position: absolute;
+  z-index: 1;
   inset: 0;
   overflow: auto;
   overscroll-behavior: contain;

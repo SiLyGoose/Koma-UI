@@ -1,4 +1,5 @@
 import { holdReveal } from '../shared/transition';
+import { backdrop } from '../shared/ui';
 import type { Page } from '../site/page';
 import { pageAt, type SitePage } from './places';
 
@@ -6,6 +7,7 @@ import { pageAt, type SitePage } from './places';
  * A site page over the town, filling the screen (no header): the page's own module, set up as src/site/main.ts does
  * (its markup copied in, mount(), unmount() as it goes), in a layer that scrolls by itself. Its paths are the old site's
  * (/shop/outfits): the page reads them from the URL it's handed, not from the address bar (which is v2's: /v2/shop/outfits/).
+ * Behind it, the site's backdrop (its gold star chart), as the old site has behind every page.
  */
 
 export interface Panel {
@@ -24,7 +26,7 @@ export function makePanel(into: HTMLElement): Panel {
   element.hidden = true;
   const view = document.createElement('div');
   view.className = 'v2-panel-view';
-  element.append(view);
+  element.append(backdrop(), view);
   into.append(element);
 
   let current: { site: SitePage; page: Page; unmount: () => void; navigate?: (url: URL) => void } | null = null;
