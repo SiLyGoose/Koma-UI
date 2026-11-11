@@ -152,10 +152,11 @@ html[data-shell='v2'] body {
   border-image-source: url('/kr/town/map-tag2.webp');
 }
 
-/* The name across the scroll's flat band: rows 5 to 54 of Map_tag (its ends curl down), 73 to 123 of Map_tag2 (they curl up). */
+/* The name across the scroll's flat band: rows 5 to 54 of Map_tag (its ends curl down), 73 to 123 of Map_tag2 (they curl up).
+   The band runs flat 57 pixels or more into each 130-pixel end, so the name may reach 44 into them: a longer one stretches the middle. */
 .v2-banner-name {
   height: 50px;
-  margin: 5px -78px 0;
+  margin: 5px -44px 0;
   font-size: 30px;
   font-weight: 700;
   letter-spacing: 0.02em;
@@ -164,7 +165,7 @@ html[data-shell='v2'] body {
 }
 
 .v2-banner-2 .v2-banner-name {
-  margin: 0 -78px 13px;
+  margin: 0 -44px 13px;
 }
 
 .v2-banner:hover,
