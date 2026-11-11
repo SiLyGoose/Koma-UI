@@ -68,6 +68,23 @@ function blur(): Plugin {
   };
 }
 
+/**
+ * v2's pages' addresses (/v2/forge/, /v2/shop/outfits/) are all v2/index.html, which shows the page asked for over its
+ * town (src/v2/main.ts); vercel.json rewrites them the same way when hosted. In `yarn dev` and `vite preview`, here.
+ */
+function v2Pages(): Plugin {
+  const rewrite = (req: { url?: string }, _res: unknown, next: () => void): void => {
+    const path = (req.url ?? '').split('?')[0] ?? '';
+    if (/^\/v2(\/|$)/.test(path) && !/\.[a-z0-9]+$/i.test(path)) req.url = `/v2/index.html${(req.url ?? '').slice(path.length)}`;
+    next();
+  };
+  return {
+    name: 'v2-pages',
+    configureServer: (server) => void server.middlewares.use(rewrite),
+    configurePreviewServer: (server) => void server.middlewares.use(rewrite),
+  };
+}
+
 // The front page (log in, pick a server and a game) is index.html. Each game is served at
 // /games/<name>/: its page lives at games/<name>/index.html, and the build keeps that path
 // (dist/games/<name>/index.html), with the shared assets under /assets. The site's own pages (the front page,
@@ -75,11 +92,13 @@ function blur(): Plugin {
 // (src/site/main.ts; vercel.json sends /player/, /heroes/, /hero-outfits/, /inventory/…, /forge/, /shop/…, /dressing-room/, /databank/… and /admin/ there, and the old
 // /banner/ to /shop/wish/ and /gear/ to /player/).
 export default defineConfig({
-  plugins: [transitionHead(), pictures(), blur()],
+  plugins: [transitionHead(), pictures(), blur(), v2Pages()],
   build: {
     rolldownOptions: {
       input: {
         main: resolve(import.meta.dirname, 'index.html'),
+        // Komaverse v2: the site as a town (src/v2/), at /v2/ and its pages' addresses under it.
+        v2: resolve(import.meta.dirname, 'v2/index.html'),
         mines: resolve(import.meta.dirname, 'games/mines/index.html'),
         pinecraft: resolve(import.meta.dirname, 'games/pinecraft/index.html'),
         baccarat: resolve(import.meta.dirname, 'games/baccarat/index.html'),

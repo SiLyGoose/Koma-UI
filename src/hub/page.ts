@@ -25,6 +25,8 @@ import { api, currentMe, currentServer, hasSession, loadMe, loggedIn, logIn, log
  * the boss's Find Raid. With &boss= alone (the heroes' essences, ../heroes/essences.ts): the Raid List, on that boss.
  */
 const PLAY_KEY = 'koma.playNext';
+/** Where v2's town asked to come back to after logging in (src/v2/hud.ts AFTER_LOGIN_KEY). */
+const AFTER_LOGIN_KEY = 'koma.afterLogin';
 const GAMES: readonly Game[] = ['mines', 'pinecraft', 'baccarat', 'roulette', 'poker', 'raid', 'minesweeper', 'technomagic', 'dragon', 'codedle'];
 
 const points = (n: number): string => n.toLocaleString('en-US');
@@ -128,6 +130,12 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
       return showLogin();
     }
     loggedIn(res.data.session, res.data.me);
+    // Logged in from v2's town (src/v2/hud.ts): back there.
+    const back = store.get(sessionStorage, AFTER_LOGIN_KEY);
+    if (back?.startsWith('/v2')) {
+      store.set(sessionStorage, AFTER_LOGIN_KEY, null);
+      return location.replace(back);
+    }
     status(null);
     render();
     playPending();

@@ -1,0 +1,583 @@
+/*
+ * Komaverse v2 (./main.ts): the town filling the screen, its corners' HUD, and the site's pages over it. No header (the
+ * session's is made by ../site/session.ts for every page; here it's never shown) and nothing scrolls but a page's layer.
+ * The screen's size is --ls-vw by --ls-vh (../shared/ui/landscape/: swapped while the page is turned by hand).
+ */
+
+html[data-shell='v2'] .site-header {
+  display: none !important;
+}
+
+html[data-shell='v2'],
+html[data-shell='v2'] body {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  background: #1b2a1f;
+}
+
+.v2 {
+  position: fixed;
+  inset: 0 auto auto 0;
+  width: var(--ls-vw, 100vw);
+  height: var(--ls-vh, 100dvh);
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* ---------------------------------------------------------------------------------------------------------------- */
+/* The town */
+
+.v2-town {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  cursor: grab;
+  background: #2b4a2a;
+}
+
+.v2-town.dragging {
+  cursor: grabbing;
+}
+
+.v2-world {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+.v2-art {
+  display: block;
+}
+
+.v2-building {
+  cursor: pointer;
+}
+
+/* The town's little movements (none while a page covers it: .paused). */
+.v2-glow {
+  animation: v2-glow 3.2s ease-in-out infinite alternate;
+}
+
+.v2-smoke circle {
+  fill: #c9c4bd;
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: v2-smoke 3.6s ease-out infinite;
+}
+
+.v2-smoke circle:nth-child(2) {
+  animation-delay: 1.2s;
+}
+
+.v2-smoke circle:nth-child(3) {
+  animation-delay: 2.4s;
+}
+
+.v2-spray {
+  animation: v2-spray 1.4s ease-in-out infinite alternate;
+}
+
+.v2-flow {
+  animation: v2-flow 4s linear infinite;
+}
+
+.v2-town.paused *,
+.v2-town.paused {
+  animation-play-state: paused !important;
+}
+
+@keyframes v2-glow {
+  from {
+    opacity: 0.82;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes v2-smoke {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.6);
+  }
+  20% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(26px, -110px) scale(2.2);
+  }
+}
+
+@keyframes v2-spray {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes v2-flow {
+  to {
+    stroke-dashoffset: -100;
+  }
+}
+
+/* A place's ring at its door: where the runner stops. */
+.v2-anchor {
+  position: absolute;
+  width: 120px;
+  height: 52px;
+  margin: -26px 0 0 -60px;
+  border: 5px solid rgb(255 226 138 / 85%);
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(255 226 138 / 35%), rgb(255 226 138 / 0%));
+  box-shadow: 0 0 18px rgb(255 226 138 / 50%);
+  cursor: pointer;
+  animation: v2-ring 1.8s ease-in-out infinite;
+}
+
+.v2-anchor.picked {
+  border-color: #8fdcff;
+  background: radial-gradient(closest-side, rgb(143 220 255 / 45%), rgb(143 220 255 / 0%));
+  box-shadow: 0 0 24px rgb(143 220 255 / 70%);
+}
+
+@keyframes v2-ring {
+  0%,
+  100% {
+    transform: scale(0.92);
+    opacity: 0.75;
+  }
+  50% {
+    transform: scale(1.06);
+    opacity: 1;
+  }
+}
+
+/* A place's sign over its building: the same size on the screen however the map is scaled (--v2-inv). */
+.v2-sign {
+  position: absolute;
+  display: grid;
+  justify-items: center;
+  gap: 1px;
+  padding: 6px 16px 7px;
+  border: 2px solid #d8bf7a;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #3b2c22, #251b15);
+  box-shadow:
+    0 4px 0 #120d0a,
+    0 8px 16px rgb(0 0 0 / 45%);
+  color: #efe3bf;
+  font: inherit;
+  white-space: nowrap;
+  z-index: 5000;
+  cursor: pointer;
+  transform: translate(-50%, -100%) scale(var(--v2-inv, 1));
+  transform-origin: 50% 100%;
+}
+
+.v2-sign::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  margin-left: -8px;
+  border: 8px solid transparent;
+  border-top-color: #d8bf7a;
+}
+
+.v2-sign:hover,
+.v2-sign:focus-visible {
+  border-color: #ffe28a;
+  outline: none;
+  background: linear-gradient(180deg, #4a382b, #2e221a);
+}
+
+.v2-sign-name {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.v2-sign-blurb {
+  color: #c9b58a;
+  font-size: 10.5px;
+}
+
+/* On a small landscape screen (a phone), the signs' names only. */
+@media (max-height: 500px) {
+  .v2-sign {
+    padding: 4px 12px 5px;
+  }
+
+  .v2-sign-name {
+    font-size: 13px;
+  }
+
+  .v2-sign-blurb {
+    display: none;
+  }
+}
+
+/* The runner: its feet at its point, in front of what's further up the map. */
+.v2-runner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.v2-runner-art {
+  position: absolute;
+  left: -50px;
+  bottom: -6px;
+  width: 100px;
+  height: 155px;
+  overflow: visible;
+}
+
+.v2-runner.left .v2-runner-art {
+  transform: scaleX(-1);
+}
+
+.v2-runner-body {
+  animation: v2-idle 1.6s ease-in-out infinite;
+}
+
+.v2-leg,
+.v2-arm {
+  transform-box: fill-box;
+  transform-origin: 50% 0;
+}
+
+.v2-runner.running .v2-runner-body {
+  animation: v2-bob 0.36s ease-in-out infinite;
+}
+
+.v2-runner.running .v2-leg-front,
+.v2-runner.running .v2-arm-back {
+  animation: v2-swing 0.36s ease-in-out infinite alternate;
+}
+
+.v2-runner.running .v2-leg-back,
+.v2-runner.running .v2-arm-front {
+  animation: v2-swing 0.36s ease-in-out infinite alternate-reverse;
+}
+
+.v2-runner.running .v2-scarf {
+  animation: v2-flap 0.18s ease-in-out infinite alternate;
+  transform-box: fill-box;
+  transform-origin: 0 0;
+}
+
+@keyframes v2-idle {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes v2-bob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(4deg);
+  }
+  50% {
+    transform: translateY(-5px) rotate(4deg);
+  }
+}
+
+@keyframes v2-swing {
+  from {
+    transform: rotate(-32deg);
+  }
+  to {
+    transform: rotate(32deg);
+  }
+}
+
+@keyframes v2-flap {
+  from {
+    transform: rotate(-10deg);
+  }
+  to {
+    transform: rotate(14deg);
+  }
+}
+
+/* ---------------------------------------------------------------------------------------------------------------- */
+/* The HUD in the town's corners */
+
+.v2-hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.v2-hud > * {
+  pointer-events: auto;
+}
+
+.v2-hud-left,
+.v2-hud-right {
+  position: absolute;
+  top: max(10px, env(safe-area-inset-top));
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.v2-hud-left {
+  left: max(12px, env(safe-area-inset-left));
+}
+
+.v2-hud-right {
+  right: max(12px, env(safe-area-inset-right));
+}
+
+.v2-who,
+.v2-balance {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  height: 40px;
+  padding: 0 14px 0 5px;
+  border: 1px solid var(--plaque-edge);
+  border-radius: 999px;
+  background: rgb(23 22 27 / 85%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 35%);
+  color: var(--plaque-text);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.v2-who[hidden],
+.v2-balance[hidden] {
+  display: none;
+}
+
+.v2-who-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+}
+
+.v2-who-name {
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.v2-balance {
+  padding-left: 8px;
+}
+
+.v2-coin {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fff1b8, #d8bf7a 55%, #9c7d33);
+  box-shadow: inset 0 0 0 2px #b8973f;
+}
+
+.v2-hud .dd-button {
+  height: 40px;
+  border-radius: 999px;
+  background: rgb(23 22 27 / 85%);
+}
+
+.v2-round {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--plaque-edge);
+  border-radius: 50%;
+  background: rgb(23 22 27 / 85%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 35%);
+  color: var(--plaque-text);
+  cursor: pointer;
+}
+
+.v2-round[hidden] {
+  display: none;
+}
+
+.v2-round svg {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
+}
+
+.v2-round:hover {
+  border-color: var(--gold);
+}
+
+.v2-note {
+  position: absolute;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  left: 50%;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 8px 10px 8px 18px;
+  border: 1px solid #d8bf7a;
+  border-radius: 999px;
+  background: rgb(37 27 21 / 92%);
+  box-shadow: 0 6px 18px rgb(0 0 0 / 45%);
+  color: #efe3bf;
+  font-size: 14px;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+.v2-note[hidden] {
+  display: none;
+}
+
+.v2-note-login[hidden] {
+  display: none;
+}
+
+/* ---------------------------------------------------------------------------------------------------------------- */
+/* A page over the town */
+
+.v2-panel {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  background: var(--bg);
+}
+
+.v2-panel[hidden] {
+  display: none;
+}
+
+.v2-panel-view {
+  position: absolute;
+  inset: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  touch-action: auto;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+/* The pages' heights leave room for the old site's header: there's none here. */
+.v2-panel-view > * {
+  --header-h: 0px !important;
+}
+
+.v2-home {
+  position: absolute;
+  left: max(12px, env(safe-area-inset-left));
+  bottom: max(12px, env(safe-area-inset-bottom));
+  z-index: 30;
+  width: 46px;
+  height: 46px;
+  opacity: 0.85;
+}
+
+.v2-home:hover {
+  opacity: 1;
+}
+
+/* ---------------------------------------------------------------------------------------------------------------- */
+/* The casino (./casino.ts) */
+
+.v2-casino {
+  min-height: 100%;
+  padding: 16px max(20px, env(safe-area-inset-right)) 70px max(20px, env(safe-area-inset-left));
+  background:
+    radial-gradient(ellipse at 50% 0%, rgb(46 120 80 / 45%), transparent 60%),
+    linear-gradient(180deg, #14231a, #0c1510);
+}
+
+.v2-casino-balance {
+  padding: 6px 14px;
+  border: 1px solid var(--plaque-edge);
+  border-radius: 999px;
+  background: var(--plaque);
+  color: var(--plaque-text);
+  font-weight: 600;
+}
+
+.v2-casino-balance[hidden] {
+  display: none;
+}
+
+.v2-casino-status {
+  margin: 14px auto 0;
+  text-align: center;
+}
+
+.v2-casino-tables {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  max-width: 1100px;
+  margin: 20px auto 0;
+}
+
+.v2-table {
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  gap: 8px;
+  justify-items: center;
+  padding: 18px 16px;
+  border: 2px solid #d8bf7a;
+  border-radius: 16px;
+  background:
+    radial-gradient(ellipse at 50% 30%, #2f7a50, #1b4d33 70%),
+    #1b4d33;
+  box-shadow:
+    inset 0 0 0 6px rgb(0 0 0 / 18%),
+    0 10px 24px rgb(0 0 0 / 40%);
+  text-align: center;
+}
+
+.v2-table h2 {
+  margin: 0;
+  color: #ffe9a8;
+  font-size: 20px;
+}
+
+.v2-table p {
+  margin: 0;
+  color: #d5e6d9;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.v2-table-suit {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #f4ecd6;
+  box-shadow: inset 0 0 0 4px #d8bf7a;
+  color: #20202a;
+  font-size: 30px;
+}
+
+.v2-table-suit.red {
+  color: #b9333a;
+}

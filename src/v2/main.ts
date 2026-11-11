@@ -1,0 +1,175 @@
+// The site's styles, in the order src/site/main.ts has them (the pages shown over the town need theirs as they are there).
+import '../shared/style.css';
+import '../shared/ui/header/header.css';
+import '../shared/ui/button/button.css';
+import '../shared/ui/close/close.css';
+import '../shared/ui/page-bar/page-bar.css';
+import '../shared/items/items.css';
+import '../hub/hub.css';
+import '../gear/gear.css';
+import '../inventory/inventory.css';
+import '../databank/databank.css';
+import '../dressing/dressing.css';
+import '../forge/forge.css';
+import '../banner/banner.css';
+import '../outfits/outfits.css';
+import '../hero-shop/hero-shop.css';
+import '../hero-outfit-shop/hero-outfit-shop.css';
+import '../heroes/heroes.css';
+import '../hero-outfits/hero-outfits.css';
+import '../raid-shop/raid-shop.css';
+import '../shop/shop.css';
+import '../admin/admin.css';
+import './v2.css';
+import { installCursor } from '../shared/cursor';
+import { installClickSounds } from '../shared/audio';
+import { holdReveal, onSiteLink, swap, type Direction } from '../shared/transition';
+import { landscapeCover } from '../shared/ui/landscape/landscape';
+import { setGo, type GoOptions } from '../site/nav';
+import { hasSession, loadMe } from '../site/session';
+import { makeHud } from './hud';
+import { makePanel } from './panel';
+import { oldPath, pageAt, pagePath, placeOf, PLACES, V2, v2Path, type Place } from './places';
+import { makeTown } from './town';
+
+/*
+ * Komaverse v2: the site as a town. No header and no navigation bar: the whole screen, held in landscape (on a phone held
+ * upright, the cover asking to turn it, or turning the page itself), is the town map (./town.ts) with what's left of a
+ * header in its corners (./hud.ts). Tapping a place sends the runner there; at its door its page opens over the town
+ * (./panel.ts), the same pages as the old site's, at /v2 + their old address (/v2/forge/, /v2/shop/outfits/). Back (the
+ * page's own back arrow, the browser's, Escape, or the Town button) is the town again, the runner at that door.
+ */
+
+const app = document.getElementById('v2') as HTMLElement;
+const release = holdReveal();
+
+installCursor();
+installClickSounds();
+landscapeCover(document.body, { title: 'Turn your phone sideways', text: 'The town is played in landscape, filling the screen.' });
+
+const town = makeTown(app, arrived);
+const hud = makeHud(app, () => undefined);
+const panel = makePanel(app);
+
+// The way back to the town from a page, in a corner of it (a page's own back arrow does the same).
+const home = document.createElement('button');
+home.type = 'button';
+home.className = 'v2-round v2-home';
+home.setAttribute('aria-label', 'Back to town');
+home.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2 11h3v9h5v-6h4v6h5v-9h3z"/></svg>`;
+home.addEventListener('click', () => backToTown());
+panel.element.append(home);
+
+/** This entry's place in the history (higher: further forward), as the old site keeps it. */
+let index = typeof history.state?.idx === 'number' ? (history.state.idx as number) : 0;
+history.replaceState({ ...history.state, idx: index }, '');
+
+/** An old-site URL from v2's (/v2/shop/outfits/?x → /shop/outfits?x), or null (not under /v2). */
+function oldUrl(url: URL): URL | null {
+  const path = oldPath(pagePath(url.pathname) || '/');
+  return path === null ? null : new URL(path + url.search + url.hash, url);
+}
+
+/** Shows what `url` (v2's) is: the town, or a page over it. A page that needs a login, logged out: the town, saying so. */
+async function apply(url: URL): Promise<void> {
+  const old = oldUrl(url);
+  const site = old && old.pathname !== '/' ? pageAt(old.pathname) : undefined;
+  if (!old || !site) {
+    if (panel.showing()) {
+      // The runner at the door of the place whose page it was.
+      const from = PLACES.find((place) => pageAt(place.path) === panel.showing());
+      panel.close();
+      town.standAt(from ?? null);
+    }
+    town.resume();
+    return;
+  }
+  if (site.needsLogin && !hasSession()) {
+    history.replaceState({ idx: index }, '', `${V2}/`);
+    panel.close();
+    town.standAt(placeOf(old.pathname) ?? null);
+    town.resume();
+    hud.note('Log in to go in there.', true);
+    return;
+  }
+  town.pause();
+  await panel.open(old);
+}
+
+/** The runner is at `place`'s door: its page, unless it needs a login. */
+function arrived(place: Place): void {
+  const site = pageAt(place.path);
+  if (site?.needsLogin && !hasSession()) return hud.note(`Log in to go into the ${place.name}.`, true);
+  hud.note(null);
+  history.pushState({ idx: ++index, fromTown: true }, '', v2Path(place.path));
+  void swap('forward', () => apply(new URL(location.href)));
+}
+
+/** Back to the town from a page: back in the history when the town is the entry before it, else the town in its place. */
+function backToTown(): void {
+  if (!panel.showing()) return;
+  if (history.state?.fromTown) return history.back();
+  history.replaceState({ idx: index }, '', `${V2}/`);
+  void swap('back', () => apply(new URL(location.href)));
+}
+
+/**
+ * Where a page sends the member (../site/nav.ts go(), and links to the site's pages): the front page is the town; another
+ * of v2's pages opens over it (in place, for another of the same page's tabs); anything else, as a new document.
+ */
+function go(href: string, options: GoOptions = {}): void {
+  const url = new URL(href, location.href);
+  const path = oldPath(pagePath(url.pathname) || '/') ?? pagePath(url.pathname) ?? '/';
+  if (path === '/' || path === '') return backToTown();
+  const site = pageAt(path);
+  if (!site) return void location.assign(url.href);
+  const next = v2Path(path) + url.search + url.hash;
+  const same = panel.showing() === site;
+  if (options.replace) history.replaceState({ idx: index }, '', next);
+  else history.pushState({ idx: ++index }, '', next);
+  if (same && !options.reload) return void apply(new URL(location.href));
+  void swap(options.back ? 'back' : 'forward', () => apply(new URL(location.href)));
+}
+setGo(go);
+
+// Links to the site's pages (and to the front page) are v2's; anything else (a game) the transition takes as a new document.
+onSiteLink((url, link) => {
+  if (url.origin !== location.origin) return false;
+  const path = oldPath(pagePath(url.pathname) || '/') ?? (pagePath(url.pathname) || '/');
+  if (path !== '/' && !pageAt(path)) return false;
+  go(url.href, { back: link.classList.contains('back') });
+  return true;
+});
+
+window.addEventListener('popstate', (e) => {
+  const state = e.state as { idx?: number } | null;
+  const to = typeof state?.idx === 'number' ? state.idx : index;
+  const dir: Direction = to < index ? 'back' : 'forward';
+  index = to;
+  const site = pageAt(oldPath(pagePath(location.pathname) || '/') ?? '/');
+  // Another tab of the page showing: in place.
+  if (site && site === panel.showing()) return void apply(new URL(location.href));
+  void swap(dir, () => apply(new URL(location.href)));
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && panel.showing() && !document.querySelector('[role="dialog"]:not([hidden])')) backToTown();
+});
+
+// Back from a game to this page as the browser kept it: the balance (which the game changed) asked for again.
+window.addEventListener('pageshow', (e) => {
+  if (e.persisted && hasSession()) void loadMe(true).then(hud.render);
+});
+
+async function start(): Promise<void> {
+  // Opened at a page's address (/v2/forge/): the runner at its door, the page over the town.
+  const old = oldUrl(new URL(location.href));
+  town.standAt((old && placeOf(old.pathname)) ?? null);
+  if (hasSession()) {
+    const me = await loadMe(true);
+    if (!me.ok && me.status !== 0) hud.note('Your login ran out. Log in again.', true);
+    hud.render();
+  }
+  await apply(new URL(location.href));
+}
+void start().finally(release);
