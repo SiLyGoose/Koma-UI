@@ -21,7 +21,7 @@ import {
   type BufferGeometry,
   type Object3D,
 } from 'three';
-import { loadKrMap } from './kr-map';
+import { loadKrMap, type KrMapCut } from './kr-map';
 import { struggling } from './memory';
 
 /*
@@ -81,7 +81,7 @@ export interface Scenery {
    * upright there (radians: the game sees its maps from the other side); and the colour of the floor beyond its own (its
    * floor is no deeper than the game's camera sees: ours sees further).
    */
-  map?: { folder: string; at: readonly [number, number, number]; turn: number; floor: number; camera?: { look: number; fov: number }; grounded?: boolean; apron?: boolean; next?: number };
+  map?: { folder: string; at: readonly [number, number, number]; turn: number; floor: number; camera?: { look: number; fov: number }; grounded?: boolean; apron?: boolean; next?: number | readonly [number, number, number]; cut?: readonly KrMapCut[] };
 }
 
 /** An effect a map has of its own (fog, sparks, a portal's glow), where it is on the field. */
@@ -116,8 +116,9 @@ export interface Stage {
   focus(target: { at: Vector3; high: number } | null): void;
   /**
    * A raid of more than one wave: the map moved on `platforms` from its first, each by its `next` (the next platform comes to
-   * where the fight is; part way: on the move between two), `moved` told how far along the field (the field's units) that
-   * moves it from where it was (for what stands on it: its effects). 0: back on its first.
+   * where the fight is; part way: on the move between two; a `next` of three, along the map and up and across it: Apocalypsion's
+   * arena, below the bridge Tersio is fought on), `moved` told how far along the field (the field's units) that moves it from
+   * where it was (for what stands on it: its effects). 0: back on its first.
    */
   moveOn(platforms: number, moved: (dx: number) => void): void;
   /** Moves the camera along the field: `by` across from where it stands (less than 0: to the left), looking the same way. */
@@ -154,10 +155,11 @@ export function makeStage(canvas: HTMLCanvasElement): Stage {
   let wide = FOV;
   /** What moves on the map (its glows, its fogs), each frame. */
   let mapTick: ((dt: number) => void) | null = null;
-  /** The map, how far it moves on to its next platform (null: none). */
-  let mapAt: { map: Object3D; next: number; turn: number } | null = null;
+  /** The map, how far it moves on to its next platform (its own units, along it, up and across; null: none). */
+  let mapAt: { map: Object3D; next: Vector3; turn: number } | null = null;
   /** How far the map has moved on from its first platform (its own units). */
-  let slid = 0;
+  const slid = new Vector3();
+  const step = new Vector3();
   // How far along the field it is moved (pan()).
   let panned = 0;
   const look = new Vector3();
@@ -261,11 +263,11 @@ export function makeStage(canvas: HTMLCanvasElement): Stage {
     overlay: { scene: overlay, camera: flatUi },
     moveOn(platforms, moved) {
       if (!mapAt) return;
-      const step = mapAt.next * platforms - slid;
-      if (step === 0) return;
-      mapAt.map.position.x += step;
-      slid += step;
-      moved(step * Math.cos(mapAt.turn));
+      step.copy(mapAt.next).multiplyScalar(platforms).sub(slid);
+      if (step.lengthSq() === 0) return;
+      mapAt.map.position.add(step);
+      slid.add(step);
+      moved(step.x * Math.cos(mapAt.turn));
     },
     focus(target) {
       close = target && { at: target.at.clone(), high: target.high };
@@ -273,8 +275,8 @@ export function makeStage(canvas: HTMLCanvasElement): Stage {
     },
     async dress(scenery) {
       if (scenery.map) {
-        const { folder, at, turn, floor: beyond, camera: own, grounded, apron } = scenery.map;
-        const read = await loadKrMap(folder, grounded, apron).catch((error: unknown) => {
+        const { folder, at, turn, floor: beyond, camera: own, grounded, apron, cut } = scenery.map;
+        const read = await loadKrMap(folder, grounded, apron, cut).catch((error: unknown) => {
           console.warn(error);
           return null;
         });
@@ -286,7 +288,8 @@ export function makeStage(canvas: HTMLCanvasElement): Stage {
           field.rotation.y = turn;
           scene.add(field);
           mapTick = read.update;
-          if (scenery.map.next) mapAt = { map: read.map, next: scenery.map.next, turn };
+          const { next } = scenery.map;
+          if (next) mapAt = { map: read.map, next: typeof next === 'number' ? new Vector3(next, 0, 0) : new Vector3(...next), turn };
           // (Under it, and in front of its floor: drawn before the map, which is painted over it.)
           floor.material.color.set(beyond);
           floor.material.depthWrite = false;
@@ -303,7 +306,7 @@ export function makeStage(canvas: HTMLCanvasElement): Stage {
             const where = read.map.localToWorld(new Vector3(...effect.position));
             const rotation = field.quaternion.clone().multiply(new Quaternion(...effect.rotation));
             // (A map moved on along its platforms: those of each of them.)
-            const near = NEAR + 2 * (scenery.map?.next ?? 0);
+            const near = NEAR + 2 * (mapAt?.next.length() ?? 0);
             return Math.hypot(where.x, where.z) > near ? [] : [{ code: effect.code, at: where, rotation, scale: effect.scale }];
           });
         }

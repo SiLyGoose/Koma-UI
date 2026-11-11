@@ -34,6 +34,7 @@ const GEAR_KINDS: Readonly<Record<string, readonly BossGear[]>> = (() => {
   return {
     galgoria: tm(1, 'perseverance', 'Perseverance'),
     siegfried: tm(2, 'hope', 'Hope'),
+    ascalon: tm(3, 'authority', 'Authority'),
     temeraire: dragon(1, 'opportune-fire', 'Opportune Fire'),
     scalaxia: dragon(2, 'gritty-frost', 'Gritty Frost'),
     zyrrkinoth: dragon(3, 'unrelenting-poison', 'Unrelenting Poison'),

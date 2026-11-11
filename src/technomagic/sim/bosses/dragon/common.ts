@@ -216,9 +216,11 @@ export function minionOf(minion: WaveMinion, solo: boolean, party: number = KR_P
   return { hp, atk: minion.atk * HEROES_HP, stats: { hp, deals: MINIONS[minion.kind].deals, magical: minion.def[0], physical: minion.def[1], ...OPEN } };
 }
 
-/** A minion with King's Raid's own numbers (../boss.ts OwnMinion: Divine Punishment's), as they are: the rest as the hard dragons' (OPEN), or as it says. */
-export function ownMinion(minion: OwnMinion): { hp: number; atk: number; stats: BossStats } {
-  return { hp: minion.hp, atk: minion.atk, stats: { hp: minion.hp, deals: MINIONS[minion.kind].deals, magical: minion.def[0], physical: minion.def[1], ...OPEN, ...minion.stats } };
+/** A minion with King's Raid's own numbers (../boss.ts OwnMinion: Divine Punishment's, Ascalon's), as they are (alone, as it says): the rest as the hard dragons' (OPEN), or as it says. */
+export function ownMinion(minion: OwnMinion, solo = false): { hp: number; atk: number; stats: BossStats } {
+  // (Alone, as much less as it says: Ascalon's.)
+  const hp = solo && minion.solo !== undefined ? minion.hp * minion.solo : minion.hp;
+  return { hp, atk: minion.atk, stats: { hp, deals: MINIONS[minion.kind].deals, magical: minion.def[0], physical: minion.def[1], ...OPEN, ...minion.stats } };
 }
 
 /** A dragon's part: its own (`own`), with its CC Gauge (../gauge.ts: of `size`, none said the Hard Dragon Raid's). */

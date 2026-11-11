@@ -1,5 +1,6 @@
 import type { DamageType } from '../../combat/damage';
 import { stateArt, type Buff } from '../../shown';
+import { ASCALON_MINIONS, type AscalonKind } from '../ascalon/minions';
 
 /*
  * The minions of the Hard Dragon Raid's waves past its first (./waves.ts), as King's Raid's playtest has them (its
@@ -9,7 +10,7 @@ import { stateArt, type Buff } from '../../shown';
  * (metres: 0 its target alone, Infinity every hero); and what it leaves on whoever it lands on.
  */
 
-export type MinionKind = 'hatchling-fire' | 'hatchling-ice' | 'hatchling-poison' | 'hatchling-black' | 'ice-pillar' | 'wyrm' | 'wyrmling' | 'slime' | KarmaKind;
+export type MinionKind = 'hatchling-fire' | 'hatchling-ice' | 'hatchling-poison' | 'hatchling-black' | 'ice-pillar' | 'wyrm' | 'wyrmling' | 'slime' | KarmaKind | AscalonKind;
 
 /**
  * Divine Punishment's karma dungeons' monsters besides their bosses (../divine/karma.ts): the Apocalypsion group's Draconians
@@ -18,8 +19,15 @@ export type MinionKind = 'hatchling-fire' | 'hatchling-ice' | 'hatchling-poison'
  */
 export type KarmaKind = 'kauron' | 'moira' | 'theakel' | 'reuss' | 'golem-guardian' | 'golem-destroyer' | 'golem-berserk' | 'golem-mountain';
 
-/** What a blow leaves on a hero: frozen (can do nothing, as knocked down), its attacks slowed, its damage lowered (stacking, for the rest of the fight). */
-export type Leaves = { freeze: number } | { slow: Buff & { pace: number; lasts: number } } | { weaken: Buff & { each: number; most: number } };
+/**
+ * What a blow leaves on a hero: frozen (can do nothing, as knocked down), its attacks slowed, its damage lowered (stacking, for
+ * the rest of the fight), or (`expose`) taking so many times as much DMG for a while.
+ */
+export type Leaves =
+  | { freeze: number }
+  | { slow: Buff & { pace: number; lasts: number } }
+  | { weaken: Buff & { each: number; most: number } }
+  | { expose: Buff & { takes: number; lasts: number } };
 
 /** A move of a minion's: how long it takes, when its blows land (seconds in), each as hard as `share` of its ATK, how far about its target, the kind of damage it deals, and what it leaves. `range`: how far it reaches the hero it goes for (metres to the hero's edge: the playtest's; none said, 0). */
 export interface MinionMove {
@@ -29,9 +37,18 @@ export interface MinionMove {
   reach: number;
   range?: number;
   deals?: DamageType;
-  /** Its target: the hero furthest forward within its range (or else the nearest), or (`random`) any. */
+  /** Its target: the hero furthest forward within its range (or else the nearest), or (`random`) any, or (`far`) the furthest from it. */
   random?: boolean;
+  far?: boolean;
+  /** It goes for a knight, while there is one (King's Raid's FilterTargetByState on the EC_Target its wave puts on knights: Ascalon's waves' beasts). */
+  knights?: boolean;
+  /** How hard it is on those about its target (a share of its ATK; none said: `share`). */
+  splash?: number;
   leaves?: Leaves;
+  /** As its first blow lands (or, with none, as it begins), what it does for itself: its blows so many times as hard for so long (King's Raid's ModPowerR). */
+  rouses?: { deals: number; lasts: number };
+  /** As it begins: the next so many blows on it take 1 each (King's Raid's SetDamage). */
+  ward?: number;
 }
 
 export interface MinionDef {
@@ -46,6 +63,10 @@ export interface MinionDef {
   rest: number;
   /** Its skill: used as soon as it is ready, `cooldown` seconds after it last was (the first, `first` seconds in). */
   skill?: MinionMove & { cooldown: number; first: number };
+  /** Or its skills, more than one (each as `skill` is, the first ready first: King's Raid's slots, in order). */
+  skills?: readonly (MinionMove & { cooldown: number; first: number })[];
+  /** Nothing on it has it take more (King's Raid's OverrideStat of its Weakness to 0: Ascalon's Might, on his beasts). */
+  unweakened?: boolean;
   /**
    * Left standing this long (seconds), it lays the heroes low: every one of them takes `share` of its health, nothing blocks
    * it; or (`blast`) every hero within `reach` of it (metres, to the hero's edge) takes `share` of its ATK, of its kind; and
@@ -145,4 +166,6 @@ export const MINIONS: Readonly<Record<MinionKind, MinionDef>> = {
     rest: 1,
     skill: { cooldown: 12, first: 8, length: 3.5, lands: [0.9, 1.3, 1.8, 2.2, 2.6], share: 0.5, reach: 2, range: 4, deals: 'magical' },
   },
+  // Ascalon's Synthetic Demon Beasts: his waves' and his Dimension Warp's (../ascalon/minions.ts).
+  ...ASCALON_MINIONS,
 };

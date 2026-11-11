@@ -59,9 +59,11 @@ export const heroEffects = (hero: HeroAssets): string[] => [
 
 /** Every effect a boss plays: its attacks' (and their projectiles), its coming on the field, and what its skills keep on a hero. */
 export const bossEffects = (boss: BossAssets): string[] => {
-  const { attacks = {}, advent = [], kept = [] } = boss.vfx ?? {};
+  const { attacks = {}, advent = [], kept = [], worn = [], own = [] } = boss.vfx ?? {};
   return [
     ...advent,
+    ...worn.map((one) => (typeof one === 'string' ? one : one.code)),
+    ...own,
     ...kept.flatMap((one) => one.effects),
     ...Object.values(attacks).flatMap((attack) => [...(attack.start ?? []), ...(attack.later ?? []).map((one) => one.code), ...(attack.hit ?? []), ...(attack.fly ?? [])]),
     ...Object.values(boss.holds ?? {}).flatMap((hold) => (hold.effect ? [hold.effect] : [])),
@@ -224,13 +226,16 @@ export interface KrBoss {
  * coming on the field.
  */
 export function makeKrBoss(kr: KrEffects, boss: BossAssets, root: Object3D, bodies: readonly Hero[], scene: Object3D): KrBoss {
-  const { attacks = {}, advent = [], kept = [] } = boss.vfx ?? {};
+  const { attacks = {}, advent = [], kept = [], worn = [] } = boss.vfx ?? {};
   kr.read(bossEffects(boss));
   /** What of the attack it began last is still to play, and how long until each does (seconds); and what stops what of it is playing. */
   let later: { left: number; code: string; lasts?: number }[] = [];
   let playing: (() => void)[] = [];
   /** What of `kept` is on it now: what stops each (by its place in `kept`). */
   const keeping = new Map<number, (() => void)[]>();
+  /** What it wears all the while not on it yet (put on as each is read), and what stops each that is. */
+  const toWear = new Set(worn);
+  const wearing: (() => void)[] = [];
   let coming = advent.length > 0;
   let attack = '';
   const last = new Map<string, number>();
@@ -272,13 +277,20 @@ export function makeKrBoss(kr: KrEffects, boss: BossAssets, root: Object3D, bodi
         if (one.left <= 0) playing.push(kr.play(one.code, { on: root, ...(one.lasts !== undefined && { lasts: one.lasts }) }));
       }
       later = later.filter((one) => one.left > 0);
+      for (const one of toWear) {
+        const code = typeof one === 'string' ? one : one.code;
+        if (!kr.ready(code)) continue;
+        // (On it, or where on the field its script puts it.)
+        wearing.push(kr.play(code, typeof one === 'string' ? { on: root, lasts: Infinity } : { at: new Vector3(...one.at), turn: one.turn ?? 0, lasts: Infinity }));
+        toWear.delete(one);
+      }
       if (!coming || !advent.every((code) => kr.ready(code))) return;
       coming = false;
       for (const code of advent) kr.play(code, { on: root });
     },
     keep(on) {
       kept.forEach((one, i) => {
-        const wanted = on.some((status) => status.name === one.status && (status.count ?? 1) >= (one.count ?? 1));
+        const wanted = on.some((status) => status.name === one.status && (status.count ?? 1) >= (one.count ?? 1)) && !(one.until && on.some((status) => status.name === one.until));
         const going = keeping.get(i);
         if (wanted && !going) {
           // (Not read yet: begun once it has been.)
@@ -297,6 +309,8 @@ export function makeKrBoss(kr: KrEffects, boss: BossAssets, root: Object3D, bodi
       later = [];
       for (const stops of keeping.values()) for (const stop of stops) stop();
       keeping.clear();
+      for (const stop of wearing.splice(0)) stop();
+      toWear.clear();
     },
   };
 }

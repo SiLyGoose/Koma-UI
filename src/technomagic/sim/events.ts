@@ -61,8 +61,11 @@ export type SimEvent =
   | { kind: 'foe-enter'; foe: number; minion: string; x: number; z: number }
   | { kind: 'boss-leave' }
   | { kind: 'boss-return' }
-  /** An enemy not the boss begins a move (its plain attack, or its skill); is stunned; is beaten. */
-  | { kind: 'foe-use'; foe: number; move: 'attack' | 'skill' }
+  /**
+   * An enemy not the boss begins a move (its plain attack, or its skill: one with more than one, which by its place in them,
+   * `skill`: MinionDef.skills); is stunned; is beaten.
+   */
+  | { kind: 'foe-use'; foe: number; move: 'attack' | 'skill'; skill?: number }
   | { kind: 'foe-daze'; foe: number; seconds: number }
   /** (Beaten by bursting, `blast`: Zyrrkinoth's Slimes.) */
   | { kind: 'foe-down'; foe: number; blast?: boolean }

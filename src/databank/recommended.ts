@@ -1,7 +1,7 @@
 /*
  * The heroes recommended against each of the TechnoMagic Raid's bosses and the Dragon Raid's dragons, for the databank's
  * enemies (./bosses.ts), out of every hero King's Raid has had, the raid's or not. Written by KR-extracted/scripts/tm-picks.mjs:
- * King's Raid's own picks first (`kr`: its Hard Dragon Raid's, and `normal` its Normal one's; the TechnoMagic Raid's bosses have none), then
+ * King's Raid's own picks first (`kr`: its Hard Dragon Raid's, and `normal` its Normal one's; of the TechnoMagic Raid's bosses, Ascalon's live Raid Info's), then
  * `picks`, chosen for what their skills do against the boss's, each with why, up to 8 in all (recommendedIn).
  * OTHER_HEROES: those the raid doesn't have, as King's Raid has them (their icons in public/kr/hero-icons/).
  */
@@ -41,6 +41,20 @@ export const RECOMMENDED: Readonly<Record<string, Recommended>> = {
       valance: 'Absolute Protection Field keeps the party free of Divine Strike’s knock down and healed without shields, and raises the DMG Bosses take.',
       isaiah: 'Deals M.DMG, Touch of Mercy lowers his ATK, and Offering of Atonement makes the party invincible through Divine Storm of Blades.',
       kirze: 'Deals M.DMG, which he takes 30% more of, in many hits from the frontline.',
+    },
+  },
+  ascalon: {
+    kr: ['nyx', 'rehartna', 'erze', 'glenwys'],
+    normal: null,
+    picks: {
+      nyx: 'Deals P.DMG to more enemies the more Blade stacks she has, for his waves and the Synthetic Demon Beasts of his Dimension Warp, and Dimension Cleaver knocks them down.',
+      rehartna: 'You’ve Never Seen a Weapon Like This! recovers allies’ Mana every sec and shortens their Cooldowns against his Mana drain, and Crystal Clear, Matimaruma! grants immunity to CC.',
+      erze: 'Sweet Blood and Blood Liberation deal P.DMG to all enemies, for his waves and his beasts, and Blood Liberation recovers her Mana with every hit.',
+      glenwys: 'Deals more DMG to Non-Hero enemies (his waves and his beasts), raises all allies’ ATK, and dispels negative effects from the party.',
+      valance: 'Absolute Protection Field keeps the party immune to Land of Destruction’s Stun and knock down and recovers their Mana every sec, and raises the DMG Bosses take.',
+      laias: 'Festival of the Flow raises every ally’s Mana recovery, against [Dimension Interference], and knocks down the beasts about her.',
+      mediana: 'Healing Salve makes the party immune to the next hit, as a dimension gate or Surveillance Assault would drain their Mana.',
+      lilia: 'Lands P.DMG on many enemies at random, for his waves and his beasts, and Everlasting Oasis raises her Mana recovery by 150%.',
     },
   },
   temeraire: {
@@ -110,6 +124,7 @@ export const OTHER_HEROES: Readonly<Record<string, OtherHero>> = {
   rephy: { name: 'Rephy', class: 'priest', deals: 'magical' },
   luna: { name: 'Luna', class: 'archer', deals: 'magical' },
   arch: { name: 'Arch', class: 'archer', deals: 'magical' },
+  nyx: { name: 'Nyx', class: 'wizard', deals: 'physical' },
   mediana: { name: 'Mediana', class: 'priest', deals: 'physical' },
   ophelia: { name: 'Ophelia', class: 'wizard', deals: 'magical' },
   laudia: { name: 'Laudia', class: 'assassin', deals: 'magical' },

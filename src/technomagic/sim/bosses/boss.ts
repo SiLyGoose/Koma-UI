@@ -92,6 +92,13 @@ export interface BossPart {
   drain?(mana: number): void;
   /** The most a hero's blow takes of it, whatever it would have (King's Raid's SetDamage: Luciteron's Eye of Incineration, 1). None said: what it deals. */
   cap?: number;
+  /** A blow on it has been held to its `cap` (King's Raid's SetDamage counting its hits down: an Ascalon beast's ward). */
+  capped?(): void;
+  /**
+   * Nothing on it has it take more (King's Raid's OverrideStat of its Weakness to 0: Ascalon's Might of Ascalon): what the heroes
+   * leave on it that raises the DMG it takes does nothing.
+   */
+  unweakened?: boolean;
 }
 
 /**
@@ -150,8 +157,18 @@ export interface BossDef {
    * leaves the field at (the first wave over: it flies off); and as it comes back for the last, what its landing takes of
    * every hero (a share of its health left, and a blow, `blow`, as its moves' are: none said, none) and how long it knocks them down.
    * (A minion with its own numbers, King's Raid's unscaled: OwnMinion.)
+   * Or (`before`: Ascalon's) its waves of minions come before it: it is away as the fight begins, its first wave's minions on
+   * the field, and it comes in for the last (no landing: `leaves` and `lands` say nothing). And (`perWave`) each wave has the
+   * raid's whole time of its own, as King's Raid's has it (BattleInstance.GetElapsedBattleTimeMs, from the wave's start).
    */
-  waves?: { at(stage: number): readonly (readonly WaveMinion[])[]; party?: number; leaves: number; lands: { share: number; blow?: number; knock: number } };
+  waves?: {
+    at(stage: number): readonly (readonly WaveMinion[])[];
+    party?: number;
+    leaves: number;
+    lands: { share: number; blow?: number; knock: number };
+    before?: boolean;
+    perWave?: boolean;
+  };
   /**
    * Seconds of rage after its raid's time is up before the heroes have lost (none said: ../rules.ts RAGE_WIPE): King's Raid's
    * BattleDefine ExtraTime (a karma dungeon's 10).
@@ -234,4 +251,6 @@ export interface OwnMinion extends WaveMinion {
   own: true;
   stats?: Partial<Omit<BossStats, 'hp' | 'deals' | 'physical' | 'magical'>>;
   taken?: number;
+  /** How many times its health it has in a raid fought alone (none said: as much: Divine Punishment's; Ascalon's, as he has less). */
+  solo?: number;
 }

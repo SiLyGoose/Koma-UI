@@ -72,8 +72,18 @@ export const TM_LIST: RaidList = {
         'Distorted Dawn, Siegfried can revive 2 times if he is close to death. Every time he comes back from death, the power within his sword becomes stronger. In his final state, the aura of his sword becomes so big that it even threatens the Heroes in the backline, so make sure to protect your Heroes located in the back! Oh, and all of Siegfried’s attacks destroy Shields and become even stronger when his Mana is full! Make sure his Mana doesn’t reach the max capacity!',
       rewards: [POINTS, GEMS, { kind: 'tm', slot: 'weapon', name: 'Hope Set' }],
     },
+    {
+      id: 'ascalon',
+      name: 'Ascalon',
+      title: 'TechnoMagic Raid',
+      lair: 'the gates of Serineu’s sanctuary',
+      about:
+        'Ascalon, the Sentry of the Sanctuary. Before him, four waves of his Synthetic Demon Beasts, his Eye on your heroes all the while. His blows are physical, and nearly all of them drain Mana: a hero left with none has its Skills sealed. Nothing slows him, nothing raises the DMG he takes, and he grows stronger as the fight goes on; his Dimension Warp shields him behind more beasts, to be beaten in time.',
+      tactic:
+        'Ascalon constantly reduces Heroes’ Mana, so keep a close eye on your Mana when you’re facing Ascalon. If you get hit by Ascalon, your Mana Recovery will be reduced. And if your Mana reaches 0, your Skills will be sealed, so watch out!',
+      rewards: [POINTS, GEMS, { kind: 'tm', slot: 'weapon', name: 'Authority Set' }],
+    },
   ],
-  upcoming: [{ id: 'ascalon', name: 'Ascalon', title: 'TechnoMagic Raid' }],
 };
 
 export const DRAGON_LIST: RaidList = {

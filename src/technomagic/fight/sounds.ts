@@ -34,14 +34,22 @@ export interface FightSounds {
   hurt(): void;
   /** The boss is knocked down. */
   down(): void;
-  /** A minion of a raid's waves (of its kind: ../assets/minions.ts): begins its attack or its skill, lands a blow of one on a hero, is hit, falls. */
-  minion(kind: string, what: keyof MinionFx['sounds']): void;
+  /**
+   * A minion of a raid's waves (of its kind: ../assets/minions.ts): begins its attack or its skill, lands a blow of one on a
+   * hero, is hit, falls. (A skill of more than one, `skill` its place: that one's own, where its kind has them.)
+   */
+  minion(kind: string, what: keyof MinionFx['sounds'], skill?: number): void;
   /** A hero (by its index) strikes its victory pose: what it says, and what is heard with it. */
   victory(who: number): void;
   /** The fight is over (`won`: the boss has fallen): the music fades away. */
   end(won: boolean): void;
   /** The fight is taken off the page: the music stops. */
   stop(): void;
+  /**
+   * A fight against two (the boss's `after`, read with it): the next comes in its place, its sounds heard from now on (its
+   * music in place of the first's, where it isn't the same).
+   */
+  become(): void;
 }
 
 /** What a clip is: a voice-over (a hero's or a boss's own, kept in its own sounds/: soundFile's `own`), or else a sound effect (the shared ones). */
@@ -63,14 +71,17 @@ export function readSounds(owner: { hero: HeroAssets } | { boss: BossAssets }): 
   for (const url of new Set(urls)) preload(url);
 }
 
-/** The sounds of a fight of `heroes` (by their index among the fighters) against `boss`. */
-export function makeFightSounds(heroes: readonly HeroAssets[], boss: BossAssets): FightSounds {
+/** The sounds of a fight of `heroes` (by their index among the fighters) against `boss` (and, a fight against two, `after` in its place: become()). */
+export function makeFightSounds(heroes: readonly HeroAssets[], first: BossAssets, after: BossAssets | null = null): FightSounds {
+  let boss = first;
   const clips = new Map<string, (volume?: number) => void>();
   // (And its raid's minions': their clips are the shared ones, public/kr/effects/sounds/.)
   const shared = { folder: 'effects' };
-  const minionFiles = Object.keys(boss.minions ?? {}).flatMap((kind) => Object.values(MINION_FX[kind]?.sounds ?? {}).flatMap((list) => list.map((clip) => soundFile(shared, clip))));
-  for (const url of [...heroes.flatMap(heroFiles), ...bossFiles(boss), ...minionFiles]) if (!clips.has(url)) clips.set(url, sound(url, voiced(url)));
-  const { uses = {}, hits = {}, down, dead } = boss.sounds ?? {};
+  const minionFiles = Object.keys(boss.minions ?? {}).flatMap((kind) =>
+    [...Object.values(MINION_FX[kind]?.sounds ?? {}), ...(MINION_FX[kind]?.skills ?? []).flatMap((skill) => Object.values(skill.sounds))].flatMap((list) => list.map((clip) => soundFile(shared, clip))),
+  );
+  for (const url of [...heroes.flatMap(heroFiles), ...bossFiles(boss), ...(after ? bossFiles(after) : []), ...minionFiles]) if (!clips.has(url)) clips.set(url, sound(url, voiced(url)));
+  let { uses = {}, hits = {}, down, dead } = boss.sounds ?? {};
 
   const last = new Map<string, number>();
   const play = (url: string, volume: number): void => {
@@ -121,8 +132,9 @@ export function makeFightSounds(heroes: readonly HeroAssets[], boss: BossAssets)
     down() {
       hear(boss, down, BOSS);
     },
-    minion(kind, what) {
-      hear(shared, MINION_FX[kind]?.sounds[what], MINION);
+    minion(kind, what, skill) {
+      const own = skill !== undefined && (what === 'skill' || what === 'hitSkill') ? MINION_FX[kind]?.skills?.[skill]?.sounds[what] : undefined;
+      hear(shared, own ?? MINION_FX[kind]?.sounds[what], MINION);
     },
     victory(who) {
       const hero = heroes[who];
@@ -134,6 +146,15 @@ export function makeFightSounds(heroes: readonly HeroAssets[], boss: BossAssets)
     },
     stop() {
       quiet(FADE.off);
+    },
+    become() {
+      if (!after || boss === after) return;
+      const was = boss.music?.file;
+      boss = after;
+      ({ uses = {}, hits = {}, down, dead } = boss.sounds ?? {});
+      if (boss.music?.file === was || !stopMusic) return;
+      quiet(FADE.off);
+      stopMusic = boss.music ? music(musicFile(boss.music.file), boss.music.loop)(MUSIC) : null;
     },
   };
 }

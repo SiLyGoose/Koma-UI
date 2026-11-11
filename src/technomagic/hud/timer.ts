@@ -10,8 +10,12 @@ export interface Timer {
   draw(left: number, wave?: number, of?: number): void;
 }
 
-/** King's Raid's own marks of a raid's phases (its NguiAtlas_UI_Prefab_Raid's RiadBoss_Phase01 to 03). */
+/**
+ * King's Raid's own marks of a raid's phases (its NguiAtlas_UI_Prefab_Raid's RiadBoss_Phase01 to 03); and, for Ascalon's five
+ * waves, a 4 and a 5 drawn in their manner (the game's go no further): as many as there are.
+ */
 const PHASE = (n: number): string => `${import.meta.env.BASE_URL}technomagic/hud/phase-${n}.webp`;
+const PHASES = 5;
 
 /** "3:28": whole seconds, rounded up, so it says 0:00 only once the time is up. */
 const said = (left: number): string => {
@@ -47,7 +51,7 @@ export function makeTimer(root: HTMLElement, leave: () => void): Timer {
   return {
     draw(left, now = 1, of = 1) {
       // (Only for a raid of more than one wave.)
-      const on = of > 1 ? Math.min(3, now) : 0;
+      const on = of > 1 ? Math.min(PHASES, now) : 0;
       if (on !== wave) {
         wave = on;
         phase.hidden = on === 0;

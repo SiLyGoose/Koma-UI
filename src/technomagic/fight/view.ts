@@ -137,8 +137,8 @@ export function makeFightView({
   scene,
   sim,
   bodies,
-  boss,
-  bossLook,
+  boss: firstBoss,
+  bossLook: firstLook,
   bossFx,
   effects,
   kr,
@@ -163,10 +163,25 @@ export function makeFightView({
   minions: Minions;
   moveOn: (platforms: number) => void;
 }): FightView {
-  const { stands, reach } = bossLook;
+  /**
+   * The boss drawn, and how it looks; and, a fight against two (its look's `next`: Tersio, then Apocalypsion), the one that
+   * comes in its place, its body read with it, drawn once the sim's boss is it (its def with no `next` to come: showNext()).
+   */
+  let boss = firstBoss;
+  let bossLook = firstLook;
+  const second = firstLook.next && firstBoss.next ? { look: firstLook.next, boss: firstBoss.next } : null;
   const at = new Vector3();
-  const bossHit = new Vector3(...reach.hit).setX(stands.x + reach.hit[0]);
-  const bossFeet = new Vector3(...reach.feet).setX(stands.x + reach.feet[0]);
+  const bossHit = new Vector3();
+  const bossFeet = new Vector3();
+  /** Where the boss drawn stands, and where a hero's cut reaches it and the floor under it. */
+  const stand = (): void => {
+    const { stands, reach } = bossLook;
+    bossHit.set(...reach.hit).setX(stands.x + reach.hit[0]);
+    bossFeet.set(...reach.feet).setX(stands.x + reach.feet[0]);
+    boss.root.position.x = stands.x;
+    boss.root.rotation.y = stands.turn;
+  };
+  stand();
   const numbers: Popup[] = [];
   const body = (who: number): Hero => bodies[who] as Hero;
   const on = new Set<number>();
@@ -178,12 +193,16 @@ export function makeFightView({
   /** Each minion's kind, and the move it began last (whose blows are landing), by its index among the sim's enemies. */
   const foeKinds = new Map<number, string>();
   const foeMoves = new Map<number, 'attack' | 'skill'>();
+  /** And the skill it began last, of a minion with more than one (by its place: MinionDef.skills). */
+  const foeSkills = new Map<number, number>();
   /** The heroes standing in a row as the fight is over (celebrate()): null while it goes on. */
   let celebrating: readonly number[] | null = null;
 
-  boss.root.position.x = stands.x;
-  boss.root.rotation.y = stands.turn;
+  // (The second of a fight against two off the field till it comes in: the last fight's may have left it there.)
+  second?.boss.root.removeFromParent();
   if (!boss.root.parent) scene.add(boss.root);
+  // (A raid whose waves come before its boss, Ascalon's: not seen till it comes in, boss-return.)
+  if (sim.boss.away) boss.root.visible = false;
   for (const hero of bodies) {
     hero.root.position.set(HERO_X, 0, 0);
     // Turned to face the boss first, then tipped over (onto its back) in its own way: about its own side.
@@ -240,11 +259,11 @@ export function makeFightView({
     const { wards: own = {}, wardEnds = {} } = lookOf(fighter.id).assets;
     for (const [status, code] of Object.entries(own)) looks.set(status, { code, size: 1, ...(wardEnds[status] && { end: wardEnds[status] }) });
   }
-  // (And the boss's skills' that have a hero: Galgoria's Swamp Imprisonment, above its feet as the game has it.)
-  for (const [status, { effect, at: where, size = 1 }] of Object.entries(bossLook.assets.holds ?? {}))
-    if (effect) looks.set(status, { code: effect, size, ...(where && { at: new Vector3(...where).multiplyScalar(SCALE) }) });
+  // (And the boss's skills' that have a hero: Galgoria's Swamp Imprisonment, above its feet as the game has it; a fight against two, both bosses'.)
+  const holds = [bossLook, second?.look].flatMap((look) => Object.entries(look?.assets.holds ?? {}));
+  for (const [status, { effect, at: where, size = 1 }] of holds) if (effect) looks.set(status, { code: effect, size, ...(where && { at: new Vector3(...where).multiplyScalar(SCALE) }) });
   /** The colours the boss's skills draw a hero in while they have it, by the status's name; and since when each hero has had its own (seconds, of `now`). */
-  const tints = new Map(Object.entries(bossLook.assets.holds ?? {}).flatMap(([status, { tint }]) => (tint ? [[status, tint] as const] : [])));
+  const tints = new Map(holds.flatMap(([status, { tint }]) => (tint ? [[status, tint] as const] : [])));
   const tinted = new Map<number, number>();
   const mixed = new Vector4(0, 0, 0, 0);
   /** Every hero drawn in its own colours again. */
@@ -259,7 +278,7 @@ export function makeFightView({
   /** What each hero's own fx keep for this fight (HeroFx.each), by the hero. */
   const ownFx: Record<string, unknown>[] = [];
   /** What is heard: the heroes' blows and skills, the boss's attacks, and the raid's music. */
-  const sounds = makeFightSounds(sim.fighters.map((fighter) => lookOf(fighter.id).assets), bossLook.assets);
+  const sounds = makeFightSounds(sim.fighters.map((fighter) => lookOf(fighter.id).assets), bossLook.assets, second?.look.assets ?? null);
   /** King's Raid's own effects for the heroes' moves (a look's own, a Legend Costume's, for a hero in it), and what their looks wear all the while. */
   const krMoves = makeKrMoves(
     kr,
@@ -269,9 +288,37 @@ export function makeFightView({
     scene,
     sim.fighters.map((fighter) => wornBy(lookOf(fighter.id).assets, fighter.name)),
   );
-  const krBoss = makeKrBoss(kr, bossLook.assets, boss.root, bodies, scene);
+  let krBoss = makeKrBoss(kr, bossLook.assets, boss.root, bodies, scene);
+  /** A fight against two: the second's effects (read now, with the first's: played once it comes in). */
+  const secondKr = second && makeKrBoss(kr, second.look.assets, second.boss.root, bodies, scene);
+  const firstKr = krBoss;
   // (Its body spits the game's own projectiles: Galgoria's heads.)
-  boss.launch = (from, to, time) => krBoss.fly(from, to, time);
+  firstBoss.launch = (from, to, time) => firstKr.fly(from, to, time);
+  if (second && secondKr) second.boss.launch = (from, to, time) => secondKr.fly(from, to, time);
+  /**
+   * A fight against two: the second drawn in the first's place (`on`), or the first again (a fight begun again). The first
+   * goes from the field at once (the sim has it gone), the second comes in on its own field (the map moved on: update()),
+   * as the game's wave start has it (its coming in: Boss.arrive, its advent's effects and sound), its look, effects and sounds
+   * the fight's from then.
+   */
+  const showNext = (on: boolean): void => {
+    if (!second || !secondKr || (boss === second.boss) === on) return;
+    const [from, to] = on ? [firstBoss, second.boss] : [second.boss, firstBoss];
+    krBoss.clear();
+    charge = null;
+    bossSkill = 0;
+    from.root.removeFromParent();
+    boss = to;
+    bossLook = on ? second.look : firstLook;
+    krBoss = on ? secondKr : firstKr;
+    stand();
+    boss.reset?.();
+    scene.add(boss.root);
+    if (!on) return;
+    sounds.become();
+    sounds.use('advent');
+    boss.arrive?.();
+  };
   // The signs of what comes on a fighter: the game's own (a hero's on it, the boss's where its blows land, bigger).
   const signs = makeSigns(effects, (who, sign) => {
     const code = KR_SIGNS[sign];
@@ -344,12 +391,13 @@ export function makeFightView({
   };
 
   // The boss spits at the hero it is going for, at its chest (with no one, where one would stand).
-  boss.target = (into) => {
+  firstBoss.target = (into) => {
     const target = sim.target();
     if (target && on.has(target.index)) body(target.index).head(into).y -= 0.8;
     else into.set(HERO_X, 1.6, 0);
     return into;
   };
+  if (second) second.boss.target = firstBoss.target;
 
   return {
     numbers,
@@ -375,10 +423,13 @@ export function makeFightView({
       }
       const marched = Math.min(MARCH, sim.tick * TICK);
       ran = Math.min(MARCH, marched + TICK, Math.max(marched - TICK, ran + dt));
+      // A fight against two: the second drawn once the sim's boss is it (its def has no next to come), whatever the events.
+      if (second) showNext(!(sim.boss.def as BossDef).next);
       // The map moved on to each wave's platform as far as the fight has run there: the heroes running where they stand meanwhile.
+      // (A fight against two: no run, the field moved on to the second's at once as it comes in.)
       const arrived = (sim.wave - 1) * RUN_ON;
       const runOn = arrived - sim.moving;
-      ranOn = Math.min(arrived, runOn + TICK, Math.max(runOn - TICK, ranOn + dt));
+      ranOn = second ? runOn : Math.min(arrived, runOn + TICK, Math.max(runOn - TICK, ranOn + dt));
       const leg = Math.floor(ranOn / RUN_ON);
       /** How far through its run on to the next wave the raid is (null: it isn't running on). */
       const onward = ranOn < arrived ? ranOn / RUN_ON - leg : null;
@@ -440,7 +491,10 @@ export function makeFightView({
             if (event.by === undefined) {
               sounds.hurt();
               krBoss.hurt(event.who);
-            } else sounds.minion(foeKinds.get(event.by) ?? '', foeMoves.get(event.by) === 'skill' ? 'hitSkill' : 'hitAttack');
+            } else {
+              sounds.minion(foeKinds.get(event.by) ?? '', foeMoves.get(event.by) === 'skill' ? 'hitSkill' : 'hitAttack', foeSkills.get(event.by));
+              minions.struck(event.by, body(event.who).root);
+            }
             break;
           case 'number': {
             // (On a minion: over its head.)
@@ -493,9 +547,12 @@ export function makeFightView({
             break;
           case 'boss-return':
             boss.arrive?.();
+            // (One that comes in after its waves, Ascalon: its own coming, heard.)
+            if (bossLook.assets.sounds?.uses?.arrive) sounds.use('arrive');
             break;
           case 'wave':
-            banners.play(event.wave === 2 ? 'stage2' : 'stage3');
+            // (The last of a raid whose waves come before its boss: the boss's wave.)
+            banners.play(event.wave === event.of && (sim.boss.def as BossDef).waves?.before ? 'boss' : event.wave === 2 ? 'stage2' : 'stage3');
             break;
           case 'foe-enter':
             foeKinds.set(event.foe, event.minion);
@@ -503,8 +560,10 @@ export function makeFightView({
             break;
           case 'foe-use':
             foeMoves.set(event.foe, event.move);
-            minions.use(event.foe, event.move);
-            sounds.minion(foeKinds.get(event.foe) ?? '', event.move);
+            if (event.skill !== undefined) foeSkills.set(event.foe, event.skill);
+            else foeSkills.delete(event.foe);
+            minions.use(event.foe, event.move, event.skill);
+            sounds.minion(foeKinds.get(event.foe) ?? '', event.move, event.skill);
             break;
           case 'foe-daze':
             minions.daze(event.foe, event.seconds);
@@ -516,6 +575,8 @@ export function makeFightView({
           case 'end':
             sounds.end(event.result === 'won');
             banners.play('finish');
+            // (Beaten: one with a fall of its own falls and lies there: Apocalypsion's.)
+            if (event.result === 'won') boss.fall?.();
             break;
         }
       }
@@ -663,11 +724,14 @@ export function makeFightView({
     },
     bossHead: (into) => into.copy(bossHit).setY(bossHit.y + 2.2),
     clear() {
+      // (A fight against two: the first on the field again, for the next.)
+      showNext(false);
       charge = null;
       minions.clear();
       celebrating = null;
       boss.reset?.();
       boss.root.visible = true;
+      if (second) second.boss.root.visible = true;
       for (const hero of bodies) hero.root.visible = true;
       for (const who of on) {
         const { root } = body(who);
@@ -691,6 +755,7 @@ export function makeFightView({
       kr.clear();
       krMoves.clear();
       krBoss.clear();
+      secondKr?.clear();
     },
   };
 }

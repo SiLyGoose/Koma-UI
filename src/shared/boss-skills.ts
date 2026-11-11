@@ -8,6 +8,7 @@
  */
 import type { DamageType } from '../technomagic/sim/combat/damage';
 import { ECLIPSE } from '../technomagic/sim/bosses/armarta/skills';
+import { ATTACK, BARRAGE, DESTRUCTION, EYE, GATE, INTERFERENCE, MIGHT, POWER_UP, STAGE_UP, WARP } from '../technomagic/sim/bosses/ascalon/skills';
 import { IMPRISONMENT, PHYSICAL_TAKEN, SWAMP } from '../technomagic/sim/bosses/galgoria/skills';
 import { STORM } from '../technomagic/sim/bosses/scalaxia/skills';
 import { DAWN, DEF_CUT, MAGIC_TAKEN, MANA_BLOCKED, MANA_HIT, MANA_RATE, RAMPAGE, RISE, STORM as BLADES, STRIKE, SWORD } from '../technomagic/sim/bosses/siegfried/skills';
@@ -68,6 +69,17 @@ export const BOSS_SKILLS: Readonly<Record<string, BossSkills>> = {
     ],
     basic: { attacks: ['slash', 'slash2', 'slash3'], about: 'Swings his sword 3 times at the enemy he is after, dealing P.DMG to it and to those about it (wider with each Divine Power).' },
     takes: { magical: 1 + MAGIC_TAKEN },
+  },
+  ascalon: {
+    skills: [
+      { name: 'Multi-Dimension Barrage', icon: icon('ascalon', 3592010), attacks: ['barrage'], about: `Charges dimensional energy and launches Dimension Barrage 4 time(s) at the target that dealt the highest DMG at the moment. Each hit of Dimension Barrage reduces DMG the target deals to enemies by ${pct(BARRAGE.weaken)}. This effect can be stacked up to max ${BARRAGE.most} times and is irremovable. Each hit also reduces the target’s Mana by ${BARRAGE.drain.toLocaleString('en-US')} and inflicts [Dimension Interference]; if its Mana is 0 afterward, all its Skills are sealed for ${BARRAGE.seal} sec.` },
+      { name: 'Dimension Warp', icon: icon('ascalon', 3592020), attacks: ['warp'], about: `Summons Synthetic Demon Beasts near Ascalon and distorts the dimension of self for ${WARP.lasts} sec, taking ${pct(1 - WARP.taken)} less All DMG. If all Synthetic Demon Beasts are defeated within ${WARP.within} sec, Ascalon’s HP is reduced by ${pct(WARP.cost)}, and he becomes neutralized for ${WARP.neutral} sec, taking ${pct(WARP.neutralTaken - 1)} more DMG. If not, those left vanish, and Ascalon’s ATK is permanently increased by ${pct(WARP.atk)} (up to ${WARP.most} times).` },
+      { name: 'Land of Destruction', icon: icon('ascalon', 3592030), attacks: ['destruction'], about: `Ascalon roars loudly, destroying the enemy’s Shield and temporarily inflicting Stun. Afterward, deals P.DMG to all enemies 2 times and knocks them down for ${DESTRUCTION.down} sec.` },
+      { name: 'Dimension Barrage', icon: icon('ascalon', 3592040), attacks: [], about: `Summons a dimension gate toward ${GATE.targets[0]} random enemies and launches Dimension Barrage every ${GATE.every} sec. Dimension Barrage deals P.DMG to the target, reduces Mana of the hit target by ${GATE.drain.toLocaleString('en-US')}, and inflicts [Dimension Interference], reducing Mana Recovery by ${pct(INTERFERENCE.mana)}. [Dimension Interference] can be stacked up to max ${INTERFERENCE.most} times and is irremovable. If the target’s Mana is 0 after Mana reduction, seals all Skills of the target for ${GATE.seal} sec. In battles of Stage ${STAGE_UP} or above, summons the dimension gate toward ${GATE.targets[1]} random enemies, and targets inflicted with [Dimension Interference] take ${pct(INTERFERENCE.taken)} increased DMG.` },
+      { name: 'Eye of Ascalon', icon: icon('ascalon', 3592041), attacks: [], about: `In battles of Wave 1~4, Ascalon summons a dimension gate toward all targets and launches Surveillance Assault every ${EYE.every} sec. Surveillance Assault deals P.DMG to the target (${pct(EYE.share)} of its Max HP), reduces Mana of the hit target by ${EYE.drain}, and inflicts [Dimension Interference], reducing Mana Recovery by ${pct(INTERFERENCE.mana)}. [Dimension Interference] can be stacked up to max ${INTERFERENCE.most} times and is irremovable. If the target’s Mana is 0 after Mana reduction, seals all Skills of the target for ${EYE.seal} sec. In battles of Stage ${STAGE_UP} or above, targets inflicted with [Dimension Interference] take ${pct(INTERFERENCE.taken)} increased DMG.` },
+      { name: 'Might of Ascalon', icon: icon('ascalon', 3592042), attacks: [], about: `Ascalon is not affected by changes in ATK Spd and All DMG taken Boost effects. Test subjects that receive the Might of Ascalon are also applied with the same effects. His ATK is increased by ${pct(MIGHT.atk)}, and by a further ${pct(POWER_UP.atk)} every ${POWER_UP.every} sec (up to ${POWER_UP.most} times).` },
+    ],
+    basic: { attacks: ['attack'], about: `Sweeps twice before him toward the enemy furthest off, dealing P.DMG, then strikes that enemy and those near it, dealing P.DMG and reducing their Mana by ${ATTACK.drain}.` },
   },
   temeraire: {
     skills: [

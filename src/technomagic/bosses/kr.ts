@@ -1,6 +1,7 @@
 import { AnimationClip, AnimationMixer, LoopOnce, LoopRepeat, type AnimationAction, type Object3D } from 'three';
 import { animationFile, type BossAssets, type KrBossAnimations } from '../assets';
 import { fitted, loadKrClip } from '../engine/kr-clips';
+import type { BossMove, Plan } from '../sim/bosses/boss';
 import type { Span } from '../sim/motion';
 
 /*
@@ -16,11 +17,34 @@ const RETURN = 0.4;
 /** Stunned (not knocked down), it goes on in its idle this many times as fast: dazed. */
 const DAZED = 0.35;
 
+/**
+ * How the fight times each of a boss's attacks (its sim def's plans and moves): when its blows land (each of a part's moves
+ * after the last is done, so long `after` the one before), and when the last is done. One body's (Siegfried's, Divine
+ * Punishment's stand-in kits'): its parts one after another.
+ */
+export function timingOf({ plans, moves }: { plans: Readonly<Record<string, Plan>>; moves: Readonly<Record<string, BossMove>> }): Record<string, Span> {
+  return Object.fromEntries(
+    Object.entries(plans).map(([attack, plan]) => {
+      const lands: number[] = [];
+      let until = 0;
+      for (const [kind, , after] of plan) {
+        const move = moves[kind];
+        if (!move) continue;
+        until += after;
+        if (move.hit !== null) lands.push(Math.round((until + move.hit) * 1000) / 1000);
+        until += move.length;
+      }
+      return [attack, { lands, until }];
+    }),
+  );
+}
+
 /** A boss's clips, each attack's fitted to the fight's timing. */
 export interface KrBossClips {
   idle: AnimationClip;
   down?: AnimationClip;
   getUp?: AnimationClip;
+  dead?: AnimationClip;
   leave?: AnimationClip;
   arrive?: AnimationClip;
   attacks: Readonly<Record<string, AnimationClip>>;
@@ -28,7 +52,7 @@ export interface KrBossClips {
 
 /** Reads `owner`'s clips that `animations` names, each attack's fitted to `timing` (by the attack's name: one it doesn't time is left out). */
 export async function loadKrBossClips(owner: BossAssets, animations: KrBossAnimations, timing: Readonly<Record<string, Span>>): Promise<KrBossClips> {
-  const names = new Set([animations.idle, ...[animations.down, animations.getUp, animations.leave, animations.arrive].filter((name): name is string => Boolean(name)), ...Object.values(animations.attacks).flatMap((move) => move.clips)]);
+  const names = new Set([animations.idle, ...[animations.down, animations.getUp, animations.dead, animations.leave, animations.arrive].filter((name): name is string => Boolean(name)), ...Object.values(animations.attacks).flatMap((move) => move.clips)]);
   const read = new Map(await Promise.all([...names].map(async (name) => [name, await loadKrClip(animationFile(owner, name))] as const)));
   const clip = (name: string): AnimationClip => read.get(name) as AnimationClip;
   const attacks: Record<string, AnimationClip> = {};
@@ -40,6 +64,7 @@ export async function loadKrBossClips(owner: BossAssets, animations: KrBossAnima
     idle: clip(animations.idle),
     ...(animations.down && { down: clip(animations.down) }),
     ...(animations.getUp && { getUp: clip(animations.getUp) }),
+    ...(animations.dead && { dead: clip(animations.dead) }),
     ...(animations.leave && { leave: clip(animations.leave) }),
     ...(animations.arrive && { arrive: clip(animations.arrive) }),
     attacks,
@@ -59,6 +84,8 @@ export interface KrBossMotion {
   arrive(): number;
   /** Standing in its idle again, whatever it was doing. */
   reset(): void;
+  /** Beaten: it falls (its dead clip) and lies there, till reset; with none, it is knocked down for good. */
+  fall(): void;
   update(dt: number): void;
 }
 
@@ -79,6 +106,7 @@ export function krBossMotion(models: readonly Object3D[], clips: KrBossClips): K
   const getUp = clips.getUp ? playing(clips.getUp, true) : null;
   const leaving = clips.leave ? playing(clips.leave, true) : null;
   const arriving = clips.arrive ? playing(clips.arrive, true) : null;
+  const dying = clips.dead ? playing(clips.dead, true) : null;
   const attacks = Object.fromEntries(Object.entries(clips.attacks).map(([name, clip]) => [name, playing(clip, true)]));
   for (const action of idle) action.play();
   let showing = idle;
@@ -92,7 +120,7 @@ export function krBossMotion(models: readonly Object3D[], clips: KrBossClips): K
   };
 
   /** What it is doing besides standing: an attack (how far in, in its own time), lying down, or getting up. */
-  let doing: { what: 'attack'; actions: AnimationAction[]; t: number; length: number } | { what: 'down' } | { what: 'up'; t: number } | { what: 'gone' } | null = null;
+  let doing: { what: 'attack'; actions: AnimationAction[]; t: number; length: number } | { what: 'down' } | { what: 'up'; t: number } | { what: 'gone' } | { what: 'dead' } | null = null;
   let dazed = 0;
   let slowed = { rate: 1, left: 0 };
 
@@ -105,6 +133,7 @@ export function krBossMotion(models: readonly Object3D[], clips: KrBossClips): K
       doing = { what: 'attack', actions, t: 0, length: (clips.attacks[attack] as AnimationClip).duration };
     },
     daze(seconds, isDown) {
+      if (doing?.what === 'dead') return;
       dazed = Math.max(dazed, seconds);
       if (isDown && down) {
         if (doing?.what !== 'down') show(down);
@@ -133,6 +162,12 @@ export function krBossMotion(models: readonly Object3D[], clips: KrBossClips): K
       show(arriving, BLEND, true);
       doing = { what: 'attack', actions: arriving, t: 0, length: clips.arrive.duration };
       return clips.arrive.duration;
+    },
+    fall() {
+      dazed = 0;
+      const lying = dying ?? down;
+      if (lying && doing?.what !== 'dead') show(lying, BLEND, true);
+      doing = { what: 'dead' };
     },
     reset() {
       doing = null;
@@ -172,7 +207,7 @@ export function krBossMotion(models: readonly Object3D[], clips: KrBossClips): K
           show(idle, RETURN);
         }
       } else if (dazed > 0) speed = DAZED;
-      for (const action of showing) action.timeScale = doing?.what === 'up' || doing?.what === 'down' || doing?.what === 'gone' ? 1 : speed;
+      for (const action of showing) action.timeScale = doing?.what === 'up' || doing?.what === 'down' || doing?.what === 'gone' || doing?.what === 'dead' ? 1 : speed;
       mixer.update(dt);
     },
   };

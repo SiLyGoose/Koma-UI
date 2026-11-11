@@ -1,4 +1,5 @@
 import { ARMARTA } from './armarta';
+import { ASCALON } from './ascalon';
 import type { BossDef } from './boss';
 import { DIVINE_BOSSES } from './divine';
 import { GALGORIA } from './galgoria';
@@ -8,7 +9,7 @@ import { TEMERAIRE } from './temeraire';
 import { ZYRRKINOTH } from './zyrrkinoth';
 
 /** The bosses of the TechnoMagic Raid there are so far: the first is the one fought unless another is asked for. */
-export const TM_BOSSES: readonly BossDef[] = [GALGORIA, SIEGFRIED];
+export const TM_BOSSES: readonly BossDef[] = [GALGORIA, SIEGFRIED, ASCALON];
 /** The Dragon Raid's dragons, as King's Raid has them: Fire, Frost, Poison and Black. */
 export const DRAGONS: readonly BossDef[] = [TEMERAIRE, SCALAXIA, ZYRRKINOTH, ARMARTA];
 /** Divine Punishment's bosses (./divine/): its side bosses, final bosses and karma dungeons, in its order. */

@@ -19,6 +19,11 @@ export interface BossLook {
   scenery?: Scenery;
   /** What the bar under its health is (the fight's gauge()): its CC gauge (none said), or its mana (Siegfried's, as King's Raid shows it). */
   gauge?: 'cc' | 'mana';
+  /**
+   * A fight against two (its sim def's `next`: Tersio, then Apocalypsion): the boss that comes in its place, its look (its
+   * body read with this one's: Boss.next). Its own `scenery` is this one's field, moved on to its platform (Scenery.map.next).
+   */
+  next?: BossLook;
 }
 
 /** The boss's body on the field: drawn doing what the sim says it does. */
@@ -38,6 +43,10 @@ export interface Boss {
   arrive?(): void;
   /** Standing where it stands again, as a fight begins (whatever it was doing as the last ended: flown off, lying down). */
   reset?(): void;
+  /** Beaten: it falls, and lies there (with none, it is knocked down: daze()). */
+  fall?(): void;
+  /** A fight against two (its look's `next`): the body of the boss that comes in its place, read with it. */
+  next?: Boss;
   /** Where whoever it is fighting is, on the field (their chest): asked as it attacks, put in `into`. The page sets it. */
   target: (into: Vector3) => Vector3;
   /**

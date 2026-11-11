@@ -2,7 +2,7 @@ import { alliesFrom, artifactBuff, artifactHooks, artifactOf, artifactStats, at,
 import { scaleAt, stagesOf, type BossDef, type BossPart, type KarmaCard, type KarmaWave, type OwnMinion, type Warning } from './bosses/boss';
 import { blasphemyHooks, type BlasphemyHooks, type BlasphemyUse } from './blasphemy';
 import { ATK, CURVE, curved, HERO_LEVEL, NONE, POINTS, reachAt, share, SLOWEST, strike } from './combat/damage';
-import { accurate, adding, amplified, away, blocking, bolstering, bound, controlling, critDamaging, critResisting, critTaking, critting, dealing, deals, defending, defends, dodging, filling, healing, pacing, piercing, put, resisting, sealed, stacked, takes, wear, type Status } from './combat/status';
+import { accurate, adding, amplified, away, blocking, bolstering, bound, controlling, critDamaging, critResisting, critTaking, critting, dealing, deals, defending, defends, dodging, filling, gaining, healing, pacing, piercing, put, resisting, sealed, stacked, takes, wear, type Status } from './combat/status';
 import type { Input, Logged, Result, SimEvent } from './events';
 import { geared } from './gear';
 import { lineOf, nearer, NO_PASSIVE, type Ability, type HeroDef } from './heroes/kit';
@@ -280,6 +280,9 @@ export function makeSim({ boss: dungeon, heroes, seed, stage: firstStage, raid, 
     life: number;
     fused: boolean;
     counted: boolean;
+    /** One with more skills than one (MinionDef.skills: Ascalon's beasts): how long before each is ready; and how many blows its ward holds yet. */
+    cools: number[];
+    ward: number;
   }
   const minions = new Map<Foe, Minion>();
   let tick = 0;
@@ -874,7 +877,8 @@ export function makeSim({ boss: dungeon, heroes, seed, stage: firstStage, raid, 
         landing = { by: fighter, move };
         // Each part of its attack gains it mana, as its first blow lands (King's Raid's: once a part of its attack is under way).
         if (attacking && doing.landed === 1) {
-          fighter.mana = Math.min(MAX_MANA, fighter.mana + fighter.manaPerAttack);
+          // (Less for what is on it that holds its mana back: Ascalon's Dimension Interference.)
+          fighter.mana = Math.min(MAX_MANA, fighter.mana + fighter.manaPerAttack * gaining(fighter.statuses));
           relics.get(fighter)?.basic();
           // (And its Runes of Blasphemy's that come of its attack: ./blasphemy.ts.)
           const runes = blasphemies.get(fighter);
@@ -983,7 +987,8 @@ export function makeSim({ boss: dungeon, heroes, seed, stage: firstStage, raid, 
       const seeped = seeping ? 1 + SKILL.corrosion.dmg * has(by, 'corrosion') : 1;
       const power = (1 + bookShare(by, 'dmg') + skilled - 1) * pastDef * seeped;
       // (And its artifact's: ./artifacts.ts.)
-      const more = amplified([dmgTimes(by), attack, ...deals(by.statuses), ...deals(party), by.perkDmg, by.part.deals?.() ?? 1, relics.get(by)?.deals(foe) ?? 1, ...takes(foe.statuses, type)]);
+      // (Nor what has it take more, on one nothing does: Ascalon's Might.)
+      const more = amplified([dmgTimes(by), attack, ...deals(by.statuses), ...deals(party), by.perkDmg, by.part.deals?.() ?? 1, relics.get(by)?.deals(foe) ?? 1, ...(foe.part.unweakened ? [] : takes(foe.statuses, type))]);
       const { taken, blocked, dodged } = strike(amount * (atk / POINTS) * atkTimes(by) * power * more * (critical ? critTimes : 1), type, against, pen + auras.pen + pierce + piercing(by.statuses) + piercing(party), reachAt(HERO_LEVEL), roll, acc);
       if (dodged) {
         events.push({ kind: 'number', on: 'boss', foe: foe.index, amount: 0, type: 'dodged' });
@@ -1000,8 +1005,9 @@ export function makeSim({ boss: dungeon, heroes, seed, stage: firstStage, raid, 
       const marking = by.perkDefs.filter((perk) => perk.mark && (perk.mark.every === undefined || perkDue(by, perk.mark.name, perk.mark.every)));
       // (And more or less by the boss's own: Galgoria's more physical damage, Siegfried's more magic, Scalaxia's less magic; and its attack's blows, Siegfried's more.) Deathless: all of it, and the boss whole again once it would be beaten.
       const uncapped = taken * (foe.part.taken?.[type] ?? 1) * (attacking === by ? (foe.part.attackTaken ?? 1) : 1);
-      // (No more than its part lets a blow take: Luciteron's 1.)
+      // (No more than its part lets a blow take: Luciteron's 1; and an Ascalon beast's ward counted down.)
       const struck = foe.part.cap === undefined ? uncapped : Math.min(foe.part.cap, uncapped);
+      if (foe.part.cap !== undefined) foe.part.capped?.();
       const dealt = deathless && foe === boss ? struck : Math.min(foe.hp, struck);
       foe.hp -= dealt;
       if (deathless && foe === boss && foe.hp <= 0) foe.hp = foe.maxHp;
@@ -1072,6 +1078,7 @@ export function makeSim({ boss: dungeon, heroes, seed, stage: firstStage, raid, 
   function harm(foe: Foe, by: Fighter, amount: number): void {
     if (foe.hp <= 0 || foe.away || result || !(amount > 0) || foe.part.untouched?.()) return;
     const capped = foe.part.cap === undefined ? amount : Math.min(foe.part.cap, amount);
+    if (foe.part.cap !== undefined) foe.part.capped?.();
     const dealt = deathless && foe === boss ? capped : Math.min(foe.hp, capped);
     foe.hp -= dealt;
     if (deathless && foe === boss && foe.hp <= 0) foe.hp = foe.maxHp;
@@ -1348,13 +1355,13 @@ export function makeSim({ boss: dungeon, heroes, seed, stage: firstStage, raid, 
   function enter(one: WaveMinion, x: number, z: number, counted = true): void {
     // (One with King's Raid's own numbers as they are: Divine Punishment's.)
     const own = 'own' in one && (one as OwnMinion).own === true ? (one as OwnMinion) : null;
-    const made = own ? ownMinion(own) : minionOf(one, solo, def.waves?.party);
+    const made = own ? ownMinion(own, solo) : minionOf(one, solo, def.waves?.party);
     const kind = MINIONS[one.kind];
     const foe: Foe = {
       index: foes.length,
       kind: one.kind,
       def: { id: one.kind, name: kind.name, stats: made.stats },
-      part: { lands: {}, ...(kind.steady && { steady: true }), ...(own?.taken !== undefined && { taken: { physical: own.taken, magical: own.taken } }) },
+      part: { lands: {}, ...(kind.steady && { steady: true }), ...(kind.unweakened && { unweakened: true }), ...(own?.taken !== undefined && { taken: { physical: own.taken, magical: own.taken } }) },
       hp: made.hp,
       maxHp: made.hp,
       stunned: 0,
@@ -1366,13 +1373,44 @@ export function makeSim({ boss: dungeon, heroes, seed, stage: firstStage, raid, 
       away: false,
     };
     foes.push(foe);
-    minions.set(foe, { def: kind, atk: made.atk, doing: null, rest: 0, skill: kind.skill?.first ?? 0, life: 0, fused: false, counted });
+    minions.set(foe, { def: kind, atk: made.atk, doing: null, rest: 0, skill: kind.skill?.first ?? 0, life: 0, fused: false, counted, cools: (kind.skills ?? []).map((one) => one.first), ward: 0 });
+    // (A ward on it holds each blow to 1 until it has held so many, then is gone: an Ascalon beast's, King's Raid's SetDamage.)
+    if (kind.skills?.some((one) => one.ward))
+      foe.part.capped = () => {
+        const minion = minions.get(foe);
+        if (minion && --minion.ward > 0) return;
+        delete foe.part.cap;
+      };
     events.push({ kind: 'foe-enter', foe: foe.index, minion: one.kind, x, z });
   }
 
-  /** Arrived at a wave: its minions come onto the field, and at the last, the boss comes back, its landing on the heroes. */
+  /**
+   * Arrived at a wave: its minions come onto the field, and at the last, the boss comes back, its landing on the heroes. (A raid
+   * whose waves come before its boss, Ascalon's: the first of them is the fight's first, he comes in for the last, no landing;
+   * and each wave has its own time.)
+   */
   function arrive(): void {
-    const list = later[wave - 2] ?? [];
+    place(later[wave - (def.waves?.before ? 1 : 2)] ?? []);
+    if (def.waves?.perWave) clock = 0;
+    if (wave === waves && boss.away && def.waves) {
+      boss.away = false;
+      events.push({ kind: 'boss-return' });
+      const { share, blow, knock } = def.waves.lands;
+      if (!def.waves.before)
+        as(boss, () => {
+          for (const on of reachable()) {
+            if (share > 0) sim.hurt(on, on.hp * share, false);
+            if (blow) sim.hurt(on, blow);
+            sim.knock(on, knock);
+          }
+        });
+    }
+    // (What the heroes' artifacts do as a wave begins.)
+    for (const hooks of relics.values()) hooks.wave();
+  }
+
+  /** A wave's minions come onto the field, each where the wave has it (about MINION_X). */
+  function place(list: readonly WaveMinion[]): void {
     /** How many have stood where each spot is so far (by where the wave has them). */
     const placed = new Map<string, number>();
     for (const one of list) {
@@ -1388,20 +1426,6 @@ export function makeSim({ boss: dungeon, heroes, seed, stage: firstStage, raid, 
       }
       enter(one, x, z);
     }
-    if (wave === waves && boss.away && def.waves) {
-      boss.away = false;
-      events.push({ kind: 'boss-return' });
-      const { share, blow, knock } = def.waves.lands;
-      as(boss, () => {
-        for (const on of reachable()) {
-          if (share > 0) sim.hurt(on, on.hp * share, false);
-          if (blow) sim.hurt(on, blow);
-          sim.knock(on, knock);
-        }
-      });
-    }
-    // (What the heroes' artifacts do as a wave begins.)
-    for (const hooks of relics.values()) hooks.wave();
   }
 
   /** The heroes an enemy can reach: on the field, standing, and in the fight. */
@@ -1411,7 +1435,19 @@ export function makeSim({ boss: dungeon, heroes, seed, stage: firstStage, raid, 
     const can = reachable();
     if (can.length === 0) return null;
     if (move.random) return can[Math.floor(roll() * can.length)] ?? null;
-    return foremost(can, foe.x, foe.z, move.range ?? 0);
+    // (The furthest from it, King's Raid's FarEnemy; or, one that goes for knights, a knight while there is one.)
+    if (move.far) return can.reduce((best, on) => (edgeTo(on, foe.x, foe.z) > edgeTo(best, foe.x, foe.z) + 1e-9 ? on : best));
+    const knights = move.knights ? can.filter((on) => on.def.class === 'knight') : [];
+    return foremost(knights.length > 0 ? knights : can, foe.x, foe.z, move.range ?? 0);
+  }
+
+  /** What a minion's move does for itself (MinionMove.rouses, ward): as its first blow lands, or (one with none) as it begins. */
+  function rouse(foe: Foe, minion: Minion, move: MinionMove): void {
+    if (move.ward) {
+      minion.ward = move.ward;
+      foe.part.cap = 1;
+    }
+    if (move.rouses) put(foe.statuses, { name: `${foe.def.name} (ATK)`, left: move.rouses.lasts, deals: move.rouses.deals, art: stateArt('AttackUp'), shown: 'rage' });
   }
 
   /** The minions' moves go on by `dt`: each fights by itself (./bosses/dragon/minions.ts). */
@@ -1442,14 +1478,22 @@ export function makeSim({ boss: dungeon, heroes, seed, stage: firstStage, raid, 
       }
       minion.rest -= dt;
       minion.skill -= dt;
+      for (let i = 0; i < minion.cools.length; i++) minion.cools[i] = (minion.cools[i] as number) - dt;
       if (!minion.doing && minion.rest <= 0) {
         const skill = minion.def.skill && minion.skill <= 0 ? minion.def.skill : null;
-        const move = skill ?? minion.def.attack;
+        // (Or, one with more skills than one, the first of them that is ready: Ascalon's beasts.)
+        const at = skill ? -1 : minion.cools.findIndex((left) => left <= 0);
+        const more = at >= 0 ? minion.def.skills?.[at] : undefined;
+        const move = skill ?? more ?? minion.def.attack;
         const target = heroFor(foe, move);
         if (!target) continue;
         if (skill) minion.skill = skill.cooldown;
+        if (more) {
+          minion.cools[at] = more.cooldown;
+          if (more.lands.length === 0) rouse(foe, minion, more);
+        }
         minion.doing = { move, t: 0, landed: 0, target };
-        events.push({ kind: 'foe-use', foe: foe.index, move: skill ? 'skill' : 'attack' });
+        events.push({ kind: 'foe-use', foe: foe.index, move: skill || more ? 'skill' : 'attack', ...(more && { skill: at }) });
       }
       const doing = minion.doing;
       if (!doing) continue;
@@ -1473,14 +1517,19 @@ export function makeSim({ boss: dungeon, heroes, seed, stage: firstStage, raid, 
     if (!target) return;
     doing.target = target;
     const { reach, leaves } = doing.move;
+    if (doing.landed === 1) rouse(foe, minion, doing.move);
     const struck = reach === Infinity ? reachable() : reachable().filter((on) => on === target || (on.x - target.x) * (on.x - target.x) + (on.z - target.z) * (on.z - target.z) <= reach * reach);
     for (const on of struck) {
-      const took = sim.hurt(on, doing.move.share * minion.atk, true, doing.move.deals);
+      // (Those about its target as hard as its `splash`, where it has one.)
+      const took = sim.hurt(on, (on === target ? doing.move.share : (doing.move.splash ?? doing.move.share)) * minion.atk, true, doing.move.deals);
       if (!leaves || took <= 0 || on.hp <= 0) continue;
       if ('freeze' in leaves) sim.knock(on, leaves.freeze);
       else if ('slow' in leaves) {
         const { lasts, pace, ...shown } = leaves.slow;
         put(on.statuses, { name: shown.name, left: lasts, pace, shown });
+      } else if ('expose' in leaves) {
+        const { lasts, takes, ...shown } = leaves.expose;
+        put(on.statuses, { name: shown.name, left: lasts, takes, shown });
       } else {
         const { each, most, ...shown } = leaves.weaken;
         const count = Math.min(most, (on.statuses.find((status) => status.name === shown.name)?.count ?? 0) + 1);
@@ -1597,7 +1646,7 @@ export function makeSim({ boss: dungeon, heroes, seed, stage: firstStage, raid, 
       if (by) by.shielded += given;
     },
     target: aimed,
-    hurt(target, amount, blockable = true, kind) {
+    hurt(target, amount, blockable = true, kind, how) {
       if (target.hp <= 0 || away(target.statuses) || result) return 0;
       // (Whose blow it is: the enemy in question, the boss or a minion.)
       const foe = current();
@@ -1634,13 +1683,18 @@ export function makeSim({ boss: dungeon, heroes, seed, stage: firstStage, raid, 
       const nimblest = { physical: nimbler + dodging(target.statuses, 'physical') + dodging(party, 'physical'), magical: nimbler + dodging(target.statuses, 'magical') + dodging(party, 'magical') };
       if (nimblest.physical !== 0 || nimblest.magical !== 0) stands.dodge = { physical: Math.max(0, stands.dodge.physical + nimblest.physical), magical: Math.max(0, stands.dodge.magical + nimblest.magical) };
       // Now and then a crit, by the boss's crit chance less the hero's crit resist against its kind of damage (and what is on it adds).
-      const critical = roll() < share(curved(CURVE.crit, foe.def.stats.crit) - curved(CURVE.chance, target.critResist[type] + critResisting(target.statuses, type) + critResisting(party, type))) + critting(foe.statuses);
+      // (Never one of a share of the hero's own health: Ascalon's Eye.)
+      const whole = how?.whole === true;
+      const critical = !whole && roll() < share(curved(CURVE.crit, foe.def.stats.crit) - curved(CURVE.chance, target.critResist[type] + critResisting(target.statuses, type) + critResisting(party, type))) + critting(foe.statuses);
       // (Through its penetration, and as much of the hero's defense as counts against its level.)
       // (A minion's blows are as hard as they are already: only the boss's go by its stage.)
       const staged = scaleAt(def, stage, solo);
       const scale = foe === boss ? staged : { ...staged, deals: 1 };
-      const blow = amount * scale.deals * dealing(foe.statuses) * rage(clock - raidTime) * (critical ? CRIT : 1);
-      const { taken, blocked, dodged } = strike(blow, type, blockable ? stands : { ...stands, block: NONE, dodge: NONE }, Math.max(0, (foe.def.stats.pen ?? 0) + piercing(foe.statuses)), reachAt(scale.level), roll, foe.def.stats.acc ?? 0);
+      const blow = whole ? amount : amount * scale.deals * dealing(foe.statuses) * rage(clock - raidTime) * (critical ? CRIT : 1);
+      // (Never dodged, one unavoidable; and one whole through all its defense and Tough besides.)
+      const unavoidable = whole || how?.unavoidable === true;
+      const stood = !blockable ? { ...stands, block: NONE, dodge: NONE } : unavoidable ? { ...stands, dodge: NONE } : stands;
+      const { taken, blocked, dodged } = strike(blow, type, whole ? { ...stood, physical: 0, magical: 0, tough: NONE } : stood, whole ? 0 : Math.max(0, (foe.def.stats.pen ?? 0) + piercing(foe.statuses)), reachAt(scale.level), roll, foe.def.stats.acc ?? 0);
       if (dodged) {
         target.mitigated += blow;
         target.nimble = 0;
@@ -1698,7 +1752,7 @@ export function makeSim({ boss: dungeon, heroes, seed, stage: firstStage, raid, 
         if (target.hp <= 0) runes.died();
       }
       // (The more for its gear's mana on taking damage.)
-      target.mana = Math.min(MAX_MANA, target.mana + (MANA_PER_HP_LOST * (1 + target.manaDamage) * lost) / target.stats.hp);
+      target.mana = Math.min(MAX_MANA, target.mana + ((MANA_PER_HP_LOST * (1 + target.manaDamage) * lost) / target.stats.hp) * gaining(target.statuses));
       if (dealt > 0) for (const fighter of fighters) fighter.part.hurt?.(target);
       if (dealt > 0) relics.get(target)?.hurt(type);
       // Its perks that come of being hit: Vengeful Curse (on the boss), and Deception (once it has taken something).
@@ -1792,13 +1846,22 @@ export function makeSim({ boss: dungeon, heroes, seed, stage: firstStage, raid, 
       }
       const minion = minions.get(foe);
       if (minion?.def.skill) minion.skill = Math.max(0, minion.skill) + seconds;
+      if (minion) minion.cools = minion.cools.map((left) => Math.max(0, left) + seconds);
     },
-    summon(one, count, within) {
+    summon(one, count, within, at) {
       if (result) return;
-      // (Anywhere within `within` of the boss, as King's Raid's SpawnCreature puts them: its own random offset either way.)
-      for (let i = 0; i < count; i++) enter(one, boss.x + (roll() * 2 - 1) * within, boss.z + (roll() * 2 - 1) * within);
+      // (Anywhere within `within` of the boss, as King's Raid's SpawnCreature puts them: its own random offset either way; or just where it says.)
+      for (let i = 0; i < count; i++) {
+        if (at) enter(one, boss.x + at[0], boss.z + at[1]);
+        else enter(one, boss.x + (roll() * 2 - 1) * within, boss.z + (roll() * 2 - 1) * within);
+      }
       // (The heroes look again for the nearest to go for.)
       aims.clear();
+    },
+    banish(foe) {
+      if (foe === boss || foe.away || foe.hp <= 0 || result) return;
+      foe.hp = 0;
+      beaten(foe);
     },
     force(attack) {
       if (boss.away || result) return;
@@ -2202,6 +2265,11 @@ export function makeSim({ boss: dungeon, heroes, seed, stage: firstStage, raid, 
   // On the field from the start: in a raid, every hero (as many as fit); trying things out, the ones asked for, or the first.
   for (const fighter of raid ? fighters : first.map((index) => fighters[index])) if (fighter && !field.includes(fighter)) stand(fighter);
   if (field.length === 0 && fighters[0]) stand(fighters[0]);
+  // A raid whose waves come before its boss (Ascalon's): it away as the fight begins, its first wave's minions on the field.
+  if (def.waves?.before && later.length > 0) {
+    boss.away = true;
+    place(later[0] ?? []);
+  }
   if (marching > 0) {
     // How long each hero runs, for its body to stop running as it arrives where it stands.
     const runs = new Map<Fighter, number>();

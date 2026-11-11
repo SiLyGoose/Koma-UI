@@ -503,13 +503,20 @@ function divineOf(one: DivineDef, run: Run): BossDef | 'divine' {
 }
 
 /**
- * The most steps a run can take: MOST_TICKS for the TechnoMagic Raid and the Dragon Raid; a Divine Punishment boss's, its own
+ * The most steps a run can take: MOST_TICKS for the TechnoMagic Raid and the Dragon Raid (Ascalon's, each of his waves' time and
+ * rage, and the runs on between them); a Divine Punishment boss's, its own
  * time and rage (Armarta's 600 seconds, Luciteron's 120 and none), and a karma dungeon's with its card picks besides (the fight
  * stands still while the heroes pick: as many as its most waves). Its inputs are read up to it (readInputs), and a replay goes on
  * to it.
  */
 export function mostTicks(run: Pick<Run, 'boss'>): number {
   const found = DIVINE_DEFS.find((one) => one.def.id === run.boss)?.def;
+  // (A boss whose every wave has the raid's whole time of its own, Ascalon's: all of them, and the heroes' runs on between them.)
+  const waved = found ? undefined : TM_BOSSES.find((one) => one.id === run.boss && one.waves?.perWave);
+  if (waved?.waves) {
+    const waves = 1 + Math.max(...Array.from({ length: stagesOf(waved) }, (_, i) => waved.waves?.at(i + 1).length ?? 0));
+    return Math.ceil((MARCH + waves * ((waved.time ?? RAID_TIME) + (waved.rage ?? RAGE_WIPE) + 1) + (waves - 1) * RUN_ON) / TICK) + 1;
+  }
   if (!found) return MOST_TICKS;
   const picks = found.karma ? found.karma.most * (found.karma.pick + 1) : 0;
   // (And the boss's flight off and the heroes' run on to its next wave, which a fight ends only after; and a second more: the

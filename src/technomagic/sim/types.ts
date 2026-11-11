@@ -226,6 +226,8 @@ export interface Fight {
   /** The wave of its raid the fight is on (1 to `waves`), and how many it has. */
   readonly wave: number;
   readonly waves: number;
+  /** A raid of more than one wave: seconds left of the heroes' run on to the next (0: none; they are fighting). */
+  readonly moving: number;
   /** What is on every hero for a while. */
   readonly party: Status<Buff>[];
   /** The raid's stage (1 to the boss's last: stagesOf). */
@@ -264,8 +266,11 @@ export interface Fight {
   /**
    * A blow of the boss's lands on a hero: `amount` before what is on the boss, the hero's defense against
    * the boss's kind of damage, and a dodge or a block (`blockable`, unless it says not: then it can be neither). Returns what it took.
+   * `how` (none said: as above): `unavoidable`, never dodged (still blocked: King's Raid's Unavoidable); `whole`, as much as
+   * `amount` says, through all its defense and Tough, never a crit nor dodged, and not by the boss's stage, what is on it or
+   * its rage (King's Raid's NoCritical|Unavoidable|IgnoreDefence|IgnoreToughness: a share of the hero's own HP, Ascalon's Eye).
    */
-  hurt(fighter: Fighter, amount: number, blockable?: boolean, kind?: DamageType): number;
+  hurt(fighter: Fighter, amount: number, blockable?: boolean, kind?: DamageType, how?: { unavoidable?: boolean; whole?: boolean }): number;
   /** A hero is knocked down: what it was doing is cut short, and it can do nothing for so many seconds (fewer for its CC resist). */
   knock(fighter: Fighter, seconds: number): void;
   /** What a hero was doing is cut short (it reels a moment). */
@@ -288,8 +293,13 @@ export interface Fight {
    * a skill of its own that comes of itself (Siegfried's Divine Power, as it would be beaten).
    */
   force(attack: string): void;
-  /** `count` of a minion come onto the field, called up by the boss: anywhere within `within` metres of it (Zyrrkinoth's Slimes). */
-  summon(minion: WaveMinion, count: number, within: number): void;
+  /**
+   * `count` of a minion come onto the field, called up by the boss: anywhere within `within` metres of it (Zyrrkinoth's Slimes);
+   * or (`at`) just so far from it, along the field and across it (King's Raid's SpawnCreature FixMyself: Ascalon's beasts).
+   */
+  summon(minion: WaveMinion, count: number, within: number, at?: readonly [x: number, z: number]): void;
+  /** A minion is gone from the field, beaten as it stands (King's Raid's Die on it: the beasts Ascalon's Dimension Warp lets go). */
+  banish(foe: Foe): void;
   /** Something for the page to draw that the fight's own events don't say: `name` is the hero's (or with `who` null, the boss's) own, and `targets` whom it is on. */
   cue(who: Fighter | null, name: string, targets?: readonly Fighter[]): void;
 }

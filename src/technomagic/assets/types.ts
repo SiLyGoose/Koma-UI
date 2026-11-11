@@ -208,7 +208,7 @@ export interface BossAssets {
    * The minions of its raid's waves (../fight/minions.ts), by their kind (../sim/bosses/dragon/minions.ts): each one's model (a
    * folder of its models/), and the folder of its clips under its animations/ (Astand, Attack1, Skill1, Stun, Dead, and `clips`).
    */
-  minions?: Readonly<Record<string, { model: string; animations: string; clips?: readonly string[] }>>;
+  minions?: Readonly<Record<string, { model: string; animations: string; clips?: readonly string[]; moves?: MinionMoves }>>;
   /**
    * King's Raid's own effects for it (../fx/kr-effects.ts: codes of public/kr/effects/kr/): for each of its attacks, played
    * on it as the attack begins (`start`) and so far into it (`later`), flown from it to a hero as its body launches it (`fly`: Galgoria's spit, from a
@@ -219,9 +219,19 @@ export interface BossAssets {
     advent?: readonly string[];
     /**
      * What is kept on it while something of its own is on it (by the status's name, and how many of it at least: none said,
-     * one): Siegfried's sword's light once he has risen, and more once he has risen twice. Played on it, until that is gone.
+     * one; and not once `until` is on it too): Siegfried's sword's light once he has risen, and more once he has risen twice;
+     * Apocalypsion's mark of each stage of her Wrath of the Matriarch, the last giving way to the next. Played on it, until that is gone.
      */
-    kept?: readonly { status: string; count?: number; effects: readonly string[] }[];
+    kept?: readonly { status: string; count?: number; until?: string; effects: readonly string[] }[];
+    /**
+     * What it has on it all the while it is on the field (its passive's own, from the start: Apocalypsion's coming in's aura),
+     * played on it once read, and gone with it; or (`at`) on the field where the game's script puts it, in the field's metres
+     * from its middle (x along it, y up, z toward the camera), turned `turn` radians about the upright (Tersio's Complete Form's
+     * dark before him, Tersio's corpse at the back of Apocalypsion's arena).
+     */
+    worn?: readonly (string | { code: string; at: readonly [number, number, number]; turn?: number })[];
+    /** What its fx play themselves (../bosses/<boss>/fx.ts: Ascalon's dimension gates on the heroes), read with the rest. */
+    own?: readonly string[];
   };
   /**
    * What King's Raid has on a hero while one of its skills does (Galgoria's Swamp Imprisonment), by the status's name: its
@@ -229,6 +239,18 @@ export interface BossAssets {
    * metres) and how big (`size`), and the colour it draws it in.
    */
   holds?: Readonly<Record<string, { effect?: string; at?: readonly [number, number, number]; size?: number; tint?: KrTint }>>;
+}
+
+/**
+ * A minion's own moves (Ascalon's beasts: ../fight/minions.ts), each King's Raid's clips (of its animations/ folder) and its
+ * blows in them, fitted to how the fight times the move (../sim/bosses/dragon/minions.ts MinionDef): its attack, its skill (or
+ * each of its skills, by its place), and its falling (none said: Attack1, Skill1, Dead).
+ */
+export interface MinionMoves {
+  attack?: KrMove;
+  skill?: KrMove;
+  skills?: readonly KrMove[];
+  dead?: string;
 }
 
 /**
@@ -260,6 +282,8 @@ export interface KrBossAnimations {
   idle: string;
   down?: string;
   getUp?: string;
+  /** Beaten: it falls, and lies there (Apocalypsion's Dead). */
+  dead?: string;
   /** A raid of more than one wave: it flying off the field, and landing back on it. */
   leave?: string;
   arrive?: string;

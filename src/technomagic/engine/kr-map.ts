@@ -70,11 +70,32 @@ interface KrMapFile {
     cutout?: number;
     glow?: { texture: Slot | null; mask: Slot | null; color: [number, number, number]; strength: number; speed: [number, number]; pulse: number };
     fog?: { noise: Slot | null; speed: [number, number]; noiseSpeed: [number, number]; noiseStrength: number; strength: number };
+    /** A lightmapped map's (2021's: WorldBoss.ApocalypsionField*): its lightmap on its second UVs (`uv2`), lighting it from its shadow's tone to its light's. */
+    light?: Slot & { shadow: [number, number, number]; tone: [number, number, number] };
     position: number[];
     uv: number[];
+    uv2?: number[];
     index: number[];
   }[];
   effects: KrMapEffect[];
+}
+
+/** A box of a map not drawn (loadKrMap's `cut`): from its least corner to its most, in the map's own units. */
+export interface KrMapCut {
+  from: readonly [number, number, number];
+  to: readonly [number, number, number];
+}
+
+/** A piece's triangles but those whose middle is in one of `cut`'s boxes. */
+function uncut(position: readonly number[], index: readonly number[], cut: readonly KrMapCut[]): number[] {
+  const kept: number[] = [];
+  const middle = [0, 0, 0];
+  for (let i = 0; i < index.length; i += 3) {
+    for (let k = 0; k < 3; k++) middle[k] = ((position[(index[i] as number) * 3 + k] as number) + (position[(index[i + 1] as number) * 3 + k] as number) + (position[(index[i + 2] as number) * 3 + k] as number)) / 3;
+    if (cut.some(({ from, to }) => middle.every((v, k) => v >= (from[k] as number) && v <= (to[k] as number)))) continue;
+    kept.push(index[i] as number, index[i + 1] as number, index[i + 2] as number);
+  }
+  return kept;
 }
 
 /** A map read: what is drawn, how the game sees it, its own effects, and what moves on it (each frame). */
@@ -87,14 +108,26 @@ export interface KrMap {
 
 /** Unity's blend factors, as three.js has them. */
 const FACTORS: readonly (BlendingSrcFactor & BlendingDstFactor)[] = [ZeroFactor, OneFactor, DstColorFactor, SrcColorFactor, OneMinusDstColorFactor, SrcAlphaFactor, OneMinusSrcColorFactor, DstAlphaFactor, OneMinusDstAlphaFactor, SrcAlphaSaturateFactor as BlendingSrcFactor & BlendingDstFactor, OneMinusSrcAlphaFactor];
+/**
+ * How bright a lightmapped map is drawn: its lightmap's light (between its tones) times this (the game's lightmap shader isn't
+ * in the playtest's Shader.unity3d: Unity's usual twice the lightmap, which looks right by eye).
+ */
+const LIGHT_GAIN = 2;
 /** The fighters' queue (Unity's Geometry and AlphaTest): what is drawn before it is the map under them. */
 const FIGHTERS = 2500;
 
 const VERTEX = /* glsl */ `
 varying vec2 vUv;
 varying float vHigh;
+#ifdef LIGHT
+attribute vec2 lightUv;
+varying vec2 vLightUv;
+#endif
 void main() {
   vUv = uv;
+#ifdef LIGHT
+  vLightUv = lightUv;
+#endif
   vec4 world = modelMatrix * vec4(position, 1.0);
   vHigh = world.y;
   gl_Position = projectionMatrix * viewMatrix * world;
@@ -122,6 +155,13 @@ uniform vec3 glowColor;
 uniform vec2 glowSpeed;
 uniform float pulse;
 #endif
+#ifdef LIGHT
+uniform sampler2D lightMap;
+uniform vec4 lightST;
+uniform vec3 shadowTone;
+uniform vec3 lightTone;
+varying vec2 vLightUv;
+#endif
 #ifdef FOG
 uniform sampler2D noiseMap;
 uniform vec4 noiseST;
@@ -148,6 +188,9 @@ void main() {
   #ifdef CUTOUT
   if (alpha < cutout) discard;
   #endif
+  #ifdef LIGHT
+  color *= mix(shadowTone, lightTone, texture2D(lightMap, vLightUv * lightST.xy + lightST.zw).rgb) * LIGHT_GAIN;
+  #endif
   #ifdef GLOW
   float mask = texture2D(maskMap, vUv * maskST.xy + maskST.zw).r;
   vec3 glow = texture2D(glowMap, vUv * glowST.xy + glowST.zw + time * glowSpeed).rgb;
@@ -162,15 +205,17 @@ void main() {
  * Reads the map in `folder` (its pictures too). `grounded`: nothing of it under the floor is drawn (a flat map's, made for
  * the game's camera alone, that ours sees under). `apron`: its floor carried on toward the camera, mirrored at its front
  * edge as the game tiles it along the field (a floor no deeper than the game's camera sees: ours, further back, sees past it).
+ * `cut`: boxes (in the map's own units: from, to) whose triangles aren't drawn (what stands between our camera and the
+ * field, that the game's never has in its way: Apocalypsion's bridge's near balustrade).
  */
-export async function loadKrMap(folder: string, grounded = false, apron = false): Promise<KrMap> {
+export async function loadKrMap(folder: string, grounded = false, apron = false, cut: readonly KrMapCut[] = []): Promise<KrMap> {
   const response = await fetch(`${folder}/map.json`);
   if (!response.ok) throw new Error(`The map in ${folder} isn't on this computer`);
   const file = (await response.json()) as KrMapFile;
   const loader = new TextureLoader();
-  // (Colour pictures as colour; masks, alpha and noise as they are.)
-  const colour = new Set(file.pieces.flatMap((piece) => [piece.main.picture, ...(piece.glow?.texture ? [piece.glow.texture.picture] : [])]));
-  const names = new Set(file.pieces.flatMap((piece) => [piece.main, piece.alpha, piece.glow?.texture, piece.glow?.mask, piece.fog?.noise].filter((slot): slot is Slot => Boolean(slot)).map((slot) => slot.picture)));
+  // (Colour pictures as colour, and lightmaps: they light it as the game multiplies them, in the screen's colours; masks, alpha and noise as they are.)
+  const colour = new Set(file.pieces.flatMap((piece) => [piece.main.picture, ...(piece.glow?.texture ? [piece.glow.texture.picture] : []), ...(piece.light ? [piece.light.picture] : [])]));
+  const names = new Set(file.pieces.flatMap((piece) => [piece.main, piece.alpha, piece.glow?.texture, piece.glow?.mask, piece.fog?.noise, piece.light].filter((slot): slot is Slot => Boolean(slot)).map((slot) => slot.picture)));
   const pictures = new Map<string, Texture>(
     await Promise.all(
       [...names].map(async (name) => {
@@ -189,7 +234,7 @@ export async function loadKrMap(folder: string, grounded = false, apron = false)
     const shape = new BufferGeometry();
     shape.setAttribute('position', new Float32BufferAttribute(piece.position, 3));
     shape.setAttribute('uv', new Float32BufferAttribute(piece.uv, 2));
-    shape.setIndex(piece.index);
+    shape.setIndex(cut.length > 0 ? uncut(piece.position, piece.index, cut) : piece.index);
     const defines: Record<string, string> = grounded ? { GROUNDED: '' } : {};
     const uniforms: Record<string, { value: unknown }> = {
       map: { value: pictures.get(piece.main.picture) },
@@ -205,6 +250,19 @@ export async function loadKrMap(folder: string, grounded = false, apron = false)
     if (piece.cutout !== undefined) {
       defines.CUTOUT = '';
       uniforms.cutout = { value: piece.cutout };
+    }
+    if (piece.light && piece.uv2) {
+      defines.LIGHT = '';
+      defines.LIGHT_GAIN = LIGHT_GAIN.toFixed(3);
+      shape.setAttribute('lightUv', new Float32BufferAttribute(piece.uv2, 2));
+      // (Its tones are the game's colours: made the screen's, as its pictures are.)
+      const linear = (c: readonly number[]): Vector3 => new Vector3(...c.map((v) => v ** 2.2));
+      Object.assign(uniforms, {
+        lightMap: { value: pictures.get(piece.light.picture) },
+        lightST: { value: st(piece.light) },
+        shadowTone: { value: linear(piece.light.shadow) },
+        lightTone: { value: linear(piece.light.tone) },
+      });
     }
     const { glow, fog } = piece;
     if (glow?.texture && glow.mask) {

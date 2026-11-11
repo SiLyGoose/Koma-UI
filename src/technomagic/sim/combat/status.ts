@@ -26,6 +26,11 @@ export interface Status<Shown> {
   heals?: number;
   /** Its bearer's mana fills this many times as fast. */
   mana?: number;
+  /**
+   * Its bearer gains this many times as much mana from its attacks and the blows it takes (with `mana`: King's Raid's
+   * MpRegenRatioM, which all of its mana recovery goes by: Ascalon's Dimension Interference).
+   */
+  manaGain?: number;
   /** Added to how likely its bearer's blows are to be critical. */
   crit?: number;
   /** Added to how many times as hard its bearer's critical blows are (0.5: half again). */
@@ -133,6 +138,9 @@ export const healing = (on: readonly Status<unknown>[], ...and: readonly number[
 export const controlling = (on: readonly Status<unknown>[]): number => stacked(on.map(({ control }) => control ?? 1));
 /** How many times as fast a bearer of these gains mana (`and`: more of the kind, besides). */
 export const filling = (on: readonly Status<unknown>[], ...and: readonly number[]): number => stacked([...on.map(({ mana }) => mana ?? 1), ...and]);
+
+/** How many times as much mana a bearer of these gains from its attacks and the blows it takes. */
+export const gaining = (on: readonly Status<unknown>[]): number => stacked(on.map(({ manaGain }) => manaGain ?? 1));
 
 /** What these add to how likely a bearer's blows are to be critical. */
 export function critting(on: readonly Status<unknown>[]): number {
