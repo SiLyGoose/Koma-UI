@@ -1,10 +1,9 @@
-import { dropdown, fillServers } from '../shared/ui';
 import { canLockLandscape, playLandscape } from '../shared/ui/landscape/landscape';
-import { currentMe, currentServer, hasSession, logIn, setServer } from '../site/session';
+import { currentMe, currentServer, hasSession, logIn } from '../site/session';
 
 /*
- * What sits over the town's corners (no bar across it): the member and the server picked at the top left, their
- * zeiucoins in that server at the top right, with full screen (where it can be) and, logged out, Login. A note across
+ * What sits over the town's corners (no bar across it): the top left is the member's profile (./profile.ts, put in
+ * .v2-hud-left), their zeiucoins in the server picked at the top right, with full screen (where it can be) and, logged out, Login. A note across
  * the bottom says what a place needs (logging in) when the runner gets there.
  */
 
@@ -17,18 +16,17 @@ export interface Hud {
   render(): void;
   /** A note across the bottom (null: none), with a Login button when `login`. */
   note(text: string | null, login?: boolean): void;
+  /** Logs in with Discord, coming back to this address. */
+  logIn(): void;
 }
 
 const points = (n: number): string => n.toLocaleString('en-US');
 
-export function makeHud(into: HTMLElement, changed: () => void): Hud {
+export function makeHud(into: HTMLElement): Hud {
   const element = document.createElement('div');
   element.className = 'v2-hud';
   element.innerHTML = `
-    <div class="v2-hud-left">
-      <div class="v2-who" hidden><img class="v2-who-avatar" alt="" /><span class="v2-who-name"></span></div>
-      <select class="server-pick v2-server" aria-label="Server" hidden></select>
-    </div>
+    <div class="v2-hud-left"></div>
     <div class="v2-hud-right">
       <span class="v2-balance" hidden><span class="v2-coin" aria-hidden="true"></span><b></b></span>
       <button type="button" class="action main v2-login" hidden>Login</button>
@@ -40,17 +38,12 @@ export function makeHud(into: HTMLElement, changed: () => void): Hud {
   into.append(element);
 
   const $ = <T extends HTMLElement>(selector: string): T => element.querySelector(selector) as T;
-  const who = $('.v2-who');
-  const avatar = $<HTMLImageElement>('.v2-who-avatar');
-  const name = $('.v2-who-name');
-  const select = $<HTMLSelectElement>('.v2-server');
   const balance = $('.v2-balance');
   const login = $<HTMLButtonElement>('.v2-login');
   const full = $<HTMLButtonElement>('.v2-full');
   const noteBox = $('.v2-note');
   const noteText = $('.v2-note-text');
   const noteLogin = $<HTMLButtonElement>('.v2-note-login');
-  const picker = dropdown(select);
 
   function goLogIn(): void {
     try {
@@ -63,12 +56,6 @@ export function makeHud(into: HTMLElement, changed: () => void): Hud {
   login.addEventListener('click', goLogIn);
   noteLogin.addEventListener('click', goLogIn);
 
-  select.addEventListener('change', () => {
-    setServer(select.value);
-    render();
-    changed();
-  });
-
   // Full screen (hiding the browser's bars): where the browser has it and it isn't already.
   const canFull = document.fullscreenEnabled === true;
   const showFull = (): void => void (full.hidden = !canFull || !!document.fullscreenElement);
@@ -80,15 +67,7 @@ export function makeHud(into: HTMLElement, changed: () => void): Hud {
 
   function render(): void {
     const me = currentMe();
-    who.hidden = !me;
     login.hidden = !!me || hasSession();
-    if (me) {
-      name.textContent = me.user.name;
-      if (me.user.avatar) avatar.src = me.user.avatar;
-      avatar.hidden = !me.user.avatar;
-      fillServers(select, me.servers, currentServer());
-      picker.refresh();
-    } else select.hidden = true;
     const here = me?.servers.find((s) => s.id === currentServer());
     balance.hidden = !here;
     ($('.v2-balance b') as HTMLElement).textContent = here ? points(here.balance) : '';
@@ -104,5 +83,5 @@ export function makeHud(into: HTMLElement, changed: () => void): Hud {
   }
 
   render();
-  return { element, render, note };
+  return { element, render, note, logIn: goLogIn };
 }

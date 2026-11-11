@@ -231,7 +231,6 @@ html[data-shell='v2'] body {
   right: max(12px, env(safe-area-inset-right));
 }
 
-.v2-who,
 .v2-balance {
   display: flex;
   gap: 8px;
@@ -247,22 +246,8 @@ html[data-shell='v2'] body {
   font-weight: 600;
 }
 
-.v2-who[hidden],
 .v2-balance[hidden] {
   display: none;
-}
-
-.v2-who-avatar {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-}
-
-.v2-who-name {
-  max-width: 160px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .v2-balance {
@@ -275,12 +260,6 @@ html[data-shell='v2'] body {
   border-radius: 50%;
   background: radial-gradient(circle at 35% 35%, #fff1b8, #d8bf7a 55%, #9c7d33);
   box-shadow: inset 0 0 0 2px #b8973f;
-}
-
-.v2-hud .dd-button {
-  height: 40px;
-  border-radius: 999px;
-  background: rgb(23 22 27 / 85%);
 }
 
 .v2-round {
@@ -313,7 +292,8 @@ html[data-shell='v2'] body {
 
 .v2-note {
   position: absolute;
-  bottom: max(16px, env(safe-area-inset-bottom));
+  /* (Over the bottom corners' menus, which are 180 of King's Raid's units tall.) */
+  bottom: calc(max(6px, env(safe-area-inset-bottom)) + 180px * var(--kr, 1));
   left: 50%;
   display: flex;
   gap: 12px;
@@ -470,70 +450,7 @@ html[data-shell='v2'] body {
   color: #b9333a;
 }
 
-/* Who walks the town (./hero-pick.ts): the button by the member's name, and the list of their heroes under it. */
-.v2-hero-button {
-  overflow: hidden;
-}
-
-.v2-hero-button img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.v2-heroes {
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 0;
-  z-index: 20;
-  width: min(420px, calc(var(--ls-vw, 100vw) - 24px));
-  max-height: calc(var(--ls-vh, 100dvh) - 80px);
-  overflow: auto;
-  padding: 10px 12px 12px;
-  border: 1px solid var(--plaque-edge);
-  border-radius: 12px;
-  background: rgb(23 22 27 / 94%);
-  box-shadow: 0 10px 30px rgb(0 0 0 / 50%);
-  color: var(--plaque-text);
-  touch-action: pan-y;
-}
-
-.v2-heroes[hidden] {
-  display: none;
-}
-
-.v2-heroes-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 8px;
-}
-
-.v2-heroes-close {
-  border: 0;
-  background: none;
-  color: inherit;
-  font-size: 22px;
-  line-height: 1;
-  cursor: pointer;
-}
-
-.v2-heroes-status {
-  margin: 0 0 8px;
-  opacity: 0.8;
-  font-size: 13px;
-}
-
-.v2-heroes-status[hidden] {
-  display: none;
-}
-
-.v2-heroes-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
-  gap: 8px;
-}
-
+/* A hero in the profile's list of who walks the town (./hero-pick.ts). */
 .v2-heroes-tile {
   display: grid;
   justify-items: center;
@@ -572,4 +489,472 @@ html[data-shell='v2'] body {
   max-width: 100%;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------------------------------------------------------- */
+/* King's Raid's lobby HUD (./profile.ts, ./lobby.ts): laid out in its units (a 1080-high screen), scaled by --kr. */
+
+/* Its gold label (UILabel: a white-to-tan gradient, a black outline). */
+.v2-kr-label {
+  background: linear-gradient(#fbf7ee, #dcc39a);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-weight: 700;
+  line-height: 1.1;
+  white-space: nowrap;
+  filter: drop-shadow(0 0 1.5px #000) drop-shadow(0 0 1.5px #000) drop-shadow(0 2px 1px rgb(0 0 0 / 60%));
+}
+
+/* The profile (TopmostMenu's ProfileUi_Root): the WorldMap_UserInfo_Frame stretched to 410 (its left 210 and right 50
+   kept), the hero in its ring, the Discord picture in its plate, the name on its bar, the server on its gauge. */
+.v2-profile {
+  position: relative;
+  display: block;
+  width: 410px;
+  height: 162px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #fff;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transform: scale(var(--kr, 1));
+  transform-origin: 0 0;
+}
+
+/* Its EXP gauge's dark back (Sprite_ExpGuageBg, under the frame), where the server is written. */
+.v2-profile::before {
+  content: '';
+  position: absolute;
+  left: 195px;
+  top: 69px;
+  width: 186px;
+  height: 22px;
+  background: #3e0000;
+}
+
+.v2-profile-frame {
+  position: absolute;
+  inset: 0;
+  border-style: solid;
+  border-width: 0 50px 0 210px;
+  border-image: url('/kr/ui/lobby/profile-frame.webp') 0 50 0 210 fill / 0 50px 0 210px;
+  pointer-events: none;
+}
+
+.v2-profile-hero {
+  position: absolute;
+  left: 13px;
+  top: 14px;
+  width: 132px;
+  height: 132px;
+  overflow: hidden;
+  border-radius: 50%;
+  background: radial-gradient(circle, #2b2f3d, #12141b);
+}
+
+.v2-profile-hero img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.v2-profile-plate {
+  position: absolute;
+  left: 133px;
+  top: 21px;
+  width: 62px;
+  height: 40px;
+  overflow: hidden;
+  border-radius: 4px;
+}
+
+.v2-profile-plate img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.v2-profile-plate img[hidden] {
+  display: none;
+}
+
+.v2-profile-name {
+  position: absolute;
+  left: 205px;
+  top: 25px;
+  width: 190px;
+  overflow: hidden;
+  font-size: 25px;
+  font-weight: 700;
+  line-height: 32px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-shadow:
+    0 0 2px #000,
+    0 1px 2px #000;
+}
+
+.v2-profile-server {
+  position: absolute;
+  left: 199px;
+  top: 69px;
+  width: 178px;
+  overflow: hidden;
+  color: #f4e6b2;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 22px;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-shadow: 0 0 2px #3e0301;
+}
+
+.v2-profile:hover .v2-profile-frame,
+.v2-profile:focus-visible .v2-profile-frame {
+  filter: brightness(1.12) drop-shadow(0 0 8px rgb(255 226 138 / 70%));
+}
+
+.v2-profile:focus-visible {
+  outline: none;
+}
+
+/* The bottom-left menu (RightMenu's row: 140-unit buttons at 0.9, 148 apart, a 32-unit label at 0.9 under each), and
+   the bottom-right raid buttons. */
+.v2-menu,
+.v2-raids {
+  position: absolute;
+  bottom: max(6px, env(safe-area-inset-bottom));
+  display: flex;
+  align-items: flex-end;
+}
+
+.v2-menu {
+  left: max(8px, env(safe-area-inset-left));
+  transform: scale(var(--kr, 1));
+  transform-origin: 0 100%;
+}
+
+.v2-raids {
+  right: max(8px, env(safe-area-inset-right));
+  gap: 6px;
+  transform: scale(var(--kr, 1));
+  transform-origin: 100% 100%;
+}
+
+.v2-menu-button,
+.v2-raid-button {
+  display: grid;
+  justify-items: center;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+.v2-menu-button {
+  width: 148px;
+}
+
+.v2-menu-button img {
+  width: 126px;
+  height: 126px;
+}
+
+.v2-menu-button .v2-kr-label,
+.v2-raid-button .v2-kr-label {
+  margin-top: -14px;
+  font-size: 29px;
+}
+
+.v2-raid-button img {
+  width: 170px;
+  height: 170px;
+  object-fit: contain;
+}
+
+.v2-raid-button .v2-kr-label {
+  margin-top: -18px;
+}
+
+.v2-menu-button:active img,
+.v2-raid-button:active img {
+  transform: scale(0.9);
+}
+
+.v2-menu-button:hover img,
+.v2-raid-button:hover img,
+.v2-menu-button:focus-visible img,
+.v2-raid-button:focus-visible img {
+  filter: brightness(1.15) drop-shadow(0 0 10px rgb(255 226 138 / 60%));
+}
+
+.v2-menu-button:focus-visible,
+.v2-raid-button:focus-visible {
+  outline: none;
+}
+
+/* A popup (King's Raid's InspectUserInfoPopup: its PayShop frame and title bar, its close, Common's panels and titles),
+   over a shade a press on closes it. */
+.v2-pop {
+  position: absolute;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  background: rgb(0 0 0 / 55%);
+}
+
+.v2-pop[hidden] {
+  display: none;
+}
+
+.v2-pop-frame {
+  display: flex;
+  flex-direction: column;
+  width: min(560px, calc(var(--ls-vw, 100vw) - 32px));
+  max-height: calc(var(--ls-vh, 100dvh) - 24px);
+  border-style: solid;
+  border-width: 30px;
+  border-image: url('/kr/ui/lobby/popup-frame.webp') 180 fill / 60px;
+  color: #ebded0;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.v2-pop-title {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: none;
+  height: 52px;
+  margin: -14px -8px 8px;
+  border-style: solid;
+  border-width: 0 105px;
+  border-image: url('/kr/ui/lobby/popup-title.webp') 0 210 fill / 0 105px;
+}
+
+.v2-pop-title h2 {
+  margin: 0 -60px;
+  overflow: hidden;
+  background: linear-gradient(#fbffb8, #b29b7e);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-size: 21px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  filter: drop-shadow(0 0 1px #000) drop-shadow(0 1px 1px #000);
+}
+
+.v2-pop-close {
+  position: absolute;
+  top: 50%;
+  right: -92px;
+  width: 36px;
+  height: 36px;
+  margin-top: -18px;
+  padding: 0;
+  border: 0;
+  background: url('/kr/ui/lobby/popup-close.webp') center / contain no-repeat;
+  cursor: pointer;
+}
+
+.v2-pop-close:hover,
+.v2-pop-close:focus-visible {
+  outline: none;
+  filter: brightness(1.25);
+}
+
+.v2-pop-body {
+  min-height: 0;
+  overflow: auto;
+  padding: 2px 6px 6px;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+}
+
+.v2-pop-who {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 10px;
+  border-style: solid;
+  border-width: 6px;
+  border-image: url('/kr/ui/lobby/popup-panel.webp') 10 fill / 6px;
+}
+
+.v2-pop-who > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.v2-pop-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px #b8973f;
+}
+
+.v2-pop-avatar[hidden] {
+  display: none;
+}
+
+.v2-pop-name {
+  overflow: hidden;
+  font-size: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.v2-pop-sub {
+  color: #a79c8c;
+  font-size: 12.5px;
+}
+
+/* A section's title plate (Common_Title_Small). */
+.v2-pop-section {
+  width: fit-content;
+  margin: 14px 0 8px;
+  padding: 3px 22px 4px;
+  border-style: solid;
+  border-width: 0 12px;
+  border-image: url('/kr/ui/lobby/popup-section.webp') 35 fill / 17px 12px;
+  color: #fff6dc;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-shadow: 0 1px 2px #000;
+}
+
+.v2-pop-status {
+  margin: 0 0 8px;
+  color: #a79c8c;
+  font-size: 13px;
+}
+
+.v2-pop-status[hidden] {
+  display: none;
+}
+
+.v2-pop-servers {
+  display: grid;
+  gap: 6px;
+}
+
+/* A server, or one of the Raid button's raids, on Common's dark panel; the one picked edged in gold. */
+.v2-pop-server,
+.v2-pop-raid {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  padding: 7px 10px;
+  border-style: solid;
+  border-width: 6px;
+  border-image: url('/kr/ui/lobby/popup-panel.webp') 10 fill / 6px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.v2-pop-server:hover,
+.v2-pop-server:focus-visible,
+.v2-pop-raid:hover:not(:disabled),
+.v2-pop-raid:focus-visible {
+  outline: none;
+  filter: brightness(1.2);
+}
+
+.v2-pop-server.picked {
+  box-shadow: 0 0 0 2px var(--gold);
+}
+
+.v2-pop-server-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #2b2f3d;
+  font-weight: 700;
+}
+
+.v2-pop-server-name {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.v2-pop-server-balance {
+  color: #e8d49a;
+  font-size: 12.5px;
+}
+
+.v2-pop-heroes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  gap: 8px;
+}
+
+.v2-pop-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+/* A button (Btn_PayShop_Normal: its round ends kept, its middle stretched). */
+.v2-pop-button {
+  min-width: 160px;
+  height: 47px;
+  padding: 0 6px;
+  border-style: solid;
+  border-width: 0 18px;
+  border-image: url('/kr/ui/lobby/popup-button.webp') 0 36 fill / 0 18px;
+  background: none;
+  color: #fff6dc;
+  font: inherit;
+  font-weight: 700;
+  text-shadow: 0 1px 2px #000;
+  cursor: pointer;
+}
+
+.v2-pop-button:hover,
+.v2-pop-button:focus-visible {
+  outline: none;
+  filter: brightness(1.2);
+}
+
+.v2-pop-raids .v2-pop-body {
+  display: grid;
+  gap: 8px;
+}
+
+.v2-pop-raid {
+  grid-template-columns: 1fr;
+  gap: 3px;
+}
+
+.v2-pop-raid b {
+  font-size: 16px;
+}
+
+.v2-pop-raid span {
+  color: #a79c8c;
+  font-size: 12.5px;
+}
+
+.v2-pop-raid:disabled {
+  opacity: 0.45;
+  cursor: default;
 }

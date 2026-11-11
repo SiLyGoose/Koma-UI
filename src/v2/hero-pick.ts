@@ -5,8 +5,8 @@ import { store } from '../shared/ui';
 import { api, currentMe, currentServer, hasSession } from '../site/session';
 
 /*
- * Who walks the town: always one of the member's heroes. Their pick (a button by their name opens the heroes they own in
- * the server picked: the heroes page's /api/heroes), else the first of their heroes, else, owning none, Roi: given to
+ * Who walks the town: always one of the member's heroes. Their pick (the profile's popup, ./profile.ts, lists the heroes they
+ * own in the server picked: the heroes page's /api/heroes), else the first of their heroes, else, owning none, Roi: given to
  * them for nothing (POST /api/heroes/starter, the bot's, only while they have no hero). Logged out, or with no server
  * picked, Roi walks it. Their pick is kept on this device, for them in that server (heroes are owned server by server: a
  * hero and the outfit it wears), and checked against what they own whenever the list is read.
@@ -26,34 +26,13 @@ const KEY = (user: string, server: string): string => `koma.v2.walker.${user}.${
 export interface HeroPick {
   /** Works out who walks now (and, owning no hero, gives them Roi), saying so to `chose`. */
   settle(): Promise<void>;
-  /** Shows the button as who's logged in now has it. */
-  render(): void;
+  /** Who walks now. */
+  walking(): WalkerChoice;
+  /** Lists their heroes in `grid` (picking one walks it), saying with `say` why there are none; read again first. */
+  list(grid: HTMLElement, say: (text: string | null) => void): void;
 }
 
-export function makeHeroPick(into: HTMLElement, chose: (choice: WalkerChoice) => void): HeroPick {
-  const button = document.createElement('button');
-  button.type = 'button';
-  button.className = 'v2-round v2-hero-button';
-  button.setAttribute('aria-label', 'Pick who walks the town');
-  button.setAttribute('aria-haspopup', 'dialog');
-  button.hidden = true;
-  const face = document.createElement('img');
-  face.alt = '';
-  button.append(face);
-
-  const panel = document.createElement('div');
-  panel.className = 'v2-heroes';
-  panel.setAttribute('role', 'dialog');
-  panel.setAttribute('aria-label', 'Who walks the town');
-  panel.hidden = true;
-  panel.innerHTML = `<div class="v2-heroes-head"><b>Who walks the town</b><button type="button" class="v2-heroes-close" aria-label="Close">×</button></div>
-    <p class="v2-heroes-status" hidden></p>
-    <div class="v2-heroes-grid"></div>`;
-  into.append(button, panel);
-  const status = panel.querySelector('.v2-heroes-status') as HTMLElement;
-  const grid = panel.querySelector('.v2-heroes-grid') as HTMLElement;
-  (panel.querySelector('.v2-heroes-close') as HTMLElement).addEventListener('click', () => close());
-
+export function makeHeroPick(chose: (choice: WalkerChoice) => void): HeroPick {
   /** Where their pick is kept: for who's logged in, in the server picked (null: no one, or no server). */
   const where = (): string | null => {
     const who = currentMe()?.user.id;
@@ -103,7 +82,6 @@ export function makeHeroPick(into: HTMLElement, chose: (choice: WalkerChoice) =>
   const walk = (choice: WalkerChoice): void => {
     walking = choice;
     chose(choice);
-    render();
   };
 
   /** Bumped by each settle: one overtaken (another server picked meanwhile) leaves it to the newer. */
@@ -137,13 +115,13 @@ export function makeHeroPick(into: HTMLElement, chose: (choice: WalkerChoice) =>
     if (kept && (!now || now.id !== kept.id)) keep(null);
     else if (kept && now && now.skin !== kept.skin) keep({ id: now.id, skin: now.skin });
     walk(now ? { id: now.id, skin: now.skin } : STARTER);
-    if (!panel.hidden) fill();
+    shown?.();
   }
 
   function pick(choice: WalkerChoice): void {
     keep(choice);
     walk(choice);
-    close();
+    shown?.();
   }
 
   function tile(hero: { id: string; name: string; skin: number }): HTMLButtonElement {
@@ -163,49 +141,21 @@ export function makeHeroPick(into: HTMLElement, chose: (choice: WalkerChoice) =>
     return tileButton;
   }
 
-  function fill(): void {
-    grid.replaceChildren();
-    const say = (text: string | null): void => {
-      status.hidden = text === null;
-      status.textContent = text ?? '';
+  /** The list shown (redrawn as what they own is read, or they pick), till another is asked for. */
+  let shown: (() => void) | null = null;
+  function list(grid: HTMLElement, say: (text: string | null) => void): void {
+    const fill = (): void => {
+      grid.replaceChildren();
+      if (!hasSession()) return say('Log in to walk the town as one of your heroes.');
+      if (!currentServer()) return say('Pick a server to see your heroes.');
+      if (!owned) return say(reading ? 'Reading your heroes…' : 'Could not read your heroes. Try again.');
+      say(null);
+      grid.append(...owned.map(tile));
     };
-    if (!hasSession()) return say('Log in to walk the town as one of your heroes.');
-    if (!currentServer()) return say('Pick a server to see your heroes.');
-    if (!owned) return say(reading ? 'Reading your heroes…' : 'Could not read your heroes. Try again.');
-    say(null);
-    grid.append(...owned.map(tile));
-  }
-
-  function open(): void {
-    panel.hidden = false;
-    button.setAttribute('aria-expanded', 'true');
+    shown = fill;
     fill();
-    void read().then(() => !panel.hidden && fill());
-  }
-  function close(): void {
-    panel.hidden = true;
-    button.setAttribute('aria-expanded', 'false');
-  }
-  button.addEventListener('click', () => (panel.hidden ? open() : close()));
-  document.addEventListener('pointerdown', (e) => {
-    if (!panel.hidden && !panel.contains(e.target as Node) && !button.contains(e.target as Node)) close();
-  });
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !panel.hidden) {
-      e.stopPropagation();
-      close();
-      button.focus();
-    }
-  });
-
-  let faceOf = '';
-  function render(): void {
-    button.hidden = !currentMe();
-    if (faceOf === walking.id) return;
-    const id = (faceOf = walking.id);
-    void heroCut(id, FACE, 96).then((src) => src && faceOf === id && (face.src = src));
+    void read().then(() => shown === fill && fill());
   }
 
-  render();
-  return { settle, render };
+  return { settle, walking: () => walking, list };
 }

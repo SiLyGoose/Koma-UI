@@ -29,6 +29,8 @@ import { setGo, type GoOptions } from '../site/nav';
 import { hasSession, loadMe } from '../site/session';
 import { makeHeroPick, type WalkerChoice } from './hero-pick';
 import { makeHud } from './hud';
+import { makeLobby } from './lobby';
+import { makeProfile } from './profile';
 import { makePanel } from './panel';
 import { oldPath, pageAt, pagePath, placeOf, PLACES, V2, v2Path, type Place } from './places';
 import { makeTown } from './town';
@@ -49,11 +51,7 @@ installClickSounds();
 landscapeCover(document.body, { title: 'Turn your phone sideways', text: 'The town is played in landscape, filling the screen.' });
 
 const town = makeTown(app, arrived);
-// (Another server: who walks there, of the heroes owned there.)
-const hud = makeHud(app, () => {
-  pick.render();
-  void pick.settle();
-});
+const hud = makeHud(app);
 const panel = makePanel(app);
 
 /**
@@ -73,7 +71,34 @@ function walkAs(choice: WalkerChoice): void {
     })
     .catch((error: unknown) => console.warn(error));
 }
-const pick = makeHeroPick(hud.element.querySelector('.v2-hud-left') as HTMLElement, walkAs);
+const pick = makeHeroPick((choice) => {
+  walkAs(choice);
+  profile.render();
+});
+// The member at the top left (their profile: the server, who walks), and King's Raid's menus in the bottom corners.
+const profile = makeProfile(
+  hud.element.querySelector('.v2-hud-left') as HTMLElement,
+  pick,
+  hud.logIn,
+  // Another server: its balance, and who walks there, of the heroes owned there.
+  () => {
+    hud.render();
+    lobby.render();
+    void pick.settle();
+  },
+  // Logged out: the town as anyone sees it.
+  () => {
+    hud.render();
+    profile.render();
+    lobby.render();
+    void pick.settle();
+  },
+);
+const lobby = makeLobby(hud.element, (path) => go(path), hud.note);
+
+/** King's Raid's units on this screen (its lobby is laid out for a 1080-high screen): never under half. */
+const krScale = new ResizeObserver(() => hud.element.style.setProperty('--kr', String(Math.min(1, Math.max(0.5, app.clientHeight / 1080)))));
+krScale.observe(app);
 
 // The way back to the town from a page, in a corner of it (a page's own back arrow does the same).
 const home = document.createElement('button');
@@ -182,7 +207,12 @@ document.addEventListener('keydown', (e) => {
 
 // Back from a game to this page as the browser kept it: the balance (which the game changed) asked for again.
 window.addEventListener('pageshow', (e) => {
-  if (e.persisted && hasSession()) void loadMe(true).then(hud.render);
+  if (e.persisted && hasSession())
+    void loadMe(true).then(() => {
+      hud.render();
+      profile.render();
+      lobby.render();
+    });
 });
 
 async function start(): Promise<void> {
@@ -193,7 +223,8 @@ async function start(): Promise<void> {
     const me = await loadMe(true);
     if (!me.ok && me.status !== 0) hud.note('Your login ran out. Log in again.', true);
     hud.render();
-    pick.render();
+    profile.render();
+    lobby.render();
   }
   void pick.settle();
   await apply(new URL(location.href));
