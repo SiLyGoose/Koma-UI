@@ -29,12 +29,12 @@ export interface RaidCard {
   rewards: readonly RaidReward[];
 }
 
-/** A boss still to come to a raid: on its Raid List under the others, with its banner, but not yet to be fought. */
-export type UpcomingCard = Pick<RaidCard, 'id' | 'name' | 'title'>;
+/** A boss still to come to a raid: on its Raid List under the others, with its banner (another boss's, `banner`: one fought elsewhere too), but not yet to be fought. */
+export type UpcomingCard = Pick<RaidCard, 'id' | 'name' | 'title'> & { banner?: string };
 
 /** A raid's list: the game it opens, its line under the heading, the line under each boss's rewards, its bosses, and those to come. */
 export interface RaidList {
-  game: 'technomagic' | 'dragon';
+  game: 'technomagic' | 'dragon' | 'divine';
   tip: string;
   rewardNote: string;
   cards: readonly RaidCard[];
@@ -124,6 +124,32 @@ export const DRAGON_LIST: RaidList = {
         'As [Black Flame Breath] leaves [Dark Flame], which burns your Heroes and cuts the healing they receive, you should try using Heroes with dispel spells. [Stone Gaze] turns the Hero that has dealt the most DMG to stone, so your party should not rely on a single Hero. Also, since [Dragon Fury] deals devastating P.DMG to your entire party, more to those in [Dark Flame], and grows stronger each time, you should try using Heroes that have P.DEF-related spells.',
       rewards: [POINTS, { kind: 'essence', id: 'harmony' }, { kind: 'essence', id: null }, GEMS, HERO_GEAR],
     },
+  ],
+};
+
+/**
+ * King's Raid's Divine Punishment Raid (the sim's sim/bosses/divine/, the bot's /api/divine): all of it still to come, each
+ * fight by the sim's id. Apocalypsion's group (its four dragons, then Tersio and Apocalypsion, and Inpele's Karma Dungeon)
+ * and Solenis' (Luciteron and Altigma, then Solenis, and Vhegort's Karma Dungeon). The dragons show their Dragon Raid banners;
+ * Apocalypsion's and Solenis' are King's Raid's own lobby art (NguiAtlas_UI_PunishmentRaid_PunishmentRaidImage01), the
+ * others rendered from their models.
+ */
+export const DIVINE_LIST: RaidList = {
+  game: 'divine',
+  tip: 'King’s Raid’s last raid: Apocalypsion and Solenis, each behind the bosses of its group, and their endless Karma Dungeons. Coming soon.',
+  rewardNote: '',
+  cards: [],
+  upcoming: [
+    { id: 'dp-temeraire', name: 'Temeraire', title: 'Apocalypsion Dungeon', banner: 'temeraire' },
+    { id: 'dp-scalaxia', name: 'Scalaxia', title: 'Apocalypsion Dungeon', banner: 'scalaxia' },
+    { id: 'dp-zyrrkinoth', name: 'Zyrrkinoth', title: 'Apocalypsion Dungeon', banner: 'zyrrkinoth' },
+    { id: 'dp-armarta', name: 'Armarta', title: 'Apocalypsion Dungeon', banner: 'armarta' },
+    { id: 'apocalypsion', name: 'Apocalypsion', title: 'Apocalypsion Dungeon' },
+    { id: 'karma-apocalypsion', name: 'Inpele', title: 'Karma Dungeon' },
+    { id: 'luciteron', name: 'Luciteron', title: 'Solenis Dungeon' },
+    { id: 'altigma', name: 'Altigma', title: 'Solenis Dungeon' },
+    { id: 'solenis', name: 'Solenis', title: 'Solenis Dungeon' },
+    { id: 'karma-solenis', name: 'Vhegort', title: 'Karma Dungeon' },
   ],
 };
 

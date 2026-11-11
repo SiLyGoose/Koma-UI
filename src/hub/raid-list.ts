@@ -52,7 +52,7 @@ export function makeRaidList(root: HTMLElement, raid: RaidSetup, single: (boss: 
   function bannerOf(card: UpcomingCard): HTMLDivElement {
     const banner = el('div', 'raid-row-banner');
     const picture = el('img', 'raid-row-art');
-    picture.src = raidBanner(card.id);
+    picture.src = raidBanner(card.banner ?? card.id);
     picture.alt = '';
     picture.loading = 'lazy';
     const names = el('div', 'raid-row-names');
@@ -118,7 +118,7 @@ export function makeRaidList(root: HTMLElement, raid: RaidSetup, single: (boss: 
       if (picked) {
         picked.scrollIntoView({ block: 'nearest' });
         (picked.querySelector('.raid-action.single') as HTMLButtonElement | null)?.focus();
-      } else (rows.querySelector('.raid-action.multi') as HTMLButtonElement | null)?.focus();
+      } else ((rows.querySelector('.raid-action.multi') ?? close) as HTMLButtonElement).focus();
     },
     openRooms(boss) {
       list.open();

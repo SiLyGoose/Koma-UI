@@ -181,6 +181,29 @@
   background: #2a1210 url('/technomagic/dragon-cover.jpg') center / cover no-repeat;
 }
 
+.divine-art {
+  /* The ruins before Apocalypsion (../../public/technomagic/divine-cover.jpg: King's Raid's Divine Punishment loading picture). */
+  position: relative;
+  background: #121019 url('/technomagic/divine-cover.jpg') center / cover no-repeat;
+}
+
+/* A game still to come: its tag on its picture's corner. */
+.game-soon {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 3px 8px;
+  border: 1px dashed rgb(255 255 255 / 40%);
+  border-radius: 6px;
+  background: rgb(0 0 0 / 55%);
+  color: #e6dff2;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+
 .mines-art {
   /* A picture of the game (../../public/mines/cover.webp), on the gem in the middle. */
   background: var(--panel) url('/mines/cover.webp') center / cover no-repeat;
@@ -514,6 +537,47 @@
 
 :is(.raid-row[data-boss='ascalon'] .raid-row-banner, .raid-row-banner[data-boss='ascalon']) {
   background: radial-gradient(ellipse at 22% 50%, rgb(255 214 120 / 30%), transparent 65%), #14110b;
+}
+
+/* The Divine Punishment Raid's: its dragons as in the Dragon Raid, the others each in its own colour. */
+:is(.raid-row[data-boss='dp-temeraire'] .raid-row-banner, .raid-row-banner[data-boss='dp-temeraire']) {
+  background: radial-gradient(ellipse at 22% 50%, rgb(255 110 40 / 35%), transparent 65%), #120c0b;
+}
+
+:is(.raid-row[data-boss='dp-scalaxia'] .raid-row-banner, .raid-row-banner[data-boss='dp-scalaxia']) {
+  background: radial-gradient(ellipse at 22% 50%, rgb(110 200 255 / 35%), transparent 65%), #0b1016;
+}
+
+:is(.raid-row[data-boss='dp-zyrrkinoth'] .raid-row-banner, .raid-row-banner[data-boss='dp-zyrrkinoth']) {
+  background: radial-gradient(ellipse at 22% 50%, rgb(140 230 80 / 30%), transparent 65%), #0c120b;
+}
+
+:is(.raid-row[data-boss='dp-armarta'] .raid-row-banner, .raid-row-banner[data-boss='dp-armarta']) {
+  background: radial-gradient(ellipse at 22% 50%, rgb(150 90 255 / 35%), transparent 65%), #0e0b14;
+}
+
+:is(.raid-row[data-boss='apocalypsion'] .raid-row-banner, .raid-row-banner[data-boss='apocalypsion']) {
+  background: radial-gradient(ellipse at 22% 50%, rgb(190 110 255 / 34%), transparent 65%), #110b16;
+}
+
+:is(.raid-row[data-boss='karma-apocalypsion'] .raid-row-banner, .raid-row-banner[data-boss='karma-apocalypsion']) {
+  background: radial-gradient(ellipse at 22% 50%, rgb(235 90 170 / 30%), transparent 65%), #140b11;
+}
+
+:is(.raid-row[data-boss='luciteron'] .raid-row-banner, .raid-row-banner[data-boss='luciteron']) {
+  background: radial-gradient(ellipse at 22% 50%, rgb(255 225 90 / 30%), transparent 65%), #14120b;
+}
+
+:is(.raid-row[data-boss='altigma'] .raid-row-banner, .raid-row-banner[data-boss='altigma']) {
+  background: radial-gradient(ellipse at 22% 50%, rgb(90 220 240 / 30%), transparent 65%), #0b1314;
+}
+
+:is(.raid-row[data-boss='solenis'] .raid-row-banner, .raid-row-banner[data-boss='solenis']) {
+  background: radial-gradient(ellipse at 22% 50%, rgb(80 190 255 / 32%), transparent 65%), #0b1016;
+}
+
+:is(.raid-row[data-boss='karma-solenis'] .raid-row-banner, .raid-row-banner[data-boss='karma-solenis']) {
+  background: radial-gradient(ellipse at 22% 50%, rgb(120 120 255 / 32%), transparent 65%), #0c0c16;
 }
 
 /* A boss still to come: greyed, with "Upcoming" where its buttons will be, as wide and as tall as they are. */

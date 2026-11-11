@@ -1,7 +1,7 @@
 import markup from './hub.html?raw';
 import { API, store } from '../shared/ui';
 import { navigate } from '../shared/transition';
-import { DRAGON_LIST, TM_LIST } from '../shared/raids';
+import { DIVINE_LIST, DRAGON_LIST, TM_LIST } from '../shared/raids';
 import { makeRaidList, type RaidList } from './raid-list';
 import { makeRaidRooms } from './raid-rooms';
 import type { Lobbies } from '../protocol/technomagic';
@@ -53,7 +53,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
   // The raids' Raid Lists (by the game they open): a boss's Single Player opens the raid against it alone, its Multiplayer
   // finds a raid of the server's against it or creates one.
   const raidLists = new Map<string, RaidList>(
-    [TM_LIST, DRAGON_LIST].map((raid) => {
+    [TM_LIST, DRAGON_LIST, DIVINE_LIST].map((raid) => {
       const rooms = makeRaidRooms(root, {
         find: (boss) => findRaids(raid.game, boss),
         join: (boss, room, button) => void openGame(raid.game, 'multi', boss, button, room),
@@ -115,8 +115,9 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
       });
       ui.servers.append(button);
     }
+    // (A raid all still to come, data-soon: its Raid List opens whether or not the bot plays it yet.)
     for (const button of ui.playButtons) {
-      button.disabled = server === null || !me.games.includes(button.dataset.play as Game);
+      button.disabled = server === null || (!me.games.includes(button.dataset.play as Game) && button.dataset.soon === undefined);
     }
   }
 
