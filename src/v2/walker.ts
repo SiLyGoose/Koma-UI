@@ -14,7 +14,7 @@ import { HEROES } from '../technomagic/sim/heroes';
 
 /** The canvas, in map pixels (the map scales it), and how far above its bottom the hero's feet are. */
 const SIZE = { width: 300, height: 380, feet: 30 };
-/** Map pixels to a unit of the field: a grown hero (2.85 units) about 230 pixels tall, as the miner was. */
+/** Map pixels to a unit of the field: a grown hero (2.85 units) about 230 pixels tall. */
 const PX = 82;
 /** How far down the camera looks (King's Raid's town sees its heroes from above). */
 const LOOK_DOWN = (28 * Math.PI) / 180;

@@ -30,7 +30,7 @@ export interface Town {
   standAt(place: Place | null): void;
   /** Sends the runner to `place` (as a tap on it does). */
   goTo(place: Place): void;
-  /** The member's hero walking instead of the miner (null: the miner again; the one before let go of). */
+  /** The hero walking the town (null: none; the one before let go of). */
   setWalker(walker: Walker | null): void;
   /** Stops drawing (the town hidden under a page). */
   pause(): void;
@@ -95,7 +95,6 @@ export function makeTown(into: HTMLElement, arrive: (place: Place) => void): Tow
     if (walker === next) return;
     walker?.destroy();
     walker = next;
-    runner.element.classList.toggle('hero', !!walker);
     if (!walker) return;
     runner.element.append(walker.element);
     walker.scaled(scale);

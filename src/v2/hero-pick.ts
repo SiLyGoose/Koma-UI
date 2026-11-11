@@ -5,30 +5,32 @@ import { store } from '../shared/ui';
 import { api, currentMe, currentServer, hasSession } from '../site/session';
 
 /*
- * Who walks the town: a button by the member's name (the face of the hero walking, or the miner's lamp) opening a list
- * of the heroes they own in the server picked (the heroes page's /api/heroes), and the miner. Their pick is kept on this
- * device, for them in that server (heroes are owned server by server: a hero and the outfit it wears), and checked against
- * what they own whenever the list is read again.
+ * Who walks the town: always one of the member's heroes. Their pick (a button by their name opens the heroes they own in
+ * the server picked: the heroes page's /api/heroes), else the first of their heroes, else, owning none, Roi: given to
+ * them for nothing (POST /api/heroes/starter, the bot's, only while they have no hero). Logged out, or with no server
+ * picked, Roi walks it. Their pick is kept on this device, for them in that server (heroes are owned server by server: a
+ * hero and the outfit it wears), and checked against what they own whenever the list is read.
  */
 
-/** The hero walking: its id and the skin it's in (null: the miner). */
+/** The hero walking: its id and the skin it's in. */
 export interface WalkerChoice {
   id: string;
   skin: number;
 }
 
+/** Who walks for someone with no hero (and is given to them): King's Raid's Roi (the bot's STARTER_HERO). */
+export const STARTER: WalkerChoice = { id: 'roi', skin: 0 };
+
 const KEY = (user: string, server: string): string => `koma.v2.walker.${user}.${server}`;
 
 export interface HeroPick {
-  /** The member's kept pick (null: the miner, or no one logged in). */
-  saved(): WalkerChoice | null;
-  /** Reads what they own again: their pick let go of if they don't own it here (or its outfit changed); shown too. */
-  check(): Promise<void>;
+  /** Works out who walks now (and, owning no hero, gives them Roi), saying so to `chose`. */
+  settle(): Promise<void>;
   /** Shows the button as who's logged in now has it. */
   render(): void;
 }
 
-export function makeHeroPick(into: HTMLElement, chose: (choice: WalkerChoice | null) => void): HeroPick {
+export function makeHeroPick(into: HTMLElement, chose: (choice: WalkerChoice) => void): HeroPick {
   const button = document.createElement('button');
   button.type = 'button';
   button.className = 'v2-round v2-hero-button';
@@ -37,8 +39,6 @@ export function makeHeroPick(into: HTMLElement, chose: (choice: WalkerChoice | n
   button.hidden = true;
   const face = document.createElement('img');
   face.alt = '';
-  face.hidden = true;
-  button.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a5 5 0 0 1 5 5v1h1a1 1 0 0 1 0 2h-1.3A5 5 0 0 1 12 13a5 5 0 0 1-4.7-3H6a1 1 0 0 1 0-2h1V7a5 5 0 0 1 5-5zm-6 20a6 6 0 0 1 12 0z"/></svg>`;
   button.append(face);
 
   const panel = document.createElement('div');
@@ -78,6 +78,11 @@ export function makeHeroPick(into: HTMLElement, chose: (choice: WalkerChoice | n
   /** What they own in server `ownedIn`, as last read (null: not read, or it couldn't be). */
   let owned: { id: string; name: string; skin: number }[] | null = null;
   let ownedIn: string | null = null;
+  const heroesOf = (view: HeroesView): { id: string; name: string; skin: number }[] =>
+    view.heroes
+      .filter((hero) => hero.owned)
+      .map((hero) => ({ id: hero.id, name: hero.name, skin: skinOf(hero.id, hero.outfit) }))
+      .sort((a, b) => a.name.localeCompare(b.name));
   let reading: Promise<void> | null = null;
   function read(): Promise<void> {
     const server = currentServer();
@@ -87,41 +92,62 @@ export function makeHeroPick(into: HTMLElement, chose: (choice: WalkerChoice | n
       .then((res) => {
         if (currentServer() !== server) return;
         ownedIn = server;
-        owned = res.ok
-          ? res.data.heroes
-              .filter((hero) => hero.owned)
-              .map((hero) => ({ id: hero.id, name: hero.name, skin: skinOf(hero.id, hero.outfit) }))
-              .sort((a, b) => a.name.localeCompare(b.name))
-          : null;
+        owned = res.ok ? heroesOf(res.data) : null;
       })
       .finally(() => (reading = null));
     return reading;
   }
 
-  async function check(): Promise<void> {
-    const kept = saved();
-    if (!kept) return render();
-    await read();
-    if (saved() !== null && saved()?.id !== kept.id) return;
-    if (!owned) return render();
-    const now = owned.find((hero) => hero.id === kept.id);
-    const next = now ? { id: now.id, skin: now.skin } : null;
-    if (!next || next.skin !== kept.skin) {
-      keep(next);
-      chose(next);
-    }
+  /** Who walks now, as last worked out. */
+  let walking: WalkerChoice = STARTER;
+  const walk = (choice: WalkerChoice): void => {
+    walking = choice;
+    chose(choice);
     render();
+  };
+
+  /** Bumped by each settle: one overtaken (another server picked meanwhile) leaves it to the newer. */
+  let settling = 0;
+  async function settle(): Promise<void> {
+    const run = ++settling;
+    const server = currentServer();
+    if (!currentMe() || !server) return walk(STARTER);
+    // (Their pick at once, while what they own is read.)
+    const kept = saved();
+    if (kept) walk(kept);
+    await read();
+    if (run !== settling) return;
+    if (!owned) {
+      if (!kept) walk(STARTER);
+      return;
+    }
+    if (owned.length === 0) {
+      // None: Roi, given to them (only while they have no hero: 'owned', they got one meanwhile).
+      const res = await api<HeroesView>('/api/heroes/starter', { method: 'POST', body: JSON.stringify({ guild: server }) });
+      if (run !== settling) return;
+      if (res.ok) {
+        owned = heroesOf(res.data);
+        ownedIn = server;
+      } else await read();
+      if (run !== settling) return;
+    }
+    const theirs = owned ?? [];
+    const now = (kept && theirs.find((hero) => hero.id === kept.id)) ?? theirs[0];
+    // (Their pick gone, or in another outfit now: kept as it is.)
+    if (kept && (!now || now.id !== kept.id)) keep(null);
+    else if (kept && now && now.skin !== kept.skin) keep({ id: now.id, skin: now.skin });
+    walk(now ? { id: now.id, skin: now.skin } : STARTER);
     if (!panel.hidden) fill();
   }
 
-  function pick(choice: WalkerChoice | null): void {
+  function pick(choice: WalkerChoice): void {
     keep(choice);
-    chose(choice);
-    render();
+    walk(choice);
     close();
   }
 
-  function tile(label: string, picked: boolean, picture: (img: HTMLImageElement) => void, then: () => void): HTMLButtonElement {
+  function tile(hero: { id: string; name: string; skin: number }): HTMLButtonElement {
+    const picked = walking.id === hero.id;
     const tileButton = document.createElement('button');
     tileButton.type = 'button';
     tileButton.className = 'v2-heroes-tile';
@@ -130,15 +156,14 @@ export function makeHeroPick(into: HTMLElement, chose: (choice: WalkerChoice | n
     const img = document.createElement('img');
     img.alt = '';
     const name = document.createElement('span');
-    name.textContent = label;
+    name.textContent = hero.name;
     tileButton.append(img, name);
-    picture(img);
-    tileButton.addEventListener('click', then);
+    void heroCut(hero.id, FACE, 96).then((src) => src && (img.src = src));
+    tileButton.addEventListener('click', () => pick({ id: hero.id, skin: hero.skin }));
     return tileButton;
   }
 
   function fill(): void {
-    const kept = saved();
     grid.replaceChildren();
     const say = (text: string | null): void => {
       status.hidden = text === null;
@@ -147,13 +172,8 @@ export function makeHeroPick(into: HTMLElement, chose: (choice: WalkerChoice | n
     if (!hasSession()) return say('Log in to walk the town as one of your heroes.');
     if (!currentServer()) return say('Pick a server to see your heroes.');
     if (!owned) return say(reading ? 'Reading your heroes…' : 'Could not read your heroes. Try again.');
-    say(owned.length ? null : "You don't own a hero here yet: the Shop has them.");
-    grid.append(
-      tile('Miner', !kept, (img) => img.classList.add('v2-heroes-miner'), () => pick(null)),
-      ...owned.map((hero) =>
-        tile(hero.name, kept?.id === hero.id, (img) => void heroCut(hero.id, FACE, 96).then((src) => src && (img.src = src)), () => pick({ id: hero.id, skin: hero.skin })),
-      ),
-    );
+    say(null);
+    grid.append(...owned.map(tile));
   }
 
   function open(): void {
@@ -178,14 +198,14 @@ export function makeHeroPick(into: HTMLElement, chose: (choice: WalkerChoice | n
     }
   });
 
+  let faceOf = '';
   function render(): void {
     button.hidden = !currentMe();
-    const kept = saved();
-    face.hidden = !kept;
-    button.classList.toggle('has-hero', !!kept);
-    if (kept) void heroCut(kept.id, FACE, 96).then((src) => src && saved()?.id === kept.id && (face.src = src));
+    if (faceOf === walking.id) return;
+    const id = (faceOf = walking.id);
+    void heroCut(id, FACE, 96).then((src) => src && faceOf === id && (face.src = src));
   }
 
   render();
-  return { saved, check, render };
+  return { settle, render };
 }

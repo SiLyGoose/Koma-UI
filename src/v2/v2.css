@@ -172,17 +172,18 @@ html[data-shell='v2'] body {
   filter: drop-shadow(0 0 14px rgb(255 226 138 / 90%)) drop-shadow(0 6px 8px rgb(0 0 0 / 45%));
 }
 
-/* The member's hero walking instead of the miner (./walker.ts): its canvas, its feet at the runner's point. */
-.v2-runner.hero .v2-runner-art {
-  display: none;
-}
-
-.v2-walker {
+/* The runner: where the member's hero is (./walker.ts's canvas, its feet at the runner's point), its shadow under it,
+   in front of what's further up the map. */
+.v2-runner {
   position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
   pointer-events: none;
 }
 
-.v2-runner.hero::before {
+.v2-runner::before {
   content: '';
   position: absolute;
   left: -38px;
@@ -193,95 +194,9 @@ html[data-shell='v2'] body {
   background: radial-gradient(closest-side, rgb(0 0 0 / 35%), rgb(0 0 0 / 0%));
 }
 
-/* The runner: its feet at its point, in front of what's further up the map. */
-.v2-runner {
+.v2-walker {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 0;
-  height: 0;
   pointer-events: none;
-}
-
-.v2-runner-art {
-  position: absolute;
-  left: -70px;
-  bottom: -9px;
-  width: 140px;
-  height: 217px;
-  overflow: visible;
-}
-
-.v2-runner.left .v2-runner-art {
-  transform: scaleX(-1);
-}
-
-.v2-runner-body {
-  animation: v2-idle 1.6s ease-in-out infinite;
-}
-
-.v2-leg,
-.v2-arm {
-  transform-box: fill-box;
-  transform-origin: 50% 0;
-}
-
-.v2-runner.running .v2-runner-body {
-  animation: v2-bob 0.36s ease-in-out infinite;
-}
-
-.v2-runner.running .v2-leg-front,
-.v2-runner.running .v2-arm-back {
-  animation: v2-swing 0.36s ease-in-out infinite alternate;
-}
-
-.v2-runner.running .v2-leg-back,
-.v2-runner.running .v2-arm-front {
-  animation: v2-swing 0.36s ease-in-out infinite alternate-reverse;
-}
-
-.v2-runner.running .v2-scarf {
-  animation: v2-flap 0.18s ease-in-out infinite alternate;
-  transform-box: fill-box;
-  transform-origin: 0 0;
-}
-
-@keyframes v2-idle {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-2px);
-  }
-}
-
-@keyframes v2-bob {
-  0%,
-  100% {
-    transform: translateY(0) rotate(4deg);
-  }
-  50% {
-    transform: translateY(-5px) rotate(4deg);
-  }
-}
-
-@keyframes v2-swing {
-  from {
-    transform: rotate(-32deg);
-  }
-  to {
-    transform: rotate(32deg);
-  }
-}
-
-@keyframes v2-flap {
-  from {
-    transform: rotate(-10deg);
-  }
-  to {
-    transform: rotate(14deg);
-  }
 }
 
 /* ---------------------------------------------------------------------------------------------------------------- */
@@ -557,10 +472,6 @@ html[data-shell='v2'] body {
   object-fit: cover;
 }
 
-.v2-hero-button.has-hero svg {
-  display: none;
-}
-
 .v2-heroes {
   position: absolute;
   top: calc(100% + 8px);
@@ -652,8 +563,4 @@ html[data-shell='v2'] body {
   max-width: 100%;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.v2-heroes-miner {
-  background: url('/kr/town/discs/forge.webp') center / 70% no-repeat, rgb(0 0 0 / 30%) !important;
 }

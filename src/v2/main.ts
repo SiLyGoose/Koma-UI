@@ -52,21 +52,19 @@ const town = makeTown(app, arrived);
 // (Another server: who walks there, of the heroes owned there.)
 const hud = makeHud(app, () => {
   pick.render();
-  walkAs(pick.saved());
-  void pick.check();
+  void pick.settle();
 });
 const panel = makePanel(app);
 
 /**
- * Who walks the town: the member's pick (./hero-pick.ts), their hero's model read once picked (./walker.ts, three.js:
- * only then), the miner meanwhile and when it can't be read.
+ * Who walks the town: one of the member's heroes, or Roi (./hero-pick.ts), its model read once known (./walker.ts,
+ * three.js); the one before walks on till it's read.
  */
 let walking = '';
-function walkAs(choice: WalkerChoice | null): void {
-  const key = choice ? `${choice.id}:${choice.skin}` : '';
+function walkAs(choice: WalkerChoice): void {
+  const key = `${choice.id}:${choice.skin}`;
   if (key === walking) return;
   walking = key;
-  if (!choice) return town.setWalker(null);
   void import('./walker')
     .then(async ({ makeWalker }) => {
       const walker = makeWalker();
@@ -196,9 +194,8 @@ async function start(): Promise<void> {
     if (!me.ok && me.status !== 0) hud.note('Your login ran out. Log in again.', true);
     hud.render();
     pick.render();
-    walkAs(pick.saved());
-    void pick.check();
   }
+  void pick.settle();
   await apply(new URL(location.href));
 }
 void start().finally(release);
