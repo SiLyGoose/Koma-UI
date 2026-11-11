@@ -218,7 +218,10 @@ export type HeroMove =
   | 'transcend'
   | 'voidstrike'
   | 'untranscend'
-  | 'voidattack';
+  | 'voidattack'
+  | 'hurt'
+  | 'rune'
+  | 'sight';
 
 /** `count` blows, the first `first` seconds in and each `every` after the last. */
 const every = (count: number, first: number, step: number): number[] => Array.from({ length: count }, (_, i) => first + i * step);
@@ -495,4 +498,8 @@ export const CODED: Readonly<Record<HeroMove | 'hit', Span>> = {
   voidstrike: { lands: [2.3], until: 4.1 },
   untranscend: { lands: [], until: 1.1 },
   voidattack: { lands: [0.3, 0.9, 2, 2.6, 3.4, 3.9, 4.5, 5, 6], until: 7 },
+  // Veronica (King's Raid's own timings: its animations').
+  hurt: { lands: [1.7], until: 2.9 },
+  rune: { lands: [0, 2.1], until: 3.3 },
+  sight: { lands: [1.4, 1.5], until: 3.1 },
 };

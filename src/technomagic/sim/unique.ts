@@ -116,6 +116,7 @@ import { fine, pct, type Buff } from './shown';
  *   while, and a boss taking more.
  * - Hilda, Dreams of an Artificial God, Innocentia: her ATK higher and healing reaching her more, twice as much while she is
  *   [Transcendent].
+ * - Veronica, Infinite Charter, Accordio: more [Top Financier's Knowledge] at most, and an Experience every so often.
  *   (Each of these, the hero's part does it: ./heroes/<hero>.ts.)
  *
  * The game's shares of ATK are as they are for damage (this raid's blows are counted in thousandths of them: ./combat/),
@@ -248,6 +249,8 @@ export const APOLIOX = { name: 'Wings of Corruption, Apoliox', every: [20, 18, 1
 /** Gladi's: each critical blow's crit DMG more (a share), for how long, up to how many. */
 export const MASTRA = { name: 'Beast Fist, Mastra', critDamage: [0.2, 0.24, 0.29, 0.35, 0.42, 0.5], lasts: 5, most: 7 };
 /** Roi's (the King's Raid Index's): the chance each part of his attack has, and its blow more (at ATK) as it leaves a stack of Bleed. */
+/** Veronica's: her most [Top Financier's Knowledge], and every how many seconds an Experience more. */
+export const ACCORDIO = { name: 'Infinite Charter, Accordio', most: [9, 10, 11, 12, 13, 15], every: [14, 13, 12, 11, 10, 9] };
 export const REDEAL = { name: 'Specter’s Breath, Redeal', chance: [0.25, 0.28, 0.31, 0.34, 0.37, 0.4], blow: [500, 600, 720, 860, 1030, 1250] };
 
 /** What every ally gains by the TechnoMagic gear it wears: 1 piece, more ATK; 2, more defense; 3, more max HP (here: taking that much less); 4, more DMG. */
@@ -388,9 +391,10 @@ const ABOUT: Readonly<Record<string, (tier: number) => string>> = {
     `Upon every Skill use, heals own HP equal to ${fine(atTier(EZAIAS.heal, tier))} of Max HP over ${EZAIAS.over} sec. Normal and Skill attacks increase All DMG the hit target takes by ${fine(atTier(EZAIAS.takes, tier))} for ${EZAIAS.lasts} sec.`,
   shamilla: (tier) => `Every ${atTier(APOLIOX.every, tier)} sec, gains *'The Vessel of Curses'* and increases ATK by ${fine(atTier(APOLIOX.atk, tier))} for ${APOLIOX.lasts} sec.`,
   gladi: (tier) => `Upon a Crit Hit, Crit. DMG is increased by ${fine(atTier(MASTRA.critDamage, tier))} for ${MASTRA.lasts} sec. This effect can be stacked up to ${MASTRA.most} times max.`,
+  veronica: (tier) => `Changes the max number of stacks for *Top Financier's Knowledge* to ${atTier(ACCORDIO.most, tier)} and gains additional *Experience* stack every ${atTier(ACCORDIO.every, tier)} sec.`,
   roi: (tier) => `Each auto attack has a ${fine(atTier(REDEAL.chance, tier))} chance of inflicting 1 stack of *Bleed*, and dealing ${fine(atTier(REDEAL.blow, tier) / 1000)} of ATK as extra DMG.`,
 };
-const NAMES: Readonly<Record<string, string>> = { klaus: EXIAN.name, kirze: ELICIPIRA.name, 'fallen-frey': ROSMERTA.name, gremory: PIGRITIA.name, annette: RASCAL.name, morrah: CARPRAIN.name, laias: ELTOIRRE.name, seria: ELSION.name, ezekiel: BARBATOS.name, lorraine: ROBURU.name, valance: CORBEAU.name, lucikiel: GIGANTE.name, selene: NOTOS.name, crow: AKISTRA.name, oddy: TEMPODIANA.name, phillop: ATEIN.name, naila: BARORO.name, yanne: SVELTA.name, neraxis: ACRAVITA.name, erze: PERION.name, loman: GAIAMENES.name, gau: NUMINU.name, tanya: CAETHASIS.name, 'rebel-klaus': GALICTA.name, 'dark-lord-kasel': AEA.name, theo: LEGIOS.name, priscilla: EXCILIUS.name, glenwys: MAXITHEA.name, chase: MONOLITH.name, aselica: IGNISIUS.name, lakrak: MK1.name, miruru: LEVIATHAN.name, mirianne: RIVENTINA.name, kara: SHATTERER.name, zafir: ZARIES.name, pansirone: TERSIA.name, isolet: TERRAVION.name, lilia: CIELAMAHA.name, lucias: BENEDICIA.name, rehartna: NEW_ROAD.name, shea: SCHWANHEITE.name, lavril: NEMECIA.name, evan: NAAV.name, estelle: STOSMOS.name, jane: EREKURA.name, talisha: DIOGEMME.name, hilda: INNOCENTIA.name, shakmeh: LEIFENDE.name, ricardo: THEORIA.name, cecilia: GIGANTIX.name, scarlet: BELONA.name, isaiah: EZAIAS.name, lewisia: DOMINICIA.name, shamilla: APOLIOX.name, gladi: MASTRA.name, roi: REDEAL.name };
+const NAMES: Readonly<Record<string, string>> = { klaus: EXIAN.name, kirze: ELICIPIRA.name, 'fallen-frey': ROSMERTA.name, gremory: PIGRITIA.name, annette: RASCAL.name, morrah: CARPRAIN.name, laias: ELTOIRRE.name, seria: ELSION.name, ezekiel: BARBATOS.name, lorraine: ROBURU.name, valance: CORBEAU.name, lucikiel: GIGANTE.name, selene: NOTOS.name, crow: AKISTRA.name, oddy: TEMPODIANA.name, phillop: ATEIN.name, naila: BARORO.name, yanne: SVELTA.name, neraxis: ACRAVITA.name, erze: PERION.name, loman: GAIAMENES.name, gau: NUMINU.name, tanya: CAETHASIS.name, 'rebel-klaus': GALICTA.name, 'dark-lord-kasel': AEA.name, theo: LEGIOS.name, priscilla: EXCILIUS.name, glenwys: MAXITHEA.name, chase: MONOLITH.name, aselica: IGNISIUS.name, lakrak: MK1.name, miruru: LEVIATHAN.name, mirianne: RIVENTINA.name, kara: SHATTERER.name, zafir: ZARIES.name, pansirone: TERSIA.name, isolet: TERRAVION.name, lilia: CIELAMAHA.name, lucias: BENEDICIA.name, rehartna: NEW_ROAD.name, shea: SCHWANHEITE.name, lavril: NEMECIA.name, evan: NAAV.name, estelle: STOSMOS.name, jane: EREKURA.name, talisha: DIOGEMME.name, hilda: INNOCENTIA.name, shakmeh: LEIFENDE.name, ricardo: THEORIA.name, cecilia: GIGANTIX.name, scarlet: BELONA.name, isaiah: EZAIAS.name, lewisia: DOMINICIA.name, shamilla: APOLIOX.name, gladi: MASTRA.name, roi: REDEAL.name, veronica: ACCORDIO.name };
 /** A hero's unique weapon's name (none: it has none here). */
 export const uniqueName = (hero: string): string | undefined => NAMES[hero];
 /** The heroes that have a unique weapon, by id. */
@@ -457,4 +461,5 @@ export const STOSMOS_UP: Buff ={ name: 'Chant of Tailwinds, Stosmos', about: 'AT
 export const EZAIAS_UP: Buff = { name: 'Bladebound Faith, Ezaias', about: 'Healed every second.', icon: '🗡️', art: { uw: 'isaiah' } };
 export const DOMINICIA_UP: Buff = { name: 'Scarlet Ruler, Dominicia', about: 'ATK higher while her HP is over half; under it, takes less.', icon: '🩸', art: { uw: 'lewisia' } };
 export const APOLIOX_UP: Buff = { name: 'Wings of Corruption, Apoliox', about: 'ATK higher.', icon: '🪽', art: { uw: 'shamilla' } };
+export const ACCORDIO_UP: Buff = { name: 'Infinite Charter, Accordio', about: 'More Top Financier’s Knowledge at most, and an Experience every so often.', icon: '📒', art: { uw: 'veronica' } };
 export const MASTRA_UP: Buff = { name: 'Beast Fist, Mastra', about: 'Crit DMG higher for each.', icon: '👊', art: { uw: 'gladi' } };
