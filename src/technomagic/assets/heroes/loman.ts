@@ -168,9 +168,11 @@ export const LOMAN_ASSETS: HeroAssets = {
       model: {
         kind: 'parts',
         animations: ANIMATIONS,
-        parts: ['Hero_Loman_Cos20GloryLeague1_Body', 'Hero_Loman_Hair_05'],
+        parts: ['Hero_Loman_Cos20GloryLeague1_Body', 'Hero_Loman_Hair_06'],
         right: 'Hero_Loman_Cos20GloryLeague1_Weapon',
         blade: 'y',
+        // (King's Raid's recipe: its ponytail hair, Hair06, drawn with the costume's hair material, whose picture is Hair_05's.)
+        pictures: { Hero_Loman_Hair_06: 'Hero_Loman_Hair_05_D(RGB).png' },
       },
     },
     // King's Raid's Glory costume (tm-costumes.mjs).
@@ -193,9 +195,11 @@ export const LOMAN_ASSETS: HeroAssets = {
       model: {
         kind: 'parts',
         animations: ANIMATIONS,
-        parts: ['Hero_Loman_Cos20GloryLeague2_Body', 'Hero_Loman_Hair_05'],
+        parts: ['Hero_Loman_Cos20GloryLeague2_Body', 'Hero_Loman_Hair_06'],
         right: 'Hero_Loman_Cos20GloryLeague2_Weapon',
         blade: 'y',
+        // (King's Raid's recipe: its ponytail hair, Hair06, drawn with the costume's hair material, whose picture is Hair_05's.)
+        pictures: { Hero_Loman_Hair_06: 'Hero_Loman_Hair_05_D(RGB).png' },
       },
     },
     // King's Raid's Halloween costume (tm-costumes.mjs).
