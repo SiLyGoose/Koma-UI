@@ -62,6 +62,7 @@ const UNIQUE_PICTURES: Readonly<Record<string, string>> = {
   scarlet: '/gear/items/weapons/blade-of-conviction-white-belona.png',
   talisha: '/gear/items/weapons/color-splendor-diogemme.png',
   hilda: '/gear/items/weapons/dream-of-an-artifical-god-innocentia.png',
+  veronica: '/gear/items/weapons/infinite-charter-accordio.png',
 };
 
 /** A hero's files, by its id (its folder under public/kr/heroes/). */
