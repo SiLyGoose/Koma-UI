@@ -248,6 +248,9 @@ export const MOVES: Record<HeroMove | 'hit', Move> = {
   voidstrike: CAST,
   untranscend: CAST,
   voidattack: CAST,
+  hurt: CAST,
+  rune: CAST,
+  sight: CAST,
 };
 
 export { flowing, type Move } from './move';
