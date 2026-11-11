@@ -67,9 +67,10 @@ const noArt = new Set<string>();
  * a missing picture (`glyph`), stay small in the middle. An item with no picture there (the build says
  * which: ../built.ts) has its slot's icon without asking for one. `lazy`: one of a long list (an armory,
  * the databank), whose picture waits until it's scrolled near (and the page transition doesn't wait for it). A full
- * picture still loading shows blurred meanwhile (./blur.ts).
+ * picture still loading shows blurred meanwhile (./blur.ts). `reclaimed`: a Reclaimed TechnoMagic copy, drawn with King's
+ * Raid's own Reclaimed icon (RESTORE_<its icon>, cut from NguiAtlas_Icon_Item_TechnoMagic*), its plain one if that's missing.
  */
-export function art(itemId: string | null, slot: Slot, lazy = false): HTMLElement {
+export function art(itemId: string | null, slot: Slot, lazy = false, reclaimed = false): HTMLElement {
   const box = el('span', 'art');
   const glyph = (): void => {
     stopBlur(box);
@@ -89,10 +90,17 @@ export function art(itemId: string | null, slot: Slot, lazy = false): HTMLElemen
     img.draggable = false;
     if (lazy) img.loading = 'lazy';
     img.decoding = 'async';
-    img.src = `/kr/items/${icon}.webp`;
+    const plain = `/kr/items/${icon}.webp`;
+    const restored = reclaimed && icon.startsWith('TECHNOMAGIC_') && !noArt.has(`RESTORE_${icon}`);
+    img.src = restored ? `/kr/items/RESTORE_${icon}.webp` : plain;
     box.classList.add('full');
     blurWhileLoading(box, img, img.getAttribute('src') ?? '');
     img.addEventListener('error', () => {
+      if (restored && img.getAttribute('src') !== plain) {
+        noArt.add(`RESTORE_${icon}`);
+        img.src = plain;
+        return;
+      }
       noArt.add(itemId);
       img.remove();
       glyph();
@@ -333,10 +341,10 @@ export function runeMarks(runes: readonly SocketRune[] | undefined): HTMLElement
  * King's Raid's stars (krStars; none with the one level: hasLevels), and what kind it is: the members' own gear its tier
  * (T1 to T4, and King's Raid's grade frame) and the parchment's curl; a hero's gear its frame (heroFrame) and marks (a TechnoMagic piece's stars blue), a unique weapon's or unique treasure's with its hero, a
  * TechnoMagic piece's with its class (`itemClass`, or `class` as the heroes page has it), a dragon set's piece's its tier, none for
- * an artifact, and its rune sockets (runeMarks). `lazy`: a card in a long list (art).
+ * an artifact, and its rune sockets (runeMarks). `lazy`: a card in a long list (art). A Reclaimed TechnoMagic copy has its Reclaimed icon (art).
  */
-export function itemFace(copy: { level: number; maxLevel?: number; itemId: string; slot: Slot; stars: number; heroOnly?: boolean; uniqueWeapon?: string | null; uniqueTreasure?: Treasure; itemClass?: string | null; class?: string | null; part?: string | null; runes?: readonly SocketRune[] }, lazy = false): HTMLElement[] {
-  const picture = art(copy.itemId, copy.slot, lazy);
+export function itemFace(copy: { level: number; maxLevel?: number; itemId: string; slot: Slot; stars: number; heroOnly?: boolean; uniqueWeapon?: string | null; uniqueTreasure?: Treasure; itemClass?: string | null; class?: string | null; part?: string | null; runes?: readonly SocketRune[]; reclaimed?: boolean }, lazy = false): HTMLElement[] {
+  const picture = art(copy.itemId, copy.slot, lazy, !!copy.reclaimed);
   const level = hasLevels(copy) ? [krStars(copy.level, copy.level, isTmPiece(copy.itemId))] : [];
   if (heroGear(copy)) return [heroFrame(copy), picture, ...heroMarks(copy), ...runeMarks(copy.runes), ...level];
   return [tierFrame(copy.stars), tierMark(copy.stars), picture, ...level, el('span', 'item-curl')];

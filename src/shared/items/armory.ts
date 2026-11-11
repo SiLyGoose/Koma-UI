@@ -26,6 +26,8 @@ export interface ArmoryCopy {
   slot: Slot;
   /** Hero gear: the part of a hero's gear it is, which its details name it by and the filter picks it by. */
   part?: HeroPart | null;
+  /** A Reclaimed TechnoMagic piece (King's Raid's): drawn with its Reclaimed icon (itemFace). */
+  reclaimed?: boolean;
   description: string;
   level: number;
   maxLevel: number;
@@ -338,6 +340,8 @@ const contentOf = (copy: ArmoryCopy, look: CardLook, ownSound: boolean): string 
     copy.itemId,
     // (Its picture: a hero gear's icon, once the bot has said it.)
     itemIcons.get(copy.itemId) ?? null,
+    // (A Reclaimed TechnoMagic piece's is its Reclaimed one.)
+    copy.reclaimed ?? null,
     copy.name,
     copy.stars,
     copy.slot,

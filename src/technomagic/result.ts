@@ -134,7 +134,7 @@ function card(drop: DropView, extra = '', raid = false): HTMLElement {
   // (King's Raid's hero gear: its icon.)
   if (drop.icon) itemIcons.set(drop.itemId, drop.icon);
   const hero = heroDrop(drop, raid);
-  face.append(...itemFace({ level: 1, maxLevel: hero ? 1 : 5, itemId: drop.itemId, slot: drop.slot, stars: drop.stars, heroOnly: hero, itemClass: drop.itemClass, part: drop.part }));
+  face.append(...itemFace({ level: 1, maxLevel: hero ? 1 : 5, itemId: drop.itemId, slot: drop.slot, stars: drop.stars, heroOnly: hero, itemClass: drop.itemClass, part: drop.part, reclaimed: drop.reclaimed }));
   return face;
 }
 

@@ -11,7 +11,7 @@ import type { HeroCopy, HeroRune } from '../protocol/heroes';
 /** A slot's frame (`kind`, its kind of item: its empty picture): its piece's picture, frame, marks, rune sockets and stars, King's Raid's. */
 export function slotFrame(copy: HeroCopy | undefined, kind: Slot): HTMLElement {
   const frame = el('span', 'slot-frame');
-  frame.append(art(copy?.itemId ?? null, kind));
+  frame.append(art(copy?.itemId ?? null, kind, false, !!copy?.reclaimed));
   if (copy) frame.append(heroFrame(copy), ...heroMarks(copy), ...runeMarks(copy.runes), krStars(copy.level, copy.level, isTmPiece(copy.itemId)));
   return frame;
 }
