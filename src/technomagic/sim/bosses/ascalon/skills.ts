@@ -28,12 +28,14 @@ import { beast } from './waves';
  *   (4 from stage STAGE_UP), 120% each half a second on (never dodged), taking 1,000 mana; none left, its skills sealed 7 seconds;
  *   and [Dimension Interference].
  * - [Dimension Interference]: 1.5% less mana recovery (all of it: King's Raid's MpRegenRatioM), stacking up to 30, irremovable;
- *   from stage STAGE_UP, 1.5% more DMG taken for each too (the playtest's Disabled ModWeakness ops, its 3592041 Eye of Ascalon
- *   enabling them from dungeon 1204: ModSkillEnabled sets an op's Enabled, SkillController's GetModifiedBool).
+ *   and, a stack of its own (King's Raid's Ascalon_Weakness, up to 30, given only by a blow that has it), 1.5% more DMG taken
+ *   for each: his bolts' and gates' from stage STAGE_UP (the playtest's Disabled ModWeakness ops, its 3592041 Eye of Ascalon
+ *   enabling them from dungeon 1204: ModSkillEnabled sets an op's Enabled, SkillController's GetModifiedBool), the Eye's from
+ *   stage EYE_WEAK_FROM.
  * - Eye of Ascalon: in the four waves before him (./waves.ts), every 7 seconds of a wave (the projectile's TickIntervalMs), every
  *   hero takes 7% of its max HP (GetDamageByMaxHpR 70: NoCritical, Unavoidable, IgnoreDefence, IgnoreToughness) half a second on,
- *   500 mana; none left, its skills sealed 4 seconds; and [Dimension Interference]. (From stage STAGE_UP its DMG-taken part, as
- *   King's Raid's live words say; the playtest's projectile 64, which has it, only from dungeon 1205.)
+ *   500 mana; none left, its skills sealed 4 seconds; and [Dimension Interference]. Its DMG-taken part only from stage
+ *   EYE_WEAK_FROM, as the playtest has it (its projectile 64, from dungeon 1205: the user's pick over the live words' stage 4).
  * - Might of Ascalon: nothing changes his ATK Spd (OverrideStat AttackSpeed), nothing raises the DMG he takes (OverrideStat of
  *   his Weakness to 0: what the heroes leave on him to have him take more does nothing), his ATK 20% higher (ModPowerR 200); and
  *   every 10 seconds 2% higher again (3592043, up to 30 times). His beasts are as his Might has them (./minions.ts).
@@ -43,6 +45,8 @@ import { beast } from './waves';
 
 /** From this stage on (King's Raid's "In battles of Stage 4 or above"): Dimension Barrage on more heroes, and [Dimension Interference] has them take more. */
 export const STAGE_UP = 4;
+/** From this stage on the Eye's blows give the DMG-taken stack too (the playtest's projectile 64, from dungeon 1205). */
+export const EYE_WEAK_FROM = 5;
 /** His attack: its sweeps' reach (m, about his middle) and width (degrees), the blow's on those about its target, and the mana it takes. */
 export const ATTACK = { reach: 6, angle: 90, around: 1.5, drain: 500 };
 /**
@@ -79,7 +83,7 @@ export const POWER_UP = { every: 10, atk: 0.02, most: 30 };
 /** A hero left with no more mana than this has its skills sealed (King's Raid's MpRatio 1, LessOrEqual: thousandths of its max). */
 const EMPTY = MAX_MANA * 0.001;
 
-const INTERFERED: Buff = { name: 'Dimension Interference', about: 'Less mana recovery, the less for every stack (and, from stage 4, more DMG taken). Irremovable.', icon: '🌀', art: stateArt('3592041') };
+const INTERFERED: Buff = { name: 'Dimension Interference', about: 'Less mana recovery, the less for every stack (and, from stage 4, more DMG taken for every stack of his bolts and gates; of his Eye, from stage 5). Irremovable.', icon: '🌀', art: stateArt('3592041') };
 const WEAKENED: Buff = { name: 'Multi-Dimension Barrage', about: 'Deals less DMG, the less for every stack. Irremovable.', icon: '🔻', art: stateArt('3592010') };
 const SEALED: Buff = { name: 'Dimension Seal', about: 'Its skills are sealed: it can only attack.', icon: '🔒', art: stateArt('3592040'), harmful: true };
 const RAGE: Tone = 'rage';
@@ -88,6 +92,9 @@ export function ascalonPart(fight: Fight): BossPart {
   const boss = fight.boss;
   const stage = Math.min(KR_ATK.length, Math.max(1, fight.stage));
   const up = stage >= STAGE_UP;
+  const eyeWeak = stage >= EYE_WEAK_FROM;
+  /** Each hero's DMG-taken stacks (King's Raid's Ascalon_Weakness: its own count, given only by blows that have it). */
+  const weakness = new Map<Fighter, number>();
   /** He has come onto the field (the waves before him over), and how long since; and whether he was last step. */
   let here = false;
   /** Seconds until his next Dimension Barrage, his next 2% (3592043), and his waves' next Eye; the wave that Eye is of. */
@@ -133,15 +140,17 @@ export function ascalonPart(fight: Fight): BossPart {
     on.reserved = null;
     put(on.statuses, { name: SEALED.name, left: seconds, seals: true, shown: SEALED });
   }
-  /** One more stack of [Dimension Interference] on a hero. */
-  function interfere(on: Fighter): void {
+  /** One more stack of [Dimension Interference] on a hero; and of its DMG taken, if the blow has it (`weak`). */
+  function interfere(on: Fighter, weak: boolean): void {
     const count = Math.min(INTERFERENCE.most, (on.statuses.find((status) => status.name === INTERFERED.name)?.count ?? 0) + 1);
     const less = 1 - INTERFERENCE.mana * count;
+    const weakCount = Math.min(INTERFERENCE.most, (weakness.get(on) ?? 0) + (weak ? 1 : 0));
+    weakness.set(on, weakCount);
     // (Not one a hero's cleansing takes off: King's Raid's irremovable. Its square unedged.)
-    put(on.statuses, { name: INTERFERED.name, left: Infinity, count, mana: less, manaGain: less, ...(up && { takes: 1 + INTERFERENCE.taken * count }), shown: INTERFERED });
+    put(on.statuses, { name: INTERFERED.name, left: Infinity, count, mana: less, manaGain: less, ...(weakCount > 0 && { takes: 1 + INTERFERENCE.taken * weakCount }), shown: INTERFERED });
   }
   /** A blow of a gate's, or a bolt's: its mana taken, its skills sealed if it has none left, and [Dimension Interference]. Whether it landed. */
-  function dimension(on: Fighter, amount: number, drain: number, sealFor: number, how: { unavoidable?: boolean; whole?: boolean }): boolean {
+  function dimension(on: Fighter, amount: number, drain: number, sealFor: number, how: { unavoidable?: boolean; whole?: boolean }, weak: boolean): boolean {
     const took = fight.hurt(on, amount, true, undefined, how);
     if (took <= 0 || on.hp <= 0) return false;
     on.mana = Math.max(0, on.mana - drain);
@@ -149,7 +158,7 @@ export function ascalonPart(fight: Fight): BossPart {
       seal(on, sealFor);
       fight.cue(null, 'seal', [on]);
     }
-    interfere(on);
+    interfere(on, weak);
     return true;
   }
 
@@ -221,7 +230,7 @@ export function ascalonPart(fight: Fight): BossPart {
         if (!top || top.hp <= 0 || !reachable().includes(top)) top = highest();
         const on = top;
         if (!on) return;
-        if (!dimension(on, amount * power(), BARRAGE.drain, BARRAGE.seal, { unavoidable: true })) return;
+        if (!dimension(on, amount * power(), BARRAGE.drain, BARRAGE.seal, { unavoidable: true }, up)) return;
         const count = Math.min(BARRAGE.most, (on.statuses.find((status) => status.name === WEAKENED.name)?.count ?? 0) + 1);
         put(on.statuses, { name: WEAKENED.name, left: Infinity, count, deals: 1 - BARRAGE.weaken * count, shown: WEAKENED });
       },
@@ -276,8 +285,8 @@ export function ascalonPart(fight: Fight): BossPart {
       for (const gate of due)
         for (const on of gate.heroes) {
           if (on.hp <= 0 || !reachable().includes(on)) continue;
-          if (gate.eye) dimension(on, on.stats.hp * EYE.share, EYE.drain, EYE.seal, { whole: true });
-          else dimension(on, GATE.share * (KR_ATK[0] as number) * power(), GATE.drain, GATE.seal, { unavoidable: true });
+          if (gate.eye) dimension(on, on.stats.hp * EYE.share, EYE.drain, EYE.seal, { whole: true }, eyeWeak);
+          else dimension(on, GATE.share * (KR_ATK[0] as number) * power(), GATE.drain, GATE.seal, { unavoidable: true }, up);
         }
       // The waves before him: his Eye on every hero, every 7 seconds of each (none while the heroes run on, nor what was coming as a wave ended).
       if (boss.away) {
