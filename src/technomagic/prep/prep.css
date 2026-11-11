@@ -1040,10 +1040,15 @@ button.tm-prep-manage {
   border-width: 1.5px;
 }
 
-/* Raid Info, Ready and Start Battle in one row, short. */
+/* Raid Info and Ready (or Background Battle) side by side, short, and Start Battle under them across the panel: never out of it
+   (the screen is scaled down a little more for it: ./prep.ts fit()). */
 .tm-prep.fit .tm-prep-actions {
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 6px;
+}
+
+.tm-prep.fit .tm-prep-actions .action:not([hidden]) {
+  flex: 1 1 auto;
 }
 
 .tm-prep.fit .tm-prep-actions .action {
@@ -1056,6 +1061,7 @@ button.tm-prep-manage {
 
 /* Forcing the start: how many are ready under its words, so the row still fits. */
 .tm-prep.fit .tm-prep-actions #prep-start {
+  flex-basis: 100%;
   min-width: 0;
   flex-direction: column;
   gap: 0;

@@ -971,6 +971,27 @@
   text-shadow: none;
 }
 
+/* Its right side: Clear Reward, then Dynamic Rewards, down the frame from under the level picker to its foot (./page.ts). */
+.dp-rw-side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-around;
+  gap: calc(14 * var(--u));
+  width: calc(840 * var(--u));
+  height: calc(680 * var(--u));
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.dp-rw-part {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(10 * var(--u));
+}
+
 /* PayShop_Deco_Divider with a line each side (#d4c8b5). */
 .dp-rw-deco {
   width: calc(673 * var(--u));
@@ -1086,8 +1107,8 @@
 }
 
 .dp-rw-card .dp-rw-item {
-  width: calc(66 * var(--u));
-  height: calc(66 * var(--u));
+  width: calc(60 * var(--u));
+  height: calc(60 * var(--u));
   min-width: 28px;
   min-height: 28px;
 }
@@ -1115,118 +1136,11 @@
   display: none;
 }
 
-/* An upright phone: the parts one under another, as wide as the screen (the boss, faint, behind them). */
-@media (max-width: 760px) {
-  .dp-rewards {
-    place-items: start center;
-  }
-
-  .dp-rw-box {
-    --u: 0.45px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-    max-width: 520px;
-    height: auto;
-    padding: 4px 0 6px;
-    border-width: 28px 18px;
-    border-image-width: 28px 18px;
-    overflow: hidden;
-  }
-
-  .dp-rw-box > .dp-at {
-    position: relative;
-    left: auto;
-    top: auto;
-    transform: none;
-  }
-
-  .dp-rw-frame,
-  .dp-rw-shadow,
-  .dp-rw-logo {
-    display: none;
-  }
-
-  .dp-rw-box > .dp-rw-boss {
-    position: absolute;
-    left: -14%;
-    bottom: 0;
-    width: 80%;
-    height: auto;
-    opacity: 0.2;
-  }
-
-  .dp-rw-box > .dp-rw-title {
-    width: calc(100% - 44px);
-    height: 44px;
-    border-width: 0 32px;
-    border-image-width: 0 32px;
-    margin-right: 44px;
-  }
-
-  .dp-rw-box > .dp-rw-close {
-    position: absolute;
-    right: 0;
-    top: 6px;
-  }
-
-  .dp-rw-pick {
-    gap: 6px;
-    width: 100%;
-  }
-
-  .dp-rw-level {
-    flex: 1;
-    width: auto;
-    min-width: 0;
-  }
-
-  .dp-rw-items,
-  .dp-rw-caution,
-  .dp-rw-cards,
-  .dp-rw-deco {
-    width: 100%;
-  }
-
-  .dp-rw-items {
-    grid-template-columns: repeat(auto-fit, minmax(52px, 1fr));
-    height: auto;
-    row-gap: 10px;
-  }
-
-  .dp-rw-item {
-    width: 50px;
-    height: 50px;
-  }
-
+/* A small screen (a phone on its side): the dragons' cards one a row, each wide enough for its tiles at a size that can be read. */
+@media (max-width: 900px), (max-height: 520px) {
   .dp-rw-cards {
-    grid-template-columns: 1fr;
-    gap: 8px;
-  }
-
-  .dp-rw-card {
-    height: auto;
-    padding: 6px 8px;
-    gap: 8px;
-  }
-
-  .dp-rw-card-art {
-    width: 48px;
-    height: 48px;
-  }
-
-  .dp-rw-card-items {
-    gap: 6px;
-  }
-
-  .dp-rw-card .dp-rw-item {
-    width: 42px;
-    height: 42px;
-  }
-
-  .dp-rw-head {
-    margin-top: 6px;
+    grid-template-columns: minmax(0, 1fr);
+    width: calc(560 * var(--u));
+    min-width: min(100%, 250px);
   }
 }
