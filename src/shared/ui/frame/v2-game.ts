@@ -52,23 +52,27 @@ export function startV2Game(frame: HTMLElement | null): void {
 
 /**
  * The sound button and the connection in a box of their own: a table game's over the players and the chat (`.tb-players`:
- * the two, one column, in place of the list alone); Mines' over its bet panel, the left of its game (a row over the game,
- * the box as wide as the panel). A game with neither (Poker) keeps them at the foot of the rail.
+ * the two, one column, in place of the list alone); Poker's over its panel (the moves) and its chat, which become a column
+ * beside the table; Mines' over its bet panel, the left of its game (a row over the game, the box as wide as the panel).
  */
 function statusOverPlayers(frame: HTMLElement): void {
   const players = frame.querySelector<HTMLElement>('.tb-players');
+  const poker = frame.querySelector<HTMLElement>('.pk-layout > .pk-panel');
   const mines = frame.querySelector<HTMLElement>('.mx > .mx-game');
   const sound = frame.querySelector<HTMLElement>('.top .frame-sound');
   const conn = frame.querySelector<HTMLElement>('.top .conn');
-  if (!sound || !conn || (!players && !mines)) return;
+  if (!sound || !conn || (!players && !poker && !mines)) return;
   const status = document.createElement('div');
   status.className = 'v2-game-status';
   status.append(sound, conn);
-  if (players) {
+  if (players || poker) {
     const side = document.createElement('div');
     side.className = 'v2-game-side';
-    players.before(side);
-    side.append(status, players);
+    const column = (players ?? poker) as HTMLElement;
+    column.before(side);
+    side.append(status, column);
+    const chat = poker && frame.querySelector<HTMLElement>('.pk-layout > .pk-chat');
+    if (chat) side.append(chat);
   } else if (mines) {
     const row = document.createElement('div');
     row.className = 'v2-game-status-row';

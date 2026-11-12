@@ -177,3 +177,93 @@ html.v2-game .v2-game-status-row > .v2-game-status {
 html.v2-game .mx-board {
   width: min(100%, calc(100vh - 190px), 760px);
 }
+
+/*
+ * Poker: on one screen, as the table games are. The table on the left as big as the height allows; beside it a column
+ * (v2-game.ts) of the sound and connection box, the panel (the moves: their buttons two by two) and the chat, which takes
+ * the rest of the height, its lines scrolling.
+ */
+html.v2-game .pk {
+  height: 100vh;
+  padding-bottom: 0;
+  overflow: hidden;
+}
+
+html.v2-game .pk > .pk-layout {
+  flex: 1;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 14px;
+  width: calc(100% - 16px);
+  min-height: 0;
+  margin: 10px 0 0;
+}
+
+html.v2-game .pk > .hint {
+  width: calc(100% - 16px);
+  margin: 6px 0 8px;
+}
+
+html.v2-game .pk-table {
+  flex: none;
+  align-self: center;
+  /* What the column beside it (340 and the gap) leaves, less room either side for the seats at its ends, which stand out past it. */
+  width: min(100% - 354px - 140px, calc((100vh - 60px) * 16 / 9));
+  min-width: 0;
+  min-height: 0;
+  margin: 0 auto;
+}
+
+html.v2-game .pk-layout > .v2-game-side {
+  flex-basis: 340px;
+}
+
+html.v2-game .v2-game-side > .pk-panel {
+  flex: none;
+  gap: 10px;
+  padding: 12px 14px;
+}
+
+html.v2-game .v2-game-side .pk-actions {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+html.v2-game .v2-game-side .pk-figures {
+  gap: 12px;
+}
+
+html.v2-game .v2-game-side .pk-figures b {
+  font-size: 15px;
+}
+
+html.v2-game .v2-game-side > .pk-chat {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  min-height: 0;
+  padding: 12px 14px;
+}
+
+html.v2-game .pk-chat .chat {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+html.v2-game .pk-chat .chat-lines {
+  flex: 1;
+  height: auto;
+  min-height: 0;
+}
+
+/* Poker's list of tables, before joining one: never taller than the screen, the list scrolling inside it. */
+html.v2-game .pk > .pk-lobby {
+  max-height: calc(100% - 24px);
+  min-height: 0;
+}
+
+html.v2-game .pk-lobby-body {
+  flex: 1 1 auto;
+  min-height: 0;
+}
