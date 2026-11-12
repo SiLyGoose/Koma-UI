@@ -232,7 +232,16 @@ async function start(): Promise<void> {
     lobby.render();
   }
   void pick.settle();
-  await apply(new URL(location.href));
+  // Back from a raid opened from Adventure (its back arrow: ../shared/ui/frame/v2-game.ts): Adventure open on its tab, the
+  // address the town's again.
+  const url = new URL(location.href);
+  const adventure = url.searchParams.get('adventure');
+  if (adventure !== null) {
+    url.searchParams.delete('adventure');
+    history.replaceState(history.state, '', url.href);
+  }
+  await apply(url);
+  if (adventure !== null) lobby.adventure.open(adventure);
 }
 void start().finally(release);
 

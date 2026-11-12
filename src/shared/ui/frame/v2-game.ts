@@ -10,11 +10,20 @@ import './v2-game.css';
  * a phone is asked to turn sideways, as v2's town asks.
  */
 
-/** Whether this game was opened from v2. */
-export const V2_GAME = new URLSearchParams(location.search).has('v2');
+/** Where in v2 the game was opened from: ?v2=1, the casino; ?v2=technomagic or dragon, that raid in Adventure (../../../v2/adventure.ts). */
+const FROM = new URLSearchParams(location.search).get('v2');
 
-/** Where its back button goes: v2's casino. */
-export const V2_BACK = '/v2/casino/';
+/** Whether this game was opened from v2. */
+export const V2_GAME = FROM !== null;
+
+/**
+ * Whether it's a raid opened from v2's Adventure: its prep screen without the frame (no border, no bar: its King's Raid back
+ * arrow by its title, the sound button and the connection at its top right), its own layout kept (./v2-game.css).
+ */
+const V2_RAID = FROM === 'technomagic' || FROM === 'dragon';
+
+/** Where its back button goes: back to v2's casino, or to Adventure with the raid's tab open (../../../v2/main.ts). */
+export const V2_BACK = V2_RAID ? `/v2/?adventure=${FROM}` : '/v2/casino/';
 
 /** The height a game is laid out for, before it's scaled to the screen: the games' desktop layout, whole. */
 const DESIGN_HEIGHT = 760;
@@ -22,6 +31,7 @@ const DESIGN_HEIGHT = 760;
 /** The game's frame (`main.frame`) made v2's: on a canvas scaled to the screen, its styles a desktop's. */
 export function startV2Game(frame: HTMLElement | null): void {
   const root = document.documentElement;
+  if (V2_RAID) return startV2Raid(root, frame);
   root.classList.add('v2-game');
   landscapeSheets();
   if (!frame) return;
@@ -79,4 +89,22 @@ function statusOverPlayers(frame: HTMLElement): void {
     row.append(status);
     mines.before(row);
   }
+}
+
+/**
+ * A raid opened from v2's Adventure (the TechnoMagic Raid, the Dragon Raid): no frame, its own layout kept (its field and
+ * prep fill the screen, as on a phone on its side: ../../../technomagic/prep/prep.css), its King's Raid back arrow by the
+ * prep's title (the bar's back link, now to Adventure, is what it presses), and the sound button and the connection at
+ * the end of the prep's top row.
+ */
+function startV2Raid(root: HTMLElement, frame: HTMLElement | null): void {
+  root.classList.add('v2-raid');
+  const top = frame?.querySelector<HTMLElement>('.tm-prep-top');
+  const sound = frame?.querySelector<HTMLElement>(':scope > .top .frame-sound');
+  const conn = frame?.querySelector<HTMLElement>(':scope > .top .conn');
+  if (!top || !sound || !conn) return;
+  const status = document.createElement('div');
+  status.className = 'v2-raid-status';
+  status.append(sound, conn);
+  top.append(status);
 }

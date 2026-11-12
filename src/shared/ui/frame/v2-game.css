@@ -267,3 +267,44 @@ html.v2-game .pk-lobby-body {
   flex: 1 1 auto;
   min-height: 0;
 }
+
+/* ------------------------------------------------------------------ A raid opened from v2's Adventure (v2-game.ts startV2Raid) */
+
+/* No frame: no border, no bar (nor its room before it comes in); the field and the prep have the whole screen. */
+html.v2-raid .frame {
+  border: 0;
+  border-radius: 0;
+}
+
+html.v2-raid .frame > .top,
+html.v2-raid .frame:not(:has(> .top))::before {
+  display: none;
+}
+
+/* King's Raid's back arrow by the title, on every screen (on a phone on its side, in the title's place, as it was). */
+html.v2-raid .tm-prep-back {
+  display: block;
+}
+
+/* The sound button and the connection at the end of the top row. */
+html.v2-raid .v2-raid-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+}
+
+html.v2-raid .v2-raid-status .frame-mute {
+  margin: 0;
+  padding: 4px 6px;
+  font-size: 20px;
+}
+
+html.v2-raid .v2-raid-status .frame-volume {
+  top: calc(100% + 6px);
+  right: 0;
+}
+
+html.v2-raid .v2-raid-status .conn {
+  font-size: 12px;
+}

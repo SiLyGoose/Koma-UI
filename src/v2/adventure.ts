@@ -50,7 +50,8 @@ interface Kind {
 }
 
 export interface Adventure {
-  open(): void;
+  /** Opens it, on `game`'s tab when given (back from a raid: ../shared/ui/frame/v2-game.ts), else the one picked last. */
+  open(game?: string): void;
   close(): void;
   /** Shows what can be played now (logged in, a server picked, the games the bot plays there). */
   render(): void;
@@ -67,7 +68,9 @@ export function makeAdventure(
     const label = button.textContent;
     button.disabled = true;
     button.textContent = 'Opening…';
-    const refused = await playGame(game, { single, boss, ...(room && { room }) });
+    // (The TechnoMagic and Dragon Raids as v2's, without the frame, their back arrow back here: ../shared/ui/frame/v2-game.ts.)
+    const v2 = game === 'technomagic' || game === 'dragon' ? game : undefined;
+    const refused = await playGame(game, { single, boss, ...(room && { room }), ...(v2 && { v2 }) });
     if (!refused) return;
     button.disabled = false;
     button.textContent = label;
@@ -291,9 +294,9 @@ export function makeAdventure(
     if (open) open.close();
     else close();
   };
-  function open(): void {
+  function open(game?: string): void {
     render();
-    pick(picked);
+    pick(KINDS.find((kind) => kind.game === game) ?? picked);
     window_.hidden = false;
     document.addEventListener('keydown', onKey);
     shown(true);
