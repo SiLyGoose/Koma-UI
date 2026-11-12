@@ -1,0 +1,88 @@
+/* ------------------------------------------------------------------ Opened from v2 */
+
+/*
+ * Played from v2 (../../shared/ui/frame/v2-game.ts: the desktop layout scaled to a phone on its side), each spot is its name
+ * and odds on one small line at its top, with little room round them, and the players betting on it under that: their
+ * stacks in a row, each with its owner's picture and amount under it. A side bet's rule is under its name until someone bets.
+ * With more than four players on a spot (up to 8), only their pictures and amounts, two rows if need be.
+ */
+html.v2-game .bc-spot {
+  grid-template-columns: auto auto;
+  grid-template-rows: auto auto auto;
+  grid-template-areas:
+    'name odds'
+    'help help'
+    'piles piles';
+  align-content: center;
+  align-items: baseline;
+  justify-content: center;
+  column-gap: 6px;
+  row-gap: 2px;
+  padding: 4px 6px;
+  border-radius: 10px;
+}
+
+html.v2-game .bc-spot-name {
+  font-size: 14px;
+  letter-spacing: 0.04em;
+}
+
+html.v2-game .bc-main .bc-spot-name {
+  font-size: 17px;
+  letter-spacing: 0.1em;
+}
+
+html.v2-game .bc-spot-odds {
+  font-size: 11px;
+}
+
+html.v2-game .bc-spot-help {
+  justify-self: center;
+  font-size: 10px;
+  text-align: center;
+}
+
+html.v2-game .bc-spot .tb-piles {
+  grid-area: piles;
+  align-self: start;
+  justify-self: center;
+  flex-wrap: nowrap;
+  gap: 3px 8px;
+  margin: 2px 0 0;
+  padding: 0;
+}
+
+html.v2-game .bc-spot .tb-pile {
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+html.v2-game .bc-spot .tb-pile-chips {
+  --chip-size: 26px;
+  height: calc(var(--chip-size) + (var(--n) - 1) * 4px);
+}
+
+html.v2-game .bc-spot .tb-pile-chips .tb-chip {
+  bottom: calc(var(--i) * 4px);
+  font-size: 8px;
+}
+
+html.v2-game .bc-spot .tb-pile-tag {
+  gap: 3px;
+  padding: 1px 6px 1px 1px;
+  font-size: 11px;
+}
+
+html.v2-game .bc-spot .tb-pile-avatar {
+  width: 16px;
+  height: 16px;
+}
+
+html.v2-game .bc-spot .tb-piles.crowded {
+  flex-wrap: wrap;
+}
+
+html.v2-game .bc-spot .tb-piles.crowded .tb-pile-chips {
+  display: none;
+}
