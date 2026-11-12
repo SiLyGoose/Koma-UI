@@ -369,86 +369,277 @@ html[data-shell='v2'] body {
 }
 
 /* ---------------------------------------------------------------------------------------------------------------- */
-/* The casino (./casino.ts) */
+/* The casino (./casino.ts): King's Raid's event dungeon list, its games for dungeons. In the game's units (--s scales
+   its 1080-high screen to this one, as wide as this one is); the cards at --c of their size. */
 
 .v2-casino {
-  min-height: 100%;
-  padding: 16px max(20px, env(safe-area-inset-right)) 70px max(20px, env(safe-area-inset-left));
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  /* (The Portal's backdrop, a casino green over it, darkened at its edges.) */
   background:
-    radial-gradient(ellipse at 50% 0%, rgb(46 120 80 / 45%), transparent 60%),
-    linear-gradient(180deg, #14231a, #0c1510);
+    radial-gradient(ellipse at 50% 45%, transparent 40%, rgb(0 0 0 / 55%)),
+    url('/kr/ui/lobby/adventure-bg.webp') center / cover,
+    #2f5a40;
+  background-blend-mode: normal, multiply;
+  color: #fff;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
-.v2-casino-balance {
-  padding: 6px 14px;
-  border: 1px solid var(--plaque-edge);
-  border-radius: 999px;
-  background: var(--plaque);
-  color: var(--plaque-text);
-  font-weight: 600;
+.v2-cas-stage {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 1920px;
+  height: 1080px;
+  transform: scale(var(--s, 1)) translateY(-50%);
+  transform-origin: 0 0;
 }
 
-.v2-casino-balance[hidden] {
+/* Common_TopBar (320 each end kept) across the top, under the back button and the window's name. */
+.v2-cas-topbar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 224px;
+  border-style: solid;
+  border-width: 0 320px;
+  border-image: url('/kr/ui/casino/topbar.webp') 0 320 fill / 0 320px;
+  pointer-events: none;
+}
+
+.v2-cas-back {
+  text-decoration: none;
+}
+
+/* Where King's Raid's top bar has the player's stamina and gold: their zeiucoins. */
+.v2-cas-balance {
+  position: absolute;
+  right: 60px;
+  top: 22px;
+  padding: 0 30px;
+  border: 2px solid #8a7444;
+  border-radius: 40px;
+  background: rgb(10 10 14 / 75%);
+  color: #f4e6b2;
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 60px;
+}
+
+.v2-cas-balance[hidden] {
   display: none;
 }
 
-.v2-casino-status {
-  margin: 14px auto 0;
+.v2-cas-status {
+  position: absolute;
+  left: 50%;
+  top: 34px;
+  margin: 0;
+  color: #ffffb3;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 40px;
+  white-space: nowrap;
+  transform: translateX(-50%);
+  text-shadow:
+    0 0 3px #000,
+    0 2px 3px #000;
+}
+
+.v2-cas-status.bad {
+  color: #ff9a7a;
+}
+
+.v2-cas-status[hidden] {
+  display: none;
+}
+
+/* The window (RankerRoot: 1744 by 940, 56 under the middle): Common_Main_Frame_Small (30) around
+   Common_Main_Frame_Bg_Wide (35 top and bottom kept). */
+.v2-cas-window {
+  position: absolute;
+  left: 80px;
+  right: 80px;
+  top: 126px;
+  height: 940px;
+  border-style: solid;
+  border-width: 30px;
+  border-image: url('/kr/ui/casino/frame.webp') 30 / 30px;
+}
+
+.v2-cas-window::before {
+  content: '';
+  position: absolute;
+  inset: -25px;
+  z-index: -1;
+  border-style: solid;
+  border-width: 35px 0;
+  border-image: url('/kr/ui/casino/frame-bg.webp') 35 0 fill / 35px 0;
+}
+
+/* DungeonGrid: the cards side by side (530 a card), scrolling sideways when they don't fit. */
+.v2-cas-cards {
+  position: absolute;
+  inset: -25px;
+  display: flex;
+  align-items: center;
+  justify-content: safe center;
+  margin: 0;
+  padding: 0 20px;
+  overflow: auto hidden;
+  list-style: none;
+  overscroll-behavior: contain;
+  touch-action: pan-x;
+  scrollbar-width: thin;
+}
+
+.v2-cas-cell {
+  position: relative;
+  flex: none;
+  width: calc(530px * var(--c, 1));
+  height: calc(926px * var(--c, 1));
+}
+
+/* A card (EventDungeonComponent, 530 by 926): its gold side lines (GuildRaid_frame_05_01, 150 top and bottom kept), the
+   curtain (GuildRaid_boss_01) and portrait (500 by 927) between them, its words from 89 under its middle down. */
+.v2-cas-card {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 530px;
+  height: 926px;
+  transform: scale(var(--c, 1));
+  transform-origin: 0 0;
   text-align: center;
 }
 
-.v2-casino-tables {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
-  max-width: 1100px;
-  margin: 20px auto 0;
+.v2-cas-card-line,
+.v2-cas-card-curtain,
+.v2-cas-card-art {
+  position: absolute;
+  top: 0;
+  height: 926px;
+  pointer-events: none;
 }
 
-.v2-table {
-  display: grid;
-  grid-template-rows: auto auto 1fr auto;
-  gap: 8px;
-  justify-items: center;
-  padding: 18px 16px;
-  border: 2px solid #d8bf7a;
-  border-radius: 16px;
-  background:
-    radial-gradient(ellipse at 50% 30%, #2f7a50, #1b4d33 70%),
-    #1b4d33;
-  box-shadow:
-    inset 0 0 0 6px rgb(0 0 0 / 18%),
-    0 10px 24px rgb(0 0 0 / 40%);
-  text-align: center;
+.v2-cas-card-curtain {
+  left: 15px;
+  width: 500px;
+  background: url('/kr/ui/casino/card-curtain.webp') 0 0 / 100% 100%;
 }
 
-.v2-table h2 {
+.v2-cas-card-art {
+  left: 15px;
+  width: 500px;
+  object-fit: cover;
+}
+
+.v2-cas-card-line {
+  z-index: 1;
+  left: 0;
+  width: 530px;
+  border-style: solid;
+  border-width: 150px 30px;
+  border-image: url('/kr/ui/casino/card-line.webp') 150 30 / 150px 30px;
+}
+
+/* Name_Prefix (30, #ffcc00), Name (50, #ffff99), Label_Opened_Desc (25, #ffffb3, 3 lines): outlined in #041601 / black. */
+.v2-cas-card-kind,
+.v2-cas-card-name,
+.v2-cas-card-about {
+  position: absolute;
+  left: 38px;
+  width: 453px;
   margin: 0;
-  color: #ffe9a8;
-  font-size: 20px;
+  font-weight: 700;
 }
 
-.v2-table p {
-  margin: 0;
-  color: #d5e6d9;
-  font-size: 13px;
-  line-height: 1.45;
+.v2-cas-card-kind {
+  top: 527px;
+  color: #fc0;
+  font-size: 30px;
+  line-height: 50px;
 }
 
-.v2-table-suit {
+.v2-cas-card-name {
+  top: 574px;
+  color: #ff9;
+  font-size: 50px;
+  line-height: 50px;
+}
+
+.v2-cas-card-kind,
+.v2-cas-card-name {
+  text-shadow:
+    2px 0 #041601,
+    -2px 0 #041601,
+    0 2px #041601,
+    0 -2px #041601,
+    2px 2px #041601,
+    -2px 2px #041601,
+    2px -2px #041601,
+    -2px -2px #041601;
+}
+
+.v2-cas-card-about {
+  top: 633px;
+  height: 100px;
   display: grid;
   place-items: center;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: #f4ecd6;
-  box-shadow: inset 0 0 0 4px #d8bf7a;
-  color: #20202a;
-  font-size: 30px;
+  color: #ffffb3;
+  font-size: 25px;
+  font-weight: 600;
+  line-height: 30px;
+  text-shadow:
+    2px 0 #000,
+    -2px 0 #000,
+    0 2px #000,
+    0 -2px #000;
 }
 
-.v2-table-suit.red {
-  color: #b9333a;
+/* Button_Large_Enter: GuildRaid_button_02, 470 by 100, its word 35 white outlined black. (Sliced 12 in, at its gold rim,
+   not the game's 35: the gradient across it runs on unbroken.) */
+.v2-cas-card-play {
+  position: absolute;
+  z-index: 2;
+  left: 30px;
+  top: 779px;
+  width: 470px;
+  height: 100px;
+  padding: 0;
+  border-style: solid;
+  border-width: 12px;
+  border-image: url('/kr/ui/casino/button.webp') 12 fill / 12px;
+  background: none;
+  color: #fff;
+  font: inherit;
+  font-size: 35px;
+  font-weight: 700;
+  line-height: 30px;
+  cursor: pointer;
+  text-shadow:
+    2px 0 #000,
+    -2px 0 #000,
+    0 2px #000,
+    0 -2px #000;
+}
+
+.v2-cas-card-play:hover:not(:disabled),
+.v2-cas-card-play:focus-visible {
+  outline: none;
+  filter: brightness(1.12);
+}
+
+.v2-cas-card-play:disabled {
+  border-image-source: url('/kr/ui/casino/button-off.webp');
+  cursor: default;
+}
+
+.v2-cas-card:hover .v2-cas-card-art {
+  filter: brightness(1.08);
 }
 
 /* A hero in the profile's list of who walks the town (./hero-pick.ts). */
