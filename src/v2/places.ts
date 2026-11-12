@@ -36,11 +36,12 @@ export const PAGES: readonly SitePage[] = [
   { path: '/player', needsLogin: true, page: () => import('../gear/page').then((m) => m.gearPage) },
   // (v2's own copy of the heroes page, ./heroes/, to adapt to its window.)
   { path: '/heroes', needsLogin: true, page: () => import('./heroes/page').then((m) => m.heroesPage) },
-  // (v2's own copies of the inventory and the shop, ./inventory/ and ./shop/, to adapt to its window.)
-  { path: '/inventory', needsLogin: true, subpaths: true, page: () => import('./inventory/page').then((m) => m.v2InventoryPage) },
+  // (v2's own copies of the inventory and the shop, ./inventory/ and ./shop/, to adapt to its window; never scaled past
+  // their own size, as the forge: a big screen shows them at the site's size, not zoomed in.)
+  { path: '/inventory', needsLogin: true, subpaths: true, maxScale: 1, page: () => import('./inventory/page').then((m) => m.v2InventoryPage) },
   // (Never scaled past its own size: a big screen shows the forge as the site does, with more room.)
   { path: '/forge', needsLogin: true, maxScale: 1, page: () => import('../forge/page').then((m) => m.forgePage) },
-  { path: '/shop', needsLogin: true, subpaths: true, page: () => import('./shop/page').then((m) => m.v2ShopPage) },
+  { path: '/shop', needsLogin: true, subpaths: true, maxScale: 1, page: () => import('./shop/page').then((m) => m.v2ShopPage) },
   { path: '/dressing-room', needsLogin: true, page: () => import('../dressing/page').then((m) => m.dressingPage) },
   { path: '/hero-outfits', needsLogin: true, page: () => import('../hero-outfits/page').then((m) => m.heroOutfitsPage) },
   // (The same: a big screen shows the databank at the site's size, with more room.)
