@@ -1,7 +1,7 @@
 /*
- * A game opened from v2 (./v2-game.ts): no frame round it, its bar only King's Raid's back button at the top left and the
- * sound button and connection at the top right, a strip over the game; the game on a canvas from the screen's top left, scaled to
- * it (its size and scale set by v2-game.ts), the page itself never scrolling.
+ * A game opened from v2 (./v2-game.ts): no frame round it and no bar across it, only a thin rail down its left with King's
+ * Raid's back button at its top and the sound button and connection at its foot; the game on a canvas from the screen's top
+ * left, scaled to it (its size and scale set by v2-game.ts), the page itself never scrolling.
  */
 
 html.v2-game,
@@ -26,24 +26,67 @@ html.v2-game .frame:not(:has(> .top))::before {
   display: none;
 }
 
-/* The bar: a strip of its own over the game (none of its blue), its back button at the left, sound and connection at the right. */
+/*
+ * The bar: no strip across the top (the game has the whole height), but a thin rail down the left, no background: King's
+ * Raid's back button at its top, the sound button and the connection at its foot. The online players and the rest of the
+ * frame's bar are left out.
+ */
+html.v2-game .frame {
+  padding-left: var(--v2-rail);
+  --v2-rail: 64px;
+}
+
 html.v2-game .frame > .top {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 50;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
-  height: 56px;
-  padding: max(4px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) 0 max(10px, env(safe-area-inset-left));
+  gap: 8px;
+  width: var(--v2-rail);
+  padding: max(6px, env(safe-area-inset-top)) 0 max(10px, env(safe-area-inset-bottom)) env(safe-area-inset-left);
   background: none;
 }
 
-/* (The table games' height leaves room for this bar, not the frame's 36.) */
+/* (The table games' height leaves room for no bar now, only the gaps above and under the table.) */
 html.v2-game .tb-layout > .tb-game {
-  --tb-under-bar: calc(56px + clamp(6px, 1.6vh, 16px) + 12px);
+  --tb-under-bar: calc(clamp(6px, 1.6vh, 16px) + 12px);
 }
 
 html.v2-game .frame > .top h1,
-html.v2-game .frame > .top .frame-profile {
+html.v2-game .frame > .top .frame-profile,
+html.v2-game .frame > .top .frame-slot {
   display: none;
+}
+
+/* The sound button and the connection at the rail's foot; the sound's panel opens beside it, rightwards and up. */
+html.v2-game .frame > .top .frame-sound {
+  margin-top: auto;
+}
+
+html.v2-game .frame-mute {
+  margin: 0;
+  padding: 6px;
+  font-size: 22px;
+}
+
+html.v2-game .frame-volume {
+  top: auto;
+  right: auto;
+  bottom: 0;
+  left: calc(100% + 8px);
+}
+
+html.v2-game .frame > .top .conn {
+  max-width: calc(var(--v2-rail) - 6px);
+  padding: 3px 4px;
+  font-size: 10px;
+  line-height: 1.2;
+  text-align: center;
+  overflow-wrap: anywhere;
 }
 
 /* King's Raid's back button (Common_TopBar_Button_Back3), the bar's own left. */
@@ -51,7 +94,6 @@ html.v2-game .frame .top .back.v2-game-back {
   display: block;
   width: 52px;
   height: 52px;
-  margin-right: auto;
   font-size: 0;
   filter: drop-shadow(0 2px 4px rgb(0 0 0 / 70%));
 }
@@ -66,4 +108,9 @@ html.v2-game .frame .top .back.v2-game-back:hover,
 html.v2-game .frame .top .back.v2-game-back:focus-visible {
   outline: none;
   filter: brightness(1.2) drop-shadow(0 2px 4px rgb(0 0 0 / 70%));
+}
+
+/* Mines' board, square, as tall as the room the bar left allows (its 190 was the bar, the gaps and the hint). */
+html.v2-game .mx-board {
+  width: min(100%, calc(100vh - 134px), 760px);
 }

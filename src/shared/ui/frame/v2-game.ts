@@ -4,7 +4,7 @@ import './v2-game.css';
 /*
  * A game opened from v2 (its link with ?v2: v2's casino, ../../../v2/casino.ts), played as v2 is: on its side, filling the
  * screen, no frame round it (no border, no title bar: ./v2-game.css), King's Raid's back button at its top left back to v2's
- * casino (the sound button and the connection kept at its top right). It is laid out as on a desktop whatever the screen
+ * casino, the sound button and the connection at the foot of the thin rail it's on (the online players left out). It is laid out as on a desktop whatever the screen
  * (its styles rewritten in place: ../../../v2/landscape-css.ts landscapeSheets), on a canvas DESIGN_HEIGHT high and as wide
  * as the screen's shape makes it, scaled to the screen: all of it on one screen, nothing to scroll or zoom. Held upright,
  * a phone is asked to turn sideways, as v2's town asks.
