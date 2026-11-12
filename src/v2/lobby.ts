@@ -2,8 +2,8 @@ import { makeAdventure, type Adventure } from './adventure';
 
 /*
  * King's Raid's lobby menus over the town's bottom corners. At the bottom left, its RightMenu row (MenuAnchor's Buttons:
- * 140-unit WorldMap_Button_* at 0.9, 148 apart, a 32-unit gold label under each): Heroes, Inventory and Index (the
- * Archive), each opening its page at once, as the game's menu does. At the bottom right, Adventure (the lobby's Battle
+ * 140-unit WorldMap_Button_* at 0.9, 148 apart, a 32-unit gold label under each): Heroes, Inventory, Index (the
+ * Archive) and Shop (WorldMap_Button_PayShop), each opening its page at once, as the game's menu does. At the bottom right, Adventure (the lobby's Battle
  * emblem): its window of battles (./adventure.ts), the kinds on its left, their bosses on its right.
  * Its art: public/kr/ui/lobby/ (KR-extracted/scripts/kr-lobby-ui.py). Laid out in King's Raid's units, scaled by --kr.
  */
@@ -15,6 +15,7 @@ const MENU: readonly { art: string; label: string; path: string }[] = [
   { art: 'heroes', label: 'Heroes', path: '/heroes' },
   { art: 'inventory', label: 'Inventory', path: '/inventory' },
   { art: 'index', label: 'Index', path: '/databank' },
+  { art: 'shop', label: 'Shop', path: '/shop' },
 ];
 
 export interface Lobby {
