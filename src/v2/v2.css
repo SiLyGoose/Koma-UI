@@ -562,14 +562,16 @@ html[data-shell='v2'] body {
   object-fit: cover;
 }
 
+/* The frame's dark plate (cut out of it by kr-lobby-ui.py, under it here), the Discord picture on it: the frame's gold
+   rim and the ring's edge cover the picture's edges. */
 .v2-profile-plate {
   position: absolute;
-  left: 133px;
-  top: 21px;
-  width: 62px;
-  height: 40px;
+  left: 128px;
+  top: 19px;
+  width: 70px;
+  height: 48px;
   overflow: hidden;
-  border-radius: 4px;
+  background: url('/kr/ui/lobby/profile-plate.webp');
 }
 
 .v2-profile-plate img {
