@@ -25,6 +25,7 @@ export function startV2Game(frame: HTMLElement | null): void {
   root.classList.add('v2-game');
   landscapeSheets();
   if (!frame) return;
+  statusOverPlayers(frame);
   // (Sized to the screen as it is, until the landscape module is in: then to the page as laid out, turned by hand or not.)
   let size = (): { width: number; height: number } => ({ width: innerWidth, height: innerHeight });
   const fit = (): void => {
@@ -47,4 +48,22 @@ export function startV2Game(frame: HTMLElement | null): void {
     onLandscape(fit);
     fit();
   });
+}
+
+/**
+ * A table game's sound button and connection in a box of their own, over the players and the chat (`.tb-players`: the
+ * two, one column, in place of the list alone). A game without that list (Mines, Poker) keeps them at the foot of the rail.
+ */
+function statusOverPlayers(frame: HTMLElement): void {
+  const players = frame.querySelector<HTMLElement>('.tb-players');
+  const sound = frame.querySelector<HTMLElement>('.top .frame-sound');
+  const conn = frame.querySelector<HTMLElement>('.top .conn');
+  if (!players || !sound || !conn) return;
+  const side = document.createElement('div');
+  side.className = 'v2-game-side';
+  const status = document.createElement('div');
+  status.className = 'v2-game-status';
+  status.append(sound, conn);
+  players.before(side);
+  side.append(status, players);
 }

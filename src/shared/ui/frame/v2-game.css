@@ -114,3 +114,44 @@ html.v2-game .frame .top .back.v2-game-back:focus-visible {
 html.v2-game .mx-board {
   width: min(100%, calc(100vh - 134px), 760px);
 }
+
+/* A table game's sound button and connection: a box of their own over the players and the chat (v2-game.ts), as wide. */
+html.v2-game .v2-game-side {
+  display: flex;
+  flex: 0 0 290px;
+  flex-direction: column;
+  gap: 10px;
+  align-self: stretch;
+  min-height: 0;
+}
+
+html.v2-game .v2-game-side > .tb-players {
+  position: static;
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+html.v2-game .v2-game-status {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 10px 6px 6px;
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+
+html.v2-game .v2-game-status .frame-mute {
+  font-size: 20px;
+}
+
+html.v2-game .v2-game-status .frame-volume {
+  top: calc(100% + 6px);
+  bottom: auto;
+  left: 0;
+}
+
+html.v2-game .v2-game-status .conn {
+  font-size: 13px;
+}

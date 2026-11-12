@@ -233,4 +233,5 @@ function onPhonesInProfile(profile: HTMLElement): void {
   phone.addEventListener('change', place);
 }
 
-void showProfile();
+// (Not from v2: no profile there, and its connection is in a place of its own, ./v2-game.ts.)
+if (!V2_GAME) void showProfile();
