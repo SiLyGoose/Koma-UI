@@ -19,6 +19,12 @@ import { pageAt, type SitePage } from './places';
 
 /** The height a page is laid out for, before it's scaled to the space it has: the site's wide layout, at its smallest. */
 const CANVAS_HEIGHT = 640;
+/**
+ * The widest a canvas is, for its height: a desktop screen's shape under the top bar. A wider screen for its height (a
+ * phone's) has the page in its middle at that shape, not laid out wider (its columns, and what's in them, growing taller
+ * than the screen as they grow wider).
+ */
+const CANVAS_SHAPE = 1.96;
 
 export interface Panel {
   element: HTMLElement;
@@ -52,12 +58,15 @@ export function makePanel(into: HTMLElement, back: () => void): Panel {
     const width = view.clientWidth;
     const height = view.clientHeight;
     if (!width || !height) return;
-    const scale = element.classList.contains('own-bar') ? 1 : height / CANVAS_HEIGHT;
-    canvas.style.width = `${width / scale}px`;
+    const own = element.classList.contains('own-bar');
+    const scale = own ? 1 : height / CANVAS_HEIGHT;
+    const across = own ? width : Math.min(width / scale, CANVAS_HEIGHT * CANVAS_SHAPE);
+    canvas.style.left = `${(width - across * scale) / 2}px`;
+    canvas.style.width = `${across}px`;
     canvas.style.height = `${height / scale}px`;
     canvas.style.transform = scale === 1 ? '' : `scale(${scale})`;
     canvas.style.setProperty('--v2-vh', `${height / scale / 100}px`);
-    canvas.style.setProperty('--v2-vw', `${width / scale / 100}px`);
+    canvas.style.setProperty('--v2-vw', `${across / 100}px`);
   }
   new ResizeObserver(fit).observe(view);
 
@@ -91,6 +100,8 @@ export function makePanel(into: HTMLElement, back: () => void): Panel {
       // A page with tabs read its tab from the address bar as it was set up (v2's, which it doesn't know): its own path now.
       if (site.subpaths) navigate?.(url);
       await drawn.catch(() => undefined);
+      // (And again once it has drawn: one that waits to load before showing a tab picks it then from the address bar.)
+      if (site.subpaths && mine === asked) navigate?.(url);
     } finally {
       release();
     }

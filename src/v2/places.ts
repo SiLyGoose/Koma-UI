@@ -31,9 +31,10 @@ export const PAGES: readonly SitePage[] = [
   { path: '/player', needsLogin: true, page: () => import('../gear/page').then((m) => m.gearPage) },
   // (v2's own copy of the heroes page, ./heroes/, to adapt to its window.)
   { path: '/heroes', needsLogin: true, page: () => import('./heroes/page').then((m) => m.heroesPage) },
-  { path: '/inventory', needsLogin: true, subpaths: true, page: () => import('../inventory/page').then((m) => m.inventoryPage) },
+  // (v2's own copies of the inventory and the shop, ./inventory/ and ./shop/, to adapt to its window.)
+  { path: '/inventory', needsLogin: true, subpaths: true, page: () => import('./inventory/page').then((m) => m.v2InventoryPage) },
   { path: '/forge', needsLogin: true, page: () => import('../forge/page').then((m) => m.forgePage) },
-  { path: '/shop', needsLogin: true, subpaths: true, page: () => import('../shop/page').then((m) => m.shopPage) },
+  { path: '/shop', needsLogin: true, subpaths: true, page: () => import('./shop/page').then((m) => m.v2ShopPage) },
   { path: '/dressing-room', needsLogin: true, page: () => import('../dressing/page').then((m) => m.dressingPage) },
   { path: '/hero-outfits', needsLogin: true, page: () => import('../hero-outfits/page').then((m) => m.heroOutfitsPage) },
   { path: '/databank', subpaths: true, page: () => import('../databank/page').then((m) => m.databankPage) },

@@ -1,0 +1,15 @@
+<!-- v2's inventory (./page.ts): a copy of the site's (../../inventory/inventory.html), to be adapted to v2's landscape window here without changing the site's. Run by the same code (../../inventory/page.ts). -->
+<main class="gear-page inventory-page">
+  <!-- The site's page bar (../shared/ui/page-bar/): the server at its left, its name in the middle. -->
+  <div class="page-bar inv-head">
+    <div class="page-bar-left"><select id="inv-server" class="server-pick" aria-label="Server" hidden></select></div>
+    <!-- (Not in v2: its name is on the top bar over it.) -->
+    <h1 class="page-bar-title" data-v2-gone>Inventory</h1>
+    <div class="page-bar-right"></div>
+  </div>
+  <p id="inv-status" class="status" hidden></p>
+  <div class="inv-window">
+    <nav class="inv-tabs" role="tablist" aria-label="Inventory"></nav>
+    <div class="inv-panel" role="tabpanel"></div>
+  </div>
+</main>
