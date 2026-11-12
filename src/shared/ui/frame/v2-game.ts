@@ -51,19 +51,28 @@ export function startV2Game(frame: HTMLElement | null): void {
 }
 
 /**
- * A table game's sound button and connection in a box of their own, over the players and the chat (`.tb-players`: the
- * two, one column, in place of the list alone). A game without that list (Mines, Poker) keeps them at the foot of the rail.
+ * The sound button and the connection in a box of their own: a table game's over the players and the chat (`.tb-players`:
+ * the two, one column, in place of the list alone); Mines' over its bet panel, the left of its game (a row over the game,
+ * the box as wide as the panel). A game with neither (Poker) keeps them at the foot of the rail.
  */
 function statusOverPlayers(frame: HTMLElement): void {
   const players = frame.querySelector<HTMLElement>('.tb-players');
+  const mines = frame.querySelector<HTMLElement>('.mx > .mx-game');
   const sound = frame.querySelector<HTMLElement>('.top .frame-sound');
   const conn = frame.querySelector<HTMLElement>('.top .conn');
-  if (!players || !sound || !conn) return;
-  const side = document.createElement('div');
-  side.className = 'v2-game-side';
+  if (!sound || !conn || (!players && !mines)) return;
   const status = document.createElement('div');
   status.className = 'v2-game-status';
   status.append(sound, conn);
-  players.before(side);
-  side.append(status, players);
+  if (players) {
+    const side = document.createElement('div');
+    side.className = 'v2-game-side';
+    players.before(side);
+    side.append(status, players);
+  } else if (mines) {
+    const row = document.createElement('div');
+    row.className = 'v2-game-status-row';
+    row.append(status);
+    mines.before(row);
+  }
 }

@@ -110,10 +110,6 @@ html.v2-game .frame .top .back.v2-game-back:focus-visible {
   filter: brightness(1.2) drop-shadow(0 2px 4px rgb(0 0 0 / 70%));
 }
 
-/* Mines' board, square, as tall as the room the bar left allows (its 190 was the bar, the gaps and the hint). */
-html.v2-game .mx-board {
-  width: min(100%, calc(100vh - 134px), 760px);
-}
 
 /* A table game's sound button and connection: a box of their own over the players and the chat (v2-game.ts), as wide. */
 html.v2-game .v2-game-side {
@@ -161,4 +157,23 @@ html.v2-game .tb > .tb-layout,
 html.v2-game .tb > .hint {
   width: calc(100% - 16px);
   margin-left: 0;
+}
+
+/* Mines' sound button and connection: a box over its bet panel, as wide (v2-game.ts), the game right under it. */
+html.v2-game .mx > .v2-game-status-row {
+  width: min(var(--mx-width), 100% - 32px);
+  margin: auto auto 10px;
+}
+
+html.v2-game .mx > .v2-game-status-row + .mx-game {
+  margin-top: 0;
+}
+
+html.v2-game .v2-game-status-row > .v2-game-status {
+  width: clamp(290px, 24vw, 350px);
+}
+
+/* (The board a little smaller for it: the box's room.) */
+html.v2-game .mx-board {
+  width: min(100%, calc(100vh - 190px), 760px);
 }
