@@ -43,7 +43,8 @@ export const PAGES: readonly SitePage[] = [
   { path: '/shop', needsLogin: true, subpaths: true, page: () => import('./shop/page').then((m) => m.v2ShopPage) },
   { path: '/dressing-room', needsLogin: true, page: () => import('../dressing/page').then((m) => m.dressingPage) },
   { path: '/hero-outfits', needsLogin: true, page: () => import('../hero-outfits/page').then((m) => m.heroOutfitsPage) },
-  { path: '/databank', subpaths: true, page: () => import('../databank/page').then((m) => m.databankPage) },
+  // (The same: a big screen shows the databank at the site's size, with more room.)
+  { path: '/databank', subpaths: true, maxScale: 1, page: () => import('../databank/page').then((m) => m.databankPage) },
   { path: '/admin', needsLogin: true, page: () => import('../admin/page').then((m) => m.adminPage) },
   // v2's own: the casino's tables (./casino.ts).
   { path: '/casino', page: () => import('./casino').then((m) => m.casinoPage) },

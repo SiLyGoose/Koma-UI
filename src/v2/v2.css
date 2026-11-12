@@ -422,6 +422,37 @@ html[data-shell='v2'] body {
   }
 }
 
+/*
+ * The databank the same way (./places.ts maxScale): wider and taller than the site's, its lists the narrower third, the
+ * items as many cards across as fit at their desktop size, its way in (the star chart) as tall as the page.
+ */
+@media (min-width: 900px) and (min-height: 600px) {
+  .v2-panel .v2-panel-canvas > main.databank-page {
+    max-width: min(1760px, calc(100% - 64px));
+  }
+
+  .v2-panel .databank-page .panels,
+  .v2-panel .databank-page .db-hub {
+    max-height: none;
+  }
+
+  .v2-panel .databank-page .databank,
+  .v2-panel .databank-page .db-bosses {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  }
+
+  .v2-panel .databank-page .armory-grid {
+    grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  }
+
+  /* The enemies', classes' and heroes' cards as many across as fit at a desktop's size (not one column as wide as the list). */
+  .v2-panel .databank-page .db-boss-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    align-content: start;
+  }
+}
+
 /* (A part v2's copy of a page leaves out, kept for the code that fills it: ./heroes/heroes.html's Active Effects.) */
 .v2-panel [data-v2-gone] {
   display: none !important;
