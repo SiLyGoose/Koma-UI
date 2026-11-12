@@ -23,6 +23,11 @@ export interface SitePage {
   path: string;
   needsLogin?: boolean;
   subpaths?: boolean;
+  /**
+   * The most its canvas is scaled up (./panel.ts): on a screen taller than that allows, the canvas grows taller instead, the
+   * page at its own size with more room, not zoomed in (unset: scaled to fill, however big the screen).
+   */
+  maxScale?: number;
   page: () => Promise<Page>;
 }
 
@@ -33,7 +38,8 @@ export const PAGES: readonly SitePage[] = [
   { path: '/heroes', needsLogin: true, page: () => import('./heroes/page').then((m) => m.heroesPage) },
   // (v2's own copies of the inventory and the shop, ./inventory/ and ./shop/, to adapt to its window.)
   { path: '/inventory', needsLogin: true, subpaths: true, page: () => import('./inventory/page').then((m) => m.v2InventoryPage) },
-  { path: '/forge', needsLogin: true, page: () => import('../forge/page').then((m) => m.forgePage) },
+  // (Never scaled past its own size: a big screen shows the forge as the site does, with more room.)
+  { path: '/forge', needsLogin: true, maxScale: 1, page: () => import('../forge/page').then((m) => m.forgePage) },
   { path: '/shop', needsLogin: true, subpaths: true, page: () => import('./shop/page').then((m) => m.v2ShopPage) },
   { path: '/dressing-room', needsLogin: true, page: () => import('../dressing/page').then((m) => m.dressingPage) },
   { path: '/hero-outfits', needsLogin: true, page: () => import('../hero-outfits/page').then((m) => m.heroOutfitsPage) },

@@ -12,7 +12,8 @@ import { pageAt, type SitePage } from './places';
  * a page with its own (the casino's) has only that.
  *
  * v2 is played on its side: a page is laid out on a canvas of its own, CANVAS_HEIGHT high and as wide as the screen's shape
- * makes it, scaled to fill the space under the top bar (smaller on a phone, larger on a big screen), its styles always the
+ * makes it, scaled to fill the space under the top bar (smaller on a phone, larger on a big screen; a page with a maxScale,
+ * past it, taller instead: more room, not larger), its styles always the
  * site's wide-screen layout (./landscape-css.ts: their vh and vw the canvas's). A page with its own top bar (the casino) lays
  * itself out on the screen as it is.
  */
@@ -53,7 +54,8 @@ export function makePanel(into: HTMLElement, back: () => void): Panel {
     const height = view.clientHeight;
     if (!width || !height) return;
     const own = element.classList.contains('own-bar');
-    const scale = own ? 1 : height / CANVAS_HEIGHT;
+    // (Up to the page's maxScale: past it, the canvas taller than CANVAS_HEIGHT rather than scaled further.)
+    const scale = own ? 1 : Math.min(height / CANVAS_HEIGHT, shown?.maxScale ?? Infinity);
     // (As wide as the screen: a page whose columns would grow taller than the screen as they grow wider is kept from it in v2.css.)
     const across = width / scale;
     canvas.style.width = `${across}px`;
@@ -65,6 +67,8 @@ export function makePanel(into: HTMLElement, back: () => void): Panel {
   new ResizeObserver(fit).observe(view);
 
   let current: { site: SitePage; page: Page; unmount: () => void; navigate?: (url: URL) => void } | null = null;
+  /** The page laid out on the canvas (set as it's put in, before it's mounted). */
+  let shown: SitePage | null = null;
   let asked = 0;
 
   async function open(url: URL): Promise<void> {
@@ -88,6 +92,7 @@ export function makePanel(into: HTMLElement, back: () => void): Panel {
       document.title = page.title;
       barName.textContent = page.title.split(' · ')[0] ?? '';
       element.classList.toggle('own-bar', !!root.querySelector('.v2-adv-back'));
+      shown = site;
       fit();
       const { drawn, unmount, navigate } = page.mount(root);
       current = { site, page, unmount, navigate };
@@ -105,6 +110,7 @@ export function makePanel(into: HTMLElement, back: () => void): Panel {
     asked++;
     current?.unmount();
     current = null;
+    shown = null;
     canvas.textContent = '';
     element.hidden = true;
     document.title = 'Komaverse';

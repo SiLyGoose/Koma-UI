@@ -402,6 +402,26 @@ html[data-shell='v2'] body {
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
 }
 
+/*
+ * The forge on a bigger screen (landscape-css.ts BIG_SCREEN): its canvas never scaled past its own size (./places.ts maxScale),
+ * so a big screen has more room, and the forge takes it: wider and taller than the site's (1120 wide, 900 high), the anvil
+ * the narrower of its two, the armory as many cards across as fit at their desktop size rather than four bigger ones.
+ */
+@media (min-width: 900px) and (min-height: 600px) {
+  .v2-panel .v2-panel-canvas > main.forge-page {
+    max-width: min(1760px, calc(100% - 64px));
+  }
+
+  .v2-panel .forge-page .forge {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    max-height: none;
+  }
+
+  .v2-panel .forge-page .armory-grid {
+    grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  }
+}
+
 /* (A part v2's copy of a page leaves out, kept for the code that fills it: ./heroes/heroes.html's Active Effects.) */
 .v2-panel [data-v2-gone] {
   display: none !important;
