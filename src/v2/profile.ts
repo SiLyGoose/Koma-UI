@@ -24,8 +24,9 @@ export function makeProfile(into: HTMLElement, pick: HeroPick, logIn: () => void
   button.type = 'button';
   button.className = 'v2-profile';
   button.setAttribute('aria-haspopup', 'dialog');
-  // The hero and the Discord picture under the frame (its ring and its plate's window over them), the words over it.
-  button.innerHTML = `<span class="v2-profile-hero"><img alt="" /></span><span class="v2-profile-plate"><img alt="" /></span>
+  // The Discord picture, the hero over it (its circle covering the picture's left edge), the frame over both (its ring
+  // and its plate's window), the words over it.
+  button.innerHTML = `<span class="v2-profile-plate"><img alt="" /></span><span class="v2-profile-hero"><img alt="" /></span>
     <span class="v2-profile-frame" aria-hidden="true"></span><span class="v2-profile-name"></span><span class="v2-profile-server"></span>`;
   into.append(button);
   const $ = <T extends HTMLElement>(root: HTMLElement, selector: string): T => root.querySelector(selector) as T;
