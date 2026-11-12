@@ -349,9 +349,30 @@ html[data-shell='v2'] body {
   -webkit-user-select: text;
 }
 
+/* A page's canvas (./panel.ts): laid out at its own size, scaled from its top left to the space under the top bar. */
+.v2-panel-canvas {
+  position: relative;
+  transform-origin: 0 0;
+}
+
 /* The pages' heights leave room for the old site's header: there's none here. */
-.v2-panel-view > * {
+.v2-panel-canvas > * {
   --header-h: 0px !important;
+}
+
+/*
+ * The heroes page (./heroes/) as wide as its canvas is high allows (its columns, and the hero's stage with them, grow
+ * taller as they grow wider): never wider than the canvas's 196 hundredths of its height, the shape it fits on a desktop,
+ * however wide the screen (a phone's is wider for its height).
+ */
+/* (Outweighing the site's own width for it, main.gear-page:has(.roster:not([hidden])).) */
+.v2-panel .v2-panel-canvas > main.gear-page.heroes-page:has(.roster:not([hidden])) {
+  max-width: min(1320px, calc(196 * var(--v2-vh, 1vh)));
+}
+
+/* (A part v2's copy of a page leaves out, kept for the code that fills it: ./heroes/heroes.html's Active Effects.) */
+.v2-panel [data-v2-gone] {
+  display: none !important;
 }
 
 /* King's Raid's top bar over a page (./panel.ts): Common_TopBar (320 each end kept) at 100 of the game's units high (--kr),

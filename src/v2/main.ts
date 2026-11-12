@@ -1,26 +1,27 @@
 // The site's styles, in the order src/site/main.ts has them (the pages shown over the town need theirs as they are there).
-import '../shared/style.css';
-import '../shared/ui/header/header.css';
-import '../shared/ui/button/button.css';
-import '../shared/ui/close/close.css';
-import '../shared/ui/page-bar/page-bar.css';
-import '../shared/items/items.css';
-import '../hub/hub.css';
-import '../gear/gear.css';
-import '../inventory/inventory.css';
-import '../databank/databank.css';
-import '../dressing/dressing.css';
-import '../forge/forge.css';
-import '../banner/banner.css';
-import '../outfits/outfits.css';
-import '../hero-shop/hero-shop.css';
-import '../hero-outfit-shop/hero-outfit-shop.css';
-import '../heroes/heroes.css';
-import '../hero-outfits/hero-outfits.css';
-import '../raid-shop/raid-shop.css';
-import '../shop/shop.css';
-import '../admin/admin.css';
+import css0 from '../shared/style.css?inline';
+import css1 from '../shared/ui/header/header.css?inline';
+import css2 from '../shared/ui/button/button.css?inline';
+import css3 from '../shared/ui/close/close.css?inline';
+import css4 from '../shared/ui/page-bar/page-bar.css?inline';
+import css5 from '../shared/items/items.css?inline';
+import css6 from '../hub/hub.css?inline';
+import css7 from '../gear/gear.css?inline';
+import css8 from '../inventory/inventory.css?inline';
+import css9 from '../databank/databank.css?inline';
+import css10 from '../dressing/dressing.css?inline';
+import css11 from '../forge/forge.css?inline';
+import css12 from '../banner/banner.css?inline';
+import css13 from '../outfits/outfits.css?inline';
+import css14 from '../hero-shop/hero-shop.css?inline';
+import css15 from '../hero-outfit-shop/hero-outfit-shop.css?inline';
+import css16 from '../heroes/heroes.css?inline';
+import css17 from '../hero-outfits/hero-outfits.css?inline';
+import css18 from '../raid-shop/raid-shop.css?inline';
+import css19 from '../shop/shop.css?inline';
+import css20 from '../admin/admin.css?inline';
 import './v2.css';
+import { useLandscapeCss } from './landscape-css';
 import { installCursor } from '../shared/cursor';
 import { installClickSounds } from '../shared/audio';
 import { holdReveal, onSiteLink, swap, type Direction } from '../shared/transition';
@@ -42,6 +43,9 @@ import { makeTown } from './town';
  * (./panel.ts), the same pages as the old site's, at /v2 + their old address (/v2/forge/, /v2/shop/outfits/). Back (the
  * page's own back arrow, the browser's, Escape, or the top bar's back button over every page) is the town again, the runner at that door.
  */
+
+// The site's styles, always their wide-screen layout (./landscape-css.ts), before v2's own.
+useLandscapeCss([css0, css1, css2, css3, css4, css5, css6, css7, css8, css9, css10, css11, css12, css13, css14, css15, css16, css17, css18, css19, css20]);
 
 const app = document.getElementById('v2') as HTMLElement;
 const release = holdReveal();
