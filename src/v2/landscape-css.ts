@@ -93,6 +93,8 @@ export function landscapeSheets(width: number = DESKTOP.width): void {
   const scan = (): void => {
     for (const sheet of Array.from(document.styleSheets)) {
       if (done.has(sheet)) continue;
+      // Not the page transition's (vite.config.ts marks it): its loading screen covers the screen itself, not the canvas.
+      if ((sheet.ownerNode as Element | null)?.hasAttribute?.('data-transition')) continue;
       let rules: CSSRuleList;
       try {
         rules = sheet.cssRules;

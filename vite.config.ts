@@ -14,7 +14,8 @@ function transitionHead(): Plugin {
   return {
     name: 'transition-head',
     transformIndexHtml: () => [
-      { tag: 'style', children: read('transition/head.css'), injectTo: 'head' },
+      // (Marked, so a game opened from v2 leaves it out of its styles' rewrite: src/v2/landscape-css.ts.)
+      { tag: 'style', attrs: { 'data-transition': '' }, children: read('transition/head.css'), injectTo: 'head' },
       { tag: 'script', children: read('transition/head.js'), injectTo: 'head' },
     ],
   };
