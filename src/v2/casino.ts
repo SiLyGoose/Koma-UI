@@ -92,7 +92,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     button.addEventListener('click', async () => {
       button.disabled = true;
       button.textContent = 'Opening…';
-      const refused = await playGame(table.game, {});
+      const refused = await playGame(table.game, { v2: true });
       if (!refused) return;
       button.disabled = false;
       button.textContent = 'Play';

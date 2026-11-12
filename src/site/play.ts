@@ -15,13 +15,14 @@ export type PlayRefusal = 'no_server' | 'not_member' | 'failed';
  * Asks the bot for a link to `game` in the server picked and goes there: alone (`single`: a room of the player's own), against
  * `boss`, into raid `room` (or a new one: `new`). Logged out (the session ran out), to the front page.
  */
-export async function playGame(game: string, opts: { single?: boolean; boss?: string | null; room?: string }): Promise<PlayRefusal | null> {
+export async function playGame(game: string, opts: { single?: boolean; boss?: string | null; room?: string; v2?: boolean }): Promise<PlayRefusal | null> {
   const server = currentServer();
   if (!server) return 'no_server';
   const res = await api<{ url: string }>('/api/play', { method: 'POST', body: JSON.stringify({ guild: server, game }) });
   if (res.ok) {
     // Single player: the game's page asks the bot for a room of the player's own (see ../shared/game/link.ts).
-    const url = withQuery(res.data.url, { boss: opts.boss ?? null, room: opts.single ? null : (opts.room ?? null) });
+    // (From v2: ?v2, the game played as v2 is.)
+    const url = withQuery(res.data.url, { boss: opts.boss ?? null, room: opts.single ? null : (opts.room ?? null), v2: opts.v2 ? '1' : null });
     navigate(opts.single ? `${url}&m=single` : url);
     return null;
   }

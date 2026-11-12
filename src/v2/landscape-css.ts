@@ -52,6 +52,56 @@ export function landscapeCss(css: string, width: number = DESKTOP.width): string
     .replace(/(-?\d*\.?\d+)[dsl]?vw\b/g, (_all, n: string) => `calc(${n} * var(--v2-vw, 1vw))`);
 }
 
+/** The screen's units in a value (vh, vw and their kinds), and the canvas's in their place. */
+const UNITS = /(-?\d*\.?\d+)[dsl]?v([hw])\b/g;
+const canvasUnits = (value: string): string => value.replace(UNITS, (_all, n: string, axis: string) => `calc(${n} * var(--v2-v${axis}, 1v${axis}))`);
+
+/**
+ * The same rewrite, done in place on the stylesheets a page has loaded and on any it loads later: a game's (opened from
+ * v2: ../shared/ui/frame/v2-game.ts), whose styles come in with its code rather than through v2's ?inline imports. Its
+ * media rules' size conditions answered for a screen `width` wide, its declarations' screen units the canvas's. (A sheet
+ * from elsewhere, which can't be read, is left as it is.)
+ */
+export function landscapeSheets(width: number = DESKTOP.width): void {
+  const done = new WeakSet<CSSStyleSheet>();
+  const rewrite = (rules: CSSRuleList): void => {
+    for (const rule of Array.from(rules)) {
+      if (rule instanceof CSSMediaRule) {
+        const text = rule.media.mediaText;
+        const answered = query(text, width);
+        if (answered !== text) rule.media.mediaText = answered;
+      }
+      if (rule instanceof CSSStyleRule) {
+        const { style } = rule;
+        for (let i = 0; i < style.length; i++) {
+          const property = style.item(i);
+          const value = style.getPropertyValue(property);
+          UNITS.lastIndex = 0;
+          if (UNITS.test(value)) style.setProperty(property, canvasUnits(value), style.getPropertyPriority(property));
+        }
+      }
+      if ('cssRules' in rule) rewrite((rule as CSSGroupingRule).cssRules);
+    }
+  };
+  const scan = (): void => {
+    for (const sheet of Array.from(document.styleSheets)) {
+      if (done.has(sheet)) continue;
+      let rules: CSSRuleList;
+      try {
+        rules = sheet.cssRules;
+      } catch {
+        continue;
+      }
+      done.add(sheet);
+      rewrite(rules);
+    }
+  };
+  scan();
+  // (A sheet put in later, or a <style> whose text changes: a new sheet to rewrite. A <link> once it has loaded.)
+  new MutationObserver(scan).observe(document.head, { childList: true, subtree: true, characterData: true });
+  document.addEventListener('load', (e) => e.target instanceof HTMLLinkElement && scan(), true);
+}
+
 /** Puts the site's styles in, rewritten, before any of v2's own (which then outweigh them, coming later); a sheet given with a width is answered for a screen that wide. */
 export function useLandscapeCss(sheets: readonly (string | readonly [string, number])[]): void {
   const style = document.createElement('style');

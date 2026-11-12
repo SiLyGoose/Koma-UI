@@ -1,0 +1,69 @@
+/*
+ * A game opened from v2 (./v2-game.ts): no frame round it, its bar only King's Raid's back button at the top left and the
+ * sound button and connection at the top right, a strip over the game; the game on a canvas from the screen's top left, scaled to
+ * it (its size and scale set by v2-game.ts), the page itself never scrolling.
+ */
+
+html.v2-game,
+html.v2-game body {
+  height: 100%;
+  overflow: hidden;
+}
+
+html.v2-game .frame {
+  position: fixed;
+  top: 0;
+  left: 0;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  transform-origin: 0 0;
+  overflow: hidden;
+}
+
+/* (No bar's room kept before the bar comes in: there's none.) */
+html.v2-game .frame:not(:has(> .top))::before {
+  display: none;
+}
+
+/* The bar: a strip of its own over the game (none of its blue), its back button at the left, sound and connection at the right. */
+html.v2-game .frame > .top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 56px;
+  padding: max(4px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) 0 max(10px, env(safe-area-inset-left));
+  background: none;
+}
+
+/* (The table games' height leaves room for this bar, not the frame's 36.) */
+html.v2-game .tb-layout > .tb-game {
+  --tb-under-bar: calc(56px + clamp(6px, 1.6vh, 16px) + 12px);
+}
+
+html.v2-game .frame > .top h1,
+html.v2-game .frame > .top .frame-profile {
+  display: none;
+}
+
+/* King's Raid's back button (Common_TopBar_Button_Back3), the bar's own left. */
+html.v2-game .frame .top .back.v2-game-back {
+  display: block;
+  width: 52px;
+  height: 52px;
+  margin-right: auto;
+  font-size: 0;
+  filter: drop-shadow(0 2px 4px rgb(0 0 0 / 70%));
+}
+
+html.v2-game .frame .top .back.v2-game-back img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+html.v2-game .frame .top .back.v2-game-back:hover,
+html.v2-game .frame .top .back.v2-game-back:focus-visible {
+  outline: none;
+  filter: brightness(1.2) drop-shadow(0 2px 4px rgb(0 0 0 / 70%));
+}

@@ -3,6 +3,7 @@ import { installCursor } from '../../cursor';
 import { getVolumes, installClickSounds, setVolume, type Volumes } from '../../audio';
 import './frame.css';
 import { catchBack, holdReveal } from '../../transition';
+import { startV2Game, V2_BACK, V2_GAME } from './v2-game';
 
 /*
  * The frame every game sits in: a blue border round the window and a title bar across the top. A
@@ -29,6 +30,16 @@ const title = bar.querySelector('h1') as HTMLElement;
 title.textContent = frame?.dataset.title ?? document.title;
 frame?.prepend(bar);
 
+// Opened from v2 (?v2): no frame, King's Raid's back button to v2's casino in place of the ←, laid out and scaled as v2 is (./v2-game.ts).
+if (V2_GAME) {
+  const back = bar.querySelector('.back') as HTMLAnchorElement;
+  back.href = V2_BACK;
+  back.classList.add('v2-game-back');
+  back.setAttribute('aria-label', 'Back to the casino');
+  back.innerHTML = `<img alt="" src="${import.meta.env.BASE_URL}kr/ui/portal/back.webp" />`;
+  startV2Game(frame);
+}
+
 /**
  * A span after the game's name in the title bar, with `className` (the table's number, the boss's
  * name): put in the first time it's asked for, the same one after that.
@@ -51,7 +62,7 @@ installCursor({ reticle: false });
 installClickSounds();
 
 // The browser's back button wipes the game away right to left, as its ← does.
-catchBack('/');
+catchBack(V2_GAME ? V2_BACK : '/');
 
 /** Shows how the connection to the bot is doing, in the title bar. */
 export function setConn(text: string, kind: '' | 'ok' | 'bad'): void {
