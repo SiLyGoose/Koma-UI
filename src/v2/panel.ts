@@ -19,12 +19,6 @@ import { pageAt, type SitePage } from './places';
 
 /** The height a page is laid out for, before it's scaled to the space it has: the site's wide layout, at its smallest. */
 const CANVAS_HEIGHT = 640;
-/**
- * The widest a canvas is, for its height: a desktop screen's shape under the top bar. A wider screen for its height (a
- * phone's) has the page in its middle at that shape, not laid out wider (its columns, and what's in them, growing taller
- * than the screen as they grow wider).
- */
-const CANVAS_SHAPE = 1.96;
 
 export interface Panel {
   element: HTMLElement;
@@ -60,8 +54,8 @@ export function makePanel(into: HTMLElement, back: () => void): Panel {
     if (!width || !height) return;
     const own = element.classList.contains('own-bar');
     const scale = own ? 1 : height / CANVAS_HEIGHT;
-    const across = own ? width : Math.min(width / scale, CANVAS_HEIGHT * CANVAS_SHAPE);
-    canvas.style.left = `${(width - across * scale) / 2}px`;
+    // (As wide as the screen: a page whose columns would grow taller than the screen as they grow wider is kept from it in v2.css.)
+    const across = width / scale;
     canvas.style.width = `${across}px`;
     canvas.style.height = `${height / scale}px`;
     canvas.style.transform = scale === 1 ? '' : `scale(${scale})`;
