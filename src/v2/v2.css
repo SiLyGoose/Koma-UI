@@ -360,29 +360,32 @@ html[data-shell='v2'] body {
   --header-h: 0px !important;
 }
 
-/*
- * The shop's Hero Outfits (../hero-outfit-shop/), as King's Raid's costume shop (PayShopCostumeList): a hero pressed, the
- * row is that hero and its costumes to its right, the other heroes put away until it's pressed again.
- */
-.v2-panel .hero-outfit-shop .outfits-row:has(> .hero-card[aria-expanded='true']) > .hero-card:not([aria-expanded='true']) {
-  display: none;
-}
+/* On a small screen only (landscape-css.ts SMALL_SCREEN): the shop's rows of heroes, King's Raid's way. A bigger one has the site's desktop grid. */
+@media (max-width: 899.98px), (max-height: 599.98px) {
+  /*
+   * The shop's Hero Outfits (../hero-outfit-shop/), as King's Raid's costume shop (PayShopCostumeList): a hero pressed, the
+   * row is that hero and its costumes to its right, the other heroes put away until it's pressed again.
+   */
+  .v2-panel .hero-outfit-shop .outfits-row:has(> .hero-card[aria-expanded='true']) > .hero-card:not([aria-expanded='true']) {
+    display: none;
+  }
 
-/*
- * The shop's rows of heroes take its narrow layout (../main.ts), but not where it leaves its tabs' room or stretches its
- * line buttons: they stay clear of the tab column on the left, the buttons as wide as their words, as on a desktop.
- */
-.v2-panel .shop-panel .outfits-page {
-  padding-left: calc(var(--shop-inset-left, 0px) + 24px);
-}
+  /*
+   * The shop's rows of heroes take its narrow layout (../main.ts), but not where it leaves its tabs' room or stretches its
+   * line buttons: they stay clear of the tab column on the left, the buttons as wide as their words, as on a desktop.
+   */
+  .v2-panel .shop-panel .outfits-page {
+    padding-left: calc(var(--shop-inset-left, 0px) + 24px);
+  }
 
-.v2-panel .hero-shop .hero-shop-lines,
-.v2-panel .hero-shop .hero-shop-lines .action {
-  flex: none;
-}
+  .v2-panel .hero-shop .hero-shop-lines,
+  .v2-panel .hero-shop .hero-shop-lines .action {
+    flex: none;
+  }
 
-.v2-panel .hero-shop .hero-shop-lines .action {
-  padding: 0 14px;
+  .v2-panel .hero-shop .hero-shop-lines .action {
+    padding: 0 14px;
+  }
 }
 
 /*

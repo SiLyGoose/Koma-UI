@@ -11,6 +11,13 @@
 /** The screen every size condition is answered for: the site's widest layout, none of its smaller-screen ones. */
 const DESKTOP = { width: 1600, height: 900 };
 
+/**
+ * A small screen (a phone, on its side or not), as it really is: where v2 lays some pages out its own way, King's Raid's
+ * (the shop's heroes one row that scrolls sideways). A bigger one keeps the site's desktop layout. (v2.css says it too.)
+ */
+export const SMALL_SCREEN = '(max-width: 899.98px), (max-height: 599.98px)';
+const BIG_SCREEN = '(min-width: 900px) and (min-height: 600px)';
+
 const TRUE = '(min-width: 0px)';
 const FALSE = '(max-width: 0px)';
 
@@ -102,10 +109,28 @@ export function landscapeSheets(width: number = DESKTOP.width): void {
   document.addEventListener('load', (e) => e.target instanceof HTMLLinkElement && scan(), true);
 }
 
-/** Puts the site's styles in, rewritten, before any of v2's own (which then outweigh them, coming later); a sheet given with a width is answered for a screen that wide. */
+/**
+ * Puts the site's styles in, rewritten, before any of v2's own (which then outweigh them, coming later), in the order given.
+ * A sheet given with a width is, on a small screen (SMALL_SCREEN), answered for a screen that wide, and on a bigger one
+ * for a desktop's as the rest are.
+ */
 export function useLandscapeCss(sheets: readonly (string | readonly [string, number])[]): void {
-  const style = document.createElement('style');
-  style.dataset.v2 = 'site';
-  style.textContent = sheets.map((sheet) => (typeof sheet === 'string' ? landscapeCss(sheet) : landscapeCss(sheet[0], sheet[1]))).join('\n');
-  document.head.prepend(style);
+  const styles: HTMLStyleElement[] = [];
+  const put = (css: string, media?: string): void => {
+    const last = styles[styles.length - 1];
+    if (last && !media && !last.media) return void (last.textContent += `\n${css}`);
+    const style = document.createElement('style');
+    style.dataset.v2 = 'site';
+    if (media) style.media = media;
+    style.textContent = css;
+    styles.push(style);
+  };
+  for (const sheet of sheets) {
+    if (typeof sheet === 'string') put(landscapeCss(sheet));
+    else {
+      put(landscapeCss(sheet[0]), BIG_SCREEN);
+      put(landscapeCss(sheet[0], sheet[1]), SMALL_SCREEN);
+    }
+  }
+  document.head.prepend(...styles);
 }

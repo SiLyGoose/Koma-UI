@@ -1,6 +1,7 @@
 import markup from './shop.html?raw';
 import { heroOutfitsInARow } from '../../hero-outfit-shop/page';
 import { shopPage } from '../../shop/page';
+import { SMALL_SCREEN } from '../landscape-css';
 import type { Page } from '../../site/page';
 
 /*
@@ -9,6 +10,6 @@ import type { Page } from '../../site/page';
  */
 export const v2ShopPage: Page = { ...shopPage, markup };
 
-// Its Hero Outfits tab's heroes one row, as King's Raid's shop has them (../main.ts gives its styles theirs): a hero's
-// outfits open beside it.
-heroOutfitsInARow();
+// On a small screen its Hero Outfits tab's heroes one row, as King's Raid's shop has them (../main.ts gives its styles
+// theirs there): a hero's outfits open beside it. On a bigger one, the site's desktop grid, the outfits under the hero's row.
+heroOutfitsInARow(SMALL_SCREEN);

@@ -30,12 +30,12 @@ export const heroOutfitShopTab: ShopTab = { id: 'hero-outfits', label: 'Hero Out
 /** The screens the heroes are a row that scrolls sideways on (hero-shop.css), the drawer beside the hero, not under its row. */
 const PHONE = '(max-width: 760px)';
 
-/** Whether the heroes are that row: on a phone's screen, or always once heroOutfitsInARow() is called (v2, whose styles have them so). */
+/** Whether the heroes are that row: on a phone's screen, or on the screens heroOutfitsInARow() names (v2, whose styles have them so there). */
 let inARow = (): boolean => matchMedia(PHONE).matches;
 
-/** The heroes always one row, the drawer beside the hero (v2's shop: ../v2/shop/page.ts). */
-export function heroOutfitsInARow(): void {
-  inARow = () => true;
+/** The heroes one row, the drawer beside the hero, on the screens `query` matches (v2's small ones: ../v2/shop/page.ts). */
+export function heroOutfitsInARow(query: string): void {
+  inARow = () => matchMedia(query).matches;
 }
 
 /** The Filter as it starts here: every class, line and kind of damage, and every hero (its Show owned not offered: Owned Heroes is). */

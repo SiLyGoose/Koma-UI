@@ -44,8 +44,9 @@ import { makeTown } from './town';
  * page's own back arrow, the browser's, Escape, or the top bar's back button over every page) is the town again, the runner at that door.
  */
 
-// The site's styles, always their wide-screen layout (./landscape-css.ts), before v2's own; the shop's outfits, heroes and
-// hero outfits answered for a screen ROW wide, their cards one row that scrolls sideways, as King's Raid's shop has them.
+// The site's styles, always their wide-screen layout (./landscape-css.ts), before v2's own; on a small screen the shop's
+// outfits, heroes and hero outfits answered for a screen ROW wide, their cards one row that scrolls sideways, as King's
+// Raid's shop has them (on a bigger one, the site's desktop grid as everywhere else).
 const ROW = 760;
 useLandscapeCss([css0, css1, css2, css3, css4, css5, css6, css7, css8, css9, css10, css11, css12, [css13, ROW], [css14, ROW], [css15, ROW], css16, css17, css18, css19, css20]);
 
