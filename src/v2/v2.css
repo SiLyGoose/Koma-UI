@@ -821,12 +821,13 @@ html[data-shell='v2'] body {
   pointer-events: none;
 }
 
+/* The ring's opening (in profile-frame.webp: 134 across, its centre at 80, 77), filled to just under the ring all round. */
 .v2-profile-hero {
   position: absolute;
-  left: 13px;
-  top: 14px;
-  width: 132px;
-  height: 132px;
+  left: 10px;
+  top: 7px;
+  width: 140px;
+  height: 140px;
   overflow: hidden;
   border-radius: 50%;
   background: radial-gradient(circle, #2b2f3d, #12141b);
