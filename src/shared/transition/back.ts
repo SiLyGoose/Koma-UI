@@ -1,4 +1,4 @@
-import { page, remember } from './leaving';
+import { page, remember, stopLoading } from './leaving';
 import { WIPE_MS } from './timing';
 import { lessMotion, root, shownSprite, wait, wipeOn } from './wipe';
 
@@ -38,6 +38,8 @@ export function catchBack(fallback: string): void {
   addEventListener('pagehide', () => clearTimeout(fallbackTimer));
 
   const goBack = (): void => {
+    // (What this page is still fetching stopped, so the page gone back to isn't kept waiting: ./leaving.ts.)
+    stopLoading();
     history.back();
     // Still here after a moment: there was nothing before this page.
     fallbackTimer = window.setTimeout(() => location.replace(new URL(fallback, location.href).href), 400);

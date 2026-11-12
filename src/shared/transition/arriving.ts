@@ -62,8 +62,8 @@ export async function reveal(): Promise<void> {
     // Nothing kept.
   }
   if (!root.hasAttribute('data-tx')) return;
-  // Too late (the failsafe has let the page show already): don't cover it again.
-  if (performance.now() > 3800) return clear();
+  // Too late (the failsafe has let the page show already, transition/head.css's 12s): don't cover it again.
+  if (performance.now() > 11800) return clear();
   root.setAttribute('data-tx-live', '');
   // The page's own script runs after this one's (it imports it): give it the chance to hold the
   // reveal, then wait for what it holds.

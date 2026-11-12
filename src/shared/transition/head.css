@@ -191,15 +191,19 @@ html[data-tx-text]::after {
   content: attr(data-tx-text);
 }
 
-/* If the page's script never runs, it doesn't stay covered (transition/arriving.ts sets data-tx-live once it does). */
+/*
+ * If the page's script never runs, it doesn't stay covered (transition/arriving.ts sets data-tx-live once it does). Not
+ * too soon: a page left mid-load (a raid's models) can hold the browser a few seconds before this one's script gets in,
+ * and uncovering it then showed a blank page.
+ */
 html[data-tx]:not([data-tx-live])::after {
-  animation: tx-failsafe 0s 4s forwards;
+  animation: tx-failsafe 0s 12s forwards;
 }
 
 html[data-tx]:not([data-tx-live])::before {
   animation:
     tx-bounce 0.5s cubic-bezier(0.33, 0, 0.4, 1) var(--tx-phase, 0s) infinite alternate,
-    tx-failsafe 0s 4s forwards;
+    tx-failsafe 0s 12s forwards;
 }
 
 @keyframes tx-failsafe {

@@ -28,6 +28,33 @@ function goesThrough(url: URL, again = false): boolean {
   return /^\/games\/[^/]+$/.test(to);
 }
 
+/**
+ * Stops whatever this page is still fetching, as it goes: a raid's hundreds of models and textures would otherwise hold
+ * every connection the browser has to the site (six, without HTTP/2: the dev server), so the next page, and its scripts,
+ * waited behind them, past its loading screen's failsafe (transition/head.css), onto a blank page.
+ */
+export function stopLoading(): void {
+  // (window.stop() stops the pictures, not what script fetches: a raid's models and animations. Those, on `leaving`.)
+  leaving.abort();
+  try {
+    window.stop();
+  } catch {
+    // Nothing to stop.
+  }
+}
+
+/** Aborts every fetch this page made, once it goes (stopLoading). */
+const leaving = new AbortController();
+{
+  const fetchAs = window.fetch.bind(window);
+  // Each fetch also stops when the page goes (its own signal kept, where the browser can listen to both).
+  window.fetch = (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+    const own = init?.signal ?? (input instanceof Request ? input.signal : null);
+    const signal = !own ? leaving.signal : 'any' in AbortSignal ? AbortSignal.any([own, leaving.signal]) : own;
+    return fetchAs(input, { ...init, signal });
+  };
+}
+
 export function remember(pending: Pending): void {
   try {
     sessionStorage.setItem(KEY, JSON.stringify(pending));
@@ -42,7 +69,11 @@ export function remember(pending: Pending): void {
  * it does. Nowhere (null) wipes it off again and stays on this page: false.
  */
 async function leave(to: URL | Promise<URL | null>, dir: Direction, replace = false): Promise<boolean> {
-  const go = (url: URL): void => (replace ? location.replace(url.href) : location.assign(url.href));
+  const go = (url: URL): void => {
+    stopLoading();
+    if (replace) location.replace(url.href);
+    else location.assign(url.href);
+  };
   page.leaving = true;
   wipeOn(dir);
   const coverAt = Date.now() + WIPE_MS;
