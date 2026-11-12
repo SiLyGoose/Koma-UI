@@ -11,10 +11,24 @@ import { NODES, PLACES, START, WORLD, type Place, type Point } from './places';
  * hangs it, and the runner (./runner.ts). The view follows the runner; a drag looks around (it follows again once the
  * runner sets off). Picking a place (its building, banner or disc) sends the runner there along the game's roads, and
  * once it's at the door, `arrive` opens it. Drawn only while it shows (pause/resume).
+ *
+ * It zooms as King's Raid's town does (WorldMapMode.ZoomWorldMap): the view's height in the map is KR_HEIGHT (its UI's
+ * 1080, more on a screen narrower than 16:9) times the zoom, from ZOOM_IN (half: twice as close) out to the whole map
+ * filling the screen one way, and the zoom is remembered. A pinch zooms on a touch screen; the mouse wheel, or Ctrl with
+ * + or - (Ctrl+0: back as it started), on a computer.
  */
 
-/** About how much of the map's height shows (in its pixels): less on a wide screen, as the map's width has to fill it. */
+/** About how much of the map's height shows (in its pixels) before any zooming: less on a wide screen, as the map's width has to fill it. */
 const VIEW_HEIGHT = 1500;
+/** King's Raid's UI, its 1920 by 1080: the view's height at zoom 1 is its height on the screen (WorldMapMode's activeHeight). */
+const KR_WIDTH = 1920;
+const KR_HEIGHT = 1080;
+/** The closest the zoom goes (WorldMapMode: Mathf.Max(0.5f, …)): half the height, everything twice as big. */
+const ZOOM_IN = 0.5;
+/** A wheel's notch (100 pixels' worth) or Ctrl with + or -: the view this many times smaller or bigger. */
+const ZOOM_STEP = 2 ** 0.25;
+/** Where the zoom is remembered (King's Raid keeps it per account: WorldMapMode._orthoSize). */
+const ZOOM_KEY = 'koma.v2.zoom';
 /** How far a press has to move to be a drag rather than a tap (screen pixels). */
 const DRAG_PX = 8;
 /** How quickly the view catches up with the runner (higher: sooner). */
@@ -105,6 +119,14 @@ export function makeTown(into: HTMLElement, arrive: (place: Place) => void): Tow
   let width = 1;
   let height = 1;
   let scale = 1;
+  // The zoom (the view's height in the map, in King's Raid's UI heights), or null: as it starts, VIEW_HEIGHT.
+  let zoom: number | null = null;
+  try {
+    const kept = Number(localStorage.getItem(ZOOM_KEY));
+    if (kept > 0) zoom = kept;
+  } catch {
+    // No storage: as it starts.
+  }
   const camera: Point = { x: (WORLD.width / 2), y: (WORLD.height / 2) };
   let follow = true;
   let shown = '';
@@ -129,14 +151,50 @@ export function makeTown(into: HTMLElement, arrive: (place: Place) => void): Tow
     }
   }
 
+  /** The map's height at zoom 1 (King's Raid's UI's on this screen: taller on a screen narrower than 16:9), and the farthest out: the map filling the screen one way. */
+  const unit = (): number => Math.max(KR_HEIGHT, (KR_WIDTH * height) / width);
+  const zoomOut = (): number => Math.min(WORLD.height / unit(), (WORLD.width * height) / (unit() * width));
+  const bounded = (z: number): number => Math.min(zoomOut(), Math.max(ZOOM_IN, z));
+  const zoomNow = (): number => bounded(zoom ?? VIEW_HEIGHT / unit());
+
+  /** The map's scale from the zoom (kept in its bounds), and what goes with it. */
+  function rescale(): void {
+    scale = height / (unit() * zoomNow());
+    // Banners no smaller on the screen than BANNER_MIN of their size in the map, however far the map is shrunk.
+    world.style.setProperty('--v2-banner', String(Math.max(1, BANNER_MIN / scale)));
+    walker?.scaled(scale);
+  }
+
+  function keepZoom(): void {
+    try {
+      if (zoom === null) localStorage.removeItem(ZOOM_KEY);
+      else localStorage.setItem(ZOOM_KEY, String(zoom));
+    } catch {
+      // Not remembered.
+    }
+  }
+
+  /**
+   * Zooms to `next` (in its bounds; null: as it started), the map point at `at` on the screen (from its top left) staying
+   * there; while the view follows the runner, the middle of the screen (the view stays on the runner).
+   */
+  function zoomTo(next: number | null, at: Point = { x: width / 2, y: height / 2 }): void {
+    const anchor = follow ? { x: width / 2, y: height / 2 } : at;
+    const mapX = camera.x + (anchor.x - width / 2) / scale;
+    const mapY = camera.y + (anchor.y - height / 2) / scale;
+    zoom = next === null ? null : bounded(next);
+    keepZoom();
+    rescale();
+    camera.x = mapX - (anchor.x - width / 2) / scale;
+    camera.y = mapY - (anchor.y - height / 2) / scale;
+    place();
+  }
+
   // Measured here only (never while drawing a frame).
   const sized = new ResizeObserver(() => {
     width = Math.max(1, element.clientWidth);
     height = Math.max(1, element.clientHeight);
-    scale = Math.max(height / VIEW_HEIGHT, width / WORLD.width, height / WORLD.height);
-    // Banners no smaller on the screen than BANNER_MIN of their size in the map, however far the map is shrunk.
-    world.style.setProperty('--v2-banner', String(Math.max(1, BANNER_MIN / scale)));
-    walker?.scaled(scale);
+    rescale();
     place();
   });
   sized.observe(element);
@@ -199,13 +257,71 @@ export function makeTown(into: HTMLElement, arrive: (place: Place) => void): Tow
     place();
   }
 
+  /** Whether the page is turned by hand: a quarter turn round, the screen's moves the page's turned back. */
+  const turned = (): boolean => document.documentElement.classList.contains('ls-sideways') && matchMedia('(orientation: portrait)').matches;
+  /** A point on the screen, from the town's top left. */
+  function local(e: { clientX: number; clientY: number }): Point {
+    if (turned()) return { x: e.clientY, y: innerWidth - e.clientX };
+    const box = element.getBoundingClientRect();
+    return { x: e.clientX - box.left, y: e.clientY - box.top };
+  }
+
+  // Two fingers down: a pinch, zooming (the fingers apart, closer in) and moving the view with them, the map point that
+  // was between them staying between them.
+  const fingers = new Map<number, Point>();
+  let pinch: { distance: number; zoom: number; mapX: number; mapY: number } | null = null;
+  const twoFingers = (): [Point, Point] => [...fingers.values()].slice(0, 2) as [Point, Point];
+  const midpoint = (): Point => {
+    const [a, b] = twoFingers();
+    return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+  };
+  const spread = (): number => {
+    const [a, b] = twoFingers();
+    return Math.max(1, Math.hypot(a.x - b.x, a.y - b.y));
+  };
+  function startPinch(): void {
+    press = null;
+    element.classList.remove('dragging');
+    follow = false;
+    const mid = midpoint();
+    pinch = { distance: spread(), zoom: zoomNow(), mapX: camera.x + (mid.x - width / 2) / scale, mapY: camera.y + (mid.y - height / 2) / scale };
+  }
+  function movePinch(): void {
+    if (!pinch) return;
+    zoom = bounded((pinch.zoom * pinch.distance) / spread());
+    rescale();
+    const mid = midpoint();
+    camera.x = pinch.mapX - (mid.x - width / 2) / scale;
+    camera.y = pinch.mapY - (mid.y - height / 2) / scale;
+    place();
+  }
+  /** A finger lifted: true when it was in a pinch (now over, its zoom remembered), so not a tap. */
+  function lift(e: PointerEvent): boolean {
+    fingers.delete(e.pointerId);
+    if (!pinch) return false;
+    if (fingers.size < 2) {
+      pinch = null;
+      keepZoom();
+    }
+    return true;
+  }
+
   // A press: a drag looks around; a tap on a place goes there.
   let press: { id: number; x: number; y: number; cx: number; cy: number; dragging: boolean } | null = null;
   element.addEventListener('pointerdown', (e) => {
-    if (e.button !== 0 || press) return;
+    if (e.pointerType === 'touch') {
+      fingers.set(e.pointerId, local(e));
+      if (fingers.size === 2) {
+        element.setPointerCapture(e.pointerId);
+        return startPinch();
+      }
+    }
+    if (e.button !== 0 || press || pinch) return;
     press = { id: e.pointerId, x: e.clientX, y: e.clientY, cx: camera.x, cy: camera.y, dragging: false };
   });
   element.addEventListener('pointermove', (e) => {
+    if (fingers.has(e.pointerId)) fingers.set(e.pointerId, local(e));
+    if (pinch) return movePinch();
     if (!press || e.pointerId !== press.id) return;
     const dx = e.clientX - press.x;
     const dy = e.clientY - press.y;
@@ -216,14 +332,13 @@ export function makeTown(into: HTMLElement, arrive: (place: Place) => void): Tow
       element.classList.add('dragging');
     }
     follow = false;
-    // (Turned by hand, the page is a quarter turn round: the screen's moves are the page's turned back.)
-    const turned = document.documentElement.classList.contains('ls-sideways') && matchMedia('(orientation: portrait)').matches;
-    const [mx, my] = turned ? [dy, -dx] : [dx, dy];
+    const [mx, my] = turned() ? [dy, -dx] : [dx, dy];
     camera.x = press.cx - mx / scale;
     camera.y = press.cy - my / scale;
     place();
   });
   const release = (e: PointerEvent): void => {
+    if (lift(e)) return;
     if (!press || e.pointerId !== press.id) return;
     const dragged = press.dragging;
     press = null;
@@ -235,8 +350,29 @@ export function makeTown(into: HTMLElement, arrive: (place: Place) => void): Tow
   };
   element.addEventListener('pointerup', release);
   element.addEventListener('pointercancel', (e) => {
+    lift(e);
     if (press && e.pointerId === press.id) press = null;
     element.classList.remove('dragging');
+  });
+
+  // The mouse wheel (and a touchpad's pinch, which comes as the wheel with Ctrl): zooms the town at the pointer, never the page.
+  element.addEventListener(
+    'wheel',
+    (e) => {
+      e.preventDefault();
+      const pixels = e.deltaY * (e.deltaMode === 1 ? 33 : e.deltaMode === 2 ? height : 1);
+      zoomTo(zoomNow() * ZOOM_STEP ** (pixels / 100), local(e));
+    },
+    { passive: false },
+  );
+  // Ctrl with + or - zooms the town rather than the page (Ctrl+0: as it started), while it shows.
+  document.addEventListener('keydown', (e) => {
+    if (!(e.ctrlKey || e.metaKey) || e.altKey || element.classList.contains('paused')) return;
+    if (e.key === '+' || e.key === '=' || e.code === 'NumpadAdd') zoomTo(zoomNow() / ZOOM_STEP);
+    else if (e.key === '-' || e.key === '_' || e.code === 'NumpadSubtract') zoomTo(zoomNow() * ZOOM_STEP);
+    else if (e.key === '0' || e.code === 'Numpad0') zoomTo(null);
+    else return;
+    e.preventDefault();
   });
   // The keyboard: a banner is a button.
   element.addEventListener('keydown', (e) => {
