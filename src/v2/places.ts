@@ -34,8 +34,8 @@ export interface SitePage {
 /** Every site page v2 opens over the town (as src/site/main.ts's ROUTES, but the front page, which v2 is). */
 export const PAGES: readonly SitePage[] = [
   { path: '/player', needsLogin: true, page: () => import('../gear/page').then((m) => m.gearPage) },
-  // (v2's own copy of the heroes page, ./heroes/, to adapt to its window.)
-  { path: '/heroes', needsLogin: true, page: () => import('./heroes/page').then((m) => m.heroesPage) },
+  // (v2's own copy of the heroes page, ./heroes/, to adapt to its window; never scaled past its own size either.)
+  { path: '/heroes', needsLogin: true, maxScale: 1, page: () => import('./heroes/page').then((m) => m.heroesPage) },
   // (v2's own copies of the inventory and the shop, ./inventory/ and ./shop/, to adapt to its window; never scaled past
   // their own size, as the forge: a big screen shows them at the site's size, not zoomed in.)
   { path: '/inventory', needsLogin: true, subpaths: true, maxScale: 1, page: () => import('./inventory/page').then((m) => m.v2InventoryPage) },
