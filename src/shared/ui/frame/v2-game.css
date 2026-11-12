@@ -155,3 +155,10 @@ html.v2-game .v2-game-status .frame-volume {
 html.v2-game .v2-game-status .conn {
   font-size: 13px;
 }
+
+/* A table game's table right against the rail, no room left of it (only the gap at its right), as wide as the rest allows. */
+html.v2-game .tb > .tb-layout,
+html.v2-game .tb > .hint {
+  width: calc(100% - 16px);
+  margin-left: 0;
+}
