@@ -168,14 +168,21 @@ export function soundButton(key: string, onChange: (muted: boolean) => void): vo
   onChange(muted);
 }
 
-/** The sound button's place in the title bar (it and its panel), for what goes before it. */
-const sound = bar.querySelector('.frame-sound') as HTMLElement;
+/**
+ * The sound button's place in the title bar (it and its panel), for what goes before it. Null opened from v2, when it was
+ * moved out of the bar into a place of its own (./v2-game.ts: a raid's prep, a table game's players) before this ran.
+ */
+const sound = bar.querySelector<HTMLElement>(':scope > .frame-sound');
 
-/** A place in the title bar, before the sound button, for something more (the online button, ../live/live.ts). */
+/**
+ * A place in the title bar, before the sound button, for something more (the online button, ../live/live.ts). With the
+ * sound button moved out of the bar (opened from v2, where the online players are left out), at the bar's end.
+ */
 export function barSlot(): HTMLElement {
   const slot = document.createElement('span');
   slot.className = 'frame-slot';
-  sound.before(slot);
+  if (sound) sound.before(slot);
+  else bar.append(slot);
   return slot;
 }
 
@@ -226,7 +233,7 @@ function onPhonesInProfile(profile: HTMLElement): void {
       if (live) extra.append(live);
     } else {
       profile.before(conn);
-      if (live) sound.before(live);
+      if (live) sound?.before(live);
     }
   };
   place();
