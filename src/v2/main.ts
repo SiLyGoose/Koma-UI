@@ -46,7 +46,8 @@ import { makeTown } from './town';
 const app = document.getElementById('v2') as HTMLElement;
 const release = holdReveal();
 
-installCursor();
+// The hand alone, as in the games: no dot or brackets trailing it over the town.
+installCursor({ reticle: false });
 installClickSounds();
 landscapeCover(document.body, { title: 'Turn your phone sideways', text: 'The town is played in landscape, filling the screen.' });
 
