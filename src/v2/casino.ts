@@ -41,7 +41,7 @@ const markup = `<section class="v2-casino">
   <div class="v2-cas-stage">
     <span class="v2-cas-topbar" aria-hidden="true"></span>
     <a class="v2-adv-back v2-cas-back" href="/" aria-label="Back to town"><img alt="" src="${BACK}" /><span class="v2-adv-back-label">Casino</span></a>
-    <span class="v2-cas-balance" data-balance hidden></span>
+    <span class="v2-cas-balance" data-balance hidden><img class="v2-cas-coin" src="${import.meta.env.BASE_URL}shared/zeiucoin.png" alt="zeiucoins"><b></b></span>
     <p class="v2-cas-status" data-status hidden></p>
     <div class="v2-cas-window">
       <ol class="v2-cas-cards" data-tables></ol>
@@ -107,7 +107,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     const server = currentServer();
     const here = me?.servers.find((s) => s.id === server);
     balance.hidden = !here;
-    balance.textContent = here ? `${points(here.balance)} zeiucoins` : '';
+    (balance.querySelector('b') as HTMLElement).textContent = here ? points(here.balance) : '';
     for (const { table, button } of buttons) button.disabled = !me || !server || !me.games.includes(table.game);
     if (!hasSession()) say('Log in from the town to sit at a table.');
     else if (me && !server) say('Pick a server in the town first.');

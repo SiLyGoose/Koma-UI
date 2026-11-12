@@ -1,4 +1,5 @@
 import { FACE, heroCut } from '../shared/heroes';
+import { coin } from '../shared/util/coin';
 import { currentMe, currentServer, hasSession, logOut, setServer } from '../site/session';
 import type { HeroPick } from './hero-pick';
 
@@ -89,7 +90,7 @@ export function makeProfile(into: HTMLElement, pick: HeroPick, logIn: () => void
       label.textContent = s.name;
       const balance = document.createElement('span');
       balance.className = 'v2-pop-server-balance';
-      balance.textContent = `${points(s.balance)} zeiucoins`;
+      balance.append(coin('v2-pop-coin'), points(s.balance));
       row.append(icon, label, balance);
       row.addEventListener('click', () => {
         if (s.id === currentServer()) return;

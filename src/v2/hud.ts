@@ -28,7 +28,7 @@ export function makeHud(into: HTMLElement): Hud {
   element.innerHTML = `
     <div class="v2-hud-left"></div>
     <div class="v2-hud-right">
-      <span class="v2-balance" hidden><span class="v2-coin" aria-hidden="true"></span><b></b></span>
+      <span class="v2-balance" hidden><img class="v2-coin" src="${import.meta.env.BASE_URL}shared/zeiucoin.png" alt="zeiucoins"><b></b></span>
       <button type="button" class="action main v2-login" hidden>Login</button>
       <button type="button" class="v2-round v2-full" aria-label="Full screen" hidden>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5v2H6v3zm10-5h6v5h-2V6h-4zM4 15h2v3h3v2H4zm14 3v-3h2v5h-6v-2z"/></svg>
