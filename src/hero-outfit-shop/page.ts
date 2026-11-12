@@ -30,6 +30,14 @@ export const heroOutfitShopTab: ShopTab = { id: 'hero-outfits', label: 'Hero Out
 /** The screens the heroes are a row that scrolls sideways on (hero-shop.css), the drawer beside the hero, not under its row. */
 const PHONE = '(max-width: 760px)';
 
+/** Whether the heroes are that row: on a phone's screen, or always once heroOutfitsInARow() is called (v2, whose styles have them so). */
+let inARow = (): boolean => matchMedia(PHONE).matches;
+
+/** The heroes always one row, the drawer beside the hero (v2's shop: ../v2/shop/page.ts). */
+export function heroOutfitsInARow(): void {
+  inARow = () => true;
+}
+
 /** The Filter as it starts here: every class, line and kind of damage, and every hero (its Show owned not offered: Owned Heroes is). */
 const EVERY_HERO: HeroChoice = { cls: 'all', line: 'all', deals: 'all', owned: null };
 
@@ -374,7 +382,7 @@ function placeDrawer(ctx: Context): void {
     ui.drawer.remove();
     return;
   }
-  if (matchMedia(PHONE).matches) {
+  if (inARow()) {
     if (hero.nextElementSibling !== ui.drawer) hero.after(ui.drawer);
     ui.drawer.style.removeProperty('--caret-x');
     return;
@@ -400,8 +408,13 @@ function openDrawer(ctx: Context, hero: string | null): void {
   placeDrawer(ctx);
   if (!hero) return;
   const behavior = matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
-  if (matchMedia(PHONE).matches) ctx.ui.list.querySelector<HTMLElement>(`[data-hero="${hero}"]`)?.scrollIntoView({ behavior, block: 'nearest', inline: 'start' });
-  else ctx.ui.drawer.scrollIntoView({ behavior, block: 'nearest' });
+  const card = ctx.ui.list.querySelector<HTMLElement>(`[data-hero="${hero}"]`);
+  // In the row: the row (only it, never the page round it) scrolled to the hero, at its start (its padding kept before it).
+  if (inARow() && card) {
+    const row = ctx.ui.list;
+    const left = card.offsetLeft - (card.offsetParent === row ? 0 : row.offsetLeft) - parseFloat(getComputedStyle(row).paddingLeft);
+    row.scrollTo({ left: Math.max(0, left), behavior });
+  } else if (!inARow()) ctx.ui.drawer.scrollIntoView({ behavior, block: 'nearest' });
 }
 
 /** Draws the tab as `ctx.view` has it: their zeiucoins, a card for each hero the Filter (and Owned Heroes) leaves, and the open one's drawer. */

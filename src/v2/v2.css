@@ -353,11 +353,38 @@ html[data-shell='v2'] body {
 .v2-panel-canvas {
   position: relative;
   transform-origin: 0 0;
+  /* (Nothing past its sides, and nothing in it scrolls it sideways: a row scrolled to one of its cards scrolls only itself.) */
+  overflow-x: clip;
 }
 
 /* The pages' heights leave room for the old site's header: there's none here. */
 .v2-panel-canvas > * {
   --header-h: 0px !important;
+}
+
+/*
+ * The shop's Hero Outfits (../hero-outfit-shop/), as King's Raid's costume shop (PayShopCostumeList): a hero pressed, the
+ * row is that hero and its costumes to its right, the other heroes put away until it's pressed again.
+ */
+.v2-panel .hero-outfit-shop .outfits-row:has(> .hero-card[aria-expanded='true']) > .hero-card:not([aria-expanded='true']) {
+  display: none;
+}
+
+/*
+ * The shop's rows of heroes take its narrow layout (../main.ts), but not where it leaves its tabs' room or stretches its
+ * line buttons: they stay clear of the tab column on the left, the buttons as wide as their words, as on a desktop.
+ */
+.v2-panel .shop-panel .outfits-page {
+  padding-left: calc(var(--shop-inset-left, 0px) + 24px);
+}
+
+.v2-panel .hero-shop .hero-shop-lines,
+.v2-panel .hero-shop .hero-shop-lines .action {
+  flex: none;
+}
+
+.v2-panel .hero-shop .hero-shop-lines .action {
+  padding: 0 14px;
 }
 
 /* (A part v2's copy of a page leaves out, kept for the code that fills it: ./heroes/heroes.html's Active Effects.) */

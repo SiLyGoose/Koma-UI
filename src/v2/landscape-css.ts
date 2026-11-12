@@ -2,9 +2,10 @@
  * v2 is played on its side, always: the site's pages there keep their wide-screen layout on every screen, a phone's too,
  * laid out on a canvas of their own (./panel.ts) and scaled to it. So the site's styles, as v2 takes them in, are
  * rewritten: every screen-size condition (`@media (max-width: 899px)`, `(min-width: 900px)`, `(max-height: 820px)`, an
- * orientation) is answered for a wide desktop screen, DESKTOP, whatever the screen really is; and the screen's units
- * (vh, vw and their d/s/l kinds) become the canvas's (--v2-vh, --v2-vw, a hundredth of its height and width). Conditions
- * on anything else (hover, reduced motion) are left as they are. The site's own pages, outside v2, are untouched.
+ * orientation) is answered for a wide desktop screen, DESKTOP, whatever the screen really is (or, for a sheet given a
+ * width, a screen that wide: one whose narrow layout v2 wants, as the shop's rows of heroes); and the screen's units (vh,
+ * vw and their d/s/l kinds) become the canvas's (--v2-vh, --v2-vw, a hundredth of its height and width). Conditions on
+ * anything else (hover, reduced motion) are left as they are. The site's own pages, outside v2, are untouched.
  */
 
 /** The screen every size condition is answered for: the site's widest layout, none of its smaller-screen ones. */
@@ -13,8 +14,8 @@ const DESKTOP = { width: 1600, height: 900 };
 const TRUE = '(min-width: 0px)';
 const FALSE = '(max-width: 0px)';
 
-function holds(feature: string, op: string, value: number): boolean {
-  const size = feature === 'width' ? DESKTOP.width : DESKTOP.height;
+function holds(feature: string, op: string, value: number, width: number): boolean {
+  const size = feature === 'width' ? width : DESKTOP.height;
   switch (op) {
     case 'min':
     case '>=':
@@ -31,30 +32,30 @@ function holds(feature: string, op: string, value: number): boolean {
   }
 }
 
-/** A media query's conditions on the screen's size answered: each one always true or never. */
-function query(prelude: string): string {
+/** A media query's conditions on the screen's size answered for a screen `width` wide: each one always true or never. */
+function query(prelude: string, width: number): string {
   return prelude
     .replace(/\(\s*(min-|max-)?(width|height)\s*:\s*([\d.]+)px\s*\)/g, (_all, side: string | undefined, feature: string, value: string) =>
-      holds(feature, side ? side.slice(0, 3) : '=', Number(value)) ? TRUE : FALSE,
+      holds(feature, side ? side.slice(0, 3) : '=', Number(value), width) ? TRUE : FALSE,
     )
     .replace(/\(\s*(width|height)\s*(<=|>=|<|>)\s*([\d.]+)px\s*\)/g, (_all, feature: string, op: string, value: string) =>
-      holds(feature, op, Number(value)) ? TRUE : FALSE,
+      holds(feature, op, Number(value), width) ? TRUE : FALSE,
     )
     .replace(/\(\s*orientation\s*:\s*(landscape|portrait)\s*\)/g, (_all, way: string) => (way === 'landscape' ? TRUE : FALSE));
 }
 
-/** The site's CSS as v2 takes it in: its layout always the wide screen's, its screen units the canvas's. */
-export function landscapeCss(css: string): string {
+/** The site's CSS as v2 takes it in: its layout that of a screen `width` wide (the wide screen's), its screen units the canvas's. */
+export function landscapeCss(css: string, width: number = DESKTOP.width): string {
   return css
-    .replace(/@media([^{]+)\{/g, (_all, prelude: string) => `@media${query(prelude)}{`)
+    .replace(/@media([^{]+)\{/g, (_all, prelude: string) => `@media${query(prelude, width)}{`)
     .replace(/(-?\d*\.?\d+)[dsl]?vh\b/g, (_all, n: string) => `calc(${n} * var(--v2-vh, 1vh))`)
     .replace(/(-?\d*\.?\d+)[dsl]?vw\b/g, (_all, n: string) => `calc(${n} * var(--v2-vw, 1vw))`);
 }
 
-/** Puts the site's styles in, rewritten, before any of v2's own (which then outweigh them, coming later). */
-export function useLandscapeCss(sheets: readonly string[]): void {
+/** Puts the site's styles in, rewritten, before any of v2's own (which then outweigh them, coming later); a sheet given with a width is answered for a screen that wide. */
+export function useLandscapeCss(sheets: readonly (string | readonly [string, number])[]): void {
   const style = document.createElement('style');
   style.dataset.v2 = 'site';
-  style.textContent = sheets.map(landscapeCss).join('\n');
+  style.textContent = sheets.map((sheet) => (typeof sheet === 'string' ? landscapeCss(sheet) : landscapeCss(sheet[0], sheet[1]))).join('\n');
   document.head.prepend(style);
 }
