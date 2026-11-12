@@ -29,7 +29,7 @@ export interface SitePage {
 /** Every site page v2 opens over the town (as src/site/main.ts's ROUTES, but the front page, which v2 is). */
 export const PAGES: readonly SitePage[] = [
   { path: '/player', needsLogin: true, page: () => import('../gear/page').then((m) => m.gearPage) },
-  // (v2's own heroes page: King's Raid's Hero Info window, ./heroes/.)
+  // (v2's own copy of the heroes page, ./heroes/, to adapt to its window.)
   { path: '/heroes', needsLogin: true, page: () => import('./heroes/page').then((m) => m.heroesPage) },
   { path: '/inventory', needsLogin: true, subpaths: true, page: () => import('../inventory/page').then((m) => m.inventoryPage) },
   { path: '/forge', needsLogin: true, page: () => import('../forge/page').then((m) => m.forgePage) },
