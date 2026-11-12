@@ -1,0 +1,245 @@
+<!--
+  v2's heroes page (./page.ts), as King's Raid's Hero Info window is (the playtest's Prefab2 HeroList): laid out in the game's
+  units on its 1080-high screen (./heroes.css), with the same parts and ids as the site's heroes page
+  (../../heroes/heroes.html), run by its code (../../heroes/view.ts). Across the top the top bar (back, the window's name,
+  whose heroes and the server); down the left the hero list (HeroListPanel); in the middle the hero (Hero3DViewPanel: its
+  model, its Weapon, Armor and Mantle down the left, its treasure, Accessory, Orb and Artifact down the right, the Gear
+  Custom and costume buttons by them, its name and stars at its foot); on the right the panel picked (HeroStatPanel,
+  HeroEquipListPanel, HeroSkillListPanel, HeroTranscendSkillListPanel, EquipStorageSlotPanel), the tab buttons under it.
+-->
+<main class="v2-hero-page">
+  <div class="v2-hero-stage">
+    <span class="v2-hero-topbar" aria-hidden="true"></span>
+    <a class="v2-adv-back" href="/" aria-label="Back to town"><img alt="" src="/kr/ui/portal/back.webp" /><span class="v2-adv-back-label">Heroes</span></a>
+    <div class="v2-hero-picks">
+      <select id="member" class="member-pick" aria-label="Whose heroes" hidden></select>
+      <select id="server" class="server-pick" aria-label="Server" hidden></select>
+    </div>
+    <p id="status" class="status v2-hero-status" hidden></p>
+
+    <section id="heroes" class="v2-hero-window" hidden>
+      <!-- HeroListPanel: every hero, theirs first. -->
+      <nav id="roster" class="v2-hero-list" aria-label="Heroes">
+        <div id="roster-list" class="roster-list"></div>
+      </nav>
+
+      <!-- Hero3DViewPanel. -->
+      <div class="v2-hero-view">
+        <div class="hero-portrait" aria-hidden="true">
+          <img id="hero-bust" class="hero-bust" alt="" hidden />
+          <canvas id="hero-model" class="hero-model"></canvas>
+        </div>
+        <span class="v2-hero-class" aria-hidden="true"><span id="class-icon" class="hero-ribbon-icon set"></span></span>
+        <span id="hero-initial" class="hero-initial" aria-hidden="true"></span>
+        <!-- WidgetEquipStorage and WidgetCostumeShortCut: the Gear Custom (loadouts) and the hero's outfits. -->
+        <div class="v2-hero-shortcuts">
+          <button type="button" id="hero-loadouts" class="hero-shortcut loadouts" title="Loadouts" aria-label="Loadouts" aria-controls="loadouts" aria-pressed="false"></button>
+          <a id="hero-outfits" class="hero-shortcut outfits" href="/hero-outfits/" title="Outfits" aria-label="Outfits"></a>
+        </div>
+        <!-- EquipSlotGroup. -->
+        <button type="button" class="slot v2-slot-weapon" data-slot="weapon"></button>
+        <button type="button" class="slot v2-slot-armor" data-slot="armor"></button>
+        <button type="button" class="slot v2-slot-secondary" data-slot="secondary"></button>
+        <div class="hero-main-treasure v2-slot-treasure">
+          <button type="button" class="slot" data-slot="treasure"></button>
+          <div class="hero-subs" hidden>
+            <button type="button" class="slot sub-box" data-slot="side1"></button>
+            <button type="button" class="slot sub-box" data-slot="side2"></button>
+            <button type="button" class="slot sub-box" data-slot="side3"></button>
+          </div>
+        </div>
+        <button type="button" class="slot v2-slot-accessory" data-slot="accessory"></button>
+        <button type="button" class="slot v2-slot-orb" data-slot="orb"></button>
+        <button type="button" class="slot v2-slot-artifact" data-slot="artifact"></button>
+        <!-- Its name over the dark band at its foot, its stars under it; not theirs yet, to the shop. -->
+        <span class="v2-hero-foot" aria-hidden="true"></span>
+        <h1 id="hero-name" class="v2-hero-name"></h1>
+        <span id="hero-stars" class="hero-stars v2-hero-stars" hidden></span>
+        <a id="hero-buy" class="hero-buy action main" href="/shop/heroes/" hidden>Recruit in the Shop</a>
+      </div>
+
+      <!-- A picked copy: what it does on the hero, over the hero. -->
+      <div id="detail" class="detail v2-hero-detail" role="dialog" aria-label="Item" hidden></div>
+
+      <!-- The panel picked, on the right. -->
+      <div class="v2-hero-panels">
+        <!-- HeroStatPanel: what its next transcendence costs, what its gear gives it (Active Effects), its stats. -->
+        <div id="stats" class="armory stats" role="tabpanel">
+          <div class="armory-plaque plaque"><span id="stats-title">Stats</span></div>
+          <div class="armory-sheet">
+            <div class="sheet-scroll">
+              <section id="ascend" class="ascend" aria-label="Transcendence"></section>
+              <div class="totals v2-hero-totals">
+                <h2>Active Effects</h2>
+                <ul id="totals" class="detail-effects"></ul>
+                <h3 id="perk-effects-title" hidden>Perk Effects</h3>
+                <ul id="perk-effects" class="detail-effects" hidden></ul>
+              </div>
+              <div id="stats-list" class="stats-list"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- The gear a hero can wear: the raid's and the TechnoMagic Raid's, on parchment. -->
+        <div id="armory" class="armory off" role="tabpanel">
+          <div class="armory-plaque plaque"><span id="armory-title">Hero Gear</span></div>
+          <div class="armory-tools">
+            <input id="armory-search" class="armory-search" type="search" placeholder="Search items" aria-label="Search items" autocomplete="off" />
+            <div id="armory-filter" class="armory-filter"></div>
+          </div>
+          <div class="armory-sheet">
+            <div class="sheet-scroll">
+              <div id="armory-grid" class="armory-grid"></div>
+              <!-- In place of the cards, from a picked piece's Runes: their runes, the ones that go in it first, each to put in it. -->
+              <div id="rune-list" class="rune-list" hidden></div>
+            </div>
+          </div>
+          <!--
+            Picking copies to sell: Select shown picks every copy the filter and search show that can be sold (again, with all
+            of them picked: unpicks them), By rule picks the hero gear a salvage rule takes (and keeps a rule for drops: ./salvage-rule.ts),
+            and Include locked lets locked ones be picked too.
+          -->
+          <div id="sell-tools" class="sell-tools" hidden>
+            <button type="button" id="sell-shown" class="armory-action action secondary">Select shown</button>
+            <button type="button" id="sell-rule" class="armory-action action secondary">By rule</button>
+            <label class="sell-locked"><input type="checkbox" id="sell-locked" /> Include locked</label>
+          </div>
+          <!-- Sell picks copies to sell (the cards then toggle), and again asks to confirm; Salvage, hero gear for komaDust; Cancel stops picking. (The site's only: not in the raid's Manage popup.) -->
+          <div class="armory-foot">
+            <button type="button" id="sell" class="armory-action action secondary sell" hidden>Sell</button>
+            <button type="button" id="salvage" class="armory-action action secondary sell on" hidden>Salvage</button>
+            <button type="button" id="sell-cancel" class="armory-action action secondary" hidden>Cancel</button>
+            <button type="button" id="unequip-all" class="armory-action action secondary danger">Unequip all</button>
+          </div>
+        </div>
+
+        <!-- Skills: the hero's three skills and its passive, in King's Raid's own words (src/heroes/skills.ts). -->
+        <div id="skills" class="armory stats skills off" role="tabpanel">
+          <div class="armory-plaque plaque"><span id="skills-title">Skills</span></div>
+          <div class="armory-sheet">
+            <div class="sheet-scroll">
+              <ol id="skills-list" class="skills-list"></ol>
+            </div>
+          </div>
+        </div>
+
+        <!--
+          Transcend: the hero's transcendence perks (src/heroes/transcend.ts), a row for each tier as King's Raid has them (a tier
+          past how far it is transcended locked), its perk pages (1 to 3) and the TP left over them. Picking one says what it does
+          under them, with what learns it (or forgets it); Reset Perks forgets those of the page in use.
+        -->
+        <div id="transcend" class="armory stats transcend off" role="tabpanel">
+          <div class="armory-plaque plaque"><span id="transcend-title">Transcendence Perks</span></div>
+          <div class="armory-sheet">
+            <div class="sheet-scroll">
+              <div class="tp-row">
+                <div id="perk-pages" class="perk-pages" role="group" aria-label="Transcend Perk pages"></div>
+                <p class="tp"><span class="tp-badge" aria-hidden="true">TP</span><span id="tp-left" class="tp-left"></span></p>
+              </div>
+              <div id="perk-rows" class="perk-rows"></div>
+              <div id="perk-info" class="perk-info" aria-live="polite"></div>
+            </div>
+          </div>
+          <div class="armory-foot">
+            <button type="button" id="reset-perks" class="armory-action action secondary danger">Reset Perks</button>
+          </div>
+        </div>
+
+        <!--
+          Loadouts (its Loadouts button over the Weapon): King's Raid's Gear Custom (./loadouts.ts). Their numbered loadouts (the
+          member's, for every hero; those not bought yet locked, the next one bought by pressing one), the one picked's name and
+          the Armor, Mantle, Accessory, Orb and Artifact it keeps; Equip puts them on the hero shown, Save keeps what it wears
+          there in it, Reset empties it.
+        -->
+        <div id="loadouts" class="armory stats loadouts off" role="tabpanel">
+          <div class="armory-plaque plaque"><span>Gear Loadouts</span></div>
+          <div class="armory-sheet">
+            <div class="sheet-scroll">
+              <div id="loadout-list" class="loadout-slots" role="group" aria-label="Loadouts"></div>
+              <section class="loadout-shown" aria-label="Loadout picked">
+                <div class="loadout-head">
+                  <span id="loadout-number" class="loadout-number"></span>
+                  <input id="loadout-name" class="loadout-name" type="text" autocomplete="off" spellcheck="false" aria-label="Loadout name" />
+                </div>
+                <div id="loadout-pieces" class="loadout-pieces"></div>
+                <p id="loadout-note" class="loadout-note"></p>
+              </section>
+            </div>
+          </div>
+          <div class="armory-foot">
+            <button type="button" id="loadout-reset" class="armory-action action secondary danger">Reset</button>
+            <button type="button" id="loadout-save" class="armory-action action secondary">Save</button>
+            <button type="button" id="loadout-equip" class="armory-action action main">Equip</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- MenuButtons: Stats, Gear, Skills, Transcend (King's Raid's Info, Equip, Skill, Transcend). -->
+      <div class="hero-tabs v2-hero-tabs" role="tablist" aria-label="Show">
+        <button type="button" role="tab" data-view="stats" aria-selected="true" aria-controls="stats">Stats</button>
+        <button type="button" role="tab" data-view="gear" aria-selected="false" aria-controls="armory">Gear</button>
+        <button type="button" role="tab" data-view="skills" aria-selected="false" aria-controls="skills">Skills</button>
+        <button type="button" role="tab" data-view="transcend" aria-selected="false" aria-controls="transcend">Transcend</button>
+      </div>
+
+      <!-- Salvage by rule: the rule's choices (./salvage-rule.ts fills them), what it picks, and keeping it for drops. -->
+      <dialog id="salvage-rule" class="sell-confirm salvage-rule" aria-labelledby="salvage-rule-title">
+        <h3 id="salvage-rule-title">Salvage by rule</h3>
+        <div class="salvage-rule-groups"></div>
+        <p class="salvage-rule-count"></p>
+        <label class="salvage-rule-auto"><input type="checkbox" /> Salvage drops like these as they drop</label>
+        <p class="sell-confirm-note">
+          TechnoMagic and Dragon Raid drops it takes turn into komaDust, saved with Save. Pick never takes a piece worn or
+          with a rune in it, and takes a locked one only with Include locked checked.
+        </p>
+        <div class="sell-confirm-foot">
+          <button type="button" class="action secondary" data-rule="cancel">Cancel</button>
+          <button type="button" class="action secondary" data-rule="save">Save</button>
+          <button type="button" class="action main" data-rule="pick">Pick</button>
+        </div>
+      </dialog>
+
+      <!-- Selling what's picked: how many, for how much. -->
+      <dialog id="sell-confirm" class="sell-confirm" aria-labelledby="sell-confirm-title">
+        <h3 id="sell-confirm-title"></h3>
+        <p class="sell-confirm-total"></p>
+        <p class="sell-confirm-locked" hidden></p>
+        <p class="sell-confirm-note">Sold items are gone for good.</p>
+        <div class="sell-confirm-foot">
+          <button type="button" class="action secondary" data-sell="cancel">Cancel</button>
+          <button type="button" class="action main" data-sell="confirm">Sell</button>
+        </div>
+      </dialog>
+
+      <!-- A hero gear loadout's Save, Reset, or buying the next one, asked first as King's Raid does (./loadouts.ts askLoadout): what it does, and Cancel or do it. -->
+      <dialog id="loadout-confirm" class="sell-confirm loadout-confirm" aria-labelledby="loadout-confirm-title">
+        <h3 id="loadout-confirm-title">Notice</h3>
+        <p class="loadout-confirm-what"></p>
+        <div class="sell-confirm-foot">
+          <button type="button" class="action secondary" data-loadout="cancel">Cancel</button>
+          <button type="button" class="action main" data-loadout="confirm"></button>
+        </div>
+      </dialog>
+
+      <!-- Using a Transcendence Attribute Point on the hero shown (its + beside the TP): its TP before and after, and Cancel or Use. -->
+      <dialog id="tp-confirm" class="sell-confirm tp-confirm" aria-labelledby="tp-confirm-title">
+        <h3 id="tp-confirm-title"></h3>
+        <p class="tp-confirm-what"></p>
+        <div class="sell-confirm-foot">
+          <button type="button" class="action secondary" data-tp="cancel">Cancel</button>
+          <button type="button" class="action main" data-tp="confirm">Use</button>
+        </div>
+      </dialog>
+
+      <!-- Buying the hero shown its next perk page (its + on the Transcend tab), as King's Raid asks: which page, its price, and Cancel or Activate. -->
+      <dialog id="perk-page-confirm" class="sell-confirm perk-page-confirm" aria-labelledby="perk-page-confirm-title">
+        <h3 id="perk-page-confirm-title">Notice</h3>
+        <p class="perk-page-confirm-what"></p>
+        <div class="sell-confirm-foot">
+          <button type="button" class="action secondary" data-page="cancel">Cancel</button>
+          <button type="button" class="action main" data-page="confirm">Activate</button>
+        </div>
+      </dialog>
+    </section>
+  </div>
+</main>
