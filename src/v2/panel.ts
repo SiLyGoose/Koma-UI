@@ -7,7 +7,9 @@ import { pageAt, type SitePage } from './places';
  * A site page over the town, filling the screen (no header): the page's own module, set up as src/site/main.ts does
  * (its markup copied in, mount(), unmount() as it goes), in a layer that scrolls by itself. Its paths are the old site's
  * (/shop/outfits): the page reads them from the URL it's handed, not from the address bar (which is v2's: /v2/shop/outfits/).
- * Behind it, the site's backdrop (its gold star chart), as the old site has behind every page.
+ * Behind it, the site's backdrop (its gold star chart), as the old site has behind every page. Over it, King's Raid's top
+ * bar: its back button (Common_TopBar_Button_Back3) and the page's name, back to the town (as Adventure's window has it);
+ * a page with its own (the casino's) has only that.
  */
 
 export interface Panel {
@@ -20,13 +22,18 @@ export interface Panel {
   close(): void;
 }
 
-export function makePanel(into: HTMLElement): Panel {
+export function makePanel(into: HTMLElement, back: () => void): Panel {
   const element = document.createElement('div');
   element.className = 'v2-panel';
   element.hidden = true;
   const view = document.createElement('div');
   view.className = 'v2-panel-view';
-  element.append(backdrop(), view);
+  const bar = document.createElement('header');
+  bar.className = 'v2-panel-bar';
+  bar.innerHTML = `<button type="button" class="v2-adv-back" aria-label="Back to town"><img alt="" src="${import.meta.env.BASE_URL}kr/ui/portal/back.webp" /><span class="v2-adv-back-label"></span></button>`;
+  const barName = bar.querySelector('.v2-adv-back-label') as HTMLElement;
+  (bar.querySelector('button') as HTMLButtonElement).addEventListener('click', back);
+  element.append(backdrop(), view, bar);
   into.append(element);
 
   let current: { site: SitePage; page: Page; unmount: () => void; navigate?: (url: URL) => void } | null = null;
@@ -51,6 +58,8 @@ export function makePanel(into: HTMLElement): Panel {
       element.hidden = false;
       view.scrollTop = 0;
       document.title = page.title;
+      barName.textContent = page.title.split(' · ')[0] ?? '';
+      element.classList.toggle('own-bar', !!root.querySelector('.v2-adv-back'));
       const { drawn, unmount, navigate } = page.mount(root);
       current = { site, page, unmount, navigate };
       // A page with tabs read its tab from the address bar as it was set up (v2's, which it doesn't know): its own path now.

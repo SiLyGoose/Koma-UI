@@ -40,7 +40,7 @@ import { makeTown } from './town';
  * upright, the cover asking to turn it, or turning the page itself), is the town map (./town.ts) with what's left of a
  * header in its corners (./hud.ts). Tapping a place sends the runner there; at its door its page opens over the town
  * (./panel.ts), the same pages as the old site's, at /v2 + their old address (/v2/forge/, /v2/shop/outfits/). Back (the
- * page's own back arrow, the browser's, Escape, or the Town button) is the town again, the runner at that door.
+ * page's own back arrow, the browser's, Escape, or the top bar's back button over every page) is the town again, the runner at that door.
  */
 
 const app = document.getElementById('v2') as HTMLElement;
@@ -53,7 +53,7 @@ landscapeCover(document.body, { title: 'Turn your phone sideways', text: 'The to
 
 const town = makeTown(app, arrived);
 const hud = makeHud(app);
-const panel = makePanel(app);
+const panel = makePanel(app, () => backToTown());
 
 /**
  * Who walks the town: one of the member's heroes, or Roi (./hero-pick.ts), its model read once known (./walker.ts,
@@ -104,17 +104,8 @@ const lobby = makeLobby(
 );
 
 /** King's Raid's units on this screen (its lobby is laid out for a 1080-high screen): never under half. */
-const krScale = new ResizeObserver(() => hud.element.style.setProperty('--kr', String(Math.min(1, Math.max(0.5, app.clientHeight / 1080)))));
+const krScale = new ResizeObserver(() => app.style.setProperty('--kr', String(Math.min(1, Math.max(0.5, app.clientHeight / 1080)))));
 krScale.observe(app);
-
-// The way back to the town from a page, in a corner of it (a page's own back arrow does the same).
-const home = document.createElement('button');
-home.type = 'button';
-home.className = 'v2-round v2-home';
-home.setAttribute('aria-label', 'Back to town');
-home.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2 11h3v9h5v-6h4v6h5v-9h3z"/></svg>`;
-home.addEventListener('click', () => backToTown());
-panel.element.append(home);
 
 /** This entry's place in the history (higher: further forward), as the old site keeps it. */
 let index = typeof history.state?.idx === 'number' ? (history.state.idx as number) : 0;
