@@ -1187,7 +1187,8 @@ html[data-shell='v2'] body {
   transform: scaleX(-1);
 }
 
-/* The cards (ContentsGridWidget: 980 wide, a column around 620 down), one a row of --cell. */
+/* The cards (ContentsGridWidget: 980 wide, a column around 620 down), one a row of --cell; drawn at 0.93 from their top
+   middle, so the column ends 70 short of the screen's bottom rather than touching it. */
 .v2-adv-cards {
   position: absolute;
   left: 1091px;
@@ -1203,6 +1204,8 @@ html[data-shell='v2'] body {
   list-style: none;
   overscroll-behavior: contain;
   touch-action: pan-y;
+  transform: scale(0.93);
+  transform-origin: 50% 0;
 }
 
 .v2-adv-cards[data-size='half'] .v2-adv-card {
