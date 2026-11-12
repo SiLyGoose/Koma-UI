@@ -6,7 +6,7 @@ import type { HeroPick } from './hero-pick';
 /*
  * The member at the town's top left, as King's Raid's lobby has its player (TopmostMenu's ProfileUi_Root: the
  * WorldMap_UserInfo_Frame, 410x162 in its units, the leader hero in its ring, the level in the dark plate, the name on the
- * bar, the EXP gauge under it): here the hero walking the town in the ring, their Discord picture in the plate, their name,
+ * bar, the EXP gauge under it): here the hero walking the town in the ring, the plate left dark (their Discord picture is in the profile), their name,
  * and the server picked on the gauge. Pressing it opens their profile, drawn as King's Raid's InspectUserInfoPopup is (its
  * PayShop frame, title bar and close): who they are, the server (picked there), who walks the town (../hero-pick.ts), and
  * Log out. Logged out, it shows Roi and logs in. Its art: public/kr/ui/lobby/ (KR-extracted/scripts/kr-lobby-ui.py).
@@ -24,13 +24,12 @@ export function makeProfile(into: HTMLElement, pick: HeroPick, logIn: () => void
   button.type = 'button';
   button.className = 'v2-profile';
   button.setAttribute('aria-haspopup', 'dialog');
-  // The hero and the Discord picture under the frame (its ring and its plate's window over them), the words over it.
-  button.innerHTML = `<span class="v2-profile-hero"><img alt="" /></span><span class="v2-profile-plate"><img alt="" /></span>
+  // The hero under the frame (its ring over it), the plate in its window, the words over it.
+  button.innerHTML = `<span class="v2-profile-hero"><img alt="" /></span><span class="v2-profile-plate"></span>
     <span class="v2-profile-frame" aria-hidden="true"></span><span class="v2-profile-name"></span><span class="v2-profile-server"></span>`;
   into.append(button);
   const $ = <T extends HTMLElement>(root: HTMLElement, selector: string): T => root.querySelector(selector) as T;
   const hero = $<HTMLImageElement>(button, '.v2-profile-hero img');
-  const avatar = $<HTMLImageElement>(button, '.v2-profile-plate img');
   const name = $(button, '.v2-profile-name');
   const server = $(button, '.v2-profile-server');
 
@@ -145,8 +144,6 @@ export function makeProfile(into: HTMLElement, pick: HeroPick, logIn: () => void
   function render(): void {
     const me = currentMe();
     name.textContent = me ? me.user.name : hasSession() ? '…' : 'Log in';
-    avatar.hidden = !me?.user.avatar;
-    if (me?.user.avatar) avatar.src = me.user.avatar;
     const here = me?.servers.find((s) => s.id === currentServer());
     server.textContent = here ? here.name : me ? 'Pick a server' : 'with Discord';
     button.setAttribute('aria-label', me ? `${me.user.name}: profile, server and hero` : 'Log in with Discord');
