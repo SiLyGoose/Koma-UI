@@ -850,6 +850,16 @@ html[data-shell='v2'] body {
   background: url('/kr/ui/lobby/profile-plate.webp');
 }
 
+.v2-profile-plate img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.v2-profile-plate img[hidden] {
+  display: none;
+}
+
 .v2-profile-name {
   position: absolute;
   left: 205px;
