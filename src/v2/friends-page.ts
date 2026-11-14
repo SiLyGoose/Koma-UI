@@ -54,6 +54,9 @@ function bigAvatar(url: string): string {
   }
 }
 
+/** Watch's icon: a solid eye, drawn to match Heroes' (Honkai: Star Rail's AvatarIcon, public/shared/icons/heroes.webp). */
+const EYE = `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M12 4.5C6.6 4.5 2.4 8 .8 12c1.6 4 5.8 7.5 11.2 7.5S21.6 16 23.2 12C21.6 8 17.4 4.5 12 4.5Zm0 12.6a5.1 5.1 0 1 1 0-10.2 5.1 5.1 0 0 1 0 10.2Zm0-2.5a2.6 2.6 0 1 0 0-5.2 2.6 2.6 0 0 0 0 5.2Z"/></svg>`;
+
 const friendsPath = (guild: string): string => `/api/friends?guild=${guild}`;
 
 const markup = `<section class="v2-friends-page">
@@ -92,7 +95,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
       <span class="v2-fr-hero"><img alt="" /></span>
       <div class="v2-fr-who"><b class="v2-fr-name"></b><span class="v2-fr-state"><i class="v2-fr-dot" aria-hidden="true"></i><span></span></span></div>
       <p class="v2-fr-what"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3C6.5 3 2 6.6 2 11c0 2.4 1.3 4.5 3.4 6L4.5 21l4.4-2.4c1 .3 2 .4 3.1.4 5.5 0 10-3.6 10-8s-4.5-8-10-8m-4 9.3a1.3 1.3 0 1 1 0-2.6 1.3 1.3 0 0 1 0 2.6m4 0a1.3 1.3 0 1 1 0-2.6 1.3 1.3 0 0 1 0 2.6m4 0a1.3 1.3 0 1 1 0-2.6 1.3 1.3 0 0 1 0 2.6"/></svg><span></span></p>
-      <div class="v2-fr-acts"><button type="button" class="v2-fr-act v2-fr-join" data-join hidden>Join</button><button type="button" class="v2-fr-act" data-watch>Watch</button><button type="button" class="v2-fr-act" data-roster>Heroes</button></div>`;
+      <div class="v2-fr-acts"><button type="button" class="v2-fr-act v2-fr-join" data-join hidden>Join</button><button type="button" class="v2-fr-act v2-fr-icon" data-watch>${EYE}</button><button type="button" class="v2-fr-act v2-fr-icon" data-roster><i class="v2-fr-ico-heroes" aria-hidden="true"></i></button></div>`;
     const art = li.querySelector('.v2-fr-art img') as HTMLImageElement;
     // (A picture that won't load: no picture, the row's own colour there.)
     art.addEventListener('error', () => art.remove(), { once: true });
@@ -110,6 +113,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     }
     const roster = li.querySelector('[data-roster]') as HTMLButtonElement;
     roster.title = you ? 'Your heroes' : `${friend.name}'s heroes`;
+    roster.setAttribute('aria-label', roster.title);
     roster.addEventListener('click', () => go(you ? '/heroes/' : `/heroes/?user=${encodeURIComponent(friend.userId)}`));
     const watch = li.querySelector('[data-watch]') as HTMLButtonElement;
     watch.addEventListener('click', () => void watching(friend.userId, watch));
@@ -129,11 +133,13 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     const raid = raids.get(userId);
     if (!raid) return;
     button.disabled = true;
+    button.classList.add('opening');
     button.textContent = 'Opening…';
     // (As v2's: its back arrow to Adventure, as one opened there.)
     const refused = await playGame(raid.game, { boss: raid.boss, room: raid.room, v2: raid.game });
     if (!refused || gone) return;
     button.disabled = false;
+    button.classList.remove('opening');
     button.textContent = 'Join';
     say(refused === 'not_member' ? "You don't seem to be in that server any more." : 'Could not open the raid. Try again.');
   }
@@ -143,14 +149,14 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     const server = currentServer();
     if (!game || !server) return;
     button.disabled = true;
-    button.textContent = 'Opening…';
+    button.classList.add('opening');
     const res = await api<{ url: string }>(`/api/watch?guild=${encodeURIComponent(server)}`, { method: 'POST', body: JSON.stringify({ game, target: userId }) });
     if (gone) return;
     // (A TechnoMagic or Dragon Raid as v2's, its way back to Adventure.)
     if (res.ok) return navigate(game === 'technomagic' || game === 'dragon' ? withQuery(res.data.url, { v2: game }) : res.data.url);
     // (Not in that game any more: greyed till the next answer says otherwise.)
     games.delete(userId);
-    button.textContent = 'Watch';
+    button.classList.remove('opening');
     button.title = 'Not playing now';
     void ask();
   }
@@ -171,13 +177,14 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     const raid = on?.join && on.activity !== 'hub' ? { game: on.activity, ...on.join } : null;
     if (raid) raids.set(friend.userId, raid);
     else raids.delete(friend.userId);
-    if (join.textContent !== 'Opening…') {
+    if (!join.classList.contains('opening')) {
       join.hidden = !raid;
       join.title = raid ? `Join ${friend.name}'s raid (${ACTIVITY[raid.game]})` : '';
     }
-    if (watch.textContent === 'Opening…') return;
+    if (watch.classList.contains('opening')) return;
     watch.disabled = !game;
     watch.title = game ? `Watch ${friend.name} (${ACTIVITY[game]})` : li.classList.contains('you') ? "You can't watch yourself" : on ? 'Not in a game that can be watched' : 'Offline';
+    watch.setAttribute('aria-label', game ? `Watch ${friend.name}` : `Watch ${friend.name} (${watch.title.toLowerCase()})`);
   }
 
   function draw(data: Friends): void {

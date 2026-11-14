@@ -1737,46 +1737,85 @@ html[data-shell='v2'] body {
   white-space: nowrap;
 }
 
-/* Watch and Heroes, at the row's right end over the Discord picture. Watch is always there: greyed and struck through
-   while there's nothing to watch. */
+/* Join, Watch and Heroes, at the row's right end over the Discord picture. Watch and Heroes are round icon buttons, white
+   glyphs on dark (Heroes' is Honkai: Star Rail's AvatarIcon, public/shared/icons/heroes.webp); Join a gold word. Watch is
+   always there: greyed with a slash across it while there's nothing to watch. */
 .v2-fr-acts {
   position: relative;
   /* (The last column even when an offline row's activity is hidden out of the grid.) */
   grid-column: 4;
   display: flex;
-  gap: 8px;
+  gap: 10px;
+  align-items: center;
   justify-content: flex-end;
-  padding-right: 18px;
+  padding-right: 16px;
 }
 
 .v2-fr-act {
-  min-width: 74px;
-  padding: 7px 12px;
+  position: relative;
+  height: 46px;
+  padding: 0 18px;
   border: 1.5px solid rgb(255 255 255 / 80%);
   border-radius: 999px;
-  background: rgb(47 53 69 / 88%);
-  box-shadow: 0 2px 5px rgb(0 0 0 / 35%);
-  color: #f4e6b2;
+  background: rgb(36 40 52 / 88%);
+  box-shadow: 0 2px 6px rgb(0 0 0 / 40%);
+  color: #fff;
   font: inherit;
-  font-size: 13.5px;
+  font-size: 14.5px;
   font-weight: 700;
   cursor: pointer;
 }
 
-.v2-fr-act:hover:not(:disabled),
-.v2-fr-act:focus-visible {
-  background: rgb(70 78 99 / 95%);
-  color: #fff;
+.v2-fr-icon {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  padding: 0;
 }
 
-.v2-fr-act:disabled {
+.v2-fr-icon svg {
+  width: 26px;
+  height: 26px;
+  fill: currentcolor;
+}
+
+.v2-fr-ico-heroes {
+  width: 28px;
+  height: 28px;
+  background: currentcolor;
+  -webkit-mask: url('/shared/icons/heroes.webp') center / contain no-repeat;
+  mask: url('/shared/icons/heroes.webp') center / contain no-repeat;
+}
+
+.v2-fr-act:hover:not(:disabled),
+.v2-fr-act:focus-visible {
+  background: rgb(62 70 92 / 95%);
+  color: #f4e6b2;
+}
+
+.v2-fr-act.opening {
+  opacity: 0.65;
+  cursor: progress;
+}
+
+/* Nothing to watch: grey, a slash across it. */
+.v2-fr-act:disabled:not(.opening) {
   border-color: rgb(255 255 255 / 45%);
   background: rgb(120 118 112 / 70%);
   box-shadow: none;
-  color: rgb(236 233 226 / 80%);
-  text-decoration: line-through;
-  text-decoration-thickness: 2px;
+  color: rgb(236 233 226 / 75%);
   cursor: not-allowed;
+}
+
+.v2-fr-icon:disabled:not(.opening)::after {
+  position: absolute;
+  width: 3px;
+  height: 34px;
+  border-radius: 2px;
+  background: currentcolor;
+  box-shadow: 0 0 0 1.5px rgb(120 118 112);
+  transform: rotate(-45deg);
+  content: "";
 }
 
 /* Join (a raid getting ready with room): the row's call to act, in gold, as Genshin's Request to Join stands out. */
