@@ -3,8 +3,11 @@
   <!-- The site's page bar (../shared/ui/page-bar/): back and the server at its left, its name in the middle, the balance at its right. -->
   <div class="page-bar">
     <div class="page-bar-left">
-      <!-- Back where they came from: the shop's Hero Outfits tab (its Try On: ?from=shop), else the hero on the heroes page. -->
-      <a id="back" class="action secondary icon" href="/heroes/" aria-label="Back to Heroes">
+      <!--
+        Back where they came from: the shop's Hero Outfits tab (its Try On: ?from=shop), else the hero on the heroes page.
+        (In v2, hidden: its back button goes here instead, data-v2-back: ../v2/panel.ts.)
+      -->
+      <a id="back" class="action secondary icon" href="/heroes/" aria-label="Back to Heroes" data-v2-back>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 5 3.5 12l7 7v-4.5H20v-5h-9.5z" /></svg>
       </a>
       <select id="server" class="server-pick" aria-label="Server" hidden></select>

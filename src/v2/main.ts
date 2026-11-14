@@ -60,7 +60,8 @@ landscapeCover(document.body, { title: 'Turn your phone sideways', text: 'The to
 
 const town = makeTown(app, arrived);
 const hud = makeHud(app);
-const panel = makePanel(app, () => backToTown());
+// (A page's own way back, if it has one: back to there, as its own back link would.)
+const panel = makePanel(app, (href) => (href ? go(href, { back: true }) : backToTown()));
 
 /**
  * Who walks the town: one of the member's heroes, or Roi (./hero-pick.ts), its model read once known (./walker.ts,

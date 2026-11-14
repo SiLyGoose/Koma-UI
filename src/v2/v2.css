@@ -500,6 +500,8 @@ html[data-shell='v2'] body {
  */
 .v2-panel {
   --v2-panel-rail: calc(max(calc(29px * var(--kr, 1)), env(safe-area-inset-left)) + calc(91px * var(--kr, 1)));
+  /* How far down the screen the back button's middle is: a page's bar is laid level with it (on its canvas, over --v2-scale). */
+  --v2-back-mid: calc(max(calc(14px * var(--kr, 1)), env(safe-area-inset-top)) + calc(38.5px * var(--kr, 1)));
 }
 
 .v2-panel-bar {
@@ -537,6 +539,7 @@ html[data-shell='v2'] body {
 @media (max-width: 899.98px), (max-height: 599.98px) {
   .v2-panel {
     --v2-panel-rail: calc(max(12px, env(safe-area-inset-left)) + 36px);
+    --v2-back-mid: calc(max(12px, env(safe-area-inset-top)) + 12px);
   }
 
   .v2-panel-bar .v2-adv-back {
@@ -617,6 +620,24 @@ html[data-shell='v2'] body {
   display: none;
 }
 
+/*
+ * and its X: v2's back button goes up a level instead (the X's link, data-v2-back: ../databank/render.ts), the way in back
+ * to where they came from. So in a section (no name board) its bar is empty and gone, and the panels have the canvas's
+ * height less the page's padding (24 over and under) and the 20 their name boards hang over their frames.
+ */
+.v2-panel .databank-page .db-bar .back {
+  display: none;
+}
+
+.v2-panel .databank-page .db-bar:has(> .db-bar-title[hidden]) {
+  display: none;
+}
+
+.v2-panel .v2-panel-canvas > main.databank-page {
+  --panels-h: calc(100 * var(--v2-vh, 6.4px) - 48px - 20px);
+  --panels-min: 0px;
+}
+
 /* the databank's way in, its marks under its name board as tall as they are (not the panels' height, the marks at the
    middle of it): the board and the marks in the middle of the screen together. (The chart is drawn as wide as before.) */
 .v2-panel .databank-page .db-hub {
@@ -631,9 +652,27 @@ html[data-shell='v2'] body {
   padding-bottom: 16px;
 }
 
-/* and the hero outfits, whose bar holds its buttons 12 down from its top: its padding the less for it. */
+/*
+ * and the hero outfits (the outfit room): its bar (its name in the middle, the balance at its right) 44 high, its middle
+ * level with the back button's (--v2-back-mid, on the screen: on the canvas, over its scale); its own back button and server
+ * picker left out, v2's back button going where its own went (data-v2-back: ./panel.ts). (Kept, hidden, so the name stays
+ * in the middle.)
+ */
 .v2-panel .ho-page {
-  padding-top: 6px;
+  padding-top: max(4px, calc(var(--v2-back-mid, 26px) / var(--v2-scale, 1) - 22px));
+}
+
+.v2-panel .ho-page > .page-bar {
+  height: 44px;
+}
+
+.v2-panel .ho-page > .page-bar > .page-bar-left {
+  visibility: hidden;
+}
+
+/* (The balance's paragraph without its 16 above and under: the bar's row as high as the bar.) */
+.v2-panel .ho-page > .page-bar > .page-bar-right {
+  margin: 0;
 }
 
 .v2-panel.own-bar > .v2-panel-bar {

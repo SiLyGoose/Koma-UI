@@ -32,7 +32,11 @@ export interface Panel {
   close(): void;
 }
 
-export function makePanel(into: HTMLElement, back: () => void): Panel {
+/**
+ * `back` is pressed with the page's own way back, if it has one (its link marked data-v2-back: the outfit room's, to the
+ * shop or the hero it came from, its own button hidden in v2), else with nothing (back to the town).
+ */
+export function makePanel(into: HTMLElement, back: (href?: string) => void): Panel {
   const element = document.createElement('div');
   element.className = 'v2-panel';
   element.hidden = true;
@@ -44,7 +48,10 @@ export function makePanel(into: HTMLElement, back: () => void): Panel {
   const bar = document.createElement('header');
   bar.className = 'v2-panel-bar';
   bar.innerHTML = `<button type="button" class="v2-adv-back" aria-label="Back to town"><img alt="" src="${import.meta.env.BASE_URL}kr/ui/portal/back.webp" /></button>`;
-  (bar.querySelector('button') as HTMLButtonElement).addEventListener('click', back);
+  (bar.querySelector('button') as HTMLButtonElement).addEventListener('click', () => {
+    const own = canvas.querySelector<HTMLAnchorElement>('a[data-v2-back]');
+    back(own?.href || undefined);
+  });
   element.append(backdrop(), view, bar);
   into.append(element);
 
@@ -63,6 +70,8 @@ export function makePanel(into: HTMLElement, back: () => void): Panel {
     canvas.style.transform = scale === 1 ? '' : `scale(${scale})`;
     canvas.style.setProperty('--v2-vh', `${height / scale / 100}px`);
     canvas.style.setProperty('--v2-vw', `${across / 100}px`);
+    // (Its scale, for a page's bar laid level with the back button over it: v2.css --v2-back-mid.)
+    canvas.style.setProperty('--v2-scale', String(scale));
   }
   new ResizeObserver(fit).observe(view);
 

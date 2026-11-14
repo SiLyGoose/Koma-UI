@@ -362,6 +362,10 @@ function render(ctx: Context): void {
 /** How long a look may take to read before the loading sprite shows (one read before, or nearly: none, so it doesn't flash). */
 const LOADING_AFTER_MS = 150;
 
+/** In v2 (its landscape window, ../v2/), the hero bigger on the stage: a grown one 84% of its height (the site's 70%). */
+const V2 = document.documentElement.dataset.shell === 'v2';
+const V2_TALL = 0.84;
+
 /**
  * The look picked on the stage: its model (read once three.js is); meanwhile the stage empty (the look before gone), the
  * loading sprite in it should that take a moment; its card where its model can't be read.
@@ -377,7 +381,7 @@ function showLook(ctx: Context, look: HeroLook): void {
     if (ui.model.dataset.look === key) ui.loading.hidden = false;
   }, LOADING_AFTER_MS);
   ctx.showcase ??= import('../heroes/model')
-    .then(({ makeShowcase }) => makeShowcase(ui.model, { whole: true }))
+    .then(({ makeShowcase }) => makeShowcase(ui.model, { whole: true, tall: V2 ? V2_TALL : undefined }))
     .catch((error: unknown) => {
       console.warn(error);
       return null;

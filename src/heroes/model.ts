@@ -72,9 +72,10 @@ const FRAMES: Readonly<Record<string, { size: number; offset: readonly [number, 
 /**
  * Shown whole, every hero to one scale: a grown one (ADULT tall, the field's lengths: Kirze 2.81, Seria 2.84, Isaiah 2.88) is
  * TALL of the view's height, and the rest as tall as they are beside it (Lilia, Lavril and Oddy a child's height; Klaus,
- * Loman and Gau taller), all standing on one floor, FLOOR of the way up the view.
+ * Loman and Gau taller), all standing on one floor, FLOOR of the way up the view; only one whose head would be over HEAD of
+ * the way up (a giant, Ricardo; a tall one in a bigger view, v2's, Dark Lord Kasel and his horns) seen from further back.
  */
-const WHOLE = { adult: 2.85, tall: 0.7, floor: 0.04 };
+const WHOLE = { adult: 2.85, tall: 0.7, floor: 0.04, head: 0.8 };
 /** How far down the camera looks (GameSetting Ui.Hero3dView.CameraAngle: 5°). */
 const LOOK_DOWN = (5 * Math.PI) / 180;
 
@@ -97,8 +98,14 @@ export interface Showcase {
   destroy(): void;
 }
 
-/** Shown `whole`: its head to its feet, every hero to one scale (the outfit room's: WHOLE), not King's Raid's Hero Info's close-up. */
-export function makeShowcase(canvas: HTMLCanvasElement, { whole = false }: { whole?: boolean } = {}): Showcase {
+/**
+ * Shown `whole`: its head to its feet, every hero to one scale (the outfit room's: WHOLE), not King's Raid's Hero Info's
+ * close-up; a grown one `tall` of the view's height (WHOLE.tall unless asked: v2's outfit room has it bigger).
+ */
+export function makeShowcase(
+  canvas: HTMLCanvasElement,
+  { whole = false, tall = WHOLE.tall }: { whole?: boolean; tall?: number } = {},
+): Showcase {
   const renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true });
   renderer.outputColorSpace = SRGBColorSpace;
   renderer.setClearColor(0x000000, 0);
@@ -152,16 +159,20 @@ export function makeShowcase(canvas: HTMLCanvasElement, { whole = false }: { who
     const w = canvas.clientWidth;
     const h = canvas.clientHeight;
     if (w === 0 || h === 0) return;
-    renderer.setPixelRatio(Math.min(2, window.devicePixelRatio));
+    // (Drawn at the size it's seen at: a page v2 scales up (../../v2/panel.ts) has it larger on the screen than it's laid out.)
+    const seen = Math.max(1, canvas.getBoundingClientRect().width / w);
+    renderer.setPixelRatio(Math.min(3, Math.min(2, window.devicePixelRatio) * seen));
     renderer.setSize(w, h, false);
     outline.value.set((2 * OUTLINE) / w, (2 * OUTLINE) / h);
     if (shown && shownId) {
-      const { size, offset } = whole ? { size: WHOLE.adult / WHOLE.tall / 2, offset: [0, 0] as const } : (FRAMES[shownId.split(':')[0] as string] ?? DEFAULT);
+      const { size, offset } = whole ? { size: WHOLE.adult / tall / 2, offset: [0, 0] as const } : (FRAMES[shownId.split(':')[0] as string] ?? DEFAULT);
       shown.root.updateMatrixWorld(true);
       shown.head(head);
-      // (Whole: the same view for every hero, its floor under its feet, the view's middle as far over it as the floor is under it.)
-      const half = whole ? size : size * SCALE;
-      if (whole) head.y = shown.place(new Vector3()).y + half - WHOLE.floor * 2 * half;
+      // (Whole: the same view for every hero, its floor under its feet, the view's middle as far over it as the floor is under it;
+      // only one whose head would be higher than WHOLE.head of it (Ricardo, Dark Lord Kasel's horns) seen from further, to fit.)
+      const floor = whole ? shown.place(new Vector3()).y : 0;
+      const half = whole ? Math.max(size, (head.y - floor) / (2 * (WHOLE.head - WHOLE.floor))) : size * SCALE;
+      if (whole) head.y = floor + half - WHOLE.floor * 2 * half;
       camera.top = half;
       camera.bottom = -half;
       camera.left = (-half * w) / h;
