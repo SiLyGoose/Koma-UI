@@ -199,6 +199,9 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
 
   ui.loginButton.addEventListener('click', logIn);
 
+  // Orvel: to v2's town (/v2/), whatever the server (it has its own).
+  root.querySelector('#orvel-go')?.addEventListener('click', () => navigate('/v2/'));
+
   for (const button of ui.playButtons) {
     button.addEventListener('click', async () => {
       // A raid with a Raid List: it, to pick a boss first. One with a page of its own on the site (the Divine Punishment Raid's): that page.

@@ -171,6 +171,11 @@
   image-rendering: pixelated;
 }
 
+.orvel-art {
+  /* Orvelia from above (../../public/kr/town/orvel-cover.jpg: a crop of v2's town map, its castle, gate and arena). */
+  background: #2b3a1f url('/kr/town/orvel-cover.jpg') center / cover no-repeat;
+}
+
 .technomagic-art {
   /* A fight against Galgoria (../../public/technomagic/cover.jpg), the party and the boss in the middle. */
   background: #1b1a2b url('/technomagic/cover.jpg') center / cover no-repeat;
