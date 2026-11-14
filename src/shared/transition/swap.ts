@@ -11,18 +11,20 @@ let queued: { dir: Direction; change: () => void | Promise<void> } | null = null
 
 /**
  * Wipes the loading screen on, runs `change` under it (the router swapping the page), waits for the new
- * page to be ready (drawn, its pictures in, frames smooth again: ready()), and wipes it off. `back` runs it right to left. Without the motion,
+ * page to be ready (drawn, its pictures in, frames smooth again: ready()), and wipes it off. `back` runs it right to left. `fast`:
+ * the quick cover's wipe (curtain()'s, at twice the speed) both ways, as v2's town has it between its pages. Without the motion,
  * just `change`.
  */
-export async function swap(dir: Direction, change: () => void | Promise<void>): Promise<void> {
+export async function swap(dir: Direction, change: () => void | Promise<void>, { fast = false }: { fast?: boolean } = {}): Promise<void> {
   if (lessMotion()) return change();
   if (swapping) {
     queued = { dir, change };
     return;
   }
   swapping = true;
+  if (fast) root.setAttribute('data-tx-fast', '');
   wipeOn(dir);
-  await wait(WIPE_MS);
+  await wait(fast ? FAST_WIPE_MS : WIPE_MS);
   root.setAttribute('data-tx', 'cover');
   try {
     await change();
@@ -37,7 +39,7 @@ export async function swap(dir: Direction, change: () => void | Promise<void>): 
       await ready();
     }
     playLoaded();
-    await wipeOff();
+    await wipeOff(fast ? FAST_WIPE_MS : WIPE_MS);
     swapping = false;
   }
 }

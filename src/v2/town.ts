@@ -10,7 +10,7 @@ import { NODES, PLACES, START, WORLD, type Place, type Point } from './places';
  * place's disc at its building's door (the game's node buttons) and its name on the game's scroll banner where the game
  * hangs it, and the runner (./runner.ts). The view follows the runner; a drag looks around (it follows again once the
  * runner sets off). Picking a place (its building, banner or disc) sends the runner there along the game's roads, and
- * once it's at the door, `arrive` opens it. Drawn only while it shows (pause/resume).
+ * once it's at the door, `arrive` opens it (`setOff` is told as it starts out, so the page can be read meanwhile). Drawn only while it shows (pause/resume).
  *
  * It zooms as King's Raid's town does (WorldMapMode.ZoomWorldMap): the view's height in the map is KR_HEIGHT (its UI's
  * 1080, more on a screen narrower than 16:9) times the zoom, from ZOOM_IN (half: twice as close) out to the whole map
@@ -89,7 +89,7 @@ export interface Town {
   resume(): void;
 }
 
-export function makeTown(into: HTMLElement, arrive: (place: Place) => void): Town {
+export function makeTown(into: HTMLElement, arrive: (place: Place) => void, setOff: (place: Place) => void = () => undefined): Town {
   const element = document.createElement('div');
   element.className = 'v2-town';
   const world = document.createElement('div');
@@ -280,6 +280,7 @@ export function makeTown(into: HTMLElement, arrive: (place: Place) => void): Tow
     target = to;
     follow = true;
     for (const [id, disc] of marks) disc.classList.toggle('picked', id === to.id);
+    setOff(to);
     runner.walkTo(to.node, performance.now(), () => {
       marks.get(to.id)?.classList.remove('picked');
       if (target === to) arrive(to);

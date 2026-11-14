@@ -16,9 +16,10 @@ export function wipeOn(dir: Direction): void {
   root.setAttribute('data-tx', 'in');
 }
 
-export async function wipeOff(): Promise<void> {
+/** Wipes the panel off, done once it's gone (`ms`: how long that takes, FAST_WIPE_MS for the quick wipe's data-tx-fast). */
+export async function wipeOff(ms = WIPE_MS): Promise<void> {
   root.setAttribute('data-tx', 'out');
-  await wait(WIPE_MS);
+  await wait(ms);
   clear();
 }
 

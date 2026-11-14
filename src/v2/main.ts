@@ -58,7 +58,7 @@ installCursor({ reticle: false });
 installClickSounds();
 landscapeCover(document.body, { title: 'Turn your phone sideways', text: 'The town is played in landscape, filling the screen.' });
 
-const town = makeTown(app, arrived);
+const town = makeTown(app, arrived, (place) => ahead(new URL(place.path, location.href)));
 const hud = makeHud(app);
 // (A page's own way back, if it has one: back to there, as its own back link would.)
 const panel = makePanel(app, (href) => (href ? go(href, { back: true }) : backToTown()));
@@ -115,6 +115,12 @@ const lobby = makeLobby(
 const krScale = new ResizeObserver(() => app.style.setProperty('--kr', String(Math.min(1, Math.max(0.5, app.clientHeight / 1080)))));
 krScale.observe(app);
 
+/**
+ * v2's pages swap under the quick wipe (../shared/transition/swap.ts, curtain()'s speed both ways), not the old site's full
+ * one: about 1.1 s at the least to change page, not 1.9 s. Going to a game, as a new document, is the full wipe still.
+ */
+const FAST = { fast: true };
+
 /** This entry's place in the history (higher: further forward), as the old site keeps it. */
 let index = typeof history.state?.idx === 'number' ? (history.state.idx as number) : 0;
 history.replaceState({ ...history.state, idx: index }, '');
@@ -124,6 +130,38 @@ function oldUrl(url: URL): URL | null {
   const path = oldPath(pagePath(url.pathname) || '/');
   return path === null ? null : new URL(path + url.search + url.hash, url);
 }
+
+/**
+ * The page at old-site `url` read now and the bot asked for its data, before it's opened: as the runner sets off for its
+ * door (the walk hides it), and as another page is gone to (the wipe on hides it), as the old site's go() does. The page's
+ * own requests, once it's set up, take those answers (../site/session.ts prefetch()). Not for a page that needs a login, logged out.
+ */
+function ahead(url: URL): void {
+  const site = pageAt(url.pathname);
+  if (!site || (site.needsLogin && !hasSession())) return;
+  void site
+    .page()
+    .then((page) => page.prefetch?.(url))
+    .catch(() => undefined);
+}
+
+/**
+ * A place's page or a link to one of v2's pages, the mouse over it or the keyboard on it: its module read already (not its
+ * data), so it's there by the time it's picked.
+ */
+function warm(event: Event): void {
+  const target = event.target as Element | null;
+  const place = PLACES.find((p) => p.id === target?.closest?.('[data-place]')?.getAttribute('data-place'));
+  if (place) return void pageAt(place.path)?.page().catch(() => undefined);
+  const link = target?.closest?.('a[href]');
+  if (!(link instanceof HTMLAnchorElement)) return;
+  const url = new URL(link.href, location.href);
+  if (url.origin !== location.origin) return;
+  const path = oldPath(pagePath(url.pathname) || '/') ?? pagePath(url.pathname);
+  if (path) void pageAt(path)?.page().catch(() => undefined);
+}
+document.addEventListener('pointerover', warm, { passive: true });
+document.addEventListener('focusin', warm);
 
 /** Shows what `url` (v2's) is: the town, or a page over it. A page that needs a login, logged out: the town, saying so. */
 async function apply(url: URL): Promise<void> {
@@ -157,7 +195,7 @@ function arrived(place: Place): void {
   if (site?.needsLogin && !hasSession()) return hud.note(`Log in to go into the ${place.name}.`, true);
   hud.note(null);
   history.pushState({ idx: ++index, fromTown: true }, '', v2Path(place.path));
-  void swap('forward', () => apply(new URL(location.href)));
+  void swap('forward', () => apply(new URL(location.href)), FAST);
 }
 
 /** Back to the town from a page: back in the history when the town is the entry before it, else the town in its place. */
@@ -165,7 +203,7 @@ function backToTown(): void {
   if (!panel.showing()) return;
   if (history.state?.fromTown) return history.back();
   history.replaceState({ idx: index }, '', `${V2}/`);
-  void swap('back', () => apply(new URL(location.href)));
+  void swap('back', () => apply(new URL(location.href)), FAST);
 }
 
 /**
@@ -183,7 +221,8 @@ function go(href: string, options: GoOptions = {}): void {
   if (options.replace) history.replaceState({ idx: index }, '', next);
   else history.pushState({ idx: ++index }, '', next);
   if (same && !options.reload) return void apply(new URL(location.href));
-  void swap(options.back ? 'back' : 'forward', () => apply(new URL(location.href)));
+  ahead(new URL(path + url.search + url.hash, location.href));
+  void swap(options.back ? 'back' : 'forward', () => apply(new URL(location.href)), FAST);
 }
 setGo(go);
 
@@ -204,7 +243,9 @@ window.addEventListener('popstate', (e) => {
   const site = pageAt(oldPath(pagePath(location.pathname) || '/') ?? '/');
   // Another tab of the page showing: in place.
   if (site && site === panel.showing()) return void apply(new URL(location.href));
-  void swap(dir, () => apply(new URL(location.href)));
+  const old = oldUrl(new URL(location.href));
+  if (old) ahead(old);
+  void swap(dir, () => apply(new URL(location.href)), FAST);
 });
 
 document.addEventListener('keydown', (e) => {
