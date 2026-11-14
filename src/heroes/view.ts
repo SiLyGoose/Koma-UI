@@ -1,7 +1,7 @@
 import { askSale, itemDetailsClosed, itemIcons, itemPicked, pruneSale, saleOf, saleSaid, sellInTurns, TM_UNSORTED, wireSaleDialog, wireSearch } from '../shared/items';
 import { HERO_CLASSES, HERO_SLOT_TYPE, noteWorn, type HeroCopy, type HeroSlot, type HeroesView } from '../shared/heroes';
 import type { HeroesSold } from '../protocol/heroes';
-import { RUNE_KEEP_PRICE, type RuneBroken } from '../protocol/runes';
+import type { RuneBroken } from '../protocol/runes';
 import { fragmentCount } from '../shared/items/fragments';
 import { busyWith, dropdown, fillServers } from '../shared/ui';
 import { createContext, heroShown, mine, status, type HeroesContext, type HeroesHost, type HeroMember } from './context';
@@ -293,12 +293,12 @@ function actions(ctx: HeroesContext): HeroActions {
       }).then(() => void ctx.host.loadMe(true));
     },
     rune(copy: HeroCopy, socket: number, rune: string | null) {
-      // (Taking one out, or swapping one in over it, keeps it for RUNE_KEEP_PRICE zeiucoins: the header's balance follows.)
+      // (Taking one out, or swapping one in over it, keeps it for the view's runeKeepPrice zeiucoins: the header's balance follows.)
       const paid = rune === null || copy.runes[socket] != null;
       void change(ctx, act, `rune:${copy.id}:${socket}`, '/api/heroes/rune', { copy: copy.id, socket, rune }, rune ? 'Could not put that rune in. Try again.' : 'Could not take that rune out. Try again.', {
         no_rune: rune ? 'You have none of that rune left.' : 'That socket is empty.',
         wrong_part: 'That rune doesn’t go in this piece.',
-        too_poor: `Keeping a rune you take out costs ${RUNE_KEEP_PRICE} zeiucoins. Disassemble it instead for Rune Fragments.`,
+        too_poor: `Keeping a rune you take out costs ${ctx.view?.runeKeepPrice === undefined ? 'zeiucoins' : `${ctx.view.runeKeepPrice} zeiucoins`}. Disassemble it instead for Rune Fragments.`,
       }).then(() => {
         if (paid) void ctx.host.loadMe(true);
       });

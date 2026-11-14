@@ -6,7 +6,7 @@ import { working } from '../shared/ui';
 import { heroStars } from '../shared/ui/stars/stars';
 import { canTrade, copyById, heroShown, mine, slotFor, slotOf, slotsFor, type HeroesContext } from './context';
 import { PERK_PAGES_MAX, SIDE_SLOTS, TP_SCROLL_MOST, TP_SCROLL_POINTS } from '../protocol/heroes';
-import { RUNE_FRAGMENTS, RUNE_KEEP_PRICE } from '../protocol/runes';
+import { RUNE_FRAGMENTS } from '../protocol/runes';
 import { fragmentIcon } from '../shared/items/fragments';
 import { SCROLL_NAME } from '../shared/items/scroll';
 import { coin, points } from '../shared/util';
@@ -42,7 +42,7 @@ export interface HeroActions {
   buyPerkPage(page: number): void;
   /** Locks or unlocks a copy. */
   lock(copy: HeroCopy, locked: boolean): void;
-  /** Puts one of their runes in a copy's socket (null: takes the one in it out, kept for RUNE_KEEP_PRICE zeiucoins). */
+  /** Puts one of their runes in a copy's socket (null: takes the one in it out, kept for the bot's runeKeepPrice zeiucoins). */
   rune(copy: HeroCopy, socket: number, rune: string | null): void;
   /** Disassembles the rune in a copy's socket where it is, into Rune Fragments. */
   breakRune(copy: HeroCopy, socket: number): void;
@@ -401,7 +401,7 @@ function runesFor(ctx: HeroesContext): HeroCopy | null {
 
 /**
  * Their runes in the cards' place, for `copy`: first the ones in its sockets, each with Take out (back to them, for
- * RUNE_KEEP_PRICE zeiucoins: King's Raid's Rune Preserve) and Disassemble (into Rune Fragments, where it is); then theirs,
+ * the view's runeKeepPrice zeiucoins: King's Raid's Rune Preserve; a bot from before it, no price shown) and Disassemble (into Rune Fragments, where it is); then theirs,
  * the ones that go in it first, each its icon (its kind's gem on it), name, what it gives and how many, with Put in (into its
  * first empty socket; a piece of one socket, full: Swap in, the one in it back to them for the same price). The rest, greyed,
  * say what they go in.
@@ -411,6 +411,9 @@ function renderRunes(ctx: HeroesContext, act: HeroActions, copy: HeroCopy): void
   const empty = copy.runes.indexOf(null);
   const socket = empty >= 0 ? empty : copy.runes.length === 1 ? 0 : -1;
   const filled = copy.runes.filter((rune) => rune !== null).length;
+  // (What keeping one taken out costs: the bot's setting; a bot from before it, unsaid.)
+  const keepPrice = ctx.view?.runeKeepPrice;
+  const priced = (label: string): string => (keepPrice === undefined ? label : `${label} · ${points(keepPrice)} `);
   // Back: its details again (on narrow screens, the sheet the list took the place of), the cards in the list's place.
   const back = el('button', 'kr-action action secondary', 'Back');
   back.type = 'button';
@@ -427,9 +430,9 @@ function renderRunes(ctx: HeroesContext, act: HeroActions, copy: HeroCopy): void
     const row = el('div', 'rune-row equipped');
     const words = el('span', 'rune-words');
     words.append(el('span', 'rune-name', rune.name), el('span', 'rune-lines', rune.lines.join(', ')));
-    const keep = sectionButton(ctx, `Take out · ${points(RUNE_KEEP_PRICE)} `, `rune:${copy.id}:${i}`, () => act.rune(copy, i, null));
-    keep.append(coin('coin', 'zeiucoins'));
-    keep.title = `Back to your runes, for ${points(RUNE_KEEP_PRICE)} zeiucoins`;
+    const keep = sectionButton(ctx, priced('Take out'), `rune:${copy.id}:${i}`, () => act.rune(copy, i, null));
+    if (keepPrice !== undefined) keep.append(coin('coin', 'zeiucoins'));
+    keep.title = keepPrice === undefined ? 'Back to your runes' : `Back to your runes, for ${points(keepPrice)} zeiucoins`;
     const breakUp = sectionButton(ctx, `Disassemble · ${points(RUNE_FRAGMENTS[rune.grade] ?? 0)} `, `break:${copy.id}:${i}`, () => act.breakRune(copy, i));
     breakUp.append(fragmentIcon());
     breakUp.title = 'Into Rune Fragments: the rune is gone';
@@ -448,8 +451,8 @@ function renderRunes(ctx: HeroesContext, act: HeroActions, copy: HeroCopy): void
     row.append(runePic(rune), words, el('span', 'rune-count', `×${rune.count}`));
     if (ok && socket >= 0) {
       // (Swap: the one in it back to them, for what taking it out costs.)
-      const put = sectionButton(ctx, empty >= 0 ? 'Put in' : `Swap · ${points(RUNE_KEEP_PRICE)} `, `rune:${copy.id}:${socket}`, () => act.rune(copy, socket, rune.id));
-      if (empty < 0) put.append(coin('coin', 'zeiucoins'));
+      const put = sectionButton(ctx, empty >= 0 ? 'Put in' : priced('Swap'), `rune:${copy.id}:${socket}`, () => act.rune(copy, socket, rune.id));
+      if (empty < 0 && keepPrice !== undefined) put.append(coin('coin', 'zeiucoins'));
       row.append(put);
     }
     rows.push(row);
