@@ -74,8 +74,8 @@ export interface Place {
   blurb: string;
   /** The page it opens (an old-site path); unset, Adventure's window (./adventure.ts) instead, as the lobby's button opens it. */
   path?: string;
-  /** Its building's node in the town's graph (./kr-town.ts): its door, where the runner stops. */
-  node: TownNode;
+  /** Its building's node in the town's graph (./kr-town.ts, or v2's own: NODES): its door, where the runner stops. */
+  node: TownNode | V2Node;
   /** Its disc (the game's node button, public/kr/town/discs/). */
   disc: string;
   /** The painted building, a box over it in map pixels (left, top, right, bottom): tapping it goes there too. */
@@ -84,9 +84,19 @@ export interface Place {
   door: Point;
 }
 
-const place = (p: Omit<Place, 'door'>): Place => ({ ...p, door: TOWN_NODES[p.node] });
+/**
+ * v2's own nodes, besides King's Raid's: Adventure's, on the paved road from the Armory down to the square, near its
+ * bottom-right end (halfway between waypoints w116 and w115, the road between them walked through it).
+ */
+const V2_NODES = { adventure: { x: 1693, y: 2108 } } as const;
+type V2Node = keyof typeof V2_NODES;
 
-/** The site's places, each in one of the town's buildings (the Arena is free for now, kept for PvP). */
+/** The roads' points: the buildings' doors and the waypoints between them (King's Raid's, ./kr-town.ts), and v2's own. */
+export const NODES: Readonly<Record<string, Point>> = { ...TOWN_NODES, ...V2_NODES };
+
+const place = (p: Omit<Place, 'door'>): Place => ({ ...p, door: NODES[p.node] as Point });
+
+/** The site's places, each in one of the town's buildings (the Arena and the Prison are free for now), and Adventure on its road. */
 export const PLACES: readonly Place[] = [
   place({ id: 'forge', name: 'Forge', blurb: 'Craft, enhance and salvage gear', path: '/forge', node: 'forge', disc: 'forge', building: [2160, 2420, 2780, 2900] }),
   place({ id: 'casino', name: 'Casino', blurb: 'Baccarat, roulette, poker and the mine', path: '/casino', node: 'pub', disc: 'pub', building: [3000, 1860, 3720, 2400] }),
@@ -94,8 +104,9 @@ export const PLACES: readonly Place[] = [
   place({ id: 'shop', name: 'Shop', blurb: 'Heroes, outfits, raid goods and wishes', path: '/shop', node: 'shop', disc: 'shop', building: [740, 2040, 1080, 2480] }),
   place({ id: 'heroes', name: 'Hall of Heroes', blurb: 'Your heroes and their gear', path: '/heroes', node: 'honor', disc: 'honor', building: [1950, 860, 2500, 1200] }),
   place({ id: 'inventory', name: 'Storehouse', blurb: 'Everything you own', path: '/inventory', node: 'guild', disc: 'guild', building: [1960, 1420, 2300, 1840] }),
-  // (Adventure, in the Prison's tower: its window of battles, not a page.)
-  place({ id: 'adventure', name: 'Adventure', blurb: 'Raids, dragons and bosses', node: 'prison', disc: 'prison', building: [3300, 1150, 3900, 1760] }),
+  // (Adventure, on the road out from the Armory: its window of battles, not a page. Its disc is King's Raid's arrow for a
+  // road leading out of town (NguiAtlas_UI_Prefab_WorldMap Direction_Down); no building, so a box round the disc.)
+  place({ id: 'adventure', name: 'Adventure', blurb: 'Raids, dragons and bosses', node: 'adventure', disc: 'adventure', building: [1613, 2040, 1773, 2170] }),
   place({ id: 'player', name: 'Armory', blurb: 'Your own gear', path: '/player', node: 'castle', disc: 'castle', building: [80, 960, 1380, 2000] }),
 ];
 
@@ -105,14 +116,16 @@ export const placeOf = (path: string): Place | undefined => {
   return page && PLACES.find((place) => place.path === page.path);
 };
 
-/** The roads' points: the buildings' doors and the waypoints between them (King's Raid's, ./kr-town.ts). */
-export const NODES: Readonly<Record<string, Point>> = TOWN_NODES;
 
 /** Where the runner stands when the town is first opened: the square, by its statue. */
 export const START: TownNode = 'square';
 
-/** The roads: pairs of nodes, walked either way. */
-export const ROADS: readonly (readonly [string, string])[] = TOWN_ROADS;
+/** The roads: pairs of nodes, walked either way (w116 to w115 by way of Adventure's node). */
+export const ROADS: readonly (readonly [string, string])[] = [
+  ...TOWN_ROADS.filter(([a, b]) => !(a === 'w115' && b === 'w116') && !(a === 'w116' && b === 'w115')),
+  ['w116', 'adventure'],
+  ['adventure', 'w115'],
+];
 
 const distance = (a: Point, b: Point): number => Math.hypot(a.x - b.x, a.y - b.y);
 
