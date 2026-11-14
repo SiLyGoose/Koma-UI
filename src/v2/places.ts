@@ -72,8 +72,8 @@ export interface Place {
   name: string;
   /** What's inside (the banner's tooltip). */
   blurb: string;
-  /** The page it opens (an old-site path). */
-  path: string;
+  /** The page it opens (an old-site path); unset, Adventure's window (./adventure.ts) instead, as the lobby's button opens it. */
+  path?: string;
   /** Its building's node in the town's graph (./kr-town.ts): its door, where the runner stops. */
   node: TownNode;
   /** Its disc (the game's node button, public/kr/town/discs/). */
@@ -86,7 +86,7 @@ export interface Place {
 
 const place = (p: Omit<Place, 'door'>): Place => ({ ...p, door: TOWN_NODES[p.node] });
 
-/** The site's places, each in one of the town's buildings (the Arena and the Prison are free for now). */
+/** The site's places, each in one of the town's buildings (the Arena is free for now, kept for PvP). */
 export const PLACES: readonly Place[] = [
   place({ id: 'forge', name: 'Forge', blurb: 'Craft, enhance and salvage gear', path: '/forge', node: 'forge', disc: 'forge', building: [2160, 2420, 2780, 2900] }),
   place({ id: 'casino', name: 'Casino', blurb: 'Baccarat, roulette, poker and the mine', path: '/casino', node: 'pub', disc: 'pub', building: [3000, 1860, 3720, 2400] }),
@@ -94,6 +94,8 @@ export const PLACES: readonly Place[] = [
   place({ id: 'shop', name: 'Shop', blurb: 'Heroes, outfits, raid goods and wishes', path: '/shop', node: 'shop', disc: 'shop', building: [740, 2040, 1080, 2480] }),
   place({ id: 'heroes', name: 'Hall of Heroes', blurb: 'Your heroes and their gear', path: '/heroes', node: 'honor', disc: 'honor', building: [1950, 860, 2500, 1200] }),
   place({ id: 'inventory', name: 'Storehouse', blurb: 'Everything you own', path: '/inventory', node: 'guild', disc: 'guild', building: [1960, 1420, 2300, 1840] }),
+  // (Adventure, in the Prison's tower: its window of battles, not a page.)
+  place({ id: 'adventure', name: 'Adventure', blurb: 'Raids, dragons and bosses', node: 'prison', disc: 'prison', building: [3300, 1150, 3900, 1760] }),
   place({ id: 'player', name: 'Armory', blurb: 'Your own gear', path: '/player', node: 'castle', disc: 'castle', building: [80, 960, 1380, 2000] }),
 ];
 

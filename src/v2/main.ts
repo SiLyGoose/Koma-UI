@@ -58,7 +58,7 @@ installCursor({ reticle: false });
 installClickSounds();
 landscapeCover(document.body, { title: 'Turn your phone sideways', text: 'The town is played in landscape, filling the screen.' });
 
-const town = makeTown(app, arrived, (place) => ahead(new URL(place.path, location.href)));
+const town = makeTown(app, arrived, (place) => place.path && ahead(new URL(place.path, location.href)));
 const hud = makeHud(app);
 // (A page's own way back, if it has one: back to there, as its own back link would.)
 const panel = makePanel(app, (href) => (href ? go(href, { back: true }) : backToTown()));
@@ -152,7 +152,7 @@ function ahead(url: URL): void {
 function warm(event: Event): void {
   const target = event.target as Element | null;
   const place = PLACES.find((p) => p.id === target?.closest?.('[data-place]')?.getAttribute('data-place'));
-  if (place) return void pageAt(place.path)?.page().catch(() => undefined);
+  if (place) return void (place.path && pageAt(place.path)?.page().catch(() => undefined));
   const link = target?.closest?.('a[href]');
   if (!(link instanceof HTMLAnchorElement)) return;
   const url = new URL(link.href, location.href);
@@ -170,7 +170,7 @@ async function apply(url: URL): Promise<void> {
   if (!old || !site) {
     if (panel.showing()) {
       // The runner at the door of the place whose page it was.
-      const from = PLACES.find((place) => pageAt(place.path) === panel.showing());
+      const from = PLACES.find((place) => place.path && pageAt(place.path) === panel.showing());
       panel.close();
       town.standAt(from ?? null);
     }
@@ -189,8 +189,12 @@ async function apply(url: URL): Promise<void> {
   await panel.open(old);
 }
 
-/** The runner is at `place`'s door: its page, unless it needs a login. */
+/** The runner is at `place`'s door: its page, unless it needs a login (Adventure's door: its window, over the town). */
 function arrived(place: Place): void {
+  if (!place.path) {
+    hud.note(null);
+    return lobby.adventure.open();
+  }
   const site = pageAt(place.path);
   if (site?.needsLogin && !hasSession()) return hud.note(`Log in to go into the ${place.name}.`, true);
   hud.note(null);
