@@ -1,5 +1,5 @@
 import { art, drawSell, el, forgeLink, hasLevels, itemDetailsClosed, itemFace, levelLabel, itemPicked, lockToggle, optionsSection, priceOf, pruneSale, replacesNote, rich, sellsFor, showDetail, shownName, statBlocks, tmMarks, tmSections, treasureParts, uniqueWeaponEffect, utMarks, uwMarks } from '../shared/items';
-import { classBadge, className, FACE, HERO_PART_NAME, HERO_SLOT_KIND, HERO_SLOT_PART, HERO_SLOT_TYPE, HERO_SLOTS, heroCut, heroPicture, skillText, STAGE_ZOOM, type HeroView, type HeroCopy, type HeroSlot } from '../shared/heroes';
+import { classBadge, className, FACE, HERO_PART_NAME, HERO_SLOT_KIND, HERO_SLOT_PART, HERO_SLOT_TYPE, HERO_SLOTS, heroCut, heroPicture, loadoutMark, loadoutsOf, loadoutWords, skillText, STAGE_ZOOM, type HeroView, type HeroCopy, type HeroSlot } from '../shared/heroes';
 import { built } from '../shared/built';
 import { skinOf } from '../shared/hero-outfits';
 import { working } from '../shared/ui';
@@ -284,6 +284,8 @@ function renderStage(ctx: HeroesContext): void {
  */
 function renderSlots(ctx: HeroesContext): void {
   const hero = heroShown(ctx);
+  // (A piece kept in one of their loadouts: the loadout's number over it, as King's Raid's.)
+  const kept = loadoutsOf(ctx.view);
   const treasure = (slot: HeroSlot): HeroCopy | undefined => copyById(ctx, hero?.equipped[slot] ?? null);
   const subs = ctx.ui.page.querySelector<HTMLElement>('.hero-subs');
   // (Only a unique treasure has sub treasures.)
@@ -310,7 +312,14 @@ function renderSlots(ctx: HeroesContext): void {
     button.setAttribute('aria-label', copy ? `${slotName(slot)}: ${shownName(copy)}` : `${slotName(slot)}: empty`);
     // (No name under it, as King's Raid's: on hovering it.)
     button.title = slotName(slot);
-    button.append(slotFrame(copy, kind));
+    const frame = slotFrame(copy, kind);
+    const numbers = copy ? kept.get(copy.id) : undefined;
+    const mark = loadoutMark(numbers);
+    if (mark && numbers) {
+      frame.append(mark);
+      button.setAttribute('aria-label', `${button.getAttribute('aria-label')}, ${loadoutWords(numbers)}`);
+    }
+    button.append(frame);
   }
 }
 
@@ -355,6 +364,7 @@ function renderGrid(ctx: HeroesContext, act: HeroActions): void {
     const ownerClass = owner ? view.heroes.find((one) => one.id === owner)?.class : undefined;
     return ownerClass ? ownerClass === cls : copy.class === null || copy.class === cls;
   };
+  const kept = loadoutsOf(view);
   ui.grid.draw({
     copies: view.copies,
     slot: filter,
@@ -365,9 +375,14 @@ function renderGrid(ctx: HeroesContext, act: HeroActions): void {
     look: (copy) => {
       const onThis = copy.hero !== null && copy.hero === hero?.id;
       const other = copy.hero !== null && !onThis ? view.heroes.find((one) => one.id === copy.hero) : undefined;
+      const numbers = kept.get(copy.id);
+      const mark = loadoutMark(numbers);
       return {
         tag: onThis ? { text: 'Equipped' } : other ? { text: `On ${other.name}`, className: 'elsewhere' } : null,
         classes: { inert: !worksOn(copy, hero) || !wieldable(copy, hero) },
+        // (Kept in a loadout: its number over it.)
+        says: numbers ? [loadoutWords(numbers)] : [],
+        over: mark ? [mark] : [],
       };
     },
     picked: ctx.picked,

@@ -1,5 +1,5 @@
 import { el, equippedIds, forgePlan, heroGear } from '../shared/items';
-import type { HeroCopy } from '../shared/heroes';
+import { loadoutMark, loadoutsOf, loadoutWords, type HeroCopy } from '../shared/heroes';
 import type { HeroMode } from './anvil/hero';
 import { choosing, copyById, type ForgeContext, refineableIds } from './context';
 import { heroCan } from './modes';
@@ -12,6 +12,13 @@ const NONE_FOR: Readonly<Record<HeroMode, string>> = {
   effects: 'None of your hero gear has an additional effect to reroll: TechnoMagic pieces do.',
   restore: 'None of your hero gear can be restored: a TechnoMagic piece can once it is 5★, if it isn’t Reclaimed already.',
 };
+
+/** The mark over the copy on the anvil: a big gold tick, and under it what's being done to it ("Refining", "Selected"). */
+function anvilMark(word: string): HTMLElement {
+  const mark = el('span', 'item-selected');
+  mark.append(el('span', 'item-selected-tick'), el('span', 'item-selected-word', word));
+  return mark;
+}
 
 /**
  * The armory (../shared/items/armory.ts): every copy shown (by the filter, the stars and the search), greyed out when it can't go on
@@ -28,6 +35,8 @@ export function renderGrid(ctx: ForgeContext): void {
   const target = copyById(ctx, picked);
   const plan = target ? forgePlan(target).kind : null;
   const equipped = equippedIds(gear);
+  // (Hero gear kept in one of their hero loadouts: its number over it, once the heroes are loaded.)
+  const kept = loadoutsOf(ctx.heroes);
   ui.grid.draw({
     copies: gear.copies,
     slot: target ? 'all' : filter,
@@ -37,13 +46,16 @@ export function renderGrid(ctx: ForgeContext): void {
     look: (copy) => {
       const isTarget = copy.id === picked;
       const isMaterial = copy.id === material;
-      // Worn, or saved in any of their loadouts. The copy on the anvil stays in its place, darkened and named for what's being done to it.
+      const numbers = kept.get(copy.id);
+      const mark = loadoutMark(numbers);
+      // Worn, or saved in any of their loadouts. The copy on the anvil stays in its place, darkened, ticked and named for what's
+      // being done to it; the spare picked to use up, ticked as any card picked.
       return {
         tag: isMaterial ? { text: 'Material' } : equipped.has(copy.id) ? { text: 'Equipped' } : null,
-        classes: { selected: isTarget, material: isMaterial },
+        classes: { selected: isTarget, material: isMaterial, picked: isMaterial },
         disabled: usable !== null && !isTarget && !usable.has(copy.id),
-        says: isTarget ? ['on the anvil'] : [],
-        over: isTarget ? [el('span', 'item-selected', plan === 'refine' ? (heroGear(copy) ? 'Awakening' : 'Refining') : 'Selected')] : [],
+        says: [...(isTarget ? ['on the anvil'] : []), ...(numbers ? [loadoutWords(numbers)] : [])],
+        over: [...(mark ? [mark] : []), ...(isTarget ? [anvilMark(plan === 'refine' ? (heroGear(copy) ? 'Awakening' : 'Refining') : 'Selected')] : [])],
       };
     },
     first: !target && refineable?.size === 0 && gear.copies.length > 0 ? 'Nothing can be refined yet: a refine uses up a spare copy of the same gear.' : null,
@@ -61,6 +73,7 @@ function renderHeroGrid(ctx: ForgeContext, mode: HeroMode): void {
   const { heroes, ui, filter, stars, query, picked } = ctx;
   if (!heroes) return;
   const can = (copy: HeroCopy): boolean => heroCan(copy, mode);
+  const kept = loadoutsOf(heroes);
   ui.grid.draw({
     copies: heroes.copies,
     slot: filter,
@@ -72,11 +85,13 @@ function renderHeroGrid(ctx: ForgeContext, mode: HeroMode): void {
       const isTarget = copy.id === picked;
       const wearer = (copy as HeroCopy).hero;
       const on = wearer ? heroes.heroes.find((hero) => hero.id === wearer) : undefined;
+      const numbers = kept.get(copy.id);
+      const mark = loadoutMark(numbers);
       return {
         tag: on ? { text: `On ${on.name}` } : null,
         classes: { selected: isTarget },
-        says: isTarget ? ['on the anvil'] : [],
-        over: isTarget ? [el('span', 'item-selected', 'Selected')] : [],
+        says: [...(isTarget ? ['on the anvil'] : []), ...(numbers ? [loadoutWords(numbers)] : [])],
+        over: [...(mark ? [mark] : []), ...(isTarget ? [anvilMark('Selected')] : [])],
       };
     },
     first: heroes.copies.some(can) ? null : NONE_FOR[mode],

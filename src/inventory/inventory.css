@@ -820,7 +820,8 @@
   margin: 0;
 }
 
-.inventory-page .inv-tile.to-sell .inv-tile-count {
+.inventory-page .inv-tile.to-sell .inv-tile-count,
+.inventory-page .inv-tile.picked .inv-tile-count {
   z-index: 3;
 }
 

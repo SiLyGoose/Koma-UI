@@ -3,7 +3,7 @@ import { el, type ItemType } from './items';
 
 /** The heroes as the bot says them (../protocol/heroes.ts). */
 export { HERO_PART_NAME, HERO_SLOT_PART, HERO_SLOTS, type HeroCopy, type HeroesChange, type HeroesView, type HeroKeep, type HeroPart, type HeroSlot, type HeroStat, type HeroView } from '../protocol/heroes';
-import { HERO_SLOT_PART as PART_OF, HERO_SLOTS as SLOTS, type HeroSlot as Slot_ } from '../protocol/heroes';
+import { HERO_SLOT_PART as PART_OF, HERO_SLOTS as SLOTS, type HeroesView as View_, type HeroSlot as Slot_ } from '../protocol/heroes';
 import type { Slot } from '../protocol/items';
 
 /** The slot of the items each of a hero's slots takes (its empty icon's): a weapon, an armor (Armor and Mantle), or the rest. */
@@ -23,6 +23,37 @@ export const HERO_SLOT_TYPE: Readonly<Record<Slot_, ItemType>> = Object.fromEntr
  * shop's Heroes tab buys them (../hero-shop/), the heroes page gears them (../heroes/). The raid itself
  * (../technomagic/) knows each by the same id: its folder there, whose files give its picture here.
  */
+
+/**
+ * Which of their hero gear loadouts keep each copy (../protocol/heroes.ts HeroLoadouts): by copy id, the loadouts' numbers,
+ * lowest first. A copy can be kept in more than one. Empty for someone else's heroes, or a bot from before loadouts.
+ */
+export function loadoutsOf(view: Pick<View_, 'loadouts'> | null | undefined): Map<string, number[]> {
+  const of = new Map<string, number[]>();
+  for (const loadout of [...(view?.loadouts?.slots ?? [])].sort((a, b) => a.number - b.number))
+    for (const id of new Set(Object.values(loadout.pieces))) {
+      if (!id) continue;
+      const numbers = of.get(id);
+      if (numbers) numbers.push(loadout.number);
+      else of.set(id, [loadout.number]);
+    }
+  return of;
+}
+
+/** What a screen reader hears for a copy kept in loadouts `numbers` ("in loadout 1", "in loadouts 1 and 3"). */
+export const loadoutWords = (numbers: readonly number[]): string =>
+  numbers.length === 1 ? `in loadout ${numbers[0]}` : `in loadouts ${numbers.slice(0, -1).join(', ')} and ${numbers.at(-1)}`;
+
+/**
+ * A copy's loadout mark, as King's Raid's Gear Custom marks its pieces: a dark wash over its card or slot, the first loadout
+ * keeping it big in its middle (./items/styles/cards.css). None for a copy in no loadout.
+ */
+export function loadoutMark(numbers: readonly number[] | undefined): HTMLElement | null {
+  if (!numbers?.length) return null;
+  const mark = el('span', 'item-loadout', String(numbers[0]));
+  mark.setAttribute('aria-hidden', 'true');
+  return mark;
+}
 
 const CLASS_NAME: Record<string, string> = { knight: 'Knight', warrior: 'Warrior', assassin: 'Assassin', archer: 'Archer', mechanic: 'Mechanic', wizard: 'Wizard', priest: 'Priest' };
 

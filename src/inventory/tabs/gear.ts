@@ -6,6 +6,7 @@ import { krSections, runeSection, withoutRunes } from '../../heroes/parts';
 import { salvageRuleDialog } from '../../heroes/salvage-rule';
 import type { GearSale } from '../../protocol/gear';
 import type { HeroCopy, HeroesView } from '../../protocol/heroes';
+import { loadoutMark, loadoutsOf, loadoutWords } from '../../shared/heroes';
 import type { InventoryHost, InventoryTab, Source, Sources } from '../tab';
 import { afterTyping, detailAway, statName } from './tiles';
 
@@ -481,6 +482,14 @@ export function heroCopyDetail(view: HeroesView, copy: HeroCopy, close: () => vo
   };
 }
 
+/** Which loadouts keep each copy, worked out once per answer from the bot (each card asks). */
+const keptCache = new WeakMap<HeroesView, Map<string, number[]>>();
+function keptIn(view: HeroesView): Map<string, number[]> {
+  let kept = keptCache.get(view);
+  if (!kept) keptCache.set(view, (kept = loadoutsOf(view)));
+  return kept;
+}
+
 export const heroGearTab: InventoryTab = armoryTab<HeroCopy, 'heroes'>({
   id: 'hero-gear',
   label: 'Hero Gear',
@@ -500,7 +509,10 @@ export const heroGearTab: InventoryTab = armoryTab<HeroCopy, 'heroes'>({
   copies: (view) => view.copies,
   look: (view, copy) => {
     const on = copy.hero !== null ? view.heroes.find((hero) => hero.id === copy.hero) : undefined;
-    return { tag: on ? { text: `On ${on.name}`, className: 'elsewhere' } : null };
+    // (Kept in one of their loadouts: its number over it, as on the Heroes page.)
+    const numbers = keptIn(view).get(copy.id);
+    const mark = loadoutMark(numbers);
+    return { tag: on ? { text: `On ${on.name}`, className: 'elsewhere' } : null, says: numbers ? [loadoutWords(numbers)] : [], over: mark ? [mark] : [] };
   },
   none: 'No hero gear yet. The Weekly Boss and the Dragon Raid drop it, the raid shop sells it, and the TechnoMagic Raid drops its own.',
   offer: { tiers: ['uw', 'ut', 'tm', 10, 8, 7, 6] },

@@ -11,13 +11,17 @@
   pointer-events: none;
 }
 
-/* Over the dark (and over a full picture, whose parts items.css lifts to 1). */
+/* Over the dark (and over a full picture, whose parts items.css lifts to 1): a big gold tick, the word under it. */
 .forge .item.selected > .item-selected {
   position: absolute;
   inset: 0;
   z-index: 3;
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  container-type: inline-size;
   color: #ffe14a;
   font-size: 15px;
   font-weight: 800;
@@ -39,4 +43,14 @@
 .forge .item.material {
   border-color: var(--picked);
   box-shadow: inset 0 0 0 1px var(--picked), inset 0 0 14px 5px var(--picked-glow), 0 2px 0 var(--item-lip);
+}
+
+.forge .item.selected .item-selected-tick {
+  width: 42cqi;
+  aspect-ratio: 1;
+  background: var(--tick) center / contain no-repeat;
+}
+
+.forge .item.selected .item-selected-word {
+  line-height: 1.1;
 }
