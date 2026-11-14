@@ -1,7 +1,9 @@
 import type { Friends, Game } from '../protocol/site';
 import { FACE, heroCut } from '../shared/heroes';
 import { navigate } from '../shared/transition';
+import { withQuery } from '../site/game-link';
 import { go } from '../site/nav';
+import { playGame } from '../site/play';
 import type { Page } from '../site/page';
 import { api, currentMe, currentServer, hasSession, loadMe, prefetchFor } from '../site/session';
 
@@ -13,7 +15,9 @@ import { api, currentMe, currentServer, hasSession, loadMe, prefetchFor } from '
  * online under it, what they're doing in the middle, and their Discord picture filling its right end, fading into the row
  * (where Genshin has the player's namecard). Laid out on v2's canvas (640 high, ./panel.ts), so it scales with the screen.
  * At its right end two buttons: Watch (only lit while they're in a game that can be watched, as /api/live says; otherwise
- * there but greyed and struck through) and Heroes, their roster on the heroes page (/heroes/?user=; the one asking: their own).
+ * there but greyed and struck through; a raid's, getting ready or fighting, too) and Heroes, their roster on the heroes page
+ * (/heroes/?user=; the one asking: their own). Before them, Join, only while they're in a TechnoMagic or Dragon Raid getting
+ * ready with room (the bot's online.join): into that raid, as Find Raid joins one.
  * Asked again every REFRESH_MS while it's open.
  */
 
@@ -88,7 +92,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
       <span class="v2-fr-hero"><img alt="" /></span>
       <div class="v2-fr-who"><b class="v2-fr-name"></b><span class="v2-fr-state"><i class="v2-fr-dot" aria-hidden="true"></i><span></span></span></div>
       <p class="v2-fr-what"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3C6.5 3 2 6.6 2 11c0 2.4 1.3 4.5 3.4 6L4.5 21l4.4-2.4c1 .3 2 .4 3.1.4 5.5 0 10-3.6 10-8s-4.5-8-10-8m-4 9.3a1.3 1.3 0 1 1 0-2.6 1.3 1.3 0 0 1 0 2.6m4 0a1.3 1.3 0 1 1 0-2.6 1.3 1.3 0 0 1 0 2.6m4 0a1.3 1.3 0 1 1 0-2.6 1.3 1.3 0 0 1 0 2.6"/></svg><span></span></p>
-      <div class="v2-fr-acts"><button type="button" class="v2-fr-act" data-watch>Watch</button><button type="button" class="v2-fr-act" data-roster>Heroes</button></div>`;
+      <div class="v2-fr-acts"><button type="button" class="v2-fr-act v2-fr-join" data-join hidden>Join</button><button type="button" class="v2-fr-act" data-watch>Watch</button><button type="button" class="v2-fr-act" data-roster>Heroes</button></div>`;
     const art = li.querySelector('.v2-fr-art img') as HTMLImageElement;
     // (A picture that won't load: no picture, the row's own colour there.)
     art.addEventListener('error', () => art.remove(), { once: true });
@@ -109,12 +113,30 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     roster.addEventListener('click', () => go(you ? '/heroes/' : `/heroes/?user=${encodeURIComponent(friend.userId)}`));
     const watch = li.querySelector('[data-watch]') as HTMLButtonElement;
     watch.addEventListener('click', () => void watching(friend.userId, watch));
+    const join = li.querySelector('[data-join]') as HTMLButtonElement;
+    join.addEventListener('click', () => void joining(friend.userId, join));
     fill(li, friend);
     return li;
   }
 
   /** What each row's Watch would watch (the game they're in), as last asked: null, nothing to watch. */
   const games = new Map<string, Game>();
+
+  /** What each row's Join would join (the raid they're in, getting ready with room), as last asked. */
+  const raids = new Map<string, { game: Game; boss: string; room: string }>();
+
+  async function joining(userId: string, button: HTMLButtonElement): Promise<void> {
+    const raid = raids.get(userId);
+    if (!raid) return;
+    button.disabled = true;
+    button.textContent = 'Opening…';
+    // (As v2's: its back arrow to Adventure, as one opened there.)
+    const refused = await playGame(raid.game, { boss: raid.boss, room: raid.room, v2: raid.game });
+    if (!refused || gone) return;
+    button.disabled = false;
+    button.textContent = 'Join';
+    say(refused === 'not_member' ? "You don't seem to be in that server any more." : 'Could not open the raid. Try again.');
+  }
 
   async function watching(userId: string, button: HTMLButtonElement): Promise<void> {
     const game = games.get(userId);
@@ -124,7 +146,8 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     button.textContent = 'Opening…';
     const res = await api<{ url: string }>(`/api/watch?guild=${encodeURIComponent(server)}`, { method: 'POST', body: JSON.stringify({ game, target: userId }) });
     if (gone) return;
-    if (res.ok) return navigate(res.data.url);
+    // (A TechnoMagic or Dragon Raid as v2's, its way back to Adventure.)
+    if (res.ok) return navigate(game === 'technomagic' || game === 'dragon' ? withQuery(res.data.url, { v2: game }) : res.data.url);
     // (Not in that game any more: greyed till the next answer says otherwise.)
     games.delete(userId);
     button.textContent = 'Watch';
@@ -144,6 +167,14 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     const game = on?.watchable && on.activity !== 'hub' ? on.activity : null;
     if (game) games.set(friend.userId, game);
     else games.delete(friend.userId);
+    const join = li.querySelector('[data-join]') as HTMLButtonElement;
+    const raid = on?.join && on.activity !== 'hub' ? { game: on.activity, ...on.join } : null;
+    if (raid) raids.set(friend.userId, raid);
+    else raids.delete(friend.userId);
+    if (join.textContent !== 'Opening…') {
+      join.hidden = !raid;
+      join.title = raid ? `Join ${friend.name}'s raid (${ACTIVITY[raid.game]})` : '';
+    }
     if (watch.textContent === 'Opening…') return;
     watch.disabled = !game;
     watch.title = game ? `Watch ${friend.name} (${ACTIVITY[game]})` : li.classList.contains('you') ? "You can't watch yourself" : on ? 'Not in a game that can be watched' : 'Offline';

@@ -19,3 +19,55 @@
 @import './styles/phone.css';
 @import './prep/prep.css';
 @import './styles/over.css';
+
+/*
+ * Watching someone's raid (a watch link, main.ts): drawn as their page has it, with nothing to press. Getting ready, their
+ * picks and the room's settings can't be changed, no Ready or Start, no Auto Repeat or Manage, and no chat to say anything
+ * in; fighting, their heroes' cards and Auto are shown but not pressed. Raid Info, the chat's lines and the way out stay.
+ */
+.tm-watching #prep-ready,
+.tm-watching #prep-start,
+.tm-watching #prep-background,
+.tm-watching #prep-settings,
+.tm-watching .tm-prep-repeat,
+.tm-watching .tm-prep-manage,
+.tm-watching #repeat-stop,
+.tm-watching .chat-form {
+  display: none !important;
+}
+
+.tm-watching .tm-lineup,
+.tm-watching .tm-prep-hero-list,
+.tm-watching #party,
+.tm-watching .tm-meter-auto {
+  pointer-events: none;
+}
+
+/* Whose raid it is, over the top of the field. */
+.tm-watch-tag {
+  position: absolute;
+  z-index: 30;
+  top: max(10px, env(safe-area-inset-top));
+  left: 50%;
+  margin: 0;
+  padding: 6px 16px;
+  border: 1px solid rgb(255 226 138 / 55%);
+  border-radius: 999px;
+  background: rgb(10 12 20 / 78%);
+  color: #f4e6b2;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.tm-watch-tag.away {
+  border-color: rgb(255 120 120 / 55%);
+  color: #ffb3b3;
+}
+
+.tm-watch-tag[hidden],
+.tm-watch-tag.in-prep {
+  display: none;
+}

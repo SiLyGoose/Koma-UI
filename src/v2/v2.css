@@ -1779,6 +1779,24 @@ html[data-shell='v2'] body {
   cursor: not-allowed;
 }
 
+/* Join (a raid getting ready with room): the row's call to act, in gold, as Genshin's Request to Join stands out. */
+.v2-fr-join {
+  border-color: #fff6dc;
+  background: linear-gradient(#f3d27a, #c9973b);
+  color: #2f2410;
+  text-shadow: 0 1px 0 rgb(255 255 255 / 35%);
+}
+
+.v2-fr-join:hover:not(:disabled),
+.v2-fr-join:focus-visible {
+  background: linear-gradient(#ffe39a, #d9a748);
+  color: #1f1708;
+}
+
+.v2-fr-act[hidden] {
+  display: none;
+}
+
 /* Adventure (./adventure.ts): King's Raid's Portal (PortalRenewal), its parts where the prefab has them. Its stage is 2100
    by 1080 of the game's screen (x from 1150 left of its middle), scaled whole to this one (--s); inside it, the game's units. */
 .v2-adv {

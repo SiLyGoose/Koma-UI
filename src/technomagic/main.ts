@@ -2,8 +2,8 @@ import '../shared/style.css';
 import '../shared/ui/button/button.css';
 import { barSlot, setConn, soundButton } from '../shared/ui/frame/frame';
 import { setMuted } from '../shared/audio';
-import { gameSocket, linkToken, server, showMessage, single, token, watching, type GameSocket } from '../shared/game';
-import { apiFromSocket, chatBox, startLive, store } from '../shared/ui';
+import { gameSocket, hideMessage, linkToken, server, showMessage, single, token, watching, type GameSocket } from '../shared/game';
+import { apiFromSocket, chatBox, showWatchers, startLive, store, watchAway, watchBack } from '../shared/ui';
 import { landscapeCover } from '../shared/ui/landscape/landscape';
 import { navigate } from '../shared/transition';
 import { Group, Vector3 } from 'three';
@@ -193,6 +193,8 @@ const ERRORS: Record<ErrorCode, [string, string]> = {
   full: ['The raid is full', 'As many people as can are already in this raid. Find or create another from the games page.'],
   gone: ['This raid is over', 'Everyone has left it. Find or create another from the games page.'],
   background: ['Your background raids are being fought', 'You can join a raid once they’re over, or stopped.'],
+  // (Watching.)
+  not_playing: ['Not in a raid now', 'They aren’t in the raid any more. Head back to see who’s online and watch someone else.'],
 };
 
 const ANSWERS: Record<AnswerCode, string> = {
@@ -275,12 +277,6 @@ interface Game {
 }
 
 async function start(): Promise<void> {
-  // Watching isn't playing: nothing to read.
-  if (watching) {
-    setConn('Not watchable', 'bad');
-    showMessage('The raid isn’t watched', `Open the ${RAID_NAME} from the games page to join the room instead.`);
-    return;
-  }
   const params = new URLSearchParams(location.search);
   const def = bossOfPage(params, !(token && server));
   if (DRAGON) store.set(localStorage, DRAGON_KEY, def.id);
@@ -705,7 +701,27 @@ async function start(): Promise<void> {
     let state: RoomState | null = null;
     let lock: Lock | null = null;
     let shownOver: OverView | null = null;
-    const send = (message: ClientMessage): boolean => socket?.send(message) ?? false;
+    // (Watching, a page says nothing after its watch: it takes no part in the raid.)
+    const send = (message: ClientMessage): boolean => !watching && (socket?.send(message) ?? false);
+
+    // Watching someone's raid (a watch link: the Friends list's Watch): it is drawn as their page has it (getting ready, the
+    // fight, its result), with nothing to press (.tm-watching: technomagic.css) and whose it is over it.
+    const watchTag = el('p', 'tm-watch-tag');
+    watchTag.setAttribute('role', 'status');
+    watchTag.hidden = true;
+    if (watching) {
+      (document.getElementById('app') as HTMLElement).classList.add('tm-watching');
+      document.querySelector('.tm-field')?.append(watchTag);
+    }
+    let watched = '';
+    function showWatched(away = false): void {
+      watchTag.hidden = !watched;
+      watchTag.textContent = away ? `👁 ${watched} left the raid` : `👁 Watching ${watched}`;
+      watchTag.classList.toggle('away', away);
+      // (Getting ready, the prep's own title says it, where the tag would cover its bar.)
+      const title = document.getElementById('prep-title');
+      if (title && watched) title.textContent = away ? `${watched} left the raid` : `Watching ${watched}`;
+    }
 
     // This page's run of the fight out of step with the bot's: Reconnecting… over the field while it is given the fight again.
     const syncing = el('p', 'tm-syncing', 'Reconnecting…');
@@ -733,7 +749,8 @@ async function start(): Promise<void> {
       }
       at.resyncing = true;
       syncing.hidden = false;
-      if (second !== undefined) send({ t: 'parted', no: at.start.no, second });
+      // (Watching, nothing can be said: the connection made again, on which the bot gives it the whole fight as well.)
+      if (second !== undefined && !watching) send({ t: 'parted', no: at.start.no, second });
       else socket?.reconnect();
       clearTimeout(resyncTimer);
       resyncTimer = window.setTimeout(() => {
@@ -849,7 +866,8 @@ async function start(): Promise<void> {
       return null;
     });
     leave = () => {
-      if (state?.phase === 'fight' && !game?.sim.result && !left) return leaving.open(state.solo);
+      // (Watching, they just go: it's not theirs to forfeit.)
+      if (!watching && state?.phase === 'fight' && !game?.sim.result && !left) return leaving.open(state.solo);
       games();
     };
 
@@ -857,7 +875,7 @@ async function start(): Promise<void> {
     // REPEAT_WAIT after it is shown). Over the fight and its result while it is on, Stop Repeat Battle turns it off; not
     // over a defeat, which doesn't go again (Run Again is pressed), so the button doesn't read as it carrying on.
     // (Not the Divine Punishment Raid's: each of its fights is one of an opening, its side bosses once each.)
-    let repeat = !DIVINE_RAID && store.get(localStorage, REPEAT_KEY) === 'on';
+    let repeat = !DIVINE_RAID && !watching && store.get(localStorage, REPEAT_KEY) === 'on';
     let repeating: number | undefined;
     function setRepeat(on: boolean): void {
       repeat = on;
@@ -974,15 +992,19 @@ async function start(): Promise<void> {
       game = play(sim, bodies, {
         mine: ours,
         ally: (i) => start.heroes[i]?.owner !== you,
+        // (Watching, their heroes' cards are shown as theirs are, but pressing them does nothing.)
         use(fighter, skill) {
+          if (watching) return;
           ahead.press(fighter, skill);
           send({ t: 'press', fighter, skill });
         },
         auto(fighter) {
+          if (watching) return;
           ahead.toggle(fighter);
           send({ t: 'auto', fighter });
         },
         allAuto() {
+          if (watching) return;
           ahead.toggleAll(start.heroes.flatMap((_, i) => (ours(i) ? [i] : [])));
           send({ t: 'auto-all' });
         },
@@ -1020,7 +1042,27 @@ async function start(): Promise<void> {
     stepLock = stepRoom;
 
     function receive(message: ServerMessage): void {
+      // Watching: anything about the raid says they're in it (back, if they'd gone).
+      if (watching && watched && (message.t === 'room' || message.t === 'fight' || message.t === 'turn')) {
+        if (watchTag.classList.contains('away')) showWatched();
+        watchBack();
+      }
       switch (message.t) {
+        case 'watching':
+          watched = message.player;
+          showWatched();
+          return;
+        case 'watchers':
+          showWatchers(message.count);
+          return;
+        case 'away':
+          showWatched(true);
+          // A moment later (not for a reload), told so, with the way back.
+          watchAway(
+            () => showMessage(`${watched} left the raid`, `${watched} isn’t in the ${RAID_NAME} any more. Head back to see who’s online and watch someone else.`),
+            hideMessage,
+          );
+          return;
         case 'error': {
           socket?.finish();
           // Their background raids being fought: those shown, in the room's place.
@@ -1062,6 +1104,7 @@ async function start(): Promise<void> {
             backAfter = false;
             send({ t: 'back' });
           }
+          watchTag.classList.toggle('in-prep', state.phase === 'prep');
           if (state.phase === 'prep') {
             left = false;
             backAfter = false;
@@ -1107,6 +1150,8 @@ async function start(): Promise<void> {
           return;
         }
         case 'answer':
+          // (To the player's own asking: not the watcher's.)
+          if (watching) return;
           prep.note(ANSWERS[message.code] ?? ANSWERS.failed);
           setTimeout(() => prep.note(null), 4000);
           return;
@@ -1178,6 +1223,8 @@ async function start(): Promise<void> {
      * is, straight from here (with others, how many are beside it); in, they wait for the rest, and the host can force it.
      */
     function overActions(): ResultAction[] {
+      // Watching: only the way out.
+      if (watching) return [{ label: 'Leave', icon: 'games', main: true, run: () => leave() }];
       // The Divine Punishment Raid's: back to its map (a boss beaten is beaten for the opening); lost, again or Raid Prep first.
       if (DIVINE_RAID) {
         const map: ResultAction = { label: 'Raid Map', icon: 'map', main: shownOver?.result === 'won', run: () => leave() };
@@ -1205,7 +1252,7 @@ async function start(): Promise<void> {
     // from another app most often, and it is made again, the fight taken up again from the bot's.)
     socket = gameSocket<ServerMessage, ClientMessage>({
       server: address,
-      hello: () => ({ t: 'hello', token: linkToken(), ...(single && { single }), boss: def.id, ...where() }),
+      hello: () => (watching ? { t: 'watch', token: linkToken() } : { t: 'hello', token: linkToken(), ...(single && { single }), boss: def.id, ...where() }),
       receive,
       steady: () => state?.phase === 'fight' && game !== null && game.sim.result === null,
     });
