@@ -47,8 +47,9 @@ export const PAGES: readonly SitePage[] = [
   // (The same: a big screen shows the databank at the site's size, with more room.)
   { path: '/databank', subpaths: true, maxScale: 1, page: () => import('../databank/page').then((m) => m.databankPage) },
   { path: '/admin', needsLogin: true, page: () => import('../admin/page').then((m) => m.adminPage) },
-  // v2's own: the casino's tables (./casino.ts).
+  // v2's own: the casino's tables (./casino.ts), and Friends (./friends-page.ts, the lobby's button).
   { path: '/casino', page: () => import('./casino').then((m) => m.casinoPage) },
+  { path: '/friends', needsLogin: true, page: () => import('./friends-page').then((m) => m.friendsPage) },
 ];
 
 /** A path without its trailing slashes. */

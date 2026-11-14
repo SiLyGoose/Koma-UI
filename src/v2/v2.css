@@ -1508,111 +1508,233 @@ html[data-shell='v2'] body {
   display: none;
 }
 
-/* Friends (./friends.ts): the profile's popup, a row for each member on Common's dark panel, their hero in a gold ring. */
-.v2-friends {
-  width: min(600px, calc(var(--ls-vw, 100vw) - 32px));
+/*
+ * Friends (./friends-page.ts), laid out as Genshin Impact's friends list: on v2's canvas (640 high, scaled to the screen),
+ * its bar level with the back button, then a long pill for each member, 68 high (about a tenth of the screen) and at most
+ * 970 across (a 16:9 screen's 85%), their hero in a ring at the left, their name and whether they're online, what they're
+ * doing, and their Discord picture filling the right end, fading into the row.
+ */
+.v2-friends-page {
+  --fr-row: 68px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  padding: max(4px, calc(var(--v2-back-mid, 26px) / var(--v2-scale, 1) - 22px)) 24px 0;
+  color: #3b4253;
 }
 
-.v2-friends-list {
+.v2-fr-bar {
+  position: relative;
   display: grid;
-  gap: 6px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
+  place-items: center;
+  flex: none;
+  width: min(100%, 970px);
+  height: 44px;
+  margin: 0 auto 10px;
 }
 
-.v2-friend {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  gap: 12px;
+.v2-fr-title {
+  display: flex;
+  gap: 8px;
   align-items: center;
-  padding: 6px 10px;
-  border-style: solid;
-  border-width: 6px;
-  border-image: url('/kr/ui/lobby/popup-panel.webp') 10 fill / 6px;
+  margin: 0;
+  background: linear-gradient(#fbffb8, #b29b7e);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-size: 24px;
+  font-weight: 700;
+  filter: drop-shadow(0 0 1px #000) drop-shadow(0 1px 2px #000);
 }
 
-.v2-friend-hero {
-  width: 52px;
-  height: 52px;
+.v2-fr-title img {
+  width: 34px;
+  height: 34px;
+}
+
+.v2-fr-count {
+  position: absolute;
+  right: 4px;
+  margin: 0;
+  color: #e9dcbc;
+  font-size: 16px;
+  font-weight: 600;
+  text-shadow: 0 1px 2px #000;
+}
+
+.v2-fr-count b {
+  margin-left: 6px;
+  color: #fff6dc;
+}
+
+.v2-fr-count[hidden],
+.v2-fr-status[hidden] {
+  display: none;
+}
+
+.v2-fr-status {
+  margin: 8px auto;
+  color: #e9dcbc;
+  font-size: 15px;
+  text-shadow: 0 1px 2px #000;
+}
+
+.v2-fr-list {
+  display: grid;
+  flex: 1;
+  align-content: start;
+  gap: 8px;
+  width: min(100%, 976px);
+  min-height: 0;
+  margin: 0 auto;
+  padding: 3px 3px 20px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  list-style: none;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(255 255 255 / 45%) transparent;
+}
+
+.v2-fr-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--fr-row) minmax(0, 0.95fr) minmax(0, 1.25fr) 30%;
+  gap: 14px;
+  align-items: center;
+  height: var(--fr-row);
+  padding-left: 9px;
+  overflow: hidden;
+  border: 2px solid rgb(255 255 255 / 75%);
+  border-radius: calc(var(--fr-row) / 2);
+  background: linear-gradient(90deg, #f1ece3, #e7e1d6 60%, #ddd6c9);
+  box-shadow: 0 3px 8px rgb(0 0 0 / 35%);
+}
+
+/* The one asking: lit up, as Genshin lights the row picked. */
+.v2-fr-row.you {
+  border-color: #fff;
+  box-shadow:
+    0 0 0 2px rgb(255 226 138 / 75%),
+    0 3px 12px rgb(0 0 0 / 45%);
+}
+
+/* Their Discord picture, filling the right end and fading into the row from its left. */
+.v2-fr-art {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 46%;
+  -webkit-mask-image: linear-gradient(90deg, transparent, rgb(0 0 0 / 55%) 35%, #000 72%);
+  mask-image: linear-gradient(90deg, transparent, rgb(0 0 0 / 55%) 35%, #000 72%);
+  pointer-events: none;
+}
+
+.v2-fr-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 35%;
+}
+
+.v2-fr-row.offline .v2-fr-art img {
+  filter: saturate(0.55) brightness(0.95);
+}
+
+.v2-fr-hero {
+  position: relative;
+  width: calc(var(--fr-row) - 14px);
+  height: calc(var(--fr-row) - 14px);
   overflow: hidden;
   border-radius: 50%;
-  background: radial-gradient(circle, #2b2f3d, #12141b);
+  background: radial-gradient(circle, #f6f1e6, #d8cdb6);
   box-shadow:
-    0 0 0 2px #b8973f,
-    0 0 0 3px #3a2a12;
+    0 0 0 2px #fff,
+    0 0 0 3.5px #cdb98e,
+    0 2px 5px rgb(0 0 0 / 30%);
 }
 
-.v2-friend-hero img {
+.v2-fr-hero img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.v2-friend-text {
+.v2-fr-who {
+  position: relative;
   display: grid;
-  gap: 3px;
+  gap: 4px;
   min-width: 0;
 }
 
-.v2-friend-name {
+.v2-fr-name {
   overflow: hidden;
-  font-size: 16px;
+  color: #2f3545;
+  font-size: 18px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.v2-friend-you {
+.v2-fr-you {
   margin-left: 8px;
-  padding: 1px 6px;
-  border-radius: 6px;
-  background: rgb(255 214 120 / 18%);
+  padding: 1px 8px;
+  border-radius: 8px;
+  background: #3b4253;
   color: #f4e6b2;
   font-size: 11px;
+  font-weight: 700;
+  vertical-align: 3px;
+}
+
+.v2-fr-state {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  color: #6d9a2e;
+  font-size: 14px;
   font-weight: 600;
-  vertical-align: 2px;
 }
 
-.v2-friend-what {
-  overflow: hidden;
-  color: #b9e6a8;
-  font-size: 12.5px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.v2-friend-dot {
-  display: inline-block;
+.v2-fr-dot {
   width: 8px;
   height: 8px;
-  margin-right: 6px;
   border-radius: 50%;
-  background: #5fd35a;
-  box-shadow: 0 0 6px #5fd35a;
-  vertical-align: 1px;
+  background: currentcolor;
 }
 
-.v2-friend-avatar {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  opacity: 0.9;
+.v2-fr-row.offline .v2-fr-state {
+  color: #a19c92;
 }
 
-.v2-friend.offline .v2-friend-hero img {
-  filter: grayscale(0.85) brightness(0.65);
+.v2-fr-what {
+  position: relative;
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  min-width: 0;
+  margin: 0;
+  color: #4d5466;
+  font-size: 14.5px;
+  font-weight: 600;
 }
 
-.v2-friend.offline .v2-friend-name {
-  color: #a79c8c;
+.v2-fr-what[hidden] {
+  visibility: hidden;
 }
 
-.v2-friend.offline .v2-friend-what {
-  color: #7d7468;
+.v2-fr-what svg {
+  flex: none;
+  width: 17px;
+  height: 17px;
+  fill: #6b7183;
 }
 
-.v2-friend.offline .v2-friend-avatar {
-  opacity: 0.45;
+.v2-fr-what span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Adventure (./adventure.ts): King's Raid's Portal (PortalRenewal), its parts where the prefab has them. Its stage is 2100

@@ -3,26 +3,26 @@ import { makeAdventure, type Adventure } from './adventure';
 /*
  * King's Raid's lobby menus over the town's bottom corners. At the bottom left, its RightMenu row (MenuAnchor's Buttons:
  * 140-unit WorldMap_Button_* at 0.9, 148 apart, a 32-unit gold label under each): Heroes, Inventory, Index (the
- * Archive), Friends (WorldMap_Button_Friend: its popup, ./friends.ts) and Shop (WorldMap_Button_PayShop), each opening its
- * page at once, as the game's menu does. At the bottom right, Adventure (the lobby's Battle
+ * Archive), Friends (WorldMap_Button_Friend: ./friends-page.ts, the count of others online on it: ./friends.ts) and Shop
+ * (WorldMap_Button_PayShop), each opening its page at once, as the game's menu does. At the bottom right, Adventure (the lobby's Battle
  * emblem): its window of battles (./adventure.ts), the kinds on its left, their bosses on its right.
  * Its art: public/kr/ui/lobby/ (KR-extracted/scripts/kr-lobby-ui.py). Laid out in King's Raid's units, scaled by --kr.
  */
 
 const UI = `${import.meta.env.BASE_URL}kr/ui/lobby/`;
 
-/** The bottom-left row: its button's art, its label, the page it opens (an old-site path; none: Friends, its popup). */
-const MENU: readonly { art: string; label: string; path: string | null }[] = [
+/** The bottom-left row: its button's art, its label, the page it opens (an old-site path, or v2's own). */
+const MENU: readonly { art: string; label: string; path: string }[] = [
   { art: 'heroes', label: 'Heroes', path: '/heroes' },
   { art: 'inventory', label: 'Inventory', path: '/inventory' },
   { art: 'index', label: 'Index', path: '/databank' },
-  { art: 'friends', label: 'Friends', path: null },
+  { art: 'friends', label: 'Friends', path: '/friends' },
   { art: 'shop', label: 'Shop', path: '/shop' },
 ];
 
 export interface Lobby {
   adventure: Adventure;
-  /** The row's Friends button (./friends.ts opens its popup). */
+  /** The row's Friends button (./friends.ts puts the count of others online on it). */
   friendsButton: HTMLButtonElement;
   /** Shows what can be pressed now (logged in, a server picked, the games the bot plays there). */
   render(): void;
@@ -44,8 +44,7 @@ export function makeLobby(
     button.dataset.menu = item.art;
     button.innerHTML = `<img alt="" src="${UI}${item.art}.webp" /><span class="v2-kr-label"></span>`;
     (button.querySelector('span') as HTMLElement).textContent = item.label;
-    const { path } = item;
-    if (path) button.addEventListener('click', () => opens(path));
+    button.addEventListener('click', () => opens(item.path));
     menu.append(button);
   }
 
