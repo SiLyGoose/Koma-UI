@@ -1480,6 +1480,141 @@ html[data-shell='v2'] body {
   filter: brightness(1.2);
 }
 
+/* How many others are online, on the menu's Friends button (./friends.ts): in King's Raid's units, as the row is. */
+.v2-menu-button {
+  position: relative;
+}
+
+.v2-menu-badge {
+  position: absolute;
+  top: 4px;
+  right: 14px;
+  min-width: 40px;
+  height: 40px;
+  padding: 0 10px;
+  border: 3px solid #1b120a;
+  border-radius: 20px;
+  background: linear-gradient(#5fd35a, #23802a);
+  color: #fff;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 34px;
+  text-align: center;
+  text-shadow: 0 1px 2px #000;
+  pointer-events: none;
+}
+
+.v2-menu-badge[hidden] {
+  display: none;
+}
+
+/* Friends (./friends.ts): the profile's popup, a row for each member on Common's dark panel, their hero in a gold ring. */
+.v2-friends {
+  width: min(600px, calc(var(--ls-vw, 100vw) - 32px));
+}
+
+.v2-friends-list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.v2-friend {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 6px 10px;
+  border-style: solid;
+  border-width: 6px;
+  border-image: url('/kr/ui/lobby/popup-panel.webp') 10 fill / 6px;
+}
+
+.v2-friend-hero {
+  width: 52px;
+  height: 52px;
+  overflow: hidden;
+  border-radius: 50%;
+  background: radial-gradient(circle, #2b2f3d, #12141b);
+  box-shadow:
+    0 0 0 2px #b8973f,
+    0 0 0 3px #3a2a12;
+}
+
+.v2-friend-hero img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.v2-friend-text {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.v2-friend-name {
+  overflow: hidden;
+  font-size: 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.v2-friend-you {
+  margin-left: 8px;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: rgb(255 214 120 / 18%);
+  color: #f4e6b2;
+  font-size: 11px;
+  font-weight: 600;
+  vertical-align: 2px;
+}
+
+.v2-friend-what {
+  overflow: hidden;
+  color: #b9e6a8;
+  font-size: 12.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.v2-friend-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: #5fd35a;
+  box-shadow: 0 0 6px #5fd35a;
+  vertical-align: 1px;
+}
+
+.v2-friend-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  opacity: 0.9;
+}
+
+.v2-friend.offline .v2-friend-hero img {
+  filter: grayscale(0.85) brightness(0.65);
+}
+
+.v2-friend.offline .v2-friend-name {
+  color: #a79c8c;
+}
+
+.v2-friend.offline .v2-friend-what {
+  color: #7d7468;
+}
+
+.v2-friend.offline .v2-friend-avatar {
+  opacity: 0.45;
+}
+
 /* Adventure (./adventure.ts): King's Raid's Portal (PortalRenewal), its parts where the prefab has them. Its stage is 2100
    by 1080 of the game's screen (x from 1150 left of its middle), scaled whole to this one (--s); inside it, the game's units. */
 .v2-adv {

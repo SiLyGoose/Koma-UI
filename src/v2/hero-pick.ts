@@ -9,7 +9,8 @@ import { api, currentMe, currentServer, hasSession } from '../site/session';
  * own in the server picked: the heroes page's /api/heroes), else the first of their heroes, else, owning none, Roi: given to
  * them for nothing (POST /api/heroes/starter, the bot's, only while they have no hero). Logged out, or with no server
  * picked, Roi walks it. Their pick is kept on this device, for them in that server (heroes are owned server by server: a
- * hero and the outfit it wears), and checked against what they own whenever the list is read.
+ * hero and the outfit it wears), and checked against what they own whenever the list is read. The bot is told who walks
+ * (POST /api/friends/hero), so the friends list (./friends.ts) shows them by that hero.
  */
 
 /** The hero walking: its id and the skin it's in. */
@@ -77,6 +78,17 @@ export function makeHeroPick(chose: (choice: WalkerChoice) => void): HeroPick {
     return reading;
   }
 
+  /** What the bot was last told walks (server:hero), so it's told only of a change. */
+  let told = '';
+  function tell(id: string): void {
+    const server = currentServer();
+    if (!currentMe() || !server || told === `${server}:${id}`) return;
+    told = `${server}:${id}`;
+    void api('/api/friends/hero', { method: 'POST', body: JSON.stringify({ guild: server, hero: id }) }).then((res) => {
+      if (!res.ok && told === `${server}:${id}`) told = '';
+    });
+  }
+
   /** Who walks now, as last worked out. */
   let walking: WalkerChoice = STARTER;
   const walk = (choice: WalkerChoice): void => {
@@ -115,12 +127,14 @@ export function makeHeroPick(chose: (choice: WalkerChoice) => void): HeroPick {
     if (kept && (!now || now.id !== kept.id)) keep(null);
     else if (kept && now && now.skin !== kept.skin) keep({ id: now.id, skin: now.skin });
     walk(now ? { id: now.id, skin: now.skin } : STARTER);
+    if (now) tell(now.id);
     shown?.();
   }
 
   function pick(choice: WalkerChoice): void {
     keep(choice);
     walk(choice);
+    tell(choice.id);
     shown?.();
   }
 

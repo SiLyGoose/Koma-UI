@@ -28,6 +28,7 @@ import { holdReveal, onSiteLink, swap, type Direction } from '../shared/transiti
 import { landscapeCover } from '../shared/ui/landscape/landscape';
 import { setGo, type GoOptions } from '../site/nav';
 import { hasSession, loadMe } from '../site/session';
+import { makeFriends } from './friends';
 import { makeHeroPick, type WalkerChoice } from './hero-pick';
 import { makeHud } from './hud';
 import { makeLobby } from './lobby';
@@ -93,6 +94,7 @@ const profile = makeProfile(
   () => {
     hud.render();
     lobby.render();
+    friends.render();
     void pick.settle();
   },
   // Logged out: the town as anyone sees it.
@@ -100,6 +102,7 @@ const profile = makeProfile(
     hud.render();
     profile.render();
     lobby.render();
+    friends.render();
     void pick.settle();
   },
 );
@@ -110,6 +113,8 @@ const lobby = makeLobby(
   hud.note,
   (open) => (open ? town.pause() : !panel.showing() && town.resume()),
 );
+// Friends (the menu's): who in the server is in the town or a game now, and who isn't.
+const friends = makeFriends(lobby.friendsButton, hud.element, hud.note);
 
 /** King's Raid's units on this screen (its lobby is laid out for a 1080-high screen): never under half. */
 const krScale = new ResizeObserver(() => app.style.setProperty('--kr', String(Math.min(1, Math.max(0.5, app.clientHeight / 1080)))));
@@ -276,6 +281,7 @@ async function start(): Promise<void> {
     hud.render();
     profile.render();
     lobby.render();
+    friends.render();
   }
   void pick.settle();
   // Back from a raid opened from Adventure (its back arrow: ../shared/ui/frame/v2-game.ts): Adventure open on its tab, the

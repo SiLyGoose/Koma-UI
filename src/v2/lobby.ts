@@ -3,23 +3,27 @@ import { makeAdventure, type Adventure } from './adventure';
 /*
  * King's Raid's lobby menus over the town's bottom corners. At the bottom left, its RightMenu row (MenuAnchor's Buttons:
  * 140-unit WorldMap_Button_* at 0.9, 148 apart, a 32-unit gold label under each): Heroes, Inventory, Index (the
- * Archive) and Shop (WorldMap_Button_PayShop), each opening its page at once, as the game's menu does. At the bottom right, Adventure (the lobby's Battle
+ * Archive), Friends (WorldMap_Button_Friend: its popup, ./friends.ts) and Shop (WorldMap_Button_PayShop), each opening its
+ * page at once, as the game's menu does. At the bottom right, Adventure (the lobby's Battle
  * emblem): its window of battles (./adventure.ts), the kinds on its left, their bosses on its right.
  * Its art: public/kr/ui/lobby/ (KR-extracted/scripts/kr-lobby-ui.py). Laid out in King's Raid's units, scaled by --kr.
  */
 
 const UI = `${import.meta.env.BASE_URL}kr/ui/lobby/`;
 
-/** The bottom-left row: its button's art, its label, the page it opens (an old-site path). */
-const MENU: readonly { art: string; label: string; path: string }[] = [
+/** The bottom-left row: its button's art, its label, the page it opens (an old-site path; none: Friends, its popup). */
+const MENU: readonly { art: string; label: string; path: string | null }[] = [
   { art: 'heroes', label: 'Heroes', path: '/heroes' },
   { art: 'inventory', label: 'Inventory', path: '/inventory' },
   { art: 'index', label: 'Index', path: '/databank' },
+  { art: 'friends', label: 'Friends', path: null },
   { art: 'shop', label: 'Shop', path: '/shop' },
 ];
 
 export interface Lobby {
   adventure: Adventure;
+  /** The row's Friends button (./friends.ts opens its popup). */
+  friendsButton: HTMLButtonElement;
   /** Shows what can be pressed now (logged in, a server picked, the games the bot plays there). */
   render(): void;
 }
@@ -37,9 +41,11 @@ export function makeLobby(
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'v2-menu-button';
+    button.dataset.menu = item.art;
     button.innerHTML = `<img alt="" src="${UI}${item.art}.webp" /><span class="v2-kr-label"></span>`;
     (button.querySelector('span') as HTMLElement).textContent = item.label;
-    button.addEventListener('click', () => opens(item.path));
+    const { path } = item;
+    if (path) button.addEventListener('click', () => opens(path));
     menu.append(button);
   }
 
@@ -53,5 +59,6 @@ export function makeLobby(
   const adventure = makeAdventure(into, note, adventureShown);
   adventureButton.addEventListener('click', () => adventure.open());
 
-  return { adventure, render: () => adventure.render() };
+  const friendsButton = menu.querySelector('[data-menu="friends"]') as HTMLButtonElement;
+  return { adventure, friendsButton, render: () => adventure.render() };
 }
