@@ -104,6 +104,14 @@ html.v2-game .frame .top .back.v2-game-back img {
   height: 100%;
 }
 
+/* On a phone, 24 across. */
+@media (max-width: 899.98px), (max-height: 599.98px) {
+  html.v2-game .frame .top .back.v2-game-back {
+    width: 24px;
+    height: 24px;
+  }
+}
+
 html.v2-game .frame .top .back.v2-game-back:hover,
 html.v2-game .frame .top .back.v2-game-back:focus-visible {
   outline: none;

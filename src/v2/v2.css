@@ -395,7 +395,7 @@ html[data-shell='v2'] body {
  * middle of a wider screen. (Outweighing the site's own width for it, main.gear-page:has(.roster:not([hidden])).)
  */
 .v2-panel .v2-panel-canvas > main.gear-page.heroes-page:has(.roster:not([hidden])) {
-  max-width: min(1320px, calc(196 * var(--v2-vh, 1vh)));
+  max-width: 1320px;
 }
 
 /* The shop's Raid Gear: as many columns as fit, each as wide as a desktop's six (not six however wide the screen, its cards taller than it). */
@@ -457,7 +457,8 @@ html[data-shell='v2'] body {
 /*
  * The Armory (../gear/, /player) on its 640-high canvas: the site keeps its panels 560 high under a 72 header, but its
  * character's column needs more (the stage, Active Effects at its least, Common | Gear), so it ran past the canvas's foot.
- * Here, with no header, the panels have the canvas's height less a thinner padding, and Active Effects scrolls a little sooner.
+ * Here, with no header, the panels have the canvas's height less a thinner padding (16 all round), Active Effects scrolls a
+ * little sooner, and the server picker (more than one server) in the stage's empty top right corner, not a row over it.
  */
 .v2-panel .v2-panel-canvas > main.gear-page:has(> #gear) {
   --panels-h: calc(100 * var(--v2-vh, 6.4px) - 32px);
@@ -469,6 +470,24 @@ html[data-shell='v2'] body {
   min-height: 72px;
 }
 
+.v2-panel .v2-panel-canvas > main.gear-page:has(> #gear) .hero {
+  position: relative;
+}
+
+.v2-panel .v2-panel-canvas > main.gear-page:has(> #gear) .hero-top {
+  position: absolute;
+  z-index: 2;
+  top: 26px;
+  right: 26px;
+  margin: 0;
+}
+
+/* (The server picker as wide as its name: the site's keeps it to half its row, which, laid over a corner, is no width at all.) */
+.v2-panel .v2-panel-canvas > main.gear-page:has(> #gear) .hero-top .dd,
+.v2-panel .inventory-page .inv-window > .inv-head .dd {
+  max-width: none;
+}
+
 /* (A part v2's copy of a page leaves out, kept for the code that fills it: ./heroes/heroes.html's Active Effects.) */
 .v2-panel [data-v2-gone] {
   display: none !important;
@@ -477,8 +496,8 @@ html[data-shell='v2'] body {
 /*
  * King's Raid's back button over a page (./panel.ts), alone (no bar across the top, no page name): at the game's size (--kr)
  * at the top of a thin rail down the left, the page right of it with the screen's whole height (a phone's short screen fits
- * more of it, unscrolled), as a game opened from v2 has it (../shared/ui/frame/v2-game.css). As wide a strip at the right,
- * empty, so the page is in the middle of the screen, as far from either side of it.
+ * more of it, unscrolled), as a game opened from v2 has it (../shared/ui/frame/v2-game.css). Nothing kept at the right: the
+ * page has all the room the arrow leaves it, in the middle of that.
  */
 .v2-panel {
   --v2-panel-rail: calc(max(calc(29px * var(--kr, 1)), env(safe-area-inset-left)) + calc(91px * var(--kr, 1)));
@@ -510,16 +529,37 @@ html[data-shell='v2'] body {
 
 .v2-panel:not(.own-bar) > .v2-panel-view {
   left: var(--v2-panel-rail);
-  right: var(--v2-panel-rail);
-}
-
-/* (The shop, edge to edge in its own background, keeps none at its right: its sky would stop short of the screen's edge.) */
-.v2-panel[data-page='shop'] > .v2-panel-view {
-  right: 0;
 }
 
 /*
- * A page in the middle of the screen, as much room above it as under it (and, with the strips either side, left as right):
+ * On a phone (landscape-css.ts SMALL_SCREEN) the back button is 24 across, 12 in from the corner, and its rail the
+ * narrower for it (the page wider). Adventure's and the casino's the same size on the screen, whatever their stage's scale.
+ */
+@media (max-width: 899.98px), (max-height: 599.98px) {
+  .v2-panel {
+    --v2-panel-rail: calc(max(12px, env(safe-area-inset-left)) + 36px);
+  }
+
+  .v2-panel-bar .v2-adv-back {
+    left: max(12px, env(safe-area-inset-left));
+    top: max(12px, env(safe-area-inset-top));
+    transform: none;
+  }
+
+  .v2-panel-bar .v2-adv-back img {
+    width: 24px;
+    height: 24px;
+  }
+
+  .v2-adv-stage .v2-adv-back img,
+  .v2-cas-stage .v2-adv-back img {
+    width: calc(24px / var(--s, 1));
+    height: calc(24px / var(--s, 1));
+  }
+}
+
+/*
+ * A page in the middle of the room beside the back arrow, as much room above it as under it (and left as right):
  * the site's pages center themselves in the screen under its 72 header (min-height: 100dvh - 72px), none here, so they
  * sat high. Their whole canvas instead.
  */
@@ -529,9 +569,43 @@ html[data-shell='v2'] body {
 
 /* Each page's own room above and under it made the same: */
 
-/* the heroes page, its character's column (the stage and its tabs: 570) past the panels' 560 at their least; */
+/*
+ * the heroes page, its panels the canvas's whole height less its padding (24 all round), and its character's stage what
+ * its column has left (not the site's 480 however much that is): less with the pickers over it (whose heroes, which server),
+ * never less than its slots need (four of 78 and their gaps, under the 64 its ribbon has); */
 .v2-panel .v2-panel-canvas > main.heroes-page {
-  --panels-min: 570px;
+  --panels-h: calc(100 * var(--v2-vh, 6.4px) - 48px);
+  --panels-min: 0px;
+  padding: 24px;
+}
+
+/*
+ * On a phone, the roster narrower (112, not 148), the hero's column the wider; and its name whole between its slots, as the
+ * site's phone layout has it (heroes.css): its band closer round it, and a long one (Dark Lord Kasel) on two lines.
+ */
+@media (max-width: 899.98px), (max-height: 599.98px) {
+  .v2-panel .heroes-page .gear:has(> .roster:not([hidden])) {
+    grid-template-columns: 112px minmax(0, 5fr) minmax(0, 6fr);
+  }
+
+  .v2-panel .heroes-page .hero-name {
+    padding-inline: 18px;
+    overflow: visible;
+    white-space: normal;
+    line-height: 1.15;
+  }
+}
+
+.v2-panel .heroes-page .hero {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.v2-panel .heroes-page .hero-stage {
+  flex: 1 1 0;
+  height: auto;
+  min-height: 420px;
 }
 
 /* the forge's menu (8 over it, 24 under it on the site); */
@@ -539,9 +613,14 @@ html[data-shell='v2'] body {
   padding-block: 16px;
 }
 
-/* the inventory's bar, empty in v2 (its name left out, the server picker only for more than one), no gap left under it; */
-.v2-panel .inventory-page > .page-bar:not(:has(select:not([hidden]))) {
-  display: none;
+/* the inventory's bar (its server picker, for more than one) at the right end of its tabs' row, not a row over the window; */
+.v2-panel .inventory-page .inv-window > .inv-head {
+  position: absolute;
+  top: 14px;
+  right: 18px;
+  display: block;
+  width: max-content;
+  margin: 0;
 }
 
 /* the databank's way in, its marks under its name board as tall as they are (not the panels' height, the marks at the
