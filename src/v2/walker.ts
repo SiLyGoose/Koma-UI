@@ -128,6 +128,8 @@ export function makeWalker(): Walker {
     if (shown) letGo(shown);
     shown = null;
     renderer.dispose();
+    // (Its drawing buffer let go of now, not whenever the canvas is collected.)
+    renderer.forceContextLoss();
     element.remove();
   }
 

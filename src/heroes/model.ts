@@ -252,6 +252,9 @@ export function makeShowcase(canvas: HTMLCanvasElement, { whole = false }: { who
       unwear();
       if (shown) letGo(shown);
       renderer.dispose();
+      // (Its drawing buffer let go of now, not whenever the canvas is collected: on a phone, held on, it left the v2 town
+      // it was opened over short of the memory to draw its map as it was dragged.)
+      renderer.forceContextLoss();
     },
   };
 }

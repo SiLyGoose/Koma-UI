@@ -38,6 +38,42 @@ const BANNER_MIN = 0.5;
 
 const TOWN = `${import.meta.env.BASE_URL}kr/town/`;
 
+/**
+ * The town picture in MAP_GRID pieces (columns, rows: public/kr/town/map/<col>-<row>.webp, written by kr-town.py), each
+ * MAP_OVER of its own pixels into its right and bottom neighbours so no seam shows once scaled. Not one 4096x3084
+ * picture: decoded, that's 48 MB in one piece, more than a phone's browser keeps once another page (the heroes' roster)
+ * has been open over the town, so every strip of the map it drew as the map was dragged waited on the whole picture
+ * decoded again, and showed the town's green behind it in bars meanwhile. Pieces are decoded on their own, only those in view.
+ */
+const MAP_GRID = [4, 3] as const;
+const MAP_OVER = 2;
+
+function mapPieces(): HTMLElement {
+  const map = document.createElement('div');
+  map.className = 'v2-map';
+  // A device short of memory: the half-size pieces (a quarter of the memory), stretched to the map's size.
+  const half = lowMemory();
+  const over = MAP_OVER * (half ? 2 : 1);
+  const [columns, rows] = MAP_GRID;
+  for (let column = 0; column < columns; column++)
+    for (let row = 0; row < rows; row++) {
+      // (As kr-town.py cuts them: from its share of the picture's pixels, OVER more past its right and bottom but at the edge.)
+      const cut = (size: number, i: number, n: number): number => Math.floor(((half ? size / 2 : size) * i) / n) * (half ? 2 : 1);
+      const left = cut(WORLD.width, column, columns);
+      const top = cut(WORLD.height, row, rows);
+      const right = column === columns - 1 ? WORLD.width : cut(WORLD.width, column + 1, columns) + over;
+      const bottom = row === rows - 1 ? WORLD.height : cut(WORLD.height, row + 1, rows) + over;
+      const piece = document.createElement('img');
+      piece.alt = '';
+      piece.draggable = false;
+      piece.decoding = 'async';
+      piece.style.cssText = `left:${left}px;top:${top}px;width:${right - left}px;height:${bottom - top}px`;
+      piece.src = `${TOWN}${half ? 'map-half' : 'map'}/${column}-${row}.webp`;
+      map.append(piece);
+    }
+  return map;
+}
+
 export interface Town {
   element: HTMLElement;
   /** Puts the runner at a place's door (or the square), standing, and the view on it. */
@@ -58,14 +94,7 @@ export function makeTown(into: HTMLElement, arrive: (place: Place) => void): Tow
   world.className = 'v2-world';
   world.style.width = `${WORLD.width}px`;
   world.style.height = `${WORLD.height}px`;
-  const map = document.createElement('img');
-  map.className = 'v2-map';
-  map.alt = '';
-  map.draggable = false;
-  map.decoding = 'async';
-  // A device short of memory: the half-size picture (a quarter of the memory), stretched to the map's size.
-  map.src = `${TOWN}${lowMemory() ? 'town2-half' : 'town2'}.webp`;
-  world.append(map);
+  world.append(mapPieces());
   addTownFx(world);
 
   const marks = new Map<string, HTMLElement>();

@@ -50,15 +50,19 @@ html[data-shell='v2'] body {
   will-change: transform;
 }
 
-/* King's Raid's town picture (./town.ts), stretched to the map's size (the half-size one too). */
+/* King's Raid's town picture (./town.ts), in pieces, stretched to the map's size (the half-size ones too). */
 .v2-map {
   position: absolute;
   top: 0;
   left: 0;
   width: 4096px;
   height: 3084px;
-  max-width: none;
   pointer-events: none;
+}
+
+.v2-map > img {
+  position: absolute;
+  max-width: none;
   -webkit-user-drag: none;
 }
 
