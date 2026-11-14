@@ -9,7 +9,8 @@ import { pageAt, type SitePage } from './places';
  * (/shop/outfits): the page reads them from the URL it's handed, not from the address bar (which is v2's: /v2/shop/outfits/).
  * Behind it, the site's backdrop (its gold star chart), as the old site has behind every page. At its top left, King's
  * Raid's back button (Common_TopBar_Button_Back3) alone, back to the town, in a thin rail down the left (no bar across the
- * top, no page name: the page has the screen's whole height); a page with its own (the casino's) has only that.
+ * top, no page name: the page has the screen's whole height), as wide a strip kept at the right so the page is in the
+ * screen's middle (not the shop's, edge to edge); a page with its own (the casino's) has only that.
  *
  * v2 is played on its side: a page is laid out on a canvas of its own, CANVAS_HEIGHT high and as wide as the screen's shape
  * makes it, scaled to fill the space right of the back button's rail (smaller on a phone, larger on a big screen; a page with a maxScale,
@@ -90,6 +91,8 @@ export function makePanel(into: HTMLElement, back: () => void): Panel {
       view.scrollTop = 0;
       document.title = page.title;
       element.classList.toggle('own-bar', !!root.querySelector('.v2-adv-back'));
+      // (Which page it is, for v2.css: the shop, edge to edge, keeps no strip at its right.)
+      element.dataset.page = site.path.slice(1);
       shown = site;
       fit();
       const { drawn, unmount, navigate } = page.mount(root);

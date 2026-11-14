@@ -477,7 +477,8 @@ html[data-shell='v2'] body {
 /*
  * King's Raid's back button over a page (./panel.ts), alone (no bar across the top, no page name): at the game's size (--kr)
  * at the top of a thin rail down the left, the page right of it with the screen's whole height (a phone's short screen fits
- * more of it, unscrolled), as a game opened from v2 has it (../shared/ui/frame/v2-game.css).
+ * more of it, unscrolled), as a game opened from v2 has it (../shared/ui/frame/v2-game.css). As wide a strip at the right,
+ * empty, so the page is in the middle of the screen, as far from either side of it.
  */
 .v2-panel {
   --v2-panel-rail: calc(max(calc(29px * var(--kr, 1)), env(safe-area-inset-left)) + calc(91px * var(--kr, 1)));
@@ -509,6 +510,57 @@ html[data-shell='v2'] body {
 
 .v2-panel:not(.own-bar) > .v2-panel-view {
   left: var(--v2-panel-rail);
+  right: var(--v2-panel-rail);
+}
+
+/* (The shop, edge to edge in its own background, keeps none at its right: its sky would stop short of the screen's edge.) */
+.v2-panel[data-page='shop'] > .v2-panel-view {
+  right: 0;
+}
+
+/*
+ * A page in the middle of the screen, as much room above it as under it (and, with the strips either side, left as right):
+ * the site's pages center themselves in the screen under its 72 header (min-height: 100dvh - 72px), none here, so they
+ * sat high. Their whole canvas instead.
+ */
+.v2-panel .v2-panel-canvas > main.gear-page {
+  min-height: 100%;
+}
+
+/* Each page's own room above and under it made the same: */
+
+/* the heroes page, its character's column (the stage and its tabs: 570) past the panels' 560 at their least; */
+.v2-panel .v2-panel-canvas > main.heroes-page {
+  --panels-min: 570px;
+}
+
+/* the forge's menu (8 over it, 24 under it on the site); */
+.v2-panel .forge-page .forge-menu {
+  padding-block: 16px;
+}
+
+/* the inventory's bar, empty in v2 (its name left out, the server picker only for more than one), no gap left under it; */
+.v2-panel .inventory-page > .page-bar:not(:has(select:not([hidden]))) {
+  display: none;
+}
+
+/* the databank's way in, its marks under its name board as tall as they are (not the panels' height, the marks at the
+   middle of it): the board and the marks in the middle of the screen together. (The chart is drawn as wide as before.) */
+.v2-panel .databank-page .db-hub {
+  height: auto;
+  min-height: 0;
+  /* (Room for the marks drawn 44 off their place, one up, one down (hub.css): the top one clear of the board, the bottom one as far from the screen's foot as the board is from its top.) */
+  padding: 68px 0 30px;
+}
+
+/* the dressing room (16 over it, 22 under it on the site); */
+.v2-panel .dressing-page {
+  padding-bottom: 16px;
+}
+
+/* and the hero outfits, whose bar holds its buttons 12 down from its top: its padding the less for it. */
+.v2-panel .ho-page {
+  padding-top: 6px;
 }
 
 .v2-panel.own-bar > .v2-panel-bar {
