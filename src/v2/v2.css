@@ -96,7 +96,7 @@ html[data-shell='v2'] body {
   filter: drop-shadow(0 0 16px rgb(255 236 150 / 95%)) brightness(1.15);
 }
 
-/* The town's flipbooks (./town-fx.ts): a window one frame wide, its strip of frames slid along it a frame at a time. */
+/* The town's flipbooks (./town-fx.ts): a window one frame wide, its strip of frames slid along it a frame at a time by the town's frames. */
 .v2-fx {
   position: absolute;
   z-index: 2;
@@ -116,15 +116,8 @@ html[data-shell='v2'] body {
   display: block;
   height: 100%;
   background: 0 0 / 100% 100% no-repeat;
-  animation-name: v2-fx;
-  animation-iteration-count: infinite;
+  /* (Its own layer: each frame a move the compositor makes, nothing painted again. Stepped by ./town-fx.ts.) */
   will-change: transform;
-}
-
-@keyframes v2-fx {
-  to {
-    transform: translateX(-100%);
-  }
 }
 
 /* A place's name on the game's scroll banner (Map_tag: 130px curled ends, its middle stretched to the name), hung where

@@ -33,6 +33,8 @@ const ZOOM_KEY = 'koma.v2.zoom';
 const DRAG_PX = 8;
 /** How quickly the view catches up with the runner (higher: sooner). */
 const FOLLOW = 5;
+/** The fewest milliseconds between the walker's frames while it stands (its breathing at 30 a second; running, every frame). */
+const STANDING_FRAME = 1000 / 30 - 2;
 /** The banners' smallest size on the screen, as a share of their size in the map (a phone's view is the map much shrunk). */
 const BANNER_MIN = 0.5;
 
@@ -95,7 +97,7 @@ export function makeTown(into: HTMLElement, arrive: (place: Place) => void): Tow
   world.style.width = `${WORLD.width}px`;
   world.style.height = `${WORLD.height}px`;
   world.append(mapPieces());
-  addTownFx(world);
+  const fx = addTownFx(world);
 
   const marks = new Map<string, HTMLElement>();
   for (const place of PLACES) {
@@ -231,12 +233,18 @@ export function makeTown(into: HTMLElement, arrive: (place: Place) => void): Tow
   // Drawing: the runner from the clock, the view easing after it.
   let frame = 0;
   let last = 0;
+  let walkerDrawn = 0;
   function tick(now: number): void {
     frame = requestAnimationFrame(tick);
     const dt = last ? Math.min(0.1, (now - last) / 1000) : 0;
     last = now;
     runner.draw(now);
-    walker?.draw(now, dt, runner.heading());
+    // (Standing, drawn half as often: a third of the town's work a frame was drawing it, and its breathing is as smooth.)
+    const heading = runner.heading();
+    if (walker && (heading.moving || now - walkerDrawn >= STANDING_FRAME)) {
+      walker.draw(now, walkerDrawn ? Math.min(0.1, (now - walkerDrawn) / 1000) : dt, heading);
+      walkerDrawn = now;
+    }
     if (follow) {
       const target = clamp(runner.at(now));
       const k = 1 - Math.exp(-FOLLOW * dt);
@@ -244,6 +252,10 @@ export function makeTown(into: HTMLElement, arrive: (place: Place) => void): Tow
       camera.y += (target.y - camera.y) * k;
     }
     place();
+    // The flipbooks in view (with a little past its edges), on their frames.
+    const halfW = width / scale / 2 + 100;
+    const halfH = height / scale / 2 + 100;
+    fx.draw(now, camera.x - halfW, camera.y - halfH, camera.x + halfW, camera.y + halfH);
   }
   function resume(): void {
     if (frame) return;
