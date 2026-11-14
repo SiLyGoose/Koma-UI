@@ -34,6 +34,8 @@ export function render(ctx: DatabankContext): void {
   // Out of a list of items, back to the items' way in; out of anything else, to the way in.
   ui.close.href = view === 'items' ? '/databank/items/' : '/databank/';
   ui.close.setAttribute('aria-label', view === 'items' ? 'Back to the Items' : 'Back to the Databank');
+  // In v2, where the X is hidden, its back button goes where the X does, one level up (../v2/panel.ts); on the way in, back out.
+  ui.close.toggleAttribute('data-v2-back', view !== 'hub');
   ui.title.hidden = view !== 'hub' && view !== 'itemKinds';
   ui.title.textContent = view === 'itemKinds' ? 'Items' : 'Databank';
   if (view === 'hub') return renderHub(ctx);

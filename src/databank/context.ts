@@ -7,7 +7,11 @@ import type { HeroDef } from '../technomagic/sim/heroes/kit';
 import type { Databank, DatabankBoss, DatabankItem, Owned, RaidClass, RaidWeekView } from './types';
 
 /** Narrow screens show the item picked in a sheet over the list, only once one is picked. */
-export const narrow = window.matchMedia('(max-width: 899px)');
+/**
+ * Narrow screens: the item's panel a sheet, up only for one picked. Never in v2, which lays the site's pages out wide on
+ * every screen, a phone's too (../v2/landscape-css.ts): there the panel is always beside the list, as its styles have it.
+ */
+export const narrow = window.matchMedia(document.documentElement.dataset.shell === 'v2' ? '(max-width: 0px)' : '(max-width: 899px)');
 
 /**
  * What the page shows: the way in (what there is to look up), the items' way in (hero items or player items: `itemKinds`),
