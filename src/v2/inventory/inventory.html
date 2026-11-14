@@ -3,15 +3,7 @@
   <p id="inv-status" class="status" hidden></p>
   <div class="inv-window">
     <nav class="inv-tabs" role="tablist" aria-label="Inventory"></nav>
-    <!--
-      The site's page bar (../shared/ui/page-bar/), in v2 at the right end of the tabs' row (../v2.css): the server (only
-      for more than one), not a row of its own over the window. (Its name left out: v2 has none beside its back arrow.)
-    -->
-    <div class="page-bar inv-head">
-      <div class="page-bar-left"><select id="inv-server" class="server-pick" aria-label="Server" hidden></select></div>
-      <h1 class="page-bar-title" data-v2-gone>Inventory</h1>
-      <div class="page-bar-right"></div>
-    </div>
+    <!-- (No server picker in v2: the inventory shows the server picked last, currentServer().) -->
     <div class="inv-panel" role="tabpanel"></div>
   </div>
 </main>

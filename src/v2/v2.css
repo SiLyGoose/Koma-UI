@@ -483,8 +483,7 @@ html[data-shell='v2'] body {
 }
 
 /* (The server picker as wide as its name: the site's keeps it to half its row, which, laid over a corner, is no width at all.) */
-.v2-panel .v2-panel-canvas > main.gear-page:has(> #gear) .hero-top .dd,
-.v2-panel .inventory-page .inv-window > .inv-head .dd {
+.v2-panel .v2-panel-canvas > main.gear-page:has(> #gear) .hero-top .dd {
   max-width: none;
 }
 
@@ -613,14 +612,9 @@ html[data-shell='v2'] body {
   padding-block: 16px;
 }
 
-/* the inventory's bar (its server picker, for more than one) at the right end of its tabs' row, not a row over the window; */
-.v2-panel .inventory-page .inv-window > .inv-head {
-  position: absolute;
-  top: 14px;
-  right: 18px;
-  display: block;
-  width: max-content;
-  margin: 0;
+/* the databank's server picker left out (the server picked last goes, as v2's inventory has none either; the site keeps it); */
+.v2-panel .databank-page .db-bar .dd:has(> .server-pick) {
+  display: none;
 }
 
 /* the databank's way in, its marks under its name board as tall as they are (not the panels' height, the marks at the

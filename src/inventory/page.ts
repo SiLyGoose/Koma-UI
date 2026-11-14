@@ -45,9 +45,10 @@ export const inventoryPage: Page = {
 function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void; navigate: (url: URL) => void } {
   const bar = root.querySelector('.inv-tabs') as HTMLElement;
   const panel = root.querySelector('.inv-panel') as HTMLElement;
-  const serverSelect = root.querySelector('#inv-server') as HTMLSelectElement;
+  /** The server picker: not in v2's copy (../v2/inventory/), which shows the server picked last (currentServer()). */
+  const serverSelect = root.querySelector<HTMLSelectElement>('#inv-server');
   const statusLine = root.querySelector('#inv-status') as HTMLElement;
-  const serverPicker = dropdown(serverSelect);
+  const serverPicker = serverSelect ? dropdown(serverSelect) : null;
 
   /** The bot's answers for the server shown, by what they are. */
   let known = new Map<Source, Promise<ApiResult<unknown>>>();
@@ -144,7 +145,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void; 
   };
   window.addEventListener(TICKETS_CLAIMED, onTickets);
 
-  serverSelect.addEventListener('change', () => {
+  serverSelect?.addEventListener('change', () => {
     setServer(serverSelect.value);
     known = new Map();
     if (shown) void show(shown.tab);
@@ -157,8 +158,8 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void; 
     if (!res.ok) return host.failed(res, 'Could not load your servers.');
     if (!currentServer()) return void status('None of your servers have Koma in them yet.');
     const me = currentMe();
-    if (me) fillServers(serverSelect, me.servers, currentServer());
-    serverPicker.refresh();
+    if (me && serverSelect) fillServers(serverSelect, me.servers, currentServer());
+    serverPicker?.refresh();
     ready = true;
     await show(tabAt(location.pathname));
   }
@@ -168,7 +169,7 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void; 
     unmount: () => {
       window.removeEventListener(TICKETS_CLAIMED, onTickets);
       shown?.unmount();
-      serverPicker.destroy();
+      serverPicker?.destroy();
     },
     navigate: (url) => {
       const tab = tabAt(url.pathname);
