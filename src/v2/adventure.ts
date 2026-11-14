@@ -167,7 +167,7 @@ export function makeAdventure(
   window_.setAttribute('aria-modal', 'true');
   window_.setAttribute('aria-label', 'Adventure');
   window_.innerHTML = `<div class="v2-adv-stage">
-      <button type="button" class="v2-adv-back" aria-label="Back to town"><img alt="" src="${PORTAL}back.webp" /><span class="v2-adv-back-label">Adventure</span></button>
+      <button type="button" class="v2-adv-back" aria-label="Back to town"><img alt="" src="${PORTAL}back.webp" /></button>
       <section class="v2-adv-menu" aria-label="Contents">
         <h2 class="v2-adv-menu-title">Contents</h2>
         <nav class="v2-adv-kinds" role="tablist" aria-label="Kind of battle"></nav>

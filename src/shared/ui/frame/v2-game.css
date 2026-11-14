@@ -281,9 +281,13 @@ html.v2-raid .frame:not(:has(> .top))::before {
   display: none;
 }
 
-/* King's Raid's back arrow by the title, on every screen (on a phone on its side, in the title's place, as it was). */
+/* King's Raid's back arrow alone, on every screen, in the title's place (as a phone on its side has it): no name beside it. */
 html.v2-raid .tm-prep-back {
   display: block;
+}
+
+html.v2-raid .tm-prep-title {
+  display: none;
 }
 
 /* The sound button and the connection at the end of the top row. */

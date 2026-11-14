@@ -340,18 +340,22 @@ html[data-shell='v2'] body {
   z-index: 0;
 }
 
+/*
+ * The page's layer never scrolls (clip, not hidden: nothing scrolls it into view either): every page fits the screen, its
+ * long lists scrolling inside themselves. (Its canvas is counted at its size before it's scaled, so on a phone an auto
+ * layer scrolled into nothing past the page.)
+ */
 .v2-panel-view {
   position: absolute;
   z-index: 1;
   inset: 0;
-  overflow: auto;
-  overscroll-behavior: contain;
+  overflow: clip;
   touch-action: auto;
   user-select: text;
   -webkit-user-select: text;
 }
 
-/* A page's canvas (./panel.ts): laid out at its own size, scaled from its top left to the space under the top bar. */
+/* A page's canvas (./panel.ts): laid out at its own size, scaled from its top left to the space right of the back button. */
 .v2-panel-canvas {
   position: relative;
   transform-origin: 0 0;
@@ -457,42 +461,61 @@ html[data-shell='v2'] body {
   }
 }
 
+/*
+ * The Armory (../gear/, /player) on its 640-high canvas: the site keeps its panels 560 high under a 72 header, but its
+ * character's column needs more (the stage, Active Effects at its least, Common | Gear), so it ran past the canvas's foot.
+ * Here, with no header, the panels have the canvas's height less a thinner padding, and Active Effects scrolls a little sooner.
+ */
+.v2-panel .v2-panel-canvas > main.gear-page:has(> #gear) {
+  --panels-h: calc(100 * var(--v2-vh, 6.4px) - 32px);
+  --panels-min: 0px;
+  padding-block: 16px;
+}
+
+.v2-panel .v2-panel-canvas > main.gear-page:has(> #gear) .totals {
+  min-height: 72px;
+}
+
 /* (A part v2's copy of a page leaves out, kept for the code that fills it: ./heroes/heroes.html's Active Effects.) */
 .v2-panel [data-v2-gone] {
   display: none !important;
 }
 
-/* King's Raid's top bar over a page (./panel.ts): Common_TopBar (320 each end kept) at 100 of the game's units high (--kr),
-   its back button and the page's name at the game's size; the page under it. */
+/*
+ * King's Raid's back button over a page (./panel.ts), alone (no bar across the top, no page name): at the game's size (--kr)
+ * at the top of a thin rail down the left, the page right of it with the screen's whole height (a phone's short screen fits
+ * more of it, unscrolled), as a game opened from v2 has it (../shared/ui/frame/v2-game.css).
+ */
+.v2-panel {
+  --v2-panel-rail: calc(max(calc(29px * var(--kr, 1)), env(safe-area-inset-left)) + calc(91px * var(--kr, 1)));
+}
+
 .v2-panel-bar {
   position: absolute;
   z-index: 2;
   left: 0;
-  right: 0;
   top: 0;
-  height: calc(100px * var(--kr, 1));
+  bottom: 0;
+  width: var(--v2-panel-rail);
   pointer-events: none;
-}
-
-.v2-panel-bar::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-style: solid;
-  border-width: 0 calc(320px * var(--kr, 1));
-  border-image: url('/kr/ui/casino/topbar.webp') 0 320 fill / 0 calc(320px * var(--kr, 1));
 }
 
 .v2-panel-bar .v2-adv-back {
   left: max(calc(29px * var(--kr, 1)), env(safe-area-inset-left));
-  top: calc(12px * var(--kr, 1));
+  top: max(calc(14px * var(--kr, 1)), env(safe-area-inset-top));
   transform: scale(var(--kr, 1));
   transform-origin: 0 0;
+  filter: drop-shadow(0 2px 4px rgb(0 0 0 / 70%));
   pointer-events: auto;
 }
 
+.v2-panel-bar .v2-adv-back:hover,
+.v2-panel-bar .v2-adv-back:focus-visible {
+  filter: brightness(1.2) drop-shadow(0 2px 4px rgb(0 0 0 / 70%));
+}
+
 .v2-panel:not(.own-bar) > .v2-panel-view {
-  top: calc(100px * var(--kr, 1));
+  left: var(--v2-panel-rail);
 }
 
 .v2-panel.own-bar > .v2-panel-bar {
@@ -1314,7 +1337,7 @@ html[data-shell='v2'] body {
   transform: translate(-50%, -50%) scale(var(--s, 1));
 }
 
-/* Widget_ButtonTitle: Common_TopBar_Button_Back3 (77) and the window's name (45, gold). */
+/* Common_TopBar_Button_Back3 (77), alone: no window's name beside it. */
 .v2-adv-back {
   position: absolute;
   left: 29px;
@@ -1334,7 +1357,6 @@ html[data-shell='v2'] body {
   height: 77px;
 }
 
-.v2-adv-back-label,
 .v2-adv-menu-title,
 .v2-adv-contents-title {
   -webkit-background-clip: text;
@@ -1343,12 +1365,6 @@ html[data-shell='v2'] body {
   font-weight: 700;
   white-space: nowrap;
   filter: drop-shadow(0 2px 2px rgb(0 0 0 / 70%));
-}
-
-.v2-adv-back-label {
-  background-image: linear-gradient(#fffbe9, #c3b081);
-  font-size: 45px;
-  line-height: 70px;
 }
 
 .v2-adv-back:hover,

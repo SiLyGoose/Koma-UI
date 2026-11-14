@@ -18,7 +18,7 @@ export const V2_GAME = FROM !== null;
 
 /**
  * Whether it's a raid opened from v2's Adventure: its prep screen without the frame (no border, no bar: its King's Raid back
- * arrow by its title, the sound button and the connection at its top right), its own layout kept (./v2-game.css).
+ * arrow in its title's place, the sound button and the connection at its top right), its own layout kept (./v2-game.css).
  */
 const V2_RAID = FROM === 'technomagic' || FROM === 'dragon';
 
@@ -93,8 +93,8 @@ function statusOverPlayers(frame: HTMLElement): void {
 
 /**
  * A raid opened from v2's Adventure (the TechnoMagic Raid, the Dragon Raid): no frame, its own layout kept (its field and
- * prep fill the screen, as on a phone on its side: ../../../technomagic/prep/prep.css), its King's Raid back arrow by the
- * prep's title (the bar's back link, now to Adventure, is what it presses), and the sound button and the connection at
+ * prep fill the screen, as on a phone on its side: ../../../technomagic/prep/prep.css), its King's Raid back arrow in the
+ * prep's title's place (the bar's back link, now to Adventure, is what it presses), and the sound button and the connection at
  * the end of the prep's top row.
  */
 function startV2Raid(root: HTMLElement, frame: HTMLElement | null): void {

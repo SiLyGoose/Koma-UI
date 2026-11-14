@@ -40,7 +40,7 @@ const SIDE = 80;
 const markup = `<section class="v2-casino">
   <div class="v2-cas-stage">
     <span class="v2-cas-topbar" aria-hidden="true"></span>
-    <a class="v2-adv-back v2-cas-back" href="/" aria-label="Back to town"><img alt="" src="${BACK}" /><span class="v2-adv-back-label">Casino</span></a>
+    <a class="v2-adv-back v2-cas-back" href="/" aria-label="Back to town"><img alt="" src="${BACK}" /></a>
     <span class="v2-cas-balance" data-balance hidden><img class="v2-cas-coin" src="${import.meta.env.BASE_URL}shared/zeiucoin.png" alt="zeiucoins"><b></b></span>
     <p class="v2-cas-status" data-status hidden></p>
     <div class="v2-cas-window">

@@ -5,14 +5,14 @@ import { pageAt, type SitePage } from './places';
 
 /*
  * A site page over the town, filling the screen (no header): the page's own module, set up as src/site/main.ts does
- * (its markup copied in, mount(), unmount() as it goes), in a layer that scrolls by itself. Its paths are the old site's
+ * (its markup copied in, mount(), unmount() as it goes), in a layer of its own that never scrolls. Its paths are the old site's
  * (/shop/outfits): the page reads them from the URL it's handed, not from the address bar (which is v2's: /v2/shop/outfits/).
- * Behind it, the site's backdrop (its gold star chart), as the old site has behind every page. Over it, King's Raid's top
- * bar: its back button (Common_TopBar_Button_Back3) and the page's name, back to the town (as Adventure's window has it);
- * a page with its own (the casino's) has only that.
+ * Behind it, the site's backdrop (its gold star chart), as the old site has behind every page. At its top left, King's
+ * Raid's back button (Common_TopBar_Button_Back3) alone, back to the town, in a thin rail down the left (no bar across the
+ * top, no page name: the page has the screen's whole height); a page with its own (the casino's) has only that.
  *
  * v2 is played on its side: a page is laid out on a canvas of its own, CANVAS_HEIGHT high and as wide as the screen's shape
- * makes it, scaled to fill the space under the top bar (smaller on a phone, larger on a big screen; a page with a maxScale,
+ * makes it, scaled to fill the space right of the back button's rail (smaller on a phone, larger on a big screen; a page with a maxScale,
  * past it, taller instead: more room, not larger), its styles always the
  * site's wide-screen layout (./landscape-css.ts: their vh and vw the canvas's). A page with its own top bar (the casino) lays
  * itself out on the screen as it is.
@@ -42,8 +42,7 @@ export function makePanel(into: HTMLElement, back: () => void): Panel {
   view.append(canvas);
   const bar = document.createElement('header');
   bar.className = 'v2-panel-bar';
-  bar.innerHTML = `<button type="button" class="v2-adv-back" aria-label="Back to town"><img alt="" src="${import.meta.env.BASE_URL}kr/ui/portal/back.webp" /><span class="v2-adv-back-label"></span></button>`;
-  const barName = bar.querySelector('.v2-adv-back-label') as HTMLElement;
+  bar.innerHTML = `<button type="button" class="v2-adv-back" aria-label="Back to town"><img alt="" src="${import.meta.env.BASE_URL}kr/ui/portal/back.webp" /></button>`;
   (bar.querySelector('button') as HTMLButtonElement).addEventListener('click', back);
   element.append(backdrop(), view, bar);
   into.append(element);
@@ -90,7 +89,6 @@ export function makePanel(into: HTMLElement, back: () => void): Panel {
       element.hidden = false;
       view.scrollTop = 0;
       document.title = page.title;
-      barName.textContent = page.title.split(' · ')[0] ?? '';
       element.classList.toggle('own-bar', !!root.querySelector('.v2-adv-back'));
       shown = site;
       fit();
