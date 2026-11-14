@@ -1,5 +1,5 @@
 import { forgePlan, type GearView, heroGear, itemIcons, levelLabel, shownName } from '../shared/items';
-import { noteWorn, type HeroCopy, type HeroesView, type HeroKeep } from '../shared/heroes';
+import { noteWorn, type HeroCopy, type HeroesChange, type HeroesView, type HeroKeep } from '../shared/heroes';
 import { busyWith } from '../shared/ui';
 import { sleep } from '../shared/util';
 import { curtain } from '../shared/transition';
@@ -51,6 +51,7 @@ export async function loadGear(ctx: ForgeContext): Promise<void> {
   const res = await api<GearView>(`/api/gear?guild=${encodeURIComponent(server)}`);
   if (!res.ok) return failed(ctx, res, 'Could not load your gear.');
   ctx.gear = res.data;
+  ctx.gearStale = false;
   if (!copyById(ctx, ctx.picked)) ctx.picked = null;
   if (!ctx.picked || !choosing(ctx)?.has(ctx.material ?? '')) ctx.material = null;
   status(ctx, null);
@@ -72,6 +73,25 @@ export async function loadHeroes(ctx: ForgeContext): Promise<void> {
   render(ctx);
 }
 
+/**
+ * Their hero gear after a change to one copy (the bot's HeroesChange: everything but the copies, and the ones it changed, which
+ * take the old ones' places), or a bot from before it's whole HeroesView. Their gear changed too (its balance, a unique
+ * treasure's options): its balance follows now, the rest when Refine is next picked.
+ */
+function takeChange(ctx: ForgeContext, change: HeroesChange | HeroesView): void {
+  if ('copies' in change) ctx.heroes = change;
+  else {
+    const { changed: copies, ...rest } = change;
+    const byId = new Map(copies.map((copy) => [copy.id, copy]));
+    const old = ctx.heroes?.copies ?? [];
+    const kept = old.map((copy) => byId.get(copy.id) ?? copy);
+    const known = new Set(old.map((copy) => copy.id));
+    ctx.heroes = { ...rest, copies: [...kept, ...copies.filter((copy) => !known.has(copy.id))] };
+  }
+  ctx.gearStale = true;
+  if (ctx.gear) ctx.gear.balance = ctx.heroes.balance;
+}
+
 /** What a hero mode changes on a copy, a line each: its substats, or its additional effect. */
 const linesOf = (copy: HeroCopy, mode: HeroMode): string[] => (mode === 'effects' ? (copy.additional ? [copy.additional] : []) : copy.options.map((option) => option.line));
 
@@ -87,7 +107,7 @@ export async function strikeHero(ctx: ForgeContext, mode: HeroMode): Promise<voi
   ctx.busy = busyWith('strike');
   renderAnvil(ctx);
   playAnimation(ctx.ui.target, 'heat', 'heat');
-  const request = api<HeroesView>(mode === 'enhance' ? '/api/heroes/upgrade' : '/api/heroes/reroll', {
+  const request = api<HeroesChange | HeroesView>(mode === 'enhance' ? '/api/heroes/upgrade' : '/api/heroes/reroll', {
     method: 'POST',
     body: JSON.stringify({ guild: server, copy: copy.id, option }),
   });
@@ -98,8 +118,7 @@ export async function strikeHero(ctx: ForgeContext, mode: HeroMode): Promise<voi
     // It cost zeiucoins or komaGems: the header's balances follow, and the gear's (a refine's balance) too.
     void loadMe(true);
     if (!res.ok) return res;
-    ctx.heroes = res.data;
-    void loadGear(ctx);
+    takeChange(ctx, res.data);
     const after = heroCopyById(ctx, copy.id);
     const rows = after ? compare(linesOf(copy, mode), linesOf(after, mode)) : [];
     const changed = rows.filter((row) => row.state !== 'same' && row.state !== 'gone').map((row) => (row.state === 'changed' ? row.changes.map((one) => `${one.from} » ${one.to}`).join(', ') : row.line));
@@ -138,7 +157,7 @@ export async function restoreHero(ctx: ForgeContext): Promise<void> {
   ctx.busy = busyWith('strike');
   renderAnvil(ctx);
   playAnimation(ctx.ui.target, 'heat', 'heat');
-  const request = api<HeroesView>('/api/heroes/restore', { method: 'POST', body: JSON.stringify({ guild: server, copy: copy.id }) });
+  const request = api<HeroesChange | HeroesView>('/api/heroes/restore', { method: 'POST', body: JSON.stringify({ guild: server, copy: copy.id }) });
   await sleep(HEAT_MS);
   const res = await curtain(async () => {
     const res = await request;
@@ -146,7 +165,8 @@ export async function restoreHero(ctx: ForgeContext): Promise<void> {
     // It cost zeiucoins: the header's balances follow, and the gear's too.
     void loadMe(true);
     if (!res.ok) return res;
-    ctx.heroes = res.data;
+    takeChange(ctx, res.data);
+    // (Its stars on the gear page's view too, now: the menu's Refine goes by them, to awaken it again.)
     void loadGear(ctx);
     const after = heroCopyById(ctx, copy.id);
     ctx.doneWell = true;
@@ -180,13 +200,13 @@ export async function keepRolled(ctx: ForgeContext, which: HeroKeep | null): Pro
   ctx.busy = busyWith('strike');
   closeResult(ctx);
   render(ctx);
-  const res = await api<HeroesView>('/api/heroes/keep', { method: 'POST', body: JSON.stringify({ guild: server, copy: copy.id, keep: which, option }) });
+  const res = await api<HeroesChange | HeroesView>('/api/heroes/keep', { method: 'POST', body: JSON.stringify({ guild: server, copy: copy.id, keep: which, option }) });
   ctx.busy = null;
   if (!res.ok) {
     render(ctx);
     return failed(ctx, res, `Could not keep that ${waiting.what}. Try again.`);
   }
-  ctx.heroes = res.data;
+  takeChange(ctx, res.data);
   ctx.keep = null;
   ctx.doneWell = true;
   // (An effect by its name, a substat by its line.)

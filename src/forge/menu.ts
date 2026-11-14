@@ -1,4 +1,5 @@
 import { el, forgePlan, shownName } from '../shared/items';
+import { loadGear } from './api';
 import { copyById, type ForgeContext, heroCopyById } from './context';
 import { FORGE_MODES, type ForgeMode, heroCan } from './modes';
 import { render } from './render';
@@ -37,6 +38,8 @@ function canDo(ctx: ForgeContext, mode: ForgeMode, id: string | null): boolean {
 
 /** Starts `mode`: the anvil and armory for it, the piece brought from its Upgrade on the anvil when the mode can take it. */
 export function choose(ctx: ForgeContext, mode: ForgeMode): void {
+  // (Their gear as it is now, for a refine, when a hero gear change since made it old.)
+  if (mode === 'refine' && ctx.gearStale) void loadGear(ctx);
   ctx.mode = mode;
   ctx.picked = canDo(ctx, mode, ctx.wanted) ? ctx.wanted : null;
   ctx.material = null;

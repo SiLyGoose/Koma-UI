@@ -42,6 +42,11 @@ export interface ForgeContext {
   /** A piece brought from its Upgrade (?copy=<id>): named over the menu, and on the anvil in the mode picked (if it can be). */
   wanted: string | null;
   gear: GearView | null;
+  /**
+   * Their gear changed with their hero gear (a reroll's or enhance's balance, a unique treasure's options) since it was loaded:
+   * loaded again when Refine is picked, not after every reroll (the bot builds it from every copy they own).
+   */
+  gearStale: boolean;
   /** Their hero gear (GET /api/heroes), with its substats, effects and what changing them costs: the menu's other modes'. */
   heroes: HeroesView | null;
   /** Rerolling substats: which of the piece on the anvil's (its place), if one's picked. */
@@ -96,6 +101,7 @@ export function createContext(root: HTMLElement): ForgeContext {
     mode: null,
     wanted: null,
     gear: null,
+    gearStale: false,
     heroes: null,
     option: null,
     keep: null,
