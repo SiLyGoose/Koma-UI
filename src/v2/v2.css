@@ -502,6 +502,9 @@ html[data-shell='v2'] body {
   --v2-panel-rail: calc(max(calc(29px * var(--kr, 1)), env(safe-area-inset-left)) + calc(91px * var(--kr, 1)));
   /* How far down the screen the back button's middle is: a page's bar is laid level with it (on its canvas, over --v2-scale). */
   --v2-back-mid: calc(max(calc(14px * var(--kr, 1)), env(safe-area-inset-top)) + calc(38.5px * var(--kr, 1)));
+  /* Its left edge and its foot on the screen: a page's own column of tabs (the shop's) lined up under it. */
+  --v2-back-left: max(calc(29px * var(--kr, 1)), env(safe-area-inset-left));
+  --v2-back-foot: calc(max(calc(14px * var(--kr, 1)), env(safe-area-inset-top)) + calc(77px * var(--kr, 1)));
 }
 
 .v2-panel-bar {
@@ -533,6 +536,25 @@ html[data-shell='v2'] body {
 }
 
 /*
+ * The shop: its column of tabs (Wish, Outfits, Heroes…) is the page's way about, so it's the rail itself, under the back
+ * button, not a second column right of it. The page from the screen's left edge (its sky behind the arrow too), its tabs
+ * clear of the arrow's foot (on the canvas, over its scale) and in line with its left edge.
+ */
+.v2-panel:has(.shop-page) > .v2-panel-view {
+  left: 0;
+}
+
+/* (A little wider than the site's at its least, 156: a phone's tabs had their names cut short, "Heroe", with the arrow's inset.) */
+.v2-panel .v2-panel-canvas > .shop-page {
+  --rail-w: clamp(184px, 15vw, 212px);
+}
+
+.v2-panel .shop-page > .shop-rail {
+  padding-top: calc(var(--v2-back-foot, 36px) / var(--v2-scale, 1) + 14px);
+  padding-left: calc(var(--v2-back-left, 12px) / var(--v2-scale, 1));
+}
+
+/*
  * On a phone (landscape-css.ts SMALL_SCREEN) the back button is 24 across, 12 in from the corner, and its rail the
  * narrower for it (the page wider). Adventure's and the casino's the same size on the screen, whatever their stage's scale.
  */
@@ -540,6 +562,8 @@ html[data-shell='v2'] body {
   .v2-panel {
     --v2-panel-rail: calc(max(12px, env(safe-area-inset-left)) + 36px);
     --v2-back-mid: calc(max(12px, env(safe-area-inset-top)) + 12px);
+    --v2-back-left: max(12px, env(safe-area-inset-left));
+    --v2-back-foot: calc(max(12px, env(safe-area-inset-top)) + 24px);
   }
 
   .v2-panel-bar .v2-adv-back {
