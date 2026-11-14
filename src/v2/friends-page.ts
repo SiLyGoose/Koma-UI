@@ -1,5 +1,7 @@
 import type { Friends, Game } from '../protocol/site';
 import { FACE, heroCut } from '../shared/heroes';
+import { navigate } from '../shared/transition';
+import { go } from '../site/nav';
 import type { Page } from '../site/page';
 import { api, currentMe, currentServer, hasSession, loadMe, prefetchFor } from '../site/session';
 
@@ -10,6 +12,8 @@ import { api, currentMe, currentServer, hasSession, loadMe, prefetchFor } from '
  * left (the hero they walk the town as, else their first, else Roi, as the town walks them), their name and whether they're
  * online under it, what they're doing in the middle, and their Discord picture filling its right end, fading into the row
  * (where Genshin has the player's namecard). Laid out on v2's canvas (640 high, ./panel.ts), so it scales with the screen.
+ * At its right end two buttons: Watch (only lit while they're in a game that can be watched, as /api/live says; otherwise
+ * there but greyed and struck through) and Heroes, their roster on the heroes page (/heroes/?user=; the one asking: their own).
  * Asked again every REFRESH_MS while it's open.
  */
 
@@ -83,7 +87,8 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     li.innerHTML = `<span class="v2-fr-art" aria-hidden="true"><img alt="" /></span>
       <span class="v2-fr-hero"><img alt="" /></span>
       <div class="v2-fr-who"><b class="v2-fr-name"></b><span class="v2-fr-state"><i class="v2-fr-dot" aria-hidden="true"></i><span></span></span></div>
-      <p class="v2-fr-what"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3C6.5 3 2 6.6 2 11c0 2.4 1.3 4.5 3.4 6L4.5 21l4.4-2.4c1 .3 2 .4 3.1.4 5.5 0 10-3.6 10-8s-4.5-8-10-8m-4 9.3a1.3 1.3 0 1 1 0-2.6 1.3 1.3 0 0 1 0 2.6m4 0a1.3 1.3 0 1 1 0-2.6 1.3 1.3 0 0 1 0 2.6m4 0a1.3 1.3 0 1 1 0-2.6 1.3 1.3 0 0 1 0 2.6"/></svg><span></span></p>`;
+      <p class="v2-fr-what"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3C6.5 3 2 6.6 2 11c0 2.4 1.3 4.5 3.4 6L4.5 21l4.4-2.4c1 .3 2 .4 3.1.4 5.5 0 10-3.6 10-8s-4.5-8-10-8m-4 9.3a1.3 1.3 0 1 1 0-2.6 1.3 1.3 0 0 1 0 2.6m4 0a1.3 1.3 0 1 1 0-2.6 1.3 1.3 0 0 1 0 2.6m4 0a1.3 1.3 0 1 1 0-2.6 1.3 1.3 0 0 1 0 2.6"/></svg><span></span></p>
+      <div class="v2-fr-acts"><button type="button" class="v2-fr-act" data-watch>Watch</button><button type="button" class="v2-fr-act" data-roster>Heroes</button></div>`;
     const art = li.querySelector('.v2-fr-art img') as HTMLImageElement;
     // (A picture that won't load: no picture, the row's own colour there.)
     art.addEventListener('error', () => art.remove(), { once: true });
@@ -99,8 +104,32 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
       tag.textContent = 'You';
       name.append(tag);
     }
+    const roster = li.querySelector('[data-roster]') as HTMLButtonElement;
+    roster.title = you ? 'Your heroes' : `${friend.name}'s heroes`;
+    roster.addEventListener('click', () => go(you ? '/heroes/' : `/heroes/?user=${encodeURIComponent(friend.userId)}`));
+    const watch = li.querySelector('[data-watch]') as HTMLButtonElement;
+    watch.addEventListener('click', () => void watching(friend.userId, watch));
     fill(li, friend);
     return li;
+  }
+
+  /** What each row's Watch would watch (the game they're in), as last asked: null, nothing to watch. */
+  const games = new Map<string, Game>();
+
+  async function watching(userId: string, button: HTMLButtonElement): Promise<void> {
+    const game = games.get(userId);
+    const server = currentServer();
+    if (!game || !server) return;
+    button.disabled = true;
+    button.textContent = 'Opening…';
+    const res = await api<{ url: string }>(`/api/watch?guild=${encodeURIComponent(server)}`, { method: 'POST', body: JSON.stringify({ game, target: userId }) });
+    if (gone) return;
+    if (res.ok) return navigate(res.data.url);
+    // (Not in that game any more: greyed till the next answer says otherwise.)
+    games.delete(userId);
+    button.textContent = 'Watch';
+    button.title = 'Not playing now';
+    void ask();
   }
 
   /** What a row says that changes: online or not, and what they're doing. */
@@ -111,6 +140,13 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     const what = li.querySelector('.v2-fr-what') as HTMLElement;
     what.hidden = !on;
     (what.querySelector('span') as HTMLElement).textContent = on ? `${ACTIVITY[on.activity] ?? 'On the site'}${on.status ? ` · ${on.status}` : ''} · ${since(on.since)}` : '';
+    const watch = li.querySelector('[data-watch]') as HTMLButtonElement;
+    const game = on?.watchable && on.activity !== 'hub' ? on.activity : null;
+    if (game) games.set(friend.userId, game);
+    else games.delete(friend.userId);
+    if (watch.textContent === 'Opening…') return;
+    watch.disabled = !game;
+    watch.title = game ? `Watch ${friend.name} (${ACTIVITY[game]})` : li.classList.contains('you') ? "You can't watch yourself" : on ? 'Not in a game that can be watched' : 'Offline';
   }
 
   function draw(data: Friends): void {

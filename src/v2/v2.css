@@ -1737,6 +1737,48 @@ html[data-shell='v2'] body {
   white-space: nowrap;
 }
 
+/* Watch and Heroes, at the row's right end over the Discord picture. Watch is always there: greyed and struck through
+   while there's nothing to watch. */
+.v2-fr-acts {
+  position: relative;
+  /* (The last column even when an offline row's activity is hidden out of the grid.) */
+  grid-column: 4;
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  padding-right: 18px;
+}
+
+.v2-fr-act {
+  min-width: 74px;
+  padding: 7px 12px;
+  border: 1.5px solid rgb(255 255 255 / 80%);
+  border-radius: 999px;
+  background: rgb(47 53 69 / 88%);
+  box-shadow: 0 2px 5px rgb(0 0 0 / 35%);
+  color: #f4e6b2;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.v2-fr-act:hover:not(:disabled),
+.v2-fr-act:focus-visible {
+  background: rgb(70 78 99 / 95%);
+  color: #fff;
+}
+
+.v2-fr-act:disabled {
+  border-color: rgb(255 255 255 / 45%);
+  background: rgb(120 118 112 / 70%);
+  box-shadow: none;
+  color: rgb(236 233 226 / 80%);
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+  cursor: not-allowed;
+}
+
 /* Adventure (./adventure.ts): King's Raid's Portal (PortalRenewal), its parts where the prefab has them. Its stage is 2100
    by 1080 of the game's screen (x from 1150 left of its middle), scaled whole to this one (--s); inside it, the game's units. */
 .v2-adv {

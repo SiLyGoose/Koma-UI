@@ -29,7 +29,7 @@ import '../technomagic/styles/tip.css';
  * picked there (./transcend.ts: the TP they cost, out of what its level gives), and the Stats tab transcends it (T0 to
  * T5, for its class's hero essences and komaGems). A copy can be
  * on the member and on one of their heroes at once, but on one hero only. Logged-in members only, in the
- * server picked; ?hero= picks the hero shown. On the left over the hero, whose heroes are shown: theirs, or
+ * server picked; ?hero= picks the hero shown, ?user= whose (someone else in the server with heroes). On the left over the hero, whose heroes are shown: theirs, or
  * those of someone else in the server who has heroes, to look at (nothing on them can be changed then).
  *
  * The page's view: the site's heroes page (./page.ts) mounts it with the site's login, and the TechnoMagic Raid's Manage
@@ -54,7 +54,24 @@ async function start(ctx: HeroesContext, act: HeroActions): Promise<void> {
   if (!host.server()) return status(ctx, 'None of your servers have Koma in them yet.');
   const me = host.me();
   if (me) fillServers(ctx.ui.server, me.servers, host.server());
-  await Promise.all([loadMembers(ctx), load(ctx, act)]);
+  // ?user=: someone else's heroes shown first (the friends list's Heroes button), once the server's members say who they are.
+  // (The site's page only: the raid's Manage popup leaves its page's address alone.)
+  const asked = ctx.host.site ? new URLSearchParams(location.search).get('user') : null;
+  if (asked) {
+    await loadMembers(ctx);
+    ctx.viewing = ctx.members.find((m) => !m.you && m.userId === asked) ?? null;
+    fillMembers(ctx);
+    await load(ctx, act);
+  } else await Promise.all([loadMembers(ctx), load(ctx, act)]);
+}
+
+/** Keeps whose heroes are shown in the address (?user=, none for their own), so going back or reloading shows them again. */
+function noteViewing(ctx: HeroesContext): void {
+  if (!ctx.host.site) return;
+  const address = new URL(location.href);
+  if (ctx.viewing) address.searchParams.set('user', ctx.viewing.userId);
+  else address.searchParams.delete('user');
+  history.replaceState(history.state, '', address);
 }
 
 /** Says why asking the bot didn't work (or, for a login that ran out, logs out); `said`: what a change says for its own errors. */
@@ -113,6 +130,7 @@ async function load(ctx: HeroesContext, act: HeroActions): Promise<void> {
     if (whose && res.status === 404) {
       ctx.members = ctx.members.filter((m) => m.userId !== whose.userId);
       ctx.viewing = null;
+      noteViewing(ctx);
       fillMembers(ctx);
       await load(ctx, act);
       return status(ctx, `${whose.name} isn't in this server any more.`, true);
@@ -357,6 +375,7 @@ function wire(ctx: HeroesContext, act: HeroActions): () => void {
     ctx.selling = null;
     // Back to their own heroes, in the new server.
     ctx.viewing = null;
+    noteViewing(ctx);
     ctx.members = [];
     fillMembers(ctx);
     void loadMembers(ctx);
@@ -366,6 +385,7 @@ function wire(ctx: HeroesContext, act: HeroActions): () => void {
   const memberPicker = dropdown(ui.member);
   ui.member.addEventListener('change', () => {
     ctx.viewing = ctx.members.find((m) => !m.you && m.userId === ui.member.value) ?? null;
+    noteViewing(ctx);
     ctx.perkPage = null;
     ctx.picked = null;
     ctx.runes = false;
