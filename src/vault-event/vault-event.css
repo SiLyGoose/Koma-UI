@@ -1,6 +1,7 @@
 /*
- * The vault events' pages (common.ts: Hot Potato, Laser Grid): the game in the middle (its stats, what's happening,
- * the buttons, who's in and who's out), in the middle of the page.
+ * The vault events' pages (common.ts: Hot Potato, Laser Grid), laid out as the table games are: the game (its stats,
+ * what's happening, the buttons) taking most of the page, and on its right a panel of who's playing with the log of
+ * what has happened under it, where the tables have their chat. On narrower screens the panel goes under the game.
  */
 
 .ve {
@@ -12,17 +13,15 @@
 }
 
 .ve-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 880px);
-  justify-content: center;
-  /* The game sits in the middle of the page's height. */
-  align-content: center;
-  width: min(904px, 100% - 24px);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: min(1500px, 100% - 24px);
   margin: 20px auto;
   flex: 1;
 }
 
-/* Only the stage is as wide as that (it has the log beside it); everything else keeps to the middle. */
+/* The stage takes the game's width; the rest keeps to the middle of it. */
 .ve-stats,
 .ve-vault,
 .ve-banner,
@@ -33,28 +32,214 @@
 .ve-idle,
 .ve-result {
   width: 100%;
-  max-width: 600px;
+  max-width: 720px;
   align-self: center;
 }
 
 .ve-game {
   position: relative;
   display: flex;
+  flex: 1;
   flex-direction: column;
   align-items: stretch;
+  /* The game sits in the middle of the page's height. */
+  justify-content: center;
   gap: 12px;
   min-width: 0;
 }
 
 .ve > .hint {
-  max-width: 584px;
+  max-width: 720px;
   margin-inline: auto;
   padding-inline: 12px;
 }
 
-@media (max-width: 720px) {
+/* A computer: the panel on the game's right, as tall as the page lets the two be. */
+@media (min-width: 900px) {
   .ve-layout {
-    grid-template-columns: minmax(0, 1fr);
+    flex-direction: row;
+    justify-content: center;
+    gap: 18px;
+  }
+
+  .ve-game {
+    flex: 0 1 1180px;
+  }
+
+  .ve-side {
+    flex: 0 0 300px;
+  }
+}
+
+/* ---- Who's playing, and what has happened (roster.ts, trail.ts): the panel on the right ---- */
+
+.ve-side {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 14px;
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+
+.ve-side-title {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.ve-roster {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ve-roster-row {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--panel-2);
+}
+
+.ve-roster-row.you {
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+/* Holding the potato. */
+.ve-roster-row.lit {
+  background: rgb(233 140 56 / 20%);
+}
+
+.ve-roster-row.out .ve-roster-face {
+  filter: grayscale(1);
+}
+
+.ve-roster-row.out .ve-roster-text,
+.ve-roster-row.out .ve-roster-status {
+  opacity: 0.6;
+}
+
+.ve-roster-row.empty {
+  display: block;
+  padding: 16px 10px;
+  border: 1px dashed var(--line);
+  background: transparent;
+  color: var(--dusk);
+  font-size: 13px;
+  text-align: center;
+}
+
+.ve-roster-face {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--panel-3);
+}
+
+.ve-roster-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.ve-roster-name {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.ve-roster-name span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ve-roster-you {
+  flex: none;
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 4px;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-size: 10px;
+}
+
+.ve-roster-sub {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ve-roster-status {
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 700;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.ve-roster-status.good {
+  color: var(--green);
+}
+
+.ve-roster-status.bad {
+  color: var(--red);
+}
+
+.ve-roster-status.hot {
+  color: #f0a24a;
+}
+
+/* The log, under the players, where the tables have their chat. */
+.ve-log {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgb(255 255 255 / 8%);
+}
+
+.ve-log .ve-log-list {
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+/* As tall as the game: the players at the top (scrolling, when they'd take more than half), the log in the rest. */
+@media (min-width: 900px) {
+  .ve-roster {
+    flex: 0 1 auto;
+    max-height: 55%;
+    min-height: 56px;
+    overflow-y: auto;
+  }
+
+  .ve-log {
+    flex: 1;
+    min-height: 160px;
+  }
+
+  /* (Sized by the panel, never by how much it says: it scrolls instead.) */
+  .ve-log .ve-log-list {
+    flex: 1;
+    max-height: none;
+    contain: size;
   }
 }
 
@@ -127,13 +312,12 @@
   text-align: center;
 }
 
-/* The game on the left, and what has happened (the log) on the right, in the one box. */
+/* The game itself: as big as the page lets it be. */
 .ve-stage {
   display: flex;
-  align-items: stretch;
-  gap: 16px;
+  flex-direction: column;
   min-height: 190px;
-  padding: 18px 16px;
+  padding: clamp(14px, 2.2vh, 28px) clamp(14px, 2vw, 32px);
   border: 1px solid var(--plaque-edge);
   border-radius: 14px;
   background: var(--plaque);
@@ -146,56 +330,13 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: clamp(8px, 1.4vh, 16px);
   min-width: 0;
-}
-
-/* The log: as tall as the game beside it, scrolling inside that. */
-.ve-log {
-  position: relative;
-  display: flex;
-  flex: 0 0 260px;
-  flex-direction: column;
-  min-height: 0;
-  padding-left: 16px;
-  border-left: 1px solid var(--plaque-edge);
-  text-align: left;
-}
-
-.ve-log .ve-list-title {
-  margin: 0 0 6px;
-}
-
-.ve-log .ve-log-list {
-  position: absolute;
-  top: 24px;
-  right: 0;
-  bottom: 0;
-  left: 16px;
-  overflow-y: auto;
-}
-
-@media (max-width: 720px) {
-  .ve-stage {
-    flex-direction: column;
-  }
-
-  .ve-log {
-    flex-basis: auto;
-    padding: 10px 0 0;
-    border-top: 1px solid var(--plaque-edge);
-    border-left: 0;
-  }
-
-  .ve-log .ve-log-list {
-    position: static;
-    max-height: 168px;
-  }
 }
 
 .ve-stage-title {
   margin: 0;
-  font-size: 22px;
+  font-size: clamp(20px, 1.2vw + 12px, 28px);
   line-height: 1.25;
 }
 
@@ -332,12 +473,19 @@
   font-size: 14px;
 }
 
+/* The result's parts stand apart: what it came to (and the titles), what happened, then who won and who blew up. */
+.ve-result > .ve-result-log,
+.ve-result > .ve-players {
+  margin-top: 12px;
+}
+
 /* ---- A moment's news ---- */
 
+/* (Over the bottom of the stage, which it's in: the top is where your face may be.) */
 .ve-toast {
   position: absolute;
   z-index: 20;
-  top: 74px;
+  bottom: 12px;
   left: 50%;
   max-width: calc(100% - 20px);
   padding: 8px 16px;
@@ -426,10 +574,28 @@
   width: 100%;
 }
 
-/* Round the potato: each seat at its own --x and --y. */
+/*
+ * Round the potato: each seat at its own --x and --y. As tall as the screen has room for once the rest of the game
+ * (the stats, the words, the buttons) has its share, and no wider than it looks good. (The arrow is sized to it:
+ * ../potato/main.ts.)
+ */
 .ve-ring-circle {
-  aspect-ratio: 16 / 11;
-  max-height: 340px;
+  max-width: 900px;
+  height: clamp(240px, 100vh - 560px, 620px);
+  height: clamp(240px, 100dvh - 560px, 620px);
+}
+
+/* Taller screens, bigger faces. */
+@media (min-width: 900px) and (min-height: 900px) {
+  .ve-ring {
+    --seat-scale: 1.15;
+  }
+}
+
+@media (min-width: 1300px) and (min-height: 1000px) {
+  .ve-ring {
+    --seat-scale: 1.35;
+  }
 }
 
 .ve-ring-circle .ve-seat {
@@ -725,30 +891,69 @@
 
 /* ---- What happened (trail.ts) ---- */
 
-/* One line an action, the newest (at the bottom) lit. */
+/* One line an action, every other one shaded (like the gear page's hero stats) so each reads on its own, the newest
+   (at the bottom) lit. */
 .ve-trail {
   display: flex;
   flex-direction: column;
-  gap: 2px;
   margin: 0;
   padding: 0 4px 0 0;
   list-style: none;
-  scrollbar-width: thin;
+}
+
+/*
+ * Its scrollbar, like the chat's (../shared/ui/chat/chat.css): a rounded pill, no track, no arrows. Chrome and Safari
+ * draw it from the ::-webkit-scrollbar parts; they would ignore those if the standard properties were set too, so
+ * those are only for Firefox, which has no such parts.
+ */
+.ve-trail::-webkit-scrollbar {
+  width: 14px;
+}
+
+.ve-trail::-webkit-scrollbar-track,
+.ve-trail::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+.ve-trail::-webkit-scrollbar-track {
+  margin-block: 6px;
+}
+
+.ve-trail::-webkit-scrollbar-button {
+  display: none;
+}
+
+.ve-trail::-webkit-scrollbar-thumb {
+  min-height: 40px;
+  border: 4px solid transparent;
+  border-radius: 999px;
+  background: var(--dusk) padding-box;
+}
+
+.ve-trail::-webkit-scrollbar-thumb:hover {
+  background-color: var(--gold);
+}
+
+@supports not selector(::-webkit-scrollbar) {
+  .ve-trail {
+    scrollbar-width: thin;
+    scrollbar-color: var(--dusk) transparent;
+  }
 }
 
 .ve-trail-line {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0 5px;
   padding: 3px 8px;
   border-radius: 6px;
   font-size: 13px;
   line-height: 1.4;
 }
 
-.ve-trail-line:last-child {
+.ve-trail-line:nth-child(odd) {
   background: rgb(255 255 255 / 7%);
+}
+
+.ve-trail-line:last-child {
+  background: rgb(216 191 122 / 16%);
 }
 
 /* A potato coming out, a round starting: a little gap before it. */
@@ -783,7 +988,7 @@
 }
 
 .ve-result-log .ve-list-title {
-  margin: 4px 0 6px;
+  margin: 0 0 6px;
 }
 
 .ve-trail-arrow {
@@ -966,6 +1171,7 @@
   }
 
   .ve-ring-circle {
+    height: auto;
     aspect-ratio: 1 / 1;
   }
 

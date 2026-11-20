@@ -1,6 +1,7 @@
 import './laser.css';
 import { $, amount, clockText, coins, el, fillList, fillTitles, knockout, reactionText, startEventPage, toaster, vaultLine, type Title } from '../vault-event/common';
 import { ring, type Seat } from '../vault-event/ring';
+import { roster } from '../vault-event/roster';
 import { play } from '../vault-event/sfx';
 import { trail, type TrailLine } from '../vault-event/trail';
 import type { ClientMessage, LaserAnswer, LaserCaught, LaserEnded, LaserLive, LaserPlayer, LaserState, ServerMessage } from '../protocol/laser';
@@ -40,9 +41,9 @@ const ui = {
   toast: $('toast'),
   join: $<HTMLButtonElement>('join'),
   trail: $('trail'),
-  players: $('players'),
-  in: $('in'),
-  out: $('out'),
+  side: $('side'),
+  roster: $('roster'),
+  sideCount: $('side-count'),
   idle: $('idle'),
   result: $('result'),
   resultTitle: $('result-title'),
@@ -66,6 +67,7 @@ const rounds = new Map<number, TrailLine[]>();
 const toast = toaster(ui.toast);
 const seats = ring(ui.ring, 'row');
 const story = trail(ui.trail, 'Nothing yet: the first round starts when joining closes.');
+const players = roster(ui.roster, ui.sideCount);
 const lastStory = trail(ui.resultTrail, 'This page saw none of it.');
 /** The log so far: every round seen, oldest first. */
 const logLines = (): TrailLine[] => [...rounds.entries()].sort((a, b) => a[0] - b[0]).flatMap(([, lines]) => lines);
@@ -246,23 +248,40 @@ function renderLive(state: LaserState, live: LaserLive): void {
   renderBar(live);
   story.render(logLines());
 
-  ui.players.hidden = false;
-  fillList(
-    ui.in,
-    standing(live).map((p, i) => ({
-      text: live.phase === 'joining' ? p.name : `#${i + 1} ${p.name}${p.bestMs !== null ? ` · ${reactionText(p.totalMs)} in all (best ${reactionText(p.bestMs)})` : ''}`,
-      you: p.id === state.you,
-    })),
-    'Nobody',
-  );
-  fillList(
-    ui.out,
-    live.players
-      .filter((p) => caughtBy(p) !== null)
-      .map((p) => ({ p, round: p.caughtFor ? p.caughtRound : live.round }))
-      .sort((a, b) => b.round - a.round)
-      .map(({ p, round }) => ({ text: `${p.name} · ${WHY[caughtBy(p) as LaserCaught]} (round ${round})`, you: p.id === state.you })),
-    'Nobody yet',
+  // Who's playing, on the right: those still in by their place (their time in all), then those caught, the last caught first.
+  ui.side.hidden = false;
+  const inNow = standing(live);
+  const outNow = live.players
+    .filter((p) => caughtBy(p) !== null)
+    .map((p) => ({ p, round: p.caughtFor ? p.caughtRound : live.round }))
+    .sort((a, b) => b.round - a.round);
+  players.render(
+    [
+      ...inNow.map((p, i) => ({
+        id: p.id,
+        name: p.name,
+        avatar: state.avatars[p.id] ?? '',
+        you: p.id === state.you,
+        out: false,
+        ...(p.bestMs !== null && { sub: `${reactionText(p.totalMs)} in all` }),
+        status:
+          live.phase === 'joining'
+            ? { text: 'Joined', kind: 'good' as const }
+            : p.now?.result === 'ducked' && p.now.ms !== null
+              ? { text: `#${i + 1} · ✔ ${reactionText(p.now.ms)}`, kind: 'good' as const }
+              : { text: `#${i + 1}` },
+      })),
+      ...outNow.map(({ p, round }) => ({
+        id: p.id,
+        name: p.name,
+        avatar: state.avatars[p.id] ?? '',
+        you: p.id === state.you,
+        out: true,
+        sub: `round ${round}`,
+        status: { text: `✖ ${WHY[caughtBy(p) as LaserCaught]}`, kind: 'bad' as const },
+      })),
+    ],
+    live.phase === 'joining' ? `${live.players.length}` : `${inNow.length} of ${live.players.length} in`,
   );
 }
 
@@ -337,7 +356,7 @@ function render(): void {
     renderLive(state, live);
   } else {
     pressed = null;
-    for (const part of [ui.stage, ui.players, ui.banner, ui.join, ui.bar, ui.vault]) part.hidden = true;
+    for (const part of [ui.stage, ui.side, ui.banner, ui.join, ui.bar, ui.vault]) part.hidden = true;
     ui.prize.textContent = '–';
     ui.prizeSub.textContent = '';
     ui.fine.textContent = '–';

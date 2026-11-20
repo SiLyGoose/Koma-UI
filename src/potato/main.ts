@@ -1,6 +1,7 @@
 import './potato.css';
 import { $, amount, clockText, coins, fillList, fillTitles, knockout, startEventPage, toaster, vaultLine, type Title } from '../vault-event/common';
 import { ring, type Seat } from '../vault-event/ring';
+import { roster } from '../vault-event/roster';
 import { play } from '../vault-event/sfx';
 import { trail, type TrailLine, type TrailPart } from '../vault-event/trail';
 import type { ClientMessage, PotatoAnswer, PotatoEnded, PotatoLive, PotatoMove, PotatoState, ServerMessage } from '../protocol/potato';
@@ -42,9 +43,9 @@ const ui = {
   pass: $<HTMLButtonElement>('pass'),
   passNote: $('pass-note'),
   trail: $('trail'),
-  players: $('players'),
-  in: $('in'),
-  out: $('out'),
+  side: $('side'),
+  roster: $('roster'),
+  sideCount: $('side-count'),
   idle: $('idle'),
   result: $('result'),
   resultTitle: $('result-title'),
@@ -59,6 +60,7 @@ let game: PotatoState | null = null;
 const toast = toaster(ui.toast);
 const seats = ring(ui.ring, 'circle', (id) => passTo(id));
 const story = trail(ui.trail, 'Nothing yet: the first potato comes out when joining closes.');
+const players = roster(ui.roster, ui.sideCount);
 const lastStory = trail(ui.resultTrail, 'Nothing happened.');
 /** Which way the arrow points (degrees, clockwise from right; it starts pointing up), kept turning the short way. */
 let angle = -90;
@@ -179,11 +181,25 @@ function aim(live: PotatoLive | null): void {
   const toward = target ? seats.angleTo(target) : null;
   ui.pointer.classList.toggle('resting', toward === null);
   ui.pointer.classList.toggle('blast', live?.phase === 'blast');
-  ui.pointer.classList.toggle('mine', live?.phase === 'potato' && target === game?.you && !page.watching);
+  // Grey, until the potato is on you (or, watching, on them): then red.
+  ui.pointer.classList.toggle('mine', target !== null && target === game?.you);
   const wanted = toward ?? -90;
   // The short way round: never more than half a turn.
   angle += ((((wanted - angle) % 360) + 540) % 360) - 180;
   ui.pointer.style.setProperty('--angle', `${angle.toFixed(1)}deg`);
+  sizeArrow();
+}
+
+/** How far the arrow reaches at its own size (px from the middle to its tip), at its hottest. */
+const ARROW_REACH = 89 * 1.12;
+
+/** Makes the arrow as long as the ring has room for: from the middle to just short of the nearest face. */
+function sizeArrow(): void {
+  // (The faces sit round an ellipse 44% of the ring's width across and 40% of its height up: ring.ts.)
+  const radius = Math.min(ui.ring.clientWidth * 0.44, ui.ring.clientHeight * 0.4);
+  const face = ui.ring.querySelector<HTMLElement>('.ve-seat-face')?.offsetWidth ?? 50;
+  const room = radius - face / 2 - 12;
+  ui.pointer.style.setProperty('--arrow-size', Math.max(0.55, Math.min(1.7, room / ARROW_REACH)).toFixed(2));
 }
 
 function renderSeats(state: PotatoState, live: PotatoLive): void {
@@ -253,19 +269,35 @@ function renderLive(state: PotatoState, live: PotatoLive): void {
   }
   story.render(trailLines(live.trail, namesNow()));
 
-  ui.players.hidden = false;
+  // Who's playing, on the right: those still in (the holder lit), then those blown up, the first blown at the bottom.
+  ui.side.hidden = false;
   const left = live.players.filter((p) => !p.out);
-  fillList(
-    ui.in,
-    left.map((p) => ({
-      text: `${p.id === live.holder ? '🥔 ' : ''}${p.name}${p.passes > 0 ? ` · ${p.passes} ${p.passes === 1 ? 'pass' : 'passes'}` : ''}`,
-      you: p.id === state.you,
-      className: p.id === live.holder ? 'holder' : '',
-    })),
-    'Nobody',
+  const out = live.players.filter((p) => p.out).sort((a, b) => b.blastedBy - a.blastedBy);
+  const passes = (n: number): string => (n === 0 ? '' : `${n} ${n === 1 ? 'pass' : 'passes'}`);
+  players.render(
+    [
+      ...left.map((p) => ({
+        id: p.id,
+        name: p.name,
+        avatar: state.avatars[p.id] ?? '',
+        you: p.id === state.you,
+        out: false,
+        lit: p.id === live.holder,
+        sub: passes(p.passes),
+        status: p.id === live.holder ? { text: '🥔 Has it', kind: 'hot' as const } : { text: live.phase === 'joining' ? 'Joined' : 'In', kind: 'good' as const },
+      })),
+      ...out.map((p) => ({
+        id: p.id,
+        name: p.name,
+        avatar: state.avatars[p.id] ?? '',
+        you: p.id === state.you,
+        out: true,
+        sub: passes(p.passes),
+        status: { text: `💥 Potato ${p.blastedBy}`, kind: 'bad' as const },
+      })),
+    ],
+    live.phase === 'joining' ? `${live.players.length}` : `${left.length} of ${live.players.length} in`,
   );
-  const out = live.players.filter((p) => p.out).sort((a, b) => a.blastedBy - b.blastedBy);
-  fillList(ui.out, out.map((p) => ({ text: `💥 ${p.name} · potato ${p.blastedBy}`, you: p.id === state.you })), 'Nobody yet');
 }
 
 /**
@@ -333,7 +365,7 @@ function render(): void {
     ui.result.hidden = true;
     renderLive(state, live);
   } else {
-    for (const part of [ui.stage, ui.players, ui.banner, ui.join, ui.pass, ui.passNote, ui.vault]) part.hidden = true;
+    for (const part of [ui.stage, ui.side, ui.banner, ui.join, ui.pass, ui.passNote, ui.vault]) part.hidden = true;
     ui.prize.textContent = '–';
     ui.fine.textContent = '–';
     ui.middleLabel.textContent = 'Joining closes in';

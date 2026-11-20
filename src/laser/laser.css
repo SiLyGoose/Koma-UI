@@ -1,16 +1,40 @@
 /* Laser Grid (main.ts): a row of buttons, all alike until the laser fires; then Duck! in green (and its fakes, as green), lasers in red, and the time left. */
 
-/* The faces over the grid, smaller than Hot Potato's: the grid is the game. */
+/* The faces over the grid, smaller than Hot Potato's: the grid is the game. Both grow with the screen. */
 .lg-stage .ve-ring {
   --seat-scale: 0.8;
+}
+
+@media (min-width: 900px) and (min-height: 700px) {
+  .lg-slot {
+    font-size: clamp(18px, 1.4vw + 4px, 30px);
+  }
+}
+
+@media (min-width: 900px) and (min-height: 900px) {
+  .lg-stage .ve-ring {
+    --seat-scale: 0.95;
+  }
+}
+
+@media (min-width: 1300px) and (min-height: 1000px) {
+  .lg-stage .ve-ring {
+    --seat-scale: 1.1;
+  }
 }
 
 .lg-row {
   display: grid;
   grid-template-columns: repeat(var(--slots, 5), minmax(0, 1fr));
-  gap: 8px;
+  gap: clamp(8px, 1vw, 16px);
   width: 100%;
+  /* (Square buttons: any wider and the row would be taller than the screen has room for.) */
+  max-width: min(880px, 100vh - 160px);
   margin-top: 6px;
+}
+
+.lg-bar {
+  max-width: min(880px, 100vh - 160px);
 }
 
 .lg-slot {

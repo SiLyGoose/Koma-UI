@@ -43,12 +43,13 @@ export function trail(box: HTMLElement, empty: string): Trail {
         ...lines.map((line) => {
           const item = document.createElement('li');
           item.className = `ve-trail-line${line.head ? ' head' : ''}`;
-          for (const part of line.parts) {
+          // A sentence, wrapping as words do (the pieces a space apart).
+          line.parts.forEach((part, i) => {
             const span = document.createElement('span');
             if (part.kind) span.className = `ve-trail-${part.kind}`;
             span.textContent = part.text;
-            item.append(span);
-          }
+            item.append(...(i > 0 ? [' ', span] : [span]));
+          });
           return item;
         }),
       );

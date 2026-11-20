@@ -37,6 +37,7 @@
           <!-- What's happening: the players' faces (../../src/vault-event/ring.ts) round an arrow pointing at whoever has
                the potato, and who it is; beside it, what has happened. -->
           <section id="stage" class="ve-stage hp-stage" hidden>
+            <div id="toast" class="ve-toast" role="status" aria-live="assertive" hidden></div>
             <div class="ve-stage-main">
               <div id="ring">
                 <div id="pointer" class="hp-pointer ve-ring-middle" aria-hidden="true">
@@ -55,15 +56,8 @@
                 <li><span aria-hidden="true">💥</span>Holding it when it blows? You're out, and pay the fine</li>
               </ol>
             </div>
-            <!-- What happened, one line an action, beside the game (../../src/vault-event/trail.ts). -->
-            <aside class="ve-log" aria-label="What happened">
-              <h3 class="ve-list-title">What happened</h3>
-              <ol id="trail" class="ve-log-list"></ol>
-            </aside>
             <div id="ko" class="ve-ko" role="alert" hidden></div>
           </section>
-
-          <div id="toast" class="ve-toast" role="status" aria-live="assertive" hidden></div>
 
           <div id="actions" class="ve-actions">
             <button type="button" id="join" class="ve-button" hidden>Join</button>
@@ -74,17 +68,6 @@
           <!-- Anyone's reactions, players, those out and watchers alike (../../src/vault-event/reactions.ts). -->
           <div id="reacts" class="ve-reacts" role="group" aria-label="React" hidden></div>
           <div id="floats" class="ve-floats" aria-hidden="true"></div>
-
-          <section id="players" class="ve-players" hidden>
-            <div>
-              <h3 class="ve-list-title">Still in</h3>
-              <ul id="in" class="ve-list"></ul>
-            </div>
-            <div>
-              <h3 class="ve-list-title">Blown up</h3>
-              <ul id="out" class="ve-list"></ul>
-            </div>
-          </section>
 
           <!-- With none going: waiting for the next, and how the last one ended. -->
           <section id="idle" class="ve-idle" hidden>
@@ -111,6 +94,17 @@
             </div>
           </section>
         </div>
+
+        <!-- Who's playing, on the right as the table games have it (../../src/vault-event/roster.ts), and under it, where
+             their chat would be, what has happened, one line an action (../../src/vault-event/trail.ts). -->
+        <aside id="side" class="ve-side" hidden>
+          <h3 class="ve-side-title"><span>Players</span><span id="side-count"></span></h3>
+          <ul id="roster" class="ve-roster" aria-label="Players"></ul>
+          <div class="ve-log">
+            <h3 class="ve-side-title"><span>What happened</span></h3>
+            <ol id="trail" class="ve-log-list"></ol>
+          </div>
+        </aside>
       </div>
 
       <p class="hint">Space passes too · Tap a face to pass it to them · A press when it isn't yours grabs it</p>
