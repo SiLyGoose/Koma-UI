@@ -13,13 +13,28 @@
 
 .ve-layout {
   display: grid;
-  grid-template-columns: minmax(0, 560px);
+  grid-template-columns: minmax(0, 880px);
   justify-content: center;
   /* The game sits in the middle of the page's height. */
   align-content: center;
-  width: min(584px, 100% - 24px);
+  width: min(904px, 100% - 24px);
   margin: 20px auto;
   flex: 1;
+}
+
+/* Only the stage is as wide as that (it has the log beside it); everything else keeps to the middle. */
+.ve-stats,
+.ve-vault,
+.ve-banner,
+.ve-actions,
+.ve-pass-note,
+.ve-reacts,
+.ve-players,
+.ve-idle,
+.ve-result {
+  width: 100%;
+  max-width: 600px;
+  align-self: center;
 }
 
 .ve-game {
@@ -112,18 +127,70 @@
   text-align: center;
 }
 
+/* The game on the left, and what has happened (the log) on the right, in the one box. */
 .ve-stage {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
+  align-items: stretch;
+  gap: 16px;
   min-height: 190px;
-  padding: 18px 14px;
+  padding: 18px 16px;
   border: 1px solid var(--plaque-edge);
   border-radius: 14px;
   background: var(--plaque);
   text-align: center;
+}
+
+.ve-stage-main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+/* The log: as tall as the game beside it, scrolling inside that. */
+.ve-log {
+  position: relative;
+  display: flex;
+  flex: 0 0 260px;
+  flex-direction: column;
+  min-height: 0;
+  padding-left: 16px;
+  border-left: 1px solid var(--plaque-edge);
+  text-align: left;
+}
+
+.ve-log .ve-list-title {
+  margin: 0 0 6px;
+}
+
+.ve-log .ve-log-list {
+  position: absolute;
+  top: 24px;
+  right: 0;
+  bottom: 0;
+  left: 16px;
+  overflow-y: auto;
+}
+
+@media (max-width: 720px) {
+  .ve-stage {
+    flex-direction: column;
+  }
+
+  .ve-log {
+    flex-basis: auto;
+    padding: 10px 0 0;
+    border-top: 1px solid var(--plaque-edge);
+    border-left: 0;
+  }
+
+  .ve-log .ve-log-list {
+    position: static;
+    max-height: 168px;
+  }
 }
 
 .ve-stage-title {
@@ -658,16 +725,14 @@
 
 /* ---- What happened (trail.ts) ---- */
 
+/* One line an action, the newest (at the bottom) lit. */
 .ve-trail {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  max-height: 128px;
-  overflow-y: auto;
-  padding: 8px 10px;
-  border: 1px solid var(--plaque-edge);
-  border-radius: 10px;
-  background: rgb(10 12 20 / 55%);
+  gap: 2px;
+  margin: 0;
+  padding: 0 4px 0 0;
+  list-style: none;
   scrollbar-width: thin;
 }
 
@@ -675,18 +740,50 @@
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 3px 6px;
-  margin: 0;
+  gap: 0 5px;
+  padding: 3px 8px;
+  border-radius: 6px;
   font-size: 13px;
   line-height: 1.4;
 }
 
+.ve-trail-line:last-child {
+  background: rgb(255 255 255 / 7%);
+}
+
+/* A potato coming out, a round starting: a little gap before it. */
+.ve-trail-line.head {
+  margin-top: 6px;
+}
+
+.ve-trail-line.head:first-child {
+  margin-top: 0;
+}
+
+.ve-trail-none {
+  padding: 3px 8px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
 .ve-trail-head {
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+}
+
+/* The last game's log, on its result card. */
+.ve-result-log .ve-log-list {
+  max-height: 180px;
+  overflow-y: auto;
+  padding: 6px;
+  border: 1px solid var(--plaque-edge);
+  border-radius: 10px;
+  background: rgb(10 12 20 / 45%);
+}
+
+.ve-result-log .ve-list-title {
+  margin: 4px 0 6px;
 }
 
 .ve-trail-arrow {
@@ -748,8 +845,7 @@
   scale: 0.9;
 }
 
-/* With none going (main.ts: .ve-ended), the last one's result comes first, then its story and the reactions. */
-.ve-ended .ve-trail,
+/* With none going (main.ts: .ve-ended), the last one's result comes first, then the reactions. */
 .ve-ended .ve-reacts {
   order: 1;
 }

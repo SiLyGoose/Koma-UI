@@ -27,6 +27,8 @@ export interface Ring {
   fly(from: string | null, to: string | null, art: string, ms?: number): void;
   /** Shakes a seat (a blast, a catch). */
   jolt(id: string): void;
+  /** Which way a seat is from the middle (`circle`), in degrees clockwise from pointing right; null for none there. */
+  angleTo(id: string): number | null;
 }
 
 /** Where a seat goes round an ellipse: the first at the top, then clockwise. Percent of the box. */
@@ -41,6 +43,8 @@ const sizeFor = (n: number): number => (n <= 6 ? 58 : n <= 10 ? 50 : n <= 16 ? 4
 export function ring(box: HTMLElement, layout: 'circle' | 'row', onPick?: (id: string) => void): Ring {
   box.classList.add('ve-ring', `ve-ring-${layout}`);
   const seats = new Map<string, { root: HTMLButtonElement; img: HTMLImageElement; label: HTMLElement; mark: HTMLElement }>();
+  /** Where each seat sits round the ellipse (`circle`), in percent of the box: where it's going, not where it is mid-move. */
+  const spots = new Map<string, { x: number; y: number }>();
   const reduced = (): boolean => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   function seatOf(id: string): HTMLButtonElement {
@@ -74,6 +78,7 @@ export function ring(box: HTMLElement, layout: 'circle' | 'row', onPick?: (id: s
       if (wanted.has(id)) continue;
       seat.root.remove();
       seats.delete(id);
+      spots.delete(id);
     }
     box.style.setProperty('--seat', `${sizeFor(list.length)}px`);
     list.forEach((s, i) => {
@@ -81,6 +86,7 @@ export function ring(box: HTMLElement, layout: 'circle' | 'row', onPick?: (id: s
       const seat = seats.get(s.id)!;
       if (layout === 'circle') {
         const { x, y } = around(i, list.length);
+        spots.set(s.id, { x, y });
         seat.root.style.setProperty('--x', `${x}%`);
         seat.root.style.setProperty('--y', `${y}%`);
       }
@@ -138,5 +144,14 @@ export function ring(box: HTMLElement, layout: 'circle' | 'row', onPick?: (id: s
     seat.classList.add('jolt');
   }
 
-  return { render, fly, jolt };
+  function angleTo(id: string): number | null {
+    const spot = spots.get(id);
+    if (!spot) return null;
+    // (The box isn't square, so the angle is worked out in its pixels, not its percents.)
+    const dx = ((spot.x - 50) / 100) * box.clientWidth;
+    const dy = ((spot.y - 50) / 100) * box.clientHeight;
+    return (Math.atan2(dy, dx) * 180) / Math.PI;
+  }
+
+  return { render, fly, jolt, angleTo };
 }

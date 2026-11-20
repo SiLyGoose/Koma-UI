@@ -34,21 +34,32 @@
 
           <p id="banner" class="ve-banner" role="status" hidden></p>
 
-          <!-- What's happening: the players' faces round the potato (../../src/vault-event/ring.ts), and who has it. -->
+          <!-- What's happening: the players' faces (../../src/vault-event/ring.ts) round an arrow pointing at whoever has
+               the potato, and who it is; beside it, what has happened. -->
           <section id="stage" class="ve-stage hp-stage" hidden>
-            <div id="ring">
-              <div id="stage-art" class="hp-art ve-ring-middle" aria-hidden="true">🥔</div>
+            <div class="ve-stage-main">
+              <div id="ring">
+                <div id="pointer" class="hp-pointer ve-ring-middle" aria-hidden="true">
+                  <svg class="hp-arrow" viewBox="0 0 100 54"><path d="M4 16 H52 V2 L97 27 L52 52 V38 H4 Z" /></svg>
+                  <span class="hp-hub"></span>
+                </div>
+              </div>
+              <div aria-live="polite">
+                <h2 id="stage-title" class="ve-stage-title"></h2>
+                <p id="stage-text" class="ve-stage-text"></p>
+              </div>
+              <ol id="steps" class="ve-steps" aria-label="How it works" hidden>
+                <li><span aria-hidden="true">🥔</span>A potato with a hidden fuse goes round</li>
+                <li><span aria-hidden="true">👉</span>Holding it? Pass it, or tap a face to pick who gets it</li>
+                <li><span aria-hidden="true">⚠️</span>Press Pass when it isn't yours and you grab it</li>
+                <li><span aria-hidden="true">💥</span>Holding it when it blows? You're out, and pay the fine</li>
+              </ol>
             </div>
-            <div aria-live="polite">
-              <h2 id="stage-title" class="ve-stage-title"></h2>
-              <p id="stage-text" class="ve-stage-text"></p>
-            </div>
-            <ol id="steps" class="ve-steps" aria-label="How it works" hidden>
-              <li><span aria-hidden="true">🥔</span>A potato with a hidden fuse goes round</li>
-              <li><span aria-hidden="true">👉</span>Holding it? Pass it, or tap a face to pick who gets it</li>
-              <li><span aria-hidden="true">⚠️</span>Press Pass when it isn't yours and you grab it</li>
-              <li><span aria-hidden="true">💥</span>Holding it when it blows? You're out, and pay the fine</li>
-            </ol>
+            <!-- What happened, one line an action, beside the game (../../src/vault-event/trail.ts). -->
+            <aside class="ve-log" aria-label="What happened">
+              <h3 class="ve-list-title">What happened</h3>
+              <ol id="trail" class="ve-log-list"></ol>
+            </aside>
             <div id="ko" class="ve-ko" role="alert" hidden></div>
           </section>
 
@@ -59,9 +70,6 @@
             <button type="button" id="pass" class="ve-button danger hp-pass" hidden>Pass</button>
           </div>
           <p id="pass-note" class="ve-pass-note" hidden></p>
-
-          <!-- Who passed it to whom, potato by potato (../../src/vault-event/trail.ts). -->
-          <div id="trail" aria-label="What happened" hidden></div>
 
           <!-- Anyone's reactions, players, those out and watchers alike (../../src/vault-event/reactions.ts). -->
           <div id="reacts" class="ve-reacts" role="group" aria-label="React" hidden></div>
@@ -87,6 +95,10 @@
             <h2 id="result-title" class="ve-result-title"></h2>
             <p id="result-text" class="ve-result-text"></p>
             <ul id="result-titles" class="ve-titles" aria-label="Titles" hidden></ul>
+            <div class="ve-result-log">
+              <h3 class="ve-list-title">What happened</h3>
+              <ol id="result-trail" class="ve-log-list"></ol>
+            </div>
             <div class="ve-players">
               <div>
                 <h3 class="ve-list-title">Winners</h3>

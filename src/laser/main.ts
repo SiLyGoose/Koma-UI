@@ -2,7 +2,7 @@ import './laser.css';
 import { $, amount, clockText, coins, el, fillList, fillTitles, knockout, reactionText, startEventPage, toaster, vaultLine, type Title } from '../vault-event/common';
 import { ring, type Seat } from '../vault-event/ring';
 import { play } from '../vault-event/sfx';
-import { trail, type TrailPart } from '../vault-event/trail';
+import { trail, type TrailLine } from '../vault-event/trail';
 import type { ClientMessage, LaserAnswer, LaserCaught, LaserEnded, LaserLive, LaserPlayer, LaserState, ServerMessage } from '../protocol/laser';
 
 /*
@@ -14,8 +14,8 @@ import type { ClientMessage, LaserAnswer, LaserCaught, LaserEnded, LaserLive, La
  * on, so it is judged by what the player saw. A page that didn't join in time, or a watch link, watches it.
  *
  * The page draws the players as a row of faces over the grid (../vault-event/ring.ts), each marked with how their press
- * this round went (LaserPlayer.now: never which button), keeps the rounds' story under the stage
- * (../vault-event/trail.ts), and lists those still in by their time in all, the place their share is paid by.
+ * this round went (LaserPlayer.now: never which button), logs every round and every press in it beside the game, one line
+ * each (../vault-event/trail.ts), and lists those still in by their time in all, the place their share is paid by.
  */
 
 const WHY: Record<LaserCaught, string> = { early: 'too early', wrong: 'wrong button', late: 'too slow' };
@@ -48,6 +48,7 @@ const ui = {
   resultTitle: $('result-title'),
   resultText: $('result-text'),
   resultTitles: $('result-titles'),
+  resultTrail: $('result-trail'),
   resultWinners: $('result-winners'),
   resultOut: $('result-out'),
 };
@@ -60,11 +61,14 @@ let barFor = '';
 let soundFor = '';
 /** Whether the page's player has had their knocked-out moment this game. */
 let knocked = false;
-/** Each round's story, as the page saw it (a page that came late has only the rounds since). */
-const rounds = new Map<number, TrailPart[]>();
+/** Each round's lines of the log, as the page saw it (a page that came late has only the rounds since). */
+const rounds = new Map<number, TrailLine[]>();
 const toast = toaster(ui.toast);
 const seats = ring(ui.ring, 'row');
-const story = trail(ui.trail);
+const story = trail(ui.trail, 'Nothing yet: the first round starts when joining closes.');
+const lastStory = trail(ui.resultTrail, 'This page saw none of it.');
+/** The log so far: every round seen, oldest first. */
+const logLines = (): TrailLine[] => [...rounds.entries()].sort((a, b) => a[0] - b[0]).flatMap(([, lines]) => lines);
 
 const page = startEventPage<ServerMessage, ClientMessage>({
   name: 'Laser Grid',
@@ -169,16 +173,21 @@ function standing(live: LaserLive): LaserPlayer[] {
   return live.players.filter((p) => caughtBy(p) === null).sort((a, b) => a.totalMs - b.totalMs || (a.bestMs ?? Infinity) - (b.bestMs ?? Infinity) || (a.id < b.id ? -1 : 1));
 }
 
-/** This round's line of the story: everyone who pressed, fastest duck first, then those caught. */
-function roundLine(live: LaserLive): TrailPart[] {
+/** This round's lines of the log: the round, then a line a press, fastest duck first, then those caught. */
+function roundLines(live: LaserLive): TrailLine[] {
   const pressedNow = live.players.filter((p) => p.now !== null);
   const ducked = pressedNow.filter((p) => p.now?.result === 'ducked').sort((a, b) => (a.now?.ms ?? 0) - (b.now?.ms ?? 0));
   const caught = pressedNow.filter((p) => p.now?.result !== 'ducked');
-  const parts: TrailPart[] = [{ text: `Round ${live.round}`, kind: 'head' }];
-  for (const p of ducked) parts.push({ text: `${nameOf(live, p.id)} ${p.now?.ms === null || p.now?.ms === undefined ? '' : reactionText(p.now.ms)}`.trim(), kind: isYou(p.id) ? 'you' : 'good' });
-  for (const p of caught) parts.push({ text: `${nameOf(live, p.id)} ✖ ${WHY[p.now?.result as LaserCaught]}`, kind: 'bad' });
-  return parts;
+  const who = (id: string): TrailLine['parts'][number] => (isYou(id) ? { text: 'You', kind: 'you' } : { text: nameOf(live, id) });
+  return [
+    { head: true, parts: [{ text: `⚡ Round ${live.round}`, kind: 'head' }] },
+    ...ducked.map((p): TrailLine => ({ parts: [who(p.id), { text: `ducked${p.now?.ms == null ? '' : ` in ${reactionText(p.now.ms)}`} ✔`, kind: 'good' }] })),
+    ...caught.map((p): TrailLine => ({ parts: [who(p.id), { text: `${CAUGHT_FOR[p.now?.result as LaserCaught]} and ${isYou(p.id) ? 'were' : 'was'} caught ✖`, kind: 'bad' }] })),
+  ];
 }
+
+/** What a caught player did, as the log says it. */
+const CAUGHT_FOR: Record<LaserCaught, string> = { early: 'pressed too early', wrong: 'pressed the wrong button', late: "didn't press in time" };
 
 function renderLive(state: LaserState, live: LaserLive): void {
   const me = live.players.find((p) => p.id === state.you);
@@ -232,10 +241,10 @@ function renderLive(state: LaserState, live: LaserLive): void {
       ui.text.textContent = live.fastest ? `Fastest: ${nameOf(live, live.fastest.id)} in ${reactionText(live.fastest.ms)}. The next round is coming…` : 'The next round is coming…';
     }
     renderRow(state, live);
-    if (live.players.some((p) => p.now !== null) || live.phase === 'roundOver') rounds.set(live.round, roundLine(live));
+    rounds.set(live.round, roundLines(live));
   }
   renderBar(live);
-  story.render([...rounds.entries()].sort((a, b) => a[0] - b[0]).map(([, line]) => line).slice(-5));
+  story.render(logLines());
 
   ui.players.hidden = false;
   fillList(
@@ -336,7 +345,7 @@ function render(): void {
     ui.middle.textContent = '–';
     ui.middleSub.textContent = '';
     renderResult(state);
-    story.render([...rounds.entries()].sort((a, b) => a[0] - b[0]).map(([, line]) => line).slice(-5));
+    lastStory.render(logLines());
   }
   renderClock();
 }

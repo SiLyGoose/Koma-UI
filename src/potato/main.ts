@@ -2,7 +2,7 @@ import './potato.css';
 import { $, amount, clockText, coins, fillList, fillTitles, knockout, startEventPage, toaster, vaultLine, type Title } from '../vault-event/common';
 import { ring, type Seat } from '../vault-event/ring';
 import { play } from '../vault-event/sfx';
-import { trail, type TrailPart } from '../vault-event/trail';
+import { trail, type TrailLine, type TrailPart } from '../vault-event/trail';
 import type { ClientMessage, PotatoAnswer, PotatoEnded, PotatoLive, PotatoMove, PotatoState, ServerMessage } from '../protocol/potato';
 
 /*
@@ -12,10 +12,11 @@ import type { ClientMessage, PotatoAnswer, PotatoEnded, PotatoLive, PotatoMove, 
  * out and pays a fine; those left split the prize. Played in Discord and here alike, the one game: the bot holds it,
  * and tells every page the same. A page that didn't join in time, or a watch link, watches it (../vault-event/common.ts).
  *
- * The page draws the players as faces round the potato (../vault-event/ring.ts), flies it from face to face as the bot
- * says it moved (PotatoLive.trail), and keeps the story of who passed it to whom under the stage
- * (../vault-event/trail.ts). The longer a potato is out, the hotter the stage gets and the faster it ticks: from when
- * it came out (servedAt), never its fuse, which nobody is told.
+ * The page draws the players as faces in a ring (../vault-event/ring.ts) round a thick arrow that turns to point at
+ * whoever has the potato (at whoever it went off on, once it has), flies the potato from face to face as the bot says
+ * it moved (PotatoLive.trail), and logs every move beside the game, one line each (../vault-event/trail.ts). The longer
+ * a potato is out, the hotter the stage and the arrow get and the faster it ticks: from when it came out (servedAt),
+ * never its fuse, which nobody is told.
  */
 
 /** How long a potato takes to get as hot as the page draws it (ms). */
@@ -30,7 +31,7 @@ const ui = {
   banner: $('banner'),
   stage: $('stage'),
   ring: $('ring'),
-  art: $('stage-art'),
+  pointer: $('pointer'),
   title: $('stage-title'),
   text: $('stage-text'),
   steps: $('steps'),
@@ -49,6 +50,7 @@ const ui = {
   resultTitle: $('result-title'),
   resultText: $('result-text'),
   resultTitles: $('result-titles'),
+  resultTrail: $('result-trail'),
   resultWinners: $('result-winners'),
   resultOut: $('result-out'),
 };
@@ -56,7 +58,10 @@ const ui = {
 let game: PotatoState | null = null;
 const toast = toaster(ui.toast);
 const seats = ring(ui.ring, 'circle', (id) => passTo(id));
-const story = trail(ui.trail);
+const story = trail(ui.trail, 'Nothing yet: the first potato comes out when joining closes.');
+const lastStory = trail(ui.resultTrail, 'Nothing happened.');
+/** Which way the arrow points (degrees, clockwise from right; it starts pointing up), kept turning the short way. */
+let angle = -90;
 /** The last move flown (its key), so each is flown once; null before the first state. */
 let lastMove: string | null = null;
 /** When the tick last sounded. */
@@ -150,19 +155,35 @@ function showMove(move: PotatoMove, live: PotatoLive): void {
   }
 }
 
-/** The trail as lines: one a potato, the newest few. */
-function trailLines(moves: readonly PotatoMove[], names: ReadonlyMap<string, string>): TrailPart[][] {
-  const lines = new Map<number, TrailPart[]>();
-  const who = (id: string | null): TrailPart => (isYou(id) ? { text: 'You', kind: 'you' } : { text: nameOf(id, names) });
-  for (const move of moves) {
-    let line = lines.get(move.blast);
-    if (!line) lines.set(move.blast, (line = [{ text: `🥔${move.blast}`, kind: 'head' }]));
-    if (move.kind === 'serve') line.push(who(move.to));
-    else if (move.kind === 'pass') line.push({ text: '→', kind: 'arrow' }, who(move.to));
-    else if (move.kind === 'grab') line.push({ text: '→', kind: 'arrow' }, who(move.to), { text: 'grabbed!', kind: 'grab' });
-    else line.push({ text: move.from ? '💥' : "💥 in nobody's hands", kind: 'blast' });
-  }
-  return [...lines.values()].slice(-4);
+/** The log: a sentence a move, saying what happened (a potato coming out starts a new stretch of it). */
+function trailLines(moves: readonly PotatoMove[], names: ReadonlyMap<string, string>): TrailLine[] {
+  // A name, or "You" first in the sentence and "you" after.
+  const who = (id: string | null, first = false): TrailPart => (isYou(id) ? { text: first ? 'You' : 'you', kind: 'you' } : { text: nameOf(id, names) });
+  return moves.map((move): TrailLine => {
+    switch (move.kind) {
+      case 'serve':
+        return { head: true, parts: [{ text: `🥔 Potato ${move.blast} came out to`, kind: 'head' }, who(move.to)] };
+      case 'pass':
+        return { parts: [who(move.from, true), { text: 'passed it to' }, who(move.to)] };
+      case 'grab':
+        return { parts: [who(move.to, true), { text: 'grabbed it from', kind: 'grab' }, who(move.from)] };
+      case 'blast':
+        return { parts: move.from ? [{ text: '💥 It went off on', kind: 'blast' }, who(move.from)] : [{ text: "💥 It went off in nobody's hands", kind: 'blast' }] };
+    }
+  });
+}
+
+/** Turns the arrow to whoever has the potato (or whoever it just went off on); with nobody, it rests, pointing up. */
+function aim(live: PotatoLive | null): void {
+  const target = live?.phase === 'potato' ? live.holder : live?.phase === 'blast' ? live.blown : null;
+  const toward = target ? seats.angleTo(target) : null;
+  ui.pointer.classList.toggle('resting', toward === null);
+  ui.pointer.classList.toggle('blast', live?.phase === 'blast');
+  ui.pointer.classList.toggle('mine', live?.phase === 'potato' && target === game?.you && !page.watching);
+  const wanted = toward ?? -90;
+  // The short way round: never more than half a turn.
+  angle += ((((wanted - angle) % 360) + 540) % 360) - 180;
+  ui.pointer.style.setProperty('--angle', `${angle.toFixed(1)}deg`);
 }
 
 function renderSeats(state: PotatoState, live: PotatoLive): void {
@@ -178,6 +199,7 @@ function renderSeats(state: PotatoState, live: PotatoLive): void {
   }));
   seats.render(list);
   ui.ring.classList.toggle('picking', mine);
+  aim(live);
 }
 
 function renderLive(state: PotatoState, live: PotatoLive): void {
@@ -211,7 +233,6 @@ function renderLive(state: PotatoState, live: PotatoLive): void {
 
   if (live.phase === 'joining') {
     ui.middleLabel.textContent = 'Joining closes in';
-    ui.art.textContent = '🥔';
     ui.title.textContent = state.playing ? "You're in!" : 'A Hot Potato is starting';
     const count = live.players.length;
     ui.text.textContent = `${count} ${count === 1 ? 'player has' : 'players have'} joined${count < state.minPlayers ? ` (it takes ${state.minPlayers})` : ''}. Up to ${live.blasts} ${live.blasts === 1 ? 'potato goes' : 'potatoes go'} off, then everyone left splits the prize.`;
@@ -219,11 +240,9 @@ function renderLive(state: PotatoState, live: PotatoLive): void {
     ui.middleLabel.textContent = 'Potato';
     ui.middle.textContent = `${live.blast} of ${live.blasts}`;
     if (live.phase === 'potato') {
-      ui.art.textContent = '🥔';
       ui.title.textContent = mine ? 'You have the potato! Pass it!' : `${nameOf(live.holder)} ${isYou(live.holder) ? 'have' : 'has'} the potato`;
       ui.text.textContent = mine ? "Pass tosses it at random, or tap someone's face to pass it to them. The fuse is hidden." : "Press Pass only when it's yours: otherwise you grab it. The fuse is hidden.";
     } else {
-      ui.art.textContent = '💥';
       ui.title.textContent = `Potato ${live.blast} of ${live.blasts} went off!`;
       const blown = live.blown;
       ui.text.textContent =
@@ -284,10 +303,7 @@ function titlesOf(last: PotatoEnded, you: string): Title[] {
 function renderResult(state: PotatoState): void {
   const last = state.last;
   ui.result.hidden = last === null;
-  if (!last) {
-    story.render([]);
-    return;
-  }
+  if (!last) return;
   const won = last.winners.find((w) => w.id === state.you);
   if (last.kind === 'notEnough') {
     ui.resultTitle.textContent = 'Not enough players';
@@ -303,7 +319,7 @@ function renderResult(state: PotatoState): void {
   fillTitles(ui.resultTitles, last.kind === 'done' ? titlesOf(last, state.you) : []);
   fillList(ui.resultWinners, last.winners.map((w) => ({ text: `${w.name} +${w.won.toLocaleString('en-US')}`, you: w.id === state.you })), 'Nobody');
   fillList(ui.resultOut, last.out.map((o) => ({ text: `${o.name} paid ${o.fine.toLocaleString('en-US')} · potato ${o.blast}`, you: o.id === state.you })), 'Nobody');
-  story.render(trailLines(last.trail, namesNow()));
+  lastStory.render(trailLines(last.trail, namesNow()));
 }
 
 function render(): void {
@@ -376,6 +392,8 @@ function passTo(id: string): void {
   if (!page.send({ t: 'pass', to: id })) toast('Not connected right now. Try again in a moment.');
 }
 ui.pass.addEventListener('click', pass);
+// The ring's shape changes with the page's: the arrow is aimed again.
+window.addEventListener('resize', () => aim(game?.live ?? null));
 document.addEventListener('keydown', (event) => {
   if (event.repeat || event.ctrlKey || event.metaKey || event.altKey) return;
   if (event.target instanceof HTMLElement && event.target.closest('input, textarea, button, [contenteditable="true"]')) return;

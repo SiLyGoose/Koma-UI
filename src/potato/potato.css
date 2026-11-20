@@ -1,13 +1,68 @@
 /*
- * Hot Potato (main.ts): the potato in the middle of the faces, bigger and shaking while it's yours, and a burst when
- * one goes off. --heat (0 to 1, how long this potato has been out) warms the stage up and swells the potato.
+ * Hot Potato (main.ts): in the middle of the faces, a thick arrow that turns (the short way round) to point at whoever
+ * has the potato: lunging at them while it's yours, red at whoever it went off on, dim while nobody has it. --heat (0
+ * to 1, how long this potato has been out) warms the stage up, and swells and reddens the arrow.
  */
 
-.hp-art {
-  font-size: 64px;
-  line-height: 1;
-  scale: calc(1 + var(--heat, 0) * 0.35);
+.hp-pointer {
+  z-index: 2;
+  width: 0;
+  height: 0;
+  rotate: var(--angle, -90deg);
+  /* A little past, then back: it swings to them. */
+  transition:
+    rotate 0.4s cubic-bezier(0.3, 1.45, 0.5, 1),
+    opacity 0.3s ease;
+}
+
+.hp-arrow {
+  position: absolute;
+  left: -16px;
+  top: -29px;
+  width: 108px;
+  height: 58px;
+  overflow: visible;
+  transform-origin: 16px 29px;
+  /* (Not much: grown any longer it would reach the faces.) */
+  scale: calc(1 + var(--heat, 0) * 0.12);
+  fill: color-mix(in srgb, #e5432f calc(var(--heat, 0) * 100%), #f0a24a);
+  stroke: rgb(20 10 6 / 55%);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 3px 5px rgb(0 0 0 / 50%)) drop-shadow(0 0 calc(var(--heat, 0) * 12px) rgb(233 90 40 / 70%));
   transition: scale 0.1s linear;
+}
+
+.hp-hub {
+  position: absolute;
+  left: -16px;
+  top: -16px;
+  width: 32px;
+  height: 32px;
+  border: 4px solid color-mix(in srgb, #e5432f calc(var(--heat, 0) * 100%), #f0a24a);
+  border-radius: 50%;
+  background: #24212a;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 55%);
+}
+
+/* Nobody has it (joining, between potatoes): it rests, dim, pointing up. */
+.hp-pointer.resting {
+  opacity: 0.3;
+}
+
+/* Yours: it lunges at you. */
+.hp-pointer.mine .hp-arrow {
+  animation: hp-lunge 0.45s ease-in-out infinite;
+}
+
+/* Gone off: red, at whoever was holding it. */
+.hp-pointer.blast .hp-arrow {
+  fill: #d8464a;
+  animation: hp-burst 0.5s ease-out;
+}
+
+.hp-pointer.blast .hp-hub {
+  border-color: #d8464a;
 }
 
 .hp-stage {
@@ -28,14 +83,6 @@
   background: #3c6ea8;
 }
 
-.hp-stage.mine .hp-art {
-  animation: hp-shake 0.35s ease-in-out infinite;
-}
-
-.hp-stage.blast .hp-art {
-  animation: hp-burst 0.6s ease-out;
-}
-
 .hp-pass {
   min-width: 200px;
   font-size: 20px;
@@ -45,25 +92,22 @@
   animation: hp-glow 0.8s ease-in-out infinite;
 }
 
-@keyframes hp-shake {
-  25% {
-    transform: rotate(-9deg) scale(1.05);
-  }
-  75% {
-    transform: rotate(9deg) scale(1.05);
+/* (The arrow's own frame: along x is along the arrow, whichever way it points.) */
+@keyframes hp-lunge {
+  50% {
+    translate: 9px 0;
   }
 }
 
 @keyframes hp-burst {
   from {
-    transform: scale(0.4);
-    opacity: 0.2;
+    scale: 0.5;
   }
   60% {
-    transform: scale(1.4);
+    scale: 1.35;
   }
   to {
-    transform: scale(1);
+    scale: 1;
   }
 }
 
@@ -74,8 +118,12 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hp-stage.mine .hp-art,
-  .hp-stage.blast .hp-art,
+  .hp-pointer {
+    transition: none;
+  }
+
+  .hp-pointer.mine .hp-arrow,
+  .hp-pointer.blast .hp-arrow,
   .hp-pass.mine {
     animation: none;
   }
