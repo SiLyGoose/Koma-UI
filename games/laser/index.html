@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="robots" content="noindex" />
+    <title>Koma Laser Grid</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>" />
+  </head>
+  <body>
+    <main id="app" class="frame ve lg" data-title="⚡ Laser Grid">
+      <div class="ve-layout">
+        <div class="ve-game">
+          <p id="watch-tag" class="ve-watch-tag" role="status" hidden></p>
+
+          <!-- The prize (and what each player adds), the clock (joining) or the round, and the fine (../../src/laser/main.ts). -->
+          <section class="ve-stats" aria-label="The game">
+            <div class="ve-stat ve-prize">
+              <span class="ve-stat-label">Prize</span>
+              <b id="prize" class="ve-stat-value">–</b>
+              <span id="prize-sub" class="ve-stat-sub"></span>
+            </div>
+            <div class="ve-stat">
+              <span id="middle-label" class="ve-stat-label">Joining closes in</span>
+              <b id="middle" class="ve-stat-value" role="timer">–</b>
+              <span id="middle-sub" class="ve-stat-sub"></span>
+            </div>
+            <div class="ve-stat">
+              <span class="ve-stat-label">Caught pays</span>
+              <b id="fine" class="ve-stat-value">–</b>
+            </div>
+          </section>
+
+          <p id="banner" class="ve-banner" role="status" hidden></p>
+
+          <!-- What's happening: joining, waiting for the laser, the laser out (and the time left), or the round's result. -->
+          <section id="stage" class="ve-stage lg-stage" aria-live="polite" hidden>
+            <h2 id="stage-title" class="ve-stage-title"></h2>
+            <p id="stage-text" class="ve-stage-text"></p>
+            <div id="row" class="lg-row" role="group" aria-label="The grid"></div>
+            <div id="bar" class="lg-bar" hidden><div id="bar-fill" class="lg-bar-fill"></div></div>
+          </section>
+
+          <div id="toast" class="ve-toast" role="status" aria-live="assertive" hidden></div>
+
+          <div id="actions" class="ve-actions">
+            <button type="button" id="join" class="ve-button" hidden>Join</button>
+          </div>
+
+          <section id="players" class="ve-players" hidden>
+            <div>
+              <h3 class="ve-list-title">Still in</h3>
+              <ul id="in" class="ve-list"></ul>
+            </div>
+            <div>
+              <h3 class="ve-list-title">Caught</h3>
+              <ul id="out" class="ve-list"></ul>
+            </div>
+          </section>
+
+          <section id="idle" class="ve-idle" hidden>
+            <h2 class="ve-idle-title">The grid is off</h2>
+            <p class="ve-idle-text">No Laser Grid is going right now. When one pops up in Discord, it opens here too: keep this page open.</p>
+          </section>
+          <section id="result" class="ve-result" hidden>
+            <h2 id="result-title" class="ve-result-title"></h2>
+            <p id="result-text" class="ve-result-text"></p>
+            <div class="ve-players">
+              <div>
+                <h3 class="ve-list-title">Winners</h3>
+                <ul id="result-winners" class="ve-list"></ul>
+              </div>
+              <div>
+                <h3 class="ve-list-title">Caught</h3>
+                <ul id="result-out" class="ve-list"></ul>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <p class="hint">Wait for the laser: one button turns into Duck! · Green buttons that don't say Duck! are fakes · Press it (or its number key) before the bar runs out · Too early, the wrong button or too slow and you're caught · Only your first press each round counts</p>
+    </main>
+
+    <script type="module" src="/src/laser/main.ts"></script>
+  </body>
+</html>

@@ -104,10 +104,13 @@ export default defineConfig({
         pinecraft: resolve(import.meta.dirname, 'games/pinecraft/index.html'),
         baccarat: resolve(import.meta.dirname, 'games/baccarat/index.html'),
         roulette: resolve(import.meta.dirname, 'games/roulette/index.html'),
+        duckrace: resolve(import.meta.dirname, 'games/duckrace/index.html'),
         poker: resolve(import.meta.dirname, 'games/poker/index.html'),
         raid: resolve(import.meta.dirname, 'games/raid/index.html'),
         minesweeper: resolve(import.meta.dirname, 'games/minesweeper/index.html'),
         codedle: resolve(import.meta.dirname, 'games/codedle/index.html'),
+        potato: resolve(import.meta.dirname, 'games/potato/index.html'),
+        laser: resolve(import.meta.dirname, 'games/laser/index.html'),
         technomagic: resolve(import.meta.dirname, 'games/technomagic/index.html'),
         // The Dragon Raid: the TechnoMagic Raid's page, against the dragons.
         dragon: resolve(import.meta.dirname, 'games/dragon/index.html'),

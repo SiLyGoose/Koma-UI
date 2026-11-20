@@ -15,6 +15,8 @@ export interface TableContext<S extends string, R, X> {
   watching: boolean;
   /** Whose table this page watches, once the bot has said. */
   watched: string;
+  /** Who this page is, watching (the bot's `watching` says), for its own chat lines. */
+  viewer: string | null;
   socket: GameSocket<ClientMessage<S>> | null;
   /** The table as the bot last said. */
   state: TableState<S, R, X> | null;

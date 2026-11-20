@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="robots" content="noindex" />
+    <title>Koma Duck Race</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦆</text></svg>" />
+  </head>
+  <body>
+    <main id="app" class="frame tb dr" data-title="🦆 Duck Race">
+      <div class="tb-layout">
+        <div class="tb-game">
+          <section class="tb-felt dr-felt" id="felt">
+            <!-- The last winners. -->
+            <div class="dr-top">
+              <div class="dr-recent" id="recent" aria-label="The last winners"></div>
+            </div>
+
+            <!-- The course: a lane of water for each duck, the finish on the right (../../src/duckrace/course.ts), and how the race went over it. -->
+            <div class="dr-course" id="course">
+              <div id="result" class="tb-result" hidden>
+                <b id="result-title"></b>
+                <span id="result-text"></span>
+              </div>
+            </div>
+
+            <!-- The ducks to bet on: chips are dragged (or tapped) onto these (../../src/duckrace/spots.ts). -->
+            <div class="dr-spots" id="spots"></div>
+          </section>
+
+          <!-- The rack of chips, and what to do with them (../../src/table/table.ts fills it in). -->
+          <section class="tb-panel" data-table-panel></section>
+        </div>
+
+        <!-- Everyone at the table. -->
+        <aside class="tb-players" data-table-players></aside>
+      </div>
+
+      <p class="hint">Drag chips onto a duck, or pick a chip and tap one · Right-click a duck to take your chips back · The ducks race when the timer runs out, or once everyone presses Race</p>
+    </main>
+
+    <script type="module" src="/src/duckrace/main.ts"></script>
+  </body>
+</html>

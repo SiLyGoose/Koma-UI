@@ -15,7 +15,7 @@ import { navigate } from '../../transition';
  * says has changed.
  */
 
-type Activity = 'hub' | 'mines' | 'pinecraft' | 'baccarat' | 'roulette' | 'poker' | 'raid' | 'minesweeper' | 'technomagic' | 'dragon' | 'codedle';
+type Activity = 'hub' | 'mines' | 'pinecraft' | 'baccarat' | 'roulette' | 'duckrace' | 'poker' | 'raid' | 'minesweeper' | 'technomagic' | 'dragon' | 'codedle' | 'potato' | 'laser';
 
 interface Live {
   you: string;
@@ -35,7 +35,7 @@ export interface LiveOptions {
   newTab?: boolean;
 }
 
-const ACTIVITY: Record<Activity, string> = { hub: '🏠 Home', mines: '💎 Mines', pinecraft: '🌲 Pinecraft', baccarat: '🃏 Baccarat', roulette: '🎡 Roulette', poker: '♠️ Poker', raid: '⚔️ Raid', minesweeper: '🚩 Minesweeper', technomagic: '🐲 TechnoMagic Raid', dragon: '🐉 Dragon Raid', codedle: '🔐 Codedle' };
+const ACTIVITY: Record<Activity, string> = { hub: '🏠 Home', mines: '💎 Mines', pinecraft: '🌲 Pinecraft', baccarat: '🃏 Baccarat', roulette: '🎡 Roulette', duckrace: '🦆 Duck Race', poker: '♠️ Poker', raid: '⚔️ Raid', minesweeper: '🚩 Minesweeper', technomagic: '🐲 TechnoMagic Raid', dragon: '🐉 Dragon Raid', codedle: '🔐 Codedle', potato: '🥔 Hot Potato', laser: '⚡ Laser Grid' };
 const POLL_MS = 10_000;
 const POLL_OPEN_MS = 4_000;
 

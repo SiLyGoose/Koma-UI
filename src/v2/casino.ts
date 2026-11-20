@@ -24,6 +24,7 @@ interface Table {
 const TABLES: readonly Table[] = [
   { game: 'baccarat', name: 'Baccarat', kind: 'Live Table', text: 'Player, Banker or Tie, dealt for the whole table every minute. Closest to 9 wins.' },
   { game: 'roulette', name: 'Roulette', kind: 'Live Table', text: 'Chips on numbers, splits, corners, colours or dozens. A single number pays 35 to 1.' },
+  { game: 'duckrace', name: 'Duck Race', kind: 'Live Table', text: 'Four ducks race for the whole table. Back the one that wins and it pays nearly 4 times your bet.' },
   { game: 'poker', name: 'Poker', kind: 'Up to 8 Players', text: "No-limit Texas hold'em for up to 8, bots to fill the seats." },
   { game: 'mines', name: 'Mine', kind: 'Solo', text: 'Every ore raises your multiplier, dynamite ends the run. Cash out whenever you like.' },
 ];

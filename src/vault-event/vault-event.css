@@ -1,0 +1,329 @@
+/*
+ * The vault events' pages (common.ts: Hot Potato, Laser Grid): the game in the middle (its stats, what's happening,
+ * the buttons, who's in and who's out), in the middle of the page.
+ */
+
+.ve {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding-bottom: 12px;
+}
+
+.ve-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 560px);
+  justify-content: center;
+  /* The game sits in the middle of the page's height. */
+  align-content: center;
+  width: min(584px, 100% - 24px);
+  margin: 20px auto;
+  flex: 1;
+}
+
+.ve-game {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  min-width: 0;
+}
+
+.ve > .hint {
+  max-width: 584px;
+  margin-inline: auto;
+  padding-inline: 12px;
+}
+
+@media (max-width: 720px) {
+  .ve-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ---- Stats ---- */
+
+.ve-stats {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  gap: 8px;
+}
+
+.ve-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 6px;
+  border: 1px solid var(--plaque-edge);
+  border-radius: 10px;
+  background: var(--plaque);
+  box-shadow: inset 0 0 0 1px var(--plaque-line);
+  min-width: 0;
+}
+
+.ve-stat-label {
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.ve-stat-value {
+  color: var(--plaque-text);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.ve-prize .ve-stat-value {
+  color: var(--gold);
+  font-size: 17px;
+}
+
+.ve-stat-sub {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.ve-coin {
+  width: 1.1em;
+  height: 1.1em;
+  margin-left: 4px;
+  vertical-align: -0.2em;
+}
+
+/* ---- What's happening ---- */
+
+.ve-banner {
+  margin: 0;
+  padding: 8px 12px;
+  border: 1px solid rgb(255 226 138 / 40%);
+  border-radius: 10px;
+  background: rgb(255 226 138 / 8%);
+  color: #f4e6b2;
+  font-size: 14px;
+  text-align: center;
+}
+
+.ve-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 190px;
+  padding: 18px 14px;
+  border: 1px solid var(--plaque-edge);
+  border-radius: 14px;
+  background: var(--plaque);
+  text-align: center;
+}
+
+.ve-stage-title {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.25;
+}
+
+.ve-stage-text {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  max-width: 44ch;
+}
+
+.ve-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.ve-actions[hidden] {
+  display: none;
+}
+
+.ve-button {
+  min-width: 150px;
+  padding: 12px 22px;
+  border: 0;
+  border-radius: 12px;
+  font: inherit;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+  color: #fff;
+  background: #3f8a55;
+  box-shadow: 0 3px 0 rgb(0 0 0 / 35%);
+  touch-action: manipulation;
+}
+
+.ve-button:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 rgb(0 0 0 / 35%);
+}
+
+.ve-button:disabled {
+  cursor: default;
+  opacity: 0.45;
+  transform: none;
+}
+
+.ve-button.danger {
+  background: #b8433b;
+}
+
+.ve-button[hidden] {
+  display: none;
+}
+
+/* ---- Who's in and who's out ---- */
+
+.ve-players {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.ve-players[hidden] {
+  display: none;
+}
+
+.ve-list-title {
+  margin: 0 0 6px;
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.ve-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 14px;
+}
+
+.ve-list li {
+  padding: 5px 8px;
+  border-radius: 8px;
+  background: rgb(255 255 255 / 4%);
+  overflow-wrap: anywhere;
+}
+
+.ve-list li.you {
+  outline: 1px solid rgb(255 226 138 / 55%);
+}
+
+.ve-list li.holder {
+  background: rgb(233 140 56 / 25%);
+}
+
+.ve-list .ve-nobody {
+  color: var(--muted);
+  background: none;
+}
+
+/* ---- The last game's result, and nothing going ---- */
+
+.ve-result,
+.ve-idle {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid var(--plaque-edge);
+  border-radius: 14px;
+  background: var(--plaque);
+}
+
+.ve-result[hidden],
+.ve-idle[hidden],
+.ve-banner[hidden] {
+  display: none;
+}
+
+.ve-result-title,
+.ve-idle-title {
+  margin: 0;
+  font-size: 18px;
+}
+
+.ve-result-text,
+.ve-idle-text {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+/* ---- A moment's news ---- */
+
+.ve-toast {
+  position: absolute;
+  z-index: 20;
+  top: 74px;
+  left: 50%;
+  max-width: calc(100% - 20px);
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: rgb(10 12 20 / 90%);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  transform: translateX(-50%);
+  pointer-events: none;
+  text-align: center;
+}
+
+.ve-toast.good {
+  background: rgb(46 120 70 / 95%);
+}
+
+.ve-toast.bad {
+  background: rgb(150 50 44 / 95%);
+}
+
+.ve-toast[hidden] {
+  display: none;
+}
+
+/* ---- Watching ---- */
+
+.ve-watch-tag {
+  margin: 0;
+  align-self: center;
+  padding: 6px 16px;
+  border: 1px solid rgb(255 226 138 / 55%);
+  border-radius: 999px;
+  background: rgb(10 12 20 / 78%);
+  color: #f4e6b2;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.ve-watch-tag.away {
+  opacity: 0.65;
+}
+
+.ve-watch-tag[hidden] {
+  display: none;
+}
+
+/* A watch link presses nothing. */
+.ve-watching .ve-actions,
+.ve-watching .lg-row button {
+  pointer-events: none;
+}
+
+.ve-watching .ve-actions {
+  display: none;
+}

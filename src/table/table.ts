@@ -43,10 +43,11 @@ export function startTable<S extends string, R, X = unknown>(game: TableGame<S, 
   const ctx: TableContext<S, R, X> = {
     game,
     ui,
-    // Someone watching sees what's said, and says nothing.
-    chat: chatBox({ mount: ui.playersBox, send: (message) => send(ctx, message), you: () => ctx.state?.you ?? null, canSay: !watching }),
+    // Someone watching sees what's said, and can say things too (as a spectator).
+    chat: chatBox({ mount: ui.playersBox, send: (message) => send(ctx, message), you: () => (ctx.watching ? ctx.viewer : (ctx.state?.you ?? null)) }),
     watching,
     watched: '',
+    viewer: null,
     socket: null,
     state: null,
     bets: {},

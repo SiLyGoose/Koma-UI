@@ -100,7 +100,7 @@ const place = (p: Omit<Place, 'door'>): Place => ({ ...p, door: NODES[p.node] as
 /** The site's places, each in one of the town's buildings (the Arena and the Prison are free for now), and Adventure by its tower. */
 export const PLACES: readonly Place[] = [
   place({ id: 'forge', name: 'Forge', blurb: 'Craft, enhance and salvage gear', path: '/forge', node: 'forge', disc: 'forge', building: [2160, 2420, 2780, 2900] }),
-  place({ id: 'casino', name: 'Casino', blurb: 'Baccarat, roulette, poker and the mine', path: '/casino', node: 'pub', disc: 'pub', building: [3000, 1860, 3720, 2400] }),
+  place({ id: 'casino', name: 'Casino', blurb: 'Baccarat, roulette, duck races, poker and the mine', path: '/casino', node: 'pub', disc: 'pub', building: [3000, 1860, 3720, 2400] }),
   place({ id: 'databank', name: 'Databank', blurb: 'Heroes, bosses, classes and the week', path: '/databank', node: 'library', disc: 'library', building: [860, 280, 1560, 940] }),
   place({ id: 'shop', name: 'Shop', blurb: 'Heroes, outfits, raid goods and wishes', path: '/shop', node: 'shop', disc: 'shop', building: [740, 2040, 1080, 2480] }),
   place({ id: 'heroes', name: 'Hall of Heroes', blurb: 'Your heroes and their gear', path: '/heroes', node: 'honor', disc: 'honor', building: [1950, 860, 2500, 1200] }),

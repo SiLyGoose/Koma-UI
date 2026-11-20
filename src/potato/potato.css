@@ -1,0 +1,64 @@
+/* Hot Potato (main.ts): the potato, bigger and shaking while it's yours, and a burst when one goes off. */
+
+.hp-art {
+  font-size: 64px;
+  line-height: 1;
+}
+
+.hp-stage.mine {
+  border-color: rgb(233 140 56 / 80%);
+  box-shadow: 0 0 0 2px rgb(233 140 56 / 35%), 0 0 24px rgb(233 140 56 / 30%);
+}
+
+.hp-stage.mine .hp-art {
+  animation: hp-shake 0.35s ease-in-out infinite;
+}
+
+.hp-stage.blast .hp-art {
+  animation: hp-burst 0.6s ease-out;
+}
+
+.hp-pass {
+  min-width: 200px;
+  font-size: 20px;
+}
+
+.hp-pass.mine {
+  animation: hp-glow 0.8s ease-in-out infinite;
+}
+
+@keyframes hp-shake {
+  25% {
+    transform: rotate(-9deg) scale(1.05);
+  }
+  75% {
+    transform: rotate(9deg) scale(1.05);
+  }
+}
+
+@keyframes hp-burst {
+  from {
+    transform: scale(0.4);
+    opacity: 0.2;
+  }
+  60% {
+    transform: scale(1.4);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+@keyframes hp-glow {
+  50% {
+    box-shadow: 0 3px 0 rgb(0 0 0 / 35%), 0 0 18px rgb(233 140 56 / 75%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hp-stage.mine .hp-art,
+  .hp-stage.blast .hp-art,
+  .hp-pass.mine {
+    animation: none;
+  }
+}

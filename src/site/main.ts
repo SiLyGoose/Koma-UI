@@ -169,6 +169,8 @@ async function show(url: URL): Promise<void> {
   const { drawn, unmount, navigate } = page.mount(root);
   current = { route, unmount, navigate };
   window.scrollTo(0, 0);
+  // (A page that scrolls under the header, not the window: the front page, ../hub/hub.css.)
+  view.scrollTo(0, 0);
   void drawn
     .catch(() => undefined)
     .then(() => {

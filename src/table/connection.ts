@@ -103,6 +103,7 @@ function receive<S extends string, R, X>(ctx: TableContext<S, R, X>, message: Se
       return;
     case 'watching':
       ctx.watched = message.player;
+      ctx.viewer = message.you ?? null;
       showWatching(ctx.watched);
       render(ctx);
       return;

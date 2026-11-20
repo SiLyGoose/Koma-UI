@@ -701,8 +701,8 @@ async function start(): Promise<void> {
     let state: RoomState | null = null;
     let lock: Lock | null = null;
     let shownOver: OverView | null = null;
-    // (Watching, a page says nothing after its watch: it takes no part in the raid.)
-    const send = (message: ClientMessage): boolean => !watching && (socket?.send(message) ?? false);
+    // (Watching, a page says nothing after its watch but chat: it takes no part in the raid, but can talk to it as a spectator.)
+    const send = (message: ClientMessage): boolean => (!watching || message.t === 'chat') && (socket?.send(message) ?? false);
 
     // Watching someone's raid (a watch link: the Friends list's Watch): it is drawn as their page has it (getting ready, the
     // fight, its result), with nothing to press (.tm-watching: technomagic.css) and whose it is over it.
@@ -714,6 +714,8 @@ async function start(): Promise<void> {
       document.querySelector('.tm-field')?.append(watchTag);
     }
     let watched = '';
+    /** Who this page is, watching (the bot's `watching` says): its own chat lines are marked as its, not the player's. */
+    let viewer: string | null = null;
     function showWatched(away = false): void {
       watchTag.hidden = !watched;
       watchTag.textContent = away ? `👁 ${watched} left the raid` : `👁 Watching ${watched}`;
@@ -832,7 +834,7 @@ async function start(): Promise<void> {
         goToBoss(id, 'new');
       },
     }, def);
-    const chat = chatBox({ mount: prep.chat, send, you: () => state?.you ?? null });
+    const chat = chatBox({ mount: prep.chat, send, you: () => (watching ? viewer : (state?.you ?? null)) });
     // Manage: the heroes page over the room, not the site's (which would take them out of it). A button in place of
     // the link: the page's links are caught before anything on them hears the click (../shared/transition/). Closed, the
     // bot reads their heroes again, so getting ready shows them as they are now (a hero transcended in it).
@@ -1050,6 +1052,7 @@ async function start(): Promise<void> {
       switch (message.t) {
         case 'watching':
           watched = message.player;
+          viewer = message.you ?? null;
           showWatched();
           return;
         case 'watchers':

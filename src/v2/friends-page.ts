@@ -29,6 +29,7 @@ const ACTIVITY: Record<'hub' | Game, string> = {
   pinecraft: 'Playing Pinecraft',
   baccarat: 'Playing Baccarat',
   roulette: 'Playing Roulette',
+  duckrace: 'Playing Duck Race',
   poker: 'Playing Poker',
   raid: 'In the Weekly Boss',
   minesweeper: 'Playing Minesweeper',
@@ -36,6 +37,8 @@ const ACTIVITY: Record<'hub' | Game, string> = {
   dragon: 'In the Dragon Raid',
   divine: 'In Divine Punishment',
   codedle: 'Playing Codedle',
+  potato: 'Playing Hot Potato',
+  laser: 'Playing Laser Grid',
 };
 
 const since = (ms: number): string => {

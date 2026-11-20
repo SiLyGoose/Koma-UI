@@ -10,7 +10,8 @@ import './chat.css';
  * box that doesn't grow. On a phone it's out of the way: a round button floats at the bottom right,
  * with how many lines have been said since it was last looked at, and opens the chat over the game.
  *
- * What is said is the bot's (../../../protocol/chat.ts, copied by `yarn sync`).
+ * What is said is the bot's (../../../protocol/chat.ts, copied by `yarn sync`). Someone watching a player can say
+ * things too: their lines have "(Spectator)" after their name, so those playing know they aren't.
  *
  *   page -> bot   chat     says `text` to everyone at the table, with a picture pasted in (`image`) or not
  *   bot -> page   chats    the last lines said, on joining
@@ -276,6 +277,13 @@ export function chatBox({ mount, send, you, colour, canSay = true }: ChatOptions
     name.textContent = line.name;
     const shade = colour?.(line.id);
     if (shade) name.style.color = shade;
+    // Said by someone watching, not playing.
+    if (line.spectator) {
+      const tag = document.createElement('em');
+      tag.className = 'chat-spectator';
+      tag.textContent = '(Spectator)';
+      name.append(' ', tag);
+    }
     // The words, their links ones that can be pressed.
     const text = document.createElement('span');
     /** The first link to a picture, and that picture. */

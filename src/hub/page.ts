@@ -2,6 +2,7 @@ import markup from './hub.html?raw';
 import { API, store } from '../shared/ui';
 import { navigate } from '../shared/transition';
 import { DRAGON_LIST, TM_LIST } from '../shared/raids';
+import { filterGames } from './filter';
 import { makeRaidList, type RaidList } from './raid-list';
 import { makeRaidRooms } from './raid-rooms';
 import { playGame } from '../site/play';
@@ -27,7 +28,9 @@ import { api, currentMe, currentServer, hasSession, loadMe, loggedIn, logIn, log
 const PLAY_KEY = 'koma.playNext';
 /** Where v2's town asked to come back to after logging in (src/v2/hud.ts AFTER_LOGIN_KEY). */
 const AFTER_LOGIN_KEY = 'koma.afterLogin';
-const GAMES: readonly Game[] = ['mines', 'pinecraft', 'baccarat', 'roulette', 'poker', 'raid', 'minesweeper', 'technomagic', 'dragon', 'codedle'];
+/** The games' quick filter picked last (hub.html's data-filter: all, raid, casino, event, other). */
+const FILTER_KEY = 'koma.hubFilter';
+const GAMES: readonly Game[] = ['mines', 'pinecraft', 'baccarat', 'roulette', 'duckrace', 'poker', 'raid', 'minesweeper', 'technomagic', 'dragon', 'codedle', 'potato', 'laser'];
 
 const points = (n: number): string => n.toLocaleString('en-US');
 
@@ -43,6 +46,8 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     servers: $('servers'),
     noServers: $('no-servers'),
     playButtons: [...root.querySelectorAll<HTMLButtonElement>('[data-play]')],
+    filters: [...root.querySelectorAll<HTMLButtonElement>('[data-filter]')],
+    noGames: $('no-games'),
   };
   // The raids' Raid Lists (by the game they open): a boss's Single Player opens the raid against it alone, its Multiplayer
   // finds a raid of the server's against it or creates one.
@@ -196,6 +201,16 @@ function mount(root: HTMLElement): { drawn: Promise<void>; unmount: () => void }
     if (!hasSession()) return;
     status(refused === 'not_member' ? "You don't seem to be in that server any more. Log out and in again to refresh it." : 'Could not open the game. Try again.', true);
   }
+
+  for (const button of ui.filters) {
+    button.addEventListener('click', () => {
+      const kind = button.dataset.filter ?? 'all';
+      store.set(localStorage, FILTER_KEY, kind);
+      void filterGames(root, ui.filters, ui.noGames, kind);
+    });
+  }
+  // (The one picked last, at once: the page is only now drawn.)
+  void filterGames(root, ui.filters, ui.noGames, store.get(localStorage, FILTER_KEY) ?? 'all', false);
 
   ui.loginButton.addEventListener('click', logIn);
 

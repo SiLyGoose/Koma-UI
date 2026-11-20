@@ -1,0 +1,423 @@
+/*
+ * The duck race's felt: the last winners and how the race went at the top, the course (a lane of water
+ * for each duck) in the middle, and a spot for each duck below. The page around it (the chips, the
+ * rack, the players) is ../table/table.css.
+ */
+
+.dr {
+  --lane-h: 46px;
+  --duck-w: 54px;
+  --name-w: 78px;
+  --water: #2c8fc0;
+  --water-dark: #1c6a93;
+}
+
+/* ------------------------------------------------------------------ The top: the last winners, how it went */
+
+.dr-top {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+}
+
+.dr-recent {
+  display: flex;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.25);
+  min-height: 28px;
+}
+
+.dr-recent:empty {
+  visibility: hidden;
+}
+
+.dr-recent-duck {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 22px;
+}
+
+.dr-recent-duck:first-child {
+  filter: drop-shadow(0 0 4px rgba(255, 226, 150, 0.9));
+}
+
+.dr-recent-duck:nth-child(n + 7) {
+  opacity: 0.6;
+}
+
+.dr-recent-svg {
+  width: 26px;
+  height: 20px;
+}
+
+/* How the race went, in the middle of the course once it's run (the ducks are over the line by then). */
+.dr-course > .tb-result {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 5;
+  translate: -50% -50%;
+}
+
+/* ------------------------------------------------------------------ The course */
+
+.dr-course {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 6px;
+  border-radius: 12px;
+  background: #6b4423;
+  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.3), 0 8px 20px rgba(0, 0, 0, 0.35);
+}
+
+.dr-lane {
+  display: grid;
+  grid-template-columns: var(--name-w) 1fr;
+  align-items: center;
+  gap: 6px;
+  height: var(--lane-h);
+}
+
+.dr-lane-name {
+  overflow: hidden;
+  padding: 4px 6px;
+  border-left: 4px solid var(--duck);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.3);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dr-water {
+  position: relative;
+  height: 100%;
+  border-radius: 6px;
+  /* Ripples drifting by on blue water. */
+  background:
+    repeating-linear-gradient(100deg, transparent 0 22px, rgba(255, 255, 255, 0.13) 22px 25px, transparent 25px 48px),
+    linear-gradient(180deg, var(--water), var(--water-dark));
+  background-size:
+    96px 100%,
+    100% 100%;
+  animation: dr-flow 3s linear infinite;
+}
+
+.dr-course.racing .dr-water {
+  animation-duration: 0.9s;
+}
+
+@keyframes dr-flow {
+  to {
+    background-position:
+      -96px 0,
+      0 0;
+  }
+}
+
+.dr-lane.winner .dr-water {
+  box-shadow: inset 0 0 0 2px #f2d27a, 0 0 18px rgba(242, 210, 122, 0.55);
+}
+
+/* A duck: --x is how far down the course it is, 0 the start, 1 its beak at the finish. */
+.dr-duck {
+  --x: 0;
+  position: absolute;
+  top: 50%;
+  left: calc(var(--x) * (100% - var(--duck-w) - 6px) + 2px);
+  width: var(--duck-w);
+  transform: translateY(-55%);
+}
+
+.dr-duck-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 3px 2px rgba(0, 0, 0, 0.35));
+}
+
+.dr-course.racing .dr-lane:not(.finished) .dr-duck-svg {
+  animation: dr-bob 0.42s ease-in-out infinite alternate;
+}
+
+.dr-lane:nth-child(2) .dr-duck-svg {
+  animation-delay: -0.1s;
+}
+
+.dr-lane:nth-child(3) .dr-duck-svg {
+  animation-delay: -0.25s;
+}
+
+.dr-lane:nth-child(4) .dr-duck-svg {
+  animation-delay: -0.33s;
+}
+
+@keyframes dr-bob {
+  from {
+    transform: translateY(1px) rotate(3deg);
+  }
+  to {
+    transform: translateY(-3px) rotate(-4deg);
+  }
+}
+
+.dr-duck-body {
+  fill: var(--duck);
+  stroke: rgba(0, 0, 0, 0.35);
+  stroke-width: 1.2;
+}
+
+.dr-duck-wing {
+  fill: rgba(0, 0, 0, 0.16);
+}
+
+.dr-duck-beak {
+  fill: #ff9a1f;
+  stroke: rgba(0, 0, 0, 0.3);
+  stroke-width: 1;
+}
+
+.dr-duck-eye {
+  fill: #1b1b1f;
+}
+
+.dr-duck-shine {
+  fill: #fff;
+}
+
+/* Its place, once over the line. */
+.dr-place {
+  position: absolute;
+  top: -4px;
+  left: -26px;
+  padding: 1px 5px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.dr-lane.finished .dr-place {
+  opacity: 1;
+}
+
+.dr-lane.winner .dr-place {
+  background: #f2d27a;
+  color: #2a1d05;
+}
+
+/* The chequered finish line, across every lane at the right. */
+.dr-finish {
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  right: 6px;
+  width: 8px;
+  border-radius: 2px;
+  background: repeating-conic-gradient(#fff 0 25%, #1b1b1f 0 50%) 0 0 / 8px 8px;
+  opacity: 0.85;
+}
+
+/* The last race, faded while the next one takes bets. */
+.tb-felt.last-round .dr-duck,
+.tb-felt.last-round .dr-place {
+  opacity: 0.45;
+}
+
+/* ------------------------------------------------------------------ The ducks to bet on */
+
+.dr-spots {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.dr-spot {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-height: 112px;
+  padding: 8px 6px 42px;
+  border: 2px solid color-mix(in srgb, var(--duck) 55%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--duck) 12%, rgba(0, 0, 0, 0.18));
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+  touch-action: none;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    box-shadow 0.2s,
+    transform 0.1s;
+}
+
+.dr-spot:hover:not(:disabled),
+.dr-spot.over {
+  background: color-mix(in srgb, var(--duck) 22%, rgba(0, 0, 0, 0.1));
+  border-color: var(--duck);
+}
+
+.dr-spot.over {
+  transform: scale(1.02);
+  box-shadow: 0 0 24px color-mix(in srgb, var(--duck) 45%, transparent);
+}
+
+.dr-spot:disabled {
+  cursor: default;
+}
+
+.dr-spot-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+
+.dr-spot-svg {
+  width: 40px;
+  height: 31px;
+}
+
+.dr-spot-name {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.dr-spot-odds {
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(255, 236, 190, 0.85);
+}
+
+.dr-spot.won {
+  border-color: #f2d27a;
+  background: rgba(242, 210, 122, 0.16);
+  box-shadow: 0 0 26px rgba(242, 210, 122, 0.45);
+  animation: tb-glow 1.2s ease-in-out 2;
+}
+
+/* ------------------------------------------------------------------ Phones */
+
+@media (max-width: 640px) {
+  .dr {
+    --lane-h: 38px;
+    --duck-w: 42px;
+    --name-w: 62px;
+  }
+
+  .dr-lane-name {
+    font-size: 11px;
+    padding: 3px 4px;
+  }
+
+  .dr-spots {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .dr-spot {
+    min-height: 96px;
+  }
+
+  .dr-spot-svg {
+    width: 32px;
+    height: 25px;
+  }
+}
+
+/* ------------------------------------------------------------------ Computers */
+
+@media (min-width: 900px) {
+  .dr {
+    --lane-h: 58px;
+    --duck-w: 66px;
+    --name-w: 96px;
+  }
+
+  .dr-lane-name {
+    font-size: 15px;
+  }
+
+  .dr-spot {
+    min-height: 170px;
+    padding: 12px 10px 14px;
+  }
+
+  .dr-spot-name {
+    font-size: 18px;
+  }
+
+  .dr-spot-svg {
+    width: 52px;
+    height: 40px;
+  }
+}
+
+/* Filling the window (../table/table.css): the lanes sized to the window's height. */
+@media (min-width: 900px) and (min-height: 540px) {
+  .dr {
+    --lane-h: clamp(40px, 7vh, 64px);
+  }
+
+  .dr-felt {
+    justify-content: space-evenly;
+  }
+}
+
+/* Played from v2 (../shared/ui/frame/v2-game.ts: the desktop layout on a phone on its side): smaller spots, everyone's piles in a row. */
+html.v2-game .dr {
+  --lane-h: 36px;
+  --duck-w: 44px;
+}
+
+html.v2-game .dr-spot {
+  min-height: 0;
+  padding: 4px 6px;
+}
+
+html.v2-game .dr-spot-head {
+  flex-direction: row;
+  gap: 6px;
+}
+
+html.v2-game .dr-spot-svg {
+  width: 30px;
+  height: 23px;
+}
+
+html.v2-game .dr-spot .tb-piles {
+  flex-wrap: nowrap;
+  gap: 3px 8px;
+  margin: 2px 0 0;
+  padding: 0;
+}
+
+html.v2-game .dr-spot .tb-pile-chips {
+  --chip-size: 26px;
+  height: calc(var(--chip-size) + (var(--n) - 1) * 4px);
+}
+
+html.v2-game .dr-spot .tb-pile-chips .tb-chip {
+  bottom: calc(var(--i) * 4px);
+  font-size: 8px;
+}
+
+html.v2-game .dr-spot .tb-piles.crowded .tb-pile-chips {
+  display: none;
+}

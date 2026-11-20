@@ -15,9 +15,18 @@
     <p id="no-servers" class="muted" hidden>None of your servers have Koma in them yet.</p>
 
     <h2 id="games" class="section-title">Games</h2>
+    <!-- Quick filters: each game's data-kind (raid, casino, event, other), shown alone (page.ts, remembered). -->
+    <div class="game-filters" role="group" aria-label="Show only some games">
+      <button type="button" class="game-filter" data-filter="all" aria-pressed="true">All</button>
+      <button type="button" class="game-filter" data-filter="raid" aria-pressed="false">Raid</button>
+      <button type="button" class="game-filter" data-filter="casino" aria-pressed="false">Casino</button>
+      <button type="button" class="game-filter" data-filter="event" aria-pressed="false">Events</button>
+      <button type="button" class="game-filter" data-filter="other" aria-pressed="false">Other</button>
+    </div>
+    <p id="no-games" class="muted" hidden>No games of this kind yet.</p>
     <div class="games">
       <!-- The way to v2 (/v2/: King's Raid's town, Orvelia, src/v2/), first. Not a game the bot plays: always open (page.ts). -->
-      <article class="game" data-game="orvel">
+      <article class="game" data-game="orvel" data-kind="other">
         <div class="game-art orvel-art" aria-hidden="true"></div>
         <div class="game-body">
           <h3>Orvel</h3>
@@ -25,7 +34,7 @@
           <button type="button" class="play" id="orvel-go">Travel</button>
         </div>
       </article>
-      <article class="game" data-game="raid">
+      <article class="game" data-game="raid" data-kind="raid">
         <div class="game-art raid-art" aria-hidden="true"></div>
         <div class="game-body">
           <h3>Weekly Boss</h3>
@@ -34,7 +43,7 @@
         </div>
       </article>
       <!-- Only where its models are: on a machine running `yarn dev` (page.ts takes it out anywhere else). -->
-      <article class="game" data-game="technomagic">
+      <article class="game" data-game="technomagic" data-kind="raid">
         <div class="game-art technomagic-art" aria-hidden="true"></div>
         <div class="game-body">
           <h3>TechnoMagic Raid</h3>
@@ -43,7 +52,7 @@
           <button type="button" class="play" data-play="technomagic" data-list="technomagic">Play</button>
         </div>
       </article>
-      <article class="game" data-game="dragon">
+      <article class="game" data-game="dragon" data-kind="raid">
         <div class="game-art dragon-art" aria-hidden="true"></div>
         <div class="game-body">
           <h3>Dragon Raid</h3>
@@ -52,7 +61,7 @@
           <button type="button" class="play" data-play="dragon" data-list="dragon">Play</button>
         </div>
       </article>
-      <article class="game" data-game="divine">
+      <article class="game" data-game="divine" data-kind="raid">
         <div class="game-art divine-art" aria-hidden="true"></div>
         <div class="game-body">
           <h3>Divine Punishment Raid</h3>
@@ -61,7 +70,7 @@
           <button type="button" class="play" data-play="divine" data-page="/games/punishment/">Play</button>
         </div>
       </article>
-      <article class="game" data-game="pinecraft">
+      <article class="game" data-game="pinecraft" data-kind="other">
         <div class="game-art pinecraft-art" aria-hidden="true"></div>
         <div class="game-body">
           <h3>Pinecraft</h3>
@@ -69,7 +78,7 @@
           <button type="button" class="play" data-play="pinecraft">Play</button>
         </div>
       </article>
-      <article class="game" data-game="baccarat">
+      <article class="game" data-game="baccarat" data-kind="casino">
         <div class="game-art baccarat-art" aria-hidden="true"><span class="baccarat-art-card">A<i>♠</i></span><span class="baccarat-art-card red">9<i>♥</i></span></div>
         <div class="game-body">
           <h3>Baccarat</h3>
@@ -77,7 +86,7 @@
           <button type="button" class="play" data-play="baccarat">Play</button>
         </div>
       </article>
-      <article class="game" data-game="roulette">
+      <article class="game" data-game="roulette" data-kind="casino">
         <div class="game-art roulette-art" aria-hidden="true"><span class="roulette-art-wheel"></span></div>
         <div class="game-body">
           <h3>Roulette</h3>
@@ -85,7 +94,15 @@
           <button type="button" class="play" data-play="roulette">Play</button>
         </div>
       </article>
-      <article class="game" data-game="poker">
+      <article class="game" data-game="duckrace" data-kind="casino">
+        <div class="game-art duckrace-art" aria-hidden="true"><span class="duckrace-art-lane"><i>🦆</i></span><span class="duckrace-art-lane"><i>🦆</i></span><span class="duckrace-art-lane"><i>🦆</i></span></div>
+        <div class="game-body">
+          <h3>Duck Race</h3>
+          <p>Sit at a table with up to 8 players and put chips on one of four ducks: Yarl, Erlaf, Faruk or Jabin. When the timer runs out they race for everyone, and a bet on the winner pays nearly 4 times back.</p>
+          <button type="button" class="play" data-play="duckrace">Play</button>
+        </div>
+      </article>
+      <article class="game" data-game="poker" data-kind="casino">
         <div class="game-art poker-art" aria-hidden="true"><span class="poker-art-card">A<i>♠</i></span><span class="poker-art-card red">K<i>♥</i></span><span class="poker-art-chip"></span></div>
         <div class="game-body">
           <h3>Poker</h3>
@@ -93,7 +110,7 @@
           <button type="button" class="play" data-play="poker">Play</button>
         </div>
       </article>
-      <article class="game" data-game="minesweeper">
+      <article class="game" data-game="minesweeper" data-kind="other">
         <div class="game-art minesweeper-art" aria-hidden="true"></div>
         <div class="game-body">
           <h3>Minesweeper</h3>
@@ -101,7 +118,7 @@
           <button type="button" class="play" data-play="minesweeper">Play</button>
         </div>
       </article>
-      <article class="game" data-game="codedle">
+      <article class="game" data-game="codedle" data-kind="event">
         <div class="game-art codedle-art" aria-hidden="true">
           <span class="codedle-tile hit">0</span><span class="codedle-tile near">4</span><span class="codedle-tile miss">7</span><span class="codedle-tile hit">7</span><span class="codedle-tile">1</span>
         </div>
@@ -111,7 +128,23 @@
           <button type="button" class="play" data-play="codedle">Play</button>
         </div>
       </article>
-      <article class="game" data-game="mines">
+      <article class="game" data-game="potato" data-kind="event">
+        <div class="game-art potato-art" aria-hidden="true"><span class="potato-spud">🥔</span><span class="potato-spark">💥</span></div>
+        <div class="game-body">
+          <h3>Hot Potato</h3>
+          <p>When a Hot Potato pops up in Discord, a potato with a hidden fuse goes round. Holding it? Pass it on, fast. Press Pass when it isn't yours and you grab it. Whoever holds it when it goes off is out; everyone left splits the vault's prize.</p>
+          <button type="button" class="play" data-play="potato">Play</button>
+        </div>
+      </article>
+      <article class="game" data-game="laser" data-kind="event">
+        <div class="game-art laser-art" aria-hidden="true"><span class="laser-key"></span><span class="laser-key"></span><span class="laser-key duck">Duck!</span><span class="laser-key"></span><span class="laser-key"></span></div>
+        <div class="game-body">
+          <h3>Laser Grid</h3>
+          <p>When a Laser Grid pops up in Discord, wait for the laser, then hit Duck! before time runs out, a little less every round. Too early, the wrong button or too slow and you're caught. Everyone who makes it through splits the prize, which grows with every player.</p>
+          <button type="button" class="play" data-play="laser">Play</button>
+        </div>
+      </article>
+      <article class="game" data-game="mines" data-kind="casino">
         <div class="game-art mines-art" aria-hidden="true"></div>
         <div class="game-body">
           <h3>Mine</h3>

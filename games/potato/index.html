@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="robots" content="noindex" />
+    <title>Koma Hot Potato</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥔</text></svg>" />
+  </head>
+  <body>
+    <main id="app" class="frame ve hp" data-title="🥔 Hot Potato">
+      <div class="ve-layout">
+        <div class="ve-game">
+          <p id="watch-tag" class="ve-watch-tag" role="status" hidden></p>
+
+          <!-- The prize, the clock (joining) or which potato it is, and the fine (../../src/potato/main.ts). -->
+          <section class="ve-stats" aria-label="The game">
+            <div class="ve-stat ve-prize">
+              <span class="ve-stat-label">Prize</span>
+              <b id="prize" class="ve-stat-value">–</b>
+            </div>
+            <div class="ve-stat">
+              <span id="middle-label" class="ve-stat-label">Joining closes in</span>
+              <b id="middle" class="ve-stat-value" role="timer">–</b>
+            </div>
+            <div class="ve-stat">
+              <span class="ve-stat-label">Blown up pays</span>
+              <b id="fine" class="ve-stat-value">–</b>
+            </div>
+          </section>
+
+          <p id="banner" class="ve-banner" role="status" hidden></p>
+
+          <!-- What's happening: joining, who has the potato, or the one that just went off. -->
+          <section id="stage" class="ve-stage hp-stage" aria-live="polite" hidden>
+            <div id="stage-art" class="hp-art" aria-hidden="true">🥔</div>
+            <h2 id="stage-title" class="ve-stage-title"></h2>
+            <p id="stage-text" class="ve-stage-text"></p>
+          </section>
+
+          <div id="toast" class="ve-toast" role="status" aria-live="assertive" hidden></div>
+
+          <div id="actions" class="ve-actions">
+            <button type="button" id="join" class="ve-button" hidden>Join</button>
+            <button type="button" id="pass" class="ve-button danger hp-pass" hidden>Pass</button>
+          </div>
+
+          <section id="players" class="ve-players" hidden>
+            <div>
+              <h3 class="ve-list-title">Still in</h3>
+              <ul id="in" class="ve-list"></ul>
+            </div>
+            <div>
+              <h3 class="ve-list-title">Blown up</h3>
+              <ul id="out" class="ve-list"></ul>
+            </div>
+          </section>
+
+          <!-- With none going: waiting for the next, and how the last one ended. -->
+          <section id="idle" class="ve-idle" hidden>
+            <h2 class="ve-idle-title">No potato right now</h2>
+            <p class="ve-idle-text">No Hot Potato is going right now. When one pops up in Discord, it opens here too: keep this page open.</p>
+          </section>
+          <section id="result" class="ve-result" hidden>
+            <h2 id="result-title" class="ve-result-title"></h2>
+            <p id="result-text" class="ve-result-text"></p>
+            <div class="ve-players">
+              <div>
+                <h3 class="ve-list-title">Winners</h3>
+                <ul id="result-winners" class="ve-list"></ul>
+              </div>
+              <div>
+                <h3 class="ve-list-title">Blown up</h3>
+                <ul id="result-out" class="ve-list"></ul>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <p class="hint">Holding the potato? Press Pass (or Space) to toss it to someone at random · Press Pass when it isn't yours and you grab it · Whoever holds it when it goes off is out and pays a fine · Everyone left at the end splits the prize</p>
+    </main>
+
+    <script type="module" src="/src/potato/main.ts"></script>
+  </body>
+</html>

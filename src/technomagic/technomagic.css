@@ -31,8 +31,7 @@
 .tm-watching #prep-settings,
 .tm-watching .tm-prep-repeat,
 .tm-watching .tm-prep-manage,
-.tm-watching #repeat-stop,
-.tm-watching .chat-form {
+.tm-watching #repeat-stop {
   display: none !important;
 }
 
