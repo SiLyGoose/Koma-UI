@@ -36,20 +36,34 @@
 
           <p id="banner" class="ve-banner" role="status" hidden></p>
 
-          <!-- What's happening: the players' faces (how each one's press went), then the grid and the time left. -->
-          <section id="stage" class="ve-stage lg-stage" hidden>
-            <div id="toast" class="ve-toast" role="status" aria-live="assertive" hidden></div>
-            <div class="ve-stage-main">
-              <div id="ring"></div>
-              <div aria-live="polite">
-                <h2 id="stage-title" class="ve-stage-title"></h2>
-                <p id="stage-text" class="ve-stage-text"></p>
+          <!-- The game and, on its right (as the table games have it), who's playing and what has happened: the two as
+               tall as each other. -->
+          <div class="ve-arena">
+            <!-- What's happening: the players' faces (how each one's press went), then the grid and the time left. -->
+            <section id="stage" class="ve-stage lg-stage" hidden>
+              <div id="toast" class="ve-toast" role="status" aria-live="assertive" hidden></div>
+              <div class="ve-stage-main">
+                <div id="ring"></div>
+                <div aria-live="polite">
+                  <h2 id="stage-title" class="ve-stage-title"></h2>
+                  <p id="stage-text" class="ve-stage-text"></p>
+                </div>
+                <div id="row" class="lg-row" role="group" aria-label="The grid"></div>
+                <div id="bar" class="lg-bar" hidden><div id="bar-fill" class="lg-bar-fill"></div></div>
               </div>
-              <div id="row" class="lg-row" role="group" aria-label="The grid"></div>
-              <div id="bar" class="lg-bar" hidden><div id="bar-fill" class="lg-bar-fill"></div></div>
-            </div>
-            <div id="ko" class="ve-ko" role="alert" hidden></div>
-          </section>
+              <div id="ko" class="ve-ko" role="alert" hidden></div>
+            </section>
+            <!-- Who's playing, on the right as the table games have it (../../src/vault-event/roster.ts), and under it, where
+                 their chat would be, what has happened, one line an action (../../src/vault-event/trail.ts). -->
+            <aside id="side" class="ve-side" hidden>
+              <h3 class="ve-side-title"><span>Players</span><span id="side-count"></span></h3>
+              <ul id="roster" class="ve-roster" aria-label="Players"></ul>
+              <div class="ve-log">
+                <h3 class="ve-side-title"><span>What happened</span></h3>
+                <ol id="trail" class="ve-log-list"></ol>
+              </div>
+            </aside>
+          </div>
 
           <div id="actions" class="ve-actions">
             <button type="button" id="join" class="ve-button" hidden>Join</button>
@@ -83,17 +97,6 @@
             </div>
           </section>
         </div>
-
-        <!-- Who's playing, on the right as the table games have it (../../src/vault-event/roster.ts), and under it, where
-             their chat would be, what has happened, one line an action (../../src/vault-event/trail.ts). -->
-        <aside id="side" class="ve-side" hidden>
-          <h3 class="ve-side-title"><span>Players</span><span id="side-count"></span></h3>
-          <ul id="roster" class="ve-roster" aria-label="Players"></ul>
-          <div class="ve-log">
-            <h3 class="ve-side-title"><span>What happened</span></h3>
-            <ol id="trail" class="ve-log-list"></ol>
-          </div>
-        </aside>
       </div>
 
       <p class="hint">Wait for the laser: one button turns into Duck! · Green buttons that don't say Duck! are fakes · Press it (or its number key) before the bar runs out · Too early, the wrong button or too slow and you're caught · Only your first press each round counts</p>

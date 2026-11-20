@@ -34,30 +34,44 @@
 
           <p id="banner" class="ve-banner" role="status" hidden></p>
 
-          <!-- What's happening: the players' faces (../../src/vault-event/ring.ts) round an arrow pointing at whoever has
-               the potato, and who it is; beside it, what has happened. -->
-          <section id="stage" class="ve-stage hp-stage" hidden>
-            <div id="toast" class="ve-toast" role="status" aria-live="assertive" hidden></div>
-            <div class="ve-stage-main">
-              <div id="ring">
-                <div id="pointer" class="hp-pointer ve-ring-middle" aria-hidden="true">
-                  <svg class="hp-arrow" viewBox="0 0 100 54"><path d="M4 16 H52 V2 L97 27 L52 52 V38 H4 Z" /></svg>
-                  <span class="hp-hub"></span>
+          <!-- The game and, on its right (as the table games have it), who's playing and what has happened: the two as
+               tall as each other. -->
+          <div class="ve-arena">
+            <!-- What's happening: the players' faces (../../src/vault-event/ring.ts) round an arrow pointing at whoever
+                 has the potato, and who it is. -->
+            <section id="stage" class="ve-stage hp-stage" hidden>
+              <div id="toast" class="ve-toast" role="status" aria-live="assertive" hidden></div>
+              <div class="ve-stage-main">
+                <div id="ring">
+                  <div id="pointer" class="hp-pointer ve-ring-middle" aria-hidden="true">
+                    <svg class="hp-arrow" viewBox="0 0 100 54"><path d="M4 16 H52 V2 L97 27 L52 52 V38 H4 Z" /></svg>
+                    <span class="hp-hub"></span>
+                  </div>
                 </div>
+                <div aria-live="polite">
+                  <h2 id="stage-title" class="ve-stage-title"></h2>
+                  <p id="stage-text" class="ve-stage-text"></p>
+                </div>
+                <ol id="steps" class="ve-steps" aria-label="How it works" hidden>
+                  <li><span aria-hidden="true">🥔</span>A potato with a hidden fuse goes round</li>
+                  <li><span aria-hidden="true">👉</span>Holding it? Pass it, or tap a face to pick who gets it</li>
+                  <li><span aria-hidden="true">⚠️</span>Press Pass when it isn't yours and you grab it</li>
+                  <li><span aria-hidden="true">💥</span>Holding it when it blows? You're out, and pay the fine</li>
+                </ol>
               </div>
-              <div aria-live="polite">
-                <h2 id="stage-title" class="ve-stage-title"></h2>
-                <p id="stage-text" class="ve-stage-text"></p>
+              <div id="ko" class="ve-ko" role="alert" hidden></div>
+            </section>
+            <!-- Who's playing, on the right as the table games have it (../../src/vault-event/roster.ts), and under it, where
+                 their chat would be, what has happened, one line an action (../../src/vault-event/trail.ts). -->
+            <aside id="side" class="ve-side" hidden>
+              <h3 class="ve-side-title"><span>Players</span><span id="side-count"></span></h3>
+              <ul id="roster" class="ve-roster" aria-label="Players"></ul>
+              <div class="ve-log">
+                <h3 class="ve-side-title"><span>What happened</span></h3>
+                <ol id="trail" class="ve-log-list"></ol>
               </div>
-              <ol id="steps" class="ve-steps" aria-label="How it works" hidden>
-                <li><span aria-hidden="true">🥔</span>A potato with a hidden fuse goes round</li>
-                <li><span aria-hidden="true">👉</span>Holding it? Pass it, or tap a face to pick who gets it</li>
-                <li><span aria-hidden="true">⚠️</span>Press Pass when it isn't yours and you grab it</li>
-                <li><span aria-hidden="true">💥</span>Holding it when it blows? You're out, and pay the fine</li>
-              </ol>
-            </div>
-            <div id="ko" class="ve-ko" role="alert" hidden></div>
-          </section>
+            </aside>
+          </div>
 
           <div id="actions" class="ve-actions">
             <button type="button" id="join" class="ve-button" hidden>Join</button>
@@ -94,17 +108,6 @@
             </div>
           </section>
         </div>
-
-        <!-- Who's playing, on the right as the table games have it (../../src/vault-event/roster.ts), and under it, where
-             their chat would be, what has happened, one line an action (../../src/vault-event/trail.ts). -->
-        <aside id="side" class="ve-side" hidden>
-          <h3 class="ve-side-title"><span>Players</span><span id="side-count"></span></h3>
-          <ul id="roster" class="ve-roster" aria-label="Players"></ul>
-          <div class="ve-log">
-            <h3 class="ve-side-title"><span>What happened</span></h3>
-            <ol id="trail" class="ve-log-list"></ol>
-          </div>
-        </aside>
       </div>
 
       <p class="hint">Space passes too · Tap a face to pass it to them · A press when it isn't yours grabs it</p>

@@ -54,20 +54,54 @@
   padding-inline: 12px;
 }
 
-/* A computer: the panel on the game's right, as tall as the page lets the two be. */
-@media (min-width: 900px) {
-  .ve-layout {
-    flex-direction: row;
-    justify-content: center;
-    gap: 18px;
-  }
+/*
+ * The stage, and the panel. On a phone the row comes apart (its two are the game's own parts, `display: contents`) so
+ * the panel can go to the bottom of the page, under the buttons and the reactions, not between the game and them.
+ */
+.ve-arena {
+  display: contents;
+}
 
-  .ve-game {
-    flex: 0 1 1180px;
+.ve-side {
+  order: 1;
+}
+
+.ve-arena > .ve-stage {
+  flex: 1;
+  min-width: 0;
+}
+
+/*
+ * A computer: the panel on the stage's right, exactly as tall as it (the stage sets the height; the panel's own rows
+ * never stretch it, `contain: size`: they scroll inside it instead). The rest of the game (the stats over the stage,
+ * the buttons under it) keeps to the middle of the stage, not of the stage and the panel together.
+ */
+@media (min-width: 900px) {
+  .ve-arena {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    gap: 18px;
   }
 
   .ve-side {
     flex: 0 0 300px;
+    order: 0;
+    contain: size;
+  }
+
+  .ve-game > :not(.ve-arena, .ve-floats) {
+    margin-right: 318px;
+  }
+
+  /* The reactions float up over the game, not over the panel. */
+  .ve-floats {
+    right: 318px;
+  }
+
+  /* (With no game going there's no panel: the last one's result is in the middle of the page.) */
+  .ve-ended .ve-game > * {
+    margin-right: 0;
   }
 }
 
@@ -221,8 +255,12 @@
   overflow-y: auto;
 }
 
-/* As tall as the game: the players at the top (scrolling, when they'd take more than half), the log in the rest. */
+/* As tall as the stage: the players at the top (scrolling, when they'd take more than half), the log in the rest. */
 @media (min-width: 900px) {
+  .ve-side {
+    overflow: hidden;
+  }
+
   .ve-roster {
     flex: 0 1 auto;
     max-height: 55%;
@@ -232,7 +270,7 @@
 
   .ve-log {
     flex: 1;
-    min-height: 160px;
+    min-height: 120px;
   }
 
   /* (Sized by the panel, never by how much it says: it scrolls instead.) */
@@ -902,40 +940,48 @@
 }
 
 /*
- * Its scrollbar, like the chat's (../shared/ui/chat/chat.css): a rounded pill, no track, no arrows. Chrome and Safari
+ * Its scrollbar (and the players list's), like the chat's (../shared/ui/chat/chat.css): a rounded pill, no track, no arrows. Chrome and Safari
  * draw it from the ::-webkit-scrollbar parts; they would ignore those if the standard properties were set too, so
  * those are only for Firefox, which has no such parts.
  */
-.ve-trail::-webkit-scrollbar {
+.ve-trail::-webkit-scrollbar,
+.ve-roster::-webkit-scrollbar {
   width: 14px;
 }
 
 .ve-trail::-webkit-scrollbar-track,
-.ve-trail::-webkit-scrollbar-corner {
+.ve-trail::-webkit-scrollbar-corner,
+.ve-roster::-webkit-scrollbar-track,
+.ve-roster::-webkit-scrollbar-corner {
   background: transparent;
 }
 
-.ve-trail::-webkit-scrollbar-track {
+.ve-trail::-webkit-scrollbar-track,
+.ve-roster::-webkit-scrollbar-track {
   margin-block: 6px;
 }
 
-.ve-trail::-webkit-scrollbar-button {
+.ve-trail::-webkit-scrollbar-button,
+.ve-roster::-webkit-scrollbar-button {
   display: none;
 }
 
-.ve-trail::-webkit-scrollbar-thumb {
+.ve-trail::-webkit-scrollbar-thumb,
+.ve-roster::-webkit-scrollbar-thumb {
   min-height: 40px;
   border: 4px solid transparent;
   border-radius: 999px;
   background: var(--dusk) padding-box;
 }
 
-.ve-trail::-webkit-scrollbar-thumb:hover {
+.ve-trail::-webkit-scrollbar-thumb:hover,
+.ve-roster::-webkit-scrollbar-thumb:hover {
   background-color: var(--gold);
 }
 
 @supports not selector(::-webkit-scrollbar) {
-  .ve-trail {
+  .ve-trail,
+  .ve-roster {
     scrollbar-width: thin;
     scrollbar-color: var(--dusk) transparent;
   }
