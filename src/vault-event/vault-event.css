@@ -110,6 +110,14 @@
   }
 }
 
+/*
+ * With no game going, the row isn't there at all (all it holds is hidden then): left in, it would still take the
+ * page's height, and push the waiting card and the last one's result to the bottom of the screen.
+ */
+.ve-ended .ve-arena {
+  display: none;
+}
+
 /* ---- Who's playing, and what has happened (roster.ts, trail.ts): the panel on the right ---- */
 
 .ve-side {

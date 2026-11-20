@@ -377,7 +377,10 @@ function render(): void {
     ui.middle.textContent = '–';
     ui.middleSub.textContent = '';
     renderResult(state);
-    lastStory.render(logLines());
+    // The log is what this page saw of it: a page that came after it ended saw nothing, so the result has no log.
+    const lines = logLines();
+    lastStory.render(lines);
+    if (ui.resultTrail.parentElement) ui.resultTrail.parentElement.hidden = lines.length === 0;
   }
   renderClock();
 }

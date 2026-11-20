@@ -352,7 +352,9 @@ function renderResult(state: PotatoState): void {
   fillTitles(ui.resultTitles, last.kind === 'done' ? titlesOf(last, state.you) : []);
   fillList(ui.resultWinners, last.winners.map((w) => ({ text: `${w.name} +${w.won.toLocaleString('en-US')}`, you: w.id === state.you })), 'Nobody');
   fillList(ui.resultOut, last.out.map((o) => ({ text: `${o.name} paid ${o.fine.toLocaleString('en-US')} · potato ${o.blast}`, you: o.id === state.you })), 'Nobody');
+  // (Nothing happened in one that never started: no log on the result then.)
   lastStory.render(trailLines(last.trail, namesNow()));
+  if (ui.resultTrail.parentElement) ui.resultTrail.parentElement.hidden = last.trail.length === 0;
 }
 
 function render(): void {
