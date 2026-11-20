@@ -170,9 +170,20 @@ function markOf(live: LaserLive, p: LaserPlayer): Seat['mark'] {
 /** How a player was caught: before (caughtFor), or by their press this round, which the bot settles at its end. */
 const caughtBy = (p: LaserPlayer): LaserCaught | null => p.caughtFor ?? (p.now && p.now.result !== 'ducked' ? p.now.result : null);
 
+/**
+ * A player's time in all over the rounds that are over. While a round is going, some have pressed in it and some
+ * haven't yet: counting this round's ducks would put those who haven't first.
+ */
+const settledMs = (live: LaserLive, p: LaserPlayer): number => (live.phase === 'roundOver' || p.now?.result !== 'ducked' ? p.totalMs : p.totalMs - (p.now.ms ?? 0));
+
+/** Whether there are places yet: once a round is over (in the first, nobody has a time in all to go by). */
+const placed = (live: LaserLive): boolean => live.phase !== 'joining' && (live.round > 1 || live.phase === 'roundOver');
+
 /** Those still in, fastest in all first (their place, as it's paid). */
 function standing(live: LaserLive): LaserPlayer[] {
-  return live.players.filter((p) => caughtBy(p) === null).sort((a, b) => a.totalMs - b.totalMs || (a.bestMs ?? Infinity) - (b.bestMs ?? Infinity) || (a.id < b.id ? -1 : 1));
+  return live.players
+    .filter((p) => caughtBy(p) === null)
+    .sort((a, b) => settledMs(live, a) - settledMs(live, b) || (a.bestMs ?? Infinity) - (b.bestMs ?? Infinity) || (a.id < b.id ? -1 : 1));
 }
 
 /** This round's lines of the log: the round, then a line a press, fastest duck first, then those caught. */
@@ -264,12 +275,14 @@ function renderLive(state: LaserState, live: LaserLive): void {
         you: p.id === state.you,
         out: false,
         ...(p.bestMs !== null && { sub: `${reactionText(p.totalMs)} in all` }),
-        status:
-          live.phase === 'joining'
-            ? { text: 'Joined', kind: 'good' as const }
-            : p.now?.result === 'ducked' && p.now.ms !== null
-              ? { text: `#${i + 1} · ✔ ${reactionText(p.now.ms)}`, kind: 'good' as const }
-              : { text: `#${i + 1}` },
+        status: ((): { text: string; kind?: 'good' } => {
+          if (live.phase === 'joining') return { text: 'Joined', kind: 'good' };
+          // Their place (once there are places), and this round's duck.
+          const place = placed(live) ? `#${i + 1}` : '';
+          const duck = p.now?.result === 'ducked' && p.now.ms !== null ? `✔ ${reactionText(p.now.ms)}` : '';
+          if (duck) return { text: [place, duck].filter(Boolean).join(' · '), kind: 'good' };
+          return { text: place || (live.phase === 'fire' ? '…' : 'In') };
+        })(),
       })),
       ...outNow.map(({ p, round }) => ({
         id: p.id,
