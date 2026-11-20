@@ -124,7 +124,7 @@ function renderLive(state: LaserState, live: LaserLive): void {
     ui.middleSub.textContent = '';
     ui.title.textContent = state.playing ? "You're in!" : 'The laser grid is on';
     const count = live.players.length;
-    ui.text.textContent = `${count} ${count === 1 ? 'player has' : 'players have'} joined. ${live.rounds} rounds: wait for Duck!, then press it before time runs out. Everyone never caught splits the prize.`;
+    ui.text.textContent = `${count} ${count === 1 ? 'player has' : 'players have'} joined. ${live.rounds} rounds: wait for Duck!, then press it before time runs out. Everyone never caught splits the prize by speed: the fastest gets the most.`;
   } else {
     ui.middleLabel.textContent = 'Round';
     ui.middle.textContent = `${live.round} of ${live.rounds}`;
@@ -160,6 +160,13 @@ function renderLive(state: LaserState, live: LaserLive): void {
   );
 }
 
+/** 1st, 2nd, 3rd, 4th … 11th, 12th, 13th … 21st. */
+function ordinal(n: number): string {
+  const tens = n % 100;
+  const suffix = tens >= 11 && tens <= 13 ? 'th' : (['th', 'st', 'nd', 'rd'][n % 10] ?? 'th');
+  return `${n}${suffix}`;
+}
+
 function renderResult(state: LaserState): void {
   const last = state.last;
   ui.result.hidden = last === null;
@@ -176,11 +183,16 @@ function renderResult(state: LaserState): void {
     ui.resultText.textContent = `The laser caught the last of them in round ${last.lastRound}. The money stayed in the vault.`;
   } else {
     ui.resultTitle.textContent = won && !page.watching ? 'You made it through!' : 'Through the grid!';
-    ui.resultText.textContent = `${last.winners.length} ${last.winners.length === 1 ? 'player made' : 'players made'} it through and split ${coins(last.prize)}.${won && !page.watching ? ` You won ${coins(won.won)}.` : ''}`;
+    // The winners come first place first: the least time ducking in all won the most, each place after a little less.
+    const place = last.winners.findIndex((w) => w.id === state.you) + 1;
+    ui.resultText.textContent =
+      last.winners.length === 1
+        ? `1 player made it through and took all ${coins(last.prize)}.${won && !page.watching ? ' You won it all.' : ''}`
+        : `${last.winners.length} players made it through and split ${coins(last.prize)} by speed: the fastest in all got the most.${won && !page.watching ? ` You came ${ordinal(place)} and won ${coins(won.won)}.` : ''}`;
   }
   fillList(
     ui.resultWinners,
-    last.winners.map((w) => ({ text: `${w.name} +${w.won.toLocaleString('en-US')}${w.bestMs !== null ? ` · best ${reactionText(w.bestMs)}` : ''}`, you: w.id === state.you })),
+    last.winners.map((w, i) => ({ text: `${i + 1}. ${w.name} +${w.won.toLocaleString('en-US')} · ${reactionText(w.totalMs)} in all`, you: w.id === state.you })),
     'Nobody',
   );
   fillList(
@@ -246,7 +258,7 @@ function answered(answer: LaserAnswer): void {
     case 'closed':
       return toast('This round is over. Wait for the next one.');
     case 'already':
-      return toast('Only your first press each round counts.');
+      return toast("You already pressed this round, and it can't be changed.");
     case 'out':
       return toast("You're out: the laser already caught you.");
     case 'notPlaying':
