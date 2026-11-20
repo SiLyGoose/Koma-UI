@@ -31,15 +31,21 @@
               <b id="fine" class="ve-stat-value">–</b>
             </div>
           </section>
+          <!-- Where the prize comes from: the server's vault, which the fines go back into. -->
+          <p id="vault" class="ve-vault" hidden></p>
 
           <p id="banner" class="ve-banner" role="status" hidden></p>
 
-          <!-- What's happening: joining, waiting for the laser, the laser out (and the time left), or the round's result. -->
-          <section id="stage" class="ve-stage lg-stage" aria-live="polite" hidden>
-            <h2 id="stage-title" class="ve-stage-title"></h2>
-            <p id="stage-text" class="ve-stage-text"></p>
+          <!-- What's happening: the players' faces (how each one's press went), then the grid and the time left. -->
+          <section id="stage" class="ve-stage lg-stage" hidden>
+            <div id="ring"></div>
+            <div aria-live="polite">
+              <h2 id="stage-title" class="ve-stage-title"></h2>
+              <p id="stage-text" class="ve-stage-text"></p>
+            </div>
             <div id="row" class="lg-row" role="group" aria-label="The grid"></div>
             <div id="bar" class="lg-bar" hidden><div id="bar-fill" class="lg-bar-fill"></div></div>
+            <div id="ko" class="ve-ko" role="alert" hidden></div>
           </section>
 
           <div id="toast" class="ve-toast" role="status" aria-live="assertive" hidden></div>
@@ -47,6 +53,13 @@
           <div id="actions" class="ve-actions">
             <button type="button" id="join" class="ve-button" hidden>Join</button>
           </div>
+
+          <!-- The rounds so far: who ducked how fast, and who was caught (../../src/vault-event/trail.ts). -->
+          <div id="trail" aria-label="What happened" hidden></div>
+
+          <!-- Anyone's reactions, players, those caught and watchers alike (../../src/vault-event/reactions.ts). -->
+          <div id="reacts" class="ve-reacts" role="group" aria-label="React" hidden></div>
+          <div id="floats" class="ve-floats" aria-hidden="true"></div>
 
           <section id="players" class="ve-players" hidden>
             <div>
@@ -66,6 +79,7 @@
           <section id="result" class="ve-result" hidden>
             <h2 id="result-title" class="ve-result-title"></h2>
             <p id="result-text" class="ve-result-text"></p>
+            <ul id="result-titles" class="ve-titles" aria-label="Titles" hidden></ul>
             <div class="ve-players">
               <div>
                 <h3 class="ve-list-title">Winners</h3>

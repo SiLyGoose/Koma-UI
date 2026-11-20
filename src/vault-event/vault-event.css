@@ -327,3 +327,579 @@
 .ve-watching .ve-actions {
   display: none;
 }
+
+/* ---- Where the prize comes from (common.ts: vaultLine) ---- */
+
+.ve-vault {
+  margin: -4px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+.ve-vault-sum {
+  color: var(--plaque-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.ve-vault-icon {
+  margin-right: 4px;
+}
+
+/* ---- The players as faces (ring.ts) ---- */
+
+.ve-stage {
+  position: relative;
+}
+
+.ve-ring {
+  --seat: 50px;
+  --seat-scale: 1;
+  position: relative;
+  width: 100%;
+}
+
+/* Round the potato: each seat at its own --x and --y. */
+.ve-ring-circle {
+  aspect-ratio: 16 / 11;
+  max-height: 340px;
+}
+
+.ve-ring-circle .ve-seat {
+  position: absolute;
+  left: var(--x, 50%);
+  top: var(--y, 50%);
+  transform: translate(-50%, -50%);
+  transition:
+    left 0.35s ease,
+    top 0.35s ease;
+}
+
+.ve-ring-middle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+  pointer-events: none;
+}
+
+/* Over the grid: a row, wrapping. */
+.ve-ring-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 10px;
+}
+
+.ve-seat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: calc(var(--seat) * var(--seat-scale) + 22px);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  cursor: default;
+  touch-action: manipulation;
+}
+
+.ve-seat:disabled {
+  opacity: 1;
+}
+
+.ve-seat-face {
+  width: calc(var(--seat) * var(--seat-scale));
+  height: calc(var(--seat) * var(--seat-scale));
+  border-radius: 50%;
+  object-fit: cover;
+  background: #2a2830;
+  border: 2px solid var(--plaque-edge);
+  box-shadow: 0 2px 6px rgb(0 0 0 / 45%);
+  transition:
+    filter 0.3s ease,
+    opacity 0.3s ease,
+    box-shadow 0.2s ease,
+    scale 0.15s ease;
+}
+
+.ve-seat-name {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 11px;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ve-seat-mark {
+  min-height: 1.2em;
+  font-size: 10.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.ve-seat-mark.good {
+  color: var(--green);
+}
+
+.ve-seat-mark.bad {
+  color: var(--red);
+}
+
+.ve-seat.you .ve-seat-face {
+  border-color: var(--gold);
+}
+
+.ve-seat.you .ve-seat-name {
+  color: var(--gold);
+  font-weight: 700;
+}
+
+.ve-seat.holder .ve-seat-face {
+  border-color: #e98c38;
+  box-shadow:
+    0 0 0 3px rgb(233 140 56 / 45%),
+    0 0 18px rgb(233 140 56 / 70%);
+  animation: ve-hold 0.4s ease-in-out infinite;
+}
+
+.ve-seat.out .ve-seat-face {
+  filter: grayscale(1);
+  opacity: 0.4;
+}
+
+.ve-seat.out .ve-seat-name {
+  color: var(--muted);
+}
+
+/* The holder picking who gets it: everyone else's face can be pressed. */
+.ve-seat.pickable {
+  cursor: pointer;
+}
+
+.ve-seat.pickable .ve-seat-face {
+  border-style: dashed;
+  border-color: #f4e6b2;
+}
+
+.ve-seat.pickable:hover .ve-seat-face,
+.ve-seat.pickable:focus-visible .ve-seat-face {
+  border-style: solid;
+  box-shadow: 0 0 0 3px rgb(244 230 178 / 55%);
+  scale: 1.08;
+}
+
+.ve-seat:focus-visible {
+  outline: none;
+}
+
+.ve-seat.jolt .ve-seat-face {
+  animation: ve-jolt 0.45s ease-out;
+}
+
+/* The potato (or anything) flying from face to face. */
+.ve-fly {
+  position: absolute;
+  z-index: 6;
+  left: 0;
+  top: 0;
+  font-size: 34px;
+  line-height: 1;
+  pointer-events: none;
+  filter: drop-shadow(0 4px 6px rgb(0 0 0 / 50%));
+}
+
+@keyframes ve-hold {
+  25% {
+    rotate: -4deg;
+  }
+  75% {
+    rotate: 4deg;
+  }
+}
+
+@keyframes ve-jolt {
+  20% {
+    translate: -5px 0;
+    scale: 1.15;
+  }
+  40% {
+    translate: 5px 0;
+  }
+  60% {
+    translate: -3px 0;
+  }
+  80% {
+    translate: 2px 0;
+  }
+}
+
+/* ---- How it works, while joining ---- */
+
+.ve-steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+  gap: 8px;
+  width: 100%;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ve-steps li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 6px;
+  border-radius: 10px;
+  background: rgb(255 255 255 / 4%);
+  color: var(--petal);
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.ve-steps li span {
+  font-size: 22px;
+}
+
+/* ---- The Pass button's word on what a press does ---- */
+
+.ve-pass-note {
+  margin: -4px 0 0;
+  color: #f4e6b2;
+  font-size: 13px;
+  text-align: center;
+}
+
+.ve-pass-note.warn {
+  color: #9fd2ff;
+}
+
+/* ---- Knocked out (common.ts: knockout) ---- */
+
+.ve-ko {
+  position: absolute;
+  z-index: 8;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 16px;
+  border-radius: inherit;
+  background: radial-gradient(circle, rgb(120 20 16 / 82%), rgb(10 8 12 / 88%));
+  text-align: center;
+  pointer-events: none;
+}
+
+.ve-ko.show {
+  animation: ve-ko 1.7s ease-out forwards;
+}
+
+.ve-ko-big {
+  color: #fff;
+  font-size: clamp(26px, 8vw, 40px);
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  text-shadow: 0 3px 0 rgb(0 0 0 / 50%);
+}
+
+.ve-ko-small {
+  max-width: 34ch;
+  color: #f6d2cd;
+  font-size: 14px;
+}
+
+.ve-stage.shake {
+  animation: ve-shake 0.5s ease-out;
+}
+
+@keyframes ve-ko {
+  from {
+    opacity: 0;
+    scale: 1.3;
+  }
+  12% {
+    opacity: 1;
+    scale: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes ve-shake {
+  15% {
+    translate: -8px 2px;
+  }
+  30% {
+    translate: 7px -2px;
+  }
+  45% {
+    translate: -5px 1px;
+  }
+  60% {
+    translate: 4px 0;
+  }
+  80% {
+    translate: -2px 0;
+  }
+}
+
+/* ---- What happened (trail.ts) ---- */
+
+.ve-trail {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 128px;
+  overflow-y: auto;
+  padding: 8px 10px;
+  border: 1px solid var(--plaque-edge);
+  border-radius: 10px;
+  background: rgb(10 12 20 / 55%);
+  scrollbar-width: thin;
+}
+
+.ve-trail-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 3px 6px;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.ve-trail-head {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.ve-trail-arrow {
+  color: var(--dusk);
+}
+
+.ve-trail-you {
+  color: var(--gold);
+  font-weight: 700;
+}
+
+.ve-trail-grab {
+  color: #9fd2ff;
+  font-size: 12px;
+  font-style: italic;
+}
+
+.ve-trail-blast,
+.ve-trail-bad {
+  color: var(--red);
+  font-weight: 700;
+}
+
+.ve-trail-good {
+  color: var(--green);
+}
+
+/* ---- Reactions (reactions.ts) ---- */
+
+.ve-reacts {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  transition: opacity 0.15s ease;
+}
+
+.ve-reacts.resting {
+  opacity: 0.45;
+}
+
+.ve-react {
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border: 1px solid var(--plaque-edge);
+  border-radius: 50%;
+  background: var(--plaque);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.ve-react:hover {
+  border-color: var(--gold);
+}
+
+.ve-react:active {
+  scale: 0.9;
+}
+
+/* With none going (main.ts: .ve-ended), the last one's result comes first, then its story and the reactions. */
+.ve-ended .ve-trail,
+.ve-ended .ve-reacts {
+  order: 1;
+}
+
+/* A watch link presses nothing but these. */
+.ve-watching .ve-reacts {
+  pointer-events: auto;
+}
+
+/* The layer they float up in, over the whole game. */
+.ve-floats {
+  position: absolute;
+  z-index: 15;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.ve-float {
+  position: absolute;
+  left: var(--left, 50%);
+  bottom: 18%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  translate: -50% 0;
+  animation: ve-float 2.4s ease-out forwards;
+}
+
+.ve-float-emoji {
+  font-size: 34px;
+  line-height: 1;
+  filter: drop-shadow(0 3px 4px rgb(0 0 0 / 45%));
+}
+
+.ve-float-name {
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgb(10 12 20 / 75%);
+  color: #fff;
+  font-size: 10.5px;
+  white-space: nowrap;
+}
+
+@keyframes ve-float {
+  from {
+    opacity: 0;
+    translate: -50% 0;
+    scale: 0.6;
+  }
+  12% {
+    opacity: 1;
+    scale: 1.1;
+  }
+  70% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    translate: calc(-50% + var(--drift, 0px)) -240px;
+    scale: 1;
+  }
+}
+
+/* ---- The result's titles (common.ts: fillTitles) ---- */
+
+.ve-titles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+  margin: 2px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ve-title {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto auto;
+  column-gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--plaque-line);
+  border-radius: 10px;
+  background: rgb(216 191 122 / 6%);
+}
+
+.ve-title.you {
+  border-color: rgb(216 191 122 / 75%);
+}
+
+.ve-title-icon {
+  grid-row: 1 / 4;
+  align-self: center;
+  font-size: 26px;
+}
+
+.ve-title-name {
+  color: var(--gold);
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.ve-title-who {
+  font-size: 15px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.ve-title-why {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+@media (max-width: 480px) {
+  .ve-ring {
+    --seat-scale: 0.82;
+  }
+
+  .ve-ring-circle {
+    aspect-ratio: 1 / 1;
+  }
+
+  .ve-react {
+    width: 38px;
+    height: 38px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ve-seat.holder .ve-seat-face,
+  .ve-seat.jolt .ve-seat-face,
+  .ve-stage.shake,
+  .ve-ko.show {
+    animation: none;
+  }
+
+  /* Reactions still show, but fade in place instead of floating. */
+  .ve-float {
+    animation: ve-fade 2.4s linear forwards;
+  }
+}
+
+@keyframes ve-fade {
+  10%,
+  70% {
+    opacity: 1;
+  }
+  from,
+  to {
+    opacity: 0;
+  }
+}

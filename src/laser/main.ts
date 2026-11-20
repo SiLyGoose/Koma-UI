@@ -1,6 +1,9 @@
 import './laser.css';
-import { $, amount, clockText, coins, el, fillList, reactionText, startEventPage, toaster } from '../vault-event/common';
-import type { ClientMessage, LaserAnswer, LaserCaught, LaserLive, LaserState, ServerMessage } from '../protocol/laser';
+import { $, amount, clockText, coins, el, fillList, fillTitles, knockout, reactionText, startEventPage, toaster, vaultLine, type Title } from '../vault-event/common';
+import { ring, type Seat } from '../vault-event/ring';
+import { play } from '../vault-event/sfx';
+import { trail, type TrailPart } from '../vault-event/trail';
+import type { ClientMessage, LaserAnswer, LaserCaught, LaserEnded, LaserLive, LaserPlayer, LaserState, ServerMessage } from '../protocol/laser';
 
 /*
  * Laser Grid (the bot's events/games/laser-grid.ts): players join, then play rounds. Each round shows a row of buttons,
@@ -9,6 +12,10 @@ import type { ClientMessage, LaserAnswer, LaserCaught, LaserLive, LaserState, Se
  * player's first press in a round counts. Played in Discord and here alike, the one game: the bot holds it, times every
  * press itself, and only says where Duck! is once the laser fires. A press says the round and the screen it was made
  * on, so it is judged by what the player saw. A page that didn't join in time, or a watch link, watches it.
+ *
+ * The page draws the players as a row of faces over the grid (../vault-event/ring.ts), each marked with how their press
+ * this round went (LaserPlayer.now: never which button), keeps the rounds' story under the stage
+ * (../vault-event/trail.ts), and lists those still in by their time in all, the place their share is paid by.
  */
 
 const WHY: Record<LaserCaught, string> = { early: 'too early', wrong: 'wrong button', late: 'too slow' };
@@ -20,15 +27,19 @@ const ui = {
   middleLabel: $('middle-label'),
   middleSub: $('middle-sub'),
   fine: $('fine'),
+  vault: $('vault'),
   banner: $('banner'),
   stage: $('stage'),
+  ring: $('ring'),
   title: $('stage-title'),
   text: $('stage-text'),
   row: $('row'),
   bar: $('bar'),
   barFill: $('bar-fill'),
+  ko: $('ko'),
   toast: $('toast'),
   join: $<HTMLButtonElement>('join'),
+  trail: $('trail'),
   players: $('players'),
   in: $('in'),
   out: $('out'),
@@ -36,6 +47,7 @@ const ui = {
   result: $('result'),
   resultTitle: $('result-title'),
   resultText: $('result-text'),
+  resultTitles: $('result-titles'),
   resultWinners: $('result-winners'),
   resultOut: $('result-out'),
 };
@@ -43,29 +55,67 @@ const ui = {
 let game: LaserState | null = null;
 /** The round this page has pressed in already (its first press is the one that counts), and which slot. */
 let pressed: { round: number; slot: number } | null = null;
-/** Which round and phase the bar was last started for. */
+/** Which round and phase the bar was last started for, and the sounds last played for. */
 let barFor = '';
+let soundFor = '';
+/** Whether the page's player has had their knocked-out moment this game. */
+let knocked = false;
+/** Each round's story, as the page saw it (a page that came late has only the rounds since). */
+const rounds = new Map<number, TrailPart[]>();
 const toast = toaster(ui.toast);
+const seats = ring(ui.ring, 'row');
+const story = trail(ui.trail);
 
 const page = startEventPage<ServerMessage, ClientMessage>({
   name: 'Laser Grid',
   watchTag: $('watch-tag'),
   mutedKey: 'laser-muted',
+  reactions: { bar: $('reacts'), layer: $('floats') },
   receive(message) {
     if (message.t === 'state') {
+      const was = game;
       game = message.state;
+      newsOf(was, game);
       render();
     } else if (message.t === 'answer') answered(message);
   },
 });
 
 const seconds = (ms: number): string => `${Number((ms / 1000).toFixed(2))}s`;
-const nameOf = (live: LaserLive, id: string): string => (id === game?.you && !page.watching ? 'You' : (live.players.find((p) => p.id === id)?.name ?? 'Someone'));
+const isYou = (id: string): boolean => id === game?.you && !page.watching;
+const nameOf = (live: LaserLive, id: string): string => (isYou(id) ? 'You' : (live.players.find((p) => p.id === id)?.name ?? 'Someone'));
 
 /** Whether this page can press the grid now: playing, still in, not watching, not pressed this round yet. */
 function canPress(state: LaserState, live: LaserLive): boolean {
   const me = live.players.find((p) => p.id === state.you);
   return !page.watching && state.playing && me !== undefined && me.caughtFor === null && (live.phase === 'ready' || live.phase === 'fire') && pressed?.round !== live.round;
+}
+
+/** The sounds of a round starting and the laser firing, a fanfare for winning, and the knocked-out moment. */
+function newsOf(was: LaserState | null, now: LaserState): void {
+  const live = now.live;
+  if (!live || live.phase === 'joining') {
+    knocked = false;
+    if (live) rounds.clear();
+  }
+  if (live) {
+    const key = `${live.round}:${live.phase}`;
+    if (key !== soundFor) {
+      soundFor = key;
+      if (live.phase === 'ready') play('charge');
+      if (live.phase === 'fire') play('zap');
+    }
+    const me = live.players.find((p) => p.id === now.you);
+    const caught = me ? caughtBy(me) : null;
+    if (me && caught && !knocked) {
+      knocked = true;
+      play('buzz');
+      seats.jolt(me.id);
+      const small = page.watching ? `${me.name} was caught in round ${live.round}.` : `Round ${live.round}. You pay ${coins(live.fine)}.`;
+      knockout(ui.ko, ui.stage, `⚡ Caught: ${WHY[caught]}`, small);
+    }
+  }
+  if (was?.live && !live && now.last?.kind === 'done' && now.last.winners.some((w) => w.id === now.you) && !page.watching) play('fanfare');
 }
 
 function renderRow(state: LaserState, live: LaserLive): void {
@@ -103,28 +153,69 @@ function renderBar(live: LaserLive): void {
   ui.barFill.style.transform = 'scaleX(0)';
 }
 
+/** What a player's face says this round: their duck's time, or why they were caught. */
+function markOf(live: LaserLive, p: LaserPlayer): Seat['mark'] {
+  if (p.now?.result === 'ducked') return { text: `✔ ${p.now.ms === null ? '' : reactionText(p.now.ms)}`.trim(), kind: 'good' };
+  if (p.now) return { text: `✖ ${WHY[p.now.result]}`, kind: 'bad' };
+  if (p.caughtFor) return { text: `✖ round ${p.caughtRound}`, kind: 'bad' };
+  return live.phase === 'fire' ? { text: '…', kind: 'good' } : undefined;
+}
+
+/** How a player was caught: before (caughtFor), or by their press this round, which the bot settles at its end. */
+const caughtBy = (p: LaserPlayer): LaserCaught | null => p.caughtFor ?? (p.now && p.now.result !== 'ducked' ? p.now.result : null);
+
+/** Those still in, fastest in all first (their place, as it's paid). */
+function standing(live: LaserLive): LaserPlayer[] {
+  return live.players.filter((p) => caughtBy(p) === null).sort((a, b) => a.totalMs - b.totalMs || (a.bestMs ?? Infinity) - (b.bestMs ?? Infinity) || (a.id < b.id ? -1 : 1));
+}
+
+/** This round's line of the story: everyone who pressed, fastest duck first, then those caught. */
+function roundLine(live: LaserLive): TrailPart[] {
+  const pressedNow = live.players.filter((p) => p.now !== null);
+  const ducked = pressedNow.filter((p) => p.now?.result === 'ducked').sort((a, b) => (a.now?.ms ?? 0) - (b.now?.ms ?? 0));
+  const caught = pressedNow.filter((p) => p.now?.result !== 'ducked');
+  const parts: TrailPart[] = [{ text: `Round ${live.round}`, kind: 'head' }];
+  for (const p of ducked) parts.push({ text: `${nameOf(live, p.id)} ${p.now?.ms === null || p.now?.ms === undefined ? '' : reactionText(p.now.ms)}`.trim(), kind: isYou(p.id) ? 'you' : 'good' });
+  for (const p of caught) parts.push({ text: `${nameOf(live, p.id)} ✖ ${WHY[p.now?.result as LaserCaught]}`, kind: 'bad' });
+  return parts;
+}
+
 function renderLive(state: LaserState, live: LaserLive): void {
   const me = live.players.find((p) => p.id === state.you);
   amount(ui.prize, live.prize);
   ui.prizeSub.textContent = live.phase === 'joining' && live.bonusPerPlayer > 0 ? `+${live.bonusPerPlayer.toLocaleString('en-US')} a player` : '';
   amount(ui.fine, live.fine);
+  vaultLine(ui.vault, live.vault);
 
   const watchingOnly = !page.watching && !state.playing && live.phase !== 'joining';
   const caught = !page.watching && me?.caughtFor != null;
   ui.banner.hidden = !(watchingOnly || caught);
-  ui.banner.textContent = caught ? `You're caught (${WHY[me?.caughtFor as LaserCaught]}, round ${me?.caughtRound}). Watch who's left.` : "You're watching: joining closed before you got here.";
+  ui.banner.textContent = caught
+    ? `You're caught (${WHY[me?.caughtFor as LaserCaught]}, round ${me?.caughtRound}). React, and watch who's left.`
+    : "You're watching: joining closed before you got here. You can still react.";
 
   ui.stage.hidden = false;
   ui.stage.classList.toggle('fire', live.phase === 'fire');
   ui.join.hidden = !(live.phase === 'joining' && !state.playing && !page.watching);
   ui.row.hidden = live.phase === 'joining';
+  seats.render(
+    live.players.map((p) => ({
+      id: p.id,
+      name: p.name,
+      avatar: state.avatars[p.id] ?? '',
+      you: isYou(p.id),
+      state: p.caughtFor !== null && (p.caughtRound < live.round || live.phase === 'roundOver') ? 'out' : 'in',
+      mark: markOf(live, p),
+      pickable: false,
+    })),
+  );
 
   if (live.phase === 'joining') {
     ui.middleLabel.textContent = 'Joining closes in';
     ui.middleSub.textContent = '';
     ui.title.textContent = state.playing ? "You're in!" : 'The laser grid is on';
     const count = live.players.length;
-    ui.text.textContent = `${count} ${count === 1 ? 'player has' : 'players have'} joined. ${live.rounds} rounds: wait for Duck!, then press it before time runs out. Everyone never caught splits the prize by speed: the fastest gets the most.`;
+    ui.text.textContent = `${count} ${count === 1 ? 'player has' : 'players have'} joined. ${live.rounds} rounds: wait for Duck!, then press it before time runs out. Everyone never caught splits the prize by speed: the fastest in all gets the most.`;
   } else {
     ui.middleLabel.textContent = 'Round';
     ui.middle.textContent = `${live.round} of ${live.rounds}`;
@@ -141,21 +232,27 @@ function renderLive(state: LaserState, live: LaserLive): void {
       ui.text.textContent = live.fastest ? `Fastest: ${nameOf(live, live.fastest.id)} in ${reactionText(live.fastest.ms)}. The next round is coming…` : 'The next round is coming…';
     }
     renderRow(state, live);
+    if (live.players.some((p) => p.now !== null) || live.phase === 'roundOver') rounds.set(live.round, roundLine(live));
   }
   renderBar(live);
+  story.render([...rounds.entries()].sort((a, b) => a[0] - b[0]).map(([, line]) => line).slice(-5));
 
   ui.players.hidden = false;
   fillList(
     ui.in,
-    live.players.filter((p) => p.caughtFor === null).map((p) => ({ text: `${p.name}${p.bestMs !== null ? ` · best ${reactionText(p.bestMs)}` : ''}`, you: p.id === state.you })),
+    standing(live).map((p, i) => ({
+      text: live.phase === 'joining' ? p.name : `#${i + 1} ${p.name}${p.bestMs !== null ? ` · ${reactionText(p.totalMs)} in all (best ${reactionText(p.bestMs)})` : ''}`,
+      you: p.id === state.you,
+    })),
     'Nobody',
   );
   fillList(
     ui.out,
     live.players
-      .filter((p) => p.caughtFor !== null)
-      .sort((a, b) => b.caughtRound - a.caughtRound)
-      .map((p) => ({ text: `${p.name} · ${WHY[p.caughtFor as LaserCaught]} (round ${p.caughtRound})`, you: p.id === state.you })),
+      .filter((p) => caughtBy(p) !== null)
+      .map((p) => ({ p, round: p.caughtFor ? p.caughtRound : live.round }))
+      .sort((a, b) => b.round - a.round)
+      .map(({ p, round }) => ({ text: `${p.name} · ${WHY[caughtBy(p) as LaserCaught]} (round ${round})`, you: p.id === state.you })),
     'Nobody yet',
   );
 }
@@ -165,6 +262,20 @@ function ordinal(n: number): string {
   const tens = n % 100;
   const suffix = tens >= 11 && tens <= 13 ? 'th' : (['th', 'st', 'nd', 'rd'][n % 10] ?? 'th');
   return `${n}${suffix}`;
+}
+
+/** The result's joke titles: the fastest single duck of those through, the first to jump the gun, and who fell in the very last round. */
+function titlesOf(last: LaserEnded, you: string): Title[] {
+  const mine = (id: string): boolean => id === you && !page.watching;
+  const name = (id: string, fallback: string): string => (mine(id) ? 'You' : fallback);
+  const titles: Title[] = [];
+  const fastest = last.winners.filter((w) => w.bestMs !== null).sort((a, b) => (a.bestMs ?? 0) - (b.bestMs ?? 0))[0];
+  if (fastest && fastest.bestMs !== null) titles.push({ icon: '⚡', name: 'Fastest Duck', who: name(fastest.id, fastest.name), why: `${reactionText(fastest.bestMs)} in one press`, you: mine(fastest.id) });
+  const gun = last.caught.filter((c) => c.caughtFor === 'early').sort((a, b) => a.round - b.round)[0];
+  if (gun) titles.push({ icon: '🔫', name: 'Jumped the Gun', who: name(gun.id, gun.name), why: `pressed before the laser, round ${gun.round}`, you: mine(gun.id) });
+  const close = last.winners.length > 0 ? last.caught.find((c) => c.round === last.lastRound) : undefined;
+  if (close) titles.push({ icon: '😬', name: 'So Close', who: name(close.id, close.name), why: `caught in the last round (${WHY[close.caughtFor]})`, you: mine(close.id) });
+  return titles;
 }
 
 function renderResult(state: LaserState): void {
@@ -185,11 +296,14 @@ function renderResult(state: LaserState): void {
     ui.resultTitle.textContent = won && !page.watching ? 'You made it through!' : 'Through the grid!';
     // The winners come first place first: the least time ducking in all won the most, each place after a little less.
     const place = last.winners.findIndex((w) => w.id === state.you) + 1;
+    const fined = last.caught.reduce((sum, c) => sum + c.fine, 0);
     ui.resultText.textContent =
-      last.winners.length === 1
+      (last.winners.length === 1
         ? `1 player made it through and took all ${coins(last.prize)}.${won && !page.watching ? ' You won it all.' : ''}`
-        : `${last.winners.length} players made it through and split ${coins(last.prize)} by speed: the fastest in all got the most.${won && !page.watching ? ` You came ${ordinal(place)} and won ${coins(won.won)}.` : ''}`;
+        : `${last.winners.length} players made it through and split ${coins(last.prize)} by speed: the fastest in all got the most.${won && !page.watching ? ` You came ${ordinal(place)} and won ${coins(won.won)}.` : ''}`) +
+      (fined > 0 ? ` ${coins(fined)} in fines went back into the vault.` : '');
   }
+  fillTitles(ui.resultTitles, last.kind === 'done' ? titlesOf(last, state.you) : []);
   fillList(
     ui.resultWinners,
     last.winners.map((w, i) => ({ text: `${i + 1}. ${w.name} +${w.won.toLocaleString('en-US')} · ${reactionText(w.totalMs)} in all`, you: w.id === state.you })),
@@ -207,12 +321,14 @@ function render(): void {
   if (!state) return;
   const live = state.live;
   ui.idle.hidden = live !== null;
+  // With none going, the last one's result comes before its story.
+  document.getElementById('app')?.classList.toggle('ve-ended', live === null);
   if (live) {
     ui.result.hidden = true;
     renderLive(state, live);
   } else {
     pressed = null;
-    for (const part of [ui.stage, ui.players, ui.banner, ui.join, ui.bar]) part.hidden = true;
+    for (const part of [ui.stage, ui.players, ui.banner, ui.join, ui.bar, ui.vault]) part.hidden = true;
     ui.prize.textContent = '–';
     ui.prizeSub.textContent = '';
     ui.fine.textContent = '–';
@@ -220,6 +336,7 @@ function render(): void {
     ui.middle.textContent = '–';
     ui.middleSub.textContent = '';
     renderResult(state);
+    story.render([...rounds.entries()].sort((a, b) => a[0] - b[0]).map(([, line]) => line).slice(-5));
   }
   renderClock();
 }
@@ -246,6 +363,7 @@ function answered(answer: LaserAnswer): void {
   }
   switch (answer.result) {
     case 'ducked':
+      play('ding');
       return toast(`Ducked in ${reactionText(answer.ms)}!`, 'good');
     case 'early':
       return toast("Too early! The laser hadn't fired yet. You're caught.", 'bad');

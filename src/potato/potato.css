@@ -1,13 +1,31 @@
-/* Hot Potato (main.ts): the potato, bigger and shaking while it's yours, and a burst when one goes off. */
+/*
+ * Hot Potato (main.ts): the potato in the middle of the faces, bigger and shaking while it's yours, and a burst when
+ * one goes off. --heat (0 to 1, how long this potato has been out) warms the stage up and swells the potato.
+ */
 
 .hp-art {
   font-size: 64px;
   line-height: 1;
+  scale: calc(1 + var(--heat, 0) * 0.35);
+  transition: scale 0.1s linear;
+}
+
+.hp-stage {
+  box-shadow:
+    0 0 calc(var(--heat, 0) * 34px) rgb(233 90 40 / calc(var(--heat, 0) * 55%)),
+    inset 0 0 calc(var(--heat, 0) * 60px) rgb(233 90 40 / calc(var(--heat, 0) * 22%));
 }
 
 .hp-stage.mine {
   border-color: rgb(233 140 56 / 80%);
-  box-shadow: 0 0 0 2px rgb(233 140 56 / 35%), 0 0 24px rgb(233 140 56 / 30%);
+  box-shadow:
+    0 0 0 2px rgb(233 140 56 / 35%),
+    0 0 calc(24px + var(--heat, 0) * 24px) rgb(233 120 50 / calc(30% + var(--heat, 0) * 40%));
+}
+
+/* Not yours: a cooler button, so a press that would grab it looks like what it is. */
+.hp-pass.cold {
+  background: #3c6ea8;
 }
 
 .hp-stage.mine .hp-art {
