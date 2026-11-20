@@ -2,17 +2,17 @@
 
 /*
  * As Hot Potato's stage does, the game takes all the page the screen has room for (on a computer, every phase, joining
- * too: ../vault-event/vault-event.css's .ve-arena): its parts spread down the stage, the faces over the grid growing
- * with the screen, and the grid's square buttons as big as the height left for them allows.
+ * too: ../vault-event/vault-event.css's .ve-arena). Its parts stay together in the middle of it (not spread to its
+ * top and bottom), the faces over the grid growing with the screen, and the grid's square buttons as big as the height
+ * left for them allows.
  */
 .lg-stage .ve-ring {
   --seat-scale: 0.8;
 }
 
-@media (min-width: 900px) {
-  .lg-stage .ve-stage-main {
-    justify-content: space-evenly;
-  }
+.lg-stage .ve-stage-main {
+  justify-content: center;
+  gap: clamp(12px, 2.4vh, 28px);
 }
 
 @media (min-width: 900px) and (min-height: 700px) {
