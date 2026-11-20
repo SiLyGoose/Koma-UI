@@ -350,8 +350,9 @@ function renderResult(state: PotatoState): void {
     ui.resultText.textContent = `${last.winners.length} ${last.winners.length === 1 ? 'player was' : 'players were'} still standing and split ${coins(last.prize)}.${won && !page.watching ? ` You won ${coins(won.won)}.` : ''}${fined > 0 ? ` ${coins(fined)} in fines went back into the vault.` : ''}`;
   }
   fillTitles(ui.resultTitles, last.kind === 'done' ? titlesOf(last, state.you) : []);
-  fillList(ui.resultWinners, last.winners.map((w) => ({ text: `${w.name} +${w.won.toLocaleString('en-US')}`, you: w.id === state.you })), 'Nobody');
-  fillList(ui.resultOut, last.out.map((o) => ({ text: `${o.name} paid ${o.fine.toLocaleString('en-US')} · potato ${o.blast}`, you: o.id === state.you })), 'Nobody');
+  // (What each won and paid with its :zeiucoin:.)
+  fillList(ui.resultWinners, last.winners.map((w) => ({ text: [`${w.name} +`, { coins: w.won }], you: w.id === state.you })), 'Nobody');
+  fillList(ui.resultOut, last.out.map((o) => ({ text: [`${o.name} paid `, { coins: o.fine }, ` · potato ${o.blast}`], you: o.id === state.you })), 'Nobody');
   // (Nothing happened in one that never started: no log on the result then.)
   lastStory.render(trailLines(last.trail, namesNow()));
   if (ui.resultTrail.parentElement) ui.resultTrail.parentElement.hidden = last.trail.length === 0;

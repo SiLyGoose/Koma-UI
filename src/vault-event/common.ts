@@ -149,11 +149,22 @@ export const clockText = (ms: number): string => {
 export const reactionText = (ms: number): string => `${(ms / 1000).toFixed(2)}s`;
 
 /** A list's items: each line, or `nobody` when there are none. */
-export function fillList(list: HTMLElement, lines: readonly { text: string; you?: boolean; className?: string }[], nobody: string): void {
+/** A piece of a list's line: words, or an amount of zeiucoins (drawn as the number and :zeiucoin:, as the stats are). */
+export type LinePart = string | { coins: number };
+
+export function fillList(list: HTMLElement, lines: readonly { text: string | readonly LinePart[]; you?: boolean; className?: string }[], nobody: string): void {
   list.replaceChildren(
     ...(lines.length === 0
       ? [el('li', 've-nobody', nobody)]
-      : lines.map((line) => el('li', `${line.className ?? ''}${line.you ? ' you' : ''}`.trim(), line.text))),
+      : lines.map((line) => {
+          const item = el('li', `${line.className ?? ''}${line.you ? ' you' : ''}`.trim());
+          const parts = typeof line.text === 'string' ? [line.text] : line.text;
+          for (const part of parts) {
+            if (typeof part === 'string') item.append(part);
+            else item.append(el('span', 've-amount', part.coins.toLocaleString('en-US')), coin('ve-coin'));
+          }
+          return item;
+        })),
   );
 }
 

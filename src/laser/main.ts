@@ -345,14 +345,15 @@ function renderResult(state: LaserState): void {
       (fined > 0 ? ` ${coins(fined)} in fines went back into the vault.` : '');
   }
   fillTitles(ui.resultTitles, last.kind === 'done' ? titlesOf(last, state.you) : []);
+  // (What each won and paid with its :zeiucoin:.)
   fillList(
     ui.resultWinners,
-    last.winners.map((w, i) => ({ text: `${i + 1}. ${w.name} +${w.won.toLocaleString('en-US')} · ${reactionText(w.totalMs)} in all`, you: w.id === state.you })),
+    last.winners.map((w, i) => ({ text: [`${i + 1}. ${w.name} +`, { coins: w.won }, ` · ${reactionText(w.totalMs)} in all`], you: w.id === state.you })),
     'Nobody',
   );
   fillList(
     ui.resultOut,
-    last.caught.map((c) => ({ text: `${c.name} paid ${c.fine.toLocaleString('en-US')} · ${WHY[c.caughtFor]} (round ${c.round})`, you: c.id === state.you })),
+    last.caught.map((c) => ({ text: [`${c.name} paid `, { coins: c.fine }, ` · ${WHY[c.caughtFor]} (round ${c.round})`], you: c.id === state.you })),
     'Nobody',
   );
 }
