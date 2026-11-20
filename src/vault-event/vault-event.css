@@ -16,7 +16,8 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
-  width: min(1500px, 100% - 24px);
+  /* As wide as the screen (but for a gutter), up to a very wide one. */
+  width: min(2000px, 100% - 32px);
   margin: 20px auto;
   flex: 1;
 }
@@ -72,16 +73,20 @@
 }
 
 /*
- * A computer: the panel on the stage's right, exactly as tall as it (the stage sets the height; the panel's own rows
- * never stretch it, `contain: size`: they scroll inside it instead). The rest of the game (the stats over the stage,
- * the buttons under it) keeps to the middle of the stage, not of the stage and the panel together.
+ * A computer: the stage and the panel take all the height the page has left once the stats over them and the buttons
+ * under them have theirs, in every phase (joining too), and the panel is exactly as tall as the stage (its own rows
+ * never stretch it, `contain: size`: they scroll inside it instead). The rest of the game keeps to the middle of the
+ * stage, not of the stage and the panel together.
  */
 @media (min-width: 900px) {
   .ve-arena {
     display: flex;
+    flex: 1 1 auto;
     flex-direction: row;
     align-items: stretch;
     gap: 18px;
+    /* (Below this, on a very short screen, the page scrolls instead.) */
+    min-height: 320px;
   }
 
   .ve-side {
@@ -613,14 +618,23 @@
 }
 
 /*
- * Round the potato: each seat at its own --x and --y. As tall as the screen has room for once the rest of the game
- * (the stats, the words, the buttons) has its share, and no wider than it looks good. (The arrow is sized to it:
- * ../potato/main.ts.)
+ * Round the potato: each seat at its own --x and --y (ring.ts, which keeps the ellipse from going flat on a wide
+ * stage). On a phone or a tablet, as tall as the screen has room for once the rest of the game has its share; on a
+ * computer it fills what the stage has left, whichever phase the game is in. (The arrow is sized to it: ../potato/main.ts.)
  */
 .ve-ring-circle {
   max-width: 900px;
   height: clamp(240px, 100vh - 560px, 620px);
   height: clamp(240px, 100dvh - 560px, 620px);
+}
+
+@media (min-width: 900px) {
+  .ve-ring-circle {
+    flex: 1 1 0;
+    max-width: none;
+    height: auto;
+    min-height: 240px;
+  }
 }
 
 /* Taller screens, bigger faces. */

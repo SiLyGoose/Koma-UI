@@ -58,7 +58,8 @@ const ui = {
 
 let game: PotatoState | null = null;
 const toast = toaster(ui.toast);
-const seats = ring(ui.ring, 'circle', (id) => passTo(id));
+// (When the ring changes size, its faces are put round it again, and the arrow is aimed again at theirs.)
+const seats = ring(ui.ring, 'circle', (id) => passTo(id), () => aim(game?.live ?? null));
 const story = trail(ui.trail, 'Nothing yet: the first potato comes out when joining closes.');
 const players = roster(ui.roster, ui.sideCount);
 const lastStory = trail(ui.resultTrail, 'Nothing happened.');
@@ -424,8 +425,6 @@ function passTo(id: string): void {
   if (!page.send({ t: 'pass', to: id })) toast('Not connected right now. Try again in a moment.');
 }
 ui.pass.addEventListener('click', pass);
-// The ring's shape changes with the page's: the arrow is aimed again.
-window.addEventListener('resize', () => aim(game?.live ?? null));
 document.addEventListener('keydown', (event) => {
   if (event.repeat || event.ctrlKey || event.metaKey || event.altKey) return;
   if (event.target instanceof HTMLElement && event.target.closest('input, textarea, button, [contenteditable="true"]')) return;

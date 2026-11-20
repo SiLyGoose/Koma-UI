@@ -31,21 +31,56 @@ export interface Ring {
   angleTo(id: string): number | null;
 }
 
-/** Where a seat goes round an ellipse: the first at the top, then clockwise. Percent of the box. */
-function around(i: number, n: number): { x: number; y: number } {
+/** The widest the ellipse gets, for its height: on a wide screen the ring fills the stage, but the faces keep round. */
+const WIDEST = 1.9;
+
+/**
+ * Where a seat goes round an ellipse in a `width` by `height` box: the first at the top, then clockwise. Percent of the
+ * box. It's 40% of the box's height up and down, and 44% of its width across, but never more than WIDEST times as
+ * wide as it is tall.
+ */
+function around(i: number, n: number, width: number, height: number): { x: number; y: number } {
   const angle = -Math.PI / 2 + (2 * Math.PI * i) / Math.max(1, n);
-  return { x: 50 + 44 * Math.cos(angle), y: 50 + 40 * Math.sin(angle) };
+  const across = width > 0 ? Math.min(44, (40 * height * WIDEST) / width) : 44;
+  return { x: 50 + across * Math.cos(angle), y: 50 + 40 * Math.sin(angle) };
 }
 
 /** A face's size for `n` players: smaller as more sit down, so they all fit. */
 const sizeFor = (n: number): number => (n <= 6 ? 58 : n <= 10 ? 50 : n <= 16 ? 42 : n <= 24 ? 36 : 30);
 
-export function ring(box: HTMLElement, layout: 'circle' | 'row', onPick?: (id: string) => void): Ring {
+/**
+ * The ring in `box`. `onPick`: a pickable seat was pressed. `onResize`: the box changed size (the page did, or what's
+ * round the ring), and the seats have been put round it again.
+ */
+export function ring(box: HTMLElement, layout: 'circle' | 'row', onPick?: (id: string) => void, onResize?: () => void): Ring {
   box.classList.add('ve-ring', `ve-ring-${layout}`);
   const seats = new Map<string, { root: HTMLButtonElement; img: HTMLImageElement; label: HTMLElement; mark: HTMLElement }>();
   /** Where each seat sits round the ellipse (`circle`), in percent of the box: where it's going, not where it is mid-move. */
   const spots = new Map<string, { x: number; y: number }>();
+  /** The seats in order, as last rendered (to put round the box again when it changes size). */
+  let order: string[] = [];
   const reduced = (): boolean => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /** Puts every seat round the ellipse, for the box's size now. */
+  function place(): void {
+    if (layout !== 'circle') return;
+    order.forEach((id, i) => {
+      const { x, y } = around(i, order.length, box.clientWidth, box.clientHeight);
+      spots.set(id, { x, y });
+      const root = seats.get(id)?.root;
+      root?.style.setProperty('--x', `${x}%`);
+      root?.style.setProperty('--y', `${y}%`);
+    });
+  }
+
+  let size = '';
+  new ResizeObserver(() => {
+    const now = `${box.clientWidth}x${box.clientHeight}`;
+    if (now === size) return;
+    size = now;
+    place();
+    onResize?.();
+  }).observe(box);
 
   function seatOf(id: string): HTMLButtonElement {
     const known = seats.get(id);
@@ -81,15 +116,11 @@ export function ring(box: HTMLElement, layout: 'circle' | 'row', onPick?: (id: s
       spots.delete(id);
     }
     box.style.setProperty('--seat', `${sizeFor(list.length)}px`);
+    order = list.map((s) => s.id);
+    for (const s of list) seatOf(s.id);
+    place();
     list.forEach((s, i) => {
-      seatOf(s.id);
       const seat = seats.get(s.id)!;
-      if (layout === 'circle') {
-        const { x, y } = around(i, list.length);
-        spots.set(s.id, { x, y });
-        seat.root.style.setProperty('--x', `${x}%`);
-        seat.root.style.setProperty('--y', `${y}%`);
-      }
       seat.root.style.order = String(i);
       if (seat.img.getAttribute('src') !== s.avatar) seat.img.src = s.avatar;
       seat.label.textContent = s.you ? 'You' : s.name;

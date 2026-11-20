@@ -1,20 +1,15 @@
 /* Laser Grid (main.ts): a row of buttons, all alike until the laser fires; then Duck! in green (and its fakes, as green), lasers in red, and the time left. */
 
 /*
- * As Hot Potato's stage does, the game takes the share of the page the screen has room for (on a computer: the panel
- * beside it): the stage as tall as the page lets it be, its parts spread down it, the faces over the grid growing with
- * the screen, and the grid's square buttons as big as the height left for them allows.
+ * As Hot Potato's stage does, the game takes all the page the screen has room for (on a computer, every phase, joining
+ * too: ../vault-event/vault-event.css's .ve-arena): its parts spread down the stage, the faces over the grid growing
+ * with the screen, and the grid's square buttons as big as the height left for them allows.
  */
 .lg-stage .ve-ring {
   --seat-scale: 0.8;
 }
 
 @media (min-width: 900px) {
-  .lg-stage {
-    min-height: clamp(400px, 100vh - 390px, 800px);
-    min-height: clamp(400px, 100dvh - 390px, 800px);
-  }
-
   .lg-stage .ve-stage-main {
     justify-content: space-evenly;
   }
